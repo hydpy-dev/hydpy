@@ -1,0 +1,49 @@
+
+.. _Tyralla and Schumann (2013): https://www.deutsche-digitale-bibliothek.de/binary/5SSCDNE4JTDF7B2SY5NSQ34ZI2UV2V4R/full/1.pdf
+.. _Lindstroem et al. (1997): http://www.sciencedirect.com/science/article/pii/S0022169497000413
+
+.. _HydPy-H:
+
+HydPy-H (HBV96)
+===============
+
+HydPy implements a very close emulation of the central routines of 
+the famous HBV96 model, introduced by `Lindström et al. (1997)`_.  
+As discussed in `Tyralla and Schumann (2013)`_, the results of 
+HydPy-H and the IHMS-HBV96 implementation of the Swedish Meteorological
+and Hydrological Institute agree very well for the majority of the 
+tested river basins [#f1]_ . This documentation focusses on technical
+aspects of HydPy-H and tries to be as precise as possible regarding
+the implementation of the process equations.  The background
+of the scientifical developement of the HBV96 model is more thoroughly 
+covered in `Lindström et al. (1997)`_.
+
+HydPy-H is divided into three models:  
+
+.. toctree::
+
+   HydPy-H-Land
+   HydPy-H-Stream
+   HydPy-H-Branch
+
+H-Land, H-Stream and H-Branch are stand-alone models, which can be 
+combined freely with all other models implemented in HydPy. 
+   
+.. rubric:: Footnotes
+   
+.. [#f1] Unfortunately, the report `Tyralla and Schumann (2013)`_
+  is only available in German so far.  But inspecting pictures 2.2 to 2.11
+  should be instructive nonetheless. The simulated runoff values are 
+  virtuelly identical for catchments in high and low mountain ranges as
+  well as in lowland areas (pictures 2.2 to 2.5).  The same is true for
+  all internal states, beginning with the interception storage (picture 2.6)
+  and ending with the lower groundwater storage (picture 2.11).  Table 2.5
+  evaluates the aggreement between the results of HydPy-H and the IHMS-HBV96
+  implementation of the SMHI for the whole Rhine river basin, using the 
+  Nash-Sutcliffe efficiency.  Relevant differences occur only within the
+  Main river basin.  These differences result from implausible evaporation 
+  values calculated by the IHMS software.  If these is due to a bug of the
+  IHMS software or due to an incorrect configuration of the HBV forecasting 
+  model of the German Federal Institute for Hydrology could not be clarified 
+  so far.
+  

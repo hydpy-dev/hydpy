@@ -81,11 +81,14 @@ def modulename(self):
     return self.__module__.split('.')[-1]
 
 def devicename(self):
-    """Try to return the name of the master element, otherwise return `?`."""
+    """Try to return the name of the (indirect) master 
+    :class:`~hydpy.framework.devicetools.Node` or 
+    :class:`~hydpy.framework.devicetools.Element` instance, 
+    otherwise return `?`."""
     while True:
-        element = getattr(self, 'element', None)
-        if element is not None:
-            return element.name
+        device = getattr(self, 'element', getattr(self, 'node', None))
+        if device is not None:
+            return device.name
         for test in ('model', 'seqs', 'subseqs', 'pars', 'subpars'):
             master = getattr(self, test, None)
             if master is not None:

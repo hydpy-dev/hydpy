@@ -76,7 +76,7 @@ class Parameters(object):
 
     @property
     def _controldefaultfilename(self):
-        filename = objecttools.elementname(self)
+        filename = objecttools.devicename(self)
         if filename == '?':
             raise RuntimeError(
                 'To save the control parameters of a model to a file, its '
@@ -198,11 +198,11 @@ class Parameter(objecttools.ValueMath, objecttools.Trimmer):
             raise ValueError('For parameter %s of element %s both positional '
                              'and keyword arguments are given, which is '
                              'ambiguous.' 
-                             % (self.name, objecttools.elementname(self)))
+                             % (self.name, objecttools.devicename(self)))
         elif not args and not kwargs:
             raise ValueError('For parameter %s of element %s neither a '
                              'positional nor a keyword argument is given.' 
-                             % (self.name, objecttools.elementname(self)))            
+                             % (self.name, objecttools.devicename(self)))            
         elif 'pyfile' in kwargs:
             values = self._getvalues_from_auxiliaryfile(kwargs['pyfile'])
             self.values = self.applytimefactor(values)
@@ -214,7 +214,7 @@ class Parameter(objecttools.ValueMath, objecttools.Trimmer):
                                       'element %s could not be set based on '
                                       'the given keyword arguments.' 
                                       % (self.name, 
-                                         objecttools.elementname(self)))
+                                         objecttools.devicename(self)))
         self.trim()
 
     def _getvalues_from_auxiliaryfile(self, pyfile):
@@ -307,7 +307,7 @@ class Parameter(objecttools.ValueMath, objecttools.Trimmer):
                       'needed to be trimmed.  Two possible reasons could be '
                       'that the a parameter bound violated or that the values '
                       'of two (or more) different parameters are inconsistent.'
-                      % (self.name, objecttools.elementname(self)))
+                      % (self.name, objecttools.devicename(self)))
                       
     def applytimefactor(self, values):
         """Change the given parameter value/values in accordance with the 

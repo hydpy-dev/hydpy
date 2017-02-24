@@ -111,7 +111,7 @@ class Sequences(object):
     
     @property
     def _conditiondefaultfilename(self):
-        filename = objecttools.elementname(self)
+        filename = objecttools.devicename(self)
         if filename == '?':
             raise RuntimeError(
                 'To load or save the conditions of a model from or to a file, '
@@ -142,7 +142,7 @@ class Sequences(object):
                 exc, message, traceback_ = sys.exc_info()
                 message = ('While trying to gather initial conditions of '
                            'element %s, the following error occured:  %s' 
-                           % (objecttools.elementname(self), message))
+                           % (objecttools.devicename(self), message))
                 raise exc, message, traceback_
     
     def saveconditions(self, filename=None, dirname=None):
@@ -432,7 +432,7 @@ class Sequence(objecttools.ValueMath):
         if value is None:
             raise RuntimeError('No value/values of sequence %s of element '
                                '%s has/have been defined so far.' 
-                               % (self.name, objecttools.elementname(self)))
+                               % (self.name, objecttools.devicename(self)))
         else:
             if self.NDIM:
                 value = numpy.asarray(value)
@@ -446,7 +446,7 @@ class Sequence(objecttools.ValueMath):
                                      'sequence %s of element %s, which is '
                                      'ambiguous.'
                                      % (len(value), 
-                                        objecttools.elementname(self),
+                                        objecttools.devicename(self),
                                         self.name))
                 value = temp
             except (TypeError, IndexError):
@@ -457,7 +457,7 @@ class Sequence(objecttools.ValueMath):
                 raise TypeError('When trying to set the value of sequence '
                                 '%s of element %s, it was not possible to '
                                 'convert value `%s` to float .' 
-                                % (self.name, objecttools.elementname(self),
+                                % (self.name, objecttools.devicename(self),
                                    value))
         else:
             try:
@@ -471,7 +471,7 @@ class Sequence(objecttools.ValueMath):
                                  'values failed.  The values `%s` cannot be '
                                  'converted to a numpy ndarray with shape %s '
                                  'containing entries of type float.' 
-                                 % (self.name, objecttools.elementname(self), 
+                                 % (self.name, objecttools.devicename(self), 
                                     value, self.shape))
         setattr(self.fastaccess, self.name, value)                      
     value = property(_getvalue, _setvalue)
@@ -491,7 +491,7 @@ class Sequence(objecttools.ValueMath):
                                    'element %s can only be retrieved after '
                                    'it has been defined.' 
                                    % (self.name, 
-                                      objecttools.elementname(self)))   
+                                      objecttools.devicename(self)))   
         else:
             return ()
     def _setshape(self, shape):
@@ -503,7 +503,7 @@ class Sequence(objecttools.ValueMath):
                 message = ('While trying create a new :class:`~numpy.ndarray` '
                            'for sequence %s of element %s,the following error '
                            'occured: %s' % (self.name, 
-                                            objecttools.elementname(self), 
+                                            objecttools.devicename(self), 
                                             message))
                 raise Exception_, message, traceback_
             if array.ndim == self.NDIM:
@@ -511,14 +511,14 @@ class Sequence(objecttools.ValueMath):
             else:
                 raise ValueError('Sequence %s of element %s is %d-dimensional '
                                  'but the given shape indicates %d dimensions.'
-                                 % (self.name, objecttools.elementname(self),
+                                 % (self.name, objecttools.devicename(self),
                                     self.NDIM, array.ndim))
         else:
             if shape:
                 raise ValueError('The shape information of 0-dimensional '
                                  'sequences as %s of element %s can only be '
                                  '`()`, but `%s` is given.' 
-                                 % (self.name, objecttools.elementname(self), 
+                                 % (self.name, objecttools.devicename(self), 
                                     shape))
             else:
                 self.value = 0.
@@ -614,7 +614,7 @@ class IOSequence(Sequence):
                                    'framework in the common manner to allow '
                                    'for an automatic determination.' 
                                    % (self.name, 
-                                      objecttools.elementname(self)))
+                                      objecttools.devicename(self)))
     def _setfiletype_ext(self, name):
         self._filetype_ext = name
     def _delfiletype_ext(self, name):
@@ -1004,7 +1004,7 @@ class ConditionSequence(objecttools.Trimmer):
                       'needed to be trimmed.  One possible reason could be '
                       'that the related control parameter and initial '
                       'condition files are inconsistent.' 
-                      % (self.name, objecttools.elementname(self)))
+                      % (self.name, objecttools.devicename(self)))
 
     def reset(self):
         if self._oldargs:

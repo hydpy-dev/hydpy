@@ -80,7 +80,7 @@ def modulename(self):
     """
     return self.__module__.split('.')[-1]
 
-def elementname(self):
+def devicename(self):
     """Try to return the name of the master element, otherwise return `?`."""
     while True:
         element = getattr(self, 'element', None)

@@ -10,7 +10,7 @@ from matplotlib import pyplot
 # ...from HydPy
 from . import connectiontools
 from . import pub
-from . import objecttools
+
 from . import sequencetools
 from ..cythons import pointer
 

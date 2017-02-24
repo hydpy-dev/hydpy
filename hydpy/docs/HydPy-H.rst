@@ -8,15 +8,15 @@ HydPy-H (HBV96)
 ===============
 
 HydPy implements a very close emulation of the central routines of 
-the famous HBV96 model, introduced by `Lindström et al. (1997)`_.  
+the famous HBV96 model, introduced by `Lindstroem et al. (1997)`_.  
 As discussed in `Tyralla and Schumann (2013)`_, the results of 
 HydPy-H and the IHMS-HBV96 implementation of the Swedish Meteorological
 and Hydrological Institute agree very well for the majority of the 
 tested river basins [#f1]_ . This documentation focusses on technical
 aspects of HydPy-H and tries to be as precise as possible regarding
 the implementation of the process equations.  The background
-of the scientifical developement of the HBV96 model is more thoroughly 
-covered in `Lindström et al. (1997)`_.
+of the scientifical development of the HBV96 model is more thoroughly 
+covered in `Lindstroem et al. (1997)`_.
 
 HydPy-H is divided into three models:  
 

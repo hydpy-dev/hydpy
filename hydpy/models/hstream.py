@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+"""Christoph Tyralla, 6 February 2017."""
 
 # import...
 # ...from standard library

@@ -1,6 +1,9 @@
 *.spyderproject
 *.spyderworkspace
 *.pyc
+*.pyd
+*.pxd
+!pointer.pxd
 *.c
 *.h
 build

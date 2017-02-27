@@ -4,10 +4,10 @@
 # ...standard library
 from __future__ import division, print_function
 # ...HydPy specific
-from ...framework import modeltools
-from ...cythons import modelutils
+from hydpy.framework import modeltools
+from hydpy.cythons import modelutils
 # ...model specifc
-from .hland_constants import FIELD, FOREST, GLACIER, ILAKE
+from hydpy.models.hland.hland_constants import FIELD, FOREST, GLACIER, ILAKE
 
 class Model(modeltools.Model):
     """The HydPy-H-Land model.

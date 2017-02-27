@@ -4,9 +4,9 @@
 # ...from standard library
 from __future__ import division, print_function
 # ...HydPy specific
-from ...framework import parametertools
+from hydpy.framework import parametertools
 # ...model specific
-from . import hland_parameters
+from hydpy.models.hland import hland_parameters
 
 class RelZoneArea(hland_parameters.MultiParameter):
     """Relative zone area [-]."""

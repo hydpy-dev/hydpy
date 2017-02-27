@@ -5,23 +5,23 @@ An interactive framework for the developement and a application of
 hydrological models.
 """
 
-from .framework.hydpytools import HydPy
-from .framework.timetools import Date
-from .framework.timetools import Period
-from .framework.timetools import Timegrid
-from .framework.timetools import Timegrids
-from .framework.filetools import MainManager
-from .framework.filetools import NetworkManager
-from .framework.filetools import ControlManager
-from .framework.filetools import SequenceManager
-from .framework.filetools import ConditionManager
-from .framework.devicetools import Node
-from .framework.devicetools import Nodes
-from .framework.devicetools import Element
-from .framework.devicetools import Elements
-from .framework.selectiontools import Selection
-from .framework.selectiontools import Selections
-from .framework import pub
+from hydpy.framework.hydpytools import HydPy
+from hydpy.framework.timetools import Date
+from hydpy.framework.timetools import Period
+from hydpy.framework.timetools import Timegrid
+from hydpy.framework.timetools import Timegrids
+from hydpy.framework.filetools import MainManager
+from hydpy.framework.filetools import NetworkManager
+from hydpy.framework.filetools import ControlManager
+from hydpy.framework.filetools import SequenceManager
+from hydpy.framework.filetools import ConditionManager
+from hydpy.framework.devicetools import Node
+from hydpy.framework.devicetools import Nodes
+from hydpy.framework.devicetools import Element
+from hydpy.framework.devicetools import Elements
+from hydpy.framework.selectiontools import Selection
+from hydpy.framework.selectiontools import Selections
+from hydpy import pub
 
 import warnings
 import sys

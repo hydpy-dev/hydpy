@@ -6,10 +6,10 @@ from __future__ import division, print_function
 # ...third party
 import numpy
 # ...HydPy specific
-from ...framework import parametertools
-from ...framework import objecttools
+from hydpy.framework import parametertools
+from hydpy.framework import objecttools
 # ...model specific
-from .hland_constants import FIELD, FOREST, GLACIER, ILAKE, CONSTANTS
+from hydpy.models.hland.hland_constants import FIELD, FOREST, GLACIER, ILAKE, CONSTANTS
 
 
 class MultiParameter(parametertools.MultiParameter):

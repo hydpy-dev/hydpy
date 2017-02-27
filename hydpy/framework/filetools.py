@@ -7,11 +7,11 @@ import os
 import sys
 import warnings
 # ...from HydPy
-from . import pub
-from . import objecttools
-from . import timetools
-from . import devicetools
-from . import selectiontools
+from hydpy import pub
+from hydpy.framework import objecttools
+from hydpy.framework import timetools
+from hydpy.framework import devicetools
+from hydpy.framework import selectiontools
 
 
 class MainManager(object):

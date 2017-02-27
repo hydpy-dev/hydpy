@@ -20,10 +20,10 @@ import Cython.Build
 import numpy
 # ...from HydPy
 from .. import cythons
-from ..framework import pub
-from ..framework import objecttools
-from ..framework import sequencetools
-from ..framework import magictools
+from hydpy import pub
+from hydpy.framework import objecttools
+from hydpy.framework import sequencetools
+from hydpy.framework import magictools
 
 TYPE2STR = {bool: 'bint',
             int: 'int',

@@ -13,10 +13,10 @@ import warnings
 # ...third party
 import numpy
 # ...HydPy specific
-from . import pub
-from . import objecttools
-from . import filetools
-from . import timetools
+from hydpy import pub
+from hydpy.framework import objecttools
+from hydpy.framework import filetools
+from hydpy.framework import timetools
 
 
 # The import of `_strptime` is not thread save.  The following call of 

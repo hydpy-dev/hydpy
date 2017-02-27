@@ -1,11 +1,13 @@
+# -*- coding: utf-8 -*-
 
 # import...
 # ...from standard library
 from __future__ import division, print_function
-import sys
 # ...from HydPy
-from . import pub
-from . import objecttools
+from hydpy import pub
+from hydpy.framework import objecttools
+
+
 class Model(object):
     """Base class for hydrological models."""
     

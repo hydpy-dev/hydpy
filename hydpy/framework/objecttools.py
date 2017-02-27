@@ -8,7 +8,7 @@ import sys
 # ...from site-packages
 import numpy
 # ...from HydPy
-#from . import pub
+#from hydpy import pub
 # (actual import moved to  dir_ method to avoid circular dependencies)
 
 def dir_(self):
@@ -34,7 +34,7 @@ def dir_(self):
     ['only_public_attribute']
 
     """
-    from . import pub
+    from hydpy import pub
     names = set()
     for thing in list(inspect.getmro(type(self))) + [self]:
         for name in vars(thing).iterkeys():

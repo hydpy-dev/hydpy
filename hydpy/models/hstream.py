@@ -8,15 +8,15 @@ import warnings
 # ...third party
 import numpy
 # ...HydPy specific
-from ..framework import modeltools
-from ..framework import parametertools
-from ..framework import sequencetools
+from hydpy.framework import modeltools
+from hydpy.framework import parametertools
+from hydpy.framework import sequencetools
 # Load the required `magic` functions into the local namespace.
-from ..framework.magictools import parameterstep
-from ..framework.magictools import simulationstep
-from ..framework.magictools import controlcheck
-from ..framework.magictools import Tester
-from ..cythons.modelutils import Cythonizer
+from hydpy.framework.magictools import parameterstep
+from hydpy.framework.magictools import simulationstep
+from hydpy.framework.magictools import controlcheck
+from hydpy.framework.magictools import Tester
+from hydpy.cythons.modelutils import Cythonizer
 
 ###############################################################################
 # Model

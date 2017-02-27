@@ -333,7 +333,7 @@ import time
 # ...from third party packages
 import numpy
 # ...from HydPy
-from . import objecttools
+from hydpy.framework import objecttools
 
 # The import of `_strptime` is not thread save.  The following call of 
 # `strptime` is supposed to prevent possible problems arising from this bug. 

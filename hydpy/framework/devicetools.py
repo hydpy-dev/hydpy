@@ -8,11 +8,11 @@ import struct
 # ...from site-packages
 from matplotlib import pyplot
 # ...from HydPy
-from . import connectiontools
-from . import pub
-from . import objecttools
-from . import sequencetools
-from ..cythons import pointer
+from hydpy import pub
+from hydpy.framework import connectiontools
+from hydpy.framework import objecttools
+from hydpy.framework import sequencetools
+from hydpy.cythons import pointer
 
 
 class Device(object):

@@ -17,10 +17,10 @@ import warnings
 # ...from site-packages
 import numpy
 # ...from HydPy
-from . import pub
-from . import timetools
-from . import objecttools
-from ..cythons import pointer
+from hydpy import pub
+from hydpy.framework import timetools
+from hydpy.framework import objecttools
+from hydpy.cythons import pointer
 
 class Sequences(object):
     """Base class for handling all sequences of a specific model."""

@@ -8,7 +8,7 @@ import warnings
 # ...from site-packages
 import numpy
 # ...HydPy specific
-from ...framework import sequencetools
+from hydpy.framework import sequencetools
 
 
 class QUH(sequencetools.LogSequence):

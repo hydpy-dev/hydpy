@@ -7,11 +7,11 @@ import os
 import time
 import warnings
 # ...from HydPy
-from . import pub
-from . import filetools
-from . import devicetools
-from . import selectiontools
-from . import magictools
+from hydpy import pub
+from hydpy.framework import filetools
+from hydpy.framework import devicetools
+from hydpy.framework import selectiontools
+from hydpy.framework import magictools
 
 
 class HydPy(object):

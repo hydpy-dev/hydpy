@@ -10,11 +10,11 @@ import warnings
 import importlib
 import doctest
 # ...from HydPy
-from . import pub
-from . import timetools
-from . import filetools
-from . import parametertools
-from . import devicetools
+from hydpy import pub
+from hydpy.framework import timetools
+from hydpy.framework import filetools
+from hydpy.framework import parametertools
+from hydpy.framework import devicetools
 
 _warnsimulationstep = True
 

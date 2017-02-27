@@ -4,8 +4,8 @@
 # ...from standard library
 from __future__ import division, print_function
 # ...HydPy specific
-from ...framework import sequencetools
-from .hland_constants import ILAKE
+from hydpy.framework import sequencetools
+from hydpy.models.hland.hland_constants import ILAKE
 
 
 class Ic(sequencetools.StateSequence):

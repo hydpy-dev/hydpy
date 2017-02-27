@@ -2,7 +2,7 @@
 import sys as __sys
 import platform as __platform
 
-from . import objecttools 
+from hydpy.framework import objecttools 
 
 projectname = None
 

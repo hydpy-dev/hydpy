@@ -8,7 +8,7 @@ from distutils.extension import Extension
 import Cython.Build
 import numpy
 
-ext_sources = os.path.abspath(os.path.join('hydpy', 'cythons', 'pointer.pyx'))
+ext_sources = os.path.join('hydpy', 'cythons', 'pointer.pyx')
 ext_modules = Extension('hydpy.cythons.pointer', [ext_sources])
 setup(name='HydPy',
       version='2.0.0.dev1',
@@ -18,8 +18,8 @@ setup(name='HydPy',
       author_email='Christoph.Tyralla@rub.de',
       license='GPL-3.0',
       keywords='hydrology modelling water balance rainfall runoff',
-      packages=['hydpy'],
-      install_requires=['Cython', 'numpy', 'matplotlib'],
+      packages=['hydpy', 'hydpy.cythons', 'hydpy.framework','hydpy.models',
+                'hydpy.models.hland'],
       cmdclass={'build_ext': Cython.Build.build_ext},
       ext_modules=Cython.Build.cythonize(ext_modules),
       include_dirs=[numpy.get_include()])

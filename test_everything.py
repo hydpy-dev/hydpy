@@ -17,11 +17,33 @@ for (idx, path) in enumerate(sys.path):
         break
 sys.path.insert(0, path)
 
-#module_names = [fn.split('.')[0] for fn in os.listdir('.') if 
-#                (fn.startswith('test') and fn.endswith('.py'))]
-module_names = ['test_01_pointer']
-for module_name in module_names:
-    module = importlib.import_module('hydpy.unittests.'+module_name)
+#tests = [fn.split('.')[0] for fn in os.listdir('.') if 
+#         (fn.startswith('test') and fn.endswith('.py'))]
+tests = {'test_01_pointer': None}
+for name in tests.keys():
+    module = importlib.import_module('hydpy.unittests.'+name)
+    runner = unittest.TextTestRunner(stream=open(os.devnull, 'w'))
     suite = unittest.TestLoader().loadTestsFromModule(module)
-    unittest.TextTestRunner(verbosity=0).run(suite)
+    tests[name] = runner.run(suite)
+
+tests = {name: runner for name, runner in tests.items() if runner.failures}
+if tests:
+    print()
+    print('At least one unit test failed in each of the following modules:')
+    for name in sorted(tests.keys()):
+        print('    %s (%d failures)' % (name, len(tests[name].failures))) 
+    for name in sorted(tests.keys()):
+        print()
+        print('Detailed information on module %s:' % name)
+        for idx, failure in enumerate(tests[name].failures):
+            print('    Error no. %d:' % (idx+1))
+            print('        %s' % failure[0])
+            for line in failure[1].split('\n'):
+                print('        %s' % line)
+    sys.exit(1)
+else:
+    sys.exit(0)
+        
+
+    
 

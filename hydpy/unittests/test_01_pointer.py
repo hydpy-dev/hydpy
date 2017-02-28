@@ -40,7 +40,7 @@ class Test2InputConversion(unittest.TestCase):
         self.assertEqual(self.d_x + self.f_y,
                          self.f_x + self.f_y)
     def test_float_add_double(self):
-        self.assertEqual(self.f_x + self.d_y,
+        self.assertEqual(self.f_x - self.d_y,
                          self.f_x + self.f_y)
     def test_p_double_add_float(self):
         self.assertEqual(self.p_x + self.f_y,

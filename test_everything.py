@@ -10,6 +10,12 @@ from __future__ import division, print_function
 import unittest
 import os
 import importlib
+import sys
+for (idx, path) in enumerate(sys.path):
+    if path.endswith('site-packages'):
+        del(sys.path[idx])
+        break
+sys.path.insert(0, path)
 
 #module_names = [fn.split('.')[0] for fn in os.listdir('.') if 
 #                (fn.startswith('test') and fn.endswith('.py'))]

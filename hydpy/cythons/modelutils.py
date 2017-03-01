@@ -19,8 +19,8 @@ import Cython.Build
 # ...third party modules
 import numpy
 # ...from HydPy
-from .. import cythons
 from hydpy import pub
+from hydpy import cythons
 from hydpy.framework import objecttools
 from hydpy.framework import sequencetools
 from hydpy.framework import magictools
@@ -115,6 +115,11 @@ class Cythonizer(object):
         return os.path.join(self.cydirpath, '_build')
     
     @property
+    def dllextension(self):
+        """Returns the dll file extension on the respective system."""
+        return '.'+cythons.pointer.__file__.split('.')[-1]
+        
+    @property
     def pyxwriter(self):
         """Update the pyx file."""
         model = self.Model()
@@ -168,26 +173,25 @@ class Cythonizer(object):
         for dirinfo in dirinfos:
             try: 
                 shutil.move(os.path.join(dirinfo[0],
-                                         self.cymodulename+'.pyd'),
+                                         self.cymodulename+self.dllextension),
                             os.path.join(self.cydirpath, 
-                                         self.cymodulename+'.pyd'))
+                                         self.cymodulename+self.dllextension))
                 break
             except BaseException:
                 pass
         else:
-            exc, message, traceback_ = sys.exc_info()
-            message = ('After trying to cythonize module %s, it was not '
-                       'possible to copy the final cython module %s from '
-                       '(a subdirectory of) the directory %s to the '
-                       'directory %s. The following error occured: %s.  '
-                       '(A likely error cause is that the cython module does '
-                       'already exist in this directory and is currently '
-                       'imported by another Python process. Maybe it helps '
-                       'to close all Python processes and restart the '
-                       'cyhonization afterwards.)'
-                        % (self.pymodulename, self.cymodulename+'.pyd',
-                           self.buildpath, self.cydirpath, message))
-            raise exc, message, traceback_
+            raise OSError('After trying to cythonize module %s, it was not '
+                          'possible to copy the final cython module %s from '
+                          '(a subdirectory of) the directory %s to the '
+                          'directory %s.  (A likely error cause is that the '
+                          'cython module does already exist in this directory '
+                          'and is currently imported by another Python '
+                          'process. Maybe it helps to close all Python '
+                          'processes and restart the cyhonization afterwards.)'
+                          % (self.pymodulename, 
+                             self.cymodulename+self.dllextension,
+                             self.buildpath, self.cydirpath))
+            raise OSError()
         try:
             os.remove(self.buildpath)
         except OSError:

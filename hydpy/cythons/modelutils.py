@@ -63,14 +63,16 @@ class Cythonizer(object):
     
     def complete(self):
         if self.outdated:
-            pub.options.usecython = False
-            pub.options.refreshmodels = False
-            self.tester.doit()
+            if not pub.options.skipdoctests:
+                pub.options.usecython = False
+                pub.options.refreshmodels = False
+                self.tester.doit()
             self.doit()
-            pub.options.usecython = True
-            pub.options.refreshmodels = True
-            self.tester.doit()
-            pub.options.refreshmodels = False
+            if not pub.options.skipdoctests:
+                pub.options.usecython = True
+                pub.options.refreshmodels = True
+                self.tester.doit()
+                pub.options.refreshmodels = False
             
     def doit(self):
         with magictools.PrintStyle(color=33, font=4):
@@ -95,7 +97,7 @@ class Cythonizer(object):
     @property
     def cydirpath(self):
         """Absolute path of the directory containing the compiled modules."""
-        return os.path.join(cythons.__path__[0])
+        return cythons.__path__[0]
 
     @property
     def cymodule(self):
@@ -106,6 +108,11 @@ class Cythonizer(object):
     def cyfilepath(self):
         """Absolute path of the compiled module."""
         return os.path.join(self.cydirpath, self.cymodulename+'.pyx')
+    
+    @property
+    def buildpath(self):
+        """Absolute path for temporarily build files."""
+        return os.path.join(self.cydirpath, '_build')
     
     @property
     def pyxwriter(self):
@@ -151,34 +158,38 @@ class Cythonizer(object):
     def compile_(self):
         """Translate cython code to C code and compile it."""
         argv = copy.deepcopy(sys.argv)
-        sys.argv = [sys.argv[0], 
-                    'build_ext',
-                    '--build-lib=%s' % self.cydirpath]
+        sys.argv = [sys.argv[0], 'build_ext', '--build-lib='+self.buildpath]
         exc_modules = Cython.Build.cythonize(self.cyfilepath)
         distutils.core.setup(ext_modules=exc_modules,
                              include_dirs=[numpy.get_include()])
         sys.argv = argv
-        try:
-            shutil.move(os.path.join(self.cydirpath, 'hydpy', 'cythons', 
-                                     self.cymodulename+'.pyd'),
-                        os.path.join(self.cydirpath, self.cymodulename+'.pyd'))
-        except BaseException:
+        dirinfos = os.walk(self.buildpath)
+        next(dirinfos)
+        for dirinfo in dirinfos:
+            try: 
+                shutil.move(os.path.join(dirinfo[0],
+                                         self.cymodulename+'.pyd'),
+                            os.path.join(self.cydirpath, 
+                                         self.cymodulename+'.pyd'))
+                break
+            except BaseException:
+                pass
+        else:
             exc, message, traceback_ = sys.exc_info()
             message = ('After trying to cythonize module %s, it was not '
                        'possible to copy the final cython module %s from '
-                       'the directory %s to the directory %s. The following '
-                       'error occured: %s.  '
+                       '(a subdirectory of) the directory %s to the '
+                       'directory %s. The following error occured: %s.  '
                        '(A likely error cause is that the cython module does '
                        'already exist in this directory and is currently '
                        'imported by another Python process. Maybe it helps '
-                       'to close all Python processes and restart the'
+                       'to close all Python processes and restart the '
                        'cyhonization afterwards.)'
                         % (self.pymodulename, self.cymodulename+'.pyd',
-                           os.path.join(self.cydirpath, 'hydpy', 'cythons'),
-                           self.cydirpath, message))
+                           self.buildpath, self.cydirpath, message))
             raise exc, message, traceback_
         try:
-            os.remove(os.path.join(self.cydirpath, 'hydpy'))
+            os.remove(self.buildpath)
         except OSError:
             pass
     

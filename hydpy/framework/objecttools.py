@@ -104,6 +104,7 @@ class Options(object):
         self._verbosedir = False
         self._reprcomments = True
         self._usecython = True
+        self._skipdoctests = False
         self._refreshmodels = False
 
     def _getprintprogress(self):
@@ -139,6 +140,13 @@ class Options(object):
         self._usecython = bool(value)
     usecython = property(_getusecython, _setusecython)
     
+    def _getskipdoctests(self):
+        """..."""
+        return self._skipdoctests
+    def _setskipdoctests(self, value):
+        self._skipdoctests = bool(value)
+    skipdoctests = property(_getskipdoctests, _setskipdoctests)
+
     def _getrefreshmodels(self):
         """..."""
         return self._refreshmodels

@@ -102,7 +102,7 @@ class Cythonizer(object):
     @property
     def cymodule(self):
         """The compiled module."""
-        return importlib.import_module('.cythons.'+self.cymodulename, 'hydpy')
+        return importlib.import_module('hydpy.cythons.'+self.cymodulename)
         
     @property
     def cyfilepath(self):
@@ -247,11 +247,11 @@ class PyxWriter(object):
                      'from libc.stdio cimport *',
                      'from libc.stdlib cimport *',
                      'import cython',
-                     'cimport pointer',
-                     'import pointer',
                      'from cpython.mem cimport PyMem_Malloc',
                      'from cpython.mem cimport PyMem_Realloc',
-                     'from cpython.mem cimport PyMem_Free')
+                     'from cpython.mem cimport PyMem_Free',
+                     'from hydpy.cythons cimport pointer',
+                     'from hydpy.cythons import pointer')
     
     @property
     def constants(self):

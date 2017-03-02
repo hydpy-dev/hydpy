@@ -58,6 +58,7 @@ if failedunittests:
 
 from hydpy import pub
 pub.options.reprcomments = False
+pub.options.usecython = False
 import hydpy
 doctests = {}
 for dirinfo in os.walk(hydpy.__path__[0]):

@@ -5,7 +5,7 @@ python:
 # command to install dependencies
 install: 
   - pip install Cython --install-option="--no-cython-compile"
-  - pip install numpy
+  - pip install numpy --upgrade
   - pip install matplotlib
   - python setup.py install
 # command to run tests

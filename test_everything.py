@@ -19,10 +19,10 @@ if 'test_as_site-package' in sys.argv:
             del(sys.path[idx])
             break
     sys.path.insert(0, path)
-    
+
 import hydpy.unittests
 filenames = os.listdir(hydpy.unittests.__path__[0])
-unittests = {fn.split('.')[0]: None for fn in filenames if 
+unittests = {fn.split('.')[0]: None for fn in filenames if
              (fn.startswith('test') and fn.endswith('.py'))}
 for name in unittests.keys():
     module = importlib.import_module('hydpy.unittests.'+name)
@@ -30,23 +30,23 @@ for name in unittests.keys():
     suite = unittest.TestLoader().loadTestsFromModule(module)
     unittests[name] = runner.run(suite)
 
-successfulunittests = {name: runner for name, runner in unittests.items() 
+successfulunittests = {name: runner for name, runner in unittests.items()
                        if not runner.failures}
-failedunittests = {name: runner for name, runner in unittests.items() 
+failedunittests = {name: runner for name, runner in unittests.items()
                    if runner.failures}
 
 if successfulunittests:
     print()
     print('In the following modules, no unit test failed:')
     for name in sorted(successfulunittests.keys()):
-        print('    %s (%d successes)' 
-              % (name, successfulunittests[name].testsRun))    
+        print('    %s (%d successes)'
+              % (name, successfulunittests[name].testsRun))
 if failedunittests:
     print()
     print('At least one unit test failed in each of the following modules:')
     for name in sorted(failedunittests.keys()):
-        print('    %s (%d failures)' 
-              % (name, len(failedunittests[name].failures))) 
+        print('    %s (%d failures)'
+              % (name, len(failedunittests[name].failures)))
     for name in sorted(failedunittests.keys()):
         print()
         print('Detailed information on module %s:' % name)
@@ -66,7 +66,7 @@ for dirinfo in os.walk(hydpy.__path__[0]):
     packagename = dirinfo[0].replace(os.sep, '.')+'.'
     packagename = packagename[packagename.find('hydpy.'):]
     level = packagename.count('.')-1
-    modulenames = [packagename+fn.split('.')[0] 
+    modulenames = [packagename+fn.split('.')[0]
                    for fn in dirinfo[2] if fn.endswith('.py')]
     for modulename in modulenames:
         module = importlib.import_module(modulename)
@@ -77,25 +77,25 @@ for dirinfo in os.walk(hydpy.__path__[0]):
         except ValueError:
             pass
         else:
-            doctests[modulename] = runner.run(suite)    
+            doctests[modulename] = runner.run(suite)
 
-successfuldoctests = {name: runner for name, runner in doctests.items() 
+successfuldoctests = {name: runner for name, runner in doctests.items()
                        if not runner.failures}
-faileddoctests = {name: runner for name, runner in doctests.items() 
+faileddoctests = {name: runner for name, runner in doctests.items()
                    if runner.failures}
 
 if successfuldoctests:
     print()
     print('In the following modules, no doc test failed:')
     for name in sorted(successfuldoctests.keys()):
-        print('    %s (%d successes)' 
-              % (name, successfuldoctests[name].testsRun))    
+        print('    %s (%d successes)'
+              % (name, successfuldoctests[name].testsRun))
 if faileddoctests:
     print()
     print('At least one doc test failed in each of the following modules:')
     for name in sorted(faileddoctests.keys()):
-        print('    %s (%d failures)' 
-              % (name, len(faileddoctests[name].failures))) 
+        print('    %s (%d failures)'
+              % (name, len(faileddoctests[name].failures)))
     for name in sorted(faileddoctests.keys()):
         print()
         print('Detailed information on module %s:' % name)

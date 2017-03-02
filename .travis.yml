@@ -3,11 +3,6 @@ python:
   - "3.6"
   - "2.7"
 # command to install dependencies
-cache:
-  - pip
-  - cython
-  - numpy
-  - matplotlib
 install: 
   - pip install Cython --install-option="--no-cython-compile"
   - pip install numpy

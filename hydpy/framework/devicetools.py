@@ -16,15 +16,15 @@ from hydpy.cythons import pointer
 
 
 class Device(object):
-    
+
     _registry = {}
     _selection = {}
-    
+
     def _getname(self):
         """Name of the actual device (node or element)."""
         return self._name
     name = property(_getname)
-        
+
     def _checkname(self, name):
         """Raises an :class:`~exceptions.ValueError` if the given name is not
         a valid Python identifier.
@@ -36,40 +36,40 @@ class Device(object):
                          'return a valid Python identifier (that does '
                          'not start with a number, that does not contain `-`, '
                          'that is not a Python keyword like `for`...).  The '
-                         'given object returned the string `%s`, which is not ' 
-                         'a valid Python identifier.' 
-                         % (objecttools.classname(self), name)) 
+                         'given object returned the string `%s`, which is not '
+                         'a valid Python identifier.'
+                         % (objecttools.classname(self), name))
         try:
             exec('%s = None' % name)
         except SyntaxError:
             raise exc
         if name in dir(__builtins__):
             raise exc
-    
+
     @classmethod
     def clearregistry(cls):
         cls._selection.clear()
         cls._registry.clear()
-        
+
     @classmethod
     def registerednames(cls):
         """Get all names of :class:`Device` objects initialized so far."""
         return cls._registry.keys()
-    
+
     def __iter__(self):
         for (key, value) in vars(self).iteritems():
             if isinstance(value, connectiontools.Connections):
                 yield (key, value)
-    
+
     def __eq__(self, other):
         return self is self.__class__(other)
-    
+
     def __ne__(self, other):
-        return self is not self.__class__(other) 
-        
+        return self is not self.__class__(other)
+
     def __str__(self):
         return self.name
-    
+
     def __dir__(self):
         return objecttools.dir_(self)
 
@@ -86,7 +86,7 @@ class Node(Device):
     _selection = {}
     _predefinedvariable = 'Q'
     ROUTING_MODES = ('newsim', 'obs', 'oldsim')
-  
+
     def __new__(cls, value, variable=None):
         """Returns an already existing :class:`Node` instance or, if such
         an instance does not exist yet, a new newly created one.
@@ -108,7 +108,7 @@ class Node(Device):
             cls._registry[name] = self
         cls._selection[name] = cls._registry[name]
         return cls._registry[name]
-    
+
     def __init__(self, name, variable=None, route=None):
         if (variable is not None) and (variable != self.variable):
             raise ValueError('The variable to be represented by a `Node '
@@ -117,25 +117,25 @@ class Node(Device):
                              'Keep in mind, that `name` is the unique '
                              'identifier of node objects.'
                              % (self.name, self.variable, variable))
-    
+
     def _getvariable(self):
         """The variable handled by the respective node instance."""
         return self._variable
-    variable = property(_getvariable)     
-    
+    variable = property(_getvariable)
+
     @classmethod
     def predefinevariable(cls, name):
-        cls._predefinedvariable = str(name)    
-    
+        cls._predefinedvariable = str(name)
+
     @classmethod
     def registerednodes(cls):
         """Get all :class:`Node` objects initialized so far."""
         return Nodes(cls._registry.values())
-    
+
     @classmethod
     def gathernewnodes(cls):
-        """Gather all `new` :class:`Node` objects. :class:`Node` objects 
-        are deemed to be new if their constructor has been called since the 
+        """Gather all `new` :class:`Node` objects. :class:`Node` objects
+        are deemed to be new if their constructor has been called since the
         last usage of this method.
         """
         nodes = Nodes(cls._selection.values())
@@ -159,10 +159,10 @@ class Node(Device):
             raise ValueError('When trying to set the routing mode of node %s, '
                              'the value `%s` was given, but only the '
                              'following values are allowed: %s.'
-                             % (self.name, value, 
+                             % (self.name, value,
                              ', '.join(self.ROUTING_MODES)))
     routingmode = property(_getroutingmode, _setroutingmode)
-            
+
     def getdouble_via_exits(self):
         if self.routingmode != 'obs':
             return self.sequences.fastaccess.sim
@@ -174,10 +174,10 @@ class Node(Device):
             return self.sequences.fastaccess.sim
         else:
             return self._blackhole
-            
+
     def reset(self, idx=None):
         self.sequences.fastaccess.sim[0] = 0.
-    
+
     def _loaddata_sim(self, idx):
         fastaccess = self.sequences.fastaccess
         if fastaccess._sim_ramflag:
@@ -193,7 +193,7 @@ class Node(Device):
         elif fastaccess._sim_diskflag:
             raw = struct.pack('d', fastaccess.sim[0])
             fastaccess._sim_file.write(raw)
-            
+
     def _loaddata_obs(self, idx):
         fastaccess = self.sequences.fastaccess
         if fastaccess._obs_ramflag:
@@ -214,22 +214,22 @@ class Node(Device):
         pyplot.ylabel(variable)
         if not pyplot.isinteractive():
             pyplot.show()
-    
+
     def __repr__(self):
         return self.assignrepr('')
-    
+
     def assignrepr(self, prefix):
-        return ('%sNode("%s", variable="%s")' 
+        return ('%sNode("%s", variable="%s")'
                 % (prefix, self.name, self.variable))
-   
-         
-            
+
+
+
 class Element(Device):
-    
+
     _registry = {}
     _selection = {}
-  
-    def __new__(cls, value, inlets=None, outlets=None, 
+
+    def __new__(cls, value, inlets=None, outlets=None,
                 receivers=None,  senders=None
                 ):
         """Returns an already existing :class:`Element` instance or, if such
@@ -248,27 +248,27 @@ class Element(Device):
             cls._registry[name] = self
         cls._selection[name] = cls._registry[name]
         return cls._registry[name]
-                              
-    def __init__(self, name, inlets=None, outlets=None, 
+
+    def __init__(self, name, inlets=None, outlets=None,
                  receivers=None, senders=None
                 ):
-        """Adds the given :class:`~connectiontools.Connections` instances to 
+        """Adds the given :class:`~connectiontools.Connections` instances to
         the (old or new) :class:`Element` instance."""
         if inlets is not None:
             for (name, inlet) in Nodes(inlets):
                 if inlet in self.outlets:
                     raise ValueError('For element `%s`, the given inlet node '
                                      '`%s` is already defined as an outlet '
-                                     'node, which is not allowed.' 
+                                     'node, which is not allowed.'
                                      % (self, inlet))
                 self.inlets += inlet
                 inlet.exits += self
         if outlets is not None:
-            for (name, outlet) in Nodes(outlets):            
+            for (name, outlet) in Nodes(outlets):
                 if outlet in self.inlets:
                     raise ValueError('For element `%s`, the given outlet node '
                                      '`%s` is already defined as an inlet '
-                                     'node, which is not allowed.' 
+                                     'node, which is not allowed.'
                                      % (self, outlet))
                 self.outlets += outlet
                 outlet.entries += self
@@ -277,7 +277,7 @@ class Element(Device):
                 if receiver in self.senders:
                     raise ValueError('For element `%s`, the given receiver '
                                      'node `%s` is already defined as an '
-                                     'sender node, which is not allowed.' 
+                                     'sender node, which is not allowed.'
                                      % (self, receiver))
                 self.receivers += receiver
                 receiver.exits += self
@@ -286,8 +286,8 @@ class Element(Device):
                 if sender in self.receivers:
                     raise ValueError('For element `%s`, the given sender node '
                                      '`%s` is already defined as an receiver, '
-                                     'node which is not allowed.' 
-                                     % (self, sender))            
+                                     'node which is not allowed.'
+                                     % (self, sender))
                 self.senders += sender
                 sender.entries += self
 
@@ -295,17 +295,17 @@ class Element(Device):
     def registeredelements(cls):
         """Get all :class:`Element` objects initialized so far."""
         return Elements(cls._registry.values())
-    
+
     @classmethod
     def gathernewelements(cls):
-        """Gather all `new` :class:`Element` objects. :class:`Element` objects 
-        are deemed to be new if their constructor has been called since the 
+        """Gather all `new` :class:`Element` objects. :class:`Element` objects
+        are deemed to be new if their constructor has been called since the
         last usage of this method.
         """
         elements = Elements(cls._selection.values())
         cls._selection.clear()
         return elements
-                
+
     def _getvariables(self):
         variables = set()
         for (name, connections) in self:
@@ -317,7 +317,7 @@ class Element(Device):
         namespace = pub.controlmanager.loadfile(self.name)
         self.model = namespace['model']
         self.model.element = self
-    
+
     def connect(self):
         try:
             self.model.connect()
@@ -328,7 +328,7 @@ class Element(Device):
         for name in selnames:
             seq = getattr(subseqs, name)
             if seq.NDIM == 0:
-                label = kwargs.pop('label', ' '.join((self.name, name)))              
+                label = kwargs.pop('label', ' '.join((self.name, name)))
                 pyplot.plot(seq.series, label=label, **kwargs)
                 pyplot.legend()
             else:
@@ -342,10 +342,10 @@ class Element(Device):
 
     def fluxplot(self, *args, **kwargs):
         self._plot(self.model.sequences.fluxes, args, kwargs)
-        
+
     def stateplot(self, *args, **kwargs):
         self._plot(self.model.sequences.states, args, kwargs)
-            
+
     def assignrepr(self, prefix):
         """Return a :func:`repr` string with an prefixed assignement.
 
@@ -365,23 +365,23 @@ class Element(Device):
                     line = Nodes(connections.slaves).assignrepr(subprefix)
                 lines.append(line + ',')
         lines[-1] = lines[-1][:-1]+')'
-        return '\n'.join(lines)        
-        
+        return '\n'.join(lines)
+
     def __repr__(self):
         return self.assignrepr('')
 
 
-        
+
 class Devices(object):
-    
+
     _contentclass = None
 
     def __init__(self, *values):
         self._extractvalues(values)
-    
-    def _extractvalues(self, values):    
+
+    def _extractvalues(self, values):
         if values is not None:
-            
+
             if isinstance(values, (self._contentclass, str, unicode)):
                 device = self._contentclass(values)
                 self[device.name] = device
@@ -391,28 +391,28 @@ class Devices(object):
                         self._extractvalues(value)
                 except TypeError:
                     raise TypeError('toDo')
-                       
+
     def _getnames(self):
         return vars(self).keys()
     names = property(_getnames)
-    
+
     def _getdevices(self):
         return vars(self).values()
     devices = property(_getdevices)
-    
+
     def copy(self):
         """Return a shallow copy of the actual :class:`Elements` instance."""
         return copy.copy(self)
-     
+
     def __setitem__(self, key, value):
         self.__dict__[key] = value
-        
+
     def __getitem__(self, key):
         return self.__dict__[key]
-    
+
     def __delitem__(self, key):
         del(self.__dict__[key])
-        
+
     def __iter__(self):
         for (name, device) in vars(self).iteritems():
             yield (name, device)
@@ -429,7 +429,7 @@ class Devices(object):
         for (name, device) in self.__class__(values):
             new[name] = device
         return new
-        
+
     def __iadd__(self, values):
         for (name, device) in self.__class__(values):
             self[name] = device
@@ -441,37 +441,37 @@ class Devices(object):
             if name in self:
                 del(new[name])
         return new
-        
+
     def __isub__(self, values):
         for (name, device) in self.__class__(values):
             if name in self:
                 del(self[name])
         return self
-        
+
     def __lt__(self, other):
         return set(self.devices) < set(other.devices)
 
     def __le__(self, other):
         return set(self.devices) <= set(other.devices)
-            
+
     def __eq__(self, other):
         return set(self.devices) == set(other.devices)
 
     def __ne__(self, other):
         return set(self.devices) != set(other.devices)
-            
-    def __ge__(self, other):     
+
+    def __ge__(self, other):
         return set(self.devices) >= set(other.devices)
-            
+
     def __gt__(self, other):
         return set(self.devices) > set(other.devices)
-                
+
     def __repr__(self):
         lines = []
         for (name, device) in sorted(zip(self.names, self.devices)):
             lines.append(repr(device))
         return '\n'.join(lines)
-    
+
     def assignrepr(self, prefix):
         lines = []
         prefix += '%s(' % objecttools.classname(self)
@@ -486,15 +486,15 @@ class Devices(object):
             lines[-1] += ','
         lines[-1] = lines[-1][:-1]+')'
         return '\n'.join(lines)
-        
+
     def __dir__(self):
         return objecttools.dir_(self)
 
 class Nodes(Devices):
-    
-    _contentclass = Node 
 
-        
+    _contentclass = Node
+
+
 class Elements(Devices):
-    
-    _contentclass = Element             
+
+    _contentclass = Element

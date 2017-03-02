@@ -208,13 +208,7 @@ class Parameter(objecttools.ValueMath, objecttools.Trimmer):
             self.values = self.applytimefactor(values)
             del(kwargs['pyfile'])
         elif args:
-            values = self.applytimefactor(numpy.array(args))
-            # Depending on the operating system, initializing an array with
-            # Python integers might results in the data type `int64`, but
-            # cythonized models expect the data type `int32`.
-            if values.dtype == numpy.int64:
-                values = values.astype(numpy.int32)
-            self.values = values
+            self.values = self.applytimefactor(numpy.array(args))
         else:
             raise NotImplementedError('The value(s) of parameter %s of '
                                       'element %s could not be set based on '
@@ -476,6 +470,11 @@ class MultiParameter(Parameter):
     def _setshape(self, shape):
         try:
             array = numpy.full(shape, numpy.nan, dtype=self.TYPE)
+            # Depending on the operating system, initializing an array with
+            # Python integers might results in the data type `int64`, but
+            # cythonized models expect the data type `int32`.
+            if array.dtype == array.int64:
+                array = array.astype(numpy.int32)
         except Exception:
             Exception_, message, traceback_ = sys.exc_info()
             message = ('While trying create a new :class:`~numpy.ndarray` '
@@ -508,6 +507,11 @@ class MultiParameter(Parameter):
             pass
         try:
             value = numpy.full(self.shape, value, dtype=self.TYPE)
+            # Depending on the operating system, initializing an array with
+            # Python integers might results in the data type `int64`, but
+            # cythonized models expect the data type `int32`.
+            if value.dtype == value.int64:
+                value = value.astype(numpy.int32)
         except ValueError:
             raise ValueError('The values `%s` cannot be converted to a numpy '
                              'ndarray with shape %s containing entries of '

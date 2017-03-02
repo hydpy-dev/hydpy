@@ -54,37 +54,37 @@ class Model(modeltools.Model):
     would always only occur after precipitation, but never beforehand or
     afterwards.
     """
-#
-#    def run(self, idx):
-#        """Apply all hland simulation equations for the given time step."""
-#        # Prepare input data.
-#        self.calc_tc()
-#        self.calc_tmean()
-#        self.calc_fracrain()
-#        self.calc_rfc_sfc()
-#        self.calc_pc()
-#        self.calc_ep()
-#        self.calc_epc()
-#        # Solve process equations.
-#        self.calc_tf_ic()
-#        self.calc_ei_ic()
-#        self.calc_sp_wc()
-#        self.calc_melt_sp_wc()
-#        self.calc_refr_sp_wc()
-#        self.calc_in_wc()
-#        self.calc_r_sm()
-#        self.calc_cf_sm()
-#        self.calc_ea_sm()
-#        self.calc_inuz()
-#        self.calc_contriarea()
-#        self.calc_q0_perc_uz()
-#        self.calc_lz()
-#        self.calc_el_lz()
-#        self.calc_q1_lz()
-#        # Modify output data.
-#        self.calc_inuh()
-#        self.calc_outuh_quh()
-#        self.calc_qt()
+
+    def run(self, idx):
+        """Apply all hland simulation equations for the given time step."""
+        # Prepare input data.
+        self.calc_tc()
+        self.calc_tmean()
+        self.calc_fracrain()
+        self.calc_rfc_sfc()
+        self.calc_pc()
+        self.calc_ep()
+        self.calc_epc()
+        # Solve process equations.
+        self.calc_tf_ic()
+        self.calc_ei_ic()
+        self.calc_sp_wc()
+        self.calc_melt_sp_wc()
+        self.calc_refr_sp_wc()
+        self.calc_in_wc()
+        self.calc_r_sm()
+        self.calc_cf_sm()
+        self.calc_ea_sm()
+        self.calc_inuz()
+        self.calc_contriarea()
+        self.calc_q0_perc_uz()
+        self.calc_lz()
+        self.calc_el_lz()
+        self.calc_q1_lz()
+        # Modify output data.
+        self.calc_inuh()
+        self.calc_outuh_quh()
+        self.calc_qt()
 #
 #    def calc_tc(self):
 #        """Adjust the measured air temperature to the altitude of the

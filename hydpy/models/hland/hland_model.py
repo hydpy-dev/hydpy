@@ -54,80 +54,80 @@ class Model(modeltools.Model):
     would always only occur after precipitation, but never beforehand or
     afterwards.
     """
-
-    def run(self, idx):
-        """Apply all hland simulation equations for the given time step."""
-        # Prepare input data.
-        self.calc_tc()
-        self.calc_tmean()
-        self.calc_fracrain()
-        self.calc_rfc_sfc()
-        self.calc_pc()
-        self.calc_ep()
-        self.calc_epc()
-        # Solve process equations.
-        self.calc_tf_ic()
-        self.calc_ei_ic()
-        self.calc_sp_wc()
-        self.calc_melt_sp_wc()
-        self.calc_refr_sp_wc()
-        self.calc_in_wc()
-        self.calc_r_sm()
-        self.calc_cf_sm()
-        self.calc_ea_sm()
-        self.calc_inuz()
-        self.calc_contriarea()
-        self.calc_q0_perc_uz()
-        self.calc_lz()
-        self.calc_el_lz()
-        self.calc_q1_lz()
-        # Modify output data.
-        self.calc_inuh()
-        self.calc_outuh_quh()
-        self.calc_qt()
-
-    def calc_tc(self):
-        """Adjust the measured air temperature to the altitude of the
-        individual zones.
-
-        Required control parameters:
-          :class:`~hydpy.models.hland.hland_control.NmbZones`
-          :class:`~hydpy.models.hland.hland_control.TCAlt`
-          :class:`~hydpy.models.hland.hland_control.ZoneZ`
-          :class:`~hydpy.models.hland.hland_control.ZRelT`
-
-        Required input sequence:
-          :class:`~hydpy.models.hland.hland_inputs.T`
-
-        Calculated flux sequences:
-          :class:`~hydpy.models.hland.hland_fluxes.TC`
-
-        Basic equation:
-          :math:`TC = T - TCAlt \\cdot (ZoneZ-ZRelT)`
-
-        Examples:
-            Prepare two zones, the first one lying at the reference
-            height and the second one 200 meters above:
-
-            >>> from hydpy.models.hland import *
-            >>> parameterstep('1d')
-            >>> _ = nmbzones(2), zrelt(2.), zonez(2., 4.)
-
-            Applying the usual temperature lapse rate of 0.6°C/100m does
-            not affect the temperature of the first zone but reduces the
-            temperature of the second zone by 1.2°C:
-
-            >>> tcalt(.6)
-            >>> model.sequences.inputs.t = 5.
-            >>> model.calc_tc()
-            >>> model.sequences.fluxes.tc
-            tc(5.0, 3.8)
-        """
-        con = self.parameters.control.fastaccess
-        inp = self.sequences.inputs.fastaccess
-        flu = self.sequences.fluxes.fastaccess
-        for k in range(con.nmbzones):
-            flu.tc[k] = inp.t-con.tcalt[k]*(con.zonez[k]-con.zrelt)
+#
+#    def run(self, idx):
+#        """Apply all hland simulation equations for the given time step."""
+#        # Prepare input data.
+#        self.calc_tc()
+#        self.calc_tmean()
+#        self.calc_fracrain()
+#        self.calc_rfc_sfc()
+#        self.calc_pc()
+#        self.calc_ep()
+#        self.calc_epc()
+#        # Solve process equations.
+#        self.calc_tf_ic()
+#        self.calc_ei_ic()
+#        self.calc_sp_wc()
+#        self.calc_melt_sp_wc()
+#        self.calc_refr_sp_wc()
+#        self.calc_in_wc()
+#        self.calc_r_sm()
+#        self.calc_cf_sm()
+#        self.calc_ea_sm()
+#        self.calc_inuz()
+#        self.calc_contriarea()
+#        self.calc_q0_perc_uz()
+#        self.calc_lz()
+#        self.calc_el_lz()
+#        self.calc_q1_lz()
+#        # Modify output data.
+#        self.calc_inuh()
+#        self.calc_outuh_quh()
+#        self.calc_qt()
+#
+#    def calc_tc(self):
+#        """Adjust the measured air temperature to the altitude of the
+#        individual zones.
+#
+#        Required control parameters:
+#          :class:`~hydpy.models.hland.hland_control.NmbZones`
+#          :class:`~hydpy.models.hland.hland_control.TCAlt`
+#          :class:`~hydpy.models.hland.hland_control.ZoneZ`
+#          :class:`~hydpy.models.hland.hland_control.ZRelT`
+#
+#        Required input sequence:
+#          :class:`~hydpy.models.hland.hland_inputs.T`
+#
+#        Calculated flux sequences:
+#          :class:`~hydpy.models.hland.hland_fluxes.TC`
+#
+#        Basic equation:
+#          :math:`TC = T - TCAlt \\cdot (ZoneZ-ZRelT)`
+#
+#        Examples:
+#            Prepare two zones, the first one lying at the reference
+#            height and the second one 200 meters above:
+#
+#            >>> from hydpy.models.hland import *
+#            >>> parameterstep('1d')
+#            >>> _ = nmbzones(2), zrelt(2.), zonez(2., 4.)
+#
+#            Applying the usual temperature lapse rate of 0.6°C/100m does
+#            not affect the temperature of the first zone but reduces the
+#            temperature of the second zone by 1.2°C:
+#
+#            >>> tcalt(.6)
+#            >>> model.sequences.inputs.t = 5.
+#            >>> model.calc_tc()
+#            >>> model.sequences.fluxes.tc
+#            tc(5.0, 3.8)
+#        """
+#        con = self.parameters.control.fastaccess
+#        inp = self.sequences.inputs.fastaccess
+#        flu = self.sequences.fluxes.fastaccess
+#        for k in range(con.nmbzones):
+#            flu.tc[k] = inp.t-con.tcalt[k]*(con.zonez[k]-con.zrelt)
 
 #    def calc_tmean(self):
 #        """Calculate the areal mean temperature of the subbasin.

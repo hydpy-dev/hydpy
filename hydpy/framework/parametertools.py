@@ -473,7 +473,7 @@ class MultiParameter(Parameter):
             # Depending on the operating system, initializing an array with
             # Python integers might results in the data type `int64`, but
             # cythonized models expect the data type `int32`.
-            if array.dtype == array.int64:
+            if array.dtype == numpy.int64:
                 array = array.astype(numpy.int32)
         except Exception:
             Exception_, message, traceback_ = sys.exc_info()
@@ -510,7 +510,7 @@ class MultiParameter(Parameter):
             # Depending on the operating system, initializing an array with
             # Python integers might results in the data type `int64`, but
             # cythonized models expect the data type `int32`.
-            if value.dtype == value.int64:
+            if value.dtype == numpy.int64:
                 value = value.astype(numpy.int32)
         except ValueError:
             raise ValueError('The values `%s` cannot be converted to a numpy '

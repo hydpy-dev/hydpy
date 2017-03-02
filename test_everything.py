@@ -58,57 +58,65 @@ if failedunittests:
 
 from hydpy import pub
 pub.options.reprcomments = False
-pub.options.usecython = False
 import hydpy
-doctests = {}
-for dirinfo in os.walk(hydpy.__path__[0]):
-    if dirinfo[0].endswith('unittests') or not '__init__.py' in dirinfo[2]:
-        continue
-    packagename = dirinfo[0].replace(os.sep, '.')+'.'
-    packagename = packagename[packagename.find('hydpy.'):]
-    level = packagename.count('.')-1
-    modulenames = [packagename+fn.split('.')[0]
-                   for fn in dirinfo[2] if fn.endswith('.py')]
-    print(dirinfo[0], packagename)
-    for modulename in modulenames:
-        print('    '+modulename)
-        module = importlib.import_module(modulename)
-        runner = unittest.TextTestRunner(stream=open(os.devnull, 'w'))
-        suite = unittest.TestSuite()
-        try:
-            suite.addTest(doctest.DocTestSuite(module))
-        except ValueError:
-            pass
-        else:
-            doctests[modulename] = runner.run(suite)
+alldoctests = ({}, {})
+allsuccessfuldoctests = ({}, {})
+allfaileddoctests = ({}, {})
+iterable = zip(('Python', 'Cython'), alldoctests,
+               allsuccessfuldoctests, allfaileddoctests)
+for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
+    pub.options.usecython = mode=='Cython'
+    for dirinfo in os.walk(hydpy.__path__[0]):
+        if dirinfo[0].endswith('unittests') or not '__init__.py' in dirinfo[2]:
+            continue
+        packagename = dirinfo[0].replace(os.sep, '.')+'.'
+        packagename = packagename[packagename.find('hydpy.'):]
+        level = packagename.count('.')-1
+        modulenames = [packagename+fn.split('.')[0]
+                       for fn in dirinfo[2] if fn.endswith('.py')]
+        print(dirinfo[0], packagename)
+        for modulename in modulenames:
+            print('    '+modulename)
+            module = importlib.import_module(modulename)
+            #runner = unittest.TextTestRunner(stream=open(os.devnull, 'w'))
+            runner = unittest.TextTestRunner()
+            suite = unittest.TestSuite()
+            try:
+                suite.addTest(doctest.DocTestSuite(module))
+            except ValueError:
+                pass
+            else:
+                doctests[modulename] = runner.run(suite)
 
-successfuldoctests = {name: runner for name, runner in doctests.items()
-                       if not runner.failures}
-faileddoctests = {name: runner for name, runner in doctests.items()
-                   if runner.failures}
+    successfuldoctests.update({name: runner for (name, runner)
+                              in doctests.items() if not runner.failures})
+    faileddoctests.update({name: runner for (name, runner )
+                          in doctests.items() if runner.failures})
 
-if successfuldoctests:
-    print()
-    print('In the following modules, no doc test failed:')
-    for name in sorted(successfuldoctests.keys()):
-        print('    %s (%d successes)'
-              % (name, successfuldoctests[name].testsRun))
-if faileddoctests:
-    print()
-    print('At least one doc test failed in each of the following modules:')
-    for name in sorted(faileddoctests.keys()):
-        print('    %s (%d failures)'
-              % (name, len(faileddoctests[name].failures)))
-    for name in sorted(faileddoctests.keys()):
+    if successfuldoctests:
         print()
-        print('Detailed information on module %s:' % name)
-        for idx, failure in enumerate(faileddoctests[name].failures):
-            print('    Error no. %d:' % (idx+1))
-            print('        %s' % failure[0])
-            for line in failure[1].split('\n'):
-                print('        %s' % line)
+        print('In the following modules, no doc test failed in %s mode:'
+              % mode)
+        for name in sorted(successfuldoctests.keys()):
+            print('    %s (%d successes)'
+                  % (name, successfuldoctests[name].testsRun))
+    if faileddoctests:
+        print()
+        print('At least one doc test failed in each of the following modules '
+              'in %s mode:' % mode)
+        for name in sorted(faileddoctests.keys()):
+            print('    %s (%d failures)'
+                  % (name, len(faileddoctests[name].failures)))
+        for name in sorted(faileddoctests.keys()):
+            print()
+            print('Detailed information on module %s:' % name)
+            for idx, failure in enumerate(faileddoctests[name].failures):
+                print('    Error no. %d:' % (idx+1))
+                print('        %s' % failure[0])
+                for line in failure[1].split('\n'):
+                    print('        %s' % line)
 
-if failedunittests or faileddoctests:
+if failedunittests or faileddoctests[0] or faileddoctests[1]:
     sys.exit(1)
 else:
     sys.exit(0)

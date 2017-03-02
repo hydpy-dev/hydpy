@@ -61,6 +61,7 @@ pub.options.reprcomments = False
 import hydpy
 doctests = {}
 for dirinfo in os.walk(hydpy.__path__[0]):
+    print(dirinfo[0])
     if dirinfo[0].endswith('unittests') or not '__init__.py' in dirinfo[2]:
         continue
     packagename = dirinfo[0].replace(os.sep, '.')+'.'

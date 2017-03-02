@@ -61,7 +61,6 @@ pub.options.reprcomments = False
 import hydpy
 doctests = {}
 for dirinfo in os.walk(hydpy.__path__[0]):
-    print(dirinfo[0])
     if dirinfo[0].endswith('unittests') or not '__init__.py' in dirinfo[2]:
         continue
     packagename = dirinfo[0].replace(os.sep, '.')+'.'
@@ -69,7 +68,9 @@ for dirinfo in os.walk(hydpy.__path__[0]):
     level = packagename.count('.')-1
     modulenames = [packagename+fn.split('.')[0]
                    for fn in dirinfo[2] if fn.endswith('.py')]
+    print(dirinfo[0], packagename)
     for modulename in modulenames:
+        print('    '+modulename)
         module = importlib.import_module(modulename)
         runner = unittest.TextTestRunner(stream=open(os.devnull, 'w'))
         suite = unittest.TestSuite()

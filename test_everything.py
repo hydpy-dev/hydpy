@@ -14,11 +14,9 @@ import unittest
 import doctest
 
 if 'test_as_site-package' in sys.argv:
-    for (idx, path) in enumerate(sys.path):
-        if path.endswith('site-packages'):
-            del(sys.path[idx])
-            break
-    sys.path.insert(0, path)
+    paths = [path for path in sys.path if path.endswith('-packages')]
+    for path in paths:
+        sys.path.insert(0, path)
 
 import hydpy.unittests
 filenames = os.listdir(hydpy.unittests.__path__[0])

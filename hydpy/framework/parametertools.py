@@ -470,11 +470,6 @@ class MultiParameter(Parameter):
     def _setshape(self, shape):
         try:
             array = numpy.full(shape, numpy.nan, dtype=self.TYPE)
-            # Depending on the operating system, initializing an array with
-            # Python integers might results in the data type `int64`, but
-            # cythonized models expect the data type `int32`.
-            if array.dtype == numpy.int64:
-                array = array.astype(numpy.int32)
         except Exception:
             Exception_, message, traceback_ = sys.exc_info()
             message = ('While trying create a new :class:`~numpy.ndarray` '
@@ -507,11 +502,6 @@ class MultiParameter(Parameter):
             pass
         try:
             value = numpy.full(self.shape, value, dtype=self.TYPE)
-            # Depending on the operating system, initializing an array with
-            # Python integers might results in the data type `int64`, but
-            # cythonized models expect the data type `int32`.
-            if value.dtype == numpy.int64:
-                value = value.astype(numpy.int32)
         except ValueError:
             raise ValueError('The values `%s` cannot be converted to a numpy '
                              'ndarray with shape %s containing entries of '

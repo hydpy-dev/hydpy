@@ -6,21 +6,21 @@ Constants
 .. automodule:: hydpy.models.hland.hland_constants
     :members:
     :show-inheritance:
-    
+
 Model
 -----
 
 .. automodule:: hydpy.models.hland.hland_model
     :members:
     :show-inheritance:
-    
+
 Parameters
 ----------
 
 .. automodule:: hydpy.models.hland.hland_parameters
     :members:
     :show-inheritance:
-    
+
 Control parameters
 ..................
 
@@ -28,14 +28,14 @@ Control parameters
     :members:
     :show-inheritance:
 
-    
+
 Derived parameters
 ..................
 
 .. automodule:: hydpy.models.hland.hland_derived
     :members:
     :show-inheritance:
- 
+
 Sequences
 ---------
 
@@ -49,7 +49,7 @@ Input sequences
 .. automodule:: hydpy.models.hland.hland_inputs
     :members:
     :show-inheritance:
-    
+
 Flux sequences
 ..............
 
@@ -84,7 +84,7 @@ Link sequences
 .. automodule:: hydpy.models.hland.hland_links
     :members:
     :show-inheritance:
-    
+
 """
 # import...
 # ...from standard library

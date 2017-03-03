@@ -81,9 +81,9 @@ def modulename(self):
     return self.__module__.split('.')[-1]
 
 def devicename(self):
-    """Try to return the name of the (indirect) master 
-    :class:`~hydpy.framework.devicetools.Node` or 
-    :class:`~hydpy.framework.devicetools.Element` instance, 
+    """Try to return the name of the (indirect) master
+    :class:`~hydpy.framework.devicetools.Node` or
+    :class:`~hydpy.framework.devicetools.Element` instance,
     otherwise return `?`."""
     while True:
         device = getattr(self, 'element', getattr(self, 'node', None))
@@ -98,7 +98,7 @@ def devicename(self):
             return '?'
 
 class Options(object):
-    
+
     def __init__(self):
         self._printprogress = True
         self._verbosedir = False
@@ -113,17 +113,17 @@ class Options(object):
     def _setprintprogress(self, value):
         self._printprogress = bool(value)
     printprogress = property(_getprintprogress, _setprintprogress)
-    
+
     def _getdirverbose(self):
         """True/False flag that indicates, whether the listboxes for the member
-        selection of the classes of the HydPy framework should be complete 
+        selection of the classes of the HydPy framework should be complete
         (True) or restrictive (False).  The latter is more viewable and hence
         the default option."""
         return self._verbosedir
     def _setdirverbose(self, value):
         self._verbosedir = bool(value)
     dirverbose = property(_getdirverbose, _setdirverbose)
- 
+
     def _getreprcomments(self):
         """True/False flag that indicates, whether comments shall be included
         in string representations of some classes of the HydPy framework or
@@ -139,7 +139,7 @@ class Options(object):
     def _setusecython(self, value):
         self._usecython = bool(value)
     usecython = property(_getusecython, _setusecython)
-    
+
     def _getskipdoctests(self):
         """..."""
         return self._skipdoctests
@@ -153,7 +153,7 @@ class Options(object):
     def _setrefreshmodels(self, value):
         self._refreshmodels = bool(value)
     refreshmodels = property(_getrefreshmodels, _setrefreshmodels)
-        
+
     def __dir__(self):
         return dir_(self)
 
@@ -172,18 +172,18 @@ class Trimmer(object):
                 self.value = lower
             elif (upper is not None) and (self > upper):
                 if (self-self.tolerance(self)) > (upper+self.tolerance(upper)):
-                    self.warntrim()                
+                    self.warntrim()
                 self.value = upper
         else:
-            if (((lower is not None) and numpy.any(self.values < lower)) or 
+            if (((lower is not None) and numpy.any(self.values < lower)) or
                 ((upper is not None) and numpy.any(self.values > upper))):
-                if (numpy.any((self+self.tolerance(self)) < 
+                if (numpy.any((self+self.tolerance(self)) <
                               (lower-self.tolerance(lower))) or
-                    numpy.any((self-self.tolerance(self)) > 
+                    numpy.any((self-self.tolerance(self)) >
                               (upper+self.tolerance(upper)))):
-                       self.warntrim() 
+                       self.warntrim()
                 self.values = numpy.clip(self.values, lower, upper)
-    
+
     @staticmethod
     def tolerance(values):
         return abs(values*1e-15)

@@ -39,7 +39,7 @@ class Test01SelectionInitialization(unittest.TestCase):
 
 
 class Test02SelectionSelect(unittest.TestCase):
-    
+
     def setUp(self):
         # e1 + e2 -> n_Q1 -> e3 -> n_Q2 -> e4 + (e7 -> n_Q4 -> e6)-> n_Q3
         # e1 + e2 -> n_T1 -> e3 -> n_T2 -> e5 -> n_T3
@@ -60,11 +60,11 @@ class Test02SelectionSelect(unittest.TestCase):
         self.n_Q4 = Node('n_Q4', 'Q')
         self.e6 = Element('e6', inlet='n_Q4', outlet='n_Q3')
         self.e7 = Element('e7', outlet='n_Q4')
-        
+
         self.complete = Selection('complete',
                                   nodes=Node.registereddevices(),
                                   elements=Element.registereddevices())
-                                  
+
     def tearDown(self):
         Node.clearregistry()
         Element.clearregistry()
@@ -92,20 +92,20 @@ class Test02SelectionSelect(unittest.TestCase):
         reference = Selection('reference', ['n_T2', 'n_T3'], 'e5')
         self.assertEqual(test.nodes, reference.nodes)
         self.assertEqual(test.elements, reference.elements)
-        
+
     def test_05_selectmodelclasses(self):
         with self.assertRaises(RuntimeError):
             self.complete.copy('test').getby_modelclasses('HBV96_zone')
         asdf
-    
+
     def test_06_select_nodenames(self):
         test = self.complete.copy('test').select_nodenames('n_Q1', 'n_T', 'NO')
         reference = self.complete.copy('test')
         reference.nodes = Nodes('n_Q1', 'n_T1', 'n_T2', 'n_T3')
         self.assertEqual(test.nodes, reference.nodes)
-        self.assertEqual(test.elements, reference.elements)        
+        self.assertEqual(test.elements, reference.elements)
     def test_07_deselect_nodenames(self):
-        test = self.complete.copy('test').deselect_nodenames('n_Q1', 'n_T', 
+        test = self.complete.copy('test').deselect_nodenames('n_Q1', 'n_T',
                                                              'NO')
         reference = self.complete.copy('test')
         del(reference.nodes.n_Q1)
@@ -113,64 +113,64 @@ class Test02SelectionSelect(unittest.TestCase):
         del(reference.nodes.n_T2)
         del(reference.nodes.n_T3)
         self.assertEqual(test.nodes, reference.nodes)
-        self.assertEqual(test.elements, reference.elements) 
+        self.assertEqual(test.elements, reference.elements)
     def test_08_select_elementnames(self):
         test = self.complete.copy('test').select_elementnames('e')
         self.assertEqual(test.nodes, self.complete.nodes)
-        self.assertEqual(test.elements, self.complete.elements)  
+        self.assertEqual(test.elements, self.complete.elements)
         test = self.complete.copy('test').select_elementnames('2')
         reference = self.complete.copy('test')
         reference.elements = Elements('e2')
     def test_09_deselect_elementnames(self):
         test = self.complete.copy('test').deselect_elementnames('e')
         self.assertEqual(test.nodes, self.complete.nodes)
-        self.assertEqual(test.elements, Elements())  
+        self.assertEqual(test.elements, Elements())
         test = self.complete.copy('test').deselect_elementnames('2')
         reference = self.complete.copy('test')
         del(reference.elements.e2)
         self.assertEqual(test.nodes, reference.nodes)
-        self.assertEqual(test.elements, reference.elements) 
-        
+        self.assertEqual(test.elements, reference.elements)
+
 
 class Test03SelectionMagic(unittest.TestCase):
 
     def tearDown(self):
         Node.clearregistry()
         Element.clearregistry()
-    
+
     def test_01_len(self):
         test1 = Selection('test1', ['n1', 'n2'], [])
         self.assertEqual(len(test1), 2)
         test2 = Selection('test2', [], ['e1'])
         self.assertEqual(len(test2), 1)
-    
+
     def test_02_iadd(self):
-        test = Selection('sel', 
-                         ['n1', 'n2', 'n3'], 
+        test = Selection('sel',
+                         ['n1', 'n2', 'n3'],
                          ['e1', 'e2', 'e3'])
         test += Selection('add', ['n3', 'n4'], [])
-        reference = Selection('sel', 
-                              ['n1', 'n2', 'n3', 'n4'], 
+        reference = Selection('sel',
+                              ['n1', 'n2', 'n3', 'n4'],
                               ['e1', 'e2', 'e3'])
         self.assertEqual(test.nodes, reference.nodes)
         self.assertEqual(test.elements, reference.elements)
         test += Selection('add', [], ['e4', 'e5'])
-        reference = Selection('sel', 
-                              ['n1', 'n2', 'n3', 'n4'], 
+        reference = Selection('sel',
+                              ['n1', 'n2', 'n3', 'n4'],
                               ['e1', 'e2', 'e3', 'e4', 'e5'])
         self.assertEqual(test.nodes, reference.nodes)
         self.assertEqual(test.elements, reference.elements)
     def test_03_isub(self):
-        test = Selection('sel', 
-                         ['n1', 'n2', 'n3'], 
+        test = Selection('sel',
+                         ['n1', 'n2', 'n3'],
                          ['e1', 'e2', 'e3'])
-        test -= Selection('sub', ['n3', 'n4'], [])    
-        reference = Selection('sel', 
-                              ['n1', 'n2'], 
-                              ['e1', 'e2', 'e3'])  
+        test -= Selection('sub', ['n3', 'n4'], [])
+        reference = Selection('sel',
+                              ['n1', 'n2'],
+                              ['e1', 'e2', 'e3'])
         test -= Selection('sub', [], ['e1', 'e2', 'e3'])
-        reference = Selection('sel', 
-                              ['n1', 'n2'], 
+        reference = Selection('sel',
+                              ['n1', 'n2'],
                               [])
         self.assertEqual(test.nodes, reference.nodes)
         self.assertEqual(test.elements, reference.elements)

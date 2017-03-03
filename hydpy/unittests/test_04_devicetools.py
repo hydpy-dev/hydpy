@@ -15,7 +15,7 @@ class Test01NodeCreation(unittest.TestCase):
 
     def tearDown(self):
         Node.clearregistry()
-        
+
     def test_01_fromstring(self):
         test1a = Node('test1')
         self.assertIsInstance(test1a, Node)
@@ -51,13 +51,13 @@ class Test01NodeCreation(unittest.TestCase):
         test = Node('test')
         with self.assertRaises(ValueError):
             Node('test', 'T')
-            
-            
+
+
 class Test02ElementCreation(unittest.TestCase):
 
     def tearDown(self):
         Element.clearregistry()
-        
+
     def test_01_fromstring(self):
         test1a = Element('test1')
         self.assertIsInstance(test1a, Element)
@@ -87,33 +87,33 @@ class Test02ElementCreation(unittest.TestCase):
         self.assertIsInstance(test.receivers, Self2Nodes)
         self.assertIsInstance(test.senders, Self2Nodes)
         self.assertIsNone(test.model)
-  
-  
+
+
 class Test03ElementInitialization(unittest.TestCase):
-    
+
     def setUp(self):
         self.n1Q = Node('n1Q', 'Q')
         self.n2Q = Node('n2Q', 'Q')
         self.n3W = Node('n3W', 'W')
         self.n4T = Node('n4T', 'T')
-        
+
     def tearDown(self):
         Element.clearregistry()
-        
+
     def test_01_inlet(self):
         e = Element('e', inlet=self.n1Q)
         self.assertIsInstance(e, Element)
-        self.assertIs(e.inlets.n1Q, self.n1Q)   
+        self.assertIs(e.inlets.n1Q, self.n1Q)
         self.assertIsInstance(self.n1Q.exits.e, Element)
         self.assertIs(self.n1Q.exits.e, e)
-        self.assertIs(e.inlets.n1Q, self.n1Q)  
+        self.assertIs(e.inlets.n1Q, self.n1Q)
         e = Element('e', inlet=self.n1Q)
         self.assertIs(e.inlets.n1Q, self.n1Q)
         e = Element('e', inlet=self.n4T)
         self.assertIs(e.inlets.n1Q, self.n1Q)
         self.assertIs(e.inlets.n4T, self.n4T)
         e = Element('e', inlet=self.n3W)
-        self.assertIs(e.inlets.n3W, self.n3W)       
+        self.assertIs(e.inlets.n3W, self.n3W)
         with self.assertRaises(ValueError):
             e = Element('e', inlet=self.n2Q)
 
@@ -129,7 +129,7 @@ class Test03ElementInitialization(unittest.TestCase):
         self.assertIs(e.outlets.n1Q, self.n1Q)
         self.assertIs(e.outlets.n4T, self.n4T)
         e = Element('e', outlet=self.n3W)
-        self.assertIs(e.outlets.n3W, self.n3W)  
+        self.assertIs(e.outlets.n3W, self.n3W)
         with self.assertRaises(ValueError):
             e = Element('e', outlet=self.n2Q)
 
@@ -145,7 +145,7 @@ class Test03ElementInitialization(unittest.TestCase):
         self.assertIs(e.receivers.n1Q, self.n1Q)
         self.assertIs(e.receivers.n4T, self.n4T)
         e = Element('e', receiver=self.n3W)
-        self.assertIs(e.receivers.n3W, self.n3W)  
+        self.assertIs(e.receivers.n3W, self.n3W)
         with self.assertRaises(ValueError):
             e = Element('e', receiver=self.n2Q)
 
@@ -161,7 +161,7 @@ class Test03ElementInitialization(unittest.TestCase):
         self.assertIs(e.senders.n1Q, self.n1Q)
         self.assertIs(e.senders.n4T, self.n4T)
         e = Element('e', sender=self.n3W)
-        self.assertIs(e.senders.n3W, self.n3W)  
+        self.assertIs(e.senders.n3W, self.n3W)
         with self.assertRaises(ValueError):
             e = Element('e', sender=self.n2Q)
 
@@ -171,12 +171,12 @@ class Test03ElementInitialization(unittest.TestCase):
         self.assertIs(e1.outlets.n2Q, self.n2Q)
         e2 = Element('e2', inlet=self.n1Q)
         with self.assertRaises(ValueError):
-            Element('e2', outlet=self.n1Q) 
+            Element('e2', outlet=self.n1Q)
         e3 = Element('e3', outlet=self.n1Q)
         with self.assertRaises(ValueError):
-            Element('e3', inlet=self.n1Q) 
+            Element('e3', inlet=self.n1Q)
         with self.assertRaises(ValueError):
-            Element('e4', inlet=self.n1Q, outlet=self.n1Q)        
+            Element('e4', inlet=self.n1Q, outlet=self.n1Q)
 
     def test_06_receiverandsender(self):
         e1 = Element('e1', receiver=self.n1Q, sender=self.n2Q)
@@ -184,32 +184,32 @@ class Test03ElementInitialization(unittest.TestCase):
         self.assertIs(e1.senders.n2Q, self.n2Q)
         e2 = Element('e2', receiver=self.n1Q)
         with self.assertRaises(ValueError):
-            Element('e2', sender=self.n1Q) 
+            Element('e2', sender=self.n1Q)
         e3 = Element('e3', sender=self.n1Q)
         with self.assertRaises(ValueError):
-            Element('e3', receiver=self.n1Q) 
+            Element('e3', receiver=self.n1Q)
         with self.assertRaises(ValueError):
-            Element('e4', receiver=self.n1Q, sender=self.n1Q)   
-            
-            
+            Element('e4', receiver=self.n1Q, sender=self.n1Q)
+
+
 class Test04NodesCreation(unittest.TestCase):
-    
+
     def setUp(self):
         asdf
 
 class Test05ElementsCreation(unittest.TestCase):
-    
+
     def setUp(self):
         self.element1 = Element('element1')
         self.element2 = Element('element2')
-    
+
     def tearDown(self):
         Element.clearregistry()
 
     def test_00_fromnone(self):
         test = Elements(None)
-        self.assertIsInstance(test, Elements) 
-        
+        self.assertIsInstance(test, Elements)
+
     def test_01_fromelements(self):
         test = Elements(self.element1)
         self.assertIsInstance(test, Elements)
@@ -218,10 +218,10 @@ class Test05ElementsCreation(unittest.TestCase):
         test = Elements(self.element1, self.element2)
         self.assertIsInstance(test, Elements)
         self.assertIsInstance(test.element1, Element)
-        self.assertIs(test.element1, self.element1)    
+        self.assertIs(test.element1, self.element1)
         self.assertIsInstance(test.element2, Element)
         self.assertIs(test.element2, self.element2)
-    
+
     def test_02_fromstrings(self):
         test = Elements('element1')
         self.assertIsInstance(test, Elements)
@@ -230,9 +230,9 @@ class Test05ElementsCreation(unittest.TestCase):
         test = Elements('element1', 'element2')
         self.assertIsInstance(test, Elements)
         self.assertIsInstance(test.element1, Element)
-        self.assertIs(test.element1, self.element1) 
+        self.assertIs(test.element1, self.element1)
         self.assertIsInstance(test.element2, Element)
-        self.assertIs(test.element2, self.element2)    
+        self.assertIs(test.element2, self.element2)
 
     def test_03_fromelements(self):
         test1 = Elements('element1')
@@ -241,50 +241,50 @@ class Test05ElementsCreation(unittest.TestCase):
 
     def test_04_fromemptycontainer(self):
         test = Elements([])
-        self.assertIsInstance(test, Elements) 
-        
+        self.assertIsInstance(test, Elements)
+
     def test_05_fromcontaineredelements1(self):
         test = Elements([self.element1])
-        self.assertIsInstance(test, Elements) 
+        self.assertIsInstance(test, Elements)
         self.assertIsInstance(test.element1, Element)
         self.assertIs(test.element1, self.element1)
         test = Elements([self.element1, self.element2])
-        self.assertIsInstance(test, Elements) 
+        self.assertIsInstance(test, Elements)
         self.assertIsInstance(test.element1, Element)
         self.assertIsInstance(test.element2, Element)
-        self.assertIs(test.element1, self.element1)  
+        self.assertIs(test.element1, self.element1)
         self.assertIs(test.element2, self.element2)
 
     def test_06_fromcontaineredelements1(self):
         test = Elements(Elements([self.element1]))
-        self.assertIsInstance(test, Elements) 
+        self.assertIsInstance(test, Elements)
         self.assertIsInstance(test.element1, Element)
         self.assertIs(test.element1, self.element1)
         test = Elements(Elements([self.element1, self.element2]))
-        self.assertIsInstance(test, Elements) 
+        self.assertIsInstance(test, Elements)
         self.assertIsInstance(test.element1, Element)
         self.assertIsInstance(test.element2, Element)
-        self.assertIs(test.element1, self.element1)  
+        self.assertIs(test.element1, self.element1)
         self.assertIs(test.element2, self.element2)
-        
+
     def test_07_fromcontaineredstrings(self):
         test = Elements(['element1'])
-        self.assertIsInstance(test, Elements) 
+        self.assertIsInstance(test, Elements)
         self.assertIsInstance(test.element1, Element)
         self.assertIs(test.element1, self.element1)
         test = Elements(['element1', 'element2'])
-        self.assertIsInstance(test, Elements) 
+        self.assertIsInstance(test, Elements)
         self.assertIsInstance(test.element1, Element)
         self.assertIsInstance(test.element2, Element)
-        self.assertIs(test.element1, self.element1)  
+        self.assertIs(test.element1, self.element1)
         self.assertIs(test.element2, self.element2)
 
     def test_07_fromwrongtype(self):
         with self.assertRaises(TypeError):
             Elements(1.)
-        
+
 class Test06ElementsArithmetic(unittest.TestCase):
-    
+
     def setUp(self):
         self.element1 = Element('element1')
         self.element2 = Element('element2')
@@ -292,10 +292,10 @@ class Test06ElementsArithmetic(unittest.TestCase):
         self.element4 = Element('element3')
         self.elements12 = Elements(self.element1, self.element2)
         self.elements34 = Elements(self.element3, self.element4)
-    
+
     def tearDown(self):
         Element.clearregistry()
-        
+
     def test_01_iadd_element(self):
         self.elements12 += self.element3
         self.assertIsInstance(self.elements12, Elements)
@@ -315,22 +315,22 @@ class Test06ElementsArithmetic(unittest.TestCase):
         self.elements12 += [self.element3]
         self.assertIsInstance(self.elements12, Elements)
         self.assertIs(self.elements12.element1, self.element1)
-        self.assertIs(self.elements12.element3, self.element3)  
+        self.assertIs(self.elements12.element3, self.element3)
     def test_04b_iadd_elementlist(self):
         self.elements12 += [self.element3, self.element4]
         self.assertIsInstance(self.elements12, Elements)
         self.assertIs(self.elements12.element1, self.element1)
-        self.assertIs(self.elements12.element3, self.element3) 
+        self.assertIs(self.elements12.element3, self.element3)
     def test_05a_iadd_stringlist(self):
         self.elements12 += ['element3']
         self.assertIsInstance(self.elements12, Elements)
         self.assertIs(self.elements12.element1, self.element1)
-        self.assertIs(self.elements12.element3, self.element3)  
+        self.assertIs(self.elements12.element3, self.element3)
     def test_05b_iadd_stringlist(self):
         self.elements12 += ['element3', 'element4']
         self.assertIsInstance(self.elements12, Elements)
         self.assertIs(self.elements12.element1, self.element1)
-        self.assertIs(self.elements12.element3, self.element3) 
+        self.assertIs(self.elements12.element3, self.element3)
 
     def test_06_isub_element(self):
         self.elements12 -= self.element2
@@ -361,7 +361,7 @@ class Test07ElementsComparisons(unittest.TestCase):
 
     def tearDown(self):
         Element.clearregistry()
-       
+
     def test_01_bool(self):
         self.assertFalse(Elements())
         self.assertTrue(Elements('a'))

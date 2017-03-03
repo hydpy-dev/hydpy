@@ -57,6 +57,7 @@ if failedunittests:
 from hydpy import pub
 pub.options.reprcomments = False
 import hydpy
+from hydpy.framework import devicetools
 alldoctests = ({}, {})
 allsuccessfuldoctests = ({}, {})
 allfaileddoctests = ({}, {})
@@ -72,18 +73,19 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
         level = packagename.count('.')-1
         modulenames = [packagename+fn.split('.')[0]
                        for fn in dirinfo[2] if fn.endswith('.py')]
-        print(dirinfo[0], packagename)
         for modulename in modulenames:
-            print('    '+modulename)
             module = importlib.import_module(modulename)
-            #runner = unittest.TextTestRunner(stream=open(os.devnull, 'w'))
-            runner = unittest.TextTestRunner()
+            runner = unittest.TextTestRunner(stream=open(os.devnull, 'w'))
             suite = unittest.TestSuite()
             try:
                 suite.addTest(doctest.DocTestSuite(module))
             except ValueError:
                 pass
             else:
+                pub.timegrids = None
+                pub.options.reprcomments = False
+                devicetools.Node.clearregistry()
+                devicetools.Element.clearregistry()
                 doctests[modulename] = runner.run(suite)
 
     successfuldoctests.update({name: runner for (name, runner)
@@ -114,7 +116,7 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                 for line in failure[1].split('\n'):
                     print('        %s' % line)
 
-if failedunittests or faileddoctests[0] or faileddoctests[1]:
+if failedunittests or allfaileddoctests[0] or allfaileddoctests[1]:
     sys.exit(1)
 else:
     sys.exit(0)

@@ -15,7 +15,7 @@ from hydpy.framework import selectiontools
 
 
 class MainManager(object):
-    
+
     def __init__(self):
         self.info = {}
         self.networkfile = None
@@ -27,16 +27,16 @@ class MainManager(object):
         self.loadinfo()
         self.applyinfo()
         self.clearinfo()
-        
+
     def _getpath(self):
         return os.path.abspath(pub.projectname+'.py')
     path = property(_getpath)
-    
+
     def checkpath(self):
         if not os.path.exists(self.path):
             raise IOError('The required project main file `%s` does not exist.'
                           % self.path)
-    
+
     def loadinfo(self):
         """Load general information from the project's main file."""
         try:
@@ -44,19 +44,19 @@ class MainManager(object):
         except Exception:
             exc, message, traceback_ = sys.exc_info()
             message = ('While trying to load the genereal project settings '
-                       'from `%s`, the following error occured:  %s' 
+                       'from `%s`, the following error occured:  %s'
                        % (self.path, message))
             raise exc, message, traceback_
-     
+
     def clearinfo(self):
         self.info = {}
-    
+
     def applyinfo(self):
         self.timegrids2pub()
         self.getmanagers()
-    
+
     def timegrids2pub(self):
-        selection = [value for value in self.info.itervalues() 
+        selection = [value for value in self.info.itervalues()
                      if isinstance(value, timetools.Timegrids)]
         if len(selection) != 1:
             print(self.info)
@@ -65,39 +65,39 @@ class MainManager(object):
                               'instead.' % (self.path, len(selection)))
         else:
             pub.timegrids = selection[0]
-    
+
     def getmanagers(self):
-        for FileClass in (NetworkManager, ControlManager, 
+        for FileClass in (NetworkManager, ControlManager,
                           SequenceManager, ConditionManager):
-            selection = [value for value in self.info.itervalues() 
+            selection = [value for value in self.info.itervalues()
                          if isinstance(value, FileClass)]
             if len(selection) > 1:
                 raise ImportError('The main project file `%s` must not define '
                                   'more then one `%s` objects but %d objects '
                                   'are defined.'
-                                  % (self.path, FileClass.__name__, 
+                                  % (self.path, FileClass.__name__,
                                      len(selection)))
             elif len(selection) == 1:
                 setattr(self, FileClass.__name__.lower(), selection[0])
             else:
                 setattr(self, FileClass.__name__.lower(), FileClass())
-    
+
     def __dir__(self):
         return objecttools.dir_(self)
-    
-    
+
+
 class NetworkManager(object):
     """Manager for network files."""
-    
+
     def __init__(self):
         self._BASEDIRECTORY = 'network'
         self.directory = pub.projectname
-    
+
     def _getbasepath(self):
         """Absolute path pointing to all network directories."""
         return os.path.abspath(self._BASEDIRECTORY)
     basepath = property(_getbasepath)
-    
+
     def _getdirectory(self):
         """Directory containing the network files."""
         return self._subdirectory
@@ -105,33 +105,33 @@ class NetworkManager(object):
         directory = os.path.join(self.basepath, subdirectory)
         if not os.path.exists(directory):
             raise IOError('A directory `%s` within the network base path '
-                          '`%s` does not exist.' 
-                          % (subdirectory, self.basepath))   
+                          '`%s` does not exist.'
+                          % (subdirectory, self.basepath))
         self._subdirectory = str(subdirectory)
     directory = property(_getdirectory, _setdirectory)
-    
+
     def _getdirpath(self):
         """Complete path of the directory containing the network files."""
         return os.path.join(self.basepath, self.directory)
     dirpath = property(_getdirpath)
-    
+
     def _getfilenames(self):
         """Names of the network files."""
-        return [fn for fn in os.listdir(self.dirpath) 
+        return [fn for fn in os.listdir(self.dirpath)
                 if (fn.endswith('.py') and not fn.startswith('_'))]
     filenames = property(_getfilenames)
-    
+
     def _getfilepaths(self):
         """Complete paths of the defined networks files."""
         root = os.path.join(self.basepath, self.directory)
         return [os.path.join(root, fn) for fn in self.filenames]
-    filepaths = property(_getfilepaths)  
-    
+    filepaths = property(_getfilepaths)
+
     def load(self):
-        """Load nodes and elements from all network files and return them in 
-        a :class:`~hydpy.selectiontools.Selections` instance.  Each single 
-        network file defines a seperate 
-        :class:`~hydpy.selectiontools.Selection` instance.  Additionally, all 
+        """Load nodes and elements from all network files and return them in
+        a :class:`~hydpy.selectiontools.Selections` instance.  Each single
+        network file defines a seperate
+        :class:`~hydpy.selectiontools.Selection` instance.  Additionally, all
         elements and nodes are bundled in a selection named `complete`.
         """
         selections = selectiontools.Selections()
@@ -145,7 +145,7 @@ class NetworkManager(object):
             except Exception:
                 exc, message, traceback_ = sys.exc_info()
                 message = ('While trying to load the network file `%s`, '
-                           'the following error occured:  %s' 
+                           'the following error occured:  %s'
                            % (path, message))
                 raise exc, message, traceback_
             try:
@@ -153,24 +153,24 @@ class NetworkManager(object):
                                            filename.split('.')[0],
                                            info['Node'].gathernewnodes(),
                                            info['Element'].gathernewelements())
-                                   
+
             except KeyError as exc:
                 KeyError('The class `%s` cannot be loaded from the network '
                          'file `%s`.  Please refer to the HydPy documentation '
-                         'on how to prepare network files properly.' 
+                         'on how to prepare network files properly.'
                          % (exc.args[0], filename))
         selections += selectiontools.Selection(
                                           'complete',
                                           info['Node'].registerednodes(),
-                                          info['Element'].registeredelements())           
+                                          info['Element'].registeredelements())
         return selections
-    
+
     def save(self, selections, overwrite=False):
-        """Save the nodes and elements from each 
+        """Save the nodes and elements from each
         :class:`~hydpy.selectiontools.Selection` object contained within the
-        given :class:`~hydpy.selectiontools.Selections` instance to a seperate 
-        network file of the same name.  Set `overwrite` to `True`, if you 
-        want to overwrite already existing network files. 
+        given :class:`~hydpy.selectiontools.Selections` instance to a seperate
+        network file of the same name.  Set `overwrite` to `True`, if you
+        want to overwrite already existing network files.
         """
         selections = selectiontools.Selections(selections)
         for (name, selection) in selections:
@@ -186,9 +186,9 @@ class NetworkManager(object):
                 with open(path, 'w') as file_:
                     file_.write('from hydpy import *\n\n')
                     file_.write(repr(selection.elements))
-    
+
     def delete(self, *selections):
-        """Delete network files.  One or more filenames and/or 
+        """Delete network files.  One or more filenames and/or
         :class:`~hydpy.selectiontools.Selection` instances can serve as
         function arguments.
         """
@@ -203,18 +203,18 @@ class NetworkManager(object):
                 Exception_, message, traceback_ = sys.exc_info()
                 Exception_ = str(Exception_)[:-2].split('.')[-1]
                 warnings.warn(': '.join((Exception_, str(message))))
-        
+
     def __dir__(self):
         return objecttools.dir_(self)
-        
-        
+
+
 class ControlManager(object):
     """Manager for control parameter files."""
-    
+
     # The following file path to content mapping is used to circumvent reading
     # the same secondary control parameter file from disk multiple times.
     _registry = {}
-    
+
     def __init__(self):
         self._BASEDIRECTORY = 'control'
         self._projectdirectory = pub.projectname
@@ -224,7 +224,7 @@ class ControlManager(object):
         """Absolute path pointing to all control directories."""
         return os.path.abspath(self._BASEDIRECTORY)
     basepath = property(_getbasepath)
-    
+
     def _getprojectdirectory(self):
         """Folder containing the control directories of the current project."""
         return self._projectdirectory
@@ -233,7 +233,7 @@ class ControlManager(object):
         directory = os.path.join(self.basepath, directory)
         if not os.path.exists(directory):
             raise IOError('Path `%s` does not contain a control directory '
-                          'named `%s`.' % (self.basepath, directory)) 
+                          'named `%s`.' % (self.basepath, directory))
         self._projectdirectory = directory
     projectdirectory = property(_getprojectdirectory, _setprojectdirectory)
 
@@ -241,7 +241,7 @@ class ControlManager(object):
         """Absolute path of the project directory."""
         return os.path.join(self.basepath, self.projectdirectory)
     projectpath = property(_getprojectpath)
-    
+
     def _getcontroldirectories(self):
         """Folders containing the control files of different parameter sets."""
         directories = FolderShow()
@@ -252,15 +252,15 @@ class ControlManager(object):
                     directories.add(directory)
         return directories
     controldirectories = property(_getcontroldirectories)
-    
+
     def _getcontrolpaths(self):
         """Absolute paths of the control directories."""
         paths = FolderShow()
         for (directory, dummy) in self.controldirectories:
             paths.add(directory, os.path.join(self.projectpath, directory))
-        return paths                      
+        return paths
     controlpaths = property(_getcontrolpaths)
-    
+
     def _getcontroldirectory(self):
         """The selected (or the only selectable) control directory"""
         directories = self.controldirectories
@@ -281,7 +281,7 @@ class ControlManager(object):
         except AttributeError:
             raise IOError('The project path `%s` contains multiple control'
                           'directories, but none is named `default`.  '
-                          'Please specify the control directory to be ' 
+                          'Please specify the control directory to be '
                           'worked with manually.' % self.projectpath)
     def _setcontroldirectory(self, directory):
         directory = str(directory)
@@ -301,11 +301,11 @@ class ControlManager(object):
         """Absolute paths of the selected control directory."""
         return os.path.join(self.projectpath, self.controldirectory)
     controlpath = property(_getcontrolpath)
-    
+
     def loadfile(self, filename):
-        """Return the namespace of the given file (and eventually of its 
+        """Return the namespace of the given file (and eventually of its
         subfile) as a :class:`dict`.
-        
+
         Argument:
             * filename (:class:`str`): Any object returning a valid filename
               with or without extension.
@@ -323,23 +323,23 @@ class ControlManager(object):
         finally:
             self._registry.clear()
             os.chdir(workingpath)
-    
+
     @classmethod
     def read2dict(cls, path, info):
         """Reads the control parameters of the given path (and its subpaths
         where appropriate) and stores it in the given :class:`dict` `info`.
-        
+
         Arguments:
             * path (:class:`str`): Any object returning a valid path
               with or without extension.
             * info (:info:`dict`): Target dictionary.
-        
+
         Note that the :class:`dict` `info` can be used to feed information
         into the execution of control files.  Use this function only if you
-        are completely sure on how the control parameter import of HydPy 
-        works.  Otherwise, you should most probably prefer to use 
+        are completely sure on how the control parameter import of HydPy
+        works.  Otherwise, you should most probably prefer to use
         :func:`loadfile` or :func:`loadfiles`.
-        """      
+        """
         path = str(path)
         if not path.endswith('.py'):
             path += '.py'
@@ -351,23 +351,23 @@ class ControlManager(object):
         except BaseException:
             exc, message, traceback_ = sys.exc_info()
             message = ('While trying to load the control file `%s`, '
-                       'the following error occured:  %s' 
+                       'the following error occured:  %s'
                        % (path, message))
-            raise exc, message, traceback_            
+            raise exc, message, traceback_
         if 'model' not in info:
             raise IOError('Model parameters cannot be loaded from control '
                           'file `%s`.  Please refer to the HydPy '
                           'documentation on how to prepare control files '
                           'properly.' % path)
-                    
+
 class FolderShow(object):
-    
+
     def __init__(self, *args, **kwargs):
         for arg in args:
             self.add(arg)
         for (key, value) in kwargs.iteritems():
             self.add(key, value)
-            
+
     def add(self, directory, path=None):
         if path is None:
             path = directory
@@ -377,16 +377,16 @@ class FolderShow(object):
             raise IOError('The directory name `%s` cannot be handled as a '
                           'variable name.  Please avoid arithmetic operators '
                           'like `-`, prefixed numbers...' % directory)
-    
+
     def __iter__(self):
         return vars(self).iteritems()
-        
+
     def __getitem__(self, key):
         return sorted(vars(self).values())[key]
-              
+
     def __len__(self):
         return len(vars(self))
-    
+
     def __repr__(self):
         if not len(self):
             return 'Folders()'
@@ -404,13 +404,13 @@ class FolderShow(object):
 
     def __dir__(self):
         return objecttools.dir_(self)
-        
+
 
 class SequenceManager(object):
     """Manager for sequence files."""
-    
+
     _supportedmodes = ('npy', 'asc')
-    
+
     def __init__(self, projectdirectory=None, inputdirectory=None,
                  outputdirectory=None, nodedirectory=None, tempdirectory=None,
                  inputfiletype=None, outputfiletype=None, nodefiletype=None):
@@ -455,12 +455,12 @@ class SequenceManager(object):
         self._outputoverwrite = False
         self._simoverwrite = False
         self._obsoverwrite = False
-            
+
     def _getbasepath(self):
         """Absolute path pointing to all sequence directories."""
         return os.path.abspath(self._BASEDIRECTORY)
     basepath = property(_getbasepath)
-    
+
     def _getprojectdirectory(self):
         """Folder containing the file directories of the current project."""
         return self._projectdirectory
@@ -469,7 +469,7 @@ class SequenceManager(object):
         directory = os.path.join(self.basepath, directory)
         if not os.path.exists(directory):
             raise IOError('Path `%s` does not contain a directory named `%s`.'
-                          % (self.basepath, directory)) 
+                          % (self.basepath, directory))
         self._projectdirectory = directory
     projectdirectory = property(_getprojectdirectory, _setprojectdirectory)
 
@@ -477,7 +477,7 @@ class SequenceManager(object):
         """Absolute path of the project directory."""
         return os.path.join(self.basepath, self.projectdirectory)
     projectpath = property(_getprojectpath)
-    
+
     def _getsequencedirectories(self):
         """Folders containing the different input/output/temp sequences."""
         directories = FolderShow()
@@ -488,15 +488,15 @@ class SequenceManager(object):
                     directories.add(directory)
         return directories
     sequencedirectories = property(_getsequencedirectories)
-    
+
     def _getsequencepaths(self):
         """Absolute paths of the sequence directories."""
         paths = FolderShow()
         for (key, value) in self.sequencedirectories:
             paths.add(key, os.path.join(self.projectpath, key))
-        return paths                     
+        return paths
     sequencepaths = property(_getsequencepaths)
-    
+
     def _getinputdirectory(self):
         """The selected (or the only selectable) input sequence directory."""
         directories = self.sequencedirectories
@@ -518,7 +518,7 @@ class SequenceManager(object):
             except AttributeError:
                 raise IOError('The project path `%s` contains multiple '
                               'sequence directories, but none is named '
-                              '`input`.  Please specify the input sequence ' 
+                              '`input`.  Please specify the input sequence '
                               'directory to be worked with manually.'
                               % self.projectpath)
     def _setinputdirectory(self, directory):
@@ -528,7 +528,7 @@ class SequenceManager(object):
             self._inputdirectory = directory
         else:
             raise IOError('The project path `%s` does not contain sequence '
-                          'directory named `%s`.' 
+                          'directory named `%s`.'
                           % (self.projectpath, directory))
     def _delinputdirectory(self):
         self._inputdirectory = None
@@ -556,7 +556,7 @@ class SequenceManager(object):
             except AttributeError:
                 raise IOError('The project path `%s` contains multiple '
                               'sequence directories, but none is named '
-                              '`output`.  Please specify the sequence ' 
+                              '`output`.  Please specify the sequence '
                               'directory to be worked with manually.'
                               % self.projectpath)
     def _setoutputdirectory(self, directory):
@@ -566,7 +566,7 @@ class SequenceManager(object):
             self._outputdirectory = directory
         else:
             raise IOError('The project path `%s` does not contain sequence '
-                          'directory named `%s`.' 
+                          'directory named `%s`.'
                           % (self.projectpath, directory))
     def _deloutputdirectory(self):
         self._outputdirectory = None
@@ -594,7 +594,7 @@ class SequenceManager(object):
             except AttributeError:
                 raise IOError('The project path `%s` contains multiple '
                               'sequence directories, but none is named '
-                              '`node`.  Please specify the node sequence ' 
+                              '`node`.  Please specify the node sequence '
                               'directory to be worked with manually.'
                               % self.projectpath)
     def _setnodedirectory(self, directory):
@@ -604,13 +604,13 @@ class SequenceManager(object):
             self._nodedirectory = directory
         else:
             raise IOError('The project path `%s` does not contain sequence '
-                          'directory named `%s`.' 
+                          'directory named `%s`.'
                           % (self.projectpath, directory))
     def _delnodedirectory(self):
         self._nodedirectory = None
     nodedirectory = property(_getnodedirectory, _setnodedirectory,
                               _delnodedirectory)
-                              
+
     def _gettempdirectory(self):
         """The selected (or the only selectable) temporary sequence directory.
         """
@@ -633,7 +633,7 @@ class SequenceManager(object):
             except AttributeError:
                 raise IOError('The project path `%s` contains multiple '
                               'sequence directories, but none is named '
-                              '`temp`.  Please specify the temporary sequence ' 
+                              '`temp`.  Please specify the temporary sequence '
                               'directory to be worked with manually.'
                               % self.projectpath)
     def _settempdirectory(self, directory):
@@ -643,18 +643,18 @@ class SequenceManager(object):
             self._tempdirectory = directory
         else:
             raise IOError('The project path `%s` does not contain sequence '
-                          'directory named `%s`.' 
+                          'directory named `%s`.'
                           % (self.projectpath, directory))
     def _deltempdirectory(self):
         self._tempdirectory = None
     tempdirectory = property(_gettempdirectory, _settempdirectory,
                              _deltempdirectory)
-                             
+
     def _getinputpath(self):
         """Absolute paths of the selected input sequence directory."""
         return os.path.join(self.projectpath, self.inputdirectory)
     inputpath = property(_getinputpath)
- 
+
     def _getoutputpath(self):
         """Absolute paths of the selected output sequence directory."""
         return os.path.join(self.projectpath, self.outputdirectory)
@@ -664,12 +664,12 @@ class SequenceManager(object):
         """Absolute paths of the selected node sequence directory."""
         return os.path.join(self.projectpath, self.nodedirectory)
     nodepath = property(_getnodepath)
-    
+
     def _gettemppath(self):
         """Absolute paths of the selected temporary sequence directory."""
         return os.path.join(self.projectpath, self.tempdirectory)
     temppath = property(_gettemppath)
-    
+
     def _getinputfiletype(self):
         """File type of the external input files."""
         return self._inputfiletype
@@ -711,7 +711,7 @@ class SequenceManager(object):
                                       'of the following file types: %s.'
                                       % (nodefiletype, self._supportedmodes))
     nodefiletype = property(_getnodefiletype, _setnodefiletype)
-    
+
     def _getinputoverwrite(self):
         return self._inputoverwrite
     def _setinputoverwrite(self, value):
@@ -735,27 +735,27 @@ class SequenceManager(object):
     def _setobsoverwrite(self, value):
         self._obsoverwrite = bool(value)
     obsoverwrite = property(_getobsoverwrite, _setobsoverwrite)
-    
+
     def __dir__(self):
         return objecttools.dir_(self)
-        
+
 
 class ConditionManager(object):
     """Manager for condition files."""
-    
+
     def __init__(self):
         self._BASEDIRECTORY = 'conditions'
         self._projectdirectory = pub.projectname
         self._loaddirectory = None
         self._savedirectory = None
-    
+
     def _getbasepath(self):
         """Absolute path pointing to all condition directories."""
         return os.path.abspath(self._BASEDIRECTORY)
-    basepath = property(_getbasepath)    
-    
+    basepath = property(_getbasepath)
+
     def _getprojectdirectory(self):
-        """Folder containing the condition directories of the current 
+        """Folder containing the condition directories of the current
         project.
         """
         return self._projectdirectory
@@ -764,17 +764,17 @@ class ConditionManager(object):
         directory = os.path.join(self.basepath, directory)
         if not os.path.exists(directory):
             raise IOError('Path `%s` does not contain a condition directory '
-                          'named `%s`.' % (self.basepath, directory)) 
+                          'named `%s`.' % (self.basepath, directory))
         self._projectdirectory = directory
-    projectdirectory = property(_getprojectdirectory, _setprojectdirectory)    
+    projectdirectory = property(_getprojectdirectory, _setprojectdirectory)
 
     def _getprojectpath(self):
         """Absolute path of the project directory."""
         return os.path.join(self.basepath, self.projectdirectory)
-    projectpath = property(_getprojectpath)    
+    projectpath = property(_getprojectpath)
 
     def _getconditiondirectories(self):
-        """Folders containing the condition files of e.g. different time 
+        """Folders containing the condition files of e.g. different time
         points.
         """
         directories = FolderShow()
@@ -784,8 +784,8 @@ class ConditionManager(object):
                 if os.path.isdir(path):
                     directories.add(directory)
         return directories
-    conditiondirectories = property(_getconditiondirectories)            
-            
+    conditiondirectories = property(_getconditiondirectories)
+
     def _getloaddirectory(self):
         """The selected (or only selectable) initial conditions directory"""
         directories = self.conditiondirectories
@@ -805,7 +805,7 @@ class ConditionManager(object):
             raise IOError('The project path `%s` contains multiple control'
                           'directories, and no first simulation date is '
                           'available to determine the relevant one.  '
-                          'Please specify the control directory to be ' 
+                          'Please specify the control directory to be '
                           'worked with manually.' % self.projectpath)
         try:
             return getattr(directories, string)
@@ -813,7 +813,7 @@ class ConditionManager(object):
             raise IOError('The project path `%s` contains multiple control'
                           'directories, but none is in accordance with the  '
                           'first simulation date (%s).  Please specify'
-                          'the control directory to be worked with manually.' 
+                          'the control directory to be worked with manually.'
                           % (self.projectpath, string))
     def _setloaddirectory(self, directory):
         directory = str(directory)
@@ -827,7 +827,7 @@ class ConditionManager(object):
     def _delloaddirectory(self):
         self._loaddirectory = None
     loaddirectory = property(_getloaddirectory, _setloaddirectory,
-                             _delloaddirectory)                          
+                             _delloaddirectory)
 
     def _getsavedirectory(self):
         """The selected (or only selectable) final conditions directory"""
@@ -848,7 +848,7 @@ class ConditionManager(object):
             raise IOError('The project path `%s` contains multiple control'
                           'directories, and no last simulation date is '
                           'available to determine the relevant one.  '
-                          'Please specify the control directory to be ' 
+                          'Please specify the control directory to be '
                           'worked with manually.' % self.projectpath)
         try:
             return getattr(directories, string)
@@ -856,7 +856,7 @@ class ConditionManager(object):
             raise IOError('The project path `%s` contains multiple control'
                           'directories, but none is in accordance with the  '
                           'last simulation date (%s).  Please specify'
-                          'the control directory to be worked with manually.' 
+                          'the control directory to be worked with manually.'
                           % (self.projectpath, string))
     def _setsavedirectory(self, directory):
         directory = str(directory)
@@ -870,7 +870,7 @@ class ConditionManager(object):
     def _delsavedirectory(self):
         self._loaddirectory = None
     savedirectory = property(_getsavedirectory, _setsavedirectory,
-                             _delsavedirectory)                          
+                             _delsavedirectory)
 
     def _getloadpath(self):
         """Absolute paths of the relevant initial condition directory."""
@@ -881,19 +881,19 @@ class ConditionManager(object):
         """Absolute paths of the relevant final condition directory."""
         return os.path.join(self.projectpath, self.savedirectory)
     savepath = property(_getsavepath)
-    
+
     def loadfile(self, filename, dirname=None):
         if not filename.endswith('.py'):
             filename += '.py'
         if dirname is None:
             dirname = os.path.join(pub.conditionmanager.loadpath)
-        filepath = os.path.join(dirname, filename)       
+        filepath = os.path.join(dirname, filename)
         try:
             with file(filepath) as file_:
                 return file_.read()
         except BaseException:
             exc, message, traceback_ = sys.exc_info()
             message = ('While trying to read the conditions file `%s`, '
-                       'the following error occured:  %s' 
+                       'the following error occured:  %s'
                        % (filepath, message))
             raise exc, message, traceback_

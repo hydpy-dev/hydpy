@@ -22,9 +22,9 @@ class NmbZones(parametertools.SingleParameter):
     :class:`NmbZones` instance is set before any of the values of these
     1-dimensional parameters are set.  Changing the value of the
     :class:`NmbZones` instance necessitates setting their values again.
-    
+
     Examples:
-        
+
         >>> from hydpy.models.hland import *
         >>> parameterstep('1d')
         >>> nmbzones(5)
@@ -32,7 +32,7 @@ class NmbZones(parametertools.SingleParameter):
         (5,)
         >>> model.sequences.states.ic.shape
         (5,)
-        
+
     """
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 

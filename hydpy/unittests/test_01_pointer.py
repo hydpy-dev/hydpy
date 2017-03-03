@@ -7,13 +7,13 @@ import unittest
 from hydpy.cythons import pointer
 
 class Test1Initialization(unittest.TestCase):
-    
+
     def setUp(self):
         self.test_1_init_double()
         self.test_2_init_p_double()
         self.test_3_change_double()
         self.test_4_change_p_double()
-        
+
     def test_1_init_double(self):
         self.d = pointer.Double(2.)
     def test_2_init_p_double(self):
@@ -24,10 +24,10 @@ class Test1Initialization(unittest.TestCase):
     def test_4_change_p_double(self):
         self.p.setvalue(-3.)
         self.assertEqual(self.d, self.p)
-    
+
 
 class Test2InputConversion(unittest.TestCase):
-    
+
     def setUp(self):
         self.f_x = 2.1
         self.f_y = 5.6
@@ -35,12 +35,12 @@ class Test2InputConversion(unittest.TestCase):
         self.d_y = pointer.Double(self.f_y)
         self.p_x = pointer.PDouble(self.d_x)
         self.p_y = pointer.PDouble(self.d_y)
-        
+
     def test_double_add_float(self):
         self.assertEqual(self.d_x + self.f_y,
                          self.f_x + self.f_y)
     def test_float_add_double(self):
-        self.assertEqual(self.f_x - self.d_y,
+        self.assertEqual(self.f_x + self.d_y,
                          self.f_x + self.f_y)
     def test_p_double_add_float(self):
         self.assertEqual(self.p_x + self.f_y,
@@ -55,7 +55,7 @@ class Test2InputConversion(unittest.TestCase):
         self.assertEqual(self.p_x + self.d_y,
                          self.f_x + self.f_y)
 
-        
+
 class TestRhichCompare(object):
 
     def setUp(self):
@@ -79,7 +79,7 @@ class TestRhichCompare(object):
                          self.f_large <= self.f_small)
     def test_small_le_small(self):
         self.assertEqual(self.d_small <= self.d_small,
-                         self.f_small <= self.f_small) 
+                         self.f_small <= self.f_small)
     def test_small_eq_large(self):
         self.assertEqual(self.d_small == self.d_large,
                          self.f_small == self.f_large)
@@ -88,7 +88,7 @@ class TestRhichCompare(object):
                          self.f_large == self.f_small)
     def test_small_eq_small(self):
         self.assertEqual(self.d_small == self.d_small,
-                         self.f_small == self.f_small) 
+                         self.f_small == self.f_small)
     def test_small_gt_large(self):
         self.assertEqual(self.d_small > self.d_large,
                          self.f_small > self.f_large)
@@ -116,8 +116,8 @@ class TestRhichCompare(object):
     def test_small_ne_small(self):
         self.assertEqual(self.d_small != self.d_small,
                          self.f_small != self.f_small)
-    
-        
+
+
 class Test3RhichCompareDouble(unittest.TestCase, TestRhichCompare):
     def setUp(self):
         TestRhichCompare.setUp(self)
@@ -139,7 +139,7 @@ class TestArithmetic(object):
     def setUp(self):
         self.f_x = 2.1
         self.f_y = 5.3
-    
+
     def test_add(self):
         self.assertEqual(self.d_x + self.d_y,
                          self.f_x + self.f_y)
@@ -197,7 +197,7 @@ class TestNumericConversion(object):
 
     def setUp(self):
         self.f_x = 2.1
-    
+
     def test_int(self):
         self.assertEqual(int(self.d_x),
                          int(self.f_x))
@@ -227,7 +227,7 @@ class TestInPlaceOperators(object):
     def setUp(self):
         self.f_x = 2.1
         self.f_y = 5.3
-    
+
     def test_iadd(self):
         self.d_x += self.d_y
         self.f_x += self.f_y
@@ -256,7 +256,7 @@ class TestInPlaceOperators(object):
         self.d_x %= self.d_y
         self.f_x %= self.f_y
         self.assertEqual(self.d_x, self.f_x)
-                         
+
 class Test9InPlaceOperatorsDouble(unittest.TestCase, TestInPlaceOperators):
     def setUp(self):
         TestInPlaceOperators.setUp(self)
@@ -270,9 +270,8 @@ class Test10InPlaceOperatorsPDouble(unittest.TestCase, TestInPlaceOperators):
         self._d_x = pointer.Double(self.f_x)
         self._d_y = pointer.Double(self.f_y)
         self.d_x = pointer.PDouble(self._d_x)
-        self.d_y = pointer.PDouble(self._d_y)                         
-                         
-                         
-                         
-                         
-                         
+        self.d_y = pointer.PDouble(self._d_y)
+
+
+
+

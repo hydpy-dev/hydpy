@@ -16,7 +16,7 @@ from hydpy.framework import magictools
 
 class HydPy(object):
     """HydPy for single processing."""
-    
+
     # A counter for the number of HydPy instances.
     nmb_instances = 0
 
@@ -34,13 +34,13 @@ class HydPy(object):
                           'time.  Consider deleting all instances and '
                           'initializing a new one, unless you are fully aware '
                           'in what manner HydPy is relying on some global '
-                          'information stored in modules.' 
+                          'information stored in modules.'
                           %HydPy.nmb_instances)
-            
+
         # Store public information in a seperate module.
         pub.allowcoldstart = False
         pub.projectname = projectname
-        pub.filemanager = filetools.MainManager()   
+        pub.filemanager = filetools.MainManager()
         pub.networkmanager = filetools.NetworkManager()
         pub.controlmanager = filetools.ControlManager()
         pub.sequencemanager = filetools.SequenceManager()
@@ -48,7 +48,7 @@ class HydPy(object):
 
         if pub.options.printprogress:
             print('HydPy initialization ended at', time.strftime('%X'))
-            
+
     def preparenetwork(self):
         pub.selections = selectiontools.Selections()
         pub.selections += pub.networkmanager.load()
@@ -64,37 +64,37 @@ class HydPy(object):
                 element.model.connect()
         finally:
             magictools.simulationstep.warn = warn
-    
+
     def savecontrols(self, controldirectory=None, projectdirectory=None,
                      parameterstep=None, simulationstep=None):
         _controldirectory = pub.controlmanager._controldirectory
-        _projectdirectory = pub.controlmanager._projectdirectory  
+        _projectdirectory = pub.controlmanager._projectdirectory
         try:
             if controldirectory:
                 pub.controlmanager.controldirectory = controldirectory
             if projectdirectory:
-                pub.controlmanager.projectdirectory = projectdirectory                
+                pub.controlmanager.projectdirectory = projectdirectory
             for (name, element) in self.elements:
                 element.model.parameters.savecontrols(parameterstep,
                                                       simulationstep)
         finally:
             pub.controlmanager._controldirectory = _controldirectory
-            pub.controlmanager._projectdirectory = _projectdirectory            
-        
-        
+            pub.controlmanager._projectdirectory = _projectdirectory
+
+
     def loadconditions(self, conditiondirectory=None, controldirectory=None,
                        projectdirectory=None, ):
-        self._ioconditions(conditiondirectory,  controldirectory, 
+        self._ioconditions(conditiondirectory,  controldirectory,
                            projectdirectory, True)
-        
+
     def saveconditions(self, conditiondirectory=None, controldirectory=None,
                        projectdirectory=None):
-        self._ioconditions(conditiondirectory,  controldirectory, 
+        self._ioconditions(conditiondirectory,  controldirectory,
                            projectdirectory, False)
 
-    def _ioconditions(self, conditiondirectory, controldirectory, 
+    def _ioconditions(self, conditiondirectory, controldirectory,
                       projectdirectory, loadflag):
-        if loadflag:                
+        if loadflag:
             _conditiondirectory = pub.conditionmanager._loaddirectory
         else:
             _conditiondirectory = pub.conditionmanager._savedirectory
@@ -122,10 +122,10 @@ class HydPy(object):
                 pub.conditionmanager._savedirectory = _conditiondirectory
             pub.controlmanager._controldirectory = _controldirectory
             pub.conditionmanager._projectdirectory = _projectdirectory
-            
+
     def trimconditions(self):
         for (name, element) in self.elements:
-            element.model.sequences.trimconditions()        
+            element.model.sequences.trimconditions()
 
     def resetconditions(self):
         for (name, element) in self.elements:
@@ -134,7 +134,7 @@ class HydPy(object):
     def connect(self):
         for (name, element) in self.elements:
             element.connect()
-    
+
     @property
     def network_properties(self):
         print('Number of nodes: %d' % len(self.nodes))
@@ -142,12 +142,12 @@ class HydPy(object):
         print('Number of end nodes: %d' % len(self.endnodes))
         print('Number of distinct networks: %d' % len(self.distinct_networks))
         print('Applied node variables: %s' % ', '.join(self.variables))
-    
+
     @property
     def distinct_networks(self):
         sels1 = selectiontools.Selections()
         sels2 = selectiontools.Selections()
-        complete = selectiontools.Selection('complete', 
+        complete = selectiontools.Selection('complete',
                                             self.nodes, self.elements)
         for (name, node) in self.endnodes:
             sel = complete.copy(name).select_upstream(node)
@@ -161,7 +161,7 @@ class HydPy(object):
             if not sels1[name].elements:
                 del sels1[name]
         return sels1
-        
+
     def _updatedeviceorder(self):
         self.deviceorder = []
         for (name, node) in self.endnodes:
@@ -170,7 +170,7 @@ class HydPy(object):
 
     def _nextnode(self, node):
         for (name, element) in node.exits:
-            if ((element in self.elements) and 
+            if ((element in self.elements) and
                 (element not in self.deviceorder)):
                 if not node in element.receivers:
                     self._nextelement(element)
@@ -181,14 +181,14 @@ class HydPy(object):
 
     def _nextelement(self, element):
         for (name, node) in element.outlets:
-            if ((node in self.nodes) and 
+            if ((node in self.nodes) and
                 (node not in self.deviceorder)):
                 self._nextnode(node)
         if (element in self.elements) and (element not in self.deviceorder):
             self.deviceorder.append(element)
             for (name, node) in element.inlets:
                 self._nextnode(node)
-        
+
     @property
     def endnodes(self):
         endnodes = devicetools.Nodes()
@@ -200,19 +200,19 @@ class HydPy(object):
             else:
                 endnodes += node
         return endnodes
-        
+
     @property
     def variables(self):
         variables = set([])
         for (name, node) in self.nodes:
             variables.add(node.variable)
         return sorted(variables)
-    
+
     @property
     def simindices(self):
         return (pub.timegrids.init[pub.timegrids.sim.firstdate],
                 pub.timegrids.init[pub.timegrids.sim.lastdate])
-             
+
     def openfiles(self, idx=0):
         for (name, element) in self.elements:
             element.model.sequences.openfiles(idx)
@@ -224,13 +224,13 @@ class HydPy(object):
             element.model.sequences.closefiles()
         for (name, node) in self.nodes:
             node.sequences.closefiles()
-            
+
     def updatedevices(self, selection=None):
         if selection is not None:
             self.nodes = selection.nodes
             self.elements = selection.elements
         self._updatedeviceorder()
-        
+
     @property
     def funcorder(self):
         funcs = []
@@ -255,7 +255,7 @@ class HydPy(object):
             if node.routingmode != 'oldsim':
                 funcs.append(node._savedata_sim)
         return funcs
-                   
+
     def doit(self):
         idx_start,idx_end = self.simindices
         self.openfiles(idx_start)
@@ -276,12 +276,12 @@ class HydPy(object):
         if pub.options.printprogress:
             print('*')
         self.closefiles()
-        
+
     def prepare_modelseries(self, ramflag=True):
         self.prepare_inputseries(ramflag)
         self.prepare_fluxseries(ramflag)
         self.prepare_stateseries(ramflag)
-        
+
     def prepare_inputseries(self, ramflag=True):
         self._prepare_modelseries('inputs', ramflag)
 
@@ -290,7 +290,7 @@ class HydPy(object):
 
     def prepare_stateseries(self, ramflag=True):
         self._prepare_modelseries('states', ramflag)
-    
+
     def _prepare_modelseries(self, name_subseqs, ramflag):
         for (name, element) in self.elements:
             sequences = element.model.sequences
@@ -300,17 +300,17 @@ class HydPy(object):
                     subseqs.activate_ram()
                 else:
                     subseqs.activate_disk()
-    
+
     def prepare_nodeseries(self, ramflag=True):
         self.prepare_simseries(ramflag)
         self.prepare_obsseries(ramflag)
-        
+
     def prepare_simseries(self, ramflag=True):
         self._prepare_nodeseries('sim', ramflag)
 
     def prepare_obsseries(self, ramflag=True):
         self._prepare_nodeseries('obs', ramflag)
-                    
+
     def _prepare_nodeseries(self, seqname, ramflag):
         for (name, node) in self.nodes:
             seq = getattr(node.sequences, seqname)
@@ -318,21 +318,21 @@ class HydPy(object):
                 seq.activate_ram()
             else:
                 seq.activate_disk()
-              
+
     def save_modelseries(self):
         self.save_inputseries()
         self.save_fluxseries()
         self.save_stateseries()
-    
+
     def save_inputseries(self):
         self._save_modelseries('inputs', pub.sequencemanager.inputoverwrite)
 
     def save_fluxseries(self):
         self._save_modelseries('fluxes', pub.sequencemanager.outputoverwrite)
-                        
+
     def save_stateseries(self):
         self._save_modelseries('states', pub.sequencemanager.outputoverwrite)
-        
+
     def _save_modelseries(self, name_subseqs, overwrite):
         for (name1, element) in self.elements:
             sequences = element.model.sequences
@@ -344,19 +344,19 @@ class HydPy(object):
                     else:
                         warnings.warn('Due to the argument `overwrite` beeing '
                                       '`False` it is not allowed to overwrite '
-                                      'the already existing file `%s`.' 
+                                      'the already existing file `%s`.'
                                       % seq.filepath_ext)
-       
+
     def save_nodeseries(self):
         self.save_simseries()
         self.save_obsseries()
-        
+
     def save_simseries(self, ramflag=True):
         self._save_nodeseries('sim', pub.sequencemanager.simoverwrite)
 
     def save_obsseries(self, ramflag=True):
         self._save_nodeseries('obs', pub.sequencemanager.obsoverwrite)
-                    
+
     def _save_nodeseries(self, seqname, overwrite):
         for (name, node) in self.nodes:
             seq = getattr(node.sequences, seqname)
@@ -366,5 +366,5 @@ class HydPy(object):
                 else:
                     warnings.warn('Due to the argument `overwrite` beeing '
                                   '`False` it is not allowed to overwrite '
-                                  'the already existing file `%s`.' 
+                                  'the already existing file `%s`.'
                                   % seq.filepath_ext)

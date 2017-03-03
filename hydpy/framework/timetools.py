@@ -335,8 +335,8 @@ import numpy
 # ...from HydPy
 from hydpy.framework import objecttools
 
-# The import of `_strptime` is not thread save.  The following call of 
-# `strptime` is supposed to prevent possible problems arising from this bug. 
+# The import of `_strptime` is not thread save.  The following call of
+# `strptime` is supposed to prevent possible problems arising from this bug.
 time.strptime('1999', '%Y')
 
 
@@ -393,24 +393,24 @@ class Date(object):
             raise ValueError('Date could not be identified out of the given '
                              'string %s.  The available formats are %s.'
                              % (date, self._formatstrings))
-    
+
     @classmethod
     def fromarray(cls, array):
-        """Returns a :class:`Date` instance based on date information (year, 
+        """Returns a :class:`Date` instance based on date information (year,
         month, day, hour, minute, second) stored as the first entries of the
         successive rows of a :class:`~numpy.ndarray` object."""
         intarray = numpy.array(array, dtype=int)
         for idx in range(1, array.ndim):
             intarray = intarray[:,0]
         return cls(datetime.datetime(*intarray))
-    
+
     def toarray(self):
         """Returns a 1-dimensional :lib:`numpy` :class:`~numpy.ndarray` with
-        six entries defining the actual date (year, month, day, hour, minute, 
+        six entries defining the actual date (year, month, day, hour, minute,
         second)."""
-        return numpy.array([self.year, self.month, self.day, self.hour, 
+        return numpy.array([self.year, self.month, self.day, self.hour,
                             self.minute, self.second], dtype=float)
-    
+
     def _getrefmonth(self):
         """First month of the hydrological year. The default value is 11
         (November which is the german reference month). Setting it e.g. to 10
@@ -578,7 +578,7 @@ class Date(object):
 
     def __dir__(self):
         return objecttools.dir_(self)
-        
+
 
 class Period(object):
     """Handles the length of a single time period.
@@ -640,7 +640,7 @@ class Period(object):
 
     @classmethod
     def fromseconds(cls, seconds):
-        """Returns a :class:`Period` instance based on a given number of 
+        """Returns a :class:`Period` instance based on a given number of
         seconds.
         """
         try:
@@ -648,7 +648,7 @@ class Period(object):
         except TypeError:
             seconds = int(seconds.flatten()[0])
         return cls(datetime.timedelta(0, int(seconds)))
-        
+
     def _guessunit(self):
         """Guess the unit of the period as the largest one, which results in
         an integer duration.
@@ -783,8 +783,8 @@ class Period(object):
 
     def __dir__(self):
         return objecttools.dir_(self)
-                
-                
+
+
 class Timegrid(object):
     """Handle a time period defined by to dates and a step size in between."""
 
@@ -796,7 +796,7 @@ class Timegrid(object):
         self.lastdate = lastdate
         self.stepsize = stepsize
         self.verify()
-    
+
     def _getfirstdate(self):
         return self._firstdate
     def _setfirstdate(self, firstdate):
@@ -814,11 +814,11 @@ class Timegrid(object):
     def _setstepsize(self, stepsize):
         self._stepsize = Period(stepsize)
     stepsize = property(_getstepsize, _setstepsize)
-    
+
     @classmethod
     def fromarray(cls, array):
-        """Returns a :class:`Timegrid` instance based on two date and one 
-        period information stored in the first 13 rows of a 
+        """Returns a :class:`Timegrid` instance based on two date and one
+        period information stored in the first 13 rows of a
         :class:`~numpy.ndarray` object.
         """
         try:
@@ -829,17 +829,17 @@ class Timegrid(object):
             raise IndexError('To define a Timegrid instance via an array, 13 '
                              'numbers are required.  However, the given array '
                              'consist of %d entries/rows only.' % len(array))
-    
+
     def toarray(self):
         """Returns a 1-dimensional :lib:`numpy` :class:`~numpy.ndarray` with
-        thirteen entries first defining the start date, secondly defining the 
+        thirteen entries first defining the start date, secondly defining the
         end date and thirdly the step size."""
         values = numpy.empty(13, dtype=float)
         values[:6] = self.firstdate.toarray()
         values[6:12] = self.lastdate.toarray()
         values[12] = self.stepsize.seconds
         return values
-        
+
     def verify(self):
         """Raise an :class:`~exceptions.ValueError` if the dates or the
         step size of the time frame are inconsistent.
@@ -927,7 +927,7 @@ class Timegrid(object):
 
     def __dir__(self):
         return objecttools.dir_(self)
-        
+
 
 class _Timegrids(object):
     """Handle all :class:`Timegrid` instances of a HydPy application.
@@ -1053,8 +1053,8 @@ class _Timegrids(object):
 
     def __dir__(self):
         return objecttools.dir_(self)
-        
-        
+
+
 class Timegrids(object):
     """Handle all :class:`Timegrid` instances of a HydPy application.
 
@@ -1187,4 +1187,3 @@ class Timegrids(object):
 
     def __dir__(self):
         return objecttools.dir_(self)
-        

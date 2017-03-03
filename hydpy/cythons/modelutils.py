@@ -8,8 +8,9 @@
 # ...from standard library
 from __future__ import division, print_function
 import os
-import shutil
 import sys
+import platform
+import shutil
 import copy
 import inspect
 import importlib
@@ -25,8 +26,14 @@ from hydpy.framework import objecttools
 from hydpy.framework import sequencetools
 from hydpy.framework import magictools
 
+if platform.system().lower() == 'windows':
+    dllextension = '.pyd'
+    """The dll file extension on the respective system."""
+else:
+    dllextension = '.so'
+
 TYPE2STR = {bool: 'bint',
-            int: 'int',
+            int: 'numpy.'+str(numpy.array([1]).dtype)+'_t',
             float: 'double',
             str: 'str',
             None: 'void'}
@@ -119,11 +126,6 @@ class Cythonizer(object):
         return os.path.join(self.cydirpath, '_build')
 
     @property
-    def dllextension(self):
-        """Returns the dll file extension on the respective system."""
-        return '.'+cythons.pointer.__file__.split('.')[-1]
-
-    @property
     def pyxwriter(self):
         """Update the pyx file."""
         model = self.Model()
@@ -179,9 +181,9 @@ class Cythonizer(object):
         for dirinfo in dirinfos:
             try:
                 shutil.move(os.path.join(dirinfo[0],
-                                         self.cyname+self.dllextension),
+                                         self.cyname+dllextension),
                             os.path.join(self.cydirpath,
-                                         self.cyname+self.dllextension))
+                                         self.cyname+dllextension))
                 break
             except BaseException:
                 pass
@@ -194,8 +196,7 @@ class Cythonizer(object):
                           'and is currently imported by another Python '
                           'process. Maybe it helps to close all Python '
                           'processes and restart the cyhonization afterwards.)'
-                          % (self.pyname,
-                             self.cyname+self.dllextension,
+                          % (self.pyname, self.cyname+dllextension,
                              self.buildpath, self.cydirpath))
             raise OSError()
         try:

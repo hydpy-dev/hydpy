@@ -57,7 +57,7 @@ class Device(object):
         return cls._registry.keys()
 
     def __iter__(self):
-        for (key, value) in vars(self).iteritems():
+        for (key, value) in vars(self).items():
             if isinstance(value, connectiontools.Connections):
                 yield (key, value)
 
@@ -414,7 +414,7 @@ class Devices(object):
         del(self.__dict__[key])
 
     def __iter__(self):
-        for (name, device) in vars(self).iteritems():
+        for (name, device) in vars(self).items():
             yield (name, device)
 
     def __contains__(self, device):

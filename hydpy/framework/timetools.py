@@ -382,7 +382,7 @@ class Date(object):
         Arguments:
             * date (:class:`str`): Initialization date.
         """
-        for (style, string) in self._formatstrings.iteritems():
+        for (style, string) in self._formatstrings.items():
             for idx in xrange(4):
                 try:
                     self.datetime = datetime.datetime.strptime(date, string)
@@ -1035,7 +1035,7 @@ class _Timegrids(object):
         return copy.deepcopy(self)
 
     def __iter__(self):
-        for (name, timegrid) in dict(self).iteritems():
+        for (name, timegrid) in dict(self).items():
             yield (name, timegrid)
 
     def __str__(self):
@@ -1157,7 +1157,7 @@ class Timegrids(object):
         return copy.deepcopy(self)
 
     def __iter__(self):
-        for (name, timegrid) in dict(self).iteritems():
+        for (name, timegrid) in dict(self).items():
             yield (name, timegrid)
 
     def __str__(self):

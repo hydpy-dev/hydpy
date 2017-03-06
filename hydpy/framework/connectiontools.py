@@ -44,7 +44,7 @@ class Connections(object):
         return self.__dict__[name]
 
     def __iter__(self):
-        for (name, slave) in vars(self).iteritems():
+        for (name, slave) in vars(self).items():
             if name != 'master':
                 yield (name, slave)
 

@@ -32,7 +32,7 @@ class Parameters(object):
         self.derived = None
         cythonmodule = kwargs.get('cythonmodule')
         cymodel = kwargs.get('cymodel')
-        for (name, cls) in kwargs.iteritems():
+        for (name, cls) in kwargs.items():
             if name.endswith('Parameters') and issubclass(cls, SubParameters):
                 if cythonmodule:
                     cls_fastaccess = getattr(cythonmodule, name)
@@ -97,7 +97,7 @@ class Parameters(object):
             parameter.verify()
 
     def __iter__(self):
-        for (key, value) in vars(self).iteritems():
+        for (key, value) in vars(self).items():
             if isinstance(value, SubParameters):
                 yield key, value
 

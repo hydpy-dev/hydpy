@@ -242,7 +242,7 @@ class _Model(object):
 
     def modifyInputArrays(self,info):
 
-        for arrayName,arrayValues in info.iteritems():
+        for arrayName,arrayValues in info.items():
             exec('s.sequences.input.%s[:] = arrayValues'%arrayName)
 
 

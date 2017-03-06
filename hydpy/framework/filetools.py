@@ -365,7 +365,7 @@ class FolderShow(object):
     def __init__(self, *args, **kwargs):
         for arg in args:
             self.add(arg)
-        for (key, value) in kwargs.iteritems():
+        for (key, value) in kwargs.items():
             self.add(key, value)
 
     def add(self, directory, path=None):
@@ -379,7 +379,7 @@ class FolderShow(object):
                           'like `-`, prefixed numbers...' % directory)
 
     def __iter__(self):
-        return vars(self).iteritems()
+        return vars(self).items()
 
     def __getitem__(self, key):
         return sorted(vars(self).values())[key]

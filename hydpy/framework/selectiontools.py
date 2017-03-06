@@ -45,7 +45,7 @@ class Selections(object):
             return value in self.names
 
     def __iter__(self):
-        for (name, selection) in vars(self).iteritems():
+        for (name, selection) in vars(self).items():
             yield (name, selection)
 
     def __len__(self):

@@ -121,7 +121,7 @@ class MultiParameter(parametertools.MultiParameter):
                                        % (objecttools.devicename(self),
                                           self.name))
                 self.values = kwargs.pop('default', numpy.nan)
-                for (key, value)  in kwargs.iteritems():
+                for (key, value)  in kwargs.items():
                     sel = CONSTANTS.get(key.upper())
                     if sel is None:
                         raise exc
@@ -177,7 +177,7 @@ class MultiParameter(parametertools.MultiParameter):
                 raise NotImplementedError('Parameter zonetype is not defined '
                                           'poperly, which circumvents finding '
                                           'a suitable compressed.')
-            for (key, value) in CONSTANTS.iteritems():
+            for (key, value) in CONSTANTS.items():
                 if value in self.RELEVANTZONETYPES:
                     unique = numpy.unique(self.values[zonetype == value])
                     unique = self.reverttimefactor(unique)

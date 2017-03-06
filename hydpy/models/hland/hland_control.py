@@ -75,7 +75,7 @@ class ZoneType(hland_parameters.MultiParameter):
         types beeing defined by the constants `FIELD`, `FOREST`...
         """
         result = ', '.join(str(value) for value in self.values)
-        for (key, value) in hland_constants.CONSTANTS.iteritems():
+        for (key, value) in hland_constants.CONSTANTS.items():
             result = result.replace(str(value), key)
         return [result]
 

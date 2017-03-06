@@ -29,7 +29,7 @@ class Sequences(object):
         self.model = kwargs.get('model')
         cythonmodule = kwargs.get('cythonmodule')
         cymodel = kwargs.get('cymodel')
-        for (name, cls) in kwargs.iteritems():
+        for (name, cls) in kwargs.items():
             if name.endswith('Sequences') and issubclass(cls, SubSequences):
                 if cythonmodule:
                     cls_fastaccess = getattr(cythonmodule, name)
@@ -87,7 +87,7 @@ class Sequences(object):
                 subseqs.reset()
 
     def __iter__(self):
-        for (key, value) in vars(self).iteritems():
+        for (key, value) in vars(self).items():
             if isinstance(value, SubSequences):
                 yield key, value
 

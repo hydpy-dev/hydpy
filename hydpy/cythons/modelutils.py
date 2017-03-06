@@ -37,6 +37,11 @@ TYPE2STR = {bool: 'bint',
             float: 'double',
             str: 'str',
             None: 'void'}
+"""Maps Python types to Cython compatible type declarations.
+
+The Cython type belonging to Python's :class:`int` is selected to be in
+agreement with numpy's default integer type on the respective platform/system.
+"""
 NDIM2STR = {0: '',
             1: '[:]',
             2: '[:,:]',
@@ -65,7 +70,7 @@ class Cythonizer(object):
     def __init__(self):
         frame = inspect.currentframe().f_back
         self.pymodule = frame.f_globals['__name__']
-        for (key, value) in frame.f_locals.iteritems():
+        for (key, value) in frame.f_locals.items():
             setattr(self, key, value)
 
     def complete(self):
@@ -138,7 +143,7 @@ class Cythonizer(object):
         """All source files of the actual models Python classes and their
         respective base classes."""
         sourcefiles = set()
-        for (name, child) in vars(self).iteritems():
+        for (name, child) in vars(self).items():
             try:
                 parents = inspect.getmro(child)
             except AttributeError:
@@ -264,7 +269,7 @@ class PyxWriter(object):
     def constants(self):
         """Constants declaration lines."""
         lines = Lines()
-        for (name, member) in vars(self.cythonizer).iteritems():
+        for (name, member) in vars(self.cythonizer).items():
             if name.isupper() and not inspect.isclass(member):
                 ndim = numpy.array(member).ndim
                 ctype = TYPE2STR[type(member)] + NDIM2STR[ndim]
@@ -609,7 +614,7 @@ class PyxWriter(object):
     def listofmodeluserfunctions(self):
         """User functions of the model class."""
         lines = []
-        for (name, member) in vars(self.model.__class__).iteritems():
+        for (name, member) in vars(self.model.__class__).items():
             if (inspect.isfunction(member) and
                     (name not in  ('run', 'new2old')) and
                     ('fastaccess' in inspect.getsource(member))):

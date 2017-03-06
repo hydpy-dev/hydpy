@@ -56,7 +56,7 @@ class MainManager(object):
         self.getmanagers()
 
     def timegrids2pub(self):
-        selection = [value for value in self.info.itervalues()
+        selection = [value for value in self.info.values()
                      if isinstance(value, timetools.Timegrids)]
         if len(selection) != 1:
             print(self.info)
@@ -69,7 +69,7 @@ class MainManager(object):
     def getmanagers(self):
         for FileClass in (NetworkManager, ControlManager,
                           SequenceManager, ConditionManager):
-            selection = [value for value in self.info.itervalues()
+            selection = [value for value in self.info.values()
                          if isinstance(value, FileClass)]
             if len(selection) > 1:
                 raise ImportError('The main project file `%s` must not define '

@@ -37,7 +37,7 @@ def dir_(self):
     from hydpy import pub
     names = set()
     for thing in list(inspect.getmro(type(self))) + [self]:
-        for name in vars(thing).iterkeys():
+        for name in vars(thing).keys():
             if pub.options.dirverbose or not name.startswith('_'):
                 names.add(name)
     return list(names)

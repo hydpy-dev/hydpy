@@ -1392,7 +1392,7 @@ class FastAccess(object):
 
     def __iter__(self):
         """Iterate over all sequence names."""
-        for key in vars(self).iterkeys():
+        for key in vars(self).keys():
             if not key.startswith('_'):
                 yield key
 

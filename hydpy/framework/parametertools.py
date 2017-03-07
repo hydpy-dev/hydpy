@@ -259,10 +259,8 @@ class Parameter(objecttools.ValueMath, objecttools.Trimmer):
         try:
             self._parameterstep = timetools.Period(value)
         except Exception:
-            Exception_, message, traceback_ = sys.exc_info()
-            message = ('While trying to set the general parameter time step,'
-                       'the following error occured:  %s' % message)
-            raise Exception_, message, traceback_
+            objecttools.augmentexcmessage('While trying to set the general '
+                                          'parameter time step')
     parameterstep = property(_getparameterstep, _setparameterstep)
 
     def _getsimulationstep(self):
@@ -471,11 +469,9 @@ class MultiParameter(Parameter):
         try:
             array = numpy.full(shape, numpy.nan, dtype=self.TYPE)
         except Exception:
-            Exception_, message, traceback_ = sys.exc_info()
-            message = ('While trying create a new :class:`~numpy.ndarray` '
-                       'for parameter `%s`,the following error occured: %s.'
-                       % (self.name, message))
-            raise Exception_, message, traceback_
+            objecttools.augmentexcmessage('While trying create a new numpy '
+                                          'ndarray` for parameter `%s`'
+                                          % self.name)
         if array.ndim == self.NDIM:
             setattr(self.fastaccess, self.name, array)
         else:
@@ -581,11 +577,9 @@ class MultiParameter(Parameter):
             raise RuntimeError('Parameter `%s` has no values so far.'
                                % self.name)
         else:
-            Exception_, message, traceback_ = sys.exc_info()
-            message = ('While trying to item access the values of parameter '
-                       '`%s`, the following error occured:  %s'
-                       % (self.name, message))
-            raise Exception_, message, traceback_
+            objecttools.augmentexcmessage('While trying to item access the '
+                                          'values of parameter `%s`'
+                                          % self.name)
 
     def compressrepr(self):
         """Returns a compressed parameter value string, which is (in
@@ -616,11 +610,9 @@ class MultiParameter(Parameter):
         except NotImplementedError:
             values = self.reverttimefactor(self.values)
         except BaseException:
-            Exception_, message, traceback_ = sys.exc_info()
-            message = ('While trying to find a compressed string '
-                       'representation for parameter `%s`, the following '
-                       'error occured:  %s' % (self.name, message))
-            raise Exception_, message, traceback_
+            objecttools.augmentexcmessage('While trying to find a compressed '
+                                          'string representation for '
+                                          'parameter `%s`' % self.name)
         if self.NDIM == 1:
             cols = ', '.join(str(value) for value in values)
             wrappedlines = textwrap.wrap(cols, 80-len(self.name)-2)

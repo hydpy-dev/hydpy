@@ -11,6 +11,7 @@ import importlib
 import doctest
 # ...from HydPy
 from hydpy import pub
+from hydpy.framework import objecttools
 from hydpy.framework import timetools
 from hydpy.framework import filetools
 from hydpy.framework import parametertools
@@ -81,10 +82,10 @@ class PrintStyle(object):
     def __enter__(self):
         print('\x1B[%d;30;%dm' % (self.font, self.color))
 
-    def __exit__(self, exc, message, traceback_):
+    def __exit__(self, exception, message, traceback_):
         print('\x1B[0m')
-        if exc:
-            raise exc, message, traceback_
+        if exception:
+            objecttools.augmentexcmessage()
 
 
 class StdOutErr(object):
@@ -99,7 +100,7 @@ class StdOutErr(object):
         sys.stdout = self
         sys.stderr = self
 
-    def __exit__(self, exc, message, traceback_):
+    def __exit__(self, exception, message, traceback_):
         if not self.texts:
             self.print_('no failures occurred')
         else:
@@ -107,8 +108,8 @@ class StdOutErr(object):
                 self.print_(text)
         sys.stdout = self.stdout
         sys.stderr = self.stderr
-        if exc:
-            raise exc, message, traceback_
+        if exception:
+            objecttools.augmentexcmessage()
 
     def write(self, text):
         self.texts.extend(text.split('\n'))

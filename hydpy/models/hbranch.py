@@ -8,6 +8,7 @@ import sys
 # ...third party
 import numpy
 # ...HydPy specific...
+from hydpy.framework import objecttools
 from hydpy.framework import modeltools
 from hydpy.framework import parametertools
 from hydpy.framework import sequencetools
@@ -278,10 +279,8 @@ class YPoints(parametertools.MultiParameter):
                                      'for branch `%s` %d are given.'
                                      % (self.shape[1], key, len(value)))
                 else:
-                    exc, message, traceback_ = sys.exc_info()
-                    message = ('%s The affected keyword argument is `%s`.'
-                               % (message, key))
-                    raise exc, message, traceback_
+                    message = 'The affected keyword argument is `%s`' % key
+                    objecttools.augmentexcmessage(suffix=message)
             setattr(self, key, self[idx])
             self.subpars.pars.model.nodenames.append(key)
 

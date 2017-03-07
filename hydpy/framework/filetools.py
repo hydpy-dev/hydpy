@@ -42,11 +42,9 @@ class MainManager(object):
         try:
             execfile(self.path, {}, self.info)
         except Exception:
-            exc, message, traceback_ = sys.exc_info()
-            message = ('While trying to load the genereal project settings '
-                       'from `%s`, the following error occured:  %s'
-                       % (self.path, message))
-            raise exc, message, traceback_
+            prefix = ('While trying to load the genereal project settings '
+                      'from `%s`' % self.path)
+            objecttools.augmentexcmessage(prefix)
 
     def clearinfo(self):
         self.info = {}
@@ -143,11 +141,8 @@ class NetworkManager(object):
             try:
                 execfile(path, {}, info)
             except Exception:
-                exc, message, traceback_ = sys.exc_info()
-                message = ('While trying to load the network file `%s`, '
-                           'the following error occured:  %s'
-                           % (path, message))
-                raise exc, message, traceback_
+                prefix = 'While trying to load the network file `%s`' % path
+                objecttools.augmentexcmessage(prefix)
             try:
                 selections += selectiontools.Selection(
                                            filename.split('.')[0],
@@ -200,9 +195,9 @@ class NetworkManager(object):
             try:
                 os.remove(path)
             except EnvironmentError:
-                Exception_, message, traceback_ = sys.exc_info()
-                Exception_ = str(Exception_)[:-2].split('.')[-1]
-                warnings.warn(': '.join((Exception_, str(message))))
+                exception, message = sys.exc_info()[:2]
+                exception = str(exception)[:-2].split('.')[-1]
+                warnings.warn(': '.join((exception, str(message))))
 
     def __dir__(self):
         return objecttools.dir_(self)
@@ -349,11 +344,8 @@ class ControlManager(object):
                     cls._registry[path] = file_.read()
             exec(cls._registry[path], {}, info)
         except BaseException:
-            exc, message, traceback_ = sys.exc_info()
-            message = ('While trying to load the control file `%s`, '
-                       'the following error occured:  %s'
-                       % (path, message))
-            raise exc, message, traceback_
+            prefix = 'While trying to load the control file `%s`' % path
+            objecttools.augmentexcmessage(prefix)
         if 'model' not in info:
             raise IOError('Model parameters cannot be loaded from control '
                           'file `%s`.  Please refer to the HydPy '
@@ -892,8 +884,5 @@ class ConditionManager(object):
             with file(filepath) as file_:
                 return file_.read()
         except BaseException:
-            exc, message, traceback_ = sys.exc_info()
-            message = ('While trying to read the conditions file `%s`, '
-                       'the following error occured:  %s'
-                       % (filepath, message))
-            raise exc, message, traceback_
+            prefix = 'While trying to read the conditions file `%s`' % filepath
+            objecttools.augmentexcmessage(prefix)

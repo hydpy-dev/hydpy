@@ -139,11 +139,9 @@ class Sequences(object):
             try:
                 exec(code)
             except BaseException:
-                exc, message, traceback_ = sys.exc_info()
-                message = ('While trying to gather initial conditions of '
-                           'element %s, the following error occured:  %s'
-                           % (objecttools.devicename(self), message))
-                raise exc, message, traceback_
+                objecttools.augmentexcmessage('While trying to gather initial '
+                                              'conditions of element %s'
+                                              % objecttools.devicename(self))
 
     def saveconditions(self, filename=None, dirname=None):
         if self.hasconditions:
@@ -498,13 +496,10 @@ class Sequence(objecttools.ValueMath):
             try:
                 array = numpy.full(shape, 0.)
             except Exception:
-                Exception_, message, traceback_ = sys.exc_info()
-                message = ('While trying create a new :class:`~numpy.ndarray` '
-                           'for sequence %s of element %s,the following error '
-                           'occured: %s' % (self.name,
-                                            objecttools.devicename(self),
-                                            message))
-                raise Exception_, message, traceback_
+                prefix = ('While trying create a new numpy ndarray` for '
+                          'sequence %s of element %s'
+                          % (self.name, objecttools.devicename(self)))
+                objecttools.augmentexcmessage(prefix)
             if array.ndim == self.NDIM:
                 setattr(self.fastaccess, self.name, array)
             else:
@@ -540,11 +535,9 @@ class Sequence(objecttools.ValueMath):
             raise RuntimeError('Sequence `%s` has no values so far.'
                                % self.name)
         else:
-            Exception_, message, traceback_ = sys.exc_info()
-            message = ('While trying to item access the values of sequence '
-                       '`%s`, the following error occured:  %s'
-                       % (self.name, message))
-            raise Exception_, message, traceback_
+            objecttools.augmentexcmessage('While trying to item access the '
+                                          'values of sequence `%s`'
+                                          % self.name)
 
     def __repr__(self):
         if self.NDIM == 0:
@@ -863,20 +856,16 @@ class IOSequence(Sequence):
         try:
             data = numpy.load(self.filepath_ext)
         except BaseException:
-            Exception_, message, traceback_ = sys.exc_info()
-            message = ('While trying to load the external data of sequence '
-                       '`%s` from file `%s`, the following error occured:  %s'
-                       % (self.name, self.filepath_ext, message))
-            raise Exception_, message, traceback_
+            prefix = ('While trying to load the external data of sequence '
+                      '`%s` from file `%s`' % (self.name, self.filepath_ext))
+            objecttools.augmentexcmessage(prefix)
         try:
             timegrid_data = timetools.Timegrid.fromarray(data)
         except BaseException:
-            Exception_, message, traceback_ = sys.exc_info()
-            message = ('While trying to retrieve the data timegrid of the '
-                       'external data file `%s` of sequence `%s`, the '
-                       'following error occured:  %s'
-                       % (self.filepath_ext, self.name, message))
-            raise Exception_, message, traceback_
+            prefix = ('While trying to retrieve the data timegrid of the '
+                      'external data file `%s` of sequence `%s`'
+                      % (self.filepath_ext, self.name))
+            objecttools.augmentexcmessage(prefix)
         return timegrid_data, data[13:]
 
     def _load_asc(self):
@@ -1249,7 +1238,7 @@ class Obs(NodeSequence):
         try:
             NodeSequence.activate_disk(self)
         except IOError:
-            exc, message, traceback_ = sys.exc_info()
+            message = sys.exc_info()[1]
             self.diskflag = False
             warnings.warn('The option `diskflag` of the observation '
                           'sequence had to be set to `False` due to the '
@@ -1259,7 +1248,7 @@ class Obs(NodeSequence):
         try:
             NodeSequence.activate_ram(self)
         except IOError:
-            exc, message, traceback_ = sys.exc_info()
+            message= sys.exc_info()[1]
             self.ramflag = False
             warnings.warn('The option `ramflag` of the simulation '
                           'sequence had to be set to `False` due to the '

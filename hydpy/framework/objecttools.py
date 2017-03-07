@@ -97,6 +97,45 @@ def devicename(self):
         else:
             return '?'
 
+def augmentexcmessage(prefix=None, suffix=None):
+    """Augment an exception message with additional information while keeping
+    the original traceback.
+
+    You can prefix and/or suffix text.  If you prefix something (which happens
+    much more often in the HydPy framework), the sub-clause ', the following
+    error occured:' is automatically included:
+
+    >>> from hydpy.framework import objecttools
+    >>> import textwrap
+    >>> try:
+    ...     1 + '1'
+    ... except TypeError:
+    ...     try:
+    ...         prefix = 'While showing how prefixing works'
+    ...         suffix = 'This is the final remark.'
+    ...         objecttools.augmentexcmessage(prefix, suffix)
+    ...     except TypeError as exc:
+    ...         print(*textwrap.wrap(exc.message), sep='\n')
+    While showing how prefixing works, the following error occured:
+    unsupported operand type(s) for +: 'int' and 'str' This is the
+    final remark.
+
+    Note that the ancillary purpose of function :func:`augmentexcmessage` is
+    to make re-raising exceptions compatible with both Python 2 and 3.
+    """
+    from hydpy import pub
+    exception, message, traceback_ = sys.exc_info()
+    if prefix is not None:
+        message = ('%s, the following error occured:  %s'
+                    % (prefix, message))
+    if suffix is not None:
+        message = ' '.join((message, suffix))
+    if pub.pyversion < 3:
+        exec('raise exception, message, traceback_')
+    else:
+        raise exception(message).with_traceback(traceback_)
+
+
 class Options(object):
 
     def __init__(self):
@@ -247,12 +286,9 @@ class ValueMath(object):
             return other
 
     def _arithmetic_exception(self, verb, other):
-        exc, message, traceback_ = sys.exc_info()
-        message = ('While trying to %s %s instance `%s` and %s `%s`, the '
-                   'following error occured:  %s'
-                   % (verb, classname(self), self.name, classname(other),
-                      other, message))
-        raise exc, message, traceback_
+        augmentexcmessage('While trying to %s %s instance `%s` and %s `%s`'
+                          % (verb, classname(self), self.name,
+                             classname(other), other))
 
     def __add__(self, other):
         try:
@@ -431,3 +467,4 @@ class ValueMath(object):
 
     def __bool__(self):
         return self._typeconversion(bool)
+

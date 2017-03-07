@@ -8,6 +8,7 @@ import warnings
 # ...third party
 import numpy
 # ...HydPy specific
+from hydpy.framework import objecttools
 from hydpy.framework import modeltools
 from hydpy.framework import parametertools
 from hydpy.framework import sequencetools
@@ -299,16 +300,11 @@ class QJoints(sequencetools.StateSequence):
         try:
             sequencetools.StateSequence.__call__(self, *args)
         except BaseException:
-            exc, message, traceback_ = sys.exc_info()
-            try:
-                sequencetools.StateSequence.__call__(self, numpy.mean(args))
-            except BaseException:
-                raise exc, message, traceback_
-            else:
-                warnings.warn('Note that, due to the following problem, the '
-                              'affected HydPy-H-Stream model could be '
-                              'initialised with an averaged value only: %s'
-                              % message)
+            message = sys.exc_info()[1]
+            sequencetools.StateSequence.__call__(self, numpy.mean(args))
+            warnings.warn('Note that, due to the following problem, the'
+                          'affected HydPy-H-Stream model could be initialised '
+                          'with an averaged value only: %s' % message)
 
 class StateSequences(sequencetools.StateSequences):
     """State sequences of the hstream model."""

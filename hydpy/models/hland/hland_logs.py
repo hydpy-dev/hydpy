@@ -19,17 +19,13 @@ class QUH(sequencetools.LogSequence):
         try:
             sequencetools.LogSequence.__call__(self, *args)
         except BaseException:
-            exc, message, traceback_ = sys.exc_info()
-            try:
-                sequencetools.LogSequence.__call__(self, numpy.sum(args))
-            except BaseException:
-                raise exc, message, traceback_
-            else:
-                self[-1] = 0.
-                warnings.warn('Note that, due to the following problem, the '
-                              'unit-hydrograph of the affected HydPy-H-Land '
-                              'model could be initialised with an summed '
-                              'value only: %s' % message)
+            message = sys.exc_info()[1]
+            sequencetools.LogSequence.__call__(self, numpy.sum(args))
+            warnings.warn('Note that, due to the following problem, the '
+                          'unit-hydrograph of the affected HydPy-H-Land '
+                          'model could be initialised with an summed '
+                          'value only: %s' % message)
+        # The last value must be zero, otherwise all results were biased:
         self.values[-1] = 0.
 
 class LogSequences(sequencetools.LogSequences):

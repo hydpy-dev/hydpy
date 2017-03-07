@@ -747,9 +747,6 @@ class Period(object):
     def __floordiv__(self, other):
         return (self.seconds % Period(other).seconds) == 0.
 
-    def __nonzero__(self):
-        return bool(self.seconds)
-
     def __lt__(self, other):
         return self.timedelta < Period(other).timedelta
 

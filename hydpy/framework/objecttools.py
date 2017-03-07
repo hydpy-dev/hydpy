@@ -402,11 +402,8 @@ class ValueMath(object):
     def __pos__(self):
         return +self.value
 
-    def __abs__(self,):
+    def __abs__(self):
         return abs(self.value)
-
-    def __nonzero__(self,):
-        return self.value != 0.
 
     def __invert__(self):
         return 1./self.value
@@ -462,9 +459,5 @@ class ValueMath(object):
     def __int__(self):
         return self._typeconversion(int)
 
-    def __long__(self):
-        return self._typeconversion(long)
 
-    def __bool__(self):
-        return self._typeconversion(bool)
 

@@ -222,17 +222,11 @@ cdef class DoubleBase(object):
     def __abs__(self,):
         return abs(conv2double(self))
 
-    def __nonzero__(self,):
-        return bool(conv2double(self))
-
     def __invert__(self):
         return 1./conv2double(self)
 
     def __int__(self):
         return int(conv2double(self))
-
-    def __long__(self):
-        return long(conv2double(self))
 
     def __float__(self):
         return float(conv2double(self))

@@ -644,11 +644,11 @@ class FuncConverter(object):
 
     @property
     def argnames(self):
-        return inspect.getargs(self.func.im_func.func_code)[0]
+        return inspect.getargs(self.func.__code__)[0]
 
     @property
     def varnames(self):
-        return self.func.func_code.co_varnames
+        return self.func.__code__.co_varnames
 
     @property
     def locnames(self):

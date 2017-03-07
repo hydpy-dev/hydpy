@@ -95,6 +95,7 @@ class Cythonizer(object):
             print('Compile module %s.' % self.cyname)
         with magictools.PrintStyle(color=31, font=2):
             self.compile_()
+            self.movedll()
 
     @property
     def pyname(self):

@@ -183,15 +183,19 @@ class Cythonizer(object):
         sys.argv = argv
         dirinfos = os.walk(self.buildpath)
         next(dirinfos)
+        system_dependend_filename = None
         for dirinfo in dirinfos:
-            try:
+            for filename in dirinfo[2]:
+                if (filename.startswith(self.cyname) and
+                        filename.endswith(dllextension)):
+                    system_dependend_filename = filename
+                    break
+            if system_dependend_filename:
                 shutil.move(os.path.join(dirinfo[0],
-                                         self.cyname+dllextension),
+                                         system_dependend_filename),
                             os.path.join(self.cydirpath,
                                          self.cyname+dllextension))
                 break
-            except BaseException:
-                pass
         else:
             raise OSError('After trying to cythonize module %s, it was not '
                           'possible to copy the final cython module %s from '

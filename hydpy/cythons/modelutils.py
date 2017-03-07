@@ -311,7 +311,7 @@ class PyxWriter(object):
                     lines.add(1, 'cdef public %s %s' % (ctype, name2))
                 lines.add(1, 'cdef public int _%s_ndim' % name2)
                 lines.add(1, 'cdef public int _%s_length' % name2)
-                for idx in xrange(seq.NDIM):
+                for idx in range(seq.NDIM):
                     lines.add(1, 'cdef public int _%s_length_%d'
                                  % (seq.name, idx))
                 if isinstance(subseqs, sequencetools.IOSubSequences):
@@ -385,7 +385,7 @@ class PyxWriter(object):
                 lines.add(3 ,'self.%s = self._%s_array[idx]' % (2*(name,)))
             else:
                 indexing = ''
-                for idx in xrange(seq.NDIM):
+                for idx in range(seq.NDIM):
                     lines.add(3+idx ,'for jdx%d in range(self._%s_length_%d):'
                                      % (idx, name, idx))
                     indexing += 'jdx%d,' % idx
@@ -413,7 +413,7 @@ class PyxWriter(object):
                 lines.add(3 ,'self._%s_array[idx] = self.%s' % (2*(name,)))
             else:
                 indexing = ''
-                for idx in xrange(seq.NDIM):
+                for idx in range(seq.NDIM):
                     lines.add(3+idx ,'for jdx%d in range(self._%s_length_%d):'
                                      % (idx, name, idx))
                     indexing += 'jdx%d,' % idx
@@ -600,7 +600,7 @@ class PyxWriter(object):
                                  % (2*(name,)))
                 else:
                     indexing = ''
-                    for idx in xrange(seq.NDIM):
+                    for idx in range(seq.NDIM):
                         lines.add(2+idx ,
                                   'for jdx%d in range(self.states._%s_length_%d):'
                                   % (idx, name, idx))

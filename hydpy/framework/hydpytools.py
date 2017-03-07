@@ -266,7 +266,7 @@ class HydPy(object):
         else:
             maxcounter = idx_end
         counter = 0
-        for idx in xrange(idx_start, idx_end):
+        for idx in range(idx_start, idx_end):
             counter += 1
             if counter > maxcounter:
                 print('*', end='')

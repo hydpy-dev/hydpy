@@ -839,7 +839,7 @@ class IOSequence(Sequence):
         """Write the internal data into an external data file."""
         if self.filetype_ext == 'npy':
             values = pub.timegrids.init.toarray()
-            for idx in xrange(self.NDIM):
+            for idx in range(self.NDIM):
                 values = numpy.expand_dims(values, idx+1)
             values = values + numpy.zeros(self.shape)
             values = numpy.concatenate((values, self.series))
@@ -1312,7 +1312,7 @@ class FastAccess(object):
                 file_ = open(path, 'rb+')
                 ndim = getattr(self, '_%s_ndim' % name)
                 position = 8*idx
-                for idim in xrange(ndim):
+                for idim in range(ndim):
                     length = getattr(self, '_%s_length_%d' % (name, idim))
                     position *= length
                 file_.seek(position)
@@ -1336,7 +1336,7 @@ class FastAccess(object):
                 file_ = getattr(self, '_%s_file' % name)
                 length_tot = 1
                 shape = []
-                for idx in xrange(ndim):
+                for idx in range(ndim):
                     length = getattr(self, '_%s_length_%s' % (name, idx))
                     length_tot *= length
                     shape.append(length)
@@ -1367,7 +1367,7 @@ class FastAccess(object):
                 file_ = getattr(self, '_%s_file' % name)
                 ndim = getattr(self, '_%s_ndim' % name)
                 length_tot = 1
-                for idx in xrange(ndim):
+                for idx in range(ndim):
                     length = getattr(self, '_%s_length_%s' % (name, idx))
                     length_tot *= length
                 if ndim:

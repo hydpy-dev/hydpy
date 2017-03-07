@@ -383,7 +383,7 @@ class Date(object):
             * date (:class:`str`): Initialization date.
         """
         for (style, string) in self._formatstrings.items():
-            for idx in xrange(4):
+            for idx in range(4):
                 try:
                     self.datetime = datetime.datetime.strptime(date, string)
                     self._style = style

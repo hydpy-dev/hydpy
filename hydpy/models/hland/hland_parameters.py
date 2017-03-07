@@ -182,7 +182,8 @@ class MultiParameter(parametertools.MultiParameter):
                     unique = numpy.unique(self.values[zonetype == value])
                     unique = self.reverttimefactor(unique)
                     if len(unique) == 1:
-                        results.append('%s=%s' % (key.lower(), unique[0]))
+                        results.append('%s=%s'
+                                       % (key.lower(), repr(unique[0])))
                     elif len(unique) > 1:
                         raise exc
             result = ', '.join(sorted(results))
@@ -267,7 +268,7 @@ class Parameters(parametertools.Parameters):
             >>> zonearea(1., 3., 2.)
             >>> model.parameters.calc_relzonearea()
             >>> der.relzonearea
-            relzonearea(0.166666666667, 0.5, 0.333333333333)
+            relzonearea(0.16666666666666666, 0.5, 0.33333333333333331)
 
         """
         con = self.control
@@ -500,7 +501,7 @@ class Parameters(parametertools.Parameters):
             >>> area(50.)
             >>> model.parameters.calc_qfactor()
             >>> model.parameters.derived.qfactor
-            qfactor(1.15740740741)
+            qfactor(1.1574074074074074)
 
         """
         con = self.control
@@ -581,7 +582,7 @@ class Parameters(parametertools.Parameters):
             >>> log.quh.shape
             (3,)
             >>> der.uh
-            uh(0.222222222222, 0.555555555556, 0.222222222222)
+            uh(0.22222222222222224, 0.55555555555555569, 0.22222222222222213)
 
             And a final example, where the end of the triangle lies within
             a simulation step, resulting in the fractions 8/49, 23/49, 16/49,
@@ -594,7 +595,8 @@ class Parameters(parametertools.Parameters):
             >>> log.quh.shape
             (4,)
             >>> der.uh
-            uh(0.163265306122, 0.469387755102, 0.326530612245, 0.0408163265306)
+            uh(0.16326530612244899, 0.46938775510204089, 0.32653061224489793,
+               0.040816326530612186)
 
         """
         con = self.control

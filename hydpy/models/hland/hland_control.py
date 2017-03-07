@@ -74,9 +74,9 @@ class ZoneType(hland_parameters.MultiParameter):
         """Returns a list which contains a string representation with zone
         types beeing defined by the constants `FIELD`, `FOREST`...
         """
-        result = ', '.join(str(value) for value in self.values)
+        result = ', '.join(repr(value) for value in self.values)
         for (key, value) in hland_constants.CONSTANTS.items():
-            result = result.replace(str(value), key)
+            result = result.replace(repr(value), key)
         return [result]
 
 class ZoneArea(hland_parameters.MultiParameter):

@@ -278,7 +278,7 @@ class Parameters(parametertools.Parameters):
             >>> damp(.25)
             >>> model.parameters.calc_coefficients()
             >>> der.c1, der.c2, der.c3
-            (c1(0.2), c2(0.6), c3(0.2))
+            (c1(0.2), c2(0.6000000000000001), c3(0.2))
 
         """
         con = self.control

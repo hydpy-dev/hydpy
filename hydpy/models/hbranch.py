@@ -353,7 +353,7 @@ class Outputs(sequencetools.FluxSequence):
         nodenames = self.subseqs.seqs.model.nodenames
         lines = []
         for (idx, value) in enumerate(self.values):
-            line = '%s=%s,' % (nodenames[idx], value)
+            line = '%s=%s,' % (nodenames[idx], repr(value))
             if not idx:
                 lines.append('outputs('+line)
             else:

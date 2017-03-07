@@ -100,18 +100,18 @@ from hydpy.framework.magictools import controlcheck
 from hydpy.framework.magictools import Tester
 from hydpy.cythons.modelutils import Cythonizer
 
-from hland_constants import FIELD, FOREST, GLACIER, ILAKE
-from hland_parameters import Parameters
-from hland_control import ControlParameters
-from hland_derived import DerivedParameters
-from hland_sequences import Sequences
-from hland_inputs import InputSequences
-from hland_fluxes import FluxSequences
-from hland_states import StateSequences
-from hland_aides import AideSequences
-from hland_logs import LogSequences
-from hland_links import OutletSequences
-from hland_model import Model
+from hydpy.models.hland.hland_constants import FIELD, FOREST, GLACIER, ILAKE
+from hydpy.models.hland.hland_parameters import Parameters
+from hydpy.models.hland.hland_control import ControlParameters
+from hydpy.models.hland.hland_derived import DerivedParameters
+from hydpy.models.hland.hland_sequences import Sequences
+from hydpy.models.hland.hland_inputs import InputSequences
+from hydpy.models.hland.hland_fluxes import FluxSequences
+from hydpy.models.hland.hland_states import StateSequences
+from hydpy.models.hland.hland_aides import AideSequences
+from hydpy.models.hland.hland_logs import LogSequences
+from hydpy.models.hland.hland_links import OutletSequences
+from hydpy.models.hland.hland_model import Model
 
 tester = Tester()
 cythonizer = Cythonizer()

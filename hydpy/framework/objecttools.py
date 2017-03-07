@@ -459,5 +459,6 @@ class ValueMath(object):
     def __int__(self):
         return self._typeconversion(int)
 
-
+    def __round__(self, ndigits):
+        return numpy.round(self.value, ndigits)
 

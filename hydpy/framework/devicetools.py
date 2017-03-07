@@ -382,7 +382,7 @@ class Devices(object):
     def _extractvalues(self, values):
         if values is not None:
 
-            if isinstance(values, (self._contentclass, str, unicode)):
+            if isinstance(values, (self._contentclass, str)):
                 device = self._contentclass(values)
                 self[device.name] = device
             else:

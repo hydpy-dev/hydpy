@@ -541,7 +541,7 @@ class Sequence(objecttools.ValueMath):
 
     def __repr__(self):
         if self.NDIM == 0:
-            return '%s(%s)' % (self.name, self.value)
+            return '%s(%s)' % (self.name, objecttools.repr_(self.value))
         elif self.NDIM == 1:
             lines = []
             cols = ', '.join(objecttools.repr_(value) for value in self.values)

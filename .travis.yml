@@ -18,7 +18,7 @@ python:
 # command to install dependencies
 install: 
   - pip install Cython --install-option="--no-cython-compile"
-  - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; pip install numpy --upgrade
+  - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; pip install numpy --upgrade; fi
   - pip install matplotlib
   - python setup.py install
 # command to run tests

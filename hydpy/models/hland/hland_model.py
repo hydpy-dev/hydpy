@@ -1753,9 +1753,9 @@ class Model(modeltools.Model):
             >>> states.uz = 1.
             >>> model.calc_q0_perc_uz()
             >>> fluxes.perc
-            perc(0.786933626505)
+            perc(0.786934)
             >>> fluxes.q0
-            q0(0.213066373495)
+            q0(0.213066)
             >>> states.uz
             uz(0.0)
 
@@ -1779,9 +1779,9 @@ class Model(modeltools.Model):
             >>> states.uz = 1.
             >>> model.calc_q0_perc_uz()
             >>> fluxes.perc
-            perc(0.43410811977)
+            perc(0.434108)
             >>> fluxes.q0
-            q0(0.56589188023)
+            q0(0.565892)
             >>> states.uz
             uz(0.0)
 
@@ -1839,9 +1839,9 @@ class Model(modeltools.Model):
             >>> fluxes.perc
             perc(0.5)
             >>> fluxes.q0
-            q0(0.421707871127)
+            q0(0.421708)
             >>> states.uz
-            uz(0.378292128873)
+            uz(0.378292)
         """
         con = self.parameters.control.fastaccess
         der = self.parameters.derived.fastaccess

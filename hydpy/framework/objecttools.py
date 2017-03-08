@@ -5,7 +5,6 @@
 from __future__ import division, print_function
 import inspect
 import sys
-import numbers
 # ...from site-packages
 import numpy
 # ...from HydPy
@@ -196,14 +195,10 @@ def repr_(value):
     from hydpy.pub import options
     if isinstance(value, str):
         return value
-#    elif ((options.reprdigits is not None) and
-#          isinstance(value, numbers.Number) and
-#          (not isinstance(value, numbers.Rational))):
-#        return repr(round(value, options.reprdigits))
     elif ((options.reprdigits is not None) and
           isinstance(value,
                      (float, numpy.float64, numpy.float32, numpy.float16))):
-        return repr(round(value, options.reprdigits))
+        return repr(round(float(value), options.reprdigits))
     else:
         return repr(value)
 

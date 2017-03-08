@@ -116,7 +116,7 @@ def augmentexcmessage(prefix=None, suffix=None):
     ...         suffix = '(This is a final remark.)'
     ...         objecttools.augmentexcmessage(prefix, suffix)
     ...     except TypeError as exc:
-    ...         for line in textwrap.wrap(exc.message, width=76):
+    ...         for line in textwrap.wrap(exc.args[0], width=76):
     ...             print(line)
     While showing how prefixing works, the following error occured: unsupported
     operand type(s) for +: 'int' and 'str' (This is a final remark.)
@@ -169,7 +169,23 @@ def repr_(value):
     >>> repr(1./2.)
     '0.5'
 
-    In all other cases, :func:`repr` is applied, e.g.:
+    :func:`repr_` can also be applied on numpy's float types:
+
+    >>> import numpy
+    >>> repr_(numpy.float(1./3.))
+    '0.333333'
+    >>> repr_(numpy.float64(1./3.))
+    '0.333333'
+    >>> repr_(numpy.float32(1./3.))
+    '0.333333'
+    >>> repr_(numpy.float16(1./3.))
+    '0.333252'
+
+    Note that the deviation from the `true` result in the last example is due
+    to the low precision of :class:`~numpy.float16`.
+
+    On all types not mentioned above, the usual :func:`repr` function is
+    applied, e.g.:
 
     >>> repr([1, 2, 3])
     '[1, 2, 3]'
@@ -180,9 +196,13 @@ def repr_(value):
     from hydpy.pub import options
     if isinstance(value, str):
         return value
+#    elif ((options.reprdigits is not None) and
+#          isinstance(value, numbers.Number) and
+#          (not isinstance(value, numbers.Rational))):
+#        return repr(round(value, options.reprdigits))
     elif ((options.reprdigits is not None) and
-          isinstance(value, numbers.Number) and
-          (not isinstance(value, numbers.Rational))):
+          isinstance(value,
+                     (float, numpy.float64, numpy.float32, numpy.float16))):
         return repr(round(value, options.reprdigits))
     else:
         return repr(value)

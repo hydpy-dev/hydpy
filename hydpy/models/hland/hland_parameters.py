@@ -268,7 +268,7 @@ class Parameters(parametertools.Parameters):
             >>> zonearea(1., 3., 2.)
             >>> model.parameters.calc_relzonearea()
             >>> der.relzonearea
-            relzonearea(0.16666666666666666, 0.5, 0.33333333333333331)
+            relzonearea(0.166667, 0.5, 0.333333)
 
         """
         con = self.control
@@ -501,7 +501,7 @@ class Parameters(parametertools.Parameters):
             >>> area(50.)
             >>> model.parameters.calc_qfactor()
             >>> model.parameters.derived.qfactor
-            qfactor(1.1574074074074074)
+            qfactor(1.157407)
 
         """
         con = self.control
@@ -582,7 +582,7 @@ class Parameters(parametertools.Parameters):
             >>> log.quh.shape
             (3,)
             >>> der.uh
-            uh(0.22222222222222224, 0.55555555555555569, 0.22222222222222213)
+            uh(0.222222, 0.555556, 0.222222)
 
             And a final example, where the end of the triangle lies within
             a simulation step, resulting in the fractions 8/49, 23/49, 16/49,
@@ -595,8 +595,7 @@ class Parameters(parametertools.Parameters):
             >>> log.quh.shape
             (4,)
             >>> der.uh
-            uh(0.16326530612244899, 0.46938775510204089, 0.32653061224489793,
-               0.040816326530612186)
+            uh(0.163265, 0.469388, 0.326531, 0.040816)
 
         """
         con = self.control

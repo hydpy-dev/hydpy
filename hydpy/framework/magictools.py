@@ -45,6 +45,8 @@ class Tester(object):
             pub.timegrids = None
             dirverbose = pub.options.dirverbose
             reprcomments = pub.options.reprcomments
+            reprdigits = pub.options.reprdigits
+            pub.options.reprdigits = 6
             pub.options.reprcomments = False
             nodes = devicetools.Node._registry.copy()
             elements = devicetools.Element._registry.copy()
@@ -67,6 +69,7 @@ class Tester(object):
             pub.timegrids = timegrids
             pub.options.dirverbose = dirverbose
             pub.options.reprcomments = reprcomments
+            pub.options.reprdigits = reprdigits
             devicetools.Node.clearregistry()
             devicetools.Element.clearregistry()
             devicetools.Node._registry = nodes

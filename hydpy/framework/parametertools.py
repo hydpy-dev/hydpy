@@ -447,7 +447,8 @@ class SingleParameter(Parameter):
     def __repr__(self):
         lines = self.commentrepr()
         lines.append('%s(%s)'
-                     % (self.name, repr(self.reverttimefactor(self.value))))
+                     % (self.name,
+                        objecttools.repr_(self.reverttimefactor(self.value))))
         return '\n'.join(lines)
 
 
@@ -594,7 +595,7 @@ class MultiParameter(Parameter):
         else:
             unique = self.reverttimefactor(unique)
         if len(unique) == 1:
-            result = repr(unique[0])
+            result = objecttools.repr_(unique[0])
             for idx in range(self.NDIM):
                 result = [result]
             return result
@@ -615,7 +616,7 @@ class MultiParameter(Parameter):
                                           'string representation for '
                                           'parameter `%s`' % self.name)
         if self.NDIM == 1:
-            cols = ', '.join(repr(value).replace("'", '') for value in values)
+            cols = ', '.join(objecttools.repr_(value) for value in values)
             wrappedlines = textwrap.wrap(cols, 80-len(self.name)-2)
             for (idx, line) in enumerate(wrappedlines):
                 if not idx:
@@ -627,7 +628,7 @@ class MultiParameter(Parameter):
         elif self.NDIM == 2:
             skip = (1+len(self.name)) * ' '
             for (idx, row) in enumerate(values):
-                cols = ', '.join(repr(value).replace("'", '') for value in row)
+                cols = ', '.join(objecttools.repr_(value) for value in row)
                 if not idx:
                     lines.append('%s(%s,' % (self.name, cols))
                 else:

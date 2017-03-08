@@ -544,7 +544,7 @@ class Sequence(objecttools.ValueMath):
             return '%s(%s)' % (self.name, self.value)
         elif self.NDIM == 1:
             lines = []
-            cols = ', '.join(repr(value) for value in self.values)
+            cols = ', '.join(objecttools.repr_(value) for value in self.values)
             wrappedlines = textwrap.wrap(cols, 80-len(self.name)-2)
             for (idx, line) in enumerate(wrappedlines):
                 if not idx:
@@ -557,7 +557,7 @@ class Sequence(objecttools.ValueMath):
             lines = []
             skip = (1+len(self.name)) * ' '
             for (idx, row) in enumerate(self.values):
-                cols = ', '.join(repr(value) for value in row)
+                cols = ', '.join(objecttools.repr_(value) for value in row)
                 if not idx:
                     lines.append('%s(%s,' % (self.name, cols))
                 else:

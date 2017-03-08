@@ -79,18 +79,20 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
             suite = unittest.TestSuite()
             try:
                 suite.addTest(doctest.DocTestSuite(module))
-            except ValueError:
-                pass
+            except ValueError as exc:
+                if exc.args[-1] != 'has no docstrings':
+                    raise(exc)
             else:
                 pub.timegrids = None
                 pub.options.reprcomments = False
+                pub.options.reprdigits = 6
                 devicetools.Node.clearregistry()
                 devicetools.Element.clearregistry()
                 doctests[modulename] = runner.run(suite)
 
     successfuldoctests.update({name: runner for (name, runner)
                               in doctests.items() if not runner.failures})
-    faileddoctests.update({name: runner for (name, runner )
+    faileddoctests.update({name: runner for (name, runner)
                           in doctests.items() if runner.failures})
 
     if successfuldoctests:

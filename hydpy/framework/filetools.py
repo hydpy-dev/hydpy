@@ -40,7 +40,9 @@ class MainManager(object):
     def loadinfo(self):
         """Load general information from the project's main file."""
         try:
-            execfile(self.path, {}, self.info)
+            with open(self.path) as file_:
+                code = compile(file_.read(), self.path, 'exec')
+                exec(code, {}, self.info)
         except Exception:
             prefix = ('While trying to load the genereal project settings '
                       'from `%s`' % self.path)
@@ -139,7 +141,9 @@ class NetworkManager(object):
             devicetools.Element.gathernewelements()
             info = {}
             try:
-                execfile(path, {}, info)
+                with open(path) as file_:
+                    code = compile(file_.read(), path, 'exec')
+                    exec(code, {}, info)
             except Exception:
                 prefix = 'While trying to load the network file `%s`' % path
                 objecttools.augmentexcmessage(prefix)

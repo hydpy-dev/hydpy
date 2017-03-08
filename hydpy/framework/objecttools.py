@@ -5,11 +5,12 @@
 from __future__ import division, print_function
 import inspect
 import sys
+import numbers
 # ...from site-packages
 import numpy
 # ...from HydPy
-#from hydpy import pub
-# (actual import moved to  dir_ method to avoid circular dependencies)
+#from hydpy.pub import ... (actual import commands moved to
+# different functions below to avoid circular dependencies)
 
 def dir_(self):
     """The prefered way for HydPy objects to respond to :func:`dir`.
@@ -18,8 +19,8 @@ def dir_(self):
     set `True`, all attributes and methods of the given instance and its
     class (including those inherited from the parent classes) are returned:
 
-    >>> from hydpy import pub
-    >>> pub.options.dirverbose = True
+    >>> from hydpy.pub import options
+    >>> options.dirverbose = True
     >>> from hydpy.framework.objecttools import dir_
     >>> class Test(object):
     ...     only_public_attribute =  None
@@ -29,16 +30,16 @@ def dir_(self):
     If the option is set to `False`, only the `public` attributes and methods
     (which do need begin with `_`) are returned:
 
-    >>> pub.options.dirverbose = False
+    >>> options.dirverbose = False
     >>> print(dir_(Test())) # Short list with one single entry...
     ['only_public_attribute']
 
     """
-    from hydpy import pub
+    from hydpy.pub import options
     names = set()
     for thing in list(inspect.getmro(type(self))) + [self]:
         for name in vars(thing).keys():
-            if pub.options.dirverbose or not name.startswith('_'):
+            if options.dirverbose or not name.startswith('_'):
                 names.add(name)
     return list(names)
 
@@ -46,10 +47,10 @@ def classname(self):
     """Return the class name of the given instance object or class.
 
     >>> from hydpy.framework.objecttools import classname
-    >>> from hydpy import pub
+    >>> from hydpy.pub import options
     >>> print(classname(float))
     float
-    >>> print(classname(pub.options))
+    >>> print(classname(options))
     Options
 
     """
@@ -62,8 +63,8 @@ def instancename(self):
     case letters.
 
     >>> from hydpy.framework.objecttools import instancename
-    >>> from hydpy import pub
-    >>> print(instancename(pub.options))
+    >>> from hydpy.pub import options
+    >>> print(instancename(options))
     options
 
     """
@@ -73,8 +74,8 @@ def modulename(self):
     """Return the module name of the given instance object.
 
     >>> from hydpy.framework.objecttools import modulename
-    >>> from hydpy import pub
-    >>> print(modulename(pub.options))
+    >>> from hydpy.pub import options
+    >>> print(modulename(options))
     objecttools
 
     """
@@ -112,28 +113,79 @@ def augmentexcmessage(prefix=None, suffix=None):
     ... except TypeError:
     ...     try:
     ...         prefix = 'While showing how prefixing works'
-    ...         suffix = 'This is the final remark.'
+    ...         suffix = '(This is a final remark.)'
     ...         objecttools.augmentexcmessage(prefix, suffix)
     ...     except TypeError as exc:
-    ...         print(*textwrap.wrap(exc.message), sep='\n')
-    While showing how prefixing works, the following error occured:
-    unsupported operand type(s) for +: 'int' and 'str' This is the
-    final remark.
+    ...         for line in textwrap.wrap(exc.message, width=76):
+    ...             print(line)
+    While showing how prefixing works, the following error occured: unsupported
+    operand type(s) for +: 'int' and 'str' (This is a final remark.)
 
     Note that the ancillary purpose of function :func:`augmentexcmessage` is
     to make re-raising exceptions compatible with both Python 2 and 3.
     """
-    from hydpy import pub
+    from hydpy.pub import pyversion
     exception, message, traceback_ = sys.exc_info()
     if prefix is not None:
-        message = ('%s, the following error occured:  %s'
+        message = ('%s, the following error occured: %s'
                     % (prefix, message))
     if suffix is not None:
         message = ' '.join((message, suffix))
-    if pub.pyversion < 3:
+    if pyversion < 3:
         exec('raise exception, message, traceback_')
     else:
         raise exception(message).with_traceback(traceback_)
+
+def repr_(value):
+    """Modifies :func:`repr` for strings and floats, mainly for supporting
+    clean float representations that are compatible with :module:`doctest`.
+
+    When value is a string, it is returned without any modification:
+
+    >>> from hydpy.framework.objecttools import repr_
+    >>> repr('test')
+    "'test'"
+    >>> repr_('test')
+    'test'
+
+    When value is a float, the result depends on how the option
+    :attr:`~Options.reprdigits` is set. If it is :class:`None`, :func:`repr`
+    defines the number of digits in the usual, system dependend manner:
+
+    >>> from hydpy.pub import options
+    >>> options.reprdigits = None
+    >>> repr(1./3.) == repr_(1./3.)
+    True
+
+    Through setting :attr:`~Options.reprdigits` to a positive integer value,
+    one defines the maximum number of decimal places, which allows for
+    doctesting across different systems and Python versions:
+
+    >>> options.reprdigits = 6
+    >>> repr_(1./3.)
+    '0.333333'
+    >>> repr_(2./3.)
+    '0.666667'
+    >>> repr(1./2.)
+    '0.5'
+
+    In all other cases, :func:`repr` is applied, e.g.:
+
+    >>> repr([1, 2, 3])
+    '[1, 2, 3]'
+    >>> repr_([1, 2, 3])
+    '[1, 2, 3]'
+
+    """
+    from hydpy.pub import options
+    if isinstance(value, str):
+        return value
+    elif ((options.reprdigits is not None) and
+          isinstance(value, numbers.Number) and
+          (not isinstance(value, numbers.Rational))):
+        return repr(round(value, options.reprdigits))
+    else:
+        return repr(value)
 
 
 class Options(object):
@@ -145,6 +197,7 @@ class Options(object):
         self._usecython = True
         self._skipdoctests = False
         self._refreshmodels = False
+        self._reprdigits = None
 
     def _getprintprogress(self):
         """ToDo"""
@@ -192,6 +245,16 @@ class Options(object):
     def _setrefreshmodels(self, value):
         self._refreshmodels = bool(value)
     refreshmodels = property(_getrefreshmodels, _setrefreshmodels)
+
+    def _getreprdigits(self):
+        """..."""
+        return self._reprdigits
+    def _setreprdigits(self, value):
+        if value is None:
+            self._reprdigits = value
+        else:
+            self._reprdigits = int(value)
+    reprdigits = property(_getreprdigits, _setreprdigits)
 
     def __dir__(self):
         return dir_(self)

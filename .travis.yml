@@ -4,10 +4,7 @@ os:
   - osx
 cache: pip
 python:
-  - "2.6"
   - "2.7"
-  - "3.2"
-  - "3.3"
   - "3.4"
   - "3.5"
   - "3.5-dev"
@@ -18,7 +15,7 @@ python:
 # command to install dependencies
 install: 
   - pip install Cython --install-option="--no-cython-compile"
-  - if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; pip install numpy --upgrade; fi
+  - pip install numpy --upgrade
   - pip install matplotlib
   - python setup.py install
 # command to run tests

@@ -198,7 +198,12 @@ def repr_(value):
     elif ((options.reprdigits is not None) and
           isinstance(value,
                      (float, numpy.float64, numpy.float32, numpy.float16))):
-        return repr(round(float(value), options.reprdigits))
+        string = '{0:.{1}f}'.format(value, options.reprdigits)
+        string = string.rstrip('0')
+        if string.endswith('.'):
+            string += '0'
+        return string
+
     else:
         return repr(value)
 

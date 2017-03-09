@@ -22,4 +22,10 @@ script: python test_everything.py test_as_site-package
 env:
   global:
     secure: KkDNiyCWcOtSMHzwmR7WuUM9Z08sigox9fgiRaWtdDTNHGHbNRXCf6Rzr32QlThqu9SwwPd5VnEJkontzrG9uTL2rlEzCKJHp4Ncq0lmCBhOJEM7favpIGwjnWQt4kZZ+G/sy9rfV6rshiOMN2rHRkt1gYzRmHTPCEQQ5eVIb7/YnFO+Gc77FGgkqWJXTfYczUMHNL5F3pfdSUbnnsDoqq3dxZ+NtdY6R87+IOT9fclrsL8zcodJC8N2oyGeTfhRcrZESneVcR/NEx6KhVC8A9/8bWK7kc8cYB6ieLo31uU+Ht7UvDzXmXfZrA8FoRbiDaJ3ktW9RQ7BR0GKGyQm/y/bLUrR7Yo2AXLPrF1DvBt8DYvcnMkJ1sNOrJI+oOpfi7AfdxVJnGbWa8w4D5B6EJSCvQwOj1REXgOf8+VrOKUqZMxPCCDDOhKPSx3/9ng7NAT+yRk7pLqKVtJEEszYs2/wK8hask4JMaz9H06b+Dy5nHnr4RQffXPPwAArSZZdu9IC3/38Lqnk+HhUWZLbKnBMd8UdRbDdZ5aFAkK7ZLseiDaAzCE31FscQbNmwpUPgfxgz/ApWZSV/WHlVZvaNBPkK0DTk5b9iW3WeLOC+qXGYzBKTUHIFQbCKEh40P0pTeDlp0sK3bWnT0VPEXJhk0jEN60RrlB9lwLdSzJg4Gs=
-after_success: ./update-gh-pages.sh
+after_success: 
+  if [ $TRAVIS_PYTHON_VERSION = "2.7" ] && [ $TRAVIS_BRANCH = "master" ] && "$TRAVIS_PULL_REQUEST" == "false"]; then
+    #coverage run test_everything.py test_as_site-package
+    #coverage html
+    travis-sphinx --source=hydpy/docs build
+    travis-sphinx deploy
+  fi

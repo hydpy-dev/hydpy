@@ -49,8 +49,7 @@ napoleon_use_param = False
 napoleon_use_rtype = False
 
 intersphinx_mapping = {'python': ('https://docs.python.org/2.7', None),
-                       'numpy': ('http://docs.scipy.org/doc/numpy/', None),
-                       'sequences': ('hydpy.framework.sequences', None)}
+                       'numpy': ('http://docs.scipy.org/doc/numpy/', None)}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

@@ -1,6 +1,7 @@
 language: python
 os:
   - linux
+  - osx
 cache: pip
 python:
   - "2.6"
@@ -19,7 +20,6 @@ python:
 install:
   - pip install Cython --install-option="--no-cython-compile"
   - if [[ $TRAVIS_PYTHON_VERSION == "2.6" || $TRAVIS_PYTHON_VERSION == "3.1" || $TRAVIS_PYTHON_VERSION == "3.2" || $TRAVIS_PYTHON_VERSION == "3.3" ]]; then pip install numpy; else pip install numpy --upgrade; fi
-  - pip install matplotlib
   - python setup.py install
 # command to run tests
 script: python test_everything.py test_as_site-package

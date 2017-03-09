@@ -6,7 +6,7 @@ from __future__ import division, print_function
 import copy
 import struct
 # ...from site-packages
-from matplotlib import pyplot
+#from matplotlib import pyplot
 # ...from HydPy
 from hydpy import pub
 from hydpy.framework import connectiontools
@@ -202,18 +202,18 @@ class Node(Device):
             raw = fastaccess._obs_file.read(8)
             fastaccess.obs[0] = struct.unpack('d', raw)
 
-    def comparisonplot(self, **kwargs):
-        for (name, seq) in self.sequences:
-            if pyplot.isinteractive():
-                name = ' '.join((self.name, name))
-            pyplot.plot(seq.series, label=name, **kwargs)
-        pyplot.legend()
-        variable = self.variable
-        if variable == 'Q':
-            variable = u'Q [m³/s]'
-        pyplot.ylabel(variable)
-        if not pyplot.isinteractive():
-            pyplot.show()
+#    def comparisonplot(self, **kwargs):
+#        for (name, seq) in self.sequences:
+#            if pyplot.isinteractive():
+#                name = ' '.join((self.name, name))
+#            pyplot.plot(seq.series, label=name, **kwargs)
+#        pyplot.legend()
+#        variable = self.variable
+#        if variable == 'Q':
+#            variable = u'Q [m³/s]'
+#        pyplot.ylabel(variable)
+#        if not pyplot.isinteractive():
+#            pyplot.show()
 
     def __repr__(self):
         return self.assignrepr('')
@@ -324,27 +324,27 @@ class Element(Device):
         except AttributeError:
             raise RuntimeError('First init than build')
 
-    def _plot(self, subseqs, selnames, kwargs):
-        for name in selnames:
-            seq = getattr(subseqs, name)
-            if seq.NDIM == 0:
-                label = kwargs.pop('label', ' '.join((self.name, name)))
-                pyplot.plot(seq.series, label=label, **kwargs)
-                pyplot.legend()
-            else:
-                color = kwargs.pop('color', kwargs.pop('c', 'red'))
-                pyplot.plot(seq.series, color=color, **kwargs)
-        if not pyplot.isinteractive():
-            pyplot.show()
-
-    def inputplot(self, *args, **kwargs):
-        self._plot(self.model.sequences.inputs, args, kwargs)
-
-    def fluxplot(self, *args, **kwargs):
-        self._plot(self.model.sequences.fluxes, args, kwargs)
-
-    def stateplot(self, *args, **kwargs):
-        self._plot(self.model.sequences.states, args, kwargs)
+#    def _plot(self, subseqs, selnames, kwargs):
+#        for name in selnames:
+#            seq = getattr(subseqs, name)
+#            if seq.NDIM == 0:
+#                label = kwargs.pop('label', ' '.join((self.name, name)))
+#                pyplot.plot(seq.series, label=label, **kwargs)
+#                pyplot.legend()
+#            else:
+#                color = kwargs.pop('color', kwargs.pop('c', 'red'))
+#                pyplot.plot(seq.series, color=color, **kwargs)
+#        if not pyplot.isinteractive():
+#            pyplot.show()
+#
+#    def inputplot(self, *args, **kwargs):
+#        self._plot(self.model.sequences.inputs, args, kwargs)
+#
+#    def fluxplot(self, *args, **kwargs):
+#        self._plot(self.model.sequences.fluxes, args, kwargs)
+#
+#    def stateplot(self, *args, **kwargs):
+#        self._plot(self.model.sequences.states, args, kwargs)
 
     def assignrepr(self, prefix):
         """Return a :func:`repr` string with an prefixed assignement.

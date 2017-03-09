@@ -1,7 +1,6 @@
 language: python
 os:
   - linux
-  - osx
 cache: pip
 python:
   - "2.7"
@@ -16,6 +15,7 @@ python:
 install:
   - pip install Cython --install-option="--no-cython-compile"
   - pip install numpy --upgrade
+  - pip install matplotlib
   - python setup.py install
 # command to run tests
 script: python test_everything.py test_as_site-package

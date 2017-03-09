@@ -4,13 +4,13 @@ os:
 cache: pip
 python:
   - "2.7"
-  - "3.4"
-  - "3.5"
-  - "3.5-dev"
-  - "3.6"
-  - "3.6-dev"
-  - "3.7-dev"
-  - "nightly"
+  #- "3.4"
+  #- "3.5"
+  #- "3.5-dev"
+  #- "3.6"
+  #- "3.6-dev"
+  #- "3.7-dev"
+  #- "nightly"
 # command to install dependencies
 install:
   - pip install Cython --install-option="--no-cython-compile"

@@ -9,7 +9,7 @@ import os
 import sys
 
 try:
-    folder = os.path.join('hydpy','sphinx', '_build', 'html')
+    folder = os.path.join('target', 'doc', 'build')
     paths = [os.path.join(folder, fn) for fn in os.listdir(folder)
              if fn.endswith('.html')]
     for path in paths:

@@ -18,7 +18,7 @@ class MultiParameter(parametertools.MultiParameter):
 
     In addition to the call method of
     :class:`~hydpy.framework.parametertools.MultiParameter`, the optional
-    :args:`kwargs` are checked for the keywords `field`, `forest`, `glacier`,
+    `kwargs` are checked for the keywords `field`, `forest`, `glacier`,
     `ilake,` and `default`.  If available, the respective values are used to
     define the values of those 1-dimensional arrays, whose entries are related
     to the different zone types. Also the method
@@ -282,7 +282,7 @@ class Parameters(parametertools.Parameters):
         of the subbasin.
 
         Required control parameters:
-        :class:`~hydpy.models.hland.hland_control.Area`
+          :class:`~hydpy.models.hland.hland_control.Area`
           :class:`~hydpy.models.hland.hland_control.ZoneArea`
           :class:`~hydpy.models.hland.hland_control.ZoneType`
 
@@ -348,7 +348,7 @@ class Parameters(parametertools.Parameters):
         of the subbasin.
 
         Required control parameters:
-        :class:`~hydpy.models.hland.hland_control.Area`
+          :class:`~hydpy.models.hland.hland_control.Area`
           :class:`~hydpy.models.hland.hland_control.ZoneArea`
           :class:`~hydpy.models.hland.hland_control.ZoneType`
 
@@ -488,6 +488,7 @@ class Parameters(parametertools.Parameters):
 
         Required property of
         :class:`~hydpy.framework.parametertools.Parameter`:
+
           :attr:`~hydpy.framework.parametertools.Parameter.seconds`
 
         Calculated derived parameter:

@@ -14,6 +14,7 @@ class Model(modeltools.Model):
 
     The equations of HydPy-H-Land model can be differentiated into three
     groups.  First, input data is prepared:
+
       * :func:`~Model.calc_tc`
       * :func:`~Model.calc_tmean`
       * :func:`~Model.calc_fracrain`
@@ -432,7 +433,7 @@ class Model(modeltools.Model):
           :class:`~hydpy.models.hland.hland_control.EPF`
 
         Required flux sequences:
-        :class:`~hydpy.models.hland.hland_fluxes.EP`
+          :class:`~hydpy.models.hland.hland_fluxes.EP`
           :class:`~hydpy.models.hland.hland_fluxes.PC`
 
         Calculated flux sequences:
@@ -2150,7 +2151,7 @@ class Model(modeltools.Model):
         Required flux sequences:
             :class:`~hydpy.models.hland.hland_fluxes.Q0`
             :class:`~hydpy.models.hland.hland_fluxes.Q1`
-              :class:`~hydpy.models.hland.hland_fluxes.InUH`
+            :class:`~hydpy.models.hland.hland_fluxes.InUH`
 
         Updated log sequence:
             :class:`~hydpy.models.hland.hland_logs.QUH`

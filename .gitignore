@@ -8,6 +8,7 @@
 *.h
 build
 _build
+docs
 gui
 helpers
 examples

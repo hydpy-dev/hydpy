@@ -178,7 +178,7 @@ class SubSequences(object):
     Attributes:
       * seqs: The parent :class:`Sequences` object.
       * fastaccess: The  :class:`FastAccess` object allowing fast access to
-        the sequence values. In :ref:`Cython` mode, model specific cdef
+        the sequence values. In `Cython` mode, model specific cdef
         classes are applied.
 
     Additional attributes are the actual :class:`Sequence` instances,

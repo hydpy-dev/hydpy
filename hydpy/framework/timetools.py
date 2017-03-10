@@ -405,7 +405,7 @@ class Date(object):
         return cls(datetime.datetime(*intarray))
 
     def toarray(self):
-        """Returns a 1-dimensional :lib:`numpy` :class:`~numpy.ndarray` with
+        """Returns a 1-dimensional :mod:`numpy` :class:`~numpy.ndarray` with
         six entries defining the actual date (year, month, day, hour, minute,
         second)."""
         return numpy.array([self.year, self.month, self.day, self.hour,
@@ -828,7 +828,7 @@ class Timegrid(object):
                              'consist of %d entries/rows only.' % len(array))
 
     def toarray(self):
-        """Returns a 1-dimensional :lib:`numpy` :class:`~numpy.ndarray` with
+        """Returns a 1-dimensional :mod:`numpy` :class:`~numpy.ndarray` with
         thirteen entries first defining the start date, secondly defining the
         end date and thirdly the step size."""
         values = numpy.empty(13, dtype=float)

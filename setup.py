@@ -42,6 +42,9 @@ import hydpy.cythons
 for filename in ('pointer.pyx', 'pointer.pxd'):
     shutil.copy(os.path.join('hydpy', 'cythons', filename),
                 os.path.join(hydpy.cythons.__path__[0], filename))
+filename = 'pointer.pyd'
+shutil.copy(os.path.join(hydpy.cythons.__path__[0], filename),
+            os.path.join('hydpy', 'cythons', filename))
 # Import all hydrological models to trigger the automatic cythonization
 # mechanism of HydPy.
 from hydpy import pub

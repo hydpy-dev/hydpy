@@ -14,13 +14,12 @@ essentially, each provide a few number of Python classes:
    objecttools
    filetools
    timetools
-   hydpytools
-   networktools
    selectiontools
    devicetools
    modeltools
    parametertools
    sequencetools
+   hydpytools
    magictools
 
 

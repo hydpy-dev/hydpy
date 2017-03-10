@@ -2,11 +2,10 @@
 """This module gives Python objects pointer access to C variables of type
 `double` via Cython.
 
-Module :mod:`~hydpy.cythons.pointer` implements the following `cdef classes`
-(Cython extension types):
-    * DoubleBase: Base class, only for inheritance.
-    * Double: For C variables of type double.
-    * PDouble: For C pointers referencing C variables of type double.
+The following `cdef classes` (Cython extension types) are implemented:
+  * :class:`DoubleBase`: Base class, only for inheritance.
+  * :class:`Double`: For C variables of type double.
+  * :class:`PDouble`: For C pointers referencing C variables of type double.
 
 Classes :class:`Double` and :class:`PDouble` support arithmetic operations in
 a similar manner as the immutable standard data type for floating operations

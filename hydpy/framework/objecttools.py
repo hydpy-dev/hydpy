@@ -137,7 +137,7 @@ def augmentexcmessage(prefix=None, suffix=None):
 
 def repr_(value):
     """Modifies :func:`repr` for strings and floats, mainly for supporting
-    clean float representations that are compatible with :module:`doctest`.
+    clean float representations that are compatible with :mod:`doctest`.
 
     When value is a string, it is returned without any modification:
 

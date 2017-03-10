@@ -530,7 +530,7 @@ class MultiParameter(Parameter):
         shape as the values handled by the respective parameter.  All entries
         beeing `True` indicates that the method :func:`~MultiParameter.verify`
         checks all entries of the numpy array storing the parameter values.
-        Overwrite :func:`~MultiParameter.verify` for :class:`MultiParameter'
+        Overwrite :func:`~MultiParameter.verify` for :class:`MultiParameter`
         subclasses, where certain entries do not to be checked.
         """
         return numpy.full(self.shape, True, dtype=bool)

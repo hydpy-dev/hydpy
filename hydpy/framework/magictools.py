@@ -126,10 +126,11 @@ class StdOutErr(object):
 
 
 def parameterstep(timestep=None):
-    """Define a parameter time step size within a parameter control file.
+    """
+    Define a parameter time step size within a parameter control file.
 
     Argument:
-        * timestep(:class:`~hydpy.framework.timetools.Period): Time step size.
+      * timestep(:class:`~hydpy.framework.timetools.Period`): Time step size.
 
     Function :func:`parameterstep` should usually be be applied in a line
     immediately behind the model import.  Defining the step size of time
@@ -137,7 +138,7 @@ def parameterstep(timestep=None):
     parameter.
 
     Note that :func:`parameterstep` implements some namespace magic by
-    means of the module :module:`inspect`.  This makes things a little
+    means of the module :mod:`inspect`.  This makes things a little
     complicated for framework developers, but it eases the definition of
     parameter control files for framework users.
     """
@@ -181,7 +182,8 @@ class Simulationstep(object):
         self.warn = True
 
     def __call__(self, timestep, warn=True):
-        """Define a simulation time step size for testing purposes within a
+        """
+        Define a simulation time step size for testing purposes within a
         parameter control file.
 
         Argument:

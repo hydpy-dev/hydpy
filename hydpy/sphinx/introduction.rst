@@ -4,7 +4,7 @@
 Introduction
 ===============
 This chapter tries to summarize the basics of HydPy.  If you prefer to 
-practical introduction, please go to :ref:`quickstart`.
+practical introduction, please go to .
 
 Purpose
 -------

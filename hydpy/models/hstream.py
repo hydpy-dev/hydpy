@@ -252,7 +252,7 @@ class Parameters(parametertools.Parameters):
         Basic equations:
           :math:`c_1 = \\frac{Damp}{1+Damp}`\n
           :math:`c_3 = \\frac{Damp}{1+Damp}`\n
-          :math:`c_2 = 1.-c_1-c_3
+          :math:`c_2 = 1.-c_1-c_3`
 
         Examples:
 

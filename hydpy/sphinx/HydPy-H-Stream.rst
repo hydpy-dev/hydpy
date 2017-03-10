@@ -68,7 +68,7 @@ Sequences
     :show-inheritance:
 
 State sequences
-..............
+...............
 
 .. autoclass:: hydpy.models.hstream.QJoints
     :members:

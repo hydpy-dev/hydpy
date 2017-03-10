@@ -331,7 +331,7 @@ class ControlManager(object):
         Arguments:
             * path (:class:`str`): Any object returning a valid path
               with or without extension.
-            * info (:info:`dict`): Target dictionary.
+            * info (:class:`dict`): Target dictionary.
 
         Note that the :class:`dict` `info` can be used to feed information
         into the execution of control files.  Use this function only if you

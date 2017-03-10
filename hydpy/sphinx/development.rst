@@ -11,7 +11,7 @@
 .. _development:
 
 Development
-======
+===========
 
 Please read the following hints carefully, if you intend to contribute
 to the further development of HydPy.

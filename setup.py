@@ -39,12 +39,13 @@ for path in paths:
 # Make all extension definition files available, which are required for
 # cythonizing hydrological models.
 import hydpy.cythons
+from hydpy.cythons import modelutils
 for filename in ('pointer.pyx', 'pointer.pxd'):
     shutil.copy(os.path.join('hydpy', 'cythons', filename),
                 os.path.join(hydpy.cythons.__path__[0], filename))
 for filename in os.listdir(os.path.join(hydpy.cythons.__path__[0])):
     if (filename.startswith('pointer.') and
-        filename.endswith(hydpy.cythons.modelutils.dllextension)):
+        filename.endswith(modelutils.dllextension)):
         shutil.copy(os.path.join(hydpy.cythons.__path__[0], filename),
                     os.path.join('hydpy', 'cythons', filename))
         break

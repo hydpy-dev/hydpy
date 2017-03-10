@@ -18,13 +18,13 @@ module :mod:`datetime`. In essence, they wrap the :mod:`datetime` classes
 to specialise these general classes on the needs of HydPy users.
 
 Be aware of the different minimum time resolution of module :mod:`datetime`
-(microseconds) and module :mod:`~hydpy.framework.timetools` (seconds).
+(microseconds) and module :mod:`~hydpy.core.timetools` (seconds).
 
 :class:`Date` objects can be initialized via :class:`~datetime.datetime`
 objects directly, e.g.::
 
     from datetime import datetime
-    from hydpy.framework.timetools import Date
+    from hydpy.core.timetools import Date
 
     # Initialize a `datetime` object...
     datetime_object = datetime(1996, 11, 1, 0, 0, 0)
@@ -95,7 +95,7 @@ reference month::
 :class:`~datetime.timedelta` objects, e.g.::
 
     from datetime import timedelta
-    from hydpy.framework.timetools import Period
+    from hydpy.core.timetools import Period
 
     # Initialize a `timedelta` object...
     timedelta_object = timedelta(1, 0)
@@ -188,7 +188,7 @@ which represents the first and the last date of e.g. a simulation period as
 well as the intermediate dates. A :class:`Timegrid` object is initialized
 by defining its first date, its last date and its stepsize::
 
-    from hydpy.framework.timetools import Date, Period, Timegrid
+    from hydpy.core.timetools import Date, Period, Timegrid
 
     # Either pass the proper attributes directly...
     firstdate = Date('1996.11.01')
@@ -266,11 +266,11 @@ and all together are handled by one class :class:`Timegrids` object.
 
 There is usually only one :class:`Timegrids` object required within each
 HydPy project.  It is automatically added to the module
-:mod:`~hydpy.framework.pub` during the initialization of a
-:class:`~hydpy.framework.hydpy.HydPy` object::
+:mod:`~hydpy.core.pub` during the initialization of a
+:class:`~hydpy.core.hydpy.HydPy` object::
 
     from hydpy import HydPy
-    from hydpy.framework import pub
+    from hydpy.core import pub
 
     hydpy = HydPy('tutorial_1')
     print(pub.timegrids)
@@ -333,7 +333,7 @@ import time
 # ...from third party packages
 import numpy
 # ...from HydPy
-from hydpy.framework import objecttools
+from hydpy.core import objecttools
 
 # The import of `_strptime` is not thread save.  The following call of
 # `strptime` is supposed to prevent possible problems arising from this bug.

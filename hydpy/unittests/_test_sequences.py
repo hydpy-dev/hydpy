@@ -8,18 +8,18 @@ import sys
 import numpy
 # ...from HydPy
 sys.path.insert(0, '..\\..\\..\\..\\HydPy')
-from hydpy.framework import sequences
+from hydpy.core import sequences
 from hydpy.cythons import pointer
 
 
 class Test1Calcs(unittest.TestCase):
-    
+
     def setUp(self):
         self.test_01_init()
         self.test_02_set_vector()
         self.test_03_set_scalar()
         self.test_04_get_pointer()
-        
+
     def test_01_init(self):
         self.calcs = sequences.Calcs()
         self.assertIsInstance(self.calcs, sequences.Calcs)

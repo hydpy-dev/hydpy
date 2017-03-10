@@ -5,7 +5,7 @@ from __future__ import division, print_function
 import unittest
 import datetime
 # ...from HydPy
-from hydpy.framework import timetools
+from hydpy.core import timetools
 
 class Test01DateInitialization(unittest.TestCase):
 

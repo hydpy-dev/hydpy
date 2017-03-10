@@ -9,9 +9,9 @@ import struct
 from matplotlib import pyplot
 # ...from HydPy
 from hydpy import pub
-from hydpy.framework import connectiontools
-from hydpy.framework import objecttools
-from hydpy.framework import sequencetools
+from hydpy.core import connectiontools
+from hydpy.core import objecttools
+from hydpy.core import sequencetools
 from hydpy.cythons import pointer
 
 

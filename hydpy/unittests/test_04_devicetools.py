@@ -6,8 +6,8 @@ import sys
 import unittest
 # ...from HydPy
 sys.path.insert(0, '..\\..\\..\\HydPy')
-from hydpy.framework.devicetools import *
-from hydpy.framework.connectiontools import *
+from hydpy.core.devicetools import *
+from hydpy.core.connectiontools import *
 
 
 

@@ -3,7 +3,7 @@
 # ...the standard library
 import sys as __sys
 # from HydPy
-from hydpy.framework import objecttools
+from hydpy.core import objecttools
 
 projectname = None
 

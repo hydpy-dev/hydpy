@@ -4,7 +4,7 @@
 # ...from standard library
 from __future__ import division, print_function
 # ...HydPy specific
-from hydpy.framework import sequencetools
+from hydpy.core import sequencetools
 
 class Perc(sequencetools.AideSequence):
     """Percolation from the upper to the lower zone layer [mm]."""

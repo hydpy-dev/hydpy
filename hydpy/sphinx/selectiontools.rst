@@ -4,6 +4,6 @@
 selectiontools
 ==============
 
-.. automodule:: hydpy.framework.selectiontools
+.. automodule:: hydpy.core.selectiontools
     :members:
     :show-inheritance:

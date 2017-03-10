@@ -8,10 +8,10 @@ import time
 import warnings
 # ...from HydPy
 from hydpy import pub
-from hydpy.framework import filetools
-from hydpy.framework import devicetools
-from hydpy.framework import selectiontools
-from hydpy.framework import magictools
+from hydpy.core import filetools
+from hydpy.core import devicetools
+from hydpy.core import selectiontools
+from hydpy.core import magictools
 
 
 class HydPy(object):

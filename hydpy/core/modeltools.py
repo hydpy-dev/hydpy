@@ -5,7 +5,7 @@
 from __future__ import division, print_function
 # ...from HydPy
 from hydpy import pub
-from hydpy.framework import objecttools
+from hydpy.core import objecttools
 
 
 class Model(object):

@@ -20,7 +20,7 @@ def dir_(self):
 
     >>> from hydpy.pub import options
     >>> options.dirverbose = True
-    >>> from hydpy.framework.objecttools import dir_
+    >>> from hydpy.core.objecttools import dir_
     >>> class Test(object):
     ...     only_public_attribute =  None
     >>> print(len(dir_(Test())) > 1) # Long list, try it yourself...
@@ -45,7 +45,7 @@ def dir_(self):
 def classname(self):
     """Return the class name of the given instance object or class.
 
-    >>> from hydpy.framework.objecttools import classname
+    >>> from hydpy.core.objecttools import classname
     >>> from hydpy.pub import options
     >>> print(classname(float))
     float
@@ -61,7 +61,7 @@ def instancename(self):
     """Return the class name of the given instance object or class in lower
     case letters.
 
-    >>> from hydpy.framework.objecttools import instancename
+    >>> from hydpy.core.objecttools import instancename
     >>> from hydpy.pub import options
     >>> print(instancename(options))
     options
@@ -72,7 +72,7 @@ def instancename(self):
 def modulename(self):
     """Return the module name of the given instance object.
 
-    >>> from hydpy.framework.objecttools import modulename
+    >>> from hydpy.core.objecttools import modulename
     >>> from hydpy.pub import options
     >>> print(modulename(options))
     objecttools
@@ -82,8 +82,8 @@ def modulename(self):
 
 def devicename(self):
     """Try to return the name of the (indirect) master
-    :class:`~hydpy.framework.devicetools.Node` or
-    :class:`~hydpy.framework.devicetools.Element` instance,
+    :class:`~hydpy.core.devicetools.Node` or
+    :class:`~hydpy.core.devicetools.Element` instance,
     otherwise return `?`."""
     while True:
         device = getattr(self, 'element', getattr(self, 'node', None))
@@ -105,7 +105,7 @@ def augmentexcmessage(prefix=None, suffix=None):
     much more often in the HydPy framework), the sub-clause ', the following
     error occured:' is automatically included:
 
-    >>> from hydpy.framework import objecttools
+    >>> from hydpy.core import objecttools
     >>> import textwrap
     >>> try:
     ...     1 + '1'
@@ -141,7 +141,7 @@ def repr_(value):
 
     When value is a string, it is returned without any modification:
 
-    >>> from hydpy.framework.objecttools import repr_
+    >>> from hydpy.core.objecttools import repr_
     >>> repr('test')
     "'test'"
     >>> repr_('test')
@@ -311,8 +311,8 @@ class Trimmer(object):
         return abs(values*1e-15)
 
 class ValueMath(object):
-    """Base class for :class:`~hydpy.framework.parametertools.Parameter` and
-    :class:`~hydpy.framework.sequencetools.Sequence`.  Implements special
+    """Base class for :class:`~hydpy.core.parametertools.Parameter` and
+    :class:`~hydpy.core.sequencetools.Sequence`.  Implements special
     methods for arithmetic calculations, comparisons and type conversions.
 
     The subclasses are required to provide the members `NDIM` (usually a
@@ -321,7 +321,7 @@ class ValueMath(object):
 
     A few examples for 0-dimensional objects:
 
-    >>> from hydpy.framework.objecttools import ValueMath
+    >>> from hydpy.core.objecttools import ValueMath
     >>> vm0 = ValueMath()
     >>> vm0.NDIM = 0
     >>> vm0.value = 2.

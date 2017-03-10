@@ -4,6 +4,6 @@
 modeltools
 ==========
 
-.. automodule:: hydpy.framework.modeltools
+.. automodule:: hydpy.core.modeltools
     :members:
     :show-inheritance:

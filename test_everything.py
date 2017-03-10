@@ -57,7 +57,7 @@ if failedunittests:
 from hydpy import pub
 pub.options.reprcomments = False
 import hydpy
-from hydpy.framework import devicetools
+from hydpy.core import devicetools
 alldoctests = ({}, {})
 allsuccessfuldoctests = ({}, {})
 allfaileddoctests = ({}, {})

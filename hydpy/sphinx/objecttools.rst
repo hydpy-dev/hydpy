@@ -4,6 +4,6 @@
 objecttools
 ===========
 
-.. automodule:: hydpy.framework.objecttools
+.. automodule:: hydpy.core.objecttools
     :members:
     :show-inheritance:

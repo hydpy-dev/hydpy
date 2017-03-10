@@ -1,26 +1,26 @@
 """
 HydPy
 
-An interactive framework for the developement and a application of 
+An interactive framework for the developement and a application of
 hydrological models.
 """
 
-from hydpy.framework.hydpytools import HydPy
-from hydpy.framework.timetools import Date
-from hydpy.framework.timetools import Period
-from hydpy.framework.timetools import Timegrid
-from hydpy.framework.timetools import Timegrids
-from hydpy.framework.filetools import MainManager
-from hydpy.framework.filetools import NetworkManager
-from hydpy.framework.filetools import ControlManager
-from hydpy.framework.filetools import SequenceManager
-from hydpy.framework.filetools import ConditionManager
-from hydpy.framework.devicetools import Node
-from hydpy.framework.devicetools import Nodes
-from hydpy.framework.devicetools import Element
-from hydpy.framework.devicetools import Elements
-from hydpy.framework.selectiontools import Selection
-from hydpy.framework.selectiontools import Selections
+from hydpy.core.hydpytools import HydPy
+from hydpy.core.timetools import Date
+from hydpy.core.timetools import Period
+from hydpy.core.timetools import Timegrid
+from hydpy.core.timetools import Timegrids
+from hydpy.core.filetools import MainManager
+from hydpy.core.filetools import NetworkManager
+from hydpy.core.filetools import ControlManager
+from hydpy.core.filetools import SequenceManager
+from hydpy.core.filetools import ConditionManager
+from hydpy.core.devicetools import Node
+from hydpy.core.devicetools import Nodes
+from hydpy.core.devicetools import Element
+from hydpy.core.devicetools import Elements
+from hydpy.core.selectiontools import Selection
+from hydpy.core.selectiontools import Selections
 from hydpy import pub
 
 import warnings
@@ -30,9 +30,9 @@ def customwarn(message, category, filename, lineno, file=None, line=None):
     sys.stdout.write(warnings.formatwarning(message, category, filename, lineno))
 warnings.showwarning = customwarn
 
-__all__ = ['HydPy', 'pub', 
-           'Date', 'Period', 'Timegrid', 'Timegrids', 
-           'MainManager', 'NetworkManager', 'ControlManager', 
+__all__ = ['HydPy', 'pub',
+           'Date', 'Period', 'Timegrid', 'Timegrids',
+           'MainManager', 'NetworkManager', 'ControlManager',
            'SequenceManager', 'ConditionManager',
            'Node', 'Nodes', 'Element', 'Elements', 'Selection', 'Selections']
 

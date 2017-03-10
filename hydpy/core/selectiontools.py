@@ -4,7 +4,7 @@
 # ...from standard library
 from __future__ import division, print_function
 # ...from HydPy
-from hydpy.framework import devicetools
+from hydpy.core import devicetools
 
 class Selections(object):
     """Collects :class:`Selection` instances.
@@ -139,15 +139,15 @@ class Selections(object):
 
 
 class Selection(object):
-    """Defines a combination of :class:`~hydpy.framework.node.Node` and
-    :class:`~hydpy.framework.element.Element` objects suitable for a
+    """Defines a combination of :class:`~hydpy.core.node.Node` and
+    :class:`~hydpy.core.element.Element` objects suitable for a
     specific task.
 
     Attributes:
         * name (:class:`str`): Name of the selection.
-        * nodes (:class:`~hydpy.framework.node.Nodes`):
+        * nodes (:class:`~hydpy.core.node.Nodes`):
           Currently selected nodes.
-        * elements (:class:`~hydpy.framework.element.Elements`):
+        * elements (:class:`~hydpy.core.element.Elements`):
           Currently selected elements.
     """
 
@@ -161,8 +161,8 @@ class Selection(object):
         starting point, including the starting point itself.
 
         Argument:
-            * device (:class:`~hydpy.framework.devicetools.Node` or
-              :class:`~hydpy.framework.devicetools.Element`): Lowest point
+            * device (:class:`~hydpy.core.devicetools.Node` or
+              :class:`~hydpy.core.devicetools.Element`): Lowest point
               to be selected.
         """
         self.nodes, self.elements = self.getby_upstream(device)
@@ -173,8 +173,8 @@ class Selection(object):
         current selection, including the starting point itself.
 
         Argument:
-            * device (:class:`~hydpy.framework.devicetools.Node` or
-              :class:`~hydpy.framework.devicetools.Element`): Highest point
+            * device (:class:`~hydpy.core.devicetools.Node` or
+              :class:`~hydpy.core.devicetools.Element`): Highest point
               to be deselected.
         """
         nodes, elements = self.getby_upstream(device)
@@ -187,8 +187,8 @@ class Selection(object):
         the starting point itself.
 
         Argument:
-            * device (:class:`~hydpy.framework.devicetools.Node` or
-              :class:`~hydpy.framework.devicetools.Element`): Lowest point
+            * device (:class:`~hydpy.core.devicetools.Node` or
+              :class:`~hydpy.core.devicetools.Element`): Lowest point
               to be selected.
         """
         nodes = devicetools.Nodes()
@@ -208,11 +208,11 @@ class Selection(object):
         """First recursion method for :func:`~Selection.getupstreamnetwork`.
 
         Arguments:
-            * node (:class:`~hydpy.framework.devicetools.Node`): The node which
+            * node (:class:`~hydpy.core.devicetools.Node`): The node which
               is selected currently.
-            * nodes (:class:`~hydpy.framework.devicetools.Nodes`): All nodes
+            * nodes (:class:`~hydpy.core.devicetools.Nodes`): All nodes
             which have been selected so far.
-            * elements (:class:`~hydpy.framework.devicetools.Elements`): All
+            * elements (:class:`~hydpy.core.devicetools.Elements`): All
             elements which have been selected so far.
         """
         if (node not in nodes) and (node in self.nodes):
@@ -225,11 +225,11 @@ class Selection(object):
         """Second recursion method for :func:`~Selection.getupstreamnetwork`.
 
         Arguments:
-            * element (:class:`~hydpy.framework.devicetools.Element`): The
+            * element (:class:`~hydpy.core.devicetools.Element`): The
               element which is selected currently.
-            * nodes (:class:`~hydpy.framework.devicetools.Nodes`): All nodes
+            * nodes (:class:`~hydpy.core.devicetools.Nodes`): All nodes
             which have been selected so far.
-            * elements (:class:`~hydpy.framework.devicetools.Elements`): All
+            * elements (:class:`~hydpy.core.devicetools.Elements`): All
             elements which have been selected so far.
         """
         if (element not in elements) and (element in self.elements):
@@ -243,7 +243,7 @@ class Selection(object):
         given modelclass(es).  (All nodes are removed.)
 
         Argument:
-            * modelclass (subclass of :class:`~hydpy.framework.models.Model`):
+            * modelclass (subclass of :class:`~hydpy.core.models.Model`):
               Model type(s) as the selection criterion/criteria.
         """
         self.nodes = devicetools.Nodes()
@@ -255,7 +255,7 @@ class Selection(object):
         given modelclass(es).  (All nodes are removed.)
 
         Argument:
-            * modelclass (subclass of :class:`~hydpy.framework.models.Model`):
+            * modelclass (subclass of :class:`~hydpy.core.models.Model`):
               Model type(s) as the selection criterion/criteria.
         """
         self.nodes = devicetools.Nodes()
@@ -267,7 +267,7 @@ class Selection(object):
         modelclass(es).
 
         Argument:
-            * modelclass (subclass of :class:`~hydpy.framework.models.Model`):
+            * modelclass (subclass of :class:`~hydpy.core.models.Model`):
               Model type(s) as the selection criterion/criteria.
         """
         elements = devicetools.Elements()

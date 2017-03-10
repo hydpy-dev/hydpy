@@ -8,10 +8,10 @@ import sys
 import warnings
 # ...from HydPy
 from hydpy import pub
-from hydpy.framework import objecttools
-from hydpy.framework import timetools
-from hydpy.framework import devicetools
-from hydpy.framework import selectiontools
+from hydpy.core import objecttools
+from hydpy.core import timetools
+from hydpy.core import devicetools
+from hydpy.core import selectiontools
 
 
 class MainManager(object):

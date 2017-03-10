@@ -4,6 +4,6 @@
 parametertools
 ==============
 
-.. automodule:: hydpy.framework.parametertools
+.. automodule:: hydpy.core.parametertools
     :members:
     :show-inheritance:

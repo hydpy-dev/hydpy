@@ -5,8 +5,8 @@
 from __future__ import division, print_function
 
 class Connections(object):
-    """Connection between :class:`~hydpy.framework.devicetools.Node` and
-    :class:`~hydpy.framework.devicetools.Element` instances.
+    """Connection between :class:`~hydpy.core.devicetools.Node` and
+    :class:`~hydpy.core.devicetools.Element` instances.
     """
 
     def __init__(self, master, *slaves):

@@ -4,6 +4,6 @@
 filetools
 =========
 
-.. automodule:: hydpy.framework.filetools
+.. automodule:: hydpy.core.filetools
     :members:
     :show-inheritance:

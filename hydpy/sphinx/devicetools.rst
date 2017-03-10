@@ -4,6 +4,6 @@
 devicetools
 ===========
 
-.. automodule:: hydpy.framework.devicetools
+.. automodule:: hydpy.core.devicetools
     :members:
     :show-inheritance:

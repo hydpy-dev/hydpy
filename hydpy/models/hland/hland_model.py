@@ -4,7 +4,7 @@
 # ...standard library
 from __future__ import division, print_function
 # ...HydPy specific
-from hydpy.framework import modeltools
+from hydpy.core import modeltools
 from hydpy.cythons import modelutils
 # ...model specifc
 from hydpy.models.hland.hland_constants import FIELD, FOREST, GLACIER, ILAKE

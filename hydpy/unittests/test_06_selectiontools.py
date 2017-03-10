@@ -4,8 +4,8 @@
 from __future__ import division, print_function
 import unittest
 # ...from HydPy
-from hydpy.framework.devicetools import *
-from hydpy.framework.selectiontools import *
+from hydpy.core.devicetools import *
+from hydpy.core.selectiontools import *
 
 class Test01SelectionInitialization(unittest.TestCase):
 

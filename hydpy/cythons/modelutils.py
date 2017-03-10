@@ -22,9 +22,9 @@ import numpy
 # ...from HydPy
 from hydpy import pub
 from hydpy import cythons
-from hydpy.framework import objecttools
-from hydpy.framework import sequencetools
-from hydpy.framework import magictools
+from hydpy.core import objecttools
+from hydpy.core import sequencetools
+from hydpy.core import magictools
 
 if platform.system().lower() == 'windows':
     dllextension = '.pyd'
@@ -351,7 +351,7 @@ class PyxWriter(object):
 
     def iosequence(self, seq):
         """Special declaration lines for the given
-        :class:`~hydpy.framework.sequencetools.IOSequence` object.
+        :class:`~hydpy.core.sequencetools.IOSequence` object.
         """
         lines = Lines()
         lines.add(1, 'cdef public bint _%s_diskflag' % seq.name)

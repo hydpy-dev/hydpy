@@ -5,7 +5,7 @@
 #import os
 #import unittest
 ## ...from HydPy
-#from hydpy.framework import filetools
+#from hydpy.core import filetools
 #from hydpy import pub
 #
 #PROJECTNAME = 'projectnamemock'

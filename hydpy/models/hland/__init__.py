@@ -94,10 +94,10 @@ import numpy
 from numpy import nan
 # ...HydPy specific
 # Load the required `magic` functions into the local namespace.
-from hydpy.framework.magictools import parameterstep
-from hydpy.framework.magictools import simulationstep
-from hydpy.framework.magictools import controlcheck
-from hydpy.framework.magictools import Tester
+from hydpy.core.magictools import parameterstep
+from hydpy.core.magictools import simulationstep
+from hydpy.core.magictools import controlcheck
+from hydpy.core.magictools import Tester
 from hydpy.cythons.modelutils import Cythonizer
 
 from hydpy.models.hland.hland_constants import FIELD, FOREST, GLACIER, ILAKE

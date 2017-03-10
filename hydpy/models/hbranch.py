@@ -8,17 +8,17 @@ import sys
 # ...third party
 import numpy
 # ...HydPy specific...
-from hydpy.framework import objecttools
-from hydpy.framework import modeltools
-from hydpy.framework import parametertools
-from hydpy.framework import sequencetools
-from hydpy.framework import devicetools
+from hydpy.core import objecttools
+from hydpy.core import modeltools
+from hydpy.core import parametertools
+from hydpy.core import sequencetools
+from hydpy.core import devicetools
 from hydpy import pub
 # ...and load the required `magic` functions into the local namespace.
-from hydpy.framework.magictools import parameterstep
-from hydpy.framework.magictools import simulationstep
-from hydpy.framework.magictools import controlcheck
-from hydpy.framework.magictools import Tester
+from hydpy.core.magictools import parameterstep
+from hydpy.core.magictools import simulationstep
+from hydpy.core.magictools import controlcheck
+from hydpy.core.magictools import Tester
 from hydpy.cythons.modelutils import Cythonizer
 
 ###############################################################################
@@ -38,9 +38,9 @@ class Model(modeltools.Model):
         self.nodenames = []
 
     def connect(self):
-        """Connect the :class:`~hydpy.framework.sequencetools.LinkSequence`
+        """Connect the :class:`~hydpy.core.sequencetools.LinkSequence`
         instances handled by the actual model to the
-        :class:`~hydpy.framework.sequencetools.NodeSequence` instances
+        :class:`~hydpy.core.sequencetools.NodeSequence` instances
         handled by one inlet node and multiple oulet nodes.
 
         The HydPy-H-Branch model passes multiple output values to different
@@ -69,7 +69,7 @@ class Model(modeltools.Model):
         >>> model.connect()
 
         ...you can see that an example discharge value handled by the
-        :class:`~hydpy.framework.devicetools.Node` instance `n1` is properly
+        :class:`~hydpy.core.devicetools.Node` instance `n1` is properly
         divided:
 
         >>> n1.sequences.sim = 6.

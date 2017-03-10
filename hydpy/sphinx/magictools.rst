@@ -4,6 +4,6 @@
 magictools
 ==========
 
-.. automodule:: hydpy.framework.magictools
+.. automodule:: hydpy.core.magictools
     :members:
     :show-inheritance:

@@ -4,6 +4,6 @@
 timetools
 =========
 
-.. automodule:: hydpy.framework.timetools
+.. automodule:: hydpy.core.timetools
     :members:
     :show-inheritance:

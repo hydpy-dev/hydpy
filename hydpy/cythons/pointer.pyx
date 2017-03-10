@@ -13,10 +13,10 @@ a similar manner as the immutable standard data type for floating operations
 to :class:`float` only in cases, where their mutability and pointer
 functionality is required.  At the moment, the only usage of :class:`Double`
 and :class:`PDouble` within HydPy is to directly share information between
-:class:`~hydpy.framework.sequence.SimulationSequence` objects of
-:class:`~hydpy.framework.node.Node` instances and
-:class:`~hydpy.framework.sequence.LinkSequence` objects of
-:class:`~hydpy.framework.model.Model` instances.
+:class:`~hydpy.core.sequence.SimulationSequence` objects of
+:class:`~hydpy.core.node.Node` instances and
+:class:`~hydpy.core.sequence.LinkSequence` objects of
+:class:`~hydpy.core.model.Model` instances.
 
 The following examples try to give an idea of the purpose of using pointers
 in HydPy::

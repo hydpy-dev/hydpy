@@ -4,7 +4,7 @@
 # ...from standard library
 from __future__ import division, print_function
 # ...HydPy specific
-from hydpy.framework import parametertools
+from hydpy.core import parametertools
 # ...model specific
 from hydpy.models.hland import hland_parameters
 

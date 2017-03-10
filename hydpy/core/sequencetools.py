@@ -18,8 +18,8 @@ import warnings
 import numpy
 # ...from HydPy
 from hydpy import pub
-from hydpy.framework import timetools
-from hydpy.framework import objecttools
+from hydpy.core import timetools
+from hydpy.core import objecttools
 from hydpy.cythons import pointer
 
 class Sequences(object):
@@ -187,7 +187,7 @@ class SubSequences(object):
     appropriate :class:`Sequence` subclasses in the (hidden) class attribute
     :attr:`~SubSequences._SEQCLASSES`, as shown in the following example:
 
-    >>> from hydpy.framework.sequencetools import *
+    >>> from hydpy.core.sequencetools import *
     >>> class Temperature(Sequence):
     ...    NDIM, NUMERIC = 0, False
     >>> class Precipitation(Sequence):

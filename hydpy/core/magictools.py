@@ -11,11 +11,11 @@ import importlib
 import doctest
 # ...from HydPy
 from hydpy import pub
-from hydpy.framework import objecttools
-from hydpy.framework import timetools
-from hydpy.framework import filetools
-from hydpy.framework import parametertools
-from hydpy.framework import devicetools
+from hydpy.core import objecttools
+from hydpy.core import timetools
+from hydpy.core import filetools
+from hydpy.core import parametertools
+from hydpy.core import devicetools
 
 _warnsimulationstep = True
 
@@ -130,7 +130,7 @@ def parameterstep(timestep=None):
     Define a parameter time step size within a parameter control file.
 
     Argument:
-      * timestep(:class:`~hydpy.framework.timetools.Period`): Time step size.
+      * timestep(:class:`~hydpy.core.timetools.Period`): Time step size.
 
     Function :func:`parameterstep` should usually be be applied in a line
     immediately behind the model import.  Defining the step size of time
@@ -187,7 +187,7 @@ class Simulationstep(object):
         parameter control file.
 
         Argument:
-            * timestep(:class:`~hydpy.framework.timetools.Period): Time step size.
+            * timestep(:class:`~hydpy.core.timetools.Period): Time step size.
 
         Using :func:`simulationstep` only affects the values of time dependent
         parameters, when `pub.timegrids.stepsize` is not defined.  It thus has

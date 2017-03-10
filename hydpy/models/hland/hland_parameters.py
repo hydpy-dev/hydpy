@@ -6,8 +6,8 @@ from __future__ import division, print_function
 # ...third party
 import numpy
 # ...HydPy specific
-from hydpy.framework import parametertools
-from hydpy.framework import objecttools
+from hydpy.core import parametertools
+from hydpy.core import objecttools
 # ...model specific
 from hydpy.models.hland.hland_constants import FIELD, FOREST, GLACIER, ILAKE, CONSTANTS
 
@@ -17,7 +17,7 @@ class MultiParameter(parametertools.MultiParameter):
     handling multiple values.
 
     In addition to the call method of
-    :class:`~hydpy.framework.parametertools.MultiParameter`, the optional
+    :class:`~hydpy.core.parametertools.MultiParameter`, the optional
     `kwargs` are checked for the keywords `field`, `forest`, `glacier`,
     `ilake,` and `default`.  If available, the respective values are used to
     define the values of those 1-dimensional arrays, whose entries are related
@@ -487,9 +487,9 @@ class Parameters(parametertools.Parameters):
           :class:`~hydpy.models.hland.hland_control.Area`
 
         Required property of
-        :class:`~hydpy.framework.parametertools.Parameter`:
+        :class:`~hydpy.core.parametertools.Parameter`:
 
-          :attr:`~hydpy.framework.parametertools.Parameter.seconds`
+          :attr:`~hydpy.core.parametertools.Parameter.seconds`
 
         Calculated derived parameter:
           :class:`~hydpy.models.hland.hland_derived.QFactor`

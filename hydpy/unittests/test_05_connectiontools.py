@@ -4,8 +4,8 @@
 from __future__ import division, print_function
 import unittest
 # ...from HydPy
-from hydpy.framework.devicetools import *
-from hydpy.framework.connectiontools import *
+from hydpy.core.devicetools import *
+from hydpy.core.connectiontools import *
 
 class Test01Connections(unittest.TestCase):
 

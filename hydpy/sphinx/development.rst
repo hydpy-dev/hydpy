@@ -7,6 +7,7 @@
 .. _Cython: http://www.cython.org/
 .. _NumPy: http://www.numpy.org/
 .. _matplotlib: http://matplotlib.org/
+.. _End Of Life for Python 2.7: https://www.python.org/dev/peps/pep-0373/
 
 .. _development:
 
@@ -76,16 +77,20 @@ through reading more advanced literature like this
 
 Python Version
 ..............
-HydPy is written in (the latest version) of CPython 2.7.  So
-change its source code or write new one that is compatible with
-this Python version.  However, always insert::
+The `End Of Life for Python 2.7` is scheduled for 2020. Nevertheless, still many 
+scientists are using it.  This is why HydPy is continuously tested both on Python 2 
+and Python 3. For the time beeing future HydPy versions should be applicable on 
+both Python versions.
+
+Always insert::
 
     from __future__ import division, print_function
 
 at the top of a new module.  This introduces the new (integer) division
-and print statement of Python 3 into Python 2, reducing later efforts
-to migrate HydPy to Python 3.  Any help to further increase the
-compatibility of HydPys code base with Python 3 is welcome!
+and print statement of Python 3 into Python 2 (when using Python 3, this
+import statement is automatically skipped).
+
+Whenever 
 
 Site Packages
 .............
@@ -126,13 +131,12 @@ HydPy is intended to be applicable by researchers and practitioners
 who are no Python experts and may have little experience in programming
 in general.  Hence it is desirable to anticipate errors due to misleading
 input as good as possible and report them as soon as possible.
-So, in contradiction to `PEP 8`_, it is
-recommended to not just expose the names of simple public attributes.
-Instead, use protected attributes (usually properties) to assure
-that the internal states of objects remain consistent, whenever this
-appears to be useful. One already implemented example is that it
-is not allowed to assign an unknown string to the `outputfiletype`
-of a `SequenceManager`::
+So, in contradiction to `PEP 8`_, it is recommended to not just expose 
+the names of simple public attributes.  Instead, use protected attributes 
+(usually properties) to assure that the internal states of objects remain 
+consistent, whenever this appears to be useful. One already implemented 
+example is that it is not allowed to assign an unknown string to the 
+`outputfiletype` of a `SequenceManager`::
 
     from hydpy import SequenceManager
     sm = SequenceManager()
@@ -265,7 +269,7 @@ Introspection
 Model specific features
 -----------------------
 
-Assurign code quality
+Assuring code quality
 _____________________
 
 

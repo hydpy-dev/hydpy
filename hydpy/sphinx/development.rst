@@ -90,7 +90,7 @@ at the top of a new module.  This introduces the new (integer) division
 and print statement of Python 3 into Python 2 (when using Python 3, this
 import statement is automatically skipped).
 
-Whenever 
+Sometimes 
 
 Site Packages
 .............
@@ -272,7 +272,4 @@ Model specific features
 Assuring code quality
 _____________________
 
-
-
-
-
+See the latest :download:`coverage report <coverage.html>`.

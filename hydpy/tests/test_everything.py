@@ -13,17 +13,21 @@ import importlib
 import unittest
 import doctest
 
-if 'test_as_site-package' in sys.argv:
-    paths = [path for path in sys.path if path.endswith('-packages')]
-    for path in paths:
-        sys.path.insert(0, path)
+# 0 . Priorise site-packages (on Debian-based Linux distributions as Ubuntu
+# also dist-packages) in the import order to make sure, the following
+# imports refer to the newly build hydpy package on the respective computer.
+paths = [path for path in sys.path if path.endswith('-packages')]
+for path in paths:
+    sys.path.insert(0, path)
 
-import hydpy.unittests
-filenames = os.listdir(hydpy.unittests.__path__[0])
+# 1. Perform "classic" all unit tests.
+
+import hydpy.tests
+filenames = os.listdir(hydpy.tests.__path__[0])
 unittests = {fn.split('.')[0]: None for fn in filenames if
-             (fn.startswith('test') and fn.endswith('.py'))}
+             (fn.startswith('unittest') and fn.endswith('.py'))}
 for name in unittests.keys():
-    module = importlib.import_module('hydpy.unittests.'+name)
+    module = importlib.import_module('hydpy.tests.'+name)
     runner = unittest.TextTestRunner(stream=open(os.devnull, 'w'))
     suite = unittest.TestLoader().loadTestsFromModule(module)
     unittests[name] = runner.run(suite)
@@ -54,6 +58,8 @@ if failedunittests:
             for line in failure[1].split('\n'):
                 print('        %s' % line)
 
+# 2. Perform all doctests (first in Python mode, then in Cython mode)
+
 from hydpy import pub
 pub.options.reprcomments = False
 import hydpy
@@ -66,7 +72,7 @@ iterable = zip(('Python', 'Cython'), alldoctests,
 for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
     pub.options.usecython = mode=='Cython'
     for dirinfo in os.walk(hydpy.__path__[0]):
-        if dirinfo[0].endswith('unittests') or not '__init__.py' in dirinfo[2]:
+        if dirinfo[0].endswith('tests') or not '__init__.py' in dirinfo[2]:
             continue
         packagename = dirinfo[0].replace(os.sep, '.')+'.'
         packagename = packagename[packagename.find('hydpy.'):]
@@ -117,6 +123,11 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                 print('        %s' % failure[0])
                 for line in failure[1].split('\n'):
                     print('        %s' % line)
+
+# 3. Perform integration tests.
+
+
+# 4. Return the result flag.
 
 if failedunittests or allfaileddoctests[0] or allfaileddoctests[1]:
     sys.exit(1)

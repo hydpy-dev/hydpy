@@ -12,6 +12,10 @@ from distutils.extension import Extension
 import Cython.Build
 import numpy
 
+run_tests = 'run_tests' in sys.argv
+if run_tests:
+    sys.argv.remove('run_tests')
+
 # Select the required extension modules, except those directly related
 # to the hydrological models.
 ext_sources = os.path.join('hydpy', 'cythons', 'pointer.pyx')
@@ -26,7 +30,7 @@ setup(name='HydPy',
       author_email='Christoph.Tyralla@rub.de',
       license='GPL-3.0',
       keywords='hydrology modelling water balance rainfall runoff',
-      packages=['hydpy', 'hydpy.cythons', 'hydpy.core', 'hydpy.unittests',
+      packages=['hydpy', 'hydpy.cythons', 'hydpy.core', 'hydpy.tests',
                 'hydpy.models', 'hydpy.models.hland'],
       cmdclass={'build_ext': Cython.Build.build_ext},
       ext_modules=Cython.Build.cythonize(ext_modules),
@@ -40,21 +44,28 @@ for path in paths:
 # Make all extension definition files available, which are required for
 # cythonizing hydrological models.
 import hydpy.cythons
-from hydpy.cythons import modelutils
 for filename in ('pointer.pyx', 'pointer.pxd'):
     shutil.copy(os.path.join('hydpy', 'cythons', filename),
                 os.path.join(hydpy.cythons.__path__[0], filename))
-for filename in os.listdir(os.path.join(hydpy.cythons.__path__[0])):
-    if (filename.startswith('pointer.') and
-        filename.endswith(modelutils.dllextension)):
-        shutil.copy(os.path.join(hydpy.cythons.__path__[0], filename),
-                    os.path.join('hydpy', 'cythons', filename))
-        break
-# Import all hydrological models to trigger the automatic cythonization
-# mechanism of HydPy.
-from hydpy import pub
-pub.options.skipdoctests = True
-import hydpy.models
-for name in [fn.split('.')[0] for fn in os.listdir(hydpy.models.__path__[0])]:
-    if name != '__init__':
-        importlib.import_module('hydpy.models.'+name)
+
+if run_tests:
+    # Run all tests, make the coverage report, and prepare it for sphinx.
+    oldpath = os.path.abspath('.')
+    import hydpy.tests
+    os.chdir(os.sep.join(hydpy.tests.__file__.split(os.sep)[:-1]))
+    os.system('coverage run --branch --source hydpy test_everything.py')
+    os.system('coverage xml')
+    os.system('pycobertura show --format html '
+              '--output coverage.html coverage.xml')
+    shutil.move('coverage.html',
+                os.path.join(oldpath, 'hydpy', 'sphinx', 'coverage.html'))
+else:
+    # Just import all hydrological models to trigger the automatic
+    # cythonization mechanism of HydPy.
+    from hydpy import pub
+    pub.options.skipdoctests = True
+    import hydpy.models
+    for name in [fn.split('.')[0] for fn
+                 in os.listdir(hydpy.models.__path__[0])]:
+        if name != '__init__':
+            importlib.import_module('hydpy.models.'+name)

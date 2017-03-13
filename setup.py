@@ -54,6 +54,7 @@ if run_tests:
     import hydpy.tests
     os.chdir(os.sep.join(hydpy.tests.__file__.split(os.sep)[:-1]))
     os.system('coverage run --branch --source hydpy test_everything.py')
+    os.system('coverage report -m')
     os.system('coverage xml')
     os.system('pycobertura show --format html '
               '--output coverage.html coverage.xml')

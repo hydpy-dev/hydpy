@@ -17,7 +17,7 @@ install:
   - pip install numpy --upgrade
   - pip install matplotlib
   - if [ $TRAVIS_PYTHON_VERSION = "2.7" ] ; then pip install travis-sphinx; fi
-  - if [ $TRAVIS_PYTHON_VERSION = "2.7" ] ; then pip installpycobertura; fi
+  - if [ $TRAVIS_PYTHON_VERSION = "2.7" ] ; then pip install pycobertura; fi
 # command to run tests
 script: 
   - if [ $TRAVIS_PYTHON_VERSION = "2.7" ] ; then python setup.py install run_tests; else python setup.py install; fi

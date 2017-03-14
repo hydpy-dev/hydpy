@@ -8,8 +8,10 @@
 *.h
 build
 _build
+dist
 docs
 gui
 helpers
 examples
 coverage.html
+MANIFEST

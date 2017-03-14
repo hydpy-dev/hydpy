@@ -1,0 +1,3 @@
+include hydpy/cythons/pointer.pyx
+include hydpy/cythons/pointer.pxd
+exclude hydpy/cythons/pointer.c

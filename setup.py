@@ -16,6 +16,8 @@ run_tests = 'run_tests' in sys.argv
 if run_tests:
     sys.argv.remove('run_tests')
 
+
+
 # Select the required extension modules, except those directly related
 # to the hydrological models.
 ext_sources = os.path.join('hydpy', 'cythons', 'pointer.pyx')
@@ -23,12 +25,29 @@ ext_modules = Extension('hydpy.cythons.pointer', [ext_sources])
 # The usual setup definitions. Don't forget to update `packages`,
 # whenever a new model is implemented as a package.
 setup(name='HydPy',
-      version='2.0.0.dev1',
+      version='2.0.0',
       description='A framework for the development and application of '
                   'hydrological models.',
       author='Christoph Tyralla',
       author_email='Christoph.Tyralla@rub.de',
       license='GPL-3.0',
+      classifiers=[
+      'Intended Audience :: Education',
+      'Intended Audience :: Science/Research',
+      'Intended Audience :: Financial and Insurance Industry',
+      'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+      'Operating System :: POSIX :: Linux',
+      'Operating System :: Microsoft :: Windows',
+      'Operating System :: Microsoft :: Windows :: Windows 7',
+      'Programming Language :: Python :: 2',
+      'Programming Language :: Python :: 2.7',
+      'Programming Language :: Python :: 3',
+      'Programming Language :: Python :: 3.4',
+      'Programming Language :: Python :: 3.5',
+      'Programming Language :: Python :: 3.6',
+      'Programming Language :: Python :: Implementation :: CPython',
+      'Topic :: Scientific/Engineering'
+      ],
       keywords='hydrology modelling water balance rainfall runoff',
       packages=['hydpy', 'hydpy.cythons', 'hydpy.core', 'hydpy.tests',
                 'hydpy.models', 'hydpy.models.hland'],
@@ -43,10 +62,11 @@ for path in paths:
     sys.path.insert(0, path)
 # Make all extension definition files available, which are required for
 # cythonizing hydrological models.
-import hydpy.cythons
-for filename in ('pointer.pyx', 'pointer.pxd'):
-    shutil.copy(os.path.join('hydpy', 'cythons', filename),
-                os.path.join(hydpy.cythons.__path__[0], filename))
+if 'build' in sys.argv:
+    import hydpy.cythons
+    for filename in ('pointer.pyx', 'pointer.pxd'):
+        shutil.copy(os.path.join('hydpy', 'cythons', filename),
+                    os.path.join(hydpy.cythons.__path__[0], filename))
 
 if run_tests:
     # Run all tests, make the coverage report, and prepare it for sphinx.

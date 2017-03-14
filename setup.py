@@ -53,21 +53,16 @@ if run_tests:
     oldpath = os.path.abspath('.')
     import hydpy.tests
     os.chdir(os.sep.join(hydpy.tests.__file__.split(os.sep)[:-1]))
-    print('*****  A  *****')
-    os.system('ls')
     os.system('coverage run --branch --source hydpy test_everything.py')
-    print('*****  B  *****')
-    os.system('ls')
     os.system('coverage report -m')
-    print('*****  C  *****')
-    os.system('ls')
     os.system('coverage xml')
-    print('*****  D  *****')
-    os.system('ls')
     os.system('pycobertura show --format html '
               '--output coverage.html coverage.xml')
     shutil.move('coverage.html',
                 os.path.join(oldpath, 'hydpy', 'sphinx', 'coverage.html'))
+    os.system('ls')
+    os.chdir(oldpath)
+    os.system('ls')
 else:
     # Just import all hydrological models to trigger the automatic
     # cythonization mechanism of HydPy.

@@ -60,9 +60,6 @@ if run_tests:
               '--output coverage.html coverage.xml')
     shutil.move('coverage.html',
                 os.path.join(oldpath, 'hydpy', 'sphinx', 'coverage.html'))
-    os.system('ls')
-    os.chdir(oldpath)
-    os.system('ls')
 else:
     # Just import all hydrological models to trigger the automatic
     # cythonization mechanism of HydPy.

@@ -18,6 +18,7 @@ install:
   - pip install matplotlib
   - if [ $TRAVIS_PYTHON_VERSION = "2.7" ] ; then pip install coverage; fi
   - if [ $TRAVIS_PYTHON_VERSION = "2.7" ] ; then pip install pycobertura; fi
+  - if [ $TRAVIS_PYTHON_VERSION = "2.7" ] ; then pip install sphinx; fi
   - if [ $TRAVIS_PYTHON_VERSION = "2.7" ] ; then pip install travis-sphinx; fi
 # command to run tests
 script: 

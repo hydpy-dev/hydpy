@@ -14,4 +14,7 @@ gui
 helpers
 examples
 coverage.html
+coverage.xml
+.coverage
+HydPy.egg-info/*
 MANIFEST

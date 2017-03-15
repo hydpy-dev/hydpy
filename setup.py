@@ -6,8 +6,8 @@ import os
 import sys
 import shutil
 import importlib
-from distutils.core import setup
-from distutils.extension import Extension
+from setuptools import setup
+from setuptools import Extension
 # ...from site-packages:
 import Cython.Build
 import numpy
@@ -30,6 +30,7 @@ setup(name='HydPy',
                   'hydrological models.',
       author='Christoph Tyralla',
       author_email='Christoph.Tyralla@rub.de',
+      url='https://github.com/tyralla/hydpy',
       license='GPL-3.0',
       classifiers=[
       'Intended Audience :: Education',
@@ -53,7 +54,9 @@ setup(name='HydPy',
                 'hydpy.models', 'hydpy.models.hland'],
       cmdclass={'build_ext': Cython.Build.build_ext},
       ext_modules=Cython.Build.cythonize(ext_modules),
-      include_dirs=[numpy.get_include()])
+      include_dirs=[numpy.get_include()],
+      include_package_data=True,
+      install_requires=['Cython', 'numpy', 'matplotlib'])
 # Priorise site-packages (on Debian-based Linux distributions as Ubunte
 # also dist-packages) in the import order to make sure, the following
 # imports refer to the newly build hydpy package on the respective computer.
@@ -62,31 +65,30 @@ for path in paths:
     sys.path.insert(0, path)
 # Make all extension definition files available, which are required for
 # cythonizing hydrological models.
-if 'build' in sys.argv:
+if 'install' in sys.argv:
     import hydpy.cythons
     for filename in ('pointer.pyx', 'pointer.pxd'):
         shutil.copy(os.path.join('hydpy', 'cythons', filename),
                     os.path.join(hydpy.cythons.__path__[0], filename))
-
-if run_tests:
-    # Run all tests, make the coverage report, and prepare it for sphinx.
-    oldpath = os.path.abspath('.')
-    import hydpy.tests
-    os.chdir(os.sep.join(hydpy.tests.__file__.split(os.sep)[:-1]))
-    os.system('coverage run --branch --source hydpy test_everything.py')
-    os.system('coverage report -m')
-    os.system('coverage xml')
-    os.system('pycobertura show --format html '
-              '--output coverage.html coverage.xml')
-    shutil.move('coverage.html',
-                os.path.join(oldpath, 'hydpy', 'sphinx', 'coverage.html'))
-else:
-    # Just import all hydrological models to trigger the automatic
-    # cythonization mechanism of HydPy.
-    from hydpy import pub
-    pub.options.skipdoctests = True
-    import hydpy.models
-    for name in [fn.split('.')[0] for fn
-                 in os.listdir(hydpy.models.__path__[0])]:
-        if name != '__init__':
-            importlib.import_module('hydpy.models.'+name)
+    if run_tests:
+        # Run all tests, make the coverage report, and prepare it for sphinx.
+        oldpath = os.path.abspath('.')
+        import hydpy.tests
+        os.chdir(os.sep.join(hydpy.tests.__file__.split(os.sep)[:-1]))
+        os.system('coverage run --branch --source hydpy test_everything.py')
+        os.system('coverage report -m')
+        os.system('coverage xml')
+        os.system('pycobertura show --format html '
+                  '--output coverage.html coverage.xml')
+        shutil.move('coverage.html',
+                    os.path.join(oldpath, 'hydpy', 'sphinx', 'coverage.html'))
+    else:
+        # Just import all hydrological models to trigger the automatic
+        # cythonization mechanism of HydPy.
+        from hydpy import pub
+        pub.options.skipdoctests = True
+        import hydpy.models
+        for name in [fn.split('.')[0] for fn
+                     in os.listdir(hydpy.models.__path__[0])]:
+            if name != '__init__':
+                importlib.import_module('hydpy.models.'+name)

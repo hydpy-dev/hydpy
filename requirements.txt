@@ -1,0 +1,4 @@
+hydpy
+Cython>=0.26
+numpy
+matplotlib

@@ -1,5 +1,7 @@
 .. _GitHub: https://github.com
 .. _repository: https://github.com/tyralla/hydpy
+.. _hydpy package: https://pypi.python.org/pypi
+.. _Python Package Index: https://pypi.python.org/pypi
 .. _Python tutorials: https://www.python.org/about/gettingstarted/
 .. _book on object-oriented design: http://www.itmaybeahack.com/homepage/books/oodesign.html
 .. _PEP 8: https://www.python.org/dev/peps/pep-0008/
@@ -8,14 +10,42 @@
 .. _NumPy: http://www.numpy.org/
 .. _matplotlib: http://matplotlib.org/
 .. _End Of Life for Python 2.7: https://www.python.org/dev/peps/pep-0373/
-
+.. _pandas: http://pandas-docs.github.io/pandas-docs-travis/contributing.html
 .. _development:
 
 Development
 ===========
 
-Please read the following hints carefully, if you intend to contribute
-to the further development of HydPy.
+You can install HydPy from the `hydpy package`_ available on the
+Python package index`_ or fork from this `repository`_ available
+on `GitHub`_.  Afterwards, you can implement your own models or
+change the frameworks structure in a manner that meets your personal
+goals and preferences.  There are many other Python tools freely
+available, which will be of great help while trying to achieve more
+complex tasks like paramater calibration or regionalization.  Cherry
+picking from many different Python packages can be a huge time-saving.
+Very often it is not necessary to write a "real" Python program.
+Instead, just writing a simple script calling different functionalities
+of different packages in the correct order often gets the job done.
+
+However, if you intend to contribute to the further development of HydPy
+(hopefully you will!), you must abdicate some parts of the freedom and
+ease of use Python offers.  The number of depencencies to other Python
+packages, in particular those with some relevant shortcomings and those
+which might not be further supported in the future, should be kept as
+small as possible.  Otherwise it would be to hard to guarantee the
+long-term applicability of HydPy.  Additionally, the Python code
+contributed by different developers should be as consistent as possible.
+Otherwise there would be a risk of the code base becoming opaque, making
+future extensions of HydPy impossible.
+
+The following sections try to define a strategy allowing HydPy to be
+developed as an open source project while maintaining sufficiently
+high quality standards for practical applications.  The hydrological
+modelling community has not made that much progress in this field yet.
+This is why the outlined strategy his highly influenced from other
+non-hydrological open source projects like `pandas`_.  Discussions on
+how to improve the outlined strategy are welcome!
 
 
 How to contribute?
@@ -77,9 +107,9 @@ through reading more advanced literature like this
 
 Python Version
 ..............
-The `End Of Life for Python 2.7` is scheduled for 2020. Nevertheless, still many 
-scientists are using it.  This is why HydPy is continuously tested both on Python 2 
-and Python 3. For the time beeing future HydPy versions should be applicable on 
+The `End Of Life for Python 2.7` is scheduled for 2020. Nevertheless, still many
+scientists are using it.  This is why HydPy is continuously tested both on Python 2
+and Python 3. For the time beeing future HydPy versions should be applicable on
 both Python versions.
 
 Always insert::
@@ -90,7 +120,7 @@ at the top of a new module.  This introduces the new (integer) division
 and print statement of Python 3 into Python 2 (when using Python 3, this
 import statement is automatically skipped).
 
-Sometimes 
+Sometimes
 
 Site Packages
 .............
@@ -131,11 +161,11 @@ HydPy is intended to be applicable by researchers and practitioners
 who are no Python experts and may have little experience in programming
 in general.  Hence it is desirable to anticipate errors due to misleading
 input as good as possible and report them as soon as possible.
-So, in contradiction to `PEP 8`_, it is recommended to not just expose 
-the names of simple public attributes.  Instead, use protected attributes 
-(usually properties) to assure that the internal states of objects remain 
-consistent, whenever this appears to be useful. One already implemented 
-example is that it is not allowed to assign an unknown string to the 
+So, in contradiction to `PEP 8`_, it is recommended to not just expose
+the names of simple public attributes.  Instead, use protected attributes
+(usually properties) to assure that the internal states of objects remain
+consistent, whenever this appears to be useful. One already implemented
+example is that it is not allowed to assign an unknown string to the
 `outputfiletype` of a `SequenceManager`::
 
     from hydpy import SequenceManager

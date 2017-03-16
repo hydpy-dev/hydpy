@@ -14,7 +14,7 @@
 .. _free GitHub account: https://github.com/signup/free
 .. _source tree: https://www.sourcetreeapp.com/
 .. _Pro Git: https://progit2.s3.amazonaws.com/en/2016-03-22-f3531/progit-en.1084.pdf
-
+.. _Python 2-3 cheat sheet: http://python-future.org/compatible_idioms.html
 .. _development:
 
 Development
@@ -73,7 +73,7 @@ repositories on your own computer.  Git itself works via command lines.
 Most likely, you would prefer to install Git together with a graphical
 user interface like `source tree`_.
 
-To contribtue to HydPy requires essentially three or four steps, no matter
+To contribute to HydPy requires essentially three or four steps, no matter
 if working directy online on GitHub or with your local Git software.  For
 simplicity and generality, these steps are explained using the example
 of a single change to the documentation via GitHub:
@@ -144,49 +144,57 @@ of `PEP 8`_ --- the "official" Style Guide for Python Code.
 `PEP 8`_ gives coding conventions that help to write clear code.
 And it eases diving into already existing source code, as one has
 less effort with unraveling the mysteries of overly creative
-programming solutions.  The HydPy Style Guide essentially adds two
-requirements to `PEP 8`_: first, that the framework shall be
-applicable for hydrologists with little or even no programming
-experience, and secondly, that the common gap between model code,
-model documentation and model testing shall be closed as well as
-possible.  These two points are elucidated in the following two
-subsections, in which we discuss the general framework style and
-the model implementation style seperately.  If not stated otherwise,
-the
+programming solutions.
+
+In some regards the HydPy Style Guide deviates substantially from `PEP 8`_.
+This is mostly due to following two aims.  First, that the HydPy framework
+shall be applicable for hydrologists with little or even no programming
+experience.  Ideally, such framework users should not even notice that they
+are writing valid Python code while preparing their configuration files.
+Secondly, that the common gap between model code, model documentation and
+model testing should be closed as well as possible.  Understanding the
+model documentation of a certain HydPy version should be identical with
+understanding how the model actually works under the same HydPy version.
+These two points are elucidated in the following subsections.
 
 
 General framework features
 --------------------------
-When trying to contribute code to the framework tools of HydPy (meaning
-basically everything except the actual hydrological model implementations),
-on has to be aware that even slight changes can have significant effects
-on the applicability of HydPy, and that future HydPy developers must cope
-with your contributions.   So, always make sure to check the effects of
-your code changes properly (as desribed below).  And try to structure your
-code in a readable, object-oriented design.  This section describes some
-conventions for the development of HydPy, but is no guidance on how to write
-good source code in general.  So, if you have little experience in programming
-so far, first make sure to learn the basics of Python through some
+When trying to contribute code to the core tools of HydPy (meaning
+basically everything except the actual model implementations), on has
+to be aware that even slight changes can have significant effects
+on the applicability of HydPy, and that future HydPy developers must
+cope with your contributions.   So, always make sure to check the effects
+of your code changes properly (as described below).  And try to structure
+your code in a readable, object-oriented design.  This section describes
+some conventions for the development of HydPy, but is no guidance on how
+to write good source code in general.  So, if you have little experience
+in programming, first make sure to learn the basics of Python through some
 `Python tutorials`_.  Afterwards, improve your  knowledge on code quality
 through reading more advanced literature like this
 `book on object-oriented design`_.
 
 Python Version
 ..............
-The `End Of Life for Python 2.7` is scheduled for 2020. Nevertheless, still many
-scientists are using it.  This is why HydPy is continuously tested both on Python 2
-and Python 3. For the time beeing future HydPy versions should be applicable on
-both Python versions.
+The `End Of Life for Python 2.7` is scheduled for 2020. Nevertheless,
+still many scientists are using it.  This is why HydPy is continuously
+tested both on Python 2 and Python 3. For the time beeing future HydPy
+versions should be applicable on both Python versions.
 
-Always insert::
+Always insert
 
-    from __future__ import division, print_function
+    >>> from __future__ import division, print_function
 
 at the top of a new module.  This introduces the new (integer) division
 and print statement of Python 3 into Python 2 (when using Python 3, this
 import statement is automatically skipped).
 
-Sometimes
+Whenever there are two multiple options to achieve something, prefer
+one that is fits best to Python 3.  For example, always use :func:`range`.
+While under Python three often :func:`xrange` would be preferable
+regarding time and memory efficiency, just using :func:`range` leads to
+a clean syntax and is future-proof.  (Have a look at the
+`Python 2-3 cheat sheet`_ whenever in compatibility trouble.)
 
 Site Packages
 .............
@@ -204,22 +212,43 @@ Imports
 .......
 As recommended in `PEP 8`_, clarify the sources of your imports.
 Always use the following pattern at the top of a new module
-(with some example packages)::
+(with some example packages):
 
-    # import from...
-    # ...the Python Standard Library:
-    from __future__ import division, print_function
-    import os
-    import sys
-    # ...site-packages:
-    import numpy (
-    # ...from HydPy:
-    from hydpy.core import sequencentools
-    from hydpy.cythons import pointer
+    >>> import from...
+    >>> # ...the Python Standard Library
+    >>> from __future__ import division, print_function
+    >>> import os
+    >>> import sys
+    >>> # ...site-packages
+    >>> import numpy
+    >>> # ...from HydPy
+    >>> from hydpy.core import sequencentools
+    >>> from hydpy.cythons import pointer
 
-(Note that each import command has its own line.  Always import
+Note that each import command has its own line.  Always import
 complete modules from HydPy without changing their names. ---
-No wildcard imports!)
+No wildcard imports!
+
+The wildcard ban is lifted when writing configuration files.
+Using the parameter control files as an example, it wouldn't be nice to
+always write something like:
+
+    >>> from hydpy.models import hland
+    >>> hland.parameterstep('1d')
+    >>> model = hland.Model()
+    >>> model.parameters = hland.Parameters({'model':model})
+    >>> model.parameters.control = hland.ControlParameters(model.parameters.control)
+    >>> model.parameters.control.nmbzones = 2
+
+Here a wildcard import (and some magic, see below), allows for a much
+cleaner syntax:
+
+    >>> from hydpy.models.hland import *
+    >>> parameterstep('1d')
+    >>> nmbzones(2)
+
+Note that the wildcard import is acceptable here, as there is only one
+import statement.  There is no danger of name conflicts.
 
 Defensive Programming
 .....................
@@ -230,18 +259,21 @@ input as good as possible and report them as soon as possible.
 So, in contradiction to `PEP 8`_, it is recommended to not just expose
 the names of simple public attributes.  Instead, use protected attributes
 (usually properties) to assure that the internal states of objects remain
-consistent, whenever this appears to be useful. One already implemented
-example is that it is not allowed to assign an unknown string to the
-`outputfiletype` of a `SequenceManager`::
+consistent, whenever this appears to be useful. One example is that it
+is not allowed to assign an unknown string to the `outputfiletype` of a
+:class:`~hydpy.core.filetools.SequenceManager`:
 
-    from hydpy import SequenceManager
-    sm = SequenceManager()
-    sm.outputfiletype = 'test'
+    >>> from hydpy import SequenceManager
+    >>> sm = SequenceManager()
+    >>> sm.outputfiletype = 'test'
+    Traceback (most recent call last):
+      ...
+    NotImplementedError: ... file type `test` is not implemented yet. ...
 
 Of course, the extensive usage of protected attributes increases
 the length of the source code and slows computation time.  But,
 regarding the first point, writing a graphical user interface
-would require much more source code. And, regarding the second
+would require much more source code.  And, regarding the second
 point, the computation times of the general framework
 functionalities discussed here should be negligible in comparison
 with the computation times of the hydrological simulations,

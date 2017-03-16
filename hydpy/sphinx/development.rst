@@ -11,13 +11,16 @@
 .. _matplotlib: http://matplotlib.org/
 .. _End Of Life for Python 2.7: https://www.python.org/dev/peps/pep-0373/
 .. _pandas: http://pandas-docs.github.io/pandas-docs-travis/contributing.html
+.. _free GitHub account: https://github.com/signup/free
+.. _source tree: https://www.sourcetreeapp.com/
+
 .. _development:
 
 Development
 ===========
 
 You can install HydPy from the `hydpy package`_ available on the
-Python package index`_ or fork from this `repository`_ available
+`Python package index`_ or fork from this `repository`_ available
 on `GitHub`_.  Afterwards, you can implement your own models or
 change the frameworks structure in a manner that meets your personal
 goals and preferences.  There are many other Python tools freely
@@ -51,8 +54,39 @@ how to improve the outlined strategy are welcome!
 How to contribute?
 __________________
 
-For now, the development of HydPy takes place via this `repository`_ on
-`GitHub`_.
+To work in collaboration on the same software code requires some kind
+of version control.  It must be clear who is working on which part of
+the code, when (and why) code changes were conducted, and which code
+sections of one developer are compatible with some code sections of
+another developer (or not).  Also, one always needs the possibility to
+fall back on an older code version whenever some current changes turned
+out to be a dead end.
+
+For HydPy, we selected the version control software Git for these tasks.
+The main Git `repository`_ is available on `GitHub`_.  So the first
+step should be to sing up for a `free GitHub account`_.  After that,
+you could contribute to HydPy online without to install anything on
+your own computer.  If your only aim is to improve the documentation,
+this could be reasonable.  But normally you need to handle Git
+repositories on your own computer.  Git itself works via command lines.
+Most likely, you would prefer to install Git together with a graphical
+user interface like `source tree`_.
+
+To contribtue to HydPy requires essentially three steps, no matter if
+working directy online on GitHub or with your local Git software.  For
+simplicity and generality, these steps are explained using the example
+of changing the documentation online:
+  1 Go to `repository`_ and click on "Fork".  On this way you create
+    your own HydPy repository, allowing you to add, change, or delete
+    any files without interfering in the original repository.
+  2 Click on "Branch: master", type a name that reflects what you want
+    to accomplish and press enter. Now you have created a new branch.
+    Changes to this branch to neither affect the orginal nor your own
+    master branch. (This step is not really required, you could apply
+    the following steps on your own master branch also.  But to create
+    branches for different tasks helps structuring your work and to
+    cooperate with others.)
+  3 Change something.  For example, click on ".gitignore".
 
 
 HydPy Style Guide

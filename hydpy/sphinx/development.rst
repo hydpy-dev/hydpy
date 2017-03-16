@@ -13,6 +13,7 @@
 .. _pandas: http://pandas-docs.github.io/pandas-docs-travis/contributing.html
 .. _free GitHub account: https://github.com/signup/free
 .. _source tree: https://www.sourcetreeapp.com/
+.. _Pro Git: https://progit2.s3.amazonaws.com/en/2016-03-22-f3531/progit-en.1084.pdf
 
 .. _development:
 
@@ -72,22 +73,52 @@ repositories on your own computer.  Git itself works via command lines.
 Most likely, you would prefer to install Git together with a graphical
 user interface like `source tree`_.
 
-To contribtue to HydPy requires essentially three steps, no matter if
-working directy online on GitHub or with your local Git software.  For
+To contribtue to HydPy requires essentially three or four steps, no matter
+if working directy online on GitHub or with your local Git software.  For
 simplicity and generality, these steps are explained using the example
-of changing the documentation online:
-  1 Go to `repository`_ and click on "Fork".  On this way you create
+of a single change to the documentation via GitHub:
+
+  * Go to `repository`_ and click on "Fork".  On this way you create
     your own HydPy repository, allowing you to add, change, or delete
     any files without interfering in the original repository.
-  2 Click on "Branch: master", type a name that reflects what you want
-    to accomplish and press enter. Now you have created a new branch.
-    Changes to this branch to neither affect the orginal nor your own
-    master branch. (This step is not really required, you could apply
-    the following steps on your own master branch also.  But to create
-    branches for different tasks helps structuring your work and to
-    cooperate with others.)
-  3 Change something.  For example, click on ".gitignore".
+  * Click on "Branch: master", type a name that reflects what you want
+    to accomplish and press enter. Now that you have created a new
+    branch, you can experiment without affecting the orginal branch or your
+    own  master branch. (This step is not really required; you could
+    apply the following steps on your own master branch likewise.
+    But to create branches for different tasks helps structuring your
+    work and to cooperate with others.)
+  * Change something.  For example
+      * click on ".gitignore"
+      * click on the marker symbol ("Edit this file")
+      * change the order of two lines (e.g. "*c." and "*.h")
+      * write something under "Commit changes" to explain your doing
+        (e.g. "change order of lines in .gitignore")
+      * click on the green "Commit changes" button
+    Now you have changed the file .gitignore in your own branch
+    specialized for this task.  Normally, you would commit multiple
+    small changes to one branch.  Keeping single commits small allows
+    for inspecting and reversing different changes.
+  * At last, you can suggest your changes to be included in HydPy's
+    main repository.  Click on "Compare" to visualize the relevant
+    differences.  Click on "Create pull request" to ask others
+    to diskuss your changes and to eventually merge them into their
+    projects.  In other words: you request other people to pull (get)
+    your own changes and to merge (incorporate) these changes into their
+    repositories.
 
+Note that everyone is responsible for his or her own repository, you
+do not have to be afraid to break another persons repository accidentally.
+But you are responsibility the make pull requests focussing on one issue
+that is clearly explained.  Otherwise your contribution is likely to be
+refused.
+
+Of course, it is not always as easy as in the given example.  Not only
+your branches, but also those of the forks you want to contribute to
+evolve.  Often, you will have to retrieve changes from the main branch
+and eventually resolve some conflicts before you can make "good" pull
+request.  See much more thorough explanations as `Pro Git`_ on how to
+improve your skills in using Git.
 
 HydPy Style Guide
 _________________

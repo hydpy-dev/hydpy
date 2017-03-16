@@ -95,6 +95,7 @@ of a single change to the documentation via GitHub:
       * write something under "Commit changes" to explain your doing
         (e.g. "change order of lines in .gitignore")
       * click on the green "Commit changes" button
+
     Now you have changed the file .gitignore in your own branch
     specialized for this task.  Normally, you would commit multiple
     small changes to one branch.  Keeping single commits small allows

@@ -9,7 +9,6 @@
 build
 _build
 dist
-docs
 gui
 helpers
 examples

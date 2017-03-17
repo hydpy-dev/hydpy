@@ -214,7 +214,7 @@ As recommended in `PEP 8`_, clarify the sources of your imports.
 Always use the following pattern at the top of a new module
 (with some example packages):
 
-    >>> import from...
+    >>> # import from...
     >>> # ...the Python Standard Library
     >>> from __future__ import division, print_function
     >>> import os
@@ -222,7 +222,7 @@ Always use the following pattern at the top of a new module
     >>> # ...site-packages
     >>> import numpy
     >>> # ...from HydPy
-    >>> from hydpy.core import sequencentools
+    >>> from hydpy.core import sequencetools
     >>> from hydpy.cythons import pointer
 
 Note that each import command has its own line.  Always import
@@ -234,18 +234,24 @@ Using the parameter control files as an example, it wouldn't be nice to
 always write something like:
 
     >>> from hydpy.models import hland
-    >>> hland.parameterstep('1d')
     >>> model = hland.Model()
     >>> model.parameters = hland.Parameters({'model':model})
     >>> model.parameters.control = hland.ControlParameters(model.parameters.control)
     >>> model.parameters.control.nmbzones = 2
+    >>> model.parameters.control.nmbzones
+    nmbzones(2)
 
 Here a wildcard import (and some magic, see below), allows for a much
 cleaner syntax:
 
+    >>>  # First delete the model instance of the example above.
+    >>> del model
+    >>> # Now repeat the above example in a more intuitive manner.
     >>> from hydpy.models.hland import *
     >>> parameterstep('1d')
     >>> nmbzones(2)
+    >>> nmbzones
+    nmbzones(2)
 
 Note that the wildcard import is acceptable here, as there is only one
 import statement.  There is no danger of name conflicts.
@@ -268,7 +274,7 @@ is not allowed to assign an unknown string to the `outputfiletype` of a
     >>> sm.outputfiletype = 'test'
     Traceback (most recent call last):
       ...
-    NotImplementedError: ... file type `test` is not implemented yet. ...
+    NotImplementedError: The given output file type `test` is not implemented yet.  Please choose one of the following file types: ('npy', 'asc').
 
 Of course, the extensive usage of protected attributes increases
 the length of the source code and slows computation time.  But,

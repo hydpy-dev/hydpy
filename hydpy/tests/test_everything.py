@@ -73,12 +73,18 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
         level = packagename.count('.')-1
         modulenames = [packagename+fn.split('.')[0]
                        for fn in dirinfo[2] if fn.endswith('.py')]
-        for modulename in modulenames:
-            module = importlib.import_module(modulename)
+        docfilenames = [os.path.join(dirinfo[0], fn)
+                        for fn in dirinfo[2] if fn.endswith('.rst')]
+        for name in (modulenames + docfilenames):
+            if not name.endswith('.rst'):
+                module = importlib.import_module(name)
             runner = unittest.TextTestRunner(stream=open(os.devnull, 'w'))
             suite = unittest.TestSuite()
             try:
-                suite.addTest(doctest.DocTestSuite(module))
+                if name.endswith('.rst'):
+                    suite.addTest(doctest.DocFileSuite(name))
+                else:
+                    suite.addTest(doctest.DocTestSuite(module))
             except ValueError as exc:
                 if exc.args[-1] != 'has no docstrings':
                     raise(exc)
@@ -88,7 +94,9 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                 pub.options.reprdigits = 6
                 devicetools.Node.clearregistry()
                 devicetools.Element.clearregistry()
-                doctests[modulename] = runner.run(suite)
+                if name.endswith('.rst'):
+                    name = name[name.find('hydpy'+os.sep):]
+                doctests[name] = runner.run(suite)
 
     successfuldoctests.update({name: runner for (name, runner)
                               in doctests.items() if not runner.failures})

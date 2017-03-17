@@ -23,5 +23,5 @@ for path in paths:
 
 os.chdir(r'C:\Program Files (x86)\Mozilla Firefox')
 webbrowser.register('firefox', None, webbrowser.GenericBrowser('firefox'), 1)
-webbrowser.get('firefox').open_new_tab(r'J:\HydPy\hydpy\sphinx\_build\html\index.html')
+webbrowser.get('firefox').open_new_tab(r'J:\HydPy\hydpy\docs\_build\html\index.html')
 

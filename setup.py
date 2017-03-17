@@ -13,9 +13,9 @@ import Cython.Build
 import numpy
 
 install = 'install' in sys.argv
-run_tests = 'run_tests' in sys.argv
-if run_tests:
-    sys.argv.remove('run_tests')
+coverage_report = 'coverage_report' in sys.argv
+if coverage_report:
+    sys.argv.remove('coverage_report')
 
 # Select the required extension modules, except those directly related
 # to the hydrological models.
@@ -76,25 +76,19 @@ if install:
         if filename.endswith('.rst'):
             shutil.copy(os.path.join('hydpy', 'docs', filename),
                         os.path.join(hydpy.docs.__path__[0], filename))
-    if run_tests:
-        # Run all tests, make the coverage report, and prepare it for sphinx.
-        oldpath = os.path.abspath('.')
-        import hydpy.tests
-        os.chdir(os.sep.join(hydpy.tests.__file__.split(os.sep)[:-1]))
-        os.system('coverage run --branch --source hydpy test_everything.py')
-        os.system('coverage report -m')
-        os.system('coverage xml')
-        os.system('pycobertura show --format html '
-                  '--output coverage.html coverage.xml')
+    # Execute all tests.
+    oldpath = os.path.abspath('.')
+    import hydpy.tests
+    os.chdir(os.sep.join(hydpy.tests.__file__.split(os.sep)[:-1]))
+    exitcode = 0
+    exitcode += os.system('coverage run --branch '
+                          '--source hydpy test_everything.py')
+    # Prepare coverage report and prepare it for sphinx.
+    if coverage_report:
+        exitcode += os.system('coverage report -m')
+        exitcode += os.system('coverage xml')
+        exitcode += os.system('pycobertura show --format html '
+                              '--output coverage.html coverage.xml')
         shutil.move('coverage.html',
                     os.path.join(oldpath, 'hydpy', 'docs', 'coverage.html'))
-    else:
-        # Just import all hydrological models to trigger the automatic
-        # cythonization mechanism of HydPy.
-        from hydpy import pub
-        pub.options.skipdoctests = True
-        import hydpy.models
-        for name in [fn.split('.')[0] for fn
-                     in os.listdir(hydpy.models.__path__[0])]:
-            if name != '__init__':
-                importlib.import_module('hydpy.models.'+name)
+    sys.exit(exitcode)

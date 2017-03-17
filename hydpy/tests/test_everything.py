@@ -20,6 +20,16 @@ paths = [path for path in sys.path if path.endswith('-packages')]
 for path in paths:
     sys.path.insert(0, path)
 
+# Import all hydrological models to trigger the automatic cythonization
+# mechanism of HydPy.
+from hydpy import pub
+pub.options.skipdoctests = True
+import hydpy.models
+for name in [fn.split('.')[0] for fn in os.listdir(hydpy.models.__path__[0])]:
+    if name != '__init__':
+        importlib.import_module('hydpy.models.'+name)
+pub.options.skipdoctests = False
+
 # 1. Perform "classic" all unit tests.
 
 import hydpy.tests
@@ -88,7 +98,8 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
             suite = unittest.TestSuite()
             try:
                 if name.endswith('.rst'):
-                    suite.addTest(doctest.DocFileSuite(name))
+                    suite.addTest(doctest.DocFileSuite(name,
+                                                       module_relative=False))
                 else:
                     suite.addTest(doctest.DocTestSuite(module))
             except ValueError as exc:

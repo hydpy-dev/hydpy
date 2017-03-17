@@ -56,20 +56,26 @@ setup(name='HydPy',
       include_dirs=[numpy.get_include()],
       include_package_data=True,
       install_requires=['Cython', 'numpy', 'matplotlib'])
-# Priorise site-packages (on Debian-based Linux distributions as Ubunte
-# also dist-packages) in the import order to make sure, the following
-# imports refer to the newly build hydpy package on the respective computer.
-paths = [path for path in sys.path if path.endswith('-packages')]
-for path in paths:
-    sys.path.insert(0, path)
-# Make all extension definition files available, which are required for
-# cythonizing hydrological models.
-if 'install' in sys.argv:
+
+if install:
+    # Priorise site-packages (on Debian-based Linux distributions as Ubunte
+    # also dist-packages) in the import order to make sure, the following
+    # imports refer to the newly build hydpy package on the respective computer.
+    paths = [path for path in sys.path if path.endswith('-packages')]
+    for path in paths:
+        sys.path.insert(0, path)
+    # Make all extension definition files available, which are required for
+    # cythonizing hydrological models.
     import hydpy.cythons
     for filename in ('pointer.pyx', 'pointer.pxd'):
         shutil.copy(os.path.join('hydpy', 'cythons', filename),
                     os.path.join(hydpy.cythons.__path__[0], filename))
-if install:
+    # Make all restructured text documentation files available for doctesting.
+    import hydpy.docs
+    for filename in os.listdir(os.path.join('hydpy', 'docs')):
+        if filename.endswith('.rst'):
+            shutil.copy(os.path.join('hydpy', 'docs', filename),
+                        os.path.join(hydpy.docs.__path__[0], filename))
     if run_tests:
         # Run all tests, make the coverage report, and prepare it for sphinx.
         oldpath = os.path.abspath('.')

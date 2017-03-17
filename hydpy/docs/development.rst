@@ -422,15 +422,61 @@ not identify to be a string representation.  The first ideal case is
 that copy-pasting the string representation within a command line to
 evaluate it return a reference to the same object. A Python example:
 
-    >>> eval(repr(None)) is None
+    >>> None
+    None
+    >>> eval('None') is None
     True
 
 A HydPy example:
 
     >>> from hydpy import Node
-    >>> eval(Node('gauge1')) is Node('gauge1')
+    >>> Node('gauge1')
+    Node("gauge1", variable="Q")
+    >>> eval('Node("gauge1", variable="Q")') is Node('gauge1')
+    >>> True
 
-Secondly ideal case is evaluating the string representation
+In the second ideal case evaluating the string representation results
+in an equal objects. A Python example:
+
+    >>> 1.5
+    1.5
+    >>> eval('1.5') is 1.5
+    False
+    >>> eval('1.5') == 1.5
+    True
+
+A HydPy example:
+
+    >>> from hydpy import Period
+    >>> Period('1d')
+    Period('1d')
+    >>> eval('Period('1d')') is Period('1d')
+    False
+    >>> eval('Period('1d')') == Period('1d')
+    True
+
+For nested objects this might be more hard to accomplish, but sometimes it's
+worth it.  A Python example:
+
+    >>> [1., 'a']
+    [1.0, 'a']
+    >>> eval("[1.0, 'a']") == [1.0, 'a']
+    True
+
+A HydPy example:
+
+    >>> Timegrid('01.11.1996', '1.11.2006', '1d')
+    Timegrid("01.11.1996 00:00:00",
+             "01.11.2006 00:00:00",
+             "1d")
+    >>> eval('Timegrid("01.11.1996 00:00:00", "01.11.2006 00:00:00", "1d")') == Timegrid('01.11.1996', '1.11.2006', '1d')
+    True
+
+For deeply nested objects, this strategy becomes infeasible.
+
+    >>> from hydpy.models.hland import *
+
+Optional commments...
 
 Introspection
 .............

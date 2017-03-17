@@ -4,15 +4,25 @@
 # ...from standard library
 from __future__ import division, print_function
 import os
+import sys
+import shutil
+import copy
 import time
+import psutil
+import datetime
 import warnings
+import collections
 # ...from HydPy
 from . import pub
+from . import timetools
 from . import filetools
 from . import devicetools
 from . import selectiontools
 from . import magictools
 
+import cython 
+
+warnings.filterwarnings('ignore', r'All-NaN (slice|axis) encountered')
 
 class HydPy(object):
     """HydPy for single processing."""
@@ -22,7 +32,7 @@ class HydPy(object):
 
     def __init__(self, projectname):
 
-        if pub.options.printprogress:
+        if pub.print_progress:
             print('HydPy initialization started at', time.strftime('%X'))
 
         # Increment and check number of HydPy instances.
@@ -37,6 +47,8 @@ class HydPy(object):
                           'information stored in modules.' 
                           %HydPy.nmb_instances)
             
+        
+        
         # Store public information in a seperate module.
         pub.allowcoldstart = False
         pub.projectname = projectname
@@ -45,10 +57,7 @@ class HydPy(object):
         pub.controlmanager = filetools.ControlManager()
         pub.sequencemanager = filetools.SequenceManager()
         pub.conditionmanager = filetools.ConditionManager()
-
-        if pub.options.printprogress:
-            print('HydPy initialization ended at', time.strftime('%X'))
-            
+        
     def preparenetwork(self):
         pub.selections = selectiontools.Selections()
         pub.selections += pub.networkmanager.load()
@@ -64,24 +73,7 @@ class HydPy(object):
                 element.model.connect()
         finally:
             magictools.simulationstep.warn = warn
-    
-    def savecontrols(self, controldirectory=None, projectdirectory=None,
-                     parameterstep=None, simulationstep=None):
-        _controldirectory = pub.controlmanager._controldirectory
-        _projectdirectory = pub.controlmanager._projectdirectory  
-        try:
-            if controldirectory:
-                pub.controlmanager.controldirectory = controldirectory
-            if projectdirectory:
-                pub.controlmanager.projectdirectory = projectdirectory                
-            for (name, element) in self.elements:
-                element.model.parameters.savecontrols(parameterstep,
-                                                      simulationstep)
-        finally:
-            pub.controlmanager._controldirectory = _controldirectory
-            pub.controlmanager._projectdirectory = _projectdirectory            
-        
-        
+
     def loadconditions(self, conditiondirectory=None, controldirectory=None,
                        projectdirectory=None, ):
         self._ioconditions(conditiondirectory,  controldirectory, 
@@ -94,20 +86,14 @@ class HydPy(object):
 
     def _ioconditions(self, conditiondirectory, controldirectory, 
                       projectdirectory, loadflag):
-        if loadflag:                
-            _conditiondirectory = pub.conditionmanager._loaddirectory
-        else:
-            _conditiondirectory = pub.conditionmanager._savedirectory
+        _conditiondirectory = pub.conditionmanager._conditiondirectory
         _controldirectory = pub.controlmanager._controldirectory
         _projectdirectory = pub.conditionmanager._projectdirectory
         try:
             if projectdirectory:
                 pub.conditionmanager.projectdirectory = projectdirectory
             if conditiondirectory:
-                if loadflag:
-                    pub.conditionmanager.loaddirectory = conditiondirectory
-                else:
-                    pub.conditionmanager.savedirectory = conditiondirectory
+                pub.conditionmanager.conditiondirectory = conditiondirectory
             if controldirectory:
                 pub.controlmanager.controldirectory = controldirectory
             for (name, element) in self.elements:
@@ -116,10 +102,7 @@ class HydPy(object):
                 else:
                     element.model.sequences.saveconditions()
         finally:
-            if loadflag:
-                pub.conditionmanager._loaddirectory = _conditiondirectory
-            else:
-                pub.conditionmanager._savedirectory = _conditiondirectory
+            pub.conditionmanager._conditiondirectory = _conditiondirectory
             pub.controlmanager._controldirectory = _controldirectory
             pub.conditionmanager._projectdirectory = _projectdirectory
             
@@ -127,14 +110,11 @@ class HydPy(object):
         for (name, element) in self.elements:
             element.model.sequences.trimconditions()        
 
-    def resetconditions(self):
-        for (name, element) in self.elements:
-            element.model.sequences.reset()
-
     def connect(self):
         for (name, element) in self.elements:
             element.connect()
-    
+
+
     @property
     def network_properties(self):
         print('Number of nodes: %d' % len(self.nodes))
@@ -172,9 +152,8 @@ class HydPy(object):
         for (name, element) in node.exits:
             if ((element in self.elements) and 
                 (element not in self.deviceorder)):
-                if not node in element.receivers:
-                    self._nextelement(element)
-        if (node in self.nodes) and (node not in self.deviceorder):
+                self._nextelement(element)
+        if node not in self.deviceorder:
             self.deviceorder.append(node)
             for (name, element) in node.entries:
                 self._nextelement(element)
@@ -184,7 +163,7 @@ class HydPy(object):
             if ((node in self.nodes) and 
                 (node not in self.deviceorder)):
                 self._nextnode(node)
-        if (element in self.elements) and (element not in self.deviceorder):
+        if element not in self.deviceorder:
             self.deviceorder.append(element)
             for (name, node) in element.inlets:
                 self._nextnode(node)
@@ -194,8 +173,7 @@ class HydPy(object):
         endnodes = devicetools.Nodes()
         for (name, node) in self.nodes:
             for (name, element) in node.exits:
-                if ((element in self.elements) and
-                    (node not in element.receivers)):
+                if element in self.elements:
                     break
             else:
                 endnodes += node
@@ -241,7 +219,7 @@ class HydPy(object):
                 funcs.append(node._loaddata_obs)
         for (name, element) in self.elements:
             if element.receivers:
-                funcs.append(element.model.updatereceivers)
+                funcs.append(funcs.updatereceiver)
         for (name, node) in self.nodes:
             if node.routingmode != 'oldsim':
                 funcs.append(node.reset)
@@ -250,7 +228,7 @@ class HydPy(object):
                 funcs.append(device.model.doit)
         for (name, element) in self.elements:
             if element.senders:
-                funcs.append(element.model.updatesenders)
+                funcs.append(funcs.updatesenders)
         for (name, node) in self.nodes:
             if node.routingmode != 'oldsim':
                 funcs.append(node._savedata_sim)
@@ -260,7 +238,7 @@ class HydPy(object):
         idx_start,idx_end = self.simindices
         self.openfiles(idx_start)
         funcorder = self.funcorder
-        if pub.options.printprogress:
+        if pub.options._printprogress:
             maxcounter = int(float(idx_end-idx_start)/20.)
             print('|'+18*'-'+'|')
         else:
@@ -273,98 +251,6 @@ class HydPy(object):
                 counter = 0
             for func in funcorder:
                 func(idx)
-        if pub.options.printprogress:
-            print('*')
+        print('*')
         self.closefiles()
         
-    def prepare_modelseries(self, ramflag=True):
-        self.prepare_inputseries(ramflag)
-        self.prepare_fluxseries(ramflag)
-        self.prepare_stateseries(ramflag)
-        
-    def prepare_inputseries(self, ramflag=True):
-        self._prepare_modelseries('inputs', ramflag)
-
-    def prepare_fluxseries(self, ramflag=True):
-        self._prepare_modelseries('fluxes', ramflag)
-
-    def prepare_stateseries(self, ramflag=True):
-        self._prepare_modelseries('states', ramflag)
-    
-    def _prepare_modelseries(self, name_subseqs, ramflag):
-        for (name, element) in self.elements:
-            sequences = element.model.sequences
-            subseqs = getattr(sequences, name_subseqs, None)
-            if subseqs:
-                if ramflag:
-                    subseqs.activate_ram()
-                else:
-                    subseqs.activate_disk()
-    
-    def prepare_nodeseries(self, ramflag=True):
-        self.prepare_simseries(ramflag)
-        self.prepare_obsseries(ramflag)
-        
-    def prepare_simseries(self, ramflag=True):
-        self._prepare_nodeseries('sim', ramflag)
-
-    def prepare_obsseries(self, ramflag=True):
-        self._prepare_nodeseries('obs', ramflag)
-                    
-    def _prepare_nodeseries(self, seqname, ramflag):
-        for (name, node) in self.nodes:
-            seq = getattr(node.sequences, seqname)
-            if ramflag:
-                seq.activate_ram()
-            else:
-                seq.activate_disk()
-              
-    def save_modelseries(self):
-        self.save_inputseries()
-        self.save_fluxseries()
-        self.save_stateseries()
-    
-    def save_inputseries(self):
-        self._save_modelseries('inputs', pub.sequencemanager.inputoverwrite)
-
-    def save_fluxseries(self):
-        self._save_modelseries('fluxes', pub.sequencemanager.outputoverwrite)
-                        
-    def save_stateseries(self):
-        self._save_modelseries('states', pub.sequencemanager.outputoverwrite)
-        
-    def _save_modelseries(self, name_subseqs, overwrite):
-        for (name1, element) in self.elements:
-            sequences = element.model.sequences
-            subseqs = getattr(sequences, name_subseqs, ())
-            for (name2, seq) in subseqs:
-                if seq.memoryflag:
-                    if overwrite or not os.path.exists(seq.filepath_ext):
-                        seq.save_ext()
-                    else:
-                        warnings.warn('Due to the argument `overwrite` beeing '
-                                      '`False` it is not allowed to overwrite '
-                                      'the already existing file `%s`.' 
-                                      % seq.filepath_ext)
-       
-    def save_nodeseries(self):
-        self.save_simseries()
-        self.save_obsseries()
-        
-    def save_simseries(self, ramflag=True):
-        self._save_nodeseries('sim', pub.sequencemanager.simoverwrite)
-
-    def save_obsseries(self, ramflag=True):
-        self._save_nodeseries('obs', pub.sequencemanager.obsoverwrite)
-                    
-    def _save_nodeseries(self, seqname, overwrite):
-        for (name, node) in self.nodes:
-            seq = getattr(node.sequences, seqname)
-            if seq.memoryflag:
-                if overwrite or not os.path.exists(seq.filepath_ext):
-                    seq.save_ext()
-                else:
-                    warnings.warn('Due to the argument `overwrite` beeing '
-                                  '`False` it is not allowed to overwrite '
-                                  'the already existing file `%s`.' 
-                                  % seq.filepath_ext)

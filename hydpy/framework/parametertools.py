@@ -3,7 +3,6 @@
 # import...
 # ...standard
 from __future__ import division, print_function
-import os
 import sys
 import inspect
 import time
@@ -28,8 +27,6 @@ class Parameters(object):
     
     def __init__(self, kwargs):
         self.model = kwargs.get('model')
-        self.control = None
-        self.derived = None
         cythonmodule = kwargs.get('cythonmodule')
         cymodel = kwargs.get('cymodel')
         for (name, cls) in kwargs.iteritems():
@@ -47,48 +44,6 @@ class Parameters(object):
         calculated on the basis of given control parameter values.
         """
     
-    def savecontrols(self, parameterstep=None, simulationstep=None, 
-                     filename=None, dirname=None):
-        if self.control:
-            if filename is None:
-                filename = self._controldefaultfilename
-            if not filename.endswith('.py'):
-                filename += '.py'
-            if dirname is None:
-                dirname = pub.controlmanager.controlpath
-            filepath = os.path.join(dirname, filename)
-            with file(filepath, 'w') as file_:
-                file_.write('from hydpy.models.%s import *\n\n'
-                            % self.model.__module__.split('.')[2])
-                if not parameterstep:
-                    parameterstep = pub.timegrids.stepsize
-                file_.write('parameterstep("%s")\n' % parameterstep) 
-                if not simulationstep:
-                    simulationstep = pub.timegrids.stepsize
-                file_.write('simulationstep("%s")\n\n' % simulationstep)
-                for (name, par) in self.control:
-                    _parameterstep = par._parameterstep
-                    try:
-                        par.parameterstep = parameterstep
-                        file_.write(repr(par) + '\n')
-                    finally:
-                        par._parameterstep = _parameterstep
-
-    @property
-    def _controldefaultfilename(self):
-        filename = objecttools.devicename(self)
-        if filename == '?':
-            raise RuntimeError(
-                'To save the control parameters of a model to a file, its '
-                'filename must be known.  This can be done, by passing '
-                'filename to function `savecontrols` directly.  '
-                'But in complete HydPy applications, it is usally '
-                'assumed to be consistent with the name of the element '
-                'handling the model.  Actually, neither a filename is given '
-                'nor does the model know its master element.') 
-        else:
-            return filename + '.py'
-                    
     def verify(self):
         """"""
         for (name, parameter) in self.control:
@@ -198,11 +153,11 @@ class Parameter(objecttools.ValueMath, objecttools.Trimmer):
             raise ValueError('For parameter %s of element %s both positional '
                              'and keyword arguments are given, which is '
                              'ambiguous.' 
-                             % (self.name, objecttools.devicename(self)))
+                             % (self.name, objecttools.elementname(self)))
         elif not args and not kwargs:
             raise ValueError('For parameter %s of element %s neither a '
                              'positional nor a keyword argument is given.' 
-                             % (self.name, objecttools.devicename(self)))            
+                             % (self.name, objecttools.elementname(self)))            
         elif 'pyfile' in kwargs:
             values = self._getvalues_from_auxiliaryfile(kwargs['pyfile'])
             self.values = self.applytimefactor(values)
@@ -214,7 +169,7 @@ class Parameter(objecttools.ValueMath, objecttools.Trimmer):
                                       'element %s could not be set based on '
                                       'the given keyword arguments.' 
                                       % (self.name, 
-                                         objecttools.devicename(self)))
+                                         objecttools.elementname(self)))
         self.trim()
 
     def _getvalues_from_auxiliaryfile(self, pyfile):
@@ -307,7 +262,7 @@ class Parameter(objecttools.ValueMath, objecttools.Trimmer):
                       'needed to be trimmed.  Two possible reasons could be '
                       'that the a parameter bound violated or that the values '
                       'of two (or more) different parameters are inconsistent.'
-                      % (self.name, objecttools.devicename(self)))
+                      % (self.name, objecttools.elementname(self)))
                       
     def applytimefactor(self, values):
         """Change the given parameter value/values in accordance with the 
@@ -445,11 +400,11 @@ class SingleParameter(Parameter):
             raise IndexError('The only allowed index for scalar parameters '
                              'like `%s` is `0` (or `:`), but `%s` is given.' 
                              % (self.name, key))     
-
-    def __repr__(self):
-        lines = self.commentrepr()
-        lines.append('%s(%s)' % (self.name, self.reverttimefactor(self.value)))
-        return '\n'.join(lines)
+#
+#    def __repr__(self):
+#        lines = self.commentrepr()
+#        lines.append('%s(%s)' % (self.name, self.reverttimefactor(self.value)))
+#        return '\n'.join(lines)
                              
                               
 class MultiParameter(Parameter):
@@ -527,8 +482,8 @@ class MultiParameter(Parameter):
 #                             'than %s, but the largest given value is %s.' 
 #                               % (self.name, self.SPAN[1], maxvalue))
     
-    def _getverifymask(self):
-        """A numpy array with all entries being `True` of the same
+    def getverifymask(self):
+        """Returns a numpy array with all entries being `True` of the same
         shape as the values handled by the respective parameter.  All entries
         beeing `True` indicates that the method :func:`~MultiParameter.verify`
         checks all entries of the numpy array storing the parameter values.  
@@ -536,19 +491,18 @@ class MultiParameter(Parameter):
         subclasses, where certain entries do not to be checked.
         """
         return numpy.full(self.shape, True, dtype=bool) 
-    verifymask = property(_getverifymask)
         
     def verify(self):
         """Raises a :class:`~exceptions.RuntimeError` if at least one of the 
         required values of the instance of the respective subclass of 
-        :class:`MultiParameter` is `None` or `nan`. The property 
-        :func:`~MultiParameter.verifymask` defines, which values are 
+        :class:`MultiParameter` is `None` or `nan`. The method 
+        :func:`~MultiParameter.getverifymask` defines, which values are 
         considered to be necessary.
         """
         if self.values is None:
              raise RuntimeError('The values of parameter `%s` have not '
                                 'been set yet.' % self.name)
-        nmbnan = sum(numpy.isnan(self.values[self.verifymask]))
+        nmbnan = sum(numpy.isnan(self.values[self.getverifymask()]))
         if nmbnan:  
              raise RuntimeError('For parameter `%s`, %d required values have '
                                 'not been set yet.' % (self.name, nmbnan)) 
@@ -609,40 +563,40 @@ class MultiParameter(Parameter):
                                       'working for its actual values.' 
                                       % self.name)
                    
-    def __repr__(self):
-        lines = self.commentrepr()
-        try:
-            values = self.compressrepr()
-        except NotImplementedError:
-            values = self.reverttimefactor(self.values)
-        except BaseException:
-            Exception_, message, traceback_ = sys.exc_info()
-            message = ('While trying to find a compressed string '
-                       'representation for parameter `%s`, the following '
-                       'error occured:  %s' % (self.name, message))
-            raise Exception_, message, traceback_            
-        if self.NDIM == 1:       
-            cols = ', '.join(str(value) for value in values)
-            wrappedlines = textwrap.wrap(cols, 80-len(self.name)-2)
-            for (idx, line) in enumerate(wrappedlines):
-                if not idx:
-                    lines.append('%s(%s' % (self.name, line))
-                else:
-                    lines.append((len(self.name)+1)*' ' + line)
-            lines[-1] += ')'
-            return '\n'.join(lines)
-        elif self.NDIM == 2:
-            skip = (1+len(self.name)) * ' '
-            for (idx, row) in enumerate(values):
-                cols = ', '.join(str(value) for value in row)
-                if not idx:
-                    lines.append('%s(%s,' % (self.name, cols))
-                else:
-                    lines.append('%s%s,' % (skip, cols))
-            lines[-1] = lines[-1][:-1] + ')'
-            return '\n'.join(lines)
-        else:
-            raise NotImplementedError('`repr` does not yet support '
-                                      'parameters, which handle %d-'
-                                      'dimensional matrices.' % self.NDIM)
+#    def __repr__(self):
+#        lines = self.commentrepr()
+#        try:
+#            values = self.compressrepr()
+#        except NotImplementedError:
+#            values = self.reverttimefactor(self.values)
+#        except BaseException:
+#            Exception_, message, traceback_ = sys.exc_info()
+#            message = ('While trying to find a compressed string '
+#                       'representation for parameter `%s`, the following '
+#                       'error occured:  %s' % (self.name, message))
+#            raise Exception_, message, traceback_            
+#        if self.NDIM == 1:       
+#            cols = ', '.join(str(value) for value in values)
+#            wrappedlines = textwrap.wrap(cols, 80-len(self.name)-2)
+#            for (idx, line) in enumerate(wrappedlines):
+#                if not idx:
+#                    lines.append('%s(%s' % (self.name, line))
+#                else:
+#                    lines.append((len(self.name)+1)*' ' + line)
+#            lines[-1] += ')'
+#            return '\n'.join(lines)
+#        elif self.NDIM == 2:
+#            skip = (1+len(self.name)) * ' '
+#            for (idx, row) in enumerate(values):
+#                cols = ', '.join(str(value) for value in row)
+#                if not idx:
+#                    lines.append('%s(%s,' % (self.name, cols))
+#                else:
+#                    lines.append('%s%s,' % (skip, cols))
+#            lines[-1] = lines[-1][:-1] + ')'
+#            return '\n'.join(lines)
+#        else:
+#            raise NotImplementedError('`repr` does not yet support '
+#                                      'parameters, which handle %d-'
+#                                      'dimensional matrices.' % self.NDIM)
                                       

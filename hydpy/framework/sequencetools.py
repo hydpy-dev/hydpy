@@ -10,11 +10,10 @@ Created on Tue Dec 27 23:23:53 2016
 from __future__ import division, print_function
 import os
 import sys
-import copy
 import struct
 import textwrap
 import warnings
-# ...from site-packages
+# ...numpy
 import numpy
 # ...from HydPy
 from . import pub
@@ -80,12 +79,7 @@ class Sequences(object):
         for (name, subseqs) in self:
             if hasattr(subseqs, 'savedata'):
                 subseqs.savedata(idx)
-    
-    def reset(self):
-        for (name, subseqs) in self:
-            if hasattr(subseqs, 'reset'):
-                subseqs.reset()
-                
+            
     def __iter__(self):
         for (key, value) in vars(self).iteritems():
             if isinstance(value, SubSequences):
@@ -111,7 +105,7 @@ class Sequences(object):
     
     @property
     def _conditiondefaultfilename(self):
-        filename = objecttools.devicename(self)
+        filename = objecttools.elementname(self)
         if filename == '?':
             raise RuntimeError(
                 'To load or save the conditions of a model from or to a file, '
@@ -142,7 +136,7 @@ class Sequences(object):
                 exc, message, traceback_ = sys.exc_info()
                 message = ('While trying to gather initial conditions of '
                            'element %s, the following error occured:  %s' 
-                           % (objecttools.devicename(self), message))
+                           % (objecttools.elementname(self), message))
                 raise exc, message, traceback_
     
     def saveconditions(self, filename=None, dirname=None):
@@ -152,7 +146,7 @@ class Sequences(object):
             if not filename.endswith('.py'):
                 filename += '.py'
             if dirname is None:
-                dirname = pub.conditionmanager.savepath
+                dirname = pub.conditionmanager.conditionpath
             filepath = os.path.join(dirname, filename)
             with file(filepath, 'w') as file_:
                 file_.write('from hydpy.models.%s import *\n\n'
@@ -271,19 +265,19 @@ class SubSequences(object):
     def __getitem__(self, key):
         return self.__dict__[key]
         
-    def __repr__(self):
-        lines = []
-        if pub.options.reprcomments:
-            lines.append('%s object defined in module %s.'
-                         % (objecttools.classname(self), 
-                            objecttools.modulename(self)))
-            lines.append('The implemented sequences with their actual values:') 
-        for (name, sequence) in self:
-            try:
-                lines.append('%s' % repr(sequence))
-            except BaseException:
-                lines.append('%s(?)' % name)
-        return '\n'.join(lines)
+#    def __repr__(self):
+#        lines = []
+#        if pub.options.reprcomments:
+#            lines.append('%s object defined in module %s.'
+#                         % (objecttools.classname(self), 
+#                            objecttools.modulename(self)))
+#            lines.append('The implemented sequences with their actual values:') 
+#        for (name, sequence) in self:
+#            try:
+#                lines.append('%s' % repr(sequence))
+#            except BaseException:
+#                lines.append('%s(?)' % name)
+#        return '\n'.join(lines)
             
     def __dir__(self):
         return objecttools.dir_(self)
@@ -360,17 +354,10 @@ class StateSequences(IOSubSequences):
 
     def savedata(self, idx):
         self.fastaccess.savedata(idx)
-    
-    def reset(self):
-        for (name, seq) in self:
-            seq.reset()
+        
         
 class LogSequences(SubSequences):
     """Base class for handling log sequences."""
-
-    def reset(self):
-        for (name, seq) in self:
-            seq.reset()
 
 class AideSequences(SubSequences):
     """Base class for handling aide sequences."""
@@ -432,7 +419,7 @@ class Sequence(objecttools.ValueMath):
         if value is None:
             raise RuntimeError('No value/values of sequence %s of element '
                                '%s has/have been defined so far.' 
-                               % (self.name, objecttools.devicename(self)))
+                               % (self.name, objecttools.elementname(self)))
         else:
             if self.NDIM:
                 value = numpy.asarray(value)
@@ -446,7 +433,7 @@ class Sequence(objecttools.ValueMath):
                                      'sequence %s of element %s, which is '
                                      'ambiguous.'
                                      % (len(value), 
-                                        objecttools.devicename(self),
+                                        objecttools.elementname(self),
                                         self.name))
                 value = temp
             except (TypeError, IndexError):
@@ -457,7 +444,7 @@ class Sequence(objecttools.ValueMath):
                 raise TypeError('When trying to set the value of sequence '
                                 '%s of element %s, it was not possible to '
                                 'convert value `%s` to float .' 
-                                % (self.name, objecttools.devicename(self),
+                                % (self.name, objecttools.elementname(self),
                                    value))
         else:
             try:
@@ -471,7 +458,7 @@ class Sequence(objecttools.ValueMath):
                                  'values failed.  The values `%s` cannot be '
                                  'converted to a numpy ndarray with shape %s '
                                  'containing entries of type float.' 
-                                 % (self.name, objecttools.devicename(self), 
+                                 % (self.name, objecttools.elementname(self), 
                                     value, self.shape))
         setattr(self.fastaccess, self.name, value)                      
     value = property(_getvalue, _setvalue)
@@ -491,7 +478,7 @@ class Sequence(objecttools.ValueMath):
                                    'element %s can only be retrieved after '
                                    'it has been defined.' 
                                    % (self.name, 
-                                      objecttools.devicename(self)))   
+                                      objecttools.elementname(self)))   
         else:
             return ()
     def _setshape(self, shape):
@@ -503,7 +490,7 @@ class Sequence(objecttools.ValueMath):
                 message = ('While trying create a new :class:`~numpy.ndarray` '
                            'for sequence %s of element %s,the following error '
                            'occured: %s' % (self.name, 
-                                            objecttools.devicename(self), 
+                                            objecttools.elementname(self), 
                                             message))
                 raise Exception_, message, traceback_
             if array.ndim == self.NDIM:
@@ -511,14 +498,14 @@ class Sequence(objecttools.ValueMath):
             else:
                 raise ValueError('Sequence %s of element %s is %d-dimensional '
                                  'but the given shape indicates %d dimensions.'
-                                 % (self.name, objecttools.devicename(self),
+                                 % (self.name, objecttools.elementname(self),
                                     self.NDIM, array.ndim))
         else:
             if shape:
                 raise ValueError('The shape information of 0-dimensional '
                                  'sequences as %s of element %s can only be '
                                  '`()`, but `%s` is given.' 
-                                 % (self.name, objecttools.devicename(self), 
+                                 % (self.name, objecttools.elementname(self), 
                                     shape))
             else:
                 self.value = 0.
@@ -547,35 +534,35 @@ class Sequence(objecttools.ValueMath):
                        % (self.name, message))
             raise Exception_, message, traceback_   
             
-    def __repr__(self):
-        if self.NDIM == 0:
-            return '%s(%s)' % (self.name, self.value)
-        elif self.NDIM == 1:  
-            lines = []
-            cols = ', '.join(str(value) for value in self.values)
-            wrappedlines = textwrap.wrap(cols, 80-len(self.name)-2)
-            for (idx, line) in enumerate(wrappedlines):
-                if not idx:
-                    lines.append('%s(%s' % (self.name, line))
-                else:
-                    lines.append((len(self.name)+1)*' ' + line)
-            lines[-1] += ')'
-            return '\n'.join(lines)
-        elif self.NDIM == 2:
-            lines = []
-            skip = (1+len(self.name)) * ' '
-            for (idx, row) in enumerate(self.values):
-                cols = ', '.join(str(value) for value in row)
-                if not idx:
-                    lines.append('%s(%s,' % (self.name, cols))
-                else:
-                    lines.append('%s%s,' % (skip, cols))
-            lines[-1] = lines[-1][:-1] + ')'
-            return '\n'.join(lines)
-        else:
-            raise NotImplementedError('`repr` does not yet support '
-                                      'sequences, which handle %d-'
-                                      'dimensional matrices.' % self.NDIM)
+#    def __repr__(self):
+#        if self.NDIM == 0:
+#            return '%s(%s)' % (self.name, self.value)
+#        elif self.NDIM == 1:  
+#            lines = []
+#            cols = ', '.join(str(value) for value in self.values)
+#            wrappedlines = textwrap.wrap(cols, 80-len(self.name)-2)
+#            for (idx, line) in enumerate(wrappedlines):
+#                if not idx:
+#                    lines.append('%s(%s' % (self.name, line))
+#                else:
+#                    lines.append((len(self.name)+1)*' ' + line)
+#            lines[-1] += ')'
+#            return '\n'.join(lines)
+#        elif self.NDIM == 2:
+#            lines = []
+#            skip = (1+len(self.name)) * ' '
+#            for (idx, row) in enumerate(self.values):
+#                cols = ', '.join(str(value) for value in row)
+#                if not idx:
+#                    lines.append('%s(%s,' % (self.name, cols))
+#                else:
+#                    lines.append('%s%s,' % (skip, cols))
+#            lines[-1] = lines[-1][:-1] + ')'
+#            return '\n'.join(lines)
+#        else:
+#            raise NotImplementedError('`repr` does not yet support '
+#                                      'sequences, which handle %d-'
+#                                      'dimensional matrices.' % self.NDIM)
 
     def __dir__(self):
         return objecttools.dir_(self)
@@ -592,6 +579,7 @@ class IOSequence(Sequence):
         self._dirpath_int = None
         self._filepath_ext = None
         self._filepath_int = None  
+        self._timegrid_init = None
 
     def _getfiletype_ext(self):
         """Ending of the external data file."""
@@ -614,7 +602,7 @@ class IOSequence(Sequence):
                                    'framework in the common manner to allow '
                                    'for an automatic determination.' 
                                    % (self.name, 
-                                      objecttools.devicename(self)))
+                                      objecttools.elementname(self)))
     def _setfiletype_ext(self, name):
         self._filetype_ext = name
     def _delfiletype_ext(self, name):
@@ -748,11 +736,7 @@ class IOSequence(Sequence):
     def _setramflag(self, value):
         setattr(self.fastaccess, '_%s_ramflag' % self.name,  bool(value))
     ramflag = property(_getramflag, _setramflag)   
-    
-    def _getmemoryflag(self):
-        return self.ramflag or self.diskflag
-    memoryflag = property(_getmemoryflag)
-    
+
     def _getarray(self):
         array = getattr(self.fastaccess, '_%s_array' % self.name, None)
         if array is not None:
@@ -766,29 +750,29 @@ class IOSequence(Sequence):
     
     def _getseriesshape(self):
         """Shape of the whole time series (time beeing the first dimension)."""
-        seriesshape = [len(pub.timegrids.init)]
+        seriesshape = [len(self.timegrid_init)]
         seriesshape.extend(self.shape)
         return tuple(seriesshape)   
     seriesshape = property(_getseriesshape)
     
-#    def _gettimegrid_init(self):
-#        if self._timegrid_init is not None:
-#            return self._timegrid_init 
-#        else:
-#            try:
-#                return pub.timegrids.init
-#            except AttributeError:
-#                raise RuntimeError('Initializing internal data of sequence '
-#                                   '`%s` requires information about the '
-#                                   'initialization period.  Define an '
-#                                   'appropriate `Timegrid` instance and '
-#                                   'either pass it to the sequence object '
-#                                   'or store it in the `pub` module as '
-#                                   'described in the documentation.' 
-#                                   % self.name)
-#    def _settimegrid_init(self, timegrid):
-#        self._timegrid_init = timegrid 
-#    timegrid_init = property(_gettimegrid_init, _settimegrid_init)
+    def _gettimegrid_init(self):
+        if self._timegrid_init is not None:
+            return self._timegrid_init 
+        else:
+            try:
+                return pub.timegrids.init
+            except AttributeError:
+                raise RuntimeError('Initializing internal data of sequence '
+                                   '`%s` requires information about the '
+                                   'initialization period.  Define an '
+                                   'appropriate `Timegrid` instance and '
+                                   'either pass it to the sequence object '
+                                   'or store it in the `pub` module as '
+                                   'described in the documentation.' 
+                                   % self.name)
+    def _settimegrid_init(self, timegrid):
+        self._timegrid_init = timegrid 
+    timegrid_init = property(_gettimegrid_init, _settimegrid_init)
     
     def _getseries(self):
         if self.diskflag:
@@ -821,19 +805,20 @@ class IOSequence(Sequence):
         """Load the external data series in accordance with 
         :attr:`~IOSequence.timegrid_init` and store it as internal data.
         """
+        timegrid_init = self.timegrid_init
         if self.filetype_ext == 'npy':
             timegrid_data, values = self._load_npy()
         else:
             timegrid_data, values = self._load_asc()
 
-        if pub.timegrids.init not in timegrid_data:
+        if timegrid_init not in timegrid_data:
             raise RuntimeError('For sequence `%s` the initialization time '
                                'grid (%s) does not define a subset of the '
                                'time grid of the external data file %s (%s).'
-                               % (self.name, pub.timegrids.init, 
-                                  self.filepath_ext, timegrid_data))
-        idx1 = timegrid_data[pub.timegrids.init.firstdate]
-        idx2 = timegrid_data[pub.timegrids.init.lastdate]
+                               % (self.name, timegrid_init, self.filepath_ext,
+                                  timegrid_data))
+        idx1 = timegrid_data[timegrid_init.firstdate]
+        idx2 = timegrid_data[timegrid_init.lastdate]
         if self.diskflag:
             self._save_int(values[idx1:idx2])
         elif self.ramflag:
@@ -843,10 +828,12 @@ class IOSequence(Sequence):
                                'internal data available the the user.' 
                                % self.name) 
         
-    def save_ext(self):
+    def save_ext(self, timegrid_init=None):
         """Write the internal data into an external data file."""
+        if timegrid_init is None:
+            timegrid_init = self.timegrid_init
         if self.filetype_ext == 'npy':
-            values = pub.timegrids.init.toarray()
+            values = timegrid_init.toarray()
             for idx in xrange(self.NDIM):
                 values = numpy.expand_dims(values, idx+1)
             values = values + numpy.zeros(self.shape)
@@ -854,7 +841,7 @@ class IOSequence(Sequence):
             numpy.save(self.filepath_ext, values)
         else:
             with file(self.filepath_ext, 'w') as file_:
-                file_.write(repr(pub.timegrids.init) + '\n')
+                file_.write(repr(timegrid_init) + '\n')
                 numpy.savetxt(file_, self.series, delimiter='\t')
 
     def _load_npy(self):
@@ -998,18 +985,14 @@ class FluxSequence(ModelIOSequence):
     """ """
 
 class ConditionSequence(objecttools.Trimmer):
-        
+                
     def warntrim(self):
         warnings.warn('For sequence %s of element %s at least one value '
                       'needed to be trimmed.  One possible reason could be '
                       'that the related control parameter and initial '
                       'condition files are inconsistent.' 
-                      % (self.name, objecttools.devicename(self)))
-
-    def reset(self):
-        if self._oldargs:
-            self(*self._oldargs)
-
+                      % (self.name, objecttools.elementname(self)))
+    
                 
 class StateSequence(ModelIOSequence, ConditionSequence):
     """Handler for state time series."""
@@ -1018,8 +1001,7 @@ class StateSequence(ModelIOSequence, ConditionSequence):
         ModelIOSequence.__init__(self)
         self.fastaccess_old = None
         self.fastaccess_new = None
-        self._oldargs = None
-            
+    
     def connect2subseqs(self, subseqs):
         ModelIOSequence.connect2subseqs(self, subseqs)
         self.fastaccess_old = subseqs.fastaccess_old
@@ -1098,22 +1080,13 @@ class StateSequence(ModelIOSequence, ConditionSequence):
         """The prefered way to pass values to :class:`Sequence` instances
         within initial condition files.
         """
-        self._oldargs = copy.deepcopy(args)
         ModelIOSequence.__call__(self, *args)
         self.new2old()
         
                              
 class LogSequence(Sequence, ConditionSequence):
     """ """
-    
-    def __init__(self):
-        Sequence.__init__(self)
-        self._oldargs = None
-        
-    def __call__(self, *args):
-        self._oldargs = copy.deepcopy(args)
-        Sequence.__call__(self, *args)
-            
+
 class AideSequence(Sequence):
     """ """
 
@@ -1250,7 +1223,10 @@ class Obs(NodeSequence):
         try:
             NodeSequence.activate_disk(self)
         except IOError:
-            exc, message, traceback_ = sys.exc_info()
+#            exc, message, traceback_ = sys.exc_info()
+#            if self.use_ext:
+#                raise exc, message, traceback_            
+#            else:
             self.diskflag = False
             warnings.warn('The option `diskflag` of the observation '
                           'sequence had to be set to `False` due to the '
@@ -1261,14 +1237,13 @@ class Obs(NodeSequence):
             NodeSequence.activate_ram(self)
         except IOError:
             exc, message, traceback_ = sys.exc_info()
+#            if self.use_ext:
+#                raise exc, message, traceback_            
+#            else:
             self.ramflag = False
             warnings.warn('The option `ramflag` of the simulation '
                           'sequence had to be set to `False` due to the '
                           'following problem: %s.' % message)      
-    
-    @property
-    def series_complete(self):
-        return self.memoryflag and not numpy.any(numpy.isnan(self.series))
         
 class NodeSequences(IOSubSequences):
     """Base class for handling node sequences."""

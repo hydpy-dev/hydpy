@@ -16,7 +16,7 @@ install:
   - pip install Cython --install-option="--no-cython-compile"
   - pip install numpy --upgrade
   - pip install matplotlib
-  - if [ $TRAVIS_PYTHON_VERSION = "2.7" ] ; then pip install coverage; fi
+  - pip install coverage
   - if [ $TRAVIS_PYTHON_VERSION = "2.7" ] ; then pip install pycobertura; fi
   - if [ $TRAVIS_PYTHON_VERSION = "2.7" ] ; then pip install sphinx; fi
   - if [ $TRAVIS_PYTHON_VERSION = "2.7" ] ; then pip install travis-sphinx; fi

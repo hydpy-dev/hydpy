@@ -196,6 +196,20 @@ regarding time and memory efficiency, just using :func:`range` leads to
 a clean syntax and is future-proof.  (Have a look at the
 `Python 2-3 cheat sheet`_ whenever in compatibility trouble.)
 
+Sometimes incompatibilities of Python 2 and Python 3 require that specific
+HydPy functionalities must be coded twice.  Use `pyversion` in these cases:
+
+    >>> import pub, sys
+    >>> if pub.pyversion == 2:
+    ...     traceback_ = sys.exc_info()[2]
+    ...     raise SystemError('just a test'), traceback
+    ... else:
+    ...     SystemError('just a test').with_traceback()
+
+(The example above is already taken into account by function
+:func:`~hydpy.objecttools.augmentexcmessage`.)
+
+
 Site Packages
 .............
 Whenever reasonable, import only packages of the
@@ -287,7 +301,7 @@ which are discussed below, in the majority of cases.
 
 Exceptions
 ..........
-The unmodified error messages of Python (and of the imported
+Unmodified error messages of Python (and of the imported
 libraries) are often not helpful in the application of HydPy due
 to two reasons: First, they are probably read by someone who has
 no experience in understanding Pythons exception handling system.
@@ -297,8 +311,8 @@ which is of course referenced in the traceback; instead it means
 things like the concerned geographical location.  It would, for example,
 be of little help to only know that the required value of a certain
 parameter is not available, when the same parameter is applied
-thousands of times in different subcatchments.  Hence try to add
-as much helpful information to error messages as possible, e.g.::
+thousands of times in different subcatchments.  Try to add as much
+helpful information to error messages as possible, e.g.::
 
     raise RuntimeError('For parameter %s of element %s no value has been '
                        'defined so far.  Hence it is not possible to...'
@@ -310,17 +324,9 @@ or :class:`~hydpy.core.devicetools.Element` instance (indirectly)
 containing the given object, which is in many cases the most relevant
 information for identifying the error source.)
 
-Use the following code block as a starting point to augment e.g.
-standard Python error messages with `HydPy information`::
+Whenever possible, us function :func:`~hydpy.objecttools.augmentexcmessage`
+to augment standard Python error messages with `HydPy information`.
 
-    try:
-        do something
-    except BaseException:
-        exc, message, traceback_ = sys.exc_info()
-        message = ('While trying to do something with element %s, '
-                   'the following error occured:  %s'
-                   % (element.name, message))
-        raise exc, message, traceback_
 
 Naming Conventions
 ..................
@@ -337,21 +343,25 @@ Sequences       sequences      each Model instance handles exactly one Sequence 
 InputSequences  inputs         "inputsequences" would be redundant for attribute access: `model.sequences.inputs`
 =============== ============== ===================================================================================
 
-If possible, each instance itself should define its preferred name via
-the property `name`::
+If possible, each instance should define its own preferred name via
+the property `name`:
 
-	'inputs' = model.sequences.inputs.name
+    >>> from hydpy.models.hland import *
+    >>> InputSequences(None).name
+    inputs
 
 For classes like :class:`~hydpy.core.devicetools.Element` or
 :class:`~hydpy.core.devicetools.Node`, where names (and not
 namespaces) are used to differentiate between instances, the
 property `name` is also implemented, but --- of course --- not
-related to the class name, e.g.::
+related to the class name, e.g.:
 
-    'gauge1' = Node('gauge1').name
+    >>> from hydpy import Node
+    >>> Node('gauge1').name
+    'gauge1'
 
 In HydPy, instances of the same or similar type should be grouped in
-collection objects with a similar name, but an attached letter "s".
+collection objects with a similar name, but with an attached letter "s".
 Different :class:`~hydpy.core.devicetools.Element` instances are stored
 in an instance of the class :class:`~hydpy.core.devicetools.Elements`,
 different :class:`~hydpy.core.devicetools.Node` instances are stored in
@@ -364,38 +374,63 @@ above.  Additionally, try to follow the following recommendations.
 
 Each collection object should be iterable.  Normally, both the names of
 the handled objects (as known to the collection object) and the objects
-themself should be returned, e.g.::
+themself should be returned, e.g.:
 
-    for (name, node) in hp.nodes:
-        ...
+    >>> from hydpy import Nodes
+    >>> nodes = Nodes()
+    >>> nodes += Node('gauge1')
+    >>> nodes += Node('gauge2')
+    >>> for (name, node) in nodes:
+    ...     print(name, node.name)
+    gauge1 gauge1
+    gauge2 gauge2
 
 To ease working in the interactive mode, objects handled by a
-collection object should be accessible as attributes::
+collection object should be accessible as attributes:
 
-    hp.nodes.gauge1
-    hp.nodes.gauge2
+    >>> nodes.gauge1
+    Node("gauge1", variable="Q")
+    >>> hp.nodes.gauge2
+    Node("gauge2", variable="Q")
 
 Whenever usefull, define convenience functions which simplify the
-handling of collection objects, e.g.::
+handling of collection objects, e.g.:
 
-    from hydpy import Node, Nodes
-    nodes = Nodes()
-    nodes += Node('gauge1')
-    nodes.gauge1 is nodes['gauge1']
-    print(len(nodes))
-    print('gauge1' in nodes)
-    print(nodes.gauge1 in nodes)
-    newnodes = nodes.copy()
-    print(nodes is newnodes)
-    print(nodes.gauge1 is newnodes.gauge1)
-    nodes -= 'gauge1'
+    >>> nodes += Node('gauge1')
+    >>> nodes.gauge1 is nodes['gauge1']
+    True
+    >>> len(nodes)
+    2
+    >>> 'gauge1' in nodes
+    True
+    >>> nodes.gauge1 in nodes
+    True
+    >>> newnodes = nodes.copy()
+    >>> nodes is newnodes
+    False
+    >>> nodes.gauge1 is newnodes.gauge1
+    True
+    >>> nodes -= 'gauge1'
+    >>> 'gauge1' in nodes
+    False
 
 
 String Representations
 ......................
 A good string representation is one that a Non-Python-Programmer does
-not identify to be a string representation.
+not identify to be a string representation.  The first ideal case is
+that copy-pasting the string representation within a command line to
+evaluate it return a reference to the same object. A Python example:
 
+    >>> eval(repr(None)) is None
+    True
+
+A HydPy example:
+
+    >>> from hydpy import Node
+    >>> eval(Node('gauge1')) is Node('gauge1')
+
+Secondly ideal case is evaluating the string representation
 
 Introspection
 .............

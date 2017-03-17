@@ -125,8 +125,11 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
         print('In the following modules, no doc test failed in %s mode:'
               % mode)
         for name in sorted(successfuldoctests.keys()):
-            print('    %s (%d successes)'
-                  % (name, successfuldoctests[name].testsRun))
+            if name.endswith('.rst'):
+                print('    %s' % name)
+            else:
+                print('    %s (%d successes)'
+                      % (name, successfuldoctests[name].testsRun))
     if faileddoctests:
         print()
         print('At least one doc test failed in each of the following modules '

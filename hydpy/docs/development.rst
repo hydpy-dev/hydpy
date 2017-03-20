@@ -205,7 +205,7 @@ HydPy functionalities must be coded twice.  Use `pyversion` in these cases:
     ...     traceback_ = sys.exc_info()[2]
     ...     exec("raise SystemError, 'just a test', traceback_")
     ... else:
-    ...     SystemError('just a test').with_traceback()
+    ...     raise SystemError('just a test').with_traceback()
     Traceback (most recent call last):
     ...
     SystemError: just a test

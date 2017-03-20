@@ -150,11 +150,12 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
 
 
 # 4. Return the exit code.
-
 print('test_everything.py resulted in %d failing unit tests, %d failing '
       'doctests in Python mode and %d failing doctests in Cython mode.'
       % (len(failedunittests),
          len(allfaileddoctests[0]), len(allfaileddoctests[1])))
-sys.exit(len(failedunittests)+
-         len(allfaileddoctests[0])+len(allfaileddoctests[1]))
+if failedunittests or allfaileddoctests[0] or allfaileddoctests[1]:
+    sys.exit(1)
+else:
+    sys.exit(0)
 

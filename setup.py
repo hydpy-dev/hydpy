@@ -5,7 +5,6 @@ from __future__ import division, print_function
 import os
 import sys
 import shutil
-import warnings
 from distutils.core import setup
 from distutils.extension import Extension
 # ...from site-packages:
@@ -83,12 +82,11 @@ if install:
     exitcode = int(os.system('coverage run -m --branch '
                              '--source hydpy test_everything'))
     if exitcode:
-        warnings.warn('Use this HydPy version with caution on your system.  '
-                      'A total number of verification %d tests failed.  '
-                      'At least you should check, if those are related to '
-                      'essential HydPy features or perhaps just some typing '
-                      'errors in documentation.  See the information given '
-                      'above.' % exitcode)
+        print('Use this HydPy version with caution on your system.  At '
+              'least one verification test failed.  You should see in the '
+              'information given above, whether essential features of '
+              'HydPy are broken or perhaps only some typing errors in '
+              'documentation were detected.  (exit code: %d)' % exitcode)
         sys.exit(1)
     # Prepare coverage report and prepare it for sphinx.
     if coverage_report:

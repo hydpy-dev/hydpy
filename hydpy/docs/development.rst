@@ -202,9 +202,12 @@ HydPy functionalities must be coded twice.  Use `pyversion` in these cases:
     >>> import pub, sys
     >>> if pub.pyversion == 2:
     ...     traceback_ = sys.exc_info()[2]
-    ...     raise SystemError('just a test'), traceback
+    ...     exec("raise SystemError, 'just a test', traceback_")
     ... else:
     ...     SystemError('just a test').with_traceback()
+    Traceback (most recent call last):
+    ...
+    SystemError: just a test
 
 (The example above is already taken into account by function
 :func:`~hydpy.objecttools.augmentexcmessage`.)
@@ -348,7 +351,7 @@ the property `name`:
 
     >>> from hydpy.models.hland import *
     >>> InputSequences(None).name
-    inputs
+    'inputs'
 
 For classes like :class:`~hydpy.core.devicetools.Element` or
 :class:`~hydpy.core.devicetools.Node`, where names (and not
@@ -378,19 +381,19 @@ themself should be returned, e.g.:
 
     >>> from hydpy import Nodes
     >>> nodes = Nodes()
-    >>> nodes += Node('gauge1')
-    >>> nodes += Node('gauge2')
+    >>> nodes += 'gauge1'
+    >>> nodes += 'gauge2'
     >>> for (name, node) in nodes:
-    ...     print(name, node.name)
-    gauge1 gauge1
-    gauge2 gauge2
+    ...     name, node
+    ('gauge1', Node("gauge1", variable="Q"))
+    ('gauge2', Node("gauge2", variable="Q"))
 
 To ease working in the interactive mode, objects handled by a
 collection object should be accessible as attributes:
 
     >>> nodes.gauge1
     Node("gauge1", variable="Q")
-    >>> hp.nodes.gauge2
+    >>> nodes.gauge2
     Node("gauge2", variable="Q")
 
 Whenever usefull, define convenience functions which simplify the
@@ -417,13 +420,15 @@ handling of collection objects, e.g.:
 
 String Representations
 ......................
-A good string representation is one that a Non-Python-Programmer does
-not identify to be a string representation.  The first ideal case is
-that copy-pasting the string representation within a command line to
-evaluate it return a reference to the same object. A Python example:
+Be aware of the difference between :func:`str` and :func:`repr`.
+A good string representation (return value of :func:`repr`) is one
+that a Non-Python-Programmer does not identify to be a string.
+The first ideal case is that copy-pasting the string representation
+within a command line to evaluate it returns a reference to the same
+object. A Python example:
 
-    >>> None
-    None
+    >>> repr(None)
+    'None'
     >>> eval('None') is None
     True
 
@@ -433,10 +438,10 @@ A HydPy example:
     >>> Node('gauge1')
     Node("gauge1", variable="Q")
     >>> eval('Node("gauge1", variable="Q")') is Node('gauge1')
-    >>> True
+    True
 
-In the second ideal case evaluating the string representation results
-in an equal objects. A Python example:
+In the second ideal case is that evaluating the string representation
+results in an equal object. A Python example:
 
     >>> 1.5
     1.5
@@ -449,10 +454,10 @@ A HydPy example:
 
     >>> from hydpy import Period
     >>> Period('1d')
-    Period('1d')
-    >>> eval('Period('1d')') is Period('1d')
+    Period("1d")
+    >>> eval('Period("1d")') is Period('1d')
     False
-    >>> eval('Period('1d')') == Period('1d')
+    >>> eval('Period("1d")') == Period('1d')
     True
 
 For nested objects this might be more hard to accomplish, but sometimes it's
@@ -465,6 +470,7 @@ worth it.  A Python example:
 
 A HydPy example:
 
+    >>> from hydpy import Timegrid
     >>> Timegrid('01.11.1996', '1.11.2006', '1d')
     Timegrid("01.11.1996 00:00:00",
              "01.11.2006 00:00:00",
@@ -472,11 +478,39 @@ A HydPy example:
     >>> eval('Timegrid("01.11.1996 00:00:00", "01.11.2006 00:00:00", "1d")') == Timegrid('01.11.1996', '1.11.2006', '1d')
     True
 
-For deeply nested objects, this strategy becomes infeasible.
+ToDo: For deeply nested objects, this strategy becomes infeasible, of course.
+SubParameters(None)...
+
+Sometimes, additional information might increase the value of a
+string representation.  Add comments in these cases, but only when
+the :attr:`~hydpy.pub.options.reprcomments` flag is activated:
 
     >>> from hydpy.models.hland import *
+    >>> parameterstep('1d')
+    >>> nmbzones(2)
+    >>> from hydpy.pub import options
+    >>> options.reprcomments = True
+    >>> nmbzones
+    # Number of zones (hydrological response units) in a subbasin [-].
+    nmbzones(2)
+    >>> options.reprcomments = False
+    >>> nmbzones
+    nmbzones(2)
 
-Optional commments...
+Such comments are of great importance, whenever the string representation
+might be misleading:
+
+    >>> simulationstep('12h', warn=False)
+    >>> percmax(2)
+    >>> options.reprcomments = True
+    >>> percmax
+    # Maximum percolation rate [mm/T].
+    # The actual value representation depends on the actual parameter step size, which is `1d`.
+    percmax(2.0)
+    >>> options.reprcomments = False
+    >>> percmax
+    percmax(2.0)
+
 
 Introspection
 .............

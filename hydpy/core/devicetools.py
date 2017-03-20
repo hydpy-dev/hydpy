@@ -414,8 +414,8 @@ class Devices(object):
         del(self.__dict__[key])
 
     def __iter__(self):
-        for (name, device) in vars(self).items():
-            yield (name, device)
+        for name in sorted(vars(self).keys()):
+            yield (name, self[name])
 
     def __contains__(self, device):
         device = self._contentclass(device)

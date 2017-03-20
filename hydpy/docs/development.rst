@@ -199,13 +199,13 @@ a clean syntax and is future-proof.  (Have a look at the
 Sometimes incompatibilities of Python 2 and Python 3 require that specific
 HydPy functionalities must be coded twice.  Use `pyversion` in these cases:
 
-    >>> from hydpy import pub
     >>> import sys
+    >>> traceback_ = sys.exc_info()[2]
+    >>> from hydpy import pub
     >>> if pub.pyversion == 2:
-    ...     traceback_ = sys.exc_info()[2]
     ...     exec("raise SystemError, 'just a test', traceback_")
     ... else:
-    ...     raise SystemError('just a test').with_traceback()
+    ...     raise SystemError('just a test').with_traceback(traceback_)
     Traceback (most recent call last):
     ...
     SystemError: just a test

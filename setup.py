@@ -5,7 +5,7 @@ from __future__ import division, print_function
 import os
 import sys
 import shutil
-import importlib
+import warnings
 from distutils.core import setup
 from distutils.extension import Extension
 # ...from site-packages:
@@ -80,15 +80,21 @@ if install:
     oldpath = os.path.abspath('.')
     import hydpy.tests
     os.chdir(os.sep.join(hydpy.tests.__file__.split(os.sep)[:-1]))
-    exitcode = 0
-    exitcode += os.system('coverage run --branch '
-                          '--source hydpy test_everything.py')
+    exitcode = int(os.system('coverage run -m --branch '
+                             '--source hydpy test_everything'))
+    if exitcode:
+        warnings.warn('Use this HydPy version with caution on your system.  '
+                      'A total number of verification %d tests failed.  '
+                      'At least you should check, if those are related to '
+                      'essential HydPy features or perhaps just some typing '
+                      'errors in documentation.  See the information given '
+                      'above.' % exitcode)
+        sys.exit(1)
     # Prepare coverage report and prepare it for sphinx.
     if coverage_report:
-        exitcode += os.system('coverage report -m')
-        exitcode += os.system('coverage xml')
-        exitcode += os.system('pycobertura show --format html '
-                              '--output coverage.html coverage.xml')
+        os.system('coverage report -m')
+        os.system('coverage xml')
+        os.system('pycobertura show --format html '
+                  '--output coverage.html coverage.xml')
         shutil.move('coverage.html',
                     os.path.join(oldpath, 'hydpy', 'docs', 'coverage.html'))
-    sys.exit(exitcode)

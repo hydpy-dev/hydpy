@@ -15,6 +15,8 @@
 .. _source tree: https://www.sourcetreeapp.com/
 .. _Pro Git: https://progit2.s3.amazonaws.com/en/2016-03-22-f3531/progit-en.1084.pdf
 .. _Python 2-3 cheat sheet: http://python-future.org/compatible_idioms.html
+.. _PyPy: https://pypy.org/
+
 .. _development:
 
 Development
@@ -211,7 +213,7 @@ HydPy functionalities must be coded twice.  Use `pyversion` in these cases:
     SystemError: just a test
 
 (The example above is already taken into account by function
-:func:`~hydpy.objecttools.augmentexcmessage`.)
+:func:`~hydpy.core.objecttools.augmentexcmessage`.)
 
 
 Site Packages
@@ -328,8 +330,9 @@ or :class:`~hydpy.core.devicetools.Element` instance (indirectly)
 containing the given object, which is in many cases the most relevant
 information for identifying the error source.)
 
-Whenever possible, us function :func:`~hydpy.objecttools.augmentexcmessage`
-to augment standard Python error messages with `HydPy information`.
+Whenever possible, us function
+:func:`~hydpy.core.objecttools.augmentexcmessage` to augment
+standard Python error messages with `HydPy information`.
 
 
 Naming Conventions
@@ -516,10 +519,72 @@ might be misleading:
 Introspection
 .............
 
+One of Pythons major strengths is `introspection`, allowing you to analyze
+(and modify) objects fundamentally at runtime.  One simple example would
+be to access and change the documentation of a single HBV `number of zones`
+parameter initialized at runtime.  Here, the given string representation
+comment is simply the first line of the documentation string of class
+:class:`~hydpy.models.hland.hland_control.NmbZones`:
+
+    >>> from hydpy.models.hland.hland_control import NmbZones
+    >>> NmbZones.__doc__.split('\n')[0]
+    'Number of zones (hydrological response units) in a subbasin [-].'
+
+However, we could define a unique documentation string for the specific
+:class:`~hydpy.models.hland.hland_control.NmbZones` instance defined above:
+
+    >>> nmbzones.__doc__ = NmbZones.__doc__.replace('a subbasin',
+    ...                                             'the amazonas basin')
+
+Now the representation string (only) of this instance is changed:
+
+    >>> options.reprcomments = True
+    >>> nmbzones
+    'Number of zones (hydrological response units) in the amazonas basin [-].'
+
+As you can see, it is easy to retrieve information from living objects
+and to adjust them to specific situations.  With little effort, one
+can do much more tricky things. But when writing production code, one
+has to be cautious.  First do not all Python implementations support
+each introspection feature of CPython.  Secondly is introspection often
+a possible source of confusion.  For HydPy, only the second issue is of
+importance, as the use of Cython rules out its application on Python
+implementations like `PyPy`_.  But the second issue needs to be considered.
+
+HydPy makes extensive use of Pythons introspection features, whenever it
+serves the purpose of relieving non-programmers from writing code lines
+that do not deal with hydrological modelling directly.  Section `Imports`_
+discusses the usage of wildcard imports in parameter control files.
+However, the real comfort comes primarily from the `magic` implemented
+in the function :func:`~hydpy.core.magictools.parameterstep`.  Through
+calling this function one does not only define a relevant time intervall
+length for the following parameter values.  One also initializes a new
+model instance (if such an instance does not already exist) and makes
+its control parameter objects available in the local namespace.  Hence,
+in the sake of the users comfort, each parameter control file purponts
+beeing a simple configuration file that somehow checks its own validity.
+On the downside, changes to the operating principle of HydPy's parameter
+control files will require more thought than when everything would have
+been accomplished in a more direct manner.
+
+It is encouraged to implement additional introspection features into
+HydPy, as long as they improve its intuitive usability for non-programmers.
+But one should be particularly cautious when doing so and document the
+why and how thoroughly.  To ensure traceability, one should usually add
+such code to the modules :module:`~hydpy.cythons.modelutils` and
+:module:`~hydpy.core.magictools`.  Module :module:`~hydpy.cythons.modelutils`
+deals with all introspection needed to `cythonize` Python models
+automatically.  Module :module:`~hydpy.core.magictools` serves for
+(most of) the rest of HydPy's magical introspection features.  Of course,
+it might be necessary to define other specialized inspection modules in
+the future.
+
 Model specific features
 -----------------------
 
-Assuring code quality
-_____________________
+Assuring code and documentation quality
+_______________________________________
+
+
 
 See the latest :download:`coverage report <coverage.html>`.

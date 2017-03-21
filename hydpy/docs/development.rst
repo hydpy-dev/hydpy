@@ -572,10 +572,10 @@ It is encouraged to implement additional introspection features into
 HydPy, as long as they improve its intuitive usability for non-programmers.
 But one should be particularly cautious when doing so and document the
 why and how thoroughly.  To ensure traceability, one should usually add
-such code to the modules :module:`~hydpy.cythons.modelutils` and
-:module:`~hydpy.core.magictools`.  Module :module:`~hydpy.cythons.modelutils`
+such code to the modules :mod:`~hydpy.cythons.modelutils` and
+:mod:`~hydpy.core.magictools`.  Module :mod:`~hydpy.cythons.modelutils`
 deals with all introspection needed to `cythonize` Python models
-automatically.  Module :module:`~hydpy.core.magictools` serves for
+automatically.  Module :mo:`~hydpy.core.magictools` serves for
 (most of) the rest of HydPy's magical introspection features.  Of course,
 it might be necessary to define other specialized inspection modules in
 the future.

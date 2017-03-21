@@ -540,7 +540,8 @@ Now the representation string (only) of this instance is changed:
 
     >>> options.reprcomments = True
     >>> nmbzones
-    'Number of zones (hydrological response units) in the amazonas basin [-].'
+    # Number of zones (hydrological response units) in the amazonas basin [-].
+    nmbzones(2)
 
 As you can see, it is easy to retrieve information from living objects
 and to adjust them to specific situations.  With little effort, one

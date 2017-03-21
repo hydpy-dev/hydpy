@@ -575,7 +575,7 @@ why and how thoroughly.  To ensure traceability, one should usually add
 such code to the modules :mod:`~hydpy.cythons.modelutils` and
 :mod:`~hydpy.core.magictools`.  Module :mod:`~hydpy.cythons.modelutils`
 deals with all introspection needed to `cythonize` Python models
-automatically.  Module :mo:`~hydpy.core.magictools` serves for
+automatically.  Module :mod:`~hydpy.core.magictools` serves for
 (most of) the rest of HydPy's magical introspection features.  Of course,
 it might be necessary to define other specialized inspection modules in
 the future.
@@ -586,6 +586,21 @@ Model specific features
 Assuring code and documentation quality
 _______________________________________
 
+From a theoretical or even a philosophical point of view, the
+capabilities and shortcomings of hydrological modelling have been
+discussed thoroughly.  The negative impacts of low data quality
+are addressed by many extensive studies.  By contrast, we are not
+aware of any study trying focussing on the compromising effects
+of bugs and misleading code documentation.  Of course, such a
+study would be hard to conduct due to several reasons.  But, as
+many bugs in own and other models...
 
+The following sections try to define a strategy allowing HydPy to be
+developed as an open source project while maintaining sufficiently
+high quality standards for practical applications.  The hydrological
+modelling community has not made that much progress in this field yet.
+This is why the outlined strategy his highly influenced from other
+non-hydrological open source projects like `pandas`_.  Discussions on
+how to improve the outlined strategy are welcome!
 
 See the latest :download:`coverage report <coverage.html>`.

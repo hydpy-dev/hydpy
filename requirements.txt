@@ -1,4 +1,4 @@
 hydpy
-Cython>=0.26
+Cython
 numpy
 matplotlib

@@ -16,7 +16,8 @@
 .. _Pro Git: https://progit2.s3.amazonaws.com/en/2016-03-22-f3531/progit-en.1084.pdf
 .. _Python 2-3 cheat sheet: http://python-future.org/compatible_idioms.html
 .. _PyPy: https://pypy.org/
-
+.. _mock object library: https://docs.python.org/3/library/unittest.mock.html
+.. _reStructuredText: http://docutils.sourceforge.net/rst.html
 .. _development:
 
 Development
@@ -668,13 +669,13 @@ Now do the same for the second test method:
     >>> tester = Test01DateInitialization('test_02_os_style_hour')
     >>> _ = tester.run(result)
 
-The test result object tells us, that two tests have been executed, that
-no (unexpected) error occured and that one test failed:
+The test result object tells us that two tests have been executed, that
+no (unexpected) error occured, and that one test failed:
 
     >>> result
     <unittest.result.TestResult run=2 errors=0 failures=1>
 
-Here is the reason for the intentional failure of this example:
+Here is the reason for the (intentional) failure in this example:
 
     >>> print(result.failures[0][-1].split('\n')[-2])
     AssertionError: datetime.datetime(1996, 11, 1, 12, 0) != datetime.datetime(1997, 11, 1, 12, 0)
@@ -683,6 +684,57 @@ Here is the reason for the intentional failure of this example:
 
 Doctests
 --------
+
+When defining `conventional` unit tests, one tries to achieve a large
+test coverage with few lines of code (don't repeat yourself!).
+Therefore, sophisticated tools as the `mock object library`_ are
+available.  Unit tests might also save the purpuse to explain the
+functioning of the main code, as they explicitely show how it can
+be used.  However, the latter is pie in the sky when the unit tests
+are interpreted by someone who has little experience in unit testing
+and maybe little experience in programming at all.  This might not be
+a relevant problem as long as we test such basic functionalities of
+the HydPy framework, the user is not really interested in directly or
+just expects to work.  However, at the latest when the implemented
+hydrological model are involved, the clarity of the defined unit tests
+is desirable even for non-programmers (and --- in our opinion ---
+it is scientifically necessary).
+
+Each model implemented in HydPy should be tested in manner that is
+as clear and comprehensible as possible.  To this end, the documentation
+test principle defined by the module :mod:`doctest` should be applied
+extensively.  At least, all code branches including (hydrological)
+equations should be captured completely via doctests. (More technical
+branches, e.g. those including the treatment of exceptions, can be
+left to conventional unit tests.)  Often only one or two sentences
+are required to expain a doctest in a way, allowing a non-programmer
+to understand and repeat it.  And through repetition, he learns to
+apply the model.
+
+Besides their intuitiveness, doctests offer the big advantage of
+keeping source code and documentation in sync.  Whenever either
+a source line or its associated doctest contains errors, or
+whenever the source code is updated but the associated doctests
+not (or the other way round), it is reported.  Hence all examples
+in the HydPy documentation should be written as doctests.  The more
+doctests the documentation includes, the merrier the danger of
+retaining outdated documentation sections.  In order to keep an
+eye on a concrete example: as long as this three-line doctest...
+
+    >>> from hydpy import models
+    >>> type(models)
+    <type 'module'>
+
+...remains in the documentation, one can be sure that the current
+HydPy framework contains a package named `models`.
+
+To support the frequent usage of doctests, one is allowed to use
+them at any section of the documentation, accepting possible
+reduncancies with defined `conventional` unit tests.  The module
+:mod:`~hydpy.tests.test_everything` searches for doctests in
+all Python modules and all `reStructuredText`_ files contained
+in the package hydpy and executes them.
+
 
 Continuous Integration
 ----------------------

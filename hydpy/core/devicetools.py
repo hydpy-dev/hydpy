@@ -61,12 +61,6 @@ class Device(object):
             if isinstance(value, connectiontools.Connections):
                 yield (key, value)
 
-    def __eq__(self, other):
-        return self is self.__class__(other)
-
-    def __ne__(self, other):
-        return self is not self.__class__(other)
-
     def __str__(self):
         return self.name
 

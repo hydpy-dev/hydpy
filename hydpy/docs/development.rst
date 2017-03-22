@@ -661,7 +661,7 @@ Then initialize a test object engaging the first test method and run
 all assertions (in this case, there is only one assertion per method):
 
     >>> tester = Test01DateInitialization('test_01_os_style_day')
-    >>> tester.run(result)
+    >>> _ = tester.run(result)
 
 Now do the same for the second test method:
 

@@ -3,6 +3,8 @@
 # import...
 # ...from standard library
 from __future__ import division, print_function
+# ...from Hydpy
+from hydpy.core import objecttools
 
 class Connections(object):
     """Connection between :class:`~hydpy.core.devicetools.Node` and
@@ -52,7 +54,4 @@ class Connections(object):
         return len(self.names)
 
     def __dir__(self):
-        if self:
-            return self.names
-        else:
-            return [' ']
+        return objecttools.dir_(self)

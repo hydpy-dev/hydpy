@@ -40,7 +40,11 @@ def dir_(self):
         for name in vars(thing).keys():
             if options.dirverbose or not name.startswith('_'):
                 names.add(name)
-    return list(names)
+    if names:
+        names = list(names)
+    else:
+        names = [' ']
+    return names
 
 def classname(self):
     """Return the class name of the given instance object or class.

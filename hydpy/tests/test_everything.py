@@ -41,11 +41,13 @@ for name in unittests.keys():
     runner = unittest.TextTestRunner(stream=open(os.devnull, 'w'))
     suite = unittest.TestLoader().loadTestsFromModule(module)
     unittests[name] = runner.run(suite)
+    unittests[name].nmbproblems = (len(unittests[name].errors) +
+                                   len(unittests[name].failures))
 
 successfulunittests = {name: runner for name, runner in unittests.items()
-                       if not runner.failures}
+                       if not runner.nmbproblems}
 failedunittests = {name: runner for name, runner in unittests.items()
-                   if runner.failures}
+                   if runner.nmbproblems}
 
 if successfulunittests:
     print()
@@ -57,15 +59,16 @@ if failedunittests:
     print()
     print('At least one unit test failed in each of the following modules:')
     for name in sorted(failedunittests.keys()):
-        print('    %s (%d failures)'
-              % (name, len(failedunittests[name].failures)))
+        print('    %s (%d failures/errors)'
+              % (name, failedunittests[name].nmbproblems))
     for name in sorted(failedunittests.keys()):
         print()
         print('Detailed information on module %s:' % name)
-        for idx, failure in enumerate(failedunittests[name].failures):
-            print('    Error no. %d:' % (idx+1))
-            print('        %s' % failure[0])
-            for line in failure[1].split('\n'):
+        for idx, problem in enumerate(failedunittests[name].errors +
+                                      failedunittests[name].failures):
+            print('    Problem no. %d:' % (idx+1))
+            print('        %s' % problem[0])
+            for line in problem[1].split('\n'):
                 print('        %s' % line)
 
 # 2. Perform all doctests (first in Python mode, then in Cython mode)
@@ -114,11 +117,12 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                 if name.endswith('.rst'):
                     name = name[name.find('hydpy'+os.sep):]
                 doctests[name] = runner.run(suite)
-
+                doctests[name].nmbproblems = (len(doctests[name].errors) +
+                                              len(doctests[name].failures))
     successfuldoctests.update({name: runner for (name, runner)
-                              in doctests.items() if not runner.failures})
+                              in doctests.items() if not runner.nmbproblems})
     faileddoctests.update({name: runner for (name, runner)
-                          in doctests.items() if runner.failures})
+                          in doctests.items() if runner.nmbproblems})
 
     if successfuldoctests:
         print()
@@ -135,25 +139,27 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
         print('At least one doc test failed in each of the following modules '
               'in %s mode:' % mode)
         for name in sorted(faileddoctests.keys()):
-            print('    %s (%d failures)'
-                  % (name, len(faileddoctests[name].failures)))
+            print('    %s (%d failures/errors)'
+                  % (name, faileddoctests[name].nmbproblems))
         for name in sorted(faileddoctests.keys()):
             print()
             print('Detailed information on module %s:' % name)
-            for idx, failure in enumerate(faileddoctests[name].failures):
+            for idx, problem in enumerate(faileddoctests[name].errors +
+                                          faileddoctests[name].failures):
                 print('    Error no. %d:' % (idx+1))
-                print('        %s' % failure[0])
-                for line in failure[1].split('\n'):
+                print('        %s' % problem[0])
+                for line in problem[1].split('\n'):
                     print('        %s' % line)
 
 # 3. Perform integration tests.
 
 
 # 4. Return the exit code.
-print('test_everything.py resulted in %d failing unit tests, %d failing '
-      'doctests in Python mode and %d failing doctests in Cython mode.'
-      % (len(failedunittests),
-         len(allfaileddoctests[0]), len(allfaileddoctests[1])))
+print('test_everything.py resulted in %d failing unit test suites, '
+      '%d failing doctest suites in Python mode and %d failing '
+      'doctest suites in Cython mode.' % (len(failedunittests),
+                                          len(allfaileddoctests[0]),
+                                          len(allfaileddoctests[1])))
 if failedunittests or allfaileddoctests[0] or allfaileddoctests[1]:
     sys.exit(1)
 else:

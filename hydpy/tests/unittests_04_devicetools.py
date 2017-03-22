@@ -40,12 +40,12 @@ class Test01NodeCreation(unittest.TestCase):
             test = Node({'test': 'test'})
     def test_04_attributes(self):
         test1 = Node('test1')
-        self.assertIsInstance(test1.entries, Self2Elements)
-        self.assertIsInstance(test1.exits, Self2Elements)
+        self.assertIsInstance(test1.entries, Connections)
+        self.assertIsInstance(test1.exits, Connections)
         self.assertEqual(test1.variable, 'Q')
         test2 = Node('test2', 'T')
-        self.assertIsInstance(test2.entries, Self2Elements)
-        self.assertIsInstance(test2.exits, Self2Elements)
+        self.assertIsInstance(test2.entries, Connections)
+        self.assertIsInstance(test2.exits, Connections)
         self.assertEqual(test2.variable, 'T')
     def test_03_wrongredefinition(self):
         test = Node('test')
@@ -82,10 +82,10 @@ class Test02ElementCreation(unittest.TestCase):
             test = Element({'test': 'test'})
     def test_04_attributes(self):
         test = Element('test')
-        self.assertIsInstance(test.inlets, Self2Nodes)
-        self.assertIsInstance(test.outlets, Self2Nodes)
-        self.assertIsInstance(test.receivers, Self2Nodes)
-        self.assertIsInstance(test.senders, Self2Nodes)
+        self.assertIsInstance(test.inlets, Connections)
+        self.assertIsInstance(test.outlets, Connections)
+        self.assertIsInstance(test.receivers, Connections)
+        self.assertIsInstance(test.senders, Connections)
         self.assertIsNone(test.model)
 
 
@@ -101,101 +101,105 @@ class Test03ElementInitialization(unittest.TestCase):
         Element.clearregistry()
 
     def test_01_inlet(self):
-        e = Element('e', inlet=self.n1Q)
+        e = Element('e', inlets=self.n1Q)
         self.assertIsInstance(e, Element)
         self.assertIs(e.inlets.n1Q, self.n1Q)
         self.assertIsInstance(self.n1Q.exits.e, Element)
         self.assertIs(self.n1Q.exits.e, e)
         self.assertIs(e.inlets.n1Q, self.n1Q)
-        e = Element('e', inlet=self.n1Q)
+        e = Element('e', inlets=self.n1Q)
         self.assertIs(e.inlets.n1Q, self.n1Q)
-        e = Element('e', inlet=self.n4T)
+        e = Element('e', inlets=self.n4T)
         self.assertIs(e.inlets.n1Q, self.n1Q)
         self.assertIs(e.inlets.n4T, self.n4T)
-        e = Element('e', inlet=self.n3W)
+        e = Element('e', inlets=self.n3W)
         self.assertIs(e.inlets.n3W, self.n3W)
         with self.assertRaises(ValueError):
-            e = Element('e', inlet=self.n2Q)
+            e = Element('e', outlets=self.n2Q)
+            e = Element('e', inlets=self.n2Q)
 
     def test_02_outlet(self):
-        e = Element('e', outlet=self.n1Q)
+        e = Element('e', outlets=self.n1Q)
         self.assertIsInstance(e, Element)
         self.assertIs(e.outlets.n1Q, self.n1Q)
         self.assertIsInstance(self.n1Q.entries.e, Element)
         self.assertIs(self.n1Q.entries.e, e)
-        e = Element('e', outlet=self.n1Q)
+        e = Element('e', outlets=self.n1Q)
         self.assertIs(e.outlets.n1Q, self.n1Q)
-        e = Element('e', outlet=self.n4T)
+        e = Element('e', outlets=self.n4T)
         self.assertIs(e.outlets.n1Q, self.n1Q)
         self.assertIs(e.outlets.n4T, self.n4T)
-        e = Element('e', outlet=self.n3W)
+        e = Element('e', outlets=self.n3W)
         self.assertIs(e.outlets.n3W, self.n3W)
         with self.assertRaises(ValueError):
-            e = Element('e', outlet=self.n2Q)
+            e = Element('e', inlets=self.n2Q)
+            e = Element('e', outlets=self.n2Q)
 
     def test_03_receiver(self):
-        e = Element('e', receiver=self.n1Q)
+        e = Element('e', receivers=self.n1Q)
         self.assertIsInstance(e, Element)
         self.assertIs(e.receivers.n1Q, self.n1Q)
         self.assertIsInstance(self.n1Q.exits.e, Element)
         self.assertIs(self.n1Q.exits.e, e)
-        e = Element('e', receiver=self.n1Q)
+        e = Element('e', receivers=self.n1Q)
         self.assertIs(e.receivers.n1Q, self.n1Q)
-        e = Element('e', receiver=self.n4T)
+        e = Element('e', receivers=self.n4T)
         self.assertIs(e.receivers.n1Q, self.n1Q)
         self.assertIs(e.receivers.n4T, self.n4T)
-        e = Element('e', receiver=self.n3W)
+        e = Element('e', receivers=self.n3W)
         self.assertIs(e.receivers.n3W, self.n3W)
         with self.assertRaises(ValueError):
-            e = Element('e', receiver=self.n2Q)
+            e = Element('e', senders=self.n2Q)
+            e = Element('e', receivers=self.n2Q)
 
     def test_04_sender(self):
-        e = Element('e', sender=self.n1Q)
+        e = Element('e', senders=self.n1Q)
         self.assertIsInstance(e, Element)
         self.assertIs(e.senders.n1Q, self.n1Q)
         self.assertIsInstance(self.n1Q.entries.e, Element)
         self.assertIs(self.n1Q.entries.e, e)
-        e = Element('e', sender=self.n1Q)
+        e = Element('e', senders=self.n1Q)
         self.assertIs(e.senders.n1Q, self.n1Q)
-        e = Element('e', sender=self.n4T)
+        e = Element('e', senders=self.n4T)
         self.assertIs(e.senders.n1Q, self.n1Q)
         self.assertIs(e.senders.n4T, self.n4T)
-        e = Element('e', sender=self.n3W)
+        e = Element('e', senders=self.n3W)
         self.assertIs(e.senders.n3W, self.n3W)
         with self.assertRaises(ValueError):
-            e = Element('e', sender=self.n2Q)
+            e = Element('e', receivers=self.n2Q)
+            e = Element('e', senders=self.n2Q)
 
     def test_05_inletandoutlet(self):
-        e1 = Element('e1', inlet=self.n1Q, outlet=self.n2Q)
+        e1 = Element('e1', inlets=self.n1Q, outlets=self.n2Q)
         self.assertIs(e1.inlets.n1Q, self.n1Q)
         self.assertIs(e1.outlets.n2Q, self.n2Q)
-        e2 = Element('e2', inlet=self.n1Q)
+        e2 = Element('e2', inlets=self.n1Q)
         with self.assertRaises(ValueError):
-            Element('e2', outlet=self.n1Q)
-        e3 = Element('e3', outlet=self.n1Q)
+            Element('e2', outlets=self.n1Q)
+        e3 = Element('e3', outlets=self.n1Q)
         with self.assertRaises(ValueError):
-            Element('e3', inlet=self.n1Q)
+            Element('e3', inlets=self.n1Q)
         with self.assertRaises(ValueError):
-            Element('e4', inlet=self.n1Q, outlet=self.n1Q)
+            Element('e4', inlets=self.n1Q, outlets=self.n1Q)
 
     def test_06_receiverandsender(self):
-        e1 = Element('e1', receiver=self.n1Q, sender=self.n2Q)
+        e1 = Element('e1', receivers=self.n1Q, senders=self.n2Q)
         self.assertIs(e1.receivers.n1Q, self.n1Q)
         self.assertIs(e1.senders.n2Q, self.n2Q)
-        e2 = Element('e2', receiver=self.n1Q)
+        e2 = Element('e2', receivers=self.n1Q)
         with self.assertRaises(ValueError):
-            Element('e2', sender=self.n1Q)
-        e3 = Element('e3', sender=self.n1Q)
+            Element('e2', senders=self.n1Q)
+        e3 = Element('e3', senders=self.n1Q)
         with self.assertRaises(ValueError):
-            Element('e3', receiver=self.n1Q)
+            Element('e3', receivers=self.n1Q)
         with self.assertRaises(ValueError):
-            Element('e4', receiver=self.n1Q, sender=self.n1Q)
+            Element('e4', receivers=self.n1Q, senders=self.n1Q)
 
 
-class Test04NodesCreation(unittest.TestCase):
-
-    def setUp(self):
-        asdf
+#class Test04NodesCreation(unittest.TestCase):
+#
+#    def setUp(self):
+#        asdf
 
 class Test05ElementsCreation(unittest.TestCase):
 

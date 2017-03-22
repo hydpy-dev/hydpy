@@ -45,25 +45,25 @@ class Test02SelectionSelect(unittest.TestCase):
         # e1 + e2 -> n_T1 -> e3 -> n_T2 -> e5 -> n_T3
         self.n_Q1 = Node('n_Q1', 'Q')
         self.n_T1 = Node('n_T1', 'T')
-        self.e1 = Element('e1', outlet='n_Q1')
-        self.e1 = Element('e1', outlet='n_T1')
-        self.e2 = Element('e2', outlet='n_Q1')
-        self.e2 = Element('e2', outlet='n_T1')
+        self.e1 = Element('e1', outlets='n_Q1')
+        self.e1 = Element('e1', outlets='n_T1')
+        self.e2 = Element('e2', outlets='n_Q1')
+        self.e2 = Element('e2', outlets='n_T1')
         self.n_Q2 = Node('n_Q2', 'Q')
         self.n_T2 = Node('n_T2', 'T')
-        self.e3 = Element('e3', inlet='n_Q1', outlet='n_Q2')
-        self.e3 = Element('e3', inlet='n_T1', outlet='n_T2')
+        self.e3 = Element('e3', inlets='n_Q1', outlets='n_Q2')
+        self.e3 = Element('e3', inlets='n_T1', outlets='n_T2')
         self.n_Q3 = Node('n_Q3', 'Q')
-        self.e4 = Element('e4', inlet='n_Q2', outlet='n_Q3')
+        self.e4 = Element('e4', inlets='n_Q2', outlets='n_Q3')
         self.n_T3 = Node('n_T3', 'T')
-        self.e5 = Element('e5', inlet='n_T2', outlet='n_T3')
+        self.e5 = Element('e5', inlets='n_T2', outlets='n_T3')
         self.n_Q4 = Node('n_Q4', 'Q')
-        self.e6 = Element('e6', inlet='n_Q4', outlet='n_Q3')
-        self.e7 = Element('e7', outlet='n_Q4')
+        self.e6 = Element('e6', inlets='n_Q4', outlets='n_Q3')
+        self.e7 = Element('e7', outlets='n_Q4')
 
         self.complete = Selection('complete',
-                                  nodes=Node.registereddevices(),
-                                  elements=Element.registereddevices())
+                                  nodes=Node.registerednodes(),
+                                  elements=Element.registeredelements())
 
     def tearDown(self):
         Node.clearregistry()
@@ -93,10 +93,9 @@ class Test02SelectionSelect(unittest.TestCase):
         self.assertEqual(test.nodes, reference.nodes)
         self.assertEqual(test.elements, reference.elements)
 
-    def test_05_selectmodelclasses(self):
-        with self.assertRaises(RuntimeError):
-            self.complete.copy('test').getby_modelclasses('HBV96_zone')
-        asdf
+#    def test_05_selectmodelclasses(self):
+#        with self.assertRaises(RuntimeError):
+#            self.complete.copy('test').getby_modelclasses('HBV96_zone')
 
     def test_06_select_nodenames(self):
         test = self.complete.copy('test').select_nodenames('n_Q1', 'n_T', 'NO')

@@ -549,8 +549,9 @@ can do much more tricky things. But when writing production code, one
 has to be cautious.  First do not all Python implementations support
 each introspection feature of CPython.  Secondly is introspection often
 a possible source of confusion.  For HydPy, only the second issue is of
-importance, as the use of Cython rules out its application on Python
-implementations like `PyPy`_.  But the second issue needs to be considered.
+importance, as the use of Cython rules out its application on alternative
+Python implementations as `PyPy`_.  But the second issue needs to be
+taken into account more strongly.
 
 HydPy makes extensive use of Pythons introspection features, whenever it
 serves the purpose of relieving non-programmers from writing code lines
@@ -564,12 +565,12 @@ model instance (if such an instance does not already exist) and makes
 its control parameter objects available in the local namespace.  Hence,
 in the sake of the users comfort, each parameter control file purponts
 beeing a simple configuration file that somehow checks its own validity.
-On the downside, changes to the operating principle of HydPy's parameter
-control files will require more thought than when everything would have
+On the downside, to modify the operating principle of HydPy's parameter
+control files requires more thought than if everything would have
 been accomplished in a more direct manner.
 
 It is encouraged to implement additional introspection features into
-HydPy, as long as they improve its intuitive usability for non-programmers.
+HydPy, as long as they improve the intuitive usability for non-programmers.
 But one should be particularly cautious when doing so and document the
 why and how thoroughly.  To ensure traceability, one should usually add
 such code to the modules :mod:`~hydpy.cythons.modelutils` and
@@ -589,18 +590,103 @@ _______________________________________
 From a theoretical or even a philosophical point of view, the
 capabilities and shortcomings of hydrological modelling have been
 discussed thoroughly.  The negative impacts of low data quality
-are addressed by many extensive studies.  By contrast, we are not
-aware of any study trying focussing on the compromising effects
-of bugs and misleading code documentation.  Of course, such a
-study would be hard to conduct due to several reasons.  But, as
-many bugs in own and other models...
+are addressed by many sensitivity studies.  By contrast, we are not
+aware of any study focussing on the compromising effects of bugs
+and misleading code documentation of hydrological computer models.
+(Of course, such a study would be hard to conduct due to several
+reasons.) Given the little attention paid during the peer-review
+process to the correctness of model code and its transparent
+documentation, the danger of scientific results beeing corrupted
+by such flaws can --- carefully worded --- at least not be ruled
+out.
 
-The following sections try to define a strategy allowing HydPy to be
-developed as an open source project while maintaining sufficiently
-high quality standards for practical applications.  The hydrological
-modelling community has not made that much progress in this field yet.
-This is why the outlined strategy his highly influenced from other
-non-hydrological open source projects like `pandas`_.  Discussions on
-how to improve the outlined strategy are welcome!
+This sections describes strategies on how to keep the danger
+of severe bugs and outdated documentation to a (hopefully)
+reasonable degree.
+
+Conventional Unit-Tests
+-----------------------
+
+After installing HydPy through executing the `setup.py` module with
+the argument `install`, the module :mod:`~hydpy.tests.test_everything`
+is executed as well.  The first task of the latter module is to
+perform all `conventional` unit tests.  Therefore, all modules
+within the package :mod:`~hydpy.tests` named 'unittests_*.py' are
+evaluated based on the unit testing framework :mod:`unittest` of
+Pythons standard library.  Each new HydPy module should be complemented
+by a corresponding unittest file, testing its functionality thoroughly.
+Just write test classes in each unittest file.  These are evaluated
+automatically by module :mod:`~hydpy.tests.test_everything`.  Let each
+class name start with 'Test', a consecutive number, and a description
+of the functionality to be testet.  Each test class must inherit from
+:class:`~unittest.TestCase`, allowing for using its assert methods.
+Last but not least, add the different test methods.  Again, each
+name should start with 'test' and a consecutive number, but this time
+in lower case letters seperated by underscores. By way of example,
+consider a snipplet of the test class for the initialization of
+:class:`~hydpy.core.timetools.Date` objects:
+
+    >>> import unittest
+    >>> import datetime
+    >>> from hydpy.core import timetools
+    >>> class Test01DateInitialization(unittest.TestCase):
+    ...     def setUp(self):
+    ...         self.refdate_day = datetime.datetime(1996, 11, 1)
+    ...         self.refdate_hour = datetime.datetime(1996, 11, 1, 12)
+    ...     def test_01_os_style_day(self):
+    ...         self.assertEqual(self.refdate_day,
+    ...                          timetools.Date('1996_11_01').datetime)
+    ...     def test_02_os_style_hour(self):
+    ...         self.assertEqual(self.refdate_hour,
+    ...                          timetools.Date('1997_11_01_12').datetime)
+
+The :func:`~unittest.TestCase.setUp` method allows for some preparations
+that have to be conducted before the test methods can be called.  The status
+defined in the :func:`~unittest.TestCase.setUp` method is restored
+before each test method call, hence --- normally --- the single test
+methods do not affect each other (the consecutive numbers are only used
+for reporting the test results in a sorted manner).  In case the test
+methods affect some global variables, add a
+:func:`~unittest.TestCase.tearDown` method to your test class, which
+will be executed after each test method call. See the documentation
+on :class:`~unittest.TestCase` regarding the available assert methods.
+
+To elaborate the example above, the two test methods are executed manually
+(normally, this is done by module :mod:`~hydpy.tests.test_everything`
+automatically).  First prepare an object for the test results:
+
+    >>> result = unittest.result.TestResult()
+
+Then initialize a test object engaging the first test method and run
+all assertions (in this case, there is only one assertion per method):
+
+    >>> tester = Test01DateInitialization('test_01_os_style_day')
+    >>> tester.run(result)
+
+Now do the same for the second test method:
+
+    >>> tester = Test01DateInitialization('test_02_os_style_hour')
+    >>> tester.run(result)
+
+The test result object tells us, that two tests have been executed, that
+no (unexpected) error occured and that one test failed:
+
+    >>> result
+    <unittest.result.TestResult run=2 errors=0 failures=1>
+
+Here is the reason for the intentional failure of this example:
+
+    >>> print(result.failures[0][-1].split('\n')[-2])
+    AssertionError: datetime.datetime(1996, 11, 1, 12, 0) != datetime.datetime(1997, 11, 1, 12, 0)
+
+
+Doctests
+--------
+
+Continuous Integration
+----------------------
+
+Test Coverage
+-------------
 
 See the latest :download:`coverage report <coverage.html>`.

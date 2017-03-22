@@ -17,16 +17,16 @@ class Test01DateInitialization(unittest.TestCase):
 
     def test_01_os_style_day(self):
         self.assertEqual(self.refdate_day,
-                         timetools.Date('1996-11-01').datetime)
-    def test_02_os_style_day(self):
+                         timetools.Date('1996_11_01').datetime)
+    def test_02_os_style_hour(self):
         self.assertEqual(self.refdate_hour,
-                         timetools.Date('1996-11-01-12').datetime)
+                         timetools.Date('1996_11_01_12').datetime)
     def test_03_os_style_minute(self):
         self.assertEqual(self.refdate_minute,
-                         timetools.Date('1996-11-01-12-30').datetime)
+                         timetools.Date('1996_11_01_12_30').datetime)
     def test_03_os_style_second(self):
         self.assertEqual(self.refdate_second,
-                         timetools.Date('1996-11-01-12-30-05').datetime)
+                         timetools.Date('1996_11_01_12_30_05').datetime)
 
     def test_04_iso_style_day(self):
         self.assertEqual(self.refdate_day,

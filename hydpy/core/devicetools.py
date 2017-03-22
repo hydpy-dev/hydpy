@@ -243,7 +243,7 @@ class Element(Device):
             self.inlets = connectiontools.Connections(self)
             self.outlets = connectiontools.Connections(self)
             self.receivers = connectiontools.Connections(self)
-            self.senders =connectiontools. Connections(self)
+            self.senders = connectiontools. Connections(self)
             self.model = None
             cls._registry[name] = self
         cls._selection[name] = cls._registry[name]
@@ -282,7 +282,7 @@ class Element(Device):
                 self.receivers += receiver
                 receiver.exits += self
         if senders is not None:
-            for (name, sender) in Nodes(self.senders):
+            for (name, sender) in Nodes(senders):
                 if sender in self.receivers:
                     raise ValueError('For element `%s`, the given sender node '
                                      '`%s` is already defined as an receiver, '

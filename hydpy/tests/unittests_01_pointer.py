@@ -201,9 +201,7 @@ class TestNumericConversion(object):
     def test_int(self):
         self.assertEqual(int(self.d_x),
                          int(self.f_x))
-    def test_long(self):
-        self.assertEqual(long(self.d_x),
-                         long(self.f_x))
+
     def test_float(self):
         self.assertEqual(float(self.d_x),
                          float(self.f_x))

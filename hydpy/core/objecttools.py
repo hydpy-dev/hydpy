@@ -413,20 +413,6 @@ class ValueMath(object):
         self.value = self.__mul__(other)
         return self
 
-    def __div__(self, other):
-        try:
-            return self.value / self._arithmetic_conversion(other)
-        except BaseException:
-            self._arithmetic_exception('divide', other)
-    def __rdiv__(self, other):
-        try:
-            return self._arithmetic_conversion(other) / self.value
-        except BaseException:
-            self._arithmetic_exception('divide', other)
-    def __idiv__(self, other):
-        self.value = self.__div__(other)
-        return self
-
     def __truediv__(self, other):
         try:
             return self.value / self._arithmetic_conversion(other)

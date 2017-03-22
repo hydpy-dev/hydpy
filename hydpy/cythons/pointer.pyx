@@ -84,7 +84,7 @@ and comparision which await :class:`bool` objects). Some examples::
     z = -x % ~py
     print type(z), z
     # Some type conversion:
-    print str(x), int(px), long(y), float(py)
+    print str(x), int(px), float(py)
     # Some comparisions:
     print x > 1., x <= px, px == py
     # Some in-place operations:
@@ -196,9 +196,6 @@ cdef class DoubleBase(object):
 
     def __mul__(x, y):
         return conv2double(x) * conv2double(y)
-
-    def __div__(x, y):
-        return conv2double(x) / conv2double(y)
 
     def __floordiv__(x, y):
         return conv2double(x) // conv2double(y)

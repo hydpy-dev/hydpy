@@ -724,22 +724,14 @@ class Period(object):
         self.timedelta *= value
         return self
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         if isinstance(other, int):
-            return Period(self.timedelta.__div__(other))
+            return Period(self.timedelta // other)
         else:
             return self.seconds / Period(other).seconds
 
-    def __idiv__(self, value):
-        timedelta = self.timedelta.__div__(value)
-        self.timedelta = Period(timedelta).timedelta
-        return self
-
-    def __truediv__(self, other):
-        return self.__div__(other)
-
     def __itruediv__(self, value):
-        return self.__idiv__(value)
+        return self / value
 
     def __mod__(self, other):
         return (self.seconds % Period(other).seconds) != 0.

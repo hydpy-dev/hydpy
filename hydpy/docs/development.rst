@@ -666,7 +666,7 @@ all assertions (in this case, there is only one assertion per method):
 Now do the same for the second test method:
 
     >>> tester = Test01DateInitialization('test_02_os_style_hour')
-    >>> tester.run(result)
+    >>> _ = tester.run(result)
 
 The test result object tells us, that two tests have been executed, that
 no (unexpected) error occured and that one test failed:
@@ -678,6 +678,7 @@ Here is the reason for the intentional failure of this example:
 
     >>> print(result.failures[0][-1].split('\n')[-2])
     AssertionError: datetime.datetime(1996, 11, 1, 12, 0) != datetime.datetime(1997, 11, 1, 12, 0)
+
 
 
 Doctests

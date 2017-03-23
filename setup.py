@@ -90,7 +90,7 @@ if install:
         sys.exit(1)
     # Prepare coverage report and prepare it for sphinx.
     if coverage_report:
-        os.system('coverage report -m')
+        os.system('coverage report -m --skip-covered')
         os.system('coverage xml')
         os.system('pycobertura show --format html '
                   '--output coverage.html coverage.xml')

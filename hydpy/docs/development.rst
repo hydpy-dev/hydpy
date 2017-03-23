@@ -26,7 +26,8 @@
 .. _Sphinx: http://www.sphinx-doc.org/en/stable/
 .. _master branch: https://github.com/tyralla/hydpy/tree/master
 .. _gh-pages branch: https://github.com/tyralla/hydpy/tree/gh-pages
-
+.. _travis-sphinx: https://github.com/Syntaf/travis-sphinx
+.. _Coverage.py: https://coverage.readthedocs.io/en/coverage-4.3.4/
 .. _development:
 
 Development
@@ -76,7 +77,7 @@ fall back on an older code version whenever some current changes turned
 out to be a dead end.
 
 For HydPy, we selected the version control software Git for these tasks.
-The main Git `repository`_ is available on `GitHub`_.  So the first
+The main `GitHub repository`_ is available on `GitHub`_.  So the first
 step should be to sing up for a `free GitHub account`_.  After that,
 you could contribute to HydPy online without to install anything on
 your own computer.  If your only aim is to improve the documentation,
@@ -90,9 +91,9 @@ if working directy online on GitHub or with your local Git software.  For
 simplicity and generality, these steps are explained using the example
 of a single change to the documentation via GitHub:
 
-  * Go to `repository`_ and click on "Fork".  On this way you create
-    your own HydPy repository, allowing you to add, change, or delete
-    any files without interfering in the original repository.
+  * Go to this `GitHub repository`_ and click on "Fork".  This is how you
+    create your own working copy of HydPy, allowing you to add, change,
+    or delete any files without interfering in the original repository.
   * Click on "Branch: master", type a name that reflects what you want
     to accomplish and press enter. Now that you have created a new
     branch, you can experiment without affecting the orginal branch or your
@@ -802,13 +803,36 @@ In case of occuring problems, e.g. due to faulty inline markup, the
 total build (including all Python versions) is regarded as defective.
 This assures that each new HydPy version is a accompanied by a
 functioning online documentation.  If nothing goes wrong, the
-final html pages are pushed to the `gh-pages branch`_ automatically,
-meaning, that this `online documentation`_ is updated immediatelly.
-This deploy process is restricted to the `master branch`_ of the main
-development line and a disabled pull request option for savety reasons.
+`travis-sphinx`_ script is used to push thefinal html pages to the
+`gh-pages branch`_ automatically, meaning, that this
+`online documentation`_ is updated immediately.  This deploy process
+is restricted to the `master branch`_ of the main development line
+and has disabled pull request option for savety reasons.
 
 
 Test Coverage
 -------------
 
-See the latest :download:`coverage report <coverage.html>`.
+This is the latest:download:`coverage report <coverage.html>`.
+
+One can never be sure, that all important aspects of a software
+application are checked properly (instead, one can be quite certain,
+one has always missed something...).  However, one can at least evaluate
+the runtime behaviour of the tests themselves in order to find out
+which code sections they do invoke and which not.  HydPy's
+`Travis CI project`_ has been configured to perform such an evaluation
+automatically for each build process based on `Coverage.py`_.  The
+resulting html report is linked to this `online documentation`_
+automatically.
+
+The coverage report does only include modules with a percentage
+coverage less than 100 %, as only those need further attention.
+If a code section is covered one can at least be sure, that it does
+not cause an unhandled exception or a total program crash on the
+applied Python versions. But one cannot be sure, that the test(s)
+actually covering the code section are meaningful.
+
+Note that the coverage analysis is performed on Python 2.7 only.
+Hence code sections only relevant for Python 3 might be reported
+as uncovered erroneously.
+

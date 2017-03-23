@@ -1,5 +1,6 @@
 .. _GitHub: https://github.com
-.. _repository: https://github.com/tyralla/hydpy
+.. _GitHub repository: https://github.com/tyralla/hydpy
+.. _online documentation: https://tyralla.github.io/hydpy/
 .. _hydpy package: https://pypi.python.org/pypi
 .. _Python Package Index: https://pypi.python.org/pypi
 .. _Python tutorials: https://www.python.org/about/gettingstarted/
@@ -14,17 +15,25 @@
 .. _free GitHub account: https://github.com/signup/free
 .. _source tree: https://www.sourcetreeapp.com/
 .. _Pro Git: https://progit2.s3.amazonaws.com/en/2016-03-22-f3531/progit-en.1084.pdf
+.. _How to Rebase a Pull Request: https://github.com/edx/edx-platform/wiki/How-to-Rebase-a-Pull-Request
 .. _Python 2-3 cheat sheet: http://python-future.org/compatible_idioms.html
 .. _PyPy: https://pypy.org/
 .. _mock object library: https://docs.python.org/3/library/unittest.mock.html
 .. _reStructuredText: http://docutils.sourceforge.net/rst.html
+.. _Travis CI: https://travis-ci.com/
+.. _Travis CI project: https://travis-ci.org/tyralla/hydpy
+.. _test future Python: https://snarky.ca/how-to-use-your-project-travis-to-help-test-python-itself/
+.. _Sphinx: http://www.sphinx-doc.org/en/stable/
+.. _master branch: https://github.com/tyralla/hydpy/tree/master
+.. _gh-pages branch: https://github.com/tyralla/hydpy/tree/gh-pages
+
 .. _development:
 
 Development
 ===========
 
 You can install HydPy from the `hydpy package`_ available on the
-`Python package index`_ or fork from this `repository`_ available
+`Python package index`_ or fork from this `GitHub repository`_ available
 on `GitHub`_.  Afterwards, you can implement your own models or
 change the frameworks structure in a manner that meets your personal
 goals and preferences.  There are many other Python tools freely
@@ -118,11 +127,14 @@ that is clearly explained.  Otherwise your contribution is likely to be
 refused.
 
 Of course, it is not always as easy as in the given example.  Not only
-your branches, but also those of the forks you want to contribute to
-evolve.  Often, you will have to retrieve changes from the main branch
-and eventually resolve some conflicts before you can make "good" pull
-request.  See much more thorough explanations as `Pro Git`_ on how to
-improve your skills in using Git.
+your branches, but also the main line of development evolves.  Often,
+you will have to retrieve changes from the main branch and eventually
+resolve some conflicts before you can make "good" pull request.  See
+much more thorough explanations as `Pro Git`_ on how to improve your
+skills in using Git.  Here is a very nice description on
+`How to Rebase a Pull Request`_ (this could be good starting point for
+explaining how to add newly developed models into the main line in
+this documentation).
 
 HydPy Style Guide
 _________________
@@ -721,12 +733,12 @@ doctests the documentation includes, the merrier the danger of
 retaining outdated documentation sections.  In order to keep an
 eye on a concrete example: as long as this three-line doctest...
 
-    >>> from hydpy import models
-    >>> type(models)
-    <type 'module'>
+    >>> from hydpy.core import objecttools
+    >>> objecttools.classname(objecttools)
+    'module'
 
 ...remains in the documentation, one can be sure that the current
-HydPy framework contains a package named `models`.
+core package contains a module named `objecttools`.
 
 To support the frequent usage of doctests, one is allowed to use
 them at any section of the documentation, accepting possible
@@ -738,6 +750,63 @@ in the package hydpy and executes them.
 
 Continuous Integration
 ----------------------
+
+To improve the code base of HydPy, you need your own working copy
+(your own fork, see section `How to contribute?`_).  The existance
+of multiple working copies inevitably leads to the danger of
+integration problems, meaning that different changes in different
+working copies lead to source code incompatibilities.  To reduce
+this risk, the different working copies should be merged `continously`.
+This decreases the likelihood of simultaneous changes to the same
+code sections and keeps the complexity of possible conflicts to
+a minimum.
+
+The current (online) development of HydPy relies, besides `GitHub`_,
+on `Travis CI`_.  `Travis CI`_ is a hosted, distributed continuous
+integration service.  This `Travis CI project`_ has been been linked
+to HydPy's `GitHub repository`_.  It is configured to accomplish
+the following tasks for each new commit or pull request:
+
+  * Install HydPy on the Debian based Linux operating system Ubuntu using
+    different versions of CPython.
+  * Cythonize all implemented models on the different Python versions.
+  * Execute all `conventional` unit tests and all doctests on the
+    different Python versions.
+  * Prepare a `Test Coverage`_ report based on Python 2.7.
+  * Update this `online documentation`_ based on Python 2.7.
+
+Installation and testing is performed using Python 2.7, 3.4, 3.5 and 3.6.
+2.7 still seems to be the Python version most frequently used by scientists.
+Python versions 3.0 to 3.3 do not seem to be of great importance anymore.
+Additionally, installation and testing is performed using the development
+branches of version 3.5, 3.6 and (the still not released) version 3.7.
+This offers the advantage of anticipating future problems and to
+`test future Python`_ itself, possibly helping to avoid future bugs.
+
+Whenever one single test fails under one single Python version, the total
+process (build) is regarded as defective and will not be merged into
+the master branch of the main fork.  The same is true, of course, when
+one installation process itself fails.  So make sure all your changes
+are compatible with each selected Python version.  But, in accordance with
+one of Python's principle, it is easier to ask for forgiveness than
+permission: let Travis evaluate your current working branch and see what
+happens...
+
+Not only the source code, but also the contributed documentation
+text is checked in two ways. Doctesting is discussed above and always
+performed using each mentioned Python version.  Additionally, when
+using  Python 2.7 the properness of the whole documentation text is
+considered. `Sphinx`_ is applied to create the html pages of this
+`online documentation`_ based on the given `reStructuredText`_ files.
+In case of occuring problems, e.g. due to faulty inline markup, the
+total build (including all Python versions) is regarded as defective.
+This assures that each new HydPy version is a accompanied by a
+functioning online documentation.  If nothing goes wrong, the
+final html pages are pushed to the `gh-pages branch`_ automatically,
+meaning, that this `online documentation`_ is updated immediatelly.
+This deploy process is restricted to the `master branch`_ of the main
+development line and a disabled pull request option for savety reasons.
+
 
 Test Coverage
 -------------

@@ -80,7 +80,8 @@ if install:
     import hydpy.tests
     os.chdir(os.sep.join(hydpy.tests.__file__.split(os.sep)[:-1]))
     exitcode = int(os.system('coverage run -m --branch '
-                             '--source hydpy test_everything'))
+                             '--source hydpy --omit=test_everything.py '
+                             'test_everything'))
     if exitcode:
         print('Use this HydPy version with caution on your system.  At '
               'least one verification test failed.  You should see in the '

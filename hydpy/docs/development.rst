@@ -813,7 +813,7 @@ and has disabled pull request option for savety reasons.
 Test Coverage
 -------------
 
-This is the latest:download:`coverage report <coverage.html>`.
+This is the :download:`latest coverage report <coverage.html>`.
 
 One can never be sure, that all important aspects of a software
 application are checked properly (instead, one can be quite certain,

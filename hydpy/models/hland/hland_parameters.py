@@ -7,17 +7,16 @@ from __future__ import division, print_function
 import numpy
 # ...HydPy specific
 from hydpy.core import parametertools
-from hydpy.core import objecttools
 # ...model specific
-from hydpy.models.hland.hland_constants import FIELD, FOREST, GLACIER, ILAKE, CONSTANTS
+from hydpy.models.hland.hland_constants import FIELD, FOREST, ILAKE, GLACIER, CONSTANTS
 
 
-class MultiParameter(parametertools.MultiParameter):
-    """Base class for handling parameters of the hland model (potentially)
-    handling multiple values.
+class MultiParameter(parametertools.ZipParameter):
+    """Base class for handling parameters of the HydPy-H-Land model
+    (potentially) handling multiple values.
 
-    In addition to the call method of
-    :class:`~hydpy.core.parametertools.MultiParameter`, the optional
+    Due to inheriting from :class:`~hydpy.core.parametertools.ZipParameter`,
+    additional keyword zipping functionality is offered.  The optional
     `kwargs` are checked for the keywords `field`, `forest`, `glacier`,
     `ilake,` and `default`.  If available, the respective values are used to
     define the values of those 1-dimensional arrays, whose entries are related
@@ -27,14 +26,26 @@ class MultiParameter(parametertools.MultiParameter):
 
     Examples:
 
-        Prepare a :class:`MultiParameter` instance containing five
-        entries, connected to different zone types:
+        Prepare a :class:`MultiParameter` instance:
 
+        >>> from hydpy.models.hland.hland_parameters import MultiParameter
         >>> from hydpy.models.hland import *
         >>> parameterstep('1d')
         >>> mp = MultiParameter()
         >>> mp.DIM, mp.TYPE, mp.TIME = 1, float, None
         >>> mp.subpars = model.parameters.control
+
+        Usually, one would indirectly define it shape through parameter
+        :class:`~hydpy.models.hland.hland_control.NmbZones`:
+
+        >>> mp.shape
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Shape information for parameter `multiparameter` can only be retrieved after it has been defined.  You can do this manually, but usually it is done automatically by defining the value of parameter `nmbzones` first in each parameter control file.
+
+        But here it is set manually to the value 5 for representing
+        five different zone types:
+
         >>> zonetype.shape = 5
         >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, FIELD)
         >>> mp.shape = 5
@@ -81,7 +92,7 @@ class MultiParameter(parametertools.MultiParameter):
     Another feature of :class:`MultiParameter` is that it relates the property
     :func:`~MultiParameter.verifymask` to the defined zone types.
     This requires the definition of the class attribute
-    :const:`~MultiParameter.RELEVANTZONETYPES` for :class:`MultiParameter`
+    :const:`~MultiParameter.REQUIRED_VALUES` for :class:`MultiParameter`
     subclasses.
 
     Examples:
@@ -89,55 +100,34 @@ class MultiParameter(parametertools.MultiParameter):
         When values for all zone types are required, all entries of the
         verification mask are `True`:
 
-        >>> mp.RELEVANTZONETYPES = (FIELD, FOREST, GLACIER, ILAKE)
+        >>> mp.REQUIRED_VALUES = (FIELD, FOREST, GLACIER, ILAKE)
         >>> mp.verifymask
         array([ True,  True,  True,  True,  True], dtype=bool)
 
         When values for field and forest zones are required only, the
         entries related to glacier and ilake zones are `False`:
 
-        >>> mp.RELEVANTZONETYPES = (FIELD, FOREST)
+        >>> mp.REQUIRED_VALUES = (FIELD, FOREST)
         >>> mp.verifymask
         array([ True,  True, False, False,  True], dtype=bool)
 
     """
-    RELEVANTZONETYPES = (FIELD, FOREST, GLACIER, ILAKE)
+    REQUIRED_VALUES = (FIELD, FOREST, GLACIER, ILAKE)
+    MODEL_CONSTANTS = CONSTANTS
 
-    def __call__(self, *args, **kwargs):
-        """The prefered way to pass values to :class:`Parameter` instances
-        within parameter control files.
+    @property
+    def refparameter(self):
+        """Alias for the associated instance of
+        :class:`~hydpy.models.hland.hland_control.ZoneType`.
         """
-        try:
-            parametertools.Parameter.__call__(self, *args, **kwargs)
-        except NotImplementedError as exc:
-            if kwargs:
-                zonetype = self.subpars.zonetype.values
-                if min(zonetype) < 0:
-                    raise RuntimeError('Parameter zonetype does not seem to '
-                                       'be prepared properly for element %s.  '
-                                       'Hence, setting values for parameter '
-                                       '%s via keyword arguments is not '
-                                       'possible.'
-                                       % (objecttools.devicename(self),
-                                          self.name))
-                self.values = kwargs.pop('default', numpy.nan)
-                for (key, value)  in kwargs.items():
-                    sel = CONSTANTS.get(key.upper())
-                    if sel is None:
-                        raise exc
-                    else:
-                        self.values[zonetype == sel] = value
-                self.values = self.applytimefactor(self.values)
-                self.trim()
-            else:
-                raise exc
+        return self.subpars.pars.control.zonetype
 
     def _getshape(self):
         """Return a tuple containing the lengths in all dimensions of the
         parameter values.
         """
         try:
-            return parametertools.MultiParameter._getshape(self)
+            return parametertools.ZipParameter._getshape(self)
         except RuntimeError:
             raise RuntimeError('Shape information for parameter `%s` can '
                                'only be retrieved after it has been defined. '
@@ -145,92 +135,46 @@ class MultiParameter(parametertools.MultiParameter):
                                'done automatically by defining the value of '
                                'parameter `nmbzones` first in each parameter '
                                'control file.' % self.name)
-    shape = property(_getshape, parametertools.MultiParameter._setshape)
-
-    def _getverifymask(self):
-        """A numpy array of the same shape as the value array handled
-        by the respective parameter.  `True` entries indicate that certain
-        parameter values are required, which depends on the tuple
-        :const:`~MultiParameter.RELEVANTZONETYPES` of the respective subclass.
-        For :class:`MultiParameter` itself, all values are considered to be
-        necessary.
-        """
-        mask = numpy.full(self.shape, False, dtype=bool)
-        zonetype = self.subpars.pars.control.zonetype.values
-        for relevanttype in self.RELEVANTZONETYPES:
-            mask[zonetype == relevanttype] = True
-        return mask
-    verifymask = property(_getverifymask)
-
-    def compressrepr(self):
-        """Returns a compressed parameter value string, which is (in
-        accordance with :attr:`~MultiParameter.NDIM`) contained in a
-        nested list.  If the compression fails, a
-        :class:`~exceptions.NotImplementedError` is raised.
-        """
-        try:
-            return parametertools.MultiParameter.compressrepr(self)
-        except NotImplementedError as exc:
-            results = []
-            zonetype = self.subpars.pars.control.zonetype.values
-            if min(zonetype) < 1:
-                raise NotImplementedError('Parameter zonetype is not defined '
-                                          'poperly, which circumvents finding '
-                                          'a suitable compressed.')
-            for (key, value) in CONSTANTS.items():
-                if value in self.RELEVANTZONETYPES:
-                    unique = numpy.unique(self.values[zonetype == value])
-                    unique = self.reverttimefactor(unique)
-                    if len(unique) == 1:
-                        results.append('%s=%s'
-                                       % (key.lower(), repr(unique[0])))
-                    elif len(unique) > 1:
-                        raise exc
-            result = ', '.join(sorted(results))
-            for idx in range(self.NDIM):
-                result = [result]
-            return result
-
+    shape = property(_getshape, parametertools.ZipParameter._setshape)
 
 class MultiParameterSoil(MultiParameter):
     """Base class for handling parameters of the hland model (potentially)
     handling multiple values relevant for `soil zones` (and interception).
     """
-    RELEVANTZONETYPES = (FIELD, FOREST)
-
+    REQUIRED_VALUES = (FIELD, FOREST)
 
 class MultiParameterLand(MultiParameter):
     """Base class for handling parameters of the hland model (potentially)
     handling multiple values relevant for all `land zones`.
     """
-    RELEVANTZONETYPES = (FIELD, FOREST, GLACIER)
+    REQUIRED_VALUES = (FIELD, FOREST, GLACIER)
 
 class MultiParameterLake(MultiParameter):
     """Base class for handling parameters of the hland model (potentially)
     handling multiple values relevant for `lake zones` only.
     """
-    RELEVANTZONETYPES = (ILAKE,)
+    REQUIRED_VALUES = (ILAKE,)
 
 class MultiParameterGlacier(MultiParameter):
     """Base class for handling parameters of the hland model (potentially)
     handling multiple values relevant for `glacier zones` only.
     """
-    RELEVANTZONETYPES = (GLACIER,)
+    REQUIRED_VALUES = (GLACIER,)
 
 class MultiParameterNoGlacier(MultiParameter):
     """Base class for handling parameters of the hland model (potentially)
     handling multiple values relevant for `glacier free zones` only.
     """
-    RELEVANTZONETYPES = (FIELD, FOREST, ILAKE)
+    REQUIRED_VALUES = (FIELD, FOREST, ILAKE)
 
 class Parameters(parametertools.Parameters):
     """All parameters of the hland model."""
 
     def update(self):
-        """Determines the values of the parameters handled by
+        """Determine the values of the parameters handled by
         :class:`DerivedParameters` based on the values of the parameters
         handled by :class:`ControlParameters`.  The results of the different
-        methods are not interdependend --- their order could be changed.
+        methods are not interdependend, meaning their order could be changed.
         """
         self.calc_relzonearea()
         self.calc_landzonearea()
@@ -258,8 +202,7 @@ class Parameters(parametertools.Parameters):
             >>> nmbzones(1)
             >>> zonearea(1111.)
             >>> model.parameters.calc_relzonearea()
-            >>> der = model.parameters.derived
-            >>> der.relzonearea
+            >>> derived.relzonearea
             relzonearea(1.0)
 
             An example for three zones of different sizes:
@@ -267,7 +210,7 @@ class Parameters(parametertools.Parameters):
             >>> nmbzones(3)
             >>> zonearea(1., 3., 2.)
             >>> model.parameters.calc_relzonearea()
-            >>> der.relzonearea
+            >>> derived.relzonearea
             relzonearea(0.166667, 0.5, 0.333333)
 
         """
@@ -303,10 +246,9 @@ class Parameters(parametertools.Parameters):
             >>> area(100.)
             >>> zonearea(25., 25., 50.)
             >>> model.parameters.calc_landzonearea()
-            >>> der = model.parameters.derived
-            >>> der.rellandarea
+            >>> derived.rellandarea
             rellandarea(1.0)
-            >>> der.rellandzonearea
+            >>> derived.rellandzonearea
             rellandzonearea(field=0.25, forest=0.25, glacier=0.5)
 
             With one zone beeing a lake zone, the relative "land area" is
@@ -315,18 +257,18 @@ class Parameters(parametertools.Parameters):
 
             >>> zonetype(FIELD, FOREST, ILAKE)
             >>> model.parameters.calc_landzonearea()
-            >>> der.rellandarea
+            >>> derived.rellandarea
             rellandarea(0.5)
-            >>> der.rellandzonearea
+            >>> derived.rellandzonearea
             rellandzonearea(field=0.5, forest=0.5, ilake=0.0)
 
             With all zones beeing lake zones, all relative areas are zero:
 
             >>> zonetype(ILAKE, ILAKE, ILAKE)
             >>> model.parameters.calc_landzonearea()
-            >>> der.rellandarea
+            >>> derived.rellandarea
             rellandarea(0.0)
-            >>> der.rellandzonearea
+            >>> derived.rellandzonearea
             rellandzonearea(0.0)
 
         """
@@ -369,10 +311,9 @@ class Parameters(parametertools.Parameters):
             >>> area(100.)
             >>> zonearea(25., 25., 25., 25.)
             >>> model.parameters.calc_soilarea()
-            >>> der = model.parameters.derived
-            >>> der.relsoilarea
+            >>> derived.relsoilarea
             relsoilarea(1.0)
-            >>> der.relsoilzonearea
+            >>> derived.relsoilzonearea
             relsoilzonearea(0.25)
 
             With one zone beeing a lake zone one one zone beeing a glacier
@@ -382,9 +323,9 @@ class Parameters(parametertools.Parameters):
 
             >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
             >>> model.parameters.calc_soilarea()
-            >>> der.relsoilarea
+            >>> derived.relsoilarea
             relsoilarea(0.5)
-            >>> der.relsoilzonearea
+            >>> derived.relsoilzonearea
             relsoilzonearea(field=0.5, forest=0.5, glacier=0.0, ilake=0.0)
 
             With all zones beeing lake or glacier zones, all relative areas
@@ -392,9 +333,9 @@ class Parameters(parametertools.Parameters):
 
             >>> zonetype(GLACIER, GLACIER, ILAKE, ILAKE)
             >>> model.parameters.calc_soilarea()
-            >>> der.relsoilarea
+            >>> derived.relsoilarea
             relsoilarea(0.0)
-            >>> der.relsoilzonearea
+            >>> derived.relsoilzonearea
             relsoilzonearea(0.0)
 
         """
@@ -431,7 +372,7 @@ class Parameters(parametertools.Parameters):
             >>> tt(1.)
             >>> dttm(-2.)
             >>> model.parameters.calc_ttm()
-            >>> model.parameters.derived.ttm
+            >>> derived.ttm
             ttm(-1.0)
 
         """
@@ -459,11 +400,11 @@ class Parameters(parametertools.Parameters):
             >>> simulationstep('12h', warn=False)
             >>> recstep(2.)
             >>> model.parameters.calc_dt()
-            >>> model.parameters.derived.dt
+            >>> derived.dt
             dt(1.0)
             >>> recstep(10.)
             >>> model.parameters.calc_dt()
-            >>> model.parameters.derived.dt
+            >>> derived.dt
             dt(0.2)
 
             Note that the value assigned to recstep is related to the given
@@ -501,7 +442,7 @@ class Parameters(parametertools.Parameters):
             >>> simulationstep('12h', warn=False)
             >>> area(50.)
             >>> model.parameters.calc_qfactor()
-            >>> model.parameters.derived.qfactor
+            >>> derived.qfactor
             qfactor(1.157407)
 
         """
@@ -537,13 +478,11 @@ class Parameters(parametertools.Parameters):
             >>> simulationstep('12h', warn=False)
             >>> maxbaz(0.)
             >>> model.parameters.calc_nmbuh_uh()
-            >>> der = model.parameters.derived
-            >>> der.nmbuh
+            >>> derived.nmbuh
             nmbuh(1)
-            >>> log = model.sequences.logs
-            >>> log.quh.shape
+            >>> logs.quh.shape
             (1,)
-            >>> der.uh
+            >>> derived.uh
             uh(1.0)
 
             Note that, due to difference of the parameter and the simulation
@@ -552,11 +491,11 @@ class Parameters(parametertools.Parameters):
 
             >>> maxbaz(0.5)
             >>> model.parameters.calc_nmbuh_uh()
-            >>> der.nmbuh
+            >>> derived.nmbuh
             nmbuh(1)
-            >>> log.quh.shape
+            >>> logs.quh.shape
             (1,)
-            >>> der.uh
+            >>> derived.uh
             uh(1.0)
 
             When MaxBaz is in accordance with two simulation steps, both
@@ -565,11 +504,11 @@ class Parameters(parametertools.Parameters):
 
             >>> maxbaz(1.)
             >>> model.parameters.calc_nmbuh_uh()
-            >>> der.nmbuh
+            >>> derived.nmbuh
             nmbuh(2)
-            >>> log.quh.shape
+            >>> logs.quh.shape
             (2,)
-            >>> der.uh
+            >>> derived.uh
             uh(0.5)
 
             A MaxBaz value in accordance with three simulation steps results
@@ -578,11 +517,11 @@ class Parameters(parametertools.Parameters):
 
             >>> maxbaz(1.5)
             >>> model.parameters.calc_nmbuh_uh()
-            >>> der.nmbuh
+            >>> derived.nmbuh
             nmbuh(3)
-            >>> log.quh.shape
+            >>> logs.quh.shape
             (3,)
-            >>> der.uh
+            >>> derived.uh
             uh(0.222222, 0.555556, 0.222222)
 
             And a final example, where the end of the triangle lies within
@@ -591,11 +530,11 @@ class Parameters(parametertools.Parameters):
 
             >>> maxbaz(1.75)
             >>> model.parameters.calc_nmbuh_uh()
-            >>> der.nmbuh
+            >>> derived.nmbuh
             nmbuh(4)
-            >>> log.quh.shape
+            >>> logs.quh.shape
             (4,)
-            >>> der.uh
+            >>> derived.uh
             uh(0.163265, 0.469388, 0.326531, 0.040816)
 
         """

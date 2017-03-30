@@ -50,70 +50,68 @@ class Model(modeltools.Model):
 
             >>> from hydpy.models.hstream import *
             >>> parameterstep('1d')
-            >>> der = model.parameters.derived
-            >>> der.nmbsegments(4)
-            >>> qjoints = model.sequences.states.qjoints
-            >>> qjoints.shape = 5
+            >>> derived.nmbsegments(4)
+            >>> states.qjoints.shape = 5
 
             Zero damping is achieved through the following coefficients:
 
-            >>> der.c1(0.)
-            >>> der.c2(1.)
-            >>> der.c3(0.)
+            >>> derived.c1(0.)
+            >>> derived.c2(1.)
+            >>> derived.c3(0.)
 
             For initialization, assume a base flow of 2m³/s:
 
-            >>> qjoints.old = 2.
-            >>> qjoints.new = 2.
+            >>> states.qjoints.old = 2.
+            >>> states.qjoints.new = 2.
 
             Through successive assignements of different discharge values
             to the upper junction one can see, that these discharge values
             are simply shifted from each junction to the respective lower
             junction at each time step:
 
-            >>> qjoints[0] = 5.
+            >>> states.qjoints[0] = 5.
             >>> model.run(0)
             >>> model.new2old()
-            >>> qjoints
+            >>> states.qjoints
             qjoints(5.0, 2.0, 2.0, 2.0, 2.0)
-            >>> qjoints[0] = 8.
+            >>> states.qjoints[0] = 8.
             >>> model.run(1)
             >>> model.new2old()
-            >>> qjoints
+            >>> states.qjoints
             qjoints(8.0, 5.0, 2.0, 2.0, 2.0)
-            >>> qjoints[0] = 6.
+            >>> states.qjoints[0] = 6.
             >>> model.run(1)
             >>> model.new2old()
-            >>> qjoints
+            >>> states.qjoints
             qjoints(6.0, 8.0, 5.0, 2.0, 2.0)
 
             With the maximum damping allowed, the values of the derived
             parameters are:
 
-            >>> der.c1(.5)
-            >>> der.c2(.0)
-            >>> der.c3(.5)
+            >>> derived.c1(.5)
+            >>> derived.c2(.0)
+            >>> derived.c3(.5)
 
             Assuming again a base flow of 2m³/s and the same input values
             results in:
 
-            >>> qjoints.old = 2.
-            >>> qjoints.new = 2.
+            >>> states.qjoints.old = 2.
+            >>> states.qjoints.new = 2.
 
-            >>> qjoints[0] = 5.
+            >>> states.qjoints[0] = 5.
             >>> model.run(0)
             >>> model.new2old()
-            >>> qjoints
+            >>> states.qjoints
             qjoints(5.0, 3.5, 2.75, 2.375, 2.1875)
-            >>> qjoints[0] = 8.
+            >>> states.qjoints[0] = 8.
             >>> model.run(1)
             >>> model.new2old()
-            >>> qjoints
+            >>> states.qjoints
             qjoints(8.0, 5.75, 4.25, 3.3125, 2.75)
-            >>> qjoints[0] = 6.
+            >>> states.qjoints[0] = 6.
             >>> model.run(1)
             >>> model.new2old()
-            >>> qjoints
+            >>> states.qjoints
             qjoints(6.0, 5.875, 5.0625, 4.1875, 3.46875)
 
         """
@@ -224,12 +222,12 @@ class Parameters(parametertools.Parameters):
             Through rounding the number of segments is determined:
 
             >>> model.parameters.calc_nmbsegments()
-            >>> model.parameters.derived.nmbsegments
+            >>> derived.nmbsegments
             nmbsegments(3)
 
             The number of joints is always the number of segments plus one:
 
-            >>> model.sequences.states.qjoints.shape
+            >>> states.qjoints.shape
             (4,)
 
         """
@@ -262,22 +260,21 @@ class Parameters(parametertools.Parameters):
             >>> parameterstep('1d')
             >>> damp(0.)
             >>> model.parameters.calc_coefficients()
-            >>> der = model.parameters.derived
-            >>> der.c1, der.c2, der.c3
+            >>> derived.c1, derived.c2, derived.c3
             (c1(0.0), c2(1.0), c3(0.0))
 
             The strongest damping is achieved through:
 
             >>> damp(1.)
             >>> model.parameters.calc_coefficients()
-            >>> der.c1, der.c2, der.c3
+            >>> derived.c1, derived.c2, derived.c3
             (c1(0.5), c2(0.0), c3(0.5))
 
             And finally an intermediate example:
 
             >>> damp(.25)
             >>> model.parameters.calc_coefficients()
-            >>> der.c1, der.c2, der.c3
+            >>> derived.c1, derived.c2, derived.c3
             (c1(0.2), c2(0.6), c3(0.2))
 
         """

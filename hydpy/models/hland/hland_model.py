@@ -119,9 +119,9 @@ class Model(modeltools.Model):
             temperature of the second zone by 1.2°C:
 
             >>> tcalt(.6)
-            >>> model.sequences.inputs.t = 5.
+            >>> inputs.t = 5.
             >>> model.calc_tc()
-            >>> model.sequences.fluxes.tc
+            >>> fluxes.tc
             tc(5.0, 3.8)
         """
         con = self.parameters.control.fastaccess
@@ -149,12 +149,11 @@ class Model(modeltools.Model):
             >>> from hydpy.models.hland import *
             >>> parameterstep('1d')
             >>> nmbzones(2)
-            >>> model.parameters.derived.relzonearea(2./3., 1./3.)
+            >>> derived.relzonearea(2./3., 1./3.)
 
             With temperature values of 5°C and 8°C  of the respective zones,
             the mean temperature is 6°C:
 
-            >>> fluxes = model.sequences.fluxes
             >>> fluxes.tc = 5., 8.
             >>> model.calc_tmean()
             >>> fluxes.tmean
@@ -199,7 +198,6 @@ class Model(modeltools.Model):
         >>> nmbzones(7)
         >>> tt(0.)
         >>> ttint(2.)
-        >>> fluxes = model.sequences.fluxes
 
         The fraction of rainfall is zero below -1°C, is one above 1°C and
         increases linearly in between:
@@ -253,7 +251,6 @@ class Model(modeltools.Model):
             >>> from hydpy.models.hland import *
             >>> parameterstep('1d')
             >>> nmbzones(5)
-            >>> fluxes = model.sequences.fluxes
             >>> fluxes.fracrain = 0., .25, .5, .75, 1.
 
             With no rainfall and no snowfall correction (implied by the
@@ -316,7 +313,7 @@ class Model(modeltools.Model):
             >>> nmbzones(5)
             >>> zrelp(2.)
             >>> zonez(3.)
-            >>> model.sequences.inputs.p = 5.
+            >>> inputs.p = 5.
 
             Basic equation:
               :math:`PC = P \\cdot PCorr
@@ -331,7 +328,6 @@ class Model(modeltools.Model):
 
             >>> pcorr(1.3, 1.0, 1.0, 1.0, 1.3)
             >>> pcalt(0.0, 0.1, 0.0, 0.0, 0.1)
-            >>> fluxes = model.sequences.fluxes
             >>> fluxes.rfc = 0.5, 0.5, 0.4, 0.5, 0.4
             >>> fluxes.sfc = 0.5, 0.5, 0.5, 0.7, 0.7
             >>> model.calc_pc()
@@ -384,9 +380,8 @@ class Model(modeltools.Model):
             >>> parameterstep('1d')
             >>> nmbzones(4)
             >>> etf(-0.5, 0.0, 0.1, 0.5)
-            >>> model.sequences.inputs.tn = 20.
-            >>> model.sequences.inputs.epn = 2.
-            >>> fluxes = model.sequences.fluxes
+            >>> inputs.tn = 20.
+            >>> inputs.epn = 2.
 
             With mean temperature equal to norm temperature, actual
             (uncorrected) evaporation is equal to norm evaporation:
@@ -455,7 +450,6 @@ class Model(modeltools.Model):
             >>> nmbzones(4)
             >>> zrele(2.)
             >>> zonez(3.)
-            >>> fluxes = model.sequences.fluxes
             >>> fluxes.ep = 2.
             >>> fluxes.pc = 5.
 
@@ -518,9 +512,7 @@ class Model(modeltools.Model):
             >>> nmbzones(6)
             >>> zonetype(GLACIER, ILAKE, FIELD, FOREST, FIELD, FIELD)
             >>> icmax(2.)
-            >>> fluxes = model.sequences.fluxes
             >>> fluxes.pc = .5
-            >>> states = model.sequences.states
             >>> states.ic = 0., 0., 0., 0., 1., 2.
             >>> model.calc_tf_ic()
 
@@ -604,9 +596,7 @@ class Model(modeltools.Model):
             >>> parameterstep('1d')
             >>> nmbzones(6)
             >>> zonetype(GLACIER, ILAKE, FIELD, FOREST, FIELD, FIELD)
-            >>> fluxes = model.sequences.fluxes
             >>> fluxes.epc = .5
-            >>> states = model.sequences.states
             >>> states.ic = 0., 0., 0., 0., 1., 2.
             >>> model.calc_ei_ic()
 
@@ -685,11 +675,9 @@ class Model(modeltools.Model):
             >>> parameterstep('1d')
             >>> nmbzones(8)
             >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD, FIELD, FIELD)
-            >>> fluxes = model.sequences.fluxes
             >>> fluxes.tf = 10.
             >>> fluxes.sfc = .5, .5, .5, .5, .2, .8, 1., 4.
             >>> fluxes.rfc = .5, .5, .5, .5, .8, .2, 4., 1.
-            >>> states = model.sequences.states
             >>> states.sp = 0.
             >>> states.wc = 0.
             >>> model.calc_sp_wc()
@@ -772,10 +760,8 @@ class Model(modeltools.Model):
             >>> simulationstep('12h', warn=False)
             >>> nmbzones(6)
             >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD)
-            >>> fluxes = model.sequences.fluxes
             >>> cfmax(4.)
-            >>> model.parameters.derived.ttm = 2.
-            >>> states = model.sequences.states
+            >>> derived.ttm = 2.
             >>> states.sp = 0., 10., 10., 10., 5., 0.
             >>> states.wc = 2.
 
@@ -890,11 +876,9 @@ class Model(modeltools.Model):
             >>> simulationstep('12h', warn=False)
             >>> nmbzones(6)
             >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD)
-            >>> fluxes = model.sequences.fluxes
             >>> cfmax(4.)
             >>> cfr(.1)
-            >>> model.parameters.derived.ttm = 2.
-            >>> states = model.sequences.states
+            >>> derived.ttm = 2.
             >>> states.sp = 2.
             >>> states.wc = 0., 1., 1., 1., .5, 0.
 
@@ -1020,9 +1004,7 @@ class Model(modeltools.Model):
             >>> parameterstep('1d')
             >>> nmbzones(6)
             >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD)
-            >>> fluxes = model.sequences.fluxes
             >>> whc(.2)
-            >>> states = model.sequences.states
             >>> states.sp = 0., 10., 10., 10., 5., 0.
 
             When there is no (liquid) water content in the snow layer, no water
@@ -1113,11 +1095,8 @@ class Model(modeltools.Model):
             >>> nmbzones(7)
             >>> zonetype(FIELD, FOREST, ILAKE, GLACIER, GLACIER, GLACIER, GLACIER)
             >>> gmelt(4.)
-            >>> derived = model.parameters.derived
             >>> derived.ttm(2.)
-            >>> states = model.sequences.states
             >>> states.sp = 0., 0., 0., 0., .1, 0., 0.
-            >>> fluxes = model.sequences.fluxes
             >>> fluxes.tc = 3., 3., 3., 3., 3., 2., 1.
             >>> fluxes.in_ = 3.
             >>> model.calc_glmelt_in()
@@ -1180,7 +1159,6 @@ class Model(modeltools.Model):
             >>> nmbzones(6)
             >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD)
             >>> fc(200.)
-            >>> fluxes = model.sequences.fluxes
             >>> fluxes.in_ = 10.
 
             With a common nonlinearity parameter value of 2, a relative
@@ -1192,7 +1170,6 @@ class Model(modeltools.Model):
             always route 100% of their input as effective precipitation:
 
             >>> beta(2.)
-            >>> states = model.sequences.states
             >>> states.sm = 0., 0., 100., 100., 0., 200.
             >>> model.calc_r_sm()
             >>> fluxes.r
@@ -1290,9 +1267,7 @@ class Model(modeltools.Model):
             on the relative soil moisture deficite, if either the upper zone
             layer provides enough water...
 
-            >>> fluxes = model.sequences.fluxes
             >>> fluxes.r = 0.
-            >>> states = model.sequences.states
             >>> states.sm = 0., 0., 100., 100., 0., 200.
             >>> states.uz = 20.
             >>> model.calc_cf_sm()
@@ -1427,10 +1402,8 @@ class Model(modeltools.Model):
             >>> fc(200.)
             >>> lp(.0, .0, .5, .5, .0, .8, 1.)
             >>> ered(0.)
-            >>> fluxes = model.sequences.fluxes
             >>> fluxes.epc = 2.
             >>> fluxes.ei = 1.
-            >>> states = model.sequences.states
             >>> states.sp = 0.
 
             Only fields and forests include soils; for glaciers and zones (the
@@ -1543,9 +1516,7 @@ class Model(modeltools.Model):
             >>> parameterstep('1d')
             >>> nmbzones(3)
             >>> zonetype(FIELD, ILAKE, GLACIER)
-            >>> derived = model.parameters.derived
             >>> derived.rellandzonearea = 2./3., 0., 1./3.
-            >>> fluxes = model.sequences.fluxes
             >>> fluxes.r = 6., 0., 2.
             >>> fluxes.cf = 2., 0., 1.
             >>> model.calc_inuz()
@@ -1606,17 +1577,14 @@ class Model(modeltools.Model):
             >>> beta(2.)
             >>> fc(200.)
             >>> resparea(True)
-            >>> derived = model.parameters.derived
             >>> derived.relsoilarea(.5)
             >>> derived.relsoilzonearea(1./3., 2./3., 0., 0.)
-            >>> states = model.sequences.states
 
             With a relative soil moisture of 100% in the whole subbasin, the
             contributing area is also estimated as 100%,...
 
             >>> states.sm = 200.
             >>> model.calc_contriarea()
-            >>> fluxes = model.sequences.fluxes
             >>> fluxes.contriarea
             contriarea(1.0)
 
@@ -1726,15 +1694,12 @@ class Model(modeltools.Model):
             >>> parameterstep('1d')
             >>> simulationstep('12h', warn=False)
             >>> recstep(2)
-            >>> derived = model.parameters.derived
             >>> derived.dt = 1./recstep
             >>> percmax(2.)
             >>> alpha(1.)
             >>> k(2.)
-            >>> fluxes = model.sequences.fluxes
             >>> fluxes.contriarea = 1.
             >>> fluxes.inuz = 0.
-            >>> states = model.sequences.states
             >>> states.uz = 1.
             >>> model.calc_q0_perc_uz()
             >>> fluxes.perc
@@ -1906,13 +1871,10 @@ class Model(modeltools.Model):
             >>> parameterstep('1d')
             >>> nmbzones(2)
             >>> zonetype(FIELD, FIELD)
-            >>> derived = model.parameters.derived
             >>> derived.rellandarea = 1.
             >>> derived.relzonearea = 2./3., 1./3.
-            >>> fluxes = model.sequences.fluxes
             >>> fluxes.perc = 2.
             >>> fluxes.pc = 5.
-            >>> states = model.sequences.states
             >>> states.lz = 10.
             >>> model.calc_lz()
             >>> states.lz
@@ -1983,12 +1945,9 @@ class Model(modeltools.Model):
             >>> nmbzones(6)
             >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, ILAKE, ILAKE)
             >>> ttice(-1.)
-            >>> derived = model.parameters.derived
             >>> derived.relzonearea = 1./6.
-            >>> fluxes = model.sequences.fluxes
             >>> fluxes.epc = .6
             >>> fluxes.tc = 0., 0., 0., 0., -1., -2.
-            >>> states = model.sequences.states
             >>> states.lz = 10.
             >>> model.calc_el_lz()
             >>> fluxes.el
@@ -2048,10 +2007,8 @@ class Model(modeltools.Model):
             >>> simulationstep('12h', warn=False)
             >>> k4(.2)
             >>> gamma(0.)
-            >>> states = model.sequences.states
             >>> states.lz = -2.
             >>> model.calc_q1_lz()
-            >>> fluxes = model.sequences.fluxes
             >>> fluxes.q1
             q1(0.0)
             >>> states.lz
@@ -2128,8 +2085,7 @@ class Model(modeltools.Model):
 
             >>> from hydpy.models.hland import *
             >>> parameterstep('1d')
-            >>> model.parameters.derived.rellandarea = 0.5
-            >>> fluxes = model.sequences.fluxes
+            >>> derived.rellandarea = 0.5
             >>> fluxes.q0 = 4.
             >>> fluxes.q1 = 1.
             >>> model.calc_inuh()
@@ -2166,11 +2122,9 @@ class Model(modeltools.Model):
 
             >>> from hydpy.models.hland import *
             >>> parameterstep('1d')
-            >>> derived = model.parameters.derived
             >>> derived.nmbuh = 3
             >>> derived.uh.shape = derived.nmbuh
             >>> derived.uh = 0.3, 0.5, 0.2
-            >>> logs = model.sequences.logs
             >>> logs.quh.shape = 3
             >>> logs.quh = 1., 3., 0.
 
@@ -2178,7 +2132,6 @@ class Model(modeltools.Model):
             stored in the logging sequence and the values of the logging
             sequence are shifted to the left:
 
-            >>> fluxes = model.sequences.fluxes
             >>> fluxes.inuh = 0.
             >>> model.calc_outuh_quh()
             >>> fluxes.outuh
@@ -2261,7 +2214,6 @@ class Model(modeltools.Model):
             >>> parameterstep('1d')
             >>> simulationstep('12h', warn=False)
             >>> abstr(2.)
-            >>> fluxes = model.sequences.fluxes
             >>> fluxes.outuh = 2.
             >>> model.calc_qt()
             >>> fluxes.qt

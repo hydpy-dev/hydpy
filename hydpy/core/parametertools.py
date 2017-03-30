@@ -4,7 +4,6 @@
 # ...standard
 from __future__ import division, print_function
 import os
-import sys
 import inspect
 import time
 import copy
@@ -172,7 +171,7 @@ class SubParameters(object):
         return objecttools.dir_(self)
 
 
-class Parameter(objecttools.ValueMath, objecttools.Trimmer):
+class Parameter(objecttools.ValueMath):
     """Base class for :class:`SingleParameter` and :class:`MultiParameter`."""
 
     _parameterstep = None
@@ -299,7 +298,10 @@ class Parameter(objecttools.ValueMath, objecttools.Trimmer):
                                  date1, date2, self._simulationstep)).parfactor
         return parfactor(self.parameterstep)
     timefactor = property(_gettimefactor)
-
+    
+    def trim(self, lower=None, upper=None):
+        objecttools.trim(self, lower, upper)
+        
     def warntrim(self):
         warnings.warn('For parameter %s of element %s at least one value '
                       'needed to be trimmed.  Two possible reasons could be '
@@ -394,23 +396,9 @@ class SingleParameter(Parameter):
                              'it was not possible to convert `%s` to type '
                              '`%s`.' % (self.name, value,
                                         objecttools.classname(self.TYPE)))
-        #self.checkbounds(value)
         setattr(self.fastaccess, self.name, value)
     value = property(_getvalue, _setvalue)
     values = value
-
-#    def checkbounds(self, value):
-#        """Raises a :class:`~exceptions.ValueError` if the given number lies
-#        outside the :attr:`SPAN` of the actual subclass of :class:`Parameter`.
-#        """
-#        if (self.SPAN[0] is not None) and (value < self.SPAN[0]):
-#            raise ValueError('The value of parameter `%s` must not be '
-#                             'less than %s, but the given value is %s.'
-#                             % (self.name, self.SPAN[0], value))
-#        if (self.SPAN[1] is not None) and (value > self.SPAN[1]):
-#            raise ValueError('The value of parameter `%s` must not be '
-#                             'greater than %s, but the given value is %s.'
-#                             % (self.name, self.SPAN[1], value))
 
     def verify(self):
         """Raises a :class:`~exceptions.RuntimeError` if the value of the
@@ -505,25 +493,9 @@ class MultiParameter(Parameter):
                              'ndarray with shape %s containing entries of '
                              'type %s.' % (value, self.shape,
                                            objecttools.classname(self.TYPE)))
-        #self.checkbounds(value)
         setattr(self.fastaccess, self.name, value)
     value = property(_getvalue, _setvalue)
     values = value
-
-#    def checkbounds(self, values):
-#        """Raises a :class:`~exceptions.ValueError` if at least one of given
-#        numbers lies outside the :attr:`SPAN` of the actual subclass of
-#        :class:`Parameter`.
-#        """
-#        minvalue, maxvalue = numpy.nanmin(values), numpy.nanmax(values)
-#        if ((self.SPAN[0] is not None) and  (minvalue < self.SPAN[0])):
-#            raise ValueError('Parameter `%s` must not contain values less'
-#                             'than %s, but the smallest given value is %s.'
-#                             % (self.name, self.SPAN[0], minvalue))
-#        if ((self.SPAN[1] is not None) and (maxvalue > self.SPAN[1])):
-#            raise ValueError('Parameter `%s` must not contain values greater '
-#                             'than %s, but the largest given value is %s.'
-#                               % (self.name, self.SPAN[1], maxvalue))
 
     def _getverifymask(self):
         """A numpy array with all entries being `True` of the same
@@ -640,3 +612,99 @@ class MultiParameter(Parameter):
                                       'parameters, which handle %d-'
                                       'dimensional matrices.' % self.NDIM)
 
+
+class ZipParameter(MultiParameter):
+    """Base class for model parameters handling multiple values that offers
+    additional keyword zipping fuctionality.
+
+    When inheriting an actual parameter class from :class:`ZipParameter` one
+    needs to define suitable class constants
+    :const:`~ZipParameter.REQUIRED_VALUES` (a :class:`tuple`) and
+    :const:`~ZipParameter.MODEL_CONSTANTS` (a :class:`dict`).  Additionally,
+    a property named `refparameter` must be defined.
+
+    The implementation and functioning of subclasses of :class:`ZipParameter`
+    is best illustrated by an example: see the documentation of the class
+    :class:`~hydpy.models.hland.hland_parameters.MultiParameter` of the
+    HydPy-H-Land model.
+    """
+    REQUIRED_VALUES = ()
+    MODEL_CONSTANTS = {}
+
+    def __call__(self, *args, **kwargs):
+        """The prefered way to pass values to :class:`Parameter` instances
+        within parameter control files.
+        """
+        try:
+            Parameter.__call__(self, *args, **kwargs)
+        except NotImplementedError as exc:
+            if kwargs:
+                refvalues = self.refparameter.values
+                if min(refvalues) < 1:
+                    raise RuntimeError('Parameter %s does not seem to '
+                                       'be prepared properly for element %s.  '
+                                       'Hence, setting values for parameter '
+                                       '%s via keyword arguments is not '
+                                       'possible.'
+                                       % (self.refparameter.name,
+                                          objecttools.devicename(self),
+                                          self.name))
+                self.values = kwargs.pop('default', numpy.nan)
+                for (key, value)  in kwargs.items():
+                    sel = self.MODEL_CONSTANTS.get(key.upper())
+                    if sel is None:
+                        raise exc
+                    else:
+                        self.values[refvalues == sel] = value
+                self.values = self.applytimefactor(self.values)
+                self.trim()
+            else:
+                raise exc
+
+    def _getverifymask(self):
+        """A numpy array of the same shape as the value array handled
+        by the respective parameter.  `True` entries indicate that certain
+        parameter values are required, which depends on the tuple
+        :const:`REQUIRED_VALUES` of the respective subclass.
+        """
+        mask = numpy.full(self.shape, False, dtype=bool)
+        refvalues = self.refparameter.values
+        for reqvalue in self.REQUIRED_VALUES:
+            mask[refvalues == reqvalue] = True
+        return mask
+    verifymask = property(_getverifymask)
+
+    def compressrepr(self):
+        """Returns a compressed parameter value string, which is (in
+        accordance with :attr:`NDIM`) contained in a nested list.  If the
+        compression fails, a :class:`~exceptions.NotImplementedError` is
+        raised.
+        """
+        try:
+            return MultiParameter.compressrepr(self)
+        except NotImplementedError as exc:
+            results = []
+            refvalues = self.refparameter.values
+            if min(refvalues) < 1:
+                raise NotImplementedError('Parameter %s is not defined '
+                                          'poperly, which circumvents finding '
+                                          'a suitable compressed.')
+            for (key, value) in self.MODEL_CONSTANTS.items():
+                if value in self.REQUIRED_VALUES:
+                    unique = numpy.unique(self.values[refvalues == value])
+                    unique = self.reverttimefactor(unique)
+                    if len(unique) == 1:
+                        results.append('%s=%s'
+                                       % (key.lower(), repr(unique[0])))
+                    elif len(unique) > 1:
+                        raise exc
+            result = ', '.join(sorted(results))
+            for idx in range(self.NDIM):
+                result = [result]
+            return result
+
+
+class IndexParameter(MultiParameter):
+    
+    def setreference(self, indexarray):
+        setattr(self.fastaccess, self.name, indexarray)

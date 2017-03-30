@@ -207,12 +207,12 @@ def repr_(value):
         if string.endswith('.'):
             string += '0'
         return string
-
     else:
         return repr(value)
 
 
 class Options(object):
+    """Singleton class for `global` options."""
 
     def __init__(self):
         self._printprogress = True
@@ -222,56 +222,64 @@ class Options(object):
         self._skipdoctests = False
         self._refreshmodels = False
         self._reprdigits = None
+        self._warntrim = True
 
     def _getprintprogress(self):
-        """ToDo"""
+        """True/False flag indicating whether information about the progress
+        of certain processes shall be printed to the standard output or not.
+        The default is `True`.
+        """
         return self._printprogress
     def _setprintprogress(self, value):
         self._printprogress = bool(value)
     printprogress = property(_getprintprogress, _setprintprogress)
 
     def _getdirverbose(self):
-        """True/False flag that indicates, whether the listboxes for the member
+        """True/False flag indicationg whether the listboxes for the member
         selection of the classes of the HydPy framework should be complete
         (True) or restrictive (False).  The latter is more viewable and hence
-        the default option."""
+        the default.
+        """
         return self._verbosedir
     def _setdirverbose(self, value):
         self._verbosedir = bool(value)
     dirverbose = property(_getdirverbose, _setdirverbose)
 
     def _getreprcomments(self):
-        """True/False flag that indicates, whether comments shall be included
+        """True/False flag indicationg whether comments shall be included
         in string representations of some classes of the HydPy framework or
-        not.  The default is `True`."""
+        not.  The default is `True`.
+        """
         return self._reprcomments
     def _setreprcomments(self, value):
         self._reprcomments = bool(value)
     reprcomments = property(_getreprcomments, _setreprcomments)
 
     def _getusecython(self):
-        """..."""
+        """True/False flag indicating whether Cython models (True) or pure
+        Python models (False) shall be applied if possible.  Using Cython 
+        models is more time efficient and thus the default.
+        """
         return self._usecython
     def _setusecython(self, value):
         self._usecython = bool(value)
     usecython = property(_getusecython, _setusecython)
 
     def _getskipdoctests(self):
-        """..."""
+        """True/False flag indicating whether documetation tests shall be 
+        performed under certain situations.  Applying tests increases 
+        reliabilty and is thus the default.
+        """
         return self._skipdoctests
     def _setskipdoctests(self, value):
         self._skipdoctests = bool(value)
     skipdoctests = property(_getskipdoctests, _setskipdoctests)
 
-    def _getrefreshmodels(self):
-        """..."""
-        return self._refreshmodels
-    def _setrefreshmodels(self, value):
-        self._refreshmodels = bool(value)
-    refreshmodels = property(_getrefreshmodels, _setrefreshmodels)
-
     def _getreprdigits(self):
-        """..."""
+        """Required precision of string representations of floating point 
+        numbers, defined as the minimum number of digits to be reproduced 
+        by the string representation (see function :func:`repr_`).
+        """
         return self._reprdigits
     def _setreprdigits(self, value):
         if value is None:
@@ -280,39 +288,56 @@ class Options(object):
             self._reprdigits = int(value)
     reprdigits = property(_getreprdigits, _setreprdigits)
 
+    def _getwarntrim(self):
+        """True/False flag indicating whether a warning shall be raised 
+        whenever certain values needed to be trimmed due to violating
+        certain boundaries. Such warnings increase savety and are thus
+        the default is `True`.  However, to cope with the limited precision
+        of floating point numbers only those violations beyond a small 
+        tolerance value are reported (see :class:`Trimmer`).  Warnings
+        with identical information are reported only once.
+        """
+        return self._warntrim
+    def _setwarntrim(self, value):
+        self._warntrim = bool(value)
+    warntrim = property(_getwarntrim, _setwarntrim)
+
     def __dir__(self):
         return dir_(self)
 
 
-class Trimmer(object):
-
-    def trim(self, lower=None, upper=None):
-        if lower is None:
-            lower = self.SPAN[0]
-        if upper is None:
-            upper = self.SPAN[1]
-        if self.NDIM == 0:
-            if (lower is not None) and (self < lower):
-                if (self+self.tolerance(self)) < (lower-self.tolerance(lower)):
+def trim(self, lower=None, upper=None):
+    """ToDo"""
+    from hydpy.pub import options
+    if lower is None:
+        lower = self.SPAN[0]
+    if upper is None:
+        upper = self.SPAN[1]
+    if self.NDIM == 0:
+        if (lower is not None) and (self < lower):
+            if (self+tolerance(self)) < (lower-tolerance(lower)):
+                if options.warntrim:
                     self.warntrim()
-                self.value = lower
-            elif (upper is not None) and (self > upper):
-                if (self-self.tolerance(self)) > (upper+self.tolerance(upper)):
+            self.value = lower
+        elif (upper is not None) and (self > upper):
+            if (self-tolerance(self)) > (upper+tolerance(upper)):
+                if options.warntrim:
                     self.warntrim()
-                self.value = upper
-        else:
-            if (((lower is not None) and numpy.any(self.values < lower)) or
-                ((upper is not None) and numpy.any(self.values > upper))):
-                if (numpy.any((self+self.tolerance(self)) <
-                              (lower-self.tolerance(lower))) or
-                    numpy.any((self-self.tolerance(self)) >
-                              (upper+self.tolerance(upper)))):
-                       self.warntrim()
-                self.values = numpy.clip(self.values, lower, upper)
+            self.value = upper
+    else:
+        if (((lower is not None) and numpy.any(self.values < lower)) or
+            ((upper is not None) and numpy.any(self.values > upper))):
+            if (numpy.any((self+tolerance(self)) <
+                          (lower-tolerance(lower))) or
+                numpy.any((self-tolerance(self)) >
+                          (upper+tolerance(upper)))):
+                    if options.warntrim:
+                        self.warntrim()
+            self.values = numpy.clip(self.values, lower, upper)
 
-    @staticmethod
-    def tolerance(values):
-        return abs(values*1e-15)
+def tolerance(values):
+    return abs(values*1e-15)
+
 
 class ValueMath(object):
     """Base class for :class:`~hydpy.core.parametertools.Parameter` and

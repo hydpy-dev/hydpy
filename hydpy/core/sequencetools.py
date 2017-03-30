@@ -362,6 +362,7 @@ class StateSequences(IOSubSequences):
         for (name, seq) in self:
             seq.reset()
 
+
 class LogSequences(SubSequences):
     """Base class for handling log sequences."""
 
@@ -369,8 +370,10 @@ class LogSequences(SubSequences):
         for (name, seq) in self:
             seq.reset()
 
+
 class AideSequences(SubSequences):
     """Base class for handling aide sequences."""
+
 
 class LinkSequences(SubSequences):
     """Base class for handling link sequences."""
@@ -405,7 +408,6 @@ class Sequence(objecttools.ValueMath):
         within initial condition files.
         """
         self.values = args
-        self.trim()
 
     def _initvalues(self):
         if self.NDIM:
@@ -985,8 +987,16 @@ class InputSequence(ModelIOSequence):
 class FluxSequence(ModelIOSequence):
     """ """
 
-class ConditionSequence(objecttools.Trimmer):
+class ConditionSequence(object):
 
+    def __call__(self, *args):
+        self.values = args
+        self.trim()
+        self._oldargs = copy.deepcopy(args)
+    
+    def trim(self, lower=None, upper=None):
+        objecttools.trim(self, lower, upper)
+        
     def warntrim(self):
         warnings.warn('For sequence %s of element %s at least one value '
                       'needed to be trimmed.  One possible reason could be '
@@ -1007,6 +1017,13 @@ class StateSequence(ModelIOSequence, ConditionSequence):
         self.fastaccess_old = None
         self.fastaccess_new = None
         self._oldargs = None
+
+    def __call__(self, *args):
+        """The prefered way to pass values to :class:`Sequence` instances
+        within initial condition files.
+        """
+        ConditionSequence.__call__(self, *args)
+        self.new2old()
 
     def connect2subseqs(self, subseqs):
         ModelIOSequence.connect2subseqs(self, subseqs)
@@ -1082,14 +1099,6 @@ class StateSequence(ModelIOSequence, ConditionSequence):
         else:
             self.old = self.new
 
-    def __call__(self, *args):
-        """The prefered way to pass values to :class:`Sequence` instances
-        within initial condition files.
-        """
-        self._oldargs = copy.deepcopy(args)
-        ModelIOSequence.__call__(self, *args)
-        self.new2old()
-
 
 class LogSequence(Sequence, ConditionSequence):
     """ """
@@ -1099,8 +1108,10 @@ class LogSequence(Sequence, ConditionSequence):
         self._oldargs = None
 
     def __call__(self, *args):
+        self.values = args
+        self.trim()
         self._oldargs = copy.deepcopy(args)
-        Sequence.__call__(self, *args)
+
 
 class AideSequence(Sequence):
     """ """

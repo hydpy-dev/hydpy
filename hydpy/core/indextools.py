@@ -14,7 +14,7 @@ class Indexer(object):
     """Handles arrays containing indexes.  One can specify these array indexes
     manually, but usually they are determined automatically based on the
     :class:`~hydpy.core.timetools.Timegrids` object made available through
-    module :mode:`~hydpy.pub`.
+    module :mod:`~hydpy.pub`.
     """
     def __init__(self):
         self._monthofyear = None
@@ -97,7 +97,7 @@ class Indexer(object):
     def _calcidxs(self, func, name):
         """Return the required indexes based on the given lambda function and
         the :class:`~hydpy.core.timetools.Timegrids` object handled by module
-        :mode:`~hydpy.pub`.  Raise a :class:`~exceptions.RuntimeError` if the
+        :mod:`~hydpy.pub`.  Raise a :class:`~exceptions.RuntimeError` if the
         latter is not available.
         """
         from hydpy.pub import timegrids

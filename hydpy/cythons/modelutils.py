@@ -77,14 +77,11 @@ class Cythonizer(object):
         if self.outdated:
             if not pub.options.skipdoctests:
                 pub.options.usecython = False
-                pub.options.refreshmodels = False
                 self.tester.doit()
             self.doit()
             if not pub.options.skipdoctests:
                 pub.options.usecython = True
-                pub.options.refreshmodels = True
                 self.tester.doit()
-                pub.options.refreshmodels = False
 
     def doit(self):
         with magictools.PrintStyle(color=33, font=4):
@@ -169,8 +166,6 @@ class Cythonizer(object):
         for pysourcefile in self.pysourcefiles:
             pydate = os.stat(pysourcefile).st_mtime
             if pydate > cydate:
-                print('File %s (%s) is older than file %s (%s).'
-                      % (pysourcefile, pydate, self.cyfilepath, cydate))
                 return True
         return False
 

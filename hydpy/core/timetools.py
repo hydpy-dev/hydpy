@@ -511,6 +511,18 @@ class Date(object):
             return self.year + 1
     wateryear = property(_getwateryear)
 
+    @property
+    def dayofyear(self):
+        """Day of year as an integer value."""
+        return self.datetime.timetuple().tm_yday
+
+    @property
+    def leapyear(self):
+        """Return whether the actual date falls in a leap year or not."""
+        year = self.year
+        return (((year % 4) == 0) and
+                (((year % 100) != 0) or ((year % 400) == 0)))
+
     def copy(self):
         """Returns a deep copy of the :class:`Date` instance."""
         return copy.deepcopy(self)
@@ -864,7 +876,7 @@ class Timegrid(object):
 
     def __iter__(self):
         date = self.firstdate.copy()
-        while date <= self.lastdate:
+        while date < self.lastdate:
             yield date
             date = date + self.stepsize
 

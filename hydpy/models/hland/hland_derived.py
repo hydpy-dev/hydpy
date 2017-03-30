@@ -49,6 +49,6 @@ class QFactor(parametertools.SingleParameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
 class DerivedParameters(parametertools.SubParameters):
-    """Derived parameters of hland, indirectly defined by the user."""
+    """Derived parameters of HydPy-H-Land, indirectly defined by the user."""
     _PARCLASSES = (RelZoneArea, RelSoilArea, RelSoilZoneArea, RelLandZoneArea,
                    RelLandArea, TTM, DT, NmbUH, UH, QFactor)

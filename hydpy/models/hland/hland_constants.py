@@ -1,4 +1,5 @@
-""" The HydPy-H-Land model (`hland`) allows for the subdivision of subbasins
+# -*- coding: utf-8 -*-
+"""The HydPy-H-Land model (`hland`) allows for the subdivision of subbasins
 into zones (hydrological response units).  Some processes, e.g. interception,
 are calculated seperately for each zone.  This is why some parameters (e.g.
 the interception capacity :class:`~hydpy.models.hland.hland_control.IcMax`)
@@ -38,7 +39,6 @@ GLACIER = 3
 """Constant for the zone type `glacier`."""
 ILAKE = 4
 """Constant for the zone type `internal lake`."""
-CONSTANTS = {'FIELD': FIELD,
-             'FOREST': FOREST,
-             'GLACIER': GLACIER,
-             'ILAKE': ILAKE}
+CONSTANTS = {key: value for key, value in locals().items()
+             if (key.isupper() and isinstance(value, int))}
+"""Dictionary containing all constants defined by HydPy-H-Land."""

@@ -132,7 +132,7 @@ class QT(sequencetools.FluxSequence):
     NDIM, NUMERIC = 0, False
 
 class FluxSequences(sequencetools.FluxSequences):
-    """Flux sequences of the hland model."""
+    """Flux sequences of the HydPy-H-Land model."""
     _SEQCLASSES = (TMean, TC, FracRain, RfC, SfC, PC, EP, EPC, EI, TF, TFWat,
                    TFIce, GlMelt, MeltPot, Melt, RefrPot, Refr, In_, R,
                    EA, CFPot, CF, Perc, ContriArea, InUZ, Q0, EL, Q1,

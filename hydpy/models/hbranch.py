@@ -135,27 +135,27 @@ class Model(modeltools.Model):
             Low discharge example (linear interpolation between the first two
             supporting point pairs):
 
-            >>> model.sequences.fluxes.input = 1.
+            >>> fluxes.input = 1.
             >>> model.run(0)
-            >>> model.sequences.fluxes.outputs
+            >>> fluxes.outputs
             outputs(branch1=1.0,
                     branch2=0.0)
 
             Medium discharge example (linear interpolation between the second
             two supporting point pairs):
 
-            >>> model.sequences.fluxes.input = 3.
+            >>> fluxes.input = 3.
             >>> model.run(0)
-            >>> print(model.sequences.fluxes.outputs)
+            >>> print(fluxes.outputs)
             outputs(branch1=2.0,
                     branch2=1.0)
 
             High discharge example (linear extrapolation beyond the second two
             supporting point pairs):
 
-            >>> model.sequences.fluxes.input = 5.
+            >>> fluxes.input = 5.
             >>> model.run(0)
-            >>> model.sequences.fluxes.outputs
+            >>> fluxes.outputs
             outputs(branch1=2.0,
                     branch2=3.0)
 
@@ -166,9 +166,9 @@ class Model(modeltools.Model):
             >>> ypoints(branch1=[0., 2., 0., 0.],
             ...         branch2=[0., 0., 2., 4.])
             >>> model.parameters.update()
-            >>> model.sequences.fluxes.input = 7.
+            >>> fluxes.input = 7.
             >>> model.run(0)
-            >>> model.sequences.fluxes.outputs
+            >>> fluxes.outputs
             outputs(branch1=0.0,
                     branch2=5.0)
 

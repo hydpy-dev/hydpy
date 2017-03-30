@@ -18,21 +18,21 @@ class NmbZones(parametertools.SingleParameter):
     """Number of zones (hydrological response units) in a subbasin [-].
 
     Note that :class:`NmbZones` determines the length of most 1-dimensional
-    hland parameters.  This required that the value of the respective
-    :class:`NmbZones` instance is set before any of the values of these
-    1-dimensional parameters are set.  Changing the value of the
-    :class:`NmbZones` instance necessitates setting their values again.
+    HydPy-H-Land parameters and sequences.  This required that the value of
+    the respective :class:`NmbZones` instance is set before any of the values
+    of these 1-dimensional parameters or sequences are set.  Changing the
+    value of the :class:`NmbZones` instance necessitates setting their values
+    again.
 
     Examples:
 
         >>> from hydpy.models.hland import *
         >>> parameterstep('1d')
         >>> nmbzones(5)
-        >>> model.parameters.control.icmax.shape
+        >>> icmax.shape
         (5,)
-        >>> model.sequences.states.ic.shape
+        >>> states.ic.shape
         (5,)
-
     """
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
@@ -66,7 +66,6 @@ class ZoneType(hland_parameters.MultiParameter):
     array([1, 2, 3, 4, 4, 3, 2, 1])
     >>> zonetype
     zonetype(FIELD, FOREST, GLACIER, ILAKE, ILAKE, GLACIER, FOREST, FIELD)
-
     """
     NDIM, TYPE, TIME, SPAN = 1, int, None, (1, 4)
 
@@ -74,10 +73,10 @@ class ZoneType(hland_parameters.MultiParameter):
         """Returns a list which contains a string representation with zone
         types beeing defined by the constants `FIELD`, `FOREST`...
         """
-        result = ', '.join(repr(value) for value in self.values)
-        for (key, value) in hland_constants.CONSTANTS.items():
-            result = result.replace(repr(value), key)
-        return [result]
+        invmap = {value: key for key, value in
+                  hland_constants.CONSTANTS.items()}
+        return [', '.join(invmap.get(value, repr(value))
+                          for value in self.values)]
 
 class ZoneArea(hland_parameters.MultiParameter):
     """Zone area [km²]."""
@@ -311,7 +310,7 @@ class Abstr(parametertools.SingleParameter):
     NDIM, TYPE, TIME, SPAN = 0, float, True, (None, None)
 
 class ControlParameters(parametertools.SubParameters):
-    """Control parameters of hland, directly defined by the user."""
+    """Control parameters of HydPy-H-Land, directly defined by the user."""
     _PARCLASSES = (Area, NmbZones, ZoneType, ZoneArea, ZoneZ, ZRelP, ZRelT,
                    ZRelE, PCorr, PCAlt, RfCF, SfCF, TCAlt, ECorr, ECAlt, EPF,
                    ETF, ERed, TTIce, IcMax, TT, TTInt, DTTM, CFMax, GMelt, CFR,

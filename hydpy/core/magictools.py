@@ -40,18 +40,20 @@ class Tester(object):
                 if (fn.endswith('.py') and not fn.startswith('_'))]
 
     def doit(self):
+        timegrids = pub.timegrids
+        pub.timegrids = None
+        dirverbose = pub.options.dirverbose
+        reprcomments = pub.options.reprcomments
+        pub.options.reprcomments = False
+        reprdigits = pub.options.reprdigits
+        pub.options.reprdigits = 6
+        warntrim = pub.options.warntrim
+        pub.options.warntrim = False
+        nodes = devicetools.Node._registry.copy()
+        elements = devicetools.Element._registry.copy()
+        devicetools.Node.clearregistry()
+        devicetools.Element.clearregistry()
         try:
-            timegrids = pub.timegrids
-            pub.timegrids = None
-            dirverbose = pub.options.dirverbose
-            reprcomments = pub.options.reprcomments
-            reprdigits = pub.options.reprdigits
-            pub.options.reprdigits = 6
-            pub.options.reprcomments = False
-            nodes = devicetools.Node._registry.copy()
-            elements = devicetools.Element._registry.copy()
-            devicetools.Node.clearregistry()
-            devicetools.Element.clearregistry()
             color = 34 if pub.options.usecython else 36
             with PrintStyle(color=color, font=4):
                 print('Test %s %s in %sython mode.'
@@ -70,6 +72,7 @@ class Tester(object):
             pub.options.dirverbose = dirverbose
             pub.options.reprcomments = reprcomments
             pub.options.reprdigits = reprdigits
+            pub.options.warntrim = warntrim
             devicetools.Node.clearregistry()
             devicetools.Element.clearregistry()
             devicetools.Node._registry = nodes
@@ -162,6 +165,12 @@ def parameterstep(timestep=None):
                     setattr(model, func, getattr(model.cymodel, func))
         model.parameters = namespace['Parameters'](namespace)
         model.sequences = namespace['Sequences'](namespace)
+        namespace['parameters'] = model.parameters
+        for (name, pars) in model.parameters:
+            namespace[name] = pars
+        namespace['sequences'] = model.sequences
+        for (name, seqs) in model.sequences:
+            namespace[name] = seqs
     try:
         namespace.update(namespace['CONSTANTS'])
     except KeyError:

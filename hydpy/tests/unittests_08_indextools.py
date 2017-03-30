@@ -92,6 +92,8 @@ class Test02DayOfYear(unittest.TestCase):
         del self.indexer.dayofyear
         self.assertIsInstance(self.indexer.dayofyear, numpy.ndarray)
         self.assertEqual(len(self.indexer.dayofyear), 365)
-        self.assertTupleEqual(tuple(self.indexer.dayofyear),
-                              tuple(range(31+28)+range(31+28+1, 366)))
+        self.assertTupleEqual(
+           tuple(self.indexer.dayofyear),
+           tuple(list(range(31+28))+list(range(31+28+1, 366)))
+           )
         self.assertIs(self.indexer.dayofyear, self.indexer.dayofyear)

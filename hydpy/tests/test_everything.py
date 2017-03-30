@@ -112,6 +112,7 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                 pub.timegrids = None
                 pub.options.reprcomments = False
                 pub.options.reprdigits = 6
+                pub.options.warntrim = False
                 devicetools.Node.clearregistry()
                 devicetools.Element.clearregistry()
                 if name.endswith('.rst'):

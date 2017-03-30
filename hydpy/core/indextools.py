@@ -21,12 +21,12 @@ class Indexer(object):
         self._dayofyear = None
 
     def _getmonthofyear(self):
+        """Month of the year index (January = 0...)."""
         if self._monthofyear is None:
             self._monthofyear = self._calcidxs(lambda date: date.month-1,
                                                'monthofyear')
         return self._monthofyear
     def _setmonthofyear(self, values):
-        """Month of the year index (January = 0...)."""
         self._monthofyear = self._convertandtest(values, 'monthofyear')
     def _delmonthofyear(self):
         self._monthofyear = None

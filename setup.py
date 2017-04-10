@@ -11,9 +11,10 @@ from distutils.extension import Extension
 import Cython.Build
 import numpy
 
-from distutils import msvc9compiler
-if msvc9compiler.find_vcvarsall(9.0) is None:
-    raise NotImplementedError('ToDo')
+if sys.platform.startswith('win'):
+    from distutils import msvc9compiler
+    if msvc9compiler.find_vcvarsall(9.0) is None:
+        print("NotImplementedError('ToDo')")
 
 install = 'install' in sys.argv
 coverage_report = 'coverage_report' in sys.argv

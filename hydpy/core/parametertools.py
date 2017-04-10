@@ -150,6 +150,8 @@ class SubParameters(object):
                 except TypeError:
                     # ...but unnecessary and impossible in Cython mode.
                     pass
+                if getattr(value, 'INIT', None) is not None:
+                    value(value.INIT)
         else:
             try:
                 attr._setvalue(value)
@@ -298,10 +300,10 @@ class Parameter(objecttools.ValueMath):
                                  date1, date2, self._simulationstep)).parfactor
         return parfactor(self.parameterstep)
     timefactor = property(_gettimefactor)
-    
+
     def trim(self, lower=None, upper=None):
         objecttools.trim(self, lower, upper)
-        
+
     def warntrim(self):
         warnings.warn('For parameter %s of element %s at least one value '
                       'needed to be trimmed.  Two possible reasons could be '
@@ -357,7 +359,12 @@ class Parameter(objecttools.ValueMath):
 
 class SingleParameter(Parameter):
     """Base class for model parameters handling a single value."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    NDIM, TYPE, TIME, SPAN, INIT = 0, float, None, (None, None), None
+
+    def __init__(self):
+        Parameter.__init__(self)
+        if self.INIT is not None:
+            self(self.INIT)
 
     def _getshape(self):
         """An empty tuple.  (Only intended for increasing consistent usability
@@ -705,6 +712,6 @@ class ZipParameter(MultiParameter):
 
 
 class IndexParameter(MultiParameter):
-    
+
     def setreference(self, indexarray):
         setattr(self.fastaccess, self.name, indexarray)

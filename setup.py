@@ -11,9 +11,12 @@ from distutils.extension import Extension
 import Cython.Build
 import numpy
 
+testpath = (r'C:\Program Files (x86)\Common Files\Microsoft\Visual '
+            r'C++ for Python\9.0\vcvarsall.bat')
 if sys.platform.startswith('win'):
     from distutils import msvc9compiler
     if msvc9compiler.find_vcvarsall(9.0) is None:
+        msvc9compiler.find_vcvarsall = lambda dummy: testpath
         print("NotImplementedError('ToDo')")
 
 install = 'install' in sys.argv

@@ -17,7 +17,6 @@ from hydpy.core import filetools
 from hydpy.core import parametertools
 from hydpy.core import devicetools
 
-_warnsimulationstep = True
 
 class Tester(object):
 
@@ -69,6 +68,8 @@ class Tester(object):
                         modulename = '.'.join((self.package, name))
                         module = importlib.import_module(modulename)
                         warnings.filterwarnings('error', module=modulename)
+                        warnings.filterwarnings('ignore',
+                                                category=ImportWarning)
                         doctest.testmod(module, extraglobs={'testing': True})
                         warnings.resetwarnings()
         finally:

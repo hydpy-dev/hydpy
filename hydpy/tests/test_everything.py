@@ -119,7 +119,7 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                 devicetools.Element.clearregistry()
                 if name.endswith('.rst'):
                     name = name[name.find('hydpy'+os.sep):]
-                warnings.filterwarnings('error')
+                warnings.filterwarnings('error', module='hydpy')
                 doctests[name] = runner.run(suite)
                 warnings.resetwarnings()
                 doctests[name].nmbproblems = (len(doctests[name].errors) +

@@ -120,6 +120,7 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                 if name.endswith('.rst'):
                     name = name[name.find('hydpy'+os.sep):]
                 warnings.filterwarnings('error', module='hydpy')
+                warnings.filterwarnings('ignore', category=ImportWarning)
                 doctests[name] = runner.run(suite)
                 warnings.resetwarnings()
                 doctests[name].nmbproblems = (len(doctests[name].errors) +

@@ -68,9 +68,9 @@ class Tester(object):
                     with StdOutErr(indent=8):
                         modulename = '.'.join((self.package, name))
                         module = importlib.import_module(modulename)
-                        warnings.filterwarnings('error')
+                        warnings.filterwarnings('error', module=modulename)
                         doctest.testmod(module, extraglobs={'testing': True})
-                        warnings.filterwarnings('default')
+                        warnings.resetwarnings()
         finally:
             pub.options.warnsimulationstep = warnsimulationstep
             pub.timegrids = timegrids

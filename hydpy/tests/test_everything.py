@@ -121,7 +121,7 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                     name = name[name.find('hydpy'+os.sep):]
                 warnings.filterwarnings('error')
                 doctests[name] = runner.run(suite)
-                warnings.filterwarnings('default')
+                warnings.resetwarnings()
                 doctests[name].nmbproblems = (len(doctests[name].errors) +
                                               len(doctests[name].failures))
     successfuldoctests.update({name: runner for (name, runner)

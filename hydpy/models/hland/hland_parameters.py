@@ -397,7 +397,7 @@ class Parameters(parametertools.Parameters):
 
             >>> from hydpy.models.hland import *
             >>> parameterstep('1d')
-            >>> simulationstep('12h', warn=False)
+            >>> simulationstep('12h')
             >>> recstep(2.)
             >>> model.parameters.calc_dt()
             >>> derived.dt
@@ -439,7 +439,7 @@ class Parameters(parametertools.Parameters):
 
             >>> from hydpy.models.hland import *
             >>> parameterstep('1d')
-            >>> simulationstep('12h', warn=False)
+            >>> simulationstep('12h')
             >>> area(50.)
             >>> model.parameters.calc_qfactor()
             >>> derived.qfactor
@@ -475,7 +475,7 @@ class Parameters(parametertools.Parameters):
 
             >>> from hydpy.models.hland import *
             >>> parameterstep('1d')
-            >>> simulationstep('12h', warn=False)
+            >>> simulationstep('12h')
             >>> maxbaz(0.)
             >>> model.parameters.calc_nmbuh_uh()
             >>> derived.nmbuh

@@ -518,7 +518,7 @@ the :attr:`~hydpy.pub.options.reprcomments` flag is activated:
 Such comments are of great importance, whenever the string representation
 might be misleading:
 
-    >>> simulationstep('12h', warn=False)
+    >>> simulationstep('12h')
     >>> percmax(2)
     >>> options.reprcomments = True
     >>> percmax

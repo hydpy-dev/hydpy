@@ -993,10 +993,10 @@ class ConditionSequence(object):
         self.values = args
         self.trim()
         self._oldargs = copy.deepcopy(args)
-    
+
     def trim(self, lower=None, upper=None):
         objecttools.trim(self, lower, upper)
-        
+
     def warntrim(self):
         warnings.warn('For sequence %s of element %s at least one value '
                       'needed to be trimmed.  One possible reason could be '

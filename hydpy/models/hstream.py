@@ -209,7 +209,7 @@ class Parameters(parametertools.Parameters):
 
             >>> from hydpy.models.hstream import *
             >>> parameterstep('1d')
-            >>> simulationstep('12h', warn=False)
+            >>> simulationstep('12h')
             >>> lag(1.4)
 
             Then the actual lag value for the simulation step size is 2.8

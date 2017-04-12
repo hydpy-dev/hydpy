@@ -110,7 +110,6 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                 if exc.args[-1] != 'has no docstrings':
                     raise(exc)
             else:
-                warnings.filterwarnings('error')
                 pub.options.warnsimulationstep = False
                 pub.timegrids = None
                 pub.options.reprcomments = False
@@ -120,7 +119,9 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                 devicetools.Element.clearregistry()
                 if name.endswith('.rst'):
                     name = name[name.find('hydpy'+os.sep):]
+                warnings.filterwarnings('error')
                 doctests[name] = runner.run(suite)
+                warnings.filterwarnings('default')
                 doctests[name].nmbproblems = (len(doctests[name].errors) +
                                               len(doctests[name].failures))
     successfuldoctests.update({name: runner for (name, runner)

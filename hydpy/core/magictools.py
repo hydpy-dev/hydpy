@@ -40,7 +40,6 @@ class Tester(object):
                 if (fn.endswith('.py') and not fn.startswith('_'))]
 
     def doit(self):
-        warnings.filterwarnings('error')
         warnsimulationstep = pub.options.warnsimulationstep
         pub.options.warnsimulationstep = False
         timegrids = pub.timegrids
@@ -69,9 +68,10 @@ class Tester(object):
                     with StdOutErr(indent=8):
                         modulename = '.'.join((self.package, name))
                         module = importlib.import_module(modulename)
+                        warnings.filterwarnings('error')
                         doctest.testmod(module, extraglobs={'testing': True})
+                        warnings.filterwarnings('default')
         finally:
-            warnings.filterwarnings('default')
             pub.options.warnsimulationstep = warnsimulationstep
             pub.timegrids = timegrids
             pub.options.dirverbose = dirverbose
@@ -196,7 +196,7 @@ def simulationstep(timestep):
     parameter control file.
 
     Argument:
-        * timestep(:class:`~hydpy.core.timetools.Period): Time step size.
+        * timestep(:class:`~hydpy.core.timetools.Period`): Time step size.
 
     Using :func:`simulationstep` only affects the values of time dependent
     parameters, when `pub.timegrids.stepsize` is not defined.  It thus has

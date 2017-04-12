@@ -112,8 +112,7 @@ from hydpy.models.lland.lland_inputs import InputSequences
 from hydpy.models.lland.lland_fluxes import FluxSequences
 from hydpy.models.lland.lland_states import StateSequences
 from hydpy.models.lland.lland_aides import AideSequences
-#from hydpy.models.lland.lland_logs import LogSequences
-#from hydpy.models.lland.lland_links import OutletSequences
+from hydpy.models.lland.lland_links import OutletSequences
 from hydpy.models.lland.lland_model import Model
 
 tester = Tester()

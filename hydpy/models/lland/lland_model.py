@@ -10,13 +10,10 @@ from hydpy.cythons import modelutils
 from hydpy.models.lland.lland_constants import *
 
 class Model(modeltools.Model):
-    """The HydPy-H-Land model."""
+    """Base model for HydPy-L-Land."""
 
     def run(self, idx):
-        self.calc_nkor()
-        self.calc_tkor()
-        self.calc_et0()
-        self.calfln()
+        pass
 
     def calc_nkor(self):
         """Adjust the given precipitation values.
@@ -1520,12 +1517,12 @@ class Model(modeltools.Model):
         Note that, in case there are water areas, their (interception)
         evaporation values are subtracted from the "potential" runoff value.
 
-        Required control parameter:
+        Required control parameters:
           :class:`~hydpy.models.lland.lland_control.NHRU`
           :class:`~hydpy.models.lland.lland_control.FHRU`
           :class:`~hydpy.models.lland.lland_control.Lnk`
 
-        Required flux sequence:
+        Required flux sequences:
           :class:`~hydpy.models.lland.lland_fluxes.QBGA`
           :class:`~hydpy.models.lland.lland_fluxes.QIGA1`
           :class:`~hydpy.models.lland.lland_fluxes.QIGA2`
@@ -1604,3 +1601,33 @@ class Model(modeltools.Model):
                 if con.lnk[k] == WASSER:
                     flu.evi[k] *= flu.q/aid.epw
             flu.q = 0.
+
+    def updateoutlets(self, idx):
+        """Update the outlet link sequence.
+
+        Required derived parameter:
+          :class:`~hydpy.models.lland.lland_control.QFactor`
+
+        Required flux sequences:
+          :class:`~hydpy.models.lland.lland_fluxes.Q`
+
+        Calculated flux sequence:
+          :class:`~hydpy.models.lland.lland_links.Q`
+
+        Basic equation:
+          :math:`Q_{links} = QFactor \\cdot Q_{fluxes}`
+        """
+        der = self.parameters.derived.fastaccess
+        flu = self.sequences.fluxes.fastaccess
+        out = self.sequences.outlets.fastaccess
+        out.q[0] += der.qfactor*flu.q
+
+#        Example:
+#
+#            >>> from hydpy.models.lland import *
+#            >>> parameterstep()
+#            >>> derived.qfactor = 2.
+#            >>> fluxes.q = 4.
+#            >>> model.updateoutlets(0)
+#            >>> outlets.q
+#            q(8.0)

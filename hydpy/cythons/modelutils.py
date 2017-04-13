@@ -287,7 +287,9 @@ class PyxWriter(object):
         """Constants declaration lines."""
         lines = Lines()
         for (name, member) in vars(self.cythonizer).items():
-            if name.isupper() and not inspect.isclass(member):
+            if (name.isupper() and
+                (not inspect.isclass(member)) and
+                (type(member) in TYPE2STR)):
                 ndim = numpy.array(member).ndim
                 ctype = TYPE2STR[type(member)] + NDIM2STR[ndim]
                 lines.add(0, 'cdef public %s %s = %s'
@@ -367,7 +369,7 @@ class PyxWriter(object):
             lines.add(3, 'self._%s_file = fopen(str(self._%s_path), "rb+")'
                          % (2*(name,)))
             if seq.NDIM == 0:
-                lines.add(3, 'fseek(self._%s_file, idx*8, SEEK_SET)' % name)
+                lines.add(3, 'fseek(self._%s_file, idx*8, SEEK_SET)'  % name)
             else:
                 lines.add(3, 'fseek(self._%s_file, idx*self._%s_length*8, '
                              'SEEK_SET)' % (2*(name,)))
@@ -399,7 +401,7 @@ class PyxWriter(object):
                              'self._%s_file)' % (3*((name,))))
             lines.add(2 ,'elif self._%s_ramflag:' % name)
             if seq.NDIM == 0:
-                lines.add(3 ,'self.%s = self._%s_array[idx]' % (2*(name,)))
+                lines.add(3, 'self.%s = self._%s_array[idx]' % (2*(name,)))
             else:
                 indexing = ''
                 for idx in range(seq.NDIM):
@@ -407,8 +409,8 @@ class PyxWriter(object):
                                      % (idx, name, idx))
                     indexing += 'jdx%d,' % idx
                 indexing = indexing[:-1]
-                lines.add(3+seq.NDIM,'self.%s[%s] = self._%s_array[idx,%s]'
-                                     % (2*(name, indexing)))
+                lines.add(3+seq.NDIM, 'self.%s[%s] = self._%s_array[idx,%s]'
+                                      % (2*(name, indexing)))
         return lines
 
     def savedata(self, subseqs):
@@ -427,7 +429,7 @@ class PyxWriter(object):
                              'self._%s_file)' % (3*(name,)))
             lines.add(2 ,'elif self._%s_ramflag:' % name)
             if seq.NDIM == 0:
-                lines.add(3 ,'self._%s_array[idx] = self.%s' % (2*(name,)))
+                lines.add(3, 'self._%s_array[idx] = self.%s' % (2*(name,)))
             else:
                 indexing = ''
                 for idx in range(seq.NDIM):
@@ -435,8 +437,8 @@ class PyxWriter(object):
                                      % (idx, name, idx))
                     indexing += 'jdx%d,' % idx
                 indexing = indexing[:-1]
-                lines.add(3+seq.NDIM,'self._%s_array[idx,%s] = self.%s[%s]'
-                                     % (2*(name, indexing)))
+                lines.add(3+seq.NDIM, 'self._%s_array[idx,%s] = self.%s[%s]'
+                                      % (2*(name, indexing)))
         return lines
 
     def setpointer(self, subseqs):
@@ -506,10 +508,10 @@ class PyxWriter(object):
         print('            . setpointer1d')
         lines = Lines()
         lines.add(1 ,'cpdef inline setpointer1d'
-                     '(self, str name, pointer.PDouble value, int idx):')
+                     '(self, str name, pointer.PDouble value):')
         for (name, seq) in subseqs:
             lines.add(2 ,'if name == "%s":' % name)
-            lines.add(3 ,'self.%s[idx] = value.p_value' % name)
+            lines.add(3 ,'self.%s[self.idx_sim] = value.p_value' % name)
         return lines
 
 #    def getpointer1d(self, subseqs):
@@ -535,6 +537,7 @@ class PyxWriter(object):
         lines = Lines()
         lines.add(0 ,'@cython.final')
         lines.add(0 ,'cdef class Model(object):')
+        lines.add(1, 'cdef public int idx_sim')
         for things in (self.model.parameters, self.model.sequences):
             for (name, thing) in things:
                 lines.add(1, 'cdef public %s %s'
@@ -551,6 +554,8 @@ class PyxWriter(object):
         lines.extend(self.doit)
         lines.extend(self.iofunctions)
         lines.extend(self.new2old)
+        if 'run' not in [tpl[0] for tpl in self.listofmodeluserfunctions]:
+            lines.extend(self.run)
         return lines
 
     @property
@@ -558,21 +563,21 @@ class PyxWriter(object):
         """Do (most of) it function of the model class."""
         print('                . doit')
         lines = Lines()
-        lines.add(1, 'cpdef inline void doit(self, int idx):')
+        lines.add(1, 'cpdef inline void doit(self):')
         if getattr(self.model.sequences, 'inputs', None) is not None:
-            lines.add(2, 'self.loaddata(idx)')
+            lines.add(2, 'self.loaddata()')
         if getattr(self.model.sequences, 'inlets', None) is not None:
-            lines.add(2, 'self.updateinlets(idx)')
-        lines.add(2, 'self.run(idx)')
+            lines.add(2, 'self.updateinlets()')
+        lines.add(2, 'self.run()')
         if getattr(self.model.sequences, 'outlets', None) is not None:
-            lines.add(2, 'self.updateoutlets(idx)')
+            lines.add(2, 'self.updateoutlets()')
         if getattr(self.model.sequences, 'states', None) is not None:
             lines.add(2, 'self.new2old()')
         if getattr(self.model.sequences, 'senders', None) is not None:
-            lines.add(2, 'self.updatesenders(idx)')
+            lines.add(2, 'self.updatesenders()')
         if ((getattr(self.model.sequences, 'fluxes', None) is not None) or
             (getattr(self.model.sequences, 'states', None) is not None)):
-                lines.add(2, 'self.savedata(idx)')
+                lines.add(2, 'self.savedata()')
         return lines
 
     @property
@@ -588,11 +593,7 @@ class PyxWriter(object):
                  (getattr(self.model.sequences, 'states', None) is None))):
                 continue
             print('            . %s' % func)
-            if func == 'closefiles':
-                args = 'self', ''
-            else:
-                args = 'self, int idx', 'idx'
-            lines.add(1, 'cpdef inline void %s(%s):' % (func, args[0]))
+            lines.add(1, 'cpdef inline void %s(self):' % func)
             for (name, subseqs) in self.model.sequences:
                 if func == 'loaddata':
                     applyfuncs = ('inputs',)
@@ -601,7 +602,10 @@ class PyxWriter(object):
                 else:
                     applyfuncs = ('inputs', 'fluxes', 'states')
                 if name in applyfuncs:
-                    lines.add(2, 'self.%s.%s(%s)' % (name, func, args[1]))
+                    if func == 'closefiles':
+                        lines.add(2, 'self.%s.%s()' % (name, func))
+                    else:
+                        lines.add(2, 'self.%s.%s(self.idx_sim)' % (name, func))
         return lines
 
     @property
@@ -628,6 +632,14 @@ class PyxWriter(object):
         return lines
 
     @property
+    def run(self):
+        lines = Lines()
+        lines.add(1 ,'cpdef inline void run(self):')
+        for method in self.model._METHODS:
+            lines.add(2, 'self.%s()' % method.__name__)
+        return lines
+
+    @property
     def listofmodeluserfunctions(self):
         """User functions of the model class."""
         lines = []
@@ -636,7 +648,9 @@ class PyxWriter(object):
                     (name not in  ('run', 'new2old')) and
                     ('fastaccess' in inspect.getsource(member))):
                 lines.append((name, member))
-        lines.append(('run', vars(self.model.__class__)['run']))
+        run = vars(self.model.__class__).get('run')
+        if run is not None:
+            lines.append(('run', run))
         return lines
 
     @property
@@ -644,20 +658,17 @@ class PyxWriter(object):
         lines = Lines()
         for (name, func) in self.listofmodeluserfunctions:
             print('            . %s' % name)
-            funcconverter = FuncConverter(self.model, func)
+            funcconverter = FuncConverter(self.model, name, func)
             lines.extend(funcconverter.pyxlines)
         return lines
 
 
 class FuncConverter(object):
 
-    def __init__(self, model, func):
+    def __init__(self, model, funcname, func):
         self.model = model
+        self.funcname = funcname
         self.func = func
-
-    @property
-    def funcname(self):
-        return self.func.func_name
 
     @property
     def argnames(self):
@@ -714,6 +725,7 @@ class FuncConverter(object):
         """Cleaned code lines.
 
         Implemented cleanups:
+          * eventually remove method version
           * remove docstrings
           * remove comments
           * remove empty lines
@@ -728,6 +740,7 @@ class FuncConverter(object):
                                     self.collectorshortcuts):
             code = code.replace('%s.' % shortcut, 'self.%s.' % name)
         lines = code.splitlines()
+        lines[0] = 'def %s(self):' % self.funcname
         lines = [l.split('#')[0] for l in lines]
         lines = [l for l in lines  if not 'fastaccess' in l]
         lines = [l.rstrip() for l in lines if l.rstrip()]
@@ -738,12 +751,13 @@ class FuncConverter(object):
         """Cython code lines.
 
         Assumptions:
-          * Function shall be inlined
-          * Function returns nothing
-          * Function arguments are of type `int` (except self)
+          * Function shall be a method
+          * Method shall be inlined
+          * Method returns nothing
+          * Method arguments are of type `int` (except self)
           * Local variables are of type `int`
         """
-        lines = self.cleanlines
+        lines = ['    '+line for line in self.cleanlines]
         lines[0] = lines[0].replace('def ', 'cpdef inline void ')
         for name in self.untypedarguments:
             lines[0] = lines[0].replace(', %s ' % name, ', int %s ' % name)

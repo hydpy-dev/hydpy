@@ -8,13 +8,40 @@ from hydpy import pub
 from hydpy.core import objecttools
 
 
+class MetaModel(type):
+
+    def __new__(cls, name, parents, dict_):
+        methods = dict_.get('_METHODS')
+        if methods is None:
+            raise NotImplementedError('Each Model class needs to know which '
+                                      'calculation methods shall be '
+                                      'performed.  These methods must be '
+                                      'available in a tuple stored as a class '
+                                      'attribute named `_METHODS`.  For class '
+                                      '`%s`, such a attribute is not defined.'
+                                      % name)
+        omitversion = dict_.get('_OMITVERSION', True)
+        for method in methods:
+            if omitversion:
+                dict_['_'.join(method.__name__.split('_')[:-1])] = method
+            else:
+                dict_[method.__name__] = method
+        return type.__new__(cls, name, parents, dict_)
+
+
 class Model(object):
     """Base class for hydrological models."""
+
+    __metaclass__ = MetaModel
+    _OMITVERSION = False
+    _METHODS = ()
 
     def __init__(self):
         self.element = None
         self.parameters = None
         self.sequences = None
+        self.cymodel = type('dummy', (), {})
+        self.cymodel.idx_sim = -999
 
     def connect(self):
         """Connect the link sequences of the actual model."""
@@ -74,6 +101,10 @@ class Model(object):
         self.new2old()
         self.savedata(idx)
 
+    def run(self):
+        for method in self._METHODS:
+            method(self)
+
     def loaddata(self, idx):
         self.sequences.loaddata(idx)
 
@@ -97,6 +128,13 @@ class Model(object):
             self.sequences.states.new2old()
         except AttributeError:
             pass
+
+    def _getidx_sim(self):
+        """Index of the actual simulation time step."""
+        return self.cymodel.idx_sim
+    def _setidx_sim(self, value):
+        self.cymodel.idx_sim = int(value)
+    idx_sim = property(_getidx_sim, _setidx_sim)
 
     def __dir__(self):
         return objecttools.dir_(self)

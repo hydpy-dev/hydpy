@@ -41,10 +41,15 @@ class Parameters(object):
                 setattr(self, subpars.name, subpars)
 
     def update(self):
-        """Needs to be defined for each individual :class:`Parameters`
-        subclass that contains `derived` paramemeters, whose values are
-        calculated on the basis of given control parameter values.
-        """
+        """Calls the update methods of all derived parameters."""
+        for par in self.derived._PARCLASSES:
+            name = objecttools.instancename(par)
+            try:
+                self.derived.__dict__[name].update()
+            except BaseException:
+                objecttools.augmentexcmessage(
+                    'While trying to update the derived parameter `%s` of '
+                    'element `%s`' % (name, objecttools.devicename(self)))
 
     def savecontrols(self, parameterstep=None, simulationstep=None,
                      filename=None, dirname=None):

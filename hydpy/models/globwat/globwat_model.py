@@ -21,7 +21,7 @@ import numpy
 # ...HydPy specific
 from hydpy.core import modeltools
 # ...model specifc
-#from .globwat_constants import  1 to 14
+from .globwat_constants import *
 
 class Model(modeltools.Model):
     """The HydPy-GlobWat model."""

@@ -223,6 +223,7 @@ class Options(object):
         self._refreshmodels = False
         self._reprdigits = None
         self._warntrim = True
+        self._warnsimulationstep = True
 
     def _getprintprogress(self):
         """True/False flag indicating whether information about the progress
@@ -257,7 +258,7 @@ class Options(object):
 
     def _getusecython(self):
         """True/False flag indicating whether Cython models (True) or pure
-        Python models (False) shall be applied if possible.  Using Cython 
+        Python models (False) shall be applied if possible.  Using Cython
         models is more time efficient and thus the default.
         """
         return self._usecython
@@ -266,8 +267,8 @@ class Options(object):
     usecython = property(_getusecython, _setusecython)
 
     def _getskipdoctests(self):
-        """True/False flag indicating whether documetation tests shall be 
-        performed under certain situations.  Applying tests increases 
+        """True/False flag indicating whether documetation tests shall be
+        performed under certain situations.  Applying tests increases
         reliabilty and is thus the default.
         """
         return self._skipdoctests
@@ -276,8 +277,8 @@ class Options(object):
     skipdoctests = property(_getskipdoctests, _setskipdoctests)
 
     def _getreprdigits(self):
-        """Required precision of string representations of floating point 
-        numbers, defined as the minimum number of digits to be reproduced 
+        """Required precision of string representations of floating point
+        numbers, defined as the minimum number of digits to be reproduced
         by the string representation (see function :func:`repr_`).
         """
         return self._reprdigits
@@ -289,11 +290,11 @@ class Options(object):
     reprdigits = property(_getreprdigits, _setreprdigits)
 
     def _getwarntrim(self):
-        """True/False flag indicating whether a warning shall be raised 
+        """True/False flag indicating whether a warning shall be raised
         whenever certain values needed to be trimmed due to violating
         certain boundaries. Such warnings increase savety and are thus
         the default is `True`.  However, to cope with the limited precision
-        of floating point numbers only those violations beyond a small 
+        of floating point numbers only those violations beyond a small
         tolerance value are reported (see :class:`Trimmer`).  Warnings
         with identical information are reported only once.
         """
@@ -301,6 +302,17 @@ class Options(object):
     def _setwarntrim(self, value):
         self._warntrim = bool(value)
     warntrim = property(_getwarntrim, _setwarntrim)
+
+    def _getwarnsimulationstep(self):
+        """True/False flag indicating whether a warning shall be raised
+        when function :func:`~hydpy.core.magictools.simulationstep` is
+        called for the first time.
+        """
+        return self._warnsimulationstep
+    def _setwarnsimulationstep(self, value):
+        self._warnsimulationstep = bool(value)
+    warnsimulationstep = property(_getwarnsimulationstep,
+                                  _setwarnsimulationstep)
 
     def __dir__(self):
         return dir_(self)

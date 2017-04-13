@@ -757,7 +757,7 @@ class Model(modeltools.Model):
 
             >>> from hydpy.models.hland import *
             >>> parameterstep('1d')
-            >>> simulationstep('12h', warn=False)
+            >>> simulationstep('12h')
             >>> nmbzones(6)
             >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD)
             >>> cfmax(4.)
@@ -873,7 +873,7 @@ class Model(modeltools.Model):
 
             >>> from hydpy.models.hland import *
             >>> parameterstep('1d')
-            >>> simulationstep('12h', warn=False)
+            >>> simulationstep('12h')
             >>> nmbzones(6)
             >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD)
             >>> cfmax(4.)
@@ -1091,7 +1091,7 @@ class Model(modeltools.Model):
 
             >>> from hydpy.models.hland import *
             >>> parameterstep('1d')
-            >>> simulationstep('12h', warn=False)
+            >>> simulationstep('12h')
             >>> nmbzones(7)
             >>> zonetype(FIELD, FOREST, ILAKE, GLACIER, GLACIER, GLACIER, GLACIER)
             >>> gmelt(4.)
@@ -1248,7 +1248,7 @@ class Model(modeltools.Model):
 
             >>> from hydpy.models.hland import *
             >>> parameterstep('1d')
-            >>> simulationstep('12h', warn=False)
+            >>> simulationstep('12h')
             >>> nmbzones(6)
             >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD)
             >>> fc(200.)
@@ -1692,7 +1692,7 @@ class Model(modeltools.Model):
 
             >>> from hydpy.models.hland import *
             >>> parameterstep('1d')
-            >>> simulationstep('12h', warn=False)
+            >>> simulationstep('12h')
             >>> recstep(2)
             >>> derived.dt = 1./recstep
             >>> percmax(2.)
@@ -2004,7 +2004,7 @@ class Model(modeltools.Model):
 
             >>> from hydpy.models.hland import *
             >>> parameterstep('1d')
-            >>> simulationstep('12h', warn=False)
+            >>> simulationstep('12h')
             >>> k4(.2)
             >>> gamma(0.)
             >>> states.lz = -2.
@@ -2212,7 +2212,7 @@ class Model(modeltools.Model):
 
             >>> from hydpy.models.hland import *
             >>> parameterstep('1d')
-            >>> simulationstep('12h', warn=False)
+            >>> simulationstep('12h')
             >>> abstr(2.)
             >>> fluxes.outuh = 2.
             >>> model.calc_qt()

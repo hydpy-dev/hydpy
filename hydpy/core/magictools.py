@@ -17,7 +17,6 @@ from hydpy.core import filetools
 from hydpy.core import parametertools
 from hydpy.core import devicetools
 
-_warnsimulationstep = True
 
 class Tester(object):
 
@@ -40,6 +39,8 @@ class Tester(object):
                 if (fn.endswith('.py') and not fn.startswith('_'))]
 
     def doit(self):
+        warnsimulationstep = pub.options.warnsimulationstep
+        pub.options.warnsimulationstep = False
         timegrids = pub.timegrids
         pub.timegrids = None
         dirverbose = pub.options.dirverbose
@@ -66,8 +67,13 @@ class Tester(object):
                     with StdOutErr(indent=8):
                         modulename = '.'.join((self.package, name))
                         module = importlib.import_module(modulename)
+                        warnings.filterwarnings('error', module=modulename)
+                        warnings.filterwarnings('ignore',
+                                                category=ImportWarning)
                         doctest.testmod(module, extraglobs={'testing': True})
+                        warnings.resetwarnings()
         finally:
+            pub.options.warnsimulationstep = warnsimulationstep
             pub.timegrids = timegrids
             pub.options.dirverbose = dirverbose
             pub.options.reprcomments = reprcomments
@@ -185,35 +191,28 @@ def parameterstep(timestep=None):
         except AttributeError:
             pass
 
-class Simulationstep(object):
+def simulationstep(timestep):
+    """
+    Define a simulation time step size for testing purposes within a
+    parameter control file.
 
-    def __init__(self):
-        self.warn = True
+    Argument:
+        * timestep(:class:`~hydpy.core.timetools.Period`): Time step size.
 
-    def __call__(self, timestep, warn=True):
-        """
-        Define a simulation time step size for testing purposes within a
-        parameter control file.
-
-        Argument:
-            * timestep(:class:`~hydpy.core.timetools.Period): Time step size.
-
-        Using :func:`simulationstep` only affects the values of time dependent
-        parameters, when `pub.timegrids.stepsize` is not defined.  It thus has
-        no influence on usual hydpy simulations at all.  Use it just to check
-        your parameter control files.  Write it in a line immediately behind the
-        one calling :func:`parameterstep`.
-        """
-        if warn and self.warn:
-            warnings.warn('Note that the applied function `simulationstep` is '
-                          'inteded for testing purposes only.  When doing a '
-                          'hydpy simulation, parameter values are initialized '
-                          'based on the actual simulation time step as defined '
-                          'under `pub.timegrids.stepsize` and the value given '
-                          'to `simulationstep` is ignored.')
-        parametertools.Parameter._simulationstep = timetools.Period(timestep)
-
-simulationstep = Simulationstep()
+    Using :func:`simulationstep` only affects the values of time dependent
+    parameters, when `pub.timegrids.stepsize` is not defined.  It thus has
+    no influence on usual hydpy simulations at all.  Use it just to check
+    your parameter control files.  Write it in a line immediately behind
+    the one calling :func:`parameterstep`.
+    """
+    if pub.options.warnsimulationstep:
+        warnings.warn('Note that the applied function `simulationstep` is '
+                      'inteded for testing purposes only.  When doing a '
+                      'hydpy simulation, parameter values are initialized '
+                      'based on the actual simulation time step as defined '
+                      'under `pub.timegrids.stepsize` and the value given '
+                      'to `simulationstep` is ignored.')
+    parametertools.Parameter._simulationstep = timetools.Period(timestep)
 
 def controlcheck(controldir='default', projectdir=None, controlfile=None):
     namespace = inspect.currentframe().f_back.f_locals

@@ -12,6 +12,7 @@ import sys
 import importlib
 import unittest
 import doctest
+import warnings
 
 # Priorise site-packages (on Debian-based Linux distributions as Ubunte
 # also dist-packages) in the import order to make sure, the following
@@ -30,7 +31,7 @@ for name in [fn.split('.')[0] for fn in os.listdir(hydpy.models.__path__[0])]:
         importlib.import_module('hydpy.models.'+name)
 pub.options.skipdoctests = False
 
-# 1. Perform "classic" all unit tests.
+# 1. Perform all "classical" unit tests.
 
 import hydpy.tests
 filenames = os.listdir(hydpy.tests.__path__[0])
@@ -109,6 +110,7 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                 if exc.args[-1] != 'has no docstrings':
                     raise(exc)
             else:
+                pub.options.warnsimulationstep = False
                 pub.timegrids = None
                 pub.options.reprcomments = False
                 pub.options.reprdigits = 6
@@ -117,7 +119,10 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                 devicetools.Element.clearregistry()
                 if name.endswith('.rst'):
                     name = name[name.find('hydpy'+os.sep):]
+                warnings.filterwarnings('error', module='hydpy')
+                warnings.filterwarnings('ignore', category=ImportWarning)
                 doctests[name] = runner.run(suite)
+                warnings.resetwarnings()
                 doctests[name].nmbproblems = (len(doctests[name].errors) +
                                               len(doctests[name].failures))
     successfuldoctests.update({name: runner for (name, runner)

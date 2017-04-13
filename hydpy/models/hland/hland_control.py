@@ -227,7 +227,7 @@ class K(parametertools.SingleParameter):
 
         >>> from hydpy.models.hland import *
         >>> parameterstep('1d')
-        >>> simulationstep('12h', warn=False)
+        >>> simulationstep('12h')
         >>> k(2.)
         >>> k
         k(2.0)

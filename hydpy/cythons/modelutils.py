@@ -508,10 +508,10 @@ class PyxWriter(object):
         print('            . setpointer1d')
         lines = Lines()
         lines.add(1 ,'cpdef inline setpointer1d'
-                     '(self, str name, pointer.PDouble value):')
+                     '(self, str name, pointer.PDouble value, int idx):')
         for (name, seq) in subseqs:
             lines.add(2 ,'if name == "%s":' % name)
-            lines.add(3 ,'self.%s[self.idx_sim] = value.p_value' % name)
+            lines.add(3 ,'self.%s[idx] = value.p_value' % name)
         return lines
 
 #    def getpointer1d(self, subseqs):
@@ -563,18 +563,19 @@ class PyxWriter(object):
         """Do (most of) it function of the model class."""
         print('                . doit')
         lines = Lines()
-        lines.add(1, 'cpdef inline void doit(self):')
+        lines.add(1, 'cpdef inline void doit(self, int idx):')
+        lines.add(2, 'self.idx_sim = idx')
         if getattr(self.model.sequences, 'inputs', None) is not None:
             lines.add(2, 'self.loaddata()')
         if getattr(self.model.sequences, 'inlets', None) is not None:
-            lines.add(2, 'self.updateinlets()')
+            lines.add(2, 'self.update_inlets()')
         lines.add(2, 'self.run()')
         if getattr(self.model.sequences, 'outlets', None) is not None:
-            lines.add(2, 'self.updateoutlets()')
+            lines.add(2, 'self.update_outlets()')
         if getattr(self.model.sequences, 'states', None) is not None:
             lines.add(2, 'self.new2old()')
         if getattr(self.model.sequences, 'senders', None) is not None:
-            lines.add(2, 'self.updatesenders()')
+            lines.add(2, 'self.update_senders()')
         if ((getattr(self.model.sequences, 'fluxes', None) is not None) or
             (getattr(self.model.sequences, 'states', None) is not None)):
                 lines.add(2, 'self.savedata()')
@@ -636,7 +637,8 @@ class PyxWriter(object):
         lines = Lines()
         lines.add(1 ,'cpdef inline void run(self):')
         for method in self.model._METHODS:
-            lines.add(2, 'self.%s()' % method.__name__)
+            if not method.__name__.startswith('update_'):
+                lines.add(2, 'self.%s()' % method.__name__)
         return lines
 
     @property

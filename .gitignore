@@ -2,7 +2,9 @@
 *.spyderworkspace
 *.pyc
 *.pyd
+*.pyx
 *.pxd
+!pointer.pxd
 !pointer.pxd
 *.c
 *.h

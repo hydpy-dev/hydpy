@@ -18,16 +18,23 @@ class Indexer(object):
     """
     def __init__(self):
         self._monthofyear = None
+        self._monthofyear_hash = hash(None)
         self._dayofyear = None
+        self._dayofyear_hash = hash(None)
 
     def _getmonthofyear(self):
         """Month of the year index (January = 0...)."""
-        if self._monthofyear is None:
+        from hydpy.pub import timegrids
+        if ((self._monthofyear is None) or
+            (hash(timegrids) != self._monthofyear_hash)):
             self._monthofyear = self._calcidxs(lambda date: date.month-1,
                                                'monthofyear')
+            self._monthofyear_hash =  hash(timegrids)
         return self._monthofyear
     def _setmonthofyear(self, values):
+        from hydpy.pub import timegrids
         self._monthofyear = self._convertandtest(values, 'monthofyear')
+        self._monthofyear_hash = hash(timegrids)
     def _delmonthofyear(self):
         self._monthofyear = None
     monthofyear = property(_getmonthofyear, _setmonthofyear, _delmonthofyear)
@@ -53,13 +60,18 @@ class Indexer(object):
         >>> Indexer().dayofyear
         array([57, 58, 60, 61])
         """
-        if self._dayofyear is None:
+        from hydpy.pub import timegrids
+        if ((self._dayofyear is None) or
+            (hash(timegrids) != self._dayofyear_hash)):
             func = lambda date: (date.dayofyear - 1 +
                                  ((date.month > 2) and (not date.leapyear)))
             self._dayofyear = self._calcidxs(func, 'dayofyear')
+            self._dayofyear_hash =  hash(timegrids)
         return self._dayofyear
     def _setdayofyear(self, values):
+        from hydpy.pub import timegrids
         self._dayofyear = self._convertandtest(values, 'dayofyear')
+        self._dayofyear_hash = hash(timegrids)
     def _deldayofyear(self):
         self._dayofyear = None
     dayofyear = property(_getdayofyear, _setdayofyear, _deldayofyear)
@@ -103,7 +115,7 @@ class Indexer(object):
         from hydpy.pub import timegrids
         if timegrids is None:
             raise RuntimeError('An Indexer object has been asked for an '
-                               '%s array.  Such an array has neither been'
+                               '%s array.  Such an array has neither been '
                                'determined yet nor can it be determined '
                                'automatically at the moment.   Either '
                                'define an %s array manually and pass it to '

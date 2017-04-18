@@ -2160,7 +2160,7 @@ def calc_qt_v1(self):
     flu = self.sequences.fluxes.fastaccess
     flu.qt = max(flu.outuh-con.abstr, 0.)
 
-def updateoutlets_v1(self, idx):
+def update_outlets_v1(self):
     """Update the outlet link sequence."""
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
@@ -2226,6 +2226,7 @@ class Model(modeltools.Model):
                 calc_sp_wc_v1,
                 calc_melt_sp_wc_v1,
                 calc_refr_sp_wc_v1,
+                calc_glmelt_in_v1,
                 calc_in_wc_v1,
                 calc_r_sm_v1,
                 calc_cf_sm_v1,

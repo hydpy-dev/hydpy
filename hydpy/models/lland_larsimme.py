@@ -61,11 +61,11 @@ class Model(modeltools.Model):
         >>> hinz(.2)
         >>> lai.acker[0] = 1.0
         >>> treft(0.)
-        >>> trefN(0.)
+        >>> trefn(0.)
         >>> tgr(0.)
         >>> gtf(5.)
         >>> pwmax(1.4)
-        >>> grasrefr(5.)
+        >>> grasref_r(5.)
         >>> nfk(200.)
         >>> relwb(.05)
         >>> relwz(.5)
@@ -89,7 +89,6 @@ class Model(modeltools.Model):
 
         >>> model.run()
     """
-    _OMITVERSION = True
     _METHODS = (lland_model.calc_nkor_v1,
                 lland_model.calc_tkor_v1,
                 lland_model.calc_et0_v1,
@@ -114,7 +113,7 @@ class Model(modeltools.Model):
                 lland_model.calc_qiga2_v1,
                 lland_model.calc_qdga_v1,
                 lland_model.calc_q_v1,
-                lland_model.updateoutlets_v1)
+                lland_model.update_outlets_v1)
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of LARSIM-ME, directly defined by the user."""

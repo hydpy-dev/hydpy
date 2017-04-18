@@ -62,8 +62,11 @@ class MultiParameter(parametertools.ZipParameter):
 
 class LanduseMonthParameter(parametertools.MultiParameter):
 
-    def __call__(self, *args, **kwargs):
+    def connect(self, subpars):
+        parametertools.MultiParameter.connect(self, subpars)
         self.shape = (len(CONSTANTS), 12)
+
+    def __call__(self, *args, **kwargs):
         try:
             parametertools.MultiParameter.__call__(self, *args, **kwargs)
         except NotImplementedError:

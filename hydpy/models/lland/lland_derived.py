@@ -35,7 +35,7 @@ class WB(lland_parameters.MultiParameter):
 
     def update(self):
         con = self.subpars.pars.control
-        self(con.relwb*con.nkf)
+        self(con.relwb*con.nfk)
 
 
 class WZ(lland_parameters.MultiParameter):
@@ -45,7 +45,7 @@ class WZ(lland_parameters.MultiParameter):
 
     def update(self):
         con = self.subpars.pars.control
-        self(con.relwz*con.nkf)
+        self(con.relwz*con.nfk)
 
 
 class KB(parametertools.SingleParameter):

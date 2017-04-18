@@ -206,9 +206,12 @@ def calc_evpo_v1(self):
 
         Fourthly, the index array connecting the simulation time steps
         defined above and the month indexes (0...11) can be retrieved
-        from the :mod:`~hydpy.pub` module:
+        from the :mod:`~hydpy.pub` module.  This can be done manually
+        more conveniently via its update method:
 
-        >>> derived.moy = pub.indexer.monthofyear
+        >>> derived.moy.update()
+        >>> derived.moy
+        moy(5, 6)
 
         Finally, the actual method (with its simple equation) is applied
         as usual:
@@ -1606,7 +1609,7 @@ def calc_q_v1(self):
                 flu.evi[k] *= flu.q/aid.epw
         flu.q = 0.
 
-def updateoutlets_v1(self):
+def update_outlets_v1(self):
     """Update the outlet link sequence.
 
     Required derived parameter:
@@ -1617,20 +1620,15 @@ def updateoutlets_v1(self):
 
     Calculated flux sequence:
       :class:`~hydpy.models.lland.lland_links.Q`
-
-    Additional requirements:
-      :attr:`~hydpy.core.modeltools.Model.idx_sim`
     """
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
     out = self.sequences.outlets.fastaccess
     out.q[0] += der.qfactor*flu.q
 
-
 class Model(modeltools.Model):
     """Base model for HydPy-L-Land."""
 
-    _OMITVERSION = False
     _METHODS = (calc_nkor_v1,
                 calc_tkor_v1,
                 calc_et0_v1,
@@ -1654,6 +1652,5 @@ class Model(modeltools.Model):
                 calc_qiga1_v1,
                 calc_qiga2_v1,
                 calc_qdga_v1,
-                calc_q_v1,
-                updateoutlets_v1)
+                calc_q_v1)
 

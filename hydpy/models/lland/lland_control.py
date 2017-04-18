@@ -117,10 +117,10 @@ class FLn(lland_parameters.LanduseMonthParameter):
     reference evapotranspiration to different land use classes) [-]."""
     NDIM, TYPE, TIME, SPAN = 2, float, None, (0., None)
 
-class HInz(lland_parameters.MultiParameter):
+class HInz(parametertools.SingleParameter):
     """Interzeptionskapazität bezogen auf die Blattoberfläche (interception
     capacity normalized to the leaf surface area) [mm]."""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
 class LAI(lland_parameters.LanduseMonthParameter):
     """Blattflächenindex (leaf area index) [-]."""

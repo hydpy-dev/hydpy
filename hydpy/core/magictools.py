@@ -106,6 +106,7 @@ class StdOutErr(object):
         self.indent = indent
         self.stdout = sys.stdout
         self.stderr = sys.stderr
+        self.encoding = sys.stdout.encoding
         self.texts = []
 
     def __enter__(self):

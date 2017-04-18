@@ -109,6 +109,7 @@ class StdOutErr(object):
         self.texts = []
 
     def __enter__(self):
+        self.encoding = sys.stdout.encoding
         sys.stdout = self
         sys.stderr = self
 

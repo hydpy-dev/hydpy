@@ -8,8 +8,7 @@ from hydpy import pub
 from hydpy.core import objecttools
 
 
-class MetaModel(type):
-
+class MetaModelType(type):
     def __new__(cls, name, parents, dict_):
         methods = dict_.get('_METHODS')
         if methods is None:
@@ -33,12 +32,12 @@ class MetaModel(type):
                 dict_[shortname] = method
         return type.__new__(cls, name, parents, dict_)
 
+MetaModelClass = MetaModelType('MetaModelClass', (), {'_METHODS': ()})
 
-class Model(object):
-    """Base class for hydrological models."""
+class Model(MetaModelClass):
+    """Base class for all hydrological models."""
 
-    __metaclass__ = MetaModel
-    _METHODS = ()
+    _METHODS = (MetaModelClass)
 
     def __init__(self):
         self.element = None

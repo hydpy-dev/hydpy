@@ -37,7 +37,7 @@ MetaModelClass = MetaModelType('MetaModelClass', (), {'_METHODS': ()})
 class Model(MetaModelClass):
     """Base class for all hydrological models."""
 
-    _METHODS = (MetaModelClass)
+    _METHODS = ()
 
     def __init__(self):
         self.element = None

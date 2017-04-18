@@ -147,16 +147,7 @@ class SubParameters(object):
         except AttributeError:
             object.__setattr__(self, name, value)
             if isinstance(value, Parameter):
-                value.subpars = self
-                value.fastaccess = self.fastaccess
-                try:
-                    # Necessary when working in Python mode...
-                    setattr(self.fastaccess, value.name, None)
-                except TypeError:
-                    # ...but unnecessary and impossible in Cython mode.
-                    pass
-                if getattr(value, 'INIT', None) is not None:
-                    value(value.INIT)
+                value.connect(self)
         else:
             try:
                 attr._setvalue(value)
@@ -188,6 +179,18 @@ class Parameter(objecttools.ValueMath):
         self.subpars = None
         self.fastaccess = type('JustForDemonstrationPurposes', (),
                                {self.name: None})()
+
+    def connect(self, subpars):
+        self.subpars = subpars
+        self.fastaccess = subpars.fastaccess
+        try:
+            # Necessary when working in Python mode...
+            setattr(self.fastaccess, self.name, None)
+        except TypeError:
+            # ...but unnecessary (and impossible) in Cython mode.
+            pass
+        if getattr(self, 'INIT', None) is not None:
+            self.value = self.INIT
 
     def _getname(self):
         """Name of the parameter, which is the name if the instantiating
@@ -469,7 +472,7 @@ class MultiParameter(Parameter):
                                'defined.' % self.name)
     def _setshape(self, shape):
         try:
-            array = numpy.full(shape, numpy.nan, dtype=self.TYPE)
+            array = numpy.full(shape, 0., dtype=self.TYPE)
         except Exception:
             objecttools.augmentexcmessage('While trying create a new numpy '
                                           'ndarray` for parameter `%s`'

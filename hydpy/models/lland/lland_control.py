@@ -4,6 +4,8 @@
 # ...from standard library
 from __future__ import division, print_function
 import warnings
+# ...from site-packages
+import numpy
 # ...HydPy specific
 from hydpy.core import parametertools
 from hydpy.core import objecttools
@@ -143,7 +145,7 @@ class TGr(lland_parameters.MultiParameter):
 
 class GTF(lland_parameters.MultiParameter):
     """Grad-Tag-Faktor (factor of the degree-day method) [mm/°C/T]."""
-    NDIM, TYPE, TIME, SPAN = 1, float, True, (None, None)
+    NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
 
 class RSchmelz(parametertools.SingleParameter):
     """Spezifische Schmelzwärme von Wasser (specific melt heat of water)
@@ -275,10 +277,26 @@ class DMin(lland_parameters.MultiParameter):
         except NotImplementedError:
             args = kwargs.get('r_dmin')
             if args is not None:
-                lland_parameters.MultiParameter.__call__(self, args)
-                self *= 0.024192
+                self.values = 0.024192*self.applytimefactor(numpy.array(args))
+                self.trim()
             else:
                 objecttools.augmentexcmessage()
+    
+    def trim(self, lower=None, upper=None):
+        """Trim upper values in accordance with :math:`DMin \\leq DMax`.
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep('1d')
+        >>> simulationstep('12h')
+        >>> nhru(5)
+        >>> dmax.values = 4.
+        >>> dmin(-2., 0., 2., 4., 6.)
+        >>> dmin
+        dmin(0.0, 0.0, 1.0, 2.0, 2.0)
+        """
+        if upper is None:
+            upper = self.subpars.dmax
+            lland_parameters.MultiParameter.trim(self, lower, upper)
 
 class DMax(lland_parameters.MultiParameter):
     """Drainageindex des oberen Bodenspeichers (additional flux rate for
@@ -308,7 +326,7 @@ class DMax(lland_parameters.MultiParameter):
         >>> dmax.values
         array([ 12.096])
     """
-    NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
+    NDIM, TYPE, TIME, SPAN = 1, float, True, (None, None)
 
     def __call__(self, *args, **kwargs):
         """The prefered way to pass values to :class:`DMin` instances
@@ -319,11 +337,27 @@ class DMax(lland_parameters.MultiParameter):
         except NotImplementedError:
             args = kwargs.get('r_dmax')
             if args is not None:
-                lland_parameters.MultiParameter.__call__(self, args)
-                self *= 2.4192
+                self.values = 2.4192*self.applytimefactor(numpy.array(args))
+                self.trim()
             else:
                 objecttools.augmentexcmessage()
 
+    def trim(self, lower=None, upper=None):
+        """Trim upper values in accordance with :math:`DMax \\geq DMin`.
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep('1d')
+        >>> simulationstep('12h')
+        >>> nhru(3)
+        >>> dmin.values = 4.
+        >>> dmax(2., 4., 6.)
+        >>> dmax
+        dmax(2.0, 2.0, 3.0)
+        """
+        if lower is None:
+            lower = self.subpars.dmin
+            lland_parameters.MultiParameter.trim(self, lower, upper)
+            
 class BSf(lland_parameters.MultiParameter):
     """Bodenfeuchte-Sättigungsfläche-Parameter (shape parameter for the
     relation between the avarage soil moisture and the relative saturated
@@ -453,5 +487,5 @@ class ControlParameters(parametertools.SubParameters):
     """Control parameters of HydPy-L-Land, directly defined by the user."""
     _PARCLASSES = (FT, NHRU, FHRU, Lnk, HNN, KG, KT, KE, KF, FLn, HInz, LAI,
                    TRefT, TRefN, TGr, GTF, RSchmelz, CPWasser, PWMax,
-                   GrasRef_R, NFk, RelWB, RelWZ, Beta, DMin, DMax, BSf,
+                   GrasRef_R, NFk, RelWB, RelWZ, Beta, DMax, DMin, BSf,
                    TInd, EQB, EQI1, EQI2, EQD)

@@ -20,12 +20,17 @@ class MetaModel(type):
                                       'attribute named `_METHODS`.  For class '
                                       '`%s`, such a attribute is not defined.'
                                       % name)
-        omitversion = dict_.get('_OMITVERSION', True)
+        uniques = {}
         for method in methods:
-            if omitversion:
-                dict_['_'.join(method.__name__.split('_')[:-1])] = method
+            dict_[method.__name__] = method
+            shortname = '_'.join(method.__name__.split('_')[:-1])
+            if shortname in uniques:
+                uniques[shortname] = None
             else:
-                dict_[method.__name__] = method
+                uniques[shortname] = method
+        for (shortname, method) in uniques.items():
+            if method is not None:
+                dict_[shortname] = method
         return type.__new__(cls, name, parents, dict_)
 
 
@@ -33,7 +38,6 @@ class Model(object):
     """Base class for hydrological models."""
 
     __metaclass__ = MetaModel
-    _OMITVERSION = False
     _METHODS = ()
 
     def __init__(self):
@@ -86,37 +90,39 @@ class Model(object):
 #        else:
 #            NotImplementedError('ToDo')
 
-    def updatereceivers(self, idx):
-        pass
-
-    def updatesenders(self, idx):
-        pass
-
     def doit(self, idx):
-        self.loaddata(idx)
-        self.updateinlets(idx)
-        self.run(idx)
-        self.updateoutlets(idx)
-        self.updatesenders(idx)
+        self.idx_sim = idx
+        self.loaddata()
+        self.update_inlets()
+        self.run()
+        self.update_outlets()
+        self.update_senders()
         self.new2old()
-        self.savedata(idx)
+        self.savedata()
 
     def run(self):
         for method in self._METHODS:
-            method(self)
+            if not method.__name__.startswith('update_'):
+                method(self)
 
-    def loaddata(self, idx):
-        self.sequences.loaddata(idx)
+    def loaddata(self):
+        self.sequences.loaddata(self.idx_sim)
 
-    def savedata(self, idx):
-        self.sequences.savedata(idx)
+    def savedata(self):
+        self.sequences.savedata(self.idx_sim)
 
-    def updateinlets(self, idx):
+    def update_inlets(self):
         """Maybe."""
         pass
 
-    def updateoutlets(self, idx):
+    def update_outlets(self):
         """In any case."""
+        pass
+
+    def update_receivers(self):
+        pass
+
+    def update_senders(self):
         pass
 
     def new2old(self):

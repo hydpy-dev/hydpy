@@ -233,7 +233,7 @@ class RelWZ(lland_parameters.MultiParameter):
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
-        >>> hru(3)
+        >>> nhru(3)
         >>> relwb.values = .5
         >>> relwz(0.2, .5, .8)
         >>> relwz
@@ -254,7 +254,7 @@ class RelWB(lland_parameters.MultiParameter):
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
-        >>> hru(3)
+        >>> nhru(3)
         >>> relwz.values = .5
         >>> relwb(0.2, .5, .8)
         >>> relwb

@@ -571,7 +571,10 @@ class MultiParameter(Parameter):
         nested list.  If the compression fails, a
         :class:`~exceptions.NotImplementedError` is raised.
         """
-        unique = numpy.unique(self.values)
+        if self.value is None:
+            unique = numpy.array([numpy.nan])
+        else:
+            unique = numpy.unique(self.values)
         if sum(numpy.isnan(unique)) == len(unique.flatten()):
             unique = numpy.array([numpy.nan])
         else:

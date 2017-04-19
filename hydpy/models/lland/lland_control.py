@@ -226,12 +226,44 @@ class NFk(lland_parameters.MultiParameter):
 class RelWZ(lland_parameters.MultiParameter):
     """Relative Mindestbodenfeuchte für die Interflowentstehung (threshold
        value of relative soil moisture for interflow generation) [-]."""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., 1.)
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, 1.)
+
+    def trim(self, lower=None, upper=None):
+        """Trim upper values in accordance with :math:`RelWB \\leq RelWZ`.
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep('1d')
+        >>> hru(3)
+        >>> relwb.values = .5
+        >>> relwz(0.2, .5, .8)
+        >>> relwz
+        relwz(0.5, 0.5, 0.8)
+        """
+        relwb = self.subpars.relwb.value
+        if (lower is None) and (relwb is not None):
+            lower = relwb
+        lland_parameters.MultiParameter.trim(self, lower, upper)
 
 class RelWB(lland_parameters.MultiParameter):
     """Relative Mindestbodenfeuchte für die Basisabflussentstehung (threshold
        value of relative soil moisture for base flow generation) [-]."""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., 1.)
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+
+    def trim(self, lower=None, upper=None):
+        """Trim upper values in accordance with :math:`RelWB \\leq RelWZ`.
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep('1d')
+        >>> hru(3)
+        >>> relwz.values = .5
+        >>> relwb(0.2, .5, .8)
+        >>> relwb
+        relwb(0.2, 0.5, 0.5)
+        """
+        relwz = self.subpars.relwz.value
+        if (upper is None) and (relwz is not None):
+            upper = relwz
+        lland_parameters.MultiParameter.trim(self, lower, upper)
 
 class Beta(lland_parameters.MultiParameter):
     """Drainageindex des tiefen Bodenspeichers (storage coefficient for

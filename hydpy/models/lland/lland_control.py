@@ -297,7 +297,7 @@ class DMin(lland_parameters.MultiParameter):
         """
         if upper is None:
             upper = self.subpars.dmax
-            lland_parameters.MultiParameter.trim(self, lower, upper)
+        lland_parameters.MultiParameter.trim(self, lower, upper)
 
 class DMax(lland_parameters.MultiParameter):
     """Drainageindex des oberen Bodenspeichers (additional flux rate for
@@ -358,7 +358,7 @@ class DMax(lland_parameters.MultiParameter):
         """
         if lower is None:
             lower = self.subpars.dmin
-            lland_parameters.MultiParameter.trim(self, lower, upper)
+        lland_parameters.MultiParameter.trim(self, lower, upper)
 
 class BSf(lland_parameters.MultiParameter):
     """Bodenfeuchte-Sättigungsfläche-Parameter (shape parameter for the
@@ -367,7 +367,7 @@ class BSf(lland_parameters.MultiParameter):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 class TInd(parametertools.SingleParameter):
-    """Fließzeitindex (...) [T].
+    """Fließzeitindex (factor related to the time of concentration) [T].
 
     In addition to the :class:`parametertools.SingleParameter` call method, it
     is possible to set the value of parameter :class:`TInd` in accordance to
@@ -468,11 +468,62 @@ class EQB(parametertools.SingleParameter):
     the concentration time of baseflow). [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
+    def trim(self, lower=None, upper=None):
+        """Trim upper values in accordance with :math:`EQI1 \\leq EQB`.
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep('1d')
+        >>> eqi1.value = 2.
+        >>> eqb(1.)
+        >>> eqb
+        eqb(2.0)
+        >>> eqb(2.)
+        >>> eqb
+        eqb(2.0)
+        >>> eqb(3.)
+        >>> eqb
+        eqb(3.0)
+        """
+        if (lower is None) and not numpy.isnan(self.subpars.eqi1):
+            lower = self.subpars.eqi1
+        parametertools.SingleParameter.trim(self, lower, upper)
+
+
 class EQI1(parametertools.SingleParameter):
     """Kalibrierfaktor für die "untere" Zwischenabflusskonzentration
     (factor for adjusting the concentration time of the first interflow
     component) [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+
+    def trim(self, lower=None, upper=None):
+        """Trim upper values in accordance with
+        :math:`EQI2 \\leq EQI1 \\leq EQB`.
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep('1d')
+        >>> eqb.value = 3.
+        >>> eqi2.value = 1.
+        >>> eqi1(0.)
+        >>> eqi1
+        eqi1(1.0)
+        >>> eqi1(1.)
+        >>> eqi1
+        eqi1(1.0)
+        >>> eqi1(2.)
+        >>> eqi1
+        eqi1(2.0)
+        >>> eqi1(3.)
+        >>> eqi1
+        eqi1(3.0)
+        >>> eqi1(4.)
+        >>> eqi1
+        eqi1(3.0)
+        """
+        if (lower is None) and not numpy.isnan(self.subpars.eqi2):
+            lower = self.subpars.eqi2
+        if (upper is None) and not numpy.isnan(self.subpars.eqb):
+            upper = self.subpars.eqb
+        parametertools.SingleParameter.trim(self, lower, upper)
 
 class EQI2(parametertools.SingleParameter):
     """Kalibrierfaktor für die "obere" Zwischenabflusskonzentration
@@ -480,10 +531,61 @@ class EQI2(parametertools.SingleParameter):
     component) [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
+    def trim(self, lower=None, upper=None):
+        """Trim upper values in accordance with
+        :math:`EQD \\leq EQI2 \\leq EQI1`.
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep('1d')
+        >>> eqi1.value = 3.
+        >>> eqd.value = 1.
+        >>> eqi2(0.)
+        >>> eqi2
+        eqi2(1.0)
+        >>> eqi2(1.)
+        >>> eqi2
+        eqi2(1.0)
+        >>> eqi2(2.)
+        >>> eqi2
+        eqi2(2.0)
+        >>> eqi2(3.)
+        >>> eqi2
+        eqi2(3.0)
+        >>> eqi2(4.)
+        >>> eqi2
+        eqi2(3.0)
+        """
+        if (lower is None) and not numpy.isnan(self.subpars.eqd):
+            lower = self.subpars.eqd
+        if (upper is None) and not numpy.isnan(self.subpars.eqi1):
+            upper = self.subpars.eqi1
+        parametertools.SingleParameter.trim(self, lower, upper)
+
 class EQD(parametertools.SingleParameter):
     """Kalibrierfaktor für die Direktabflusskonzentration (factor for adjusting
     the concentration time of direct runoff). [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+
+    def trim(self, lower=None, upper=None):
+        """Trim upper values in accordance with
+        :math:`EQD \\leq EQI2`.
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep('1d')
+        >>> eqi2.value = 2.
+        >>> eqd(1.)
+        >>> eqd
+        eqd(1.0)
+        >>> eqd(2.)
+        >>> eqd
+        eqd(2.0)
+        >>> eqd(3.)
+        >>> eqd
+        eqd(2.0)
+        """
+        if (upper is None) and not numpy.isnan(self.subpars.eqi2):
+            upper = self.subpars.eqi2
+        parametertools.SingleParameter.trim(self, lower, upper)
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of HydPy-L-Land, directly defined by the user."""

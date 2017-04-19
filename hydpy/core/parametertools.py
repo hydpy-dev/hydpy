@@ -183,12 +183,13 @@ class Parameter(objecttools.ValueMath):
     def connect(self, subpars):
         self.subpars = subpars
         self.fastaccess = subpars.fastaccess
-        try:
-            # Necessary when working in Python mode...
+        if self.NDIM == 0:
+            if self.TYPE is float:
+                setattr(self.fastaccess, self.name, numpy.nan)
+            else:
+                setattr(self.fastaccess, self.name, 0)
+        else:
             setattr(self.fastaccess, self.name, None)
-        except TypeError:
-            # ...but unnecessary (and impossible) in Cython mode.
-            pass
         if getattr(self, 'INIT', None) is not None:
             self.value = self.INIT
 
@@ -388,12 +389,7 @@ class SingleParameter(Parameter):
         """The actual parameter value handled by the respective
         :class:`SingleParameter` instance.
         """
-        values = getattr(self.fastaccess, self.name, None)
-        if values is not None:
-            return values
-        else:
-            raise RuntimeError('No value of parameter `%s` has been defined '
-                               'so far.' % self.name)
+        return getattr(self.fastaccess, self.name, numpy.nan)
     def _setvalue(self, value):
         try:
             temp = value[0]
@@ -418,9 +414,9 @@ class SingleParameter(Parameter):
     def verify(self):
         """Raises a :class:`~exceptions.RuntimeError` if the value of the
         instance of the respective subclass of :class:`SingleParameter` is
-        `None` or `nan`.
+        `nan`.
         """
-        if self.values is None:
+        if numpy.isnan(self.value):
             raise RuntimeError('The value of parameter `%s` has not been '
                                'set yet.' % self.name)
 

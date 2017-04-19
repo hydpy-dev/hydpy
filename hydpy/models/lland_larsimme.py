@@ -192,7 +192,6 @@ class StateSequences(sequencetools.StateSequences):
                    lland_states.WATS,
                    lland_states.WAeS,
                    lland_states.BoWa,
-                   lland_states.WRel,
                    lland_states.QDGZ,
                    lland_states.QIGZ1,
                    lland_states.QIGZ2,

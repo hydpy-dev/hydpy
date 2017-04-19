@@ -256,6 +256,7 @@ class DMin(lland_parameters.MultiParameter):
         >>> simulationstep('12h')
         >>> nhru(1)
         >>> lnk(ACKER)
+        >>> dmax(10.) # to prevent trimming of dmin, see below
         >>> dmin(r_dmin=10.)
         >>> dmin
         dmin(0.24192)
@@ -281,7 +282,7 @@ class DMin(lland_parameters.MultiParameter):
                 self.trim()
             else:
                 objecttools.augmentexcmessage()
-    
+
     def trim(self, lower=None, upper=None):
         """Trim upper values in accordance with :math:`DMin \\leq DMax`.
 
@@ -289,10 +290,10 @@ class DMin(lland_parameters.MultiParameter):
         >>> parameterstep('1d')
         >>> simulationstep('12h')
         >>> nhru(5)
-        >>> dmax.values = 4.
+        >>> dmax.values = 2.
         >>> dmin(-2., 0., 2., 4., 6.)
         >>> dmin
-        dmin(0.0, 0.0, 1.0, 2.0, 2.0)
+        dmin(0.0, 0.0, 2.0, 4.0, 4.0)
         """
         if upper is None:
             upper = self.subpars.dmax
@@ -316,6 +317,7 @@ class DMax(lland_parameters.MultiParameter):
         >>> simulationstep('12h')
         >>> nhru(1)
         >>> lnk(ACKER)
+        >>> dmin(0.) # to prevent trimming of dmax, see below
         >>> dmax(r_dmax=10.)
         >>> dmax
         dmax(24.192)
@@ -349,15 +351,15 @@ class DMax(lland_parameters.MultiParameter):
         >>> parameterstep('1d')
         >>> simulationstep('12h')
         >>> nhru(3)
-        >>> dmin.values = 4.
+        >>> dmin.values = 2.
         >>> dmax(2., 4., 6.)
         >>> dmax
-        dmax(2.0, 2.0, 3.0)
+        dmax(4.0, 4.0, 6.0)
         """
         if lower is None:
             lower = self.subpars.dmin
             lland_parameters.MultiParameter.trim(self, lower, upper)
-            
+
 class BSf(lland_parameters.MultiParameter):
     """Bodenfeuchte-Sättigungsfläche-Parameter (shape parameter for the
     relation between the avarage soil moisture and the relative saturated

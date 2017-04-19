@@ -847,6 +847,7 @@ def calc_qib1_v1(self):
         >>> simulationstep('12h')
         >>> nhru(7)
         >>> lnk(WASSER, VERS, ACKER, ACKER, ACKER, ACKER, ACKER)
+        >>> dmax(10.)
         >>> dmin(4.)
         >>> nfk(0., 0., 0., 101., 101., 101., 202.)
         >>> derived.wb(10.)
@@ -921,8 +922,8 @@ def calc_qib2_v1(self):
         >>> simulationstep('12h')
         >>> nhru(7)
         >>> lnk(WASSER, VERS, ACKER, ACKER, ACKER, ACKER, ACKER)
-        >>> dmin(4.)
         >>> dmax(10.)
+        >>> dmin(4.)
         >>> nfk(0., 0., 50., 100., 100., 100., 200.)
         >>> derived.wz(50.)
         >>> states.bowa = 0., 0., 50.1, 50., 75., 100., 100.

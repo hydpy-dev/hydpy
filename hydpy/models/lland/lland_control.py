@@ -128,22 +128,22 @@ class LAI(lland_parameters.LanduseMonthParameter):
     """Blattflächenindex (leaf area index) [-]."""
     NDIM, TYPE, TIME, SPAN = 2, float, None, (0., None)
 
-class TRefT(lland_parameters.MultiParameter):
+class TRefT(lland_parameters.MultiParameterLand):
     """Lufttemperaturgrenzwert des grundlegenden Grad-Tag-Verfahrens
     (air temperature threshold of the degree-day method) [°C]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
-class TRefN(lland_parameters.MultiParameter):
+class TRefN(lland_parameters.MultiParameterLand):
     """Niederschlagstemperaturgrenzwert des erweiterten Grad-Tag-Verfahrens
     (precipitation temperature threshold of the degree-day method) [°C]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
-class TGr(lland_parameters.MultiParameter):
+class TGr(lland_parameters.MultiParameterLand):
     """Temperaturgrenzwert flüssiger/fester Niederschlag (threshold
     temperature liquid/frozen precipitation) [°C]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
-class GTF(lland_parameters.MultiParameter):
+class GTF(lland_parameters.MultiParameterLand):
     """Grad-Tag-Faktor (factor of the degree-day method) [mm/°C/T]."""
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
 
@@ -159,7 +159,7 @@ class CPWasser(parametertools.SingleParameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
     INIT = 4.1868
 
-class PWMax(lland_parameters.MultiParameter):
+class PWMax(lland_parameters.MultiParameterLand):
     """Maximalverhältnis Gesamt- zu Trockenschnee (maximum ratio of the
     total and the frozen water equivalent stored in the snow cover) [-].
 
@@ -196,7 +196,7 @@ class PWMax(lland_parameters.MultiParameter):
         within parameter control files.
         """
         try:
-            lland_parameters.MultiParameter.__call__(self, *args, **kwargs)
+            lland_parameters.MultiParameterLand.__call__(self, *args, **kwargs)
         except NotImplementedError:
             counter = ('rhot0' in kwargs) + ('rhodkrit' in kwargs)
             if counter == 0:
@@ -219,11 +219,11 @@ class GrasRef_R(parametertools.SingleParameter):
     evaporation factor) [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
-class NFk(lland_parameters.MultiParameter):
+class NFk(lland_parameters.MultiParameterSoil):
     """Nutzbare Feldkapazität (usable field capacity) [mm]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
-class RelWZ(lland_parameters.MultiParameter):
+class RelWZ(lland_parameters.MultiParameterSoil):
     """Relative Mindestbodenfeuchte für die Interflowentstehung (threshold
        value of relative soil moisture for interflow generation) [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, 1.)
@@ -242,9 +242,9 @@ class RelWZ(lland_parameters.MultiParameter):
         relwb = self.subpars.relwb.value
         if (lower is None) and (relwb is not None):
             lower = relwb
-        lland_parameters.MultiParameter.trim(self, lower, upper)
+        lland_parameters.MultiParameterSoil.trim(self, lower, upper)
 
-class RelWB(lland_parameters.MultiParameter):
+class RelWB(lland_parameters.MultiParameterSoil):
     """Relative Mindestbodenfeuchte für die Basisabflussentstehung (threshold
        value of relative soil moisture for base flow generation) [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
@@ -263,20 +263,20 @@ class RelWB(lland_parameters.MultiParameter):
         relwz = self.subpars.relwz.value
         if (upper is None) and (relwz is not None):
             upper = relwz
-        lland_parameters.MultiParameter.trim(self, lower, upper)
+        lland_parameters.MultiParameterSoil.trim(self, lower, upper)
 
-class Beta(lland_parameters.MultiParameter):
+class Beta(lland_parameters.MultiParameterSoil):
     """Drainageindex des tiefen Bodenspeichers (storage coefficient for
     releasing base flow from the lower soil compartment) [1/T]."""
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
 
-class DMin(lland_parameters.MultiParameter):
+class DMin(lland_parameters.MultiParameterSoil):
     """Drainageindex des mittleren Bodenspeichers (flux rate for
     releasing interflow from the middle soil compartment) [mm/T].
 
-    In addition to the :class:`parametertools.MultiParameter` call method, it
-    is possible to set the value of parameter :class:`DMin` in accordance to
-    the keyword argument `r_dmin` due to compatibility reasons with the
+    In addition to the :class:`parametertools.MultiParameterSoil` call method,
+    it is possible to set the value of parameter :class:`DMin` in accordance
+    to the keyword argument `r_dmin` due to compatibility reasons with the
     original LARSIM implemetation.
 
     Basic Equation:
@@ -306,7 +306,7 @@ class DMin(lland_parameters.MultiParameter):
         within parameter control files.
         """
         try:
-            lland_parameters.MultiParameter.__call__(self, *args, **kwargs)
+            lland_parameters.MultiParameterSoil.__call__(self, *args, **kwargs)
         except NotImplementedError:
             args = kwargs.get('r_dmin')
             if args is not None:
@@ -329,15 +329,15 @@ class DMin(lland_parameters.MultiParameter):
         """
         if upper is None:
             upper = self.subpars.dmax
-        lland_parameters.MultiParameter.trim(self, lower, upper)
+        lland_parameters.MultiParameterSoil.trim(self, lower, upper)
 
-class DMax(lland_parameters.MultiParameter):
+class DMax(lland_parameters.MultiParameterSoil):
     """Drainageindex des oberen Bodenspeichers (additional flux rate for
     releasing interflow from the upper soil compartment) [mm/T].
 
-    In addition to the :class:`parametertools.MultiParameter` call method, it
-    is possible to set the value of parameter :class:`DMax` in accordance to
-    the keyword argument `r_dmax` due to compatibility reasons with the
+    In addition to the :class:`parametertools.MultiParameterSoil` call method,
+    it is possible to set the value of parameter :class:`DMax` in accordance
+    to the keyword argument `r_dmax` due to compatibility reasons with the
     original LARSIM implemetation.
 
     Basic Equation:
@@ -367,7 +367,7 @@ class DMax(lland_parameters.MultiParameter):
         within parameter control files.
         """
         try:
-            lland_parameters.MultiParameter.__call__(self, *args, **kwargs)
+            lland_parameters.MultiParameterSoil.__call__(self, *args, **kwargs)
         except NotImplementedError:
             args = kwargs.get('r_dmax')
             if args is not None:
@@ -390,9 +390,9 @@ class DMax(lland_parameters.MultiParameter):
         """
         if lower is None:
             lower = self.subpars.dmin
-        lland_parameters.MultiParameter.trim(self, lower, upper)
+        lland_parameters.MultiParameterSoil.trim(self, lower, upper)
 
-class BSf(lland_parameters.MultiParameter):
+class BSf(lland_parameters.MultiParameterSoil):
     """Bodenfeuchte-Sättigungsfläche-Parameter (shape parameter for the
     relation between the avarage soil moisture and the relative saturated
     area of a subbasin) [-]."""

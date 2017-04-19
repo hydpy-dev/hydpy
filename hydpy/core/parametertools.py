@@ -674,6 +674,22 @@ class ZipParameter(MultiParameter):
             else:
                 raise exc
 
+    def _getshape(self):
+        """Return a tuple containing the lengths in all dimensions of the
+        parameter values.
+        """
+        try:
+            return MultiParameter._getshape(self)
+        except RuntimeError:
+            raise RuntimeError('Shape information for parameter `%s` can '
+                               'only be retrieved after it has been defined. '
+                               ' You can do this manually, but usually it is '
+                               'done automatically by defining the value of '
+                               'parameter `%s` first in each parameter '
+                               'control file.'
+                               % (self.name, self.shapeparameter.name))
+    shape = property(_getshape, MultiParameter._setshape)
+
     def _getverifymask(self):
         """A numpy array of the same shape as the value array handled
         by the respective parameter.  `True` entries indicate that certain
@@ -721,3 +737,4 @@ class IndexParameter(MultiParameter):
 
     def setreference(self, indexarray):
         setattr(self.fastaccess, self.name, indexarray)
+

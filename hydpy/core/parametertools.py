@@ -733,6 +733,138 @@ class ZipParameter(MultiParameter):
             return result
 
 
+class NamedParameter2D(MultiParameter):
+    """Base class for 2-dimensional model parameters which values which depend
+    on two factors.
+
+    When inheriting an actual parameter class from :class:`NamedParameter2D` 
+    one needs to define the class attributes 
+    :const:`~NamedParameter2D.ROWNAMES` and 
+    :const:`~NamedParameter2D.COLNAMES` (both of type :class:`tuple`).
+    One usual setting would be that :const:`~NamedParameter2D.ROWNAMES` defines
+    some land use classes and :const:`~NamedParameter2D.COLNAMES` defines
+    seasons, months, or the like.
+    
+    Consider the following example, where the boolean parameter `IsWarm` both
+    depends on the half-year period and the hemisphere:
+    
+    >>> from hydpy.core.parametertools import NamedParameter2D
+    >>> class IsWarm(NamedParameter2D):
+    ...     TYPE = bool
+    ...     ROWNAMES = ('north', 'south')
+    ...     COLNAMES = ('apr2sep', 'oct2mar')
+    
+    Instantiate the defined parameter class:
+    
+    >>> iswarm = IsWarm()
+    
+    :class:`NamedParameter2D` allows to set the values of all rows via 
+    keyword arguments:
+    
+    >>> iswarm(north=[True, False],
+    ...        south=[False, True])
+    >>> iswarm
+    iswarm(north=[True, False],
+    ...    south=[False, True])
+    >>> iswarm.values
+    array([[ True, False],
+    ...    [False,  True]], dtype=bool)
+    
+    If a keyword is missing, a :class:`~exceptions.TypeError` is raised:
+    
+    >>> iswarm(north=[True, False])
+    ToDo
+    
+    But one can modify single rows via attribute access:
+    
+    >>> iswarm.north = False, False
+    >>> iswarm.north
+    array([False, False], dtype=bool)
+    
+    The same holds true for the columns:
+    
+    >>> iswarm.apr2sep = True, False
+    >>> iswarm.apr2sep
+    array([True, False], dtype=bool)
+    
+    Even a combined row-column access is supported in the following manner:
+    
+    >>> iswarm.north_apr2sep = False
+    >>> iswarm.north_apr2sep
+    False
+    """
+    NDIM = 2
+    ROWNAMES = ()
+    COLNAMES = ()
+    
+    def connect(self, subpars):
+        MultiParameter.connect(self, subpars)
+        self.shape = (len(self.ROWNAMES), len(self.COLNAMES))
+
+    def __call__(self, *args, **kwargs):
+        try:
+            MultiParameter.__call__(self, *args, **kwargs)
+        except NotImplementedError:
+            for (idx, key) in enumerate(self.ROWNAMES):
+                try:
+                    values = kwargs.pop(key.lower())
+                except KeyError:
+                    raise ValueError('When defining parameter %s of element '
+                                     '%s via keyword arguments, values for '
+                                     'each type of land use type must be '
+                                     'given, but keyword/land use `%s` is '
+                                     'missing.'
+                                     % (self.name,
+                                        objecttools.devicename(self),
+                                        key.lower()))
+                self.values[idx,:] = values
+
+    def __repr__(self):
+        lines = self.commentrepr()
+        blanks = (len(self.name)+1) * ' '
+        for (idx, key) in enumerate(self.ROWNAMES):
+            valuerepr = ', '.join(objecttools.repr_(value)
+                                  for value in self.values[idx,:])
+            line = ('%s=[%s],' % (key.lower(), valuerepr))
+            if idx == 0:
+                lines.append('%s(%s' % (self.name, line))
+            else:
+                lines.append('%s%s' % (blanks, line))
+        lines[-1] = lines[-1][:-1]+')'
+        return '\n'.join(lines)
+
+    def __getattr__(self, key):
+        if key.islower() or (key.upper() not in self.ROWNAMES):
+            idx = None
+        else:
+            idx = self.ROWNAMES.index(key.upper())
+        if idx is None:
+            return MultiParameter.__getattr__(self, key)
+        else:
+            return self.values[idx, :]
+
+    def __setattr__(self, key, values):
+        if key.islower() or (key.upper() not in self.ROWNAMES):
+            idx = None
+        else:
+            idx = self.ROWNAMES.index(key.upper())
+        if idx is None:
+            MultiParameter.__setattr__(self, key, values)
+        else:
+            try:
+                self.values[idx, :] = values
+            except BaseException:
+                objecttools.augmentexcmessage('While trying to assign new '
+                                              'values to parameter `%s` of '
+                                              'element `%s` for land use `%s`'
+                                              % (key.lower(), self.name,
+                                                 objecttools.devicename(self)))
+
+    def __dir__(self):
+        return (objecttools.dir_(self) + 
+                list(self.ROWNAMES) + list(self.COLNAMES))
+                
+
 class IndexParameter(MultiParameter):
 
     def setreference(self, indexarray):

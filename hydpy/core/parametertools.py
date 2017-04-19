@@ -488,8 +488,7 @@ class MultiParameter(Parameter):
         """
         value = getattr(self.fastaccess, self.name, None)
         if value is None:
-            raise RuntimeError('No value/values of parameter `%s` has/have '
-                               'been defined so far.' % self.name)
+            return value
         else:
             return numpy.asarray(value)
     def _setvalue(self, value):

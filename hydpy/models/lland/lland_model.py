@@ -169,40 +169,12 @@ def calc_evpo_v1(self):
         >>> lnk(ACKER, LAUBW)
 
         Thirdly, set the :class:`~hydpy.models.lland.lland_control.FLn`
-        values, one for each month and land use class:
-
-        >>> fln(sied_d=[1.075, 1.075, 1.058, 1.043, 1.035, 1.035,
-        ...             1.035, 1.035, 1.043, 1.051, 1.058, 1.075],
-        ...     sied_l=[1.075, 1.075, 1.058, 1.043, 1.035, 1.035,
-        ...             1.035, 1.035, 1.043, 1.051, 1.058, 1.075],
-        ...     vers=[0.780, 0.780, 0.780, 0.780, 0.780, 0.780,
-        ...           0.780, 0.780, 0.780, 0.780, 0.780, 0.780],
-        ...     acker=[0.806, 0.806, 0.851, 1.042, 1.307, 1.299,
-        ...            1.304, 1.266, 1.071, 0.938, 0.853, 0.806],
-        ...     weinb=[1.031, 1.031, 1.010, 1.054, 1.073, 1.073,
-        ...            1.073, 1.097, 1.108, 1.108, 1.065, 1.031],
-        ...     obstb=[1.031, 1.031, 1.010, 1.054, 1.073, 1.073,
-        ...            1.073, 1.097, 1.108, 1.065, 1.031, 1.031],
-        ...     boden=[0.770, 0.770, 0.770, 0.770, 0.770, 0.770,
-        ...            0.770, 0.770, 0.770, 0.770, 0.770, 0.770],
-        ...     glets=[0.653, 0.653, 0.653, 0.653, 0.653, 0.653,
-        ...            0.653, 0.653, 0.653, 0.653, 0.653, 0.653],
-        ...     grue_i=[0.884, 1.020, 1.115, 1.115, 1.165, 1.162,
-        ...             1.142, 1.099, 1.075, 1.062, 1.088, 1.020],
-        ...     feucht=[1.184, 1.184, 1.156, 1.115, 1.102, 1.102,
-        ...             1.102, 1.129, 1.129, 1.156, 1.184, 1.184],
-        ...     grue_e=[0.884, 1.020, 1.115, 1.115, 1.165, 1.162,
-        ...             1.142, 1.099, 1.075, 1.062, 1.088, 1.020],
-        ...     baumb=[1.031, 1.031, 1.010, 1.054, 1.073, 1.073,
-        ...            1.073, 1.097, 1.097, 1.065, 1.031, 1.031],
-        ...     nadelw=[1.469, 1.469, 1.469, 1.469, 1.469, 1.469,
-        ...             1.469, 1.469, 1.469, 1.469, 1.469, 1.469],
-        ...     laubw=[1.103, 1.103, 1.158, 1.297, 1.225, 1.350,
-        ...            1.365, 1.365, 1.365, 1.253, 1.190, 1.103],
-        ...     mischw=[1.290, 1.290, 1.290, 1.390, 1.332, 1.408,
-        ...             1.408, 1.423, 1.423, 1.375, 1.362, 1.290],
-        ...     wasser=[1.282, 1.339, 1.382, 1.411, 1.411, 1.426,
-        ...             1.411, 1.411, 1.397, 1.353, 1.282, 1.253])
+        values, one for the relevant months and land use classes:
+        
+        >>> fln.acker_jun = 1.299 
+        >>> fln.acker_jul = 1.304
+        >>> fln.laubw_jun = 1.350
+        >>> fln.laubw_jul = 1.365
 
         Fourthly, the index array connecting the simulation time steps
         defined above and the month indexes (0...11) can be retrieved
@@ -276,40 +248,11 @@ def calc_nbes_inzp_v1(self):
         >>> lnk(SIED_D, FEUCHT, GLETS, WASSER)
 
         Define values for the maximum interception storage directly:
-
-        >>> kinz = derived.kinz
-        >>> kinz(sied_d=[2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
-        ...              2.0, 2.0, 2.0, 2.0, 2.0, 2.0],
-        ...          sied_l=[2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
-        ...                  2.0, 2.0, 2.0, 2.0, 2.0, 2.0],
-        ...          vers=[2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
-        ...                2.0, 2.0, 2.0, 2.0, 2.0, 2.0],
-        ...          acker=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04,
-        ...                 0.92, 0.62, 0.26, 0.04, 0.0, 0.0],
-        ...          weinb=[0.2, 0.2, 0.2, 0.3, 0.4, 0.7,
-        ...                 0.8, 0.8, 0.8, 0.3, 0.2, 0.2],
-        ...          obstb=[0.4, 0.4, 0.6, 1.1, 1.3, 1.5,
-        ...                 1.5, 1.5, 1.3, 0.8, 0.5, 0.4],
-        ...          boden=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-        ...                 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        ...          glets=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-        ...                 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        ...          grue_i=[0.4, 0.4, 0.6, 0.8, 1.0, 1.2,
-        ...                  1.2, 1.0, 1.0, 0.6, 0.5, 0.4],
-        ...          feucht=[0.4, 0.4, 0.6, 0.8, 1.0, 1.0,
-        ...                  1.0, 1.0, 1.0, 0.6, 0.5, 0.4],
-        ...          grue_e=[0.4, 0.4, 0.6, 0.8, 1.0, 1.0,
-        ...                  1.0, 1.0, 1.0, 0.6, 0.5, 0.4],
-        ...          baumb=[0.4, 0.4, 0.6, 1.1, 1.3, 1.5,
-        ...                 1.5, 1.5, 1.3, 0.8, 0.5, 0.4],
-        ...          nadelw=[2.2, 2.2, 2.2, 2.2, 2.2, 2.2,
-        ...                  2.2, 2.2, 2.2, 2.2, 2.2, 2.2],
-        ...          laubw=[0.1, 0.1, 0.3, 0.8, 1.4, 2.2,
-        ...                 2.4, 2.4, 2.2, 1.6, 0.3, 0.1],
-        ...          mischw=[2.6, 0.6, 0.8, 1.2, 1.6, 2.2,
-        ...                  2.3, 2.3, 2.2, 1.8, 0.8, 0.6],
-        ...          wasser=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-        ...                  0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+        
+        >>> derived.kinz.sied_d_jul = 2.
+        >>> derived.kinz.feucht_jul = 1.
+        >>> derived.kinz.glets_jul = 0.
+        >>> derived.kinz.wasser_jul = 0.
 
         Assume that the three consecutive initialization time steps
         lie in three different months (does not make sense for the
@@ -321,7 +264,7 @@ def calc_nbes_inzp_v1(self):
         >>> model.idx_sim = 1
 
         The dense settlement and the wetland area start with a initial
-        interception storage of 1/2 mm, the gletsier and water area (must)
+        interception storage of 1/2 mm, the glacier and water area (must)
         start with 0 mm.  In the first example, actual precipition is 2 mm:
 
         >>> states.inzp(0.5, 0.5, 0., 0.)
@@ -347,12 +290,12 @@ def calc_nbes_inzp_v1(self):
         nbes(0.0, 0.0, 0.0, 0.0)
 
         Note the following to peculiarities:  Firstly, the behaviour of
-        the gletsier area is to its zero interception capacity.  On the
+        the glacier area is due to its zero interception capacity.  On the
         contrary, the behaviour of the water area hard coded.  Hence,
         increasing the interception capacity shows no effect:
 
-        >>> kinz.glets = 1.
-        >>> kinz.wasser = 1.
+        >>> derived.kinz.glets_jul = 1.
+        >>> derived.kinz.wasser_jul = 1.
         >>> states.inzp(0.5, 0.5, 0., 0.)
         >>> fluxes.nkor = 1.
         >>> model.calc_nbes_inzp_v1()
@@ -362,12 +305,11 @@ def calc_nbes_inzp_v1(self):
         nbes(0.0, 0.5, 0.0, 1.0)
 
         Secondly, due to discontinuous changes of the interception capacity
-        between two months, through fall can occur one or more time steps
-        after the corresponding precipitation event.  In the last
-        example, this results from the given decrease of the gletsiers
-        interception capacity:
+        between two months, through fall can occur after the corresponding 
+        precipitation event has occured.  In the last example, this results 
+        from the given decrease of the glaciers interception capacity:
 
-        >>> kinz.glets = .6
+        >>> derived.kinz.glets_jul = .6
         >>> fluxes.nkor = 0.
         >>> model.calc_nbes_inzp_v1()
         >>> states.inzp

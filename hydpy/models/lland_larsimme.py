@@ -55,11 +55,11 @@ class Model(modeltools.Model):
         >>> kt(-1.)
         >>> ke(0.9)
         >>> kf(.6)
-        >>> fln.acker[0] = 1.
-        >>> fln.vers[0] = .8
-        >>> fln.wasser[0] = 1.3
+        >>> fln.acker_jan = 1.
+        >>> fln.vers_jan = .8
+        >>> fln.wasser_jan = 1.3
         >>> hinz(.2)
-        >>> lai.acker[0] = 1.0
+        >>> lai.acker_jan = 1.0
         >>> treft(0.)
         >>> trefn(0.)
         >>> tgr(0.)

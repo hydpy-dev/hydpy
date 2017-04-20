@@ -70,9 +70,9 @@ class LanduseMonthParameter(parametertools.KeywordParameter2D):
     """Base class for parameters which values depend both an the actual
     land use class and the actual month.
     """
-    ROWNAMES = ('jan', 'feb', 'mar', 'apr', 'mai', 'jun',
+    COLNAMES = ('jan', 'feb', 'mar', 'apr', 'mai', 'jun',
                 'jul', 'aug', 'sep', 'oct', 'nov', 'dec')
-    COLNAMES = tuple(key.lower() for (idx, key)
+    ROWNAMES = tuple(key.lower() for (idx, key)
                      in (sorted((idx, key) for (key, idx) in
                          lland_constants.CONSTANTS.items())))
 

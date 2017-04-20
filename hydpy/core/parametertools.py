@@ -353,7 +353,7 @@ class Parameter(objecttools.ValueMath):
         lines = []
         if pub.options.reprcomments:
             if self.__doc__ is not None:
-                lines.append('# %s' % self.__doc__.split(']\n')[0])
+                lines.append('# %s].' % self.__doc__.split(']')[0])
             else:
                 lines.append('# Instance of parameter class `%s` defined in '
                              'module `%s`.'
@@ -737,23 +737,23 @@ class ZipParameter(MultiParameter):
                 result = [result]
             return result
 
-class MetaKeywordParameter2DType(type):
+class KeywordParameter2DType(type):
+    """Add the construction of `_ROWCOLMAPPING` to :class:`type`."""
+    
     def __new__(cls, name, parents, dict_):
-        rownames = dict_.get('ROWNAMES', getattr(parents[0], 'ROWNAMES'))
-        colnames = dict_.get('COLNAMES', getattr(parents[0], 'COLNAMES'))
-        rowcolnames = []
-        for rowname in rownames:
-            for colname in colnames:
-                rowcolnames.append('_'.join((rowname, colname)))
-        dict_['_ROWCOLNAMES'] = tuple(rowcolnames)
+        rownames = dict_.get('ROWNAMES', getattr(parents[0], 'ROWNAMES', ()))
+        colnames = dict_.get('COLNAMES', getattr(parents[0], 'COLNAMES', ()))
+        rowcolmappings = {}
+        for (idx, rowname) in enumerate(rownames):
+            for (jdx, colname) in enumerate(colnames):
+                rowcolmappings['_'.join((rowname, colname))] = (idx, jdx)
+        dict_['_ROWCOLMAPPINGS'] = rowcolmappings
         return type.__new__(cls, name, parents, dict_)
 
-MetaKeywordParameter2DClass = MetaKeywordParameter2DType(
-                                              'MetaKeywordParameter2DClass',
-                                              (MultiParameter,),
-                                              {'ROWNAMES': (), 'COLNAMES': ()})
+KeywordParameter2DMetaclass = KeywordParameter2DType(
+                          'KeywordParameter2DMetaclass', (MultiParameter,), {})
 
-class KeywordParameter2D(MetaKeywordParameter2DClass):
+class KeywordParameter2D(KeywordParameter2DMetaclass):
     """Base class for 2-dimensional model parameters which values which depend
     on two factors.
 
@@ -796,7 +796,7 @@ class KeywordParameter2D(MetaKeywordParameter2DClass):
     >>> iswarm(north=[True, False])
     Traceback (most recent call last):
     ...
-    ValueError: When setting parameter `iswarm` of element `?` via column related keyword arguments, each string defined in `ROWNAMES` must be used as a keyword, but the following keyword is not: `south`.
+    ValueError: When setting parameter `iswarm` of element `?` via row related keyword arguments, each string defined in `ROWNAMES` must be used as a keyword, but the following keyword is not: `south`.
 
     But one can modify single rows via attribute access:
 
@@ -808,10 +808,12 @@ class KeywordParameter2D(MetaKeywordParameter2DClass):
 
     >>> iswarm.apr2sep = True, False
     >>> iswarm.apr2sep
-    array([True, False], dtype=bool)
+    array([ True, False], dtype=bool)
 
     Even a combined row-column access is supported in the following manner:
 
+    >>> iswarm.north_apr2sep
+    True
     >>> iswarm.north_apr2sep = False
     >>> iswarm.north_apr2sep
     False
@@ -822,17 +824,23 @@ class KeywordParameter2D(MetaKeywordParameter2DClass):
     >>> iswarm.north = True, True, True
     Traceback (most recent call last):
     ...
-    ValueError: While trying to assign new values to parameter `iswarm` of element `?` via the row related keyword `north`, the following error occured: cannot copy sequence with size 3 to array axis with dimension 2
+    ValueError: While trying to assign new values to parameter `iswarm` of element `?` via the row related attribute `north`, the following error occured: cannot copy sequence with size 3 to array axis with dimension 2
     >>> iswarm.apr2sep = True, True, True
     Traceback (most recent call last):
     ...
-    ValueError: While trying to assign new values to parameter `iswarm` of element `?` via the column related keyword `apr2sep`, the following error occured: cannot copy sequence with size 3 to array axis with dimension 2
-
-    >>> iswarm.north_apr2sep = False, False
-
+    ValueError: While trying to assign new values to parameter `iswarm` of element `?` via the column related attribute `apr2sep`, the following error occured: cannot copy sequence with size 3 to array axis with dimension 2
+    
+    >>> iswarm.shape = (1, 1)
+    >>> iswarm.south_apr2sep = False
+    Traceback (most recent call last):
+    ...
+    IndexError: While trying to assign new values to parameter `iswarm` of element `?` via the row and column related attribute `south_apr2sep`, the following error occured: index 1 is out of bounds for axis 0 with size 1
+    >>> iswarm.shape = (2, 2)
+    
     Of course, one can define the parameter values in the common manner, e.g.:
 
     >>> iswarm(True)
+    >>> iswarm
     iswarm(north=[True, True],
            south=[True, True])
     """
@@ -855,7 +863,7 @@ class KeywordParameter2D(MetaKeywordParameter2DClass):
                     miss = [key for key in self.ROWNAMES if key not in kwargs]
                     raise ValueError(
                         'When setting parameter `%s` of element `%s` via '
-                        'column related keyword arguments, each string '
+                        'row related keyword arguments, each string '
                         'defined in `ROWNAMES` must be used as a keyword, '
                         'but the following keyword%s not: `%s`.'
                         % (self.name, objecttools.devicename(self),
@@ -884,7 +892,7 @@ class KeywordParameter2D(MetaKeywordParameter2DClass):
             except BaseException:
                 objecttools.augmentexcmessage(
                     'While trying to retrieve values from parameter `%s` of '
-                    'element `%s` via the row related keyword `%s`'
+                    'element `%s` via the row related attribute `%s`'
                     % (self.name, objecttools.devicename(self), key))
         elif key in self.COLNAMES:
             try:
@@ -892,8 +900,17 @@ class KeywordParameter2D(MetaKeywordParameter2DClass):
             except BaseException:
                 objecttools.augmentexcmessage(
                     'While trying to retrieve values from parameter `%s` of '
-                    'element `%s` via the columnd related keyword `%s`'
+                    'element `%s` via the columnd related attribute `%s`'
                     % (self.name, objecttools.devicename(self), key))
+        elif key in self._ROWCOLMAPPINGS:
+            idx, jdx = self._ROWCOLMAPPINGS[key]
+            try:
+                return self.values[idx, jdx]
+            except BaseException:
+                objecttools.augmentexcmessage(
+                    'While trying to retrieve values from parameter `%s` of '
+                    'element `%s` via the row and column related attribute '
+                    '`%s`'  % (self.name, objecttools.devicename(self), key))
         else:
             return MultiParameter.__getattr__(self, key)
 
@@ -904,7 +921,7 @@ class KeywordParameter2D(MetaKeywordParameter2DClass):
             except BaseException:
                 objecttools.augmentexcmessage(
                     'While trying to assign new values to parameter `%s` of '
-                    'element `%s` via the row related keyword `%s`'
+                    'element `%s` via the row related attribute `%s`'
                     % (self.name, objecttools.devicename(self), key))
         elif key in self.COLNAMES:
             try:
@@ -912,14 +929,23 @@ class KeywordParameter2D(MetaKeywordParameter2DClass):
             except BaseException:
                 objecttools.augmentexcmessage(
                     'While trying to assign new values to parameter `%s` of '
-                    'element `%s` via the column related keyword `%s`'
+                    'element `%s` via the column related attribute `%s`'
                     % (self.name, objecttools.devicename(self), key))
+        elif key in self._ROWCOLMAPPINGS:
+            idx, jdx = self._ROWCOLMAPPINGS[key]
+            try:
+                self.values[idx, jdx] = values
+            except BaseException:
+                objecttools.augmentexcmessage(
+                    'While trying to assign new values to parameter `%s` of '
+                    'element `%s` via the row and column related attribute '
+                    '`%s`'  % (self.name, objecttools.devicename(self), key))
         else:
             MultiParameter.__setattr__(self, key, values)
 
     def __dir__(self):
-        return (objecttools.dir_(self) +
-                list(self.ROWNAMES) + list(self.COLNAMES))
+        return (objecttools.dir_(self) + list(self.ROWNAMES) + 
+                list(self.COLNAMES) +  self._ROWCOLMAPPINGS.keys())
 
 
 class IndexParameter(MultiParameter):

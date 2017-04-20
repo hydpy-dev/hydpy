@@ -352,7 +352,12 @@ class Parameter(objecttools.ValueMath):
         """
         lines = []
         if pub.options.reprcomments:
-            lines.append('# %s' % self.__doc__.split('\n')[0])
+            if self.__doc__ is not None:
+                lines.append('# %s' % self.__doc__.split(']\n')[0])
+            else:
+                lines.append('# Instance of parameter class `%s` defined in '
+                             'module `%s`.'
+                             % (objecttools.classname(self), self.__module__))
             if self.TIME is not None:
                 lines.append('# The actual value representation depends on '
                              'the actual parameter step size, which is `%s`.'
@@ -732,71 +737,109 @@ class ZipParameter(MultiParameter):
                 result = [result]
             return result
 
+class MetaKeywordParameter2DType(type):
+    def __new__(cls, name, parents, dict_):
+        rownames = dict_.get('ROWNAMES', getattr(parents[0], 'ROWNAMES'))
+        colnames = dict_.get('COLNAMES', getattr(parents[0], 'COLNAMES'))
+        rowcolnames = []
+        for rowname in rownames:
+            for colname in colnames:
+                rowcolnames.append('_'.join((rowname, colname)))
+        dict_['_ROWCOLNAMES'] = tuple(rowcolnames)
+        return type.__new__(cls, name, parents, dict_)
 
-class NamedParameter2D(MultiParameter):
+MetaKeywordParameter2DClass = MetaKeywordParameter2DType(
+                                              'MetaKeywordParameter2DClass',
+                                              (MultiParameter,),
+                                              {'ROWNAMES': (), 'COLNAMES': ()})
+
+class KeywordParameter2D(MetaKeywordParameter2DClass):
     """Base class for 2-dimensional model parameters which values which depend
     on two factors.
 
-    When inheriting an actual parameter class from :class:`NamedParameter2D` 
-    one needs to define the class attributes 
-    :const:`~NamedParameter2D.ROWNAMES` and 
-    :const:`~NamedParameter2D.COLNAMES` (both of type :class:`tuple`).
-    One usual setting would be that :const:`~NamedParameter2D.ROWNAMES` defines
-    some land use classes and :const:`~NamedParameter2D.COLNAMES` defines
-    seasons, months, or the like.
-    
+    When inheriting an actual parameter class from :class:`KeywordParameter2D`
+    one needs to define the class attributes
+    :const:`~KeywordParameter2D.ROWNAMES` and
+    :const:`~KeywordParameter2D.COLNAMES` (both of type :class:`tuple`).
+    One usual setting would be that :const:`~KeywordParameter2D.ROWNAMES`
+    defines some land use classes and :const:`~KeywordParameter2D.COLNAMES`
+    defines seasons, months, or the like.
+
     Consider the following example, where the boolean parameter `IsWarm` both
     depends on the half-year period and the hemisphere:
-    
-    >>> from hydpy.core.parametertools import NamedParameter2D
-    >>> class IsWarm(NamedParameter2D):
+
+    >>> from hydpy.core.parametertools import KeywordParameter2D
+    >>> class IsWarm(KeywordParameter2D):
     ...     TYPE = bool
     ...     ROWNAMES = ('north', 'south')
     ...     COLNAMES = ('apr2sep', 'oct2mar')
-    
-    Instantiate the defined parameter class:
-    
+
+    Instantiate the defined parameter class and define its shape:
+
     >>> iswarm = IsWarm()
-    
-    :class:`NamedParameter2D` allows to set the values of all rows via 
+    >>> iswarm.shape = (2, 2)
+
+    :class:`KeywordParameter2D` allows to set the values of all rows via
     keyword arguments:
-    
+
     >>> iswarm(north=[True, False],
     ...        south=[False, True])
     >>> iswarm
     iswarm(north=[True, False],
-    ...    south=[False, True])
+           south=[False, True])
     >>> iswarm.values
     array([[ True, False],
-    ...    [False,  True]], dtype=bool)
-    
+           [False,  True]], dtype=bool)
+
     If a keyword is missing, a :class:`~exceptions.TypeError` is raised:
-    
+
     >>> iswarm(north=[True, False])
-    ToDo
-    
+    Traceback (most recent call last):
+    ...
+    ValueError: When setting parameter `iswarm` of element `?` via column related keyword arguments, each string defined in `ROWNAMES` must be used as a keyword, but the following keyword is not: `south`.
+
     But one can modify single rows via attribute access:
-    
+
     >>> iswarm.north = False, False
     >>> iswarm.north
     array([False, False], dtype=bool)
-    
+
     The same holds true for the columns:
-    
+
     >>> iswarm.apr2sep = True, False
     >>> iswarm.apr2sep
     array([True, False], dtype=bool)
-    
+
     Even a combined row-column access is supported in the following manner:
-    
+
     >>> iswarm.north_apr2sep = False
     >>> iswarm.north_apr2sep
     False
+
+    All three forms of attribute access define augmented exception messages
+    in case anything goes wrong:
+
+    >>> iswarm.north = True, True, True
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to assign new values to parameter `iswarm` of element `?` via the row related keyword `north`, the following error occured: cannot copy sequence with size 3 to array axis with dimension 2
+    >>> iswarm.apr2sep = True, True, True
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to assign new values to parameter `iswarm` of element `?` via the column related keyword `apr2sep`, the following error occured: cannot copy sequence with size 3 to array axis with dimension 2
+
+    >>> iswarm.north_apr2sep = False, False
+
+    Of course, one can define the parameter values in the common manner, e.g.:
+
+    >>> iswarm(True)
+    iswarm(north=[True, True],
+           south=[True, True])
     """
     NDIM = 2
     ROWNAMES = ()
     COLNAMES = ()
-    
+
     def connect(self, subpars):
         MultiParameter.connect(self, subpars)
         self.shape = (len(self.ROWNAMES), len(self.COLNAMES))
@@ -807,16 +850,17 @@ class NamedParameter2D(MultiParameter):
         except NotImplementedError:
             for (idx, key) in enumerate(self.ROWNAMES):
                 try:
-                    values = kwargs.pop(key.lower())
+                    values = kwargs[key]
                 except KeyError:
-                    raise ValueError('When defining parameter %s of element '
-                                     '%s via keyword arguments, values for '
-                                     'each type of land use type must be '
-                                     'given, but keyword/land use `%s` is '
-                                     'missing.'
-                                     % (self.name,
-                                        objecttools.devicename(self),
-                                        key.lower()))
+                    miss = [key for key in self.ROWNAMES if key not in kwargs]
+                    raise ValueError(
+                        'When setting parameter `%s` of element `%s` via '
+                        'column related keyword arguments, each string '
+                        'defined in `ROWNAMES` must be used as a keyword, '
+                        'but the following keyword%s not: `%s`.'
+                        % (self.name, objecttools.devicename(self),
+                           ' is' if len(miss) == 1 else 's are',
+                           ', '.join(miss)))
                 self.values[idx,:] = values
 
     def __repr__(self):
@@ -825,7 +869,7 @@ class NamedParameter2D(MultiParameter):
         for (idx, key) in enumerate(self.ROWNAMES):
             valuerepr = ', '.join(objecttools.repr_(value)
                                   for value in self.values[idx,:])
-            line = ('%s=[%s],' % (key.lower(), valuerepr))
+            line = ('%s=[%s],' % (key, valuerepr))
             if idx == 0:
                 lines.append('%s(%s' % (self.name, line))
             else:
@@ -834,36 +878,49 @@ class NamedParameter2D(MultiParameter):
         return '\n'.join(lines)
 
     def __getattr__(self, key):
-        if key.islower() or (key.upper() not in self.ROWNAMES):
-            idx = None
+        if key in self.ROWNAMES:
+            try:
+                return self.values[self.ROWNAMES.index(key), :]
+            except BaseException:
+                objecttools.augmentexcmessage(
+                    'While trying to retrieve values from parameter `%s` of '
+                    'element `%s` via the row related keyword `%s`'
+                    % (self.name, objecttools.devicename(self), key))
+        elif key in self.COLNAMES:
+            try:
+                return self.values[:, self.COLNAMES.index(key)]
+            except BaseException:
+                objecttools.augmentexcmessage(
+                    'While trying to retrieve values from parameter `%s` of '
+                    'element `%s` via the columnd related keyword `%s`'
+                    % (self.name, objecttools.devicename(self), key))
         else:
-            idx = self.ROWNAMES.index(key.upper())
-        if idx is None:
             return MultiParameter.__getattr__(self, key)
-        else:
-            return self.values[idx, :]
 
     def __setattr__(self, key, values):
-        if key.islower() or (key.upper() not in self.ROWNAMES):
-            idx = None
-        else:
-            idx = self.ROWNAMES.index(key.upper())
-        if idx is None:
-            MultiParameter.__setattr__(self, key, values)
-        else:
+        if key in self.ROWNAMES:
             try:
-                self.values[idx, :] = values
+                self.values[self.ROWNAMES.index(key), :] = values
             except BaseException:
-                objecttools.augmentexcmessage('While trying to assign new '
-                                              'values to parameter `%s` of '
-                                              'element `%s` for land use `%s`'
-                                              % (key.lower(), self.name,
-                                                 objecttools.devicename(self)))
+                objecttools.augmentexcmessage(
+                    'While trying to assign new values to parameter `%s` of '
+                    'element `%s` via the row related keyword `%s`'
+                    % (self.name, objecttools.devicename(self), key))
+        elif key in self.COLNAMES:
+            try:
+                self.values[:, self.COLNAMES.index(key)] = values
+            except BaseException:
+                objecttools.augmentexcmessage(
+                    'While trying to assign new values to parameter `%s` of '
+                    'element `%s` via the column related keyword `%s`'
+                    % (self.name, objecttools.devicename(self), key))
+        else:
+            MultiParameter.__setattr__(self, key, values)
 
     def __dir__(self):
-        return (objecttools.dir_(self) + 
+        return (objecttools.dir_(self) +
                 list(self.ROWNAMES) + list(self.COLNAMES))
-                
+
 
 class IndexParameter(MultiParameter):
 

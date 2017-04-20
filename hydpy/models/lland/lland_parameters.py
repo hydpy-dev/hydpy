@@ -49,28 +49,33 @@ class MultiParameter(parametertools.ZipParameter):
 
 
 class MultiParameterLand(MultiParameter):
-    """Base class for handling parameters of the lland model (potentially)
+    """Base class for handling parameters of HydPy-L-Land (potentially)
     handling multiple values relevant for non water HRUs.
     """
-    REQUIRED_VALUES = tuple(value for (key, value) 
+    REQUIRED_VALUES = tuple(value for (key, value)
                             in lland_constants.CONSTANTS.items()
                             if value != 'WASSER')
 
 class MultiParameterSoil(MultiParameter):
-    """Base class for handling parameters of the lland model (potentially)
+    """Base class for handling parameters of HydPy-L-Land (potentially)
     handling multiple values relevant for non water HRUs without sealed
     surfaces.
     """
-    REQUIRED_VALUES = tuple(value for (key, value) 
+    REQUIRED_VALUES = tuple(value for (key, value)
                             in lland_constants.CONSTANTS.items()
                             if value not in ('WASSER', 'VERS'))
 
 
-class LanduseMonthParameter(parametertools.ConstTimeParameter):
-    """"""
-    CONSTANTS = lland_constants.CONSTANTS
-    NMBCOLUMS = 12
-    
-    
+class LanduseMonthParameter(parametertools.KeywordParameter2D):
+    """Base class for parameters which values depend both an the actual
+    land use class and the actual month.
+    """
+    ROWNAMES = ('jan', 'feb', 'mar', 'apr', 'mai', 'jun',
+                'jul', 'aug', 'sep', 'oct', 'nov', 'dec')
+    COLNAMES = tuple(key.lower() for (idx, key)
+                     in (sorted((idx, key) for (key, idx) in
+                         lland_constants.CONSTANTS.items())))
+
+
 class Parameters(parametertools.Parameters):
     """All parameters of the HydPy-L-Land model."""

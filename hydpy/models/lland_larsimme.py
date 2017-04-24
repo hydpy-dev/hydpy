@@ -123,11 +123,11 @@ class Model(modeltools.Model):
         Check the correctness of the results:
 
         >>> model.doit(0)
-        >>> print(round(result, 6))
+        >>> print(round(result[0], 6))
         0.229238
         >>> result[0] = 0.
         >>> model.doit(1)
-        >>> print(round(result, 6))
+        >>> print(round(result[0], 6))
         0.57346
 
     """

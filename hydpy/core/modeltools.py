@@ -10,34 +10,28 @@ from hydpy.core import objecttools
 
 class MetaModelType(type):
     def __new__(cls, name, parents, dict_):
-        methods = dict_.get('_METHODS')
-        if methods is None:
-            raise NotImplementedError('Each Model class needs to know which '
-                                      'calculation methods shall be '
-                                      'performed.  These methods must be '
-                                      'available in a tuple stored as a class '
-                                      'attribute named `_METHODS`.  For class '
-                                      '`%s`, such a attribute is not defined.'
-                                      % name)
-        uniques = {}
-        for method in methods:
-            dict_[method.__name__] = method
-            shortname = '_'.join(method.__name__.split('_')[:-1])
-            if shortname in uniques:
-                uniques[shortname] = None
-            else:
-                uniques[shortname] = method
-        for (shortname, method) in uniques.items():
-            if method is not None:
-                dict_[shortname] = method
+        for tuplename in ('_RUNMETHODS', '_ADDMETHODS'):
+            methods = dict_.get(tuplename, ())
+            uniques = {}
+            for method in methods:
+                dict_[method.__name__] = method
+                shortname = '_'.join(method.__name__.split('_')[:-1])
+                if shortname in uniques:
+                    uniques[shortname] = None
+                else:
+                    uniques[shortname] = method
+            for (shortname, method) in uniques.items():
+                if method is not None:
+                    dict_[shortname] = method
         return type.__new__(cls, name, parents, dict_)
 
-MetaModelClass = MetaModelType('MetaModelClass', (), {'_METHODS': ()})
+MetaModelClass = MetaModelType('MetaModelClass', (), {})
 
 class Model(MetaModelClass):
     """Base class for all hydrological models."""
 
-    _METHODS = ()
+    _RUNMETHODS = ()
+    _ADDMETHODS = ()
 
     def __init__(self):
         self.element = None
@@ -100,7 +94,7 @@ class Model(MetaModelClass):
         self.savedata()
 
     def run(self):
-        for method in self._METHODS:
+        for method in self._RUNMETHODS:
             if not method.__name__.startswith('update_'):
                 method(self)
 

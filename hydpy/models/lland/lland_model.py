@@ -1228,7 +1228,7 @@ def calc_qbga_v1(self):
        (QBGZ_{alt}-QBGA_{alt}) \\cdot (1-exp(-KB^{-1})) +
        (QBGZ_{neu}-QBGZ_{alt}) \\cdot (1-KB\\cdot(1-exp(-KB^{-1})))`
 
-    Example:
+    Examples:
 
         A normal test case:
 
@@ -1292,7 +1292,7 @@ def calc_qiga1_v1(self):
        (QIGZ1_{alt}-QIGA1_{alt}) \\cdot (1-exp(-KI1^{-1})) +
        (QIGZ1_{neu}-QIGZ1_{alt}) \\cdot (1-KI1\\cdot(1-exp(-KI1^{-1})))`
 
-    Example:
+    Examples:
 
         A normal test case:
 
@@ -1356,7 +1356,7 @@ def calc_qiga2_v1(self):
        (QIGZ2_{alt}-QIGA2_{alt}) \\cdot (1-exp(-KI2^{-1})) +
        (QIGZ2_{neu}-QIGZ2_{alt}) \\cdot (1-KI2\\cdot(1-exp(-KI2^{-1})))`
 
-    Example:
+    Examples:
 
         A normal test case:
 
@@ -1419,7 +1419,7 @@ def calc_qdga_v1(self):
        (QDGZ_{alt}-QDGA_{alt}) \\cdot (1-exp(-KD^{-1})) +
        (QDGZ_{neu}-QDGZ_{alt}) \\cdot (1-KD\\cdot(1-exp(-KD^{-1})))`
 
-    Example:
+    Examples:
 
         A normal test case:
 
@@ -1572,29 +1572,28 @@ def update_outlets_v1(self):
 class Model(modeltools.Model):
     """Base model for HydPy-L-Land."""
 
-    _METHODS = (calc_nkor_v1,
-                calc_tkor_v1,
-                calc_et0_v1,
-                calc_evpo_v1,
-                calc_nbes_inzp_v1,
-                calc_evi_inzp_v1,
-                calc_wgtf_v1,
-                calc_schm_wats_v1,
-                calc_wada_waes_v1,
-                calc_evb_v1,
-                calc_qbb_v1,
-                calc_qib1_v1,
-                calc_qib2_v1,
-                calc_qdb_v1,
-                calc_bowa_v1,
-                calc_qbgz_v1,
-                calc_qigz1_v1,
-                calc_qigz2_v1,
-                calc_qdgz_v1,
-                calc_qbga_v1,
-                calc_qiga1_v1,
-                calc_qiga2_v1,
-                calc_qdga_v1,
-                calc_q_v1,
-                update_outlets_v1)
-
+    _RUNMETHODS = (calc_nkor_v1,
+                   calc_tkor_v1,
+                   calc_et0_v1,
+                   calc_evpo_v1,
+                   calc_nbes_inzp_v1,
+                   calc_evi_inzp_v1,
+                   calc_wgtf_v1,
+                   calc_schm_wats_v1,
+                   calc_wada_waes_v1,
+                   calc_evb_v1,
+                   calc_qbb_v1,
+                   calc_qib1_v1,
+                   calc_qib2_v1,
+                   calc_qdb_v1,
+                   calc_bowa_v1,
+                   calc_qbgz_v1,
+                   calc_qigz1_v1,
+                   calc_qigz2_v1,
+                   calc_qdgz_v1,
+                   calc_qbga_v1,
+                   calc_qiga1_v1,
+                   calc_qiga2_v1,
+                   calc_qdga_v1,
+                   calc_q_v1,
+                   update_outlets_v1)

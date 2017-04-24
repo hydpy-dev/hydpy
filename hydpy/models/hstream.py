@@ -329,7 +329,9 @@ def update_outlets_v1(self):
 
 class Model(modeltools.Model):
     """The HydPy-H-Stream model."""
-    _METHODS = (calc_qjoints_v1, update_inlets_v1, update_outlets_v1)
+    _RUNMETHODS = (calc_qjoints_v1,
+                   update_inlets_v1,
+                   update_outlets_v1)
 
 
 tester = Tester()

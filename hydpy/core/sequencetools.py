@@ -246,7 +246,7 @@ class SubSequences(object):
         except AttributeError:
             object.__setattr__(self, name, value)
             if isinstance(value, Sequence):
-                value.connect2subseqs(self)
+                value.connect(self)
         else:
             try:
                 attr.values = value
@@ -388,7 +388,7 @@ class Sequence(objecttools.ValueMath):
         self.subseqs = None
         self.fastaccess = None
 
-    def connect2subseqs(self, subseqs):
+    def connect(self, subseqs):
         self.subseqs = subseqs
         self.fastaccess = subseqs.fastaccess
         setattr(self.fastaccess, '_%s_ndim' % self.name, self.NDIM)
@@ -1025,8 +1025,8 @@ class StateSequence(ModelIOSequence, ConditionSequence):
         ConditionSequence.__call__(self, *args)
         self.new2old()
 
-    def connect2subseqs(self, subseqs):
-        ModelIOSequence.connect2subseqs(self, subseqs)
+    def connect(self, subseqs):
+        ModelIOSequence.connect(self, subseqs)
         self.fastaccess_old = subseqs.fastaccess_old
         self.fastaccess_new = subseqs.fastaccess_new
         if self.NDIM:

@@ -30,17 +30,33 @@ class Model(modeltools.Model):
 
     Integration test:
 
-        The only simulation step is in January:
+        Note, that the following test still needs some testing itself.  The
+        results given below need to be calculated independently and a few
+        additional comments would be helpfull...
 
-        >>> from hydpy import pub
-        >>> pub.indexer.monthofyear = [0]
+        The only two simulation steps are in January:
 
-        Import the model and primary the required time settings:
+        >>> from hydpy import pub, Timegrid, Timegrids
+        >>> pub.timegrids = Timegrids(Timegrid('01.08.2000', '03.08.2000', '1d'))
+
+        Import the model and define the time settings:
 
         >>> from hydpy.models.lland_larsimme import *
         >>> parameterstep('1d')
-        >>> simulationstep('12h')
-        >>> model.idx_sim = 0
+
+        Do things that are normally done behind the scenes.  First, the input
+        data shall be available in RAM:
+
+        >>> import numpy
+        >>> for (name, seq) in inputs:
+        ...     seq.ramflag = True
+        ...     seq._setarray(numpy.zeros(2))
+
+        Secondly, the final model output shall be passed to `result`:
+
+        >>> from hydpy.cythons.pointer import Double
+        >>> result = Double(0.)
+        >>> outlets.q.setpointer(result)
 
         Define the control parameter values (select only arable land, sealed
         soil and water area as landuse classes, as all other land use classes
@@ -67,11 +83,11 @@ class Model(modeltools.Model):
         >>> pwmax(1.4)
         >>> grasref_r(5.)
         >>> nfk(200.)
-        >>> relwb(.05)
         >>> relwz(.5)
+        >>> relwb(.05)
         >>> beta(.01)
-        >>> dmin(1.)
         >>> dmax(5.)
+        >>> dmin(1.)
         >>> bsf(.4)
         >>> tind(1.)
         >>> eqb(100.)
@@ -85,9 +101,35 @@ class Model(modeltools.Model):
 
         Set the initial values:
 
+        >>> states.inzp = .5, .5, 0.
+        >>> states.wats = 10., 10., 0.
+        >>> states.waes = 15., 15., 0.
+        >>> states.bowa = 150., 0., 0.
+        >>> states.qdgz = .1
+        >>> states.qi1gz = .1
+        >>> states.qi2gz = .1
+        >>> states.qbgz = .1
+        >>> states.qdga = .1
+        >>> states.qi1ga = .1
+        >>> states.qi2ga = .1
+        >>> states.qbga = .1
 
+        Set the input values for both simulation time steps:
 
-        >>> model.run()
+        >>> inputs.nied.series = 2.
+        >>> inputs.teml = 10.
+        >>> inputs.glob = 100.
+
+        Check the correctness of the results:
+
+        >>> model.doit(0)
+        >>> print(round(result, 6))
+        0.229238
+        >>> result[0] = 0.
+        >>> model.doit(1)
+        >>> print(round(result, 6))
+        0.57346
+
     """
     _METHODS = (lland_model.calc_nkor_v1,
                 lland_model.calc_tkor_v1,

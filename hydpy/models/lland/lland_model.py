@@ -170,8 +170,8 @@ def calc_evpo_v1(self):
 
         Thirdly, set the :class:`~hydpy.models.lland.lland_control.FLn`
         values, one for the relevant months and land use classes:
-        
-        >>> fln.acker_jun = 1.299 
+
+        >>> fln.acker_jun = 1.299
         >>> fln.acker_jul = 1.304
         >>> fln.laubw_jun = 1.350
         >>> fln.laubw_jul = 1.365
@@ -248,7 +248,7 @@ def calc_nbes_inzp_v1(self):
         >>> lnk(SIED_D, FEUCHT, GLETS, WASSER)
 
         Define values for the maximum interception storage directly:
-        
+
         >>> derived.kinz.sied_d_jul = 2.
         >>> derived.kinz.feucht_jul = 1.
         >>> derived.kinz.glets_jul = 0.
@@ -305,8 +305,8 @@ def calc_nbes_inzp_v1(self):
         nbes(0.0, 0.5, 0.0, 1.0)
 
         Secondly, due to discontinuous changes of the interception capacity
-        between two months, through fall can occur after the corresponding 
-        precipitation event has occured.  In the last example, this results 
+        between two months, through fall can occur after the corresponding
+        precipitation event has occured.  In the last example, this results
         from the given decrease of the glaciers interception capacity:
 
         >>> derived.kinz.glets_jul = .6
@@ -1595,5 +1595,6 @@ class Model(modeltools.Model):
                 calc_qiga1_v1,
                 calc_qiga2_v1,
                 calc_qdga_v1,
-                calc_q_v1)
+                calc_q_v1,
+                update_outlets_v1)
 

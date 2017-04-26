@@ -739,7 +739,7 @@ class ZipParameter(MultiParameter):
 
 class KeywordParameter2DType(type):
     """Add the construction of `_ROWCOLMAPPING` to :class:`type`."""
-    
+
     def __new__(cls, name, parents, dict_):
         rownames = dict_.get('ROWNAMES', getattr(parents[0], 'ROWNAMES', ()))
         colnames = dict_.get('COLNAMES', getattr(parents[0], 'COLNAMES', ()))
@@ -829,14 +829,14 @@ class KeywordParameter2D(KeywordParameter2DMetaclass):
     Traceback (most recent call last):
     ...
     ValueError: While trying to assign new values to parameter `iswarm` of element `?` via the column related attribute `apr2sep`, the following error occured: cannot copy sequence with size 3 to array axis with dimension 2
-    
+
     >>> iswarm.shape = (1, 1)
     >>> iswarm.south_apr2sep = False
     Traceback (most recent call last):
     ...
     IndexError: While trying to assign new values to parameter `iswarm` of element `?` via the row and column related attribute `south_apr2sep`, the following error occured: index 1 is out of bounds for axis 0 with size 1
     >>> iswarm.shape = (2, 2)
-    
+
     Of course, one can define the parameter values in the common manner, e.g.:
 
     >>> iswarm(True)
@@ -944,8 +944,54 @@ class KeywordParameter2D(KeywordParameter2DMetaclass):
             MultiParameter.__setattr__(self, key, values)
 
     def __dir__(self):
-        return (objecttools.dir_(self) + list(self.ROWNAMES) + 
+        return (objecttools.dir_(self) + list(self.ROWNAMES) +
                 list(self.COLNAMES) +  self._ROWCOLMAPPINGS.keys())
+
+class LeftRightParameter(MultiParameter):
+    NDIM = 1
+
+    def __call__(self, *args, **kwargs):
+        try:
+            MultiParameter.__call__(self, *args, **kwargs)
+        except NotImplementedError:
+            left = kwargs.get('left', kwargs.get('l'))
+            if left is None:
+                raise ValueError('When setting the values of parameter `%s`'
+                                 'of element `%s` via keyword arguments, '
+                                 'either `left` or `l` for the "left" '
+                                 'parameter value must be given, but is not.'
+                                 % (self.name, objecttools.devicename(self)))
+            else:
+                self.left = left
+            right = kwargs.get('right', kwargs.get('r'))
+            if right is None:
+                raise ValueError('When setting the values of parameter `%s`'
+                                 'of element `%s` via keyword arguments, '
+                                 'either `right` or `r` for the "right" '
+                                 'parameter value must be given, but is not.'
+                                 % (self.name, objecttools.devicename(self)))
+            else:
+                self.right = right
+
+    def connect(self, subpars):
+        MultiParameter.connect(self, subpars)
+        self.shape = 2
+
+    def _getleft(self):
+        """The "left" value of the actual parameter."""
+        return self.values[0]
+    def _setleft(self, value):
+        self.values[0] = value
+    left = property(_getleft, _setleft)
+    l = left
+
+    def _getright(self):
+        """The "right" value of the actual parameter."""
+        return self.values[1]
+    def _setright(self, value):
+        self.values[1] = value
+    right = property(_getright, _setright)
+    r = right
 
 
 class IndexParameter(MultiParameter):

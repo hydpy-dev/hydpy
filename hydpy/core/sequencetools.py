@@ -410,10 +410,10 @@ class Sequence(objecttools.ValueMath):
         self.values = args
 
     def _initvalues(self):
-        if self.NDIM:
-            setattr(self.fastaccess, self.name, None)
-        else:
+        if self.NDIM == 0:
             setattr(self.fastaccess, self.name, 0.)
+        else:
+            setattr(self.fastaccess, self.name, None)
 
     def _getname(self):
         """Name of the sequence, which is the name if the instantiating
@@ -986,6 +986,29 @@ class InputSequence(ModelIOSequence):
 
 class FluxSequence(ModelIOSequence):
     """ """
+
+class LeftRightSequence(ModelIOSequence):
+    NDIM = 1
+
+    def _initvalues(self):
+        setattr(self.fastaccess, self.name, numpy.zeros(2, dtype=float))
+
+    def _getleft(self):
+        """The "left" value of the actual parameter."""
+        return self.values[0]
+    def _setleft(self, value):
+        self.values[0] = value
+    left = property(_getleft, _setleft)
+    l = left
+
+    def _getright(self):
+        """The "right" value of the actual parameter."""
+        return self.values[1]
+    def _setright(self, value):
+        self.values[1] = value
+    right = property(_getright, _setright)
+    r = right
+
 
 class ConditionSequence(object):
 

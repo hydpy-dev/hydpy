@@ -36,145 +36,90 @@ class BM(parametertools.SingleParameter):
     """Sohlbreite Hauptgerinne (bed width of the main channel) [m]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
-class BL(parametertools.SingleParameter):
-    """Breite linkes Vorland (width of the left foreland) [m]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
-
-class BR(parametertools.SingleParameter):
-    """Breite rechtes Vorland (width of the right foreland) [m]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
-
-class BBL(parametertools.SingleParameter):
-    """Breite linke Böschung (width of the left embankment) [m]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
-
-class BBR(parametertools.SingleParameter):
-    """Breite rechte Böschung (width of the right embankment) [m]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
-
 class BNM(parametertools.SingleParameter):
-    """Böschungsneigung Hauptgerinne (slope of both main channel banks) [m]."""
+    """Böschungsneigung Hauptgerinne (slope of both main channel embankments)
+    [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
-class BNL(parametertools.SingleParameter):
-    """Neigung linkes Vorland (slope of the left foreland) [m]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+class BV(parametertools.LeftRightParameter):
+    """Sohlbreite Vorländer (bed widths of both forelands) [m]."""
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
-class BNR(parametertools.SingleParameter):
-    """Neigung rechtes Vorland (slope of the right foreland) [m]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+class BBV(parametertools.LeftRightParameter):
+    """Breite Vorlandböschungen (width of both foreland embankments) [m]."""
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
-class BNVRL(parametertools.SingleParameter):
-    """Neigung linke Böschung (slope of the left embankment) [m]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+class BNV(parametertools.LeftRightParameter):
+    """Böschungsneigung Vorländer (slope of both foreland embankments) [-]."""
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
-class BNVRR(parametertools.SingleParameter):
-    """Neigung rechte Böschung (slope of the right embankment) [m]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+class BNVR(parametertools.LeftRightParameter):
+    """Böschungsneigung Vorlandränder (slope of both outer embankments) [-]."""
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 class SKM(parametertools.SingleParameter):
     """Rauigkeitsbeiwert Hauptgerinne (roughness coefficient of the main
-    channel) [m]."""
+    channel) [m⅓/s]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
-class SKL(parametertools.SingleParameter):
-    """Rauigkeitsbeiwert Vorland und Böschung links (roughness coefficient of
-    the left foreland and embankment) [m]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
-
-class SKR(parametertools.SingleParameter):
-    """Rauigkeitsbeiwert Vorland und Böschung rechts (roughness coefficient of
-    the right foreland and embankment) [m]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+class SKV(parametertools.LeftRightParameter):
+    """Rauigkeitsbeiwert Vorländer (roughness coefficient of the both
+    forelands) [m⅓/s]."""
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 class EKM(parametertools.SingleParameter):
     """Kalibrierfaktor Hauptgerinne (calibration factor for the main
-    channel) [m]."""
+    channel) [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
-class EKL(parametertools.SingleParameter):
-    """Kalibrierfaktor Vorland und Böschung links (calibration factor for
-    the left foreland and embankment) [m]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
-
-class EKR(parametertools.SingleParameter):
-    """Kalibrierfaktor Vorland und Böschung rechts (calibration factor for
-    the right foreland and embankment) [m]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+class EKV(parametertools.LeftRightParameter):
+    """Kalibrierfaktor Vorländer (calibration factor for both forelands) [m].
+    """
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 class MaxF(parametertools.SingleParameter):
     """Abbruchkriterium Newton-Raphson-Iteration (stopping criterion for the
-    Newton iteration method) [m]."""
+    Newton iteration method) [m³/s]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
     INIT = 1e-6
 
 class ControlParameters(parametertools.SubParameters):
-    """Control parameters of hstream, directly defined by the user."""
-    _PARCLASSES = (Len, Gef, HM, BM, BL, BR, BBL, BBR, BNM, BNL, BNR,
-                   BNVRL, BNVRR, SKM, SKL, SKR, EKM, EKL, EKR, MaxF)
+    """Control parameters HydPy-L-Stream, directly defined by the user."""
+    _PARCLASSES = (Len, Gef, HM, BM, BV, BBV, BNM, BNV, BNVR,
+                   SKM, SKV, EKM, EKV, MaxF)
 # Derived Parameters ##########################################################
 
-class HL(parametertools.SingleParameter):
-    """Höhe linkes Vorland (height of the left foreland) [m]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, False, (0., None)
+class HV(parametertools.LeftRightParameter):
+    """Höhe Vorländer (height of both forelands) [m]."""
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
     def update(self):
-        """Update value based on :math:`HL=BBL/BNL`.
+        """Update value based on :math:`HV=BBV/BNV`.
 
         Required Parameters:
-            :class:`BBL`
-            :class:`BNL`
+            :class:`BBV`
+            :class:`BNV`
 
         Examples:
             >>> from hydpy.models.lstream import *
             >>> parameterstep('1d')
-            >>> bbl(10.)
-            >>> bnl(10.)
-            >>> derived.hl.update()
-            >>> derived.hl
-            hl(1.0)
-            >>> bbl(0.)
-            >>> bnl(0.)
-            >>> derived.hl.update()
-            >>> derived.hl
-            hl(0.0)
+            >>> bbv(left=10., right=40.)
+            >>> bnv(left=10., right=20.)
+            >>> derived.hv.update()
+            >>> derived.hv
+            hv(1.0, 2.0)
+            >>> bbv(left=10., right=0.)
+            >>> bnv(left=0., right=20.)
+            >>> derived.hv.update()
+            >>> derived.hv
+            hv(0.0)
         """
         con = self.subpars.pars.control
-        if (con.bbl > 0.) and (con.bnl > 0.):
-            self(con.bbl/con.bnl)
-        else:
-            self(0.)
-
-class HR(parametertools.SingleParameter):
-    """Höhe rechtes Vorland (height of the right foreland) [m]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, False, (0., None)
-
-    def update(self):
-        """Update value based on :math:`HL=BBR/BNR`.
-
-        Required Parameters:
-            :class:`BBR`
-            :class:`BNR`
-
-        Examples:
-            >>> from hydpy.models.lstream import *
-            >>> parameterstep('1d')
-            >>> bbr(10.)
-            >>> bnr(10.)
-            >>> derived.hr.update()
-            >>> derived.hr
-            hr(1.0)
-            >>> bbr(0.)
-            >>> bnr(0.)
-            >>> derived.hr.update()
-            >>> derived.hr
-            hr(0.0)
-        """
-        con = self.subpars.pars.control
-        if (con.bbr > 0.) and (con.bnr > 0.):
-            self(con.bbr/con.bnr)
-        else:
-            self(0.)
+        for idx in range(2):
+            if (con.bbv[idx] > 0.) and (con.bnv[idx] > 0.):
+                self[idx] = con.bbv[idx]/con.bnv[idx]
+            else:
+                self[idx] = 0.
 
 class Sek(parametertools.SingleParameter):
     """ Sekunden im Simulationszeitschritt (Number of seconds of the selected
@@ -199,8 +144,8 @@ class Sek(parametertools.SingleParameter):
         self(self.simulationstep.seconds)
 
 class DerivedParameters(parametertools.SubParameters):
-    """Derived parameters of hstream, indirectly defined by the user."""
-    _PARCLASSES = (HL, HR, Sek)
+    """Derived parameters of HydPy-L-Stream, indirectly defined by the user."""
+    _PARCLASSES = (HV, Sek)
 
 # Parameter container #########################################################
 
@@ -251,25 +196,15 @@ class AM(sequencetools.FluxSequence):
     main channel) [m²]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
 
-class AL(sequencetools.FluxSequence):
-    """Durchflossene Fläche linkes Vorland (flown through area of the
-    left foreland) [m²]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
+class AV(sequencetools.LeftRightSequence):
+    """Durchflossene Fläche Vorländer (flown through area of both forelands)
+    [m²]."""
+    NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
-class AR(sequencetools.FluxSequence):
-    """Durchflossene Fläche rechtes Vorland (flown through area of the
-    right foreland) [m²]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
-
-class AVRL(sequencetools.FluxSequence):
-    """Durchflossene Fläche linke Böschung (flown through area of the
-    left embankment) [m²]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
-
-class AVRR(sequencetools.FluxSequence):
-    """Durchflossene Fläche rechte Böschung (flown through area of the
-    right embankment) [m²]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
+class AVR(sequencetools.LeftRightSequence):
+    """Durchflossene Fläche Vorlandränder (flown through area of both outer
+    embankments) [m²]."""
+    NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
 class AG(sequencetools.FluxSequence):
     """Durchflossene Fläche gesamt  (total flown through area) [m²]."""
@@ -277,127 +212,84 @@ class AG(sequencetools.FluxSequence):
 
 class UM(sequencetools.FluxSequence):
     """Benetzter Umfang Hauptgerinne (wetted perimeter of the
-    main channel) [m²]."""
+    main channel) [m]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
 
-class UL(sequencetools.FluxSequence):
-    """Benetzter Umfang linkes Vorland (wetted perimeter of the
-    left foreland) [m²]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
+class UV(sequencetools.LeftRightSequence):
+    """Benetzter Umfang Vorländer (wetted perimeter of both forelands) [m]."""
+    NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
-class UR(sequencetools.FluxSequence):
-    """Benetzter Umfang rechtes Vorland (wetted perimeter of the
-    right foreland) [m²]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
-
-class UVRL(sequencetools.FluxSequence):
-    """Benetzter Umfanglinke Böschung (wetted perimeter of the
-    left embankment) [m²]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
-
-class UVRR(sequencetools.FluxSequence):
-    """Benetzter Umfang rechte Böschung (wetted perimeter of the
-    right embankment) [m²]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
+class UVR(sequencetools.LeftRightSequence):
+    """Benetzter Umfang Vorlandränder (wetted perimeter of both outer
+    embankments) [m]."""
+    NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
 class UG(sequencetools.FluxSequence):
-    """Durchflossene Fläche gesamt  (total wetted perimeter) [m²]."""
+    """Durchflossene Fläche gesamt  (total wetted perimeter) [m]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
 
 class DAM(sequencetools.FluxSequence):
-    """Ableitung von :class:`AM` (derivative of :class:`AM`) [m²]."""
+    """Ableitung von :class:`AM` (derivative of :class:`AM`) [m²/m]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
 
-class DAL(sequencetools.FluxSequence):
-    """Ableitung von :class:`AL` (derivative of :class:`AL`) [m²]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
+class DAV(sequencetools.LeftRightSequence):
+    """Ableitung von :class:`AV` (derivative of :class:`AV`) [m²/m]."""
+    NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
-class DAR(sequencetools.FluxSequence):
-    """Ableitung von :class:`AR` (derivative of :class:`AR`) [m²]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
-
-class DAVRL(sequencetools.FluxSequence):
-    """Ableitung von :class:`AVRL` (derivative of :class:`AVRL`) [m²]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
-
-class DAVRR(sequencetools.FluxSequence):
-    """Ableitung von :class:`AVRR` (derivative of :class:`AVRR`) [m²]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
+class DAVR(sequencetools.LeftRightSequence):
+    """Ableitung von :class:`AVR` (derivative of :class:`AVR`) [m²/m]."""
+    NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
 class DAG(sequencetools.FluxSequence):
-    """Ableitung von :class:`AG` (derivative of :class:`AG`) [m²]."""
+    """Ableitung von :class:`AG` (derivative of :class:`AG`) [m²/m]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
 
 class DUM(sequencetools.FluxSequence):
-    """Ableitung von :class:`UM` (derivative of :class:`UM`) [m²]."""
+    """Ableitung von :class:`UM` (derivative of :class:`UM`) [m/m]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
 
-class DUL(sequencetools.FluxSequence):
-    """Ableitung von :class:`UL` (derivative of :class:`UL`) [m²]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
+class DUV(sequencetools.LeftRightSequence):
+    """Ableitung von :class:`UV` (derivative of :class:`UV`) [m/m]."""
+    NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
-class DUR(sequencetools.FluxSequence):
-    """Ableitung von :class:`UR` (derivative of :class:`UR`) [m²]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
-
-class DUVRL(sequencetools.FluxSequence):
-    """Ableitung von :class:`UVRL` (derivative of :class:`UVRL`) [m²]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
-
-class DUVRR(sequencetools.FluxSequence):
-    """Ableitung von :class:`UVRR` (derivative of :class:`UVRR`) [m²]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
+class DUVR(sequencetools.LeftRightSequence):
+    """Ableitung von :class:`UVR` (derivative of :class:`UVR`) [m/m]."""
+    NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
 class DUG(sequencetools.FluxSequence):
-    """Ableitung von :class:`UG` (derivative of :class:`UG`) [m²]."""
+    """Ableitung von :class:`UG` (derivative of :class:`UG`) [m/m]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
 
 class QM(sequencetools.FluxSequence):
-    """Durchfluss Hauptgerinne (discharge of the main channel) [m²]."""
+    """Durchfluss Hauptgerinne (discharge of the main channel) [m³]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
 
-class QL(sequencetools.FluxSequence):
-    """Durchfluss linkes Vorland (discharge of the left foreland) [m²]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
+class QV(sequencetools.LeftRightSequence):
+    """Durchfluss Voränder (discharge of both forelands) [m³]."""
+    NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
-class QR(sequencetools.FluxSequence):
-    """Durchfluss rechtes Vorland (discharge of the right foreland) [m²]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
-
-class QVRL(sequencetools.FluxSequence):
-    """Durchfluss linke Böschung (discharge of the left embankment) [m²]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
-
-class QVRR(sequencetools.FluxSequence):
-    """Durchfluss rechte Böschung (discharge of the right embankment) [m²]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
+class QVR(sequencetools.LeftRightSequence):
+    """Durchfluss Vorlandränder (discharge of both outer embankment) [m³]."""
+    NDIM, NUMERIC, SPAN = 1, False, (1., None)
 
 class QG(sequencetools.FluxSequence):
-    """Durchfluss gesamt  (total discharge) [m²]."""
+    """Durchfluss gesamt  (total discharge) [m³]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
 
 class DQM(sequencetools.FluxSequence):
-    """Ableitung von :class:`QM` (derivative of :class:`QM`) [m²]."""
+    """Ableitung von :class:`QM` (derivative of :class:`QM`) [m³/m²]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
 
-class DQL(sequencetools.FluxSequence):
-    """Ableitung von :class:`QL` (derivative of :class:`QL`) [m²]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
+class DQV(sequencetools.LeftRightSequence):
+    """Ableitung von :class:`QV` (derivative of :class:`QV`) [m³/m²]."""
+    NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
-class DQR(sequencetools.FluxSequence):
-    """Ableitung von :class:`QR` (derivative of :class:`QR`) [m²]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
-
-class DQVRL(sequencetools.FluxSequence):
-    """Ableitung von :class:`QVRL` (derivative of :class:`QVRL`) [m²]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
-
-class DQVRR(sequencetools.FluxSequence):
-    """Ableitung von :class:`QVRR` (derivative of :class:`QVRR`) [m²]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
+class DQVR(sequencetools.LeftRightSequence):
+    """Ableitung von :class:`QVR` (derivative of :class:`QVR`) [m³/m²]."""
+    NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
 class DQG(sequencetools.FluxSequence):
-    """Ableitung von :class:`QG` (derivative of :class:`QG`) [m²]."""
+    """Ableitung von :class:`QG` (derivative of :class:`QG`) [m³/m²]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
 
 class RK(sequencetools.FluxSequence):
@@ -407,12 +299,9 @@ class RK(sequencetools.FluxSequence):
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of HydPy-L-Stream."""
     _SEQCLASSES = (QRef, H,
-                   AM, AL, AR, AVRL, AVRR, AG,
-                   UM, UL, UR, UVRL, UVRR, UG,
-                   DAM, DAL, DAR, DAVRL, DAVRR, DAG,
-                   DUM, DUL, DUR, DUVRL, DUVRR, DUG,
-                   QM, QL, QR, QVRL, QVRR, QG,
-                   DQM, DQL, DQR, DQVRL, DQVRR, DQG,
+                   AM, AV, AVR, AG, UM, UV, UVR, UG,
+                   DAM, DAV, DAVR, DAG, DUM, DUV, DUVR, DUG,
+                   QM, QV, QVR, QG, DQM, DQV, DQVR, DQG,
                    RK)
 
 # Link Sequences ##############################################################
@@ -432,7 +321,7 @@ class OutletSequences(sequencetools.LinkSequences):
 # Sequence container ##########################################################
 
 class Sequences(sequencetools.Sequences):
-    """All sequences of the hstream model."""
+    """All sequences of HydPy-L-Stream."""
 
 ###############################################################################
 # Model
@@ -580,11 +469,32 @@ def calc_am_um_v1(self):
         am(11.0)
         >>> fluxes.um
         um(11.246211)
+
+        The third example checks the special case of a main channel with zero
+        height:
+
+        >>> hm(0.)
+        >>> model.calc_am_um_v1()
+        >>> fluxes.am
+        am(3.0)
+        >>> fluxes.um
+        um(5.0)
+
+        The fourth example checks the special case of the actual water stage
+        not beeing larger than zero (empty channel, note the):
+
+        >>> fluxes.h = 0.
+        >>> model.calc_am_um_v1()
+        >>> fluxes.am
+        am(0.0)
+        >>> fluxes.um
+        um(0.0)
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
     if flu.h <= 0.:
         flu.am = 0.
+        flu.um = 0.
     elif flu.h < con.hm:
         flu.am = flu.h*(con.bm+flu.h*con.bnm)
         flu.um = con.bm+2.*flu.h*(1.+con.bnm**2)**.5
@@ -592,6 +502,87 @@ def calc_am_um_v1(self):
         flu.am = (con.hm*(con.bm+con.hm*con.bnm) +
                   ((flu.h-con.hm)*(con.bm+2.*con.hm*con.bnm)))
         flu.um = (con.bm)+(2.*con.hm*(1.+con.bnm**2)**.5)+(2*(flu.h-con.hm))
+
+def calc_dam_dum_v1(self):
+    """Calculate the the changes in the flown through area and the wetted
+    perimeter with regard to water stage changes of the main channel.
+
+    Method :func:`calc_dam_dum_v1` and the following examples rely on the same
+    geometrical assumtions described for method :func:`calc_am_um_v1`.
+
+    Required control parameters:
+      :class:`HM`
+      :class:`BM`
+      :class:`BNM`
+
+    Required flux sequence:
+      :class:`H`
+
+    Calculated flux sequence:
+      :class:`DAM`
+      :class:`DUM`
+
+    Examples:
+
+        The base scenario of the examples of method :func:`calc_am_um_v1` is
+        reused:
+
+        >>> from hydpy.models.lstream import *
+        >>> parameterstep()
+        >>> bm(2.)
+        >>> bnm(4.)
+        >>> hm(1.)
+
+        The first example deals with normal flow conditions, where water flows
+        within the main channel completely:
+        (:class:`H` < :class:`HM`):
+
+        >>> fluxes.h = .5
+        >>> model.calc_dam_dum_v1()
+        >>> fluxes.dam
+        dam(6.0)
+        >>> fluxes.dum
+        dum(6.123106)
+
+        The second example deals with high flow conditions, where water flows
+        over the foreland also:
+        (:class:`H` > :class:`HM`):
+
+        >>> fluxes.h = 1.5
+        >>> model.calc_dam_dum_v1()
+        >>> fluxes.dam
+        dam(10.0)
+        >>> fluxes.dum
+        dum(11.246211)
+
+        The third example checks the special case of a main channel with zero
+        height:
+
+        >>> hm(0.)
+        >>> model.calc_dam_dum_v1()
+        >>> fluxes.dam
+        dam(3.0)
+        >>> fluxes.dum
+        dum(5.0)
+
+        The fourth example checks the special case of the actual water stage
+        not beeing larger than zero (empty channel, note the):
+
+        >>> fluxes.h = -1.
+        >>> model.calc_dam_dum_v1()
+        >>> fluxes.dam
+        dam(0.0)
+        >>> fluxes.dum
+        dum(0.0)
+    """
+    con = self.parameters.control.fastaccess
+    flu = self.sequences.fluxes.fastaccess
+    if flu.h < con.hm:
+        flu.dam = con.bm+2.*flu.h*con.bnm
+        flu.dum = 2.*(1.+con.bnm**2)**.5
+    else:
+        flu.dam = con.bm+2.*con.hm*con.bnm
+        flu.dum = 2.
 
 def calc_qm_v1(self):
     """Calculate the discharge of the main channel after Manning-Strickler.
@@ -645,107 +636,122 @@ def calc_qm_v1(self):
     else:
         flu.qm = 0.
 
-def calc_al_ul_v1(self):
-    """Calculate the flown through area and the wetted perimeter
-    of the left foreland.
+def calc_av_uv_v1(self):
+    """Calculate the flown through area and the wetted perimeter of both
+    forelands.
 
-    Note that the left foreland lies between the left embankment and the
-    main channel and that water flowing exactly above the left foreland is
-    contributing to :class:`AL`. The theoretical surface seperating water
+    Note that the each foreland lies between the main channel and one
+    outer embankment and that water flowing exactly above the a foreland is
+    contributing to :class:`AV`. The theoretical surface seperating water
     above the main channel from water above the foreland is not contributing
-    to :class:`UL`, but the surface seperating water above the foreland
-    from water above its embankment is contributing to :class:`UL`.
+    to :class:`UV`, but the surface seperating water above the foreland
+    from water above its outer embankment is contributing to :class:`UV`.
 
     Required control parameters:
       :class:`HM`
-      :class:`BL`
-      :class:`BNL`
+      :class:`BV`
+      :class:`BNV`
 
     Required derived parameter:
-      :class:`HL`
+      :class:`HV`
 
     Required flux sequence:
       :class:`H`
 
     Calculated flux sequence:
-      :class:`AL`
-      :class:`UL`
+      :class:`AV`
+      :class:`UV`
 
     Examples:
 
-        Generally, a right trapezoid is assumed.  Here its smaller base
-        (bottom) has a length of 2 meters, its non-vertical leg shows an
-        inclination of 1 meter per 4 meters, and its height (depths) is 1
-        meter.  The foreland lies 1 meter above the main channels bottom:
+        Generally, right trapezoids are assumed.  Here, for simplicity, both
+        forelands are assumed to be symmetrical.  Their smaller bases (bottoms)
+        hava a length of 2 meters, their non-vertical legs show an inclination
+        of 1 meter per 4 meters, and their height (depths) is 1 meter.  Both
+        forelands lie 1 meter above the main channels bottom.
 
         >>> from hydpy.models.lstream import *
         >>> parameterstep()
         >>> hm(1.)
-        >>> bl(2.)
-        >>> bnl(4.)
-        >>> derived.hl(1.)
+        >>> bv(2.)
+        >>> bnv(4.)
+        >>> derived.hv(1.)
 
         The first example deals with normal flow conditions, where water flows
         within the main channel completely:
         (:class:`H` < :class:`HM`):
 
         >>> fluxes.h = .5
-        >>> model.calc_al_ul_v1()
-        >>> fluxes.al
-        al(0.0)
-        >>> fluxes.ul
-        ul(0.0)
+        >>> model.calc_av_uv_v1()
+        >>> fluxes.av
+        av(0.0, 0.0)
+        >>> fluxes.uv
+        uv(0.0, 0.0)
 
         The second example deals with moderate high flow conditions, where
-        water flows over the left foreland, but not over its embankment:
-        (:class:`HM` < :class:`H` < :class:`HM` + :class:`HL`):
+        water flows over both forelands, but not over their embankments:
+        (:class:`HM` < :class:`H` < :class:`HM` + :class:`HV`):
 
         >>> fluxes.h = 1.5
-        >>> model.calc_al_ul_v1()
-        >>> fluxes.al
-        al(1.5)
-        >>> fluxes.ul
-        ul(4.061553)
+        >>> model.calc_av_uv_v1()
+        >>> fluxes.av
+        av(1.5, 1.5)
+        >>> fluxes.uv
+        uv(4.061553, 4.061553)
 
         The third example deals with extreme high flow conditions, where
-        water flows over the left foreland and its embankment:
-        (:class:`HM` + :class:`HL` < :class:`H`):
+        water flows over the both foreland and their outer embankments:
+        (:class:`HM` + :class:`HV` < :class:`H`):
 
         >>> fluxes.h = 2.5
-        >>> model.calc_al_ul_v1()
-        >>> fluxes.al
-        al(7.0)
-        >>> fluxes.ul
-        ul(6.623106)
+        >>> model.calc_av_uv_v1()
+        >>> fluxes.av
+        av(7.0, 7.0)
+        >>> fluxes.uv
+        uv(6.623106, 6.623106)
+
+        The forth example assures that zero widths or hights of the forelands
+        are handled properly:
+
+        >>> bv.left = 0.
+        >>> derived.hv.right = 0.
+        >>> model.calc_av_uv_v1()
+        >>> fluxes.av
+        av(4.0, 3.0)
+        >>> fluxes.uv
+        uv(4.623106, 3.5)
     """
     con = self.parameters.control.fastaccess
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
-    if flu.h <= con.hm:
-        flu.al = 0.
-        flu.ul = 0.
-    elif flu.h <= (con.hm+der.hl):
-        flu.al = (flu.h-con.hm)*(con.bl+(flu.h-con.hm)*con.bnl/2.)
-        flu.ul = con.bl+(flu.h-con.hm)*(1.+con.bnl**2)**.5
-    else:
-        flu.al = (der.hl*(con.bl+der.hl*con.bnl/2.) +
-                  ((flu.h-(con.hm+der.hl))*(con.bl+der.hl*con.bnl)))
-        flu.ul = (con.bl)+(der.hl*(1.+con.bnl**2)**.5)+(flu.h-(con.hm+der.hl))
+    for i in range(2):
+        if flu.h <= con.hm:
+            flu.av[i] = 0.
+            flu.uv[i] = 0.
+        elif flu.h <= (con.hm+der.hv[i]):
+            flu.av[i] = (flu.h-con.hm)*(con.bv[i]+(flu.h-con.hm)*con.bnv[i]/2.)
+            flu.uv[i] = con.bv[i]+(flu.h-con.hm)*(1.+con.bnv[i]**2)**.5
+        else:
+            flu.av[i] = (der.hv[i]*(con.bv[i]+der.hv[i]*con.bnv[i]/2.) +
+                         ((flu.h-(con.hm+der.hv[i])) *
+                          (con.bv[i]+der.hv[i]*con.bnv[i])))
+            flu.uv[i] = ((con.bv[i])+(der.hv[i]*(1.+con.bnv[i]**2)**.5) +
+                         (flu.h-(con.hm+der.hv[i])))
 
-def calc_ql_v1(self):
-    """Calculate the discharge of the left foreland after Manning-Strickler.
+def calc_qv_v1(self):
+    """Calculate the discharge of both forelands after Manning-Strickler.
 
     Required control parameters:
-      :class:`EKL`
-      :class:`SKL`
+      :class:`EKV`
+      :class:`SKV`
       :class:`Gef`
 
     Required flux sequence:
-      :class:`AL`
-      :class:`UL`
+      :class:`AV`
+      :class:`UV`
 
     Calculated flux sequence:
-      :class:`QL`
+      :class:`QV`
 
     Examples:
 
@@ -753,259 +759,125 @@ def calc_ql_v1(self):
 
         >>> from hydpy.models.lstream import *
         >>> parameterstep()
-        >>> ekl(2.)
-        >>> skl(50.)
+        >>> ekv(2.)
+        >>> skv(50.)
         >>> gef(.01)
-        >>> fluxes.al = 3.
-        >>> fluxes.ul = 7.
-        >>> model.calc_ql_v1()
-        >>> fluxes.ql
-        ql(17.053102)
+        >>> fluxes.av = 3.
+        >>> fluxes.uv = 7.
+        >>> model.calc_qv_v1()
+        >>> fluxes.qv
+        qv(17.053102, 17.053102)
 
         For zero or negative values of the flown through surface or
         the wetted perimeter:
 
-        >>> fluxes.al = -1.
-        >>> fluxes.ul = 7.
-        >>> model.calc_ql_v1()
-        >>> fluxes.ql
-        ql(0.0)
-
-        >>> fluxes.al = 3.
-        >>> fluxes.ul = 0.
-        >>> model.calc_ql_v1()
-        >>> fluxes.ql
-        ql(0.0)
+        >>> fluxes.av = -1., 3.
+        >>> fluxes.uv = 7., 0.
+        >>> model.calc_qv_v1()
+        >>> fluxes.qv
+        qv(0.0, 0.0)
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
-    if (flu.al > 0.) and (flu.ul > 0.):
-        flu.ql = con.ekl*con.skl*flu.al**(5./3.)/flu.ul**(2./3.)*con.gef**.5
-    else:
-        flu.ql = 0.
+    for i in range(2):
+        if (flu.av[i] > 0.) and (flu.uv[i] > 0.):
+            flu.qv[i] = (con.ekv[i]*con.skv[i] *
+                         flu.av[i]**(5./3.)/flu.uv[i]**(2./3.)*con.gef**.5)
+        else:
+            flu.qv[i] = 0.
 
-def calc_ar_ur_v1(self):
-    """Calculate the flown through area and the wetted perimeter
-    of the left foreland.
+def calc_avr_uvr_v1(self):
+    """Calculate the flown through area and the wetted perimeter of both
+    outer embankments.
 
-    Note that the right foreland lies between the right embankment and
-    the main channel and that water flowing exactly above right foreland
-    is contributing to :class:`AR`.  The theoretical surface seperating water
-    above the main channel from water above the foreland is not contributing
-    to :class:`UR`, but the surface seperating water above the foreland
-    from water above its embankment is contributing to :class:`UR`.
-
-    Required control parameters:
-      :class:`HM`
-      :class:`BR`
-      :class:`BNR`
-
-    Required derived parameter:
-      :class:`HR`
-
-    Required flux sequence:
-      :class:`H`
-
-    Calculated flux sequence:
-      :class:`AR`
-      :class:`UR`
-
-    Examples:
-
-        Generally, a right trapezoid is assumed.  Here its smaller base
-        (bottom) has a length of 2 meters, its non-vertical leg shows an
-        inclination of 1 meter per 4 meters, and its height (depths) is 1
-        meter.  The foreland lies 1 meter above the main channels bottom:
-
-        >>> from hydpy.models.lstream import *
-        >>> parameterstep()
-        >>> hm(1.)
-        >>> br(2.)
-        >>> bnr(4.)
-        >>> derived.hr(1.)
-
-        The first example deals with normal flow conditions, where water flows
-        within the main channel completely:
-        (:class:`H` < :class:`HM`):
-
-        >>> fluxes.h = .5
-        >>> model.calc_ar_ur_v1()
-        >>> fluxes.ar
-        ar(0.0)
-        >>> fluxes.ur
-        ur(0.0)
-
-        The second example deals with moderate high flow conditions, where
-        water flows over the right foreland, but not over its embankment:
-        (:class:`HM` < :class:`H` < :class:`HM` + :class:`HR`):
-
-        >>> fluxes.h = 1.5
-        >>> model.calc_ar_ur_v1()
-        >>> fluxes.ar
-        ar(1.5)
-        >>> fluxes.ur
-        ur(4.061553)
-
-        The third example deals with extreme high flow conditions, where
-        water flows over the right foreland and its embankment:
-        (:class:`HM` + :class:`HR` < :class:`H`):
-
-        >>> fluxes.h = 2.5
-        >>> model.calc_ar_ur_v1()
-        >>> fluxes.ar
-        ar(7.0)
-        >>> fluxes.ur
-        ur(6.623106)
-    """
-    con = self.parameters.control.fastaccess
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    if flu.h <= con.hm:
-        flu.ar = 0.
-        flu.ur = 0.
-    elif flu.h <= (con.hm+der.hr):
-        flu.ar = (flu.h-con.hm)*(con.br+(flu.h-con.hm)*con.bnr/2.)
-        flu.ur = con.br+(flu.h-con.hm)*(1.+con.bnr**2)**.5
-    else:
-        flu.ar = (der.hr*(con.br+der.hr*con.bnr/2.) +
-                  ((flu.h-(con.hm+der.hr))*(con.br+der.hr*con.bnr)))
-        flu.ur = (con.br)+(der.hr*(1.+con.bnr**2)**.5)+(flu.h-(con.hm+der.hr))
-
-def calc_qr_v1(self):
-    """Calculate the discharge of the right foreland after Manning-Strickler.
-
-    Required control parameters:
-      :class:`EKR`
-      :class:`SKR`
-      :class:`Gef`
-
-    Required flux sequence:
-      :class:`AR`
-      :class:`UR`
-
-    Calculated flux sequence:
-      :class:`QR`
-
-    Examples:
-
-        For appropriate strictly positive values:
-
-        >>> from hydpy.models.lstream import *
-        >>> parameterstep()
-        >>> ekr(2.)
-        >>> skr(50.)
-        >>> gef(.01)
-        >>> fluxes.ar = 3.
-        >>> fluxes.ur = 7.
-        >>> model.calc_qr_v1()
-        >>> fluxes.qr
-        qr(17.053102)
-
-        For zero or negative values of the flown through surface or
-        the wetted perimeter:
-
-        >>> fluxes.ar = -1.
-        >>> fluxes.ur = 7.
-        >>> model.calc_qr_v1()
-        >>> fluxes.qr
-        qr(0.0)
-
-        >>> fluxes.ar = 3.
-        >>> fluxes.ur = 0.
-        >>> model.calc_qr_v1()
-        >>> fluxes.qr
-        qr(0.0)
-    """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    if (flu.ar > 0.) and (flu.ur > 0.):
-        flu.qr = con.ekr*con.skr*flu.ar**(5./3.)/flu.ur**(2./3.)*con.gef**.5
-    else:
-        flu.qr = 0.
-
-def calc_avrl_uvrl_v1(self):
-    """Calculate the flown through area and the wetted perimeter of the
-    left river embankment.
-
-    Note that the left embankment lies beyond the left foreland and that all
-    water flowing exactly above the left embankment is added to :class:`AVRL`.
+    Note that each outer embankment lies beyond its foreland and that all
+    water flowing exactly above the a embankment is added to :class:`AVR`.
     The theoretical surface seperating water above the foreland from water
-    above its embankment is not contributing to :class:`UVRL`.
+    above its embankment is not contributing to :class:`UVR`.
 
     Required control parameters:
       :class:`HM`
-      :class:`BNVRL`
+      :class:`BNVR`
 
     Required derived parameter:
-      :class:`HL`
+      :class:`HV`
 
     Required flux sequence:
       :class:`H`
 
     Calculated flux sequence:
-      :class:`AVRL`
-      :class:`UVRL`
+      :class:`AVR`
+      :class:`UVR`
 
     Examples:
 
-        Generally, a simple triangle is assumed, with a vertical side
-        seperating foreland and embankment.  Here the embankments
-        inclination is 1 meter per 4 meters and its lowest point is
+        Generally, right trapezoids are assumed.  Here, for simplicity, both
+        forelands are assumed to be symmetrical.  Their smaller bases (bottoms)
+        hava a length of 2 meters, their non-vertical legs show an inclination
+        of 1 meter per 4 meters, and their height (depths) is 1 meter.  Both
+        forelands lie 1 meter above the main channels bottom.
+
+        Generally, a triangles are assumed, with the vertical side
+        seperating the foreland from its outer embankment.  Here, for
+        simplicity, both forelands are assumed to be symmetrical.  Their
+        inclinations are 1 meter per 4 meters and their lowest point is
         1 meter above the forelands bottom and 2 meters above the main
         channels bottom:
 
         >>> from hydpy.models.lstream import *
         >>> parameterstep()
         >>> hm(1.)
-        >>> bnvrl(4.)
-        >>> derived.hl(1.)
+        >>> bnvr(4.)
+        >>> derived.hv(1.)
 
         The first example deals with moderate high flow conditions, where
-        water flows over the left foreland, but not over its embankment:
-        (:class:`HM` < :class:`H` < :class:`HM` + :class:`HL`):
+        water flows over the forelands, but not over their outer embankments:
+        (:class:`HM` < :class:`H` < :class:`HM` + :class:`HV`):
 
         >>> fluxes.h = 1.5
-        >>> model.calc_avrl_uvrl_v1()
-        >>> fluxes.avrl
-        avrl(0.0)
-        >>> fluxes.uvrl
-        uvrl(0.0)
+        >>> model.calc_avr_uvr_v1()
+        >>> fluxes.avr
+        avr(0.0, 0.0)
+        >>> fluxes.uvr
+        uvr(0.0, 0.0)
 
         The second example deals with extreme high flow conditions, where
-        water flows over the left foreland and its embankment:
-        (:class:`HM` + :class:`HL` < :class:`H`):
+        water flows over the both foreland and their outer embankments:
+        (:class:`HM` + :class:`HV` < :class:`H`):
 
         >>> fluxes.h = 2.5
-        >>> model.calc_avrl_uvrl_v1()
-        >>> fluxes.avrl
-        avrl(0.5)
-        >>> fluxes.uvrl
-        uvrl(2.061553)
+        >>> model.calc_avr_uvr_v1()
+        >>> fluxes.avr
+        avr(0.5, 0.5)
+        >>> fluxes.uvr
+        uvr(2.061553, 2.061553)
     """
     con = self.parameters.control.fastaccess
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
-    if flu.h <= (con.hm+der.hl):
-        flu.avrl = 0.
-        flu.uvrl = 0.
-    else:
-        flu.avrl = (flu.h-(con.hm+der.hl))**2*con.bnvrl/2.
-        flu.uvrl = (flu.h-(con.hm+der.hl))*(1.+con.bnvrl**2)**.5
+    for i in range(2):
+        if flu.h <= (con.hm+der.hv[i]):
+            flu.avr[i] = 0.
+            flu.uvr[i] = 0.
+        else:
+            flu.avr[i] = (flu.h-(con.hm+der.hv[i]))**2*con.bnvr[i]/2.
+            flu.uvr[i] = (flu.h-(con.hm+der.hv[i]))*(1.+con.bnvr[i]**2)**.5
 
-def calc_qvrl_v1(self):
-    """Calculate the discharge of the left embankment after Manning-Strickler.
+def calc_qvr_v1(self):
+    """Calculate the discharge of both outer embankments after
+    Manning-Strickler.
 
     Required control parameters:
-      :class:`EKL`
-      :class:`SKL`
+      :class:`EKV`
+      :class:`SKV`
       :class:`Gef`
 
     Required flux sequence:
-      :class:`AVRL`
-      :class:`UVRL`
+      :class:`AVR`
+      :class:`UVR`
 
     Calculated flux sequence:
-      :class:`QVRL`
+      :class:`QVR`
 
     Examples:
 
@@ -1013,159 +885,32 @@ def calc_qvrl_v1(self):
 
         >>> from hydpy.models.lstream import *
         >>> parameterstep()
-        >>> ekl(2.)
-        >>> skl(50.)
+        >>> ekv(2.)
+        >>> skv(50.)
         >>> gef(.01)
-        >>> fluxes.avrl = 3.
-        >>> fluxes.uvrl = 7.
-        >>> model.calc_qvrl_v1()
-        >>> fluxes.qvrl
-        qvrl(17.053102)
+        >>> fluxes.avr = 3.
+        >>> fluxes.uvr = 7.
+        >>> model.calc_qvr_v1()
+        >>> fluxes.qvr
+        qvr(17.053102, 17.053102)
 
         For zero or negative values of the flown through surface or
         the wetted perimeter:
 
-        >>> fluxes.avrl = -1.
-        >>> fluxes.uvrl = 7.
-        >>> model.calc_qvrl_v1()
-        >>> fluxes.qvrl
-        qvrl(0.0)
-
-        >>> fluxes.avrl = 3.
-        >>> fluxes.uvrl = 0.
-        >>> model.calc_qvrl_v1()
-        >>> fluxes.qvrl
-        qvrl(0.0)
+        >>> fluxes.avr = -1., 3.
+        >>> fluxes.uvr = 7., 0.
+        >>> model.calc_qvr_v1()
+        >>> fluxes.qvr
+        qvr(0.0, 0.0)
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
-    if (flu.avrl > 0.) and (flu.uvrl > 0.):
-        flu.qvrl = (con.ekl*con.skl*flu.avrl**(5./3.)/flu.uvrl**(2./3.) *
-                    con.gef**.5)
-    else:
-        flu.qvrl = 0.
-
-def calc_avrr_uvrr_v1(self):
-    """Calculate the flown through area and the wetted perimeter
-    of the right foreland.
-
-    Note that the right embankment lies beyond the right foreland and that all
-    water flowing exactly above the right embankment is added to :class:`AVRR`.
-    The theoretical surface seperating water above the foreland from water
-    above its embankment is not contributing to :class:`UVRR`.
-
-    Required control parameters:
-      :class:`HM`
-      :class:`BNVRR`
-
-    Required derived parameter:
-      :class:`HL`
-
-    Required flux sequence:
-      :class:`H`
-
-    Calculated flux sequence:
-      :class:`AVRR`
-      :class:`UVRR`
-
-    Examples:
-
-        Generally, a simple triangle is assumed, with a vertical side
-        seperating foreland and embankment.  Here the embankments
-        inclination is 1 meter per 4 meters and its lowest point is
-        1 meter above the forelands bottom and 2 meters above the main
-        channels bottom:
-
-        >>> from hydpy.models.lstream import *
-        >>> parameterstep()
-        >>> hm(1.)
-        >>> bnvrr(4.)
-        >>> derived.hr(1.)
-
-        The first example deals with moderate high flow conditions, where
-        water flows over the right foreland, but not over its embankment:
-        (:class:`HM` < :class:`H` < :class:`HM` + :class:`HR`):
-
-        >>> fluxes.h = 1.5
-        >>> model.calc_avrr_uvrr_v1()
-        >>> fluxes.avrr
-        avrr(0.0)
-        >>> fluxes.uvrr
-        uvrr(0.0)
-
-        The second example deals with extreme high flow conditions, where
-        water flows over the right foreland and its embankment:
-        (:class:`HM` + :class:`HR` < :class:`H`):
-
-        >>> fluxes.h = 2.5
-        >>> model.calc_avrr_uvrr_v1()
-        >>> fluxes.avrr
-        avrr(0.5)
-        >>> fluxes.uvrr
-        uvrr(2.061553)
-    """
-    con = self.parameters.control.fastaccess
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    if flu.h <= (con.hm+der.hr):
-        flu.avrr = 0.
-        flu.uvrr = 0.
-    else:
-        flu.avrr = (flu.h-(con.hm+der.hr))**2*con.bnvrr/2.
-        flu.uvrr = (flu.h-(con.hm+der.hr))*(1.+con.bnvrr**2)**.5
-
-def calc_qvrr_v1(self):
-    """Calculate the discharge of the right embankment after Manning-Strickler.
-
-    Required control parameters:
-      :class:`EKR`
-      :class:`SKR`
-      :class:`Gef`
-
-    Required flux sequence:
-      :class:`AVRR`
-      :class:`UVRR`
-
-    Calculated flux sequence:
-      :class:`QVRR`
-
-    Examples:
-
-        For appropriate strictly positive values:
-
-        >>> from hydpy.models.lstream import *
-        >>> parameterstep()
-        >>> ekl(2.)
-        >>> skl(50.)
-        >>> gef(.01)
-        >>> fluxes.avrr = 3.
-        >>> fluxes.uvrr = 7.
-        >>> model.calc_qvrr_v1()
-        >>> fluxes.qvrr
-        qvrr(17.053102)
-
-        For zero or negative values of the flown through surface or
-        the wetted perimeter:
-
-        >>> fluxes.avrr = -1.
-        >>> fluxes.uvrr = 7.
-        >>> model.calc_qvrr_v1()
-        >>> fluxes.qvrr
-        qvrr(0.0)
-
-        >>> fluxes.avrr = 3.
-        >>> fluxes.uvrr = 0.
-        >>> model.calc_qvrr_v1()
-        >>> fluxes.qvrr
-        qvrr(0.0)
-    """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    if (flu.avrr > 0.) and (flu.uvrr > 0.):
-        flu.qvrr = (con.ekl*con.skl*flu.avrr**(5./3.)/flu.uvrr**(2./3.) *
-                    con.gef**.5)
-    else:
-        flu.qvrr = 0.
+    for i in range(2):
+        if (flu.avr[i] > 0.) and (flu.uvr[i] > 0.):
+            flu.qvr[i] = (con.ekv[i]*con.skv[i] *
+                          flu.avr[i]**(5./3.)/flu.uvr[i]**(2./3.)*con.gef**.5)
+        else:
+            flu.qvr[i] = 0.
 
 def calc_qg_v1(self):
     flu = self.sequences.fluxes.fastaccess
@@ -1180,14 +925,10 @@ def calc_h_v1(self):
     while abs(aid.f) > con.maxf:
         self.calc_am_um_v1()
         self.calc_qm_v1()
-        self.calc_al_ul_v1()
-        self.calc_ql_v1()
-        self.calc_ar_ur_v1()
-        self.calc_qr_v1()
-        self.calc_avrl_uvrl_v1()
-        self.calc_qvrl_v1()
-        self.calc_avrr_uvrr_v1()
-        self.calc_qvrr_v1()
+        self.calc_av_uv_v1()
+        self.calc_qv_v1()
+        self.calc_avr_vr_v1()
+        self.calc_qvr_v1()
         aid.f = flu.qg-flu.qref
         flu.h = max(flu.h-aid.f/flu.dqg, 0.)
 
@@ -1277,14 +1018,10 @@ class Model(modeltools.Model):
                    update_outlets_v1)
     _ADDMETHODS = (calc_am_um_v1,
                    calc_qm_v1,
-                   calc_al_ul_v1,
-                   calc_ql_v1,
-                   calc_ar_ur_v1,
-                   calc_qr_v1,
-                   calc_avrl_uvrl_v1,
-                   calc_qvrl_v1,
-                   calc_avrr_uvrr_v1,
-                   calc_qvrr_v1)
+                   calc_av_uv_v1,
+                   calc_qv_v1,
+                   calc_avr_uvr_v1,
+                   calc_qvr_v1)
 
 
 tester = Tester()

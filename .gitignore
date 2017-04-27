@@ -17,3 +17,5 @@ coverage.xml
 .coverage
 HydPy.egg-info/*
 MANIFEST
+temp/
+hydpy/models/globwat/Thumbs.db

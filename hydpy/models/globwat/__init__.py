@@ -4,7 +4,7 @@ both terms are used synonymously.  Each of the following sections is related
 to an individual module (e.g. `globwat_constants`, `globwat_model`...).
 
 Constants
---------- 
+---------
 
 .. automodule:: hydpy.models.globwat.globwat_constants
     :members:
@@ -17,7 +17,7 @@ Model
 .. automodule:: hydpy.models.globwat.globwat_model
     :members:
     :show-inheritance:
-	
+
 Parameters
 ----------
 .. automodule:: hydpy.models.globwat.globwat_parameters
@@ -76,7 +76,7 @@ Link sequences
 ..............
 .. automodule:: hydpy.models.globwat.globwat_links
     :members:
-    :show-inheritance:    
+    :show-inheritance:
 """
 
 # import...
@@ -88,14 +88,14 @@ from numpy import nan
 # ...from Hydpy (framework)
 from hydpy.core.magictools import parameterstep
 from hydpy.core.magictools import simulationstep
-# ...from HydPy (hland)
-#from .globwat_constants import FIELD, FOREST, GLACIER, ILAKE
+# ...from HydPy (GlobWat)
+from .globwat_constants import *
 from .globwat_model import Model
 from .globwat_parameters import Parameters
 from .globwat_control import ControlParameters
 from .globwat_derived import DerivedParameters
 from .globwat_sequences import Sequences
-#from .globwat_inputs import InputSequences
+from .globwat_inputs import InputSequences
 from .globwat_fluxes import FluxSequences
 from .globwat_states import StateSequences
 #from .globwat_logs import LogSequences

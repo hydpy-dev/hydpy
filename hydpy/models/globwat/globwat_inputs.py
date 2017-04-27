@@ -11,11 +11,11 @@ from hydpy.core import sequencetools
 
 class P(sequencetools.InputSequence):
     """Precipitation [mm/d]."""
-    NDIM, NUMERIC = 0, False
+    NDIM, NUMERIC = 1, False
 
 class E0(sequencetools.InputSequence):
     """reference evaporation [mm/d]."""
-    NDIM, NUMERIC = 0, False
+    NDIM, NUMERIC = 1, False
 
 #class T(sequencetools.InputSequence):
 #    """Temperature [°C]."""
@@ -23,4 +23,4 @@ class E0(sequencetools.InputSequence):
 
 class InputSequences(sequencetools.SubSequences):
     """Input sequences of the globwat model."""
-    SEQCLASSES = (P, E0)
+    _SEQCLASSES = (P, E0)

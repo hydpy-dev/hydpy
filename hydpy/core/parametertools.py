@@ -41,10 +41,15 @@ class Parameters(object):
                 setattr(self, subpars.name, subpars)
 
     def update(self):
-        """Needs to be defined for each individual :class:`Parameters`
-        subclass that contains `derived` paramemeters, whose values are
-        calculated on the basis of given control parameter values.
-        """
+        """Calls the update methods of all derived parameters."""
+        for par in self.derived._PARCLASSES:
+            name = objecttools.instancename(par)
+            try:
+                self.derived.__dict__[name].update()
+            except BaseException:
+                objecttools.augmentexcmessage(
+                    'While trying to update the derived parameter `%s` of '
+                    'element `%s`' % (name, objecttools.devicename(self)))
 
     def savecontrols(self, parameterstep=None, simulationstep=None,
                      filename=None, dirname=None):
@@ -142,16 +147,7 @@ class SubParameters(object):
         except AttributeError:
             object.__setattr__(self, name, value)
             if isinstance(value, Parameter):
-                value.subpars = self
-                value.fastaccess = self.fastaccess
-                try:
-                    # Necessary when working in Python mode...
-                    setattr(self.fastaccess, value.name, None)
-                except TypeError:
-                    # ...but unnecessary and impossible in Cython mode.
-                    pass
-                if getattr(value, 'INIT', None) is not None:
-                    value(value.INIT)
+                value.connect(self)
         else:
             try:
                 attr._setvalue(value)
@@ -183,6 +179,19 @@ class Parameter(objecttools.ValueMath):
         self.subpars = None
         self.fastaccess = type('JustForDemonstrationPurposes', (),
                                {self.name: None})()
+
+    def connect(self, subpars):
+        self.subpars = subpars
+        self.fastaccess = subpars.fastaccess
+        if self.NDIM == 0:
+            if self.TYPE is float:
+                setattr(self.fastaccess, self.name, numpy.nan)
+            else:
+                setattr(self.fastaccess, self.name, 0)
+        else:
+            setattr(self.fastaccess, self.name, None)
+        if getattr(self, 'INIT', None) is not None:
+            self.value = self.INIT
 
     def _getname(self):
         """Name of the parameter, which is the name if the instantiating
@@ -343,7 +352,12 @@ class Parameter(objecttools.ValueMath):
         """
         lines = []
         if pub.options.reprcomments:
-            lines.append('# %s' % self.__doc__.split('\n')[0])
+            if self.__doc__ is not None:
+                lines.append('# %s].' % self.__doc__.split(']')[0])
+            else:
+                lines.append('# Instance of parameter class `%s` defined in '
+                             'module `%s`.'
+                             % (objecttools.classname(self), self.__module__))
             if self.TIME is not None:
                 lines.append('# The actual value representation depends on '
                              'the actual parameter step size, which is `%s`.'
@@ -380,12 +394,7 @@ class SingleParameter(Parameter):
         """The actual parameter value handled by the respective
         :class:`SingleParameter` instance.
         """
-        values = getattr(self.fastaccess, self.name, None)
-        if values is not None:
-            return values
-        else:
-            raise RuntimeError('No value of parameter `%s` has been defined '
-                               'so far.' % self.name)
+        return getattr(self.fastaccess, self.name, numpy.nan)
     def _setvalue(self, value):
         try:
             temp = value[0]
@@ -410,9 +419,9 @@ class SingleParameter(Parameter):
     def verify(self):
         """Raises a :class:`~exceptions.RuntimeError` if the value of the
         instance of the respective subclass of :class:`SingleParameter` is
-        `None` or `nan`.
+        `nan`.
         """
-        if self.values is None:
+        if numpy.isnan(self.value):
             raise RuntimeError('The value of parameter `%s` has not been '
                                'set yet.' % self.name)
 
@@ -464,7 +473,7 @@ class MultiParameter(Parameter):
                                'defined.' % self.name)
     def _setshape(self, shape):
         try:
-            array = numpy.full(shape, numpy.nan, dtype=self.TYPE)
+            array = numpy.full(shape, 0., dtype=self.TYPE)
         except Exception:
             objecttools.augmentexcmessage('While trying create a new numpy '
                                           'ndarray` for parameter `%s`'
@@ -484,8 +493,7 @@ class MultiParameter(Parameter):
         """
         value = getattr(self.fastaccess, self.name, None)
         if value is None:
-            raise RuntimeError('No value/values of parameter `%s` has/have '
-                               'been defined so far.' % self.name)
+            return value
         else:
             return numpy.asarray(value)
     def _setvalue(self, value):
@@ -568,7 +576,10 @@ class MultiParameter(Parameter):
         nested list.  If the compression fails, a
         :class:`~exceptions.NotImplementedError` is raised.
         """
-        unique = numpy.unique(self.values)
+        if self.value is None:
+            unique = numpy.array([numpy.nan])
+        else:
+            unique = numpy.unique(self.values)
         if sum(numpy.isnan(unique)) == len(unique.flatten()):
             unique = numpy.array([numpy.nan])
         else:
@@ -668,6 +679,22 @@ class ZipParameter(MultiParameter):
             else:
                 raise exc
 
+    def _getshape(self):
+        """Return a tuple containing the lengths in all dimensions of the
+        parameter values.
+        """
+        try:
+            return MultiParameter._getshape(self)
+        except RuntimeError:
+            raise RuntimeError('Shape information for parameter `%s` can '
+                               'only be retrieved after it has been defined. '
+                               ' You can do this manually, but usually it is '
+                               'done automatically by defining the value of '
+                               'parameter `%s` first in each parameter '
+                               'control file.'
+                               % (self.name, self.shapeparameter.name))
+    shape = property(_getshape, MultiParameter._setshape)
+
     def _getverifymask(self):
         """A numpy array of the same shape as the value array handled
         by the respective parameter.  `True` entries indicate that certain
@@ -710,8 +737,265 @@ class ZipParameter(MultiParameter):
                 result = [result]
             return result
 
+class KeywordParameter2DType(type):
+    """Add the construction of `_ROWCOLMAPPING` to :class:`type`."""
+
+    def __new__(cls, name, parents, dict_):
+        rownames = dict_.get('ROWNAMES', getattr(parents[0], 'ROWNAMES', ()))
+        colnames = dict_.get('COLNAMES', getattr(parents[0], 'COLNAMES', ()))
+        rowcolmappings = {}
+        for (idx, rowname) in enumerate(rownames):
+            for (jdx, colname) in enumerate(colnames):
+                rowcolmappings['_'.join((rowname, colname))] = (idx, jdx)
+        dict_['_ROWCOLMAPPINGS'] = rowcolmappings
+        return type.__new__(cls, name, parents, dict_)
+
+KeywordParameter2DMetaclass = KeywordParameter2DType(
+                          'KeywordParameter2DMetaclass', (MultiParameter,), {})
+
+class KeywordParameter2D(KeywordParameter2DMetaclass):
+    """Base class for 2-dimensional model parameters which values which depend
+    on two factors.
+
+    When inheriting an actual parameter class from :class:`KeywordParameter2D`
+    one needs to define the class attributes
+    :const:`~KeywordParameter2D.ROWNAMES` and
+    :const:`~KeywordParameter2D.COLNAMES` (both of type :class:`tuple`).
+    One usual setting would be that :const:`~KeywordParameter2D.ROWNAMES`
+    defines some land use classes and :const:`~KeywordParameter2D.COLNAMES`
+    defines seasons, months, or the like.
+
+    Consider the following example, where the boolean parameter `IsWarm` both
+    depends on the half-year period and the hemisphere:
+
+    >>> from hydpy.core.parametertools import KeywordParameter2D
+    >>> class IsWarm(KeywordParameter2D):
+    ...     TYPE = bool
+    ...     ROWNAMES = ('north', 'south')
+    ...     COLNAMES = ('apr2sep', 'oct2mar')
+
+    Instantiate the defined parameter class and define its shape:
+
+    >>> iswarm = IsWarm()
+    >>> iswarm.shape = (2, 2)
+
+    :class:`KeywordParameter2D` allows to set the values of all rows via
+    keyword arguments:
+
+    >>> iswarm(north=[True, False],
+    ...        south=[False, True])
+    >>> iswarm
+    iswarm(north=[True, False],
+           south=[False, True])
+    >>> iswarm.values
+    array([[ True, False],
+           [False,  True]], dtype=bool)
+
+    If a keyword is missing, a :class:`~exceptions.TypeError` is raised:
+
+    >>> iswarm(north=[True, False])
+    Traceback (most recent call last):
+    ...
+    ValueError: When setting parameter `iswarm` of element `?` via row related keyword arguments, each string defined in `ROWNAMES` must be used as a keyword, but the following keyword is not: `south`.
+
+    But one can modify single rows via attribute access:
+
+    >>> iswarm.north = False, False
+    >>> iswarm.north
+    array([False, False], dtype=bool)
+
+    The same holds true for the columns:
+
+    >>> iswarm.apr2sep = True, False
+    >>> iswarm.apr2sep
+    array([ True, False], dtype=bool)
+
+    Even a combined row-column access is supported in the following manner:
+
+    >>> iswarm.north_apr2sep
+    True
+    >>> iswarm.north_apr2sep = False
+    >>> iswarm.north_apr2sep
+    False
+
+    All three forms of attribute access define augmented exception messages
+    in case anything goes wrong:
+
+    >>> iswarm.north = True, True, True
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to assign new values to parameter `iswarm` of element `?` via the row related attribute `north`, the following error occured: cannot copy sequence with size 3 to array axis with dimension 2
+    >>> iswarm.apr2sep = True, True, True
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to assign new values to parameter `iswarm` of element `?` via the column related attribute `apr2sep`, the following error occured: cannot copy sequence with size 3 to array axis with dimension 2
+
+    >>> iswarm.shape = (1, 1)
+    >>> iswarm.south_apr2sep = False
+    Traceback (most recent call last):
+    ...
+    IndexError: While trying to assign new values to parameter `iswarm` of element `?` via the row and column related attribute `south_apr2sep`, the following error occured: index 1 is out of bounds for axis 0 with size 1
+    >>> iswarm.shape = (2, 2)
+
+    Of course, one can define the parameter values in the common manner, e.g.:
+
+    >>> iswarm(True)
+    >>> iswarm
+    iswarm(north=[True, True],
+           south=[True, True])
+    """
+    NDIM = 2
+    ROWNAMES = ()
+    COLNAMES = ()
+
+    def connect(self, subpars):
+        MultiParameter.connect(self, subpars)
+        self.shape = (len(self.ROWNAMES), len(self.COLNAMES))
+
+    def __call__(self, *args, **kwargs):
+        try:
+            MultiParameter.__call__(self, *args, **kwargs)
+        except NotImplementedError:
+            for (idx, key) in enumerate(self.ROWNAMES):
+                try:
+                    values = kwargs[key]
+                except KeyError:
+                    miss = [key for key in self.ROWNAMES if key not in kwargs]
+                    raise ValueError(
+                        'When setting parameter `%s` of element `%s` via '
+                        'row related keyword arguments, each string '
+                        'defined in `ROWNAMES` must be used as a keyword, '
+                        'but the following keyword%s not: `%s`.'
+                        % (self.name, objecttools.devicename(self),
+                           ' is' if len(miss) == 1 else 's are',
+                           ', '.join(miss)))
+                self.values[idx,:] = values
+
+    def __repr__(self):
+        lines = self.commentrepr()
+        blanks = (len(self.name)+1) * ' '
+        for (idx, key) in enumerate(self.ROWNAMES):
+            valuerepr = ', '.join(objecttools.repr_(value)
+                                  for value in self.values[idx,:])
+            line = ('%s=[%s],' % (key, valuerepr))
+            if idx == 0:
+                lines.append('%s(%s' % (self.name, line))
+            else:
+                lines.append('%s%s' % (blanks, line))
+        lines[-1] = lines[-1][:-1]+')'
+        return '\n'.join(lines)
+
+    def __getattr__(self, key):
+        if key in self.ROWNAMES:
+            try:
+                return self.values[self.ROWNAMES.index(key), :]
+            except BaseException:
+                objecttools.augmentexcmessage(
+                    'While trying to retrieve values from parameter `%s` of '
+                    'element `%s` via the row related attribute `%s`'
+                    % (self.name, objecttools.devicename(self), key))
+        elif key in self.COLNAMES:
+            try:
+                return self.values[:, self.COLNAMES.index(key)]
+            except BaseException:
+                objecttools.augmentexcmessage(
+                    'While trying to retrieve values from parameter `%s` of '
+                    'element `%s` via the columnd related attribute `%s`'
+                    % (self.name, objecttools.devicename(self), key))
+        elif key in self._ROWCOLMAPPINGS:
+            idx, jdx = self._ROWCOLMAPPINGS[key]
+            try:
+                return self.values[idx, jdx]
+            except BaseException:
+                objecttools.augmentexcmessage(
+                    'While trying to retrieve values from parameter `%s` of '
+                    'element `%s` via the row and column related attribute '
+                    '`%s`'  % (self.name, objecttools.devicename(self), key))
+        else:
+            return MultiParameter.__getattr__(self, key)
+
+    def __setattr__(self, key, values):
+        if key in self.ROWNAMES:
+            try:
+                self.values[self.ROWNAMES.index(key), :] = values
+            except BaseException:
+                objecttools.augmentexcmessage(
+                    'While trying to assign new values to parameter `%s` of '
+                    'element `%s` via the row related attribute `%s`'
+                    % (self.name, objecttools.devicename(self), key))
+        elif key in self.COLNAMES:
+            try:
+                self.values[:, self.COLNAMES.index(key)] = values
+            except BaseException:
+                objecttools.augmentexcmessage(
+                    'While trying to assign new values to parameter `%s` of '
+                    'element `%s` via the column related attribute `%s`'
+                    % (self.name, objecttools.devicename(self), key))
+        elif key in self._ROWCOLMAPPINGS:
+            idx, jdx = self._ROWCOLMAPPINGS[key]
+            try:
+                self.values[idx, jdx] = values
+            except BaseException:
+                objecttools.augmentexcmessage(
+                    'While trying to assign new values to parameter `%s` of '
+                    'element `%s` via the row and column related attribute '
+                    '`%s`'  % (self.name, objecttools.devicename(self), key))
+        else:
+            MultiParameter.__setattr__(self, key, values)
+
+    def __dir__(self):
+        return (objecttools.dir_(self) + list(self.ROWNAMES) +
+                list(self.COLNAMES) +  self._ROWCOLMAPPINGS.keys())
+
+class LeftRightParameter(MultiParameter):
+    NDIM = 1
+
+    def __call__(self, *args, **kwargs):
+        try:
+            MultiParameter.__call__(self, *args, **kwargs)
+        except NotImplementedError:
+            left = kwargs.get('left', kwargs.get('l'))
+            if left is None:
+                raise ValueError('When setting the values of parameter `%s`'
+                                 'of element `%s` via keyword arguments, '
+                                 'either `left` or `l` for the "left" '
+                                 'parameter value must be given, but is not.'
+                                 % (self.name, objecttools.devicename(self)))
+            else:
+                self.left = left
+            right = kwargs.get('right', kwargs.get('r'))
+            if right is None:
+                raise ValueError('When setting the values of parameter `%s`'
+                                 'of element `%s` via keyword arguments, '
+                                 'either `right` or `r` for the "right" '
+                                 'parameter value must be given, but is not.'
+                                 % (self.name, objecttools.devicename(self)))
+            else:
+                self.right = right
+
+    def connect(self, subpars):
+        MultiParameter.connect(self, subpars)
+        self.shape = 2
+
+    def _getleft(self):
+        """The "left" value of the actual parameter."""
+        return self.values[0]
+    def _setleft(self, value):
+        self.values[0] = value
+    left = property(_getleft, _setleft)
+    l = left
+
+    def _getright(self):
+        """The "right" value of the actual parameter."""
+        return self.values[1]
+    def _setright(self, value):
+        self.values[1] = value
+    right = property(_getright, _setright)
+    r = right
+
 
 class IndexParameter(MultiParameter):
 
     def setreference(self, indexarray):
         setattr(self.fastaccess, self.name, indexarray)
+

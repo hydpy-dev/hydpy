@@ -3,6 +3,8 @@
 # import...
 # ...from standard library
 from __future__ import division, print_function
+# ...from site-packages
+import numpy
 # ...HydPy specific
 from hydpy.core import sequencetools
 from hydpy.models.hland.hland_constants import ILAKE
@@ -30,7 +32,28 @@ class Ic(sequencetools.StateSequence):
 
 class SP(sequencetools.StateSequence):
     """Frozen water stored in the snow layer [mm]."""
-    NDIM, NUMERIC, SPAN = 1, False, (0., None)
+    NDIM, NUMERIC, SPAN = 1, False, (None, None)
+
+    def trim(self, lower=None, upper=None):
+        """Trim values in accordance with :math:`WC \\leq WHC \\cdot SP`.
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep('1d')
+        >>> nmbzones(7)
+        >>> whc(.1)
+        >>> states.wc.values = -1., 0., 1., -1., 0., .5, 1.
+        >>> states.sp(-1., 0., 0., 5., 5., 5., 5.)
+        >>> states.sp
+        sp(0.0, 0.0, 10.0, 5.0, 5.0, 5.0, 10.0)
+        """
+        whc = self.subseqs.seqs.model.parameters.control.whc
+        wc = self.subseqs.wc
+        if lower is None:
+            if wc.values is not None:
+                lower = numpy.clip(wc/whc, 0., numpy.inf)
+            else:
+                lower = 0.
+        sequencetools.StateSequence.trim(self, lower, upper)
 
 class WC(sequencetools.StateSequence):
     """Liquid water content of the snow layer [mm]."""
@@ -43,15 +66,15 @@ class WC(sequencetools.StateSequence):
         >>> parameterstep('1d')
         >>> nmbzones(7)
         >>> whc(.1)
-        >>> states.sp(0., 0., 0., 5., 5., 5., 5.)
+        >>> states.sp = 0., 0., 0., 5., 5., 5., 5.
         >>> states.wc(-1., 0., 1., -1., 0., .5, 1.)
         >>> states.wc
         wc(0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5)
         """
-        if upper is None:
-            control = self.subseqs.seqs.model.parameters.control
-            states = self.subseqs
-            upper = control.whc*states.sp
+        whc = self.subseqs.seqs.model.parameters.control.whc
+        sp = self.subseqs.sp
+        if (upper is None) and (sp.values is not None):
+            upper = whc*sp
         sequencetools.StateSequence.trim(self, lower, upper)
 
 class SM(sequencetools.StateSequence):

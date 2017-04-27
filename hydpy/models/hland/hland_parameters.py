@@ -33,9 +33,9 @@ class MultiParameter(parametertools.ZipParameter):
         >>> parameterstep('1d')
         >>> mp = MultiParameter()
         >>> mp.DIM, mp.TYPE, mp.TIME = 1, float, None
-        >>> mp.subpars = model.parameters.control
+        >>> mp.subpars = control
 
-        Usually, one would indirectly define it shape through parameter
+        Usually, one would indirectly define its shape through parameter
         :class:`~hydpy.models.hland.hland_control.NmbZones`:
 
         >>> mp.shape
@@ -122,20 +122,12 @@ class MultiParameter(parametertools.ZipParameter):
         """
         return self.subpars.pars.control.zonetype
 
-    def _getshape(self):
-        """Return a tuple containing the lengths in all dimensions of the
-        parameter values.
+    @property
+    def shapeparameter(self):
+        """Alias for the associated instance of
+        :class:`~hydpy.models.lland.lland_control.NmbZones`.
         """
-        try:
-            return parametertools.ZipParameter._getshape(self)
-        except RuntimeError:
-            raise RuntimeError('Shape information for parameter `%s` can '
-                               'only be retrieved after it has been defined. '
-                               ' You can do this manually, but usually it is '
-                               'done automatically by defining the value of '
-                               'parameter `nmbzones` first in each parameter '
-                               'control file.' % self.name)
-    shape = property(_getshape, parametertools.ZipParameter._setshape)
+        return self.subpars.pars.control.nmbzones
 
 class MultiParameterSoil(MultiParameter):
     """Base class for handling parameters of the hland model (potentially)

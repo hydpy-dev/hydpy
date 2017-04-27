@@ -246,7 +246,7 @@ class SubSequences(object):
         except AttributeError:
             object.__setattr__(self, name, value)
             if isinstance(value, Sequence):
-                value.connect2subseqs(self)
+                value.connect(self)
         else:
             try:
                 attr.values = value
@@ -388,7 +388,7 @@ class Sequence(objecttools.ValueMath):
         self.subseqs = None
         self.fastaccess = None
 
-    def connect2subseqs(self, subseqs):
+    def connect(self, subseqs):
         self.subseqs = subseqs
         self.fastaccess = subseqs.fastaccess
         setattr(self.fastaccess, '_%s_ndim' % self.name, self.NDIM)
@@ -410,10 +410,10 @@ class Sequence(objecttools.ValueMath):
         self.values = args
 
     def _initvalues(self):
-        if self.NDIM:
-            setattr(self.fastaccess, self.name, None)
-        else:
+        if self.NDIM == 0:
             setattr(self.fastaccess, self.name, 0.)
+        else:
+            setattr(self.fastaccess, self.name, None)
 
     def _getname(self):
         """Name of the sequence, which is the name if the instantiating
@@ -987,6 +987,29 @@ class InputSequence(ModelIOSequence):
 class FluxSequence(ModelIOSequence):
     """ """
 
+class LeftRightSequence(ModelIOSequence):
+    NDIM = 1
+
+    def _initvalues(self):
+        setattr(self.fastaccess, self.name, numpy.zeros(2, dtype=float))
+
+    def _getleft(self):
+        """The "left" value of the actual parameter."""
+        return self.values[0]
+    def _setleft(self, value):
+        self.values[0] = value
+    left = property(_getleft, _setleft)
+    l = left
+
+    def _getright(self):
+        """The "right" value of the actual parameter."""
+        return self.values[1]
+    def _setright(self, value):
+        self.values[1] = value
+    right = property(_getright, _setright)
+    r = right
+
+
 class ConditionSequence(object):
 
     def __call__(self, *args):
@@ -1025,8 +1048,8 @@ class StateSequence(ModelIOSequence, ConditionSequence):
         ConditionSequence.__call__(self, *args)
         self.new2old()
 
-    def connect2subseqs(self, subseqs):
-        ModelIOSequence.connect2subseqs(self, subseqs)
+    def connect(self, subseqs):
+        ModelIOSequence.connect(self, subseqs)
         self.fastaccess_old = subseqs.fastaccess_old
         self.fastaccess_new = subseqs.fastaccess_new
         if self.NDIM:

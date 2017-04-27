@@ -2,12 +2,6 @@
 # import...
 # ...from standard library:
 from __future__ import division, print_function
-
-from distutils import msvc9compiler
-#from numpy.distutils import msvc9compiler as msvc9compiler_2
-msvc9compiler.find_vcvarsall = lambda x: r'C:\Program Files (x86)\Common Files\Microsoft\Visual C++ for Python\9.0\vcvarsall.bat'
-#msvc9compiler_2.find_vcvarsall = msvc9compiler_1.find_vcvarsall
-
 import os
 import sys
 import shutil
@@ -17,16 +11,13 @@ from distutils.extension import Extension
 import Cython.Build
 import numpy
 
-
-
-##testpath = (r'C:\Program Files (x86)\Common Files\Microsoft\Visual '
-##            r'C++ for Python\9.0\vcvarsall.bat')
-##if sys.platform.startswith('win'):
-##    from distutils import msvc9compiler
-##    if msvc9compiler.find_vcvarsall(9.0) is None:
-##        msvc9compiler.find_vcvarsall = lambda dummy: testpath
-##        print("NotImplementedError('ToDo')")
-
+testpath = (r'C:\Program Files (x86)\Common Files\Microsoft\Visual '
+            r'C++ for Python\9.0\vcvarsall.bat')
+if sys.platform.startswith('win'):
+    from distutils import msvc9compiler
+    if msvc9compiler.find_vcvarsall(9.0) is None:
+        msvc9compiler.find_vcvarsall = lambda dummy: testpath
+        print("NotImplementedError('ToDo')")
 
 install = 'install' in sys.argv
 coverage_report = 'coverage_report' in sys.argv
@@ -67,7 +58,7 @@ setup(name='HydPy',
       keywords='hydrology modelling water balance rainfall runoff',
       packages=['hydpy', 'hydpy.cythons', 'hydpy.core', 'hydpy.tests',
                 'hydpy.docs', 'hydpy.models', 'hydpy.models.hland',
-                'hydpy.models.globwat'],
+                'hydpy.models.lland'],
       cmdclass={'build_ext': Cython.Build.build_ext},
       ext_modules=Cython.Build.cythonize(ext_modules),
       include_dirs=[numpy.get_include()],

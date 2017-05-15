@@ -531,7 +531,20 @@ def calc_qvr_v1(self):
             flu.qvr[i] = 0.
 
 def calc_qg_v1(self):
+    """Calculate the discharge of the total cross section.
+    
+    Method :func:`calc_qg_v1` applies the actual versions of all methods
+    for calculating the flown through areas, wetted perimeters and discharges
+    of the different cross section compartments.  Hence its requirements
+    might be different for various application models.
+    """
     flu = self.sequences.fluxes.fastaccess
+    self.calc_am_um()
+    self.calc_qm()
+    self.calc_av_uv()
+    self.calc_qv()
+    self.calc_avr_vr()
+    self.calc_qvr()
     flu.qg = flu.qm+flu.ql+flu.qr+flu.qvrl+flu.qvrr
 
 def calc_h_v1(self):
@@ -541,12 +554,7 @@ def calc_h_v1(self):
     aid.f = con.maxf+1.
     self.calc_qref_v1()
     while abs(aid.f) > con.maxf:
-        self.calc_am_um_v1()
-        self.calc_qm_v1()
-        self.calc_av_uv_v1()
-        self.calc_qv_v1()
-        self.calc_avr_vr_v1()
-        self.calc_qvr_v1()
+        self.calc_qg_v1()
         aid.f = flu.qg-flu.qref
         flu.h = max(flu.h-aid.f/flu.dqg, 0.)
 

@@ -64,13 +64,19 @@ class EKV(parametertools.LeftRightParameter):
     """
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
-class MaxF(parametertools.SingleParameter):
-    """Abbruchkriterium Newton-Raphson-Iteration (stopping criterion for the
-    Newton iteration method) [m³/s]."""
+class QTol(parametertools.SingleParameter):
+    """Approximationstoleranz Abfluss (discharge related stopping criterion
+    for root-finding algorithms) [m³/s]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+    INIT = 1e-6
+
+class HTol(parametertools.SingleParameter):
+    """Approximationstoleranz Wasserstand (water stage related stopping
+    criterion for root-finding algorithms) [m]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
     INIT = 1e-6
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters HydPy-L-Stream, directly defined by the user."""
     _PARCLASSES = (Len, Gef, HM, BM, BV, BBV, BNM, BNV, BNVR,
-                   SKM, SKV, EKM, EKV, MaxF)
+                   SKM, SKV, EKM, EKV, QTol, HTol)

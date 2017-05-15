@@ -40,62 +40,63 @@ class HV(parametertools.LeftRightParameter):
                 self[idx] = 0.
 
 class QM(parametertools.SingleParameter):
-    """Bordvoller Abfluss Hauptgerinne (maximum discharge of the main channel) 
+    """Bordvoller Abfluss Hauptgerinne (maximum discharge of the main channel)
     [m³/s]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
-    
+
     def update(self):
-        """Update value based on the actual 
+        """Update value based on the actual
         :func:`~hydpy.models.lstream.lstream_model.calc_qg` method.
 
         Required derived parameter:
             :class:`~hydpy.models.lstream.lstream_control.H`
-        
+
         Note that the value of parameter :class:`QM` is directly related to
-        the value of parameter :class:`HM` and indirectly related to all 
-        parameters values relevant for method 
-        :func:`~hydpy.models.lstream.lstream_model.calc_qg`. Hence the 
-        complete paramter (and sequence) requirements might differ for 
+        the value of parameter :class:`HM` and indirectly related to all
+        parameters values relevant for method
+        :func:`~hydpy.models.lstream.lstream_model.calc_qg`. Hence the
+        complete paramter (and sequence) requirements might differ for
         various application models.
-        
+
         For examples, see the documentation on method ToDo.
         """
         mod = self.subpars.pars.model
-        der = self.subpars
+        con = mod.parameters.control
         flu = mod.sequences.fluxes
-        flu.h = der.hm
+        flu.h = con.hm
         mod.calc_qg()
         self.value = flu.qg
-            
+
 class QV(parametertools.LeftRightParameter):
-    """Bordvoller Abfluss Vorländer (maximum discharge of both forelands) 
+    """Bordvoller Abfluss Vorländer (maximum discharge of both forelands)
     [m³/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
-    
+
     def update(self):
-        """Update value based on the actual 
+        """Update value based on the actual
         :func:`~hydpy.models.lstream.lstream_model.calc_qg` method.
 
         Required derived parameter:
             :class:`HV`
-        
+
         Note that the values of parameter :class:`QV` are directly related to
-        the values of parameter :class:`HV` and indirectly related to all 
-        parameters values relevant for method 
-        :func:`~hydpy.models.lstream.lstream_model.calc_qg`. Hence the 
-        complete paramter (and sequence) requirements might differ for 
+        the values of parameter :class:`HV` and indirectly related to all
+        parameters values relevant for method
+        :func:`~hydpy.models.lstream.lstream_model.calc_qg`. Hence the
+        complete paramter (and sequence) requirements might differ for
         various application models.
-        
+
         For examples, see the documentation on method ToDo.
         """
         mod = self.subpars.pars.model
+        con = mod.parameters.control
         der = self.subpars
         flu = mod.sequences.fluxes
         for idx in range(2):
-            flu.h = der.hv[idx]
+            flu.h = con.hm+der.hv[idx]
             mod.calc_qg()
             self[idx] = flu.qg
-    
+
 class Sek(parametertools.SingleParameter):
     """ Sekunden im Simulationszeitschritt (Number of seconds of the selected
     simulation time step) [T]."""
@@ -120,4 +121,4 @@ class Sek(parametertools.SingleParameter):
 
 class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of HydPy-L-Stream, indirectly defined by the user."""
-    _PARCLASSES = (HV, Sek)
+    _PARCLASSES = (HV, QM, QV, Sek)

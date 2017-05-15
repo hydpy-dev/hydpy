@@ -97,7 +97,7 @@ class QVR(sequencetools.LeftRightSequence):
     NDIM, NUMERIC, SPAN = 1, False, (1., None)
 
 class QG(sequencetools.FluxSequence):
-    """Durchfluss gesamt  (total discharge) [m³]."""
+    """Durchfluss gesamt (total discharge) [m³]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
 
 class DQM(sequencetools.FluxSequence):

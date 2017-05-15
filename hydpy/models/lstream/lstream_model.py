@@ -351,7 +351,7 @@ def calc_dqm_v1(self):
     
     Examples:
 
-        The following the examples are a little more complicated, as they
+        The following examples are a little more complicated, as they
         are thought to prove that the method :func:`calc_dqm_v1` in fact 
         determines the derivatives of the Manning equation defined in 
         :func:`calc_qm_v1`. 

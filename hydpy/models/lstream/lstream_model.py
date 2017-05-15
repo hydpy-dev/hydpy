@@ -390,17 +390,17 @@ def calc_dqm_v1(self):
         ...     model.calc_qm_v1()
         ...     q2 = fluxes.qm.value
         ...     approx = (q2-q1)/(2*dh)
-        ...     # Round and return both results.
-        ...     return round(fluxes.dqm, 6), round(approx, 6)
+        ...     # (Round and) Return both results.
+        ...     return fluxes.dqm, round(approx, 6)
 
         Thirdly, the equality of the results is checked for two different 
         water stages.  Note that in each case, both the analytical result 
         and its numerical approximation are practically the same.   
         
         >>> compare(0.9999, 1e-6)
-        (94.110762, 94.110762)
+        (dqm(94.110762), 94.110762)
         >>> compare(1.0001, 1e-6)
-        (111.201244, 111.201244)
+        (dqm(111.201244), 111.201244)
         
         However, because of the discontinuity of the channel geometry at 
         a water stage of one meter, a very tiny increase in the water stage

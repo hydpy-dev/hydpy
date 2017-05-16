@@ -25,5 +25,5 @@ from hydpy.models.lstream.lstream_links import InletSequences, OutletSequences
 from hydpy.models.lstream.lstream_model import Model
 
 tester = Tester()
-#cythonizer = Cythonizer()
-#cythonizer.complete()
+cythonizer = Cythonizer()
+cythonizer.complete()

@@ -2,8 +2,6 @@
 
 # ...from standard library
 from __future__ import division, print_function
-# ...from site-packages
-import numpy
 # ...HydPy specific
 from hydpy.core import modeltools
 from hydpy.cythons import modelutils
@@ -637,7 +635,7 @@ def calc_h_v1(self):
     Calculated flux sequence:
       :class:`~hydpy.model.lstream.lstream_fluxes.H`
 
-    Besides the mentioned required parameters and sequences, those of the
+    Besides the parameters and sequences given above, those of the
     actual method for calculating the discharge of the total cross section
     are required.
 
@@ -661,7 +659,7 @@ def calc_h_v1(self):
         >>> model.calc_avr_uvr = model.calc_avr_uvr_v1
         >>> model.calc_qvr = model.calc_qvr_v1
 
-        Define the geometrie and roughness values for the first test channel:
+        Define the geometry and roughness values for the first test channel:
 
         >>> bm(2.)
         >>> bnm(4.)
@@ -677,10 +675,10 @@ def calc_h_v1(self):
         >>> gef(.01)
 
         Set the error tolerances of the iteration small enough, not to
-        compromise the following string representations:
+        compromise the shown first six decimal places of the following results:
 
-        >>> qtol = 1e-8
-        >>> htol = 1e-8
+        >>> qtol(1e-10)
+        >>> htol(1e-10)
 
         Derive the required secondary parameters:
 
@@ -692,25 +690,26 @@ def calc_h_v1(self):
         both the approximated water stage and the related discharge value:
 
         >>> def test(qref):
-        ...     derived.hv.update()
-        ...     derived.qm.update()
-        ...     derived.qv.update()
         ...     fluxes.qref = qref
         ...     model.calc_hmin_qmin_hmax_qmax()
         ...     model.calc_h()
         ...     print(repr(fluxes.h))
         ...     print(repr(fluxes.qg))
 
-        The following discharge values are related to the only discontinuities
-        of the root finding problem:
+        Zero discharge and the following discharge values are related to the
+        only discontinuities of the given root finding problem:
 
         >>> derived.qm
         qm(8.399238)
         >>> derived.qv
         qv(154.463234, 23.073584)
 
-        The related water stages are the ones defined above:
+        The related water stages are the ones (directly or indirectly)
+        defined above:
 
+        >>> test(0.)
+        h(0.0)
+        qg(0.0)
         >>> test(derived.qm)
         h(1.0)
         qg(8.399238)
@@ -721,21 +720,113 @@ def calc_h_v1(self):
         h(1.25)
         qg(23.073584)
 
+        Test some intermediate water stages, inundating the only the main
+        channel, the main channel along with the right foreland, and the
+        main channel along with both forelands respectively:
 
+        >>> test(6.)
+        h(0.859452)
+        qg(6.0)
+        >>> test(10.)
+        h(1.047546)
+        qg(10.0)
+        >>> test(100)
+        h(1.77455)
+        qg(100.0)
 
+        Finally, test two extreme water stages, inundating both outer
+        foreland embankments:
+
+        >>> test(200.)
+        h(2.152893)
+        qg(200.0)
+        >>> test(2000.)
+        h(4.240063)
+        qg(2000.0)
+
+        There is a potential risk of the implemented iteration method to fail
+        for special channel geometries.  To test such cases in a more
+        condensed manner, the following test methods evaluates different water
+        stages automatically in accordance with the example above.  An error
+        message is printed only, the estimated discharge does not approximate
+        the reference discharge with six decimal places:
+
+        >>> def test():
+        ...     derived.hv.update()
+        ...     derived.qm.update()
+        ...     derived.qv.update()
+        ...     qm, qv = derived.qm, derived.qv
+        ...     for qref in [0., qm, qv.left, qv.right,
+        ...                  2./3.*qm+1./3.*min(qv),
+        ...                  2./3.*min(qv)+1./3.*max(qv),
+        ...                  3.*max(qv), 30.*max(qv)]:
+        ...         fluxes.qref = qref
+        ...         model.calc_hmin_qmin_hmax_qmax()
+        ...         model.calc_h()
+        ...         if abs(round(fluxes.qg-qref) > 0.):
+        ...             print('Error!', 'qref:', qref, 'qg:', fluxes.qg)
+
+        Check for a triangle main channel:
+
+        >>> bm(0.)
+        >>> test()
+        >>> bm(2.)
+
+        Check for a completely flat main channel:
+
+        >>> hm(0.)
+        >>> test()
+        >>> hm(1.)
+
+        Check for a nonexistend main channel:
+
+        >>> bm(0.)
+        >>> bnm(0.)
+        >>> test()
+        >>> bm(2.)
+        >>> bnm(4.)
+
+        Check for a nonexistend forelands:
+
+        >>> bv(0.)
+        >>> bbv(0.)
+        >>> test()
+        >>> bv(.5, 10.)
+        >>> bbv(1., 2.)
+
+        Check for nonexistend outer foreland embankments:
+
+        >>> bnvr(0.)
+        >>> test()
+
+        To take the last test as an illustrative example, one can see that
+        the given reference discharge is met by the estimated total discharge,
+        which consists of components related to the main channel and the
+        forelands only:
+
+        >>> fluxes.qref
+        qref(3932.452785)
+        >>> fluxes.qg
+        qg(3932.452785)
+        >>> fluxes.qm
+        qm(530.074621)
+        >>> fluxes.qv
+        qv(113.780226, 3288.597937)
+        >>> fluxes.qvr
+        qvr(0.0, 0.0)
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
     aid = self.sequences.aides.fastaccess
     aid.qmin -= flu.qref
     aid.qmax -= flu.qref
-    if abs(aid.qmin) < con.qtol:
+    if modelutils.fabs(aid.qmin) < con.qtol:
         flu.h = aid.hmin
         self.calc_qg()
-    elif abs(aid.qmax) < con.qtol:
+    elif modelutils.fabs(aid.qmax) < con.qtol:
         flu.h = aid.hmax
         self.calc_qg()
-    elif abs(aid.hmax-aid.hmin) < con.htol:
+    elif modelutils.fabs(aid.hmax-aid.hmin) < con.htol:
         flu.h = (aid.hmin+aid.hmax)/2.
         self.calc_qg()
     else:
@@ -743,16 +834,17 @@ def calc_h_v1(self):
             flu.h = aid.hmin-aid.qmin*(aid.hmax-aid.hmin)/(aid.qmax-aid.qmin)
             self.calc_qg()
             aid.qtest = flu.qg-flu.qref
-            if abs(aid.qtest) < con.qtol:
+            if modelutils.fabs(aid.qtest) < con.qtol:
                 return
-            if numpy.sign(aid.qmax) == numpy.sign(aid.qtest):
+            elif (((aid.qmax < 0.) and (aid.qtest < 0.)) or
+              ((aid.qmax > 0.) and (aid.qtest > 0.))):
                 aid.qmin *= aid.qmax/(aid.qmax+aid.qtest)
             else:
                 aid.hmin = aid.hmax
                 aid.qmin = aid.qmax
             aid.hmax = flu.h
             aid.qmax = aid.qtest
-            if abs(aid.hmax-aid.hmin) < con.htol:
+            if modelutils.fabs(aid.hmax-aid.hmin) < con.htol:
                 return
 
 def calc_qa_v1(self):
@@ -834,12 +926,12 @@ def update_outlets_v1(self):
 
 class Model(modeltools.Model):
     """The HydPy-H-Stream model."""
-    _RUNMETHODS = (calc_qref_v1,
+    _RUNMETHODS = (update_inlets_v1,
+                   calc_qref_v1,
                    calc_hmin_qmin_hmax_qmax_v1,
                    calc_h_v1,
                    calc_rk_v1,
                    calc_qa_v1,
-                   update_inlets_v1,
                    update_outlets_v1)
     _ADDMETHODS = (calc_am_um_v1,
                    calc_qm_v1,

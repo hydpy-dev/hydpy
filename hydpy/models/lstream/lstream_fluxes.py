@@ -52,38 +52,6 @@ class UG(sequencetools.FluxSequence):
     """Durchflossene Fläche gesamt  (total wetted perimeter) [m]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
 
-class DAM(sequencetools.FluxSequence):
-    """Ableitung von :class:`AM` (derivative of :class:`AM`) [m²/m]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
-
-class DAV(sequencetools.LeftRightSequence):
-    """Ableitung von :class:`AV` (derivative of :class:`AV`) [m²/m]."""
-    NDIM, NUMERIC, SPAN = 1, False, (0., None)
-
-class DAVR(sequencetools.LeftRightSequence):
-    """Ableitung von :class:`AVR` (derivative of :class:`AVR`) [m²/m]."""
-    NDIM, NUMERIC, SPAN = 1, False, (0., None)
-
-class DAG(sequencetools.FluxSequence):
-    """Ableitung von :class:`AG` (derivative of :class:`AG`) [m²/m]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
-
-class DUM(sequencetools.FluxSequence):
-    """Ableitung von :class:`UM` (derivative of :class:`UM`) [m/m]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
-
-class DUV(sequencetools.LeftRightSequence):
-    """Ableitung von :class:`UV` (derivative of :class:`UV`) [m/m]."""
-    NDIM, NUMERIC, SPAN = 1, False, (0., None)
-
-class DUVR(sequencetools.LeftRightSequence):
-    """Ableitung von :class:`UVR` (derivative of :class:`UVR`) [m/m]."""
-    NDIM, NUMERIC, SPAN = 1, False, (0., None)
-
-class DUG(sequencetools.FluxSequence):
-    """Ableitung von :class:`UG` (derivative of :class:`UG`) [m/m]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
-
 class QM(sequencetools.FluxSequence):
     """Durchfluss Hauptgerinne (discharge of the main channel) [m³]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
@@ -100,30 +68,11 @@ class QG(sequencetools.FluxSequence):
     """Durchfluss gesamt (total discharge) [m³]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
 
-class DQM(sequencetools.FluxSequence):
-    """Ableitung von :class:`QM` (derivative of :class:`QM`) [m³/m²]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
-
-class DQV(sequencetools.LeftRightSequence):
-    """Ableitung von :class:`QV` (derivative of :class:`QV`) [m³/m²]."""
-    NDIM, NUMERIC, SPAN = 1, False, (0., None)
-
-class DQVR(sequencetools.LeftRightSequence):
-    """Ableitung von :class:`QVR` (derivative of :class:`QVR`) [m³/m²]."""
-    NDIM, NUMERIC, SPAN = 1, False, (0., None)
-
-class DQG(sequencetools.FluxSequence):
-    """Ableitung von :class:`QG` (derivative of :class:`QG`) [m³/m²]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
-
 class RK(sequencetools.FluxSequence):
     """Schwerpunktlaufzeit (traveling time) [s]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
 
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of HydPy-L-Stream."""
-    _SEQCLASSES = (QRef, H,
-                   AM, AV, AVR, AG, UM, UV, UVR, UG,
-                   DAM, DAV, DAVR, DAG, DUM, DUV, DUVR, DUG,
-                   QM, QV, QVR, QG, DQM, DQV, DQVR, DQG,
-                   RK)
+    _SEQCLASSES = (QRef, H, AM, AV, AVR, AG, UM, UV, UVR, UG,
+                   QM, QV, QVR, QG, RK)

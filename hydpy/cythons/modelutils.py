@@ -17,6 +17,7 @@ import importlib
 import distutils.core
 import distutils.extension
 import Cython.Build
+import math
 # ...third party modules
 import numpy
 # ...from HydPy
@@ -272,7 +273,7 @@ class PyxWriter(object):
         """Import command lines."""
         return Lines('import numpy',
                      'cimport numpy',
-                     'from libc.math cimport exp',
+                     'from libc.math cimport exp, fabs',
                      'from libc.stdio cimport *',
                      'from libc.stdlib cimport *',
                      'import cython',
@@ -773,5 +774,9 @@ class FuncConverter(object):
 def exp(double):
     """Cython wrapper for numpys exp function applied on a single float."""
     return numpy.exp(double)
+
+def fabs(double):
+    """Cython wrapper for maths fabs function applied on a single float."""
+    return math.fabs(double)
 
 

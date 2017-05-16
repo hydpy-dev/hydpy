@@ -28,7 +28,7 @@ class Model(modeltools.Model):
 
     Integration test:
 
-        >>> from hydpy.models.lstream import *
+        >>> from hydpy.models.lstream_larsimme import *
         >>> parameterstep('1d')
         >>> simulationstep('12h')
 
@@ -38,7 +38,6 @@ class Model(modeltools.Model):
         >>> inflow, outflow = Double(0.), Double(0.)
         >>> inlets.q.setpointer(inflow)
         >>> outlets.q.setpointer(outflow)
-
 
         Define the geometry and roughness values for the first test channel:
 
@@ -54,7 +53,7 @@ class Model(modeltools.Model):
         >>> ekv(1.)
         >>> skv(60., 80.)
         >>> gef(.01)
-        >>> len(10000.)
+        >>> laen(10.)
 
         Set the error tolerances of the iteration small enough, not to
         compromise the shown first six decimal places of the following results:
@@ -64,17 +63,20 @@ class Model(modeltools.Model):
 
         >>> parameters.update()
 
-        >>> states.qz = 1.
-        >>> states.qa = 1.
+        >>> states.qz.old = 1.
+        >>> states.qz.new = 1.
+        >>> states.qa.old = 1.
 
         >>> inflow[0] = 2.
+        >>> outflow[0] = 0.
         >>> model.doit(0)
         >>> print(round(outflow[0], 6))
-        xxx
-        >>> inflow[0] = 3.
+        1.737971
+        >>> inflow[0] = 2000.
+        >>> outflow[0] = 0.
         >>> model.doit(1)
         >>> print(round(outflow[0], 6))
-        xxx
+        1932.529863
 
 
     """
@@ -82,6 +84,7 @@ class Model(modeltools.Model):
                    lstream_model.calc_qref_v1,
                    lstream_model.calc_hmin_qmin_hmax_qmax_v1,
                    lstream_model.calc_h_v1,
+                   lstream_model.calc_ag_v1,
                    lstream_model.calc_rk_v1,
                    lstream_model.calc_qa_v1,
                    lstream_model.update_outlets_v1)
@@ -95,7 +98,7 @@ class Model(modeltools.Model):
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of LARSIM-ME-Stream, directly defined by the user."""
-    _PARCLASSES = (lstream_control.Len,
+    _PARCLASSES = (lstream_control.Laen,
                    lstream_control.Gef,
                    lstream_control.HM,
                    lstream_control.BM,

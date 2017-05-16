@@ -7,7 +7,7 @@ from __future__ import division, print_function
 from hydpy.core import parametertools
 
 
-class Len(parametertools.SingleParameter):
+class Laen(parametertools.SingleParameter):
     """Flusslänge (channel length) [km]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
@@ -78,5 +78,5 @@ class HTol(parametertools.SingleParameter):
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters HydPy-L-Stream, directly defined by the user."""
-    _PARCLASSES = (Len, Gef, HM, BM, BV, BBV, BNM, BNV, BNVR,
+    _PARCLASSES = (Laen, Gef, HM, BM, BV, BBV, BNM, BNV, BNVR,
                    SKM, SKV, EKM, EKV, QTol, HTol)

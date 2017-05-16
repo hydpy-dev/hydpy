@@ -50,7 +50,7 @@ def calc_rk_v1(self):
       :class:`~hydpy.model.lstream.lstream_fluxes.RK`
 
     Basic equation:
-      :math:`RK = \\frac{Len \\cdot A}{QRef}`
+      :math:`RK = \\frac{Laen \\cdot A}{QRef}`
 
     Examples:
 
@@ -59,7 +59,7 @@ def calc_rk_v1(self):
 
         >>> from hydpy.models.lstream import *
         >>> parameterstep()
-        >>> len(25.)
+        >>> laen(25.)
         >>> derived.sek(24*60*60)
         >>> fluxes.ag = 10.
         >>> fluxes.qref = 1.
@@ -89,7 +89,7 @@ def calc_rk_v1(self):
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
     if (flu.ag > 0.) and (flu.qref > 0.):
-        flu.rk = (1000.*con.len*flu.ag)/(der.sek*flu.qref)
+        flu.rk = (1000.*con.laen*flu.ag)/(der.sek*flu.qref)
     else:
         flu.rk = 0.
 
@@ -530,6 +530,31 @@ def calc_qvr_v1(self):
         else:
             flu.qvr[i] = 0.
 
+def calc_ag_v1(self):
+    """Sum the through flown area of the total cross section.
+
+    Required flux sequences:
+      :class:`~hydpy.model.lstream.lstream_fluxes.AM`
+      :class:`~hydpy.model.lstream.lstream_fluxes.AV`
+      :class:`~hydpy.model.lstream.lstream_fluxes.AVR`
+
+    Calculated flux sequence:
+      :class:`~hydpy.model.lstream.lstream_fluxes.AG`
+
+    Example:
+
+        >>> from hydpy.models.lstream import *
+        >>> parameterstep()
+        >>> fluxes.am = 1.
+        >>> fluxes.av= 2., 3.
+        >>> fluxes.avr = 4., 5.
+        >>> model.calc_ag_v1()
+        >>> fluxes.ag
+        ag(15.0)
+    """
+    flu = self.sequences.fluxes.fastaccess
+    flu.ag = flu.am+flu.av[0]+flu.av[1]+flu.avr[0]+flu.avr[1]
+
 def calc_qg_v1(self):
     """Calculate the discharge of the total cross section.
 
@@ -930,6 +955,7 @@ class Model(modeltools.Model):
                    calc_qref_v1,
                    calc_hmin_qmin_hmax_qmax_v1,
                    calc_h_v1,
+                   calc_ag_v1,
                    calc_rk_v1,
                    calc_qa_v1,
                    update_outlets_v1)

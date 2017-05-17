@@ -100,7 +100,7 @@ from .globwat_fluxes import FluxSequences
 from .globwat_states import StateSequences
 #from .globwat_logs import LogSequences
 #from .globwat_aides import AideSequences
-#from .globwat_links import DownstreamSequences
+from .globwat_links import InletSequences, OutletSequences
 
 USECYTHON = False
 """Cython flag (False: pure Python mode, True: fast Python/Cython mode)."""

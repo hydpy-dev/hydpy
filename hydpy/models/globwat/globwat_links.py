@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Author: Christoph Tyralla
+"""Author: Wuestenfeld
 """
 
 # import...
@@ -13,6 +13,10 @@ class Q(sequencetools.Sequence):
     """Runoff [m³/s]."""
     NDIM, NUMERIC = 0, False
 
-class DownstreamSequences(sequencetools.SubSequences):
-    """Downstream link sequences of the hland model."""
-    SEQCLASSES = (Q,)
+class InletSequences(sequencetools.LinkSequences):
+    """Upstream link sequences of the GlobWat model."""
+    _SEQCLASSES = (Q,)
+
+class OutletSequences(sequencetools.LinkSequences):
+    """Downstream link sequences of the GlobWat model."""
+    _SEQCLASSES = (Q,)

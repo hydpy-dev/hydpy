@@ -13,6 +13,6 @@ class QUH(sequencetools.Sequence):
     """Whole outflow delayed by means of the unit hydrograph [mm]."""
     NDIM, NUMERIC = 1, False
 
-class LogSequences(sequencetools.SubSequences):
+class LogSequences(sequencetools.LogSequences):
     """Log sequences of the hland model."""
     SEQCLASSES = (QUH,)

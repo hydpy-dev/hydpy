@@ -16,6 +16,6 @@ class Q0(sequencetools.Sequence):
     """Outflow from the upper zone layer [mm]."""
     NDIM, NUMERIC = 0, False
 
-class AideSequences(sequencetools.SubSequences):
+class AideSequences(sequencetools.AideSequences):
     """Aide sequences of the hland model."""
     SEQCLASSES = (Perc, Q0)

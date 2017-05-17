@@ -11,17 +11,13 @@ from hydpy.models.globwat import globwat_constants
 from hydpy.models.globwat import globwat_parameters
 
 
-class Area(parametertools.SingleParameter):
-    """area of the input grids [km²]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (1e-10, None)
-
 class NmbGrids(parametertools.SingleParameter):
     """Number of grids (hydrological response units) in a subbasin [-].
 
     Note that :class:`NmbGrids` determines the length of most 1-dimensional
     globwat parameters. This required that the value of the respective
     :class:`NmbGrids` instance is set before any of the values of these
-    1-dimensional parameters are set.  Changing the value of the
+    1-dimensional parameters are set. Changing the value of the
     :class:`NmbGrids` instance necessitates setting their values again.
     """
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
@@ -56,8 +52,26 @@ class VegetationClass(parametertools.MultiParameter):
     11 (water),
     12 (irrigated crops: paddy rice),
     13 (irrigated crops: other than paddy rice),
-    14 (other)."""
-    NDIM, TYPE, TIME, SPAN = 1, int, None, (1, 14)
+    14 (irrigation germany),
+    15 (irrigation czech rebublic),
+    16 (irrigation austria),
+    17 (irrigation poland),
+    18 (irrigation hungary),
+    19 (irrigation switzerland),
+    20 (irrigation italy),
+    21 (irrigation slovenia),
+    22 (irrigation croatia),
+    23 (irrigation bosnia and herzegovina),
+    24 (irrigation albania),
+    25 (irrigation serbia),
+    26 (irrigation slovakia),
+    27 (irrigation ukraine),
+    28 (irrigation bulgaria),
+    20 (irrigation romania),
+    30 (irrigation moldovia),
+    99 (other).
+    """
+    NDIM, TYPE, TIME, SPAN = 1, int, None, (1, 99)
 
     def compressrepr(self):
         """Returns a list which contains a string representation with vegetation
@@ -73,40 +87,46 @@ class SCMax(parametertools.MultiParameter):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 class RtD(parametertools.MultiParameter):
-    """rooting depth [m]."""
+    """rooting depth [m]
+
+    Globwat standard value = 0.6."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+    #INIT = .6
 
 class RMax(parametertools.MultiParameter):
     """maximum groundwater recharge flux [mm/day]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
-class CIc(parametertools.MultiParameter):
-    """cropping intensity [-]."""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., 100.)
+#class CIc(parametertools.MultiParameter):
+#    """cropping intensity [-]."""
+#    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
-class TA (parametertools.MultiParameter):
-    """total area [km²]."""
+class Area(parametertools.MultiParameter):
+    """area per grid cell [km²]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
-class IrrA(parametertools.MultiParameter):
-    """irrigated area [km²]."""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+#class IrrA(parametertools.MultiParameter):
+#    """irrigated area [km²]."""
+#    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 class KC(globwat_parameters.LanduseMonthParameter):
     """crop or landuse factor [-]."""
     NDIM, TYPE, TIME, SPAN = 2, float, None, (0., None)
 
-class KOW(globwat_parameters.LanduseMonthParameter):
-    """open water factor [-]."""
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (0., None)
-
-class PWA(parametertools.SingleParameter):
-    """percentual water surface per grid cell [-]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 100.)
-
 class F(parametertools.SingleParameter):
-    """response factor [-]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (.3, .3)
+    """response factor [-].
+
+    Globwat standard value = 0.3.
+    """
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
+    INIT = .3
+
+class ROFactor(parametertools.SingleParameter):
+    """Factor for turning rain into dirct runoff [-]
+
+    GlobWat standard value = 0.05."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+    INIT = .05
 
 class ControlParameters(parametertools.SubParameters):
-    _PARCLASSES = (Area, NmbGrids, VegetationClass, SCMax, RtD, RMax, CIc, TA, IrrA, KC, KOW, PWA, F)
+    _PARCLASSES = (NmbGrids, VegetationClass, SCMax, RtD, RMax, Area, KC, F, ROFactor)

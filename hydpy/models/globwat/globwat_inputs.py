@@ -21,6 +21,6 @@ class E0(sequencetools.InputSequence):
 #    """Temperature [°C]."""
 #    NDIM, NUMERIC = 0, False
 
-class InputSequences(sequencetools.SubSequences):
+class InputSequences(sequencetools.InputSequences):
     """Input sequences of the globwat model."""
     _SEQCLASSES = (P, E0)

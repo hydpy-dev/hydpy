@@ -330,6 +330,8 @@ from __future__ import division, print_function
 import datetime
 import copy
 import time
+import calendar
+import collections
 # ...from third party packages
 import numpy
 # ...from HydPy
@@ -1188,3 +1190,182 @@ class Timegrids(object):
 
     def __dir__(self):
         return objecttools.dir_(self)
+
+
+class TOY(object):
+    """Time of year handler.
+
+    :class:`TOY` objects are used to define certain things that are true for
+    a certain time point in each year.  The smallest supported time unit is
+    seconds.
+
+    Normally, for initialization a string is passed, defining the month, the
+    day, the hour, the minute and the second in the order they are mentioned,
+    seperated by a single underscore:
+
+    >>> from hydpy.core.timetools import TOY
+    >>> t = TOY('3_13_23_33_43')
+    >>> t.month
+    3
+    >>> t.day
+    13
+    >>> t.hour
+    23
+    >>> t.minute
+    33
+    >>> t.second
+    43
+
+    If a lower precision is required, one can shorten the string, which
+    implicitely sets the omitted property to the lowest possible value:
+
+    >>> TOY('3_13_23_33')
+    TOY('3_13_23_33_0')
+
+    The most extreme example would be, to pass not string at all:
+
+    >>> TOY()
+    TOY('1_1_0_0_0')
+
+    One can prefix some information to the string, which is usefull when the
+    string is to be used as a valid variable name somewhere else:
+
+    >>> TOY('something_3_13_23_33_2')
+    TOY('3_13_23_33_2')
+
+    As one can see, the prefixed information is lost in the printed string
+    representation.  But a string with a standard prefix is returned through
+    applying :class:`str` on :class:`TOY` instances:
+
+    >>> str(TOY('something_3_13_23_33_2'))
+    'toy_3_13_23_33_2'
+
+    It is only allowed to modify the mentioned properties, not to define new
+    ones:
+
+    >>> t.microsecond = 53
+    Traceback (most recent call last):
+    ...
+    AttributeError: TOY (time of year) objects only allow to set the properties month, day, hour, minute or second, but `microsecond` is given.
+
+    It is allowed to pass objects that can be converted to integers:
+
+    >>> t.second = '53'
+    >>> t.second
+    53
+
+    If the passed object cannot be converted properly, an exception is raised:
+
+    >>> t.second = 'fiftythree'
+    Traceback (most recent call last):
+    ...
+    ValueError: For TOY (time of year) objects, all properties must be of type `int`, but the value `fiftythree` of type `str` given for property `second` cannot be converted to `int`.
+
+    Additionally, given values are checked to lie within a suitable range:
+
+    >>> t.second = 60
+    Traceback (most recent call last):
+    ...
+    ValueError: The value of property `second` of TOY (time of year) objects must lie within the range `(0, 59)`, but the given value is `60`.
+
+    Note that the allowed values for `month` and `day` depend on each other,
+    which is why the order one defines them might be of importance.  So, if
+    January is predefined, one can set day to the 31th:
+
+    >>> t.month = 1
+    >>> t.day = 31
+
+    But afterwards one cannot directly change the month to February:
+
+    >>> t.month = 2
+    Traceback (most recent call last):
+    ...
+    ValueError: The value of property `month` of the actual TOY (time of year) object must not be the given value `2`, as the day has already been set to `31`.
+
+    Hence first set `day` to a smaller value and then change `month`:
+
+    >>> t.day = 28
+    >>> t.month = 2
+
+    For February it is important to note, that the 29th is generally
+    disallowed:
+
+    >>> t.day = 29
+    Traceback (most recent call last):
+    ...
+    ValueError: The value of property `day` of the actual TOY (time of year) object must lie within the range `(1, 28)`, as the month has already been set to `2`, but the given value is `29`.
+    """
+    PROPERTIES = collections.OrderedDict((('month', (1, 12)),
+                                          ('day', (1, 31)),
+                                          ('hour', (0, 23)),
+                                          ('minute', (0, 59)),
+                                          ('second', (0, 59))))
+
+    def __init__(self, string=''):
+        self.__dict__['month'] = None
+        self.__dict__['day'] = None
+        self.__dict__['hour'] = None
+        self.__dict__['minute'] = None
+        self.__dict__['second'] = None
+        values = string.split('_')
+        if not values[0].isdigit():
+            del values[0]
+        for prop in self.PROPERTIES:
+            try:
+                setattr(self, prop, values.pop(0))
+            except IndexError:
+                if prop in ('month', 'day'):
+                    setattr(self, prop, 1)
+                else:
+                    setattr(self, prop, 0)
+            except ValueError:
+                objecttools.augmentexcmessage(
+                    'While trying to retrieve the %s for TOY (time of '
+                    'year) object based on the string `%s`'
+                    % (prop, string))
+
+    def __setattr__(self, name, value):
+        if name not in self.PROPERTIES:
+            props = ' or '.join((', '.join(self.PROPERTIES.keys()[:-1]),
+                                 self.PROPERTIES.keys()[-1]))
+            raise AttributeError('TOY (time of year) objects only allow to '
+                                 'set the properties %s, but `%s` is given.'
+                                 % (props, name))
+        try:
+            value = int(value)
+        except ValueError:
+            raise ValueError('For TOY (time of year) objects, all properties '
+                             'must be of type `int`, but the value `%s` of '
+                             'type `%s` given for property `%s` cannot be '
+                             'converted to `int`.'
+                             % (value, objecttools.classname(value), name))
+        if (name == 'day') and (self.month is not None):
+            bounds = (1, calendar.monthrange(1999, self.month)[1])
+            if not (bounds[0] <= value <= bounds[1]):
+                raise ValueError('The value of property `day` of the actual '
+                                 'TOY (time of year) object must lie within '
+                                 'the range `%s`, as the month has already '
+                                 'been set to `%s`, but the given value is '
+                                 '`%s`.' % (bounds, self.month, value))
+        elif (name == 'month') and (self.day is not None):
+            bounds = (1, calendar.monthrange(2000, value)[1])
+            if not (bounds[0] <= self.day <= bounds[1]):
+                raise ValueError('The value of property `month` of the actual '
+                                 'TOY (time of year) object must not be the '
+                                 'given value `%s`, as the day has already '
+                                 'been set to `%s`.' % (value, self.day))
+        else:
+            bounds = self.PROPERTIES[name]
+            if not (bounds[0] <= value <= bounds[1]):
+                raise ValueError('The value of property `%s` of TOY (time of '
+                                 'year) objects must lie within the range '
+                                 '`%s`, but the given value is `%s`.'
+                                 % (name, bounds, value))
+        object.__setattr__(self, name, value)
+
+    def __repr__(self):
+        return  "TOY('%s')" % '_'.join(str(getattr(self, prop)) for prop
+                                       in self.PROPERTIES.keys())
+    def __str__(self):
+        return  "toy_%s" % '_'.join(str(getattr(self, prop)) for prop
+                                    in self.PROPERTIES.keys())

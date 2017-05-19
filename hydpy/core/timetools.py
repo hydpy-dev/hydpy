@@ -1298,12 +1298,42 @@ class TOY(object):
     Traceback (most recent call last):
     ...
     ValueError: The value of property `day` of the actual TOY (time of year) object must lie within the range `(1, 28)`, as the month has already been set to `2`, but the given value is `29`.
+
+    It is possible to compare two :class:`TOY` instances:
+
+    >>> t1, t2 = TOY('1'), TOY('2')
+    >>> (t1 < t1, t1 < t2, t2 < t1)
+    (False, True, False)
+    >>> (t1 <= t1, t1 <= t2, t2 <= t1)
+    (True, True, False)
+    >>> (t1 == t1, t1 == t2)
+    (True, False)
+    >>> (t1 != t1, t1 != t2)
+    (False, True)
+    >>> (t1 >= t1, t1 >= t2, t2 >= t1)
+    (True, False, True)
+    >>> (t1 > t1, t1 > t2, t2 > t1)
+    (False, False, True)
+
+    Subtracting two :class:`TOY` object gives their time difference in seconds:
+
+    >>> TOY('1_1_0_3_0') - TOY('1_1_0_1_30')
+    90
+
+    Instead of negative values, it is always assumed that the first
+    :class:`TOY` object lies within the future (eventually within the
+    subsequent year):
+
+    >>> TOY('1_1_0_1_30') - TOY('12_31_23_58_30')
+    180
     """
-    PROPERTIES = collections.OrderedDict((('month', (1, 12)),
-                                          ('day', (1, 31)),
-                                          ('hour', (0, 23)),
-                                          ('minute', (0, 59)),
-                                          ('second', (0, 59))))
+    _PROPERTIES = collections.OrderedDict((('month', (1, 12)),
+                                           ('day', (1, 31)),
+                                           ('hour', (0, 23)),
+                                           ('minute', (0, 59)),
+                                           ('second', (0, 59))))
+    _STARTDATE = Date('01.01.2000')
+    _ENDDATE = Date('01.01.2001')
 
     def __init__(self, string=''):
         self.__dict__['month'] = None
@@ -1314,7 +1344,7 @@ class TOY(object):
         values = string.split('_')
         if not values[0].isdigit():
             del values[0]
-        for prop in self.PROPERTIES:
+        for prop in self._PROPERTIES:
             try:
                 setattr(self, prop, values.pop(0))
             except IndexError:
@@ -1329,9 +1359,9 @@ class TOY(object):
                     % (prop, string))
 
     def __setattr__(self, name, value):
-        if name not in self.PROPERTIES:
-            props = ' or '.join((', '.join(self.PROPERTIES.keys()[:-1]),
-                                 self.PROPERTIES.keys()[-1]))
+        if name not in self._PROPERTIES:
+            props = ' or '.join((', '.join(self._PROPERTIES.keys()[:-1]),
+                                  self._PROPERTIES.keys()[-1]))
             raise AttributeError('TOY (time of year) objects only allow to '
                                  'set the properties %s, but `%s` is given.'
                                  % (props, name))
@@ -1359,7 +1389,7 @@ class TOY(object):
                                  'given value `%s`, as the day has already '
                                  'been set to `%s`.' % (value, self.day))
         else:
-            bounds = self.PROPERTIES[name]
+            bounds = self._PROPERTIES[name]
             if not (bounds[0] <= value <= bounds[1]):
                 raise ValueError('The value of property `%s` of TOY (time of '
                                  'year) objects must lie within the range '
@@ -1367,9 +1397,73 @@ class TOY(object):
                                  % (name, bounds, value))
         object.__setattr__(self, name, value)
 
+    @property
+    def passed_seconds(self):
+        """Amount of time passed in seconds since the beginning of the year.
+
+        In the first example, the year is only one minute and thirty seconds
+        old:
+
+        >>> from hydpy.core.timetools import TOY
+        >>> TOY('1_1_0_1_30').passed_seconds
+        90
+
+        The second example shows that the 29th February is generally included:
+
+        >>> TOY('3').passed_seconds
+        5184000
+        """
+        return int((Date(self).datetime -
+                    self._STARTDATE.datetime).total_seconds())
+
+    @property
+    def left_seconds(self):
+        """Remaining part of the year in seconds.
+
+        In the first example, only one minute and thirty seconds of the year
+        remain:
+
+        >>> from hydpy.core.timetools import TOY
+        >>> TOY('12_31_23_58_30').left_seconds
+        90
+
+        The second example shows that the 29th February is generally included:
+
+        >>> TOY('2').left_seconds
+        28944000
+        """
+        return int((self._ENDDATE.datetime -
+                    Date(self).datetime).total_seconds())
+
+    def __lt__(self, other):
+        return self.passed_seconds < other.passed_seconds
+
+    def __le__(self, other):
+        return self.passed_seconds <= other.passed_seconds
+
+    def __eq__(self, other):
+        return self.passed_seconds == other.passed_seconds
+
+    def __ne__(self, other):
+        return self.passed_seconds != other.passed_seconds
+
+    def __gt__(self, other):
+        return self.passed_seconds > other.passed_seconds
+
+    def __ge__(self, other):
+        return self.passed_seconds >= other.passed_seconds
+
     def __repr__(self):
         return  "TOY('%s')" % '_'.join(str(getattr(self, prop)) for prop
-                                       in self.PROPERTIES.keys())
+                                       in self._PROPERTIES.keys())
     def __str__(self):
         return  "toy_%s" % '_'.join(str(getattr(self, prop)) for prop
-                                    in self.PROPERTIES.keys())
+                                    in self._PROPERTIES.keys())
+
+    def __sub__(self, other):
+        if self >= other:
+            return self.passed_seconds - other.passed_seconds
+        else:
+            return self.passed_seconds + other.left_seconds
+
+    __dir__ = objecttools.dir_

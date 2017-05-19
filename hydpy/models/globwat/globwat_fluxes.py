@@ -7,37 +7,41 @@ from __future__ import division, print_function
 # ...HydPy specific
 from hydpy.core import sequencetools
 
-class ERain(sequencetools.Sequence):
+class ERain(sequencetools.FluxSequence):
     """rainfed evaporation [mm/day]"""
     NDIM, NUMERIC = 1, False
 
-#class EIncrirr(sequencetools.Sequence):
+#class EIncrirr(sequencetools.FluxSequence):
 #    """incremental evaporation due to irrigation [mm/day]"""
 #    NDIM, NUMERIC = 1, False
 
-class EC(sequencetools.Sequence):
+class EC(sequencetools.FluxSequence):
     """crop evaporation under irrigation [mm/day]"""
     NDIM, NUMERIC = 1, False
 
-class EOW(sequencetools.Sequence):
+class EOW(sequencetools.FluxSequence):
     """evaporation over open water [mm/day]."""
     NDIM, NUMERIC = 1, False
 
-class EGrid(sequencetools.Sequence):
+class EGrid(sequencetools.FluxSequence):
     """sum of all evaporation per grid cell [mm/day]"""
     NDIM, NUMERIC = 1, False
 
-class RO(sequencetools.Sequence):
+class RO(sequencetools.FluxSequence):
     """vertical (sub-)surface runoff [mm/day]"""
     NDIM, NUMERIC = 1, False
 
-#class ROH(sequencetools.Sequence):
+#class ROH(sequencetools.FluxSequence):
 #    """horizontal (sub-)surface runoff [mm/day]"""
 #    NDIM, NUMERIC = 1, False
 
-class EIncrOW(sequencetools.Sequence):
+class EIncrOW(sequencetools.FluxSequence):
     """incremental evaporation over open water [mm/day]"""
     NDIM, NUMERIC = 1, False
+
+#class Q(sequencetools.FluxSequence):
+#    """runoff at the subbasin outlet [mm]."""
+#    NDIM, NUMERIC = 0, False
 
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of the hland model."""

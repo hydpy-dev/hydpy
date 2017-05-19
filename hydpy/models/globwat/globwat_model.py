@@ -63,7 +63,6 @@ def calc_rainfedevaporation_v1(self):
         >>> parameterstep('1d')
         >>> nmbgrids(3)
         >>> vegetationclass(WATER, DESERT, IRRCPR)
-        >>> irrigation(0, 0, 1)
         >>> inputs.e0 = 3.
         >>> derived.seav(1.5, 2., 2.5)
         >>> derived.smax(10., 11., 12.)
@@ -558,6 +557,13 @@ def calc_outflow_v1(self):
 
     sta.qout = sta.ssb * con.f
 
+#def calc_q_v1(self):
+#    """transform state qout in to flux q"""
+#    flu = self.sequences.fluxes.fastaccess
+#    sta = self.sequences.states.fastaccess
+#
+#    flu.q = sta.qout
+
 def update_inlets_v1(self):
     """Update the inlet link sequence."""
     sta = self.sequences.states.fastaccess
@@ -571,7 +577,76 @@ def update_outlets_v1(self):
     out.q[0] += sta.qout
 
 class Model(modeltools.Model):
-    """The HydPy-GlobWat model."""
+    """The HydPy-GlobWat model.
+
+     Integration Test:
+
+        The only two simulation steps are in January:
+
+        >>> from hydpy import pub, Timegrid, Timegrids
+        >>> pub.timegrids = Timegrids(Timegrid('01.08.2000', '03.08.2000', '1d'))
+
+        Import the model and define the time settings:
+
+        >>> from hydpy.models.globwat import *
+        >>> parameterstep('1d')
+
+        Do things that are normally done behind the scenes. First, the input
+        data shall be available in RAM:
+
+        >>> import numpy
+        >>> for (name, seq) in inputs:
+        ...     seq.ramflag = True
+        ...     seq._setarray(numpy.zeros(2))
+
+        Secondly, the final model output shall be passed to `result`:
+
+        >>> from hydpy.cythons.pointer import Double
+        >>> result = Double(0.)
+        >>> outlets.q.setpointer(result)
+
+        Define the control parameter values (select only arable land, sealed
+        soil and water area as landuse classes, as all other land use classes
+        are functionally identical with arable land):
+
+        >>> nmbgrids(5)
+        >>> vegetationclass(IRRCNPR, WATER, IRRCPR, RADRYTROP, WATER)
+        >>> area(15., 20., 18., 35., 12.)
+        >>> scmax(5., 7., 20., 10., 5.)
+        >>> rtd(.6, .6, .6, .6, .6)
+        >>> rmax(9. ,5. ,2. ,3. ,10.)
+        >>> kc.shape = 31, 12
+        >>> kc.irrcnpr = 1.
+        >>> kc.water = 1.1
+        >>> kc.irrcpr = 1.
+        >>> kc.radrytrop = .9
+
+
+        Update the values of all derived parameters:
+
+        >>> model.parameters.update()
+
+        Set the initial values:
+
+        >>> states.fastaccess_old.s = 10, 20, 30, 40, 10
+        >>> states.qin = 100.
+
+        Set the input values for both simulation time steps:
+
+        >>> inputs.p(3.8, 4.2, 3.6, 7.1, .8)
+        >>> inputs.e0(2.0, 1.5, 1.8, 3.1, 2.2)
+
+        Check the correctness of the results:
+
+        >>> model.doit(0)
+        >>> print(round(result[0], 6))
+        ... ALEX
+        >>> result[0] = 0.
+        >>> model.doit(1)
+        >>> print(round(result[0], 6))
+        ... ALEX
+
+    """
 
     _RUNMETHODS = (update_inlets_v1,
                    calc_rainfedevaporation_v1,
@@ -583,5 +658,6 @@ class Model(modeltools.Model):
                    calc_gridevaporation_v1,
                    calc_subbasinbalance_v1,
                    calc_subbasinstorage_v1,
+#                   calc_q_v1,
                    calc_outflow_v1,
                    update_outlets_v1)

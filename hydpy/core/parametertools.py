@@ -737,6 +737,46 @@ class ZipParameter(MultiParameter):
                 result = [result]
             return result
 
+
+class SeasonalParameter(MultiParameter):
+    """
+    >>> #sp = SeasonalParameter()
+    >>> #sp(_1=2., _7=4., _3=5.)
+    """
+    def __init__(self):
+        MultiParameter.__init__(self)
+        self.toy2values = {}
+
+    def __call__(self, *args, **kwargs):
+        """The prefered way to pass values to :class:`Parameter` instances
+        within parameter control files.
+        """
+        try:
+            MultiParameter.__call__(self, *args, **kwargs)
+        except NotImplementedError as exc:
+            if kwargs:
+                for (toystr, values) in kwargs.items():
+                    try:
+                        self.toy2values[timetools.TOY(toystr)] = values
+                    except BaseException:
+                        objecttools.augmentexcmessage(
+                            'While trying to define parameter `%s` of element '
+                            '`%s`' % (self.name, objecttools.devicename(self)))
+                self.refresh()
+            else:
+                raise exc
+
+
+
+    def _setshape(self, shape):
+        shape = list(shape)
+        shape[0] = timetools.Period('366d')/self.simulationstep
+        shape[0] = int(numpy.ceil(round(shape[0], 10)))
+        MultiParameter._setshape(self, shape)
+    shape = property(MultiParameter._getshape, _setshape)
+
+
+
 class KeywordParameter2DType(type):
     """Add the construction of `_ROWCOLMAPPING` to :class:`type`."""
 

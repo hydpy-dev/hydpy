@@ -88,6 +88,8 @@ from numpy import nan
 # ...from Hydpy (framework)
 from hydpy.core.magictools import parameterstep
 from hydpy.core.magictools import simulationstep
+from hydpy.core.magictools import Tester
+from hydpy.cythons.modelutils import Cythonizer
 # ...from HydPy (GlobWat)
 from .globwat_constants import *
 from .globwat_model import Model
@@ -102,6 +104,6 @@ from .globwat_states import StateSequences
 #from .globwat_aides import AideSequences
 from .globwat_links import InletSequences, OutletSequences
 
-USECYTHON = False
-"""Cython flag (False: pure Python mode, True: fast Python/Cython mode)."""
-
+tester = Tester()
+#cythonizer = Cythonizer()
+#cythonizer.complete()

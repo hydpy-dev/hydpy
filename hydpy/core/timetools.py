@@ -373,6 +373,10 @@ class Date(object):
             self.datetime = date
         elif isinstance(date, str):
             self._initfromstr(date)
+        elif isinstance(date, TOY):
+            self.datetime = datetime.datetime(2000,
+                                              date.month, date.day, date.hour,
+                                              date.minute, date.second)
         else:
             raise TypeError('The supplied argument must be either an '
                             'instance of `datetime.datetime` or of `str`.  '

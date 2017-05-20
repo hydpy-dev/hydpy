@@ -740,12 +740,17 @@ class ZipParameter(MultiParameter):
 
 class SeasonalParameter(MultiParameter):
     """
-    >>> #sp = SeasonalParameter()
-    >>> #sp(_1=2., _7=4., _3=5.)
+    >>> sp = SeasonalParameter()
+    >>> sp(_1=2., _7=4., _3=5.)
+    >>> sp
+    sp(toy_1_1_0_0_0=2.0,
+       toy_1_3_0_0_0=5.0,
+       toy_1_7_0_0_0=4.0)
+
     """
     def __init__(self):
         MultiParameter.__init__(self)
-        self.toy2values = {}
+        self._toy2values = {}
 
     def __call__(self, *args, **kwargs):
         """The prefered way to pass values to :class:`Parameter` instances
@@ -757,7 +762,7 @@ class SeasonalParameter(MultiParameter):
             if kwargs:
                 for (toystr, values) in kwargs.items():
                     try:
-                        self.toy2values[timetools.TOY(toystr)] = values
+                        self._toy2values[timetools.TOY(toystr)] = values
                     except BaseException:
                         objecttools.augmentexcmessage(
                             'While trying to define parameter `%s` of element '
@@ -766,7 +771,8 @@ class SeasonalParameter(MultiParameter):
             else:
                 raise exc
 
-
+    def refresh(self):
+        pass
 
     def _setshape(self, shape):
         shape = list(shape)
@@ -775,6 +781,66 @@ class SeasonalParameter(MultiParameter):
         MultiParameter._setshape(self, shape)
     shape = property(MultiParameter._getshape, _setshape)
 
+    def __iter__(self):
+        for toy in sorted(self._toy2values.keys()):
+            yield (toy, self._toy2values[toy])
+
+    def __getattr__(self, name):
+        if name.startswith('toy_'):
+            try:
+                return self._toy2values[timetools.TOY(name)]
+            except BaseException:
+                objecttools.augmentexcmessage(
+                    'While trying to get an existing toy-value pair for '
+                    'the seasonal parameter `%s` of element `%s`'
+                    % (self.name, objecttools.devicename(self)))
+        else:
+            return MultiParameter.__getattr__(self, name)
+
+    def __setattr__(self, name, value):
+        if name.startswith('toy_'):
+            try:
+                self._toy2values[timetools.TOY(name)] = value
+            except BaseException:
+                objecttools.augmentexcmessage(
+                    'While trying to add a new or change an existing '
+                    'toy-value pair for the seasonal parameter `%s` of '
+                    'element `%s`' % (self.name, objecttools.devicename(self)))
+        else:
+            MultiParameter.__setattr__(self, name, value)
+
+    def __delattr__(self, name):
+        if name.startswith('toy_'):
+            try:
+                del self._toy2values[timetools.TOY(name)]
+            except BaseException:
+                objecttools.augmentexcmessage(
+                    'While trying to delete an existing toy-value pair for '
+                    'the seasonal parameter `%s` of element `%s`'
+                    % (self.name, objecttools.devicename(self)))
+        else:
+            MultiParameter.__delattr__(self, name)
+
+    def __repr__(self):
+        if len(self) > 0:
+            lines = []
+            blanks = ' '*(len(self.name))
+            for idx, (toy, value) in enumerate(self):
+                kwarg = '%s=%s' % (str(toy), repr(value))
+                if idx == 0:
+                    lines.append('%s(%s' % (self.name, kwarg))
+                else:
+                    lines.append('%s %s' % (blanks, kwarg))
+            lines[-1] += ')'
+            return ',\n'.join(lines)
+        else:
+            return self.name+'()'
+
+    def __len__(self):
+        return len(self._toy2values)
+
+    def __dir__(self):
+        return objecttools.dir_(self) + [str(toy) for (toy, value) in self]
 
 
 class KeywordParameter2DType(type):

@@ -407,7 +407,7 @@ class Date(object):
         successive rows of a :class:`~numpy.ndarray` object."""
         intarray = numpy.array(array, dtype=int)
         for idx in range(1, array.ndim):
-            intarray = intarray[:,0]
+            intarray = intarray[:, 0]
         return cls(datetime.datetime(*intarray))
 
     def toarray(self):
@@ -876,7 +876,7 @@ class Timegrid(object):
             index = (key-self.firstdate) / self.stepsize
             if index % 1.:
                 raise ValueError('The given date `%s` is not properly '
-                                 'alligned on the indexed timegrid.' %  key)
+                                 'alligned on the indexed timegrid.' % key)
             else:
                 return int(index)
 
@@ -1188,7 +1188,7 @@ class Timegrids(object):
             lines.append('%s,' % self.init.assignrepr(prefix))
         if self.sim != self.init:
             prefix = '%ssim=' % blanks
-            lines.append('%s,' %  self.init.assignrepr(prefix))
+            lines.append('%s,' % self.init.assignrepr(prefix))
         lines[-1] = lines[-1][:-1] + ')'
         return '\n'.join(lines)
 
@@ -1361,7 +1361,7 @@ class TOY(object):
     def __setattr__(self, name, value):
         if name not in self._PROPERTIES:
             props = ' or '.join((', '.join(self._PROPERTIES.keys()[:-1]),
-                                  self._PROPERTIES.keys()[-1]))
+                                 self._PROPERTIES.keys()[-1]))
             raise AttributeError('TOY (time of year) objects only allow to '
                                  'set the properties %s, but `%s` is given.'
                                  % (props, name))
@@ -1453,17 +1453,21 @@ class TOY(object):
     def __ge__(self, other):
         return self.passed_seconds >= other.passed_seconds
 
-    def __repr__(self):
-        return  "TOY('%s')" % '_'.join(str(getattr(self, prop)) for prop
-                                       in self._PROPERTIES.keys())
-    def __str__(self):
-        return  "toy_%s" % '_'.join(str(getattr(self, prop)) for prop
-                                    in self._PROPERTIES.keys())
-
     def __sub__(self, other):
         if self >= other:
             return self.passed_seconds - other.passed_seconds
         else:
             return self.passed_seconds + other.left_seconds
+
+    def __hash__(self):
+        return hash(str(self))
+
+    def __str__(self):
+        return "toy_%s" % '_'.join(str(getattr(self, prop)) for prop
+                                   in self._PROPERTIES.keys())
+
+    def __repr__(self):
+        return "TOY('%s')" % '_'.join(str(getattr(self, prop)) for prop
+                                      in self._PROPERTIES.keys())
 
     __dir__ = objecttools.dir_

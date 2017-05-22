@@ -739,13 +739,43 @@ class ZipParameter(MultiParameter):
 
 
 class SeasonalParameter(MultiParameter):
-    """
-    >>> sp = SeasonalParameter()
-    >>> sp(_1=2., _7=4., _3=5.)
-    >>> sp
-    sp(toy_1_1_0_0_0=2.0,
-       toy_1_3_0_0_0=5.0,
-       toy_1_7_0_0_0=4.0)
+    """Class for the flexible handling of parameters with anual cycles.
+
+    The annual pattern is defined through pairs of
+    :class:`~hydpy.core.timetools.TOY` objects and values (e.g. :class:`float`
+    objects).  One can define them all at once in the following manner:
+
+    >>> seasonalparameter = SeasonalParameter()
+    >>> seasonalparameter(_1=2., _7_1=4., _3_1_0_0_0=5.)
+
+    Note that, as :class:`str` objects, all keywords in the call above would
+    be proper :class:`~hydpy.core.timetools.TOY` initialization arguments.
+    If they are not properly written, the following exception is raised:
+
+    >>> SeasonalParameter()(_a=1.)
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to define parameter `seasonalparameter` of element `?`, the following error occured: While trying to retrieve the month for TOY (time of year) object based on the string `_a`, the following error occured: For TOY (time of year) objects, all properties must be of type `int`, but the value `a` of type `str` given for property `month` cannot be converted to `int`.
+
+    As the following string representation shows, are the pairs of each
+    :class:`SeasonalParameter` instance automatically sorted:
+
+    >>> seasonalparameter
+    seasonalparameter(toy_1_1_0_0_0=2.0,
+                      toy_3_1_0_0_0=5.0,
+                      toy_7_1_0_0_0=4.0)
+
+    By default, `toy` is used as a prefix string.  Using this prefix string,
+    one can change the toy-value pairs via attribute access:
+
+    >>> seasonalparameter.toy_1_1_0_0_0
+    2.0
+    >>> del seasonalparameter.toy_1_1_0_0_0
+    >>> seasonalparameter.toy_2_1_0_0_0 = 2.
+    >>> seasonalparameter
+    seasonalparameter(toy_2_1_0_0_0=2.0,
+                      toy_3_1_0_0_0=5.0,
+                      toy_7_1_0_0_0=4.0)
 
     """
     def __init__(self):

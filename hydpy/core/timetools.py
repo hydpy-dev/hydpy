@@ -626,7 +626,7 @@ class Period(object):
             raise ValueError('The supplied argument must be either an '
                              'instance of `datetime.timedelta` or `str`.  '
                              'The given arguments type is %s.'
-                             % str(type(period)))
+                             % objecttools.classname(period))
 
     def _initfromstr(self, period):
         """Try to initialize `timedelta` from the given :class:`str` instance.
@@ -1367,8 +1367,8 @@ class TOY(object):
 
     def __setattr__(self, name, value):
         if name not in self._PROPERTIES:
-            props = ' or '.join((', '.join(self._PROPERTIES.keys()[:-1]),
-                                 self._PROPERTIES.keys()[-1]))
+            keys = list(self._PROPERTIES.keys())
+            props = ' or '.join((', '.join(keys[:-1]), keys[-1]))
             raise AttributeError('TOY (time of year) objects only allow to '
                                  'set the properties %s, but `%s` is given.'
                                  % (props, name))

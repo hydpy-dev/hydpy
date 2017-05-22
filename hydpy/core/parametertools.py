@@ -743,6 +743,7 @@ class SeasonalParameter(MultiParameter):
 
     For the following examples, we assume a simulation step size of one day:
 
+    >>> from hydpy.core.parametertools import SeasonalParameter
     >>> from hydpy.core.timetools import Period
     >>> SeasonalParameter.simulationstep = Period('1d')
 
@@ -806,7 +807,7 @@ class SeasonalParameter(MultiParameter):
     >>> seasonalparameter.toy_1_1_0_0_0 = [1., 2.]
     Traceback (most recent call last):
     ...
-    TypeError: While trying to add a new or change an existing toy-value pair for the seasonal parameter `seasonalparameter` of element `?`, the following error occured: float() argument must be a string or a number
+    TypeError: While trying to add a new or change an existing toy-value pair for the seasonal parameter `seasonalparameter` of element `?`, the following error occured: float() argument must be a string or a number...
     >>> seasonalparameter = SeasonalParameter()
     >>> seasonalparameter.NDIM = 2
     >>> seasonalparameter.shape = (None, 3)
@@ -875,9 +876,10 @@ class SeasonalParameter(MultiParameter):
         toy-value pairs do not show up:
 
         >>> sp.toy_12_31 = 4.
-        >>> round(sp.values[0], 6)
+        >>> from hydpy.core.objecttools import round_
+        >>> round_(sp.values[0])
         2.00274
-        >>> round(sp.values[-2], 6)
+        >>> round_(sp.values[-2])
         3.99726
         >>> sp.values[-1]
         3.0
@@ -892,9 +894,9 @@ class SeasonalParameter(MultiParameter):
         >>> sp.toy_12_31_12 = 4.
         >>> sp.values[0]
         2.0
-        >>> round(sp.values[1], 6)
+        >>> round_(sp.values[1])
         2.005479
-        >>> round(sp.values[-2], 6)
+        >>> round_(sp.values[-2])
         3.994521
         >>> sp.values[-1]
         4.0
@@ -903,7 +905,7 @@ class SeasonalParameter(MultiParameter):
         if len(self) == 0:
             self.values[:] = 0.
         elif len(self) == 1:
-            self.values[:] = self._toy2values.values()[0]
+            self.values[:] = list(self._toy2values.values())[0]
         else:
             tt = timetools
             timegrid = tt.Timegrid(tt.TOY._STARTDATE+self.simulationstep/2,
@@ -941,30 +943,31 @@ class SeasonalParameter(MultiParameter):
 
         For all intermediate points, a linear interpolation is performed:
 
-        >>> round(sp.interp(Date('2000.01.02')), 6)
+        >>> from hydpy.core.objecttools import round_
+        >>> round_(sp.interp(Date('2000.01.02')))
         2.096774
-        >>> round(sp.interp(Date('2000.01.31')), 6)
+        >>> round_(sp.interp(Date('2000.01.31')))
         4.903226
-        >>> round(sp.interp(Date('2000.02.02')), 6)
+        >>> round_(sp.interp(Date('2000.02.02')))
         4.997006
-        >>> round(sp.interp(Date('2000.12.30')), 6)
+        >>> round_(sp.interp(Date('2000.12.30')))
         4.002994
 
         Linear interpolation is also allowed between the first and the
         last pair, when they do not capture the end points of the year:
 
         >>> sp(_1_2=2.0, _12_30=4.0)
-        >>> round(sp.interp(Date('2000.12.29')), 6)
+        >>> round_(sp.interp(Date('2000.12.29')))
         3.99449
         >>> sp.interp(Date('2000.12.30'))
         4.0
-        >>> round(sp.interp(Date('2000.12.31')), 6)
+        >>> round_(sp.interp(Date('2000.12.31')))
         3.333333
-        >>> round(sp.interp(Date('2000.01.01')), 6)
+        >>> round_(sp.interp(Date('2000.01.01')))
         2.666667
         >>> sp.interp(Date('2000.01.02'))
         2.0
-        >>> round(sp.interp(Date('2000.01.03')), 6)
+        >>> round_(sp.interp(Date('2000.01.03')))
         2.00551
     """
         xnew = timetools.TOY(date)

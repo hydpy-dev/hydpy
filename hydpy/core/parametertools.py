@@ -756,20 +756,16 @@ class SeasonalParameter(MultiParameter):
         """The prefered way to pass values to :class:`Parameter` instances
         within parameter control files.
         """
-        try:
-            MultiParameter.__call__(self, *args, **kwargs)
-        except NotImplementedError as exc:
-            if kwargs:
-                for (toystr, values) in kwargs.items():
-                    try:
-                        self._toy2values[timetools.TOY(toystr)] = values
-                    except BaseException:
-                        objecttools.augmentexcmessage(
-                            'While trying to define parameter `%s` of element '
-                            '`%s`' % (self.name, objecttools.devicename(self)))
-                self.refresh()
-            else:
-                raise exc
+        if kwargs:
+            for (toystr, values) in kwargs.items():
+                try:
+                    self._toy2values[timetools.TOY(toystr)] = values
+                except BaseException:
+                    objecttools.augmentexcmessage(
+                        'While trying to define parameter `%s` of element '
+                        '`%s`' % (self.name, objecttools.devicename(self)))
+            self.refresh()
+
 
     def refresh(self):
         pass

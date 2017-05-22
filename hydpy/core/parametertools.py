@@ -800,6 +800,72 @@ class SeasonalParameter(MultiParameter):
     def refresh(self):
         pass
 
+    def interp(self, date):
+        """Perform a linear value interpolation for a date defined by the
+        passed :class:`~hydpy.core.timetools.Date` object and return the
+        result.
+
+        Instantiate a 1-dimensional :class:`SeasonalParameter` object:
+
+        >>> from hydpy.core.timetools import Date, Period
+        >>> SeasonalParameter.simulationstep = Period('1d')
+        >>> sp = SeasonalParameter()
+        >>> sp.NDIM = 1
+        >>> sp.shape = (None,)
+
+        Define three toy-value pairs:
+        >>> sp(_1=2.0, _2=5.0, _12_31=4.0)
+
+        Passing a :class:`~hydpy.core.timetools.Date` object excatly matching
+        a :class:`~hydpy.core.timetools.TOY` object of course simply returns
+        the associated value:
+
+        >>> sp.interp(Date('2000.01.01'))
+        2.0
+        >>> sp.interp(Date('2000.02.01'))
+        5.0
+        >>> sp.interp(Date('2000.12.31'))
+        4.0
+
+        For all intermediate points, a linear interpolation is performed:
+
+        >>> round(sp.interp(Date('2000.01.02')), 6)
+        2.096774
+        >>> round(sp.interp(Date('2000.01.31')), 6)
+        4.903226
+        >>> round(sp.interp(Date('2000.02.02')), 6)
+        4.997006
+        >>> round(sp.interp(Date('2000.12.30')), 6)
+        4.002994
+
+        Linear interpolation is also allowed between the first and the
+        last pair, when they do not capture the end points of the year:
+
+        >>> sp(_1_2=2.0, _12_30=4.0)
+        >>> round(sp.interp(Date('2000.12.29')), 6)
+        3.99449
+        >>> sp.interp(Date('2000.12.30'))
+        4.0
+        >>> round(sp.interp(Date('2000.12.31')), 6)
+        3.333333
+        >>> round(sp.interp(Date('2000.01.01')), 6)
+        2.666667
+        >>> sp.interp(Date('2000.01.02'))
+        2.0
+        >>> round(sp.interp(Date('2000.01.03')), 6)
+        2.00551
+    """
+        xnew = timetools.TOY(date)
+        xys = list(self)
+        for idx, (x1, y1) in enumerate(xys):
+            if x1 > xnew:
+                x0, y0 = xys[idx-1]
+                break
+        else:
+            x0, y0 = xys[-1]
+            x1, y1 = xys[0]
+        return y0+(y1-y0)/(x1-x0)*(xnew-x0)
+
     def _setshape(self, shape):
         shape = list(shape)
         shape[0] = timetools.Period('366d')/self.simulationstep

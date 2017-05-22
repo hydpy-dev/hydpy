@@ -1244,6 +1244,12 @@ class TOY(object):
     >>> str(TOY('something_3_13_23_33_2'))
     'toy_3_13_23_33_2'
 
+    Alternatively, one can use a :class:`Date` object as a initialization
+    argument, ommitting the year:
+
+    >>> TOY(Date('2001.02.03 04:05:06'))
+    TOY('2_3_4_5_6')
+
     It is only allowed to modify the mentioned properties, not to define new
     ones:
 
@@ -1335,28 +1341,29 @@ class TOY(object):
     _STARTDATE = Date('01.01.2000')
     _ENDDATE = Date('01.01.2001')
 
-    def __init__(self, string=''):
-        self.__dict__['month'] = None
-        self.__dict__['day'] = None
-        self.__dict__['hour'] = None
-        self.__dict__['minute'] = None
-        self.__dict__['second'] = None
-        values = string.split('_')
-        if not values[0].isdigit():
-            del values[0]
-        for prop in self._PROPERTIES:
-            try:
-                setattr(self, prop, values.pop(0))
-            except IndexError:
-                if prop in ('month', 'day'):
-                    setattr(self, prop, 1)
-                else:
-                    setattr(self, prop, 0)
-            except ValueError:
-                objecttools.augmentexcmessage(
-                    'While trying to retrieve the %s for TOY (time of '
-                    'year) object based on the string `%s`'
-                    % (prop, string))
+    def __init__(self, value=''):
+        if isinstance(value, Date):
+            for name in self._PROPERTIES.keys():
+                self.__dict__[name] = getattr(value, name)
+        else:
+            for name in self._PROPERTIES.keys():
+                self.__dict__[name] = None
+            values = value.split('_')
+            if not values[0].isdigit():
+                del values[0]
+            for prop in self._PROPERTIES:
+                try:
+                    setattr(self, prop, values.pop(0))
+                except IndexError:
+                    if prop in ('month', 'day'):
+                        setattr(self, prop, 1)
+                    else:
+                        setattr(self, prop, 0)
+                except ValueError:
+                    objecttools.augmentexcmessage(
+                        'While trying to retrieve the %s for TOY (time of '
+                        'year) object based on the string `%s`'
+                        % (prop, value))
 
     def __setattr__(self, name, value):
         if name not in self._PROPERTIES:

@@ -798,7 +798,78 @@ class SeasonalParameter(MultiParameter):
 
 
     def refresh(self):
-        pass
+        """Update the actual simulation values based on the toy-value pairs.
+
+        Usually, one does not need to call refresh explicitly, as it is
+        called by methods __call__, __setattr__ and __delattr__ automatically,
+        when required.
+
+        Instantiate a 1-dimensional :class:`SeasonalParameter` object:
+
+        >>> from hydpy.core.timetools import Date, Period
+        >>> SeasonalParameter.simulationstep = Period('1d')
+        >>> sp = SeasonalParameter()
+        >>> sp.NDIM = 1
+        >>> sp.shape = (None,)
+
+        When a :class:`SeasonalParameter` object does not contain any
+        toy-value pairs yet, the method :func:`SeasonalParameter.refresh`
+        sets all actual simulation values to zero:
+
+        >>> sp.values = 1.
+        >>> sp.refresh()
+        >>> sp.values[0]
+        0.0
+
+        When there is only one toy-value pair, its values are taken for
+        all actual simulation values:
+
+        >>> sp.toy_1 = 2. # calls refresh automatically
+        >>> sp.values[0]
+        2.0
+
+        Method :func:`SeasonalParameter.refresh` performs a linear
+        interpolation for the central time points of each simulation time
+        step.  Hence, in the following example the original values of the
+        toy-value pairs do not show up:
+
+        >>> sp.toy_12_31 = 4.
+        >>> round(sp.values[0], 6)
+        2.00274
+        >>> round(sp.values[-2], 6)
+        3.99726
+        >>> sp.values[-1]
+        3.0
+
+        If one wants to preserve the original values in this example, one
+        would have to set the corresponding toy instances in the middle of
+        some simulation step intervalls:
+
+        >>> del sp.toy_1
+        >>> del sp.toy_12_31
+        >>> sp.toy_1_1_12 = 2
+        >>> sp.toy_12_31_12 = 4.
+        >>> sp.values[0]
+        2.0
+        >>> round(sp.values[1], 6)
+        2.005479
+        >>> round(sp.values[-2], 6)
+        3.994521
+        >>> sp.values[-1]
+        4.0
+
+        """
+        if len(self) == 0:
+            self.values[:] = 0.
+        elif len(self) == 1:
+            self.values[:] = self._toy2values.values()[0]
+        else:
+            tt = timetools
+            timegrid = tt.Timegrid(tt.TOY._STARTDATE+self.simulationstep/2,
+                                   tt.TOY._ENDDATE+self.simulationstep/2,
+                                   self.simulationstep)
+            for idx, date in enumerate(timegrid):
+                self.values[idx] = self.interp(date)
 
     def interp(self, date):
         """Perform a linear value interpolation for a date defined by the

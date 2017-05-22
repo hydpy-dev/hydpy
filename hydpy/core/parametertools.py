@@ -741,11 +741,29 @@ class ZipParameter(MultiParameter):
 class SeasonalParameter(MultiParameter):
     """Class for the flexible handling of parameters with anual cycles.
 
-    The annual pattern is defined through pairs of
-    :class:`~hydpy.core.timetools.TOY` objects and values (e.g. :class:`float`
-    objects).  One can define them all at once in the following manner:
+    For the following examples, we assume a simulation step size of one day:
 
+    >>> from hydpy.core.timetools import Period
+    >>> SeasonalParameter.simulationstep = Period('1d')
+
+    Next let us prepare a 1-dimensional :class:`SeasonalParameter` instance:
     >>> seasonalparameter = SeasonalParameter()
+    >>> seasonalparameter.NDIM = 1
+
+    To define its shape, the first entry of the assigned :class:`tuple`
+    object is ignored:
+    >>> seasonalparameter.shape = (None,)
+
+    Instead it is derived from the `simulationstep` defined above:
+
+    >>> seasonalparameter.shape
+    (366,)
+
+    The annual pattern of seasonal parameters is defined through pairs of
+    :class:`~hydpy.core.timetools.TOY` objects and different values (e.g.
+    of type :class:`float`).  One can define them all at once in the
+    following manner:
+
     >>> seasonalparameter(_1=2., _7_1=4., _3_1_0_0_0=5.)
 
     Note that, as :class:`str` objects, all keywords in the call above would
@@ -777,6 +795,28 @@ class SeasonalParameter(MultiParameter):
                       toy_3_1_0_0_0=5.0,
                       toy_7_1_0_0_0=4.0)
 
+    On applying function :func:`len` on :class:`SeasonalParameter` objects,
+    the number of toy-value pairs is returned:
+
+    >>> len(seasonalparameter)
+    3
+
+    New values are checked to be compatible predefined shape:
+
+    >>> seasonalparameter.toy_1_1_0_0_0 = [1., 2.]
+    Traceback (most recent call last):
+    ...
+    TypeError: While trying to add a new or change an existing toy-value pair for the seasonal parameter `seasonalparameter` of element `?`, the following error occured: float() argument must be a string or a number
+    >>> seasonalparameter = SeasonalParameter()
+    >>> seasonalparameter.NDIM = 2
+    >>> seasonalparameter.shape = (None, 3)
+    >>> seasonalparameter.toy_1_1_0_0_0 = [1., 2.]
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to add a new or change an existing toy-value pair for the seasonal parameter `seasonalparameter` of element `?`, the following error occured: could not broadcast input array from shape (2) into shape (3)
+    >>> seasonalparameter.toy_1_1_0_0_0 = [1., 2., 3.]
+    >>> seasonalparameter
+    seasonalparameter(toy_1_1_0_0_0=[1.0, 2.0, 3.0])
     """
     def __init__(self):
         MultiParameter.__init__(self)

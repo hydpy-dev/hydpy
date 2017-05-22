@@ -786,6 +786,7 @@ class SeasonalParameter(MultiParameter):
         """The prefered way to pass values to :class:`Parameter` instances
         within parameter control files.
         """
+        self._toy2values.clear()
         if kwargs:
             for (toystr, values) in kwargs.items():
                 try:
@@ -963,7 +964,12 @@ class SeasonalParameter(MultiParameter):
     def __setattr__(self, name, value):
         if name.startswith('toy_'):
             try:
+                if self.NDIM == 1:
+                    value = float(value)
+                else:
+                    value = numpy.full(self.shape[1:], value)
                 self._toy2values[timetools.TOY(name)] = value
+                self.refresh()
             except BaseException:
                 objecttools.augmentexcmessage(
                     'While trying to add a new or change an existing '
@@ -976,6 +982,7 @@ class SeasonalParameter(MultiParameter):
         if name.startswith('toy_'):
             try:
                 del self._toy2values[timetools.TOY(name)]
+                self.refresh()
             except BaseException:
                 objecttools.augmentexcmessage(
                     'While trying to delete an existing toy-value pair for '
@@ -989,6 +996,8 @@ class SeasonalParameter(MultiParameter):
             lines = []
             blanks = ' '*(len(self.name))
             for idx, (toy, value) in enumerate(self):
+                if self.NDIM == 2:
+                    value = list(value)
                 kwarg = '%s=%s' % (str(toy), repr(value))
                 if idx == 0:
                     lines.append('%s(%s' % (self.name, kwarg))

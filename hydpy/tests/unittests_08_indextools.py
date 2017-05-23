@@ -97,3 +97,51 @@ class Test02DayOfYear(unittest.TestCase):
            tuple(list(range(31+28))+list(range(31+28+1, 366)))
            )
         self.assertIs(self.indexer.dayofyear, self.indexer.dayofyear)
+
+class Test03TimeOfYear(unittest.TestCase):
+
+    def setUp(self):
+        self.indexer = indextools.Indexer()
+
+    def tearDown(self):
+        pub.timegrids = None
+
+    def test_01_manual_mode(self):
+        with self.assertRaises(BaseException):
+            self.indexer.timeofyear = 'a'
+        with self.assertRaises(BaseException):
+            self.indexer.timeofyear = ['a', 'b']
+        with self.assertRaises(ValueError):
+            self.indexer.timeofyear = [[1, 2], [3, 4]]
+        self.indexer.timeofyear = [1, 2]
+        self.assertIsInstance(self.indexer.timeofyear, numpy.ndarray)
+        self.assertTupleEqual(tuple(self.indexer.timeofyear), (1, 2))
+        del self.indexer.timeofyear
+        self.assertIsNone(self.indexer._timeofyear)
+        pub.timegrids = timetools.Timegrids(timetools.Timegrid('01.01.2004',
+                                                               '1.01.2005',
+                                                               '1d'))
+        with self.assertRaises(ValueError):
+            self.indexer.timeofyear = [1, 2]
+
+    def test_02_automatic_mode(self):
+        with self.assertRaises(RuntimeError):
+            self.indexer.timeofyear
+        pub.timegrids = timetools.Timegrids(timetools.Timegrid('01.01.2004',
+                                                               '1.01.2005',
+                                                               '1d'))
+        self.assertIsInstance(self.indexer.timeofyear, numpy.ndarray)
+        self.assertEqual(len(self.indexer.timeofyear), 366)
+        self.assertTupleEqual(tuple(self.indexer.timeofyear),
+                              tuple(range(366)))
+        pub.timegrids = timetools.Timegrids(timetools.Timegrid('01.01.2005',
+                                                               '1.01.2006',
+                                                               '1d'))
+        del self.indexer.timeofyear
+        self.assertIsInstance(self.indexer.timeofyear, numpy.ndarray)
+        self.assertEqual(len(self.indexer.timeofyear), 365)
+        self.assertTupleEqual(
+           tuple(self.indexer.timeofyear),
+           tuple(list(range(31+28))+list(range(31+28+1, 366)))
+           )
+        self.assertIs(self.indexer.timeofyear, self.indexer.timeofyear)

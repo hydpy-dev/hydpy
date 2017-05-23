@@ -9,7 +9,7 @@ from __future__ import division, print_function
 from hydpy.core import sequencetools
 
 
-class Q(sequencetools.LinkSequences):
+class Q(sequencetools.LinkSequence):
     """Runoff [m³/s]."""
     NDIM, NUMERIC = 0, False
 

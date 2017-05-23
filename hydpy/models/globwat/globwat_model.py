@@ -34,12 +34,12 @@ def calc_rainfedevaporation_v1(self):
       :class:`~hydpy.models.globwat.globwat_control.NmbGrids`
       :class:`~hydpy.models.globwat.globwat_control.KC`
       :class:`~hydpy.models.globwat.globwat_control.VegetationClass`
-      :class:`~hydpy.models.globwat.globwat_control.Irrigation`
 
     Required derived parameters:
       :class:`~hydpy.models.globwat.globwat_derived.SMax`
       :class:`~hydpy.models.globwat.globwat_derived.SEAv`
       :class:`~hydpy.models.globwat.globwat_derived.MOY`
+      :class:`~hydpy.models.globwat.globwat_derived.Irrigation`
 
     Required input sequence:
       :class:`~hydpy.models.globwat.globwat_inputs.E0`
@@ -68,11 +68,11 @@ def calc_rainfedevaporation_v1(self):
         >>> derived.smax(10., 11., 12.)
         >>> kc.shape = 31, 12
         >>> kc.water[:3] = 1.
-        >>> kc.desert[:3] = .70
+        >>> kc.desert[:3] = .7
         >>> kc.irrcpr[:3] = 1.
         >>> states.fastaccess_old.s = 4., 5., 6.
         >>> derived.moy = [1,2,3]
-        >>> derived.irrigation.update()
+        >>> parameters.update()
         >>> model.idx_sim = 0
         >>> model.calc_rainfedevaporation_v1()
         >>> fluxes.erain
@@ -94,14 +94,12 @@ def calc_rainfedevaporation_v1(self):
     old = self.sequences.states.fastaccess_old
 
     for k in range(con.nmbgrids):
-        if ((con.vegetationclass[k] == WATER) or
-          (der.irrigation[k] == True)):
+        if ((con.vegetationclass[k] == WATER) or (der.irrigation[k] == True)):
             flu.erain[k] = 0.
         elif old.s[k] < der.seav[k]:
             flu.erain[k] = ((con.kc[con.vegetationclass[k]-1, der.moy[self.idx_sim]] * inp.e0[k] * old.s[k]) / der.seav[k])
         else:
             flu.erain[k] = con.kc[con.vegetationclass[k]-1, der.moy[self.idx_sim]] * inp.e0[k]
-
 
 def calc_groundwaterrecharge_v1(self):
     """Calculate the rate of ground water recharge.
@@ -109,6 +107,7 @@ def calc_groundwaterrecharge_v1(self):
     Required control parameters:
       :class:`~hydpy.models.globwat.globwat_control.NmbGrids`
       :class:`~hydpy.models.globwat.globwat_control.Rmax`
+      :class:`~hydpy.models.globwat.globwat_control.VegetationClass`
 
     Required derived parameters:
       :class:`~hydpy.models.globwat.globwat_derived.SMax`
@@ -129,22 +128,23 @@ def calc_groundwaterrecharge_v1(self):
         >>> from hydpy.models.globwat import *
         >>> parameterstep('1d')
         >>> nmbgrids(3)
+        >>> vegetationclass(WATER, DESERT, IRRCPR)
         >>> control.rmax = 3., 3., 3.
         >>> derived.seav(1.5, 2., 2.5)
         >>> derived.smax(10., 11., 12.)
         >>> states.fastaccess_old.s = 4., 5., 6.
         >>> model.calc_groundwaterrecharge_v1()
         >>> states.r
-        r(0.882353, 1.0, 1.105263)
+        r(0.0, 1.0, 1.105263)
 
     Calculating R for the case: S(t-1) < Seav
 
     Examples:
         >>> derived.seav(7., 8., 9.)
-        >>> states.fastaccess_old.s = 4., 5., 6.
+        >>> states.fastaccess_old.s = 4., 10., 6.
         >>> model.calc_groundwaterrecharge_v1()
         >>> states.r
-        r(0.0, 0.0, 0.0)
+        r(0.0, 2.0, 0.0)
     """
 
     con = self.parameters.control.fastaccess
@@ -277,7 +277,7 @@ def calc_irrigatedcropsevaporation_v1(self):
         >>> kc.irrcnpr[:3] = 1.
         >>> inputs.e0(3.)
         >>> derived.moy = [1,2,3]
-        >>> derived.irrigation.update()
+        >>> parameters.update()
         >>> model.idx_sim = 0
         >>> model.calc_irrigatedcropsevaporation_v1()
         >>> fluxes.ec
@@ -591,6 +591,7 @@ class Model(modeltools.Model):
 
         >>> from hydpy.models.globwat import *
         >>> parameterstep('1d')
+        >>> nmbgrids(5)
 
         Do things that are normally done behind the scenes. First, the input
         data shall be available in RAM:
@@ -610,7 +611,6 @@ class Model(modeltools.Model):
         soil and water area as landuse classes, as all other land use classes
         are functionally identical with arable land):
 
-        >>> nmbgrids(5)
         >>> vegetationclass(IRRCNPR, WATER, IRRCPR, RADRYTROP, WATER)
         >>> area(15., 20., 18., 35., 12.)
         >>> scmax(5., 7., 20., 10., 5.)
@@ -641,11 +641,11 @@ class Model(modeltools.Model):
 
         >>> model.doit(0)
         >>> print(round(result[0], 6))
-        ... ALEX
+        0.0
         >>> result[0] = 0.
         >>> model.doit(1)
         >>> print(round(result[0], 6))
-        ... ALEX
+        0.0
 
     """
 

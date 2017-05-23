@@ -72,6 +72,7 @@ def calc_rainfedevaporation_v1(self):
         >>> kc.irrcpr[:3] = 1.
         >>> states.fastaccess_old.s = 4., 5., 6.
         >>> derived.moy = [1,2,3]
+        >>> derived.irrigation.update()
         >>> model.idx_sim = 0
         >>> model.calc_rainfedevaporation_v1()
         >>> fluxes.erain
@@ -270,13 +271,13 @@ def calc_irrigatedcropsevaporation_v1(self):
         >>> parameterstep('1d')
         >>> nmbgrids(3)
         >>> vegetationclass(IRRCPR, RADRYTROP, IRRCNPR)
-        >>> irrigation(1, 0, 1)
         >>> kc.shape = 14, 12
         >>> kc.irrcpr[:3] = 1.
         >>> kc.radrytrop[:3] = .90
         >>> kc.irrcnpr[:3] = 1.
         >>> inputs.e0(3.)
         >>> derived.moy = [1,2,3]
+        >>> derived.irrigation.update()
         >>> model.idx_sim = 0
         >>> model.calc_irrigatedcropsevaporation_v1()
         >>> fluxes.ec
@@ -298,7 +299,7 @@ def calc_irrigatedcropsevaporation_v1(self):
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 The following calculations are for step 2 'horinzontal water balance'
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
+#test
 def calc_openwaterevaporation_v1(self):
     """calculate the evaporation over open water.
 

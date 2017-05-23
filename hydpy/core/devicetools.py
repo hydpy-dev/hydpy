@@ -154,7 +154,7 @@ class Node(Device):
                              'the value `%s` was given, but only the '
                              'following values are allowed: %s.'
                              % (self.name, value,
-                             ', '.join(self.ROUTING_MODES)))
+                                 ', '.join(self.ROUTING_MODES)))
     routingmode = property(_getroutingmode, _setroutingmode)
 
     def getdouble_via_exits(self):
@@ -217,15 +217,13 @@ class Node(Device):
                 % (prefix, self.name, self.variable))
 
 
-
 class Element(Device):
 
     _registry = {}
     _selection = {}
 
     def __new__(cls, value, inlets=None, outlets=None,
-                receivers=None,  senders=None
-                ):
+                receivers=None, senders=None):
         """Returns an already existing :class:`Element` instance or, if such
         an instance does not exist yet, a new newly created one.
         """
@@ -244,8 +242,7 @@ class Element(Device):
         return cls._registry[name]
 
     def __init__(self, name, inlets=None, outlets=None,
-                 receivers=None, senders=None
-                ):
+                 receivers=None, senders=None):
         """Adds the given :class:`~connectiontools.Connections` instances to
         the (old or new) :class:`Element` instance."""
         if inlets is not None:
@@ -365,7 +362,6 @@ class Element(Device):
         return self.assignrepr('')
 
 
-
 class Devices(object):
 
     _contentclass = None
@@ -483,6 +479,7 @@ class Devices(object):
 
     def __dir__(self):
         return objecttools.dir_(self)
+
 
 class Nodes(Devices):
 

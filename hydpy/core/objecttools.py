@@ -169,7 +169,7 @@ def repr_(value):
     '0.333333'
     >>> repr_(2./3.)
     '0.666667'
-    >>> repr(1./2.)
+    >>> repr_(1./2.)
     '0.5'
 
     :func:`repr_` can also be applied on numpy's float types:
@@ -209,6 +209,14 @@ def repr_(value):
         return string
     else:
         return repr(value)
+
+
+def round_(value):
+    """Shortcut for print(repr_(value)).
+
+    See the documentation on function :func:`repr_` for any details.
+    """
+    print(repr_(value))
 
 
 class Options(object):

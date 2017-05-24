@@ -100,8 +100,8 @@ class KG(lland_parameters.MultiParameter):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 class KT(lland_parameters.MultiParameter):
-    """Temperaturkorrekturfaktor (adjustment factor for air temperature)
-    [-]."""
+    """Temperaturkorrektursummand (adjustment summand for air temperature)
+    [°C]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
 class KE(lland_parameters.MultiParameter):

@@ -737,6 +737,327 @@ class ZipParameter(MultiParameter):
                 result = [result]
             return result
 
+
+class SeasonalParameter(MultiParameter):
+    """Class for the flexible handling of parameters with anual cycles.
+
+    For the following examples, we assume a simulation step size of one day:
+
+    >>> from hydpy.core.parametertools import SeasonalParameter
+    >>> from hydpy.core.timetools import Period
+    >>> SeasonalParameter.simulationstep = Period('1d')
+
+    Next let us prepare a 1-dimensional :class:`SeasonalParameter` instance:
+    >>> seasonalparameter = SeasonalParameter()
+    >>> seasonalparameter.NDIM = 1
+
+    To define its shape, the first entry of the assigned :class:`tuple`
+    object is ignored:
+    >>> seasonalparameter.shape = (None,)
+
+    Instead it is derived from the `simulationstep` defined above:
+
+    >>> seasonalparameter.shape
+    (366,)
+
+    The annual pattern of seasonal parameters is defined through pairs of
+    :class:`~hydpy.core.timetools.TOY` objects and different values (e.g.
+    of type :class:`float`).  One can define them all at once in the
+    following manner:
+
+    >>> seasonalparameter(_1=2., _7_1=4., _3_1_0_0_0=5.)
+
+    Note that, as :class:`str` objects, all keywords in the call above would
+    be proper :class:`~hydpy.core.timetools.TOY` initialization arguments.
+    If they are not properly written, the following exception is raised:
+
+    >>> SeasonalParameter()(_a=1.)
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to define parameter `seasonalparameter` of element `?`, the following error occured: While trying to retrieve the month for TOY (time of year) object based on the string `_a`, the following error occured: For TOY (time of year) objects, all properties must be of type `int`, but the value `a` of type `str` given for property `month` cannot be converted to `int`.
+
+    As the following string representation shows, are the pairs of each
+    :class:`SeasonalParameter` instance automatically sorted:
+
+    >>> seasonalparameter
+    seasonalparameter(toy_1_1_0_0_0=2.0,
+                      toy_3_1_0_0_0=5.0,
+                      toy_7_1_0_0_0=4.0)
+
+    By default, `toy` is used as a prefix string.  Using this prefix string,
+    one can change the toy-value pairs via attribute access:
+
+    >>> seasonalparameter.toy_1_1_0_0_0
+    2.0
+    >>> del seasonalparameter.toy_1_1_0_0_0
+    >>> seasonalparameter.toy_2_1_0_0_0 = 2.
+    >>> seasonalparameter
+    seasonalparameter(toy_2_1_0_0_0=2.0,
+                      toy_3_1_0_0_0=5.0,
+                      toy_7_1_0_0_0=4.0)
+
+    On applying function :func:`len` on :class:`SeasonalParameter` objects,
+    the number of toy-value pairs is returned:
+
+    >>> len(seasonalparameter)
+    3
+
+    New values are checked to be compatible predefined shape:
+
+    >>> seasonalparameter.toy_1_1_0_0_0 = [1., 2.]
+    Traceback (most recent call last):
+    ...
+    TypeError: While trying to add a new or change an existing toy-value pair for the seasonal parameter `seasonalparameter` of element `?`, the following error occured: float() argument must be a string or a number...
+    >>> seasonalparameter = SeasonalParameter()
+    >>> seasonalparameter.NDIM = 2
+    >>> seasonalparameter.shape = (None, 3)
+    >>> seasonalparameter.toy_1_1_0_0_0 = [1., 2.]
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to add a new or change an existing toy-value pair for the seasonal parameter `seasonalparameter` of element `?`, the following error occured: could not broadcast input array from shape (2) into shape (3)
+    >>> seasonalparameter.toy_1_1_0_0_0 = [1., 2., 3.]
+    >>> seasonalparameter
+    seasonalparameter(toy_1_1_0_0_0=[1.0, 2.0, 3.0])
+    """
+    def __init__(self):
+        MultiParameter.__init__(self)
+        self._toy2values = {}
+
+    def __call__(self, *args, **kwargs):
+        """The prefered way to pass values to :class:`Parameter` instances
+        within parameter control files.
+        """
+        self._toy2values.clear()
+        if kwargs:
+            for (toystr, values) in kwargs.items():
+                try:
+                    self._toy2values[timetools.TOY(toystr)] = values
+                except BaseException:
+                    objecttools.augmentexcmessage(
+                        'While trying to define parameter `%s` of element '
+                        '`%s`' % (self.name, objecttools.devicename(self)))
+            self.refresh()
+
+
+    def refresh(self):
+        """Update the actual simulation values based on the toy-value pairs.
+
+        Usually, one does not need to call refresh explicitly, as it is
+        called by methods __call__, __setattr__ and __delattr__ automatically,
+        when required.
+
+        Instantiate a 1-dimensional :class:`SeasonalParameter` object:
+
+        >>> from hydpy.core.timetools import Date, Period
+        >>> SeasonalParameter.simulationstep = Period('1d')
+        >>> sp = SeasonalParameter()
+        >>> sp.NDIM = 1
+        >>> sp.shape = (None,)
+
+        When a :class:`SeasonalParameter` object does not contain any
+        toy-value pairs yet, the method :func:`SeasonalParameter.refresh`
+        sets all actual simulation values to zero:
+
+        >>> sp.values = 1.
+        >>> sp.refresh()
+        >>> sp.values[0]
+        0.0
+
+        When there is only one toy-value pair, its values are taken for
+        all actual simulation values:
+
+        >>> sp.toy_1 = 2. # calls refresh automatically
+        >>> sp.values[0]
+        2.0
+
+        Method :func:`SeasonalParameter.refresh` performs a linear
+        interpolation for the central time points of each simulation time
+        step.  Hence, in the following example the original values of the
+        toy-value pairs do not show up:
+
+        >>> sp.toy_12_31 = 4.
+        >>> from hydpy.core.objecttools import round_
+        >>> round_(sp.values[0])
+        2.00274
+        >>> round_(sp.values[-2])
+        3.99726
+        >>> sp.values[-1]
+        3.0
+
+        If one wants to preserve the original values in this example, one
+        would have to set the corresponding toy instances in the middle of
+        some simulation step intervalls:
+
+        >>> del sp.toy_1
+        >>> del sp.toy_12_31
+        >>> sp.toy_1_1_12 = 2
+        >>> sp.toy_12_31_12 = 4.
+        >>> sp.values[0]
+        2.0
+        >>> round_(sp.values[1])
+        2.005479
+        >>> round_(sp.values[-2])
+        3.994521
+        >>> sp.values[-1]
+        4.0
+
+        """
+        if len(self) == 0:
+            self.values[:] = 0.
+        elif len(self) == 1:
+            self.values[:] = list(self._toy2values.values())[0]
+        else:
+            tt = timetools
+            timegrid = tt.Timegrid(tt.TOY._STARTDATE+self.simulationstep/2,
+                                   tt.TOY._ENDDATE+self.simulationstep/2,
+                                   self.simulationstep)
+            for idx, date in enumerate(timegrid):
+                self.values[idx] = self.interp(date)
+
+    def interp(self, date):
+        """Perform a linear value interpolation for a date defined by the
+        passed :class:`~hydpy.core.timetools.Date` object and return the
+        result.
+
+        Instantiate a 1-dimensional :class:`SeasonalParameter` object:
+
+        >>> from hydpy.core.timetools import Date, Period
+        >>> SeasonalParameter.simulationstep = Period('1d')
+        >>> sp = SeasonalParameter()
+        >>> sp.NDIM = 1
+        >>> sp.shape = (None,)
+
+        Define three toy-value pairs:
+        >>> sp(_1=2.0, _2=5.0, _12_31=4.0)
+
+        Passing a :class:`~hydpy.core.timetools.Date` object excatly matching
+        a :class:`~hydpy.core.timetools.TOY` object of course simply returns
+        the associated value:
+
+        >>> sp.interp(Date('2000.01.01'))
+        2.0
+        >>> sp.interp(Date('2000.02.01'))
+        5.0
+        >>> sp.interp(Date('2000.12.31'))
+        4.0
+
+        For all intermediate points, a linear interpolation is performed:
+
+        >>> from hydpy.core.objecttools import round_
+        >>> round_(sp.interp(Date('2000.01.02')))
+        2.096774
+        >>> round_(sp.interp(Date('2000.01.31')))
+        4.903226
+        >>> round_(sp.interp(Date('2000.02.02')))
+        4.997006
+        >>> round_(sp.interp(Date('2000.12.30')))
+        4.002994
+
+        Linear interpolation is also allowed between the first and the
+        last pair, when they do not capture the end points of the year:
+
+        >>> sp(_1_2=2.0, _12_30=4.0)
+        >>> round_(sp.interp(Date('2000.12.29')))
+        3.99449
+        >>> sp.interp(Date('2000.12.30'))
+        4.0
+        >>> round_(sp.interp(Date('2000.12.31')))
+        3.333333
+        >>> round_(sp.interp(Date('2000.01.01')))
+        2.666667
+        >>> sp.interp(Date('2000.01.02'))
+        2.0
+        >>> round_(sp.interp(Date('2000.01.03')))
+        2.00551
+    """
+        xnew = timetools.TOY(date)
+        xys = list(self)
+        for idx, (x1, y1) in enumerate(xys):
+            if x1 > xnew:
+                x0, y0 = xys[idx-1]
+                break
+        else:
+            x0, y0 = xys[-1]
+            x1, y1 = xys[0]
+        return y0+(y1-y0)/(x1-x0)*(xnew-x0)
+
+    def _setshape(self, shape):
+        shape = list(shape)
+        shape[0] = timetools.Period('366d')/self.simulationstep
+        shape[0] = int(numpy.ceil(round(shape[0], 10)))
+        MultiParameter._setshape(self, shape)
+    shape = property(MultiParameter._getshape, _setshape)
+
+    def __iter__(self):
+        for toy in sorted(self._toy2values.keys()):
+            yield (toy, self._toy2values[toy])
+
+    def __getattr__(self, name):
+        if name.startswith('toy_'):
+            try:
+                return self._toy2values[timetools.TOY(name)]
+            except BaseException:
+                objecttools.augmentexcmessage(
+                    'While trying to get an existing toy-value pair for '
+                    'the seasonal parameter `%s` of element `%s`'
+                    % (self.name, objecttools.devicename(self)))
+        else:
+            return MultiParameter.__getattr__(self, name)
+
+    def __setattr__(self, name, value):
+        if name.startswith('toy_'):
+            try:
+                if self.NDIM == 1:
+                    value = float(value)
+                else:
+                    value = numpy.full(self.shape[1:], value)
+                self._toy2values[timetools.TOY(name)] = value
+                self.refresh()
+            except BaseException:
+                objecttools.augmentexcmessage(
+                    'While trying to add a new or change an existing '
+                    'toy-value pair for the seasonal parameter `%s` of '
+                    'element `%s`' % (self.name, objecttools.devicename(self)))
+        else:
+            MultiParameter.__setattr__(self, name, value)
+
+    def __delattr__(self, name):
+        if name.startswith('toy_'):
+            try:
+                del self._toy2values[timetools.TOY(name)]
+                self.refresh()
+            except BaseException:
+                objecttools.augmentexcmessage(
+                    'While trying to delete an existing toy-value pair for '
+                    'the seasonal parameter `%s` of element `%s`'
+                    % (self.name, objecttools.devicename(self)))
+        else:
+            MultiParameter.__delattr__(self, name)
+
+    def __repr__(self):
+        if len(self) > 0:
+            lines = []
+            blanks = ' '*(len(self.name))
+            for idx, (toy, value) in enumerate(self):
+                if self.NDIM == 2:
+                    value = list(value)
+                kwarg = '%s=%s' % (str(toy), repr(value))
+                if idx == 0:
+                    lines.append('%s(%s' % (self.name, kwarg))
+                else:
+                    lines.append('%s %s' % (blanks, kwarg))
+            lines[-1] += ')'
+            return ',\n'.join(lines)
+        else:
+            return self.name+'()'
+
+    def __len__(self):
+        return len(self._toy2values)
+
+    def __dir__(self):
+        return objecttools.dir_(self) + [str(toy) for (toy, value) in self]
+
+
 class KeywordParameter2DType(type):
     """Add the construction of `_ROWCOLMAPPING` to :class:`type`."""
 

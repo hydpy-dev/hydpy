@@ -4,7 +4,6 @@
 # ...from standard library
 from __future__ import division, print_function
 # ...from HydPy
-from hydpy import pub
 from hydpy.core import objecttools
 
 
@@ -27,6 +26,7 @@ class MetaModelType(type):
 
 MetaModelClass = MetaModelType('MetaModelClass', (), {})
 
+
 class Model(MetaModelClass):
     """Base class for all hydrological models."""
 
@@ -42,11 +42,11 @@ class Model(MetaModelClass):
 
     def connect(self):
         """Connect the link sequences of the actual model."""
-        conname_isexit_pairs = (('inlets', True),
-                                ('receivers', True),
-                                ('outlets', False),
-                                ('senders', False))
-        for (conname, isexit) in conname_isexit_pairs:
+        conname_isentry_pairs = (('inlets', True),
+                                 ('receivers', True),
+                                 ('outlets', False),
+                                 ('senders', False))
+        for (conname, isentry) in conname_isentry_pairs:
             nodes = getattr(self.element, conname).slaves
             if len(nodes) == 1:
                 node = nodes[0]
@@ -54,7 +54,7 @@ class Model(MetaModelClass):
                 seq = getattr(links, node.variable.lower(), None)
                 if seq is None:
                     RuntimeError('ToDo')
-                elif isexit:
+                elif isentry:
                     seq.setpointer(node.getdouble_via_exits())
                 else:
                     seq.setpointer(node.getdouble_via_entries())
@@ -137,4 +137,3 @@ class Model(MetaModelClass):
 
     def __dir__(self):
         return objecttools.dir_(self)
-

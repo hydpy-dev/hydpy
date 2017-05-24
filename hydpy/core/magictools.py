@@ -70,7 +70,8 @@ class Tester(object):
                         warnings.filterwarnings('error', module=modulename)
                         warnings.filterwarnings('ignore',
                                                 category=ImportWarning)
-                        doctest.testmod(module, extraglobs={'testing': True})
+                        doctest.testmod(module, extraglobs={'testing': True},
+                                        optionflags=doctest.ELLIPSIS)
                         warnings.resetwarnings()
         finally:
             pub.options.warnsimulationstep = warnsimulationstep

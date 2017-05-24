@@ -102,10 +102,13 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
             suite = unittest.TestSuite()
             try:
                 if name.endswith('.rst'):
-                    suite.addTest(doctest.DocFileSuite(name,
-                                                       module_relative=False))
+                    suite.addTest(
+                        doctest.DocFileSuite(name, module_relative=False,
+                                             optionflags=doctest.ELLIPSIS))
                 else:
-                    suite.addTest(doctest.DocTestSuite(module))
+                    suite.addTest(
+                        doctest.DocTestSuite(module,
+                                             optionflags=doctest.ELLIPSIS))
             except ValueError as exc:
                 if exc.args[-1] != 'has no docstrings':
                     raise(exc)

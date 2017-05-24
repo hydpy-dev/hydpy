@@ -332,7 +332,7 @@ def calc_openwaterevaporation_v1(self):
         >>> fluxes.eow
         eow(0.0, 5.5, 5.5)
         >>> fluxes.ro
-        ro(0.0, 0.5, 0.5)
+        ro(0.0, 0.0, 0.0)
     """
 
     con = self.parameters.control.fastaccess
@@ -402,6 +402,9 @@ def calc_openwaterbalance_v1(self):
     Calculated state sequence:
       :class:`~hydpy.models.globwat.globwat_states.BOW`
 
+    Calculated flux sequence:
+      :class:`~hydpy.models.globwat.globwat_fluxes.RO`
+
     Basic equation:
       :math:`B_{OW} = (P(t) - E_{OW}) \\cdot \\delta t`
 
@@ -417,11 +420,6 @@ def calc_openwaterbalance_v1(self):
         >>> model.calc_openwaterbalance_v1()
         >>> fluxes.ro
         ro(0.0, 0.0, 0.0)
-        >>> fluxes.erain
-        erain(0.0, 3.0, 0.0)
-
-    # >>> fluxes.eincrow
-    # eincrow(0.0, 2.0, 0.0)
 
     Calculating for: BOW >= 0.
 
@@ -430,11 +428,7 @@ def calc_openwaterbalance_v1(self):
         >>> model.calc_openwaterbalance_v1()
         >>> fluxes.ro
         ro(0.0, 2.0, 0.0)
-        >>> fluxes.erain
-        erain(0.0, 3.0, 0.0)
-        >>> fluxes.eincrow
-        eincrow(0.0, 0.0, 0.0)
-    """
+       """
 
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
@@ -450,7 +444,7 @@ def calc_openwaterbalance_v1(self):
 
             else:
                 flu.ro[k] = sta.bow[k]
-#               flu.erain[k] = flu.eow[k]
+#                flu.erain[k] = flu.eow[k]
 #                flu.eincrow[k] = 0.
 
 def calc_subbasinbalance_v1(self):
@@ -508,12 +502,19 @@ def calc_subbasinstorage_v1(self):
     Examples:
         >>> from hydpy.models.globwat import *
         >>> parameterstep('1d')
-        >>> states.fastaccess_old.ssb = 25.
-        >>> states.bsb(1.)
-        >>> states.fastaccess_old.qout = 6.
+        >>> states.ssb.old = 25.
+        >>> states.bsb = 1.
+        >>> states.qout.old = 6.
         >>> model.calc_subbasinstorage_v1()
         >>> states.ssb
         ssb(20.0)
+
+        check for not negative subbasin storage
+
+        >>> states.qout.old = 36.
+        >>> model.calc_subbasinstorage_v1()
+        >>> states.ssb
+        ssb(0.0)
     """
 
     sta = self.sequences.states.fastaccess
@@ -524,6 +525,9 @@ def calc_subbasinstorage_v1(self):
 # Abfrage die den minimalen Speicher auf Null begrenzt!?
 
     sta.ssb = old.ssb + sta.bsb - old.qout
+    if sta.ssb < 0.:
+        sta.ssb = 0.
+
 
 def calc_outflow_v1(self):
     """calculate the (sub-)basin outflow on t.
@@ -605,7 +609,6 @@ class Model(modeltools.Model):
         >>> scmax(5., 7., 20., 10., 5.)
         >>> rtd(.6, .6, .6, .6, .6)
         >>> rmax(9. ,5. ,2. ,3. ,10.)
-        >>> kc.shape = 31, 12
         >>> kc.irrcnpr = 1.
         >>> kc.water = 1.1
         >>> kc.irrcpr = 1.
@@ -618,13 +621,13 @@ class Model(modeltools.Model):
         Set the initial values:
 
         >>> states.fastaccess_old.s = 10., 20., 30., 40., 10.
-        >>> states.qin = 100.
-        >>> states.fastaccess_old.qout = 15., 15., 15., 15., 15.
+        >>> states.qin = 50.
+        >>> states.fastaccess_old.qout = 15.
 
         Set the input values for both simulation time steps:
 
-        >>> inputs.p(3.8, 4.2, 3.6, 7.1, .8)
-        >>> inputs.e0(2.0, 1.5, 1.8, 3.1, 2.2)
+        >>> inputs.p.series = 3.
+        >>> inputs.e0.series = 2.
 
         Check the correctness of the results:
 
@@ -634,8 +637,7 @@ class Model(modeltools.Model):
         >>> result[0] = 0.
         >>> model.doit(1)
         >>> print(round(result[0], 6))
-        0.0
-
+        1.44
     """
 
     _RUNMETHODS = (update_inlets_v1,

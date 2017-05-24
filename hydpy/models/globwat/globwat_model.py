@@ -2,15 +2,8 @@
 """The equations of HydPy-GlobWat model can be differentiated into two
 groups. First the vertical water balance an second the horizontal water balance.
 The vertical water balance ic calculated per grid cell. The horizontal water
-balance is calculated per catchment.
-
-:func:`~Model.precipitation`, and :func:`~Model.potentialevaporation`).
-Secondly, the differential equations are solved in an ad hoc manner (see
-methods :func:`~Model.precipitation`, :func:`~Model.interception`,
-:func:`~Model.snow`, :func:`~Model.glacier`, :func:`~Model.soil`,
-:func:`~Model.upperzonelayer`, and :func:`~Model.lowerzonelayer`).
-Thirdly, the simulated output runoff is modified (see methods
-:func:`~Model.convolution` and :func:`~Model.abstraction`).
+balance is calculated per catchment. This models is primarily developt to
+calculate the evaporation.
 """
 
 # imports...
@@ -67,7 +60,7 @@ def calc_rainfedevaporation_v1(self):
         >>> derived.seav(1.5, 2., 2.5)
         >>> derived.smax(10., 11., 12.)
         >>> kc.shape = 31, 12
-        >>> kc.water[:3] = 1.
+        >>> kc.water[:3] = 1.1
         >>> kc.desert[:3] = .7
         >>> kc.irrcpr[:3] = 1.
         >>> states.fastaccess_old.s = 4., 5., 6.
@@ -167,6 +160,7 @@ def calc_changeinstorage_v1(self):
     Required control parameters:
       :class:`~hydpy.models.globwat.globwat_control.NmbGrids`
       :class:`~hydpy.models.globwat.globwat_control.VegetationClass`
+      :class:`~hydpy.models.globwat.globwat_control.ROFactor`
 
     Required derived parameter:
       :class:`~hydpy.models.globwat.globwat_derived.SMax`
@@ -196,8 +190,7 @@ def calc_changeinstorage_v1(self):
         >>> from hydpy.models.globwat import *
         >>> parameterstep('1d')
         >>> nmbgrids(3)
-        >>> vegetationclass(WATER,FOREST,DESERT)
-        >>> control.rofactor(.05)
+        >>> vegetationclass(WATER, FOREST, DESERT)
         >>> derived.smax(4.25, 4.25, 4.25)
         >>> states.s.old = 1., 2., 3.
         >>> states.s.new = 5., 6., 7.
@@ -299,7 +292,7 @@ def calc_irrigatedcropsevaporation_v1(self):
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 The following calculations are for step 2 'horinzontal water balance'
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-#test
+
 def calc_openwaterevaporation_v1(self):
     """calculate the evaporation over open water.
 
@@ -334,7 +327,6 @@ def calc_openwaterevaporation_v1(self):
         >>> kc(1.1)
         >>> inputs.e0 = 5.
         >>> inputs.p = 10.
-        >>> control.rofactor(.05)
         >>> derived.moy = [1,2,3]
         >>> model.idx_sim = 0
         >>> model.calc_openwaterevaporation_v1()
@@ -496,6 +488,8 @@ def calc_subbasinbalance_v1(self):
     sta = self.sequences.states.fastaccess
     inp = self.sequences.inputs.fastaccess
 
+# hier aufpassen, es können negative Werte entstehen, wenn die Verdunstung hoch
+# und Qin sowie Niederschlag gering sind
     sta.bsb = sta.qin + sum(inp.p) - sum(flu.egrid)
 
 def calc_subbasinstorage_v1(self):
@@ -526,6 +520,10 @@ def calc_subbasinstorage_v1(self):
     sta = self.sequences.states.fastaccess
     old = self.sequences.states.fastaccess_old
 
+# äquivalent dazu kann bei langen Zeitreihen der Speicher des Gebiets irgendwann
+# ebenfalls negativ werden --> physikalisch nicht möglich
+# Abfrage die den minimalen Speicher auf Null begrenzt!?
+
     sta.ssb = old.ssb + sta.bsb - old.qout
 
 def calc_outflow_v1(self):
@@ -547,7 +545,6 @@ def calc_outflow_v1(self):
         >>> from hydpy.models.globwat import *
         >>> parameterstep('1d')
         >>> states.ssb(20.)
-        >>> control.f(.3)
         >>> model.calc_outflow_v1()
         >>> states.qout
         qout(6.0)
@@ -557,13 +554,6 @@ def calc_outflow_v1(self):
     con = self.parameters.control.fastaccess
 
     sta.qout = sta.ssb * con.f
-
-#def calc_q_v1(self):
-#    """transform state qout in to flux q"""
-#    flu = self.sequences.fluxes.fastaccess
-#    sta = self.sequences.states.fastaccess
-#
-#    flu.q = sta.qout
 
 def update_inlets_v1(self):
     """Update the inlet link sequence."""
@@ -582,7 +572,7 @@ class Model(modeltools.Model):
 
      Integration Test:
 
-        The only two simulation steps are in January:
+        The only two simulation steps are in august:
 
         >>> from hydpy import pub, Timegrid, Timegrids
         >>> pub.timegrids = Timegrids(Timegrid('01.08.2000', '03.08.2000', '1d'))
@@ -622,15 +612,15 @@ class Model(modeltools.Model):
         >>> kc.irrcpr = 1.
         >>> kc.radrytrop = .9
 
-
         Update the values of all derived parameters:
 
         >>> model.parameters.update()
 
         Set the initial values:
 
-        >>> states.fastaccess_old.s = 10, 20, 30, 40, 10
+        >>> states.fastaccess_old.s = 10., 20., 30., 40., 10.
         >>> states.qin = 100.
+        >>> states.fastaccess_old.qout = 15., 15., 15., 15., 15.
 
         Set the input values for both simulation time steps:
 
@@ -659,6 +649,5 @@ class Model(modeltools.Model):
                    calc_gridevaporation_v1,
                    calc_subbasinbalance_v1,
                    calc_subbasinstorage_v1,
-#                   calc_q_v1,
                    calc_outflow_v1,
                    update_outlets_v1)

@@ -247,7 +247,7 @@ class Parameter(objecttools.ValueMath):
             raise RuntimeError('Something has gone wrong when trying to '
                                'read parameter `%s` from file `%s`.'
                                % (self.name, pyfile))
-        filetools.ControlFileManager.read2dict(pyfile, subnamespace)
+        filetools.ControlManager.read2dict(pyfile, subnamespace)
         try:
             subself = subnamespace[self.name]
         except KeyError:

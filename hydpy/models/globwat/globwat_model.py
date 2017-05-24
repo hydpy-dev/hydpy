@@ -264,14 +264,12 @@ def calc_irrigatedcropsevaporation_v1(self):
         >>> parameterstep('1d')
         >>> nmbgrids(3)
         >>> vegetationclass(IRRCPR, RADRYTROP, IRRCNPR)
-        >>> kc.shape = 14, 12
         >>> kc.irrcpr[:3] = 1.
         >>> kc.radrytrop[:3] = .90
         >>> kc.irrcnpr[:3] = 1.
         >>> derived.irrigation.update()
         >>> inputs.e0(3.)
         >>> derived.moy = [1,2,3]
-        >>> parameters.update()
         >>> model.idx_sim = 0
         >>> model.calc_irrigatedcropsevaporation_v1()
         >>> fluxes.ec
@@ -421,8 +419,9 @@ def calc_openwaterbalance_v1(self):
         ro(0.0, 0.0, 0.0)
         >>> fluxes.erain
         erain(0.0, 3.0, 0.0)
-        >>> fluxes.eincrow
-        eincrow(0.0, 2.0, 0.0)
+
+    # >>> fluxes.eincrow
+    # eincrow(0.0, 2.0, 0.0)
 
     Calculating for: BOW >= 0.
 
@@ -447,13 +446,12 @@ def calc_openwaterbalance_v1(self):
             sta.bow[k] = inp.p[k] - flu.eow[k]
             if sta.bow[k] < 0.:
                 flu.ro[k] = 0.
-                flu.erain[k] = inp.p[k]
-                flu.eincrow[k] = (-1 * sta.bow[k])
+#                flu.eincrow[k] = (-1 * sta.bow[k])
 
             else:
                 flu.ro[k] = sta.bow[k]
-                flu.erain[k] = flu.eow[k]
-                flu.eincrow[k] = 0.
+#               flu.erain[k] = flu.eow[k]
+#                flu.eincrow[k] = 0.
 
 def calc_subbasinbalance_v1(self):
     """calculate the (sub-)basin water balance on t.

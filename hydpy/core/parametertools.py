@@ -729,7 +729,8 @@ class ZipParameter(MultiParameter):
                     unique = self.reverttimefactor(unique)
                     if len(unique) == 1:
                         results.append('%s=%s'
-                                       % (key.lower(), repr(unique[0])))
+                                       % (key.lower(),
+                                          objecttools.repr_(unique[0])))
                     elif len(unique) > 1:
                         raise exc
             result = ', '.join(sorted(results))

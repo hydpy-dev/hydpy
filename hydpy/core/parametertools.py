@@ -260,14 +260,14 @@ class Parameter(objecttools.ValueMath):
         """The parameter time step size new parameter values might be related
         to.
         """
-        if self._parameterstep is None:
+        if Parameter._parameterstep is None:
             raise RuntimeError('The general parameter time step has not been '
                                'defined so far.')
         else:
             return self._parameterstep
     def _setparameterstep(self, value):
         try:
-            self._parameterstep = timetools.Period(value)
+            Parameter._parameterstep = timetools.Period(value)
         except Exception:
             objecttools.augmentexcmessage('While trying to set the general '
                                           'parameter time step')
@@ -280,8 +280,14 @@ class Parameter(objecttools.ValueMath):
         try:
             return pub.timegrids.stepsize
         except AttributeError:
-            return self._simulationstep
-    simulationstep = property(_getsimulationstep)
+            return Parameter._simulationstep
+    def _setsimulationstep(self, value):
+        try:
+            Parameter._simulationstep = timetools.Period(value)
+        except Exception:
+            objecttools.augmentexcmessage('While trying to set the general '
+                                          'simulation time step')
+    simulationstep = property(_getsimulationstep, _setsimulationstep)
 
     def _gettimefactor(self):
         """Factor to adapt a new parameter value related to

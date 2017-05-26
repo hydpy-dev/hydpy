@@ -748,15 +748,15 @@ class ZipParameter(MultiParameter):
 class SeasonalParameter(MultiParameter):
     """Class for the flexible handling of parameters with anual cycles.
 
-    For the following examples, we assume a simulation step size of one day:
-
+    Let us prepare a 1-dimensional :class:`SeasonalParameter` instance:
     >>> from hydpy.core.parametertools import SeasonalParameter
-    >>> from hydpy.core.timetools import Period
-    >>> SeasonalParameter.simulationstep = Period('1d')
-
-    Next let us prepare a 1-dimensional :class:`SeasonalParameter` instance:
     >>> seasonalparameter = SeasonalParameter()
     >>> seasonalparameter.NDIM = 1
+
+    For the following examples, we assume a simulation step size of one day:
+
+    >>> from hydpy.core.timetools import Period
+    >>> seasonalparameter.simulationstep = Period('1d')
 
     To define its shape, the first entry of the assigned :class:`tuple`
     object is ignored:

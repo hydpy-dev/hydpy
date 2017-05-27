@@ -17,6 +17,7 @@ from hydpy.cythons.modelutils import Cythonizer
 from hydpy.models.llake.llake_parameters import Parameters
 from hydpy.models.llake.llake_control import ControlParameters
 from hydpy.models.llake.llake_sequences import Sequences
+from hydpy.models.llake.llake_states import StateSequences
 from hydpy.models.llake.llake_model import Model
 
 tester = Tester()

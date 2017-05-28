@@ -55,7 +55,7 @@ class HydPy(object):
         self.updatedevices(pub.selections.complete)
 
     def initmodels(self):
-        warn = magictools.simulationstep.warn
+        warn = pub.options.warnsimulationstep
         magictools.simulationstep.warn = False
         try:
             for (name, element) in self.elements:
@@ -63,7 +63,7 @@ class HydPy(object):
                 element.model.parameters.update()
                 element.model.connect()
         finally:
-            magictools.simulationstep.warn = warn
+            pub.options.warnsimulationstep = warn
 
     def savecontrols(self, controldirectory=None, projectdirectory=None,
                      parameterstep=None, simulationstep=None):

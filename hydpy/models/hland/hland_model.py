@@ -2239,4 +2239,5 @@ class Model(modeltools.Model):
                    calc_q1_lz_v1,
                    calc_inuh_v1,
                    calc_outuh_quh_v1,
-                   calc_qt_v1)
+                   calc_qt_v1,
+                   update_outlets_v1)

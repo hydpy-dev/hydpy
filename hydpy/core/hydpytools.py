@@ -56,7 +56,7 @@ class HydPy(object):
 
     def initmodels(self):
         warn = pub.options.warnsimulationstep
-        magictools.simulationstep.warn = False
+        pub.options.warnsimulationstep = False
         try:
             for (name, element) in self.elements:
                 element.initmodel()

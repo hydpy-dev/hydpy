@@ -637,9 +637,13 @@ class PyxWriter(object):
     def run(self):
         lines = Lines()
         lines.add(1 ,'cpdef inline void run(self):')
+        anything = False
         for method in self.model._RUNMETHODS:
             if not method.__name__.startswith('update_'):
                 lines.add(2, 'self.%s()' % method.__name__)
+                anything = True
+        if not anything:
+            lines.add(2, 'pass')
         return lines
 
     @property

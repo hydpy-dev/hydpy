@@ -1206,6 +1206,7 @@ class LinkSequence(Sequence):
             except AttributeError:
                 self.fastaccess.dealloc()
                 self.fastaccess.alloc(self.name, shape)
+            setattr(self.fastaccess, 'len_'+self.name, self.shape[0])
     shape = property(_getshape, _setshape)
 
 

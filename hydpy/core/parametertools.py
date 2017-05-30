@@ -42,14 +42,15 @@ class Parameters(object):
 
     def update(self):
         """Calls the update methods of all derived parameters."""
-        for par in self.derived._PARCLASSES:
-            name = objecttools.instancename(par)
-            try:
-                self.derived.__dict__[name].update()
-            except BaseException:
-                objecttools.augmentexcmessage(
-                    'While trying to update the derived parameter `%s` of '
-                    'element `%s`' % (name, objecttools.devicename(self)))
+        if self.derived:
+            for par in self.derived._PARCLASSES:
+                name = objecttools.instancename(par)
+                try:
+                    self.derived.__dict__[name].update()
+                except BaseException:
+                    objecttools.augmentexcmessage(
+                        'While trying to update the derived parameter `%s` of '
+                        'element `%s`' % (name, objecttools.devicename(self)))
 
     def savecontrols(self, parameterstep=None, simulationstep=None,
                      filename=None, dirname=None):

@@ -13,7 +13,8 @@ from hydpy.models.lstream import lstream_derived
 from hydpy.models.lstream import lstream_fluxes
 from hydpy.models.lstream import lstream_states
 from hydpy.models.lstream import lstream_aides
-from hydpy.models.lstream import lstream_links
+from hydpy.models.lstream import lstream_inlets
+from hydpy.models.lstream import lstream_outlets
 from hydpy.models.lstream.lstream_parameters import Parameters
 from hydpy.models.lstream.lstream_sequences import Sequences
 # Load the required `magic` functions into the local namespace.
@@ -32,11 +33,12 @@ class Model(modeltools.Model):
         >>> parameterstep('1d')
         >>> simulationstep('12h')
 
-        Secondly, the final model output shall be passed to `result`:
+        Secondly, the final model output shall be passed to `outflow`:
 
         >>> from hydpy.cythons.pointer import Double
         >>> inflow, outflow = Double(0.), Double(0.)
-        >>> inlets.q.setpointer(inflow)
+        >>> inlets.q.shape = 1
+        >>> inlets.q.setpointer(inflow, 0)
         >>> outlets.q.setpointer(outflow)
 
         Define the geometry and roughness values for the first test channel:
@@ -156,11 +158,11 @@ class AideSequences(sequencetools.AideSequences):
 
 class InletSequences(sequencetools.LinkSequences):
     """Upstream link sequences of LARSIM-ME-Stream."""
-    _SEQCLASSES = (lstream_links.Q,)
+    _SEQCLASSES = (lstream_inlets.Q,)
 
 class OutletSequences(sequencetools.LinkSequences):
     """Downstream link sequences of LARSIM-ME-Stream."""
-    _SEQCLASSES = (lstream_links.Q,)
+    _SEQCLASSES = (lstream_outlets.Q,)
 
 tester = Tester()
 cythonizer = Cythonizer()

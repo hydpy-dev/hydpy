@@ -21,7 +21,8 @@ from hydpy.models.lstream.lstream_sequences import Sequences
 from hydpy.models.lstream.lstream_fluxes import FluxSequences
 from hydpy.models.lstream.lstream_states import StateSequences
 from hydpy.models.lstream.lstream_aides import AideSequences
-from hydpy.models.lstream.lstream_links import InletSequences, OutletSequences
+from hydpy.models.lstream.lstream_inlets import InletSequences
+from hydpy.models.lstream.lstream_outlets import OutletSequences
 from hydpy.models.lstream.lstream_model import Model
 
 tester = Tester()

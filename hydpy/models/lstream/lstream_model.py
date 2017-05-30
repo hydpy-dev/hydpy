@@ -939,7 +939,9 @@ def update_inlets_v1(self):
     """Update inflow."""
     sta = self.sequences.states.fastaccess
     inl = self.sequences.inlets.fastaccess
-    sta.qz = inl.q[0]
+    sta.qz = 0.
+    for idx in range(inl.len_q):
+        sta.qz += inl.q[idx][0]
 
 def update_outlets_v1(self):
     """Update outflow."""

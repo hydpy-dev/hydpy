@@ -327,6 +327,7 @@ class PyxWriter(object):
                         lines.add(1, 'cdef double *%s' % name2)
                     elif seq.NDIM == 1:
                         lines.add(1, 'cdef double **%s' % name2)
+                        lines.add(1, 'cdef public int len_%s' % name2)
                 else:
                     lines.add(1, 'cdef public %s %s' % (ctype, name2))
                 lines.add(1, 'cdef public int _%s_ndim' % name2)

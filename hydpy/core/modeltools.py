@@ -42,46 +42,56 @@ class Model(MetaModelClass):
 
     def connect(self):
         """Connect the link sequences of the actual model."""
-        conname_isentry_pairs = (('inlets', True),
-                                 ('receivers', True),
-                                 ('outlets', False),
-                                 ('senders', False))
-        for (conname, isentry) in conname_isentry_pairs:
-            nodes = getattr(self.element, conname).slaves
-            if len(nodes) == 1:
-                node = nodes[0]
-                links = getattr(self.sequences, conname)
-                seq = getattr(links, node.variable.lower(), None)
-                if seq is None:
-                    RuntimeError('ToDo')
-                elif isentry:
-                    seq.setpointer(node.getdouble_via_exits())
-                else:
-                    seq.setpointer(node.getdouble_via_entries())
+        try:
+            for group in ('inlets', 'receivers', 'outlets', 'senders'):
+                self._connect_subgroup(group)
+        except BaseException:
+            objecttools.augmentexcmessage(
+                'While trying to build the node connection of the `%s` '
+                'sequences of the model handled by element `%s`'
+                % (group[:-1],  objecttools.devicename(self)))
+
+    def _connect_subgroup(self, group):
+        isentry = group in ('inlets', 'receivers')
+        available_nodes = getattr(self.element, group).slaves
+        links = getattr(self.sequences, group, ())
+        applied_nodes = []
+        for (name, seq) in links:
+            selected_nodes = [node for node in available_nodes
+                              if node.variable.lower() == name]
+            if isentry:
+                selected_doubles = [node.getdouble_via_exits()
+                                    for node in selected_nodes]
             else:
-                NotImplementedError('ToDo')
-#        nodes = self.element.inlets.slaves
-#        if len(nodes) == 1:
-#            node = nodes[0]
-#            seq = getattr(self.sequences.inlets, node.variable.lower(), None)
-#            if seq is None:
-#                RuntimeError('ToDo')
-#            else:
-#                seq.setpointer(node.getdouble_via_exits())
-#        else:
-#            NotImplementedError('ToDo')
-#        nodes = self.element.outlets.slaves
-#        if not nodes:
-#            RuntimeError('ToDo')
-#        elif len(nodes) == 1:
-#            node = nodes[0]
-#            seq = getattr(self.sequences.outlets, node.variable.lower(), None)
-#            if seq is None:
-#                RuntimeError('ToDo')
-#            else:
-#                seq.setpointer(node.getdouble_via_entries())
-#        else:
-#            NotImplementedError('ToDo')
+                selected_doubles = [node.getdouble_via_entries()
+                                    for node in selected_nodes]
+            if seq.NDIM == 0:
+                if len(selected_nodes) == 1:
+                    applied_nodes.append(selected_nodes[0])
+                    seq.setpointer(selected_doubles[0])
+                elif len(selected_nodes) == 0:
+                    raise RuntimeError('Sequence `%s` cannot be connected, '
+                                       'as no node is available which is '
+                                       'handling the variable `%s`.'
+                                       % (name, seq.name.upper()))
+                else:
+                    raise RuntimeError('Sequence `%s` cannot be connected, '
+                                       'as it is 0-dimensional but multiple '
+                                       'nodes are available which are '
+                                       'handling variable `%s`.'
+                                       % (name, seq.name.upper()))
+            elif seq.NDIM == 1:
+                seq.shape = len(selected_nodes)
+                zipped = zip(selected_nodes, selected_doubles)
+                for idx, (node, double) in enumerate(zipped):
+                    applied_nodes.append(node)
+                    seq.setpointer(double, idx)
+        if len(applied_nodes) < len(available_nodes):
+            remaining_nodes = [node.name for node in available_nodes
+                               if node not in applied_nodes]
+            raise RuntimeError('The following nodes have not been connected '
+                               'to any sequences: `%s`.'
+                               % ', '.join(remaining_nodes))
 
     def doit(self, idx):
         self.idx_sim = idx

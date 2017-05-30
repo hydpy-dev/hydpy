@@ -11,7 +11,7 @@ class Nied(sequencetools.InputSequence):
     """Niederschlag (precipitation) [mm]."""
     NDIM, NUMERIC = 0, False
 
-class TemL(sequencetools.FluxSequence):
+class TemL(sequencetools.InputSequence):
     """Lufttemperatur (air temperature) [°C]."""
     NDIM, NUMERIC = 0, False
 

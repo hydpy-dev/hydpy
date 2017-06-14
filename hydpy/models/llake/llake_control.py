@@ -82,9 +82,9 @@ class Q(parametertools.SeasonalParameter):
     NDIM, TYPE, TIME, SPAN = 2, float, None, (0., None)
 
 
-class MaxDW(parametertools.SingleParameter):
+class MaxDW(parametertools.SeasonalParameter):
     """Maximale Absenkgeschwindigkeit (maximum drop in water level) [m/T]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, True, (0., None)
+    NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
 
 
 class Verzw(parametertools.SeasonalParameter):

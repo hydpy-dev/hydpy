@@ -8,6 +8,7 @@ import sys
 # ...from site-packages
 import numpy
 # ...from HydPy
+from hydpy.cythons import pointer
 #from hydpy.pub import ... (actual import commands moved to
 # different functions below to avoid circular dependencies)
 
@@ -197,6 +198,8 @@ def repr_(value):
 
     """
     from hydpy.pub import options
+    if isinstance(value, (pointer.Double, pointer.PDouble)):
+        value = float(value)
     if isinstance(value, str):
         return value
     elif ((options.reprdigits is not None) and

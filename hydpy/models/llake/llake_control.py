@@ -22,6 +22,7 @@ class N(parametertools.SingleParameter):
 
         >>> from hydpy.models.llake import *
         >>> parameterstep('1d')
+        >>> simulationstep('12h')
         >>> n(5)
 
         For "simple" 1-dimensional parameters, the shape depends on the
@@ -32,18 +33,12 @@ class N(parametertools.SingleParameter):
 
         For time varying parameters (derived from
         :class:`~hydpy.core.parametertools.SeasonalParameter), it also depends
-        on the defined number of dates:
+        on the defined number simulation steps per leap year:
 
         >>> verzw.shape
-        >>> (0, )
-        >>> verzw..toy_7 = 3.
-        >>> verzw.shape
-        >>> (1, )
+        (732,)
         >>> q.shape
-        (0, 5)
-        >>> q.toy_7 = 3.
-        >>> q.shape
-        (1, 5)
+        (732, 5)
     """
     NDIM, TYPE, TIME, SPAN = 0, int, None, (2, None)
 

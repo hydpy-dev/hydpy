@@ -55,7 +55,9 @@ class N(parametertools.SingleParameter):
         parametertools.SingleParameter.__call__(self, *args, **kwargs)
         for (_name, subpars) in self.subpars.pars.model.parameters:
             for (name, par) in subpars:
-                if par.NDIM == 1:
+                if name == 'toy':
+                    continue
+                elif par.NDIM == 1:
                     if isinstance(par, parametertools.SeasonalParameter):
                         par.shape = (0,)
                     else:

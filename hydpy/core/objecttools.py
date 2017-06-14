@@ -214,12 +214,12 @@ def repr_(value):
         return repr(value)
 
 
-def round_(value):
-    """Shortcut for print(repr_(value)).
+def round_(value, rjust=0, **kwargs):
+    """Shortcut for print(repr_(value), **kwargs).
 
     See the documentation on function :func:`repr_` for any details.
     """
-    print(repr_(value))
+    print(repr_(value).rjust(rjust), **kwargs)
 
 
 class Options(object):

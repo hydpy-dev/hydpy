@@ -45,7 +45,7 @@ class N(parametertools.SingleParameter):
         >>> q.shape
         (1, 5)
     """
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (0., None)
+    NDIM, TYPE, TIME, SPAN = 0, int, None, (2, None)
 
     def __call__(self, *args, **kwargs):
         """The prefered way to pass a value to :class:`N` instances

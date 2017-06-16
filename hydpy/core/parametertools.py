@@ -862,9 +862,9 @@ class SeasonalParameter(MultiParameter):
 
         Instantiate a 1-dimensional :class:`SeasonalParameter` object:
 
-        >>> from hydpy.core.timetools import Date, Period
-        >>> SeasonalParameter.simulationstep = Period('1d')
         >>> sp = SeasonalParameter()
+        >>> from hydpy.core.timetools import Period
+        >>> sp.simulationstep = Period('1d')
         >>> sp.NDIM = 1
         >>> sp.shape = (None,)
 
@@ -937,9 +937,9 @@ class SeasonalParameter(MultiParameter):
 
         Instantiate a 1-dimensional :class:`SeasonalParameter` object:
 
-        >>> from hydpy.core.timetools import Date, Period
-        >>> SeasonalParameter.simulationstep = Period('1d')
         >>> sp = SeasonalParameter()
+        >>> from hydpy.core.timetools import Date, Period
+        >>> sp.simulationstep = Period('1d')
         >>> sp.NDIM = 1
         >>> sp.shape = (None,)
 
@@ -989,9 +989,9 @@ class SeasonalParameter(MultiParameter):
         The following example briefly shows interpolation performed for
         2-dimensional parameter:
 
-        >>> from hydpy.core.timetools import Date, Period
-        >>> SeasonalParameter.simulationstep = Period('1d')
         >>> sp = SeasonalParameter()
+        >>> from hydpy.core.timetools import Date, Period
+        >>> sp.simulationstep = Period('1d')
         >>> sp.NDIM = 2
         >>> sp.shape = (None, 2)
         >>> sp(_1_1=[1., 2.], _1_3=[-3, 0.])

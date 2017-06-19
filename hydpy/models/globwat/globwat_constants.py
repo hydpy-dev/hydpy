@@ -6,20 +6,6 @@ and some sequences (e.g. the actual interception storage
 :class:`~hydpy.models.globwat.globwat_states.Ic`) are 1-dimensional. Each entry
 represents the value of a grid zone.
 
-#In contrasts to the original HBV96 model, the HydPy-H-Land model allows for
-#arbitrary definitions of zones.  Nevertheless, the original distinction
-#in accordance with four different zone types is still supported.  The
-#parameter :class:`~hydpy.models.hland.hland_control.ZoneType` defines,
-#which entry of e.g. :class:`~hydpy.models.hland.hland_control.IcMax` is
-#related to which zone type via integer values.  Note that for zones of
-#type `field` and `forest`, the same equations are applied. (Usually,
-#larger :class:`~hydpy.models.hland.hland_control.IcMax` values and smaller
-#:class:`~hydpy.models.hland.hland_control.CFMax` are assigned to `forest`
-#zones due to their higher leaf area index and the associated decrease in
-#solar radiation.) On the contrary, zones of type `glacier` and `ilake` are
-#partly connected to different process equations.
-
-
 For comprehensibility, this module introduces the relevant integer constants.
 Through performing a wildcard import
 
@@ -57,40 +43,40 @@ IRRCPR = 12
 """Constant for the vegetation class `irrigated crops: paddy rice`."""
 IRRCNPR = 13
 """Constant for the vegetation class `irrigated crops: other than paddy rice`."""
-#IRR_GER = 14
-#"""Constant for the vegetation class `irrigation germany`."""
-#IRR_CZE = 15
-#"""Constant for the vegetation class `irrigation czech republic`."""
-#IRR_AUT = 16
-#"""Constant for the vegetation class `irrigation austria`."""
-#IRR_POL = 17
-#"""Constant for the vegetation class `irrigation poland`."""
-#IRR_HUN = 18
-#"""Constant for the vegetation class `irrigation hungary`."""
-#IRR_SUI = 19
-#"""Constant for the vegetation class `irrigation switzerland`."""
-#IRR_ITA = 20
-#"""Constant for the vegetation class `irrigation italy`."""
-#IRR_SLO = 21
-#"""Constant for the vegetation class `irrigation slovenia`."""
-#IRR_CRO = 22
-#"""Constant for the vegetation class `irrigation croatia`."""
-#IRR_BYH = 23
-#"""Constant for the vegetation class `irrigation bosnia and herzegovina`."""
-#IRR_ALB = 24
-#"""Constant for the vegetation class `irrigation albania`."""
-#IRR_SER = 25
-#"""Constant for the vegetation class `irrigation serbia`."""
-#IRR_SLV = 26
-#"""Constant for the vegetation class `irrigation slovakia`."""
-#IRR_UKR = 27
-#"""Constant for the vegetation class `irrigation ukraine`."""
-#IRR_BUL = 28
-#"""Constant for the vegetation class `irrigation bulgaria`."""
-#IRR_ROM = 29
-#"""Constant for the vegetation class `irrigation romania`."""
-#IRR_MLD = 30
-#"""Constant for the vegetation class `irrigation moldovia`."""
+IRR_GER = 14
+"""Constant for the vegetation class `irrigation germany`."""
+IRR_CZE = 15
+"""Constant for the vegetation class `irrigation czech republic`."""
+IRR_AUT = 16
+"""Constant for the vegetation class `irrigation austria`."""
+IRR_POL = 17
+"""Constant for the vegetation class `irrigation poland`."""
+IRR_HUN = 18
+"""Constant for the vegetation class `irrigation hungary`."""
+IRR_SUI = 19
+"""Constant for the vegetation class `irrigation switzerland`."""
+IRR_ITA = 20
+"""Constant for the vegetation class `irrigation italy`."""
+IRR_SLO = 21
+"""Constant for the vegetation class `irrigation slovenia`."""
+IRR_CRO = 22
+"""Constant for the vegetation class `irrigation croatia`."""
+IRR_BYH = 23
+"""Constant for the vegetation class `irrigation bosnia and herzegovina`."""
+IRR_ALB = 24
+"""Constant for the vegetation class `irrigation albania`."""
+IRR_SER = 25
+"""Constant for the vegetation class `irrigation serbia`."""
+IRR_SLV = 26
+"""Constant for the vegetation class `irrigation slovakia`."""
+IRR_UKR = 27
+"""Constant for the vegetation class `irrigation ukraine`."""
+IRR_BUL = 28
+"""Constant for the vegetation class `irrigation bulgaria`."""
+IRR_ROM = 29
+"""Constant for the vegetation class `irrigation romania`."""
+IRR_MLD = 30
+"""Constant for the vegetation class `irrigation moldovia`."""
 OTHER = 99
 """Constant for the vegetation class `other`."""
 CONSTANTS = {key: value for key, value in locals().items()

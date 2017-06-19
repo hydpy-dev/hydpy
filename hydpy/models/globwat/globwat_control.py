@@ -97,17 +97,9 @@ class RMax(parametertools.MultiParameter):
     """maximum groundwater recharge flux [mm/day]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
-#class CIc(parametertools.MultiParameter):
-#    """cropping intensity [-]."""
-#    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
-
 class Area(parametertools.MultiParameter):
     """area per grid cell [km²]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
-
-#class IrrA(parametertools.MultiParameter):
-#    """irrigated area [km²]."""
-#    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 class KC(globwat_parameters.LanduseMonthParameter):
     """crop or landuse factor [-]."""

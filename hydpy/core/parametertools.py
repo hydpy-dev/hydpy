@@ -42,14 +42,15 @@ class Parameters(object):
 
     def update(self):
         """Calls the update methods of all derived parameters."""
-        for par in self.derived._PARCLASSES:
-            name = objecttools.instancename(par)
-            try:
-                self.derived.__dict__[name].update()
-            except BaseException:
-                objecttools.augmentexcmessage(
-                    'While trying to update the derived parameter `%s` of '
-                    'element `%s`' % (name, objecttools.devicename(self)))
+        if self.derived:
+            for par in self.derived._PARCLASSES:
+                name = objecttools.instancename(par)
+                try:
+                    self.derived.__dict__[name].update()
+                except BaseException:
+                    objecttools.augmentexcmessage(
+                        'While trying to update the derived parameter `%s` of '
+                        'element `%s`' % (name, objecttools.devicename(self)))
 
     def savecontrols(self, parameterstep=None, simulationstep=None,
                      filename=None, dirname=None):
@@ -247,7 +248,7 @@ class Parameter(objecttools.ValueMath):
             raise RuntimeError('Something has gone wrong when trying to '
                                'read parameter `%s` from file `%s`.'
                                % (self.name, pyfile))
-        filetools.ControlFileManager.read2dict(pyfile, subnamespace)
+        filetools.ControlManager.read2dict(pyfile, subnamespace)
         try:
             subself = subnamespace[self.name]
         except KeyError:
@@ -260,14 +261,14 @@ class Parameter(objecttools.ValueMath):
         """The parameter time step size new parameter values might be related
         to.
         """
-        if self._parameterstep is None:
+        if Parameter._parameterstep is None:
             raise RuntimeError('The general parameter time step has not been '
                                'defined so far.')
         else:
             return self._parameterstep
     def _setparameterstep(self, value):
         try:
-            self._parameterstep = timetools.Period(value)
+            Parameter._parameterstep = timetools.Period(value)
         except Exception:
             objecttools.augmentexcmessage('While trying to set the general '
                                           'parameter time step')
@@ -280,8 +281,14 @@ class Parameter(objecttools.ValueMath):
         try:
             return pub.timegrids.stepsize
         except AttributeError:
-            return self._simulationstep
-    simulationstep = property(_getsimulationstep)
+            return Parameter._simulationstep
+    def _setsimulationstep(self, value):
+        try:
+            Parameter._simulationstep = timetools.Period(value)
+        except Exception:
+            objecttools.augmentexcmessage('While trying to set the general '
+                                          'simulation time step')
+    simulationstep = property(_getsimulationstep, _setsimulationstep)
 
     def _gettimefactor(self):
         """Factor to adapt a new parameter value related to
@@ -729,7 +736,8 @@ class ZipParameter(MultiParameter):
                     unique = self.reverttimefactor(unique)
                     if len(unique) == 1:
                         results.append('%s=%s'
-                                       % (key.lower(), repr(unique[0])))
+                                       % (key.lower(),
+                                          objecttools.repr_(unique[0])))
                     elif len(unique) > 1:
                         raise exc
             result = ', '.join(sorted(results))
@@ -741,15 +749,15 @@ class ZipParameter(MultiParameter):
 class SeasonalParameter(MultiParameter):
     """Class for the flexible handling of parameters with anual cycles.
 
-    For the following examples, we assume a simulation step size of one day:
-
+    Let us prepare a 1-dimensional :class:`SeasonalParameter` instance:
     >>> from hydpy.core.parametertools import SeasonalParameter
-    >>> from hydpy.core.timetools import Period
-    >>> SeasonalParameter.simulationstep = Period('1d')
-
-    Next let us prepare a 1-dimensional :class:`SeasonalParameter` instance:
     >>> seasonalparameter = SeasonalParameter()
     >>> seasonalparameter.NDIM = 1
+
+    For the following examples, we assume a simulation step size of one day:
+
+    >>> from hydpy.core.timetools import Period
+    >>> seasonalparameter.simulationstep = Period('1d')
 
     To define its shape, the first entry of the assigned :class:`tuple`
     object is ignored:
@@ -828,15 +836,21 @@ class SeasonalParameter(MultiParameter):
         within parameter control files.
         """
         self._toy2values.clear()
-        if kwargs:
-            for (toystr, values) in kwargs.items():
-                try:
-                    self._toy2values[timetools.TOY(toystr)] = values
-                except BaseException:
-                    objecttools.augmentexcmessage(
-                        'While trying to define parameter `%s` of element '
-                        '`%s`' % (self.name, objecttools.devicename(self)))
-            self.refresh()
+        try:
+            MultiParameter.__call__(self, *args, **kwargs)
+            self._toy2values[timetools.TOY()] = self[0]
+        except BaseException as exc:
+            if kwargs:
+                for (toystr, values) in kwargs.items():
+                    try:
+                        setattr(self, str(timetools.TOY(toystr)), values)
+                    except BaseException:
+                        objecttools.augmentexcmessage(
+                            'While trying to define parameter `%s` of element '
+                            '`%s`' % (self.name, objecttools.devicename(self)))
+                self.refresh()
+            else:
+                raise exc
 
 
     def refresh(self):
@@ -848,9 +862,9 @@ class SeasonalParameter(MultiParameter):
 
         Instantiate a 1-dimensional :class:`SeasonalParameter` object:
 
-        >>> from hydpy.core.timetools import Date, Period
-        >>> SeasonalParameter.simulationstep = Period('1d')
         >>> sp = SeasonalParameter()
+        >>> from hydpy.core.timetools import Period
+        >>> sp.simulationstep = Period('1d')
         >>> sp.NDIM = 1
         >>> sp.shape = (None,)
 
@@ -905,14 +919,16 @@ class SeasonalParameter(MultiParameter):
         if len(self) == 0:
             self.values[:] = 0.
         elif len(self) == 1:
-            self.values[:] = list(self._toy2values.values())[0]
+            values = list(self._toy2values.values())[0]
+            self.values[:] = self.applytimefactor(values)
         else:
             tt = timetools
             timegrid = tt.Timegrid(tt.TOY._STARTDATE+self.simulationstep/2,
                                    tt.TOY._ENDDATE+self.simulationstep/2,
                                    self.simulationstep)
             for idx, date in enumerate(timegrid):
-                self.values[idx] = self.interp(date)
+                values = self.interp(date)
+                self.values[idx] = self.applytimefactor(values)
 
     def interp(self, date):
         """Perform a linear value interpolation for a date defined by the
@@ -921,9 +937,9 @@ class SeasonalParameter(MultiParameter):
 
         Instantiate a 1-dimensional :class:`SeasonalParameter` object:
 
-        >>> from hydpy.core.timetools import Date, Period
-        >>> SeasonalParameter.simulationstep = Period('1d')
         >>> sp = SeasonalParameter()
+        >>> from hydpy.core.timetools import Date, Period
+        >>> sp.simulationstep = Period('1d')
         >>> sp.NDIM = 1
         >>> sp.shape = (None,)
 
@@ -969,6 +985,21 @@ class SeasonalParameter(MultiParameter):
         2.0
         >>> round_(sp.interp(Date('2000.01.03')))
         2.00551
+
+        The following example briefly shows interpolation performed for
+        2-dimensional parameter:
+
+        >>> sp = SeasonalParameter()
+        >>> from hydpy.core.timetools import Date, Period
+        >>> sp.simulationstep = Period('1d')
+        >>> sp.NDIM = 2
+        >>> sp.shape = (None, 2)
+        >>> sp(_1_1=[1., 2.], _1_3=[-3, 0.])
+        >>> result = sp.interp(Date('2000.01.02'))
+        >>> round_(result[0])
+        -1.0
+        >>> round_(result[1])
+        1.0
     """
         xnew = timetools.TOY(date)
         xys = list(self)
@@ -982,7 +1013,18 @@ class SeasonalParameter(MultiParameter):
         return y0+(y1-y0)/(x1-x0)*(xnew-x0)
 
     def _setshape(self, shape):
+        try:
+            shape = (int(shape),)
+        except TypeError:
+            pass
         shape = list(shape)
+        if self.simulationstep is None:
+            raise RuntimeError(
+                'It is not possible the set the shape of the seasonal '
+                'parameter `%s` of element `%s` at the moment.  You can '
+                'define it manually.  In complete HydPy projects it is '
+                'indirecty defined via `pub.timegrids.stepsize` automatically.'
+                % (self.name, objecttools.devicename(self)))
         shape[0] = timetools.Period('366d')/self.simulationstep
         shape[0] = int(numpy.ceil(round(shape[0], 10)))
         MultiParameter._setshape(self, shape)
@@ -1035,7 +1077,9 @@ class SeasonalParameter(MultiParameter):
             MultiParameter.__delattr__(self, name)
 
     def __repr__(self):
-        if len(self) > 0:
+        if (len(self) == 1) and (self.NDIM == 1):
+            return '%s(%s)' % (self.name, list(self._toy2values.values())[0])
+        elif len(self) > 0:
             lines = []
             blanks = ' '*(len(self.name))
             for idx, (toy, value) in enumerate(self):

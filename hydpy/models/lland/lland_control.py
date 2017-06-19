@@ -100,8 +100,8 @@ class KG(lland_parameters.MultiParameter):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 class KT(lland_parameters.MultiParameter):
-    """Temperaturkorrekturfaktor (adjustment factor for air temperature)
-    [-]."""
+    """Temperaturkorrektursummand (adjustment summand for air temperature)
+    [°C]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
 class KE(lland_parameters.MultiParameter):
@@ -623,5 +623,5 @@ class ControlParameters(parametertools.SubParameters):
     """Control parameters of HydPy-L-Land, directly defined by the user."""
     _PARCLASSES = (FT, NHRU, FHRU, Lnk, HNN, KG, KT, KE, KF, FLn, HInz, LAI,
                    TRefT, TRefN, TGr, GTF, RSchmelz, CPWasser, PWMax,
-                   GrasRef_R, NFk, RelWB, RelWZ, Beta, DMax, DMin, BSf,
+                   GrasRef_R, NFk, RelWZ, RelWB, Beta, DMax, DMin, BSf,
                    TInd, EQB, EQI1, EQI2, EQD)

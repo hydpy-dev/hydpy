@@ -43,6 +43,8 @@ class Tester(object):
         pub.options.warnsimulationstep = False
         timegrids = pub.timegrids
         pub.timegrids = None
+        _simulationstep = parametertools.Parameter._simulationstep
+        parametertools.Parameter._simulationstep = None
         dirverbose = pub.options.dirverbose
         reprcomments = pub.options.reprcomments
         pub.options.reprcomments = False
@@ -76,6 +78,7 @@ class Tester(object):
         finally:
             pub.options.warnsimulationstep = warnsimulationstep
             pub.timegrids = timegrids
+            parametertools.Parameter._simulationstep = _simulationstep
             pub.options.dirverbose = dirverbose
             pub.options.reprcomments = reprcomments
             pub.options.reprdigits = reprdigits

@@ -56,7 +56,8 @@ class Model(modeltools.Model):
                    hland_model.calc_q1_lz_v1,
                    hland_model.calc_inuh_v1,
                    hland_model.calc_outuh_quh_v1,
-                   hland_model.calc_qt_v1)
+                   hland_model.calc_qt_v1,
+                   hland_model.update_outlets_v1)
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of HBV134, directly defined by the user."""

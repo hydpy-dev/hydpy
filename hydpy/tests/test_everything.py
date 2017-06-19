@@ -78,6 +78,7 @@ from hydpy import pub
 pub.options.reprcomments = False
 import hydpy
 from hydpy.core import devicetools
+from hydpy.core import parametertools
 alldoctests = ({}, {})
 allsuccessfuldoctests = ({}, {})
 allfaileddoctests = ({}, {})
@@ -120,6 +121,7 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                 pub.options.warntrim = False
                 devicetools.Node.clearregistry()
                 devicetools.Element.clearregistry()
+                parametertools.Parameter._simulationstep = None
                 if name.endswith('.rst'):
                     name = name[name.find('hydpy'+os.sep):]
                 warnings.filterwarnings('error', module='hydpy')

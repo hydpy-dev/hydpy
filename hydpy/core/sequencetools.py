@@ -152,7 +152,7 @@ class Sequences(object):
             if dirname is None:
                 dirname = pub.conditionmanager.savepath
             filepath = os.path.join(dirname, filename)
-            with file(filepath, 'w') as file_:
+            with open(filepath, 'w') as file_:
                 file_.write('from hydpy.models.%s import *\n\n'
                             % self.model.__module__.split('.')[2])
                 try:
@@ -847,7 +847,7 @@ class IOSequence(Sequence):
             values = numpy.concatenate((values, self.series))
             numpy.save(self.filepath_ext, values)
         else:
-            with file(self.filepath_ext, 'w') as file_:
+            with open(self.filepath_ext, 'w') as file_:
                 file_.write(repr(pub.timegrids.init) + '\n')
                 numpy.savetxt(file_, self.series, delimiter='\t')
 
@@ -871,7 +871,7 @@ class IOSequence(Sequence):
         return timegrid_data, data[13:]
 
     def _load_asc(self):
-        with file(self.filepath_ext) as file_:
+        with open(self.filepath_ext) as file_:
             header = '\n'.join([file_.readline() for idx in range(3)])
         timegrid_data = eval(header, {}, {'Timegrid': timetools.Timegrid})
         values = numpy.loadtxt(self.filepath_ext, skiprows=3,

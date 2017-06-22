@@ -344,7 +344,7 @@ class ControlManager(object):
             path += '.py'
         try:
             if path not in cls._registry:
-                with file(path) as file_:
+                with open(path) as file_:
                     cls._registry[path] = file_.read()
             exec(cls._registry[path], {}, info)
         except BaseException:
@@ -885,7 +885,7 @@ class ConditionManager(object):
             dirname = os.path.join(pub.conditionmanager.loadpath)
         filepath = os.path.join(dirname, filename)
         try:
-            with file(filepath) as file_:
+            with open(filepath) as file_:
                 return file_.read()
         except BaseException:
             prefix = 'While trying to read the conditions file `%s`' % filepath

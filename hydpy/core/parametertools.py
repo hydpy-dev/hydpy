@@ -62,7 +62,7 @@ class Parameters(object):
             if dirname is None:
                 dirname = pub.controlmanager.controlpath
             filepath = os.path.join(dirname, filename)
-            with file(filepath, 'w') as file_:
+            with open(filepath, 'w') as file_:
                 file_.write('from hydpy.models.%s import *\n\n'
                             % self.model.__module__.split('.')[2])
                 if not parameterstep:

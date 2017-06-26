@@ -135,7 +135,7 @@ class Selections(object):
         return '\n'.join(lines)
 
     def __dir__(self):
-        return ['names', 'selections', 'assignrepr'] + self.names
+        return ['names', 'selections', 'assignrepr'] + list(self.names)
 
 
 class Selection(object):

@@ -8,10 +8,10 @@ import time
 import warnings
 # ...from HydPy
 from hydpy import pub
+from hydpy.core import objecttools
 from hydpy.core import filetools
 from hydpy.core import devicetools
 from hydpy.core import selectiontools
-from hydpy.core import magictools
 
 
 class HydPy(object):
@@ -59,9 +59,22 @@ class HydPy(object):
         pub.options.warnsimulationstep = False
         try:
             for (name, element) in self.elements:
-                element.initmodel()
-                element.model.parameters.update()
-                element.model.connect()
+                try:
+                    element.initmodel()
+                except IOError as exc:
+                    temp = 'While trying to load the control file'
+                    if ((temp in str(exc)) and
+                            pub.options.warnmissingcontrolfile):
+                        warnings.warn('No model could be initialized for '
+                                      'element `%s`' % name)
+                        self.model = None
+                    else:
+                        objecttools.augmentexcmessage(
+                            'While trying to initialize the model of '
+                            'element `%s`' % name)
+                else:
+                    element.model.parameters.update()
+                    element.model.connect()
         finally:
             pub.options.warnsimulationstep = warn
 

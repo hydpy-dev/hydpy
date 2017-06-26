@@ -235,6 +235,7 @@ class Options(object):
         self._reprdigits = None
         self._warntrim = True
         self._warnsimulationstep = True
+        self._warnmissingcontrolfile = False
 
     def _getprintprogress(self):
         """True/False flag indicating whether information about the progress
@@ -324,6 +325,16 @@ class Options(object):
         self._warnsimulationstep = bool(value)
     warnsimulationstep = property(_getwarnsimulationstep,
                                   _setwarnsimulationstep)
+
+    def _getwarnmissingcontrolfile(self):
+        """True/False flag indicating whether only a warning shall be raised
+        when a required control file is missing, or an exception.
+        """
+        return self._warnmissingcontrolfile
+    def _setwarnmissingcontrolfile(self, value):
+        self._warnmissingcontrolfile = bool(value)
+    warnmissingcontrolfile = property(_getwarnmissingcontrolfile,
+                                         _setwarnmissingcontrolfile)
 
     def __dir__(self):
         return dir_(self)

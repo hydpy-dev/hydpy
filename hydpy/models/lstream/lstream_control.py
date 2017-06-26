@@ -46,12 +46,12 @@ class BNVR(parametertools.LeftRightParameter):
 
 class SKM(parametertools.SingleParameter):
     """Rauigkeitsbeiwert Hauptgerinne (roughness coefficient of the main
-    channel) [m⅓/s]."""
+    channel) [m^(1/3)/s]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
 class SKV(parametertools.LeftRightParameter):
     """Rauigkeitsbeiwert Vorländer (roughness coefficient of the both
-    forelands) [m⅓/s]."""
+    forelands) [m^(1/3)/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 class EKM(parametertools.SingleParameter):

@@ -14,7 +14,7 @@ class Connections(object):
     def __init__(self, master, *slaves):
         self.master = master
         for slave in slaves:
-            self.add
+            self += slave
 
     def __iadd__(self, slave):
         setattr(self, slave.name, slave)

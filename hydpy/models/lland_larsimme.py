@@ -161,8 +161,8 @@ class ControlParameters(parametertools.SubParameters):
     """Control parameters of LARSIM-ME, directly defined by the user."""
     _PARCLASSES = (lland_control.FT,
                    lland_control.NHRU,
-                   lland_control.FHRU,
                    lland_control.Lnk,
+                   lland_control.FHRU,
                    lland_control.HNN,
                    lland_control.KG,
                    lland_control.KT,

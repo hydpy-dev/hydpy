@@ -235,6 +235,7 @@ class Options(object):
         self._reprdigits = None
         self._warntrim = True
         self._warnsimulationstep = True
+        self._checkseries = True
         self._warnmissingcontrolfile = False
 
     def _getprintprogress(self):
@@ -325,6 +326,16 @@ class Options(object):
         self._warnsimulationstep = bool(value)
     warnsimulationstep = property(_getwarnsimulationstep,
                                   _setwarnsimulationstep)
+
+    def _getcheckseries(self):
+        """True/False flag indicating whether an error shall be raised
+        when e.g. an incomplete input time series, not spanning the whole
+        initialization time period, is loaded.
+        """
+        return self._checkseries
+    def _setcheckseries(self, value):
+        self._checkseries = bool(value)
+    checkseries = property(_getcheckseries, _setcheckseries)
 
     def _getwarnmissingcontrolfile(self):
         """True/False flag indicating whether only a warning shall be raised

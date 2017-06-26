@@ -819,23 +819,43 @@ class IOSequence(Sequence):
             timegrid_data, values = self._load_npy()
         else:
             timegrid_data, values = self._load_asc()
-
-        if pub.timegrids.init not in timegrid_data:
-            raise RuntimeError('For sequence `%s` the initialization time '
-                               'grid (%s) does not define a subset of the '
-                               'time grid of the external data file %s (%s).'
-                               % (self.name, pub.timegrids.init,
-                                  self.filepath_ext, timegrid_data))
         idx1 = timegrid_data[pub.timegrids.init.firstdate]
         idx2 = timegrid_data[pub.timegrids.init.lastdate]
-        if self.diskflag:
-            self._save_int(values[idx1:idx2])
-        elif self.ramflag:
-            self._setarray(values[idx1:idx2])
+        if pub.timegrids.init.stepsize != timegrid_data.stepsize:
+            raise RuntimeError(
+                'According to external data file `%s`, the date time step '
+                'of sequence `%s` of element `%s` is `%s`, but the actual '
+                'simulation time step is `%s`.'
+                % (self.filepath_ext, self.name, objecttools.devicename(self),
+                   timegrid_data.stepsize, pub.timegrids.init.stepsize))
+        elif pub.timegrids.init not in timegrid_data:
+            if pub.options.checkseries:
+                raise RuntimeError(
+                    'For sequence `%s` of element `%s` the initialization '
+                    'time grid (%s) does not define a subset of the time '
+                    'grid of the external data file %s (%s).'
+                    % (self.name, objecttools.devicename(self),
+                       pub.timegrids.init, self.filepath_ext, timegrid_data))
+            else:
+                valcopy = values
+                shape = list(values.shape)
+                shape[0] = len(pub.timegrids.init)
+                values = numpy.zeros(shape)
+                valcopy = valcopy[max(idx1, 0):min(idx2, len(valcopy))]
+                idx1 = max(-idx1, 0)
+                idx2 = idx1+len(valcopy)
+                values[idx1:idx2] = valcopy
         else:
-            raise RuntimeError('Sequence `%s` is not requested to make any '
-                               'internal data available the the user.'
-                               % self.name)
+            values = values[idx1:idx2]
+        if self.diskflag:
+            self._save_int(values)
+        elif self.ramflag:
+            self._setarray(values)
+        else:
+            raise RuntimeError(
+                'Sequence `%s` of element `%s`is not requested to make '
+                'any internal data available the the user.'
+                % (self.name, objecttools.devicename(self)))
 
     def save_ext(self):
         """Write the internal data into an external data file."""

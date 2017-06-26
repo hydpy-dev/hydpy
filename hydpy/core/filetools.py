@@ -23,10 +23,14 @@ class MainManager(object):
         self.sequencefiles = None
         self.initialvaluefiles = None
         self.parameterfiles = None
-        self.checkpath()
-        self.loadinfo()
-        self.applyinfo()
-        self.clearinfo()
+        try:
+            self.checkpath()
+        except IOError:
+            pass
+        else:
+            self.loadinfo()
+            self.applyinfo()
+            self.clearinfo()
 
     def _getpath(self):
         return os.path.abspath(pub.projectname+'.py')

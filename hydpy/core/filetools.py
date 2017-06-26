@@ -798,18 +798,18 @@ class ConditionManager(object):
         try:
             string = 'init_' + pub.timegrids.sim.firstdate.string('os')
         except AttributeError:
-            raise IOError('The project path `%s` contains multiple control'
+            raise IOError('The project path `%s` contains multiple condition'
                           'directories, and no first simulation date is '
                           'available to determine the relevant one.  '
-                          'Please specify the control directory to be '
+                          'Please specify the condition directory to be '
                           'worked with manually.' % self.projectpath)
         try:
             return getattr(directories, string)
         except AttributeError:
-            raise IOError('The project path `%s` contains multiple control'
+            raise IOError('The project path `%s` contains multiple condition'
                           'directories, but none is in accordance with the  '
                           'first simulation date (%s).  Please specify'
-                          'the control directory to be worked with manually.'
+                          'the condition directory to be worked with manually.'
                           % (self.projectpath, string))
     def _setloaddirectory(self, directory):
         directory = str(directory)
@@ -841,18 +841,18 @@ class ConditionManager(object):
         try:
             string = 'init_' + pub.timegrids.sim.lastdate.string('os')
         except AttributeError:
-            raise IOError('The project path `%s` contains multiple control'
+            raise IOError('The project path `%s` contains multiple condition'
                           'directories, and no last simulation date is '
                           'available to determine the relevant one.  '
-                          'Please specify the control directory to be '
+                          'Please specify the condition directory to be '
                           'worked with manually.' % self.projectpath)
         try:
             return getattr(directories, string)
         except AttributeError:
-            raise IOError('The project path `%s` contains multiple control'
+            raise IOError('The project path `%s` contains multiple condition'
                           'directories, but none is in accordance with the  '
                           'last simulation date (%s).  Please specify'
-                          'the control directory to be worked with manually.'
+                          'the condition directory to be worked with manually.'
                           % (self.projectpath, string))
     def _setsavedirectory(self, directory):
         directory = str(directory)

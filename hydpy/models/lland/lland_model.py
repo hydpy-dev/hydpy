@@ -677,7 +677,7 @@ def calc_evb_v1(self):
         >>> model.calc_evb_v1()
         >>> fluxes.evb
         evb(0.0, 0.0, 0.0, 0.0, 1.717962, 2.0)
-calc
+
         In case usable field capacity is zero, soil evaporation is
         generally set to zero (see the third HRU).  The last three
         HRUs demonstrate the rise in soil evaporation with increasing

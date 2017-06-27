@@ -180,6 +180,7 @@ class ControlParameters(parametertools.SubParameters):
                    lland_control.RelWZ,
                    lland_control.RelWB,
                    lland_control.Beta,
+                   lland_control.FBeta,
                    lland_control.DMax,
                    lland_control.DMin,
                    lland_control.BSf,

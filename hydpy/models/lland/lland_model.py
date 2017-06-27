@@ -677,7 +677,7 @@ def calc_evb_v1(self):
         >>> model.calc_evb_v1()
         >>> fluxes.evb
         evb(0.0, 0.0, 0.0, 0.0, 1.717962, 2.0)
-
+calc
         In case usable field capacity is zero, soil evaporation is
         generally set to zero (see the third HRU).  The last three
         HRUs demonstrate the rise in soil evaporation with increasing
@@ -705,9 +705,11 @@ def calc_qbb_v1(self):
       :class:`~hydpy.models.lland.lland_control.NHRU`
       :class:`~hydpy.models.lland.lland_control.Lnk`
       :class:`~hydpy.models.lland.lland_control.Beta`
+      :class:`~hydpy.models.lland.lland_control.FBeta`
 
     Required derived parameter:
       :class:`~hydpy.models.lland.lland_derived.WB`
+      :class:`~hydpy.models.lland.lland_derived.WZ`
 
     Required state sequence:
       :class:`~hydpy.models.lland.lland_states.BoWa`
@@ -715,8 +717,20 @@ def calc_qbb_v1(self):
     Calculated flux sequence:
       :class:`~hydpy.models.lland.lland_fluxes.QBB`
 
-    Basic equation:
-      :math:`QBB = Beta \\cdot (BoWa - WB)`
+    Basic equations:
+      :math:`Beta_{eff} = \\Bigl \\lbrace
+      {
+      {Beta \\ | \\ BoWa \\leq WZ}
+      \\atop
+      {Beta \\cdot (1+(FBeta-1)\\cdot\\frac{BoWa-WZ}{NFk-WZ}) \\|\\ BoWa > WZ}
+      }`
+
+      :math:`QBB = \\Bigl \\lbrace
+      {
+      {0 \\ | \\ BoWa \\leq WB}
+      \\atop
+      {Beta_{eff}  \\cdot (BoWa - WB) \\|\\ BoWa > WB}
+      }`
 
     Examples:
         For water and sealed areas, no base is flow calculated (see the
@@ -730,9 +744,10 @@ def calc_qbb_v1(self):
         >>> nhru(7)
         >>> lnk(WASSER, VERS, ACKER, ACKER, ACKER, ACKER, ACKER)
         >>> beta(.04)
+        >>> fbeta(2.)
         >>> nfk(0., 0., 0., 100., 100., 100., 200.)
         >>> derived.wb(10.)
-        >>> states.bowa = 0., 0., 0., 0., 10., 20., 20.
+        >>> derived.wz(70.)
 
         Note the time dependence of parameter
         :class:`~hydpy.models.lland.lland_control.Beta`:
@@ -742,30 +757,49 @@ def calc_qbb_v1(self):
         >>> beta.values
         array([ 0.02,  0.02,  0.02,  0.02,  0.02,  0.02,  0.02])
 
-        The following results are quite self-explanatory:
+        In the first example, the actual soil water content is set to low
+        values. For values below the threshold `wb`, not percolation occurs.
+        Above `wb` (but below `wz`), calculated percolation shows a linear
+        behaviour which is only related to parameter `beta`:
 
+        >>> states.bowa = 0., 0., 0., 0., 10., 20., 20.
         >>> model.calc_qbb_v1()
         >>> fluxes.qbb
         qbb(0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.2)
 
-        However, note that for the last two HRUs the same amount of
+        Note that for the last two HRUs the same amount of
         base flow generation is determined, in spite of the fact
         that both exhibit different relative soil moistures.  It is
         common to modify this "pure absolute dependency" to a "mixed
         absolute/relative dependency" through defining the values of
         parameter :class:`~hydpy.models.lland.lland_derived.WB` indirectly
         via parameter :class:`~hydpy.models.lland.lland_control.RelWB`.
+
+        In the second example, the actual soil water content is set to high
+        values.  For values below the threshold `wz`, the disussion above
+        remains valid.  For values above `wz`, percolation shows a nonlinear
+        behaviour in case factor `fbeta` is set to value larger than one:
+
+        >>> nfk(0., 0., 100., 100., 100, 100., 200.)
+        >>> states.bowa = 0., 0., 60., 70., 80., 100., 200.
+        >>> model.calc_qbb_v1()
+        >>> fluxes.qbb
+        qbb(0.0, 0.0, 1.0, 1.2, 1.866667, 3.6, 7.6)
     """
     con = self.parameters.control.fastaccess
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
     for k in range(con.nhru):
-        if ((con.lnk[k] != WASSER) and (con.lnk[k] != VERS) and
-                (sta.bowa[k] > der.wb[k]) and (con.nfk[k] > 0.)):
+        if ((con.lnk[k] == WASSER) or (con.lnk[k] == VERS) or
+                (sta.bowa[k] <= der.wb[k]) or (con.nfk[k] <= 0.)):
+            flu.qbb[k] = 0.
+        elif sta.bowa[k] <= der.wz[k]:
             flu.qbb[k] = con.beta[k]*(sta.bowa[k]-der.wb[k])
         else:
-            flu.qbb[k] = 0.
+            flu.qbb[k] = (con.beta[k]*(sta.bowa[k]-der.wb[k]) *
+                          (1.+(con.fbeta[k]-1.)*((sta.bowa[k]-der.wz[k]) /
+                                                 (con.nfk[k]-der.wz[k]))))
 
 
 def calc_qib1_v1(self):

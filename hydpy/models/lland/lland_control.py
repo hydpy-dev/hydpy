@@ -265,10 +265,18 @@ class RelWB(lland_parameters.MultiParameterSoil):
             upper = relwz
         lland_parameters.MultiParameterSoil.trim(self, lower, upper)
 
+
 class Beta(lland_parameters.MultiParameterSoil):
     """Drainageindex des tiefen Bodenspeichers (storage coefficient for
     releasing base flow from the lower soil compartment) [1/T]."""
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
+
+
+class FBeta(lland_parameters.MultiParameterSoil):
+    """Faktor zur Erhöhung der Perkolation im Grobporenbereich (factor for
+    increasing percolation under wet conditions) [-]."""
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (1., None)
+
 
 class DMin(lland_parameters.MultiParameterSoil):
     """Drainageindex des mittleren Bodenspeichers (flux rate for
@@ -623,5 +631,5 @@ class ControlParameters(parametertools.SubParameters):
     """Control parameters of HydPy-L-Land, directly defined by the user."""
     _PARCLASSES = (FT, NHRU, Lnk, FHRU, HNN, KG, KT, KE, KF, FLn, HInz, LAI,
                    TRefT, TRefN, TGr, GTF, RSchmelz, CPWasser, PWMax,
-                   GrasRef_R, NFk, RelWZ, RelWB, Beta, DMax, DMin, BSf,
+                   GrasRef_R, NFk, RelWZ, RelWB, Beta, FBeta, DMax, DMin, BSf,
                    TInd, EQB, EQI1, EQI2, EQD)

@@ -369,6 +369,7 @@ def calc_epc_v1(self):
 
         >>> from hydpy.models.hland import *
         >>> parameterstep('1d')
+        >>> simulationstep('12h')
         >>> nmbzones(4)
         >>> zrele(2.)
         >>> zonez(3.)

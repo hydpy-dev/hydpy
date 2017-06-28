@@ -1281,6 +1281,30 @@ class Sim(NodeSequence):
         NodeSequence.__init__(self)
         self.use_ext = False
 
+    def activate_disk(self):
+        try:
+            NodeSequence.activate_disk(self)
+        except IOError:
+            message = sys.exc_info()[1]
+            self.diskflag = False
+            if pub.options.warnmissingsimfile:
+                warnings.warn('The option `diskflag` of the simulation '
+                              'sequence `%s`had to be set to `False` due '
+                              'to the following problem: %s.'
+                              % (objecttools.devicename(self), message))
+
+    def activate_ram(self):
+        try:
+            NodeSequence.activate_ram(self)
+        except IOError:
+            message = sys.exc_info()[1]
+            self.ramflag = False
+            if pub.options.warnmissingsimfile:
+                warnings.warn('The option `ramflag` of the simulation '
+                              'sequence `%s`had to be set to `False` due '
+                              'to the following problem: %s.'
+                              % (objecttools.devicename(self), message))
+
 
 class Obs(NodeSequence):
     NDIM, NUMERIC = 0, False
@@ -1297,8 +1321,9 @@ class Obs(NodeSequence):
             self.diskflag = False
             if pub.options.warnmissingobsfile:
                 warnings.warn('The option `diskflag` of the observation '
-                              'sequence had to be set to `False` due to the '
-                              'following problem: %s.' % message)
+                              'sequence `%s`had to be set to `False` due '
+                              'to the following problem: %s.'
+                              % (objecttools.devicename(self), message))
 
     def activate_ram(self):
         try:
@@ -1306,10 +1331,11 @@ class Obs(NodeSequence):
         except IOError:
             message = sys.exc_info()[1]
             self.ramflag = False
-            if pub.options.warnmissingsimfile:
-                warnings.warn('The option `ramflag` of the simulation '
-                              'sequence had to be set to `False` due to the '
-                              'following problem: %s.' % message)
+            if pub.options.warnmissingsobsfile:
+                warnings.warn('The option `ramflag` of the observation '
+                              'sequence `%s`had to be set to `False` due '
+                              'to the following problem: %s.'
+                              % (objecttools.devicename(self), message))
 
     @property
     def series_complete(self):

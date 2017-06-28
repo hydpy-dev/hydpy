@@ -19,3 +19,5 @@ coverage.xml
 .coverage
 HydPy.egg-info/*
 MANIFEST
+test.py
+.spyproject/

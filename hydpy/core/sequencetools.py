@@ -1295,19 +1295,21 @@ class Obs(NodeSequence):
         except IOError:
             message = sys.exc_info()[1]
             self.diskflag = False
-            warnings.warn('The option `diskflag` of the observation '
-                          'sequence had to be set to `False` due to the '
-                          'following problem: %s.' % message)
+            if pub.options.warnmissingobsfile:
+                warnings.warn('The option `diskflag` of the observation '
+                              'sequence had to be set to `False` due to the '
+                              'following problem: %s.' % message)
 
     def activate_ram(self):
         try:
             NodeSequence.activate_ram(self)
         except IOError:
-            message= sys.exc_info()[1]
+            message = sys.exc_info()[1]
             self.ramflag = False
-            warnings.warn('The option `ramflag` of the simulation '
-                          'sequence had to be set to `False` due to the '
-                          'following problem: %s.' % message)
+            if pub.options.warnmissingsimfile:
+                warnings.warn('The option `ramflag` of the simulation '
+                              'sequence had to be set to `False` due to the '
+                              'following problem: %s.' % message)
 
     @property
     def series_complete(self):

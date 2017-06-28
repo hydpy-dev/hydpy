@@ -237,6 +237,9 @@ class Options(object):
         self._warnsimulationstep = True
         self._checkseries = True
         self._warnmissingcontrolfile = False
+        self._warnmissingobsfile = True
+        self._warnmissingsimfile = True
+
 
     def _getprintprogress(self):
         """True/False flag indicating whether information about the progress
@@ -346,6 +349,26 @@ class Options(object):
         self._warnmissingcontrolfile = bool(value)
     warnmissingcontrolfile = property(_getwarnmissingcontrolfile,
                                          _setwarnmissingcontrolfile)
+
+    def _getwarnmissingobsfile(self):
+        """True/False flag indicating whether a warning shall be raised when a
+        requested observation sequence demanded by a node instance is missing.
+        """
+        return self._warnmissingobsfile
+    def _setwarnmissingobsfile(self, value):
+        self._warnmissingobsfile = bool(value)
+    warnmissingobsfile = property(_getwarnmissingobsfile,
+                                  _setwarnmissingobsfile)
+
+    def _getwarnmissingsimfile(self):
+        """True/False flag indicating whether a warning shall be raised when a
+        requested simulation sequence demanded a node instance is missing.
+        """
+        return self._warnmissingsimfile
+    def _setwarnmissingsimfile(self, value):
+        self._warnmissingsimfile = bool(value)
+    warnmissingsimfile = property(_getwarnmissingsimfile,
+                                  _setwarnmissingsimfile)
 
     def __dir__(self):
         return dir_(self)

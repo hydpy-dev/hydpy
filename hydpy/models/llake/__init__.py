@@ -20,6 +20,7 @@ from hydpy.models.llake.llake_derived import DerivedParameters
 from hydpy.models.llake.llake_sequences import Sequences
 from hydpy.models.llake.llake_fluxes import FluxSequences
 from hydpy.models.llake.llake_states import StateSequences
+from hydpy.models.llake.llake_aides import AideSequences
 from hydpy.models.llake.llake_model import Model
 
 tester = Tester()

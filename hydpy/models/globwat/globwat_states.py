@@ -34,11 +34,11 @@ class Ssb(sequencetools.StateSequence):
 
 class Qout(sequencetools.StateSequence):
     """outflow [m³/month]."""
-    NDIM, NUMERIC, SPAN  = 0, False, (0., None)
+    NDIM, NUMERIC, SPAN  = 1, False, (0., None)
 
 class Qin(sequencetools.StateSequence):
     """inflow [m³/month]."""
-    NDIM, NUMERIC, SPAN  = 0, False, (0., None)
+    NDIM, NUMERIC, SPAN  = 1, False, (0., None)
 
 class StateSequences(sequencetools.StateSequences):
     """State sequences of the globwat model."""

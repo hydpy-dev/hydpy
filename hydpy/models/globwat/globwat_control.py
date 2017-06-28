@@ -33,8 +33,8 @@ class NmbGrids(parametertools.SingleParameter):
                 if (par.NDIM==1):# and (name != 'uh'):
                     par.shape = self.value
         for (_name, subseqs) in self.subpars.pars.model.sequences:
-            for (name, seq) in subseqs:
-                if (seq.NDIM==1):# and (name != 'quh'):
+             for (name, seq) in subseqs:
+                if (seq.NDIM==1) and (name != 'q'):
                     seq.shape = self.value
 
 class VegetationClass(parametertools.MultiParameter):
@@ -67,11 +67,11 @@ class VegetationClass(parametertools.MultiParameter):
     26 (irrigation slovakia),
     27 (irrigation ukraine),
     28 (irrigation bulgaria),
-    20 (irrigation romania),
+    29 (irrigation romania),
     30 (irrigation moldovia),
     99 (other).
     """
-    NDIM, TYPE, TIME, SPAN = 1, int, None, (1, 99)
+    NDIM, TYPE, TIME, SPAN = 1, int, None, (1, 31)
 
     def compressrepr(self):
         """Returns a list which contains a string representation with vegetation

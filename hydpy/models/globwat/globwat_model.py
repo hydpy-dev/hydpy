@@ -49,7 +49,7 @@ def calc_rainfedevaporation_v1(self):
     Basic equation:
       :math:`E_{rain} = K_c \\cdot E_0`
 
-    Calculating Erain for the case: S(t-1) <= Smax and S(t-1) >= Seav
+    Calculating ERain for the case: S(t-1) <= SMax and S(t-1) >= SEAv
 
     Examples:
         >>> from hydpy.models.globwat import *
@@ -71,7 +71,7 @@ def calc_rainfedevaporation_v1(self):
         >>> fluxes.erain
         erain(0.0, 2.1, 0.0)
 
-    #Calculating Erain for the case: S(t-1) < Seav
+    #Calculating Erain for the case: S(t-1) < SEAv
 
         >>> derived.seav(7., 8., 9.)
         >>> states.fastaccess_old.s = 4., 5., 6.
@@ -440,12 +440,9 @@ def calc_openwaterbalance_v1(self):
             sta.bow[k] = inp.p[k] - flu.eow[k]
             if sta.bow[k] < 0.:
                 flu.ro[k] = 0.
-#                flu.eincrow[k] = (-1 * sta.bow[k])
 
             else:
                 flu.ro[k] = sta.bow[k]
-#                flu.erain[k] = flu.eow[k]
-#                flu.eincrow[k] = 0.
 
 def calc_subbasinbalance_v1(self):
     """calculate the (sub-)basin water balance on t.
@@ -483,7 +480,7 @@ def calc_subbasinbalance_v1(self):
 
 # hier aufpassen, es können negative Werte entstehen, wenn die Verdunstung hoch
 # und Qin sowie Niederschlag gering sind
-    sta.bsb = sta.qin + sum(inp.p) - sum(flu.egrid)
+    sta.bsb = sta.qin[0] + sum(inp.p) - sum(flu.egrid)
 
 def calc_subbasinstorage_v1(self):
     """calculate the (sub-)basin storage on t.
@@ -520,11 +517,7 @@ def calc_subbasinstorage_v1(self):
     sta = self.sequences.states.fastaccess
     old = self.sequences.states.fastaccess_old
 
-# äquivalent dazu kann bei langen Zeitreihen der Speicher des Gebiets irgendwann
-# ebenfalls negativ werden --> physikalisch nicht möglich
-# Abfrage die den minimalen Speicher auf Null begrenzt!?
-
-    sta.ssb = old.ssb + sta.bsb - old.qout
+    sta.ssb = old.ssb + sta.bsb - old.qout[0]
     if sta.ssb < 0.:
         sta.ssb = 0.
 
@@ -556,19 +549,19 @@ def calc_outflow_v1(self):
     sta = self.sequences.states.fastaccess
     con = self.parameters.control.fastaccess
 
-    sta.qout = sta.ssb * con.f
+    sta.qout[0] = sta.ssb * con.f
 
 def update_inlets_v1(self):
     """Update the inlet link sequence."""
     sta = self.sequences.states.fastaccess
-    inl = self.sequences.outlets.fastaccess
-    sta.qin = inl.q[0]
+    inl = self.sequences.inlets.fastaccess
+    sta.qin[0] = inl.q[0][0]
 
 def update_outlets_v1(self):
     """Update the outlet link sequence."""
     sta = self.sequences.states.fastaccess
     out = self.sequences.outlets.fastaccess
-    out.q[0] += sta.qout
+    out.q[0][0] += sta.qout[0]
 
 class Model(modeltools.Model):
     """The HydPy-GlobWat model.

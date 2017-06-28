@@ -215,7 +215,7 @@ def repr_(value):
 
 
 def round_(value, rjust=0, **kwargs):
-    """Shortcut for print(repr_(value), **kwargs).
+    """Shortcut for `print(repr_(value), **kwargs)`.
 
     See the documentation on function :func:`repr_` for any details.
     """

@@ -1287,7 +1287,7 @@ class Sim(NodeSequence):
         except IOError:
             message = sys.exc_info()[1]
             self.diskflag = False
-            if pub.options.warnmissingsimfile:
+            if pub.options.warnmissingimfile:
                 warnings.warn('The option `diskflag` of the simulation '
                               'sequence `%s`had to be set to `False` due '
                               'to the following problem: %s.'
@@ -1299,7 +1299,7 @@ class Sim(NodeSequence):
         except IOError:
             message = sys.exc_info()[1]
             self.ramflag = False
-            if pub.options.warnmissingsimfile:
+            if pub.options.warnmissingimfile:
                 warnings.warn('The option `ramflag` of the simulation '
                               'sequence `%s`had to be set to `False` due '
                               'to the following problem: %s.'
@@ -1331,7 +1331,7 @@ class Obs(NodeSequence):
         except IOError:
             message = sys.exc_info()[1]
             self.ramflag = False
-            if pub.options.warnmissingsobsfile:
+            if pub.options.warnmissingobsfile:
                 warnings.warn('The option `ramflag` of the observation '
                               'sequence `%s`had to be set to `False` due '
                               'to the following problem: %s.'

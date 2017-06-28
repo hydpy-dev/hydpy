@@ -3,7 +3,7 @@ import os
 import shutil
 import webbrowser
 
-os.system('make html')
+os.system(r'make html')
 
 paths = [os.path.join('_build', 'html', fn) for fn in os.listdir(os.path.join('_build', 'html'))
          if fn.endswith('.html')]
@@ -23,5 +23,5 @@ for path in paths:
 
 os.chdir(r'C:\Program Files (x86)\Mozilla Firefox')
 webbrowser.register('firefox', None, webbrowser.GenericBrowser('firefox'), 1)
-webbrowser.get('firefox').open_new_tab(r'J:\HydPy\hydpy\docs\_build\html\index.html')
+webbrowser.get('firefox').open_new_tab(r'C:\HydPy\hydpy\docs\_build\html\index.html')
 

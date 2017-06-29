@@ -97,6 +97,8 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
         docfilenames = [os.path.join(dirinfo[0], fn)
                         for fn in dirinfo[2] if fn.endswith('.rst')]
         for name in (modulenames + docfilenames):
+            if name.endswith('apidoc'):
+                continue
             if not name.endswith('.rst'):
                 module = importlib.import_module(name)
             runner = unittest.TextTestRunner(stream=open(os.devnull, 'w'))

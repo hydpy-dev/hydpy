@@ -14,9 +14,11 @@ from hydpy.core import timetools
 from hydpy.models.lland import lland_constants
 from hydpy.models.lland import lland_parameters
 
+
 class FT(parametertools.SingleParameter):
     """Teileinzugsgebietsfläche (subbasin area) [km²]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (1e-10, None)
+
 
 class NHRU(parametertools.SingleParameter):
     """Anzahl der Hydrotope (number of hydrological response units) [-].
@@ -55,10 +57,12 @@ class NHRU(parametertools.SingleParameter):
                 if (seq.NDIM == 1) and (seq.name != 'moy'):
                     seq.shape = self.value
 
+
 class FHRU(lland_parameters.MultiParameter):
     """Flächenanteile der Hydrotope (area percentages of the respective
     HRUs) [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., 1.)
+
 
 class Lnk(lland_parameters.MultiParameter):
     """Landnutzungsklasse (land use class) [-].
@@ -90,62 +94,75 @@ class Lnk(lland_parameters.MultiParameter):
         return [', '.join(invmap.get(value, repr(value))
                           for value in self.values)]
 
+
 class HNN(lland_parameters.MultiParameter):
     """Höhe über Normal-Null (height above sea level) [m]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+
 
 class KG(lland_parameters.MultiParameter):
     """Niederschlagskorrekturfaktor (adjustment factor for precipitation)
     [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
+
 class KT(lland_parameters.MultiParameter):
     """Temperaturkorrektursummand (adjustment summand for air temperature)
     [°C]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+
 
 class KE(lland_parameters.MultiParameter):
     """Grasreferenzverdunstungskorrekturfaktor (adjustment factor for
     reference evapotranspiration) [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
 
+
 class KF(lland_parameters.MultiParameter):
     """Küstenfaktor ("coast factor" of Turc-Wendling's evaporation equation
     [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (.6, 1.)
+
 
 class FLn(lland_parameters.LanduseMonthParameter):
     """Landnutzungsabhängiger Verdunstungsfaktor (factor for adjusting
     reference evapotranspiration to different land use classes) [-]."""
     NDIM, TYPE, TIME, SPAN = 2, float, None, (0., None)
 
+
 class HInz(parametertools.SingleParameter):
     """Interzeptionskapazität bezogen auf die Blattoberfläche (interception
     capacity normalized to the leaf surface area) [mm]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
+
 class LAI(lland_parameters.LanduseMonthParameter):
     """Blattflächenindex (leaf area index) [-]."""
     NDIM, TYPE, TIME, SPAN = 2, float, None, (0., None)
+
 
 class TRefT(lland_parameters.MultiParameterLand):
     """Lufttemperaturgrenzwert des grundlegenden Grad-Tag-Verfahrens
     (air temperature threshold of the degree-day method) [°C]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
+
 class TRefN(lland_parameters.MultiParameterLand):
     """Niederschlagstemperaturgrenzwert des erweiterten Grad-Tag-Verfahrens
     (precipitation temperature threshold of the degree-day method) [°C]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+
 
 class TGr(lland_parameters.MultiParameterLand):
     """Temperaturgrenzwert flüssiger/fester Niederschlag (threshold
     temperature liquid/frozen precipitation) [°C]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
+
 class GTF(lland_parameters.MultiParameterLand):
     """Grad-Tag-Faktor (factor of the degree-day method) [mm/°C/T]."""
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
+
 
 class RSchmelz(parametertools.SingleParameter):
     """Spezifische Schmelzwärme von Wasser (specific melt heat of water)
@@ -153,11 +170,13 @@ class RSchmelz(parametertools.SingleParameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
     INIT = 334.
 
+
 class CPWasser(parametertools.SingleParameter):
     """Spezifische Wärmekapazität von Wasser (specific heat capacity of water)
     [J/g]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
     INIT = 4.1868
+
 
 class PWMax(lland_parameters.MultiParameterLand):
     """Maximalverhältnis Gesamt- zu Trockenschnee (maximum ratio of the
@@ -214,14 +233,17 @@ class PWMax(lland_parameters.MultiParameterLand):
                 rhodkrit = float(kwargs['rhodkrit'])
                 self(1.474*rhodkrit/(rhot0+0.474*rhodkrit))
 
+
 class GrasRef_R(parametertools.SingleParameter):
     """Bodenfeuchte-Verdunstung-Parameter (soil moisture dependend
     evaporation factor) [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
+
 class NFk(lland_parameters.MultiParameterSoil):
     """Nutzbare Feldkapazität (usable field capacity) [mm]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+
 
 class RelWZ(lland_parameters.MultiParameterSoil):
     """Relative Mindestbodenfeuchte für die Interflowentstehung (threshold
@@ -243,6 +265,7 @@ class RelWZ(lland_parameters.MultiParameterSoil):
         if (lower is None) and (relwb is not None):
             lower = relwb
         lland_parameters.MultiParameterSoil.trim(self, lower, upper)
+
 
 class RelWB(lland_parameters.MultiParameterSoil):
     """Relative Mindestbodenfeuchte für die Basisabflussentstehung (threshold
@@ -339,6 +362,7 @@ class DMin(lland_parameters.MultiParameterSoil):
             upper = self.subpars.dmax
         lland_parameters.MultiParameterSoil.trim(self, lower, upper)
 
+
 class DMax(lland_parameters.MultiParameterSoil):
     """Drainageindex des oberen Bodenspeichers (additional flux rate for
     releasing interflow from the upper soil compartment) [mm/T].
@@ -400,11 +424,13 @@ class DMax(lland_parameters.MultiParameterSoil):
             lower = self.subpars.dmin
         lland_parameters.MultiParameterSoil.trim(self, lower, upper)
 
+
 class BSf(lland_parameters.MultiParameterSoil):
     """Bodenfeuchte-Sättigungsfläche-Parameter (shape parameter for the
     relation between the avarage soil moisture and the relative saturated
     area of a subbasin) [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+
 
 class TInd(parametertools.SingleParameter):
     """Fließzeitindex (factor related to the time of concentration) [T].
@@ -501,7 +527,8 @@ class TInd(parametertools.SingleParameter):
                                   'hours`.' % (tal, hot, hut,
                                                objecttools.devicename(self),
                                                round(self.value, 6)))
-                self.value *=  timetools.Period('1h')/self.simulationstep
+                self.value *= timetools.Period('1h')/self.simulationstep
+
 
 class EQB(parametertools.SingleParameter):
     """Kalibrierfaktor für die Basisabflusskonzentration (factor for adjusting
@@ -565,6 +592,7 @@ class EQI1(parametertools.SingleParameter):
             upper = self.subpars.eqb
         parametertools.SingleParameter.trim(self, lower, upper)
 
+
 class EQI2(parametertools.SingleParameter):
     """Kalibrierfaktor für die "obere" Zwischenabflusskonzentration
     (factor for adjusting the concentration time of the second interflow
@@ -601,6 +629,7 @@ class EQI2(parametertools.SingleParameter):
             upper = self.subpars.eqi1
         parametertools.SingleParameter.trim(self, lower, upper)
 
+
 class EQD(parametertools.SingleParameter):
     """Kalibrierfaktor für die Direktabflusskonzentration (factor for adjusting
     the concentration time of direct runoff). [-]."""
@@ -626,6 +655,7 @@ class EQD(parametertools.SingleParameter):
         if (upper is None) and not numpy.isnan(self.subpars.eqi2):
             upper = self.subpars.eqi2
         parametertools.SingleParameter.trim(self, lower, upper)
+
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of HydPy-L-Land, directly defined by the user."""

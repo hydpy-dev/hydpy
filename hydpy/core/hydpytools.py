@@ -35,7 +35,7 @@ class HydPy(object):
                           'initializing a new one, unless you are fully aware '
                           'in what manner HydPy is relying on some global '
                           'information stored in modules.'
-                          %HydPy.nmb_instances)
+                          % HydPy.nmb_instances)
 
         # Store public information in a seperate module.
         pub.allowcoldstart = False
@@ -93,7 +93,6 @@ class HydPy(object):
         finally:
             pub.controlmanager._controldirectory = _controldirectory
             pub.controlmanager._projectdirectory = _projectdirectory
-
 
     def loadconditions(self, conditiondirectory=None, controldirectory=None,
                        projectdirectory=None, ):
@@ -184,8 +183,8 @@ class HydPy(object):
     def _nextnode(self, node):
         for (name, element) in node.exits:
             if ((element in self.elements) and
-                (element not in self.deviceorder)):
-                if not node in element.receivers:
+                    (element not in self.deviceorder)):
+                if node not in element.receivers:
                     self._nextelement(element)
         if (node in self.nodes) and (node not in self.deviceorder):
             self.deviceorder.append(node)
@@ -195,7 +194,7 @@ class HydPy(object):
     def _nextelement(self, element):
         for (name, node) in element.outlets:
             if ((node in self.nodes) and
-                (node not in self.deviceorder)):
+                    (node not in self.deviceorder)):
                 self._nextnode(node)
         if (element in self.elements) and (element not in self.deviceorder):
             self.deviceorder.append(element)
@@ -208,7 +207,7 @@ class HydPy(object):
         for (name, node) in self.nodes:
             for (name, element) in node.exits:
                 if ((element in self.elements) and
-                    (node not in element.receivers)):
+                        (node not in element.receivers)):
                     break
             else:
                 endnodes += node
@@ -270,7 +269,7 @@ class HydPy(object):
         return funcs
 
     def doit(self):
-        idx_start,idx_end = self.simindices
+        idx_start, idx_end = self.simindices
         self.openfiles(idx_start)
         funcorder = self.funcorder
         if pub.options.printprogress:

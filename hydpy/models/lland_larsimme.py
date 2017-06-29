@@ -25,6 +25,7 @@ from hydpy.core.magictools import controlcheck
 from hydpy.core.magictools import Tester
 from hydpy.cythons.modelutils import Cythonizer
 
+
 class Model(modeltools.Model):
     """LARSIM-ME version of the HydPy-L-Land model.
 
@@ -37,7 +38,9 @@ class Model(modeltools.Model):
         The only two simulation steps are in January:
 
         >>> from hydpy import pub, Timegrid, Timegrids
-        >>> pub.timegrids = Timegrids(Timegrid('01.08.2000', '03.08.2000', '1d'))
+        >>> pub.timegrids = Timegrids(Timegrid('01.08.2000',
+        ...                                    '03.08.2000',
+        ...                                    '1d'))
 
         Import the model and define the time settings:
 
@@ -157,6 +160,7 @@ class Model(modeltools.Model):
                    lland_model.calc_q_v1,
                    lland_model.update_outlets_v1)
 
+
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of LARSIM-ME, directly defined by the user."""
     _PARCLASSES = (lland_control.FT,
@@ -192,6 +196,7 @@ class ControlParameters(parametertools.SubParameters):
                    lland_control.EQI2,
                    lland_control.EQD)
 
+
 class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of LARSIM-ME, indirectly defined by the user."""
     _PARCLASSES = (lland_derived.MOY,
@@ -204,11 +209,13 @@ class DerivedParameters(parametertools.SubParameters):
                    lland_derived.KD,
                    lland_derived.QFactor)
 
+
 class InputSequences(sequencetools.InputSequences):
     """Input sequences of LARSIM-ME."""
     _SEQCLASSES = (lland_inputs.Nied,
                    lland_inputs.TemL,
                    lland_inputs.Glob)
+
 
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of LARSIM-ME."""
@@ -228,6 +235,7 @@ class FluxSequences(sequencetools.FluxSequences):
                    lland_fluxes.QBB,
                    lland_fluxes.Q)
 
+
 class StateSequences(sequencetools.StateSequences):
     """State sequences of LARSIM-ME."""
     _SEQCLASSES = (lland_states.Inzp,
@@ -243,6 +251,7 @@ class StateSequences(sequencetools.StateSequences):
                    lland_states.QIGA2,
                    lland_states.QBGA)
 
+
 class AideSequences(sequencetools.AideSequences):
     """Aide sequences of LARSIM-ME."""
     _SEQCLASSES = (lland_aides.Temp,
@@ -253,9 +262,11 @@ class AideSequences(sequencetools.AideSequences):
                    lland_aides.RVl,
                    lland_aides.EPW)
 
+
 class OutletSequences(sequencetools.LinkSequences):
     """Downstream link sequences of LARSIM-ME."""
     _SEQCLASSES = (lland_links.Q,)
+
 
 tester = Tester()
 cythonizer = Cythonizer()

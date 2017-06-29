@@ -2,8 +2,6 @@
 """ This module provides utilities to build and apply cython models.
 
 """
-
-
 # import...
 # ...from standard library
 from __future__ import division, print_function
@@ -48,6 +46,7 @@ NDIM2STR = {0: '',
             2: '[:,:]',
             3: '[:,:,:]'}
 
+
 class Lines(list):
     """Handles lines to be written into a `.pyx` file."""
 
@@ -86,7 +85,7 @@ class Cythonizer(object):
 
     def doit(self):
         with magictools.PrintStyle(color=33, font=4):
-            print('Translate module/package %s.'% self.pyname)
+            print('Translate module/package %s.' % self.pyname)
         with magictools.PrintStyle(color=33, font=2):
             self.pyxwriter.write()
         with magictools.PrintStyle(color=31, font=4):
@@ -102,7 +101,6 @@ class Cythonizer(object):
             return self.pymodule.split('.')[-2]
         else:
             return self.pymodule.split('.')[-1]
-
 
     @property
     def cyname(self):
@@ -289,8 +287,8 @@ class PyxWriter(object):
         lines = Lines()
         for (name, member) in vars(self.cythonizer).items():
             if (name.isupper() and
-                (not inspect.isclass(member)) and
-                (type(member) in TYPE2STR)):
+                    (not inspect.isclass(member)) and
+                    (type(member) in TYPE2STR)):
                 ndim = numpy.array(member).ndim
                 ctype = TYPE2STR[type(member)] + NDIM2STR[ndim]
                 lines.add(0, 'cdef public %s %s = %s'
@@ -371,7 +369,7 @@ class PyxWriter(object):
             lines.add(3, 'self._%s_file = fopen(str(self._%s_path), "rb+")'
                          % (2*(name,)))
             if seq.NDIM == 0:
-                lines.add(3, 'fseek(self._%s_file, idx*8, SEEK_SET)'  % name)
+                lines.add(3, 'fseek(self._%s_file, idx*8, SEEK_SET)' % name)
             else:
                 lines.add(3, 'fseek(self._%s_file, idx*self._%s_length*8, '
                              'SEEK_SET)' % (2*(name,)))
@@ -391,23 +389,23 @@ class PyxWriter(object):
         """Load data statements."""
         print('            . loaddata')
         lines = Lines()
-        lines.add(1 ,'cpdef inline loaddata(self, int idx):')
-        lines.add(2 ,'cdef int jdx0, jdx1, jdx2, jdx3, jdx4, jdx5')
+        lines.add(1, 'cpdef inline loaddata(self, int idx):')
+        lines.add(2, 'cdef int jdx0, jdx1, jdx2, jdx3, jdx4, jdx5')
         for (name, seq) in subseqs:
-            lines.add(2 ,'if self._%s_diskflag:' % name)
+            lines.add(2, 'if self._%s_diskflag:' % name)
             if seq.NDIM == 0:
-                lines.add(3 ,'fread(&self.%s, 8, 1, self._%s_file)'
+                lines.add(3, 'fread(&self.%s, 8, 1, self._%s_file)'
                              % (2*(name,)))
             else:
-                lines.add(3 ,'fread(&self.%s[0], 8, self._%s_length, '
+                lines.add(3, 'fread(&self.%s[0], 8, self._%s_length, '
                              'self._%s_file)' % (3*((name,))))
-            lines.add(2 ,'elif self._%s_ramflag:' % name)
+            lines.add(2, 'elif self._%s_ramflag:' % name)
             if seq.NDIM == 0:
                 lines.add(3, 'self.%s = self._%s_array[idx]' % (2*(name,)))
             else:
                 indexing = ''
                 for idx in range(seq.NDIM):
-                    lines.add(3+idx ,'for jdx%d in range(self._%s_length_%d):'
+                    lines.add(3+idx, 'for jdx%d in range(self._%s_length_%d):'
                                      % (idx, name, idx))
                     indexing += 'jdx%d,' % idx
                 indexing = indexing[:-1]
@@ -419,23 +417,23 @@ class PyxWriter(object):
         """Save data statements."""
         print('            . savedata')
         lines = Lines()
-        lines.add(1 ,'cpdef inline savedata(self, int idx):')
-        lines.add(2 ,'cdef int jdx0, jdx1, jdx2, jdx3, jdx4, jdx5')
+        lines.add(1, 'cpdef inline savedata(self, int idx):')
+        lines.add(2, 'cdef int jdx0, jdx1, jdx2, jdx3, jdx4, jdx5')
         for (name, seq) in subseqs:
-            lines.add(2 ,'if self._%s_diskflag:' % name)
+            lines.add(2, 'if self._%s_diskflag:' % name)
             if seq.NDIM == 0:
-                lines.add(3 ,'fwrite(&self.%s, 8, 1, self._%s_file)'
+                lines.add(3, 'fwrite(&self.%s, 8, 1, self._%s_file)'
                              % (2*(name,)))
             else:
-                lines.add(3 ,'fwrite(&self.%s[0], 8, self._%s_length, '
+                lines.add(3, 'fwrite(&self.%s[0], 8, self._%s_length, '
                              'self._%s_file)' % (3*(name,)))
-            lines.add(2 ,'elif self._%s_ramflag:' % name)
+            lines.add(2, 'elif self._%s_ramflag:' % name)
             if seq.NDIM == 0:
                 lines.add(3, 'self._%s_array[idx] = self.%s' % (2*(name,)))
             else:
                 indexing = ''
                 for idx in range(seq.NDIM):
-                    lines.add(3+idx ,'for jdx%d in range(self._%s_length_%d):'
+                    lines.add(3+idx, 'for jdx%d in range(self._%s_length_%d):'
                                      % (idx, name, idx))
                     indexing += 'jdx%d,' % idx
                 indexing = indexing[:-1]
@@ -449,14 +447,12 @@ class PyxWriter(object):
         for (name, seq) in subseqs:
             if seq.NDIM == 0:
                 lines.extend(self.setpointer0d(subseqs))
-                #lines.extend(self.getpointer0d(subseqs))
             break
         for (name, seq) in subseqs:
             if seq.NDIM == 1:
                 lines.extend(self.alloc(subseqs))
                 lines.extend(self.dealloc(subseqs))
                 lines.extend(self.setpointer1d(subseqs))
-                #lines.extend(self.getpointer1d(subseqs))
             break
         return lines
 
@@ -464,33 +460,20 @@ class PyxWriter(object):
         """Setpointer function for 0-dimensional link sequences."""
         print('            . setpointer0d')
         lines = Lines()
-        lines.add(1 ,'cpdef inline setpointer0d'
+        lines.add(1, 'cpdef inline setpointer0d'
                      '(self, str name, pointer.PDouble value):')
         for (name, seq) in subseqs:
-            lines.add(2 ,'if name == "%s":' % name)
-            lines.add(3 ,'self.%s = value.p_value' % name)
+            lines.add(2, 'if name == "%s":' % name)
+            lines.add(3, 'self.%s = value.p_value' % name)
         return lines
-
-#    def getpointer0d(self, subseqs):
-#        """Get the pointer of the selected 0-dimensional link sequence."""
-#        print('            . getpointer0d')
-#        lines = Lines()
-#        lines.add(1 ,'cpdef inline getpointer0d(self, str name):')
-#        lines.add(2, 'cdef pointer.PDouble value')
-#        lines.add(2, 'value = pointer.PDouble(pointer.Double(0.))')
-#        for (name, seq) in subseqs:
-#            lines.add(2 ,'if name == "%s":' % name)
-#            lines.add(3, 'value.p_value = self.%s' % name)
-#        lines.add(2, 'return value')
-#        return lines
 
     def alloc(self, subseqs):
         """Allocate memory for 1-dimensional link sequences."""
         print('            . setlength')
         lines = Lines()
-        lines.add(1 ,'cpdef inline alloc(self, name, int length):')
+        lines.add(1, 'cpdef inline alloc(self, name, int length):')
         for (name, seq) in subseqs:
-            lines.add(2 ,'if name == "%s":' % name)
+            lines.add(2, 'if name == "%s":' % name)
             lines.add(3, 'self._%s_length_0 = length' % name)
             lines.add(3, 'self.%s = <double**> '
                          'PyMem_Malloc(length * sizeof(double*))' % name)
@@ -500,45 +483,28 @@ class PyxWriter(object):
         """Deallocate memory for 1-dimensional link sequences."""
         print('            . dealloc')
         lines = Lines()
-        lines.add(1 ,'cpdef inline dealloc(self):')
+        lines.add(1, 'cpdef inline dealloc(self):')
         for (name, seq) in subseqs:
-            lines.add(2, 'PyMem_Free(self.%s)' %name)
+            lines.add(2, 'PyMem_Free(self.%s)' % name)
         return lines
 
     def setpointer1d(self, subseqs):
         """Setpointer function for 1-dimensional link sequences."""
         print('            . setpointer1d')
         lines = Lines()
-        lines.add(1 ,'cpdef inline setpointer1d'
+        lines.add(1, 'cpdef inline setpointer1d'
                      '(self, str name, pointer.PDouble value, int idx):')
         for (name, seq) in subseqs:
-            lines.add(2 ,'if name == "%s":' % name)
-            lines.add(3 ,'self.%s[idx] = value.p_value' % name)
+            lines.add(2, 'if name == "%s":' % name)
+            lines.add(3, 'self.%s[idx] = value.p_value' % name)
         return lines
-
-#    def getpointer1d(self, subseqs):
-#        """Get the pointer of the selected 1-dimensional link sequence."""
-#        print('            . getpointer1d')
-#        lines = Lines()
-#        lines.add(1 ,'cpdef inline getpointer1d(self, str name):')
-#        lines.add(2, 'cdef pointer.PPDouble values')
-#        lines.add(2, 'values = pointer.PPDouble()')
-#        for (name, seq) in subseqs:
-#            lines.add(2 ,'if name == "%s":' % name)
-#            lines.add(3, 'values.length = self._%s_length_0' % name)
-#            lines.add(3, 'values.pp_value = <double**> '
-#                         'PyMem_Malloc(values.length * sizeof(double*))')
-#            lines.add(3, 'values.pp_value = self.%s' % name)
-#        lines.add(2, 'return values')
-#        return lines
-
 
     @property
     def modeldeclarations(self):
         """Attribute declarations of the model class."""
         lines = Lines()
-        lines.add(0 ,'@cython.final')
-        lines.add(0 ,'cdef class Model(object):')
+        lines.add(0, '@cython.final')
+        lines.add(0, 'cdef class Model(object):')
         lines.add(1, 'cdef public int idx_sim')
         for things in (self.model.parameters, self.model.sequences):
             for (name, thing) in things:
@@ -579,8 +545,8 @@ class PyxWriter(object):
         if getattr(self.model.sequences, 'senders', None) is not None:
             lines.add(2, 'self.update_senders()')
         if ((getattr(self.model.sequences, 'fluxes', None) is not None) or
-            (getattr(self.model.sequences, 'states', None) is not None)):
-                lines.add(2, 'self.savedata()')
+                (getattr(self.model.sequences, 'states', None) is not None)):
+            lines.add(2, 'self.savedata()')
         return lines
 
     @property
@@ -589,7 +555,7 @@ class PyxWriter(object):
         lines = Lines()
         for func in ('openfiles', 'closefiles', 'loaddata', 'savedata'):
             if ((func == 'loaddata') and
-                (getattr(self.model.sequences, 'inputs', None) is None)):
+                    (getattr(self.model.sequences, 'inputs', None) is None)):
                 continue
             if ((func == 'savedata') and
                 ((getattr(self.model.sequences, 'fluxes', None) is None) and
@@ -601,7 +567,7 @@ class PyxWriter(object):
                 if func == 'loaddata':
                     applyfuncs = ('inputs',)
                 elif func == 'savedata':
-                     applyfuncs = ('fluxes', 'states')
+                    applyfuncs = ('fluxes', 'states')
                 else:
                     applyfuncs = ('inputs', 'fluxes', 'states')
                 if name in applyfuncs:
@@ -616,8 +582,8 @@ class PyxWriter(object):
         lines = Lines()
         if getattr(self.model.sequences, 'states', None) is not None:
             print('                . new2old')
-            lines.add(1 ,'cpdef inline void new2old(self):')
-            lines.add(2 ,'cdef int jdx0, jdx1, jdx2, jdx3, jdx4, jdx5')
+            lines.add(1, 'cpdef inline void new2old(self):')
+            lines.add(2, 'cdef int jdx0, jdx1, jdx2, jdx3, jdx4, jdx5')
             for (name, seq) in sorted(self.model.sequences.states):
                 if seq.NDIM == 0:
                     lines.add(2, 'self.old_states.%s = self.new_states.%s'
@@ -625,19 +591,22 @@ class PyxWriter(object):
                 else:
                     indexing = ''
                     for idx in range(seq.NDIM):
-                        lines.add(2+idx ,
-                                  'for jdx%d in range(self.states._%s_length_%d):'
-                                  % (idx, name, idx))
+                        lines.add(
+                            2+idx,
+                            'for jdx%d in range(self.states._%s_length_%d):'
+                            % (idx, name, idx))
                         indexing += 'jdx%d,' % idx
                     indexing = indexing[:-1]
-                    lines.add(2+seq.NDIM,'self.old_states.%s[%s] = self.new_states.%s[%s]'
-                                         % (2*(name, indexing)))
+                    lines.add(
+                        2+seq.NDIM,
+                        'self.old_states.%s[%s] = self.new_states.%s[%s]'
+                        % (2*(name, indexing)))
         return lines
 
     @property
     def run(self):
         lines = Lines()
-        lines.add(1 ,'cpdef inline void run(self):')
+        lines.add(1, 'cpdef inline void run(self):')
         anything = False
         for method in self.model._RUNMETHODS:
             if not method.__name__.startswith('update_'):
@@ -653,7 +622,7 @@ class PyxWriter(object):
         lines = []
         for (name, member) in vars(self.model.__class__).items():
             if (inspect.isfunction(member) and
-                    (name not in  ('run', 'new2old')) and
+                    (name not in ('run', 'new2old')) and
                     ('fastaccess' in inspect.getsource(member))):
                 lines.append((name, member))
         run = vars(self.model.__class__).get('run')
@@ -750,7 +719,7 @@ class FuncConverter(object):
         lines = code.splitlines()
         lines[0] = 'def %s(self):' % self.funcname
         lines = [l.split('#')[0] for l in lines]
-        lines = [l for l in lines  if not 'fastaccess' in l]
+        lines = [l for l in lines if 'fastaccess' not in l]
         lines = [l.rstrip() for l in lines if l.rstrip()]
         return Lines(*lines)
 
@@ -780,8 +749,7 @@ def exp(double):
     """Cython wrapper for numpys exp function applied on a single float."""
     return numpy.exp(double)
 
+
 def fabs(double):
     """Cython wrapper for maths fabs function applied on a single float."""
     return math.fabs(double)
-
-

@@ -26,8 +26,11 @@ from hydpy import pub
 import warnings
 import sys
 warnings.filterwarnings('ignore', r'All-NaN (slice|axis) encountered')
+
+
 def customwarn(message, category, filename, lineno, file=None, line=None):
-    sys.stdout.write(warnings.formatwarning(message, category, filename, lineno))
+    sys.stdout.write(warnings.formatwarning(
+                                    message, category, filename, lineno))
 warnings.showwarning = customwarn
 
 __all__ = ['HydPy', 'pub',
@@ -35,5 +38,3 @@ __all__ = ['HydPy', 'pub',
            'MainManager', 'NetworkManager', 'ControlManager',
            'SequenceManager', 'ConditionManager',
            'Node', 'Nodes', 'Element', 'Elements', 'Selection', 'Selections']
-
-

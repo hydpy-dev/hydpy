@@ -23,41 +23,52 @@ from hydpy.cythons.modelutils import Cythonizer
 # Parameter definitions
 ###############################################################################
 
+
 class Lag(parametertools.SingleParameter):
     """Time lag between inflow and outflow [T]."""
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0., None)
+
 
 class Damp(parametertools.SingleParameter):
     """Damping of the hydrograph [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
 
+
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of hstream, directly defined by the user."""
     _PARCLASSES = (Lag, Damp)
 
+
 # Derived Parameters ##########################################################
+
 
 class NmbSegments(parametertools.SingleParameter):
     """Number of river segments [-]."""
     NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
 
+
 class C1(parametertools.SingleParameter):
     """First coefficient of the muskingum working formula [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., .5)
+
 
 class C2(parametertools.SingleParameter):
     """Second coefficient of the muskingum working formula [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
 
+
 class C3(parametertools.SingleParameter):
     """Third coefficient of the muskingum working formula [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., .5)
+
 
 class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of hstream, indirectly defined by the user."""
     _PARCLASSES = (NmbSegments, C1, C2, C3)
 
+
 # Parameter container #########################################################
+
 
 class Parameters(parametertools.Parameters):
     """All parameters of the hstream model."""
@@ -164,11 +175,14 @@ class Parameters(parametertools.Parameters):
         der.c1 = der.c3 = numpy.clip(con.damp/(1.+con.damp), 0., .5)
         der.c2 = numpy.clip(1.-der.c1-der.c3, 0., 1.)
 
+
 ###############################################################################
 # Sequence Definitions
 ###############################################################################
 
+
 # State Sequences #############################################################
+
 
 class QJoints(sequencetools.StateSequence):
     """Runoff at the segment junctions [m³/s]."""
@@ -184,34 +198,44 @@ class QJoints(sequencetools.StateSequence):
                           'affected HydPy-H-Stream model could be initialised '
                           'with an averaged value only: %s' % message)
 
+
 class StateSequences(sequencetools.StateSequences):
     """State sequences of the hstream model."""
     _SEQCLASSES = (QJoints,)
 
+
 # Link Sequences ##############################################################
+
 
 class Q(sequencetools.LinkSequence):
     """Runoff [m³/s]."""
     NDIM, NUMERIC = 0, False
 
+
 class InletSequences(sequencetools.LinkSequences):
     """Upstream link sequences of the hstream model."""
     _SEQCLASSES = (Q,)
+
 
 class OutletSequences(sequencetools.LinkSequences):
     """Downstream link sequences of the hstream model."""
     _SEQCLASSES = (Q,)
 
+
 # Sequence container ##########################################################
+
 
 class Sequences(sequencetools.Sequences):
     """All sequences of the hstream model."""
+
 
 ###############################################################################
 # Model
 ###############################################################################
 
+
 # Methods #####################################################################
+
 
 def calc_qjoints_v1(self):
     """Apply the routing equation.
@@ -310,12 +334,14 @@ def calc_qjoints_v1(self):
                             der.c2*old.qjoints[j] +
                             der.c3*old.qjoints[j+1])
 
+
 def update_inlets_v1(self):
     """Assign the actual value of the inlet sequence to the upper joint
     of the subreach upstream."""
     sta = self.sequences.states.fastaccess
     inl = self.sequences.inlets.fastaccess
     sta.qjoints[0] = inl.q[0]
+
 
 def update_outlets_v1(self):
     """Assing the actual value of the lower joint of of the subreach
@@ -325,7 +351,9 @@ def update_outlets_v1(self):
     out = self.sequences.outlets.fastaccess
     out.q[0] += sta.qjoints[der.nmbsegments]
 
+
 # Model class #################################################################
+
 
 class Model(modeltools.Model):
     """The HydPy-H-Stream model."""

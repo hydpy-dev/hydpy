@@ -4,7 +4,6 @@
 # import...
 # ...from standard library
 from __future__ import division, print_function
-import sys
 # ...third party
 import numpy
 # ...HydPy specific...
@@ -26,7 +25,9 @@ from hydpy.cythons.modelutils import Cythonizer
 # Parameter definitions
 ###############################################################################
 
+
 # Control Parameters ##########################################################
+
 
 class XPoints(parametertools.MultiParameter):
     """Supporting points for the independent input variable [eg. m³/s]."""
@@ -45,6 +46,7 @@ class XPoints(parametertools.MultiParameter):
                              'arranged in a strictly monotnously manner, '
                              'which is not the case for the given values '
                              '`%s`.' % ', '.join(str(value) for value in self))
+
 
 class YPoints(parametertools.MultiParameter):
     """Supporting points for the dependent output variables [eg. m³/s].
@@ -126,21 +128,27 @@ class ControlParameters(parametertools.SubParameters):
     """
     _PARCLASSES = (XPoints, YPoints)
 
+
 # Derived Parameters ##########################################################
+
 
 class NmbBranches(parametertools.SingleParameter):
     """Number of branches [-]."""
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
+
 class NmbPoints(parametertools.SingleParameter):
     """Number of supporting points for linear interpolation [-]."""
     NDIM, TYPE, TIME, SPAN = 0, int, None, (2, None)
+
 
 class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of hbranch, indirectly defined by the user."""
     _PARCLASSES = (NmbBranches, NmbPoints)
 
+
 # Parameters ##################################################################
+
 
 class Parameters(parametertools.Parameters):
     """All parameters of the hbranch model."""
@@ -157,11 +165,14 @@ class Parameters(parametertools.Parameters):
 # Sequence Definitions
 ###############################################################################
 
+
 # Flux Sequences ##############################################################
+
 
 class Input(sequencetools.FluxSequence):
     """Total input [e.g. m³/s]."""
     NDIM, NUMERIC = 0, False
+
 
 class Outputs(sequencetools.FluxSequence):
     """Branched outputs [e.g. m³/s]."""
@@ -179,38 +190,49 @@ class Outputs(sequencetools.FluxSequence):
         lines[-1] = lines[-1][:-1]+')'
         return '\n'.join(lines)
 
+
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of the hbranch model."""
     _SEQCLASSES = (Input, Outputs)
 
+
 # Link Sequences ##############################################################
+
 
 class Total(sequencetools.LinkSequence):
     """Total input [e.g. m³/s]."""
     NDIM, NUMERIC = 0, False
 
+
 class InletSequences(sequencetools.LinkSequences):
     """Upstream link sequences of the hbranch model."""
     _SEQCLASSES = (Total,)
+
 
 class Branched(sequencetools.LinkSequence):
     """Branched outputs [e.g. m³/s]."""
     NDIM, NUMERIC = 1, False
 
+
 class OutletSequences(sequencetools.LinkSequences):
     """Downstream link sequences of the hbranch model."""
     _SEQCLASSES = (Branched,)
 
+
 # Sequences ###################################################################
+
 
 class Sequences(sequencetools.Sequences):
     """All sequences of the hbranch model."""
+
 
 ###############################################################################
 # Model
 ###############################################################################
 
+
 # Methods #####################################################################
+
 
 def calc_outputs_v1(self):
     """Performs the actual interpolation or extrapolation.
@@ -298,12 +320,14 @@ def calc_outputs_v1(self):
             (con.xpoints[pdx]-con.xpoints[pdx-1]) +
             con.ypoints[bdx, pdx-1])
 
+
 def update_inlets_v1(self):
     """Updates :class:`~hydpy.models.hbranch.Input` based on
     :class:`~hydpy.models.hbranch.Total`."""
     flu = self.sequences.fluxes.fastaccess
     inl = self.sequences.inlets.fastaccess
     flu.input = inl.total[0]
+
 
 def update_outlets_v1(self):
     """Updates :class:`~hydpy.models.hbranch.Branched` based on
@@ -314,7 +338,9 @@ def update_outlets_v1(self):
     for bdx in range(der.nmbbranches):
         out.branched[bdx][0] += flu.outputs[bdx]
 
+
 # Model class #################################################################
+
 
 class Model(modeltools.Model):
     """The HydPy-H-Branch model.

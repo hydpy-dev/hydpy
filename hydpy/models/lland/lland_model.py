@@ -7,7 +7,7 @@ from __future__ import division, print_function
 from hydpy.core import modeltools
 from hydpy.cythons import modelutils
 # ...model specifc
-from hydpy.models.lland.lland_constants import *
+from hydpy.models.lland.lland_constants import WASSER, VERS
 
 
 def calc_nkor_v1(self):
@@ -43,6 +43,7 @@ def calc_nkor_v1(self):
     for k in range(con.nhru):
         flu.nkor[k] = con.kg[k] * inp.nied
 
+
 def calc_tkor_v1(self):
     """Adjust the given air temperature values.
 
@@ -75,6 +76,7 @@ def calc_tkor_v1(self):
     flu = self.sequences.fluxes.fastaccess
     for k in range(con.nhru):
         flu.tkor[k] = con.kt[k] + inp.teml
+
 
 def calc_et0_v1(self):
     """Calculate reference evapotranspiration after Turc-Wendling.
@@ -121,6 +123,7 @@ def calc_et0_v1(self):
                                   (flu.tkor[k]+22.)) /
                                  (165.*(flu.tkor[k]+123.) *
                                   (1.+0.00019*min(con.hnn[k], 600.)))))
+
 
 def calc_evpo_v1(self):
     """Calculate land use and month specific values of potential
@@ -206,8 +209,8 @@ def calc_evpo_v1(self):
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
     for k in range(con.nhru):
-        flu.evpo[k] = (con.fln[con.lnk[k]-1, der.moy[self.idx_sim]]
-                      * flu.et0[k])
+        flu.evpo[k] = con.fln[con.lnk[k]-1, der.moy[self.idx_sim]] * flu.et0[k]
+
 
 def calc_nbes_inzp_v1(self):
     """Calculate throughfall and update the interception storage
@@ -332,6 +335,7 @@ def calc_nbes_inzp_v1(self):
             flu.nbes[k] = flu.nkor[k]
             sta.inzp[k] = 0.
 
+
 def calc_evi_inzp_v1(self):
     """Calculate interception evaporation and update the interception
     storage accordingly.
@@ -392,6 +396,7 @@ def calc_evi_inzp_v1(self):
             sta.inzp[k] -= flu.evi[k]
         else:
             flu.evi[k] = flu.evpo[k]
+
 
 def calc_wgtf_v1(self):
     """Calculate the potential snow melt.
@@ -481,6 +486,7 @@ def calc_wgtf_v1(self):
         else:
             flu.wgtf[k] = 0.
 
+
 def calc_schm_wats_v1(self):
     """Calculate the actual amount of water melting within the snow cover.
 
@@ -560,6 +566,7 @@ def calc_schm_wats_v1(self):
             sta.wats[k] = 0.
             flu.schm[k] = 0.
 
+
 def calc_wada_waes_v1(self):
     """Calculate the actual water release from the snow cover.
 
@@ -621,6 +628,7 @@ def calc_wada_waes_v1(self):
         else:
             sta.waes[k] = 0.
             flu.wada[k] = flu.nbes[k]
+
 
 def calc_evb_v1(self):
     """Calculate the actual water release from the snow cover.
@@ -688,6 +696,7 @@ def calc_evb_v1(self):
         else:
             flu.evb[k] = 0.
 
+
 def calc_qbb_v1(self):
     """Calculate the amount of base flow released from the soil.
 
@@ -751,11 +760,12 @@ def calc_qbb_v1(self):
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
     for k in range(con.nhru):
-        if ((con.lnk[k] != WASSER) and (con.lnk[k] != VERS)
-          and (sta.bowa[k] > der.wb[k]) and (con.nfk[k] > 0.)):
+        if ((con.lnk[k] != WASSER) and (con.lnk[k] != VERS) and
+                (sta.bowa[k] > der.wb[k]) and (con.nfk[k] > 0.)):
             flu.qbb[k] = con.beta[k]*(sta.bowa[k]-der.wb[k])
         else:
             flu.qbb[k] = 0.
+
 
 def calc_qib1_v1(self):
     """Calculate the first inflow component released from the soil.
@@ -824,11 +834,12 @@ def calc_qib1_v1(self):
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
     for k in range(con.nhru):
-        if ((con.lnk[k] != WASSER) and (con.lnk[k] != VERS)
-                and (sta.bowa[k] > der.wb[k])):
+        if ((con.lnk[k] != WASSER) and (con.lnk[k] != VERS) and
+                (sta.bowa[k] > der.wb[k])):
             flu.qib1[k] = con.dmin[k]*(sta.bowa[k]/con.nfk[k])
         else:
             flu.qib1[k] = 0.
+
 
 def calc_qib2_v1(self):
     """Calculate the first inflow component released from the soil.
@@ -902,13 +913,14 @@ def calc_qib2_v1(self):
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
     for k in range(con.nhru):
-        if ((con.lnk[k] != WASSER) and (con.lnk[k] != VERS)
-          and (sta.bowa[k] > der.wz[k]) and (con.nfk[k] > der.wz[k])):
+        if ((con.lnk[k] != WASSER) and (con.lnk[k] != VERS) and
+                (sta.bowa[k] > der.wz[k]) and (con.nfk[k] > der.wz[k])):
             flu.qib2[k] = ((con.dmax[k]-con.dmin[k]) *
                            ((sta.bowa[k]-der.wz[k]) /
                             (con.nfk[k]-der.wz[k]))**1.5)
         else:
             flu.qib2[k] = 0.
+
 
 def calc_qdb_v1(self):
     """Calculate direct runoff released from the soil.
@@ -971,8 +983,8 @@ def calc_qdb_v1(self):
     sta = self.sequences.states.fastaccess
     aid = self.sequences.aides.fastaccess
     for k in range(con.nhru):
-        if ((con.lnk[k] != WASSER) and (con.lnk[k] != VERS)
-          and (con.nfk[k] > 0.)):
+        if ((con.lnk[k] != WASSER) and (con.lnk[k] != VERS) and
+                (con.nfk[k] > 0.)):
             if sta.bowa[k] < con.nfk[k]:
                 aid.sfa[k] = (
                     (1.-sta.bowa[k]/con.nfk[k])**(1./(con.bsf[k]+1.)) -
@@ -986,6 +998,7 @@ def calc_qdb_v1(self):
             flu.qdb[k] = max(flu.qdb[k], 0.)
         else:
             flu.qdb[k] = flu.wada[k]
+
 
 def calc_bowa_v1(self):
     """Update soil moisture and correct fluxes if necessary.
@@ -1069,6 +1082,7 @@ def calc_bowa_v1(self):
         else:
             sta.bowa[k] = 0.
 
+
 def calc_qbgz_v1(self):
     """Aggregate the amount of base flow released by all HRUs.
 
@@ -1102,6 +1116,7 @@ def calc_qbgz_v1(self):
     sta.qbgz = 0.
     for k in range(con.nhru):
         sta.qbgz += con.fhru[k]*flu.qbb[k]
+
 
 def calc_qigz1_v1(self):
     """Aggregate the amount of the first interflow component released
@@ -1138,6 +1153,7 @@ def calc_qigz1_v1(self):
     for k in range(con.nhru):
         sta.qigz1 += con.fhru[k]*flu.qib1[k]
 
+
 def calc_qigz2_v1(self):
     """Aggregate the amount of the second interflow component released
     by all HRUs.
@@ -1173,6 +1189,7 @@ def calc_qigz2_v1(self):
     for k in range(con.nhru):
         sta.qigz2 += con.fhru[k]*flu.qib2[k]
 
+
 def calc_qdgz_v1(self):
     """Aggregate the amount of direct flow released by all HRUs.
 
@@ -1206,6 +1223,7 @@ def calc_qdgz_v1(self):
     sta.qdgz = 0.
     for k in range(con.nhru):
         sta.qdgz += con.fhru[k]*flu.qdb[k]
+
 
 def calc_qbga_v1(self):
     """Perform the runoff concentration calculation for base flow.
@@ -1267,8 +1285,9 @@ def calc_qbga_v1(self):
     else:
         aid.temp = (1.-modelutils.exp(-1./der.kb))
         new.qbga = (old.qbga +
-                   (old.qbgz-old.qbga)*aid.temp +
-                   (new.qbgz-old.qbgz)*(1.-der.kb*aid.temp))
+                    (old.qbgz-old.qbga)*aid.temp +
+                    (new.qbgz-old.qbgz)*(1.-der.kb*aid.temp))
+
 
 def calc_qiga1_v1(self):
     """Perform the runoff concentration calculation for the first
@@ -1331,8 +1350,9 @@ def calc_qiga1_v1(self):
     else:
         aid.temp = (1.-modelutils.exp(-1./der.ki1))
         new.qiga1 = (old.qiga1 +
-                    (old.qigz1-old.qiga1)*aid.temp +
-                    (new.qigz1-old.qigz1)*(1.-der.ki1*aid.temp))
+                     (old.qigz1-old.qiga1)*aid.temp +
+                     (new.qigz1-old.qigz1)*(1.-der.ki1*aid.temp))
+
 
 def calc_qiga2_v1(self):
     """Perform the runoff concentration calculation for the second
@@ -1395,8 +1415,9 @@ def calc_qiga2_v1(self):
     else:
         aid.temp = (1.-modelutils.exp(-1./der.ki2))
         new.qiga2 = (old.qiga2 +
-                    (old.qigz2-old.qiga2)*aid.temp +
-                    (new.qigz2-old.qigz2)*(1.-der.ki2*aid.temp))
+                     (old.qigz2-old.qiga2)*aid.temp +
+                     (new.qigz2-old.qigz2)*(1.-der.ki2*aid.temp))
+
 
 def calc_qdga_v1(self):
     """Perform the runoff concentration calculation for direct runoff.
@@ -1458,8 +1479,9 @@ def calc_qdga_v1(self):
     else:
         aid.temp = (1.-modelutils.exp(-1./der.kd))
         new.qdga = (old.qdga +
-                   (old.qdgz-old.qdga)*aid.temp +
-                   (new.qdgz-old.qdgz)*(1.-der.kd*aid.temp))
+                    (old.qdgz-old.qdga)*aid.temp +
+                    (new.qdgz-old.qdgz)*(1.-der.kd*aid.temp))
+
 
 def calc_q_v1(self):
     """Calculate the final runoff.
@@ -1552,6 +1574,7 @@ def calc_q_v1(self):
                 flu.evi[k] *= flu.q/aid.epw
         flu.q = 0.
 
+
 def update_outlets_v1(self):
     """Update the outlet link sequence.
 
@@ -1568,6 +1591,7 @@ def update_outlets_v1(self):
     flu = self.sequences.fluxes.fastaccess
     out = self.sequences.outlets.fastaccess
     out.q[0] += der.qfactor*flu.q
+
 
 class Model(modeltools.Model):
     """Base model for HydPy-L-Land."""

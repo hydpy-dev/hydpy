@@ -23,5 +23,5 @@ from hydpy.models.llake.llake_states import StateSequences
 from hydpy.models.llake.llake_model import Model
 
 tester = Tester()
-
-
+cythonizer = Cythonizer()
+cythonizer.complete()

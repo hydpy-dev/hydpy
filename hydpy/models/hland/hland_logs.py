@@ -28,6 +28,7 @@ class QUH(sequencetools.LogSequence):
         # The last value must be zero, otherwise all results were biased:
         self.values[-1] = 0.
 
+
 class LogSequences(sequencetools.LogSequences):
     """Log sequences of the hland model."""
     _SEQCLASSES = (QUH,)

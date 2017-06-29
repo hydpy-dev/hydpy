@@ -36,6 +36,7 @@ def calc_qref_v1(self):
     flu = self.sequences.fluxes.fastaccess
     flu.qref = (new.qz+old.qz+old.qa)/3.
 
+
 def calc_rk_v1(self):
     """Determine the actual traveling time of the water (not of the wave!).
 
@@ -83,7 +84,6 @@ def calc_rk_v1(self):
         >>> model.calc_rk_v1()
         >>> fluxes.rk
         rk(0.0)
-
     """
     con = self.parameters.control.fastaccess
     der = self.parameters.derived.fastaccess
@@ -92,6 +92,7 @@ def calc_rk_v1(self):
         flu.rk = (1000.*con.laen*flu.ag)/(der.sek*flu.qref)
     else:
         flu.rk = 0.
+
 
 def calc_am_um_v1(self):
     """Calculate the flown through area and the wetted perimeter
@@ -187,6 +188,7 @@ def calc_am_um_v1(self):
                   ((flu.h-con.hm)*(con.bm+2.*con.hm*con.bnm)))
         flu.um = (con.bm)+(2.*con.hm*(1.+con.bnm**2)**.5)+(2*(flu.h-con.hm))
 
+
 def calc_qm_v1(self):
     """Calculate the discharge of the main channel after Manning-Strickler.
 
@@ -238,6 +240,7 @@ def calc_qm_v1(self):
         flu.qm = con.ekm*con.skm*flu.am**(5./3.)/flu.um**(2./3.)*con.gef**.5
     else:
         flu.qm = 0.
+
 
 def calc_av_uv_v1(self):
     """Calculate the flown through area and the wetted perimeter of both
@@ -349,6 +352,7 @@ def calc_av_uv_v1(self):
             flu.uv[i] = ((con.bv[i])+(der.hv[i]*(1.+con.bnv[i]**2)**.5) +
                          (flu.h-(con.hm+der.hv[i])))
 
+
 def calc_qv_v1(self):
     """Calculate the discharge of both forelands after Manning-Strickler.
 
@@ -396,6 +400,7 @@ def calc_qv_v1(self):
                          flu.av[i]**(5./3.)/flu.uv[i]**(2./3.)*con.gef**.5)
         else:
             flu.qv[i] = 0.
+
 
 def calc_avr_uvr_v1(self):
     """Calculate the flown through area and the wetted perimeter of both
@@ -481,6 +486,7 @@ def calc_avr_uvr_v1(self):
             flu.avr[i] = (flu.h-(con.hm+der.hv[i]))**2*con.bnvr[i]/2.
             flu.uvr[i] = (flu.h-(con.hm+der.hv[i]))*(1.+con.bnvr[i]**2)**.5
 
+
 def calc_qvr_v1(self):
     """Calculate the discharge of both outer embankments after
     Manning-Strickler.
@@ -530,6 +536,7 @@ def calc_qvr_v1(self):
         else:
             flu.qvr[i] = 0.
 
+
 def calc_ag_v1(self):
     """Sum the through flown area of the total cross section.
 
@@ -555,6 +562,7 @@ def calc_ag_v1(self):
     flu = self.sequences.fluxes.fastaccess
     flu.ag = flu.am+flu.av[0]+flu.av[1]+flu.avr[0]+flu.avr[1]
 
+
 def calc_qg_v1(self):
     """Calculate the discharge of the total cross section.
 
@@ -571,6 +579,7 @@ def calc_qg_v1(self):
     self.calc_avr_uvr()
     self.calc_qvr()
     flu.qg = flu.qm+flu.qv[0]+flu.qv[1]+flu.qvr[0]+flu.qvr[1]
+
 
 def calc_hmin_qmin_hmax_qmax_v1(self):
     """Determine an starting interval for iteration methods as the one
@@ -639,6 +648,7 @@ def calc_hmin_qmin_hmax_qmax_v1(self):
                 aid.hmax = flu.h
                 aid.qmax = flu.qg
                 break
+
 
 def calc_h_v1(self):
     """Approximate the water stage resulting in a certain reference discarge
@@ -862,7 +872,7 @@ def calc_h_v1(self):
             if modelutils.fabs(aid.qtest) < con.qtol:
                 return
             elif (((aid.qmax < 0.) and (aid.qtest < 0.)) or
-              ((aid.qmax > 0.) and (aid.qtest > 0.))):
+                    ((aid.qmax > 0.) and (aid.qtest > 0.))):
                 aid.qmin *= aid.qmax/(aid.qmax+aid.qtest)
             else:
                 aid.hmin = aid.hmax
@@ -871,6 +881,7 @@ def calc_h_v1(self):
             aid.qmax = aid.qtest
             if modelutils.fabs(aid.hmax-aid.hmin) < con.htol:
                 return
+
 
 def calc_qa_v1(self):
     """Calculate outflow.
@@ -932,8 +943,9 @@ def calc_qa_v1(self):
     else:
         aid.temp = (1.-modelutils.exp(-1./flu.rk))
         new.qa = (old.qa +
-                   (old.qz-old.qa)*aid.temp +
-                   (new.qz-old.qz)*(1.-flu.rk*aid.temp))
+                  (old.qz-old.qa)*aid.temp +
+                  (new.qz-old.qz)*(1.-flu.rk*aid.temp))
+
 
 def update_inlets_v1(self):
     """Update inflow."""
@@ -943,13 +955,13 @@ def update_inlets_v1(self):
     for idx in range(inl.len_q):
         sta.qz += inl.q[idx][0]
 
+
 def update_outlets_v1(self):
     """Update outflow."""
     sta = self.sequences.states.fastaccess
     out = self.sequences.outlets.fastaccess
     out.q[0] += sta.qa
 
-# Model class #################################################################
 
 class Model(modeltools.Model):
     """The HydPy-H-Stream model."""

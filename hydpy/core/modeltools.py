@@ -141,8 +141,10 @@ class Model(MetaModelClass):
     def _getidx_sim(self):
         """Index of the actual simulation time step."""
         return self.cymodel.idx_sim
+
     def _setidx_sim(self, value):
         self.cymodel.idx_sim = int(value)
+
     idx_sim = property(_getidx_sim, _setidx_sim)
 
     def __dir__(self):

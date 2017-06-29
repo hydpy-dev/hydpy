@@ -8,6 +8,7 @@ import numpy
 # ...HydPy specific
 from hydpy.core import sequencetools
 
+
 class Inzp(sequencetools.StateSequence):
     """Interzeptionsspeicherung (interception storage) [mm].
 
@@ -24,6 +25,7 @@ class Inzp(sequencetools.StateSequence):
     step of the new month.
     """
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
+
 
 class WATS(sequencetools.StateSequence):
     """Wasseräquivalent Trockenschnee (frozen water equivalent of the snow
@@ -51,6 +53,7 @@ class WATS(sequencetools.StateSequence):
                 lower = 0.
         sequencetools.StateSequence.trim(self, lower, upper)
 
+
 class WAeS(sequencetools.StateSequence):
     """Wasseräquivalent Gesamtschnee (total water equivalent of the snow
     cover) [mm]."""
@@ -74,6 +77,7 @@ class WAeS(sequencetools.StateSequence):
             upper = pwmax*wats
         sequencetools.StateSequence.trim(self, lower, upper)
 
+
 class BoWa(sequencetools.StateSequence):
     """Bodenwasserspeicherung (soil water storage) [mm]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
@@ -93,45 +97,54 @@ class BoWa(sequencetools.StateSequence):
             upper = self.subseqs.seqs.model.parameters.control.nfk
         sequencetools.StateSequence.trim(self, lower, upper)
 
+
 class QDGZ(sequencetools.StateSequence):
     """Zufluss in den Direktabfluss-Gebietsspeicher (inflow into the
     storage compartment for direct runoff) [mm]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
+
 
 class QIGZ1(sequencetools.StateSequence):
     """"Zufluss in den ersten Zwischenabfluss-Gebietsspeicher (inflow into the
     first storage compartment for interflow) [mm]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
 
+
 class QIGZ2(sequencetools.StateSequence):
     """Zufluss in den zweiten Zwischenabfluss-Gebietsspeicher (inflow into the
     second storage compartment for interflow) [mm]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
+
 
 class QBGZ(sequencetools.StateSequence):
     """Zufluss in den Basisabfluss-Gebietsspeicher (inflow into the
     storage compartment for base flow) [mm]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
 
+
 class QDGA(sequencetools.StateSequence):
     """Abfluss aus dem Direktabfluss-Gebietsspeicher (outflow from the
     storage compartment for direct runoff) [mm]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
+
 
 class QIGA1(sequencetools.StateSequence):
     """Abfluss aus dem "unteren" Zwischenabfluss-Gebietsspeicher (outflow from
     the storage compartment for the first interflow component) [mm]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
 
+
 class QIGA2(sequencetools.StateSequence):
     """Abfluss aus dem "oberen" Zwischenabfluss-Gebietsspeicher (outflow from
     the storage compartment for the second interflow component) [mm]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
 
+
 class QBGA(sequencetools.StateSequence):
     """Abfluss aus dem Basisabfluss-Gebietsspeicher (outflow from the
     storage compartment for base flow) [mm]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
+
 
 class StateSequences(sequencetools.StateSequences):
     """State sequences of the HydPy-L-Land model."""

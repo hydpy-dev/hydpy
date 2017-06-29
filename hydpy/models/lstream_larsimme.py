@@ -24,6 +24,7 @@ from hydpy.core.magictools import controlcheck
 from hydpy.core.magictools import Tester
 from hydpy.cythons.modelutils import Cythonizer
 
+
 class Model(modeltools.Model):
     """LARSIM-ME version of the HydPy-L-Stream model.
 
@@ -98,6 +99,7 @@ class Model(modeltools.Model):
                    lstream_model.calc_qvr_v1,
                    lstream_model.calc_qg_v1)
 
+
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of LARSIM-ME-Stream, directly defined by the user."""
     _PARCLASSES = (lstream_control.Laen,
@@ -116,6 +118,7 @@ class ControlParameters(parametertools.SubParameters):
                    lstream_control.QTol,
                    lstream_control.HTol)
 
+
 class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of LARSIM-ME-Stream, indirectly defined by the user.
     """
@@ -123,6 +126,7 @@ class DerivedParameters(parametertools.SubParameters):
                    lstream_derived.QM,
                    lstream_derived.QV,
                    lstream_derived.Sek)
+
 
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of LARSIM-ME."""
@@ -142,10 +146,12 @@ class FluxSequences(sequencetools.FluxSequences):
                    lstream_fluxes.QG,
                    lstream_fluxes.RK)
 
+
 class StateSequences(sequencetools.StateSequences):
     """State sequences of LARSIM-ME-Stream."""
     _SEQCLASSES = (lstream_states.QZ,
                    lstream_states.QA)
+
 
 class AideSequences(sequencetools.AideSequences):
     """Aide sequences of LARSIM-ME-Stream."""
@@ -156,13 +162,16 @@ class AideSequences(sequencetools.AideSequences):
                    lstream_aides.QMax,
                    lstream_aides.QTest)
 
+
 class InletSequences(sequencetools.LinkSequences):
     """Upstream link sequences of LARSIM-ME-Stream."""
     _SEQCLASSES = (lstream_inlets.Q,)
 
+
 class OutletSequences(sequencetools.LinkSequences):
     """Downstream link sequences of LARSIM-ME-Stream."""
     _SEQCLASSES = (lstream_outlets.Q,)
+
 
 tester = Tester()
 cythonizer = Cythonizer()

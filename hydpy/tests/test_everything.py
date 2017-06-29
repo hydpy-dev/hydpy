@@ -85,9 +85,9 @@ allfaileddoctests = ({}, {})
 iterable = zip(('Python', 'Cython'), alldoctests,
                allsuccessfuldoctests, allfaileddoctests)
 for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
-    pub.options.usecython = mode=='Cython'
+    pub.options.usecython = mode == 'Cython'
     for dirinfo in os.walk(hydpy.__path__[0]):
-        if dirinfo[0].endswith('tests') or not '__init__.py' in dirinfo[2]:
+        if dirinfo[0].endswith('tests') or '__init__.py' not in dirinfo[2]:
             continue
         packagename = dirinfo[0].replace(os.sep, '.')+'.'
         packagename = packagename[packagename.find('hydpy.'):]
@@ -177,4 +177,3 @@ if failedunittests or allfaileddoctests[0] or allfaileddoctests[1]:
     sys.exit(1)
 else:
     sys.exit(0)
-

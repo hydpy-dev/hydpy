@@ -523,7 +523,8 @@ might be misleading:
     >>> options.reprcomments = True
     >>> percmax
     # Maximum percolation rate [mm/T].
-    # The actual value representation depends on the actual parameter step size, which is `1d`.
+    # The actual value representation depends on the actual parameter step size,
+    # which is `1d`.
     percmax(2.0)
     >>> options.reprcomments = False
     >>> percmax

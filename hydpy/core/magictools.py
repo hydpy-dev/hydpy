@@ -59,10 +59,11 @@ class Tester(object):
         try:
             color = 34 if pub.options.usecython else 36
             with PrintStyle(color=color, font=4):
-                print('Test %s %s in %sython mode.'
-                    % ('package' if self.ispackage else 'module',
-                       self.package if self.ispackage else self.modulenames[0],
-                       'C' if pub.options.usecython else 'P'))
+                print(
+                  'Test %s %s in %sython mode.'
+                  % ('package' if self.ispackage else 'module',
+                     self.package if self.ispackage else self.modulenames[0],
+                     'C' if pub.options.usecython else 'P'))
             with PrintStyle(color=color, font=2):
                 for name in self.modulenames:
                     print('    * %s:' % name, )
@@ -197,6 +198,7 @@ def parameterstep(timestep=None):
         except AttributeError:
             pass
 
+
 def simulationstep(timestep):
     """
     Define a simulation time step size for testing purposes within a
@@ -220,14 +222,18 @@ def simulationstep(timestep):
                       'to `simulationstep` is ignored.')
     parametertools.Parameter._simulationstep = timetools.Period(timestep)
 
+
 def controlcheck(controldir='default', projectdir=None, controlfile=None):
     namespace = inspect.currentframe().f_back.f_locals
     model = namespace.get('model')
     if model is None:
         if projectdir is None:
-            projectdir = os.path.split(os.path.dirname(os.path.abspath(os.curdir)))[-1]
+            projectdir = os.path.dirname(os.path.abspath(os.curdir))
+            projectdir = os.path.split(projectdir)[-1]
         os.chdir(os.path.join('..', '..', '..'))
-        controlpath = os.path.abspath(os.path.join('control', projectdir, controldir))
+        controlpath = os.path.abspath(os.path.join('control',
+                                                   projectdir,
+                                                   controldir))
         initfile = os.path.split(namespace['__file__'])[-1]
         if controlfile is None:
             controlfile = initfile

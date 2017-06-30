@@ -31,7 +31,7 @@ GRUE_E = 11
 """Constant for `Grünland, extensiv` (extensive pasture)."""
 BAUMB = 12
 """Constant for `lockerer Baumbestand` (sparsely populated forest)."""
-NADELW= 13
+NADELW = 13
 """Constant for `Nadelwald` (coniferous forest)."""
 LAUBW = 14
 """Constant for `Laubwald` (deciduous forest)."""

@@ -9,8 +9,9 @@ import sys
 import numpy
 # ...from HydPy
 from hydpy.cythons import pointer
-#from hydpy.pub import ... (actual import commands moved to
+# from hydpy.pub import ... (actual import commands moved to
 # different functions below to avoid circular dependencies)
+
 
 def dir_(self):
     """The prefered way for HydPy objects to respond to :func:`dir`.
@@ -47,6 +48,7 @@ def dir_(self):
         names = [' ']
     return names
 
+
 def classname(self):
     """Return the class name of the given instance object or class.
 
@@ -62,6 +64,7 @@ def classname(self):
         self = type(self)
     return str(self).split("'")[1].split('.')[-1]
 
+
 def instancename(self):
     """Return the class name of the given instance object or class in lower
     case letters.
@@ -74,6 +77,7 @@ def instancename(self):
     """
     return classname(self).lower()
 
+
 def modulename(self):
     """Return the module name of the given instance object.
 
@@ -84,6 +88,7 @@ def modulename(self):
 
     """
     return self.__module__.split('.')[-1]
+
 
 def devicename(self):
     """Try to return the name of the (indirect) master
@@ -101,6 +106,7 @@ def devicename(self):
                 break
         else:
             return '?'
+
 
 def augmentexcmessage(prefix=None, suffix=None):
     """Augment an exception message with additional information while keeping
@@ -132,13 +138,14 @@ def augmentexcmessage(prefix=None, suffix=None):
     exception, message, traceback_ = sys.exc_info()
     if prefix is not None:
         message = ('%s, the following error occured: %s'
-                    % (prefix, message))
+                   % (prefix, message))
     if suffix is not None:
         message = ' '.join((message, suffix))
     if pyversion < 3:
         exec('raise exception, message, traceback_')
     else:
         raise exception(message).with_traceback(traceback_)
+
 
 def repr_(value):
     """Modifies :func:`repr` for strings and floats, mainly for supporting
@@ -215,7 +222,7 @@ def repr_(value):
 
 
 def round_(value, rjust=0, **kwargs):
-    """Shortcut for print(repr_(value), **kwargs).
+    """Shortcut for `print(repr_(value), **kwargs)`.
 
     See the documentation on function :func:`repr_` for any details.
     """
@@ -235,6 +242,10 @@ class Options(object):
         self._reprdigits = None
         self._warntrim = True
         self._warnsimulationstep = True
+        self._checkseries = True
+        self._warnmissingcontrolfile = False
+        self._warnmissingobsfile = True
+        self._warnmissingsimfile = True
 
     def _getprintprogress(self):
         """True/False flag indicating whether information about the progress
@@ -242,8 +253,10 @@ class Options(object):
         The default is `True`.
         """
         return self._printprogress
+
     def _setprintprogress(self, value):
         self._printprogress = bool(value)
+
     printprogress = property(_getprintprogress, _setprintprogress)
 
     def _getdirverbose(self):
@@ -253,8 +266,10 @@ class Options(object):
         the default.
         """
         return self._verbosedir
+
     def _setdirverbose(self, value):
         self._verbosedir = bool(value)
+
     dirverbose = property(_getdirverbose, _setdirverbose)
 
     def _getreprcomments(self):
@@ -263,8 +278,10 @@ class Options(object):
         not.  The default is `True`.
         """
         return self._reprcomments
+
     def _setreprcomments(self, value):
         self._reprcomments = bool(value)
+
     reprcomments = property(_getreprcomments, _setreprcomments)
 
     def _getusecython(self):
@@ -273,8 +290,10 @@ class Options(object):
         models is more time efficient and thus the default.
         """
         return self._usecython
+
     def _setusecython(self, value):
         self._usecython = bool(value)
+
     usecython = property(_getusecython, _setusecython)
 
     def _getskipdoctests(self):
@@ -283,8 +302,10 @@ class Options(object):
         reliabilty and is thus the default.
         """
         return self._skipdoctests
+
     def _setskipdoctests(self, value):
         self._skipdoctests = bool(value)
+
     skipdoctests = property(_getskipdoctests, _setskipdoctests)
 
     def _getreprdigits(self):
@@ -293,11 +314,13 @@ class Options(object):
         by the string representation (see function :func:`repr_`).
         """
         return self._reprdigits
+
     def _setreprdigits(self, value):
         if value is None:
             self._reprdigits = value
         else:
             self._reprdigits = int(value)
+
     reprdigits = property(_getreprdigits, _setreprdigits)
 
     def _getwarntrim(self):
@@ -310,8 +333,10 @@ class Options(object):
         with identical information are reported only once.
         """
         return self._warntrim
+
     def _setwarntrim(self, value):
         self._warntrim = bool(value)
+
     warntrim = property(_getwarntrim, _setwarntrim)
 
     def _getwarnsimulationstep(self):
@@ -320,10 +345,60 @@ class Options(object):
         called for the first time.
         """
         return self._warnsimulationstep
+
     def _setwarnsimulationstep(self, value):
         self._warnsimulationstep = bool(value)
+
     warnsimulationstep = property(_getwarnsimulationstep,
                                   _setwarnsimulationstep)
+
+    def _getcheckseries(self):
+        """True/False flag indicating whether an error shall be raised
+        when e.g. an incomplete input time series, not spanning the whole
+        initialization time period, is loaded.
+        """
+        return self._checkseries
+
+    def _setcheckseries(self, value):
+        self._checkseries = bool(value)
+
+    checkseries = property(_getcheckseries, _setcheckseries)
+
+    def _getwarnmissingcontrolfile(self):
+        """True/False flag indicating whether only a warning shall be raised
+        when a required control file is missing, or an exception.
+        """
+        return self._warnmissingcontrolfile
+
+    def _setwarnmissingcontrolfile(self, value):
+        self._warnmissingcontrolfile = bool(value)
+
+    warnmissingcontrolfile = property(_getwarnmissingcontrolfile,
+                                      _setwarnmissingcontrolfile)
+
+    def _getwarnmissingobsfile(self):
+        """True/False flag indicating whether a warning shall be raised when a
+        requested observation sequence demanded by a node instance is missing.
+        """
+        return self._warnmissingobsfile
+
+    def _setwarnmissingobsfile(self, value):
+        self._warnmissingobsfile = bool(value)
+
+    warnmissingobsfile = property(_getwarnmissingobsfile,
+                                  _setwarnmissingobsfile)
+
+    def _getwarnmissingsimfile(self):
+        """True/False flag indicating whether a warning shall be raised when a
+        requested simulation sequence demanded a node instance is missing.
+        """
+        return self._warnmissingsimfile
+
+    def _setwarnmissingsimfile(self, value):
+        self._warnmissingsimfile = bool(value)
+
+    warnmissingsimfile = property(_getwarnmissingsimfile,
+                                  _setwarnmissingsimfile)
 
     def __dir__(self):
         return dir_(self)
@@ -349,7 +424,7 @@ def trim(self, lower=None, upper=None):
             self.value = upper
     else:
         if (((lower is not None) and numpy.any(self.values < lower)) or
-            ((upper is not None) and numpy.any(self.values > upper))):
+                ((upper is not None) and numpy.any(self.values > upper))):
             if (numpy.any((self+tolerance(self)) <
                           (lower-tolerance(lower))) or
                 numpy.any((self-tolerance(self)) >
@@ -357,6 +432,7 @@ def trim(self, lower=None, upper=None):
                     if options.warntrim:
                         self.warntrim()
             self.values = numpy.clip(self.values, lower, upper)
+
 
 def tolerance(values):
     return abs(values*1e-15)
@@ -407,11 +483,10 @@ class ValueMath(object):
     >>> print(vm1 != 1.5)
     [ True  True False]
     """
-
     # Subclasses need to define...
-    NDIM = None # ... e.g. as class attribute (int)
-    name = None # ... e.g. as property (str)
-    value = None # ... e.g. as property (float or ndarray of dtype float)
+    NDIM = None  # ... e.g. as class attribute (int)
+    name = None  # ... e.g. as property (str)
+    value = None  # ... e.g. as property (float or ndarray of dtype float)
 
     @staticmethod
     def _arithmetic_conversion(other):
@@ -430,22 +505,26 @@ class ValueMath(object):
             return self.value + self._arithmetic_conversion(other)
         except BaseException:
             self._arithmetic_exception('add', other)
+
     def __radd__(self, other):
         return self.__add__(other)
+
     def __iadd__(self, other):
         self.value = self.__add__(other)
         return self
 
     def __sub__(self, other):
         try:
-            return self.value  - self._arithmetic_conversion(other)
+            return self.value - self._arithmetic_conversion(other)
         except BaseException:
             self._arithmetic_exception('subtract', other)
+
     def __rsub__(self, other):
         try:
             return self._arithmetic_conversion(other) - self.value
         except BaseException:
             self._arithmetic_exception('subtract', other)
+
     def __isub__(self, other):
         self.value = self.__sub__(other)
         return self
@@ -455,8 +534,10 @@ class ValueMath(object):
             return self.value * self._arithmetic_conversion(other)
         except BaseException:
             self._arithmetic_exception('multiply', other)
+
     def __rmul__(self, other):
         return self.__mul__(other)
+
     def __imul__(self, other):
         self.value = self.__mul__(other)
         return self
@@ -466,11 +547,13 @@ class ValueMath(object):
             return self.value / self._arithmetic_conversion(other)
         except BaseException:
             self._arithmetic_exception('divide', other)
+
     def __rtruediv__(self, other):
         try:
             return self._arithmetic_conversion(other) / self.value
         except BaseException:
             self._arithmetic_exception('divide', other)
+
     def __itruediv__(self, other):
         self.value = self.__truediv__(other)
         return self
@@ -480,11 +563,13 @@ class ValueMath(object):
             return self.value // self._arithmetic_conversion(other)
         except BaseException:
             self._arithmetic_exception('floor divide', other)
+
     def __rfloordiv__(self, other):
         try:
             return self._arithmetic_conversion(other) // self.value
         except BaseException:
             self._arithmetic_exception('floor divide', other)
+
     def __ifloordiv__(self, other):
         self.value = self.__floordiv__(other)
         return self
@@ -494,11 +579,13 @@ class ValueMath(object):
             return self.value % self._arithmetic_conversion(other)
         except BaseException:
             self._arithmetic_exception('mod divide', other)
+
     def __rmod__(self, other):
         try:
             return self._arithmetic_conversion(other) % self.value
         except BaseException:
             self._arithmetic_exception('mod divide', other)
+
     def __imod__(self, other):
         self.value = self.__mod__(other)
         return self
@@ -508,11 +595,13 @@ class ValueMath(object):
             return self.value**self._arithmetic_conversion(other)
         except BaseException:
             self._arithmetic_exception('exponentiate', other)
+
     def __rpow__(self, other):
         try:
             return self._arithmetic_conversion(other)**self.value
         except BaseException:
             self._arithmetic_exception('exponentiate', other)
+
     def __ipow__(self, other):
         self.value = self.__pow__(other)
         return self
@@ -582,4 +671,3 @@ class ValueMath(object):
 
     def __round__(self, ndigits=0):
         return numpy.round(self.value, ndigits)
-

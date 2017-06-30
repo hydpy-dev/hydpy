@@ -22,6 +22,7 @@ from hydpy.core import timetools
 from hydpy.core import objecttools
 from hydpy.cythons import pointer
 
+
 class Sequences(object):
     """Base class for handling all sequences of a specific model."""
 
@@ -152,7 +153,7 @@ class Sequences(object):
             if dirname is None:
                 dirname = pub.conditionmanager.savepath
             filepath = os.path.join(dirname, filename)
-            with file(filepath, 'w') as file_:
+            with open(filepath, 'w') as file_:
                 file_.write('from hydpy.models.%s import *\n\n'
                             % self.model.__module__.split('.')[2])
                 try:
@@ -171,6 +172,7 @@ class Sequences(object):
 
     def __len__(self):
         return len(dict(self))
+
 
 class SubSequences(object):
     """Base class for handling subgroups of sequences.
@@ -205,9 +207,7 @@ class SubSequences(object):
     ...     print(sequence)
     temperature(0.0)
     precipitation(0.0)
-
     """
-
     _SEQCLASSES = ()
 
     def __init__(self, seqs, cls_fastaccess=None, cymodel=None):
@@ -285,6 +285,7 @@ class SubSequences(object):
     def __dir__(self):
         return objecttools.dir_(self)
 
+
 class IOSubSequences(SubSequences):
 
     def openfiles(self, idx=0):
@@ -334,6 +335,7 @@ class FluxSequences(IOSubSequences):
 
     def savedata(self, idx):
         self.fastaccess.savedata(idx)
+
 
 class StateSequences(IOSubSequences):
     """Base class for handling state sequences."""
@@ -436,6 +438,7 @@ class Sequence(objecttools.ValueMath):
             if self.NDIM:
                 value = numpy.asarray(value)
             return value
+
     def _setvalue(self, value):
         if self.NDIM == 0:
             try:
@@ -473,6 +476,7 @@ class Sequence(objecttools.ValueMath):
                                  % (self.name, objecttools.devicename(self),
                                     value, self.shape))
         setattr(self.fastaccess, self.name, value)
+
     value = property(_getvalue, _setvalue)
     values = value
 
@@ -493,6 +497,7 @@ class Sequence(objecttools.ValueMath):
                                       objecttools.devicename(self)))
         else:
             return ()
+
     def _setshape(self, shape):
         if self.NDIM:
             try:
@@ -518,6 +523,7 @@ class Sequence(objecttools.ValueMath):
                                     shape))
             else:
                 self.value = 0.
+
     shape = property(_getshape, _setshape)
 
     def __getitem__(self, key):
@@ -574,6 +580,7 @@ class Sequence(objecttools.ValueMath):
     def __dir__(self):
         return objecttools.dir_(self)
 
+
 class IOSequence(Sequence):
     """Only for inheritance."""
 
@@ -609,10 +616,13 @@ class IOSequence(Sequence):
                                    'for an automatic determination.'
                                    % (self.name,
                                       objecttools.devicename(self)))
+
     def _setfiletype_ext(self, name):
         self._filetype_ext = name
+
     def _delfiletype_ext(self, name):
         self._filetype_ext = None
+
     filetype_ext = property(_getfiletype_ext, _setfiletype_ext,
                             _delfiletype_ext)
 
@@ -622,16 +632,20 @@ class IOSequence(Sequence):
             return self._filename_ext
         else:
             return '.'.join((self.rawfilename, self.filetype_ext))
+
     def _setfilename_ext(self, name):
         self._filename_ext = name
+
     def _delfilename_ext(self):
         self._filename_ext = None
+
     filename_ext = property(_getfilename_ext, _setfilename_ext,
                             _delfilename_ext)
 
     def _getfilename_int(self):
         """Complete filename of the internal data file."""
         return self.rawfilename + '.bin'
+
     filename_int = property(_getfilename_int)
 
     def _getdirpath_ext(self):
@@ -654,10 +668,13 @@ class IOSequence(Sequence):
                                    'framework in the common manner to allow '
                                    'for an automatic determination.'
                                    % self.name)
+
     def _setdirpath_ext(self, name):
         self._dirpath_ext = name
+
     def _deldirpath_ext(self, name):
         self._dirpath_ext = None
+
     dirpath_ext = property(_getdirpath_ext, _setdirpath_ext, _deldirpath_ext)
 
     def _getdirpath_int(self):
@@ -675,8 +692,10 @@ class IOSequence(Sequence):
                                    'framework in the common manner to allow '
                                    'for an automatic determination.'
                                    % self.name)
+
     def _setdirpath_int(self, name):
         self._dirpath_int = name
+
     def _deldirpath_int(self, name):
         self._dirpath_int = None
     dirpath_int = property(_getdirpath_int, _setdirpath_int, _deldirpath_int)
@@ -687,8 +706,10 @@ class IOSequence(Sequence):
             return self._filepath_ext
         else:
             return os.path.join(self.dirpath_ext, self.filename_ext)
+
     def _setfilepath_ext(self, name):
         self._filepath_ext = name
+
     def _delfilepath_ext(self):
         self._filepath_ext = None
     filepath_ext = property(_getfilepath_ext, _setfilepath_ext,
@@ -700,10 +721,13 @@ class IOSequence(Sequence):
             return self._filepath_int
         else:
             return os.path.join(self.dirpath_int, self.filename_int)
+
     def _setfilepath_int(self, name):
         self._filepath_int = name
+
     def _delfilepath_int(self):
         self._filepath_int = None
+
     filepath_int = property(_getfilepath_int, _setfilepath_int,
                             _delfilepath_int)
 
@@ -728,8 +752,10 @@ class IOSequence(Sequence):
         else:
             raise RuntimeError('The `diskflag` of sequence `%s` has '
                                'not been set yet.' % self.name)
+
     def _setdiskflag(self, value):
         setattr(self.fastaccess, '_%s_diskflag' % self.name,  bool(value))
+
     diskflag = property(_getdiskflag, _setdiskflag)
 
     def _getramflag(self):
@@ -739,12 +765,15 @@ class IOSequence(Sequence):
         else:
             raise RuntimeError('The `ramflag` of sequence `%s` has '
                                'not been set yet.' % self.name)
+
     def _setramflag(self, value):
         setattr(self.fastaccess, '_%s_ramflag' % self.name,  bool(value))
+
     ramflag = property(_getramflag, _setramflag)
 
     def _getmemoryflag(self):
         return self.ramflag or self.diskflag
+
     memoryflag = property(_getmemoryflag)
 
     def _getarray(self):
@@ -754,6 +783,7 @@ class IOSequence(Sequence):
         else:
             raise RuntimeError('The `ram array` of sequence `%s` has '
                                'not been set yet.' % self.name)
+
     def _setarray(self, values):
         values = numpy.array(values, dtype=float)
         setattr(self.fastaccess, '_%s_array' % self.name,  values)
@@ -763,26 +793,8 @@ class IOSequence(Sequence):
         seriesshape = [len(pub.timegrids.init)]
         seriesshape.extend(self.shape)
         return tuple(seriesshape)
-    seriesshape = property(_getseriesshape)
 
-#    def _gettimegrid_init(self):
-#        if self._timegrid_init is not None:
-#            return self._timegrid_init
-#        else:
-#            try:
-#                return pub.timegrids.init
-#            except AttributeError:
-#                raise RuntimeError('Initializing internal data of sequence '
-#                                   '`%s` requires information about the '
-#                                   'initialization period.  Define an '
-#                                   'appropriate `Timegrid` instance and '
-#                                   'either pass it to the sequence object '
-#                                   'or store it in the `pub` module as '
-#                                   'described in the documentation.'
-#                                   % self.name)
-#    def _settimegrid_init(self, timegrid):
-#        self._timegrid_init = timegrid
-#    timegrid_init = property(_gettimegrid_init, _settimegrid_init)
+    seriesshape = property(_getseriesshape)
 
     def _getseries(self):
         if self.diskflag:
@@ -793,6 +805,7 @@ class IOSequence(Sequence):
             raise RuntimeError('Sequence `%s` is not requested to make any '
                                'internal data available to the user.'
                                % self.name)
+
     def _setseries(self, values):
         series = self.series
         series[:] = values
@@ -804,11 +817,13 @@ class IOSequence(Sequence):
             raise RuntimeError('Sequence `%s` is not requested to make any '
                                'internal data available to the user.'
                                % self.name)
+
     def _delseries(self):
         if self.diskflag:
             os.remove(self.filepath_int)
         elif self.ramflag:
-            setattr(self.fastaccess, '_%s_array' %self.name, None)
+            setattr(self.fastaccess, '_%s_array' % self.name, None)
+
     series = property(_getseries, _setseries, _delseries)
 
     def load_ext(self):
@@ -819,23 +834,43 @@ class IOSequence(Sequence):
             timegrid_data, values = self._load_npy()
         else:
             timegrid_data, values = self._load_asc()
-
-        if pub.timegrids.init not in timegrid_data:
-            raise RuntimeError('For sequence `%s` the initialization time '
-                               'grid (%s) does not define a subset of the '
-                               'time grid of the external data file %s (%s).'
-                               % (self.name, pub.timegrids.init,
-                                  self.filepath_ext, timegrid_data))
         idx1 = timegrid_data[pub.timegrids.init.firstdate]
         idx2 = timegrid_data[pub.timegrids.init.lastdate]
-        if self.diskflag:
-            self._save_int(values[idx1:idx2])
-        elif self.ramflag:
-            self._setarray(values[idx1:idx2])
+        if pub.timegrids.init.stepsize != timegrid_data.stepsize:
+            raise RuntimeError(
+                'According to external data file `%s`, the date time step '
+                'of sequence `%s` of element `%s` is `%s`, but the actual '
+                'simulation time step is `%s`.'
+                % (self.filepath_ext, self.name, objecttools.devicename(self),
+                   timegrid_data.stepsize, pub.timegrids.init.stepsize))
+        elif pub.timegrids.init not in timegrid_data:
+            if pub.options.checkseries:
+                raise RuntimeError(
+                    'For sequence `%s` of element `%s` the initialization '
+                    'time grid (%s) does not define a subset of the time '
+                    'grid of the external data file %s (%s).'
+                    % (self.name, objecttools.devicename(self),
+                       pub.timegrids.init, self.filepath_ext, timegrid_data))
+            else:
+                valcopy = values
+                shape = list(values.shape)
+                shape[0] = len(pub.timegrids.init)
+                values = numpy.zeros(shape)
+                valcopy = valcopy[max(idx1, 0):min(idx2, len(valcopy))]
+                idx1 = max(-idx1, 0)
+                idx2 = idx1+len(valcopy)
+                values[idx1:idx2] = valcopy
         else:
-            raise RuntimeError('Sequence `%s` is not requested to make any '
-                               'internal data available the the user.'
-                               % self.name)
+            values = values[idx1:idx2]
+        if self.diskflag:
+            self._save_int(values)
+        elif self.ramflag:
+            self._setarray(values)
+        else:
+            raise RuntimeError(
+                'Sequence `%s` of element `%s`is not requested to make '
+                'any internal data available the the user.'
+                % (self.name, objecttools.devicename(self)))
 
     def save_ext(self):
         """Write the internal data into an external data file."""
@@ -847,7 +882,7 @@ class IOSequence(Sequence):
             values = numpy.concatenate((values, self.series))
             numpy.save(self.filepath_ext, values)
         else:
-            with file(self.filepath_ext, 'w') as file_:
+            with open(self.filepath_ext, 'w') as file_:
                 file_.write(repr(pub.timegrids.init) + '\n')
                 numpy.savetxt(file_, self.series, delimiter='\t')
 
@@ -871,7 +906,7 @@ class IOSequence(Sequence):
         return timegrid_data, data[13:]
 
     def _load_asc(self):
-        with file(self.filepath_ext) as file_:
+        with open(self.filepath_ext) as file_:
             header = '\n'.join([file_.readline() for idx in range(3)])
         timegrid_data = eval(header, {}, {'Timegrid': timetools.Timegrid})
         values = numpy.loadtxt(self.filepath_ext, skiprows=3,
@@ -905,7 +940,7 @@ class IOSequence(Sequence):
         self.deactivate_ram()
         self.diskflag = True
         if (isinstance(self, InputSequence) or
-            (isinstance(self, NodeSequence) and self.use_ext)):
+           (isinstance(self, NodeSequence) and self.use_ext)):
             self.load_ext()
         else:
             self.zero_int()
@@ -922,7 +957,7 @@ class IOSequence(Sequence):
         self.deactivate_disk()
         self.ramflag = True
         if (isinstance(self, InputSequence) or
-            (isinstance(self, NodeSequence) and self.use_ext)):
+                (isinstance(self, NodeSequence) and self.use_ext)):
             self.load_ext()
         else:
             self.zero_int()
@@ -953,6 +988,7 @@ class IOSequence(Sequence):
     def _setshape(self, shape):
         Sequence._setshape(self, shape)
         self.update_fastaccess()
+
     shape = property(Sequence._getshape, _setshape)
 
 
@@ -975,17 +1011,23 @@ class ModelIOSequence(IOSequence):
                                    'framework in the common manner to allow '
                                    'for an automatic determination.'
                                    % self.name)
+
     def _setrawfilename(self, name):
         self._rawfilename = str(name)
+
     def _delrawfilename(self):
         self._rawfilename = None
+
     rawfilename = property(_getrawfilename, _setrawfilename, _delrawfilename)
+
 
 class InputSequence(ModelIOSequence):
     """ """
 
+
 class FluxSequence(ModelIOSequence):
     """ """
+
 
 class LeftRightSequence(ModelIOSequence):
     NDIM = 1
@@ -996,16 +1038,20 @@ class LeftRightSequence(ModelIOSequence):
     def _getleft(self):
         """The "left" value of the actual parameter."""
         return self.values[0]
+
     def _setleft(self, value):
         self.values[0] = value
+
     left = property(_getleft, _setleft)
     l = left
 
     def _getright(self):
         """The "right" value of the actual parameter."""
         return self.values[1]
+
     def _setright(self, value):
         self.values[1] = value
+
     right = property(_getright, _setright)
     r = right
 
@@ -1061,6 +1107,7 @@ class StateSequence(ModelIOSequence, ConditionSequence):
         ModelIOSequence._setshape(self, shape)
         if self.NDIM:
             setattr(self.fastaccess_old, self.name, self.new.copy())
+
     shape = property(ModelIOSequence._getshape, _setshape)
 
     new = Sequence.values
@@ -1084,6 +1131,7 @@ class StateSequence(ModelIOSequence, ConditionSequence):
             if self.NDIM:
                 value = numpy.asarray(value)
             return value
+
     def _setold(self, value):
         if self.NDIM == 0:
             try:
@@ -1114,6 +1162,7 @@ class StateSequence(ModelIOSequence, ConditionSequence):
                                  'entries of type float.'
                                  % (value, self.shape))
         setattr(self.fastaccess_old, self.name, value)
+
     old = property(_getold, _setold)
 
     def new2old(self):
@@ -1138,6 +1187,7 @@ class LogSequence(Sequence, ConditionSequence):
 
 class AideSequence(Sequence):
     """ """
+
 
 class LinkSequence(Sequence):
     """2"""
@@ -1168,26 +1218,18 @@ class LinkSequence(Sequence):
             except AttributeError:
                 pass
 
-#    def _getvalue(self):
-#        """Actual value(s) handled by the sequence.  For consistency,
-#        `value` and `values` can always be used interchangeably."""
-#        try:
-#            return getattr(self.fastaccess, self.name)
-#        except AttributeError:
-#            if self.NDIM == 0:
-#                return self.fastaccess.getpointer0d(self.name)
-#            elif self.NDIM == 1:
-#                return self.fastaccess.getpointer1d(self.name)
     def _getvalue(self):
         """ToDo"""
         raise NotImplementedError('To retrieve a pointer is very likely to '
                                   'result in bugs and is thus not supported '
                                   'at the moment.')
+
     def _setvalue(self, value):
         """Could be implemented, but is not important at the moment..."""
         raise NotImplementedError('To change a pointer is very likely to '
                                   'result in bugs and is thus not supported '
                                   'at the moment.')
+
     value = property(_getvalue, _setvalue)
     values = value
 
@@ -1199,6 +1241,7 @@ class LinkSequence(Sequence):
                 return getattr(self.fastaccess, self.name).shape
             except AttributeError:
                 return (getattr(self.fastaccess, '_%s_length_0' % self.name), )
+
     def _setshape(self, shape):
         if self.NDIM == 1:
             try:
@@ -1207,6 +1250,7 @@ class LinkSequence(Sequence):
                 self.fastaccess.dealloc()
                 self.fastaccess.alloc(self.name, shape)
             setattr(self.fastaccess, 'len_'+self.name, self.shape[0])
+
     shape = property(_getshape, _setshape)
 
 
@@ -1229,10 +1273,13 @@ class NodeSequence(IOSequence):
                                    'framework in the common manner to allow '
                                    'for an automatic determination.'
                                    % self.name)
+
     def _setrawfilename(self, name):
         self._rawfilename = str(name)
+
     def _delrawfilename(self):
         self._rawfilename = None
+
     rawfilename = property(_getrawfilename, _setrawfilename, _delrawfilename)
 
     def _initvalues(self):
@@ -1248,8 +1295,10 @@ class NodeSequence(IOSequence):
                 return self.fastaccess.getpointer0d(self.name)
             elif self.NDIM == 1:
                 return self.fastaccess.getpointer1d(self.name)
+
     def _setvalues(self, values):
         getattr(self.fastaccess, self.name)[0] = values
+
     values = property(_getvalues, _setvalues)
     value = values
 
@@ -1260,6 +1309,30 @@ class Sim(NodeSequence):
     def __init__(self):
         NodeSequence.__init__(self)
         self.use_ext = False
+
+    def activate_disk(self):
+        try:
+            NodeSequence.activate_disk(self)
+        except IOError:
+            message = sys.exc_info()[1]
+            self.diskflag = False
+            if pub.options.warnmissingimfile:
+                warnings.warn('The option `diskflag` of the simulation '
+                              'sequence `%s`had to be set to `False` due '
+                              'to the following problem: %s.'
+                              % (objecttools.devicename(self), message))
+
+    def activate_ram(self):
+        try:
+            NodeSequence.activate_ram(self)
+        except IOError:
+            message = sys.exc_info()[1]
+            self.ramflag = False
+            if pub.options.warnmissingimfile:
+                warnings.warn('The option `ramflag` of the simulation '
+                              'sequence `%s`had to be set to `False` due '
+                              'to the following problem: %s.'
+                              % (objecttools.devicename(self), message))
 
 
 class Obs(NodeSequence):
@@ -1275,27 +1348,31 @@ class Obs(NodeSequence):
         except IOError:
             message = sys.exc_info()[1]
             self.diskflag = False
-            warnings.warn('The option `diskflag` of the observation '
-                          'sequence had to be set to `False` due to the '
-                          'following problem: %s.' % message)
+            if pub.options.warnmissingobsfile:
+                warnings.warn('The option `diskflag` of the observation '
+                              'sequence `%s`had to be set to `False` due '
+                              'to the following problem: %s.'
+                              % (objecttools.devicename(self), message))
 
     def activate_ram(self):
         try:
             NodeSequence.activate_ram(self)
         except IOError:
-            message= sys.exc_info()[1]
+            message = sys.exc_info()[1]
             self.ramflag = False
-            warnings.warn('The option `ramflag` of the simulation '
-                          'sequence had to be set to `False` due to the '
-                          'following problem: %s.' % message)
+            if pub.options.warnmissingobsfile:
+                warnings.warn('The option `ramflag` of the observation '
+                              'sequence `%s`had to be set to `False` due '
+                              'to the following problem: %s.'
+                              % (objecttools.devicename(self), message))
 
     @property
     def series_complete(self):
         return self.memoryflag and not numpy.any(numpy.isnan(self.series))
 
+
 class NodeSequences(IOSubSequences):
     """Base class for handling node sequences."""
-
     _SEQCLASSES = (Sim, Obs)
 
     def __init__(self, seqs, cls_fastaccess=None):
@@ -1307,7 +1384,6 @@ class NodeSequences(IOSubSequences):
 
     def savedata(self, idx):
         self.fastaccess.savedata(idx)
-
 
 
 class FastAccess(object):
@@ -1419,4 +1495,3 @@ class FastAccess(object):
         for key in vars(self).keys():
             if not key.startswith('_'):
                 yield key
-

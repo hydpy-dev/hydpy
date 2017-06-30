@@ -23,10 +23,14 @@ class MainManager(object):
         self.sequencefiles = None
         self.initialvaluefiles = None
         self.parameterfiles = None
-        self.checkpath()
-        self.loadinfo()
-        self.applyinfo()
-        self.clearinfo()
+        try:
+            self.checkpath()
+        except IOError:
+            pass
+        else:
+            self.loadinfo()
+            self.applyinfo()
+            self.clearinfo()
 
     def _getpath(self):
         return os.path.abspath(pub.projectname+'.py')
@@ -96,11 +100,13 @@ class NetworkManager(object):
     def _getbasepath(self):
         """Absolute path pointing to all network directories."""
         return os.path.abspath(self._BASEDIRECTORY)
+
     basepath = property(_getbasepath)
 
     def _getdirectory(self):
         """Directory containing the network files."""
         return self._subdirectory
+
     def _setdirectory(self, subdirectory):
         directory = os.path.join(self.basepath, subdirectory)
         if not os.path.exists(directory):
@@ -108,23 +114,27 @@ class NetworkManager(object):
                           '`%s` does not exist.'
                           % (subdirectory, self.basepath))
         self._subdirectory = str(subdirectory)
+
     directory = property(_getdirectory, _setdirectory)
 
     def _getdirpath(self):
         """Complete path of the directory containing the network files."""
         return os.path.join(self.basepath, self.directory)
+
     dirpath = property(_getdirpath)
 
     def _getfilenames(self):
         """Names of the network files."""
         return [fn for fn in os.listdir(self.dirpath)
                 if (fn.endswith('.py') and not fn.startswith('_'))]
+
     filenames = property(_getfilenames)
 
     def _getfilepaths(self):
         """Complete paths of the defined networks files."""
         root = os.path.join(self.basepath, self.directory)
         return [os.path.join(root, fn) for fn in self.filenames]
+
     filepaths = property(_getfilepaths)
 
     def load(self):
@@ -222,11 +232,13 @@ class ControlManager(object):
     def _getbasepath(self):
         """Absolute path pointing to all control directories."""
         return os.path.abspath(self._BASEDIRECTORY)
+
     basepath = property(_getbasepath)
 
     def _getprojectdirectory(self):
         """Folder containing the control directories of the current project."""
         return self._projectdirectory
+
     def _setprojectdirectory(self, directory):
         directory = str(directory)
         directory = os.path.join(self.basepath, directory)
@@ -234,11 +246,13 @@ class ControlManager(object):
             raise IOError('Path `%s` does not contain a control directory '
                           'named `%s`.' % (self.basepath, directory))
         self._projectdirectory = directory
+
     projectdirectory = property(_getprojectdirectory, _setprojectdirectory)
 
     def _getprojectpath(self):
         """Absolute path of the project directory."""
         return os.path.join(self.basepath, self.projectdirectory)
+
     projectpath = property(_getprojectpath)
 
     def _getcontroldirectories(self):
@@ -250,6 +264,7 @@ class ControlManager(object):
                 if os.path.isdir(path):
                     directories.add(directory)
         return directories
+
     controldirectories = property(_getcontroldirectories)
 
     def _getcontrolpaths(self):
@@ -258,6 +273,7 @@ class ControlManager(object):
         for (directory, dummy) in self.controldirectories:
             paths.add(directory, os.path.join(self.projectpath, directory))
         return paths
+
     controlpaths = property(_getcontrolpaths)
 
     def _getcontroldirectory(self):
@@ -282,6 +298,7 @@ class ControlManager(object):
                           'directories, but none is named `default`.  '
                           'Please specify the control directory to be '
                           'worked with manually.' % self.projectpath)
+
     def _setcontroldirectory(self, directory):
         directory = str(directory)
         path = os.path.join(self.projectpath, directory)
@@ -291,14 +308,17 @@ class ControlManager(object):
             raise IOError('The project path `%s` does not contain a '
                           'control directory named `%s`.'
                           % (self.projectpath, directory))
+
     def _delcontroldirectory(self):
         self._controldirectory = None
+
     controldirectory = property(_getcontroldirectory, _setcontroldirectory,
                                 _delcontroldirectory)
 
     def _getcontrolpath(self):
         """Absolute paths of the selected control directory."""
         return os.path.join(self.projectpath, self.controldirectory)
+
     controlpath = property(_getcontrolpath)
 
     def loadfile(self, filename):
@@ -344,7 +364,7 @@ class ControlManager(object):
             path += '.py'
         try:
             if path not in cls._registry:
-                with file(path) as file_:
+                with open(path) as file_:
                     cls._registry[path] = file_.read()
             exec(cls._registry[path], {}, info)
         except BaseException:
@@ -355,6 +375,7 @@ class ControlManager(object):
                           'file `%s`.  Please refer to the HydPy '
                           'documentation on how to prepare control files '
                           'properly.' % path)
+
 
 class FolderShow(object):
 
@@ -368,7 +389,7 @@ class FolderShow(object):
         if path is None:
             path = directory
         try:
-            exec('self.%s = r"%s"' %(directory, path))
+            exec('self.%s = r"%s"' % (directory, path))
         except BaseException:
             raise IOError('The directory name `%s` cannot be handled as a '
                           'variable name.  Please avoid arithmetic operators '
@@ -393,7 +414,7 @@ class FolderShow(object):
                     args.append(key)
                 else:
                     kwargs.append('%s=%s' % (key, value))
-            lines = ['           %s,' %arg for arg in (args + kwargs)]
+            lines = ['           %s,' % arg for arg in (args + kwargs)]
             lines[0] = 'FolderShow(' + lines[0][11:]
             lines[-1] = lines[-1][:-1] + ')'
             return '\n'.join(lines)
@@ -460,6 +481,7 @@ class SequenceManager(object):
     def _getprojectdirectory(self):
         """Folder containing the file directories of the current project."""
         return self._projectdirectory
+
     def _setprojectdirectory(self, directory):
         directory = str(directory)
         directory = os.path.join(self.basepath, directory)
@@ -467,11 +489,13 @@ class SequenceManager(object):
             raise IOError('Path `%s` does not contain a directory named `%s`.'
                           % (self.basepath, directory))
         self._projectdirectory = directory
+
     projectdirectory = property(_getprojectdirectory, _setprojectdirectory)
 
     def _getprojectpath(self):
         """Absolute path of the project directory."""
         return os.path.join(self.basepath, self.projectdirectory)
+
     projectpath = property(_getprojectpath)
 
     def _getsequencedirectories(self):
@@ -483,6 +507,7 @@ class SequenceManager(object):
                 if os.path.isdir(path):
                     directories.add(directory)
         return directories
+
     sequencedirectories = property(_getsequencedirectories)
 
     def _getsequencepaths(self):
@@ -491,6 +516,7 @@ class SequenceManager(object):
         for (key, value) in self.sequencedirectories:
             paths.add(key, os.path.join(self.projectpath, key))
         return paths
+
     sequencepaths = property(_getsequencepaths)
 
     def _getinputdirectory(self):
@@ -517,6 +543,7 @@ class SequenceManager(object):
                               '`input`.  Please specify the input sequence '
                               'directory to be worked with manually.'
                               % self.projectpath)
+
     def _setinputdirectory(self, directory):
         directory = str(directory)
         path = os.path.join(self.projectpath, directory)
@@ -526,8 +553,10 @@ class SequenceManager(object):
             raise IOError('The project path `%s` does not contain sequence '
                           'directory named `%s`.'
                           % (self.projectpath, directory))
+
     def _delinputdirectory(self):
         self._inputdirectory = None
+
     inputdirectory = property(_getinputdirectory, _setinputdirectory,
                               _delinputdirectory)
 
@@ -555,6 +584,7 @@ class SequenceManager(object):
                               '`output`.  Please specify the sequence '
                               'directory to be worked with manually.'
                               % self.projectpath)
+
     def _setoutputdirectory(self, directory):
         directory = str(directory)
         path = os.path.join(self.projectpath, directory)
@@ -564,8 +594,10 @@ class SequenceManager(object):
             raise IOError('The project path `%s` does not contain sequence '
                           'directory named `%s`.'
                           % (self.projectpath, directory))
+
     def _deloutputdirectory(self):
         self._outputdirectory = None
+
     outputdirectory = property(_getoutputdirectory, _setoutputdirectory,
                                _deloutputdirectory)
 
@@ -593,6 +625,7 @@ class SequenceManager(object):
                               '`node`.  Please specify the node sequence '
                               'directory to be worked with manually.'
                               % self.projectpath)
+
     def _setnodedirectory(self, directory):
         directory = str(directory)
         path = os.path.join(self.projectpath, directory)
@@ -602,10 +635,12 @@ class SequenceManager(object):
             raise IOError('The project path `%s` does not contain sequence '
                           'directory named `%s`.'
                           % (self.projectpath, directory))
+
     def _delnodedirectory(self):
         self._nodedirectory = None
+
     nodedirectory = property(_getnodedirectory, _setnodedirectory,
-                              _delnodedirectory)
+                             _delnodedirectory)
 
     def _gettempdirectory(self):
         """The selected (or the only selectable) temporary sequence directory.
@@ -632,6 +667,7 @@ class SequenceManager(object):
                               '`temp`.  Please specify the temporary sequence '
                               'directory to be worked with manually.'
                               % self.projectpath)
+
     def _settempdirectory(self, directory):
         directory = str(directory)
         path = os.path.join(self.projectpath, directory)
@@ -641,8 +677,10 @@ class SequenceManager(object):
             raise IOError('The project path `%s` does not contain sequence '
                           'directory named `%s`.'
                           % (self.projectpath, directory))
+
     def _deltempdirectory(self):
         self._tempdirectory = None
+
     tempdirectory = property(_gettempdirectory, _settempdirectory,
                              _deltempdirectory)
 
@@ -664,11 +702,13 @@ class SequenceManager(object):
     def _gettemppath(self):
         """Absolute paths of the selected temporary sequence directory."""
         return os.path.join(self.projectpath, self.tempdirectory)
+
     temppath = property(_gettemppath)
 
     def _getinputfiletype(self):
         """File type of the external input files."""
         return self._inputfiletype
+
     def _setinputfiletype(self, inputfiletype):
         inputfiletype = str(inputfiletype)
         if inputfiletype in self._supportedmodes:
@@ -678,11 +718,13 @@ class SequenceManager(object):
                                       'implemented yet.  Please choose one '
                                       'of the following file types: %s.'
                                       % (inputfiletype, self._supportedmodes))
+
     inputfiletype = property(_getinputfiletype, _setinputfiletype)
 
     def _getoutputfiletype(self):
         """File type of the external output files."""
         return self._outputfiletype
+
     def _setoutputfiletype(self, outputfiletype):
         outputfiletype = str(outputfiletype)
         if outputfiletype in self._supportedmodes:
@@ -692,11 +734,13 @@ class SequenceManager(object):
                                       'implemented yet.  Please choose one '
                                       'of the following file types: %s.'
                                       % (outputfiletype, self._supportedmodes))
+
     outputfiletype = property(_getoutputfiletype, _setoutputfiletype)
 
     def _getnodefiletype(self):
         """File type of the external node files."""
         return self._nodefiletype
+
     def _setnodefiletype(self, nodefiletype):
         nodefiletype = str(nodefiletype)
         if nodefiletype in self._supportedmodes:
@@ -706,30 +750,39 @@ class SequenceManager(object):
                                       'implemented yet.  Please choose one '
                                       'of the following file types: %s.'
                                       % (nodefiletype, self._supportedmodes))
+
     nodefiletype = property(_getnodefiletype, _setnodefiletype)
 
     def _getinputoverwrite(self):
         return self._inputoverwrite
+
     def _setinputoverwrite(self, value):
         self._inputoverwrite = bool(value)
+
     inputoverwrite = property(_getinputoverwrite, _setinputoverwrite)
 
     def _getoutputoverwrite(self):
         return self._outputoverwrite
+
     def _setoutputoverwrite(self, value):
         self._outputoverwrite = bool(value)
+
     outputoverwrite = property(_getoutputoverwrite, _setoutputoverwrite)
 
     def _getsimoverwrite(self):
         return self._simoverwrite
+
     def _setsimoverwrite(self, value):
         self._simoverwrite = bool(value)
+
     simoverwrite = property(_getsimoverwrite, _setsimoverwrite)
 
     def _getobsoverwrite(self):
         return self._obsoverwrite
+
     def _setobsoverwrite(self, value):
         self._obsoverwrite = bool(value)
+
     obsoverwrite = property(_getobsoverwrite, _setobsoverwrite)
 
     def __dir__(self):
@@ -748,6 +801,7 @@ class ConditionManager(object):
     def _getbasepath(self):
         """Absolute path pointing to all condition directories."""
         return os.path.abspath(self._BASEDIRECTORY)
+
     basepath = property(_getbasepath)
 
     def _getprojectdirectory(self):
@@ -755,6 +809,7 @@ class ConditionManager(object):
         project.
         """
         return self._projectdirectory
+
     def _setprojectdirectory(self, directory):
         directory = str(directory)
         directory = os.path.join(self.basepath, directory)
@@ -762,11 +817,13 @@ class ConditionManager(object):
             raise IOError('Path `%s` does not contain a condition directory '
                           'named `%s`.' % (self.basepath, directory))
         self._projectdirectory = directory
+
     projectdirectory = property(_getprojectdirectory, _setprojectdirectory)
 
     def _getprojectpath(self):
         """Absolute path of the project directory."""
         return os.path.join(self.basepath, self.projectdirectory)
+
     projectpath = property(_getprojectpath)
 
     def _getconditiondirectories(self):
@@ -780,6 +837,7 @@ class ConditionManager(object):
                 if os.path.isdir(path):
                     directories.add(directory)
         return directories
+
     conditiondirectories = property(_getconditiondirectories)
 
     def _getloaddirectory(self):
@@ -798,19 +856,20 @@ class ConditionManager(object):
         try:
             string = 'init_' + pub.timegrids.sim.firstdate.string('os')
         except AttributeError:
-            raise IOError('The project path `%s` contains multiple control'
+            raise IOError('The project path `%s` contains multiple condition'
                           'directories, and no first simulation date is '
                           'available to determine the relevant one.  '
-                          'Please specify the control directory to be '
+                          'Please specify the condition directory to be '
                           'worked with manually.' % self.projectpath)
         try:
             return getattr(directories, string)
         except AttributeError:
-            raise IOError('The project path `%s` contains multiple control'
+            raise IOError('The project path `%s` contains multiple condition'
                           'directories, but none is in accordance with the  '
                           'first simulation date (%s).  Please specify'
-                          'the control directory to be worked with manually.'
+                          'the condition directory to be worked with manually.'
                           % (self.projectpath, string))
+
     def _setloaddirectory(self, directory):
         directory = str(directory)
         path = os.path.join(self.projectpath, directory)
@@ -820,8 +879,10 @@ class ConditionManager(object):
             raise IOError('The project path `%s` does not contain a '
                           'condition directory named `%s`.'
                           % (self.projectpath, directory))
+
     def _delloaddirectory(self):
         self._loaddirectory = None
+
     loaddirectory = property(_getloaddirectory, _setloaddirectory,
                              _delloaddirectory)
 
@@ -841,19 +902,20 @@ class ConditionManager(object):
         try:
             string = 'init_' + pub.timegrids.sim.lastdate.string('os')
         except AttributeError:
-            raise IOError('The project path `%s` contains multiple control'
+            raise IOError('The project path `%s` contains multiple condition'
                           'directories, and no last simulation date is '
                           'available to determine the relevant one.  '
-                          'Please specify the control directory to be '
+                          'Please specify the condition directory to be '
                           'worked with manually.' % self.projectpath)
         try:
             return getattr(directories, string)
         except AttributeError:
-            raise IOError('The project path `%s` contains multiple control'
+            raise IOError('The project path `%s` contains multiple condition'
                           'directories, but none is in accordance with the  '
                           'last simulation date (%s).  Please specify'
-                          'the control directory to be worked with manually.'
+                          'the condition directory to be worked with manually.'
                           % (self.projectpath, string))
+
     def _setsavedirectory(self, directory):
         directory = str(directory)
         path = os.path.join(self.projectpath, directory)
@@ -863,19 +925,23 @@ class ConditionManager(object):
             raise IOError('The project path `%s` does not contain a '
                           'condition directory named `%s`.'
                           % (self.projectpath, directory))
+
     def _delsavedirectory(self):
         self._loaddirectory = None
+
     savedirectory = property(_getsavedirectory, _setsavedirectory,
                              _delsavedirectory)
 
     def _getloadpath(self):
         """Absolute paths of the relevant initial condition directory."""
         return os.path.join(self.projectpath, self.loaddirectory)
+
     loadpath = property(_getloadpath)
 
     def _getsavepath(self):
         """Absolute paths of the relevant final condition directory."""
         return os.path.join(self.projectpath, self.savedirectory)
+
     savepath = property(_getsavepath)
 
     def loadfile(self, filename, dirname=None):
@@ -885,7 +951,7 @@ class ConditionManager(object):
             dirname = os.path.join(pub.conditionmanager.loadpath)
         filepath = os.path.join(dirname, filename)
         try:
-            with file(filepath) as file_:
+            with open(filepath) as file_:
                 return file_.read()
         except BaseException:
             prefix = 'While trying to read the conditions file `%s`' % filepath

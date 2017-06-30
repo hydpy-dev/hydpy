@@ -138,6 +138,7 @@ class Node(Device):
 
     def _getroutingmode(self):
         return self._routingmode
+
     def _setroutingmode(self, value):
         if value in self.ROUTING_MODES:
             self._routingmode = value
@@ -155,6 +156,7 @@ class Node(Device):
                              'following values are allowed: %s.'
                              % (self.name, value,
                                  ', '.join(self.ROUTING_MODES)))
+
     routingmode = property(_getroutingmode, _setroutingmode)
 
     def getdouble_via_exits(self):

@@ -17,5 +17,3 @@ sequencemanager = None
 timegrids = None
 
 pyversion = int(__sys.version[0])
-
-

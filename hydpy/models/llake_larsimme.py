@@ -13,6 +13,7 @@ from hydpy.models.llake import llake_control
 from hydpy.models.llake import llake_derived
 from hydpy.models.llake import llake_fluxes
 from hydpy.models.llake import llake_states
+from hydpy.models.llake import llake_aides
 from hydpy.models.llake import llake_inlets
 from hydpy.models.llake import llake_outlets
 from hydpy.models.llake.llake_parameters import Parameters
@@ -46,8 +47,11 @@ class Model(modeltools.Model):
     calculated beforehand.  Both associated scalar parameters are allowed
     to vary in time, as explained for the outflow vector.
 
-    Integration examples:
+    Note that the accuracy of the results calculated by HydPy-L-Lake depend
+    on the internal step size parameter
+    :class:`~hydpy.models.llake.llake_control.MaxDT`.
 
+    Integration examples:
 
         The following are performed over a period of 20 days:
 
@@ -79,6 +83,7 @@ class Model(modeltools.Model):
         >>> w(0., 1.)
         >>> v(0., 1e6)
         >>> q(0., 10.)
+        >>> maxdt('1d')
 
         Update the values of all derived parameters:
 
@@ -210,16 +215,111 @@ class Model(modeltools.Model):
         |   0.0 |       0.0 |       0.0 |      44.427956 |  0.000044 |
         |   0.0 |       0.0 |       0.0 |      17.622262 |  0.000018 |
         |   0.0 |       0.0 |       0.0 |       6.989836 |  0.000007 |
+
+        In the following, the given examples above repeated.  The only
+        parameter that will be altered is the internal simulation step size,
+        beeing one hour instead of one day:
+
+        >>> maxdt('1h')
+        >>> model.parameters.update()
+
+        Hence, the principles discussed above remain valid, but the result are
+        a little more accurate.
+
+        Repetition of the first experiment:
+
+        >>> maxdw(.0)
+        >>> verzw(0.)
+        >>> test()
+        |    qz |        qa |    output |              v |         w |
+         ------------------------------------------------------------
+        |   0.0 |       0.0 |       0.0 |            0.0 |       0.0 |
+        |   1.0 |  0.330363 |  0.330363 |   57856.651951 |  0.057857 |
+        |   6.0 |  2.369607 |  2.369607 |  371522.641905 |  0.371523 |
+        |  12.0 |  6.452208 |  6.452208 |  850851.903469 |  0.850852 |
+        |  10.0 |  9.001249 |  9.001249 |   937143.99857 |  0.937144 |
+        |   6.0 |  8.257642 |  8.257642 |  742083.768745 |  0.742084 |
+        |   3.0 |  5.960357 |  5.960357 |  486308.901331 |  0.486309 |
+        |   2.0 |  3.917231 |  3.917231 |  320660.156784 |   0.32066 |
+        |   1.0 |  2.477622 |  2.477622 |   192993.57788 |  0.192994 |
+        |   0.0 |  1.292357 |  1.292357 |   81333.955239 |  0.081334 |
+        |   0.0 |  0.544642 |  0.544642 |   34276.851838 |  0.034277 |
+        |   0.0 |  0.229531 |  0.229531 |   14445.412971 |  0.014445 |
+        |   0.0 |  0.096732 |  0.096732 |    6087.780665 |  0.006088 |
+        |   0.0 |  0.040766 |  0.040766 |    2565.594594 |  0.002566 |
+        |   0.0 |   0.01718 |   0.01718 |    1081.227459 |  0.001081 |
+        |   0.0 |   0.00724 |   0.00724 |     455.665451 |  0.000456 |
+        |   0.0 |  0.003051 |  0.003051 |     192.032677 |  0.000192 |
+        |   0.0 |  0.001286 |  0.001286 |      80.928999 |  0.000081 |
+        |   0.0 |  0.000542 |  0.000542 |       34.10619 |  0.000034 |
+        |   0.0 |  0.000228 |  0.000228 |       14.37349 |  0.000014 |
+
+        Repetition of the second experiment:
+
+        >>> maxdw(.1)
+        >>> verzw(0.)
+        >>> test()
+        |    qz |        qa |    output |              v |         w |
+         ------------------------------------------------------------
+        |   0.0 |       0.0 |       0.0 |            0.0 |       0.0 |
+        |   1.0 |  0.330363 |  0.330363 |   57856.651951 |  0.057857 |
+        |   6.0 |  2.369607 |  2.369607 |  371522.641905 |  0.371523 |
+        |  12.0 |  6.452208 |  6.452208 |  850851.903469 |  0.850852 |
+        |  10.0 |  9.001249 |  9.001249 |   937143.99857 |  0.937144 |
+        |   6.0 |  7.157407 |  7.157407 |   837143.99857 |  0.837144 |
+        |   3.0 |  4.157407 |  4.157407 |   737143.99857 |  0.737144 |
+        |   2.0 |  3.157407 |  3.157407 |   637143.99857 |  0.637144 |
+        |   1.0 |  2.157407 |  2.157407 |   537143.99857 |  0.537144 |
+        |   0.0 |  1.157407 |  1.157407 |   437143.99857 |  0.437144 |
+        |   0.0 |  1.157407 |  1.157407 |   337143.99857 |  0.337144 |
+        |   0.0 |  1.157407 |  1.157407 |   237143.99857 |  0.237144 |
+        |   0.0 |  1.157407 |  1.157407 |   137143.99857 |  0.137144 |
+        |   0.0 |  0.918367 |  0.918367 |   57797.072646 |  0.057797 |
+        |   0.0 |  0.387031 |  0.387031 |   24357.621488 |  0.024358 |
+        |   0.0 |  0.163108 |  0.163108 |     10265.1172 |  0.010265 |
+        |   0.0 |  0.068739 |  0.068739 |    4326.064069 |  0.004326 |
+        |   0.0 |  0.028969 |  0.028969 |    1823.148238 |  0.001823 |
+        |   0.0 |  0.012208 |  0.012208 |     768.335707 |  0.000768 |
+        |   0.0 |  0.005145 |  0.005145 |     323.802391 |  0.000324 |
+
+        Repetition of the third experiment:
+
+        >>> maxdw(.0)
+        >>> verzw(1.)
+        >>> test()
+        |    qz |        qa |    output |              v |         w |
+         ------------------------------------------------------------
+        |   0.0 |       0.0 |       0.0 |            0.0 |       0.0 |
+        |   1.0 |       0.0 |       0.0 |   57856.651951 |  0.057857 |
+        |   6.0 |  1.369607 |  1.369607 |  371522.641905 |  0.371523 |
+        |  12.0 |  5.452208 |  5.452208 |  850851.903469 |  0.850852 |
+        |  10.0 |  8.001249 |  8.001249 |   937143.99857 |  0.937144 |
+        |   6.0 |  7.257642 |  7.257642 |  742083.768745 |  0.742084 |
+        |   3.0 |  4.960357 |  4.960357 |  486308.901331 |  0.486309 |
+        |   2.0 |  2.917231 |  2.917231 |  320660.156784 |   0.32066 |
+        |   1.0 |  1.477622 |  1.477622 |   192993.57788 |  0.192994 |
+        |   0.0 |  0.292357 |  0.292357 |   81333.955239 |  0.081334 |
+        |   0.0 |       0.0 |       0.0 |   34276.851838 |  0.034277 |
+        |   0.0 |       0.0 |       0.0 |   14445.412971 |  0.014445 |
+        |   0.0 |       0.0 |       0.0 |    6087.780665 |  0.006088 |
+        |   0.0 |       0.0 |       0.0 |    2565.594594 |  0.002566 |
+        |   0.0 |       0.0 |       0.0 |    1081.227459 |  0.001081 |
+        |   0.0 |       0.0 |       0.0 |     455.665451 |  0.000456 |
+        |   0.0 |       0.0 |       0.0 |     192.032677 |  0.000192 |
+        |   0.0 |       0.0 |       0.0 |      80.928999 |  0.000081 |
+        |   0.0 |       0.0 |       0.0 |       34.10619 |  0.000034 |
+        |   0.0 |       0.0 |       0.0 |       14.37349 |  0.000014 |
     """
     _RUNMETHODS = (llake_model.update_inlets_v1,
-                   llake_model.calc_vq_v1,
-                   llake_model.interp_qa_v1,
-                   llake_model.calc_v_qa_v1,
+                   llake_model.solve_dv_dt_v1,
                    llake_model.interp_w_v1,
                    llake_model.corr_dw_v1,
                    llake_model.modify_qa_v1,
                    llake_model.update_outlets_v1)
-    _ADDMETHODS = (llake_model.interp_v_v1,)
+    _ADDMETHODS = (llake_model.interp_v_v1,
+                   llake_model.calc_vq_v1,
+                   llake_model.interp_qa_v1,
+                   llake_model.calc_v_qa_v1)
 
 
 class ControlParameters(parametertools.SubParameters):
@@ -228,6 +328,7 @@ class ControlParameters(parametertools.SubParameters):
                    llake_control.W,
                    llake_control.V,
                    llake_control.Q,
+                   llake_control.MaxDT,
                    llake_control.MaxDW,
                    llake_control.Verzw)
 
@@ -237,6 +338,7 @@ class DerivedParameters(parametertools.SubParameters):
     """
     _PARCLASSES = (llake_derived.TOY,
                    llake_derived.Seconds,
+                   llake_derived.NmbSubsteps,
                    llake_derived.VQ)
 
 
@@ -249,8 +351,14 @@ class StateSequences(sequencetools.StateSequences):
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of LARSIM-ME-Lake."""
     _SEQCLASSES = (llake_fluxes.QZ,
-                   llake_fluxes.VQ,
                    llake_fluxes.QA)
+
+
+class AideSequences(sequencetools.AideSequences):
+    """Aide sequences of LARSIM-ME-Lake."""
+    _SEQCLASSES = (llake_aides.QA,
+                   llake_aides.VQ,
+                   llake_aides.V,)
 
 
 class InletSequences(sequencetools.LinkSequences):

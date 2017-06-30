@@ -30,6 +30,7 @@ class Ic(sequencetools.StateSequence):
             upper = control.icmax
         sequencetools.StateSequence.trim(self, lower, upper)
 
+
 class SP(sequencetools.StateSequence):
     """Frozen water stored in the snow layer [mm]."""
     NDIM, NUMERIC, SPAN = 1, False, (None, None)
@@ -55,6 +56,7 @@ class SP(sequencetools.StateSequence):
                 lower = 0.
         sequencetools.StateSequence.trim(self, lower, upper)
 
+
 class WC(sequencetools.StateSequence):
     """Liquid water content of the snow layer [mm]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
@@ -77,6 +79,7 @@ class WC(sequencetools.StateSequence):
             upper = whc*sp
         sequencetools.StateSequence.trim(self, lower, upper)
 
+
 class SM(sequencetools.StateSequence):
     """Soil moisture [mm]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
@@ -96,9 +99,11 @@ class SM(sequencetools.StateSequence):
             upper = self.subseqs.seqs.model.parameters.control.fc
         sequencetools.StateSequence.trim(self, lower, upper)
 
+
 class UZ(sequencetools.StateSequence):
     """Storage in the upper zone layer [mm]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
+
 
 class LZ(sequencetools.StateSequence):
     """Storage in the lower zone layer [mm]."""
@@ -125,11 +130,11 @@ class LZ(sequencetools.StateSequence):
         """
         if upper is None:
             control = self.subseqs.seqs.model.parameters.control
-            if not any(control.zonetype==ILAKE):
+            if not any(control.zonetype == ILAKE):
                 lower = 0.
         sequencetools.StateSequence.trim(self, lower, upper)
+
 
 class StateSequences(sequencetools.StateSequences):
     """State sequences of the HydPy-H-Land model."""
     _SEQCLASSES = (Ic, SP, WC, SM, UZ, LZ)
-

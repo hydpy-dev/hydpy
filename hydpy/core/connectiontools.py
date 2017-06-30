@@ -6,6 +6,7 @@ from __future__ import division, print_function
 # ...from Hydpy
 from hydpy.core import objecttools
 
+
 class Connections(object):
     """Connection between :class:`~hydpy.core.devicetools.Node` and
     :class:`~hydpy.core.devicetools.Element` instances.
@@ -14,7 +15,7 @@ class Connections(object):
     def __init__(self, master, *slaves):
         self.master = master
         for slave in slaves:
-            self.add
+            self += slave
 
     def __iadd__(self, slave):
         setattr(self, slave.name, slave)

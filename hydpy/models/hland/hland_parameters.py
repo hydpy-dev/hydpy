@@ -8,7 +8,8 @@ import numpy
 # ...HydPy specific
 from hydpy.core import parametertools
 # ...model specific
-from hydpy.models.hland.hland_constants import FIELD, FOREST, ILAKE, GLACIER, CONSTANTS
+from hydpy.models.hland.hland_constants import FIELD, FOREST, ILAKE, GLACIER
+from hydpy.models.hland.hland_constants import CONSTANTS
 
 
 class MultiParameter(parametertools.ZipParameter):
@@ -129,11 +130,13 @@ class MultiParameter(parametertools.ZipParameter):
         """
         return self.subpars.pars.control.nmbzones
 
+
 class MultiParameterSoil(MultiParameter):
     """Base class for handling parameters of the hland model (potentially)
     handling multiple values relevant for `soil zones` (and interception).
     """
     REQUIRED_VALUES = (FIELD, FOREST)
+
 
 class MultiParameterLand(MultiParameter):
     """Base class for handling parameters of the hland model (potentially)
@@ -141,11 +144,13 @@ class MultiParameterLand(MultiParameter):
     """
     REQUIRED_VALUES = (FIELD, FOREST, GLACIER)
 
+
 class MultiParameterLake(MultiParameter):
     """Base class for handling parameters of the hland model (potentially)
     handling multiple values relevant for `lake zones` only.
     """
     REQUIRED_VALUES = (ILAKE,)
+
 
 class MultiParameterGlacier(MultiParameter):
     """Base class for handling parameters of the hland model (potentially)
@@ -153,11 +158,13 @@ class MultiParameterGlacier(MultiParameter):
     """
     REQUIRED_VALUES = (GLACIER,)
 
+
 class MultiParameterNoGlacier(MultiParameter):
     """Base class for handling parameters of the hland model (potentially)
     handling multiple values relevant for `glacier free zones` only.
     """
     REQUIRED_VALUES = (FIELD, FOREST, ILAKE)
+
 
 class Parameters(parametertools.Parameters):
     """All parameters of the hland model."""
@@ -366,7 +373,6 @@ class Parameters(parametertools.Parameters):
             >>> model.parameters.calc_ttm()
             >>> derived.ttm
             ttm(-1.0)
-
         """
         con = self.control
         der = self.derived

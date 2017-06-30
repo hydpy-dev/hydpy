@@ -39,21 +39,21 @@ setup(name='HydPy',
       url='https://github.com/tyralla/hydpy',
       license='GPL-3.0',
       classifiers=[
-      'Intended Audience :: Education',
-      'Intended Audience :: Science/Research',
-      'Intended Audience :: Financial and Insurance Industry',
-      'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
-      'Operating System :: POSIX :: Linux',
-      'Operating System :: Microsoft :: Windows',
-      'Operating System :: Microsoft :: Windows :: Windows 7',
-      'Programming Language :: Python :: 2',
-      'Programming Language :: Python :: 2.7',
-      'Programming Language :: Python :: 3',
-      'Programming Language :: Python :: 3.4',
-      'Programming Language :: Python :: 3.5',
-      'Programming Language :: Python :: 3.6',
-      'Programming Language :: Python :: Implementation :: CPython',
-      'Topic :: Scientific/Engineering'
+          'Intended Audience :: Education',
+          'Intended Audience :: Science/Research',
+          'Intended Audience :: Financial and Insurance Industry',
+          'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+          'Operating System :: POSIX :: Linux',
+          'Operating System :: Microsoft :: Windows',
+          'Operating System :: Microsoft :: Windows :: Windows 7',
+          'Programming Language :: Python :: 2',
+          'Programming Language :: Python :: 2.7',
+          'Programming Language :: Python :: 3',
+          'Programming Language :: Python :: 3.4',
+          'Programming Language :: Python :: 3.5',
+          'Programming Language :: Python :: 3.6',
+          'Programming Language :: Python :: Implementation :: CPython',
+          'Topic :: Scientific/Engineering'
       ],
       keywords='hydrology modelling water balance rainfall runoff',
       packages=['hydpy', 'hydpy.cythons', 'hydpy.core', 'hydpy.tests',
@@ -67,9 +67,10 @@ setup(name='HydPy',
       install_requires=['Cython', 'numpy', 'matplotlib'])
 
 if install:
-    # Priorise site-packages (on Debian-based Linux distributions as Ubunte
+    # Priorise site-packages (on Debian-based Linux distributions as Ubuntu
     # also dist-packages) in the import order to make sure, the following
-    # imports refer to the newly build hydpy package on the respective computer.
+    # imports refer to the newly build hydpy package on the respective
+    # computer.
     paths = [path for path in sys.path if path.endswith('-packages')]
     for path in paths:
         sys.path.insert(0, path)

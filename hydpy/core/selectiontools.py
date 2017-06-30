@@ -6,6 +6,7 @@ from __future__ import division, print_function
 # ...from HydPy
 from hydpy.core import devicetools
 
+
 class Selections(object):
     """Collects :class:`Selection` instances.
 
@@ -22,11 +23,13 @@ class Selections(object):
     def _getnames(self):
         """Names of the actual selections."""
         return vars(self).keys()
+
     names = property(_getnames)
 
     def _getselections(self):
         """The actual selections themselves."""
         return vars(self).values()
+
     selections = property(_getselections)
 
     def __setitem__(self, key, value):
@@ -50,7 +53,6 @@ class Selections(object):
 
     def __len__(self):
         return len(self.names)
-
 
     @staticmethod
     def _getiterable(value):
@@ -135,7 +137,7 @@ class Selections(object):
         return '\n'.join(lines)
 
     def __dir__(self):
-        return ['names', 'selections', 'assignrepr'] + self.names
+        return ['names', 'selections', 'assignrepr'] + list(self.names)
 
 
 class Selection(object):
@@ -415,7 +417,7 @@ class Selection(object):
             * prefix(:class:`str`): Usually something like 'x = '.
         """
         prefixblanks = ' ' * len(prefix)
-        lines = ['%sSelection("%s",'% (prefix, self.name)]
+        lines = ['%sSelection("%s",' % (prefix, self.name)]
         blanks = ' ' * (len(prefix) + 22)
         names = sorted(self.nodes.names)
         if names:

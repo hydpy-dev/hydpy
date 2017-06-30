@@ -423,6 +423,7 @@ class Date(object):
         (October is another common reference month many different countries)
         affects all :class:`Date` instances."""
         return Date._firstmonth_wateryear
+
     def _setrefmonth(self, value):
         try:
             Date._firstmonth_wateryear = int(value)
@@ -436,6 +437,7 @@ class Date(object):
                 raise ValueError('The given value `%s` cannot be interpreted '
                                  'as a month. Supply e.g. a number between 1 '
                                  'and 12 or a month name instead.' % value)
+
     refmonth = property(_getrefmonth, _setrefmonth)
 
     def _getstyle(self):
@@ -444,12 +446,14 @@ class Date(object):
             return 'iso'
         else:
             return self._style
+
     def _setstyle(self, style):
         if style in self._formatstrings:
             self._style = style
         else:
             self._style = None
             raise KeyError('Date format style `%s` is not available.' % style)
+
     style = property(_getstyle, _setstyle)
 
     def _setthing(self, thing, value):
@@ -470,52 +474,64 @@ class Date(object):
     def _getsecond(self):
         """The actual second."""
         return self.datetime.second
+
     def _setsecond(self, second):
         self._setthing('second', second)
+
     second = property(_getsecond, _setsecond)
 
     def _getminute(self):
         """The actual minute."""
         return self.datetime.minute
+
     def _setminute(self, minute):
         self._setthing('minute', minute)
+
     minute = property(_getminute, _setminute)
 
     def _gethour(self):
         """The actual hour."""
         return self.datetime.hour
+
     def _sethour(self, hour):
         self._setthing('hour', hour)
+
     hour = property(_gethour, _sethour)
 
     def _getday(self):
         """The actual day."""
         return self.datetime.day
+
     def _setday(self, day):
         self._setthing('day', day)
+
     day = property(_getday, _setday)
 
     def _getmonth(self):
         """The actual month."""
         return self.datetime.month
+
     def _setmonth(self, month):
         self._setthing('month', month)
+
     month = property(_getmonth, _setmonth)
 
     def _getyear(self):
         """The actual year."""
         return self.datetime.year
+
     def _setyear(self, year):
         self._setthing('year', year)
+
     year = property(_getyear, _setyear)
 
-    def _getwateryear(self):
+    @property
+    def wateryear(self):
         """The actual hydrological year according selected reference month."""
         if self.month < self._firstmonth_wateryear:
             return self.year
         else:
             return self.year + 1
-    wateryear = property(_getwateryear)
 
     @property
     def dayofyear(self):
@@ -606,9 +622,7 @@ class Period(object):
 
     Attribute:
         * datetime (:class:`~datetime.timedelta`): The core of :class:`Period`.
-
     """
-
     def __init__(self, period):
         self.timedelta = None
         self._unit = None
@@ -682,26 +696,31 @@ class Period(object):
         else:
             raise ValueError('The stepsize is not a multiple of one '
                              'second, which is not allowed.')
+
     unit = property(_guessunit)
 
     def _getseconds(self):
         """Period length in seconds."""
         return self.timedelta.total_seconds()
+
     seconds = property(_getseconds)
 
     def _getminutes(self):
         """Period length in minutes."""
         return self.seconds / 60
+
     minutes = property(_getminutes)
 
     def _gethours(self):
         """Period length in hours."""
         return self.minutes / 60
+
     hours = property(_gethours)
 
     def _getdays(self):
         """Period length in days."""
         return self.hours / 24
+
     days = property(_getdays)
 
     def copy(self):
@@ -806,20 +825,26 @@ class Timegrid(object):
 
     def _getfirstdate(self):
         return self._firstdate
+
     def _setfirstdate(self, firstdate):
         self._firstdate = Date(firstdate)
+
     firstdate = property(_getfirstdate, _setfirstdate)
 
     def _getlastdate(self):
         return self._lastdate
+
     def _setlastdate(self, lastdate):
         self._lastdate = Date(lastdate)
+
     lastdate = property(_getlastdate, _setlastdate)
 
     def _getstepsize(self):
         return self._stepsize
+
     def _setstepsize(self, stepsize):
         self._stepsize = Period(stepsize)
+
     stepsize = property(_getstepsize, _setstepsize)
 
     @classmethod
@@ -974,10 +999,12 @@ class _Timegrids(object):
     def _getstepsize(self):
         """Stepsize of all handled :class:`Timegrid` objects."""
         return self.data.stepsize
+
     def _setstepsize(self, stepsize):
         stepsize = Period(stepsize)
         for (name, timegrid) in self:
             timegrid.stepsize = stepsize
+
     stepsize = property(_getstepsize, _setstepsize)
 
     def verify(self):
@@ -1090,10 +1117,12 @@ class Timegrids(object):
     def _getstepsize(self):
         """Stepsize of all handled :class:`Timegrid` objects."""
         return self.data.stepsize
+
     def _setstepsize(self, stepsize):
         stepsize = Period(stepsize)
         for (name, timegrid) in self:
             timegrid.stepsize = stepsize
+
     stepsize = property(_getstepsize, _setstepsize)
 
     def verify(self):

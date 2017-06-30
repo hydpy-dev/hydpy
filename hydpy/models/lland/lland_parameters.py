@@ -8,6 +8,7 @@ from hydpy.core import parametertools
 # ...model specific
 from hydpy.models.lland import lland_constants
 
+
 class MultiParameter(parametertools.ZipParameter):
     """Base class for handling parameters of the HydPy-L-Land model
     (potentially) handling multiple values.
@@ -55,6 +56,7 @@ class MultiParameterLand(MultiParameter):
     REQUIRED_VALUES = tuple(value for (key, value)
                             in lland_constants.CONSTANTS.items()
                             if value != 'WASSER')
+
 
 class MultiParameterSoil(MultiParameter):
     """Base class for handling parameters of HydPy-L-Land (potentially)

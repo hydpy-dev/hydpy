@@ -9,6 +9,7 @@ from hydpy.cythons import modelutils
 # ...model specifc
 from hydpy.models.hland.hland_constants import FIELD, FOREST, GLACIER, ILAKE
 
+
 def calc_tc_v1(self):
     """Adjust the measured air temperature to the altitude of the
     individual zones.
@@ -51,6 +52,7 @@ def calc_tc_v1(self):
     flu = self.sequences.fluxes.fastaccess
     for k in range(con.nmbzones):
         flu.tc[k] = inp.t-con.tcalt[k]*(con.zonez[k]-con.zrelt)
+
 
 def calc_tmean_v1(self):
     """Calculate the areal mean temperature of the subbasin.
@@ -149,6 +151,7 @@ def calc_fracrain_v1(self):
             flu.fracrain[k] = ((flu.tc[k]-(con.tt[k]-con.ttint[k]/2.)) /
                                con.ttint[k])
 
+
 def calc_rfc_sfc_v1(self):
     """Calculate the corrected fractions rainfall/snowfall and total
     precipitation.
@@ -204,6 +207,7 @@ def calc_rfc_sfc_v1(self):
     for k in range(con.nmbzones):
         flu.rfc[k] = flu.fracrain[k]*con.rfcf[k]
         flu.sfc[k] = (1.-flu.fracrain[k])*con.sfcf[k]
+
 
 def calc_pc_v1(self):
     """Apply the precipitation correction factors and adjust precipitation
@@ -267,6 +271,7 @@ def calc_pc_v1(self):
         flu.pc[k] = inp.p*con.pcorr[k]
         flu.pc[k] *= 1.+con.pcalt[k]*(con.zonez[k]-con.zrelp)
         flu.pc[k] *= flu.rfc[k]+flu.sfc[k]
+
 
 def calc_ep_v1(self):
     """Adjust potential norm evaporation to the actual temperature.
@@ -332,6 +337,7 @@ def calc_ep_v1(self):
         flu.ep[k] = inp.epn*(1.+con.etf[k]*(flu.tmean-inp.tn))
         flu.ep[k] = min(max(flu.ep[k], 0.), 2.*inp.epn)
 
+
 def calc_epc_v1(self):
     """Apply the evaporation correction factors and adjust evaporation
     to the altitude of the individual zones.
@@ -369,6 +375,7 @@ def calc_epc_v1(self):
 
         >>> from hydpy.models.hland import *
         >>> parameterstep('1d')
+        >>> simulationstep('12h')
         >>> nmbzones(4)
         >>> zrele(2.)
         >>> zonez(3.)
@@ -397,6 +404,7 @@ def calc_epc_v1(self):
         flu.epc[k] = (flu.ep[k]*con.ecorr[k] *
                       (1. - con.ecalt[k]*(con.zonez[k]-con.zrele)))
         flu.epc[k] *= modelutils.exp(-con.epf[k]*flu.pc[k])
+
 
 def calc_tf_ic_v1(self):
     """Calculate throughfall and update the interception storage
@@ -484,6 +492,7 @@ def calc_tf_ic_v1(self):
         else:
             flu.tf[k] = flu.pc[k]
             sta.ic[k] = 0.
+
 
 def calc_ei_ic_v1(self):
     """Calculate interception evaporation and update the interception
@@ -643,6 +652,7 @@ def calc_sp_wc_v1(self):
             sta.wc[k] = 0.
             sta.sp[k] = 0.
 
+
 def calc_melt_sp_wc_v1(self):
     """Calculate melting of the ice content within the snow layer and
     update both the snow layers ice and the water content.
@@ -757,6 +767,7 @@ def calc_melt_sp_wc_v1(self):
             flu.melt[k] = 0.
             sta.wc[k] = 0.
             sta.sp[k] = 0.
+
 
 def calc_refr_sp_wc_v1(self):
     """Calculate refreezing of the water content within the snow layer and
@@ -895,6 +906,7 @@ def calc_refr_sp_wc_v1(self):
             sta.wc[k] = 0.
             sta.sp[k] = 0.
 
+
 def calc_in_wc_v1(self):
     """Calculate the actual water release from the snow layer due to the
     exceedance of the snow layers capacity for (liquid) water.
@@ -974,6 +986,7 @@ def calc_in_wc_v1(self):
             flu.in_[k] = flu.tf[k]
             sta.wc[k] = 0.
 
+
 def calc_glmelt_in_v1(self):
     """Calculate melting from glaciers which are actually not covered by
     a snow layer and add it to the water release of the snow module.
@@ -1047,6 +1060,7 @@ def calc_glmelt_in_v1(self):
                 flu.in_[k] += flu.glmelt[k]
             else:
                 flu.glmelt[k] = 0.
+
 
 def calc_r_sm_v1(self):
     """Calculate effective precipitation and update soil moisture.
@@ -1137,6 +1151,7 @@ def calc_r_sm_v1(self):
         else:
             flu.r[k] = flu.in_[k]
             sta.sm[k] = 0.
+
 
 def calc_cf_sm_v1(self):
     """Calculate capillary flow and update soil moisture.
@@ -1278,6 +1293,7 @@ def calc_cf_sm_v1(self):
             flu.cf[k] = 0.
             sta.sm[k] = 0.
 
+
 def calc_ea_sm_v1(self):
     """Calculate soil evaporation and update soil moisture.
 
@@ -1409,7 +1425,6 @@ def calc_ea_sm_v1(self):
             sta.sm[k] = 0.
 
 
-
 def calc_inuz_v1(self):
     """Accumulate the total inflow into the upper zone layer.
 
@@ -1462,6 +1477,7 @@ def calc_inuz_v1(self):
     for k in range(con.nmbzones):
         if con.zonetype[k] != ILAKE:
             flu.inuz += der.rellandzonearea[k]*(flu.r[k]-flu.cf[k])
+
 
 def calc_contriarea_v1(self):
     """Determine the relative size of the contributing area of the whole
@@ -1562,12 +1578,13 @@ def calc_contriarea_v1(self):
         for k in range(con.nmbzones):
             if (con.zonetype[k] == FIELD) or (con.zonetype[k] == FOREST):
                 if con.fc[k] > 0.:
-                    flu.contriarea += (der.relsoilzonearea[k]*
+                    flu.contriarea += (der.relsoilzonearea[k] *
                                        (sta.sm[k]/con.fc[k])**con.beta[k])
                 else:
                     flu.contriarea += der.relsoilzonearea[k]
     else:
         flu.contriarea = 1.
+
 
 def calc_q0_perc_uz_v1(self):
     """Perform the upper zone layer routine which determines percolation
@@ -1758,6 +1775,7 @@ def calc_q0_perc_uz_v1(self):
         else:
             aid.q0 = 0.
 
+
 def calc_lz_v1(self):
     """Update the lower zone layer in accordance with percolation from
     upper groundwater to lower groundwater and/or in accordance with
@@ -1826,6 +1844,7 @@ def calc_lz_v1(self):
     for k in range(con.nmbzones):
         if con.zonetype[k] == ILAKE:
             sta.lz += der.relzonearea[k]*flu.pc[k]
+
 
 def calc_el_lz_v1(self):
     """Calculate lake evaporation.
@@ -1898,6 +1917,7 @@ def calc_el_lz_v1(self):
             sta.lz -= der.relzonearea[k]*flu.el[k]
         else:
             flu.el[k] = 0.
+
 
 def calc_q1_lz_v1(self):
     """Calculate the slow response of the lower zone layer.
@@ -2018,6 +2038,7 @@ def calc_inuh_v1(self):
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
     flu.inuh = der.rellandarea*flu.q0+flu.q1
+
 
 def calc_outuh_quh_v1(self):
     """Calculate the unit hydrograph output (convolution).
@@ -2159,6 +2180,7 @@ def calc_qt_v1(self):
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
     flu.qt = max(flu.outuh-con.abstr, 0.)
+
 
 def update_outlets_v1(self):
     """Update the outlet link sequence."""

@@ -39,6 +39,7 @@ class HV(parametertools.LeftRightParameter):
             else:
                 self[idx] = 0.
 
+
 class QM(parametertools.SingleParameter):
     """Bordvoller Abfluss Hauptgerinne (maximum discharge of the main channel)
     [m³/s]."""
@@ -66,6 +67,7 @@ class QM(parametertools.SingleParameter):
         flu.h = con.hm
         mod.calc_qg()
         self.value = flu.qg
+
 
 class QV(parametertools.LeftRightParameter):
     """Bordvoller Abfluss Vorländer (maximum discharge of both forelands)
@@ -97,6 +99,7 @@ class QV(parametertools.LeftRightParameter):
             mod.calc_qg()
             self[idx] = flu.qg
 
+
 class Sek(parametertools.SingleParameter):
     """ Sekunden im Simulationszeitschritt (Number of seconds of the selected
     simulation time step) [T]."""
@@ -118,6 +121,7 @@ class Sek(parametertools.SingleParameter):
             sek(86400.0)
         """
         self(self.simulationstep.seconds)
+
 
 class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of HydPy-L-Stream, indirectly defined by the user."""

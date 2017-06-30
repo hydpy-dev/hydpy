@@ -22,6 +22,7 @@ from hydpy.core import timetools
 # `strptime` is supposed to prevent possible problems arising from this bug.
 time.strptime('1999', '%Y')
 
+
 class Parameters(object):
     """Base class for handling all parameters of a specific model."""
 
@@ -62,7 +63,7 @@ class Parameters(object):
             if dirname is None:
                 dirname = pub.controlmanager.controlpath
             filepath = os.path.join(dirname, filename)
-            with file(filepath, 'w') as file_:
+            with open(filepath, 'w') as file_:
                 file_.write('from hydpy.models.%s import *\n\n'
                             % self.model.__module__.split('.')[2])
                 if not parameterstep:
@@ -266,12 +267,14 @@ class Parameter(objecttools.ValueMath):
                                'defined so far.')
         else:
             return self._parameterstep
+
     def _setparameterstep(self, value):
         try:
             Parameter._parameterstep = timetools.Period(value)
         except Exception:
             objecttools.augmentexcmessage('While trying to set the general '
                                           'parameter time step')
+
     parameterstep = property(_getparameterstep, _setparameterstep)
 
     def _getsimulationstep(self):
@@ -282,12 +285,14 @@ class Parameter(objecttools.ValueMath):
             return pub.timegrids.stepsize
         except AttributeError:
             return Parameter._simulationstep
+
     def _setsimulationstep(self, value):
         try:
             Parameter._simulationstep = timetools.Period(value)
         except Exception:
             objecttools.augmentexcmessage('While trying to set the general '
                                           'simulation time step')
+
     simulationstep = property(_getsimulationstep, _setsimulationstep)
 
     def _gettimefactor(self):
@@ -315,6 +320,7 @@ class Parameter(objecttools.ValueMath):
                 parfactor = timetools.Timegrids(timetools.Timegrid(
                                  date1, date2, self._simulationstep)).parfactor
         return parfactor(self.parameterstep)
+
     timefactor = property(_gettimefactor)
 
     def trim(self, lower=None, upper=None):
@@ -360,15 +366,16 @@ class Parameter(objecttools.ValueMath):
         lines = []
         if pub.options.reprcomments:
             if self.__doc__ is not None:
-                lines.append('# %s].' % self.__doc__.split(']')[0])
+                comment = '%s].' % self.__doc__.split(']')[0]
+                lines.extend('# '+line.strip() for line in comment.split('\n'))
             else:
                 lines.append('# Instance of parameter class `%s` defined in '
                              'module `%s`.'
                              % (objecttools.classname(self), self.__module__))
             if self.TIME is not None:
                 lines.append('# The actual value representation depends on '
-                             'the actual parameter step size, which is `%s`.'
-                             % self.parameterstep)
+                             'the actual parameter step size,')
+                lines.append('# which is `%s`.' % self.parameterstep)
         return lines
 
     def __str__(self):
@@ -392,9 +399,11 @@ class SingleParameter(Parameter):
         of :class:`SingleParameter` and :class:`MultiParameter` instances.)
         """
         return ()
+
     def _setshape(self, shape):
         raise RuntimeError('The shape information of `SingleParameters` '
                            'as `%s` cannot be changed.' % self.name)
+
     shape = property(_getshape, _setshape)
 
     def _getvalue(self):
@@ -402,6 +411,7 @@ class SingleParameter(Parameter):
         :class:`SingleParameter` instance.
         """
         return getattr(self.fastaccess, self.name, numpy.nan)
+
     def _setvalue(self, value):
         try:
             temp = value[0]
@@ -416,10 +426,11 @@ class SingleParameter(Parameter):
             value = self.TYPE(value)
         except (ValueError, TypeError):
             raise TypeError('When trying to set the value of parameter `%s`, '
-                             'it was not possible to convert `%s` to type '
-                             '`%s`.' % (self.name, value,
-                                        objecttools.classname(self.TYPE)))
+                            'it was not possible to convert `%s` to type '
+                            '`%s`.' % (self.name, value,
+                                       objecttools.classname(self.TYPE)))
         setattr(self.fastaccess, self.name, value)
+
     value = property(_getvalue, _setvalue)
     values = value
 
@@ -478,6 +489,7 @@ class MultiParameter(Parameter):
             raise RuntimeError('Shape information for parameter `%s` '
                                'can only be retrieved after it has been '
                                'defined.' % self.name)
+
     def _setshape(self, shape):
         try:
             array = numpy.full(shape, 0., dtype=self.TYPE)
@@ -491,6 +503,7 @@ class MultiParameter(Parameter):
             raise ValueError('Parameter `%s` is %d-dimensional but the '
                              'given shape indicates %d dimensions.'
                              % (self.name, self.NDIM, array.ndim))
+
     shape = property(_getshape, _setshape)
 
     def _getvalue(self):
@@ -503,6 +516,7 @@ class MultiParameter(Parameter):
             return value
         else:
             return numpy.asarray(value)
+
     def _setvalue(self, value):
         try:
             value = value.value
@@ -516,6 +530,7 @@ class MultiParameter(Parameter):
                              'type %s.' % (value, self.shape,
                                            objecttools.classname(self.TYPE)))
         setattr(self.fastaccess, self.name, value)
+
     value = property(_getvalue, _setvalue)
     values = value
 
@@ -528,6 +543,7 @@ class MultiParameter(Parameter):
         subclasses, where certain entries do not to be checked.
         """
         return numpy.full(self.shape, True, dtype=bool)
+
     verifymask = property(_getverifymask)
 
     def verify(self):
@@ -538,12 +554,12 @@ class MultiParameter(Parameter):
         considered to be necessary.
         """
         if self.values is None:
-             raise RuntimeError('The values of parameter `%s` have not '
-                                'been set yet.' % self.name)
+            raise RuntimeError('The values of parameter `%s` have not '
+                               'been set yet.' % self.name)
         nmbnan = sum(numpy.isnan(self.values[self.verifymask]))
         if nmbnan:
-             raise RuntimeError('For parameter `%s`, %d required values have '
-                                'not been set yet.' % (self.name, nmbnan))
+            raise RuntimeError('For parameter `%s`, %d required values have '
+                               'not been set yet.' % (self.name, nmbnan))
 
     def copy(self):
         """Return a deep copy of the parameter values."""
@@ -675,7 +691,7 @@ class ZipParameter(MultiParameter):
                                           objecttools.devicename(self),
                                           self.name))
                 self.values = kwargs.pop('default', numpy.nan)
-                for (key, value)  in kwargs.items():
+                for (key, value) in kwargs.items():
                     sel = self.MODEL_CONSTANTS.get(key.upper())
                     if sel is None:
                         raise exc
@@ -700,6 +716,7 @@ class ZipParameter(MultiParameter):
                                'parameter `%s` first in each parameter '
                                'control file.'
                                % (self.name, self.shapeparameter.name))
+
     shape = property(_getshape, MultiParameter._setshape)
 
     def _getverifymask(self):
@@ -713,6 +730,7 @@ class ZipParameter(MultiParameter):
         for reqvalue in self.REQUIRED_VALUES:
             mask[refvalues == reqvalue] = True
         return mask
+
     verifymask = property(_getverifymask)
 
     def compressrepr(self):
@@ -851,7 +869,6 @@ class SeasonalParameter(MultiParameter):
                 self.refresh()
             else:
                 raise exc
-
 
     def refresh(self):
         """Update the actual simulation values based on the toy-value pairs.
@@ -1115,8 +1132,10 @@ class KeywordParameter2DType(type):
         dict_['_ROWCOLMAPPINGS'] = rowcolmappings
         return type.__new__(cls, name, parents, dict_)
 
+
 KeywordParameter2DMetaclass = KeywordParameter2DType(
                           'KeywordParameter2DMetaclass', (MultiParameter,), {})
+
 
 class KeywordParameter2D(KeywordParameter2DMetaclass):
     """Base class for 2-dimensional model parameters which values which depend
@@ -1234,14 +1253,14 @@ class KeywordParameter2D(KeywordParameter2DMetaclass):
                         % (self.name, objecttools.devicename(self),
                            ' is' if len(miss) == 1 else 's are',
                            ', '.join(miss)))
-                self.values[idx,:] = values
+                self.values[idx, :] = values
 
     def __repr__(self):
         lines = self.commentrepr()
         blanks = (len(self.name)+1) * ' '
         for (idx, key) in enumerate(self.ROWNAMES):
             valuerepr = ', '.join(objecttools.repr_(value)
-                                  for value in self.values[idx,:])
+                                  for value in self.values[idx, :])
             line = ('%s=[%s],' % (key, valuerepr))
             if idx == 0:
                 lines.append('%s(%s' % (self.name, line))
@@ -1275,7 +1294,7 @@ class KeywordParameter2D(KeywordParameter2DMetaclass):
                 objecttools.augmentexcmessage(
                     'While trying to retrieve values from parameter `%s` of '
                     'element `%s` via the row and column related attribute '
-                    '`%s`'  % (self.name, objecttools.devicename(self), key))
+                    '`%s`' % (self.name, objecttools.devicename(self), key))
         else:
             return MultiParameter.__getattr__(self, key)
 
@@ -1304,13 +1323,14 @@ class KeywordParameter2D(KeywordParameter2DMetaclass):
                 objecttools.augmentexcmessage(
                     'While trying to assign new values to parameter `%s` of '
                     'element `%s` via the row and column related attribute '
-                    '`%s`'  % (self.name, objecttools.devicename(self), key))
+                    '`%s`' % (self.name, objecttools.devicename(self), key))
         else:
             MultiParameter.__setattr__(self, key, values)
 
     def __dir__(self):
         return (objecttools.dir_(self) + list(self.ROWNAMES) +
-                list(self.COLNAMES) +  self._ROWCOLMAPPINGS.keys())
+                list(self.COLNAMES) + self._ROWCOLMAPPINGS.keys())
+
 
 class LeftRightParameter(MultiParameter):
     NDIM = 1
@@ -1345,16 +1365,20 @@ class LeftRightParameter(MultiParameter):
     def _getleft(self):
         """The "left" value of the actual parameter."""
         return self.values[0]
+
     def _setleft(self, value):
         self.values[0] = value
+
     left = property(_getleft, _setleft)
     l = left
 
     def _getright(self):
         """The "right" value of the actual parameter."""
         return self.values[1]
+
     def _setright(self, value):
         self.values[1] = value
+
     right = property(_getright, _setright)
     r = right
 
@@ -1363,4 +1387,3 @@ class IndexParameter(MultiParameter):
 
     def setreference(self, indexarray):
         setattr(self.fastaccess, self.name, indexarray)
-

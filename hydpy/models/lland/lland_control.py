@@ -621,7 +621,7 @@ class EQD(parametertools.SingleParameter):
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of HydPy-L-Land, directly defined by the user."""
-    _PARCLASSES = (FT, NHRU, FHRU, Lnk, HNN, KG, KT, KE, KF, FLn, HInz, LAI,
+    _PARCLASSES = (FT, NHRU, Lnk, FHRU, HNN, KG, KT, KE, KF, FLn, HInz, LAI,
                    TRefT, TRefN, TGr, GTF, RSchmelz, CPWasser, PWMax,
                    GrasRef_R, NFk, RelWZ, RelWB, Beta, DMax, DMin, BSf,
                    TInd, EQB, EQI1, EQI2, EQD)

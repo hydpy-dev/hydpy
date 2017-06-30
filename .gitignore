@@ -19,5 +19,10 @@ coverage.xml
 .coverage
 HydPy.egg-info/*
 MANIFEST
+<<<<<<< HEAD
 temp/
 hydpy/models/globwat/Thumbs.db
+=======
+test.py
+.spyproject/
+>>>>>>> f43b1564e63448a22e9b10ae60d544ced2e8a648

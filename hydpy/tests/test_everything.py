@@ -85,9 +85,9 @@ allfaileddoctests = ({}, {})
 iterable = zip(('Python', 'Cython'), alldoctests,
                allsuccessfuldoctests, allfaileddoctests)
 for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
-    pub.options.usecython = mode=='Cython'
+    pub.options.usecython = mode == 'Cython'
     for dirinfo in os.walk(hydpy.__path__[0]):
-        if dirinfo[0].endswith('tests') or not '__init__.py' in dirinfo[2]:
+        if dirinfo[0].endswith('tests') or '__init__.py' not in dirinfo[2]:
             continue
         packagename = dirinfo[0].replace(os.sep, '.')+'.'
         packagename = packagename[packagename.find('hydpy.'):]
@@ -97,6 +97,8 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
         docfilenames = [os.path.join(dirinfo[0], fn)
                         for fn in dirinfo[2] if fn.endswith('.rst')]
         for name in (modulenames + docfilenames):
+            if name.endswith('apidoc'):
+                continue
             if not name.endswith('.rst'):
                 module = importlib.import_module(name)
             runner = unittest.TextTestRunner(stream=open(os.devnull, 'w'))
@@ -175,4 +177,3 @@ if failedunittests or allfaileddoctests[0] or allfaileddoctests[1]:
     sys.exit(1)
 else:
     sys.exit(0)
-

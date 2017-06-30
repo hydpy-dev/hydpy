@@ -143,10 +143,12 @@ class Indexer(object):
                 refgrid = timetools.Timegrid(timetools.Date('2000.01.01'),
                                              timetools.Date('2001.01.01'),
                                              timegrids.stepsize)
+
             def timeofyear(date):
                 date = date.copy()
                 date.year = 2000
                 return refgrid[date]
+
             self._timeofyear = self._calcidxs(timeofyear)
             self._timeofyear_hash = hash(timegrids)
         return self._timeofyear

@@ -26,6 +26,7 @@ from hydpy.core.magictools import controlcheck
 from hydpy.core.magictools import Tester
 from hydpy.cythons.modelutils import Cythonizer
 
+
 class Model(modeltools.Model):
     """HBV134 version of the HydPy-H-Land model.
 
@@ -58,6 +59,7 @@ class Model(modeltools.Model):
                    hland_model.calc_outuh_quh_v1,
                    hland_model.calc_qt_v1,
                    hland_model.update_outlets_v1)
+
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of HBV134, directly defined by the user."""
@@ -102,6 +104,7 @@ class ControlParameters(parametertools.SubParameters):
                    hland_control.MaxBaz,
                    hland_control.Abstr)
 
+
 class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of HBV134, indirectly defined by the user."""
     _PARCLASSES = (hland_derived.RelZoneArea,
@@ -115,12 +118,14 @@ class DerivedParameters(parametertools.SubParameters):
                    hland_derived.UH,
                    hland_derived.QFactor)
 
+
 class InputSequences(sequencetools.InputSequences):
     """Input sequences of HBV134."""
     _SEQCLASSES = (hland_inputs.P,
                    hland_inputs.T,
                    hland_inputs.TN,
                    hland_inputs.EPN)
+
 
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of HBV134."""
@@ -156,6 +161,7 @@ class FluxSequences(sequencetools.FluxSequences):
                    hland_fluxes.OutUH,
                    hland_fluxes.QT)
 
+
 class StateSequences(sequencetools.StateSequences):
     """State sequences of HBV134."""
     _SEQCLASSES = (hland_states.Ic,
@@ -165,14 +171,17 @@ class StateSequences(sequencetools.StateSequences):
                    hland_states.UZ,
                    hland_states.LZ)
 
+
 class LogSequences(sequencetools.AideSequences):
     """Aide sequences of HBV134."""
     _SEQCLASSES = (hland_logs.QUH,)
+
 
 class AideSequences(sequencetools.AideSequences):
     """Aide sequences of HBV134."""
     _SEQCLASSES = (hland_aides.Perc,
                    hland_aides.Q0)
+
 
 class OutletSequences(sequencetools.LinkSequences):
     """Downstream link sequences of HBV134."""

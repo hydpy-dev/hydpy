@@ -7,39 +7,111 @@ from __future__ import division, print_function
 from hydpy.core import modeltools
 
 
-def calc_vq_v1(self):
-    """Calculate auxiliary term.
+def solve_dv_dt_v1(self):
+    """Solve the differential equation of HydPy-L.
+
+    At the moment, HydPy-L only implements a simple numerical solution of
+    its underlying ordinary differential equation.  To increase the accuracy
+    (or sometimes even to prevent instability) of this approximation, one
+    can set the value of parameter
+    :class:`~hydpy.models.llake.llake_control.MaxDT` to a value smaller than
+    the actual simulation step size.  Method :func:`solve_dv_dt_v1` then
+    applies the methods related to the numerical approximation multiple times
+    and aggregates the results.
+
+    Note that the order of convergence is onle only.  It is hard to tell how
+    short the internal simulation step needs to be to ensure a certain degree
+    of accuracy.  In most cases one hour or very often even one day should be
+    sufficient to gain acceptable results.  However, this strongly depends on
+    the given water stage-volume-discharge relationship.  Hence it seems
+    advisable to always define a few test waves and apply the llake model with
+    different :class:`~hydpy.models.llake.llake_control.MaxDT` values.
+    Afterwards, select a :class:`~hydpy.models.llake.llake_control.MaxDT`
+    value  lower than one which results in acceptable approximations for
+    all test waves.  The computation time of the llake mode per substep is
+    rather small, so always include a savety factor.
+
+    Of course, an adaptive step size determination would be much more
+    convenient...
 
     Required derived parameter:
-      :class:`~hydpy.models.llake.llake_derived.Seconds`
+      :class:`~hydpy.models.llake.llake_derived.NmbSubsteps`
 
-    Required flux sequence:
-      :class:`~hydpy.models.llake.llake_fluxes.QZ`
+    Used aide sequence:
+      :class:`~hydpy.models.llake.llake_aides.V`
+      :class:`~hydpy.models.llake.llake_aides.QA`
 
-    Required state sequence:
+    Updated state sequence:
       :class:`~hydpy.models.llake.llake_states.V`
 
     Calculated flux sequence:
-      :class:`~hydpy.models.llake.llake_fluxes.VQ`
+      :class:`~hydpy.models.llake.llake_fluxes.QA`
+
+    Note that method :func:`solve_dv_dt_v1` calls the versions of `calc_vq`,
+    `interp_qa` and `calc_v_qa` selected by the respective application model.
+    Hence, also their parameter and sequence specifications need to be
+    considered.
 
     Basic equation:
-      :math:`VQ = 2 \\cdot V + Seconds \\cdot QZ`
-
-    Example:
-        >>> from hydpy.models.llake import *
-        >>> parameterstep('1d')
-        >>> simulationstep('12h')
-        >>> derived.seconds.update()
-        >>> fluxes.qz = 2.
-        >>> states.v.old = 1e5
-        >>> model.calc_vq_v1()
-        >>> fluxes.vq
-        vq(286400.0)
+      :math:`\\frac{dV}{dt}= QZ - QA(V)`
     """
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
     old = self.sequences.states.fastaccess_old
-    flu.vq = 2.*old.v+der.seconds*flu.qz
+    new = self.sequences.states.fastaccess_new
+    aid = self.sequences.aides.fastaccess
+    flu.qa = 0.
+    aid.v = old.v
+    for i in range(der.nmbsubsteps):
+        self.calc_vq()
+        self.interp_qa()
+        self.calc_v_qa()
+        flu.qa += aid.qa
+    flu.qa /= der.nmbsubsteps
+    new.v = aid.v
+
+
+def calc_vq_v1(self):
+    """Calculate the auxiliary term.
+
+    Required derived parameters:
+      :class:`~hydpy.models.llake.llake_derived.Seconds`
+      :class:`~hydpy.models.llake.llake_derived.NmbSubsteps`
+
+    Required flux sequence:
+      :class:`~hydpy.models.llake.llake_fluxes.QZ`
+
+    Required aide sequence:
+      :class:`~hydpy.models.llake.llake_aides.V`
+
+    Calculated aide sequence:
+      :class:`~hydpy.models.llake.llake_aides.VQ`
+
+    Basic equation:
+      :math:`VQ = 2 \\cdot V + \\frac{Seconds}{NmbSubsteps} \\cdot QZ`
+
+    Example:
+
+        The following example shows that the auxiliary term `vq` does not
+        depend on the (outer) simulation step size but on the (inner)
+        calculation step size defined by parameter `maxdt`:
+
+        >>> from hydpy.models.llake import *
+        >>> parameterstep('1d')
+        >>> simulationstep('12h')
+        >>> maxdt('6h')
+        >>> derived.seconds.update()
+        >>> derived.nmbsubsteps.update()
+        >>> fluxes.qz = 2.
+        >>> aides.v = 1e5
+        >>> model.calc_vq_v1()
+        >>> aides.vq
+        vq(243200.0)
+    """
+    der = self.parameters.derived.fastaccess
+    flu = self.sequences.fluxes.fastaccess
+    aid = self.sequences.aides.fastaccess
+    aid.vq = 2.*aid.v+der.seconds/der.nmbsubsteps*flu.qz
 
 
 def interp_qa_v1(self):
@@ -53,11 +125,11 @@ def interp_qa_v1(self):
       :class:`~hydpy.models.llake.llake_derived.TOY`
       :class:`~hydpy.models.llake.llake_derived.VQ`
 
-    Required flux sequence:
-      :class:`~hydpy.models.llake.llake_fluxes.VQ`
+    Required aide sequence:
+      :class:`~hydpy.models.llake.llake_aides.VQ`
 
-    Calculated flux sequence:
-      :class:`~hydpy.models.llake.llake_fluxes.QA`
+    Calculated aide sequence:
+      :class:`~hydpy.models.llake.llake_aides.QA`
 
     Examples:
 
@@ -77,9 +149,9 @@ def interp_qa_v1(self):
 
         >>> def test(*vqs):
         ...     for vq in vqs:
-        ...         fluxes.vq(vq)
+        ...         aides.vq(vq)
         ...         model.interp_qa_v1()
-        ...         print(repr(fluxes.vq), repr(fluxes.qa))
+        ...         print(repr(aides.vq), repr(aides.qa))
 
         The following three relationships between the auxiliary term `vq` and
         the tabulated discharge `q` are taken as examples.  Each one is valid
@@ -143,16 +215,16 @@ def interp_qa_v1(self):
     """
     con = self.parameters.control.fastaccess
     der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
+    aid = self.sequences.aides.fastaccess
     idx = der.toy[self.idx_sim]
     for jdx in range(1, con.n):
-        if der.vq[idx, jdx] >= flu.vq:
+        if der.vq[idx, jdx] >= aid.vq:
             break
-    flu.qa = ((flu.vq-der.vq[idx, jdx-1]) *
+    aid.qa = ((aid.vq-der.vq[idx, jdx-1]) *
               (con.q[idx, jdx]-con.q[idx, jdx-1]) /
               (der.vq[idx, jdx]-der.vq[idx, jdx-1]) +
               con.q[idx, jdx-1])
-    flu.qa = max(flu.qa, 0.)
+    aid.qa = max(aid.qa, 0.)
 
 
 def calc_v_qa_v1(self):
@@ -163,61 +235,64 @@ def calc_v_qa_v1(self):
 
     Required derived parameters:
       :class:`~hydpy.models.llake.llake_derived.Seconds`
+      :class:`~hydpy.models.llake.llake_derived.NmbSubsteps`
 
     Required flux sequence:
       :class:`~hydpy.models.llake.llake_fluxes.QZ`
-      :class:`~hydpy.models.llake.llake_fluxes.QA`
 
-    Updated flux sequence:
-      :class:`~hydpy.models.llake.llake_fluxes.QA`
-
-    Updated state sequence:
-      :class:`~hydpy.models.llake.llake_states.V`
+    Updated aide sequences:
+      :class:`~hydpy.models.llake.llake_aides.QA`
+      :class:`~hydpy.models.llake.llake_aides.V`
 
     Basic Equation:
-      :math:`\\frac{dV}{dt}= Qz - Qa`
+      :math:`\\frac{dV}{dt}= QZ - QA
 
     Examples:
 
         Prepare a lake model with an initial storage of 100.000 m³ and an
-        inflow of 1 m³/s and a (potential) outflow of 3 m³/s:
+        inflow of 2 m³/s and a (potential) outflow of 6 m³/s:
 
         >>> from hydpy.models.llake import *
         >>> parameterstep()
         >>> simulationstep('12h')
+        >>> maxdt('6h')
         >>> derived.seconds.update()
-        >>> states.v.old = 1e5
-        >>> fluxes.qz = 1.
-        >>> fluxes.qa = 3.
+        >>> derived.nmbsubsteps.update()
+        >>> aides.v = 1e5
+        >>> fluxes.qz = 2.
+        >>> aides.qa = 6.
 
         Through calling method `calc_v_qa_v1` three times with the same inflow
         and outflow values, the storage is emptied after the second step and
         outflow is equal to inflow after the third step:
 
         >>> model.calc_v_qa_v1()
-        >>> states.v
+        >>> aides.v
         v(13600.0)
-        >>> fluxes.qa
-        qa(3.0)
+        >>> aides.qa
+        qa(6.0)
         >>> model.new2old()
         >>> model.calc_v_qa_v1()
-        >>> states.v
+        >>> aides.v
         v(0.0)
-        >>> fluxes.qa
-        qa(1.314815)
+        >>> aides.qa
+        qa(2.62963)
         >>> model.new2old()
         >>> model.calc_v_qa_v1()
-        >>> states.v
+        >>> aides.v
         v(0.0)
-        >>> fluxes.qa
-        qa(1.0)
+        >>> aides.qa
+        qa(2.0)
+
+        Note that the results of method :func:`calc_v_qa_v1` are not based
+        depend on the (outer) simulation step size but on the (inner)
+        calculation step size defined by parameter `maxdt`.
     """
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
-    old = self.sequences.states.fastaccess_old
-    new = self.sequences.states.fastaccess_new
-    new.v = max(old.v+der.seconds*(flu.qz-flu.qa), 0.)
-    flu.qa = max(flu.qz-(new.v-old.v)/der.seconds, 0.)
+    aid = self.sequences.aides.fastaccess
+    aid.qa = min(aid.qa, flu.qz+der.nmbsubsteps/der.seconds*aid.v)
+    aid.v = max(aid.v+der.seconds/der.nmbsubsteps*(flu.qz-aid.qa), 0.)
 
 
 def interp_w_v1(self):
@@ -492,7 +567,7 @@ def corr_dw_v1(self):
     if (con.maxdw[idx] > 0.) and ((old.w-new.w) > con.maxdw[idx]):
         new.w = old.w-con.maxdw[idx]
         self.interp_v()
-        flu.qa = flu.qz+(old.v-new.v)/der.seconds
+        flu.qa = flu.qz+(old.v-new.v)/der.seconds # bug
 
 
 def modify_qa_v1(self):
@@ -594,11 +669,12 @@ class Model(modeltools.Model):
     """Base model for HydPy-L-Lake."""
 
     _RUNMETHODS = (update_inlets_v1,
-                   calc_vq_v1,
-                   interp_qa_v1,
-                   calc_v_qa_v1,
+                   solve_dv_dt_v1,
                    interp_w_v1,
                    corr_dw_v1,
                    modify_qa_v1,
                    update_outlets_v1)
-    _ADDMETHODS = (interp_v_v1,)
+    _ADDMETHODS = (interp_v_v1,
+                   calc_vq_v1,
+                   interp_qa_v1,
+                   calc_v_qa_v1)

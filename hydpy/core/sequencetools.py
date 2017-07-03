@@ -834,6 +834,12 @@ class IOSequence(Sequence):
             timegrid_data, values = self._load_npy()
         else:
             timegrid_data, values = self._load_asc()
+        if self.shape != values.shape[1:]:
+            raise RuntimeError(
+                'The shape of sequence `%s` of element `%s` is `%s`, but '
+                'according to the external data file `%s` it should be `%s`.'
+                % (self.name, objecttools.devicename(self), self.shape,
+                   self.filepath_ext, values.shape[1:]))
         idx1 = timegrid_data[pub.timegrids.init.firstdate]
         idx2 = timegrid_data[pub.timegrids.init.lastdate]
         if pub.timegrids.init.stepsize != timegrid_data.stepsize:

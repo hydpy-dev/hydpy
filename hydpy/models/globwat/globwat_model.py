@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""The equations of HydPy-GlobWat model can be differentiated into two
-groups. First the vertical water balance an second the horizontal water balance.
+"""The equations of HydPy-GlobWat model can be differentiated into two groups.
+First the vertical water balance an second the horizontal water balance.
 The vertical water balance ic calculated per grid cell. The horizontal water
 balance is calculated per catchment. This models is primarily developt to
 calculate the evaporation.
@@ -9,16 +9,15 @@ calculate the evaporation.
 # imports...
 # ...standard library
 from __future__ import division, print_function
-# ...third party
-import numpy
 # ...HydPy specific
 from hydpy.core import modeltools
 # ...model specifc
-from hydpy.models.globwat.globwat_constants import *
+from hydpy.models.globwat.globwat_constants import WATER
 
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-The following calculations are for step 1 'vertical water balance'
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+# """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+# The following calculations are for step 1 'vertical water balance'
+# """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
 
 def calc_rainfedevaporation_v1(self):
     """Calculate the rainfed evaporation.
@@ -59,12 +58,12 @@ def calc_rainfedevaporation_v1(self):
         >>> inputs.e0 = 3.
         >>> derived.seav(1.5, 2., 2.5)
         >>> derived.smax(10., 11., 12.)
-        >>> kc.shape = 31, 12
-        >>> kc.water[:3] = 1.1
-        >>> kc.desert[:3] = .7
-        >>> kc.irrcpr[:3] = 1.
+        >>> kc.water_feb = 1.1
+        >>> kc.desert_feb = .7
+        >>> kc.irrcpr_feb = 1.
         >>> states.fastaccess_old.s = 4., 5., 6.
-        >>> derived.moy = [1,2,3]
+        >>> derived.moy.shape = 1
+        >>> derived.moy = [1]
         >>> derived.irrigation.update()
         >>> model.idx_sim = 0
         >>> model.calc_rainfedevaporation_v1()
@@ -90,9 +89,13 @@ def calc_rainfedevaporation_v1(self):
         if ((con.vegetationclass[k] == WATER) or (der.irrigation[k] == True)):
             flu.erain[k] = 0.
         elif old.s[k] < der.seav[k]:
-            flu.erain[k] = ((con.kc[con.vegetationclass[k]-1, der.moy[self.idx_sim]] * inp.e0[k] * old.s[k]) / der.seav[k])
+            flu.erain[k] = ((con.kc[con.vegetationclass[k]-1,
+                                    der.moy[self.idx_sim]] *
+                             inp.e0[k]*old.s[k])/der.seav[k])
         else:
-            flu.erain[k] = con.kc[con.vegetationclass[k]-1, der.moy[self.idx_sim]] * inp.e0[k]
+            flu.erain[k] = (con.kc[con.vegetationclass[k]-1,
+                                   der.moy[self.idx_sim]] * inp.e0[k])
+
 
 def calc_groundwaterrecharge_v1(self):
     """Calculate the rate of ground water recharge.
@@ -151,7 +154,8 @@ def calc_groundwaterrecharge_v1(self):
         elif (old.s[k] > der.smax[k]) or (der.smax[k] <= der.seav[k]):
             sta.r[k] = con.rmax[k]
         else:
-            sta.r[k] = ((con.rmax[k] * (old.s[k] - der.seav[k])) / (der.smax[k] - der.seav[k]))
+            sta.r[k] = ((con.rmax[k] * (old.s[k] - der.seav[k])) /
+                        (der.smax[k] - der.seav[k]))
 
 
 def calc_changeinstorage_v1(self):
@@ -221,7 +225,8 @@ def calc_changeinstorage_v1(self):
 
     for k in range(con.nmbgrids):
         if con.vegetationclass[k] != WATER:
-            sta.b[k] = old.s[k] + (inp.p[k] * (1 - con.rofactor) - flu.erain[k] - sta.r[k])
+            sta.b[k] = (old.s[k] +
+                        (inp.p[k]*(1-con.rofactor)-flu.erain[k]-sta.r[k]))
             if sta.b[k] < der.smax[k]:
                 sta.b[k] = new.s[k]
                 flu.ro[k] = 0.
@@ -234,6 +239,7 @@ def calc_changeinstorage_v1(self):
         else:
             flu.ro[k] = 0.
             sta.b[k] = 0.
+
 
 def calc_irrigatedcropsevaporation_v1(self):
     """calculate the total evaporation for all crops under irrigation.
@@ -264,12 +270,13 @@ def calc_irrigatedcropsevaporation_v1(self):
         >>> parameterstep('1d')
         >>> nmbgrids(3)
         >>> vegetationclass(IRRCPR, RADRYTROP, IRRCNPR)
-        >>> kc.irrcpr[:3] = 1.
-        >>> kc.radrytrop[:3] = .90
-        >>> kc.irrcnpr[:3] = 1.
+        >>> kc.irrcpr_feb = 1.
+        >>> kc.radrytrop_feb = .90
+        >>> kc.irrcnpr_feb = 1.
         >>> derived.irrigation.update()
         >>> inputs.e0(3.)
-        >>> derived.moy = [1,2,3]
+        >>> derived.moy.shape = 1
+        >>> derived.moy = [1]
         >>> model.idx_sim = 0
         >>> model.calc_irrigatedcropsevaporation_v1()
         >>> fluxes.ec
@@ -283,14 +290,15 @@ def calc_irrigatedcropsevaporation_v1(self):
 
     for k in range(con.nmbgrids):
         if der.irrigation[k] == True:
-            flu.ec[k] = con.kc[con.vegetationclass[k]-1, der.moy[self.idx_sim]] * inp.e0[k]
-
+            flu.ec[k] = con.kc[con.vegetationclass[k]-1,
+                               der.moy[self.idx_sim]] * inp.e0[k]
         else:
             flu.ec[k] = 0.
 
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-The following calculations are for step 2 'horinzontal water balance'
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+# """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+# The following calculations are for step 2 'horinzontal water balance'
+# """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
 
 def calc_openwaterevaporation_v1(self):
     """calculate the evaporation over open water.
@@ -323,10 +331,11 @@ def calc_openwaterevaporation_v1(self):
     it is possible to name vegatationclass by number or name e.g. WATER = 11
 
         >>> vegetationclass(RADRYTROP, WATER, WATER)
-        >>> kc(1.1)
+        >>> kc.radrytrop_feb = 1.1
+        >>> kc.water_feb = 1.1
         >>> inputs.e0 = 5.
-        >>> inputs.p = 10.
-        >>> derived.moy = [1,2,3]
+        >>> derived.moy.shape = 1
+        >>> derived.moy = [1]
         >>> model.idx_sim = 0
         >>> model.calc_openwaterevaporation_v1()
         >>> fluxes.eow
@@ -343,15 +352,19 @@ def calc_openwaterevaporation_v1(self):
 
     for k in range(con.nmbgrids):
         if con.vegetationclass[k] == WATER:
-            flu.eow[k] = con.kc[con.vegetationclass[k]-1, der.moy[self.idx_sim]] * inp.e0[k]
+            flu.eow[k] = con.kc[con.vegetationclass[k]-1,
+                                der.moy[self.idx_sim]] * inp.e0[k]
             new.s[k] = 0.
 
         else:
             flu.eow[k] = 0.
 
+
 def calc_gridevaporation_v1(self):
-    """merge different types off evaporation (ERain, EC, EOW) per grid cell to an single timeseries
-       Note: only one single type of evaporation per grid cell is possible.
+    """Merge different types off evaporation (ERain, EC, EOW) per grid cell to
+    a single time series.
+
+    Note: only one single type of evaporation per grid cell is possible.
 
     Required control parameter:
       :class:`~hydpy.models.globwat.globwat_control.NmbGrids`
@@ -444,6 +457,7 @@ def calc_openwaterbalance_v1(self):
             else:
                 flu.ro[k] = sta.bow[k]
 
+
 def calc_subbasinbalance_v1(self):
     """calculate the (sub-)basin water balance on t.
 
@@ -478,9 +492,10 @@ def calc_subbasinbalance_v1(self):
     sta = self.sequences.states.fastaccess
     inp = self.sequences.inputs.fastaccess
 
-# hier aufpassen, es können negative Werte entstehen, wenn die Verdunstung hoch
-# und Qin sowie Niederschlag gering sind
-    sta.bsb = sta.qin[0] + sum(inp.p) - sum(flu.egrid)
+    # hier aufpassen, es können negative Werte entstehen, wenn die Verdunstung
+    # hoch und Qin sowie Niederschlag gering sind
+    sta.bsb = sta.qin + sum(inp.p) - sum(flu.egrid)
+
 
 def calc_subbasinstorage_v1(self):
     """calculate the (sub-)basin storage on t.
@@ -494,7 +509,7 @@ def calc_subbasinstorage_v1(self):
       :class:`~hydpy.models.globwat.globwat_states.Ssb`
 
     Basic equation:
-      :math:`S_{sb} = S_{sb}(t-1) + (B_{sb}(t) - Q_{out}(t-1)) \\cdot \\delta t`
+      :math:`S_{sb} = S_{sb}(t-1) + (B_{sb}(t) -Q_{out}(t-1)) \\cdot \\delta t`
 
     Examples:
         >>> from hydpy.models.globwat import *
@@ -517,7 +532,7 @@ def calc_subbasinstorage_v1(self):
     sta = self.sequences.states.fastaccess
     old = self.sequences.states.fastaccess_old
 
-    sta.ssb = old.ssb + sta.bsb - old.qout[0]
+    sta.ssb = old.ssb + sta.bsb - old.qout
     if sta.ssb < 0.:
         sta.ssb = 0.
 
@@ -549,19 +564,22 @@ def calc_outflow_v1(self):
     sta = self.sequences.states.fastaccess
     con = self.parameters.control.fastaccess
 
-    sta.qout[0] = sta.ssb * con.f
+    sta.qout = sta.ssb * con.f
+
 
 def update_inlets_v1(self):
     """Update the inlet link sequence."""
     sta = self.sequences.states.fastaccess
     inl = self.sequences.inlets.fastaccess
-    sta.qin[0] = inl.q[0][0]
+    sta.qin = inl.q[0][0]
+
 
 def update_outlets_v1(self):
     """Update the outlet link sequence."""
     sta = self.sequences.states.fastaccess
     out = self.sequences.outlets.fastaccess
-    out.q[0][0] += sta.qout[0]
+    out.q[0] += sta.qout
+
 
 class Model(modeltools.Model):
     """The HydPy-GlobWat model.
@@ -571,7 +589,9 @@ class Model(modeltools.Model):
         The only two simulation steps are in august:
 
         >>> from hydpy import pub, Timegrid, Timegrids
-        >>> pub.timegrids = Timegrids(Timegrid('01.08.2000', '03.08.2000', '1d'))
+        >>> pub.timegrids = Timegrids(Timegrid('01.08.2000',
+        ...                                    '03.08.2000',
+        ...                                    '1d'))
 
         Import the model and define the time settings:
 
@@ -587,11 +607,13 @@ class Model(modeltools.Model):
         ...     seq.ramflag = True
         ...     seq._setarray(numpy.zeros(2))
 
-        Secondly, the final model output shall be passed to `result`:
+        Secondly, the final model output shall be passed to `outflow`:
 
         >>> from hydpy.cythons.pointer import Double
-        >>> result = Double(0.)
-        >>> outlets.q.setpointer(result)
+        >>> inflow, outflow = Double(0.), Double(0.)
+        >>> inlets.q.shape = 1
+        >>> inlets.q.setpointer(inflow, 0)
+        >>> outlets.q.setpointer(outflow)
 
         Define the control parameter values (select only arable land, sealed
         soil and water area as landuse classes, as all other land use classes
@@ -625,11 +647,11 @@ class Model(modeltools.Model):
         Check the correctness of the results:
 
         >>> model.doit(0)
-        >>> print(round(result[0], 6))
+        >>> print(round(outflow[0], 6))
         0.0
-        >>> result[0] = 0.
+        >>> outflow[0] = 0.
         >>> model.doit(1)
-        >>> print(round(result[0], 6))
+        >>> print(round(outflow[0], 6))
         1.44
     """
 

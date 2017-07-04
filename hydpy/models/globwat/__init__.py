@@ -91,18 +91,17 @@ from hydpy.core.magictools import simulationstep
 from hydpy.core.magictools import Tester
 from hydpy.cythons.modelutils import Cythonizer
 # ...from HydPy (GlobWat)
-from .globwat_constants import *
-from .globwat_model import Model
-from .globwat_parameters import Parameters
-from .globwat_control import ControlParameters
-from .globwat_derived import DerivedParameters
-from .globwat_sequences import Sequences
-from .globwat_inputs import InputSequences
-from .globwat_fluxes import FluxSequences
-from .globwat_states import StateSequences
-#from .globwat_logs import LogSequences
-#from .globwat_aides import AideSequences
-from .globwat_links import InletSequences, OutletSequences
+from hydpy.models.globwat.globwat_constants import *
+from hydpy.models.globwat.globwat_model import Model
+from hydpy.models.globwat.globwat_parameters import Parameters
+from hydpy.models.globwat.globwat_control import ControlParameters
+from hydpy.models.globwat.globwat_derived import DerivedParameters
+from hydpy.models.globwat.globwat_sequences import Sequences
+from hydpy.models.globwat.globwat_inputs import InputSequences
+from hydpy.models.globwat.globwat_fluxes import FluxSequences
+from hydpy.models.globwat.globwat_states import StateSequences
+from hydpy.models.globwat.globwat_inlets import InletSequences
+from hydpy.models.globwat.globwat_outlets import OutletSequences
 
 tester = Tester()
 #cythonizer = Cythonizer()

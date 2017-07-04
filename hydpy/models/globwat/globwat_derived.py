@@ -13,8 +13,9 @@ from hydpy.models.globwat.globwat_constants import *
 
 SAFETY = 1e-14
 
+
 class Irrigation(parametertools.MultiParameter):
-    """landuse equipped for irrigation (True or False)."""
+    """landuse equipped for irrigation (True or False) [-]."""
     NDIM, TYPE, TIME, SPAN = 1, bool, None, (None, None)
 
     def update(self):
@@ -30,10 +31,10 @@ class Irrigation(parametertools.MultiParameter):
         con = self.subpars.pars.control
         for (idx, vegclass) in enumerate(con.vegetationclass):
             if vegclass in (IRRCPR, IRRCNPR,
-#                            IRR_GER, IRR_CZE, IRR_AUT,
-#                            IRR_POL, IRR_HUN, IRR_SUI, IRR_ITA, IRR_SLO,
-#                            IRR_CRO, IRR_BYH, IRR_ALB, IRR_SER, IRR_SLV,
-#                            IRR_UKR, IRR_BUL, IRR_ROM, IRR_MLD
+                            IRR_GER, IRR_CZE, IRR_AUT,
+                            IRR_POL, IRR_HUN, IRR_SUI, IRR_ITA, IRR_SLO,
+                            IRR_CRO, IRR_BYH, IRR_ALB, IRR_SER, IRR_SLV,
+                            IRR_UKR, IRR_BUL, IRR_ROM, IRR_MLD
             ):
                 self[idx] = True
             else:

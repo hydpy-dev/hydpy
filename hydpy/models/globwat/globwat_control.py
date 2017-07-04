@@ -30,15 +30,17 @@ class NmbGrids(parametertools.SingleParameter):
         parametertools.SingleParameter.__call__(self, *args, **kwargs)
         for (_name, subpars) in self.subpars.pars.model.parameters:
             for (name, par) in subpars:
-                if (par.NDIM==1):# and (name != 'uh'):
+                if (par.NDIM == 1) and (name != 'moy'):
                     par.shape = self.value
         for (_name, subseqs) in self.subpars.pars.model.sequences:
-             for (name, seq) in subseqs:
-                if (seq.NDIM==1) and (name != 'q'):
+            for (name, seq) in subseqs:
+                if (seq.NDIM == 1) and (name != 'q'):
                     seq.shape = self.value
 
+
 class VegetationClass(parametertools.MultiParameter):
-    """Type of each vegetation class:
+    """Type of each vegetation class [-].
+
     1 (rainfed agriculture: dry tropics),
     2 (rainfed agriculture: humid tropics),
     3 (rainfed agriculture: highlands),
@@ -70,40 +72,58 @@ class VegetationClass(parametertools.MultiParameter):
     29 (irrigation romania),
     30 (irrigation moldovia),
     31 (other).
+
+    For increasing legibility, the GlobWat constants are used for string
+    representions of :class:`VegetationClass` instances:
+
+    >>> from hydpy.models.globwat import *
+    >>> parameterstep('1d')
+    >>> nmbgrids(4)
+    >>> vegetationclass(DESERT, RADRYTROP, RADRYTROP, OTHER)
+    >>> vegetationclass.values
+    array([10,  1,  1, 31])
+    >>> vegetationclass
+    vegetationclass(DESERT, RADRYTROP, RADRYTROP, OTHER)
     """
     NDIM, TYPE, TIME, SPAN = 1, int, None, (1, 31)
 
     def compressrepr(self):
-        """Returns a list which contains a string representation with vegetation
-        classes beeing defined by the constants `RADRYTROP`, `RAHUMTROP`...
+        """Returns a list which contains a string representation with land
+        uses beeing defined by the GlobWat constants.
         """
-        result = ', '.join(str(value) for value in self.values)
-        for (key, value) in globwat_constants.CONSTANTS.iteritems():
-            result = result.replace(str(value), key)
-        return [result]
+        invmap = {value: key for key, value in
+                  globwat_constants.CONSTANTS.items()}
+        return [', '.join(invmap.get(value, repr(value))
+                          for value in self.values)]
+
 
 class SCMax(parametertools.MultiParameter):
     """maximum soil moisture capacity [mm/m]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+
 
 class RtD(parametertools.MultiParameter):
     """rooting depth [m]
 
     Globwat standard value = 0.6."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
-    #INIT = .6
+    # INIT = .6
+
 
 class RMax(parametertools.MultiParameter):
     """maximum groundwater recharge flux [mm/day]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
+
 class Area(parametertools.MultiParameter):
     """area per grid cell [km²]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
+
 class KC(globwat_parameters.LanduseMonthParameter):
     """crop or landuse factor [-]."""
     NDIM, TYPE, TIME, SPAN = 2, float, None, (0., None)
+
 
 class F(parametertools.SingleParameter):
     """response factor [-].
@@ -113,6 +133,7 @@ class F(parametertools.SingleParameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
     INIT = .3
 
+
 class ROFactor(parametertools.SingleParameter):
     """Factor for turning rain into dirct runoff [-]
 
@@ -120,5 +141,7 @@ class ROFactor(parametertools.SingleParameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
     INIT = .05
 
+
 class ControlParameters(parametertools.SubParameters):
-    _PARCLASSES = (NmbGrids, VegetationClass, SCMax, RtD, RMax, Area, KC, F, ROFactor)
+    _PARCLASSES = (NmbGrids, VegetationClass, SCMax, RtD, RMax, Area, KC, F,
+                   ROFactor)

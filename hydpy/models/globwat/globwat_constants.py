@@ -77,7 +77,7 @@ IRR_ROM = 29
 """Constant for the vegetation class `irrigation romania`."""
 IRR_MLD = 30
 """Constant for the vegetation class `irrigation moldovia`."""
-OTHER = 99
+OTHER = 31
 """Constant for the vegetation class `other`."""
 CONSTANTS = {key: value for key, value in locals().items()
              if (key.isupper() and isinstance(value, int))}

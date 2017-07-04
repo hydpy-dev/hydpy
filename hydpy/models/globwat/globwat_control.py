@@ -69,7 +69,7 @@ class VegetationClass(parametertools.MultiParameter):
     28 (irrigation bulgaria),
     29 (irrigation romania),
     30 (irrigation moldovia),
-    99 (other).
+    31 (other).
     """
     NDIM, TYPE, TIME, SPAN = 1, int, None, (1, 31)
 

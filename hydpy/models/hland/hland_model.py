@@ -2171,6 +2171,7 @@ def calc_qt_v1(self):
         qt(0.0)
 
         Note that "negative abstractions" are allowed:
+
         >>> abstr(-2.)
         >>> fluxes.outuh = 1.
         >>> model.calc_qt_v1()

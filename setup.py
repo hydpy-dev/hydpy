@@ -24,6 +24,13 @@ coverage_report = 'coverage_report' in sys.argv
 if coverage_report:
     sys.argv.remove('coverage_report')
 
+packages = ['hydpy', 'hydpy.cythons', 'hydpy.core', 'hydpy.tests',
+            'hydpy.docs', 'hydpy.models']
+for name in os.listdir(os.path.join('hydpy', 'models')):
+    if not (name.startswith('_') or
+            os.path.isfile(os.path.join('hydpy', 'models', name))):
+        packages.append('.'.join(('hydpy', 'models', name)))
+
 # Select the required extension modules, except those directly related
 # to the hydrological models.
 ext_sources = os.path.join('hydpy', 'cythons', 'pointer.pyx')
@@ -56,10 +63,7 @@ setup(name='HydPy',
           'Topic :: Scientific/Engineering'
       ],
       keywords='hydrology modelling water balance rainfall runoff',
-      packages=['hydpy', 'hydpy.cythons', 'hydpy.core', 'hydpy.tests',
-                'hydpy.docs', 'hydpy.models', 'hydpy.models.hland',
-                'hydpy.models.lland', 'hydpy.models.lstream',
-                'hydpy.models.llake'],
+      packages=packages,
       cmdclass={'build_ext': Cython.Build.build_ext},
       ext_modules=Cython.Build.cythonize(ext_modules),
       include_dirs=[numpy.get_include()],

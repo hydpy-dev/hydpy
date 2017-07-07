@@ -1403,7 +1403,7 @@ class KeywordParameter2D(KeywordParameter2DMetaclass):
 
     def __dir__(self):
         return (objecttools.dir_(self) + list(self.ROWNAMES) +
-                list(self.COLNAMES) + self._ROWCOLMAPPINGS.keys())
+                list(self.COLNAMES) + list(self._ROWCOLMAPPINGS.keys()))
 
 
 class LeftRightParameter(MultiParameter):

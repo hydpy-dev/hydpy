@@ -1,4 +1,109 @@
+# -*- coding: utf-8 -*-
+"""
+Integration test:
 
+    Note, that the following test still needs some testing itself.  The
+    results given below need to be calculated independently and a few
+    additional comments would be helpfull...
+
+    The only two simulation steps are in January:
+
+    >>> from hydpy import pub, Timegrid, Timegrids
+    >>> pub.timegrids = Timegrids(Timegrid('01.08.2000',
+    ...                                    '03.08.2000',
+    ...                                    '1d'))
+
+    Import the model and define the time settings:
+
+    >>> from hydpy.models.lland_v1 import *
+    >>> parameterstep('1d')
+
+    Do things that are normally done behind the scenes.  First, the input
+    data shall be available in RAM:
+
+    >>> import numpy
+    >>> for (name, seq) in inputs:
+    ...     seq.ramflag = True
+    ...     seq._setarray(numpy.zeros(2))
+
+    Secondly, the final model output shall be passed to `result`:
+
+    >>> from hydpy.cythons.pointer import Double
+    >>> result = Double(0.)
+    >>> outlets.q.setpointer(result)
+
+    Define the control parameter values (select only arable land, sealed
+    soil and water area as landuse classes, as all other land use classes
+    are functionally identical with arable land):
+
+    >>> ft(100.)
+    >>> nhru(3)
+    >>> fhru(1./3.)
+    >>> lnk(ACKER, VERS, WASSER)
+    >>> hnn(100.)
+    >>> kg(1.2)
+    >>> kt(-1.)
+    >>> ke(0.9)
+    >>> kf(.6)
+    >>> fln.acker_jan = 1.
+    >>> fln.vers_jan = .8
+    >>> fln.wasser_jan = 1.3
+    >>> hinz(.2)
+    >>> lai.acker_jan = 1.0
+    >>> treft(0.)
+    >>> trefn(0.)
+    >>> tgr(0.)
+    >>> gtf(5.)
+    >>> pwmax(1.4)
+    >>> grasref_r(5.)
+    >>> nfk(200.)
+    >>> relwz(.5)
+    >>> relwb(.05)
+    >>> beta(.01)
+    >>> dmax(5.)
+    >>> dmin(1.)
+    >>> bsf(.4)
+    >>> tind(1.)
+    >>> eqb(100.)
+    >>> eqi1(50.)
+    >>> eqi2(10.)
+    >>> eqd(2.)
+
+    Update the values of all derived parameters:
+
+    >>> model.parameters.update()
+
+    Set the initial values:
+
+    >>> states.inzp = .5, .5, 0.
+    >>> states.wats = 10., 10., 0.
+    >>> states.waes = 15., 15., 0.
+    >>> states.bowa = 150., 0., 0.
+    >>> states.qdgz = .1
+    >>> states.qi1gz = .1
+    >>> states.qi2gz = .1
+    >>> states.qbgz = .1
+    >>> states.qdga = .1
+    >>> states.qi1ga = .1
+    >>> states.qi2ga = .1
+    >>> states.qbga = .1
+
+    Set the input values for both simulation time steps:
+
+    >>> inputs.nied.series = 2.
+    >>> inputs.teml = 10.
+    >>> inputs.glob = 100.
+
+    Check the correctness of the results:
+
+    >>> model.doit(0)
+    >>> print(round(result[0], 6))
+    0.229238
+    >>> result[0] = 0.
+    >>> model.doit(1)
+    >>> print(round(result[0], 6))
+    0.57346
+"""
 # imports...
 # ...standard library
 from __future__ import division, print_function
@@ -14,9 +119,8 @@ from hydpy.models.lland import lland_inputs
 from hydpy.models.lland import lland_fluxes
 from hydpy.models.lland import lland_states
 from hydpy.models.lland import lland_aides
-from hydpy.models.lland import lland_links
+from hydpy.models.lland import lland_outlets
 from hydpy.models.lland.lland_parameters import Parameters
-from hydpy.models.lland.lland_sequences import Sequences
 from hydpy.models.lland.lland_constants import *
 # Load the required `magic` functions into the local namespace.
 from hydpy.core.magictools import parameterstep
@@ -27,113 +131,7 @@ from hydpy.cythons.modelutils import Cythonizer
 
 
 class Model(modeltools.Model):
-    """LARSIM-ME version of the HydPy-L-Land model.
-
-    Integration test:
-
-        Note, that the following test still needs some testing itself.  The
-        results given below need to be calculated independently and a few
-        additional comments would be helpfull...
-
-        The only two simulation steps are in January:
-
-        >>> from hydpy import pub, Timegrid, Timegrids
-        >>> pub.timegrids = Timegrids(Timegrid('01.08.2000',
-        ...                                    '03.08.2000',
-        ...                                    '1d'))
-
-        Import the model and define the time settings:
-
-        >>> from hydpy.models.lland_larsimme import *
-        >>> parameterstep('1d')
-
-        Do things that are normally done behind the scenes.  First, the input
-        data shall be available in RAM:
-
-        >>> import numpy
-        >>> for (name, seq) in inputs:
-        ...     seq.ramflag = True
-        ...     seq._setarray(numpy.zeros(2))
-
-        Secondly, the final model output shall be passed to `result`:
-
-        >>> from hydpy.cythons.pointer import Double
-        >>> result = Double(0.)
-        >>> outlets.q.setpointer(result)
-
-        Define the control parameter values (select only arable land, sealed
-        soil and water area as landuse classes, as all other land use classes
-        are functionally identical with arable land):
-
-        >>> ft(100.)
-        >>> nhru(3)
-        >>> fhru(1./3.)
-        >>> lnk(ACKER, VERS, WASSER)
-        >>> hnn(100.)
-        >>> kg(1.2)
-        >>> kt(-1.)
-        >>> ke(0.9)
-        >>> kf(.6)
-        >>> fln.acker_jan = 1.
-        >>> fln.vers_jan = .8
-        >>> fln.wasser_jan = 1.3
-        >>> hinz(.2)
-        >>> lai.acker_jan = 1.0
-        >>> treft(0.)
-        >>> trefn(0.)
-        >>> tgr(0.)
-        >>> gtf(5.)
-        >>> pwmax(1.4)
-        >>> grasref_r(5.)
-        >>> nfk(200.)
-        >>> relwz(.5)
-        >>> relwb(.05)
-        >>> beta(.01)
-        >>> dmax(5.)
-        >>> dmin(1.)
-        >>> bsf(.4)
-        >>> tind(1.)
-        >>> eqb(100.)
-        >>> eqi1(50.)
-        >>> eqi2(10.)
-        >>> eqd(2.)
-
-        Update the values of all derived parameters:
-
-        >>> model.parameters.update()
-
-        Set the initial values:
-
-        >>> states.inzp = .5, .5, 0.
-        >>> states.wats = 10., 10., 0.
-        >>> states.waes = 15., 15., 0.
-        >>> states.bowa = 150., 0., 0.
-        >>> states.qdgz = .1
-        >>> states.qi1gz = .1
-        >>> states.qi2gz = .1
-        >>> states.qbgz = .1
-        >>> states.qdga = .1
-        >>> states.qi1ga = .1
-        >>> states.qi2ga = .1
-        >>> states.qbga = .1
-
-        Set the input values for both simulation time steps:
-
-        >>> inputs.nied.series = 2.
-        >>> inputs.teml = 10.
-        >>> inputs.glob = 100.
-
-        Check the correctness of the results:
-
-        >>> model.doit(0)
-        >>> print(round(result[0], 6))
-        0.229238
-        >>> result[0] = 0.
-        >>> model.doit(1)
-        >>> print(round(result[0], 6))
-        0.57346
-
-    """
+    """LARSIM-Land version of HydPy-L-Land (lland_v1)."""
     _RUNMETHODS = (lland_model.calc_nkor_v1,
                    lland_model.calc_tkor_v1,
                    lland_model.calc_et0_v1,
@@ -162,7 +160,7 @@ class Model(modeltools.Model):
 
 
 class ControlParameters(parametertools.SubParameters):
-    """Control parameters of LARSIM-ME, directly defined by the user."""
+    """Control parameters of lland_v1, directly defined by the user."""
     _PARCLASSES = (lland_control.FT,
                    lland_control.NHRU,
                    lland_control.Lnk,
@@ -198,7 +196,7 @@ class ControlParameters(parametertools.SubParameters):
 
 
 class DerivedParameters(parametertools.SubParameters):
-    """Derived parameters of LARSIM-ME, indirectly defined by the user."""
+    """Derived parameters of lland_v1, indirectly defined by the user."""
     _PARCLASSES = (lland_derived.MOY,
                    lland_derived.KInz,
                    lland_derived.WB,
@@ -211,14 +209,14 @@ class DerivedParameters(parametertools.SubParameters):
 
 
 class InputSequences(sequencetools.InputSequences):
-    """Input sequences of LARSIM-ME."""
+    """Input sequences of lland_v1."""
     _SEQCLASSES = (lland_inputs.Nied,
                    lland_inputs.TemL,
                    lland_inputs.Glob)
 
 
 class FluxSequences(sequencetools.FluxSequences):
-    """Flux sequences of LARSIM-ME."""
+    """Flux sequences of lland_v1."""
     _SEQCLASSES = (lland_fluxes.NKor,
                    lland_fluxes.TKor,
                    lland_fluxes.ET0,
@@ -237,7 +235,7 @@ class FluxSequences(sequencetools.FluxSequences):
 
 
 class StateSequences(sequencetools.StateSequences):
-    """State sequences of LARSIM-ME."""
+    """State sequences of lland_v1."""
     _SEQCLASSES = (lland_states.Inzp,
                    lland_states.WATS,
                    lland_states.WAeS,
@@ -253,7 +251,7 @@ class StateSequences(sequencetools.StateSequences):
 
 
 class AideSequences(sequencetools.AideSequences):
-    """Aide sequences of LARSIM-ME."""
+    """Aide sequences of lland_v1."""
     _SEQCLASSES = (lland_aides.Temp,
                    lland_aides.SfA,
                    lland_aides.Exz,
@@ -264,8 +262,8 @@ class AideSequences(sequencetools.AideSequences):
 
 
 class OutletSequences(sequencetools.LinkSequences):
-    """Downstream link sequences of LARSIM-ME."""
-    _SEQCLASSES = (lland_links.Q,)
+    """Downstream link sequences of lland_v1."""
+    _SEQCLASSES = (lland_outlets.Q,)
 
 
 tester = Tester()

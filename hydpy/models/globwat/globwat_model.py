@@ -86,7 +86,7 @@ def calc_rainfedevaporation_v1(self):
     old = self.sequences.states.fastaccess_old
 
     for k in range(con.nmbgrids):
-        if ((con.vegetationclass[k] == WATER) or (der.irrigation[k] == True)):
+        if ((con.vegetationclass[k] == WATER) or (der.irrigation[k] == 1)):
             flu.erain[k] = 0.
         elif old.s[k] < der.seav[k]:
             flu.erain[k] = ((con.kc[con.vegetationclass[k]-1,
@@ -289,7 +289,7 @@ def calc_irrigatedcropsevaporation_v1(self):
     der = self.parameters.derived.fastaccess
 
     for k in range(con.nmbgrids):
-        if der.irrigation[k] == True:
+        if der.irrigation[k] == 1:
             flu.ec[k] = con.kc[con.vegetationclass[k]-1,
                                der.moy[self.idx_sim]] * inp.e0[k]
         else:

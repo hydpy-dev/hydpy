@@ -16,7 +16,7 @@ SAFETY = 1e-14
 
 class Irrigation(parametertools.MultiParameter):
     """landuse equipped for irrigation (True or False) [-]."""
-    NDIM, TYPE, TIME, SPAN = 1, bool, None, (None, None)
+    NDIM, TYPE, TIME, SPAN = 1, int, None, (None, None)
 
     def update(self):
         """settig irrigation true or false for vegetationclasses.
@@ -36,9 +36,9 @@ class Irrigation(parametertools.MultiParameter):
                             IRR_CRO, IRR_BYH, IRR_ALB, IRR_SER, IRR_SLV,
                             IRR_UKR, IRR_BUL, IRR_ROM, IRR_MLD
             ):
-                self[idx] = True
+                self[idx] = 1
             else:
-                self[idx] = False
+                self[idx] = 0
 
 class SMax(parametertools.MultiParameter):
     """maximum soil moisture storage [mm]."""

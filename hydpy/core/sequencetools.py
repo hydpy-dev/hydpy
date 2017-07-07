@@ -174,7 +174,34 @@ class Sequences(object):
         return len(dict(self))
 
 
-class SubSequences(object):
+class MetaSubSequencesType(type):
+    def __new__(cls, name, parents, dict_):
+        seqclasses = dict_.get('_SEQCLASSES')
+        if seqclasses is None:
+            raise NotImplementedError(
+                'For class `%s`, the required tuple `_SEQCLASSES` is not '
+                'defined.  Please see the documentation of class '
+                '`SubSequences` of module `sequencetools` for further '
+                'information.' % name)
+        if seqclasses:
+            lst = ['\n\n\n    The following sequence classes are selected:']
+            for seqclass in seqclasses:
+                    lst.append('      * :class:`~%s` `%s`'
+                               % ('.'.join((seqclass.__module__,
+                                            seqclass.__name__)),
+                                  objecttools.description(seqclass)))
+            doc = dict_.get('__doc__', None)
+            if doc is None:
+                doc = ''
+            dict_['__doc__'] = doc + '\n'.join(l for l in lst)
+        return type.__new__(cls, name, parents, dict_)
+
+
+MetaSubSequencesClass = MetaSubSequencesType('MetaSubSequencesClass',
+                                             (), {'_SEQCLASSES': ()})
+
+
+class SubSequences(MetaSubSequencesClass):
     """Base class for handling subgroups of sequences.
 
     Attributes:
@@ -207,6 +234,17 @@ class SubSequences(object):
     ...     print(sequence)
     temperature(0.0)
     precipitation(0.0)
+
+    If one forgets to define a `_SEQCLASSES` tuple so (and maybe tries to add
+    the sequences in the constructor of the subclass of
+    :class:`SubSequences`, the following error is raised:
+
+    >>> class InputSequences(SubSequences):
+    ...     pass
+    Traceback (most recent call last):
+    ...
+    NotImplementedError: For class `InputSequences`, the required tuple `_SEQCLASSES` is not defined.  Please see the documentation of class `SubSequences` of module `sequencetools` for further information.
+
     """
     _SEQCLASSES = ()
 
@@ -287,6 +325,7 @@ class SubSequences(object):
 
 
 class IOSubSequences(SubSequences):
+    _SEQCLASSES = ()
 
     def openfiles(self, idx=0):
         self.fastaccess.openfiles(idx)
@@ -321,6 +360,7 @@ class IOSubSequences(SubSequences):
 
 class InputSequences(IOSubSequences):
     """Base class for handling input sequences."""
+    _SEQCLASSES = ()
 
     def loaddata(self, idx):
         self.fastaccess.loaddata(idx)
@@ -328,6 +368,7 @@ class InputSequences(IOSubSequences):
 
 class FluxSequences(IOSubSequences):
     """Base class for handling flux sequences."""
+    _SEQCLASSES = ()
 
     @classmethod
     def getname(cls):
@@ -339,6 +380,7 @@ class FluxSequences(IOSubSequences):
 
 class StateSequences(IOSubSequences):
     """Base class for handling state sequences."""
+    _SEQCLASSES = ()
 
     def _initfastaccess(self, cls_fastaccess, cymodel):
         SubSequences._initfastaccess(self, cls_fastaccess, cymodel)
@@ -367,6 +409,7 @@ class StateSequences(IOSubSequences):
 
 class LogSequences(SubSequences):
     """Base class for handling log sequences."""
+    _SEQCLASSES = ()
 
     def reset(self):
         for (name, seq) in self:
@@ -375,10 +418,12 @@ class LogSequences(SubSequences):
 
 class AideSequences(SubSequences):
     """Base class for handling aide sequences."""
+    _SEQCLASSES = ()
 
 
 class LinkSequences(SubSequences):
     """Base class for handling link sequences."""
+    _SEQCLASSES = ()
 
 
 class Sequence(objecttools.ValueMath):

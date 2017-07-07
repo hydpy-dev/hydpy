@@ -114,9 +114,68 @@ class Parameters(object):
         return objecttools.dir_(self)
 
 
-class SubParameters(object):
-    """Base class for handling subgroups of model parameters."""
+class MetaSubParametersType(type):
+    def __new__(cls, name, parents, dict_):
+        parclasses = dict_.get('_PARCLASSES')
+        if parclasses is None:
+            raise NotImplementedError(
+                'For class `%s`, the required tuple `_PARCLASSES` is not '
+                'defined.  Please see the documentation of class '
+                '`SubParameters` of module `parametertools` for further '
+                'information.' % name)
+        if parclasses:
+            lst = ['\n\n\n    The following parameter classes are selected:']
+            for parclass in parclasses:
+                    lst.append('      * :class:`~%s` `%s`'
+                               % ('.'.join((parclass.__module__,
+                                            parclass.__name__)),
+                                  objecttools.description(parclass)))
+            doc = dict_.get('__doc__', None)
+            if doc is None:
+                doc = ''
+            dict_['__doc__'] = doc + '\n'.join(l for l in lst)
+        return type.__new__(cls, name, parents, dict_)
 
+
+MetaSubParametersClass = MetaSubParametersType('MetaSubParametersClass',
+                                               (), {'_PARCLASSES': ()})
+
+
+class SubParameters(MetaSubParametersClass):
+    """Base class for handling subgroups of model parameters.
+
+    When trying to implement a new model, one has to define its parameter
+    classes.  Currently, the HydPy framework  distinguishes between control
+    parameters and derived parameters.  These parameter classes should be
+    collected by subclasses of class :class:`SubParameters` called
+    `ControlParameters` or `DerivedParameters` respectivly.  This should be
+    done via the `_PARCLASSES` tuple in the following manner:
+
+    >>> from hydpy.core.parametertools import SingleParameter, SubParameters
+    >>> class Par2(SingleParameter):
+    ...     pass
+    >>> class Par1(SingleParameter):
+    ...     pass
+    >>> class ControlParameters(SubParameters):
+    ...     _PARCLASSES = (Par2, Par1)
+
+    The order within the tuple determines the order of iteration, e.g.:
+
+    >>> control = ControlParameters(None) # Assign `None` for brevity.
+    >>> control
+    par2(nan)
+    par1(nan)
+
+    If one forgets to define a `_PARCLASSES` tuple so (and maybe tries to add
+    the parameters in the constructor of the subclass of
+    :class:`SubParameters`, the following error is raised:
+
+    >>> class ControlParameters(SubParameters):
+    ...     pass
+    Traceback (most recent call last):
+    ...
+    NotImplementedError: For class `ControlParameters`, the required tuple `_PARCLASSES` is not defined.  Please see the documentation of class `SubParameters` of module `parametertools` for further information.
+    """
     _PARCLASSES = ()
 
     def __init__(self, pars, cls_fastaccess=None, cymodel=None):

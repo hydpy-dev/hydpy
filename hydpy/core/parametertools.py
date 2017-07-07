@@ -226,6 +226,21 @@ class SubParameters(MetaSubParametersClass):
             name = objecttools.instancename(Par)
             yield name, getattr(self, name)
 
+    def __repr__(self):
+        lines = []
+        if pub.options.reprcomments:
+            lines.append('#%s object defined in module %s.'
+                         % (objecttools.classname(self),
+                            objecttools.modulename(self)))
+            lines.append('#The implemented parameters with their actual '
+                         'values are:')
+        for (name, parameter) in self:
+            try:
+                lines.append('%s' % repr(parameter))
+            except BaseException:
+                lines.append('%s(?)' % name)
+        return '\n'.join(lines)
+
     def __dir__(self):
         return objecttools.dir_(self)
 

@@ -282,14 +282,15 @@ Integration examples:
     |   0.0 |       0.0 |       0.0 |       34.10619 |  0.000034 |
     |   0.0 |       0.0 |       0.0 |       14.37349 |  0.000014 |
 """
-# imports...
-# ...standard library
+# import...
+# ...from standard library
 from __future__ import division, print_function
-# ...HydPy specific
 from hydpy.core import modeltools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
-# ...model specifc
+# ...from HydPy
+from hydpy.core.modelimports import *
+# ...from llake
 from hydpy.models.llake import llake_model
 from hydpy.models.llake import llake_control
 from hydpy.models.llake import llake_derived
@@ -298,12 +299,6 @@ from hydpy.models.llake import llake_states
 from hydpy.models.llake import llake_aides
 from hydpy.models.llake import llake_inlets
 from hydpy.models.llake import llake_outlets
-# Load the required `magic` functions into the local namespace.
-from hydpy.core.magictools import parameterstep
-from hydpy.core.magictools import simulationstep
-from hydpy.core.magictools import controlcheck
-from hydpy.core.magictools import Tester
-from hydpy.cythons.modelutils import Cythonizer
 
 
 class Model(modeltools.Model):

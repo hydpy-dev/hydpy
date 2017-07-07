@@ -1,24 +1,18 @@
 
-# imports...
-# ...standard library
+# import...
+# ...from standard library
 from __future__ import division, print_function
-# ...HydPy specific
-from hydpy.core import modeltools
+# ...from HydPy
+from hydpy.core.modelimports import *
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
-# ...model specifc
+# ...from hbranch
 from hydpy.models.hbranch import hbranch_model
 from hydpy.models.hbranch import hbranch_control
 from hydpy.models.hbranch import hbranch_derived
 from hydpy.models.hbranch import hbranch_fluxes
 from hydpy.models.hbranch import hbranch_inlets
 from hydpy.models.hbranch import hbranch_outlets
-# Load the required `magic` functions into the local namespace.
-from hydpy.core.magictools import parameterstep
-from hydpy.core.magictools import simulationstep
-from hydpy.core.magictools import controlcheck
-from hydpy.core.magictools import Tester
-from hydpy.cythons.modelutils import Cythonizer
 
 
 class Model(hbranch_model.Model):

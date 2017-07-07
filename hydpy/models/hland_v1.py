@@ -1,12 +1,14 @@
+# -*- coding: utf-8 -*-
 
-# imports...
-# ...standard library
+# import...
+# ...from standard library
 from __future__ import division, print_function
-# ...HydPy specific
+# ...from HydPy
+from hydpy.core.modelimports import *
 from hydpy.core import modeltools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
-# ...model specifc
+# ...from hland
 from hydpy.models.hland import hland_model
 from hydpy.models.hland import hland_control
 from hydpy.models.hland import hland_derived
@@ -18,12 +20,6 @@ from hydpy.models.hland import hland_logs
 from hydpy.models.hland import hland_outlets
 from hydpy.models.hland.hland_parameters import Parameters
 from hydpy.models.hland.hland_constants import *
-# Load the required `magic` functions into the local namespace.
-from hydpy.core.magictools import parameterstep
-from hydpy.core.magictools import simulationstep
-from hydpy.core.magictools import controlcheck
-from hydpy.core.magictools import Tester
-from hydpy.cythons.modelutils import Cythonizer
 
 
 class Model(modeltools.Model):

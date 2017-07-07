@@ -11,18 +11,9 @@ with tabulated supporting points.
 # import...
 # ...from standard library
 from __future__ import division, print_function
-# ...third party
-import numpy
-from numpy import nan
-# ...HydPy specific
-# Load the required `magic` functions into the local namespace.
-from hydpy.core.magictools import parameterstep
-from hydpy.core.magictools import simulationstep
-from hydpy.core.magictools import controlcheck
-from hydpy.core.magictools import autodoc_basemodel
-from hydpy.core.magictools import Tester
-from hydpy.cythons.modelutils import Cythonizer
-
+# ...from HydPy
+from hydpy.core.modelimports import *
+# ...from hbranch
 from hydpy.models.hbranch.hbranch_control import ControlParameters
 from hydpy.models.hbranch.hbranch_derived import DerivedParameters
 from hydpy.models.hbranch.hbranch_fluxes import FluxSequences

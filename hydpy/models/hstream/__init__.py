@@ -4,22 +4,12 @@ precisely, it is a simplification of the Muskingum approach, which
 itself can be seen as a naive finite difference solution of the
 routing problem.
 """
-
 # import...
 # ...from standard library
 from __future__ import division, print_function
-# ...third party
-import numpy
-from numpy import nan
-# ...HydPy specific
-# Load the required `magic` functions into the local namespace.
-from hydpy.core.magictools import parameterstep
-from hydpy.core.magictools import simulationstep
-from hydpy.core.magictools import controlcheck
-from hydpy.core.magictools import autodoc_basemodel
-from hydpy.core.magictools import Tester
-from hydpy.cythons.modelutils import Cythonizer
-
+# ...from HydPy
+from hydpy.core.modelimports import *
+# ...from hstream
 from hydpy.models.hstream.hstream_parameters import Parameters
 from hydpy.models.hstream.hstream_control import ControlParameters
 from hydpy.models.hstream.hstream_derived import DerivedParameters

@@ -3,18 +3,9 @@
 # import...
 # ...from standard library
 from __future__ import division, print_function
-# ...third party
-import numpy
-from numpy import nan
-# ...HydPy specific
-# Load the required `magic` functions into the local namespace.
-from hydpy.core.magictools import parameterstep
-from hydpy.core.magictools import simulationstep
-from hydpy.core.magictools import controlcheck
-from hydpy.core.magictools import autodoc_basemodel
-from hydpy.core.magictools import Tester
-from hydpy.cythons.modelutils import Cythonizer
-
+# ...from HydPy
+from hydpy.core.modelimports import *
+# ...from llake
 from hydpy.models.llake.llake_control import ControlParameters
 from hydpy.models.llake.llake_derived import DerivedParameters
 from hydpy.models.llake.llake_fluxes import FluxSequences

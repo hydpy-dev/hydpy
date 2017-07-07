@@ -104,14 +104,15 @@ Integration test:
     >>> print(round(result[0], 6))
     0.57346
 """
-# imports...
-# ...standard library
+# import...
+# ...from standard library
 from __future__ import division, print_function
-# ...HydPy specific
+# ...from HydPy
+from hydpy.core.modelimports import *
 from hydpy.core import modeltools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
-# ...model specifc
+# ...from lland
 from hydpy.models.lland import lland_model
 from hydpy.models.lland import lland_control
 from hydpy.models.lland import lland_derived
@@ -122,12 +123,6 @@ from hydpy.models.lland import lland_aides
 from hydpy.models.lland import lland_outlets
 from hydpy.models.lland.lland_parameters import Parameters
 from hydpy.models.lland.lland_constants import *
-# Load the required `magic` functions into the local namespace.
-from hydpy.core.magictools import parameterstep
-from hydpy.core.magictools import simulationstep
-from hydpy.core.magictools import controlcheck
-from hydpy.core.magictools import Tester
-from hydpy.cythons.modelutils import Cythonizer
 
 
 class Model(modeltools.Model):

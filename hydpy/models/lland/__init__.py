@@ -3,18 +3,9 @@
 # import...
 # ...from standard library
 from __future__ import division, print_function
-# ...third party
-import numpy
-from numpy import nan
-# ...HydPy specific
-# Load the required `magic` functions into the local namespace.
-from hydpy.core.magictools import parameterstep
-from hydpy.core.magictools import simulationstep
-from hydpy.core.magictools import controlcheck
-from hydpy.core.magictools import autodoc_basemodel
-from hydpy.core.magictools import Tester
-from hydpy.cythons.modelutils import Cythonizer
-
+# ...from HydPy
+from hydpy.core.modelimports import *
+# ...from lland
 from hydpy.models.lland.lland_constants import (SIED_D, SIED_L, VERS, ACKER,
                                                 WEINB, OBSTB, BODEN, GLETS,
                                                 GRUE_I, FEUCHT, GRUE_E, BAUMB,

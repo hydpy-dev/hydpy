@@ -24,5 +24,5 @@ from hydpy.models.globwat.globwat_outlets import OutletSequences
 
 autodoc_basemodel()
 tester = Tester()
-#cythonizer = Cythonizer()
-#cythonizer.complete()
+cythonizer = Cythonizer()
+cythonizer.complete()

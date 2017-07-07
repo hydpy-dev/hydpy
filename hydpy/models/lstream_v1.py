@@ -1,4 +1,58 @@
+# -*- coding: utf-8 -*-
+"""
+Integration test:
 
+    >>> from hydpy.models.lstream_v1 import *
+    >>> parameterstep('1d')
+    >>> simulationstep('12h')
+
+    Secondly, the final model output shall be passed to `outflow`:
+
+    >>> from hydpy.cythons.pointer import Double
+    >>> inflow, outflow = Double(0.), Double(0.)
+    >>> inlets.q.shape = 1
+    >>> inlets.q.setpointer(inflow, 0)
+    >>> outlets.q.setpointer(outflow)
+
+    Define the geometry and roughness values for the first test channel:
+
+    >>> bm(2.)
+    >>> bnm(4.)
+    >>> hm(1.)
+    >>> bv(.5, 10.)
+    >>> bbv(1., 2.)
+    >>> bnv(1., 8.)
+    >>> bnvr(20.)
+    >>> ekm(1.)
+    >>> skm(20.)
+    >>> ekv(1.)
+    >>> skv(60., 80.)
+    >>> gef(.01)
+    >>> laen(10.)
+
+    Set the error tolerances of the iteration small enough, not to
+    compromise the shown first six decimal places of the following results:
+
+    >>> qtol(1e-10)
+    >>> htol(1e-10)
+
+    >>> parameters.update()
+
+    >>> states.qz.old = 1.
+    >>> states.qz.new = 1.
+    >>> states.qa.old = 1.
+
+    >>> inflow[0] = 2.
+    >>> outflow[0] = 0.
+    >>> model.doit(0)
+    >>> print(round(outflow[0], 6))
+    1.737971
+    >>> inflow[0] = 2000.
+    >>> outflow[0] = 0.
+    >>> model.doit(1)
+    >>> print(round(outflow[0], 6))
+    1932.529863
+"""
 # imports...
 # ...standard library
 from __future__ import division, print_function
@@ -15,8 +69,6 @@ from hydpy.models.lstream import lstream_states
 from hydpy.models.lstream import lstream_aides
 from hydpy.models.lstream import lstream_inlets
 from hydpy.models.lstream import lstream_outlets
-from hydpy.models.lstream.lstream_parameters import Parameters
-from hydpy.models.lstream.lstream_sequences import Sequences
 # Load the required `magic` functions into the local namespace.
 from hydpy.core.magictools import parameterstep
 from hydpy.core.magictools import simulationstep
@@ -26,63 +78,7 @@ from hydpy.cythons.modelutils import Cythonizer
 
 
 class Model(modeltools.Model):
-    """LARSIM-ME version of the HydPy-L-Stream model.
-
-    Integration test:
-
-        >>> from hydpy.models.lstream_larsimme import *
-        >>> parameterstep('1d')
-        >>> simulationstep('12h')
-
-        Secondly, the final model output shall be passed to `outflow`:
-
-        >>> from hydpy.cythons.pointer import Double
-        >>> inflow, outflow = Double(0.), Double(0.)
-        >>> inlets.q.shape = 1
-        >>> inlets.q.setpointer(inflow, 0)
-        >>> outlets.q.setpointer(outflow)
-
-        Define the geometry and roughness values for the first test channel:
-
-        >>> bm(2.)
-        >>> bnm(4.)
-        >>> hm(1.)
-        >>> bv(.5, 10.)
-        >>> bbv(1., 2.)
-        >>> bnv(1., 8.)
-        >>> bnvr(20.)
-        >>> ekm(1.)
-        >>> skm(20.)
-        >>> ekv(1.)
-        >>> skv(60., 80.)
-        >>> gef(.01)
-        >>> laen(10.)
-
-        Set the error tolerances of the iteration small enough, not to
-        compromise the shown first six decimal places of the following results:
-
-        >>> qtol(1e-10)
-        >>> htol(1e-10)
-
-        >>> parameters.update()
-
-        >>> states.qz.old = 1.
-        >>> states.qz.new = 1.
-        >>> states.qa.old = 1.
-
-        >>> inflow[0] = 2.
-        >>> outflow[0] = 0.
-        >>> model.doit(0)
-        >>> print(round(outflow[0], 6))
-        1.737971
-        >>> inflow[0] = 2000.
-        >>> outflow[0] = 0.
-        >>> model.doit(1)
-        >>> print(round(outflow[0], 6))
-        1932.529863
-
-
-    """
+    """LARSIM-Stream (Manning) version of HydPy-L-Stream (lstream_v1)."""
     _RUNMETHODS = (lstream_model.update_inlets_v1,
                    lstream_model.calc_qref_v1,
                    lstream_model.calc_hmin_qmin_hmax_qmax_v1,
@@ -101,7 +97,7 @@ class Model(modeltools.Model):
 
 
 class ControlParameters(parametertools.SubParameters):
-    """Control parameters of LARSIM-ME-Stream, directly defined by the user."""
+    """Control parameters of lstream_v1, directly defined by the user."""
     _PARCLASSES = (lstream_control.Laen,
                    lstream_control.Gef,
                    lstream_control.HM,
@@ -120,7 +116,7 @@ class ControlParameters(parametertools.SubParameters):
 
 
 class DerivedParameters(parametertools.SubParameters):
-    """Derived parameters of LARSIM-ME-Stream, indirectly defined by the user.
+    """Derived parameters of lstream_v1, indirectly defined by the user.
     """
     _PARCLASSES = (lstream_derived.HV,
                    lstream_derived.QM,
@@ -148,13 +144,13 @@ class FluxSequences(sequencetools.FluxSequences):
 
 
 class StateSequences(sequencetools.StateSequences):
-    """State sequences of LARSIM-ME-Stream."""
+    """State sequences of lstream_v1."""
     _SEQCLASSES = (lstream_states.QZ,
                    lstream_states.QA)
 
 
 class AideSequences(sequencetools.AideSequences):
-    """Aide sequences of LARSIM-ME-Stream."""
+    """Aide sequences of lstream_v1."""
     _SEQCLASSES = (lstream_aides.Temp,
                    lstream_aides.HMin,
                    lstream_aides.HMax,
@@ -164,12 +160,12 @@ class AideSequences(sequencetools.AideSequences):
 
 
 class InletSequences(sequencetools.LinkSequences):
-    """Upstream link sequences of LARSIM-ME-Stream."""
+    """Upstream link sequences of lstream_v1."""
     _SEQCLASSES = (lstream_inlets.Q,)
 
 
 class OutletSequences(sequencetools.LinkSequences):
-    """Downstream link sequences of LARSIM-ME-Stream."""
+    """Downstream link sequences of lstream_v1."""
     _SEQCLASSES = (lstream_outlets.Q,)
 
 

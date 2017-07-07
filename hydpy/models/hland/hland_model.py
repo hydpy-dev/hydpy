@@ -35,7 +35,7 @@ def calc_tc_v1(self):
 
         >>> from hydpy.models.hland import *
         >>> parameterstep('1d')
-        >>> _ = nmbzones(2), zrelt(2.), zonez(2., 4.)
+        >>> nmbzones(2); zrelt(2.); zonez(2., 4.)
 
         Applying the usual temperature lapse rate of 0.6°C/100m does
         not affect the temperature of the first zone but reduces the
@@ -2171,6 +2171,7 @@ def calc_qt_v1(self):
         qt(0.0)
 
         Note that "negative abstractions" are allowed:
+
         >>> abstr(-2.)
         >>> fluxes.outuh = 1.
         >>> model.calc_qt_v1()
@@ -2191,51 +2192,7 @@ def update_outlets_v1(self):
 
 
 class Model(modeltools.Model):
-    """The HydPy-H-Land model.
-
-    The equations of HydPy-H-Land model can be differentiated into three
-    groups.  First, input data is prepared:
-
-      * :func:`~Model.calc_tc`
-      * :func:`~Model.calc_tmean`
-      * :func:`~Model.calc_fracrain`
-      * :func:`~Model.calc_rfc_sfc`
-      * :func:`~Model.calc_pc`
-      * :func:`~Model.calc_ep`
-      * :func:`~Model.calc_epc`
-
-    Secondly, the differential equations are solved in an ad hoc manner:
-      * :func:`~Model.calc_tf_ic`
-      * :func:`~Model.calc_ei_ic`
-      * :func:`~Model.calc_sp_wc`
-      * :func:`~Model.calc_melt_sp_wc`
-      * :func:`~Model.calc_refr_sp_wc`
-      * :func:`~Model.calc_in_wc`
-      * :func:`~Model.calc_r_sm`
-      * :func:`~Model.calc_cf_sm`
-      * :func:`~Model.calc_ea_sm`
-      * :func:`~Model.calc_inuz`
-      * :func:`~Model.calc_contriarea`
-      * :func:`~Model.calc_q0_perc_uz`
-      * :func:`~Model.calc_lz`
-      * :func:`~Model.calc_el_lz`
-      * :func:`~Model.calc_q1_lz`
-
-    Thirdly, the simulated output runoff is modified:
-      * :func:`~Model.calc_inuh`
-      * :func:`~Model.calc_outuh_quh`
-      * :func:`~Model.calc_qt`
-
-    Note that all methods are performed sequentially in the :func:`~Model.run`
-    method, including the state updates --- order matters!  Let us take the
-    interception routine as an example.  First, precipitation is added to the
-    interception storage and precipitation exceeding the interception capacity
-    is routed as throughfall in method :func:`Model.calc_tf_ic`.  Then, based
-    on the already updated interception storage, interception evaporation is
-    calculated in method :func:`Model.calc_ei_ic`.  It is, as if evaporation
-    would always only occur after precipitation, but never beforehand or
-    afterwards.
-    """
+    """The HydPy-H-Land base model."""
     _RUNMETHODS = (calc_tc_v1,
                    calc_tmean_v1,
                    calc_fracrain_v1,

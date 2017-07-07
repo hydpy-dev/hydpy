@@ -42,7 +42,7 @@ class Irrigation(parametertools.MultiParameter):
 
 class SMax(parametertools.MultiParameter):
     """maximum soil moisture storage [mm]."""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0, None)
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
     def update(self):
         """calculation of derived parameter maximum soil moisture.
@@ -73,7 +73,7 @@ class SMax(parametertools.MultiParameter):
 
 class SEAv(parametertools.MultiParameter):
     """easily available soil moisture [mm]."""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0, None)
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
     def update(self):
         """calculation of derived parameter easily available soil moisture.

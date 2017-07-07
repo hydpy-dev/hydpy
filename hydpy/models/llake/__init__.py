@@ -11,6 +11,7 @@ from numpy import nan
 from hydpy.core.magictools import parameterstep
 from hydpy.core.magictools import simulationstep
 from hydpy.core.magictools import controlcheck
+from hydpy.core.magictools import autodoc_basemodel
 from hydpy.core.magictools import Tester
 from hydpy.cythons.modelutils import Cythonizer
 
@@ -23,6 +24,7 @@ from hydpy.models.llake.llake_states import StateSequences
 from hydpy.models.llake.llake_aides import AideSequences
 from hydpy.models.llake.llake_model import Model
 
+autodoc_basemodel()
 tester = Tester()
 cythonizer = Cythonizer()
 cythonizer.complete()

@@ -34,7 +34,7 @@ class N(parametertools.SingleParameter):
         (5,)
 
         For time varying parameters (derived from
-        :class:`~hydpy.core.parametertools.SeasonalParameter), it also depends
+        :class:`~hydpy.core.parametertools.SeasonalParameter`), it also depends
         on the defined number simulation steps per leap year:
 
         >>> verzw.shape

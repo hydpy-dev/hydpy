@@ -147,7 +147,7 @@ def calc_evpo_v1(self):
       :attr:`~hydpy.core.modeltools.Model.idx_sim`
 
     Basic equation:
-      :math:`EvPo = FLn \\cdot ET0
+      :math:`EvPo = FLn \\cdot ET0`
 
     Example:
 
@@ -203,7 +203,8 @@ def calc_evpo_v1(self):
 
         Reset module :mod:`~hydpy.pub` to not interfere the following
         examples:
-            >>> pub.timegrids = None
+
+        >>> pub.timegrids = None
     """
     con = self.parameters.control.fastaccess
     der = self.parameters.derived.fastaccess

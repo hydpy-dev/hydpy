@@ -147,6 +147,28 @@ def augmentexcmessage(prefix=None, suffix=None):
         raise exception(message).with_traceback(traceback_)
 
 
+def description(self):
+    """Returns the first "paragraph" of the docstring of the given object.
+
+    Note that ugly things like multiple whitespaces and newline characters
+    are removed:
+
+    >>> from hydpy.core import objecttools
+    >>> objecttools.description(objecttools.augmentexcmessage)
+    'Augment an exception message with additional information while keeping the original traceback.'
+
+    In case the given object does not define a docstring, the following
+    is returned:
+    >>> objecttools.description(type('Test', (), {}))
+    'no description available'
+
+    """
+    if self.__doc__ in (None, ''):
+        return 'no description available'
+    else:
+        return ' '.join(self.__doc__.split('\n\n')[0].split())
+
+
 def repr_(value):
     """Modifies :func:`repr` for strings and floats, mainly for supporting
     clean float representations that are compatible with :mod:`doctest`.

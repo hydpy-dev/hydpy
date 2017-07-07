@@ -245,7 +245,7 @@ def calc_v_qa_v1(self):
       :class:`~hydpy.models.llake.llake_aides.V`
 
     Basic Equation:
-      :math:`\\frac{dV}{dt}= QZ - QA
+      :math:`\\frac{dV}{dt}= QZ - QA`
 
     Examples:
 
@@ -448,7 +448,7 @@ def corr_dw_v1(self):
       :class:`~hydpy.models.llake.llake_states.V`
 
     Basic Restriction:
-      :math:`W_{old} - W_{new} \\leq MaxDW
+      :math:`W_{old} - W_{new} \\leq MaxDW`
 
     Examples:
 
@@ -567,14 +567,14 @@ def corr_dw_v1(self):
     if (con.maxdw[idx] > 0.) and ((old.w-new.w) > con.maxdw[idx]):
         new.w = old.w-con.maxdw[idx]
         self.interp_v()
-        flu.qa = flu.qz+(old.v-new.v)/der.seconds # bug
+        flu.qa = flu.qz+(old.v-new.v)/der.seconds
 
 
 def modify_qa_v1(self):
     """Add water to or remove water from the calculated lake outflow.
 
     Required control parameter:
-      :class:`~hydpy.models.llake.llake_control.Verzw
+      :class:`~hydpy.models.llake.llake_control.Verzw`
 
     Required derived parameter:
       :class:`~hydpy.models.llake.llake_derived.TOY`

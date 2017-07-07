@@ -169,7 +169,7 @@ class HydPy(object):
             for (name2, sel2) in sels2:
                 if name1 != name2:
                     sel1 -= sel2
-        for name in sels1.names:
+        for name in list(sels1.names):
             if not sels1[name].elements:
                 del sels1[name]
         return sels1

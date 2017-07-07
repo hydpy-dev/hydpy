@@ -15,10 +15,8 @@ from hydpy.core.magictools import autodoc_basemodel
 from hydpy.core.magictools import Tester
 from hydpy.cythons.modelutils import Cythonizer
 
-from hydpy.models.lstream.lstream_parameters import Parameters
 from hydpy.models.lstream.lstream_control import ControlParameters
 from hydpy.models.lstream.lstream_derived import DerivedParameters
-from hydpy.models.lstream.lstream_sequences import Sequences
 from hydpy.models.lstream.lstream_fluxes import FluxSequences
 from hydpy.models.lstream.lstream_states import StateSequences
 from hydpy.models.lstream.lstream_aides import AideSequences

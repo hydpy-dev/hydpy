@@ -15,12 +15,12 @@ from hydpy.core.magictools import autodoc_basemodel
 from hydpy.core.magictools import Tester
 from hydpy.cythons.modelutils import Cythonizer
 
-from hydpy.models.llake.llake_parameters import Parameters
 from hydpy.models.llake.llake_control import ControlParameters
 from hydpy.models.llake.llake_derived import DerivedParameters
-from hydpy.models.llake.llake_sequences import Sequences
 from hydpy.models.llake.llake_fluxes import FluxSequences
 from hydpy.models.llake.llake_states import StateSequences
+from hydpy.models.llake.llake_inlets import InletSequences
+from hydpy.models.llake.llake_outlets import OutletSequences
 from hydpy.models.llake.llake_aides import AideSequences
 from hydpy.models.llake.llake_model import Model
 

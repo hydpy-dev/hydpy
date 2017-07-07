@@ -17,6 +17,7 @@ from hydpy.core import objecttools
 from hydpy.core import timetools
 from hydpy.core import filetools
 from hydpy.core import parametertools
+from hydpy.core import sequencetools
 from hydpy.core import devicetools
 
 
@@ -178,7 +179,11 @@ def parameterstep(timestep=None):
                          'loaddata', 'savedata'):
                 if hasattr(model.cymodel, func):
                     setattr(model, func, getattr(model.cymodel, func))
+        if 'Parameters' not in namespace:
+            namespace['Parameters'] = parametertools.Parameters
         model.parameters = namespace['Parameters'](namespace)
+        if 'Sequences' not in namespace:
+            namespace['Sequences'] = sequencetools.Sequences
         model.sequences = namespace['Sequences'](namespace)
         namespace['parameters'] = model.parameters
         for (name, pars) in model.parameters:

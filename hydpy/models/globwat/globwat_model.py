@@ -61,7 +61,7 @@ def calc_rainfedevaporation_v1(self):
         >>> kc.water_feb = 1.1
         >>> kc.desert_feb = .7
         >>> kc.irrcpr_feb = 1.
-        >>> states.fastaccess_old.s = 4., 5., 6.
+        >>> states.s.old = 4., 5., 6.
         >>> derived.moy.shape = 1
         >>> derived.moy = [1]
         >>> derived.irrigation.update()
@@ -73,7 +73,7 @@ def calc_rainfedevaporation_v1(self):
     #Calculating Erain for the case: S(t-1) < SEAv
 
         >>> derived.seav(7., 8., 9.)
-        >>> states.fastaccess_old.s = 4., 5., 6.
+        >>> states.s.old = 4., 5., 6.
         >>> model.calc_rainfedevaporation_v1()
         >>> fluxes.erain
         erain(0.0, 1.3125, 0.0)
@@ -86,7 +86,7 @@ def calc_rainfedevaporation_v1(self):
     old = self.sequences.states.fastaccess_old
 
     for k in range(con.nmbgrids):
-        if ((con.vegetationclass[k] == WATER) or (der.irrigation[k] == True)):
+        if ((con.vegetationclass[k] == WATER) or (der.irrigation[k] == 1)):
             flu.erain[k] = 0.
         elif old.s[k] < der.seav[k]:
             flu.erain[k] = ((con.kc[con.vegetationclass[k]-1,
@@ -128,7 +128,7 @@ def calc_groundwaterrecharge_v1(self):
         >>> control.rmax = 3., 3., 3.
         >>> derived.seav(1.5, 2., 2.5)
         >>> derived.smax(10., 11., 12.)
-        >>> states.fastaccess_old.s = 4., 5., 6.
+        >>> states.s.old = 4., 5., 6.
         >>> model.calc_groundwaterrecharge_v1()
         >>> states.r
         r(0.0, 1.0, 1.105263)
@@ -137,7 +137,7 @@ def calc_groundwaterrecharge_v1(self):
 
     Examples:
         >>> derived.seav(7., 8., 9.)
-        >>> states.fastaccess_old.s = 4., 10., 6.
+        >>> states.s.old = 4., 10., 6.
         >>> model.calc_groundwaterrecharge_v1()
         >>> states.r
         r(0.0, 2.0, 0.0)
@@ -289,7 +289,7 @@ def calc_irrigatedcropsevaporation_v1(self):
     der = self.parameters.derived.fastaccess
 
     for k in range(con.nmbgrids):
-        if der.irrigation[k] == True:
+        if der.irrigation[k] == 1:
             flu.ec[k] = con.kc[con.vegetationclass[k]-1,
                                der.moy[self.idx_sim]] * inp.e0[k]
         else:
@@ -605,7 +605,7 @@ class Model(modeltools.Model):
         >>> import numpy
         >>> for (name, seq) in inputs:
         ...     seq.ramflag = True
-        ...     seq._setarray(numpy.zeros(2))
+        ...     seq._setarray(numpy.zeros((2, 5)))
 
         Secondly, the final model output shall be passed to `outflow`:
 
@@ -635,9 +635,9 @@ class Model(modeltools.Model):
 
         Set the initial values:
 
-        >>> states.fastaccess_old.s = 10., 20., 30., 40., 10.
-        >>> states.qin = 50.
-        >>> states.fastaccess_old.qout = 15.
+        >>> states.s.old = 10., 20., 30., 40., 10.
+        >>> states.qin.old = 50.
+        >>> states.qout.old = 15.
 
         Set the input values for both simulation time steps:
 

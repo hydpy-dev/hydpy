@@ -22,6 +22,7 @@ import numpy
 from hydpy import pub
 from hydpy import cythons
 from hydpy.core import objecttools
+from hydpy.core import parametertools
 from hydpy.core import sequencetools
 from hydpy.core import magictools
 
@@ -131,8 +132,14 @@ class Cythonizer(object):
     def pyxwriter(self):
         """Update the pyx file."""
         model = self.Model()
-        model.parameters = self.Parameters(vars(self))
-        model.sequences = self.Sequences(vars(self))
+        if hasattr(self, 'Parameters'):
+            model.parameters = self.Parameters(vars(self))
+        else:
+            model.parameters = parametertools.Parameters(vars(self))
+        if hasattr(self, 'Sequences'):
+            model.sequences = self.Sequences(vars(self))
+        else:
+            model.sequences = sequencetools.Sequences(vars(self))
         return PyxWriter(self, model, self.cyfilepath)
 
     @property

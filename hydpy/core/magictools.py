@@ -9,12 +9,15 @@ import inspect
 import warnings
 import importlib
 import doctest
+import types
+import collections
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import objecttools
 from hydpy.core import timetools
 from hydpy.core import filetools
 from hydpy.core import parametertools
+from hydpy.core import sequencetools
 from hydpy.core import devicetools
 
 
@@ -176,7 +179,11 @@ def parameterstep(timestep=None):
                          'loaddata', 'savedata'):
                 if hasattr(model.cymodel, func):
                     setattr(model, func, getattr(model.cymodel, func))
+        if 'Parameters' not in namespace:
+            namespace['Parameters'] = parametertools.Parameters
         model.parameters = namespace['Parameters'](namespace)
+        if 'Sequences' not in namespace:
+            namespace['Sequences'] = sequencetools.Sequences
         model.sequences = namespace['Sequences'](namespace)
         namespace['parameters'] = model.parameters
         for (name, pars) in model.parameters:
@@ -255,3 +262,88 @@ def controlcheck(controldir='default', projectdir=None, controlfile=None):
             if subseqs is not None:
                 for (name2, seq) in subseqs:
                     namespace[name2] = seq
+
+
+_PAR_SPEC2CAPT = collections.OrderedDict((('parameters', 'Parameter tools'),
+                                          ('constants', 'Constants'),
+                                          ('control', 'Control parameters'),
+                                          ('derived', 'Derived parameters')))
+
+_SEQ_SPEC2CAPT = collections.OrderedDict((('sequences', 'Sequence tools'),
+                                          ('inputs', 'Input sequences'),
+                                          ('fluxes', 'Flux sequences'),
+                                          ('states', 'State sequences'),
+                                          ('logs', 'Log sequences'),
+                                          ('inlets', 'Inlet sequences'),
+                                          ('outlets', 'Outlet sequences'),
+                                          ('receivers', 'Receiver sequences'),
+                                          ('senders', 'Sender sequences'),
+                                          ('aides', 'Aide sequences')))
+
+_all_spec2capt = _PAR_SPEC2CAPT.copy()
+_all_spec2capt.update(_SEQ_SPEC2CAPT)
+
+
+def _add_title(title, marker):
+    return ['', title, marker*len(title)]
+
+
+def _add_lines(specification, module):
+    caption = _all_spec2capt.get(specification, 'dummy')
+    if caption.split()[-1] in ('parameters', 'sequences'):
+        exists_collectionclass = True
+        name_collectionclass = caption.title().replace(' ', '')
+    else:
+        exists_collectionclass = False
+    lines = []
+    if specification == 'model':
+        lines += ['',
+                  '.. autoclass:: ' + module.__name__ + '.Model',
+                  '    :show-inheritance:']
+    elif exists_collectionclass:
+        lines += ['',
+                  '.. autoclass:: %s.%s' % (module.__name__,
+                                            name_collectionclass),
+                  '    :show-inheritance:']
+    lines += ['',
+              '.. automodule:: ' + module.__name__,
+              '    :members:',
+              '    :show-inheritance:']
+    if specification == 'model':
+        lines += ['    :exclude-members: Model']
+    elif exists_collectionclass:
+        lines += ['    :exclude-members: ' + name_collectionclass]
+    return lines
+
+
+def autodoc_basemodel():
+    namespace = inspect.currentframe().f_back.f_locals
+    doc = namespace.get('__doc__')
+    if doc is None:
+        doc = ''
+    basemodulename = namespace['__name__'].split('.')[-1]
+    modules = {key: value for key, value in namespace.items()
+               if (isinstance(value, types.ModuleType) and
+                   key.startswith(basemodulename+'_'))}
+    lines = []
+    specification = 'model'
+    modulename = basemodulename+'_'+specification
+    if modulename in modules:
+        module = modules[modulename]
+        lines += _add_title('Model features', '-')
+        lines += _add_lines(specification, module)
+    for (spec2capt, title) in zip((_PAR_SPEC2CAPT, _SEQ_SPEC2CAPT),
+                                  ('Parameter features', 'Sequence features')):
+        new_lines = _add_title(title, '-')
+        found_module = False
+        for (specification, caption) in spec2capt.items():
+            modulename = basemodulename+'_'+specification
+            module = modules.get(modulename)
+            if module:
+                found_module = True
+                new_lines += _add_title(caption, '.')
+                new_lines += _add_lines(specification, module)
+        if found_module:
+            lines += new_lines
+    doc += '\n'.join(lines)
+    namespace['__doc__'] = doc

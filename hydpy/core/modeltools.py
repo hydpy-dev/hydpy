@@ -22,6 +22,19 @@ class MetaModelType(type):
             for (shortname, method) in uniques.items():
                 if method is not None:
                     dict_[shortname] = method
+            if methods:
+                if tuplename == '_RUNMETHODS':
+                    lst = ['\n\n\n    The following "run methods" are called '
+                           'each simulation step run in the given sequence:']
+                elif tuplename == '_ADDMETHODS':
+                    lst = ['\n\n\n    The following "additional methods" are '
+                           'called by at least one "run method":']
+                for method in methods:
+                    lst.append('      * :func:`~%s` `%s`'
+                               % ('.'.join((method.__module__,
+                                            method.__name__)),
+                                  objecttools.description(method)))
+                dict_['__doc__'] += '\n'.join(l for l in lst)
         return type.__new__(cls, name, parents, dict_)
 
 MetaModelClass = MetaModelType('MetaModelClass', (), {})

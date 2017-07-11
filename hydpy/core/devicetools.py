@@ -311,11 +311,16 @@ class Element(Device):
         self.model = namespace['model']
         self.model.element = self
 
-    def connect(self):
+    def connect(self, model=None):
+        if model is not None:
+            self.model = model
+            model.element = self
         try:
             self.model.connect()
-        except AttributeError:
-            raise RuntimeError('First init than build')
+        except BaseException:
+            objecttools.augmentexcmessage(
+                'While trying to build the connections of the model handled '
+                'by element `%s`' % self.name)
 
     def _plot(self, subseqs, selnames, kwargs):
         for name in selnames:

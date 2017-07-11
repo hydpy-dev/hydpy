@@ -847,9 +847,10 @@ class IOSequence(Sequence):
         elif self.ramflag:
             return self._getarray()
         else:
-            raise RuntimeError('Sequence `%s` is not requested to make any '
-                               'internal data available to the user.'
-                               % self.name)
+            raise RuntimeError(
+                'Sequence `%s` of device `%s`is not requested '
+                'to make any internal data available to the user.'
+                % (self.name, objecttools.devicename(self)))
 
     def _setseries(self, values):
         series = self.series

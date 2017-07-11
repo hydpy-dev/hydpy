@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+
+
 Integration test:
 
     Note, that the following test still needs some testing itself.  The
@@ -63,11 +65,14 @@ Integration test:
     >>> dmax(5.)
     >>> dmin(1.)
     >>> bsf(.4)
+    >>> a1(0.)
+    >>> a2(100000.)
     >>> tind(1.)
     >>> eqb(100.)
     >>> eqi1(50.)
     >>> eqi2(10.)
-    >>> eqd(2.)
+    >>> eqd1(2.)
+    >>> eqd2(1.)
 
     Update the values of all derived parameters:
 
@@ -79,30 +84,33 @@ Integration test:
     >>> states.wats = 10., 10., 0.
     >>> states.waes = 15., 15., 0.
     >>> states.bowa = 150., 0., 0.
-    >>> states.qdgz = .1
-    >>> states.qi1gz = .1
-    >>> states.qi2gz = .1
+    >>> states.qdgz1 = .1
+    >>> states.qdgz2 = .0
+    >>> states.qigz1 = .1
+    >>> states.qigz2 = .1
     >>> states.qbgz = .1
-    >>> states.qdga = .1
-    >>> states.qi1ga = .1
-    >>> states.qi2ga = .1
+    >>> states.qdga1 = .1
+    >>> states.qdga2 = .0
+    >>> states.qiga1 = .1
+    >>> states.qiga2 = .1
     >>> states.qbga = .1
 
     Set the input values for both simulation time steps:
 
     >>> inputs.nied.series = 2.
-    >>> inputs.teml = 10.
-    >>> inputs.glob = 100.
+    >>> inputs.teml.series = 10.
+    >>> inputs.glob.series = 100.
 
     Check the correctness of the results:
 
     >>> model.doit(0)
     >>> print(round(result[0], 6))
-    0.229238
+    2.215817
     >>> result[0] = 0.
     >>> model.doit(1)
     >>> print(round(result[0], 6))
-    0.57346
+    3.738141
+
 """
 # import...
 # ...from standard library
@@ -146,10 +154,12 @@ class Model(modeltools.Model):
                    lland_model.calc_qigz1_v1,
                    lland_model.calc_qigz2_v1,
                    lland_model.calc_qdgz_v1,
+                   lland_model.calc_qdgz1_qdgz2_v1,
                    lland_model.calc_qbga_v1,
                    lland_model.calc_qiga1_v1,
                    lland_model.calc_qiga2_v1,
-                   lland_model.calc_qdga_v1,
+                   lland_model.calc_qdga1_v1,
+                   lland_model.calc_qdga2_v1,
                    lland_model.calc_q_v1,
                    lland_model.update_outlets_v1)
 
@@ -184,11 +194,14 @@ class ControlParameters(parametertools.SubParameters):
                    lland_control.DMax,
                    lland_control.DMin,
                    lland_control.BSf,
+                   lland_control.A1,
+                   lland_control.A2,
                    lland_control.TInd,
                    lland_control.EQB,
                    lland_control.EQI1,
                    lland_control.EQI2,
-                   lland_control.EQD)
+                   lland_control.EQD1,
+                   lland_control.EQD2)
 
 
 class DerivedParameters(parametertools.SubParameters):
@@ -200,7 +213,8 @@ class DerivedParameters(parametertools.SubParameters):
                    lland_derived.KB,
                    lland_derived.KI1,
                    lland_derived.KI2,
-                   lland_derived.KD,
+                   lland_derived.KD1,
+                   lland_derived.KD2,
                    lland_derived.QFactor)
 
 
@@ -227,6 +241,7 @@ class FluxSequences(sequencetools.FluxSequences):
                    lland_fluxes.QIB1,
                    lland_fluxes.QIB2,
                    lland_fluxes.QBB,
+                   lland_fluxes.QDGZ,
                    lland_fluxes.Q)
 
 
@@ -236,11 +251,13 @@ class StateSequences(sequencetools.StateSequences):
                    lland_states.WATS,
                    lland_states.WAeS,
                    lland_states.BoWa,
-                   lland_states.QDGZ,
+                   lland_states.QDGZ1,
+                   lland_states.QDGZ2,
                    lland_states.QIGZ1,
                    lland_states.QIGZ2,
                    lland_states.QBGZ,
-                   lland_states.QDGA,
+                   lland_states.QDGA1,
+                   lland_states.QDGA2,
                    lland_states.QIGA1,
                    lland_states.QIGA2,
                    lland_states.QBGA)
@@ -263,5 +280,5 @@ class OutletSequences(sequencetools.LinkSequences):
 
 
 tester = Tester()
-cythonizer = Cythonizer()
-cythonizer.complete()
+#cythonizer = Cythonizer()
+#cythonizer.complete()

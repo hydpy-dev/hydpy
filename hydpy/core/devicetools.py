@@ -414,20 +414,22 @@ class Devices(object):
     _contentclass = None
 
     def __init__(self, *values):
-        self._extractvalues(values)
+        try:
+            self._extractvalues(values)
+        except BaseException:
+            objecttools.augmentexcmessage(
+                'While trying to initialize a `%s` object'
+                % objecttools.classname(self))
 
     def _extractvalues(self, values):
-        if values is not None:
-
-            if isinstance(values, (self._contentclass, str)):
-                device = self._contentclass(values)
-                self[device.name] = device
-            else:
-                try:
-                    for value in values:
-                        self._extractvalues(value)
-                except TypeError:
-                    raise TypeError('toDo')
+        if values is None:
+            return
+        elif isinstance(values, (self._contentclass, str)):
+            device = self._contentclass(values)
+            self[device.name] = device
+        else:
+            for value in values:
+                self._extractvalues(value)
 
     def _getnames(self):
         return vars(self).keys()

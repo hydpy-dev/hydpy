@@ -1128,7 +1128,7 @@ def calc_qbgz_v1(self):
     Required flux sequence:
       :class:`~hydpy.models.lland.lland_fluxes.QBB`
 
-    Calculated flux sequence:
+    Calculated state sequence:
       :class:`~hydpy.models.lland.lland_fluxes.QBGZ`
 
     Basic equation:
@@ -1164,7 +1164,7 @@ def calc_qigz1_v1(self):
     Required flux sequence:
       :class:`~hydpy.models.lland.lland_fluxes.QIB1`
 
-    Calculated flux sequence:
+    Calculated state sequence:
       :class:`~hydpy.models.lland.lland_fluxes.QIGZ1`
 
     Basic equation:
@@ -1200,7 +1200,7 @@ def calc_qigz2_v1(self):
     Required flux sequence:
       :class:`~hydpy.models.lland.lland_fluxes.QIB2`
 
-    Calculated flux sequence:
+    Calculated state sequence:
       :class:`~hydpy.models.lland.lland_fluxes.QIGZ2`
 
     Basic equation:
@@ -1226,7 +1226,7 @@ def calc_qigz2_v1(self):
 
 
 def calc_qdgz_v1(self):
-    """Aggregate the amount of direct flow released by all HRUs.
+    """Aggregate the amount of total direct flow released by all HRUs.
 
     Required control parameters:
       :class:`~hydpy.models.lland.lland_control.NHRU`
@@ -1249,15 +1249,118 @@ def calc_qdgz_v1(self):
         >>> fhru(.75, .25)
         >>> fluxes.qdb = 1., 5.
         >>> model.calc_qdgz_v1()
-        >>> states.qdgz
+        >>> fluxes.qdgz
         qdgz(2.0)
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    sta.qdgz = 0.
+    flu.qdgz = 0.
     for k in range(con.nhru):
-        sta.qdgz += con.fhru[k]*flu.qdb[k]
+        flu.qdgz += con.fhru[k]*flu.qdb[k]
+
+
+def calc_qdgz1_qdgz2_v1(self):
+    """Seperate total direct flow into a small and a fast component.
+
+    Required control parameters:
+      :class:`~hydpy.models.lland.lland_control.A1`
+      :class:`~hydpy.models.lland.lland_control.A2`
+
+    Required flux sequence:
+      :class:`~hydpy.models.lland.lland_fluxes.QDGZ`
+
+    Calculated state sequences:
+      :class:`~hydpy.models.lland.lland_fluxes.QDGZ1`
+      :class:`~hydpy.models.lland.lland_fluxes.QDGZ2`
+
+    Basic equation:
+       :math:`QDGZ2 = \\frac{(QDGZ-A2)^2}{QDGZ+A1-A2}`
+       :math:`QDGZ1 = QDGZ - QDGZ1`
+
+    Examples:
+
+        The formula for calculating the amount of the fast component of
+        direct flow is borrowed from the famous curve number approach.
+        Parameter :class:`A2` would be the initial loss and parameter
+        :class:`A1` the maximum storage, but one should not take this
+        analogy too serious.  Instead, with the value of parameter `a1`
+        set to zero, parameter `a2` just defines the maximum amount of
+        "slow" direct runoff per time step:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep('1d')
+        >>> simulationstep('12h')
+        >>> a1(0.)
+
+        Let us set the value of `a2` to 4 mm/d, which is 2 mm/12h with
+        respect to the selected simulation step size:
+
+        >>> a2(4.)
+        >>> a2
+        a2(4.0)
+        >>> a2.value
+        2.0
+
+        Define a small test function to shorten the following examples:
+
+        >>> def test(*values):
+        ...     for value in values:
+        ...         fluxes.qdgz = value
+        ...         model.calc_qdgz1_qdgz2_v1()
+        ...         print(fluxes.qdgz, states.qdgz1, states.qdgz2)
+
+        The results of the seperation for total direct flow volumes of
+        1, 2, 3 and 4 mm/12h are:
+
+        >>> test(1., 2., 3., 100.)
+        qdgz(1.0) qdgz1(1.0) qdgz2(0.0)
+        qdgz(2.0) qdgz1(2.0) qdgz2(0.0)
+        qdgz(3.0) qdgz1(2.0) qdgz2(1.0)
+        qdgz(100.0) qdgz1(2.0) qdgz2(98.0)
+
+        Setting `a2` to zero and `a1` to 4 mm/d (or 2mm/12h)...
+
+        >>> a2(0.)
+        >>> a1(4.)
+        >>> a1
+        a1(4.0)
+        >>> a1.value
+        2.0
+
+        ...results in a smoother transition instead:
+
+        >>> test(1., 2., 3., 100.)
+        qdgz(1.0) qdgz1(0.666667) qdgz2(0.333333)
+        qdgz(2.0) qdgz1(1.0) qdgz2(1.0)
+        qdgz(3.0) qdgz1(1.2) qdgz2(1.8)
+        qdgz(100.0) qdgz1(1.960784) qdgz2(98.039216)
+
+
+        Alternatively, one can mix these two configurations by setting
+        the values of both parameters to 2 mm/h:
+
+        >>> a2(2.)
+        >>> a1(2.)
+        >>> test(1., 2., 3., 100.)
+        qdgz(1.0) qdgz1(1.0) qdgz2(0.0)
+        qdgz(2.0) qdgz1(1.5) qdgz2(0.5)
+        qdgz(3.0) qdgz1(1.666667) qdgz2(1.333333)
+        qdgz(100.0) qdgz1(1.99) qdgz2(98.01)
+
+        Note the similarity of the results for very high values of total
+        direct flow in all three examples, which converge to the sum of
+        the values of parameter `a1` and `a2`, representing the maximum
+        value of `slow` direct flow generation per simulation step
+    """
+    con = self.parameters.control.fastaccess
+    flu = self.sequences.fluxes.fastaccess
+    sta = self.sequences.states.fastaccess
+    if flu.qdgz > con.a2:
+        sta.qdgz2 = (flu.qdgz-con.a2)**2/(flu.qdgz+con.a1-con.a2)
+        sta.qdgz1 = flu.qdgz-sta.qdgz2
+    else:
+        sta.qdgz2 = 0.
+        sta.qdgz1 = flu.qdgz
 
 
 def calc_qbga_v1(self):
@@ -1273,7 +1376,7 @@ def calc_qbga_v1(self):
     Required flux sequence:
       :class:`~hydpy.models.lland.lland_fluxes.QBGZ`
 
-    Calculated flux sequence:
+    Calculated state sequence:
       :class:`~hydpy.models.lland.lland_fluxes.QBGA`
 
     Basic equation:
@@ -1335,10 +1438,10 @@ def calc_qiga1_v1(self):
     Required derived parameter:
       :class:`~hydpy.models.lland.lland_control.KI1`
 
-    Required flux sequence:
+    Required state sequence:
       :class:`~hydpy.models.lland.lland_fluxes.QIGZ1`
 
-    Calculated flux sequence:
+    Calculated state sequence:
       :class:`~hydpy.models.lland.lland_fluxes.QIGA1`
 
     Basic equation:
@@ -1400,10 +1503,10 @@ def calc_qiga2_v1(self):
     Required derived parameter:
       :class:`~hydpy.models.lland.lland_control.KI2`
 
-    Required flux sequence:
+    Required state sequence:
       :class:`~hydpy.models.lland.lland_fluxes.QIGZ2`
 
-    Calculated flux sequence:
+    Calculated state sequence:
       :class:`~hydpy.models.lland.lland_fluxes.QIGA2`
 
     Basic equation:
@@ -1454,26 +1557,26 @@ def calc_qiga2_v1(self):
                      (new.qigz2-old.qigz2)*(1.-der.ki2*aid.temp))
 
 
-def calc_qdga_v1(self):
-    """Perform the runoff concentration calculation for direct runoff.
+def calc_qdga1_v1(self):
+    """Perform the runoff concentration calculation for "slow" direct runoff.
 
     The working equation is the analytical solution of the linear storage
     equation under the assumption of constant change in inflow during
     the simulation time step.
 
     Required derived parameter:
-      :class:`~hydpy.models.lland.lland_derived.KD`
+      :class:`~hydpy.models.lland.lland_derived.KD1`
 
-    Required flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.QDGZ`
+    Required state sequence:
+      :class:`~hydpy.models.lland.lland_fluxes.QDGZ1`
 
-    Calculated flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.QDGA`
+    Calculated state sequence:
+      :class:`~hydpy.models.lland.lland_fluxes.QDGA1`
 
     Basic equation:
-       :math:`QDGA_{neu} = QDGA_{alt} +
-       (QDGZ_{alt}-QDGA_{alt}) \\cdot (1-exp(-KD^{-1})) +
-       (QDGZ_{neu}-QDGZ_{alt}) \\cdot (1-KD\\cdot(1-exp(-KD^{-1})))`
+       :math:`QDGA1_{neu} = QDGA1_{alt} +
+       (QDGZ1_{alt}-QDGA1_{alt}) \\cdot (1-exp(-KD1^{-1})) +
+       (QDGZ1_{neu}-QDGZ1_{alt}) \\cdot (1-KD1\\cdot(1-exp(-KD1^{-1})))`
 
     Examples:
 
@@ -1481,41 +1584,105 @@ def calc_qdga_v1(self):
 
         >>> from hydpy.models.lland import *
         >>> parameterstep()
-        >>> derived.kd(0.1)
-        >>> states.qdgz.old = 2.
-        >>> states.qdgz.new = 4.
-        >>> states.qdga.old = 3.
-        >>> model.calc_qdga_v1()
-        >>> states.qdga
-        qdga(3.800054)
+        >>> derived.kd1(0.1)
+        >>> states.qdgz1.old = 2.
+        >>> states.qdgz1.new = 4.
+        >>> states.qdga1.old = 3.
+        >>> model.calc_qdga1_v1()
+        >>> states.qdga1
+        qdga1(3.800054)
 
         First extreme test case (zero division is circumvented):
 
-        >>> derived.kd(0.)
-        >>> model.calc_qdga_v1()
-        >>> states.qdga
-        qdga(4.0)
+        >>> derived.kd1(0.)
+        >>> model.calc_qdga1_v1()
+        >>> states.qdga1
+        qdga1(4.0)
 
         Second extreme test case (numerical overflow is circumvented):
 
-        >>> derived.kd(1e200)
-        >>> model.calc_qdga_v1()
-        >>> states.qdga
-        qdga(5.0)
+        >>> derived.kd1(1e200)
+        >>> model.calc_qdga1_v1()
+        >>> states.qdga1
+        qdga1(5.0)
     """
     der = self.parameters.derived.fastaccess
     old = self.sequences.states.fastaccess_old
     new = self.sequences.states.fastaccess_new
     aid = self.sequences.aides.fastaccess
-    if der.kd <= 0.:
-        new.qdga = new.qdgz
-    elif der.kd > 1e200:
-        new.qdga = old.qdga+new.qdgz-old.qdgz
+    if der.kd1 <= 0.:
+        new.qdga1 = new.qdgz1
+    elif der.kd1 > 1e200:
+        new.qdga1 = old.qdga1+new.qdgz1-old.qdgz1
     else:
-        aid.temp = (1.-modelutils.exp(-1./der.kd))
-        new.qdga = (old.qdga +
-                    (old.qdgz-old.qdga)*aid.temp +
-                    (new.qdgz-old.qdgz)*(1.-der.kd*aid.temp))
+        aid.temp = (1.-modelutils.exp(-1./der.kd1))
+        new.qdga1 = (old.qdga1 +
+                     (old.qdgz1-old.qdga1)*aid.temp +
+                     (new.qdgz1-old.qdgz1)*(1.-der.kd1*aid.temp))
+
+
+def calc_qdga2_v1(self):
+    """Perform the runoff concentration calculation for "fast" direct runoff.
+
+    The working equation is the analytical solution of the linear storage
+    equation under the assumption of constant change in inflow during
+    the simulation time step.
+
+    Required derived parameter:
+      :class:`~hydpy.models.lland.lland_derived.KD2`
+
+    Required state sequence:
+      :class:`~hydpy.models.lland.lland_fluxes.QDGZ2`
+
+    Calculated state sequence:
+      :class:`~hydpy.models.lland.lland_fluxes.QDGA2`
+
+    Basic equation:
+       :math:`QDGA2_{neu} = QDGA2_{alt} +
+       (QDGZ2_{alt}-QDGA2_{alt}) \\cdot (1-exp(-KD2^{-1})) +
+       (QDGZ2_{neu}-QDGZ2_{alt}) \\cdot (1-KD2\\cdot(1-exp(-KD2^{-1})))`
+
+    Examples:
+
+        A normal test case:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> derived.kd2(0.1)
+        >>> states.qdgz2.old = 2.
+        >>> states.qdgz2.new = 4.
+        >>> states.qdga2.old = 3.
+        >>> model.calc_qdga2_v1()
+        >>> states.qdga2
+        qdga2(3.800054)
+
+        First extreme test case (zero division is circumvented):
+
+        >>> derived.kd2(0.)
+        >>> model.calc_qdga2_v1()
+        >>> states.qdga2
+        qdga2(4.0)
+
+        Second extreme test case (numerical overflow is circumvented):
+
+        >>> derived.kd2(1e200)
+        >>> model.calc_qdga2_v1()
+        >>> states.qdga2
+        qdga2(5.0)
+    """
+    der = self.parameters.derived.fastaccess
+    old = self.sequences.states.fastaccess_old
+    new = self.sequences.states.fastaccess_new
+    aid = self.sequences.aides.fastaccess
+    if der.kd2 <= 0.:
+        new.qdga2 = new.qdgz2
+    elif der.kd2 > 1e200:
+        new.qdga2 = old.qdga2+new.qdgz2-old.qdgz2
+    else:
+        aid.temp = (1.-modelutils.exp(-1./der.kd2))
+        new.qdga2 = (old.qdga2 +
+                     (old.qdgz2-old.qdga2)*aid.temp +
+                     (new.qdgz2-old.qdgz2)*(1.-der.kd2*aid.temp))
 
 
 def calc_q_v1(self):
@@ -1529,18 +1696,21 @@ def calc_q_v1(self):
       :class:`~hydpy.models.lland.lland_control.FHRU`
       :class:`~hydpy.models.lland.lland_control.Lnk`
 
-    Required flux sequences:
+    Required flux sequence:
+      :class:`~hydpy.models.lland.lland_fluxes.EvI`
+
+    Required state sequences:
       :class:`~hydpy.models.lland.lland_fluxes.QBGA`
       :class:`~hydpy.models.lland.lland_fluxes.QIGA1`
       :class:`~hydpy.models.lland.lland_fluxes.QIGA2`
-      :class:`~hydpy.models.lland.lland_fluxes.QDGA`
-      :class:`~hydpy.models.lland.lland_fluxes.EvI`
+      :class:`~hydpy.models.lland.lland_fluxes.QDGA1`
+      :class:`~hydpy.models.lland.lland_fluxes.QDGA2`
 
-    Calculated flux sequence:
+    Calculated state sequence:
       :class:`~hydpy.models.lland.lland_fluxes.Q`
 
     Basic equations:
-       :math:`Q = QBGA + QIGA1 + QIGA2 + QDGA - EvI_{WASSER}`
+       :math:`Q = QBGA + QIGA1 + QIGA2 + QDGA1 + QDGA2 - EvI_{WASSER}`
        :math:`Q \\geq 0`
 
     Examples:
@@ -1553,10 +1723,11 @@ def calc_q_v1(self):
         >>> nhru(3)
         >>> lnk(ACKER, VERS, NADELW)
         >>> fhru(0.5, 0.2, 0.3)
-        >>> states.qbga = 1./4.
-        >>> states.qiga1 = 2./4.
-        >>> states.qiga2 = 3./4.
-        >>> states.qdga = 4./4.
+        >>> states.qbga = .1
+        >>> states.qiga1 = .3
+        >>> states.qiga2 = .5
+        >>> states.qdga1 = .7
+        >>> states.qdga2 = .9
         >>> fluxes.evi = 4., 5., 3.
         >>> model.calc_q_v1()
         >>> fluxes.q
@@ -1596,7 +1767,7 @@ def calc_q_v1(self):
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
     aid = self.sequences.aides.fastaccess
-    flu.q = sta.qbga+sta.qiga1+sta.qiga2+sta.qdga
+    flu.q = sta.qbga+sta.qiga1+sta.qiga2+sta.qdga1+sta.qdga2
     aid.epw = 0.
     for k in range(con.nhru):
         if con.lnk[k] == WASSER:
@@ -1650,9 +1821,11 @@ class Model(modeltools.Model):
                    calc_qigz1_v1,
                    calc_qigz2_v1,
                    calc_qdgz_v1,
+                   calc_qdgz1_qdgz2_v1,
                    calc_qbga_v1,
                    calc_qiga1_v1,
                    calc_qiga2_v1,
-                   calc_qdga_v1,
+                   calc_qdga1_v1,
+                   calc_qdga2_v1,
                    calc_q_v1,
                    update_outlets_v1)

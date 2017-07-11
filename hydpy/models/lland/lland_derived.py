@@ -78,14 +78,24 @@ class KI2(parametertools.SingleParameter):
         self(con.eqi2*con.tind)
 
 
-class KD(parametertools.SingleParameter):
-    """Konzentrationszeit des Directabflusses (concentration time of direct
-    runoff) [-]."""
+class KD1(parametertools.SingleParameter):
+    """Konzentrationszeit des "langsamen" Direktabflusses (concentration time
+    of the slower component of direct runoff) [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
     def update(self):
         con = self.subpars.pars.control
-        self(con.eqd*con.tind)
+        self(con.eqd1*con.tind)
+
+
+class KD2(parametertools.SingleParameter):
+    """Konzentrationszeit des "schnellen" Direktabflusses (concentration time
+    of the faster component of direct runoff) [-]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+
+    def update(self):
+        con = self.subpars.pars.control
+        self(con.eqd2*con.tind)
 
 
 class QFactor(parametertools.SingleParameter):
@@ -99,4 +109,4 @@ class QFactor(parametertools.SingleParameter):
 
 class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of HydPy-H-Land, indirectly defined by the user."""
-    _PARCLASSES = (MOY, KInz, WB, WZ, KB, KI1, KI2, KD, QFactor)
+    _PARCLASSES = (MOY, KInz, WB, WZ, KB, KI1, KI2, KD1, KD2, QFactor)

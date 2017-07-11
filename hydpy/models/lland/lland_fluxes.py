@@ -86,6 +86,12 @@ class QBB(sequencetools.FluxSequence):
     NDIM, NUMERIC = 1, False
 
 
+class QDGZ(sequencetools.FluxSequence):
+    """Gesamtzufluss in beide Direktabfluss-Gebietsspeicher (total inflow
+    into both storage compartments for direct runoff) [mm]."""
+    NDIM, NUMERIC = 0, False
+
+
 class Q(sequencetools.FluxSequence):
     """Gesamtabfluss des Teilgebiets (runoff at the catchment outlet) [mm]."""
     NDIM, NUMERIC = 0, False
@@ -94,4 +100,4 @@ class Q(sequencetools.FluxSequence):
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of the HydPy-L-Land model."""
     _SEQCLASSES = (NKor, TKor, ET0, EvPo, NBes, EvI, EvB, WGTF, Schm, WaDa,
-                   QDB, QIB1, QIB2, QBB, Q)
+                   QDB, QIB1, QIB2, QBB, QDGZ, Q)

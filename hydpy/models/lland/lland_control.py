@@ -432,6 +432,22 @@ class BSf(lland_parameters.MultiParameterSoil):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 
+class A1(parametertools.SingleParameter):
+    """Parameter für die kontinuierliche Aufteilung der
+    Direktabflusskomponenten (threshold value for the continuous seperation
+    of direct runoff in a slow and a fast component) [mm/d]
+    """
+    NDIM, TYPE, TIME, SPAN = 0, float, True, (0., None)
+
+
+class A2(parametertools.SingleParameter):
+    """Parameter für die diskontinuierliche Aufteilung der
+    Direktabflusskomponenten (threshold value for the discontinuous seperation
+    of direct runoff in a slow and a fast component) [mm/d]
+    """
+    NDIM, TYPE, TIME, SPAN = 0, float, True, (0., None)
+
+
 class TInd(parametertools.SingleParameter):
     """Fließzeitindex (factor related to the time of concentration) [T].
 
@@ -606,7 +622,7 @@ class EQI2(parametertools.SingleParameter):
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> eqi1.value = 3.
-        >>> eqd.value = 1.
+        >>> eqd1.value = 1.
         >>> eqi2(0.)
         >>> eqi2
         eqi2(1.0)
@@ -623,37 +639,75 @@ class EQI2(parametertools.SingleParameter):
         >>> eqi2
         eqi2(3.0)
         """
-        if (lower is None) and not numpy.isnan(self.subpars.eqd):
-            lower = self.subpars.eqd
+        if (lower is None) and not numpy.isnan(self.subpars.eqd1):
+            lower = self.subpars.eqd1
         if (upper is None) and not numpy.isnan(self.subpars.eqi1):
             upper = self.subpars.eqi1
         parametertools.SingleParameter.trim(self, lower, upper)
 
 
-class EQD(parametertools.SingleParameter):
-    """Kalibrierfaktor für die Direktabflusskonzentration (factor for adjusting
-    the concentration time of direct runoff). [-]."""
+class EQD1(parametertools.SingleParameter):
+    """Kalibrierfaktor für die langsamere Direktabflusskonzentration (factor
+    for adjusting the concentration time of the slower component of direct
+    runoff). [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
     def trim(self, lower=None, upper=None):
         """Trim upper values in accordance with
-        :math:`EQD \\leq EQI2`.
+        :math:`EQD2 \\leq EQD1 \\leq EQI2`.
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
-        >>> eqi2.value = 2.
-        >>> eqd(1.)
-        >>> eqd
-        eqd(1.0)
-        >>> eqd(2.)
-        >>> eqd
-        eqd(2.0)
-        >>> eqd(3.)
-        >>> eqd
-        eqd(2.0)
+        >>> eqi2.value = 3.
+        >>> eqd2.value = 1.
+        >>> eqd1(0.)
+        >>> eqd1
+        eqd1(1.0)
+        >>> eqd1(1.)
+        >>> eqd1
+        eqd1(1.0)
+        >>> eqd1(2.)
+        >>> eqd1
+        eqd1(2.0)
+        >>> eqd1(3.)
+        >>> eqd1
+        eqd1(3.0)
+        >>> eqd1(4.)
+        >>> eqd1
+        eqd1(3.0)
         """
+        if (lower is None) and not numpy.isnan(self.subpars.eqd2):
+            lower = self.subpars.eqd2
         if (upper is None) and not numpy.isnan(self.subpars.eqi2):
             upper = self.subpars.eqi2
+        parametertools.SingleParameter.trim(self, lower, upper)
+
+
+class EQD2(parametertools.SingleParameter):
+    """Kalibrierfaktor für die schnellere Direktabflusskonzentration (factor
+    for adjusting the concentration time of the faster component of direct
+    runoff). [-]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+
+    def trim(self, lower=None, upper=None):
+        """Trim upper values in accordance with
+        :math:`EQD2 \\leq EQD1`.
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep('1d')
+        >>> eqd1.value = 3.
+        >>> eqd2(2.)
+        >>> eqd2
+        eqd2(2.0)
+        >>> eqd2(3.)
+        >>> eqd2
+        eqd2(3.0)
+        >>> eqd2(4.)
+        >>> eqd2
+        eqd2(3.0)
+        """
+        if (upper is None) and not numpy.isnan(self.subpars.eqd1):
+            upper = self.subpars.eqd1
         parametertools.SingleParameter.trim(self, lower, upper)
 
 
@@ -662,4 +716,4 @@ class ControlParameters(parametertools.SubParameters):
     _PARCLASSES = (FT, NHRU, Lnk, FHRU, HNN, KG, KT, KE, KF, FLn, HInz, LAI,
                    TRefT, TRefN, TGr, GTF, RSchmelz, CPWasser, PWMax,
                    GrasRef_R, NFk, RelWZ, RelWB, Beta, FBeta, DMax, DMin, BSf,
-                   TInd, EQB, EQI1, EQI2, EQD)
+                   A1, A2, TInd, EQB, EQI1, EQI2, EQD1, EQD2)

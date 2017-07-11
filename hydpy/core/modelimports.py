@@ -7,7 +7,7 @@ of base and application models implemented.  Just write:
 
 Thereafter, the following objects are available:
  * module :mod:`numpy`
- * numpys :obj:`~numpy.nan`
+ * numpys :obj:`~numpy.nan` and :obj:`~numpy.inf`
  * functions :func:`~hydpy.core.magictools.parameterstep`,
    :func:`~hydpy.core.magictools.simulationstep`,
    :func:`~hydpy.core.magictools.autodoc_basemodel`,
@@ -24,6 +24,7 @@ from __future__ import division, print_function
 # ...third party
 import numpy
 from numpy import nan
+from numpy import inf
 # ...HydPy specific
 # Load the required `magic` functions into the local namespace.
 from hydpy.core.magictools import parameterstep

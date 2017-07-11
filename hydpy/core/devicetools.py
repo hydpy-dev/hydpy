@@ -198,6 +198,23 @@ class Node(Device):
             raw = fastaccess._obs_file.read(8)
             fastaccess.obs[0] = struct.unpack('d', raw)
 
+    def prepare_allseries(self, ramflag=True):
+        self.prepare_simseries(ramflag)
+        self.prepare_obsseries(ramflag)
+
+    def prepare_simseries(self, ramflag=True):
+        self._prepare_nodeseries('sim', ramflag)
+
+    def prepare_obsseries(self, ramflag=True):
+        self._prepare_nodeseries('obs', ramflag)
+
+    def _prepare_nodeseries(self, seqname, ramflag):
+        seq = getattr(self.sequences, seqname)
+        if ramflag:
+            seq.activate_ram()
+        else:
+            seq.activate_disk()
+
     def comparisonplot(self, **kwargs):
         for (name, seq) in self.sequences:
             if pyplot.isinteractive():
@@ -321,6 +338,29 @@ class Element(Device):
             objecttools.augmentexcmessage(
                 'While trying to build the connections of the model handled '
                 'by element `%s`' % self.name)
+
+    def prepare_allseries(self, ramflag=True):
+        self.prepare_inputseries(ramflag)
+        self.prepare_fluxseries(ramflag)
+        self.prepare_stateseries(ramflag)
+
+    def prepare_inputseries(self, ramflag=True):
+        self._prepare_series('inputs', ramflag)
+
+    def prepare_fluxseries(self, ramflag=True):
+        self._prepare_series('fluxes', ramflag)
+
+    def prepare_stateseries(self, ramflag=True):
+        self._prepare_series('states', ramflag)
+
+    def _prepare_series(self, name_subseqs, ramflag):
+        sequences = self.model.sequences
+        subseqs = getattr(sequences, name_subseqs, None)
+        if subseqs:
+            if ramflag:
+                subseqs.activate_ram()
+            else:
+                subseqs.activate_disk()
 
     def _plot(self, subseqs, selnames, kwargs):
         for name in selnames:
@@ -492,7 +532,35 @@ class Nodes(Devices):
 
     _contentclass = Node
 
+    def prepare_allseries(self, ramflag=True):
+        self.prepare_simseries(ramflag)
+        self.prepare_obsseries(ramflag)
+
+    def prepare_simseries(self, ramflag=True):
+        for (name, node) in self:
+            node.prepare_simseries(ramflag)
+
+    def prepare_obsseries(self, ramflag=True):
+        for (name, node) in self:
+            node.prepare_obsseries(ramflag)
+
 
 class Elements(Devices):
 
     _contentclass = Element
+
+    def prepare_allseries(self, ramflag=True):
+        for (name, element) in self:
+            element.prepare_allseries(ramflag)
+
+    def prepare_inputseries(self, ramflag=True):
+        for (name, element) in self:
+            element.prepare_inputseries(ramflag)
+
+    def prepare_fluxseries(self, ramflag=True):
+        for (name, element) in self:
+            element.prepare_fluxseries(ramflag)
+
+    def prepare_stateseries(self, ramflag=True):
+        for (name, element) in self:
+            element.prepare_stateseries(ramflag)

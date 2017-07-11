@@ -42,6 +42,8 @@ class Tester(object):
                 if (fn.endswith('.py') and not fn.startswith('_'))]
 
     def doit(self):
+        printprogress = pub.options.printprogress
+        pub.options.printprogress = False
         warnsimulationstep = pub.options.warnsimulationstep
         pub.options.warnsimulationstep = False
         timegrids = pub.timegrids
@@ -80,6 +82,7 @@ class Tester(object):
                                         optionflags=doctest.ELLIPSIS)
                         warnings.resetwarnings()
         finally:
+            pub.options.printprogress = printprogress
             pub.options.warnsimulationstep = warnsimulationstep
             pub.timegrids = timegrids
             parametertools.Parameter._simulationstep = _simulationstep

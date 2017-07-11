@@ -20,7 +20,7 @@ class HydPy(object):
     # A counter for the number of HydPy instances.
     nmb_instances = 0
 
-    def __init__(self, projectname):
+    def __init__(self, projectname=None):
 
         if pub.options.printprogress:
             print('HydPy initialization started at', time.strftime('%X'))
@@ -38,13 +38,19 @@ class HydPy(object):
                           % HydPy.nmb_instances)
 
         # Store public information in a seperate module.
-        pub.allowcoldstart = False
         pub.projectname = projectname
-        pub.filemanager = filetools.MainManager()
-        pub.networkmanager = filetools.NetworkManager()
-        pub.controlmanager = filetools.ControlManager()
-        pub.sequencemanager = filetools.SequenceManager()
-        pub.conditionmanager = filetools.ConditionManager()
+        if projectname is None:
+            pub.filemanager = None
+            pub.networkmanager = None
+            pub.controlmanager = None
+            pub.sequencemanager = None
+            pub.conditionmanager = None
+        else:
+            pub.filemanager = filetools.MainManager()
+            pub.networkmanager = filetools.NetworkManager()
+            pub.controlmanager = filetools.ControlManager()
+            pub.sequencemanager = filetools.SequenceManager()
+            pub.conditionmanager = filetools.ConditionManager()
 
         if pub.options.printprogress:
             print('HydPy initialization ended at', time.strftime('%X'))

@@ -48,7 +48,7 @@ class MainManager(object):
                 code = compile(file_.read(), self.path, 'exec')
                 exec(code, {}, self.info)
         except Exception:
-            prefix = ('While trying to load the genereal project settings '
+            prefix = ('While trying to load the general project settings '
                       'from `%s`' % self.path)
             objecttools.augmentexcmessage(prefix)
 

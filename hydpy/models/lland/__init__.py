@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
-
+"""
+The L-Land model is the core of the HydPy implementation of the
+LARSIM model.  It consists of routines for the preparation
+of meteorological input, the calculation of potential evaporation,
+the simulation of water stored on plants, in the snow layer and in the
+soil, as well as runoff concentration.
+"""
 # import...
 # ...from standard library
 from __future__ import division, print_function
@@ -22,7 +28,7 @@ from hydpy.models.lland.lland_model import Model
 
 autodoc_basemodel()
 tester = Tester()
-#cythonizer = Cythonizer()
-#cythonizer.complete()
+cythonizer = Cythonizer()
+cythonizer.complete()
 
 

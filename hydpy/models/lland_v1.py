@@ -62,11 +62,12 @@ Integration test:
     >>> relwz(.5)
     >>> relwb(.05)
     >>> beta(.01)
+    >>> fbeta(1.)
     >>> dmax(5.)
     >>> dmin(1.)
     >>> bsf(.4)
     >>> a1(0.)
-    >>> a2(100000.)
+    >>> a2(inf)
     >>> tind(1.)
     >>> eqb(100.)
     >>> eqi1(50.)
@@ -105,11 +106,11 @@ Integration test:
 
     >>> model.doit(0)
     >>> print(round(result[0], 6))
-    2.215817
+    2.217163
     >>> result[0] = 0.
     >>> model.doit(1)
     >>> print(round(result[0], 6))
-    3.738141
+    3.741258
 
 """
 # import...
@@ -280,5 +281,5 @@ class OutletSequences(sequencetools.LinkSequences):
 
 
 tester = Tester()
-#cythonizer = Cythonizer()
-#cythonizer.complete()
+cythonizer = Cythonizer()
+cythonizer.complete()

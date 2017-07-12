@@ -27,6 +27,10 @@ class RO(sequencetools.FluxSequence):
     """vertical (sub-)surface runoff [mm/day]"""
     NDIM, NUMERIC = 1, False
 
+class ESub(sequencetools.FluxSequence):
+    """sum of all evaporation per subbasin [mm/day]"""
+    NDIM, NUMERIC = 0, False
+
 class FluxSequences(sequencetools.FluxSequences):
-    """Flux sequences of the hland model."""
-    _SEQCLASSES = (ERain, EC, EOW, EGrid, RO)
+    """Flux sequences of the globwat model."""
+    _SEQCLASSES = (ERain, EC, EOW, EGrid, RO, ESub)

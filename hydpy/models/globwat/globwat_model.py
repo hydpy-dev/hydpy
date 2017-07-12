@@ -496,6 +496,32 @@ def calc_subbasinbalance_v1(self):
     # hoch und Qin sowie Niederschlag gering sind
     sta.bsb = sta.qin + sum(inp.p) - sum(flu.egrid)
 
+def calc_subbasinevaporation_v1(self):
+    """calculate the (sub-)basin evaporation on t.
+
+    Required flux sequence:
+      :class:`~hydpy.models.globwat.globwat_fluxes.EGrid`
+
+    Calculated flux sequence:
+      :class:`~hydpy.models.globwat.globwat_fluxes.ESub`
+
+    Basic equation:
+      :math:`E_{Sub} = \\sum E_{Grid}(t)`
+
+    Examples:
+        >>> from hydpy.models.globwat import *
+        >>> parameterstep('1d')
+        >>> nmbgrids(3)
+        >>> fluxes.egrid(2., 3., 1.)
+        >>> model.calc_subbasinevaporation_v1()
+        >>> fluxes.esub
+        esub(6.0)
+    """
+
+    flu = self.sequences.fluxes.fastaccess
+
+    flu.esub = sum(flu.egrid)
+
 
 def calc_subbasinstorage_v1(self):
     """calculate the (sub-)basin storage on t.
@@ -652,7 +678,7 @@ class Model(modeltools.Model):
         >>> outflow[0] = 0.
         >>> model.doit(1)
         >>> print(round(outflow[0], 6))
-        1.44
+        1.98
     """
 
     _RUNMETHODS = (update_inlets_v1,
@@ -664,6 +690,7 @@ class Model(modeltools.Model):
                    calc_openwaterbalance_v1,
                    calc_gridevaporation_v1,
                    calc_subbasinbalance_v1,
+                   calc_subbasinevaporation_v1,
                    calc_subbasinstorage_v1,
                    calc_outflow_v1,
                    update_outlets_v1)

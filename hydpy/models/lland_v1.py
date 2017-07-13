@@ -1,47 +1,73 @@
 # -*- coding: utf-8 -*-
 """
+Version 1 of the L-Land model is designed to aggree with the LARSIM-ME
+configuration of the LARSIM model used by the German Federal Institute
+of Hydrology, but offers more flexibility in some regards (e.g. in
+parameterization).  It can briefly be summarized as follows:
+
+ * Simple routines for adjusting the meteorological input data.
+ * Reference evapotranspiration after Turc-Wendling.
+ * Landuse and month specific potential evapotranspiration.
+ *
+
+Note that, due to the calculation of potential evapotranspiration with
+the Turc-Wendling approach, the simulation step size should be on day.
 
 
-Integration test:
+Integration tests:
 
-    Note, that the following test still needs some testing itself.  The
-    results given below need to be calculated independently and a few
-    additional comments would be helpfull...
-
-    The only two simulation steps are in January:
+    The integration tests are performed in January (to allow for realistic
+    snow examples), spanning over a period of five days:
 
     >>> from hydpy import pub, Timegrid, Timegrids
-    >>> pub.timegrids = Timegrids(Timegrid('01.08.2000',
-    ...                                    '03.08.2000',
+    >>> pub.timegrids = Timegrids(Timegrid('01.01.2000',
+    ...                                    '06.08.2000',
     ...                                    '1d'))
 
-    Import the model and define the time settings:
+    Prepare the model instance and built the connections to element `land`
+    and node `outlet`:
 
     >>> from hydpy.models.lland_v1 import *
     >>> parameterstep('1d')
+    >>> from hydpy import Node, Element
+    >>> outlet = Node('outlet')
+    >>> land = Element('land', outlets=outlet)
+    >>> land.connect(model)
 
-    Do things that are normally done behind the scenes.  First, the input
-    data shall be available in RAM:
+    All tests shall be performed using one hydrological response unit only:
 
-    >>> import numpy
-    >>> for (name, seq) in inputs:
-    ...     seq.ramflag = True
-    ...     seq._setarray(numpy.zeros(2))
+    >>> nhru(1)
 
-    Secondly, the final model output shall be passed to `result`:
+    Initialize a test function object, which prepares and runs the tests
+    and prints their results for the given sequences:
 
-    >>> from hydpy.cythons.pointer import Double
-    >>> result = Double(0.)
-    >>> outlets.q.setpointer(result)
+    >>> from hydpy.core.testtools import Test
+    >>> test = Test(land,
+    ...             (outlet.sequences.sim,))
+
+    nö
+    ...             {'inzp': (.5, .5, 0.),
+    ...              'wats': (10., 10., 0.),
+    ...              'waes': (15., 15., 0.),
+    ...              'bowa': (150., 0., 0.),
+    ...              'qdgz1': .1,
+    ...              'qdgz2': .0,
+    ...              'qigz1': .1,
+    ...              'qigz2': .1,
+    ...              'qbgz': .1,
+    ...              'qdga1': .1,
+    ...              'qdga2': .0,
+    ...              'qiga1': .1,
+    ...              'qiga2': .1,
+    ...              'qbga': .1})
 
     Define the control parameter values (select only arable land, sealed
     soil and water area as landuse classes, as all other land use classes
     are functionally identical with arable land):
 
     >>> ft(100.)
-    >>> nhru(3)
-    >>> fhru(1./3.)
-    >>> lnk(ACKER, VERS, WASSER)
+    >>> fhru(1.)
+    >>> lnk(ACKER)
     >>> hnn(100.)
     >>> kg(1.2)
     >>> kt(-1.)
@@ -77,24 +103,24 @@ Integration test:
 
     Update the values of all derived parameters:
 
-    >>> model.parameters.update()
+    >>> #model.parameters.update()
 
     Set the initial values:
 
-    >>> states.inzp = .5, .5, 0.
-    >>> states.wats = 10., 10., 0.
-    >>> states.waes = 15., 15., 0.
-    >>> states.bowa = 150., 0., 0.
-    >>> states.qdgz1 = .1
-    >>> states.qdgz2 = .0
-    >>> states.qigz1 = .1
-    >>> states.qigz2 = .1
-    >>> states.qbgz = .1
-    >>> states.qdga1 = .1
-    >>> states.qdga2 = .0
-    >>> states.qiga1 = .1
-    >>> states.qiga2 = .1
-    >>> states.qbga = .1
+    >>> #states.inzp = .5
+    >>> #states.wats = 10.
+    >>> #states.waes = 15.
+    >>> #states.bowa = 150.
+    >>> #states.qdgz1 = .1
+    >>> #states.qdgz2 = .0
+    >>> #states.qigz1 = .1
+    >>> #states.qigz2 = .1
+    >>> #states.qbgz = .1
+    >>> #states.qdga1 = .1
+    >>> #states.qdga2 = .0
+    >>> #states.qiga1 = .1
+    >>> #states.qiga2 = .1
+    >>> #states.qbga = .1
 
     Set the input values for both simulation time steps:
 
@@ -104,13 +130,16 @@ Integration test:
 
     Check the correctness of the results:
 
-    >>> model.doit(0)
-    >>> print(round(result[0], 6))
+    >>> #model.doit(0)
+    >>> #print(round(result[0], 6))
     2.217163
-    >>> result[0] = 0.
-    >>> model.doit(1)
-    >>> print(round(result[0], 6))
+    >>> #result[0] = 0.
+    >>> #model.doit(1)
+    >>> #print(round(result[0], 6))
     3.741258
+
+    >>> #test()
+
 
 """
 # import...

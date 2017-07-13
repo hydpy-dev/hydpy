@@ -40,7 +40,11 @@ class Test(object):
             sim = node.sequences.sim
             sim.ramflag = True
             sim._setarray(numpy.zeros(len(pub.timegrids.init), dtype=float))
-        element.prepare_allseries()
+        for (name, seq) in getattr(element.model.sequences, 'inputs', ()):
+            seq.ramflag = True
+            seq._setarray(numpy.zeros(len(pub.timegrids.init), dtype=float))
+        element.prepare_fluxseries()
+        element.prepare_stateseries()
         self.element = element
         self.nodes = nodes
         self.seqs = seqs

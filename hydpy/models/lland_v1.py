@@ -16,6 +16,11 @@ parameterization).  It can briefly be summarized as follows:
  * Seperate linear storages for modelling runoff concentration.
  * Additional evaporation from water areas.
 
+The following picture shows the general structure of L-Land Version 1.  Note
+that, besides water areas and sealed surface areas, all land use types rely
+on the same process equations:
+
+.. image:: pics\\HydPy-L-Land_Version-1.png
 
 As all models implemented in HydPy, base model L-Land can principally be
 applied on arbitrary simulation step sizes.  But for the L-Land version 1

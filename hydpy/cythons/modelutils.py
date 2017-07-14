@@ -373,8 +373,8 @@ class PyxWriter(object):
         lines.add(1, 'cpdef openfiles(self, int idx):')
         for (name, seq) in subseqs:
             lines.add(2, 'if self._%s_diskflag:' % name)
-            lines.add(3, 'self._%s_file = fopen(str(self._%s_path), "rb+")'
-                         % (2*(name,)))
+            lines.add(3, 'self._%s_file = fopen(str(self._%s_path).encode(), '
+                         '"rb+")' % (2*(name,)))
             if seq.NDIM == 0:
                 lines.add(3, 'fseek(self._%s_file, idx*8, SEEK_SET)' % name)
             else:

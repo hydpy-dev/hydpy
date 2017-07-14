@@ -25,7 +25,7 @@ if coverage_report:
     sys.argv.remove('coverage_report')
 
 packages = ['hydpy', 'hydpy.cythons', 'hydpy.core', 'hydpy.tests',
-            'hydpy.docs', 'hydpy.docs.pics', 'hydpy.models']
+            'hydpy.docs', 'hydpy.models']
 for name in os.listdir(os.path.join('hydpy', 'models')):
     if not (name.startswith('_') or
             os.path.isfile(os.path.join('hydpy', 'models', name))):

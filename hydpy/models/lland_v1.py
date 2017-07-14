@@ -2,16 +2,25 @@
 """
 Version 1 of the L-Land model is designed to aggree with the LARSIM-ME
 configuration of the LARSIM model used by the German Federal Institute
-of Hydrology, but offers more flexibility in some regards (e.g. in
+of Hydrology (BfG), but offers more flexibility in some regards (e.g. in
 parameterization).  It can briefly be summarized as follows:
 
  * Simple routines for adjusting the meteorological input data.
  * Reference evapotranspiration after Turc-Wendling.
+ * An enhanced degree-day-method for calculating snow melt.
+ * A simple snow retention routine.
  * Landuse and month specific potential evapotranspiration.
- *
+ * Acual soil evapotranspiration after ATV-DVWK- 504 (2002).
+ * Soil routine based on the Xinanjiang model.
+ * One base flow, two interflow and two direct flow components.
+ * Seperate linear storages for modelling runoff concentration.
+ * Additional evaporation from water areas.
 
-Note that, due to the calculation of potential evapotranspiration with
-the Turc-Wendling approach, the simulation step size should be on day.
+
+As all models implemented in HydPy, base model L-Land can principally be
+applied on arbitrary simulation step sizes.  But for the L-Land version 1
+application model one has to be aware, that the Turc-Wendling equation
+for calculating reference evaporation is designed for daily values only.
 
 
 Integration tests:
@@ -21,7 +30,7 @@ Integration tests:
 
     >>> from hydpy import pub, Timegrid, Timegrids
     >>> pub.timegrids = Timegrids(Timegrid('01.01.2000',
-    ...                                    '06.08.2000',
+    ...                                    '06.01.2000',
     ...                                    '1d'))
 
     Prepare the model instance and built the connections to element `land`
@@ -34,41 +43,32 @@ Integration tests:
     >>> land = Element('land', outlets=outlet)
     >>> land.connect(model)
 
-    All tests shall be performed using one hydrological response unit only:
+    All tests shall be performed using single hydrological response unit with
+    a size of one square kilometre an a altitude of 100 meter:
 
     >>> nhru(1)
+    >>> ft(1.)
+    >>> fhru(1.)
+    >>> hnn(100.)
 
     Initialize a test function object, which prepares and runs the tests
     and prints their results for the given sequences:
 
     >>> from hydpy.core.testtools import Test
-    >>> test = Test(land,
-    ...             (outlet.sequences.sim,))
+    >>> test = Test(land)
+    >>> test.dateformat = '%d.%m.'
 
-    nö
-    ...             {'inzp': (.5, .5, 0.),
-    ...              'wats': (10., 10., 0.),
-    ...              'waes': (15., 15., 0.),
-    ...              'bowa': (150., 0., 0.),
-    ...              'qdgz1': .1,
-    ...              'qdgz2': .0,
-    ...              'qigz1': .1,
-    ...              'qigz2': .1,
-    ...              'qbgz': .1,
-    ...              'qdga1': .1,
-    ...              'qdga2': .0,
-    ...              'qiga1': .1,
-    ...              'qiga2': .1,
-    ...              'qbga': .1})
+    Set the input values for the complete simulation period:
+
+    >>> inputs.nied.series = 0., 5., 5., 5., 0.
+    >>> inputs.teml.series = -2., -1., 0., 1., 2.
+    >>> inputs.glob.series = 100.
 
     Define the control parameter values (select only arable land, sealed
     soil and water area as landuse classes, as all other land use classes
     are functionally identical with arable land):
 
-    >>> ft(100.)
-    >>> fhru(1.)
     >>> lnk(ACKER)
-    >>> hnn(100.)
     >>> kg(1.2)
     >>> kt(-1.)
     >>> ke(0.9)
@@ -101,46 +101,16 @@ Integration tests:
     >>> eqd1(2.)
     >>> eqd2(1.)
 
-    Update the values of all derived parameters:
-
-    >>> #model.parameters.update()
-
-    Set the initial values:
-
-    >>> #states.inzp = .5
-    >>> #states.wats = 10.
-    >>> #states.waes = 15.
-    >>> #states.bowa = 150.
-    >>> #states.qdgz1 = .1
-    >>> #states.qdgz2 = .0
-    >>> #states.qigz1 = .1
-    >>> #states.qigz2 = .1
-    >>> #states.qbgz = .1
-    >>> #states.qdga1 = .1
-    >>> #states.qdga2 = .0
-    >>> #states.qiga1 = .1
-    >>> #states.qiga2 = .1
-    >>> #states.qbga = .1
-
-    Set the input values for both simulation time steps:
-
-    >>> inputs.nied.series = 2.
-    >>> inputs.teml.series = 10.
-    >>> inputs.glob.series = 100.
-
     Check the correctness of the results:
 
-    >>> #model.doit(0)
-    >>> #print(round(result[0], 6))
-    2.217163
-    >>> #result[0] = 0.
-    >>> #model.doit(1)
-    >>> #print(round(result[0], 6))
-    3.741258
-
-    >>> #test()
-
-
+    >>> test()
+    |   date | nied | teml |  glob | nkor | tkor |      et0 |     evpo | nbes | evi |      evb |     wgtf |     schm |     wada |      qdb | qib1 | qib2 | qbb |     qdgz |        q | inzp |     wats |     waes |     bowa |    qdgz1 | qdgz2 | qigz1 | qigz2 | qbgz |    qdga1 | qdga2 | qiga1 | qiga2 | qbga |   outlet |
+    -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01.01. |  0.0 | -2.0 | 100.0 |  0.0 | -3.0 | 0.779561 | 0.779561 |  0.0 | 0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |  0.0 |  0.0 | 0.0 |      0.0 |      0.0 |  0.0 |      0.0 |      0.0 |      0.0 |      0.0 |   0.0 |   0.0 |   0.0 |  0.0 |      0.0 |   0.0 |   0.0 |   0.0 |  0.0 |      0.0 |
+    | 02.01. |  5.0 | -1.0 | 100.0 |  6.0 | -2.0 | 0.813809 | 0.813809 |  5.8 | 0.2 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |  0.0 |  0.0 | 0.0 |      0.0 |      0.0 |  0.0 |      5.8 |      5.8 |      0.0 |      0.0 |   0.0 |   0.0 |   0.0 |  0.0 |      0.0 |   0.0 |   0.0 |   0.0 |  0.0 |      0.0 |
+    | 03.01. |  5.0 |  0.0 | 100.0 |  6.0 | -1.0 | 0.847495 | 0.847495 |  5.8 | 0.2 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |  0.0 |  0.0 | 0.0 |      0.0 |      0.0 |  0.0 |     11.6 |     11.6 |      0.0 |      0.0 |   0.0 |   0.0 |   0.0 |  0.0 |      0.0 |   0.0 |   0.0 |   0.0 |  0.0 |      0.0 |
+    | 04.01. |  5.0 |  1.0 | 100.0 |  6.0 |  0.0 | 0.880634 | 0.880634 |  5.8 | 0.2 |      0.0 |      0.0 |      0.0 |     1.16 | 0.000962 |  0.0 |  0.0 | 0.0 | 0.000962 | 0.000205 |  0.0 |     11.6 |    16.24 | 1.159038 | 0.000962 |   0.0 |   0.0 |   0.0 |  0.0 | 0.000205 |   0.0 |   0.0 |   0.0 |  0.0 | 0.000002 |
+    | 05.01. |  0.0 |  2.0 | 100.0 |  0.0 |  1.0 | 0.913238 | 0.913238 |  0.0 | 0.0 | 0.013321 | 5.012535 | 5.012535 | 7.017549 | 0.047086 |  0.0 |  0.0 | 0.0 | 0.047086 |  0.01033 |  0.0 | 6.587465 | 9.222451 |  8.11618 | 0.047086 |   0.0 |   0.0 |   0.0 |  0.0 |  0.01033 |   0.0 |   0.0 |   0.0 |  0.0 |  0.00012 |
 """
 # import...
 # ...from standard library
@@ -310,5 +280,5 @@ class OutletSequences(sequencetools.LinkSequences):
 
 
 tester = Tester()
-cythonizer = Cythonizer()
-cythonizer.complete()
+#cythonizer = Cythonizer()
+#cythonizer.complete()

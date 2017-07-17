@@ -183,7 +183,7 @@ def calc_changeinstorage_v1(self):
       :class:`~hydpy.models.globwat.globwat_states.S`
 
     Calculated flux sequence:
-      :class:`~hydpy.models.globwat.globwat_fluxes.RO`
+      :class:`~hydpy.models.globwat.globwat_fluxes.ROV`
 
     Basic equation:
       :math:`B = S(t-1) - (P(t) - E_{rain}(t) - R(t)) \\cdot \\delta t`
@@ -229,15 +229,15 @@ def calc_changeinstorage_v1(self):
                         (inp.p[k]*(1-con.rofactor)-flu.erain[k]-sta.r[k]))
             if sta.b[k] < der.smax[k]:
                 sta.b[k] = new.s[k]
-                flu.ro[k] = 0.
+                flu.rov[k] = 0.
 
             else:
-                flu.ro[k] = (sta.b[k] - der.smax[k])
+                flu.rov[k] = (sta.b[k] - der.smax[k])
                 sta.b[k] = der.smax[k]
-            flu.ro[k] += inp.p[k] * con.rofactor
+            flu.rov[k] += inp.p[k] * con.rofactor
 
         else:
-            flu.ro[k] = 0.
+            flu.rov[k] = 0.
             sta.b[k] = 0.
 
 
@@ -340,8 +340,8 @@ def calc_openwaterevaporation_v1(self):
         >>> model.calc_openwaterevaporation_v1()
         >>> fluxes.eow
         eow(0.0, 5.5, 5.5)
-        >>> fluxes.ro
-        ro(0.0, 0.0, 0.0)
+        >>> fluxes.roh
+        roh(0.0, 0.0, 0.0)
     """
 
     con = self.parameters.control.fastaccess
@@ -416,7 +416,7 @@ def calc_openwaterbalance_v1(self):
       :class:`~hydpy.models.globwat.globwat_states.BOW`
 
     Calculated flux sequence:
-      :class:`~hydpy.models.globwat.globwat_fluxes.RO`
+      :class:`~hydpy.models.globwat.globwat_fluxes.ROH`
 
     Basic equation:
       :math:`B_{OW} = (P(t) - E_{OW}) \\cdot \\delta t`
@@ -431,16 +431,16 @@ def calc_openwaterbalance_v1(self):
         >>> fluxes.eow = 5.
         >>> vegetationclass(RADRYTROP, WATER, RAHIGHL)
         >>> model.calc_openwaterbalance_v1()
-        >>> fluxes.ro
-        ro(0.0, 0.0, 0.0)
+        >>> fluxes.roh
+        roh(0.0, 0.0, 0.0)
 
     Calculating for: BOW >= 0.
 
         >>> inputs.p = 5.
         >>> fluxes.eow = 3.
         >>> model.calc_openwaterbalance_v1()
-        >>> fluxes.ro
-        ro(0.0, 2.0, 0.0)
+        >>> fluxes.roh
+        roh(0.0, 2.0, 0.0)
        """
 
     con = self.parameters.control.fastaccess
@@ -452,10 +452,39 @@ def calc_openwaterbalance_v1(self):
         if con.vegetationclass[k] == WATER:
             sta.bow[k] = inp.p[k] - flu.eow[k]
             if sta.bow[k] < 0.:
-                flu.ro[k] = 0.
+                flu.roh[k] = 0.
 
             else:
-                flu.ro[k] = sta.bow[k]
+                flu.roh[k] = sta.bow[k]
+
+def calc_runoff_v1(self):
+    """calcutalte total runoff.
+
+    Required flux sequences:
+      :class:`~hydpy.models.globwat.globwat_fluxes.ROV`
+      :class:`~hydpy.models.globwat.globwat_fluxes.ROH`
+
+      Calculated flux sequence:
+      :class:`~hydpy.models.globwat.globwat_fluxes.RO`
+
+      Basic equation:
+      :math:`R_O = R_{OV} + R_{OH}`
+
+    Examples:
+        >>> from hydpy.models.globwat import *
+        >>> parameterstep('1d')
+        >>> nmbgrids(3)
+        >>> fluxes.roh(1., 2., 3.)
+        >>> fluxes.rov(4., 3., 2.)
+        >>> model.calc_runoff_v1()
+        >>> fluxes.ro
+        ro(5.0, 5.0, 5.0)
+    """
+    con = self.parameters.control.fastaccess
+    flu = self.sequences.fluxes.fastaccess
+
+    for k in range(con.nmbgrids):
+        flu.ro[k] = flu.rov[k] + flu.roh[k]
 
 
 def calc_subbasinbalance_v1(self):
@@ -688,6 +717,7 @@ class Model(modeltools.Model):
                    calc_irrigatedcropsevaporation_v1,
                    calc_openwaterevaporation_v1,
                    calc_openwaterbalance_v1,
+                   calc_runoff_v1,
                    calc_gridevaporation_v1,
                    calc_subbasinbalance_v1,
                    calc_subbasinevaporation_v1,

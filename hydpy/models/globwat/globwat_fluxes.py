@@ -24,6 +24,14 @@ class EGrid(sequencetools.FluxSequence):
     NDIM, NUMERIC = 1, False
 
 class RO(sequencetools.FluxSequence):
+    """surface runoff [mm/day]"""
+    NDIM, NUMERIC = 1, False
+
+class ROH(sequencetools.FluxSequence):
+    """horizontal (sub-)surface runoff [mm/day]"""
+    NDIM, NUMERIC = 1, False
+
+class ROV(sequencetools.FluxSequence):
     """vertical (sub-)surface runoff [mm/day]"""
     NDIM, NUMERIC = 1, False
 
@@ -33,4 +41,4 @@ class ESub(sequencetools.FluxSequence):
 
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of the globwat model."""
-    _SEQCLASSES = (ERain, EC, EOW, EGrid, RO, ESub)
+    _SEQCLASSES = (ERain, EC, EOW, EGrid, RO, ROH, ROV, ESub)

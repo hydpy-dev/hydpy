@@ -383,12 +383,12 @@ def calc_gridevaporation_v1(self):
     >>> from hydpy.models.globwat import *
     >>> parameterstep('1d')
     >>> nmbgrids(3)
-    >>> fluxes.erain(1., 2., 3.)
-    >>> fluxes.ec(2., 3., 1.)
-    >>> fluxes.eow(3., 1., 2.)
+    >>> fluxes.erain(1., 0., 0.)
+    >>> fluxes.ec(0., 3., 0.)
+    >>> fluxes.eow(0., 0., 2.)
     >>> model.calc_gridevaporation_v1()
     >>> fluxes.egrid
-    egrid(6.0, 6.0, 6.0)
+    egrid(1.0, 3.0, 2.0)
     """
 
     con = self.parameters.control.fastaccess
@@ -528,6 +528,10 @@ def calc_subbasinbalance_v1(self):
 def calc_subbasinevaporation_v1(self):
     """calculate the (sub-)basin evaporation on t.
 
+    Required control parameters:
+      :class:`~hydpy.models.globwat.globwat_control.NmbGrids`
+      :class:`~hydpy.models.globwat.globwat_control.Area
+
     Required flux sequence:
       :class:`~hydpy.models.globwat.globwat_fluxes.EGrid`
 
@@ -542,15 +546,19 @@ def calc_subbasinevaporation_v1(self):
         >>> parameterstep('1d')
         >>> nmbgrids(3)
         >>> fluxes.egrid(2., 3., 1.)
+        >>> control.area(3., 3., 2.)
         >>> model.calc_subbasinevaporation_v1()
         >>> fluxes.esub
-        esub(6.0)
+        esub(2.125)
     """
 
     flu = self.sequences.fluxes.fastaccess
+    con = self.parameters.control.fastaccess
 
-    flu.esub = sum(flu.egrid)
+    for k in range(con.nmbgrids):
+        flu.esub += flu.egrid[k] * con.area[k]
 
+    flu.esub = flu.esub / sum(con.area)
 
 def calc_subbasinstorage_v1(self):
     """calculate the (sub-)basin storage on t.

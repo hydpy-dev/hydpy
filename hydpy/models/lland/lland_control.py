@@ -159,6 +159,12 @@ class TGr(lland_parameters.MultiParameterLand):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
 
+class TSp(lland_parameters.MultiParameterLand):
+    """Temperaturspanne flüssiger/fester Niederschlag (temperature range
+    with mixed precipitation) [°C]."""
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+
+
 class GTF(lland_parameters.MultiParameterLand):
     """Grad-Tag-Faktor (factor of the degree-day method) [mm/°C/T]."""
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
@@ -714,6 +720,6 @@ class EQD2(parametertools.SingleParameter):
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of HydPy-L-Land, directly defined by the user."""
     _PARCLASSES = (FT, NHRU, Lnk, FHRU, HNN, KG, KT, KE, KF, FLn, HInz, LAI,
-                   TRefT, TRefN, TGr, GTF, RSchmelz, CPWasser, PWMax,
+                   TRefT, TRefN, TGr, TSp, GTF, RSchmelz, CPWasser, PWMax,
                    GrasRef_R, NFk, RelWZ, RelWB, Beta, FBeta, DMax, DMin, BSf,
                    A1, A2, TInd, EQB, EQI1, EQI2, EQD1, EQD2)

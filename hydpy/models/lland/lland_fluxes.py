@@ -29,7 +29,12 @@ class EvPo(sequencetools.FluxSequence):
 
 
 class NBes(sequencetools.FluxSequence):
-    """Bestandsniederschlag (stand precipitation) [mm]."""
+    """Gesamter Bestandsniederschlag (total stand precipitation) [mm]."""
+    NDIM, NUMERIC = 1, False
+
+
+class SBes(sequencetools.FluxSequence):
+    """Schneeanteil Bestandsniederschlag (frozen stand precipitation) [mm]."""
     NDIM, NUMERIC = 1, False
 
 
@@ -99,5 +104,5 @@ class Q(sequencetools.FluxSequence):
 
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of the HydPy-L-Land model."""
-    _SEQCLASSES = (NKor, TKor, ET0, EvPo, NBes, EvI, EvB, WGTF, Schm, WaDa,
-                   QDB, QIB1, QIB2, QBB, QDGZ, Q)
+    _SEQCLASSES = (NKor, TKor, ET0, EvPo, SBes, NBes, EvI, EvB,
+                   WGTF, Schm, WaDa, QDB, QIB1, QIB2, QBB, QDGZ, Q)

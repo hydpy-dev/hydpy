@@ -399,6 +399,64 @@ def calc_evi_inzp_v1(self):
             flu.evi[k] = flu.evpo[k]
 
 
+def calc_sbes_v1(self):
+    """Calculate the frozen part of stand precipitation.
+
+
+    Required control parameters:
+      :class:`~hydpy.models.lland.lland_control.NHRU`
+      :class:`~hydpy.models.lland.lland_control.TGr`
+      :class:`~hydpy.models.lland.lland_control.TSp`
+
+    Required flux sequences:
+      :class:`~hydpy.models.lland.lland_fluxes.TKor`
+      :class:`~hydpy.models.lland.lland_fluxes.NBes`
+
+    Calculated flux sequence:
+      :class:`~hydpy.models.lland.lland_fluxes.SBes`
+
+    Examples:
+        In the first example, the threshold temperature of seven hydrological
+        response units is 0°C and the corresponding temperature interval of
+        mixed precipitation 2°C:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep('1d')
+        >>> nhru(7)
+        >>> tgr(0.)
+        >>> tsp(2.)
+
+        The value of `sbes` is zero above 1°C and equal to the value of
+        `nbes` below -1°C.  Between these temperature values, `sbes`
+        decreases linearly:
+
+        >>> fluxes.nbes = 4.
+        >>> fluxes.tkor = -10., -1., -.5, 0., .5, 1., 10.
+        >>> model.calc_sbes_v1()
+        >>> fluxes.sbes
+        sbes(4.0, 4.0, 3.0, 2.0, 1.0, 0.0, 0.0)
+
+        Note the special case of a zero temperature intervall.  With the
+        actual temperature beeing equal to the threshold temperature, the
+        the value of `sbes` is zero:
+
+        >>> tsp(0.)
+        >>> model.calc_sbes_v1()
+        >>> fluxes.sbes
+        sbes(4.0, 4.0, 4.0, 0.0, 0.0, 0.0, 0.0)
+    """
+    con = self.parameters.control.fastaccess
+    flu = self.sequences.fluxes.fastaccess
+    for k in range(con.nhru):
+        if flu.tkor[k] >= (con.tgr[k]+con.tsp[k]/2.):
+            flu.sbes[k] = 0.
+        elif flu.tkor[k] <= (con.tgr[k]-con.tsp[k]/2.):
+            flu.sbes[k] = flu.nbes[k]
+        else:
+            flu.sbes[k] = ((((con.tgr[k]+con.tsp[k]/2.)-flu.tkor[k]) /
+                            con.tsp[k])*flu.nbes[k])
+
+
 def calc_wgtf_v1(self):
     """Calculate the potential snow melt.
 
@@ -494,11 +552,9 @@ def calc_schm_wats_v1(self):
     Required control parameters:
       :class:`~hydpy.models.lland.lland_control.NHRU`
       :class:`~hydpy.models.lland.lland_control.Lnk`
-      :class:`~hydpy.models.lland.lland_control.TGr`
 
     Required flux sequences:
-      :class:`~hydpy.models.lland.lland_fluxes.TKor`
-      :class:`~hydpy.models.lland.lland_fluxes.NBes`
+      :class:`~hydpy.models.lland.lland_fluxes.SBes`
       :class:`~hydpy.models.lland.lland_fluxes.WGTF`
 
     Calculated flux sequence:
@@ -508,12 +564,7 @@ def calc_schm_wats_v1(self):
       :class:`~hydpy.models.lland.lland_states.WATS`
 
     Basic equations:
-      :math:`\\frac{dWATS}{dt}  = \\Bigl \\lbrace
-      {
-      {NBes - Schm \\ | \\ NKor < TGr}
-      \\atop
-      {Schm \\ | \\ NKor \\geq TGr}
-      }`
+      :math:`\\frac{dWATS}{dt}  = SBes - Schm`
       :math:`Schm = \\Bigl \\lbrace
       {
       {WGTF \\ | \\ WATS > 0}
@@ -522,45 +573,36 @@ def calc_schm_wats_v1(self):
       }`
 
     Examples:
-        Initialize one water and six arable land HRUs.  Assume the same
-        values for the threshold temperature, the initial amount of frozen
-        water and stand precipitation, but different values for the
-        actual air temperature and potential snow melt:
+        Initialize one water and four arable land HRUs.  Assume the same
+        values for the initial amount of frozen water and the frozen
+        part of stand precipitation, but different values for the
+        potential snow melt:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
-        >>> nhru(7)
-        >>> lnk(WASSER, ACKER, ACKER, ACKER, ACKER, ACKER, ACKER)
-        >>> tgr(1.)
+        >>> nhru(5)
+        >>> lnk(WASSER, ACKER, ACKER, ACKER, ACKER)
         >>> states.wats = 2.
-        >>> fluxes.nbes = 1.
-        >>> fluxes.tkor = 0., 0., 1., 2., 2., 2., 0.
-        >>> fluxes.wgtf = 0., 0., 0., 0., 1., 3., 3.
+        >>> fluxes.sbes = 1.
+        >>> fluxes.wgtf = 0., 0., 1., 3., 5.
         >>> model.calc_schm_wats_v1()
         >>> states.wats
-        wats(0.0, 3.0, 2.0, 2.0, 1.0, 0.0, 0.0)
+        wats(0.0, 3.0, 2.0, 0.0, 0.0)
         >>> fluxes.schm
-        schm(0.0, 0.0, 0.0, 0.0, 1.0, 2.0, 3.0)
+        schm(0.0, 0.0, 1.0, 3.0, 3.0)
 
         For water areas, both the frozen amount of water and actual melt
-        are set to zero.  For all other land use classes, the following
-        discussion for the arable land HRUs applies. As demonstated with
-        the help of the second, third, and forth HRU, stand precipitation
-        is added to the frozen amount of the snow layer whenever the
-        air temperature is below the associated threshold temperature.
-        The last three HRUs show that the actual melting is limited either
-        by :class:`~hydpy.models.lland.lland_fluxes.WGTF` (reflecting the
-        available energy) or the initial value of
-        :class:`~hydpy.models.lland.lland_states.WATS` (reflecting the
-        available frozen water).
+        are set to zero.  For all other land use classes, actual melt
+        is either limited by potential melt or the available frozen water,
+        which is the sum of initial frozen water and the frozen part
+        of stand precipitation.
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
     for k in range(con.nhru):
         if con.lnk[k] != WASSER:
-            if flu.tkor[k] < con.tgr[k]:
-                sta.wats[k] += flu.nbes[k]
+            sta.wats[k] += flu.sbes[k]
             flu.schm[k] = min(flu.wgtf[k], sta.wats[k])
             sta.wats[k] -= flu.schm[k]
         else:
@@ -1808,6 +1850,7 @@ class Model(modeltools.Model):
                    calc_evpo_v1,
                    calc_nbes_inzp_v1,
                    calc_evi_inzp_v1,
+                   calc_sbes_v1,
                    calc_wgtf_v1,
                    calc_schm_wats_v1,
                    calc_wada_waes_v1,

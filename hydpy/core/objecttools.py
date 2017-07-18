@@ -438,36 +438,116 @@ class Options(object):
 
 
 def trim(self, lower=None, upper=None):
-    """ToDo"""
+    """Trim the value(s) of  a :class:`ValueMath` instance.
+
+    One can pass the lower and/or the upper boundary as a function argument.
+    Otherwise, boundary values are taken from the class attribute `SPAN`
+    of the given :class:`ValueMath` instance, if available.
+
+    Note that method :func:`trim` works differently on :class:`ValueMath`
+    instances handling values of different types.  For floating point values,
+    an actual trimming is performed.  Additionally, a warning message is
+    raised if the trimming results in a change in value exceeding the
+    threshold value defined by function :func:`_tolerance`.  (This warning
+    message can be suppressed by setting the related option flag to False.)
+    For integer values, instead of a warning an exception is raised.
+    """
+    span = getattr(self, 'SPAN', (None, None))
+    if lower is None:
+        lower = span[0]
+    if upper is None:
+        upper = span[1]
+    type_ = getattr(self, 'TYPE', float)
+    if type_ is float:
+        if self.NDIM == 0:
+            _trim_float_0d(self, lower, upper)
+        else:
+            _trim_float_nd(self, lower, upper)
+    elif type_ in (int, bool):
+        if self.NDIM == 0:
+            _trim_int_0d(self, lower, upper)
+        else:
+            _trim_int_nd(self, lower, upper)
+    else:
+        raise NotImplementedError(
+            'Method `trim` can only be applied on parameters handling '
+            'integer or floating point values, but value type of parameter '
+            '`%s` is `%s`.' % (self.name, classname(self.TYPE)))
+
+
+def _trim_float_0d(self, lower, upper):
+    from hydpy.pub import options
+    if numpy.isnan(self.value):
+        return
+    if (lower is None) or numpy.isnan(lower):
+        lower = -numpy.inf
+    if (upper is None) or numpy.isnan(upper):
+        upper = numpy.inf
+    if self < lower:
+        if (self+_tolerance(self)) < (lower-_tolerance(lower)):
+            if options.warntrim:
+                self.warntrim()
+        self.value = lower
+    elif self > upper:
+        if (self-_tolerance(self)) > (upper+_tolerance(upper)):
+            if options.warntrim:
+                self.warntrim()
+        self.value = upper
+
+
+def _trim_float_nd(self, lower, upper):
     from hydpy.pub import options
     if lower is None:
-        lower = self.SPAN[0]
+        lower = -numpy.inf
+    lower = numpy.full(self.shape, lower, dtype=float)
+    lower[numpy.where(numpy.isnan(lower))] = -numpy.inf
     if upper is None:
-        upper = self.SPAN[1]
-    if self.NDIM == 0:
-        if (lower is not None) and (self < lower):
-            if (self+tolerance(self)) < (lower-tolerance(lower)):
-                if options.warntrim:
-                    self.warntrim()
-            self.value = lower
-        elif (upper is not None) and (self > upper):
-            if (self-tolerance(self)) > (upper+tolerance(upper)):
-                if options.warntrim:
-                    self.warntrim()
-            self.value = upper
-    else:
-        if (((lower is not None) and numpy.any(self.values < lower)) or
-                ((upper is not None) and numpy.any(self.values > upper))):
-            if (numpy.any((self+tolerance(self)) <
-                          (lower-tolerance(lower))) or
-                numpy.any((self-tolerance(self)) >
-                          (upper+tolerance(upper)))):
-                    if options.warntrim:
-                        self.warntrim()
-            self.values = numpy.clip(self.values, lower, upper)
+        upper = numpy.inf
+    upper = numpy.full(self.shape, upper, dtype=float)
+    upper[numpy.where(numpy.isnan(upper))] = numpy.inf
+    idxs = numpy.where(numpy.isnan(self.values))
+    self[idxs] = lower[idxs]
+    if numpy.any(self < lower) or numpy.any(self > upper):
+        if (numpy.any((self+_tolerance(self)) <
+                      (lower-_tolerance(lower))) or
+                numpy.any((self-_tolerance(self)) >
+                          (upper+_tolerance(upper)))):
+            if options.warntrim:
+                self.warntrim()
+        self.values = numpy.clip(self.values, lower, upper)
+    self[idxs] = numpy.nan
 
 
-def tolerance(values):
+def _trim_int_0d(self, lower, upper):
+    if lower is None:
+        lower = _INT_NAN
+    if upper is None:
+        upper = -_INT_NAN
+    if (self != _INT_NAN) and ((self < lower) or (self > upper)):
+        raise ValueError(
+            'The value `%d` of parameter `%s` of element `%s` is not valid.  '
+            % (self.value, self.name, devicename(self)))
+
+
+def _trim_int_nd(self, lower, upper):
+    if lower is None:
+        lower = _INT_NAN
+    lower = numpy.full(self.shape, lower, dtype=int)
+    if upper is None:
+        upper = -_INT_NAN
+    upper = numpy.full(self.shape, upper, dtype=int)
+    idxs = numpy.where(self == _INT_NAN)
+    self[idxs] = lower[idxs]
+    if numpy.any(self < lower) or numpy.any(self > upper):
+        raise ValueError(
+            'At least one value of parameter `%s` of element `%s` is not '
+            'valid.' % (self.name, devicename(self)))
+    self[idxs] = _INT_NAN
+
+
+def _tolerance(values):
+    """Returns some sort of "numerical accuracy" to be expected for the
+    given floating point value, see method :func:`trim`."""
     return abs(values*1e-15)
 
 
@@ -520,6 +600,8 @@ class ValueMath(object):
     NDIM = None  # ... e.g. as class attribute (int)
     name = None  # ... e.g. as property (str)
     value = None  # ... e.g. as property (float or ndarray of dtype float)
+    # ...and optionally...
+    INIT = None
 
     @staticmethod
     def _arithmetic_conversion(other):

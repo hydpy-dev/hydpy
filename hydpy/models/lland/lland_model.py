@@ -1827,13 +1827,13 @@ def update_outlets_v1(self):
     """Update the outlet link sequence.
 
     Required derived parameter:
-      :class:`~hydpy.models.lland.lland_control.QFactor`
+      :class:`~hydpy.models.lland.lland_derived.QFactor`
 
     Required flux sequences:
       :class:`~hydpy.models.lland.lland_fluxes.Q`
 
     Calculated flux sequence:
-      :class:`~hydpy.models.lland.lland_links.Q`
+      :class:`~hydpy.models.lland.lland_outlets.Q`
     """
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess

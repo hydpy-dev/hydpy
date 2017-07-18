@@ -420,7 +420,7 @@ class Parameters(parametertools.Parameters):
     def calc_qfactor(self):
         """Determine the factor for converting values of
         :class:`~hydpy.models.hland.hland_fluxes.QT` [mm/T] to values of
-        :class:`~hydpy.models.hland.hland_links.Q` [m³/s].
+        :class:`~hydpy.models.hland.hland_outlets.Q` [m³/s].
 
         Required control parameter:
           :class:`~hydpy.models.hland.hland_control.Area`

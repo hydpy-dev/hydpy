@@ -91,7 +91,7 @@ def calc_rainfedevaporation_v1(self):
         elif old.s[k] < der.seav[k]:
             flu.erain[k] = ((con.kc[con.vegetationclass[k]-1,
                                     der.moy[self.idx_sim]] *
-                             inp.e0[k]*old.s[k])/der.seav[k])
+                             inp.e0[k] * old.s[k]) / der.seav[k])
         else:
             flu.erain[k] = (con.kc[con.vegetationclass[k]-1,
                                    der.moy[self.idx_sim]] * inp.e0[k])
@@ -186,7 +186,7 @@ def calc_changeinstorage_v1(self):
       :class:`~hydpy.models.globwat.globwat_fluxes.ROV`
 
     Basic equation:
-      :math:`B = S(t-1) - (P(t) - E_{rain}(t) - R(t)) \\cdot \\delta t`
+      :math:`B = S(t-1) + (P(t) - E_{rain}(t) - R(t)) \\cdot \\delta t`
 
     Calculating for: B < Smax
 
@@ -203,7 +203,7 @@ def calc_changeinstorage_v1(self):
         >>> states.r = .5, .5, .5
         >>> model.calc_changeinstorage_v1()
         >>> states.b
-        b(0.0, 6.0, 7.0)
+        b(0.0, 2.35, 3.35)
 
     Calculating for: B >= Smax
 
@@ -212,7 +212,7 @@ def calc_changeinstorage_v1(self):
         >>> states.s.new = 5., 6., 7.
         >>> model.calc_changeinstorage_v1()
         >>> states.b
-        b(0.0, 4.25, 4.25)
+        b(0.0, 5.35, 6.35)
     """
 
     sta = self.sequences.states.fastaccess
@@ -226,14 +226,16 @@ def calc_changeinstorage_v1(self):
     for k in range(con.nmbgrids):
         if con.vegetationclass[k] != WATER:
             sta.b[k] = (old.s[k] +
-                        (inp.p[k]*(1-con.rofactor)-flu.erain[k]-sta.r[k]))
+                        (inp.p[k] * (1-con.rofactor) - flu.erain[k] - sta.r[k]))
             if sta.b[k] < der.smax[k]:
-                sta.b[k] = new.s[k]
+                new.s[k] = sta.b[k]
+                if new.s[k] < 0.:
+                    new.s[k] = 0.
                 flu.rov[k] = 0.
 
             else:
                 flu.rov[k] = (sta.b[k] - der.smax[k])
-                sta.b[k] = der.smax[k]
+                new.s[k] = der.smax[k]
             flu.rov[k] += inp.p[k] * con.rofactor
 
         else:
@@ -715,7 +717,7 @@ class Model(modeltools.Model):
         >>> outflow[0] = 0.
         >>> model.doit(1)
         >>> print(round(outflow[0], 6))
-        1.98
+        1.44
     """
 
     _RUNMETHODS = (update_inlets_v1,

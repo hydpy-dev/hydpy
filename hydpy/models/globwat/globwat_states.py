@@ -13,7 +13,7 @@ class R(sequencetools.StateSequence):
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
 class S(sequencetools.StateSequence):
-    """changes in storage on t [mm]."""
+    """available soil moisture on t [mm]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
 class B(sequencetools.StateSequence):

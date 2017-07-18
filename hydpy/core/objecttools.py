@@ -12,6 +12,10 @@ from hydpy.cythons import pointer
 # from hydpy.pub import ... (actual import commands moved to
 # different functions below to avoid circular dependencies)
 
+_INT_NAN = -999999
+"""Surrogate for `nan`, which is available for floating point values
+but not for integer values."""
+
 
 def dir_(self):
     """The prefered way for HydPy objects to respond to :func:`dir`.
@@ -34,7 +38,6 @@ def dir_(self):
     >>> options.dirverbose = False
     >>> print(dir_(Test())) # Short list with one single entry...
     ['only_public_attribute']
-
     """
     from hydpy.pub import options
     names = set()
@@ -58,7 +61,6 @@ def classname(self):
     float
     >>> print(classname(options))
     Options
-
     """
     if not inspect.isclass(self):
         self = type(self)
@@ -73,7 +75,6 @@ def instancename(self):
     >>> from hydpy.pub import options
     >>> print(instancename(options))
     options
-
     """
     return classname(self).lower()
 
@@ -85,7 +86,6 @@ def modulename(self):
     >>> from hydpy.pub import options
     >>> print(modulename(options))
     objecttools
-
     """
     return self.__module__.split('.')[-1]
 
@@ -94,7 +94,8 @@ def devicename(self):
     """Try to return the name of the (indirect) master
     :class:`~hydpy.core.devicetools.Node` or
     :class:`~hydpy.core.devicetools.Element` instance,
-    otherwise return `?`."""
+    otherwise return `?`.
+    """
     while True:
         device = getattr(self, 'element', getattr(self, 'node', None))
         if device is not None:
@@ -161,7 +162,6 @@ def description(self):
     is returned:
     >>> objecttools.description(type('Test', (), {}))
     'no description available'
-
     """
     if self.__doc__ in (None, ''):
         return 'no description available'
@@ -224,7 +224,6 @@ def repr_(value):
     '[1, 2, 3]'
     >>> repr_([1, 2, 3])
     '[1, 2, 3]'
-
     """
     from hydpy.pub import options
     if isinstance(value, (pointer.Double, pointer.PDouble)):
@@ -422,8 +421,7 @@ class Options(object):
     warnmissingsimfile = property(_getwarnmissingsimfile,
                                   _setwarnmissingsimfile)
 
-    def __dir__(self):
-        return dir_(self)
+    __dir__ = dir_
 
 
 def trim(self, lower=None, upper=None):

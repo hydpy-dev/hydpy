@@ -256,19 +256,6 @@ class Parameter(objecttools.ValueMath):
         self.fastaccess = type('JustForDemonstrationPurposes', (),
                                {self.name: None})()
 
-    def connect(self, subpars):
-        self.subpars = subpars
-        self.fastaccess = subpars.fastaccess
-        if self.NDIM == 0:
-            if self.TYPE is float:
-                setattr(self.fastaccess, self.name, numpy.nan)
-            else:
-                setattr(self.fastaccess, self.name, 0)
-        else:
-            setattr(self.fastaccess, self.name, None)
-        if getattr(self, 'INIT', None) is not None:
-            self.value = self.INIT
-
     def _getname(self):
         """Name of the parameter, which is the name if the instantiating
         subclass of :class:`Parameter` in lower case letters.
@@ -331,6 +318,25 @@ class Parameter(objecttools.ValueMath):
                                'read parameter `%s` from file `%s`.'
                                % (self.name, pyfile))
         return subself.values
+
+    @property
+    def initvalue(self):
+        initvalue = (getattr(self, 'INIT', None) if
+                     pub.options.usedefaultvalues else None)
+        if initvalue is None:
+            type_ = getattr(self, 'TYPE', float)
+            if type_ is float:
+                initvalue = numpy.nan
+            elif type_ is int:
+                initvalue = objecttools._INT_NAN
+            elif type_ is bool:
+                initvalue = False
+            else:
+                NotImplementedError(
+                    'For parameter `%s` no `INIT` class attribute is '
+                    'defined, but no standard value for its TYPE `%s`'
+                    'is available' % (self.name, objecttools.classname(type_)))
+        return initvalue
 
     def _getparameterstep(self):
         """The parameter time step size new parameter values might be related
@@ -397,8 +403,7 @@ class Parameter(objecttools.ValueMath):
 
     timefactor = property(_gettimefactor)
 
-    def trim(self, lower=None, upper=None):
-        objecttools.trim(self, lower, upper)
+    trim = objecttools.trim
 
     def warntrim(self):
         warnings.warn('For parameter %s of element %s at least one value '
@@ -467,6 +472,11 @@ class SingleParameter(Parameter):
         Parameter.__init__(self)
         if self.INIT is not None:
             self(self.INIT)
+
+    def connect(self, subpars):
+        self.subpars = subpars
+        self.fastaccess = subpars.fastaccess
+        setattr(self.fastaccess, self.name, self.initvalue)
 
     def _getshape(self):
         """An empty tuple.  (Only intended for increasing consistent usability
@@ -552,6 +562,11 @@ class MultiParameter(Parameter):
     """Base class for model parameters handling multiple values."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
+    def connect(self, subpars):
+        self.subpars = subpars
+        self.fastaccess = subpars.fastaccess
+        setattr(self.fastaccess, self.name, None)
+
     def _getshape(self):
         """A tuple containing the lengths in all dimensions of the parameter
         values.  Note that setting a new shape results in a loss of all values
@@ -566,7 +581,7 @@ class MultiParameter(Parameter):
 
     def _setshape(self, shape):
         try:
-            array = numpy.full(shape, 0., dtype=self.TYPE)
+            array = numpy.full(shape, self.initvalue, dtype=self.TYPE)
         except Exception:
             objecttools.augmentexcmessage('While trying create a new numpy '
                                           'ndarray` for parameter `%s`'

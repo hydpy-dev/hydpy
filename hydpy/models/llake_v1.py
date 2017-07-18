@@ -55,8 +55,11 @@ Integration examples:
     actually passed to `sim`:
 
     >>> from hydpy.core.testtools import Test
-    >>> test = Test(lake, (fluxes.qz, fluxes.qa, nodes.output.sequences.sim,
-    ...                    states.v, states.w))
+    >>> test = Test(lake,
+    ...             seqs=(fluxes.qz, fluxes.qa, nodes.output.sequences.sim,
+    ...                   states.v, states.w),
+    ...             inits={'v': 0.,
+    ...                    'w': 0.})
     >>> test.dateformat = '%d.%m.'
 
     Set the values of those control parameter, which remain fixed for all

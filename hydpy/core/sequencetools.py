@@ -225,15 +225,15 @@ class SubSequences(MetaSubSequencesClass):
     ...     _SEQCLASSES = (Temperature, Precipitation)
     >>> inputs = InputSequences(None) # Assign `None` for brevity.
     >>> inputs
-    temperature(0.0)
-    precipitation(0.0)
+    temperature(nan)
+    precipitation(nan)
 
     The order within the tuple determines the order of iteration, hence:
 
     >>> for (name, sequence) in inputs:
     ...     print(sequence)
-    temperature(0.0)
-    precipitation(0.0)
+    temperature(nan)
+    precipitation(nan)
 
     If one forgets to define a `_SEQCLASSES` tuple so (and maybe tries to add
     the sequences in the constructor of the subclass of
@@ -456,9 +456,20 @@ class Sequence(objecttools.ValueMath):
         """
         self.values = args
 
+    @property
+    def initvalue(self):
+        if pub.options.usedefaultvalues:
+            initvalue = getattr(self, 'INIT', None)
+            if initvalue is None:
+                initvalue = 0.
+        else:
+            initvalue = numpy.nan
+        return initvalue
+
     def _initvalues(self):
+
         if self.NDIM == 0:
-            setattr(self.fastaccess, self.name, 0.)
+            setattr(self.fastaccess, self.name, self.initvalue)
         else:
             setattr(self.fastaccess, self.name, None)
 
@@ -546,7 +557,7 @@ class Sequence(objecttools.ValueMath):
     def _setshape(self, shape):
         if self.NDIM:
             try:
-                array = numpy.full(shape, 0.)
+                array = numpy.full(shape, self.initvalue, dtype=float)
             except Exception:
                 prefix = ('While trying create a new numpy ndarray` for '
                           'sequence %s of element %s'
@@ -1085,7 +1096,8 @@ class LeftRightSequence(ModelIOSequence):
     NDIM = 1
 
     def _initvalues(self):
-        setattr(self.fastaccess, self.name, numpy.zeros(2, dtype=float))
+        setattr(self.fastaccess, self.name,
+                numpy.full(2, self.initvalue, dtype=float))
 
     def _getleft(self):
         """The "left" value of the actual parameter."""
@@ -1115,8 +1127,7 @@ class ConditionSequence(object):
         self.trim()
         self._oldargs = copy.deepcopy(args)
 
-    def trim(self, lower=None, upper=None):
-        objecttools.trim(self, lower, upper)
+    trim = objecttools.trim
 
     def warntrim(self):
         warnings.warn('For sequence %s of element %s at least one value '

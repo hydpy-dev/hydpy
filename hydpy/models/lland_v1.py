@@ -60,7 +60,20 @@ Integration tests:
     and prints their results for the given sequences:
 
     >>> from hydpy.core.testtools import Test
-    >>> test = Test(land)
+    >>> test = Test(land, inits={'inzp': 0.,
+    ...                          'wats': 0.,
+    ...                          'waes': 0.,
+    ...                          'bowa': 0.,
+    ...                          'qdgz1': 0.,
+    ...                          'qdgz2': 0.,
+    ...                          'qigz1': 0.,
+    ...                          'qigz2': 0.,
+    ...                          'qbgz': 0.,
+    ...                          'qdga1': 0.,
+    ...                          'qdga2': 0.,
+    ...                          'qiga1': 0.,
+    ...                          'qiga2': 0.,
+    ...                          'qbga': 0.})
     >>> test.dateformat = '%d.%m.'
 
     Set the input values for the complete simulation period:
@@ -88,6 +101,8 @@ Integration tests:
     >>> tgr(0.)
     >>> tsp(0.)
     >>> gtf(5.)
+    >>> rschmelz(334.)
+    >>> cpwasser(4.1868)
     >>> pwmax(1.4)
     >>> grasref_r(5.)
     >>> nfk(200.)

@@ -163,6 +163,7 @@ class TSp(lland_parameters.MultiParameterLand):
     """Temperaturspanne flüssiger/fester Niederschlag (temperature range
     with mixed precipitation) [°C]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+    INIT = 0.
 
 
 class GTF(lland_parameters.MultiParameterLand):

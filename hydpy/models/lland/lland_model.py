@@ -220,6 +220,8 @@ def calc_nbes_inzp_v1(self):
     Required control parameters:
       :class:`~hydpy.models.lland.lland_control.NHRU`
       :class:`~hydpy.models.lland.lland_control.Lnk`
+
+    Required derived parameter:
       :class:`~hydpy.models.lland.lland_control.KInz`
 
     Required flux sequence:
@@ -494,7 +496,14 @@ def calc_wgtf_v1(self):
         >>> trefn(1.)
         >>> fluxes.tkor = 2., 2., 2., -1., 0., 1.
 
-        First, note that the values of the degree-day factor are only half
+        The specific heat capacity and melt heat capacity of water are
+        (compared to most parameters of hydrological models) relatively
+        fixed properties:
+
+        >>> cpwasser(4.1868)
+        >>> rschmelz(334.0)
+
+        Note that the values of the degree-day factor are only half
         as much as the given value, due to the small simulation step size
         beeing only half as long as the parameter step size:
 
@@ -503,15 +512,6 @@ def calc_wgtf_v1(self):
         >>> gtf.values
         array([ 2.5,  2.5,  2.5,  2.5,  2.5,  2.5])
 
-        Secondly, note that the specific heat capacity and melt heat
-        capacity of water are (compared to most parameters in in
-        hydrological models) really fixed properties.  This is why these
-        parameters provide initial default values:
-
-        >>> cpwasser
-        cpwasser(4.1868)
-        >>> rschmelz
-        rschmelz(334.0)
 
         (These values are not hard coded, to allow for changing the
         sensitivity of the snow routine for precipitation driven snow

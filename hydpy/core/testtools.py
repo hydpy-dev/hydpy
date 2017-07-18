@@ -25,11 +25,11 @@ class Test(object):
     doctests like the one of module :mod:`~hydpy.models.llake_v1`.
 
     Note that all condition sequences (state and logging sequences) are
-    initialized with zero values before each test run, if no alternative
-    values are given in the `inits` dictionary.  The values of the
-    simulation sequences of outlet and sender nodes are always set to
-    zero before each test run.  All other parameter and sequence values
-    can be changed between different test runs.
+    initialized in accordance with the values are given in the `inits`
+    dictionary.  The values of the simulation sequences of outlet and
+    sender nodes are always set to zero before each test run.  All other
+    parameter and sequence values can be changed between different test
+    runs.
     """
     _dateformat = None
 
@@ -78,9 +78,9 @@ class Test(object):
                     (node in self.element.senders)):
                 node.sequences.sim[:] = 0.
         for (name, seq) in getattr(self.model.sequences, 'states', ()):
-            seq.old = self.inits.get(name, 0.)
+            seq(self.inits[name])
         for (name, seq) in getattr(self.model.sequences, 'logs', ()):
-            seq.value = self.inits.get(name, 0.)
+            seq(self.inits[name])
 
     def _print_results(self):
         strings = [['date'] + [seq.subseqs.node.name if

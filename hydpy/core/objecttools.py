@@ -267,6 +267,7 @@ class Options(object):
         self._warnmissingcontrolfile = False
         self._warnmissingobsfile = True
         self._warnmissingsimfile = True
+        self._usedefaultvalues = False
 
     def _getprintprogress(self):
         """True/False flag indicating whether information about the progress
@@ -420,6 +421,18 @@ class Options(object):
 
     warnmissingsimfile = property(_getwarnmissingsimfile,
                                   _setwarnmissingsimfile)
+
+    def _getusedefaultvalues(self):
+        """True/False flag indicating whether parameters values shall be
+        initialized with standard values or not.
+        """
+        return self._usedefaultvalues
+
+    def _setusedefaultvalues(self, value):
+        self._usedefaultvalues = bool(value)
+
+    usedefaultvalues = property(_getusedefaultvalues,
+                                _setusedefaultvalues)
 
     __dir__ = dir_
 

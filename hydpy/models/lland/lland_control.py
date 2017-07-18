@@ -574,7 +574,7 @@ class EQB(parametertools.SingleParameter):
         >>> eqb
         eqb(3.0)
         """
-        if (lower is None) and not numpy.isnan(self.subpars.eqi1):
+        if lower is None:
             lower = self.subpars.eqi1
         parametertools.SingleParameter.trim(self, lower, upper)
 
@@ -609,9 +609,9 @@ class EQI1(parametertools.SingleParameter):
         >>> eqi1
         eqi1(3.0)
         """
-        if (lower is None) and not numpy.isnan(self.subpars.eqi2):
+        if lower is None:
             lower = self.subpars.eqi2
-        if (upper is None) and not numpy.isnan(self.subpars.eqb):
+        if upper is None:
             upper = self.subpars.eqb
         parametertools.SingleParameter.trim(self, lower, upper)
 
@@ -646,9 +646,9 @@ class EQI2(parametertools.SingleParameter):
         >>> eqi2
         eqi2(3.0)
         """
-        if (lower is None) and not numpy.isnan(self.subpars.eqd1):
+        if lower is None:
             lower = self.subpars.eqd1
-        if (upper is None) and not numpy.isnan(self.subpars.eqi1):
+        if upper is None:
             upper = self.subpars.eqi1
         parametertools.SingleParameter.trim(self, lower, upper)
 
@@ -683,9 +683,9 @@ class EQD1(parametertools.SingleParameter):
         >>> eqd1
         eqd1(3.0)
         """
-        if (lower is None) and not numpy.isnan(self.subpars.eqd2):
+        if lower is None:
             lower = self.subpars.eqd2
-        if (upper is None) and not numpy.isnan(self.subpars.eqi2):
+        if upper is None:
             upper = self.subpars.eqi2
         parametertools.SingleParameter.trim(self, lower, upper)
 
@@ -713,7 +713,7 @@ class EQD2(parametertools.SingleParameter):
         >>> eqd2
         eqd2(3.0)
         """
-        if (upper is None) and not numpy.isnan(self.subpars.eqd1):
+        if upper is None:
             upper = self.subpars.eqd1
         parametertools.SingleParameter.trim(self, lower, upper)
 

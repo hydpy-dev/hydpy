@@ -3,7 +3,8 @@
 First the vertical water balance an second the horizontal water balance.
 The vertical water balance ic calculated per grid cell. The horizontal water
 balance is calculated per catchment. This models is primarily developt to
-calculate the evaporation.
+calculate the grid and subbasin evaporation, but the discharge is also roughly
+calculated.
 """
 
 # imports...
@@ -70,8 +71,9 @@ def calc_rainfedevaporation_v1(self):
         >>> fluxes.erain
         erain(0.0, 2.1, 0.0)
 
-    #Calculating Erain for the case: S(t-1) < SEAv
+    Calculating Erain for the case: S(t-1) < SEAv
 
+    Examples:
         >>> derived.seav(7., 8., 9.)
         >>> states.s.old = 4., 5., 6.
         >>> model.calc_rainfedevaporation_v1()
@@ -109,7 +111,7 @@ def calc_groundwaterrecharge_v1(self):
       :class:`~hydpy.models.globwat.globwat_derived.SMax`
       :class:`~hydpy.models.globwat.globwat_derived.SEAv`
 
-    Required state sequences:
+    Required state sequence:
       :class:`~hydpy.models.globwat.globwat_states.S`
 
     Calculated state sequence:
@@ -118,7 +120,7 @@ def calc_groundwaterrecharge_v1(self):
     Basic equation:
       :math:`R = \\frac {R_{max} \\cdot (S(t-1) - S_{eav})}{S_{max} - S_{eav}}`
 
-    Calculating R for the case: S(t-1) <= Smax and S(t-1) > Seav
+    Calculating R for the case: S(t-1) <= SMax and S(t-1) > SEAv
 
     Examples:
         >>> from hydpy.models.globwat import *
@@ -186,9 +188,9 @@ def calc_changeinstorage_v1(self):
       :class:`~hydpy.models.globwat.globwat_fluxes.ROV`
 
     Basic equation:
-      :math:`B = S(t-1) + (P(t) - E_{rain}(t) - R(t)) \\cdot \\delta t`
+      :math:`B = S(t-1) + (P(t) - E_{Rain}(t) - R(t)) \\cdot \\delta t`
 
-    Calculating for: B < Smax
+    Calculating for: B < SMax
 
     Examples:
         >>> from hydpy.models.globwat import *
@@ -205,7 +207,7 @@ def calc_changeinstorage_v1(self):
         >>> states.b
         b(0.0, 2.35, 3.35)
 
-    Calculating for: B >= Smax
+    Calculating for: B >= SMax
 
     Examples:
         >>> states.s.old = 4., 5., 6.
@@ -229,18 +231,21 @@ def calc_changeinstorage_v1(self):
                         (inp.p[k] * (1-con.rofactor) - flu.erain[k] - sta.r[k]))
             if sta.b[k] < der.smax[k]:
                 new.s[k] = sta.b[k]
+                flu.rov[k] = 0.
                 if new.s[k] < 0.:
                     new.s[k] = 0.
-                flu.rov[k] = 0.
 
             else:
                 flu.rov[k] = (sta.b[k] - der.smax[k])
+                if flu.rov[k] < 0.:
+                    flu.rov[k] = 0.
                 new.s[k] = der.smax[k]
             flu.rov[k] += inp.p[k] * con.rofactor
 
         else:
             flu.rov[k] = 0.
             sta.b[k] = 0.
+            new.s[k] = 0.
 
 
 def calc_irrigatedcropsevaporation_v1(self):
@@ -332,6 +337,7 @@ def calc_openwaterevaporation_v1(self):
 
     it is possible to name vegatationclass by number or name e.g. WATER = 11
 
+    Examples:
         >>> vegetationclass(RADRYTROP, WATER, WATER)
         >>> kc.radrytrop_feb = 1.1
         >>> kc.water_feb = 1.1
@@ -382,15 +388,16 @@ def calc_gridevaporation_v1(self):
     Basic equation:
       :math:`E_{Grid} = E_{Rain} + E_C + E_{OW}`
 
-    >>> from hydpy.models.globwat import *
-    >>> parameterstep('1d')
-    >>> nmbgrids(3)
-    >>> fluxes.erain(1., 0., 0.)
-    >>> fluxes.ec(0., 3., 0.)
-    >>> fluxes.eow(0., 0., 2.)
-    >>> model.calc_gridevaporation_v1()
-    >>> fluxes.egrid
-    egrid(1.0, 3.0, 2.0)
+    Examples:
+        >>> from hydpy.models.globwat import *
+        >>> parameterstep('1d')
+        >>> nmbgrids(3)
+        >>> fluxes.erain(1., 0., 0.)
+        >>> fluxes.ec(0., 3., 0.)
+        >>> fluxes.eow(0., 0., 2.)
+        >>> model.calc_gridevaporation_v1()
+        >>> fluxes.egrid
+        egrid(1.0, 3.0, 2.0)
     """
 
     con = self.parameters.control.fastaccess
@@ -462,14 +469,17 @@ def calc_openwaterbalance_v1(self):
 def calc_runoff_v1(self):
     """calcutalte total runoff.
 
+    Required control parameter:
+      :class:`~hydpy.models.globwat.globwat_control.NmbGrids`
+
     Required flux sequences:
       :class:`~hydpy.models.globwat.globwat_fluxes.ROV`
       :class:`~hydpy.models.globwat.globwat_fluxes.ROH`
 
-      Calculated flux sequence:
+    Calculated flux sequence:
       :class:`~hydpy.models.globwat.globwat_fluxes.RO`
 
-      Basic equation:
+    Basic equation:
       :math:`R_O = R_{OV} + R_{OH}`
 
     Examples:
@@ -482,6 +492,7 @@ def calc_runoff_v1(self):
         >>> fluxes.ro
         ro(5.0, 5.0, 5.0)
     """
+
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
 
@@ -491,6 +502,9 @@ def calc_runoff_v1(self):
 
 def calc_subbasinbalance_v1(self):
     """calculate the (sub-)basin water balance on t.
+
+    Required control parameter:
+      :class:`~hydpy.models.globwat.globwat_control.NmbGrids`
 
     Required state sequence:
       :class:`~hydpy.models.globwat.globwat_states.Qin`
@@ -588,6 +602,7 @@ def calc_subbasinstorage_v1(self):
 
         check for not negative subbasin storage
 
+    Examples:
         >>> states.qout.old = 36.
         >>> model.calc_subbasinstorage_v1()
         >>> states.ssb
@@ -634,6 +649,7 @@ def calc_outflow_v1(self):
 
 def update_inlets_v1(self):
     """Update the inlet link sequence."""
+
     sta = self.sequences.states.fastaccess
     inl = self.sequences.inlets.fastaccess
     sta.qin = inl.q[0][0]
@@ -641,6 +657,7 @@ def update_inlets_v1(self):
 
 def update_outlets_v1(self):
     """Update the outlet link sequence."""
+
     sta = self.sequences.states.fastaccess
     out = self.sequences.outlets.fastaccess
     out.q[0] += sta.qout

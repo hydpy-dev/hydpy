@@ -600,7 +600,7 @@ class ValueMath(object):
     >>> print(vm1 != 1.5)
     [ True  True False]
     >>>
-    >>> vm0.length
+    >>> vm1.length
     5
     """
     # Subclasses need to define...

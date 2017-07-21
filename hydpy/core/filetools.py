@@ -321,13 +321,16 @@ class ControlManager(object):
 
     controlpath = property(_getcontrolpath)
 
-    def loadfile(self, filename):
+    def loadfile(self, element=None, filename=None):
         """Return the namespace of the given file (and eventually of its
         subfile) as a :class:`dict`.
 
-        Argument:
+        At least one of the following arguments must be given:
+            * element (:class:`~hydpy.core.devicetools.Element`): The element
+              one wants the model to be connected with.
             * filename (:class:`str`): Any object returning a valid filename
-              with or without extension.
+              with or without extension.  If not given, the element's name
+              is applied.
         """
         workingpath = os.path.abspath(os.curdir)
         try:
@@ -336,7 +339,12 @@ class ControlManager(object):
             raise IOError('The specified control path `%s` does not exist.'
                           % self.controlpath)
         else:
-            info = {}
+            if element is not None:
+                info = {'element': element}
+                if filename is None:
+                    filename = element.name
+            else:
+                info = {}
             self.read2dict(filename, info)
             return info
         finally:

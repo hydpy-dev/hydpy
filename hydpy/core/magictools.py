@@ -174,6 +174,10 @@ def parameterstep(timestep=None):
     if model is None:
         model = namespace['Model']()
         namespace['model'] = model
+        element = namespace.get('element', None)
+        if isinstance(element, devicetools.Element):
+            element.model = model
+            model.element = element
         if pub.options.usecython and 'cythonizer' in namespace:
             cythonizer = namespace['cythonizer']
             namespace['cythonmodule'] = cythonizer.cymodule

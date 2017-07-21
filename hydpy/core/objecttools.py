@@ -565,6 +565,7 @@ class ValueMath(object):
     >>> from hydpy.core.objecttools import ValueMath
     >>> vm0 = ValueMath()
     >>> vm0.NDIM = 0
+    >>> vm0.shape = ()
     >>> vm0.value = 2.
     >>> print(vm0 + vm0)
     4.0
@@ -577,12 +578,15 @@ class ValueMath(object):
     False
     >>> print(vm0 != 1.5)
     True
+    >>> vm0.length
+    1
 
     Similar examples for 1-dimensional objects:
 
     >>> import numpy
     >>> vm1 = ValueMath()
     >>> vm1.NDIM = 1
+    >>> vm0.shape = (5,)
     >>> vm1.value = numpy.array([1.,2.,3.])
     >>> print(vm1 + vm1)
     [ 2.  4.  6.]
@@ -595,11 +599,15 @@ class ValueMath(object):
     [False False False]
     >>> print(vm1 != 1.5)
     [ True  True False]
+    >>>
+    >>> vm0.length
+    5
     """
     # Subclasses need to define...
-    NDIM = None  # ... e.g. as class attribute (int)
-    name = None  # ... e.g. as property (str)
-    value = None  # ... e.g. as property (float or ndarray of dtype float)
+    NDIM = None    # ... e.g. as class attribute (int)
+    name = None    # ... e.g. as property (str)
+    value = None   # ... e.g. as property (float or ndarray of dtype float)
+    shape = None   # ... e.gl as property (tuple of values of type int)
     # ...and optionally...
     INIT = None
 
@@ -614,6 +622,13 @@ class ValueMath(object):
         augmentexcmessage('While trying to %s %s instance `%s` and %s `%s`'
                           % (verb, classname(self), self.name,
                              classname(other), other))
+
+    @property
+    def length(self):
+        length = 1
+        for idx in range(self.NDIM):
+            length *= self.shape[idx]
+        return length
 
     def __add__(self, other):
         try:

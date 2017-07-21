@@ -604,18 +604,25 @@ class Sequence(objecttools.ValueMath):
                                           % self.name)
 
     def __repr__(self):
+        islong = self.length > 255
         if self.NDIM == 0:
             return '%s(%s)' % (self.name, objecttools.repr_(self.value))
         elif self.NDIM == 1:
             lines = []
             cols = ', '.join(objecttools.repr_(value) for value in self.values)
-            wrappedlines = textwrap.wrap(cols, 80-len(self.name)-2)
+            wrappedlines = textwrap.wrap(cols, 80-len(self.name)-3-islong)
             for (idx, line) in enumerate(wrappedlines):
                 if not idx:
-                    lines.append('%s(%s' % (self.name, line))
+                    if islong:
+                        lines.append('%s([%s' % (self.name, line))
+                    else:
+                        lines.append('%s(%s' % (self.name, line))
                 else:
-                    lines.append((len(self.name)+1)*' ' + line)
-            lines[-1] += ')'
+                    lines.append((len(self.name)+1+islong)*' ' + line)
+            if islong:
+                lines[-1] += '])'
+            else:
+                lines[-1] += ')'
             return '\n'.join(lines)
         elif self.NDIM == 2:
             lines = []
@@ -623,10 +630,19 @@ class Sequence(objecttools.ValueMath):
             for (idx, row) in enumerate(self.values):
                 cols = ', '.join(objecttools.repr_(value) for value in row)
                 if not idx:
-                    lines.append('%s(%s,' % (self.name, cols))
+                    if islong:
+                        lines.append('%s([[%s],' % (self.name, cols))
+                    else:
+                        lines.append('%s(%s,' % (self.name, cols))
                 else:
-                    lines.append('%s%s,' % (skip, cols))
-            lines[-1] = lines[-1][:-1] + ')'
+                    if islong:
+                        lines.append('%s[%s],' % (skip, cols))
+                    else:
+                        lines.append('%s%s,' % (skip, cols))
+            if islong:
+                lines[-1] = lines[-1][:-1] + '])'
+            else:
+                lines[-1] = lines[-1][:-1] + ')'
             return '\n'.join(lines)
         else:
             raise NotImplementedError('`repr` does not yet support '

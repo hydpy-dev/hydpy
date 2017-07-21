@@ -712,30 +712,48 @@ class MultiParameter(Parameter):
         try:
             values = self.compressrepr()
         except NotImplementedError:
+            islong = self.length > 255
             values = self.reverttimefactor(self.values)
         except BaseException:
             objecttools.augmentexcmessage('While trying to find a compressed '
                                           'string representation for '
                                           'parameter `%s`' % self.name)
+        else:
+            islong = False
         if self.NDIM == 1:
             cols = ', '.join(objecttools.repr_(value) for value in values)
-            wrappedlines = textwrap.wrap(cols, 80-len(self.name)-2)
+            wrappedlines = textwrap.wrap(cols, 80-len(self.name)-3-islong)
             for (idx, line) in enumerate(wrappedlines):
                 if not idx:
-                    lines.append('%s(%s' % (self.name, line))
+                    if islong:
+                        lines.append('%s([%s' % (self.name, line))
+                    else:
+                        lines.append('%s(%s' % (self.name, line))
                 else:
-                    lines.append((len(self.name)+1)*' ' + line)
-            lines[-1] += ')'
+                    lines.append((len(self.name)+1+islong)*' ' + line)
+            if islong:
+                lines[-1] += '])'
+            else:
+                lines[-1] += ')'
             return '\n'.join(lines)
         elif self.NDIM == 2:
             skip = (1+len(self.name)) * ' '
             for (idx, row) in enumerate(values):
                 cols = ', '.join(objecttools.repr_(value) for value in row)
                 if not idx:
-                    lines.append('%s(%s,' % (self.name, cols))
+                    if islong:
+                        lines.append('%s([[%s],' % (self.name, cols))
+                    else:
+                        lines.append('%s(%s,' % (self.name, cols))
                 else:
-                    lines.append('%s%s,' % (skip, cols))
-            lines[-1] = lines[-1][:-1] + ')'
+                    if islong:
+                        lines.append('%s[%s],' % (skip, cols))
+                    else:
+                        lines.append('%s%s,' % (skip, cols))
+            if islong:
+                lines[-1] = lines[-1][:-1] + '])'
+            else:
+                lines[-1] = lines[-1][:-1] + ')'
             return '\n'.join(lines)
         else:
             raise NotImplementedError('`repr` does not yet support '

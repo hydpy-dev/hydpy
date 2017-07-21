@@ -98,9 +98,15 @@ class BoWa(sequencetools.StateSequence):
         sequencetools.StateSequence.trim(self, lower, upper)
 
 
-class QDGZ(sequencetools.StateSequence):
-    """Zufluss in den Direktabfluss-Gebietsspeicher (inflow into the
-    storage compartment for direct runoff) [mm]."""
+class QDGZ1(sequencetools.StateSequence):
+    """Zufluss in den trägeren Direktabfluss-Gebietsspeicher (inflow into
+    the less responsive storage compartment for direct runoff) [mm]."""
+    NDIM, NUMERIC, SPAN = 0, False, (0., None)
+
+
+class QDGZ2(sequencetools.StateSequence):
+    """Zufluss in den dynamischeren Direktabfluss-Gebietsspeicher (inflow into
+    the more responsive storage compartment for direct runoff) [mm]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
 
 
@@ -122,9 +128,15 @@ class QBGZ(sequencetools.StateSequence):
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
 
 
-class QDGA(sequencetools.StateSequence):
-    """Abfluss aus dem Direktabfluss-Gebietsspeicher (outflow from the
-    storage compartment for direct runoff) [mm]."""
+class QDGA1(sequencetools.StateSequence):
+    """Abfluss aus dem trägeren Direktabfluss-Gebietsspeicher (outflow from
+    the less responsive storage compartment for direct runoff) [mm]."""
+    NDIM, NUMERIC, SPAN = 0, False, (0., None)
+
+
+class QDGA2(sequencetools.StateSequence):
+    """Abfluss aus dem dynamischeren Direktabfluss-Gebietsspeicher (outflow
+    from the more responsive storage compartment for direct runoff) [mm]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
 
 
@@ -148,5 +160,5 @@ class QBGA(sequencetools.StateSequence):
 
 class StateSequences(sequencetools.StateSequences):
     """State sequences of the HydPy-L-Land model."""
-    _SEQCLASSES = (Inzp, WATS, WAeS, BoWa,
-                   QDGZ, QIGZ1, QIGZ2, QBGZ, QDGA, QIGA1, QIGA2, QBGA)
+    _SEQCLASSES = (Inzp, WATS, WAeS, BoWa, QDGZ1, QDGZ2, QIGZ1, QIGZ2,
+                   QBGZ, QDGA1, QDGA2, QIGA1, QIGA2, QBGA)

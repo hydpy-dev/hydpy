@@ -113,32 +113,32 @@ def calc_fracrain_v1(self):
       :math:`0 \\leq FracRain \\leq 1`
 
 
-    Examles:  The threshold temperature of five
-    zones is 0°C and the corresponding temperature intervall of mixed
-    precipitation 2°C:
+    Examples:
+        The threshold temperature of seven zones is 0°C and the corresponding
+        temperature intervall of mixed precipitation 2°C:
 
-    >>> from hydpy.models.hland import *
-    >>> parameterstep('1d')
-    >>> nmbzones(7)
-    >>> tt(0.)
-    >>> ttint(2.)
+        >>> from hydpy.models.hland import *
+        >>> parameterstep('1d')
+        >>> nmbzones(7)
+        >>> tt(0.)
+        >>> ttint(2.)
 
-    The fraction of rainfall is zero below -1°C, is one above 1°C and
-    increases linearly in between:
+        The fraction of rainfall is zero below -1°C, is one above 1°C and
+        increases linearly in between:
 
-    >>> fluxes.tc = -10., -1., -.5, 0., .5, 1., 10.
-    >>> model.calc_fracrain_v1()
-    >>> fluxes.fracrain
-    fracrain(0.0, 0.0, 0.25, 0.5, 0.75, 1.0, 1.0)
+        >>> fluxes.tc = -10., -1., -.5, 0., .5, 1., 10.
+        >>> model.calc_fracrain_v1()
+        >>> fluxes.fracrain
+        fracrain(0.0, 0.0, 0.25, 0.5, 0.75, 1.0, 1.0)
 
-    Note the special case of a zero temperature intervall.  With a
-    actual temperature beeing equal to the threshold temperature, the
-    rainfall fraction is one:
+        Note the special case of a zero temperature intervall.  With a
+        actual temperature beeing equal to the threshold temperature, the
+        rainfall fraction is one:
 
-    >>> ttint(0.)
-    >>> model.calc_fracrain_v1()
-    >>> fluxes.fracrain
-    fracrain(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0)
+        >>> ttint(0.)
+        >>> model.calc_fracrain_v1()
+        >>> fluxes.fracrain
+        fracrain(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0)
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
@@ -919,6 +919,9 @@ def calc_in_wc_v1(self):
     Required state sequence:
       :class:`~hydpy.models.hland.hland_states.SP`
 
+    Required flux sequence
+      :class:`~hydpy.models.hland.hland_fluxes.TF`
+
     Calculated fluxes sequences:
       :class:`~hydpy.models.hland.hland_fluxes.In_`
 
@@ -941,13 +944,17 @@ def calc_in_wc_v1(self):
         >>> whc(.2)
         >>> states.sp = 0., 10., 10., 10., 5., 0.
 
+        Also set the actual value of stand precipitation to 5 mm/d:
+
+        >>> fluxes.tf = 5.
+
         When there is no (liquid) water content in the snow layer, no water
         can be released:
 
         >>> states.wc = 0.
         >>> model.calc_in_wc_v1()
         >>> fluxes.in_
-        in_(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        in_(5.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         >>> states.wc
         wc(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 
@@ -960,7 +967,7 @@ def calc_in_wc_v1(self):
         >>> states.wc = 5.
         >>> model.calc_in_wc_v1()
         >>> fluxes.in_
-        in_(0.0, 3.0, 3.0, 3.0, 4.0, 5.0)
+        in_(5.0, 3.0, 3.0, 3.0, 4.0, 5.0)
         >>> states.wc
         wc(0.0, 2.0, 2.0, 2.0, 1.0, 0.0)
 
@@ -971,9 +978,12 @@ def calc_in_wc_v1(self):
         >>> states.wc = 5.
         >>> model.calc_in_wc_v1()
         >>> fluxes.in_
-        in_(0.0, 5.0, 5.0, 5.0, 5.0, 5.0)
+        in_(5.0, 5.0, 5.0, 5.0, 5.0, 5.0)
         >>> states.wc
         wc(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+
+        Note that for the single lake zone, stand precipitation is
+        directly passed to `in_` in all three examples.
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
@@ -1054,12 +1064,12 @@ def calc_glmelt_in_v1(self):
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
     for k in range(con.nmbzones):
-        if con.zonetype[k] == GLACIER:
-            if (sta.sp[k] <= 0.) and (flu.tc[k] > der.ttm[k]):
-                flu.glmelt[k] = con.gmelt[k]*(flu.tc[k]-der.ttm[k])
-                flu.in_[k] += flu.glmelt[k]
-            else:
-                flu.glmelt[k] = 0.
+        if ((con.zonetype[k] == GLACIER) and
+                (sta.sp[k] <= 0.) and (flu.tc[k] > der.ttm[k])):
+            flu.glmelt[k] = con.gmelt[k]*(flu.tc[k]-der.ttm[k])
+            flu.in_[k] += flu.glmelt[k]
+        else:
+            flu.glmelt[k] = 0.
 
 
 def calc_r_sm_v1(self):

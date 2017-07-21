@@ -20,7 +20,7 @@ class HydPy(object):
     # A counter for the number of HydPy instances.
     nmb_instances = 0
 
-    def __init__(self, projectname):
+    def __init__(self, projectname=None):
 
         if pub.options.printprogress:
             print('HydPy initialization started at', time.strftime('%X'))
@@ -38,13 +38,19 @@ class HydPy(object):
                           % HydPy.nmb_instances)
 
         # Store public information in a seperate module.
-        pub.allowcoldstart = False
         pub.projectname = projectname
-        pub.filemanager = filetools.MainManager()
-        pub.networkmanager = filetools.NetworkManager()
-        pub.controlmanager = filetools.ControlManager()
-        pub.sequencemanager = filetools.SequenceManager()
-        pub.conditionmanager = filetools.ConditionManager()
+        if projectname is None:
+            pub.filemanager = None
+            pub.networkmanager = None
+            pub.controlmanager = None
+            pub.sequencemanager = None
+            pub.conditionmanager = None
+        else:
+            pub.filemanager = filetools.MainManager()
+            pub.networkmanager = filetools.NetworkManager()
+            pub.controlmanager = filetools.ControlManager()
+            pub.sequencemanager = filetools.SequenceManager()
+            pub.conditionmanager = filetools.ConditionManager()
 
         if pub.options.printprogress:
             print('HydPy initialization ended at', time.strftime('%X'))
@@ -290,46 +296,25 @@ class HydPy(object):
         self.closefiles()
 
     def prepare_modelseries(self, ramflag=True):
-        self.prepare_inputseries(ramflag)
-        self.prepare_fluxseries(ramflag)
-        self.prepare_stateseries(ramflag)
+        self.elements.prepare_allseries(ramflag)
 
     def prepare_inputseries(self, ramflag=True):
-        self._prepare_modelseries('inputs', ramflag)
+        self.elements.prepare_inputseries(ramflag)
 
     def prepare_fluxseries(self, ramflag=True):
-        self._prepare_modelseries('fluxes', ramflag)
+        self.elements.prepare_fluxseries(ramflag)
 
     def prepare_stateseries(self, ramflag=True):
-        self._prepare_modelseries('states', ramflag)
-
-    def _prepare_modelseries(self, name_subseqs, ramflag):
-        for (name, element) in self.elements:
-            sequences = element.model.sequences
-            subseqs = getattr(sequences, name_subseqs, None)
-            if subseqs:
-                if ramflag:
-                    subseqs.activate_ram()
-                else:
-                    subseqs.activate_disk()
+        self.elements.prepare_stateseries(ramflag)
 
     def prepare_nodeseries(self, ramflag=True):
-        self.prepare_simseries(ramflag)
-        self.prepare_obsseries(ramflag)
+        self.nodes.prepare_allseries(ramflag)
 
     def prepare_simseries(self, ramflag=True):
-        self._prepare_nodeseries('sim', ramflag)
+        self.elements.prepare_simseries(ramflag)
 
     def prepare_obsseries(self, ramflag=True):
-        self._prepare_nodeseries('obs', ramflag)
-
-    def _prepare_nodeseries(self, seqname, ramflag):
-        for (name, node) in self.nodes:
-            seq = getattr(node.sequences, seqname)
-            if ramflag:
-                seq.activate_ram()
-            else:
-                seq.activate_disk()
+        self.elements.prepare_obsseries(ramflag)
 
     def save_modelseries(self):
         self.save_inputseries()

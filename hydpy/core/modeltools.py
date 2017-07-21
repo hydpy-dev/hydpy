@@ -3,6 +3,7 @@
 # import...
 # ...from standard library
 from __future__ import division, print_function
+import types
 # ...from HydPy
 from hydpy.core import objecttools
 
@@ -11,17 +12,6 @@ class MetaModelType(type):
     def __new__(cls, name, parents, dict_):
         for tuplename in ('_RUNMETHODS', '_ADDMETHODS'):
             methods = dict_.get(tuplename, ())
-            uniques = {}
-            for method in methods:
-                dict_[method.__name__] = method
-                shortname = '_'.join(method.__name__.split('_')[:-1])
-                if shortname in uniques:
-                    uniques[shortname] = None
-                else:
-                    uniques[shortname] = method
-            for (shortname, method) in uniques.items():
-                if method is not None:
-                    dict_[shortname] = method
             if methods:
                 if tuplename == '_RUNMETHODS':
                     lst = ['\n\n\n    The following "run methods" are called '
@@ -52,6 +42,27 @@ class Model(MetaModelClass):
         self.sequences = None
         self.cymodel = type('dummy', (), {})
         self.cymodel.idx_sim = -999
+        self._init_methods()
+
+    def _init_methods(self):
+        """Convert all pure Python run and add functions of the model class to
+        methods and assign them to the model instance.
+        """
+        for tuplename in ('_RUNMETHODS', '_ADDMETHODS'):
+            functions = getattr(self, tuplename, ())
+            uniques = {}
+            for func in functions:
+                name = func.__name__
+                method = types.MethodType(func, self)
+                setattr(self, name, method)
+                shortname = '_'.join(name.split('_')[:-1])
+                if shortname in uniques:
+                    uniques[shortname] = None
+                else:
+                    uniques[shortname] = method
+            for (shortname, method) in uniques.items():
+                if method is not None:
+                    setattr(self, shortname, method)
 
     def connect(self):
         """Connect the link sequences of the actual model."""

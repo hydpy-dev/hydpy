@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
-
+"""
+The L-Lake model defines the methods and classes required for
+performing lake and dam retention processes as implemented in
+LARSIM.
+"""
 # import...
 # ...from standard library
 from __future__ import division, print_function

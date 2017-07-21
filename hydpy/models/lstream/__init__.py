@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
-
+"""
+The L-Stream model defines the methods and classes required for
+performing  flood routing calculations after the Williams method
+as implemented in LARSIM.
+"""
 # import...
 # ...from standard library
 from __future__ import division, print_function

@@ -1,46 +1,92 @@
 # -*- coding: utf-8 -*-
 """
-Integration test:
+Version 1 of the L-Land model is designed to aggree with the LARSIM-ME
+configuration of the LARSIM model used by the German Federal Institute
+of Hydrology (BfG), but offers more flexibility in some regards (e.g. in
+parameterization).  It can briefly be summarized as follows:
 
-    Note, that the following test still needs some testing itself.  The
-    results given below need to be calculated independently and a few
-    additional comments would be helpfull...
+ * Simple routines for adjusting the meteorological input data.
+ * Reference evapotranspiration after Turc-Wendling.
+ * An enhanced degree-day-method for calculating snow melt.
+ * A simple snow retention routine.
+ * Landuse and month specific potential evapotranspiration.
+ * Acual soil evapotranspiration after ATV-DVWK- 504 (2002).
+ * Soil routine based on the Xinanjiang model.
+ * One base flow, two interflow and two direct flow components.
+ * Seperate linear storages for modelling runoff concentration.
+ * Additional evaporation from water areas.
 
-    The only two simulation steps are in January:
+The following picture shows the general structure of L-Land Version 1.  Note
+that, besides water areas and sealed surface areas, all land use types rely
+on the same process equations:
+
+.. image:: HydPy-L-Land_Version-1.png
+
+As all models implemented in HydPy, base model L-Land can principally be
+applied on arbitrary simulation step sizes.  But for the L-Land version 1
+application model one has to be aware, that the Turc-Wendling equation
+for calculating reference evaporation is designed for daily values only.
+
+
+Integration tests:
+
+    The integration tests are performed in January (to allow for realistic
+    snow examples), spanning over a period of five days:
 
     >>> from hydpy import pub, Timegrid, Timegrids
-    >>> pub.timegrids = Timegrids(Timegrid('01.08.2000',
-    ...                                    '03.08.2000',
+    >>> pub.timegrids = Timegrids(Timegrid('01.01.2000',
+    ...                                    '06.01.2000',
     ...                                    '1d'))
 
-    Import the model and define the time settings:
+    Prepare the model instance and built the connections to element `land`
+    and node `outlet`:
 
     >>> from hydpy.models.lland_v1 import *
     >>> parameterstep('1d')
+    >>> from hydpy import Node, Element
+    >>> outlet = Node('outlet')
+    >>> land = Element('land', outlets=outlet)
+    >>> land.connect(model)
 
-    Do things that are normally done behind the scenes.  First, the input
-    data shall be available in RAM:
+    All tests shall be performed using single hydrological response unit with
+    a size of one square kilometre an a altitude of 100 meter:
 
-    >>> import numpy
-    >>> for (name, seq) in inputs:
-    ...     seq.ramflag = True
-    ...     seq._setarray(numpy.zeros(2))
+    >>> nhru(1)
+    >>> ft(1.)
+    >>> fhru(1.)
+    >>> hnn(100.)
 
-    Secondly, the final model output shall be passed to `result`:
+    Initialize a test function object, which prepares and runs the tests
+    and prints their results for the given sequences:
 
-    >>> from hydpy.cythons.pointer import Double
-    >>> result = Double(0.)
-    >>> outlets.q.setpointer(result)
+    >>> from hydpy.core.testtools import Test
+    >>> test = Test(land, inits={'inzp': 0.,
+    ...                          'wats': 0.,
+    ...                          'waes': 0.,
+    ...                          'bowa': 0.,
+    ...                          'qdgz1': 0.,
+    ...                          'qdgz2': 0.,
+    ...                          'qigz1': 0.,
+    ...                          'qigz2': 0.,
+    ...                          'qbgz': 0.,
+    ...                          'qdga1': 0.,
+    ...                          'qdga2': 0.,
+    ...                          'qiga1': 0.,
+    ...                          'qiga2': 0.,
+    ...                          'qbga': 0.})
+    >>> test.dateformat = '%d.%m.'
+
+    Set the input values for the complete simulation period:
+
+    >>> inputs.nied.series = 0., 5., 5., 5., 0.
+    >>> inputs.teml.series = -2., -1., 0., 1., 2.
+    >>> inputs.glob.series = 100.
 
     Define the control parameter values (select only arable land, sealed
     soil and water area as landuse classes, as all other land use classes
     are functionally identical with arable land):
 
-    >>> ft(100.)
-    >>> nhru(3)
-    >>> fhru(1./3.)
-    >>> lnk(ACKER, VERS, WASSER)
-    >>> hnn(100.)
+    >>> lnk(ACKER)
     >>> kg(1.2)
     >>> kt(-1.)
     >>> ke(0.9)
@@ -53,56 +99,39 @@ Integration test:
     >>> treft(0.)
     >>> trefn(0.)
     >>> tgr(0.)
+    >>> tsp(0.)
     >>> gtf(5.)
+    >>> rschmelz(334.)
+    >>> cpwasser(4.1868)
     >>> pwmax(1.4)
     >>> grasref_r(5.)
     >>> nfk(200.)
     >>> relwz(.5)
     >>> relwb(.05)
     >>> beta(.01)
+    >>> fbeta(1.)
     >>> dmax(5.)
     >>> dmin(1.)
     >>> bsf(.4)
+    >>> a1(0.)
+    >>> a2(inf)
     >>> tind(1.)
     >>> eqb(100.)
     >>> eqi1(50.)
     >>> eqi2(10.)
-    >>> eqd(2.)
-
-    Update the values of all derived parameters:
-
-    >>> model.parameters.update()
-
-    Set the initial values:
-
-    >>> states.inzp = .5, .5, 0.
-    >>> states.wats = 10., 10., 0.
-    >>> states.waes = 15., 15., 0.
-    >>> states.bowa = 150., 0., 0.
-    >>> states.qdgz = .1
-    >>> states.qi1gz = .1
-    >>> states.qi2gz = .1
-    >>> states.qbgz = .1
-    >>> states.qdga = .1
-    >>> states.qi1ga = .1
-    >>> states.qi2ga = .1
-    >>> states.qbga = .1
-
-    Set the input values for both simulation time steps:
-
-    >>> inputs.nied.series = 2.
-    >>> inputs.teml = 10.
-    >>> inputs.glob = 100.
+    >>> eqd1(2.)
+    >>> eqd2(1.)
 
     Check the correctness of the results:
 
-    >>> model.doit(0)
-    >>> print(round(result[0], 6))
-    0.229238
-    >>> result[0] = 0.
-    >>> model.doit(1)
-    >>> print(round(result[0], 6))
-    0.57346
+    >>> test()
+    |   date | nied | teml |  glob | nkor | tkor |      et0 |     evpo | nbes | sbes | evi |      evb |     wgtf |     schm |     wada |      qdb | qib1 | qib2 | qbb |     qdgz |        q | inzp |     wats |     waes |     bowa |    qdgz1 | qdgz2 | qigz1 | qigz2 | qbgz |    qdga1 | qdga2 | qiga1 | qiga2 | qbga |   outlet |
+    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01.01. |  0.0 | -2.0 | 100.0 |  0.0 | -3.0 | 0.779561 | 0.779561 |  0.0 |  0.0 | 0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |  0.0 |  0.0 | 0.0 |      0.0 |      0.0 |  0.0 |      0.0 |      0.0 |      0.0 |      0.0 |   0.0 |   0.0 |   0.0 |  0.0 |      0.0 |   0.0 |   0.0 |   0.0 |  0.0 |      0.0 |
+    | 02.01. |  5.0 | -1.0 | 100.0 |  6.0 | -2.0 | 0.813809 | 0.813809 |  5.8 |  5.8 | 0.2 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |  0.0 |  0.0 | 0.0 |      0.0 |      0.0 |  0.0 |      5.8 |      5.8 |      0.0 |      0.0 |   0.0 |   0.0 |   0.0 |  0.0 |      0.0 |   0.0 |   0.0 |   0.0 |  0.0 |      0.0 |
+    | 03.01. |  5.0 |  0.0 | 100.0 |  6.0 | -1.0 | 0.847495 | 0.847495 |  5.8 |  5.8 | 0.2 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |  0.0 |  0.0 | 0.0 |      0.0 |      0.0 |  0.0 |     11.6 |     11.6 |      0.0 |      0.0 |   0.0 |   0.0 |   0.0 |  0.0 |      0.0 |   0.0 |   0.0 |   0.0 |  0.0 |      0.0 |
+    | 04.01. |  5.0 |  1.0 | 100.0 |  6.0 |  0.0 | 0.880634 | 0.880634 |  5.8 |  0.0 | 0.2 |      0.0 |      0.0 |      0.0 |     1.16 | 0.000962 |  0.0 |  0.0 | 0.0 | 0.000962 | 0.000205 |  0.0 |     11.6 |    16.24 | 1.159038 | 0.000962 |   0.0 |   0.0 |   0.0 |  0.0 | 0.000205 |   0.0 |   0.0 |   0.0 |  0.0 | 0.000002 |
+    | 05.01. |  0.0 |  2.0 | 100.0 |  0.0 |  1.0 | 0.913238 | 0.913238 |  0.0 |  0.0 | 0.0 | 0.013321 | 5.012535 | 5.012535 | 7.017549 | 0.047086 |  0.0 |  0.0 | 0.0 | 0.047086 |  0.01033 |  0.0 | 6.587465 | 9.222451 |  8.11618 | 0.047086 |   0.0 |   0.0 |   0.0 |  0.0 |  0.01033 |   0.0 |   0.0 |   0.0 |  0.0 |  0.00012 |
 """
 # import...
 # ...from standard library
@@ -133,6 +162,7 @@ class Model(modeltools.Model):
                    lland_model.calc_evpo_v1,
                    lland_model.calc_nbes_inzp_v1,
                    lland_model.calc_evi_inzp_v1,
+                   lland_model.calc_sbes_v1,
                    lland_model.calc_wgtf_v1,
                    lland_model.calc_schm_wats_v1,
                    lland_model.calc_wada_waes_v1,
@@ -146,10 +176,12 @@ class Model(modeltools.Model):
                    lland_model.calc_qigz1_v1,
                    lland_model.calc_qigz2_v1,
                    lland_model.calc_qdgz_v1,
+                   lland_model.calc_qdgz1_qdgz2_v1,
                    lland_model.calc_qbga_v1,
                    lland_model.calc_qiga1_v1,
                    lland_model.calc_qiga2_v1,
-                   lland_model.calc_qdga_v1,
+                   lland_model.calc_qdga1_v1,
+                   lland_model.calc_qdga2_v1,
                    lland_model.calc_q_v1,
                    lland_model.update_outlets_v1)
 
@@ -171,6 +203,7 @@ class ControlParameters(parametertools.SubParameters):
                    lland_control.TRefT,
                    lland_control.TRefN,
                    lland_control.TGr,
+                   lland_control.TSp,
                    lland_control.GTF,
                    lland_control.RSchmelz,
                    lland_control.CPWasser,
@@ -180,14 +213,18 @@ class ControlParameters(parametertools.SubParameters):
                    lland_control.RelWZ,
                    lland_control.RelWB,
                    lland_control.Beta,
+                   lland_control.FBeta,
                    lland_control.DMax,
                    lland_control.DMin,
                    lland_control.BSf,
+                   lland_control.A1,
+                   lland_control.A2,
                    lland_control.TInd,
                    lland_control.EQB,
                    lland_control.EQI1,
                    lland_control.EQI2,
-                   lland_control.EQD)
+                   lland_control.EQD1,
+                   lland_control.EQD2)
 
 
 class DerivedParameters(parametertools.SubParameters):
@@ -199,7 +236,8 @@ class DerivedParameters(parametertools.SubParameters):
                    lland_derived.KB,
                    lland_derived.KI1,
                    lland_derived.KI2,
-                   lland_derived.KD,
+                   lland_derived.KD1,
+                   lland_derived.KD2,
                    lland_derived.QFactor)
 
 
@@ -217,6 +255,7 @@ class FluxSequences(sequencetools.FluxSequences):
                    lland_fluxes.ET0,
                    lland_fluxes.EvPo,
                    lland_fluxes.NBes,
+                   lland_fluxes.SBes,
                    lland_fluxes.EvI,
                    lland_fluxes.EvB,
                    lland_fluxes.WGTF,
@@ -226,6 +265,7 @@ class FluxSequences(sequencetools.FluxSequences):
                    lland_fluxes.QIB1,
                    lland_fluxes.QIB2,
                    lland_fluxes.QBB,
+                   lland_fluxes.QDGZ,
                    lland_fluxes.Q)
 
 
@@ -235,11 +275,13 @@ class StateSequences(sequencetools.StateSequences):
                    lland_states.WATS,
                    lland_states.WAeS,
                    lland_states.BoWa,
-                   lland_states.QDGZ,
+                   lland_states.QDGZ1,
+                   lland_states.QDGZ2,
                    lland_states.QIGZ1,
                    lland_states.QIGZ2,
                    lland_states.QBGZ,
-                   lland_states.QDGA,
+                   lland_states.QDGA1,
+                   lland_states.QDGA2,
                    lland_states.QIGA1,
                    lland_states.QIGA2,
                    lland_states.QBGA)

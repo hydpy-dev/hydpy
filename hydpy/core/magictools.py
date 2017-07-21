@@ -42,6 +42,10 @@ class Tester(object):
                 if (fn.endswith('.py') and not fn.startswith('_'))]
 
     def doit(self):
+        usedefaultvalues = pub.options.usedefaultvalues
+        pub.options.usedefaultvalues = False
+        printprogress = pub.options.printprogress
+        pub.options.printprogress = False
         warnsimulationstep = pub.options.warnsimulationstep
         pub.options.warnsimulationstep = False
         timegrids = pub.timegrids
@@ -80,6 +84,8 @@ class Tester(object):
                                         optionflags=doctest.ELLIPSIS)
                         warnings.resetwarnings()
         finally:
+            pub.options.usedefaultvalues = usedefaultvalues
+            pub.options.printprogress = printprogress
             pub.options.warnsimulationstep = warnsimulationstep
             pub.timegrids = timegrids
             parametertools.Parameter._simulationstep = _simulationstep
@@ -168,6 +174,10 @@ def parameterstep(timestep=None):
     if model is None:
         model = namespace['Model']()
         namespace['model'] = model
+        element = namespace.get('element', None)
+        if isinstance(element, devicetools.Element):
+            element.model = model
+            model.element = element
         if pub.options.usecython and 'cythonizer' in namespace:
             cythonizer = namespace['cythonizer']
             namespace['cythonmodule'] = cythonizer.cymodule
@@ -285,10 +295,20 @@ _all_spec2capt.update(_SEQ_SPEC2CAPT)
 
 
 def _add_title(title, marker):
+    """Return a title for a basemodels docstring."""
     return ['', title, marker*len(title)]
 
 
 def _add_lines(specification, module):
+    """Return autodoc commands for a basemodels docstring.
+
+    Note that `collection classes` (e.g. `Model`, `ControlParameters`,
+    `InputSequences` are placed on top of the respective section and the
+    `contained classes` (e.g. model methods, `ControlParameter` instances,
+    `InputSequence` instances at the bottom.  This differs from the order
+    of their definition in the respective modules, but results in a better
+    documentation structure.
+    """
     caption = _all_spec2capt.get(specification, 'dummy')
     if caption.split()[-1] in ('parameters', 'sequences'):
         exists_collectionclass = True
@@ -299,11 +319,13 @@ def _add_lines(specification, module):
     if specification == 'model':
         lines += ['',
                   '.. autoclass:: ' + module.__name__ + '.Model',
+                  '    :members:',
                   '    :show-inheritance:']
     elif exists_collectionclass:
         lines += ['',
                   '.. autoclass:: %s.%s' % (module.__name__,
                                             name_collectionclass),
+                  '    :members:',
                   '    :show-inheritance:']
     lines += ['',
               '.. automodule:: ' + module.__name__,
@@ -317,6 +339,22 @@ def _add_lines(specification, module):
 
 
 def autodoc_basemodel():
+    """Add an exhaustive docstring to the `__init__` module of a basemodel.
+
+    One just has to write `autodoc_basemodel()` at the bottom of an `__init__`
+    module of a basemodel, and all model, parameter and sequence information
+    are appended to the modules docstring.  The resulting docstring is suitable
+    automatic documentation generation via `Sphinx` and `autodoc`.  Hence
+    it helps in constructing HydPy's online documentation and supports the
+    embeded help feature of `Spyder` (to see the result, import the package
+    of an arbitrary basemodel, e.g. `from hydpy.models import lland` and
+    press `cntr+i` with the cursor placed on `lland` written in the IPython
+    console afterwards).
+
+    Note that the resulting documentation will be complete only when the
+    modules of the basemodel are named in the standard way, e.g. `lland_model`,
+    `lland_control`, `lland_inputs`.
+    """
     namespace = inspect.currentframe().f_back.f_locals
     doc = namespace.get('__doc__')
     if doc is None:

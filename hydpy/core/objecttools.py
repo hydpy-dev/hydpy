@@ -586,7 +586,7 @@ class ValueMath(object):
     >>> import numpy
     >>> vm1 = ValueMath()
     >>> vm1.NDIM = 1
-    >>> vm0.shape = (5,)
+    >>> vm1.shape = (5,)
     >>> vm1.value = numpy.array([1.,2.,3.])
     >>> print(vm1 + vm1)
     [ 2.  4.  6.]

@@ -9,7 +9,7 @@ from hydpy.core import sequencetools
 
 
 class R(sequencetools.StateSequence):
-    """groundwater recharge [mm/d]."""
+    """groundwater recharge [mm/day]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
 class S(sequencetools.StateSequence):
@@ -25,7 +25,7 @@ class BOW(sequencetools.StateSequence):
     NDIM, NUMERIC, SPAN  = 1, False, (None, None)
 
 class Bsb(sequencetools.StateSequence):
-    """(sub-)basin balance [m³/month]."""
+    """(sub-)basin balance [m³/day]."""
     NDIM, NUMERIC, SPAN  = 0, False, (None, None)
 
 class Ssb(sequencetools.StateSequence):
@@ -33,11 +33,11 @@ class Ssb(sequencetools.StateSequence):
     NDIM, NUMERIC, SPAN  = 0, False, (0., None)
 
 class Qout(sequencetools.StateSequence):
-    """outflow [m³/month]."""
+    """outflow [m³/day]."""
     NDIM, NUMERIC, SPAN  = 0, False, (0., None)
 
 class Qin(sequencetools.StateSequence):
-    """inflow [m³/month]."""
+    """inflow [m³/day]."""
     NDIM, NUMERIC, SPAN  = 0, False, (0., None)
 
 class StateSequences(sequencetools.StateSequences):

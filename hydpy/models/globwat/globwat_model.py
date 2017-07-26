@@ -88,12 +88,17 @@ def calc_rainfedevaporation_v1(self):
     old = self.sequences.states.fastaccess_old
 
     for k in range(con.nmbgrids):
-        if ((con.vegetationclass[k] == WATER) or (der.irrigation[k] == 1)):
+        if con.vegetationclass[k] == WATER:
             flu.erain[k] = 0.
+
+        elif der.irrigation[k] == 1:
+            flu.erain[k] = 0.
+
         elif old.s[k] < der.seav[k]:
             flu.erain[k] = ((con.kc[con.vegetationclass[k]-1,
                                     der.moy[self.idx_sim]] *
                              inp.e0[k] * old.s[k]) / der.seav[k])
+
         else:
             flu.erain[k] = (con.kc[con.vegetationclass[k]-1,
                                    der.moy[self.idx_sim]] * inp.e0[k])
@@ -151,7 +156,7 @@ def calc_groundwaterrecharge_v1(self):
     sta = self.sequences.states.fastaccess
 
     for k in range(con.nmbgrids):
-        if (con.vegetationclass[k] == WATER) or (old.s[k] < der.seav[k]):
+        if ((con.vegetationclass[k] == WATER) or (der.irrigation[k] == 1) or (old.s[k] < der.seav[k])):
             sta.r[k] = 0.
         elif (old.s[k] > der.smax[k]) or (der.smax[k] <= der.seav[k]):
             sta.r[k] = con.rmax[k]
@@ -196,16 +201,17 @@ def calc_changeinstorage_v1(self):
         >>> from hydpy.models.globwat import *
         >>> parameterstep('1d')
         >>> nmbgrids(3)
-        >>> vegetationclass(WATER, FOREST, DESERT)
+        >>> vegetationclass(WATER, FOREST, IRRCPR)
         >>> derived.smax(4.25, 4.25, 4.25)
         >>> states.s.old = 1., 2., 3.
         >>> states.s.new = 5., 6., 7.
         >>> inputs.p = 3.
         >>> fluxes.erain = 2., 2., 2.
         >>> states.r = .5, .5, .5
+        >>> derived.irrigation.update()
         >>> model.calc_changeinstorage_v1()
         >>> states.b
-        b(0.0, 2.35, 3.35)
+        b(0.0, 2.35, 0.0)
 
     Calculating for: B >= SMax
 
@@ -214,7 +220,7 @@ def calc_changeinstorage_v1(self):
         >>> states.s.new = 5., 6., 7.
         >>> model.calc_changeinstorage_v1()
         >>> states.b
-        b(0.0, 5.35, 6.35)
+        b(0.0, 5.35, 0.0)
     """
 
     sta = self.sequences.states.fastaccess
@@ -226,7 +232,17 @@ def calc_changeinstorage_v1(self):
     old = self.sequences.states.fastaccess_old
 
     for k in range(con.nmbgrids):
-        if con.vegetationclass[k] != WATER:
+        if con.vegetationclass[k] == WATER:
+            flu.rov[k] = 0.
+            sta.b[k] = 0.
+            new.s[k] = 0.
+
+        elif der.irrigation[k] == 1:
+            flu.rov[k] = 0.
+            sta.b[k] = 0.
+            new.s[k] = 0.
+
+        else:
             sta.b[k] = (old.s[k] +
                         (inp.p[k] * (1-con.rofactor) - flu.erain[k] - sta.r[k]))
             if sta.b[k] < der.smax[k]:
@@ -242,10 +258,29 @@ def calc_changeinstorage_v1(self):
                 new.s[k] = der.smax[k]
             flu.rov[k] += inp.p[k] * con.rofactor
 
-        else:
-            flu.rov[k] = 0.
-            sta.b[k] = 0.
-            new.s[k] = 0.
+
+
+
+#        if (con.vegetationclass[k] != WATER) or (der.irrigation[k] != 1):
+#            sta.b[k] = (old.s[k] +
+#                        (inp.p[k] * (1-con.rofactor) - flu.erain[k] - sta.r[k]))
+#            if sta.b[k] < der.smax[k]:
+#                new.s[k] = sta.b[k]
+#                flu.rov[k] = 0.
+#                if new.s[k] < 0.:
+#                    new.s[k] = 0.
+#
+#            else:
+#                flu.rov[k] = (sta.b[k] - der.smax[k])
+#                if flu.rov[k] < 0.:
+#                    flu.rov[k] = 0.
+#                new.s[k] = der.smax[k]
+#            flu.rov[k] += inp.p[k] * con.rofactor
+#
+#        else:
+#            flu.rov[k] = 0.
+#            sta.b[k] = 0.
+#            new.s[k] = 0.
 
 
 def calc_irrigatedcropsevaporation_v1(self):
@@ -348,21 +383,19 @@ def calc_openwaterevaporation_v1(self):
         >>> model.calc_openwaterevaporation_v1()
         >>> fluxes.eow
         eow(0.0, 5.5, 5.5)
-        >>> fluxes.roh
-        roh(0.0, 0.0, 0.0)
-    """
+     """
 
     con = self.parameters.control.fastaccess
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
     inp = self.sequences.inputs.fastaccess
-    new = self.sequences.states.fastaccess_new
+    #new = self.sequences.states.fastaccess_new
 
     for k in range(con.nmbgrids):
         if con.vegetationclass[k] == WATER:
             flu.eow[k] = con.kc[con.vegetationclass[k]-1,
                                 der.moy[self.idx_sim]] * inp.e0[k]
-            new.s[k] = 0.
+            #new.s[k] = 0.
 
         else:
             flu.eow[k] = 0.
@@ -406,6 +439,40 @@ def calc_gridevaporation_v1(self):
     for k in range(con.nmbgrids):
         flu.egrid[k] = flu.erain[k] + flu.ec[k] + flu.eow[k]
 
+def calc_subbasinevaporation_v1(self):
+    """calculate the (sub-)basin evaporation on t.
+
+    Required control parameters:
+      :class:`~hydpy.models.globwat.globwat_control.NmbGrids`
+      :class:`~hydpy.models.globwat.globwat_control.Area
+
+    Required flux sequence:
+      :class:`~hydpy.models.globwat.globwat_fluxes.EGrid`
+
+    Calculated flux sequence:
+      :class:`~hydpy.models.globwat.globwat_fluxes.ESub`
+
+    Basic equation:
+      :math:`E_{Sub} = \\sum E_{Grid}(t)`
+
+    Examples:
+        >>> from hydpy.models.globwat import *
+        >>> parameterstep('1d')
+        >>> nmbgrids(3)
+        >>> fluxes.egrid(2., 3., 1.)
+        >>> control.area(3., 3., 2.)
+        >>> model.calc_subbasinevaporation_v1()
+        >>> fluxes.esub
+        esub(2.125)
+    """
+
+    flu = self.sequences.fluxes.fastaccess
+    con = self.parameters.control.fastaccess
+
+    for k in range(con.nmbgrids):
+        flu.esub += flu.egrid[k] * con.area[k]
+
+    flu.esub = flu.esub / sum(con.area)
 
 def calc_openwaterbalance_v1(self):
     """calculate the water balance over open water on t.
@@ -450,7 +517,7 @@ def calc_openwaterbalance_v1(self):
         >>> model.calc_openwaterbalance_v1()
         >>> fluxes.roh
         roh(0.0, 2.0, 0.0)
-       """
+    """
 
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
@@ -465,6 +532,10 @@ def calc_openwaterbalance_v1(self):
 
             else:
                 flu.roh[k] = sta.bow[k]
+
+#'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+# adding runoff from vertical and horizontal step to one single flux
+#'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
 def calc_runoff_v1(self):
     """calcutalte total runoff.
@@ -499,12 +570,50 @@ def calc_runoff_v1(self):
     for k in range(con.nmbgrids):
         flu.ro[k] = flu.rov[k] + flu.roh[k]
 
+def calc_subbasinprecipitation_v1(self):
+    """calculate the (sub-)basin precipitation on t.
+
+    Required control parameters:
+      :class:`~hydpy.models.globwat.globwat_control.NmbGrids`
+      :class:`~hydpy.models.globwat.globwat_control.Area
+
+    Required input sequence:
+      :class:`~hydpy.models.globwat.globwat_inputs.P`
+
+    Calculated flux sequence:
+      :class:`~hydpy.models.globwat.globwat_fluxes.PSub`
+
+    Basic equation:
+      :math:`P_{Sub} = \\sum P_{Grid}(t)`
+
+    Examples:
+        >>> from hydpy.models.globwat import *
+        >>> parameterstep('1d')
+        >>> nmbgrids(3)
+        >>> inputs.p(1., .5, 3.)
+        >>> control.area(5., 6., 7.)
+        >>> model.calc_subbasinprecipitation_v1()
+        >>> fluxes.psub
+        psub(1.611111)
+    """
+
+    inp = self.sequences.inputs.fastaccess
+    con = self.parameters.control.fastaccess
+    flu = self.sequences.fluxes.fastaccess
+
+    for k in range(con.nmbgrids):
+        flu.psub += inp.p[k] * con.area[k]
+
+    flu.psub = flu.psub / sum(con.area)
 
 def calc_subbasinbalance_v1(self):
     """calculate the (sub-)basin water balance on t.
 
     Required control parameter:
       :class:`~hydpy.models.globwat.globwat_control.NmbGrids`
+
+    Required derived parameter:
+      :class:`~hydpy.models.globwat.globwat_derived.QFactor`
 
     Required state sequence:
       :class:`~hydpy.models.globwat.globwat_states.Qin`
@@ -525,59 +634,27 @@ def calc_subbasinbalance_v1(self):
         >>> from hydpy.models.globwat import *
         >>> parameterstep('1d')
         >>> nmbgrids(3)
+        >>> control.area(5., 6., 7.)
+        >>> derived.qfactor = .2
         >>> states.qin(5.)
-        >>> inputs.p(1)
-        >>> fluxes.egrid(2.)
+        >>> fluxes.psub(3.)
+        >>> fluxes.esub(2.)
         >>> model.calc_subbasinbalance_v1()
         >>> states.bsb
-        bsb(2.0)
+        bsb(26.0)
     """
 
     flu = self.sequences.fluxes.fastaccess
+    der = self.parameters.derived.fastaccess
     sta = self.sequences.states.fastaccess
-    inp = self.sequences.inputs.fastaccess
 
-    # hier aufpassen, es können negative Werte entstehen, wenn die Verdunstung
-    # hoch und Qin sowie Niederschlag gering sind
-    sta.bsb = sta.qin + sum(inp.p) - sum(flu.egrid)
-
-def calc_subbasinevaporation_v1(self):
-    """calculate the (sub-)basin evaporation on t.
-
-    Required control parameters:
-      :class:`~hydpy.models.globwat.globwat_control.NmbGrids`
-      :class:`~hydpy.models.globwat.globwat_control.Area
-
-    Required flux sequence:
-      :class:`~hydpy.models.globwat.globwat_fluxes.EGrid`
-
-    Calculated flux sequence:
-      :class:`~hydpy.models.globwat.globwat_fluxes.ESub`
-
-    Basic equation:
-      :math:`E_{Sub} = \\sum E_{Grid}(t)`
-
-    Examples:
-        >>> from hydpy.models.globwat import *
-        >>> parameterstep('1d')
-        >>> nmbgrids(3)
-        >>> fluxes.egrid(2., 3., 1.)
-        >>> control.area(3., 3., 2.)
-        >>> model.calc_subbasinevaporation_v1()
-        >>> fluxes.esub
-        esub(2.125)
-    """
-
-    flu = self.sequences.fluxes.fastaccess
-    con = self.parameters.control.fastaccess
-
-    for k in range(con.nmbgrids):
-        flu.esub += flu.egrid[k] * con.area[k]
-
-    flu.esub = flu.esub / sum(con.area)
+    sta.bsb = (sta.qin / der.qfactor) + flu.psub - flu.esub
 
 def calc_subbasinstorage_v1(self):
     """calculate the (sub-)basin storage on t.
+
+    Required derived parameter:
+      :class:`~hydpy.models.globwat.globwat_derived.QFactor`
 
     Required state sequences:
       :class:`~hydpy.models.globwat.globwat_states.Ssb`
@@ -593,9 +670,10 @@ def calc_subbasinstorage_v1(self):
     Examples:
         >>> from hydpy.models.globwat import *
         >>> parameterstep('1d')
+        >>> derived.qfactor = .5
         >>> states.ssb.old = 25.
         >>> states.bsb = 1.
-        >>> states.qout.old = 6.
+        >>> states.qout.old = 3.
         >>> model.calc_subbasinstorage_v1()
         >>> states.ssb
         ssb(20.0)
@@ -603,7 +681,7 @@ def calc_subbasinstorage_v1(self):
         check for not negative subbasin storage
 
     Examples:
-        >>> states.qout.old = 36.
+        >>> states.qout.old = 16.
         >>> model.calc_subbasinstorage_v1()
         >>> states.ssb
         ssb(0.0)
@@ -611,8 +689,9 @@ def calc_subbasinstorage_v1(self):
 
     sta = self.sequences.states.fastaccess
     old = self.sequences.states.fastaccess_old
+    der = self.parameters.derived.fastaccess
 
-    sta.ssb = old.ssb + sta.bsb - old.qout
+    sta.ssb = old.ssb + sta.bsb - (old.qout / der.qfactor)
     if sta.ssb < 0.:
         sta.ssb = 0.
 
@@ -734,7 +813,7 @@ class Model(modeltools.Model):
         >>> outflow[0] = 0.
         >>> model.doit(1)
         >>> print(round(outflow[0], 6))
-        1.44
+        0.304818
     """
 
     _RUNMETHODS = (update_inlets_v1,
@@ -743,11 +822,12 @@ class Model(modeltools.Model):
                    calc_changeinstorage_v1,
                    calc_irrigatedcropsevaporation_v1,
                    calc_openwaterevaporation_v1,
+                   calc_gridevaporation_v1,
+                   calc_subbasinevaporation_v1,
                    calc_openwaterbalance_v1,
                    calc_runoff_v1,
-                   calc_gridevaporation_v1,
+                   calc_subbasinprecipitation_v1,
                    calc_subbasinbalance_v1,
-                   calc_subbasinevaporation_v1,
                    calc_subbasinstorage_v1,
                    calc_outflow_v1,
                    update_outlets_v1)

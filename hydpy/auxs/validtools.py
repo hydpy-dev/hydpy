@@ -43,7 +43,7 @@ def test_equal_shape(**kwargs):
         raise ValueError(
             'The shapes of the following objects are not equal: %s.'
             % ', '.join('%s %s' % (name, tuple(shape)) for (name, shape)
-                        in zip(names, shapes)))
+                        in sorted(zip(names, shapes))))
 
 
 def test_non_negative(**kwargs):

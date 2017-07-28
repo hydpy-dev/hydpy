@@ -16,7 +16,7 @@ def test_equal_shape(**kwargs):
 
     If all shapes are equal, nothing happens:
 
-    >>> from hydpy.auxs.statstools import test_equal_shape
+    >>> from hydpy.auxs.validtools import test_equal_shape
     >>> test_equal_shape(arr1=numpy.array([1., 2.]),
     ...                  arr2=numpy.array([3., 4.]),
     ...                  arr3=numpy.array([5., 6.]))
@@ -52,7 +52,7 @@ def test_non_negative(**kwargs):
 
     If all values are non negative, nothing happens:
 
-    >>> from hydpy.auxs.statstools import test_non_negative
+    >>> from hydpy.auxs.validtools import test_non_negative
     >>> test_non_negative(arr1=numpy.array([1., 2.]),
     ...                   arr2=numpy.array([3., 4.]),
     ...                   arr3=numpy.array([5., 6.]))
@@ -76,6 +76,6 @@ def test_non_negative(**kwargs):
     if any(negs):
         raise ValueError(
             'For the following objects, at least one value is negative: %s.'
-            % ', '.join(name for name, neg in zip(names, negs) if neg))
+            % ', '.join(name for name, neg in sorted(zip(names, negs)) if neg))
 
 magictools.autodoc_module()

@@ -8,7 +8,7 @@ from __future__ import division, print_function
 # ...from site-packages
 import numpy
 # ...from HydPy
-from hydpy.core import magictools
+from hydpy.core import autodoctools
 from hydpy.core import objecttools
 from hydpy.auxs import validtools
 
@@ -107,4 +107,4 @@ def calc_mean_time_deviation(timepoints, weights, mean_time=None):
         objecttools.augmentexcmessage('While trying to calculate the weighted '
                                       'time deviation from mean time')
 
-magictools.autodoc_module()
+autodoctools.autodoc_module()

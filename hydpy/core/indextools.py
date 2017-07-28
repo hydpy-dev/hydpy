@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+"""This module implements tools to determine time related indices."""
 # import...
 # ...from standard library
 from __future__ import division, print_function
@@ -8,6 +8,7 @@ import numpy
 # ...from HydPy
 from hydpy.core import objecttools
 from hydpy.core import timetools
+from hydpy.core import autodoctools
 # from hydpy.pub import ... (actual import commands moved to
 # different functions below to avoid circular dependencies)
 
@@ -215,3 +216,6 @@ class Indexer(object):
         for (jdx, date) in enumerate(timegrids.init):
             idxs[jdx] = func(date)
         return idxs
+
+
+autodoctools.autodoc_module()

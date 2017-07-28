@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
-
+"""This modules implements tools for handling connections between
+:class:`~hydpy.core.devicetools.Node` and
+:class:`~hydpy.core.devicetools.Element` instances.
+"""
 # import...
 # ...from standard library
 from __future__ import division, print_function
 # ...from Hydpy
 from hydpy.core import objecttools
+from hydpy.core import autodoctools
 
 
 class Connections(object):
@@ -56,3 +60,6 @@ class Connections(object):
 
     def __dir__(self):
         return objecttools.dir_(self)
+
+
+autodoctools.autodoc_module()

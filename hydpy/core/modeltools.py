@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
-
+"""This module implements tools for the development of hydrological models.
+"""
 # import...
 # ...from standard library
 from __future__ import division, print_function
 import types
 # ...from HydPy
 from hydpy.core import objecttools
+from hydpy.core import autodoctools
 
 
-class MetaModelType(type):
+class MetaModel(type):
     def __new__(cls, name, parents, dict_):
         for tuplename in ('_RUNMETHODS', '_ADDMETHODS'):
             methods = dict_.get(tuplename, ())
@@ -23,14 +25,15 @@ class MetaModelType(type):
                     lst.append('      * :func:`~%s` `%s`'
                                % ('.'.join((method.__module__,
                                             method.__name__)),
-                                  objecttools.description(method)))
+                                  autodoctools.description(method)))
                 dict_['__doc__'] += '\n'.join(l for l in lst)
         return type.__new__(cls, name, parents, dict_)
 
-MetaModelClass = MetaModelType('MetaModelClass', (), {})
+
+_MetaModel = MetaModel('MetaModel', (), {})
 
 
-class Model(MetaModelClass):
+class Model(_MetaModel):
     """Base class for all hydrological models."""
 
     _RUNMETHODS = ()
@@ -173,3 +176,6 @@ class Model(MetaModelClass):
 
     def __dir__(self):
         return objecttools.dir_(self)
+
+
+autodoctools.autodoc_module()

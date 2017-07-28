@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-
+"""This module implements tools for handling the parameters of
+hydrological models.
+"""
 # import...
 # ...standard
 from __future__ import division, print_function
@@ -16,6 +18,7 @@ from hydpy import pub
 from hydpy.core import objecttools
 from hydpy.core import filetools
 from hydpy.core import timetools
+from hydpy.core import autodoctools
 
 
 # The import of `_strptime` is not thread save.  The following call of
@@ -129,7 +132,7 @@ class MetaSubParametersType(type):
                     lst.append('      * :class:`~%s` `%s`'
                                % ('.'.join((parclass.__module__,
                                             parclass.__name__)),
-                                  objecttools.description(parclass)))
+                                  autodoctools.description(parclass)))
             doc = dict_.get('__doc__', None)
             if doc is None:
                 doc = ''
@@ -1494,3 +1497,6 @@ class IndexParameter(MultiParameter):
 
     def setreference(self, indexarray):
         setattr(self.fastaccess, self.name, indexarray)
+
+
+autodoctools.autodoc_module()

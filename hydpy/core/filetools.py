@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-
+"""This module implements tools for handling the folder structure
+of HydPy projects.
+"""
 # import...
 # ...from standard library
 from __future__ import division, print_function
@@ -12,6 +14,7 @@ from hydpy.core import objecttools
 from hydpy.core import timetools
 from hydpy.core import devicetools
 from hydpy.core import selectiontools
+from hydpy.core import autodoctools
 
 
 class MainManager(object):
@@ -964,3 +967,6 @@ class ConditionManager(object):
         except BaseException:
             prefix = 'While trying to read the conditions file `%s`' % filepath
             objecttools.augmentexcmessage(prefix)
+
+
+autodoctools.autodoc_module()

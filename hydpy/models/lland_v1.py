@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Version 1 of the L-Land model is designed to aggree with the LARSIM-ME
+Version 1 of the L-Land model is designed to agree with the LARSIM-ME
 configuration of the LARSIM model used by the German Federal Institute
 of Hydrology (BfG), but offers more flexibility in some regards (e.g. in
 parameterization).  It can briefly be summarized as follows:

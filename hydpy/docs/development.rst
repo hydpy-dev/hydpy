@@ -472,10 +472,10 @@ A HydPy example:
 
     >>> from hydpy import Period
     >>> Period('1d')
-    Period("1d")
-    >>> eval('Period("1d")') is Period('1d')
+    Period('1d')
+    >>> eval("Period('1d')") is Period('1d')
     False
-    >>> eval('Period("1d")') == Period('1d')
+    >>> eval("Period('1d')") == Period('1d')
     True
 
 For nested objects this might be more hard to accomplish, but sometimes it's
@@ -490,10 +490,10 @@ A HydPy example:
 
     >>> from hydpy import Timegrid
     >>> Timegrid('01.11.1996', '1.11.2006', '1d')
-    Timegrid("01.11.1996 00:00:00",
-             "01.11.2006 00:00:00",
-             "1d")
-    >>> eval('Timegrid("01.11.1996 00:00:00", "01.11.2006 00:00:00", "1d")') == Timegrid('01.11.1996', '1.11.2006', '1d')
+    Timegrid('01.11.1996 00:00:00',
+             '01.11.2006 00:00:00',
+             '1d')
+    >>> eval("Timegrid('01.11.1996 00:00:00', '01.11.2006 00:00:00', '1d')") == Timegrid('01.11.1996', '1.11.2006', '1d')
     True
 
 ToDo: For deeply nested objects, this strategy becomes infeasible, of course.

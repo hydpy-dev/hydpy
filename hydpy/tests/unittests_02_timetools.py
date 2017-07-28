@@ -65,6 +65,9 @@ class Test02DateProperties(unittest.TestCase):
         self.refdate = datetime.datetime(1996, 11, 1, 12, 30, 5)
         self.testdate = timetools.Date(self.refdate)
 
+    def tearDown(self):
+        self.testdate.refmonth = 'November'
+
     def test_01_get_year(self):
         self.assertEqual(self.refdate.year, self.testdate.year)
     def test_02_get_month(self):

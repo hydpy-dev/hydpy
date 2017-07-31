@@ -8,6 +8,7 @@ import copy
 import time
 import calendar
 import collections
+import warnings
 # ...from third party packages
 import numpy
 # ...from HydPy
@@ -1076,7 +1077,13 @@ class Timegrids(object):
         ...
         ValueError: The simulation time grid is not properly alligned on the initialization time grid.
     """
-    def __init__(self, init, sim=None):
+    def __init__(self, init, sim=None, data=None):
+        if data is not None:
+            warnings.warn(objecttools.HydPyDeprecationWarning(
+                'The global `data` timegrid information is outdated.  Now '
+                'each time series file contains its own `data` timegrid.  '
+                'Supplying the `data` keyword to the `Timegrids` constructor '
+                'does nothing and will be banned in the future.'))
         self.init = init
         if sim is None:
             self.sim = self.init.copy()

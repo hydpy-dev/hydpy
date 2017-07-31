@@ -785,4 +785,8 @@ class ValueMath(object):
         return numpy.round(self.value, ndigits)
 
 
+class HydPyDeprecationWarning(DeprecationWarning):
+    pass
+
+
 autodoctools.autodoc_module()

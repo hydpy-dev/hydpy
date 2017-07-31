@@ -385,3 +385,58 @@ def autodoc_basemodel():
             lines += new_lines
     doc += '\n'.join(lines)
     namespace['__doc__'] = doc
+
+
+def _number_of_line(member):
+    """Try to return the number of the first line of the definition of a
+    member of a module."""
+    if isinstance(member, tuple):
+        member = member[1]
+    try:
+        return member.__code__.co_firstlineno
+    except AttributeError:
+        pass
+    try:
+        return inspect.findsource(member)[1]
+    except BaseException:
+        pass
+    for (key, value) in vars(member).items():
+        try:
+            return value.__code__.co_firstlineno
+        except AttributeError:
+            pass
+    else:
+        return 0
+
+
+def autodoc_module():
+    """Add a short summary of all implemented members to a modules docstring.
+
+    Just write `magictools.autodoc_module()` at the very bottom of the module.
+
+    Note that function :func:`autodoc_module` is not thought to be used for
+    modules defining models.  For base models, see function
+    :func:`autodoc_basemodel` instead.
+    """
+    module = inspect.getmodule(inspect.currentframe().f_back)
+    doc = module.__doc__
+    if doc is None:
+        doc = ''
+    lines = ['\n\nModule :mod:`~%s` implements the following members:\n'
+             % module.__name__]
+    members = []
+    for (name, member) in inspect.getmembers(module):
+        if ((not name.startswith('_')) and
+                (inspect.getmodule(member) is module)):
+            members.append((name, member))
+    members = sorted(members, key=_number_of_line)
+    for (name, member) in members:
+        if inspect.isfunction(member):
+            type_ = 'func'
+        elif inspect.isclass(member):
+            type_ = 'class'
+        else:
+            type_ = 'object'
+        lines.append('      * :%s:`~%s` `%s`'
+                     % (type_, name, objecttools.description(member)))
+    module.__doc__ = doc + '\n\n' + '\n'.join(lines)

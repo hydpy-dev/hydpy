@@ -732,7 +732,9 @@ def update_inlets_v1(self):
 
     sta = self.sequences.states.fastaccess
     inl = self.sequences.inlets.fastaccess
-    sta.qin = inl.q[0][0]
+    sta.qin = 0.
+    for idx in range(inl.len_q):
+        sta.qin += inl.q[idx][0]
 
 
 def update_outlets_v1(self):

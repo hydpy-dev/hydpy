@@ -11,26 +11,26 @@ parameterization).  It can briefly be summarized as follows:
  * A simple snow retention routine.
  * Landuse and month specific potential evapotranspiration.
  * Acual soil evapotranspiration after ATV-DVWK- 504 (2002).
- * Soil routine based on the Xinanjiang model.
+ * A Soil routine based on the Xinanjiang model.
  * One base flow, two interflow and two direct flow components.
  * Seperate linear storages for modelling runoff concentration.
  * Additional evaporation from water areas.
 
-The following picture shows the general structure of L-Land Version 1.  Note
+The following figure shows the general structure of L-Land Version 1.  Note
 that, besides water areas and sealed surface areas, all land use types rely
-on the same process equations:
+on the same set of process equations:
 
 .. image:: HydPy-L-Land_Version-1.png
 
 As all models implemented in HydPy, base model L-Land can principally be
 applied on arbitrary simulation step sizes.  But for the L-Land version 1
 application model one has to be aware, that the Turc-Wendling equation
-for calculating reference evaporation is designed for daily values only.
+for calculating reference evaporation is designed for daily time steps only.
 
 
 Integration tests:
 
-    The integration tests are performed in January (to allow for realistic
+    All integration tests are performed in January (to allow for realistic
     snow examples), spanning over a period of five days:
 
     >>> from hydpy import pub, Timegrid, Timegrids
@@ -38,7 +38,7 @@ Integration tests:
     ...                                    '06.01.2000',
     ...                                    '1d'))
 
-    Prepare the model instance and built the connections to element `land`
+    Prepare the model instance and build the connections to element `land`
     and node `outlet`:
 
     >>> from hydpy.models.lland_v1 import *
@@ -48,8 +48,8 @@ Integration tests:
     >>> land = Element('land', outlets=outlet)
     >>> land.connect(model)
 
-    All tests shall be performed using single hydrological response unit with
-    a size of one square kilometre an a altitude of 100 meter:
+    All tests shall be performed using a single hydrological response unit
+    with a size of one square kilometre at an altitude of 100 meter:
 
     >>> nhru(1)
     >>> ft(1.)
@@ -60,46 +60,31 @@ Integration tests:
     and prints their results for the given sequences:
 
     >>> from hydpy.core.testtools import Test
-    >>> test = Test(land, inits={'inzp': 0.,
-    ...                          'wats': 0.,
-    ...                          'waes': 0.,
-    ...                          'bowa': 0.,
-    ...                          'qdgz1': 0.,
-    ...                          'qdgz2': 0.,
-    ...                          'qigz1': 0.,
-    ...                          'qigz2': 0.,
-    ...                          'qbgz': 0.,
-    ...                          'qdga1': 0.,
-    ...                          'qdga2': 0.,
-    ...                          'qiga1': 0.,
-    ...                          'qiga2': 0.,
-    ...                          'qbga': 0.})
+    >>> test = Test(land)
+
+    Define a format for the dates to be printed:
+
     >>> test.dateformat = '%d.%m.'
 
-    Set the input values for the complete simulation period:
+    In the first example, coniferous forest is selected as the only
+    land use class:
 
-    >>> inputs.nied.series = 0., 5., 5., 5., 0.
-    >>> inputs.teml.series = -2., -1., 0., 1., 2.
-    >>> inputs.glob.series = 100.
+    >>> lnk(NADELW)
 
-    Define the control parameter values (select only arable land, sealed
-    soil and water area as landuse classes, as all other land use classes
-    are functionally identical with arable land):
+    All control parameters are set in manner, that lets their corresponding
+    methods show an impact on the results:
 
-    >>> lnk(ACKER)
     >>> kg(1.2)
-    >>> kt(-1.)
+    >>> kt(1.)
     >>> ke(0.9)
     >>> kf(.6)
-    >>> fln.acker_jan = 1.
-    >>> fln.vers_jan = .8
-    >>> fln.wasser_jan = 1.3
+    >>> fln(.5)
     >>> hinz(.2)
-    >>> lai.acker_jan = 1.0
+    >>> lai(4.)
     >>> treft(0.)
     >>> trefn(0.)
-    >>> tgr(0.)
-    >>> tsp(0.)
+    >>> tgr(1.)
+    >>> tsp(2.)
     >>> gtf(5.)
     >>> rschmelz(334.)
     >>> cpwasser(4.1868)
@@ -113,8 +98,8 @@ Integration tests:
     >>> dmax(5.)
     >>> dmin(1.)
     >>> bsf(.4)
-    >>> a1(0.)
-    >>> a2(inf)
+    >>> a1(1.)
+    >>> a2(1.)
     >>> tind(1.)
     >>> eqb(100.)
     >>> eqi1(50.)
@@ -122,16 +107,86 @@ Integration tests:
     >>> eqd1(2.)
     >>> eqd2(1.)
 
-    Check the correctness of the results:
+    Initially, relative soil moisture is 75%, but all other storages are
+    empty and there is base flow only:
+
+    >>> test.inits={'inzp': 0.,
+    ...             'wats': 0.,
+    ...             'waes': 0.,
+    ...             'bowa': 150.,
+    ...             'qdgz1': 0.,
+    ...             'qdgz2': 0.,
+    ...             'qigz1': 0.,
+    ...             'qigz2': 0.,
+    ...             'qbgz': 1.,
+    ...             'qdga1': 0.,
+    ...             'qdga2': 0.,
+    ...             'qiga1': 0.,
+    ...             'qiga2': 0.,
+    ...             'qbga': 1.}
+
+    For the input data, a strong increase in temperature from -5°C to +10°C
+    is defined, to activate both the snow and the evapotranspiration routines:
+
+    >>> inputs.nied.series = 0., 5., 5., 5., 0.
+    >>> inputs.teml.series = -5., -5., 0., 5., 10.
+    >>> inputs.glob.series = 100.
+
+    The following results show that all relevant model components are at least
+    activated once during the simulation period:
 
     >>> test()
-    |   date | nied | teml |  glob | nkor | tkor |      et0 |     evpo | nbes | sbes | evi |      evb |     wgtf |     schm |     wada |      qdb | qib1 | qib2 | qbb |     qdgz |        q | inzp |     wats |     waes |     bowa |    qdgz1 | qdgz2 | qigz1 | qigz2 | qbgz |    qdga1 | qdga2 | qiga1 | qiga2 | qbga |   outlet |
-    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    | 01.01. |  0.0 | -2.0 | 100.0 |  0.0 | -3.0 | 0.779561 | 0.779561 |  0.0 |  0.0 | 0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |  0.0 |  0.0 | 0.0 |      0.0 |      0.0 |  0.0 |      0.0 |      0.0 |      0.0 |      0.0 |   0.0 |   0.0 |   0.0 |  0.0 |      0.0 |   0.0 |   0.0 |   0.0 |  0.0 |      0.0 |
-    | 02.01. |  5.0 | -1.0 | 100.0 |  6.0 | -2.0 | 0.813809 | 0.813809 |  5.8 |  5.8 | 0.2 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |  0.0 |  0.0 | 0.0 |      0.0 |      0.0 |  0.0 |      5.8 |      5.8 |      0.0 |      0.0 |   0.0 |   0.0 |   0.0 |  0.0 |      0.0 |   0.0 |   0.0 |   0.0 |  0.0 |      0.0 |
-    | 03.01. |  5.0 |  0.0 | 100.0 |  6.0 | -1.0 | 0.847495 | 0.847495 |  5.8 |  5.8 | 0.2 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |  0.0 |  0.0 | 0.0 |      0.0 |      0.0 |  0.0 |     11.6 |     11.6 |      0.0 |      0.0 |   0.0 |   0.0 |   0.0 |  0.0 |      0.0 |   0.0 |   0.0 |   0.0 |  0.0 |      0.0 |
-    | 04.01. |  5.0 |  1.0 | 100.0 |  6.0 |  0.0 | 0.880634 | 0.880634 |  5.8 |  0.0 | 0.2 |      0.0 |      0.0 |      0.0 |     1.16 | 0.000962 |  0.0 |  0.0 | 0.0 | 0.000962 | 0.000205 |  0.0 |     11.6 |    16.24 | 1.159038 | 0.000962 |   0.0 |   0.0 |   0.0 |  0.0 | 0.000205 |   0.0 |   0.0 |   0.0 |  0.0 | 0.000002 |
-    | 05.01. |  0.0 |  2.0 | 100.0 |  0.0 |  1.0 | 0.913238 | 0.913238 |  0.0 |  0.0 | 0.0 | 0.013321 | 5.012535 | 5.012535 | 7.017549 | 0.047086 |  0.0 |  0.0 | 0.0 | 0.047086 |  0.01033 |  0.0 | 6.587465 | 9.222451 |  8.11618 | 0.047086 |   0.0 |   0.0 |   0.0 |  0.0 |  0.01033 |   0.0 |   0.0 |   0.0 |  0.0 |  0.00012 |
+    |   date | nied | teml |  glob | nkor | tkor |      et0 |     evpo |     nbes |     sbes |      evi |      evb |      wgtf |     schm |     wada |      qdb |     qib1 |     qib2 |      qbb |     qdgz |        q |     inzp |    wats |     waes |       bowa |    qdgz1 |    qdgz2 |    qigz1 |    qigz2 |     qbgz |    qdga1 |    qdga2 |    qiga1 |    qiga2 |     qbga |   outlet |
+    ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01.01. |  0.0 | -5.0 | 100.0 |  0.0 | -4.0 | 0.744738 | 0.372369 |      0.0 |      0.0 |      0.0 | 0.359997 |       0.0 |      0.0 |      0.0 |      0.0 |     0.75 | 1.414214 |      1.4 |      0.0 | 1.077855 |      0.0 |     0.0 |      0.0 |  146.07579 |      0.0 |      0.0 |     0.75 | 1.414214 |      1.4 |      0.0 |      0.0 |  0.00745 | 0.068411 | 1.001993 | 0.012475 |
+    | 02.01. |  5.0 | -5.0 | 100.0 |  6.0 | -4.0 | 0.744738 | 0.372369 |      5.2 |      5.2 | 0.372369 |      0.0 |       0.0 |      0.0 |      0.0 |      0.0 | 0.730379 | 1.251034 | 1.360758 |      0.0 | 1.216305 | 0.427631 |     5.2 |      5.2 | 142.733619 |      0.0 |      0.0 | 0.730379 | 1.251034 | 1.360758 |      0.0 |      0.0 | 0.021959 | 0.188588 | 1.005758 | 0.014078 |
+    | 03.01. |  5.0 |  0.0 | 100.0 |  6.0 |  1.0 | 0.913238 | 0.456619 | 5.627631 | 2.813816 | 0.456619 |      0.0 |  5.012535 | 5.012535 | 6.625839 |  2.04495 | 0.713668 | 1.117415 | 1.327336 |  2.04495 |  1.84654 | 0.343381 | 3.00128 | 4.201792 | 144.156088 | 1.510991 |  0.53396 | 0.713668 | 1.117415 | 1.327336 | 0.321934 | 0.196433 |  0.03582 | 0.283229 | 1.009124 | 0.021372 |
+    | 04.01. |  5.0 |  5.0 | 100.0 |  6.0 |  6.0 | 1.068676 | 0.534338 | 5.543381 |      0.0 | 0.534338 |      0.0 | 30.075212 |  3.00128 | 9.745173 | 3.096033 |  0.72078 |  1.17367 | 1.341561 | 3.096033 | 2.987559 | 0.265662 |     0.0 |      0.0 | 147.569218 | 1.677006 | 1.419027 |  0.72078 |  1.17367 | 1.341561 | 0.825163 | 0.735388 | 0.049313 | 0.365334 | 1.012361 | 0.034578 |
+    | 05.01. |  0.0 | 10.0 | 100.0 |  0.0 | 11.0 | 1.212514 | 0.606257 |      0.0 |      0.0 | 0.265662 | 0.328303 | 55.137889 |      0.0 |      0.0 |      0.0 | 0.737846 | 1.312348 | 1.375692 |      0.0 | 2.976082 |      0.0 |     0.0 |      0.0 | 143.815029 |      0.0 |      0.0 | 0.737846 | 1.312348 | 1.375692 | 0.803032 | 0.645499 | 0.062779 | 0.448966 | 1.015807 | 0.034445 |
+
+    The second example deals with a sealed surface:
+
+    >>> lnk(VERS)
+
+    For sealed surfaces, the soil routine is skippend an no base flow is
+    calculated.  Thus the corresponding initial values are set to zero:
+
+    >>> test.inits['bowa'] = 0.
+    >>> test.inits['qbgz'] = 0.
+    >>> test.inits['qbga'] = 0.
+
+    As retention processes below the surface are assumed to be negligible,
+    all water reaching the sealed surface becomes direct discharge
+    immediately:
+
+    >>> test()
+    |   date | nied | teml |  glob | nkor | tkor |      et0 |     evpo |     nbes |     sbes |      evi | evb |      wgtf |     schm |     wada |      qdb | qib1 | qib2 | qbb |     qdgz |        q |     inzp |    wats |     waes | bowa |    qdgz1 |    qdgz2 | qigz1 | qigz2 | qbgz |    qdga1 |    qdga2 | qiga1 | qiga2 | qbga |   outlet |
+    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01.01. |  0.0 | -5.0 | 100.0 |  0.0 | -4.0 | 0.744738 | 0.372369 |      0.0 |      0.0 |      0.0 | 0.0 |       0.0 |      0.0 |      0.0 |      0.0 |  0.0 |  0.0 | 0.0 |      0.0 |      0.0 |      0.0 |     0.0 |      0.0 |  0.0 |      0.0 |      0.0 |   0.0 |   0.0 |  0.0 |      0.0 |      0.0 |   0.0 |   0.0 |  0.0 |      0.0 |
+    | 02.01. |  5.0 | -5.0 | 100.0 |  6.0 | -4.0 | 0.744738 | 0.372369 |      5.2 |      5.2 | 0.372369 | 0.0 |       0.0 |      0.0 |      0.0 |      0.0 |  0.0 |  0.0 | 0.0 |      0.0 |      0.0 | 0.427631 |     5.2 |      5.2 |  0.0 |      0.0 |      0.0 |   0.0 |   0.0 |  0.0 |      0.0 |      0.0 |   0.0 |   0.0 |  0.0 |      0.0 |
+    | 03.01. |  5.0 |  0.0 | 100.0 |  6.0 |  1.0 | 0.913238 | 0.456619 | 5.627631 | 2.813816 | 0.456619 | 0.0 |  5.012535 | 5.012535 | 6.625839 | 6.625839 |  0.0 |  0.0 | 0.0 | 6.625839 | 2.151239 | 0.343381 | 3.00128 | 4.201792 |  0.0 | 1.849076 | 4.776763 |   0.0 |   0.0 |  0.0 | 0.393967 | 1.757273 |   0.0 |   0.0 |  0.0 | 0.024899 |
+    | 04.01. |  5.0 |  5.0 | 100.0 |  6.0 |  6.0 | 1.068676 | 0.534338 | 5.543381 |      0.0 | 0.534338 | 0.0 | 30.075212 |  3.00128 | 9.745173 | 9.745173 |  0.0 |  0.0 | 0.0 | 9.745173 | 5.772522 | 0.265662 |     0.0 |      0.0 |  0.0 | 1.897385 | 7.847788 |   0.0 |   0.0 |  0.0 |   0.9768 | 4.795722 |   0.0 |   0.0 |  0.0 | 0.066812 |
+    | 05.01. |  0.0 | 10.0 | 100.0 |  0.0 | 11.0 | 1.212514 | 0.606257 |      0.0 |      0.0 | 0.265662 | 0.0 | 55.137889 |      0.0 |      0.0 |      0.0 |  0.0 |  0.0 | 0.0 |      0.0 | 4.772719 |      0.0 |     0.0 |      0.0 |  0.0 |      0.0 |      0.0 |   0.0 |   0.0 |  0.0 | 0.934763 | 3.837956 |   0.0 |   0.0 |  0.0 |  0.05524 |
+
+
+    For water areas, even the interception and the snow module are skipped:
+
+    >>> lnk(WASSER)
+    >>> test()
+    |   date | nied | teml |  glob | nkor | tkor |      et0 |     evpo | nbes | sbes |      evi | evb | wgtf | schm | wada | qdb | qib1 | qib2 | qbb | qdgz |        q | inzp | wats | waes | bowa |    qdgz1 |    qdgz2 | qigz1 | qigz2 | qbgz |    qdga1 |    qdga2 | qiga1 | qiga2 | qbga |   outlet |
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01.01. |  0.0 | -5.0 | 100.0 |  0.0 | -4.0 | 0.744738 | 0.372369 |  0.0 |  0.0 |      0.0 | 0.0 |  0.0 |  0.0 |  0.0 | 0.0 |  0.0 |  0.0 | 0.0 |  0.0 |      0.0 |  0.0 |  0.0 |  0.0 |  0.0 |      0.0 |      0.0 |   0.0 |   0.0 |  0.0 |      0.0 |      0.0 |   0.0 |   0.0 |  0.0 |      0.0 |
+    | 02.01. |  5.0 | -5.0 | 100.0 |  6.0 | -4.0 | 0.744738 | 0.372369 |  6.0 |  6.0 | 0.372369 | 0.0 |  0.0 |  0.0 |  6.0 | 6.0 |  0.0 |  0.0 | 0.0 |  6.0 | 1.551075 |  0.0 |  0.0 |  0.0 |  0.0 | 1.833333 | 4.166667 |   0.0 |   0.0 |  0.0 | 0.390612 | 1.532831 |   0.0 |   0.0 |  0.0 | 0.017952 |
+    | 03.01. |  5.0 |  0.0 | 100.0 |  6.0 |  1.0 | 0.913238 | 0.456619 |  6.0 |  3.0 | 0.456619 | 0.0 |  0.0 |  0.0 |  6.0 | 6.0 |  0.0 |  0.0 | 0.0 |  6.0 | 3.699393 |  0.0 |  0.0 |  0.0 |  0.0 | 1.833333 | 4.166667 |   0.0 |   0.0 |  0.0 | 0.958279 | 3.197733 |   0.0 |   0.0 |  0.0 | 0.042817 |
+    | 04.01. |  5.0 |  5.0 | 100.0 |  6.0 |  6.0 | 1.068676 | 0.534338 |  6.0 |  0.0 | 0.534338 | 0.0 |  0.0 |  0.0 |  6.0 | 6.0 |  0.0 |  0.0 | 0.0 |  6.0 | 4.578464 |  0.0 |  0.0 |  0.0 |  0.0 | 1.833333 | 4.166667 |   0.0 |   0.0 |  0.0 | 1.302586 | 3.810216 |   0.0 |   0.0 |  0.0 | 0.052991 |
+    | 05.01. |  0.0 | 10.0 | 100.0 |  0.0 | 11.0 | 1.212514 | 0.606257 |  0.0 |  0.0 | 0.606257 | 0.0 |  0.0 |  0.0 |  0.0 | 0.0 |  0.0 |  0.0 | 0.0 |  0.0 | 3.017254 |  0.0 |  0.0 |  0.0 |  0.0 |      0.0 |      0.0 |   0.0 |   0.0 |  0.0 | 1.120806 | 2.502705 |   0.0 |   0.0 |  0.0 | 0.034922 |
+
+    Note that for water areas, interception evaporation is actually
+    evaporation from the water surface.  Also note, that the water land use
+    class is the only one, for which evaporation is abstracted after the runoff
+    concentration routines have been applied.  Thus water areas can evaporate
+    the water supply of previous time steps and, more import, the water supply
+    of other areas within the same subbasin.
 """
 # import...
 # ...from standard library

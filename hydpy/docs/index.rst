@@ -46,6 +46,7 @@ framework itself, see the :ref:`development` section:
    framework
    cythons
    modelcollection
+   auxiliaries
    projectstructure
    development
 

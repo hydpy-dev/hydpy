@@ -10,7 +10,7 @@ Thereafter, the following objects are available:
  * numpys :obj:`~numpy.nan` and :obj:`~numpy.inf`
  * functions :func:`~hydpy.core.magictools.parameterstep`,
    :func:`~hydpy.core.magictools.simulationstep`,
-   :func:`~hydpy.core.magictools.autodoc_basemodel`,
+   :func:`~hydpy.core.autodoctools.autodoc_basemodel`,
    of module :mod:`~hydpy.core.magictools`
  * class :class:`~hydpy.core.magictools.Tester`
    of module :mod:`~hydpy.core.magictools`
@@ -30,7 +30,7 @@ from numpy import inf
 from hydpy.core.magictools import parameterstep
 from hydpy.core.magictools import simulationstep
 from hydpy.core.magictools import controlcheck
-from hydpy.core.magictools import autodoc_basemodel
+from hydpy.core.autodoctools import autodoc_basemodel
 from hydpy.core.magictools import Tester
 from hydpy.cythons.modelutils import Cythonizer
 

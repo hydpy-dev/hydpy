@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-
+"""This modules implements tools for handling "eodes" and "elements", which
+are the most fundamental means to structure HydPy projects.
+"""
 # import...
 # ...from standard library
 from __future__ import division, print_function
@@ -12,6 +14,7 @@ from hydpy import pub
 from hydpy.core import connectiontools
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
+from hydpy.core import autodoctools
 from hydpy.cythons import pointer
 
 
@@ -564,3 +567,6 @@ class Elements(Devices):
     def prepare_stateseries(self, ramflag=True):
         for (name, element) in self:
             element.prepare_stateseries(ramflag)
+
+
+autodoctools.autodoc_module()

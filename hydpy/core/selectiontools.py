@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
-
+"""This module implements tools for selecting certain models in large
+HydPy projects.
+"""
 # import...
 # ...from standard library
 from __future__ import division, print_function
 # ...from HydPy
 from hydpy.core import devicetools
+from hydpy.core import autodoctools
 
 
 class Selections(object):
@@ -449,3 +452,6 @@ class Selection(object):
                 'getby_upstream', 'nodes', 'select_elementnames',
                 'select_modelclasses', 'select_nodenames', 'select_upstream',
                 'assignrepr']
+
+
+autodoctools.autodoc_module()

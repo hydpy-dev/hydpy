@@ -7,7 +7,7 @@ from __future__ import division, print_function
 # ...from site-packages
 import numpy
 # ...from HydPy
-from hydpy.core import magictools
+from hydpy.core import autodoctools
 
 
 def test_equal_shape(**kwargs):
@@ -78,4 +78,4 @@ def test_non_negative(**kwargs):
             'For the following objects, at least one value is negative: %s.'
             % ', '.join(name for name, neg in sorted(zip(names, negs)) if neg))
 
-magictools.autodoc_module()
+autodoctools.autodoc_module()

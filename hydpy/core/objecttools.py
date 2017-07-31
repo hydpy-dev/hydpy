@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-
+"""This module implements tools to help to standardize the functionality
+of the different objects defined by the HydPy framework.
+"""
 # import...
 # ...from standard library
 from __future__ import division, print_function
@@ -9,6 +11,7 @@ import sys
 import numpy
 # ...from HydPy
 from hydpy.cythons import pointer
+from hydpy.core import autodoctools
 # from hydpy.pub import ... (actual import commands moved to
 # different functions below to avoid circular dependencies)
 
@@ -146,27 +149,6 @@ def augmentexcmessage(prefix=None, suffix=None):
         exec('raise exception, message, traceback_')
     else:
         raise exception(message).with_traceback(traceback_)
-
-
-def description(self):
-    """Returns the first "paragraph" of the docstring of the given object.
-
-    Note that ugly things like multiple whitespaces and newline characters
-    are removed:
-
-    >>> from hydpy.core import objecttools
-    >>> objecttools.description(objecttools.augmentexcmessage)
-    'Augment an exception message with additional information while keeping the original traceback.'
-
-    In case the given object does not define a docstring, the following
-    is returned:
-    >>> objecttools.description(type('Test', (), {}))
-    'no description available'
-    """
-    if self.__doc__ in (None, ''):
-        return 'no description available'
-    else:
-        return ' '.join(self.__doc__.split('\n\n')[0].split())
 
 
 def repr_(value):
@@ -800,3 +782,6 @@ class ValueMath(object):
 
     def __round__(self, ndigits=0):
         return numpy.round(self.value, ndigits)
+
+
+autodoctools.autodoc_module()

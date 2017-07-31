@@ -1,7 +1,5 @@
-
-""" This module provides utilities to build and apply cython models.
-
-"""
+# -*- coding: utf-8 -*-
+""" This module provides utilities to build and apply cython models."""
 # import...
 # ...from standard library
 from __future__ import division, print_function
@@ -25,6 +23,8 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
 from hydpy.core import magictools
+from hydpy.core import autodoctools
+
 
 if platform.system().lower() == 'windows':
     dllextension = '.pyd'
@@ -764,3 +764,6 @@ def exp(double):
 def fabs(double):
     """Cython wrapper for maths fabs function applied on a single float."""
     return math.fabs(double)
+
+
+autodoctools.autodoc_module()

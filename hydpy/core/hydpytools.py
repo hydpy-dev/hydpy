@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-
+"""This module implements superordinate tools for handling a HydPy project.
+"""
 # import...
 # ...from standard library
 from __future__ import division, print_function
@@ -12,6 +13,7 @@ from hydpy.core import objecttools
 from hydpy.core import filetools
 from hydpy.core import devicetools
 from hydpy.core import selectiontools
+from hydpy.core import autodoctools
 
 
 class HydPy(object):
@@ -365,3 +367,6 @@ class HydPy(object):
                                   '`False` it is not allowed to overwrite '
                                   'the already existing file `%s`.'
                                   % seq.filepath_ext)
+
+
+autodoctools.autodoc_module()

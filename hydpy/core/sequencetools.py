@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
+"""This module implements tools for handling the sequences (time series)
+of hydrological models.
 """
-Created on Tue Dec 27 23:23:53 2016
-
-@author: tyralla
-"""
-
 # import...
 # ...from standard library
 from __future__ import division, print_function
@@ -21,6 +18,7 @@ from hydpy import pub
 from hydpy.core import timetools
 from hydpy.core import objecttools
 from hydpy.cythons import pointer
+from hydpy.core import autodoctools
 
 
 class Sequences(object):
@@ -189,7 +187,7 @@ class MetaSubSequencesType(type):
                     lst.append('      * :class:`~%s` `%s`'
                                % ('.'.join((seqclass.__module__,
                                             seqclass.__name__)),
-                                  objecttools.description(seqclass)))
+                                  autodoctools.description(seqclass)))
             doc = dict_.get('__doc__', None)
             if doc is None:
                 doc = ''
@@ -1574,3 +1572,6 @@ class FastAccess(object):
         for key in vars(self).keys():
             if not key.startswith('_'):
                 yield key
+
+
+autodoctools.autodoc_module()

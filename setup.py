@@ -87,7 +87,7 @@ if install:
     # Make all restructured text documentation files available for doctesting.
     import hydpy.docs
     for filename in os.listdir(os.path.join('hydpy', 'docs')):
-        if filename.endswith('.rst'):
+        if filename.endswith('.rst') or filename.endswith('.png'):
             shutil.copy(os.path.join('hydpy', 'docs', filename),
                         os.path.join(hydpy.docs.__path__[0], filename))
     # Execute all tests.

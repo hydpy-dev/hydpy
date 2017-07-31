@@ -22,6 +22,7 @@ HydPy-H is divided into three base models, which can be used to compile
 different application models:
 
 .. toctree::
+   :maxdepth: 1
 
    HydPy-H-Land
    HydPy-H-Stream

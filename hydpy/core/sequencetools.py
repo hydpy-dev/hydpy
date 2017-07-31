@@ -225,15 +225,15 @@ class SubSequences(MetaSubSequencesClass):
     ...     _SEQCLASSES = (Temperature, Precipitation)
     >>> inputs = InputSequences(None) # Assign `None` for brevity.
     >>> inputs
-    temperature(0.0)
-    precipitation(0.0)
+    temperature(nan)
+    precipitation(nan)
 
     The order within the tuple determines the order of iteration, hence:
 
     >>> for (name, sequence) in inputs:
     ...     print(sequence)
-    temperature(0.0)
-    precipitation(0.0)
+    temperature(nan)
+    precipitation(nan)
 
     If one forgets to define a `_SEQCLASSES` tuple so (and maybe tries to add
     the sequences in the constructor of the subclass of
@@ -456,9 +456,20 @@ class Sequence(objecttools.ValueMath):
         """
         self.values = args
 
+    @property
+    def initvalue(self):
+        if pub.options.usedefaultvalues:
+            initvalue = getattr(self, 'INIT', None)
+            if initvalue is None:
+                initvalue = 0.
+        else:
+            initvalue = numpy.nan
+        return initvalue
+
     def _initvalues(self):
+
         if self.NDIM == 0:
-            setattr(self.fastaccess, self.name, 0.)
+            setattr(self.fastaccess, self.name, self.initvalue)
         else:
             setattr(self.fastaccess, self.name, None)
 
@@ -546,7 +557,7 @@ class Sequence(objecttools.ValueMath):
     def _setshape(self, shape):
         if self.NDIM:
             try:
-                array = numpy.full(shape, 0.)
+                array = numpy.full(shape, self.initvalue, dtype=float)
             except Exception:
                 prefix = ('While trying create a new numpy ndarray` for '
                           'sequence %s of element %s'
@@ -593,18 +604,25 @@ class Sequence(objecttools.ValueMath):
                                           % self.name)
 
     def __repr__(self):
+        islong = self.length > 255
         if self.NDIM == 0:
             return '%s(%s)' % (self.name, objecttools.repr_(self.value))
         elif self.NDIM == 1:
             lines = []
             cols = ', '.join(objecttools.repr_(value) for value in self.values)
-            wrappedlines = textwrap.wrap(cols, 80-len(self.name)-2)
+            wrappedlines = textwrap.wrap(cols, 80-len(self.name)-3-islong)
             for (idx, line) in enumerate(wrappedlines):
                 if not idx:
-                    lines.append('%s(%s' % (self.name, line))
+                    if islong:
+                        lines.append('%s([%s' % (self.name, line))
+                    else:
+                        lines.append('%s(%s' % (self.name, line))
                 else:
-                    lines.append((len(self.name)+1)*' ' + line)
-            lines[-1] += ')'
+                    lines.append((len(self.name)+1+islong)*' ' + line)
+            if islong:
+                lines[-1] += '])'
+            else:
+                lines[-1] += ')'
             return '\n'.join(lines)
         elif self.NDIM == 2:
             lines = []
@@ -612,10 +630,19 @@ class Sequence(objecttools.ValueMath):
             for (idx, row) in enumerate(self.values):
                 cols = ', '.join(objecttools.repr_(value) for value in row)
                 if not idx:
-                    lines.append('%s(%s,' % (self.name, cols))
+                    if islong:
+                        lines.append('%s([[%s],' % (self.name, cols))
+                    else:
+                        lines.append('%s(%s,' % (self.name, cols))
                 else:
-                    lines.append('%s%s,' % (skip, cols))
-            lines[-1] = lines[-1][:-1] + ')'
+                    if islong:
+                        lines.append('%s[%s],' % (skip, cols))
+                    else:
+                        lines.append('%s%s,' % (skip, cols))
+            if islong:
+                lines[-1] = lines[-1][:-1] + '])'
+            else:
+                lines[-1] = lines[-1][:-1] + ')'
             return '\n'.join(lines)
         else:
             raise NotImplementedError('`repr` does not yet support '
@@ -847,9 +874,10 @@ class IOSequence(Sequence):
         elif self.ramflag:
             return self._getarray()
         else:
-            raise RuntimeError('Sequence `%s` is not requested to make any '
-                               'internal data available to the user.'
-                               % self.name)
+            raise RuntimeError(
+                'Sequence `%s` of device `%s`is not requested '
+                'to make any internal data available to the user.'
+                % (self.name, objecttools.devicename(self)))
 
     def _setseries(self, values):
         series = self.series
@@ -1084,7 +1112,8 @@ class LeftRightSequence(ModelIOSequence):
     NDIM = 1
 
     def _initvalues(self):
-        setattr(self.fastaccess, self.name, numpy.zeros(2, dtype=float))
+        setattr(self.fastaccess, self.name,
+                numpy.full(2, self.initvalue, dtype=float))
 
     def _getleft(self):
         """The "left" value of the actual parameter."""
@@ -1114,8 +1143,7 @@ class ConditionSequence(object):
         self.trim()
         self._oldargs = copy.deepcopy(args)
 
-    def trim(self, lower=None, upper=None):
-        objecttools.trim(self, lower, upper)
+    trim = objecttools.trim
 
     def warntrim(self):
         warnings.warn('For sequence %s of element %s at least one value '

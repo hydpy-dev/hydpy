@@ -12,6 +12,10 @@ from hydpy.cythons import pointer
 # from hydpy.pub import ... (actual import commands moved to
 # different functions below to avoid circular dependencies)
 
+_INT_NAN = -999999
+"""Surrogate for `nan`, which is available for floating point values
+but not for integer values."""
+
 
 def dir_(self):
     """The prefered way for HydPy objects to respond to :func:`dir`.
@@ -34,7 +38,6 @@ def dir_(self):
     >>> options.dirverbose = False
     >>> print(dir_(Test())) # Short list with one single entry...
     ['only_public_attribute']
-
     """
     from hydpy.pub import options
     names = set()
@@ -58,7 +61,6 @@ def classname(self):
     float
     >>> print(classname(options))
     Options
-
     """
     if not inspect.isclass(self):
         self = type(self)
@@ -73,7 +75,6 @@ def instancename(self):
     >>> from hydpy.pub import options
     >>> print(instancename(options))
     options
-
     """
     return classname(self).lower()
 
@@ -85,7 +86,6 @@ def modulename(self):
     >>> from hydpy.pub import options
     >>> print(modulename(options))
     objecttools
-
     """
     return self.__module__.split('.')[-1]
 
@@ -94,7 +94,8 @@ def devicename(self):
     """Try to return the name of the (indirect) master
     :class:`~hydpy.core.devicetools.Node` or
     :class:`~hydpy.core.devicetools.Element` instance,
-    otherwise return `?`."""
+    otherwise return `?`.
+    """
     while True:
         device = getattr(self, 'element', getattr(self, 'node', None))
         if device is not None:
@@ -161,7 +162,6 @@ def description(self):
     is returned:
     >>> objecttools.description(type('Test', (), {}))
     'no description available'
-
     """
     if self.__doc__ in (None, ''):
         return 'no description available'
@@ -224,7 +224,6 @@ def repr_(value):
     '[1, 2, 3]'
     >>> repr_([1, 2, 3])
     '[1, 2, 3]'
-
     """
     from hydpy.pub import options
     if isinstance(value, (pointer.Double, pointer.PDouble)):
@@ -268,6 +267,7 @@ class Options(object):
         self._warnmissingcontrolfile = False
         self._warnmissingobsfile = True
         self._warnmissingsimfile = True
+        self._usedefaultvalues = False
 
     def _getprintprogress(self):
         """True/False flag indicating whether information about the progress
@@ -422,41 +422,132 @@ class Options(object):
     warnmissingsimfile = property(_getwarnmissingsimfile,
                                   _setwarnmissingsimfile)
 
-    def __dir__(self):
-        return dir_(self)
+    def _getusedefaultvalues(self):
+        """True/False flag indicating whether parameters values shall be
+        initialized with standard values or not.
+        """
+        return self._usedefaultvalues
+
+    def _setusedefaultvalues(self, value):
+        self._usedefaultvalues = bool(value)
+
+    usedefaultvalues = property(_getusedefaultvalues,
+                                _setusedefaultvalues)
+
+    __dir__ = dir_
 
 
 def trim(self, lower=None, upper=None):
-    """ToDo"""
+    """Trim the value(s) of  a :class:`ValueMath` instance.
+
+    One can pass the lower and/or the upper boundary as a function argument.
+    Otherwise, boundary values are taken from the class attribute `SPAN`
+    of the given :class:`ValueMath` instance, if available.
+
+    Note that method :func:`trim` works differently on :class:`ValueMath`
+    instances handling values of different types.  For floating point values,
+    an actual trimming is performed.  Additionally, a warning message is
+    raised if the trimming results in a change in value exceeding the
+    threshold value defined by function :func:`_tolerance`.  (This warning
+    message can be suppressed by setting the related option flag to False.)
+    For integer values, instead of a warning an exception is raised.
+    """
+    span = getattr(self, 'SPAN', (None, None))
+    if lower is None:
+        lower = span[0]
+    if upper is None:
+        upper = span[1]
+    type_ = getattr(self, 'TYPE', float)
+    if type_ is float:
+        if self.NDIM == 0:
+            _trim_float_0d(self, lower, upper)
+        else:
+            _trim_float_nd(self, lower, upper)
+    elif type_ in (int, bool):
+        if self.NDIM == 0:
+            _trim_int_0d(self, lower, upper)
+        else:
+            _trim_int_nd(self, lower, upper)
+    else:
+        raise NotImplementedError(
+            'Method `trim` can only be applied on parameters handling '
+            'integer or floating point values, but value type of parameter '
+            '`%s` is `%s`.' % (self.name, classname(self.TYPE)))
+
+
+def _trim_float_0d(self, lower, upper):
+    from hydpy.pub import options
+    if numpy.isnan(self.value):
+        return
+    if (lower is None) or numpy.isnan(lower):
+        lower = -numpy.inf
+    if (upper is None) or numpy.isnan(upper):
+        upper = numpy.inf
+    if self < lower:
+        if (self+_tolerance(self)) < (lower-_tolerance(lower)):
+            if options.warntrim:
+                self.warntrim()
+        self.value = lower
+    elif self > upper:
+        if (self-_tolerance(self)) > (upper+_tolerance(upper)):
+            if options.warntrim:
+                self.warntrim()
+        self.value = upper
+
+
+def _trim_float_nd(self, lower, upper):
     from hydpy.pub import options
     if lower is None:
-        lower = self.SPAN[0]
+        lower = -numpy.inf
+    lower = numpy.full(self.shape, lower, dtype=float)
+    lower[numpy.where(numpy.isnan(lower))] = -numpy.inf
     if upper is None:
-        upper = self.SPAN[1]
-    if self.NDIM == 0:
-        if (lower is not None) and (self < lower):
-            if (self+tolerance(self)) < (lower-tolerance(lower)):
-                if options.warntrim:
-                    self.warntrim()
-            self.value = lower
-        elif (upper is not None) and (self > upper):
-            if (self-tolerance(self)) > (upper+tolerance(upper)):
-                if options.warntrim:
-                    self.warntrim()
-            self.value = upper
-    else:
-        if (((lower is not None) and numpy.any(self.values < lower)) or
-                ((upper is not None) and numpy.any(self.values > upper))):
-            if (numpy.any((self+tolerance(self)) <
-                          (lower-tolerance(lower))) or
-                numpy.any((self-tolerance(self)) >
-                          (upper+tolerance(upper)))):
-                    if options.warntrim:
-                        self.warntrim()
-            self.values = numpy.clip(self.values, lower, upper)
+        upper = numpy.inf
+    upper = numpy.full(self.shape, upper, dtype=float)
+    upper[numpy.where(numpy.isnan(upper))] = numpy.inf
+    idxs = numpy.where(numpy.isnan(self.values))
+    self[idxs] = lower[idxs]
+    if numpy.any(self < lower) or numpy.any(self > upper):
+        if (numpy.any((self+_tolerance(self)) <
+                      (lower-_tolerance(lower))) or
+                numpy.any((self-_tolerance(self)) >
+                          (upper+_tolerance(upper)))):
+            if options.warntrim:
+                self.warntrim()
+        self.values = numpy.clip(self.values, lower, upper)
+    self[idxs] = numpy.nan
 
 
-def tolerance(values):
+def _trim_int_0d(self, lower, upper):
+    if lower is None:
+        lower = _INT_NAN
+    if upper is None:
+        upper = -_INT_NAN
+    if (self != _INT_NAN) and ((self < lower) or (self > upper)):
+        raise ValueError(
+            'The value `%d` of parameter `%s` of element `%s` is not valid.  '
+            % (self.value, self.name, devicename(self)))
+
+
+def _trim_int_nd(self, lower, upper):
+    if lower is None:
+        lower = _INT_NAN
+    lower = numpy.full(self.shape, lower, dtype=int)
+    if upper is None:
+        upper = -_INT_NAN
+    upper = numpy.full(self.shape, upper, dtype=int)
+    idxs = numpy.where(self == _INT_NAN)
+    self[idxs] = lower[idxs]
+    if numpy.any(self < lower) or numpy.any(self > upper):
+        raise ValueError(
+            'At least one value of parameter `%s` of element `%s` is not '
+            'valid.' % (self.name, devicename(self)))
+    self[idxs] = _INT_NAN
+
+
+def _tolerance(values):
+    """Returns some sort of "numerical accuracy" to be expected for the
+    given floating point value, see method :func:`trim`."""
     return abs(values*1e-15)
 
 
@@ -474,6 +565,7 @@ class ValueMath(object):
     >>> from hydpy.core.objecttools import ValueMath
     >>> vm0 = ValueMath()
     >>> vm0.NDIM = 0
+    >>> vm0.shape = ()
     >>> vm0.value = 2.
     >>> print(vm0 + vm0)
     4.0
@@ -486,12 +578,15 @@ class ValueMath(object):
     False
     >>> print(vm0 != 1.5)
     True
+    >>> vm0.length
+    1
 
     Similar examples for 1-dimensional objects:
 
     >>> import numpy
     >>> vm1 = ValueMath()
     >>> vm1.NDIM = 1
+    >>> vm0.shape = (5,)
     >>> vm1.value = numpy.array([1.,2.,3.])
     >>> print(vm1 + vm1)
     [ 2.  4.  6.]
@@ -504,11 +599,17 @@ class ValueMath(object):
     [False False False]
     >>> print(vm1 != 1.5)
     [ True  True False]
+    >>>
+    >>> vm0.length
+    5
     """
     # Subclasses need to define...
-    NDIM = None  # ... e.g. as class attribute (int)
-    name = None  # ... e.g. as property (str)
-    value = None  # ... e.g. as property (float or ndarray of dtype float)
+    NDIM = None    # ... e.g. as class attribute (int)
+    name = None    # ... e.g. as property (str)
+    value = None   # ... e.g. as property (float or ndarray of dtype float)
+    shape = None   # ... e.gl as property (tuple of values of type int)
+    # ...and optionally...
+    INIT = None
 
     @staticmethod
     def _arithmetic_conversion(other):
@@ -521,6 +622,13 @@ class ValueMath(object):
         augmentexcmessage('While trying to %s %s instance `%s` and %s `%s`'
                           % (verb, classname(self), self.name,
                              classname(other), other))
+
+    @property
+    def length(self):
+        length = 1
+        for idx in range(self.NDIM):
+            length *= self.shape[idx]
+        return length
 
     def __add__(self, other):
         try:

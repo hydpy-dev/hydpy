@@ -116,6 +116,8 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                 if exc.args[-1] != 'has no docstrings':
                     raise(exc)
             else:
+                pub.options.usedefaultvalues = False
+                pub.options.printprogress = False
                 pub.options.warnsimulationstep = False
                 pub.timegrids = None
                 pub.options.reprcomments = False

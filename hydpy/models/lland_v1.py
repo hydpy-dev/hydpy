@@ -110,20 +110,20 @@ Integration tests:
     Initially, relative soil moisture is 75%, but all other storages are
     empty and there is base flow only:
 
-    >>> test.inits={'inzp': 0.,
-    ...             'wats': 0.,
-    ...             'waes': 0.,
-    ...             'bowa': 150.,
-    ...             'qdgz1': 0.,
-    ...             'qdgz2': 0.,
-    ...             'qigz1': 0.,
-    ...             'qigz2': 0.,
-    ...             'qbgz': 1.,
-    ...             'qdga1': 0.,
-    ...             'qdga2': 0.,
-    ...             'qiga1': 0.,
-    ...             'qiga2': 0.,
-    ...             'qbga': 1.}
+    >>> test.inits = ((states.inzp, 0.),
+    ...               (states.wats, 0.),
+    ...               (states.waes, 0.),
+    ...               (states.bowa, 150.),
+    ...               (states.qdgz1, 0.),
+    ...               (states.qdgz2, 0.),
+    ...               (states.qigz1, 0.),
+    ...               (states.qigz2, 0.),
+    ...               (states.qbgz, 1.),
+    ...               (states.qdga1, 0.),
+    ...               (states.qdga2, 0.),
+    ...               (states.qiga1, 0.),
+    ...               (states.qiga2, 0.),
+    ...               (states.qbga, 1.))
 
     For the input data, a strong increase in temperature from -5°C to +10°C
     is defined, to activate both the snow and the evapotranspiration routines:
@@ -151,9 +151,9 @@ Integration tests:
     For sealed surfaces, the soil routine is skippend an no base flow is
     calculated.  Thus the corresponding initial values are set to zero:
 
-    >>> test.inits['bowa'] = 0.
-    >>> test.inits['qbgz'] = 0.
-    >>> test.inits['qbga'] = 0.
+    >>> test.inits.bowa = 0.
+    >>> test.inits.qbgz = 0.
+    >>> test.inits.qbga = 0.
 
     As retention processes below the surface are assumed to be negligible,
     all water reaching the sealed surface becomes direct discharge

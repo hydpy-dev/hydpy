@@ -20,7 +20,6 @@ from hydpy.models.globwat.globwat_constants import WATER
 # The following calculations are for step 1 'vertical water balance'
 # """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-
 def calc_rainfedevaporation_v1(self):
     """Calculate the rainfed evaporation.
 
@@ -104,7 +103,6 @@ def calc_rainfedevaporation_v1(self):
             flu.erain[k] = (con.kc[con.vegetationclass[k]-1,
                                    der.moy[self.idx_sim]] * inp.e0[k])
 
-
 def calc_groundwaterrecharge_v1(self):
     """Calculate the rate of ground water recharge.
 
@@ -116,6 +114,7 @@ def calc_groundwaterrecharge_v1(self):
     Required derived parameters:
       :class:`~hydpy.models.globwat.globwat_derived.SMax`
       :class:`~hydpy.models.globwat.globwat_derived.SEAv`
+      :class:`~hydpy.models.globwat.globwat_derived.Irrigation`
 
     Required state sequence:
       :class:`~hydpy.models.globwat.globwat_states.S`
@@ -136,10 +135,11 @@ def calc_groundwaterrecharge_v1(self):
         >>> control.rmax = 3., 3., 3.
         >>> derived.seav(1.5, 2., 2.5)
         >>> derived.smax(10., 11., 12.)
+        >>> derived.irrigation.update()
         >>> states.s.old = 4., 5., 6.
         >>> model.calc_groundwaterrecharge_v1()
         >>> states.r
-        r(0.0, 1.0, 1.105263)
+        r(0.0, 1.0, 0.0)
 
     Calculating R for the case: S(t-1) < Seav
 
@@ -165,7 +165,6 @@ def calc_groundwaterrecharge_v1(self):
             sta.r[k] = ((con.rmax[k] * (old.s[k] - der.seav[k])) /
                         (der.smax[k] - der.seav[k]))
 
-
 def calc_changeinstorage_v1(self):
     """Calculate the change of soil storage volume.
 
@@ -176,6 +175,7 @@ def calc_changeinstorage_v1(self):
 
     Required derived parameter:
       :class:`~hydpy.models.globwat.globwat_derived.SMax`
+      :class:`~hydpy.models.globwat.globwat_derived.Irrigation`
 
     Required input sequence:
       :class:`~hydpy.models.globwat.globwat_inputs.P`
@@ -202,6 +202,7 @@ def calc_changeinstorage_v1(self):
         >>> from hydpy.models.globwat import *
         >>> parameterstep('1d')
         >>> nmbgrids(3)
+        >>> control.rofactor(0.05)
         >>> vegetationclass(WATER, FOREST, IRRCPR)
         >>> derived.smax(4.25, 4.25, 4.25)
         >>> states.s.old = 1., 2., 3.
@@ -259,9 +260,6 @@ def calc_changeinstorage_v1(self):
                 new.s[k] = der.smax[k]
             flu.rov[k] += inp.p[k] * con.rofactor
 
-
-
-
 #        if (con.vegetationclass[k] != WATER) or (der.irrigation[k] != 1):
 #            sta.b[k] = (old.s[k] +
 #                        (inp.p[k] * (1-con.rofactor) - flu.erain[k] - sta.r[k]))
@@ -282,7 +280,6 @@ def calc_changeinstorage_v1(self):
 #            flu.rov[k] = 0.
 #            sta.b[k] = 0.
 #            new.s[k] = 0.
-
 
 def calc_irrigatedcropsevaporation_v1(self):
     """calculate the total evaporation for all crops under irrigation.
@@ -342,7 +339,6 @@ def calc_irrigatedcropsevaporation_v1(self):
 # The following calculations are for step 2 'horinzontal water balance'
 # """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-
 def calc_openwaterevaporation_v1(self):
     """calculate the evaporation over open water.
 
@@ -400,7 +396,6 @@ def calc_openwaterevaporation_v1(self):
 
         else:
             flu.eow[k] = 0.
-
 
 def calc_gridevaporation_v1(self):
     """Merge different types off evaporation (ERain, EC, EOW) per grid cell to
@@ -461,6 +456,7 @@ def calc_subbasinevaporation_v1(self):
         >>> parameterstep('1d')
         >>> nmbgrids(3)
         >>> fluxes.egrid(2., 3., 1.)
+        >>> fluxes.esub(0.)
         >>> control.area(3., 3., 2.)
         >>> model.calc_subbasinevaporation_v1()
         >>> fluxes.esub
@@ -533,7 +529,8 @@ def calc_openwaterbalance_v1(self):
 
             else:
                 flu.roh[k] = sta.bow[k]
-
+        else:
+            flu.roh[k] = 0.
 #'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 # adding runoff from vertical and horizontal step to one single flux
 #'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
@@ -593,6 +590,7 @@ def calc_subbasinprecipitation_v1(self):
         >>> nmbgrids(3)
         >>> inputs.p(1., .5, 3.)
         >>> control.area(5., 6., 7.)
+        >>> fluxes.psub(0.)
         >>> model.calc_subbasinprecipitation_v1()
         >>> fluxes.psub
         psub(1.611111)
@@ -610,9 +608,6 @@ def calc_subbasinprecipitation_v1(self):
 def calc_subbasinbalance_v1(self):
     """calculate the (sub-)basin water balance on t.
 
-    Required control parameter:
-      :class:`~hydpy.models.globwat.globwat_control.NmbGrids`
-
     Required derived parameter:
       :class:`~hydpy.models.globwat.globwat_derived.QFactor`
 
@@ -623,7 +618,8 @@ def calc_subbasinbalance_v1(self):
       :class:`~hydpy.models.globwat.globwat_inputs.P`
 
     Required flux sequence:
-      :class:`~hydpy.models.globwat.globwat_fluxes.EGrid`
+      :class:`~hydpy.models.globwat.globwat_fluxes.ESub`
+      :class:`~hydpy.models.globwat.globwat_fluxes.PSub`
 
     Calculated state sequence:
       :class:`~hydpy.models.globwat.globwat_states.Bsb`
@@ -634,8 +630,6 @@ def calc_subbasinbalance_v1(self):
     Examples:
         >>> from hydpy.models.globwat import *
         >>> parameterstep('1d')
-        >>> nmbgrids(3)
-        >>> control.area(5., 6., 7.)
         >>> derived.qfactor = .2
         >>> states.qin(5.)
         >>> fluxes.psub(3.)
@@ -666,7 +660,7 @@ def calc_subbasinstorage_v1(self):
       :class:`~hydpy.models.globwat.globwat_states.Ssb`
 
     Basic equation:
-      :math:`S_{sb} = S_{sb}(t-1) + (B_{sb}(t) -Q_{out}(t-1)) \\cdot \\delta t`
+      :math:`S_{sb} = S_{sb}(t-1) + (B_{sb}(t) - Q_{out}(t-1)) \\cdot \\delta t`
 
     Examples:
         >>> from hydpy.models.globwat import *
@@ -696,7 +690,6 @@ def calc_subbasinstorage_v1(self):
     if sta.ssb < 0.:
         sta.ssb = 0.
 
-
 def calc_outflow_v1(self):
     """calculate the (sub-)basin outflow on t.
 
@@ -715,6 +708,7 @@ def calc_outflow_v1(self):
     Examples:
         >>> from hydpy.models.globwat import *
         >>> parameterstep('1d')
+        >>> control.f(0.3)
         >>> states.ssb(20.)
         >>> model.calc_outflow_v1()
         >>> states.qout
@@ -726,7 +720,6 @@ def calc_outflow_v1(self):
 
     sta.qout = sta.ssb * con.f
 
-
 def update_inlets_v1(self):
     """Update the inlet link sequence."""
 
@@ -736,14 +729,12 @@ def update_inlets_v1(self):
     for idx in range(inl.len_q):
         sta.qin += inl.q[idx][0]
 
-
 def update_outlets_v1(self):
     """Update the outlet link sequence."""
 
     sta = self.sequences.states.fastaccess
     out = self.sequences.outlets.fastaccess
     out.q[0] += sta.qout
-
 
 class Model(modeltools.Model):
     """The HydPy-GlobWat model.
@@ -784,6 +775,8 @@ class Model(modeltools.Model):
         are functionally identical with arable land):
 
         >>> vegetationclass(IRRCNPR, WATER, IRRCPR, RADRYTROP, WATER)
+        >>> control.f(0.3)
+        >>> control.rofactor(.05)
         >>> area(15., 20., 18., 35., 12.)
         >>> scmax(5., 7., 20., 10., 5.)
         >>> rtd(.6, .6, .6, .6, .6)
@@ -800,8 +793,11 @@ class Model(modeltools.Model):
         Set the initial values:
 
         >>> states.s.old = 10., 20., 30., 40., 10.
+        >>> states.ssb.old = 5.
         >>> states.qin.old = 50.
         >>> states.qout.old = 15.
+        >>> fluxes.esub(0.)
+        >>> fluxes.psub(0.)
 
         Set the input values for both simulation time steps:
 

@@ -27,12 +27,8 @@ class _Inits(object):
     def __set__(self, obj, values):
         self.__delete__(obj)
         if values is not None:
-            if isinstance(values, dict):
-                values = values.items()
             for (key, value) in values:
-                if hasattr(key, 'name'):
-                    key = key.name
-                setattr(self.inits, key, value)
+                setattr(self.inits, key.name, value)
 
     def __get__(self, obj, type_=None):
         return self.inits

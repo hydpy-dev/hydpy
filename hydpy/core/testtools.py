@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-"""This module implements tools for making doctests more legible.
-
-At the moment only class :class:`Test` is implemented.
-"""
+"""This module implements tools for making doctests more legible."""
 # import...
 # ...from standard library
 from __future__ import division, print_function
 import datetime
+import types
+import itertools
 # ...from site-packages
 import numpy
 # ...from HydPy
@@ -16,176 +15,102 @@ from hydpy.core import devicetools
 from hydpy.core import selectiontools
 from hydpy.core import objecttools
 from hydpy.core import timetools
+from hydpy.core import sequencetools
+from hydpy.core import autodoctools
 
 
-class _Inits(object):
-    """Descriptor for handling initial values of :class:`Test` objects."""
+class Array(object):
+    """Assures that attributes are :class:`~numpy.ndarray` objects."""
+
+    def __setattr__(self, name, value):
+        object.__setattr__(self, name,  numpy.array(value))
+
+
+class ArrayDescriptor(object):
+    """Descriptor for handling values of :class:`Array` objects."""
 
     def __init__(self):
-        self.inits = type('Inits', (), {})()
+        self.values = Array()
 
     def __set__(self, obj, values):
         self.__delete__(obj)
         if values is not None:
             for (key, value) in values:
-                setattr(self.inits, key.name, value)
+                setattr(self.values, key.name, value)
 
     def __get__(self, obj, type_=None):
-        return self.inits
+        return self.values
 
     def __delete__(self, obj):
-        for name in list(vars(self.inits).keys()):
-            delattr(self.inits, name)
+        for name in list(vars(self.values).keys()):
+            delattr(self.values, name)
 
 
 class Test(object):
-    """Defines model integration doctests.
+    """Base class for :class:`IntegrationTest` and :class:`UnitTest`.
 
-    The functionality of :class:`Test` is easiest to understand by inspecting
-    doctests like the ones of modules :mod:`~hydpy.models.llake_v1` or
-    :mod:`~hydpy.models.arma_v1`.
-
-    Note that all condition sequences (state and logging sequences) are
-    initialized in accordance with the values are given in the `inits`
-    values.  The values of the simulation sequences of outlet and
-    sender nodes are always set to zero before each test run.  All other
-    parameter and sequence values can be changed between different test
-    runs.
+    This base class defines the printing of the test results primarily.
+    How the tests shall be prepared and performed, is to be defined in
+    its subclasses.
     """
 
-    _dateformat = None
-    inits = _Inits()
-
-    def __init__(self, element, seqs=None, inits=None):
-        """Prepare the element and its nodes and put them into a HydPy object
-        and make their sequences ready for use for integration testing."""
-        self.element = element
-        self.nodes = self.retrieve_nodes()
-        self.prepare_input_node_sequences()
-        self.prepare_input_model_sequences()
-        if seqs is None:
-            self.seqs = self.retrieve_print_sequences()
-        else:
-            self.seqs = seqs
-        self.inits = inits
-        self.model = element.model
-        hydpytools.HydPy.nmb_instances = 0
-        self.hp = hydpytools.HydPy()
-        self.hp.updatedevices(selectiontools.Selection(
-                                                'test', self.nodes, element))
-
-    def retrieve_nodes(self):
-        """Return all nodes connected to the actual element."""
-        nodes = devicetools.Nodes()
-        for connection in (self.element.inlets, self.element.outlets,
-                           self.element.receivers, self.element.senders):
-            nodes += connection.slaves
-        return nodes
-
-    def prepare_input_node_sequences(self):
-        """Configure the simulations sequences of the input nodes in
-        a manner that allows for applying their time series data in
-        integration tests.
-        """
-        for (name, node) in self.nodes:
-            if ((node in self.element.inlets) or
-                    (node in self.element.receivers)):
-                node.routingmode = 'oldsim'
-            sim = node.sequences.sim
-            sim.ramflag = True
-            sim._setarray(numpy.zeros(len(pub.timegrids.init), dtype=float))
-
-    def prepare_input_model_sequences(self):
-        """Configure the input sequences of the model in a manner that allows
-        for applying their time series data in integration tests."""
-        for (name, seq) in getattr(self.element.model.sequences, 'inputs', ()):
-            seq.ramflag = True
-            seq._setarray(numpy.zeros(len(pub.timegrids.init), dtype=float))
-
-    def retrieve_print_sequences(self):
-        """Return a list of all input, flux and state sequences of the model
-        as well as the simulation sequences of all nodes."""
-        seqs = []
-        for subseqs in ('inputs', 'fluxes', 'states'):
-            for (name, seq) in getattr(
-                                    self.element.model.sequences, subseqs, ()):
-                seqs.append(seq)
-        for (name, node) in self.nodes:
-            seqs.append(node.sequences.sim)
-        return seqs
-
-    def __call__(self):
-        """Prepare and perform an integration test and print its results."""
-        self.prepare_model()
-        self.hp.doit()
-        self.table
-
-    def prepare_model(self):
-        """Derive the secondary parameter values, prepare all required time
-        series and set the initial conditions.
-        """
-        self.model.parameters.update()
-        self.element.prepare_fluxseries()
-        self.element.prepare_stateseries()
-        for (name, node) in self.nodes:
-            if ((node in self.element.outlets) or
-                    (node in self.element.senders)):
-                node.sequences.sim[:] = 0.
-        for subname in ('states', 'logs'):
-            for (name, seq) in getattr(self.model.sequences, subname, ()):
-                try:
-                    seq(getattr(self.inits, name))
-                except AttributeError:
-                    raise AttributeError(
-                        'For %s sequence `%s`, no initial values have been '
-                        'defined for integration testing.'
-                        % (subname[:-1], seq.name))
+    inits = ArrayDescriptor()
+    """Stores arrays for setting the same values of parameters and/or
+    sequences before each new experiment."""
 
     @property
     def nmb_rows(self):
         """Number of rows of the table."""
-        return len(pub.timegrids.sim)+1
+        return len(self.raw_first_col_strings)+1
 
     @property
     def nmb_cols(self):
         """Number of columns of the table."""
         nmb = 1
-        for seq in self.seqs:
-            nmb += seq.length
+        for parseq in self.parseqs:
+            nmb += max(parseq.length, 1)
         return nmb
 
     @property
     def raw_header_strings(self):
         """All raw strings for the tables header."""
-        strings = ['date']
-        for seq in self.seqs:
-            for idx in range(seq.length-1):
+        strings = [self.HEADER_OF_FIRST_COL]
+        for parseq in self.parseqs:
+            for idx in range(parseq.length-1):
                 strings.append('')
-            if seq.name == 'sim':
-                strings.append(seq.subseqs.node.name)
+            if ((parseq.name == 'sim') and
+                    isinstance(parseq, sequencetools.Sequence)):
+                strings.append(parseq.subseqs.node.name)
             else:
-                strings.append(seq.name)
+                strings.append(parseq.name)
         return strings
 
     @property
     def raw_body_strings(self):
         """All raw strings for the tables body."""
         strings = []
-        for (idx, date) in enumerate(pub.timegrids.sim):
-            strings.append([date.datetime.strftime(self.dateformat)])
-            for seq in self.seqs:
-                if seq.NDIM == 0:
-                    strings[-1].append(objecttools.repr_(seq.series[idx]))
-                elif seq.NDIM == 1:
-                    strings[-1].extend(objecttools.repr_(value)
-                                       for value in seq.series[idx])
+        for (idx, first_string) in enumerate(self.raw_first_col_strings):
+            strings.append([first_string])
+            for parseq in self.parseqs:
+                array = self.get_output_array(parseq)
+                if parseq.NDIM == 0:
+                    strings[-1].append(objecttools.repr_(array[idx]))
+                elif parseq.NDIM == 1:
+                    if parseq.shape[0] > 0:
+                        strings[-1].extend(objecttools.repr_(value)
+                                           for value in array[idx])
+                    else:
+                        strings[-1].append('empty')
                 else:
+                    thing = ('sequence'
+                             if isinstance(parseq, sequencetools.Sequence)
+                             else 'parameter')
                     raise RuntimeError(
                         'An instance of class `Test` of module `testtools` '
-                        'is requested to print the results of sequence `%s`. '
+                        'is requested to print the results of %s `%s`. '
                         'Unfortunately, for %d-dimensional sequences this '
                         'feature is not supported yet.'
-                        % (seq.name, seq.NDIM, seq.shape))
+                        % (thing, parseq.name, parseq.NDIM, parseq.shape))
         return strings
 
     @property
@@ -208,9 +133,9 @@ class Test(object):
     def col_seperators(self):
         """The seperators for adjacent columns."""
         seps = ['| ']
-        for seq in self.seqs:
+        for parseq in self.parseqs:
             seps.append(' | ')
-            for idx in range(seq.length-1):
+            for idx in range(parseq.length-1):
                 seps.append('  ')
         seps.append(' |')
         return seps
@@ -230,17 +155,65 @@ class Test(object):
         lst.append(seperators[-1])
         return ''.join(lst)
 
-    @property
-    def table(self):
-        """Print out of the complete table."""
+    def print_table(self, idx1=None, idx2=None):
+        """Print the result table between the given indices."""
         print(self._interleave(self.col_seperators,
                                self.raw_header_strings,
                                self.col_widths))
         print('-'*self.row_nmb_characters)
-        for strings_in_line in self.raw_body_strings:
+        for strings_in_line in self.raw_body_strings[idx1:idx2]:
             print(self._interleave(self.col_seperators,
                                    strings_in_line,
                                    self.col_widths))
+
+
+class IntegrationTest(Test):
+    """Defines model integration doctests.
+
+    The functionality of :class:`Test` is easiest to understand by inspecting
+    doctests like the ones of modules :mod:`~hydpy.models.llake_v1` or
+    :mod:`~hydpy.models.arma_v1`.
+
+    Note that all condition sequences (state and logging sequences) are
+    initialized in accordance with the values are given in the `inits`
+    values.  The values of the simulation sequences of outlet and
+    sender nodes are always set to zero before each test run.  All other
+    parameter and sequence values can be changed between different test
+    runs.
+    """
+
+    HEADER_OF_FIRST_COL = 'date'
+    """The header of the first column containing dates."""
+
+    _dateformat = None
+
+    def __init__(self, element, seqs=None, inits=None):
+        """Prepare the element and its nodes and put them into a HydPy object
+        and make their sequences ready for use for integration testing."""
+        del self.inits
+        self.element = element
+        self.nodes = self.extract_nodes()
+        self.prepare_input_node_sequences()
+        self.prepare_input_model_sequences()
+        self.parseqs = seqs if seqs else self.extract_print_sequences()
+        self.inits = inits
+        self.model = element.model
+        hydpytools.HydPy.nmb_instances = 0
+        self.hp = hydpytools.HydPy()
+        self.hp.updatedevices(selectiontools.Selection(
+                                                'test', self.nodes, element))
+
+    def __call__(self):
+        """Prepare and perform an integration test and print its results."""
+        self.prepare_model()
+        self.hp.doit()
+        self.print_table()
+
+    @property
+    def raw_first_col_strings(self):
+        """The raw date strings of the first column, except the header."""
+        return [date.datetime.strftime(self.dateformat)
+                for date in pub.timegrids.sim]
 
     def _getdateformat(self):
         """Format string for printing dates in the first column of the table.
@@ -270,3 +243,181 @@ class Test(object):
         self._dateformat = dateformat
 
     dateformat = property(_getdateformat, _setdateformat)
+
+    @staticmethod
+    def get_output_array(seq):
+        """Return the array containing the output results of the given
+        sequence."""
+        return seq.series
+
+    def extract_nodes(self):
+        """Return all nodes connected to the actual element."""
+        nodes = devicetools.Nodes()
+        for connection in (self.element.inlets, self.element.outlets,
+                           self.element.receivers, self.element.senders):
+            nodes += connection.slaves
+        return nodes
+
+    def prepare_input_node_sequences(self):
+        """Configure the simulations sequences of the input nodes in
+        a manner that allows for applying their time series data in
+        integration tests.
+        """
+        for (name, node) in self.nodes:
+            if ((node in self.element.inlets) or
+                    (node in self.element.receivers)):
+                node.routingmode = 'oldsim'
+            sim = node.sequences.sim
+            sim.ramflag = True
+            sim._setarray(numpy.zeros(len(pub.timegrids.init), dtype=float))
+
+    def prepare_input_model_sequences(self):
+        """Configure the input sequences of the model in a manner that allows
+        for applying their time series data in integration tests."""
+        for (name, seq) in getattr(self.element.model.sequences, 'inputs', ()):
+            seq.ramflag = True
+            seq._setarray(numpy.zeros(len(pub.timegrids.init), dtype=float))
+
+    def extract_print_sequences(self):
+        """Return a list of all input, flux and state sequences of the model
+        as well as the simulation sequences of all nodes."""
+        seqs = []
+        for subseqs in ('inputs', 'fluxes', 'states'):
+            for (name, seq) in getattr(
+                                    self.element.model.sequences, subseqs, ()):
+                seqs.append(seq)
+        for (name, node) in self.nodes:
+            seqs.append(node.sequences.sim)
+        return seqs
+
+    def prepare_model(self):
+        """Derive the secondary parameter values, prepare all required time
+        series and set the initial conditions.
+        """
+        self.model.parameters.update()
+        self.element.prepare_fluxseries()
+        self.element.prepare_stateseries()
+        self.reset_outlets()
+        self.reset_inits()
+
+    def reset_outlets(self):
+        """Set the values of the simulation sequences of all outlet nodes to
+        zero."""
+        for (name, node) in self.nodes:
+            if ((node in self.element.outlets) or
+                    (node in self.element.senders)):
+                node.sequences.sim[:] = 0.
+
+    def reset_inits(self):
+        """Set all initial conditions."""
+        for subname in ('states', 'logs'):
+            for (name, seq) in getattr(self.model.sequences, subname, ()):
+                try:
+                    seq(getattr(self.inits, name))
+                except AttributeError:
+                    raise AttributeError(
+                        'For %s sequence `%s`, no initial values have been '
+                        'defined for integration testing.'
+                        % (subname[:-1], seq.name))
+
+
+class UnitTest(Test):
+
+    HEADER_OF_FIRST_COL = 'ex.'
+    """The header of the first column containing sequential numbers."""
+
+    nexts = ArrayDescriptor()
+    """Stores arrays for setting different values of parameters and/or
+    sequences before each new experiment."""
+
+    results = ArrayDescriptor()
+    """Stores arrays with the resulting values of parameters and/or
+    sequences of each new experiment."""
+
+    def __init__(self, model, method, nmb_examples=1):
+        del self.inits
+        del self.nexts
+        del self.results
+        self.model = model
+        self.method = method
+        self.doc = self.extract_method_doc()
+        self.nmb_examples = nmb_examples
+        self.parseqs = self.extract_print_parameters_and_sequences()
+        self.memorize_inits()
+        self.prepare_output_arrays()
+
+    def __call__(self, first_example=None, last_example=None):
+        self.reset_inits()
+        if first_example is not None:
+            first_example -= 1
+        for idx in self.raw_first_col_strings[first_example:last_example]:
+            self._update_inputs(int(idx)-1)
+            self.method()
+            self._update_outputs(int(idx)-1)
+        self.print_table(first_example, last_example)
+
+    def get_output_array(self, parseq):
+        """Return the array containing the output results of the given
+        parameter or sequence."""
+        return getattr(self.results, parseq.name)
+
+    @property
+    def raw_first_col_strings(self):
+        """The raw integer strings of the first column, except the header."""
+        return [str(example) for example in range(1, self.nmb_examples+1)]
+
+    def memorize_inits(self):
+        """Memorize all initial conditions."""
+        for parseq in self.parseqs:
+            setattr(self.inits, parseq.name, parseq.values)
+
+    def prepare_output_arrays(self):
+        for parseq in self.parseqs:
+            shape = [len(self.raw_first_col_strings)] + list(parseq.shape)
+            type_ = getattr(parseq, 'TYPE', float)
+            array = numpy.full(shape, numpy.nan, type_)
+            setattr(self.results, parseq.name, array)
+
+    def reset_inits(self):
+        """Set all initial conditions."""
+        for parseq in self.parseqs:
+            parseq(getattr(self.inits, parseq.name))
+
+    def extract_method_doc(self):
+        """Return the documentation string of the method to be tested."""
+        if isinstance(self.method, types.FunctionType):
+            self._doc = self.method.__doc__
+        else:
+            Model = type(self.model)
+            for function in itertools.chain(Model._RUNMETHODS,
+                                            Model._ADDMETHODS):
+                if function.__name__ == self.method.__name__:
+                    return function.__doc__
+
+    def extract_print_parameters_and_sequences(self):
+        """Return a list of all input, flux and state sequences of the model
+        as well as the simulation sequences of all nodes."""
+        parseqs = []
+        for (_, subparseqs) in itertools.chain(self.model.parameters,
+                                               self.model.sequences):
+            for (_, parseq) in subparseqs:
+                if str(parseq.__class__).split("'")[1] in self.doc:
+                    parseqs.append(parseq)
+        return tuple(parseqs)
+
+    def _update_inputs(self, idx):
+        """Update the actual values with the :attr:`~UnitTest.nexts` data of
+        the given index."""
+        for parseq in self.parseqs:
+            if hasattr(self.nexts, parseq.name):
+                parseq(getattr(self.nexts, parseq.name)[idx])
+
+    def _update_outputs(self, idx):
+        """Update the :attr:`~UnitTest.results` data with the actual values of
+        the given index."""
+        for parseq in self.parseqs:
+            if hasattr(self.results, parseq.name):
+                getattr(self.results, parseq.name)[idx] = parseq.values
+
+
+autodoctools.autodoc_module()

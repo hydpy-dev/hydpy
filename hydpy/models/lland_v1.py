@@ -59,8 +59,8 @@ Integration tests:
     Initialize a test function object, which prepares and runs the tests
     and prints their results for the given sequences:
 
-    >>> from hydpy.core.testtools import Test
-    >>> test = Test(land)
+    >>> from hydpy.core.testtools import IntegrationTest
+    >>> test = IntegrationTest(land)
 
     Define a format for the dates to be printed:
 

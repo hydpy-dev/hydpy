@@ -54,12 +54,13 @@ Integration examples:
     is added in order to prove that the values calculated for `qa` are
     actually passed to `sim`:
 
-    >>> from hydpy.core.testtools import Test
-    >>> test = Test(lake,
-    ...             seqs=(fluxes.qz, fluxes.qa, nodes.output.sequences.sim,
-    ...                   states.v, states.w),
-    ...             inits=((states.v, 0.),
-    ...                    (states.w, 0.)))
+    >>> from hydpy.core.testtools import IntegrationTest
+    >>> test = IntegrationTest(lake,
+    ...                        seqs=(fluxes.qz, fluxes.qa,
+    ...                              nodes.output.sequences.sim,
+    ...                              states.v, states.w),
+    ...                        inits=((states.v, 0.),
+    ...                               (states.w, 0.)))
     >>> test.dateformat = '%d.%m.'
 
     Set the values of those control parameter, which remain fixed for all

@@ -198,7 +198,7 @@ def autodoc_module():
             type_ = 'class'
         else:
             type_ = 'object'
-        lines.append('      * :%s:`~%s` `%s`'
+        lines.append('      * :%s:`~%s` %s'
                      % (type_, name, description(member)))
     module.__doc__ = doc + '\n\n' + '\n'.join(lines) + '\n\n' + 80*'_'
 

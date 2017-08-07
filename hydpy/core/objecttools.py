@@ -7,6 +7,7 @@ of the different objects defined by the HydPy framework.
 from __future__ import division, print_function
 import inspect
 import sys
+import textwrap
 # ...from site-packages
 import numpy
 # ...from HydPy
@@ -224,6 +225,19 @@ def repr_(value):
         return repr(value)
 
 
+def repr_values(values):
+    """Return comma seperated representations of the given values using
+    function :func:`repr_`.
+
+    >>> from hydpy.core.objecttools import repr_values
+    >>> repr_values([1./1., 1./2., 1./3.])
+    '1.0, 0.5, 0.333333'
+
+    Note that the returned string is not wrapped.
+    """
+    return '%s' % ', '.join(repr_(value) for value in values)
+
+
 def repr_tuple(values):
     """Return a tuple representation of the given values using function
     :func:`repr_`.
@@ -234,7 +248,7 @@ def repr_tuple(values):
 
     Note that the returned string is not wrapped.
     """
-    return '(%s)' % ', '.join(repr_(value) for value in values)
+    return '(%s)' % repr_values(values)
 
 
 def repr_list(values):
@@ -247,7 +261,59 @@ def repr_list(values):
 
     Note that the returned string is not wrapped.
     """
-    return '[%s]' % ', '.join(repr_(value) for value in values)
+    return '[%s]' % repr_values(values)
+
+
+def assignrepr_values(values, prefix, width):
+    """Return a prefixed, wrapped and properly aligned string representations
+    of the given values using function :func:`repr_`.
+
+    >>> from hydpy.core.objecttools import assignrepr_values
+    >>> print(assignrepr_values(range(50), 'test = ', 70))
+    test = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
+           18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
+           33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47,
+           48, 49
+    """
+    prefix_width = len(prefix)
+    blanks = ' '*(prefix_width)
+    tuple_width = width - prefix_width - 2
+    wrapped = textwrap.wrap(repr_values(values), tuple_width)
+    lines = []
+    for (idx, line) in enumerate(wrapped):
+        if idx == 0:
+            lines.append('%s%s' % (prefix, line))
+        else:
+            lines.append('%s%s' % (blanks, line))
+    return '\n'.join(lines)
+
+
+def assignrepr_tuple(values, prefix, width):
+    """Return a prefixed, wrapped and properly aligned tuple string
+    representation of the given values using function :func:`repr_`.
+
+    >>> from hydpy.core.objecttools import assignrepr_tuple
+    >>> print(assignrepr_tuple(range(50), 'test = ', 70))
+    test = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+            17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+            32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46,
+            47, 48, 49)
+    """
+    return assignrepr_values(values, prefix+'(', width-1) + ')'
+
+
+def assignrepr_list(values, prefix, width):
+    """Return a prefixed, wrapped and properly aligned list string
+    representation of the given values using function :func:`repr_`.
+
+    >>> from hydpy.core.objecttools import assignrepr_list
+    >>> print(assignrepr_list(range(50), 'test = ', 70))
+    test = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+            17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+            32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46,
+            47, 48, 49]
+    """
+    return assignrepr_values(values, prefix+'[', width-1) + ']'
 
 
 def round_(value, rjust=0, **kwargs):

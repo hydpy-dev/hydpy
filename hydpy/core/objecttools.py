@@ -224,6 +224,32 @@ def repr_(value):
         return repr(value)
 
 
+def repr_tuple(values):
+    """Return a tuple representation of the given values using function
+    :func:`repr_`.
+
+    >>> from hydpy.core.objecttools import repr_tuple
+    >>> repr_tuple([1./1., 1./2., 1./3.])
+    '(1.0, 0.5, 0.333333)'
+
+    Note that the returned string is not wrapped.
+    """
+    return '(%s)' % ', '.join(repr_(value) for value in values)
+
+
+def repr_list(values):
+    """Return a list representation of the given values using function
+    :func:`repr_`.
+
+    >>> from hydpy.core.objecttools import repr_list
+    >>> repr_list([1./1., 1./2., 1./3.])
+    '[1.0, 0.5, 0.333333]'
+
+    Note that the returned string is not wrapped.
+    """
+    return '[%s]' % ', '.join(repr_(value) for value in values)
+
+
 def round_(value, rjust=0, **kwargs):
     """Shortcut for `print(repr_(value), **kwargs)`.
 

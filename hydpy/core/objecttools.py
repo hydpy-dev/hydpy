@@ -298,8 +298,13 @@ def assignrepr_tuple(values, prefix, width):
             17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
             32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46,
             47, 48, 49)
+    >>> print(assignrepr_tuple((), 'test = ', 70))
+    test = ()
     """
-    return assignrepr_values(values, prefix+'(', width-1) + ')'
+    if len(values):
+        return assignrepr_values(values, prefix+'(', width-1) + ')'
+    else:
+        return prefix + '()'
 
 
 def assignrepr_list(values, prefix, width):
@@ -312,16 +317,33 @@ def assignrepr_list(values, prefix, width):
             17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
             32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46,
             47, 48, 49]
+    >>> print(assignrepr_list((), 'test = ', 70))
+    test = []
     """
-    return assignrepr_values(values, prefix+'[', width-1) + ']'
+    if len(values):
+        return assignrepr_values(values, prefix+'[', width-1) + ']'
+    else:
+        return prefix + '[]'
 
 
-def round_(value, rjust=0, **kwargs):
-    """Shortcut for `print(repr_(value), **kwargs)`.
+def round_(values, **kwargs):
+    """Prints values with a maximum number of digits in doctests.
 
-    See the documentation on function :func:`repr_` for any details.
+    See the documentation on function :func:`repr_` for more details.  And
+    note thate the option keyword arguments are passed to the print function.
+
+    >>> from hydpy.pub import options
+    >>> options.reprdigits = 6
+    >>> from hydpy.core.objecttools import round_
+    >>> round_(1./3.)
+    0.333333
+    >>> round_([1./2., 1./3., 1./4.], end='...\n')
+    0.5, 0.333333, 0.25...
     """
-    print(repr_(value).rjust(rjust), **kwargs)
+    if hasattr(values, '__iter__'):
+        print(repr_values(values), **kwargs)
+    else:
+        print(repr_(values), **kwargs)
 
 
 class Options(object):

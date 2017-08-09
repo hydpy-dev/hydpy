@@ -152,7 +152,7 @@ def augmentexcmessage(prefix=None, suffix=None):
         raise exception(message).with_traceback(traceback_)
 
 
-def repr_(value):
+def repr_(value, decimals=None):
     """Modifies :func:`repr` for strings and floats, mainly for supporting
     clean float representations that are compatible with :mod:`doctest`.
 
@@ -209,14 +209,15 @@ def repr_(value):
     '[1, 2, 3]'
     """
     from hydpy.pub import options
-    if isinstance(value, (pointer.Double, pointer.PDouble)):
-        value = float(value)
+    decimals = options.reprdigits if decimals is None else decimals
     if isinstance(value, str):
         return value
-    elif ((options.reprdigits is not None) and
-          isinstance(value,
-                     (float, numpy.float64, numpy.float32, numpy.float16))):
-        string = '{0:.{1}f}'.format(value, options.reprdigits)
+    if isinstance(value, (pointer.Double, pointer.PDouble)):
+        value = float(value)
+    if ((decimals is not None) and
+            isinstance(value,
+                       (float, numpy.float64, numpy.float32, numpy.float16))):
+        string = '{0:.{1}f}'.format(value, decimals)
         string = string.rstrip('0')
         if string.endswith('.'):
             string += '0'
@@ -225,7 +226,7 @@ def repr_(value):
         return repr(value)
 
 
-def repr_values(values):
+def repr_values(values, decimals=None):
     """Return comma seperated representations of the given values using
     function :func:`repr_`.
 
@@ -235,10 +236,10 @@ def repr_values(values):
 
     Note that the returned string is not wrapped.
     """
-    return '%s' % ', '.join(repr_(value) for value in values)
+    return '%s' % ', '.join(repr_(value, decimals) for value in values)
 
 
-def repr_tuple(values):
+def repr_tuple(values, decimals=None):
     """Return a tuple representation of the given values using function
     :func:`repr_`.
 
@@ -248,10 +249,10 @@ def repr_tuple(values):
 
     Note that the returned string is not wrapped.
     """
-    return '(%s)' % repr_values(values)
+    return '(%s)' % repr_values(values, decimals)
 
 
-def repr_list(values):
+def repr_list(values, decimals=None):
     """Return a list representation of the given values using function
     :func:`repr_`.
 
@@ -261,10 +262,10 @@ def repr_list(values):
 
     Note that the returned string is not wrapped.
     """
-    return '[%s]' % repr_values(values)
+    return '[%s]' % repr_values(values, decimals)
 
 
-def assignrepr_values(values, prefix, width):
+def assignrepr_values(values, prefix, width, decimals=None):
     """Return a prefixed, wrapped and properly aligned string representations
     of the given values using function :func:`repr_`.
 
@@ -278,7 +279,7 @@ def assignrepr_values(values, prefix, width):
     prefix_width = len(prefix)
     blanks = ' '*(prefix_width)
     tuple_width = width - prefix_width - 2
-    wrapped = textwrap.wrap(repr_values(values), tuple_width)
+    wrapped = textwrap.wrap(repr_values(values, decimals), tuple_width)
     lines = []
     for (idx, line) in enumerate(wrapped):
         if idx == 0:
@@ -288,7 +289,7 @@ def assignrepr_values(values, prefix, width):
     return '\n'.join(lines)
 
 
-def assignrepr_tuple(values, prefix, width):
+def assignrepr_tuple(values, prefix, width, decimals=None):
     """Return a prefixed, wrapped and properly aligned tuple string
     representation of the given values using function :func:`repr_`.
 
@@ -302,12 +303,12 @@ def assignrepr_tuple(values, prefix, width):
     test = ()
     """
     if len(values):
-        return assignrepr_values(values, prefix+'(', width-1) + ')'
+        return assignrepr_values(values, prefix+'(', width-1, decimals) + ')'
     else:
         return prefix + '()'
 
 
-def assignrepr_list(values, prefix, width):
+def assignrepr_list(values, prefix, width, decimals=None):
     """Return a prefixed, wrapped and properly aligned list string
     representation of the given values using function :func:`repr_`.
 
@@ -321,29 +322,27 @@ def assignrepr_list(values, prefix, width):
     test = []
     """
     if len(values):
-        return assignrepr_values(values, prefix+'[', width-1) + ']'
+        return assignrepr_values(values, prefix+'[', width-1, decimals) + ']'
     else:
         return prefix + '[]'
 
 
-def round_(values, **kwargs):
+def round_(values, decimals=None, **kwargs):
     """Prints values with a maximum number of digits in doctests.
 
     See the documentation on function :func:`repr_` for more details.  And
     note thate the option keyword arguments are passed to the print function.
 
-    >>> from hydpy.pub import options
-    >>> options.reprdigits = 6
     >>> from hydpy.core.objecttools import round_
-    >>> round_(1./3.)
+    >>> round_(1./3., decimals=6)
     0.333333
-    >>> round_([1./2., 1./3., 1./4.], end='...\n')
-    0.5, 0.333333, 0.25...
+    >>> round_((1./2., 1./3., 1./4.), decimals=4)
+    0.5, 0.3333, 0.25
     """
     if hasattr(values, '__iter__'):
-        print(repr_values(values), **kwargs)
+        print(repr_values(values, decimals), **kwargs)
     else:
-        print(repr_(values), **kwargs)
+        print(repr_(values, decimals), **kwargs)
 
 
 class Options(object):

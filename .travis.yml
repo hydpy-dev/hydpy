@@ -13,6 +13,7 @@ python:
   - "nightly"
 # command to install dependencies
 install:
+  - pip install --upgrade pip setuptools wheel
   - pip install Cython --install-option="--no-cython-compile"
   - pip install numpy --upgrade
   - pip install --only-binary=scipy scipy

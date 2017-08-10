@@ -31,19 +31,19 @@ developement if :ref:`HydPy`, you are referred to the :ref:`introduction`
 section.  If you want to dive into model application or development directly,
 have a look at the  :ref:`tutorials` section.  Thorough descriptions the
 features of the framework components and it models implemented so far are given
-in the sections :ref:`framework` and :ref:`modelcollection`. The section
+in the sections :ref:`core` and :ref:`modelcollection`. The section
 :ref:`projectstructure` explaines, how :ref:`HydPy` projects can be set up for
 different tasks.  And last but not least: :ref:`HydPy` is intended as an open
 source project --- any help is greatly appreciated. If you want to contribute
-with bug reports, the extension of model collection, or the improvement of the
-framework itself, see the :ref:`development` section:
+with bug reports, the extension of the model collection, or the improvement of
+the framework core, see the :ref:`development` section:
 
 .. toctree::
    :maxdepth: 2
 
    introduction
    tutorials
-   framework
+   core
    cythons
    modelcollection
    auxiliaries

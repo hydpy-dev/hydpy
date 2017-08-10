@@ -12,5 +12,7 @@ of the framwork and its models.
 .. toctree::
    :maxdepth: 1
 
+   armatools
+   iuhtools
    statstools
    validtools

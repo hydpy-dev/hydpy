@@ -213,7 +213,7 @@ class IUH(_MetaIUH):
 
     def __repr__(self):
         parts = [objecttools.classname(self), '(']
-        for (name, primpar) in self.primary_parameters.items():
+        for (name, primpar) in sorted(self.primary_parameters.items()):
             value = primpar.__get__(self)
             if value is not None:
                 parts.extend([name, '=', objecttools.repr_(value), ', '])
@@ -244,7 +244,7 @@ class TranslationDiffusionEquation(IUH):
     >>> from hydpy.auxs.iuhtools import TranslationDiffusionEquation
     >>> tde = TranslationDiffusionEquation(u=5., d=15., x=50.)
     >>> tde
-    TranslationDiffusionEquation(u=5.0, d=15.0, x=50.0)
+    TranslationDiffusionEquation(d=15.0, u=5.0, x=50.0)
 
     The values of both secondary parameters are determined automatically:
 

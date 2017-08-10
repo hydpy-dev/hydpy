@@ -15,6 +15,7 @@ python:
 install:
   - pip install Cython --install-option="--no-cython-compile"
   - pip install numpy --upgrade
+  - pip install scipy
   - pip install matplotlib
   - pip install coverage
   - if [ $TRAVIS_PYTHON_VERSION = "2.7" ] ; then pip install pycobertura; fi

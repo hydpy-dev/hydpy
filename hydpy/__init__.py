@@ -34,7 +34,8 @@ def customwarn(message, category, filename, lineno, file=None, line=None):
                                     message, category, filename, lineno))
 warnings.showwarning = customwarn
 warnings.filterwarnings('always', category=HydPyDeprecationWarning)
-
+warnings.filterwarnings("ignore", message="numpy.dtype size changed")
+warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 
 __all__ = ['HydPy', 'pub',
            'Date', 'Period', 'Timegrid', 'Timegrids',

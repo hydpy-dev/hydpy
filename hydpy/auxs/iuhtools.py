@@ -97,8 +97,8 @@ class MetaIUH(type):
                 primary_parameters[key] = value
             elif isinstance(value, SecondaryParameter):
                 secondary_parameters[key] = value
-        dict_['primary_parameters'] = primary_parameters
-        dict_['secondary_parameters'] = secondary_parameters
+        dict_['_primary_parameters'] = primary_parameters
+        dict_['_secondary_parameters'] = secondary_parameters
         return type.__new__(cls, name, parents, dict_)
 
 
@@ -129,7 +129,7 @@ class IUH(_MetaIUH):
     def set_primary_parameters(self, **kwargs):
         """Set all primary parameters at once."""
         given = sorted(kwargs.keys())
-        required = sorted(self.primary_parameters)
+        required = sorted(self._primary_parameters)
         if given == required:
             for (key, value) in kwargs.items():
                 setattr(self, key, value)
@@ -148,7 +148,7 @@ class IUH(_MetaIUH):
     def are_primary_parameters_complete(self):
         """True/False flag that indicates wheter the values of all primary
         parameters are defined or not."""
-        for primpar in self.primary_parameters.values():
+        for primpar in self._primary_parameters.values():
             if primpar.__get__(self) is None:
                 return False
         return True
@@ -165,7 +165,7 @@ class IUH(_MetaIUH):
         if self.are_primary_parameters_complete:
             self.calc_secondary_parameters()
         else:
-            for secpar in self.secondary_parameters.values():
+            for secpar in self._secondary_parameters.values():
                 secpar.__delete__(self)
 
     @property
@@ -213,7 +213,7 @@ class IUH(_MetaIUH):
 
     def __repr__(self):
         parts = [objecttools.classname(self), '(']
-        for (name, primpar) in sorted(self.primary_parameters.items()):
+        for (name, primpar) in sorted(self._primary_parameters.items()):
             value = primpar.__get__(self)
             if value is not None:
                 parts.extend([name, '=', objecttools.repr_(value), ', '])
@@ -230,13 +230,14 @@ class TranslationDiffusionEquation(IUH):
 
     The equation used is a linear approximation of the Saint-Venant
     equations for channel routing:
-        :math:`h(t) = \\frac{a}{t \\cdot \\sqrt{\\pi \\cdot t}} \\cdot
-        e^{-t \\cdot (a/t-b)^2}`
+
+      :math:`h(t) = \\frac{a}{t \\cdot \\sqrt{\\pi \\cdot t}} \\cdot
+      e^{-t \\cdot (a/t-b)^2}`
 
     with:
-         :math:`a = \\frac{x}{2 \\cdot \\sqrt{d}}`
+      :math:`a = \\frac{x}{2 \\cdot \\sqrt{d}}`
 
-         :math:`b = \\frac{u}{2 \\cdot \\sqrt{d}}`
+      :math:`b = \\frac{u}{2 \\cdot \\sqrt{d}}`
 
     There are three primary parameter whichs values need to be defined by
     the user:
@@ -327,6 +328,7 @@ class TranslationDiffusionEquation(IUH):
     b = SecondaryParameter('b', doc='Velocity related coefficient.')
 
     def calc_secondary_parameters(self):
+        """Determine the values of the secondary parameters `a` and `b`."""
         self.a = self.x/(2.*self.d**.5)
         self.b = self.u/(2.*self.d**.5)
 
@@ -339,10 +341,11 @@ class LinearStorageCascade(IUH):
 
     The equation involves the gamma function, allowing for a fractional number
     of storages:
-        :math:`h(t) = c \\cdot (t/k)^{n-1} \\cdot e^{-t/k}`
+
+      :math:`h(t) = c \\cdot (t/k)^{n-1} \\cdot e^{-t/k}`
 
     with:
-         :math:`c = \\frac{1}{k \\cdot \\gamma(n)}`
+      :math:`c = \\frac{1}{k \\cdot \\gamma(n)}`
 
     After defining the values of the two primary parameters, the function
     object can be applied:
@@ -363,6 +366,7 @@ class LinearStorageCascade(IUH):
     c = SecondaryParameter('c', doc='Proportionality factor.')
 
     def calc_secondary_parameters(self):
+        """Determine the value of the secondary parameter `c`."""
         self.c = 1./(self.k*special.gamma(self.n))
 
     def __call__(self, t):

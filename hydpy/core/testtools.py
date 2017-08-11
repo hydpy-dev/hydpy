@@ -334,27 +334,51 @@ class UnitTest(Test):
     """Stores arrays with the resulting values of parameters and/or
     sequences of each new experiment."""
 
-    def __init__(self, model, method, nmb_examples=1):
+    def __init__(self, model, method, first_example=1, last_example=1):
         del self.inits
         del self.nexts
         del self.results
         self.model = model
         self.method = method
         self.doc = self.extract_method_doc()
-        self.nmb_examples = nmb_examples
+        self.first_example_calc = first_example
+        self.last_example_calc = last_example
+        self.first_example_plot = first_example
+        self.last_example_plot = last_example
         self.parseqs = self.extract_print_parameters_and_sequences()
         self.memorize_inits()
         self.prepare_output_arrays()
 
+    @property
+    def nmb_examples(self):
+        return self.last_example_calc-self.first_example_calc+1
+
+    @property
+    def idx0(self):
+        """First index of the examples selected for printing."""
+        return self.first_example_plot-self.first_example_calc
+
+    @property
+    def idx1(self):
+        """Last index of the examples selected for printing."""
+        return self.nmb_examples-(self.last_example_calc -
+                                  self.last_example_plot)
+
     def __call__(self, first_example=None, last_example=None):
+        if first_example is None:
+            self.first_example_plot = self.first_example_calc
+        else:
+            self.first_example_plot = first_example
+        if last_example is None:
+            self.last_example_plot = self.last_example_calc
+        else:
+            self.last_example_plot = last_example
         self.reset_inits()
-        if first_example is not None:
-            first_example -= 1
-        for idx in self.raw_first_col_strings[first_example:last_example]:
-            self._update_inputs(int(idx)-1)
+        for idx in range(self.nmb_examples):
+            self._update_inputs(idx)
             self.method()
-            self._update_outputs(int(idx)-1)
-        self.print_table(first_example, last_example)
+            self._update_outputs(idx)
+        self.print_table(self.idx0, self.idx1)
 
     def get_output_array(self, parseq):
         """Return the array containing the output results of the given
@@ -364,7 +388,8 @@ class UnitTest(Test):
     @property
     def raw_first_col_strings(self):
         """The raw integer strings of the first column, except the header."""
-        return [str(example) for example in range(1, self.nmb_examples+1)]
+        return [str(example) for example in
+                range(self.first_example_plot, self.last_example_plot+1)]
 
     def memorize_inits(self):
         """Memorize all initial conditions."""

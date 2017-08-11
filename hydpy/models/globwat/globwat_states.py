@@ -33,11 +33,11 @@ class Ssb(sequencetools.StateSequence):
     NDIM, NUMERIC, SPAN  = 0, False, (0., None)
 
 class Qout(sequencetools.StateSequence):
-    """outflow [m³/day]."""
+    """outflow [m³/s]."""
     NDIM, NUMERIC, SPAN  = 0, False, (0., None)
 
 class Qin(sequencetools.StateSequence):
-    """inflow [m³/day]."""
+    """inflow [m³/s]."""
     NDIM, NUMERIC, SPAN  = 0, False, (0., None)
 
 class StateSequences(sequencetools.StateSequences):

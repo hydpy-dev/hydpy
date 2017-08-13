@@ -265,66 +265,245 @@ def repr_list(values, decimals=None):
     return '[%s]' % repr_values(values, decimals)
 
 
-def assignrepr_values(values, prefix, width, decimals=None):
-    """Return a prefixed, wrapped and properly aligned string representations
+def assignrepr_values(values, prefix, width=None, decimals=None, _fakeend=0):
+    """Return a prefixed, wrapped and properly aligned string representation
     of the given values using function :func:`repr_`.
 
     >>> from hydpy.core.objecttools import assignrepr_values
-    >>> print(assignrepr_values(range(50), 'test = ', 70))
-    test = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
-           18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
-           33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47,
-           48, 49
+    >>> print(assignrepr_values(range(1, 13), 'test(', 20) + ')')
+    test(1, 2, 3, 4, 5,
+         6, 7, 8, 9, 10,
+         11, 12)
+
+    If no width is given, no wrapping is performed:
+
+    >>> print(assignrepr_values(range(1, 13), 'test(') + ')')
+    test(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
     """
-    prefix_width = len(prefix)
-    blanks = ' '*(prefix_width)
-    tuple_width = width - prefix_width - 2
-    wrapped = textwrap.wrap(repr_values(values, decimals), tuple_width)
+    blanks = ' '*len(prefix)
+    string = repr_values(values, decimals)
+    if width is None:
+        wrapped = [string]
+        _fakeend = 0
+    else:
+        width -= len(prefix)
+        wrapped = textwrap.wrap(string+'_'*_fakeend, width)
+    if not wrapped:
+        wrapped = ['']
     lines = []
     for (idx, line) in enumerate(wrapped):
         if idx == 0:
             lines.append('%s%s' % (prefix, line))
         else:
             lines.append('%s%s' % (blanks, line))
-    return '\n'.join(lines)
+    string = '\n'.join(lines)
+    return string[:len(string)-_fakeend]
 
 
-def assignrepr_tuple(values, prefix, width, decimals=None):
+def _assignrepr_bracketed(brackets, values, prefix, width=None, decimals=None):
+    """Return a prefixed, wrapped and properly aligned bracketed string
+    representation of the given values using function :func:`repr_`.
+
+    >>> from hydpy.core.objecttools import _assignrepr_bracketed
+    >>> print(_assignrepr_bracketed('{}', range(10), 'test = ', 22))
+    test = {0, 1, 2, 3, 4,
+            5, 6, 7, 8, 9}
+
+    If no width is given, no wrapping is performed:
+
+    >>> print(_assignrepr_bracketed('{}', range(10), 'test = '))
+    test = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
+
+    Functions :func:`_assignrepr_bracketed` works also on empty iterables:
+
+    >>> print(_assignrepr_bracketed('{}', (), 'test = '))
+    test = {}
+    """
+    if len(values):
+        return assignrepr_values(values, prefix+brackets[0],
+                                 width, decimals, 1) + brackets[1]
+    else:
+        return prefix + brackets
+
+
+def assignrepr_tuple(values, prefix, width=None, decimals=None):
     """Return a prefixed, wrapped and properly aligned tuple string
     representation of the given values using function :func:`repr_`.
 
     >>> from hydpy.core.objecttools import assignrepr_tuple
-    >>> print(assignrepr_tuple(range(50), 'test = ', 70))
-    test = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
-            17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-            32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46,
-            47, 48, 49)
-    >>> print(assignrepr_tuple((), 'test = ', 70))
+    >>> print(assignrepr_tuple(range(10), 'test = ', 22))
+    test = (0, 1, 2, 3, 4,
+            5, 6, 7, 8, 9)
+
+    If no width is given, no wrapping is performed:
+
+    >>> print(assignrepr_tuple(range(10), 'test = '))
+    test = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+
+    Functions :func:`assignrepr_tuple` works also on empty iterables:
+
+    >>> print(assignrepr_tuple((), 'test = '))
     test = ()
     """
-    if len(values):
-        return assignrepr_values(values, prefix+'(', width-1, decimals) + ')'
-    else:
-        return prefix + '()'
+    return _assignrepr_bracketed('()', values, prefix, width, decimals)
 
 
-def assignrepr_list(values, prefix, width, decimals=None):
+def assignrepr_list(values, prefix, width=None, decimals=None):
     """Return a prefixed, wrapped and properly aligned list string
     representation of the given values using function :func:`repr_`.
 
     >>> from hydpy.core.objecttools import assignrepr_list
-    >>> print(assignrepr_list(range(50), 'test = ', 70))
-    test = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
-            17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-            32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46,
-            47, 48, 49]
-    >>> print(assignrepr_list((), 'test = ', 70))
+    >>> print(assignrepr_list(range(10), 'test = ', 22))
+    test = [0, 1, 2, 3, 4,
+            5, 6, 7, 8, 9]
+
+    If no width is given, no wrapping is performed:
+
+    >>> print(assignrepr_list(range(10), 'test = '))
+    test = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+    Functions :func:`assignrepr_list` works also on empty iterables:
+
+    >>> print(assignrepr_list((), 'test = '))
     test = []
     """
-    if len(values):
-        return assignrepr_values(values, prefix+'[', width-1, decimals) + ']'
-    else:
-        return prefix + '[]'
+    return _assignrepr_bracketed('[]', values, prefix, width, decimals)
+
+
+def assignrepr_values2(values, prefix, decimals=None):
+    """Return a prefixed and properly aligned string representation
+    of the given value matrix using function :func:`repr_`.
+
+    >>> from hydpy.core.objecttools import assignrepr_values2
+    >>> import numpy
+    >>> print(assignrepr_values2(numpy.eye(3), 'test(') + ')')
+    test(1.0, 0.0, 0.0,
+         0.0, 1.0, 0.0,
+         0.0, 0.0, 1.0)
+
+    Functions :func:`assignrepr_values2` works also on empty iterables:
+
+    >>> print(assignrepr_values2([[]], 'test(') + ')')
+    test()
+    """
+    lines = []
+    blanks = ' '*len(prefix)
+    for (idx, subvalues) in enumerate(values):
+        if idx == 0:
+            lines.append('%s%s,' % (prefix, repr_values(subvalues, decimals)))
+        else:
+            lines.append('%s%s,' % (blanks, repr_values(subvalues, decimals)))
+    lines[-1] = lines[-1][:-1]
+    return '\n'.join(lines)
+
+
+def _assignrepr_bracketed2(brackets, values, prefix,
+                           width=None, decimals=None):
+    """Return a prefixed, wrapped and properly aligned bracketed string
+    representation of the given value matrix using function :func:`repr_`.
+
+    >>> from hydpy.core.objecttools import _assignrepr_bracketed2
+    >>> import numpy
+    >>> print(_assignrepr_bracketed2('{}', numpy.eye(3), 'test = ', 18))
+    test = {{1.0, 0.0,
+             0.0},
+            {0.0, 1.0,
+             0.0},
+            {0.0, 0.0,
+             1.0}}
+
+    If no width is given, no wrapping is performed:
+
+    >>> print(_assignrepr_bracketed2('{}', numpy.eye(3), 'test = '))
+    test = {{1.0, 0.0, 0.0},
+            {0.0, 1.0, 0.0},
+            {0.0, 0.0, 1.0}}
+
+    Functions :func:`_assignrepr_bracketed2` works also on empty iterables:
+
+    >>> print(_assignrepr_bracketed2('{}', [[]], 'test = '))
+    test = {{}}
+    >>> print(_assignrepr_bracketed2('{}', [[], [1]], 'test = '))
+    test = {{},
+            {1}}
+    """
+    prefix += brackets[0]
+    lines = []
+    blanks = ' '*len(prefix)
+    for (idx, subvalues) in enumerate(values):
+        if idx == 0:
+            lines.append(_assignrepr_bracketed(brackets, subvalues, prefix,
+                                               width, decimals))
+        else:
+            lines.append(_assignrepr_bracketed(brackets, subvalues, blanks,
+                                               width, decimals))
+        lines[-1] += ','
+    lines[-1] = lines[-1][:-1] + brackets[1]
+    return '\n'.join(lines)
+
+
+def assignrepr_tuple2(values, prefix, width=None, decimals=None):
+    """Return a prefixed, wrapped and properly aligned tuple string
+    representation of the given value matrix using function :func:`repr_`.
+
+    >>> from hydpy.core.objecttools import assignrepr_tuple2
+    >>> import numpy
+    >>> print(assignrepr_tuple2(numpy.eye(3), 'test = ', 18))
+    test = ((1.0, 0.0,
+             0.0),
+            (0.0, 1.0,
+             0.0),
+            (0.0, 0.0,
+             1.0))
+
+    If no width is given, no wrapping is performed:
+
+    >>> print(assignrepr_tuple2(numpy.eye(3), 'test = '))
+    test = ((1.0, 0.0, 0.0),
+            (0.0, 1.0, 0.0),
+            (0.0, 0.0, 1.0))
+
+    Functions :func:`assignrepr_tuple2` works also on empty iterables:
+
+    >>> print(assignrepr_tuple2([[]], 'test = '))
+    test = (())
+    >>> print(assignrepr_tuple2([[], [1]], 'test = '))
+    test = ((),
+            (1))
+    """
+    return _assignrepr_bracketed2('()', values, prefix, width, decimals)
+
+
+def assignrepr_list2(values, prefix, width=None, decimals=None):
+    """Return a prefixed, wrapped and properly aligned list string
+    representation of the given value matrix using function :func:`repr_`.
+
+    >>> from hydpy.core.objecttools import assignrepr_list2
+    >>> import numpy
+    >>> print(assignrepr_list2(numpy.eye(3), 'test = ', 18))
+    test = [[1.0, 0.0,
+             0.0],
+            [0.0, 1.0,
+             0.0],
+            [0.0, 0.0,
+             1.0]]
+
+    If no width is given, no wrapping is performed:
+
+    >>> print(assignrepr_list2(numpy.eye(3), 'test = '))
+    test = [[1.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0]]
+
+    Functions :func:`assignrepr_list2` works also on empty iterables:
+
+    >>> print(assignrepr_list2([[]], 'test = '))
+    test = [[]]
+    >>> print(assignrepr_list2([[], [1]], 'test = '))
+    test = [[],
+            [1]]
+    """
+    return _assignrepr_bracketed2('[]', values, prefix, width, decimals)
 
 
 def round_(values, decimals=None, **kwargs):

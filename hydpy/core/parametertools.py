@@ -9,7 +9,6 @@ import os
 import inspect
 import time
 import copy
-import textwrap
 import warnings
 # ...third party
 import numpy
@@ -717,7 +716,7 @@ class MultiParameter(Parameter):
                                           'parameter `%s`' % self.name)
         else:
             islong = False
-        return super(Parameter, self)._repr(self, values, islong)
+        return super(Parameter, self)._repr(values, islong)
 
 
 class ZipParameter(MultiParameter):

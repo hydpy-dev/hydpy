@@ -1292,6 +1292,16 @@ class KeywordParameter2D(KeywordParameter2DMetaclass):
     >>> iswarm
     iswarm(north=[True, True],
            south=[True, True])
+
+    For parameters with many columns, string representations are properly
+    wrapped:
+
+    >>> iswarm.shape = (2, 10)
+    >>> iswarm
+    iswarm(north=[False, False, False, False, False, False, False, False,
+                  False, False],
+           south=[False, False, False, False, False, False, False, False,
+                  False, False])
     """
     NDIM = 2
     ROWNAMES = ()
@@ -1322,16 +1332,14 @@ class KeywordParameter2D(KeywordParameter2DMetaclass):
 
     def __repr__(self):
         lines = self.commentrepr()
-        blanks = (len(self.name)+1) * ' '
+        prefix = '%s(' % self.name
+        blanks = ' '*len(prefix)
         for (idx, key) in enumerate(self.ROWNAMES):
-            valuerepr = ', '.join(objecttools.repr_(value)
-                                  for value in self.values[idx, :])
-            line = ('%s=[%s],' % (key, valuerepr))
-            if idx == 0:
-                lines.append('%s(%s' % (self.name, line))
-            else:
-                lines.append('%s%s' % (blanks, line))
-        lines[-1] = lines[-1][:-1]+')'
+            subprefix = ('%s%s=' % (prefix, key) if idx == 0 else
+                         '%s%s=' % (blanks, key))
+            lines.append(objecttools.assignrepr_list(self.values[idx, :],
+                                                     subprefix, 75) + ',')
+        lines[-1] = lines[-1][:-1] + ')'
         return '\n'.join(lines)
 
     def __getattr__(self, key):

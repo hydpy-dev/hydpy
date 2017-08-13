@@ -1076,6 +1076,27 @@ class ValueMath(object):
     def __round__(self, ndigits=0):
         return numpy.round(self.value, ndigits)
 
+    def _repr(self, values, islong):
+        prefix = '%s(' % self.name
+        if self.NDIM == 0:
+            string = '%s(%s)' % (self.name, repr_(values))
+        elif self.NDIM == 1:
+            if islong:
+                string = assignrepr_list(values, prefix, 75) + ')'
+            else:
+                string = assignrepr_values(values, prefix, 75) + ')'
+        elif self.NDIM == 2:
+            if islong:
+                string = assignrepr_list2(values, prefix, 75) + ')'
+            else:
+                string = assignrepr_values2(values, prefix) + ')'
+        else:
+            raise NotImplementedError(
+                '`repr` does not yet support parameters or sequences like `%s`'
+                'of element `%s` which handle %d-dimensional matrices.'
+                % self.NDIM)
+        return '\n'.join(self.commentrepr() + [string])
+
 
 class HydPyDeprecationWarning(DeprecationWarning):
     pass

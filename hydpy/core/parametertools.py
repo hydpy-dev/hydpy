@@ -711,7 +711,6 @@ class MultiParameter(Parameter):
                                       % self.name)
 
     def __repr__(self):
-        lines = self.commentrepr()
         try:
             values = self.compressrepr()
         except NotImplementedError:
@@ -723,45 +722,7 @@ class MultiParameter(Parameter):
                                           'parameter `%s`' % self.name)
         else:
             islong = False
-        if self.NDIM == 1:
-            cols = ', '.join(objecttools.repr_(value) for value in values)
-            wrappedlines = textwrap.wrap(cols, 80-len(self.name)-3-islong)
-            for (idx, line) in enumerate(wrappedlines):
-                if not idx:
-                    if islong:
-                        lines.append('%s([%s' % (self.name, line))
-                    else:
-                        lines.append('%s(%s' % (self.name, line))
-                else:
-                    lines.append((len(self.name)+1+islong)*' ' + line)
-            if islong:
-                lines[-1] += '])'
-            else:
-                lines[-1] += ')'
-            return '\n'.join(lines)
-        elif self.NDIM == 2:
-            skip = (1+len(self.name)) * ' '
-            for (idx, row) in enumerate(values):
-                cols = ', '.join(objecttools.repr_(value) for value in row)
-                if not idx:
-                    if islong:
-                        lines.append('%s([[%s],' % (self.name, cols))
-                    else:
-                        lines.append('%s(%s,' % (self.name, cols))
-                else:
-                    if islong:
-                        lines.append('%s[%s],' % (skip, cols))
-                    else:
-                        lines.append('%s%s,' % (skip, cols))
-            if islong:
-                lines[-1] = lines[-1][:-1] + '])'
-            else:
-                lines[-1] = lines[-1][:-1] + ')'
-            return '\n'.join(lines)
-        else:
-            raise NotImplementedError('`repr` does not yet support '
-                                      'parameters, which handle %d-'
-                                      'dimensional matrices.' % self.NDIM)
+        return super(Parameter, self)._repr(self, values, islong)
 
 
 class ZipParameter(MultiParameter):

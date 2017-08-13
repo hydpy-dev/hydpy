@@ -603,49 +603,7 @@ class Sequence(objecttools.ValueMath):
 
     def __repr__(self):
         islong = self.length > 255
-        if self.NDIM == 0:
-            return '%s(%s)' % (self.name, objecttools.repr_(self.value))
-        elif self.NDIM == 1:
-            lines = []
-            cols = ', '.join(objecttools.repr_(value) for value in self.values)
-            wrappedlines = textwrap.wrap(cols, 80-len(self.name)-3-islong)
-            for (idx, line) in enumerate(wrappedlines):
-                if not idx:
-                    if islong:
-                        lines.append('%s([%s' % (self.name, line))
-                    else:
-                        lines.append('%s(%s' % (self.name, line))
-                else:
-                    lines.append((len(self.name)+1+islong)*' ' + line)
-            if islong:
-                lines[-1] += '])'
-            else:
-                lines[-1] += ')'
-            return '\n'.join(lines)
-        elif self.NDIM == 2:
-            lines = []
-            skip = (1+len(self.name)) * ' '
-            for (idx, row) in enumerate(self.values):
-                cols = ', '.join(objecttools.repr_(value) for value in row)
-                if not idx:
-                    if islong:
-                        lines.append('%s([[%s],' % (self.name, cols))
-                    else:
-                        lines.append('%s(%s,' % (self.name, cols))
-                else:
-                    if islong:
-                        lines.append('%s[%s],' % (skip, cols))
-                    else:
-                        lines.append('%s%s,' % (skip, cols))
-            if islong:
-                lines[-1] = lines[-1][:-1] + '])'
-            else:
-                lines[-1] = lines[-1][:-1] + ')'
-            return '\n'.join(lines)
-        else:
-            raise NotImplementedError('`repr` does not yet support '
-                                      'sequences, which handle %d-'
-                                      'dimensional matrices.' % self.NDIM)
+        return objecttools.ValueMath._repr(self, self.values, islong)
 
     def __dir__(self):
         return objecttools.dir_(self)

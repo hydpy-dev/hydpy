@@ -693,6 +693,8 @@ class MultiParameter(Parameter):
         """
         if self.value is None:
             unique = numpy.array([numpy.nan])
+        elif self.length == 0:
+            return ['']
         else:
             unique = numpy.unique(self.values)
         if sum(numpy.isnan(unique)) == len(unique.flatten()):

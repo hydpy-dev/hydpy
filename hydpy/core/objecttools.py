@@ -1076,6 +1076,18 @@ class ValueMath(object):
     def __round__(self, ndigits=0):
         return numpy.round(self.value, ndigits)
 
+    def commentrepr(self):
+        """Returns a list with comments, e.g. for making string representations
+        more informative.  When :attr:`pub.options.reprcomments` is set to
+        `False`, an empty list is returned.
+        """
+        from hydpy import pub
+        if pub.options.reprcomments:
+            return ['# %s' % line for line in
+                    textwrap.wrap(autodoctools.description(self), 78)]
+        else:
+            return []
+
     def _repr(self, values, islong):
         prefix = '%s(' % self.name
         if self.NDIM == 0:

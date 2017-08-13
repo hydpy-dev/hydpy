@@ -445,19 +445,12 @@ class Parameter(objecttools.ValueMath):
         more informative.  When :attr:`pub.options.reprcomments` is set to
         `False`, an empty list is returned.
         """
-        lines = []
-        if pub.options.reprcomments:
-            if self.__doc__ is not None:
-                comment = '%s].' % self.__doc__.split(']')[0]
-                lines.extend('# '+line.strip() for line in comment.split('\n'))
-            else:
-                lines.append('# Instance of parameter class `%s` defined in '
-                             'module `%s`.'
-                             % (objecttools.classname(self), self.__module__))
-            if self.TIME is not None:
-                lines.append('# The actual value representation depends on '
-                             'the actual parameter step size,')
-                lines.append('# which is `%s`.' % self.parameterstep)
+        lines = super(Parameter, self).commentrepr()
+        if (pub.options.reprcomments and
+                (getattr(self, 'TIME', None) is not None)):
+            lines.append('# The actual value representation depends on '
+                         'the actual parameter step size,')
+            lines.append('# which is `%s`.' % self.parameterstep)
         return lines
 
     def __str__(self):

@@ -18,7 +18,9 @@ Models presently available:
 
 .. toctree::
    :maxdepth: 2
-
+   
+   HydPy-A
    HydPy-H
    HydPy-L
+   
 

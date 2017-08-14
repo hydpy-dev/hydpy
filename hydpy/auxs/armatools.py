@@ -221,7 +221,7 @@ class ARMA(object):
     >>> from hydpy.auxs.armatools import MA, ARMA
     >>> arma = ARMA(ar_coefs=(.5,), ma_coefs=(.3, .2))
     >>> arma
-    ARMA(ar_coefs=(0.5),
+    ARMA(ar_coefs=(0.5,),
          ma_coefs=(0.3, 0.2))
     >>> arma.ar_coefs = ()
     >>> arma.ma_coefs = range(20)

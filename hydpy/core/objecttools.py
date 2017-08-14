@@ -248,8 +248,17 @@ def repr_tuple(values, decimals=None):
     '(1.0, 0.5, 0.333333)'
 
     Note that the returned string is not wrapped.
+
+    In the special case of an iterable with only one entry, the returned
+    string is still a valid tuple:
+
+    >>> repr_tuple([1.])
+    '(1.0,)'
     """
-    return '(%s)' % repr_values(values, decimals)
+    if len(values) == 1:
+        return '(%s,)' % repr_values(values, decimals)
+    else:
+        return '(%s)' % repr_values(values, decimals)
 
 
 def repr_list(values, decimals=None):
@@ -340,12 +349,16 @@ def assignrepr_tuple(values, prefix, width=None, decimals=None):
     >>> print(assignrepr_tuple(range(10), 'test = '))
     test = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
-    Functions :func:`assignrepr_tuple` works also on empty iterables:
+    Functions :func:`assignrepr_tuple` works also on empty iterables and
+    those which possess only one entry:
 
-    >>> print(assignrepr_tuple((), 'test = '))
+    >>> print(assignrepr_tuple([], 'test = '))
     test = ()
+    >>> print(assignrepr_tuple([10], 'test = '))
+    test = (10,)
     """
-    return _assignrepr_bracketed('()', values, prefix, width, decimals)
+    brackets = ('(', ',)') if len(values) == 1 else '()'
+    return _assignrepr_bracketed(brackets, values, prefix, width, decimals)
 
 
 def assignrepr_list(values, prefix, width=None, decimals=None):
@@ -437,6 +450,8 @@ def _assignrepr_bracketed2(brackets, values, prefix,
         else:
             lines.append(_assignrepr_bracketed(brackets, subvalues, blanks,
                                                width, decimals))
+        if (len(subvalues) == 1) and (brackets[1] == ')'):
+            lines[-1] = lines[-1].replace(')', ',)')
         lines[-1] += ','
     lines[-1] = lines[-1][:-1] + brackets[1]
     return '\n'.join(lines)
@@ -463,13 +478,14 @@ def assignrepr_tuple2(values, prefix, width=None, decimals=None):
             (0.0, 1.0, 0.0),
             (0.0, 0.0, 1.0))
 
-    Functions :func:`assignrepr_tuple2` works also on empty iterables:
+    Functions :func:`assignrepr_tuple2` works also on empty iterables and
+    those which possess only one entry:
 
     >>> print(assignrepr_tuple2([[]], 'test = '))
     test = (())
     >>> print(assignrepr_tuple2([[], [1]], 'test = '))
     test = ((),
-            (1))
+            (1,))
     """
     return _assignrepr_bracketed2('()', values, prefix, width, decimals)
 

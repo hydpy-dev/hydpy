@@ -260,27 +260,6 @@ def calc_changeinstorage_v1(self):
                 new.s[k] = der.smax[k]
             flu.rov[k] += inp.p[k] * con.rofactor
 
-#        if (con.vegetationclass[k] != WATER) or (der.irrigation[k] != 1):
-#            sta.b[k] = (old.s[k] +
-#                        (inp.p[k] * (1-con.rofactor) - flu.erain[k] - sta.r[k]))
-#            if sta.b[k] < der.smax[k]:
-#                new.s[k] = sta.b[k]
-#                flu.rov[k] = 0.
-#                if new.s[k] < 0.:
-#                    new.s[k] = 0.
-#
-#            else:
-#                flu.rov[k] = (sta.b[k] - der.smax[k])
-#                if flu.rov[k] < 0.:
-#                    flu.rov[k] = 0.
-#                new.s[k] = der.smax[k]
-#            flu.rov[k] += inp.p[k] * con.rofactor
-#
-#        else:
-#            flu.rov[k] = 0.
-#            sta.b[k] = 0.
-#            new.s[k] = 0.
-
 def calc_irrigatedcropsevaporation_v1(self):
     """calculate the total evaporation for all crops under irrigation.
 
@@ -386,13 +365,11 @@ def calc_openwaterevaporation_v1(self):
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
     inp = self.sequences.inputs.fastaccess
-    #new = self.sequences.states.fastaccess_new
 
     for k in range(con.nmbgrids):
         if con.vegetationclass[k] == WATER:
             flu.eow[k] = con.kc[con.vegetationclass[k]-1,
                                 der.moy[self.idx_sim]] * inp.e0[k]
-            #new.s[k] = 0.
 
         else:
             flu.eow[k] = 0.
@@ -509,6 +486,7 @@ def calc_openwaterbalance_v1(self):
 
     Calculating for: BOW >= 0.
 
+    Examples:
         >>> inputs.p = 5.
         >>> fluxes.eow = 3.
         >>> model.calc_openwaterbalance_v1()
@@ -573,7 +551,7 @@ def calc_subbasinprecipitation_v1(self):
 
     Required control parameters:
       :class:`~hydpy.models.globwat.globwat_control.NmbGrids`
-      :class:`~hydpy.models.globwat.globwat_control.Area
+      :class:`~hydpy.models.globwat.globwat_control.Area`
 
     Required input sequence:
       :class:`~hydpy.models.globwat.globwat_inputs.P`

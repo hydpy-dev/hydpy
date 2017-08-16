@@ -4,6 +4,7 @@ import webbrowser
 
 os.system(r'make clean')
 os.system(r'make html')
+#os.system(r'make pdf')
 
 paths = [os.path.join('_build', 'html', fn)
          for fn in os.listdir(os.path.join('_build', 'html'))

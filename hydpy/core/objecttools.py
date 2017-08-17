@@ -545,6 +545,7 @@ class Options(object):
 
     def __init__(self):
         self._printprogress = True
+        self._printincolor = True
         self._verbosedir = False
         self._reprcomments = True
         self._usecython = True
@@ -570,6 +571,17 @@ class Options(object):
         self._printprogress = bool(value)
 
     printprogress = property(_getprintprogress, _setprintprogress)
+
+    def _getprintincolor(self):
+        """True/False flag indicating whether information shall be printed
+        in color eventually or not. The default is `True`.
+        """
+        return self._printincolor
+
+    def _setprintincolor(self, value):
+        self._printincolor = bool(value)
+
+    printincolor = property(_getprintincolor, _setprintincolor)
 
     def _getdirverbose(self):
         """True/False flag indicationg whether the listboxes for the member

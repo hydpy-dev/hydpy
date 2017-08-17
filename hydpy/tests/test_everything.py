@@ -118,6 +118,7 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
             else:
                 pub.options.usedefaultvalues = False
                 pub.options.printprogress = False
+                pub.options.printincolor = False
                 pub.options.warnsimulationstep = False
                 pub.timegrids = None
                 pub.options.reprcomments = False

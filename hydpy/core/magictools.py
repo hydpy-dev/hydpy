@@ -432,12 +432,12 @@ def progressbar(iterable, length=23):
                                               indentation),
                       end='',
                       file=real_stdout)
-                counts = 1
+                counts = 1.
                 for next_ in iterable:
-                    counts += 1
+                    counts += 1.
                     if counts >= nmbcounts:
                         print(end='*', file=real_stdout)
-                        counts = 1
+                        counts -= nmbcounts
                     yield next_
         finally:
             try:

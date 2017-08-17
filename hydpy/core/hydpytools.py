@@ -5,7 +5,6 @@
 # ...from standard library
 from __future__ import division, print_function
 import os
-import time
 import warnings
 # ...from HydPy
 from hydpy import pub
@@ -14,18 +13,16 @@ from hydpy.core import filetools
 from hydpy.core import devicetools
 from hydpy.core import selectiontools
 from hydpy.core import autodoctools
+from hydpy.core import magictools
 
 
 class HydPy(object):
-    """HydPy for single processing."""
+    """Main class for managing HydPy projects."""
 
     # A counter for the number of HydPy instances.
     nmb_instances = 0
 
     def __init__(self, projectname=None):
-
-        if pub.options.printprogress:
-            print('HydPy initialization started at', time.strftime('%X'))
 
         # Increment and check number of HydPy instances.
         HydPy.nmb_instances += 1
@@ -54,19 +51,18 @@ class HydPy(object):
             pub.sequencemanager = filetools.SequenceManager()
             pub.conditionmanager = filetools.ConditionManager()
 
-        if pub.options.printprogress:
-            print('HydPy initialization ended at', time.strftime('%X'))
-
+    @magictools.printprogress
     def preparenetwork(self):
         pub.selections = selectiontools.Selections()
         pub.selections += pub.networkmanager.load()
         self.updatedevices(pub.selections.complete)
 
+    @magictools.printprogress
     def initmodels(self):
         warn = pub.options.warnsimulationstep
         pub.options.warnsimulationstep = False
         try:
-            for (name, element) in self.elements:
+            for (name, element) in magictools.progressbar(self.elements):
                 try:
                     element.initmodel()
                 except IOError as exc:
@@ -86,6 +82,7 @@ class HydPy(object):
         finally:
             pub.options.warnsimulationstep = warn
 
+    @magictools.printprogress
     def savecontrols(self, controldirectory=None, projectdirectory=None,
                      parameterstep=None, simulationstep=None):
         _controldirectory = pub.controlmanager._controldirectory
@@ -95,18 +92,20 @@ class HydPy(object):
                 pub.controlmanager.controldirectory = controldirectory
             if projectdirectory:
                 pub.controlmanager.projectdirectory = projectdirectory
-            for (name, element) in self.elements:
+            for (name, element) in magictools.progressbar(self.elements):
                 element.model.parameters.savecontrols(parameterstep,
                                                       simulationstep)
         finally:
             pub.controlmanager._controldirectory = _controldirectory
             pub.controlmanager._projectdirectory = _projectdirectory
 
+    @magictools.printprogress
     def loadconditions(self, conditiondirectory=None, controldirectory=None,
                        projectdirectory=None, ):
         self._ioconditions(conditiondirectory,  controldirectory,
                            projectdirectory, True)
 
+    @magictools.printprogress
     def saveconditions(self, conditiondirectory=None, controldirectory=None,
                        projectdirectory=None):
         self._ioconditions(conditiondirectory,  controldirectory,
@@ -130,7 +129,7 @@ class HydPy(object):
                     pub.conditionmanager.savedirectory = conditiondirectory
             if controldirectory:
                 pub.controlmanager.controldirectory = controldirectory
-            for (name, element) in self.elements:
+            for (name, element) in magictools.progressbar(self.elements):
                 if loadflag:
                     element.model.sequences.loadconditions()
                 else:
@@ -276,64 +275,71 @@ class HydPy(object):
                 funcs.append(node._savedata_sim)
         return funcs
 
+    @magictools.printprogress
     def doit(self):
         idx_start, idx_end = self.simindices
         self.openfiles(idx_start)
         funcorder = self.funcorder
-        if pub.options.printprogress:
-            maxcounter = int(float(idx_end-idx_start)/20.)
-            print('|'+18*'-'+'|')
-        else:
-            maxcounter = idx_end
-        counter = 0
-        for idx in range(idx_start, idx_end):
-            counter += 1
-            if counter > maxcounter:
-                print('*', end='')
-                counter = 0
+        for idx in magictools.progressbar(range(idx_start, idx_end)):
             for func in funcorder:
                 func(idx)
-        if pub.options.printprogress:
-            print('*')
         self.closefiles()
 
+    @magictools.printprogress
     def prepare_modelseries(self, ramflag=True):
-        self.elements.prepare_allseries(ramflag)
+        for (name, element) in magictools.progressbar(self.elements):
+            element.prepare_allseries(ramflag)
 
+    @magictools.printprogress
     def prepare_inputseries(self, ramflag=True):
-        self.elements.prepare_inputseries(ramflag)
+        for (name, element) in magictools.progressbar(self.elements):
+            element.prepare_inputseries(ramflag)
 
+    @magictools.printprogress
     def prepare_fluxseries(self, ramflag=True):
-        self.elements.prepare_fluxseries(ramflag)
+        for (name, element) in magictools.progressbar(self.elements):
+            element.prepare_fluxseries(ramflag)
 
+    @magictools.printprogress
     def prepare_stateseries(self, ramflag=True):
-        self.elements.prepare_stateseries(ramflag)
+        for (name, element) in magictools.progressbar(self.elements):
+            element.prepare_stateseries(ramflag)
 
+    @magictools.printprogress
     def prepare_nodeseries(self, ramflag=True):
-        self.nodes.prepare_allseries(ramflag)
+        self.prepare_simseries(ramflag)
+        self.prepare_obsseries(ramflag)
 
+    @magictools.printprogress
     def prepare_simseries(self, ramflag=True):
-        self.elements.prepare_simseries(ramflag)
+        for (name, node) in magictools.progressbar(self.nodes):
+            node.prepare_simseries(ramflag)
 
+    @magictools.printprogress
     def prepare_obsseries(self, ramflag=True):
-        self.elements.prepare_obsseries(ramflag)
+        for (name, node) in magictools.progressbar(self.nodes):
+            node.prepare_obsseries(ramflag)
 
+    @magictools.printprogress
     def save_modelseries(self):
         self.save_inputseries()
         self.save_fluxseries()
         self.save_stateseries()
 
+    @magictools.printprogress
     def save_inputseries(self):
         self._save_modelseries('inputs', pub.sequencemanager.inputoverwrite)
 
+    @magictools.printprogress
     def save_fluxseries(self):
         self._save_modelseries('fluxes', pub.sequencemanager.outputoverwrite)
 
+    @magictools.printprogress
     def save_stateseries(self):
         self._save_modelseries('states', pub.sequencemanager.outputoverwrite)
 
     def _save_modelseries(self, name_subseqs, overwrite):
-        for (name1, element) in self.elements:
+        for (name1, element) in magictools.progressbar(self.elements):
             sequences = element.model.sequences
             subseqs = getattr(sequences, name_subseqs, ())
             for (name2, seq) in subseqs:
@@ -346,18 +352,21 @@ class HydPy(object):
                                       'the already existing file `%s`.'
                                       % seq.filepath_ext)
 
+    @magictools.printprogress
     def save_nodeseries(self):
         self.save_simseries()
         self.save_obsseries()
 
+    @magictools.printprogress
     def save_simseries(self, ramflag=True):
         self._save_nodeseries('sim', pub.sequencemanager.simoverwrite)
 
+    @magictools.printprogress
     def save_obsseries(self, ramflag=True):
         self._save_nodeseries('obs', pub.sequencemanager.obsoverwrite)
 
     def _save_nodeseries(self, seqname, overwrite):
-        for (name, node) in self.nodes:
+        for (name, node) in magictools.progressbar(self.nodes):
             seq = getattr(node.sequences, seqname)
             if seq.memoryflag:
                 if overwrite or not os.path.exists(seq.filepath_ext):

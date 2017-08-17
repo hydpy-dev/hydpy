@@ -21,6 +21,7 @@ import inspect
 import warnings
 import importlib
 import doctest
+import functools
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import objecttools
@@ -283,6 +284,54 @@ def controlcheck(controldir='default', projectdir=None, controlfile=None):
             if subseqs is not None:
                 for (name2, seq) in subseqs:
                     namespace[name2] = seq
+
+
+def printprogress_wrapper_generalized(*args, **kwargs):
+    """Wrapper for HydPy methods to print when they start when they end.
+
+    The wrapper is general in its function arguments.  When one uses the
+    decorator :func:`printprogress`, the general arguments are replaced
+    by the specific ones of the method to be wrapped.
+    """
+    import sys
+    import time
+    from hydpy import pub
+    from hydpy.core.magictools import PrintStyle
+    pub._printprogress_indentation += 4
+    try:
+        if pub.options.printprogress:
+            with PrintStyle(color=34, font=1):
+                print('\n%sHydPy method %s...'
+                      % (' '*pub._printprogress_indentation,
+                         printprogress_wrapped.__name__))
+                print("%s    ...started at %s."
+                      % (' '*pub._printprogress_indentation,
+                         time.strftime("%X")))
+        printprogress_wrapped(*args, **kwargs)
+        if pub.options.printprogress:
+            with PrintStyle(color=34, font=1):
+                print("%s    ...ended at %s."
+                      % (' '*pub._printprogress_indentation,
+                         time.strftime("%X")))
+    finally:
+        pub._printprogress_indentation -= 4
+
+
+def printprogress(printprogress_wrapped):
+    """Decorator for wrapping HydPy methods with
+    :func:`printprogress_wrapper_generalized`.
+
+    Hopefully, all relevant attributes of the wrapped method are maintained.
+    """
+    signature = inspect.signature(printprogress_wrapped)
+    lines = inspect.getsourcelines(printprogress_wrapper_generalized)[0]
+    lines[0] = lines[0].replace('generalized', 'specialized')
+    lines = [line.replace('(*args, **kwargs)', str(signature))
+             for line in lines]
+    exec(''.join(lines), locals(), globals())
+    functools.update_wrapper(printprogress_wrapper_specialized,
+                             printprogress_wrapped)
+    return printprogress_wrapper_specialized
 
 
 autodoctools.autodoc_module()

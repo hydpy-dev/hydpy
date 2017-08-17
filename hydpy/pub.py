@@ -17,3 +17,4 @@ sequencemanager = None
 timegrids = None
 
 pyversion = int(__sys.version[0])
+_printprogress_indentation = -4

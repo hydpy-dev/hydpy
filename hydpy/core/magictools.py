@@ -326,6 +326,15 @@ def printprogress_wrapper_generalized(*args, **kwargs):
         pub._printprogress_indentation -= 4
 
 
+def zip_longest(*iterables, fillvalue=None):
+    """Return the iterator defined by `zip_longest` or `izip_longest` of
+    module :mod:`itertools` under Python 2 and 3 respectively."""
+    if pub.pyversion < 3:
+        return itertools.izip_longest(*iterables, fillvalue=fillvalue)
+    else:
+        return itertools.zip_longest(*iterables, fillvalue=fillvalue)
+
+
 def signature(function):
     """Return the signature of the given function (possibly without variable
     positional and keyword arguments) as a string.
@@ -340,8 +349,8 @@ def signature(function):
     except BaseException:
         argspec = inspect.getargspec(function)
         strings = []
-        for arg, default in itertools.zip_longest(reversed(argspec.args),
-                                                  reversed(argspec.defaults)):
+        for arg, default in zip_longest(reversed(argspec.args),
+                                        reversed(argspec.defaults)):
             if default is None:
                 strings.insert(0, arg)
             else:

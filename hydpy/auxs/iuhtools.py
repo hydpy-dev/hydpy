@@ -45,7 +45,7 @@ class IUH_Parameter(object):
         try:
             return self.type_(value)
         except BaseException:
-            objecttools.augmentexcmessage(
+            raise TypeError(
                 'The value `%s` of type `%s` could not be converted to type '
                 '`%s` of the instantaneous unit hydrograph parameter `%s`.'
                 % (value, objecttools.classname(value),
@@ -337,7 +337,7 @@ class TranslationDiffusionEquation(IUH):
     >>> tde.x = 'a'
     Traceback (most recent call last):
     ...
-    ValueError: The value `a` of type `str` could not be converted to type `float` of the instantaneous unit hydrograph parameter `x`., the following error occured: could not convert string to float: 'a'
+    TypeError: The value `a` of type `str` could not be converted to type `float` of the instantaneous unit hydrograph parameter `x`.
 
     When passing parameter values as initialization arguments or when using
     method `set_primary_parameters`, tests for completeness are performed:

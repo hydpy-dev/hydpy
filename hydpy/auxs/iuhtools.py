@@ -111,6 +111,15 @@ class IUH(_MetaIUH):
 
     See class :class:`TranslationDiffusionEquation` for explanations and
     application examples.
+
+    For developers: The string representation does also work for
+    parameter-free :class:`IUH` subclasses:
+
+    >>> from hydpy.auxs.iuhtools import IUH
+    >>> class Test(IUH):
+    ...     pass
+    >>> Test()
+    Test()
     """
 
     dt_response = 1e-2
@@ -271,6 +280,10 @@ class TranslationDiffusionEquation(IUH):
     >>> round_(tde.moments)
     10.0, 3.464101
 
+    You can also plot the graph corresponding to the actual parameterization:
+
+    >>> tde.plot()
+
     All instances of the subclasses of :class:`IUH` provide a pure
     Moving Average and an Autoregressive-Moving Average approximation to the
     dt standard impulse of the instantaneous unit hydrograph function.  In
@@ -312,6 +325,19 @@ class TranslationDiffusionEquation(IUH):
     >>> del tde.x
     >>> round_((tde.a, tde.b))
     None, None
+
+    Suitable type conversions are performed when new parameter values are set:
+
+    >>> tde.x = '1.'
+    >>> tde.x
+    1.0
+
+    It a new value cannot be converted, an error is raised:
+
+    >>> tde.x = 'a'
+    Traceback (most recent call last):
+    ...
+    ValueError: The value `a` of type `str` could not be converted to type `float` of the instantaneous unit hydrograph parameter `x`., the following error occured: could not convert string to float: 'a'
 
     When passing parameter values as initialization arguments or when using
     method `set_primary_parameters`, tests for completeness are performed:

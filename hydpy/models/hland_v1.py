@@ -1,5 +1,13 @@
 # -*- coding: utf-8 -*-
+"""
+Version 1 of the H-Land model is designed to agree with the HBV96
+configuration of the HBV model used by the German Federal Institute
+of Hydrology (BfG), but offers more flexibility in some regards (e.g. in
+parameterization).  It can briefly be summarized as follows:
 
+.. image:: HydPy-H-Land_Version-1.png
+
+"""
 # import...
 # ...from standard library
 from __future__ import division, print_function

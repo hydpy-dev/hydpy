@@ -282,7 +282,7 @@ class TranslationDiffusionEquation(IUH):
 
     You can also plot the graph corresponding to the actual parameterization:
 
-    >>> tde.plot()
+    >>> tde.plot(threshold=0.9)
 
     All instances of the subclasses of :class:`IUH` provide a pure
     Moving Average and an Autoregressive-Moving Average approximation to the

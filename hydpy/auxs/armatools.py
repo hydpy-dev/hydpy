@@ -101,7 +101,7 @@ class MA(object):
     You can also use the followint ploting command to verify the position of
     the turning point, which is printed as a red dot.
 
-    >>> ma.plot()
+    >>> ma.plot(threshold=0.9)
 
     The turning point detection also works for functions which include
     both a rising and a falling limb.  This can be shown shifting the
@@ -205,18 +205,16 @@ class MA(object):
                                     self.delays, self.coefs, moment1)
         return numpy.array([moment1, moment2])
 
-    def plot(self, thresh=None, **kwargs):
+    def plot(self, threshold=None, **kwargs):
         """Barplot of the MA coefficients."""
         pyplot.bar(left=self.delays+.5, height=self.coefs,
                    width=1., fill=False, **kwargs)
         pyplot.xlabel('time')
         pyplot.ylabel('response')
-        if thresh is not None:
+        if threshold is not None:
             cumsum = numpy.cumsum(self.coefs)
-            idx = numpy.where(cumsum > thresh*cumsum[-1])[0][0]
+            idx = numpy.where(cumsum > threshold*cumsum[-1])[0][0]
             pyplot.xlim(0., idx)
-        else:
-            pyplot.xlim(0., None)
         idx, value = self.turningpoint
         pyplot.plot(idx, value, 'ro')
 
@@ -367,7 +365,7 @@ class ARMA(object):
     Use the following plotting command to see why 2 MA coeffcients instead of
     one are required in the above example:
 
-    >>> arma.plot()
+    >>> arma.plot(threshold=0.9)
 
     Decreasing the tolerance values too much results in the following errors:
 
@@ -634,12 +632,16 @@ class ARMA(object):
                                             timepoints, response, moment1)
         return numpy.array([moment1, moment2])
 
-    def plot(self, thresh=None, **kwargs):
+    def plot(self, threshold=None, **kwargs):
         """Barplot of the ARMA response."""
         pyplot.bar(left=self.ma.delays+.5, height=self.response,
                    width=1., fill=False, **kwargs)
         pyplot.xlabel('time')
         pyplot.ylabel('response')
+        if threshold is not None:
+            cumsum = numpy.cumsum(self.response)
+            idx = numpy.where(cumsum > threshold*cumsum[-1])[0][0]
+            pyplot.xlim(0., idx)
 
     def __repr__(self):
         return '%s,\n%s)' % (objecttools.assignrepr_tuple(self.ar_coefs,

@@ -33,18 +33,12 @@ class HydPy(object):
                           'time.  Consider deleting all instances and '
                           'initializing a new one, unless you are fully aware '
                           'in what manner HydPy is relying on some global '
-                          'information stored in modules.'
+                          'information stored in module `pub`.'
                           % HydPy.nmb_instances)
 
         # Store public information in a seperate module.
-        pub.projectname = projectname
-        if projectname is None:
-            pub.filemanager = None
-            pub.networkmanager = None
-            pub.controlmanager = None
-            pub.sequencemanager = None
-            pub.conditionmanager = None
-        else:
+        if projectname is not None:
+            pub.projectname = projectname
             pub.filemanager = filetools.MainManager()
             pub.networkmanager = filetools.NetworkManager()
             pub.controlmanager = filetools.ControlManager()

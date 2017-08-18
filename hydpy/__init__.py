@@ -5,14 +5,6 @@ An interactive framework for the developement and a application of
 hydrological models.
 """
 
-import os
-import sys
-import warnings
-import matplotlib
-
-if os.environ.get('DISPLAY', '') == '':
-    matplotlib.use('Agg')
-
 from hydpy.core.hydpytools import HydPy
 from hydpy.core.timetools import Date
 from hydpy.core.timetools import Period
@@ -31,6 +23,9 @@ from hydpy.core.selectiontools import Selection
 from hydpy.core.selectiontools import Selections
 from hydpy.core.objecttools import HydPyDeprecationWarning
 from hydpy import pub
+
+import sys
+import warnings
 
 
 def customwarn(message, category, filename, lineno, file=None, line=None):

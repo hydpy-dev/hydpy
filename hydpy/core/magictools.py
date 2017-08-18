@@ -348,9 +348,10 @@ def signature(function):
         return str(inspect.signature(function))
     except BaseException:
         argspec = inspect.getargspec(function)
+        args = argspec.args if argspec.args else []
+        defaults = argspec.defaults if argspec.defaults else []
         strings = []
-        for arg, default in zip_longest(reversed(argspec.args),
-                                        reversed(argspec.defaults)):
+        for arg, default in zip_longest(reversed(args), reversed(defaults)):
             if default is None:
                 strings.insert(0, arg)
             else:

@@ -98,8 +98,10 @@ class MA(object):
     closest to the turning point, and not a high precision estimate of
     the real turning point of the instantaneous unit hydrograph.
 
-    You can also use the plot command `ma.plot()` to verify the position
-    of the turning point, which is printed as a red dot.
+    You can also use the followint ploting command to verify the position of
+    the turning point, which is printed as a red dot.
+
+    >>> ma.plot()
 
     The turning point detection also works for functions which include
     both a rising and a falling limb.  This can be shown shifting the
@@ -113,6 +115,14 @@ class MA(object):
               0.000092, 0.000012, 0.000001, 0.0, 0.0))
     >>> round_(ma.turningpoint)
     6, 0.12376
+
+    When no turning point can be detected, an error is raised:
+
+    >>> ma.coefs = 1., 1., 1
+    >>> ma.turningpoint
+    Traceback (most recent call last):
+    ...
+    RuntimeError: Not able to detect a turning point in the impulse response defined by the MA coefficients 1.0, 1.0, 1.0.
     """
 
     smallest_coeff = 1e-9
@@ -177,8 +187,9 @@ class MA(object):
                 old_dc = new_dc
         else:
             raise RuntimeError(
-                'No turning point in the impulse response defined by as '
-                'moving avarage coefficients could be detected.')
+                'Not able to detect a turning point in the impulse response '
+                'defined by the MA coefficients %s.'
+                % objecttools.repr_values(coefs))
 
     @property
     def delays(self):
@@ -220,9 +231,12 @@ class ARMA(object):
 
     >>> from hydpy.auxs.armatools import MA, ARMA
     >>> arma = ARMA(ar_coefs=(.5,), ma_coefs=(.3, .2))
+    >>> arma.coefs
+    (array([ 0.5]), array([ 0.3,  0.2]))
     >>> arma
     ARMA(ar_coefs=(0.5,),
          ma_coefs=(0.3, 0.2))
+
     >>> arma.ar_coefs = ()
     >>> arma.ma_coefs = range(20)
     >>> arma
@@ -254,6 +268,13 @@ class ARMA(object):
     >>> round_(arma.moments)
     4.110496, 1.926798
 
+    On can check the accuray of the approximation directly via the property
+    :attr:`~ARMA.dev_moments`, which is the sum of the absolute values of
+    the deviations of both methods:
+
+    >>> round_(arma.dev_moments)
+    0.0
+
     For the first six digits, there is no difference.  However, the total
     number of coefficients is only reduced by one:
 
@@ -283,6 +304,8 @@ class ARMA(object):
     (3, 16)
     >>> round_(arma.moments)
     4.110497, 1.926804
+    >>> round_(arma.dev_moments)
+    0.000007
 
     To also reduce the number of MA coefficients, one can set a higher
     MA-related tolerance value:
@@ -301,6 +324,8 @@ class ARMA(object):
     (3, 9)
     >>> round_(arma.moments)
     4.110794, 1.927625
+    >>> round_(arma.dev_moments)
+    0.001125
 
     Further relaxing the tolerance values results in even less coefficients,
     but also in some slightly negative responses to a standard impulse:
@@ -336,13 +361,13 @@ class ARMA(object):
     185
     >>> arma.order
     (1, 2)
-    >>> round_(ma.moments)
-    9.999998, 10.008312
-    >>> round_(arma.moments)
-    9.999998, 10.008312
+    >>> round_(arma.dev_moments)
+    0.0
 
-    (Use the commmand `arma.plot()` to see why 2 MA coeffcients instead of
-    one are required.)
+    Use the following plotting command to see why 2 MA coeffcients instead of
+    one are required in the above example:
+
+    >>> arma.plot()
 
     Decreasing the tolerance values too much results in the following errors:
 

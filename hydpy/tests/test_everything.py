@@ -16,8 +16,7 @@ import warnings
 import matplotlib
 
 exitcode = int(os.system('python test_pyplot_backend.py'))
-print('Exit code is %s.' % exitcode)
-standard_backend_missing = exitcode == 1
+standard_backend_missing = exitcode in (1, 256)
 if standard_backend_missing:
     matplotlib.use('Agg')
     print('The standard backend of matplotlib does not seem to be available '

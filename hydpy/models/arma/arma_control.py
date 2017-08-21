@@ -49,6 +49,11 @@ class Responses(parametertools.Parameter):
                       (9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0,
                        18.0, 19.0)))
 
+    All ARMA models are available via attribute access and their attribute
+    names are made available to function :func:`dir`:
+
+    >>> 'th_1_0' in dir(responses)
+    True
 
     Note that all iterables containing the AR and MA coefficients are
     converted to tuples, to prevent them from being changed by accident:
@@ -90,9 +95,19 @@ class Responses(parametertools.Parameter):
     AttributeError: Parameter `responses` of element `?` does not have an attribute attribute named `_0_1` nor an arma model corresponding to a threshold value named `th_0_1`.
 
     The above examples show that all AR and MA coefficients are converted to
-    floating point values.  But there are no plausibility checks.  You have
-    to use other tools to gain plausible coefficients.  The HydPy framework
-    offers the module :mod:`~hydpy.auxs.iuhtools` for such purposes.
+    floating point values.  It this is not possible or something else goes
+    totally wrong during the definition of a new ARMA model, errors like the
+    following are raised:
+
+    >>> responses.th_10 = ()
+    Traceback (most recent call last):
+    ...
+    IndexError: While trying to set a new threshold (th_10) coefficient pair for parameter `responses` of element `?`, the following error occured: tuple index out of range
+
+    Except for the mentioned conversion to floating point values, there are
+    no plausibility checks performed.  You have to use other tools to gain
+    plausible coefficients.  The HydPy framework offers the module
+    :mod:`~hydpy.auxs.iuhtools` for such purposes.
 
     Prepare one instantaneous unit hydrograph (iuh) based on the
     Translation Diffusion Equation and another one based on the Linear
@@ -249,8 +264,6 @@ class Responses(parametertools.Parameter):
         std_key = self._standardize_key(key)
         if std_key in self._coefs:
             del self._coefs[std_key]
-        else:
-            parametertools.Parameter.__delattr__(self, key)
 
     def _standardize_key(self, key):
         try:

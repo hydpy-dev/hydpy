@@ -11,9 +11,7 @@ from hydpy.core import objecttools
 
 
 class Responses(parametertools.Parameter):
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
-
-    """Assigns different ARMA models to different discharge thresholds [-].
+    """Assigns different ARMA models to different discharge thresholds.
 
     Parameter :class:`Responses` is not involved in the actual calculations
     during the simulation run.  Instead, it is thought for the intuitive
@@ -180,6 +178,7 @@ class Responses(parametertools.Parameter):
     representations.  But this would possibly require to define a specialized
     `arrays in list` type in Cython.
     """
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
     def __init__(self, *args, **kwargs):
         self.__dict__['_initialized'] = False

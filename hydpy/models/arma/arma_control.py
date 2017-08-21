@@ -364,10 +364,7 @@ class Responses(parametertools.Parameter):
     def __dir__(self):
         attrs = objecttools.dir_(self)
         attrs.extend(self._coefs.keys())
-        if attrs:
-            return attrs
-        else:
-            return '_'
+        return attrs
 
 
 class ControlParameters(parametertools.SubParameters):

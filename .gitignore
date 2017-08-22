@@ -11,7 +11,6 @@
 build
 _build
 dist
-gui
 helpers
 examples
 coverage.html

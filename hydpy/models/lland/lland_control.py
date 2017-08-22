@@ -104,59 +104,69 @@ class KG(lland_parameters.MultiParameter):
     """Niederschlagskorrekturfaktor (adjustment factor for precipitation)
     [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+    INIT = 1.
 
 
 class KT(lland_parameters.MultiParameter):
     """Temperaturkorrektursummand (adjustment summand for air temperature)
     [°C]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    INIT = 0.
 
 
 class KE(lland_parameters.MultiParameter):
     """Grasreferenzverdunstungskorrekturfaktor (adjustment factor for
     reference evapotranspiration) [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
+    INIT = 1.
 
 
 class KF(lland_parameters.MultiParameter):
     """Küstenfaktor ("coast factor" of Turc-Wendling's evaporation equation
     [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (.6, 1.)
+    INIT = 1.
 
 
 class FLn(lland_parameters.LanduseMonthParameter):
     """Landnutzungsabhängiger Verdunstungsfaktor (factor for adjusting
     reference evapotranspiration to different land use classes) [-]."""
     NDIM, TYPE, TIME, SPAN = 2, float, None, (0., None)
+    INIT = 1.
 
 
 class HInz(parametertools.SingleParameter):
     """Interzeptionskapazität bezogen auf die Blattoberfläche (interception
     capacity normalized to the leaf surface area) [mm]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+    INIT = .2
 
 
 class LAI(lland_parameters.LanduseMonthParameter):
     """Blattflächenindex (leaf area index) [-]."""
     NDIM, TYPE, TIME, SPAN = 2, float, None, (0., None)
+    INIT = 5.
 
 
 class TRefT(lland_parameters.MultiParameterLand):
     """Lufttemperaturgrenzwert des grundlegenden Grad-Tag-Verfahrens
     (air temperature threshold of the degree-day method) [°C]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    INIT = 0.
 
 
 class TRefN(lland_parameters.MultiParameterLand):
     """Niederschlagstemperaturgrenzwert des erweiterten Grad-Tag-Verfahrens
     (precipitation temperature threshold of the degree-day method) [°C]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    INIT = 0.
 
 
 class TGr(lland_parameters.MultiParameterLand):
     """Temperaturgrenzwert flüssiger/fester Niederschlag (threshold
     temperature liquid/frozen precipitation) [°C]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    INIT = 0.
 
 
 class TSp(lland_parameters.MultiParameterLand):
@@ -169,6 +179,7 @@ class TSp(lland_parameters.MultiParameterLand):
 class GTF(lland_parameters.MultiParameterLand):
     """Grad-Tag-Faktor (factor of the degree-day method) [mm/°C/T]."""
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
+    INIT = 3.
 
 
 class RSchmelz(parametertools.SingleParameter):
@@ -216,6 +227,7 @@ class PWMax(lland_parameters.MultiParameterLand):
         above 30%.
     """
     NDIM, TYPE, TIME, SPAN = 1, float, None, (1., None)
+    INIT = 1.4278333871488538
 
     def __call__(self, *args, **kwargs):
         """The prefered way to pass values to :class:`PWMax` instances
@@ -245,17 +257,20 @@ class GrasRef_R(parametertools.SingleParameter):
     """Bodenfeuchte-Verdunstung-Parameter (soil moisture dependend
     evaporation factor) [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+    INIT = 5.
 
 
 class NFk(lland_parameters.MultiParameterSoil):
     """Nutzbare Feldkapazität (usable field capacity) [mm]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+    INIT = 100.
 
 
 class RelWZ(lland_parameters.MultiParameterSoil):
     """Relative Mindestbodenfeuchte für die Interflowentstehung (threshold
        value of relative soil moisture for interflow generation) [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, 1.)
+    INIT = .8
 
     def trim(self, lower=None, upper=None):
         """Trim upper values in accordance with :math:`RelWB \\leq RelWZ`.
@@ -278,6 +293,7 @@ class RelWB(lland_parameters.MultiParameterSoil):
     """Relative Mindestbodenfeuchte für die Basisabflussentstehung (threshold
        value of relative soil moisture for base flow generation) [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+    INIT = .05
 
     def trim(self, lower=None, upper=None):
         """Trim upper values in accordance with :math:`RelWB \\leq RelWZ`.
@@ -300,12 +316,14 @@ class Beta(lland_parameters.MultiParameterSoil):
     """Drainageindex des tiefen Bodenspeichers (storage coefficient for
     releasing base flow from the lower soil compartment) [1/T]."""
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
+    INIT = .01
 
 
 class FBeta(lland_parameters.MultiParameterSoil):
     """Faktor zur Erhöhung der Perkolation im Grobporenbereich (factor for
     increasing percolation under wet conditions) [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (1., None)
+    INIT = 1.
 
 
 class DMin(lland_parameters.MultiParameterSoil):
@@ -338,6 +356,7 @@ class DMin(lland_parameters.MultiParameterSoil):
         array([ 0.12096])
     """
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
+    INIT = 0.
 
     def __call__(self, *args, **kwargs):
         """The prefered way to pass values to :class:`DMin` instances
@@ -400,6 +419,7 @@ class DMax(lland_parameters.MultiParameterSoil):
         array([ 12.096])
     """
     NDIM, TYPE, TIME, SPAN = 1, float, True, (None, None)
+    INIT = 1.
 
     def __call__(self, *args, **kwargs):
         """The prefered way to pass values to :class:`DMin` instances
@@ -437,6 +457,7 @@ class BSf(lland_parameters.MultiParameterSoil):
     relation between the avarage soil moisture and the relative saturated
     area of a subbasin) [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+    INIT = .4
 
 
 class A1(parametertools.SingleParameter):
@@ -445,6 +466,7 @@ class A1(parametertools.SingleParameter):
     of direct runoff in a slow and a fast component) [mm/d]
     """
     NDIM, TYPE, TIME, SPAN = 0, float, True, (0., None)
+    INIT = numpy.inf
 
 
 class A2(parametertools.SingleParameter):
@@ -453,6 +475,7 @@ class A2(parametertools.SingleParameter):
     of direct runoff in a slow and a fast component) [mm/d]
     """
     NDIM, TYPE, TIME, SPAN = 0, float, True, (0., None)
+    INIT = 0.
 
 
 class TInd(parametertools.SingleParameter):
@@ -507,6 +530,7 @@ class TInd(parametertools.SingleParameter):
         UserWarning: Due to the given values for the keyword arguments `tal` (0.001), `hot` (210.0) and `hut` (200.0), parameter `tind` of element `?` has been set to an unrealistic value of `0.000134 hours`.
     """
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0., None)
+    INIT = 1.
 
     def __call__(self, *args, **kwargs):
         """The prefered way to pass values to :class:`TInd` instances
@@ -557,6 +581,7 @@ class EQB(parametertools.SingleParameter):
     """Kalibrierfaktor für die Basisabflusskonzentration (factor for adjusting
     the concentration time of baseflow). [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+    INIT = 5000.
 
     def trim(self, lower=None, upper=None):
         """Trim upper values in accordance with :math:`EQI1 \\leq EQB`.
@@ -584,6 +609,7 @@ class EQI1(parametertools.SingleParameter):
     (factor for adjusting the concentration time of the first interflow
     component) [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+    INIT = 2000.
 
     def trim(self, lower=None, upper=None):
         """Trim upper values in accordance with
@@ -621,6 +647,7 @@ class EQI2(parametertools.SingleParameter):
     (factor for adjusting the concentration time of the second interflow
     component) [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+    INIT = 1000.
 
     def trim(self, lower=None, upper=None):
         """Trim upper values in accordance with
@@ -658,6 +685,7 @@ class EQD1(parametertools.SingleParameter):
     for adjusting the concentration time of the slower component of direct
     runoff). [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+    INIT = 100.
 
     def trim(self, lower=None, upper=None):
         """Trim upper values in accordance with
@@ -695,6 +723,7 @@ class EQD2(parametertools.SingleParameter):
     for adjusting the concentration time of the faster component of direct
     runoff). [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+    INIT = 50.
 
     def trim(self, lower=None, upper=None):
         """Trim upper values in accordance with

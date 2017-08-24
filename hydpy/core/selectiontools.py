@@ -370,6 +370,12 @@ class Selection(object):
         """
         return Selection(name, self.nodes.copy(), self.elements.copy())
 
+    @property
+    def devices(self):
+        """A tuple of all elements and nodes contained by the selection
+        object."""
+        return tuple(list(self.elements.devices)+list(self.nodes.devices))
+
     def __len__(self):
         return len(self.nodes) + len(self.elements)
 

@@ -4,12 +4,16 @@
 from __future__ import division, print_function
 import os
 import tkinter
+import runpy
 # ...from site-packages
 import numpy
 # ...from HydPy
+from hydpy import pub
+from hydpy.gui import shapetools
 from . import selector
 from . import colorbar
 from . import outputmapdate
+from hydpy.gui import selectionbox
 
 hydpy = None
 
@@ -17,34 +21,14 @@ hydpy = None
 class OutputMap(tkinter.Tk):
     """Visualisation of model parameters and time series in (multiple) maps."""
 
-    def __init__(self):
+    def __init__(self, hydpy, width, height):
         tkinter.Tk.__init__(self)
-        self.loadshapes()
+        self.hydpy = hydpy
         self.menu = Menu(self)
         self.menu.pack(side=tkinter.TOP, fill=tkinter.BOTH)
-        self.map = Map(self, width=200, height=200)
+        self.map = Map(self, width=width, height=height)
         self.map.pack(side=tkinter.TOP)
         tkinter.mainloop()
-
-    def loadshapes(self):
-        shapedir = os.path.join('shapes', 'große_röder')
-
-        xmin, ymin = numpy.inf, numpy.inf
-        xmax, ymax = -numpy.inf, -numpy.inf
-        for (name, element) in hydpy.elements:
-            shapepath = os.path.join(shapedir, '%s.npy' % name)
-            shape = numpy.load(shapepath)
-            xmin = min(xmin, numpy.min(shape[:, 0]))
-            xmax = max(xmax, numpy.max(shape[:, 0]))
-            ymin = min(ymin, numpy.min(shape[:, 1]))
-            ymax = max(ymax, numpy.max(shape[:, 1]))
-            element.temp = {'points': shape}
-
-        for (name, element) in hydpy.elements:
-            shape = element.temp['points'].copy()
-            shape[:, 0] = (shape[:, 0]-xmin)/(xmax-xmin)
-            shape[:, 1] = (ymax-shape[:, 1])/(ymax-ymin)
-            element.temp['normpoints'] = shape
 
 
 class Menu(tkinter.Frame):
@@ -54,7 +38,7 @@ class Menu(tkinter.Frame):
         tkinter.Frame.__init__(self, master)
         self.arrangement = Arrangement(self)
         self.arrangement.pack(side=tkinter.LEFT)
-        self.date = outputmapdate.Date(self, hydpy)
+        self.date = outputmapdate.Date(self, self.master.hydpy)
         self.date.pack(side=tkinter.LEFT)
 
 
@@ -142,15 +126,23 @@ class Submap(tkinter.Frame):
 
     def __init__(self, master, width, height):
         tkinter.Frame.__init__(self, master, bd=0)
-        self.selections = []
-        self.geoarea = GeoArea(self, width=width, height=height)
-        self.geoarea.pack(side=tkinter.LEFT)
-        self.infoarea = InfoArea(self, width=60, height=height)
-        self.infoarea.pack(side=tkinter.RIGHT)
+        self.width = width
+        self.height = height
+        self.update_selection(pub.selections.complete)
 
     def recolor(self):
         self.infoarea.recolor()
         self.geoarea.recolor()
+
+    def update_selection(self, selection):
+        self.selection = selection
+        if hasattr(self, 'geoarea'):
+            self.geoarea.destroy()
+            self.infoarea.destroy()
+        self.geoarea = GeoArea(self, width=self.width, height=self.height)
+        self.geoarea.pack(side=tkinter.LEFT)
+        self.infoarea = InfoArea(self, width=60, height=self.height)
+        self.infoarea.pack(side=tkinter.RIGHT)
 
 
 class GeoArea(tkinter.Canvas):
@@ -158,21 +150,30 @@ class GeoArea(tkinter.Canvas):
 
     def __init__(self, master, width, height):
         tkinter.Canvas.__init__(self, master, width=width, height=height)
-        for (name, element) in hydpy.elements:
-            if hasattr(element, 'temp'):
-                points = element.temp['normpoints'].copy()
+        for layer in range(1, 4):
+            for device in self.master.selection.devices:
+                shape = device.shape
+                points = shape.vertices_norm.copy()
                 points[:, 0] = points[:, 0]*(width-10)+5
                 points[:, 1] = points[:, 1]*(height-10)+5
                 points = list(points.flatten())
-                element.temp['polygon'] = self.create_polygon(points,
-                                                              outline='black',
-                                                              width=1,
-                                                              fill='white')
+                if shape.layer != layer:
+                    continue
+                elif isinstance(shape, shapetools.Plane):
+                    device.polygon = self.create_polygon(
+                            points,  outline='black', width=1, fill='white')
+                elif isinstance(shape, shapetools.Line):
+                    device.polygon = self.create_line(
+                            points, width=1, fill='blue')
+                elif isinstance(shape, shapetools.Point):
+                    x1, y1 = points
+                    x2, y2 = x1+5., y1+5.
+                    device.polygon = self.create_oval(x1, y1, x2, y2,
+                                                      width=1, fill='red')
 
     def recolor(self):
-        for (name, element) in hydpy.elements:
-            if hasattr(element, 'temp'):
-                self.itemconfig(element.temp['polygon'], fill='blue')
+        for (name, element) in self.hydpy.elements:
+            self.itemconfig(element.temp['polygon'], fill='blue')
 
 
 class InfoArea(tkinter.Frame):
@@ -185,6 +186,8 @@ class InfoArea(tkinter.Frame):
         self.colorbar = colorbar.Colorbar(self, width=width, height=height-70,
                                           selections=self.master.selections)
         self.colorbar.pack(side=tkinter.BOTTOM)
+        self.selectionbox = selectionbox.SelectionBox(self)
+        self.selectionbox.pack(side=tkinter.BOTTOM)
 
     def recolor(self):
         self.colorbar.recolor()
@@ -199,7 +202,8 @@ class Description(tkinter.Label):
         self.bind('<Double-Button-1>', self.select)
 
     def select(self, event):
-        sel = selector.Selector(self.master.master.selections, hydpy)
+        sel = selector.Selector(self.master.master.selections,
+                                self.master.master.master.master.master.hydpy)
         self.wait_window(sel)
         varnames = []
         for selection in self.master.master.selections:

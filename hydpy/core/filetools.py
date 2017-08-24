@@ -154,7 +154,7 @@ class NetworkManager(object):
             devicetools.Element.gathernewelements()
             info = {}
             try:
-                with open(path) as file_:
+                with open(path, encoding='utf-8') as file_:
                     code = compile(file_.read(), path, 'exec')
                     exec(code, {}, info)
             except Exception:

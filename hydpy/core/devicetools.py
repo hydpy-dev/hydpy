@@ -5,8 +5,10 @@ are the most fundamental means to structure HydPy projects.
 # import...
 # ...from standard library
 from __future__ import division, print_function
+import os
 import copy
 import struct
+import runpy
 # ...from site-packages
 from matplotlib import pyplot
 # ...from HydPy
@@ -16,6 +18,7 @@ from hydpy.core import objecttools
 from hydpy.core import sequencetools
 from hydpy.core import autodoctools
 from hydpy.cythons import pointer
+from hydpy.gui import shapetools
 
 
 class Device(object):
@@ -58,6 +61,13 @@ class Device(object):
     def registerednames(cls):
         """Get all names of :class:`Device` objects initialized so far."""
         return cls._registry.keys()
+
+    def load_shape(self):
+        """Load the shape data associated with the device object."""
+        # ToDo (filetools, exception/warning when missing):
+        shapepath = os.path.join('shapes', 'große_röder', '%s.py' % self.name)
+        runpy.run_path(shapepath)
+        self.shape = shapetools.Shape.last_instance
 
     def __iter__(self):
         for (key, value) in vars(self).items():

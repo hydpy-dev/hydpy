@@ -20,7 +20,7 @@ class Colorbar(tkinter.Canvas):
         self.hexcolors = []
         self.rgbcolors = []
         self.newselections(selections)
-        # self.bind('<Double-Button-1>', self.)
+        #self.bind('<Double-Button-1>', self.)
 
     def getminmax(self):
         if self.selections:

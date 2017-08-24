@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 """
+
+The following figure shows the general structure of L-Stream Version 1:
+
+.. image:: HydPy-L-Stream_Version-1.png
+
+
 Integration test:
 
     >>> from hydpy.models.lstream_v1 import *

@@ -1,10 +1,11 @@
-""" The HydPy-GlobWat model (`globwat`) allows for the subdivision of subbasins
-into zones (hydrological response units).  Some processes, e.g. interception,
-are calculated seperately for each zone.  This is why some parameters (e.g.
-the interception capacity :class:`~hydpy.models.globwat.globwat_control.IcMax`)
-and some sequences (e.g. the actual interception storage
-:class:`~hydpy.models.globwat.globwat_states.Ic`) are 1-dimensional. Each entry
-represents the value of a grid zone.
+""" The HydPy-GlobWat model (`globwat`) allows for the subdivision of basins
+into subbasins and subbasins into grids (hydrological response units).
+Some processes, e.g. evaporation, are calculated seperately in the
+corresponding grid cells. This is why some parameters (e.g. the soil moisture
+capacity :class:`~hydpy.models.globwat.globwat_control.SCMax`) and some
+sequences (e.g. the available soil moisture
+:class:`~hydpy.models.globwat.globwat_states.S`) are 1-dimensional. Each entry
+represents the value of a grid cell.
 
 For comprehensibility, this module introduces the relevant integer constants.
 Through performing a wildcard import

@@ -5,7 +5,6 @@ The vertical water balance ic calculated per grid cell. The horizontal water
 balance is calculated per catchment. This models is primarily developt to
 calculate the grid and subbasin evaporation, but the discharge is also roughly
 calculated.
-Test um die Datei zu verändern.
 """
 
 # imports...
@@ -47,7 +46,7 @@ def calc_rainfedevaporation_v1(self):
       :attr:`~hydpy.core.modeltools.Model.idx_sim`
 
     Basic equation:
-      :math:`E_{rain} = K_c \\cdot E_0`
+      :math:`E_{rain} = K_C \\cdot E_0`
 
     Calculating ERain for the case: S(t-1) <= SMax and S(t-1) >= SEAv
 
@@ -108,7 +107,7 @@ def calc_groundwaterrecharge_v1(self):
 
     Required control parameters:
       :class:`~hydpy.models.globwat.globwat_control.NmbGrids`
-      :class:`~hydpy.models.globwat.globwat_control.Rmax`
+      :class:`~hydpy.models.globwat.globwat_control.RMax`
       :class:`~hydpy.models.globwat.globwat_control.VegetationClass`
 
     Required derived parameters:
@@ -173,7 +172,7 @@ def calc_changeinstorage_v1(self):
       :class:`~hydpy.models.globwat.globwat_control.VegetationClass`
       :class:`~hydpy.models.globwat.globwat_control.ROFactor`
 
-    Required derived parameter:
+    Required derived parameters:
       :class:`~hydpy.models.globwat.globwat_derived.SMax`
       :class:`~hydpy.models.globwat.globwat_derived.Irrigation`
 
@@ -267,13 +266,13 @@ def calc_irrigatedcropsevaporation_v1(self):
       :class:`~hydpy.models.globwat.globwat_control.NmbGrids`
       :class:`~hydpy.models.globwat.globwat_control.KC`
       :class:`~hydpy.models.globwat.globwat_control.VegetationClass`
-      :class:`~hydpy.models.globwat.globwat_control.Irrigation`
 
     Required input sequence:
       :class:`~hydpy.models.globwat.globwat_inputs.E0`
 
-    Required derived parameter:
+    Required derived parameters:
       :class:`~hydpy.models.globwat.globwat_derived.MOY`
+      :class:`~hydpy.models.globwat.globwat_derived.Irrigation`
 
     Calculated flux sequence:
       :class:`~hydpy.models.globwat.globwat_fluxes.EC`
@@ -282,7 +281,7 @@ def calc_irrigatedcropsevaporation_v1(self):
       :attr:`~hydpy.core.modeltools.Model.idx_sim`
 
     Basic equation:
-      :math:`E_{c,total} = I_A \\cdot \\sum(C_{ic} \\cdot E_C)`
+      :math:`E_C = K_C \\cdot E_0`
 
     Examples:
         >>> from hydpy.models.globwat import *
@@ -339,7 +338,7 @@ def calc_openwaterevaporation_v1(self):
       :attr:`~hydpy.core.modeltools.Model.idx_sim`
 
     Basic equation:
-      :math:`E_{OW} = K_{OW} \\cdot E_0`
+      :math:`E_{OW} = K_C \\cdot E_0`
 
     Examples:
         >>> from hydpy.models.globwat import *
@@ -595,7 +594,7 @@ def calc_subbasinbalance_v1(self):
     Required input sequence:
       :class:`~hydpy.models.globwat.globwat_inputs.P`
 
-    Required flux sequence:
+    Required flux sequences:
       :class:`~hydpy.models.globwat.globwat_fluxes.ESub`
       :class:`~hydpy.models.globwat.globwat_fluxes.PSub`
 

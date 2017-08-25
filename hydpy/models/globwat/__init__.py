@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""The HydPy-GlobWat model is defined in the package `globwat`.  In the following,
-both terms are used synonymously.  Each of the following sections is related
-to an individual module (e.g. `globwat_constants`, `globwat_model`...).
+"""The HydPy-GlobWat model is defined in the package `globwat`. Each of the
+following sections is related to an individual module (e.g. `globwat_constants`
+, `globwat_model`...).
 """
 
 # import...

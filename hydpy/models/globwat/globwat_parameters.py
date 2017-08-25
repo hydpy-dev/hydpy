@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-"""Author: Wuestenfeld
-"""
 
 # import...
 # ...standard library

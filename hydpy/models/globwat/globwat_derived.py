@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-"""Author: Wuestenfeld"""
 
 # import...
 # ...from standard library
@@ -22,7 +21,7 @@ class Irrigation(parametertools.MultiParameter):
         """settig irrigation true or false for vegetationclasses.
 
         Required control parameter:
-          :class:`~hydpy.models.globwat.globwat_control.Vegetationclass`
+          :class:`~hydpy.models.globwat.globwat_control.VegetationClass`
 
         Calculated derived parameter:
           :class:`Irrigation`
@@ -107,35 +106,6 @@ class MOY(parametertools.IndexParameter):
     def update(self):
         self.setreference(pub.indexer.monthofyear)
 
-class RelArea(parametertools.MultiParameter):
-    """relative area [-]."""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0, 1)
-
-    def update(self):
-        """calculation of derived parameter relative area.
-
-        Required control parameter:
-          :class:`~hydpy.models.globwat.globwat_control.Area`
-
-        Calculated derived parameter:
-          :class:`RelArea`
-
-        Basic equation:
-          :math:`A_{rel} = \\frac {A_Grid}{\\sum A_Grids,n}`
-
-        Examples:
-
-        >>> from hydpy.models.globwat import *
-        >>> parameterstep()
-        >>> nmbgrids(3)
-        >>> control.area(10., 10., 20.)
-        >>> derived.relarea.update()
-        >>> derived.relarea
-        relarea(0.25, 0.25, 0.5)
-        """
-        con = self.subpars.pars.control
-        self(con.area/sum(con.area))
-
 class QFactor(parametertools.SingleParameter):
     """Factor for converting mm/stepsize to m³/s."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
@@ -146,4 +116,4 @@ class QFactor(parametertools.SingleParameter):
 
 class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of globwat, indirectly defined by the user."""
-    _PARCLASSES = (Irrigation, SMax, SEAv, MOY, RelArea, QFactor)
+    _PARCLASSES = (Irrigation, SMax, SEAv, MOY, QFactor)

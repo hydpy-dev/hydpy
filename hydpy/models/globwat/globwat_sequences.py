@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-"""Author: Wuestenfeld
-"""
 
 # import...
 # ...from standard library
@@ -12,5 +10,5 @@ class Sequences(sequencetools.Sequences):
     """All sequences of the globwat model."""
 
 
-    
+
 

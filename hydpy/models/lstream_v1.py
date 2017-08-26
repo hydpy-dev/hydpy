@@ -1,9 +1,47 @@
 # -*- coding: utf-8 -*-
 """
+.. _Pegasus method: https://link.springer.com/article/10.1007/BF01932959
 
-The following figure shows the general structure of L-Stream Version 1:
+Version 1 of HydPy-L-Stream (called lstream_v1) implements the Williams
+routing method in a similar manner as the LARSIM model used by the
+German Federal Institute of Hydrology (BfG).  Essentially, routing is
+performed via a simple linear storage in each simulation time step.
+But the linear storage coefficient is adapted to the actual flow conditions
+at the beginning of each time step, making the approach nonlinear for
+instationary inputs.  The storage coefficient is determined via the
+Gauckler-Manning-Strickler formula, which is applied on the `triple
+trapezoid profile`, shown in the following figure:
 
 .. image:: HydPy-L-Stream_Version-1.png
+
+The linear storage coefficient depends on the length of the considered
+channel and the velocity. To calculate the velocity based on the Manning
+formula, one needs to know the current water stage.  This water stage is
+determined by iteration based on the current reference discharge.  As the
+relation between water stage and discharge is discontinuous due to the
+sharp transitions of the `triple trapezoid profile`, we decided on an
+iteration algorithm called `Pegasus method`_, which is an improved
+`Regulari Falsi` method that can be used when the bounds of the search
+interval are known.  At the beginning of each simulation interval, we first
+determine the `highest part` of the `triple trapozoid profile` containing
+water (for low flow conditions, this would be the the main channel), use
+its lower und upper height (in the given example zero and `HM`) as the
+initial boundaries and refine them afterwards until the actual water stage
+is identified with sufficient accuracy.  This is much effort for a simple
+storage routing method, but due to the superlinear convergence properties
+of the `Pegasus method`_ the required computation time seems acceptable.
+
+The above paragraph is a little inaccurate regarding the term `velocity`.
+It is well known that a flood wave has usually a considerably higher
+velocity than the water itself.  But, if we understand correctly, the
+original LARSIM implementation assumes that the wave velocity is identical
+with the water velocity.  This should result in a systematic overestimation
+of travel times.  This is important to note, if one determines the
+parameters of `lstream_v1` based on real channel geometries and roughness
+coefficients and should eventually be compensated through increasing the
+roughness related calibration coefficients
+:class:`~hydpy.models.lstream.lstream_control.EKM` and
+:class:`~hydpy.models.lstream.lstream_control.EKV`.
 
 
 Integration test:

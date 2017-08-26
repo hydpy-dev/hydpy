@@ -25,7 +25,7 @@ on the internal step size parameter
 
 Integration examples:
 
-    The following are performed over a period of 20 days:
+    The following calculations are performed over a period of 20 days:
 
     >>> from hydpy import pub, Timegrid, Timegrids, Nodes, Element
     >>> pub.timegrids = Timegrids(Timegrid('01.01.2000',

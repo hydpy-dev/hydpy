@@ -174,7 +174,6 @@ class FluxSequences(sequencetools.FluxSequences):
                    lstream_fluxes.UM,
                    lstream_fluxes.UV,
                    lstream_fluxes.UVR,
-                   lstream_fluxes.UG,
                    lstream_fluxes.QM,
                    lstream_fluxes.QV,
                    lstream_fluxes.QVR,

@@ -463,11 +463,6 @@ class SingleParameter(Parameter):
     """Base class for model parameters handling a single value."""
     NDIM, TYPE, TIME, SPAN, INIT = 0, float, None, (None, None), None
 
-    def __init__(self):
-        Parameter.__init__(self)
-        if self.INIT is not None:
-            self(self.INIT)
-
     def connect(self, subpars):
         self.subpars = subpars
         self.fastaccess = subpars.fastaccess

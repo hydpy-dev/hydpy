@@ -20,12 +20,13 @@ class Shape(object):
         self.layer = self.DEFAULT_LAYER if layer is None else layer
         Shape.last_instance = self
 
-    def norm(self, xmin, ymin, xmax, ymax):
+    def normed_shape(self, xmin, ymin, xmax, ymax):
         """Norm the original vertices defining the shape with the given
         boundary values."""
-        self.vertices_norm = self.vertices_orig.copy()
-        self.vertices_norm[:, 0] = (self.vertices_norm[:, 0]-xmin)/(xmax-xmin)
-        self.vertices_norm[:, 1] = (ymax-self.vertices_norm[:, 1])/(ymax-ymin)
+        normed = self.vertices.copy()
+        normed[:, 0] = (normed[:, 0]-xmin)/(xmax-xmin)
+        normed[:, 1] = (ymax-normed[:, 1])/(ymax-ymin)
+        return type(self)(normed, self.layer)
 
     def __repr__(self):
         prefix = '%s(' % objecttools.classname(self)
@@ -34,20 +35,19 @@ class Shape(object):
         subprefix = '%svertices=' % blanks
         if self.NDIM == 0:
             string = '%s%s' % (subprefix,
-                               objecttools.repr_tuple(self.vertices_orig[0]))
+                               objecttools.repr_tuple(self.vertices[0]))
         else:
-            string = objecttools.assignrepr_tuple2(self.vertices_orig,
-                                                   subprefix)
+            string = objecttools.assignrepr_tuple2(self.vertices, subprefix)
         lines.append(string + ')')
         return '\n'.join(lines)
 
     @property
     def xs_orig(self):
-        return self.vertices_orig[:, 0]
+        return self.vertices[:, 0]
 
     @property
     def ys_orig(self):
-        return self.vertices_orig[:, 1]
+        return self.vertices[:, 1]
 
 
 class Point(Shape):
@@ -68,7 +68,7 @@ class Point(Shape):
     DEFAULT_LAYER = 3
 
     def _setvertices(self, vertices):
-        self.vertices_orig = numpy.full((1, 2), vertices, dtype=float)
+        self.vertices = numpy.full((1, 2), vertices, dtype=float)
 
     def plot(self, **kwargs):
         if 'marker' not in kwargs:
@@ -79,8 +79,7 @@ class Point(Shape):
 class Multi(Shape):
 
     def _setvertices(self, vertices):
-        self.vertices_orig = numpy.full((len(vertices), 2),
-                                        vertices, dtype=float)
+        self.vertices = numpy.full((len(vertices), 2), vertices, dtype=float)
 
 
 class Line(Multi):

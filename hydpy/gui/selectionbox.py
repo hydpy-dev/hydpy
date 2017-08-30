@@ -8,7 +8,15 @@ import tkinter
 from hydpy import pub
 
 
-class SelectionBox(tkinter.Listbox):
+class SelectionBox(tkinter.Toplevel):
+
+    def __init__(self, master):
+        tkinter.Toplevel.__init__(self, master)
+        self.listbox = ListBox(self)
+        self.listbox.pack(side=tkinter.LEFT)
+
+
+class ListBox(tkinter.Listbox):
 
     def __init__(self, master):
         tkinter.Listbox.__init__(self, master)
@@ -18,4 +26,4 @@ class SelectionBox(tkinter.Listbox):
 
     def select(self, event):
         name = self.get(int(self.curselection()[0]))
-        self.master.master.update_selection(getattr(pub.selections, name))
+        self.master.master.master.master.update_selection(getattr(pub.selections, name))

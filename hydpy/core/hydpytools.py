@@ -379,39 +379,6 @@ class HydPy(object):
         """A tuple of all elements and nodes contained by the HydPy object."""
         return tuple(list(self.elements.devices)+list(self.nodes.devices))
 
-    @magictools.printprogress
-    def prepare_shapes(self):
-        """Prepare the shapes of all element and node objects."""
-        self.load_shapes()
-        self.norm_shapes()
-
-    @magictools.printprogress
-    def load_shapes(self):
-        """Load the shapes of all element and node objects."""
-        for device in magictools.progressbar(self.devices):
-            device.load_shape()
-
-    @property
-    def shapebounds(self):
-        """A tuple containing the total `xmin`, `ymin`, `xmax` and `ymax`
-        values of all shapes associated with the different nodes and elements.
-        """
-        xmin, ymin = numpy.inf, numpy.inf
-        xmax, ymax = -numpy.inf, -numpy.inf
-        for device in self.devices:
-            xmin = min(xmin, numpy.min(device.shape.xs_orig))
-            xmax = max(xmax, numpy.max(device.shape.xs_orig))
-            ymin = min(ymin, numpy.min(device.shape.ys_orig))
-            ymax = max(ymax, numpy.max(device.shape.ys_orig))
-        return xmin, ymin, xmax, ymax
-
-    @magictools.printprogress
-    def norm_shapes(self):
-        """Load the shapes of all element and node objects."""
-        shapebounds = self.shapebounds
-        for device in magictools.progressbar(self.devices):
-            device.shape.norm(*shapebounds)
-
     def gui(self, width=600, height=600):
         outputmap.OutputMap(self, width, height)
 

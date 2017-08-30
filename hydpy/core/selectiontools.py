@@ -5,9 +5,12 @@ HydPy projects.
 # import...
 # ...from standard library
 from __future__ import division, print_function
+# ...from site-packages
+import numpy
 # ...from HydPy
 from hydpy.core import devicetools
 from hydpy.core import autodoctools
+from hydpy.core import magictools
 
 
 class Selections(object):
@@ -34,6 +37,13 @@ class Selections(object):
         return vars(self).values()
 
     selections = property(_getselections)
+
+    @magictools.printprogress
+    def prepare_shapes(self):
+        """Prepare the shapes of all element and node objects."""
+        self.complete.load_shapes()
+        for (name, selection) in self:
+            selection.norm_shapes()
 
     def __setitem__(self, key, value):
         self.__dict__[key] = value
@@ -160,6 +170,7 @@ class Selection(object):
         self.name = name
         self.nodes = devicetools.Nodes(nodes)
         self.elements = devicetools.Elements(elements)
+        self.shapes = {}
 
     def select_upstream(self, device):
         """Limit the current selection to the network upstream of the given
@@ -375,6 +386,39 @@ class Selection(object):
         """A tuple of all elements and nodes contained by the selection
         object."""
         return tuple(list(self.elements.devices)+list(self.nodes.devices))
+
+    @magictools.printprogress
+    def prepare_shapes(self):
+        """Prepare the shapes of all element and node objects."""
+        self.load_shapes()
+        self.norm_shapes()
+
+    @magictools.printprogress
+    def load_shapes(self):
+        """Load the shapes of all element and node objects."""
+        for device in magictools.progressbar(self.devices):
+            device.load_shape()
+
+    @property
+    def shapebounds(self):
+        """A tuple containing the total `xmin`, `ymin`, `xmax` and `ymax`
+        values of all shapes associated with the different nodes and elements.
+        """
+        xmin, ymin = numpy.inf, numpy.inf
+        xmax, ymax = -numpy.inf, -numpy.inf
+        for device in self.devices:
+            xmin = min(xmin, numpy.min(device.shape.xs_orig))
+            xmax = max(xmax, numpy.max(device.shape.xs_orig))
+            ymin = min(ymin, numpy.min(device.shape.ys_orig))
+            ymax = max(ymax, numpy.max(device.shape.ys_orig))
+        return xmin, ymin, xmax, ymax
+
+    @magictools.printprogress
+    def norm_shapes(self):
+        """Load the shapes of all element and node objects."""
+        shapebounds = self.shapebounds
+        for device in magictools.progressbar(self.devices):
+            self.shapes[device.name] = device.shape.normed_shape(*shapebounds)
 
     def __len__(self):
         return len(self.nodes) + len(self.elements)

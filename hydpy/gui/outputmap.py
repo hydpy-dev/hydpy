@@ -2,9 +2,7 @@
 # import...
 # ...from standard library
 from __future__ import division, print_function
-import os
 import tkinter
-import runpy
 # ...from site-packages
 import numpy
 # ...from HydPy
@@ -151,25 +149,24 @@ class GeoArea(tkinter.Canvas):
     def __init__(self, master, width, height):
         tkinter.Canvas.__init__(self, master, width=width, height=height)
         for layer in range(1, 4):
-            for device in self.master.selection.devices:
-                shape = device.shape
-                points = shape.vertices_norm.copy()
+            for shape in self.master.selection.shapes.values():
+                points = shape.vertices.copy()
                 points[:, 0] = points[:, 0]*(width-10)+5
                 points[:, 1] = points[:, 1]*(height-10)+5
                 points = list(points.flatten())
                 if shape.layer != layer:
                     continue
                 elif isinstance(shape, shapetools.Plane):
-                    device.polygon = self.create_polygon(
+                    shape.polygon = self.create_polygon(
                             points,  outline='black', width=1, fill='white')
                 elif isinstance(shape, shapetools.Line):
-                    device.polygon = self.create_line(
+                    shape.polygon = self.create_line(
                             points, width=1, fill='blue')
                 elif isinstance(shape, shapetools.Point):
                     x1, y1 = points
                     x2, y2 = x1+5., y1+5.
-                    device.polygon = self.create_oval(x1, y1, x2, y2,
-                                                      width=1, fill='red')
+                    shape.polygon = self.create_oval(x1, y1, x2, y2,
+                                                     width=1, fill='red')
 
     def recolor(self):
         for (name, element) in self.hydpy.elements:
@@ -181,13 +178,15 @@ class InfoArea(tkinter.Frame):
 
     def __init__(self, master, width, height):
         tkinter.Frame.__init__(self, master, width=width, height=height)
+        self.selection = Selection(self)
+        self.selection.pack(side=tkinter.TOP)
         self.description = Description(self)
         self.description.pack(side=tkinter.TOP)
         self.colorbar = colorbar.Colorbar(self, width=width, height=height-70,
                                           selections=self.master.selections)
         self.colorbar.pack(side=tkinter.BOTTOM)
-        self.selectionbox = selectionbox.SelectionBox(self)
-        self.selectionbox.pack(side=tkinter.BOTTOM)
+#        self.selectionbox = selectionbox.SelectionBox(self)
+#        self.selectionbox.pack(side=tkinter.BOTTOM)
 
     def recolor(self):
         self.colorbar.recolor()
@@ -214,3 +213,16 @@ class Description(tkinter.Label):
         else:
             self.configure(text='None')
         self.master.colorbar.newselections(self.master.master.selections)
+
+
+class Selection(tkinter.Label):
+    """Description for a single :class:`SubMap`."""
+
+    def __init__(self, master):
+        tkinter.Label.__init__(self, master, text='complete')
+        self.bind('<Double-Button-1>', self.select_selection)
+
+    def select_selection(self, event):
+        sel = selectionbox.SelectionBox(self)
+        self.wait_window(sel)
+        self.configure(text=self.master.selection.name)

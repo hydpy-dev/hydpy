@@ -12,12 +12,18 @@ from . import selector
 from . import colorbar
 from . import outputmapdate
 from hydpy.gui import selectionbox
+from hydpy.gui import settingtools
 
 hydpy = None
 
 
-class OutputMap(tkinter.Tk):
-    """Visualisation of model parameters and time series in (multiple) maps."""
+class Main(tkinter.Tk):
+    """Visualisation of model parameters and time series data in (multiple)
+    maps.
+
+    It consists of a menue bar (:class:`Menu`) on top and the map view area
+    (:class:`Map`) below.
+    """
 
     def __init__(self, hydpy, width, height):
         tkinter.Tk.__init__(self)
@@ -30,10 +36,11 @@ class OutputMap(tkinter.Tk):
 
 
 class Menu(tkinter.Frame):
-    """The single menu of :class:`OutputMap`."""
+    """The single menu on top of the main window."""
 
-    def __init__(self, master):
-        tkinter.Frame.__init__(self, master)
+    def __init__(self, main):
+        tkinter.Frame.__init__(self, main)
+        self.main = main
         self.arrangement = Arrangement(self)
         self.arrangement.pack(side=tkinter.LEFT)
         self.date = outputmapdate.Date(self, self.master.hydpy)
@@ -43,8 +50,9 @@ class Menu(tkinter.Frame):
 class Arrangement(tkinter.Frame):
     """Defines the number of :class:`Submap` instances."""
 
-    def __init__(self, master):
-        tkinter.Frame.__init__(self, master)
+    def __init__(self, menu):
+        tkinter.Frame.__init__(self, menu)
+        self.menu = menu
         # Define command and selection buttons.
         self.button = tkinter.Button(self, text='rearrange')
         self.button.grid(row=0, columnspan=4, sticky=tkinter.EW)
@@ -52,7 +60,8 @@ class Arrangement(tkinter.Frame):
         # Define entry boxes for the number of rows and columns.
         label = tkinter.Label(self, text='rows:')
         label.grid(row=1, column=0, sticky=tkinter.E)
-        self.rowsentry = IntEntry(self, width=1)
+        #self.rowsentry = IntEntry(self, width=1)
+        self.rowsentry = settingtools.IntEntry(self, width=1)
         self.rowsentry.grid(row=1, column=1)
         label = tkinter.Label(self, text='columns:')
         label.grid(row=2, column=0, sticky=tkinter.E)
@@ -69,7 +78,7 @@ class Arrangement(tkinter.Frame):
         self.heightentry.grid(row=2, column=3)
 
     def rearrange(self, event):
-        self.master.master.map.resize(rows=self.rowsentry.getint(),
+        self.master.master.map.resize(rows=int(self.rowsentry.get()),
                                       columns=self.columnsentry.getint(),
                                       width=self.widthentry.getint(),
                                       height=self.heightentry.getint())
@@ -86,7 +95,7 @@ class IntEntry(tkinter.Entry):
 
 
 class Map(tkinter.Frame):
-    """The actual frame for the (muliple) maps of :class:`OutputMap`."""
+    """The actual frame for the (muliple) maps of :class:`MainWindow`."""
 
     def __init__(self, master, width, height):
         tkinter.Frame.__init__(self, master)

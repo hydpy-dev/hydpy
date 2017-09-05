@@ -6,8 +6,6 @@
 from __future__ import division, print_function
 import os
 import warnings
-# ...from site-packages
-import numpy
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import objecttools
@@ -16,7 +14,7 @@ from hydpy.core import devicetools
 from hydpy.core import selectiontools
 from hydpy.core import autodoctools
 from hydpy.core import magictools
-from hydpy.gui import outputmap
+from hydpy.gui import mainwindow
 
 
 class HydPy(object):
@@ -380,6 +378,6 @@ class HydPy(object):
         return tuple(list(self.elements.devices)+list(self.nodes.devices))
 
     def gui(self, width=600, height=600):
-        outputmap.OutputMap(self, width, height)
+        mainwindow.Main(self, width, height)
 
 autodoctools.autodoc_module()

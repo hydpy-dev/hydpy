@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Version 2 of the L-Land model (lland_v2) is a slight modification of
-:module:`~hydpy.models.lland_v1`.  :module:`~hydpy.models.lland_v1`
+:mod:`~hydpy.models.lland_v1`.  :mod:`~hydpy.models.lland_v1`
 implements a specific equation for the calculation of reference evaporation
 (:class:`~hydpy.models.lland.lland_fluxes.ET0`) for each hydrological
 response unit (HRU).  In contrast, lland_v2 expects subbasin wide
@@ -9,7 +9,7 @@ potential evaporation values (:class:`~hydpy.models.lland.lland_inputs.PET`)
 to be calculated externally and adjusts them to the different HRUs of
 the subbasin.
 
-:module:`~hydpy.models.lland_v1` should be applied on daily step sized
+:mod:`~hydpy.models.lland_v1` should be applied on daily step sized
 only due to the restrictions of the Turc-Wendling equation for calculating
 reference evaporation.  Instead, lland_v2 can be applied on arbitrary
 simulation step sizes.
@@ -25,7 +25,7 @@ Integration tests:
     ...                                    '1d'))
 
     Note that, for the first four days, all integration tests are virtually
-    identical with the ones of :module:`~hydpy.models.lland_v1`, to prove
+    identical with the ones of :mod:`~hydpy.models.lland_v1`, to prove
     the almost identical behaviour of lland_v2.  This is accomplished by
     feeding in potential evaporation values in accordance with the
     Turc-Wendling equation and the given value of the correction factor
@@ -125,7 +125,7 @@ Integration tests:
     >>> inputs.teml.series = -5., -5., 0., 5., 10.
 
     As explained above, the first four values of potential evaporation
-    are taken from the integration example of :module:`~hydpy.models.lland_v1`
+    are taken from the integration example of :mod:`~hydpy.models.lland_v1`
     (divided by 2, which is the value defined for the correction factor
     :class:`~hydpy.models.lland.lland_control.KE`):
 
@@ -136,7 +136,7 @@ Integration tests:
     ...                      1.)
 
     For the first four days, the results of the first integration test of
-    model :module:`~hydpy.models.lland_v1` are reproduced.  The increased
+    model :mod:`~hydpy.models.lland_v1` are reproduced.  The increased
     evaporation of the fifth day strenghtens the depletion of the soil
     moisture content.  However, there is no impact on the simulated runoff
     value due the operator splitting scheme implemented for LARSIM's soil
@@ -164,7 +164,7 @@ Integration tests:
 
     The interception storage is totally drained during the fifth day both
     with the lower potential evaporation value of the second integration
-    test of model :module:`~hydpy.models.lland_v1` and the potential
+    test of model :mod:`~hydpy.models.lland_v1` and the potential
     evaporation value defined in this example.  Hence only the values
     calculated for sequence :class:`~hydpy.models.lland.lland_fluxes.EvPo`
     differ between both integration tests:
@@ -182,7 +182,7 @@ Integration tests:
     subbasin.  Hence there is an actual difference between the simulated
     outflow value of the fifth day of this integration example and the
     outflow value of the third integration test of model
-    :module:`~hydpy.models.lland_v1`:
+    :mod:`~hydpy.models.lland_v1`:
 
     >>> lnk(WASSER)
     >>> test()

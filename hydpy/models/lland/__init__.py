@@ -30,5 +30,3 @@ autodoc_basemodel()
 tester = Tester()
 cythonizer = Cythonizer()
 cythonizer.complete()
-
-

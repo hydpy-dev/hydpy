@@ -117,7 +117,7 @@ class KT(lland_parameters.MultiParameter):
 class KE(lland_parameters.MultiParameter):
     """Grasreferenzverdunstungskorrekturfaktor (adjustment factor for
     reference evapotranspiration) [-]."""
-    NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
     INIT = 1.
 
 

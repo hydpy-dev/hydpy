@@ -113,7 +113,7 @@ def calc_et0_v1(self):
     >>> fluxes.tkor = 15.
     >>> model.calc_et0_v1()
     >>> fluxes.et0
-    et0(1.535855, 1.431075, 1.431075)
+    et0(3.07171, 2.86215, 2.86215)
     """
     con = self.parameters.control.fastaccess
     inp = self.sequences.inputs.fastaccess

@@ -85,6 +85,8 @@ def calc_et0_v1(self):
       :class:`~hydpy.models.lland.lland_control.NHRU`
       :class:`~hydpy.models.lland.lland_control.KE`
       :class:`~hydpy.models.lland.lland_control.KF`
+      :class:`~hydpy.models.lland.lland_control.HNN`
+
 
     Required input sequence:
       :class:`~hydpy.models.lland.lland_inputs.Glob`

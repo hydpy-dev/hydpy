@@ -910,12 +910,8 @@ class IOSequence(Sequence):
     def save_ext(self):
         """Write the internal data into an external data file."""
         if self.filetype_ext == 'npy':
-            values = pub.timegrids.init.toarray()
-            for idx in range(self.NDIM):
-                values = numpy.expand_dims(values, idx+1)
-            values = values + numpy.zeros(self.shape)
-            values = numpy.concatenate((values, self.series))
-            numpy.save(self.filepath_ext, values)
+            series = pub.timetrids.init.array2series(self.values)
+            numpy.save(self.filepath_ext, series)
         else:
             with open(self.filepath_ext, 'w') as file_:
                 file_.write(repr(pub.timegrids.init) + '\n')

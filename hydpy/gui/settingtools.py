@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import tkinter
+import numpy
 
 
 class TypeDescriptor(object):
@@ -38,18 +39,28 @@ class Settings(object):
     heigth_submap = Float(500)
 
 
-class IntEntry(tkinter.Entry):
-    """Defines the number of :class:`Submap` instances in one dimension."""
+class NumberEntry(tkinter.Entry):
+    """A base class for tkinter entries restricted to numbers."""
 
-    def __init__(self, master, **kwargs):
+    def __init__(self, master, dtype, **kwargs):
+        self.dtype = dtype
+        self.minvalue = kwargs.pop('minvalue', -numpy.inf)
+        self.maxvalue = kwargs.pop('maxvalue', numpy.inf)
         tkinter.Entry.__init__(
                 self, master, **kwargs, validate='key',
                 validatecommand=(master.register(self.validate), '%P'))
 
     def validate(self, P):
         try:
-            int(P)
-            return True
+            value = self.dtype(P)
         except BaseException:
             self.bell()
             return False
+        if self.minvalue <= value <= self.maxvalue:
+            return True
+        else:
+            self.bell()
+            return False
+
+    def get(self):
+        return self.dtype(tkinter.Entry.get(self))

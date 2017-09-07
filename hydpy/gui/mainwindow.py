@@ -28,7 +28,7 @@ class Main(tkinter.Tk):
     def __init__(self, hydpy, width, height):
         tkinter.Tk.__init__(self)
         self.hydpy = hydpy
-        self.menu = Menu(self)
+        self.menu = Menu(self, width, height)
         self.menu.pack(side=tkinter.TOP, fill=tkinter.BOTH)
         self.map = Map(self, width=width, height=height)
         self.map.pack(side=tkinter.TOP)
@@ -38,10 +38,10 @@ class Main(tkinter.Tk):
 class Menu(tkinter.Frame):
     """The single menu on top of the main window."""
 
-    def __init__(self, main):
+    def __init__(self, main, width, height):
         tkinter.Frame.__init__(self, main)
         self.main = main
-        self.arrangement = Arrangement(self)
+        self.arrangement = Arrangement(self, width, height)
         self.arrangement.pack(side=tkinter.LEFT)
         self.date = outputmapdate.Date(self, self.master.hydpy)
         self.date.pack(side=tkinter.LEFT)
@@ -50,7 +50,7 @@ class Menu(tkinter.Frame):
 class Arrangement(tkinter.Frame):
     """Defines the number of :class:`Submap` instances."""
 
-    def __init__(self, menu):
+    def __init__(self, menu, width, height):
         tkinter.Frame.__init__(self, menu)
         self.menu = menu
         # Define command and selection buttons.
@@ -60,45 +60,39 @@ class Arrangement(tkinter.Frame):
         # Define entry boxes for the number of rows and columns.
         label = tkinter.Label(self, text='rows:')
         label.grid(row=1, column=0, sticky=tkinter.E)
-        #self.rowsentry = IntEntry(self, width=1)
-        self.rowsentry = settingtools.IntEntry(self, width=1)
+        self.rowsentry = settingtools.NumberEntry(self, int, minvalue=1,
+                                                  width=2)
         self.rowsentry.grid(row=1, column=1)
         label = tkinter.Label(self, text='columns:')
         label.grid(row=2, column=0, sticky=tkinter.E)
-        self.columnsentry = IntEntry(self, width=1)
+        self.columnsentry = settingtools.NumberEntry(self, int,
+                                                     minvalue=1, width=2)
         self.columnsentry.grid(row=2, column=1)
         # Define entry boxes for the width and height of each submap.
         label = tkinter.Label(self, text='width:')
         label.grid(row=1, column=2, sticky=tkinter.E)
-        self.widthentry = IntEntry(self, width=4)
+        self.widthentry = settingtools.NumberEntry(self, float,
+                                                   minvalue=1., width=5)
         self.widthentry.grid(row=1, column=3)
         label = tkinter.Label(self, text='height:')
         label.grid(row=2, column=2, sticky=tkinter.E)
-        self.heightentry = IntEntry(self, width=4)
+        self.heightentry = settingtools.NumberEntry(self, float,
+                                                    minvalue=1., width=5)
         self.heightentry.grid(row=2, column=3)
 
     def rearrange(self, event):
-        self.master.master.map.resize(rows=int(self.rowsentry.get()),
-                                      columns=self.columnsentry.getint(),
-                                      width=self.widthentry.getint(),
-                                      height=self.heightentry.getint())
-
-
-class IntEntry(tkinter.Entry):
-    """Defines the number of :class:`Submap` instances in one dimension."""
-
-    def getint(self):
-        try:
-            return int(self.get())
-        except ValueError:
-            return 1
+        self.menu.main.map.resize(rows=self.rowsentry.get(),
+                                  columns=self.columnsentry.get(),
+                                  width=self.widthentry.get(),
+                                  height=self.heightentry.get())
 
 
 class Map(tkinter.Frame):
     """The actual frame for the (muliple) maps of :class:`MainWindow`."""
 
-    def __init__(self, master, width, height):
-        tkinter.Frame.__init__(self, master)
+    def __init__(self, main, width, height):
+        tkinter.Frame.__init__(self, main)
+        self.main = main
         self.shape = (1, 1)
         self.submaps = None
         self.frames = None
@@ -131,8 +125,9 @@ class Map(tkinter.Frame):
 class Submap(tkinter.Frame):
     """One single map contained in :class:`Map`."""
 
-    def __init__(self, master, width, height):
-        tkinter.Frame.__init__(self, master, bd=0)
+    def __init__(self, map_, width, height):
+        tkinter.Frame.__init__(self, map_, bd=0)
+        self.map_ = map_
         self.width = width
         self.height = height
         self.update_selection(pub.selections.complete)
@@ -155,10 +150,11 @@ class Submap(tkinter.Frame):
 class GeoArea(tkinter.Canvas):
     """The plotting area for geo objects within a :class:`SubMap`."""
 
-    def __init__(self, master, width, height):
-        tkinter.Canvas.__init__(self, master, width=width, height=height)
+    def __init__(self, submap, width, height):
+        tkinter.Canvas.__init__(self, submap, width=width, height=height)
+        self.submap = submap
         for layer in range(1, 4):
-            for shape in self.master.selection.shapes.values():
+            for shape in self.submap.selection.shapes.values():
                 points = shape.vertices.copy()
                 points[:, 0] = points[:, 0]*(width-10)+5
                 points[:, 1] = points[:, 1]*(height-10)+5
@@ -185,8 +181,9 @@ class GeoArea(tkinter.Canvas):
 class InfoArea(tkinter.Frame):
     """Area reserved for additional information within a :class:`SubMap`."""
 
-    def __init__(self, master, width, height):
-        tkinter.Frame.__init__(self, master, width=width, height=height)
+    def __init__(self, submap, width, height):
+        tkinter.Frame.__init__(self, submap, width=width, height=height)
+        self.submap = submap
         self.selection = Selection(self)
         self.selection.pack(side=tkinter.TOP)
         self.description = Description(self)
@@ -194,8 +191,6 @@ class InfoArea(tkinter.Frame):
         self.colorbar = colorbar.Colorbar(self, width=width, height=height-70,
                                           selections=self.master.selections)
         self.colorbar.pack(side=tkinter.BOTTOM)
-#        self.selectionbox = selectionbox.SelectionBox(self)
-#        self.selectionbox.pack(side=tkinter.BOTTOM)
 
     def recolor(self):
         self.colorbar.recolor()
@@ -204,8 +199,9 @@ class InfoArea(tkinter.Frame):
 class Description(tkinter.Label):
     """Description for a single :class:`SubMap`."""
 
-    def __init__(self, master):
-        tkinter.Label.__init__(self, master, text='None')
+    def __init__(self, infoarea):
+        tkinter.Label.__init__(self, infoarea, text='None')
+        self.infoarea = infoarea
         self.master.master.selections = []
         self.bind('<Double-Button-1>', self.select)
 
@@ -221,17 +217,18 @@ class Description(tkinter.Label):
             self.configure(text='\n'.join(varnames))
         else:
             self.configure(text='None')
-        self.master.colorbar.newselections(self.master.master.selections)
+        self.infoarea.colorbar.newselections(self.infoarea.submap.selections)
 
 
 class Selection(tkinter.Label):
     """Description for a single :class:`SubMap`."""
 
-    def __init__(self, master):
-        tkinter.Label.__init__(self, master, text='complete')
+    def __init__(self, infoarea):
+        tkinter.Label.__init__(self, infoarea,
+                               text=infoarea.submap.selection.name)
+        self.infoarea = infoarea
         self.bind('<Double-Button-1>', self.select_selection)
 
     def select_selection(self, event):
         sel = selectionbox.SelectionBox(self)
         self.wait_window(sel)
-        self.configure(text=self.master.selection.name)

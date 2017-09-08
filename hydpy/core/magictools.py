@@ -256,8 +256,8 @@ def reverse_model_wildcard_import():
     This for example adds the collection class for handling control
     parameters of `lland_v1` into the local namespace:
 
-    >>> ControlParameters
-    hydpy.models.lland_v1.ControlParameters
+    >>> print(ControlParameters(None).name)
+    control
 
     Calling function :func:`~hydpy.core.magictools.parameterstep` for example
     prepares the control parameter object

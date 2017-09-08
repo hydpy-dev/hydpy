@@ -196,10 +196,10 @@ class Responses(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
     def __init__(self, *args, **kwargs):
-        self.__dict__['_initialized'] = False
-        self._coefs = {}
+        self.__dict__['subpars'] = None
+        self.__dict__['fastaccess'] = None
+        self.__dict__['_coefs'] = {}
         super(Responses, self).__init__(*args, **kwargs)
-        self._initialized = True
 
     def connect(self, subpars):
         self.__dict__['subpars'] = subpars
@@ -225,7 +225,10 @@ class Responses(parametertools.Parameter):
                    len(args)+len(kwargs), len(self)))
 
     def __getattr__(self, key):
-        subpars = self.__dict__.get('subpars')
+        if (((key in self.__dict__) or (key in type(self).__dict__) or
+             (key in super(Responses, self).__dict__)) and
+                not key.startswith('th_')):
+            return object.__getattr__(self, key)
         try:
             std_key = self._standardize_key(key)
         except AttributeError:
@@ -233,7 +236,7 @@ class Responses(parametertools.Parameter):
                 'Parameter `%s` of element `%s` does not have an attribute '
                 'named `%s` and the name `%s` is also not a valid threshold '
                 'value identifier.'
-                % (self.name, objecttools.devicename(subpars), key, key))
+                % (self.name, objecttools.devicename(self.subpars), key, key))
         if std_key in self._coefs:
             return self._coefs[std_key]
         else:
@@ -241,10 +244,13 @@ class Responses(parametertools.Parameter):
                 'Parameter `%s` of element `%s` does not have an attribute '
                 'attribute named `%s` nor an arma model corresponding to a '
                 'threshold value named `%s`.'
-                % (self.name, objecttools.devicename(subpars), key, std_key))
+                % (self.name, objecttools.devicename(self.subpars),
+                   key, std_key))
 
     def __setattr__(self, key, value):
-        if self._initialized:
+        if hasattr(self, key) and not key.startswith('th_'):
+            object.__setattr__(self, key, value)
+        else:
             std_key = self._standardize_key(key)
             try:
                 try:
@@ -257,8 +263,6 @@ class Responses(parametertools.Parameter):
                     'While trying to set a new threshold (%s) coefficient '
                     'pair for parameter `%s` of element `%s`'
                     % (key, self.name, objecttools.devicename(self)))
-        else:
-            object.__setattr__(self, key, value)
 
     def __delattr__(self, key):
         std_key = self._standardize_key(key)

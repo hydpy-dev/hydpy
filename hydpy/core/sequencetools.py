@@ -9,7 +9,6 @@ import os
 import sys
 import copy
 import struct
-import textwrap
 import warnings
 # ...from site-packages
 import numpy

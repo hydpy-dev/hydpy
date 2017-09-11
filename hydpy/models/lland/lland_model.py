@@ -1854,7 +1854,7 @@ def calc_q_v1(self):
             aid.epw += con.fhru[k]*flu.evi[k]
     if flu.q > aid.epw:
         flu.q -= aid.epw
-    else:
+    elif aid.epw > 0.:
         for k in range(con.nhru):
             if con.lnk[k] == WASSER:
                 flu.evi[k] *= flu.q/aid.epw

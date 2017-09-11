@@ -226,12 +226,14 @@ class Responses(parametertools.Parameter):
     def _has_predefined_attr(self, name):
         return ((name in self.__dict__ or
                  name in Responses.__dict__ or
-                 name in super(Responses, self).__dict__) and
+                 name in parametertools.Parameter.__dict__) and
                 not name.startswith('th_'))
 
     def __getattr__(self, key):
-        if self._has_predefined_attr(key):
+        try:
             return object.__getattr__(self, key)
+        except AttributeError:
+            pass
         try:
             std_key = self._standardize_key(key)
         except AttributeError:

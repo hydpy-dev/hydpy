@@ -8,6 +8,7 @@ from __future__ import division, print_function
 import os
 import sys
 import warnings
+import runpy
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import objecttools
@@ -152,11 +153,8 @@ class NetworkManager(object):
             # Ensure both `Node` and `Element`start with a `fresh` memory.
             devicetools.Node.gathernewnodes()
             devicetools.Element.gathernewelements()
-            info = {}
             try:
-                with open(path, encoding='utf-8') as file_:
-                    code = compile(file_.read(), path, 'exec')
-                    exec(code, {}, info)
+                info = runpy.run_path(path)
             except Exception:
                 prefix = 'While trying to load the network file `%s`' % path
                 objecttools.augmentexcmessage(prefix)

@@ -196,22 +196,21 @@ class Responses(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
     def __init__(self, *args, **kwargs):
-        self.__dict__['_initialized'] = False
-        self._coefs = {}
+        self.__dict__['subpars'] = None
+        self.__dict__['fastaccess'] = None
+        self.__dict__['_coefs'] = {}
         super(Responses, self).__init__(*args, **kwargs)
-        self._initialized = True
 
     def connect(self, subpars):
         self.__dict__['subpars'] = subpars
 
     def __call__(self, *args, **kwargs):
-        subpars = self.__dict__.get('subpars')
         self._coefs.clear()
         if len(args) > 1:
             raise ValueError(
                 'For parameter `%s` of element `%s` at most one positional '
                 'argument is allowed, but `%d` are given.'
-                % (self.name, objecttools.devicename(subpars), len(args)))
+                % (self.name, objecttools.devicename(self.subpars), len(args)))
         for (key, value) in kwargs.items():
             setattr(self, key, value)
         if len(args) == 1:
@@ -221,11 +220,20 @@ class Responses(parametertools.Parameter):
                 'For parameter `%s` of element `%s` `%d` arguments have been '
                 'given but only `%s` response functions could be prepared.  '
                 'Most probably, you defined the same threshold value(s) twice.'
-                % (self.name, objecttools.devicename(subpars),
+                % (self.name, objecttools.devicename(self.subpars),
                    len(args)+len(kwargs), len(self)))
 
+    def _has_predefined_attr(self, name):
+        return ((name in self.__dict__ or
+                 name in Responses.__dict__ or
+                 name in parametertools.Parameter.__dict__) and
+                not name.startswith('th_'))
+
     def __getattr__(self, key):
-        subpars = self.__dict__.get('subpars')
+        try:
+            return object.__getattr__(self, key)
+        except AttributeError:
+            pass
         try:
             std_key = self._standardize_key(key)
         except AttributeError:
@@ -233,7 +241,7 @@ class Responses(parametertools.Parameter):
                 'Parameter `%s` of element `%s` does not have an attribute '
                 'named `%s` and the name `%s` is also not a valid threshold '
                 'value identifier.'
-                % (self.name, objecttools.devicename(subpars), key, key))
+                % (self.name, objecttools.devicename(self.subpars), key, key))
         if std_key in self._coefs:
             return self._coefs[std_key]
         else:
@@ -241,10 +249,13 @@ class Responses(parametertools.Parameter):
                 'Parameter `%s` of element `%s` does not have an attribute '
                 'attribute named `%s` nor an arma model corresponding to a '
                 'threshold value named `%s`.'
-                % (self.name, objecttools.devicename(subpars), key, std_key))
+                % (self.name, objecttools.devicename(self.subpars),
+                   key, std_key))
 
     def __setattr__(self, key, value):
-        if self._initialized:
+        if self._has_predefined_attr(key):
+            object.__setattr__(self, key, value)
+        else:
             std_key = self._standardize_key(key)
             try:
                 try:
@@ -256,9 +267,7 @@ class Responses(parametertools.Parameter):
                 objecttools.augmentexcmessage(
                     'While trying to set a new threshold (%s) coefficient '
                     'pair for parameter `%s` of element `%s`'
-                    % (key, self.name, objecttools.devicename(self)))
-        else:
-            object.__setattr__(self, key, value)
+                    % (key, self.name, objecttools.devicename(self.subpars)))
 
     def __delattr__(self, key):
         std_key = self._standardize_key(key)
@@ -276,14 +285,13 @@ class Responses(parametertools.Parameter):
                 decimal = 0
             return '_'.join(('th', str(integer), str(decimal)))
         except BaseException:
-            subpars = self.__dict__.get('subpars')
             raise AttributeError(
                 'To define different response functions for parameter `%s` of '
                 'element `%s`, one has to pass them as keyword arguments or '
                 'set them as additional attributes.  The used name must meet '
                 'a specific format (see the documentation for further '
                 'information).  The given name `%s` does not meet this format.'
-                % (self.name, objecttools.devicename(subpars), key))
+                % (self.name, objecttools.devicename(self.subpars), key))
 
     @property
     def thresholds(self):

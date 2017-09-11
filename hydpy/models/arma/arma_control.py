@@ -210,7 +210,7 @@ class Responses(parametertools.Parameter):
             raise ValueError(
                 'For parameter `%s` of element `%s` at most one positional '
                 'argument is allowed, but `%d` are given.'
-                % (self.name, objecttools.devicename(self), len(args)))
+                % (self.name, objecttools.devicename(self.subpars), len(args)))
         for (key, value) in kwargs.items():
             setattr(self, key, value)
         if len(args) == 1:
@@ -220,7 +220,7 @@ class Responses(parametertools.Parameter):
                 'For parameter `%s` of element `%s` `%d` arguments have been '
                 'given but only `%s` response functions could be prepared.  '
                 'Most probably, you defined the same threshold value(s) twice.'
-                % (self.name, objecttools.devicename(self),
+                % (self.name, objecttools.devicename(self.subpars),
                    len(args)+len(kwargs), len(self)))
 
     def _has_predefined_attr(self, name):
@@ -265,7 +265,7 @@ class Responses(parametertools.Parameter):
                 objecttools.augmentexcmessage(
                     'While trying to set a new threshold (%s) coefficient '
                     'pair for parameter `%s` of element `%s`'
-                    % (key, self.name, objecttools.devicename(self)))
+                    % (key, self.name, objecttools.devicename(self.subpars)))
 
     def __delattr__(self, key):
         std_key = self._standardize_key(key)
@@ -289,7 +289,7 @@ class Responses(parametertools.Parameter):
                 'set them as additional attributes.  The used name must meet '
                 'a specific format (see the documentation for further '
                 'information).  The given name `%s` does not meet this format.'
-                % (self.name, objecttools.devicename(self), key))
+                % (self.name, objecttools.devicename(self.subpars), key))
 
     @property
     def thresholds(self):

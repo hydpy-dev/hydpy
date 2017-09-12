@@ -79,7 +79,7 @@ class Colorbar(tkinter.Canvas):
         for j in range(3):
             rgbcolor[j] = numpy.interp(value, self.values,
                                        self.rgbcolors[:, j])
-        hexcolor = '#%02x%02x%02x' % tuple(rgbcolor)
+        hexcolor = '#%02x%02x%02x' % tuple(int(c) for c in rgbcolor)
         return hexcolor
 
 

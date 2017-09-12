@@ -116,10 +116,10 @@ class Map(tkinter.Frame):
         self.shape = (rows, columns)
         self.drawsubmaps(width=width, height=height)
 
-    def recolor(self):
+    def recolor(self, idx):
         for mapsinrow in self.submaps:
             for submap in mapsinrow:
-                submap.recolor()
+                submap.recolor(idx)
 
 
 class Submap(tkinter.Frame):
@@ -132,9 +132,9 @@ class Submap(tkinter.Frame):
         self.height = height
         self.update_selection(pub.selections.complete)
 
-    def recolor(self):
+    def recolor(self, idx):
         self.infoarea.recolor()
-        self.geoarea.recolor()
+        self.geoarea.recolor(idx)
 
     def update_selection(self, selection):
         self.selection = selection
@@ -173,9 +173,12 @@ class GeoArea(tkinter.Canvas):
                     shape.polygon = self.create_oval(x1, y1, x2, y2,
                                                      width=1, fill='red')
 
-    def recolor(self):
-        for (name, element) in self.hydpy.elements:
-            self.itemconfig(element.temp['polygon'], fill='blue')
+    def recolor(self, idx):
+        for (name, shape) in self.submap.selection.shapes.items():
+            #seqname = self.submap.infoarea.colorbar.selections[0].variablesstr[0]
+            #seq = getattr(self.submap.selection, name).value = .series[idx]
+            color = self.submap.infoarea.colorbar.value2hexcolor(0.)
+            self.itemconfig(shape.polygon, fill=color)
 
 
 class InfoArea(tkinter.Frame):
@@ -193,7 +196,8 @@ class InfoArea(tkinter.Frame):
         self.colorbar.pack(side=tkinter.BOTTOM)
 
     def recolor(self):
-        self.colorbar.recolor()
+        pass
+        # self.colorbar.recolor()
 
 
 class Description(tkinter.Label):
@@ -206,8 +210,8 @@ class Description(tkinter.Label):
         self.bind('<Double-Button-1>', self.select)
 
     def select(self, event):
-        sel = selector.Selector(self.master.master.selections,
-                                self.master.master.master.master.master.hydpy)
+        sel = selector.Selector(self.infoarea.submap.selections,
+                                self.infoarea.submap.map_.master.main.hydpy)
         self.wait_window(sel)
         varnames = []
         for selection in self.master.master.selections:
@@ -218,6 +222,11 @@ class Description(tkinter.Label):
         else:
             self.configure(text='None')
         self.infoarea.colorbar.newselections(self.infoarea.submap.selections)
+        for (name, element) in self.infoarea.submap.selection.elements:
+            if (element.model is sel.selection.models[0]):
+                print('aha')
+            else:
+                print('ehe')
 
 
 class Selection(tkinter.Label):

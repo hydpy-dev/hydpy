@@ -10,8 +10,9 @@ from hydpy import pub
 
 class Date(tkinter.Frame):
 
-    def __init__(self, master, hydpy):
-        tkinter.Frame.__init__(self, master)
+    def __init__(self, menu, hydpy):
+        tkinter.Frame.__init__(self, menu)
+        self.menu = menu
         self.hydpy = hydpy
         self.deltaidx = 1
         self.timegrid = copy.deepcopy(pub.timegrids.sim)
@@ -27,6 +28,8 @@ class Date(tkinter.Frame):
             self.timegrid.firstdate = newfirstdate
             self.timegrid.lastdate -= pub.timegrids.stepsize
             self.show.update()
+            self.menu.main.map.recolor(
+                    pub.timegrids.init[self.timegrid.firstdate])
 
     def stepforwards(self, event):
         newlastdate = self.timegrid.lastdate + pub.timegrids.stepsize
@@ -34,6 +37,8 @@ class Date(tkinter.Frame):
             self.timegrid.lastdate = newlastdate
             self.timegrid.firstdate += pub.timegrids.stepsize
             self.show.update()
+            self.menu.main.map.recolor(
+                    pub.timegrids.init[self.timegrid.firstdate])
 
 
 class Show(tkinter.Label):

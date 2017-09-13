@@ -59,6 +59,7 @@ class Selection(object):
         for subgroup in self.subgroups:
             self.variables.append(getattr(subgroup, variablestr))
 
+
     def __eq__(self, other):
         return ((self.modelstr == other.modelstr) and
                 (self.groupstr == other.groupstr) and
@@ -67,7 +68,7 @@ class Selection(object):
 
 
 def model2str(model):
-    return str(type(model))
+    return str(type(model)).split('.')[-2]
 
 
 class Selector(tkinter.Toplevel):
@@ -147,9 +148,14 @@ class VariableListbox(tkinter.Listbox):
         idx = int(self.curselection()[0])
         self.master.selection.variableupdate(self.get(idx))
         if self.master.selection not in self.master.selections:
-            self.master.selections.append(self.master.selection)
-            self.master.resultlistbox.insert(tkinter.END,
-                                             self.master.selection.variablestr)
+            sel = self.master.selection
+            self.master.selections.append(sel)
+            rlb = self.master.resultlistbox
+            rlb.insert(tkinter.END, sel.variablestr)
+            rlb.models[self.master.selection.modelstr] = sel.models[0]
+            rlb.groups[self.master.selection.groupstr] = sel.groups[0]
+            rlb.subgroups[self.master.selection.subgroupstr] = sel.subgroups[0]
+            rlb.variables[self.master.selection.variablestr] = sel.variables[0]
         self.master.grouplistbox.delete(0, tkinter.END)
         self.master.variablelistbox.delete(0, tkinter.END)
         self.master.selection = Selection()
@@ -162,6 +168,10 @@ class ResultListbox(tkinter.Listbox):
         for selection in self.master.selections:
             self.insert(tkinter.END, selection.variablestr)
         self.bind('<Double-Button-1>', self.deselect)
+        self.models = {}
+        self.groups = {}
+        self.subgroups = {}
+        self.variables = {}
 
     def deselect(self, event):
         idx = int(self.curselection()[0])

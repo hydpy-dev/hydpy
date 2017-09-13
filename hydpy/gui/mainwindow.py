@@ -166,7 +166,7 @@ class GeoArea(tkinter.Canvas):
                             points,  outline='black', width=1, fill='white')
                 elif isinstance(shape, shapetools.Line):
                     shape.polygon = self.create_line(
-                            points, width=1, fill='blue')
+                            points, width=3, fill='blue')
                 elif isinstance(shape, shapetools.Point):
                     x1, y1 = points
                     x2, y2 = x1+5., y1+5.
@@ -177,8 +177,15 @@ class GeoArea(tkinter.Canvas):
         for (name, shape) in self.submap.selection.shapes.items():
             #seqname = self.submap.infoarea.colorbar.selections[0].variablesstr[0]
             #seq = getattr(self.submap.selection, name).value = .series[idx]
-            color = self.submap.infoarea.colorbar.value2hexcolor(0.)
-            self.itemconfig(shape.polygon, fill=color)
+            if name in self.submap.selection.elements:
+                element = self.submap.selection.elements[name]
+                descr = self.submap.infoarea.description
+                if type(element.model) is type(descr.model):
+                    subgroup = getattr(element.model.sequences, descr.subgroup.name)
+                    variable = getattr(subgroup, descr.variable.name)
+                    value = variable.series[idx]
+                    color = self.submap.infoarea.colorbar.value2hexcolor(value)
+                    self.itemconfig(shape.polygon, fill=color)
 
 
 class InfoArea(tkinter.Frame):
@@ -207,6 +214,7 @@ class Description(tkinter.Label):
         tkinter.Label.__init__(self, infoarea, text='None')
         self.infoarea = infoarea
         self.master.master.selections = []
+        self.variable = None
         self.bind('<Double-Button-1>', self.select)
 
     def select(self, event):
@@ -222,11 +230,11 @@ class Description(tkinter.Label):
         else:
             self.configure(text='None')
         self.infoarea.colorbar.newselections(self.infoarea.submap.selections)
-        for (name, element) in self.infoarea.submap.selection.elements:
-            if (element.model is sel.selection.models[0]):
-                print('aha')
-            else:
-                print('ehe')
+        self.model = list(sel.resultlistbox.models.values())[0]
+        self.group = list(sel.resultlistbox.groups.values())[0]
+        self.subgroup = list(sel.resultlistbox.subgroups.values())[0]
+        self.variable = list(sel.resultlistbox.variables.values())[0]
+
 
 
 class Selection(tkinter.Label):

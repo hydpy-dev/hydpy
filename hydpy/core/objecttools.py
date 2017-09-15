@@ -274,9 +274,12 @@ def repr_list(values, decimals=None):
     return '[%s]' % repr_values(values, decimals)
 
 
-def assignrepr_value(value, prefix, decimals=None):
+def assignrepr_value(value, prefix, width=None, decimals=None):
     """Return a prefixed string representation of the given value using
     function :func:`repr_`.
+
+    Note that the argument has no effect. It is thought for increasing
+    usage compatibility with functions like :func:`assignrepr_list` only.
 
     >>> from hydpy.core.objecttools import assignrepr_value
     >>> print(assignrepr_value(1./3., 'test = '))

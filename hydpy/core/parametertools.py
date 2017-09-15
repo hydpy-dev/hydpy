@@ -1170,9 +1170,10 @@ class SeasonalParameter(MultiParameter):
             blanks = ' '*(len(self.name)+1)
             for idx, (toy, value) in enumerate(self):
                 if idx == 0:
-                    lines.append(assign(value, '%s(%s=' % (self.name, toy)))
+                    prefix = '%s(%s=' % (self.name, toy)
                 else:
-                    lines.append(assign(value, '%s%s=' % (blanks, toy)))
+                    prefix = '%s%s=' % (blanks, toy)
+                lines.append(assign(value, prefix, width=79))
             lines[-1] += ')'
             return ',\n'.join(lines)
 

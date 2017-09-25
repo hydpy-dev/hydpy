@@ -463,11 +463,6 @@ class SingleParameter(Parameter):
     """Base class for model parameters handling a single value."""
     NDIM, TYPE, TIME, SPAN, INIT = 0, float, None, (None, None), None
 
-    def __init__(self):
-        Parameter.__init__(self)
-        if self.INIT is not None:
-            self(self.INIT)
-
     def connect(self, subpars):
         self.subpars = subpars
         self.fastaccess = subpars.fastaccess
@@ -1159,23 +1154,28 @@ class SeasonalParameter(MultiParameter):
             MultiParameter.__delattr__(self, name)
 
     def __repr__(self):
-        if (len(self) == 1) and (self.NDIM == 1):
-            return '%s(%s)' % (self.name, list(self._toy2values.values())[0])
-        elif len(self) > 0:
+        if self.NDIM == 1:
+            assign = objecttools.assignrepr_value
+        elif self.NDIM == 2:
+            assign = objecttools.assignrepr_list
+        elif self.NDIM == 3:
+            assign = objecttools.assignrepr_list2
+        else:
+            def assign(values, prefix):
+                return prefix+str(values)
+        if len(self) == 0:
+            return self.name+'()'
+        else:
             lines = []
-            blanks = ' '*(len(self.name))
+            blanks = ' '*(len(self.name)+1)
             for idx, (toy, value) in enumerate(self):
-                if self.NDIM == 2:
-                    value = list(value)
-                kwarg = '%s=%s' % (str(toy), repr(value))
                 if idx == 0:
-                    lines.append('%s(%s' % (self.name, kwarg))
+                    prefix = '%s(%s=' % (self.name, toy)
                 else:
-                    lines.append('%s %s' % (blanks, kwarg))
+                    prefix = '%s%s=' % (blanks, toy)
+                lines.append(assign(value, prefix, width=79))
             lines[-1] += ')'
             return ',\n'.join(lines)
-        else:
-            return self.name+'()'
 
     def __len__(self):
         return len(self._toy2values)

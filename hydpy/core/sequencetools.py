@@ -9,7 +9,6 @@ import os
 import sys
 import copy
 import struct
-import textwrap
 import warnings
 # ...from site-packages
 import numpy
@@ -431,7 +430,7 @@ class Sequence(objecttools.ValueMath):
 
     def __init__(self):
         self.subseqs = None
-        self.fastaccess = None
+        self.fastaccess = type('FastAccess', (), {})
 
     def connect(self, subseqs):
         self.subseqs = subseqs
@@ -869,8 +868,6 @@ class IOSequence(Sequence):
                 'according to the external data file `%s` it should be `%s`.'
                 % (self.name, objecttools.devicename(self), self.shape,
                    self.filepath_ext, values.shape[1:]))
-        idx1 = timegrid_data[pub.timegrids.init.firstdate]
-        idx2 = timegrid_data[pub.timegrids.init.lastdate]
         if pub.timegrids.init.stepsize != timegrid_data.stepsize:
             raise RuntimeError(
                 'According to external data file `%s`, the date time step '
@@ -887,15 +884,10 @@ class IOSequence(Sequence):
                     % (self.name, objecttools.devicename(self),
                        pub.timegrids.init, self.filepath_ext, timegrid_data))
             else:
-                valcopy = values
-                shape = list(values.shape)
-                shape[0] = len(pub.timegrids.init)
-                values = numpy.zeros(shape)
-                valcopy = valcopy[max(idx1, 0):min(idx2, len(valcopy))]
-                idx1 = max(-idx1, 0)
-                idx2 = idx1+len(valcopy)
-                values[idx1:idx2] = valcopy
+                values = self.adjust_short_series(timegrid_data, values)
         else:
+            idx1 = timegrid_data[pub.timegrids.init.firstdate]
+            idx2 = timegrid_data[pub.timegrids.init.lastdate]
             values = values[idx1:idx2]
         if self.diskflag:
             self._save_int(values)
@@ -907,15 +899,102 @@ class IOSequence(Sequence):
                 'any internal data available the the user.'
                 % (self.name, objecttools.devicename(self)))
 
+    def adjust_short_series(self, timegrid, values):
+        """Adjust a short time series to a longer timegrid.
+
+        Normally, time series data to be read from a external data files
+        should span (at least) the whole initialization time period of a
+        HydPy project.  However, for some variables which are only used
+        for comparison (e.g. observed runoff used for calibration),
+        incomplete time series might also be helpful.  This method it
+        thought for adjusting such incomplete series to the public
+        initialization time grid stored in module :mod:`~hydpy.pub`.
+        It is automatically called in method
+        :func:`~hydpy.core.sequencetools.load_ext` if necessary provided
+        that the option
+        :attr:`~hydpy.core.objecttools.Options.checkseries` is disabled.
+
+        Assume the initialization time period of a HydPy project spans
+        five day:
+
+        >>> from hydpy import pub, Timegrids, Timegrid
+        >>> pub.timegrids = Timegrids(Timegrid('2000.01.10',
+        ...                                    '2000.01.15',
+        ...                                    '1d'))
+
+        Prepare a node series object for observational data:
+
+        >>> from hydpy.core.sequencetools import Obs
+        >>> obs = Obs()
+
+        Prepare a test function that expects the timegrid of the
+        data and the data itself, which returns the ajdusted array by
+        means of calling method :func:`adjust_short_series`:
+
+        >>> import numpy
+        >>> def test(timegrid):
+        ...     values = numpy.ones(len(timegrid))
+        ...     return obs.adjust_short_series(timegrid, values)
+
+        The following calls to the test function shows the arrays
+        returned for different kinds misalignments:
+
+        >>> test(Timegrid('2000.01.05', '2000.01.20', '1d'))
+        array([ 1.,  1.,  1.,  1.,  1.])
+        >>> test(Timegrid('2000.01.12', '2000.01.15', '1d'))
+        array([ nan,  nan,   1.,   1.,   1.])
+        >>> test(Timegrid('2000.01.12', '2000.01.17', '1d'))
+        array([ nan,  nan,   1.,   1.,   1.])
+        >>> test(Timegrid('2000.01.10', '2000.01.13', '1d'))
+        array([  1.,   1.,   1.,  nan,  nan])
+        >>> test(Timegrid('2000.01.08', '2000.01.13', '1d'))
+        array([  1.,   1.,   1.,  nan,  nan])
+        >>> test(Timegrid('2000.01.12', '2000.01.13', '1d'))
+        array([ nan,  nan,   1.,  nan,  nan])
+        >>> test(Timegrid('2000.01.05', '2000.01.10', '1d'))
+        array([ nan,  nan,  nan,  nan,  nan])
+        >>> test(Timegrid('2000.01.05', '2000.01.08', '1d'))
+        array([ nan,  nan,  nan,  nan,  nan])
+        >>> test(Timegrid('2000.01.15', '2000.01.18', '1d'))
+        array([ nan,  nan,  nan,  nan,  nan])
+        >>> test(Timegrid('2000.01.16', '2000.01.18', '1d'))
+        array([ nan,  nan,  nan,  nan,  nan])
+
+        Through enabling option
+        :attr:`~hydpy.core.objecttools.Options.usedefaultvalues` the missing
+        values are initialized with zero instead of nan:
+
+        >>> pub.options.usedefaultvalues = True
+
+        >>> test(Timegrid('2000.01.12', '2000.01.17', '1d'))
+        array([ 0.,  0.,  1.,  1.,  1.])
+
+        >>> pub.options.usedefaultvalues = False
+        """
+        idxs = [timegrid[pub.timegrids.init.firstdate],
+                timegrid[pub.timegrids.init.lastdate]]
+        valcopy = values
+        values = numpy.full(self.seriesshape, self.initvalue)
+        len_ = len(valcopy)
+        jdxs = []
+        for idx in idxs:
+            if idx < 0:
+                jdxs.append(0)
+            elif idx <= len_:
+                jdxs.append(idx)
+            else:
+                jdxs.append(len_)
+        valcopy = valcopy[jdxs[0]:jdxs[1]]
+        zdx1 = max(-idxs[0], 0)
+        zdx2 = zdx1+jdxs[1]-jdxs[0]
+        values[zdx1:zdx2] = valcopy
+        return values
+
     def save_ext(self):
         """Write the internal data into an external data file."""
         if self.filetype_ext == 'npy':
-            values = pub.timegrids.init.toarray()
-            for idx in range(self.NDIM):
-                values = numpy.expand_dims(values, idx+1)
-            values = values + numpy.zeros(self.shape)
-            values = numpy.concatenate((values, self.series))
-            numpy.save(self.filepath_ext, values)
+            series = pub.timetrids.init.array2series(self.values)
+            numpy.save(self.filepath_ext, series)
         else:
             with open(self.filepath_ext, 'w') as file_:
                 file_.write(repr(pub.timegrids.init) + '\n')

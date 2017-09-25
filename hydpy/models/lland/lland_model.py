@@ -85,6 +85,8 @@ def calc_et0_v1(self):
       :class:`~hydpy.models.lland.lland_control.NHRU`
       :class:`~hydpy.models.lland.lland_control.KE`
       :class:`~hydpy.models.lland.lland_control.KF`
+      :class:`~hydpy.models.lland.lland_control.HNN`
+
 
     Required input sequence:
       :class:`~hydpy.models.lland.lland_inputs.Glob`
@@ -113,7 +115,7 @@ def calc_et0_v1(self):
     >>> fluxes.tkor = 15.
     >>> model.calc_et0_v1()
     >>> fluxes.et0
-    et0(1.535855, 1.431075, 1.431075)
+    et0(3.07171, 2.86215, 2.86215)
     """
     con = self.parameters.control.fastaccess
     inp = self.sequences.inputs.fastaccess
@@ -123,6 +125,42 @@ def calc_et0_v1(self):
                                   (flu.tkor[k]+22.)) /
                                  (165.*(flu.tkor[k]+123.) *
                                   (1.+0.00019*min(con.hnn[k], 600.)))))
+
+
+def calc_et0_v2(self):
+    """Correct the given reference evapotranspiration.
+
+    Required control parameters:
+      :class:`~hydpy.models.lland.lland_control.NHRU`
+      :class:`~hydpy.models.lland.lland_control.KE`
+
+
+    Required input sequence:
+      :class:`~hydpy.models.lland.lland_inputs.PET`
+
+    Calculated flux sequence:
+      :class:`~hydpy.models.lland.lland_fluxes.ET0`
+
+    Basic equation:
+      :math:`ET0 = KE \\cdot PET`
+
+    Example:
+
+    >>> from hydpy.models.lland import *
+    >>> parameterstep('1d')
+    >>> simulationstep('12h')
+    >>> nhru(2)
+    >>> ke(0.8, 1.2)
+    >>> inputs.pet = 2.
+    >>> model.calc_et0_v2()
+    >>> fluxes.et0
+    et0(1.6, 2.4)
+    """
+    con = self.parameters.control.fastaccess
+    inp = self.sequences.inputs.fastaccess
+    flu = self.sequences.fluxes.fastaccess
+    for k in range(con.nhru):
+        flu.et0[k] = con.ke[k]*inp.pet
 
 
 def calc_evpo_v1(self):
@@ -1816,7 +1854,7 @@ def calc_q_v1(self):
             aid.epw += con.fhru[k]*flu.evi[k]
     if flu.q > aid.epw:
         flu.q -= aid.epw
-    else:
+    elif aid.epw > 0.:
         for k in range(con.nhru):
             if con.lnk[k] == WASSER:
                 flu.evi[k] *= flu.q/aid.epw
@@ -1847,6 +1885,7 @@ class Model(modeltools.Model):
     _RUNMETHODS = (calc_nkor_v1,
                    calc_tkor_v1,
                    calc_et0_v1,
+                   calc_et0_v2,
                    calc_evpo_v1,
                    calc_nbes_inzp_v1,
                    calc_evi_inzp_v1,

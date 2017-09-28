@@ -4,8 +4,10 @@
 *.pyd
 *.pyx
 *.pxd
+!pointer.pyx
 !pointer.pxd
-!pointer.pxd
+!annutils.pyx
+!annutils.pxd
 *.c
 *.h
 build

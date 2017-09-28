@@ -11,32 +11,33 @@ from distutils.extension import Extension
 import Cython.Build
 import numpy
 
-testpath = (r'C:\Program Files (x86)\Common Files\Microsoft\Visual '
-            r'C++ for Python\9.0\vcvarsall.bat')
-if sys.platform.startswith('win'):
-    from distutils import msvc9compiler
-    if msvc9compiler.find_vcvarsall(9.0) is None:
-        msvc9compiler.find_vcvarsall = lambda dummy: testpath
-        print("NotImplementedError('ToDo')")
-
 install = 'install' in sys.argv
 coverage_report = 'coverage_report' in sys.argv
 if coverage_report:
     sys.argv.remove('coverage_report')
 
-packages = ['hydpy', 'hydpy.cythons', 'hydpy.core', 'hydpy.tests',
-            'hydpy.docs', 'hydpy.auxs', 'hydpy.models']
+# Select all framework packages.
+packages = ['hydpy']
+for name in os.listdir('hydpy'):
+    if not (name.startswith('_') or
+            os.path.isfile(os.path.join('hydpy', name))):
+        packages.append('.'.join(('hydpy', name)))
+# Additionally, select all base model packages.
 for name in os.listdir(os.path.join('hydpy', 'models')):
     if not (name.startswith('_') or
             os.path.isfile(os.path.join('hydpy', 'models', name))):
         packages.append('.'.join(('hydpy', 'models', name)))
-
 # Select the required extension modules, except those directly related
 # to the hydrological models.
-ext_sources = os.path.join('hydpy', 'cythons', 'pointer.pyx')
-ext_modules = Extension('hydpy.cythons.pointer', [ext_sources])
-# The usual setup definitions. Don't forget to update `packages`,
-# whenever a new model is implemented as a package.
+ext_names = []
+for name in os.listdir(os.path.join('hydpy', 'cythons')):
+    if name.split('.')[-1] == 'pxd':
+        ext_names.append(name.split('.')[0])
+ext_modules = []
+for ext_name in ext_names:
+    ext_sources = os.path.join('hydpy', 'cythons', '%s.pyx' % ext_name)
+    ext_modules.append(Extension('hydpy.cythons.%s' % ext_name, [ext_sources]))
+# The usual setup definitions.
 setup(name='HydPy',
       version='2.0.0',
       description='A framework for the development and application of '
@@ -81,15 +82,33 @@ if install:
     # Make all extension definition files available, which are required for
     # cythonizing hydrological models.
     import hydpy.cythons
-    for filename in ('pointer.pyx', 'pointer.pxd'):
-        shutil.copy(os.path.join('hydpy', 'cythons', filename),
-                    os.path.join(hydpy.cythons.__path__[0], filename))
+    for ext_name in ext_names:
+        for suffix in ('pyx', 'pxd'):
+            filename = '%s.%s' % (ext_name, suffix)
+            shutil.copy(os.path.join('hydpy', 'cythons', filename),
+                        os.path.join(hydpy.cythons.__path__[0], filename))
     # Make all restructured text documentation files available for doctesting.
     import hydpy.docs
     for filename in os.listdir(os.path.join('hydpy', 'docs')):
         if filename.endswith('.rst') or filename.endswith('.png'):
             shutil.copy(os.path.join('hydpy', 'docs', filename),
                         os.path.join(hydpy.docs.__path__[0], filename))
+    # Make all kinds of configuration data available.
+    import hydpy.conf
+    for filename in os.listdir(os.path.join('hydpy', 'conf')):
+        if ((not (filename.endswith('.py') or filename.endswith('.pyc'))) and
+                os.path.isfile(os.path.join('hydpy', 'models', filename))):
+            shutil.copy(os.path.join('hydpy', 'conf', filename),
+                        os.path.join(hydpy.conf.__path__[0], filename))
+    # Copy all compiled Cython files (pyd) into the original folder.
+    # (Thought for developers only - if it fails, its not that a big deal...)
+    for filename in os.listdir(hydpy.cythons.__path__[0]):
+        if filename.endswith('.pyd'):
+            try:
+                shutil.copy(os.path.join(hydpy.cythons.__path__[0], filename),
+                            os.path.join('hydpy', 'cythons', filename))
+            except BaseException:
+                pass
     # Execute all tests.
     oldpath = os.path.abspath('.')
     import hydpy.tests

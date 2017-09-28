@@ -19,7 +19,7 @@ def solve_dv_dt_v1(self):
     applies the methods related to the numerical approximation multiple times
     and aggregates the results.
 
-    Note that the order of convergence is onle only.  It is hard to tell how
+    Note that the order of convergence is one only.  It is hard to tell how
     short the internal simulation step needs to be to ensure a certain degree
     of accuracy.  In most cases one hour or very often even one day should be
     sufficient to gain acceptable results.  However, this strongly depends on

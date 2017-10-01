@@ -28,6 +28,8 @@ time.strptime('1999', '%Y')
 class Parameters(object):
     """Base class for handling all parameters of a specific model."""
 
+    _names_subpars = {'control', 'derived'}
+
     def __init__(self, kwargs):
         self.model = kwargs.get('model')
         self.control = None
@@ -105,9 +107,8 @@ class Parameters(object):
             parameter.verify()
 
     def __iter__(self):
-        for (key, value) in vars(self).items():
-            if isinstance(value, SubParameters):
-                yield key, value
+        for name in self._names_subpars:
+            yield name, getattr(self, name)
 
     def __len__(self):
         return len(dict(self))
@@ -209,7 +210,7 @@ class SubParameters(MetaSubParametersClass):
             attr = getattr(self, name)
         except AttributeError:
             object.__setattr__(self, name, value)
-            if isinstance(value, Parameter):
+            if hasattr(value, 'connect'):
                 value.connect(self)
         else:
             try:

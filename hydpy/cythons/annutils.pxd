@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""This defines the Cython declarations related to module
+"""This module defines the Cython declarations related to module
 :mod:`~hydpy.auxs.anntools`.
 """
 

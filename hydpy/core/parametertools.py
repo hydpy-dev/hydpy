@@ -108,7 +108,9 @@ class Parameters(object):
 
     def __iter__(self):
         for name in self._names_subpars:
-            yield name, getattr(self, name)
+            subpars = getattr(self, name)
+            if subpars is not None:
+                yield name, subpars
 
     def __len__(self):
         return len(dict(self))

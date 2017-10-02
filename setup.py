@@ -97,7 +97,7 @@ if install:
     import hydpy.conf
     for filename in os.listdir(os.path.join('hydpy', 'conf')):
         if ((not (filename.endswith('.py') or filename.endswith('.pyc'))) and
-                os.path.isfile(os.path.join('hydpy', 'models', filename))):
+                os.path.isfile(os.path.join('hydpy', 'conf', filename))):
             shutil.copy(os.path.join('hydpy', 'conf', filename),
                         os.path.join(hydpy.conf.__path__[0], filename))
     # Copy all compiled Cython files (pyd) into the original folder.

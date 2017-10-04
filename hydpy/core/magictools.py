@@ -204,6 +204,15 @@ def parameterstep(timestep=None):
             namespace['cythonmodule'] = cythonizer.cymodule
             model.cymodel = cythonizer.cymodule.Model()
             namespace['cymodel'] = model.cymodel
+            for numpars_name in ('NumConsts', 'NumVars'):
+                if hasattr(cythonizer.cymodule, numpars_name):
+                    numpars_new = getattr(cythonizer.cymodule, numpars_name)()
+                    numpars_old = getattr(model, numpars_name.lower())
+                    for (name_numpar, numpar) in numpars_old:
+                        setattr(numpars_new, name_numpar, numpar)
+                    for actual_model in (model, model.cymodel):
+                        setattr(actual_model, numpars_name.lower(),
+                                numpars_new)
             for (name, func) in cythonizer.pyxwriter.listofmodeluserfunctions:
                 setattr(model, name, getattr(model.cymodel, name))
             for func in ('doit', 'new2old', 'openfiles', 'closefiles',

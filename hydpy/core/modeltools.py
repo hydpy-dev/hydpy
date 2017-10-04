@@ -13,6 +13,7 @@ from hydpy import pub
 from hydpy import conf
 from hydpy.core import objecttools
 from hydpy.core import autodoctools
+from hydpy.cythons import modelutils
 
 
 class MetaModel(type):
@@ -231,9 +232,16 @@ class NumVarsELS(NumPars):
         self.idx_stage = 0
         self.error = 0.
         self.last_error = 0.
+        self.extrapolated_error = 0.
+        self.f0_ready = False
 
 
 class ModelELS(Model):
+
+    _RUNMETHODS = ()
+    _ADDMETHODS = ()
+    _PART_ODE_METHODS = ()
+    _FULL_ODE_METHODS = ()
 
     def __init__(self):
         super(ModelELS, self).__init__()
@@ -437,14 +445,14 @@ class ModelELS(Model):
         """
         self.numvars.t0, self.numvars.t1 = 0., 1.
         self.numvars.dt_est = 1.
-        self._f0_ready = False
+        self.numvars.f0_ready = False
         self.reset_sum_fluxes()
         while self.numvars.t0 < self.numvars.t1:
             self.numvars.last_error = 999999.
             self.numvars.dt = min(
                     self.numvars.t1-self.numvars.t0,
                     max(self.numvars.dt_est, self.numconsts.pub._rel_dt_min))
-            if not self._f0_ready:
+            if not self.numvars.f0_ready:
                 self.calculate_single_terms()
                 self.numvars.idx_method = 0
                 self.numvars.idx_stage = 0
@@ -466,62 +474,40 @@ class ModelELS(Model):
                 self.set_result_fluxes()
                 self.set_result_states()
                 self.calculate_error()
+                self.extrapolate_error()
                 if self.numvars.error <= self.numconsts.pub._abs_error_max:
-                    self._f0_ready = False
+                    self.numvars.f0_ready = False
                     self.numvars.dt_est = (self.numconsts.dt_increase *
                                            self.numvars.dt)
                     self.addup_fluxes()
                     self.numvars.t0 += self.numvars.dt
                     self.sequences.states.new2old()
                     break
-                elif ((self.extrapolate_error() >
+                elif ((self.numvars.extrapolated_error >
                        self.numconsts.pub._abs_error_max) and
                       (self.numvars.dt >= self.numconsts.pub._rel_dt_min)):
-                    self._f0_ready = True
+                    self.numvars.f0_ready = True
                     self.numvars.dt_est = (self.numvars.dt /
                                            self.numconsts.dt_decrease)
                     break
                 else:
                     self.numvars.last_error = self.numvars.error
-                    self._f0_ready = True
+                    self.numvars.f0_ready = True
             else:
                 if self.numvars.dt <= self.numconsts.pub._rel_dt_min:
-                    self._f0_ready = False
+                    self.numvars.f0_ready = False
                     self.addup_fluxes()
                     self.numvars.t0 += self.numvars.dt
                     self.sequences.states.new2old()
                 else:
-                    self._f0_ready = True
+                    self.numvars.f0_ready = True
                     self.numvars.dt_est = (self.numvars.dt /
                                            self.numconsts.dt_decrease)
         self.get_sum_fluxes()
 
-    def extrapolate_error(self):
-        """
-        >>> from hydpy.models.test_v1 import *
-        >>> parameterstep()
-        >>> model.numvars.error = 1e-2
-        >>> model.numvars.last_error = 1e-1
-        >>> model.numvars.idx_method = 10
-        >>> from hydpy.core.objecttools import round_
-        >>> round_(model.extrapolate_error())
-        0.01
-        >>> model.numvars.idx_method = 9
-        >>> from hydpy.core.objecttools import round_
-        >>> round_(model.extrapolate_error())
-        0.001
-        """
-        if self.numvars.idx_method > 2:
-            return numpy.exp(
-                numpy.log(self.numvars.error) +
-                (numpy.log(self.numvars.error) -
-                 numpy.log(self.numvars.last_error)) *
-                (self.numconsts.nmb_methods-self.numvars.idx_method))
-        else:
-            return 0.
-
     def calculate_single_terms(self):
-        """
+        """Apply all methods stored in :attr:`_PART_ODE_METHODS`.
+
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
         >>> k(0.25)
@@ -551,13 +537,15 @@ class ModelELS(Model):
             method(self)
 
     def get_point_states(self):
-        """
+        """Load the states corresponding to the actual stage.
+
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
         >>> states.s.old = 2.0
         >>> states.s.new = 2.0
         >>> model.numvars.idx_stage = 2
-        >>> states.fastaccess._s_points[:4] = 0.0, 0.0, 1.0, 0.0
+        >>> points = numpy.asarray(states.fastaccess._s_points)
+        >>> points[:4] = 0.0, 0.0, 1.0, 0.0
         >>> model.get_point_states()
         >>> states.s.old
         2.0
@@ -566,9 +554,6 @@ class ModelELS(Model):
         """
         self._get_states(self.numvars.idx_stage, 'points')
 
-    def get_result_states(self):
-        self._get_states(self._idx_results, 'results')
-
     def _get_states(self, idx, type_):
         states = self.sequences.states
         for (name, state) in states:
@@ -576,31 +561,35 @@ class ModelELS(Model):
             state.new = temp[idx]
 
     def set_point_states(self):
-        """
+        """Save the states corresponding to the actual stage.
+
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
         >>> states.s.old = 2.0
         >>> states.s.new = 1.0
         >>> model.numvars.idx_stage = 2
-        >>> states.fastaccess._s_points[:] = 0.0
+        >>> points = numpy.asarray(states.fastaccess._s_points)
+        >>> points[:] = 0.
         >>> model.set_point_states()
         >>> from hydpy.core.objecttools import round_
-        >>> round_(states.fastaccess._s_points[:4])
+        >>> round_(points[:4])
         0.0, 0.0, 1.0, 0.0
         """
         self._set_states(self.numvars.idx_stage, 'points')
 
     def set_result_states(self):
-        """
+        """Save the final states of the actual method.
+
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
         >>> states.s.old = 2.0
         >>> states.s.new = 1.0
         >>> model.numvars.idx_method = 2
-        >>> states.fastaccess._s_results[:] = 0.0
+        >>> results = numpy.asarray(states.fastaccess._s_results)
+        >>> results[:] = 0.0
         >>> model.set_result_states()
         >>> from hydpy.core.objecttools import round_
-        >>> round_(states.fastaccess._s_results[:4])
+        >>> round_(results[:4])
         0.0, 0.0, 1.0, 0.0
         """
         self._set_states(self.numvars.idx_method, 'results')
@@ -612,7 +601,8 @@ class ModelELS(Model):
             temp[idx] = state.new
 
     def get_sum_fluxes(self):
-        """
+        """Get the sum of the fluxes calculated so far.
+
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
         >>> fluxes.q = 0.0
@@ -626,29 +616,33 @@ class ModelELS(Model):
             flux(getattr(fluxes.fastaccess, '_%s_sum' % name))
 
     def set_point_fluxes(self):
-        """
+        """Save the fluxes corresponding to the actual stage.
+
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
         >>> fluxes.q = 1.
         >>> model.numvars.idx_stage = 2
-        >>> fluxes.fastaccess._q_points[:] = 0.
+        >>> points = numpy.asarray(fluxes.fastaccess._q_points)
+        >>> points[:] = 0.
         >>> model.set_point_fluxes()
         >>> from hydpy.core.objecttools import round_
-        >>> round_(fluxes.fastaccess._q_points[:4])
+        >>> round_(points[:4])
         0.0, 0.0, 1.0, 0.0
         """
         self._set_fluxes(self.numvars.idx_stage, 'points')
 
     def set_result_fluxes(self):
-        """
+        """Save the final fluxes of the actual method.
+
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
         >>> fluxes.q = 1.
         >>> model.numvars.idx_method = 2
-        >>> fluxes.fastaccess._q_results[:] = 0.
+        >>> results = numpy.asarray(fluxes.fastaccess._q_results)
+        >>> results[:] = 0.
         >>> model.set_result_fluxes()
         >>> from hydpy.core.objecttools import round_
-        >>> round_(fluxes.fastaccess._q_results[:4])
+        >>> round_(results[:4])
         0.0, 0.0, 1.0, 0.0
         """
         self._set_fluxes(self.numvars.idx_method, 'results')
@@ -660,17 +654,21 @@ class ModelELS(Model):
             temp[idx] = flux
 
     def integrate_fluxes(self):
-        """
+        """Perform a dot multiplication between the fluxes and the
+        A coefficients associated with the different stages of the
+        actual method.
+
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
         >>> model.numvars.idx_method = 1
         >>> model.numvars.idx_stage = 1
         >>> model.numvars.dt = 0.5
-        >>> fluxes.fastaccess._q_points[:4] = 15., 2., 0., 0.
+        >>> points = numpy.asarray(fluxes.fastaccess._q_points)
+        >>> points[:4] = 15., 2., 0., 0.
         >>> model.integrate_fluxes()
         >>> from hydpy.core.objecttools import round_
         >>> from hydpy import pub
-        >>> round_(model.numconsts.a_coefs[1, 1, :2])
+        >>> round_(numpy.asarray(model.numconsts.a_coefs)[1, 1, :2])
         0.375, 0.125
         >>> fluxes.q
         q(7.5)
@@ -685,7 +683,8 @@ class ModelELS(Model):
                  numpy.dot(coefs, points[:self.numvars.idx_method]))
 
     def reset_sum_fluxes(self):
-        """
+        """Set the sum of the fluxes calculated so far to zero.
+
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
         >>> fluxes.fastaccess._q_sum = 5.
@@ -701,7 +700,8 @@ class ModelELS(Model):
                 getattr(fluxes.fastaccess, '_%s_sum' % name)[:] = 0.
 
     def addup_fluxes(self):
-        """
+        """Add up the sum of the fluxes calculated so far.
+
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
         >>> fluxes.fastaccess._q_sum = 1.0
@@ -718,11 +718,14 @@ class ModelELS(Model):
                 setattr(fluxes.fastaccess, '_%s_sum' % name, sum_)
 
     def calculate_error(self):
-        """
+        """Estimate the numerical error based on the fluxes calculated
+        by the current and the last method.
+
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
         >>> model.numvars.idx_method = 2
-        >>> fluxes.fastaccess._q_results[:4] = 0., 3., 4., 0.
+        >>> results = numpy.asarray(fluxes.fastaccess._q_results)
+        >>> results[:4] = 0., 3., 4., 0.
         >>> model.calculate_error()
         >>> from hydpy.core.objecttools import round_
         >>> round_(model.numvars.error)
@@ -737,5 +740,35 @@ class ModelELS(Model):
             self.numvars.error = max(self.numvars.error,
                                      numpy.max(numpy.abs(diff)))
 
+    def extrapolate_error(self):
+        """Estimate the numerical error to be expected when applying all
+        methods available based on the results of the current and the
+        last method.
+
+        Note that this expolation strategy cannot be applied on the first
+        method.  If the current method is the first one, `-999.9` is returned.
+
+        >>> from hydpy.models.test_v1 import *
+        >>> parameterstep()
+        >>> model.numvars.error = 1e-2
+        >>> model.numvars.last_error = 1e-1
+        >>> model.numvars.idx_method = 10
+        >>> model.extrapolate_error()
+        >>> from hydpy.core.objecttools import round_
+        >>> round_(model.numvars.extrapolated_error)
+        0.01
+        >>> model.numvars.idx_method = 9
+        >>> model.extrapolate_error()
+        >>> round_(model.numvars.extrapolated_error)
+        0.001
+        """
+        if self.numvars.idx_method > 2:
+            self.numvars.extrapolated_error = modelutils.exp(
+                modelutils.log(self.numvars.error) +
+                (modelutils.log(self.numvars.error) -
+                 modelutils.log(self.numvars.last_error)) *
+                (self.numconsts.nmb_methods-self.numvars.idx_method))
+        else:
+            self.numvars.extrapolated_error = -999.9
 
 autodoctools.autodoc_module()

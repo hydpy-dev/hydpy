@@ -14,6 +14,7 @@ import distutils.core
 import distutils.extension
 import Cython.Build
 import math
+import functools
 # ...third party modules
 import numpy
 # ...from HydPy
@@ -53,16 +54,45 @@ class Lines(list):
     """Handles lines to be written into a `.pyx` file."""
 
     def __init__(self, *args):
-        list.__init__(self, args)
+        super(Lines, self).__init__(args)
 
     def add(self, indent, line):
         """Appends the given text line with prefixed spaces in accordance with
         the given number of indentation levels.
         """
-        list.append(self, indent*4*' ' + line)
+        if isinstance(line, str):
+            super(Lines, self).append(indent*4*' ' + line)
+        else:
+            for subline in line:
+                super(Lines, self).append(indent*4*' ' + subline)
 
     def __repr__(self):
         return '\n'.join(self) + '\n'
+
+
+def method_header(method_name):
+    """Returns the Cython method header for methods without arguments except
+    `self`."""
+    return 'cpdef inline void %s(self):' % method_name
+
+
+def decorate_method(wrapped):
+    """The decorated method will return a :class:`Lines` object including
+    a method header.  However, the :class:`Lines` object will be empty if
+    the respective model does not implement a method with the same name as
+    the wrapped method.
+    """
+    def wrapper(self):
+        lines = Lines()
+        if hasattr(self.model, wrapped.__name__):
+            print('            . %s' % wrapped.__name__)
+            lines.add(1, method_header(wrapped.__name__))
+            for line in wrapped(self):
+                lines.add(2, line)
+        return lines
+    functools.update_wrapper(wrapper, wrapped)
+    wrapper.__doc__ = 'Lines of model method %s.' % wrapped.__name__
+    return property(wrapper)
 
 
 class Cythonizer(object):
@@ -266,6 +296,8 @@ class PyxWriter(object):
             pxf.write(repr(self.modeldeclarations))
             print('        %s' % '- standard functions')
             pxf.write(repr(self.modelstandardfunctions))
+            print('        %s' % '- numeric functions')
+            pxf.write(repr(self.modelnumericfunctions))
             print('        %s' % '- additional functions')
             pxf.write(repr(self.modeluserfunctions))
 
@@ -282,7 +314,7 @@ class PyxWriter(object):
         """Import command lines."""
         return Lines('import numpy',
                      'cimport numpy',
-                     'from libc.math cimport exp, fabs',
+                     'from libc.math cimport exp, fabs, log',
                      'from libc.stdio cimport *',
                      'from libc.stdlib cimport *',
                      'import cython',
@@ -539,8 +571,10 @@ class PyxWriter(object):
             lines.add(0, 'cdef class NumVars(object):')
             for name in ('nmb_calls', 'idx_method', 'idx_stage'):
                 lines.add(1, 'cdef public %s %s' % (TYPE2STR[int], name))
-            for name in ('t0', 't1', 'dt', 'dt_est', 'error', 'last_error'):
+            for name in ('t0', 't1', 'dt', 'dt_est',
+                         'error', 'last_error', 'extrapolated_error'):
                 lines.add(1, 'cdef public %s %s' % (TYPE2STR[float], name))
+            lines.add(1, 'cdef public %s f0_ready' % TYPE2STR[bool])
         return lines
 
     @property
@@ -570,8 +604,27 @@ class PyxWriter(object):
         lines.extend(self.doit)
         lines.extend(self.iofunctions)
         lines.extend(self.new2old)
-        if 'run' not in [tpl[0] for tpl in self.listofmodeluserfunctions]:
-            lines.extend(self.run)
+        lines.extend(self.run)
+        return lines
+
+    @property
+    def modelnumericfunctions(self):
+        """Numerical functions of the model class."""
+        lines = Lines()
+        lines.extend(self.solve)
+        lines.extend(self.calculate_single_terms)
+        lines.extend(self.calculate_full_terms)
+        lines.extend(self.get_point_states)
+        lines.extend(self.set_point_states)
+        lines.extend(self.set_result_states)
+        lines.extend(self.get_sum_fluxes)
+        lines.extend(self.set_point_fluxes)
+        lines.extend(self.set_result_fluxes)
+        lines.extend(self.integrate_fluxes)
+        lines.extend(self.reset_sum_fluxes)
+        lines.extend(self.addup_fluxes)
+        lines.extend(self.calculate_error)
+        lines.extend(self.extrapolate_error)
         return lines
 
     @property
@@ -585,7 +638,10 @@ class PyxWriter(object):
             lines.add(2, 'self.loaddata()')
         if getattr(self.model.sequences, 'inlets', None) is not None:
             lines.add(2, 'self.update_inlets()')
-        lines.add(2, 'self.run()')
+        if hasattr(self.model, 'solve'):
+            lines.add(2, 'self.solve()')
+        else:
+            lines.add(2, 'self.run()')
         if getattr(self.model.sequences, 'outlets', None) is not None:
             lines.add(2, 'self.update_outlets()')
         if getattr(self.model.sequences, 'states', None) is not None:
@@ -610,7 +666,7 @@ class PyxWriter(object):
                  (getattr(self.model.sequences, 'states', None) is None))):
                 continue
             print('            . %s' % func)
-            lines.add(1, 'cpdef inline void %s(self):' % func)
+            lines.add(1, method_header(func))
             for (name, subseqs) in self.model.sequences:
                 if func == 'loaddata':
                     applyfuncs = ('inputs',)
@@ -630,7 +686,7 @@ class PyxWriter(object):
         lines = Lines()
         if getattr(self.model.sequences, 'states', None) is not None:
             print('                . new2old')
-            lines.add(1, 'cpdef inline void new2old(self):')
+            lines.add(1, method_header('new2old'))
             lines.add(2, 'cdef int jdx0, jdx1, jdx2, jdx3, jdx4, jdx5')
             for (name, seq) in sorted(self.model.sequences.states):
                 if seq.NDIM == 0:
@@ -651,18 +707,34 @@ class PyxWriter(object):
                         % (2*(name, indexing)))
         return lines
 
-    @property
-    def run(self):
+    def _call_methods(self, name, methods):
         lines = Lines()
-        lines.add(1, 'cpdef inline void run(self):')
-        anything = False
-        for method in self.model._RUNMETHODS:
-            if not method.__name__.startswith('update_'):
+        if hasattr(self.model, name):
+            lines.add(1, method_header(name))
+            anything = False
+            for method in methods:
                 lines.add(2, 'self.%s()' % method.__name__)
                 anything = True
-        if not anything:
-            lines.add(2, 'pass')
+            if not anything:
+                lines.add(2, 'pass')
         return lines
+
+    @property
+    def run(self):
+        """Lines of model method with the same name."""
+        return self._call_methods('run', self.model._RUNMETHODS)
+
+    @property
+    def calculate_single_terms(self):
+        """Lines of model method with the same name."""
+        return self._call_methods('calculate_single_terms',
+                                  self.model._PART_ODE_METHODS)
+
+    @property
+    def calculate_full_terms(self):
+        """Lines of model method with the same name."""
+        return self._call_methods('calculate_full_terms',
+                                  self.model._FULL_ODE_METHODS)
 
     @property
     def listofmodeluserfunctions(self):
@@ -688,6 +760,192 @@ class PyxWriter(object):
         for (name, func) in self.listofmodeluserfunctions:
             print('            . %s' % name)
             funcconverter = FuncConverter(self.model, name, func)
+            lines.extend(funcconverter.pyxlines)
+        return lines
+
+    @property
+    def solve(self):
+        lines = Lines()
+        if hasattr(self.model, 'solve'):
+            print('            . solve')
+            funcconverter = FuncConverter(self.model, 'solve',
+                                          self.model.solve)
+            lines.extend(funcconverter.pyxlines)
+        return lines
+
+    @staticmethod
+    def _assign_seqvalues(subseqs, target, index, load):
+        from1 = 'self.%s.' % subseqs.name + '%s'
+        to1 = 'self.%s.' % subseqs.name + '_%s_' + target
+        if index is not None:
+            to1 += '[self.numvars.%s]' % index
+        if load:
+            from1, to1 = to1, from1
+        for (name, seq) in subseqs:
+            from2 = from1 % name
+            to2 = to1 % name
+            if seq.NDIM == 0:
+                yield '%s = %s' % (to2, from2)
+            elif seq.NDIM == 1:
+                yield 'cdef int idx0'
+                yield ('for idx0 in range(self.%s._%s_length0):'
+                       % (subseqs.name, name))
+                yield ('    %s[idx0] = %s[idx0]'
+                       % (to2, from2))
+            elif seq.NDIM == 2:
+                yield 'cdef int idx0, idx1'
+                yield ('for idx0 in range(self.%s._%s_length0):'
+                       % (subseqs.name, name))
+                yield ('    for idx1 in range(self._%s_length1):'
+                       % (subseqs.name, name))
+                yield ('        %s[idx0, idx1] = %s[idx0, idx1]'
+                       % (to2, from2))
+            else:
+                raise NotImplementedError(
+                        'NDIM of sequence `%s` is higher than expected' % name)
+
+    @decorate_method
+    def get_point_states(self):
+        yield self._assign_seqvalues(subseqs=self.model.sequences.states,
+                                     target='points',
+                                     index='idx_stage',
+                                     load=True)
+
+    @decorate_method
+    def set_point_states(self):
+        yield self._assign_seqvalues(subseqs=self.model.sequences.states,
+                                     target='points',
+                                     index='idx_stage',
+                                     load=False)
+
+    @decorate_method
+    def set_result_states(self):
+        yield self._assign_seqvalues(subseqs=self.model.sequences.states,
+                                     target='results',
+                                     index='idx_method',
+                                     load=False)
+
+    @decorate_method
+    def get_sum_fluxes(self):
+        yield self._assign_seqvalues(subseqs=self.model.sequences.fluxes,
+                                     target='sum',
+                                     index=None,
+                                     load=True)
+
+    @decorate_method
+    def set_point_fluxes(self):
+        yield self._assign_seqvalues(subseqs=self.model.sequences.fluxes,
+                                     target='points',
+                                     index='idx_stage',
+                                     load=False)
+
+    @decorate_method
+    def set_result_fluxes(self):
+        yield self._assign_seqvalues(subseqs=self.model.sequences.fluxes,
+                                     target='results',
+                                     index='idx_method',
+                                     load=False)
+
+    @decorate_method
+    def integrate_fluxes(self):
+        for (name, seq) in self.model.sequences.fluxes.numerics:
+            to_ = 'self.fluxes.%s' % name
+            from_ = 'self.fluxes._%s_points' % name
+            if seq.NDIM == 0:
+                yield 'cdef int jdx'
+                yield '%s = 0.' % to_
+                yield 'for jdx in range(self.numvars.idx_method):'
+                yield '    %s += %s[jdx]' % (to_, from_)
+            elif seq.NDIM == 1:
+                yield 'cdef int jdx, idx0'
+                yield 'for idx0 in range(self.fluxes._%s_length0):' % name
+                yield '    %s[idx0] = 0.' % to_
+                yield '    for jdx in range(self.numvars.idx_method):'
+                yield '        %s[idx0] += %s[jdx, idx0]' % (to_, from_)
+            elif seq.NDIM == 2:
+                yield 'cdef int jdx, idx0, idx1'
+                yield 'for idx0 in range(self.fluxes._%s_length0):' % name
+                yield '    for idx1 in range(self.fluxes._%s_length1):' % name
+                yield '        %s[idx0, idx1] = 0.' % to_
+                yield '        for jdx in range(self.numvars.idx_method):'
+                yield ('            %s[idx0, idx1] += %s[jdx, idx0, idx1]'
+                       % (to_, from_))
+            else:
+                raise NotImplementedError(
+                        'NDIM of sequence `%s` is higher than expected' % name)
+
+    @decorate_method
+    def reset_sum_fluxes(self):
+        for (name, seq) in self.model.sequences.fluxes.numerics:
+            to_ = 'self.fluxes._%s_sum' % name
+            if seq.NDIM == 0:
+                yield '%s = 0.' % to_
+            elif seq.NDIM == 1:
+                yield 'cdef int idx0'
+                yield 'for idx0 in range(self.fluxes._%s_length0):' % name
+                yield '    %s[idx0] = 0.' % to_
+            elif seq.NDIM == 2:
+                yield 'cdef int idx0, idx1'
+                yield 'for idx0 in range(self.fluxes._%s_length0):' % name
+                yield '    for idx1 in range(self.fluxes._%s_length1):' % name
+                yield '        %s[idx0, idx1] = 0.' % to_
+            else:
+                raise NotImplementedError(
+                        'NDIM of sequence `%s` is higher than expected' % name)
+
+    @decorate_method
+    def addup_fluxes(self):
+        for (name, seq) in self.model.sequences.fluxes.numerics:
+            to_ = 'self.fluxes._%s_sum' % name
+            from_ = 'self.fluxes.%s' % name
+            if seq.NDIM == 0:
+                yield '%s = %s' % (to_, from_)
+            elif seq.NDIM == 1:
+                yield 'cdef int idx0'
+                yield 'for idx0 in range(self.fluxes._%s_length0):' % name
+                yield '    %s[idx0] = %s[idx0]' % (to_, from_)
+            elif seq.NDIM == 2:
+                yield 'cdef int idx0, idx1'
+                yield 'for idx0 in range(self.fluxes._%s_length0):' % name
+                yield '    for idx1 in range(self.fluxes._%s_length1):' % name
+                yield '        %s[idx0, idx1] = %s[idx0, idx1]' % (to_, from_)
+            else:
+                raise NotImplementedError(
+                        'NDIM of sequence `%s` is higher than expected' % name)
+
+    @decorate_method
+    def calculate_error(self):
+        to_ = 'self.model.numvars.error'
+        index = 'self.numvars.idx_method'
+        yield '%s = 0.' % to_
+        for (name, seq) in self.model.sequences.fluxes.numerics:
+            from_ = 'self.fluxes._%s_results' % name
+            if seq.NDIM == 0:
+                yield ('%s = max(%s, fabs(%s[%s]-%s[%s-1]))'
+                       % (to_, to_, from_, index, from_, index))
+            elif seq.NDIM == 1:
+                yield 'cdef int idx0'
+                yield 'for idx0 in range(self.fluxes._%s_length0):' % name
+                yield ('    %s = max(%s, abs(%s[%s, idx0]-%s[%s-1, idx0]))'
+                       % (to_, to_, from_, index, from_, index))
+            elif seq.NDIM == 2:
+                yield 'cdef int idx0, idx1'
+                yield 'for idx0 in range(self.fluxes._%s_length0):' % name
+                yield '    for idx1 in range(self.fluxes._%s_length1):' % name
+                yield ('        %s = '
+                       'max(%s, abs(%s[%s, idx0, idx1]-%s[%s-1, idx0, idx1]))'
+                       % (to_, to_, from_, index, from_, index))
+            else:
+                raise NotImplementedError(
+                        'NDIM of sequence `%s` is higher than expected' % name)
+
+    @property
+    def extrapolate_error(self):
+        lines = Lines()
+        if hasattr(self.model, 'extrapolate_error'):
+            print('            . extrapolate_error')
+            funcconverter = FuncConverter(self.model, 'extrapolate_error',
+                                          self.model.extrapolate_error)
             lines.extend(funcconverter.pyxlines)
         return lines
 
@@ -800,6 +1058,11 @@ class FuncConverter(object):
 def exp(double):
     """Cython wrapper for numpys exp function applied on a single float."""
     return numpy.exp(double)
+
+
+def log(double):
+    """Cython wrapper for numpys log function applied on a single float."""
+    return numpy.log(double)
 
 
 def fabs(double):

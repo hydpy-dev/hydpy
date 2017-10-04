@@ -23,10 +23,10 @@ from hydpy.core import autodoctools
 class Sequences(object):
     """Base class for handling all sequences of a specific model."""
 
-    def __init__(self, kwargs):
-        self.model = kwargs.get('model')
-        cythonmodule = kwargs.get('cythonmodule')
-        cymodel = kwargs.get('cymodel')
+    def __init__(self, **kwargs):
+        self.model = kwargs.pop('model', None)
+        cythonmodule = kwargs.pop('cythonmodule', None)
+        cymodel = kwargs.pop('cymodel', None)
         for (name, cls) in kwargs.items():
             if name.endswith('Sequences') and issubclass(cls, SubSequences):
                 if cythonmodule:

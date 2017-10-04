@@ -215,7 +215,7 @@ def parameterstep(timestep=None):
         model.parameters = namespace['Parameters'](namespace)
         if 'Sequences' not in namespace:
             namespace['Sequences'] = sequencetools.Sequences
-        model.sequences = namespace['Sequences'](namespace)
+        model.sequences = namespace['Sequences'](**namespace)
         namespace['parameters'] = model.parameters
         for (name, pars) in model.parameters:
             namespace[name] = pars

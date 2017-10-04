@@ -137,9 +137,10 @@ class Cythonizer(object):
         else:
             model.parameters = parametertools.Parameters(vars(self))
         if hasattr(self, 'Sequences'):
-            model.sequences = self.Sequences(vars(self))
+            model.sequences = self.Sequences(model=model, **vars(self))
         else:
-            model.sequences = sequencetools.Sequences(vars(self))
+            model.sequences = sequencetools.Sequences(model=model,
+                                                      **vars(self))
         return PyxWriter(self, model, self.cyfilepath)
 
     @property

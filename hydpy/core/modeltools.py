@@ -12,21 +12,35 @@ from hydpy.core import autodoctools
 
 class MetaModel(type):
     def __new__(cls, name, parents, dict_):
-        for tuplename in ('_RUNMETHODS', '_ADDMETHODS'):
-            methods = dict_.get(tuplename, ())
+        _METHOD_GROUPS = ('_RUNMETHODS', '_ADDMETHODS',
+                          '_PART_ODE_METHODS', '_FULL_ODE_METHODS')
+        dict_['_METHOD_GROUPS'] = _METHOD_GROUPS
+        for name in _METHOD_GROUPS:
+            methods = dict_.get(name, ())
             if methods:
-                if tuplename == '_RUNMETHODS':
+                if name == '_RUNMETHODS':
                     lst = ['\n\n\n    The following "run methods" are called '
                            'each simulation step run in the given sequence:']
-                elif tuplename == '_ADDMETHODS':
+                elif name == '_ADDMETHODS':
                     lst = ['\n\n\n    The following "additional methods" are '
                            'called by at least one "run method":']
+                elif name == '_PART_ODE_METHODS':
+                    lst = ['\n\n\n    The following methods define the '
+                           'relevant components of a system of ODE '
+                           'equations (e.g. direct runoff):']
+                elif name == '_FULL_ODE_METHODS':
+                    lst = ['\n\n\n    The following methods define the '
+                           'complete equations of an ODE system '
+                           '(e.g. change in storage of `fast water` due to '
+                           ' effective precipitation and direct runoff):']
                 for method in methods:
                     lst.append('      * :func:`~%s` `%s`'
                                % ('.'.join((method.__module__,
                                             method.__name__)),
                                   autodoctools.description(method)))
-                dict_['__doc__'] += '\n'.join(l for l in lst)
+                doc = dict_.get('__doc__', 'Undocumented model.')
+                dict_['__doc__'] = doc + '\n'.join(l for l in lst)
+
         return type.__new__(cls, name, parents, dict_)
 
 
@@ -38,6 +52,8 @@ class Model(_MetaModel):
 
     _RUNMETHODS = ()
     _ADDMETHODS = ()
+    _PART_ODE_METHODS = ()
+    _FULL_ODE_METHODS = ()
 
     def __init__(self):
         self.element = None
@@ -48,11 +64,11 @@ class Model(_MetaModel):
         self._init_methods()
 
     def _init_methods(self):
-        """Convert all pure Python run and add functions of the model class to
+        """Convert all pure Python calculation functions of the model class to
         methods and assign them to the model instance.
         """
-        for tuplename in ('_RUNMETHODS', '_ADDMETHODS'):
-            functions = getattr(self, tuplename, ())
+        for name_group in self._METHOD_GROUPS:
+            functions = getattr(self, name_group, ())
             uniques = {}
             for func in functions:
                 name = func.__name__

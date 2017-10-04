@@ -4,8 +4,13 @@
 # import...
 # ...from standard library
 from __future__ import division, print_function
+import os
 import types
+# ...from site-packages
+import numpy
 # ...from HydPy
+from hydpy import pub
+from hydpy import conf
 from hydpy.core import objecttools
 from hydpy.core import autodoctools
 
@@ -192,6 +197,545 @@ class Model(_MetaModel):
 
     def __dir__(self):
         return objecttools.dir_(self)
+
+
+class NumPars(object):
+
+    def __iter__(self):
+        for (name, par) in vars(self).items():
+            yield (name, par)
+
+
+class NumConstsELS(NumPars):
+
+    def __init__(self):
+        self.pub = pub.config
+        self.nmb_methods = 10
+        self.nmb_stages = 11
+        self.dt_increase = 2.
+        self.dt_decrease = 4.
+        path = os.path.join(conf.__path__[0],
+                            'a_coefficients_explicit_lobatto_sequence.npy')
+        self.a_coefs = numpy.load(path)
+
+
+class NumVarsELS(NumPars):
+
+    def __init__(self):
+        self.nmb_calls = 0
+        self.t0 = 0.
+        self.t1 = 0.
+        self.dt_est = 1.
+        self.dt = 1.
+        self.idx_method = 0
+        self.idx_stage = 0
+        self.error = 0.
+        self.last_error = 0.
+
+
+class ModelELS(Model):
+
+    def __init__(self):
+        super(ModelELS, self).__init__()
+        self.numconsts = NumConstsELS()
+        self.numvars = NumVarsELS()
+
+    def doit(self, idx):
+        self.idx_sim = idx
+        self.loaddata()
+        self.update_inlets()
+        self.solve()
+        self.update_outlets()
+        self.update_senders()
+        self.savedata()
+
+    def solve(self):
+        """
+
+        >>> from hydpy.models.test_v1 import *
+        >>> parameterstep()
+        >>> k(0.0)
+        >>> states.s(1.0)
+        >>> model.numvars.nmb_calls = 0
+        >>> model.solve()
+        >>> states.s
+        s(1.0)
+        >>> fluxes.q
+        q(0.0)
+        >>> model.numvars.idx_method
+        1
+        >>> model.numvars.dt
+        1.0
+        >>> model.numvars.nmb_calls
+        1
+
+        >>> from hydpy import pub
+        >>> pub.config.abs_error_max = 1e-2
+
+        >>> k(0.1)
+        >>> states.s(1.0)
+        >>> model.numvars.nmb_calls = 0
+        >>> model.solve()
+        >>> states.s
+        s(0.905)
+        >>> fluxes.q
+        q(0.095)
+        >>> model.numvars.idx_method
+        2
+        >>> model.numvars.nmb_calls
+        2
+
+        >>> import numpy
+        >>> from hydpy.core.objecttools import round_
+        >>> round_(numpy.exp(-k))
+        0.904837
+
+        >>> pub.config.abs_error_max = 1e-3
+
+        >>> states.s(1.0)
+        >>> model.numvars.nmb_calls = 0
+        >>> model.solve()
+        >>> states.s
+        s(0.904833)
+        >>> fluxes.q
+        q(0.095167)
+        >>> model.numvars.idx_method
+        3
+        >>> model.numvars.nmb_calls
+        4
+
+        >>> pub.config.abs_error_max = 1e-4
+
+        >>> states.s(1.0)
+        >>> model.numvars.nmb_calls = 0
+        >>> model.solve()
+        >>> states.s
+        s(0.904837)
+        >>> fluxes.q
+        q(0.095163)
+        >>> model.numvars.idx_method
+        4
+        >>> model.numvars.nmb_calls
+        7
+
+        >>> pub.config.abs_error_max = 1e-12
+
+        >>> states.s(1.0)
+        >>> model.numvars.nmb_calls = 0
+        >>> model.solve()
+        >>> states.s
+        s(0.904837)
+        >>> fluxes.q
+        q(0.095163)
+        >>> model.numvars.idx_method
+        8
+        >>> model.numvars.nmb_calls
+        29
+
+        >>> pub.config.abs_error_max = 1e-2
+
+        >>> k(0.5)
+
+        >>> round_(numpy.exp(-k))
+        0.606531
+
+        >>> states.s(1.0)
+        >>> model.numvars.nmb_calls = 0
+        >>> model.solve()
+        >>> states.s
+        s(0.606771)
+        >>> fluxes.q
+        q(0.393229)
+        >>> model.numvars.idx_method
+        4
+        >>> model.numvars.nmb_calls
+        7
+
+        >>> k(2.0)
+
+        >>> round_(numpy.exp(-k))
+        0.135335
+
+        >>> states.s(1.0)
+        >>> model.numvars.nmb_calls = 0
+        >>> model.solve()
+        >>> states.s
+        s(0.134417)
+        >>> fluxes.q
+        q(0.865583)
+        >>> model.numvars.nmb_calls
+        25
+
+        >>> model.numvars.nmb_calls = 0
+        >>> model.solve()
+        >>> states.s
+        s(0.019034)
+        >>> fluxes.q
+        q(0.115383)
+        >>> model.numvars.nmb_calls
+        16
+
+        >>> k(4.0)
+
+        >>> round_(numpy.exp(-k))
+        0.018316
+
+        >>> states.s(1.0)
+        >>> model.numvars.nmb_calls = 0
+        >>> model.solve()
+        >>> states.s
+        s(0.017458)
+        >>> fluxes.q
+        q(0.982542)
+        >>> model.numvars.dt
+        0.375
+        >>> model.numvars.nmb_calls
+        39
+
+        >>> from hydpy.core.magictools import reverse_model_wildcard_import
+        >>> reverse_model_wildcard_import()
+
+        >>> from hydpy.models.test_v2 import *
+        >>> parameterstep()
+        >>> k(0.5)
+        >>> states.s(1.0)
+        >>> model.numvars.nmb_calls = 0
+        >>> model.solve()
+        >>> states.s
+        s(0.5)
+        >>> fluxes.q
+        q(0.5)
+        >>> model.numvars.idx_method
+        2
+        >>> model.numvars.dt
+        1.0
+        >>> model.numvars.nmb_calls
+        2
+
+        >>> k(2.0)
+        >>> states.s(1.0)
+        >>> model.numvars.nmb_calls = 0
+        >>> model.solve()
+        >>> states.s
+        s(0.0)
+        >>> fluxes.q
+        q(1.0)
+        >>> model.numvars.nmb_calls
+        57
+
+        >>> k(2.1)
+        >>> states.s(1.0)
+        >>> model.numvars.nmb_calls = 0
+        >>> model.solve()
+        >>> states.s
+        s(-0.000781)
+        >>> fluxes.q
+        q(1.000781)
+        >>> model.numvars.nmb_calls
+        48
+
+        """
+        self.numvars.t0, self.numvars.t1 = 0., 1.
+        self.numvars.dt_est = 1.
+        self._f0_ready = False
+        self.reset_sum_fluxes()
+        while self.numvars.t0 < self.numvars.t1:
+            self.numvars.last_error = 999999.
+            self.numvars.dt = min(
+                    self.numvars.t1-self.numvars.t0,
+                    max(self.numvars.dt_est, self.numconsts.pub._rel_dt_min))
+            if not self._f0_ready:
+                self.calculate_single_terms()
+                self.numvars.idx_method = 0
+                self.numvars.idx_stage = 0
+                self.set_point_fluxes()
+                self.set_point_states()
+                self.set_result_states()
+            for self.numvars.idx_method in range(
+                                        1, self.numconsts.nmb_methods+1):
+                for self.numvars.idx_stage in range(
+                                            1, self.numvars.idx_method):
+                    self.get_point_states()
+                    self.calculate_single_terms()
+                    self.set_point_fluxes()
+                for self.numvars.idx_stage in range(
+                                            1, self.numvars.idx_method+1):
+                    self.integrate_fluxes()
+                    self.calculate_full_terms()
+                    self.set_point_states()
+                self.set_result_fluxes()
+                self.set_result_states()
+                self.calculate_error()
+                if self.numvars.error <= self.numconsts.pub._abs_error_max:
+                    self._f0_ready = False
+                    self.numvars.dt_est = (self.numconsts.dt_increase *
+                                           self.numvars.dt)
+                    self.addup_fluxes()
+                    self.numvars.t0 += self.numvars.dt
+                    self.sequences.states.new2old()
+                    break
+                elif ((self.extrapolate_error() >
+                       self.numconsts.pub._abs_error_max) and
+                      (self.numvars.dt >= self.numconsts.pub._rel_dt_min)):
+                    self._f0_ready = True
+                    self.numvars.dt_est = (self.numvars.dt /
+                                           self.numconsts.dt_decrease)
+                    break
+                else:
+                    self.numvars.last_error = self.numvars.error
+                    self._f0_ready = True
+            else:
+                if self.numvars.dt <= self.numconsts.pub._rel_dt_min:
+                    self._f0_ready = False
+                    self.addup_fluxes()
+                    self.numvars.t0 += self.numvars.dt
+                    self.sequences.states.new2old()
+                else:
+                    self._f0_ready = True
+                    self.numvars.dt_est = (self.numvars.dt /
+                                           self.numconsts.dt_decrease)
+        self.get_sum_fluxes()
+
+    def extrapolate_error(self):
+        """
+        >>> from hydpy.models.test_v1 import *
+        >>> parameterstep()
+        >>> model.numvars.error = 1e-2
+        >>> model.numvars.last_error = 1e-1
+        >>> model.numvars.idx_method = 10
+        >>> from hydpy.core.objecttools import round_
+        >>> round_(model.extrapolate_error())
+        0.01
+        >>> model.numvars.idx_method = 9
+        >>> from hydpy.core.objecttools import round_
+        >>> round_(model.extrapolate_error())
+        0.001
+        """
+        if self.numvars.idx_method > 2:
+            return numpy.exp(
+                numpy.log(self.numvars.error) +
+                (numpy.log(self.numvars.error) -
+                 numpy.log(self.numvars.last_error)) *
+                (self.numconsts.nmb_methods-self.numvars.idx_method))
+        else:
+            return 0.
+
+    def calculate_single_terms(self):
+        """
+        >>> from hydpy.models.test_v1 import *
+        >>> parameterstep()
+        >>> k(0.25)
+        >>> states.s = 1.0
+        >>> model.calculate_single_terms()
+        >>> fluxes.q
+        q(0.25)
+        """
+        self.numvars.nmb_calls += 1
+        for method in self._PART_ODE_METHODS:
+            method(self)
+
+    def calculate_full_terms(self):
+        """
+        >>> from hydpy.models.test_v1 import *
+        >>> parameterstep()
+        >>> k(0.25)
+        >>> states.s.old = 1.0
+        >>> fluxes.q = 0.25
+        >>> model.calculate_full_terms()
+        >>> states.s.old
+        1.0
+        >>> states.s.new
+        0.75
+        """
+        for method in self._FULL_ODE_METHODS:
+            method(self)
+
+    def get_point_states(self):
+        """
+        >>> from hydpy.models.test_v1 import *
+        >>> parameterstep()
+        >>> states.s.old = 2.0
+        >>> states.s.new = 2.0
+        >>> model.numvars.idx_stage = 2
+        >>> states.fastaccess._s_points[:4] = 0.0, 0.0, 1.0, 0.0
+        >>> model.get_point_states()
+        >>> states.s.old
+        2.0
+        >>> states.s.new
+        1.0
+        """
+        self._get_states(self.numvars.idx_stage, 'points')
+
+    def get_result_states(self):
+        self._get_states(self._idx_results, 'results')
+
+    def _get_states(self, idx, type_):
+        states = self.sequences.states
+        for (name, state) in states:
+            temp = getattr(states.fastaccess, '_%s_%s' % (name, type_))
+            state.new = temp[idx]
+
+    def set_point_states(self):
+        """
+        >>> from hydpy.models.test_v1 import *
+        >>> parameterstep()
+        >>> states.s.old = 2.0
+        >>> states.s.new = 1.0
+        >>> model.numvars.idx_stage = 2
+        >>> states.fastaccess._s_points[:] = 0.0
+        >>> model.set_point_states()
+        >>> from hydpy.core.objecttools import round_
+        >>> round_(states.fastaccess._s_points[:4])
+        0.0, 0.0, 1.0, 0.0
+        """
+        self._set_states(self.numvars.idx_stage, 'points')
+
+    def set_result_states(self):
+        """
+        >>> from hydpy.models.test_v1 import *
+        >>> parameterstep()
+        >>> states.s.old = 2.0
+        >>> states.s.new = 1.0
+        >>> model.numvars.idx_method = 2
+        >>> states.fastaccess._s_results[:] = 0.0
+        >>> model.set_result_states()
+        >>> from hydpy.core.objecttools import round_
+        >>> round_(states.fastaccess._s_results[:4])
+        0.0, 0.0, 1.0, 0.0
+        """
+        self._set_states(self.numvars.idx_method, 'results')
+
+    def _set_states(self, idx, type_):
+        states = self.sequences.states
+        for (name, state) in states:
+            temp = getattr(states.fastaccess, '_%s_%s' % (name, type_))
+            temp[idx] = state.new
+
+    def get_sum_fluxes(self):
+        """
+        >>> from hydpy.models.test_v1 import *
+        >>> parameterstep()
+        >>> fluxes.q = 0.0
+        >>> fluxes.fastaccess._q_sum = 1.0
+        >>> model.get_sum_fluxes()
+        >>> fluxes.q
+        q(1.0)
+        """
+        fluxes = self.sequences.fluxes
+        for (name, flux) in fluxes.numerics:
+            flux(getattr(fluxes.fastaccess, '_%s_sum' % name))
+
+    def set_point_fluxes(self):
+        """
+        >>> from hydpy.models.test_v1 import *
+        >>> parameterstep()
+        >>> fluxes.q = 1.
+        >>> model.numvars.idx_stage = 2
+        >>> fluxes.fastaccess._q_points[:] = 0.
+        >>> model.set_point_fluxes()
+        >>> from hydpy.core.objecttools import round_
+        >>> round_(fluxes.fastaccess._q_points[:4])
+        0.0, 0.0, 1.0, 0.0
+        """
+        self._set_fluxes(self.numvars.idx_stage, 'points')
+
+    def set_result_fluxes(self):
+        """
+        >>> from hydpy.models.test_v1 import *
+        >>> parameterstep()
+        >>> fluxes.q = 1.
+        >>> model.numvars.idx_method = 2
+        >>> fluxes.fastaccess._q_results[:] = 0.
+        >>> model.set_result_fluxes()
+        >>> from hydpy.core.objecttools import round_
+        >>> round_(fluxes.fastaccess._q_results[:4])
+        0.0, 0.0, 1.0, 0.0
+        """
+        self._set_fluxes(self.numvars.idx_method, 'results')
+
+    def _set_fluxes(self, idx, type_):
+        fluxes = self.sequences.fluxes
+        for (name, flux) in fluxes.numerics:
+            temp = getattr(fluxes.fastaccess, '_%s_%s' % (name, type_))
+            temp[idx] = flux
+
+    def integrate_fluxes(self):
+        """
+        >>> from hydpy.models.test_v1 import *
+        >>> parameterstep()
+        >>> model.numvars.idx_method = 1
+        >>> model.numvars.idx_stage = 1
+        >>> model.numvars.dt = 0.5
+        >>> fluxes.fastaccess._q_points[:4] = 15., 2., 0., 0.
+        >>> model.integrate_fluxes()
+        >>> from hydpy.core.objecttools import round_
+        >>> from hydpy import pub
+        >>> round_(model.numconsts.a_coefs[1, 1, :2])
+        0.375, 0.125
+        >>> fluxes.q
+        q(7.5)
+        """
+        fluxes = self.sequences.fluxes
+        for (name, flux) in fluxes.numerics:
+            points = getattr(fluxes.fastaccess, '_%s_points' % name)
+            coefs = self.numconsts.a_coefs[self.numvars.idx_method-1,
+                                           self.numvars.idx_stage,
+                                           :self.numvars.idx_method]
+            flux(self.numvars.dt *
+                 numpy.dot(coefs, points[:self.numvars.idx_method]))
+
+    def reset_sum_fluxes(self):
+        """
+        >>> from hydpy.models.test_v1 import *
+        >>> parameterstep()
+        >>> fluxes.fastaccess._q_sum = 5.
+        >>> model.reset_sum_fluxes()
+        >>> fluxes.fastaccess._q_sum
+        0.0
+        """
+        fluxes = self.sequences.fluxes
+        for (name, flux) in fluxes.numerics:
+            if flux.NDIM == 0:
+                setattr(fluxes.fastaccess, '_%s_sum' % name, 0.)
+            else:
+                getattr(fluxes.fastaccess, '_%s_sum' % name)[:] = 0.
+
+    def addup_fluxes(self):
+        """
+        >>> from hydpy.models.test_v1 import *
+        >>> parameterstep()
+        >>> fluxes.fastaccess._q_sum = 1.0
+        >>> fluxes.q(2.0)
+        >>> model.addup_fluxes()
+        >>> fluxes.fastaccess._q_sum
+        3.0
+        """
+        fluxes = self.sequences.fluxes
+        for (name, flux) in fluxes.numerics:
+            sum_ = getattr(fluxes.fastaccess, '_%s_sum' % name)
+            sum_ += flux
+            if flux.NDIM == 0:
+                setattr(fluxes.fastaccess, '_%s_sum' % name, sum_)
+
+    def calculate_error(self):
+        """
+        >>> from hydpy.models.test_v1 import *
+        >>> parameterstep()
+        >>> model.numvars.idx_method = 2
+        >>> fluxes.fastaccess._q_results[:4] = 0., 3., 4., 0.
+        >>> model.calculate_error()
+        >>> from hydpy.core.objecttools import round_
+        >>> round_(model.numvars.error)
+        1.0
+        """
+        self.numvars.error = 0.
+        fluxes = self.sequences.fluxes
+        for (name, flux) in fluxes.numerics:
+            results = getattr(fluxes.fastaccess, '_%s_results' % name)
+            diff = (results[self.numvars.idx_method] -
+                    results[self.numvars.idx_method-1])
+            self.numvars.error = max(self.numvars.error,
+                                     numpy.max(numpy.abs(diff)))
 
 
 autodoctools.autodoc_module()

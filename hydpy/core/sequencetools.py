@@ -374,6 +374,17 @@ class FluxSequences(IOSubSequences):
     def savedata(self, idx):
         self.fastaccess.savedata(idx)
 
+    @property
+    def numerics(self):
+        """Iterator for `numerical` flux sequences.
+
+        `numerical` means that the class attribute of the respective sequence
+        is `True`.
+        """
+        for (name, flux) in self:
+            if flux.NUMERIC:
+                yield (name, flux)
+
 
 class StateSequences(IOSubSequences):
     """Base class for handling state sequences."""

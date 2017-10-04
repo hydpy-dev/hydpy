@@ -346,6 +346,17 @@ class PyxWriter(object):
                 for idx in range(seq.NDIM):
                     lines.add(1, 'cdef public int _%s_length_%d'
                                  % (seq.name, idx))
+                if seq.NUMERIC:
+                    ctype_numeric = 'double' + NDIM2STR[seq.NDIM+1]
+                    lines.add(1, 'cdef public %s _%s_points'
+                                 % (ctype_numeric, name2))
+                    lines.add(1, 'cdef public %s _%s_results'
+                                 % (ctype_numeric, name2))
+                    if isinstance(subseqs, sequencetools.FluxSequences):
+                        lines.add(1, 'cdef public %s _%s_integrals'
+                                     % (ctype_numeric, name2))
+                        lines.add(1, 'cdef public %s _%s_sum'
+                                     % (ctype, name2))
                 if isinstance(subseqs, sequencetools.IOSubSequences):
                     lines.extend(self.iosequence(seq))
             if isinstance(subseqs, sequencetools.InputSequences):

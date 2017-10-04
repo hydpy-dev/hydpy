@@ -24,6 +24,7 @@ from hydpy.core import parametertools
 from hydpy.core import sequencetools
 from hydpy.core import magictools
 from hydpy.core import autodoctools
+from hydpy.core import modeltools
 
 
 if platform.system().lower() == 'windows':
@@ -258,6 +259,8 @@ class PyxWriter(object):
             pxf.write(repr(self.parameters))
             print('    %s' % '* sequence classes')
             pxf.write(repr(self.sequences))
+            print('    %s' % '* numerical parameters')
+            pxf.write(repr(self.numericalparameters))
             print('    %s' % '* model class')
             print('        %s' % '- model attributes')
             pxf.write(repr(self.modeldeclarations))
@@ -287,7 +290,9 @@ class PyxWriter(object):
                      'from cpython.mem cimport PyMem_Realloc',
                      'from cpython.mem cimport PyMem_Free',
                      'from hydpy.cythons cimport pointer',
-                     'from hydpy.cythons import pointer')
+                     'from hydpy.cythons import pointer',
+                     'from hydpy.cythons cimport configtools',
+                     'from hydpy.cythons import configtools')
 
     @property
     def constants(self):
@@ -508,6 +513,26 @@ class PyxWriter(object):
         return lines
 
     @property
+    def numericalparameters(self):
+        """Numeric parameter declaration lines."""
+        lines = Lines()
+        if isinstance(self.model, modeltools.ModelELS):
+            lines.add(0, '@cython.final')
+            lines.add(0, 'cdef class NumConsts(object):')
+            for name in ('nmb_methods', 'nmb_stages'):
+                lines.add(1, 'cdef public %s %s' % (TYPE2STR[int], name))
+            for name in ('dt_increase', 'dt_decrease'):
+                lines.add(1, 'cdef public %s %s' % (TYPE2STR[float], name))
+            lines.add(1, 'cdef public configtools.Config pub')
+            lines.add(1, 'cdef public double[:, :, :] a_coefs')
+            lines.add(0, 'cdef class NumVars(object):')
+            for name in ('nmb_calls', 'idx_method', 'idx_stage'):
+                lines.add(1, 'cdef public %s %s' % (TYPE2STR[int], name))
+            for name in ('t0', 't1', 'dt', 'dt_est', 'error', 'last_error'):
+                lines.add(1, 'cdef public %s %s' % (TYPE2STR[float], name))
+        return lines
+
+    @property
     def modeldeclarations(self):
         """Attribute declarations of the model class."""
         lines = Lines()
@@ -521,6 +546,10 @@ class PyxWriter(object):
         if getattr(self.model.sequences, 'states', None) is not None:
             lines.add(1, 'cdef public StateSequences old_states')
             lines.add(1, 'cdef public StateSequences new_states')
+        if hasattr(self.model, 'numconsts'):
+            lines.add(1, 'cdef public NumConsts numconsts')
+        if hasattr(self.model, 'numvars'):
+            lines.add(1, 'cdef public NumVars numvars')
         return lines
 
     @property

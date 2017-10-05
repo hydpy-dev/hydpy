@@ -70,10 +70,12 @@ class Lines(list):
         return '\n'.join(self) + '\n'
 
 
-def method_header(method_name):
+def method_header(method_name, nogil=False):
     """Returns the Cython method header for methods without arguments except
     `self`."""
-    return 'cpdef inline void %s(self):' % method_name
+    header = 'cpdef inline void %s(self)' % method_name
+    header += ' nogil:' if nogil else ':'
+    return header
 
 
 def decorate_method(wrapped):
@@ -445,7 +447,7 @@ class PyxWriter(object):
         """Load data statements."""
         print('            . loaddata')
         lines = Lines()
-        lines.add(1, 'cpdef inline loaddata(self, int idx):')
+        lines.add(1, 'cpdef inline void loaddata(self, int idx) nogil:')
         lines.add(2, 'cdef int jdx0, jdx1, jdx2, jdx3, jdx4, jdx5')
         for (name, seq) in subseqs:
             lines.add(2, 'if self._%s_diskflag:' % name)
@@ -473,7 +475,7 @@ class PyxWriter(object):
         """Save data statements."""
         print('            . savedata')
         lines = Lines()
-        lines.add(1, 'cpdef inline savedata(self, int idx):')
+        lines.add(1, 'cpdef inline void savedata(self, int idx) nogil:')
         lines.add(2, 'cdef int jdx0, jdx1, jdx2, jdx3, jdx4, jdx5')
         for (name, seq) in subseqs:
             lines.add(2, 'if self._%s_diskflag:' % name)
@@ -634,7 +636,7 @@ class PyxWriter(object):
         """Do (most of) it function of the model class."""
         print('                . doit')
         lines = Lines()
-        lines.add(1, 'cpdef inline void doit(self, int idx):')
+        lines.add(1, 'cpdef inline void doit(self, int idx) nogil:')
         lines.add(2, 'self.idx_sim = idx')
         if getattr(self.model.sequences, 'inputs', None) is not None:
             lines.add(2, 'self.loaddata()')
@@ -666,7 +668,8 @@ class PyxWriter(object):
                  (getattr(self.model.sequences, 'states', None) is None))):
                 continue
             print('            . %s' % func)
-            lines.add(1, method_header(func))
+            nogil = func in ('loaddata', 'savedata')
+            lines.add(1, method_header(func, nogil))
             for (name, subseqs) in self.model.sequences:
                 if func == 'loaddata':
                     applyfuncs = ('inputs',)
@@ -686,7 +689,7 @@ class PyxWriter(object):
         lines = Lines()
         if getattr(self.model.sequences, 'states', None) is not None:
             print('                . new2old')
-            lines.add(1, method_header('new2old'))
+            lines.add(1, method_header('new2old', True))
             lines.add(2, 'cdef int jdx0, jdx1, jdx2, jdx3, jdx4, jdx5')
             for (name, seq) in sorted(self.model.sequences.states):
                 if seq.NDIM == 0:
@@ -710,7 +713,7 @@ class PyxWriter(object):
     def _call_methods(self, name, methods):
         lines = Lines()
         if hasattr(self.model, name):
-            lines.add(1, method_header(name))
+            lines.add(1, method_header(name, True))
             anything = False
             for method in methods:
                 lines.add(2, 'self.%s()' % method.__name__)
@@ -1032,6 +1035,7 @@ class FuncConverter(object):
           * remove docstrings
           * remove comments
           * remove empty lines
+          * remove line brackes within brackets
           * replace `modelutils` with nothing
           * remove complete lines containing `fastaccess`
           * replace shortcuts with complete references
@@ -1042,12 +1046,61 @@ class FuncConverter(object):
         for (name, shortcut) in zip(self.collectornames,
                                     self.collectorshortcuts):
             code = code.replace('%s.' % shortcut, 'self.%s.' % name)
+        code = self.remove_linebreaks_within_equations(code)
         lines = code.splitlines()
+        self.remove_imath_operators(lines)
         lines[0] = 'def %s(self):' % self.funcname
         lines = [l.split('#')[0] for l in lines]
         lines = [l for l in lines if 'fastaccess' not in l]
         lines = [l.rstrip() for l in lines if l.rstrip()]
         return Lines(*lines)
+
+    @staticmethod
+    def remove_linebreaks_within_equations(code):
+        """Remove line breaks within equations.
+
+        This is not a exhaustive test, but shows how the method works:
+
+        >>> code = 'asdf = \\\n(x\n+b)'
+        >>> from hydpy.cythons.modelutils import FuncConverter
+        >>> FuncConverter.remove_linebreaks_within_equations(code)
+        'asdf = (a+b)'
+        """
+        code = code.replace('\\\n', '')
+        chars = []
+        counter = 0
+        for char in code:
+            if char in ('(', '[', '{'):
+                counter += 1
+            elif char in (')', ']', '}'):
+                counter -= 1
+            if not (counter and (char == '\n')):
+                chars.append(char)
+        return ''.join(chars)
+
+    @staticmethod
+    def remove_imath_operators(lines):
+        """Remove mathematical expressions that require Pythons global
+        interpreter locking mechanism.
+
+        This is not a exhaustive test, but shows how the method works:
+
+        >>> lines = ['    x += 1*1']
+        >>> from hydpy.cythons.modelutils import FuncConverter
+        >>> FuncConverter.remove_imath_operators(lines)
+        >>> lines
+        ['    x = x + (1*1)']
+        """
+        for idx, line in enumerate(lines):
+            for operator in ('+=', '-=', '**=', '*=', '//=', '/=', '%='):
+                sublines = line.split(operator)
+                if len(sublines) > 1:
+                    indent = line.count(' ') - line.lstrip().count(' ')
+                    sublines = [sl.strip() for sl in sublines]
+                    line = ('%s%s = %s %s (%s)'
+                            % (indent*' ', sublines[0], sublines[0],
+                               operator[:-1], sublines[1]))
+                    lines[idx] = line
 
     @property
     def pyxlines(self):
@@ -1062,6 +1115,7 @@ class FuncConverter(object):
         """
         lines = ['    '+line for line in self.cleanlines]
         lines[0] = lines[0].replace('def ', 'cpdef inline void ')
+        lines[0] = lines[0].replace('):', ') nogil:')
         for name in self.untypedarguments:
             lines[0] = lines[0].replace(', %s ' % name, ', int %s ' % name)
             lines[0] = lines[0].replace(', %s)' % name, ', int %s)' % name)

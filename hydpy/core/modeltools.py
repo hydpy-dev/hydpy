@@ -660,18 +660,18 @@ class ModelELS(Model):
 
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
-        >>> model.numvars.idx_method = 1
+        >>> model.numvars.idx_method = 2
         >>> model.numvars.idx_stage = 1
         >>> model.numvars.dt = 0.5
         >>> points = numpy.asarray(fluxes.fastaccess._q_points)
-        >>> points[:4] = 15., 2., 0., 0.
+        >>> points[:4] = 15., 2., -999., 0.
         >>> model.integrate_fluxes()
         >>> from hydpy.core.objecttools import round_
         >>> from hydpy import pub
         >>> round_(numpy.asarray(model.numconsts.a_coefs)[1, 1, :2])
         0.375, 0.125
         >>> fluxes.q
-        q(7.5)
+        q(2.9375)
         """
         fluxes = self.sequences.fluxes
         for (name, flux) in fluxes.numerics:

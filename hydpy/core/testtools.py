@@ -414,8 +414,8 @@ class UnitTest(Test):
             self._doc = self.method.__doc__
         else:
             Model = type(self.model)
-            for function in itertools.chain(Model._RUNMETHODS,
-                                            Model._ADDMETHODS):
+            for function in itertools.chain(Model._RUN_METHODS,
+                                            Model._ADD_METHODS):
                 if function.__name__ == self.method.__name__:
                     return function.__doc__
 

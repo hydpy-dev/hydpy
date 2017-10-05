@@ -18,18 +18,27 @@ from hydpy.cythons import modelutils
 
 class MetaModel(type):
     def __new__(cls, name, parents, dict_):
-        _METHOD_GROUPS = ('_RUNMETHODS', '_ADDMETHODS',
+        _METHOD_GROUPS = ('_RUN_METHODS', '_ADD_METHODS',
+                          '_INPUT_METHODS', '_OUTPUT_METHODS',
                           '_PART_ODE_METHODS', '_FULL_ODE_METHODS')
         dict_['_METHOD_GROUPS'] = _METHOD_GROUPS
         for name in _METHOD_GROUPS:
             methods = dict_.get(name, ())
             if methods:
-                if name == '_RUNMETHODS':
+                if name == '_RUN_METHODS':
                     lst = ['\n\n\n    The following "run methods" are called '
                            'each simulation step run in the given sequence:']
-                elif name == '_ADDMETHODS':
+                elif name == '_ADD_METHODS':
                     lst = ['\n\n\n    The following "additional methods" are '
                            'called by at least one "run method":']
+                elif name == '_INPUT_METHODS':
+                    lst = ['\n\n\n    The following "input update methods" '
+                           'are called at the beginning of each simulation '
+                           'time step:']
+                elif name == '_OUPUT_METHODS':
+                    lst = ['\n\n\n    The following "output update methods" '
+                           'are called at the end of each simulation '
+                           'time step:']
                 elif name == '_PART_ODE_METHODS':
                     lst = ['\n\n\n    The following methods define the '
                            'relevant components of a system of ODE '
@@ -56,8 +65,10 @@ _MetaModel = MetaModel('MetaModel', (), {})
 class Model(_MetaModel):
     """Base class for all hydrological models."""
 
-    _RUNMETHODS = ()
-    _ADDMETHODS = ()
+    _RUN_METHODS = ()
+    _ADD_METHODS = ()
+    _INPUT_METHODS = ()
+    _OUTPUT_METHODS = ()
     _PART_ODE_METHODS = ()
     _FULL_ODE_METHODS = ()
 
@@ -145,17 +156,15 @@ class Model(_MetaModel):
     def doit(self, idx):
         self.idx_sim = idx
         self.loaddata()
-        self.update_inlets()
+        self.update_inputs()
         self.run()
-        self.update_outlets()
-        self.update_senders()
         self.new2old()
+        self.update_outputs()
         self.savedata()
 
     def run(self):
-        for method in self._RUNMETHODS:
-            if not method.__name__.startswith('update_'):
-                method(self)
+        for method in self._RUN_METHODS:
+            method(self)
 
     def loaddata(self):
         self.sequences.loaddata(self.idx_sim)
@@ -163,19 +172,13 @@ class Model(_MetaModel):
     def savedata(self):
         self.sequences.savedata(self.idx_sim)
 
-    def update_inlets(self):
-        """Maybe."""
-        pass
+    def update_inputs(self):
+        for method in self._INPUT_METHODS:
+            method(self)
 
-    def update_outlets(self):
-        """In any case."""
-        pass
-
-    def update_receivers(self):
-        pass
-
-    def update_senders(self):
-        pass
+    def update_outputs(self):
+        for method in self._OUTPUT_METHODS:
+            method(self)
 
     def new2old(self):
         """Assign the new/final state values of the actual time step to the
@@ -238,11 +241,6 @@ class NumVarsELS(NumPars):
 
 class ModelELS(Model):
 
-    _RUNMETHODS = ()
-    _ADDMETHODS = ()
-    _PART_ODE_METHODS = ()
-    _FULL_ODE_METHODS = ()
-
     def __init__(self):
         super(ModelELS, self).__init__()
         self.numconsts = NumConstsELS()
@@ -251,10 +249,9 @@ class ModelELS(Model):
     def doit(self, idx):
         self.idx_sim = idx
         self.loaddata()
-        self.update_inlets()
+        self.update_inputs()
         self.solve()
-        self.update_outlets()
-        self.update_senders()
+        self.update_outputs()
         self.savedata()
 
     def solve(self):

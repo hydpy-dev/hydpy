@@ -737,8 +737,11 @@ class PyxWriter(object):
     @property
     def calculate_single_terms(self):
         """Lines of model method with the same name."""
-        return self._call_methods('calculate_single_terms',
-                                  self.model._PART_ODE_METHODS)
+        lines = self._call_methods('calculate_single_terms',
+                                   self.model._PART_ODE_METHODS)
+        if lines:
+            lines.insert(1, '        self.numvars.nmb_calls += 1')
+        return lines
 
     @property
     def calculate_full_terms(self):

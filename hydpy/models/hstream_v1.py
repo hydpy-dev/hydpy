@@ -20,9 +20,9 @@ from hydpy.models.hstream.hstream_parameters import Parameters
 
 class Model(modeltools.Model):
     """The HBV96 version of HydPy-H-Stream (hstream_v1)."""
-    _RUNMETHODS = (hstream_model.calc_qjoints_v1,
-                   hstream_model.update_inlets_v1,
-                   hstream_model.update_outlets_v1)
+    _INPUT_METHODS = (hstream_model.pick_q_v1,)
+    _RUN_METHODS = (hstream_model.calc_qjoints_v1,)
+    _OUTPUT_METHODS = (hstream_model.pass_q_v1,)
 
 
 class ControlParameters(parametertools.SubParameters):

@@ -649,7 +649,7 @@ def modify_qa_v1(self):
     flu.qa = max(flu.qa-con.verzw[idx], 0.)
 
 
-def update_inlets_v1(self):
+def pick_q_v1(self):
     """Update the inlet link sequence."""
     flu = self.sequences.fluxes.fastaccess
     inl = self.sequences.inlets.fastaccess
@@ -658,7 +658,7 @@ def update_inlets_v1(self):
         flu.qz += inl.q[idx][0]
 
 
-def update_outlets_v1(self):
+def pass_q_v1(self):
     """Update the outlet link sequence."""
     flu = self.sequences.fluxes.fastaccess
     out = self.sequences.outlets.fastaccess
@@ -668,13 +668,13 @@ def update_outlets_v1(self):
 class Model(modeltools.Model):
     """Base model for HydPy-L-Lake."""
 
-    _RUNMETHODS = (update_inlets_v1,
-                   solve_dv_dt_v1,
-                   interp_w_v1,
-                   corr_dw_v1,
-                   modify_qa_v1,
-                   update_outlets_v1)
-    _ADDMETHODS = (interp_v_v1,
-                   calc_vq_v1,
-                   interp_qa_v1,
-                   calc_v_qa_v1)
+    _INPUT_METHODS = (pick_q_v1,)
+    _RUN_METHODS = (solve_dv_dt_v1,
+                    interp_w_v1,
+                    corr_dw_v1,
+                    modify_qa_v1,)
+    _ADD_METHODS = (interp_v_v1,
+                    calc_vq_v1,
+                    interp_qa_v1,
+                    calc_v_qa_v1)
+    _OUTPUT_METHODS = (pass_q_v1,)

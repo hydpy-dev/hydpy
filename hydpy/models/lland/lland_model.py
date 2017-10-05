@@ -1861,7 +1861,7 @@ def calc_q_v1(self):
         flu.q = 0.
 
 
-def update_outlets_v1(self):
+def pass_q_v1(self):
     """Update the outlet link sequence.
 
     Required derived parameter:
@@ -1882,32 +1882,32 @@ def update_outlets_v1(self):
 class Model(modeltools.Model):
     """Base model for HydPy-L-Land."""
 
-    _RUNMETHODS = (calc_nkor_v1,
-                   calc_tkor_v1,
-                   calc_et0_v1,
-                   calc_et0_v2,
-                   calc_evpo_v1,
-                   calc_nbes_inzp_v1,
-                   calc_evi_inzp_v1,
-                   calc_sbes_v1,
-                   calc_wgtf_v1,
-                   calc_schm_wats_v1,
-                   calc_wada_waes_v1,
-                   calc_evb_v1,
-                   calc_qbb_v1,
-                   calc_qib1_v1,
-                   calc_qib2_v1,
-                   calc_qdb_v1,
-                   calc_bowa_v1,
-                   calc_qbgz_v1,
-                   calc_qigz1_v1,
-                   calc_qigz2_v1,
-                   calc_qdgz_v1,
-                   calc_qdgz1_qdgz2_v1,
-                   calc_qbga_v1,
-                   calc_qiga1_v1,
-                   calc_qiga2_v1,
-                   calc_qdga1_v1,
-                   calc_qdga2_v1,
-                   calc_q_v1,
-                   update_outlets_v1)
+    _RUN_METHODS = (calc_nkor_v1,
+                    calc_tkor_v1,
+                    calc_et0_v1,
+                    calc_et0_v2,
+                    calc_evpo_v1,
+                    calc_nbes_inzp_v1,
+                    calc_evi_inzp_v1,
+                    calc_sbes_v1,
+                    calc_wgtf_v1,
+                    calc_schm_wats_v1,
+                    calc_wada_waes_v1,
+                    calc_evb_v1,
+                    calc_qbb_v1,
+                    calc_qib1_v1,
+                    calc_qib2_v1,
+                    calc_qdb_v1,
+                    calc_bowa_v1,
+                    calc_qbgz_v1,
+                    calc_qigz1_v1,
+                    calc_qigz2_v1,
+                    calc_qdgz_v1,
+                    calc_qdgz1_qdgz2_v1,
+                    calc_qbga_v1,
+                    calc_qiga1_v1,
+                    calc_qiga2_v1,
+                    calc_qdga1_v1,
+                    calc_qdga2_v1,
+                    calc_q_v1)
+    _OUTPUT_METHODS = (pass_q_v1,)

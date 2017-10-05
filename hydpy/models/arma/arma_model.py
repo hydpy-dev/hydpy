@@ -417,7 +417,7 @@ def calc_qout_v1(self):
         flu.qout += flu.qpout[idx]
 
 
-def update_inlets_v1(self):
+def pick_q_v1(self):
     """Update inflow."""
     flu = self.sequences.fluxes.fastaccess
     inl = self.sequences.inlets.fastaccess
@@ -426,7 +426,7 @@ def update_inlets_v1(self):
         flu.qin += inl.q[idx][0]
 
 
-def update_outlets_v1(self):
+def pass_q_v1(self):
     """Update outflow."""
     flu = self.sequences.fluxes.fastaccess
     out = self.sequences.outlets.fastaccess
@@ -436,12 +436,12 @@ def update_outlets_v1(self):
 class Model(modeltools.Model):
     """Base model ARMA."""
 
-    _RUNMETHODS = (update_inlets_v1,
-                   calc_qpin_v1,
-                   calc_login_v1,
-                   calc_qma_v1,
-                   calc_qar_v1,
-                   calc_qpout_v1,
-                   calc_logout_v1,
-                   calc_qout_v1,
-                   update_outlets_v1)
+    _INPUT_METHODS = (pick_q_v1,)
+    _RUN_METHODS = (calc_qpin_v1,
+                    calc_login_v1,
+                    calc_qma_v1,
+                    calc_qar_v1,
+                    calc_qpout_v1,
+                    calc_logout_v1,
+                    calc_qout_v1)
+    _OUTPUT_METHODS = (pass_q_v1,)

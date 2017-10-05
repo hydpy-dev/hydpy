@@ -95,7 +95,7 @@ def calc_outputs_v1(self):
             con.ypoints[bdx, pdx-1])
 
 
-def update_inlets_v1(self):
+def pick_input_v1(self):
     """Updates :class:`~hydpy.models.hbranch.Input` based on
     :class:`~hydpy.models.hbranch.Total`."""
     flu = self.sequences.fluxes.fastaccess
@@ -103,7 +103,7 @@ def update_inlets_v1(self):
     flu.input = inl.total[0]
 
 
-def update_outlets_v1(self):
+def pass_outputs_v1(self):
     """Updates :class:`~hydpy.models.hbranch.Branched` based on
     :class:`~hydpy.models.hbranch.Outputs`."""
     der = self.parameters.derived.fastaccess
@@ -120,9 +120,9 @@ class Model(modeltools.Model):
       * nodenames (:class:`list`): Names of the outlet node names, the
         actual model shall be connected to.
     """
-    _RUNMETHODS = (calc_outputs_v1,
-                   update_inlets_v1,
-                   update_outlets_v1)
+    _INPUT_METHODS = (pick_input_v1,)
+    _RUN_METHODS = (calc_outputs_v1,)
+    _OUTPUT_METHODS = (pass_outputs_v1,)
 
     def __init__(self):
         modeltools.Model.__init__(self)

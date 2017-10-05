@@ -2193,7 +2193,7 @@ def calc_qt_v1(self):
     flu.qt = max(flu.outuh-con.abstr, 0.)
 
 
-def update_outlets_v1(self):
+def update_q_v1(self):
     """Update the outlet link sequence."""
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
@@ -2203,30 +2203,30 @@ def update_outlets_v1(self):
 
 class Model(modeltools.Model):
     """The HydPy-H-Land base model."""
-    _RUNMETHODS = (calc_tc_v1,
-                   calc_tmean_v1,
-                   calc_fracrain_v1,
-                   calc_rfc_sfc_v1,
-                   calc_pc_v1,
-                   calc_ep_v1,
-                   calc_epc_v1,
-                   calc_tf_ic_v1,
-                   calc_ei_ic_v1,
-                   calc_sp_wc_v1,
-                   calc_melt_sp_wc_v1,
-                   calc_refr_sp_wc_v1,
-                   calc_glmelt_in_v1,
-                   calc_in_wc_v1,
-                   calc_r_sm_v1,
-                   calc_cf_sm_v1,
-                   calc_ea_sm_v1,
-                   calc_inuz_v1,
-                   calc_contriarea_v1,
-                   calc_q0_perc_uz_v1,
-                   calc_lz_v1,
-                   calc_el_lz_v1,
-                   calc_q1_lz_v1,
-                   calc_inuh_v1,
-                   calc_outuh_quh_v1,
-                   calc_qt_v1,
-                   update_outlets_v1)
+    _RUN_METHODS = (calc_tc_v1,
+                    calc_tmean_v1,
+                    calc_fracrain_v1,
+                    calc_rfc_sfc_v1,
+                    calc_pc_v1,
+                    calc_ep_v1,
+                    calc_epc_v1,
+                    calc_tf_ic_v1,
+                    calc_ei_ic_v1,
+                    calc_sp_wc_v1,
+                    calc_melt_sp_wc_v1,
+                    calc_refr_sp_wc_v1,
+                    calc_glmelt_in_v1,
+                    calc_in_wc_v1,
+                    calc_r_sm_v1,
+                    calc_cf_sm_v1,
+                    calc_ea_sm_v1,
+                    calc_inuz_v1,
+                    calc_contriarea_v1,
+                    calc_q0_perc_uz_v1,
+                    calc_lz_v1,
+                    calc_el_lz_v1,
+                    calc_q1_lz_v1,
+                    calc_inuh_v1,
+                    calc_outuh_quh_v1,
+                    calc_qt_v1)
+    _OUTPUT_METHODS = (update_q_v1,)

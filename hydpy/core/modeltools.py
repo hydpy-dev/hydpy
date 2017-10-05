@@ -481,7 +481,7 @@ class ModelELS(Model):
                                            self.numvars.dt)
                     self.addup_fluxes()
                     self.numvars.t0 += self.numvars.dt
-                    self.sequences.states.new2old()
+                    self.new2old()
                     break
                 elif ((self.numvars.extrapolated_error >
                        self.numconsts.pub._abs_error_max) and
@@ -498,7 +498,7 @@ class ModelELS(Model):
                     self.numvars.f0_ready = False
                     self.addup_fluxes()
                     self.numvars.t0 += self.numvars.dt
-                    self.sequences.states.new2old()
+                    self.new2old()
                 else:
                     self.numvars.f0_ready = True
                     self.numvars.dt_est = (self.numvars.dt /

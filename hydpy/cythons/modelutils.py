@@ -915,16 +915,16 @@ class PyxWriter(object):
             to_ = 'self.fluxes._%s_sum' % name
             from_ = 'self.fluxes.%s' % name
             if seq.NDIM == 0:
-                yield '%s = %s' % (to_, from_)
+                yield '%s += %s' % (to_, from_)
             elif seq.NDIM == 1:
                 yield 'cdef int idx0'
                 yield 'for idx0 in range(self.fluxes._%s_length0):' % name
-                yield '    %s[idx0] = %s[idx0]' % (to_, from_)
+                yield '    %s[idx0] += %s[idx0]' % (to_, from_)
             elif seq.NDIM == 2:
                 yield 'cdef int idx0, idx1'
                 yield 'for idx0 in range(self.fluxes._%s_length0):' % name
                 yield '    for idx1 in range(self.fluxes._%s_length1):' % name
-                yield '        %s[idx0, idx1] = %s[idx0, idx1]' % (to_, from_)
+                yield '        %s[idx0, idx1] += %s[idx0, idx1]' % (to_, from_)
             else:
                 raise NotImplementedError(
                         'NDIM of sequence `%s` is higher than expected' % name)

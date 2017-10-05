@@ -23,10 +23,10 @@ class Device(object):
     _registry = {}
     _selection = {}
 
-    def _getname(self):
+    @property
+    def name(self):
         """Name of the actual device (node or element)."""
         return self._name
-    name = property(_getname)
 
     def _checkname(self, name):
         """Raises an :class:`~exceptions.ValueError` if the given name is not
@@ -432,9 +432,9 @@ class Devices(object):
             for value in values:
                 self._extractvalues(value)
 
-    def _getnames(self):
+    @property
+    def names(self):
         return vars(self).keys()
-    names = property(_getnames)
 
     def _getdevices(self):
         return vars(self).values()

@@ -467,6 +467,8 @@ class Sequence(objecttools.ValueMath):
         """
         self.values = args
 
+    name = property(objecttools.name)
+
     @property
     def initvalue(self):
         if pub.options.usedefaultvalues:
@@ -480,13 +482,6 @@ class Sequence(objecttools.ValueMath):
     def _initvalues(self):
         value = None if self.NDIM else self.initvalue
         setattr(self.fastaccess, self.name, value)
-
-    def _getname(self):
-        """Name of the sequence, which is the name if the instantiating
-        subclass of :class:`Sequence` in lower case letters.
-        """
-        return objecttools.classname(self).lower()
-    name = property(_getname)
 
     def _getvalue(self):
         """The actual time series value(s) handled by the respective

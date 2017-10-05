@@ -23,11 +23,10 @@ class Selections(object):
         for selection in selections:
             self += selection
 
-    def _getnames(self):
+    @property
+    def names(self):
         """Names of the actual selections."""
         return vars(self).keys()
-
-    names = property(_getnames)
 
     def _getselections(self):
         """The actual selections themselves."""

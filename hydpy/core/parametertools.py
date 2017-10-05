@@ -258,13 +258,6 @@ class Parameter(objecttools.ValueMath):
 
     def __init__(self):
         self.subpars = None
-
-    def _getname(self):
-        """Name of the parameter, which is the name if the instantiating
-        subclass of :class:`Parameter` in lower case letters.
-        """
-        return objecttools.classname(self).lower()
-    name = property(_getname)
         self.fastaccess = objecttools.FastAccess()
 
     def __call__(self, *args, **kwargs):
@@ -322,6 +315,8 @@ class Parameter(objecttools.ValueMath):
                                'read parameter `%s` from file `%s`.'
                                % (self.name, pyfile))
         return subself.values
+
+    name = property(objecttools.name)
 
     @property
     def initvalue(self):

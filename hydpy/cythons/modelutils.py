@@ -864,25 +864,28 @@ class PyxWriter(object):
         for (name, seq) in self.model.sequences.fluxes.numerics:
             to_ = 'self.fluxes.%s' % name
             from_ = 'self.fluxes._%s_points' % name
+            coefs = ('self.numvars.dt * self.numconsts.a_coefs'
+                     '[self.numvars.idx_method-1,self.numvars.idx_stage,jdx]')
             if seq.NDIM == 0:
                 yield 'cdef int jdx'
                 yield '%s = 0.' % to_
                 yield 'for jdx in range(self.numvars.idx_method):'
-                yield '    %s += %s[jdx]' % (to_, from_)
+                yield '    %s += %s*%s[jdx]' % (to_, coefs, from_)
             elif seq.NDIM == 1:
                 yield 'cdef int jdx, idx0'
                 yield 'for idx0 in range(self.fluxes._%s_length0):' % name
                 yield '    %s[idx0] = 0.' % to_
                 yield '    for jdx in range(self.numvars.idx_method):'
-                yield '        %s[idx0] += %s[jdx, idx0]' % (to_, from_)
+                yield ('        %s[idx0] += %s*%s[jdx, idx0]'
+                       % (to_, coefs, from_))
             elif seq.NDIM == 2:
                 yield 'cdef int jdx, idx0, idx1'
                 yield 'for idx0 in range(self.fluxes._%s_length0):' % name
                 yield '    for idx1 in range(self.fluxes._%s_length1):' % name
                 yield '        %s[idx0, idx1] = 0.' % to_
                 yield '        for jdx in range(self.numvars.idx_method):'
-                yield ('            %s[idx0, idx1] += %s[jdx, idx0, idx1]'
-                       % (to_, from_))
+                yield ('            %s[idx0, idx1] += %s*%s[jdx, idx0, idx1]'
+                       % (to_, coefs, from_))
             else:
                 raise NotImplementedError(
                         'NDIM of sequence `%s` is higher than expected' % name)

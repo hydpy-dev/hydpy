@@ -213,8 +213,11 @@ class Cythonizer(object):
         """Translate cython code to C code and compile it."""
         argv = copy.deepcopy(sys.argv)
         sys.argv = [sys.argv[0], 'build_ext', '--build-lib='+self.buildpath]
-        exc_modules = Cython.Build.cythonize(self.cyfilepath)
-        distutils.core.setup(ext_modules=exc_modules,
+        exc_modules = [
+                distutils.extension.Extension('hydpy.cythons.'+self.cyname,
+                                              [self.cyfilepath],
+                                              extra_compile_args=['-O2'])]
+        distutils.core.setup(ext_modules=Cython.Build.cythonize(exc_modules),
                              include_dirs=[numpy.get_include()])
         sys.argv = argv
 

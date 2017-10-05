@@ -36,7 +36,8 @@ for name in os.listdir(os.path.join('hydpy', 'cythons')):
 ext_modules = []
 for ext_name in ext_names:
     ext_sources = os.path.join('hydpy', 'cythons', '%s.pyx' % ext_name)
-    ext_modules.append(Extension('hydpy.cythons.%s' % ext_name, [ext_sources]))
+    ext_modules.append(Extension('hydpy.cythons.%s' % ext_name, [ext_sources],
+                                 extra_compile_args=['-O2']))
 # The usual setup definitions.
 setup(name='HydPy',
       version='2.0.0',

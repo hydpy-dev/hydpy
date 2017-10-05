@@ -211,8 +211,6 @@ def parameterstep(timestep=None):
                     for (name_numpar, numpar) in numpars_old:
                         setattr(numpars_new, name_numpar, numpar)
                     setattr(model.cymodel, numpars_name.lower(), numpars_new)
-            for (name, func) in cythonizer.pyxwriter.listofmodeluserfunctions:
-                setattr(model, name, getattr(model.cymodel, name))
             for name in dir(model.cymodel):
                 if (not name.startswith('_')) and hasattr(model, name):
                     setattr(model, name, getattr(model.cymodel, name))

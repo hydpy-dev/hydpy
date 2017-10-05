@@ -931,7 +931,7 @@ class PyxWriter(object):
 
     @decorate_method
     def calculate_error(self):
-        to_ = 'self.model.numvars.error'
+        to_ = 'self.numvars.error'
         index = 'self.numvars.idx_method'
         yield '%s = 0.' % to_
         for (name, seq) in self.model.sequences.fluxes.numerics:

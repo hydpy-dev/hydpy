@@ -1152,6 +1152,11 @@ class ValueMath(object):
         return '\n'.join(self.commentrepr() + [string])
 
 
+class FastAccess(object):
+    """Used as a surrogate for typed Cython classes when working in
+    pure Python mode."""
+
+
 class HydPyDeprecationWarning(DeprecationWarning):
     pass
 

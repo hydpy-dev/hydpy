@@ -88,8 +88,7 @@ class ANN(object):
 
     def __init__(self):
         self.subpars = None
-        self.fastaccess = type('JustForDemonstrationPurposes', (),
-                               {self.name: None})()
+        self.fastaccess = objecttools.FastAccess()
         self._cann = annutils.ANN()
 
     def connect(self, subpars):

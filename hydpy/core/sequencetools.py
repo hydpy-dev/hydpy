@@ -441,7 +441,7 @@ class Sequence(objecttools.ValueMath):
 
     def __init__(self):
         self.subseqs = None
-        self.fastaccess = type('FastAccess', (), {})
+        self.fastaccess = objecttools.FastAccess()
 
     def connect(self, subseqs):
         self.subseqs = subseqs

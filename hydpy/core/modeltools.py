@@ -76,7 +76,7 @@ class Model(_MetaModel):
         self.element = None
         self.parameters = None
         self.sequences = None
-        self.cymodel = type('dummy', (), {})
+        self.cymodel = objecttools.FastAccess()
         self.cymodel.idx_sim = -999
         self._init_methods()
 

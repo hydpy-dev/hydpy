@@ -186,7 +186,7 @@ class SubParameters(MetaSubParametersClass):
     def __init__(self, pars, cls_fastaccess=None, cymodel=None):
         self.pars = pars
         if cls_fastaccess is None:
-            self.fastaccess = type('FastAccess', (), {})
+            self.fastaccess = objecttools.FastAccess()
         else:
             self.fastaccess = cls_fastaccess()
             setattr(cymodel, self.name, self.fastaccess)
@@ -258,8 +258,6 @@ class Parameter(objecttools.ValueMath):
 
     def __init__(self):
         self.subpars = None
-        self.fastaccess = type('JustForDemonstrationPurposes', (),
-                               {self.name: None})()
 
     def _getname(self):
         """Name of the parameter, which is the name if the instantiating
@@ -267,6 +265,7 @@ class Parameter(objecttools.ValueMath):
         """
         return objecttools.classname(self).lower()
     name = property(_getname)
+        self.fastaccess = objecttools.FastAccess()
 
     def __call__(self, *args, **kwargs):
         """The prefered way to pass values to :class:`Parameter` instances

@@ -624,18 +624,18 @@ def calc_hmin_qmin_hmax_qmax_v1(self):
         aid.qmin = 0.
         aid.hmax = con.hm
         aid.qmax = der.qm
-    elif flu.qref <= min(der.qv):
+    elif flu.qref <= min(der.qv[0], der.qv[1]):
         aid.hmin = con.hm
         aid.qmin = der.qm
-        aid.hmax = con.hm+min(der.hv)
-        aid.qmax = min(der.qv)
-    elif flu.qref < max(der.qv):
-        aid.hmin = con.hm+min(der.hv)
-        aid.qmin = min(der.qv)
-        aid.hmax = con.hm+max(der.hv)
-        aid.qmax = max(der.qv)
+        aid.hmax = con.hm+min(der.hv[0], der.hv[1])
+        aid.qmax = min(der.qv[0], der.qv[1])
+    elif flu.qref < max(der.qv[0], der.qv[1]):
+        aid.hmin = con.hm+min(der.hv[0], der.hv[1])
+        aid.qmin = min(der.qv[0], der.qv[1])
+        aid.hmax = con.hm+max(der.hv[0], der.hv[1])
+        aid.qmax = max(der.qv[0], der.qv[1])
     else:
-        flu.h = con.hm+max(der.hv)
+        flu.h = con.hm+max(der.hv[0], der.hv[1])
         aid.hmin = flu.h
         aid.qmin = flu.qg
         while True:

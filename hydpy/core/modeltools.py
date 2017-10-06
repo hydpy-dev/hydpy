@@ -477,7 +477,7 @@ class ModelELS(Model):
                     self.numvars.dt_est = (self.numconsts.dt_increase *
                                            self.numvars.dt)
                     self.addup_fluxes()
-                    self.numvars.t0 += self.numvars.dt
+                    self.numvars.t0 = self.numvars.t0+self.numvars.dt
                     self.new2old()
                     break
                 elif ((self.numvars.extrapolated_error >
@@ -494,7 +494,7 @@ class ModelELS(Model):
                 if self.numvars.dt <= self.numconsts.pub._rel_dt_min:
                     self.numvars.f0_ready = False
                     self.addup_fluxes()
-                    self.numvars.t0 += self.numvars.dt
+                    self.numvars.t0 = self.numvars.t0+self.numvars.dt
                     self.new2old()
                 else:
                     self.numvars.f0_ready = True
@@ -513,7 +513,7 @@ class ModelELS(Model):
         >>> fluxes.q
         q(0.25)
         """
-        self.numvars.nmb_calls += 1
+        self.numvars.nmb_calls = self.numvars.nmb_calls+1
         for method in self._PART_ODE_METHODS:
             method(self)
 

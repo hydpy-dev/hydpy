@@ -88,7 +88,7 @@ def decorate_method(wrapped):
         lines = Lines()
         if hasattr(self.model, wrapped.__name__):
             print('            . %s' % wrapped.__name__)
-            lines.add(1, method_header(wrapped.__name__))
+            lines.add(1, method_header(wrapped.__name__, True))
             for line in wrapped(self):
                 lines.add(2, line)
         return lines
@@ -746,7 +746,8 @@ class PyxWriter(object):
         lines = self._call_methods('calculate_single_terms',
                                    self.model._PART_ODE_METHODS)
         if lines:
-            lines.insert(1, '        self.numvars.nmb_calls += 1')
+            lines.insert(1, ('        self.numvars.nmb_calls ='
+                             'self.numvars.nmb_calls+1'))
         return lines
 
     @property
@@ -876,22 +877,23 @@ class PyxWriter(object):
                 yield 'cdef int jdx'
                 yield '%s = 0.' % to_
                 yield 'for jdx in range(self.numvars.idx_method):'
-                yield '    %s += %s*%s[jdx]' % (to_, coefs, from_)
+                yield '    %s = %s +%s*%s[jdx]' % (to_, to_, coefs, from_)
             elif seq.NDIM == 1:
                 yield 'cdef int jdx, idx0'
                 yield 'for idx0 in range(self.fluxes._%s_length0):' % name
                 yield '    %s[idx0] = 0.' % to_
                 yield '    for jdx in range(self.numvars.idx_method):'
-                yield ('        %s[idx0] += %s*%s[jdx, idx0]'
-                       % (to_, coefs, from_))
+                yield ('        %s[idx0] = %s[idx0] + %s*%s[jdx, idx0]'
+                       % (to_, to_, coefs, from_))
             elif seq.NDIM == 2:
                 yield 'cdef int jdx, idx0, idx1'
                 yield 'for idx0 in range(self.fluxes._%s_length0):' % name
                 yield '    for idx1 in range(self.fluxes._%s_length1):' % name
                 yield '        %s[idx0, idx1] = 0.' % to_
                 yield '        for jdx in range(self.numvars.idx_method):'
-                yield ('            %s[idx0, idx1] += %s*%s[jdx, idx0, idx1]'
-                       % (to_, coefs, from_))
+                yield ('            %s[idx0, idx1] = '
+                       '%s[idx0, idx1] + %s*%s[jdx, idx0, idx1]'
+                       % (to_, to_, coefs, from_))
             else:
                 raise NotImplementedError(
                         'NDIM of sequence `%s` is higher than expected' % name)
@@ -921,16 +923,19 @@ class PyxWriter(object):
             to_ = 'self.fluxes._%s_sum' % name
             from_ = 'self.fluxes.%s' % name
             if seq.NDIM == 0:
-                yield '%s += %s' % (to_, from_)
+                yield '%s = %s + %s' % (to_, to_, from_)
             elif seq.NDIM == 1:
                 yield 'cdef int idx0'
                 yield 'for idx0 in range(self.fluxes._%s_length0):' % name
-                yield '    %s[idx0] += %s[idx0]' % (to_, from_)
+                yield ('    %s[idx0] = %s[idx0] + %s[idx0]'
+                       % (to_, to_, from_))
             elif seq.NDIM == 2:
                 yield 'cdef int idx0, idx1'
                 yield 'for idx0 in range(self.fluxes._%s_length0):' % name
                 yield '    for idx1 in range(self.fluxes._%s_length1):' % name
-                yield '        %s[idx0, idx1] += %s[idx0, idx1]' % (to_, from_)
+                yield ('        %s[idx0, idx1] = '
+                       '%s[idx0, idx1] + %s[idx0, idx1]'
+                       % (to_, to_, from_))
             else:
                 raise NotImplementedError(
                         'NDIM of sequence `%s` is higher than expected' % name)
@@ -1060,11 +1065,11 @@ class FuncConverter(object):
 
     @staticmethod
     def remove_linebreaks_within_equations(code):
-        """Remove line breaks within equations.
+        r"""Remove line breaks within equations.
 
         This is not a exhaustive test, but shows how the method works:
 
-        >>> code = 'asdf = \\\n(x\n+b)'
+        >>> code = 'asdf = \\\n(a\n+b)'
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> FuncConverter.remove_linebreaks_within_equations(code)
         'asdf = (a+b)'

@@ -4,7 +4,6 @@
 # ...from standard library
 from __future__ import division, print_function
 import datetime
-import types
 import itertools
 # ...from site-packages
 import numpy
@@ -410,14 +409,14 @@ class UnitTest(Test):
 
     def extract_method_doc(self):
         """Return the documentation string of the method to be tested."""
-        if isinstance(self.method, types.FunctionType):
-            self._doc = self.method.__doc__
+        if getattr(self.method, '__doc__', None):
+            return self.method.__doc__
         else:
             Model = type(self.model)
-            for function in itertools.chain(Model._RUN_METHODS,
-                                            Model._ADD_METHODS):
-                if function.__name__ == self.method.__name__:
-                    return function.__doc__
+            for group_name in Model._METHOD_GROUPS:
+                for function in getattr(Model, group_name, ()):
+                    if function.__name__ == self.method.__name__:
+                        return function.__doc__
 
     def extract_print_parameters_and_sequences(self):
         """Return a list of all input, flux and state sequences of the model
@@ -426,7 +425,7 @@ class UnitTest(Test):
         for (_, subparseqs) in itertools.chain(self.model.parameters,
                                                self.model.sequences):
             for (_, parseq) in subparseqs:
-                if str(parseq.__class__).split("'")[1] in self.doc:
+                if str(type(parseq)).split("'")[1] in self.doc:
                     parseqs.append(parseq)
         return tuple(parseqs)
 

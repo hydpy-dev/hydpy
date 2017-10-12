@@ -9,8 +9,9 @@ Cythons Modules
    :maxdepth: 1
 
    modelutils
-   pointer
+   pointerutils
    annutils
+   configutils
 
 
 

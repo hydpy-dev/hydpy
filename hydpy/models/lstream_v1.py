@@ -14,7 +14,7 @@ Integration test:
 
     Secondly, the final model output shall be passed to `outflow`:
 
-    >>> from hydpy.cythons.pointer import Double
+    >>> from hydpy.cythons.pointerutils import Double
     >>> inflow, outflow = Double(0.), Double(0.)
     >>> inlets.q.shape = 1
     >>> inlets.q.setpointer(inflow, 0)

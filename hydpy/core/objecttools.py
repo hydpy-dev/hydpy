@@ -11,7 +11,7 @@ import textwrap
 # ...from site-packages
 import numpy
 # ...from HydPy
-from hydpy.cythons import pointer
+from hydpy.cythons import pointerutils
 from hydpy.core import autodoctools
 # from hydpy.pub import ... (actual import commands moved to
 # different functions below to avoid circular dependencies)
@@ -242,7 +242,7 @@ def repr_(value, decimals=None):
     decimals = options.reprdigits if decimals is None else decimals
     if isinstance(value, str):
         return value
-    if isinstance(value, (pointer.Double, pointer.PDouble)):
+    if isinstance(value, (pointerutils.Double, pointerutils.PDouble)):
         value = float(value)
     if ((decimals is not None) and
             isinstance(value,

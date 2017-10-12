@@ -16,7 +16,7 @@ import numpy
 from hydpy import pub
 from hydpy.core import timetools
 from hydpy.core import objecttools
-from hydpy.cythons import pointer
+from hydpy.cythons import pointerutils
 from hydpy.core import autodoctools
 
 
@@ -1360,7 +1360,7 @@ class LinkSequence(Sequence):
     """2"""
 
     def setpointer(self, double, idx=0):
-        pdouble = pointer.PDouble(double)
+        pdouble = pointerutils.PDouble(double)
         if self.NDIM == 0:
             try:
                 self.fastaccess.setpointer0d(self.name, pdouble)
@@ -1374,7 +1374,7 @@ class LinkSequence(Sequence):
                 ppdouble.setpointer(double, idx)
 
     def _initvalues(self):
-        value = pointer.PPDouble() if self.NDIM else None
+        value = pointerutils.PPDouble() if self.NDIM else None
         try:
             setattr(self.fastaccess, self.name, value)
         except AttributeError:
@@ -1445,7 +1445,7 @@ class NodeSequence(IOSequence):
     rawfilename = property(_getrawfilename, _setrawfilename, _delrawfilename)
 
     def _initvalues(self):
-        setattr(self.fastaccess, self.name, pointer.Double(0.))
+        setattr(self.fastaccess, self.name, pointerutils.Double(0.))
 
     def _getvalues(self):
         """Actual value(s) handled by the sequence.  For consistency,

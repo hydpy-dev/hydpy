@@ -5,7 +5,7 @@ import sys as __sys
 # ...from HydPy
 from hydpy.core import objecttools as __objecttools
 from hydpy.core import indextools as __indextools
-from hydpy.cythons import configtools as __configtools
+from hydpy.cythons import configutils as __configutils
 
 projectname = None
 
@@ -20,4 +20,4 @@ timegrids = None
 pyversion = int(__sys.version[0])
 _printprogress_indentation = -4
 
-config = __configtools.Config()
+config = __configutils.Config()

@@ -15,7 +15,7 @@ from hydpy.core import connectiontools
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
 from hydpy.core import autodoctools
-from hydpy.cythons import pointer
+from hydpy.cythons import pointerutils
 
 
 class Device(object):
@@ -152,7 +152,7 @@ class Node(Device):
                 self.sequences.obs.use_ext = True
             elif value == 'oldsim':
                 self.sequences.sim.use_ext = True
-                self._blackhole = pointer.Double(0.)
+                self._blackhole = pointerutils.Double(0.)
         else:
             raise ValueError('When trying to set the routing mode of node %s, '
                              'the value `%s` was given, but only the '

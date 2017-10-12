@@ -1,4 +1,4 @@
-
+# -*- coding: utf-8 -*-
 """This module gives Python objects pointer access to C variables of type
 `double` via Cython.
 

@@ -17,3 +17,4 @@ of the framwork and its models.
    statstools
    validtools
    anntools
+   smoothtools

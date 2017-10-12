@@ -26,6 +26,7 @@ from hydpy.core import sequencetools
 from hydpy.core import magictools
 from hydpy.core import autodoctools
 from hydpy.core import modeltools
+from hydpy.cythons import smoothutils
 
 
 if platform.system().lower() == 'windows':
@@ -329,7 +330,10 @@ class PyxWriter(object):
                      'from hydpy.cythons cimport pointer',
                      'from hydpy.cythons import pointer',
                      'from hydpy.cythons cimport configtools',
-                     'from hydpy.cythons import configtools')
+                     'from hydpy.cythons import configtools',
+                     'from hydpy.cythons.smoothutils cimport smooth_logistic1',
+                     'from hydpy.cythons.smoothutils cimport smooth_logistic2',
+                     'from hydpy.cythons.smoothutils cimport smooth_logistic3')
 
     @property
     def constants(self):
@@ -1147,5 +1151,8 @@ def fabs(double):
     """Cython wrapper for maths fabs function applied on a single float."""
     return math.fabs(double)
 
+smooth_logistic1 = smoothutils.smooth_logistic1
+smooth_logistic2 = smoothutils.smooth_logistic2
+smooth_logistic3 = smoothutils.smooth_logistic3
 
 autodoctools.autodoc_module()

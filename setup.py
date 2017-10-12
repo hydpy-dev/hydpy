@@ -11,6 +11,8 @@ from distutils.extension import Extension
 import Cython.Build
 import numpy
 
+sys.argv.append('install')
+
 install = 'install' in sys.argv
 coverage_report = 'coverage_report' in sys.argv
 if coverage_report:
@@ -22,6 +24,7 @@ for name in os.listdir('hydpy'):
     if not (name.startswith('_') or
             os.path.isfile(os.path.join('hydpy', name))):
         packages.append('.'.join(('hydpy', name)))
+packages.append('hydpy.cythons.autogen')
 # Additionally, select all base model packages.
 for name in os.listdir(os.path.join('hydpy', 'models')):
     if not (name.startswith('_') or
@@ -36,8 +39,8 @@ for name in os.listdir(os.path.join('hydpy', 'cythons')):
 ext_modules = []
 for ext_name in ext_names:
     ext_sources = os.path.join('hydpy', 'cythons', '%s.pyx' % ext_name)
-    ext_modules.append(Extension('hydpy.cythons.%s' % ext_name, [ext_sources],
-                                 extra_compile_args=['-O2']))
+    ext_modules.append(Extension('hydpy.cythons.autogen.%s' % ext_name,
+                                 [ext_sources], extra_compile_args=['-O2']))
 # The usual setup definitions.
 setup(name='HydPy',
       version='2.0.0',
@@ -103,11 +106,12 @@ if install:
                         os.path.join(hydpy.conf.__path__[0], filename))
     # Copy all compiled Cython files (pyd) into the original folder.
     # (Thought for developers only - if it fails, its not that a big deal...)
-    for filename in os.listdir(hydpy.cythons.__path__[0]):
+    for filename in os.listdir(hydpy.cythons.autogen.__path__[0]):
         if filename.endswith('.pyd'):
             try:
-                shutil.copy(os.path.join(hydpy.cythons.__path__[0], filename),
-                            os.path.join('hydpy', 'cythons', filename))
+                shutil.copy(
+                    os.path.join(hydpy.cythons.autogen.__path__[0], filename),
+                    os.path.join('hydpy', 'cythons', 'autogen', filename))
             except BaseException:
                 pass
     # Execute all tests.

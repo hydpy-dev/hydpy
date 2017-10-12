@@ -145,12 +145,12 @@ class Cythonizer(object):
     @property
     def cydirpath(self):
         """Absolute path of the directory containing the compiled modules."""
-        return cythons.__path__[0]
+        return cythons.autogen.__path__[0]
 
     @property
     def cymodule(self):
         """The compiled module."""
-        return importlib.import_module('hydpy.cythons.'+self.cyname)
+        return importlib.import_module('hydpy.cythons.autogen.'+self.cyname)
 
     @property
     def cyfilepath(self):
@@ -327,13 +327,12 @@ class PyxWriter(object):
                      'from cpython.mem cimport PyMem_Malloc',
                      'from cpython.mem cimport PyMem_Realloc',
                      'from cpython.mem cimport PyMem_Free',
-                     'from hydpy.cythons cimport pointer',
-                     'from hydpy.cythons import pointer',
-                     'from hydpy.cythons cimport configtools',
-                     'from hydpy.cythons import configtools',
-                     'from hydpy.cythons.smoothutils cimport smooth_logistic1',
-                     'from hydpy.cythons.smoothutils cimport smooth_logistic2',
-                     'from hydpy.cythons.smoothutils cimport smooth_logistic3')
+                     'from hydpy.cythons cimport pointerutils',
+                     'from hydpy.cythons import pointerutils',
+                     'from hydpy.cythons cimport configutils',
+                     'from hydpy.cythons import configutils',
+                     'from hydpy.cythons cimport smoothutils',
+                     'from hydpy.cythons import smoothutils')
 
     @property
     def constants(self):
@@ -526,7 +525,7 @@ class PyxWriter(object):
         print('            . setpointer0d')
         lines = Lines()
         lines.add(1, 'cpdef inline setpointer0d'
-                     '(self, str name, pointer.PDouble value):')
+                     '(self, str name, pointerutils.PDouble value):')
         for (name, seq) in subseqs:
             lines.add(2, 'if name == "%s":' % name)
             lines.add(3, 'self.%s = value.p_value' % name)
@@ -558,7 +557,7 @@ class PyxWriter(object):
         print('            . setpointer1d')
         lines = Lines()
         lines.add(1, 'cpdef inline setpointer1d'
-                     '(self, str name, pointer.PDouble value, int idx):')
+                     '(self, str name, pointerutils.PDouble value, int idx):')
         for (name, seq) in subseqs:
             lines.add(2, 'if name == "%s":' % name)
             lines.add(3, 'self.%s[idx] = value.p_value' % name)
@@ -575,7 +574,7 @@ class PyxWriter(object):
                 lines.add(1, 'cdef public %s %s' % (TYPE2STR[int], name))
             for name in ('dt_increase', 'dt_decrease'):
                 lines.add(1, 'cdef public %s %s' % (TYPE2STR[float], name))
-            lines.add(1, 'cdef public configtools.Config pub')
+            lines.add(1, 'cdef public configutils.Config pub')
             lines.add(1, 'cdef public double[:, :, :] a_coefs')
             lines.add(0, 'cdef class NumVars(object):')
             for name in ('nmb_calls', 'idx_method', 'idx_stage'):

@@ -4,7 +4,7 @@
 from __future__ import division, print_function
 import unittest
 # ...from HydPy
-from hydpy.cythons import pointer
+from hydpy.cythons import pointerutils
 
 class Test1Initialization(unittest.TestCase):
 
@@ -15,9 +15,9 @@ class Test1Initialization(unittest.TestCase):
         self.test_4_change_p_double()
 
     def test_1_init_double(self):
-        self.d = pointer.Double(2.)
+        self.d = pointerutils.Double(2.)
     def test_2_init_p_double(self):
-        self.p = pointer.PDouble(self.d)
+        self.p = pointerutils.PDouble(self.d)
     def test_3_change_double(self):
         self.d.setvalue(4.)
         self.assertEqual(self.d, self.p)
@@ -31,10 +31,10 @@ class Test2InputConversion(unittest.TestCase):
     def setUp(self):
         self.f_x = 2.1
         self.f_y = 5.6
-        self.d_x = pointer.Double(self.f_x)
-        self.d_y = pointer.Double(self.f_y)
-        self.p_x = pointer.PDouble(self.d_x)
-        self.p_y = pointer.PDouble(self.d_y)
+        self.d_x = pointerutils.Double(self.f_x)
+        self.d_y = pointerutils.Double(self.f_y)
+        self.p_x = pointerutils.PDouble(self.d_x)
+        self.p_y = pointerutils.PDouble(self.d_y)
 
     def test_double_add_float(self):
         self.assertEqual(self.d_x + self.f_y,
@@ -121,17 +121,17 @@ class TestRhichCompare(object):
 class Test3RhichCompareDouble(unittest.TestCase, TestRhichCompare):
     def setUp(self):
         TestRhichCompare.setUp(self)
-        self.d_small = pointer.Double(self.f_small)
-        self.d_large = pointer.Double(self.f_large)
+        self.d_small = pointerutils.Double(self.f_small)
+        self.d_large = pointerutils.Double(self.f_large)
 
 
 class Test4RhichComparePDouble(unittest.TestCase, TestRhichCompare):
     def setUp(self):
         TestRhichCompare.setUp(self)
-        self._small = pointer.Double(self.f_small)
-        self._large = pointer.Double(self.f_large)
-        self.d_small = pointer.PDouble(self._small)
-        self.d_large = pointer.PDouble(self._large)
+        self._small = pointerutils.Double(self.f_small)
+        self._large = pointerutils.Double(self.f_large)
+        self.d_small = pointerutils.PDouble(self._small)
+        self.d_large = pointerutils.PDouble(self._large)
 
 
 class TestArithmetic(object):
@@ -180,17 +180,17 @@ class TestArithmetic(object):
 class Test5ArithmeticDouble(unittest.TestCase, TestArithmetic):
     def setUp(self):
         TestArithmetic.setUp(self)
-        self.d_x = pointer.Double(self.f_x)
-        self.d_y = pointer.Double(self.f_y)
+        self.d_x = pointerutils.Double(self.f_x)
+        self.d_y = pointerutils.Double(self.f_y)
 
 
 class Test6ArithmeticPDouble(unittest.TestCase, TestArithmetic):
     def setUp(self):
         TestArithmetic.setUp(self)
-        self._d_x = pointer.Double(self.f_x)
-        self._d_y = pointer.Double(self.f_y)
-        self.d_x = pointer.PDouble(self._d_x)
-        self.d_y = pointer.PDouble(self._d_y)
+        self._d_x = pointerutils.Double(self.f_x)
+        self._d_y = pointerutils.Double(self.f_y)
+        self.d_x = pointerutils.PDouble(self._d_x)
+        self.d_y = pointerutils.PDouble(self._d_y)
 
 
 class TestNumericConversion(object):
@@ -210,14 +210,14 @@ class TestNumericConversion(object):
 class Test7NumericConversionDouble(unittest.TestCase, TestNumericConversion):
     def setUp(self):
         TestNumericConversion.setUp(self)
-        self.d_x = pointer.Double(self.f_x)
+        self.d_x = pointerutils.Double(self.f_x)
 
 
 class Test8NumericConversionPDouble(unittest.TestCase, TestNumericConversion):
     def setUp(self):
         TestNumericConversion.setUp(self)
-        self._d_x = pointer.Double(self.f_x)
-        self.d_x = pointer.PDouble(self._d_x)
+        self._d_x = pointerutils.Double(self.f_x)
+        self.d_x = pointerutils.PDouble(self._d_x)
 
 
 class TestInPlaceOperators(object):
@@ -258,17 +258,17 @@ class TestInPlaceOperators(object):
 class Test9InPlaceOperatorsDouble(unittest.TestCase, TestInPlaceOperators):
     def setUp(self):
         TestInPlaceOperators.setUp(self)
-        self.d_x = pointer.Double(self.f_x)
-        self.d_y = pointer.Double(self.f_y)
+        self.d_x = pointerutils.Double(self.f_x)
+        self.d_y = pointerutils.Double(self.f_y)
 
 
 class Test10InPlaceOperatorsPDouble(unittest.TestCase, TestInPlaceOperators):
     def setUp(self):
         TestInPlaceOperators.setUp(self)
-        self._d_x = pointer.Double(self.f_x)
-        self._d_y = pointer.Double(self.f_y)
-        self.d_x = pointer.PDouble(self._d_x)
-        self.d_y = pointer.PDouble(self._d_y)
+        self._d_x = pointerutils.Double(self.f_x)
+        self._d_y = pointerutils.Double(self.f_y)
+        self.d_x = pointerutils.PDouble(self._d_x)
+        self.d_y = pointerutils.PDouble(self._d_y)
 
 
 

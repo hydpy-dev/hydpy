@@ -764,16 +764,16 @@ def round_(values, decimals=None, width=0,
     >>> round_(1.0, lfill='_', rfill='0')
     Traceback (most recent call last):
     ...
-    ValueError: For function `round_` values are passed for both arguments `lfill` and `rfill`.  This is not allowd.
+    ValueError: For function `round_` values are passed for both arguments `lfill` and `rfill`.  This is not allowed.
     """
     if hasattr(values, '__iter__') and (not isinstance(values, str)):
         string = repr_values(values, decimals)
     else:
         string = repr_(values, decimals)
-    if (lfill is not None) or (rfill is not None):
+    if (lfill is not None) and (rfill is not None):
         raise ValueError(
             'For function `round_` values are passed for both arguments '
-            '`lfill` and `rfill`.  This is not allowd.')
+            '`lfill` and `rfill`.  This is not allowed.')
     if (lfill is not None) or (rfill is not None):
         width = max(width, len(string))
         if lfill is not None:

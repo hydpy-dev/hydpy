@@ -57,8 +57,16 @@ def calc_smoothpar_logistic1(metapar):
     0.01
     >>> round_(smooth_logistic1(2.5, smoothpar))
     0.99
+
+    For zero or negative meta parameter values, a zero smoothing parameter
+    value is returned:
+
+    >>> round_(calc_smoothpar_logistic1(0.0))
+    0.0
+    >>> round_(calc_smoothpar_logistic1(-1.0))
+    0.0
     """
-    return metapar/numpy.log(99.)
+    return max(metapar/numpy.log(99.), 0.)
 
 
 def _error_smoothpar_logistic2(par, metapar):
@@ -91,11 +99,22 @@ def calc_smoothpar_logistic2(metapar):
     0.01
     >>> round_(smooth_logistic2(2.5, smoothpar))
     2.51
+
+    For zero or negative meta parameter values, a zero smoothing parameter
+    value is returned:
+
+    >>> round_(calc_smoothpar_logistic2(0.0))
+    0.0
+    >>> round_(calc_smoothpar_logistic2(-1.0))
+    0.0
     """
-    return optimize.newton(_error_smoothpar_logistic2,
-                           .3 * metapar**.84,
-                           _smooth_logistic2_derivative,
-                           args=(metapar,))
+    if metapar <= 0.:
+        return 0.
+    else:
+        return optimize.newton(_error_smoothpar_logistic2,
+                               .3 * metapar**.84,
+                               _smooth_logistic2_derivative,
+                               args=(metapar,))
 
 
 calc_smoothpar_logistic3 = calc_smoothpar_logistic2
@@ -112,7 +131,7 @@ value 2.5:
 >>> smoothpar = calc_smoothpar_logistic3(2.5)
 
 Using this smoothing parameter value, the output of function
-:func:`~hydpy.cythons.smoothutils.smooth_logistic2` would ideally
+:func:`~hydpy.cythons.smoothutils.smooth_logistic3` would ideally
 differs by 1 % from the related `true` discontinuous step function
 for the input values -2.5 and 3.5 (which are located at a distance
 of 2.5 from the position of the nearest discontinuity):
@@ -133,5 +152,56 @@ agreement with the given meta parameter.  For most purpuses, the
 resulting error is negligible.  If one needs a higher accuracy, some
 iterative refinement should be implemented.
 """
+
+
+calc_smoothpar_max1 = calc_smoothpar_logistic2
+"""Return the smoothing parameter corresponding to the given meta
+parameter when using :func:`~hydpy.cythons.smoothutils.smooth_max1`.
+
+:func:`~hydpy.cythons.smoothutils.smooth_min1` is only an alias for
+:func:`~hydpy.cythons.smoothutils.smooth_logistic2`.
+
+Calculate the smoothing parameter value corresponding the meta parameter
+value 2.5:
+
+>>> from hydpy.auxs.smoothtools import calc_smoothpar_max1
+>>> smoothpar = calc_smoothpar_max1(2.5)
+
+Using this smoothing parameter value, the output of function
+:func:`~hydpy.cythons.smoothutils.smooth_max1` is 0.01 above the usual
+discontinuous maximum function result, if the absolute value of the
+difference between the x and the y value is 2.5:
+
+>>> from hydpy.cythons.smoothutils import smooth_max1
+>>> from hydpy.core.objecttools import round_
+>>> round_(smooth_max1(4.0, 1.5, smoothpar))
+4.01
+"""
+
+
+calc_smoothpar_min1 = calc_smoothpar_logistic2
+"""Return the smoothing parameter corresponding to the given meta
+parameter when using :func:`~hydpy.cythons.smoothutils.smooth_min1`.
+
+:func:`~hydpy.cythons.smoothutils.smooth_min1` is only an alias for
+:func:`~hydpy.cythons.smoothutils.smooth_logistic2`.
+
+Calculate the smoothing parameter value corresponding the meta parameter
+value 2.5:
+
+>>> from hydpy.auxs.smoothtools import calc_smoothpar_min1
+>>> smoothpar = calc_smoothpar_min1(2.5)
+
+Using this smoothing parameter value, the output of function
+:func:`~hydpy.cythons.smoothutils.smooth_min1` is 0.01 below the usual
+discontinuous minimum function result, if the absolute value of the
+difference between the x and the y value is 2.5:
+
+>>> from hydpy.cythons.smoothutils import smooth_min1
+>>> from hydpy.core.objecttools import round_
+>>> round_(smooth_min1(-4.0, -1.5, smoothpar))
+-4.01
+"""
+
 
 autodoctools.autodoc_module()

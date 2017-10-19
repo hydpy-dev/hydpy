@@ -1153,5 +1153,7 @@ def fabs(double):
 smooth_logistic1 = smoothutils.smooth_logistic1
 smooth_logistic2 = smoothutils.smooth_logistic2
 smooth_logistic3 = smoothutils.smooth_logistic3
+smooth_max1 = smoothutils.smooth_max1
+smooth_min1 = smoothutils.smooth_min1
 
 autodoctools.autodoc_module()

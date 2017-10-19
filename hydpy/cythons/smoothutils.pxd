@@ -8,3 +8,7 @@ cpdef inline double smooth_logistic2(double value, double parameter) nogil
 cpdef inline double smooth_logistic2_derivative(double value,
                                                 double parameter) nogil
 cpdef inline double smooth_logistic3(double value, double parameter) nogil
+cpdef inline double smooth_max1(
+                    double x_value, double y_value, double parameter) nogil
+cpdef inline double smooth_min1(
+                    double x_value, double y_value, double parameter) nogil

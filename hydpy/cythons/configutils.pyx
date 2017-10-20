@@ -1,8 +1,13 @@
-# -*- coding: utf-8 -*-
+#!python
+#cython: boundscheck=False
+#cython: wraparound=False
+#cython: initializedcheck=False
 """This Cython module implements global configuration data for numerical
 tool, which must be available at Cython speed during simulations."""
 
+import cython
 
+@cython.final
 cdef class Config(object):
 
     def __init__(self):

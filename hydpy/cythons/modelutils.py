@@ -50,6 +50,7 @@ NDIM2STR = {0: '',
             2: '[:,:]',
             3: '[:,:,:]'}
 
+_nogil = ' nogil' if pub.options.fastcython else ''
 
 class Lines(list):
     """Handles lines to be written into a `.pyx` file."""
@@ -74,6 +75,8 @@ class Lines(list):
 def method_header(method_name, nogil=False):
     """Returns the Cython method header for methods without arguments except
     `self`."""
+    if not pub.options.fastcython:
+        nogil = False
     header = 'cpdef inline void %s(self)' % method_name
     header += ' nogil:' if nogil else ':'
     return header
@@ -310,10 +313,11 @@ class PyxWriter(object):
     @property
     def cythonoptions(self):
         """Cython option lines."""
+        flag = 'False' if pub.options.fastcython else 'True'
         return Lines('#!python',
-                     '#cython: boundscheck=False',
-                     '#cython: wraparound=False',
-                     '#cython: initializedcheck=False')
+                     '#cython: boundscheck=%s' % flag,
+                     '#cython: wraparound=%s' % flag,
+                     '#cython: initializedcheck=%s' % flag)
 
     @property
     def cimports(self):
@@ -453,7 +457,7 @@ class PyxWriter(object):
         """Load data statements."""
         print('            . loaddata')
         lines = Lines()
-        lines.add(1, 'cpdef inline void loaddata(self, int idx) nogil:')
+        lines.add(1, 'cpdef inline void loaddata(self, int idx) %s:' % _nogil)
         lines.add(2, 'cdef int jdx0, jdx1, jdx2, jdx3, jdx4, jdx5')
         for (name, seq) in subseqs:
             lines.add(2, 'if self._%s_diskflag:' % name)
@@ -481,7 +485,7 @@ class PyxWriter(object):
         """Save data statements."""
         print('            . savedata')
         lines = Lines()
-        lines.add(1, 'cpdef inline void savedata(self, int idx) nogil:')
+        lines.add(1, 'cpdef inline void savedata(self, int idx) %s:' % _nogil)
         lines.add(2, 'cdef int jdx0, jdx1, jdx2, jdx3, jdx4, jdx5')
         for (name, seq) in subseqs:
             lines.add(2, 'if self._%s_diskflag:' % name)
@@ -642,7 +646,7 @@ class PyxWriter(object):
         """Do (most of) it function of the model class."""
         print('                . doit')
         lines = Lines()
-        lines.add(1, 'cpdef inline void doit(self, int idx) nogil:')
+        lines.add(1, 'cpdef inline void doit(self, int idx) %s:' % _nogil)
         lines.add(2, 'self.idx_sim = idx')
         if getattr(self.model.sequences, 'inputs', None) is not None:
             lines.add(2, 'self.loaddata()')
@@ -1126,7 +1130,7 @@ class FuncConverter(object):
         """
         lines = ['    '+line for line in self.cleanlines]
         lines[0] = lines[0].replace('def ', 'cpdef inline void ')
-        lines[0] = lines[0].replace('):', ') nogil:')
+        lines[0] = lines[0].replace('):', ') %s:' % _nogil)
         for name in self.untypedarguments:
             lines[0] = lines[0].replace(', %s ' % name, ', int %s ' % name)
             lines[0] = lines[0].replace(', %s)' % name, ', int %s)' % name)

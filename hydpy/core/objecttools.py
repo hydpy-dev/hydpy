@@ -107,10 +107,10 @@ def name(self):
     'test'
     """
     try:
-        return type(self)._name
-    except AttributeError:
+        return type(self).__dict__['_name']
+    except KeyError:
         type(self)._name = instancename(self)
-        return type(self)._name
+        return type(self).__dict__['_name']
 
 
 def modulename(self):
@@ -792,6 +792,7 @@ class Options(object):
         self._verbosedir = False
         self._reprcomments = True
         self._usecython = True
+        self._fastcython = True
         self._skipdoctests = False
         self._refreshmodels = False
         self._reprdigits = None
@@ -862,6 +863,21 @@ class Options(object):
         self._usecython = bool(value)
 
     usecython = property(_getusecython, _setusecython)
+
+    def _getfastcython(self):
+        """True/False flag indicating whether Cythonization shall be
+        configured in a fast but unsafe (True) or in a slow but safe (False)
+        mode.  The fast mode is the default.  Setting this flag to False
+        can be helpful when the implementation of new models or other
+        Cython related features introduces errors that do not result in
+        informative error messages.
+        """
+        return self._fastcython
+
+    def _setfastcython(self, value):
+        self._fastcython = bool(value)
+
+    fastcython = property(_getfastcython, _setfastcython)
 
     def _getskipdoctests(self):
         """True/False flag indicating whether documetation tests shall be

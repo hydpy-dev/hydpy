@@ -1108,7 +1108,7 @@ class SeasonalParameter(MultiParameter):
         for toy in sorted(self._toy2values.keys()):
             yield (toy, self._toy2values[toy])
 
-    def __getattr__(self, name):
+    def __getattribute__(self, name):
         if name.startswith('toy_'):
             try:
                 return self._toy2values[timetools.TOY(name)]
@@ -1118,7 +1118,7 @@ class SeasonalParameter(MultiParameter):
                     'the seasonal parameter `%s` of element `%s`'
                     % (self.name, objecttools.devicename(self)))
         else:
-            return MultiParameter.__getattr__(self, name)
+            return MultiParameter.__getattribute__(self, name)
 
     def __setattr__(self, name, value):
         if name.startswith('toy_'):
@@ -1339,7 +1339,7 @@ class KeywordParameter2D(KeywordParameter2DMetaclass):
         lines[-1] = lines[-1][:-1] + ')'
         return '\n'.join(lines)
 
-    def __getattr__(self, key):
+    def __getattribute__(self, key):
         if key in self.ROWNAMES:
             try:
                 return self.values[self.ROWNAMES.index(key), :]
@@ -1366,7 +1366,7 @@ class KeywordParameter2D(KeywordParameter2DMetaclass):
                     'element `%s` via the row and column related attribute '
                     '`%s`' % (self.name, objecttools.devicename(self), key))
         else:
-            return MultiParameter.__getattr__(self, key)
+            return MultiParameter.__getattribute__(self, key)
 
     def __setattr__(self, key, values):
         if key in self.ROWNAMES:

@@ -17,33 +17,33 @@ from hydpy.cythons import modelutils
 
 
 class MetaModel(type):
-    def __new__(cls, name, parents, dict_):
+    def __new__(cls, cls_name, cls_parents, dict_):
         _METHOD_GROUPS = ('_RUN_METHODS', '_ADD_METHODS',
                           '_INPUT_METHODS', '_OUTPUT_METHODS',
                           '_PART_ODE_METHODS', '_FULL_ODE_METHODS')
         dict_['_METHOD_GROUPS'] = _METHOD_GROUPS
-        for name in _METHOD_GROUPS:
-            methods = dict_.get(name, ())
+        for method_name in _METHOD_GROUPS:
+            methods = dict_.get(method_name, ())
             if methods:
-                if name == '_RUN_METHODS':
+                if method_name == '_RUN_METHODS':
                     lst = ['\n\n\n    The following "run methods" are called '
                            'each simulation step run in the given sequence:']
-                elif name == '_ADD_METHODS':
+                elif method_name == '_ADD_METHODS':
                     lst = ['\n\n\n    The following "additional methods" are '
                            'called by at least one "run method":']
-                elif name == '_INPUT_METHODS':
+                elif method_name == '_INPUT_METHODS':
                     lst = ['\n\n\n    The following "input update methods" '
                            'are called at the beginning of each simulation '
                            'time step:']
-                elif name == '_OUPUT_METHODS':
+                elif method_name == '_OUTPUT_METHODS':
                     lst = ['\n\n\n    The following "output update methods" '
                            'are called at the end of each simulation '
                            'time step:']
-                elif name == '_PART_ODE_METHODS':
+                elif method_name == '_PART_ODE_METHODS':
                     lst = ['\n\n\n    The following methods define the '
                            'relevant components of a system of ODE '
                            'equations (e.g. direct runoff):']
-                elif name == '_FULL_ODE_METHODS':
+                elif method_name == '_FULL_ODE_METHODS':
                     lst = ['\n\n\n    The following methods define the '
                            'complete equations of an ODE system '
                            '(e.g. change in storage of `fast water` due to '
@@ -56,7 +56,7 @@ class MetaModel(type):
                 doc = dict_.get('__doc__', 'Undocumented model.')
                 dict_['__doc__'] = doc + '\n'.join(l for l in lst)
 
-        return type.__new__(cls, name, parents, dict_)
+        return type.__new__(cls, cls_name, cls_parents, dict_)
 
 
 _MetaModel = MetaModel('MetaModel', (), {})
@@ -88,10 +88,10 @@ class Model(_MetaModel):
             functions = getattr(self, name_group, ())
             uniques = {}
             for func in functions:
-                name = func.__name__
+                name_func = func.__name__
                 method = types.MethodType(func, self)
-                setattr(self, name, method)
-                shortname = '_'.join(name.split('_')[:-1])
+                setattr(self, name_func, method)
+                shortname = '_'.join(name_func.split('_')[:-1])
                 if shortname in uniques:
                     uniques[shortname] = None
                 else:

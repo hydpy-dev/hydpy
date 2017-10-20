@@ -333,7 +333,8 @@ class UnitTest(Test):
     """Stores arrays with the resulting values of parameters and/or
     sequences of each new experiment."""
 
-    def __init__(self, model, method, first_example=1, last_example=1):
+    def __init__(self, model, method, first_example=1, last_example=1,
+                 parseqs=None):
         del self.inits
         del self.nexts
         del self.results
@@ -344,7 +345,10 @@ class UnitTest(Test):
         self.last_example_calc = last_example
         self.first_example_plot = first_example
         self.last_example_plot = last_example
-        self.parseqs = self.extract_print_parameters_and_sequences()
+        if parseqs:
+            self.parseqs = parseqs
+        else:
+            self.parseqs = self.extract_print_parameters_and_sequences()
         self.memorize_inits()
         self.prepare_output_arrays()
 

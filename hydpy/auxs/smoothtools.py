@@ -51,11 +51,11 @@ def calc_smoothpar_logistic1(metapar):
     input values -2.5 and 2.5 (which are located at a distance of 2.5
     from the position of the discontinuity):
 
-    >>> from hydpy.cythons.smoothutils import smooth_logistic1
+    >>> from hydpy.cythons import smoothutils
     >>> from hydpy.core.objecttools import round_
-    >>> round_(smooth_logistic1(-2.5, smoothpar))
+    >>> round_(smoothutils.smooth_logistic1(-2.5, smoothpar))
     0.01
-    >>> round_(smooth_logistic1(2.5, smoothpar))
+    >>> round_(smoothutils.smooth_logistic1(2.5, smoothpar))
     0.99
 
     For zero or negative meta parameter values, a zero smoothing parameter
@@ -93,11 +93,11 @@ def calc_smoothpar_logistic2(metapar):
     input values -2.5 and 2.5 (which are located at a distance of 2.5
     from the position of the discontinuity):
 
-    >>> from hydpy.cythons.smoothutils import smooth_logistic2
+    >>> from hydpy.cythons import smoothutils
     >>> from hydpy.core.objecttools import round_
-    >>> round_(smooth_logistic2(-2.5, smoothpar))
+    >>> round_(smoothutils.smooth_logistic2(-2.5, smoothpar))
     0.01
-    >>> round_(smooth_logistic2(2.5, smoothpar))
+    >>> round_(smoothutils.smooth_logistic2(2.5, smoothpar))
     2.51
 
     For zero or negative meta parameter values, a zero smoothing parameter
@@ -136,11 +136,11 @@ differs by 1 % from the related `true` discontinuous step function
 for the input values -2.5 and 3.5 (which are located at a distance
 of 2.5 from the position of the nearest discontinuity):
 
->>> from hydpy.cythons.smoothutils import smooth_logistic3
+>>> from hydpy.cythons import smoothutils
 >>> from hydpy.core.objecttools import round_
->>> round_(smooth_logistic3(-2., smoothpar))
+>>> round_(smoothutils.smooth_logistic3(-2., smoothpar))
 0.009876
->>> round_(smooth_logistic3(3., smoothpar))
+>>> round_(smoothutils.smooth_logistic3(3., smoothpar))
 0.990124
 
 In contrast to the examples shown for functions
@@ -172,9 +172,9 @@ Using this smoothing parameter value, the output of function
 discontinuous maximum function result, if the absolute value of the
 difference between the x and the y value is 2.5:
 
->>> from hydpy.cythons.smoothutils import smooth_max1
+>>> from hydpy.cythons import smoothutils
 >>> from hydpy.core.objecttools import round_
->>> round_(smooth_max1(4.0, 1.5, smoothpar))
+>>> round_(smoothutils.smooth_max1(4.0, 1.5, smoothpar))
 4.01
 """
 
@@ -197,9 +197,9 @@ Using this smoothing parameter value, the output of function
 discontinuous minimum function result, if the absolute value of the
 difference between the x and the y value is 2.5:
 
->>> from hydpy.cythons.smoothutils import smooth_min1
+>>> from hydpy.cythons import smoothutils
 >>> from hydpy.core.objecttools import round_
->>> round_(smooth_min1(-4.0, -1.5, smoothpar))
+>>> round_(smoothutils.smooth_min1(-4.0, -1.5, smoothpar))
 -4.01
 """
 

@@ -38,13 +38,13 @@ savety factor seemed preferable.)
 cpdef inline double _max(double x_value, double y_value) nogil:
     """The usual (discontinuous) maximum function.
 
-    >>> from hydpy.cythons.smoothutils import _max
+    >>> from hydpy.cythons import smoothutils
     >>> from hydpy.core.objecttools import round_
-    >>> round_(_max(1.5, 2.5))
+    >>> round_(smoothutils._max(1.5, 2.5))
     2.5
-    >>> round_(_max(-1.5, -2.5))
+    >>> round_(smoothutils._max(-1.5, -2.5))
     -1.5
-    >>> round_(_max(0.0, 0.0))
+    >>> round_(smoothutils._max(0.0, 0.0))
     0.0
     """
     if x_value > y_value:
@@ -56,13 +56,13 @@ cpdef inline double _max(double x_value, double y_value) nogil:
 cpdef inline double _min(double x_value, double y_value) nogil:
     """The usual (discontinuous) minimum function.
 
-    >>> from hydpy.cythons.smoothutils import _min
+    >>> from hydpy.cythons import smoothutils
     >>> from hydpy.core.objecttools import round_
-    >>> round_(_min(1.5, 2.5))
+    >>> round_(smoothutils._min(1.5, 2.5))
     1.5
-    >>> round_(_min(-1.5, -2.5))
+    >>> round_(smoothutils._min(-1.5, -2.5))
     -2.5
-    >>> round_(_min(0.0, 0.0))
+    >>> round_(smoothutils._min(0.0, 0.0))
     0.0
     """
     if x_value < y_value:
@@ -79,14 +79,14 @@ cpdef inline double smooth_logistic1(double value, double parameter) nogil:
     The following example shows the typical shape of the logistic function
     for four different smoothing parameters:
 
-    >>> from hydpy.cythons.smoothutils import smooth_logistic1
+    >>> from hydpy.cythons import smoothutils
     >>> from hydpy.core.objecttools import round_
     >>> for value in range(-5, 6):
     ...     if value == -5:
     ...         round_('value, par=10.0,  par=1.0,  par=0.1,  par=0.0')
     ...     round_(value, width=5, lfill=' ', end=', ')
     ...     for idx, parameter in enumerate([10.0, 1.0, 0.1, 0.0]):
-    ...         round_(smooth_logistic1(value, parameter),
+    ...         round_(smoothutils.smooth_logistic1(value, parameter),
     ...                width=8, rfill='0', end='')
     ...         if idx < 3:
     ...             round_('', end=', ')
@@ -139,14 +139,14 @@ cpdef inline double smooth_logistic2(double value, double parameter) nogil:
     The following example shows the shape of the integral of the
     logistic function for four different smoothing parameters:
 
-    >>> from hydpy.cythons.smoothutils import smooth_logistic2
+    >>> from hydpy.cythons import smoothutils
     >>> from hydpy.core.objecttools import round_
     >>> for value in range(-5, 6):
     ...     if value == -5:
     ...         round_('value, par=3.0,  par=1.0,  par=0.1,  par=0.0')
     ...     round_(value, width=5, lfill=' ', end=', ')
     ...     for idx, parameter in enumerate([3.0, 1.0, 0.1, 0.0]):
-    ...         round_(smooth_logistic2(value, parameter),
+    ...         round_(smoothutils.smooth_logistic2(value, parameter),
     ...                width=8, rfill='0', end='')
     ...         if idx < 3:
     ...             round_('', end=', ')
@@ -199,14 +199,14 @@ cpdef inline double smooth_logistic2_derivative(double value,
     The following example shows the derivates for four different smoothing
     parameters:
 
-    >>> from hydpy.cythons.smoothutils import smooth_logistic2_derivative
+    >>> from hydpy.cythons import smoothutils
     >>> from hydpy.core.objecttools import round_
     >>> for value in range(-5, 6):
     ...     if value == -5:
     ...         round_('value,  par=3.0,  par=1.0,  par=0.1, par=0.0')
     ...     round_(value, width=5, lfill=' ', end=', ')
     ...     for idx, parameter in enumerate([3.0, 1.0, 0.1, 0.0]):
-    ...         round_(smooth_logistic2_derivative(value, parameter),
+    ...         round_(smoothutils.smooth_logistic2_derivative(value, parameter),
     ...                width=8, rfill='0', end='')
     ...         if idx < 3:
     ...             round_('', end=', ')
@@ -229,14 +229,14 @@ cpdef inline double smooth_logistic2_derivative(double value,
     with sufficiently accurate numerical approximations:
 
     >>> dc = 1e-6
-    >>> from hydpy.cythons.smoothutils import smooth_logistic2
+    >>> from hydpy.cythons import smoothutils
     >>> for value in range(-5, 6):
     ...     if value == -5:
     ...         round_('value,  par=3.0,  par=1.0,  par=0.1,  par=0.0')
     ...     round_(value, width=5, lfill=' ', end=', ')
     ...     for idx, parameter in enumerate([3.0, 1.0, 0.1, 0.0]):
-    ...         est = (smooth_logistic2(value, parameter+dc) -
-    ...                smooth_logistic2(value, parameter))/dc
+    ...         est = (smoothutils.smooth_logistic2(value, parameter+dc) -
+    ...                smoothutils.smooth_logistic2(value, parameter))/dc
     ...         round_(est, width=8, rfill='0', end='')
     ...         if idx < 3:
     ...             round_('', end=', ')
@@ -291,7 +291,7 @@ cpdef inline double smooth_logistic3(double value, double parameter) nogil:
     The following example shows the shape of this combined smoothing
     function for three different smoothing parameters:
 
-    >>> from hydpy.cythons.smoothutils import smooth_logistic3
+    >>> from hydpy.cythons import smoothutils
     >>> from hydpy.core.objecttools import round_
     >>> from numpy import arange
     >>> for value in arange(-5.5, 6):
@@ -299,7 +299,7 @@ cpdef inline double smooth_logistic3(double value, double parameter) nogil:
     ...         round_('value,  par=3.0,  par=1.0,  par=0.1,  par=0.0')
     ...     round_(value, width=5, lfill=' ', end=', ')
     ...     for idx, parameter in enumerate([3.0, 1.0, 0.1, 0.0]):
-    ...         round_(smooth_logistic3(value, parameter),
+    ...         round_(smoothutils.smooth_logistic3(value, parameter),
     ...                width=8, rfill='0', end='')
     ...         if idx < 3:
     ...             round_('', end=', ')
@@ -342,14 +342,14 @@ cpdef inline double smooth_max1(
     the maximum function for four different smoothing parameters.  Parameter
     x is constantly set to 5, parameter y is varied between 0 and 10:
 
-    >>> from hydpy.cythons.smoothutils import smooth_max1
+    >>> from hydpy.cythons import smoothutils
     >>> from hydpy.core.objecttools import round_
     >>> for value in range(11):
     ...     if value == 0:
     ...         round_('y_value, par=3.0,  par=1.0,  par=0.3,  par=0.0')
     ...     round_(value, width=7, lfill=' ', end=', ')
     ...     for idx, parameter in enumerate([3.0, 1.0, 0.3, 0.0]):
-    ...         round_(smooth_max1(5., value, parameter),
+    ...         round_(smoothutils.smooth_max1(5., value, parameter),
     ...                width=8, rfill='0', end='')
     ...         if idx < 3:
     ...             round_('', end=', ')
@@ -380,7 +380,7 @@ cpdef inline double smooth_max1(
     >>> for test in ['-1e8', '0.0', '1e8']:
     ...     round_(test, end=', ')
     ...     test = float(test)
-    ...     round_(smooth_max1(test+5.0, test+6.0, 1.0)-test)
+    ...     round_(smoothutils.smooth_max1(test+5.0, test+6.0, 1.0)-test)
     -1e8, 6.313262
     0.0, 6.313262
     1e8, 6.313262
@@ -406,14 +406,14 @@ cpdef inline double smooth_min1(
     the minimum function for four different smoothing parameters.  Parameter
     x is constantly set to 5, parameter y is varied between 0 and 10:
 
-    >>> from hydpy.cythons.smoothutils import smooth_min1
+    >>> from hydpy.cythons import smoothutils
     >>> from hydpy.core.objecttools import round_
     >>> for value in range(11):
     ...     if value == 0:
     ...         round_('y_value, par=3.0,  par=1.0,  par=0.3,  par=0.0')
     ...     round_(value, width=7, lfill=' ', end=', ')
     ...     for idx, parameter in enumerate([3.0, 1.0, 0.3, 0.0]):
-    ...         round_(smooth_min1(5., value, parameter),
+    ...         round_(smoothutils.smooth_min1(5., value, parameter),
     ...                width=8, rfill='0', end='')
     ...         if idx < 3:
     ...             round_('', end=', ')
@@ -444,7 +444,7 @@ cpdef inline double smooth_min1(
     >>> for test in ['-1e8', ' 0.0', ' 1e8']:
     ...     round_(test, end=', ')
     ...     test = float(test)
-    ...     round_(smooth_min1(test+5.0, test+6.0, 1.0)-test)
+    ...     round_(smoothutils.smooth_min1(test+5.0, test+6.0, 1.0)-test)
     -1e8, 4.686738
      0.0, 4.686738
      1e8, 4.686738

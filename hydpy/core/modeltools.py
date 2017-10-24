@@ -65,6 +65,8 @@ _MetaModel = MetaModel('MetaModel', (), {})
 class Model(_MetaModel):
     """Base class for all hydrological models."""
 
+    NUMERICAL = False
+
     _RUN_METHODS = ()
     _ADD_METHODS = ()
     _INPUT_METHODS = ()
@@ -240,6 +242,8 @@ class NumVarsELS(NumPars):
 
 
 class ModelELS(Model):
+
+    NUMERICAL = True
 
     def __init__(self):
         super(ModelELS, self).__init__()

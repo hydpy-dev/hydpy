@@ -25,7 +25,6 @@ from hydpy.core import parametertools
 from hydpy.core import sequencetools
 from hydpy.core import magictools
 from hydpy.core import autodoctools
-from hydpy.core import modeltools
 from hydpy.cythons import smoothutils
 
 
@@ -571,7 +570,7 @@ class PyxWriter(object):
     def numericalparameters(self):
         """Numeric parameter declaration lines."""
         lines = Lines()
-        if isinstance(self.model, modeltools.ModelELS):
+        if self.model.NUMERICAL:
             lines.add(0, '@cython.final')
             lines.add(0, 'cdef class NumConsts(object):')
             for name in ('nmb_methods', 'nmb_stages'):

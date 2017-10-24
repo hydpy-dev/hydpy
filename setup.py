@@ -35,13 +35,24 @@ for name in os.listdir(os.path.join('hydpy', 'models')):
 # to the hydrological models.
 ext_names = []
 for name in os.listdir(os.path.join('hydpy', 'cythons')):
-    if name.split('.')[-1] == 'pxd':
+    if name.split('.')[-1] == 'pyx':
         ext_names.append(name.split('.')[0])
 ext_modules = []
 for ext_name in ext_names:
-    ext_sources = os.path.join('hydpy', 'cythons', '%s.pyx' % ext_name)
+    for suffix in ('pyx', 'pxd'):
+        shutil.copy(os.path.join('hydpy', 'cythons',
+                                 '%s.%s' % (ext_name, suffix)),
+                    os.path.join('hydpy', 'cythons', 'autogen',
+                                 '%s.%s' % (ext_name, suffix)))
+    ext_sources = os.path.join('hydpy', 'cythons', 'autogen',
+                               '%s.pyx' % ext_name)
     ext_modules.append(Extension('hydpy.cythons.autogen.%s' % ext_name,
                                  [ext_sources], extra_compile_args=['-O2']))
+# There seem to be different places where the `build_ext` module can be found:
+try:
+    build_ext = Cython.Build.build_ext
+except AttributeError:
+    build_ext = Cython.Distutils.build_ext
 # The usual setup definitions.
 setup(name='HydPy',
       version='2.0.0',
@@ -108,10 +119,10 @@ if install:
                 os.path.isfile(os.path.join('hydpy', 'conf', filename))):
             shutil.copy(os.path.join('hydpy', 'conf', filename),
                         os.path.join(hydpy.conf.__path__[0], filename))
-    # Copy all compiled Cython files (pyd) into the original folder.
+    # Copy all compiled Cython files (pyd or so) into the original folder.
     # (Thought for developers only - if it fails, its not that a big deal...)
     for filename in os.listdir(hydpy.cythons.autogen.__path__[0]):
-        if filename.endswith('.pyd'):
+        if filename.endswith('.pyd') or filename.endswith('.so'):
             try:
                 shutil.copy(
                     os.path.join(hydpy.cythons.autogen.__path__[0], filename),

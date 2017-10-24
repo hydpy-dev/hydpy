@@ -24,7 +24,7 @@ if standard_backend_missing:
           'server.  Instead, the widely available backend `Agg` is selected.')
 
 
-# Priorise site-packages (on Debian-based Linux distributions as Ubunte
+# Priorise site-packages (on Debian-based Linux distributions as Ubuntu
 # also dist-packages) in the import order to make sure, the following
 # imports refer to the newly build hydpy package on the respective computer.
 paths = [path for path in sys.path if path.endswith('-packages')]
@@ -96,16 +96,16 @@ iterable = zip(('Python', 'Cython'), alldoctests,
                allsuccessfuldoctests, allfaileddoctests)
 for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
     pub.options.usecython = mode == 'Cython'
-    for dirinfo in os.walk(hydpy.__path__[0]):
-        if dirinfo[0].endswith('tests') or '__init__.py' not in dirinfo[2]:
+    for dirpath, dirnames, filenames_ in os.walk(hydpy.__path__[0]):
+        if dirpath.endswith('tests') or '__init__.py' not in filenames_:
             continue
-        packagename = dirinfo[0].replace(os.sep, '.')+'.'
+        packagename = dirpath.replace(os.sep, '.')+'.'
         packagename = packagename[packagename.find('hydpy.'):]
         level = packagename.count('.')-1
         modulenames = [packagename+fn.split('.')[0]
-                       for fn in dirinfo[2] if fn.endswith('.py')]
-        docfilenames = [os.path.join(dirinfo[0], fn)
-                        for fn in dirinfo[2] if fn.endswith('.rst')]
+                       for fn in filenames_ if fn.endswith('.py')]
+        docfilenames = [os.path.join(dirpath, fn)
+                        for fn in filenames_ if fn.endswith('.rst')]
         for name in (modulenames + docfilenames):
             if name.endswith('apidoc'):
                 continue

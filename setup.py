@@ -9,6 +9,7 @@ from distutils.core import setup
 from distutils.extension import Extension
 # ...from site-packages:
 import Cython.Build
+import Cython.Distutils
 import numpy
 
 sys.argv.append('install')
@@ -69,7 +70,7 @@ setup(name='HydPy',
       ],
       keywords='hydrology modelling water balance rainfall runoff',
       packages=packages,
-      cmdclass={'build_ext': Cython.Build.build_ext},
+      cmdclass={'build_ext': build_ext},
       ext_modules=Cython.Build.cythonize(ext_modules),
       include_dirs=[numpy.get_include()],
       include_package_data=True,
@@ -91,6 +92,9 @@ if install:
             filename = '%s.%s' % (ext_name, suffix)
             shutil.copy(os.path.join('hydpy', 'cythons', filename),
                         os.path.join(hydpy.cythons.__path__[0], filename))
+            shutil.copy(os.path.join('hydpy', 'cythons', 'autogen', filename),
+                        os.path.join(hydpy.cythons.autogen.__path__[0],
+                                     filename))
     # Make all restructured text documentation files available for doctesting.
     import hydpy.docs
     for filename in os.listdir(os.path.join('hydpy', 'docs')):

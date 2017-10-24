@@ -19,4 +19,5 @@ class LoggedOutflow(sequencetools.LogSequence):
 
 class LogSequences(sequencetools.LogSequences):
     """Log sequences of the dam model."""
-    _SEQCLASSES = (LoggedTotalRemoteDischarge, LoggedOutflow)
+    _SEQCLASSES = (LoggedTotalRemoteDischarge,
+                   LoggedOutflow)

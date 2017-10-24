@@ -95,7 +95,7 @@ class HydPy(object):
 
     @magictools.printprogress
     def loadconditions(self, conditiondirectory=None, controldirectory=None,
-                       projectdirectory=None, ):
+                       projectdirectory=None):
         self._ioconditions(conditiondirectory,  controldirectory,
                            projectdirectory, True)
 

@@ -330,12 +330,10 @@ class PyxWriter(object):
                      'from cpython.mem cimport PyMem_Malloc',
                      'from cpython.mem cimport PyMem_Realloc',
                      'from cpython.mem cimport PyMem_Free',
-                     'from hydpy.cythons cimport pointerutils',
-                     'from hydpy.cythons import pointerutils',
-                     'from hydpy.cythons cimport configutils',
-                     'from hydpy.cythons import configutils',
-                     'from hydpy.cythons cimport smoothutils',
-                     'from hydpy.cythons import smoothutils')
+                     'from hydpy.cythons.autogen cimport pointerutils',
+                     'from hydpy.cythons.autogen cimport configutils',
+                     'from hydpy.cythons.autogen cimport smoothutils',
+                     'from hydpy.cythons.autogen cimport annutils')
 
     @property
     def constants(self):

@@ -103,6 +103,11 @@ class MA(object):
 
     >>> ma.plot(threshold=0.9)
 
+    You can close the plotting window manually or by writing:
+
+    >>> from matplotlib import pyplot
+    >>> pyplot.close()
+
     The turning point detection also works for functions which include
     both a rising and a falling limb.  This can be shown shifting the
     normal distribution to the right:

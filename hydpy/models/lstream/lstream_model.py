@@ -583,7 +583,8 @@ def calc_qg_v1(self):
 
 def calc_hmin_qmin_hmax_qmax_v1(self):
     """Determine an starting interval for iteration methods as the one
-    implemented in method :func:`calc_h_v1`.
+    implemented in method
+    :func:`~hydpy.models.lstream.lstream_model.calc_h_v1`.
 
     The resulting interval is determined in a manner, that on the
     one hand :math:`Qmin \\leq QRef \\leq Qmax` is fulfilled and on the

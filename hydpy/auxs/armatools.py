@@ -645,8 +645,14 @@ class ARMA(object):
 
     def plot(self, threshold=None, **kwargs):
         """Barplot of the ARMA response."""
-        pyplot.bar(left=self.ma.delays+.5, height=self.response,
-                   width=1., fill=False, **kwargs)
+        try:
+            # Works under matplotlib 3.
+            pyplot.bar(x=self.ma.delays+.5, height=self.response,
+                       width=1., fill=False, **kwargs)
+        except TypeError:
+            # Works under matplotlib 2.
+            pyplot.bar(left=self.ma.delays+.5, height=self.response,
+                       width=1., fill=False, **kwargs)
         pyplot.xlabel('time')
         pyplot.ylabel('response')
         if threshold is not None:

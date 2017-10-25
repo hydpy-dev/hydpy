@@ -21,6 +21,10 @@ debug_cython = 'debug_cython' in sys.argv
 if debug_cython:
     sys.argv.remove('debug_cython')
 
+# Determine the correct type string for integer values in Cython
+# compatible with numpy on the respective machine.
+int_ = 'numpy.'+str(numpy.array([1]).dtype)+'_t'
+
 # Select all framework packages.
 packages = ['hydpy']
 for name in os.listdir('hydpy'):
@@ -40,13 +44,14 @@ for name in os.listdir(os.path.join('hydpy', 'cythons')):
     if name.split('.')[-1] == 'pyx':
         ext_names.append(name.split('.')[0])
 # Copy the source code of these extension modules from package `cythons` to
-# subpackage `autogen`.  Modify the source code, if the `debug_cython` option
-# is selected.
+# subpackage `autogen`.  Modify the source code where necessary.
 ext_modules = []
 for ext_name in ext_names:
     for suffix in ('pyx', 'pxd'):
         text = open(os.path.join('hydpy', 'cythons',
                                  '%s.%s' % (ext_name, suffix))).read()
+        text = text.replace(' int ', ' '+int_+' ')
+        text = text.replace(' int[', ' '+int_+'[')
         if debug_cython:
             text = text.replace('nogil', '')
             text = text.replace('boundscheck=False',

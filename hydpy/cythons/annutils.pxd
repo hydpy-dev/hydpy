@@ -3,6 +3,8 @@
 :mod:`~hydpy.auxs.anntools`.
 """
 
+cimport numpy
+
 cdef class ANN(object):
 
     cdef public int nmb_inputs

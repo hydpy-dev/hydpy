@@ -158,7 +158,7 @@ class ANN(object):
         return tuple(numpy.asarray(self._cann.nmb_neurons))
 
     def _set_nmb_neurons(self, value):
-        self._cann.nmb_neurons = numpy.array(value)
+        self._cann.nmb_neurons = numpy.array(value, dtype=int, ndmin=1)
         self._cann.nmb_layers = len(value)
         self._max_nmb_neurons = max(value)
         self._update_shapes()

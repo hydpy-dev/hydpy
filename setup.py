@@ -12,12 +12,14 @@ import Cython.Build
 import Cython.Distutils
 import numpy
 
-sys.argv.append('install')
 
 install = 'install' in sys.argv
 coverage_report = 'coverage_report' in sys.argv
 if coverage_report:
     sys.argv.remove('coverage_report')
+debug_cython = 'debug_cython' in sys.argv
+if debug_cython:
+    sys.argv.remove('debug_cython')
 
 # Select all framework packages.
 packages = ['hydpy']
@@ -37,13 +39,24 @@ ext_names = []
 for name in os.listdir(os.path.join('hydpy', 'cythons')):
     if name.split('.')[-1] == 'pyx':
         ext_names.append(name.split('.')[0])
+# Copy the source code of these extension modules from package `cythons` to
+# subpackage `autogen`.  Modify the source code, if the `debug_cython` option
+# is selected.
 ext_modules = []
 for ext_name in ext_names:
     for suffix in ('pyx', 'pxd'):
-        shutil.copy(os.path.join('hydpy', 'cythons',
-                                 '%s.%s' % (ext_name, suffix)),
-                    os.path.join('hydpy', 'cythons', 'autogen',
-                                 '%s.%s' % (ext_name, suffix)))
+        text = open(os.path.join('hydpy', 'cythons',
+                                 '%s.%s' % (ext_name, suffix))).read()
+        if debug_cython:
+            text = text.replace('nogil', '')
+            text = text.replace('boundscheck=False',
+                                'boundscheck=True')
+            text = text.replace('wraparound=False',
+                                'wraparound=True')
+            text = text.replace('initializedcheck=False',
+                                'initializedcheck=True')
+        open(os.path.join('hydpy', 'cythons', 'autogen',
+                          '%s.%s' % (ext_name, suffix)), 'w').write(text)
     ext_sources = os.path.join('hydpy', 'cythons', 'autogen',
                                '%s.pyx' % ext_name)
     ext_modules.append(Extension('hydpy.cythons.autogen.%s' % ext_name,
@@ -95,6 +108,10 @@ if install:
     paths = [path for path in sys.path if path.endswith('-packages')]
     for path in paths:
         sys.path.insert(0, path)
+    # Assure that the actual `debug_cython` option also effects the
+    # cythonization of the hydrological models.
+    import hydpy.pub
+    hydpy.pub.options.fastcython = not debug_cython
     # Make all extension definition files available, which are required for
     # cythonizing hydrological models.
     import hydpy.cythons
@@ -102,7 +119,8 @@ if install:
         for suffix in ('pyx', 'pxd'):
             filename = '%s.%s' % (ext_name, suffix)
             shutil.copy(os.path.join('hydpy', 'cythons', filename),
-                        os.path.join(hydpy.cythons.__path__[0], filename))
+                        os.path.join(hydpy.cythons.autogen.__path__[0],
+                                     filename))
             shutil.copy(os.path.join('hydpy', 'cythons', 'autogen', filename),
                         os.path.join(hydpy.cythons.autogen.__path__[0],
                                      filename))
@@ -127,8 +145,8 @@ if install:
                 shutil.copy(
                     os.path.join(hydpy.cythons.autogen.__path__[0], filename),
                     os.path.join('hydpy', 'cythons', 'autogen', filename))
-            except BaseException:
-                pass
+            except BaseException as exc:
+                print(type(exc), exc)
     # Execute all tests.
     oldpath = os.path.abspath('.')
     import hydpy.tests

@@ -993,7 +993,7 @@ class IOSequence(Sequence):
     def save_ext(self):
         """Write the internal data into an external data file."""
         if self.filetype_ext == 'npy':
-            series = pub.timegrids.init.array2series(self.values)
+            series = pub.timegrids.init.array2series(self.series)
             numpy.save(self.filepath_ext, series)
         else:
             with open(self.filepath_ext, 'w') as file_:

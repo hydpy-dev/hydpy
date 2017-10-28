@@ -7,10 +7,7 @@ Python module :mod:`~hydpy.auxs.anntools`.
 """
 
 import cython
-from libc.math cimport exp
-
-cdef inline double logistic(double x) nogil:
-    return 1./(1.+exp(-x))
+from hydpy.cythons.autogen cimport smoothutils
 
 
 @cython.final
@@ -27,7 +24,9 @@ cdef class ANN(object):
                         (self.neurons[0, idx_neuron1] +
                          (self.weights_input[idx_input, idx_neuron1] *
                           self.inputs[idx_input]))
-            self.neurons[0, idx_neuron1] = logistic(self.neurons[0, idx_neuron1])
+            self.neurons[0, idx_neuron1] = \
+                    smoothutils.smooth_logistic1(
+                            self.neurons[0, idx_neuron1], 1.)
 
         for idx_layer in range(1, self.nmb_layers):
             for idx_neuron1 in range(self.nmb_neurons[idx_layer]):
@@ -39,7 +38,8 @@ cdef class ANN(object):
                              (self.weights_hidden[idx_layer-1, idx_neuron2, idx_neuron1] *
                               self.neurons[idx_layer-1, idx_neuron2]))
                 self.neurons[idx_layer, idx_neuron1] = \
-                        logistic(self.neurons[idx_layer, idx_neuron1])
+                        smoothutils.smooth_logistic1(
+                                self.neurons[idx_layer, idx_neuron1], 1.)
 
         for idx_output in range(self.nmb_outputs):
             self.outputs[idx_output] = self.intercepts_output[idx_output]

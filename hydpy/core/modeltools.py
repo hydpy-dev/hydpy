@@ -239,8 +239,8 @@ class NumConstsELS(NumPars):
         self.pub = pub.config
         self.nmb_methods = 10
         self.nmb_stages = 11
-        self.dt_increase = 2.
-        self.dt_decrease = 4.
+        self.dt_increase = 1.
+        self.dt_decrease = 10.
         path = os.path.join(conf.__path__[0],
                             'a_coefficients_explicit_lobatto_sequence.npy')
         self.a_coefs = numpy.load(path)

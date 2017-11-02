@@ -44,19 +44,19 @@ class RemoteFailure(sequencetools.FluxSequence):
 class RequiredRemoteRelease(sequencetools.FluxSequence):
     """Water release considered appropriate to reduce drought events
     at cross sections far downstream to the desired degree [m³/s]."""
-    NDIM, NUMERIC = 0, True
+    NDIM, NUMERIC = 0, False
 
 
 class RequiredRelease(sequencetools.FluxSequence):
     """Required water release for reducing drought events downstream [m³/s]."""
-    NDIM, NUMERIC = 0, True
+    NDIM, NUMERIC = 0, False
 
 
 class TargetedRelease(sequencetools.FluxSequence):
     """The targeted water release for reducing drought events downstream
     after taking both the required release and additional low flow
     regulations into account [m³/s]."""
-    NDIM, NUMERIC = 0, True
+    NDIM, NUMERIC = 0, False
 
 
 class ActualRelease(sequencetools.FluxSequence):

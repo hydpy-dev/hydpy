@@ -9,7 +9,7 @@ from hydpy.core import sequencetools
 
 class Q(sequencetools.LinkSequence):
     """Discharge [m³/s]."""
-    NDIM, NUMERIC = 1, False
+    NDIM, NUMERIC = 0, False
 
 
 class InletSequences(sequencetools.LinkSequences):

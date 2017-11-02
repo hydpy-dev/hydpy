@@ -302,8 +302,9 @@ def reverse_model_wildcard_import():
                 namespace.pop(objecttools.classname(seq), None)
             namespace.pop(name_subseqs, None)
             namespace.pop(objecttools.classname(subseqs), None)
-        for name in ('parameters', 'sequences', 'cymodel', 'cymodule',
-                     'model', 'Parameters', 'Sequences', 'Model'):
+        for name in ('parameters', 'sequences', 'model',
+                     'Parameters', 'Sequences', 'Model',
+                     'cythonizer', 'cymodel', 'cythonmodule'):
             namespace.pop(name, None)
         for key in list(namespace.keys()):
             try:

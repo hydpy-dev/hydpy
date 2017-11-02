@@ -19,7 +19,8 @@ from hydpy.cythons import modelutils
 class MetaModel(type):
     def __new__(cls, cls_name, cls_parents, dict_):
         _METHOD_GROUPS = ('_RUN_METHODS', '_ADD_METHODS',
-                          '_INPUT_METHODS', '_OUTPUT_METHODS',
+                          '_INLET_METHODS', '_OUTLET_METHODS',
+                          '_RECEIVER_METHODS', '_SENDER_METHODS',
                           '_PART_ODE_METHODS', '_FULL_ODE_METHODS')
         dict_['_METHOD_GROUPS'] = _METHOD_GROUPS
         for method_name in _METHOD_GROUPS:
@@ -31,14 +32,24 @@ class MetaModel(type):
                 elif method_name == '_ADD_METHODS':
                     lst = ['\n\n\n    The following "additional methods" are '
                            'called by at least one "run method":']
-                elif method_name == '_INPUT_METHODS':
-                    lst = ['\n\n\n    The following "input update methods" '
-                           'are called at the beginning of each simulation '
-                           'time step:']
-                elif method_name == '_OUTPUT_METHODS':
-                    lst = ['\n\n\n    The following "output update methods" '
-                           'are called at the end of each simulation '
-                           'time step:']
+                elif method_name == '_INLET_METHODS':
+                    lst = ['\n\n\n    The following "inlet update methods" '
+                           'are called in the given sequence immediately  '
+                           'before solving the differential equations '
+                           'of the respective model:']
+                elif method_name == '_OUTLET_METHODS':
+                    lst = ['\n\n\n    The following "outlet update methods" '
+                           'are called in the given sequence immediately  '
+                           'after solving the differential equations '
+                           'of the respective model:']
+                elif method_name == '_RECEIVER_METHODS':
+                    lst = ['\n\n\n    The following "receiver update methods" '
+                           'are called in the given sequence before solving '
+                           'the differential equations of any model:']
+                elif method_name == '_SENDER_METHODS':
+                    lst = ['\n\n\n    The following "sender update methods" '
+                           'are called in the given sequence after solving '
+                           'the differential equations of all models:']
                 elif method_name == '_PART_ODE_METHODS':
                     lst = ['\n\n\n    The following methods define the '
                            'relevant components of a system of ODE '
@@ -69,8 +80,10 @@ class Model(_MetaModel):
 
     _RUN_METHODS = ()
     _ADD_METHODS = ()
-    _INPUT_METHODS = ()
-    _OUTPUT_METHODS = ()
+    _INLET_METHODS = ()
+    _OUTLET_METHODS = ()
+    _RECEIVER_METHODS = ()
+    _SENDER_METHODS = ()
     _PART_ODE_METHODS = ()
     _FULL_ODE_METHODS = ()
 
@@ -158,10 +171,10 @@ class Model(_MetaModel):
     def doit(self, idx):
         self.idx_sim = idx
         self.loaddata()
-        self.update_inputs()
+        self.update_inlets()
         self.run()
         self.new2old()
-        self.update_outputs()
+        self.update_outlets()
         self.savedata()
 
     def run(self):
@@ -174,12 +187,20 @@ class Model(_MetaModel):
     def savedata(self):
         self.sequences.savedata(self.idx_sim)
 
-    def update_inputs(self):
-        for method in self._INPUT_METHODS:
+    def update_inlets(self):
+        for method in self._INLET_METHODS:
             method(self)
 
-    def update_outputs(self):
-        for method in self._OUTPUT_METHODS:
+    def update_outlets(self):
+        for method in self._OUTLET_METHODS:
+            method(self)
+
+    def update_receivers(self, idx_sim=None):
+        for method in self._RECEIVER_METHODS:
+            method(self)
+
+    def update_senders(self, idx_sim=None):
+        for method in self._SENDER_METHODS:
             method(self)
 
     def new2old(self):
@@ -253,9 +274,9 @@ class ModelELS(Model):
     def doit(self, idx):
         self.idx_sim = idx
         self.loaddata()
-        self.update_inputs()
+        self.update_inlets()
         self.solve()
-        self.update_outputs()
+        self.update_outlets()
         self.savedata()
 
     def solve(self):
@@ -476,8 +497,31 @@ class ModelELS(Model):
                 self.set_result_states()
                 self.calculate_error()
                 self.extrapolate_error()
-                if self.numvars.error <= self.numconsts.pub._abs_error_max:
-                    self.numvars.f0_ready = False
+#                nv = self.numvars
+#                from hydpy.core.objecttools import repr_values
+#                print('\nidx_sim:', self.idx_sim)
+#                print('t0, t1, dt:', nv.t0, nv.t1, nv.dt)
+#                print('inflow_sum:',
+#                      self.sequences.fluxes.fastaccess._inflow_sum)
+#                print('outflow_sum:',
+#                      self.sequences.fluxes.fastaccess._outflow_sum)
+#                print('idx_method:', nv.idx_method)
+#                print('error:', self.numvars.error)
+#                print('inflow_points:', repr_values(
+#                        self.sequences.fluxes.fastaccess._inflow_points))
+#                print('inflow_results:', repr_values(
+#                        self.sequences.fluxes.fastaccess._inflow_results))
+#                print('outflow_points:', repr_values(
+#                        self.sequences.fluxes.fastaccess._outflow_points))
+#                print('outflow_results:', repr_values(
+#                        self.sequences.fluxes.fastaccess._outflow_results))
+#                print('watervolume_points:', repr_values(
+#                        self.sequences.states.fastaccess._watervolume_points))
+#                print('watervolume_results:', repr_values(
+#                        self.sequences.states.fastaccess._watervolume_results))
+                if self.numvars.idx_method == 1:
+                    continue
+                elif self.numvars.error <= self.numconsts.pub._abs_error_max:
                     self.numvars.dt_est = (self.numconsts.dt_increase *
                                            self.numvars.dt)
                     self.addup_fluxes()
@@ -486,7 +530,7 @@ class ModelELS(Model):
                     break
                 elif ((self.numvars.extrapolated_error >
                        self.numconsts.pub._abs_error_max) and
-                      (self.numvars.dt >= self.numconsts.pub._rel_dt_min)):
+                      (self.numvars.dt > self.numconsts.pub._rel_dt_min)):
                     self.numvars.f0_ready = True
                     self.numvars.dt_est = (self.numvars.dt /
                                            self.numconsts.dt_decrease)
@@ -494,6 +538,7 @@ class ModelELS(Model):
                 else:
                     self.numvars.last_error = self.numvars.error
                     self.numvars.f0_ready = True
+                    continue
             else:
                 if self.numvars.dt <= self.numconsts.pub._rel_dt_min:
                     self.numvars.f0_ready = False

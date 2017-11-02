@@ -524,6 +524,7 @@ class ModelELS(Model):
                 elif self.numvars.error <= self.numconsts.pub._abs_error_max:
                     self.numvars.dt_est = (self.numconsts.dt_increase *
                                            self.numvars.dt)
+                    self.numvars.f0_ready = False
                     self.addup_fluxes()
                     self.numvars.t0 = self.numvars.t0+self.numvars.dt
                     self.new2old()

@@ -296,10 +296,10 @@ class IntegrationTest(Test):
         self.model.parameters.update()
         self.element.prepare_fluxseries()
         self.element.prepare_stateseries()
-        self.reset_outlets()
+        self.reset_outputs()
         self.reset_inits()
 
-    def reset_outlets(self):
+    def reset_outputs(self):
         """Set the values of the simulation sequences of all outlet nodes to
         zero."""
         for (name, node) in self.nodes:

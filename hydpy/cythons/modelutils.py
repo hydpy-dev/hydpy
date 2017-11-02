@@ -614,8 +614,10 @@ class PyxWriter(object):
         lines.extend(self.iofunctions)
         lines.extend(self.new2old)
         lines.extend(self.run)
-        lines.extend(self.update_inputs)
-        lines.extend(self.update_outputs)
+        lines.extend(self.update_inlets)
+        lines.extend(self.update_outlets)
+        lines.extend(self.update_receivers)
+        lines.extend(self.update_senders)
         return lines
 
     @property
@@ -647,16 +649,16 @@ class PyxWriter(object):
         lines.add(2, 'self.idx_sim = idx')
         if getattr(self.model.sequences, 'inputs', None) is not None:
             lines.add(2, 'self.loaddata()')
-        if self.model._INPUT_METHODS:
-            lines.add(2, 'self.update_inputs()')
+        if self.model._INLET_METHODS:
+            lines.add(2, 'self.update_inlets()')
         if hasattr(self.model, 'solve'):
             lines.add(2, 'self.solve()')
         else:
             lines.add(2, 'self.run()')
             if getattr(self.model.sequences, 'states', None) is not None:
                 lines.add(2, 'self.new2old()')
-        if self.model._OUTPUT_METHODS:
-            lines.add(2, 'self.update_outputs()')
+        if self.model._OUTLET_METHODS:
+            lines.add(2, 'self.update_outlets()')
         if ((getattr(self.model.sequences, 'fluxes', None) is not None) or
                 (getattr(self.model.sequences, 'states', None) is not None)):
             lines.add(2, 'self.savedata()')
@@ -730,19 +732,34 @@ class PyxWriter(object):
         return lines
 
     @property
-    def update_inputs(self):
+    def update_receivers(self):
         """Lines of model method with the same name."""
-        return self._call_methods('update_inputs', self.model._INPUT_METHODS)
+        return self._call_methods('update_receivers',
+                                  self.model._RECEIVER_METHODS)
+
+    @property
+    def update_inlets(self):
+        """Lines of model method with the same name."""
+        return self._call_methods('update_inlets',
+                                  self.model._INLET_METHODS)
 
     @property
     def run(self):
         """Lines of model method with the same name."""
-        return self._call_methods('run', self.model._RUN_METHODS)
+        return self._call_methods('run',
+                                  self.model._RUN_METHODS)
 
     @property
-    def update_outputs(self):
+    def update_outlets(self):
         """Lines of model method with the same name."""
-        return self._call_methods('update_outputs', self.model._OUTPUT_METHODS)
+        return self._call_methods('update_outlets',
+                                  self.model._OUTLET_METHODS)
+
+    @property
+    def update_senders(self):
+        """Lines of model method with the same name."""
+        return self._call_methods('update_senders',
+                                  self.model._SENDER_METHODS)
 
     @property
     def calculate_single_terms(self):

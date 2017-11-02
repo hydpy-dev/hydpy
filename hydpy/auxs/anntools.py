@@ -13,6 +13,7 @@ the actual calculations are defined in the Cython extension module
 from __future__ import division, print_function
 # ...from site-packages
 import numpy
+from matplotlib import pyplot
 # ...from HydPy
 from hydpy.core import objecttools
 from hydpy.core import autodoctools
@@ -63,6 +64,16 @@ class ANN(object):
     6, 1.998994
     7, 1.999982
     8, 2.0
+
+    One can also directly plot the resulting graph:
+
+    >>> ann.plot(0.0, 8.0)
+
+    You can close the plotting window manually or by writing:
+
+    >>> from matplotlib import pyplot
+    >>> pyplot.close()
+
 
     The following example shows that everything works well for more complex
     single layer networks also (manual tests have been performed in a
@@ -850,6 +861,20 @@ class ANN(object):
         lines.append(objecttools.assignrepr_list(
                 self.intercepts_output, '    intercepts_output=')+')')
         return '\n'.join(lines)
+
+    def plot(self, xmin, xmax, idx_input=0, idx_output=0, points=100,
+             **kwargs):
+        if (self.nmb_inputs > 1) or (self.nmb_outputs > 1):
+            raise NotImplementedError(
+                    'At the moment, class `ANN` supports plotting the results '
+                    'of networks with one input and one output node only.')
+        xs = numpy.linspace(xmin, xmax, points)
+        ys = numpy.zeros(xs.shape)
+        for idx, x in enumerate(xs):
+            self.inputs[idx_input] = x
+            self.process_actual_input()
+            ys[idx] = self.outputs[idx_output]
+        pyplot.plot(xs, ys, **kwargs)
 
 
 autodoctools.autodoc_module()

@@ -12,14 +12,14 @@ def pic_inflow_v1(self):
     """Update the inlet link sequence."""
     flu = self.sequences.fluxes.fastaccess
     inl = self.sequences.inlets.fastaccess
-    flu.inlfow = inl.q[0]
+    flu.inflow = inl.q[0]
 
 
 def pic_totalremotedischarge_v1(self):
     """Update the receiver link sequence."""
     flu = self.sequences.fluxes.fastaccess
     rec = self.sequences.receivers.fastaccess
-    flu.totalremotedischarge[0] = rec.q[0]
+    flu.totalremotedischarge = rec.q[0]
 
 
 def update_loggedtotalremotedischarge_v1(self):
@@ -979,7 +979,7 @@ def calc_flooddischarge_v1(self):
     and water stage.
 
     Required control parameter:
-      :class:`~hydpy.models.dam.dam_derived.WaterLevel2FloodDischarge`
+      :class:`~hydpy.models.dam.dam_control.WaterLevel2FloodDischarge`
 
     Required aide sequence:
       :class:`~hydpy.models.dam.dam_aides.WaterLevel`
@@ -1054,7 +1054,6 @@ def calc_flooddischarge_v1(self):
 def calc_outflow_v1(self):
     """Calculate the total outflow of the dam.
 `
-
     Required flux sequences:
       :class:`~hydpy.models.dam.dam_fluxes.ActualRelease`
       :class:`~hydpy.models.dam.dam_fluxes.FloodDischarge`
@@ -1081,7 +1080,10 @@ def calc_outflow_v1(self):
 
 def update_watervolume_v1(self):
     """Update the actual water volume.
-`
+
+    Required derived parameter:
+      :class:`~hydpy.models.dam.dam_derived.Seconds`
+
     Required flux sequences:
       :class:`~hydpy.models.dam.dam_fluxes.Inflow`
       :class:`~hydpy.models.dam.dam_fluxes.Outflow`
@@ -1103,10 +1105,11 @@ def update_watervolume_v1(self):
         >>> states.watervolume
         watervolume(4.0)
     """
+    der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
     old = self.sequences.states.fastaccess_old
     new = self.sequences.states.fastaccess_new
-    new.watervolume = old.watervolume + (flu.inflow-flu.outflow)
+    new.watervolume = old.watervolume + der.seconds*(flu.inflow-flu.outflow)
 
 
 def pass_outflow_v1(self):
@@ -1169,10 +1172,11 @@ class Model(modeltools.ModelELS):
                       calc_requiredremoterelease_v1,
                       calc_requiredrelease_v1,
                       calc_targetedrelease_v1)
-    _PART_ODE_METHODS = (calc_waterlevel_v1,
+    _PART_ODE_METHODS = (pic_inflow_v1,
+                         calc_waterlevel_v1,
                          calc_actualrelease_v1,
                          calc_flooddischarge_v1,
-                         calc_outflow_v1,
-                         update_watervolume_v1)
+                         calc_outflow_v1)
+    _FULL_ODE_METHODS = (update_watervolume_v1,)
     _OUTLET_METHODS = (pass_outflow_v1,
                        update_loggedoutflow_v1)

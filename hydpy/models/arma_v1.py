@@ -253,7 +253,7 @@ from hydpy.models.arma import arma_outlets
 class Model(modeltools.Model):
     """Rimo/Rido version of ARMA (arma_v1)."""
 
-    _INPUT_METHODS = (arma_model.pick_q_v1,)
+    _INLET_METHODS = (arma_model.pick_q_v1,)
     _RUN_METHODS = (arma_model.calc_qpin_v1,
                     arma_model.calc_login_v1,
                     arma_model.calc_qma_v1,
@@ -261,7 +261,7 @@ class Model(modeltools.Model):
                     arma_model.calc_qpout_v1,
                     arma_model.calc_logout_v1,
                     arma_model.calc_qout_v1)
-    _OUTPUT_METHODS = (arma_model.pass_q_v1,)
+    _OUTLET_METHODS = (arma_model.pass_q_v1,)
 
 
 class ControlParameters(parametertools.SubParameters):

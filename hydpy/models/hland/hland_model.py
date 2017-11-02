@@ -2229,4 +2229,4 @@ class Model(modeltools.Model):
                     calc_inuh_v1,
                     calc_outuh_quh_v1,
                     calc_qt_v1)
-    _OUTPUT_METHODS = (update_q_v1,)
+    _OUTLET_METHODS = (update_q_v1,)

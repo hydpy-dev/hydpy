@@ -1160,7 +1160,7 @@ def update_loggedoutflow_v1(self):
 class Model(modeltools.ModelELS):
     """Dam base model."""
 
-    _INPUT_METHODS = (pic_inflow_v1,
+    _INLET_METHODS = (pic_inflow_v1,
                       pic_totalremotedischarge_v1,
                       update_loggedtotalremotedischarge_v1,
                       calc_naturalremotedischarge_v1,
@@ -1174,5 +1174,5 @@ class Model(modeltools.ModelELS):
                          calc_flooddischarge_v1,
                          calc_outflow_v1,
                          update_watervolume_v1)
-    _OUTPUT_METHODS = (pass_outflow_v1,
+    _OUTLET_METHODS = (pass_outflow_v1,
                        update_loggedoutflow_v1)

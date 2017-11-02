@@ -58,7 +58,7 @@ class Model(modeltools.Model):
                     hland_model.calc_inuh_v1,
                     hland_model.calc_outuh_quh_v1,
                     hland_model.calc_qt_v1)
-    _OUTPUT_METHODS = (hland_model.update_q_v1,)
+    _OUTLET_METHODS = (hland_model.update_q_v1,)
 
 
 class ControlParameters(parametertools.SubParameters):

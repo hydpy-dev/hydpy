@@ -244,7 +244,7 @@ class Model(modeltools.Model):
                     lland_model.calc_qdga1_v1,
                     lland_model.calc_qdga2_v1,
                     lland_model.calc_q_v1)
-    _OUTPUT_METHODS = (lland_model.pass_q_v1,)
+    _OUTLET_METHODS = (lland_model.pass_q_v1,)
 
 
 class ControlParameters(parametertools.SubParameters):

@@ -120,9 +120,9 @@ class Model(modeltools.Model):
       * nodenames (:class:`list`): Names of the outlet node names, the
         actual model shall be connected to.
     """
-    _INPUT_METHODS = (pick_input_v1,)
+    _INLET_METHODS = (pick_input_v1,)
     _RUN_METHODS = (calc_outputs_v1,)
-    _OUTPUT_METHODS = (pass_outputs_v1,)
+    _OUTLET_METHODS = (pass_outputs_v1,)
 
     def __init__(self):
         modeltools.Model.__init__(self)

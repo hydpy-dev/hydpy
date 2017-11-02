@@ -966,7 +966,7 @@ def pass_q_v1(self):
 
 class Model(modeltools.Model):
     """The HydPy-L-Stream model."""
-    _INPUT_METHODS = (pick_q_v1,)
+    _INLET_METHODS = (pick_q_v1,)
     _RUN_METHODS = (calc_qref_v1,
                     calc_hmin_qmin_hmax_qmax_v1,
                     calc_h_v1,
@@ -980,4 +980,4 @@ class Model(modeltools.Model):
                     calc_avr_uvr_v1,
                     calc_qvr_v1,
                     calc_qg_v1)
-    _OUTPUT_METHODS = (pass_q_v1,)
+    _OUTLET_METHODS = (pass_q_v1,)

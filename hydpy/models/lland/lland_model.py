@@ -1910,4 +1910,4 @@ class Model(modeltools.Model):
                     calc_qdga1_v1,
                     calc_qdga2_v1,
                     calc_q_v1)
-    _OUTPUT_METHODS = (pass_q_v1,)
+    _OUTLET_METHODS = (pass_q_v1,)

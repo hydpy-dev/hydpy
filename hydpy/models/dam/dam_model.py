@@ -1180,7 +1180,6 @@ class Model(modeltools.ModelELS):
     """Dam base model."""
 
     _INLET_METHODS = (pic_inflow_v1,
-                      pic_totalremotedischarge_v1,
                       update_loggedtotalremotedischarge_v1,
                       calc_naturalremotedischarge_v1,
                       calc_remotedemand_v1,
@@ -1188,6 +1187,7 @@ class Model(modeltools.ModelELS):
                       calc_requiredremoterelease_v1,
                       calc_requiredrelease_v1,
                       calc_targetedrelease_v1)
+    _RECEIVER_METHODS = (pic_totalremotedischarge_v1,)
     _PART_ODE_METHODS = (pic_inflow_v1,
                          calc_waterlevel_v1,
                          calc_actualrelease_v1,

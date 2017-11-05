@@ -252,9 +252,6 @@ class HydPy(object):
                 funcs.append(node._loaddata_sim)
             elif node.sequences.obs.use_ext:
                 funcs.append(node._loaddata_obs)
-        for (name, element) in self.elements:
-            if element.receivers:
-                funcs.append(element.model.update_receivers)
         for (name, node) in self.nodes:
             if node.routingmode != 'oldsim':
                 funcs.append(node.reset)
@@ -264,6 +261,9 @@ class HydPy(object):
         for (name, element) in self.elements:
             if element.senders:
                 funcs.append(element.model.update_senders)
+        for (name, element) in self.elements:
+            if element.receivers:
+                funcs.append(element.model.update_receivers)
         for (name, node) in self.nodes:
             if node.routingmode != 'oldsim':
                 funcs.append(node._savedata_sim)

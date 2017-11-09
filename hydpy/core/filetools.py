@@ -861,7 +861,7 @@ class ConditionManager(object):
                               % (self.projectpath, self._loaddirectory))
         elif len(directories) == 0:
             raise IOError('The project path `%s` does not contain any '
-                          'conditions directories.' % self.projectpath)
+                          'conditions directory.' % self.projectpath)
         try:
             string = 'init_' + pub.timegrids.sim.firstdate.string('os')
         except AttributeError:
@@ -873,9 +873,9 @@ class ConditionManager(object):
         try:
             return getattr(directories, string)
         except AttributeError:
-            raise IOError('The project path `%s` contains multiple condition'
-                          'directories, but none is in accordance with the  '
-                          'first simulation date (%s).  Please specify'
+            raise IOError('The project path `%s` contains at least one '
+                          'directory, but none is in accordance with the '
+                          'first simulation date (%s).  Please specify '
                           'the condition directory to be worked with manually.'
                           % (self.projectpath, string))
 

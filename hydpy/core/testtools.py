@@ -191,8 +191,9 @@ class IntegrationTest(Test):
         and make their sequences ready for use for integration testing."""
         del self.inits
         self.element = element
-        self.nodes = self.extract_nodes()
-        self.prepare_input_node_sequences()
+        self.elements = devicetools.Element.registeredelements()
+        self.nodes = devicetools.Node.registerednodes()
+        self.prepare_node_sequences()
         self.prepare_input_model_sequences()
         self.parseqs = seqs if seqs else self.extract_print_sequences()
         self.inits = inits
@@ -200,7 +201,7 @@ class IntegrationTest(Test):
         hydpytools.HydPy.nmb_instances = 0
         self.hp = hydpytools.HydPy()
         self.hp.updatedevices(selectiontools.Selection(
-                                                'test', self.nodes, element))
+                                        'test', self.nodes, self.elements))
 
     def __call__(self):
         """Prepare and perform an integration test and print its results."""
@@ -249,22 +250,14 @@ class IntegrationTest(Test):
         sequence."""
         return seq.series
 
-    def extract_nodes(self):
-        """Return all nodes connected to the actual element."""
-        nodes = devicetools.Nodes()
-        for connection in (self.element.inlets, self.element.outlets,
-                           self.element.receivers, self.element.senders):
-            nodes += connection.slaves
-        return nodes
+    def prepare_node_sequences(self):
+        """Prepare the simulations sequences of all nodes in.
 
-    def prepare_input_node_sequences(self):
-        """Configure the simulations sequences of the input nodes in
-        a manner that allows for applying their time series data in
-        integration tests.
-        """
+        This preparation might not be suitable for all types of integration
+        tests.  Prepare those node sequences manually, for which this method
+        does not result in the desired outcome."""
         for (name, node) in self.nodes:
-            if ((node in self.element.inlets) or
-                    (node in self.element.receivers)):
+            if not node.entries:
                 node.routingmode = 'oldsim'
             sim = node.sequences.sim
             sim.ramflag = True
@@ -308,16 +301,15 @@ class IntegrationTest(Test):
                 node.sequences.sim[:] = 0.
 
     def reset_inits(self):
-        """Set all initial conditions."""
+        """Set all initial conditions of all models."""
         for subname in ('states', 'logs'):
-            for (name, seq) in getattr(self.model.sequences, subname, ()):
-                try:
-                    seq(getattr(self.inits, name))
-                except AttributeError:
-                    raise AttributeError(
-                        'For %s sequence `%s`, no initial values have been '
-                        'defined for integration testing.'
-                        % (subname[:-1], seq.name))
+            for (name, element) in self.elements:
+                for (name, seq) in getattr(element.model.sequences,
+                                           subname, ()):
+                    try:
+                        seq(getattr(self.inits, name))
+                    except AttributeError:
+                        pass
 
 
 class UnitTest(Test):

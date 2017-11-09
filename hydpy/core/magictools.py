@@ -438,7 +438,7 @@ def printprogress_wrapper_generalized(*args, **kwargs):
                 print("%s    ...started at %s."
                       % (' '*pub._printprogress_indentation,
                          time.strftime("%X")))
-        printprogress_wrapped(*args, **kwargs)
+        printprogress_wrapped()
         if pub.options.printprogress:
             with PrintStyle(color=34, font=1):
                 print("%s    ...ended at %s."
@@ -481,6 +481,12 @@ def signature(function):
         return '(%s)' % ', '.join(strings)
 
 
+def _signature_without_default_values(signature):
+    """Return the given signature string without default values."""
+    return '(%s)' % ', '.join(sig.partition('=')[0] for sig in
+                              signature[1:-1].split(', '))
+
+
 def printprogress(printprogress_wrapped):
     """Decorator for wrapping HydPy methods with
     :func:`printprogress_wrapper_generalized`.
@@ -489,9 +495,10 @@ def printprogress(printprogress_wrapped):
     """
     lines = inspect.getsourcelines(printprogress_wrapper_generalized)[0]
     lines[0] = lines[0].replace('generalized', 'specialized')
-    lines = [line.replace('(*args, **kwargs)',
-                          signature(printprogress_wrapped))
-             for line in lines]
+    sign = signature(printprogress_wrapped)
+    short_sign = _signature_without_default_values(sign)
+    lines[0] = lines[0].replace('(*args, **kwargs)', sign)
+    lines[21] = lines[21].replace('()', short_sign)
     exec(''.join(lines), locals(), globals())
     functools.update_wrapper(printprogress_wrapper_specialized,
                              printprogress_wrapped)

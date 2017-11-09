@@ -87,7 +87,8 @@ Integration examples:
     >>> test = IntegrationTest(dam,
     ...                        inits=((states.watervolume, 0.0),
     ...                               (logs.loggedtotalremotedischarge, 1.9),
-    ...                               (logs.loggedoutflow, 0.0)))
+    ...                               (logs.loggedoutflow, 0.0),
+    ...                               (stream1.model.sequences.logs.login, 0.0)))
     >>> test.dateformat = '%d.%m.'
 
     Next the drought event needs to be defined.  The natural discharge of
@@ -172,8 +173,6 @@ Integration examples:
     | 19.01. |    1.0 |                  1.6 |                    1.6 |          0.0 |          -1.6 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |     0.0 |   1641600.0 |   1.0 |     1.7 |    0.0 |    1.7 |
     | 20.01. |    1.0 |                  1.7 |                    1.7 |          0.0 |          -1.7 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |     0.0 |   1728000.0 |   1.0 |     1.8 |    0.0 |    1.8 |
 
-    >>> stream1.model.sequences.logs.login = 0.
-
     Next the discharge that should not be undercut at the cross section
     downstream is set to 1.4 m³/s:
 
@@ -211,8 +210,6 @@ Integration examples:
     | 19.01. |    1.0 |                  1.6 |                    1.6 |          0.0 |          -0.2 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 | 1384250.729472 |   1.0 |     1.7 |      0.0 |      1.7 |
     | 20.01. |    1.0 |                  1.7 |                    1.7 |          0.0 |          -0.3 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 | 1470650.729472 |   1.0 |     1.8 |      0.0 |      1.8 |
 
-    >>> stream1.model.sequences.logs.login = 0.
-
     The qualified success in the example above is due to the time delay
     of the information flow from the cross section to the dam and, more
     importantly, due to the travel time of the discharge released.
@@ -246,8 +243,6 @@ Integration examples:
     | 18.01. |    1.0 |              1.70784 |               1.643109 |          0.0 |      -0.10784 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 | 1071854.548223 |   1.0 |     1.6 |      0.0 | 1.707565 |
     | 19.01. |    1.0 |             1.707565 |               1.707565 |          0.0 |     -0.107565 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 | 1158254.548223 |   1.0 |     1.7 |      0.0 | 1.737129 |
     | 20.01. |    1.0 |             1.737129 |               1.737129 |          0.0 |     -0.137129 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 | 1244654.548223 |   1.0 |     1.8 |      0.0 | 1.806473 |
-
-    >>> stream1.model.sequences.logs.login = 0.
 
     While is is possible to simply increase the value of parameter
     `remotedischargeminimum`, it is often advisable to use parameter
@@ -285,8 +280,6 @@ Integration examples:
     | 19.01. |    1.0 |             1.689667 |               1.662178 |          0.0 |     -0.289667 |              0.032623 |        0.032623 |        0.032623 |      0.032623 |            0.0 | 0.032623 | 1211822.123053 |   1.0 |     1.7 | 0.032623 |  1.73685 |
     | 20.01. |    1.0 |              1.73685 |               1.704227 |          0.0 |      -0.33685 |              0.021642 |        0.021642 |        0.021642 |      0.021642 |            0.0 | 0.021642 | 1296352.266543 |   1.0 |     1.8 | 0.021642 | 1.827792 |
 
-    >>> stream1.model.sequences.logs.login = 0.
-
     Building upon the last example, we subsequently increase the complexity
     of the model parameterization.  Firstly, we introduce a required minimum
     water release of 0.2 m³/s:
@@ -319,8 +312,6 @@ Integration examples:
     | 18.01. |    1.0 |              1.74304 |                1.54304 |          0.0 |      -0.34304 |              0.020494 |             0.2 |             0.2 |           0.2 |            0.0 |      0.2 | 1036030.419365 |   1.0 |     1.6 |      0.2 | 1.824234 |
     | 19.01. |    1.0 |             1.824234 |               1.624234 |          0.0 |     -0.424234 |              0.009932 |             0.2 |             0.2 |           0.2 |            0.0 |      0.2 | 1105150.419365 |   1.0 |     1.7 |      0.2 | 1.905933 |
     | 20.01. |    1.0 |             1.905933 |               1.705933 |          0.0 |     -0.505933 |              0.004737 |             0.2 |             0.2 |           0.2 |            0.0 |      0.2 | 1174270.419365 |   1.0 |     1.8 |      0.2 |      2.0 |
-
-    >>> stream1.model.sequences.logs.login = 0.
 
     One may have noted that the water release is only 0.19 m³/s instead
     of 0.2 m³/s on January 1.  This is due to the low local truncation
@@ -357,7 +348,6 @@ Integration examples:
     | 20.01. |    1.0 |             1.905933 |               1.705933 |          0.0 |     -0.505933 |              0.004737 |             0.2 |             0.2 |           0.2 |            0.0 |      0.2 | 1173550.62508 |   1.0 |     1.8 |      0.2 |      2.0 |
 
     >>> pub.config.abs_error_max = 1e-2
-    >>> stream1.model.sequences.logs.login = 0.
 
     To allow for a smooth transition of the water release in periods where
     the highest demand switches from `remote` to `near` or the other way
@@ -392,8 +382,6 @@ Integration examples:
     | 18.01. |    1.0 |             1.764451 |                 1.5464 |          0.0 |     -0.364451 |              0.016958 |        0.211892 |        0.211892 |      0.211892 |            0.0 | 0.211892 | 1022083.097724 |   1.0 |     1.6 | 0.211892 | 1.842178 |
     | 19.01. |    1.0 |             1.842178 |               1.630286 |          0.0 |     -0.442178 |              0.008447 |        0.210904 |        0.210904 |      0.210904 |            0.0 | 0.210904 | 1090260.981267 |   1.0 |     1.7 | 0.210904 | 1.920334 |
     | 20.01. |    1.0 |             1.920334 |               1.709429 |          0.0 |     -0.520334 |              0.004155 |        0.210435 |        0.210435 |      0.210435 |            0.0 | 0.210435 | 1158479.356753 |   1.0 |     1.8 | 0.210435 | 2.011822 |
-
-    >>> stream1.model.sequences.logs.login = 0.
 
     Version 1 of the dam model that is forced to keep a certain degree
     of low flow variability.  It is not allowed to release an arbitrary
@@ -437,8 +425,6 @@ Integration examples:
     | 19.01. |    0.1 |                  1.7 |                    1.6 |          0.0 |          -0.3 |              0.029844 |             0.2 |             0.1 |           0.1 |            0.0 |      0.1 |  549210.05895 |   0.1 |     1.7 |      0.1 |      1.8 |
     | 20.01. |    0.1 |                  1.8 |                    1.7 |          0.0 |          -0.4 |              0.012348 |             0.2 |             0.1 |           0.1 |            0.0 |      0.1 |  549210.05895 |   0.1 |     1.8 |      0.1 |      1.9 |
 
-    >>> stream1.model.sequences.logs.login = 0.
-
     Another issue of the dam model relevant for the simulation of drought
     events to be discussed is the possible restriction of water release
     due to limited storage.  To focus on this, we reset the parameter
@@ -477,8 +463,6 @@ Integration examples:
     | 18.01. | 0.021053 |             1.546482 |               1.509029 |          0.0 |     -0.146482 |              0.103246 |        0.103246 |        0.103246 |      0.015487 |            0.0 | 0.015487 |  -145.461772 | 0.021053 |     1.6 | 0.015487 | 1.636057 |
     | 19.01. | 0.010526 |             1.636057 |                1.62057 |          0.0 |     -0.236057 |              0.051265 |        0.051265 |        0.051265 |      0.010253 |            0.0 | 0.010253 |  -121.851706 | 0.010526 |     1.7 | 0.010253 | 1.723773 |
     | 20.01. |      0.0 |             1.723773 |                1.71352 |          0.0 |     -0.323773 |              0.024271 |        0.024271 |        0.012136 |           0.0 |            0.0 |      0.0 |  -121.851706 |      0.0 |     1.8 |      0.0 | 1.812493 |
-
-    >>> stream1.model.sequences.logs.login = 0.
 
     This behaviour of the dam model is due to method
     :func:`~hydpy.models.dam.dam_model.calc_actualrelease_v1` beeing
@@ -570,7 +554,6 @@ Integration examples:
 
     >>> stream1.model.parameters.control.responses(((), (1.0,)))
     >>> stream1.model.parameters.update()
-    >>> stream1.model.sequences.logs.login = 0.
 
     The exemple is a little artificial, but exemplifies a general problem
     that might occur in different forms.  Due to the time delay of the
@@ -608,7 +591,6 @@ Integration examples:
     two days:
 
     >>> nmblogentries(2)
-    >>> stream1.model.sequences.logs.login = 0.
 
     Now the water release is relatively constant.  This does not completely
     solve the problems of wasting water during peak flows and the repeated

@@ -66,7 +66,7 @@ class Date(object):
         >>> date2.style
         'din'
 
-        # Alternatively, the style property can be set permanentely:
+        >>> # Alternatively, the style property can be set permanentely:
         >>> date2.style = 'iso'
         >>> str(date2)
         '1997.11.01 00:00:00'
@@ -93,7 +93,7 @@ class Date(object):
 
     One can change the year, month... of a :class:`Date` object via numbers:
 
-        # Assign an integer...
+        >>> # Assign an integer...
         >>> test4.year = 1997
         >>> # ...or something that can be converted to an integer.
         >>> test4.month = '10'

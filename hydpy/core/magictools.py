@@ -363,35 +363,36 @@ def controlcheck(controldir='default', projectdir=None, controlfile=None):
                     namespace[name2] = seq
 
 
-def printprogress_wrapper_generalized(*args, **kwargs):
-    """Wrapper for HydPy methods to print when they start when they end.
-
-    The wrapper is general in its function arguments.  When one uses the
-    decorator :func:`printprogress`, the general arguments are replaced
-    by the specific ones of the method to be wrapped.
-    """
-    import sys
-    import time
-    from hydpy import pub
-    from hydpy.core.magictools import PrintStyle
-    pub._printprogress_indentation += 4
-    try:
-        if pub.options.printprogress:
-            with PrintStyle(color=34, font=1):
-                print('\n%sHydPy method %s...'
-                      % (' '*pub._printprogress_indentation,
-                         printprogress_wrapped.__name__))
-                print("%s    ...started at %s."
-                      % (' '*pub._printprogress_indentation,
-                         time.strftime("%X")))
-        printprogress_wrapped()
-        if pub.options.printprogress:
-            with PrintStyle(color=34, font=1):
-                print("%s    ...ended at %s."
-                      % (' '*pub._printprogress_indentation,
-                         time.strftime("%X")))
-    finally:
-        pub._printprogress_indentation -= 4
+lines_print_progress_wrapper = \
+    ['def printprogress_wrapper(*args, **kwargs):',
+     '    """Wrapper for HydPy methods to print when they start and end.',
+     '',
+     '    The wrapper is general in its function arguments.  When one uses ',
+     '    the decorator :func:`printprogress`, the general arguments are ',
+     '    replaced by the specific ones of the method to be wrapped.',
+     '    """',
+     '    import sys',
+     '    import time',
+     '    from hydpy import pub',
+     '    from hydpy.core.magictools import PrintStyle',
+     '    pub._printprogress_indentation += 4',
+     '    try:',
+     '        if pub.options.printprogress:',
+     '            with PrintStyle(color=34, font=1):',
+     "                print('\\n%sHydPy method %s...'",
+     "                      % (' '*pub._printprogress_indentation,",
+     '                         printprogress_wrapped.__name__))',
+     '                print("%s    ...started at %s."',
+     "                      % (' '*pub._printprogress_indentation,",
+     '                         time.strftime("%X")))',
+     '        printprogress_wrapped()',
+     '        if pub.options.printprogress:',
+     '            with PrintStyle(color=34, font=1):',
+     '                print("%s    ...ended at %s."',
+     "                      % (' '*pub._printprogress_indentation,",
+     '                         time.strftime("%X")))',
+     '    finally:',
+     '        pub._printprogress_indentation -= 4']
 
 
 def zip_longest(*iterables, **kwargs):
@@ -439,16 +440,16 @@ def printprogress(printprogress_wrapped):
 
     Hopefully, all relevant attributes of the wrapped method are maintained.
     """
-    lines = inspect.getsourcelines(printprogress_wrapper_generalized)[0]
-    lines[0] = lines[0].replace('generalized', 'specialized')
+    funcname = printprogress_wrapped.__name__
+    lines = lines_print_progress_wrapper[:]
+    lines[0] = lines[0].replace('printprogress_wrapper', funcname)
     sign = signature(printprogress_wrapped)
     short_sign = _signature_without_default_values(sign)
     lines[0] = lines[0].replace('(*args, **kwargs)', sign)
     lines[21] = lines[21].replace('()', short_sign)
-    exec(''.join(lines), locals(), globals())
-    functools.update_wrapper(printprogress_wrapper_specialized,
-                             printprogress_wrapped)
-    return printprogress_wrapper_specialized
+    exec('\n'.join(lines), locals(), globals())
+    functools.update_wrapper(eval(funcname), printprogress_wrapped)
+    return eval(funcname)
 
 
 def progressbar(iterable, length=23):

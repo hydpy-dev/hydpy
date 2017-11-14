@@ -1014,7 +1014,7 @@ class IOSequence(Sequence):
     def save_ext(self):
         """Write the internal data into an external data file."""
         if self.filetype_ext == 'npy':
-            series = pub.timetrids.init.array2series(self.values)
+            series = pub.timegrids.init.array2series(self.series)
             numpy.save(self.filepath_ext, series)
         else:
             with open(self.filepath_ext, 'w') as file_:
@@ -1478,9 +1478,9 @@ class Sim(NodeSequence):
         except IOError:
             message = sys.exc_info()[1]
             self.diskflag = False
-            if pub.options.warnmissingimfile:
+            if pub.options.warnmissingsimfile:
                 warnings.warn('The option `diskflag` of the simulation '
-                              'sequence `%s`had to be set to `False` due '
+                              'sequence `%s` had to be set to `False` due '
                               'to the following problem: %s.'
                               % (objecttools.devicename(self), message))
 
@@ -1490,9 +1490,9 @@ class Sim(NodeSequence):
         except IOError:
             message = sys.exc_info()[1]
             self.ramflag = False
-            if pub.options.warnmissingimfile:
+            if pub.options.warnmissingsimfile:
                 warnings.warn('The option `ramflag` of the simulation '
-                              'sequence `%s`had to be set to `False` due '
+                              'sequence `%s` had to be set to `False` due '
                               'to the following problem: %s.'
                               % (objecttools.devicename(self), message))
 
@@ -1512,7 +1512,7 @@ class Obs(NodeSequence):
             self.diskflag = False
             if pub.options.warnmissingobsfile:
                 warnings.warn('The option `diskflag` of the observation '
-                              'sequence `%s`had to be set to `False` due '
+                              'sequence `%s` had to be set to `False` due '
                               'to the following problem: %s.'
                               % (objecttools.devicename(self), message))
 
@@ -1524,7 +1524,7 @@ class Obs(NodeSequence):
             self.ramflag = False
             if pub.options.warnmissingobsfile:
                 warnings.warn('The option `ramflag` of the observation '
-                              'sequence `%s`had to be set to `False` due '
+                              'sequence `%s` had to be set to `False` due '
                               'to the following problem: %s.'
                               % (objecttools.devicename(self), message))
 

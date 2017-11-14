@@ -51,6 +51,7 @@ NDIM2STR = {0: '',
 
 _nogil = ' nogil' if pub.options.fastcython else ''
 
+
 class Lines(list):
     """Handles lines to be written into a `.pyx` file."""
 

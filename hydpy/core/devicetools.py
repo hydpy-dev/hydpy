@@ -327,7 +327,8 @@ class Element(Device):
     variables = property(_getvariables)
 
     def initmodel(self):
-        pub.controlmanager.loadfile(element=self)
+        dict_ = pub.controlmanager.loadfile(element=self)
+        self.connect(dict_['model'])
 
     def connect(self, model=None):
         if model is not None:

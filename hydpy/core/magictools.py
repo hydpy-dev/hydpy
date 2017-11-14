@@ -417,8 +417,8 @@ def controlcheck(controldir='default', projectdir=None, controlfile=None):
                     namespace[name2] = seq
 
 
-lines_print_progress_wrapper_generalized = \
-    ['def printprogress_wrapper_generalized(*args, **kwargs):',
+lines_print_progress_wrapper = \
+    ['def printprogress_wrapper(*args, **kwargs):',
      '    """Wrapper for HydPy methods to print when they start and end.',
      '',
      '    The wrapper is general in its function arguments.  When one uses ',
@@ -494,16 +494,16 @@ def printprogress(printprogress_wrapped):
 
     Hopefully, all relevant attributes of the wrapped method are maintained.
     """
-    lines = lines_print_progress_wrapper_generalized[:]
-    lines[0] = lines[0].replace('generalized', 'specialized')
+    funcname = printprogress_wrapped.__name__
+    lines = lines_print_progress_wrapper[:]
+    lines[0] = lines[0].replace('printprogress_wrapper', funcname)
     sign = signature(printprogress_wrapped)
     short_sign = _signature_without_default_values(sign)
     lines[0] = lines[0].replace('(*args, **kwargs)', sign)
     lines[21] = lines[21].replace('()', short_sign)
     exec('\n'.join(lines), locals(), globals())
-    functools.update_wrapper(printprogress_wrapper_specialized,
-                             printprogress_wrapped)
-    return printprogress_wrapper_specialized
+    functools.update_wrapper(eval(funcname), printprogress_wrapped)
+    return eval(funcname)
 
 
 def progressbar(iterable, length=23):

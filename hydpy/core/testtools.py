@@ -415,14 +415,18 @@ class UnitTest(Test):
                         return function.__doc__
 
     def extract_print_parameters_and_sequences(self):
-        """Return a list of all input, flux and state sequences of the model
-        as well as the simulation sequences of all nodes."""
+        """Return a list of all parameter and sequences of the model.
+
+        Note that all parameters and sequences without the common `values`
+        attribute are omitted.
+        """
         parseqs = []
         for (_, subparseqs) in itertools.chain(self.model.parameters,
                                                self.model.sequences):
             for (_, parseq) in subparseqs:
                 if str(type(parseq)).split("'")[1] in self.doc:
-                    parseqs.append(parseq)
+                    if hasattr(parseq, 'values'):
+                        parseqs.append(parseq)
         return tuple(parseqs)
 
     def _update_inputs(self, idx):

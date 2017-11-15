@@ -239,7 +239,7 @@ class NumConstsELS(NumPars):
         self.pub = pub.config
         self.nmb_methods = 10
         self.nmb_stages = 11
-        self.dt_increase = 1.
+        self.dt_increase = 2.
         self.dt_decrease = 10.
         path = os.path.join(conf.__path__[0],
                             'a_coefficients_explicit_lobatto_sequence.npy')
@@ -293,11 +293,11 @@ class ModelELS(Model):
         >>> fluxes.q
         q(0.0)
         >>> model.numvars.idx_method
-        1
+        2
         >>> model.numvars.dt
         1.0
         >>> model.numvars.nmb_calls
-        1
+        2
 
         >>> from hydpy import pub
         >>> pub.config.abs_error_max = 1e-2
@@ -390,20 +390,20 @@ class ModelELS(Model):
         >>> model.numvars.nmb_calls = 0
         >>> model.solve()
         >>> states.s
-        s(0.134417)
+        s(0.134658)
         >>> fluxes.q
-        q(0.865583)
+        q(0.865342)
         >>> model.numvars.nmb_calls
-        25
+        22
 
         >>> model.numvars.nmb_calls = 0
         >>> model.solve()
         >>> states.s
-        s(0.019034)
+        s(0.018929)
         >>> fluxes.q
-        q(0.115383)
+        q(0.115728)
         >>> model.numvars.nmb_calls
-        16
+        13
 
         >>> k(4.0)
 
@@ -414,13 +414,13 @@ class ModelELS(Model):
         >>> model.numvars.nmb_calls = 0
         >>> model.solve()
         >>> states.s
-        s(0.017458)
+        s(0.019774)
         >>> fluxes.q
-        q(0.982542)
-        >>> model.numvars.dt
-        0.375
+        q(0.980226)
+        >>> round_(model.numvars.dt)
+        0.3
         >>> model.numvars.nmb_calls
-        39
+        44
 
         >>> from hydpy.core.magictools import reverse_model_wildcard_import
         >>> reverse_model_wildcard_import()
@@ -447,29 +447,29 @@ class ModelELS(Model):
         >>> model.numvars.nmb_calls = 0
         >>> model.solve()
         >>> states.s
-        s(0.0)
+        s(-0.006827)
         >>> fluxes.q
-        q(1.0)
+        q(1.006827)
         >>> model.numvars.nmb_calls
-        57
+        58
 
         >>> k(2.1)
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
         >>> model.solve()
         >>> states.s
-        s(-0.000781)
+        s(-0.00072)
         >>> fluxes.q
-        q(1.000781)
+        q(1.00072)
         >>> model.numvars.nmb_calls
-        48
+        50
 
         """
         self.numvars.t0, self.numvars.t1 = 0., 1.
         self.numvars.dt_est = 1.
         self.numvars.f0_ready = False
         self.reset_sum_fluxes()
-        while self.numvars.t0 < self.numvars.t1:
+        while self.numvars.t0 < self.numvars.t1-1e-14:
             self.numvars.last_error = 999999.
             self.numvars.dt = min(
                     self.numvars.t1-self.numvars.t0,
@@ -497,28 +497,6 @@ class ModelELS(Model):
                 self.set_result_states()
                 self.calculate_error()
                 self.extrapolate_error()
-#                nv = self.numvars
-#                from hydpy.core.objecttools import repr_values
-#                print('\nidx_sim:', self.idx_sim)
-#                print('t0, t1, dt:', nv.t0, nv.t1, nv.dt)
-#                print('inflow_sum:',
-#                      self.sequences.fluxes.fastaccess._inflow_sum)
-#                print('outflow_sum:',
-#                      self.sequences.fluxes.fastaccess._outflow_sum)
-#                print('idx_method:', nv.idx_method)
-#                print('error:', self.numvars.error)
-#                print('inflow_points:', repr_values(
-#                        self.sequences.fluxes.fastaccess._inflow_points))
-#                print('inflow_results:', repr_values(
-#                        self.sequences.fluxes.fastaccess._inflow_results))
-#                print('outflow_points:', repr_values(
-#                        self.sequences.fluxes.fastaccess._outflow_points))
-#                print('outflow_results:', repr_values(
-#                        self.sequences.fluxes.fastaccess._outflow_results))
-#                print('watervolume_points:', repr_values(
-#                        self.sequences.states.fastaccess._watervolume_points))
-#                print('watervolume_results:', repr_values(
-#                        self.sequences.states.fastaccess._watervolume_results))
                 if self.numvars.idx_method == 1:
                     continue
                 elif self.numvars.error <= self.numconsts.pub._abs_error_max:

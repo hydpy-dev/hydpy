@@ -28,7 +28,7 @@ time.strptime('1999', '%Y')
 class Parameters(object):
     """Base class for handling all parameters of a specific model."""
 
-    _names_subpars = {'control', 'derived'}
+    _names_subpars = ('control', 'derived')
 
     def __init__(self, kwargs):
         self.model = kwargs.get('model')

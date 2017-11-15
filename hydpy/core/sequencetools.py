@@ -23,6 +23,9 @@ from hydpy.core import autodoctools
 class Sequences(object):
     """Base class for handling all sequences of a specific model."""
 
+    _names_subseqs = ('inlets', 'receivers', 'inputs', 'fluxes', 'states',
+                      'logs', 'aides', 'outlets', 'senders')
+
     def __init__(self, **kwargs):
         self.model = kwargs.pop('model', None)
         cythonmodule = kwargs.pop('cythonmodule', None)
@@ -85,9 +88,10 @@ class Sequences(object):
                 subseqs.reset()
 
     def __iter__(self):
-        for (key, value) in vars(self).items():
-            if isinstance(value, SubSequences):
-                yield key, value
+        for name in self._names_subseqs:
+            subseqs = getattr(self, name, None)
+            if subseqs is not None:
+                yield name, subseqs
 
     @property
     def conditions(self):

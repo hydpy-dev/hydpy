@@ -4,6 +4,6 @@
 smoothutils
 ===========
 
-.. automodule:: hydpy.cythons.smoothutils
+.. automodule:: hydpy.cythons.autogen.smoothutils
     :members:
     :show-inheritance:

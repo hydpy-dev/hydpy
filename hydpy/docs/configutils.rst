@@ -4,6 +4,6 @@
 configutils
 ===========
 
-.. automodule:: hydpy.cythons.configutils
+.. automodule:: hydpy.cythons.autogen.configutils
     :members:
     :show-inheritance:

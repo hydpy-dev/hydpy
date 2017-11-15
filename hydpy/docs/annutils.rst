@@ -4,6 +4,6 @@
 annutils
 ========
 
-.. automodule:: hydpy.cythons.annutils
+.. automodule:: hydpy.cythons.autogen.annutils
     :members:
     :show-inheritance:

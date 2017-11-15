@@ -49,8 +49,7 @@ def update_loggedtotalremotedischarge_v1(self):
         >>> test = UnitTest(model, model.update_loggedtotalremotedischarge_v1,
         ...                 last_example=4)
         >>> test.nexts.totalremotedischarge = [1., 3., 2., 4]
-        >>> # test()
-
+        >>> test()
         | ex. | totalremotedischarge |           loggedtotalremotedischarge |
         ---------------------------------------------------------------------
         |   1 |                  1.0 | 1.0  nan                         nan |
@@ -148,7 +147,7 @@ def calc_naturalremotedischarge_v1(self):
 
         Usually, the mean total remote flow should be larger than the mean
         dam outflows.  Then the estimated natural remote discharge is simply
-        the difference of both mean values::
+        the difference of both mean values:
 
         >>> from hydpy.models.dam import *
         >>> parameterstep()
@@ -1076,7 +1075,7 @@ def calc_outflow_v1(self):
     Note that the maximum function is used to prevent from negative outflow
     values, which could otherwise occur within the required level of
     numerical accuracy.
-`
+
     Required flux sequences:
       :class:`~hydpy.models.dam.dam_fluxes.ActualRelease`
       :class:`~hydpy.models.dam.dam_fluxes.FloodDischarge`
@@ -1085,7 +1084,7 @@ def calc_outflow_v1(self):
       :class:`~hydpy.models.dam.dam_fluxes.Outflow`
 
     Basic equation:
-      :math:`Outflow = max(ActualRelease + FloodDischarge`, 0.)
+      :math:`Outflow = max(ActualRelease + FloodDischarge, 0.)`
 
     Example:
 

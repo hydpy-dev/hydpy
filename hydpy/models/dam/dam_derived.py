@@ -30,7 +30,7 @@ class RemoteDischargeSmoothPar(parametertools.MultiParameter):
     :class:`~hydpy.models.dam.dam_control.RemoteDischargeSavety` [m3/s].
 
     The following example is explained in some detail in module
-    :module:`~hydpy.auxs.smoothtools`:
+    :mod:`~hydpy.auxs.smoothtools`:
 
     >>> from hydpy import pub
     >>> from hydpy.core.timetools import Timegrids, Timegrid
@@ -65,7 +65,7 @@ class NearDischargeMinimumSmoothPar1(parametertools.MultiParameter):
     [m3/s].
 
     The following example is explained in some detail in module
-    :module:`~hydpy.auxs.smoothtools`:
+    :mod:`~hydpy.auxs.smoothtools`:
 
     >>> from hydpy import pub
     >>> from hydpy.core.timetools import Timegrids, Timegrid
@@ -100,7 +100,7 @@ class NearDischargeMinimumSmoothPar2(parametertools.MultiParameter):
     [m3/s].
 
     The following example is explained in some detail in module
-    :module:`~hydpy.auxs.smoothtools`:
+    :mod:`~hydpy.auxs.smoothtools`:
 
     >>> from hydpy import pub
     >>> from hydpy.core.timetools import Timegrids, Timegrid
@@ -133,7 +133,7 @@ class WaterLevelMinimumSmoothPar(parametertools.SingleParameter):
     :class:`~hydpy.models.dam.dam_control.WaterLevelMinimumTolerance` [m].
 
     The following example is explained in some detail in module
-    :module:`~hydpy.auxs.smoothtools`:
+    :mod:`~hydpy.auxs.smoothtools`:
 
     >>> from hydpy.models.dam import *
     >>> parameterstep()

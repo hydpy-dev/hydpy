@@ -115,13 +115,18 @@ class Cythonizer(object):
 
     def complete(self):
         if self.outdated:
-            if not pub.options.skipdoctests:
-                pub.options.usecython = False
-                self.tester.doit()
-            self.doit()
-            if not pub.options.skipdoctests:
-                pub.options.usecython = True
-                self.tester.doit()
+            usecython = pub.options.usecython
+            try:
+                if not pub.options.skipdoctests:
+                    pub.options.usecython = False
+                    self.tester.doit()
+                if usecython:
+                    self.doit()
+                    if not pub.options.skipdoctests:
+                        pub.options.usecython = True
+                        self.tester.doit()
+            finally:
+                pub.options.usecython = usecython
 
     def doit(self):
         with magictools.PrintStyle(color=33, font=4):

@@ -16,25 +16,20 @@ def pic_inflow_v1(self):
 
 
 def pic_totalremotedischarge_v1(self):
-    """Update the receiver link sequence.
-
-    !!! This method needs revision. !!!
-    """
+    """Update the receiver link sequence."""
     flu = self.sequences.fluxes.fastaccess
-    log = self.sequences.logs.fastaccess
-    flu.totalremotedischarge = log.loggedtotalremotedischarge[0]
+    rec = self.sequences.receivers.fastaccess
+    flu.totalremotedischarge = rec.q[0]
 
 
 def update_loggedtotalremotedischarge_v1(self):
     """Log a new entry of discharge at a cross section far downstream.
 
-    !!! This method needs revision. !!!
-
     Required control parameter:
       :class:`~hydpy.models.dam.dam_derived.NmbLogEntries`
 
-    Required receiver sequence:
-      :class:`~hydpy.models.dam.dam_receivers.Q`
+    Required flux sequence:
+      :class:`~hydpy.models.dam.dam_fluxes.TotalRemoteDischarge`
 
     Calculated flux sequence:
       :class:`~hydpy.models.dam.dam_logs.LoggedTotalRemoteDischarge`
@@ -64,12 +59,12 @@ def update_loggedtotalremotedischarge_v1(self):
         |   4 |                  4.0 | 4.0  2.0                         3.0 |
     """
     con = self.parameters.control.fastaccess
+    flu = self.sequences.fluxes.fastaccess
     log = self.sequences.logs.fastaccess
-    rec = self.sequences.receivers.fastaccess
     for idx in range(con.nmblogentries-1, 0, -1):
         log.loggedtotalremotedischarge[idx] = \
                                 log.loggedtotalremotedischarge[idx-1]
-    log.loggedtotalremotedischarge[0] = rec.q[0]
+    log.loggedtotalremotedischarge[0] = flu.totalremotedischarge
 
 
 def calc_waterlevel_v1(self):
@@ -1197,14 +1192,14 @@ class Model(modeltools.ModelELS):
     """Dam base model."""
 
     _INLET_METHODS = (pic_inflow_v1,
-                      pic_totalremotedischarge_v1,
                       calc_naturalremotedischarge_v1,
                       calc_remotedemand_v1,
                       calc_remotefailure_v1,
                       calc_requiredremoterelease_v1,
                       calc_requiredrelease_v1,
                       calc_targetedrelease_v1)
-    _RECEIVER_METHODS = (update_loggedtotalremotedischarge_v1,)
+    _RECEIVER_METHODS = (pic_totalremotedischarge_v1,
+                         update_loggedtotalremotedischarge_v1)
     _PART_ODE_METHODS = (pic_inflow_v1,
                          calc_waterlevel_v1,
                          calc_actualrelease_v1,

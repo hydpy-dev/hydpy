@@ -1130,12 +1130,13 @@ def update_watervolume_v1(self):
 
         >>> from hydpy.models.dam import *
         >>> parameterstep()
+        >>> derived.seconds = 2.0
         >>> states.watervolume.old = 5.0
         >>> fluxes.inflow = 2.0
         >>> fluxes.outflow = 3.0
         >>> model.update_watervolume_v1()
         >>> states.watervolume
-        watervolume(4.0)
+        watervolume(3.0)
     """
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess

@@ -22,7 +22,7 @@ install:
 # command to run tests
 script:
   - if [ $TRAVIS_PYTHON_VERSION = "2.7" ] ; then python setup.py install coverage_report; else python setup.py install; fi
-  - if [ $TRAVIS_PYTHON_VERSION = "2.7" ] ; then travis-sphinx --source=hydpy/docs build; fi
+  - if [ $TRAVIS_PYTHON_VERSION = "2.7" ] ; then travis-sphinx build --source=hydpy/docs; fi
   - if [ $TRAVIS_PYTHON_VERSION = "2.7" ] ; then python modify_html.py; fi
 env:
   global:

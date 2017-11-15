@@ -70,6 +70,8 @@ class HydPy(object):
                         objecttools.augmentexcmessage(
                             'While trying to initialize the model of '
                             'element `%s`' % name)
+                else:
+                    element.model.parameters.update()
         finally:
             pub.options.warnsimulationstep = warn
 

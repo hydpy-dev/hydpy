@@ -144,6 +144,7 @@ class HydPy(object):
     def connect(self):
         for (name, element) in self.elements:
             element.connect()
+            element.model.parameters.update()
 
     @property
     def network_properties(self):

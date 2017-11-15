@@ -120,7 +120,6 @@ class Model(_MetaModel):
         try:
             for group in ('inlets', 'receivers', 'outlets', 'senders'):
                 self._connect_subgroup(group)
-            self.parameters.update()
         except BaseException:
             objecttools.augmentexcmessage(
                 'While trying to build the node connection of the `%s` '

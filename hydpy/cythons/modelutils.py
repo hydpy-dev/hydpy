@@ -114,7 +114,7 @@ class Cythonizer(object):
             setattr(self, key, value)
 
     def complete(self):
-        if self.outdated:
+        if (not pub._am_i_an_exe) and self.outdated:
             usecython = pub.options.usecython
             try:
                 if not pub.options.skipdoctests:

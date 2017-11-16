@@ -8,6 +8,7 @@ from __future__ import division, print_function
 import inspect
 import sys
 import textwrap
+import numbers
 # ...from site-packages
 import numpy
 # ...from HydPy
@@ -245,8 +246,8 @@ def repr_(value, decimals=None):
     if isinstance(value, (pointerutils.Double, pointerutils.PDouble)):
         value = float(value)
     if ((decimals is not None) and
-            isinstance(value,
-                       (float, numpy.float64, numpy.float32, numpy.float16))):
+            isinstance(value, numbers.Real) and
+            (not isinstance(value, numbers.Integral))):
         string = '{0:.{1}f}'.format(value, decimals)
         string = string.rstrip('0')
         if string.endswith('.'):

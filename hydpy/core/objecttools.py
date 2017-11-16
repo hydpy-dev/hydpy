@@ -1310,6 +1310,15 @@ class ValueMath(object):
     def __invert__(self):
         return 1./self.value
 
+    def __floor__(self):
+        return self.value // 1.
+
+    def __ceil__(self):
+        return numpy.ceil(self.value)
+
+    def __trunc__(self):
+        return numpy.trunc(self.values)
+
     def __lt__(self, other):
         try:
             return self.value < self._arithmetic_conversion(other)

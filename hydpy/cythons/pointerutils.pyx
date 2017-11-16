@@ -161,9 +161,11 @@ Note:
 # import...
 # ...from standard library
 from __future__ import division, print_function
-import numpy
-from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 import cython
+# ...from site-packages
+import numpy
+# cimport...
+from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 
 
 cdef inline double conv2double(value):

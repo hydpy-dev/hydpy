@@ -1317,7 +1317,13 @@ class ValueMath(object):
         return numpy.ceil(self.value)
 
     def __trunc__(self):
-        return numpy.trunc(self.values)
+        return numpy.trunc(self.value)
+
+    def __divmod__(self, other):
+        return numpy.divmod(self.value, other)
+
+    def __rdivmod__(self, other):
+        return numpy.divmod(other, self.value)
 
     def __lt__(self, other):
         try:
@@ -1357,18 +1363,42 @@ class ValueMath(object):
 
     def _typeconversion(self, type_):
         if not self.NDIM:
-            return type_(self.value)
+            if isinstance(type_, type):
+                return type_(self.value)
+            else:
+                attr = getattr(self.value, type_)
+                try:
+                    return attr()
+                except TypeError:
+                    return attr
         else:
             raise TypeError('The %s instance `%s` is %d-dimensional and thus '
                             'cannot be converted to a scalar %s value.'
                             % (classname(self), self.name, self.NDIM,
                                classname(type_)))
 
+    def __bool__(self):
+        return self._typeconversion(bool)
+
     def __float__(self):
         return self._typeconversion(float)
 
     def __int__(self):
         return self._typeconversion(int)
+
+    @property
+    def real(self):
+        return self._typeconversion('real')
+
+    @property
+    def imag(self):
+        return self._typeconversion('imag')
+
+    def conjugate(self):
+        return self._typeconversion('conjugate')
+
+    def __complex__(self):
+        return numpy.complex(self.value)
 
     def __round__(self, ndigits=0):
         return numpy.round(self.value, ndigits)

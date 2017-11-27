@@ -199,6 +199,8 @@ def parameterstep(timestep=None):
             namespace['cythonmodule'] = cythonizer.cymodule
             model.cymodel = cythonizer.cymodule.Model()
             namespace['cymodel'] = model.cymodel
+            model.cymodel.parameters = cythonizer.cymodule.Parameters()
+            model.cymodel.sequences = cythonizer.cymodule.Sequences()
             for numpars_name in ('NumConsts', 'NumVars'):
                 if hasattr(cythonizer.cymodule, numpars_name):
                     numpars_new = getattr(cythonizer.cymodule, numpars_name)()
@@ -331,6 +333,8 @@ def prepare_model(module, timestep=None):
     if pub.options.usecython and hasattr(module, 'cythonizer'):
         cymodule = module.cythonizer.cymodule
         cymodel = cymodule.Model()
+        cymodel.parameters = cymodule.Parameters()
+        cymodel.sequences = cymodule.Sequences()
         model.cymodel = cymodel
         for numpars_name in ('NumConsts', 'NumVars'):
             if hasattr(cymodule, numpars_name):

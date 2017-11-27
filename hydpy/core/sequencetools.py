@@ -259,7 +259,7 @@ class SubSequences(MetaSubSequencesClass):
             self.fastaccess = FastAccess()
         else:
             self.fastaccess = cls_fastaccess()
-            setattr(cymodel, self.name, self.fastaccess)
+            setattr(cymodel.sequences, self.name, self.fastaccess)
 
     def _initsequences(self):
         for cls_seq in self._SEQCLASSES:
@@ -400,9 +400,9 @@ class StateSequences(IOSubSequences):
         if cls_fastaccess is None:
             self.fastaccess_old = FastAccess()
         else:
-            setattr(cymodel, 'new_states', self.fastaccess)
+            setattr(cymodel.sequences, 'new_states', self.fastaccess)
             self.fastaccess_old = cls_fastaccess()
-            setattr(cymodel, 'old_states', self.fastaccess_old)
+            setattr(cymodel.sequences, 'old_states', self.fastaccess_old)
 
     def new2old(self):
         """Assign the new/final state values of the actual time step to the

@@ -189,7 +189,7 @@ class SubParameters(MetaSubParametersClass):
             self.fastaccess = objecttools.FastAccess()
         else:
             self.fastaccess = cls_fastaccess()
-            setattr(cymodel, self.name, self.fastaccess)
+            setattr(cymodel.parameters, self.name, self.fastaccess)
         for Par in self._PARCLASSES:
             setattr(self, objecttools.instancename(Par), Par())
 

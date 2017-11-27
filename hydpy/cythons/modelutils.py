@@ -362,6 +362,11 @@ class PyxWriter(object):
     def parameters(self):
         """Parameter declaration lines."""
         lines = Lines()
+        lines.add(0, '@cython.final')
+        lines.add(0, 'cdef class Parameters(object):')
+        for (name, subpars) in self.model.parameters:
+            lines.add(1, 'cdef public %s %s'
+                         % (objecttools.classname(subpars), name))
         for (name1, subpars) in self.model.parameters:
             print('        - %s' % name1)
             lines.add(0, '@cython.final')
@@ -376,6 +381,14 @@ class PyxWriter(object):
     def sequences(self):
         """Sequence declaration lines."""
         lines = Lines()
+        lines.add(0, '@cython.final')
+        lines.add(0, 'cdef class Sequences(object):')
+        for (name, subseqs) in self.model.sequences:
+            lines.add(1, 'cdef public %s %s'
+                         % (objecttools.classname(subseqs), name))
+        if getattr(self.model.sequences, 'states', None) is not None:
+            lines.add(1, 'cdef public StateSequences old_states')
+            lines.add(1, 'cdef public StateSequences new_states')
         for (name1, subseqs) in self.model.sequences:
             print('        - %s' % name1)
             lines.add(0, '@cython.final')
@@ -602,13 +615,8 @@ class PyxWriter(object):
         lines.add(0, '@cython.final')
         lines.add(0, 'cdef class Model(object):')
         lines.add(1, 'cdef public int idx_sim')
-        for things in (self.model.parameters, self.model.sequences):
-            for (name, thing) in things:
-                lines.add(1, 'cdef public %s %s'
-                             % (objecttools.classname(thing), name))
-        if getattr(self.model.sequences, 'states', None) is not None:
-            lines.add(1, 'cdef public StateSequences old_states')
-            lines.add(1, 'cdef public StateSequences new_states')
+        lines.add(1, 'cdef public Parameters parameters')
+        lines.add(1, 'cdef public Sequences sequences')
         if hasattr(self.model, 'numconsts'):
             lines.add(1, 'cdef public NumConsts numconsts')
         if hasattr(self.model, 'numvars'):
@@ -697,9 +705,10 @@ class PyxWriter(object):
                     applyfuncs = ('inputs', 'fluxes', 'states')
                 if name in applyfuncs:
                     if func == 'closefiles':
-                        lines.add(2, 'self.%s.%s()' % (name, func))
+                        lines.add(2, 'self.sequences.%s.%s()' % (name, func))
                     else:
-                        lines.add(2, 'self.%s.%s(self.idx_sim)' % (name, func))
+                        lines.add(2, 'self.sequences.%s.%s(self.idx_sim)'
+                                     % (name, func))
         return lines
 
     @property
@@ -711,20 +720,22 @@ class PyxWriter(object):
             lines.add(2, 'cdef int jdx0, jdx1, jdx2, jdx3, jdx4, jdx5')
             for (name, seq) in sorted(self.model.sequences.states):
                 if seq.NDIM == 0:
-                    lines.add(2, 'self.old_states.%s = self.new_states.%s'
+                    lines.add(2, 'self.sequences.old_states.%s = '
+                                 'self.sequences.new_states.%s'
                                  % (2*(name,)))
                 else:
                     indexing = ''
                     for idx in range(seq.NDIM):
-                        lines.add(
-                            2+idx,
-                            'for jdx%d in range(self.states._%s_length_%d):'
-                            % (idx, name, idx))
+                        lines.add(2+idx,
+                                  'for jdx%d in range('
+                                  'self.sequences.states._%s_length_%d):'
+                                  % (idx, name, idx))
                         indexing += 'jdx%d,' % idx
                     indexing = indexing[:-1]
                     lines.add(
                         2+seq.NDIM,
-                        'self.old_states.%s[%s] = self.new_states.%s[%s]'
+                        'self.sequences.old_states.%s[%s] = '
+                        'self.sequences.new_states.%s[%s]'
                         % (2*(name, indexing)))
         return lines
 
@@ -825,8 +836,8 @@ class PyxWriter(object):
 
     @staticmethod
     def _assign_seqvalues(subseqs, target, index, load):
-        from1 = 'self.%s.' % subseqs.name + '%s'
-        to1 = 'self.%s.' % subseqs.name + '_%s_' + target
+        from1 = 'self.sequences.%s.' % subseqs.name + '%s'
+        to1 = 'self.sequences.%s.' % subseqs.name + '_%s_' + target
         if index is not None:
             to1 += '[self.numvars.%s]' % index
         if load:
@@ -838,15 +849,15 @@ class PyxWriter(object):
                 yield '%s = %s' % (to2, from2)
             elif seq.NDIM == 1:
                 yield 'cdef int idx0'
-                yield ('for idx0 in range(self.%s._%s_length0):'
+                yield ('for idx0 in range(self.sequences.%s._%s_length0):'
                        % (subseqs.name, name))
                 yield ('    %s[idx0] = %s[idx0]'
                        % (to2, from2))
             elif seq.NDIM == 2:
                 yield 'cdef int idx0, idx1'
-                yield ('for idx0 in range(self.%s._%s_length0):'
+                yield ('for idx0 in range(self.sequences.%s._%s_length0):'
                        % (subseqs.name, name))
-                yield ('    for idx1 in range(self._%s_length1):'
+                yield ('    for idx1 in range(self.sequences._%s_length1):'
                        % (subseqs.name, name))
                 yield ('        %s[idx0, idx1] = %s[idx0, idx1]'
                        % (to2, from2))
@@ -899,8 +910,8 @@ class PyxWriter(object):
     @decorate_method
     def integrate_fluxes(self):
         for (name, seq) in self.model.sequences.fluxes.numerics:
-            to_ = 'self.fluxes.%s' % name
-            from_ = 'self.fluxes._%s_points' % name
+            to_ = 'self.sequences.fluxes.%s' % name
+            from_ = 'self.sequences.fluxes._%s_points' % name
             coefs = ('self.numvars.dt * self.numconsts.a_coefs'
                      '[self.numvars.idx_method-1,self.numvars.idx_stage,jdx]')
             if seq.NDIM == 0:
@@ -910,15 +921,18 @@ class PyxWriter(object):
                 yield '    %s = %s +%s*%s[jdx]' % (to_, to_, coefs, from_)
             elif seq.NDIM == 1:
                 yield 'cdef int jdx, idx0'
-                yield 'for idx0 in range(self.fluxes._%s_length0):' % name
+                yield ('for idx0 in range(self.sequences.fluxes._%s_length0):'
+                       % name)
                 yield '    %s[idx0] = 0.' % to_
                 yield '    for jdx in range(self.numvars.idx_method):'
                 yield ('        %s[idx0] = %s[idx0] + %s*%s[jdx, idx0]'
                        % (to_, to_, coefs, from_))
             elif seq.NDIM == 2:
                 yield 'cdef int jdx, idx0, idx1'
-                yield 'for idx0 in range(self.fluxes._%s_length0):' % name
-                yield '    for idx1 in range(self.fluxes._%s_length1):' % name
+                yield ('for idx0 in range(self.sequences.fluxes._%s_length0):'
+                       % name)
+                yield ('    for idx1 in range('
+                       'self.sequences.fluxes._%s_length1):' % name)
                 yield '        %s[idx0, idx1] = 0.' % to_
                 yield '        for jdx in range(self.numvars.idx_method):'
                 yield ('            %s[idx0, idx1] = '
@@ -931,17 +945,20 @@ class PyxWriter(object):
     @decorate_method
     def reset_sum_fluxes(self):
         for (name, seq) in self.model.sequences.fluxes.numerics:
-            to_ = 'self.fluxes._%s_sum' % name
+            to_ = 'self.sequences.fluxes._%s_sum' % name
             if seq.NDIM == 0:
                 yield '%s = 0.' % to_
             elif seq.NDIM == 1:
                 yield 'cdef int idx0'
-                yield 'for idx0 in range(self.fluxes._%s_length0):' % name
+                yield ('for idx0 in range(self.sequences.fluxes._%s_length0):'
+                       % name)
                 yield '    %s[idx0] = 0.' % to_
             elif seq.NDIM == 2:
                 yield 'cdef int idx0, idx1'
-                yield 'for idx0 in range(self.fluxes._%s_length0):' % name
-                yield '    for idx1 in range(self.fluxes._%s_length1):' % name
+                yield ('for idx0 in range(self.sequences.fluxes._%s_length0):'
+                       % name)
+                yield ('    for idx1 in range('
+                       'self.sequences.fluxes._%s_length1):' % name)
                 yield '        %s[idx0, idx1] = 0.' % to_
             else:
                 raise NotImplementedError(
@@ -950,19 +967,22 @@ class PyxWriter(object):
     @decorate_method
     def addup_fluxes(self):
         for (name, seq) in self.model.sequences.fluxes.numerics:
-            to_ = 'self.fluxes._%s_sum' % name
-            from_ = 'self.fluxes.%s' % name
+            to_ = 'self.sequences.fluxes._%s_sum' % name
+            from_ = 'self.sequences.fluxes.%s' % name
             if seq.NDIM == 0:
                 yield '%s = %s + %s' % (to_, to_, from_)
             elif seq.NDIM == 1:
                 yield 'cdef int idx0'
-                yield 'for idx0 in range(self.fluxes._%s_length0):' % name
+                yield ('for idx0 in range(self.sequences.fluxes._%s_length0):'
+                       % name)
                 yield ('    %s[idx0] = %s[idx0] + %s[idx0]'
                        % (to_, to_, from_))
             elif seq.NDIM == 2:
                 yield 'cdef int idx0, idx1'
-                yield 'for idx0 in range(self.fluxes._%s_length0):' % name
-                yield '    for idx1 in range(self.fluxes._%s_length1):' % name
+                yield ('for idx0 in range(self.sequences.fluxes._%s_length0):'
+                       % name)
+                yield ('    for idx1 in range('
+                       'self.sequences.fluxes._%s_length1):' % name)
                 yield ('        %s[idx0, idx1] = '
                        '%s[idx0, idx1] + %s[idx0, idx1]'
                        % (to_, to_, from_))
@@ -976,19 +996,22 @@ class PyxWriter(object):
         index = 'self.numvars.idx_method'
         yield '%s = 0.' % to_
         for (name, seq) in self.model.sequences.fluxes.numerics:
-            from_ = 'self.fluxes._%s_results' % name
+            from_ = 'self.sequences.fluxes._%s_results' % name
             if seq.NDIM == 0:
                 yield ('%s = max(%s, fabs(%s[%s]-%s[%s-1]))'
                        % (to_, to_, from_, index, from_, index))
             elif seq.NDIM == 1:
                 yield 'cdef int idx0'
-                yield 'for idx0 in range(self.fluxes._%s_length0):' % name
+                yield ('for idx0 in range(self.sequences.fluxes._%s_length0):'
+                       % name)
                 yield ('    %s = max(%s, abs(%s[%s, idx0]-%s[%s-1, idx0]))'
                        % (to_, to_, from_, index, from_, index))
             elif seq.NDIM == 2:
                 yield 'cdef int idx0, idx1'
-                yield 'for idx0 in range(self.fluxes._%s_length0):' % name
-                yield '    for idx1 in range(self.fluxes._%s_length1):' % name
+                yield ('for idx0 in range(self.sequences.fluxes._%s_length0):'
+                       % name)
+                yield ('    for idx1 in range('
+                       'self.sequences.fluxes._%s_length1):' % name)
                 yield ('        %s = '
                        'max(%s, abs(%s[%s, idx0, idx1]-%s[%s-1, idx0, idx1]))'
                        % (to_, to_, from_, index, from_, index))
@@ -1033,19 +1056,19 @@ class FuncConverter(object):
     @property
     def collectornames(self):
         names = []
-        for things in (self.model.parameters, self.model.sequences):
-            for (name, thing) in things:
+        for groupname in ('parameters', 'sequences'):
+            for (name, subgroup) in getattr(self.model, groupname):
                 if name[:3] in self.varnames:
-                    names.append(name)
+                    names.append(groupname + '.' + name)
         if 'old' in self.varnames:
-            names.append('old_states')
+            names.append('sequences.old_states')
         if 'new' in self.varnames:
-            names.append('new_states')
+            names.append('sequences.new_states')
         return names
 
     @property
     def collectorshortcuts(self):
-        return [name[:3] for name in self.collectornames]
+        return [name.split('.')[-1][:3] for name in self.collectornames]
 
     @property
     def untypedvarnames(self):

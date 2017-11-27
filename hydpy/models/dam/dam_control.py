@@ -8,6 +8,11 @@ from hydpy.core import parametertools
 from hydpy.auxs import anntools
 
 
+class CatchmentArea(parametertools.SingleParameter):
+    """Size of the catchment draining into the dam [km2]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+
+
 class NmbLogEntries(parametertools.SingleParameter):
     """Number of log entries for certain variables [m3/s].
 
@@ -90,7 +95,8 @@ class WaterLevel2FloodDischarge(anntools.ANN):
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of the dam model, directly defined by the user."""
-    _PARCLASSES = (NmbLogEntries,
+    _PARCLASSES = (CatchmentArea,
+                   NmbLogEntries,
                    RemoteDischargeMinimum,
                    RemoteDischargeSavety,
                    NearDischargeMinimumThreshold,

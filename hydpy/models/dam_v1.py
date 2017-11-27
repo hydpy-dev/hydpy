@@ -899,7 +899,8 @@ class Model(modeltools.ModelELS):
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of HydPy-Dam, Version 1."""
-    _PARCLASSES = (dam_control.NmbLogEntries,
+    _PARCLASSES = (dam_control.CatchmentArea,
+                   dam_control.NmbLogEntries,
                    dam_control.RemoteDischargeMinimum,
                    dam_control.RemoteDischargeSavety,
                    dam_control.NearDischargeMinimumThreshold,

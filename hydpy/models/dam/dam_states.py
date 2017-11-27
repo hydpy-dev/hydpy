@@ -8,7 +8,7 @@ from hydpy.core import sequencetools
 
 
 class WaterVolume(sequencetools.StateSequence):
-    """Water volume [m³]."""
+    """Water volume [million m³]."""
     NDIM, NUMERIC, SPAN = 0, True, (None, None)
 
 

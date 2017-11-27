@@ -142,6 +142,20 @@ Integration examples:
     >>> waterlevelminimumthreshold(0.0)
     >>> waterlevelminimumtolerance(0.0)
 
+    Also, we have to define the area of the catchment draining into the dam.
+    The information is required for adjusting the numerical local truncation
+    error only.  For a catchment area of 86.4 km² the general local truncation
+    error (in mm per simulation step) is identical with the actually applied
+    site specific local truncation error (in m³/s):
+
+    >>> catchmentarea(86.4)
+    >>> from hydpy.core.objecttools import round_
+    >>> round_(solver.abserrormax.INIT)
+    0.01
+    >>> parameters.update()
+    >>> solver.abserrormax
+    abserrormax(0.01)
+
     The following table confirms that the dam model does not release any
     discharge (row `output` contains zero values only).  Hence the
     discharge at the cross section downstream (row `remote`) is identical
@@ -323,7 +337,7 @@ Integration examples:
     starts with an completely dry dam. To confirm this, the required
     numerical accuracy is increased temporarily:
 
-    >>> pub.config.abs_error_max = 1e-6
+    >>> solver.abserrormax(1e-6)
 
     Now there is only a tiny deviation left in the last shown digit:
 
@@ -351,7 +365,7 @@ Integration examples:
     | 19.01. |    1.0 |             1.824234 |               1.624234 |          0.0 |     -0.424234 |              0.009932 |             0.2 |             0.2 |           0.2 |            0.0 |      0.2 |    1.104431 |   1.0 |     1.7 |      0.2 | 1.905933 |
     | 20.01. |    1.0 |             1.905933 |               1.705933 |          0.0 |     -0.505933 |              0.004737 |             0.2 |             0.2 |           0.2 |            0.0 |      0.2 |    1.173551 |   1.0 |     1.8 |      0.2 |      2.0 |
 
-    >>> pub.config.abs_error_max = 1e-2
+    >>> solver.abserrormax(1e-2)
 
     To allow for a smooth transition of the water release in periods where
     the highest demand switches from `remote` to `near` or the other way
@@ -686,7 +700,7 @@ Integration examples:
     At first, a low numerical accuracy of 0.01 m³/s is defined, which should
     be sufficient for most flood simulations for large dams:
 
-    >>> pub.config.abs_error_max = 1e-2
+    >>> solver.abserrormax(1e-2)
 
     When simulating flood events, numerical stability and accuracy and
     their relation to computation time should be examined more closely.
@@ -729,7 +743,6 @@ Integration examples:
 
     >>> from hydpy.auxs.iuhtools import LinearStorageCascade
     >>> lsc = LinearStorageCascade(n=1, k=1.0/0.054)
-    >>> from hydpy.core.objecttools import round_
     >>> round_(numpy.convolve(lsc.ma.coefs, input_.sequences.sim.series)[:20])
     0.0, 0.02652, 0.183776, 0.543037, 0.961081, 1.251541, 1.395548, 1.453371, 1.455585, 1.405116, 1.331252, 1.261271, 1.194968, 1.132151, 1.072636, 1.01625, 0.962828, 0.912214, 0.864261, 0.818829
 
@@ -754,7 +767,7 @@ Integration examples:
     (six decimal places) no deviation from the analytical solution of the
     linear storage:
 
-    >>> pub.config.abs_error_max = 1e-6
+    >>> solver.abserrormax(1e-6)
     >>> test()
     |   date | inflow | totalremotedischarge | naturalremotedischarge | remotedemand | remotefailure | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | input | natural |   output |   remote |
     ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -790,7 +803,7 @@ Integration examples:
     But we configure the `waterlevel2flooddischarge` parameter in a
     highly reactive manner:
 
-    >>> pub.config.abs_error_max = 1e-2
+    >>> solver.abserrormax(1e-2)
     >>> waterlevel2flooddischarge(
     ...         weights_input=1e-4, weights_output=1e7,
     ...         intercepts_hidden=0.0, intercepts_output=-1e7/2)
@@ -866,6 +879,7 @@ from hydpy.core.modelimports import *
 from hydpy.models.dam import dam_model
 from hydpy.models.dam import dam_control
 from hydpy.models.dam import dam_derived
+from hydpy.models.dam import dam_solver
 from hydpy.models.dam import dam_fluxes
 from hydpy.models.dam import dam_states
 from hydpy.models.dam import dam_logs
@@ -919,6 +933,12 @@ class DerivedParameters(parametertools.SubParameters):
                    dam_derived.NearDischargeMinimumSmoothPar1,
                    dam_derived.NearDischargeMinimumSmoothPar2,
                    dam_derived.WaterLevelMinimumSmoothPar)
+
+
+class SolverParameters(parametertools.SubParameters):
+    """Solver parameters of HydPy-Dam, Version 1."""
+    _PARCLASSES = (dam_solver.AbsErrorMax,
+                   dam_solver.RelDTMin)
 
 
 class FluxSequences(sequencetools.FluxSequences):

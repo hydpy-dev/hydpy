@@ -18,6 +18,7 @@ from hydpy.core import sequencetools
 # ...from test
 from hydpy.models.test import test_model
 from hydpy.models.test import test_control
+from hydpy.models.test import test_solver
 from hydpy.models.test import test_fluxes
 from hydpy.models.test import test_states
 
@@ -31,6 +32,12 @@ class Model(modeltools.ModelELS):
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of Test model, Version 1."""
     _PARCLASSES = (test_control.K,)
+
+
+class SolverParameters(parametertools.SubParameters):
+    """Solver parameters of the Test model,."""
+    _PARCLASSES = (test_solver.AbsErrorMax,
+                   test_solver.RelDTMin)
 
 
 class FluxSequences(sequencetools.FluxSequences):

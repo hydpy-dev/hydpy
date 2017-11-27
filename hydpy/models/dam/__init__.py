@@ -10,6 +10,7 @@ from hydpy.core.modelimports import *
 # ...from dam
 from hydpy.models.dam.dam_control import ControlParameters
 from hydpy.models.dam.dam_derived import DerivedParameters
+from hydpy.models.dam.dam_solver import SolverParameters
 from hydpy.models.dam.dam_fluxes import FluxSequences
 from hydpy.models.dam.dam_states import StateSequences
 from hydpy.models.dam.dam_logs import LogSequences

@@ -284,6 +284,8 @@ class ModelELS(Model):
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
         >>> k(0.0)
+        >>> solver.abserrormax = 1e-2
+        >>> solver.reldtmin = 1e-4
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
         >>> model.solve()
@@ -297,9 +299,6 @@ class ModelELS(Model):
         1.0
         >>> model.numvars.nmb_calls
         2
-
-        >>> from hydpy import pub
-        >>> pub.config.abs_error_max = 1e-2
 
         >>> k(0.1)
         >>> states.s(1.0)
@@ -319,7 +318,7 @@ class ModelELS(Model):
         >>> round_(numpy.exp(-k))
         0.904837
 
-        >>> pub.config.abs_error_max = 1e-3
+        >>> solver.abserrormax = 1e-3
 
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
@@ -333,7 +332,7 @@ class ModelELS(Model):
         >>> model.numvars.nmb_calls
         4
 
-        >>> pub.config.abs_error_max = 1e-4
+        >>> solver.abserrormax = 1e-4
 
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
@@ -347,7 +346,7 @@ class ModelELS(Model):
         >>> model.numvars.nmb_calls
         7
 
-        >>> pub.config.abs_error_max = 1e-12
+        >>> solver.abserrormax = 1e-12
 
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
@@ -361,7 +360,7 @@ class ModelELS(Model):
         >>> model.numvars.nmb_calls
         29
 
-        >>> pub.config.abs_error_max = 1e-2
+        >>> solver.abserrormax = 1e-2
 
         >>> k(0.5)
 
@@ -427,6 +426,8 @@ class ModelELS(Model):
         >>> from hydpy.models.test_v2 import *
         >>> parameterstep()
         >>> k(0.5)
+        >>> solver.abserrormax = 1e-2
+        >>> solver.reldtmin = 1e-4
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
         >>> model.solve()

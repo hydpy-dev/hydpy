@@ -11,6 +11,7 @@ from __future__ import division, print_function
 from hydpy.core.modelimports import *
 # ...from test
 from hydpy.models.test.test_control import ControlParameters
+from hydpy.models.test.test_solver import SolverParameters
 from hydpy.models.test.test_fluxes import FluxSequences
 from hydpy.models.test.test_states import StateSequences
 from hydpy.models.test.test_model import Model

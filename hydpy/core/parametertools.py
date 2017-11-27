@@ -28,12 +28,13 @@ time.strptime('1999', '%Y')
 class Parameters(object):
     """Base class for handling all parameters of a specific model."""
 
-    _names_subpars = ('control', 'derived')
+    _names_subpars = ('control', 'derived', 'solver')
 
     def __init__(self, kwargs):
         self.model = kwargs.get('model')
         self.control = None
         self.derived = None
+        self.solver = None
         cythonmodule = kwargs.get('cythonmodule')
         cymodel = kwargs.get('cymodel')
         for (name, cls) in kwargs.items():
@@ -46,16 +47,17 @@ class Parameters(object):
                 setattr(self, subpars.name, subpars)
 
     def update(self):
-        """Calls the update methods of all derived parameters."""
-        if self.derived:
-            for par in self.derived._PARCLASSES:
+        """Call the update methods of all derived and solver parameters."""
+        for subpars in self.secondary_subpars:
+            for par in subpars._PARCLASSES:
                 name = objecttools.instancename(par)
                 try:
-                    self.derived.__dict__[name].update()
+                    subpars.__dict__[name].update()
                 except BaseException:
                     objecttools.augmentexcmessage(
-                        'While trying to update the derived parameter `%s` of '
-                        'element `%s`' % (name, objecttools.devicename(self)))
+                        'While trying to update the %s parameter `%s` of '
+                        'element `%s`'
+                        % (name, subpars.name, objecttools.devicename(self)))
 
     def savecontrols(self, parameterstep=None, simulationstep=None,
                      filename=None, dirname=None):
@@ -105,6 +107,12 @@ class Parameters(object):
             parameter.verify()
         for (name, parameter) in self.derived:
             parameter.verify()
+
+    @property
+    def secondary_subpars(self):
+        for subpars in (self.derived, self.solver):
+            if subpars is not None:
+                yield subpars
 
     def __iter__(self):
         for name in self._names_subpars:
@@ -1459,6 +1467,45 @@ class IndexParameter(MultiParameter):
 
     def setreference(self, indexarray):
         setattr(self.fastaccess, self.name, indexarray)
+
+
+class SolverParameter(SingleParameter):
+
+    def __init__(self):
+        super(SolverParameter, self).__init__()
+        self._alternative_initvalue = None
+
+    def __call__(self, *args, **kwargs):
+        super(SolverParameter, self).__call__(*args, **kwargs)
+        self.alternative_initvalue = self.value
+
+    def update(self):
+        try:
+            self(self.alternative_initvalue)
+        except RuntimeError:
+            self(self.modify_init())
+
+    def modify_init(self):
+        return self.INIT
+
+    def _get_alternative_initvalue(self):
+        if self._alternative_initvalue is None:
+            raise RuntimeError(
+                'No alternative initial value for solver parameter `%s` of '
+                'element `%s` has been defined so far.'
+                % (self.name, objecttools.devicename(self)))
+        else:
+            return self._alternative_initvalue
+
+    def _set_alternative_initvalue(self, value):
+        self._alternative_initvalue = value
+
+    def _del_alternative_initvalue(self):
+        self._alternative_initvalue = None
+
+    alternative_initvalue = property(_get_alternative_initvalue,
+                                     _set_alternative_initvalue,
+                                     _del_alternative_initvalue)
 
 
 autodoctools.autodoc_module()

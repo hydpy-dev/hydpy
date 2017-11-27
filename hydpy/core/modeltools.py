@@ -236,7 +236,6 @@ class NumPars(object):
 class NumConstsELS(NumPars):
 
     def __init__(self):
-        self.pub = pub.config
         self.nmb_methods = 10
         self.nmb_stages = 11
         self.dt_increase = 2.
@@ -473,7 +472,7 @@ class ModelELS(Model):
             self.numvars.last_error = 999999.
             self.numvars.dt = min(
                     self.numvars.t1-self.numvars.t0,
-                    max(self.numvars.dt_est, self.numconsts.pub._rel_dt_min))
+                    max(self.numvars.dt_est, self.parameters.solver.reldtmin))
             if not self.numvars.f0_ready:
                 self.calculate_single_terms()
                 self.numvars.idx_method = 0
@@ -499,7 +498,7 @@ class ModelELS(Model):
                 self.extrapolate_error()
                 if self.numvars.idx_method == 1:
                     continue
-                elif self.numvars.error <= self.numconsts.pub._abs_error_max:
+                elif self.numvars.error <= self.parameters.solver.abserrormax:
                     self.numvars.dt_est = (self.numconsts.dt_increase *
                                            self.numvars.dt)
                     self.numvars.f0_ready = False
@@ -508,8 +507,8 @@ class ModelELS(Model):
                     self.new2old()
                     break
                 elif ((self.numvars.extrapolated_error >
-                       self.numconsts.pub._abs_error_max) and
-                      (self.numvars.dt > self.numconsts.pub._rel_dt_min)):
+                       self.parameters.solver.abserrormax) and
+                      (self.numvars.dt > self.parameters.solver.reldtmin)):
                     self.numvars.f0_ready = True
                     self.numvars.dt_est = (self.numvars.dt /
                                            self.numconsts.dt_decrease)
@@ -519,7 +518,7 @@ class ModelELS(Model):
                     self.numvars.f0_ready = True
                     continue
             else:
-                if self.numvars.dt <= self.numconsts.pub._rel_dt_min:
+                if self.numvars.dt <= self.parameters.solver.reldtmin:
                     self.numvars.f0_ready = False
                     self.addup_fluxes()
                     self.numvars.t0 = self.numvars.t0+self.numvars.dt

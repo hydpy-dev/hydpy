@@ -909,18 +909,25 @@ class PyxWriter(object):
 
     @decorate_method
     def integrate_fluxes(self):
+        max_ndim = -1
+        for (name, seq) in self.model.sequences.fluxes.numerics:
+            max_ndim = max(max_ndim, seq.NDIM)
+        if max_ndim == 0:
+            yield 'cdef int jdx'
+        elif max_ndim == 1:
+            yield 'cdef int jdx, idx0'
+        elif max_ndim == 2:
+            yield 'cdef int jdx, idx0, idx1'
         for (name, seq) in self.model.sequences.fluxes.numerics:
             to_ = 'self.sequences.fluxes.%s' % name
             from_ = 'self.sequences.fluxes._%s_points' % name
             coefs = ('self.numvars.dt * self.numconsts.a_coefs'
                      '[self.numvars.idx_method-1,self.numvars.idx_stage,jdx]')
             if seq.NDIM == 0:
-                yield 'cdef int jdx'
                 yield '%s = 0.' % to_
                 yield 'for jdx in range(self.numvars.idx_method):'
                 yield '    %s = %s +%s*%s[jdx]' % (to_, to_, coefs, from_)
             elif seq.NDIM == 1:
-                yield 'cdef int jdx, idx0'
                 yield ('for idx0 in range(self.sequences.fluxes._%s_length0):'
                        % name)
                 yield '    %s[idx0] = 0.' % to_
@@ -928,7 +935,6 @@ class PyxWriter(object):
                 yield ('        %s[idx0] = %s[idx0] + %s*%s[jdx, idx0]'
                        % (to_, to_, coefs, from_))
             elif seq.NDIM == 2:
-                yield 'cdef int jdx, idx0, idx1'
                 yield ('for idx0 in range(self.sequences.fluxes._%s_length0):'
                        % name)
                 yield ('    for idx1 in range('

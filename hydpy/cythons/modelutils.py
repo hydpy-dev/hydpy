@@ -846,9 +846,9 @@ class PyxWriter(object):
         return lines
 
     @staticmethod
-    def _assign_seqvalues(subseqs, target, index, load):
-        from1 = 'self.sequences.%s.' % subseqs.name + '%s'
-        to1 = 'self.sequences.%s.' % subseqs.name + '_%s_' + target
+    def _assign_seqvalues(subseqs, subseqs_name, target, index, load):
+        from1 = 'self.sequences.%s.' % subseqs_name + '%s'
+        to1 = 'self.sequences.%s.' % subseqs_name + '_%s_' + target
         if index is not None:
             to1 += '[self.numvars.%s]' % index
         if load:
@@ -879,6 +879,7 @@ class PyxWriter(object):
     @decorate_method
     def get_point_states(self):
         yield self._assign_seqvalues(subseqs=self.model.sequences.states,
+                                     subseqs_name='states',
                                      target='points',
                                      index='idx_stage',
                                      load=True)
@@ -886,6 +887,7 @@ class PyxWriter(object):
     @decorate_method
     def set_point_states(self):
         yield self._assign_seqvalues(subseqs=self.model.sequences.states,
+                                     subseqs_name='states',
                                      target='points',
                                      index='idx_stage',
                                      load=False)
@@ -893,27 +895,31 @@ class PyxWriter(object):
     @decorate_method
     def set_result_states(self):
         yield self._assign_seqvalues(subseqs=self.model.sequences.states,
+                                     subseqs_name='states',
                                      target='results',
                                      index='idx_method',
                                      load=False)
 
     @decorate_method
     def get_sum_fluxes(self):
-        yield self._assign_seqvalues(subseqs=self.model.sequences.fluxes,
+        yield self._assign_seqvalues(subseqs=self.model.sequences.fluxes.numerics,
+                                     subseqs_name='fluxes',
                                      target='sum',
                                      index=None,
                                      load=True)
 
     @decorate_method
     def set_point_fluxes(self):
-        yield self._assign_seqvalues(subseqs=self.model.sequences.fluxes,
+        yield self._assign_seqvalues(subseqs=self.model.sequences.fluxes.numerics,
+                                     subseqs_name='fluxes',
                                      target='points',
                                      index='idx_stage',
                                      load=False)
 
     @decorate_method
     def set_result_fluxes(self):
-        yield self._assign_seqvalues(subseqs=self.model.sequences.fluxes,
+        yield self._assign_seqvalues(subseqs=self.model.sequences.fluxes.numerics,
+                                     subseqs_name='fluxes',
                                      target='results',
                                      index='idx_method',
                                      load=False)

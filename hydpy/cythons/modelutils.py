@@ -46,6 +46,7 @@ TYPE2STR = {bool: 'bint',
 The Cython type belonging to Python's :class:`int` is selected to be in
 agreement with numpy's default integer type on the respective platform/system.
 """
+
 NDIM2STR = {0: '',
             1: '[:]',
             2: '[:,:]',
@@ -74,12 +75,13 @@ class Lines(list):
         return '\n'.join(self) + '\n'
 
 
-def method_header(method_name, nogil=False):
+def method_header(method_name, nogil=False, idx_as_arg=False):
     """Returns the Cython method header for methods without arguments except
     `self`."""
     if not pub.options.fastcython:
         nogil = False
-    header = 'cpdef inline void %s(self)' % method_name
+    header = 'cpdef inline void %s(self' % method_name
+    header += ', int idx)' if idx_as_arg else ')'
     header += ' nogil:' if nogil else ':'
     return header
 
@@ -94,7 +96,7 @@ def decorate_method(wrapped):
         lines = Lines()
         if hasattr(self.model, wrapped.__name__):
             print('            . %s' % wrapped.__name__)
-            lines.add(1, method_header(wrapped.__name__, True))
+            lines.add(1, method_header(wrapped.__name__, nogil=True))
             for line in wrapped(self):
                 lines.add(2, line)
         return lines
@@ -695,7 +697,7 @@ class PyxWriter(object):
                 continue
             print('            . %s' % func)
             nogil = func in ('loaddata', 'savedata')
-            lines.add(1, method_header(func, nogil))
+            lines.add(1, method_header(func, nogil=nogil))
             for (name, subseqs) in self.model.sequences:
                 if func == 'loaddata':
                     applyfuncs = ('inputs',)
@@ -716,7 +718,7 @@ class PyxWriter(object):
         lines = Lines()
         if getattr(self.model.sequences, 'states', None) is not None:
             print('                . new2old')
-            lines.add(1, method_header('new2old', True))
+            lines.add(1, method_header('new2old', nogil=True))
             lines.add(2, 'cdef int jdx0, jdx1, jdx2, jdx3, jdx4, jdx5')
             for (name, seq) in sorted(self.model.sequences.states):
                 if seq.NDIM == 0:
@@ -739,10 +741,14 @@ class PyxWriter(object):
                         % (2*(name, indexing)))
         return lines
 
-    def _call_methods(self, name, methods):
+    def _call_methods(self, name, methods, idx_as_arg=False):
         lines = Lines()
         if hasattr(self.model, name):
-            lines.add(1, method_header(name, True))
+            lines.add(1, method_header(name,
+                                       nogil=True,
+                                       idx_as_arg=idx_as_arg))
+            if idx_as_arg:
+                lines.add(2, 'self.idx_sim = idx')
             anything = False
             for method in methods:
                 lines.add(2, 'self.%s()' % method.__name__)
@@ -755,7 +761,8 @@ class PyxWriter(object):
     def update_receivers(self):
         """Lines of model method with the same name."""
         return self._call_methods('update_receivers',
-                                  self.model._RECEIVER_METHODS)
+                                  self.model._RECEIVER_METHODS,
+                                  True)
 
     @property
     def update_inlets(self):
@@ -779,7 +786,8 @@ class PyxWriter(object):
     def update_senders(self):
         """Lines of model method with the same name."""
         return self._call_methods('update_senders',
-                                  self.model._SENDER_METHODS)
+                                  self.model._SENDER_METHODS,
+                                  True)
 
     @property
     def calculate_single_terms(self):

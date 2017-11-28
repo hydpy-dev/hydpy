@@ -195,11 +195,13 @@ class Model(_MetaModel):
         for method in self._OUTLET_METHODS:
             method(self)
 
-    def update_receivers(self, idx_sim=None):
+    def update_receivers(self, idx):
+        self.idx_sim = idx
         for method in self._RECEIVER_METHODS:
             method(self)
 
-    def update_senders(self, idx_sim=None):
+    def update_senders(self, idx):
+        self.idx_sim = idx
         for method in self._SENDER_METHODS:
             method(self)
 

@@ -375,7 +375,10 @@ class PyxWriter(object):
             lines.add(0, 'cdef class %s(object):'
                          % objecttools.classname(subpars))
             for (name2, par) in subpars:
-                ctype = TYPE2STR[par.TYPE] + NDIM2STR[par.NDIM]
+                try:
+                    ctype = TYPE2STR[par.TYPE] + NDIM2STR[par.NDIM]
+                except KeyError:
+                    ctype = par.TYPE + NDIM2STR[par.NDIM]
                 lines.add(1, 'cdef public %s %s' % (ctype, name2))
         return lines
 

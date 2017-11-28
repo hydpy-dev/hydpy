@@ -22,5 +22,5 @@ from hydpy.models.dam.dam_model import Model
 
 autodoc_basemodel()
 tester = Tester()
-#cythonizer = Cythonizer()
-#cythonizer.complete()
+cythonizer = Cythonizer()
+cythonizer.complete()

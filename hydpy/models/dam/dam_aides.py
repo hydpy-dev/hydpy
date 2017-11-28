@@ -7,7 +7,7 @@ from __future__ import division, print_function
 from hydpy.core import sequencetools
 
 
-class WaterLevel(sequencetools.FluxSequence):
+class WaterLevel(sequencetools.AideSequence):
     """Water level [m]."""
     NDIM, NUMERIC, SPAN = 0, True, (None, None)
 

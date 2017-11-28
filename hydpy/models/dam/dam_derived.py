@@ -61,7 +61,7 @@ class RemoteDischargeSmoothPar(parametertools.MultiParameter):
 class NearDischargeMinimumSmoothPar1(parametertools.MultiParameter):
     """Smoothing parameter to be derived from
     :class:`~hydpy.models.dam.dam_control.NearDischargeMinimumThreshold`
-    for smoothing kernel :func:`~hydpy.cythons.modelutils.smooth_logistic1`
+    for smoothing kernel :func:`~hydpy.cythons.smoothutils.smooth_logistic1`
     [m3/s].
 
     The following example is explained in some detail in module
@@ -96,7 +96,7 @@ class NearDischargeMinimumSmoothPar1(parametertools.MultiParameter):
 class NearDischargeMinimumSmoothPar2(parametertools.MultiParameter):
     """Smoothing parameter to be derived from
     :class:`~hydpy.models.dam.dam_control.NearDischargeMinimumThreshold`
-    for smoothing kernel :func:`~hydpy.cythons.modelutils.smooth_logistic2`
+    for smoothing kernel :func:`~hydpy.cythons.smoothutils.smooth_logistic2`
     [m3/s].
 
     The following example is explained in some detail in module

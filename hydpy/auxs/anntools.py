@@ -99,6 +99,10 @@ class ANN(object):
     A example for a multi layer networks is still missing...
 
     """
+    NDIM = 0
+    TYPE = 'annutils.ANN'
+    TIME = None
+    SPAN = (None, None)
 
     def __init__(self):
         self.subpars = None

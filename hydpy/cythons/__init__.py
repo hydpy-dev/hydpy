@@ -10,3 +10,4 @@ _modulenames = ('pointerutils',
 for modulename in _modulenames:
     module = importlib.import_module('hydpy.cythons.autogen.'+modulename)
     sys.modules['hydpy.cythons.'+modulename] = module
+    locals()[modulename] = module

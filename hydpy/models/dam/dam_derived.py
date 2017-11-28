@@ -42,7 +42,7 @@ class RemoteDischargeSmoothPar(parametertools.MultiParameter):
     >>> remotedischargesavety(0.0)
     >>> remotedischargesavety.values[1] = 2.5
     >>> derived.remotedischargesmoothpar.update()
-    >>> from hydpy.cythons.modelutils import smooth_logistic1
+    >>> from hydpy.cythons.smoothutils import smooth_logistic1
     >>> from hydpy.core.objecttools import round_
     >>> round_(smooth_logistic1(0.1, derived.remotedischargesmoothpar[0]))
     1.0
@@ -77,7 +77,7 @@ class NearDischargeMinimumSmoothPar1(parametertools.MultiParameter):
     >>> neardischargeminimumtolerance(0.0)
     >>> neardischargeminimumtolerance.values[1] = 2.5
     >>> derived.neardischargeminimumsmoothpar1.update()
-    >>> from hydpy.cythons.modelutils import smooth_logistic1
+    >>> from hydpy.cythons.smoothutils import smooth_logistic1
     >>> from hydpy.core.objecttools import round_
     >>> round_(smooth_logistic1(1.0, derived.neardischargeminimumsmoothpar1[0]))
     1.0
@@ -112,7 +112,7 @@ class NearDischargeMinimumSmoothPar2(parametertools.MultiParameter):
     >>> neardischargeminimumtolerance(0.0)
     >>> neardischargeminimumtolerance.values[1] = 2.5
     >>> derived.neardischargeminimumsmoothpar2.update()
-    >>> from hydpy.cythons.modelutils import smooth_logistic2
+    >>> from hydpy.cythons.smoothutils import smooth_logistic2
     >>> from hydpy.core.objecttools import round_
     >>> round_(smooth_logistic2(0.0, derived.neardischargeminimumsmoothpar2[0]))
     0.0
@@ -139,7 +139,7 @@ class WaterLevelMinimumSmoothPar(parametertools.SingleParameter):
     >>> parameterstep()
     >>> waterlevelminimumtolerance(0.0)
     >>> derived.waterlevelminimumsmoothpar.update()
-    >>> from hydpy.cythons.modelutils import smooth_logistic1
+    >>> from hydpy.cythons.smoothutils import smooth_logistic1
     >>> from hydpy.core.objecttools import round_
     >>> round_(smooth_logistic1(0.1, derived.waterlevelminimumsmoothpar))
     1.0

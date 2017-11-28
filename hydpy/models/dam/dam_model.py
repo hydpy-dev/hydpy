@@ -5,7 +5,7 @@
 from __future__ import division, print_function
 # ...HydPy specific
 from hydpy.core import modeltools
-from hydpy.cythons import modelutils
+from hydpy.cythons import smoothutils
 
 
 def pic_inflow_v1(self):
@@ -39,8 +39,6 @@ def update_loggedtotalremotedischarge_v1(self):
         The following example shows that, with each new method call, the
         three memorized values are successively moved to the right and the
         respective new value is stored on the bare left position:
-
-        !!! The following test is outdated !!!
 
         >>> from hydpy.models.dam import *
         >>> parameterstep()
@@ -455,7 +453,7 @@ def calc_requiredremoterelease_v1(self):
     flu = self.sequences.fluxes.fastaccess
     flu.requiredremoterelease = (
             flu.remotedemand+con.remotedischargesavety[der.toy[self.idx_sim]] *
-            modelutils.smooth_logistic1(
+            smoothutils.smooth_logistic1(
                     flu.remotefailure,
                     der.remotedischargesmoothpar[der.toy[self.idx_sim]]))
 
@@ -572,7 +570,7 @@ def calc_requiredrelease_v1(self):
     flu.requiredrelease = con.neardischargeminimumthreshold[
                                                     der.toy[self.idx_sim]]
     flu.requiredrelease = (flu.requiredrelease +
-                           modelutils.smooth_logistic2(
+                           smoothutils.smooth_logistic2(
                                flu.requiredremoterelease-flu.requiredrelease,
                                der.neardischargeminimumsmoothpar2[
                                                     der.toy[self.idx_sim]]))
@@ -848,7 +846,7 @@ def calc_targetedrelease_v1(self):
     con = self.parameters.control.fastaccess
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
-    flu.targetedrelease = modelutils.smooth_logistic1(
+    flu.targetedrelease = smoothutils.smooth_logistic1(
             flu.inflow-con.neardischargeminimumthreshold[
                                                 der.toy[self.idx_sim]],
             der.neardischargeminimumsmoothpar1[der.toy[self.idx_sim]])
@@ -986,7 +984,7 @@ def calc_actualrelease_v1(self):
     flu = self.sequences.fluxes.fastaccess
     aid = self.sequences.aides.fastaccess
     flu.actualrelease = (flu.targetedrelease *
-                         modelutils.smooth_logistic1(
+                         smoothutils.smooth_logistic1(
                                  aid.waterlevel-con.waterlevelminimumthreshold,
                                  der.waterlevelminimumsmoothpar))
 

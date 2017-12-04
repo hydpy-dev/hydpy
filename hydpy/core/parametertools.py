@@ -28,10 +28,13 @@ time.strptime('1999', '%Y')
 class Parameters(object):
     """Base class for handling all parameters of a specific model."""
 
+    _names_subpars = ('control', 'derived', 'solver')
+
     def __init__(self, kwargs):
         self.model = kwargs.get('model')
         self.control = None
         self.derived = None
+        self.solver = None
         cythonmodule = kwargs.get('cythonmodule')
         cymodel = kwargs.get('cymodel')
         for (name, cls) in kwargs.items():
@@ -44,16 +47,17 @@ class Parameters(object):
                 setattr(self, subpars.name, subpars)
 
     def update(self):
-        """Calls the update methods of all derived parameters."""
-        if self.derived:
-            for par in self.derived._PARCLASSES:
+        """Call the update methods of all derived and solver parameters."""
+        for subpars in self.secondary_subpars:
+            for par in subpars._PARCLASSES:
                 name = objecttools.instancename(par)
                 try:
-                    self.derived.__dict__[name].update()
+                    subpars.__dict__[name].update()
                 except BaseException:
                     objecttools.augmentexcmessage(
-                        'While trying to update the derived parameter `%s` of '
-                        'element `%s`' % (name, objecttools.devicename(self)))
+                        'While trying to update the %s parameter `%s` of '
+                        'element `%s`'
+                        % (name, subpars.name, objecttools.devicename(self)))
 
     def savecontrols(self, parameterstep=None, simulationstep=None,
                      filename=None, dirname=None):
@@ -104,10 +108,17 @@ class Parameters(object):
         for (name, parameter) in self.derived:
             parameter.verify()
 
+    @property
+    def secondary_subpars(self):
+        for subpars in (self.derived, self.solver):
+            if subpars is not None:
+                yield subpars
+
     def __iter__(self):
-        for (key, value) in vars(self).items():
-            if isinstance(value, SubParameters):
-                yield key, value
+        for name in self._names_subpars:
+            subpars = getattr(self, name)
+            if subpars is not None:
+                yield name, subpars
 
     def __len__(self):
         return len(dict(self))
@@ -183,10 +194,10 @@ class SubParameters(MetaSubParametersClass):
     def __init__(self, pars, cls_fastaccess=None, cymodel=None):
         self.pars = pars
         if cls_fastaccess is None:
-            self.fastaccess = type('FastAccess', (), {})
+            self.fastaccess = objecttools.FastAccess()
         else:
             self.fastaccess = cls_fastaccess()
-            setattr(cymodel, self.name, self.fastaccess)
+            setattr(cymodel.parameters, self.name, self.fastaccess)
         for Par in self._PARCLASSES:
             setattr(self, objecttools.instancename(Par), Par())
 
@@ -209,7 +220,7 @@ class SubParameters(MetaSubParametersClass):
             attr = getattr(self, name)
         except AttributeError:
             object.__setattr__(self, name, value)
-            if isinstance(value, Parameter):
+            if hasattr(value, 'connect'):
                 value.connect(self)
         else:
             try:
@@ -231,10 +242,10 @@ class SubParameters(MetaSubParametersClass):
     def __repr__(self):
         lines = []
         if pub.options.reprcomments:
-            lines.append('#%s object defined in module %s.'
+            lines.append('# %s object defined in module %s.'
                          % (objecttools.classname(self),
                             objecttools.modulename(self)))
-            lines.append('#The implemented parameters with their actual '
+            lines.append('# The implemented parameters with their actual '
                          'values are:')
         for (name, parameter) in self:
             try:
@@ -255,15 +266,7 @@ class Parameter(objecttools.ValueMath):
 
     def __init__(self):
         self.subpars = None
-        self.fastaccess = type('JustForDemonstrationPurposes', (),
-                               {self.name: None})()
-
-    def _getname(self):
-        """Name of the parameter, which is the name if the instantiating
-        subclass of :class:`Parameter` in lower case letters.
-        """
-        return objecttools.classname(self).lower()
-    name = property(_getname)
+        self.fastaccess = objecttools.FastAccess()
 
     def __call__(self, *args, **kwargs):
         """The prefered way to pass values to :class:`Parameter` instances
@@ -320,6 +323,8 @@ class Parameter(objecttools.ValueMath):
                                'read parameter `%s` from file `%s`.'
                                % (self.name, pyfile))
         return subself.values
+
+    name = property(objecttools.name)
 
     @property
     def initvalue(self):
@@ -828,6 +833,7 @@ class SeasonalParameter(MultiParameter):
     """Class for the flexible handling of parameters with anual cycles.
 
     Let us prepare a 1-dimensional :class:`SeasonalParameter` instance:
+
     >>> from hydpy.core.parametertools import SeasonalParameter
     >>> seasonalparameter = SeasonalParameter()
     >>> seasonalparameter.NDIM = 1
@@ -839,6 +845,7 @@ class SeasonalParameter(MultiParameter):
 
     To define its shape, the first entry of the assigned :class:`tuple`
     object is ignored:
+
     >>> seasonalparameter.shape = (None,)
 
     Instead it is derived from the `simulationstep` defined above:
@@ -1111,7 +1118,7 @@ class SeasonalParameter(MultiParameter):
         for toy in sorted(self._toy2values.keys()):
             yield (toy, self._toy2values[toy])
 
-    def __getattr__(self, name):
+    def __getattribute__(self, name):
         if name.startswith('toy_'):
             try:
                 return self._toy2values[timetools.TOY(name)]
@@ -1121,7 +1128,7 @@ class SeasonalParameter(MultiParameter):
                     'the seasonal parameter `%s` of element `%s`'
                     % (self.name, objecttools.devicename(self)))
         else:
-            return MultiParameter.__getattr__(self, name)
+            return super(SeasonalParameter, self).__getattribute__(name)
 
     def __setattr__(self, name, value):
         if name.startswith('toy_'):
@@ -1460,6 +1467,45 @@ class IndexParameter(MultiParameter):
 
     def setreference(self, indexarray):
         setattr(self.fastaccess, self.name, indexarray)
+
+
+class SolverParameter(SingleParameter):
+
+    def __init__(self):
+        super(SolverParameter, self).__init__()
+        self._alternative_initvalue = None
+
+    def __call__(self, *args, **kwargs):
+        super(SolverParameter, self).__call__(*args, **kwargs)
+        self.alternative_initvalue = self.value
+
+    def update(self):
+        try:
+            self(self.alternative_initvalue)
+        except RuntimeError:
+            self(self.modify_init())
+
+    def modify_init(self):
+        return self.INIT
+
+    def _get_alternative_initvalue(self):
+        if self._alternative_initvalue is None:
+            raise RuntimeError(
+                'No alternative initial value for solver parameter `%s` of '
+                'element `%s` has been defined so far.'
+                % (self.name, objecttools.devicename(self)))
+        else:
+            return self._alternative_initvalue
+
+    def _set_alternative_initvalue(self, value):
+        self._alternative_initvalue = value
+
+    def _del_alternative_initvalue(self):
+        self._alternative_initvalue = None
+
+    alternative_initvalue = property(_get_alternative_initvalue,
+                                     _set_alternative_initvalue,
+                                     _del_alternative_initvalue)
 
 
 autodoctools.autodoc_module()

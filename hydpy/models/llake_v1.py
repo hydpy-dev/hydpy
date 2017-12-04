@@ -293,16 +293,16 @@ from hydpy.models.llake import llake_outlets
 
 class Model(modeltools.Model):
     """LARSIM-Lake version of HydPy-L-Lake (llake_v1)."""
-    _RUNMETHODS = (llake_model.update_inlets_v1,
-                   llake_model.solve_dv_dt_v1,
-                   llake_model.interp_w_v1,
-                   llake_model.corr_dw_v1,
-                   llake_model.modify_qa_v1,
-                   llake_model.update_outlets_v1)
-    _ADDMETHODS = (llake_model.interp_v_v1,
-                   llake_model.calc_vq_v1,
-                   llake_model.interp_qa_v1,
-                   llake_model.calc_v_qa_v1)
+    _INLET_METHODS = (llake_model.pick_q_v1,)
+    _RUN_METHODS = (llake_model.solve_dv_dt_v1,
+                    llake_model.interp_w_v1,
+                    llake_model.corr_dw_v1,
+                    llake_model.modify_qa_v1,)
+    _ADD_METHODS = (llake_model.interp_v_v1,
+                    llake_model.calc_vq_v1,
+                    llake_model.interp_qa_v1,
+                    llake_model.calc_v_qa_v1)
+    _OUTLET_METHODS = (llake_model.pass_q_v1,)
 
 
 class ControlParameters(parametertools.SubParameters):

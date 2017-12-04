@@ -15,7 +15,7 @@ from hydpy.core import connectiontools
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
 from hydpy.core import autodoctools
-from hydpy.cythons import pointer
+from hydpy.cythons import pointerutils
 
 
 class Device(object):
@@ -23,10 +23,10 @@ class Device(object):
     _registry = {}
     _selection = {}
 
-    def _getname(self):
+    @property
+    def name(self):
         """Name of the actual device (node or element)."""
         return self._name
-    name = property(_getname)
 
     def _checkname(self, name):
         """Raises an :class:`~exceptions.ValueError` if the given name is not
@@ -152,7 +152,7 @@ class Node(Device):
                 self.sequences.obs.use_ext = True
             elif value == 'oldsim':
                 self.sequences.sim.use_ext = True
-                self._blackhole = pointer.Double(0.)
+                self._blackhole = pointerutils.Double(0.)
         else:
             raise ValueError('When trying to set the routing mode of node %s, '
                              'the value `%s` was given, but only the '
@@ -327,7 +327,8 @@ class Element(Device):
     variables = property(_getvariables)
 
     def initmodel(self):
-        pub.controlmanager.loadfile(element=self)
+        dict_ = pub.controlmanager.loadfile(element=self)
+        self.connect(dict_['model'])
 
     def connect(self, model=None):
         if model is not None:
@@ -432,9 +433,9 @@ class Devices(object):
             for value in values:
                 self._extractvalues(value)
 
-    def _getnames(self):
+    @property
+    def names(self):
         return vars(self).keys()
-    names = property(_getnames)
 
     def _getdevices(self):
         return vars(self).values()

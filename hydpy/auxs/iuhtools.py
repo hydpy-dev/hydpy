@@ -284,6 +284,11 @@ class TranslationDiffusionEquation(IUH):
 
     >>> tde.plot(threshold=0.9)
 
+    You can close the plotting window manually or by writing:
+
+    >>> from matplotlib import pyplot
+    >>> pyplot.close()
+
     All instances of the subclasses of :class:`IUH` provide a pure
     Moving Average and an Autoregressive-Moving Average approximation to the
     dt standard impulse of the instantaneous unit hydrograph function.  In

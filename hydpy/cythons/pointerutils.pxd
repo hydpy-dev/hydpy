@@ -1,4 +1,6 @@
 
+cimport numpy
+
 cdef class DoubleBase(object):
     pass
 

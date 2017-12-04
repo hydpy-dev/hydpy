@@ -20,6 +20,7 @@ Models presently available:
    :maxdepth: 2
    
    HydPy-A
+   HydPy-D
    HydPy-H
    HydPy-L
    

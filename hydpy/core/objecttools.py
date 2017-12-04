@@ -8,10 +8,11 @@ from __future__ import division, print_function
 import inspect
 import sys
 import textwrap
+import numbers
 # ...from site-packages
 import numpy
 # ...from HydPy
-from hydpy.cythons import pointer
+from hydpy.cythons import pointerutils
 from hydpy.core import autodoctools
 # from hydpy.pub import ... (actual import commands moved to
 # different functions below to avoid circular dependencies)
@@ -81,6 +82,36 @@ def instancename(self):
     options
     """
     return classname(self).lower()
+
+
+def name(self):
+    """Name of the class of the given instance in lower case letters.
+
+    This function is thought to be implemented as a property.  Otherwise
+    it would violate the principle not to access or manipulate private
+    attributes ("_name"):
+
+    >>> from hydpy.core.objecttools import name
+    >>> class Test(object):
+    ...     name = property(name)
+    >>> test1 = Test()
+    >>> test1.name
+    'test'
+    >>> test1._name
+    'test'
+
+    The private attribute is added for performance reasons only.  Note that
+    it is a class attribute:
+
+    >>> test2 = Test()
+    >>> test2._name
+    'test'
+    """
+    try:
+        return type(self).__dict__['_name']
+    except KeyError:
+        type(self)._name = instancename(self)
+        return type(self).__dict__['_name']
 
 
 def modulename(self):
@@ -212,11 +243,11 @@ def repr_(value, decimals=None):
     decimals = options.reprdigits if decimals is None else decimals
     if isinstance(value, str):
         return value
-    if isinstance(value, (pointer.Double, pointer.PDouble)):
+    if isinstance(value, (pointerutils.Double, pointerutils.PDouble)):
         value = float(value)
     if ((decimals is not None) and
-            isinstance(value,
-                       (float, numpy.float64, numpy.float32, numpy.float16))):
+            isinstance(value, numbers.Real) and
+            (not isinstance(value, numbers.Integral))):
         string = '{0:.{1}f}'.format(value, decimals)
         string = string.rstrip('0')
         if string.endswith('.'):
@@ -399,7 +430,7 @@ def assignrepr_list(values, prefix, width=None, decimals=None):
 
 def assignrepr_values2(values, prefix, decimals=None):
     """Return a prefixed and properly aligned string representation
-    of the given value matrix using function :func:`repr_`.
+    of the given 2-dimensional value matrix using function :func:`repr_`.
 
     >>> from hydpy.core.objecttools import assignrepr_values2
     >>> import numpy
@@ -427,7 +458,8 @@ def assignrepr_values2(values, prefix, decimals=None):
 def _assignrepr_bracketed2(brackets, values, prefix,
                            width=None, decimals=None):
     """Return a prefixed, wrapped and properly aligned bracketed string
-    representation of the given value matrix using function :func:`repr_`.
+    representation of the given 2-dimensional value matrix using function
+    :func:`repr_`.
 
     >>> from hydpy.core.objecttools import _assignrepr_bracketed2
     >>> import numpy
@@ -473,7 +505,8 @@ def _assignrepr_bracketed2(brackets, values, prefix,
 
 def assignrepr_tuple2(values, prefix, width=None, decimals=None):
     """Return a prefixed, wrapped and properly aligned tuple string
-    representation of the given value matrix using function :func:`repr_`.
+    representation of the given 2-dimensional value matrix using function
+    :func:`repr_`.
 
     >>> from hydpy.core.objecttools import assignrepr_tuple2
     >>> import numpy
@@ -506,7 +539,8 @@ def assignrepr_tuple2(values, prefix, width=None, decimals=None):
 
 def assignrepr_list2(values, prefix, width=None, decimals=None):
     """Return a prefixed, wrapped and properly aligned list string
-    representation of the given value matrix using function :func:`repr_`.
+    representation of the given 2-dimensional value matrix using function
+    :func:`repr_`.
 
     >>> from hydpy.core.objecttools import assignrepr_list2
     >>> import numpy
@@ -536,22 +570,218 @@ def assignrepr_list2(values, prefix, width=None, decimals=None):
     return _assignrepr_bracketed2('[]', values, prefix, width, decimals)
 
 
-def round_(values, decimals=None, **kwargs):
+def _assignrepr_bracketed3(brackets, values, prefix,
+                           width=None, decimals=None):
+    """Return a prefixed, wrapped and properly aligned bracketed string
+    representation of the given 3-dimensional value matrix using function
+    :func:`repr_`.
+
+    >>> from hydpy.core.objecttools import _assignrepr_bracketed3
+    >>> import numpy
+    >>> values = [numpy.eye(3), numpy.ones((3, 3))]
+    >>> print(_assignrepr_bracketed3('{}', values, 'test = ', 18))
+    test = {{{1.0,
+              0.0,
+              0.0},
+             {0.0,
+              1.0,
+              0.0},
+             {0.0,
+              0.0,
+              1.0}},
+            {{1.0,
+              1.0,
+              1.0},
+             {1.0,
+              1.0,
+              1.0},
+             {1.0,
+              1.0,
+              1.0}}}
+
+    If no width is given, no wrapping is performed:
+
+    >>> print(_assignrepr_bracketed3('{}', values, 'test = '))
+    test = {{{1.0, 0.0, 0.0},
+             {0.0, 1.0, 0.0},
+             {0.0, 0.0, 1.0}},
+            {{1.0, 1.0, 1.0},
+             {1.0, 1.0, 1.0},
+             {1.0, 1.0, 1.0}}}
+
+    Functions :func:`_assignrepr_bracketed3` works also on empty iterables:
+
+    >>> print(_assignrepr_bracketed3('{}', [[[]]], 'test = '))
+    test = {{{}}}
+    >>> print(_assignrepr_bracketed3('{}', [[[], [1]]], 'test = '))
+    test = {{{},
+             {1}}}
+    """
+    prefix += brackets[0]
+    lines = []
+    blanks = ' '*len(prefix)
+    for (idx, subvalues) in enumerate(values):
+        if idx == 0:
+            lines.append(_assignrepr_bracketed2(brackets, subvalues, prefix,
+                                                width, decimals))
+        else:
+            lines.append(_assignrepr_bracketed2(brackets, subvalues, blanks,
+                                                width, decimals))
+        if (len(subvalues) == 1) and (brackets[1] == ')'):
+            lines[-1] = lines[-1].replace(')', ',)')
+        lines[-1] += ','
+    lines[-1] = lines[-1][:-1] + brackets[1]
+    return '\n'.join(lines)
+
+
+def assignrepr_tuple3(values, prefix, width=None, decimals=None):
+    """Return a prefixed, wrapped and properly aligned tuple string
+    representation of the given 3-dimensional value matrix using function
+    :func:`repr_`.
+
+    >>> from hydpy.core.objecttools import assignrepr_tuple3
+    >>> import numpy
+    >>> values = [numpy.eye(3), numpy.ones((3, 3))]
+    >>> print(assignrepr_tuple3(values, 'test = ', 18))
+    test = (((1.0,
+              0.0,
+              0.0),
+             (0.0,
+              1.0,
+              0.0),
+             (0.0,
+              0.0,
+              1.0)),
+            ((1.0,
+              1.0,
+              1.0),
+             (1.0,
+              1.0,
+              1.0),
+             (1.0,
+              1.0,
+              1.0)))
+
+    If no width is given, no wrapping is performed:
+
+    >>> print(assignrepr_tuple3(values, 'test = '))
+    test = (((1.0, 0.0, 0.0),
+             (0.0, 1.0, 0.0),
+             (0.0, 0.0, 1.0)),
+            ((1.0, 1.0, 1.0),
+             (1.0, 1.0, 1.0),
+             (1.0, 1.0, 1.0)))
+
+    Functions :func:`assignrepr_tuple3` works also on empty iterables and
+    those which possess only one entry:
+
+    >>> print(assignrepr_tuple3([[[]]], 'test = '))
+    test = (((,),))
+    >>> print(assignrepr_tuple3([[[], [1]]], 'test = '))
+    test = (((),
+             (1,)))
+    """
+    return _assignrepr_bracketed3('()', values, prefix, width, decimals)
+
+
+def assignrepr_list3(values, prefix, width=None, decimals=None):
+    """Return a prefixed, wrapped and properly aligned list string
+    representation of the given 3-dimensional value matrix using function
+    :func:`repr_`.
+
+    >>> from hydpy.core.objecttools import assignrepr_list3
+    >>> import numpy
+    >>> values = [numpy.eye(3), numpy.ones((3, 3))]
+    >>> print(assignrepr_list3(values, 'test = ', 18))
+    test = [[[1.0,
+              0.0,
+              0.0],
+             [0.0,
+              1.0,
+              0.0],
+             [0.0,
+              0.0,
+              1.0]],
+            [[1.0,
+              1.0,
+              1.0],
+             [1.0,
+              1.0,
+              1.0],
+             [1.0,
+              1.0,
+              1.0]]]
+
+    If no width is given, no wrapping is performed:
+
+    >>> print(assignrepr_list3(values, 'test = '))
+    test = [[[1.0, 0.0, 0.0],
+             [0.0, 1.0, 0.0],
+             [0.0, 0.0, 1.0]],
+            [[1.0, 1.0, 1.0],
+             [1.0, 1.0, 1.0],
+             [1.0, 1.0, 1.0]]]
+
+    Functions :func:`assignrepr_list3` works also on empty iterables and
+    those which possess only one entry:
+
+    >>> print(assignrepr_list3([[[]]], 'test = '))
+    test = [[[]]]
+    >>> print(assignrepr_list3([[[], [1]]], 'test = '))
+    test = [[[],
+             [1]]]
+    """
+    return _assignrepr_bracketed3('[]', values, prefix, width, decimals)
+
+
+def round_(values, decimals=None, width=0,
+           lfill=None, rfill=None, **kwargs):
     """Prints values with a maximum number of digits in doctests.
 
     See the documentation on function :func:`repr_` for more details.  And
     note thate the option keyword arguments are passed to the print function.
+
+    Usually one would apply function :func:`round_` on a single or a vector
+    of numbers:
 
     >>> from hydpy.core.objecttools import round_
     >>> round_(1./3., decimals=6)
     0.333333
     >>> round_((1./2., 1./3., 1./4.), decimals=4)
     0.5, 0.3333, 0.25
+
+    Additionally, one can supply a `width` and a `rfill` argument:
+    >>> round_(1.0, width=6, rfill='0')
+    1.0000
+
+    Alternatively, one can use the `lfill` arguments, which
+    might e.g. be usefull for aligning different strings:
+
+    >>> round_('test', width=6, lfill='_')
+    __test
+
+    Using both the `lfill` and the `rfill` argument raises an error:
+
+    >>> round_(1.0, lfill='_', rfill='0')
+    Traceback (most recent call last):
+    ...
+    ValueError: For function `round_` values are passed for both arguments `lfill` and `rfill`.  This is not allowed.
     """
-    if hasattr(values, '__iter__'):
-        print(repr_values(values, decimals), **kwargs)
+    if hasattr(values, '__iter__') and (not isinstance(values, str)):
+        string = repr_values(values, decimals)
     else:
-        print(repr_(values, decimals), **kwargs)
+        string = repr_(values, decimals)
+    if (lfill is not None) and (rfill is not None):
+        raise ValueError(
+            'For function `round_` values are passed for both arguments '
+            '`lfill` and `rfill`.  This is not allowed.')
+    if (lfill is not None) or (rfill is not None):
+        width = max(width, len(string))
+        if lfill is not None:
+            string = string.rjust(width, lfill)
+        else:
+            string = string.ljust(width, rfill)
+    print(string, **kwargs)
 
 
 class Options(object):
@@ -563,6 +793,7 @@ class Options(object):
         self._verbosedir = False
         self._reprcomments = True
         self._usecython = True
+        self._fastcython = True
         self._skipdoctests = False
         self._refreshmodels = False
         self._reprdigits = None
@@ -633,6 +864,21 @@ class Options(object):
         self._usecython = bool(value)
 
     usecython = property(_getusecython, _setusecython)
+
+    def _getfastcython(self):
+        """True/False flag indicating whether Cythonization shall be
+        configured in a fast but unsafe (True) or in a slow but safe (False)
+        mode.  The fast mode is the default.  Setting this flag to False
+        can be helpful when the implementation of new models or other
+        Cython related features introduces errors that do not result in
+        informative error messages.
+        """
+        return self._fastcython
+
+    def _setfastcython(self, value):
+        self._fastcython = bool(value)
+
+    fastcython = property(_getfastcython, _setfastcython)
 
     def _getskipdoctests(self):
         """True/False flag indicating whether documetation tests shall be
@@ -1064,6 +1310,21 @@ class ValueMath(object):
     def __invert__(self):
         return 1./self.value
 
+    def __floor__(self):
+        return self.value // 1.
+
+    def __ceil__(self):
+        return numpy.ceil(self.value)
+
+    def __trunc__(self):
+        return numpy.trunc(self.value)
+
+    def __divmod__(self, other):
+        return numpy.divmod(self.value, other)
+
+    def __rdivmod__(self, other):
+        return numpy.divmod(other, self.value)
+
     def __lt__(self, other):
         try:
             return self.value < self._arithmetic_conversion(other)
@@ -1102,18 +1363,42 @@ class ValueMath(object):
 
     def _typeconversion(self, type_):
         if not self.NDIM:
-            return type_(self.value)
+            if isinstance(type_, type):
+                return type_(self.value)
+            else:
+                attr = getattr(self.value, type_)
+                try:
+                    return attr()
+                except TypeError:
+                    return attr
         else:
             raise TypeError('The %s instance `%s` is %d-dimensional and thus '
                             'cannot be converted to a scalar %s value.'
                             % (classname(self), self.name, self.NDIM,
                                classname(type_)))
 
+    def __bool__(self):
+        return self._typeconversion(bool)
+
     def __float__(self):
         return self._typeconversion(float)
 
     def __int__(self):
         return self._typeconversion(int)
+
+    @property
+    def real(self):
+        return self._typeconversion('real')
+
+    @property
+    def imag(self):
+        return self._typeconversion('imag')
+
+    def conjugate(self):
+        return self._typeconversion('conjugate')
+
+    def __complex__(self):
+        return numpy.complex(self.value)
 
     def __round__(self, ndigits=0):
         return numpy.round(self.value, ndigits)
@@ -1150,6 +1435,11 @@ class ValueMath(object):
                 'of element `%s` which handle %d-dimensional matrices.'
                 % self.NDIM)
         return '\n'.join(self.commentrepr() + [string])
+
+
+class FastAccess(object):
+    """Used as a surrogate for typed Cython classes when working in
+    pure Python mode."""
 
 
 class HydPyDeprecationWarning(DeprecationWarning):

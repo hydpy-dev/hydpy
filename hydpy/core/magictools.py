@@ -172,8 +172,7 @@ class StdOutErr(object):
 
 
 def parameterstep(timestep=None):
-    """
-    Define a parameter time step size within a parameter control file.
+    """Define a parameter time step size within a parameter control file.
 
     Argument:
       * timestep(:class:`~hydpy.core.timetools.Period`): Time step size.
@@ -195,27 +194,29 @@ def parameterstep(timestep=None):
     if model is None:
         model = namespace['Model']()
         namespace['model'] = model
-        element = namespace.get('element', None)
-        if isinstance(element, devicetools.Element):
-            element.model = model
-            model.element = element
         if pub.options.usecython and 'cythonizer' in namespace:
             cythonizer = namespace['cythonizer']
             namespace['cythonmodule'] = cythonizer.cymodule
             model.cymodel = cythonizer.cymodule.Model()
             namespace['cymodel'] = model.cymodel
-            for (name, func) in cythonizer.pyxwriter.listofmodeluserfunctions:
-                setattr(model, name, getattr(model.cymodel, name))
-            for func in ('doit', 'new2old', 'openfiles', 'closefiles',
-                         'loaddata', 'savedata'):
-                if hasattr(model.cymodel, func):
-                    setattr(model, func, getattr(model.cymodel, func))
+            model.cymodel.parameters = cythonizer.cymodule.Parameters()
+            model.cymodel.sequences = cythonizer.cymodule.Sequences()
+            for numpars_name in ('NumConsts', 'NumVars'):
+                if hasattr(cythonizer.cymodule, numpars_name):
+                    numpars_new = getattr(cythonizer.cymodule, numpars_name)()
+                    numpars_old = getattr(model, numpars_name.lower())
+                    for (name_numpar, numpar) in numpars_old:
+                        setattr(numpars_new, name_numpar, numpar)
+                    setattr(model.cymodel, numpars_name.lower(), numpars_new)
+            for name in dir(model.cymodel):
+                if (not name.startswith('_')) and hasattr(model, name):
+                    setattr(model, name, getattr(model.cymodel, name))
         if 'Parameters' not in namespace:
             namespace['Parameters'] = parametertools.Parameters
         model.parameters = namespace['Parameters'](namespace)
         if 'Sequences' not in namespace:
             namespace['Sequences'] = sequencetools.Sequences
-        model.sequences = namespace['Sequences'](namespace)
+        model.sequences = namespace['Sequences'](**namespace)
         namespace['parameters'] = model.parameters
         for (name, pars) in model.parameters:
             namespace[name] = pars
@@ -289,13 +290,18 @@ def reverse_model_wildcard_import():
         for (name_subpars, subpars) in model.parameters:
             for (name_par, par) in subpars:
                 namespace.pop(name_par, None)
-        namespace.pop(name_subpars, None)
+                namespace.pop(objecttools.classname(par), None)
+            namespace.pop(name_subpars, None)
+            namespace.pop(objecttools.classname(subpars), None)
         for (name_subseqs, subseqs) in model.sequences:
             for (name_seq, seq) in subseqs:
                 namespace.pop(name_seq, None)
-        namespace.pop(name_subseqs, None)
-        for name in ('parameters', 'sequences', 'cymodel', 'cymodule',
-                     'model'):
+                namespace.pop(objecttools.classname(seq), None)
+            namespace.pop(name_subseqs, None)
+            namespace.pop(objecttools.classname(subseqs), None)
+        for name in ('parameters', 'sequences', 'model',
+                     'Parameters', 'Sequences', 'Model',
+                     'cythonizer', 'cymodel', 'cythonmodule'):
             namespace.pop(name, None)
         for key in list(namespace.keys()):
             try:
@@ -303,6 +309,58 @@ def reverse_model_wildcard_import():
                     del namespace[key]
             except AttributeError:
                 pass
+
+
+def prepare_model(module, timestep=None):
+    """Prepare and return the model of the given module.
+
+    In usual HydPy projects, each hydrological model instance is prepared
+    in an individual control file.  This allows for "polluting" the
+    namespace with different model attributes.  There is no danger of
+    name conflicts, as long as no other (wildcard) imports are performed.
+
+    However, there are situations when different models are to be loaded
+    into the same namespace.  Then it is advisable to use function
+    :func:`prepare_model`, which just returns a reference to the model
+    and nothing else.
+
+    See the documentation of :mod:`~hydpy.models.dam_v1` on how to apply
+    function :func:`prepare_model` properly.
+    """
+    if timestep is not None:
+        parametertools.Parameter._parameterstep = timetools.Period(timestep)
+    model = module.Model()
+    if pub.options.usecython and hasattr(module, 'cythonizer'):
+        cymodule = module.cythonizer.cymodule
+        cymodel = cymodule.Model()
+        cymodel.parameters = cymodule.Parameters()
+        cymodel.sequences = cymodule.Sequences()
+        model.cymodel = cymodel
+        for numpars_name in ('NumConsts', 'NumVars'):
+            if hasattr(cymodule, numpars_name):
+                numpars_new = getattr(cymodule, numpars_name)()
+                numpars_old = getattr(model, numpars_name.lower())
+                for (name_numpar, numpar) in numpars_old:
+                    setattr(numpars_new, name_numpar, numpar)
+                setattr(cymodel, numpars_name.lower(), numpars_new)
+        for name in dir(cymodel):
+            if (not name.startswith('_')) and hasattr(model, name):
+                setattr(model, name, getattr(cymodel, name))
+        dict_ = {'cythonmodule': cymodule,
+                 'cymodel': cymodel}
+    else:
+        dict_ = {}
+    dict_.update(vars(module))
+    dict_['model'] = model
+    if hasattr(module, 'Parameters'):
+        model.parameters = module.Parameters(dict_)
+    else:
+        model.parameters = parametertools.Parameters(dict_)
+    if hasattr(module, 'Sequences'):
+        model.sequences = module.Sequences(**dict_)
+    else:
+        model.sequences = sequencetools.Sequences(**dict_)
+    return model
 
 
 def simulationstep(timestep):

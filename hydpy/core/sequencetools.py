@@ -16,17 +16,20 @@ import numpy
 from hydpy import pub
 from hydpy.core import timetools
 from hydpy.core import objecttools
-from hydpy.cythons import pointer
+from hydpy.cythons import pointerutils
 from hydpy.core import autodoctools
 
 
 class Sequences(object):
     """Base class for handling all sequences of a specific model."""
 
-    def __init__(self, kwargs):
-        self.model = kwargs.get('model')
-        cythonmodule = kwargs.get('cythonmodule')
-        cymodel = kwargs.get('cymodel')
+    _names_subseqs = ('inlets', 'receivers', 'inputs', 'fluxes', 'states',
+                      'logs', 'aides', 'outlets', 'senders')
+
+    def __init__(self, **kwargs):
+        self.model = kwargs.pop('model', None)
+        cythonmodule = kwargs.pop('cythonmodule', None)
+        cymodel = kwargs.pop('cymodel', None)
         for (name, cls) in kwargs.items():
             if name.endswith('Sequences') and issubclass(cls, SubSequences):
                 if cythonmodule:
@@ -85,9 +88,10 @@ class Sequences(object):
                 subseqs.reset()
 
     def __iter__(self):
-        for (key, value) in vars(self).items():
-            if isinstance(value, SubSequences):
-                yield key, value
+        for name in self._names_subseqs:
+            subseqs = getattr(self, name, None)
+            if subseqs is not None:
+                yield name, subseqs
 
     @property
     def conditions(self):
@@ -255,7 +259,7 @@ class SubSequences(MetaSubSequencesClass):
             self.fastaccess = FastAccess()
         else:
             self.fastaccess = cls_fastaccess()
-            setattr(cymodel, self.name, self.fastaccess)
+            setattr(cymodel.sequences, self.name, self.fastaccess)
 
     def _initsequences(self):
         for cls_seq in self._SEQCLASSES:
@@ -374,6 +378,17 @@ class FluxSequences(IOSubSequences):
     def savedata(self, idx):
         self.fastaccess.savedata(idx)
 
+    @property
+    def numerics(self):
+        """Iterator for `numerical` flux sequences.
+
+        `numerical` means that the class attribute of the respective sequence
+        is `True`.
+        """
+        for (name, flux) in self:
+            if flux.NUMERIC:
+                yield (name, flux)
+
 
 class StateSequences(IOSubSequences):
     """Base class for handling state sequences."""
@@ -385,9 +400,9 @@ class StateSequences(IOSubSequences):
         if cls_fastaccess is None:
             self.fastaccess_old = FastAccess()
         else:
-            setattr(cymodel, 'new_states', self.fastaccess)
+            setattr(cymodel.sequences, 'new_states', self.fastaccess)
             self.fastaccess_old = cls_fastaccess()
-            setattr(cymodel, 'old_states', self.fastaccess_old)
+            setattr(cymodel.sequences, 'old_states', self.fastaccess_old)
 
     def new2old(self):
         """Assign the new/final state values of the actual time step to the
@@ -430,28 +445,33 @@ class Sequence(objecttools.ValueMath):
 
     def __init__(self):
         self.subseqs = None
-        self.fastaccess = type('FastAccess', (), {})
+        self.fastaccess = objecttools.FastAccess()
 
     def connect(self, subseqs):
         self.subseqs = subseqs
         self.fastaccess = subseqs.fastaccess
-        setattr(self.fastaccess, '_%s_ndim' % self.name, self.NDIM)
-        setattr(self.fastaccess, '_%s_length' % self.name, 0)
+        self._connect_subattr('ndim', self.NDIM)
+        self._connect_subattr('length', 0)
         for idx in range(self.NDIM):
-            setattr(self.fastaccess, '_%s_length_%d' % (self.name, idx), 0)
+            self._connect_subattr('length_%d' % idx, 0)
         self.diskflag = False
         self.ramflag = False
         try:
-            setattr(self.fastaccess, '_%s_file' % self.name, '')
+            self._connect_subattr('file', '')
         except AttributeError:
             pass
         self._initvalues()
+
+    def _connect_subattr(self, suffix, value):
+        setattr(self.fastaccess, '_%s_%s' % (self.name, suffix), value)
 
     def __call__(self, *args):
         """The prefered way to pass values to :class:`Sequence` instances
         within initial condition files.
         """
         self.values = args
+
+    name = property(objecttools.name)
 
     @property
     def initvalue(self):
@@ -464,18 +484,8 @@ class Sequence(objecttools.ValueMath):
         return initvalue
 
     def _initvalues(self):
-
-        if self.NDIM == 0:
-            setattr(self.fastaccess, self.name, self.initvalue)
-        else:
-            setattr(self.fastaccess, self.name, None)
-
-    def _getname(self):
-        """Name of the sequence, which is the name if the instantiating
-        subclass of :class:`Sequence` in lower case letters.
-        """
-        return objecttools.classname(self).lower()
-    name = property(_getname)
+        value = None if self.NDIM else self.initvalue
+        setattr(self.fastaccess, self.name, value)
 
     def _getvalue(self):
         """The actual time series value(s) handled by the respective
@@ -815,13 +825,28 @@ class IOSequence(Sequence):
         values = numpy.array(values, dtype=float)
         setattr(self.fastaccess, '_%s_array' % self.name,  values)
 
-    def _getseriesshape(self):
+    @property
+    def seriesshape(self):
         """Shape of the whole time series (time beeing the first dimension)."""
         seriesshape = [len(pub.timegrids.init)]
         seriesshape.extend(self.shape)
         return tuple(seriesshape)
 
-    seriesshape = property(_getseriesshape)
+    @property
+    def numericshape(self):
+        """Shape of the array of temporary values required for the numerical
+        solver actually beeing selected."""
+        try:
+            numericshape = [self.subseqs.seqs.model.numconsts.nmb_stages]
+        except AttributeError:
+            objecttools.augmentexcmessage(
+                'The `numericshape` of a sequence like `%s` depends on the '
+                'configuration of the actual integration algorithm.  '
+                'While trying to query the required configuration data '
+                '`nmb_stages` of the model associated with element `%s`'
+                % (self.name, objecttools.devicename(self)))
+        numericshape.extend(self.shape)
+        return tuple(numericshape)
 
     def _getseries(self):
         if self.diskflag:
@@ -1142,6 +1167,26 @@ class InputSequence(ModelIOSequence):
 class FluxSequence(ModelIOSequence):
     """ """
 
+    def _initvalues(self):
+        super(FluxSequence, self)._initvalues()
+        if self.NUMERIC:
+            value = None if self.NDIM else numpy.zeros(self.numericshape)
+            self._connect_subattr('points', value)
+            self._connect_subattr('integrals', copy.copy(value))
+            self._connect_subattr('results', copy.copy(value))
+            value = None if self.NDIM else 0.
+            self._connect_subattr('sum', value)
+
+    def _setshape(self, shape):
+        super(FluxSequence, self)._setshape(shape)
+        if self.NDIM and self.NUMERIC:
+            self._connect_subattr('points', numpy.zeros(self.numericshape))
+            self._connect_subattr('integrals', numpy.zeros(self.numericshape))
+            self._connect_subattr('results', numpy.zeros(self.numericshape))
+            self._connect_subattr('sum', numpy.zeros(self.shape))
+
+    shape = property(ModelIOSequence._getshape, _setshape)
+
 
 class LeftRightSequence(ModelIOSequence):
     NDIM = 1
@@ -1217,10 +1262,22 @@ class StateSequence(ModelIOSequence, ConditionSequence):
         else:
             setattr(self.fastaccess_old, self.name, 0.)
 
+    def _initvalues(self):
+        super(StateSequence, self)._initvalues()
+        if self.NUMERIC:
+            value = None if self.NDIM else numpy.zeros(self.numericshape)
+            self._connect_subattr('points', value)
+            self._connect_subattr('results', copy.copy(value))
+
     def _setshape(self, shape):
-        ModelIOSequence._setshape(self, shape)
+        super(StateSequence, self)._setshape(shape)
         if self.NDIM:
             setattr(self.fastaccess_old, self.name, self.new.copy())
+            if self.NUMERIC:
+                self._connect_subattr('points',
+                                      numpy.zeros(self.numericshape))
+                self._connect_subattr('results',
+                                      numpy.zeros(self.numericshape))
 
     shape = property(ModelIOSequence._getshape, _setshape)
 
@@ -1307,7 +1364,7 @@ class LinkSequence(Sequence):
     """2"""
 
     def setpointer(self, double, idx=0):
-        pdouble = pointer.PDouble(double)
+        pdouble = pointerutils.PDouble(double)
         if self.NDIM == 0:
             try:
                 self.fastaccess.setpointer0d(self.name, pdouble)
@@ -1321,16 +1378,11 @@ class LinkSequence(Sequence):
                 ppdouble.setpointer(double, idx)
 
     def _initvalues(self):
-        if self.NDIM == 0:
-            try:
-                setattr(self.fastaccess, self.name, None)
-            except AttributeError:
-                pass
-        else:
-            try:
-                setattr(self.fastaccess, self.name, pointer.PPDouble())
-            except AttributeError:
-                pass
+        value = pointerutils.PPDouble() if self.NDIM else None
+        try:
+            setattr(self.fastaccess, self.name, value)
+        except AttributeError:
+            pass
 
     def _getvalue(self):
         """ToDo"""
@@ -1397,7 +1449,7 @@ class NodeSequence(IOSequence):
     rawfilename = property(_getrawfilename, _setrawfilename, _delrawfilename)
 
     def _initvalues(self):
-        setattr(self.fastaccess, self.name, pointer.Double(0.))
+        setattr(self.fastaccess, self.name, pointerutils.Double(0.))
 
     def _getvalues(self):
         """Actual value(s) handled by the sequence.  For consistency,

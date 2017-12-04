@@ -257,7 +257,7 @@ Always use the following pattern at the top of a new module
     >>> import numpy
     >>> # ...from HydPy
     >>> from hydpy.core import sequencetools
-    >>> from hydpy.cythons import pointer
+    >>> from hydpy.cythons import pointerutils
 
 Note that each import command has its own line.  Always import
 complete modules from HydPy without changing their names. ---

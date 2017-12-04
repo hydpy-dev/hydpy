@@ -105,7 +105,7 @@ def calc_qjoints_v1(self):
                             der.c3*old.qjoints[j+1])
 
 
-def update_inlets_v1(self):
+def pick_q_v1(self):
     """Assign the actual value of the inlet sequence to the upper joint
     of the subreach upstream."""
     sta = self.sequences.states.fastaccess
@@ -113,7 +113,7 @@ def update_inlets_v1(self):
     sta.qjoints[0] = inl.q[0]
 
 
-def update_outlets_v1(self):
+def pass_q_v1(self):
     """Assing the actual value of the lower joint of of the subreach
     downstream to the outlet sequence."""
     der = self.parameters.derived.fastaccess
@@ -124,6 +124,6 @@ def update_outlets_v1(self):
 
 class Model(modeltools.Model):
     """The HydPy-H-Stream model."""
-    _RUNMETHODS = (calc_qjoints_v1,
-                   update_inlets_v1,
-                   update_outlets_v1)
+    _INLET_METHODS = (pick_q_v1,)
+    _RUN_METHODS = (calc_qjoints_v1,)
+    _OUTLET_METHODS = (pass_q_v1,)

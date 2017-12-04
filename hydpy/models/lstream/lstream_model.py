@@ -583,7 +583,8 @@ def calc_qg_v1(self):
 
 def calc_hmin_qmin_hmax_qmax_v1(self):
     """Determine an starting interval for iteration methods as the one
-    implemented in method :func:`calc_h_v1`.
+    implemented in method
+    :func:`~hydpy.models.lstream.lstream_model.calc_h_v1`.
 
     The resulting interval is determined in a manner, that on the
     one hand :math:`Qmin \\leq QRef \\leq Qmax` is fulfilled and on the
@@ -624,18 +625,18 @@ def calc_hmin_qmin_hmax_qmax_v1(self):
         aid.qmin = 0.
         aid.hmax = con.hm
         aid.qmax = der.qm
-    elif flu.qref <= min(der.qv):
+    elif flu.qref <= min(der.qv[0], der.qv[1]):
         aid.hmin = con.hm
         aid.qmin = der.qm
-        aid.hmax = con.hm+min(der.hv)
-        aid.qmax = min(der.qv)
-    elif flu.qref < max(der.qv):
-        aid.hmin = con.hm+min(der.hv)
-        aid.qmin = min(der.qv)
-        aid.hmax = con.hm+max(der.hv)
-        aid.qmax = max(der.qv)
+        aid.hmax = con.hm+min(der.hv[0], der.hv[1])
+        aid.qmax = min(der.qv[0], der.qv[1])
+    elif flu.qref < max(der.qv[0], der.qv[1]):
+        aid.hmin = con.hm+min(der.hv[0], der.hv[1])
+        aid.qmin = min(der.qv[0], der.qv[1])
+        aid.hmax = con.hm+max(der.hv[0], der.hv[1])
+        aid.qmax = max(der.qv[0], der.qv[1])
     else:
-        flu.h = con.hm+max(der.hv)
+        flu.h = con.hm+max(der.hv[0], der.hv[1])
         aid.hmin = flu.h
         aid.qmin = flu.qg
         while True:
@@ -947,7 +948,7 @@ def calc_qa_v1(self):
                   (new.qz-old.qz)*(1.-flu.rk*aid.temp))
 
 
-def update_inlets_v1(self):
+def pick_q_v1(self):
     """Update inflow."""
     sta = self.sequences.states.fastaccess
     inl = self.sequences.inlets.fastaccess
@@ -956,7 +957,7 @@ def update_inlets_v1(self):
         sta.qz += inl.q[idx][0]
 
 
-def update_outlets_v1(self):
+def pass_q_v1(self):
     """Update outflow."""
     sta = self.sequences.states.fastaccess
     out = self.sequences.outlets.fastaccess
@@ -964,19 +965,19 @@ def update_outlets_v1(self):
 
 
 class Model(modeltools.Model):
-    """The HydPy-H-Stream model."""
-    _RUNMETHODS = (update_inlets_v1,
-                   calc_qref_v1,
-                   calc_hmin_qmin_hmax_qmax_v1,
-                   calc_h_v1,
-                   calc_ag_v1,
-                   calc_rk_v1,
-                   calc_qa_v1,
-                   update_outlets_v1)
-    _ADDMETHODS = (calc_am_um_v1,
-                   calc_qm_v1,
-                   calc_av_uv_v1,
-                   calc_qv_v1,
-                   calc_avr_uvr_v1,
-                   calc_qvr_v1,
-                   calc_qg_v1)
+    """The HydPy-L-Stream model."""
+    _INLET_METHODS = (pick_q_v1,)
+    _RUN_METHODS = (calc_qref_v1,
+                    calc_hmin_qmin_hmax_qmax_v1,
+                    calc_h_v1,
+                    calc_ag_v1,
+                    calc_rk_v1,
+                    calc_qa_v1)
+    _ADD_METHODS = (calc_am_um_v1,
+                    calc_qm_v1,
+                    calc_av_uv_v1,
+                    calc_qv_v1,
+                    calc_avr_uvr_v1,
+                    calc_qvr_v1,
+                    calc_qg_v1)
+    _OUTLET_METHODS = (pass_q_v1,)

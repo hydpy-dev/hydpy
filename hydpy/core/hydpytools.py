@@ -72,7 +72,6 @@ class HydPy(object):
                             'element `%s`' % name)
                 else:
                     element.model.parameters.update()
-                    element.model.connect()
         finally:
             pub.options.warnsimulationstep = warn
 
@@ -147,6 +146,7 @@ class HydPy(object):
     def connect(self):
         for (name, element) in self.elements:
             element.connect()
+            element.model.parameters.update()
 
     @property
     def network_properties(self):
@@ -252,9 +252,6 @@ class HydPy(object):
                 funcs.append(node._loaddata_sim)
             elif node.sequences.obs.use_ext:
                 funcs.append(node._loaddata_obs)
-        for (name, element) in self.elements:
-            if element.receivers:
-                funcs.append(element.model.updatereceivers)
         for (name, node) in self.nodes:
             if node.routingmode != 'oldsim':
                 funcs.append(node.reset)
@@ -263,7 +260,10 @@ class HydPy(object):
                 funcs.append(device.model.doit)
         for (name, element) in self.elements:
             if element.senders:
-                funcs.append(element.model.updatesenders)
+                funcs.append(element.model.update_senders)
+        for (name, element) in self.elements:
+            if element.receivers:
+                funcs.append(element.model.update_receivers)
         for (name, node) in self.nodes:
             if node.routingmode != 'oldsim':
                 funcs.append(node._savedata_sim)

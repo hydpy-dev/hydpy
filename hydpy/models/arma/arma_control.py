@@ -229,9 +229,9 @@ class Responses(parametertools.Parameter):
                  name in parametertools.Parameter.__dict__) and
                 not name.startswith('th_'))
 
-    def __getattr__(self, key):
+    def __getattribute__(self, key):
         try:
-            return object.__getattr__(self, key)
+            return object.__getattribute__(self, key)
         except AttributeError:
             pass
         try:

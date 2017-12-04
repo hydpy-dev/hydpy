@@ -369,6 +369,16 @@ class Selection(object):
         """
         return Selection(name, self.nodes.copy(), self.elements.copy())
 
+    def save(self, path=None, write_nodes=False):
+        """Save the selection as a network file."""
+        if path is None:
+            path = self.name + '.py'
+        with open(path, 'w') as file_:
+            file_.write('from hydpy import Node, Element\n\n')
+            file_.write(repr(self.elements) + '\n')
+            if write_nodes:
+                file_.write(repr(self.nodes) + '\n')
+
     def __len__(self):
         return len(self.nodes) + len(self.elements)
 

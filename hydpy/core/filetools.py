@@ -193,9 +193,7 @@ class NetworkManager(object):
                               'network directory or set the `overwrite` flag '
                               'to `True`' % (path, name))
             else:
-                with open(path, 'w') as file_:
-                    file_.write('from hydpy import *\n\n')
-                    file_.write(repr(selection.elements))
+                selection.save(path)
 
     def delete(self, *selections):
         """Delete network files.  One or more filenames and/or

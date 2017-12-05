@@ -14,6 +14,7 @@ from hydpy.core.connectiontools import *
 class Test01NodeCreation(unittest.TestCase):
 
     def tearDown(self):
+        Element.clearregistry()
         Node.clearregistry()
 
     def test_01_fromstring(self):
@@ -57,6 +58,7 @@ class Test02ElementCreation(unittest.TestCase):
 
     def tearDown(self):
         Element.clearregistry()
+        Node.clearregistry()
 
     def test_01_fromstring(self):
         test1a = Element('test1')
@@ -99,6 +101,7 @@ class Test03ElementInitialization(unittest.TestCase):
 
     def tearDown(self):
         Element.clearregistry()
+        Node.clearregistry()
 
     def test_01_inlet(self):
         e = Element('e', inlets=self.n1Q)
@@ -209,6 +212,7 @@ class Test05ElementsCreation(unittest.TestCase):
 
     def tearDown(self):
         Element.clearregistry()
+        Node.clearregistry()
 
     def test_00_fromnone(self):
         test = Elements(None)
@@ -299,6 +303,7 @@ class Test06ElementsArithmetic(unittest.TestCase):
 
     def tearDown(self):
         Element.clearregistry()
+        Node.clearregistry()
 
     def test_01_iadd_element(self):
         self.elements12 += self.element3
@@ -365,6 +370,7 @@ class Test07ElementsComparisons(unittest.TestCase):
 
     def tearDown(self):
         Element.clearregistry()
+        Node.clearregistry()
 
     def test_01_bool(self):
         self.assertFalse(Elements())

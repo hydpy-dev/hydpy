@@ -7,6 +7,7 @@ are the most fundamental means to structure HydPy projects.
 from __future__ import division, print_function
 import copy
 import struct
+import weakref
 # ...from site-packages
 from matplotlib import pyplot
 # ...from HydPy
@@ -23,10 +24,26 @@ class Device(object):
     _registry = {}
     _selection = {}
 
-    @property
-    def name(self):
+    def _get_name(self):
         """Name of the actual device (node or element)."""
         return self._name
+
+    def _set_name(self, name):
+        self._checkname(name)
+        _handlers = self._handlers.copy()
+        for handler in _handlers:
+            handler.remove_device(self)
+        try:
+            del self._registry[self._name]
+        except KeyError:
+            pass
+        else:
+            self._registry[name] = self
+        self._name = name
+        for handler in _handlers:
+            handler.add_device(self)
+
+    name = property(_get_name, _set_name)
 
     def _checkname(self, name):
         """Raises an :class:`~exceptions.ValueError` if the given name is not
@@ -59,10 +76,37 @@ class Device(object):
         """Get all names of :class:`Device` objects initialized so far."""
         return cls._registry.keys()
 
+    def add_handler(self, handler):
+        self._handlers.add(handler)
+
+    def remove_handler(self, handler):
+        self._handlers.remove(handler)
+
     def __iter__(self):
         for (key, value) in vars(self).items():
             if isinstance(value, connectiontools.Connections):
                 yield (key, value)
+
+    def __lt__(self, other):
+        return self.name < other.name
+
+    def __le__(self, other):
+        return self.name <= other.name
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+    def __ne__(self, other):
+        return self.name != other.name
+
+    def __ge__(self, other):
+        return self.name >= other.name
+
+    def __gt__(self, other):
+        return self.name > other.name
+
+    def __hash__(self):
+        return id(self)
 
     def __str__(self):
         return self.name
@@ -102,6 +146,7 @@ class Node(Device):
             self.sequences = sequencetools.NodeSequences(self)
             self.routingmode = 'newsim'
             self._blackhole = None
+            self._handlers = weakref.WeakSet()
             cls._registry[name] = self
         cls._selection[name] = cls._registry[name]
         return cls._registry[name]
@@ -259,6 +304,7 @@ class Element(Device):
             self.receivers = connectiontools.Connections(self)
             self.senders = connectiontools. Connections(self)
             self.model = None
+            self._handlers = weakref.WeakSet()
             cls._registry[name] = self
         cls._selection[name] = cls._registry[name]
         return cls._registry[name]
@@ -268,7 +314,7 @@ class Element(Device):
         """Adds the given :class:`~connectiontools.Connections` instances to
         the (old or new) :class:`Element` instance."""
         if inlets is not None:
-            for (name, inlet) in Nodes(inlets):
+            for inlet in Nodes(inlets):
                 if inlet in self.outlets:
                     raise ValueError('For element `%s`, the given inlet node '
                                      '`%s` is already defined as an outlet '
@@ -277,7 +323,7 @@ class Element(Device):
                 self.inlets += inlet
                 inlet.exits += self
         if outlets is not None:
-            for (name, outlet) in Nodes(outlets):
+            for outlet in Nodes(outlets):
                 if outlet in self.inlets:
                     raise ValueError('For element `%s`, the given outlet node '
                                      '`%s` is already defined as an inlet '
@@ -286,7 +332,7 @@ class Element(Device):
                 self.outlets += outlet
                 outlet.entries += self
         if receivers is not None:
-            for (name, receiver) in Nodes(receivers):
+            for receiver in Nodes(receivers):
                 if receiver in self.senders:
                     raise ValueError('For element `%s`, the given receiver '
                                      'node `%s` is already defined as an '
@@ -295,7 +341,7 @@ class Element(Device):
                 self.receivers += receiver
                 receiver.exits += self
         if senders is not None:
-            for (name, sender) in Nodes(senders):
+            for sender in Nodes(senders):
                 if sender in self.receivers:
                     raise ValueError('For element `%s`, the given sender node '
                                      '`%s` is already defined as an receiver, '
@@ -413,9 +459,12 @@ class Element(Device):
 
 class Devices(object):
 
+    __slots__ = ('_devices')
+
     _contentclass = None
 
     def __init__(self, *values):
+        self._devices = {}
         try:
             self._extractvalues(values)
         except BaseException:
@@ -428,88 +477,143 @@ class Devices(object):
             return
         elif isinstance(values, (self._contentclass, str)):
             device = self._contentclass(values)
-            self[device.name] = device
+            self.add_device(device)
         else:
             for value in values:
                 self._extractvalues(value)
 
+    def add_device(self, device):
+        device = self._contentclass(device)
+        self._devices[device.name] = device
+        device.add_handler(self)
+
+    def remove_device(self, device):
+        device = self._contentclass(device)
+        try:
+            del self._devices[device.name]
+        except KeyError:
+            raise KeyError(
+                'The selected %s object does not handle a %s object named '
+                '`%s`, which could be removed.'
+                % (objecttools.classname(self),
+                   objecttools.classname(self._contentclass), device))
+        device.remove_handler(self)
+
     @property
     def names(self):
-        return vars(self).keys()
+        return tuple(device.name for device in self)
 
-    def _getdevices(self):
-        return vars(self).values()
-    devices = property(_getdevices)
+    @property
+    def devices(self):
+        return tuple(device for device in self)
 
     def copy(self):
-        """Return a shallow copy of the actual :class:`Elements` instance."""
-        return copy.copy(self)
-
-    def __setitem__(self, key, value):
-        self.__dict__[key] = value
-
-    def __getitem__(self, key):
-        return self.__dict__[key]
-
-    def __delitem__(self, key):
-        del(self.__dict__[key])
+        """Return a copy of the actual :class:`Devices` instance."""
+        new = copy.copy(self)
+        new._devices = copy.copy(self._devices)
+        for device in self:
+            device.add_handler(new)
+        return new
 
     def __iter__(self):
-        for name in sorted(vars(self).keys()):
-            yield (name, self[name])
+        for (name, device) in sorted(self._devices.items()):
+            yield device
+
+    def __getitem__(self, name):
+        try:
+            return self._devices[name]
+        except KeyError:
+            raise KeyError(
+                'The selected %s object does not handle a %s object named '
+                '`%s`, which could be returned.'
+                % (objecttools.classname(self),
+                   objecttools.classname(self._contentclass), name))
+
+    def __getattr__(self, name):
+        try:
+            _devices = super(Devices, self).__getattribute__('_devices')
+            return _devices[name]
+        except KeyError:
+            raise AttributeError(
+                'The selected %s object has neither a `%s` attribute nor does '
+                'it handle a %s object named `%s`, which could be returned.'
+                % (objecttools.classname(self), name,
+                   objecttools.classname(self._contentclass), name))
+
+    def __delattr__(self, name):
+        deleted_something = False
+        if name in vars(self):
+            super(Devices, self).__delattr__(name)
+            deleted_something = True
+        if name in self._devices:
+            self.remove_device(name)
+            deleted_something = True
+        if not deleted_something:
+            raise AttributeError(
+                'The selected %s object has neither a `%s` attribute nor does '
+                'it handle a %s object named `%s`, which could be deleted.'
+                % (objecttools.classname(self), name,
+                   objecttools.classname(self._contentclass), name))
 
     def __contains__(self, device):
         device = self._contentclass(device)
-        return device.name in self.__dict__
+        return device.name in self._devices
 
     def __len__(self):
-        return len(self.names)
+        return len(self._devices)
 
     def __add__(self, values):
         new = self.copy()
-        for (name, device) in self.__class__(values):
-            new[name] = device
+        for device in self.__class__(values):
+            new.add_device(device)
         return new
 
     def __iadd__(self, values):
-        for (name, device) in self.__class__(values):
-            self[name] = device
+        for device in self.__class__(values):
+            self.add_device(device)
         return self
 
     def __sub__(self, values):
         new = self.copy()
-        for (name, device) in self.__class__(values):
-            if name in self:
-                del(new[name])
+        for device in self.__class__(values):
+            try:
+                new.remove_device(device)
+            except KeyError:
+                pass
         return new
 
     def __isub__(self, values):
-        for (name, device) in self.__class__(values):
-            if name in self:
-                del(self[name])
+        for device in self.__class__(values):
+            try:
+                self.remove_device(device)
+            except KeyError:
+                pass
         return self
 
     def __lt__(self, other):
-        return set(self.devices) < set(other.devices)
+        return set(self._devices.keys()) < set(other._devices.keys())
 
     def __le__(self, other):
-        return set(self.devices) <= set(other.devices)
+        return set(self._devices.keys()) <= set(other._devices.keys())
 
     def __eq__(self, other):
-        return set(self.devices) == set(other.devices)
+        return set(self._devices.keys()) == set(other._devices.keys())
 
     def __ne__(self, other):
-        return set(self.devices) != set(other.devices)
+        return set(self._devices.keys()) != set(other._devices.keys())
 
     def __ge__(self, other):
-        return set(self.devices) >= set(other.devices)
+        return set(self._devices.keys()) >= set(other._devices.keys())
 
     def __gt__(self, other):
-        return set(self.devices) > set(other.devices)
+        return set(self._devices.keys()) > set(other._devices.keys())
+
+    def __hash__(self):
+        return id(self)
 
     def __repr__(self):
         lines = []
-        for (name, device) in sorted(zip(self.names, self.devices)):
+        for device in self:
             lines.append(repr(device))
         return '\n'.join(lines)
 
@@ -517,9 +621,7 @@ class Devices(object):
         lines = []
         prefix += '%s(' % objecttools.classname(self)
         blanks = ' '*len(prefix)
-        names = sorted(self.names)
-        for (idx, name) in enumerate(names):
-            device = self[name]
+        for (idx, device) in enumerate(self):
             if idx == 0:
                 lines.append(device.assignrepr(prefix))
             else:
@@ -529,7 +631,7 @@ class Devices(object):
         return '\n'.join(lines)
 
     def __dir__(self):
-        return objecttools.dir_(self)
+        return objecttools.dir_(self) + list(self.names)
 
 
 class Nodes(Devices):
@@ -541,11 +643,11 @@ class Nodes(Devices):
         self.prepare_obsseries(ramflag)
 
     def prepare_simseries(self, ramflag=True):
-        for (name, node) in self:
+        for node in self:
             node.prepare_simseries(ramflag)
 
     def prepare_obsseries(self, ramflag=True):
-        for (name, node) in self:
+        for node in self:
             node.prepare_obsseries(ramflag)
 
 
@@ -554,19 +656,19 @@ class Elements(Devices):
     _contentclass = Element
 
     def prepare_allseries(self, ramflag=True):
-        for (name, element) in self:
+        for element in self:
             element.prepare_allseries(ramflag)
 
     def prepare_inputseries(self, ramflag=True):
-        for (name, element) in self:
+        for element in self:
             element.prepare_inputseries(ramflag)
 
     def prepare_fluxseries(self, ramflag=True):
-        for (name, element) in self:
+        for element in self:
             element.prepare_fluxseries(ramflag)
 
     def prepare_stateseries(self, ramflag=True):
-        for (name, element) in self:
+        for element in self:
             element.prepare_stateseries(ramflag)
 
 

@@ -256,7 +256,7 @@ class IntegrationTest(Test):
         This preparation might not be suitable for all types of integration
         tests.  Prepare those node sequences manually, for which this method
         does not result in the desired outcome."""
-        for (name, node) in self.nodes:
+        for node in self.nodes:
             if not node.entries:
                 node.routingmode = 'oldsim'
             sim = node.sequences.sim
@@ -278,7 +278,7 @@ class IntegrationTest(Test):
             for (name, seq) in getattr(
                                     self.element.model.sequences, subseqs, ()):
                 seqs.append(seq)
-        for (name, node) in self.nodes:
+        for node in self.nodes:
             seqs.append(node.sequences.sim)
         return seqs
 
@@ -295,7 +295,7 @@ class IntegrationTest(Test):
     def reset_outputs(self):
         """Set the values of the simulation sequences of all outlet nodes to
         zero."""
-        for (name, node) in self.nodes:
+        for node in self.nodes:
             if ((node in self.element.outlets) or
                     (node in self.element.senders)):
                 node.sequences.sim[:] = 0.
@@ -303,7 +303,7 @@ class IntegrationTest(Test):
     def reset_inits(self):
         """Set all initial conditions of all models."""
         for subname in ('states', 'logs'):
-            for (name, element) in self.elements:
+            for element in self.elements:
                 for (name, seq) in getattr(element.model.sequences,
                                            subname, ()):
                     try:

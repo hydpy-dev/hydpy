@@ -221,7 +221,7 @@ class Selection(object):
         """
         if (node not in nodes) and (node in self.nodes):
             nodes += node
-            for (name, element) in node.entries:
+            for element in node.entries:
                 nodes, elements = self._nextelement(element, nodes, elements)
         return nodes, elements
 
@@ -238,7 +238,7 @@ class Selection(object):
         """
         if (element not in elements) and (element in self.elements):
             elements += element
-            for (name, node) in element.inlets:
+            for node in element.inlets:
                 nodes, elements = self._nextnode(node, nodes, elements)
         return nodes, elements
 
@@ -275,12 +275,12 @@ class Selection(object):
               Model type(s) as the selection criterion/criteria.
         """
         elements = devicetools.Elements()
-        for (name, element) in self.elements:
+        for element in self.elements:
             if element.model is None:
                 raise RuntimeError('For element `%s` no model object has been '
                                    'initialized so far, which is a necessary '
                                    'condition to perform (de)selections based '
-                                   'on model classes.' % name)
+                                   'on model classes.' % element)
             if isinstance(element.model, modelclasses):
                 elements += element
         return elements
@@ -316,9 +316,9 @@ class Selection(object):
               name as the selection criterion/criteria.
         """
         nodes = devicetools.Nodes()
-        for (name, node) in self.nodes:
+        for node in self.nodes:
             for substring in substrings:
-                if substring in name:
+                if substring in node.name:
                     nodes += node
                     break
         return nodes
@@ -354,9 +354,9 @@ class Selection(object):
               name as the selection criterion/criteria.
         """
         elements = devicetools.Elements()
-        for (name, element) in self.elements:
+        for element in self.elements:
             for substring in substrings:
-                if substring in name:
+                if substring in element.name:
                     elements += element
                     break
         return elements

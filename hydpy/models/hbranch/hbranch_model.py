@@ -180,7 +180,8 @@ class Model(modeltools.Model):
                          % (self.element.name, len(nodes)))
         for (idx, name) in enumerate(self.nodenames):
             try:
-                double = self.element.outlets[name].getdouble_via_entries()
+                outlet = getattr(self.element.outlets, name)
+                double = outlet.getdouble_via_entries()
             except KeyError:
                 if name in devicetools.Node.registerednames():
                     RuntimeError('The hbranch model tried to connect to the '

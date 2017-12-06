@@ -823,7 +823,8 @@ def extract(values, types, skip=False):
     else:
         try:
             for value in values:
-                yield from extract(value, types, skip)
+                for subvalue in extract(value, types, skip):
+                    yield subvalue
         except TypeError as exc:
             if exc.args[0].startswith('The given value'):
                 raise exc

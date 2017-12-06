@@ -466,21 +466,16 @@ class Devices(object):
     def __init__(self, *values):
         self._devices = {}
         try:
-            self._extractvalues(values)
+            self._extract_values(values)
         except BaseException:
             objecttools.augmentexcmessage(
                 'While trying to initialize a `%s` object'
                 % objecttools.classname(self))
 
-    def _extractvalues(self, values):
-        if values is None:
-            return
-        elif isinstance(values, (self._contentclass, str)):
-            device = self._contentclass(values)
-            self.add_device(device)
-        else:
-            for value in values:
-                self._extractvalues(value)
+    def _extract_values(self, values):
+        for value in objecttools.extract(
+                        values, types=(self._contentclass, str), skip=True):
+            self.add_device(value)
 
     def add_device(self, device):
         device = self._contentclass(device)

@@ -491,13 +491,15 @@ class ARMA(object):
             if self.rel_rmse < self.max_rel_rmse:
                 break
         else:
-            raise RuntimeError(
-                'Method `update_ar_coefs` is not able to determine the AR '
-                'coefficients of the ARMA model with the desired accuracy.  '
-                'You can either set the tolerance value `max_rel_rmse` to '
-                'a higher value or increase the allowed `max_ar_order`.  '
-                'An accuracy of `%s` has been reached using `%d` coefficients.'
-                % (objecttools.repr_(self.rel_rmse, 12), ar_order))
+            with objecttools.repr_.decimals(12):
+                raise RuntimeError(
+                    'Method `update_ar_coefs` is not able to determine '
+                    'the AR coefficients of the ARMA model with the desired '
+                    'accuracy.  You can either set the tolerance value '
+                    '`max_rel_rmse` to a higher value or increase the '
+                    'allowed `max_ar_order`.  An accuracy of `%s` has been '
+                    'reached using `%d` coefficients.'
+                    % (objecttools.repr_(self.rel_rmse), ar_order))
 
     @property
     def dev_moments(self):
@@ -580,13 +582,14 @@ class ARMA(object):
                 self.norm_coefs()
                 break
         else:
-            raise RuntimeError(
-                'Method `update_ma_coefs` is not able to determine the MA '
-                'coefficients of the ARMA model with the desired accuracy.  '
-                'You can set the tolerance value ´max_dev_coefs` to a '
-                'higher value.  An accuracy of `%s` has been reached using '
-                '`%d` MA coefficients.'
-                % (objecttools.repr_(self.dev_coefs, 12), ma_order))
+            with objecttools.repr_.decimals(12):
+                raise RuntimeError(
+                    'Method `update_ma_coefs` is not able to determine the MA '
+                    'coefficients of the ARMA model with the desired accuracy.'
+                    '  You can set the tolerance value ´max_dev_coefs` to a '
+                    'higher value.  An accuracy of `%s` has been reached '
+                    'using `%d` MA coefficients.'
+                    % (objecttools.repr_(self.dev_coefs), ma_order))
         if numpy.min(self.response) < 0.:
             warnings.warn(
                 'Note that the smallest response to a standard impulse of the '

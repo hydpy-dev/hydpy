@@ -183,81 +183,158 @@ def augmentexcmessage(prefix=None, suffix=None):
         raise exception(message).with_traceback(traceback_)
 
 
-def repr_(value, decimals=None):
-    """Modifies :func:`repr` for strings and floats, mainly for supporting
-    clean float representations that are compatible with :mod:`doctest`.
+class _PreserveStrings(object):
+    """Helper class for :class:`_Repr_`."""
 
-    When value is a string, it is returned without any modification:
+    def __init__(self, preserve_strings):
+        self.new_value = preserve_strings
+        self.old_value = repr_._preserve_strings
 
-    >>> from hydpy.core.objecttools import repr_
-    >>> repr('test')
-    "'test'"
-    >>> repr_('test')
-    'test'
+    def __enter__(self):
+        repr_._preserve_strings = self.new_value
+        return None
 
-    When value is a float, the result depends on how the option
-    :attr:`~Options.reprdigits` is set. If it is :class:`None`, :func:`repr`
-    defines the number of digits in the usual, system dependend manner:
-
-    >>> from hydpy.pub import options
-    >>> options.reprdigits = None
-    >>> repr(1./3.) == repr_(1./3.)
-    True
-
-    Through setting :attr:`~Options.reprdigits` to a positive integer value,
-    one defines the maximum number of decimal places, which allows for
-    doctesting across different systems and Python versions:
-
-    >>> options.reprdigits = 6
-    >>> repr_(1./3.)
-    '0.333333'
-    >>> repr_(2./3.)
-    '0.666667'
-    >>> repr_(1./2.)
-    '0.5'
-
-    :func:`repr_` can also be applied on numpy's float types:
-
-    >>> import numpy
-    >>> repr_(numpy.float(1./3.))
-    '0.333333'
-    >>> repr_(numpy.float64(1./3.))
-    '0.333333'
-    >>> repr_(numpy.float32(1./3.))
-    '0.333333'
-    >>> repr_(numpy.float16(1./3.))
-    '0.333252'
-
-    Note that the deviation from the `true` result in the last example is due
-    to the low precision of :class:`~numpy.float16`.
-
-    On all types not mentioned above, the usual :func:`repr` function is
-    applied, e.g.:
-
-    >>> repr([1, 2, 3])
-    '[1, 2, 3]'
-    >>> repr_([1, 2, 3])
-    '[1, 2, 3]'
-    """
-    from hydpy.pub import options
-    decimals = options.reprdigits if decimals is None else decimals
-    if isinstance(value, str):
-        return value
-    if isinstance(value, (pointerutils.Double, pointerutils.PDouble)):
-        value = float(value)
-    if ((decimals is not None) and
-            isinstance(value, numbers.Real) and
-            (not isinstance(value, numbers.Integral))):
-        string = '{0:.{1}f}'.format(value, decimals)
-        string = string.rstrip('0')
-        if string.endswith('.'):
-            string += '0'
-        return string
-    else:
-        return repr(value)
+    def __exit__(self, type_, value, traceback):
+        repr_._preserve_strings = self.old_value
 
 
-def repr_values(values, decimals=None):
+class _Decimals(object):
+    """Helper class for :class:`_Repr_`."""
+    def __init__(self, decimals):
+        self.new_value = decimals
+        self.old_value = repr_._decimals
+
+    def __enter__(self):
+        repr_._decimals = self.new_value
+        return None
+
+    def __exit__(self, type_, value, traceback):
+        repr_._decimals = self.old_value
+
+
+class _Repr_(object):
+    """Singleton class, see the documentation on :func:`repr_`."""
+
+    def __init__(self):
+        self._decimals = None
+        self._preserve_strings = False
+
+    def __call__(self, value):
+        from hydpy.pub import options
+        if self._decimals is None:
+            decimals = options.reprdigits
+        else:
+            decimals = self._decimals
+        if isinstance(value, str):
+            if self._preserve_strings:
+                return '"%s"' % value
+            else:
+                return value
+        if isinstance(value, (pointerutils.Double, pointerutils.PDouble)):
+            value = float(value)
+        if ((decimals is not None) and
+                isinstance(value, numbers.Real) and
+                (not isinstance(value, numbers.Integral))):
+            string = '{0:.{1}f}'.format(value, decimals)
+            string = string.rstrip('0')
+            if string.endswith('.'):
+                string += '0'
+            return string
+        else:
+            return repr(value)
+
+    def preserve_strings(self, preserve_strings):
+        """Change the `preserve_string` option inside a with clause."""
+        return _PreserveStrings(preserve_strings)
+
+    def decimals(self, decimals):
+        """Change the `decimals` option inside a with clause."""
+        return _Decimals(decimals)
+
+
+repr_ = _Repr_()
+"""Modifies :func:`repr` for strings and floats, mainly for supporting
+clean float representations that are compatible with :mod:`doctest`.
+
+When value is a string, it is returned without any modification:
+
+>>> from hydpy.core.objecttools import repr_
+>>> print('test')
+test
+>>> print(repr('test'))
+'test'
+>>> print(repr_('test'))
+test
+
+You can change this behaviour of function object :func:`repr_`, when necessary:
+
+>>> with repr_.preserve_strings(True):
+...     print(repr_('test'))
+"test"
+
+Behind the with clause, :func:`repr_` works as before
+(even in case of an error):
+
+>>> print(repr_('test'))
+test
+
+When value is a float, the result depends on how the option
+:attr:`~Options.reprdigits` is set. If it is :class:`None`, :func:`repr`
+defines the number of digits in the usual, system dependend manner:
+
+>>> from hydpy.pub import options
+>>> options.reprdigits = None
+>>> repr(1./3.) == repr_(1./3.)
+True
+
+Through setting :attr:`~Options.reprdigits` to a positive integer value,
+one defines the maximum number of decimal places, which allows for
+doctesting across different systems and Python versions:
+
+>>> options.reprdigits = 6
+>>> repr_(1./3.)
+'0.333333'
+>>> repr_(2./3.)
+'0.666667'
+>>> repr_(1./2.)
+'0.5'
+
+Changing the number of decimal places can be done via a with clause:
+
+>>> with repr_.decimals(3):
+...     print(repr_(1./3.))
+0.333
+
+Such a change is only temporary (even in case of an error):
+>>> repr_(1./3.)
+'0.333333'
+
+:func:`repr_` can also be applied on numpy's float types:
+
+>>> import numpy
+>>> repr_(numpy.float(1./3.))
+'0.333333'
+>>> repr_(numpy.float64(1./3.))
+'0.333333'
+>>> repr_(numpy.float32(1./3.))
+'0.333333'
+>>> repr_(numpy.float16(1./3.))
+'0.333252'
+
+Note that the deviation from the `true` result in the last example is due
+to the low precision of :class:`~numpy.float16`.
+
+On all types not mentioned above, the usual :func:`repr` function is
+applied, e.g.:
+
+>>> repr([1, 2, 3])
+'[1, 2, 3]'
+>>> repr_([1, 2, 3])
+'[1, 2, 3]'
+"""
+
+
+def repr_values(values):
     """Return comma seperated representations of the given values using
     function :func:`repr_`.
 
@@ -267,10 +344,10 @@ def repr_values(values, decimals=None):
 
     Note that the returned string is not wrapped.
     """
-    return '%s' % ', '.join(repr_(value, decimals) for value in values)
+    return '%s' % ', '.join(repr_(value) for value in values)
 
 
-def repr_tuple(values, decimals=None):
+def repr_tuple(values):
     """Return a tuple representation of the given values using function
     :func:`repr_`.
 
@@ -287,12 +364,12 @@ def repr_tuple(values, decimals=None):
     '(1.0,)'
     """
     if len(values) == 1:
-        return '(%s,)' % repr_values(values, decimals)
+        return '(%s,)' % repr_values(values)
     else:
-        return '(%s)' % repr_values(values, decimals)
+        return '(%s)' % repr_values(values)
 
 
-def repr_list(values, decimals=None):
+def repr_list(values):
     """Return a list representation of the given values using function
     :func:`repr_`.
 
@@ -302,10 +379,10 @@ def repr_list(values, decimals=None):
 
     Note that the returned string is not wrapped.
     """
-    return '[%s]' % repr_values(values, decimals)
+    return '[%s]' % repr_values(values)
 
 
-def assignrepr_value(value, prefix, width=None, decimals=None):
+def assignrepr_value(value, prefix, width=None):
     """Return a prefixed string representation of the given value using
     function :func:`repr_`.
 
@@ -316,10 +393,10 @@ def assignrepr_value(value, prefix, width=None, decimals=None):
     >>> print(assignrepr_value(1./3., 'test = '))
     test = 0.333333
     """
-    return prefix + repr_(value, decimals)
+    return prefix + repr_(value)
 
 
-def assignrepr_values(values, prefix, width=None, decimals=None, _fakeend=0):
+def assignrepr_values(values, prefix, width=None, _fakeend=0):
     """Return a prefixed, wrapped and properly aligned string representation
     of the given values using function :func:`repr_`.
 
@@ -335,7 +412,7 @@ def assignrepr_values(values, prefix, width=None, decimals=None, _fakeend=0):
     test(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
     """
     blanks = ' '*len(prefix)
-    string = repr_values(values, decimals)
+    string = repr_values(values)
     if width is None:
         wrapped = [string]
         _fakeend = 0
@@ -354,7 +431,7 @@ def assignrepr_values(values, prefix, width=None, decimals=None, _fakeend=0):
     return string[:len(string)-_fakeend]
 
 
-def _assignrepr_bracketed(brackets, values, prefix, width=None, decimals=None):
+def _assignrepr_bracketed(brackets, values, prefix, width=None):
     """Return a prefixed, wrapped and properly aligned bracketed string
     representation of the given values using function :func:`repr_`.
 
@@ -374,13 +451,13 @@ def _assignrepr_bracketed(brackets, values, prefix, width=None, decimals=None):
     test = {}
     """
     if len(values):
-        return assignrepr_values(values, prefix+brackets[0],
-                                 width, decimals, 1) + brackets[1]
+        return assignrepr_values(
+                    values, prefix+brackets[0], width, 1) + brackets[1]
     else:
         return prefix + brackets
 
 
-def assignrepr_tuple(values, prefix, width=None, decimals=None):
+def assignrepr_tuple(values, prefix, width=None):
     """Return a prefixed, wrapped and properly aligned tuple string
     representation of the given values using function :func:`repr_`.
 
@@ -403,10 +480,10 @@ def assignrepr_tuple(values, prefix, width=None, decimals=None):
     test = (10,)
     """
     brackets = ('(', ',)') if len(values) == 1 else '()'
-    return _assignrepr_bracketed(brackets, values, prefix, width, decimals)
+    return _assignrepr_bracketed(brackets, values, prefix, width)
 
 
-def assignrepr_list(values, prefix, width=None, decimals=None):
+def assignrepr_list(values, prefix, width=None):
     """Return a prefixed, wrapped and properly aligned list string
     representation of the given values using function :func:`repr_`.
 
@@ -425,10 +502,10 @@ def assignrepr_list(values, prefix, width=None, decimals=None):
     >>> print(assignrepr_list((), 'test = '))
     test = []
     """
-    return _assignrepr_bracketed('[]', values, prefix, width, decimals)
+    return _assignrepr_bracketed('[]', values, prefix, width)
 
 
-def assignrepr_values2(values, prefix, decimals=None):
+def assignrepr_values2(values, prefix):
     """Return a prefixed and properly aligned string representation
     of the given 2-dimensional value matrix using function :func:`repr_`.
 
@@ -448,15 +525,14 @@ def assignrepr_values2(values, prefix, decimals=None):
     blanks = ' '*len(prefix)
     for (idx, subvalues) in enumerate(values):
         if idx == 0:
-            lines.append('%s%s,' % (prefix, repr_values(subvalues, decimals)))
+            lines.append('%s%s,' % (prefix, repr_values(subvalues)))
         else:
-            lines.append('%s%s,' % (blanks, repr_values(subvalues, decimals)))
+            lines.append('%s%s,' % (blanks, repr_values(subvalues)))
     lines[-1] = lines[-1][:-1]
     return '\n'.join(lines)
 
 
-def _assignrepr_bracketed2(brackets, values, prefix,
-                           width=None, decimals=None):
+def _assignrepr_bracketed2(brackets, values, prefix, width=None):
     """Return a prefixed, wrapped and properly aligned bracketed string
     representation of the given 2-dimensional value matrix using function
     :func:`repr_`.
@@ -491,11 +567,11 @@ def _assignrepr_bracketed2(brackets, values, prefix,
     blanks = ' '*len(prefix)
     for (idx, subvalues) in enumerate(values):
         if idx == 0:
-            lines.append(_assignrepr_bracketed(brackets, subvalues, prefix,
-                                               width, decimals))
+            lines.append(_assignrepr_bracketed(
+                                    brackets, subvalues, prefix, width))
         else:
-            lines.append(_assignrepr_bracketed(brackets, subvalues, blanks,
-                                               width, decimals))
+            lines.append(_assignrepr_bracketed(
+                                    brackets, subvalues, blanks, width))
         if (len(subvalues) == 1) and (brackets[1] == ')'):
             lines[-1] = lines[-1].replace(')', ',)')
         lines[-1] += ','
@@ -503,7 +579,7 @@ def _assignrepr_bracketed2(brackets, values, prefix,
     return '\n'.join(lines)
 
 
-def assignrepr_tuple2(values, prefix, width=None, decimals=None):
+def assignrepr_tuple2(values, prefix, width=None):
     """Return a prefixed, wrapped and properly aligned tuple string
     representation of the given 2-dimensional value matrix using function
     :func:`repr_`.
@@ -534,10 +610,10 @@ def assignrepr_tuple2(values, prefix, width=None, decimals=None):
     test = ((),
             (1,))
     """
-    return _assignrepr_bracketed2('()', values, prefix, width, decimals)
+    return _assignrepr_bracketed2('()', values, prefix, width)
 
 
-def assignrepr_list2(values, prefix, width=None, decimals=None):
+def assignrepr_list2(values, prefix, width=None):
     """Return a prefixed, wrapped and properly aligned list string
     representation of the given 2-dimensional value matrix using function
     :func:`repr_`.
@@ -567,11 +643,10 @@ def assignrepr_list2(values, prefix, width=None, decimals=None):
     test = [[],
             [1]]
     """
-    return _assignrepr_bracketed2('[]', values, prefix, width, decimals)
+    return _assignrepr_bracketed2('[]', values, prefix, width)
 
 
-def _assignrepr_bracketed3(brackets, values, prefix,
-                           width=None, decimals=None):
+def _assignrepr_bracketed3(brackets, values, prefix, width=None):
     """Return a prefixed, wrapped and properly aligned bracketed string
     representation of the given 3-dimensional value matrix using function
     :func:`repr_`.
@@ -622,11 +697,11 @@ def _assignrepr_bracketed3(brackets, values, prefix,
     blanks = ' '*len(prefix)
     for (idx, subvalues) in enumerate(values):
         if idx == 0:
-            lines.append(_assignrepr_bracketed2(brackets, subvalues, prefix,
-                                                width, decimals))
+            lines.append(_assignrepr_bracketed2(
+                                    brackets, subvalues, prefix, width))
         else:
-            lines.append(_assignrepr_bracketed2(brackets, subvalues, blanks,
-                                                width, decimals))
+            lines.append(_assignrepr_bracketed2(
+                                    brackets, subvalues, blanks, width))
         if (len(subvalues) == 1) and (brackets[1] == ')'):
             lines[-1] = lines[-1].replace(')', ',)')
         lines[-1] += ','
@@ -634,7 +709,7 @@ def _assignrepr_bracketed3(brackets, values, prefix,
     return '\n'.join(lines)
 
 
-def assignrepr_tuple3(values, prefix, width=None, decimals=None):
+def assignrepr_tuple3(values, prefix, width=None):
     """Return a prefixed, wrapped and properly aligned tuple string
     representation of the given 3-dimensional value matrix using function
     :func:`repr_`.
@@ -681,10 +756,10 @@ def assignrepr_tuple3(values, prefix, width=None, decimals=None):
     test = (((),
              (1,)))
     """
-    return _assignrepr_bracketed3('()', values, prefix, width, decimals)
+    return _assignrepr_bracketed3('()', values, prefix, width)
 
 
-def assignrepr_list3(values, prefix, width=None, decimals=None):
+def assignrepr_list3(values, prefix, width=None):
     """Return a prefixed, wrapped and properly aligned list string
     representation of the given 3-dimensional value matrix using function
     :func:`repr_`.
@@ -731,7 +806,7 @@ def assignrepr_list3(values, prefix, width=None, decimals=None):
     test = [[[],
              [1]]]
     """
-    return _assignrepr_bracketed3('[]', values, prefix, width, decimals)
+    return _assignrepr_bracketed3('[]', values, prefix, width)
 
 
 def round_(values, decimals=None, width=0,
@@ -767,21 +842,22 @@ def round_(values, decimals=None, width=0,
     ...
     ValueError: For function `round_` values are passed for both arguments `lfill` and `rfill`.  This is not allowed.
     """
-    if hasattr(values, '__iter__') and (not isinstance(values, str)):
-        string = repr_values(values, decimals)
-    else:
-        string = repr_(values, decimals)
-    if (lfill is not None) and (rfill is not None):
-        raise ValueError(
-            'For function `round_` values are passed for both arguments '
-            '`lfill` and `rfill`.  This is not allowed.')
-    if (lfill is not None) or (rfill is not None):
-        width = max(width, len(string))
-        if lfill is not None:
-            string = string.rjust(width, lfill)
+    with repr_.decimals(decimals):
+        if hasattr(values, '__iter__') and (not isinstance(values, str)):
+            string = repr_values(values)
         else:
-            string = string.ljust(width, rfill)
-    print(string, **kwargs)
+            string = repr_(values)
+        if (lfill is not None) and (rfill is not None):
+            raise ValueError(
+                'For function `round_` values are passed for both arguments '
+                '`lfill` and `rfill`.  This is not allowed.')
+        if (lfill is not None) or (rfill is not None):
+            width = max(width, len(string))
+            if lfill is not None:
+                string = string.rjust(width, lfill)
+            else:
+                string = string.ljust(width, rfill)
+        print(string, **kwargs)
 
 
 def extract(values, types, skip=False):

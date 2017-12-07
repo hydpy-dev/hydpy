@@ -244,11 +244,11 @@ class _Repr_(object):
             return repr(value)
 
     def preserve_strings(self, preserve_strings):
-        """Change the `preserve_string` option inside a with clause."""
+        """Change the `preserve_string` option inside a with block."""
         return _PreserveStrings(preserve_strings)
 
     def decimals(self, decimals):
-        """Change the `decimals` option inside a with clause."""
+        """Change the `decimals` option inside a with block."""
         return _Decimals(decimals)
 
 
@@ -272,7 +272,7 @@ You can change this behaviour of function object :func:`repr_`, when necessary:
 ...     print(repr_('test'))
 "test"
 
-Behind the with clause, :func:`repr_` works as before
+Behind the with block, :func:`repr_` works as before
 (even in case of an error):
 
 >>> print(repr_('test'))
@@ -299,7 +299,7 @@ doctesting across different systems and Python versions:
 >>> repr_(1./2.)
 '0.5'
 
-Changing the number of decimal places can be done via a with clause:
+Changing the number of decimal places can be done via a with block:
 
 >>> with repr_.decimals(3):
 ...     print(repr_(1./3.))
@@ -431,78 +431,122 @@ def assignrepr_values(values, prefix, width=None, _fakeend=0):
     return string[:len(string)-_fakeend]
 
 
-def _assignrepr_bracketed(brackets, values, prefix, width=None):
-    """Return a prefixed, wrapped and properly aligned bracketed string
-    representation of the given values using function :func:`repr_`.
+class _AlwaysBracketed(object):
+    """Helper class for :class:`_AssignReprBracketed`."""
 
-    >>> from hydpy.core.objecttools import _assignrepr_bracketed
-    >>> print(_assignrepr_bracketed('{}', range(10), 'test = ', 22))
-    test = {0, 1, 2, 3, 4,
-            5, 6, 7, 8, 9}
+    def __init__(self, value):
+        self.new_value = value
+        self.old_value = _AssignReprBracketed._always_bracketed
 
-    If no width is given, no wrapping is performed:
+    def __enter__(self):
+        _AssignReprBracketed._always_bracketed = self.new_value
 
-    >>> print(_assignrepr_bracketed('{}', range(10), 'test = '))
-    test = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
-
-    Functions :func:`_assignrepr_bracketed` works also on empty iterables:
-
-    >>> print(_assignrepr_bracketed('{}', (), 'test = '))
-    test = {}
-    """
-    if len(values):
-        return assignrepr_values(
-                    values, prefix+brackets[0], width, 1) + brackets[1]
-    else:
-        return prefix + brackets
+    def __exit__(self, type_, value, traceback):
+        _AssignReprBracketed._always_bracketed = self.old_value
 
 
-def assignrepr_tuple(values, prefix, width=None):
-    """Return a prefixed, wrapped and properly aligned tuple string
-    representation of the given values using function :func:`repr_`.
+class _AssignReprBracketed(object):
+    """"Double Singleton class", see the documentation on
+    :func:`assignrepr_tuple` and :func:`assignrepr_list`."""
 
-    >>> from hydpy.core.objecttools import assignrepr_tuple
-    >>> print(assignrepr_tuple(range(10), 'test = ', 22))
-    test = (0, 1, 2, 3, 4,
-            5, 6, 7, 8, 9)
+    _always_bracketed = True
 
-    If no width is given, no wrapping is performed:
+    def __init__(self, brackets):
+        self._brackets = brackets
 
-    >>> print(assignrepr_tuple(range(10), 'test = '))
-    test = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+    def __call__(self, values, prefix, width=None):
+        if (len(values) == 1) and not self._always_bracketed:
+            return assignrepr_value(values[0], prefix)
+        elif len(values):
+            string = assignrepr_values(
+                values, prefix+self._brackets[0], width, 1) + self._brackets[1]
+            if (len(values) == 1) and (self._brackets[1] == ')'):
+                return string[:-1] + ',)'
+            else:
+                return string
+        else:
+            return prefix + self._brackets
 
-    Functions :func:`assignrepr_tuple` works also on empty iterables and
-    those which possess only one entry:
-
-    >>> print(assignrepr_tuple([], 'test = '))
-    test = ()
-    >>> print(assignrepr_tuple([10], 'test = '))
-    test = (10,)
-    """
-    brackets = ('(', ',)') if len(values) == 1 else '()'
-    return _assignrepr_bracketed(brackets, values, prefix, width)
+    def always_bracketed(self, always_bracketed):
+        """Change the `always_bracketed` option inside a with block."""
+        return _AlwaysBracketed(always_bracketed)
 
 
-def assignrepr_list(values, prefix, width=None):
-    """Return a prefixed, wrapped and properly aligned list string
-    representation of the given values using function :func:`repr_`.
+assignrepr_tuple = _AssignReprBracketed('()')
+"""Return a prefixed, wrapped and properly aligned tuple string
+representation of the given values using function :func:`repr_`.
 
-    >>> from hydpy.core.objecttools import assignrepr_list
-    >>> print(assignrepr_list(range(10), 'test = ', 22))
-    test = [0, 1, 2, 3, 4,
-            5, 6, 7, 8, 9]
+>>> from hydpy.core.objecttools import assignrepr_tuple
+>>> print(assignrepr_tuple(range(10), 'test = ', 22))
+test = (0, 1, 2, 3, 4,
+        5, 6, 7, 8, 9)
 
-    If no width is given, no wrapping is performed:
+If no width is given, no wrapping is performed:
 
-    >>> print(assignrepr_list(range(10), 'test = '))
-    test = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+>>> print(assignrepr_tuple(range(10), 'test = '))
+test = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
-    Functions :func:`assignrepr_list` works also on empty iterables:
+Functions :func:`assignrepr_tuple` works also on empty iterables and
+those which possess only one entry:
 
-    >>> print(assignrepr_list((), 'test = '))
-    test = []
-    """
-    return _assignrepr_bracketed('[]', values, prefix, width)
+>>> print(assignrepr_tuple([], 'test = '))
+test = ()
+>>> print(assignrepr_tuple([10], 'test = '))
+test = (10,)
+
+Optionally, bracketing single values can be prevented:
+
+>>> with assignrepr_tuple.always_bracketed(False):
+...     print(assignrepr_tuple([], 'test = '))
+...     print(assignrepr_tuple([10], 'test = '))
+...     print(assignrepr_tuple([10, 10], 'test = '))
+test = ()
+test = 10
+test = (10, 10)
+
+Behind the with block, :func:`assignrepr_tuple` works as before
+(even in case of an error):
+
+>>> print(assignrepr_tuple([10], 'test = '))
+test = (10,)
+"""
+
+
+assignrepr_list = _AssignReprBracketed('[]')
+"""Return a prefixed, wrapped and properly aligned list string
+representation of the given values using function :func:`repr_`.
+
+>>> from hydpy.core.objecttools import assignrepr_list
+>>> print(assignrepr_list(range(10), 'test = ', 22))
+test = [0, 1, 2, 3, 4,
+        5, 6, 7, 8, 9]
+
+If no width is given, no wrapping is performed:
+
+>>> print(assignrepr_list(range(10), 'test = '))
+test = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+Functions :func:`assignrepr_list` works also on empty iterables:
+
+>>> print(assignrepr_list((), 'test = '))
+test = []
+
+Optionally, bracketing single values can be prevented:
+
+>>> with assignrepr_list.always_bracketed(False):
+...     print(assignrepr_list([], 'test = '))
+...     print(assignrepr_list([10], 'test = '))
+...     print(assignrepr_list([10, 10], 'test = '))
+test = []
+test = 10
+test = [10, 10]
+
+Behind the with block, :func:`assignrepr_list` works as before
+(even in case of an error):
+
+>>> print(assignrepr_list([10], 'test = '))
+test = [10,]
+"""
 
 
 def assignrepr_values2(values, prefix):
@@ -532,50 +576,22 @@ def assignrepr_values2(values, prefix):
     return '\n'.join(lines)
 
 
-def _assignrepr_bracketed2(brackets, values, prefix, width=None):
+def _assignrepr_bracketed2(assignrepr_bracketed1, values, prefix, width=None):
     """Return a prefixed, wrapped and properly aligned bracketed string
     representation of the given 2-dimensional value matrix using function
-    :func:`repr_`.
-
-    >>> from hydpy.core.objecttools import _assignrepr_bracketed2
-    >>> import numpy
-    >>> print(_assignrepr_bracketed2('{}', numpy.eye(3), 'test = ', 18))
-    test = {{1.0, 0.0,
-             0.0},
-            {0.0, 1.0,
-             0.0},
-            {0.0, 0.0,
-             1.0}}
-
-    If no width is given, no wrapping is performed:
-
-    >>> print(_assignrepr_bracketed2('{}', numpy.eye(3), 'test = '))
-    test = {{1.0, 0.0, 0.0},
-            {0.0, 1.0, 0.0},
-            {0.0, 0.0, 1.0}}
-
-    Functions :func:`_assignrepr_bracketed2` works also on empty iterables:
-
-    >>> print(_assignrepr_bracketed2('{}', [[]], 'test = '))
-    test = {{}}
-    >>> print(_assignrepr_bracketed2('{}', [[], [1]], 'test = '))
-    test = {{},
-            {1}}
-    """
-    prefix += brackets[0]
+    :func:`repr_`."""
+    prefix += assignrepr_bracketed1._brackets[0]
     lines = []
     blanks = ' '*len(prefix)
     for (idx, subvalues) in enumerate(values):
         if idx == 0:
-            lines.append(_assignrepr_bracketed(
-                                    brackets, subvalues, prefix, width))
+            lines.append(assignrepr_bracketed1(subvalues, prefix, width))
         else:
-            lines.append(_assignrepr_bracketed(
-                                    brackets, subvalues, blanks, width))
-        if (len(subvalues) == 1) and (brackets[1] == ')'):
+            lines.append(assignrepr_bracketed1(subvalues, blanks, width))
+        if (len(subvalues) == 1) and (lines[-1] == ')'):
             lines[-1] = lines[-1].replace(')', ',)')
         lines[-1] += ','
-    lines[-1] = lines[-1][:-1] + brackets[1]
+    lines[-1] = lines[-1][:-1] + assignrepr_bracketed1._brackets[1]
     return '\n'.join(lines)
 
 
@@ -610,7 +626,7 @@ def assignrepr_tuple2(values, prefix, width=None):
     test = ((),
             (1,))
     """
-    return _assignrepr_bracketed2('()', values, prefix, width)
+    return _assignrepr_bracketed2(assignrepr_tuple, values, prefix, width)
 
 
 def assignrepr_list2(values, prefix, width=None):
@@ -643,69 +659,29 @@ def assignrepr_list2(values, prefix, width=None):
     test = [[],
             [1]]
     """
-    return _assignrepr_bracketed2('[]', values, prefix, width)
+    return _assignrepr_bracketed2(assignrepr_list, values, prefix, width)
 
 
-def _assignrepr_bracketed3(brackets, values, prefix, width=None):
+def _assignrepr_bracketed3(assignrepr_bracketed1, values, prefix, width=None):
     """Return a prefixed, wrapped and properly aligned bracketed string
     representation of the given 3-dimensional value matrix using function
-    :func:`repr_`.
-
-    >>> from hydpy.core.objecttools import _assignrepr_bracketed3
-    >>> import numpy
-    >>> values = [numpy.eye(3), numpy.ones((3, 3))]
-    >>> print(_assignrepr_bracketed3('{}', values, 'test = ', 18))
-    test = {{{1.0,
-              0.0,
-              0.0},
-             {0.0,
-              1.0,
-              0.0},
-             {0.0,
-              0.0,
-              1.0}},
-            {{1.0,
-              1.0,
-              1.0},
-             {1.0,
-              1.0,
-              1.0},
-             {1.0,
-              1.0,
-              1.0}}}
-
-    If no width is given, no wrapping is performed:
-
-    >>> print(_assignrepr_bracketed3('{}', values, 'test = '))
-    test = {{{1.0, 0.0, 0.0},
-             {0.0, 1.0, 0.0},
-             {0.0, 0.0, 1.0}},
-            {{1.0, 1.0, 1.0},
-             {1.0, 1.0, 1.0},
-             {1.0, 1.0, 1.0}}}
-
-    Functions :func:`_assignrepr_bracketed3` works also on empty iterables:
-
-    >>> print(_assignrepr_bracketed3('{}', [[[]]], 'test = '))
-    test = {{{}}}
-    >>> print(_assignrepr_bracketed3('{}', [[[], [1]]], 'test = '))
-    test = {{{},
-             {1}}}
-    """
-    prefix += brackets[0]
+    :func:`repr_`."""
+    prefix += assignrepr_bracketed1._brackets[0]
     lines = []
     blanks = ' '*len(prefix)
     for (idx, subvalues) in enumerate(values):
         if idx == 0:
             lines.append(_assignrepr_bracketed2(
-                                    brackets, subvalues, prefix, width))
+                            assignrepr_bracketed1, subvalues, prefix, width))
         else:
             lines.append(_assignrepr_bracketed2(
-                                    brackets, subvalues, blanks, width))
-        if (len(subvalues) == 1) and (brackets[1] == ')'):
-            lines[-1] = lines[-1].replace(')', ',)')
+                            assignrepr_bracketed1, subvalues, blanks, width))
+        if (len(subvalues) <= 1) and (lines[-1][-1] == ')'):
+            lines[-1] = lines[-1][:-1] + ',)'
         lines[-1] += ','
-    lines[-1] = lines[-1][:-1] + brackets[1]
+    lines[-1] = lines[-1][:-1] + assignrepr_bracketed1._brackets[1]
+    if (len(values) <= 1) and (lines[-1][-1] == ')'):
+        lines[-1] = lines[-1][:-1] + ',)'
     return '\n'.join(lines)
 
 
@@ -751,12 +727,12 @@ def assignrepr_tuple3(values, prefix, width=None):
     those which possess only one entry:
 
     >>> print(assignrepr_tuple3([[[]]], 'test = '))
-    test = (((,),))
+    test = (((),),)
     >>> print(assignrepr_tuple3([[[], [1]]], 'test = '))
     test = (((),
-             (1,)))
+             (1,)),)
     """
-    return _assignrepr_bracketed3('()', values, prefix, width)
+    return _assignrepr_bracketed3(assignrepr_tuple, values, prefix, width)
 
 
 def assignrepr_list3(values, prefix, width=None):
@@ -806,7 +782,7 @@ def assignrepr_list3(values, prefix, width=None):
     test = [[[],
              [1]]]
     """
-    return _assignrepr_bracketed3('[]', values, prefix, width)
+    return _assignrepr_bracketed3(assignrepr_list, values, prefix, width)
 
 
 def round_(values, decimals=None, width=0,

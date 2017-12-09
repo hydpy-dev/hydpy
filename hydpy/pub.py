@@ -3,13 +3,13 @@
 # ...the standard library
 import sys as __sys
 # ...from HydPy
-from hydpy.core import objecttools as __objecttools
+from hydpy.core import optiontools as __optiontools
 from hydpy.core import indextools as __indextools
 from hydpy.cythons import configutils as __configutils
 
 projectname = None
 
-options = __objecttools.Options()
+options = __optiontools.Options()
 indexer = __indextools.Indexer()
 networkmanager = None
 controlmanager = None

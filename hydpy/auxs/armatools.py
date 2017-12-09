@@ -12,6 +12,7 @@ import numpy
 from scipy import integrate
 from matplotlib import pyplot
 # ...from HydPy
+from hydpy import pub
 from hydpy.core import autodoctools
 from hydpy.core import objecttools
 from hydpy.auxs import statstools
@@ -491,7 +492,7 @@ class ARMA(object):
             if self.rel_rmse < self.max_rel_rmse:
                 break
         else:
-            with objecttools.repr_.decimals(12):
+            with pub.options.reprdigits(12):
                 raise RuntimeError(
                     'Method `update_ar_coefs` is not able to determine '
                     'the AR coefficients of the ARMA model with the desired '
@@ -582,7 +583,7 @@ class ARMA(object):
                 self.norm_coefs()
                 break
         else:
-            with objecttools.repr_.decimals(12):
+            with pub.options.reprdigits(12):
                 raise RuntimeError(
                     'Method `update_ma_coefs` is not able to determine the MA '
                     'coefficients of the ARMA model with the desired accuracy.'

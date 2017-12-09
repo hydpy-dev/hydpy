@@ -56,64 +56,52 @@ class Tester(object):
                 if (fn.endswith('.py') and not fn.startswith('_'))]
 
     def doit(self):
-        usedefaultvalues = pub.options.usedefaultvalues
-        pub.options.usedefaultvalues = False
-        printprogress = pub.options.printprogress
-        pub.options.printprogress = False
-        printincolor = pub.options.printincolor
-        pub.options.printincolor = False
-        warnsimulationstep = pub.options.warnsimulationstep
-        pub.options.warnsimulationstep = False
-        timegrids = pub.timegrids
-        pub.timegrids = None
-        _simulationstep = parametertools.Parameter._simulationstep
-        parametertools.Parameter._simulationstep = None
-        dirverbose = pub.options.dirverbose
-        reprcomments = pub.options.reprcomments
-        pub.options.reprcomments = False
-        reprdigits = pub.options.reprdigits
-        pub.options.reprdigits = 6
-        warntrim = pub.options.warntrim
-        pub.options.warntrim = False
-        nodes = devicetools.Node._registry.copy()
-        elements = devicetools.Element._registry.copy()
-        devicetools.Node.clearregistry()
-        devicetools.Element.clearregistry()
-        try:
-            color = 34 if pub.options.usecython else 36
-            with PrintStyle(color=color, font=4):
-                print(
-                  'Test %s %s in %sython mode.'
-                  % ('package' if self.ispackage else 'module',
-                     self.package if self.ispackage else self.modulenames[0],
-                     'C' if pub.options.usecython else 'P'))
-            with PrintStyle(color=color, font=2):
-                for name in self.modulenames:
-                    print('    * %s:' % name, )
-                    with StdOutErr(indent=8):
-                        modulename = '.'.join((self.package, name))
-                        module = importlib.import_module(modulename)
-                        warnings.filterwarnings('error', module=modulename)
-                        warnings.filterwarnings('ignore',
-                                                category=ImportWarning)
-                        doctest.testmod(module, extraglobs={'testing': True},
-                                        optionflags=doctest.ELLIPSIS)
-                        warnings.resetwarnings()
-        finally:
-            pub.options.usedefaultvalues = usedefaultvalues
-            pub.options.printprogress = printprogress
-            pub.options.printincolor = printincolor
-            pub.options.warnsimulationstep = warnsimulationstep
-            pub.timegrids = timegrids
-            parametertools.Parameter._simulationstep = _simulationstep
-            pub.options.dirverbose = dirverbose
-            pub.options.reprcomments = reprcomments
-            pub.options.reprdigits = reprdigits
-            pub.options.warntrim = warntrim
+        opt = pub.options
+        with opt.usedefaultvalues(False), \
+                opt.usedefaultvalues(False), \
+                opt.printprogress(False), \
+                opt.printincolor(False), \
+                opt.warnsimulationstep(False), \
+                opt.reprcomments(False), \
+                opt.reprdigits(6), \
+                opt.warntrim(False):
+            timegrids = pub.timegrids
+            _simulationstep = parametertools.Parameter._simulationstep
+            parametertools.Parameter._simulationstep = None
+            pub.timegrids = None
+            nodes = devicetools.Node._registry.copy()
+            elements = devicetools.Element._registry.copy()
             devicetools.Node.clearregistry()
             devicetools.Element.clearregistry()
-            devicetools.Node._registry = nodes
-            devicetools.Element._registry = elements
+            try:
+                color = 34 if pub.options.usecython else 36
+                with PrintStyle(color=color, font=4):
+                    print(
+                      'Test %s %s in %sython mode.'
+                      % ('package' if self.ispackage else 'module',
+                         self.package if self.ispackage else
+                         self.modulenames[0],
+                         'C' if pub.options.usecython else 'P'))
+                with PrintStyle(color=color, font=2):
+                    for name in self.modulenames:
+                        print('    * %s:' % name, )
+                        with StdOutErr(indent=8):
+                            modulename = '.'.join((self.package, name))
+                            module = importlib.import_module(modulename)
+                            warnings.filterwarnings('error', module=modulename)
+                            warnings.filterwarnings('ignore',
+                                                    category=ImportWarning)
+                            doctest.testmod(
+                                    module, extraglobs={'testing': True},
+                                    optionflags=doctest.ELLIPSIS)
+                            warnings.resetwarnings()
+            finally:
+                pub.timegrids = timegrids
+                parametertools.Parameter._simulationstep = _simulationstep
+                devicetools.Node.clearregistry()
+                devicetools.Element.clearregistry()
+                devicetools.Node._registry = nodes
+                devicetools.Element._registry = elements
 
 
 class PrintStyle(object):

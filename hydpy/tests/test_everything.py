@@ -126,29 +126,31 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                 if exc.args[-1] != 'has no docstrings':
                     raise(exc)
             else:
-                pub.options.usedefaultvalues = False
-                pub.options.printprogress = False
-                pub.options.printincolor = False
-                pub.options.warnsimulationstep = False
-                pub.timegrids = None
-                pub.options.reprcomments = False
-                pub.options.reprdigits = 6
-                pub.options.warntrim = False
-                devicetools.Node.clearregistry()
-                devicetools.Element.clearregistry()
-                parametertools.Parameter._simulationstep = None
-                if name.endswith('.rst'):
-                    name = name[name.find('hydpy'+os.sep):]
-                warnings.filterwarnings('error', module='hydpy')
-                warnings.filterwarnings('ignore', category=ImportWarning)
-                warnings.filterwarnings("ignore",
-                                        message="numpy.dtype size changed")
-                warnings.filterwarnings("ignore",
-                                        message="numpy.ufunc size changed")
-                doctests[name] = runner.run(suite)
-                warnings.resetwarnings()
-                doctests[name].nmbproblems = (len(doctests[name].errors) +
-                                              len(doctests[name].failures))
+                opt = pub.options
+                with opt.usedefaultvalues(False), \
+                        opt.usedefaultvalues(False), \
+                        opt.printprogress(False), \
+                        opt.printincolor(False), \
+                        opt.warnsimulationstep(False), \
+                        opt.reprcomments(False), \
+                        opt.reprdigits(6), \
+                        opt.warntrim(False):
+                    pub.timegrids = None
+                    devicetools.Node.clearregistry()
+                    devicetools.Element.clearregistry()
+                    parametertools.Parameter._simulationstep = None
+                    if name.endswith('.rst'):
+                        name = name[name.find('hydpy'+os.sep):]
+                    warnings.filterwarnings('error', module='hydpy')
+                    warnings.filterwarnings('ignore', category=ImportWarning)
+                    warnings.filterwarnings("ignore",
+                                            message="numpy.dtype size changed")
+                    warnings.filterwarnings("ignore",
+                                            message="numpy.ufunc size changed")
+                    doctests[name] = runner.run(suite)
+                    warnings.resetwarnings()
+                    doctests[name].nmbproblems = (len(doctests[name].errors) +
+                                                  len(doctests[name].failures))
     successfuldoctests.update({name: runner for (name, runner)
                               in doctests.items() if not runner.nmbproblems})
     faileddoctests.update({name: runner for (name, runner)

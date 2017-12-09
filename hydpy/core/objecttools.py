@@ -12,10 +12,10 @@ import numbers
 # ...from site-packages
 import numpy
 # ...from HydPy
+from hydpy import pub
 from hydpy.cythons import pointerutils
 from hydpy.core import autodoctools
-# from hydpy.pub import ... (actual import commands moved to
-# different functions below to avoid circular dependencies)
+
 
 _INT_NAN = -999999
 """Surrogate for `nan`, which is available for floating point values
@@ -44,11 +44,10 @@ def dir_(self):
     >>> print(dir_(Test())) # Short list with one single entry...
     ['only_public_attribute']
     """
-    from hydpy.pub import options
     names = set()
     for thing in list(inspect.getmro(type(self))) + [self]:
         for name in vars(thing).keys():
-            if options.dirverbose or not name.startswith('_'):
+            if pub.options.dirverbose or not name.startswith('_'):
                 names.add(name)
     if names:
         names = list(names)
@@ -120,7 +119,7 @@ def modulename(self):
     >>> from hydpy.core.objecttools import modulename
     >>> from hydpy.pub import options
     >>> print(modulename(options))
-    objecttools
+    optiontools
     """
     return self.__module__.split('.')[-1]
 
@@ -170,14 +169,13 @@ def augmentexcmessage(prefix=None, suffix=None):
     Note that the ancillary purpose of function :func:`augmentexcmessage` is
     to make re-raising exceptions compatible with both Python 2 and 3.
     """
-    from hydpy.pub import pyversion
     exception, message, traceback_ = sys.exc_info()
     if prefix is not None:
         message = ('%s, the following error occured: %s'
                    % (prefix, message))
     if suffix is not None:
         message = ' '.join((message, suffix))
-    if pyversion < 3:
+    if pub.pyversion < 3:
         exec('raise exception, message, traceback_')
     else:
         raise exception(message).with_traceback(traceback_)
@@ -198,33 +196,14 @@ class _PreserveStrings(object):
         repr_._preserve_strings = self.old_value
 
 
-class _Decimals(object):
-    """Helper class for :class:`_Repr_`."""
-    def __init__(self, decimals):
-        self.new_value = decimals
-        self.old_value = repr_._decimals
-
-    def __enter__(self):
-        repr_._decimals = self.new_value
-        return None
-
-    def __exit__(self, type_, value, traceback):
-        repr_._decimals = self.old_value
-
-
 class _Repr_(object):
     """Singleton class, see the documentation on :func:`repr_`."""
 
     def __init__(self):
-        self._decimals = None
         self._preserve_strings = False
 
     def __call__(self, value):
-        from hydpy.pub import options
-        if self._decimals is None:
-            decimals = options.reprdigits
-        else:
-            decimals = self._decimals
+        decimals = pub.options.reprdigits
         if isinstance(value, str):
             if self._preserve_strings:
                 return '"%s"' % value
@@ -232,7 +211,7 @@ class _Repr_(object):
                 return value
         if isinstance(value, (pointerutils.Double, pointerutils.PDouble)):
             value = float(value)
-        if ((decimals is not None) and
+        if ((decimals > -1) and
                 isinstance(value, numbers.Real) and
                 (not isinstance(value, numbers.Integral))):
             string = '{0:.{1}f}'.format(value, decimals)
@@ -246,10 +225,6 @@ class _Repr_(object):
     def preserve_strings(self, preserve_strings):
         """Change the `preserve_string` option inside a with block."""
         return _PreserveStrings(preserve_strings)
-
-    def decimals(self, decimals):
-        """Change the `decimals` option inside a with block."""
-        return _Decimals(decimals)
 
 
 repr_ = _Repr_()
@@ -279,17 +254,18 @@ Behind the with block, :func:`repr_` works as before
 test
 
 When value is a float, the result depends on how the option
-:attr:`~Options.reprdigits` is set. If it is :class:`None`, :func:`repr`
-defines the number of digits in the usual, system dependend manner:
+:attr:`~hydpy.core.optiontools.Options.reprdigits` is set. If it is
+to a negative value, :func:`repr` defines the number of digits in the usual,
+system dependend manner:
 
 >>> from hydpy.pub import options
->>> options.reprdigits = None
+>>> options.reprdigits = -1
 >>> repr(1./3.) == repr_(1./3.)
 True
 
-Through setting :attr:`~Options.reprdigits` to a positive integer value,
-one defines the maximum number of decimal places, which allows for
-doctesting across different systems and Python versions:
+Through setting :attr:`~hydpy.core.optiontools.Options.reprdigits` to a
+positive integer value, one defines the maximum number of decimal places,
+which allows for doctesting across different systems and Python versions:
 
 >>> options.reprdigits = 6
 >>> repr_(1./3.)
@@ -301,7 +277,7 @@ doctesting across different systems and Python versions:
 
 Changing the number of decimal places can be done via a with block:
 
->>> with repr_.decimals(3):
+>>> with options.reprdigits(3):
 ...     print(repr_(1./3.))
 0.333
 
@@ -818,7 +794,9 @@ def round_(values, decimals=None, width=0,
     ...
     ValueError: For function `round_` values are passed for both arguments `lfill` and `rfill`.  This is not allowed.
     """
-    with repr_.decimals(decimals):
+    if decimals is None:
+        decimals = pub.options.reprdigits
+    with pub.options.reprdigits(decimals):
         if hasattr(values, '__iter__') and (not isinstance(values, str)):
             string = repr_values(values)
         else:
@@ -888,221 +866,6 @@ def extract(values, types, skip=False):
                        ', '.join(instancename(type_) for type_ in types)))
 
 
-class Options(object):
-    """Singleton class for `global` options."""
-
-    def __init__(self):
-        self._printprogress = True
-        self._printincolor = True
-        self._verbosedir = False
-        self._reprcomments = True
-        self._usecython = True
-        self._fastcython = True
-        self._skipdoctests = False
-        self._refreshmodels = False
-        self._reprdigits = None
-        self._warntrim = True
-        self._warnsimulationstep = True
-        self._checkseries = True
-        self._warnmissingcontrolfile = False
-        self._warnmissingobsfile = True
-        self._warnmissingsimfile = True
-        self._usedefaultvalues = False
-
-    def _getprintprogress(self):
-        """True/False flag indicating whether information about the progress
-        of certain processes shall be printed to the standard output or not.
-        The default is `True`.
-        """
-        return self._printprogress
-
-    def _setprintprogress(self, value):
-        self._printprogress = bool(value)
-
-    printprogress = property(_getprintprogress, _setprintprogress)
-
-    def _getprintincolor(self):
-        """True/False flag indicating whether information shall be printed
-        in color eventually or not. The default is `True`.
-        """
-        return self._printincolor
-
-    def _setprintincolor(self, value):
-        self._printincolor = bool(value)
-
-    printincolor = property(_getprintincolor, _setprintincolor)
-
-    def _getdirverbose(self):
-        """True/False flag indicationg whether the listboxes for the member
-        selection of the classes of the HydPy framework should be complete
-        (True) or restrictive (False).  The latter is more viewable and hence
-        the default.
-        """
-        return self._verbosedir
-
-    def _setdirverbose(self, value):
-        self._verbosedir = bool(value)
-
-    dirverbose = property(_getdirverbose, _setdirverbose)
-
-    def _getreprcomments(self):
-        """True/False flag indicationg whether comments shall be included
-        in string representations of some classes of the HydPy framework or
-        not.  The default is `True`.
-        """
-        return self._reprcomments
-
-    def _setreprcomments(self, value):
-        self._reprcomments = bool(value)
-
-    reprcomments = property(_getreprcomments, _setreprcomments)
-
-    def _getusecython(self):
-        """True/False flag indicating whether Cython models (True) or pure
-        Python models (False) shall be applied if possible.  Using Cython
-        models is more time efficient and thus the default.
-        """
-        return self._usecython
-
-    def _setusecython(self, value):
-        self._usecython = bool(value)
-
-    usecython = property(_getusecython, _setusecython)
-
-    def _getfastcython(self):
-        """True/False flag indicating whether Cythonization shall be
-        configured in a fast but unsafe (True) or in a slow but safe (False)
-        mode.  The fast mode is the default.  Setting this flag to False
-        can be helpful when the implementation of new models or other
-        Cython related features introduces errors that do not result in
-        informative error messages.
-        """
-        return self._fastcython
-
-    def _setfastcython(self, value):
-        self._fastcython = bool(value)
-
-    fastcython = property(_getfastcython, _setfastcython)
-
-    def _getskipdoctests(self):
-        """True/False flag indicating whether documetation tests shall be
-        performed under certain situations.  Applying tests increases
-        reliabilty and is thus the default.
-        """
-        return self._skipdoctests
-
-    def _setskipdoctests(self, value):
-        self._skipdoctests = bool(value)
-
-    skipdoctests = property(_getskipdoctests, _setskipdoctests)
-
-    def _getreprdigits(self):
-        """Required precision of string representations of floating point
-        numbers, defined as the minimum number of digits to be reproduced
-        by the string representation (see function :func:`repr_`).
-        """
-        return self._reprdigits
-
-    def _setreprdigits(self, value):
-        if value is None:
-            self._reprdigits = value
-        else:
-            self._reprdigits = int(value)
-
-    reprdigits = property(_getreprdigits, _setreprdigits)
-
-    def _getwarntrim(self):
-        """True/False flag indicating whether a warning shall be raised
-        whenever certain values needed to be trimmed due to violating
-        certain boundaries. Such warnings increase savety and are thus
-        the default is `True`.  However, to cope with the limited precision
-        of floating point numbers only those violations beyond a small
-        tolerance value are reported (see :class:`Trimmer`).  Warnings
-        with identical information are reported only once.
-        """
-        return self._warntrim
-
-    def _setwarntrim(self, value):
-        self._warntrim = bool(value)
-
-    warntrim = property(_getwarntrim, _setwarntrim)
-
-    def _getwarnsimulationstep(self):
-        """True/False flag indicating whether a warning shall be raised
-        when function :func:`~hydpy.core.magictools.simulationstep` is
-        called for the first time.
-        """
-        return self._warnsimulationstep
-
-    def _setwarnsimulationstep(self, value):
-        self._warnsimulationstep = bool(value)
-
-    warnsimulationstep = property(_getwarnsimulationstep,
-                                  _setwarnsimulationstep)
-
-    def _getcheckseries(self):
-        """True/False flag indicating whether an error shall be raised
-        when e.g. an incomplete input time series, not spanning the whole
-        initialization time period, is loaded.
-        """
-        return self._checkseries
-
-    def _setcheckseries(self, value):
-        self._checkseries = bool(value)
-
-    checkseries = property(_getcheckseries, _setcheckseries)
-
-    def _getwarnmissingcontrolfile(self):
-        """True/False flag indicating whether only a warning shall be raised
-        when a required control file is missing, or an exception.
-        """
-        return self._warnmissingcontrolfile
-
-    def _setwarnmissingcontrolfile(self, value):
-        self._warnmissingcontrolfile = bool(value)
-
-    warnmissingcontrolfile = property(_getwarnmissingcontrolfile,
-                                      _setwarnmissingcontrolfile)
-
-    def _getwarnmissingobsfile(self):
-        """True/False flag indicating whether a warning shall be raised when a
-        requested observation sequence demanded by a node instance is missing.
-        """
-        return self._warnmissingobsfile
-
-    def _setwarnmissingobsfile(self, value):
-        self._warnmissingobsfile = bool(value)
-
-    warnmissingobsfile = property(_getwarnmissingobsfile,
-                                  _setwarnmissingobsfile)
-
-    def _getwarnmissingsimfile(self):
-        """True/False flag indicating whether a warning shall be raised when a
-        requested simulation sequence demanded a node instance is missing.
-        """
-        return self._warnmissingsimfile
-
-    def _setwarnmissingsimfile(self, value):
-        self._warnmissingsimfile = bool(value)
-
-    warnmissingsimfile = property(_getwarnmissingsimfile,
-                                  _setwarnmissingsimfile)
-
-    def _getusedefaultvalues(self):
-        """True/False flag indicating whether parameters values shall be
-        initialized with standard values or not.
-        """
-        return self._usedefaultvalues
-
-    def _setusedefaultvalues(self, value):
-        self._usedefaultvalues = bool(value)
-
-    usedefaultvalues = property(_getusedefaultvalues,
-                                _setusedefaultvalues)
-
-    __dir__ = dir_
-
-
 def trim(self, lower=None, upper=None):
     """Trim the value(s) of  a :class:`ValueMath` instance.
 
@@ -1142,7 +905,6 @@ def trim(self, lower=None, upper=None):
 
 
 def _trim_float_0d(self, lower, upper):
-    from hydpy.pub import options
     if numpy.isnan(self.value):
         return
     if (lower is None) or numpy.isnan(lower):
@@ -1151,18 +913,17 @@ def _trim_float_0d(self, lower, upper):
         upper = numpy.inf
     if self < lower:
         if (self+_tolerance(self)) < (lower-_tolerance(lower)):
-            if options.warntrim:
+            if pub.options.warntrim:
                 self.warntrim()
         self.value = lower
     elif self > upper:
         if (self-_tolerance(self)) > (upper+_tolerance(upper)):
-            if options.warntrim:
+            if pub.options.warntrim:
                 self.warntrim()
         self.value = upper
 
 
 def _trim_float_nd(self, lower, upper):
-    from hydpy.pub import options
     if lower is None:
         lower = -numpy.inf
     lower = numpy.full(self.shape, lower, dtype=float)
@@ -1178,7 +939,7 @@ def _trim_float_nd(self, lower, upper):
                       (lower-_tolerance(lower))) or
                 numpy.any((self-_tolerance(self)) >
                           (upper+_tolerance(upper)))):
-            if options.warntrim:
+            if pub.options.warntrim:
                 self.warntrim()
         self.values = numpy.clip(self.values, lower, upper)
     self[idxs] = numpy.nan
@@ -1512,7 +1273,6 @@ class ValueMath(object):
         more informative.  When :attr:`pub.options.reprcomments` is set to
         `False`, an empty list is returned.
         """
-        from hydpy import pub
         if pub.options.reprcomments:
             return ['# %s' % line for line in
                     textwrap.wrap(autodoctools.description(self), 78)]

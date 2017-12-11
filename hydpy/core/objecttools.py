@@ -197,7 +197,87 @@ class _PreserveStrings(object):
 
 
 class _Repr_(object):
-    """Singleton class, see the documentation on :func:`repr_`."""
+    """Modifies :func:`repr` for strings and floats, mainly for supporting
+    clean float representations that are compatible with :mod:`doctest`.
+
+    When value is a string, it is returned without any modification:
+
+    >>> from hydpy.core.objecttools import repr_
+    >>> print('test')
+    test
+    >>> print(repr('test'))
+    'test'
+    >>> print(repr_('test'))
+    test
+
+    You can change this behaviour of function object :func:`repr_`,
+    when necessary:
+
+    >>> with repr_.preserve_strings(True):
+    ...     print(repr_('test'))
+    "test"
+
+    Behind the with block, :func:`repr_` works as before
+    (even in case of an error):
+
+    >>> print(repr_('test'))
+    test
+
+    When value is a float, the result depends on how the option
+    :attr:`~hydpy.core.optiontools.Options.reprdigits` is set. If it is
+    to -999, :func:`repr` defines the number of digits in
+    the usual, system dependend manner:
+
+    >>> from hydpy.pub import options
+    >>> options.reprdigits = -999
+    >>> repr(1./3.) == repr_(1./3.)
+    True
+
+    Through setting :attr:`~hydpy.core.optiontools.Options.reprdigits` to a
+    positive integer value, one defines the maximum number of decimal places,
+    which allows for doctesting across different systems and Python versions:
+
+    >>> options.reprdigits = 6
+    >>> repr_(1./3.)
+    '0.333333'
+    >>> repr_(2./3.)
+    '0.666667'
+    >>> repr_(1./2.)
+    '0.5'
+
+    Changing the number of decimal places can be done via a with block:
+
+    >>> with options.reprdigits(3):
+    ...     print(repr_(1./3.))
+    0.333
+
+    Such a change is only temporary (even in case of an error):
+    >>> repr_(1./3.)
+    '0.333333'
+
+    :func:`repr_` can also be applied on numpy's float types:
+
+    >>> import numpy
+    >>> repr_(numpy.float(1./3.))
+    '0.333333'
+    >>> repr_(numpy.float64(1./3.))
+    '0.333333'
+    >>> repr_(numpy.float32(1./3.))
+    '0.333333'
+    >>> repr_(numpy.float16(1./3.))
+    '0.333252'
+
+    Note that the deviation from the `true` result in the last example is due
+    to the low precision of :class:`~numpy.float16`.
+
+    On all types not mentioned above, the usual :func:`repr` function is
+    applied, e.g.:
+
+    >>> repr([1, 2, 3])
+    '[1, 2, 3]'
+    >>> repr_([1, 2, 3])
+    '[1, 2, 3]'
+    """
 
     def __init__(self):
         self._preserve_strings = False
@@ -228,86 +308,6 @@ class _Repr_(object):
 
 
 repr_ = _Repr_()
-"""Modifies :func:`repr` for strings and floats, mainly for supporting
-clean float representations that are compatible with :mod:`doctest`.
-
-When value is a string, it is returned without any modification:
-
->>> from hydpy.core.objecttools import repr_
->>> print('test')
-test
->>> print(repr('test'))
-'test'
->>> print(repr_('test'))
-test
-
-You can change this behaviour of function object :func:`repr_`, when necessary:
-
->>> with repr_.preserve_strings(True):
-...     print(repr_('test'))
-"test"
-
-Behind the with block, :func:`repr_` works as before
-(even in case of an error):
-
->>> print(repr_('test'))
-test
-
-When value is a float, the result depends on how the option
-:attr:`~hydpy.core.optiontools.Options.reprdigits` is set. If it is
-to a negative value, :func:`repr` defines the number of digits in the usual,
-system dependend manner:
-
->>> from hydpy.pub import options
->>> options.reprdigits = -1
->>> repr(1./3.) == repr_(1./3.)
-True
-
-Through setting :attr:`~hydpy.core.optiontools.Options.reprdigits` to a
-positive integer value, one defines the maximum number of decimal places,
-which allows for doctesting across different systems and Python versions:
-
->>> options.reprdigits = 6
->>> repr_(1./3.)
-'0.333333'
->>> repr_(2./3.)
-'0.666667'
->>> repr_(1./2.)
-'0.5'
-
-Changing the number of decimal places can be done via a with block:
-
->>> with options.reprdigits(3):
-...     print(repr_(1./3.))
-0.333
-
-Such a change is only temporary (even in case of an error):
->>> repr_(1./3.)
-'0.333333'
-
-:func:`repr_` can also be applied on numpy's float types:
-
->>> import numpy
->>> repr_(numpy.float(1./3.))
-'0.333333'
->>> repr_(numpy.float64(1./3.))
-'0.333333'
->>> repr_(numpy.float32(1./3.))
-'0.333333'
->>> repr_(numpy.float16(1./3.))
-'0.333252'
-
-Note that the deviation from the `true` result in the last example is due
-to the low precision of :class:`~numpy.float16`.
-
-On all types not mentioned above, the usual :func:`repr` function is
-applied, e.g.:
-
->>> repr([1, 2, 3])
-'[1, 2, 3]'
->>> repr_([1, 2, 3])
-'[1, 2, 3]'
-"""
 
 
 def repr_values(values):

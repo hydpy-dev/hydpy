@@ -107,6 +107,16 @@ class Options(object):
         when e.g. an incomplete input time series, not spanning the whole
         initialization time period, is loaded.""")
 
+    ellipsis = _Option(
+        -999, -999,
+        """Ellipsis points are used to shorten the string representations
+        of iterable HydPy objects containing many entries.  Set a value
+        to define the maximum number of entries before and behind ellipsis
+        points.  Set it to zero, if no ellipsis points should be drawn at
+        all.  Set it to -999 (the default value) to rely on the default
+        values of the respective iterables.""")
+    ellipsis.type_ = int
+
     fastcython = _Option(
         True, None,
         """True/False flag indicating whether Cythonization shall be

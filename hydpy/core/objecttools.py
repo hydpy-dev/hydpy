@@ -386,9 +386,36 @@ def assignrepr_values(values, prefix, width=None, _fakeend=0):
 
     >>> print(assignrepr_values(range(1, 13), 'test(') + ')')
     test(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
+
+
+    To circumvent defining too long string representations, make use of the
+    ellipsis option:
+
+    >>> from hydpy.pub import options
+    >>> with options.ellipsis(1):
+    ...     print(assignrepr_values(range(1, 13), 'test(', 20) + ')')
+    test(1, ...,12)
+
+    >>> with options.ellipsis(5):
+    ...     print(assignrepr_values(range(1, 13), 'test(', 20) + ')')
+    test(1, 2, 3, 4, 5,
+         ...,8, 9, 10,
+         11, 12)
+
+    >>> with options.ellipsis(6):
+    ...     print(assignrepr_values(range(1, 13), 'test(', 20) + ')')
+    test(1, 2, 3, 4, 5,
+         6, 7, 8, 9, 10,
+         11, 12)
     """
+    ellipsis = pub.options.ellipsis
+    if (ellipsis > 0) and (len(values) > 2*ellipsis):
+        string = (repr_values(values[:ellipsis]) +
+                  ', ...,' +
+                  repr_values(values[-ellipsis:]))
+    else:
+        string = repr_values(values)
     blanks = ' '*len(prefix)
-    string = repr_values(values)
     if width is None:
         wrapped = [string]
         _fakeend = 0

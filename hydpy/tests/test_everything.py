@@ -133,6 +133,7 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                         opt.printincolor(False), \
                         opt.warnsimulationstep(False), \
                         opt.reprcomments(False), \
+                        opt.ellipsis(0), \
                         opt.reprdigits(6), \
                         opt.warntrim(False):
                     pub.timegrids = None

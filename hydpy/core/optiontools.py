@@ -11,8 +11,9 @@ class _Context(object):
     def __enter__(self):
         return self
 
-    def __call__(self, value):
-        self.option.value = self.option.type_(value)
+    def __call__(self, value, optional=False):
+        if (self.option.value == self.option.nothing) or not optional:
+            self.option.value = self.option.type_(value)
         return self
 
     def __exit__(self, type_, value, traceback):
@@ -44,8 +45,9 @@ class _Option(object):
                     float: _FloatContext,
                     str: _StrtContext}
 
-    def __init__(self, default, docstring='asdf'):
+    def __init__(self, default, nothing=None, docstring=''):
         self.default = default
+        self.nothing = nothing
         self.value = default
         self.type_ = type(default)
         self.context = self.TYPE2CONTEXT
@@ -54,6 +56,8 @@ class _Option(object):
     def __get__(self, options, type_=None):
         context = self.TYPE2CONTEXT[self.type_](self)
         context.__doc__ = self.__doc__
+        context.default = self.default
+        context.nothing = self.nothing
         return context
 
     def __set__(self, options, value):
@@ -97,13 +101,13 @@ class Options(object):
     """
 
     checkseries = _Option(
-        True,
+        True, None,
         """True/False flag indicating whether an error shall be raised
         when e.g. an incomplete input time series, not spanning the whole
         initialization time period, is loaded.""")
 
     fastcython = _Option(
-        True,
+        True, None,
         """True/False flag indicating whether Cythonization shall be
         configured in a fast but unsafe (True) or in a slow but safe (False)
         mode.  The fast mode is the default.  Setting this flag to False
@@ -112,77 +116,77 @@ class Options(object):
         informative error messages.""")
 
     printprogress = _Option(
-        True,
+        True, None,
         """True/False flag indicating whether information about the progress
         of certain processes shall be printed to the standard output or not.
         The default is `True`.""")
 
     printincolor = _Option(
-        True,
+        True, None,
         """True/False flag indicating whether information shall be printed
         in color eventually or not. The default is `True`.""")
 
     reprcomments = _Option(
-        True,
+        True, None,
         """True/False flag indicationg whether comments shall be included
         in string representations of some classes of the HydPy framework or
         not.  The default is `True`.""")
 
     reprdigits = _Option(
-        -1,
+        -999, -999,
         """Required precision of string representations of floating point
         numbers, defined as the minimum number of digits to be reproduced
         by the string representation (see function :func:`repr_`).""")
 
     skipdoctests = _Option(
-        False,
+        False, None,
         """True/False flag indicating whether documetation tests shall be
         performed under certain situations.  Applying tests increases
         reliabilty and is thus the default.""")
 
     usecython = _Option(
-        True,
+        True, None,
         """True/False flag indicating whether Cython models (True) or pure
         Python models (False) shall be applied if possible.  Using Cython
         models is more time efficient and thus the default.""")
 
     usedefaultvalues = _Option(
-        False,
+        False, None,
         """True/False flag indicating whether parameters values shall be
         initialized with standard values or not.""")
 
     verbosedir = _Option(
-        False,
+        False, None,
         """True/False flag indicationg whether the listboxes for the member
         selection of the classes of the HydPy framework should be complete
         (True) or restrictive (False).  The latter is more viewable and hence
         the default.""")
 
     warnmissingcontrolfile = _Option(
-        False,
+        False, None,
         """True/False flag indicating whether only a warning shall be raised
         when a required control file is missing, or an exception.""")
 
     warnmissingobsfile = _Option(
-        True,
+        True, None,
         """True/False flag indicating whether a warning shall be raised
         when a requested observation sequence demanded by a node instance
         is missing.""")
 
     warnmissingsimfile = _Option(
-        True,
+        True, None,
         """True/False flag indicating whether a warning shall be raised
         when a requested simulation sequence demanded by a node instance
         is missing.""")
 
     warnsimulationstep = _Option(
-        True,
+        True, None,
         """True/False flag indicating whether a warning shall be raised
         when function :func:`~hydpy.core.magictools.simulationstep` is
         called for the first time.""")
 
     warntrim = _Option(
-        True,
+        True, None,
         """True/False flag indicating whether a warning shall be raised
         whenever certain values needed to be trimmed due to violating
         certain boundaries. Such warnings increase savety and are thus

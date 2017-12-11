@@ -78,6 +78,7 @@ class Options(object):
 
     >>> from hydpy.pub import options
     >>> options.printprogress = 0
+    >>> options.printprogress
     0
     >>> with options.printprogress(True):
     ...     print(options.printprogress)

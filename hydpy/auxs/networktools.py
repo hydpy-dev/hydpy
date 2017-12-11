@@ -298,29 +298,30 @@ class RiverBasinNumbers2Selection(object):
         The following elements are properly connected to the required
         outlet nodes already:
 
-        >>> rbns2s.supplier_elements
+        >>> for element in rbns2s.supplier_elements:
+        ...     print(repr(element))
         Element("land_111",
-                outlets=Node("node_113", variable="Q"))
+                outlets="node_113")
         Element("land_1121",
-                outlets=Node("node_1123", variable="Q"))
+                outlets="node_1123")
         Element("land_1122",
-                outlets=Node("node_1123", variable="Q"))
+                outlets="node_1123")
         Element("land_1123",
-                outlets=Node("node_1125", variable="Q"))
+                outlets="node_1125")
         Element("land_1124",
-                outlets=Node("node_1125", variable="Q"))
+                outlets="node_1125")
         Element("land_1125",
-                outlets=Node("node_1129", variable="Q"))
+                outlets="node_1129")
         Element("land_11261",
-                outlets=Node("node_11269", variable="Q"))
+                outlets="node_11269")
         Element("land_11262",
-                outlets=Node("node_11269", variable="Q"))
+                outlets="node_11269")
         Element("land_11269",
-                outlets=Node("node_1129", variable="Q"))
+                outlets="node_1129")
         Element("land_1129",
-                outlets=Node("node_113", variable="Q"))
+                outlets="node_113")
         Element("land_113",
-                outlets=Node("node_outlet", variable="Q"))
+                outlets="node_outlet")
 
         It is both possible to change the prefix names of the elements
         and nodes, as long as it results in a valid variable name (e.g.
@@ -329,28 +330,8 @@ class RiverBasinNumbers2Selection(object):
         >>> rbns2s.supplier_prefix = 'a_'
         >>> rbns2s.node_prefix = 'b_'
         >>> rbns2s.supplier_elements
-        Element("a_111",
-                outlets=Node("b_113", variable="Q"))
-        Element("a_1121",
-                outlets=Node("b_1123", variable="Q"))
-        Element("a_1122",
-                outlets=Node("b_1123", variable="Q"))
-        Element("a_1123",
-                outlets=Node("b_1125", variable="Q"))
-        Element("a_1124",
-                outlets=Node("b_1125", variable="Q"))
-        Element("a_1125",
-                outlets=Node("b_1129", variable="Q"))
-        Element("a_11261",
-                outlets=Node("b_11269", variable="Q"))
-        Element("a_11262",
-                outlets=Node("b_11269", variable="Q"))
-        Element("a_11269",
-                outlets=Node("b_1129", variable="Q"))
-        Element("a_1129",
-                outlets=Node("b_113", variable="Q"))
-        Element("a_113",
-                outlets=Node("node_outlet", variable="Q"))
+        Elements("a_111", "a_1121", "a_1122", "a_1123", "a_1124", "a_1125",
+                 "a_11261", "a_11262", "a_11269", "a_1129", "a_113")
         """
         elements = devicetools.Elements()
         for supplier in self._supplier_numbers:
@@ -378,22 +359,23 @@ class RiverBasinNumbers2Selection(object):
         The following elements are properly connected to the required
         inlet and outlet nodes already:
 
-        >>> rbns2s.router_elements
+        >>> for element in rbns2s.router_elements:
+        ...     print(repr(element))
         Element("stream_1123",
-                inlets=Node("node_1123", variable="Q"),
-                outlets=Node("node_1125", variable="Q"))
+                inlets="node_1123",
+                outlets="node_1125")
         Element("stream_1125",
-                inlets=Node("node_1125", variable="Q"),
-                outlets=Node("node_1129", variable="Q"))
+                inlets="node_1125",
+                outlets="node_1129")
         Element("stream_11269",
-                inlets=Node("node_11269", variable="Q"),
-                outlets=Node("node_1129", variable="Q"))
+                inlets="node_11269",
+                outlets="node_1129")
         Element("stream_1129",
-                inlets=Node("node_1129", variable="Q"),
-                outlets=Node("node_113", variable="Q"))
+                inlets="node_1129",
+                outlets="node_113")
         Element("stream_113",
-                inlets=Node("node_113", variable="Q"),
-                outlets=Node("node_outlet", variable="Q"))
+                inlets="node_113",
+                outlets="node_outlet")
 
         It is both possible to change the prefix names of the elements
         and nodes, as long as it results in a valid variable name (e.g.
@@ -402,21 +384,7 @@ class RiverBasinNumbers2Selection(object):
         >>> rbns2s.router_prefix = 'c_'
         >>> rbns2s.node_prefix = 'd_'
         >>> rbns2s.router_elements
-        Element("c_1123",
-                inlets=Node("d_1123", variable="Q"),
-                outlets=Node("d_1125", variable="Q"))
-        Element("c_1125",
-                inlets=Node("d_1125", variable="Q"),
-                outlets=Node("d_1129", variable="Q"))
-        Element("c_11269",
-                inlets=Node("d_11269", variable="Q"),
-                outlets=Node("d_1129", variable="Q"))
-        Element("c_1129",
-                inlets=Node("d_1129", variable="Q"),
-                outlets=Node("d_113", variable="Q"))
-        Element("c_113",
-                inlets=Node("d_113", variable="Q"),
-                outlets=Node("node_outlet", variable="Q"))
+        Elements("c_1123", "c_1125", "c_11269", "c_1129", "c_113")
         """
         elements = devicetools.Elements()
         for router in self._router_numbers:
@@ -448,12 +416,8 @@ class RiverBasinNumbers2Selection(object):
         Note that the required outlet node is added:
 
         >>> rbns2s.nodes
-        Node("node_1123", variable="Q")
-        Node("node_1125", variable="Q")
-        Node("node_11269", variable="Q")
-        Node("node_1129", variable="Q")
-        Node("node_113", variable="Q")
-        Node("node_outlet", variable="Q")
+        Nodes("node_1123", "node_1125", "node_11269", "node_1129", "node_113",
+              "node_outlet")
 
         It is both possible to change the prefix names of the nodes and
         the name of the outlet node seperately:
@@ -461,12 +425,7 @@ class RiverBasinNumbers2Selection(object):
         >>> rbns2s.node_prefix = 'b_'
         >>> rbns2s.last_node = 'l_node'
         >>> rbns2s.nodes
-        Node("b_1123", variable="Q")
-        Node("b_1125", variable="Q")
-        Node("b_11269", variable="Q")
-        Node("b_1129", variable="Q")
-        Node("b_113", variable="Q")
-        Node("l_node", variable="Q")
+        Nodes("b_1123", "b_1125", "b_11269", "b_1129", "b_113", "l_node")
         """
         return (devicetools.Nodes(self.node_prefix+routers for
                                   routers in self._router_numbers) +
@@ -484,57 +443,24 @@ class RiverBasinNumbers2Selection(object):
         ...                             11262, 1123, 1124, 1122, 1121))
         >>> rbns2s.selection
         Selection("complete",
-                  nodes=Nodes("node_1123",
-                              "node_1125",
-                              "node_11269",
-                              "node_1129",
-                              "node_113",
-                              "node_outlet"),
-                  elements=Elements("land_111",
-                                    "land_1121",
-                                    "land_1122",
-                                    "land_1123",
-                                    "land_1124",
-                                    "land_1125",
-                                    "land_11261",
-                                    "land_11262",
-                                    "land_11269",
-                                    "land_1129",
-                                    "land_113",
-                                    "stream_1123",
-                                    "stream_1125",
-                                    "stream_11269",
-                                    "stream_1129",
-                                    "stream_113"))
+                  elements=("land_111", "land_1121", "land_1122", "land_1123",
+                            "land_1124", "land_1125", "land_11261",
+                            "land_11262", "land_11269", "land_1129",
+                            "land_113", "stream_1123", "stream_1125",
+                            "stream_11269", "stream_1129", "stream_113"),
+                  nodes=("node_1123", "node_1125", "node_11269", "node_1129",
+                         "node_113", "node_outlet"))
 
         Besides the possible modifications on the names of the different
         nodes and elements, the name of the selection can be set differently:
 
         >>> rbns2s.selection_name = 'sel'
-        >>> rbns2s.selection
+        >>> from hydpy import pub
+        >>> with pub.options.ellipsis(1):
+        ...     print(repr(rbns2s.selection))
         Selection("sel",
-                  nodes=Nodes("node_1123",
-                              "node_1125",
-                              "node_11269",
-                              "node_1129",
-                              "node_113",
-                              "node_outlet"),
-                  elements=Elements("land_111",
-                                    "land_1121",
-                                    "land_1122",
-                                    "land_1123",
-                                    "land_1124",
-                                    "land_1125",
-                                    "land_11261",
-                                    "land_11262",
-                                    "land_11269",
-                                    "land_1129",
-                                    "land_113",
-                                    "stream_1123",
-                                    "stream_1125",
-                                    "stream_11269",
-                                    "stream_1129",
-                                    "stream_113"))
+                  elements=("land_111", ...,"stream_113"),
+                  nodes=("node_1123", ...,"node_outlet"))
         """
         return selectiontools.Selection(
                             self.selection_name, self.nodes, self.elements)

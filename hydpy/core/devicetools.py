@@ -280,8 +280,10 @@ class Node(Device):
         return self.assignrepr('')
 
     def assignrepr(self, prefix):
-        return ('%sNode("%s", variable="%s")'
-                % (prefix, self.name, self.variable))
+        lines = ['%sNode("%s", variable="%s",'
+                 % (prefix, self.name, self.variable)]
+        lines[-1] = lines[-1][:-1]+')'
+        return '\n'.join(lines)
 
 
 class Element(Device):
@@ -438,20 +440,20 @@ class Element(Device):
         Argument:
             * prefix(:class:`str`): Usually something like 'x = '.
         """
-        blanks = ' ' * (len(prefix) + 8)
-        lines = []
-        lines.append('%sElement("%s",' % (prefix, self.name))
-        for conname in ('inlets', 'outlets', 'receivers', 'senders'):
-            connections = getattr(self, conname, None)
-            if connections:
-                subprefix = '%s%s=' % (blanks, conname)
-                if len(connections) == 1:
-                    line = connections.slaves[0].assignrepr(subprefix)
-                else:
-                    line = Nodes(connections.slaves).assignrepr(subprefix)
-                lines.append(line + ',')
-        lines[-1] = lines[-1][:-1]+')'
-        return '\n'.join(lines)
+        with objecttools.repr_.preserve_strings(True):
+            with objecttools.assignrepr_tuple.always_bracketed(False):
+                blanks = ' ' * (len(prefix) + 8)
+                lines = ['%sElement("%s",' % (prefix, self.name)]
+                for conname in ('inlets', 'outlets', 'receivers', 'senders'):
+                    connections = getattr(self, conname, None)
+                    if connections:
+                        subprefix = '%s%s=' % (blanks, conname)
+                        nodes = [str(node) for node in connections.slaves]
+                        line = objecttools.assignrepr_list(
+                                                nodes, subprefix, width=70)
+                        lines.append(line + ',')
+                lines[-1] = lines[-1][:-1]+')'
+                return '\n'.join(lines)
 
     def __repr__(self):
         return self.assignrepr('')
@@ -607,23 +609,15 @@ class Devices(object):
         return id(self)
 
     def __repr__(self):
-        lines = []
-        for device in self:
-            lines.append(repr(device))
-        return '\n'.join(lines)
+        return self.assignrepr('')
 
     def assignrepr(self, prefix):
-        lines = []
-        prefix += '%s(' % objecttools.classname(self)
-        blanks = ' '*len(prefix)
-        for (idx, device) in enumerate(self):
-            if idx == 0:
-                lines.append(device.assignrepr(prefix))
-            else:
-                lines.append(device.assignrepr(blanks))
-            lines[-1] += ','
-        lines[-1] = lines[-1][:-1]+')'
-        return '\n'.join(lines)
+        with objecttools.repr_.preserve_strings(True):
+            with pub.options.ellipsis(2, optional=True):
+                prefix += '%s(' % objecttools.classname(self)
+                repr_ = objecttools.assignrepr_values(
+                                        self.names, prefix, width=70)
+                return repr_ + ')'
 
     def __dir__(self):
         return objecttools.dir_(self) + list(self.names)

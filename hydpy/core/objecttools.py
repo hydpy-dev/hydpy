@@ -25,7 +25,7 @@ but not for integer values."""
 def dir_(self):
     """The prefered way for HydPy objects to respond to :func:`dir`.
 
-    Note thedepencence on the `pub.options.dirverbose`.  If this option is
+    Note the depencence on the `pub.options.dirverbose`.  If this option is
     set `True`, all attributes and methods of the given instance and its
     class (including those inherited from the parent classes) are returned:
 

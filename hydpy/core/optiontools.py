@@ -166,7 +166,7 @@ class Options(object):
         """True/False flag indicating whether parameters values shall be
         initialized with standard values or not.""")
 
-    verbosedir = _Option(
+    dirverbose = _Option(
         False, None,
         """True/False flag indicationg whether the listboxes for the member
         selection of the classes of the HydPy framework should be complete

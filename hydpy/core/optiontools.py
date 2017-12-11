@@ -32,7 +32,7 @@ class _FloatContext(_Context, float):
         return super(_Context, cls).__new__(cls, option.value)
 
 
-class _StrtContext(_Context, str):
+class _StrContext(_Context, str):
 
     def __new__(cls, option):
         return super(_Context, cls).__new__(cls, option.value)
@@ -43,7 +43,7 @@ class _Option(object):
     TYPE2CONTEXT = {int: _IntContext,
                     bool: _IntContext,
                     float: _FloatContext,
-                    str: _StrtContext}
+                    str: _StrContext}
 
     def __init__(self, default, nothing=None, docstring=''):
         self.default = default

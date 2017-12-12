@@ -568,7 +568,8 @@ class MultiParameter(Parameter):
         of the respective parameter.
         """
         try:
-            return getattr(self.fastaccess, self.name).shape
+            shape = getattr(self.fastaccess, self.name).shape
+            return tuple(int(x) for x in shape)
         except AttributeError:
             raise RuntimeError('Shape information for parameter `%s` '
                                'can only be retrieved after it has been '

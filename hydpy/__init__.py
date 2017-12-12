@@ -22,7 +22,14 @@ from hydpy.core.devicetools import Elements
 from hydpy.core.selectiontools import Selection
 from hydpy.core.selectiontools import Selections
 from hydpy.core.objecttools import HydPyDeprecationWarning
+
 from hydpy import pub
+from hydpy.core import optiontools as __optiontools
+from hydpy.core import indextools as __indextools
+from hydpy.cythons import configutils as __configutils
+pub.options = __optiontools.Options()
+pub.indexer = __indextools.Indexer()
+pub.config = __configutils.Config()
 
 import sys
 import warnings
@@ -34,6 +41,7 @@ def customwarn(message, category, filename, lineno, file=None, line=None):
 warnings.showwarning = customwarn
 warnings.filterwarnings('always', category=HydPyDeprecationWarning)
 warnings.filterwarnings('ignore', r'All-NaN (slice|axis) encountered')
+
 
 __all__ = ['HydPy', 'pub',
            'Date', 'Period', 'Timegrid', 'Timegrids',

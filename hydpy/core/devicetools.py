@@ -29,7 +29,7 @@ class Device(object):
         return self._name
 
     def _set_name(self, name):
-        self._checkname(name)
+        self._check_name(name)
         _handlers = self._handlers.copy()
         for handler in _handlers:
             handler.remove_device(self)
@@ -45,26 +45,14 @@ class Device(object):
 
     name = property(_get_name, _set_name)
 
-    def _checkname(self, name):
-        """Raises an :class:`~exceptions.ValueError` if the given name is not
-        a valid Python identifier.
-        """
-        exc = ValueError('For initializing `%s` objects, `value` is a '
-                         'necessary function argument.  Principally, any '
-                         'object is allowed that supports the Python build-in '
-                         'function `str`.  But note that `str(value)` must '
-                         'return a valid Python identifier (that does '
-                         'not start with a number, that does not contain `-`, '
-                         'that is not a Python keyword like `for`...).  The '
-                         'given object returned the string `%s`, which is not '
-                         'a valid Python identifier.'
-                         % (objecttools.classname(self), name))
+    def _check_name(self, name):
         try:
-            exec('%s = None' % name)
-        except SyntaxError:
-            raise exc
-        if name in dir(__builtins__):
-            raise exc
+            objecttools.valid_variable_identifier(name)
+        except ValueError:
+            objecttools.augmentexcmessage(
+                'While trying to initialize a `%s` object with value `%s` '
+                'of type `%s`' % (objecttools.classname(self), name,
+                                  objecttools.classname(name)))
 
     @classmethod
     def clearregistry(cls):
@@ -135,7 +123,7 @@ class Node(Device):
         name = str(value)
         if name not in cls._registry:
             self = object.__new__(Node)
-            self._checkname(name)
+            self._check_name(name)
             self._name = name
             if variable is None:
                 self._variable = self._predefinedvariable
@@ -299,7 +287,7 @@ class Element(Device):
         name = str(value)
         if name not in cls._registry:
             self = object.__new__(Element)
-            self._checkname(name)
+            self._check_name(name)
             self._name = name
             self.inlets = connectiontools.Connections(self)
             self.outlets = connectiontools.Connections(self)

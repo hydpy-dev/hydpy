@@ -31,6 +31,9 @@ pub.options = __optiontools.Options()
 pub.indexer = __indextools.Indexer()
 pub.config = __configutils.Config()
 
+from hydpy.core import dummytools as __dummytools
+dummies = __dummytools.Dummies()
+
 import sys
 import warnings
 

@@ -25,6 +25,7 @@ import functools
 import tempfile
 import itertools
 # ...from HydPy
+import hydpy
 from hydpy import pub
 from hydpy.core import objecttools
 from hydpy.core import timetools
@@ -103,6 +104,7 @@ class Tester(object):
                 devicetools.Element.clearregistry()
                 devicetools.Node._registry = nodes
                 devicetools.Element._registry = elements
+                hydpy.dummies.clear()
 
 
 class PrintStyle(object):

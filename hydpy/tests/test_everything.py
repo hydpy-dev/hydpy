@@ -152,6 +152,7 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                     warnings.resetwarnings()
                     doctests[name].nmbproblems = (len(doctests[name].errors) +
                                                   len(doctests[name].failures))
+                    hydpy.dummies.clear()
     successfuldoctests.update({name: runner for (name, runner)
                               in doctests.items() if not runner.nmbproblems})
     faileddoctests.update({name: runner for (name, runner)

@@ -19,7 +19,114 @@ from hydpy.core import autodoctools
 from hydpy.cythons import pointerutils
 
 
+class Keywords(set):
+    """Set of keyword arguments used to describe and search for element and
+    node objects.
+
+    >>> from hydpy.core.devicetools import Keywords
+    >>> keywords = Keywords(['first_keyword', 'second_keyword',
+    ...                      'keyword_3', 'keyword_4',
+    ...                      'keyboard'])
+    >>> keywords
+    Keywords(["first_keyword", "keyboard", "keyword_3", "keyword_4",
+              "second_keyword"])
+    """
+
+    def __init__(self, names=None):
+        if names is None:
+            names = []
+        self.device = None
+        self._check_keywords(names)
+        super(Keywords, self).__init__(names)
+
+    def startswith(self, name):
+        """Returns a list of all keywords starting with the given string.
+
+        >>> keywords.startswith('keyword')
+        ['keyword_3', 'keyword_4']
+        """
+        return sorted(keyword for keyword in self if keyword.startswith(name))
+
+    def endswith(self, name):
+        """Returns a list of all keywords ending with the given string.
+
+        >>> keywords.endswith('keyword')
+        ['first_keyword', 'second_keyword']
+        """
+        return sorted(keyword for keyword in self if keyword.endswith(name))
+
+    def contains(self, name):
+        """Returns a list of all keywords containing the given string.
+
+        >>> keywords.contains('keyword')
+        ['first_keyword', 'keyword_3', 'keyword_4', 'second_keyword']
+        """
+        return sorted(keyword for keyword in self if name in keyword)
+
+    def _check_keywords(self, names):
+        try:
+            for name in names:
+                objecttools.valid_variable_identifier(name)
+        except ValueError:
+            objecttools.augmentexcmessage(
+                'While trying to add the keyword `%s` to device `%s`'
+                % (name, objecttools.devicename(self)))
+
+    def update(self, names):
+        """Before updating, names are checked to be valid variable identifiers.
+
+        >>> keywords.update(['test_1', 'test 2'])
+        Traceback (most recent call last):
+        ...
+        ValueError: While trying to add the keyword `test 2` to device `?`, the following error occured: The given name string `test 2` does not define a valid variable identifier.  Valid identifiers do not contain signs like `-` or empty spaces, do not start with numbers, cannot be mistaken with Python built-ins like `for`...)
+
+        Note that the first string (`test_1`) is not added, as the second
+        one (`test 2`) is invalid:
+
+        >>> keywords
+        Keywords(["first_keyword", "keyboard", "keyword_3", "keyword_4",
+                  "second_keyword"])
+
+        If the seconds string is corrected, everything works fine:
+
+        >>> keywords.update(['test_1', 'test_2'])
+        >>> keywords
+        Keywords(["first_keyword", "keyboard", "keyword_3", "keyword_4",
+                  "second_keyword", "test_1", "test_2"])
+        """
+        self._check_keywords(names)
+        super(Keywords, self).update(names)
+
+    def add(self, name):
+        """Before adding a new name, it is checked to be valid variable identifiers.
+
+        >>> keywords.add('3rd_test')
+        Traceback (most recent call last):
+        ...
+        ValueError: While trying to add the keyword `3rd_test` to device `?`, the following error occured: The given name string `3rd_test` does not define a valid variable identifier.  Valid identifiers do not contain signs like `-` or empty spaces, do not start with numbers, cannot be mistaken with Python built-ins like `for`...)
+
+        >>> keywords
+        Keywords(["first_keyword", "keyboard", "keyword_3", "keyword_4",
+                  "second_keyword", "test_1", "test_2"])
+
+        If the string is corrected, everything works fine:
+
+        >>> keywords.add('third_test')
+        >>> keywords
+        Keywords(["first_keyword", "keyboard", "keyword_3", "keyword_4",
+                  "second_keyword", "test_1", "test_2", "third_test"])
+        """
+        self._check_keywords([name])
+        super(Keywords, self).add(name)
+
+    def __repr__(self):
+        with objecttools.repr_.preserve_strings(True):
+            return objecttools.assignrepr_list(
+                        sorted(self), 'Keywords(', width=70) + ')'
+
+
 class Device(object):
+    """Base class for class :class:`Element` and class :class:`Node`."""
 
     _registry = {}
     _selection = {}
@@ -53,6 +160,19 @@ class Device(object):
                 'While trying to initialize a `%s` object with value `%s` '
                 'of type `%s`' % (objecttools.classname(self), name,
                                   objecttools.classname(name)))
+
+    def _get_keywords(self):
+        """:class:`Keywords` set object."""
+        return self._keywords
+
+    def _set_keywords(self, keywords):
+        keywords = tuple(objecttools.extract(keywords, (str,), True))
+        self._keywords.update(keywords)
+
+    def _del_keywords(self):
+        self._keywords.clear()
+
+    keywords = property(_get_keywords, _set_keywords, _del_keywords)
 
     @classmethod
     def clearregistry(cls):
@@ -116,7 +236,7 @@ class Node(Device):
     _predefinedvariable = 'Q'
     ROUTING_MODES = ('newsim', 'obs', 'oldsim')
 
-    def __new__(cls, value, variable=None):
+    def __new__(cls, value, variable=None, keywords=None):
         """Returns an already existing :class:`Node` instance or, if such
         an instance does not exist yet, a new newly created one.
         """
@@ -129,6 +249,8 @@ class Node(Device):
                 self._variable = self._predefinedvariable
             else:
                 self._variable = variable
+            self._keywords = Keywords()
+            self._keywords.device = self
             self.entries = connectiontools.Connections(self)
             self.exits = connectiontools.Connections(self)
             self.sequences = sequencetools.NodeSequences(self)
@@ -139,7 +261,7 @@ class Node(Device):
         cls._selection[name] = cls._registry[name]
         return cls._registry[name]
 
-    def __init__(self, name, variable=None, route=None):
+    def __init__(self, name, variable=None, keywords=None):
         if (variable is not None) and (variable != self.variable):
             raise ValueError('The variable to be represented by a `Node '
                              'instance cannot be changed.  The variable of '
@@ -147,6 +269,7 @@ class Node(Device):
                              'Keep in mind, that `name` is the unique '
                              'identifier of node objects.'
                              % (self.name, self.variable, variable))
+        self.keywords = keywords
 
     def _getvariable(self):
         """The variable handled by the respective node instance."""
@@ -270,6 +393,13 @@ class Node(Device):
     def assignrepr(self, prefix):
         lines = ['%sNode("%s", variable="%s",'
                  % (prefix, self.name, self.variable)]
+        if self.keywords:
+            subprefix = '%skeywords=' % (' '*(len(prefix)+5))
+            with objecttools.repr_.preserve_strings(True):
+                with objecttools.assignrepr_tuple.always_bracketed(False):
+                    line = objecttools.assignrepr_list(
+                                sorted(self.keywords), subprefix, width=70)
+            lines.append(line + ',')
         lines[-1] = lines[-1][:-1]+')'
         return '\n'.join(lines)
 
@@ -280,7 +410,7 @@ class Element(Device):
     _selection = {}
 
     def __new__(cls, value, inlets=None, outlets=None,
-                receivers=None, senders=None):
+                receivers=None, senders=None, keywords=None):
         """Returns an already existing :class:`Element` instance or, if such
         an instance does not exist yet, a new newly created one.
         """
@@ -293,6 +423,8 @@ class Element(Device):
             self.outlets = connectiontools.Connections(self)
             self.receivers = connectiontools.Connections(self)
             self.senders = connectiontools. Connections(self)
+            self._keywords = Keywords()
+            self._keywords.device = self
             self.model = None
             self._handlers = weakref.WeakSet()
             cls._registry[name] = self
@@ -300,7 +432,7 @@ class Element(Device):
         return cls._registry[name]
 
     def __init__(self, name, inlets=None, outlets=None,
-                 receivers=None, senders=None):
+                 receivers=None, senders=None, keywords=None):
         """Adds the given :class:`~connectiontools.Connections` instances to
         the (old or new) :class:`Element` instance."""
         if inlets is not None:
@@ -339,6 +471,7 @@ class Element(Device):
                                      % (self, sender))
                 self.senders += sender
                 sender.entries += self
+        self.keywords = keywords
 
     @classmethod
     def registeredelements(cls):
@@ -440,6 +573,11 @@ class Element(Device):
                         line = objecttools.assignrepr_list(
                                                 nodes, subprefix, width=70)
                         lines.append(line + ',')
+                if self.keywords:
+                    subprefix = '%skeywords=' % blanks
+                    line = objecttools.assignrepr_list(
+                                sorted(self.keywords), subprefix, width=70)
+                    lines.append(line + ',')
                 lines[-1] = lines[-1][:-1]+')'
                 return '\n'.join(lines)
 
@@ -449,12 +587,13 @@ class Element(Device):
 
 class Devices(object):
 
-    __slots__ = ('_devices')
+    __slots__ = ('_devices', '_shadowed_keywords')
 
     _contentclass = None
 
     def __init__(self, *values):
         self._devices = {}
+        self._shadowed_keywords = set()
         try:
             self._extract_values(values)
         except BaseException:
@@ -514,14 +653,29 @@ class Devices(object):
                 % (objecttools.classname(self),
                    objecttools.classname(self._contentclass), name))
 
+    def _select_devices_by_keyword(self, name):
+        devices = self.__class__(device for device in self if
+                                 name in device.keywords)
+        devices._shadowed_keywords = self._shadowed_keywords.copy()
+        devices._shadowed_keywords.add(name)
+        return devices
+
     def __getattr__(self, name):
         try:
             _devices = super(Devices, self).__getattribute__('_devices')
             return _devices[name]
         except KeyError:
+            pass
+        _devices = self._select_devices_by_keyword(name)
+        if len(_devices) == 1:
+            return _devices.devices[0]
+        elif len(_devices) > 1:
+            return _devices
+        else:
             raise AttributeError(
-                'The selected %s object has neither a `%s` attribute nor does '
-                'it handle a %s object named `%s`, which could be returned.'
+                'The selected %s object has neither a `%s` attribute '
+                'nor does it handle a %s object with name or keyword `%s`, '
+                'which could be returned.'
                 % (objecttools.classname(self), name,
                    objecttools.classname(self._contentclass), name))
 
@@ -607,8 +761,14 @@ class Devices(object):
                                         self.names, prefix, width=70)
                 return repr_ + ')'
 
+    @property
+    def keywords(self):
+        return set(keyword for device in self
+                   for keyword in device.keywords if
+                   keyword not in self._shadowed_keywords)
+
     def __dir__(self):
-        return objecttools.dir_(self) + list(self.names)
+        return objecttools.dir_(self) + list(self.names) + list(self.keywords)
 
 
 class Nodes(Devices):

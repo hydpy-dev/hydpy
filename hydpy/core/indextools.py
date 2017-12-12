@@ -6,11 +6,10 @@ from __future__ import division, print_function
 # ...from site-packages
 import numpy
 # ...from HydPy
+from hydpy import pub
 from hydpy.core import objecttools
 from hydpy.core import timetools
 from hydpy.core import autodoctools
-# from hydpy.pub import ... (actual import commands moved to
-# different functions below to avoid circular dependencies)
 
 
 class Indexer(object):
@@ -70,20 +69,18 @@ class Indexer(object):
         >>> Indexer().dayofyear
         array([57, 58, 60, 61])
         """
-        from hydpy.pub import timegrids
         if ((self._dayofyear is None) or
-                (hash(timegrids) != self._dayofyear_hash)):
+                (hash(pub.timegrids) != self._dayofyear_hash)):
             def dayofyear(date):
                 return (date.dayofyear-1 +
                         ((date.month > 2) and (not date.leapyear)))
             self._dayofyear = self._calcidxs(dayofyear)
-            self._dayofyear_hash = hash(timegrids)
+            self._dayofyear_hash = hash(pub.timegrids)
         return self._dayofyear
 
     def _setdayofyear(self, values):
-        from hydpy.pub import timegrids
         self._dayofyear = self._convertandtest(values, 'dayofyear')
-        self._dayofyear_hash = hash(timegrids)
+        self._dayofyear_hash = hash(pub.timegrids)
 
     def _deldayofyear(self):
         self._dayofyear = None
@@ -135,15 +132,14 @@ class Indexer(object):
         Note the gap in the returned index array due to 2005 beeing not a
         leap year.
         """
-        from hydpy.pub import timegrids
         if ((self._timeofyear is None) or
-                (hash(timegrids) != self._timeofyear_hash)):
-            if timegrids is None:
+                (hash(pub.timegrids) != self._timeofyear_hash)):
+            if pub.timegrids is None:
                 refgrid = None
             else:
                 refgrid = timetools.Timegrid(timetools.Date('2000.01.01'),
                                              timetools.Date('2001.01.01'),
-                                             timegrids.stepsize)
+                                             pub.timegrids.stepsize)
 
             def timeofyear(date):
                 date = date.copy()
@@ -151,13 +147,12 @@ class Indexer(object):
                 return refgrid[date]
 
             self._timeofyear = self._calcidxs(timeofyear)
-            self._timeofyear_hash = hash(timegrids)
+            self._timeofyear_hash = hash(pub.timegrids)
         return self._timeofyear
 
     def _settimeofyear(self, values):
-        from hydpy.pub import timegrids
         self._timeofyear = self._convertandtest(values, 'timeofyear')
-        self._timeofyear_hash = hash(timegrids)
+        self._timeofyear_hash = hash(pub.timegrids)
 
     def _deltimeofyear(self):
         self._timeofyear = None
@@ -170,7 +165,6 @@ class Indexer(object):
         the array, other raise a :class:`~exceptions.ValueError` or re-raise a
         :mod:`numpy` specific exception.
         """
-        from hydpy.pub import timegrids
         try:
             array = numpy.array(values, dtype=int)
         except BaseException:
@@ -182,8 +176,8 @@ class Indexer(object):
                              'be 1-dimensional.  However, the given value has '
                              'interpreted as a %d-dimensional object.'
                              % (name, array.ndim))
-        if timegrids is not None:
-            if len(array) != len(timegrids.init):
+        if pub.timegrids is not None:
+            if len(array) != len(pub.timegrids.init):
                 raise ValueError('The %s` index array of an Indexer object '
                                  'must have a number of entries fitting to '
                                  'the initialization time period precisely.  '
@@ -191,7 +185,7 @@ class Indexer(object):
                                  'interpreted to be of length %d and the '
                                  'length of the Timegrid object representing '
                                  'the actual initialization time period is %d.'
-                                 % (name, len(array), len(timegrids.init)))
+                                 % (name, len(array), len(pub.timegrids.init)))
         return array
 
     def _calcidxs(self, func):
@@ -200,8 +194,7 @@ class Indexer(object):
         :mod:`~hydpy.pub`.  Raise a :class:`~exceptions.RuntimeError` if the
         latter is not available.
         """
-        from hydpy.pub import timegrids
-        if timegrids is None:
+        if pub.timegrids is None:
             raise RuntimeError('An Indexer object has been asked for an '
                                '%s array.  Such an array has neither been '
                                'determined yet nor can it be determined '
@@ -212,8 +205,8 @@ class Indexer(object):
                                'module.  In usual HydPy applications, the '
                                'latter is done automatically.'
                                % (func.__name__, func.__name__))
-        idxs = numpy.empty(len(timegrids.init), dtype=int)
-        for (jdx, date) in enumerate(timegrids.init):
+        idxs = numpy.empty(len(pub.timegrids.init), dtype=int)
+        for (jdx, date) in enumerate(pub.timegrids.init):
             idxs[jdx] = func(date)
         return idxs
 

@@ -202,7 +202,7 @@ def autodoc_module():
             elif inspect.isclass(member):
                 type_ = 'class'
             else:
-                type_ = 'object'
+                type_ = 'obj'
             lines.append('      * :%s:`~%s` %s'
                          % (type_, name, description(member)))
         module.__doc__ = doc + '\n\n' + '\n'.join(lines) + '\n\n' + 80*'_'

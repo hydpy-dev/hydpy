@@ -551,7 +551,8 @@ class Sequence(objecttools.ValueMath):
         """
         if self.NDIM:
             try:
-                return self.values.shape
+                shape = self.values.shape
+                return tuple(int(x) for x in shape)
             except AttributeError:
                 raise RuntimeError('Shape information for sequence %s of '
                                    'element %s can only be retrieved after '

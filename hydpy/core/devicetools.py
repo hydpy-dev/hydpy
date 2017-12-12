@@ -24,10 +24,11 @@ class Keywords(set):
     node objects.
 
     >>> from hydpy.core.devicetools import Keywords
-    >>> keywords = Keywords(['first_keyword', 'second_keyword',
-    ...                      'keyword_3', 'keyword_4',
-    ...                      'keyboard'])
-    >>> keywords
+    >>> from hydpy import dummies
+    >>> dummies.keywords = Keywords(['first_keyword', 'second_keyword',
+    ...                              'keyword_3', 'keyword_4',
+    ...                              'keyboard'])
+    >>> dummies.keywords
     Keywords(["first_keyword", "keyboard", "keyword_3", "keyword_4",
               "second_keyword"])
     """
@@ -42,7 +43,8 @@ class Keywords(set):
     def startswith(self, name):
         """Returns a list of all keywords starting with the given string.
 
-        >>> keywords.startswith('keyword')
+        >>> from hydpy import dummies
+        >>> dummies.keywords.startswith('keyword')
         ['keyword_3', 'keyword_4']
         """
         return sorted(keyword for keyword in self if keyword.startswith(name))
@@ -50,7 +52,8 @@ class Keywords(set):
     def endswith(self, name):
         """Returns a list of all keywords ending with the given string.
 
-        >>> keywords.endswith('keyword')
+        >>> from hydpy import dummies
+        >>> dummies.keywords.endswith('keyword')
         ['first_keyword', 'second_keyword']
         """
         return sorted(keyword for keyword in self if keyword.endswith(name))
@@ -58,7 +61,8 @@ class Keywords(set):
     def contains(self, name):
         """Returns a list of all keywords containing the given string.
 
-        >>> keywords.contains('keyword')
+        >>> from hydpy import dummies
+        >>> dummies.keywords.contains('keyword')
         ['first_keyword', 'keyword_3', 'keyword_4', 'second_keyword']
         """
         return sorted(keyword for keyword in self if name in keyword)
@@ -75,6 +79,8 @@ class Keywords(set):
     def update(self, names):
         """Before updating, names are checked to be valid variable identifiers.
 
+        >>> from hydpy import dummies
+        >>> keywords = dummies.keywords
         >>> keywords.update(['test_1', 'test 2'])
         Traceback (most recent call last):
         ...
@@ -100,21 +106,23 @@ class Keywords(set):
     def add(self, name):
         """Before adding a new name, it is checked to be valid variable identifiers.
 
-        >>> keywords.add('3rd_test')
+        >>> from hydpy import dummies
+        >>> keywords = dummies.keywords
+        >>> keywords.add('1_test')
         Traceback (most recent call last):
         ...
-        ValueError: While trying to add the keyword `3rd_test` to device `?`, the following error occured: The given name string `3rd_test` does not define a valid variable identifier.  Valid identifiers do not contain signs like `-` or empty spaces, do not start with numbers, cannot be mistaken with Python built-ins like `for`...)
+        ValueError: While trying to add the keyword `1_test` to device `?`, the following error occured: The given name string `1_test` does not define a valid variable identifier.  Valid identifiers do not contain signs like `-` or empty spaces, do not start with numbers, cannot be mistaken with Python built-ins like `for`...)
 
         >>> keywords
         Keywords(["first_keyword", "keyboard", "keyword_3", "keyword_4",
-                  "second_keyword", "test_1", "test_2"])
+                  "second_keyword"])
 
         If the string is corrected, everything works fine:
 
-        >>> keywords.add('third_test')
+        >>> keywords.add('one_test')
         >>> keywords
         Keywords(["first_keyword", "keyboard", "keyword_3", "keyword_4",
-                  "second_keyword", "test_1", "test_2", "third_test"])
+                  "one_test", "second_keyword"])
         """
         self._check_keywords([name])
         super(Keywords, self).add(name)

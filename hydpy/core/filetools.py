@@ -183,15 +183,15 @@ class NetworkManager(object):
         want to overwrite already existing network files.
         """
         selections = selectiontools.Selections(selections)
-        for (name, selection) in selections:
-            if name == 'complete':
+        for selection in selections:
+            if selection.name == 'complete':
                 continue
-            path = os.path.join(self.dirpath, name+'.py')
+            path = os.path.join(self.dirpath, selection.name+'.py')
             if os.path.exists(path) and not overwrite:
                 warnings.warn('The path `%s` does already exist, selection '
                               '`%s` cannot be saved.  Please select another '
                               'network directory or set the `overwrite` flag '
-                              'to `True`' % (path, name))
+                              'to `True`' % (path, selection.name))
             else:
                 selection.save(path)
 

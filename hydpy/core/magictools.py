@@ -73,8 +73,8 @@ class Tester(object):
             pub.timegrids = None
             nodes = devicetools.Node._registry.copy()
             elements = devicetools.Element._registry.copy()
-            devicetools.Node.clearregistry()
-            devicetools.Element.clearregistry()
+            devicetools.Node.clear_registry()
+            devicetools.Element.clear_registry()
             try:
                 color = 34 if pub.options.usecython else 36
                 with PrintStyle(color=color, font=4):
@@ -100,8 +100,8 @@ class Tester(object):
             finally:
                 pub.timegrids = timegrids
                 parametertools.Parameter._simulationstep = _simulationstep
-                devicetools.Node.clearregistry()
-                devicetools.Element.clearregistry()
+                devicetools.Node.clear_registry()
+                devicetools.Element.clear_registry()
                 devicetools.Node._registry = nodes
                 devicetools.Element._registry = elements
                 hydpy.dummies.clear()

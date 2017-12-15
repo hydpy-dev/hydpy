@@ -191,8 +191,8 @@ class IntegrationTest(Test):
         and make their sequences ready for use for integration testing."""
         del self.inits
         self.element = element
-        self.elements = devicetools.Element.registeredelements()
-        self.nodes = devicetools.Node.registerednodes()
+        self.elements = devicetools.Element.registered_elements()
+        self.nodes = devicetools.Node.registered_nodes()
         self.prepare_node_sequences()
         self.prepare_input_model_sequences()
         self.parseqs = seqs if seqs else self.extract_print_sequences()
@@ -258,7 +258,7 @@ class IntegrationTest(Test):
         does not result in the desired outcome."""
         for node in self.nodes:
             if not node.entries:
-                node.routingmode = 'oldsim'
+                node.deploy_mode = 'oldsim'
             sim = node.sequences.sim
             sim.ramflag = True
             sim._setarray(numpy.zeros(len(pub.timegrids.init), dtype=float))

@@ -52,13 +52,13 @@ class HydPy(object):
         self.updatedevices(pub.selections.complete)
 
     @magictools.printprogress
-    def initmodels(self):
+    def init_models(self):
         warn = pub.options.warnsimulationstep
         pub.options.warnsimulationstep = False
         try:
             for element in magictools.progressbar(self.elements):
                 try:
-                    element.initmodel()
+                    element.init_model()
                 except IOError as exc:
                     temp = 'While trying to load the control file'
                     if ((temp in str(exc)) and
@@ -248,12 +248,12 @@ class HydPy(object):
     def funcorder(self):
         funcs = []
         for node in self.nodes:
-            if node.routingmode == 'oldsim':
+            if node.deploy_mode == 'oldsim':
                 funcs.append(node._loaddata_sim)
             elif node.sequences.obs.use_ext:
                 funcs.append(node._loaddata_obs)
         for node in self.nodes:
-            if node.routingmode != 'oldsim':
+            if node.deploy_mode != 'oldsim':
                 funcs.append(node.reset)
         for device in self.deviceorder:
             if isinstance(device, devicetools.Element):
@@ -265,7 +265,7 @@ class HydPy(object):
             if element.receivers:
                 funcs.append(element.model.update_receivers)
         for node in self.nodes:
-            if node.routingmode != 'oldsim':
+            if node.deploy_mode != 'oldsim':
                 funcs.append(node._savedata_sim)
         return funcs
 

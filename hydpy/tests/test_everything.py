@@ -137,8 +137,8 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                         opt.reprdigits(6), \
                         opt.warntrim(False):
                     pub.timegrids = None
-                    devicetools.Node.clearregistry()
-                    devicetools.Element.clearregistry()
+                    devicetools.Node.clear_registry()
+                    devicetools.Element.clear_registry()
                     parametertools.Parameter._simulationstep = None
                     if name.endswith('.rst'):
                         name = name[name.find('hydpy'+os.sep):]

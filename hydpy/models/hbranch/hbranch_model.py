@@ -171,7 +171,7 @@ class Model(modeltools.Model):
         """
         nodes = self.element.inlets.slaves
         if len(nodes) == 1:
-            double = nodes[0].getdouble_via_exits()
+            double = nodes[0].get_double_via_exits()
             self.sequences.inlets.total.setpointer(double)
         else:
             RuntimeError('The hbranch model must be connected to exactly one '
@@ -181,9 +181,9 @@ class Model(modeltools.Model):
         for (idx, name) in enumerate(self.nodenames):
             try:
                 outlet = getattr(self.element.outlets, name)
-                double = outlet.getdouble_via_entries()
+                double = outlet.get_double_via_entries()
             except KeyError:
-                if name in devicetools.Node.registerednames():
+                if name in devicetools.Node.registered_names():
                     RuntimeError('The hbranch model tried to connect to the '
                                  'outlet node `%s`, but its parent element '
                                  '`%s` does not reference this node as an '

@@ -414,7 +414,7 @@ Whenever usefull, define convenience functions which simplify the
 handling of collection objects, e.g.:
 
     >>> nodes += Node('gauge1')
-    >>> nodes.gauge1 is nodes['gauge1']
+    >>> nodes.gauge1 is Node('gauge1')
     True
     >>> len(nodes)
     2

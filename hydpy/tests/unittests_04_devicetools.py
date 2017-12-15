@@ -14,8 +14,8 @@ from hydpy.core.connectiontools import *
 class Test01NodeCreation(unittest.TestCase):
 
     def tearDown(self):
-        Element.clearregistry()
-        Node.clearregistry()
+        Element.clear_registry()
+        Node.clear_registry()
 
     def test_01_fromstring(self):
         test1a = Node('test1')
@@ -57,8 +57,8 @@ class Test01NodeCreation(unittest.TestCase):
 class Test02ElementCreation(unittest.TestCase):
 
     def tearDown(self):
-        Element.clearregistry()
-        Node.clearregistry()
+        Element.clear_registry()
+        Node.clear_registry()
 
     def test_01_fromstring(self):
         test1a = Element('test1')
@@ -100,8 +100,8 @@ class Test03ElementInitialization(unittest.TestCase):
         self.n4T = Node('n4T', 'T')
 
     def tearDown(self):
-        Element.clearregistry()
-        Node.clearregistry()
+        Element.clear_registry()
+        Node.clear_registry()
 
     def test_01_inlet(self):
         e = Element('e', inlets=self.n1Q)
@@ -211,8 +211,8 @@ class Test05ElementsCreation(unittest.TestCase):
         self.element2 = Element('element2')
 
     def tearDown(self):
-        Element.clearregistry()
-        Node.clearregistry()
+        Element.clear_registry()
+        Node.clear_registry()
 
     def test_00_fromnone(self):
         test = Elements(None)
@@ -302,8 +302,8 @@ class Test06ElementsArithmetic(unittest.TestCase):
         self.elements34 = Elements(self.element3, self.element4)
 
     def tearDown(self):
-        Element.clearregistry()
-        Node.clearregistry()
+        Element.clear_registry()
+        Node.clear_registry()
 
     def test_01_iadd_element(self):
         self.elements12 += self.element3
@@ -369,8 +369,8 @@ class Test06ElementsArithmetic(unittest.TestCase):
 class Test07ElementsComparisons(unittest.TestCase):
 
     def tearDown(self):
-        Element.clearregistry()
-        Node.clearregistry()
+        Element.clear_registry()
+        Node.clear_registry()
 
     def test_01_bool(self):
         self.assertFalse(Elements())

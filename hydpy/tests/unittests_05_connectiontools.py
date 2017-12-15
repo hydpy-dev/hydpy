@@ -35,7 +35,7 @@ class Test01Connections(unittest.TestCase):
 class Test01Self2Node(unittest.TestCase):
 
     def tearDown(self):
-        Element.clearregistry()
+        Element.clear_registry()
 
     def test_01_iadd(self):
         test = Connections(None)

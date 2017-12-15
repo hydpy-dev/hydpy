@@ -135,10 +135,10 @@ class Model(_MetaModel):
             selected_nodes = [node for node in available_nodes
                               if node.variable.lower() == name]
             if isentry:
-                selected_doubles = [node.getdouble_via_exits()
+                selected_doubles = [node.get_double_via_exits()
                                     for node in selected_nodes]
             else:
-                selected_doubles = [node.getdouble_via_entries()
+                selected_doubles = [node.get_double_via_entries()
                                     for node in selected_nodes]
             if seq.NDIM == 0:
                 if len(selected_nodes) == 1:

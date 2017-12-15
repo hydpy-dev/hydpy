@@ -151,8 +151,8 @@ class NetworkManager(object):
         selections = selectiontools.Selections()
         for (filename, path) in zip(self.filenames, self.filepaths):
             # Ensure both `Node` and `Element`start with a `fresh` memory.
-            devicetools.Node.gathernewnodes()
-            devicetools.Element.gathernewelements()
+            devicetools.Node.gather_new_nodes()
+            devicetools.Element.gather_new_elements()
             try:
                 info = runpy.run_path(path)
             except Exception:
@@ -160,9 +160,9 @@ class NetworkManager(object):
                 objecttools.augmentexcmessage(prefix)
             try:
                 selections += selectiontools.Selection(
-                                           filename.split('.')[0],
-                                           info['Node'].gathernewnodes(),
-                                           info['Element'].gathernewelements())
+                                    filename.split('.')[0],
+                                    info['Node'].gather_new_nodes(),
+                                    info['Element'].gather_new_elements())
 
             except KeyError as exc:
                 KeyError('The class `%s` cannot be loaded from the network '
@@ -170,9 +170,9 @@ class NetworkManager(object):
                          'on how to prepare network files properly.'
                          % (exc.args[0], filename))
         selections += selectiontools.Selection(
-                                          'complete',
-                                          info['Node'].registerednodes(),
-                                          info['Element'].registeredelements())
+                                    'complete',
+                                    info['Node'].registered_nodes(),
+                                    info['Element'].registered_elements())
         return selections
 
     def save(self, selections, overwrite=False):

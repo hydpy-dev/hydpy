@@ -10,8 +10,8 @@ from hydpy.core.selectiontools import *
 class Test01SelectionInitialization(unittest.TestCase):
 
     def tearDown(self):
-        Node.clearregistry()
-        Element.clearregistry()
+        Node.clear_registry()
+        Element.clear_registry()
 
     def test_01_empty(self):
         test = Selection('test')
@@ -62,12 +62,12 @@ class Test02SelectionSelect(unittest.TestCase):
         self.e7 = Element('e7', outlets='n_Q4')
 
         self.complete = Selection('complete',
-                                  nodes=Node.registerednodes(),
-                                  elements=Element.registeredelements())
+                                  nodes=Node.registered_nodes(),
+                                  elements=Element.registered_elements())
 
     def tearDown(self):
-        Node.clearregistry()
-        Element.clearregistry()
+        Node.clear_registry()
+        Element.clear_registry()
 
     def test_01_nextelement(self):
         nodes, elements = self.complete._nextelement(self.e1,
@@ -134,8 +134,8 @@ class Test02SelectionSelect(unittest.TestCase):
 class Test03SelectionMagic(unittest.TestCase):
 
     def tearDown(self):
-        Node.clearregistry()
-        Element.clearregistry()
+        Node.clear_registry()
+        Element.clear_registry()
 
     def test_01_len(self):
         test1 = Selection('test1', ['n1', 'n2'], [])

@@ -12,9 +12,10 @@ of the framwork and its models.
 .. toctree::
    :maxdepth: 1
 
+   anntools
    armatools
    iuhtools
+   networktools
+   smoothtools
    statstools
    validtools
-   anntools
-   smoothtools

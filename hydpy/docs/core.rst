@@ -13,6 +13,7 @@ each one providing a small number of Python classes:
    autodoctools
    connectiontools
    devicetools
+   dummytools
    filetools
    hydpytools
    indextools

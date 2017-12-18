@@ -241,7 +241,7 @@ does not define a valid variable identifier.  ...
 
         When you change the name of a :class:`Node` and :class:`Element`
         object (only do this for a good reason), the corresponding key of
-        all related :class:`Nodes` and :class:`Elements`objects (as well
+        all related :class:`Nodes` and :class:`Elements` objects (as well
         as of the internal registry) changes automatically:
 
         >>> node1.name = 'n1a'
@@ -1156,7 +1156,7 @@ nor does it handle a Node object named `na`, which could be deleted.
 
     However, exemplified by the next example, setting devices as attributes
     "pythonically" could result in inconsistencies and is not allowed
-     (see method :func:`~Devices.add_device` instead):
+    (see method :func:`~Devices.add_device` instead):
 
     >>> nodes.NF = Node('nf')
     Traceback (most recent call last):

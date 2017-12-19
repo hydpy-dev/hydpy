@@ -333,10 +333,10 @@ class HydPy(object):
         self._save_modelseries('states', pub.sequencemanager.outputoverwrite)
 
     def _save_modelseries(self, name_subseqs, overwrite):
-        for (name1, element) in magictools.progressbar(self.elements):
+        for element in magictools.progressbar(self.elements):
             sequences = element.model.sequences
             subseqs = getattr(sequences, name_subseqs, ())
-            for (name2, seq) in subseqs:
+            for (name, seq) in subseqs:
                 if seq.memoryflag:
                     if overwrite or not os.path.exists(seq.filepath_ext):
                         seq.save_ext()

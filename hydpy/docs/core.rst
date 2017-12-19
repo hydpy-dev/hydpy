@@ -27,7 +27,4 @@ each one providing a small number of Python classes:
    sequencetools
    testtools
    timetools
-
-
-
-
+   variabletools

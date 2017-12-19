@@ -14,6 +14,7 @@ import warnings
 import numpy
 # ...from HydPy
 from hydpy import pub
+from hydpy.core import variabletools
 from hydpy.core import timetools
 from hydpy.core import objecttools
 from hydpy.cythons import pointerutils
@@ -244,7 +245,9 @@ class SubSequences(MetaSubSequencesClass):
     ...     pass
     Traceback (most recent call last):
     ...
-    NotImplementedError: For class `InputSequences`, the required tuple `_SEQCLASSES` is not defined.  Please see the documentation of class `SubSequences` of module `sequencetools` for further information.
+    NotImplementedError: For class `InputSequences`, the required tuple \
+`_SEQCLASSES` is not defined.  Please see the documentation of class \
+`SubSequences` of module `sequencetools` for further information.
 
     """
     _SEQCLASSES = ()
@@ -438,7 +441,7 @@ class LinkSequences(SubSequences):
     _SEQCLASSES = ()
 
 
-class Sequence(objecttools.ValueMath):
+class Sequence(variabletools.Variable):
     """Only for inheritance."""
 
     NDIM, NUMERIC = 0, False
@@ -613,7 +616,7 @@ class Sequence(objecttools.ValueMath):
 
     def __repr__(self):
         islong = self.length > 255
-        return objecttools.ValueMath._repr(self, self.values, islong)
+        return variabletools.Variable._repr(self, self.values, islong)
 
     def __dir__(self):
         return objecttools.dir_(self)
@@ -1224,7 +1227,7 @@ class ConditionSequence(object):
         self.trim()
         self._oldargs = copy.deepcopy(args)
 
-    trim = objecttools.trim
+    trim = variabletools.trim
 
     def warntrim(self):
         warnings.warn('For sequence %s of element %s at least one value '

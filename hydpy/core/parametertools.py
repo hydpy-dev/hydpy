@@ -15,6 +15,7 @@ import numpy
 # ...HydPy specific
 from hydpy import pub
 from hydpy.core import objecttools
+from hydpy.core import variabletools
 from hydpy.core import filetools
 from hydpy.core import timetools
 from hydpy.core import autodoctools
@@ -258,7 +259,7 @@ class SubParameters(MetaSubParametersClass):
         return objecttools.dir_(self)
 
 
-class Parameter(objecttools.ValueMath):
+class Parameter(variabletools.Variable):
     """Base class for :class:`SingleParameter` and :class:`MultiParameter`."""
 
     _parameterstep = None
@@ -335,7 +336,7 @@ class Parameter(objecttools.ValueMath):
             if type_ is float:
                 initvalue = numpy.nan
             elif type_ is int:
-                initvalue = objecttools._INT_NAN
+                initvalue = variabletools._INT_NAN
             elif type_ is bool:
                 initvalue = False
             else:
@@ -410,7 +411,7 @@ class Parameter(objecttools.ValueMath):
 
     timefactor = property(_gettimefactor)
 
-    trim = objecttools.trim
+    trim = variabletools.trim
 
     def warntrim(self):
         warnings.warn('For parameter %s of element %s at least one value '

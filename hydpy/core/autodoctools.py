@@ -147,11 +147,10 @@ def autodoc_basemodel():
     namespace['__doc__'] = doc
 
 
-def _number_of_line(member):
+def _number_of_line(member_tuple):
     """Try to return the number of the first line of the definition of a
     member of a module."""
-    if isinstance(member, tuple):
-        member = member[1]
+    member = member_tuple[1]
     try:
         return member.__code__.co_firstlineno
     except AttributeError:

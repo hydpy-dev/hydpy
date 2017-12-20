@@ -15,11 +15,12 @@ class Connections(object):
     :class:`~hydpy.core.devicetools.Element` instances.
     """
 
-    __slots__ = ('master', '_slaves')
+    __slots__ = ('master', 'name', '_slaves')
 
-    def __init__(self, master, *slaves):
+    def __init__(self, master, name):
         self.master = master
-        self._slaves = set(slaves)
+        self.name = name
+        self._slaves = set()
 
     def __iadd__(self, slave):
         self._slaves.add(slave)

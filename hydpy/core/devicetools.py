@@ -335,9 +335,8 @@ does not define a valid variable identifier.  ...
         self._handlers.remove(handler)
 
     def __iter__(self):
-        for (key, value) in vars(self).items():
-            if isinstance(value, connectiontools.Connections):
-                yield (key, value)
+        for connections in self._all_connections:
+            yield connections
 
     def __lt__(self, other):
         return self.name < other.name
@@ -472,8 +471,9 @@ Keep in mind, that `name` is the unique identifier of node objects.
                 self._variable = variable
             self._keywords = Keywords()
             self._keywords.device = self
-            self.entries = connectiontools.Connections(self)
-            self.exits = connectiontools.Connections(self)
+            self.entries = connectiontools.Connections(self, 'entries')
+            self.exits = connectiontools.Connections(self, 'exits')
+            self._all_connections = (self.entries, self.exits)
             self.sequences = sequencetools.NodeSequences(self)
             self.deploy_mode = 'newsim'
             self._blackhole = None
@@ -795,10 +795,12 @@ defined as a receiver, node which is not allowed.
             self = object.__new__(Element)
             self._check_name(name)
             self._name = name
-            self.inlets = connectiontools.Connections(self)
-            self.outlets = connectiontools.Connections(self)
-            self.receivers = connectiontools.Connections(self)
-            self.senders = connectiontools. Connections(self)
+            self.inlets = connectiontools.Connections(self, 'inlets')
+            self.outlets = connectiontools.Connections(self, 'outlets')
+            self.receivers = connectiontools.Connections(self, 'receivers')
+            self.senders = connectiontools.Connections(self, 'senders')
+            self._all_connections = (self.inlets, self.outlets,
+                                     self.receivers, self.senders)
             self._keywords = Keywords()
             self._keywords.device = self
             self.model = None
@@ -885,7 +887,7 @@ defined as a receiver, node which is not allowed.
         ['X', 'Y1', 'Y2', 'Y3', 'Y4']
         """
         variables = set()
-        for (name, connections) in self:
+        for connections in self:
             variables.update(connections.variables)
         return variables
 

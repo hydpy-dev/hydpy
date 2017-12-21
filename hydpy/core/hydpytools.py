@@ -52,27 +52,26 @@ class HydPy(object):
         self.updatedevices(pub.selections.complete)
 
     @magictools.printprogress
-    def initmodels(self):
+    def init_models(self):
         warn = pub.options.warnsimulationstep
         pub.options.warnsimulationstep = False
         try:
-            for (name, element) in magictools.progressbar(self.elements):
+            for element in magictools.progressbar(self.elements):
                 try:
-                    element.initmodel()
+                    element.init_model()
                 except IOError as exc:
                     temp = 'While trying to load the control file'
                     if ((temp in str(exc)) and
                             pub.options.warnmissingcontrolfile):
                         warnings.warn('No model could be initialized for '
-                                      'element `%s`' % name)
+                                      'element `%s`' % element)
                         self.model = None
                     else:
                         objecttools.augmentexcmessage(
                             'While trying to initialize the model of '
-                            'element `%s`' % name)
+                            'element `%s`' % element)
                 else:
                     element.model.parameters.update()
-                    element.model.connect()
         finally:
             pub.options.warnsimulationstep = warn
 
@@ -86,7 +85,7 @@ class HydPy(object):
                 pub.controlmanager.controldirectory = controldirectory
             if projectdirectory:
                 pub.controlmanager.projectdirectory = projectdirectory
-            for (name, element) in magictools.progressbar(self.elements):
+            for element in magictools.progressbar(self.elements):
                 element.model.parameters.savecontrols(parameterstep,
                                                       simulationstep)
         finally:
@@ -95,7 +94,7 @@ class HydPy(object):
 
     @magictools.printprogress
     def loadconditions(self, conditiondirectory=None, controldirectory=None,
-                       projectdirectory=None, ):
+                       projectdirectory=None):
         self._ioconditions(conditiondirectory,  controldirectory,
                            projectdirectory, True)
 
@@ -123,7 +122,7 @@ class HydPy(object):
                     pub.conditionmanager.savedirectory = conditiondirectory
             if controldirectory:
                 pub.controlmanager.controldirectory = controldirectory
-            for (name, element) in magictools.progressbar(self.elements):
+            for element in magictools.progressbar(self.elements):
                 if loadflag:
                     element.model.sequences.loadconditions()
                 else:
@@ -137,16 +136,17 @@ class HydPy(object):
             pub.conditionmanager._projectdirectory = _projectdirectory
 
     def trimconditions(self):
-        for (name, element) in self.elements:
+        for element in self.elements:
             element.model.sequences.trimconditions()
 
     def resetconditions(self):
-        for (name, element) in self.elements:
+        for element in self.elements:
             element.model.sequences.reset()
 
     def connect(self):
-        for (name, element) in self.elements:
+        for element in self.elements:
             element.connect()
+            element.model.parameters.update()
 
     @property
     def network_properties(self):
@@ -162,13 +162,13 @@ class HydPy(object):
         sels2 = selectiontools.Selections()
         complete = selectiontools.Selection('complete',
                                             self.nodes, self.elements)
-        for (name, node) in self.endnodes:
-            sel = complete.copy(name).select_upstream(node)
+        for node in self.endnodes:
+            sel = complete.copy(node.name).select_upstream(node)
             sels1 += sel
-            sels2 += sel.copy(name)
-        for (name1, sel1) in sels1:
-            for (name2, sel2) in sels2:
-                if name1 != name2:
+            sels2 += sel.copy(node.name)
+        for sel1 in sels1:
+            for sel2 in sels2:
+                if sel1.name != sel2.name:
                     sel1 -= sel2
         for name in list(sels1.names):
             if not sels1[name].elements:
@@ -177,36 +177,36 @@ class HydPy(object):
 
     def _updatedeviceorder(self):
         self.deviceorder = []
-        for (name, node) in self.endnodes:
+        for node in self.endnodes:
             self._nextnode(node)
         self.deviceorder = self.deviceorder[::-1]
 
     def _nextnode(self, node):
-        for (name, element) in node.exits:
+        for element in node.exits:
             if ((element in self.elements) and
                     (element not in self.deviceorder)):
                 if node not in element.receivers:
                     self._nextelement(element)
         if (node in self.nodes) and (node not in self.deviceorder):
             self.deviceorder.append(node)
-            for (name, element) in node.entries:
+            for element in node.entries:
                 self._nextelement(element)
 
     def _nextelement(self, element):
-        for (name, node) in element.outlets:
+        for node in element.outlets:
             if ((node in self.nodes) and
                     (node not in self.deviceorder)):
                 self._nextnode(node)
         if (element in self.elements) and (element not in self.deviceorder):
             self.deviceorder.append(element)
-            for (name, node) in element.inlets:
+            for node in element.inlets:
                 self._nextnode(node)
 
     @property
     def endnodes(self):
         endnodes = devicetools.Nodes()
-        for (name, node) in self.nodes:
-            for (name, element) in node.exits:
+        for node in self.nodes:
+            for element in node.exits:
                 if ((element in self.elements) and
                         (node not in element.receivers)):
                     break
@@ -217,7 +217,7 @@ class HydPy(object):
     @property
     def variables(self):
         variables = set([])
-        for (name, node) in self.nodes:
+        for node in self.nodes:
             variables.add(node.variable)
         return sorted(variables)
 
@@ -227,15 +227,15 @@ class HydPy(object):
                 pub.timegrids.init[pub.timegrids.sim.lastdate])
 
     def openfiles(self, idx=0):
-        for (name, element) in self.elements:
+        for element in self.elements:
             element.model.sequences.openfiles(idx)
-        for (name, node) in self.nodes:
+        for node in self.nodes:
             node.sequences.openfiles(idx)
 
     def closefiles(self):
-        for (name, element) in self.elements:
+        for element in self.elements:
             element.model.sequences.closefiles()
-        for (name, node) in self.nodes:
+        for node in self.nodes:
             node.sequences.closefiles()
 
     def updatedevices(self, selection=None):
@@ -247,25 +247,25 @@ class HydPy(object):
     @property
     def funcorder(self):
         funcs = []
-        for (name, node) in self.nodes:
-            if node.routingmode == 'oldsim':
+        for node in self.nodes:
+            if node.deploy_mode == 'oldsim':
                 funcs.append(node._loaddata_sim)
             elif node.sequences.obs.use_ext:
                 funcs.append(node._loaddata_obs)
-        for (name, element) in self.elements:
-            if element.receivers:
-                funcs.append(element.model.updatereceivers)
-        for (name, node) in self.nodes:
-            if node.routingmode != 'oldsim':
+        for node in self.nodes:
+            if node.deploy_mode != 'oldsim':
                 funcs.append(node.reset)
         for device in self.deviceorder:
             if isinstance(device, devicetools.Element):
                 funcs.append(device.model.doit)
-        for (name, element) in self.elements:
+        for element in self.elements:
             if element.senders:
-                funcs.append(element.model.updatesenders)
-        for (name, node) in self.nodes:
-            if node.routingmode != 'oldsim':
+                funcs.append(element.model.update_senders)
+        for element in self.elements:
+            if element.receivers:
+                funcs.append(element.model.update_receivers)
+        for node in self.nodes:
+            if node.deploy_mode != 'oldsim':
                 funcs.append(node._savedata_sim)
         return funcs
 
@@ -281,22 +281,22 @@ class HydPy(object):
 
     @magictools.printprogress
     def prepare_modelseries(self, ramflag=True):
-        for (name, element) in magictools.progressbar(self.elements):
+        for element in magictools.progressbar(self.elements):
             element.prepare_allseries(ramflag)
 
     @magictools.printprogress
     def prepare_inputseries(self, ramflag=True):
-        for (name, element) in magictools.progressbar(self.elements):
+        for element in magictools.progressbar(self.elements):
             element.prepare_inputseries(ramflag)
 
     @magictools.printprogress
     def prepare_fluxseries(self, ramflag=True):
-        for (name, element) in magictools.progressbar(self.elements):
+        for element in magictools.progressbar(self.elements):
             element.prepare_fluxseries(ramflag)
 
     @magictools.printprogress
     def prepare_stateseries(self, ramflag=True):
-        for (name, element) in magictools.progressbar(self.elements):
+        for element in magictools.progressbar(self.elements):
             element.prepare_stateseries(ramflag)
 
     @magictools.printprogress
@@ -306,12 +306,12 @@ class HydPy(object):
 
     @magictools.printprogress
     def prepare_simseries(self, ramflag=True):
-        for (name, node) in magictools.progressbar(self.nodes):
+        for node in magictools.progressbar(self.nodes):
             node.prepare_simseries(ramflag)
 
     @magictools.printprogress
     def prepare_obsseries(self, ramflag=True):
-        for (name, node) in magictools.progressbar(self.nodes):
+        for node in magictools.progressbar(self.nodes):
             node.prepare_obsseries(ramflag)
 
     @magictools.printprogress
@@ -333,10 +333,10 @@ class HydPy(object):
         self._save_modelseries('states', pub.sequencemanager.outputoverwrite)
 
     def _save_modelseries(self, name_subseqs, overwrite):
-        for (name1, element) in magictools.progressbar(self.elements):
+        for element in magictools.progressbar(self.elements):
             sequences = element.model.sequences
             subseqs = getattr(sequences, name_subseqs, ())
-            for (name2, seq) in subseqs:
+            for (name, seq) in subseqs:
                 if seq.memoryflag:
                     if overwrite or not os.path.exists(seq.filepath_ext):
                         seq.save_ext()
@@ -360,7 +360,7 @@ class HydPy(object):
         self._save_nodeseries('obs', pub.sequencemanager.obsoverwrite)
 
     def _save_nodeseries(self, seqname, overwrite):
-        for (name, node) in magictools.progressbar(self.nodes):
+        for node in magictools.progressbar(self.nodes):
             seq = getattr(node.sequences, seqname)
             if seq.memoryflag:
                 if overwrite or not os.path.exists(seq.filepath_ext):

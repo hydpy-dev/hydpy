@@ -25,6 +25,7 @@ import functools
 import tempfile
 import itertools
 # ...from HydPy
+import hydpy
 from hydpy import pub
 from hydpy.core import objecttools
 from hydpy.core import timetools
@@ -56,64 +57,54 @@ class Tester(object):
                 if (fn.endswith('.py') and not fn.startswith('_'))]
 
     def doit(self):
-        usedefaultvalues = pub.options.usedefaultvalues
-        pub.options.usedefaultvalues = False
-        printprogress = pub.options.printprogress
-        pub.options.printprogress = False
-        printincolor = pub.options.printincolor
-        pub.options.printincolor = False
-        warnsimulationstep = pub.options.warnsimulationstep
-        pub.options.warnsimulationstep = False
-        timegrids = pub.timegrids
-        pub.timegrids = None
-        _simulationstep = parametertools.Parameter._simulationstep
-        parametertools.Parameter._simulationstep = None
-        dirverbose = pub.options.dirverbose
-        reprcomments = pub.options.reprcomments
-        pub.options.reprcomments = False
-        reprdigits = pub.options.reprdigits
-        pub.options.reprdigits = 6
-        warntrim = pub.options.warntrim
-        pub.options.warntrim = False
-        nodes = devicetools.Node._registry.copy()
-        elements = devicetools.Element._registry.copy()
-        devicetools.Node.clearregistry()
-        devicetools.Element.clearregistry()
-        try:
-            color = 34 if pub.options.usecython else 36
-            with PrintStyle(color=color, font=4):
-                print(
-                  'Test %s %s in %sython mode.'
-                  % ('package' if self.ispackage else 'module',
-                     self.package if self.ispackage else self.modulenames[0],
-                     'C' if pub.options.usecython else 'P'))
-            with PrintStyle(color=color, font=2):
-                for name in self.modulenames:
-                    print('    * %s:' % name, )
-                    with StdOutErr(indent=8):
-                        modulename = '.'.join((self.package, name))
-                        module = importlib.import_module(modulename)
-                        warnings.filterwarnings('error', module=modulename)
-                        warnings.filterwarnings('ignore',
-                                                category=ImportWarning)
-                        doctest.testmod(module, extraglobs={'testing': True},
-                                        optionflags=doctest.ELLIPSIS)
-                        warnings.resetwarnings()
-        finally:
-            pub.options.usedefaultvalues = usedefaultvalues
-            pub.options.printprogress = printprogress
-            pub.options.printincolor = printincolor
-            pub.options.warnsimulationstep = warnsimulationstep
-            pub.timegrids = timegrids
-            parametertools.Parameter._simulationstep = _simulationstep
-            pub.options.dirverbose = dirverbose
-            pub.options.reprcomments = reprcomments
-            pub.options.reprdigits = reprdigits
-            pub.options.warntrim = warntrim
-            devicetools.Node.clearregistry()
-            devicetools.Element.clearregistry()
-            devicetools.Node._registry = nodes
-            devicetools.Element._registry = elements
+        opt = pub.options
+        with opt.usedefaultvalues(False), \
+                opt.usedefaultvalues(False), \
+                opt.printprogress(False), \
+                opt.printincolor(False), \
+                opt.warnsimulationstep(False), \
+                opt.reprcomments(False), \
+                opt.ellipsis(0), \
+                opt.reprdigits(6), \
+                opt.warntrim(False):
+            timegrids = pub.timegrids
+            _simulationstep = parametertools.Parameter._simulationstep
+            parametertools.Parameter._simulationstep = None
+            pub.timegrids = None
+            nodes = devicetools.Node._registry.copy()
+            elements = devicetools.Element._registry.copy()
+            devicetools.Node.clear_registry()
+            devicetools.Element.clear_registry()
+            try:
+                color = 34 if pub.options.usecython else 36
+                with PrintStyle(color=color, font=4):
+                    print(
+                      'Test %s %s in %sython mode.'
+                      % ('package' if self.ispackage else 'module',
+                         self.package if self.ispackage else
+                         self.modulenames[0],
+                         'C' if pub.options.usecython else 'P'))
+                with PrintStyle(color=color, font=2):
+                    for name in self.modulenames:
+                        print('    * %s:' % name, )
+                        with StdOutErr(indent=8):
+                            modulename = '.'.join((self.package, name))
+                            module = importlib.import_module(modulename)
+                            warnings.filterwarnings('error', module=modulename)
+                            warnings.filterwarnings('ignore',
+                                                    category=ImportWarning)
+                            doctest.testmod(
+                                    module, extraglobs={'testing': True},
+                                    optionflags=doctest.ELLIPSIS)
+                            warnings.resetwarnings()
+            finally:
+                pub.timegrids = timegrids
+                parametertools.Parameter._simulationstep = _simulationstep
+                devicetools.Node.clear_registry()
+                devicetools.Element.clear_registry()
+                devicetools.Node._registry = nodes
+                devicetools.Element._registry = elements
+                hydpy.dummies.clear()
 
 
 class PrintStyle(object):
@@ -172,8 +163,7 @@ class StdOutErr(object):
 
 
 def parameterstep(timestep=None):
-    """
-    Define a parameter time step size within a parameter control file.
+    """Define a parameter time step size within a parameter control file.
 
     Argument:
       * timestep(:class:`~hydpy.core.timetools.Period`): Time step size.
@@ -195,27 +185,29 @@ def parameterstep(timestep=None):
     if model is None:
         model = namespace['Model']()
         namespace['model'] = model
-        element = namespace.get('element', None)
-        if isinstance(element, devicetools.Element):
-            element.model = model
-            model.element = element
         if pub.options.usecython and 'cythonizer' in namespace:
             cythonizer = namespace['cythonizer']
             namespace['cythonmodule'] = cythonizer.cymodule
             model.cymodel = cythonizer.cymodule.Model()
             namespace['cymodel'] = model.cymodel
-            for (name, func) in cythonizer.pyxwriter.listofmodeluserfunctions:
-                setattr(model, name, getattr(model.cymodel, name))
-            for func in ('doit', 'new2old', 'openfiles', 'closefiles',
-                         'loaddata', 'savedata'):
-                if hasattr(model.cymodel, func):
-                    setattr(model, func, getattr(model.cymodel, func))
+            model.cymodel.parameters = cythonizer.cymodule.Parameters()
+            model.cymodel.sequences = cythonizer.cymodule.Sequences()
+            for numpars_name in ('NumConsts', 'NumVars'):
+                if hasattr(cythonizer.cymodule, numpars_name):
+                    numpars_new = getattr(cythonizer.cymodule, numpars_name)()
+                    numpars_old = getattr(model, numpars_name.lower())
+                    for (name_numpar, numpar) in numpars_old:
+                        setattr(numpars_new, name_numpar, numpar)
+                    setattr(model.cymodel, numpars_name.lower(), numpars_new)
+            for name in dir(model.cymodel):
+                if (not name.startswith('_')) and hasattr(model, name):
+                    setattr(model, name, getattr(model.cymodel, name))
         if 'Parameters' not in namespace:
             namespace['Parameters'] = parametertools.Parameters
         model.parameters = namespace['Parameters'](namespace)
         if 'Sequences' not in namespace:
             namespace['Sequences'] = sequencetools.Sequences
-        model.sequences = namespace['Sequences'](namespace)
+        model.sequences = namespace['Sequences'](**namespace)
         namespace['parameters'] = model.parameters
         for (name, pars) in model.parameters:
             namespace[name] = pars
@@ -289,13 +281,18 @@ def reverse_model_wildcard_import():
         for (name_subpars, subpars) in model.parameters:
             for (name_par, par) in subpars:
                 namespace.pop(name_par, None)
-        namespace.pop(name_subpars, None)
+                namespace.pop(objecttools.classname(par), None)
+            namespace.pop(name_subpars, None)
+            namespace.pop(objecttools.classname(subpars), None)
         for (name_subseqs, subseqs) in model.sequences:
             for (name_seq, seq) in subseqs:
                 namespace.pop(name_seq, None)
-        namespace.pop(name_subseqs, None)
-        for name in ('parameters', 'sequences', 'cymodel', 'cymodule',
-                     'model'):
+                namespace.pop(objecttools.classname(seq), None)
+            namespace.pop(name_subseqs, None)
+            namespace.pop(objecttools.classname(subseqs), None)
+        for name in ('parameters', 'sequences', 'model',
+                     'Parameters', 'Sequences', 'Model',
+                     'cythonizer', 'cymodel', 'cythonmodule'):
             namespace.pop(name, None)
         for key in list(namespace.keys()):
             try:
@@ -303,6 +300,58 @@ def reverse_model_wildcard_import():
                     del namespace[key]
             except AttributeError:
                 pass
+
+
+def prepare_model(module, timestep=None):
+    """Prepare and return the model of the given module.
+
+    In usual HydPy projects, each hydrological model instance is prepared
+    in an individual control file.  This allows for "polluting" the
+    namespace with different model attributes.  There is no danger of
+    name conflicts, as long as no other (wildcard) imports are performed.
+
+    However, there are situations when different models are to be loaded
+    into the same namespace.  Then it is advisable to use function
+    :func:`prepare_model`, which just returns a reference to the model
+    and nothing else.
+
+    See the documentation of :mod:`~hydpy.models.dam_v1` on how to apply
+    function :func:`prepare_model` properly.
+    """
+    if timestep is not None:
+        parametertools.Parameter._parameterstep = timetools.Period(timestep)
+    model = module.Model()
+    if pub.options.usecython and hasattr(module, 'cythonizer'):
+        cymodule = module.cythonizer.cymodule
+        cymodel = cymodule.Model()
+        cymodel.parameters = cymodule.Parameters()
+        cymodel.sequences = cymodule.Sequences()
+        model.cymodel = cymodel
+        for numpars_name in ('NumConsts', 'NumVars'):
+            if hasattr(cymodule, numpars_name):
+                numpars_new = getattr(cymodule, numpars_name)()
+                numpars_old = getattr(model, numpars_name.lower())
+                for (name_numpar, numpar) in numpars_old:
+                    setattr(numpars_new, name_numpar, numpar)
+                setattr(cymodel, numpars_name.lower(), numpars_new)
+        for name in dir(cymodel):
+            if (not name.startswith('_')) and hasattr(model, name):
+                setattr(model, name, getattr(cymodel, name))
+        dict_ = {'cythonmodule': cymodule,
+                 'cymodel': cymodel}
+    else:
+        dict_ = {}
+    dict_.update(vars(module))
+    dict_['model'] = model
+    if hasattr(module, 'Parameters'):
+        model.parameters = module.Parameters(dict_)
+    else:
+        model.parameters = parametertools.Parameters(dict_)
+    if hasattr(module, 'Sequences'):
+        model.sequences = module.Sequences(**dict_)
+    else:
+        model.sequences = sequencetools.Sequences(**dict_)
+    return model
 
 
 def simulationstep(timestep):
@@ -363,35 +412,36 @@ def controlcheck(controldir='default', projectdir=None, controlfile=None):
                     namespace[name2] = seq
 
 
-def printprogress_wrapper_generalized(*args, **kwargs):
-    """Wrapper for HydPy methods to print when they start when they end.
-
-    The wrapper is general in its function arguments.  When one uses the
-    decorator :func:`printprogress`, the general arguments are replaced
-    by the specific ones of the method to be wrapped.
-    """
-    import sys
-    import time
-    from hydpy import pub
-    from hydpy.core.magictools import PrintStyle
-    pub._printprogress_indentation += 4
-    try:
-        if pub.options.printprogress:
-            with PrintStyle(color=34, font=1):
-                print('\n%sHydPy method %s...'
-                      % (' '*pub._printprogress_indentation,
-                         printprogress_wrapped.__name__))
-                print("%s    ...started at %s."
-                      % (' '*pub._printprogress_indentation,
-                         time.strftime("%X")))
-        printprogress_wrapped(*args, **kwargs)
-        if pub.options.printprogress:
-            with PrintStyle(color=34, font=1):
-                print("%s    ...ended at %s."
-                      % (' '*pub._printprogress_indentation,
-                         time.strftime("%X")))
-    finally:
-        pub._printprogress_indentation -= 4
+lines_print_progress_wrapper = \
+    ['def printprogress_wrapper(*args, **kwargs):',
+     '    """Wrapper for HydPy methods to print when they start and end.',
+     '',
+     '    The wrapper is general in its function arguments.  When one uses ',
+     '    the decorator :func:`printprogress`, the general arguments are ',
+     '    replaced by the specific ones of the method to be wrapped.',
+     '    """',
+     '    import sys',
+     '    import time',
+     '    from hydpy import pub',
+     '    from hydpy.core.magictools import PrintStyle',
+     '    pub._printprogress_indentation += 4',
+     '    try:',
+     '        if pub.options.printprogress:',
+     '            with PrintStyle(color=34, font=1):',
+     "                print('\\n%sHydPy method %s...'",
+     "                      % (' '*pub._printprogress_indentation,",
+     '                         printprogress_wrapped.__name__))',
+     '                print("%s    ...started at %s."',
+     "                      % (' '*pub._printprogress_indentation,",
+     '                         time.strftime("%X")))',
+     '        printprogress_wrapped()',
+     '        if pub.options.printprogress:',
+     '            with PrintStyle(color=34, font=1):',
+     '                print("%s    ...ended at %s."',
+     "                      % (' '*pub._printprogress_indentation,",
+     '                         time.strftime("%X")))',
+     '    finally:',
+     '        pub._printprogress_indentation -= 4']
 
 
 def zip_longest(*iterables, **kwargs):
@@ -427,21 +477,28 @@ def signature(function):
         return '(%s)' % ', '.join(strings)
 
 
+def _signature_without_default_values(signature):
+    """Return the given signature string without default values."""
+    return '(%s)' % ', '.join(sig.partition('=')[0] for sig in
+                              signature[1:-1].split(', '))
+
+
 def printprogress(printprogress_wrapped):
     """Decorator for wrapping HydPy methods with
     :func:`printprogress_wrapper_generalized`.
 
     Hopefully, all relevant attributes of the wrapped method are maintained.
     """
-    lines = inspect.getsourcelines(printprogress_wrapper_generalized)[0]
-    lines[0] = lines[0].replace('generalized', 'specialized')
-    lines = [line.replace('(*args, **kwargs)',
-                          signature(printprogress_wrapped))
-             for line in lines]
-    exec(''.join(lines), locals(), globals())
-    functools.update_wrapper(printprogress_wrapper_specialized,
-                             printprogress_wrapped)
-    return printprogress_wrapper_specialized
+    funcname = printprogress_wrapped.__name__
+    lines = lines_print_progress_wrapper[:]
+    lines[0] = lines[0].replace('printprogress_wrapper', funcname)
+    sign = signature(printprogress_wrapped)
+    short_sign = _signature_without_default_values(sign)
+    lines[0] = lines[0].replace('(*args, **kwargs)', sign)
+    lines[21] = lines[21].replace('()', short_sign)
+    exec('\n'.join(lines), locals(), globals())
+    functools.update_wrapper(eval(funcname), printprogress_wrapped)
+    return eval(funcname)
 
 
 def progressbar(iterable, length=23):

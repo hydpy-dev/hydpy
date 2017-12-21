@@ -151,8 +151,8 @@ class NetworkManager(object):
         selections = selectiontools.Selections()
         for (filename, path) in zip(self.filenames, self.filepaths):
             # Ensure both `Node` and `Element`start with a `fresh` memory.
-            devicetools.Node.gathernewnodes()
-            devicetools.Element.gathernewelements()
+            devicetools.Node.gather_new_nodes()
+            devicetools.Element.gather_new_elements()
             try:
                 info = runpy.run_path(path)
             except Exception:
@@ -160,9 +160,9 @@ class NetworkManager(object):
                 objecttools.augmentexcmessage(prefix)
             try:
                 selections += selectiontools.Selection(
-                                           filename.split('.')[0],
-                                           info['Node'].gathernewnodes(),
-                                           info['Element'].gathernewelements())
+                                    filename.split('.')[0],
+                                    info['Node'].gather_new_nodes(),
+                                    info['Element'].gather_new_elements())
 
             except KeyError as exc:
                 KeyError('The class `%s` cannot be loaded from the network '
@@ -170,9 +170,9 @@ class NetworkManager(object):
                          'on how to prepare network files properly.'
                          % (exc.args[0], filename))
         selections += selectiontools.Selection(
-                                          'complete',
-                                          info['Node'].registerednodes(),
-                                          info['Element'].registeredelements())
+                                    'complete',
+                                    info['Node'].registered_nodes(),
+                                    info['Element'].registered_elements())
         return selections
 
     def save(self, selections, overwrite=False):
@@ -183,19 +183,17 @@ class NetworkManager(object):
         want to overwrite already existing network files.
         """
         selections = selectiontools.Selections(selections)
-        for (name, selection) in selections:
-            if name == 'complete':
+        for selection in selections:
+            if selection.name == 'complete':
                 continue
-            path = os.path.join(self.dirpath, name+'.py')
+            path = os.path.join(self.dirpath, selection.name+'.py')
             if os.path.exists(path) and not overwrite:
                 warnings.warn('The path `%s` does already exist, selection '
                               '`%s` cannot be saved.  Please select another '
                               'network directory or set the `overwrite` flag '
-                              'to `True`' % (path, name))
+                              'to `True`' % (path, selection.name))
             else:
-                with open(path, 'w') as file_:
-                    file_.write('from hydpy import *\n\n')
-                    file_.write(repr(selection.elements))
+                selection.save(path)
 
     def delete(self, *selections):
         """Delete network files.  One or more filenames and/or
@@ -861,7 +859,7 @@ class ConditionManager(object):
                               % (self.projectpath, self._loaddirectory))
         elif len(directories) == 0:
             raise IOError('The project path `%s` does not contain any '
-                          'conditions directories.' % self.projectpath)
+                          'conditions directory.' % self.projectpath)
         try:
             string = 'init_' + pub.timegrids.sim.firstdate.string('os')
         except AttributeError:
@@ -873,9 +871,9 @@ class ConditionManager(object):
         try:
             return getattr(directories, string)
         except AttributeError:
-            raise IOError('The project path `%s` contains multiple condition'
-                          'directories, but none is in accordance with the  '
-                          'first simulation date (%s).  Please specify'
+            raise IOError('The project path `%s` contains at least one '
+                          'directory, but none is in accordance with the '
+                          'first simulation date (%s).  Please specify '
                           'the condition directory to be worked with manually.'
                           % (self.projectpath, string))
 

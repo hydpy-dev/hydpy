@@ -1,4 +1,7 @@
-
+#!python
+#cython: boundscheck=False
+#cython: wraparound=False
+#cython: initializedcheck=False
 """This module gives Python objects pointer access to C variables of type
 `double` via Cython.
 
@@ -158,8 +161,12 @@ Note:
 # import...
 # ...from standard library
 from __future__ import division, print_function
+import cython
+# ...from site-packages
 import numpy
+# cimport...
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
+
 
 cdef inline double conv2double(value):
     """Convert `value` (`Double`, `PDouble`, `float`, `int` object) to a
@@ -254,6 +261,7 @@ cdef class DoubleBase(object):
         return ()
 
 
+@cython.final
 cdef class Double(DoubleBase):
     """Handle a variable of the C type `double` in Python.
 
@@ -303,6 +311,7 @@ cdef class Double(DoubleBase):
         return self
 
 
+@cython.final
 cdef class PDouble(DoubleBase):
     """Handle a pointer to a variable of the C type `double` in Python.
 
@@ -354,6 +363,7 @@ cdef class PDouble(DoubleBase):
         return self
 
 
+@cython.final
 cdef class PPDouble(object):
     """Handle pointers to multiple variables of the C type `double` in Python.
 

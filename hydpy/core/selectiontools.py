@@ -5,7 +5,10 @@ HydPy projects.
 # import...
 # ...from standard library
 from __future__ import division, print_function
+import os
 # ...from HydPy
+from hydpy import pub
+from hydpy.core import objecttools
 from hydpy.core import devicetools
 from hydpy.core import autodoctools
 
@@ -23,15 +26,20 @@ class Selections(object):
         for selection in selections:
             self += selection
 
-    def _getnames(self):
+    @property
+    def names(self):
         """Names of the actual selections."""
-        return vars(self).keys()
+        return tuple(vars(self).keys())
 
-    names = property(_getnames)
+    def save(self, path='', write_nodes=False):
+        """Save all selections in seperate network files."""
+        for selection in self:
+            fullpath = os.path.join(path, selection.name+'.py')
+            selection.save(fullpath, write_nodes)
 
     def _getselections(self):
         """The actual selections themselves."""
-        return vars(self).values()
+        return tuple(vars(self).values())
 
     selections = property(_getselections)
 
@@ -51,8 +59,8 @@ class Selections(object):
             return value in self.names
 
     def __iter__(self):
-        for (name, selection) in vars(self).items():
-            yield (name, selection)
+        for (name, selection) in sorted(vars(self).items()):
+            yield selection
 
     def __len__(self):
         return len(self.names)
@@ -127,17 +135,11 @@ class Selections(object):
         Argument:
             * prefix(:class:`str`): Usually something like 'x = '.
         """
-        prefix += 'Selections('
-        blanks = ' ' * len(prefix)
-        selections = sorted(self.selections)
-        if selections:
-            lines = ['%s,' % selections[0].assignrepr(prefix)]
-            for selection in selections:
-                lines.append('%s,' % selection.assignrepr(blanks))
-            lines[-1] = lines[-1][:-1] + ')'
-        else:
-            lines = ['%s)' % prefix]
-        return '\n'.join(lines)
+        with objecttools.repr_.preserve_strings(True):
+            with pub.options.ellipsis(2, optional=True):
+                prefix += '%s(' % objecttools.classname(self)
+                repr_ = objecttools.assignrepr_values(self.names, prefix, 70)
+                return repr_ + ')'
 
     def __dir__(self):
         return ['names', 'selections', 'assignrepr'] + list(self.names)
@@ -222,7 +224,7 @@ class Selection(object):
         """
         if (node not in nodes) and (node in self.nodes):
             nodes += node
-            for (name, element) in node.entries:
+            for element in node.entries:
                 nodes, elements = self._nextelement(element, nodes, elements)
         return nodes, elements
 
@@ -239,7 +241,7 @@ class Selection(object):
         """
         if (element not in elements) and (element in self.elements):
             elements += element
-            for (name, node) in element.inlets:
+            for node in element.inlets:
                 nodes, elements = self._nextnode(node, nodes, elements)
         return nodes, elements
 
@@ -276,12 +278,12 @@ class Selection(object):
               Model type(s) as the selection criterion/criteria.
         """
         elements = devicetools.Elements()
-        for (name, element) in self.elements:
+        for element in self.elements:
             if element.model is None:
                 raise RuntimeError('For element `%s` no model object has been '
                                    'initialized so far, which is a necessary '
                                    'condition to perform (de)selections based '
-                                   'on model classes.' % name)
+                                   'on model classes.' % element)
             if isinstance(element.model, modelclasses):
                 elements += element
         return elements
@@ -317,9 +319,9 @@ class Selection(object):
               name as the selection criterion/criteria.
         """
         nodes = devicetools.Nodes()
-        for (name, node) in self.nodes:
+        for node in self.nodes:
             for substring in substrings:
-                if substring in name:
+                if substring in node.name:
                     nodes += node
                     break
         return nodes
@@ -355,9 +357,9 @@ class Selection(object):
               name as the selection criterion/criteria.
         """
         elements = devicetools.Elements()
-        for (name, element) in self.elements:
+        for element in self.elements:
             for substring in substrings:
-                if substring in name:
+                if substring in element.name:
                     elements += element
                     break
         return elements
@@ -369,6 +371,20 @@ class Selection(object):
             * name (:class:`str`): Name of the new :class:`Selection` instance.
         """
         return Selection(name, self.nodes.copy(), self.elements.copy())
+
+    def save(self, path=None, write_nodes=False):
+        """Save the selection as a network file."""
+        if path is None:
+            path = self.name + '.py'
+        with open(path, 'w') as file_:
+            file_.write('# -*- coding: utf-8 -*-\n')
+            file_.write('\nfrom hydpy import Node, Element\n\n')
+            if write_nodes:
+                for node in self.nodes:
+                    file_.write('\n' + repr(node) + '\n')
+                file_.write('\n')
+            for element in self.elements:
+                file_.write('\n' + repr(element) + '\n')
 
     def __len__(self):
         return len(self.nodes) + len(self.elements)
@@ -419,31 +435,17 @@ class Selection(object):
         Argument:
             * prefix(:class:`str`): Usually something like 'x = '.
         """
-        prefixblanks = ' ' * len(prefix)
-        lines = ['%sSelection("%s",' % (prefix, self.name)]
-        blanks = ' ' * (len(prefix) + 22)
-        names = sorted(self.nodes.names)
-        if names:
-            lines.append('%s          nodes=Nodes("%s",'
-                         % (prefixblanks, names[0]))
-            for name in names[1:]:
-                lines.append('%s"%s",' % (blanks, name))
-            lines[-1] = lines[-1][:-1] + '),'
-        else:
-            lines.append('%sSelection(nodes=Nodes(),'
-                         % prefixblanks)
-        blanks = ' ' * (len(prefix) + 28)
-        names = sorted(self.elements.names)
-        if names:
-            lines.append('%s          elements=Elements("%s",'
-                         % (prefixblanks, names[0]))
-            for name in names[1:]:
-                lines.append('%s"%s",' % (blanks, name))
-            lines[-1] = lines[-1][:-1] + '))'
-        else:
-            lines.append('%s          elements=Elements())'
-                         % prefixblanks)
-        return '\n'.join(lines)
+        with objecttools.repr_.preserve_strings(True):
+            with pub.options.ellipsis(2, optional=True):
+                with objecttools.assignrepr_tuple.always_bracketed(False):
+                    prefix = '%sSelection(' % prefix
+                    blanks = ' ' * len(prefix)
+                    lines = ['%s"%s",' % (prefix, self.name)]
+                    lines.append(objecttools.assignrepr_tuple(
+                            self.elements.names, blanks+'elements=', 70) + ',')
+                    lines.append(objecttools.assignrepr_tuple(
+                            self.nodes.names, blanks+'nodes=', 70) + ')')
+                    return '\n'.join(lines)
 
     def __dir__(self):
         return ['copy', 'deselect_elementnames', 'deselect_modelclasses',

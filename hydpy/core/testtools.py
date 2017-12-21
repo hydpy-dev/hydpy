@@ -4,7 +4,6 @@
 # ...from standard library
 from __future__ import division, print_function
 import datetime
-import types
 import itertools
 # ...from site-packages
 import numpy
@@ -192,8 +191,9 @@ class IntegrationTest(Test):
         and make their sequences ready for use for integration testing."""
         del self.inits
         self.element = element
-        self.nodes = self.extract_nodes()
-        self.prepare_input_node_sequences()
+        self.elements = devicetools.Element.registered_elements()
+        self.nodes = devicetools.Node.registered_nodes()
+        self.prepare_node_sequences()
         self.prepare_input_model_sequences()
         self.parseqs = seqs if seqs else self.extract_print_sequences()
         self.inits = inits
@@ -201,7 +201,7 @@ class IntegrationTest(Test):
         hydpytools.HydPy.nmb_instances = 0
         self.hp = hydpytools.HydPy()
         self.hp.updatedevices(selectiontools.Selection(
-                                                'test', self.nodes, element))
+                                        'test', self.nodes, self.elements))
 
     def __call__(self):
         """Prepare and perform an integration test and print its results."""
@@ -250,23 +250,15 @@ class IntegrationTest(Test):
         sequence."""
         return seq.series
 
-    def extract_nodes(self):
-        """Return all nodes connected to the actual element."""
-        nodes = devicetools.Nodes()
-        for connection in (self.element.inlets, self.element.outlets,
-                           self.element.receivers, self.element.senders):
-            nodes += connection.slaves
-        return nodes
+    def prepare_node_sequences(self):
+        """Prepare the simulations sequences of all nodes in.
 
-    def prepare_input_node_sequences(self):
-        """Configure the simulations sequences of the input nodes in
-        a manner that allows for applying their time series data in
-        integration tests.
-        """
-        for (name, node) in self.nodes:
-            if ((node in self.element.inlets) or
-                    (node in self.element.receivers)):
-                node.routingmode = 'oldsim'
+        This preparation might not be suitable for all types of integration
+        tests.  Prepare those node sequences manually, for which this method
+        does not result in the desired outcome."""
+        for node in self.nodes:
+            if not node.entries:
+                node.deploy_mode = 'oldsim'
             sim = node.sequences.sim
             sim.ramflag = True
             sim._setarray(numpy.zeros(len(pub.timegrids.init), dtype=float))
@@ -286,7 +278,7 @@ class IntegrationTest(Test):
             for (name, seq) in getattr(
                                     self.element.model.sequences, subseqs, ()):
                 seqs.append(seq)
-        for (name, node) in self.nodes:
+        for node in self.nodes:
             seqs.append(node.sequences.sim)
         return seqs
 
@@ -297,28 +289,27 @@ class IntegrationTest(Test):
         self.model.parameters.update()
         self.element.prepare_fluxseries()
         self.element.prepare_stateseries()
-        self.reset_outlets()
+        self.reset_outputs()
         self.reset_inits()
 
-    def reset_outlets(self):
+    def reset_outputs(self):
         """Set the values of the simulation sequences of all outlet nodes to
         zero."""
-        for (name, node) in self.nodes:
+        for node in self.nodes:
             if ((node in self.element.outlets) or
                     (node in self.element.senders)):
                 node.sequences.sim[:] = 0.
 
     def reset_inits(self):
-        """Set all initial conditions."""
+        """Set all initial conditions of all models."""
         for subname in ('states', 'logs'):
-            for (name, seq) in getattr(self.model.sequences, subname, ()):
-                try:
-                    seq(getattr(self.inits, name))
-                except AttributeError:
-                    raise AttributeError(
-                        'For %s sequence `%s`, no initial values have been '
-                        'defined for integration testing.'
-                        % (subname[:-1], seq.name))
+            for element in self.elements:
+                for (name, seq) in getattr(element.model.sequences,
+                                           subname, ()):
+                    try:
+                        seq(getattr(self.inits, name))
+                    except AttributeError:
+                        pass
 
 
 class UnitTest(Test):
@@ -334,7 +325,8 @@ class UnitTest(Test):
     """Stores arrays with the resulting values of parameters and/or
     sequences of each new experiment."""
 
-    def __init__(self, model, method, first_example=1, last_example=1):
+    def __init__(self, model, method, first_example=1, last_example=1,
+                 parseqs=None):
         del self.inits
         del self.nexts
         del self.results
@@ -345,7 +337,10 @@ class UnitTest(Test):
         self.last_example_calc = last_example
         self.first_example_plot = first_example
         self.last_example_plot = last_example
-        self.parseqs = self.extract_print_parameters_and_sequences()
+        if parseqs:
+            self.parseqs = parseqs
+        else:
+            self.parseqs = self.extract_print_parameters_and_sequences()
         self.memorize_inits()
         self.prepare_output_arrays()
 
@@ -410,24 +405,28 @@ class UnitTest(Test):
 
     def extract_method_doc(self):
         """Return the documentation string of the method to be tested."""
-        if isinstance(self.method, types.FunctionType):
-            self._doc = self.method.__doc__
+        if getattr(self.method, '__doc__', None):
+            return self.method.__doc__
         else:
             Model = type(self.model)
-            for function in itertools.chain(Model._RUNMETHODS,
-                                            Model._ADDMETHODS):
-                if function.__name__ == self.method.__name__:
-                    return function.__doc__
+            for group_name in Model._METHOD_GROUPS:
+                for function in getattr(Model, group_name, ()):
+                    if function.__name__ == self.method.__name__:
+                        return function.__doc__
 
     def extract_print_parameters_and_sequences(self):
-        """Return a list of all input, flux and state sequences of the model
-        as well as the simulation sequences of all nodes."""
+        """Return a list of all parameter and sequences of the model.
+
+        Note that all parameters and sequences without the common `values`
+        attribute are omitted.
+        """
         parseqs = []
         for (_, subparseqs) in itertools.chain(self.model.parameters,
                                                self.model.sequences):
             for (_, parseq) in subparseqs:
-                if str(parseq.__class__).split("'")[1] in self.doc:
-                    parseqs.append(parseq)
+                if str(type(parseq)).split("'")[1] in self.doc:
+                    if hasattr(parseq, 'values'):
+                        parseqs.append(parseq)
         return tuple(parseqs)
 
     def _update_inputs(self, idx):

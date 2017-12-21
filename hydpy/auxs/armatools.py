@@ -12,6 +12,7 @@ import numpy
 from scipy import integrate
 from matplotlib import pyplot
 # ...from HydPy
+from hydpy import pub
 from hydpy.core import autodoctools
 from hydpy.core import objecttools
 from hydpy.auxs import statstools
@@ -102,6 +103,11 @@ class MA(object):
     the turning point, which is printed as a red dot.
 
     >>> ma.plot(threshold=0.9)
+
+    You can close the plotting window manually or by writing:
+
+    >>> from matplotlib import pyplot
+    >>> pyplot.close()
 
     The turning point detection also works for functions which include
     both a rising and a falling limb.  This can be shown shifting the
@@ -207,8 +213,14 @@ class MA(object):
 
     def plot(self, threshold=None, **kwargs):
         """Barplot of the MA coefficients."""
-        pyplot.bar(left=self.delays+.5, height=self.coefs,
-                   width=1., fill=False, **kwargs)
+        try:
+            # Works under matplotlib 3.
+            pyplot.bar(x=self.delays+.5, height=self.coefs,
+                       width=1., fill=False, **kwargs)
+        except TypeError:
+            # Works under matplotlib 2.
+            pyplot.bar(left=self.delays+.5, height=self.coefs,
+                       width=1., fill=False, **kwargs)
         pyplot.xlabel('time')
         pyplot.ylabel('response')
         if threshold is not None:
@@ -480,13 +492,15 @@ class ARMA(object):
             if self.rel_rmse < self.max_rel_rmse:
                 break
         else:
-            raise RuntimeError(
-                'Method `update_ar_coefs` is not able to determine the AR '
-                'coefficients of the ARMA model with the desired accuracy.  '
-                'You can either set the tolerance value `max_rel_rmse` to '
-                'a higher value or increase the allowed `max_ar_order`.  '
-                'An accuracy of `%s` has been reached using `%d` coefficients.'
-                % (objecttools.repr_(self.rel_rmse, 12), ar_order))
+            with pub.options.reprdigits(12):
+                raise RuntimeError(
+                    'Method `update_ar_coefs` is not able to determine '
+                    'the AR coefficients of the ARMA model with the desired '
+                    'accuracy.  You can either set the tolerance value '
+                    '`max_rel_rmse` to a higher value or increase the '
+                    'allowed `max_ar_order`.  An accuracy of `%s` has been '
+                    'reached using `%d` coefficients.'
+                    % (objecttools.repr_(self.rel_rmse), ar_order))
 
     @property
     def dev_moments(self):
@@ -569,13 +583,14 @@ class ARMA(object):
                 self.norm_coefs()
                 break
         else:
-            raise RuntimeError(
-                'Method `update_ma_coefs` is not able to determine the MA '
-                'coefficients of the ARMA model with the desired accuracy.  '
-                'You can set the tolerance value ´max_dev_coefs` to a '
-                'higher value.  An accuracy of `%s` has been reached using '
-                '`%d` MA coefficients.'
-                % (objecttools.repr_(self.dev_coefs, 12), ma_order))
+            with pub.options.reprdigits(12):
+                raise RuntimeError(
+                    'Method `update_ma_coefs` is not able to determine the MA '
+                    'coefficients of the ARMA model with the desired accuracy.'
+                    '  You can set the tolerance value ´max_dev_coefs` to a '
+                    'higher value.  An accuracy of `%s` has been reached '
+                    'using `%d` MA coefficients.'
+                    % (objecttools.repr_(self.dev_coefs), ma_order))
         if numpy.min(self.response) < 0.:
             warnings.warn(
                 'Note that the smallest response to a standard impulse of the '
@@ -634,8 +649,14 @@ class ARMA(object):
 
     def plot(self, threshold=None, **kwargs):
         """Barplot of the ARMA response."""
-        pyplot.bar(left=self.ma.delays+.5, height=self.response,
-                   width=1., fill=False, **kwargs)
+        try:
+            # Works under matplotlib 3.
+            pyplot.bar(x=self.ma.delays+.5, height=self.response,
+                       width=1., fill=False, **kwargs)
+        except TypeError:
+            # Works under matplotlib 2.
+            pyplot.bar(left=self.ma.delays+.5, height=self.response,
+                       width=1., fill=False, **kwargs)
         pyplot.xlabel('time')
         pyplot.ylabel('response')
         if threshold is not None:

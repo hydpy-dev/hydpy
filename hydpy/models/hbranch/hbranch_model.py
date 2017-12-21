@@ -95,7 +95,7 @@ def calc_outputs_v1(self):
             con.ypoints[bdx, pdx-1])
 
 
-def update_inlets_v1(self):
+def pick_input_v1(self):
     """Updates :class:`~hydpy.models.hbranch.Input` based on
     :class:`~hydpy.models.hbranch.Total`."""
     flu = self.sequences.fluxes.fastaccess
@@ -103,7 +103,7 @@ def update_inlets_v1(self):
     flu.input = inl.total[0]
 
 
-def update_outlets_v1(self):
+def pass_outputs_v1(self):
     """Updates :class:`~hydpy.models.hbranch.Branched` based on
     :class:`~hydpy.models.hbranch.Outputs`."""
     der = self.parameters.derived.fastaccess
@@ -120,9 +120,9 @@ class Model(modeltools.Model):
       * nodenames (:class:`list`): Names of the outlet node names, the
         actual model shall be connected to.
     """
-    _RUNMETHODS = (calc_outputs_v1,
-                   update_inlets_v1,
-                   update_outlets_v1)
+    _INLET_METHODS = (pick_input_v1,)
+    _RUN_METHODS = (calc_outputs_v1,)
+    _OUTLET_METHODS = (pass_outputs_v1,)
 
     def __init__(self):
         modeltools.Model.__init__(self)
@@ -171,7 +171,7 @@ class Model(modeltools.Model):
         """
         nodes = self.element.inlets.slaves
         if len(nodes) == 1:
-            double = nodes[0].getdouble_via_exits()
+            double = nodes[0].get_double_via_exits()
             self.sequences.inlets.total.setpointer(double)
         else:
             RuntimeError('The hbranch model must be connected to exactly one '
@@ -180,9 +180,10 @@ class Model(modeltools.Model):
                          % (self.element.name, len(nodes)))
         for (idx, name) in enumerate(self.nodenames):
             try:
-                double = self.element.outlets[name].getdouble_via_entries()
+                outlet = getattr(self.element.outlets, name)
+                double = outlet.get_double_via_entries()
             except KeyError:
-                if name in devicetools.Node.registerednames():
+                if name in devicetools.Node.registered_names():
                     RuntimeError('The hbranch model tried to connect to the '
                                  'outlet node `%s`, but its parent element '
                                  '`%s` does not reference this node as an '

@@ -257,7 +257,7 @@ Always use the following pattern at the top of a new module
     >>> import numpy
     >>> # ...from HydPy
     >>> from hydpy.core import sequencetools
-    >>> from hydpy.cythons import pointer
+    >>> from hydpy.cythons import pointerutils
 
 Note that each import command has its own line.  Always import
 complete modules from HydPy without changing their names. ---
@@ -393,18 +393,14 @@ Collection Classes
 The naming (of the instances) of collection classes is discussed just
 above.  Additionally, try to follow the following recommendations.
 
-Each collection object should be iterable.  Normally, both the names of
-the handled objects (as known to the collection object) and the objects
-themself should be returned, e.g.:
+Each collection object should be iterable, e.g.:
 
     >>> from hydpy import Nodes
-    >>> nodes = Nodes()
-    >>> nodes += 'gauge1'
-    >>> nodes += 'gauge2'
-    >>> for (name, node) in nodes:
-    ...     name, node
-    ('gauge1', Node("gauge1", variable="Q"))
-    ('gauge2', Node("gauge2", variable="Q"))
+    >>> nodes = Nodes('gauge1', 'gauge2')
+    >>> for node in nodes:
+    ...     node
+    Node("gauge1", variable="Q")
+    Node("gauge2", variable="Q")
 
 To ease working in the interactive mode, objects handled by a
 collection object should be accessible as attributes:
@@ -418,7 +414,7 @@ Whenever usefull, define convenience functions which simplify the
 handling of collection objects, e.g.:
 
     >>> nodes += Node('gauge1')
-    >>> nodes.gauge1 is nodes['gauge1']
+    >>> nodes.gauge1 is Node('gauge1')
     True
     >>> len(nodes)
     2

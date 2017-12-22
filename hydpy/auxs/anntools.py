@@ -15,8 +15,9 @@ from __future__ import division, print_function
 import numpy
 from matplotlib import pyplot
 # ...from HydPy
-from hydpy.core import objecttools
+from hydpy.core import abctools
 from hydpy.core import autodoctools
+from hydpy.core import objecttools
 from hydpy.cythons import annutils
 
 
@@ -880,5 +881,7 @@ class ANN(object):
             ys[idx] = self.outputs[idx_output]
         pyplot.plot(xs, ys, **kwargs)
 
+
+abctools.Parameter.register(ANN)
 
 autodoctools.autodoc_module()

@@ -19,6 +19,7 @@ from hydpy.core import variabletools
 from hydpy.core import filetools
 from hydpy.core import timetools
 from hydpy.core import autodoctools
+from hydpy.core import abctools
 
 
 # The import of `_strptime` is not thread save.  The following call of
@@ -221,7 +222,7 @@ class SubParameters(MetaSubParametersClass):
             attr = getattr(self, name)
         except AttributeError:
             object.__setattr__(self, name, value)
-            if hasattr(value, 'connect'):
+            if isinstance(value, abctools.Parameter):
                 value.connect(self)
         else:
             try:
@@ -463,6 +464,9 @@ class Parameter(variabletools.Variable):
 
     def __dir__(self):
         return objecttools.dir_(self)
+
+
+abctools.Parameter.register(Parameter)
 
 
 class SingleParameter(Parameter):

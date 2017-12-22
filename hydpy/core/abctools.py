@@ -30,7 +30,7 @@ else:
         __metaclass__ = abc.ABCMeta
 
 
-class DocABC(abc.ABC):
+class DocABC(ABC):
     """ABC base class automatically documenting is registered subclasses."""
 
     @classmethod
@@ -104,7 +104,7 @@ class DocABC(abc.ABC):
             abc.ABCMeta.register(cls, subclass)
 
 
-class IterableNonString(abc.ABC):
+class IterableNonString(ABC):
     """Abstract base class for checking if an object is iterable but not a
     string."""
 

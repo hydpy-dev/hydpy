@@ -161,6 +161,7 @@ Note:
 # import...
 # ...from standard library
 from __future__ import division, print_function
+import numbers
 import cython
 # ...from site-packages
 import numpy
@@ -234,11 +235,11 @@ cdef class DoubleBase(object):
     def __float__(self):
         return float(conv2double(self))
 
-    def __repr__(self):
-        return repr(conv2double(self))
-
     def __str__(self):
         return str(conv2double(self))
+
+    def __format__(self, digits):
+        return format(float(self), digits)
 
     def __richcmp__(x, y, int z):
         cdef double _x = conv2double(x)
@@ -259,6 +260,9 @@ cdef class DoubleBase(object):
     @property
     def shape(self):
         return ()
+
+
+numbers.Real.register(DoubleBase)
 
 
 @cython.final
@@ -309,6 +313,9 @@ cdef class Double(DoubleBase):
     def __imod__(self, x):
         self.value %= conv2double(x)
         return self
+
+    def __repr__(self):
+        return 'Double(%s)' % conv2double(self)
 
 
 @cython.final
@@ -361,6 +368,9 @@ cdef class PDouble(DoubleBase):
     def __imod__(self, x):
         self.p_value[0] %= conv2double(x)
         return self
+
+    def __repr__(self):
+        return 'PDouble(Double(%s))' % conv2double(self)
 
 
 @cython.final

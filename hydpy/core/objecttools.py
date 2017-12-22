@@ -11,7 +11,7 @@ import textwrap
 import numbers
 # ...from HydPy
 from hydpy import pub
-from hydpy.cythons import pointerutils
+from hydpy.core import abctools
 from hydpy.core import autodoctools
 
 
@@ -321,8 +321,6 @@ class _Repr_(object):
                 return '"%s"' % value
             else:
                 return value
-        if isinstance(value, (pointerutils.Double, pointerutils.PDouble)):
-            value = float(value)
         if ((decimals > -1) and
                 isinstance(value, numbers.Real) and
                 (not isinstance(value, numbers.Integral))):

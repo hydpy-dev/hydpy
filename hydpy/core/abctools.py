@@ -19,6 +19,15 @@ should be handled as if they were.  See class
 # ...from standard library
 from __future__ import division, print_function
 import abc
+# ...from HydPy
+from hydpy import pub
+
+
+if pub.pyversion > 2:
+    ABC = abc.ABC
+else:
+    class ABC(object):
+        __metaclass__ = abc.ABCMeta
 
 
 class DocABC(abc.ABC):
@@ -62,8 +71,8 @@ class DocABC(abc.ABC):
         A new base class.
         <BLANKLINE>
         At the moment, the following classes are registered:
-             * :class:`~ __main__.New2`
-             * :class:`~ __main__.New1`
+             * :class:`~hydpy.core.abctools.New2`
+             * :class:`~hydpy.core.abctools.New1`
 
         Note that the docstring order is the registration order.
         Also note that the "accidental reregistration" of class
@@ -90,7 +99,7 @@ class DocABC(abc.ABC):
             cls.__doc__ += \
                     '\n\nAt the moment, the following classes are registered:'
         if subclass not in cls._abc_registry:
-            cls.__doc__ += ('\n     * :class:`~ %s`'
+            cls.__doc__ += ('\n     * :class:`~%s`'
                             % str(subclass).split("'")[1])
             abc.ABCMeta.register(cls, subclass)
 

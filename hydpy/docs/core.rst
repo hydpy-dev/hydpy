@@ -10,6 +10,7 @@ each one providing a small number of Python classes:
 .. toctree::
    :maxdepth: 1
 
+   abctools
    autodoctools
    connectiontools
    devicetools

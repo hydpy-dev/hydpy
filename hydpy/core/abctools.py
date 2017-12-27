@@ -21,6 +21,7 @@ from __future__ import division, print_function
 import abc
 # ...from HydPy
 from hydpy import pub
+from hydpy.core import autodoctools
 
 
 if pub.pyversion > 2:
@@ -33,11 +34,12 @@ else:
 class DocABC(ABC):
     """ABC base class automatically documenting is registered subclasses."""
 
+    _registry_empty = True
+
     @classmethod
     def register(cls, subclass):
         """Add information to the documentation of the given abstract base
         class and register the subclass afterwards.
-
 
         Subclass the new abstract base class `NewABC` and define some new
         concrete classes (`New1`, `New2`, `New3`) which do not inherit
@@ -95,10 +97,11 @@ class DocABC(ABC):
         >>> isinstance(New3(), NewABC)
         False
         """
-        if not cls._abc_registry:
+        if cls._registry_empty:
+            cls._registry_empty = False
             cls.__doc__ += \
-                    '\n\nAt the moment, the following classes are registered:'
-        if subclass not in cls._abc_registry:
+                '\n\nAt the moment, the following classes are registered:'
+        if not issubclass(subclass, cls):
             cls.__doc__ += ('\n     * :class:`~%s`'
                             % str(subclass).split("'")[1])
             abc.ABCMeta.register(cls, subclass)
@@ -140,3 +143,6 @@ class Sequence(DocABC):
 class InputSequence(Sequence):
     """Abstract base class for registering custom input sequence classes."""
     pass
+
+
+autodoctools.autodoc_module()

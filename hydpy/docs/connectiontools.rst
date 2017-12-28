@@ -1,9 +1,9 @@
 
-.. _variabletools:
+.. _connectiontools:
 
-variabletools
-=============
+connectiontools
+===============
 
-.. automodule:: hydpy.core.variabletools
+.. automodule:: hydpy.core.connectiontools
     :members:
     :show-inheritance:

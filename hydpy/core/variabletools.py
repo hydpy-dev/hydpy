@@ -9,6 +9,7 @@ in modules :mod:`~hydpy.core.parametertools` and
 # import...
 # ...from standard library
 from __future__ import division, print_function
+import copy
 import textwrap
 # ...from site-packages
 import numpy
@@ -195,6 +196,8 @@ class Variable(object):
     # ...and optionally...
     INIT = None
 
+    NOT_DEEPCOPYABLE_MEMBERS = ()
+
     @staticmethod
     def _arithmetic_conversion(other):
         try:
@@ -214,6 +217,14 @@ class Variable(object):
         for idx in range(self.NDIM):
             length *= self.shape[idx]
         return length
+
+    def __deepcopy__(self, memo):
+        new = type(self)()
+        for (key, value) in vars(self).items():
+            if key not in self.NOT_DEEPCOPYABLE_MEMBERS:
+                setattr(new, key, copy.deepcopy(value, memo))
+        new.value = self.value
+        return new
 
     def __add__(self, other):
         try:

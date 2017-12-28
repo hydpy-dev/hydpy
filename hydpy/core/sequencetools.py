@@ -446,6 +446,8 @@ class Sequence(variabletools.Variable):
 
     NDIM, NUMERIC = 0, False
 
+    NOT_DEEPCOPYABLE_MEMBERS = ('subseqs', 'fastaccess')
+
     def __init__(self):
         self.subseqs = None
         self.fastaccess = objecttools.FastAccess()
@@ -1243,6 +1245,8 @@ class ConditionSequence(object):
 
 class StateSequence(ModelIOSequence, ConditionSequence):
     """Handler for state time series."""
+
+    NOT_DEEPCOPYABLE_MEMBERS = ('subseqs', 'fastaccess_old', 'fastaccess_new')
 
     def __init__(self):
         ModelIOSequence.__init__(self)

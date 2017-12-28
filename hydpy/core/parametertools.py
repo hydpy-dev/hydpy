@@ -266,6 +266,8 @@ class Parameter(variabletools.Variable):
     _parameterstep = None
     _simulationstep = None
 
+    NOT_DEEPCOPYABLE_MEMBERS = ('subpars', 'fastaccess')
+
     def __init__(self):
         self.subpars = None
         self.fastaccess = objecttools.FastAccess()
@@ -650,10 +652,6 @@ class MultiParameter(Parameter):
         if nmbnan:
             raise RuntimeError('For parameter `%s`, %d required values have '
                                'not been set yet.' % (self.name, nmbnan))
-
-    def copy(self):
-        """Return a deep copy of the parameter values."""
-        return copy.deepcopy(self.values)
 
     def __len__(self):
         """Returns the number of values handled by the :class:`MultiParameter`

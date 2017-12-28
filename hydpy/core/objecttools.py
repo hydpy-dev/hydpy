@@ -855,7 +855,7 @@ arguments `lfill` and `rfill`.  This is not allowed.
     if decimals is None:
         decimals = pub.options.reprdigits
     with pub.options.reprdigits(decimals):
-        if hasattr(values, '__iter__') and (not isinstance(values, str)):
+        if isinstance(values, abctools.IterableNonString):
             string = repr_values(values)
         else:
             string = repr_(values)

@@ -131,17 +131,66 @@ class Node(DocABC):
     pass
 
 
-class Parameter(DocABC):
+class Variable(DocABC):
+    """Abstract base class for registering custom variable classes.
+
+    Usually, new classes should either be registered as a parameter
+    or a sequence.  Afterwards, they are automatically handled as
+    :class:`Variable` subclasses:
+
+    >>> from hydpy.core.abctools import Variable, Parameter
+    >>> class New(object):
+    ...     pass
+    >>> issubclass(New, Variable)
+    False
+    >>> Parameter.register(New)
+    >>> issubclass(New, Variable)
+    True
+    """
+
+
+class Parameter(Variable):
     """Abstract base class for registering custom parameter classes."""
 
 
-class Sequence(DocABC):
+class Sequence(Variable):
     """Abstract base class for registering custom sequence classes."""
     pass
 
 
 class InputSequence(Sequence):
     """Abstract base class for registering custom input sequence classes."""
+    pass
+
+
+class FluxSequence(Sequence):
+    """Abstract base class for registering custom flux sequence classes."""
+    pass
+
+
+class ConditionSequence(Sequence):
+    """Abstract base class for registering custom condition sequence classes.
+    """
+    pass
+
+
+class StateSequence(ConditionSequence):
+    """Abstract base class for registering custom state sequence classes."""
+    pass
+
+
+class LogSequence(ConditionSequence):
+    """Abstract base class for registering custom log sequence classes."""
+    pass
+
+
+class AideSequence(Sequence):
+    """Abstract base class for registering custom aide sequence classes."""
+    pass
+
+
+class LinkSequence(Sequence):
+    """Abstract base class for registering custom link sequence classes."""
     pass
 
 

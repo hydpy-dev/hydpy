@@ -919,9 +919,9 @@ instance of the following classes: str, int.
                 raise exc
             else:
                 raise TypeError(
-                    'The given value `%s` is neither iterable nor an '
-                    'instance of the following classes: %s.'
-                    % (values,
+                    'The given value `{0!r}` is neither iterable nor an '
+                    'instance of the following classes: {1}.'
+                    % (repr(values),
                        ', '.join(instancename(type_) for type_ in types)))
 
 

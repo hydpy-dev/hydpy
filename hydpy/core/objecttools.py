@@ -921,8 +921,49 @@ instance of the following classes: str, int.
                 raise TypeError(
                     'The given value `{0!r}` is neither iterable nor an '
                     'instance of the following classes: {1}.'
-                    % (repr(values),
-                       ', '.join(instancename(type_) for type_ in types)))
+                    .format(repr(values),
+                            enumeration(types, converter=instancename)))
+
+
+def enumeration(values, converter=str, default=''):
+    """Return an enumeration string based on the given values.
+
+    The following four examples show the standard output of function
+    :func:`enumeration`:
+
+    >>> from hydpy.core.objecttools import enumeration
+    >>> enumeration(('text', 3, []))
+    'text, 3, and []'
+    >>> enumeration(('text', 3))
+    'text and 3'
+    >>> enumeration(('text1',))
+    'text'
+    >>> enumeration(())
+    ''
+
+    All given objects are converted to strings by function :func:`str`,
+    as shown by the first two examples.  This behaviour can be changed
+    by another function expecting a single argument and returning a string:
+
+    >>> from hydpy.core.objecttools import classname
+    >>> enumeration(('text', 3, []), converter=classname)
+    'str, int, and list'
+
+    Furthermore, you can define a default string that is returned
+    in case an empty iterable is given:
+
+    >>> enumeration((), default='nothing')
+    'nothing'
+    """
+    values = tuple(converter(value) for value in values)
+    if len(values) == 0:
+        return default
+    elif len(values) == 1:
+        return values[0]
+    elif len(values) == 2:
+        return ' and '.join(values)
+    else:
+        return ', and '.join((', '.join(values[:-1]), values[-1]))
 
 
 class FastAccess(object):

@@ -138,10 +138,10 @@ class Options(object):
         in color eventually or not. The default is `True`.""")
 
     reprcomments = _Option(
-        True, None,
+        False, None,
         """True/False flag indicationg whether comments shall be included
         in string representations of some classes of the HydPy framework or
-        not.  The default is `True`.""")
+        not.  The default is `False`.""")
 
     reprdigits = _Option(
         -999, -999,

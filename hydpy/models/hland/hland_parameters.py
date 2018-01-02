@@ -274,7 +274,7 @@ class Parameters(parametertools.Parameters):
         con = self.control
         der = self.derived
         landzonearea = con.zonearea.values.copy()
-        landzonearea[con.zonetype == ILAKE] = 0.
+        landzonearea[con.zonetype.values == ILAKE] = 0.
         landarea = numpy.sum(landzonearea)
         if landarea > 0.:
             der.rellandzonearea(landzonearea/landarea)
@@ -341,8 +341,8 @@ class Parameters(parametertools.Parameters):
         con = self.control
         der = self.derived
         soilzonearea = con.zonearea.values.copy()
-        soilzonearea[con.zonetype == GLACIER] = 0.
-        soilzonearea[con.zonetype == ILAKE] = 0.
+        soilzonearea[con.zonetype.values == GLACIER] = 0.
+        soilzonearea[con.zonetype.values == ILAKE] = 0.
         soilarea = numpy.sum(soilzonearea)
         if soilarea > 0.:
             der.relsoilzonearea(soilzonearea/soilarea)

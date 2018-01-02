@@ -50,11 +50,13 @@ def trim(self, lower=None, upper=None):
             _trim_float_0d(self, lower, upper)
         else:
             _trim_float_nd(self, lower, upper)
-    elif type_ in (int, bool):
+    elif type_ is int:
         if self.NDIM == 0:
             _trim_int_0d(self, lower, upper)
         else:
             _trim_int_nd(self, lower, upper)
+    elif type_ is bool:
+        pass
     else:
         raise NotImplementedError(
             'Method `trim` can only be applied on parameters handling '
@@ -92,7 +94,7 @@ def _trim_float_nd(self, lower, upper):
     upper[numpy.where(numpy.isnan(upper))] = numpy.inf
     idxs = numpy.where(numpy.isnan(self.values))
     self[idxs] = lower[idxs]
-    if numpy.any(self < lower) or numpy.any(self > upper):
+    if numpy.any(self.values < lower) or numpy.any(self.values > upper):
         if (numpy.any((self+_tolerance(self)) <
                       (lower-_tolerance(lower))) or
                 numpy.any((self-_tolerance(self)) >
@@ -121,9 +123,9 @@ def _trim_int_nd(self, lower, upper):
     if upper is None:
         upper = -_INT_NAN
     upper = numpy.full(self.shape, upper, dtype=int)
-    idxs = numpy.where(self == _INT_NAN)
+    idxs = numpy.where(self.values == _INT_NAN)
     self[idxs] = lower[idxs]
-    if numpy.any(self < lower) or numpy.any(self > upper):
+    if numpy.any(self.values < lower) or numpy.any(self.values > upper):
         raise ValueError(
             'At least one value of parameter `%s` of element `%s` is not '
             'valid.' % (self.name, objecttools.devicename(self)))
@@ -136,10 +138,44 @@ def _tolerance(values):
     return abs(values*1e-15)
 
 
+def _compare_variables_function_generator(
+                method_string, operator_string, aggregation_func):
+    """Return a function that can be used as a comparison method of class
+    :class:`Variable`.
+
+    Pass the specific method (e.g. '__eq__') and the corresponding operator
+    (e.g. `==`) as strings.  Also pass either :func:`all` or :func:`any`
+    for aggregating multiple boolean values.
+    """
+    def comparison_function(self, other):
+        method = getattr(self.value, method_string)
+        try:
+            if isinstance(other, abctools.Variable):
+                result = method(other.value)
+            else:
+                result = method(other)
+            if result is NotImplemented:
+                return result
+            try:
+                return aggregation_func(result)
+            except TypeError:
+                return result
+        except BaseException:
+            objecttools.augmentexcmessage(
+                'While trying to compare variable `{0!r}` of '
+                'element `{1}` with object `{2}` of type `{3}`'
+                .format(self, objecttools.devicename(self),
+                        other, objecttools.classname(other)))
+    return comparison_function
+
+
 class Variable(object):
     """Base class for :class:`~hydpy.core.parametertools.Parameter` and
-    :class:`~hydpy.core.sequencetools.Sequence`.  Implements special
-    methods for arithmetic calculations, comparisons and type conversions.
+    :class:`~hydpy.core.sequencetools.Sequence`.
+
+    This base class Implements special methods for arithmetic calculations,
+    comparisons and type conversions.  See the  following exemples on how
+    to do math with HydPys parameter and sequence objects.
 
     The subclasses are required to provide the members `NDIM` (usually a
     class attribute) and `value` (usually a property).  But for testing
@@ -395,41 +431,12 @@ error occured: operands could not be broadcast together with shapes (2,) (3,)
     def __rdivmod__(self, other):
         return numpy.divmod(other, self.value)
 
-    def __lt__(self, other):
-        try:
-            return self.value < self._arithmetic_conversion(other)
-        except BaseException:
-            self._arithmetic_exception('compare (<)', other)
-
-    def __le__(self, other):
-        try:
-            return self.value <= self._arithmetic_conversion(other)
-        except BaseException:
-            self._arithmetic_exception('compare (<=)', other)
-
-    def __eq__(self, other):
-        try:
-            return self.value == self._arithmetic_conversion(other)
-        except BaseException:
-            self._arithmetic_exception('compare (==)', other)
-
-    def __ne__(self, other):
-        try:
-            return self.value != self._arithmetic_conversion(other)
-        except BaseException:
-            self._arithmetic_exception('compare (!=)', other)
-
-    def __ge__(self, other):
-        try:
-            return self.value >= self._arithmetic_conversion(other)
-        except BaseException:
-            self._arithmetic_exception('compare (>=)', other)
-
-    def __gt__(self, other):
-        try:
-            return self.value > self._arithmetic_conversion(other)
-        except BaseException:
-            self._arithmetic_exception('compare (>)', other)
+    __lt__ = _compare_variables_function_generator('__lt__', '<', all)
+    __le__ = _compare_variables_function_generator('__le__', '<=', all)
+    __eq__ = _compare_variables_function_generator('__eq__', '==', all)
+    __ne__ = _compare_variables_function_generator('__ne__', '!=', any)
+    __ge__ = _compare_variables_function_generator('__ge__', '>=', all)
+    __gt__ = _compare_variables_function_generator('__gt__', '>', all)
 
     def _typeconversion(self, type_):
         if not self.NDIM:

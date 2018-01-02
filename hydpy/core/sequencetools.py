@@ -476,8 +476,6 @@ class Sequence(variabletools.Variable):
         """
         self.values = args
 
-    name = property(objecttools.name)
-
     @property
     def initvalue(self):
         if pub.options.usedefaultvalues:
@@ -618,7 +616,7 @@ class Sequence(variabletools.Variable):
 
     def __repr__(self):
         islong = self.length > 255
-        return variabletools.Variable._repr(self, self.values, islong)
+        return variabletools.Variable.repr_(self, self.values, islong)
 
     def __dir__(self):
         return objecttools.dir_(self)

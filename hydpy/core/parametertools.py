@@ -328,8 +328,6 @@ class Parameter(variabletools.Variable):
                                % (self.name, pyfile))
         return subself.values
 
-    name = property(objecttools.name)
-
     @property
     def initvalue(self):
         initvalue = (getattr(self, 'INIT', None) if
@@ -720,7 +718,7 @@ class MultiParameter(Parameter):
                                           'parameter `%s`' % self.name)
         else:
             islong = False
-        return super(Parameter, self)._repr(values, islong)
+        return super(Parameter, self).repr_(values, islong)
 
 
 class ZipParameter(MultiParameter):

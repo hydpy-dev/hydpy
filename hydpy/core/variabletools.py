@@ -148,51 +148,86 @@ class Variable(object):
     A few examples for 0-dimensional objects:
 
     >>> from hydpy.core.variabletools import Variable
-    >>> v0 = Variable()
-    >>> v0.NDIM = 0
-    >>> v0.shape = ()
-    >>> v0.value = 2.
-    >>> print(v0 + v0)
+    >>> variable = Variable()
+    >>> variable.NDIM = 0
+    >>> variable.shape = ()
+    >>> variable.value = 2.0
+    >>> variable + variable
     4.0
-    >>> print(3. - v0)
+    >>> 3.0 - variable
     1.0
-    >>> v0 /= 2.
-    >>> print(v0.value)
-    1.0
-    >>> print(v0 > v0)
+    >>> variable /= 2.
+    >>> variable
+    variable(1.0)
+    >>> variable > variable
     False
-    >>> print(v0 != 1.5)
+    >>> variable != 1.5
     True
-    >>> v0.length
+    >>> variable.length
     1
 
     Similar examples for 1-dimensional objects:
 
     >>> import numpy
-    >>> v1 = Variable()
-    >>> v1.NDIM = 1
-    >>> v1.shape = (5,)
-    >>> v1.value = numpy.array([1.,2.,3.])
-    >>> print(v1 + v1)
+    >>> variable = Variable()
+    >>> variable.NDIM = 1
+    >>> variable.shape = (3,)
+    >>> variable.value = numpy.array([1.0, 2.0, 3.0])
+    >>> print(variable + variable)
     [ 2.  4.  6.]
-    >>> print(3. - v1)
+    >>> print(3. - variable)
     [ 2.  1.  0.]
-    >>> v1 /= 2.
-    >>> print(v1.value)
-    [ 0.5  1.   1.5]
-    >>> print(v1 > v1)
-    [False False False]
-    >>> print(v1 != 1.5)
-    [ True  True False]
-    >>>
-    >>> v1.length
-    5
+    >>> variable /= 2.
+    >>> variable
+    variable(0.5, 1.0, 1.5)
+    >>> variable > variable
+    False
+    >>> variable != 1.5
+    True
+    >>> variable.length
+    3
+
+    Note that comparisons on :class:`Variable` objects containg multiple
+    values return a single boolean only:
+
+    >>> variable.value = numpy.array([1.0, 3.0])
+    >>> variable == [0.0, 2.0], variable == [1.0, 2.0], variable == [1.0, 3.0]
+    (False, False, True)
+    >>> variable != [0.0, 2.0], variable != [1.0, 2.0], variable != [1.0, 3.0]
+    (True, True, False)
+
+    While either the `==` or the `!=` operator returns `True` (but not both),
+    this must not be the case for the operator pairs `<`and `>=` as well as
+    `>` and `<=`:
+
+    >>> variable < 2.0, variable < 3.0, variable < 4.0
+    (False, False, True)
+    >>> variable <= 2.0, variable <= 3.0, variable <= 4.0
+    (False, True, True)
+    >>> variable >= 0.0, variable >= 1.0, variable >= 2.0
+    (True, True, False)
+    >>> variable > 0.0, variable > 1.0, variable > 2.0
+    (True, False, False)
+
+    When asking for impossible comparisons, error messages like the following
+    are returned:
+
+    >>> variable < 'text'
+    Traceback (most recent call last):
+    ...
+    TypeError: '<' not supported between instances of 'Variable' and 'str'
+
+    >>> variable < [1.0, 2.0, 3.0]   # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to compare variable `variable(1.0, 3.0)` of \
+element `?` with object `[1.0, 2.0, 3.0]` of type `list`, the following \
+error occured: operands could not be broadcast together with shapes (2,) (3,)
     """
     # Subclasses need to define...
     NDIM = None    # ... e.g. as class attribute (int)
-    name = None    # ... e.g. as property (str)
     value = None   # ... e.g. as property (float or ndarray of dtype float)
-    shape = None   # ... e.gl as property (tuple of values of type int)
+    shape = None   # ... e.g. as property (tuple of values of type int)
     # ...and optionally...
     INIT = None
 
@@ -210,6 +245,7 @@ class Variable(object):
             'While trying to %s %s instance `%s` and %s `%s`'
             % (verb, objecttools.classname(self), self.name,
                objecttools.classname(other), other))
+    name = property(objecttools.name)
 
     @property
     def length(self):
@@ -449,7 +485,7 @@ class Variable(object):
         else:
             return []
 
-    def _repr(self, values, islong):
+    def repr_(self, values, islong):
         prefix = '%s(' % self.name
         if self.NDIM == 0:
             string = '%s(%s)' % (self.name, objecttools.repr_(values))
@@ -470,6 +506,10 @@ class Variable(object):
                 'of element `%s` which handle %d-dimensional matrices.'
                 % self.NDIM)
         return '\n'.join(self.commentrepr() + [string])
+
+    def __repr__(self):
+        return self.repr_(self.value, False)
+
 
 
 autodoctools.autodoc_module()

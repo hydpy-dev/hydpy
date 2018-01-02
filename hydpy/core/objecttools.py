@@ -151,9 +151,9 @@ def valid_variable_identifier(name):
     Traceback (most recent call last):
     ...
     ValueError: The given name string `test 1` does not define a valid \
-variable identifier.  Valid identifiers do not contain signs like `-` or \
-empty spaces, do not start with numbers, cannot be mistaken with Python \
-built-ins like `for`...)
+variable identifier.  Valid identifiers do not contain characters like \
+`-` or empty spaces, do not start with numbers, cannot be mistaken with \
+Python built-ins like `for`...)
 
     Also, names of Python built ins are not allowed:
 
@@ -170,8 +170,8 @@ built-ins like `for`...)
     except SyntaxError:
         raise ValueError(
             'The given name string `%s` does not define a valid variable '
-            'identifier.  Valid identifiers do not contain signs like `-` '
-            'or empty spaces, do not start with numbers, cannot be '
+            'identifier.  Valid identifiers do not contain characters like '
+            '`-` or empty spaces, do not start with numbers, cannot be '
             'mistaken with Python built-ins like `for`...)' % name)
 
 
@@ -897,7 +897,7 @@ arguments `lfill` and `rfill`.  This is not allowed.
 def extract(values, types, skip=False):
     """Return a generator that extracts certain objects from `values`.
 
-    This function is thought for supporting the definition of functios
+    This function is thought for supporting the definition of functions
     with arguments, that can be objects of of contain types or that can
     be iterables containing these objects.
 
@@ -918,8 +918,8 @@ def extract(values, types, skip=False):
     >>> tuple(extract((['str1', 'str2'], [None, 1]), (str, int)))
     Traceback (most recent call last):
     ...
-    TypeError: The given value `None` is neither iterable nor an \
-instance of the following classes: str, int.
+    TypeError: The given value `'None'` is neither iterable nor \
+an instance of the following classes: str and int.
 
     Optionally, :class:`None` values can be skipped:
     >>> tuple(extract(None, (str, int), True))
@@ -958,7 +958,7 @@ def enumeration(values, converter=str, default=''):
     'text, 3, and []'
     >>> enumeration(('text', 3))
     'text and 3'
-    >>> enumeration(('text1',))
+    >>> enumeration(('text',))
     'text'
     >>> enumeration(())
     ''

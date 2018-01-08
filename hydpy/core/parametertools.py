@@ -25,6 +25,65 @@ from hydpy.core import variabletools
 time.strptime('1999', '%Y')
 
 
+def header_controlfile(model, parameterstep=None, simulationstep=None):
+    """Return the header of a normal or auxiliariy parameter control file.
+
+    The header contains the default coding information, the import command
+    for the given model and the actual parameter and simulationstep step sizes.
+
+    The first example shows that, if you pass the model argument as a
+    string, you have to take care that this string make sense:
+
+    >>> from hydpy.core.parametertools import header_controlfile
+    >>> from hydpy.core.timetools import Period
+    >>> print(header_controlfile(model='no model class',
+    ...                          parameterstep='-1h',
+    ...                          simulationstep=Period('1h')))
+    # -*- coding: utf-8 -*-
+    <BLANKLINE>
+    from hydpy.models.no model class import *
+    <BLANKLINE>
+    parameterstep("-1h")
+    simulationstep("1h")
+    <BLANKLINE>
+    <BLANKLINE>
+
+    The second example shows the saver option to pass the proper model object.
+    It also shows that function :func:`header_controlfile` tries to gain the
+    parameter and simulation step sizes from the global
+    :class:`~hydpy.core.timetools.Timegrids` object contained in module
+    :mod:`~hydpy.pub` when necessary:
+
+    >>> from hydpy.models.lland_v1 import *
+    >>> parameterstep('1d')
+    >>> from hydpy import pub
+    >>> from hydpy.core.timetools import Timegrids, Timegrid
+    >>> pub.timegrids = Timegrids(Timegrid('2000.01.01',
+    ...                                    '2001.01.01',
+    ...                                    '1h'))
+    >>> print(header_controlfile(model=model))
+    # -*- coding: utf-8 -*-
+    <BLANKLINE>
+    from hydpy.models.lland_v1 import *
+    <BLANKLINE>
+    parameterstep("1d")
+    simulationstep("1h")
+    <BLANKLINE>
+    <BLANKLINE>
+    """
+    if parameterstep is None:
+        parameterstep = Parameter.parameterstep
+    if simulationstep is None:
+        simulationstep = Parameter.simulationstep
+    with Parameter.parameterstep(parameterstep), \
+            Parameter.simulationstep(simulationstep):
+        return ('# -*- coding: utf-8 -*-\n\n'
+                'from hydpy.models.%s import *\n\n'
+                'parameterstep("%s")\n'
+                'simulationstep("%s")\n\n'
+                % (model, Parameter.parameterstep, Parameter.simulationstep))
+
+
 class Parameters(object):
     """Base class for handling all parameters of a specific model."""
 

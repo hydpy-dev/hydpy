@@ -76,6 +76,20 @@ def instancename(self):
     return classname(self).lower()
 
 
+def value_of_type(value):
+    """Returns a string containing both the informal string and the type
+    of the given value.
+
+    This function is intendet to simplifying writing HydPy exceptions,
+    which frequently contain the following phrase:
+
+    >>> from hydpy.core.objecttools import value_of_type
+    >>> value_of_type(999)
+    'value `999` of type `int`'
+    """
+    return 'value `%s` of type `%s`' % (value, classname(value))
+
+
 def name(self):
     """Name of the class of the given instance in lower case letters.
 

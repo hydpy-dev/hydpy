@@ -127,6 +127,7 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                     raise(exc)
             else:
                 opt = pub.options
+                Par = parametertools.Parameter
                 with opt.usedefaultvalues(False), \
                         opt.usedefaultvalues(False), \
                         opt.printprogress(False), \
@@ -135,11 +136,12 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                         opt.reprcomments(False), \
                         opt.ellipsis(0), \
                         opt.reprdigits(6), \
-                        opt.warntrim(False):
+                        opt.warntrim(False), \
+                        Par.parameterstep(None), \
+                        Par.simulationstep(None):
                     pub.timegrids = None
                     devicetools.Node.clear_registry()
                     devicetools.Element.clear_registry()
-                    parametertools.Parameter._simulationstep = None
                     if name.endswith('.rst'):
                         name = name[name.find('hydpy'+os.sep):]
                     warnings.filterwarnings('error', module='hydpy')

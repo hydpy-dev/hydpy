@@ -8,19 +8,17 @@ from __future__ import division, print_function
 import os
 import inspect
 import time
-import copy
 import warnings
 # ...third party
 import numpy
 # ...HydPy specific
 from hydpy import pub
-from hydpy.core import objecttools
-from hydpy.core import variabletools
-from hydpy.core import filetools
-from hydpy.core import timetools
-from hydpy.core import autodoctools
 from hydpy.core import abctools
-
+from hydpy.core import autodoctools
+from hydpy.core import filetools
+from hydpy.core import objecttools
+from hydpy.core import timetools
+from hydpy.core import variabletools
 
 # The import of `_strptime` is not thread save.  The following call of
 # `strptime` is supposed to prevent possible problems arising from this bug.
@@ -189,7 +187,9 @@ class SubParameters(MetaSubParametersClass):
     ...     pass
     Traceback (most recent call last):
     ...
-    NotImplementedError: For class `ControlParameters`, the required tuple `_PARCLASSES` is not defined.  Please see the documentation of class `SubParameters` of module `parametertools` for further information.
+    NotImplementedError: For class `ControlParameters`, the required \
+tuple `_PARCLASSES` is not defined.  Please see the documentation of \
+class `SubParameters` of module `parametertools` for further information.
     """
     _PARCLASSES = ()
 
@@ -260,13 +260,217 @@ class SubParameters(MetaSubParametersClass):
         return objecttools.dir_(self)
 
 
+class _Period(timetools.Period):
+
+    def __init__(self, stepsize=None, period=None):
+        self.stepsize = stepsize
+        super(_Period, self).__init__(stepsize.period)
+        self.old_period = timetools.Period(self)
+        self.__doc__ = stepsize.__doc__
+
+    def __enter__(self):
+        return self
+
+    def __call__(self, period):
+        self.timedelta = period
+        self.stepsize.period.timedelta = period
+        return self
+
+    def __exit__(self, type_, value, traceback):
+        self.stepsize.period = self.old_period
+
+    def check(self):
+        if not self:
+            raise RuntimeError(self.stepsize.EXC_MESSAGE)
+
+
+class _Stepsize(object):
+    """Base class of the descriptor classes :class:`Parameterstep` and
+    :class:`Simulationstep`."""
+
+    def __init__(self):
+        self.period = timetools.Period()
+
+    def __set__(self, obj, value):
+        self(value)
+
+    def __delete__(self, obj):
+        del self.period.timedelta
+
+    def __call__(self, value):
+        try:
+            period = timetools.Period(value)
+            if period >= '1s':
+                self.period = period
+            else:
+                raise ValueError(
+                    'The smallest step size allowed is one second.')
+        except BaseException:
+            objecttools.augmentexcmessage(
+                'While trying to (re)define the general %s size with %s'
+                % (self.name, objecttools.value_of_type(value)))
+
+    @property
+    def name(self):
+        return objecttools.instancename(self)
+
+
+class Parameterstep(_Stepsize):
+    """The actual parameter time step size.
+
+    Usually, the time step size of the units of certain paramaters
+    is defined within control files via function
+    :func:`~hydpy.core.magictools.parameterstep`.  But it can also
+    be changed interactively with the help of any :class:`Parameter` object:
+
+    >>> from hydpy.core.parametertools import Parameter
+    >>> parameter = Parameter()
+    >>> parameter.parameterstep = '1d'
+    >>> parameter.parameterstep
+    Period('1d')
+
+    Note that setting the step size affects all parameters!
+
+    Getting the step size via the :class:`Parameter` subclasses themselves
+    works also fine, but use a method call instead of an assignement to
+    change the step size in order to prevent from overwriting the
+    descriptor:
+
+    >>> Parameter.parameterstep
+    Period('1d')
+    >>> Parameter.parameterstep('2d')
+    Period('2d')
+
+    Unreasonable assignements result in error messages like the following:
+
+    >>> parameter.parameterstep = '0d'
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to (re)define the general parameterstep size \
+with value `0d` of type `str`, the following error occured: The smallest \
+step size allowed is one second.
+
+    After deleting the parameter step size, an empty period object is returned:
+
+    >>> del parameter.parameterstep
+    >>> ps = parameter.parameterstep
+    >>> ps
+    Period()
+
+    In case you prefer an exception instead of an empty period object,
+    call its `check` method:
+
+    >>> ps.check()
+    Traceback (most recent call last):
+    ...
+    RuntimeError: No general parameter step size has been defined.
+
+    For temporary step size changes, Pythons `with` statement is supported:
+
+    >>> parameter.parameterstep = '1d'
+    >>> with parameter.parameterstep('2h'):
+    ...     print(repr(parameter.parameterstep))
+    Period('2h')
+    >>> parameter.parameterstep
+    Period('1d')
+    """
+
+    EXC_MESSAGE = 'No general parameter step size has been defined.'
+
+    def __get__(self, obj, cls):
+        return _Period(self)
+
+
+class Simulationstep(_Stepsize):
+    """The actual (or surrogate) simulation time step size.
+
+    .. testsetup::
+
+       >>> from hydpy import pub
+       >>> pub.timegrids = None
+       >>> from hydpy.core.parametertools import Parameter
+       >>> Parameter.simulationstep(None)
+       Period(...)
+
+    Usually, the simulation step size is defined globally in module
+    :mod:`~hydpy.pub` via a :class:`~hydpy.core.timetools.Timegrids` object,
+    or locally via function :func:`~hydpy.core.magictools.simulationstep`
+    in seperate control files.  But you can also change it interactively
+    with the help of :class:`Parameter` objects.
+
+    Generally, the documentation on class :class:`Parameterstep` also holds
+    true for class :class:`Simulationstep`.  The following explanations
+    focus on the differences only.
+
+    As long as no usual or surrogate simulation time step is defined, an
+    empty period object is returned, which can be used to raise the
+    following exception:
+
+    >>> from hydpy.core.parametertools import Parameter
+    >>> parameter = Parameter()
+    >>> ps = parameter.simulationstep
+    >>> ps
+    Period()
+    >>> ps.check()
+    Traceback (most recent call last):
+    ...
+    RuntimeError: Neither a global simulation time grid nor a general \
+simulation step size to be used as a surrogate for testing purposes has \
+been defined.
+
+    For testing or documentation purposes a surrogate step size can be set:
+
+    >>> parameter.simulationstep = '1d'
+    >>> parameter.simulationstep
+    Period('1d')
+
+    But in complete HydPy applications, changing the simulation step
+    size  would be highly error prone.  Hence, being defined globally
+    within the :mod:`~hydpy.pub` module, predefined surrogate values
+    are ignored:
+
+    >>> from hydpy import pub
+    >>> from hydpy.core.timetools import Timegrids, Timegrid
+    >>> pub.timegrids = Timegrids(Timegrid('2000.01.01',
+    ...                                    '2001.01.01',
+    ...                                    '2h'))
+    >>> parameter.simulationstep
+    Period('2h')
+
+    This priority remains unchanged, even when one tries to set a surrogate
+    value after the timegrid object has been defined:
+
+    >>> parameter.simulationstep = '5s'
+    >>> parameter.simulationstep
+    Period('2h')
+
+    One has to delete the timegrid object to make the surrogate simulation
+    step size accessible:
+
+    >>> del pub.timegrids
+    >>> parameter.simulationstep
+    Period('5s')
+    """
+    EXC_MESSAGE = ('Neither a global simulation time grid nor a general '
+                   'simulation step size to be used as a surrogate for '
+                   'testing purposes has been defined.')
+
+    def __get__(self, obj, cls):
+        period = _Period(self)
+        try:
+            period.timedelta = pub.timegrids.stepsize
+        except AttributeError:
+            pass
+        return period
+
+
 class Parameter(variabletools.Variable):
     """Base class for :class:`SingleParameter` and :class:`MultiParameter`."""
 
-    _parameterstep = None
-    _simulationstep = None
-
     NOT_DEEPCOPYABLE_MEMBERS = ('subpars', 'fastaccess')
+
+    parameterstep = Parameterstep()
+    simulationstep = Simulationstep()
 
     def __init__(self):
         self.subpars = None
@@ -347,43 +551,6 @@ class Parameter(variabletools.Variable):
                     'is available' % (self.name, objecttools.classname(type_)))
         return initvalue
 
-    def _getparameterstep(self):
-        """The parameter time step size new parameter values might be related
-        to.
-        """
-        if Parameter._parameterstep is None:
-            raise RuntimeError('The general parameter time step has not been '
-                               'defined so far.')
-        else:
-            return self._parameterstep
-
-    def _setparameterstep(self, value):
-        try:
-            Parameter._parameterstep = timetools.Period(value)
-        except Exception:
-            objecttools.augmentexcmessage('While trying to set the general '
-                                          'parameter time step')
-
-    parameterstep = property(_getparameterstep, _setparameterstep)
-
-    def _getsimulationstep(self):
-        """The simulation time step size new parameter values might be related
-        to.
-        """
-        try:
-            return pub.timegrids.stepsize
-        except AttributeError:
-            return Parameter._simulationstep
-
-    def _setsimulationstep(self, value):
-        try:
-            Parameter._simulationstep = timetools.Period(value)
-        except Exception:
-            objecttools.augmentexcmessage('While trying to set the general '
-                                          'simulation time step')
-
-    simulationstep = property(_getsimulationstep, _setsimulationstep)
-
     def _gettimefactor(self):
         """Factor to adapt a new parameter value related to
         :attr:`parameterstep` to a different simulation time step.
@@ -391,7 +558,7 @@ class Parameter(variabletools.Variable):
         try:
             parfactor = pub.timegrids.parfactor
         except AttributeError:
-            if self._simulationstep is None:
+            if not self.simulationstep:
                 raise RuntimeError('The calculation of the effective value '
                                    'of parameter `%s` requires a definition '
                                    'of the actual simulation time step.  '
@@ -405,9 +572,9 @@ class Parameter(variabletools.Variable):
                                    'details.' % self.name)
             else:
                 date1 = timetools.Date('2000.01.01')
-                date2 = date1 + self._simulationstep
+                date2 = date1 + self.simulationstep
                 parfactor = timetools.Timegrids(timetools.Timegrid(
-                                 date1, date2, self._simulationstep)).parfactor
+                                 date1, date2, self.simulationstep)).parfactor
         return parfactor(self.parameterstep)
 
     timefactor = property(_gettimefactor)
@@ -869,7 +1036,12 @@ class SeasonalParameter(MultiParameter):
     >>> SeasonalParameter()(_a=1.)
     Traceback (most recent call last):
     ...
-    ValueError: While trying to define parameter `seasonalparameter` of element `?`, the following error occured: While trying to retrieve the month for TOY (time of year) object based on the string `_a`, the following error occured: For TOY (time of year) objects, all properties must be of type `int`, but the value `a` of type `str` given for property `month` cannot be converted to `int`.
+    ValueError: While trying to define parameter `seasonalparameter` of \
+element `?`, the following error occured: While trying to retrieve the \
+month for TOY (time of year) object based on the string `_a`, the following \
+error occured: For TOY (time of year) objects, all properties must be of \
+type `int`, but the value `a` of type `str` given for property `month` \
+cannot be converted to `int`.
 
     As the following string representation shows, are the pairs of each
     :class:`SeasonalParameter` instance automatically sorted:
@@ -902,14 +1074,19 @@ class SeasonalParameter(MultiParameter):
     >>> seasonalparameter.toy_1_1_0_0_0 = [1., 2.]
     Traceback (most recent call last):
     ...
-    TypeError: While trying to add a new or change an existing toy-value pair for the seasonal parameter `seasonalparameter` of element `?`, the following error occured: float() argument must be a string or a number...
+    TypeError: While trying to add a new or change an existing toy-value \
+pair for the seasonal parameter `seasonalparameter` of element `?`, the \
+following error occured: float() argument must be a string or a number...
     >>> seasonalparameter = SeasonalParameter()
     >>> seasonalparameter.NDIM = 2
     >>> seasonalparameter.shape = (None, 3)
     >>> seasonalparameter.toy_1_1_0_0_0 = [1., 2.]
     Traceback (most recent call last):
     ...
-    ValueError: While trying to add a new or change an existing toy-value pair for the seasonal parameter `seasonalparameter` of element `?`, the following error occured: could not broadcast input array from shape (2) into shape (3)
+    ValueError: While trying to add a new or change an existing toy-value \
+pair for the seasonal parameter `seasonalparameter` of element `?`, the \
+following error occured: could not broadcast input array from shape (2) \
+into shape (3)
     >>> seasonalparameter.toy_1_1_0_0_0 = [1., 2., 3.]
     >>> seasonalparameter
     seasonalparameter(toy_1_1_0_0_0=[1.0, 2.0, 3.0])
@@ -1254,7 +1431,9 @@ class KeywordParameter2D(KeywordParameter2DMetaclass):
     >>> iswarm(north=[True, False])
     Traceback (most recent call last):
     ...
-    ValueError: When setting parameter `iswarm` of element `?` via row related keyword arguments, each string defined in `ROWNAMES` must be used as a keyword, but the following keyword is not: `south`.
+    ValueError: When setting parameter `iswarm` of element `?` via row \
+related keyword arguments, each string defined in `ROWNAMES` must be used \
+as a keyword, but the following keyword is not: `south`.
 
     But one can modify single rows via attribute access:
 
@@ -1282,17 +1461,23 @@ class KeywordParameter2D(KeywordParameter2DMetaclass):
     >>> iswarm.north = True, True, True
     Traceback (most recent call last):
     ...
-    ValueError: While trying to assign new values to parameter `iswarm` of element `?` via the row related attribute `north`, the following error occured: cannot copy sequence with size 3 to array axis with dimension 2
+    ValueError: While trying to assign new values to parameter `iswarm` of \
+element `?` via the row related attribute `north`, the following error \
+occured: cannot copy sequence with size 3 to array axis with dimension 2
     >>> iswarm.apr2sep = True, True, True
     Traceback (most recent call last):
     ...
-    ValueError: While trying to assign new values to parameter `iswarm` of element `?` via the column related attribute `apr2sep`, the following error occured: cannot copy sequence with size 3 to array axis with dimension 2
+    ValueError: While trying to assign new values to parameter `iswarm` of \
+element `?` via the column related attribute `apr2sep`, the following error \
+occured: cannot copy sequence with size 3 to array axis with dimension 2
 
     >>> iswarm.shape = (1, 1)
     >>> iswarm.south_apr2sep = False
     Traceback (most recent call last):
     ...
-    IndexError: While trying to assign new values to parameter `iswarm` of element `?` via the row and column related attribute `south_apr2sep`, the following error occured: index 1 is out of bounds for axis 0 with size 1
+    IndexError: While trying to assign new values to parameter `iswarm` of \
+element `?` via the row and column related attribute `south_apr2sep`, the \
+following error occured: index 1 is out of bounds for axis 0 with size 1
     >>> iswarm.shape = (2, 2)
 
     Of course, one can define the parameter values in the common manner, e.g.:

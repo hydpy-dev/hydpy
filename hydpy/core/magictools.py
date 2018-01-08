@@ -58,6 +58,7 @@ class Tester(object):
 
     def doit(self):
         opt = pub.options
+        Par = parametertools.Parameter
         with opt.usedefaultvalues(False), \
                 opt.usedefaultvalues(False), \
                 opt.printprogress(False), \
@@ -66,10 +67,10 @@ class Tester(object):
                 opt.reprcomments(False), \
                 opt.ellipsis(0), \
                 opt.reprdigits(6), \
-                opt.warntrim(False):
+                opt.warntrim(False), \
+                Par.parameterstep(None), \
+                Par.simulationstep(None):
             timegrids = pub.timegrids
-            _simulationstep = parametertools.Parameter._simulationstep
-            parametertools.Parameter._simulationstep = None
             pub.timegrids = None
             nodes = devicetools.Node._registry.copy()
             elements = devicetools.Element._registry.copy()
@@ -99,7 +100,6 @@ class Tester(object):
                             warnings.resetwarnings()
             finally:
                 pub.timegrids = timegrids
-                parametertools.Parameter._simulationstep = _simulationstep
                 devicetools.Node.clear_registry()
                 devicetools.Element.clear_registry()
                 devicetools.Node._registry = nodes
@@ -179,7 +179,7 @@ def parameterstep(timestep=None):
     parameter control files for framework users.
     """
     if timestep is not None:
-        parametertools.Parameter._parameterstep = timetools.Period(timestep)
+        parametertools.Parameter.parameterstep(timetools.Period(timestep))
     namespace = inspect.currentframe().f_back.f_locals
     model = namespace.get('model')
     if model is None:
@@ -319,7 +319,7 @@ def prepare_model(module, timestep=None):
     function :func:`prepare_model` properly.
     """
     if timestep is not None:
-        parametertools.Parameter._parameterstep = timetools.Period(timestep)
+        parametertools.Parameter.parameterstep(timetools.Period(timestep))
     model = module.Model()
     if pub.options.usecython and hasattr(module, 'cythonizer'):
         cymodule = module.cythonizer.cymodule
@@ -375,7 +375,7 @@ def simulationstep(timestep):
                       'based on the actual simulation time step as defined '
                       'under `pub.timegrids.stepsize` and the value given '
                       'to `simulationstep` is ignored.')
-    parametertools.Parameter._simulationstep = timetools.Period(timestep)
+    parametertools.Parameter.simulationstep(timetools.Period(timestep))
 
 
 def controlcheck(controldir='default', projectdir=None, controlfile=None):

@@ -156,8 +156,7 @@ class Sequences(object):
                 dirname = pub.conditionmanager.savepath
             filepath = os.path.join(dirname, filename)
             with open(filepath, 'w') as file_:
-                file_.write('from hydpy.models.%s import *\n\n'
-                            % self.model.__module__.split('.')[2])
+                file_.write('from hydpy.models.%s import *\n\n' % self.model)
                 try:
                     line = ('controlcheck(projectdir="%s", controldir="%s")'
                             % (pub.controlmanager.projectdirectory,

@@ -224,6 +224,9 @@ class Model(_MetaModel):
 
     idx_sim = property(_getidx_sim, _setidx_sim)
 
+    def __str__(self):
+        return self.__module__.split('.')[2]
+
     def __dir__(self):
         return objecttools.dir_(self)
 

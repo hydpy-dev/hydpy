@@ -433,6 +433,13 @@ class Period(object):
         >>> # 1 day:
         >>> period = Period('1d')
 
+    In case you need an "empty" period object, just pass nothing or `None`:
+
+        >>> Period()
+        Period()
+        >>> Period(None)
+        Period()
+
     :class:`Period` always determines the unit leading to the most legigible
     expression:
 
@@ -514,18 +521,33 @@ class Period(object):
         >>> period1, period2, period3
         (Period('4h'), Period('4h'), Period('6h'))
     """
-    def __init__(self, period):
-        self.timedelta = None
+    def __init__(self, period=None):
+        self.timedelta = period
         self._unit = None
-        if isinstance(period, Period):
-            self.timedelta = period.timedelta
+
+    def _get_timedelta(self):
+        if self._timedelta is None:
+            raise AttributeError(
+                'The Period object does not contain a timedelta object '
+                '(eventually, it has been initialized without an argument).')
+        else:
+            return self._timedelta
+
+    def _set_timedelta(self, period):
+        if period is None:
+            self._timedelta = None
+        elif isinstance(period, Period):
+            if period:
+                self._timedelta = period.timedelta
+            else:
+                self._timedelta = None
         elif isinstance(period, datetime.timedelta):
             if period.microseconds:
                 raise ValueError(
                     'For `Period` instances, microseconds must be zero.  '
                     'However, for the given `timedelta` object, it is'
                     '`%d` instead.' % period.microseconds)
-            self.timedelta = period
+            self._timedelta = period
         elif isinstance(period, str):
             self._initfromstr(period)
         else:
@@ -533,6 +555,11 @@ class Period(object):
                              'instance of `datetime.timedelta` or `str`.  '
                              'The given arguments type is %s.'
                              % objecttools.classname(period))
+
+    def _del_timedelta(self):
+        self._timedelta = None
+
+    timedelta = property(_get_timedelta, _set_timedelta, _del_timedelta)
 
     def _initfromstr(self, period):
         """Try to initialize `timedelta` from the given :class:`str` instance.
@@ -554,13 +581,13 @@ class Period(object):
                              '`m` (minutes).  Instead, the last character is '
                              '`%s`.' % self._unit)
         if self._unit == 'd':
-            self.timedelta = datetime.timedelta(number, 0)
+            self._timedelta = datetime.timedelta(number, 0)
         elif self._unit == 'h':
-            self.timedelta = datetime.timedelta(0, number*3600)
+            self._timedelta = datetime.timedelta(0, number*3600)
         elif self._unit == 'm':
-            self.timedelta = datetime.timedelta(0, number*60)
+            self._timedelta = datetime.timedelta(0, number*60)
         elif self._unit == 's':
-            self.timedelta = datetime.timedelta(0, number)
+            self._timedelta = datetime.timedelta(0, number)
 
     @classmethod
     def fromseconds(cls, seconds):
@@ -618,6 +645,9 @@ class Period(object):
     def copy(self):
         """Returns a deep copy of the :class:`Period` instance."""
         return copy.deepcopy(self)
+
+    def __bool__(self):
+        return self._timedelta is not None
 
     def __add__(self, other):
         try:
@@ -697,7 +727,10 @@ class Period(object):
             return '%ds' % self.seconds
 
     def __repr__(self):
-        return "Period('%s')" % str(self)
+        if self:
+            return "Period('%s')" % str(self)
+        else:
+            return 'Period()'
 
     def __dir__(self):
         return objecttools.dir_(self)

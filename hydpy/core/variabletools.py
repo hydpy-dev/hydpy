@@ -141,7 +141,7 @@ def _tolerance(values):
 
 
 def _compare_variables_function_generator(
-                method_string, operator_string, aggregation_func):
+        method_string, aggregation_func):
     """Return a function that can be used as a comparison method of class
     :class:`Variable`.
 
@@ -197,12 +197,6 @@ class Variable(object):
     >>> variable /= 2.
     >>> variable
     variable(1.0)
-    >>> variable > variable
-    False
-    >>> variable != 1.5
-    True
-    >>> variable.length
-    1
 
     Similar examples for 1-dimensional objects:
 
@@ -218,12 +212,6 @@ class Variable(object):
     >>> variable /= 2.
     >>> variable
     variable(0.5, 1.0, 1.5)
-    >>> variable > variable
-    False
-    >>> variable != 1.5
-    True
-    >>> variable.length
-    3
 
     Note that comparisons on :class:`Variable` objects containg multiple
     values return a single boolean only:
@@ -287,6 +275,31 @@ error occured: operands could not be broadcast together with shapes (2,) (3,)
 
     @property
     def length(self):
+        """Total number of all entries of the sequence.
+
+        For 0-dimensional sequences, `length` is always one:
+
+        >>> from hydpy.core.variabletools import Variable
+        >>> variable = Variable()
+        >>> Variable.NDIM = 0
+        >>> variable.length
+        1
+
+        For 1-dimensional sequences, it is the vector length:
+
+        >>> Variable.NDIM = 1
+        >>> variable.shape = (5,)
+        >>> variable.length
+        5
+
+        For higher dimensional sequences, the lenghts of the different axes
+        of the matrix are multiplied:
+
+        >>> Variable.NDIM = 3
+        >>> variable.shape = (2, 1, 4)
+        >>> variable.length
+        8
+        """
         length = 1
         for idx in range(self.NDIM):
             length *= self.shape[idx]
@@ -433,12 +446,12 @@ error occured: operands could not be broadcast together with shapes (2,) (3,)
     def __rdivmod__(self, other):
         return numpy.divmod(other, self.value)
 
-    __lt__ = _compare_variables_function_generator('__lt__', '<', all)
-    __le__ = _compare_variables_function_generator('__le__', '<=', all)
-    __eq__ = _compare_variables_function_generator('__eq__', '==', all)
-    __ne__ = _compare_variables_function_generator('__ne__', '!=', any)
-    __ge__ = _compare_variables_function_generator('__ge__', '>=', all)
-    __gt__ = _compare_variables_function_generator('__gt__', '>', all)
+    __lt__ = _compare_variables_function_generator('__lt__', all)
+    __le__ = _compare_variables_function_generator('__le__', all)
+    __eq__ = _compare_variables_function_generator('__eq__', all)
+    __ne__ = _compare_variables_function_generator('__ne__', any)
+    __ge__ = _compare_variables_function_generator('__ge__', all)
+    __gt__ = _compare_variables_function_generator('__gt__', all)
 
     def _typeconversion(self, type_):
         if not self.NDIM:
@@ -491,8 +504,7 @@ error occured: operands could not be broadcast together with shapes (2,) (3,)
         if pub.options.reprcomments:
             return ['# %s' % line for line in
                     textwrap.wrap(autodoctools.description(self), 78)]
-        else:
-            return []
+        return []
 
     def repr_(self, values, islong):
         prefix = '%s(' % self.name
@@ -503,7 +515,7 @@ error occured: operands could not be broadcast together with shapes (2,) (3,)
                 string = objecttools.assignrepr_list(values, prefix, 75) + ')'
             else:
                 string = objecttools.assignrepr_values(
-                                                    values, prefix, 75) + ')'
+                    values, prefix, 75) + ')'
         elif self.NDIM == 2:
             if islong:
                 string = objecttools.assignrepr_list2(values, prefix, 75) + ')'
@@ -753,8 +765,7 @@ object has already been allocated to filename `file1`.
         <class 'hydpy.models.lland.lland_control.EQI1'>,
         <class 'hydpy.models.lland.lland_control.EQI2'>
         """
-        return sorted(self._type2filename2variable.keys(),
-                      key=lambda x: str(x))
+        return sorted(self._type2filename2variable.keys(), key=str)
 
     @property
     def filenames(self):
@@ -788,7 +799,8 @@ object has already been allocated to filename `file1`.
                 if name in (None, fn, var.name):
                     yield var
 
-    def _sort_variables(self, variables):
+    @staticmethod
+    def _sort_variables(variables):
         return sorted(variables, key=lambda x: (x.name, sum(x)))
 
     def get_filename(self, variable):
@@ -807,8 +819,7 @@ object has already been allocated to filename `file1`.
         for (fn, var) in fn2var.items():
             if var == variable:
                 return fn
-        else:
-            return None
+        return None
 
     def __deepcopy__(self, memo):
         new = type(self)()

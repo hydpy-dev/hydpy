@@ -25,13 +25,13 @@ from hydpy.core import autodoctools
 
 
 if pub.pyversion > 2:
-    ABC = abc.ABC
+    _ABC = abc.ABC
 else:
-    class ABC(object):
+    class _ABC(object):
         __metaclass__ = abc.ABCMeta
 
 
-class DocABC(ABC):
+class DocABC(_ABC):
     """ABC base class automatically documenting is registered subclasses."""
 
     _registry_empty = True
@@ -107,7 +107,7 @@ class DocABC(ABC):
             abc.ABCMeta.register(cls, subclass)
 
 
-class IterableNonString(ABC):
+class IterableNonString(_ABC):
     """Abstract base class for checking if an object is iterable but not a
     string."""
 
@@ -117,8 +117,7 @@ class IterableNonString(ABC):
             return (hasattr(C, '__iter__') and
                     not (isinstance(C, str) or
                          issubclass(C, str)))
-        else:
-            return NotImplemented
+        return NotImplemented
 
 
 class Element(DocABC):
@@ -191,6 +190,31 @@ class AideSequence(Sequence):
 
 class LinkSequence(Sequence):
     """Abstract base class for registering custom link sequence classes."""
+    pass
+
+
+class Date(Sequence):
+    """Abstract base class for registering custom date classes."""
+    pass
+
+
+class Period(Sequence):
+    """Abstract base class for registering custom period classes."""
+    pass
+
+
+class Timegrid(Sequence):
+    """Abstract base class for registering custom timegrid classes."""
+    pass
+
+
+class Timegrids(Sequence):
+    """Abstract base class for registering custom timegrids classes."""
+    pass
+
+
+class TOY(Sequence):
+    """Abstract base class for registering custom TOY classes."""
     pass
 
 

@@ -631,7 +631,6 @@ object has already been allocated to filename `file1`.
     >>> from hydpy import dummies
     >>> dummies.v2af = v2af
 
-
     The explanations above focus on parameter objects only.
     :class:`Variable2Auxfile` could be used to handle sequence objects
     as well, but possibly without a big benefit as long as `auxiliary
@@ -639,10 +638,8 @@ object has already been allocated to filename `file1`.
     """
 
     def __init__(self):
-        self.__dict__['__setattr__'] = \
-            types.MethodType(object.__setattr__, self)
-        self.__dict__['_type2filename2variable'] = {}
-        del self.__setattr__
+        with objecttools.ResetSetAttr(Variable2Auxfile):
+            self._type2filename2variable = {}
 
     def __getattr__(self, name):
         variables = self._sort_variables(self._yield_variables(name))

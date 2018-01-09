@@ -1222,8 +1222,9 @@ as a "normal" attribute and is thus not support.
     _contentclass = None
 
     def __init__(self, *values):
-        self.__dict__['_devices'] = {}
-        self.__dict__['_shadowed_keywords'] = set()
+        with objecttools.ResetSetAttr(Devices):
+            self._devices = {}
+            self._shadowed_keywords = set()
         try:
             self._extract_values(values)
         except BaseException:

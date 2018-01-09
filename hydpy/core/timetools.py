@@ -1459,11 +1459,15 @@ class TOY(object):
 
     def __init__(self, value=''):
         if isinstance(value, Date):
+        with objecttools.ResetSetAttr(TOY):
+            self.month = None
+            self.day = None
+            self.hour = None
+            self.minute = None
+            self.second = None
             for name in self._PROPERTIES.keys():
                 self.__dict__[name] = getattr(value, name)
         else:
-            for name in self._PROPERTIES.keys():
-                self.__dict__[name] = None
             values = value.split('_')
             if not values[0].isdigit():
                 del values[0]

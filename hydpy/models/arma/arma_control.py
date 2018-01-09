@@ -196,9 +196,10 @@ class Responses(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
     def __init__(self, *args, **kwargs):
-        self.__dict__['subpars'] = None
-        self.__dict__['fastaccess'] = None
-        self.__dict__['_coefs'] = {}
+        with objecttools.ResetSetAttr(Responses):
+            self.subpars = None
+            self.fastaccess = None
+            self._coefs = {}
         super(Responses, self).__init__(*args, **kwargs)
 
     def connect(self, subpars):

@@ -227,6 +227,60 @@ def augmentexcmessage(prefix=None, suffix=None):
         raise exception(message).with_traceback(traceback_)
 
 
+class ResetSetAttr(object):
+    """Reset the `__setattr__` method of the given class temporarily.
+
+    In HydPy, some classes define a `__setattr__` method which raises
+    exceptions when one tries to set "improper" instance attributes.
+    The problem is, that such customized `setattr` methods often prevent
+    from defining instance attributes within `__init__` methods in the
+    usual manner.  Working on instance dictionaries instead can confuse
+    some automatic tools (e.g. pylint).  Class :class:`ResetSetAttr`
+    implements a trick to circumvent this problem.
+
+    To show how :class:`ResetSetAttr` works, we first define a class
+    with a `__setattr__` method that does not allow to set any attribute:
+
+    >>> class Test(object):
+    ...     def __setattr__(self, name, value):
+    ...         raise AttributeError
+    >>> test = Test()
+    >>> test.var1 = 1
+    Traceback (most recent call last):
+    ...
+    AttributeError
+
+    Assigning this class to :class:`ResetSetAttr` allows for setting
+    attributes to all its instances inside a `with` block in the
+    usual manner:
+
+    >>> from hydpy.core.objecttools import ResetSetAttr
+    >>> with ResetSetAttr(Test):
+    ...     test.var1 = 1
+    >>> test.var1
+    1
+
+    After the end of the `with` block, the custom `__setattr__` method
+    of the test class works again and prevents from setting attributes:
+
+    >>> test.var2 = 2
+    Traceback (most recent call last):
+    ...
+    AttributeError
+    """
+
+    def __init__(self, cls):
+        self.cls = cls
+        self.temp = cls.__setattr__
+
+    def __enter__(self):
+        self.cls.__setattr__ = object.__setattr__
+        return self
+
+    def __exit__(self, exception, message, traceback_):
+        self.cls.__setattr__ = self.temp
+
+
 class _PreserveStrings(object):
     """Helper class for :class:`_Repr_`."""
 

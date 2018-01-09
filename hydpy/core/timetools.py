@@ -3,17 +3,19 @@
 # import...
 # ...from standard library
 from __future__ import division, print_function
-import datetime
-import copy
-import time
 import calendar
 import collections
+import copy
+import datetime
+import numbers
+import time
 import warnings
 # ...from third party packages
 import numpy
 # ...from HydPy
-from hydpy.core import objecttools
+from hydpy.core import abctools
 from hydpy.core import autodoctools
+from hydpy.core import objecttools
 
 
 # The import of `_strptime` is not thread save.  The following call of
@@ -148,7 +150,7 @@ class Date(object):
     def __init__(self, date):
         self.datetime = None
         self._style = None
-        if isinstance(date, Date):
+        if isinstance(date, abctools.Date):
             self.datetime = date.datetime
         elif isinstance(date, datetime.datetime):
             if date.microsecond:
@@ -158,7 +160,7 @@ class Date(object):
             self.datetime = date
         elif isinstance(date, str):
             self._initfromstr(date)
-        elif isinstance(date, TOY):
+        elif isinstance(date, abctools.TOY):
             self.datetime = datetime.datetime(2000,
                                               date.month, date.day, date.hour,
                                               date.minute, date.second)
@@ -174,7 +176,7 @@ class Date(object):
             * date (:class:`str`): Initialization date.
         """
         for (style, string) in self._formatstrings.items():
-            for idx in range(4):
+            for dummy in range(4):
                 try:
                     self.datetime = datetime.datetime.strptime(date, string)
                     self._style = style
@@ -191,7 +193,7 @@ class Date(object):
         month, day, hour, minute, second) stored as the first entries of the
         successive rows of a :class:`~numpy.ndarray` object."""
         intarray = numpy.array(array, dtype=int)
-        for idx in range(1, array.ndim):
+        for dummy in range(1, array.ndim):
             intarray = intarray[:, 0]
         return cls(datetime.datetime(*intarray))
 
@@ -207,17 +209,17 @@ class Date(object):
         (November which is the german reference month). Setting it e.g. to 10
         (October is another common reference month many different countries)
         affects all :class:`Date` instances."""
-        return Date._firstmonth_wateryear
+        return type(self)._firstmonth_wateryear
 
     def _setrefmonth(self, value):
         try:
-            Date._firstmonth_wateryear = int(value)
+            type(self)._firstmonth_wateryear = int(value)
         except ValueError:
             string = str(value)[:3].lower()
             try:
                 months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun',
                           'jul', 'aug', 'sew', 'oct', 'nov', 'dec']
-                Date._firstmonth_wateryear = months.index(string) + 1
+                type(self)._firstmonth_wateryear = months.index(string) + 1
             except ValueError:
                 raise ValueError('The given value `%s` cannot be interpreted '
                                  'as a month. Supply e.g. a number between 1 '
@@ -229,8 +231,7 @@ class Date(object):
         """Date format style to be applied in printing."""
         if self._style is None:
             return 'iso'
-        else:
-            return self._style
+        return self._style
 
     def _setstyle(self, style):
         if style in self._formatstrings:
@@ -315,8 +316,7 @@ class Date(object):
         """The actual hydrological year according selected reference month."""
         if self.month < self._firstmonth_wateryear:
             return self.year
-        else:
-            return self.year + 1
+        return self.year + 1
 
     @property
     def dayofyear(self):
@@ -399,6 +399,9 @@ class Date(object):
         return objecttools.dir_(self)
 
 
+abctools.Date.register(Date)
+
+
 class Period(object):
     """Handles the length of a single time period.
 
@@ -477,7 +480,8 @@ class Period(object):
         >>> period / 7
         Traceback (most recent call last):
         ...
-        ValueError: For `Period` instances, microseconds must be zero.  However, for the given `timedelta` object, it is`857142` instead.
+        ValueError: For `Period` instances, microseconds must be zero.  \
+However, for the given `timedelta` object, it is`857142` instead.
 
         >>> # Double a period duration.
         >>> period *= 2
@@ -522,6 +526,7 @@ class Period(object):
         (Period('4h'), Period('4h'), Period('6h'))
     """
     def __init__(self, period=None):
+        self._timedelta = None
         self.timedelta = period
         self._unit = None
 
@@ -536,7 +541,7 @@ class Period(object):
     def _set_timedelta(self, period):
         if period is None:
             self._timedelta = None
-        elif isinstance(period, Period):
+        elif isinstance(period, abctools.Period):
             if period:
                 self._timedelta = period.timedelta
             else:
@@ -684,10 +689,9 @@ class Period(object):
         return self
 
     def __truediv__(self, other):
-        if isinstance(other, int):
+        if isinstance(other, numbers.Integral):
             return Period(self.timedelta // other)
-        else:
-            return self.seconds / Period(other).seconds
+        return self.seconds / Period(other).seconds
 
     def __itruediv__(self, value):
         return self / value
@@ -729,11 +733,13 @@ class Period(object):
     def __repr__(self):
         if self:
             return "Period('%s')" % str(self)
-        else:
-            return 'Period()'
+        return 'Period()'
 
     def __dir__(self):
         return objecttools.dir_(self)
+
+
+abctools.Period.register(Period)
 
 
 class Timegrid(object):
@@ -807,7 +813,9 @@ class Timegrid(object):
         >>> timegrid_sim.verify()
         Traceback (most recent call last):
         ...
-        ValueError: Unplausible timegrid. The period span between the given dates 1996.11.01 00:30:00 and 1997.11.01 00:00:00 is not a multiple of the given step size 1d.
+        ValueError: Unplausible timegrid. The period span between the given \
+dates 1996.11.01 00:30:00 and 1997.11.01 00:00:00 is not a multiple of the \
+given step size 1d.
 
     One can check two :class:`Timegrid` instances for equality:
 
@@ -960,7 +968,8 @@ class Timegrid(object):
         Now the timegrid information is stored in the first column:
 
         >>> round_(series[:13, 0])
-        2000.0, 11.0, 1.0, 0.0, 0.0, 0.0, 2000.0, 11.0, 1.0, 4.0, 0.0, 0.0, 3600.0
+        2000.0, 11.0, 1.0, 0.0, 0.0, 0.0, 2000.0, 11.0, 1.0, 4.0, 0.0, 0.0, \
+3600.0
 
         All other columns of the first thirteen rows contain nan values, e.g.:
 
@@ -977,7 +986,8 @@ class Timegrid(object):
         >>> timegrid.array2series([[1, 2], [3]])
         Traceback (most recent call last):
         ...
-        ValueError: While trying to prefix timegrid information to the given array, the following error occured: setting an array element with a sequence.
+        ValueError: While trying to prefix timegrid information to the given \
+array, the following error occured: setting an array element with a sequence.
 
         If the given array does not fit to the defined timegrid, a special
         error message is returned:
@@ -985,7 +995,9 @@ class Timegrid(object):
         >>> timegrid.array2series([[1, 2], [3, 4]])
         Traceback (most recent call last):
         ...
-        ValueError: When converting an array to a sequence, the lengths of the timegrid and the given array must be equal, but the length of the timegrid object is `4` and the length of the array object is `2`.
+        ValueError: When converting an array to a sequence, the lengths of \
+the timegrid and the given array must be equal, but the length of the \
+timegrid object is `4` and the length of the array object is `2`.
         """
         try:
             array = numpy.array(array, dtype=float)
@@ -1003,7 +1015,7 @@ class Timegrid(object):
         series = numpy.full(shape, numpy.nan)
         slices = [slice(0, 13)]
         subshape = [13]
-        for idx in range(1, series.ndim):
+        for dummy in range(1, series.ndim):
             slices.append(slice(0, 1))
             subshape.append(1)
         series[slices] = self.toarray().reshape(subshape)
@@ -1029,10 +1041,10 @@ class Timegrid(object):
         return copy.deepcopy(self)
 
     def __len__(self):
-        return int((self.lastdate-self.firstdate) / self.stepsize)
+        return abs(int((self.lastdate-self.firstdate) / self.stepsize))
 
     def __getitem__(self, key):
-        if isinstance(key, int):
+        if isinstance(key, numbers.Integral):
             return Date(self.firstdate + key*self.stepsize)
         else:
             key = Date(key)
@@ -1060,10 +1072,9 @@ class Timegrid(object):
                 (timegrid.stepsize == self.stepsize))
 
     def __contains__(self, other):
-        if isinstance(other, Timegrid):
+        if isinstance(other, abctools.Timegrid):
             return self._containstimegrid(other)
-        else:
-            return self._containsdate(other)
+        return self._containsdate(other)
 
     def __eq__(self, other):
         return ((self.firstdate == other.firstdate) and
@@ -1097,6 +1108,9 @@ class Timegrid(object):
 
     def __dir__(self):
         return objecttools.dir_(self)
+
+
+abctools.Timegrid.register(Timegrid)
 
 
 class Timegrids(object):
@@ -1178,7 +1192,9 @@ class Timegrids(object):
         >>> pub.timegrids.verify()
         Traceback (most recent call last):
         ...
-        ValueError: The last date of the initialisation period (2003.11.11 00:00:00) must not be earlier than the last date of the simulation period (2003.11.12 00:00:00).
+        ValueError: The last date of the initialisation period \
+(2003.11.11 00:00:00) must not be earlier than the last date of the \
+simulation period (2003.11.12 00:00:00).
         >>> pub.timegrids.sim.lastdate -= '1d'
 
         >>> # The other boundary is also checked:
@@ -1186,7 +1202,9 @@ class Timegrids(object):
         >>> pub.timegrids.verify()
         Traceback (most recent call last):
         ...
-        ValueError: The first date of the initialisation period (2000.11.11 00:00:00) must not be later than the first date of the simulation period (2000.11.10 00:00:00).
+        ValueError: The first date of the initialisation period \
+(2000.11.11 00:00:00) must not be later than the first date of the \
+simulation period (2000.11.10 00:00:00).
 
         >>> # Both timegrids are checked to have the same step size:
         >>> pub.timegrids.sim = Timegrid('2001.11.11',
@@ -1195,7 +1213,8 @@ class Timegrids(object):
         >>> pub.timegrids.verify()
         Traceback (most recent call last):
         ...
-        ValueError: The initialization stepsize (1h) must be identical with the simulation stepsize (1d).
+        ValueError: The initialization stepsize (1h) must be identical \
+with the simulation stepsize (1d).
 
         >>> # Also, they are checked to be properly aligned:
         >>> pub.timegrids.sim = Timegrid('2001.11.11 00:30',
@@ -1204,7 +1223,8 @@ class Timegrids(object):
         >>> pub.timegrids.verify()
         Traceback (most recent call last):
         ...
-        ValueError: The simulation time grid is not properly alligned on the initialization time grid.
+        ValueError: The simulation time grid is not properly alligned \
+on the initialization time grid.
     """
     def __init__(self, init, sim=None, data=None):
         if data is not None:
@@ -1226,7 +1246,7 @@ class Timegrids(object):
 
     def _setstepsize(self, stepsize):
         stepsize = Period(stepsize)
-        for (name, timegrid) in self:
+        for (dummy, timegrid) in self:
             timegrid.stepsize = stepsize
 
     stepsize = property(_getstepsize, _setstepsize)
@@ -1312,6 +1332,9 @@ class Timegrids(object):
         return objecttools.dir_(self)
 
 
+abctools.Timegrids.register(Timegrids)
+
+
 class TOY(object):
     """Time of year handler.
 
@@ -1372,7 +1395,8 @@ class TOY(object):
     >>> t.microsecond = 53
     Traceback (most recent call last):
     ...
-    AttributeError: TOY (time of year) objects only allow to set the properties month, day, hour, minute or second, but `microsecond` is given.
+    AttributeError: TOY (time of year) objects only allow to set the \
+properties month, day, hour, minute, and second, but `microsecond` is given.
 
     It is allowed to pass objects that can be converted to integers:
 
@@ -1385,14 +1409,17 @@ class TOY(object):
     >>> t.second = 'fiftythree'
     Traceback (most recent call last):
     ...
-    ValueError: For TOY (time of year) objects, all properties must be of type `int`, but the value `fiftythree` of type `str` given for property `second` cannot be converted to `int`.
+    ValueError: For TOY (time of year) objects, all properties must be of \
+type `int`, but the value `fiftythree` of type `str` given for property \
+`second` cannot be converted to `int`.
 
     Additionally, given values are checked to lie within a suitable range:
 
     >>> t.second = 60
     Traceback (most recent call last):
     ...
-    ValueError: The value of property `second` of TOY (time of year) objects must lie within the range `(0, 59)`, but the given value is `60`.
+    ValueError: The value of property `second` of TOY (time of year) \
+objects must lie within the range `(0, 59)`, but the given value is `60`.
 
     Note that the allowed values for `month` and `day` depend on each other,
     which is why the order one defines them might be of importance.  So, if
@@ -1406,7 +1433,9 @@ class TOY(object):
     >>> t.month = 2
     Traceback (most recent call last):
     ...
-    ValueError: The value of property `month` of the actual TOY (time of year) object must not be the given value `2`, as the day has already been set to `31`.
+    ValueError: The value of property `month` of the actual TOY \
+(time of year) object must not be the given value `2`, as the day \
+has already been set to `31`.
 
     Hence first set `day` to a smaller value and then change `month`:
 
@@ -1419,7 +1448,9 @@ class TOY(object):
     >>> t.day = 29
     Traceback (most recent call last):
     ...
-    ValueError: The value of property `day` of the actual TOY (time of year) object must lie within the range `(1, 28)`, as the month has already been set to `2`, but the given value is `29`.
+    ValueError: The value of property `day` of the actual TOY (time of year) \
+object must lie within the range `(1, 28)`, as the month has already been \
+set to `2`, but the given value is `29`.
 
     It is possible to compare two :class:`TOY` instances:
 
@@ -1458,13 +1489,13 @@ class TOY(object):
     _ENDDATE = Date('01.01.2001')
 
     def __init__(self, value=''):
-        if isinstance(value, Date):
         with objecttools.ResetSetAttr(TOY):
             self.month = None
             self.day = None
             self.hour = None
             self.minute = None
             self.second = None
+        if isinstance(value, abctools.Date):
             for name in self._PROPERTIES.keys():
                 self.__dict__[name] = getattr(value, name)
         else:
@@ -1487,41 +1518,41 @@ class TOY(object):
 
     def __setattr__(self, name, value):
         if name not in self._PROPERTIES:
-            keys = list(self._PROPERTIES.keys())
-            props = ' or '.join((', '.join(keys[:-1]), keys[-1]))
-            raise AttributeError('TOY (time of year) objects only allow to '
-                                 'set the properties %s, but `%s` is given.'
-                                 % (props, name))
+            raise AttributeError(
+                'TOY (time of year) objects only allow to set the '
+                'properties %s, but `%s` is given.'
+                % (objecttools.enumeration(self._PROPERTIES.keys()), name))
         try:
             value = int(value)
         except ValueError:
-            raise ValueError('For TOY (time of year) objects, all properties '
-                             'must be of type `int`, but the value `%s` of '
-                             'type `%s` given for property `%s` cannot be '
-                             'converted to `int`.'
-                             % (value, objecttools.classname(value), name))
+            raise ValueError(
+                'For TOY (time of year) objects, all properties must be of '
+                'type `int`, but the %s given for property `%s` cannot be '
+                'converted to `int`.'
+                % (objecttools.value_of_type(value), name))
         if (name == 'day') and (self.month is not None):
             bounds = (1, calendar.monthrange(1999, self.month)[1])
-            if not (bounds[0] <= value <= bounds[1]):
-                raise ValueError('The value of property `day` of the actual '
-                                 'TOY (time of year) object must lie within '
-                                 'the range `%s`, as the month has already '
-                                 'been set to `%s`, but the given value is '
-                                 '`%s`.' % (bounds, self.month, value))
+            if not bounds[0] <= value <= bounds[1]:
+                raise ValueError(
+                    'The value of property `day` of the actual TOY (time of '
+                    'year) object must lie within the range `%s`, as the '
+                    'month has already been set to `%s`, but the given value '
+                    'is `%s`.' % (bounds, self.month, value))
         elif (name == 'month') and (self.day is not None):
             bounds = (1, calendar.monthrange(2000, value)[1])
-            if not (bounds[0] <= self.day <= bounds[1]):
-                raise ValueError('The value of property `month` of the actual '
-                                 'TOY (time of year) object must not be the '
-                                 'given value `%s`, as the day has already '
-                                 'been set to `%s`.' % (value, self.day))
+            if not bounds[0] <= self.day <= bounds[1]:
+                raise ValueError(
+                    'The value of property `month` of the actual TOY (time of '
+                    'year) object must not be the given value `%s`, as the '
+                    'day has already been set to `%s`.'
+                    % (value, self.day))
         else:
             bounds = self._PROPERTIES[name]
-            if not (bounds[0] <= value <= bounds[1]):
-                raise ValueError('The value of property `%s` of TOY (time of '
-                                 'year) objects must lie within the range '
-                                 '`%s`, but the given value is `%s`.'
-                                 % (name, bounds, value))
+            if not bounds[0] <= value <= bounds[1]:
+                raise ValueError(
+                    'The value of property `%s` of TOY (time of year) objects '
+                    'must lie within the range `%s`, but the given value is '
+                    '`%s`.' % (name, bounds, value))
         object.__setattr__(self, name, value)
 
     @property
@@ -1583,8 +1614,7 @@ class TOY(object):
     def __sub__(self, other):
         if self >= other:
             return self.passed_seconds - other.passed_seconds
-        else:
-            return self.passed_seconds + other.left_seconds
+        return self.passed_seconds + other.left_seconds
 
     def __hash__(self):
         return hash(str(self))
@@ -1598,6 +1628,9 @@ class TOY(object):
                                       in self._PROPERTIES.keys())
 
     __dir__ = objecttools.dir_
+
+
+abctools.TOY.register(TOY)
 
 
 autodoctools.autodoc_module()

@@ -5,10 +5,11 @@ of the different objects defined by the HydPy framework.
 # import...
 # ...from standard library
 from __future__ import division, print_function
+import copy
 import inspect
+import numbers
 import sys
 import textwrap
-import numbers
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import abctools
@@ -227,18 +228,24 @@ def augmentexcmessage(prefix=None, suffix=None):
         raise exception(message).with_traceback(traceback_)
 
 
-class ResetSetAttr(object):
-    """Reset the `__setattr__` method of the given class temporarily.
+class ResetAttrFuncs(object):
+    """Reset all attribute related methods of the given class temporarily.
+
+    The "related methods" are defined in class attribute
+    :attr:`~ResetAttrFuncs.funcnames`.
+
+    There are (at least) two use cases for  class :class:`ResetAttrFuncs`,
+    initialization and copying, which are described below.
 
     In HydPy, some classes define a `__setattr__` method which raises
     exceptions when one tries to set "improper" instance attributes.
     The problem is, that such customized `setattr` methods often prevent
     from defining instance attributes within `__init__` methods in the
     usual manner.  Working on instance dictionaries instead can confuse
-    some automatic tools (e.g. pylint).  Class :class:`ResetSetAttr`
+    some automatic tools (e.g. pylint).  Class :class:`ResetAttrFuncs`
     implements a trick to circumvent this problem.
 
-    To show how :class:`ResetSetAttr` works, we first define a class
+    To show how :class:`ResetAttrFuncs` works, we first define a class
     with a `__setattr__` method that does not allow to set any attribute:
 
     >>> class Test(object):
@@ -250,12 +257,12 @@ class ResetSetAttr(object):
     ...
     AttributeError
 
-    Assigning this class to :class:`ResetSetAttr` allows for setting
+    Assigning this class to :class:`ResetAttrFuncs` allows for setting
     attributes to all its instances inside a `with` block in the
     usual manner:
 
-    >>> from hydpy.core.objecttools import ResetSetAttr
-    >>> with ResetSetAttr(Test):
+    >>> from hydpy.core.objecttools import ResetAttrFuncs
+    >>> with ResetAttrFuncs(test):
     ...     test.var1 = 1
     >>> test.var1
     1
@@ -267,18 +274,104 @@ class ResetSetAttr(object):
     Traceback (most recent call last):
     ...
     AttributeError
-    """
 
-    def __init__(self, cls):
-        self.cls = cls
-        self.temp = cls.__setattr__
+    The second use case is related to method `__getattr__` and copying.
+    The following test class stores its attributes (for whatever reasons)
+    in a special dictionary called "dict_" (note that how
+    :class:`ResetAttrFuncs` is used in the `__init__` method):
+
+    >>> class Test(object):
+    ...     def __init__(self):
+    ...         with ResetAttrFuncs(self):
+    ...             self.dict_ = {}
+    ...     def __setattr__(self, name, value):
+    ...         self.dict_[name] = value
+    ...     def __getattr__(self, name):
+    ...         try:
+    ...             return self.dict_[name]
+    ...         except KeyError:
+    ...             raise AttributeError
+
+    Principally, this simple implementation does its job but its
+    instances are not easily copyable:
+
+    >>> test = Test()
+    >>> test.var1 = 1
+    >>> test.var1
+    1
+    >>> import copy
+    >>> copy.deepcopy(test)
+    Traceback (most recent call last):
+    ...
+    RecursionError: maximum recursion depth exceeded ...
+
+    :class:`ResetAttrFuncs` can be used to implement specialized
+    `__copy__` and `__deepcopy__` methods, which rely on the temporary
+    disabling of `__getattr__`.  For simple cases, one can import the
+    predefined functions :func:`~hydpy.core.objecttools.copy_` and
+    :func:`~hydpy.core.objecttools.deepcopy_`:
+
+    >>> from hydpy.core.objecttools import copy_, deepcopy_
+    >>> Test.__copy__ = copy_
+    >>> test2 = copy.copy(test)
+    >>> test2.var1
+    1
+    >>> Test.__deepcopy__ = deepcopy_
+    >>> test3 = copy.deepcopy(test)
+    >>> test3.var1
+    1
+
+    Note that an infinite recursion is avoided by also disabling methods
+    `__copy__` and `__deepcopy__` themselves.
+
+    """
+    __slots__ = ('cls', 'name2func')
+    funcnames = ('__getattr__', '__setattr__', '__delattr__',
+                 '__copy__', '__deepcopy__')
+
+    def __init__(self, obj):
+        self.cls = type(obj)
+        self.name2func = {}
+        for name in self.funcnames:
+            if hasattr(self.cls, name):
+                self.name2func[name] = self.cls.__dict__.get(name)
 
     def __enter__(self):
-        self.cls.__setattr__ = object.__setattr__
+        for name in self.name2func.keys():
+            if name in ('__setattr__', '__delattr__'):
+                setattr(self.cls, name, getattr(object, name))
+            elif name == '__getattr__':
+                setattr(self.cls, name, object.__getattribute__)
+            else:
+                setattr(self.cls, name, None)
         return self
 
     def __exit__(self, exception, message, traceback_):
-        self.cls.__setattr__ = self.temp
+        for name, func in self.name2func.items():
+            if func:
+                setattr(self.cls, name, func)
+            else:
+                delattr(self.cls, name)
+
+
+def copy_(self):
+    """Copy function for classes with modified attribute functions.
+
+    See the documentation on class :class:`ResetAttrFuncs` for
+    further information.
+    """
+    with ResetAttrFuncs(self):
+        return copy.copy(self)
+
+
+def deepcopy_(self, memo):
+    """Deepcopy function for classes with modified attribute functions.
+
+    See the documentation on class :class:`ResetAttrFuncs` for
+    further information.
+    """
+    with ResetAttrFuncs(self):
+        return copy.deepcopy(self, memo)
 
 
 class _PreserveStrings(object):

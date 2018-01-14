@@ -1222,7 +1222,7 @@ as a "normal" attribute and is thus not support.
     _contentclass = None
 
     def __init__(self, *values):
-        with objecttools.ResetSetAttr(Devices):
+        with objecttools.ResetAttrFuncs(self):
             self._devices = {}
             self._shadowed_keywords = set()
         try:

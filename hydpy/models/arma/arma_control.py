@@ -196,7 +196,7 @@ class Responses(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
     def __init__(self, *args, **kwargs):
-        with objecttools.ResetSetAttr(Responses):
+        with objecttools.ResetAttrFuncs(self):
             self.subpars = None
             self.fastaccess = None
             self._coefs = {}

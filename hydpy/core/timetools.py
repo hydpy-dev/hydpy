@@ -1489,7 +1489,7 @@ set to `2`, but the given value is `29`.
     _ENDDATE = Date('01.01.2001')
 
     def __init__(self, value=''):
-        with objecttools.ResetSetAttr(TOY):
+        with objecttools.ResetAttrFuncs(self):
             self.month = None
             self.day = None
             self.hour = None

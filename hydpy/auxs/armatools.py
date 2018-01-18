@@ -540,8 +540,9 @@ class ARMA(object):
         turning_idx, _ = ma_model.turningpoint
         values = ma_model.coefs[turning_idx:]
         self.ar_coefs, residuals = numpy.linalg.lstsq(
-                                            self.get_a(values, ar_order),
-                                            self.get_b(values, ar_order))[:2]
+            self.get_a(values, ar_order),
+            self.get_b(values, ar_order),
+            rcond=-1)[:2]
         if len(residuals) == 1:
             self.rel_rmse = numpy.sqrt(residuals[0])/numpy.sum(values)
         else:

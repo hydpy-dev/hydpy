@@ -41,10 +41,10 @@ pub.config = configutils.Config()
 dummies = dummytools.Dummies()   # pylint: disable=invalid-name
 
 
-def customwarn(message, category, filename, lineno, line=None):
+def customwarn(message, category, filename, lineno, file=None, line=None):
     """Redirect warnings to `stdout`."""
     sys.stdout.write(warnings.formatwarning(
-        message, category, filename, lineno, line))
+        message, category, filename, lineno))
 
 
 warnings.showwarning = customwarn

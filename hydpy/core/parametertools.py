@@ -248,6 +248,21 @@ class SubParameters(MetaSubParametersClass):
     NotImplementedError: For class `ControlParameters`, the required \
 tuple `_PARCLASSES` is not defined.  Please see the documentation of \
 class `SubParameters` of module `parametertools` for further information.
+
+    The `in` operator can be used to check if a certain :class:`SubParameters`
+    object handles a certain type of parameter:
+
+    >>> Par1 in control
+    True
+    >>> Par1() in control
+    True
+    >>> SingleParameter in control
+    False
+    >>> 1 in control
+    Traceback (most recent call last):
+    ...
+    TypeError: The given value `1` of type `int` is neither a \
+parameter class nor a parameter instance.
     """
     _PARCLASSES = ()
 
@@ -298,6 +313,21 @@ class `SubParameters` of module `parametertools` for further information.
         for Par in self._PARCLASSES:
             name = objecttools.instancename(Par)
             yield name, getattr(self, name)
+
+    def __contains__(self, parameter):
+        if isinstance(parameter, abctools.Parameter):
+            parameter = type(parameter)
+        if parameter in self._PARCLASSES:
+            return True
+        try:
+            if issubclass(parameter, abctools.Parameter):
+                return False
+        except TypeError:
+            pass
+        raise TypeError(
+            'The given %s is neither a parameter class '
+            'nor a parameter instance.'
+            % objecttools.value_of_type(parameter))
 
     def __repr__(self):
         lines = []

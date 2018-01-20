@@ -218,4 +218,9 @@ class TOY(Sequence):
     pass
 
 
+class Model(Sequence):
+    """Abstract base class for registering custom Model classes."""
+    pass
+
+
 autodoctools.autodoc_module()

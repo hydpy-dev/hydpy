@@ -3,6 +3,7 @@
 # import...
 # ...from standard library
 from __future__ import division, print_function
+import builtins
 import datetime
 import itertools
 # ...from site-packages
@@ -442,6 +443,78 @@ class UnitTest(Test):
         for parseq in self.parseqs:
             if hasattr(self.results, parseq.name):
                 getattr(self.results, parseq.name)[idx] = parseq.values
+
+
+class _Open(object):
+
+    def __init__(self, path, mode):
+        self.path = path
+        self.mode = mode
+        self.texts = []
+        self.entered = False
+
+    def __enter__(self):
+        self.entered = True
+        return self
+
+    def __exit__(self, exception, message, traceback_):
+        self.close()
+
+    def write(self, text):
+        self.texts.append(text)
+
+    def close(self):
+        text = ''.join(self.texts)
+        maxchars = len(self.path)
+        lines = []
+        for line in text.split('\n'):
+            if not line:
+                line = '<BLANKLINE>'
+            lines.append(line)
+            maxchars = max(maxchars, len(line))
+        text = '\n'.join(lines)
+        print('~'*maxchars)
+        print(self.path)
+        print('-'*maxchars)
+        print(text)
+        print('~'*maxchars)
+
+
+class Open(object):
+    r"""Replace :func:`open` in doctests temporarily.
+
+    Class :class:`Open` to intended to make writing to files visible
+    and testable in docstrings.  Therefore, Python's built in function
+    :func:`open` is temporarily replaced by another object, printing
+    the filename and the file contend as shown in the following example:
+
+    >>> from hydpy.core.testtools import Open
+    >>> with Open():
+    ...     with open('test.py', 'w') as file_:
+    ...         file_.write('first line\n')
+    ...         file_.write('\n')
+    ...         file_.write('third line\n')
+    ~~~~~~~~~~~
+    test.py
+    -----------
+    first line
+    <BLANKLINE>
+    third line
+    <BLANKLINE>
+    ~~~~~~~~~~~
+
+    Class :class:`Open` as rasther restricted at the moment.  More
+    functionalities will be added later...
+    """
+    def __init__(self):
+        self.open = builtins.open
+
+    def __enter__(self):
+        builtins.open = _Open
+        return self
+
+    def __exit__(self, exception, message, traceback_):
+        builtins.open = self.open
 
 
 autodoctools.autodoc_module()

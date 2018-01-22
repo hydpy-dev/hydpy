@@ -119,30 +119,33 @@ class Parameters(object):
                         % (name, subpars.name, objecttools.devicename(self)))
 
     def savecontrols(self, parameterstep=None, simulationstep=None,
-                     filename=None, dirname=None):
+                     filename=None, dirname=None, auxfiler=None):
         if self.control:
+            if parameterstep is None:
+                parameterstep = Parameter.parameterstep
             if filename is None:
                 filename = self._controldefaultfilename
             if not filename.endswith('.py'):
                 filename += '.py'
             if dirname is None:
                 dirname = pub.controlmanager.controlpath
+            if auxfiler:
+                variable2auxfile = getattr(auxfiler, str(self.model), None)
+            else:
+                variable2auxfile = None
             filepath = os.path.join(dirname, filename)
-            with open(filepath, 'w') as file_:
-                file_.write('from hydpy.models.%s import *\n\n' % self.model)
-                if not parameterstep:
-                    parameterstep = pub.timegrids.stepsize
-                file_.write('parameterstep("%s")\n' % parameterstep)
-                if not simulationstep:
-                    simulationstep = pub.timegrids.stepsize
-                file_.write('simulationstep("%s")\n\n' % simulationstep)
+            with open(filepath, 'w') as file_,\
+                    Parameter.parameterstep(parameterstep):
+                file_.write(header_controlfile(
+                        self.model, parameterstep, simulationstep))
                 for (name, par) in self.control:
-                    _parameterstep = par._parameterstep
-                    try:
-                        par.parameterstep = parameterstep
-                        file_.write(repr(par) + '\n')
-                    finally:
-                        par._parameterstep = _parameterstep
+                    if variable2auxfile:
+                        auxfilename = variable2auxfile.get_filename(par)
+                        if auxfilename:
+                            file_.write("%s(auxfile='%s')\n"
+                                        % (name, auxfilename))
+                            continue
+                    file_.write(repr(par) + '\n')
 
     @property
     def _controldefaultfilename(self):

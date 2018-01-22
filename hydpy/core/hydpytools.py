@@ -78,7 +78,8 @@ class HydPy(object):
 
     @magictools.printprogress
     def savecontrols(self, controldirectory=None, projectdirectory=None,
-                     parameterstep=None, simulationstep=None):
+                     parameterstep=None, simulationstep=None,
+                     auxfiler=None):
         _controldirectory = pub.controlmanager._controldirectory
         _projectdirectory = pub.controlmanager._projectdirectory
         try:
@@ -86,9 +87,13 @@ class HydPy(object):
                 pub.controlmanager.controldirectory = controldirectory
             if projectdirectory:
                 pub.controlmanager.projectdirectory = projectdirectory
+            if auxfiler:
+                auxfiler.save()
             for element in magictools.progressbar(self.elements):
-                element.model.parameters.savecontrols(parameterstep,
-                                                      simulationstep)
+                element.model.parameters.savecontrols(
+                                        parameterstep=parameterstep,
+                                        simulationstep=simulationstep,
+                                        auxfiler=auxfiler)
         finally:
             pub.controlmanager._controldirectory = _controldirectory
             pub.controlmanager._projectdirectory = _projectdirectory

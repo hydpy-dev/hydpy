@@ -309,7 +309,8 @@ error occured: operands could not be broadcast together with shapes (2,) (3,)
         for (key, value) in vars(self).items():
             if key not in self.NOT_DEEPCOPYABLE_MEMBERS:
                 setattr(new, key, copy.deepcopy(value, memo))
-        new.shape = self.shape
+        if self.NDIM:
+            new.shape = self.shape
         new.value = self.value
         return new
 

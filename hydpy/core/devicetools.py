@@ -13,6 +13,7 @@ import weakref
 from matplotlib import pyplot
 # ...from HydPy
 from hydpy import pub
+from hydpy.core import abctools
 from hydpy.core import connectiontools
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
@@ -687,6 +688,9 @@ Keep in mind, that `name` is the unique identifier of node objects.
         return '\n'.join(lines)
 
 
+abctools.Node.register(Node)
+
+
 class Element(Device):
     """Handles a :class:`~hydpy.core.modeltools.Model` and connects it to
     other models via :class:`Node` objects.
@@ -1105,6 +1109,9 @@ assigned to the element so far.
 
     def __repr__(self):
         return self.assignrepr('')
+
+
+abctools.Element.register(Element)
 
 
 class Devices(object):

@@ -137,8 +137,8 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                         opt.ellipsis(0), \
                         opt.reprdigits(6), \
                         opt.warntrim(False), \
-                        Par.parameterstep(None), \
-                        Par.simulationstep(None):
+                        Par.parameterstep.delete(), \
+                        Par.simulationstep.delete():
                     pub.timegrids = None
                     devicetools.Node.clear_registry()
                     devicetools.Element.clear_registry()

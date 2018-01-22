@@ -68,8 +68,8 @@ class Tester(object):
                 opt.ellipsis(0), \
                 opt.reprdigits(6), \
                 opt.warntrim(False), \
-                Par.parameterstep(None), \
-                Par.simulationstep(None):
+                Par.parameterstep.delete(), \
+                Par.simulationstep.delete():
             timegrids = pub.timegrids
             pub.timegrids = None
             nodes = devicetools.Node._registry.copy()

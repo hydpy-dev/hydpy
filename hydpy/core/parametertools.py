@@ -578,9 +578,17 @@ class Parameter(variabletools.Variable):
                              'positional nor a keyword argument is given.'
                              % (self.name, objecttools.devicename(self)))
         elif 'pyfile' in kwargs:
+            warnings.warn(objecttools.HydPyDeprecationWarning(
+                'The keyword name to define a parameter value in an auxiliary '
+                'control file is now `auxfile`.  The old keyword name '
+                '`pyfile` will be banned in the future.'))
             values = self._getvalues_from_auxiliaryfile(kwargs['pyfile'])
             self.values = self.applytimefactor(values)
             del(kwargs['pyfile'])
+        elif 'auxfile' in kwargs:
+            values = self._getvalues_from_auxiliaryfile(kwargs['auxfile'])
+            self.values = self.applytimefactor(values)
+            del(kwargs['auxfile'])
         elif args:
             self.values = self.applytimefactor(numpy.array(args))
         else:

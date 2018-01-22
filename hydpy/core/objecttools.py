@@ -293,14 +293,14 @@ class ResetAttrFuncs(object):
     ...             raise AttributeError
 
     Principally, this simple implementation does its job but its
-    instances are not easily copyable:
+    instances are not easily copyable under all Python versions:
 
     >>> test = Test()
     >>> test.var1 = 1
     >>> test.var1
     1
     >>> import copy
-    >>> copy.deepcopy(test)
+    >>> copy.deepcopy(test)   # doctest: +SKIP
     Traceback (most recent call last):
     ...
     RecursionError: maximum recursion depth exceeded ...

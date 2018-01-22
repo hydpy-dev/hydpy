@@ -446,12 +446,12 @@ error occured: operands could not be broadcast together with shapes (2,) (3,)
     def __rdivmod__(self, other):
         return numpy.divmod(other, self.value)
 
-    __lt__ = _compare_variables_function_generator('__lt__', all)
-    __le__ = _compare_variables_function_generator('__le__', all)
-    __eq__ = _compare_variables_function_generator('__eq__', all)
-    __ne__ = _compare_variables_function_generator('__ne__', any)
-    __ge__ = _compare_variables_function_generator('__ge__', all)
-    __gt__ = _compare_variables_function_generator('__gt__', all)
+    __lt__ = _compare_variables_function_generator('__lt__', numpy.all)
+    __le__ = _compare_variables_function_generator('__le__', numpy.all)
+    __eq__ = _compare_variables_function_generator('__eq__', numpy.all)
+    __ne__ = _compare_variables_function_generator('__ne__', numpy.any)
+    __ge__ = _compare_variables_function_generator('__ge__', numpy.all)
+    __gt__ = _compare_variables_function_generator('__gt__', numpy.all)
 
     def _typeconversion(self, type_):
         if not self.NDIM:

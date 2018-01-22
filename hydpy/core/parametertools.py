@@ -71,10 +71,6 @@ def header_controlfile(model, parameterstep=None, simulationstep=None):
     <BLANKLINE>
     <BLANKLINE>
     """
-    if parameterstep is None:
-        parameterstep = Parameter.parameterstep
-    if simulationstep is None:
-        simulationstep = Parameter.simulationstep
     with Parameter.parameterstep(parameterstep), \
             Parameter.simulationstep(simulationstep):
         return ('# -*- coding: utf-8 -*-\n\n'
@@ -121,8 +117,6 @@ class Parameters(object):
     def savecontrols(self, parameterstep=None, simulationstep=None,
                      filename=None, dirname=None, auxfiler=None):
         if self.control:
-            if parameterstep is None:
-                parameterstep = Parameter.parameterstep
             if filename is None:
                 filename = self._controldefaultfilename
             if not filename.endswith('.py'):
@@ -137,7 +131,7 @@ class Parameters(object):
             with open(filepath, 'w') as file_,\
                     Parameter.parameterstep(parameterstep):
                 file_.write(header_controlfile(
-                        self.model, parameterstep, simulationstep))
+                    self.model, parameterstep, simulationstep))
                 for (name, par) in self.control:
                     if variable2auxfile:
                         auxfilename = variable2auxfile.get_filename(par)
@@ -189,6 +183,7 @@ class Parameters(object):
 
 
 class MetaSubParametersType(type):
+
     def __new__(cls, name, parents, dict_):
         parclasses = dict_.get('_PARCLASSES')
         if parclasses is None:
@@ -200,10 +195,10 @@ class MetaSubParametersType(type):
         if parclasses:
             lst = ['\n\n\n    The following parameter classes are selected:']
             for parclass in parclasses:
-                    lst.append('      * :class:`~%s` `%s`'
-                               % ('.'.join((parclass.__module__,
-                                            parclass.__name__)),
-                                  autodoctools.description(parclass)))
+                lst.append('      * :class:`~%s` `%s`'
+                           % ('.'.join((parclass.__module__,
+                                        parclass.__name__)),
+                              autodoctools.description(parclass)))
             doc = dict_.get('__doc__', None)
             if doc is None:
                 doc = ''
@@ -276,8 +271,8 @@ parameter class nor a parameter instance.
         else:
             self.fastaccess = cls_fastaccess()
             setattr(cymodel.parameters, self.name, self.fastaccess)
-        for Par in self._PARCLASSES:
-            setattr(self, objecttools.instancename(Par), Par())
+        for par in self._PARCLASSES:
+            setattr(self, objecttools.instancename(par), par())
 
     @classmethod
     def getname(cls):
@@ -304,17 +299,16 @@ parameter class nor a parameter instance.
             try:
                 attr._setvalue(value)
             except AttributeError:
-                raise RuntimeError('`%s` instances do not allow the direct'
-                                   'replacement of their members.  After '
-                                   'initialization you should usually only '
-                                   'change parameter values through '
-                                   'assignements.  If you really need to '
-                                   'replace a object member, delete it '
-                                   'beforehand.' % objecttools.classname(self))
+                raise RuntimeError(
+                    '`%s` instances do not allow the direct replacement of '
+                    'their members.  After initialization you should usually '
+                    'only change parameter values through assignements.  '
+                    'If you really need to replace a object member, '
+                    'delete it beforehand.' % objecttools.classname(self))
 
     def __iter__(self):
-        for Par in self._PARCLASSES:
-            name = objecttools.instancename(Par)
+        for par in self._PARCLASSES:
+            name = objecttools.instancename(par)
             yield name, getattr(self, name)
 
     def __contains__(self, parameter):
@@ -353,7 +347,7 @@ parameter class nor a parameter instance.
 
 class _Period(timetools.Period):
 
-    def __init__(self, stepsize=None, period=None):
+    def __init__(self, stepsize=None):
         self.stepsize = stepsize
         super(_Period, self).__init__(stepsize.period)
         self.old_period = timetools.Period(self)
@@ -362,9 +356,10 @@ class _Period(timetools.Period):
     def __enter__(self):
         return self
 
-    def __call__(self, period):
-        self.timedelta = period
-        self.stepsize.period.timedelta = period
+    def __call__(self, stepsize):
+        if stepsize is not None:
+            self.timedelta = stepsize
+            self.stepsize.period.timedelta = stepsize
         return self
 
     def __exit__(self, type_, value, traceback):
@@ -373,6 +368,11 @@ class _Period(timetools.Period):
     def check(self):
         if not self:
             raise RuntimeError(self.stepsize.EXC_MESSAGE)
+
+    def delete(self):
+        self.timedelta = None
+        self.stepsize.period.timedelta = None
+        return self
 
 
 class _Stepsize(object):
@@ -464,6 +464,23 @@ step size allowed is one second.
     Period('2h')
     >>> parameter.parameterstep
     Period('1d')
+
+    Passing `None` means "change nothing in this context" (usefull for
+    defining functions with optional `parameterstep` arguments):
+
+    >>> with parameter.parameterstep(None):
+    ...     print(repr(parameter.parameterstep))
+    Period('1d')
+    >>> parameter.parameterstep
+    Period('1d')
+
+    Deleting the stepsize temporarily, requires calling method `delete`:
+
+    >>> with parameter.parameterstep.delete():
+    ...     print(repr(parameter.parameterstep))
+    Period()
+    >>> parameter.parameterstep
+    Period('1d')
     """
 
     EXC_MESSAGE = 'No general parameter step size has been defined.'
@@ -480,8 +497,8 @@ class Simulationstep(_Stepsize):
        >>> from hydpy import pub
        >>> pub.timegrids = None
        >>> from hydpy.core.parametertools import Parameter
-       >>> Parameter.simulationstep(None)
-       Period(...)
+       >>> Parameter.simulationstep.delete()
+       Period()
 
     Usually, the simulation step size is defined globally in module
     :mod:`~hydpy.pub` via a :class:`~hydpy.core.timetools.Timegrids` object,
@@ -587,11 +604,11 @@ class Parameter(variabletools.Variable):
                 '`pyfile` will be banned in the future.'))
             values = self._getvalues_from_auxiliaryfile(kwargs['pyfile'])
             self.values = self.applytimefactor(values)
-            del(kwargs['pyfile'])
+            del kwargs['pyfile']
         elif 'auxfile' in kwargs:
             values = self._getvalues_from_auxiliaryfile(kwargs['auxfile'])
             self.values = self.applytimefactor(values)
-            del(kwargs['auxfile'])
+            del kwargs['auxfile']
         elif args:
             self.values = self.applytimefactor(numpy.array(args))
         else:
@@ -673,7 +690,7 @@ class Parameter(variabletools.Variable):
                 date1 = timetools.Date('2000.01.01')
                 date2 = date1 + self.simulationstep
                 parfactor = timetools.Timegrids(timetools.Timegrid(
-                                 date1, date2, self.simulationstep)).parfactor
+                    date1, date2, self.simulationstep)).parfactor
         return parfactor(self.parameterstep)
 
     timefactor = property(_gettimefactor)
@@ -849,7 +866,7 @@ class MultiParameter(Parameter):
     def _setshape(self, shape):
         try:
             array = numpy.full(shape, self.initvalue, dtype=self.TYPE)
-        except Exception:
+        except BaseException:
             objecttools.augmentexcmessage('While trying create a new numpy '
                                           'ndarray` for parameter `%s`'
                                           % self.name)
@@ -870,8 +887,7 @@ class MultiParameter(Parameter):
         value = getattr(self.fastaccess, self.name, None)
         if value is None:
             return value
-        else:
-            return numpy.asarray(value)
+        return numpy.asarray(value)
 
     def _setvalue(self, value):
         try:
@@ -927,13 +943,13 @@ class MultiParameter(Parameter):
     def __getitem__(self, key):
         try:
             return self.values[key]
-        except Exception:
+        except BaseException:
             self._raiseitemexception()
 
     def __setitem__(self, key, values):
         try:
             self.values[key] = values
-        except Exception:
+        except BaseException:
             self._raiseitemexception()
 
     def _raiseitemexception(self):
@@ -963,7 +979,7 @@ class MultiParameter(Parameter):
             unique = self.reverttimefactor(unique)
         if len(unique) == 1:
             result = objecttools.repr_(unique[0])
-            for idx in range(self.NDIM):
+            for dummy in range(self.NDIM):
                 result = [result]
             return result
         else:
@@ -984,7 +1000,7 @@ class MultiParameter(Parameter):
                                           'parameter `%s`' % self.name)
         else:
             islong = False
-        return super(Parameter, self).repr_(values, islong)
+        return super(MultiParameter, self).repr_(values, islong)
 
 
 class ZipParameter(MultiParameter):
@@ -1092,7 +1108,7 @@ class ZipParameter(MultiParameter):
                     elif len(unique) > 1:
                         raise exc
             result = ', '.join(sorted(results))
-            for idx in range(self.NDIM):
+            for dummy in range(self.NDIM):
                 result = [result]
             return result
 
@@ -1278,16 +1294,16 @@ into shape (3)
         4.0
 
         """
-        if len(self) == 0:
+        if not self:
             self.values[:] = 0.
         elif len(self) == 1:
             values = list(self._toy2values.values())[0]
             self.values[:] = self.applytimefactor(values)
         else:
-            tt = timetools
-            timegrid = tt.Timegrid(tt.TOY._STARTDATE+self.simulationstep/2,
-                                   tt.TOY._ENDDATE+self.simulationstep/2,
-                                   self.simulationstep)
+            timegrid = timetools.Timegrid(
+                timetools.TOY._STARTDATE+self.simulationstep/2,
+                timetools.TOY._ENDDATE+self.simulationstep/2,
+                self.simulationstep)
             for idx, date in enumerate(timegrid):
                 values = self.interp(date)
                 self.values[idx] = self.applytimefactor(values)
@@ -1365,14 +1381,14 @@ into shape (3)
     """
         xnew = timetools.TOY(date)
         xys = list(self)
-        for idx, (x1, y1) in enumerate(xys):
-            if x1 > xnew:
-                x0, y0 = xys[idx-1]
+        for idx, (x_1, y_1) in enumerate(xys):
+            if x_1 > xnew:
+                x_0, y_0 = xys[idx-1]
                 break
         else:
-            x0, y0 = xys[-1]
-            x1, y1 = xys[0]
-        return y0+(y1-y0)/(x1-x0)*(xnew-x0)
+            x_0, y_0 = xys[-1]
+            x_1, y_1 = xys[0]
+        return y_0+(y_1-y_0)/(x_1-x_0)*(xnew-x_0)
 
     def _setshape(self, shape):
         try:
@@ -1448,25 +1464,24 @@ into shape (3)
         else:
             def assign(values, prefix):
                 return prefix+str(values)
-        if len(self) == 0:
+        if not self:
             return self.name+'()'
-        else:
-            lines = []
-            blanks = ' '*(len(self.name)+1)
-            for idx, (toy, value) in enumerate(self):
-                if idx == 0:
-                    prefix = '%s(%s=' % (self.name, toy)
-                else:
-                    prefix = '%s%s=' % (blanks, toy)
-                lines.append(assign(value, prefix, width=79))
-            lines[-1] += ')'
-            return ',\n'.join(lines)
+        lines = []
+        blanks = ' '*(len(self.name)+1)
+        for idx, (toy, value) in enumerate(self):
+            if idx == 0:
+                prefix = '%s(%s=' % (self.name, toy)
+            else:
+                prefix = '%s%s=' % (blanks, toy)
+            lines.append(assign(value, prefix, width=79))
+        lines[-1] += ')'
+        return ',\n'.join(lines)
 
     def __len__(self):
         return len(self._toy2values)
 
     def __dir__(self):
-        return objecttools.dir_(self) + [str(toy) for (toy, value) in self]
+        return objecttools.dir_(self) + [str(toy) for (toy, dummy) in self]
 
 
 class KeywordParameter2DType(type):
@@ -1484,7 +1499,7 @@ class KeywordParameter2DType(type):
 
 
 KeywordParameter2DMetaclass = KeywordParameter2DType(
-                          'KeywordParameter2DMetaclass', (MultiParameter,), {})
+    'KeywordParameter2DMetaclass', (MultiParameter,), {})
 
 
 class KeywordParameter2D(KeywordParameter2DMetaclass):

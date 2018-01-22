@@ -76,13 +76,21 @@ class Auxfiler(object):
 
     Wrong model specifications result in errors like the following one:
 
-    >>> aux += 'asdf'
+    >>> aux += 'asdf'   # doctest: +SKIP
     Traceback (most recent call last):
     ...
     ModuleNotFoundError: While trying to add one ore more models to the \
 actual auxiliary file handler, the following error occured: \
 While trying to import a model named `asdf`, the following error occured: \
-No module named 'hydpy.models.asdf'
+No module named `hydpy.models.asdf`.
+
+    .. testsetup::
+
+        >>> try:
+        ...     aux += 'asdf'
+        ... except ImportError:
+        ...     pass
+
 
     The :class:`Auxfiler` object allocates a separate
     :class:`Variable2Auxfile` object to each model type.  These are

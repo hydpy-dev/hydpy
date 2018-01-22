@@ -5,7 +5,7 @@
 from __future__ import division, print_function
 try:
     import builtins
-except ModuleNotFoundError:
+except ImportError:
     import __builtin__ as builtins
 import datetime
 import itertools

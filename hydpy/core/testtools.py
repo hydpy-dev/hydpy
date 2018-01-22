@@ -3,9 +3,13 @@
 # import...
 # ...from standard library
 from __future__ import division, print_function
-import builtins
+try:
+    import builtins
+except ModuleNotFoundError:
+    import __builtin__ as builtins
 import datetime
 import itertools
+import os
 # ...from site-packages
 import numpy
 # ...from HydPy
@@ -448,7 +452,7 @@ class UnitTest(Test):
 class _Open(object):
 
     def __init__(self, path, mode):
-        self.path = path
+        self.path = path.replace(os.sep, '/')
         self.mode = mode
         self.texts = []
         self.entered = False
@@ -481,27 +485,32 @@ class _Open(object):
 
 
 class Open(object):
-    r"""Replace :func:`open` in doctests temporarily.
+    """Replace :func:`open` in doctests temporarily.
 
     Class :class:`Open` to intended to make writing to files visible
     and testable in docstrings.  Therefore, Python's built in function
     :func:`open` is temporarily replaced by another object, printing
     the filename and the file contend as shown in the following example:
 
+    >>> import os
+    >>> path = os.path.join('folder', 'test.py')
     >>> from hydpy.core.testtools import Open
     >>> with Open():
-    ...     with open('test.py', 'w') as file_:
-    ...         file_.write('first line\n')
-    ...         file_.write('\n')
-    ...         file_.write('third line\n')
-    ~~~~~~~~~~~
-    test.py
-    -----------
+    ...     with open(path, 'w') as file_:
+    ...         file_.write('first line\\n')
+    ...         file_.write('\\n')
+    ...         file_.write('third line\\n')
+    ~~~~~~~~~~~~~~
+    folder/test.py
+    --------------
     first line
     <BLANKLINE>
     third line
     <BLANKLINE>
-    ~~~~~~~~~~~
+    ~~~~~~~~~~~~~~
+
+    Note that, for simplicity, the UNIX style path seperator `/` is used
+    to print the file path on all systems.
 
     Class :class:`Open` as rasther restricted at the moment.  More
     functionalities will be added later...

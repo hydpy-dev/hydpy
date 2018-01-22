@@ -16,23 +16,24 @@ from hydpy.core import dummytools
 from hydpy.core import indextools
 from hydpy.core import optiontools
 from hydpy.cythons import configutils
-from hydpy.core.hydpytools import HydPy
-from hydpy.core.timetools import Date
-from hydpy.core.timetools import Period
-from hydpy.core.timetools import Timegrid
-from hydpy.core.timetools import Timegrids
+from hydpy.core.auxfiletools import Auxfiler
+from hydpy.core.devicetools import Node
+from hydpy.core.devicetools import Nodes
+from hydpy.core.devicetools import Element
+from hydpy.core.devicetools import Elements
 from hydpy.core.filetools import MainManager
 from hydpy.core.filetools import NetworkManager
 from hydpy.core.filetools import ControlManager
 from hydpy.core.filetools import SequenceManager
 from hydpy.core.filetools import ConditionManager
-from hydpy.core.devicetools import Node
-from hydpy.core.devicetools import Nodes
-from hydpy.core.devicetools import Element
-from hydpy.core.devicetools import Elements
+from hydpy.core.hydpytools import HydPy
+from hydpy.core.objecttools import HydPyDeprecationWarning
 from hydpy.core.selectiontools import Selection
 from hydpy.core.selectiontools import Selections
-from hydpy.core.objecttools import HydPyDeprecationWarning
+from hydpy.core.timetools import Date
+from hydpy.core.timetools import Period
+from hydpy.core.timetools import Timegrid
+from hydpy.core.timetools import Timegrids
 
 
 pub.options = optiontools.Options()
@@ -60,6 +61,7 @@ except TypeError:
     pass
 
 __all__ = ['HydPy', 'pub',
+           'Auxfiler',
            'Date', 'Period', 'Timegrid', 'Timegrids',
            'MainManager', 'NetworkManager', 'ControlManager',
            'SequenceManager', 'ConditionManager',

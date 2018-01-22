@@ -634,7 +634,3 @@ object has already been allocated to filename `file1`.
 
 
 autodoctools.autodoc_module()
-
-
-#import doctest
-#doctest.run_docstring_examples(Auxfiler, {})

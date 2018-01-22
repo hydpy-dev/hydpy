@@ -149,7 +149,12 @@ def _compare_variables_function_generator(
     for aggregating multiple boolean values.
     """
     def comparison_function(self, other):
-        method = getattr(self.value, method_string)
+        try:
+            method = getattr(self.value, method_string)
+        except AttributeError:
+            # in Python 2.7, `int` (but not `float`) defines
+            # `__cmp__` instead of rich comparisons
+            method = getattr(float(self.value), method_string)
         try:
             if isinstance(other, abctools.Variable):
                 result = method(other.value)
@@ -237,17 +242,31 @@ class Variable(object):
     When asking for impossible comparisons, error messages like the following
     are returned:
 
-    >>> variable < 'text'
-    Traceback (most recent call last):
-    ...
-    TypeError: '<' not supported between instances of 'Variable' and 'str'
-
     >>> variable < [1.0, 2.0, 3.0]   # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ...
     ValueError: While trying to compare variable `variable(1.0, 3.0)` of \
 element `?` with object `[1.0, 2.0, 3.0]` of type `list`, the following \
 error occured: operands could not be broadcast together with shapes (2,) (3,)
+
+    >>> variable.NDIM = 0
+    >>> variable.value = 1.0
+    >>> variable < 'text'   # doctest: +SKIP
+    Traceback (most recent call last):
+    ...
+    TypeError: '<' not supported between instances of 'Variable' and 'str'
+
+    .. testsetup::
+
+        >>> from hydpy import pub
+        >>> if pub.pyversion == 2:
+        ...    assert variable < 'text'
+        ... else:
+        ...     try:
+        ...         variable < 'text'
+        ...     except TypeError:
+        ...         pass
+
     """
     # Subclasses need to define...
     NDIM = None    # ... e.g. as class attribute (int)

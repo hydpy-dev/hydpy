@@ -96,7 +96,7 @@ No module named 'hydpy.models.asdf'
     Traceback (most recent call last):
     ...
     AttributeError: Auxiliary file handler do not support setting \
-attributes. Use the `+=` operator to register additional models instead.
+attributes.  Use the `+=` operator to register additional models instead.
     >>> del aux.lland_v1
     Traceback (most recent call last):
     ...
@@ -134,7 +134,7 @@ Filename `file1` is already allocated to another `Variable2Auxfile` object.
     Secondly, it is checked if an assigned parameter actually belongs
     to the corresponding model:
 
-    >>> aux.lstream_v1.file2 = model.parameters.control.eqd1
+    >>> aux.lstream_v1.file3 = model.parameters.control.eqd1
     Traceback (most recent call last):
     ...
     TypeError: While trying to extend the range of variables handled \
@@ -238,7 +238,7 @@ Variable type `EQD1` is not handled by model `lstream_v1`.
         return sorted(self._dict.keys())
 
     def save(self, parameterstep=None, simulationstep=None, dirname=None):
-        r"""Save all defined auxiliary control files.
+        """Save all defined auxiliary control files.
 
         Normally, the control files would be written to disk, of course.
         But to show (and test) the results in the following doctest,
@@ -253,7 +253,7 @@ Variable type `EQD1` is not handled by model `lstream_v1`.
         ...         simulationstep='12h',
         ...         dirname='test_directory')
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        test_directory\file1.py
+        test_directory/file1.py
         -----------------------------------
         # -*- coding: utf-8 -*-
         <BLANKLINE>
@@ -266,7 +266,7 @@ Variable type `EQD1` is not handled by model `lstream_v1`.
         <BLANKLINE>
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        test_directory\file2.py
+        test_directory/file2.py
         -----------------------------------
         # -*- coding: utf-8 -*-
         <BLANKLINE>
@@ -447,7 +447,7 @@ object has already been allocated to filename `file1`.
             for dummy, var2aux in self._master:
                 if (var2aux is not self) and (filename in var2aux.filenames):
                     raise ValueError(
-                        'Filename `{0}` is already allocated to'
+                        'Filename `{0}` is already allocated to '
                         'another `Variable2Auxfile` object.'
                         .format(filename))
 
@@ -626,7 +626,7 @@ object has already been allocated to filename `file1`.
         >>> from hydpy.core.objecttools import print_values
         >>> print_values(dir(dummies.v2af))
         eqb, eqd1, eqd2, eqi1, eqi2, file1, file2, filenames, get_filename,
-        remove, save, types, variables
+        remove, types, variables
         """
         return (objecttools.dir_(self) +
                 self.filenames +

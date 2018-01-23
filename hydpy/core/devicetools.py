@@ -1045,9 +1045,11 @@ assigned to the element so far.
                 subseqs.activate_disk()
 
     def _plot(self, subseqs, names, kwargs):
-        if names is not None:
-            subseqs = ((name, getattr(name)) for name in names)
-        for seq in subseqs:
+        if names:
+            selseqs = (getattr(subseqs, name) for name in names)
+        else:
+            selseqs = subseqs
+        for seq in selseqs:
             if seq.NDIM == 0:
                 label = kwargs.pop('label', ' '.join((self.name, seq.name)))
                 pyplot.plot(seq.series, label=label, **kwargs)
@@ -1058,7 +1060,7 @@ assigned to the element so far.
         if not pyplot.isinteractive():
             pyplot.show()
 
-    def input_plot(self, names=None, **kwargs):
+    def inputplot(self, names=None, **kwargs):
         """Plot the `input` series of the handled model.
 
         To plot the series of a subset of all sequences, pass the respective
@@ -1066,7 +1068,7 @@ assigned to the element so far.
         """
         self._plot(self.model.sequences.inputs, names, kwargs)
 
-    def flux_plot(self, names=None, **kwargs):
+    def fluxplot(self, names=None, **kwargs):
         """Plot the `flux` series of the handled model.
 
         To plot the series of a subset of all sequences, pass the respective
@@ -1074,7 +1076,7 @@ assigned to the element so far.
         """
         self._plot(self.model.sequences.fluxes, names, kwargs)
 
-    def state_plot(self, names=None, **kwargs):
+    def stateplot(self, names=None, **kwargs):
         """Plot the `state` series of the handled model.
 
         To plot the series of a subset of all sequences, pass the respective

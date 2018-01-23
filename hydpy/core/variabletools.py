@@ -493,6 +493,9 @@ error occured: operands could not be broadcast together with shapes (2,) (3,)
     def __bool__(self):
         return self._typeconversion(bool)
 
+    def __nonzero__(self):
+        return self.__bool__()
+
     def __float__(self):
         return self._typeconversion(float)
 

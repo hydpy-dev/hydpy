@@ -542,10 +542,7 @@ However, for the given `timedelta` object, it is`857142` instead.
         if period is None:
             self._timedelta = None
         elif isinstance(period, abctools.Period):
-            if period:
-                self._timedelta = period.timedelta
-            else:
-                self._timedelta = None
+            self._timedelta = getattr(period, 'timedelta', None)
         elif isinstance(period, datetime.timedelta):
             if period.microseconds:
                 raise ValueError(
@@ -654,6 +651,9 @@ However, for the given `timedelta` object, it is`857142` instead.
     def __bool__(self):
         return self._timedelta is not None
 
+    def __nonzero__(self):
+        return self.__bool__()
+
     def __add__(self, other):
         try:
             new = Date(Date(other).datetime + self.timedelta)
@@ -721,6 +721,8 @@ However, for the given `timedelta` object, it is`857142` instead.
         return self.timedelta >= Period(other).timedelta
 
     def __str__(self):
+        if not self:
+            return '?'
         if self.unit == 'd':
             return '%dd' % self.days
         elif self.unit == 'h':

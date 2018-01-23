@@ -51,6 +51,10 @@ class Connections(object):
                 'The selected connection neither has a attribute nor does '
                 'it handle a slave named `%s`.' % name)
 
+    def __delattr__(self, name):
+        slave = getattr(self, name)
+        self._slaves.remove(slave)
+
     def __contains__(self, value):
         try:
             value = value.name

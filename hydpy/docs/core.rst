@@ -12,6 +12,7 @@ each one providing a small number of Python classes:
 
    abctools
    autodoctools
+   auxfiletools
    connectiontools
    devicetools
    dummytools

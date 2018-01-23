@@ -8,12 +8,13 @@ import os
 import warnings
 # ...from HydPy
 from hydpy import pub
-from hydpy.core import objecttools
-from hydpy.core import filetools
-from hydpy.core import devicetools
-from hydpy.core import selectiontools
+from hydpy.core import abctools
 from hydpy.core import autodoctools
+from hydpy.core import devicetools
+from hydpy.core import filetools
 from hydpy.core import magictools
+from hydpy.core import objecttools
+from hydpy.core import selectiontools
 
 
 class HydPy(object):
@@ -77,7 +78,8 @@ class HydPy(object):
 
     @magictools.printprogress
     def savecontrols(self, controldirectory=None, projectdirectory=None,
-                     parameterstep=None, simulationstep=None):
+                     parameterstep=None, simulationstep=None,
+                     auxfiler=None):
         _controldirectory = pub.controlmanager._controldirectory
         _projectdirectory = pub.controlmanager._projectdirectory
         try:
@@ -85,9 +87,13 @@ class HydPy(object):
                 pub.controlmanager.controldirectory = controldirectory
             if projectdirectory:
                 pub.controlmanager.projectdirectory = projectdirectory
+            if auxfiler:
+                auxfiler.save()
             for element in magictools.progressbar(self.elements):
-                element.model.parameters.savecontrols(parameterstep,
-                                                      simulationstep)
+                element.model.parameters.savecontrols(
+                                        parameterstep=parameterstep,
+                                        simulationstep=simulationstep,
+                                        auxfiler=auxfiler)
         finally:
             pub.controlmanager._controldirectory = _controldirectory
             pub.controlmanager._projectdirectory = _projectdirectory
@@ -256,7 +262,7 @@ class HydPy(object):
             if node.deploy_mode != 'oldsim':
                 funcs.append(node.reset)
         for device in self.deviceorder:
-            if isinstance(device, devicetools.Element):
+            if isinstance(device, abctools.Element):
                 funcs.append(device.model.doit)
         for element in self.elements:
             if element.senders:

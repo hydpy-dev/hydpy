@@ -9,10 +9,10 @@ import types
 # ...from site-packages
 import numpy
 # ...from HydPy
-from hydpy import pub
 from hydpy import conf
-from hydpy.core import objecttools
+from hydpy.core import abctools
 from hydpy.core import autodoctools
+from hydpy.core import objecttools
 from hydpy.cythons import modelutils
 
 
@@ -229,6 +229,9 @@ class Model(_MetaModel):
 
     def __dir__(self):
         return objecttools.dir_(self)
+
+
+abctools.Model.register(Model)
 
 
 class NumPars(object):

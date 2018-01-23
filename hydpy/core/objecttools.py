@@ -277,30 +277,30 @@ class ResetAttrFuncs(object):
 
     The second use case is related to method `__getattr__` and copying.
     The following test class stores its attributes (for whatever reasons)
-    in a special dictionary called "dict_" (note that how
+    in a special dictionary called "dic" (note that how
     :class:`ResetAttrFuncs` is used in the `__init__` method):
 
     >>> class Test(object):
     ...     def __init__(self):
     ...         with ResetAttrFuncs(self):
-    ...             self.dict_ = {}
+    ...             self.dic = {}
     ...     def __setattr__(self, name, value):
-    ...         self.dict_[name] = value
+    ...         self.dic[name] = value
     ...     def __getattr__(self, name):
     ...         try:
-    ...             return self.dict_[name]
+    ...             return self.dic[name]
     ...         except KeyError:
     ...             raise AttributeError
 
     Principally, this simple implementation does its job but its
-    instances are not easily copyable:
+    instances are not easily copyable under all Python versions:
 
     >>> test = Test()
     >>> test.var1 = 1
     >>> test.var1
     1
     >>> import copy
-    >>> copy.deepcopy(test)
+    >>> copy.deepcopy(test)   # doctest: +SKIP
     Traceback (most recent call last):
     ...
     RecursionError: maximum recursion depth exceeded ...

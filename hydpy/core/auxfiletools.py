@@ -363,7 +363,7 @@ class Variable2Auxfile(object):
     >>> v2af.file1
     [eqb(5000.0), eqi1(2000.0), eqi2(1000.0)]
 
-     Auxiliary file `file2` shall contain the actual values of parameters
+    Auxiliary file `file2` shall contain the actual values of parameters
     `eqd1`, `eqd2` and (also!) of parameter `eqb`:
 
     >>> v2af.file2 = eqd1, eqd2

@@ -1124,8 +1124,7 @@ class SeasonalParameter(MultiParameter):
 
     For the following examples, we assume a simulation step size of one day:
 
-    >>> from hydpy.core.timetools import Period
-    >>> seasonalparameter.simulationstep = Period('1d')
+    >>> seasonalparameter.simulationstep = '1d'
 
     To define its shape, the first entry of the assigned :class:`tuple`
     object is ignored:
@@ -1151,12 +1150,13 @@ class SeasonalParameter(MultiParameter):
     >>> SeasonalParameter()(_a=1.)
     Traceback (most recent call last):
     ...
-    ValueError: While trying to define parameter `seasonalparameter` of \
-element `?`, the following error occured: While trying to retrieve the \
-month for TOY (time of year) object based on the string `_a`, the following \
-error occured: For TOY (time of year) objects, all properties must be of \
-type `int`, but the value `a` of type `str` given for property `month` \
-cannot be converted to `int`.
+    ValueError: While trying to define the seasonal parameter value \
+`seasonalparameter` of element `?` for time of year `_a`, the following \
+error occured: While trying to retrieve the month for TOY (time of year) \
+object based on the string `_a`, the following error occured: \
+For TOY (time of year) objects, all properties must be of type `int`, \
+but the value `a` of type `str` given for property `month` cannot be \
+converted to `int`.
 
     As the following string representation shows, are the pairs of each
     :class:`SeasonalParameter` instance automatically sorted:
@@ -1225,8 +1225,11 @@ into shape (3)
                         setattr(self, str(timetools.TOY(toystr)), values)
                     except BaseException:
                         objecttools.augmentexcmessage(
-                            'While trying to define parameter `%s` of element '
-                            '`%s`' % (self.name, objecttools.devicename(self)))
+                            'While trying to define the seasonal parameter '
+                            'value `%s` of element `%s` for time of year `%s`'
+                            % (self.name,
+                               objecttools.devicename(self),
+                               toystr))
                 self.refresh()
             else:
                 raise exc
@@ -1240,9 +1243,9 @@ into shape (3)
 
         Instantiate a 1-dimensional :class:`SeasonalParameter` object:
 
+        >>> from hydpy.core.parametertools import SeasonalParameter
         >>> sp = SeasonalParameter()
-        >>> from hydpy.core.timetools import Period
-        >>> sp.simulationstep = Period('1d')
+        >>> sp.simulationstep = '1d'
         >>> sp.NDIM = 1
         >>> sp.shape = (None,)
 
@@ -1294,7 +1297,7 @@ into shape (3)
         4.0
 
         """
-        if not self:
+        if not len(self):
             self.values[:] = 0.
         elif len(self) == 1:
             values = list(self._toy2values.values())[0]
@@ -1464,7 +1467,7 @@ into shape (3)
         else:
             def assign(values, prefix):
                 return prefix+str(values)
-        if not self:
+        if not len(self):
             return self.name+'()'
         lines = []
         blanks = ' '*(len(self.name)+1)

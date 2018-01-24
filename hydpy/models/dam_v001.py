@@ -118,10 +118,10 @@ Integration examples:
     >>> #The following plot confirms the linearity of the defined relationship:
     >>> watervolume2waterlevel.plot(0.0, 100.)
 
-    Either close the plot manually or write the following lines:
+    .. testsetup::
 
-    >>> from matplotlib import pyplot
-    >>> pyplot.close()
+        >>> from matplotlib import pyplot
+        >>> pyplot.close()
 
     To focus on the drought related algorithms solely we turn of the flood
     related processes.  This is accomplished by setting the weights and
@@ -158,6 +158,10 @@ Integration examples:
     >>> solver.abserrormax
     abserrormax(0.01)
 
+    .. _dam_v001_ex01:
+
+    **Example 1**
+
     The following table confirms that the dam model does not release any
     discharge (row `output` contains zero values only).  Hence the
     discharge at the cross section downstream (row `remote`) is identical
@@ -192,6 +196,10 @@ Integration examples:
     knows the last value of the remote node, which has not been defined
     initially.  Hence, in this and the following examples, the first value
     of sequence `totalremotedischarge` can be ignored.
+
+    .. _dam_v001_ex02:
+
+    **Example 2**
 
     Next the discharge that should not be undercut at the cross section
     downstream is set to 1.4 m³/s:
@@ -230,6 +238,10 @@ Integration examples:
     | 19.01. |    1.0 |                  1.6 |                    1.6 |          0.0 |          -0.2 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    1.384251 |   1.0 |     1.7 |      0.0 |      1.7 |
     | 20.01. |    1.0 |                  1.7 |                    1.7 |          0.0 |          -0.3 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    1.470651 |   1.0 |     1.8 |      0.0 |      1.8 |
 
+    .. _dam_v001_ex03:
+
+    **Example 3**
+
     The qualified success in the example above is due to the time delay
     of the information flow from the cross section to the dam and, more
     importantly, due to the travel time of the discharge released.
@@ -263,6 +275,11 @@ Integration examples:
     | 18.01. |    1.0 |              1.70784 |               1.643109 |          0.0 |      -0.10784 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    1.071855 |   1.0 |     1.6 |      0.0 | 1.707565 |
     | 19.01. |    1.0 |             1.707565 |               1.707565 |          0.0 |     -0.107565 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    1.158255 |   1.0 |     1.7 |      0.0 | 1.737129 |
     | 20.01. |    1.0 |             1.737129 |               1.737129 |          0.0 |     -0.137129 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    1.244655 |   1.0 |     1.8 |      0.0 | 1.806473 |
+
+
+    .. _dam_v001_ex04:
+
+    **Example 4**
 
     While is is possible to simply increase the value of parameter
     `remotedischargeminimum`, it is often advisable to use parameter
@@ -300,6 +317,10 @@ Integration examples:
     | 19.01. |    1.0 |             1.689667 |               1.662178 |          0.0 |     -0.289667 |              0.032623 |        0.032623 |        0.032623 |      0.032623 |            0.0 | 0.032623 |    1.211822 |   1.0 |     1.7 | 0.032623 |  1.73685 |
     | 20.01. |    1.0 |              1.73685 |               1.704227 |          0.0 |      -0.33685 |              0.021642 |        0.021642 |        0.021642 |      0.021642 |            0.0 | 0.021642 |    1.296352 |   1.0 |     1.8 | 0.021642 | 1.827792 |
 
+    .. _dam_v001_ex05:
+
+    **Example 5**
+
     Building upon the last example, we subsequently increase the complexity
     of the model parameterization.  Firstly, we introduce a required minimum
     water release of 0.2 m³/s:
@@ -332,6 +353,10 @@ Integration examples:
     | 18.01. |    1.0 |              1.74304 |                1.54304 |          0.0 |      -0.34304 |              0.020494 |             0.2 |             0.2 |           0.2 |            0.0 |      0.2 |     1.03603 |   1.0 |     1.6 |      0.2 | 1.824234 |
     | 19.01. |    1.0 |             1.824234 |               1.624234 |          0.0 |     -0.424234 |              0.009932 |             0.2 |             0.2 |           0.2 |            0.0 |      0.2 |     1.10515 |   1.0 |     1.7 |      0.2 | 1.905933 |
     | 20.01. |    1.0 |             1.905933 |               1.705933 |          0.0 |     -0.505933 |              0.004737 |             0.2 |             0.2 |           0.2 |            0.0 |      0.2 |     1.17427 |   1.0 |     1.8 |      0.2 |      2.0 |
+
+    .. _dam_v001_ex06:
+
+    **Example 6**
 
     One may have noted that the water release is only 0.19 m³/s instead
     of 0.2 m³/s on January 1.  This is due to the low local truncation
@@ -369,6 +394,10 @@ Integration examples:
 
     >>> solver.abserrormax(1e-2)
 
+    .. _dam_v001_ex07:
+
+    **Example 7**
+
     To allow for a smooth transition of the water release in periods where
     the highest demand switches from `remote` to `near` or the other way
     round, one can increase the value of the `neardischargeminimumtolerance`
@@ -402,6 +431,10 @@ Integration examples:
     | 18.01. |    1.0 |             1.764451 |                 1.5464 |          0.0 |     -0.364451 |              0.016958 |        0.211892 |        0.211892 |      0.211892 |            0.0 | 0.211892 |    1.022083 |   1.0 |     1.6 | 0.211892 | 1.842178 |
     | 19.01. |    1.0 |             1.842178 |               1.630286 |          0.0 |     -0.442178 |              0.008447 |        0.210904 |        0.210904 |      0.210904 |            0.0 | 0.210904 |    1.090261 |   1.0 |     1.7 | 0.210904 | 1.920334 |
     | 20.01. |    1.0 |             1.920334 |               1.709429 |          0.0 |     -0.520334 |              0.004155 |        0.210435 |        0.210435 |      0.210435 |            0.0 | 0.210435 |    1.158479 |   1.0 |     1.8 | 0.210435 | 2.011822 |
+
+    .. _dam_v001_ex08:
+
+    **Example 8**
 
     Version 1 of the dam model that is forced to keep a certain degree
     of low flow variability.  It is not allowed to release an arbitrary
@@ -445,6 +478,10 @@ Integration examples:
     | 19.01. |    0.1 |                  1.7 |                    1.6 |          0.0 |          -0.3 |              0.029844 |             0.2 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 |   0.1 |     1.7 |      0.1 |      1.8 |
     | 20.01. |    0.1 |                  1.8 |                    1.7 |          0.0 |          -0.4 |              0.012348 |             0.2 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 |   0.1 |     1.8 |      0.1 |      1.9 |
 
+    .. _dam_v001_ex09:
+
+    **Example 9**
+
     Another issue of the dam model relevant for the simulation of drought
     events to be discussed is the possible restriction of water release
     due to limited storage.  To focus on this, we reset the parameter
@@ -457,7 +494,7 @@ Integration examples:
     Now the storage content increases only until January, 5.  Afterwards
     the dam begins to run dry.  On January 11, the dam is actually empty.
     But there are some fluctuations of the water volume around 0 m³.
-    The most severe deviation from the correct value of 0 m³ oocurs on
+    The most severe deviation from the correct value of 0 m³ occurs on
     January 12, where the final storage volume is -666 m³:
 
     >>> test()
@@ -493,6 +530,10 @@ Integration examples:
     computation times, as the underlying numerical algorithm is not
     really able to handle the discontinuous relationship between release
     and volume around `neardischargeminimumthreshold`.
+
+    .. _dam_v001_ex10:
+
+    **Example 10**
 
     One solution would be to define another version of the dam model and
     simply implement an alternative balance equation for the calculation of
@@ -549,6 +590,10 @@ Integration examples:
     a lower local truncation error without to increase computation times
     too much.
 
+    .. _dam_v001_ex11:
+
+    **Example 11**
+
     The last "drought parameter" we did no not vary so far is
     `nmblogentries`.  In the examples above, this parameter was always
     set to 1, meaning that each estimate of the `natural` discharge of
@@ -575,7 +620,7 @@ Integration examples:
     >>> stream1.model.parameters.control.responses(((), (1.0,)))
     >>> stream1.model.parameters.update()
 
-    The exemple is a little artificial, but exemplifies a general problem
+    The example is a little artificial, but reveals a general problem
     that might occur in different forms.  Due to the time delay of the
     information flow from the cross section to the dam, much water is
     wasted to increase the peak flows, but the violations of the low flow
@@ -604,6 +649,10 @@ Integration examples:
     | 18.01. |    1.0 |             2.899872 |                    1.5 |          0.0 |     -1.499872 |              0.000001 |        0.000001 |        0.000001 |      0.000001 |            0.0 | 0.000001 |    0.575305 |   1.0 |     0.5 | 0.000001 | 0.500001 |
     | 19.01. |    1.0 |             0.500001 |                    0.5 |          0.9 |      0.899999 |              1.399872 |        1.399872 |        1.399872 |      1.399872 |            0.0 | 1.399872 |    0.540756 |   1.0 |     1.5 | 1.399872 | 2.899872 |
     | 20.01. |    1.0 |             2.899872 |                    1.5 |          0.0 |     -1.499872 |              0.000001 |        0.000001 |        0.000001 |      0.000001 |            0.0 | 0.000001 |    0.627156 |   1.0 |     0.5 | 0.000001 | 0.500001 |
+
+    .. _dam_v001_ex12:
+
+    **Example 12**
 
     It seems advisable to increase the number of observations taken into
     account to estimate the natural discharge at the cross section.
@@ -646,10 +695,13 @@ Integration examples:
     much slower dynamics than flood events) these delays should normally
     be not overly important.
 
+    .. _dam_v001_ex13:
 
-    The next examples are supposed to demonstrate that the flood retention
-    methods are implemented properly.  Hence, all parameters related to low
-    water calculations are set in a deactivating manner:
+    **Example 13**
+
+    This and the following examples are supposed to demonstrate that the flood
+    retention methods are implemented properly.  Hence, all parameters related
+    to low water calculations are set in a deactivating manner:
 
     >>> nmblogentries(1)
     >>> remotedischargeminimum(0.0)
@@ -672,9 +724,9 @@ Integration examples:
     ...         intercepts_hidden=0.0, intercepts_output=-1e7/2)
     >>> waterlevel2flooddischarge.plot(0.0, 25.0)
 
-    Close the drawn figure:
+    .. testsetup::
 
-    >>> pyplot.close()
+        >>> pyplot.close()
 
     Hence, for the given simulation step size, the linear storage
     coefficient is approximately 0.054 per day.
@@ -765,6 +817,10 @@ Integration examples:
     78
     >>> model.numvars.nmb_calls = 0
 
+    .. _dam_v001_ex14:
+
+    **Example 14**
+
     If we set the tolerance value to 1e-6 m³/s, the printed table shows
     (six decimal places) no deviation from the analytical solution of the
     linear storage:
@@ -801,6 +857,10 @@ Integration examples:
     211
     >>> model.numvars.nmb_calls = 0
 
+    .. _dam_v001_ex15:
+
+    **Example 15**
+
     Now we reset the local error tolerance to the more realistic value.
     But we configure the `waterlevel2flooddischarge` parameter in a
     highly reactive manner:
@@ -811,9 +871,9 @@ Integration examples:
     ...         intercepts_hidden=0.0, intercepts_output=-1e7/2)
     >>> waterlevel2flooddischarge.plot(0.0, 25.0)
 
-   Close the drawn figure:
+    .. testsetup::
 
-    >>> pyplot.close()
+        >>> pyplot.close()
 
     With this new parameterization of the dam model, the linear storage
     coefficient is approximately 5.4 per day.  This is why the following

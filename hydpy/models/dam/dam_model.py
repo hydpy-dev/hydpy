@@ -24,6 +24,14 @@ def pic_totalremotedischarge_v1(self):
     flu.totalremotedischarge = rec.q[0]
 
 
+def pic_loggedrequiredremoterelease_v1(self):
+    """Update the receiver link sequence."""
+    log = self.sequences.logs.fastaccess
+    rec = self.sequences.receivers.fastaccess
+    log.loggedrequiredremoterelease[1] = log.loggedrequiredremoterelease[1]
+    log.loggedrequiredremoterelease[0] = rec.q[0]
+
+
 def update_loggedtotalremotedischarge_v1(self):
     """Log a new entry of discharge at a cross section far downstream.
 
@@ -174,7 +182,7 @@ def calc_naturalremotedischarge_v1(self):
     flu.naturalremotedischarge = 0.
     for idx in range(con.nmblogentries):
         flu.naturalremotedischarge += (
-                log.loggedtotalremotedischarge[idx] - log.loggedoutflow[idx])
+            log.loggedtotalremotedischarge[idx] - log.loggedoutflow[idx])
     if flu.naturalremotedischarge > 0.:
         flu.naturalremotedischarge /= con.nmblogentries
     else:
@@ -363,11 +371,11 @@ def calc_requiredremoterelease_v1(self):
       :class:`~hydpy.models.dam.dam_fluxes.RemoteFailure`
 
     Calculated flux sequence:
-      :class:`~hydpy.models.dam.dam_fluxes.RequiredRelease`
+      :class:`~hydpy.models.dam.dam_fluxes.RequiredRemoteRelease`
 
     Basic equation:
       :math:`RequiredRemoteRelease = RemoteDemand + RemoteDischargeSafety
-      \\cdot smooth\_logistic1(RemoteFailure, RemoteDischargeSmoothPar)`
+      \\cdot smooth_{logistic1}(RemoteFailure, RemoteDischargeSmoothPar)`
 
     Used auxiliary method:
       :func:`~hydpy.cythons.smoothutils.smooth_logistic1`.
@@ -454,10 +462,36 @@ def calc_requiredremoterelease_v1(self):
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
     flu.requiredremoterelease = (
-            flu.remotedemand+con.remotedischargesavety[der.toy[self.idx_sim]] *
-            smoothutils.smooth_logistic1(
-                    flu.remotefailure,
-                    der.remotedischargesmoothpar[der.toy[self.idx_sim]]))
+        flu.remotedemand+con.remotedischargesavety[der.toy[self.idx_sim]] *
+        smoothutils.smooth_logistic1(
+            flu.remotefailure,
+            der.remotedischargesmoothpar[der.toy[self.idx_sim]]))
+
+
+def calc_requiredremoterelease_v2(self):
+    """Get the required remote release of the last simulation step.
+
+    Required log sequence:
+      :class:`~hydpy.models.dam.logs.LoggedRequiredRemoteRelease`
+
+    Calculated flux sequence:
+      :class:`~hydpy.models.dam.dam_fluxes.RequiredRemoteRelease`
+
+    Basic equation:
+      :math:`RequiredRemoteRelease = LoggedRequiredRemoteRelease`
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> logs.loggedrequiredremoterelease = 2.0, 4.0
+        >>> model.calc_requiredremoterelease_v2()
+        >>> fluxes.requiredremoterelease
+        requiredremoterelease(2.0)
+    """
+    flu = self.sequences.fluxes.fastaccess
+    log = self.sequences.logs.fastaccess
+    flu.requiredremoterelease = log.loggedrequiredremoterelease[0]
 
 
 def calc_requiredrelease_v1(self):
@@ -478,7 +512,7 @@ def calc_requiredrelease_v1(self):
 
     Basic equation:
       :math:`RequiredRelease = RequiredRemoteRelease
-      \\cdot smooth\_logistic2(
+      \\cdot smooth_{logistic2}(
       RequiredRemoteRelease-NearDischargeMinimumThreshold,
       NearDischargeMinimumSmoothPar2)`
 
@@ -570,12 +604,13 @@ def calc_requiredrelease_v1(self):
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
     flu.requiredrelease = con.neardischargeminimumthreshold[
-                                                    der.toy[self.idx_sim]]
-    flu.requiredrelease = (flu.requiredrelease +
-                           smoothutils.smooth_logistic2(
-                               flu.requiredremoterelease-flu.requiredrelease,
-                               der.neardischargeminimumsmoothpar2[
-                                                    der.toy[self.idx_sim]]))
+        der.toy[self.idx_sim]]
+    flu.requiredrelease = (
+        flu.requiredrelease +
+        smoothutils.smooth_logistic2(
+            flu.requiredremoterelease-flu.requiredrelease,
+            der.neardischargeminimumsmoothpar2[
+                der.toy[self.idx_sim]]))
 
 
 def calc_targetedrelease_v1(self):
@@ -610,7 +645,7 @@ def calc_targetedrelease_v1(self):
       :math:`TargetedRelease =
       w \\cdot RequiredRelease + (1-w) \\cdot Inflow`
 
-      :math:`w = smooth\\_logistic1(
+      :math:`w = smooth_{logistic1}(
       Inflow-NearDischargeMinimumThreshold, NearDischargeMinimumSmoothPar)`
 
     Examples:
@@ -849,9 +884,9 @@ def calc_targetedrelease_v1(self):
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
     flu.targetedrelease = smoothutils.smooth_logistic1(
-            flu.inflow-con.neardischargeminimumthreshold[
-                                                der.toy[self.idx_sim]],
-            der.neardischargeminimumsmoothpar1[der.toy[self.idx_sim]])
+        flu.inflow-con.neardischargeminimumthreshold[
+            der.toy[self.idx_sim]],
+        der.neardischargeminimumsmoothpar1[der.toy[self.idx_sim]])
     flu.targetedrelease = (flu.targetedrelease * flu.requiredrelease +
                            (1.-flu.targetedrelease) * flu.inflow)
 
@@ -877,7 +912,7 @@ def calc_actualrelease_v1(self):
 
     Basic equation:
       :math:`ActualRelease = TargetedRelease \\cdot
-      smooth\_logistic1(WaterLevelMinimumThreshold-WaterLevel,
+      smooth_{logistic1}(WaterLevelMinimumThreshold-WaterLevel,
       WaterLevelMinimumSmoothPar)`
 
     Used auxiliary method:
@@ -987,8 +1022,8 @@ def calc_actualrelease_v1(self):
     aid = self.sequences.aides.fastaccess
     flu.actualrelease = (flu.targetedrelease *
                          smoothutils.smooth_logistic1(
-                                 aid.waterlevel-con.waterlevelminimumthreshold,
-                                 der.waterlevelminimumsmoothpar))
+                             aid.waterlevel-con.waterlevelminimumthreshold,
+                             der.waterlevelminimumsmoothpar))
 
 
 def calc_flooddischarge_v1(self):
@@ -1199,7 +1234,9 @@ class Model(modeltools.ModelELS):
                       calc_requiredrelease_v1,
                       calc_targetedrelease_v1)
     _RECEIVER_METHODS = (pic_totalremotedischarge_v1,
-                         update_loggedtotalremotedischarge_v1)
+                         update_loggedtotalremotedischarge_v1,
+                         pic_loggedrequiredremoterelease_v1,
+                         calc_requiredremoterelease_v2)
     _PART_ODE_METHODS = (pic_inflow_v1,
                          calc_waterlevel_v1,
                          calc_actualrelease_v1,

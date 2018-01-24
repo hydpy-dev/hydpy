@@ -16,3 +16,4 @@ Application model:
 .. toctree::
 
    dam_v001
+   dam_v002

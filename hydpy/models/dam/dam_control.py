@@ -19,7 +19,8 @@ class NmbLogEntries(parametertools.SingleParameter):
     """Number of log entries for certain variables [m3/s].
 
     Note that setting a new value by calling the parameter object sets
-    the shapes of all associated log sequences automatically:
+    the shapes of all associated log sequences automatically, except those
+    with a predefined default shape:
 
     >>> from hydpy.models.dam import *
     >>> parameterstep()
@@ -28,13 +29,17 @@ class NmbLogEntries(parametertools.SingleParameter):
     ...     print(seq)
     loggedtotalremotedischarge(nan, nan, nan)
     loggedoutflow(nan, nan, nan)
+    loggedrequiredremoterelease(nan, nan)
     """
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
     def __call__(self, *args, **kwargs):
         super(NmbLogEntries, self).__call__(*args, **kwargs)
-        for (name, seq) in self.subpars.pars.model.sequences.logs:
-            seq.shape = self
+        for (dummy, seq) in self.subpars.pars.model.sequences.logs:
+            try:
+                seq.shape = self
+            except AttributeError:
+                pass
 
 
 class RemoteDischargeMinimum(parametertools.SeasonalParameter):

@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
+# pylint: enable=missing-docstring
 
 # import...
 # ...from standard library
@@ -7,8 +9,8 @@ from __future__ import division, print_function
 from hydpy.core import sequencetools
 
 
-class Q(sequencetools.LinkSequence):
-    """Discharge at a crosssection far downstream [m³/s]."""
+class Q(sequencetools.LinkSequence):   # pylint: disable=invalid-name
+    """Discharge [m³/s]."""
     NDIM, NUMERIC = 0, False
 
 

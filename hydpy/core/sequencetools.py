@@ -1391,15 +1391,15 @@ class LinkSequence(Sequence):
 
     def _getvalue(self):
         """ToDo"""
-        raise NotImplementedError('To retrieve a pointer is very likely to '
-                                  'result in bugs and is thus not supported '
-                                  'at the moment.')
+        raise AttributeError('To retrieve a pointer is very likely to '
+                             'result in bugs and is thus not supported '
+                             'at the moment.')
 
     def _setvalue(self, value):
         """Could be implemented, but is not important at the moment..."""
-        raise NotImplementedError('To change a pointer is very likely to '
-                                  'result in bugs and is thus not supported '
-                                  'at the moment.')
+        raise AttributeError('To change a pointer is very likely to '
+                             'result in bugs and is thus not supported '
+                             'at the moment.')
 
     value = property(_getvalue, _setvalue)
     values = value

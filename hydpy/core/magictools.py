@@ -315,7 +315,7 @@ def prepare_model(module, timestep=None):
     :func:`prepare_model`, which just returns a reference to the model
     and nothing else.
 
-    See the documentation of :mod:`~hydpy.models.dam_v1` on how to apply
+    See the documentation of :mod:`~hydpy.models.dam_v001` on how to apply
     function :func:`prepare_model` properly.
     """
     if timestep is not None:

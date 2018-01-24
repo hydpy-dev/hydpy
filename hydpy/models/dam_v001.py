@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
+# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
+"""Version 1 application model of HydPy-Dam.
 
 Obviously, using the "smoothly applied" parameter `remotedischargesavety`
 can be beneficial.  But the proper definition of the values of the
@@ -11,7 +12,7 @@ drought events.
 
 Integration examples:
 
-    The following are performed over a period of 20 days:
+    The following examples are performed over a period of 20 days:
 
     >>> from hydpy import pub, Timegrid, Timegrids
     >>> pub.timegrids = Timegrids(Timegrid('01.01.2000',
@@ -76,7 +77,7 @@ Integration examples:
     the `dam` element (different sets of parameters will be defined in the
     examples below):
 
-    >>> from hydpy.models.dam_v1 import *
+    >>> from hydpy.models.dam_v001 import *
     >>> parameterstep('1d')
     >>> dam.connect(model)
 
@@ -84,11 +85,12 @@ Integration examples:
     is prepared:
 
     >>> from hydpy.core.testtools import IntegrationTest
-    >>> test = IntegrationTest(dam,
-    ...                        inits=((states.watervolume, 0.0),
-    ...                               (logs.loggedtotalremotedischarge, 1.9),
-    ...                               (logs.loggedoutflow, 0.0),
-    ...                               (stream1.model.sequences.logs.login, 0.0)))
+    >>> test = IntegrationTest(
+    ...     dam,
+    ...     inits=((states.watervolume, 0.0),
+    ...            (logs.loggedtotalremotedischarge, 1.9),
+    ...            (logs.loggedoutflow, 0.0),
+    ...            (stream1.model.sequences.logs.login, 0.0)))
     >>> test.dateformat = '%d.%m.'
 
     Next the drought event needs to be defined.  The natural discharge of
@@ -986,7 +988,7 @@ class ReceiverSequences(sequencetools.LinkSequences):
     """Information link sequences of HydPy-Dam, Version 1."""
     _SEQCLASSES = (dam_receivers.Q,)
 
-
+# pylint: disable=invalid-name
 tester = Tester()
 cythonizer = Cythonizer()
 cythonizer.complete()

@@ -127,46 +127,39 @@ class Model(_MetaModel):
                 % (group[:-1],  objecttools.devicename(self)))
 
     def _connect_subgroup(self, group):
-        isentry = group in ('inlets', 'receivers')
         available_nodes = getattr(self.element, group).slaves
         links = getattr(self.sequences, group, ())
         applied_nodes = []
         for (name, seq) in links:
-            selected_nodes = [node for node in available_nodes
-                              if node.variable.lower() == name]
-            if isentry:
-                selected_doubles = [node.get_double_via_exits()
-                                    for node in selected_nodes]
-            else:
-                selected_doubles = [node.get_double_via_entries()
-                                    for node in selected_nodes]
+            selected_nodes = tuple(node for node in available_nodes
+                                   if node.variable.lower() == name)
             if seq.NDIM == 0:
                 if len(selected_nodes) == 1:
                     applied_nodes.append(selected_nodes[0])
-                    seq.setpointer(selected_doubles[0])
+                    seq.setpointer(selected_nodes[0].get_double(group))
                 elif len(selected_nodes) == 0:
-                    raise RuntimeError('Sequence `%s` cannot be connected, '
-                                       'as no node is available which is '
-                                       'handling the variable `%s`.'
-                                       % (name, seq.name.upper()))
+                    raise RuntimeError(
+                        'Sequence `%s` cannot be connected, as no node is '
+                        'available which is handling the variable `%s`.'
+                        % (name, seq.name.upper()))
                 else:
-                    raise RuntimeError('Sequence `%s` cannot be connected, '
-                                       'as it is 0-dimensional but multiple '
-                                       'nodes are available which are '
-                                       'handling variable `%s`.'
-                                       % (name, seq.name.upper()))
+                    raise RuntimeError(
+                        'Sequence `%s` cannot be connected, as it is '
+                        '0-dimensional but multiple nodes are available '
+                        'which are handling variable `%s`.'
+                        % (name, seq.name.upper()))
             elif seq.NDIM == 1:
                 seq.shape = len(selected_nodes)
-                zipped = zip(selected_nodes, selected_doubles)
-                for idx, (node, double) in enumerate(zipped):
+                for idx, node in enumerate(selected_nodes):
                     applied_nodes.append(node)
-                    seq.setpointer(double, idx)
+                    seq.setpointer(node.get_double(group), idx)
         if len(applied_nodes) < len(available_nodes):
             remaining_nodes = [node.name for node in available_nodes
                                if node not in applied_nodes]
-            raise RuntimeError('The following nodes have not been connected '
-                               'to any sequences: `%s`.'
-                               % ', '.join(remaining_nodes))
+            raise RuntimeError(
+                'The following nodes have not been connected '
+                'to any sequences: `%s`.'
+                % ', '.join(remaining_nodes))
 
     def doit(self, idx):
         self.idx_sim = idx

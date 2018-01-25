@@ -263,7 +263,7 @@ class IntegrationTest(Test):
         does not result in the desired outcome."""
         for node in self.nodes:
             if not node.entries:
-                node.deploy_mode = 'oldsim'
+                node.deploymode = 'oldsim'
             sim = node.sequences.sim
             sim.ramflag = True
             sim._setarray(numpy.zeros(len(pub.timegrids.init), dtype=float))

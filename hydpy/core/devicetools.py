@@ -476,7 +476,7 @@ Keep in mind, that `name` is the unique identifier of node objects.
             self.exits = connectiontools.Connections(self, 'exits')
             self._all_connections = (self.entries, self.exits)
             self.sequences = sequencetools.NodeSequences(self)
-            self.deploy_mode = 'newsim'
+            self.deploymode = 'newsim'
             self._blackhole = None
             self._handlers = weakref.WeakSet()
             cls._registry[name] = self
@@ -513,7 +513,7 @@ Keep in mind, that `name` is the unique identifier of node objects.
         cls._selection.clear()
         return nodes
 
-    def _get_deploy_mode(self):
+    def _get_deploymode(self):
         """Defines the kind of information a node deploys.
 
         The following modes are supported:
@@ -541,9 +541,9 @@ Keep in mind, that `name` is the unique identifier of node objects.
         simulation are not available (e.g. for parameter calibration)
         after the simulation is finished.
         """
-        return self._deploy_mode
+        return self._deploymode
 
-    def _set_deploy_mode(self, value):
+    def _set_deploymode(self, value):
         if value == 'newsim':
             self.sequences.sim.use_ext = False
         elif value == 'obs':
@@ -557,14 +557,48 @@ Keep in mind, that `name` is the unique identifier of node objects.
                 'When trying to set the routing mode of node %s, the value '
                 '`%s` was given, but only the following values are allowed: '
                 '`newsim`, `obs` and `oldsim`.' % (self.name, value))
-        self._deploy_mode = value
+        self._deploymode = value
 
-    deploy_mode = property(_get_deploy_mode, _set_deploy_mode)
+    deploymode = property(_get_deploymode, _set_deploymode)
+
+    def get_double(self, group):
+        """Return the :class:`~hydpy.cythons.pointertools.Double` object
+        appropriate for the given group and the predefined deploy mode.
+
+        >>> from hydpy.core.devicetools import Node
+        >>> node = Node('node1')
+        >>> node.sequences.sim = 1.0
+        >>> node.sequences.obs = 2.0
+        >>> def test(deploymode):
+        ...     node.deploymode = deploymode
+        ...     for group in ('inlets', 'receivers', 'outlets', 'senders'):
+        ...         print(node.get_double(group), end='')
+        ...         if group != 'senders':
+        ...             print(end=' ')
+        >>> test('newsim')
+        1.0 1.0 1.0 1.0
+        >>> test('obs')
+        2.0 2.0 1.0 1.0
+        >>> test('oldsim')
+        1.0 1.0 0.0 0.0
+        >>> node.get_double('test')
+        Traceback (most recent call last):
+        ...
+        ValueError: Function `get_double` of class `Node` does not support \
+the given group name `test`.
+        """
+        if group in ('inlets', 'receivers'):
+            return self.get_double_via_exits()
+        elif group in ('outlets', 'senders'):
+            return self.get_double_via_entries()
+        raise ValueError(
+            'Function `get_double` of class `Node` does not '
+            'support the given group name `%s`.' % group)
 
     def get_double_via_exits(self):
         """Return the :class:`~hydpy.cythons.pointertools.Double` object that
         is supposed to deploy its value to the downstream elements."""
-        if self.deploy_mode != 'obs':
+        if self.deploymode != 'obs':
             return self.sequences.fastaccess.sim
         else:
             return self.sequences.fastaccess.obs
@@ -572,7 +606,7 @@ Keep in mind, that `name` is the unique identifier of node objects.
     def get_double_via_entries(self):
         """Return the :class:`~hydpy.cythons.pointertools.Double` object that
         is supposed to receive the value(s) of the upstream elements."""
-        if self.deploy_mode != 'oldsim':
+        if self.deploymode != 'oldsim':
             return self.sequences.fastaccess.sim
         else:
             return self._blackhole

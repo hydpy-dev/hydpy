@@ -254,12 +254,12 @@ class HydPy(object):
     def funcorder(self):
         funcs = []
         for node in self.nodes:
-            if node.deploy_mode == 'oldsim':
+            if node.deploymode == 'oldsim':
                 funcs.append(node._loaddata_sim)
             elif node.sequences.obs.use_ext:
                 funcs.append(node._loaddata_obs)
         for node in self.nodes:
-            if node.deploy_mode != 'oldsim':
+            if node.deploymode != 'oldsim':
                 funcs.append(node.reset)
         for device in self.deviceorder:
             if isinstance(device, abctools.Element):
@@ -271,7 +271,7 @@ class HydPy(object):
             if element.receivers:
                 funcs.append(element.model.update_receivers)
         for node in self.nodes:
-            if node.deploy_mode != 'oldsim':
+            if node.deploymode != 'oldsim':
                 funcs.append(node._savedata_sim)
         return funcs
 

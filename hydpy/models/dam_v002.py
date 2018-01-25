@@ -153,16 +153,13 @@ Integration examples:
 
     >>> input_.sequences.sim.series = numpy.linspace(0.2, 0.0, 20)
     >>> neardischargeminimumthreshold(0.0)
-    >>> neardischargeminimumtolerance(0.0)
     >>> waterlevelminimumtolerance(0.01)
     >>> waterlevelminimumthreshold(0.005)
-
     >>> remote.sequences.sim.series = [
     ...     0.01232, 0.029323, 0.064084, 0.120198, 0.247367,
     ...     0.45567, 0.608464, 0.537314, 0.629775, 0.744091,
     ...     0.82219, 0.841916, 0.701812, 0.533258, 0.351863,
     ...     0.185207, 0.107697, 0.055458, 0.025948, 0.0]
-
     >>> test()
     |   date |   inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume |    input |   output |   remote |
     ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -202,8 +199,6 @@ Integration examples:
     ...         intercepts_hidden=0.0, intercepts_output=-1e7/2)
 
     >>> neardischargeminimumthreshold(0.0)
-    >>> input_.sequences.sim.series = numpy.linspace(0.2, 0.0, 20)
-
     >>> input_.sequences.sim.series = [ 0., 1., 5., 9., 8., 5., 3., 2., 1., 0.,
     ...                                 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]
     >>> remote.sequences.sim.series = 0.0

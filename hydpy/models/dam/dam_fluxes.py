@@ -62,8 +62,13 @@ class TargetedRelease(sequencetools.FluxSequence):
 
 
 class ActualRelease(sequencetools.FluxSequence):
-    """Actual water release thought for reducing with drought events
+    """Actual water release thought for reducing drought events
     downstream [m³/s]."""
+    NDIM, NUMERIC = 0, True
+
+
+class ActualRemoteRelease(sequencetools.FluxSequence):
+    """Actual water release thought for arbitrary "remote" purposes [m³/s]."""
     NDIM, NUMERIC = 0, True
 
 
@@ -83,5 +88,6 @@ class FluxSequences(sequencetools.FluxSequences):
                    RequiredRelease,
                    TargetedRelease,
                    ActualRelease,
+                   ActualRemoteRelease,
                    FloodDischarge,
                    Outflow)

@@ -17,3 +17,4 @@ Application model:
 
    dam_v001
    dam_v002
+   dam_v003

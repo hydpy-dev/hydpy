@@ -90,6 +90,18 @@ class WaterLevelMinimumTolerance(parametertools.SingleParameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
 
 
+class WaterLevelMinimumRemoteThreshold(parametertools.SingleParameter):
+    """The minimum operating water level of the dam regarding remote
+    water supply [m]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
+
+
+class WaterLevelMinimumRemoteTolerance(parametertools.SingleParameter):
+    """A tolarance value for the minimum operating water level regarding
+    remote water supply[m]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
+
+
 class WaterVolume2WaterLevel(anntools.ANN):
     """Artificial neural network describing the relationship between
     water level and water volume [-]."""
@@ -108,6 +120,8 @@ class ControlParameters(parametertools.SubParameters):
                    RemoteDischargeSavety,
                    NearDischargeMinimumThreshold,
                    NearDischargeMinimumTolerance,
+                   WaterLevelMinimumRemoteThreshold,
+                   WaterLevelMinimumRemoteTolerance,
                    WaterLevelMinimumThreshold,
                    WaterLevelMinimumTolerance,
                    WaterVolume2WaterLevel,

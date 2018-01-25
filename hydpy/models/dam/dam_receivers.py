@@ -14,6 +14,12 @@ class Q(sequencetools.LinkSequence):   # pylint: disable=invalid-name
     NDIM, NUMERIC = 0, False
 
 
+class S(sequencetools.LinkSequence):   # pylint: disable=invalid-name
+    """Water supply [m³/s]."""
+    NDIM, NUMERIC = 0, False
+
+
 class ReceiverSequences(sequencetools.LinkSequences):
     """Information link sequences of the dam model."""
-    _SEQCLASSES = (Q,)
+    _SEQCLASSES = (Q,
+                   S)

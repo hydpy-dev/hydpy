@@ -157,6 +157,34 @@ class WaterLevelMinimumSmoothPar(parametertools.SingleParameter):
         self.value = smoothtools.calc_smoothpar_logistic1(metapar)
 
 
+class WaterLevelMinimumRemoteSmoothPar(parametertools.SingleParameter):
+    """Smoothing parameter to be derived from
+    :class:`~hydpy.models.dam.dam_control.WaterLevelMinimumRemoteTolerance`
+    [m].
+
+    The following example is explained in some detail in module
+    :mod:`~hydpy.auxs.smoothtools`:
+
+    >>> from hydpy.models.dam import *
+    >>> parameterstep()
+    >>> waterlevelminimumremotetolerance(0.0)
+    >>> derived.waterlevelminimumremotesmoothpar.update()
+    >>> from hydpy.cythons.smoothutils import smooth_logistic1
+    >>> from hydpy.core.objecttools import round_
+    >>> round_(smooth_logistic1(0.1, derived.waterlevelminimumremotesmoothpar))
+    1.0
+    >>> waterlevelminimumremotetolerance(2.5)
+    >>> derived.waterlevelminimumremotesmoothpar.update()
+    >>> round_(smooth_logistic1(2.5, derived.waterlevelminimumremotesmoothpar))
+    0.99
+    """
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+
+    def update(self):
+        metapar = self.subpars.pars.control.waterlevelminimumremotetolerance
+        self.value = smoothtools.calc_smoothpar_logistic1(metapar)
+
+
 class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of the dam model."""
     _PARCLASSES = (TOY,
@@ -164,4 +192,5 @@ class DerivedParameters(parametertools.SubParameters):
                    RemoteDischargeSmoothPar,
                    NearDischargeMinimumSmoothPar1,
                    NearDischargeMinimumSmoothPar2,
-                   WaterLevelMinimumSmoothPar)
+                   WaterLevelMinimumSmoothPar,
+                   WaterLevelMinimumRemoteSmoothPar)

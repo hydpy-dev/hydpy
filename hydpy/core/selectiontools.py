@@ -376,7 +376,7 @@ class Selection(object):
         """Save the selection as a network file."""
         if path is None:
             path = self.name + '.py'
-        with open(path, 'w') as file_:
+        with open(path, 'w', encoding="utf-8") as file_:
             file_.write('# -*- coding: utf-8 -*-\n')
             file_.write('\nfrom hydpy import Node, Element\n\n')
             if write_nodes:

@@ -77,7 +77,7 @@ def header_controlfile(model, parameterstep=None, simulationstep=None):
                 'from hydpy.models.%s import *\n\n'
                 'simulationstep("%s")\n'
                 'parameterstep("%s")\n\n'
-                % (model, Parameter.parameterstep, Parameter.simulationstep))
+                % (model, Parameter.simulationstep, Parameter.parameterstep))
 
 
 class Parameters(object):

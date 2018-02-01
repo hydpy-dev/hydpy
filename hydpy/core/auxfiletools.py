@@ -339,6 +339,7 @@ class Variable2Auxfile(object):
     >>> from hydpy import pub
     >>> pub.options.usedefaultvalues = True
     >>> from hydpy.models.lland_v1 import *
+    >>> simulationstep('1d')
     >>> parameterstep('1d')
 
     Note that we made use of the `usedefaultvalues` option.

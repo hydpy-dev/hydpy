@@ -43,8 +43,8 @@ def header_controlfile(model, parameterstep=None, simulationstep=None):
     <BLANKLINE>
     from hydpy.models.no model class import *
     <BLANKLINE>
-    parameterstep("-1h")
     simulationstep("1h")
+    parameterstep("-1h")
     <BLANKLINE>
     <BLANKLINE>
 
@@ -66,8 +66,8 @@ def header_controlfile(model, parameterstep=None, simulationstep=None):
     <BLANKLINE>
     from hydpy.models.lland_v1 import *
     <BLANKLINE>
-    parameterstep("1d")
     simulationstep("1h")
+    parameterstep("1d")
     <BLANKLINE>
     <BLANKLINE>
     """
@@ -75,8 +75,8 @@ def header_controlfile(model, parameterstep=None, simulationstep=None):
             Parameter.simulationstep(simulationstep):
         return ('# -*- coding: utf-8 -*-\n\n'
                 'from hydpy.models.%s import *\n\n'
-                'parameterstep("%s")\n'
-                'simulationstep("%s")\n\n'
+                'simulationstep("%s")\n'
+                'parameterstep("%s")\n\n'
                 % (model, Parameter.parameterstep, Parameter.simulationstep))
 
 

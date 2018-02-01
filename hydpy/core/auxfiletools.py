@@ -267,8 +267,8 @@ Variable type `EQD1` is not handled by model `lstream_v1`.
         <BLANKLINE>
         from hydpy.models.lland_v1 import *
         <BLANKLINE>
-        parameterstep("1d")
         simulationstep("12h")
+        parameterstep("1d")
         <BLANKLINE>
         eqd1(200.0)
         <BLANKLINE>
@@ -280,8 +280,8 @@ Variable type `EQD1` is not handled by model `lstream_v1`.
         <BLANKLINE>
         from hydpy.models.lland_v2 import *
         <BLANKLINE>
-        parameterstep("1d")
         simulationstep("12h")
+        parameterstep("1d")
         <BLANKLINE>
         eqd1(200.0)
         eqd2(100.0)

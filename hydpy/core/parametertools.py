@@ -650,6 +650,83 @@ class Parameter(variabletools.Variable):
 
     @property
     def initvalue(self):
+        """Actual initial value of the given parameter.
+
+        Some :class:`Parameter` subclasses define a class attribute `INIT`.
+        Let's define a test class and prepare a function for initializing
+        a parameter object and connecting it to a :class:`SubParameters`
+        object:
+
+        >>> from hydpy.core import parametertools
+        >>> class Test(parametertools.SingleParameter):
+        ...     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+        ...     INIT = 2.0
+        >>> def prepare():
+        ...     test = Test()
+        ...     from hydpy.core.parametertools import SubParameters
+        ...     subpars = parametertools.SubParameters(None)
+        ...     test.connect(subpars)
+        ...     return test
+
+        By default, making use of the `INIT` attribute is disabled:
+
+        >>> test = prepare()
+        >>> test
+        test(nan)
+
+        This can be changed through setting option `usedefaultvalues` to
+        `True`:
+
+        >>> from hydpy import pub
+        >>> pub.options.usedefaultvalues = True
+        >>> test = prepare()
+        >>> test
+        test(2.0)
+
+        When no `INIT` attribute is defined, enabling `usedefaultvalues` has
+        no effect, of course:
+
+        >>> del Test.INIT
+        >>> test = prepare()
+        >>> test
+        test(nan)
+
+        For time dependend parameter values, the `INIT` attribute is assumed
+        to be related to a :class:`Parameterstep` of one day:
+
+        >>> test.parameterstep = '2d'
+        >>> test.simulationstep = '12h'
+        >>> Test.INIT = 2.0
+        >>> Test.TIME = True
+        >>> test = prepare()
+        >>> test
+        test(4.0)
+        >>> test.value
+        1.0
+
+        Note the following `nan` surrogate values for types :class:`bool` and
+        :class:`int` (for :class:`bool`, a better solution should be found):
+
+        >>> Test.TIME = None
+        >>> Test.TYPE = bool
+        >>> del Test.INIT
+        >>> test = prepare()
+        >>> test
+        test(False)
+        >>> Test.TYPE = int
+        >>> test = prepare()
+        >>> test
+        test(-999999)
+
+        For not supported types, the following error message is raised:
+
+        >>> Test.TYPE = list
+        >>> test = prepare()
+        Traceback (most recent call last):
+        ...
+        AttributeError: For parameter `test` no `INIT` class attribute is \
+defined, but no standard value for its TYPE `list` is available
+        """
         initvalue = (getattr(self, 'INIT', None) if
                      pub.options.usedefaultvalues else None)
         if initvalue is None:
@@ -661,10 +738,13 @@ class Parameter(variabletools.Variable):
             elif type_ is bool:
                 initvalue = False
             else:
-                NotImplementedError(
-                    'For parameter `%s` no `INIT` class attribute is '
-                    'defined, but no standard value for its TYPE `%s`'
-                    'is available' % (self.name, objecttools.classname(type_)))
+                raise AttributeError(
+                    'For parameter `%s` no `INIT` class attribute is defined, '
+                    'but no standard value for its TYPE `%s` is available'
+                    % (self.name, objecttools.classname(type_)))
+        else:
+            with Parameter.parameterstep('1d'):
+                initvalue = self.applytimefactor(initvalue)
         return initvalue
 
     def _gettimefactor(self):
@@ -675,17 +755,15 @@ class Parameter(variabletools.Variable):
             parfactor = pub.timegrids.parfactor
         except AttributeError:
             if not self.simulationstep:
-                raise RuntimeError('The calculation of the effective value '
-                                   'of parameter `%s` requires a definition '
-                                   'of the actual simulation time step.  '
-                                   'The simulation time step is project '
-                                   'specific.  When initializing the HydPy '
-                                   'framework, it is automatically specified '
-                                   'under `pub.timegrids.stepsize.  For '
-                                   'testing purposes, one can alternatively '
-                                   'apply the function `simulationstep`.  '
-                                   'Please see the documentation for more '
-                                   'details.' % self.name)
+                raise RuntimeError(
+                    'The calculation of the effective value of parameter '
+                    '`%s` requires a definition of the actual simulation time '
+                    'step.  The simulation time step is project specific.  '
+                    'When initializing the HydPy framework, it is '
+                    'automatically specified under `pub.timegrids.stepsize`.  '
+                    'For testing purposes, one can e.g. alternatively apply '
+                    'the function `simulationstep`.  Please see the '
+                    'documentation for more details.' % self.name)
             else:
                 date1 = timetools.Date('2000.01.01')
                 date2 = date1 + self.simulationstep

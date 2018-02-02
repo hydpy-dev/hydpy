@@ -29,7 +29,8 @@ class NmbLogEntries(parametertools.SingleParameter):
     ...     print(seq)
     loggedtotalremotedischarge(nan, nan, nan)
     loggedoutflow(nan, nan, nan)
-    loggedrequiredremoterelease(nan, nan)
+    loggedrequiredremoterelease(nan)
+    loggedallowedremoterelieve(nan)
     """
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
@@ -59,6 +60,17 @@ class RemoteDischargeSavety(parametertools.SeasonalParameter):
     def __call__(self, *args, **kwargs):
         self.shape = (None, )
         super(RemoteDischargeSavety, self).__call__(*args, **kwargs)
+
+
+class WaterLevel2PossibleRemoteRelieve(anntools.ANN):
+    """Artificial neural network describing the relationship between
+    water level and the highest possible water release used to relieve
+    the dam during high flow conditions [-]."""
+
+
+class RemoteRelieveTolerance(parametertools.SingleParameter):
+    """A tolerance value for the "possible remote relieve" [m3/s]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
 
 class NearDischargeMinimumThreshold(parametertools.SeasonalParameter):
@@ -118,6 +130,8 @@ class ControlParameters(parametertools.SubParameters):
                    NmbLogEntries,
                    RemoteDischargeMinimum,
                    RemoteDischargeSavety,
+                   WaterLevel2PossibleRemoteRelieve,
+                   RemoteRelieveTolerance,
                    NearDischargeMinimumThreshold,
                    NearDischargeMinimumTolerance,
                    WaterLevelMinimumRemoteThreshold,

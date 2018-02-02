@@ -22,6 +22,8 @@ Integration examples:
     our explanations on the differences only.  So please follow the
     links for further information.
 
+    .. _dam_v003_ex07:
+
     :ref:`Recalculation of example 7 <dam_v001_ex07>`
 
     While the time-related set up is identical, the spatial set up needs
@@ -30,16 +32,14 @@ Integration examples:
     drinking water supply treatment plant).  The node `demand` defines
     the amount of water required by the plant:
 
-    >>> from hydpy import pub, Timegrid, Timegrids
+    >>> from hydpy import pub, Timegrid, Timegrids, Node, Element
     >>> pub.timegrids = Timegrids(Timegrid('01.01.2000',
     ...                                    '21.01.2000',
     ...                                    '1d'))
-    >>> from hydpy import Node
     >>> inflow = Node('inflow', variable='Q')
     >>> release = Node('release', variable='Q')
     >>> supply = Node('supply', variable='S')
     >>> demand = Node('demand', variable='S')
-    >>> from hydpy import Element
     >>> dam = Element('dam',
     ...               inlets=inflow,
     ...               outlets=(release, supply),
@@ -123,6 +123,8 @@ Integration examples:
     | 19.01. |    1.0 |              0.008447 |             0.2 |             0.2 |           0.2 |            0.008447 |            0.0 |      0.2 |    0.944381 | 0.004155 |    1.0 |      0.2 | 0.008447 |
     | 20.01. |    1.0 |              0.004155 |             0.2 |             0.2 |           0.2 |            0.004155 |            0.0 |      0.2 |    1.013142 |      0.0 |    1.0 |      0.2 | 0.004155 |
 
+    .. _dam_v003_ex08:
+
     :ref:`Recalculation of example 8 <dam_v001_ex08>`
 
     The next recalculation shows that the restriction on releasing
@@ -159,6 +161,8 @@ Integration examples:
     | 18.01. |    0.1 |              0.068641 |             0.2 |             0.1 |           0.1 |            0.068641 |            0.0 |      0.1 |    0.272211 | 0.029844 |    0.1 |      0.1 | 0.068641 |
     | 19.01. |    0.1 |              0.029844 |             0.2 |             0.1 |           0.1 |            0.029844 |            0.0 |      0.1 |    0.269633 | 0.012348 |    0.1 |      0.1 | 0.029844 |
     | 20.01. |    0.1 |              0.012348 |             0.2 |             0.1 |           0.1 |            0.012348 |            0.0 |      0.1 |    0.268566 |      0.0 |    0.1 |      0.1 | 0.012348 |
+
+    .. _dam_v003_ex10:
 
     :ref:`Recalculation of example 10 <dam_v001_ex10>`
 
@@ -208,6 +212,8 @@ Integration examples:
     | 19.01. | 0.010526 |              0.055458 |             0.2 |        0.010526 |      0.004535 |             0.00392 |            0.0 | 0.004535 |    0.017661 | 0.025948 | 0.010526 | 0.004535 |  0.00392 |
     | 20.01. |      0.0 |              0.025948 |             0.2 |             0.0 |           0.0 |            0.001835 |            0.0 |      0.0 |    0.017502 |      0.0 |      0.0 |      0.0 | 0.001835 |
 
+    .. _dam_v003_ex13:
+
     :ref:`Recalculation of example 13 <dam_v001_ex13>`
 
     The final example deals with high flow conditions.  It demonstrates
@@ -253,7 +259,6 @@ Integration examples:
     | 18.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.912222 | 0.912222 |    1.420492 |    0.0 |    0.0 | 0.912222 |    0.0 |
     | 19.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.864268 | 0.864268 |     1.34582 |    0.0 |    0.0 | 0.864268 |    0.0 |
     | 20.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.818835 | 0.818835 |    1.275072 |    0.0 |    0.0 | 0.818835 |    0.0 |
-
 """
 
 # import...

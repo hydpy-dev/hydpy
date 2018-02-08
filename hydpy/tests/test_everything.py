@@ -146,10 +146,13 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                         name = name[name.find('hydpy'+os.sep):]
                     warnings.filterwarnings('error', module='hydpy')
                     warnings.filterwarnings('ignore', category=ImportWarning)
-                    warnings.filterwarnings("ignore",
+                    warnings.filterwarnings('ignore',
                                             message="numpy.dtype size changed")
-                    warnings.filterwarnings("ignore",
+                    warnings.filterwarnings('ignore',
                                             message="numpy.ufunc size changed")
+                    warnings.filterwarnings(
+                        'ignore',
+                        message='the imp module is deprecated')
                     doctests[name] = runner.run(suite)
                     warnings.resetwarnings()
                     doctests[name].nmbproblems = (len(doctests[name].errors) +

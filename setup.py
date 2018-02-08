@@ -32,6 +32,7 @@ for name in os.listdir('hydpy'):
             os.path.isfile(os.path.join('hydpy', name))):
         packages.append('.'.join(('hydpy', name)))
 packages.append('hydpy.cythons.autogen')
+packages.append('hydpy.docs.html')
 # Additionally, select all base model packages.
 for name in os.listdir(os.path.join('hydpy', 'models')):
     if not (name.startswith('_') or

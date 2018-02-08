@@ -15,10 +15,12 @@ install:
   - pip install numpy --upgrade
   - pip install --only-binary=scipy scipy
   - pip install matplotlib
+  - pip install bokeh
   - pip install coverage
   - if [ $TRAVIS_PYTHON_VERSION = "3.6" ] ; then pip install pycobertura; fi
   - if [ $TRAVIS_PYTHON_VERSION = "3.6" ] ; then pip install sphinx; fi
   - if [ $TRAVIS_PYTHON_VERSION = "3.6" ] ; then pip install travis-sphinx; fi
+  - if [ $TRAVIS_PYTHON_VERSION = "3.6" ] ; then pip install sphinxcontrib-fulltoc; fi
 # command to run tests
 script:
   - if [ $TRAVIS_PYTHON_VERSION = "3.6" ] ; then python setup.py install coverage_report; else python setup.py install; fi

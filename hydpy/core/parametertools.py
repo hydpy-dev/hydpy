@@ -1477,7 +1477,7 @@ into shape (3)
         except TypeError:
             pass
         shape = list(shape)
-        if self.simulationstep is None:
+        if not self.simulationstep:
             raise RuntimeError(
                 'It is not possible the set the shape of the seasonal '
                 'parameter `%s` of element `%s` at the moment.  You can '
@@ -1487,6 +1487,7 @@ into shape (3)
         shape[0] = timetools.Period('366d')/self.simulationstep
         shape[0] = int(numpy.ceil(round(shape[0], 10)))
         MultiParameter._setshape(self, shape)
+
     shape = property(MultiParameter._getshape, _setshape)
 
     def __iter__(self):

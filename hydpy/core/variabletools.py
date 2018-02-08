@@ -289,6 +289,7 @@ error occured: operands could not be broadcast together with shapes (2,) (3,)
             'While trying to %s %s instance `%s` and %s `%s`'
             % (verb, objecttools.classname(self), self.name,
                objecttools.classname(other), other))
+
     name = property(objecttools.name)
 
     @property

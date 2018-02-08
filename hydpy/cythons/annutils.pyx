@@ -6,8 +6,16 @@
 Python module :mod:`~hydpy.auxs.anntools`.
 """
 
+# import...
+# ...from standard library
 import cython
 from hydpy.cythons.autogen cimport smoothutils
+# ...from site-packages
+import numpy
+# ...cimport
+cimport cython
+from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
+from libc.stdlib cimport malloc, free
 
 
 @cython.final
@@ -48,3 +56,38 @@ cdef class ANN(object):
                         (self.outputs[idx_output] +
                          (self.weights_output[idx_neuron2, idx_output] *
                           self.neurons[self.nmb_layers-1, idx_neuron2]))
+
+
+@cython.final
+cdef class SeasonalANN(object):
+
+    def __init__(self, anns):
+        self.nmb_anns = len(anns)
+        self.nmb_inputs = len(anns[0].inputs)
+        self.nmb_outputs = len(anns[0].outputs)
+        self.inputs = numpy.zeros(self.nmb_inputs, dtype=float)
+        self.outputs = numpy.zeros(self.nmb_outputs, dtype=float)
+        self.canns = <PyObject **>malloc(
+            self.nmb_anns*cython.sizeof(cython.pointer(PyObject)))
+        for idx, ann in enumerate(anns):
+            self.canns[idx] = <PyObject*>ann._cann
+
+    def __dealloc__(self):
+        free(self.canns)
+
+    cpdef inline void process_actual_input(self, int idx_season) nogil:
+        cdef int idx_ann, idx_input, idx_output
+        cdef double ratio, frac
+        for idx_output in range(self.nmb_outputs):
+            self.outputs[idx_output] = 0.
+        for idx_ann in range(self.nmb_anns):
+            ratio = self.ratios[idx_season, idx_ann]
+            if ratio > 0.:
+                for idx_input in range(self.nmb_inputs):
+                     (<ANN>self.canns[idx_ann]).inputs[idx_input] = self.inputs[idx_input]
+                (<ANN>self.canns[idx_ann]).process_actual_input()
+                for idx_output in range(self.nmb_outputs):
+                    frac = ratio*(<ANN>self.canns[idx_ann]).outputs[idx_output]
+                    self.outputs[idx_output] += frac
+
+

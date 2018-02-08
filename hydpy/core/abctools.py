@@ -152,6 +152,11 @@ class Parameter(Variable):
     """Abstract base class for registering custom parameter classes."""
 
 
+class ANN(DocABC):
+    """Abstract base class for registering custom artificial neural network
+    classes."""
+
+
 class Sequence(Variable):
     """Abstract base class for registering custom sequence classes."""
     pass

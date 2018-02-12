@@ -17,6 +17,7 @@ from hydpy.models.dam.dam_aides import AideSequences
 from hydpy.models.dam.dam_inlets import InletSequences
 from hydpy.models.dam.dam_outlets import OutletSequences
 from hydpy.models.dam.dam_receivers import ReceiverSequences
+from hydpy.models.dam.dam_senders import SenderSequences
 from hydpy.models.dam.dam_model import Model
 
 autodoc_basemodel()

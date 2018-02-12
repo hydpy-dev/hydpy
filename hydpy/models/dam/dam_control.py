@@ -57,10 +57,6 @@ class RemoteDischargeSafety(parametertools.SeasonalParameter):
     """Safety factor to reduce the risk to release not enough water [m3/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
-    def __call__(self, *args, **kwargs):
-        self.shape = (None, )
-        super(RemoteDischargeSavety, self).__call__(*args, **kwargs)
-
 
 class WaterLevel2PossibleRemoteRelieve(anntools.ANN):
     """Artificial neural network describing the relationship between
@@ -86,10 +82,6 @@ class NearDischargeMinimumThreshold(parametertools.SeasonalParameter):
 class NearDischargeMinimumTolerance(parametertools.SeasonalParameter):
     """A tolerance value for the "near discharge minimum" [m3/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
-
-    def __call__(self, *args, **kwargs):
-        self.shape = (None, )
-        super(NearDischargeMinimumTolerance, self).__call__(*args, **kwargs)
 
 
 class WaterLevelMinimumThreshold(parametertools.SingleParameter):

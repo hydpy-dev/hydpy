@@ -1293,6 +1293,8 @@ into shape (3)
         within parameter control files.
         """
         self._toy2values.clear()
+        if self.NDIM == 1:
+            self.shape = (None,)
         try:
             MultiParameter.__call__(self, *args, **kwargs)
             self._toy2values[timetools.TOY()] = self[0]

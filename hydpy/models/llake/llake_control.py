@@ -54,11 +54,9 @@ class N(parametertools.SingleParameter):
             for (name, par) in subpars:
                 if name == 'toy':
                     continue
-                elif par.NDIM == 1:
-                    if isinstance(par, parametertools.SeasonalParameter):
-                        par.shape = (0,)
-                    else:
-                        par.shape = self.value
+                elif ((par.NDIM == 1) and
+                      (not isinstance(par, parametertools.SeasonalParameter))):
+                    par.shape = self.value
                 elif ((par.NDIM == 2) and
                       isinstance(par, parametertools.SeasonalParameter)):
                     par.shape = (None, self.value)

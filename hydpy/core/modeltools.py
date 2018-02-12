@@ -60,7 +60,7 @@ class MetaModel(type):
                            '(e.g. change in storage of `fast water` due to '
                            ' effective precipitation and direct runoff):']
                 for method in methods:
-                    lst.append('      * :func:`~%s` `%s`'
+                    lst.append('      * :func:`~%s` %s'
                                % ('.'.join((method.__module__,
                                             method.__name__)),
                                   autodoctools.description(method)))

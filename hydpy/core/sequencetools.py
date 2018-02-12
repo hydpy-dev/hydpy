@@ -187,7 +187,7 @@ class MetaSubSequencesType(type):
         if seqclasses:
             lst = ['\n\n\n    The following sequence classes are selected:']
             for seqclass in seqclasses:
-                    lst.append('      * :class:`~%s` `%s`'
+                    lst.append('      * :class:`~%s` %s'
                                % ('.'.join((seqclass.__module__,
                                             seqclass.__name__)),
                                   autodoctools.description(seqclass)))

@@ -195,7 +195,7 @@ class MetaSubParametersType(type):
         if parclasses:
             lst = ['\n\n\n    The following parameter classes are selected:']
             for parclass in parclasses:
-                lst.append('      * :class:`~%s` `%s`'
+                lst.append('      * :class:`~%s` %s'
                            % ('.'.join((parclass.__module__,
                                         parclass.__name__)),
                               autodoctools.description(parclass)))

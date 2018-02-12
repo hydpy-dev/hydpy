@@ -32,7 +32,7 @@ inf
 The exact value of :const:`MAX_LOG_FLOAT` might differ between different
 systems.  So an automated estimation of this value would be advisable.
 (On Windows using 64 bit Python, even 709.0 works.  But a not too small
-savety factor seemed preferable.)
+safety factor seemed preferable.)
 """
 
 cpdef inline double _max(double x_value, double y_value) nogil:

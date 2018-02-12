@@ -2,7 +2,7 @@
 # pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
 """Version 1 application model of HydPy-Dam.
 
-Obviously, using the "smoothly applied" parameter `remotedischargesavety`
+Obviously, using the "smoothly applied" parameter `remotedischargesafety`
 can be beneficial.  But the proper definition of the values of the
 "smoothing parameters" of the dam model might require some experience.
 It seems advisable to investigate the functioning of each new
@@ -138,7 +138,7 @@ Integration examples:
 
     >>> nmblogentries(1)
     >>> remotedischargeminimum(0.0)
-    >>> remotedischargesavety(0.0)
+    >>> remotedischargesafety(0.0)
     >>> neardischargeminimumthreshold(0.0)
     >>> neardischargeminimumtolerance(0.0)
     >>> waterlevelminimumthreshold(0.0)
@@ -283,10 +283,10 @@ Integration examples:
 
     While is is possible to simply increase the value of parameter
     `remotedischargeminimum`, it is often advisable to use parameter
-    'remotedischargesavety´ instead:
+    'remotedischargesafety´ instead:
 
     >>> remotedischargeminimum(1.4)
-    >>> remotedischargesavety(0.5)
+    >>> remotedischargesafety(0.5)
 
     Under this configuration, the threshold value is exceeded at each
     simulation time step.  Additionally, the final storage content of
@@ -705,7 +705,7 @@ Integration examples:
 
     >>> nmblogentries(1)
     >>> remotedischargeminimum(0.0)
-    >>> remotedischargesavety(0.0)
+    >>> remotedischargesafety(0.0)
     >>> neardischargeminimumthreshold(0.0)
     >>> neardischargeminimumtolerance(0.0)
     >>> waterlevelminimumthreshold(0.0)
@@ -978,7 +978,7 @@ class ControlParameters(parametertools.SubParameters):
     _PARCLASSES = (dam_control.CatchmentArea,
                    dam_control.NmbLogEntries,
                    dam_control.RemoteDischargeMinimum,
-                   dam_control.RemoteDischargeSavety,
+                   dam_control.RemoteDischargeSafety,
                    dam_control.NearDischargeMinimumThreshold,
                    dam_control.NearDischargeMinimumTolerance,
                    dam_control.WaterLevelMinimumThreshold,

@@ -29,7 +29,7 @@ class Seconds(parametertools.SingleParameter):
 
 class RemoteDischargeSmoothPar(parametertools.MultiParameter):
     """Smoothing parameter to be derived from
-    :class:`~hydpy.models.dam.dam_control.RemoteDischargeSavety` [m3/s].
+    :class:`~hydpy.models.dam.dam_control.RemoteDischargeSafety` [m3/s].
 
     The following example is explained in some detail in module
     :mod:`~hydpy.auxs.smoothtools`:
@@ -41,8 +41,8 @@ class RemoteDischargeSmoothPar(parametertools.MultiParameter):
     ...                                    '1d'))
     >>> from hydpy.models.dam import *
     >>> parameterstep()
-    >>> remotedischargesavety(0.0)
-    >>> remotedischargesavety.values[1] = 2.5
+    >>> remotedischargesafety(0.0)
+    >>> remotedischargesafety.values[1] = 2.5
     >>> derived.remotedischargesmoothpar.update()
     >>> from hydpy.cythons.smoothutils import smooth_logistic1
     >>> from hydpy.core.objecttools import round_
@@ -54,9 +54,9 @@ class RemoteDischargeSmoothPar(parametertools.MultiParameter):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
     def update(self):
-        metapars = self.subpars.pars.control.remotedischargesavety
-        self.shape = metapars.shape
-        for idx, metapar in enumerate(metapars.values):
+        metapar = self.subpars.pars.control.remotedischargesafety
+        self.shape = metapar.shape
+        for idx, metapar in enumerate(metapar.values):
             self.values[idx] = smoothtools.calc_smoothpar_logistic1(metapar)
 
 
@@ -81,9 +81,11 @@ class NearDischargeMinimumSmoothPar1(parametertools.MultiParameter):
     >>> derived.neardischargeminimumsmoothpar1.update()
     >>> from hydpy.cythons.smoothutils import smooth_logistic1
     >>> from hydpy.core.objecttools import round_
-    >>> round_(smooth_logistic1(1.0, derived.neardischargeminimumsmoothpar1[0]))
+    >>> round_(smooth_logistic1(
+    ...     1.0, derived.neardischargeminimumsmoothpar1[0]))
     1.0
-    >>> round_(smooth_logistic1(2.5, derived.neardischargeminimumsmoothpar1[1]))
+    >>> round_(smooth_logistic1(
+    ...     2.5, derived.neardischargeminimumsmoothpar1[1]))
     0.99
     """
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
@@ -116,9 +118,11 @@ class NearDischargeMinimumSmoothPar2(parametertools.MultiParameter):
     >>> derived.neardischargeminimumsmoothpar2.update()
     >>> from hydpy.cythons.smoothutils import smooth_logistic2
     >>> from hydpy.core.objecttools import round_
-    >>> round_(smooth_logistic2(0.0, derived.neardischargeminimumsmoothpar2[0]))
+    >>> round_(smooth_logistic2(
+    ...     0.0, derived.neardischargeminimumsmoothpar2[0]))
     0.0
-    >>> round_(smooth_logistic2(2.5, derived.neardischargeminimumsmoothpar2[1]))
+    >>> round_(smooth_logistic2(
+    ...     2.5, derived.neardischargeminimumsmoothpar2[1]))
     2.51
     """
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)

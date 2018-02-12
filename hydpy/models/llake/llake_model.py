@@ -29,7 +29,7 @@ def solve_dv_dt_v1(self):
     Afterwards, select a :class:`~hydpy.models.llake.llake_control.MaxDT`
     value  lower than one which results in acceptable approximations for
     all test waves.  The computation time of the llake mode per substep is
-    rather small, so always include a savety factor.
+    rather small, so always include a safety factor.
 
     Of course, an adaptive step size determination would be much more
     convenient...

@@ -409,10 +409,10 @@ def calc_requiredremoterelease_v1(self):
         >>> parameterstep()
         >>> derived.toy.update()
 
-        Define a savety factor of 0.5 m³/s for the summer months and
-        no savety factor at all for the winter months:
+        Define a safety factor of 0.5 m³/s for the summer months and
+        no safety factor at all for the winter months:
 
-        >>> remotedischargesavety(_11_1_12=0.0, _03_31_12=0.0,
+        >>> remotedischargesafety(_11_1_12=0.0, _03_31_12=0.0,
         ...                       _04_1_12=1.0, _10_31_12=1.0)
         >>> derived.remotedischargesmoothpar.update()
 
@@ -432,7 +432,7 @@ def calc_requiredremoterelease_v1(self):
         ...                          fluxes.requiredremoterelease))
         >>> test.nexts.remotefailure = range(-4, 5)
 
-        On May 31, the savety factor is 0 m³/s.  Hence no discharge is
+        On May 31, the safety factor is 0 m³/s.  Hence no discharge is
         added to the estimated remote demand of 2 m³/s:
 
         >>> model.idx_sim = pub.timegrids.init['2001.03.31']
@@ -449,7 +449,7 @@ def calc_requiredremoterelease_v1(self):
         |   8 |           3.0 |                   2.0 |
         |   9 |           4.0 |                   2.0 |
 
-        On April 1, the savety factor is 1 m³/s.  If the remote failure was
+        On April 1, the safety factor is 1 m³/s.  If the remote failure was
         exactly zero in the past, meaning the control of the dam was perfect,
         only 0.5 m³/s are added to the estimated remote demand of 2 m³/s.
         If the actual recharge did actually fall below the threshold value,
@@ -475,7 +475,7 @@ def calc_requiredremoterelease_v1(self):
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
     flu.requiredremoterelease = (
-        flu.remotedemand+con.remotedischargesavety[der.toy[self.idx_sim]] *
+        flu.remotedemand+con.remotedischargesafety[der.toy[self.idx_sim]] *
         smoothutils.smooth_logistic1(
             flu.remotefailure,
             der.remotedischargesmoothpar[der.toy[self.idx_sim]]))

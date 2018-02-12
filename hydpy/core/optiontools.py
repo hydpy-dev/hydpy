@@ -200,7 +200,7 @@ class Options(object):
         True, None,
         """True/False flag indicating whether a warning shall be raised
         whenever certain values needed to be trimmed due to violating
-        certain boundaries. Such warnings increase savety and are thus
+        certain boundaries. Such warnings increase safety and are thus
         the default is `True`.  However, to cope with the limited precision
         of floating point numbers only those violations beyond a small
         tolerance value are reported (see :class:`Trimmer`).  Warnings

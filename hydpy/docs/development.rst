@@ -804,7 +804,7 @@ functioning online documentation.  If nothing goes wrong, the
 `gh-pages branch`_ automatically, meaning, that this
 `online documentation`_ is updated immediately.  This deploy process
 is restricted to the `master branch`_ of the main development line
-and has disabled pull request option for savety reasons.
+and has disabled pull request option for safety reasons.
 
 
 Test Coverage

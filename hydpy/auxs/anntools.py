@@ -963,7 +963,7 @@ class SeasonalANN(object):
     >>> seasonalann.shape
     (366, 3)
 
-    For savety reasons, :attr:`~SeasonalANN.shape` should normally not
+    For safety reasons, :attr:`~SeasonalANN.shape` should normally not
     be changed manually:
 
     >>> seasonalann.shape = (366, 4)
@@ -1109,7 +1109,7 @@ neural network collection `seasonalann` of element `?` assumes `2` input \
 and `1` output values, while the network corresponding to the time of \
 year `toy_3_1_12_0_0` requires `1` input and `1` output values.
 
-    Whenever a test fails, all networks are removed for savety:
+    Whenever a test fails, all networks are removed for safety:
 
     >>> seasonalann
     seasonalann()
@@ -1127,7 +1127,7 @@ year `toy_3_1_12_0_0` requires `1` input and `1` output values.
     >>> round_(seasonalann.ratios[0])
     1.0
 
-    The mentioned savety checks do also apply when adding networks
+    The mentioned safety checks do also apply when adding networks
     via attribute access, e.g.:
 
     >>> seasonalann.toy_7_1_12 = ann(nmb_inputs=2,

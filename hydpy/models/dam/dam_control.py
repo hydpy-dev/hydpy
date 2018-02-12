@@ -53,7 +53,7 @@ class RemoteDischargeMinimum(parametertools.SeasonalParameter):
         super(RemoteDischargeMinimum, self).__call__(*args, **kwargs)
 
 
-class RemoteDischargeSavety(parametertools.SeasonalParameter):
+class RemoteDischargeSafety(parametertools.SeasonalParameter):
     """Safety factor to reduce the risk to release not enough water [m3/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
@@ -129,7 +129,7 @@ class ControlParameters(parametertools.SubParameters):
     _PARCLASSES = (CatchmentArea,
                    NmbLogEntries,
                    RemoteDischargeMinimum,
-                   RemoteDischargeSavety,
+                   RemoteDischargeSafety,
                    WaterLevel2PossibleRemoteRelieve,
                    RemoteRelieveTolerance,
                    NearDischargeMinimumThreshold,

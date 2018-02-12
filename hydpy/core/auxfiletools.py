@@ -95,7 +95,7 @@ No module named `hydpy.models.asdf`.
     The :class:`Auxfiler` object allocates a separate
     :class:`Variable2Auxfile` object to each model type.  These are
     available via attribute reading access, but setting new or deleting
-    existing :class:`Variable2Auxfile` objects is disabled for savety
+    existing :class:`Variable2Auxfile` objects is disabled for safety
     purposes:
 
     >>> aux.lland_v1

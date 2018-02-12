@@ -3,12 +3,14 @@
 *.pyc
 *.c
 *.h
+temp
 hydpy/cythons/autogen/*.pyd
 hydpy/cythons/autogen/*.pyc
 hydpy/cythons/autogen/*.pyx
 hydpy/cythons/autogen/*.pxd
 hydpy/cythons/autogen/*.c
 hydpy/cythons/autogen/*.h
+hydpy/docs/html
 build
 _build
 dist

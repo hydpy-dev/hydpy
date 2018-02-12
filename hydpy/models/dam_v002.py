@@ -5,8 +5,8 @@
 Application model :mod:`~hydpy.models.dam_v002` is a simplification of
 :mod:`~hydpy.models.dam_v001`.  While most functionlities are identical,
 :mod:`~hydpy.models.dam_v002` does not calculate
-:class:`~hydpy.models.dam.dam_fluxes.RequiredRemoteRelease` on its own, but picks
-this information from the simulation results of another model.
+:class:`~hydpy.models.dam.dam_fluxes.RequiredRemoteRelease` on its own,
+but picks this information from the simulation results of another model.
 
 The following explanations focus on this difference.  For further
 information on the usage of :mod:`~hydpy.models.dam_v002` please read
@@ -21,9 +21,10 @@ Integration examples:
     :class:`~hydpy.models.dam.dam_fluxes.RequiredRemoteRelease` calculated
     by :mod:`~hydpy.models.dam_v001` in the respective example are used as
     input data of :mod:`~hydpy.models.dam_v002` via the node object `remote`.
-    Due to the limit precision of the copy-pasted
-    :class:`~hydpy.models.dam.dam_fluxes.RequiredRemoteRelease` values,
-    there are some tiny deviations between the results of both models.
+    (Note that this nodes handles variable
+    :class:`~hydpy.models.dam.dam_receivers.D`) Due to the limit precision of
+    the copy-pasted :class:`~hydpy.models.dam.dam_fluxes.RequiredRemoteRelease`
+    values, there are some tiny deviations between the results of both models.
 
     :ref:`Recalculation of example 7 <dam_v001_ex07>`
 
@@ -37,7 +38,7 @@ Integration examples:
     >>> from hydpy import Node
     >>> input_ = Node('input')
     >>> output = Node('output')
-    >>> remote = Node('remote')
+    >>> remote = Node('remote', variable='D')
     >>> from hydpy import Element
     >>> dam = Element('dam', inlets=input_, outlets=output, receivers=remote)
     >>> from hydpy.models.dam_v002 import *
@@ -331,7 +332,7 @@ class OutletSequences(sequencetools.LinkSequences):
 
 class ReceiverSequences(sequencetools.LinkSequences):
     """Information link sequences of HydPy-Dam, Version 2."""
-    _SEQCLASSES = (dam_receivers.Q,)
+    _SEQCLASSES = (dam_receivers.D,)
 
 
 # pylint: disable=invalid-name

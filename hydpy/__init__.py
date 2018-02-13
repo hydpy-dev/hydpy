@@ -6,16 +6,26 @@ hydrological models.
 """
 # import...
 # ...from standard library
+import importlib
+import pkgutil
 import sys
 import warnings
 # ...from site-packages
 import numpy
 # ...from HydPy
 from hydpy import pub
+from hydpy import auxs
+from hydpy import core
+from hydpy import cythons
+from hydpy import models
+from hydpy.cythons.autogen import annutils
+from hydpy.cythons.autogen import pointerutils
+from hydpy.cythons.autogen import smoothutils
 from hydpy.core import dummytools
 from hydpy.core import indextools
 from hydpy.core import optiontools
 from hydpy.cythons import configutils
+from hydpy.core.autodoctools import Substituter
 from hydpy.core.auxfiletools import Auxfiler
 from hydpy.core.devicetools import Node
 from hydpy.core.devicetools import Nodes
@@ -59,6 +69,17 @@ try:
     numpy.set_printoptions(legacy='1.13')
 except TypeError:
     pass
+
+substituter = Substituter()
+for subpackage in (auxs, core, cythons):
+    for loader, name, is_pkg in pkgutil.walk_packages(subpackage.__path__):
+        full_name = subpackage.__name__ + '.' + name
+        substituter.add_everything(importlib.import_module(full_name))
+substituter.add_modules(models)
+for cymodule in (annutils, smoothutils, pointerutils):
+    substituter.add_everything(cymodule, cython=True)
+substituter.apply_on_members()
+
 
 __all__ = ['HydPy', 'pub',
            'Auxfiler',

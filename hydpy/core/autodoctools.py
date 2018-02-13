@@ -5,10 +5,15 @@ standardisation of the online documentation generated with Sphinx.
 # import...
 # ...from the Python standard library
 from __future__ import division, print_function
-import inspect
-import types
 import collections
+import copy
+import importlib
+import inspect
+import os
+import re
+import types
 # ...from HydPy
+import hydpy
 # from hydpy.core import objecttools (actual import commands moved to
 # different functions below to avoid circular dependencies)
 
@@ -21,7 +26,8 @@ def description(self):
 
     >>> from hydpy.core import autodoctools, objecttools
     >>> autodoctools.description(objecttools.augmentexcmessage)
-    'Augment an exception message with additional information while keeping the original traceback.'
+    'Augment an exception message with additional information while keeping \
+the original traceback.'
 
     In case the given object does not define a docstring, the following
     is returned:
@@ -30,8 +36,7 @@ def description(self):
     """
     if self.__doc__ in (None, ''):
         return 'no description available'
-    else:
-        return ' '.join(self.__doc__.split('\n\n')[0].split())
+    return ' '.join(self.__doc__.split('\n\n')[0].split())
 
 
 _PAR_SPEC2CAPT = collections.OrderedDict((('parameters', 'Parameter tools'),
@@ -50,7 +55,7 @@ _SEQ_SPEC2CAPT = collections.OrderedDict((('sequences', 'Sequence tools'),
                                           ('senders', 'Sender sequences'),
                                           ('aides', 'Aide sequences')))
 
-_all_spec2capt = _PAR_SPEC2CAPT.copy()
+_all_spec2capt = _PAR_SPEC2CAPT.copy()   # pylint: disable=invalid-name
 _all_spec2capt.update(_SEQ_SPEC2CAPT)
 
 
@@ -123,6 +128,7 @@ def autodoc_basemodel():
     modules = {key: value for key, value in namespace.items()
                if (isinstance(value, types.ModuleType) and
                    key.startswith(basemodulename+'_'))}
+    substituter = Substituter(hydpy.substituter)
     lines = []
     specification = 'model'
     modulename = basemodulename+'_'+specification
@@ -130,6 +136,7 @@ def autodoc_basemodel():
         module = modules[modulename]
         lines += _add_title('Model features', '-')
         lines += _add_lines(specification, module)
+        substituter.add_everything(module)
     for (spec2capt, title) in zip((_PAR_SPEC2CAPT, _SEQ_SPEC2CAPT),
                                   ('Parameter features', 'Sequence features')):
         new_lines = _add_title(title, '-')
@@ -141,10 +148,119 @@ def autodoc_basemodel():
                 found_module = True
                 new_lines += _add_title(caption, '.')
                 new_lines += _add_lines(specification, module)
+                substituter.add_everything(module)
         if found_module:
             lines += new_lines
     doc += '\n'.join(lines)
     namespace['__doc__'] = doc
+    substituter.apply_on_members()
+    namespace['substituter'] = substituter
+
+
+def autodoc_applicationmodel():
+    """Improves the docstrings of application models when called
+    at the bottom of the respective module.
+
+    |autodoc_applicationmodel| requires, similar to
+    |autodoc_basemodel|, that both the application model and its
+    base model are defined in the conventional way.
+    """
+    namespace = inspect.currentframe().f_back.f_locals
+    doc = namespace.get('__doc__')
+    if doc is None:
+        doc = ''
+    name_applicationmodel = namespace['__name__']
+    module_applicationmodel = importlib.import_module(name_applicationmodel)
+    name_basemodel = name_applicationmodel.split('_')[0]
+    module_basemodel = importlib.import_module(name_basemodel)
+    substituter = Substituter(module_basemodel.substituter)
+    substituter.add_everything(module_applicationmodel)
+    substituter.apply_on_members()
+    namespace['substituter'] = substituter
+
+
+class Substituter(object):
+    """Implements a HydPy specific docstring substitution mechanism."""
+
+    def __init__(self, substituter=None):
+        if substituter:
+            self.substitutions = copy.deepcopy(substituter.substitutions)
+            self.fallbacks = copy.deepcopy(substituter.fallbacks)
+            self.blacklist = copy.deepcopy(substituter.blacklist)
+        else:
+            self.substitutions = {}
+            self.fallbacks = {}
+            self.blacklist = set()
+        self.members = []
+        self.regex = None
+
+    def update(self):
+        """Update the internal substitution commands based on all
+        substitutions defined so far."""
+        self.regex = re.compile('|'.join(map(re.escape, self.substitutions)))
+
+    def add_everything(self, module, cython=False):
+        """Add all members of the given module including the module itself."""
+        name_module = module.__name__.split('.')[-1]
+        short = '|%s|' % name_module
+        self.substitutions[short] = ':mod:`~%s`' % module.__name__
+        if not cython:
+            self.members.append(module)
+        for (name, member) in module.__dict__.items():
+            if name.startswith('_'):
+                continue
+            if getattr(member, '__module__', None) != module.__name__:
+                continue
+            if inspect.isfunction(member):
+                role = 'func'
+            elif inspect.isclass(member):
+                role = 'class'
+            elif cython:
+                role = 'func'
+            else:
+                continue
+            short = '|%s|' % name
+            medium = ('|%s.%s|' % (name_module, name))
+            long = ':%s:`~%s.%s`' % (role, module.__name__, name)
+            if short not in self.blacklist:
+                if short in self.substitutions:
+                    self.blacklist.add(short)
+                    del self.substitutions[short]
+                else:
+                    self.substitutions[short] = long
+            self.substitutions[medium] = long
+            if not cython:
+                self.members.append(member)
+
+    def add_modules(self, package):
+        """Add the modules of the given package without not their members."""
+        for name in os.listdir(package.__path__[0]):
+            if name.startswith('_'):
+                continue
+            name = name.split('.')[0]
+            short = '|%s|' % name
+            long = ':mod:`~%s.%s`' % (package.__package__, name)
+            self.substitutions[short] = long
+
+    def _get_substitute(self, match):
+        return self.substitutions[match.group(0)]
+
+    def __call__(self, text):
+        return self.regex.sub(self._get_substitute, text)
+
+    def apply_on_members(self):
+        """Apply all substitutions defined so far on all handled members."""
+        self.update()
+        for member in self.members:
+            try:
+                member.__doc__ = self(member.__doc__)
+            except (AttributeError, TypeError):
+                pass
+            for submember in getattr(member, '__dict__', {}):
+                try:
+                    submember.__doc__ = self(submember.__doc__)
+                except (AttributeError, TypeError):
+                    pass
 
 
 def _number_of_line(member_tuple):
@@ -159,13 +275,12 @@ def _number_of_line(member_tuple):
         return inspect.findsource(member)[1]
     except BaseException:
         pass
-    for (key, value) in vars(member).items():
+    for value in vars(member).values():
         try:
             return value.__code__.co_firstlineno
         except AttributeError:
             pass
-    else:
-        return 0
+    return 0
 
 
 def autodoc_module():

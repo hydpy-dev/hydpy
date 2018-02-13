@@ -2,31 +2,30 @@
 # pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
 """Version 4 of HydPy-Dam
 
-    Application model :mod:`~hydpy.models.dam_v004` is an extension
-    if model :mod:`~hydpy.models.dam_v003`.  Both models are able
-    to discharge water into the channel downstream and to remote
-    locations.  The difference is that :mod:`~hydpy.models.dam_v003`
-    can discharge water only to a single remote location, e.g. to
-    a drinking water treatment plant, while :mod:`~hydpy.models.dam_v004`
-    is also able to discharge water to a seperate remote location
-    independently, e.g. to relieve water during high flow conditions.
+    Application model |dam_v004| is an extension if model |dam_v003|.
+    Both models are able to discharge water into the channel downstream
+    and to remote locations.  The difference is that |dam_v003|
+    can discharge water only to a single remote location, e.g. to a
+    drinking water treatment plant, while |dam_v004| is also able to
+    discharge water to a seperate remote location independently, e.g.
+    to relieve water during high flow conditions.
 
     Integration examples:
 
     The following examples are based on the ones of application model
-    :mod:`~hydpy.models.dam_v003`, which in turn are taken from the
-    documentation on application model :mod:`~hydpy.models.dam_v001`.
-    So please follow the links for more detailed explanations.
+    |dam_v003|, which in turn are taken from the documentation on
+    application model |dam_v001|.  So please follow the links for more
+    detailed explanations.
 
     :ref:`Exact recalculation of example 7 <dam_v003_ex07>`
 
     In addition to the general configuration of application model
-    :mod:`~hydpy.models.dam_v003`, two additional node connections
-    are required: one node is supposed to provide the information
-    on the maximum allowed relieve discharge, and the other one
-    is supposed to pass the actual relieve discharge to a remote
-    location. For both nodes handle the variable `R`, while nodes
-    `required_suppy` and `actual_supply` still handle variable `S`:
+    |dam_v003|, two additional node connections are required:
+    one node is supposed to provide the information on the maximum
+    allowed relieve discharge, and the other one is supposed to pass
+    the actual relieve discharge to a remote location. For both
+    nodes handle the variable `R`, while nodes `required_suppy` and
+    `actual_supply` still handle variable `S`:
 
     >>> from hydpy import pub, Timegrid, Timegrids, Node, Element
     >>> pub.timegrids = Timegrids(Timegrid('01.01.2000',
@@ -46,9 +45,8 @@
     >>> parameterstep('1d')
     >>> dam.connect(model)
 
-    The first test calculation is supposed to show that model
-    :mod:`~hydpy.models.dam_v004` behaves exactly like model
-    :mod:`~hydpy.models.dam_v003` when the relieve discharge is
+    The first test calculation is supposed to show that model |dam_v004|
+    behaves exactly like model |dam_v003| when the relieve discharge is
     disabled, which can be accomplished by the following settings:
 
     >>> from hydpy.core.testtools import IntegrationTest
@@ -85,9 +83,9 @@
     >>> parameters.update()
 
     Comparing the results of the following table with the ones shown for
-    application model :mod:`~hydpy.models.dam_v004` (e.g. of column
-    `waterlevel` or `actualremoterelease`) shows that both models can in
-    fact be functionally identical:
+    application model |dam_v004| (e.g. of column `waterlevel` or
+    `actualremoterelease`) shows that both models can in fact be
+    functionally identical:
 
     >>> test()
     |   date | inflow | requiredremoterelease | allowedremoterelieve | possibleremoterelieve | actualremoterelieve | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume | actual_relieve | actual_supply | allowed_relieve | inflow |  release | required_supply |
@@ -140,7 +138,7 @@
     identical with the "old" actual supply discharge.  There is only
     a small deviation on the first timestep, which is due to a numerical
     inaccuracy, which is explained in the documentation on application
-    model :mod:`~hydpy.models.dam_v001`:
+    model |dam_v001|:
 
     >>> test()
     |   date | inflow | requiredremoterelease | allowedremoterelieve | possibleremoterelieve | actualremoterelieve | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume | actual_relieve | actual_supply | allowed_relieve | inflow |  release | required_supply |
@@ -169,10 +167,9 @@
     :ref:`Second modification of example 7 <dam_v003_ex07>`
 
     Now we modify the artificial neuronal network
-    :class:`~hydpy.models.dam.dam_control.WaterLevel2PossibleRemoteRelieve`
-    (in fact, only a single neuron) in order to prevent any relieve
-    discharge when the dam is emtpy and to set maximum relieve discharge
-    of 0.5 m³/s:
+    |WaterLevel2PossibleRemoteRelieve| (in fact, only a single neuron)
+    in order to prevent any relieve discharge when the dam is emtpy and
+    to set maximum relieve discharge of 0.5 m³/s:
 
     >>> waterlevel2possibleremoterelieve(
     ...        weights_input=1e30, weights_output=0.5,
@@ -218,9 +215,8 @@
 
     The capped possible relieve discharge in the example above results
     in a discontinuous evolution of the actual relieve discharge.  For
-    more smooth transitions, the value of parameter
-    :class:`~hydpy.models.dam.dam_control.RemoteRelieveTolerance` can be
-    set to values larger than zero, e.g.:
+    more smooth transitions, the value of parameter |RemoteRelieveTolerance|
+    can be set to values larger than zero, e.g.:
 
     >>> remoterelievetolerance(0.2)
     >>> test()
@@ -250,10 +246,9 @@
     :ref:`Exact recalculation of example 8 <dam_v003_ex08>`
 
     This and the following exact recalculations are just thought to
-    prove the identical behaviour of the components models
-    :mod:`~hydpy.models.dam_v003` and :mod:`~hydpy.models.dam_v004`
-    that have not been utilised in the examples above.  Therefore
-    the remote relieve discharge is disabled again:
+    prove the identical behaviour of the components models |dam_v003|
+    and |dam_v004| that have not been utilised in the examples above.
+    Therefore the remote relieve discharge is disabled again:
 
     >>> test.inits.loggedrequiredremoterelease = 0.005
     >>> test.inits.loggedallowedremoterelieve = 0.0
@@ -301,8 +296,7 @@
     :ref:`Exact recalculation of example 10 <dam_v003_ex10>`
 
     This example demonstates the identical behaviour of models
-    :mod:`~hydpy.models.dam_v003` and :mod:`~hydpy.models.dam_v004`
-    regarding limited storage content:
+    |dam_v003| and |dam_v004| regarding limited storage content:
 
     >>> inflow.sequences.sim.series = numpy.linspace(0.2, 0.0, 20)
     >>> waterlevelminimumtolerance(0.01)
@@ -341,9 +335,8 @@
     :ref:`Exact recalculation of example 13 <dam_v003_ex13>`
 
     This final example demonstates the identical behaviour of models
-    :mod:`~hydpy.models.dam_v003` and :mod:`~hydpy.models.dam_v004`
-    (and also of models :mod:`~hydpy.models.dam_v001` and
-    :mod:`~hydpy.models.dam_v002` regarding high flow conditions:
+    |dam_v003| and |dam_v004| (and also of models |dam_v001| and
+    |dam_v002| regarding high flow conditions:
 
     >>> neardischargeminimumthreshold(0.0)
     >>> neardischargeminimumtolerance(0.0)
@@ -507,6 +500,9 @@ class ReceiverSequences(sequencetools.LinkSequences):
     """Information link sequences of HydPy-Dam, Version 4."""
     _SEQCLASSES = (dam_receivers.S,
                    dam_receivers.R)
+
+
+autodoc_applicationmodel()
 
 
 # pylint: disable=invalid-name

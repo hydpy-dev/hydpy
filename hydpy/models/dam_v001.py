@@ -2,7 +2,7 @@
 # pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
 """Version 1 application model of HydPy-Dam.
 
-Obviously, using the "smoothly applied" parameter `remotedischargesafety`
+Obviously, using the "smoothly applied" parameter |RemoteDischargeSafety|
 can be beneficial.  But the proper definition of the values of the
 "smoothing parameters" of the dam model might require some experience.
 It seems advisable to investigate the functioning of each new
@@ -23,10 +23,10 @@ Integration examples:
     cross section far downstream are reduced by the corresponding methods of
     the dam model under different configurations.  To show this in a
     realistic manner, a relatively complex setting is required.  We will
-    make use of the :mod:`~hydpy.models.arma_v1` application model.  This
-    model will be used to route the outflow of the dam to the cross section
-    under investigation and add some `natural` discharge of the subcatchment
-    between the dam and the cross section (a picture would be helful).
+    make use of the |arma_v1| application model.  This model will be used
+    to route the outflow of the dam to the cross section under investigation
+    and add some `natural` discharge of the subcatchment between the dam
+    and the cross section (a picture would be helpful).
 
     We define four nodes.  The `input` node is used to define the inflow into
     the dam and the `natural` node is used to define the additional discharge
@@ -41,7 +41,7 @@ Integration examples:
     >>> remote = Node('remote')
 
     These nodes are used to connect the following three elements.  There is
-    one element for handling the `dam` model and there are two elements for
+    one element for handling the |dam| model and there are two elements for
     handling different `stream` models.  The model of element `stream1` is
     supposed to route the outflow of the dam model with significant delay
     and the model of element `stream2` is supposed to directly pass the
@@ -53,9 +53,9 @@ Integration examples:
     >>> stream2 = Element('stream2', inlets=natural, outlets=remote)
 
     Now the models can be prepared.  We begin with the `stream2` model.
-    By setting the `responses` parameter in the following manner we define
-    a pure Moving Average model that neither results in translation nor
-    retention processes:
+    By setting the :class:`~hydpy.models.arma.arma_control.Responses`
+    parameter in the following manner we define a pure Moving Average
+    model that neither results in translation nor retention processes:
 
     >>> from hydpy.core.magictools import prepare_model
     >>> from hydpy.models import arma_v1
@@ -110,7 +110,7 @@ Integration examples:
     of simplicity, the relationship between water level and volume is assumed
     to be linear in the range relevant for the following examples (between
     0 to 25 m or 0 to 1e8 m³).  This is approximately true if with the
-    following configuration of the `watervolume2waterlevel` parameter:
+    following configuration of the |WaterVolume2WaterLevel| parameter:
 
     >>> watervolume2waterlevel(
     ...         weights_input=1e-6, weights_output=1e6,
@@ -125,7 +125,7 @@ Integration examples:
 
     To focus on the drought related algorithms solely we turn of the flood
     related processes.  This is accomplished by setting the weights and
-    intercepts of the `waterlevel2flooddischarge` to zero:
+    intercepts of the |WaterLevel2FloodDischarge| to zero:
 
     >>> waterlevel2flooddischarge(
     ...        weights_input=0.0, weights_output=0.0,
@@ -191,11 +191,11 @@ Integration examples:
     | 19.01. |    1.0 |                  1.6 |                    1.6 |          0.0 |          -1.6 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |     0.0 |      1.6416 |   1.0 |     1.7 |    0.0 |    1.7 |
     | 20.01. |    1.0 |                  1.7 |                    1.7 |          0.0 |          -1.7 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |     0.0 |       1.728 |   1.0 |     1.8 |    0.0 |    1.8 |
 
-    Note that the first value of sequence `totalremotedischarge` is `nan`.
-    This is due to a time delay of one simulation step.  `totalremotedischarge`
+    Note that the first value of sequence |TotalRemoteDischarge| is `nan`.
+    This is due to a time delay of one simulation step.  |TotalRemoteDischarge|
     knows the last value of the remote node, which has not been defined
     initially.  Hence, in this and the following examples, the first value
-    of sequence `totalremotedischarge` can be ignored.
+    of sequence |TotalRemoteDischarge| can be ignored.
 
     .. _dam_v001_ex02:
 
@@ -246,7 +246,7 @@ Integration examples:
     of the information flow from the cross section to the dam and, more
     importantly, due to the travel time of the discharge released.
     A simple strategy to increase reliability would be to set a higher
-    value for parameter `remotedischargeminimum`, e.g.:
+    value for parameter |RemoteDischargeMinimum|, e.g.:
 
     >>> remotedischargeminimum(1.6)
 
@@ -282,8 +282,8 @@ Integration examples:
     **Example 4**
 
     While is is possible to simply increase the value of parameter
-    `remotedischargeminimum`, it is often advisable to use parameter
-    'remotedischargesafety´ instead:
+    |RemoteDischargeMinimum|, it is often advisable to use parameter
+    |RemoteDischargeSafety| instead:
 
     >>> remotedischargeminimum(1.4)
     >>> remotedischargesafety(0.5)
@@ -444,8 +444,8 @@ Integration examples:
 
     >>> input_.sequences.sim.series[10:] = 0.1
 
-    The value of parameter `neardischargeminimumthreshold` (0.2 m³/s) is
-    maintained, but the value of `neardischargeminimumtolerance` is reset
+    The value of parameter |NearDischargeMinimumThreshold| (0.2 m³/s) is
+    maintained, but the value of |NearDischargeMinimumTolerance| is reset
     to 0 m³/s for improving comprehensibility:
 
     >>> neardischargeminimumtolerance(0.0)
@@ -485,7 +485,7 @@ Integration examples:
     Another issue of the dam model relevant for the simulation of drought
     events to be discussed is the possible restriction of water release
     due to limited storage.  To focus on this, we reset the parameter
-    `neardischargeminimumthreshold` to 0 m³/s and define smaller inflow
+    |NearDischargeMinimumThreshold| to 0 m³/s and define smaller inflow
     values, which are constantly decreasing from 0.2 m³/s to 0.0 m³/s:
 
     >>> neardischargeminimumthreshold(0.0)
@@ -521,15 +521,14 @@ Integration examples:
     | 19.01. | 0.010526 |             1.634293 |               1.612561 |          0.0 |     -0.234293 |              0.052016 |        0.052016 |        0.052016 |      0.013004 |            0.0 | 0.013004 |   -0.000424 | 0.010526 |     1.7 | 0.013004 | 1.724252 |
     | 20.01. |      0.0 |             1.724252 |               1.711248 |          0.0 |     -0.324252 |               0.02417 |         0.02417 |        0.012085 |           0.0 |            0.0 |      0.0 |   -0.000424 |      0.0 |     1.8 |      0.0 | 1.814438 |
 
-    This behaviour of the dam model is due to method
-    :func:`~hydpy.models.dam.dam_model.calc_actualrelease_v1` beeing
-    involved in the set of differential equation that are solved
+    This behaviour of the dam model is due to method |calc_actualrelease_v1|
+    beeing involved in the set of differential equation that are solved
     approximately by a numerical integration algorithm.  Theoretically,
     we could decrease the local truncation error to decrease this
     problem significantly.  But this could result in quite huge
     computation times, as the underlying numerical algorithm is not
     really able to handle the discontinuous relationship between release
-    and volume around `neardischargeminimumthreshold`.
+    and volume around |NearDischargeMinimumThreshold|.
 
     .. _dam_v001_ex10:
 
@@ -540,9 +539,8 @@ Integration examples:
     the actual release (not done yet, but seems to be worth the effort).
     When using the version of the dam model discussed here, it is instead
     advised to smooth this problematic discontinuity by increasing the
-    value of parameter `waterlevelminimumtolerance` (which could not be
-    implemented properly if method
-    :func:`~hydpy.models.dam.dam_model.calc_actualrelease_v1` would
+    value of parameter |NearDischargeMinimumTolerance| (which could not be
+    implemented properly if method |calc_actualrelease_v1| would
     apply a simple balance equation):
 
     >>> waterlevelminimumtolerance(0.01)
@@ -595,7 +593,7 @@ Integration examples:
     **Example 11**
 
     The last "drought parameter" we did no not vary so far is
-    `nmblogentries`.  In the examples above, this parameter was always
+    |NmbLogEntries|.  In the examples above, this parameter was always
     set to 1, meaning that each estimate of the `natural` discharge of
     the subcatchment was based only on the latest observation.  Using
     only the latest observation offers the advantage of quick adjustments
@@ -656,7 +654,7 @@ Integration examples:
 
     It seems advisable to increase the number of observations taken into
     account to estimate the natural discharge at the cross section.
-    For this purpuse, the value of parameter `nmblogentries` is set to
+    For this purpuse, the value of parameter |NmbLogEntries| is set to
     two days:
 
     >>> nmblogentries(2)
@@ -732,12 +730,12 @@ Integration examples:
     coefficient is approximately 0.054 per day.
 
     (Please be careful when defining such extremely large and small parameter
-    values for `watervolume2waterlevel` and 'waterlevel2flooddischarge'.
+    values for  |WaterVolume2WaterLevel| and |WaterLevel2FloodDischarge|.
     Otherwise you might get into precision loss trouble, causing the
     numerical calculations of the dam model to become very slow or the
     results to be very inaccurate.  So either use `normal` parameter values
     or check the precision of the results of `watervolume2waterlevel` and
-    'waterlevel2flooddischarge' manually before performing the actual
+    |WaterLevel2FloodDischarge| manually before performing the actual
     simulation runs.)
 
     Now a flood event needs to be defined:
@@ -862,7 +860,7 @@ Integration examples:
     **Example 15**
 
     Now we reset the local error tolerance to the more realistic value.
-    But we configure the `waterlevel2flooddischarge` parameter in a
+    But we configure the |WaterLevel2FloodDischarge| parameter in a
     highly reactive manner:
 
     >>> solver.abserrormax(1e-2)
@@ -1047,6 +1045,10 @@ class OutletSequences(sequencetools.LinkSequences):
 class ReceiverSequences(sequencetools.LinkSequences):
     """Information link sequences of HydPy-Dam, Version 1."""
     _SEQCLASSES = (dam_receivers.Q,)
+
+
+autodoc_applicationmodel()
+
 
 # pylint: disable=invalid-name
 tester = Tester()

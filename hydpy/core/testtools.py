@@ -373,8 +373,8 @@ class UnitTest(Test):
             self.last_example_plot = self.last_example_calc
         else:
             self.last_example_plot = last_example
-        self.reset_inits()
         for idx in range(self.nmb_examples):
+            self.reset_inits()
             self._update_inputs(idx)
             self.method()
             self._update_outputs(idx)
@@ -406,7 +406,9 @@ class UnitTest(Test):
     def reset_inits(self):
         """Set all initial conditions."""
         for parseq in self.parseqs:
-            parseq(getattr(self.inits, parseq.name))
+            inits = getattr(self.inits, parseq.name, None)
+            if inits is not None:
+                parseq(inits)
 
     def extract_method_doc(self):
         """Return the documentation string of the method to be tested."""

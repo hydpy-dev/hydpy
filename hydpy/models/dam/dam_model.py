@@ -76,23 +76,21 @@ def update_loggedtotalremotedischarge_v1(self):
         >>> from hydpy.models.dam import *
         >>> parameterstep()
         >>> nmblogentries(3)
+        >>> logs.loggedtotalremotedischarge = 0.0
         >>> from hydpy.core.testtools import UnitTest
         >>> test = UnitTest(model, model.update_loggedtotalremotedischarge_v1,
-        ...                 last_example=4)
+        ...                 last_example=4,
+        ...                 parseqs=(fluxes.totalremotedischarge,
+        ...                          logs.loggedtotalremotedischarge))
         >>> test.nexts.totalremotedischarge = [1., 3., 2., 4]
+        >>> del test.inits.loggedtotalremotedischarge
         >>> test()
-        | ex. | nmblogentries | totalremotedischarge \
-|           loggedtotalremotedischarge |
-        ---------------------------------------------\
-----------------------------------------
-        |   1 |             3 |                  1.0 \
-| 1.0  nan                         nan |
-        |   2 |             3 |                  3.0 \
-| 3.0  1.0                         nan |
-        |   3 |             3 |                  2.0 \
-| 2.0  3.0                         1.0 |
-        |   4 |             3 |                  4.0 \
-| 4.0  2.0                         3.0 |
+        | ex. | totalremotedischarge |           loggedtotalremotedischarge |
+        ---------------------------------------------------------------------
+        |   1 |                  1.0 | 1.0  0.0                         0.0 |
+        |   2 |                  3.0 | 3.0  1.0                         0.0 |
+        |   3 |                  2.0 | 2.0  3.0                         1.0 |
+        |   4 |                  4.0 | 4.0  2.0                         3.0 |
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
@@ -1763,17 +1761,21 @@ def update_loggedoutflow_v1(self):
         >>> from hydpy.models.dam import *
         >>> parameterstep()
         >>> nmblogentries(3)
+        >>> logs.loggedoutflow = 0.0
         >>> from hydpy.core.testtools import UnitTest
         >>> test = UnitTest(model, model.update_loggedoutflow_v1,
-        ...                 last_example=4)
-        >>> test.nexts.outflow = [1., 3., 2., 4]
+        ...                 last_example=4,
+        ...                 parseqs=(fluxes.outflow,
+        ...                          logs.loggedoutflow))
+        >>> test.nexts.outflow = [1.0, 3.0, 2.0, 4.0]
+        >>> del test.inits.loggedoutflow
         >>> test()
-        | ex. | nmblogentries | outflow |           loggedoutflow |
-        -----------------------------------------------------------
-        |   1 |             3 |     1.0 | 1.0  nan            nan |
-        |   2 |             3 |     3.0 | 3.0  1.0            nan |
-        |   3 |             3 |     2.0 | 2.0  3.0            1.0 |
-        |   4 |             3 |     4.0 | 4.0  2.0            3.0 |
+        | ex. | outflow |           loggedoutflow |
+        -------------------------------------------
+        |   1 |     1.0 | 1.0  0.0            0.0 |
+        |   2 |     3.0 | 3.0  1.0            0.0 |
+        |   3 |     2.0 | 2.0  3.0            1.0 |
+        |   4 |     4.0 | 4.0  2.0            3.0 |
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess

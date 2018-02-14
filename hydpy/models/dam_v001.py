@@ -2,12 +2,44 @@
 # pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
 """Version 1 application model of HydPy-Dam.
 
-Obviously, using the "smoothly applied" parameter |RemoteDischargeSafety|
-can be beneficial.  But the proper definition of the values of the
-"smoothing parameters" of the dam model might require some experience.
-It seems advisable to investigate the functioning of each new
-model parameterization on a large number of synthetic and/or measured
-drought events.
+Application model |dam_v001| has been the starting point for the
+development of the other application models of base model |dam|.
+Hence its documentation is very comprehensive.  It seems advisable to
+read the following explanations before reading the documentation
+of the application model you are actually interested in.
+
+|dam_v001| is supposed to represent a dam with an `active` low water
+control scheme and a `passive` high water control scheme.
+
+During low flow conditions, |dam_v001| tries to increase low runoff
+values immediately downstream the dam and at a more remote location
+in the river channel downstream.  This requires that |dam_v001| receives
+information from downstream via a `receiver node`.  In order to achieve
+a reliable drought control, |dam_v001| to store some low-flow related
+information for a certain number of simulation steps.
+
+During high flow conditions, |dam_v001| is controlled by two fixed
+relationships: one between water volume and water level, the other
+one between discharge and water level.
+
+The differential equation of |dam_v001| is solved by an adaptive
+Runge-Kutta solver that only works well on continuous equations.
+This is one reason why most threshold based low-flow equations are
+defined in a smoothed manner, and why an artificial neural network
+is chosen to specify the relationship between discharge and waterlevel.
+(Additionally, the smoothed equations allow for a finer, less abrupt
+control of the dam.)  However, the proper (meaning realistic and
+computational efficient) setting of the related smoothing and neural
+network parameters might require some experience.  It seems advisable
+to investigate the functioning of each new model parameterization on
+a number of synthetic and/or measured drought events.
+
+Note also that the applied solver is an explicite Runge-Kutta method,
+which could increase computation times under stiffness.  Due to to
+the adaptive order and stepsize control, inaccurate results due to
+stability issues should be excluded.  But for very responsive dams
+increased computations times are to be expected.  This is explained
+in some detail at the end of this section.
 
 
 Integration examples:

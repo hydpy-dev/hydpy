@@ -12,6 +12,9 @@ import datetime
 import itertools
 import os
 # ...from site-packages
+import bokeh.models
+import bokeh.palettes
+import bokeh.plotting
 import numpy
 # ...from HydPy
 from hydpy import pub
@@ -187,6 +190,19 @@ class Test(object):
                                    strings_in_line,
                                    self.col_widths))
 
+    def extract_units(self, parseqs=None):
+        """Return a set of units of the given or the handled parameters
+        and sequences."""
+        if parseqs is None:
+            parseqs = self.parseqs
+        units = set()
+        for parseq in parseqs:
+            desc = autodoctools.description(parseq)
+            if '[' in desc:
+                unit = desc.split('[')[-1].split(']')[0]
+                units.add(unit)
+        return units
+
 
 class IntegrationTest(Test):
     """Defines model integration doctests.
@@ -220,15 +236,30 @@ class IntegrationTest(Test):
         self.inits = inits
         self.model = element.model
         hydpytools.HydPy.nmb_instances = 0
-
-    def __call__(self):
-        """Prepare and perform an integration test and print its results."""
         self.hydpy = hydpytools.HydPy()
         self.hydpy.updatedevices(
             selectiontools.Selection('test', self.nodes, self.elements))
+        self._src = None
+        self._width = None
+        self._height = None
+
+    def __call__(self, *args, **kwargs):
+        """Prepare and perform an integration test and print and eventually
+        plot its results.
+
+        Plotting is only performed, when a filename is given as first
+        argument.  Additionally, all other arguments of function
+        :class:`~IntegrationTest.plot` are allowed to modify plot design.
+        """
         self.prepare_model()
         self.hydpy.doit()
         self.print_table()
+        if args:
+            self.plot(*args, **kwargs)
+
+    @property
+    def _datetimes(self):
+        return tuple(date.datetime for date in pub.timegrids.sim)
 
     @property
     def raw_first_col_strings(self):
@@ -331,6 +362,80 @@ class IntegrationTest(Test):
                         seq(getattr(self.inits, name))
                     except AttributeError:
                         pass
+
+    def plot(self, filename, width=600, height=300,
+             selected=None, activated=None):
+        """Save a bokeh html file plotting the current test results.
+
+        (Optional) arguments:
+            * filename: Name of the file.  If necessary, the file ending
+              `html` is added automatically.  The file is stored in the
+              `html` folder of subpackage `docs`.
+            * width: Width of the plot in screen units.
+            * height: Height of the plot in screen units.
+            * selected: List of the sequences to be plotted.
+            * activated: List of the sequences to be shown initially.
+        """
+
+        if not filename.endswith('.html'):
+            filename += '.html'
+        if selected is None:
+            selected = self.parseqs
+        if activated is None:
+            activated = self.parseqs
+        activated = tuple(nm_.name if hasattr(nm_, 'name') else nm_.lower()
+                          for nm_ in activated)
+        path = os.path.join(docs.__path__[0], 'html', filename)
+        bokeh.plotting.output_file(path)
+        plot = bokeh.plotting.figure(x_axis_type="datetime",
+                                     tools=['pan', 'wheel_zoom'],
+                                     toolbar_location=None)
+        plot.toolbar.active_drag = plot.tools[0]
+        plot.toolbar.active_scroll = plot.tools[1]
+        plot.plot_width = width
+        plot.plot_height = height
+        legend_entries = []
+        viridis = bokeh.palettes.viridis   # pylint: disable=no-member
+        zipped = zip(selected,
+                     viridis(len(selected)),
+                     self.raw_header_strings[1:])
+        for (seq, col, header) in zipped:
+            line = plot.line(self._datetimes, seq.series,
+                             alpha=0.8, muted_alpha=0.0,
+                             line_width=2, color=col)
+            line.muted = seq.name not in activated
+            if header == seq.name:
+                header = objecttools.classname(seq)
+            else:
+                header = header.capitalize()
+            legend_entries.append((header, [line]))
+        legend = bokeh.models.Legend(items=legend_entries,
+                                     click_policy='mute')
+        legend.border_line_color = None
+        plot.add_layout(legend, 'right')
+        units = self.extract_units(selected)
+        ylabel = objecttools.enumeration(units).replace('and', 'or')
+        plot.yaxis.axis_label = ylabel
+        plot.yaxis.axis_label_text_font_style = 'normal'
+        bokeh.plotting.save(plot)
+        self._src = filename
+        self._width = width
+        self._height = height
+
+    def iframe(self, tabs=4):
+        """Print a command for embeding the saved html file into the online
+        documentation via an `iframe`."""
+        blanks = ' '*tabs
+        lines = ['.. raw:: html',
+                 '',
+                 '    <iframe',
+                 '        src="%s"' % self._src,
+                 '        width="100%"',
+                 '        height="%dpx"' % (self._height+30),
+                 '        frameborder=0',
+                 '    ></iframe>',
+                 '']
+        print('\n'.join(blanks+line for line in lines))
 
 
 class UnitTest(Test):

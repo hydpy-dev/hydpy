@@ -19,6 +19,7 @@ import numpy
 # ...from HydPy
 from hydpy import pub
 from hydpy import docs
+from hydpy.core import abctools
 from hydpy.core import autodoctools
 from hydpy.core import devicetools
 from hydpy.core import hydpytools
@@ -109,7 +110,7 @@ class Test(object):
             for dummy in range(parseq.length-1):
                 strings.append('')
             if ((parseq.name == 'sim') and
-                    isinstance(parseq, sequencetools.Sequence)):
+                    isinstance(parseq, abctools.Sequence)):
                 strings.append(parseq.subseqs.node.name)
             else:
                 strings.append(parseq.name)
@@ -133,7 +134,7 @@ class Test(object):
                         strings[-1].append('empty')
                 else:
                     thing = ('sequence'
-                             if isinstance(parseq, sequencetools.Sequence)
+                             if isinstance(parseq, abctools.Sequence)
                              else 'parameter')
                     raise RuntimeError(
                         'An instance of class `Test` of module `testtools` '
@@ -210,6 +211,17 @@ class Test(object):
         return units
 
 
+class PlottingOptions(object):
+    """Plotting options of class :class:`IntegrationTest`."""
+
+    def __init__(self):
+        self.width = 600
+        self.height = 300
+        self.activated = None
+        self.selected = None
+        self.skip_nodes = True
+
+
 class IntegrationTest(Test):
     """Defines model integration doctests.
 
@@ -228,6 +240,8 @@ class IntegrationTest(Test):
     """The header of the first column containing dates."""
 
     _dateformat = None
+
+    plotting_options = PlottingOptions()
 
     def __init__(self, element, seqs=None, inits=None):
         """Prepare the element and its nodes and put them into a HydPy object
@@ -369,32 +383,46 @@ class IntegrationTest(Test):
                     except AttributeError:
                         pass
 
-    def plot(self, filename, width=600, height=300,
-             selected=None, activated=None):
+    def plot(self, filename, width=None, height=None,
+             selected=None, activated=None, skip_nodes=None):
         """Save a bokeh html file plotting the current test results.
 
         (Optional) arguments:
             * filename: Name of the file.  If necessary, the file ending
               `html` is added automatically.  The file is stored in the
               `html` folder of subpackage `docs`.
-            * width: Width of the plot in screen units.
-            * height: Height of the plot in screen units.
+            * width: Width of the plot in screen units.  Defaults to 600.
+            * height: Height of the plot in screen units.  Defaults to 300.
             * selected: List of the sequences to be plotted.
             * activated: List of the sequences to be shown initially.
+            * skip_nodes: Boolean flag that indicates whether series of
+              node objects shall be plotted or not. Defaults to `False`.
         """
-
+        if width is None:
+            width = self.plotting_options.width
+        if height is None:
+            height = self.plotting_options.height
         if not filename.endswith('.html'):
             filename += '.html'
         if selected is None:
-            selected = self.parseqs
+            selected = self.plotting_options.selected
+            if selected is None:
+                selected = self.parseqs
+        if skip_nodes is None:
+            skip_nodes = self.plotting_options.skip_nodes
+        if skip_nodes:
+            selected = [seq for seq in selected
+                        if not isinstance(seq, abctools.NodeSequence)]
         if activated is None:
-            activated = self.parseqs
+            activated = self.plotting_options.activated
+            if activated is None:
+                activated = self.parseqs
         activated = tuple(nm_.name if hasattr(nm_, 'name') else nm_.lower()
                           for nm_ in activated)
         path = os.path.join(docs.__path__[0], 'html', filename)
         bokeh.plotting.output_file(path)
         plot = bokeh.plotting.figure(x_axis_type="datetime",
-                                     tools=['pan', 'wheel_zoom'],
+                                     tools=['pan', 'ywheel_zoom'],
                                      toolbar_location=None)
         plot.toolbar.active_drag = plot.tools[0]
         plot.toolbar.active_scroll = plot.tools[1]

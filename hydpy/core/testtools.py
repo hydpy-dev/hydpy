@@ -3,6 +3,7 @@
 # import...
 # ...from standard library
 from __future__ import division, print_function
+import abc
 try:
     import builtins
 except ImportError:
@@ -14,20 +15,21 @@ import os
 import numpy
 # ...from HydPy
 from hydpy import pub
-from hydpy.core import hydpytools
-from hydpy.core import devicetools
-from hydpy.core import selectiontools
-from hydpy.core import objecttools
-from hydpy.core import timetools
-from hydpy.core import sequencetools
+from hydpy import docs
 from hydpy.core import autodoctools
+from hydpy.core import devicetools
+from hydpy.core import hydpytools
+from hydpy.core import objecttools
+from hydpy.core import selectiontools
+from hydpy.core import sequencetools
+from hydpy.core import timetools
 
 
 class Array(object):
     """Assures that attributes are :class:`~numpy.ndarray` objects."""
 
     def __setattr__(self, name, value):
-        object.__setattr__(self, name,  numpy.array(value))
+        object.__setattr__(self, name, numpy.array(value))
 
 
 class ArrayDescriptor(object):
@@ -62,6 +64,21 @@ class Test(object):
     """Stores arrays for setting the same values of parameters and/or
     sequences before each new experiment."""
 
+    @abc.abstractproperty
+    def raw_first_col_strings(self):
+        """To be implemented by the subclasses of :class:`Test`."""
+        return NotImplementedError
+
+    @abc.abstractstaticmethod
+    def get_output_array(parseq):
+        # pylint: disable=unused-argument
+        """To be implemented by the subclasses of :class:`Test`."""
+        return NotImplementedError
+
+    parseqs = NotImplemented
+
+    HEADER_OF_FIRST_COL = NotImplemented
+
     @property
     def nmb_rows(self):
         """Number of rows of the table."""
@@ -80,7 +97,7 @@ class Test(object):
         """All raw strings for the tables header."""
         strings = [self.HEADER_OF_FIRST_COL]
         for parseq in self.parseqs:
-            for idx in range(parseq.length-1):
+            for dummy in range(parseq.length-1):
                 strings.append('')
             if ((parseq.name == 'sim') and
                     isinstance(parseq, sequencetools.Sequence)):
@@ -114,7 +131,7 @@ class Test(object):
                         'is requested to print the results of %s `%s`. '
                         'Unfortunately, for %d-dimensional sequences this '
                         'feature is not supported yet.'
-                        % (thing, parseq.name, parseq.NDIM, parseq.shape))
+                        % (thing, parseq.name, parseq.NDIM))
         return strings
 
     @property
@@ -139,7 +156,7 @@ class Test(object):
         seps = ['| ']
         for parseq in self.parseqs:
             seps.append(' | ')
-            for idx in range(parseq.length-1):
+            for dummy in range(parseq.length-1):
                 seps.append('  ')
         seps.append(' |')
         return seps
@@ -175,8 +192,7 @@ class IntegrationTest(Test):
     """Defines model integration doctests.
 
     The functionality of :class:`Test` is easiest to understand by inspecting
-    doctests like the ones of modules :mod:`~hydpy.models.llake_v1` or
-    :mod:`~hydpy.models.arma_v1`.
+    doctests like the ones of modules |llake_v1| or |arma_v1|.
 
     Note that all condition sequences (state and logging sequences) are
     initialized in accordance with the values are given in the `inits`
@@ -204,21 +220,21 @@ class IntegrationTest(Test):
         self.inits = inits
         self.model = element.model
         hydpytools.HydPy.nmb_instances = 0
-        self.hp = hydpytools.HydPy()
-        self.hp.updatedevices(selectiontools.Selection(
-                                        'test', self.nodes, self.elements))
 
     def __call__(self):
         """Prepare and perform an integration test and print its results."""
+        self.hydpy = hydpytools.HydPy()
+        self.hydpy.updatedevices(
+            selectiontools.Selection('test', self.nodes, self.elements))
         self.prepare_model()
-        self.hp.doit()
+        self.hydpy.doit()
         self.print_table()
 
     @property
     def raw_first_col_strings(self):
         """The raw date strings of the first column, except the header."""
-        return [date.datetime.strftime(self.dateformat)
-                for date in pub.timegrids.sim]
+        return tuple(datetime.strftime(self.dateformat)
+                     for datetime in self._datetimes)
 
     def _getdateformat(self):
         """Format string for printing dates in the first column of the table.
@@ -227,8 +243,7 @@ class IntegrationTest(Test):
         """
         if self._dateformat is None:
             return timetools.Date._formatstrings['iso']
-        else:
-            return self._dateformat
+        return self._dateformat
 
     def _setdateformat(self, dateformat):
         try:
@@ -271,7 +286,8 @@ class IntegrationTest(Test):
     def prepare_input_model_sequences(self):
         """Configure the input sequences of the model in a manner that allows
         for applying their time series data in integration tests."""
-        for (name, seq) in getattr(self.element.model.sequences, 'inputs', ()):
+        subseqs = getattr(self.element.model.sequences, 'inputs', ())
+        for (dummy, seq) in subseqs:
             seq.ramflag = True
             seq._setarray(numpy.zeros(len(pub.timegrids.init), dtype=float))
 
@@ -279,9 +295,9 @@ class IntegrationTest(Test):
         """Return a list of all input, flux and state sequences of the model
         as well as the simulation sequences of all nodes."""
         seqs = []
-        for subseqs in ('inputs', 'fluxes', 'states'):
-            for (name, seq) in getattr(
-                                    self.element.model.sequences, subseqs, ()):
+        for name in ('inputs', 'fluxes', 'states'):
+            subseqs = getattr(self.element.model.sequences, name, ())
+            for (dummy, seq) in subseqs:
                 seqs.append(seq)
         for node in self.nodes:
             seqs.append(node.sequences.sim)
@@ -318,6 +334,7 @@ class IntegrationTest(Test):
 
 
 class UnitTest(Test):
+    """Defines unit doctests for a single model method."""
 
     HEADER_OF_FIRST_COL = 'ex.'
     """The header of the first column containing sequential numbers."""
@@ -351,6 +368,7 @@ class UnitTest(Test):
 
     @property
     def nmb_examples(self):
+        """The number of examples to be calculated."""
         return self.last_example_calc-self.first_example_calc+1
 
     @property
@@ -397,6 +415,8 @@ class UnitTest(Test):
             setattr(self.inits, parseq.name, parseq.values)
 
     def prepare_output_arrays(self):
+        """Prepare arrays for storing the calculated results for the
+        respective parameters and/or sequences."""
         for parseq in self.parseqs:
             shape = [len(self.raw_first_col_strings)] + list(parseq.shape)
             type_ = getattr(parseq, 'TYPE', float)
@@ -413,9 +433,9 @@ class UnitTest(Test):
         if getattr(self.method, '__doc__', None):
             return self.method.__doc__
         else:
-            Model = type(self.model)
-            for group_name in Model._METHOD_GROUPS:
-                for function in getattr(Model, group_name, ()):
+            model = type(self.model)
+            for group_name in model._METHOD_GROUPS:
+                for function in getattr(model, group_name, ()):
                     if function.__name__ == self.method.__name__:
                         return function.__doc__
 
@@ -465,9 +485,11 @@ class _Open(object):
         self.close()
 
     def write(self, text):
+        """Replaces the `write` method of file objects."""
         self.texts.append(text)
 
     def close(self):
+        """Replaces the `close` method of file objects."""
         text = ''.join(self.texts)
         maxchars = len(self.path)
         lines = []

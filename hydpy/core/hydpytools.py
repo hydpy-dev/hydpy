@@ -270,6 +270,8 @@ class HydPy(object):
         for element in self.elements:
             if element.receivers:
                 funcs.append(element.model.update_receivers)
+        for element in self.elements:
+            funcs.append(element.model.savedata)
         for node in self.nodes:
             if node.deploymode != 'oldsim':
                 funcs.append(node._savedata_sim)

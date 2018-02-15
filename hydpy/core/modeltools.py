@@ -168,7 +168,6 @@ class Model(_MetaModel):
         self.run()
         self.new2old()
         self.update_outlets()
-        self.savedata()
 
     def run(self):
         for method in self._RUN_METHODS:
@@ -177,8 +176,9 @@ class Model(_MetaModel):
     def loaddata(self):
         self.sequences.loaddata(self.idx_sim)
 
-    def savedata(self):
-        self.sequences.savedata(self.idx_sim)
+    def savedata(self, idx):
+        self.idx_sim = idx
+        self.sequences.savedata(idx)
 
     def update_inlets(self):
         for method in self._INLET_METHODS:
@@ -277,7 +277,6 @@ class ModelELS(Model):
         self.update_inlets()
         self.solve()
         self.update_outlets()
-        self.savedata()
 
     def solve(self):
         """

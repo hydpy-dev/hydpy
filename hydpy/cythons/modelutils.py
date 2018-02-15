@@ -681,9 +681,6 @@ class PyxWriter(object):
                 lines.add(2, 'self.new2old()')
         if self.model._OUTLET_METHODS:
             lines.add(2, 'self.update_outlets()')
-        if ((getattr(self.model.sequences, 'fluxes', None) is not None) or
-                (getattr(self.model.sequences, 'states', None) is not None)):
-            lines.add(2, 'self.savedata()')
         return lines
 
     @property
@@ -700,7 +697,9 @@ class PyxWriter(object):
                 continue
             print('            . %s' % func)
             nogil = func in ('loaddata', 'savedata')
-            lines.add(1, method_header(func, nogil=nogil))
+            idx_as_arg = func == 'savedata'
+            lines.add(1, method_header(
+                func, nogil=nogil, idx_as_arg=idx_as_arg))
             for (name, subseqs) in self.model.sequences:
                 if func == 'loaddata':
                     applyfuncs = ('inputs',)

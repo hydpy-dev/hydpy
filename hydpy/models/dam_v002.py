@@ -2,29 +2,26 @@
 # pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
 """Version 2 of HydPy-Dam.
 
-Application model :mod:`~hydpy.models.dam_v002` is a simplification of
-:mod:`~hydpy.models.dam_v001`.  While most functionlities are identical,
-:mod:`~hydpy.models.dam_v002` does not calculate
-:class:`~hydpy.models.dam.dam_fluxes.RequiredRemoteRelease` on its own,
-but picks this information from the simulation results of another model.
+Application model |dam_v002| is a simplification of |dam_v001|.
+While most functionlities are identical, |dam_v002| does not calculate
+|RequiredRemoteRelease| on its own, but picks this information from
+the simulation results of another model.
 
 The following explanations focus on this difference.  For further
-information on the usage of :mod:`~hydpy.models.dam_v002` please read
-the documentation on model :mod:`~hydpy.models.dam_v001`.
+information on the usage of |dam_v002| please read the documentation
+on model |dam_v001|.
 
 Integration examples:
 
     Each of the following examples is a repetition of an example performed
-    to demonstrate the functionality of model :mod:`~hydpy.models.dam_v002`.
-    To achieve comparability, identical parameter values and initial
-    conditions are set.  Additionally, the values of sequence
-    :class:`~hydpy.models.dam.dam_fluxes.RequiredRemoteRelease` calculated
-    by :mod:`~hydpy.models.dam_v001` in the respective example are used as
-    input data of :mod:`~hydpy.models.dam_v002` via the node object `remote`.
-    (Note that this nodes handles variable
-    :class:`~hydpy.models.dam.dam_receivers.D`) Due to the limit precision of
-    the copy-pasted :class:`~hydpy.models.dam.dam_fluxes.RequiredRemoteRelease`
-    values, there are some tiny deviations between the results of both models.
+    to demonstrate the functionality of model |dam_v002|.  To achieve
+    comparability, identical parameter values and initial conditions are set.
+    Additionally, the values of sequence |RequiredRemoteRelease| calculated
+    by |dam_v001| in the respective example are used as input data of
+    |dam_v002| via the node object `remote`.  (Note that this nodes handles
+    variable |dam_receivers.D|). Due to the limit precision of the
+    copy-pasted |RequiredRemoteRelease| values, there are some tiny
+    deviations between the results of both models.
 
     :ref:`Recalculation of example 7 <dam_v001_ex07>`
 
@@ -45,12 +42,11 @@ Integration examples:
     >>> parameterstep('1d')
     >>> dam.connect(model)
 
-    Next, all initial conditions and the external input time series
-    data are defined.  Note that the first value of
-    :class:`~hydpy.models.dam.dam_fluxes.RequiredRemoteRelease` calculated
-    by model :mod:`~hydpy.models.dam_v001` is inserted as an initial
-    condition via the `test` object and all other values are passed to the
-    series object of node `remote`:
+    Next, all initial conditions and the external input time series data
+    are defined.  Note that the first value of |RequiredRemoteRelease|
+    calculated by model |dam_v001| is inserted as an initial condition
+    via the `test` object and all other values are passed to the series
+    object of node `remote`:
 
     >>> from hydpy.core.testtools import IntegrationTest
     >>> test = IntegrationTest(
@@ -65,8 +61,8 @@ Integration examples:
     ...     0.349797, 0.105231, 0.111928, 0.240436, 0.229369,
     ...     0.058622, 0.016958, 0.008447, 0.004155, 0.0]
 
-    Except that :mod:`~hydpy.models.dam_v002` implements less parameters
-    than :mod:`~hydpy.models.dam_v001`, all parameter settings are identical:
+    Except that |dam_v002| implements less parameters
+    than |dam_v001|, all parameter settings are identical:
 
     >>> watervolume2waterlevel(
     ...         weights_input=1e-6, weights_output=1e6,
@@ -85,7 +81,7 @@ Integration examples:
     under low flow conditions both when there is a "near" and/or a "remote"
     need for water supply:
 
-    >>> test()
+    >>> test('dam_v002_ex7', activated=(fluxes.inflow, fluxes.outflow))
     |   date | inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | input |   output |   remote |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |                 0.005 |        0.210526 |        0.210526 |      0.201754 |            0.0 | 0.201754 |    0.068968 |   1.0 | 0.201754 | 0.008588 |
@@ -109,11 +105,21 @@ Integration examples:
     | 19.01. |    1.0 |              0.008447 |        0.210904 |        0.210904 |      0.210904 |            0.0 | 0.210904 |    1.090261 |   1.0 | 0.210904 | 0.004155 |
     | 20.01. |    1.0 |              0.004155 |        0.210435 |        0.210435 |      0.210435 |            0.0 | 0.210435 |    1.158479 |   1.0 | 0.210435 |      0.0 |
 
+    .. raw:: html
+
+        <iframe
+            src="dam_v002_ex7.html"
+            width="100%"
+            height="330px"
+            frameborder=0
+        ></iframe>
+
+
     :ref:`Recalculation of example 8 <dam_v001_ex08>`
 
     The next recalculation confirms that the restriction on releasing
     water when there is little inflow works as explained for model
-    :mod:`~hydpy.models.dam_v002`:
+    |dam_v002|:
 
     >>> input_.sequences.sim.series[10:] = 0.1
     >>> remote.sequences.sim.series = [
@@ -122,7 +128,7 @@ Integration examples:
     ...     0.034564, 0.299482, 0.585979, 0.557422, 0.229369,
     ...     0.142578, 0.068641, 0.029844, 0.012348, 0.0]
     >>> neardischargeminimumtolerance(0.0)
-    >>> test()
+    >>> test('dam_v002_ex8', activated=(fluxes.inflow, fluxes.outflow))
     |   date | inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | input |   output |   remote |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |                 0.005 |             0.2 |             0.2 |      0.191667 |            0.0 | 0.191667 |     0.06984 |   1.0 | 0.191667 | 0.008746 |
@@ -146,6 +152,14 @@ Integration examples:
     | 19.01. |    0.1 |              0.029844 |             0.2 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 |   0.1 |      0.1 | 0.012348 |
     | 20.01. |    0.1 |              0.012348 |             0.2 |             0.1 |           0.1 |            0.0 |      0.1 |     0.54921 |   0.1 |      0.1 |      0.0 |
 
+    .. raw:: html
+
+        <iframe
+            src="dam_v002_ex8.html"
+            width="100%"
+            height="330px"
+            frameborder=0
+        ></iframe>
 
     :ref:`Recalculation of example 10 <dam_v001_ex10>`
 
@@ -161,7 +175,7 @@ Integration examples:
     ...     0.45567, 0.608464, 0.537314, 0.629775, 0.744091,
     ...     0.82219, 0.841916, 0.701812, 0.533258, 0.351863,
     ...     0.185207, 0.107697, 0.055458, 0.025948, 0.0]
-    >>> test()
+    >>> test('dam_v008_ex10', activated=(fluxes.inflow, fluxes.outflow))
     |   date |   inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume |    input |   output |   remote |
     ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |      0.2 |                 0.005 |           0.005 |           0.005 |      0.001282 |            0.0 | 0.001282 |    0.017169 |      0.2 | 0.001282 |  0.01232 |
@@ -204,7 +218,7 @@ Integration examples:
     ...                                 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]
     >>> remote.sequences.sim.series = 0.0
     >>> test.inits.loggedrequiredremoterelease = 0.0
-    >>> test()
+    >>> test('dam_v002_ex13', activated=(fluxes.inflow, fluxes.outflow))
     |   date | inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | input |   output | remote |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |         0.0 |   0.0 |      0.0 |    0.0 |
@@ -227,6 +241,15 @@ Integration examples:
     | 18.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       0.912222 | 0.912222 |    1.420492 |   0.0 | 0.912222 |    0.0 |
     | 19.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       0.864268 | 0.864268 |     1.34582 |   0.0 | 0.864268 |    0.0 |
     | 20.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       0.818835 | 0.818835 |    1.275072 |   0.0 | 0.818835 |    0.0 |
+
+    .. raw:: html
+
+        <iframe
+            src="dam_v002_ex13.html"
+            width="100%"
+            height="330px"
+            frameborder=0
+        ></iframe>
 """
 
 # import...
@@ -334,6 +357,8 @@ class ReceiverSequences(sequencetools.LinkSequences):
     """Information link sequences of HydPy-Dam, Version 2."""
     _SEQCLASSES = (dam_receivers.D,)
 
+
+autodoc_applicationmodel()
 
 # pylint: disable=invalid-name
 tester = Tester()

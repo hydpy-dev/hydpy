@@ -14,7 +14,7 @@ on model |dam_v001|.
 Integration examples:
 
     Each of the following examples is a repetition of an example performed
-    to demonstrate the functionality of model |dam_v002|.  To achieve
+    to demonstrate the functionality of model |dam_v001|.  To achieve
     comparability, identical parameter values and initial conditions are set.
     Additionally, the values of sequence |RequiredRemoteRelease| calculated
     by |dam_v001| in the respective example are used as input data of
@@ -49,6 +49,8 @@ Integration examples:
     object of node `remote`:
 
     >>> from hydpy.core.testtools import IntegrationTest
+    >>> IntegrationTest.plotting_options.activated=(
+    ...     fluxes.inflow, fluxes.outflow)
     >>> test = IntegrationTest(
     ...     dam,
     ...     inits=((states.watervolume, 0.0),
@@ -81,7 +83,7 @@ Integration examples:
     under low flow conditions both when there is a "near" and/or a "remote"
     need for water supply:
 
-    >>> test('dam_v002_ex7', activated=(fluxes.inflow, fluxes.outflow))
+    >>> test('dam_v002_ex7')
     |   date | inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | input |   output |   remote |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |                 0.005 |        0.210526 |        0.210526 |      0.201754 |            0.0 | 0.201754 |    0.068968 |   1.0 | 0.201754 | 0.008588 |
@@ -119,7 +121,7 @@ Integration examples:
 
     The next recalculation confirms that the restriction on releasing
     water when there is little inflow works as explained for model
-    |dam_v002|:
+    |dam_v001|:
 
     >>> input_.sequences.sim.series[10:] = 0.1
     >>> remote.sequences.sim.series = [
@@ -128,7 +130,7 @@ Integration examples:
     ...     0.034564, 0.299482, 0.585979, 0.557422, 0.229369,
     ...     0.142578, 0.068641, 0.029844, 0.012348, 0.0]
     >>> neardischargeminimumtolerance(0.0)
-    >>> test('dam_v002_ex8', activated=(fluxes.inflow, fluxes.outflow))
+    >>> test('dam_v002_ex8')
     |   date | inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | input |   output |   remote |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |                 0.005 |             0.2 |             0.2 |      0.191667 |            0.0 | 0.191667 |     0.06984 |   1.0 | 0.191667 | 0.008746 |
@@ -175,7 +177,7 @@ Integration examples:
     ...     0.45567, 0.608464, 0.537314, 0.629775, 0.744091,
     ...     0.82219, 0.841916, 0.701812, 0.533258, 0.351863,
     ...     0.185207, 0.107697, 0.055458, 0.025948, 0.0]
-    >>> test('dam_v008_ex10', activated=(fluxes.inflow, fluxes.outflow))
+    >>> test('dam_v008_ex10')
     |   date |   inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume |    input |   output |   remote |
     ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |      0.2 |                 0.005 |           0.005 |           0.005 |      0.001282 |            0.0 | 0.001282 |    0.017169 |      0.2 | 0.001282 |  0.01232 |
@@ -218,7 +220,7 @@ Integration examples:
     ...                                 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]
     >>> remote.sequences.sim.series = 0.0
     >>> test.inits.loggedrequiredremoterelease = 0.0
-    >>> test('dam_v002_ex13', activated=(fluxes.inflow, fluxes.outflow))
+    >>> test('dam_v002_ex13')
     |   date | inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | input |   output | remote |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |         0.0 |   0.0 |      0.0 |    0.0 |

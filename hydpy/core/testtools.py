@@ -28,6 +28,12 @@ from hydpy.core import sequencetools
 from hydpy.core import timetools
 
 
+if pub.pyversion == 2:
+    abstractstaticmethod = abc.abstractmethod
+else:
+    abstractstaticmethod = abc.abstractstaticmethod
+
+
 class Array(object):
     """Assures that attributes are :class:`~numpy.ndarray` objects."""
 
@@ -72,7 +78,7 @@ class Test(object):
         """To be implemented by the subclasses of :class:`Test`."""
         return NotImplementedError
 
-    @abc.abstractstaticmethod
+    @abstractstaticmethod
     def get_output_array(parseq):
         # pylint: disable=unused-argument
         """To be implemented by the subclasses of :class:`Test`."""

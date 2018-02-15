@@ -14,11 +14,12 @@ import warnings
 import numpy
 # ...from HydPy
 from hydpy import pub
-from hydpy.core import variabletools
-from hydpy.core import timetools
-from hydpy.core import objecttools
-from hydpy.cythons import pointerutils
+from hydpy.core import abctools
 from hydpy.core import autodoctools
+from hydpy.core import objecttools
+from hydpy.core import timetools
+from hydpy.core import variabletools
+from hydpy.cythons import pointerutils
 
 
 class Sequences(object):
@@ -621,6 +622,9 @@ class Sequence(variabletools.Variable):
         return objecttools.dir_(self)
 
 
+abctools.Sequence.register(Sequence)
+
+
 class IOSequence(Sequence):
     """Only for inheritance."""
 
@@ -1167,6 +1171,9 @@ class InputSequence(ModelIOSequence):
     """ """
 
 
+abctools.InputSequence.register(InputSequence)
+
+
 class FluxSequence(ModelIOSequence):
     """ """
 
@@ -1189,6 +1196,9 @@ class FluxSequence(ModelIOSequence):
             self._connect_subattr('sum', numpy.zeros(self.shape))
 
     shape = property(ModelIOSequence._getshape, _setshape)
+
+
+abctools.FluxSequence.register(FluxSequence)
 
 
 class LeftRightSequence(ModelIOSequence):
@@ -1348,6 +1358,9 @@ class StateSequence(ModelIOSequence, ConditionSequence):
             self.old = self.new
 
 
+abctools.StateSequence.register(StateSequence)
+
+
 class LogSequence(Sequence, ConditionSequence):
     """ """
 
@@ -1361,8 +1374,14 @@ class LogSequence(Sequence, ConditionSequence):
         self._oldargs = copy.deepcopy(args)
 
 
+abctools.LogSequence.register(LogSequence)
+
+
 class AideSequence(Sequence):
     """ """
+
+
+abctools.AideSequence.register(AideSequence)
 
 
 class LinkSequence(Sequence):
@@ -1425,6 +1444,9 @@ class LinkSequence(Sequence):
     shape = property(_getshape, _setshape)
 
 
+abctools.LinkSequence.register(LinkSequence)
+
+
 class NodeSequence(IOSequence):
 
     def _getrawfilename(self):
@@ -1472,6 +1494,9 @@ class NodeSequence(IOSequence):
 
     values = property(_getvalues, _setvalues)
     value = values
+
+
+abctools.NodeSequence.register(NodeSequence)
 
 
 class Sim(NodeSequence):

@@ -198,6 +198,11 @@ class LinkSequence(Sequence):
     pass
 
 
+class NodeSequence(Sequence):
+    """Abstract base class for registering custom node sequence classes."""
+    pass
+
+
 class Date(Sequence):
     """Abstract base class for registering custom date classes."""
     pass

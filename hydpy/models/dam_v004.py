@@ -50,6 +50,8 @@
     disabled, which can be accomplished by the following settings:
 
     >>> from hydpy.core.testtools import IntegrationTest
+    >>> IntegrationTest.plotting_options.activated=(
+    ...     fluxes.inflow, fluxes.outflow)
     >>> test = IntegrationTest(
     ...     dam,
     ...     inits=((states.watervolume, 0.0),
@@ -87,7 +89,7 @@
     `actualremoterelease`) shows that both models can in fact be
     functionally identical:
 
-    >>> test()
+    >>> test('dam_v004_ex7')
     |   date | inflow | requiredremoterelease | allowedremoterelieve | possibleremoterelieve | actualremoterelieve | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume | actual_relieve | actual_supply | allowed_relieve | inflow |  release | required_supply |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |                 0.005 |                  0.0 |                   0.0 |                 0.0 |             0.2 |             0.2 |      0.191667 |            0.004792 |            0.0 | 0.191667 |    0.069426 |            0.0 |      0.004792 |             0.0 |    1.0 | 0.191667 |        0.008588 |
@@ -111,6 +113,15 @@
     | 19.01. |    1.0 |              0.008447 |                  0.0 |                   0.0 |                 0.0 |             0.2 |             0.2 |           0.2 |            0.008447 |            0.0 |      0.2 |    0.944381 |            0.0 |      0.008447 |             0.0 |    1.0 |      0.2 |        0.004155 |
     | 20.01. |    1.0 |              0.004155 |                  0.0 |                   0.0 |                 0.0 |             0.2 |             0.2 |           0.2 |            0.004155 |            0.0 |      0.2 |    1.013142 |            0.0 |      0.004155 |             0.0 |    1.0 |      0.2 |             0.0 |
 
+    .. raw:: html
+
+        <iframe
+            src="dam_v004_ex7.html"
+            width="100%"
+            height="330px"
+            frameborder=0
+        ></iframe>
+
     :ref:`First modification of example 7 <dam_v003_ex07>`
 
     In this first modification of the example above, the "old" required
@@ -128,7 +139,6 @@
     ...        intercepts_hidden=0.0, intercepts_output=100.0)
     >>> waterlevel2possibleremoterelieve.plot(-0.1, 1.0)
 
-
     .. testsetup::
 
         >>> from matplotlib import pyplot
@@ -140,7 +150,7 @@
     inaccuracy, which is explained in the documentation on application
     model |dam_v001|:
 
-    >>> test()
+    >>> test('dam_v004_ex7_1')
     |   date | inflow | requiredremoterelease | allowedremoterelieve | possibleremoterelieve | actualremoterelieve | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume | actual_relieve | actual_supply | allowed_relieve | inflow |  release | required_supply |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |                   0.0 |                0.005 |                 100.0 |               0.005 |             0.2 |             0.2 |      0.191667 |                 0.0 |            0.0 | 0.191667 |    0.069408 |          0.005 |           0.0 |        0.008588 |    1.0 | 0.191667 |             0.0 |
@@ -163,6 +173,15 @@
     | 18.01. |    1.0 |                   0.0 |             0.016958 |                 100.0 |            0.016958 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.875972 |       0.016958 |           0.0 |        0.008447 |    1.0 |      0.2 |             0.0 |
     | 19.01. |    1.0 |                   0.0 |             0.008447 |                 100.0 |            0.008447 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.944363 |       0.008447 |           0.0 |        0.004155 |    1.0 |      0.2 |             0.0 |
     | 20.01. |    1.0 |                   0.0 |             0.004155 |                 100.0 |            0.004155 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    1.013124 |       0.004155 |           0.0 |             0.0 |    1.0 |      0.2 |             0.0 |
+
+    .. raw:: html
+
+        <iframe
+            src="dam_v004_ex7_1.html"
+            width="100%"
+            height="330px"
+            frameborder=0
+        ></iframe>
 
     :ref:`Second modification of example 7 <dam_v003_ex07>`
 
@@ -187,7 +206,7 @@
     The imposed restriction of 0.5 m³/s results in a reduced relieve
     discharge between January, 9, and January, 11:
 
-    >>> test()
+    >>> test('dam_v004_ex7_2')
     |   date | inflow | requiredremoterelease | allowedremoterelieve | possibleremoterelieve | actualremoterelieve | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume | actual_relieve | actual_supply | allowed_relieve | inflow |  release | required_supply |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |                   0.0 |                0.005 |              0.483333 |            0.004833 |             0.2 |             0.2 |      0.196667 |                 0.0 |            0.0 | 0.196667 |     0.06899 |       0.004833 |           0.0 |        0.008588 |    1.0 | 0.196667 |             0.0 |
@@ -211,6 +230,15 @@
     | 19.01. |    1.0 |                   0.0 |             0.008447 |                   0.5 |            0.008447 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    1.015017 |       0.008447 |           0.0 |        0.004155 |    1.0 |      0.2 |             0.0 |
     | 20.01. |    1.0 |                   0.0 |             0.004155 |                   0.5 |            0.004155 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    1.083778 |       0.004155 |           0.0 |             0.0 |    1.0 |      0.2 |             0.0 |
 
+    .. raw:: html
+
+        <iframe
+            src="dam_v004_ex7_2.html"
+            width="100%"
+            height="330px"
+            frameborder=0
+        ></iframe>
+
     :ref:`Third modification of example 7 <dam_v003_ex07>`
 
     The capped possible relieve discharge in the example above results
@@ -219,7 +247,7 @@
     can be set to values larger than zero, e.g.:
 
     >>> remoterelievetolerance(0.2)
-    >>> test()
+    >>> test('dam_v004_ex7_3')
     |   date | inflow | requiredremoterelease | allowedremoterelieve | possibleremoterelieve | actualremoterelieve | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume | actual_relieve | actual_supply | allowed_relieve | inflow |  release | required_supply |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |                   0.0 |                0.005 |              0.483333 |            0.004833 |             0.2 |             0.2 |      0.196667 |                 0.0 |            0.0 | 0.196667 |     0.06899 |       0.004833 |           0.0 |        0.008588 |    1.0 | 0.196667 |             0.0 |
@@ -242,6 +270,15 @@
     | 18.01. |    1.0 |                   0.0 |             0.016958 |                   0.5 |            0.016958 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.958439 |       0.016958 |           0.0 |        0.008447 |    1.0 |      0.2 |             0.0 |
     | 19.01. |    1.0 |                   0.0 |             0.008447 |                   0.5 |            0.008447 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    1.026829 |       0.008447 |           0.0 |        0.004155 |    1.0 |      0.2 |             0.0 |
     | 20.01. |    1.0 |                   0.0 |             0.004155 |                   0.5 |            0.004155 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |     1.09559 |       0.004155 |           0.0 |             0.0 |    1.0 |      0.2 |             0.0 |
+
+    .. raw:: html
+
+        <iframe
+            src="dam_v004_ex7_3.html"
+            width="100%"
+            height="330px"
+            frameborder=0
+        ></iframe>
 
     :ref:`Exact recalculation of example 8 <dam_v003_ex08>`
 
@@ -269,7 +306,7 @@
     ...     0.034564, 0.299482, 0.585979, 0.557422, 0.229369,
     ...     0.142578, 0.068641, 0.029844, 0.012348, 0.0]
     >>> neardischargeminimumtolerance(0.0)
-    >>> test()
+    >>> test('dam_v004_ex8')
     |   date | inflow | requiredremoterelease | allowedremoterelieve | possibleremoterelieve | actualremoterelieve | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume | actual_relieve | actual_supply | allowed_relieve | inflow |  release | required_supply |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |                 0.005 |                  0.0 |                   0.0 |                 0.0 |             0.2 |             0.2 |      0.191667 |            0.004792 |            0.0 | 0.191667 |    0.069426 |            0.0 |      0.004792 |             0.0 |    1.0 | 0.191667 |        0.008746 |
@@ -293,6 +330,15 @@
     | 19.01. |    0.1 |              0.029844 |                  0.0 |                   0.0 |                 0.0 |             0.2 |             0.1 |           0.1 |            0.029844 |            0.0 |      0.1 |    0.269633 |            0.0 |      0.029844 |             0.0 |    0.1 |      0.1 |        0.012348 |
     | 20.01. |    0.1 |              0.012348 |                  0.0 |                   0.0 |                 0.0 |             0.2 |             0.1 |           0.1 |            0.012348 |            0.0 |      0.1 |    0.268566 |            0.0 |      0.012348 |             0.0 |    0.1 |      0.1 |             0.0 |
 
+    .. raw:: html
+
+        <iframe
+            src="dam_v004_ex8.html"
+            width="100%"
+            height="330px"
+            frameborder=0
+        ></iframe>
+
     :ref:`Exact recalculation of example 10 <dam_v003_ex10>`
 
     This example demonstates the identical behaviour of models
@@ -308,7 +354,7 @@
     ...     0.45567, 0.608464, 0.537314, 0.629775, 0.744091,
     ...     0.82219, 0.841916, 0.701812, 0.533258, 0.351863,
     ...     0.185207, 0.107697, 0.055458, 0.025948, 0.0]
-    >>> test()
+    >>> test('dam_v004_ex10')
     |   date |   inflow | requiredremoterelease | allowedremoterelieve | possibleremoterelieve | actualremoterelieve | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume | actual_relieve | actual_supply | allowed_relieve |   inflow |  release | required_supply |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |      0.2 |                 0.005 |                  0.0 |                   0.0 |                 0.0 |             0.2 |             0.2 |      0.038491 |             0.00012 |            0.0 | 0.038491 |    0.013944 |            0.0 |       0.00012 |             0.0 |      0.2 | 0.038491 |         0.01232 |
@@ -332,9 +378,18 @@
     | 19.01. | 0.010526 |              0.055458 |                  0.0 |                   0.0 |                 0.0 |             0.2 |        0.010526 |      0.004535 |             0.00392 |            0.0 | 0.004535 |    0.017661 |            0.0 |       0.00392 |             0.0 | 0.010526 | 0.004535 |        0.025948 |
     | 20.01. |      0.0 |              0.025948 |                  0.0 |                   0.0 |                 0.0 |             0.2 |             0.0 |           0.0 |            0.001835 |            0.0 |      0.0 |    0.017502 |            0.0 |      0.001835 |             0.0 |      0.0 |      0.0 |             0.0 |
 
+    .. raw:: html
+
+        <iframe
+            src="dam_v004_ex10.html"
+            width="100%"
+            height="330px"
+            frameborder=0
+        ></iframe>
+
     :ref:`Exact recalculation of example 13 <dam_v003_ex13>`
 
-    This final example demonstates the identical behaviour of models
+    This example demonstrates the identical behaviour of models
     |dam_v003| and |dam_v004| (and also of models |dam_v001| and
     |dam_v002| regarding high flow conditions:
 
@@ -352,7 +407,7 @@
     ...                                 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]
     >>> required_supply.sequences.sim.series = 0.0
     >>> test.inits.loggedrequiredremoterelease = 0.0
-    >>> test()
+    >>> test('dam_v004_ex13')
     |   date | inflow | requiredremoterelease | allowedremoterelieve | possibleremoterelieve | actualremoterelieve | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume | actual_relieve | actual_supply | allowed_relieve | inflow |  release | required_supply |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    0.0 |                   0.0 |                  0.0 |                   0.0 |                 0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |            0.0 |      0.0 |         0.0 |            0.0 |           0.0 |             0.0 |    0.0 |      0.0 |             0.0 |
@@ -375,6 +430,16 @@
     | 18.01. |    0.0 |                   0.0 |                  0.0 |                   0.0 |                 0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.912222 | 0.912222 |    1.420492 |            0.0 |           0.0 |             0.0 |    0.0 | 0.912222 |             0.0 |
     | 19.01. |    0.0 |                   0.0 |                  0.0 |                   0.0 |                 0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.864268 | 0.864268 |     1.34582 |            0.0 |           0.0 |             0.0 |    0.0 | 0.864268 |             0.0 |
     | 20.01. |    0.0 |                   0.0 |                  0.0 |                   0.0 |                 0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.818835 | 0.818835 |    1.275072 |            0.0 |           0.0 |             0.0 |    0.0 | 0.818835 |             0.0 |
+
+    .. raw:: html
+
+        <iframe
+            src="dam_v004_ex13.html"
+            width="100%"
+            height="330px"
+            frameborder=0
+        ></iframe>
+
 """
 
 # import...

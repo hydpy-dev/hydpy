@@ -12,9 +12,10 @@ import datetime
 import itertools
 import os
 # ...from site-packages
-import bokeh.models
-import bokeh.palettes
-import bokeh.plotting
+# the following import are actually performed below due to performance issues:
+# import bokeh.models
+# import bokeh.palettes
+# import bokeh.plotting
 import numpy
 # ...from HydPy
 from hydpy import pub
@@ -25,7 +26,6 @@ from hydpy.core import devicetools
 from hydpy.core import hydpytools
 from hydpy.core import objecttools
 from hydpy.core import selectiontools
-from hydpy.core import sequencetools
 from hydpy.core import timetools
 
 
@@ -398,6 +398,9 @@ class IntegrationTest(Test):
             * skip_nodes: Boolean flag that indicates whether series of
               node objects shall be plotted or not. Defaults to `False`.
         """
+        import bokeh.models
+        import bokeh.palettes
+        import bokeh.plotting
         if width is None:
             width = self.plotting_options.width
         if height is None:

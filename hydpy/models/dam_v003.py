@@ -2,25 +2,21 @@
 # pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
 """Version 3 of HydPy-Dam
 
-Application model :mod:`~hydpy.models.dam_v003` is quite similar
-to model :mod:`~hydpy.models.dam_v002`.  Both possess the same
-flood retentions functionalities.  Also, both models try to meet
-a remote water demand.  The only difference is that model
-:mod:`~hydpy.models.dam_v002` assumes the demand to occur in the
-channel downstream (usually to increase low discharge values),
-whereas model :mod:`~hydpy.models.dam_v003` is supposed to supply
-water to different locations (e.g. to a drinking water treatment
-plant).  Hence :mod:`~hydpy.models.dam_v002` releases its output
-only via one path and :mod:`~hydpy.models.dam_v003` splits its
-output into two seperate paths.
+Application |dam_v003| is quite similar to model |dam_v002|.  Both
+possess the same flood retentions functionalities.  Also, both models
+try to meet a remote water demand.  The only difference is that model
+|dam_v002| assumes the demand to occur in the channel downstream
+(usually to increase low discharge values), whereas model |dam_v003|
+is supposed to supply water to different locations (e.g. to a drinking
+water treatment plant).  Hence |dam_v002| releases its output only via
+one path and |dam_v003| splits its output into two seperate paths.
 
 Integration examples:
 
-    To test the functionalities of :mod:`~hydpy.models.dam_v002`, four
-    integration examples of :mod:`~hydpy.models.dam_v001` are
-    recalculated.  We again make use of these examples and focus
-    our explanations on the differences only.  So please follow the
-    links for further information.
+    To test the functionalities of |dam_v002|, four integration examples
+    of |dam_v001| are recalculated.  We again make use of these examples
+    and focus our explanations on the differences only.  So please follow
+    the links for further information.
 
     .. _dam_v003_ex07:
 
@@ -50,17 +46,18 @@ Integration examples:
 
     Method :func:`~hydpy.core.modeltools.Model.connect` recognizes the
     different purposes of both output nodes through the given `variable`
-    keyword.  Each :mod:`~hydpy.models.dam_v003` model must be connected
-    to exactly two nodes.  The `Q`-node (discharge) handles the release
-    into the stream bed downstream and the `S`-node (supply) passes
-    the water flow to another (arbitrary) model.
+    keyword.  Each |dam_v003| model must be connecte  to exactly two nodes.
+    The `Q`-node (discharge) handles the release into the stream bed
+    downstream and the `S`-node (supply) passes the water flow to another
+    (arbitrary) model.
 
-    As explained for model :mod:`~hydpy.models.dam_v002`, the following
-    initial conditions, external time series data, and parameter values
-    are set in favour of making the simulation results as comparable as
-    possible:
+    As explained for model |dam_v002|, the following initial conditions,
+    external time series data, and parameter values are set in favour of
+    making the simulation results as comparable as possible:
 
     >>> from hydpy.core.testtools import IntegrationTest
+    >>> IntegrationTest.plotting_options.activated=(
+    ...     fluxes.inflow, fluxes.outflow)
     >>> test = IntegrationTest(
     ...     dam,
     ...     inits=((states.watervolume, 0.0),
@@ -88,15 +85,12 @@ Integration examples:
     >>> parameters.update()
 
     Despite trying to make this example comparable with
-    :ref:`example 7 <dam_v001_ex07>` of model
-    :mod:`~hydpy.models.dam_v001`
-    (and the corresponding recalculation of model
-    :mod:`~hydpy.models.dam_v002`), there are relevant differences in the
-    results.  These are due to the seperate output paths of model
-    :mod:`~hydpy.models.dam_v003`.  Models :mod:`~hydpy.models.dam_v001` and
-    :mod:`~hydpy.models.dam_v002` use the same water to both meet the near
-    and the remote demand.  This is not possible for model
-    :mod:`~hydpy.models.dam_v003`, which is why it has to release a larger
+    :ref:`example 7 <dam_v001_ex07>` of model |dam_v001| (and the
+    corresponding recalculation of model |dam_v002|), there are relevant
+    differences in the results.  These are due to the seperate output
+    paths of model |dam_v003|.  Models |dam_v001| and |dam_v002| use the
+    same water to both meet the near and the remote demand.  This is not
+    possible for model |dam_v003|,  which is why it has to release a larger
     total amount of water:
 
     >>> test('dam_v003_ex7')
@@ -137,8 +131,8 @@ Integration examples:
     :ref:`Recalculation of example 8 <dam_v001_ex08>`
 
     The next recalculation shows that the restriction on releasing
-    water during low inflow conditions concerns the release into the
-    stream bed only:
+    water during low inflow conditions concerns the release into
+    the stream bed only:
 
     >>> inflow.sequences.sim.series[10:] = 0.1
     >>> demand.sequences.sim.series = [
@@ -185,16 +179,14 @@ Integration examples:
     :ref:`Recalculation of example 10 <dam_v001_ex10>`
 
     This example makes use of two control parameters which are unknown to
-    models :mod:`~hydpy.models.dam_v001` and :mod:`~hydpy.models.dam_v002`.
-    :class:`~hydpy.models.dam.dam_control.WaterLevelMinimumRemoteThreshold` and
-    :class:`~hydpy.models.dam.dam_control.WaterLevelMinimumRemoteTolerance` are
-    introduced to allow for a distinct control of both dam output paths for
-    situations when the available storage becomes limited.  Here, parameter
-    :class:`~hydpy.models.dam.dam_control.WaterLevelMinimumRemoteThreshold` is
-    set to a higher value than parameter
-    :class:`~hydpy.models.dam.dam_control.WaterLevelMinimumThreshold`, meaning
-    the release into the stream bed has a higher priority than the supply
-    to the drinking water treatment plant:
+    models |dam_v001| and |dam_v002|.  |WaterLevelMinimumRemoteThreshold|
+    and |WaterLevelMinimumRemoteTolerance| are introduced to allow for a
+    distinct control of both dam output paths for situations when the
+    available storage becomes limited.  Here, parameter
+    |WaterLevelMinimumRemoteThreshold| is set to a higher value than
+    parameter |WaterLevelMinimumThreshold|, meaning the release into the
+    stream bed has a higher priority than the supply to the drinking water
+    treatment plant:
 
     >>> inflow.sequences.sim.series = numpy.linspace(0.2, 0.0, 20)
     >>> waterlevelminimumtolerance(0.01)
@@ -245,10 +237,9 @@ Integration examples:
     :ref:`Recalculation of example 13 <dam_v001_ex13>`
 
     The final example deals with high flow conditions.  It demonstrates
-    that model :mod:`~hydpy.models.dam_v003` calculates the same outflow
-    values as model :mod:`~hydpy.models.dam_v001` and model
-    :mod:`~hydpy.models.dam_v002` if there is neither a relevant near nor
-    a relevant remote demand:
+    that model |dam_v003| calculates the same outflow values as model
+    |dam_v001| and model |dam_v002| if there is neither a relevant near
+    nor a relevant remote demand:
 
     >>> neardischargeminimumthreshold(0.0)
     >>> neardischargeminimumtolerance(0.0)
@@ -296,7 +287,6 @@ Integration examples:
             height="330px"
             frameborder=0
         ></iframe>
-
 """
 
 # import...
@@ -410,6 +400,8 @@ class ReceiverSequences(sequencetools.LinkSequences):
     """Information link sequences of HydPy-Dam, Version 3."""
     _SEQCLASSES = (dam_receivers.S,)
 
+
+autodoc_applicationmodel()
 
 # pylint: disable=invalid-name
 tester = Tester()

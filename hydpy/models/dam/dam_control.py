@@ -102,8 +102,50 @@ class WaterLevelMinimumRemoteThreshold(parametertools.SingleParameter):
 
 class WaterLevelMinimumRemoteTolerance(parametertools.SingleParameter):
     """A tolarance value for the minimum operating water level regarding
-    remote water supply[m]."""
+    remote water supply [m]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
+
+
+class HighestRemoteRelieve(parametertools.SeasonalParameter):
+    """The highest possible relieve discharge from another location [m3/s]."""
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+
+
+class WaterLevelRelieveThreshold(parametertools.SeasonalParameter):
+    """The threshold water level of the dam regarding the allowed
+    relieve discharge from another location [m]."""
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+
+
+class WaterLevelRelieveTolerance(parametertools.SeasonalParameter):
+    """A tolerance value for parameter |WaterLevelRelieveThreshold| [m]."""
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+
+
+class HighestRemoteSupply(parametertools.SeasonalParameter):
+    """The highest possible supply discharge from another location [m3/s]."""
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+
+
+class WaterLevelSupplyThreshold(parametertools.SeasonalParameter):
+    """The threshold water level of the dam regarding the requried
+    supply discharge from another location [m]."""
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+
+
+class WaterLevelSupplyTolerance(parametertools.SeasonalParameter):
+    """A tolerance value for parameter |WaterLevelSupplyThreshold| [m]."""
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+
+
+class HighestRemoteDischarge(parametertools.SingleParameter):
+    """The highest possible discharge between two remote locations [m3/s]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+
+class HighestRemoteTolerance(parametertools.SingleParameter):
+    """Smoothing parameter associated with |HighestRemoteDischarge| [m3/s]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
 
 class WaterVolume2WaterLevel(anntools.ANN):
@@ -126,9 +168,17 @@ class ControlParameters(parametertools.SubParameters):
                    RemoteRelieveTolerance,
                    NearDischargeMinimumThreshold,
                    NearDischargeMinimumTolerance,
-                   WaterLevelMinimumRemoteThreshold,
-                   WaterLevelMinimumRemoteTolerance,
                    WaterLevelMinimumThreshold,
                    WaterLevelMinimumTolerance,
+                   WaterLevelMinimumRemoteThreshold,
+                   WaterLevelMinimumRemoteTolerance,
+                   HighestRemoteRelieve,
+                   WaterLevelRelieveThreshold,
+                   WaterLevelRelieveTolerance,
+                   HighestRemoteSupply,
+                   WaterLevelSupplyThreshold,
+                   WaterLevelSupplyTolerance,
+                   HighestRemoteDischarge,
+                   HighestRemoteTolerance,
                    WaterVolume2WaterLevel,
                    WaterLevel2FloodDischarge)

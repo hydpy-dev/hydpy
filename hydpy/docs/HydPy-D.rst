@@ -19,3 +19,4 @@ Application model:
    dam_v002
    dam_v003
    dam_v004
+   dam_v005

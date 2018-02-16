@@ -50,8 +50,14 @@ class RequiredRemoteRelease(sequencetools.FluxSequence):
 
 
 class AllowedRemoteRelieve(sequencetools.FluxSequence):
-    """Water release to a remote location to relieve the dam during high
-    flow conditions, allowed by the remote location [m³/s]."""
+    """Allowed water release to relieve a dam during high
+    flow conditions [m³/s]."""
+    NDIM, NUMERIC = 0, False
+
+
+class RequiredRemoteSupply(sequencetools.FluxSequence):
+    """Required water supply, e.g. to fill a dam during low water conditions
+    [m³/s]."""
     NDIM, NUMERIC = 0, False
 
 
@@ -85,6 +91,12 @@ class ActualRelease(sequencetools.FluxSequence):
     NDIM, NUMERIC = 0, True
 
 
+class MissingRemoteRelease(sequencetools.FluxSequence):
+    """Amount of the required remote demand that could not be met
+    by the actual release [m³/s]."""
+    NDIM, NUMERIC = 0, False
+
+
 class ActualRemoteRelease(sequencetools.FluxSequence):
     """Actual water release thought for arbitrary "remote" purposes [m³/s]."""
     NDIM, NUMERIC = 0, True
@@ -104,11 +116,13 @@ class FluxSequences(sequencetools.FluxSequences):
                    RemoteFailure,
                    RequiredRemoteRelease,
                    AllowedRemoteRelieve,
+                   RequiredRemoteSupply,
                    PossibleRemoteRelieve,
                    ActualRemoteRelieve,
                    RequiredRelease,
                    TargetedRelease,
                    ActualRelease,
+                   MissingRemoteRelease,
                    ActualRemoteRelease,
                    FloodDischarge,
                    Outflow)

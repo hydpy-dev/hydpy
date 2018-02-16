@@ -82,6 +82,8 @@
     ...        weights_input=0.0, weights_output=0.0,
     ...        intercepts_hidden=0.0, intercepts_output=0.0)
     >>> remoterelievetolerance(0.0)
+    >>> highestremotedischarge(inf)
+    >>> highestremotetolerance(0.1)
     >>> parameters.update()
 
     Comparing the results of the following table with the ones shown for
@@ -440,6 +442,69 @@
             frameborder=0
         ></iframe>
 
+    :ref:`Modification of example 13 <dam_v003_ex13>`
+
+    Building on the example above, we demonstrate the possibility to
+    constrain |ActualRemoteRelieve| and |ActualRemoteRelease| by setting
+    parameter |HighestRemoteDischarge| to 1.0 m³/s, which is the allowed
+    sum of both |AllowedRemoteRelieve| and |ActualRemoteRelease|:
+
+    This final example demonstrates the identical behaviour of models
+    |dam_v003| and |dam_v004| (and also of models |dam_v001| and
+    |dam_v002| regarding high flow conditions:
+
+    >>> test.inits.loggedrequiredremoterelease = 0.5
+    >>> required_supply.sequences.sim.series = 0.5
+    >>> test.inits.loggedallowedremoterelieve = 0.0
+    >>> allowed_relieve.sequences.sim.series = numpy.linspace(0.0, 1.5, 20)
+    >>> waterlevelminimumremotethreshold(0.0)
+    >>> waterlevel2possibleremoterelieve(
+    ...        weights_input=0.0, weights_output=0.0,
+    ...        intercepts_hidden=0.0, intercepts_output=5.0)
+    >>> highestremotedischarge(1.0)
+    >>> highestremotetolerance(0.1)
+
+    The following results demonstrate, that |AllowedRemoteRelieve|
+    has priority over |ActualRemoteRelease|. |RequiredRemoteRelease| is
+    set to a constant value of 0.5 m³/s via node `required_supply`,
+    whereas |AllowedRemoteRelieve| increases linearly from 0.0 to 1.5 m³/s.
+    Due to parameter |HighestRemoteDischarge| being set to 1.0 m³/s,
+    |ActualRemoteRelease| starts to drop when |AllowedRemoteRelieve|
+    exceeds 0.5 m³/s, and |AllowedRemoteRelieve| itself does
+    never exceede 1 m³/s:
+
+    >>> test('dam_v004_ex13_1')
+    |   date | inflow | requiredremoterelease | allowedremoterelieve | possibleremoterelieve | actualremoterelieve | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume | actual_relieve | actual_supply | allowed_relieve | inflow |  release | required_supply |
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01.01. |    0.0 |                   0.5 |                  0.0 |                   5.0 |                 0.0 |             0.0 |             0.0 |           0.0 |              0.0125 |      -0.001125 |      0.0 |    -0.00108 |            0.0 |        0.0125 |             0.0 |    0.0 |      0.0 |             0.5 |
+    | 02.01. |    1.0 |                   0.5 |                  0.0 |                   5.0 |                 0.0 |             0.0 |             0.0 |           0.0 |            0.483321 |       0.013893 | 0.013915 |    0.042359 |            0.0 |      0.483321 |        0.078947 |    1.0 | 0.013915 |             0.5 |
+    | 03.01. |    5.0 |                   0.5 |             0.078947 |                   5.0 |            0.078947 |             0.0 |             0.0 |           0.0 |            0.499952 |       0.142993 | 0.142993 |    0.411987 |       0.078947 |      0.499952 |        0.157895 |    5.0 | 0.142993 |             0.5 |
+    | 04.01. |    9.0 |                   0.5 |             0.157895 |                   5.0 |            0.157895 |             0.0 |             0.0 |           0.0 |            0.499819 |       0.471852 | 0.471852 |    1.091993 |       0.157895 |      0.499819 |        0.236842 |    9.0 | 0.471852 |             0.5 |
+    | 05.01. |    8.0 |                   0.5 |             0.236842 |                   5.0 |            0.236842 |             0.0 |             0.0 |           0.0 |            0.499314 |       0.856993 | 0.856993 |    1.645545 |       0.236842 |      0.499314 |        0.315789 |    8.0 | 0.856993 |             0.5 |
+    | 06.01. |    5.0 |                   0.5 |             0.315789 |                   5.0 |            0.315789 |             0.0 |             0.0 |           0.0 |            0.497434 |       1.112205 | 1.112205 |    1.911188 |       0.315789 |      0.497434 |        0.394737 |    5.0 | 1.112205 |             0.5 |
+    | 07.01. |    3.0 |                   0.5 |             0.394737 |                   5.0 |            0.394735 |             0.0 |             0.0 |           0.0 |            0.490789 |       1.218885 | 1.218885 |    1.988567 |       0.394735 |      0.490789 |        0.473684 |    3.0 | 1.218885 |             0.5 |
+    | 08.01. |    2.0 |                   0.5 |             0.473684 |                   5.0 |            0.473676 |             0.0 |             0.0 |           0.0 |            0.470723 |       1.237798 | 1.237798 |    1.972825 |       0.473676 |      0.470723 |        0.552632 |    2.0 | 1.237798 |             0.5 |
+    | 09.01. |    1.0 |                   0.5 |             0.552632 |                   5.0 |            0.552601 |             0.0 |             0.0 |           0.0 |            0.427028 |       1.200864 | 1.200864 |     1.87083 |       0.552601 |      0.427028 |        0.631579 |    1.0 | 1.200864 |             0.5 |
+    | 10.01. |    0.0 |                   0.5 |             0.631579 |                   5.0 |            0.631463 |             0.0 |             0.0 |           0.0 |            0.362181 |       1.111921 | 1.111921 |     1.68891 |       0.631463 |      0.362181 |        0.710526 |    0.0 | 1.111921 |             0.5 |
+    | 11.01. |    0.0 |                   0.5 |             0.710526 |                   5.0 |            0.710086 |             0.0 |             0.0 |           0.0 |            0.286864 |       1.001148 | 1.001148 |    1.516274 |       0.710086 |      0.286864 |        0.789474 |    0.0 | 1.001148 |             0.5 |
+    | 12.01. |    0.0 |                   0.5 |             0.789474 |                   5.0 |            0.787817 |             0.0 |             0.0 |           0.0 |            0.208657 |       0.896124 | 0.896124 |    1.352753 |       0.787817 |      0.208657 |        0.868421 |    0.0 | 0.896124 |             0.5 |
+    | 13.01. |    0.0 |                   0.5 |             0.868421 |                   5.0 |            0.862356 |             0.0 |             0.0 |           0.0 |            0.129881 |       0.796746 | 0.796746 |    1.198185 |       0.862356 |      0.129881 |        0.947368 |    0.0 | 0.796746 |             0.5 |
+    | 14.01. |    0.0 |                   0.5 |             0.947368 |                   5.0 |            0.927029 |             0.0 |             0.0 |           0.0 |            0.051045 |       0.703078 | 0.703078 |    1.052934 |       0.927029 |      0.051045 |        1.026316 |    0.0 | 0.703078 |             0.5 |
+    | 15.01. |    0.0 |                   0.5 |             1.026316 |                   5.0 |            0.970723 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.614897 | 0.614897 |    0.915936 |       0.970723 |           0.0 |        1.105263 |    0.0 | 0.614897 |             0.5 |
+    | 16.01. |    0.0 |                   0.5 |             1.105263 |                   5.0 |            0.990741 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.531013 | 0.531013 |    0.784457 |       0.990741 |           0.0 |        1.184211 |    0.0 | 0.531013 |             0.5 |
+    | 17.01. |    0.0 |                   0.5 |             1.184211 |                   5.0 |            0.996746 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.450858 | 0.450858 |    0.659384 |       0.996746 |           0.0 |        1.263158 |    0.0 | 0.450858 |             0.5 |
+    | 18.01. |    0.0 |                   0.5 |             1.263158 |                   5.0 |            0.997993 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.374727 | 0.374727 |    0.540781 |       0.997993 |           0.0 |        1.342105 |    0.0 | 0.374727 |             0.5 |
+    | 19.01. |    0.0 |                   0.5 |             1.342105 |                   5.0 |            0.998268 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.302558 | 0.302558 |    0.428389 |       0.998268 |           0.0 |        1.421053 |    0.0 | 0.302558 |             0.5 |
+    | 20.01. |    0.0 |                   0.5 |             1.421053 |                   5.0 |            0.998337 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.234174 | 0.234174 |      0.3219 |       0.998337 |           0.0 |             1.5 |    0.0 | 0.234174 |             0.5 |
+
+    .. raw:: html
+
+        <iframe
+            src="dam_v004_ex13_1.html"
+            width="100%"
+            height="330px"
+            frameborder=0
+        ></iframe>
 """
 
 # import...
@@ -480,6 +545,8 @@ class Model(modeltools.ModelELS):
                          dam_model.calc_possibleremoterelieve_v1,
                          dam_model.calc_actualremoterelieve_v1,
                          dam_model.calc_actualremoterelease_v1,
+                         dam_model.update_actualremoterelease_v1,
+                         dam_model.update_actualremoterelieve_v1,
                          dam_model.calc_flooddischarge_v1,
                          dam_model.calc_outflow_v1)
     _FULL_ODE_METHODS = (dam_model.update_watervolume_v3,)
@@ -499,6 +566,8 @@ class ControlParameters(parametertools.SubParameters):
                    dam_control.WaterLevelMinimumTolerance,
                    dam_control.WaterLevelMinimumRemoteThreshold,
                    dam_control.WaterLevelMinimumRemoteTolerance,
+                   dam_control.HighestRemoteDischarge,
+                   dam_control.HighestRemoteTolerance,
                    dam_control.WaterVolume2WaterLevel,
                    dam_control.WaterLevel2FloodDischarge)
 
@@ -509,7 +578,8 @@ class DerivedParameters(parametertools.SubParameters):
                    dam_derived.Seconds,
                    dam_derived.NearDischargeMinimumSmoothPar1,
                    dam_derived.WaterLevelMinimumSmoothPar,
-                   dam_derived.WaterLevelMinimumRemoteSmoothPar)
+                   dam_derived.WaterLevelMinimumRemoteSmoothPar,
+                   dam_derived.HighestRemoteSmoothPar)
 
 
 class SolverParameters(parametertools.SubParameters):

@@ -168,12 +168,13 @@ if install:
               'documentation were detected.  (exit code: %d)' % exitcode)
         sys.exit(1)
     # Copy all generated additional docfiles into the orignal docs subpackage
-    # (on travis-ci, for including them into the online-documentation).
+    # (on Travis-CI: for including them into the online-documentation).
+    path_html = os.path.join(oldpath, 'hydpy', 'docs', 'html')
     import hydpy.docs.html
-    for filename in os.listdir(os.path.join('hydpy', 'docs', 'html')):
+    for filename in os.listdir(hydpy.docs.html.__path__[0]):
         if filename.endswith('.html'):
-            shutil.copy(os.path.join('hydpy', 'docs', 'html', filename),
-                        os.path.join(hydpy.docs.html.__path__[0], filename))
+            shutil.copy(os.path.join(hydpy.docs.html.__path__[0], filename),
+                        os.path.join(path_html, filename))
     # Prepare coverage report and prepare it for sphinx.
     if coverage_report:
         os.system('coverage report -m --skip-covered')

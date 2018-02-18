@@ -24,6 +24,7 @@ install:
 # command to run tests
 script:
   - if [ $TRAVIS_PYTHON_VERSION = "3.6" ] ; then python setup.py install coverage_report; else python setup.py install; fi
+  - if [ $TRAVIS_PYTHON_VERSION = "3.6" ] ; then python move_additional_docfiles.py; fi
   - if [ $TRAVIS_PYTHON_VERSION = "3.6" ] ; then travis-sphinx build --source=hydpy/docs; fi
   - if [ $TRAVIS_PYTHON_VERSION = "3.6" ] ; then python modify_html.py; fi
 env:

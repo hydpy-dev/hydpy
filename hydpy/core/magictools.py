@@ -27,13 +27,14 @@ import itertools
 # ...from HydPy
 import hydpy
 from hydpy import pub
-from hydpy.core import objecttools
-from hydpy.core import timetools
+from hydpy.core import autodoctools
+from hydpy.core import devicetools
 from hydpy.core import filetools
+from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
-from hydpy.core import devicetools
-from hydpy.core import autodoctools
+from hydpy.core import timetools
+# from hydpy.core import testtools # the actual import is done below
 
 
 class Tester(object):
@@ -57,6 +58,7 @@ class Tester(object):
                 if (fn.endswith('.py') and not fn.startswith('_'))]
 
     def doit(self):
+        from hydpy.core import testtools
         opt = pub.options
         Par = parametertools.Parameter
         with opt.usedefaultvalues(False), \
@@ -76,6 +78,9 @@ class Tester(object):
             elements = devicetools.Element._registry.copy()
             devicetools.Node.clear_registry()
             devicetools.Element.clear_registry()
+            plotting_options = testtools.IntegrationTest.plotting_options
+            testtools.IntegrationTest.plotting_options = \
+                testtools.PlottingOptions()
             try:
                 color = 34 if pub.options.usecython else 36
                 with PrintStyle(color=color, font=4):
@@ -104,6 +109,7 @@ class Tester(object):
                 devicetools.Element.clear_registry()
                 devicetools.Node._registry = nodes
                 devicetools.Element._registry = elements
+                testtools.IntegrationTest.plotting_options = plotting_options
                 hydpy.dummies.clear()
 
 

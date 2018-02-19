@@ -89,6 +89,7 @@ pub.options.reprcomments = False
 import hydpy
 from hydpy.core import devicetools
 from hydpy.core import parametertools
+from hydpy.core import testtools
 alldoctests = ({}, {})
 allsuccessfuldoctests = ({}, {})
 allfaileddoctests = ({}, {})
@@ -142,6 +143,8 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                     pub.timegrids = None
                     devicetools.Node.clear_registry()
                     devicetools.Element.clear_registry()
+                    testtools.IntegrationTest.plotting_options = \
+                        testtools.PlottingOptions()
                     if name.endswith('.rst'):
                         name = name[name.find('hydpy'+os.sep):]
                     warnings.filterwarnings('error', module='hydpy')

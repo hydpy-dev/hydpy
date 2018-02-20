@@ -70,15 +70,17 @@ try:
 except TypeError:
     pass
 
-substituter = Substituter()
-for subpackage in (auxs, core, cythons):
-    for loader, name, is_pkg in pkgutil.walk_packages(subpackage.__path__):
-        full_name = subpackage.__name__ + '.' + name
-        substituter.add_everything(importlib.import_module(full_name))
-substituter.add_modules(models)
-for cymodule in (annutils, smoothutils, pointerutils):
-    substituter.add_everything(cymodule, cython=True)
-substituter.apply_on_members()
+if not getattr(sys, 'frozen', False):
+    # Don't do this when HydPy has been freezed with PyInstaller.
+    substituter = Substituter()
+    for subpackage in (auxs, core, cythons):
+        for loader, name, is_pkg in pkgutil.walk_packages(subpackage.__path__):
+            full_name = subpackage.__name__ + '.' + name
+            substituter.add_everything(importlib.import_module(full_name))
+    substituter.add_modules(models)
+    for cymodule in (annutils, smoothutils, pointerutils):
+        substituter.add_everything(cymodule, cython=True)
+    substituter.apply_on_members()
 
 
 __all__ = ['HydPy', 'pub',

@@ -11,6 +11,7 @@ import importlib
 import inspect
 import os
 import re
+import sys
 import types
 # ...from HydPy
 import hydpy
@@ -120,6 +121,9 @@ def autodoc_basemodel():
     modules of the basemodel are named in the standard way, e.g. `lland_model`,
     `lland_control`, `lland_inputs`.
     """
+    if getattr(sys, 'frozen', False):
+        # Do nothing when HydPy has been freezed with PyInstaller.
+        return
     namespace = inspect.currentframe().f_back.f_locals
     doc = namespace.get('__doc__')
     if doc is None:
@@ -165,6 +169,9 @@ def autodoc_applicationmodel():
     |autodoc_basemodel|, that both the application model and its
     base model are defined in the conventional way.
     """
+    if getattr(sys, 'frozen', False):
+        # Do nothing when HydPy has been freezed with PyInstaller.
+        return
     namespace = inspect.currentframe().f_back.f_locals
     doc = namespace.get('__doc__')
     if doc is None:
@@ -293,33 +300,31 @@ def autodoc_module():
     modules defining models.  For base models, see function
     :func:`autodoc_basemodel` instead.
     """
-    module = inspect.getmodule(inspect.currentframe().f_back)
-    if module is None:
-        # Happens when HydPy has been freezed with PyInstaller.
-        # But then it is not necessary to extend the docstring anyway.
+    if getattr(sys, 'frozen', False):
+        # Do nothing when HydPy has been freezed with PyInstaller.
         return
-    else:
-        doc = module.__doc__
-        if doc is None:
-            doc = ''
-        lines = ['\n\nModule :mod:`~%s` implements the following members:\n'
-                 % module.__name__]
-        members = []
-        for (name, member) in inspect.getmembers(module):
-            if ((not name.startswith('_')) and
-                    (inspect.getmodule(member) is module)):
-                members.append((name, member))
-        members = sorted(members, key=_number_of_line)
-        for (name, member) in members:
-            if inspect.isfunction(member):
-                type_ = 'func'
-            elif inspect.isclass(member):
-                type_ = 'class'
-            else:
-                type_ = 'obj'
-            lines.append('      * :%s:`~%s` %s'
-                         % (type_, name, description(member)))
-        module.__doc__ = doc + '\n\n' + '\n'.join(lines) + '\n\n' + 80*'_'
+    module = inspect.getmodule(inspect.currentframe().f_back)
+    doc = module.__doc__
+    if doc is None:
+        doc = ''
+    lines = ['\n\nModule :mod:`~%s` implements the following members:\n'
+             % module.__name__]
+    members = []
+    for (name, member) in inspect.getmembers(module):
+        if ((not name.startswith('_')) and
+                (inspect.getmodule(member) is module)):
+            members.append((name, member))
+    members = sorted(members, key=_number_of_line)
+    for (name, member) in members:
+        if inspect.isfunction(member):
+            type_ = 'func'
+        elif inspect.isclass(member):
+            type_ = 'class'
+        else:
+            type_ = 'obj'
+        lines.append('      * :%s:`~%s` %s'
+                     % (type_, name, description(member)))
+    module.__doc__ = doc + '\n\n' + '\n'.join(lines) + '\n\n' + 80*'_'
 
 
 autodoc_module()

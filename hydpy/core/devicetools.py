@@ -1378,7 +1378,8 @@ as a "normal" attribute and is thus not support.
 
         >>> subsubgroup = subgroup.group_b
         >>> subsubgroup
-        Nodes("ne")
+        Node("ne", variable="Q",
+             keywords=["group_1", "group_b"])
 
         Node that the keywords already used for building a subgroup of nodes
         are no informative anymore (as they hold true for each node) and are
@@ -1386,16 +1387,14 @@ as a "normal" attribute and is thus not support.
 
         >>> sorted(subgroup.keywords)
         ['group_a', 'group_b']
-        >>> sorted(subsubgroup.keywords)
-        []
 
         The latter might be confusing, if you intend to work with a subgroup
         of nodes for a longer time.  After copying the subgroup, all keywords
         of the contained devices are available again:
 
-        >>> newgroup = subsubgroup.copy()
+        >>> newgroup = subgroup.copy()
         >>> sorted(newgroup.keywords)
-        ['group_1', 'group_b']
+        ['group_1', 'group_a', 'group_b']
         """
         return set(keyword for device in self
                    for keyword in device.keywords if
@@ -1471,7 +1470,9 @@ which is in conflict with using their names as identifiers.
         except KeyError:
             pass
         _devices = self._select_devices_by_keyword(name)
-        if len(_devices) > 0:
+        if len(_devices) == 1:
+            return _devices.devices[0]
+        elif len(_devices) > 1:
             return _devices
         else:
             raise AttributeError(

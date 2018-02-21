@@ -23,12 +23,11 @@ class FT(parametertools.SingleParameter):
 class NHRU(parametertools.SingleParameter):
     """Anzahl der Hydrotope (number of hydrological response units) [-].
 
-    Note that :class:`NHRU` determines the length of most 1-dimensional
-    HydPy-L-Land parameters and sequences.  This required that the value of
-    the respective :class:`NHRU` instance is set before any of the values
-    of these 1-dimensional parameters or sequences are set.  Changing the
-    value of the :class:`NHRU` instance necessitates setting their values
-    again.
+    Note that |NHRU| determines the length of most 1-dimensional HydPy-L-Land
+    parameters and sequences.  This required that the value of the respective
+    |NHRU| instance is set before any of the values of these 1-dimensional
+    parameters or sequences are set.  Changing the value of the |NHRU|
+    instance necessitates setting their values again.
 
     Examples:
 
@@ -43,10 +42,6 @@ class NHRU(parametertools.SingleParameter):
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
     def __call__(self, *args, **kwargs):
-        """The prefered way to pass a value to :class:`NHRU` instances
-        within parameter control files.  Sets the shape of the associated
-        1-dimensional parameter and sequence objects additionally.
-        """
         parametertools.SingleParameter.__call__(self, *args, **kwargs)
         for (_name, subpars) in self.subpars.pars.model.parameters:
             for (name, par) in subpars:

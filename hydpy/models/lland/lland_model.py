@@ -14,14 +14,14 @@ def calc_nkor_v1(self):
     """Adjust the given precipitation values.
 
     Required control parameters:
-      :class:`~hydpy.models.lland.lland_control.NHRU`
-      :class:`~hydpy.models.lland.lland_control.KG`
+      |NHRU|
+      |KG|
 
     Required input sequence:
-      :class:`~hydpy.models.lland.lland_inputs.Nied`
+      |Nied|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.NKor`
+      |NKor|
 
     Basic equation:
       :math:`NKor = KG \\cdot Nied`
@@ -48,14 +48,14 @@ def calc_tkor_v1(self):
     """Adjust the given air temperature values.
 
     Required control parameters:
-      :class:`~hydpy.models.lland.lland_control.NHRU`
-      :class:`~hydpy.models.lland.lland_control.KT`
+      |NHRU|
+      |KT|
 
     Required input sequence:
-      :class:`~hydpy.models.lland.lland_inputs.TemL`
+      |TemL|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.TKor`
+      |TKor|
 
     Basic equation:
       :math:`TKor = KT + TemL`
@@ -82,20 +82,19 @@ def calc_et0_v1(self):
     """Calculate reference evapotranspiration after Turc-Wendling.
 
     Required control parameters:
-      :class:`~hydpy.models.lland.lland_control.NHRU`
-      :class:`~hydpy.models.lland.lland_control.KE`
-      :class:`~hydpy.models.lland.lland_control.KF`
-      :class:`~hydpy.models.lland.lland_control.HNN`
-
+      |NHRU|
+      |KE|
+      |KF|
+      |HNN|
 
     Required input sequence:
-      :class:`~hydpy.models.lland.lland_inputs.Glob`
+      |Glob|
 
     Required flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.TKor`
+      |TKor|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.ET0`
+      |ET0|
 
     Basic equation:
       :math:`ET0 = KE \\cdot
@@ -131,15 +130,14 @@ def calc_et0_v2(self):
     """Correct the given reference evapotranspiration.
 
     Required control parameters:
-      :class:`~hydpy.models.lland.lland_control.NHRU`
-      :class:`~hydpy.models.lland.lland_control.KE`
-
+      |NHRU|
+      |KE|
 
     Required input sequence:
-      :class:`~hydpy.models.lland.lland_inputs.PET`
+      |PET|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.ET0`
+      |ET0|
 
     Basic equation:
       :math:`ET0 = KE \\cdot PET`
@@ -168,21 +166,21 @@ def calc_evpo_v1(self):
     evapotranspiration.
 
     Required control parameters:
-      :class:`~hydpy.models.lland.lland_control.NHRU`
-      :class:`~hydpy.models.lland.lland_control.Lnk`
-      :class:`~hydpy.models.lland.lland_control.FLn`
+      |NHRU|
+      |Lnk|
+      |FLn|
 
     Required derived parameter:
-      :class:`~hydpy.models.lland.lland_control.MOY`
+      |MOY|
 
     Required flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.ET0`
+      |ET0|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.EvPo`
+      |EvPo|
 
     Additional requirements:
-      :attr:`~hydpy.core.modeltools.Model.idx_sim`
+      |idx_sim|
 
     Basic equation:
       :math:`EvPo = FLn \\cdot ET0`
@@ -190,10 +188,9 @@ def calc_evpo_v1(self):
     Example:
 
         For clarity, this is more of a kind of an integration example.
-        Parameter :class:`~hydpy.models.lland.lland_control.FLn` both
-        depends on time (the actual month) and space (the actual land use).
-        Firstly, let us define a initialization time period spanning the
-        transition from June to July:
+        Parameter |FLn| both depends on time (the actual month) and space
+        (the actual land use).  Firstly, let us define a initialization
+        time period spanning the transition from June to July:
 
         >>> from hydpy import pub, Timegrid, Timegrids
         >>> pub.timegrids = Timegrids(Timegrid('30.06.2000',
@@ -209,7 +206,7 @@ def calc_evpo_v1(self):
         >>> nhru(2)
         >>> lnk(ACKER, LAUBW)
 
-        Thirdly, set the :class:`~hydpy.models.lland.lland_control.FLn`
+        Thirdly, set the |FLn|
         values, one for the relevant months and land use classes:
 
         >>> fln.acker_jun = 1.299
@@ -256,23 +253,23 @@ def calc_nbes_inzp_v1(self):
     accordingly.
 
     Required control parameters:
-      :class:`~hydpy.models.lland.lland_control.NHRU`
-      :class:`~hydpy.models.lland.lland_control.Lnk`
+      |NHRU|
+      |Lnk|
 
     Required derived parameter:
-      :class:`~hydpy.models.lland.lland_control.KInz`
+      |KInz|
 
     Required flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.NKor`
+      |NKor|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.NBes`
+      |NBes|
 
     Updated state sequence:
-      :class:`~hydpy.models.lland.lland_states.Inzp`
+      |Inzp|
 
     Additional requirements:
-      :attr:`~hydpy.core.modeltools.Model.idx_sim`
+      |idx_sim|
 
     Basic equation:
       :math:`NBes = \\Bigl \\lbrace
@@ -382,19 +379,19 @@ def calc_evi_inzp_v1(self):
     storage accordingly.
 
     Required control parameters:
-      :class:`~hydpy.models.lland.lland_control.NHRU`
-      :class:`~hydpy.models.lland.lland_control.Lnk`
-      :class:`~hydpy.models.lland.lland_control.TRefT`
-      :class:`~hydpy.models.lland.lland_control.TRefN`
+      |NHRU|
+      |Lnk|
+      |TRefT|
+      |TRefN|
 
     Required flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.EvPo`
+      |EvPo|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.EvI`
+      |EvI|
 
     Updated state sequence:
-      :class:`~hydpy.models.lland.lland_states.Inzp`
+      |Inzp|
 
     Basic equation:
       :math:`EvI = \\Bigl \\lbrace
@@ -421,12 +418,10 @@ def calc_evi_inzp_v1(self):
         >>> fluxes.evi
         evi(0.0, 2.0, 3.0, 3.0)
 
-        For the first three HRUs of land use class
-        :const:`~hydpy.models.lland.lland_constants.ACKER`,
-        interception evaporation is identical with potential
-        evapotranspiration as long as it is met by the available
-        intercepted water.  For water areas, interception evaporation is
-        generally set to potential evaporation.
+        For the first three HRUs of land use class |ACKER|, interception
+        evaporation is identical with potential evapotranspiration as long
+        as it is met by the available intercepted water.  For water areas,
+        interception evaporation is generally set to potential evaporation.
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
@@ -444,16 +439,16 @@ def calc_sbes_v1(self):
 
 
     Required control parameters:
-      :class:`~hydpy.models.lland.lland_control.NHRU`
-      :class:`~hydpy.models.lland.lland_control.TGr`
-      :class:`~hydpy.models.lland.lland_control.TSp`
+      |NHRU|
+      |TGr|
+      |TSp|
 
     Required flux sequences:
-      :class:`~hydpy.models.lland.lland_fluxes.TKor`
-      :class:`~hydpy.models.lland.lland_fluxes.NBes`
+      |TKor|
+      |NBes|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.SBes`
+      |SBes|
 
     Examples:
         In the first example, the threshold temperature of seven hydrological
@@ -501,19 +496,19 @@ def calc_wgtf_v1(self):
     """Calculate the potential snow melt.
 
     Required control parameters:
-      :class:`~hydpy.models.lland.lland_control.NHRU`
-      :class:`~hydpy.models.lland.lland_control.Lnk`
-      :class:`~hydpy.models.lland.lland_control.GTF`
-      :class:`~hydpy.models.lland.lland_control.TRefT`
-      :class:`~hydpy.models.lland.lland_control.TRefN`
-      :class:`~hydpy.models.lland.lland_control.RSchmelz`
-      :class:`~hydpy.models.lland.lland_control.CPWasser`
+      |NHRU|
+      |Lnk|
+      |GTF|
+      |TRefT|
+      |TRefN|
+      |RSchmelz|
+      |CPWasser|
 
     Required flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.TKor`
+      |TKor|
 
     Calculated fluxes sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.WGTF`
+      |WGTF|
 
     Basic equation:
       :math:`WGTF = max(GTF \\cdot (TKor - TRefT), 0) +
@@ -588,18 +583,18 @@ def calc_schm_wats_v1(self):
     """Calculate the actual amount of water melting within the snow cover.
 
     Required control parameters:
-      :class:`~hydpy.models.lland.lland_control.NHRU`
-      :class:`~hydpy.models.lland.lland_control.Lnk`
+      |NHRU|
+      |Lnk|
 
     Required flux sequences:
-      :class:`~hydpy.models.lland.lland_fluxes.SBes`
-      :class:`~hydpy.models.lland.lland_fluxes.WGTF`
+      |SBes|
+      |WGTF|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.Schm`
+      |Schm|
 
     Updated state sequence:
-      :class:`~hydpy.models.lland.lland_states.WATS`
+      |WATS|
 
     Basic equations:
       :math:`\\frac{dWATS}{dt}  = SBes - Schm`
@@ -652,28 +647,25 @@ def calc_wada_waes_v1(self):
     """Calculate the actual water release from the snow cover.
 
     Required control parameters:
-      :class:`~hydpy.models.lland.lland_control.NHRU`
-      :class:`~hydpy.models.lland.lland_control.Lnk`
-      :class:`~hydpy.models.lland.lland_control.PWMax`
+      |NHRU|
+      |Lnk|
+      |PWMax|
 
     Required flux sequences:
-      :class:`~hydpy.models.lland.lland_fluxes.NBes`
+      |NBes|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.WaDa`
-
-    Required state sequences
-      :class:`~hydpy.models.lland.lland_states.WAeS`
+      |WaDa|
 
     Updated state sequence:
-      :class:`~hydpy.models.lland.lland_states.WAeS`
+      |WAeS|
 
     Basic equations:
       :math:`\\frac{dWAeS}{dt} = NBes - WaDa`
       :math:`WAeS \\leq PWMax \\cdot WATS`
 
     Examples:
-        For simplicity, :class:`~hydpy.models.lland.lland_control.PWMax`
+        For simplicity, |PWMax|
         is set to a value of two for each of the five initialized HRUs.
         Thus, the snow cover can hold as much liquid water as it contains
         frozen water.  Stand precipitation is also always set to the same
@@ -715,23 +707,20 @@ def calc_evb_v1(self):
     """Calculate the actual water release from the snow cover.
 
     Required control parameters:
-      :class:`~hydpy.models.lland.lland_control.NHRU`
-      :class:`~hydpy.models.lland.lland_control.Lnk`
-      :class:`~hydpy.models.lland.lland_control.NFk`
-      :class:`~hydpy.models.lland.lland_control.GrasRef_R`
+      |NHRU|
+      |Lnk|
+      |NFk|
+      |GrasRef_R|
 
     Required state sequence:
-      :class:`~hydpy.models.lland.lland_states.BoWa`
+      |BoWa|
 
     Required flux sequences:
-      :class:`~hydpy.models.lland.lland_fluxes.EvPo`
-      :class:`~hydpy.models.lland.lland_fluxes.EvI`
-
-    Used aide sequence:
-      :class:`~hydpy.models.lland.lland_aides.Temp`
+      |EvPo|
+      |EvI|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.EvB`
+      |EvB|
 
     Basic equations:
       :math:`temp = exp(-GrasRef_R \\cdot \\frac{BoWa}{NFk})`
@@ -782,20 +771,20 @@ def calc_qbb_v1(self):
     """Calculate the amount of base flow released from the soil.
 
     Required control parameters:
-      :class:`~hydpy.models.lland.lland_control.NHRU`
-      :class:`~hydpy.models.lland.lland_control.Lnk`
-      :class:`~hydpy.models.lland.lland_control.Beta`
-      :class:`~hydpy.models.lland.lland_control.FBeta`
+      |NHRU|
+      |Lnk|
+      |Beta|
+      |FBeta|
 
     Required derived parameter:
-      :class:`~hydpy.models.lland.lland_derived.WB`
-      :class:`~hydpy.models.lland.lland_derived.WZ`
+      |WB|
+      |WZ|
 
     Required state sequence:
-      :class:`~hydpy.models.lland.lland_states.BoWa`
+      |BoWa|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.QBB`
+      |QBB|
 
     Basic equations:
       :math:`Beta_{eff} = \\Bigl \\lbrace
@@ -829,8 +818,7 @@ def calc_qbb_v1(self):
         >>> derived.wb(10.)
         >>> derived.wz(70.)
 
-        Note the time dependence of parameter
-        :class:`~hydpy.models.lland.lland_control.Beta`:
+        Note the time dependence of parameter |Beta|:
 
         >>> beta
         beta(0.04)
@@ -852,8 +840,7 @@ def calc_qbb_v1(self):
         that both exhibit different relative soil moistures.  It is
         common to modify this "pure absolute dependency" to a "mixed
         absolute/relative dependency" through defining the values of
-        parameter :class:`~hydpy.models.lland.lland_derived.WB` indirectly
-        via parameter :class:`~hydpy.models.lland.lland_control.RelWB`.
+        parameter |WB| indirectly via parameter |RelWB|.
 
         In the second example, the actual soil water content is set to high
         values.  For values below the threshold `wz`, the disussion above
@@ -886,19 +873,19 @@ def calc_qib1_v1(self):
     """Calculate the first inflow component released from the soil.
 
     Required control parameters:
-      :class:`~hydpy.models.lland.lland_control.NHRU`
-      :class:`~hydpy.models.lland.lland_control.Lnk`
-      :class:`~hydpy.models.lland.lland_control.NFk`
-      :class:`~hydpy.models.lland.lland_control.DMin`
+      |NHRU|
+      |Lnk|
+      |NFk|
+      |DMin|
 
     Required derived parameter:
-      :class:`~hydpy.models.lland.lland_derived.WB`
+      |WB|
 
     Required state sequence:
-      :class:`~hydpy.models.lland.lland_states.BoWa`
+      |BoWa|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.QIB1`
+      |QIB1|
 
     Basic equation:
       :math:`QIB1 = DMin \\cdot \\frac{BoWa}{NFk}`
@@ -921,16 +908,15 @@ def calc_qib1_v1(self):
         >>> states.bowa = 0., 0., 0., 0., 10., 10.1, 10.1
 
         Note the time dependence of parameter
-        :class:`~hydpy.models.lland.lland_control.DMin`:
+        |DMin|:
 
         >>> dmin
         dmin(4.0)
         >>> dmin.values
         array([ 2.,  2.,  2.,  2.,  2.,  2.,  2.])
 
-        Compared to the calculation of
-        :class:`~hydpy.models.lland.lland_fluxes.QBB`, the following
-        results show some relevant differences:
+        Compared to the calculation of |QBB|, the following results show
+        some relevant differences:
 
         >>> model.calc_qib1_v1()
         >>> fluxes.qib1
@@ -941,8 +927,7 @@ def calc_qib1_v1(self):
         on the relative soil moisture.  Secondly, as demonstratd with the
         help the fifths and the sixths HRU, it starts abruptly whenever
         there is the slightest exceedance of the threshold  parameter
-        :class:`~hydpy.models.lland.lland_derived.WB` occurs.  Such step
-        functions are a potential source of trouble.
+        |WB| occurs.  Such step functions are a potential source of trouble.
     """
     con = self.parameters.control.fastaccess
     der = self.parameters.derived.fastaccess
@@ -960,20 +945,20 @@ def calc_qib2_v1(self):
     """Calculate the first inflow component released from the soil.
 
     Required control parameters:
-      :class:`~hydpy.models.lland.lland_control.NHRU`
-      :class:`~hydpy.models.lland.lland_control.Lnk`
-      :class:`~hydpy.models.lland.lland_control.NFk`
-      :class:`~hydpy.models.lland.lland_control.DMin`
-      :class:`~hydpy.models.lland.lland_control.DMax`
+      |NHRU|
+      |Lnk|
+      |NFk|
+      |DMin|
+      |DMax|
 
     Required derived parameter:
-      :class:`~hydpy.models.lland.lland_derived.WZ`
+      |WZ|
 
     Required state sequence:
-      :class:`~hydpy.models.lland.lland_states.BoWa`
+      |BoWa|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.QIB2`
+      |QIB2|
 
     Basic equation:
       :math:`QIB2 = (DMax-DMin) \\cdot
@@ -997,18 +982,16 @@ def calc_qib2_v1(self):
         >>> states.bowa = 0., 0., 50.1, 50., 75., 100., 100.
 
         Note the time dependence of parameters
-        :class:`~hydpy.models.lland.lland_control.DMin` (see the example
-        above) and :class:`~hydpy.models.lland.lland_control.DMax`:
+        |DMin| (see the example
+        above) and |DMax|:
 
         >>> dmax
         dmax(10.0)
         >>> dmax.values
         array([ 5.,  5.,  5.,  5.,  5.,  5.,  5.])
 
-        The following results show that he calculation of
-        :class:`~hydpy.models.lland.lland_fluxes.QIB2` both resembles
-        those of :class:`~hydpy.models.lland.lland_fluxes.QBB` and
-        :class:`~hydpy.models.lland.lland_fluxes.QIB1` in some regards:
+        The following results show that he calculation of |QIB2| both
+        resembles those of |QBB| and |QIB1| in some regards:
 
         >>> model.calc_qib2_v1()
         >>> fluxes.qib2
@@ -1017,8 +1000,7 @@ def calc_qib2_v1(self):
         In the given example, the maximum rate of total interflow
         generation is 5mm/12h.  For the sixths zone, which contains
         a saturated soil, a value of 3mm/h is calculated.  The "missing"
-        2mm/12h would be added to the inflow concentration routine via
-        :class:`~hydpy.models.lland.lland_fluxes.QIB1`.
+        2mm/12h would be added to the inflow concentration routine via |QIB1|.
 
         (The third zone, which is slightly oversaturated, is only intended
         to demonstrate that zero division due to nfk=wz is circumvented.)
@@ -1041,19 +1023,19 @@ def calc_qdb_v1(self):
     """Calculate direct runoff released from the soil.
 
     Required control parameters:
-      :class:`~hydpy.models.lland.lland_control.NHRU`
-      :class:`~hydpy.models.lland.lland_control.Lnk`
-      :class:`~hydpy.models.lland.lland_control.NFk`
-      :class:`~hydpy.models.lland.lland_control.BSF`
+      |NHRU|
+      |Lnk|
+      |NFk|
+      |BSf|
 
     Required state sequence:
-      :class:`~hydpy.models.lland.lland_states.BoWa`
+      |BoWa|
 
     Required flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.WaDa`
+      |WaDa|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.QDB`
+      |QDB|
 
     Basic equations:
       :math:`QDB = \\Bigl \\lbrace
@@ -1119,21 +1101,21 @@ def calc_bowa_v1(self):
     """Update soil moisture and correct fluxes if necessary.
 
     Required control parameters:
-      :class:`~hydpy.models.lland.lland_control.NHRU`
-      :class:`~hydpy.models.lland.lland_control.Lnk`
+      |NHRU|
+      |Lnk|
 
     Required flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.WaDa`
+      |WaDa|
 
     Updated state sequence:
-      :class:`~hydpy.models.lland.lland_states.BoWa`
+      |BoWa|
 
     Required (and eventually corrected) flux sequences:
-      :class:`~hydpy.models.lland.lland_fluxes.EvB`
-      :class:`~hydpy.models.lland.lland_fluxes.QBB`
-      :class:`~hydpy.models.lland.lland_fluxes.QIB1`
-      :class:`~hydpy.models.lland.lland_fluxes.QIB2`
-      :class:`~hydpy.models.lland.lland_fluxes.QDB`
+      |EvB|
+      |QBB|
+      |QIB1|
+      |QIB2|
+      |QDB|
 
     Basic equations:
        :math:`\\frac{dBoWa}{dt} = WaDa - EvB - QBB - QIB1 - QIB2 - QDB`
@@ -1202,14 +1184,14 @@ def calc_qbgz_v1(self):
     """Aggregate the amount of base flow released by all HRUs.
 
     Required control parameters:
-      :class:`~hydpy.models.lland.lland_control.NHRU`
-      :class:`~hydpy.models.lland.lland_control.FHRU`
+      |NHRU|
+      |FHRU|
 
     Required flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.QBB`
+      |QBB|
 
     Calculated state sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.QBGZ`
+      |QBGZ|
 
     Basic equation:
        :math:`QBGZ = \\Sigma(FHRU \\cdot QBB)`
@@ -1238,14 +1220,14 @@ def calc_qigz1_v1(self):
     by all HRUs.
 
     Required control parameters:
-      :class:`~hydpy.models.lland.lland_control.NHRU`
-      :class:`~hydpy.models.lland.lland_control.FHRU`
+      |NHRU|
+      |FHRU|
 
     Required flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.QIB1`
+      |QIB1|
 
     Calculated state sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.QIGZ1`
+      |QIGZ1|
 
     Basic equation:
        :math:`QIGZ1 = \\Sigma(FHRU \\cdot QIB1)`
@@ -1274,14 +1256,14 @@ def calc_qigz2_v1(self):
     by all HRUs.
 
     Required control parameters:
-      :class:`~hydpy.models.lland.lland_control.NHRU`
-      :class:`~hydpy.models.lland.lland_control.FHRU`
+      |NHRU|
+      |FHRU|
 
     Required flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.QIB2`
+      |QIB2|
 
     Calculated state sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.QIGZ2`
+      |QIGZ2|
 
     Basic equation:
        :math:`QIGZ2 = \\Sigma(FHRU \\cdot QIB2)`
@@ -1309,14 +1291,14 @@ def calc_qdgz_v1(self):
     """Aggregate the amount of total direct flow released by all HRUs.
 
     Required control parameters:
-      :class:`~hydpy.models.lland.lland_control.NHRU`
-      :class:`~hydpy.models.lland.lland_control.FHRU`
+      |NHRU|
+      |FHRU|
 
     Required flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.QDB`
+      |QDB|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.QDGZ`
+      |QDGZ|
 
     Basic equation:
        :math:`QDGZ = \\Sigma(FHRU \\cdot QDB)`
@@ -1343,15 +1325,15 @@ def calc_qdgz1_qdgz2_v1(self):
     """Seperate total direct flow into a small and a fast component.
 
     Required control parameters:
-      :class:`~hydpy.models.lland.lland_control.A1`
-      :class:`~hydpy.models.lland.lland_control.A2`
+      |A1|
+      |A2|
 
     Required flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.QDGZ`
+      |QDGZ|
 
     Calculated state sequences:
-      :class:`~hydpy.models.lland.lland_fluxes.QDGZ1`
-      :class:`~hydpy.models.lland.lland_fluxes.QDGZ2`
+      |QDGZ1|
+      |QDGZ2|
 
     Basic equation:
        :math:`QDGZ2 = \\frac{(QDGZ-A2)^2}{QDGZ+A1-A2}`
@@ -1361,11 +1343,11 @@ def calc_qdgz1_qdgz2_v1(self):
 
         The formula for calculating the amount of the fast component of
         direct flow is borrowed from the famous curve number approach.
-        Parameter :class:`A2` would be the initial loss and parameter
-        :class:`A1` the maximum storage, but one should not take this
-        analogy too serious.  Instead, with the value of parameter `a1`
-        set to zero, parameter `a2` just defines the maximum amount of
-        "slow" direct runoff per time step:
+        Parameter |A2| would be the initial loss and parameter |A1| the
+        maximum storage, but one should not take this analogy too serious.
+        Instead, with the value of parameter |A1| set to zero, parameter
+        |A2| just defines the maximum amount of "slow" direct runoff per
+        time step:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
@@ -1429,7 +1411,7 @@ def calc_qdgz1_qdgz2_v1(self):
 
         Note the similarity of the results for very high values of total
         direct flow in all three examples, which converge to the sum of
-        the values of parameter `a1` and `a2`, representing the maximum
+        the values of parameter |A1| and |A2|, representing the maximum
         value of `slow` direct flow generation per simulation step
     """
     con = self.parameters.control.fastaccess
@@ -1451,13 +1433,13 @@ def calc_qbga_v1(self):
     the simulation time step.
 
     Required derived parameter:
-      :class:`~hydpy.models.lland.lland_control.KB`
+      |KB|
 
     Required flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.QBGZ`
+      |QBGZ|
 
     Calculated state sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.QBGA`
+      |QBGA|
 
     Basic equation:
        :math:`QBGA_{neu} = QBGA_{alt} +
@@ -1516,13 +1498,13 @@ def calc_qiga1_v1(self):
     the simulation time step.
 
     Required derived parameter:
-      :class:`~hydpy.models.lland.lland_control.KI1`
+      |KI1|
 
     Required state sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.QIGZ1`
+      |QIGZ1|
 
     Calculated state sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.QIGA1`
+      |QIGA1|
 
     Basic equation:
        :math:`QIGA1_{neu} = QIGA1_{alt} +
@@ -1581,13 +1563,13 @@ def calc_qiga2_v1(self):
     the simulation time step.
 
     Required derived parameter:
-      :class:`~hydpy.models.lland.lland_control.KI2`
+      |KI2|
 
     Required state sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.QIGZ2`
+      |QIGZ2|
 
     Calculated state sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.QIGA2`
+      |QIGA2|
 
     Basic equation:
        :math:`QIGA2_{neu} = QIGA2_{alt} +
@@ -1645,13 +1627,13 @@ def calc_qdga1_v1(self):
     the simulation time step.
 
     Required derived parameter:
-      :class:`~hydpy.models.lland.lland_derived.KD1`
+      |KD1|
 
     Required state sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.QDGZ1`
+      |QDGZ1|
 
     Calculated state sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.QDGA1`
+      |QDGA1|
 
     Basic equation:
        :math:`QDGA1_{neu} = QDGA1_{alt} +
@@ -1709,13 +1691,13 @@ def calc_qdga2_v1(self):
     the simulation time step.
 
     Required derived parameter:
-      :class:`~hydpy.models.lland.lland_derived.KD2`
+      |KD2|
 
     Required state sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.QDGZ2`
+      |QDGZ2|
 
     Calculated state sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.QDGA2`
+      |QDGA2|
 
     Basic equation:
        :math:`QDGA2_{neu} = QDGA2_{alt} +
@@ -1772,22 +1754,22 @@ def calc_q_v1(self):
     evaporation values are subtracted from the "potential" runoff value.
 
     Required control parameters:
-      :class:`~hydpy.models.lland.lland_control.NHRU`
-      :class:`~hydpy.models.lland.lland_control.FHRU`
-      :class:`~hydpy.models.lland.lland_control.Lnk`
+      |NHRU|
+      |FHRU|
+      |Lnk|
 
     Required flux sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.EvI`
+      |EvI|
 
     Required state sequences:
-      :class:`~hydpy.models.lland.lland_fluxes.QBGA`
-      :class:`~hydpy.models.lland.lland_fluxes.QIGA1`
-      :class:`~hydpy.models.lland.lland_fluxes.QIGA2`
-      :class:`~hydpy.models.lland.lland_fluxes.QDGA1`
-      :class:`~hydpy.models.lland.lland_fluxes.QDGA2`
+      |QBGA|
+      |QIGA1|
+      |QIGA2|
+      |QDGA1|
+      |QDGA2|
 
-    Calculated state sequence:
-      :class:`~hydpy.models.lland.lland_fluxes.Q`
+    Calculated flux sequence:
+      |lland_fluxes.Q|
 
     Basic equations:
        :math:`Q = QBGA + QIGA1 + QIGA2 + QDGA1 + QDGA2 - EvI_{WASSER}`
@@ -1827,7 +1809,7 @@ def calc_q_v1(self):
         >>> fluxes.evi
         evi(4.0, 5.0, 3.0)
 
-        Note that only 2mm instead of 4mm are subtracted, as the first
+        Note that only 2 mm instead of 4 mm are subtracted, as the first
         HRU`s area is only 50% of the subbasin area.
 
         Setting also the land use class of the second HRU to water would
@@ -1865,13 +1847,13 @@ def pass_q_v1(self):
     """Update the outlet link sequence.
 
     Required derived parameter:
-      :class:`~hydpy.models.lland.lland_derived.QFactor`
+      |QFactor|
 
     Required flux sequences:
-      :class:`~hydpy.models.lland.lland_fluxes.Q`
+      |lland_fluxes.Q|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.lland.lland_outlets.Q`
+      |lland_outlets.Q|
     """
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess

@@ -216,6 +216,11 @@ class Substituter(object):
         for (name, member) in module.__dict__.items():
             if name.startswith('_'):
                 continue
+            if name == 'CONSTANTS':
+                for key, value in member.items():
+                    self._add_single_object(
+                        'const', name_module, module, key, value, cython)
+                continue
             if getattr(member, '__module__', None) != module.__name__:
                 continue
             if inspect.isfunction(member):
@@ -226,18 +231,23 @@ class Substituter(object):
                 role = 'func'
             else:
                 continue
-            short = '|%s|' % name
-            medium = ('|%s.%s|' % (name_module, name))
-            long = ':%s:`~%s.%s`' % (role, module.__name__, name)
-            if short not in self.blacklist:
-                if short in self.substitutions:
-                    self.blacklist.add(short)
-                    del self.substitutions[short]
-                else:
-                    self.substitutions[short] = long
-            self.substitutions[medium] = long
-            if not cython:
-                self.members.append(member)
+            self._add_single_object(
+                role, name_module, module, name, member, cython)
+
+    def _add_single_object(
+            self, role, name_module, module, name_member, member, cython):
+        short = '|%s|' % name_member
+        medium = ('|%s.%s|' % (name_module, name_member))
+        long = ':%s:`~%s.%s`' % (role, module.__name__, name_member)
+        if short not in self.blacklist:
+            if short in self.substitutions:
+                self.blacklist.add(short)
+                del self.substitutions[short]
+            else:
+                self.substitutions[short] = long
+        self.substitutions[medium] = long
+        if not cython:
+            self.members.append(member)
 
     def add_modules(self, package):
         """Add the modules of the given package without not their members."""

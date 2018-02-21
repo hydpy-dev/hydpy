@@ -73,6 +73,8 @@ except TypeError:
 if not getattr(sys, 'frozen', False):
     # Don't do this when HydPy has been freezed with PyInstaller.
     substituter = Substituter()
+    substituter.substitutions['|idx_sim|'] = \
+        ':attr:`~hydpy.core.modeltools.Model.idx_sim`'
     for subpackage in (auxs, core, cythons):
         for loader, name, is_pkg in pkgutil.walk_packages(subpackage.__path__):
             full_name = subpackage.__name__ + '.' + name

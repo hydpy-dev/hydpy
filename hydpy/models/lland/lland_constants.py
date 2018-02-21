@@ -10,11 +10,10 @@ represents the value of a different hru.
 In contrasts to the original LARSIM model, the HydPy-L-Land model allows for
 arbitrary definitions of units.  Nevertheless, the original distinction
 in accordance with sixteen different landuse types is still supported.  The
-parameter :class:`~hydpy.models.lland.lland_control.Lnk` defines,
-which entry of e.g. :class:`~hydpy.models.lland.lland_control.NFk` is
-related to which land use type via integer values.  Note that for the units
-of the most land use types, the same equations are applied. Only units
-of type `VERS` and `WASSER` are partly connected to different process
+parameter |Lnk| defines which entry of e.g. parameter |NFk| is related to
+which land use type via integer values.  Note that for the units of the most
+land use types, the same equations are applied. Only units of type `VERS`,
+`WASSER`, `FLUSS`, and `SEE` are partly connected to different process
 equations.
 
 For comprehensibility, this module introduces the relevant integer constants.
@@ -25,8 +24,8 @@ Through performing a wildcard import
 these are available in your local namespace:
 
 >>> (SIED_D, SIED_L, VERS, ACKER, WEINB, OBSTB, BODEN, GLETS, GRUE_I,
-...  FEUCHT, GRUE_E, BAUMB, NADELW, LAUBW, MISCHW, WASSER)
-(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)
+...  FEUCHT, GRUE_E, BAUMB, NADELW, LAUBW, MISCHW, WASSER, FLUSS, SEE)
+(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18)
 """
 
 SIED_D = 1
@@ -60,7 +59,14 @@ LAUBW = 14
 MISCHW = 15
 """Constant for `Mischwald` (mixed forest)."""
 WASSER = 16
-"""Constant for `Wasser` (water)."""
+"""Constant for `Wasser` (water areas).
+
+    **This constant is deprecated. Use constant `FLUSS` instead.**
+"""
+FLUSS = 17
+"""Constant for `Fluss` (river surface)."""
+SEE = 18
+"""Constant for `See` (lake surface)."""
 CONSTANTS = {key: value for key, value in locals().items()
              if (key.isupper() and isinstance(value, int))}
 """Dictionary containing all constants defined by HydPy-L-Land."""

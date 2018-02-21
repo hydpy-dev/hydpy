@@ -2,18 +2,17 @@
 """The HydPy-L-Land model (`lland`) allows for the subdivision of subbasins
 into hydrological response units (hru).  Some processes, e.g. interception,
 are calculated seperately for each zone.  This is why some parameters (e.g.
-the usable field capacity :class:`~hydpy.models.lland.lland_control.NFk`)
-and some sequences (e.g. the actual soil water storage
-:class:`~hydpy.models.lland.lland_states.BoWa`) are 1-dimensional.  Each entry
-represents the value of a different hru.
+the usable field capacity |NFk|) and some sequences (e.g. the actual soil
+water storage |BoWa|) are 1-dimensional.  Each entry represents the value
+of a different hru.
 
 In contrasts to the original LARSIM model, the HydPy-L-Land model allows for
 arbitrary definitions of units.  Nevertheless, the original distinction
 in accordance with sixteen different landuse types is still supported.  The
 parameter |Lnk| defines which entry of e.g. parameter |NFk| is related to
 which land use type via integer values.  Note that for the units of the most
-land use types, the same equations are applied. Only units of type `VERS`,
-`WASSER`, `FLUSS`, and `SEE` are partly connected to different process
+land use types, the same equations are applied. Only units of type |VERS|,
+|WASSER|, |FLUSS|, and |SEE| are partly connected to different process
 equations.
 
 For comprehensibility, this module introduces the relevant integer constants.
@@ -68,5 +67,5 @@ FLUSS = 17
 SEE = 18
 """Constant for `See` (lake surface)."""
 CONSTANTS = {key: value for key, value in locals().items()
-             if (key.isupper() and isinstance(value, int))}
+             if key.isupper() and isinstance(value, int)}
 """Dictionary containing all constants defined by HydPy-L-Land."""

@@ -7,7 +7,7 @@ from __future__ import division, print_function
 from hydpy.core import modeltools
 from hydpy.cythons import modelutils
 # ...model specifc
-from hydpy.models.lland.lland_constants import WASSER, VERS
+from hydpy.models.lland.lland_constants import WASSER, FLUSS, SEE, VERS
 
 
 def calc_nkor_v1(self):
@@ -28,14 +28,14 @@ def calc_nkor_v1(self):
 
     Example:
 
-    >>> from hydpy.models.lland import *
-    >>> parameterstep('1d')
-    >>> nhru(3)
-    >>> kg(.8, 1., 1.2)
-    >>> inputs.nied = 10.
-    >>> model.calc_nkor_v1()
-    >>> fluxes.nkor
-    nkor(8.0, 10.0, 12.0)
+        >>> from hydpy.models.lland import *
+        >>> parameterstep('1d')
+        >>> nhru(3)
+        >>> kg(0.8, 1.0, 1.2)
+        >>> inputs.nied = 10.
+        >>> model.calc_nkor_v1()
+        >>> fluxes.nkor
+        nkor(8.0, 10.0, 12.0)
     """
     con = self.parameters.control.fastaccess
     inp = self.sequences.inputs.fastaccess
@@ -62,14 +62,14 @@ def calc_tkor_v1(self):
 
     Example:
 
-    >>> from hydpy.models.lland import *
-    >>> parameterstep('1d')
-    >>> nhru(3)
-    >>> kt(-2., 0., 2.)
-    >>> inputs.teml(1.)
-    >>> model.calc_tkor_v1()
-    >>> fluxes.tkor
-    tkor(-1.0, 1.0, 3.0)
+        >>> from hydpy.models.lland import *
+        >>> parameterstep('1d')
+        >>> nhru(3)
+        >>> kt(-2.0, 0.0, 2.0)
+        >>> inputs.teml(1.)
+        >>> model.calc_tkor_v1()
+        >>> fluxes.tkor
+        tkor(-1.0, 1.0, 3.0)
     """
     con = self.parameters.control.fastaccess
     inp = self.sequences.inputs.fastaccess
@@ -103,18 +103,18 @@ def calc_et0_v1(self):
 
     Example:
 
-    >>> from hydpy.models.lland import *
-    >>> parameterstep('1d')
-    >>> simulationstep('12h')
-    >>> nhru(3)
-    >>> ke(1.1)
-    >>> kf(.6)
-    >>> hnn(200., 600., 1000.)
-    >>> inputs.glob = 200.
-    >>> fluxes.tkor = 15.
-    >>> model.calc_et0_v1()
-    >>> fluxes.et0
-    et0(3.07171, 2.86215, 2.86215)
+        >>> from hydpy.models.lland import *
+        >>> parameterstep('1d')
+        >>> simulationstep('12h')
+        >>> nhru(3)
+        >>> ke(1.1)
+        >>> kf(0.6)
+        >>> hnn(200.0, 600.0, 1000.0)
+        >>> inputs.glob = 200.0
+        >>> fluxes.tkor = 15.0
+        >>> model.calc_et0_v1()
+        >>> fluxes.et0
+        et0(3.07171, 2.86215, 2.86215)
     """
     con = self.parameters.control.fastaccess
     inp = self.sequences.inputs.fastaccess
@@ -144,15 +144,15 @@ def calc_et0_v2(self):
 
     Example:
 
-    >>> from hydpy.models.lland import *
-    >>> parameterstep('1d')
-    >>> simulationstep('12h')
-    >>> nhru(2)
-    >>> ke(0.8, 1.2)
-    >>> inputs.pet = 2.
-    >>> model.calc_et0_v2()
-    >>> fluxes.et0
-    et0(1.6, 2.4)
+        >>> from hydpy.models.lland import *
+        >>> parameterstep('1d')
+        >>> simulationstep('12h')
+        >>> nhru(2)
+        >>> ke(0.8, 1.2)
+        >>> inputs.pet = 2.
+        >>> model.calc_et0_v2()
+        >>> fluxes.et0
+        et0(1.6, 2.4)
     """
     con = self.parameters.control.fastaccess
     inp = self.sequences.inputs.fastaccess
@@ -216,8 +216,8 @@ def calc_evpo_v1(self):
 
         Fourthly, the index array connecting the simulation time steps
         defined above and the month indexes (0...11) can be retrieved
-        from the :mod:`~hydpy.pub` module.  This can be done manually
-        more conveniently via its update method:
+        from the |pub| module.  This can be done manually more
+        conveniently via its update method:
 
         >>> derived.moy.update()
         >>> derived.moy
@@ -226,7 +226,7 @@ def calc_evpo_v1(self):
         Finally, the actual method (with its simple equation) is applied
         as usual:
 
-        >>> fluxes.et0 = 2.
+        >>> fluxes.et0 = 2.0
         >>> model.idx_sim = 0
         >>> model.calc_evpo_v1()
         >>> fluxes.evpo
@@ -249,7 +249,7 @@ def calc_evpo_v1(self):
 
 
 def calc_nbes_inzp_v1(self):
-    """Calculate throughfall and update the interception storage
+    """Calculate stand precipitation and update the interception storage
     accordingly.
 
     Required control parameters:
@@ -281,97 +281,82 @@ def calc_nbes_inzp_v1(self):
 
     Examples:
 
-        Initialize six HRUs with different land usages:
+        Initialize five HRUs with different land usages:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
-        >>> nhru(4)
-        >>> lnk(SIED_D, FEUCHT, GLETS, WASSER)
+        >>> nhru(5)
+        >>> lnk(SIED_D, FEUCHT, GLETS, FLUSS, SEE)
 
-        Define values for the maximum interception storage directly:
+        Define |KInz| values for July the selected land usages directly:
 
-        >>> derived.kinz.sied_d_jul = 2.
-        >>> derived.kinz.feucht_jul = 1.
-        >>> derived.kinz.glets_jul = 0.
-        >>> derived.kinz.wasser_jul = 0.
+        >>> derived.kinz.sied_d_jul = 2.0
+        >>> derived.kinz.feucht_jul = 1.0
+        >>> derived.kinz.glets_jul = 0.0
+        >>> derived.kinz.fluss_jul = 0.0
+        >>> derived.kinz.see_jul = 0.0
 
-        Assume that the three consecutive initialization time steps
-        lie in three different months (does not make sense for the
-        selected time step of one day, but allows for a more rigorous
-        testing of proper indexing):
+        Now we prepare a |MOY| object, that assumes that the first, second,
+        and third simulation time steps are in June, July, and August
+        respectively (we make use of the value defined above for July, but
+        setting the values of parameter |MOY| this way allows for a more
+        rigorous testing of proper indexing):
 
         >>> derived.moy.shape = 3
-        >>> derived.moy = numpy.array([5, 6, 7])
+        >>> derived.moy = 5, 6, 7
         >>> model.idx_sim = 1
 
-        The dense settlement and the wetland area start with a initial
-        interception storage of 1/2 mm, the glacier and water area (must)
-        start with 0 mm.  In the first example, actual precipition is 2 mm:
+        The dense settlement (|SIED_D|) and the wetland area (|FEUCHT|) start
+        with a initial interception storage of 1/2 mm, the glacier (|GLETS|)
+        and water areas (|FLUSS| and |SEE|) start with 0 mm.  In the first
+        example, actual precipition is 1 mm:
 
-        >>> states.inzp(0.5, 0.5, 0., 0.)
-        >>> fluxes.nkor = 1.
+        >>> states.inzp = 0.5, 0.5, 0.0, 0.0, 0.0
+        >>> fluxes.nkor = 1.0
         >>> model.calc_nbes_inzp_v1()
         >>> states.inzp
-        inzp(1.5, 1.0, 0.0, 0.0)
+        inzp(1.5, 1.0, 0.0, 0.0, 0.0)
         >>> fluxes.nbes
-        nbes(0.0, 0.5, 1.0, 1.0)
+        nbes(0.0, 0.5, 1.0, 1.0, 1.0)
 
         Only for the settled area, interception capacity is not exceeded,
-        meaning not through fall occurs.
+        meaning no stand precipitation occurs.  Note that it is common in
+        define zero interception capacities for glacier and water areas,
+        but not mandatory.
 
-        If there is no precipitation, there is of course also no through
-        fall and interception storage remains unchanged:
+        If there is no precipitation, there is of course also no stand
+        precipitation and interception storage remains unchanged:
 
-        >>> states.inzp(0.5, 0.5, 0., 0.)
+        >>> states.inzp = 0.5, 0.5, 0.0, 0.0, 0.0
         >>> fluxes.nkor = 0.
         >>> model.calc_nbes_inzp_v1()
         >>> states.inzp
-        inzp(0.5, 0.5, 0.0, 0.0)
+        inzp(0.5, 0.5, 0.0, 0.0, 0.0)
         >>> fluxes.nbes
-        nbes(0.0, 0.0, 0.0, 0.0)
+        nbes(0.0, 0.0, 0.0, 0.0, 0.0)
 
-        Note the following to peculiarities:  Firstly, the behaviour of
-        the glacier area is due to its zero interception capacity.  On the
-        contrary, the behaviour of the water area hard coded.  Hence,
-        increasing the interception capacity shows no effect:
+        Interception capacities change discontinuously between consecutive
+        months.  This can result in little stand precipitation events in
+        periods without precipitation:
 
-        >>> derived.kinz.glets_jul = 1.
-        >>> derived.kinz.wasser_jul = 1.
-        >>> states.inzp(0.5, 0.5, 0., 0.)
-        >>> fluxes.nkor = 1.
+        >>> states.inzp = 1.0, 0.0, 0.0, 0.0, 0.0
+        >>> derived.kinz.sied_d_jul = 0.6
+        >>> fluxes.nkor = 0.0
         >>> model.calc_nbes_inzp_v1()
         >>> states.inzp
-        inzp(1.5, 1.0, 1.0, 0.0)
+        inzp(0.6, 0.0, 0.0, 0.0, 0.0)
         >>> fluxes.nbes
-        nbes(0.0, 0.5, 0.0, 1.0)
-
-        Secondly, due to discontinuous changes of the interception capacity
-        between two months, through fall can occur after the corresponding
-        precipitation event has occured.  In the last example, this results
-        from the given decrease of the glaciers interception capacity:
-
-        >>> derived.kinz.glets_jul = .6
-        >>> fluxes.nkor = 0.
-        >>> model.calc_nbes_inzp_v1()
-        >>> states.inzp
-        inzp(1.5, 1.0, 0.6, 0.0)
-        >>> fluxes.nbes
-        nbes(0.0, 0.0, 0.4, 0.0)
-
+        nbes(0.4, 0.0, 0.0, 0.0, 0.0)
     """
     con = self.parameters.control.fastaccess
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
     for k in range(con.nhru):
-        if con.lnk[k] != WASSER:
-            flu.nbes[k] = \
-                max(flu.nkor[k]+sta.inzp[k] -
-                    der.kinz[con.lnk[k]-1, der.moy[self.idx_sim]], 0.)
-            sta.inzp[k] += flu.nkor[k]-flu.nbes[k]
-        else:
-            flu.nbes[k] = flu.nkor[k]
-            sta.inzp[k] = 0.
+        flu.nbes[k] = \
+            max(flu.nkor[k]+sta.inzp[k] -
+                der.kinz[con.lnk[k]-1, der.moy[self.idx_sim]], 0.)
+        sta.inzp[k] += flu.nkor[k]-flu.nbes[k]
 
 
 def calc_evi_inzp_v1(self):
@@ -402,41 +387,36 @@ def calc_evi_inzp_v1(self):
       }`
 
     Examples:
-        Initialize four HRUs with different combinations of land usage
+
+        Initialize three HRUs with different combinations of land usage
         and initial interception storage and apply a value of potential
         evaporation of 3 mm on each one:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
-        >>> nhru(4)
-        >>> lnk(ACKER, ACKER, ACKER, WASSER)
-        >>> states.inzp = 0., 2., 4., 0.
-        >>> fluxes.evpo = 3.
+        >>> nhru(3)
+        >>> states.inzp = 0.0, 2.0, 4.0
+        >>> fluxes.evpo = 3.0
         >>> model.calc_evi_inzp_v1()
         >>> states.inzp
-        inzp(0.0, 0.0, 1.0, 0.0)
+        inzp(0.0, 0.0, 1.0)
         >>> fluxes.evi
-        evi(0.0, 2.0, 3.0, 3.0)
+        evi(0.0, 2.0, 3.0)
 
-        For the first three HRUs of land use class |ACKER|, interception
-        evaporation is identical with potential evapotranspiration as long
-        as it is met by the available intercepted water.  For water areas,
-        interception evaporation is generally set to potential evaporation.
+        Interception evaporation is identical with potential
+        evapotranspiration as long as it is met by the available
+        intercepted water.
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
     for k in range(con.nhru):
-        if con.lnk[k] != WASSER:
-            flu.evi[k] = min(flu.evpo[k], sta.inzp[k])
-            sta.inzp[k] -= flu.evi[k]
-        else:
-            flu.evi[k] = flu.evpo[k]
+        flu.evi[k] = min(flu.evpo[k], sta.inzp[k])
+        sta.inzp[k] -= flu.evi[k]
 
 
 def calc_sbes_v1(self):
     """Calculate the frozen part of stand precipitation.
-
 
     Required control parameters:
       |NHRU|
@@ -451,22 +431,23 @@ def calc_sbes_v1(self):
       |SBes|
 
     Examples:
+
         In the first example, the threshold temperature of seven hydrological
-        response units is 0°C and the corresponding temperature interval of
-        mixed precipitation 2°C:
+        response units is 0 °C and the corresponding temperature interval of
+        mixed precipitation 2 °C:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> nhru(7)
-        >>> tgr(0.)
-        >>> tsp(2.)
+        >>> tgr(0.0)
+        >>> tsp(2.0)
 
-        The value of `sbes` is zero above 1°C and equal to the value of
-        `nbes` below -1°C.  Between these temperature values, `sbes`
+        The value of |NBes| is zero above 1 °C and equal to the value of
+        |NBes| below -1 °C.  Between these temperature values, |NBes|
         decreases linearly:
 
-        >>> fluxes.nbes = 4.
-        >>> fluxes.tkor = -10., -1., -.5, 0., .5, 1., 10.
+        >>> fluxes.nbes = 4.0
+        >>> fluxes.tkor = -10.0, -1.0, -0.5, 0.0, 0.5, 1.0, 10.0
         >>> model.calc_sbes_v1()
         >>> fluxes.sbes
         sbes(4.0, 4.0, 3.0, 2.0, 1.0, 0.0, 0.0)
@@ -515,68 +496,63 @@ def calc_wgtf_v1(self):
       max(\\frac{CPWasser}{RSchmelz} \\cdot (TKor - TRefN), 0)`
 
     Examples:
-        Initialize six HRUs with identical degree-day factors and
+
+        Initialize seven HRUs with identical degree-day factors and
         temperature thresholds, but different combinations of land use
         and air temperature:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> simulationstep('12h')
-        >>> nhru(6)
-        >>> lnk(ACKER, LAUBW, WASSER, ACKER, ACKER, ACKER)
-        >>> gtf(5.)
-        >>> treft(0.)
-        >>> trefn(1.)
-        >>> fluxes.tkor = 2., 2., 2., -1., 0., 1.
+        >>> nhru(7)
+        >>> lnk(ACKER, LAUBW, FLUSS, SEE, ACKER, ACKER, ACKER)
+        >>> gtf(5.0)
+        >>> treft(0.0)
+        >>> trefn(1.0)
+        >>> fluxes.tkor = 2.0, 2.0, 2.0, 2.0, -1.0, 0.0, 1.0
 
-        The specific heat capacity and melt heat capacity of water are
-        (compared to most parameters of hydrological models) relatively
-        fixed properties:
+        Compared to most other LARSIM parameters, the specific heat capacity
+        and melt heat capacity of water can be seen as fixed properties:
 
         >>> cpwasser(4.1868)
         >>> rschmelz(334.0)
 
         Note that the values of the degree-day factor are only half
-        as much as the given value, due to the small simulation step size
+        as much as the given value, due to the simulation step size
         beeing only half as long as the parameter step size:
 
         >>> gtf
         gtf(5.0)
         >>> gtf.values
-        array([ 2.5,  2.5,  2.5,  2.5,  2.5,  2.5])
+        array([ 2.5,  2.5,  2.5,  2.5,  2.5,  2.5,  2.5])
 
-
-        (These values are not hard coded, to allow for changing the
-        sensitivity of the snow routine for precipitation driven snow
-        melt events.)
-
-        When performing the calculations, one sees that the potential
-        melting rate is identical for the first two HRUs.  The land use
-        class results in no difference, except for water areas (third HRU),
-        where no potential melt needs to be calculated.  The last three
-        HRUs show the usual behaviour of the degree day method, when the
+        After performing the calculation, one can see that the potential
+        melting rate is identical for the first two HRUs (|ACKER| and
+        |LAUBW|).  The land use class results in no difference, except for
+        water areas (third and forth HRU, |FLUSS| and |SEE|), where no
+        potential melt needs to be calculated.  The last three HRUs (again
+        |ACKER|) show the usual behaviour of the degree day method, when the
         actual temperature is below (fourth HRU), equal to (fifth HRU) or
         above (sixths zone) the threshold temperature.  Additionally, the
         first two zones show the influence of the additional energy intake
         due to "warm" precipitation.  Obviously, this additional term is
         quite negligible for common parameterizations, even if lower
-        values for the seperate threshold temperature would be taken into
-        account:
+        values for the seperate threshold temperature |TRefT| would be
+        taken into account:
 
         >>> model.calc_wgtf_v1()
         >>> fluxes.wgtf
-        wgtf(5.012535, 5.012535, 0.0, 0.0, 0.0, 2.5)
+        wgtf(5.012535, 5.012535, 0.0, 0.0, 0.0, 0.0, 2.5)
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
     for k in range(con.nhru):
-        if con.lnk[k] != WASSER:
+        if con.lnk[k] in (WASSER, FLUSS, SEE):
+            flu.wgtf[k] = 0.
+        else:
             flu.wgtf[k] = (
               max(con.gtf[k]*(flu.tkor[k]-con.treft[k]), 0) +
-              max(con.cpwasser/con.rschmelz*(flu.tkor[k]-con.trefn[k]), 0.)
-              )
-        else:
-            flu.wgtf[k] = 0.
+              max(con.cpwasser/con.rschmelz*(flu.tkor[k]-con.trefn[k]), 0.))
 
 
 def calc_schm_wats_v1(self):
@@ -606,25 +582,26 @@ def calc_schm_wats_v1(self):
       }`
 
     Examples:
-        Initialize one water and four arable land HRUs.  Assume the same
-        values for the initial amount of frozen water and the frozen
-        part of stand precipitation, but different values for the
-        potential snow melt:
+
+        Initialize two water (|FLUSS| and |SEE) and four arable land
+        (|ACKER|) HRUs.  Assume the same values for the initial amount
+        of frozen water (|WATS|) and the frozen part of stand precipitation
+        (|SBes|), but different values for potential snow melt (|WGTF|):
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
-        >>> nhru(5)
-        >>> lnk(WASSER, ACKER, ACKER, ACKER, ACKER)
-        >>> states.wats = 2.
-        >>> fluxes.sbes = 1.
-        >>> fluxes.wgtf = 0., 0., 1., 3., 5.
+        >>> nhru(6)
+        >>> lnk(FLUSS, SEE, ACKER, ACKER, ACKER, ACKER)
+        >>> states.wats = 2.0
+        >>> fluxes.sbes = 1.0
+        >>> fluxes.wgtf = 1.0, 1.0, 0.0, 1.0, 3.0, 5.0
         >>> model.calc_schm_wats_v1()
         >>> states.wats
-        wats(0.0, 3.0, 2.0, 0.0, 0.0)
+        wats(0.0, 0.0, 3.0, 2.0, 0.0, 0.0)
         >>> fluxes.schm
-        schm(0.0, 0.0, 1.0, 3.0, 3.0)
+        schm(0.0, 0.0, 0.0, 1.0, 3.0, 3.0)
 
-        For water areas, both the frozen amount of water and actual melt
+        For the water areas, both the frozen amount of water and actual melt
         are set to zero.  For all other land use classes, actual melt
         is either limited by potential melt or the available frozen water,
         which is the sum of initial frozen water and the frozen part
@@ -634,13 +611,13 @@ def calc_schm_wats_v1(self):
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
     for k in range(con.nhru):
-        if con.lnk[k] != WASSER:
+        if con.lnk[k] in (WASSER, FLUSS, SEE):
+            sta.wats[k] = 0.
+            flu.schm[k] = 0.
+        else:
             sta.wats[k] += flu.sbes[k]
             flu.schm[k] = min(flu.wgtf[k], sta.wats[k])
             sta.wats[k] -= flu.schm[k]
-        else:
-            sta.wats[k] = 0.
-            flu.schm[k] = 0.
 
 
 def calc_wada_waes_v1(self):
@@ -665,42 +642,45 @@ def calc_wada_waes_v1(self):
       :math:`WAeS \\leq PWMax \\cdot WATS`
 
     Examples:
-        For simplicity, |PWMax|
-        is set to a value of two for each of the five initialized HRUs.
-        Thus, the snow cover can hold as much liquid water as it contains
-        frozen water.  Stand precipitation is also always set to the same
-        value, but the initial conditions of the snow cover are varied:
+
+        For simplicity, the threshold parameter |PWMax| is set to a value
+        of two for each of the six initialized HRUs.  Thus, snow cover can
+        hold as much liquid water as it contains frozen water.  Stand
+        precipitation is also always set to the same value, but the initial
+        conditions of the snow cover are varied:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
-        >>> nhru(5)
-        >>> lnk(WASSER, ACKER, ACKER, ACKER, ACKER)
-        >>> pwmax(2.)
-        >>> fluxes.nbes = 1.
-        >>> states.wats = 0., 0., 1., 1.0, 1.
-        >>> states.waes = 0., 0., 1., 1.5, 2.
+        >>> nhru(6)
+        >>> lnk(FLUSS, SEE, ACKER, ACKER, ACKER, ACKER)
+        >>> pwmax(2.0)
+        >>> fluxes.nbes = 1.0
+        >>> states.wats = 0.0, 0.0, 0.0, 1.0, 1.0, 1.0
+        >>> states.waes = 1.0, 1.0, 0.0, 1.0, 1.5, 2.0
         >>> model.calc_wada_waes_v1()
         >>> states.waes
-        waes(0.0, 0.0, 2.0, 2.0, 2.0)
+        waes(0.0, 0.0, 0.0, 2.0, 2.0, 2.0)
         >>> fluxes.wada
-        wada(1.0, 1.0, 0.0, 0.5, 1.0)
+        wada(1.0, 1.0, 1.0, 0.0, 0.5, 1.0)
 
-        Note the special cases of the first HRU (the snow routine is not
-        applied for water areas) and the second HRU (for all other land
-        use classes the snow routine is also applied on "empty" snow
-        covers with zero initial values).
+        Note the special cases of the first two HRUs of type |FLUSS| and
+        |SEE|.  For water areas, stand precipitaton |NBes| is generally
+        passed to |WADA| and |WAeS| is set to zero.  For all other land
+        use classes (of which only |ACKER| is selected), only the amount
+        of |NBes| exceeding the actual snow holding capacity is passed
+        to |WADA|.
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
     for k in range(con.nhru):
-        if con.lnk[k] != WASSER:
+        if con.lnk[k] in (WASSER, FLUSS, SEE):
+            sta.waes[k] = 0.
+            flu.wada[k] = flu.nbes[k]
+        else:
             sta.waes[k] += flu.nbes[k]
             flu.wada[k] = max(sta.waes[k]-con.pwmax[k]*sta.wats[k], 0.)
             sta.waes[k] -= flu.wada[k]
-        else:
-            sta.waes[k] = 0.
-            flu.wada[k] = flu.nbes[k]
 
 
 def calc_evb_v1(self):
@@ -728,43 +708,43 @@ def calc_evb_v1(self):
       \\frac{1 - temp}{1 + temp -2 \\cdot exp(-GrasRef_R)}`
 
     Examples:
+
         Soil evaporation is calculated neither for water nor for sealed
-        areas (see HRUs one and two).  All other land use classes are
-        handled in accordance with a recommendation of the set of codes
-        described in ATV-DVWK-M 504 (arable land has been selected for
-        HRUs three to six arbitrarily):
+        areas (see the first three HRUs of type |FLUSS|, |SEE|, and |VERS|).
+        All other land use classes are handled in accordance with a
+        recommendation of the set of codes described in ATV-DVWK-M 504
+        (arable land |ACKER| has been selected for the last four HRUs
+        arbitrarily):
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
-        >>> nhru(6)
-        >>> lnk(WASSER, VERS, ACKER, ACKER, ACKER, ACKER)
-        >>> grasref_r(5.)
-        >>> nfk(0., 0., 0., 100., 100., 100.)
-        >>> fluxes.evpo = 5.
-        >>> fluxes.evi = 3.
-        >>> states.bowa = 0., 0., 0., 0., 50., 100.
+        >>> nhru(7)
+        >>> lnk(FLUSS, SEE, VERS, ACKER, ACKER, ACKER, ACKER)
+        >>> grasref_r(5.0)
+        >>> nfk(100.0, 100.0, 100.0, 0.0, 100.0, 100.0, 100.0)
+        >>> fluxes.evpo = 5.0
+        >>> fluxes.evi = 3.0
+        >>> states.bowa = 50.0, 50.0, 50.0, 0.0, 0.0, 50.0, 100.0
         >>> model.calc_evb_v1()
         >>> fluxes.evb
-        evb(0.0, 0.0, 0.0, 0.0, 1.717962, 2.0)
+        evb(0.0, 0.0, 0.0, 0.0, 0.0, 1.717962, 2.0)
 
-        In case usable field capacity is zero, soil evaporation is
-        generally set to zero (see the third HRU).  The last three
-        HRUs demonstrate the rise in soil evaporation with increasing
-        soil moisture, lessening in the high soil moisture range.
+        In case usable field capacity (|NFk|) is zero, soil evaporation
+        (|EVB|) is generally set to zero (see the forth HRU).  The last
+        three HRUs demonstrate the rise in soil evaporation with increasing
+        soil moisture, which is lessening in the high soil moisture range.
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
-    aid = self.sequences.aides.fastaccess
     for k in range(con.nhru):
-        if ((con.lnk[k] != WASSER) and (con.lnk[k] != VERS) and
-                (con.nfk[k] > 0.)):
-            aid.temp = modelutils.exp(-con.grasref_r *
-                                      sta.bowa[k]/con.nfk[k])
-            flu.evb[k] = ((flu.evpo[k]-flu.evi[k]) * (1.-aid.temp) /
-                          (1.+aid.temp-2.*modelutils.exp(-con.grasref_r)))
-        else:
+        if (con.lnk[k] in (VERS, WASSER, FLUSS, SEE)) or (con.nfk[k] <= 0.):
             flu.evb[k] = 0.
+        else:
+            d_temp = modelutils.exp(-con.grasref_r *
+                                    sta.bowa[k]/con.nfk[k])
+            flu.evb[k] = ((flu.evpo[k]-flu.evi[k]) * (1.-d_temp) /
+                          (1.+d_temp-2.*modelutils.exp(-con.grasref_r)))
 
 
 def calc_qbb_v1(self):
@@ -802,38 +782,39 @@ def calc_qbb_v1(self):
       }`
 
     Examples:
-        For water and sealed areas, no base is flow calculated (see the
-        first two HRUs).  No principal distinction is made between the
-        remaining land use classes (arable land has been selected for
-        the other five HRUs arbitrarily):
+
+        For water and sealed areas, no base flow is calculated (see the
+        first three HRUs of type |VERS|, |FLUSS|, and |SEE|).  No principal
+        distinction is made between the remaining land use classes (arable
+        land |ACKER| has been selected for the last five HRUs arbitrarily):
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> simulationstep('12h')
-        >>> nhru(7)
-        >>> lnk(WASSER, VERS, ACKER, ACKER, ACKER, ACKER, ACKER)
-        >>> beta(.04)
-        >>> fbeta(2.)
-        >>> nfk(0., 0., 0., 100., 100., 100., 200.)
-        >>> derived.wb(10.)
-        >>> derived.wz(70.)
+        >>> nhru(8)
+        >>> lnk(FLUSS, SEE, VERS, ACKER, ACKER, ACKER, ACKER, ACKER)
+        >>> beta(0.04)
+        >>> fbeta(2.0)
+        >>> nfk(100.0, 100.0, 100.0, 0.0, 100.0, 100.0, 100.0, 200.0)
+        >>> derived.wb(10.0)
+        >>> derived.wz(70.0)
 
         Note the time dependence of parameter |Beta|:
 
         >>> beta
         beta(0.04)
         >>> beta.values
-        array([ 0.02,  0.02,  0.02,  0.02,  0.02,  0.02,  0.02])
+        array([ 0.02,  0.02,  0.02,  0.02,  0.02,  0.02,  0.02,  0.02])
 
-        In the first example, the actual soil water content is set to low
-        values. For values below the threshold `wb`, not percolation occurs.
-        Above `wb` (but below `wz`), calculated percolation shows a linear
-        behaviour which is only related to parameter `beta`:
+        In the first example, the actual soil water content |BoWa| is set
+        to low values.  For values below the threshold |WB|, not percolation
+        occurs.  Above |WB| (but below |WZ|), |QBB| increases linearly by
+        an amount defined by parameter |Beta|:
 
-        >>> states.bowa = 0., 0., 0., 0., 10., 20., 20.
+        >>> states.bowa = 20.0, 20.0, 20.0, 0.0, 0.0, 10.0, 20.0, 20.0
         >>> model.calc_qbb_v1()
         >>> fluxes.qbb
-        qbb(0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.2)
+        qbb(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.2)
 
         Note that for the last two HRUs the same amount of
         base flow generation is determined, in spite of the fact
@@ -842,23 +823,23 @@ def calc_qbb_v1(self):
         absolute/relative dependency" through defining the values of
         parameter |WB| indirectly via parameter |RelWB|.
 
-        In the second example, the actual soil water content is set to high
-        values.  For values below the threshold `wz`, the disussion above
-        remains valid.  For values above `wz`, percolation shows a nonlinear
-        behaviour in case factor `fbeta` is set to value larger than one:
+        In the second example, the actual soil water content |BoWa| is set
+        to high values.  For values below threshold |WZ|, the discussion above
+        remains valid.  For values above |WZ|, percolation shows a nonlinear
+        behaviour when factor |FBeta| is set to values larger than one:
 
-        >>> nfk(0., 0., 100., 100., 100, 100., 200.)
-        >>> states.bowa = 0., 0., 60., 70., 80., 100., 200.
+        >>> nfk(0.0, 0.0, 0.0, 100.0, 100.0, 100.0, 100.0, 200.0)
+        >>> states.bowa = 0.0, 0.0, 0.0, 60.0, 70.0, 80.0, 100.0, 200.0
         >>> model.calc_qbb_v1()
         >>> fluxes.qbb
-        qbb(0.0, 0.0, 1.0, 1.2, 1.866667, 3.6, 7.6)
+        qbb(0.0, 0.0, 0.0, 1.0, 1.2, 1.866667, 3.6, 7.6)
     """
     con = self.parameters.control.fastaccess
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
     for k in range(con.nhru):
-        if ((con.lnk[k] == WASSER) or (con.lnk[k] == VERS) or
+        if ((con.lnk[k] in (VERS, WASSER, FLUSS, SEE)) or
                 (sta.bowa[k] <= der.wb[k]) or (con.nfk[k] <= 0.)):
             flu.qbb[k] = 0.
         elif sta.bowa[k] <= der.wz[k]:
@@ -891,54 +872,55 @@ def calc_qib1_v1(self):
       :math:`QIB1 = DMin \\cdot \\frac{BoWa}{NFk}`
 
     Examples:
-        For water and sealed areas, no interflow is calculated (see the
-        first two HRUs).  No principal distinction is made between the
-        remaining land use classes (arable land has been selected for
-        the other five HRUs arbitrarily):
+
+        For water and sealed areas, no interflow is calculated (the first
+        three HRUs are of type |FLUSS|, |SEE|, and |VERS|, respectively).
+        No principal distinction is made between the remaining land use
+        classes (arable land |ACKER| has been selected for the last five
+        HRUs arbitrarily):
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> simulationstep('12h')
-        >>> nhru(7)
-        >>> lnk(WASSER, VERS, ACKER, ACKER, ACKER, ACKER, ACKER)
-        >>> dmax(10.)
-        >>> dmin(4.)
-        >>> nfk(0., 0., 0., 101., 101., 101., 202.)
-        >>> derived.wb(10.)
-        >>> states.bowa = 0., 0., 0., 0., 10., 10.1, 10.1
+        >>> nhru(8)
+        >>> lnk(FLUSS, SEE, VERS, ACKER, ACKER, ACKER, ACKER, ACKER)
+        >>> dmax(10.0)
+        >>> dmin(4.0)
+        >>> nfk(101.0, 101.0, 101.0, 0.0, 101.0, 101.0, 101.0, 202.0)
+        >>> derived.wb(10.0)
+        >>> states.bowa = 10.1, 10.1, 10.1, 0.0, 0.0, 10.0, 10.1, 10.1
 
-        Note the time dependence of parameter
-        |DMin|:
+        Note the time dependence of parameter |DMin|:
 
         >>> dmin
         dmin(4.0)
         >>> dmin.values
-        array([ 2.,  2.,  2.,  2.,  2.,  2.,  2.])
+        array([ 2.,  2.,  2.,  2.,  2.,  2.,  2.,  2.])
 
         Compared to the calculation of |QBB|, the following results show
         some relevant differences:
 
         >>> model.calc_qib1_v1()
         >>> fluxes.qib1
-        qib1(0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.1)
+        qib1(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.1)
 
-        Firstly, as demonstrated with the help of the sixths and the
-        sevenths HRU the generation of first interflow component depends
-        on the relative soil moisture.  Secondly, as demonstratd with the
-        help the fifths and the sixths HRU, it starts abruptly whenever
-        there is the slightest exceedance of the threshold  parameter
-        |WB| occurs.  Such step functions are a potential source of trouble.
+        Firstly, as demonstrated with the help of the seventh and the
+        eight HRU, the generation of the first interflow component |QIB1|
+        depends on relative soil moisture.  Secondly, as demonstrated with
+        the help the sixth and seventh HRU, it starts abruptly whenever
+        the slightest exceedance of the threshold  parameter |WB| occurs.
+        Such sharp discontinuouties are a potential source of trouble.
     """
     con = self.parameters.control.fastaccess
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
     for k in range(con.nhru):
-        if ((con.lnk[k] != WASSER) and (con.lnk[k] != VERS) and
-                (sta.bowa[k] > der.wb[k])):
-            flu.qib1[k] = con.dmin[k]*(sta.bowa[k]/con.nfk[k])
-        else:
+        if ((con.lnk[k] in (VERS, WASSER, FLUSS, SEE)) or
+                (sta.bowa[k] <= der.wb[k])):
             flu.qib1[k] = 0.
+        else:
+            flu.qib1[k] = con.dmin[k]*(sta.bowa[k]/con.nfk[k])
 
 
 def calc_qib2_v1(self):
@@ -965,58 +947,60 @@ def calc_qib2_v1(self):
       (\\frac{BoWa-WZ}{NFk-WZ})^\\frac{3}{2}`
 
     Examples:
-        For water and sealed areas, no interflow is calculated (see the
-        first two HRUs).  No principal distinction is made between the
-        remaining land use classes (arable land has been selected for
-        the other five HRUs arbitrarily):
+
+        For water and sealed areas, no interflow is calculated (the first
+        three HRUs are of type |FLUSS|, |SEE|, and |VERS|, respectively).
+        No principal distinction is made between the remaining land use
+        classes (arable land |ACKER| has been selected for the last
+        five HRUs arbitrarily):
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> simulationstep('12h')
-        >>> nhru(7)
-        >>> lnk(WASSER, VERS, ACKER, ACKER, ACKER, ACKER, ACKER)
-        >>> dmax(10.)
-        >>> dmin(4.)
-        >>> nfk(0., 0., 50., 100., 100., 100., 200.)
-        >>> derived.wz(50.)
-        >>> states.bowa = 0., 0., 50.1, 50., 75., 100., 100.
+        >>> nhru(8)
+        >>> lnk(FLUSS, SEE, VERS, ACKER, ACKER, ACKER, ACKER, ACKER)
+        >>> dmax(10.0)
+        >>> dmin(4.0)
+        >>> nfk(100.0, 100.0, 100.0, 50.0, 100.0, 100.0, 100.0, 200.0)
+        >>> derived.wz(50.0)
+        >>> states.bowa = 100.0, 100.0, 100.0, 50.1, 50.0, 75.0, 100.0, 100.0
 
-        Note the time dependence of parameters
-        |DMin| (see the example
-        above) and |DMax|:
+        Note the time dependence of parameters |DMin| (see the example above)
+        and |DMax|:
 
         >>> dmax
         dmax(10.0)
         >>> dmax.values
-        array([ 5.,  5.,  5.,  5.,  5.,  5.,  5.])
+        array([ 5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.])
 
         The following results show that he calculation of |QIB2| both
         resembles those of |QBB| and |QIB1| in some regards:
 
         >>> model.calc_qib2_v1()
         >>> fluxes.qib2
-        qib2(0.0, 0.0, 0.0, 0.0, 1.06066, 3.0, 0.57735)
+        qib2(0.0, 0.0, 0.0, 0.0, 0.0, 1.06066, 3.0, 0.57735)
 
         In the given example, the maximum rate of total interflow
-        generation is 5mm/12h.  For the sixths zone, which contains
-        a saturated soil, a value of 3mm/h is calculated.  The "missing"
-        2mm/12h would be added to the inflow concentration routine via |QIB1|.
+        generation is 5 mm/12h (parameter |DMAx|).  For the seventh zone,
+        which contains a saturated soil, the value calculated for the
+        second interflow component (|QIB2|) is 3 mm/h.  The "missing"
+        value of 2 mm/12h is be calculated by method |calc_qib1_v1|.
 
-        (The third zone, which is slightly oversaturated, is only intended
-        to demonstrate that zero division due to nfk=wz is circumvented.)
+        (The fourth zone, which is slightly oversaturated, is only intended
+        to demonstrate that zero division due to |nFK|=|WZ| is circumvented.)
     """
     con = self.parameters.control.fastaccess
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
     for k in range(con.nhru):
-        if ((con.lnk[k] != WASSER) and (con.lnk[k] != VERS) and
-                (sta.bowa[k] > der.wz[k]) and (con.nfk[k] > der.wz[k])):
+        if ((con.lnk[k] in (VERS, WASSER, FLUSS, SEE)) or
+                (sta.bowa[k] <= der.wz[k]) or (con.nfk[k] <= der.wz[k])):
+            flu.qib2[k] = 0.
+        else:
             flu.qib2[k] = ((con.dmax[k]-con.dmin[k]) *
                            ((sta.bowa[k]-der.wz[k]) /
                             (con.nfk[k]-der.wz[k]))**1.5)
-        else:
-            flu.qib2[k] = 0.
 
 
 def calc_qdb_v1(self):
@@ -1048,28 +1032,30 @@ def calc_qdb_v1(self):
       \\frac{WaDa}{(BSf+1) \\cdot NFk}`
       :math:`Exz = (BoWa + WaDa) - NFk`
 
-
     Examples:
-        For water areas, sealed areas, and areas without any soil storage
-        capacity, all water is completely routed as direct runoff (see the
-        first three HRUs).  No principal distinction is made between the
-        remaining land use classes (arable land has been selected for
-        the other five HRUs arbitrarily):
+
+        For water areas (|FLUSS| and |SEE|), sealed areas (|VERS|), and
+        areas without any soil storage capacity, all water is completely
+        routed as direct runoff |QBD| (see the first four HRUs).  No
+        principal distinction is made between the remaining land use
+        classes (arable land |ACKER| has been selected for the last five
+        HRUs arbitrarily):
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> simulationstep('12h')
-        >>> nhru(8)
-        >>> lnk(WASSER, VERS, ACKER, ACKER, ACKER, ACKER, ACKER, ACKER)
+        >>> nhru(9)
+        >>> lnk(FLUSS, SEE, VERS, ACKER, ACKER, ACKER, ACKER, ACKER, ACKER)
         >>> bsf(0.4)
-        >>> nfk(0., 0., 0., 100., 100., 100., 100., 100.)
-        >>> fluxes.wada = 10.
-        >>> states.bowa = 0., 0., 0., -.1, 0., 50., 100., 100.1
+        >>> nfk(100.0, 100.0, 100.0, 0.0, 100.0, 100.0, 100.0, 100.0, 100.0)
+        >>> fluxes.wada = 10.0
+        >>> states.bowa = (
+        ...     100.0, 100.0, 100.0, 0.0, -0.1, 0.0, 50.0, 100.0, 100.1)
         >>> model.calc_qdb_v1()
         >>> fluxes.qdb
-        qdb(10.0, 10.0, 10.0, 0.142039, 0.144959, 1.993649, 10.0, 10.1)
+        qdb(10.0, 10.0, 10.0, 10.0, 0.142039, 0.144959, 1.993649, 10.0, 10.1)
 
-        With the common bsf value of 0.4, the discharge coefficient
+        With the common |BSf| value of 0.4, the discharge coefficient
         increases more or less exponentially with soil moisture.
         For soil moisture values slightly below zero or above usable
         field capacity, plausible amounts of generated direct runoff
@@ -1080,8 +1066,10 @@ def calc_qdb_v1(self):
     sta = self.sequences.states.fastaccess
     aid = self.sequences.aides.fastaccess
     for k in range(con.nhru):
-        if ((con.lnk[k] != WASSER) and (con.lnk[k] != VERS) and
-                (con.nfk[k] > 0.)):
+        if ((con.lnk[k] in (VERS, WASSER, FLUSS, SEE)) or
+                (con.nfk[k] <= 0.)):
+            flu.qdb[k] = flu.wada[k]
+        else:
             if sta.bowa[k] < con.nfk[k]:
                 aid.sfa[k] = (
                     (1.-sta.bowa[k]/con.nfk[k])**(1./(con.bsf[k]+1.)) -
@@ -1093,8 +1081,6 @@ def calc_qdb_v1(self):
             if aid.sfa[k] > 0.:
                 flu.qdb[k] += aid.sfa[k]**(con.bsf[k]+1.)*con.nfk[k]
             flu.qdb[k] = max(flu.qdb[k], 0.)
-        else:
-            flu.qdb[k] = flu.wada[k]
 
 
 def calc_bowa_v1(self):
@@ -1122,49 +1108,53 @@ def calc_bowa_v1(self):
        :math:`BoWa \\geq 0`
 
     Examples:
-        For water areas and sealed areas, soil moisture is simply set to
-        zero and no flux corrections need not be performed.  No principal
-        distinction is made between the remaining land use classes (arable
-        land has been selected for the other four HRUs arbitrarily):
+
+        For water areas (|FLUSS| and |SEE|) and sealed areas (|VERS|),
+        soil moisture |BoWa| is simply set to zero and no flux correction
+        are performed (see the first three HRUs).  No principal distinction
+        is made between the remaining land use classes (arable land |ACKER|
+        has been selected for the last four HRUs arbitrarily):
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
-        >>> nhru(6)
-        >>> lnk(WASSER, VERS, ACKER, ACKER, ACKER, ACKER)
-        >>> states.bowa = 2.
-        >>> fluxes.wada = 1.
-        >>> fluxes.evb(0., 0., 0., .1, .2, .3)
-        >>> fluxes.qbb(0., 0., 0., .2, .4, .6)
-        >>> fluxes.qib1(0., 0., 0., .3, .6, .9)
-        >>> fluxes.qib2(0., 0., 0., .4, .8, 1.2)
-        >>> fluxes.qdb(0., 0., 0., .5, 1., 1.5)
+        >>> nhru(7)
+        >>> lnk(FLUSS, SEE, VERS, ACKER, ACKER, ACKER, ACKER)
+        >>> states.bowa = 2.0
+        >>> fluxes.wada = 1.0
+        >>> fluxes.evb = 1.0, 1.0, 1.0, 0.0, 0.1, 0.2, 0.3
+        >>> fluxes.qbb = 1.0, 1.0, 1.0, 0.0, 0.2, 0.4, 0.6
+        >>> fluxes.qib1 = 1.0, 1.0, 1.0, 0.0, 0.3, 0.6, 0.9
+        >>> fluxes.qib2 = 1.0, 1.0, 1.0, 0.0, 0.4, 0.8, 1.2
+        >>> fluxes.qdb = 1.0, 1.0, 1.0, 0.0, 0.5, 1.0, 1.5
         >>> model.calc_bowa_v1()
         >>> states.bowa
-        bowa(0.0, 0.0, 3.0, 1.5, 0.0, 0.0)
+        bowa(0.0, 0.0, 0.0, 3.0, 1.5, 0.0, 0.0)
         >>> fluxes.evb
-        evb(0.0, 0.0, 0.0, 0.1, 0.2, 0.2)
+        evb(1.0, 1.0, 1.0, 0.0, 0.1, 0.2, 0.2)
         >>> fluxes.qbb
-        qbb(0.0, 0.0, 0.0, 0.2, 0.4, 0.4)
+        qbb(1.0, 1.0, 1.0, 0.0, 0.2, 0.4, 0.4)
         >>> fluxes.qib1
-        qib1(0.0, 0.0, 0.0, 0.3, 0.6, 0.6)
+        qib1(1.0, 1.0, 1.0, 0.0, 0.3, 0.6, 0.6)
         >>> fluxes.qib2
-        qib2(0.0, 0.0, 0.0, 0.4, 0.8, 0.8)
+        qib2(1.0, 1.0, 1.0, 0.0, 0.4, 0.8, 0.8)
         >>> fluxes.qdb
-        qdb(0.0, 0.0, 0.0, 0.5, 1.0, 1.0)
+        qdb(1.0, 1.0, 1.0, 0.0, 0.5, 1.0, 1.0)
 
-        For the sixths HRU, the original loss terms would result in
-        negative soil moisture values.  They are corrected to the same
-        loss terms of the fifths HRU, which result in a complete
-        emptying of the soil storage exactly.
+        For the seventh HRU, the original total loss terms would result in a
+        negative soil moisture value.  Hence it is reduced to the total loss
+        term of the sixt HRU, which results exactly in a complete emptying
+        of the soil storage.
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
     aid = self.sequences.aides.fastaccess
     for k in range(con.nhru):
-        if (con.lnk[k] != WASSER) and (con.lnk[k] != VERS):
-            aid.bvl[k] = (flu.evb[k] +
-                          flu.qbb[k]+flu.qib1[k]+flu.qib2[k]+flu.qdb[k])
+        if con.lnk[k] in (VERS, WASSER, FLUSS, SEE):
+            sta.bowa[k] = 0.
+        else:
+            aid.bvl[k] = (
+                flu.evb[k]+flu.qbb[k]+flu.qib1[k]+flu.qib2[k]+flu.qdb[k])
             aid.mvl[k] = sta.bowa[k]+flu.wada[k]
             if aid.bvl[k] > aid.mvl[k]:
                 aid.rvl[k] = aid.mvl[k]/aid.bvl[k]
@@ -1176,8 +1166,6 @@ def calc_bowa_v1(self):
                 sta.bowa[k] = 0.
             else:
                 sta.bowa[k] = aid.mvl[k]-aid.bvl[k]
-        else:
-            sta.bowa[k] = 0.
 
 
 def calc_qbgz_v1(self):
@@ -1197,12 +1185,12 @@ def calc_qbgz_v1(self):
        :math:`QBGZ = \\Sigma(FHRU \\cdot QBB)`
 
     Example:
+
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> nhru(2)
-        >>> lnk(ACKER, ACKER)
-        >>> fhru(.75, .25)
-        >>> fluxes.qbb = 1., 5.
+        >>> fhru(0.75, 0.25)
+        >>> fluxes.qbb = 1.0, 5.0
         >>> model.calc_qbgz_v1()
         >>> states.qbgz
         qbgz(2.0)
@@ -1233,12 +1221,12 @@ def calc_qigz1_v1(self):
        :math:`QIGZ1 = \\Sigma(FHRU \\cdot QIB1)`
 
     Example:
+
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> nhru(2)
-        >>> lnk(ACKER, ACKER)
-        >>> fhru(.75, .25)
-        >>> fluxes.qib1 = 1., 5.
+        >>> fhru(0.75, 0.25)
+        >>> fluxes.qib1 = 1.0, 5.0
         >>> model.calc_qigz1_v1()
         >>> states.qigz1
         qigz1(2.0)
@@ -1269,12 +1257,12 @@ def calc_qigz2_v1(self):
        :math:`QIGZ2 = \\Sigma(FHRU \\cdot QIB2)`
 
     Example:
+
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> nhru(2)
-        >>> lnk(ACKER, ACKER)
-        >>> fhru(.75, .25)
-        >>> fluxes.qib2 = 1., 5.
+        >>> fhru(0.75, 0.25)
+        >>> fluxes.qib2 = 1.0, 5.0
         >>> model.calc_qigz2_v1()
         >>> states.qigz2
         qigz2(2.0)
@@ -1304,12 +1292,12 @@ def calc_qdgz_v1(self):
        :math:`QDGZ = \\Sigma(FHRU \\cdot QDB)`
 
     Example:
+
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> nhru(2)
-        >>> lnk(ACKER, ACKER)
-        >>> fhru(.75, .25)
-        >>> fluxes.qdb = 1., 5.
+        >>> fhru(0.75, 0.25)
+        >>> fluxes.qdb = 1.0, 5.0
         >>> model.calc_qdgz_v1()
         >>> fluxes.qdgz
         qdgz(2.0)
@@ -1352,66 +1340,69 @@ def calc_qdgz1_qdgz2_v1(self):
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> simulationstep('12h')
-        >>> a1(0.)
+        >>> a1(0.0)
 
-        Let us set the value of `a2` to 4 mm/d, which is 2 mm/12h with
+        Let us set the value of |A2| to 4 mm/d, which is 2 mm/12h with
         respect to the selected simulation step size:
 
-        >>> a2(4.)
+        >>> a2(4.0)
         >>> a2
         a2(4.0)
         >>> a2.value
         2.0
 
-        Define a small test function to shorten the following examples:
+        Define a test function and let it calculate |QDGZ1| and |QDGZ1| for
+        values of |QDGZ| ranging from 0 to 100 mm/12h:
 
-        >>> def test(*values):
-        ...     for value in values:
-        ...         fluxes.qdgz = value
-        ...         model.calc_qdgz1_qdgz2_v1()
-        ...         print(fluxes.qdgz, states.qdgz1, states.qdgz2)
+        >>> from hydpy.core.testtools import UnitTest
+        >>> test = UnitTest(model,
+        ...                 model.calc_qdgz1_qdgz2_v1,
+        ...                 last_example=5,
+        ...                 parseqs=(fluxes.qdgz,
+        ...                          states.qdgz1,
+        ...                          states.qdgz2))
+        >>> test.nexts.qdgz = 0.0, 1.0, 2.0, 3.0, 100.0
+        >>> test()
+        | ex. |  qdgz | qdgz1 | qdgz2 |
+        -------------------------------
+        |   1 |   0.0 |   0.0 |   0.0 |
+        |   2 |   1.0 |   1.0 |   0.0 |
+        |   3 |   2.0 |   2.0 |   0.0 |
+        |   4 |   3.0 |   2.0 |   1.0 |
+        |   5 | 100.0 |   2.0 |  98.0 |
 
-        The results of the seperation for total direct flow volumes of
-        1, 2, 3 and 4 mm/12h are:
 
-        >>> test(1., 2., 3., 100.)
-        qdgz(1.0) qdgz1(1.0) qdgz2(0.0)
-        qdgz(2.0) qdgz1(2.0) qdgz2(0.0)
-        qdgz(3.0) qdgz1(2.0) qdgz2(1.0)
-        qdgz(100.0) qdgz1(2.0) qdgz2(98.0)
+        Setting |A2| to zero and |A1| to 4 mm/d (or 2 mm/12h) results in
+        a smoother transition:
 
-        Setting `a2` to zero and `a1` to 4 mm/d (or 2mm/12h)...
-
-        >>> a2(0.)
-        >>> a1(4.)
-        >>> a1
-        a1(4.0)
-        >>> a1.value
-        2.0
-
-        ...results in a smoother transition instead:
-
-        >>> test(1., 2., 3., 100.)
-        qdgz(1.0) qdgz1(0.666667) qdgz2(0.333333)
-        qdgz(2.0) qdgz1(1.0) qdgz2(1.0)
-        qdgz(3.0) qdgz1(1.2) qdgz2(1.8)
-        qdgz(100.0) qdgz1(1.960784) qdgz2(98.039216)
-
+        >>> a2(0.0)
+        >>> a1(4.0)
+        >>> test()
+        | ex. |  qdgz |    qdgz1 |     qdgz2 |
+        --------------------------------------
+        |   1 |   0.0 |      0.0 |       0.0 |
+        |   2 |   1.0 | 0.666667 |  0.333333 |
+        |   3 |   2.0 |      1.0 |       1.0 |
+        |   4 |   3.0 |      1.2 |       1.8 |
+        |   5 | 100.0 | 1.960784 | 98.039216 |
 
         Alternatively, one can mix these two configurations by setting
         the values of both parameters to 2 mm/h:
 
-        >>> a2(2.)
-        >>> a1(2.)
-        >>> test(1., 2., 3., 100.)
-        qdgz(1.0) qdgz1(1.0) qdgz2(0.0)
-        qdgz(2.0) qdgz1(1.5) qdgz2(0.5)
-        qdgz(3.0) qdgz1(1.666667) qdgz2(1.333333)
-        qdgz(100.0) qdgz1(1.99) qdgz2(98.01)
+        >>> a2(2.0)
+        >>> a1(2.0)
+        >>> test()
+        | ex. |  qdgz |    qdgz1 |    qdgz2 |
+        -------------------------------------
+        |   1 |   0.0 |      0.0 |      0.0 |
+        |   2 |   1.0 |      1.0 |      0.0 |
+        |   3 |   2.0 |      1.5 |      0.5 |
+        |   4 |   3.0 | 1.666667 | 1.333333 |
+        |   5 | 100.0 |     1.99 |    98.01 |
 
         Note the similarity of the results for very high values of total
-        direct flow in all three examples, which converge to the sum of
-        the values of parameter |A1| and |A2|, representing the maximum
+        direct flow |QDGz| in all three examples, which converge to the sum
+        of the values of parameter |A1| and |A2|, representing the maximum
         value of `slow` direct flow generation per simulation step
     """
     con = self.parameters.control.fastaccess
@@ -1453,16 +1444,16 @@ def calc_qbga_v1(self):
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> derived.kb(0.1)
-        >>> states.qbgz.old = 2.
-        >>> states.qbgz.new = 4.
-        >>> states.qbga.old = 3.
+        >>> states.qbgz.old = 2.0
+        >>> states.qbgz.new = 4.0
+        >>> states.qbga.old = 3.0
         >>> model.calc_qbga_v1()
         >>> states.qbga
         qbga(3.800054)
 
         First extreme test case (zero division is circumvented):
 
-        >>> derived.kb(0.)
+        >>> derived.kb(0.0)
         >>> model.calc_qbga_v1()
         >>> states.qbga
         qbga(4.0)
@@ -1518,16 +1509,16 @@ def calc_qiga1_v1(self):
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> derived.ki1(0.1)
-        >>> states.qigz1.old = 2.
-        >>> states.qigz1.new = 4.
-        >>> states.qiga1.old = 3.
+        >>> states.qigz1.old = 2.0
+        >>> states.qigz1.new = 4.0
+        >>> states.qiga1.old = 3.0
         >>> model.calc_qiga1_v1()
         >>> states.qiga1
         qiga1(3.800054)
 
         First extreme test case (zero division is circumvented):
 
-        >>> derived.ki1(0.)
+        >>> derived.ki1(0.0)
         >>> model.calc_qiga1_v1()
         >>> states.qiga1
         qiga1(4.0)
@@ -1583,16 +1574,16 @@ def calc_qiga2_v1(self):
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> derived.ki2(0.1)
-        >>> states.qigz2.old = 2.
-        >>> states.qigz2.new = 4.
-        >>> states.qiga2.old = 3.
+        >>> states.qigz2.old = 2.0
+        >>> states.qigz2.new = 4.0
+        >>> states.qiga2.old = 3.0
         >>> model.calc_qiga2_v1()
         >>> states.qiga2
         qiga2(3.800054)
 
         First extreme test case (zero division is circumvented):
 
-        >>> derived.ki2(0.)
+        >>> derived.ki2(0.0)
         >>> model.calc_qiga2_v1()
         >>> states.qiga2
         qiga2(4.0)
@@ -1647,16 +1638,16 @@ def calc_qdga1_v1(self):
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> derived.kd1(0.1)
-        >>> states.qdgz1.old = 2.
-        >>> states.qdgz1.new = 4.
-        >>> states.qdga1.old = 3.
+        >>> states.qdgz1.old = 2.0
+        >>> states.qdgz1.new = 4.0
+        >>> states.qdga1.old = 3.0
         >>> model.calc_qdga1_v1()
         >>> states.qdga1
         qdga1(3.800054)
 
         First extreme test case (zero division is circumvented):
 
-        >>> derived.kd1(0.)
+        >>> derived.kd1(0.0)
         >>> model.calc_qdga1_v1()
         >>> states.qdga1
         qdga1(4.0)
@@ -1711,16 +1702,16 @@ def calc_qdga2_v1(self):
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> derived.kd2(0.1)
-        >>> states.qdgz2.old = 2.
-        >>> states.qdgz2.new = 4.
-        >>> states.qdga2.old = 3.
+        >>> states.qdgz2.old = 2.0
+        >>> states.qdgz2.new = 4.0
+        >>> states.qdga2.old = 3.0
         >>> model.calc_qdga2_v1()
         >>> states.qdga2
         qdga2(3.800054)
 
         First extreme test case (zero division is circumvented):
 
-        >>> derived.kd2(0.)
+        >>> derived.kd2(0.0)
         >>> model.calc_qdga2_v1()
         >>> states.qdga2
         qdga2(4.0)
@@ -1777,20 +1768,21 @@ def calc_q_v1(self):
 
     Examples:
 
-        When there are no water areas in the respective subbasin, the
-        different runoff components are simply summed up:
+        When there are no water areas in the respective subbasin (we
+        choose arable land |ACKER| arbitrarily), the different runoff
+        components are simply summed up:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> nhru(3)
-        >>> lnk(ACKER, VERS, NADELW)
+        >>> lnk(ACKER, ACKER, ACKER)
         >>> fhru(0.5, 0.2, 0.3)
-        >>> states.qbga = .1
-        >>> states.qiga1 = .3
-        >>> states.qiga2 = .5
-        >>> states.qdga1 = .7
-        >>> states.qdga2 = .9
-        >>> fluxes.evi = 4., 5., 3.
+        >>> states.qbga = 0.1
+        >>> states.qiga1 = 0.3
+        >>> states.qiga2 = 0.5
+        >>> states.qdga1 = 0.7
+        >>> states.qdga2 = 0.9
+        >>> fluxes.evi = 4.0, 5.0, 3.0
         >>> model.calc_q_v1()
         >>> fluxes.q
         q(2.5)
@@ -1799,10 +1791,10 @@ def calc_q_v1(self):
 
         The defined values of interception evaporation do not show any
         impact on the result of the given example.  But when the first
-        HRU is assumed to be a water area, its interception evaporation
-        is subtracted:
+        HRU is assumed to be a water area (either |FLUSS| or |SEE|), its
+        interception evaporation value is subtracted from |lland_fluxes.Q|:
 
-        >>> control.lnk(WASSER, VERS, NADELW)
+        >>> control.lnk(FLUSS, VERS, NADELW)
         >>> model.calc_q_v1()
         >>> fluxes.q
         q(0.5)
@@ -1812,12 +1804,11 @@ def calc_q_v1(self):
         Note that only 2 mm instead of 4 mm are subtracted, as the first
         HRU`s area is only 50% of the subbasin area.
 
-        Setting also the land use class of the second HRU to water would
-        result in overtrying.  To avoid this, both water evaporation
+        Setting also the land use class of the second HRU to a water type
+        would result in overdrying.  To avoid this, both water evaporation
         values are reduced by the same factor:
 
-
-        >>> control.lnk(WASSER, WASSER, NADELW)
+        >>> control.lnk(FLUSS, SEE, NADELW)
         >>> model.calc_q_v1()
         >>> fluxes.q
         q(0.0)
@@ -1832,13 +1823,13 @@ def calc_q_v1(self):
     flu.q = sta.qbga+sta.qiga1+sta.qiga2+sta.qdga1+sta.qdga2
     aid.epw = 0.
     for k in range(con.nhru):
-        if con.lnk[k] == WASSER:
+        if con.lnk[k] in (WASSER, FLUSS, SEE):
             aid.epw += con.fhru[k]*flu.evi[k]
     if flu.q > aid.epw:
         flu.q -= aid.epw
     elif aid.epw > 0.:
         for k in range(con.nhru):
-            if con.lnk[k] == WASSER:
+            if con.lnk[k] in (WASSER, FLUSS, SEE):
                 flu.evi[k] *= flu.q/aid.epw
         flu.q = 0.
 
@@ -1854,6 +1845,9 @@ def pass_q_v1(self):
 
     Calculated flux sequence:
       |lland_outlets.Q|
+
+    Basic equation:
+       :math:`Q_{outlets} = QFactor \\cdot Q_{fluxes}`
     """
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess

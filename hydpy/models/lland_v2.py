@@ -184,7 +184,7 @@ Integration tests:
     outflow value of the third integration test of model
     :mod:`~hydpy.models.lland_v1`:
 
-    >>> lnk(WASSER)
+    >>> lnk(FLUSS)
     >>> test()
     |   date | nied | teml |      pet | nkor | tkor |      et0 |     evpo | nbes | sbes |      evi | evb | wgtf | schm | wada | qdb | qib1 | qib2 | qbb | qdgz |        q | inzp | wats | waes | bowa |    qdgz1 |    qdgz2 | qigz1 | qigz2 | qbgz |    qdga1 |    qdga2 | qiga1 | qiga2 | qbga |   outlet |
     --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -171,7 +171,7 @@ Integration tests:
 
     For water areas, even the interception and the snow module are skipped:
 
-    >>> lnk(WASSER)
+    >>> lnk(FLUSS)
     >>> test()
     |   date | nied | teml |  glob | nkor | tkor |      et0 |     evpo | nbes | sbes |      evi | evb | wgtf | schm | wada | qdb | qib1 | qib2 | qbb | qdgz |        q | inzp | wats | waes | bowa |    qdgz1 |    qdgz2 | qigz1 | qigz2 | qbgz |    qdga1 |    qdga2 | qiga1 | qiga2 | qbga |   outlet |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

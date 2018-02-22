@@ -1080,10 +1080,10 @@ assigned to the element so far.
 
     def _plot(self, subseqs, names, kwargs):
         if names:
-            selseqs = (getattr(subseqs, name) for name in names)
+            selseqs = ((name, getattr(subseqs, name)) for name in names)
         else:
             selseqs = subseqs
-        for seq in selseqs:
+        for (name, seq) in selseqs:
             if seq.NDIM == 0:
                 label = kwargs.pop('label', ' '.join((self.name, seq.name)))
                 pyplot.plot(seq.series, label=label, **kwargs)

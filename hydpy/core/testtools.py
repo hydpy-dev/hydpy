@@ -437,7 +437,15 @@ class IntegrationTest(Test):
                      viridis(len(selected)),
                      self.raw_header_strings[1:])
         for (seq, col, header) in zipped:
-            line = plot.line(self._datetimes, seq.series,
+            if seq.NDIM == 0:
+                series = seq.series.copy()
+            elif (seq.NDIM == 1) and (seq.shape == (1,)):
+                series = seq.series[:, 0].copy()
+            else:
+                raise RuntimeError(
+                    'IntegrationTest does not support plotting multiple '
+                    'lines for one sequences so far.')
+            line = plot.line(self._datetimes, series,
                              alpha=0.8, muted_alpha=0.0,
                              line_width=2, color=col)
             line.muted = seq.name not in activated

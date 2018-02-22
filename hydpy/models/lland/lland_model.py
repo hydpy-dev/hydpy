@@ -293,8 +293,8 @@ def calc_nbes_inzp_v1(self):
         >>> derived.kinz.sied_d_jul = 2.0
         >>> derived.kinz.feucht_jul = 1.0
         >>> derived.kinz.glets_jul = 0.0
-        >>> derived.kinz.fluss_jul = 0.0
-        >>> derived.kinz.see_jul = 0.0
+        >>> derived.kinz.fluss_jul = 1.0
+        >>> derived.kinz.see_jul = 1.0
 
         Now we prepare a |MOY| object, that assumes that the first, second,
         and third simulation time steps are in June, July, and August
@@ -306,23 +306,26 @@ def calc_nbes_inzp_v1(self):
         >>> derived.moy = 5, 6, 7
         >>> model.idx_sim = 1
 
-        The dense settlement (|SIED_D|) and the wetland area (|FEUCHT|) start
-        with a initial interception storage of 1/2 mm, the glacier (|GLETS|)
-        and water areas (|FLUSS| and |SEE|) start with 0 mm.  In the first
-        example, actual precipition is 1 mm:
+        The dense settlement (|SIED_D|), the wetland area (|FEUCHT|), and
+        both water areas (|FLUSS| and |SEE|) start with a initial interception
+        storage of 1/2 mm, the glacier (|GLETS|) and water areas (|FLUSS| and
+        |SEE|) start with 0 mm.  In the first example, actual precipition
+        is 1 mm:
 
-        >>> states.inzp = 0.5, 0.5, 0.0, 0.0, 0.0
+        >>> states.inzp = 0.5, 0.5, 0.0, 1.0, 1.0
         >>> fluxes.nkor = 1.0
         >>> model.calc_nbes_inzp_v1()
         >>> states.inzp
         inzp(1.5, 1.0, 0.0, 0.0, 0.0)
         >>> fluxes.nbes
-        nbes(0.0, 0.5, 1.0, 1.0, 1.0)
+        nbes(0.0, 0.5, 1.0, 0.0, 0.0)
 
         Only for the settled area, interception capacity is not exceeded,
         meaning no stand precipitation occurs.  Note that it is common in
-        define zero interception capacities for glacier and water areas,
-        but not mandatory.
+        define zero interception capacities for glacier areas, but not
+        mandatory.  Also note that the |KInz|, |Inzp| and |NKor| values
+        given for both water areas are ignored completely, and |Inzp|
+        and |NBes| are simply set to zero.
 
         If there is no precipitation, there is of course also no stand
         precipitation and interception storage remains unchanged:
@@ -353,10 +356,14 @@ def calc_nbes_inzp_v1(self):
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
     for k in range(con.nhru):
-        flu.nbes[k] = \
-            max(flu.nkor[k]+sta.inzp[k] -
-                der.kinz[con.lnk[k]-1, der.moy[self.idx_sim]], 0.)
-        sta.inzp[k] += flu.nkor[k]-flu.nbes[k]
+        if con.lnk[k] in (WASSER, FLUSS, SEE):
+            flu.nbes[k] = 0.
+            sta.inzp[k] = 0.
+        else:
+            flu.nbes[k] = \
+                max(flu.nkor[k]+sta.inzp[k] -
+                    der.kinz[con.lnk[k]-1, der.moy[self.idx_sim]], 0.)
+            sta.inzp[k] += flu.nkor[k]-flu.nbes[k]
 
 
 def calc_evi_inzp_v1(self):
@@ -388,31 +395,38 @@ def calc_evi_inzp_v1(self):
 
     Examples:
 
-        Initialize three HRUs with different combinations of land usage
+        Initialize five HRUs with different combinations of land usage
         and initial interception storage and apply a value of potential
         evaporation of 3 mm on each one:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
-        >>> nhru(3)
-        >>> states.inzp = 0.0, 2.0, 4.0
+        >>> nhru(5)
+        >>> lnk(FLUSS, SEE, ACKER, ACKER, ACKER)
+        >>> states.inzp = 2.0, 2.0, 0.0, 2.0, 4.0
         >>> fluxes.evpo = 3.0
         >>> model.calc_evi_inzp_v1()
         >>> states.inzp
-        inzp(0.0, 0.0, 1.0)
+        inzp(0.0, 0.0, 0.0, 0.0, 1.0)
         >>> fluxes.evi
-        evi(0.0, 2.0, 3.0)
+        evi(0.0, 0.0, 0.0, 2.0, 3.0)
 
-        Interception evaporation is identical with potential
-        evapotranspiration as long as it is met by the available
-        intercepted water.
+        For arable land (|ACKER|) and most other land types, interception
+        evaporation (|EvI|) is identical with potential evapotranspiration
+        (|EvPo|), as long as it is met by available intercepted water
+        ([Inzp|).  But for water areas (|FLUSS| and |SEE|),  |EvI| and
+        [Inzp| are simply set to zero.
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
     for k in range(con.nhru):
-        flu.evi[k] = min(flu.evpo[k], sta.inzp[k])
-        sta.inzp[k] -= flu.evi[k]
+        if con.lnk[k] in (WASSER, FLUSS, SEE):
+            flu.evi[k] = 0.
+            sta.inzp[k] = 0.
+        else:
+            flu.evi[k] = min(flu.evpo[k], sta.inzp[k])
+            sta.inzp[k] -= flu.evi[k]
 
 
 def calc_sbes_v1(self):
@@ -464,7 +478,9 @@ def calc_sbes_v1(self):
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
     for k in range(con.nhru):
-        if flu.tkor[k] >= (con.tgr[k]+con.tsp[k]/2.):
+        if flu.nbes[k] <= 0.:
+            flu.sbes[k] = 0.
+        elif flu.tkor[k] >= (con.tgr[k]+con.tsp[k]/2.):
             flu.sbes[k] = 0.
         elif flu.tkor[k] <= (con.tgr[k]-con.tsp[k]/2.):
             flu.sbes[k] = flu.nbes[k]
@@ -1066,7 +1082,7 @@ def calc_qdb_v1(self):
     sta = self.sequences.states.fastaccess
     aid = self.sequences.aides.fastaccess
     for k in range(con.nhru):
-        if ((con.lnk[k] in (VERS, WASSER, FLUSS, SEE)) or
+        if ((con.lnk[k] in (VERS, FLUSS, SEE)) or
                 (con.nfk[k] <= 0.)):
             flu.qdb[k] = flu.wada[k]
         else:
@@ -1741,8 +1757,13 @@ def calc_qdga2_v1(self):
 def calc_q_v1(self):
     """Calculate the final runoff.
 
-    Note that, in case there are water areas, their (interception)
-    evaporation values are subtracted from the "potential" runoff value.
+    Note that, in case there are water areas, their |NKor| values are
+    added and their |EvPo| values are subtracted from the "potential"
+    runoff value, if possible.  This hold true for |WASSER| only and is
+    due to compatibility with the orginal LARSIM implementation. Using land
+    type |WASSER| can result  in problematic modifications of simulated
+    runoff series. It seems advisable to use land type |FLUSS| and/or
+    land type |SEE| instead.
 
     Required control parameters:
       |NHRU|
@@ -1750,6 +1771,7 @@ def calc_q_v1(self):
       |Lnk|
 
     Required flux sequence:
+      |NKor|
       |EvI|
 
     Required state sequences:
@@ -1763,7 +1785,8 @@ def calc_q_v1(self):
       |lland_fluxes.Q|
 
     Basic equations:
-       :math:`Q = QBGA + QIGA1 + QIGA2 + QDGA1 + QDGA2 - EvI_{WASSER}`
+       :math:`Q = QBGA + QIGA1 + QIGA2 + QDGA1 + QDGA2 +
+       NKor_{WASSER} - EvI_{WASSER}`
        :math:`Q \\geq 0`
 
     Examples:
@@ -1782,38 +1805,48 @@ def calc_q_v1(self):
         >>> states.qiga2 = 0.5
         >>> states.qdga1 = 0.7
         >>> states.qdga2 = 0.9
-        >>> fluxes.evi = 4.0, 5.0, 3.0
+        >>> fluxes.nkor = 10.0
+        >>> fluxes.evpo = 4.0, 5.0, 3.0
+        >>> fluxes.evi = 0.0
         >>> model.calc_q_v1()
         >>> fluxes.q
         q(2.5)
         >>> fluxes.evi
-        evi(4.0, 5.0, 3.0)
+        evi(0.0, 0.0, 0.0)
 
         The defined values of interception evaporation do not show any
-        impact on the result of the given example.  But when the first
-        HRU is assumed to be a water area (either |FLUSS| or |SEE|), its
-        interception evaporation value is subtracted from |lland_fluxes.Q|:
+        impact on the result of the given example, the predefined values
+        for sequence |EvI| remain unchanged But when the first HRU is
+        assumed to be a water area (|WATER|), its adjusted precipitaton
+        |NKor| value and its potential  evaporation |EvPo| value are added
+        to and subtracted from |lland_fluxes.Q| respectively:
 
-        >>> control.lnk(FLUSS, VERS, NADELW)
+        >>> control.lnk(WASSER, VERS, NADELW)
         >>> model.calc_q_v1()
         >>> fluxes.q
-        q(0.5)
+        q(5.5)
         >>> fluxes.evi
-        evi(4.0, 5.0, 3.0)
+        evi(4.0, 0.0, 0.0)
 
-        Note that only 2 mm instead of 4 mm are subtracted, as the first
-        HRU`s area is only 50% of the subbasin area.
+        Note that only 5 mm are added (instead of the |NKor| value 10 mm)
+        and that only 2 mm are substracted (instead of the |EvPo| value 4 mm,
+        as the first HRU`s area only accounts for 50 % of the subbasin area.
+        The actual evaporation from the water area (which is equal to the
+        potential evaporation value) is stored as the first entry of sequence
+        |EvI|.
 
-        Setting also the land use class of the second HRU to a water type
-        would result in overdrying.  To avoid this, both water evaporation
-        values are reduced by the same factor:
+        Setting also the land use class of the second HRU to land type
+        |WASSER| and resetting |NKor| to zero would result in overdrying.
+        To avoid this, both actual water evaporation values stored in
+        sequence |EvI| are reduced by the same factor:
 
-        >>> control.lnk(FLUSS, SEE, NADELW)
+        >>> control.lnk(WASSER, WASSER, NADELW)
+        >>> fluxes.nkor = 0.0
         >>> model.calc_q_v1()
         >>> fluxes.q
         q(0.0)
         >>> fluxes.evi
-        evi(3.333333, 4.166667, 3.0)
+        evi(3.333333, 4.166667, 0.0)
 
     """
     con = self.parameters.control.fastaccess
@@ -1823,13 +1856,15 @@ def calc_q_v1(self):
     flu.q = sta.qbga+sta.qiga1+sta.qiga2+sta.qdga1+sta.qdga2
     aid.epw = 0.
     for k in range(con.nhru):
-        if con.lnk[k] in (WASSER, FLUSS, SEE):
-            aid.epw += con.fhru[k]*flu.evi[k]
+        if con.lnk[k] == WASSER:
+            flu.q += con.fhru[k]*flu.nkor[k]
+            flu.evi[k] = flu.evpo[k]
+            aid.epw += con.fhru[k]*flu.evpo[k]
     if flu.q > aid.epw:
         flu.q -= aid.epw
     elif aid.epw > 0.:
         for k in range(con.nhru):
-            if con.lnk[k] in (WASSER, FLUSS, SEE):
+            if con.lnk[k] == WASSER:
                 flu.evi[k] *= flu.q/aid.epw
         flu.q = 0.
 

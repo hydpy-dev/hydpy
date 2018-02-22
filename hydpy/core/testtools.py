@@ -188,14 +188,16 @@ class Test(object):
 
     def print_table(self, idx1=None, idx2=None):
         """Print the result table between the given indices."""
+        col_widths = self.col_widths
+        col_seperators = self.col_seperators
         print(self._interleave(self.col_seperators,
                                self.raw_header_strings,
-                               self.col_widths))
+                               col_widths))
         print('-'*self.row_nmb_characters)
         for strings_in_line in self.raw_body_strings[idx1:idx2]:
-            print(self._interleave(self.col_seperators,
+            print(self._interleave(col_seperators,
                                    strings_in_line,
-                                   self.col_widths))
+                                   col_widths))
 
     def extract_units(self, parseqs=None):
         """Return a set of units of the given or the handled parameters

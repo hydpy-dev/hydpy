@@ -1082,7 +1082,9 @@ def calc_qdb_v1(self):
     sta = self.sequences.states.fastaccess
     aid = self.sequences.aides.fastaccess
     for k in range(con.nhru):
-        if ((con.lnk[k] in (VERS, FLUSS, SEE)) or
+        if con.lnk[k] == WASSER:
+            flu.qdb[k] = 0.
+        elif ((con.lnk[k] in (VERS, FLUSS, SEE)) or
                 (con.nfk[k] <= 0.)):
             flu.qdb[k] = flu.wada[k]
         else:

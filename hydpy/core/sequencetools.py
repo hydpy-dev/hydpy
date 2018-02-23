@@ -1030,6 +1030,7 @@ class IOSequence(Sequence):
         else:
             with open(self.filepath_ext, 'w') as file_:
                 file_.write(repr(pub.timegrids.init) + '\n')
+            with open(self.filepath_ext, 'ab') as file_:
                 numpy.savetxt(file_, self.series, delimiter='\t')
 
     def _load_npy(self):

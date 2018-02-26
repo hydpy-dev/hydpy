@@ -409,20 +409,22 @@ def calc_evi_inzp_v1(self):
         >>> states.inzp
         inzp(0.0, 0.0, 0.0, 0.0, 1.0)
         >>> fluxes.evi
-        evi(0.0, 0.0, 0.0, 2.0, 3.0)
+        evi(3.0, 3.0, 0.0, 2.0, 3.0)
 
         For arable land (|ACKER|) and most other land types, interception
         evaporation (|EvI|) is identical with potential evapotranspiration
         (|EvPo|), as long as it is met by available intercepted water
-        ([Inzp|).  But for water areas (|FLUSS| and |SEE|),  |EvI| and
-        [Inzp| are simply set to zero.
+        ([Inzp|).  Only water areas (|FLUSS| and |SEE|),  |EvI| is
+        generally equal to |EvPo| (but this might be corrected by a method
+        called after |calc_evi_inzp_v1| has been applied) and [Inzp| is
+        set to zero.
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
     for k in range(con.nhru):
         if con.lnk[k] in (WASSER, FLUSS, SEE):
-            flu.evi[k] = 0.
+            flu.evi[k] = flu.evpo[k]
             sta.inzp[k] = 0.
         else:
             flu.evi[k] = min(flu.evpo[k], sta.inzp[k])
@@ -1187,38 +1189,68 @@ def calc_bowa_v1(self):
 
 
 def calc_qbgz_v1(self):
-    """Aggregate the amount of base flow released by all HRUs.
+    """Aggregate the amount of base flow released by all "soil type" HRUs
+    and the "net precipitation" above water areas of type |SEE|.
+
+    Water areas of type |SEE| are assumed to be directly connected with
+    ground water, but not with the stream network.  This is modelled by
+    adding their (positive or negative) "net input" (|NKor|-|EvI|) to the
+    "percolation output" of the soil containing HRUs.
 
     Required control parameters:
+      |Lnk|
       |NHRU|
       |FHRU|
 
-    Required flux sequence:
+    Required flux sequences:
       |QBB|
+      |NKor|
+      |EvI|
 
     Calculated state sequence:
       |QBGZ|
 
     Basic equation:
-       :math:`QBGZ = \\Sigma(FHRU \\cdot QBB)`
+       :math:`QBGZ = \\Sigma(FHRU \\cdot QBB) +
+       \\Sigma(FHRU \\cdot (NKor_{SEE}-EvI_{SEE}))`
 
-    Example:
+    Examples:
+
+        The first example shows that |QBGZ| is the area weighted sum of
+        |QBB| from "soil type" HRUs like arable land (|ACKER|) and of
+        |NKor|-|EvI| from water areas of type |SEE|.  All other water
+        areas (|WASSER| and |FLUSS|) and also sealed surfaces (|VERS|)
+        have no impact on |QBGZ|:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep()
-        >>> nhru(2)
-        >>> fhru(0.75, 0.25)
-        >>> fluxes.qbb = 1.0, 5.0
+        >>> nhru(6)
+        >>> lnk(ACKER, ACKER, VERS, WASSER, FLUSS, SEE)
+        >>> fhru(0.1, 0.2, 0.1, 0.1, 0.1, 0.4)
+        >>> fluxes.qbb = 2., 4.0, 300.0, 300.0, 300.0, 300.0
+        >>> fluxes.nkor = 200.0, 200.0, 200.0, 200.0, 200.0, 20.0
+        >>> fluxes.evi = 100.0, 100.0, 100.0, 100.0, 100.0, 10.0
         >>> model.calc_qbgz_v1()
         >>> states.qbgz
-        qbgz(2.0)
+        qbgz(5.0)
+
+        The second example shows that large evaporation values above a
+        HRU of type |SEE| can result in negative values of |QBGZ|:
+
+        >>> fluxes.evi[5] = 30
+        >>> model.calc_qbgz_v1()
+        >>> states.qbgz
+        qbgz(-3.0)
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
     sta.qbgz = 0.
     for k in range(con.nhru):
-        sta.qbgz += con.fhru[k]*flu.qbb[k]
+        if con.lnk[k] == SEE:
+            sta.qbgz += con.fhru[k]*(flu.nkor[k]-flu.evi[k])
+        elif con.lnk[k] not in (WASSER, FLUSS, VERS):
+            sta.qbgz += con.fhru[k]*flu.qbb[k]
 
 
 def calc_qigz1_v1(self):
@@ -1297,34 +1329,58 @@ def calc_qdgz_v1(self):
     """Aggregate the amount of total direct flow released by all HRUs.
 
     Required control parameters:
+        |Lnk|
       |NHRU|
       |FHRU|
 
     Required flux sequence:
       |QDB|
+      |NKor|
+      |EvI|
 
     Calculated flux sequence:
       |QDGZ|
 
     Basic equation:
-       :math:`QDGZ = \\Sigma(FHRU \\cdot QDB)`
+       :math:`QDGZ = \\Sigma(FHRU \\cdot QDB) +
+       \\Sigma(FHRU \\cdot (NKor_{FLUSS}-EvI_{FLUSS}))`
 
-    Example:
+    Examples:
+
+        The first example shows that |QDGZ| is the area weighted sum of
+        |QDB| from "soil type" HRUs like arable land (|ACKER|) and of
+        |NKor|-|EvI| from water areas of type |FLUSS|.  All other water
+        areas (|WASSER| and |SEE|) and also sealed surfaces (|VERS|)
+        have no impact on |QDGZ|:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep()
-        >>> nhru(2)
-        >>> fhru(0.75, 0.25)
-        >>> fluxes.qdb = 1.0, 5.0
+        >>> nhru(6)
+        >>> lnk(ACKER, ACKER, VERS, WASSER, SEE, FLUSS)
+        >>> fhru(0.1, 0.2, 0.1, 0.1, 0.1, 0.4)
+        >>> fluxes.qdb = 2., 4.0, 300.0, 300.0, 300.0, 300.0
+        >>> fluxes.nkor = 200.0, 200.0, 200.0, 200.0, 200.0, 20.0
+        >>> fluxes.evi = 100.0, 100.0, 100.0, 100.0, 100.0, 10.0
         >>> model.calc_qdgz_v1()
         >>> fluxes.qdgz
-        qdgz(2.0)
+        qdgz(5.0)
+
+        The second example shows that large evaporation values above a
+        HRU of type |FLUSS| can result in negative values of |QDGZ|:
+
+        >>> fluxes.evi[5] = 30
+        >>> model.calc_qdgz_v1()
+        >>> fluxes.qdgz
+        qdgz(-3.0)
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
     flu.qdgz = 0.
     for k in range(con.nhru):
-        flu.qdgz += con.fhru[k]*flu.qdb[k]
+        if con.lnk[k] == FLUSS:
+            flu.qdgz += con.fhru[k]*(flu.nkor[k]-flu.evi[k])
+        elif con.lnk[k] not in (WASSER, SEE, VERS):
+            flu.qdgz += con.fhru[k]*flu.qdb[k]
 
 
 def calc_qdgz1_qdgz2_v1(self):
@@ -1370,25 +1426,25 @@ def calc_qdgz1_qdgz2_v1(self):
         2.0
 
         Define a test function and let it calculate |QDGZ1| and |QDGZ1| for
-        values of |QDGZ| ranging from 0 to 100 mm/12h:
+        values of |QDGZ| ranging from -10 to 100 mm/12h:
 
         >>> from hydpy.core.testtools import UnitTest
         >>> test = UnitTest(model,
         ...                 model.calc_qdgz1_qdgz2_v1,
-        ...                 last_example=5,
+        ...                 last_example=6,
         ...                 parseqs=(fluxes.qdgz,
         ...                          states.qdgz1,
         ...                          states.qdgz2))
-        >>> test.nexts.qdgz = 0.0, 1.0, 2.0, 3.0, 100.0
+        >>> test.nexts.qdgz = -10.0, 0.0, 1.0, 2.0, 3.0, 100.0
         >>> test()
         | ex. |  qdgz | qdgz1 | qdgz2 |
         -------------------------------
-        |   1 |   0.0 |   0.0 |   0.0 |
-        |   2 |   1.0 |   1.0 |   0.0 |
-        |   3 |   2.0 |   2.0 |   0.0 |
-        |   4 |   3.0 |   2.0 |   1.0 |
-        |   5 | 100.0 |   2.0 |  98.0 |
-
+        |   1 | -10.0 | -10.0 |   0.0 |
+        |   2 |   0.0 |   0.0 |   0.0 |
+        |   3 |   1.0 |   1.0 |   0.0 |
+        |   4 |   2.0 |   2.0 |   0.0 |
+        |   5 |   3.0 |   2.0 |   1.0 |
+        |   6 | 100.0 |   2.0 |  98.0 |
 
         Setting |A2| to zero and |A1| to 4 mm/d (or 2 mm/12h) results in
         a smoother transition:
@@ -1398,11 +1454,12 @@ def calc_qdgz1_qdgz2_v1(self):
         >>> test()
         | ex. |  qdgz |    qdgz1 |     qdgz2 |
         --------------------------------------
-        |   1 |   0.0 |      0.0 |       0.0 |
-        |   2 |   1.0 | 0.666667 |  0.333333 |
-        |   3 |   2.0 |      1.0 |       1.0 |
-        |   4 |   3.0 |      1.2 |       1.8 |
-        |   5 | 100.0 | 1.960784 | 98.039216 |
+        |   1 | -10.0 |    -10.0 |       0.0 |
+        |   2 |   0.0 |      0.0 |       0.0 |
+        |   3 |   1.0 | 0.666667 |  0.333333 |
+        |   4 |   2.0 |      1.0 |       1.0 |
+        |   5 |   3.0 |      1.2 |       1.8 |
+        |   6 | 100.0 | 1.960784 | 98.039216 |
 
         Alternatively, one can mix these two configurations by setting
         the values of both parameters to 2 mm/h:
@@ -1412,11 +1469,12 @@ def calc_qdgz1_qdgz2_v1(self):
         >>> test()
         | ex. |  qdgz |    qdgz1 |    qdgz2 |
         -------------------------------------
-        |   1 |   0.0 |      0.0 |      0.0 |
-        |   2 |   1.0 |      1.0 |      0.0 |
-        |   3 |   2.0 |      1.5 |      0.5 |
-        |   4 |   3.0 | 1.666667 | 1.333333 |
-        |   5 | 100.0 |     1.99 |    98.01 |
+        |   1 | -10.0 |    -10.0 |      0.0 |
+        |   2 |   0.0 |      0.0 |      0.0 |
+        |   3 |   1.0 |      1.0 |      0.0 |
+        |   4 |   2.0 |      1.5 |      0.5 |
+        |   5 |   3.0 | 1.666667 | 1.333333 |
+        |   6 | 100.0 |     1.99 |    98.01 |
 
         Note the similarity of the results for very high values of total
         direct flow |QDGz| in all three examples, which converge to the sum
@@ -1774,6 +1832,8 @@ def calc_q_v1(self):
 
     Required flux sequence:
       |NKor|
+
+    Updated flux sequence:
       |EvI|
 
     Required state sequences:
@@ -1808,19 +1868,18 @@ def calc_q_v1(self):
         >>> states.qdga1 = 0.7
         >>> states.qdga2 = 0.9
         >>> fluxes.nkor = 10.0
-        >>> fluxes.evpo = 4.0, 5.0, 3.0
-        >>> fluxes.evi = 0.0
+        >>> fluxes.evi = 4.0, 5.0, 3.0
         >>> model.calc_q_v1()
         >>> fluxes.q
         q(2.5)
         >>> fluxes.evi
-        evi(0.0, 0.0, 0.0)
+        evi(4.0, 5.0, 3.0)
 
         The defined values of interception evaporation do not show any
         impact on the result of the given example, the predefined values
-        for sequence |EvI| remain unchanged But when the first HRU is
+        for sequence |EvI| remain unchanged.  But when the first HRU is
         assumed to be a water area (|WATER|), its adjusted precipitaton
-        |NKor| value and its potential  evaporation |EvPo| value are added
+        |NKor| value and its interception  evaporation |EvI| value are added
         to and subtracted from |lland_fluxes.Q| respectively:
 
         >>> control.lnk(WASSER, VERS, NADELW)
@@ -1828,14 +1887,11 @@ def calc_q_v1(self):
         >>> fluxes.q
         q(5.5)
         >>> fluxes.evi
-        evi(4.0, 0.0, 0.0)
+        evi(4.0, 5.0, 3.0)
 
         Note that only 5 mm are added (instead of the |NKor| value 10 mm)
-        and that only 2 mm are substracted (instead of the |EvPo| value 4 mm,
+        and that only 2 mm are substracted (instead of the |EvI| value 4 mm,
         as the first HRU`s area only accounts for 50 % of the subbasin area.
-        The actual evaporation from the water area (which is equal to the
-        potential evaporation value) is stored as the first entry of sequence
-        |EvI|.
 
         Setting also the land use class of the second HRU to land type
         |WASSER| and resetting |NKor| to zero would result in overdrying.
@@ -1848,20 +1904,56 @@ def calc_q_v1(self):
         >>> fluxes.q
         q(0.0)
         >>> fluxes.evi
-        evi(3.333333, 4.166667, 0.0)
+        evi(3.333333, 4.166667, 3.0)
 
+        The handling from water areas of type |FLUSS| and |SEE| differs
+        from those of type |WASSER|, as these do receiver their net input
+        before the runoff concentration routines are applied.  This
+        should be more realistic in most cases (especially for type |SEE|
+        representing lakes not direct connected to the stream network).
+        But it could sometimes result in negative outflow values. This
+        is avoided by simply setting |lland_fluxes.Q| to zero and adding
+        the truncated negative outflow value to the |EvI| value of all
+        HRUs of type |FLUSS| and |SEE|:
+
+        >>> control.lnk(FLUSS, SEE, NADELW)
+        >>> states.qbga = -1.0
+        >>> states.qdga2 = -1.5
+        >>> fluxes.evi = 4.0, 5.0, 3.0
+        >>> model.calc_q_v1()
+        >>> fluxes.q
+        q(0.0)
+        >>> fluxes.evi
+        evi(2.571429, 3.571429, 3.0)
+
+        This adjustment of |EvI| is only correct regarding the total
+        water balance.  Neither spatial nor temporal consistency of the
+        resulting |EvI| values are assured.  In the most extreme case,
+        even negative |EvI| values might occur.  This seems acceptable,
+        as long as the adjustment of |EvI| is rarely triggered.  When in
+        doubt about this, check sequences |EvPo| and |EvI| of HRUs of
+        types |FLUSS| and |SEE| for possible discrepancies.
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
     aid = self.sequences.aides.fastaccess
     flu.q = sta.qbga+sta.qiga1+sta.qiga2+sta.qdga1+sta.qdga2
+    if flu.q < 0.:
+        d_area = 0.
+        for k in range(con.nhru):
+            if con.lnk[k] in (FLUSS, SEE):
+                d_area += con.fhru[k]
+        if d_area > 0.:
+            for k in range(con.nhru):
+                if con.lnk[k] in (FLUSS, SEE):
+                    flu.evi[k] += flu.q/d_area
+        flu.q = 0.
     aid.epw = 0.
     for k in range(con.nhru):
         if con.lnk[k] == WASSER:
             flu.q += con.fhru[k]*flu.nkor[k]
-            flu.evi[k] = flu.evpo[k]
-            aid.epw += con.fhru[k]*flu.evpo[k]
+            aid.epw += con.fhru[k]*flu.evi[k]
     if flu.q > aid.epw:
         flu.q -= aid.epw
     elif aid.epw > 0.:

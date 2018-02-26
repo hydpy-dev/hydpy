@@ -69,3 +69,6 @@ SEE = 18
 CONSTANTS = {key: value for key, value in locals().items()
              if key.isupper() and isinstance(value, int)}
 """Dictionary containing all constants defined by HydPy-L-Land."""
+
+# Make only the constants available on wildcard-imports.
+__all__ = list(CONSTANTS.keys())

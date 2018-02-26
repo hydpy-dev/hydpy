@@ -601,7 +601,7 @@ def calc_schm_wats_v1(self):
 
     Examples:
 
-        Initialize two water (|FLUSS| and |SEE) and four arable land
+        Initialize two water (|FLUSS| and |SEE|) and four arable land
         (|ACKER|) HRUs.  Assume the same values for the initial amount
         of frozen water (|WATS|) and the frozen part of stand precipitation
         (|SBes|), but different values for potential snow melt (|WGTF|):
@@ -683,10 +683,10 @@ def calc_wada_waes_v1(self):
 
         Note the special cases of the first two HRUs of type |FLUSS| and
         |SEE|.  For water areas, stand precipitaton |NBes| is generally
-        passed to |WADA| and |WAeS| is set to zero.  For all other land
+        passed to |WaDa| and |WAeS| is set to zero.  For all other land
         use classes (of which only |ACKER| is selected), only the amount
         of |NBes| exceeding the actual snow holding capacity is passed
-        to |WADA|.
+        to |WaDa|.
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
@@ -748,7 +748,7 @@ def calc_evb_v1(self):
         evb(0.0, 0.0, 0.0, 0.0, 0.0, 1.717962, 2.0)
 
         In case usable field capacity (|NFk|) is zero, soil evaporation
-        (|EVB|) is generally set to zero (see the forth HRU).  The last
+        (|EvB|) is generally set to zero (see the forth HRU).  The last
         three HRUs demonstrate the rise in soil evaporation with increasing
         soil moisture, which is lessening in the high soil moisture range.
     """
@@ -999,13 +999,13 @@ def calc_qib2_v1(self):
         qib2(0.0, 0.0, 0.0, 0.0, 0.0, 1.06066, 3.0, 0.57735)
 
         In the given example, the maximum rate of total interflow
-        generation is 5 mm/12h (parameter |DMAx|).  For the seventh zone,
+        generation is 5 mm/12h (parameter |DMax|).  For the seventh zone,
         which contains a saturated soil, the value calculated for the
         second interflow component (|QIB2|) is 3 mm/h.  The "missing"
         value of 2 mm/12h is be calculated by method |calc_qib1_v1|.
 
         (The fourth zone, which is slightly oversaturated, is only intended
-        to demonstrate that zero division due to |nFK|=|WZ| is circumvented.)
+        to demonstrate that zero division due to |NFk| = |WZ| is circumvented.)
     """
     con = self.parameters.control.fastaccess
     der = self.parameters.derived.fastaccess
@@ -1054,7 +1054,7 @@ def calc_qdb_v1(self):
 
         For water areas (|FLUSS| and |SEE|), sealed areas (|VERS|), and
         areas without any soil storage capacity, all water is completely
-        routed as direct runoff |QBD| (see the first four HRUs).  No
+        routed as direct runoff |QDB| (see the first four HRUs).  No
         principal distinction is made between the remaining land use
         classes (arable land |ACKER| has been selected for the last five
         HRUs arbitrarily):
@@ -1329,7 +1329,7 @@ def calc_qdgz_v1(self):
     """Aggregate the amount of total direct flow released by all HRUs.
 
     Required control parameters:
-        |Lnk|
+      |Lnk|
       |NHRU|
       |FHRU|
 
@@ -1477,7 +1477,7 @@ def calc_qdgz1_qdgz2_v1(self):
         |   6 | 100.0 |     1.99 |    98.01 |
 
         Note the similarity of the results for very high values of total
-        direct flow |QDGz| in all three examples, which converge to the sum
+        direct flow |QDGZ| in all three examples, which converge to the sum
         of the values of parameter |A1| and |A2|, representing the maximum
         value of `slow` direct flow generation per simulation step
     """
@@ -1878,7 +1878,7 @@ def calc_q_v1(self):
         The defined values of interception evaporation do not show any
         impact on the result of the given example, the predefined values
         for sequence |EvI| remain unchanged.  But when the first HRU is
-        assumed to be a water area (|WATER|), its adjusted precipitaton
+        assumed to be a water area (|WASSER|), its adjusted precipitaton
         |NKor| value and its interception  evaporation |EvI| value are added
         to and subtracted from |lland_fluxes.Q| respectively:
 

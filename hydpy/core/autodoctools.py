@@ -273,7 +273,7 @@ class Substituter(object):
                 member.__doc__ = self(member.__doc__)
             except (AttributeError, TypeError):
                 pass
-            for submember in getattr(member, '__dict__', {}):
+            for submember in getattr(member, '__dict__', {}).values():
                 try:
                     submember.__doc__ = self(submember.__doc__)
                 except (AttributeError, TypeError):

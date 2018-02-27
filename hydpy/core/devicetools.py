@@ -726,7 +726,7 @@ the given group name `test`.
         return '\n'.join(lines)
 
 
-abctools.Node.register(Node)
+abctools.NodeABC.register(Node)
 
 
 class Element(Device):
@@ -1154,7 +1154,7 @@ assigned to the element so far.
         return self.assignrepr('')
 
 
-abctools.Element.register(Element)
+abctools.ElementABC.register(Element)
 
 
 class Devices(object):
@@ -1735,7 +1735,7 @@ class Elements(Devices):
                       auxfiler=None):
         """Save the control parameters of the |Model| object handled by
         each |Element| object and eventually the ones handled by the
-        given |AuxFiler| object."""
+        given |Auxfiler| object."""
         _controldirectory = pub.controlmanager._controldirectory
         _projectdirectory = pub.controlmanager._projectdirectory
         try:

@@ -190,7 +190,7 @@ Variable type `EQD1` is not handled by model `lstream_v1`.
     @staticmethod
     def _get_models(values):
         for value in objecttools.extract(
-                values, (str, types.ModuleType, abctools.Model)):
+                values, (str, types.ModuleType, abctools.ModelABC)):
             yield Auxfiler._get_model(value)
 
     @staticmethod
@@ -438,7 +438,8 @@ object has already been allocated to filename `file1`.
         try:
             self._check_filename(filename)
             new_vars = objecttools.extract(
-                variables, (abctools.Parameter, abctools.ConditionSequence))
+                variables,
+                (abctools.ParameterABC, abctools.ConditionSequenceABC))
             for new_var in new_vars:
                 self._check_variable(new_var)
                 fn2var = self._type2filename2variable.get(type(new_var), {})
@@ -534,7 +535,7 @@ object has already been allocated to filename `file1`.
 `str` from the actual Variable2AuxFile object, the following error occured:  \
 `'test'` is neither a registered filename nor a registered variable.
         """
-        for value in objecttools.extract(values, (str, abctools.Variable)):
+        for value in objecttools.extract(values, (str, abctools.VariableABC)):
             try:
                 deleted_something = False
                 for fn2var in list(self._type2filename2variable.values()):

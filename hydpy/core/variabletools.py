@@ -156,7 +156,7 @@ def _compare_variables_function_generator(
             # `__cmp__` instead of rich comparisons
             method = getattr(float(self.value), method_string)
         try:
-            if isinstance(other, abctools.Variable):
+            if isinstance(other, abctools.VariableABC):
                 result = method(other.value)
             else:
                 result = method(other)
@@ -556,7 +556,7 @@ error occured: operands could not be broadcast together with shapes (2,) (3,)
         return self.repr_(self.value, False)
 
 
-abctools.Variable.register(Variable)
+abctools.VariableABC.register(Variable)
 
 
 autodoctools.autodoc_module()

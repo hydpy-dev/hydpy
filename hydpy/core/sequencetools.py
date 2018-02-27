@@ -624,7 +624,7 @@ class Sequence(variabletools.Variable):
         return objecttools.dir_(self)
 
 
-abctools.Sequence.register(Sequence)
+abctools.SequenceABC.register(Sequence)
 
 
 class IOSequence(Sequence):
@@ -1174,7 +1174,7 @@ class InputSequence(ModelIOSequence):
     """ """
 
 
-abctools.InputSequence.register(InputSequence)
+abctools.InputSequenceABC.register(InputSequence)
 
 
 class FluxSequence(ModelIOSequence):
@@ -1201,7 +1201,7 @@ class FluxSequence(ModelIOSequence):
     shape = property(ModelIOSequence._getshape, _setshape)
 
 
-abctools.FluxSequence.register(FluxSequence)
+abctools.FluxSequenceABC.register(FluxSequence)
 
 
 class LeftRightSequence(ModelIOSequence):
@@ -1361,7 +1361,7 @@ class StateSequence(ModelIOSequence, ConditionSequence):
             self.old = self.new
 
 
-abctools.StateSequence.register(StateSequence)
+abctools.StateSequenceABC.register(StateSequence)
 
 
 class LogSequence(Sequence, ConditionSequence):
@@ -1377,14 +1377,14 @@ class LogSequence(Sequence, ConditionSequence):
         self._oldargs = copy.deepcopy(args)
 
 
-abctools.LogSequence.register(LogSequence)
+abctools.LogSequenceABC.register(LogSequence)
 
 
 class AideSequence(Sequence):
     """ """
 
 
-abctools.AideSequence.register(AideSequence)
+abctools.AideSequenceABC.register(AideSequence)
 
 
 class LinkSequence(Sequence):
@@ -1447,7 +1447,7 @@ class LinkSequence(Sequence):
     shape = property(_getshape, _setshape)
 
 
-abctools.LinkSequence.register(LinkSequence)
+abctools.LinkSequenceABC.register(LinkSequence)
 
 
 class NodeSequence(IOSequence):
@@ -1499,7 +1499,7 @@ class NodeSequence(IOSequence):
     value = values
 
 
-abctools.NodeSequence.register(NodeSequence)
+abctools.NodeSequenceABC.register(NodeSequence)
 
 
 class Sim(NodeSequence):

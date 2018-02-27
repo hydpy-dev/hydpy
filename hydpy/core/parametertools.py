@@ -293,7 +293,7 @@ parameter class nor a parameter instance.
             attr = getattr(self, name)
         except AttributeError:
             object.__setattr__(self, name, value)
-            if isinstance(value, abctools.Parameter):
+            if isinstance(value, abctools.ParameterABC):
                 value.connect(self)
         else:
             try:
@@ -312,12 +312,12 @@ parameter class nor a parameter instance.
             yield name, getattr(self, name)
 
     def __contains__(self, parameter):
-        if isinstance(parameter, abctools.Parameter):
+        if isinstance(parameter, abctools.ParameterABC):
             parameter = type(parameter)
         if parameter in self._PARCLASSES:
             return True
         try:
-            if issubclass(parameter, abctools.Parameter):
+            if issubclass(parameter, abctools.ParameterABC):
                 return False
         except TypeError:
             pass
@@ -827,7 +827,7 @@ defined, but no standard value for its TYPE `list` is available
         return objecttools.dir_(self)
 
 
-abctools.Parameter.register(Parameter)
+abctools.ParameterABC.register(Parameter)
 
 
 class SingleParameter(Parameter):

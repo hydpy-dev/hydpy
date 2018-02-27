@@ -189,7 +189,7 @@ class HydPy(object):
             if node.deploymode != 'oldsim':
                 funcs.append(node.reset)
         for device in self.deviceorder:
-            if isinstance(device, abctools.Element):
+            if isinstance(device, abctools.ElementABC):
                 funcs.append(device.model.doit)
         for element in self.elements:
             if element.senders:

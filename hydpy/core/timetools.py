@@ -150,7 +150,7 @@ class Date(object):
     def __init__(self, date):
         self.datetime = None
         self._style = None
-        if isinstance(date, abctools.Date):
+        if isinstance(date, abctools.DateABC):
             self.datetime = date.datetime
         elif isinstance(date, datetime.datetime):
             if date.microsecond:
@@ -160,7 +160,7 @@ class Date(object):
             self.datetime = date
         elif isinstance(date, str):
             self._initfromstr(date)
-        elif isinstance(date, abctools.TOY):
+        elif isinstance(date, abctools.TOYABC):
             self.datetime = datetime.datetime(2000,
                                               date.month, date.day, date.hour,
                                               date.minute, date.second)
@@ -399,7 +399,7 @@ class Date(object):
         return objecttools.dir_(self)
 
 
-abctools.Date.register(Date)
+abctools.DateABC.register(Date)
 
 
 class Period(object):
@@ -541,7 +541,7 @@ However, for the given `timedelta` object, it is`857142` instead.
     def _set_timedelta(self, period):
         if period is None:
             self._timedelta = None
-        elif isinstance(period, abctools.Period):
+        elif isinstance(period, abctools.PeriodABC):
             self._timedelta = getattr(period, 'timedelta', None)
         elif isinstance(period, datetime.timedelta):
             if period.microseconds:
@@ -741,7 +741,7 @@ However, for the given `timedelta` object, it is`857142` instead.
         return objecttools.dir_(self)
 
 
-abctools.Period.register(Period)
+abctools.PeriodABC.register(Period)
 
 
 class Timegrid(object):
@@ -1074,7 +1074,7 @@ timegrid object is `4` and the length of the array object is `2`.
                 (timegrid.stepsize == self.stepsize))
 
     def __contains__(self, other):
-        if isinstance(other, abctools.Timegrid):
+        if isinstance(other, abctools.TimegridABC):
             return self._containstimegrid(other)
         return self._containsdate(other)
 
@@ -1112,7 +1112,7 @@ timegrid object is `4` and the length of the array object is `2`.
         return objecttools.dir_(self)
 
 
-abctools.Timegrid.register(Timegrid)
+abctools.TimegridABC.register(Timegrid)
 
 
 class Timegrids(object):
@@ -1334,7 +1334,7 @@ on the initialization time grid.
         return objecttools.dir_(self)
 
 
-abctools.Timegrids.register(Timegrids)
+abctools.TimegridsABC.register(Timegrids)
 
 
 class TOY(object):
@@ -1497,7 +1497,7 @@ set to `2`, but the given value is `29`.
             self.hour = None
             self.minute = None
             self.second = None
-        if isinstance(value, abctools.Date):
+        if isinstance(value, abctools.DateABC):
             for name in self._PROPERTIES.keys():
                 self.__dict__[name] = getattr(value, name)
         else:
@@ -1632,7 +1632,7 @@ set to `2`, but the given value is `29`.
     __dir__ = objecttools.dir_
 
 
-abctools.TOY.register(TOY)
+abctools.TOYABC.register(TOY)
 
 
 autodoctools.autodoc_module()

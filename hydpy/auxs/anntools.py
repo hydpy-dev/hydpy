@@ -846,8 +846,8 @@ broadcast input array from shape (2) into shape (3)
         pyplot.plot(xs_, ys_, **kwargs)
 
 
-abctools.Parameter.register(ANN)
-abctools.ANN.register(ANN)
+abctools.ParameterABC.register(ANN)
+abctools.ANNABC.register(ANN)
 
 
 def ann(**kwargs):
@@ -1209,7 +1209,7 @@ registered under a TOY object named `toy_1_1_12_0_0`.
             self._do_refresh = False
             try:
                 for (toystr, value) in kwargs.items():
-                    if not isinstance(value, abctools.ANN):
+                    if not isinstance(value, abctools.ANNABC):
                         raise TypeError(
                             'Type `%s` is not (a subclass of) type `ANN`.'
                             % objecttools.classname(value))
@@ -1474,7 +1474,7 @@ year `toy_1_1_12_0_0` requires `2` input and `3` output values.
     def __setattr__(self, name, value):
         if name.startswith('toy_'):
             try:
-                if not isinstance(value, abctools.ANN):
+                if not isinstance(value, abctools.ANNABC):
                     raise TypeError(
                         '%s has been given, but a value of type '
                         '`ANN` is required.'

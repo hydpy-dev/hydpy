@@ -110,7 +110,7 @@ class Test(object):
             for dummy in range(parseq.length-1):
                 strings.append('')
             if ((parseq.name == 'sim') and
-                    isinstance(parseq, abctools.Sequence)):
+                    isinstance(parseq, abctools.SequenceABC)):
                 strings.append(parseq.subseqs.node.name)
             else:
                 strings.append(parseq.name)
@@ -134,7 +134,7 @@ class Test(object):
                         strings[-1].append('empty')
                 else:
                     thing = ('sequence'
-                             if isinstance(parseq, abctools.Sequence)
+                             if isinstance(parseq, abctools.SequenceABC)
                              else 'parameter')
                     raise RuntimeError(
                         'An instance of class `Test` of module `testtools` '
@@ -417,7 +417,7 @@ class IntegrationTest(Test):
             skip_nodes = self.plotting_options.skip_nodes
         if skip_nodes:
             selected = [seq for seq in selected
-                        if not isinstance(seq, abctools.NodeSequence)]
+                        if not isinstance(seq, abctools.NodeSequenceABC)]
         if activated is None:
             activated = self.plotting_options.activated
             if activated is None:

@@ -1038,7 +1038,7 @@ arguments `lfill` and `rfill`.  This is not allowed.
     if decimals is None:
         decimals = pub.options.reprdigits
     with pub.options.reprdigits(decimals):
-        if isinstance(values, abctools.IterableNonString):
+        if isinstance(values, abctools.IterableNonStringABC):
             string = repr_values(values)
         else:
             string = repr_(values)

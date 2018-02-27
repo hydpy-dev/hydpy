@@ -224,7 +224,7 @@ class Model(_MetaModel):
         return objecttools.dir_(self)
 
 
-abctools.Model.register(Model)
+abctools.ModelABC.register(Model)
 
 
 class NumPars(object):

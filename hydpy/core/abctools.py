@@ -6,14 +6,12 @@ build in  function :func:`isinstance`.  In order to keep HydPy
 "pythonic", the following abstract base classes are defined.  All
 calls to :func:`isinstance` should rely these abstract base classes
 instead of the respective original classes.  This helps to build e.g.
-a new parameter class when one wants to avoid to inherit from
-:class:`~hydpy.core.parametertools.Parameter`.
+a new parameter class when one wants to avoid to inherit from |Parameter|.
 
 At the moment, the provided classes do not provide things like abstract
-methods(should be added later).  Just use them to register new classes
+methods (should be added later).  Just use them to register new classes
 that are not actual subclasses of the respective HydPy classes, but
-should be handled as if they were.  See class
-:class:`~hydpy.auxs.anntools.ANN` as an example.
+should be handled as if they were.  See class |anntools.ANN| as an example.
 """
 # import...
 # ...from standard library
@@ -107,128 +105,128 @@ class DocABC(_ABC):
             abc.ABCMeta.register(cls, subclass)
 
 
-class IterableNonString(_ABC):
+class IterableNonStringABC(_ABC):
     """Abstract base class for checking if an object is iterable but not a
     string."""
 
     @classmethod
     def __subclasshook__(cls, C):
-        if cls is IterableNonString:
+        if cls is IterableNonStringABC:
             return (hasattr(C, '__iter__') and
                     not (isinstance(C, str) or
                          issubclass(C, str)))
         return NotImplemented
 
 
-class Element(DocABC):
+class ElementABC(DocABC):
     """Abstract base class for registering custom element classes."""
     pass
 
 
-class Node(DocABC):
+class NodeABC(DocABC):
     """Abstract base class for registering custom node classes."""
     pass
 
 
-class Variable(DocABC):
+class VariableABC(DocABC):
     """Abstract base class for registering custom variable classes.
 
     Usually, new classes should either be registered as a parameter
     or a sequence.  Afterwards, they are automatically handled as
     :class:`Variable` subclasses:
 
-    >>> from hydpy.core.abctools import Variable, Parameter
+    >>> from hydpy.core.abctools import VariableABC, ParameterABC
     >>> class New(object):
     ...     pass
-    >>> issubclass(New, Variable)
+    >>> issubclass(New, VariableABC)
     False
-    >>> Parameter.register(New)
-    >>> issubclass(New, Variable)
+    >>> ParameterABC.register(New)
+    >>> issubclass(New, VariableABC)
     True
     """
 
 
-class Parameter(Variable):
+class ParameterABC(VariableABC):
     """Abstract base class for registering custom parameter classes."""
 
 
-class ANN(DocABC):
+class ANNABC(DocABC):
     """Abstract base class for registering custom artificial neural network
     classes."""
 
 
-class Sequence(Variable):
+class SequenceABC(VariableABC):
     """Abstract base class for registering custom sequence classes."""
     pass
 
 
-class InputSequence(Sequence):
+class InputSequenceABC(SequenceABC):
     """Abstract base class for registering custom input sequence classes."""
     pass
 
 
-class FluxSequence(Sequence):
+class FluxSequenceABC(SequenceABC):
     """Abstract base class for registering custom flux sequence classes."""
     pass
 
 
-class ConditionSequence(Sequence):
+class ConditionSequenceABC(SequenceABC):
     """Abstract base class for registering custom condition sequence classes.
     """
     pass
 
 
-class StateSequence(ConditionSequence):
+class StateSequenceABC(ConditionSequenceABC):
     """Abstract base class for registering custom state sequence classes."""
     pass
 
 
-class LogSequence(ConditionSequence):
+class LogSequenceABC(ConditionSequenceABC):
     """Abstract base class for registering custom log sequence classes."""
     pass
 
 
-class AideSequence(Sequence):
+class AideSequenceABC(SequenceABC):
     """Abstract base class for registering custom aide sequence classes."""
     pass
 
 
-class LinkSequence(Sequence):
+class LinkSequenceABC(SequenceABC):
     """Abstract base class for registering custom link sequence classes."""
     pass
 
 
-class NodeSequence(Sequence):
+class NodeSequenceABC(SequenceABC):
     """Abstract base class for registering custom node sequence classes."""
     pass
 
 
-class Date(Sequence):
+class DateABC(SequenceABC):
     """Abstract base class for registering custom date classes."""
     pass
 
 
-class Period(Sequence):
+class PeriodABC(SequenceABC):
     """Abstract base class for registering custom period classes."""
     pass
 
 
-class Timegrid(Sequence):
+class TimegridABC(SequenceABC):
     """Abstract base class for registering custom timegrid classes."""
     pass
 
 
-class Timegrids(Sequence):
+class TimegridsABC(SequenceABC):
     """Abstract base class for registering custom timegrids classes."""
     pass
 
 
-class TOY(Sequence):
+class TOYABC(SequenceABC):
     """Abstract base class for registering custom TOY classes."""
     pass
 
 
-class Model(Sequence):
+class ModelABC(SequenceABC):
     """Abstract base class for registering custom Model classes."""
     pass
 

@@ -1193,6 +1193,17 @@ class Devices(object):
 attribute nor does it handle a Node object with name or keyword `na_`, \
 which could be returned.
 
+    Sometimes it is more convenient to receive empty always iterables, even
+    empty ones (especially when using keyword access, see below).  This
+    cann be done by change the `return_always_iterables` class flag:
+
+    >>> Nodes.return_always_iterables = True
+    >>> nodes.na_
+    Nodes()
+    >>> nodes.na
+    Nodes("na")
+    >>> Nodes.return_always_iterables = False
+
     Attribute deleting is supported:
 
     >>> 'na' in nodes
@@ -1270,6 +1281,7 @@ as a "normal" attribute and is thus not support.
     """
 
     _contentclass = None
+    return_always_iterables = False
 
     def __init__(self, *values):
         with objecttools.ResetAttrFuncs(self):
@@ -1473,14 +1485,18 @@ which is in conflict with using their names as identifiers.
     def __getattr__(self, name):
         try:
             _devices = super(Devices, self).__getattribute__('_devices')
-            return _devices[name]
+            _device = _devices[name]
+            if self.return_always_iterables:
+                return self.__class__(_device)
+            else:
+                return _device
         except KeyError:
             pass
         _devices = self._select_devices_by_keyword(name)
-        if len(_devices) == 1:
-            return _devices.devices[0]
-        elif len(_devices) > 1:
+        if self.return_always_iterables or len(_devices) > 1:
             return _devices
+        elif len(_devices) == 1:
+            return _devices.devices[0]
         else:
             raise AttributeError(
                 'The selected %s object has neither a `%s` attribute '
@@ -1585,9 +1601,11 @@ which is in conflict with using their names as identifiers.
         >>> from hydpy import dummies
         >>> from hydpy.core.objecttools import assignrepr_values
         >>> print(assignrepr_values(dir(dummies.nodes), '', 70))
-        add_device, assignrepr, copy, devices, group_1, group_2, group_a,
-        group_b, keywords, na, names, nb, nc, nd, ne, prepare_allseries,
-        prepare_obsseries, prepare_simseries, remove_device
+        add_device, assignrepr, close_files, copy, devices, group_1, group_2,
+        group_a, group_b, keywords, na, names, nb, nc, nd, ne, open_files,
+        prepare_allseries, prepare_obsseries, prepare_simseries,
+        remove_device, return_always_iterables, save_allseries,
+        save_obsseries, save_simseries
         """
         return objecttools.dir_(self) + list(self.names) + list(self.keywords)
 

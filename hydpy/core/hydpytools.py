@@ -227,13 +227,13 @@ class HydPy(object):
         self.elements.prepare_stateseries(ramflag=ramflag)
 
     def prepare_nodeseries(self, ramflag=True):
-        self.nodes.prepare_simseries(ramflag=ramflag)
-
-    def prepare_simseries(self, ramflag=True):
         self.nodes.prepare_allseries(ramflag=ramflag)
 
-    def prepare_obsseries(self, ramflag=True):
+    def prepare_simseries(self, ramflag=True):
         self.nodes.prepare_simseries(ramflag=ramflag)
+
+    def prepare_obsseries(self, ramflag=True):
+        self.nodes.prepare_obsseries(ramflag=ramflag)
 
     def save_modelseries(self):
         self.elements.save_allseries()

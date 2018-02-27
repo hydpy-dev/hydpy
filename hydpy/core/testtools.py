@@ -259,7 +259,7 @@ class IntegrationTest(Test):
         self.model = element.model
         hydpytools.HydPy.nmb_instances = 0
         self.hydpy = hydpytools.HydPy()
-        self.hydpy.updatedevices(
+        self.hydpy.update_devices(
             selectiontools.Selection('test', self.nodes, self.elements))
         self._src = None
         self._width = None

@@ -28,10 +28,10 @@ import itertools
 import hydpy
 from hydpy import pub
 from hydpy.core import autodoctools
-from hydpy.core import devicetools
-from hydpy.core import filetools
+# from hydpy.core import devicetools # the actual import is done below
+# from hydpy.core import filetools # the actual import is done below
 from hydpy.core import objecttools
-from hydpy.core import parametertools
+# from hydpy.core import parametertools # the actual import is done below
 from hydpy.core import sequencetools
 from hydpy.core import timetools
 # from hydpy.core import testtools # the actual import is done below
@@ -58,6 +58,8 @@ class Tester(object):
                 if (fn.endswith('.py') and not fn.startswith('_'))]
 
     def doit(self):
+        from hydpy.core import devicetools
+        from hydpy.core import parametertools
         from hydpy.core import testtools
         opt = pub.options
         Par = parametertools.Parameter
@@ -184,6 +186,7 @@ def parameterstep(timestep=None):
     complicated for framework developers, but it eases the definition of
     parameter control files for framework users.
     """
+    from hydpy.core import parametertools
     if timestep is not None:
         parametertools.Parameter.parameterstep(timetools.Period(timestep))
     namespace = inspect.currentframe().f_back.f_locals
@@ -324,6 +327,7 @@ def prepare_model(module, timestep=None):
     See the documentation of :mod:`~hydpy.models.dam_v001` on how to apply
     function :func:`prepare_model` properly.
     """
+    from hydpy.core import parametertools
     if timestep is not None:
         parametertools.Parameter.parameterstep(timetools.Period(timestep))
     model = module.Model()
@@ -374,6 +378,7 @@ def simulationstep(timestep):
     your parameter control files.  Write it in a line immediately behind
     the one calling :func:`parameterstep`.
     """
+    from hydpy.core import parametertools
     if pub.options.warnsimulationstep:
         warnings.warn('Note that the applied function `simulationstep` is '
                       'inteded for testing purposes only.  When doing a '
@@ -385,6 +390,7 @@ def simulationstep(timestep):
 
 
 def controlcheck(controldir='default', projectdir=None, controlfile=None):
+    from hydpy.core import filetools
     namespace = inspect.currentframe().f_back.f_locals
     model = namespace.get('model')
     if model is None:

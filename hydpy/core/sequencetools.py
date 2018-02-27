@@ -64,15 +64,15 @@ class Sequences(object):
             if hasattr(subseqs, 'deactivate_ram'):
                 subseqs.deactivate_ram(names)
 
-    def openfiles(self, idx=0):
+    def open_files(self, idx=0):
         for (name, subseqs) in self:
-            if hasattr(subseqs, 'openfiles'):
-                subseqs.openfiles(idx)
+            if hasattr(subseqs, 'open_files'):
+                subseqs.open_files(idx)
 
-    def closefiles(self):
+    def close_files(self):
         for (name, subseqs) in self:
-            if hasattr(subseqs, 'closefiles'):
-                subseqs.closefiles()
+            if hasattr(subseqs, 'close_files'):
+                subseqs.close_files()
 
     def loaddata(self, idx):
         for (name, subseqs) in self:
@@ -120,7 +120,7 @@ class Sequences(object):
             raise RuntimeError(
                 'To load or save the conditions of a model from or to a file, '
                 'its filename must be known.  This can be done, by passing '
-                'filename to function `loadconditions` or `saveconditions` '
+                'filename to method `load_conditions` or `save_conditions` '
                 'directly.  But in complete HydPy applications, it is usally '
                 'assumed to be consistent with the name of the element '
                 'handling the model.  Actually, neither a filename is given '
@@ -128,7 +128,7 @@ class Sequences(object):
         else:
             return filename + '.py'
 
-    def loadconditions(self, filename=None, dirname=None):
+    def load_conditions(self, filename=None, dirname=None):
         """Load initial conditions from a file and assign them to the
         respective sequences.
         """
@@ -147,7 +147,7 @@ class Sequences(object):
                                               'conditions of element %s'
                                               % objecttools.devicename(self))
 
-    def saveconditions(self, filename=None, dirname=None):
+    def save_conditions(self, filename=None, dirname=None):
         if self.hasconditions:
             if filename is None:
                 filename = self._conditiondefaultfilename
@@ -168,7 +168,9 @@ class Sequences(object):
                 for (name, seq) in self.conditions:
                     file_.write(repr(seq) + '\n')
 
-    def trimconditions(self):
+    def trim_conditions(self):
+        """Call method :func:`~ConditionSequence.trim` of each handled
+        |ConditionSequence|."""
         for (name, seq) in self.conditions:
             seq.trim()
 
@@ -331,11 +333,11 @@ class SubSequences(MetaSubSequencesClass):
 class IOSubSequences(SubSequences):
     _SEQCLASSES = ()
 
-    def openfiles(self, idx=0):
-        self.fastaccess.openfiles(idx)
+    def open_files(self, idx=0):
+        self.fastaccess.open_files(idx)
 
-    def closefiles(self):
-        self.fastaccess.closefiles()
+    def close_files(self):
+        self.fastaccess.close_files()
 
     def activate_ram(self):
         for (name, seq) in self:
@@ -1612,7 +1614,7 @@ class FastAccess(object):
     and thus not recommended.
     """
 
-    def openfiles(self, idx):
+    def open_files(self, idx):
         """Open all files with an activated disk flag."""
         for name in self:
             if getattr(self, '_%s_diskflag' % name):
@@ -1626,7 +1628,7 @@ class FastAccess(object):
                 file_.seek(position)
                 setattr(self, '_%s_file' % name, file_)
 
-    def closefiles(self):
+    def close_files(self):
         """Close all files with an activated disk flag."""
         for name in self:
             if getattr(self, '_%s_diskflag' % name):

@@ -7,17 +7,20 @@ structure HydPy projects.
 # ...from standard library
 from __future__ import division, print_function
 import copy
+import os
 import struct
+import warnings
 import weakref
 # ...from site-packages
 from matplotlib import pyplot
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import abctools
+from hydpy.core import autodoctools
 from hydpy.core import connectiontools
+from hydpy.core import magictools
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
-from hydpy.core import autodoctools
 from hydpy.cythons import pointerutils
 
 
@@ -651,6 +654,7 @@ the given group name `test`.
             raw = fastaccess._obs_file.read(8)
             fastaccess.obs[0] = struct.unpack('d', raw)
 
+    @magictools.printprogress
     def prepare_allseries(self, ramflag=True):
         """Prepare the series objects of both the `sim` and the `obs` sequence.
 
@@ -1045,6 +1049,7 @@ assigned to the element so far.
         self.prepare_fluxseries(ramflag)
         self.prepare_stateseries(ramflag)
 
+    @magictools.printprogress
     def prepare_inputseries(self, ramflag=True):
         """Prepare the series objects of the `input` sequences of the model
         handled by this element.
@@ -1053,6 +1058,7 @@ assigned to the element so far.
         """
         self._prepare_series('inputs', ramflag)
 
+    @magictools.printprogress
     def prepare_fluxseries(self, ramflag=True):
         """Prepare the series objects of the `flux` sequences of the model
         handled by this element.
@@ -1061,6 +1067,7 @@ assigned to the element so far.
         """
         self._prepare_series('fluxes', ramflag)
 
+    @magictools.printprogress
     def prepare_stateseries(self, ramflag=True):
         """Prepare the series objects of the `state` sequences of the model
         handled by this element.
@@ -1590,23 +1597,77 @@ class Nodes(Devices):
 
     _contentclass = Node
 
+    def open_files(self, idx=0):
+        """Call method
+        :func:`~hydpy.core.sequencetools.Sequences.open_files` of the
+        |Sequences| object handled (indirectly) by each |Node| object."""
+        for node in self:
+            node.sequences.open_files(idx)
+
+    def close_files(self):
+        """Call method
+        :func:`~hydpy.core.sequencetools.Sequences.close_files` of the
+        |Sequences| object handled (indirectly) by each |Node| object."""
+        for node in self:
+            node.sequences.close_files()
+
+    @magictools.printprogress
     def prepare_allseries(self, ramflag=True):
-        """Call method :func:`~Node.prepare_allseries` of all handled
-        elements."""
+        """Call methods :func:`~Node.prepare_simseries` and
+        :func:`~Node.prepare_obsseries`."""
         self.prepare_simseries(ramflag)
         self.prepare_obsseries(ramflag)
 
+    @magictools.printprogress
     def prepare_simseries(self, ramflag=True):
-        """Call method :func:`~Node.prepare_simseries` of all handled
-        elements."""
-        for node in self:
+        """Call method :func:`~Node.prepare_simseries` of each handled
+        |Node| object."""
+        for node in magictools.progressbar(self):
             node.prepare_simseries(ramflag)
 
+    @magictools.printprogress
     def prepare_obsseries(self, ramflag=True):
-        """Call method :func:`~Node.prepare_obsseries` of all handled
-        elements."""
-        for node in self:
+        """Call method :func:`~Node.prepare_obsseries` of each handled
+        |Node| object."""
+        for node in magictools.progressbar(self):
             node.prepare_obsseries(ramflag)
+
+    @magictools.printprogress
+    def save_allseries(self):
+        """Call methods :func:`~Nodes.save_simseries` and
+        :func:`~Nodes.save_obsseries`."""
+        self.save_inputseries()
+        self.save_simseries()
+        self.save_obsseries()
+
+    @magictools.printprogress
+    def save_simseries(self, ramflag=True):
+        """Call method
+        :func:`~hydpy.core.sequencetools.IOSequence.save_ext` of all
+        "memory flag activated" |NodeSequence| objects storing simulated
+        values handled (indirectly) by each |Node| object."""
+        self._save_nodeseries('sim', pub.sequencemanager.simoverwrite)
+
+    @magictools.printprogress
+    def save_obsseries(self, ramflag=True):
+        """Call method
+        :func:`~hydpy.core.sequencetools.IOSequence.save_ext` of all
+        "memory flag activated" |NodeSequence| objects storing observed
+        values handled (indirectly) by each |Node| object."""
+        self._save_nodeseries('obs', pub.sequencemanager.obsoverwrite)
+
+    def _save_nodeseries(self, seqname, overwrite):
+        for node in magictools.progressbar(self):
+            seq = getattr(node.sequences, seqname)
+            if seq.memoryflag:
+                if overwrite or not os.path.exists(seq.filepath_ext):
+                    seq.save_ext()
+                else:
+                    warnings.warn(
+                        'Due to the argument `overwrite` beeing `False` '
+                        'it is not allowed to overwrite the already '
+                        'existing file `%s`.'
+                        % seq.filepath_ext)
 
 
 class Elements(Devices):
@@ -1614,29 +1675,217 @@ class Elements(Devices):
 
     _contentclass = Element
 
-    def prepare_allseries(self, ramflag=True):
-        """Call method :func:`~Element.prepare_allseries` of all handled
-        elements."""
+    @magictools.printprogress
+    def init_models(self):
+        """Call method :func:`~Element.init_model` of each handled
+        |Element| object and afterwards method
+        :func:`~hydpy.core.parametertools.Parameters.update` of the
+        |Parameters| object handled (indirectly) by each |Element| object."""
+        warn = pub.options.warnsimulationstep
+        pub.options.warnsimulationstep = False
+        try:
+            for element in magictools.progressbar(self):
+                try:
+                    element.init_model()
+                except IOError as exc:
+                    temp = 'While trying to load the control file'
+                    if ((temp in str(exc)) and
+                            pub.options.warnmissingcontrolfile):
+                        warnings.warn('No model could be initialized for '
+                                      'element `%s`' % element)
+                        self.model = None
+                    else:
+                        objecttools.augmentexcmessage(
+                            'While trying to initialize the model of '
+                            'element `%s`' % element)
+                else:
+                    element.model.parameters.update()
+        finally:
+            pub.options.warnsimulationstep = warn
+
+    def connect(self):
+        """Call method :func:`~Element.connect` of each |Element| object
+        and function :func:`~hydpy.core.sequencetools.Sequences.update` of the
+        |Sequences| object handled (indirectly) by each |Element| object."""
         for element in self:
+            element.connect()
+            element.model.parameters.update()
+
+    @magictools.printprogress
+    def save_controls(self, controldirectory=None, projectdirectory=None,
+                      parameterstep=None, simulationstep=None,
+                      auxfiler=None):
+        """Save the control parameters of the |Model| object handled by
+        each |Element| object and eventually the ones handled by the
+        given |AuxFiler| object."""
+        _controldirectory = pub.controlmanager._controldirectory
+        _projectdirectory = pub.controlmanager._projectdirectory
+        try:
+            if controldirectory:
+                pub.controlmanager.controldirectory = controldirectory
+            if projectdirectory:
+                pub.controlmanager.projectdirectory = projectdirectory
+            if auxfiler:
+                auxfiler.save()
+            for element in magictools.progressbar(self):
+                element.model.parameters.savecontrols(
+                                        parameterstep=parameterstep,
+                                        simulationstep=simulationstep,
+                                        auxfiler=auxfiler)
+        finally:
+            pub.controlmanager._controldirectory = _controldirectory
+            pub.controlmanager._projectdirectory = _projectdirectory
+
+    @magictools.printprogress
+    def load_conditions(self, conditiondirectory=None, controldirectory=None,
+                        projectdirectory=None):
+        """Save the initial conditions of the |Model| object handled by
+        each |Element| object."""
+        self._ioconditions(conditiondirectory,  controldirectory,
+                           projectdirectory, True)
+
+    @magictools.printprogress
+    def save_conditions(self, conditiondirectory=None, controldirectory=None,
+                        projectdirectory=None):
+        """Save the calculated conditions of the |Model| object handled by
+        each |Element| object."""
+        self._ioconditions(conditiondirectory,  controldirectory,
+                           projectdirectory, False)
+
+    def _ioconditions(self, conditiondirectory, controldirectory,
+                      projectdirectory, loadflag):
+        if loadflag:
+            _conditiondirectory = pub.conditionmanager._loaddirectory
+        else:
+            _conditiondirectory = pub.conditionmanager._savedirectory
+        _controldirectory = pub.controlmanager._controldirectory
+        _projectdirectory = pub.conditionmanager._projectdirectory
+        try:
+            if projectdirectory:
+                pub.conditionmanager.projectdirectory = projectdirectory
+            if conditiondirectory:
+                if loadflag:
+                    pub.conditionmanager.loaddirectory = conditiondirectory
+                else:
+                    pub.conditionmanager.savedirectory = conditiondirectory
+            if controldirectory:
+                pub.controlmanager.controldirectory = controldirectory
+            for element in magictools.progressbar(self):
+                if loadflag:
+                    element.model.sequences.load_conditions()
+                else:
+                    element.model.sequences.save_conditions()
+        finally:
+            if loadflag:
+                pub.conditionmanager._loaddirectory = _conditiondirectory
+            else:
+                pub.conditionmanager._savedirectory = _conditiondirectory
+            pub.controlmanager._controldirectory = _controldirectory
+            pub.conditionmanager._projectdirectory = _projectdirectory
+
+    def trim_conditions(self):
+        """Call method
+        :func:`~hydpy.core.sequencetools.Sequences.trim_conditions` of the
+        |Sequences| object handled (indirectly) by each |Element| object."""
+        for element in self:
+            element.model.sequences.trim_conditions()
+
+    def reset_conditions(self):
+        """Call method
+        :func:`~hydpy.core.sequencetools.Sequences.reset` of the
+        |Sequences| object handled (indirectly) by each |Element| object."""
+        for element in self:
+            element.model.sequences.reset()
+
+    def open_files(self, idx=0):
+        """Call method
+        :func:`~hydpy.core.sequencetools.Sequences.open_files` of the
+        |Sequences| object handled (indirectly) by each |Element| object."""
+        for element in self:
+            element.model.sequences.open_files(idx)
+
+    def close_files(self):
+        """Call method
+        :func:`~hydpy.core.sequencetools.Sequences.close_files` of the
+        |Sequences| object handled (indirectly) by each |Element| object."""
+        for element in self:
+            element.model.sequences.close_files()
+
+    @magictools.printprogress
+    def prepare_allseries(self, ramflag=True):
+        """Call method :func:`~Element.prepare_allseries` of each handled
+        |Element| object."""
+        for element in magictools.progressbar(self):
             element.prepare_allseries(ramflag)
 
+    @magictools.printprogress
     def prepare_inputseries(self, ramflag=True):
-        """Call method :func:`~Element.prepare_inputseries` of all handled
-        elements."""
-        for element in self:
+        """Call method :func:`~Element.prepare_inputseries` of each handled
+        |Element| object."""
+        for element in magictools.progressbar(self):
             element.prepare_inputseries(ramflag)
 
+    @magictools.printprogress
     def prepare_fluxseries(self, ramflag=True):
-        """Call method :func:`~Element.prepare_fluxseries` of all handled
-        elements."""
-        for element in self:
+        """Call method :func:`~Element.prepare_fluxseries` of each handled
+        |Element| object."""
+        for element in magictools.progressbar(self):
             element.prepare_fluxseries(ramflag)
 
+    @magictools.printprogress
     def prepare_stateseries(self, ramflag=True):
-        """Call method :func:`~Element.prepare_stateseries` of all handled
-        elements."""
-        for element in self:
+        """Call method :func:`~Element.prepare_stateseries` of each handled
+        |Element| object."""
+        for element in magictools.progressbar(self):
             element.prepare_stateseries(ramflag)
+
+    @magictools.printprogress
+    def save_allseries(self):
+        """Call methods :func:`~Elements.save_inputseries`,
+        :func:`~Elements.save_fluxseries`,
+        and :func:`~Elements.save_stateseries`."""
+        self.save_inputseries()
+        self.save_fluxseries()
+        self.save_stateseries()
+
+    @magictools.printprogress
+    def save_inputseries(self):
+        """Call method
+        :func:`~hydpy.core.sequencetools.IOSequence.save_ext` of all
+        "memory flag activated" |InputSequence| objects handled (indirectly)
+        by each |Element| object."""
+        self._save_modelseries('inputs', pub.sequencemanager.inputoverwrite)
+
+    @magictools.printprogress
+    def save_fluxseries(self):
+        """Call method
+        :func:`~hydpy.core.sequencetools.IOSequence.save_ext` of all
+        "memory flag activated" |FluxSequence| objects handled (indirectly)
+        by each |Element| object."""
+        self._save_modelseries('fluxes', pub.sequencemanager.outputoverwrite)
+
+    @magictools.printprogress
+    def save_stateseries(self):
+        """Call method
+        :func:`~hydpy.core.sequencetools.IOSequence.save_ext` of all
+        "memory flag activated" |StateSequence| objects handled (indirectly)
+        by each |Element| object."""
+        self._save_modelseries('states', pub.sequencemanager.outputoverwrite)
+
+    def _save_modelseries(self, name_subseqs, overwrite):
+        for element in magictools.progressbar(self):
+            sequences = element.model.sequences
+            subseqs = getattr(sequences, name_subseqs, ())
+            for (name, seq) in subseqs:
+                if seq.memoryflag:
+                    if overwrite or not os.path.exists(seq.filepath_ext):
+                        seq.save_ext()
+                    else:
+                        warnings.warn(
+                            'Due to the argument `overwrite` beeing `False` '
+                            'it is not allowed to overwrite the already '
+                            'existing file `%s`.'
+                            % seq.filepath_ext)
 
 
 autodoctools.autodoc_module()

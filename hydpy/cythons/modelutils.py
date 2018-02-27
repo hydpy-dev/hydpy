@@ -430,8 +430,8 @@ class PyxWriter(object):
             if isinstance(subseqs, sequencetools.InputSequences):
                 lines.extend(self.loaddata(subseqs))
             if isinstance(subseqs, sequencetools.IOSubSequences):
-                lines.extend(self.openfiles(subseqs))
-                lines.extend(self.closefiles(subseqs))
+                lines.extend(self.open_files(subseqs))
+                lines.extend(self.close_files(subseqs))
                 if not isinstance(subseqs, sequencetools.InputSequence):
                     lines.extend(self.savedata(subseqs))
             if isinstance(subseqs, sequencetools.LinkSequences):
@@ -451,11 +451,11 @@ class PyxWriter(object):
         lines.add(1, 'cdef public %s _%s_array' % (ctype, seq.name))
         return lines
 
-    def openfiles(self, subseqs):
+    def open_files(self, subseqs):
         """Open file statements."""
-        print('            . openfiles')
+        print('            . open_files')
         lines = Lines()
-        lines.add(1, 'cpdef openfiles(self, int idx):')
+        lines.add(1, 'cpdef open_files(self, int idx):')
         for (name, seq) in subseqs:
             lines.add(2, 'if self._%s_diskflag:' % name)
             lines.add(3, 'self._%s_file = fopen(str(self._%s_path).encode(), '
@@ -467,11 +467,11 @@ class PyxWriter(object):
                              'SEEK_SET)' % (2*(name,)))
         return lines
 
-    def closefiles(self, subseqs):
+    def close_files(self, subseqs):
         """Close file statements."""
-        print('            . closefiles')
+        print('            . close_files')
         lines = Lines()
-        lines.add(1, 'cpdef inline closefiles(self):')
+        lines.add(1, 'cpdef inline close_files(self):')
         for (name, seq) in sorted(subseqs):
             lines.add(2, 'if self._%s_diskflag:' % name)
             lines.add(3, 'fclose(self._%s_file)' % name)
@@ -687,7 +687,7 @@ class PyxWriter(object):
     def iofunctions(self):
         """Input/output functions of the model class."""
         lines = Lines()
-        for func in ('openfiles', 'closefiles', 'loaddata', 'savedata'):
+        for func in ('open_files', 'close_files', 'loaddata', 'savedata'):
             if ((func == 'loaddata') and
                     (getattr(self.model.sequences, 'inputs', None) is None)):
                 continue
@@ -708,7 +708,7 @@ class PyxWriter(object):
                 else:
                     applyfuncs = ('inputs', 'fluxes', 'states')
                 if name in applyfuncs:
-                    if func == 'closefiles':
+                    if func == 'close_files':
                         lines.add(2, 'self.sequences.%s.%s()' % (name, func))
                     else:
                         lines.add(2, 'self.sequences.%s.%s(self.idx_sim)'

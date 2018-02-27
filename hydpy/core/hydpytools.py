@@ -47,112 +47,43 @@ class HydPy(object):
             pub.conditionmanager = filetools.ConditionManager()
 
     @magictools.printprogress
-    def preparenetwork(self):
+    def prepare_network(self):
         pub.selections = selectiontools.Selections()
         pub.selections += pub.networkmanager.load()
-        self.updatedevices(pub.selections.complete)
+        self.update_devices(pub.selections.complete)
 
-    @magictools.printprogress
     def init_models(self):
-        warn = pub.options.warnsimulationstep
-        pub.options.warnsimulationstep = False
-        try:
-            for element in magictools.progressbar(self.elements):
-                try:
-                    element.init_model()
-                except IOError as exc:
-                    temp = 'While trying to load the control file'
-                    if ((temp in str(exc)) and
-                            pub.options.warnmissingcontrolfile):
-                        warnings.warn('No model could be initialized for '
-                                      'element `%s`' % element)
-                        self.model = None
-                    else:
-                        objecttools.augmentexcmessage(
-                            'While trying to initialize the model of '
-                            'element `%s`' % element)
-                else:
-                    element.model.parameters.update()
-        finally:
-            pub.options.warnsimulationstep = warn
+        self.elements.init_models()
 
-    @magictools.printprogress
-    def savecontrols(self, controldirectory=None, projectdirectory=None,
-                     parameterstep=None, simulationstep=None,
-                     auxfiler=None):
-        _controldirectory = pub.controlmanager._controldirectory
-        _projectdirectory = pub.controlmanager._projectdirectory
-        try:
-            if controldirectory:
-                pub.controlmanager.controldirectory = controldirectory
-            if projectdirectory:
-                pub.controlmanager.projectdirectory = projectdirectory
-            if auxfiler:
-                auxfiler.save()
-            for element in magictools.progressbar(self.elements):
-                element.model.parameters.savecontrols(
-                                        parameterstep=parameterstep,
-                                        simulationstep=simulationstep,
-                                        auxfiler=auxfiler)
-        finally:
-            pub.controlmanager._controldirectory = _controldirectory
-            pub.controlmanager._projectdirectory = _projectdirectory
+    def save_controls(self, controldirectory=None, projectdirectory=None,
+                      parameterstep=None, simulationstep=None,
+                      auxfiler=None):
+        self.elements.save_controls(controldirectory=controldirectory,
+                                    projectdirectory=projectdirectory,
+                                    parameterstep=parameterstep,
+                                    simulationstep=simulationstep,
+                                    auxfiler=auxfiler)
 
-    @magictools.printprogress
-    def loadconditions(self, conditiondirectory=None, controldirectory=None,
-                       projectdirectory=None):
-        self._ioconditions(conditiondirectory,  controldirectory,
-                           projectdirectory, True)
+    def load_conditions(self, conditiondirectory=None, controldirectory=None,
+                        projectdirectory=None):
+        self.elements.load_conditions(conditiondirectory=conditiondirectory,
+                                      controldirectory=controldirectory,
+                                      projectdirectory=projectdirectory)
 
-    @magictools.printprogress
-    def saveconditions(self, conditiondirectory=None, controldirectory=None,
-                       projectdirectory=None):
-        self._ioconditions(conditiondirectory,  controldirectory,
-                           projectdirectory, False)
+    def save_conditions(self, conditiondirectory=None, controldirectory=None,
+                        projectdirectory=None):
+        self.elements.save_conditions(conditiondirectory=conditiondirectory,
+                                      controldirectory=controldirectory,
+                                      projectdirectory=projectdirectory)
 
-    def _ioconditions(self, conditiondirectory, controldirectory,
-                      projectdirectory, loadflag):
-        if loadflag:
-            _conditiondirectory = pub.conditionmanager._loaddirectory
-        else:
-            _conditiondirectory = pub.conditionmanager._savedirectory
-        _controldirectory = pub.controlmanager._controldirectory
-        _projectdirectory = pub.conditionmanager._projectdirectory
-        try:
-            if projectdirectory:
-                pub.conditionmanager.projectdirectory = projectdirectory
-            if conditiondirectory:
-                if loadflag:
-                    pub.conditionmanager.loaddirectory = conditiondirectory
-                else:
-                    pub.conditionmanager.savedirectory = conditiondirectory
-            if controldirectory:
-                pub.controlmanager.controldirectory = controldirectory
-            for element in magictools.progressbar(self.elements):
-                if loadflag:
-                    element.model.sequences.loadconditions()
-                else:
-                    element.model.sequences.saveconditions()
-        finally:
-            if loadflag:
-                pub.conditionmanager._loaddirectory = _conditiondirectory
-            else:
-                pub.conditionmanager._savedirectory = _conditiondirectory
-            pub.controlmanager._controldirectory = _controldirectory
-            pub.conditionmanager._projectdirectory = _projectdirectory
+    def trim_conditions(self):
+        self.elements.trim_conditions()
 
-    def trimconditions(self):
-        for element in self.elements:
-            element.model.sequences.trimconditions()
-
-    def resetconditions(self):
-        for element in self.elements:
-            element.model.sequences.reset()
+    def reset_conditions(self):
+        self.elements.reset()
 
     def connect(self):
-        for element in self.elements:
-            element.connect()
-            element.model.parameters.update()
+        self.elements.connect()
 
     @property
     def network_properties(self):
@@ -181,7 +112,7 @@ class HydPy(object):
                 del sels1[name]
         return sels1
 
-    def _updatedeviceorder(self):
+    def _update_deviceorder(self):
         self.deviceorder = []
         for node in self.endnodes:
             self._nextnode(node)
@@ -232,23 +163,19 @@ class HydPy(object):
         return (pub.timegrids.init[pub.timegrids.sim.firstdate],
                 pub.timegrids.init[pub.timegrids.sim.lastdate])
 
-    def openfiles(self, idx=0):
-        for element in self.elements:
-            element.model.sequences.openfiles(idx)
-        for node in self.nodes:
-            node.sequences.openfiles(idx)
+    def open_files(self, idx=0):
+        self.elements.open_files(idx=idx)
+        self.nodes.open_files(idx=idx)
 
-    def closefiles(self):
-        for element in self.elements:
-            element.model.sequences.closefiles()
-        for node in self.nodes:
-            node.sequences.closefiles()
+    def close_files(self):
+        self.elements.close_files()
+        self.nodes.close_files()
 
-    def updatedevices(self, selection=None):
+    def update_devices(self, selection=None):
         if selection is not None:
             self.nodes = selection.nodes
             self.elements = selection.elements
-        self._updatedeviceorder()
+        self._update_deviceorder()
 
     @property
     def funcorder(self):
@@ -280,104 +207,54 @@ class HydPy(object):
     @magictools.printprogress
     def doit(self):
         idx_start, idx_end = self.simindices
-        self.openfiles(idx_start)
+        self.open_files(idx_start)
         funcorder = self.funcorder
         for idx in magictools.progressbar(range(idx_start, idx_end)):
             for func in funcorder:
                 func(idx)
-        self.closefiles()
+        self.close_files()
 
-    @magictools.printprogress
     def prepare_modelseries(self, ramflag=True):
-        for element in magictools.progressbar(self.elements):
-            element.prepare_allseries(ramflag)
+        self.elements.prepare_allseries(ramflag=ramflag)
 
-    @magictools.printprogress
     def prepare_inputseries(self, ramflag=True):
-        for element in magictools.progressbar(self.elements):
-            element.prepare_inputseries(ramflag)
+        self.elements.prepare_inputseries(ramflag=ramflag)
 
-    @magictools.printprogress
     def prepare_fluxseries(self, ramflag=True):
-        for element in magictools.progressbar(self.elements):
-            element.prepare_fluxseries(ramflag)
+        self.elements.prepare_fluxseries(ramflag=ramflag)
 
-    @magictools.printprogress
     def prepare_stateseries(self, ramflag=True):
-        for element in magictools.progressbar(self.elements):
-            element.prepare_stateseries(ramflag)
+        self.elements.prepare_stateseries(ramflag=ramflag)
 
-    @magictools.printprogress
     def prepare_nodeseries(self, ramflag=True):
-        self.prepare_simseries(ramflag)
-        self.prepare_obsseries(ramflag)
+        self.nodes.prepare_simseries(ramflag=ramflag)
 
-    @magictools.printprogress
     def prepare_simseries(self, ramflag=True):
-        for node in magictools.progressbar(self.nodes):
-            node.prepare_simseries(ramflag)
+        self.nodes.prepare_allseries(ramflag=ramflag)
 
-    @magictools.printprogress
     def prepare_obsseries(self, ramflag=True):
-        for node in magictools.progressbar(self.nodes):
-            node.prepare_obsseries(ramflag)
+        self.nodes.prepare_simseries(ramflag=ramflag)
 
-    @magictools.printprogress
     def save_modelseries(self):
-        self.save_inputseries()
-        self.save_fluxseries()
-        self.save_stateseries()
+        self.elements.save_allseries()
 
-    @magictools.printprogress
     def save_inputseries(self):
-        self._save_modelseries('inputs', pub.sequencemanager.inputoverwrite)
+        self.elements.save_inputseries()
 
-    @magictools.printprogress
     def save_fluxseries(self):
-        self._save_modelseries('fluxes', pub.sequencemanager.outputoverwrite)
+        self.elements.save_fluxseries()
 
-    @magictools.printprogress
     def save_stateseries(self):
-        self._save_modelseries('states', pub.sequencemanager.outputoverwrite)
+        self.elements.save_stateseries()
 
-    def _save_modelseries(self, name_subseqs, overwrite):
-        for element in magictools.progressbar(self.elements):
-            sequences = element.model.sequences
-            subseqs = getattr(sequences, name_subseqs, ())
-            for (name, seq) in subseqs:
-                if seq.memoryflag:
-                    if overwrite or not os.path.exists(seq.filepath_ext):
-                        seq.save_ext()
-                    else:
-                        warnings.warn('Due to the argument `overwrite` beeing '
-                                      '`False` it is not allowed to overwrite '
-                                      'the already existing file `%s`.'
-                                      % seq.filepath_ext)
-
-    @magictools.printprogress
     def save_nodeseries(self):
-        self.save_simseries()
-        self.save_obsseries()
+        self.nodes.save_allseries()
 
-    @magictools.printprogress
     def save_simseries(self, ramflag=True):
-        self._save_nodeseries('sim', pub.sequencemanager.simoverwrite)
+        self.nodes.save_simseries()
 
-    @magictools.printprogress
     def save_obsseries(self, ramflag=True):
-        self._save_nodeseries('obs', pub.sequencemanager.obsoverwrite)
-
-    def _save_nodeseries(self, seqname, overwrite):
-        for node in magictools.progressbar(self.nodes):
-            seq = getattr(node.sequences, seqname)
-            if seq.memoryflag:
-                if overwrite or not os.path.exists(seq.filepath_ext):
-                    seq.save_ext()
-                else:
-                    warnings.warn('Due to the argument `overwrite` beeing '
-                                  '`False` it is not allowed to overwrite '
-                                  'the already existing file `%s`.'
-                                  % seq.filepath_ext)
+        self.nodes.save_obsseries()
 
 
 autodoctools.autodoc_module()

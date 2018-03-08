@@ -17,9 +17,6 @@
 HydPy
 =====
 
-An interactive framework for developing and applying hydrological models
-------------------------------------------------------------------------
-
 :ref:`HydPy` is an interactive framework for developing and applying
 different types of hydrological models.  It was orginally developed
 at the `Ruhr-University Bochum`_ for specific research purposes.

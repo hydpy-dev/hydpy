@@ -18,7 +18,7 @@ from hydpy import pub
 from hydpy.core import abctools
 from hydpy.core import autodoctools
 from hydpy.core import connectiontools
-from hydpy.core import filetools
+# from hydpy.core import filetools   actual import below, Python 2 issue
 from hydpy.core import magictools
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
@@ -1721,6 +1721,7 @@ class Elements(Devices):
 
     @magictools.printprogress
     def init_models(self):
+        from hydpy.core import filetools
         """Call method :func:`~Element.init_model` of each handled
         |Element| object and afterwards method
         :func:`~hydpy.core.parametertools.Parameters.update` of the

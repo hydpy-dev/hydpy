@@ -190,7 +190,7 @@ Python built-ins like `for`...)
             'mistaken with Python built-ins like `for`...)' % name)
 
 
-def augmentexcmessage(prefix=None, suffix=None):
+def augment_excmessage(prefix=None, suffix=None):
     """Augment an exception message with additional information while keeping
     the original traceback.
 
@@ -206,14 +206,14 @@ def augmentexcmessage(prefix=None, suffix=None):
     ...     try:
     ...         prefix = 'While showing how prefixing works'
     ...         suffix = '(This is a final remark.)'
-    ...         objecttools.augmentexcmessage(prefix, suffix)
+    ...         objecttools.augment_excmessage(prefix, suffix)
     ...     except TypeError as exc:
     ...         for line in textwrap.wrap(exc.args[0], width=76):
     ...             print(line)
     While showing how prefixing works, the following error occured: unsupported
     operand type(s) for +: 'int' and 'str' (This is a final remark.)
 
-    Note that the ancillary purpose of function :func:`augmentexcmessage` is
+    Note that the ancillary purpose of function :func:`augment_excmessage` is
     to make re-raising exceptions compatible with both Python 2 and 3.
     """
     exception, message, traceback_ = sys.exc_info()
@@ -519,7 +519,7 @@ def print_values(values, width=70):
 
     By default, each line contains at most 70 characters:
 
-    >>> from hydpy.core.objecttools import print_values
+    >>> from hydpy import print_values
     >>> print_values(range(21))
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
     20
@@ -1011,7 +1011,7 @@ def round_(values, decimals=None, width=0,
     Usually one would apply function :func:`round_` on a single or a vector
     of numbers:
 
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> round_(1./3., decimals=6)
     0.333333
     >>> round_((1./2., 1./3., 1./4.), decimals=4)

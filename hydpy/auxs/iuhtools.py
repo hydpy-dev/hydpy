@@ -251,14 +251,14 @@ class TranslationDiffusionEquation(IUH):
     There are three primary parameter whichs values need to be defined by
     the user:
 
-    >>> from hydpy.auxs.iuhtools import TranslationDiffusionEquation
+    >>> from hydpy import TranslationDiffusionEquation
     >>> tde = TranslationDiffusionEquation(u=5., d=15., x=50.)
     >>> tde
     TranslationDiffusionEquation(d=15.0, u=5.0, x=50.0)
 
     The values of both secondary parameters are determined automatically:
 
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> round_((tde.a, tde.b))
     6.454972, 0.645497
 
@@ -342,7 +342,8 @@ class TranslationDiffusionEquation(IUH):
     >>> tde.x = 'a'
     Traceback (most recent call last):
     ...
-    TypeError: The value `a` of type `str` could not be converted to type `float` of the instantaneous unit hydrograph parameter `x`.
+    TypeError: The value `a` of type `str` could not be converted to type \
+`float` of the instantaneous unit hydrograph parameter `x`.
 
     When passing parameter values as initialization arguments or when using
     method `set_primary_parameters`, tests for completeness are performed:
@@ -350,7 +351,12 @@ class TranslationDiffusionEquation(IUH):
     >>> TranslationDiffusionEquation(u=5.0, d=15.0)
     Traceback (most recent call last):
     ...
-    ValueError: When passing primary parameter values as initialization arguments of the instantaneous unit hydrograph class `TranslationDiffusionEquation`, or when using method `set_primary_parameters, one has to to define all values at once via keyword arguments.  But instead of the primary parameter names `d, u, x` the following keywords were given: d, u.
+    ValueError: When passing primary parameter values as initialization \
+arguments of the instantaneous unit hydrograph class \
+`TranslationDiffusionEquation`, or when using method \
+`set_primary_parameters, one has to to define all values at once via \
+keyword arguments.  But instead of the primary parameter names `d, u, x` \
+the following keywords were given: d, u.
     """
     u = PrimaryParameter('u', doc='Wave velocity.')
     d = PrimaryParameter('d', doc='Diffusion coefficient.')
@@ -381,9 +387,9 @@ class LinearStorageCascade(IUH):
     After defining the values of the two primary parameters, the function
     object can be applied:
 
-    >>> from hydpy.auxs.iuhtools import LinearStorageCascade
+    >>> from hydpy import LinearStorageCascade
     >>> lsc = LinearStorageCascade(n=2.5, k=2.)
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> round_(lsc.c)
     0.376126
     >>> import numpy

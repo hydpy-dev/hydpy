@@ -42,7 +42,7 @@ def calc_qpin_v1(self):
         The first six examples are performed for inflow values ranging from
         0 to 12 m³/s:
 
-        >>> from hydpy.core.testtools import UnitTest
+        >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.calc_qpin_v1, last_example=6)
         >>> test.nexts.qin = 0., 1., 2., 4., 6., 12.
         >>> test()

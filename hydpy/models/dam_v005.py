@@ -95,7 +95,7 @@ Integration examples:
     |arma_v1| models that allow an exact reproduction of example 7
     of the documentation on application model |dam_v001|:
 
-    >>> from hydpy.core.magictools import prepare_model
+    >>> from hydpy import prepare_model
     >>> from hydpy.models import arma_v1
     >>> arma_model = prepare_model(arma_v1)
     >>> stream2.connect(arma_model)
@@ -109,7 +109,7 @@ Integration examples:
     >>> from hydpy.models.dam_v005 import *
     >>> parameterstep('1d')
     >>> dam.connect(model)
-    >>> from hydpy.core.testtools import IntegrationTest
+    >>> from hydpy import IntegrationTest
     >>> IntegrationTest.plotting_options.height = 370
     >>> IntegrationTest.plotting_options.activated=(
     ...     fluxes.inflow, fluxes.outflow)

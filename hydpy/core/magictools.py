@@ -49,8 +49,7 @@ class Tester(object):
     def filenames(self):
         if self.ispackage:
             return os.listdir(os.path.dirname(self.filepath))
-        else:
-            return [self.filepath]
+        return [self.filepath]
 
     @property
     def modulenames(self):
@@ -62,7 +61,7 @@ class Tester(object):
         from hydpy.core import parametertools
         from hydpy.core import testtools
         opt = pub.options
-        Par = parametertools.Parameter
+        par = parametertools.Parameter
         with opt.usedefaultvalues(False), \
                 opt.usedefaultvalues(False), \
                 opt.printprogress(False), \
@@ -72,8 +71,8 @@ class Tester(object):
                 opt.ellipsis(0), \
                 opt.reprdigits(6), \
                 opt.warntrim(False), \
-                Par.parameterstep.delete(), \
-                Par.simulationstep.delete():
+                par.parameterstep.delete(), \
+                par.simulationstep.delete():
             timegrids = pub.timegrids
             pub.timegrids = None
             nodes = devicetools.Node._registry.copy()
@@ -87,11 +86,11 @@ class Tester(object):
                 color = 34 if pub.options.usecython else 36
                 with PrintStyle(color=color, font=4):
                     print(
-                      'Test %s %s in %sython mode.'
-                      % ('package' if self.ispackage else 'module',
-                         self.package if self.ispackage else
-                         self.modulenames[0],
-                         'C' if pub.options.usecython else 'P'))
+                        'Test %s %s in %sython mode.'
+                        % ('package' if self.ispackage else 'module',
+                           self.package if self.ispackage else
+                           self.modulenames[0],
+                           'C' if pub.options.usecython else 'P'))
                 with PrintStyle(color=color, font=2):
                     for name in self.modulenames:
                         print('    * %s:' % name, )
@@ -102,8 +101,8 @@ class Tester(object):
                             warnings.filterwarnings('ignore',
                                                     category=ImportWarning)
                             doctest.testmod(
-                                    module, extraglobs={'testing': True},
-                                    optionflags=doctest.ELLIPSIS)
+                                module, extraglobs={'testing': True},
+                                optionflags=doctest.ELLIPSIS)
                             warnings.resetwarnings()
             finally:
                 pub.timegrids = timegrids
@@ -131,7 +130,7 @@ class PrintStyle(object):
         if pub.options.printincolor:
             print(end='\x1B[0m', file=self.file)
         if exception:
-            objecttools.augmentexcmessage()
+            objecttools.augment_excmessage()
 
 
 class StdOutErr(object):
@@ -157,7 +156,7 @@ class StdOutErr(object):
         sys.stdout = self.stdout
         sys.stderr = self.stderr
         if exception:
-            objecttools.augmentexcmessage()
+            objecttools.augment_excmessage()
 
     def write(self, text):
         self.texts.extend(text.split('\n'))
@@ -176,12 +175,12 @@ def parameterstep(timestep=None):
     Argument:
       * timestep(:class:`~hydpy.core.timetools.Period`): Time step size.
 
-    Function :func:`parameterstep` should usually be be applied in a line
+    Function parameterstep should usually be be applied in a line
     immediately behind the model import.  Defining the step size of time
     dependent parameters is a prerequisite to access any model specific
     parameter.
 
-    Note that :func:`parameterstep` implements some namespace magic by
+    Note that parameterstep implements some namespace magic by
     means of the module :mod:`inspect`.  This makes things a little
     complicated for framework developers, but it eases the definition of
     parameter control files for framework users.
@@ -205,7 +204,7 @@ def parameterstep(timestep=None):
                 if hasattr(cythonizer.cymodule, numpars_name):
                     numpars_new = getattr(cythonizer.cymodule, numpars_name)()
                     numpars_old = getattr(model, numpars_name.lower())
-                    for (name_numpar, numpar) in numpars_old:
+                    for (name_numpar, numpar) in vars(numpars_old).items():
                         setattr(numpars_new, name_numpar, numpar)
                     setattr(model.cymodel, numpars_name.lower(), numpars_new)
             for name in dir(model.cymodel):
@@ -218,17 +217,17 @@ def parameterstep(timestep=None):
             namespace['Sequences'] = sequencetools.Sequences
         model.sequences = namespace['Sequences'](**namespace)
         namespace['parameters'] = model.parameters
-        for (name, pars) in model.parameters:
-            namespace[name] = pars
+        for pars in model.parameters:
+            namespace[pars.name] = pars
         namespace['sequences'] = model.sequences
-        for (name, seqs) in model.sequences:
-            namespace[name] = seqs
+        for seqs in model.sequences:
+            namespace[seqs.name] = seqs
     try:
         namespace.update(namespace['CONSTANTS'])
     except KeyError:
         pass
     focus = namespace.get('focus')
-    for (name, par) in model.parameters.control:
+    for par in model.parameters.control:
         try:
             if (focus is None) or (par is focus):
                 namespace[par.name] = par
@@ -247,7 +246,7 @@ def reverse_model_wildcard_import():
     types of models via wildcard imports.  See the following example, on
     how it can be applied.
 
-    >>> from hydpy.core.magictools import reverse_model_wildcard_import
+    >>> from hydpy import reverse_model_wildcard_import
 
     Assume you wildcard import the first version of HydPy-L-Land
     (:mod:`~hydpy.models.lland_v1`):
@@ -260,16 +259,14 @@ def reverse_model_wildcard_import():
     >>> print(ControlParameters(None).name)
     control
 
-    Calling function :func:`~hydpy.core.magictools.parameterstep` for example
-    prepares the control parameter object
-    :class:`~hydpy.models.lland.lland_control.nhru`:
+    Calling function |parameterstep| for example prepares the control
+    parameter object :class:`~hydpy.models.lland.lland_control.nhru`:
 
     >>> parameterstep('1d')
     >>> nhru
     nhru(-999999)
 
-    Calling function
-    :func:`~hydpy.core.magictools.reverse_model_wildcard_import` removes both
+    Calling function |reverse_model_wildcard_import| removes both
     objects (and many more, but not all) from the local namespace:
 
     >>> reverse_model_wildcard_import()
@@ -287,17 +284,17 @@ def reverse_model_wildcard_import():
     namespace = inspect.currentframe().f_back.f_locals
     model = namespace.get('model')
     if model is not None:
-        for (name_subpars, subpars) in model.parameters:
-            for (name_par, par) in subpars:
-                namespace.pop(name_par, None)
+        for subpars in model.parameters:
+            for par in subpars:
+                namespace.pop(par.name, None)
                 namespace.pop(objecttools.classname(par), None)
-            namespace.pop(name_subpars, None)
+            namespace.pop(subpars.name, None)
             namespace.pop(objecttools.classname(subpars), None)
-        for (name_subseqs, subseqs) in model.sequences:
-            for (name_seq, seq) in subseqs:
-                namespace.pop(name_seq, None)
+        for subseqs in model.sequences:
+            for seq in subseqs:
+                namespace.pop(seq.name, None)
                 namespace.pop(objecttools.classname(seq), None)
-            namespace.pop(name_subseqs, None)
+            namespace.pop(subseqs.name, None)
             namespace.pop(objecttools.classname(subseqs), None)
         for name in ('parameters', 'sequences', 'model',
                      'Parameters', 'Sequences', 'Model',
@@ -321,11 +318,11 @@ def prepare_model(module, timestep=None):
 
     However, there are situations when different models are to be loaded
     into the same namespace.  Then it is advisable to use function
-    :func:`prepare_model`, which just returns a reference to the model
+    |prepare_model|, which just returns a reference to the model
     and nothing else.
 
     See the documentation of :mod:`~hydpy.models.dam_v001` on how to apply
-    function :func:`prepare_model` properly.
+    function |prepare_model| properly.
     """
     from hydpy.core import parametertools
     if timestep is not None:
@@ -341,7 +338,7 @@ def prepare_model(module, timestep=None):
             if hasattr(cymodule, numpars_name):
                 numpars_new = getattr(cymodule, numpars_name)()
                 numpars_old = getattr(model, numpars_name.lower())
-                for (name_numpar, numpar) in numpars_old:
+                for (name_numpar, numpar) in vars(numpars_old).items():
                     setattr(numpars_new, name_numpar, numpar)
                 setattr(cymodel, numpars_name.lower(), numpars_new)
         for name in dir(cymodel):
@@ -369,23 +366,20 @@ def simulationstep(timestep):
     Define a simulation time step size for testing purposes within a
     parameter control file.
 
-    Argument:
-        * timestep(:class:`~hydpy.core.timetools.Period`): Time step size.
-
-    Using :func:`simulationstep` only affects the values of time dependent
+    Using |simulationstep| only affects the values of time dependent
     parameters, when `pub.timegrids.stepsize` is not defined.  It thus has
     no influence on usual hydpy simulations at all.  Use it just to check
     your parameter control files.  Write it in a line immediately behind
-    the one calling :func:`parameterstep`.
+    the one calling |parameterstep|.
     """
     from hydpy.core import parametertools
     if pub.options.warnsimulationstep:
-        warnings.warn('Note that the applied function `simulationstep` is '
-                      'inteded for testing purposes only.  When doing a '
-                      'hydpy simulation, parameter values are initialized '
-                      'based on the actual simulation time step as defined '
-                      'under `pub.timegrids.stepsize` and the value given '
-                      'to `simulationstep` is ignored.')
+        warnings.warn(
+            'Note that the applied function `simulationstep` is inteded for '
+            'testing purposes only.  When doing a hydpy simulation, parameter '
+            'values are initialized based on the actual simulation time step '
+            'as defined under `pub.timegrids.stepsize` and the value given '
+            'to `simulationstep` is ignored.')
     parametertools.Parameter.simulationstep(timetools.Period(timestep))
 
 
@@ -394,34 +388,25 @@ def controlcheck(controldir='default', projectdir=None, controlfile=None):
     namespace = inspect.currentframe().f_back.f_locals
     model = namespace.get('model')
     if model is None:
-        if projectdir is None:
-            projectdir = os.path.dirname(os.path.abspath(os.curdir))
-            projectdir = os.path.split(projectdir)[-1]
-        os.chdir(os.path.join('..', '..', '..'))
-        controlpath = os.path.abspath(os.path.join('control',
-                                                   projectdir,
-                                                   controldir))
-        initfile = os.path.split(namespace['__file__'])[-1]
-        if controlfile is None:
-            controlfile = initfile
-        filepath = os.path.join(controlpath, controlfile)
-        if not os.path.exists(filepath):
-            raise IOError('The check of consistency between the control '
-                          'parameter file %s and the initial condition file '
-                          '%s failed.  The control parameter file does not '
-                          'exist in directory %s.'
-                          % (controlfile, initfile, controlpath))
+        if not controlfile:
+            controlfile = os.path.split(namespace['__file__'])[-1]
+        os.chdir('..')
+        os.chdir('..')
         controlmanager = filetools.ControlManager()
-        controlmanager.projectdirectory = projectdir
-        controlmanager.selecteddirectory = controldir
-        model = controlmanager.loadfile(controlfile)['model']
+        if projectdir:
+            controlmanager.projectdir = projectdir
+        else:
+            controlmanager.projectdir = os.path.split(os.getcwd())[-1]
+        controlmanager.currentdir = controldir
+        os.chdir('..')
+        model = controlmanager.load_file(filename=controlfile)['model']
         model.parameters.update()
         namespace['model'] = model
-        for name1 in ('states', 'logs'):
-            subseqs = getattr(model.sequences, name1, None)
+        for name in ('states', 'logs'):
+            subseqs = getattr(model.sequences, name, None)
             if subseqs is not None:
-                for (name2, seq) in subseqs:
-                    namespace[name2] = seq
+                for seq in subseqs:
+                    namespace[seq.name] = seq
 
 
 lines_print_progress_wrapper = \
@@ -429,7 +414,7 @@ lines_print_progress_wrapper = \
      '    """Wrapper for HydPy methods to print when they start and end.',
      '',
      '    The wrapper is general in its function arguments.  When one uses ',
-     '    the decorator :func:`printprogress`, the general arguments are ',
+     '    the decorator |printprogress|, the general arguments are ',
      '    replaced by the specific ones of the method to be wrapped.',
      '    """',
      '    import sys',
@@ -459,10 +444,10 @@ lines_print_progress_wrapper = \
 def zip_longest(*iterables, **kwargs):
     """Return the iterator defined by `zip_longest` or `izip_longest` of
     module :mod:`itertools` under Python 2 and 3 respectively."""
+    # pylint: disable=no-member
     if pub.pyversion < 3:
         return itertools.izip_longest(*iterables, **kwargs)
-    else:
-        return itertools.zip_longest(*iterables, **kwargs)
+    return itertools.zip_longest(*iterables, **kwargs)
 
 
 def signature(function):
@@ -496,8 +481,7 @@ def _signature_without_default_values(signature):
 
 
 def printprogress(printprogress_wrapped):
-    """Decorator for wrapping HydPy methods with
-    :func:`printprogress_wrapper_generalized`.
+    """Decorator for wrapping HydPy methods with `printprogress_wrapper`.
 
     Hopefully, all relevant attributes of the wrapped method are maintained.
     """
@@ -516,7 +500,7 @@ def printprogress(printprogress_wrapped):
 def progressbar(iterable, length=23):
     """Print a simple progress bar while processing the given iterable.
 
-    Function :func:`progressbar` does print the progress bar when option
+    Function |progressbar| does print the progress bar when option
     `printprogress` is activted:
 
     >>> from hydpy import pub
@@ -526,7 +510,7 @@ def progressbar(iterable, length=23):
     of all integer values from 1 to 100 and print the progress of the
     calculation.  Using function :func:`range` (which returns a list in
     Python 2 and an iterator in Python3, but both are fine), one just has
-    to  interpose function :func:`progressbar`:
+    to  interpose function |progressbar|:
 
     >>> from hydpy.core.magictools import progressbar
     >>> x_sum = 0

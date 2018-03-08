@@ -38,7 +38,7 @@ class Date(object):
     objects directly, e.g.:
 
         >>> from datetime import datetime
-        >>> from hydpy.core.timetools import Date
+        >>> from hydpy import Date
         >>> # Initialize a `datetime` object...
         >>> datetime_object = datetime(1996, 11, 1, 0, 0, 0)
         >>> # ...and use it to initialise a `Date` object.
@@ -417,7 +417,7 @@ class Period(object):
     :class:`~datetime.timedelta` objects, e.g.:
 
         >>> from datetime import timedelta
-        >>> from hydpy.core.timetools import Period
+        >>> from hydpy import Period
         >>> # Initialize a `timedelta` object...
         >>> timedelta_object = timedelta(1, 0)
         >>> # ...and use it to initialise a `Period` object
@@ -464,7 +464,7 @@ class Period(object):
     Some examples:
 
         >>> # Determine the period length between two dates.
-        >>> from hydpy.core.timetools import Date
+        >>> from hydpy import Date
         >>> date1, date2 = Date('1997.11.01'), Date('1996.11.01')
         >>> wholeperiod = date1 - date2
         >>> print(wholeperiod)
@@ -755,7 +755,7 @@ class Timegrid(object):
     object is initialized by defining its first date, its last date and its
     stepsize:
 
-        >>> from hydpy.core.timetools import Date, Period, Timegrid
+        >>> from hydpy import Date, Period, Timegrid
         >>> # Either pass the proper attributes directly...
         >>> firstdate = Date('1996.11.01')
         >>> lastdate = Date('1997.11.01')
@@ -935,14 +935,14 @@ given step size 1d.
         and apply its `array2series` method on a simple list containing
         numbers:
 
-        >>> from hydpy.core.timetools import Timegrid
+        >>> from hydpy import Timegrid
         >>> timegrid = Timegrid('2000.11.01 00:00', '2000.11.01 04:00', '1h')
         >>> series = timegrid.array2series([1, 2, 3.5, '5.0'])
 
         The first six entries contain the first date of the timegrid (year,
         month, day, hour, minute, second):
 
-        >>> from hydpy.core.objecttools import round_
+        >>> from hydpy import round_
         >>> round_(series[:6])
         2000.0, 11.0, 1.0, 0.0, 0.0, 0.0
 
@@ -1004,8 +1004,8 @@ timegrid object is `4` and the length of the array object is `2`.
         try:
             array = numpy.array(array, dtype=float)
         except BaseException:
-            objecttools.augmentexcmessage('While trying to prefix timegrid '
-                                          'information to the given array')
+            objecttools.augment_excmessage('While trying to prefix timegrid '
+                                           'information to the given array')
         if len(array) != len(self):
             raise ValueError(
                 'When converting an array to a sequence, the lengths of the '
@@ -1513,7 +1513,7 @@ set to `2`, but the given value is `29`.
                     else:
                         setattr(self, prop, 0)
                 except ValueError:
-                    objecttools.augmentexcmessage(
+                    objecttools.augment_excmessage(
                         'While trying to retrieve the %s for TOY (time of '
                         'year) object based on the string `%s`'
                         % (prop, value))

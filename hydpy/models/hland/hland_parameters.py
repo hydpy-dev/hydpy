@@ -22,7 +22,7 @@ class MultiParameter(parametertools.ZipParameter):
     `ilake,` and `default`.  If available, the respective values are used to
     define the values of those 1-dimensional arrays, whose entries are related
     to the different zone types. Also the method
-    :func:`~MultiParameter.compressrepr` tries to find compressed string
+    :func:`~MultiParameter.compress_repr` tries to find compressed string
     representations based on the mentioned zone types.
 
     Examples:
@@ -42,7 +42,10 @@ class MultiParameter(parametertools.ZipParameter):
         >>> mp.shape
         Traceback (most recent call last):
         ...
-        RuntimeError: Shape information for parameter `multiparameter` can only be retrieved after it has been defined.  You can do this manually, but usually it is done automatically by defining the value of parameter `nmbzones` first in each parameter control file.
+        RuntimeError: Shape information for parameter `multiparameter` can \
+only be retrieved after it has been defined.  You can do this manually, \
+but usually it is done automatically by defining the value of \
+parameter `nmbzones` first in each parameter control file.
 
         But here it is set manually to the value 5 for representing
         five different zone types:

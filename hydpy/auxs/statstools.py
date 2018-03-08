@@ -43,7 +43,9 @@ def calc_mean_time(timepoints, weights):
     ...                weights=[-2., 2.])
     Traceback (most recent call last):
     ...
-    ValueError: While trying to calculate the weighted mean time, the following error occured: For the following objects, at least one value is negative: weights.
+    ValueError: While trying to calculate the weighted mean time, \
+the following error occured: For the following objects, at least \
+one value is negative: weights.
     """
     try:
         timepoints = numpy.array(timepoints)
@@ -52,7 +54,7 @@ def calc_mean_time(timepoints, weights):
         validtools.test_non_negative(weights=weights)
         return numpy.dot(timepoints, weights)/numpy.sum(weights)
     except BaseException:
-        objecttools.augmentexcmessage(
+        objecttools.augment_excmessage(
                 'While trying to calculate the weighted mean time')
 
 
@@ -70,7 +72,7 @@ def calc_mean_time_deviation(timepoints, weights, mean_time=None):
 
     One can pass a precalculated or alternate mean time:
 
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> round_(calc_mean_time_deviation(timepoints=[3., 7.],
     ...                                 weights=[2., 2.],
     ...                                 mean_time=4.))
@@ -92,7 +94,9 @@ def calc_mean_time_deviation(timepoints, weights, mean_time=None):
     ...                          weights=[-2., 2.])
     Traceback (most recent call last):
     ...
-    ValueError: While trying to calculate the weighted time deviation from mean time, the following error occured: For the following objects, at least one value is negative: weights.
+    ValueError: While trying to calculate the weighted time deviation \
+from mean time, the following error occured: For the following objects, \
+at least one value is negative: weights.
     """
     try:
         timepoints = numpy.array(timepoints)
@@ -104,7 +108,9 @@ def calc_mean_time_deviation(timepoints, weights, mean_time=None):
         return (numpy.sqrt(numpy.dot(weights, (timepoints-mean_time)**2) /
                            numpy.sum(weights)))
     except BaseException:
-        objecttools.augmentexcmessage('While trying to calculate the weighted '
-                                      'time deviation from mean time')
+        objecttools.augment_excmessage(
+            'While trying to calculate the weighted '
+            'time deviation from mean time')
+
 
 autodoctools.autodoc_module()

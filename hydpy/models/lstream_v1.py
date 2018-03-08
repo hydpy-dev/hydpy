@@ -17,8 +17,8 @@ Integration test:
     >>> from hydpy.cythons import pointerutils
     >>> inflow, outflow = pointerutils.Double(0.), pointerutils.Double(0.)
     >>> inlets.q.shape = 1
-    >>> inlets.q.setpointer(inflow, 0)
-    >>> outlets.q.setpointer(outflow)
+    >>> inlets.q.set_pointer(inflow, 0)
+    >>> outlets.q.set_pointer(outflow)
 
     Define the geometry and roughness values for the first test channel:
 

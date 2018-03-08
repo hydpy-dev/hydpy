@@ -49,7 +49,7 @@
     behaves exactly like model |dam_v003| when the relieve discharge is
     disabled, which can be accomplished by the following settings:
 
-    >>> from hydpy.core.testtools import IntegrationTest
+    >>> from hydpy import IntegrationTest
     >>> IntegrationTest.plotting_options.activated=(
     ...     fluxes.inflow, fluxes.outflow)
     >>> test = IntegrationTest(

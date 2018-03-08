@@ -55,7 +55,7 @@ Integration examples:
     external time series data, and parameter values are set in favour of
     making the simulation results as comparable as possible:
 
-    >>> from hydpy.core.testtools import IntegrationTest
+    >>> from hydpy import IntegrationTest
     >>> IntegrationTest.plotting_options.height = 250
     >>> IntegrationTest.plotting_options.activated=(
     ...     fluxes.inflow, fluxes.outflow)

@@ -26,7 +26,7 @@ def description(self):
     are removed:
 
     >>> from hydpy.core import autodoctools, objecttools
-    >>> autodoctools.description(objecttools.augmentexcmessage)
+    >>> autodoctools.description(objecttools.augment_excmessage)
     'Augment an exception message with additional information while keeping \
 the original traceback.'
 

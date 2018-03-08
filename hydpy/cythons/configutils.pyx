@@ -25,7 +25,7 @@ cdef class Config(object):
 
         >>> from hydpy.cythons.configtools import Config
         >>> config = Config()
-        >>> from hydpy.core.objecttools import round_
+        >>> from hydpy import round_
         >>> round_(config.abs_error_max)
         0.01
 
@@ -71,7 +71,7 @@ cdef class Config(object):
 
         >>> from hydpy.cythons.configtools import Config
         >>> config = Config()
-        >>> from hydpy.core.objecttools import round_
+        >>> from hydpy import round_
         >>> round_(config.rel_dt_min)
         0.001
 

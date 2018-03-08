@@ -25,7 +25,7 @@ class NmbLogEntries(parametertools.SingleParameter):
     >>> from hydpy.models.dam import *
     >>> parameterstep()
     >>> nmblogentries(3)
-    >>> for (name, seq) in logs:
+    >>> for seq in logs:
     ...     print(seq)
     loggedtotalremotedischarge(nan, nan, nan)
     loggedoutflow(nan, nan, nan)
@@ -36,7 +36,7 @@ class NmbLogEntries(parametertools.SingleParameter):
 
     def __call__(self, *args, **kwargs):
         super(NmbLogEntries, self).__call__(*args, **kwargs)
-        for (dummy, seq) in self.subpars.pars.model.sequences.logs:
+        for seq in self.subpars.pars.model.sequences.logs:
             try:
                 seq.shape = self
             except AttributeError:

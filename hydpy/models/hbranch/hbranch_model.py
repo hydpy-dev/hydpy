@@ -172,7 +172,7 @@ class Model(modeltools.Model):
         nodes = self.element.inlets.slaves
         if len(nodes) == 1:
             double = nodes[0].get_double_via_exits()
-            self.sequences.inlets.total.setpointer(double)
+            self.sequences.inlets.total.set_pointer(double)
         else:
             RuntimeError('The hbranch model must be connected to exactly one '
                          'inlet node, but its parent element `%s` references '
@@ -192,4 +192,4 @@ class Model(modeltools.Model):
                     RuntimeError('The hbranch model tried to connect to an '
                                  'outlet node named `%s`, which is not '
                                  'initialized yet.' % name)
-            self.sequences.outlets.branched.setpointer(double, idx)
+            self.sequences.outlets.branched.set_pointer(double, idx)

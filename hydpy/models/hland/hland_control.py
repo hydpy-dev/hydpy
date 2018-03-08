@@ -44,13 +44,13 @@ class NmbZones(parametertools.SingleParameter):
         :class:`QUH`) additionally.
         """
         parametertools.SingleParameter.__call__(self, *args, **kwargs)
-        for (_name, subpars) in self.subpars.pars.model.parameters:
-            for (name, par) in subpars:
-                if (par.NDIM > 0) and (name != 'uh'):
+        for subpars in self.subpars.pars.model.parameters:
+            for par in subpars:
+                if (par.NDIM > 0) and (par.name != 'uh'):
                     par.shape = self.value
-        for (_name, subseqs) in self.subpars.pars.model.sequences:
-            for (name, seq) in subseqs:
-                if (seq.NDIM > 0) and (name != 'quh'):
+        for subseqs in self.subpars.pars.model.sequences:
+            for seq in subseqs:
+                if (seq.NDIM > 0) and (seq.name != 'quh'):
                     seq.shape = self.value
 
 
@@ -71,7 +71,7 @@ class ZoneType(hland_parameters.MultiParameter):
     """
     NDIM, TYPE, TIME, SPAN = 1, int, None, (1, 4)
 
-    def compressrepr(self):
+    def compress_repr(self):
         """Returns a list which contains a string representation with zone
         types beeing defined by the constants `FIELD`, `FOREST`...
         """

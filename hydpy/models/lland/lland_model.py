@@ -1428,7 +1428,7 @@ def calc_qdgz1_qdgz2_v1(self):
         Define a test function and let it calculate |QDGZ1| and |QDGZ1| for
         values of |QDGZ| ranging from -10 to 100 mm/12h:
 
-        >>> from hydpy.core.testtools import UnitTest
+        >>> from hydpy import UnitTest
         >>> test = UnitTest(model,
         ...                 model.calc_qdgz1_qdgz2_v1,
         ...                 last_example=6,

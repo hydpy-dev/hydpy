@@ -52,7 +52,7 @@ def calc_smoothpar_logistic1(metapar):
     the discontinuity):
 
     >>> from hydpy.cythons import smoothutils
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> round_(smoothutils.smooth_logistic1(-2.5, smoothpar))
     0.01
     >>> round_(smoothutils.smooth_logistic1(2.5, smoothpar))
@@ -94,7 +94,7 @@ def calc_smoothpar_logistic2(metapar):
     from the position of the discontinuity):
 
     >>> from hydpy.cythons import smoothutils
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> round_(smoothutils.smooth_logistic2(-2.5, smoothpar))
     0.01
     >>> round_(smoothutils.smooth_logistic2(2.5, smoothpar))
@@ -136,7 +136,7 @@ def calc_smoothpar_logistic3(metapar):
     nearest discontinuity):
 
     >>> from hydpy.cythons import smoothutils
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> round_(smoothutils.smooth_logistic3(-2.5, smoothpar))
     0.009876
     >>> round_(smoothutils.smooth_logistic3(3.5, smoothpar))
@@ -170,7 +170,7 @@ def calc_smoothpar_max1(metapar):
     between the x and the y value is 2.5:
 
     >>> from hydpy.cythons import smoothutils
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> round_(smoothutils.smooth_max1(4.0, 1.5, smoothpar))
     4.01
     """
@@ -195,7 +195,7 @@ def calc_smoothpar_min1(metapar):
     between the x and the y value is 2.5:
 
     >>> from hydpy.cythons import smoothutils
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> round_(smoothutils.smooth_min1(-4.0, -1.5, smoothpar))
     -4.01
     """

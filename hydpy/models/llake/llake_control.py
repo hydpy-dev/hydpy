@@ -13,11 +13,11 @@ class N(parametertools.SingleParameter):
     """Anzahl Interpolationsstützstellen (number of nodes for the
     interpolation between water state, volume and discharge) [-].
 
-    Parameter :class:`N` determines the length of all 1- and 2-dimensional
+    Parameter |N| determines the length of all 1- and 2-dimensional
     parameters of HydPy-L-Lake.  This requires that the value of
-    the respective :class:`N` instance is set before any of the values
+    the respective |N| instance is set before any of the values
     of these 1- and 2-dimensional parameters are set.  Changing the
-    value of the :class:`N` instance necessitates setting their values
+    value of the |N| instance necessitates setting their values
     again.
 
     Examples:
@@ -28,14 +28,13 @@ class N(parametertools.SingleParameter):
         >>> n(5)
 
         For "simple" 1-dimensional parameters, the shape depends on the
-        value of :class:`N` only:
+        value of |N| only:
 
         >>> w.shape
         (5,)
 
-        For time varying parameters (derived from
-        :class:`~hydpy.core.parametertools.SeasonalParameter`), it also depends
-        on the defined number simulation steps per leap year:
+        For time varying parameters (derived from |SeasonalParameter|),
+        it also depends on the defined number simulation steps per leap year:
 
         >>> verzw.shape
         (732,)
@@ -45,14 +44,14 @@ class N(parametertools.SingleParameter):
     NDIM, TYPE, TIME, SPAN = 0, int, None, (2, None)
 
     def __call__(self, *args, **kwargs):
-        """The prefered way to pass a value to :class:`N` instances
+        """The prefered way to pass a value to |N| instances
         within parameter control files.  Sets the shape of the associated
         1- and 2-dimensional parameter objects additionally.
         """
         parametertools.SingleParameter.__call__(self, *args, **kwargs)
-        for (_name, subpars) in self.subpars.pars.model.parameters:
-            for (name, par) in subpars:
-                if name == 'toy':
+        for subpars in self.subpars.pars.model.parameters:
+            for par in subpars:
+                if par.name == 'toy':
                     continue
                 elif par.NDIM == 1:
                     if isinstance(par, parametertools.SeasonalParameter):
@@ -129,7 +128,11 @@ class MaxDT(parametertools.SingleParameter):
         >>> maxdt(60.)
         Traceback (most recent call last):
         ...
-        ValueError: While trying the set the value of parameter `maxdt` of the lake model handled by element `?`, the following error occured: The supplied argument must be either an instance of `datetime.timedelta` or `str`.  The given arguments type is float. (An example: set `max dt` to 3600 seconds by writing `maxdt("1h"))
+        ValueError: While trying the set the value of parameter `maxdt` of \
+the lake model handled by element `?`, the following error occured: \
+The supplied argument must be either an instance of `datetime.timedelta` \
+or `str`.  The given arguments type is float. (An example: set `max dt` to \
+3600 seconds by writing `maxdt("1h"))
     """
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
@@ -137,7 +140,7 @@ class MaxDT(parametertools.SingleParameter):
         try:
             args = [timetools.Period(args[0]).seconds]
         except BaseException:
-            objecttools.augmentexcmessage(
+            objecttools.augment_excmessage(
                 'While trying the set the value of parameter `maxdt` '
                 'of the lake model handled by element `%s`'
                 % objecttools.devicename(self),

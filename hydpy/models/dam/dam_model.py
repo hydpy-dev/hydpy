@@ -53,13 +53,6 @@ def pic_totalremotedischarge_v1(self):
     flu.totalremotedischarge = rec.q[0]
 
 
-#def pic_totalremotedischarge_v2(self):
-#    """Update the receiver link sequence."""
-#    flu = self.sequences.fluxes.fastaccess
-#    rec = self.sequences.receivers.fastaccess
-#    flu.totalremotedischarge = rec.d[0]
-
-
 def pic_loggedrequiredremoterelease_v1(self):
     """Update the receiver link sequence."""
     log = self.sequences.logs.fastaccess
@@ -103,7 +96,7 @@ def update_loggedtotalremotedischarge_v1(self):
         >>> parameterstep()
         >>> nmblogentries(3)
         >>> logs.loggedtotalremotedischarge = 0.0
-        >>> from hydpy.core.testtools import UnitTest
+        >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.update_loggedtotalremotedischarge_v1,
         ...                 last_example=4,
         ...                 parseqs=(fluxes.totalremotedischarge,
@@ -157,7 +150,7 @@ def calc_waterlevel_v1(self):
         At least in the water volume range used in the following examples,
         the shape of the relationship looks acceptable:
 
-        >>> from hydpy.core.testtools import UnitTest
+        >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.calc_waterlevel_v1, last_example=10)
         >>> test.nexts.watervolume = range(10)
         >>> test()
@@ -219,7 +212,7 @@ def calc_allowedremoterelieve_v2(self):
         time period of only two days:
 
         >>> from hydpy import pub
-        >>> from hydpy.core.timetools import Timegrids, Timegrid
+        >>> from hydpy import Timegrids, Timegrid
         >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
         ...                                    '2001.04.03',
         ...                                    '1d'))
@@ -243,7 +236,7 @@ def calc_allowedremoterelieve_v2(self):
         |AllowedRemoteRelieve| for values of |WaterLevel| ranging
         from 0 and 8 m:
 
-        >>> from hydpy.core.testtools import UnitTest
+        >>> from hydpy import UnitTest
         >>> test = UnitTest(model,
         ...                 model.calc_allowedremoterelieve_v2,
         ...                 last_example=9,
@@ -336,7 +329,7 @@ def calc_requiredremotesupply_v1(self):
         information):
 
         >>> from hydpy import pub
-        >>> from hydpy.core.timetools import Timegrids, Timegrid
+        >>> from hydpy import Timegrids, Timegrid
         >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
         ...                                    '2001.04.03',
         ...                                    '1d'))
@@ -350,7 +343,7 @@ def calc_requiredremotesupply_v1(self):
         ...                           _04_1_12=1.0, _10_31_12=1.0)
         >>> derived.waterlevelsupplysmoothpar.update()
         >>> derived.toy.update()
-        >>> from hydpy.core.testtools import UnitTest
+        >>> from hydpy import UnitTest
         >>> test = UnitTest(model,
         ...                 model.calc_requiredremotesupply_v1,
         ...                 last_example=9,
@@ -479,7 +472,7 @@ def calc_remotedemand_v1(self):
         throughout the year actually works:
 
         >>> from hydpy import pub
-        >>> from hydpy.core.timetools import Timegrids, Timegrid
+        >>> from hydpy import Timegrids, Timegrid
         >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
         ...                                    '2001.04.03',
         ...                                    '1d'))
@@ -501,7 +494,7 @@ def calc_remotedemand_v1(self):
         based on the parameter values defined above and for natural remote
         discharge values ranging between 0 and 3 m³/s:
 
-        >>> from hydpy.core.testtools import UnitTest
+        >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.calc_remotedemand_v1, last_example=4,
         ...                 parseqs=(fluxes.naturalremotedischarge,
         ...                          fluxes.remotedemand))
@@ -564,7 +557,7 @@ def calc_remotefailure_v1(self):
         we have to define a simulation period first:
 
         >>> from hydpy import pub
-        >>> from hydpy.core.timetools import Timegrids, Timegrid
+        >>> from hydpy import Timegrids, Timegrid
         >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
         ...                                    '2001.04.03',
         ...                                    '1d'))
@@ -643,7 +636,7 @@ def calc_requiredremoterelease_v1(self):
         As in the examples above, define a short simulation time period first:
 
         >>> from hydpy import pub
-        >>> from hydpy.core.timetools import Timegrids, Timegrid
+        >>> from hydpy import Timegrids, Timegrid
         >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
         ...                                    '2001.04.03',
         ...                                    '1d'))
@@ -670,7 +663,7 @@ def calc_requiredremoterelease_v1(self):
         based on the parameter values defined above and for a "remote
         failure" values ranging between -4 and 4 m³/s:
 
-        >>> from hydpy.core.testtools import UnitTest
+        >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.calc_requiredremoterelease_v1,
         ...                 last_example=9,
         ...                 parseqs=(fluxes.remotefailure,
@@ -809,7 +802,7 @@ def calc_requiredrelease_v1(self):
         As in the examples above, define a short simulation time period first:
 
         >>> from hydpy import pub
-        >>> from hydpy.core.timetools import Timegrids, Timegrid
+        >>> from hydpy import Timegrids, Timegrid
         >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
         ...                                    '2001.04.03',
         ...                                    '1d'))
@@ -838,7 +831,7 @@ def calc_requiredrelease_v1(self):
         based on the parameter values defined above and for a required value
         for a cross section far downstream ranging from 0 m³/s to 8 m³/s:
 
-        >>> from hydpy.core.testtools import UnitTest
+        >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.calc_requiredrelease_v1,
         ...                 last_example=9,
         ...                 parseqs=(fluxes.requiredremoterelease,
@@ -919,7 +912,7 @@ def calc_requiredrelease_v2(self):
         As in the examples above, define a short simulation time period first:
 
         >>> from hydpy import pub
-        >>> from hydpy.core.timetools import Timegrids, Timegrid
+        >>> from hydpy import Timegrids, Timegrid
         >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
         ...                                    '2001.04.03',
         ...                                    '1d'))
@@ -987,7 +980,7 @@ def calc_possibleremoterelieve_v1(self):
         ...     weights_output=[[2.], [30]],
         ...     intercepts_hidden=[[-13000, -1046]],
         ...     intercepts_output=[0.])
-        >>> from hydpy.core.testtools import UnitTest
+        >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.calc_possibleremoterelieve_v1,
         ...                 last_example=21)
         >>> test.nexts.waterlevel = numpy.arange(257, 261.1, 0.2)
@@ -1067,7 +1060,7 @@ def calc_actualremoterelieve_v1(self):
         Prepare a test function object that performs seven examples with
         |PossibleRemoteRelieve| ranging from -1 to 5 m³/s:
 
-        >>> from hydpy.core.testtools import UnitTest
+        >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.calc_actualremoterelieve_v1,
         ...                 last_example=7,
         ...                 parseqs=(fluxes.possibleremoterelieve,
@@ -1224,7 +1217,7 @@ def calc_targetedrelease_v1(self):
         As in the examples above, define a short simulation time period first:
 
         >>> from hydpy import pub
-        >>> from hydpy.core.timetools import Timegrids, Timegrid
+        >>> from hydpy import Timegrids, Timegrid
         >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
         ...                                    '2001.04.03',
         ...                                    '1d'))
@@ -1253,7 +1246,7 @@ def calc_targetedrelease_v1(self):
         based on the parameter values defined above and for inflows into
         the dam ranging from 0 m³/s to 10 m³/s:
 
-        >>> from hydpy.core.testtools import UnitTest
+        >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.calc_targetedrelease_v1,
         ...                 last_example=21,
         ...                 parseqs=(fluxes.inflow,
@@ -1504,7 +1497,7 @@ def calc_actualrelease_v1(self):
         Prepare a test function, that calculates the targeted water release
         for water levels ranging between -1 and 5 m:
 
-        >>> from hydpy.core.testtools import UnitTest
+        >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.calc_actualrelease_v1,
         ...                 last_example=7,
         ...                 parseqs=(aides.waterlevel,
@@ -1682,7 +1675,7 @@ def calc_actualremoterelease_v1(self):
         >>> from hydpy.models.dam import *
         >>> parameterstep()
         >>> fluxes.requiredremoterelease = 2.0
-        >>> from hydpy.core.testtools import UnitTest
+        >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.calc_actualremoterelease_v1,
         ...                 last_example=7,
         ...                 parseqs=(aides.waterlevel,
@@ -1790,7 +1783,7 @@ def update_actualremoterelieve_v1(self):
         initial value of parameter |HighestRemoteDischarge| of 4 m³/s:
 
         >>> highestremotedischarge(4.0)
-        >>> from hydpy.core.testtools import UnitTest
+        >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.update_actualremoterelieve_v1,
         ...                 last_example=8,
         ...                 parseqs=(fluxes.actualremoterelieve,))
@@ -1899,7 +1892,7 @@ def update_actualremoterelease_v1(self):
         |ActualRemoteRelieve| ranging from 0 to 8 m³/s and a fixed initial
         value of parameter |ActualRemoteRelease| of 2 m³/s:
 
-        >>> from hydpy.core.testtools import UnitTest
+        >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.update_actualremoterelease_v1,
         ...                 last_example=8,
         ...                 parseqs=(fluxes.actualremoterelieve,
@@ -2018,7 +2011,7 @@ def calc_flooddischarge_v1(self):
         261 meters, which could describe the uncontrolled flow over a
         spillway:
 
-        >>> from hydpy.core.testtools import UnitTest
+        >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.calc_flooddischarge_v1,
         ...                 last_example=21)
         >>> test.nexts.waterlevel = numpy.arange(257, 261.1, 0.2)
@@ -2272,7 +2265,7 @@ def update_loggedoutflow_v1(self):
         >>> parameterstep()
         >>> nmblogentries(3)
         >>> logs.loggedoutflow = 0.0
-        >>> from hydpy.core.testtools import UnitTest
+        >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.update_loggedoutflow_v1,
         ...                 last_example=4,
         ...                 parseqs=(fluxes.outflow,

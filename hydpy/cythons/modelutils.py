@@ -139,7 +139,7 @@ class Cythonizer(object):
             print('Compile module %s.' % self.cyname)
         with magictools.PrintStyle(color=31, font=2):
             self.compile_()
-            self.movedll()
+            self.move_dll()
 
     @property
     def pyname(self):
@@ -235,7 +235,7 @@ class Cythonizer(object):
                              include_dirs=[numpy.get_include()])
         sys.argv = argv
 
-    def movedll(self):
+    def move_dll(self):
         """Try to find the resulting dll file and to move it into the
         `cythons` package.
 
@@ -274,7 +274,7 @@ class Cythonizer(object):
                               'Maybe it helps to close all Python processes '
                               'and restart the cyhonization afterwards.'
                               % self.cyname+dllextension)
-                    objecttools.augmentexcmessage(prefix, suffix)
+                    objecttools.augment_excmessage(prefix, suffix)
         else:
             raise IOError('After trying to cythonize module %s, the resulting '
                           'file %s could neither be found in directory %s nor '
@@ -366,20 +366,20 @@ class PyxWriter(object):
         lines = Lines()
         lines.add(0, '@cython.final')
         lines.add(0, 'cdef class Parameters(object):')
-        for (name, subpars) in self.model.parameters:
+        for subpars in self.model.parameters:
             lines.add(1, 'cdef public %s %s'
-                         % (objecttools.classname(subpars), name))
-        for (name1, subpars) in self.model.parameters:
-            print('        - %s' % name1)
+                         % (objecttools.classname(subpars), subpars.name))
+        for subpars in self.model.parameters:
+            print('        - %s' % subpars.name)
             lines.add(0, '@cython.final')
             lines.add(0, 'cdef class %s(object):'
                          % objecttools.classname(subpars))
-            for (name2, par) in subpars:
+            for par in subpars:
                 try:
                     ctype = TYPE2STR[par.TYPE] + NDIM2STR[par.NDIM]
                 except KeyError:
                     ctype = par.TYPE + NDIM2STR[par.NDIM]
-                lines.add(1, 'cdef public %s %s' % (ctype, name2))
+                lines.add(1, 'cdef public %s %s' % (ctype, par.name))
         return lines
 
     @property
@@ -388,54 +388,54 @@ class PyxWriter(object):
         lines = Lines()
         lines.add(0, '@cython.final')
         lines.add(0, 'cdef class Sequences(object):')
-        for (name, subseqs) in self.model.sequences:
+        for subseqs in self.model.sequences:
             lines.add(1, 'cdef public %s %s'
-                         % (objecttools.classname(subseqs), name))
+                         % (objecttools.classname(subseqs), subseqs.name))
         if getattr(self.model.sequences, 'states', None) is not None:
             lines.add(1, 'cdef public StateSequences old_states')
             lines.add(1, 'cdef public StateSequences new_states')
-        for (name1, subseqs) in self.model.sequences:
-            print('        - %s' % name1)
+        for subseqs in self.model.sequences:
+            print('        - %s' % subseqs.name)
             lines.add(0, '@cython.final')
             lines.add(0, 'cdef class %s(object):'
                          % objecttools.classname(subseqs))
-            for (name2, seq) in subseqs:
+            for seq in subseqs:
                 ctype = 'double' + NDIM2STR[seq.NDIM]
                 if isinstance(subseqs, sequencetools.LinkSequences):
                     if seq.NDIM == 0:
-                        lines.add(1, 'cdef double *%s' % name2)
+                        lines.add(1, 'cdef double *%s' % seq.name)
                     elif seq.NDIM == 1:
-                        lines.add(1, 'cdef double **%s' % name2)
-                        lines.add(1, 'cdef public int len_%s' % name2)
+                        lines.add(1, 'cdef double **%s' % seq.name)
+                        lines.add(1, 'cdef public int len_%s' % seq.name)
                 else:
-                    lines.add(1, 'cdef public %s %s' % (ctype, name2))
-                lines.add(1, 'cdef public int _%s_ndim' % name2)
-                lines.add(1, 'cdef public int _%s_length' % name2)
+                    lines.add(1, 'cdef public %s %s' % (ctype, seq.name))
+                lines.add(1, 'cdef public int _%s_ndim' % seq.name)
+                lines.add(1, 'cdef public int _%s_length' % seq.name)
                 for idx in range(seq.NDIM):
                     lines.add(1, 'cdef public int _%s_length_%d'
                                  % (seq.name, idx))
                 if seq.NUMERIC:
                     ctype_numeric = 'double' + NDIM2STR[seq.NDIM+1]
                     lines.add(1, 'cdef public %s _%s_points'
-                                 % (ctype_numeric, name2))
+                                 % (ctype_numeric, seq.name))
                     lines.add(1, 'cdef public %s _%s_results'
-                                 % (ctype_numeric, name2))
+                                 % (ctype_numeric, seq.name))
                     if isinstance(subseqs, sequencetools.FluxSequences):
                         lines.add(1, 'cdef public %s _%s_integrals'
-                                     % (ctype_numeric, name2))
+                                     % (ctype_numeric, seq.name))
                         lines.add(1, 'cdef public %s _%s_sum'
-                                     % (ctype, name2))
+                                     % (ctype, seq.name))
                 if isinstance(subseqs, sequencetools.IOSubSequences):
                     lines.extend(self.iosequence(seq))
             if isinstance(subseqs, sequencetools.InputSequences):
-                lines.extend(self.loaddata(subseqs))
+                lines.extend(self.load_data(subseqs))
             if isinstance(subseqs, sequencetools.IOSubSequences):
                 lines.extend(self.open_files(subseqs))
                 lines.extend(self.close_files(subseqs))
                 if not isinstance(subseqs, sequencetools.InputSequence):
-                    lines.extend(self.savedata(subseqs))
+                    lines.extend(self.save_data(subseqs))
             if isinstance(subseqs, sequencetools.LinkSequences):
-                lines.extend(self.setpointer(subseqs))
+                lines.extend(self.set_pointer(subseqs))
         return lines
 
     def iosequence(self, seq):
@@ -456,15 +456,16 @@ class PyxWriter(object):
         print('            . open_files')
         lines = Lines()
         lines.add(1, 'cpdef open_files(self, int idx):')
-        for (name, seq) in subseqs:
-            lines.add(2, 'if self._%s_diskflag:' % name)
+        for seq in subseqs:
+            lines.add(2, 'if self._%s_diskflag:' % seq.name)
             lines.add(3, 'self._%s_file = fopen(str(self._%s_path).encode(), '
-                         '"rb+")' % (2*(name,)))
+                         '"rb+")' % (2*(seq.name,)))
             if seq.NDIM == 0:
-                lines.add(3, 'fseek(self._%s_file, idx*8, SEEK_SET)' % name)
+                lines.add(3,
+                          'fseek(self._%s_file, idx*8, SEEK_SET)' % seq.name)
             else:
                 lines.add(3, 'fseek(self._%s_file, idx*self._%s_length*8, '
-                             'SEEK_SET)' % (2*(name,)))
+                             'SEEK_SET)' % (2*(seq.name,)))
         return lines
 
     def close_files(self, subseqs):
@@ -472,91 +473,91 @@ class PyxWriter(object):
         print('            . close_files')
         lines = Lines()
         lines.add(1, 'cpdef inline close_files(self):')
-        for (name, seq) in sorted(subseqs):
-            lines.add(2, 'if self._%s_diskflag:' % name)
-            lines.add(3, 'fclose(self._%s_file)' % name)
+        for seq in subseqs:
+            lines.add(2, 'if self._%s_diskflag:' % seq.name)
+            lines.add(3, 'fclose(self._%s_file)' % seq.name)
         return lines
 
-    def loaddata(self, subseqs):
+    def load_data(self, subseqs):
         """Load data statements."""
-        print('            . loaddata')
+        print('            . load_data')
         lines = Lines()
-        lines.add(1, 'cpdef inline void loaddata(self, int idx) %s:' % _nogil)
+        lines.add(1, 'cpdef inline void load_data(self, int idx) %s:' % _nogil)
         lines.add(2, 'cdef int jdx0, jdx1, jdx2, jdx3, jdx4, jdx5')
-        for (name, seq) in subseqs:
-            lines.add(2, 'if self._%s_diskflag:' % name)
+        for seq in subseqs:
+            lines.add(2, 'if self._%s_diskflag:' % seq.name)
             if seq.NDIM == 0:
                 lines.add(3, 'fread(&self.%s, 8, 1, self._%s_file)'
-                             % (2*(name,)))
+                             % (2*(seq.name,)))
             else:
                 lines.add(3, 'fread(&self.%s[0], 8, self._%s_length, '
-                             'self._%s_file)' % (3*((name,))))
-            lines.add(2, 'elif self._%s_ramflag:' % name)
+                             'self._%s_file)' % (3*((seq.name,))))
+            lines.add(2, 'elif self._%s_ramflag:' % seq.name)
             if seq.NDIM == 0:
-                lines.add(3, 'self.%s = self._%s_array[idx]' % (2*(name,)))
+                lines.add(3, 'self.%s = self._%s_array[idx]' % (2*(seq.name,)))
             else:
                 indexing = ''
                 for idx in range(seq.NDIM):
                     lines.add(3+idx, 'for jdx%d in range(self._%s_length_%d):'
-                                     % (idx, name, idx))
+                                     % (idx, seq.name, idx))
                     indexing += 'jdx%d,' % idx
                 indexing = indexing[:-1]
                 lines.add(3+seq.NDIM, 'self.%s[%s] = self._%s_array[idx,%s]'
-                                      % (2*(name, indexing)))
+                                      % (2*(seq.name, indexing)))
         return lines
 
-    def savedata(self, subseqs):
+    def save_data(self, subseqs):
         """Save data statements."""
-        print('            . savedata')
+        print('            . save_data')
         lines = Lines()
-        lines.add(1, 'cpdef inline void savedata(self, int idx) %s:' % _nogil)
+        lines.add(1, 'cpdef inline void save_data(self, int idx) %s:' % _nogil)
         lines.add(2, 'cdef int jdx0, jdx1, jdx2, jdx3, jdx4, jdx5')
-        for (name, seq) in subseqs:
-            lines.add(2, 'if self._%s_diskflag:' % name)
+        for seq in subseqs:
+            lines.add(2, 'if self._%s_diskflag:' % seq.name)
             if seq.NDIM == 0:
                 lines.add(3, 'fwrite(&self.%s, 8, 1, self._%s_file)'
-                             % (2*(name,)))
+                             % (2*(seq.name,)))
             else:
                 lines.add(3, 'fwrite(&self.%s[0], 8, self._%s_length, '
-                             'self._%s_file)' % (3*(name,)))
-            lines.add(2, 'elif self._%s_ramflag:' % name)
+                             'self._%s_file)' % (3*(seq.name,)))
+            lines.add(2, 'elif self._%s_ramflag:' % seq.name)
             if seq.NDIM == 0:
-                lines.add(3, 'self._%s_array[idx] = self.%s' % (2*(name,)))
+                lines.add(3, 'self._%s_array[idx] = self.%s' % (2*(seq.name,)))
             else:
                 indexing = ''
                 for idx in range(seq.NDIM):
                     lines.add(3+idx, 'for jdx%d in range(self._%s_length_%d):'
-                                     % (idx, name, idx))
+                                     % (idx, seq.name, idx))
                     indexing += 'jdx%d,' % idx
                 indexing = indexing[:-1]
                 lines.add(3+seq.NDIM, 'self._%s_array[idx,%s] = self.%s[%s]'
-                                      % (2*(name, indexing)))
+                                      % (2*(seq.name, indexing)))
         return lines
 
-    def setpointer(self, subseqs):
-        """Setpointer functions for link sequences."""
+    def set_pointer(self, subseqs):
+        """Set_pointer functions for link sequences."""
         lines = Lines()
-        for (name, seq) in subseqs:
+        for seq in subseqs:
             if seq.NDIM == 0:
-                lines.extend(self.setpointer0d(subseqs))
+                lines.extend(self.set_pointer0d(subseqs))
             break
-        for (name, seq) in subseqs:
+        for seq in subseqs:
             if seq.NDIM == 1:
                 lines.extend(self.alloc(subseqs))
                 lines.extend(self.dealloc(subseqs))
-                lines.extend(self.setpointer1d(subseqs))
+                lines.extend(self.set_pointer1d(subseqs))
             break
         return lines
 
-    def setpointer0d(self, subseqs):
-        """Setpointer function for 0-dimensional link sequences."""
-        print('            . setpointer0d')
+    def set_pointer0d(self, subseqs):
+        """Set_pointer function for 0-dimensional link sequences."""
+        print('            . set_pointer0d')
         lines = Lines()
-        lines.add(1, 'cpdef inline setpointer0d'
+        lines.add(1, 'cpdef inline set_pointer0d'
                      '(self, str name, pointerutils.PDouble value):')
-        for (name, seq) in subseqs:
-            lines.add(2, 'if name == "%s":' % name)
-            lines.add(3, 'self.%s = value.p_value' % name)
+        for seq in subseqs:
+            lines.add(2, 'if name == "%s":' % seq.name)
+            lines.add(3, 'self.%s = value.p_value' % seq.name)
         return lines
 
     def alloc(self, subseqs):
@@ -564,11 +565,11 @@ class PyxWriter(object):
         print('            . setlength')
         lines = Lines()
         lines.add(1, 'cpdef inline alloc(self, name, int length):')
-        for (name, seq) in subseqs:
-            lines.add(2, 'if name == "%s":' % name)
-            lines.add(3, 'self._%s_length_0 = length' % name)
+        for seq in subseqs:
+            lines.add(2, 'if name == "%s":' % seq.name)
+            lines.add(3, 'self._%s_length_0 = length' % seq.name)
             lines.add(3, 'self.%s = <double**> '
-                         'PyMem_Malloc(length * sizeof(double*))' % name)
+                         'PyMem_Malloc(length * sizeof(double*))' % seq.name)
         return lines
 
     def dealloc(self, subseqs):
@@ -576,19 +577,19 @@ class PyxWriter(object):
         print('            . dealloc')
         lines = Lines()
         lines.add(1, 'cpdef inline dealloc(self):')
-        for (name, seq) in subseqs:
-            lines.add(2, 'PyMem_Free(self.%s)' % name)
+        for seq in subseqs:
+            lines.add(2, 'PyMem_Free(self.%s)' % seq.name)
         return lines
 
-    def setpointer1d(self, subseqs):
-        """Setpointer function for 1-dimensional link sequences."""
-        print('            . setpointer1d')
+    def set_pointer1d(self, subseqs):
+        """Set_pointer function for 1-dimensional link sequences."""
+        print('            . set_pointer1d')
         lines = Lines()
-        lines.add(1, 'cpdef inline setpointer1d'
+        lines.add(1, 'cpdef inline set_pointer1d'
                      '(self, str name, pointerutils.PDouble value, int idx):')
-        for (name, seq) in subseqs:
-            lines.add(2, 'if name == "%s":' % name)
-            lines.add(3, 'self.%s[idx] = value.p_value' % name)
+        for seq in subseqs:
+            lines.add(2, 'if name == "%s":' % seq.name)
+            lines.add(3, 'self.%s[idx] = value.p_value' % seq.name)
         return lines
 
     @property
@@ -670,7 +671,7 @@ class PyxWriter(object):
         lines.add(1, 'cpdef inline void doit(self, int idx) %s:' % _nogil)
         lines.add(2, 'self.idx_sim = idx')
         if getattr(self.model.sequences, 'inputs', None) is not None:
-            lines.add(2, 'self.loaddata()')
+            lines.add(2, 'self.load_data()')
         if self.model._INLET_METHODS:
             lines.add(2, 'self.update_inlets()')
         if hasattr(self.model, 'solve'):
@@ -687,32 +688,33 @@ class PyxWriter(object):
     def iofunctions(self):
         """Input/output functions of the model class."""
         lines = Lines()
-        for func in ('open_files', 'close_files', 'loaddata', 'savedata'):
-            if ((func == 'loaddata') and
+        for func in ('open_files', 'close_files', 'load_data', 'save_data'):
+            if ((func == 'load_data') and
                     (getattr(self.model.sequences, 'inputs', None) is None)):
                 continue
-            if ((func == 'savedata') and
+            if ((func == 'save_data') and
                 ((getattr(self.model.sequences, 'fluxes', None) is None) and
                  (getattr(self.model.sequences, 'states', None) is None))):
                 continue
             print('            . %s' % func)
-            nogil = func in ('loaddata', 'savedata')
-            idx_as_arg = func == 'savedata'
+            nogil = func in ('load_data', 'save_data')
+            idx_as_arg = func == 'save_data'
             lines.add(1, method_header(
                 func, nogil=nogil, idx_as_arg=idx_as_arg))
-            for (name, subseqs) in self.model.sequences:
-                if func == 'loaddata':
+            for subseqs in self.model.sequences:
+                if func == 'load_data':
                     applyfuncs = ('inputs',)
-                elif func == 'savedata':
+                elif func == 'save_data':
                     applyfuncs = ('fluxes', 'states')
                 else:
                     applyfuncs = ('inputs', 'fluxes', 'states')
-                if name in applyfuncs:
+                if subseqs.name in applyfuncs:
                     if func == 'close_files':
-                        lines.add(2, 'self.sequences.%s.%s()' % (name, func))
+                        lines.add(2, 'self.sequences.%s.%s()'
+                                     % (subseqs.name, func))
                     else:
                         lines.add(2, 'self.sequences.%s.%s(self.idx_sim)'
-                                     % (name, func))
+                                     % (subseqs.name, func))
         return lines
 
     @property
@@ -722,25 +724,25 @@ class PyxWriter(object):
             print('                . new2old')
             lines.add(1, method_header('new2old', nogil=True))
             lines.add(2, 'cdef int jdx0, jdx1, jdx2, jdx3, jdx4, jdx5')
-            for (name, seq) in sorted(self.model.sequences.states):
+            for seq in self.model.sequences.states:
                 if seq.NDIM == 0:
                     lines.add(2, 'self.sequences.old_states.%s = '
                                  'self.sequences.new_states.%s'
-                                 % (2*(name,)))
+                                 % (2*(seq.name,)))
                 else:
                     indexing = ''
                     for idx in range(seq.NDIM):
                         lines.add(2+idx,
                                   'for jdx%d in range('
                                   'self.sequences.states._%s_length_%d):'
-                                  % (idx, name, idx))
+                                  % (idx, seq.name, idx))
                         indexing += 'jdx%d,' % idx
                     indexing = indexing[:-1]
                     lines.add(
                         2+seq.NDIM,
                         'self.sequences.old_states.%s[%s] = '
                         'self.sequences.new_states.%s[%s]'
-                        % (2*(name, indexing)))
+                        % (2*(seq.name, indexing)))
         return lines
 
     def _call_methods(self, name, methods, idx_as_arg=False):
@@ -852,81 +854,87 @@ class PyxWriter(object):
             to1 += '[self.numvars.%s]' % index
         if load:
             from1, to1 = to1, from1
-        for (name, seq) in subseqs:
-            from2 = from1 % name
-            to2 = to1 % name
+        for seq in subseqs:
+            from2 = from1 % seq.name
+            to2 = to1 % seq.name
             if seq.NDIM == 0:
                 yield '%s = %s' % (to2, from2)
             elif seq.NDIM == 1:
                 yield 'cdef int idx0'
                 yield ('for idx0 in range(self.sequences.%s._%s_length0):'
-                       % (subseqs.name, name))
+                       % (subseqs.name, seq.name))
                 yield ('    %s[idx0] = %s[idx0]'
                        % (to2, from2))
             elif seq.NDIM == 2:
                 yield 'cdef int idx0, idx1'
                 yield ('for idx0 in range(self.sequences.%s._%s_length0):'
-                       % (subseqs.name, name))
+                       % (subseqs.name, seq.name))
                 yield ('    for idx1 in range(self.sequences._%s_length1):'
-                       % (subseqs.name, name))
+                       % (subseqs.name, seq.name))
                 yield ('        %s[idx0, idx1] = %s[idx0, idx1]'
                        % (to2, from2))
             else:
                 raise NotImplementedError(
-                        'NDIM of sequence `%s` is higher than expected' % name)
+                    'NDIM of sequence `%s` is higher than expected' % seq.name)
 
     @decorate_method
     def get_point_states(self):
-        yield self._assign_seqvalues(subseqs=self.model.sequences.states,
-                                     subseqs_name='states',
-                                     target='points',
-                                     index='idx_stage',
-                                     load=True)
+        yield self._assign_seqvalues(
+            subseqs=self.model.sequences.states,
+            subseqs_name='states',
+            target='points',
+            index='idx_stage',
+            load=True)
 
     @decorate_method
     def set_point_states(self):
-        yield self._assign_seqvalues(subseqs=self.model.sequences.states,
-                                     subseqs_name='states',
-                                     target='points',
-                                     index='idx_stage',
-                                     load=False)
+        yield self._assign_seqvalues(
+            subseqs=self.model.sequences.states,
+            subseqs_name='states',
+            target='points',
+            index='idx_stage',
+            load=False)
 
     @decorate_method
     def set_result_states(self):
-        yield self._assign_seqvalues(subseqs=self.model.sequences.states,
-                                     subseqs_name='states',
-                                     target='results',
-                                     index='idx_method',
-                                     load=False)
+        yield self._assign_seqvalues(
+            subseqs=self.model.sequences.states,
+            subseqs_name='states',
+            target='results',
+            index='idx_method',
+            load=False)
 
     @decorate_method
     def get_sum_fluxes(self):
-        yield self._assign_seqvalues(subseqs=self.model.sequences.fluxes.numerics,
-                                     subseqs_name='fluxes',
-                                     target='sum',
-                                     index=None,
-                                     load=True)
+        yield self._assign_seqvalues(
+            subseqs=self.model.sequences.fluxes.numerics,
+            subseqs_name='fluxes',
+            target='sum',
+            index=None,
+            load=True)
 
     @decorate_method
     def set_point_fluxes(self):
-        yield self._assign_seqvalues(subseqs=self.model.sequences.fluxes.numerics,
-                                     subseqs_name='fluxes',
-                                     target='points',
-                                     index='idx_stage',
-                                     load=False)
+        yield self._assign_seqvalues(
+            subseqs=self.model.sequences.fluxes.numerics,
+            subseqs_name='fluxes',
+            target='points',
+            index='idx_stage',
+            load=False)
 
     @decorate_method
     def set_result_fluxes(self):
-        yield self._assign_seqvalues(subseqs=self.model.sequences.fluxes.numerics,
-                                     subseqs_name='fluxes',
-                                     target='results',
-                                     index='idx_method',
-                                     load=False)
+        yield self._assign_seqvalues(
+            subseqs=self.model.sequences.fluxes.numerics,
+            subseqs_name='fluxes',
+            target='results',
+            index='idx_method',
+            load=False)
 
     @decorate_method
     def integrate_fluxes(self):
         max_ndim = -1
-        for (name, seq) in self.model.sequences.fluxes.numerics:
+        for seq in self.model.sequences.fluxes.numerics:
             max_ndim = max(max_ndim, seq.NDIM)
         if max_ndim == 0:
             yield 'cdef int jdx'
@@ -934,9 +942,9 @@ class PyxWriter(object):
             yield 'cdef int jdx, idx0'
         elif max_ndim == 2:
             yield 'cdef int jdx, idx0, idx1'
-        for (name, seq) in self.model.sequences.fluxes.numerics:
-            to_ = 'self.sequences.fluxes.%s' % name
-            from_ = 'self.sequences.fluxes._%s_points' % name
+        for seq in self.model.sequences.fluxes.numerics:
+            to_ = 'self.sequences.fluxes.%s' % seq.name
+            from_ = 'self.sequences.fluxes._%s_points' % seq.name
             coefs = ('self.numvars.dt * self.numconsts.a_coefs'
                      '[self.numvars.idx_method-1,self.numvars.idx_stage,jdx]')
             if seq.NDIM == 0:
@@ -945,16 +953,16 @@ class PyxWriter(object):
                 yield '    %s = %s +%s*%s[jdx]' % (to_, to_, coefs, from_)
             elif seq.NDIM == 1:
                 yield ('for idx0 in range(self.sequences.fluxes._%s_length0):'
-                       % name)
+                       % seq.name)
                 yield '    %s[idx0] = 0.' % to_
                 yield '    for jdx in range(self.numvars.idx_method):'
                 yield ('        %s[idx0] = %s[idx0] + %s*%s[jdx, idx0]'
                        % (to_, to_, coefs, from_))
             elif seq.NDIM == 2:
                 yield ('for idx0 in range(self.sequences.fluxes._%s_length0):'
-                       % name)
+                       % seq.name)
                 yield ('    for idx1 in range('
-                       'self.sequences.fluxes._%s_length1):' % name)
+                       'self.sequences.fluxes._%s_length1):' % seq.name)
                 yield '        %s[idx0, idx1] = 0.' % to_
                 yield '        for jdx in range(self.numvars.idx_method):'
                 yield ('            %s[idx0, idx1] = '
@@ -962,84 +970,84 @@ class PyxWriter(object):
                        % (to_, to_, coefs, from_))
             else:
                 raise NotImplementedError(
-                        'NDIM of sequence `%s` is higher than expected' % name)
+                    'NDIM of sequence `%s` is higher than expected' % seq.name)
 
     @decorate_method
     def reset_sum_fluxes(self):
-        for (name, seq) in self.model.sequences.fluxes.numerics:
-            to_ = 'self.sequences.fluxes._%s_sum' % name
+        for seq in self.model.sequences.fluxes.numerics:
+            to_ = 'self.sequences.fluxes._%s_sum' % seq.name
             if seq.NDIM == 0:
                 yield '%s = 0.' % to_
             elif seq.NDIM == 1:
                 yield 'cdef int idx0'
                 yield ('for idx0 in range(self.sequences.fluxes._%s_length0):'
-                       % name)
+                       % seq.name)
                 yield '    %s[idx0] = 0.' % to_
             elif seq.NDIM == 2:
                 yield 'cdef int idx0, idx1'
                 yield ('for idx0 in range(self.sequences.fluxes._%s_length0):'
-                       % name)
+                       % seq.name)
                 yield ('    for idx1 in range('
-                       'self.sequences.fluxes._%s_length1):' % name)
+                       'self.sequences.fluxes._%s_length1):' % seq.name)
                 yield '        %s[idx0, idx1] = 0.' % to_
             else:
                 raise NotImplementedError(
-                        'NDIM of sequence `%s` is higher than expected' % name)
+                    'NDIM of sequence `%s` is higher than expected' % seq.name)
 
     @decorate_method
     def addup_fluxes(self):
-        for (name, seq) in self.model.sequences.fluxes.numerics:
-            to_ = 'self.sequences.fluxes._%s_sum' % name
-            from_ = 'self.sequences.fluxes.%s' % name
+        for seq in self.model.sequences.fluxes.numerics:
+            to_ = 'self.sequences.fluxes._%s_sum' % seq.name
+            from_ = 'self.sequences.fluxes.%s' % seq.name
             if seq.NDIM == 0:
                 yield '%s = %s + %s' % (to_, to_, from_)
             elif seq.NDIM == 1:
                 yield 'cdef int idx0'
                 yield ('for idx0 in range(self.sequences.fluxes._%s_length0):'
-                       % name)
+                       % seq.name)
                 yield ('    %s[idx0] = %s[idx0] + %s[idx0]'
                        % (to_, to_, from_))
             elif seq.NDIM == 2:
                 yield 'cdef int idx0, idx1'
                 yield ('for idx0 in range(self.sequences.fluxes._%s_length0):'
-                       % name)
+                       % seq.name)
                 yield ('    for idx1 in range('
-                       'self.sequences.fluxes._%s_length1):' % name)
+                       'self.sequences.fluxes._%s_length1):' % seq.name)
                 yield ('        %s[idx0, idx1] = '
                        '%s[idx0, idx1] + %s[idx0, idx1]'
                        % (to_, to_, from_))
             else:
                 raise NotImplementedError(
-                        'NDIM of sequence `%s` is higher than expected' % name)
+                    'NDIM of sequence `%s` is higher than expected' % seq.name)
 
     @decorate_method
     def calculate_error(self):
         to_ = 'self.numvars.error'
         index = 'self.numvars.idx_method'
         yield '%s = 0.' % to_
-        for (name, seq) in self.model.sequences.fluxes.numerics:
-            from_ = 'self.sequences.fluxes._%s_results' % name
+        for seq in self.model.sequences.fluxes.numerics:
+            from_ = 'self.sequences.fluxes._%s_results' % seq.name
             if seq.NDIM == 0:
                 yield ('%s = max(%s, fabs(%s[%s]-%s[%s-1]))'
                        % (to_, to_, from_, index, from_, index))
             elif seq.NDIM == 1:
                 yield 'cdef int idx0'
                 yield ('for idx0 in range(self.sequences.fluxes._%s_length0):'
-                       % name)
+                       % seq.name)
                 yield ('    %s = max(%s, abs(%s[%s, idx0]-%s[%s-1, idx0]))'
                        % (to_, to_, from_, index, from_, index))
             elif seq.NDIM == 2:
                 yield 'cdef int idx0, idx1'
                 yield ('for idx0 in range(self.sequences.fluxes._%s_length0):'
-                       % name)
+                       % seq.name)
                 yield ('    for idx1 in range('
-                       'self.sequences.fluxes._%s_length1):' % name)
+                       'self.sequences.fluxes._%s_length1):' % seq.name)
                 yield ('        %s = '
                        'max(%s, abs(%s[%s, idx0, idx1]-%s[%s-1, idx0, idx1]))'
                        % (to_, to_, from_, index, from_, index))
             else:
                 raise NotImplementedError(
-                        'NDIM of sequence `%s` is higher than expected' % name)
+                    'NDIM of sequence `%s` is higher than expected' % seq.name)
 
     @property
     def extrapolate_error(self):
@@ -1079,9 +1087,9 @@ class FuncConverter(object):
     def collectornames(self):
         names = []
         for groupname in ('parameters', 'sequences'):
-            for (name, subgroup) in getattr(self.model, groupname):
-                if name[:3] in self.varnames:
-                    names.append(groupname + '.' + name)
+            for subgroup in getattr(self.model, groupname):
+                if subgroup.name[:3] in self.varnames:
+                    names.append(groupname + '.' + subgroup.name)
         if 'old' in self.varnames:
             names.append('sequences.old_states')
         if 'new' in self.varnames:

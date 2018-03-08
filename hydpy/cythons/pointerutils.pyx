@@ -401,9 +401,9 @@ cdef class PPDouble(object):
         if not self.ready[idx]:
             raise RuntimeError('The pointer of the acutal `PPDouble` instance '
                                'at index %s requested, but not prepared yet '
-                               'via `setpointer`.' % idx)
+                               'via `set_pointer`.' % idx)
 
-    def setpointer(self, value, idx):
+    def set_pointer(self, value, idx):
         self.check0()
         self.check1(idx)
         cdef int _idx = idx

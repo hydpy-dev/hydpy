@@ -89,7 +89,7 @@ Integration examples:
     parameter in the following manner we define a pure Moving Average
     model that neither results in translation nor retention processes:
 
-    >>> from hydpy.core.magictools import prepare_model
+    >>> from hydpy import prepare_model
     >>> from hydpy.models import arma_v1
     >>> arma_model = prepare_model(arma_v1)
     >>> stream2.connect(arma_model)
@@ -116,7 +116,7 @@ Integration examples:
     To execute the following examples conveniently, a test function object
     is prepared:
 
-    >>> from hydpy.core.testtools import IntegrationTest
+    >>> from hydpy import IntegrationTest
     >>> IntegrationTest.plotting_options.activated=(
     ...     fluxes.inflow, fluxes.outflow)
     >>> test = IntegrationTest(
@@ -188,7 +188,7 @@ Integration examples:
     site specific local truncation error (in m³/s):
 
     >>> catchmentarea(86.4)
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> round_(solver.abserrormax.INIT)
     0.01
     >>> parameters.update()

@@ -41,64 +41,78 @@ class Sequences(object):
                     subseqs = cls(self, None, None)
                 setattr(self, subseqs.name, subseqs)
 
-    def set_initvals(self, info, idx_date):
-        self.states.set_initvals(info, idx_date)
+    def _yield_iosubsequences(self):
+        for subseqs in self:
+            if isinstance(subseqs, abctools.IOSubSequencesABC):
+                yield subseqs
 
     def activate_disk(self, names=None):
-        for (name, subseqs) in self:
-            if hasattr(subseqs, 'activate_disk'):
-                subseqs.activate_disk(names)
+        """Call method :func:`~IOSubSequences.activate_disk` of all handled
+        |IOSubSequences| objects."""
+        for subseqs in self._yield_iosubsequences():
+            subseqs.activate_disk(names)
 
     def deactivate_disk(self, names=None):
-        for (name, subseqs) in self:
-            if hasattr(subseqs, 'deactivate_disk'):
-                subseqs.deactivate_disk(names)
+        """Call method :func:`~IOSubSequences.deactivate_disk` of all handled
+        |IOSubSequences| objects."""
+        for subseqs in self._yield_iosubsequences():
+            subseqs.deactivate_disk(names)
 
     def activate_ram(self, names=None):
-        for (name, subseqs) in self:
-            if hasattr(subseqs, 'activate_ram'):
-                subseqs.activate_ram(names)
+        """Call method :func:`~IOSubSequences.activate_ram` of all handled
+        |IOSubSequences| objects."""
+        for subseqs in self._yield_iosubsequences():
+            subseqs.activate_ram(names)
 
     def deactivate_ram(self, names=None):
-        for (name, subseqs) in self:
-            if hasattr(subseqs, 'deactivate_ram'):
-                subseqs.deactivate_ram(names)
+        """Call method :func:`~IOSubSequences.deactivate_ram` of all handled
+        |IOSubSequences| objects."""
+        for subseqs in self._yield_iosubsequences():
+            subseqs.deactivate_ram(names)
 
     def open_files(self, idx=0):
-        for (name, subseqs) in self:
-            if hasattr(subseqs, 'open_files'):
-                subseqs.open_files(idx)
+        """Call method :func:`~IOSubSequences.open_files` of all handled
+        |IOSubSequences| objects."""
+        for subseqs in self._yield_iosubsequences():
+            subseqs.open_files(idx)
 
     def close_files(self):
-        for (name, subseqs) in self:
-            if hasattr(subseqs, 'close_files'):
-                subseqs.close_files()
+        """Call method :func:`~IOSubSequences.close_files` of all handled
+        |IOSubSequences| objects."""
+        for subseqs in self._yield_iosubsequences():
+            subseqs.close_files()
 
-    def loaddata(self, idx):
-        for (name, subseqs) in self:
-            if hasattr(subseqs, 'loaddata'):
-                subseqs.loaddata(idx)
+    def load_data(self, idx):
+        """Call method :func:`~IOSubSequences.load_data` of all handled
+        |InputSequences| objects."""
+        for subseqs in self:
+            if isinstance(subseqs, abctools.InputSubSequencesABC):
+                subseqs.load_data(idx)
 
-    def savedata(self, idx):
-        for (name, subseqs) in self:
-            if hasattr(subseqs, 'savedata'):
-                subseqs.savedata(idx)
+    def save_data(self, idx):
+        """Call method :func:`~IOSubSequences.save_data` of all handled
+        |IOSubSequences| objects."""
+        for subseqs in self:
+            if isinstance(subseqs, abctools.OutputSubSequencesABC):
+                subseqs.save_data(idx)
 
     def reset(self):
-        for (name, subseqs) in self:
-            if hasattr(subseqs, 'reset'):
+        """Call method :func:`~ConditionSequence.reset` of all handled
+        |ConditionSequence| objects."""
+        for subseqs in self:
+            if isinstance(subseqs, abctools.ConditionSequenceABC):
                 subseqs.reset()
 
     def __iter__(self):
         for name in self._names_subseqs:
             subseqs = getattr(self, name, None)
             if subseqs is not None:
-                yield name, subseqs
+                yield subseqs
 
     @property
     def conditions(self):
-        """Generator object yielding all conditions (class:`StateSequence` and
-        :class:`LogSequence` objects).
+        """Generator object yielding all conditions (|StateSequence| and
+        |LogSequence| objects).
         """
         for subseqs in ('states', 'logs'):
             for tuple_ in getattr(self, subseqs, ()):
@@ -106,9 +120,8 @@ class Sequences(object):
 
     @property
     def hasconditions(self):
-        """True or False, whether the :class:`Sequences` object handles at
-        conditions (at least one :class:`StateSequence` or :class:`LogSequence`
-        object)  or not."""
+        """True or False, whether the |Sequences| object "handles conditions"
+        or not (at least one |StateSequence| or |LogSequence| object)."""
         for tuple_ in self.conditions:
             return True
         return False
@@ -128,57 +141,60 @@ class Sequences(object):
         else:
             return filename + '.py'
 
-    def load_conditions(self, filename=None, dirname=None):
-        """Load initial conditions from a file and assign them to the
-        respective sequences.
+    def load_conditions(self, filename=None):
+        """Read the initial conditions from a file and assign them to the
+        respective |StateSequence| and/or |LogSequence| objects handled by
+        the actual |Sequences| object.
+
+        If no filename or dirname is passed, the ones defined by the
+        |ConditionManager| stored in module |pub| are used.
+        """
+        if self.hasconditions:
+            if not filename:
+                filename = self._conditiondefaultfilename
+            namespace = locals()
+            for seq in self.conditions:
+                namespace[seq.name] = seq
+            namespace['model'] = self
+            code = pub.conditionmanager.load_file(filename)
+            try:
+                exec(code)
+            except BaseException:
+                objecttools.augment_excmessage(
+                    'While trying to gather initial conditions of element %s'
+                    % objecttools.devicename(self))
+
+    def save_conditions(self, filename=None):
+        """Query the actual conditions of the |StateSequence| and/or
+        |LogSequence| objects handled by the actual |Sequences| object and
+        write them into a initial condition file.
+
+        If no filename or dirname is passed, the ones defined by the
+        |ConditionManager| stored in module |pub| are used.
         """
         if self.hasconditions:
             if filename is None:
                 filename = self._conditiondefaultfilename
-            namespace = locals()
-            for (name, seq) in self.conditions:
-                namespace[name] = seq
-            namespace['model'] = self
-            code = pub.conditionmanager.loadfile(filename, dirname)
-            try:
-                exec(code)
-            except BaseException:
-                objecttools.augmentexcmessage('While trying to gather initial '
-                                              'conditions of element %s'
-                                              % objecttools.devicename(self))
-
-    def save_conditions(self, filename=None, dirname=None):
-        if self.hasconditions:
-            if filename is None:
-                filename = self._conditiondefaultfilename
-            if not filename.endswith('.py'):
-                filename += '.py'
-            if dirname is None:
-                dirname = pub.conditionmanager.savepath
-            filepath = os.path.join(dirname, filename)
-            with open(filepath, 'w') as file_:
-                file_.write('from hydpy.models.%s import *\n\n' % self.model)
-                try:
-                    line = ('controlcheck(projectdir="%s", controldir="%s")'
-                            % (pub.controlmanager.projectdirectory,
-                               pub.controlmanager.controldirectory))
-                    file_.write(line + '\n\n')
-                except BaseException:
-                    pass
-                for (name, seq) in self.conditions:
-                    file_.write(repr(seq) + '\n')
+            con = pub.controlmanager
+            lines = ['# -*- coding: utf-8 -*-\n\n',
+                     'from hydpy.models.%s import *\n\n' % self.model,
+                     'controlcheck(projectdir="%s", controldir="%s")\n\n'
+                     % (con.projectdir, con.currentdir)]
+            for seq in self.conditions:
+                lines.append(repr(seq) + '\n')
+            pub.conditionmanager.save_file(filename, ''.join(lines))
 
     def trim_conditions(self):
         """Call method :func:`~ConditionSequence.trim` of each handled
         |ConditionSequence|."""
-        for (name, seq) in self.conditions:
+        for seq in self.conditions:
             seq.trim()
 
     def __len__(self):
         return len(dict(self))
 
 
-class MetaSubSequencesType(type):
+class _MetaSubSequencesType(type):
     def __new__(cls, name, parents, dict_):
         seqclasses = dict_.get('_SEQCLASSES')
         if seqclasses is None:
@@ -190,10 +206,10 @@ class MetaSubSequencesType(type):
         if seqclasses:
             lst = ['\n\n\n    The following sequence classes are selected:']
             for seqclass in seqclasses:
-                    lst.append('      * :class:`~%s` %s'
-                               % ('.'.join((seqclass.__module__,
-                                            seqclass.__name__)),
-                                  autodoctools.description(seqclass)))
+                lst.append('      * :class:`~%s` %s'
+                           % ('.'.join((seqclass.__module__,
+                                        seqclass.__name__)),
+                              autodoctools.description(seqclass)))
             doc = dict_.get('__doc__', None)
             if doc is None:
                 doc = ''
@@ -201,11 +217,11 @@ class MetaSubSequencesType(type):
         return type.__new__(cls, name, parents, dict_)
 
 
-MetaSubSequencesClass = MetaSubSequencesType('MetaSubSequencesClass',
-                                             (), {'_SEQCLASSES': ()})
+_MetaSubSequencesClass = _MetaSubSequencesType('_MetaSubSequencesClass',
+                                               (), {'_SEQCLASSES': ()})
 
 
-class SubSequences(MetaSubSequencesClass):
+class SubSequences(_MetaSubSequencesClass):
     """Base class for handling subgroups of sequences.
 
     Attributes:
@@ -234,7 +250,7 @@ class SubSequences(MetaSubSequencesClass):
 
     The order within the tuple determines the order of iteration, hence:
 
-    >>> for (name, sequence) in inputs:
+    >>> for sequence in inputs:
     ...     print(sequence)
     temperature(nan)
     precipitation(nan)
@@ -295,18 +311,18 @@ class SubSequences(MetaSubSequencesClass):
             try:
                 attr.values = value
             except AttributeError:
-                raise RuntimeError('`%s` instances do not allow the direct'
-                                   'replacement of their members.  After '
-                                   'initialization you should usually only '
-                                   'change parameter values through '
-                                   'assignements.  If you really need to '
-                                   'replace a object member, delete it '
-                                   'beforehand.' % objecttools.classname(self))
+                raise RuntimeError(
+                    '`%s` instances do not allow the direct replacement of '
+                    'their members.  After initialization you should usually '
+                    'only change parameter values through assignements.  '
+                    'If you really need to replace a object member, delete '
+                    'it beforehand.'
+                    % objecttools.classname(self))
 
     def __iter__(self):
         for seqclass in self._SEQCLASSES:
             name = objecttools.instancename(seqclass)
-            yield name, getattr(self, name)
+            yield getattr(self, name)
 
     def __getitem__(self, key):
         return self.__dict__[key]
@@ -319,11 +335,11 @@ class SubSequences(MetaSubSequencesClass):
                             objecttools.modulename(self)))
             lines.append('#The implemented sequences with their actual '
                          'values are:')
-        for (name, sequence) in self:
+        for sequence in self:
             try:
                 lines.append('%s' % repr(sequence))
             except BaseException:
-                lines.append('%s(?)' % name)
+                lines.append('%s(?)' % sequence.name)
         return '\n'.join(lines)
 
     def __dir__(self):
@@ -340,36 +356,42 @@ class IOSubSequences(SubSequences):
         self.fastaccess.close_files()
 
     def activate_ram(self):
-        for (name, seq) in self:
+        for seq in self:
             seq.activate_ram()
 
     def deactivate_ram(self):
-        for (name, seq) in self:
+        for seq in self:
             seq.deactivate_ram()
 
     def activate_disk(self):
-        for (name, seq) in self:
+        for seq in self:
             seq.activate_disk()
 
     def deactivate_disk(self):
-        for (name, seq) in self:
+        for seq in self:
             seq.deactivate_disk()
 
     def ram2disk(self):
-        for (name, seq) in self:
+        for seq in self:
             seq.ram2disk()
 
     def disk2ram(self):
-        for (name, seq) in self:
+        for seq in self:
             seq.disk2ram()
+
+
+abctools.IOSubSequencesABC.register(IOSubSequences)
 
 
 class InputSequences(IOSubSequences):
     """Base class for handling input sequences."""
     _SEQCLASSES = ()
 
-    def loaddata(self, idx):
-        self.fastaccess.loaddata(idx)
+    def load_data(self, idx):
+        self.fastaccess.load_data(idx)
+
+
+abctools.InputSubSequencesABC.register(InputSequences)
 
 
 class FluxSequences(IOSubSequences):
@@ -380,8 +402,8 @@ class FluxSequences(IOSubSequences):
     def getname(cls):
         return 'fluxes'
 
-    def savedata(self, idx):
-        self.fastaccess.savedata(idx)
+    def save_data(self, idx):
+        self.fastaccess.save_data(idx)
 
     @property
     def numerics(self):
@@ -390,9 +412,12 @@ class FluxSequences(IOSubSequences):
         `numerical` means that the class attribute of the respective sequence
         is `True`.
         """
-        for (name, flux) in self:
+        for flux in self:
             if flux.NUMERIC:
-                yield (name, flux)
+                yield flux
+
+
+abctools.OutputSubSequencesABC.register(FluxSequences)
 
 
 class StateSequences(IOSubSequences):
@@ -413,15 +438,18 @@ class StateSequences(IOSubSequences):
         """Assign the new/final state values of the actual time step to the
         new/initial state values of the next time step.
         """
-        for (name, seq) in self:
+        for seq in self:
             seq.new2old()
 
-    def savedata(self, idx):
-        self.fastaccess.savedata(idx)
+    def save_data(self, idx):
+        self.fastaccess.save_data(idx)
 
     def reset(self):
-        for (name, seq) in self:
+        for seq in self:
             seq.reset()
+
+
+abctools.OutputSubSequencesABC.register(StateSequences)
 
 
 class LogSequences(SubSequences):
@@ -429,7 +457,7 @@ class LogSequences(SubSequences):
     _SEQCLASSES = ()
 
     def reset(self):
-        for (name, seq) in self:
+        for seq in self:
             seq.reset()
 
 
@@ -575,7 +603,7 @@ class Sequence(variabletools.Variable):
                 prefix = ('While trying create a new numpy ndarray` for '
                           'sequence %s of element %s'
                           % (self.name, objecttools.devicename(self)))
-                objecttools.augmentexcmessage(prefix)
+                objecttools.augment_excmessage(prefix)
             if array.ndim == self.NDIM:
                 setattr(self.fastaccess, self.name, array)
             else:
@@ -612,9 +640,9 @@ class Sequence(variabletools.Variable):
             raise RuntimeError('Sequence `%s` has no values so far.'
                                % self.name)
         else:
-            objecttools.augmentexcmessage('While trying to item access the '
-                                          'values of sequence `%s`'
-                                          % self.name)
+            objecttools.augment_excmessage(
+                'While trying to item access the values of sequence `%s`'
+                % self.name)
 
     def __repr__(self):
         islong = self.length > 255
@@ -800,7 +828,7 @@ class IOSequence(Sequence):
                                'not been set yet.' % self.name)
 
     def _setdiskflag(self, value):
-        setattr(self.fastaccess, '_%s_diskflag' % self.name,  bool(value))
+        setattr(self.fastaccess, '_%s_diskflag' % self.name, bool(value))
 
     diskflag = property(_getdiskflag, _setdiskflag)
 
@@ -813,7 +841,7 @@ class IOSequence(Sequence):
                                'not been set yet.' % self.name)
 
     def _setramflag(self, value):
-        setattr(self.fastaccess, '_%s_ramflag' % self.name,  bool(value))
+        setattr(self.fastaccess, '_%s_ramflag' % self.name, bool(value))
 
     ramflag = property(_getramflag, _setramflag)
 
@@ -832,7 +860,7 @@ class IOSequence(Sequence):
 
     def _setarray(self, values):
         values = numpy.array(values, dtype=float)
-        setattr(self.fastaccess, '_%s_array' % self.name,  values)
+        setattr(self.fastaccess, '_%s_array' % self.name, values)
 
     @property
     def seriesshape(self):
@@ -848,7 +876,7 @@ class IOSequence(Sequence):
         try:
             numericshape = [self.subseqs.seqs.model.numconsts.nmb_stages]
         except AttributeError:
-            objecttools.augmentexcmessage(
+            objecttools.augment_excmessage(
                 'The `numericshape` of a sequence like `%s` depends on the '
                 'configuration of the actual integration algorithm.  '
                 'While trying to query the required configuration data '
@@ -1044,14 +1072,14 @@ class IOSequence(Sequence):
         except BaseException:
             prefix = ('While trying to load the external data of sequence '
                       '`%s` from file `%s`' % (self.name, self.filepath_ext))
-            objecttools.augmentexcmessage(prefix)
+            objecttools.augment_excmessage(prefix)
         try:
             timegrid_data = timetools.Timegrid.fromarray(data)
         except BaseException:
             prefix = ('While trying to retrieve the data timegrid of the '
                       'external data file `%s` of sequence `%s`'
                       % (self.filepath_ext, self.name))
-            objecttools.augmentexcmessage(prefix)
+            objecttools.augment_excmessage(prefix)
         return timegrid_data, data[13:]
 
     def _load_asc(self):
@@ -1090,7 +1118,7 @@ class IOSequence(Sequence):
         self.diskflag = True
         if (isinstance(self, InputSequence) or
            (isinstance(self, NodeSequence) and self.use_ext)):
-            self.load_ext()
+                self.load_ext()
         else:
             self.zero_int()
         self.update_fastaccess()
@@ -1150,9 +1178,9 @@ class ModelIOSequence(IOSequence):
         else:
             try:
                 return '%s_%s_%s' % (
-                       self.subseqs.seqs.model.element.name,
-                       objecttools.classname(self.subseqs)[:-9].lower(),
-                       self.name)
+                    self.subseqs.seqs.model.element.name,
+                    objecttools.classname(self.subseqs)[:-9].lower(),
+                    self.name)
             except AttributeError:
                 raise RuntimeError('For sequence `%s` the raw filename cannot '
                                    'determined.  Either set it manually or '
@@ -1219,7 +1247,6 @@ class LeftRightSequence(ModelIOSequence):
         self.values[0] = value
 
     left = property(_getleft, _setleft)
-    l = left
 
     def _getright(self):
         """The "right" value of the actual parameter."""
@@ -1229,7 +1256,6 @@ class LeftRightSequence(ModelIOSequence):
         self.values[1] = value
 
     right = property(_getright, _setright)
-    r = right
 
 
 class ConditionSequence(object):
@@ -1241,12 +1267,13 @@ class ConditionSequence(object):
 
     trim = variabletools.trim
 
-    def warntrim(self):
-        warnings.warn('For sequence %s of element %s at least one value '
-                      'needed to be trimmed.  One possible reason could be '
-                      'that the related control parameter and initial '
-                      'condition files are inconsistent.'
-                      % (self.name, objecttools.devicename(self)))
+    def warn_trim(self):
+        warnings.warn(
+            'For sequence %s of element %s at least one value '
+            'needed to be trimmed.  One possible reason could be '
+            'that the related control parameter and initial '
+            'condition files are inconsistent.'
+            % (self.name, objecttools.devicename(self)))
 
     def reset(self):
         if self._oldargs:
@@ -1365,7 +1392,6 @@ abctools.StateSequenceABC.register(StateSequence)
 
 
 class LogSequence(Sequence, ConditionSequence):
-    """ """
 
     def __init__(self):
         Sequence.__init__(self)
@@ -1381,28 +1407,27 @@ abctools.LogSequenceABC.register(LogSequence)
 
 
 class AideSequence(Sequence):
-    """ """
+    pass
 
 
 abctools.AideSequenceABC.register(AideSequence)
 
 
 class LinkSequence(Sequence):
-    """2"""
 
-    def setpointer(self, double, idx=0):
+    def set_pointer(self, double, idx=0):
         pdouble = pointerutils.PDouble(double)
         if self.NDIM == 0:
             try:
-                self.fastaccess.setpointer0d(self.name, pdouble)
+                self.fastaccess.set_pointer0d(self.name, pdouble)
             except AttributeError:
                 setattr(self.fastaccess, self.name, pdouble)
         elif self.NDIM == 1:
             try:
-                self.fastaccess.setpointer1d(self.name, pdouble, idx)
+                self.fastaccess.set_pointer1d(self.name, pdouble, idx)
             except AttributeError:
                 ppdouble = getattr(self.fastaccess, self.name)
-                ppdouble.setpointer(double, idx)
+                ppdouble.set_pointer(double, idx)
 
     def _initvalues(self):
         value = pointerutils.PPDouble() if self.NDIM else None
@@ -1459,9 +1484,9 @@ class NodeSequence(IOSequence):
         else:
             try:
                 return '%s_%s_%s' % (
-                       self.subseqs.node.name,
-                       self.name,
-                       self.subseqs.node.variable.lower())
+                    self.subseqs.node.name,
+                    self.name,
+                    self.subseqs.node.variable.lower())
             except AttributeError:
                 raise RuntimeError('For sequence `%s` the raw filename cannot '
                                    'determined.  Either set it manually or '
@@ -1578,11 +1603,11 @@ class NodeSequences(IOSubSequences):
         IOSubSequences.__init__(self, seqs, cls_fastaccess)
         self.node = seqs
 
-    def loaddata(self, idx):
-        self.fastaccess.loaddata(idx)
+    def load_data(self, idx):
+        self.fastaccess.load_data(idx)
 
-    def savedata(self, idx):
-        self.fastaccess.savedata(idx)
+    def save_data(self, idx):
+        self.fastaccess.save_data(idx)
 
 
 class FastAccess(object):
@@ -1635,7 +1660,7 @@ class FastAccess(object):
                 file_ = getattr(self, '_%s_file' % name)
                 file_.close()
 
-    def loaddata(self, idx):
+    def load_data(self, idx):
         """Load the internal data of all sequences.  Load from file if the
         corresponding disk flag is activated, otherwise load from RAM."""
         for name in self:
@@ -1665,7 +1690,7 @@ class FastAccess(object):
                 else:
                     getattr(self, name)[:] = values
 
-    def savedata(self, idx):
+    def save_data(self, idx):
         """Save the internal data of all sequences with an activated flag.
         Write to file if the corresponding disk flag is activated; store
         in working memory if the corresponding ram flag is activated."""

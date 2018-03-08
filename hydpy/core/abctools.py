@@ -155,6 +155,21 @@ class ANNABC(DocABC):
     classes."""
 
 
+class IOSubSequencesABC(DocABC):
+    """Abstract base class for registering custom input-output subsequence
+    collection classes."""
+
+
+class InputSubSequencesABC(DocABC):
+    """Abstract base class for registering custom input subsequence
+    collection classes."""
+
+
+class OutputSubSequencesABC(DocABC):
+    """Abstract base class for registering custom output subsequence
+    collection classes."""
+
+
 class SequenceABC(VariableABC):
     """Abstract base class for registering custom sequence classes."""
     pass

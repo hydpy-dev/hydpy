@@ -60,7 +60,7 @@ Integration tests:
     Initialize a test function object, which prepares and runs the tests
     and prints their results for the given sequences:
 
-    >>> from hydpy.core.testtools import IntegrationTest
+    >>> from hydpy import IntegrationTest
     >>> IntegrationTest.plotting_options.height = 800
     >>> IntegrationTest.plotting_options.activated=(
     ...     inputs.nied, inputs.teml, fluxes.q)

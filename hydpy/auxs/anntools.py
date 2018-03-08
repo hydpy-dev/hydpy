@@ -5,7 +5,7 @@ required for some models implemented in the HydPy framework.
 A note for developers: some of the implemented features are to be applied
 during model simulations are in some other way performance-critical.  Hence,
 the actual calculations are defined in the Cython extension module
-:mod:`~hydpy.cythons.autogen.annutils`.
+|annutils|.
 """
 
 # import...
@@ -43,7 +43,7 @@ class ANN(object):
     only one input node, neuron, and output node respectively, and pass
     some arbitrary network parameters:
 
-    >>> from hydpy.auxs.anntools import ANN
+    >>> from hydpy import ANN
     >>> ann = ANN()
     >>> ann(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
     ...     weights_input=4.0, weights_output=3.0,
@@ -53,7 +53,7 @@ class ANN(object):
     performs the calculateion, and prints out the final output.  As to be
     expected, the results show the shape of the logistic function:
 
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> for input_ in range(9):
     ...     ann.inputs[0] = input_
     ...     ann.process_actual_input()
@@ -114,7 +114,7 @@ class ANN(object):
 
     def connect(self, subpars):
         """Connect the actual :class:`ANN` object with the given
-        :class:`~hydpy.core.parametertools.SubParameters` object."""
+        |SubParameters| object."""
         self.subpars = subpars
         self.fastaccess = subpars.fastaccess
         setattr(self.fastaccess, self.name, self._cann)
@@ -190,7 +190,7 @@ class ANN(object):
         The input nodes and the neurons are varied on the first axis and
         on the second axis of the 2-dimensional array:
 
-        >>> from hydpy.auxs.anntools import ANN
+        >>> from hydpy import ANN
         >>> ann = ANN()
         >>> ann(nmb_inputs=2, nmb_neurons=(3,))
         >>> ann.weights_input
@@ -251,7 +251,7 @@ broadcast input array from shape (3,3) into shape (2,3)
                 self._cann.weights_input = numpy.full(self.shape_weights_input,
                                                       values, dtype=float)
             except BaseException:
-                objecttools.augmentexcmessage(
+                objecttools.augment_excmessage(
                     'While trying to set the input weights of the artificial '
                     'neural network `%s` of element `%s`'
                     % (self.name, objecttools.devicename(self)))
@@ -280,7 +280,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         The neurons and the output nodes are varied on the first axis and
         on the second axis of the 2-dimensional array:
 
-        >>> from hydpy.auxs.anntools import ANN
+        >>> from hydpy import ANN
         >>> ann = ANN()
         >>> ann(nmb_outputs=2, nmb_neurons=(3,))
         >>> ann.weights_output
@@ -346,7 +346,7 @@ broadcast input array from shape (3,3) into shape (3,2)
                 self._cann.weights_output = numpy.full(
                     self.shape_weights_output, values, dtype=float)
             except BaseException:
-                objecttools.augmentexcmessage(
+                objecttools.augment_excmessage(
                     'While trying to set the output weights of the artificial '
                     'neural network `%s` of element `%s`'
                     % (self.name, objecttools.devicename(self)))
@@ -375,7 +375,7 @@ broadcast input array from shape (3,3) into shape (3,2)
         upstream layer on the second axis and the neurons of the respective
         downstream layer on the third axis of a 3-dimensional array:
 
-        >>> from hydpy.auxs.anntools import ANN
+        >>> from hydpy import ANN
         >>> ann = ANN()
         >>> ann(nmb_neurons=(3, 2, 3))
         >>> ann.weights_hidden
@@ -461,7 +461,7 @@ broadcast input array from shape (3,2) into shape (2,3,3)
                 self._cann.weights_hidden = numpy.full(
                     self.shape_weights_hidden, values, dtype=float)
             except BaseException:
-                objecttools.augmentexcmessage(
+                objecttools.augment_excmessage(
                     'While trying to set the hidden weights of the artificial '
                     'neural network `%s` of element `%s`'
                     % (self.name, objecttools.devicename(self)))
@@ -503,7 +503,7 @@ broadcast input array from shape (3,2) into shape (2,3,3)
 
         All intercepts are handled in a 1-dimensional array:
 
-        >>> from hydpy.auxs.anntools import ANN
+        >>> from hydpy import ANN
         >>> ann = ANN()
         >>> ann(nmb_neurons=(3, 2))
         >>> ann.intercepts_hidden
@@ -564,7 +564,7 @@ could not broadcast input array from shape (2) into shape (2,3)
                 self._cann.intercepts_hidden = numpy.full(
                     self.shape_intercepts_hidden, values, dtype=float)
             except BaseException:
-                objecttools.augmentexcmessage(
+                objecttools.augment_excmessage(
                     'While trying to set the neuron related intercepts of '
                     'the artificial neural network `%s` of element `%s`'
                     % (self.name, objecttools.devicename(self)))
@@ -597,7 +597,7 @@ could not broadcast input array from shape (2) into shape (2,3)
 
         All intercepts are handled in a 1-dimensional array:
 
-        >>> from hydpy.auxs.anntools import ANN
+        >>> from hydpy import ANN
         >>> ann = ANN()
         >>> ann(nmb_outputs=3)
         >>> ann.intercepts_output
@@ -653,7 +653,7 @@ occured: could not broadcast input array from shape (2) into shape (3)
                 self._cann.intercepts_output = numpy.full(
                     self.shape_intercepts_output, values, dtype=float)
             except BaseException:
-                objecttools.augmentexcmessage(
+                objecttools.augment_excmessage(
                     'While trying to set the output node related intercepts '
                     'of the artificial neural network `%s` of element `%s`'
                     % (self.name, objecttools.devicename(self)))
@@ -682,7 +682,7 @@ occured: could not broadcast input array from shape (2) into shape (3)
 
         All input values are handled in a 1-dimensional array:
 
-        >>> from hydpy.auxs.anntools import ANN
+        >>> from hydpy import ANN
         >>> ann = ANN()
         >>> ann(nmb_inputs=3)
         >>> ann.inputs
@@ -733,7 +733,7 @@ broadcast input array from shape (2) into shape (3)
                 self._cann.inputs = numpy.full(self.nmb_inputs,
                                                values, dtype=float)
             except BaseException:
-                objecttools.augmentexcmessage(
+                objecttools.augment_excmessage(
                     'While trying to set the inputs of the artificial '
                     'neural network `%s` of element `%s`'
                     % (self.name, objecttools.devicename(self)))
@@ -748,7 +748,7 @@ broadcast input array from shape (2) into shape (3)
 
         All output values are handled in a 1-dimensional array:
 
-        >>> from hydpy.auxs.anntools import ANN
+        >>> from hydpy import ANN
         >>> ann = ANN()
         >>> ann(nmb_outputs=3)
         >>> ann.outputs
@@ -860,7 +860,7 @@ def ann(**kwargs):
     When passing no arguments, the default values of class :class:`ANN` will
     be applied:
 
-    >>> from hydpy.auxs.anntools import ann
+    >>> from hydpy import ANN
     >>> ann1 = ann()
     >>> ann1
     ann(nmb_inputs=1,
@@ -902,21 +902,21 @@ class SeasonalANN(object):
     vary within an anual cycle.
 
     Class :class:`SeasonalANN` is an alternative implementation of class
-    :class:`~hydpy.core.parametertools.SeasonalParameter` specifically
+    |SeasonalParameter| specifically
     designed for handling multiple :class:`ANN` objects that are valid
-    for different times of the year, described by
-    :class:`~hydpy.core.timetools.TOY` objects.  The total output of a
-    :class:`SeasonalANN` object is a weighted mean of the output of one
-    or two "normal" neural networks.  The :attr:`~SeasonalANN.ratios`
-    used for weighting depend on the actual time of the year.
+    for different times of the year, described by |TOY| objects.  The
+    total output of a :class:`SeasonalANN` object is a weighted mean of
+    the output of one or two "normal" neural networks.  The
+    :attr:`~SeasonalANN.ratios` used for weighting depend on the actual
+    time of the year.
 
     To explain this in more detail, let us define a :class:`SeasonalANN`
     object first, that contains three "normal" networks for January, 1,
     March, 1, and July, 1, respectively (note that this example is similar
     to the example used to describe class
-    :class:`~hydpy.core.parametertools.SeasonalParameter`):
+    |SeasonalParameter|):
 
-    >>> from hydpy.auxs.anntools import SeasonalANN, ann
+    >>> from hydpy import SeasonalANN, ann
     >>> seasonalann = SeasonalANN()
     >>> seasonalann.simulationstep = '1d'
     >>> seasonalann(
@@ -1018,7 +1018,7 @@ class SeasonalANN(object):
     For example, on July, 1 (which is the 183th day of a leap year),
     only the output of the third network is relevant:
 
-    >>> from hydpy.core.objecttools import print_values
+    >>> from hydpy import print_values
     >>> print_values(seasonalann.ratios[182])
     0.0, 0.0, 1.0
 
@@ -1037,7 +1037,7 @@ class SeasonalANN(object):
     `182` activates the third network only, which is configured exactly
     as the one exemplifying class :class:`ANN`:
 
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> for input_ in range(9):
     ...     seasonalann.inputs[0] = input_
     ...     seasonalann.process_actual_input(182)
@@ -1065,7 +1065,7 @@ class SeasonalANN(object):
     The output of the first network (1.0) dominates the output of the
     second network (-1.0):
 
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> for input_ in range(9):
     ...     seasonalann.inputs[0] = input_
     ...     seasonalann.process_actual_input(12)
@@ -1197,7 +1197,7 @@ registered under a TOY object named `toy_1_1_12_0_0`.
 
     def connect(self, subpars):
         """Connect the actual :class:`SeasonalANN` object with the given
-        :class:`~hydpy.core.parametertools.SubParameters` object."""
+        |SubParameters| object."""
         self.subpars = subpars
         self.fastaccess = subpars.fastaccess
 
@@ -1216,7 +1216,7 @@ registered under a TOY object named `toy_1_1_12_0_0`.
                     try:
                         setattr(self, str(timetools.TOY(toystr)), value)
                     except BaseException:
-                        objecttools.augmentexcmessage(
+                        objecttools.augment_excmessage(
                             'While trying to add a season specific neural '
                             'network based on %s for time of year `%s` to '
                             'parameter `%s` of element `%s`'
@@ -1238,7 +1238,7 @@ registered under a TOY object named `toy_1_1_12_0_0`.
         as it stores its :class:`ANN` objects by reference.  This is shown
         by the following example:
 
-        >>> from hydpy.auxs.anntools import SeasonalANN, ann
+        >>> from hydpy import SeasonalANN, ann
         >>> seasonalann = SeasonalANN()
         >>> seasonalann.simulationstep = '1d'
         >>> jan = ann(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
@@ -1288,7 +1288,7 @@ registered under a TOY object named `toy_1_1_12_0_0`.
         as it stores its :class:`ANN` objects by reference.  This is shown
         by the following example:
 
-        >>> from hydpy.auxs.anntools import SeasonalANN, ann
+        >>> from hydpy import SeasonalANN, ann
         >>> seasonalann = SeasonalANN()
         >>> seasonalann.simulationstep = '1d'
         >>> jan = ann(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
@@ -1383,7 +1383,7 @@ year `toy_1_1_12_0_0` requires `2` input and `3` output values.
             getattr(self.fastaccess, self.name).ratios = numpy.zeros(
                 shp, dtype=float)
         except BaseException:
-            objecttools.augmentexcmessage(
+            objecttools.augment_excmessage(
                 'While trying to set the shape of the seasonal '
                 'neural network `%s` of element `%s` with %s'
                 % (self.name, objecttools.devicename(self),
@@ -1394,8 +1394,7 @@ year `toy_1_1_12_0_0` requires `2` input and `3` output values.
 
     @property
     def toys(self):
-        """A sorted :class:`tuple` of all contained
-        :class:`~hydpy.core.timetools.TOY` objects."""
+        """A sorted :class:`tuple` of all contained |TOY| objects."""
         return tuple(toy for (toy, ann) in self)
 
     @property
@@ -1463,7 +1462,7 @@ year `toy_1_1_12_0_0` requires `2` input and `3` output values.
                         'a TOY object named `%s`.'
                         % timetools.TOY(name))
             except BaseException:
-                objecttools.augmentexcmessage(
+                objecttools.augment_excmessage(
                     'While trying to look up for a neural network '
                     'handled by the seasonal neural network collection '
                     '`%s` of element `%s` based on name `%s`'
@@ -1482,7 +1481,7 @@ year `toy_1_1_12_0_0` requires `2` input and `3` output values.
                 self._toy2ann[timetools.TOY(name)] = value
                 self.refresh()
             except BaseException:
-                objecttools.augmentexcmessage(
+                objecttools.augment_excmessage(
                     'While trying to assign a new neural network to '
                     'the seasonal neural network collection `%s` of '
                     'element `%s` based on name `%s`'
@@ -1502,7 +1501,7 @@ year `toy_1_1_12_0_0` requires `2` input and `3` output values.
                         % timetools.TOY(name))
                 self.refresh()
             except BaseException:
-                objecttools.augmentexcmessage(
+                objecttools.augment_excmessage(
                     'While trying to remove a new neural network from '
                     'the seasonal neural network collection `%s` of '
                     'element `%s` based on name `%s`'

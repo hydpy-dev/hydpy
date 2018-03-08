@@ -48,7 +48,7 @@ Integration examples:
     via the `test` object and all other values are passed to the series
     object of node `remote`:
 
-    >>> from hydpy.core.testtools import IntegrationTest
+    >>> from hydpy import IntegrationTest
     >>> IntegrationTest.plotting_options.height = 200
     >>> IntegrationTest.plotting_options.activated=(
     ...     fluxes.inflow, fluxes.outflow)

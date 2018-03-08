@@ -75,12 +75,12 @@ def _trim_float_0d(self, lower, upper):
     if self < lower:
         if (self+_tolerance(self)) < (lower-_tolerance(lower)):
             if pub.options.warntrim:
-                self.warntrim()
+                self.warn_trim()
         self.value = lower
     elif self > upper:
         if (self-_tolerance(self)) > (upper+_tolerance(upper)):
             if pub.options.warntrim:
-                self.warntrim()
+                self.warn_trim()
         self.value = upper
 
 
@@ -101,7 +101,7 @@ def _trim_float_nd(self, lower, upper):
                 numpy.any((self-_tolerance(self)) >
                           (upper+_tolerance(upper)))):
             if pub.options.warntrim:
-                self.warntrim()
+                self.warn_trim()
         self.values = numpy.clip(self.values, lower, upper)
     self[idxs] = numpy.nan
 
@@ -167,7 +167,7 @@ def _compare_variables_function_generator(
             except TypeError:
                 return result
         except BaseException:
-            objecttools.augmentexcmessage(
+            objecttools.augment_excmessage(
                 'While trying to compare variable `{0!r}` of '
                 'element `{1}` with object `{2}` of type `{3}`'
                 .format(self, objecttools.devicename(self),
@@ -285,7 +285,7 @@ error occured: operands could not be broadcast together with shapes (2,) (3,)
             return other
 
     def _arithmetic_exception(self, verb, other):
-        objecttools.augmentexcmessage(
+        objecttools.augment_excmessage(
             'While trying to %s %s instance `%s` and %s `%s`'
             % (verb, objecttools.classname(self), self.name,
                objecttools.classname(other), other))

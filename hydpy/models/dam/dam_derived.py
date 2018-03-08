@@ -36,7 +36,7 @@ class RemoteDischargeSmoothPar(parametertools.MultiParameter):
     |smoothtools|:
 
     >>> from hydpy import pub
-    >>> from hydpy.core.timetools import Timegrids, Timegrid
+    >>> from hydpy import Timegrids, Timegrid
     >>> pub.timegrids = Timegrids(Timegrid('2000.01.01',
     ...                                    '2000.01.03',
     ...                                    '1d'))
@@ -46,7 +46,7 @@ class RemoteDischargeSmoothPar(parametertools.MultiParameter):
     >>> remotedischargesafety.values[1] = 2.5
     >>> derived.remotedischargesmoothpar.update()
     >>> from hydpy.cythons.smoothutils import smooth_logistic1
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> round_(smooth_logistic1(0.1, derived.remotedischargesmoothpar[0]))
     1.0
     >>> round_(smooth_logistic1(2.5, derived.remotedischargesmoothpar[1]))
@@ -69,7 +69,7 @@ class NearDischargeMinimumSmoothPar1(parametertools.MultiParameter):
     |smoothtools|:
 
     >>> from hydpy import pub
-    >>> from hydpy.core.timetools import Timegrids, Timegrid
+    >>> from hydpy import Timegrids, Timegrid
     >>> pub.timegrids = Timegrids(Timegrid('2000.01.01',
     ...                                    '2000.01.03',
     ...                                    '1d'))
@@ -79,7 +79,7 @@ class NearDischargeMinimumSmoothPar1(parametertools.MultiParameter):
     >>> neardischargeminimumtolerance.values[1] = 2.5
     >>> derived.neardischargeminimumsmoothpar1.update()
     >>> from hydpy.cythons.smoothutils import smooth_logistic1
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> round_(smooth_logistic1(
     ...     1.0, derived.neardischargeminimumsmoothpar1[0]))
     1.0
@@ -104,7 +104,7 @@ class NearDischargeMinimumSmoothPar2(parametertools.MultiParameter):
     |smoothtools|:
 
     >>> from hydpy import pub
-    >>> from hydpy.core.timetools import Timegrids, Timegrid
+    >>> from hydpy import Timegrids, Timegrid
     >>> pub.timegrids = Timegrids(Timegrid('2000.01.01',
     ...                                    '2000.01.03',
     ...                                    '1d'))
@@ -114,7 +114,7 @@ class NearDischargeMinimumSmoothPar2(parametertools.MultiParameter):
     >>> neardischargeminimumtolerance.values[1] = 2.5
     >>> derived.neardischargeminimumsmoothpar2.update()
     >>> from hydpy.cythons.smoothutils import smooth_logistic2
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> round_(smooth_logistic2(
     ...     0.0, derived.neardischargeminimumsmoothpar2[0]))
     0.0
@@ -143,7 +143,7 @@ class WaterLevelMinimumSmoothPar(parametertools.SingleParameter):
     >>> waterlevelminimumtolerance(0.0)
     >>> derived.waterlevelminimumsmoothpar.update()
     >>> from hydpy.cythons.smoothutils import smooth_logistic1
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> round_(smooth_logistic1(0.1, derived.waterlevelminimumsmoothpar))
     1.0
     >>> waterlevelminimumtolerance(2.5)
@@ -170,7 +170,7 @@ class WaterLevelMinimumRemoteSmoothPar(parametertools.SingleParameter):
     >>> waterlevelminimumremotetolerance(0.0)
     >>> derived.waterlevelminimumremotesmoothpar.update()
     >>> from hydpy.cythons.smoothutils import smooth_logistic1
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> round_(smooth_logistic1(0.1, derived.waterlevelminimumremotesmoothpar))
     1.0
     >>> waterlevelminimumremotetolerance(2.5)
@@ -193,7 +193,7 @@ class WaterLevelRelieveSmoothPar(parametertools.MultiParameter):
     |smoothtools|:
 
     >>> from hydpy import pub
-    >>> from hydpy.core.timetools import Timegrids, Timegrid
+    >>> from hydpy import Timegrids, Timegrid
     >>> pub.timegrids = Timegrids(Timegrid('2000.01.01',
     ...                                    '2000.01.03',
     ...                                    '1d'))
@@ -203,7 +203,7 @@ class WaterLevelRelieveSmoothPar(parametertools.MultiParameter):
     >>> waterlevelrelievetolerance.values[1] = 2.5
     >>> derived.waterlevelrelievesmoothpar.update()
     >>> from hydpy.cythons.smoothutils import smooth_logistic1
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> round_(smooth_logistic1(
     ...     1.0, derived.waterlevelrelievesmoothpar[0]))
     1.0
@@ -228,7 +228,7 @@ class WaterLevelSupplySmoothPar(parametertools.MultiParameter):
     |smoothtools|:
 
     >>> from hydpy import pub
-    >>> from hydpy.core.timetools import Timegrids, Timegrid
+    >>> from hydpy import Timegrids, Timegrid
     >>> pub.timegrids = Timegrids(Timegrid('2000.01.01',
     ...                                    '2000.01.03',
     ...                                    '1d'))
@@ -238,7 +238,7 @@ class WaterLevelSupplySmoothPar(parametertools.MultiParameter):
     >>> waterlevelsupplytolerance.values[1] = 2.5
     >>> derived.waterlevelsupplysmoothpar.update()
     >>> from hydpy.cythons.smoothutils import smooth_logistic1
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> round_(smooth_logistic1(
     ...     1.0, derived.waterlevelsupplysmoothpar[0]))
     1.0
@@ -268,7 +268,7 @@ class HighestRemoteSmoothPar(parametertools.SingleParameter):
     >>> highestremotetolerance(0.0)
     >>> derived.highestremotesmoothpar.update()
     >>> from hydpy.cythons.smoothutils import smooth_min1
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> round_(smooth_min1(-4.0, 1.5, derived.highestremotesmoothpar))
     -4.0
     >>> highestremotetolerance(2.5)

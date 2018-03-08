@@ -43,7 +43,7 @@ class Array(object):
 
 
 class ArrayDescriptor(object):
-    """Descriptor for handling values of :class:`Array` objects."""
+    """Descriptor for handling values of |Array| objects."""
 
     def __init__(self):
         self.values = Array()
@@ -63,7 +63,7 @@ class ArrayDescriptor(object):
 
 
 class Test(object):
-    """Base class for :class:`IntegrationTest` and :class:`UnitTest`.
+    """Base class for |IntegrationTest| and |UnitTest|.
 
     This base class defines the printing of the test results primarily.
     How the tests shall be prepared and performed, is to be defined in
@@ -128,8 +128,8 @@ class Test(object):
                     strings[-1].append(objecttools.repr_(array[idx]))
                 elif parseq.NDIM == 1:
                     if parseq.shape[0] > 0:
-                        strings[-1].extend(objecttools.repr_(value)
-                                           for value in array[idx])
+                        strings[-1].extend(
+                            objecttools.repr_(value) for value in array[idx])
                     else:
                         strings[-1].append('empty')
                 else:
@@ -214,7 +214,7 @@ class Test(object):
 
 
 class PlottingOptions(object):
-    """Plotting options of class :class:`IntegrationTest`."""
+    """Plotting options of class |IntegrationTest|."""
 
     def __init__(self):
         self.width = 600
@@ -227,8 +227,8 @@ class PlottingOptions(object):
 class IntegrationTest(Test):
     """Defines model integration doctests.
 
-    The functionality of :class:`Test` is easiest to understand by inspecting
-    doctests like the ones of modules |llake_v1| or |arma_v1|.
+    The functionality of |IntegrationTest| is easiest to understand by
+    inspecting doctests like the ones of modules |llake_v1| or |arma_v1|.
 
     Note that all condition sequences (state and logging sequences) are
     initialized in accordance with the values are given in the `inits`
@@ -340,7 +340,7 @@ class IntegrationTest(Test):
         """Configure the input sequences of the model in a manner that allows
         for applying their time series data in integration tests."""
         subseqs = getattr(self.element.model.sequences, 'inputs', ())
-        for (dummy, seq) in subseqs:
+        for seq in subseqs:
             seq.ramflag = True
             seq._setarray(numpy.zeros(len(pub.timegrids.init), dtype=float))
 
@@ -350,7 +350,7 @@ class IntegrationTest(Test):
         seqs = []
         for name in ('inputs', 'fluxes', 'states'):
             subseqs = getattr(self.element.model.sequences, name, ())
-            for (dummy, seq) in subseqs:
+            for seq in subseqs:
                 seqs.append(seq)
         for node in self.nodes:
             seqs.append(node.sequences.sim)
@@ -378,10 +378,9 @@ class IntegrationTest(Test):
         """Set all initial conditions of all models."""
         for subname in ('states', 'logs'):
             for element in self.elements:
-                for (name, seq) in getattr(element.model.sequences,
-                                           subname, ()):
+                for seq in getattr(element.model.sequences, subname, ()):
                     try:
-                        seq(getattr(self.inits, name))
+                        seq(getattr(self.inits, seq.name))
                     except AttributeError:
                         pass
 
@@ -600,9 +599,9 @@ class UnitTest(Test):
         attribute are omitted.
         """
         parseqs = []
-        for (_, subparseqs) in itertools.chain(self.model.parameters,
-                                               self.model.sequences):
-            for (_, parseq) in subparseqs:
+        for subparseqs in itertools.chain(self.model.parameters,
+                                          self.model.sequences):
+            for parseq in subparseqs:
                 if str(type(parseq)).split("'")[1] in self.doc:
                     if hasattr(parseq, 'values'):
                         parseqs.append(parseq)
@@ -625,7 +624,8 @@ class UnitTest(Test):
 
 class _Open(object):
 
-    def __init__(self, path, mode):
+    def __init__(self, path, mode, *args, **kwargs):
+        # all positional and keyword arguments are ignored.
         self.path = path.replace(os.sep, '/')
         self.mode = mode
         self.texts = []
@@ -663,14 +663,14 @@ class _Open(object):
 class Open(object):
     """Replace :func:`open` in doctests temporarily.
 
-    Class :class:`Open` to intended to make writing to files visible
+    Class |Open| to intended to make writing to files visible
     and testable in docstrings.  Therefore, Python's built in function
     :func:`open` is temporarily replaced by another object, printing
     the filename and the file contend as shown in the following example:
 
     >>> import os
     >>> path = os.path.join('folder', 'test.py')
-    >>> from hydpy.core.testtools import Open
+    >>> from hydpy import Open
     >>> with Open():
     ...     with open(path, 'w') as file_:
     ...         file_.write('first line\\n')
@@ -688,8 +688,8 @@ class Open(object):
     Note that, for simplicity, the UNIX style path seperator `/` is used
     to print the file path on all systems.
 
-    Class :class:`Open` as rasther restricted at the moment.  More
-    functionalities will be added later...
+    Class |Open| is rather restricted at the moment.  More functionalities
+    will be added later...
     """
     def __init__(self):
         self.open = builtins.open

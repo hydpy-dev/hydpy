@@ -227,7 +227,7 @@ HydPy functionalities must be coded twice.  Use `pyversion` in these cases:
     SystemError: just a test
 
 (The example above is already taken into account by function
-:func:`~hydpy.core.objecttools.augmentexcmessage`.)
+:func:`~hydpy.core.objecttools.augment_excmessage`.)
 
 
 Site Packages
@@ -303,12 +303,12 @@ consistent, whenever this appears to be useful. One example is that it
 is not allowed to assign an unknown string to the `outputfiletype` of a
 :class:`~hydpy.core.filetools.SequenceManager`:
 
-    >>> from hydpy import SequenceManager
+    >>> from hydpy.core.filetools import SequenceManager
     >>> sm = SequenceManager()
     >>> sm.outputfiletype = 'test'
     Traceback (most recent call last):
       ...
-    NotImplementedError: The given output file type `test` is not implemented yet.  Please choose one of the following file types: ('npy', 'asc').
+    ValueError: The given sequence file type `test` is not implemented.  Please choose one of the following file types: npy and asc.
 
 Of course, the extensive usage of protected attributes increases
 the length of the source code and slows computation time.  But,
@@ -345,7 +345,7 @@ containing the given object, which is in many cases the most relevant
 information for identifying the error source.)
 
 Whenever possible, us function
-:func:`~hydpy.core.objecttools.augmentexcmessage` to augment
+:func:`~hydpy.core.objecttools.augment_excmessage` to augment
 standard Python error messages with `HydPy information`.
 
 

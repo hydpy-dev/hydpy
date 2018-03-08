@@ -265,7 +265,7 @@ class Responses(parametertools.Parameter):
                     self._coefs[std_key] = (tuple(float(v) for v in value[0]),
                                             tuple(float(v) for v in value[1]))
             except BaseException:
-                objecttools.augmentexcmessage(
+                objecttools.augment_excmessage(
                     'While trying to set a new threshold (%s) coefficient '
                     'pair for parameter `%s` of element `%s`'
                     % (key, self.name, objecttools.devicename(self.subpars)))

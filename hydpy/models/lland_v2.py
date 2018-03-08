@@ -37,7 +37,7 @@ Integration tests:
     >>> nhru(1)
     >>> ft(1.0)
     >>> fhru(1.0)
-    >>> from hydpy.core.testtools import IntegrationTest
+    >>> from hydpy import IntegrationTest
     >>> IntegrationTest.plotting_options.height = 800
     >>> IntegrationTest.plotting_options.activated=(
     ...     inputs.nied, inputs.teml, fluxes.q)

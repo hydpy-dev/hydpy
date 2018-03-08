@@ -152,10 +152,8 @@ class Selection(object):
 
     Attributes:
         * name (:class:`str`): Name of the selection.
-        * nodes (:class:`~hydpy.core.node.Nodes`):
-          Currently selected nodes.
-        * elements (:class:`~hydpy.core.element.Elements`):
-          Currently selected elements.
+        * nodes (|Nodes|): Currently selected nodes.
+        * elements (|Elements|): Currently selected elements.
     """
 
     def __init__(self, name, nodes=None, elements=None):

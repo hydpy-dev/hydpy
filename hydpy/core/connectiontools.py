@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-"""This modules implements tools for handling connections between
-:class:`~hydpy.core.devicetools.Node` and
-:class:`~hydpy.core.devicetools.Element` instances.
+"""This modules implements tools for handling connections between |Node| and
+|Element| instances.
 """
 # import...
 # ...from standard library
@@ -11,8 +10,7 @@ from hydpy.core import autodoctools
 
 
 class Connections(object):
-    """Connection between :class:`~hydpy.core.devicetools.Node` and
-    :class:`~hydpy.core.devicetools.Element` instances.
+    """Connection between |Node| and |Element| instances.
     """
 
     __slots__ = ('master', 'name', '_slaves')

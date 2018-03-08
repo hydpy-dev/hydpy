@@ -54,7 +54,7 @@ Integration examples:
     is added in order to prove that the values calculated for `qa` are
     actually passed to `sim`:
 
-    >>> from hydpy.core.testtools import IntegrationTest
+    >>> from hydpy import IntegrationTest
     >>> test = IntegrationTest(lake,
     ...                        seqs=(fluxes.qz, fluxes.qa,
     ...                              nodes.output.sequences.sim,

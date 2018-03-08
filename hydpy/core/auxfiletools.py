@@ -20,17 +20,16 @@ of control files.
 Reading parameters from `normal` and `auxiliary` control files is
 straightforward.   But storing some parameters in a large number
 of `normal` control files and some other parameters in a small number
-of `auxiliary`files can be a little complicated.  The features
-implemented in :mod:`~hydpy.core.auxfiletools` are a means to perform
-such actions in a semi-automated manner (another means are the selection
-mechanism implemented in module :mod:`~hydpy.core.selectiontools`).
+of `auxiliary` files can be a little complicated.  The features
+implemented in |auxfiletools| are a means to perform such actions in a
+semi-automated manner (another means are the selection mechanism
+implemented in module |selectiontools|).
 """
 # import...
 # ...from standard library
 from __future__ import division, print_function
 import copy
 import importlib
-import os
 import types
 # ...from HydPy
 from hydpy import pub
@@ -45,22 +44,22 @@ class Auxfiler(object):
     """Structures auxiliary file information.
 
     To save some parameter information to auxiliary files, it is advisable
-    to prepare (only) one :class:`Auxfiler` object:
+    to prepare (only) one |Auxfiler| object:
 
-    >>> from hydpy.core.auxfiletools import Auxfiler
+    >>> from hydpy import Auxfiler
     >>> aux = Auxfiler()
 
-    Each :class:`Auxfiler` object is capable of handling parameter
+    Each |Auxfiler| object is capable of handling parameter
     information for different kinds of models and performs some plausibility
     checks on added data.  Assume, we want to store the control files of
-    a "LARSIM type" HydPy project involving the application models `lland_v1`,
-    `lland_v2` and `lstream_v1`.  The following example shows, that these
-    models can be added to the :class:`Auxfiler` object by passing
-    their module (`lland_v1`), a working model object (`lland_v2`) or
-    their name (`lstream_v1`):
+    a "LARSIM type" HydPy project involving the application models |lland_v1|,
+    |lland_v2| and |lstream_v1|.  The following example shows, that these
+    models can be added to the |Auxfiler| object by passing their module
+    (|lland_v1|), a working model object (|lland_v2|) or their name
+    (|lstream_v1|):
 
 
-    >>> from hydpy.core.magictools import prepare_model
+    >>> from hydpy import prepare_model
     >>> from hydpy.models import lland_v1 as module
     >>> from hydpy.models import lland_v2
     >>> model = prepare_model(lland_v2)
@@ -92,11 +91,10 @@ No module named `hydpy.models.asdf`.
         ...     pass
 
 
-    The :class:`Auxfiler` object allocates a separate
-    :class:`Variable2Auxfile` object to each model type.  These are
-    available via attribute reading access, but setting new or deleting
-    existing :class:`Variable2Auxfile` objects is disabled for safety
-    purposes:
+    The |Auxfiler| object allocates a separate |Variable2Auxfile| object to
+    each model type.  These are available via attribute reading access, but
+    setting new or deleting existing |Variable2Auxfile| objects is disabled
+    for safety purposes:
 
     >>> aux.lland_v1
     Variable2Auxfile()
@@ -112,17 +110,16 @@ attributes.  Use the `+=` operator to register additional models instead.
 attributes.  Use the `-=` operator to remove registered models instead.
 
     As stated by the last error message, removing models and their
-    :class:`Variable2Auxfile` object should be done via the `-=` operator:
+    |Variable2Auxfile| object should be done via the `-=` operator:
 
     >>> aux -= module, string
     >>> aux
     Auxfiler(lland_v2)
 
-    The handling of the individual :class:`Variable2Auxfile` objects is
+    The handling of the individual |Variable2Auxfile| objects is
     explained below.  But there are some additional plausibility checks,
     which require that these objects are contained by a single master
-    :class:`Auxfiler` object.  For demonstration, the removed
-    models are added again:
+    |Auxfiler| object.  For demonstration, the removed models are added again:
 
     >>> aux += module, string
 
@@ -150,9 +147,9 @@ by the actual Variable2AuxFile object, the following error occured: \
 Variable type `EQD1` is not handled by model `lstream_v1`.
     >>> aux.lland_v2.file2 = model.parameters.control.eqd1
 
-    The :class:`Auxfiler` object defined above is also used in the
-    documentation of the following class members.  Hence it is stored in
-    the `dummies` object:
+    The |Auxfiler| object defined above is also used in the documentation
+    of the following class members.  Hence it is stored in the |Dummies|
+    object:
 
     >>> from hydpy import dummies
     >>> dummies.aux = aux
@@ -168,7 +165,7 @@ Variable type `EQD1` is not handled by model `lstream_v1`.
                     _master=self, _model=model)
             return self
         except BaseException:
-            objecttools.augmentexcmessage(
+            objecttools.augment_excmessage(
                 'While trying to add one ore more models '
                 'to the actual auxiliary file handler')
 
@@ -183,7 +180,7 @@ Variable type `EQD1` is not handled by model `lstream_v1`.
                         % model)
             return self
         except BaseException:
-            objecttools.augmentexcmessage(
+            objecttools.augment_excmessage(
                 'While trying to remove one or more models '
                 'from the actual auxiliary file handler')
 
@@ -199,14 +196,14 @@ Variable type `EQD1` is not handled by model `lstream_v1`.
             try:
                 value = importlib.import_module('hydpy.models.'+value)
             except BaseException:
-                objecttools.augmentexcmessage(
+                objecttools.augment_excmessage(
                     'While trying to import a model named `%s`'
                     % value)
         if isinstance(value, types.ModuleType):
             try:
                 value = magictools.prepare_model(value)
             except BaseException:
-                objecttools.augmentexcmessage(
+                objecttools.augment_excmessage(
                     'While trying to prepare the model defined in'
                     'module `hydpy.models.%s`'
                     % objecttools.modulename(value))
@@ -245,21 +242,30 @@ Variable type `EQD1` is not handled by model `lstream_v1`.
     """
         return sorted(self._dict.keys())
 
-    def save(self, parameterstep=None, simulationstep=None, dirname=None):
+    def save(self, parameterstep=None, simulationstep=None):
         """Save all defined auxiliary control files.
+
+        The target path is taken from the |ControlManager| object
+        stored in module |pub|.  Hence we initialize one and
+        overwrite its :func:`property` `currentpath` with a simple
+        :class:`str` object defining the test target path:
+
+        >>> from hydpy import pub
+        >>> pub.projectname = 'test'
+        >>> from hydpy.core.filetools import ControlManager
+        >>> ControlManager.currentpath = 'test_directory'
+        >>> pub.controlmanager = ControlManager()
 
         Normally, the control files would be written to disk, of course.
         But to show (and test) the results in the following doctest,
-        file writing is temporarily redirected via
-        :class:`hydpy.core.testtools.Open`:
+        file writing is temporarily redirected via |Open|:
 
         >>> from hydpy import dummies
-        >>> from hydpy.core.testtools import Open
+        >>> from hydpy import Open
         >>> with Open():
         ...     dummies.aux.save(
         ...         parameterstep='1d',
-        ...         simulationstep='12h',
-        ...         dirname='test_directory')
+        ...         simulationstep='12h')
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         test_directory/file1.py
         -----------------------------------
@@ -289,22 +295,19 @@ Variable type `EQD1` is not handled by model `lstream_v1`.
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         """
         par = parametertools.Parameter
-        if dirname is None:
-            dirname = pub.controlmanager.controlpath
-        if parameterstep is None:
+        if not parameterstep:
             parameterstep = par.parameterstep
-        if simulationstep is None:
+        if not simulationstep:
             simulationstep = par.simulationstep
         for (modelname, var2aux) in self:
             for filename in var2aux.filenames:
-                filepath = os.path.join(dirname, filename+'.py')
-                with open(filepath, 'w') as file_, \
-                        par.parameterstep(parameterstep), \
-                        par.simulationstep(simulationstep):
-                    file_.write(parametertools.header_controlfile(
-                        modelname, parameterstep, simulationstep))
+                with par.parameterstep(parameterstep), \
+                         par.simulationstep(simulationstep):
+                    lines = [parametertools.header_controlfile(
+                        modelname, parameterstep, simulationstep)]
                     for par in getattr(var2aux, filename):
-                        file_.write(repr(par) + '\n')
+                        lines.append(repr(par) + '\n')
+                pub.controlmanager.save_file(filename, ''.join(lines))
 
     __copy__ = objecttools.copy_
 
@@ -316,7 +319,7 @@ Variable type `EQD1` is not handled by model `lstream_v1`.
 
     def __dir__(self):
         """
-        >>> from hydpy.core.objecttools import print_values
+        >>> from hydpy import print_values
         >>> aux = Auxfiler()
         >>> aux += 'llake_v1', 'lland_v1', 'lstream_v1'
         >>> print_values(dir(aux))
@@ -326,15 +329,13 @@ Variable type `EQD1` is not handled by model `lstream_v1`.
 
 
 class Variable2Auxfile(object):
-    """Map :class:`~hydpy.core.variabletools.Variable` objects to names of
-    auxiliary files.
+    """Map |Variable| objects to names of auxiliary files.
 
-    Normally, class:`Variable2Auxfile` object are not initialized by the
-    user explicitely but made available by a `master`
-    :class:`Auxfiler` object.
+    Normally, |Variable2Auxfile| object are not initialized by the
+    user explicitely but made available by a `master` |Auxfiler| object.
 
-    To show how :class class:`Variable2Auxfile` works, we firstly
-    initialize a HydPy-L-Land (version 1) model:
+    To show how |Variable2Auxfile| works, we firstly initialize a
+    HydPy-L-Land (version 1) model:
 
     >>> from hydpy import pub
     >>> pub.options.usedefaultvalues = True
@@ -349,8 +350,8 @@ class Variable2Auxfile(object):
     >>> eqb
     eqb(5000.0)
 
-    Next, we initialize a :class:`Variable2Auxfile` object, which is
-    supposed to allocate some calibration parameters related to runoff
+    Next, we initialize a |Variable2Auxfile| object, which is supposed
+    to allocate some calibration parameters related to runoff
     concentration to two axiliary files named `file1` and `file2`:
 
     >>> from hydpy.core.auxfiletools import Variable2Auxfile
@@ -399,23 +400,23 @@ object has already been allocated to filename `file1`.
     >>> v2af.eqb
     [eqb(5000.0), eqb(10000.0)]
 
-    Unfortunately, the string representations of :class:`Variable2Auxfile`
+    Unfortunately, the string representations of |Variable2Auxfile|
     are not executable at the moment:
 
     >>> v2af
     Variable2Auxfile(file1, file2)
 
-    The :class:`Variable2Auxfile` object defined above is also used in the
+    The |Variable2Auxfile| object defined above is also used in the
     documentation of the following class members.  Hence it is stored in
-    the `dummies` object:
+    the |Dummies| object:
 
     >>> from hydpy import dummies
     >>> dummies.v2af = v2af
 
     The explanations above focus on parameter objects only.
-    :class:`Variable2Auxfile` could be used to handle sequence objects
-    as well, but possibly without a big benefit as long as `auxiliary
-    condition files` are not supported.
+    |Variable2Auxfile| could be used to handle sequence objects as well,
+    but possibly without a big benefit as long as `auxiliary condition
+    files` are not supported.
     """
 
     def __init__(self, _master=None, _model=None):
@@ -447,7 +448,7 @@ object has already been allocated to filename `file1`.
                 fn2var[filename] = copy.deepcopy(new_var)
                 self._type2filename2variable[type(new_var)] = fn2var
         except BaseException:
-            objecttools.augmentexcmessage(
+            objecttools.augment_excmessage(
                 'While trying to extend the range of variables handled by '
                 'the actual Variable2AuxFile object')
 
@@ -489,7 +490,7 @@ object has already been allocated to filename `file1`.
         >>> v2af = dummies.v2af
         >>> v2af.remove()
         >>> v2af.remove([])
-        >>> from hydpy.core.objecttools import print_values
+        >>> from hydpy import print_values
         >>> print_values(v2af.filenames)
         file1, file2
         >>> print_values(v2af.variables, width=30)
@@ -548,7 +549,7 @@ object has already been allocated to filename `file1`.
                         ' `{0!r}` is neither a registered filename nor a '
                         'registered variable.'.format(value))
             except BaseException:
-                objecttools.augmentexcmessage(
+                objecttools.augment_excmessage(
                     'While trying to remove the given object `{0}` of type '
                     '`{1}` from the actual Variable2AuxFile object'
                     .format(value, objecttools.classname(value)))
@@ -558,7 +559,7 @@ object has already been allocated to filename `file1`.
         """A list of all handled variable types.
 
         >>> from hydpy import dummies
-        >>> from hydpy.core.objecttools import print_values
+        >>> from hydpy import print_values
         >>> print_values(dummies.v2af.types, width=50)
         <class 'hydpy.models.lland.lland_control.EQB'>,
         <class 'hydpy.models.lland.lland_control.EQD1'>,
@@ -586,7 +587,7 @@ object has already been allocated to filename `file1`.
         """A list of all handled variable objects.
 
         >>> from hydpy import dummies
-        >>> from hydpy.core.objecttools import print_values
+        >>> from hydpy import print_values
         >>> print_values(dummies.v2af.variables, width=30)
         eqb(5000.0), eqb(10000.0),
         eqd1(100.0), eqd2(50.0),
@@ -633,7 +634,7 @@ object has already been allocated to filename `file1`.
     def __dir__(self):
         """
         >>> from hydpy import dummies
-        >>> from hydpy.core.objecttools import print_values
+        >>> from hydpy import print_values
         >>> print_values(dir(dummies.v2af))
         eqb, eqd1, eqd2, eqi1, eqi2, file1, file2, filenames, get_filename,
         remove, types, variables

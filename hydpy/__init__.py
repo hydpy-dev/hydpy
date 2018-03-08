@@ -18,33 +18,44 @@ from hydpy import auxs
 from hydpy import core
 from hydpy import cythons
 from hydpy import models
-from hydpy.cythons.autogen import annutils
-from hydpy.cythons.autogen import pointerutils
-from hydpy.cythons.autogen import smoothutils
 from hydpy.core import dummytools
 from hydpy.core import indextools
 from hydpy.core import optiontools
 from hydpy.cythons import configutils
 from hydpy.core.autodoctools import Substituter
 from hydpy.core.auxfiletools import Auxfiler
-from hydpy.core.devicetools import Node
-from hydpy.core.devicetools import Nodes
 from hydpy.core.devicetools import Element
 from hydpy.core.devicetools import Elements
-from hydpy.core.filetools import MainManager
-from hydpy.core.filetools import NetworkManager
-from hydpy.core.filetools import ControlManager
-from hydpy.core.filetools import SequenceManager
-from hydpy.core.filetools import ConditionManager
+from hydpy.core.devicetools import Node
+from hydpy.core.devicetools import Nodes
 from hydpy.core.hydpytools import HydPy
+from hydpy.core.magictools import prepare_model
+from hydpy.core.magictools import reverse_model_wildcard_import
 from hydpy.core.objecttools import HydPyDeprecationWarning
+from hydpy.core.objecttools import print_values
+from hydpy.core.objecttools import round_
 from hydpy.core.selectiontools import Selection
 from hydpy.core.selectiontools import Selections
 from hydpy.core.timetools import Date
 from hydpy.core.timetools import Period
 from hydpy.core.timetools import Timegrid
 from hydpy.core.timetools import Timegrids
-
+from hydpy.core.testtools import IntegrationTest
+from hydpy.core.testtools import Open
+from hydpy.core.testtools import UnitTest
+from hydpy.auxs.armatools import ARMA
+from hydpy.auxs.armatools import MA
+from hydpy.auxs.anntools import ANN
+from hydpy.auxs.anntools import ann
+from hydpy.auxs.anntools import SeasonalANN
+from hydpy.auxs.iuhtools import LinearStorageCascade
+from hydpy.auxs.iuhtools import TranslationDiffusionEquation
+from hydpy.auxs.networktools import RiverBasinNumber
+from hydpy.auxs.networktools import RiverBasinNumbers
+from hydpy.auxs.networktools import RiverBasinNumbers2Selection
+from hydpy.cythons.autogen import annutils
+from hydpy.cythons.autogen import pointerutils
+from hydpy.cythons.autogen import smoothutils
 
 pub.options = optiontools.Options()
 pub.indexer = indextools.Indexer()
@@ -87,10 +98,33 @@ if not getattr(sys, 'frozen', False):
     substituter.apply_on_members()
 
 
-__all__ = ['HydPy', 'pub',
+__all__ = ['pub',
            'Auxfiler',
-           'Date', 'Period', 'Timegrid', 'Timegrids',
-           'MainManager', 'NetworkManager', 'ControlManager',
-           'SequenceManager', 'ConditionManager',
-           'Node', 'Nodes', 'Element', 'Elements', 'Selection', 'Selections',
-           'HydPyDeprecationWarning']
+           'Element',
+           'Elements',
+           'Node',
+           'Nodes',
+           'HydPy',
+           'prepare_model',
+           'reverse_model_wildcard_import',
+           'print_values',
+           'round_',
+           'Selection',
+           'Selections',
+           'Date',
+           'Period',
+           'Timegrid',
+           'Timegrids',
+           'IntegrationTest',
+           'Open',
+           'UnitTest',
+           'ARMA',
+           'MA',
+           'ANN',
+           'ann',
+           'SeasonalANN',
+           'LinearStorageCascade',
+           'TranslationDiffusionEquation',
+           'RiverBasinNumber',
+           'RiverBasinNumbers',
+           'RiverBasinNumbers2Selection']

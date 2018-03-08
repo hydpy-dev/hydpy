@@ -16,7 +16,8 @@ from hydpy.core import objecttools
 from hydpy.cythons import modelutils
 
 
-class MetaModel(type):
+class _MetaModel(type):
+
     def __new__(cls, cls_name, cls_parents, dict_):
         _METHOD_GROUPS = ('_RUN_METHODS', '_ADD_METHODS',
                           '_INLET_METHODS', '_OUTLET_METHODS',
@@ -70,10 +71,10 @@ class MetaModel(type):
         return type.__new__(cls, cls_name, cls_parents, dict_)
 
 
-_MetaModel = MetaModel('MetaModel', (), {})
+_MetaModel_ = _MetaModel('_MetaModel', (), {})
 
 
-class Model(_MetaModel):
+class Model(_MetaModel_):
     """Base class for all hydrological models."""
 
     NUMERICAL = False
@@ -121,38 +122,38 @@ class Model(_MetaModel):
             for group in ('inlets', 'receivers', 'outlets', 'senders'):
                 self._connect_subgroup(group)
         except BaseException:
-            objecttools.augmentexcmessage(
+            objecttools.augment_excmessage(
                 'While trying to build the node connection of the `%s` '
                 'sequences of the model handled by element `%s`'
-                % (group[:-1],  objecttools.devicename(self)))
+                % (group[:-1], objecttools.devicename(self)))
 
     def _connect_subgroup(self, group):
         available_nodes = getattr(self.element, group).slaves
         links = getattr(self.sequences, group, ())
         applied_nodes = []
-        for (name, seq) in links:
+        for seq in links:
             selected_nodes = tuple(node for node in available_nodes
-                                   if node.variable.lower() == name)
+                                   if node.variable.lower() == seq.name)
             if seq.NDIM == 0:
                 if len(selected_nodes) == 1:
                     applied_nodes.append(selected_nodes[0])
-                    seq.setpointer(selected_nodes[0].get_double(group))
+                    seq.set_pointer(selected_nodes[0].get_double(group))
                 elif len(selected_nodes) == 0:
                     raise RuntimeError(
                         'Sequence `%s` cannot be connected, as no node is '
                         'available which is handling the variable `%s`.'
-                        % (name, seq.name.upper()))
+                        % (seq.name, seq.name.upper()))
                 else:
                     raise RuntimeError(
                         'Sequence `%s` cannot be connected, as it is '
                         '0-dimensional but multiple nodes are available '
                         'which are handling variable `%s`.'
-                        % (name, seq.name.upper()))
+                        % (seq.name, seq.seq.name.upper()))
             elif seq.NDIM == 1:
                 seq.shape = len(selected_nodes)
                 for idx, node in enumerate(selected_nodes):
                     applied_nodes.append(node)
-                    seq.setpointer(node.get_double(group), idx)
+                    seq.set_pointer(node.get_double(group), idx)
         if len(applied_nodes) < len(available_nodes):
             remaining_nodes = [node.name for node in available_nodes
                                if node not in applied_nodes]
@@ -163,7 +164,7 @@ class Model(_MetaModel):
 
     def doit(self, idx):
         self.idx_sim = idx
-        self.loaddata()
+        self.load_data()
         self.update_inlets()
         self.run()
         self.new2old()
@@ -173,12 +174,12 @@ class Model(_MetaModel):
         for method in self._RUN_METHODS:
             method(self)
 
-    def loaddata(self):
-        self.sequences.loaddata(self.idx_sim)
+    def load_data(self):
+        self.sequences.load_data(self.idx_sim)
 
-    def savedata(self, idx):
+    def save_data(self, idx):
         self.idx_sim = idx
-        self.sequences.savedata(idx)
+        self.sequences.save_data(idx)
 
     def update_inlets(self):
         for method in self._INLET_METHODS:
@@ -227,14 +228,7 @@ class Model(_MetaModel):
 abctools.ModelABC.register(Model)
 
 
-class NumPars(object):
-
-    def __iter__(self):
-        for (name, par) in vars(self).items():
-            yield (name, par)
-
-
-class NumConstsELS(NumPars):
+class NumConstsELS(object):
 
     def __init__(self):
         self.nmb_methods = 10
@@ -246,7 +240,7 @@ class NumConstsELS(NumPars):
         self.a_coefs = numpy.load(path)
 
 
-class NumVarsELS(NumPars):
+class NumVarsELS(object):
 
     def __init__(self):
         self.nmb_calls = 0
@@ -273,7 +267,7 @@ class ModelELS(Model):
 
     def doit(self, idx):
         self.idx_sim = idx
-        self.loaddata()
+        self.load_data()
         self.update_inlets()
         self.solve()
         self.update_outlets()
@@ -314,7 +308,7 @@ class ModelELS(Model):
         2
 
         >>> import numpy
-        >>> from hydpy.core.objecttools import round_
+        >>> from hydpy import round_
         >>> round_(numpy.exp(-k))
         0.904837
 
@@ -420,7 +414,7 @@ class ModelELS(Model):
         >>> model.numvars.nmb_calls
         44
 
-        >>> from hydpy.core.magictools import reverse_model_wildcard_import
+        >>> from hydpy import reverse_model_wildcard_import
         >>> reverse_model_wildcard_import()
 
         >>> from hydpy.models.test_v2 import *
@@ -472,8 +466,8 @@ class ModelELS(Model):
         while self.numvars.t0 < self.numvars.t1-1e-14:
             self.numvars.last_error = 999999.
             self.numvars.dt = min(
-                    self.numvars.t1-self.numvars.t0,
-                    max(self.numvars.dt_est, self.parameters.solver.reldtmin))
+                self.numvars.t1-self.numvars.t0,
+                max(self.numvars.dt_est, self.parameters.solver.reldtmin))
             if not self.numvars.f0_ready:
                 self.calculate_single_terms()
                 self.numvars.idx_method = 0
@@ -482,14 +476,14 @@ class ModelELS(Model):
                 self.set_point_states()
                 self.set_result_states()
             for self.numvars.idx_method in range(
-                                        1, self.numconsts.nmb_methods+1):
+                    1, self.numconsts.nmb_methods+1):
                 for self.numvars.idx_stage in range(
-                                            1, self.numvars.idx_method):
+                        1, self.numvars.idx_method):
                     self.get_point_states()
                     self.calculate_single_terms()
                     self.set_point_fluxes()
                 for self.numvars.idx_stage in range(
-                                            1, self.numvars.idx_method+1):
+                        1, self.numvars.idx_method+1):
                     self.integrate_fluxes()
                     self.calculate_full_terms()
                     self.set_point_states()
@@ -581,8 +575,8 @@ class ModelELS(Model):
 
     def _get_states(self, idx, type_):
         states = self.sequences.states
-        for (name, state) in states:
-            temp = getattr(states.fastaccess, '_%s_%s' % (name, type_))
+        for state in states:
+            temp = getattr(states.fastaccess, '_%s_%s' % (state.name, type_))
             state.new = temp[idx]
 
     def set_point_states(self):
@@ -596,7 +590,7 @@ class ModelELS(Model):
         >>> points = numpy.asarray(states.fastaccess._s_points)
         >>> points[:] = 0.
         >>> model.set_point_states()
-        >>> from hydpy.core.objecttools import round_
+        >>> from hydpy import round_
         >>> round_(points[:4])
         0.0, 0.0, 1.0, 0.0
         """
@@ -613,7 +607,7 @@ class ModelELS(Model):
         >>> results = numpy.asarray(states.fastaccess._s_results)
         >>> results[:] = 0.0
         >>> model.set_result_states()
-        >>> from hydpy.core.objecttools import round_
+        >>> from hydpy import round_
         >>> round_(results[:4])
         0.0, 0.0, 1.0, 0.0
         """
@@ -621,8 +615,8 @@ class ModelELS(Model):
 
     def _set_states(self, idx, type_):
         states = self.sequences.states
-        for (name, state) in states:
-            temp = getattr(states.fastaccess, '_%s_%s' % (name, type_))
+        for state in states:
+            temp = getattr(states.fastaccess, '_%s_%s' % (state.name, type_))
             temp[idx] = state.new
 
     def get_sum_fluxes(self):
@@ -637,8 +631,8 @@ class ModelELS(Model):
         q(1.0)
         """
         fluxes = self.sequences.fluxes
-        for (name, flux) in fluxes.numerics:
-            flux(getattr(fluxes.fastaccess, '_%s_sum' % name))
+        for flux in fluxes.numerics:
+            flux(getattr(fluxes.fastaccess, '_%s_sum' % flux.name))
 
     def set_point_fluxes(self):
         """Save the fluxes corresponding to the actual stage.
@@ -650,7 +644,7 @@ class ModelELS(Model):
         >>> points = numpy.asarray(fluxes.fastaccess._q_points)
         >>> points[:] = 0.
         >>> model.set_point_fluxes()
-        >>> from hydpy.core.objecttools import round_
+        >>> from hydpy import round_
         >>> round_(points[:4])
         0.0, 0.0, 1.0, 0.0
         """
@@ -666,7 +660,7 @@ class ModelELS(Model):
         >>> results = numpy.asarray(fluxes.fastaccess._q_results)
         >>> results[:] = 0.
         >>> model.set_result_fluxes()
-        >>> from hydpy.core.objecttools import round_
+        >>> from hydpy import round_
         >>> round_(results[:4])
         0.0, 0.0, 1.0, 0.0
         """
@@ -674,8 +668,8 @@ class ModelELS(Model):
 
     def _set_fluxes(self, idx, type_):
         fluxes = self.sequences.fluxes
-        for (name, flux) in fluxes.numerics:
-            temp = getattr(fluxes.fastaccess, '_%s_%s' % (name, type_))
+        for flux in fluxes.numerics:
+            temp = getattr(fluxes.fastaccess, '_%s_%s' % (flux.name, type_))
             temp[idx] = flux
 
     def integrate_fluxes(self):
@@ -691,7 +685,7 @@ class ModelELS(Model):
         >>> points = numpy.asarray(fluxes.fastaccess._q_points)
         >>> points[:4] = 15., 2., -999., 0.
         >>> model.integrate_fluxes()
-        >>> from hydpy.core.objecttools import round_
+        >>> from hydpy import round_
         >>> from hydpy import pub
         >>> round_(numpy.asarray(model.numconsts.a_coefs)[1, 1, :2])
         0.375, 0.125
@@ -699,8 +693,8 @@ class ModelELS(Model):
         q(2.9375)
         """
         fluxes = self.sequences.fluxes
-        for (name, flux) in fluxes.numerics:
-            points = getattr(fluxes.fastaccess, '_%s_points' % name)
+        for flux in fluxes.numerics:
+            points = getattr(fluxes.fastaccess, '_%s_points' % flux.name)
             coefs = self.numconsts.a_coefs[self.numvars.idx_method-1,
                                            self.numvars.idx_stage,
                                            :self.numvars.idx_method]
@@ -718,11 +712,11 @@ class ModelELS(Model):
         0.0
         """
         fluxes = self.sequences.fluxes
-        for (name, flux) in fluxes.numerics:
+        for flux in fluxes.numerics:
             if flux.NDIM == 0:
-                setattr(fluxes.fastaccess, '_%s_sum' % name, 0.)
+                setattr(fluxes.fastaccess, '_%s_sum' % flux.name, 0.)
             else:
-                getattr(fluxes.fastaccess, '_%s_sum' % name)[:] = 0.
+                getattr(fluxes.fastaccess, '_%s_sum' % flux.name)[:] = 0.
 
     def addup_fluxes(self):
         """Add up the sum of the fluxes calculated so far.
@@ -736,11 +730,11 @@ class ModelELS(Model):
         3.0
         """
         fluxes = self.sequences.fluxes
-        for (name, flux) in fluxes.numerics:
-            sum_ = getattr(fluxes.fastaccess, '_%s_sum' % name)
+        for flux in fluxes.numerics:
+            sum_ = getattr(fluxes.fastaccess, '_%s_sum' % flux.name)
             sum_ += flux
             if flux.NDIM == 0:
-                setattr(fluxes.fastaccess, '_%s_sum' % name, sum_)
+                setattr(fluxes.fastaccess, '_%s_sum' % flux.name, sum_)
 
     def calculate_error(self):
         """Estimate the numerical error based on the fluxes calculated
@@ -752,14 +746,14 @@ class ModelELS(Model):
         >>> results = numpy.asarray(fluxes.fastaccess._q_results)
         >>> results[:4] = 0., 3., 4., 0.
         >>> model.calculate_error()
-        >>> from hydpy.core.objecttools import round_
+        >>> from hydpy import round_
         >>> round_(model.numvars.error)
         1.0
         """
         self.numvars.error = 0.
         fluxes = self.sequences.fluxes
-        for (name, flux) in fluxes.numerics:
-            results = getattr(fluxes.fastaccess, '_%s_results' % name)
+        for flux in fluxes.numerics:
+            results = getattr(fluxes.fastaccess, '_%s_results' % flux.name)
             diff = (results[self.numvars.idx_method] -
                     results[self.numvars.idx_method-1])
             self.numvars.error = max(self.numvars.error,
@@ -779,7 +773,7 @@ class ModelELS(Model):
         >>> model.numvars.last_error = 1e-1
         >>> model.numvars.idx_method = 10
         >>> model.extrapolate_error()
-        >>> from hydpy.core.objecttools import round_
+        >>> from hydpy import round_
         >>> round_(model.numvars.extrapolated_error)
         0.01
         >>> model.numvars.idx_method = 9

@@ -43,12 +43,12 @@ class NHRU(parametertools.SingleParameter):
 
     def __call__(self, *args, **kwargs):
         parametertools.SingleParameter.__call__(self, *args, **kwargs)
-        for (_name, subpars) in self.subpars.pars.model.parameters:
-            for (name, par) in subpars:
+        for subpars in self.subpars.pars.model.parameters:
+            for par in subpars:
                 if par.NDIM == 1:
                     par.shape = self.value
-        for (_name, subseqs) in self.subpars.pars.model.sequences:
-            for (name, seq) in subseqs:
+        for subseqs in self.subpars.pars.model.sequences:
+            for seq in subseqs:
                 if (seq.NDIM == 1) and (seq.name != 'moy'):
                     seq.shape = self.value
 
@@ -78,7 +78,7 @@ class Lnk(lland_parameters.MultiParameter):
     SPAN = (min(lland_constants.CONSTANTS.values()),
             max(lland_constants.CONSTANTS.values()))
 
-    def compressrepr(self):
+    def compress_repr(self):
         """Returns a list which contains a string representation with land
         uses beeing defined by the constants
         :const:`~hydpy.models.lland.lland_constants.SIED_D`,
@@ -362,10 +362,10 @@ class DMin(lland_parameters.MultiParameterSoil):
         except NotImplementedError:
             args = kwargs.get('r_dmin')
             if args is not None:
-                self.values = 0.024192*self.applytimefactor(numpy.array(args))
+                self.values = 0.024192*self.apply_timefactor(numpy.array(args))
                 self.trim()
             else:
-                objecttools.augmentexcmessage()
+                objecttools.augment_excmessage()
 
     def trim(self, lower=None, upper=None):
         """Trim upper values in accordance with :math:`DMin \\leq DMax`.
@@ -425,10 +425,10 @@ class DMax(lland_parameters.MultiParameterSoil):
         except NotImplementedError:
             args = kwargs.get('r_dmax')
             if args is not None:
-                self.values = 2.4192*self.applytimefactor(numpy.array(args))
+                self.values = 2.4192*self.apply_timefactor(numpy.array(args))
                 self.trim()
             else:
-                objecttools.augmentexcmessage()
+                objecttools.augment_excmessage()
 
     def trim(self, lower=None, upper=None):
         """Trim upper values in accordance with :math:`DMax \\geq DMin`.

@@ -46,12 +46,12 @@ application model :mod:`~hydpy.models.hland_v1` selects
 
 >>> from hydpy.models.lland_v1 import *
 >>> parameterstep('1d')
->>> model.calc_et0_v1
-<function Model.calc_et0_v1>
+>>> model.calc_et0_v1.__name__
+'calc_et0_v1'
 
 ...but not :func:`~hydpy.models.lland.lland_model.calc_et0_v2`:
 
->>> model.calc_et0_v2
+>>> model.calc_et0_v2.__name__
 Traceback (most recent call last):
 ...
 AttributeError: 'Model' object has no attribute 'calc_et0_v2'
@@ -59,8 +59,8 @@ AttributeError: 'Model' object has no attribute 'calc_et0_v2'
 For simplicity, you can skip the version number when trying to access
 a certain method of an application model:
 
->>> model.calc_et0
-<function Model.calc_et0>
+>>> model.calc_et0.__name__
+'calc_et0'
 
 Note that this way to construct different application models is very
 different from the usual design of hydrological models, where only

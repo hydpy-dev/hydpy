@@ -8,21 +8,76 @@ from __future__ import division, print_function
 import os
 import inspect
 import time
-import copy
 import warnings
 # ...third party
 import numpy
 # ...HydPy specific
 from hydpy import pub
-from hydpy.core import objecttools
-from hydpy.core import filetools
-from hydpy.core import timetools
+from hydpy.core import abctools
 from hydpy.core import autodoctools
-
+from hydpy.core import filetools
+from hydpy.core import objecttools
+from hydpy.core import timetools
+from hydpy.core import variabletools
 
 # The import of `_strptime` is not thread save.  The following call of
 # `strptime` is supposed to prevent possible problems arising from this bug.
 time.strptime('1999', '%Y')
+
+
+def header_controlfile(model, parameterstep=None, simulationstep=None):
+    """Return the header of a normal or auxiliariy parameter control file.
+
+    The header contains the default coding information, the import command
+    for the given model and the actual parameter and simulationstep step sizes.
+
+    The first example shows that, if you pass the model argument as a
+    string, you have to take care that this string make sense:
+
+    >>> from hydpy.core.parametertools import header_controlfile
+    >>> from hydpy import Period
+    >>> print(header_controlfile(model='no model class',
+    ...                          parameterstep='-1h',
+    ...                          simulationstep=Period('1h')))
+    # -*- coding: utf-8 -*-
+    <BLANKLINE>
+    from hydpy.models.no model class import *
+    <BLANKLINE>
+    simulationstep("1h")
+    parameterstep("-1h")
+    <BLANKLINE>
+    <BLANKLINE>
+
+    The second example shows the saver option to pass the proper model object.
+    It also shows that function :func:`header_controlfile` tries to gain the
+    parameter and simulation step sizes from the global
+    :class:`~hydpy.core.timetools.Timegrids` object contained in module
+    :mod:`~hydpy.pub` when necessary:
+
+    >>> from hydpy.models.lland_v1 import *
+    >>> parameterstep('1d')
+    >>> from hydpy import pub
+    >>> from hydpy import Timegrids, Timegrid
+    >>> pub.timegrids = Timegrids(Timegrid('2000.01.01',
+    ...                                    '2001.01.01',
+    ...                                    '1h'))
+    >>> print(header_controlfile(model=model))
+    # -*- coding: utf-8 -*-
+    <BLANKLINE>
+    from hydpy.models.lland_v1 import *
+    <BLANKLINE>
+    simulationstep("1h")
+    parameterstep("1d")
+    <BLANKLINE>
+    <BLANKLINE>
+    """
+    with Parameter.parameterstep(parameterstep), \
+            Parameter.simulationstep(simulationstep):
+        return ('# -*- coding: utf-8 -*-\n\n'
+                'from hydpy.models.%s import *\n\n'
+                'simulationstep("%s")\n'
+                'parameterstep("%s")\n\n'
+                % (model, Parameter.simulationstep, Parameter.parameterstep))
 
 
 class Parameters(object):
@@ -54,37 +109,31 @@ class Parameters(object):
                 try:
                     subpars.__dict__[name].update()
                 except BaseException:
-                    objecttools.augmentexcmessage(
+                    objecttools.augment_excmessage(
                         'While trying to update the %s parameter `%s` of '
                         'element `%s`'
                         % (name, subpars.name, objecttools.devicename(self)))
 
-    def savecontrols(self, parameterstep=None, simulationstep=None,
-                     filename=None, dirname=None):
+    def save_controls(self, filename=None, parameterstep=None,
+                      simulationstep=None, auxfiler=None):
         if self.control:
-            if filename is None:
+            if not filename:
                 filename = self._controldefaultfilename
-            if not filename.endswith('.py'):
-                filename += '.py'
-            if dirname is None:
-                dirname = pub.controlmanager.controlpath
-            filepath = os.path.join(dirname, filename)
-            with open(filepath, 'w') as file_:
-                file_.write('from hydpy.models.%s import *\n\n'
-                            % self.model.__module__.split('.')[2])
-                if not parameterstep:
-                    parameterstep = pub.timegrids.stepsize
-                file_.write('parameterstep("%s")\n' % parameterstep)
-                if not simulationstep:
-                    simulationstep = pub.timegrids.stepsize
-                file_.write('simulationstep("%s")\n\n' % simulationstep)
-                for (name, par) in self.control:
-                    _parameterstep = par._parameterstep
-                    try:
-                        par.parameterstep = parameterstep
-                        file_.write(repr(par) + '\n')
-                    finally:
-                        par._parameterstep = _parameterstep
+            if auxfiler:
+                variable2auxfile = getattr(auxfiler, str(self.model), None)
+            else:
+                variable2auxfile = None
+            lines = [header_controlfile(
+                     self.model, parameterstep, simulationstep)]
+            for par in self.control:
+                if variable2auxfile:
+                    auxfilename = variable2auxfile.get_filename(par)
+                    if auxfilename:
+                        lines.append("%s(auxfile='%s')\n"
+                                     % (par.name, auxfilename))
+                        continue
+                lines.append(repr(par) + '\n')
+            pub.controlmanager.save_file(filename, ''.join(lines))
 
     @property
     def _controldefaultfilename(self):
@@ -93,7 +142,7 @@ class Parameters(object):
             raise RuntimeError(
                 'To save the control parameters of a model to a file, its '
                 'filename must be known.  This can be done, by passing '
-                'filename to function `savecontrols` directly.  '
+                'filename to function `save_controls` directly.  '
                 'But in complete HydPy applications, it is usally '
                 'assumed to be consistent with the name of the element '
                 'handling the model.  Actually, neither a filename is given '
@@ -102,10 +151,9 @@ class Parameters(object):
             return filename + '.py'
 
     def verify(self):
-        """"""
-        for (name, parameter) in self.control:
+        for parameter in self.control:
             parameter.verify()
-        for (name, parameter) in self.derived:
+        for parameter in self.derived:
             parameter.verify()
 
     @property
@@ -118,7 +166,7 @@ class Parameters(object):
         for name in self._names_subpars:
             subpars = getattr(self, name)
             if subpars is not None:
-                yield name, subpars
+                yield subpars
 
     def __len__(self):
         return len(dict(self))
@@ -127,7 +175,8 @@ class Parameters(object):
         return objecttools.dir_(self)
 
 
-class MetaSubParametersType(type):
+class _MetaSubParametersType(type):
+
     def __new__(cls, name, parents, dict_):
         parclasses = dict_.get('_PARCLASSES')
         if parclasses is None:
@@ -139,10 +188,10 @@ class MetaSubParametersType(type):
         if parclasses:
             lst = ['\n\n\n    The following parameter classes are selected:']
             for parclass in parclasses:
-                    lst.append('      * :class:`~%s` `%s`'
-                               % ('.'.join((parclass.__module__,
-                                            parclass.__name__)),
-                                  autodoctools.description(parclass)))
+                lst.append('      * :class:`~%s` %s'
+                           % ('.'.join((parclass.__module__,
+                                        parclass.__name__)),
+                              autodoctools.description(parclass)))
             doc = dict_.get('__doc__', None)
             if doc is None:
                 doc = ''
@@ -150,11 +199,11 @@ class MetaSubParametersType(type):
         return type.__new__(cls, name, parents, dict_)
 
 
-MetaSubParametersClass = MetaSubParametersType('MetaSubParametersClass',
-                                               (), {'_PARCLASSES': ()})
+_MetaSubParametersClass = _MetaSubParametersType('_MetaSubParametersClass',
+                                                 (), {'_PARCLASSES': ()})
 
 
-class SubParameters(MetaSubParametersClass):
+class SubParameters(_MetaSubParametersClass):
     """Base class for handling subgroups of model parameters.
 
     When trying to implement a new model, one has to define its parameter
@@ -187,7 +236,24 @@ class SubParameters(MetaSubParametersClass):
     ...     pass
     Traceback (most recent call last):
     ...
-    NotImplementedError: For class `ControlParameters`, the required tuple `_PARCLASSES` is not defined.  Please see the documentation of class `SubParameters` of module `parametertools` for further information.
+    NotImplementedError: For class `ControlParameters`, the required \
+tuple `_PARCLASSES` is not defined.  Please see the documentation of \
+class `SubParameters` of module `parametertools` for further information.
+
+    The `in` operator can be used to check if a certain :class:`SubParameters`
+    object handles a certain type of parameter:
+
+    >>> Par1 in control
+    True
+    >>> Par1() in control
+    True
+    >>> SingleParameter in control
+    False
+    >>> 1 in control
+    Traceback (most recent call last):
+    ...
+    TypeError: The given value `1` of type `int` is neither a \
+parameter class nor a parameter instance.
     """
     _PARCLASSES = ()
 
@@ -198,8 +264,8 @@ class SubParameters(MetaSubParametersClass):
         else:
             self.fastaccess = cls_fastaccess()
             setattr(cymodel.parameters, self.name, self.fastaccess)
-        for Par in self._PARCLASSES:
-            setattr(self, objecttools.instancename(Par), Par())
+        for par in self._PARCLASSES:
+            setattr(self, objecttools.instancename(par), par())
 
     @classmethod
     def getname(cls):
@@ -211,8 +277,8 @@ class SubParameters(MetaSubParametersClass):
 
     def __setattr__(self, name, value):
         """Attributes and methods should usually not be replaced.  Existing
-        :class:`Parameter` attributes are protected in a way, that only their
-        values are changed through assignements.  For new :class:`Parameter`
+        |Parameter| attributes are protected in a way, that only their
+        values are changed through assignements.  For new |Parameter|
         attributes, additional `fastaccess` references are defined.  If you
         actually want to replace a parameter, you have to delete it first.
         """
@@ -220,24 +286,38 @@ class SubParameters(MetaSubParametersClass):
             attr = getattr(self, name)
         except AttributeError:
             object.__setattr__(self, name, value)
-            if hasattr(value, 'connect'):
+            if isinstance(value, abctools.ParameterABC):
                 value.connect(self)
         else:
             try:
                 attr._setvalue(value)
             except AttributeError:
-                raise RuntimeError('`%s` instances do not allow the direct'
-                                   'replacement of their members.  After '
-                                   'initialization you should usually only '
-                                   'change parameter values through '
-                                   'assignements.  If you really need to '
-                                   'replace a object member, delete it '
-                                   'beforehand.' % objecttools.classname(self))
+                raise RuntimeError(
+                    '`%s` instances do not allow the direct replacement of '
+                    'their members.  After initialization you should usually '
+                    'only change parameter values through assignements.  '
+                    'If you really need to replace a object member, '
+                    'delete it beforehand.' % objecttools.classname(self))
 
     def __iter__(self):
-        for Par in self._PARCLASSES:
-            name = objecttools.instancename(Par)
-            yield name, getattr(self, name)
+        for par in self._PARCLASSES:
+            name = objecttools.instancename(par)
+            yield getattr(self, name)
+
+    def __contains__(self, parameter):
+        if isinstance(parameter, abctools.ParameterABC):
+            parameter = type(parameter)
+        if parameter in self._PARCLASSES:
+            return True
+        try:
+            if issubclass(parameter, abctools.ParameterABC):
+                return False
+        except TypeError:
+            pass
+        raise TypeError(
+            'The given %s is neither a parameter class '
+            'nor a parameter instance.'
+            % objecttools.value_of_type(parameter))
 
     def __repr__(self):
         lines = []
@@ -247,29 +327,258 @@ class SubParameters(MetaSubParametersClass):
                             objecttools.modulename(self)))
             lines.append('# The implemented parameters with their actual '
                          'values are:')
-        for (name, parameter) in self:
+        for parameter in self:
             try:
                 lines.append('%s' % repr(parameter))
             except BaseException:
-                lines.append('%s(?)' % name)
+                lines.append('%s(?)' % parameter.name)
         return '\n'.join(lines)
 
     def __dir__(self):
         return objecttools.dir_(self)
 
 
-class Parameter(objecttools.ValueMath):
+class _Period(timetools.Period):
+
+    def __init__(self, stepsize=None):
+        self.stepsize = stepsize
+        super(_Period, self).__init__(stepsize.period)
+        self.old_period = timetools.Period(self)
+        self.__doc__ = stepsize.__doc__
+
+    def __enter__(self):
+        return self
+
+    def __call__(self, stepsize):
+        if stepsize is not None:
+            self.timedelta = stepsize
+            self.stepsize.period.timedelta = stepsize
+        return self
+
+    def __exit__(self, type_, value, traceback):
+        self.stepsize.period = self.old_period
+
+    def check(self):
+        if not self:
+            raise RuntimeError(self.stepsize.EXC_MESSAGE)
+
+    def delete(self):
+        self.timedelta = None
+        self.stepsize.period.timedelta = None
+        return self
+
+
+class _Stepsize(object):
+    """Base class of the descriptor classes :class:`Parameterstep` and
+    :class:`Simulationstep`."""
+
+    def __init__(self):
+        self.period = timetools.Period()
+
+    def __set__(self, obj, value):
+        self(value)
+
+    def __delete__(self, obj):
+        del self.period.timedelta
+
+    def __call__(self, value):
+        try:
+            period = timetools.Period(value)
+            if period >= '1s':
+                self.period = period
+            else:
+                raise ValueError(
+                    'The smallest step size allowed is one second.')
+        except BaseException:
+            objecttools.augment_excmessage(
+                'While trying to (re)define the general %s size with %s'
+                % (self.name, objecttools.value_of_type(value)))
+
+    @property
+    def name(self):
+        return objecttools.instancename(self)
+
+
+class Parameterstep(_Stepsize):
+    """The actual parameter time step size.
+
+    Usually, the time step size of the units of certain paramaters
+    is defined within control files via function
+    :func:`~hydpy.core.magictools.parameterstep`.  But it can also
+    be changed interactively with the help of any |Parameter| object:
+
+    >>> from hydpy.core.parametertools import Parameter
+    >>> parameter = Parameter()
+    >>> parameter.parameterstep = '1d'
+    >>> parameter.parameterstep
+    Period('1d')
+
+    Note that setting the step size affects all parameters!
+
+    Getting the step size via the |Parameter| subclasses themselves
+    works also fine, but use a method call instead of an assignement to
+    change the step size in order to prevent from overwriting the
+    descriptor:
+
+    >>> Parameter.parameterstep
+    Period('1d')
+    >>> Parameter.parameterstep('2d')
+    Period('2d')
+
+    Unreasonable assignements result in error messages like the following:
+
+    >>> parameter.parameterstep = '0d'
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to (re)define the general parameterstep size \
+with value `0d` of type `str`, the following error occured: The smallest \
+step size allowed is one second.
+
+    After deleting the parameter step size, an empty period object is returned:
+
+    >>> del parameter.parameterstep
+    >>> ps = parameter.parameterstep
+    >>> ps
+    Period()
+
+    In case you prefer an exception instead of an empty period object,
+    call its `check` method:
+
+    >>> ps.check()
+    Traceback (most recent call last):
+    ...
+    RuntimeError: No general parameter step size has been defined.
+
+    For temporary step size changes, Pythons `with` statement is supported:
+
+    >>> parameter.parameterstep = '1d'
+    >>> with parameter.parameterstep('2h'):
+    ...     print(repr(parameter.parameterstep))
+    Period('2h')
+    >>> parameter.parameterstep
+    Period('1d')
+
+    Passing `None` means "change nothing in this context" (usefull for
+    defining functions with optional `parameterstep` arguments):
+
+    >>> with parameter.parameterstep(None):
+    ...     print(repr(parameter.parameterstep))
+    Period('1d')
+    >>> parameter.parameterstep
+    Period('1d')
+
+    Deleting the stepsize temporarily, requires calling method `delete`:
+
+    >>> with parameter.parameterstep.delete():
+    ...     print(repr(parameter.parameterstep))
+    Period()
+    >>> parameter.parameterstep
+    Period('1d')
+    """
+
+    EXC_MESSAGE = 'No general parameter step size has been defined.'
+
+    def __get__(self, obj, cls):
+        return _Period(self)
+
+
+class Simulationstep(_Stepsize):
+    """The actual (or surrogate) simulation time step size.
+
+    .. testsetup::
+
+       >>> from hydpy import pub
+       >>> pub.timegrids = None
+       >>> from hydpy.core.parametertools import Parameter
+       >>> Parameter.simulationstep.delete()
+       Period()
+
+    Usually, the simulation step size is defined globally in module
+    :mod:`~hydpy.pub` via a :class:`~hydpy.core.timetools.Timegrids` object,
+    or locally via function :func:`~hydpy.core.magictools.simulationstep`
+    in seperate control files.  But you can also change it interactively
+    with the help of |Parameter| objects.
+
+    Generally, the documentation on class :class:`Parameterstep` also holds
+    true for class :class:`Simulationstep`.  The following explanations
+    focus on the differences only.
+
+    As long as no usual or surrogate simulation time step is defined, an
+    empty period object is returned, which can be used to raise the
+    following exception:
+
+    >>> from hydpy.core.parametertools import Parameter
+    >>> parameter = Parameter()
+    >>> ps = parameter.simulationstep
+    >>> ps
+    Period()
+    >>> ps.check()
+    Traceback (most recent call last):
+    ...
+    RuntimeError: Neither a global simulation time grid nor a general \
+simulation step size to be used as a surrogate for testing purposes has \
+been defined.
+
+    For testing or documentation purposes a surrogate step size can be set:
+
+    >>> parameter.simulationstep = '1d'
+    >>> parameter.simulationstep
+    Period('1d')
+
+    But in complete HydPy applications, changing the simulation step
+    size  would be highly error prone.  Hence, being defined globally
+    within the :mod:`~hydpy.pub` module, predefined surrogate values
+    are ignored:
+
+    >>> from hydpy import pub
+    >>> from hydpy import Timegrids, Timegrid
+    >>> pub.timegrids = Timegrids(Timegrid('2000.01.01',
+    ...                                    '2001.01.01',
+    ...                                    '2h'))
+    >>> parameter.simulationstep
+    Period('2h')
+
+    This priority remains unchanged, even when one tries to set a surrogate
+    value after the timegrid object has been defined:
+
+    >>> parameter.simulationstep = '5s'
+    >>> parameter.simulationstep
+    Period('2h')
+
+    One has to delete the timegrid object to make the surrogate simulation
+    step size accessible:
+
+    >>> del pub.timegrids
+    >>> parameter.simulationstep
+    Period('5s')
+    """
+    EXC_MESSAGE = ('Neither a global simulation time grid nor a general '
+                   'simulation step size to be used as a surrogate for '
+                   'testing purposes has been defined.')
+
+    def __get__(self, obj, cls):
+        period = _Period(self)
+        try:
+            period.timedelta = pub.timegrids.stepsize
+        except AttributeError:
+            pass
+        return period
+
+
+class Parameter(variabletools.Variable):
     """Base class for :class:`SingleParameter` and :class:`MultiParameter`."""
 
-    _parameterstep = None
-    _simulationstep = None
+    NOT_DEEPCOPYABLE_MEMBERS = ('subpars', 'fastaccess')
+
+    parameterstep = Parameterstep()
+    simulationstep = Simulationstep()
 
     def __init__(self):
         self.subpars = None
         self.fastaccess = objecttools.FastAccess()
 
     def __call__(self, *args, **kwargs):
-        """The prefered way to pass values to :class:`Parameter` instances
+        """The prefered way to pass values to |Parameter| instances
         within parameter control files.
         """
         if args and kwargs:
@@ -282,11 +591,19 @@ class Parameter(objecttools.ValueMath):
                              'positional nor a keyword argument is given.'
                              % (self.name, objecttools.devicename(self)))
         elif 'pyfile' in kwargs:
+            warnings.warn(objecttools.HydPyDeprecationWarning(
+                'The keyword name to define a parameter value in an auxiliary '
+                'control file is now `auxfile`.  The old keyword name '
+                '`pyfile` will be banned in the future.'))
             values = self._getvalues_from_auxiliaryfile(kwargs['pyfile'])
-            self.values = self.applytimefactor(values)
-            del(kwargs['pyfile'])
+            self.values = self.apply_timefactor(values)
+            del kwargs['pyfile']
+        elif 'auxfile' in kwargs:
+            values = self._getvalues_from_auxiliaryfile(kwargs['auxfile'])
+            self.values = self.apply_timefactor(values)
+            del kwargs['auxfile']
         elif args:
-            self.values = self.applytimefactor(numpy.array(args))
+            self.values = self.apply_timefactor(numpy.array(args))
         else:
             raise NotImplementedError('The value(s) of parameter %s of '
                                       'element %s could not be set based on '
@@ -324,10 +641,85 @@ class Parameter(objecttools.ValueMath):
                                % (self.name, pyfile))
         return subself.values
 
-    name = property(objecttools.name)
-
     @property
     def initvalue(self):
+        """Actual initial value of the given parameter.
+
+        Some |Parameter| subclasses define a class attribute `INIT`.
+        Let's define a test class and prepare a function for initializing
+        a parameter object and connecting it to a :class:`SubParameters`
+        object:
+
+        >>> from hydpy.core import parametertools
+        >>> class Test(parametertools.SingleParameter):
+        ...     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+        ...     INIT = 2.0
+        >>> def prepare():
+        ...     test = Test()
+        ...     from hydpy.core.parametertools import SubParameters
+        ...     subpars = parametertools.SubParameters(None)
+        ...     test.connect(subpars)
+        ...     return test
+
+        By default, making use of the `INIT` attribute is disabled:
+
+        >>> test = prepare()
+        >>> test
+        test(nan)
+
+        This can be changed through setting option `usedefaultvalues` to
+        `True`:
+
+        >>> from hydpy import pub
+        >>> pub.options.usedefaultvalues = True
+        >>> test = prepare()
+        >>> test
+        test(2.0)
+
+        When no `INIT` attribute is defined, enabling `usedefaultvalues` has
+        no effect, of course:
+
+        >>> del Test.INIT
+        >>> test = prepare()
+        >>> test
+        test(nan)
+
+        For time dependend parameter values, the `INIT` attribute is assumed
+        to be related to a :class:`Parameterstep` of one day:
+
+        >>> test.parameterstep = '2d'
+        >>> test.simulationstep = '12h'
+        >>> Test.INIT = 2.0
+        >>> Test.TIME = True
+        >>> test = prepare()
+        >>> test
+        test(4.0)
+        >>> test.value
+        1.0
+
+        Note the following `nan` surrogate values for types :class:`bool` and
+        :class:`int` (for :class:`bool`, a better solution should be found):
+
+        >>> Test.TIME = None
+        >>> Test.TYPE = bool
+        >>> del Test.INIT
+        >>> test = prepare()
+        >>> test
+        test(False)
+        >>> Test.TYPE = int
+        >>> test = prepare()
+        >>> test
+        test(-999999)
+
+        For not supported types, the following error message is raised:
+
+        >>> Test.TYPE = list
+        >>> test = prepare()
+        Traceback (most recent call last):
+        ...
+        AttributeError: For parameter `test` no `INIT` class attribute is \
+defined, but no standard value for its TYPE `list` is available
+        """
         initvalue = (getattr(self, 'INIT', None) if
                      pub.options.usedefaultvalues else None)
         if initvalue is None:
@@ -335,52 +727,18 @@ class Parameter(objecttools.ValueMath):
             if type_ is float:
                 initvalue = numpy.nan
             elif type_ is int:
-                initvalue = objecttools._INT_NAN
+                initvalue = variabletools._INT_NAN
             elif type_ is bool:
                 initvalue = False
             else:
-                NotImplementedError(
-                    'For parameter `%s` no `INIT` class attribute is '
-                    'defined, but no standard value for its TYPE `%s`'
-                    'is available' % (self.name, objecttools.classname(type_)))
-        return initvalue
-
-    def _getparameterstep(self):
-        """The parameter time step size new parameter values might be related
-        to.
-        """
-        if Parameter._parameterstep is None:
-            raise RuntimeError('The general parameter time step has not been '
-                               'defined so far.')
+                raise AttributeError(
+                    'For parameter `%s` no `INIT` class attribute is defined, '
+                    'but no standard value for its TYPE `%s` is available'
+                    % (self.name, objecttools.classname(type_)))
         else:
-            return self._parameterstep
-
-    def _setparameterstep(self, value):
-        try:
-            Parameter._parameterstep = timetools.Period(value)
-        except Exception:
-            objecttools.augmentexcmessage('While trying to set the general '
-                                          'parameter time step')
-
-    parameterstep = property(_getparameterstep, _setparameterstep)
-
-    def _getsimulationstep(self):
-        """The simulation time step size new parameter values might be related
-        to.
-        """
-        try:
-            return pub.timegrids.stepsize
-        except AttributeError:
-            return Parameter._simulationstep
-
-    def _setsimulationstep(self, value):
-        try:
-            Parameter._simulationstep = timetools.Period(value)
-        except Exception:
-            objecttools.augmentexcmessage('While trying to set the general '
-                                          'simulation time step')
-
-    simulationstep = property(_getsimulationstep, _setsimulationstep)
+            with Parameter.parameterstep('1d'):
+                initvalue = self.apply_timefactor(initvalue)
+        return initvalue
 
     def _gettimefactor(self):
         """Factor to adapt a new parameter value related to
@@ -389,37 +747,36 @@ class Parameter(objecttools.ValueMath):
         try:
             parfactor = pub.timegrids.parfactor
         except AttributeError:
-            if self._simulationstep is None:
-                raise RuntimeError('The calculation of the effective value '
-                                   'of parameter `%s` requires a definition '
-                                   'of the actual simulation time step.  '
-                                   'The simulation time step is project '
-                                   'specific.  When initializing the HydPy '
-                                   'framework, it is automatically specified '
-                                   'under `pub.timegrids.stepsize.  For '
-                                   'testing purposes, one can alternatively '
-                                   'apply the function `simulationstep`.  '
-                                   'Please see the documentation for more '
-                                   'details.' % self.name)
+            if not self.simulationstep:
+                raise RuntimeError(
+                    'The calculation of the effective value of parameter '
+                    '`%s` requires a definition of the actual simulation time '
+                    'step.  The simulation time step is project specific.  '
+                    'When initializing the HydPy framework, it is '
+                    'automatically specified under `pub.timegrids.stepsize`.  '
+                    'For testing purposes, one can e.g. alternatively apply '
+                    'the function `simulationstep`.  Please see the '
+                    'documentation for more details.' % self.name)
             else:
                 date1 = timetools.Date('2000.01.01')
-                date2 = date1 + self._simulationstep
+                date2 = date1 + self.simulationstep
                 parfactor = timetools.Timegrids(timetools.Timegrid(
-                                 date1, date2, self._simulationstep)).parfactor
+                    date1, date2, self.simulationstep)).parfactor
         return parfactor(self.parameterstep)
 
     timefactor = property(_gettimefactor)
 
-    trim = objecttools.trim
+    trim = variabletools.trim
 
-    def warntrim(self):
-        warnings.warn('For parameter %s of element %s at least one value '
-                      'needed to be trimmed.  Two possible reasons could be '
-                      'that the a parameter bound violated or that the values '
-                      'of two (or more) different parameters are inconsistent.'
-                      % (self.name, objecttools.devicename(self)))
+    def warn_trim(self):
+        warnings.warn(
+            'For parameter %s of element %s at least one value '
+            'needed to be trimmed.  Two possible reasons could be '
+            'that the a parameter bound violated or that the values '
+            'of two (or more) different parameters are inconsistent.'
+            % (self.name, objecttools.devicename(self)))
 
-    def applytimefactor(self, values):
+    def apply_timefactor(self, values):
         """Change the given parameter value/values in accordance with the
         actual parameter simulation time step if necessary, and return it/them.
         """
@@ -431,7 +788,7 @@ class Parameter(objecttools.ValueMath):
             values = values / self.timefactor
         return values
 
-    def reverttimefactor(self, values):
+    def revert_timefactor(self, values):
         """Change the given parameter value/values inversely in accordance
         with the actual parameter simulation time step if necessary, and
         return it/them.
@@ -462,6 +819,9 @@ class Parameter(objecttools.ValueMath):
 
     def __dir__(self):
         return objecttools.dir_(self)
+
+
+abctools.ParameterABC.register(Parameter)
 
 
 class SingleParameter(Parameter):
@@ -549,7 +909,7 @@ class SingleParameter(Parameter):
         lines = self.commentrepr()
         lines.append('%s(%s)'
                      % (self.name,
-                        objecttools.repr_(self.reverttimefactor(self.value))))
+                        objecttools.repr_(self.revert_timefactor(self.value))))
         return '\n'.join(lines)
 
 
@@ -578,29 +938,29 @@ class MultiParameter(Parameter):
     def _setshape(self, shape):
         try:
             array = numpy.full(shape, self.initvalue, dtype=self.TYPE)
-        except Exception:
-            objecttools.augmentexcmessage('While trying create a new numpy '
-                                          'ndarray` for parameter `%s`'
-                                          % self.name)
+        except BaseException:
+            objecttools.augment_excmessage(
+                'While trying create a new numpy ndarray` for parameter `%s`'
+                % self.name)
         if array.ndim == self.NDIM:
             setattr(self.fastaccess, self.name, array)
         else:
-            raise ValueError('Parameter `%s` is %d-dimensional but the '
-                             'given shape indicates %d dimensions.'
-                             % (self.name, self.NDIM, array.ndim))
+            raise ValueError(
+                'Parameter `%s` is %d-dimensional but the '
+                'given shape indicates %d dimensions.'
+                % (self.name, self.NDIM, array.ndim))
 
     shape = property(_getshape, _setshape)
 
     def _getvalue(self):
         """The actual parameter value(s) handled by the respective
-        :class:`Parameter` instance.  For consistency, `value` and `values`
+        |Parameter| instance.  For consistency, `value` and `values`
         can always be used interchangeably.
         """
         value = getattr(self.fastaccess, self.name, None)
         if value is None:
             return value
-        else:
-            return numpy.asarray(value)
+        return numpy.asarray(value)
 
     def _setvalue(self, value):
         try:
@@ -646,10 +1006,6 @@ class MultiParameter(Parameter):
             raise RuntimeError('For parameter `%s`, %d required values have '
                                'not been set yet.' % (self.name, nmbnan))
 
-    def copy(self):
-        """Return a deep copy of the parameter values."""
-        return copy.deepcopy(self.values)
-
     def __len__(self):
         """Returns the number of values handled by the :class:`MultiParameter`
         instance.  It is required, that the `shape` has been set beforehand,
@@ -660,13 +1016,13 @@ class MultiParameter(Parameter):
     def __getitem__(self, key):
         try:
             return self.values[key]
-        except Exception:
+        except BaseException:
             self._raiseitemexception()
 
     def __setitem__(self, key, values):
         try:
             self.values[key] = values
-        except Exception:
+        except BaseException:
             self._raiseitemexception()
 
     def _raiseitemexception(self):
@@ -674,11 +1030,11 @@ class MultiParameter(Parameter):
             raise RuntimeError('Parameter `%s` has no values so far.'
                                % self.name)
         else:
-            objecttools.augmentexcmessage('While trying to item access the '
-                                          'values of parameter `%s`'
-                                          % self.name)
+            objecttools.augment_excmessage(
+                'While trying to item access the values of parameter `%s`'
+                % self.name)
 
-    def compressrepr(self):
+    def compress_repr(self):
         """Returns a compressed parameter value string, which is (in
         accordance with :attr:`~MultiParameter.NDIM`) contained in a
         nested list.  If the compression fails, a
@@ -693,10 +1049,10 @@ class MultiParameter(Parameter):
         if sum(numpy.isnan(unique)) == len(unique.flatten()):
             unique = numpy.array([numpy.nan])
         else:
-            unique = self.reverttimefactor(unique)
+            unique = self.revert_timefactor(unique)
         if len(unique) == 1:
             result = objecttools.repr_(unique[0])
-            for idx in range(self.NDIM):
+            for dummy in range(self.NDIM):
                 result = [result]
             return result
         else:
@@ -707,39 +1063,39 @@ class MultiParameter(Parameter):
 
     def __repr__(self):
         try:
-            values = self.compressrepr()
+            values = self.compress_repr()
         except NotImplementedError:
             islong = self.length > 255
-            values = self.reverttimefactor(self.values)
+            values = self.revert_timefactor(self.values)
         except BaseException:
-            objecttools.augmentexcmessage('While trying to find a compressed '
-                                          'string representation for '
-                                          'parameter `%s`' % self.name)
+            objecttools.augment_excmessage(
+                'While trying to find a compressed '
+                'string representation for parameter `%s`'
+                % self.name)
         else:
             islong = False
-        return super(Parameter, self)._repr(values, islong)
+        return super(MultiParameter, self).repr_(values, islong)
 
 
 class ZipParameter(MultiParameter):
     """Base class for model parameters handling multiple values that offers
     additional keyword zipping fuctionality.
 
-    When inheriting an actual parameter class from :class:`ZipParameter` one
-    needs to define suitable class constants
-    :const:`~ZipParameter.REQUIRED_VALUES` (a :class:`tuple`) and
-    :const:`~ZipParameter.MODEL_CONSTANTS` (a :class:`dict`).  Additionally,
-    a property named `refparameter` must be defined.
+    When inheriting an actual parameter class from |ZipParameter| one needs
+    to define suitable class constants :const:`~ZipParameter.REQUIRED_VALUES`
+    (a :class:`tuple`) and :const:`~ZipParameter.MODEL_CONSTANTS`
+    (a :class:`dict`).  Additionally, a property named `refparameter` must
+    be defined.
 
-    The implementation and functioning of subclasses of :class:`ZipParameter`
+    The implementation and functioning of subclasses of |ZipParameter|
     is best illustrated by an example: see the documentation of the class
-    :class:`~hydpy.models.hland.hland_parameters.MultiParameter` of the
-    HydPy-H-Land model.
+    |MultiParameter| of the HydPy-H-Land model.
     """
     REQUIRED_VALUES = ()
     MODEL_CONSTANTS = {}
 
     def __call__(self, *args, **kwargs):
-        """The prefered way to pass values to :class:`Parameter` instances
+        """The prefered way to pass values to |Parameter| instances
         within parameter control files.
         """
         try:
@@ -763,7 +1119,7 @@ class ZipParameter(MultiParameter):
                         raise exc
                     else:
                         self.values[refvalues == sel] = value
-                self.values = self.applytimefactor(self.values)
+                self.values = self.apply_timefactor(self.values)
                 self.trim()
             else:
                 raise exc
@@ -799,14 +1155,14 @@ class ZipParameter(MultiParameter):
 
     verifymask = property(_getverifymask)
 
-    def compressrepr(self):
-        """Returns a compressed parameter value string, which is (in
+    def compress_repr(self):
+        """Return a compressed parameter value string, which is (in
         accordance with :attr:`NDIM`) contained in a nested list.  If the
         compression fails, a :class:`~exceptions.NotImplementedError` is
         raised.
         """
         try:
-            return MultiParameter.compressrepr(self)
+            return MultiParameter.compress_repr(self)
         except NotImplementedError as exc:
             results = []
             refvalues = self.refparameter.values
@@ -817,7 +1173,7 @@ class ZipParameter(MultiParameter):
             for (key, value) in self.MODEL_CONSTANTS.items():
                 if value in self.REQUIRED_VALUES:
                     unique = numpy.unique(self.values[refvalues == value])
-                    unique = self.reverttimefactor(unique)
+                    unique = self.revert_timefactor(unique)
                     if len(unique) == 1:
                         results.append('%s=%s'
                                        % (key.lower(),
@@ -825,7 +1181,7 @@ class ZipParameter(MultiParameter):
                     elif len(unique) > 1:
                         raise exc
             result = ', '.join(sorted(results))
-            for idx in range(self.NDIM):
+            for dummy in range(self.NDIM):
                 result = [result]
             return result
 
@@ -841,8 +1197,7 @@ class SeasonalParameter(MultiParameter):
 
     For the following examples, we assume a simulation step size of one day:
 
-    >>> from hydpy.core.timetools import Period
-    >>> seasonalparameter.simulationstep = Period('1d')
+    >>> seasonalparameter.simulationstep = '1d'
 
     To define its shape, the first entry of the assigned :class:`tuple`
     object is ignored:
@@ -868,7 +1223,13 @@ class SeasonalParameter(MultiParameter):
     >>> SeasonalParameter()(_a=1.)
     Traceback (most recent call last):
     ...
-    ValueError: While trying to define parameter `seasonalparameter` of element `?`, the following error occured: While trying to retrieve the month for TOY (time of year) object based on the string `_a`, the following error occured: For TOY (time of year) objects, all properties must be of type `int`, but the value `a` of type `str` given for property `month` cannot be converted to `int`.
+    ValueError: While trying to define the seasonal parameter value \
+`seasonalparameter` of element `?` for time of year `_a`, the following \
+error occured: While trying to retrieve the month for TOY (time of year) \
+object based on the string `_a`, the following error occured: \
+For TOY (time of year) objects, all properties must be of type `int`, \
+but the value `a` of type `str` given for property `month` cannot be \
+converted to `int`.
 
     As the following string representation shows, are the pairs of each
     :class:`SeasonalParameter` instance automatically sorted:
@@ -901,14 +1262,19 @@ class SeasonalParameter(MultiParameter):
     >>> seasonalparameter.toy_1_1_0_0_0 = [1., 2.]
     Traceback (most recent call last):
     ...
-    TypeError: While trying to add a new or change an existing toy-value pair for the seasonal parameter `seasonalparameter` of element `?`, the following error occured: float() argument must be a string or a number...
+    TypeError: While trying to add a new or change an existing toy-value \
+pair for the seasonal parameter `seasonalparameter` of element `?`, the \
+following error occured: float() argument must be a string or a number...
     >>> seasonalparameter = SeasonalParameter()
     >>> seasonalparameter.NDIM = 2
     >>> seasonalparameter.shape = (None, 3)
     >>> seasonalparameter.toy_1_1_0_0_0 = [1., 2.]
     Traceback (most recent call last):
     ...
-    ValueError: While trying to add a new or change an existing toy-value pair for the seasonal parameter `seasonalparameter` of element `?`, the following error occured: could not broadcast input array from shape (2) into shape (3)
+    ValueError: While trying to add a new or change an existing toy-value \
+pair for the seasonal parameter `seasonalparameter` of element `?`, the \
+following error occured: could not broadcast input array from shape (2) \
+into shape (3)
     >>> seasonalparameter.toy_1_1_0_0_0 = [1., 2., 3.]
     >>> seasonalparameter
     seasonalparameter(toy_1_1_0_0_0=[1.0, 2.0, 3.0])
@@ -918,10 +1284,12 @@ class SeasonalParameter(MultiParameter):
         self._toy2values = {}
 
     def __call__(self, *args, **kwargs):
-        """The prefered way to pass values to :class:`Parameter` instances
+        """The prefered way to pass values to |Parameter| instances
         within parameter control files.
         """
         self._toy2values.clear()
+        if self.NDIM == 1:
+            self.shape = (None,)
         try:
             MultiParameter.__call__(self, *args, **kwargs)
             self._toy2values[timetools.TOY()] = self[0]
@@ -931,9 +1299,12 @@ class SeasonalParameter(MultiParameter):
                     try:
                         setattr(self, str(timetools.TOY(toystr)), values)
                     except BaseException:
-                        objecttools.augmentexcmessage(
-                            'While trying to define parameter `%s` of element '
-                            '`%s`' % (self.name, objecttools.devicename(self)))
+                        objecttools.augment_excmessage(
+                            'While trying to define the seasonal parameter '
+                            'value `%s` of element `%s` for time of year `%s`'
+                            % (self.name,
+                               objecttools.devicename(self),
+                               toystr))
                 self.refresh()
             else:
                 raise exc
@@ -947,9 +1318,9 @@ class SeasonalParameter(MultiParameter):
 
         Instantiate a 1-dimensional :class:`SeasonalParameter` object:
 
+        >>> from hydpy.core.parametertools import SeasonalParameter
         >>> sp = SeasonalParameter()
-        >>> from hydpy.core.timetools import Period
-        >>> sp.simulationstep = Period('1d')
+        >>> sp.simulationstep = '1d'
         >>> sp.NDIM = 1
         >>> sp.shape = (None,)
 
@@ -975,7 +1346,7 @@ class SeasonalParameter(MultiParameter):
         toy-value pairs do not show up:
 
         >>> sp.toy_12_31 = 4.
-        >>> from hydpy.core.objecttools import round_
+        >>> from hydpy import round_
         >>> round_(sp.values[0])
         2.00274
         >>> round_(sp.values[-2])
@@ -1001,19 +1372,19 @@ class SeasonalParameter(MultiParameter):
         4.0
 
         """
-        if len(self) == 0:
+        if not len(self):
             self.values[:] = 0.
         elif len(self) == 1:
             values = list(self._toy2values.values())[0]
-            self.values[:] = self.applytimefactor(values)
+            self.values[:] = self.apply_timefactor(values)
         else:
-            tt = timetools
-            timegrid = tt.Timegrid(tt.TOY._STARTDATE+self.simulationstep/2,
-                                   tt.TOY._ENDDATE+self.simulationstep/2,
-                                   self.simulationstep)
+            timegrid = timetools.Timegrid(
+                timetools.TOY._STARTDATE+self.simulationstep/2,
+                timetools.TOY._ENDDATE+self.simulationstep/2,
+                self.simulationstep)
             for idx, date in enumerate(timegrid):
                 values = self.interp(date)
-                self.values[idx] = self.applytimefactor(values)
+                self.values[idx] = self.apply_timefactor(values)
 
     def interp(self, date):
         """Perform a linear value interpolation for a date defined by the
@@ -1023,7 +1394,7 @@ class SeasonalParameter(MultiParameter):
         Instantiate a 1-dimensional :class:`SeasonalParameter` object:
 
         >>> sp = SeasonalParameter()
-        >>> from hydpy.core.timetools import Date, Period
+        >>> from hydpy import Date, Period
         >>> sp.simulationstep = Period('1d')
         >>> sp.NDIM = 1
         >>> sp.shape = (None,)
@@ -1044,7 +1415,7 @@ class SeasonalParameter(MultiParameter):
 
         For all intermediate points, a linear interpolation is performed:
 
-        >>> from hydpy.core.objecttools import round_
+        >>> from hydpy import round_
         >>> round_(sp.interp(Date('2000.01.02')))
         2.096774
         >>> round_(sp.interp(Date('2000.01.31')))
@@ -1075,7 +1446,7 @@ class SeasonalParameter(MultiParameter):
         2-dimensional parameter:
 
         >>> sp = SeasonalParameter()
-        >>> from hydpy.core.timetools import Date, Period
+        >>> from hydpy import Date, Period
         >>> sp.simulationstep = Period('1d')
         >>> sp.NDIM = 2
         >>> sp.shape = (None, 2)
@@ -1088,14 +1459,14 @@ class SeasonalParameter(MultiParameter):
     """
         xnew = timetools.TOY(date)
         xys = list(self)
-        for idx, (x1, y1) in enumerate(xys):
-            if x1 > xnew:
-                x0, y0 = xys[idx-1]
+        for idx, (x_1, y_1) in enumerate(xys):
+            if x_1 > xnew:
+                x_0, y_0 = xys[idx-1]
                 break
         else:
-            x0, y0 = xys[-1]
-            x1, y1 = xys[0]
-        return y0+(y1-y0)/(x1-x0)*(xnew-x0)
+            x_0, y_0 = xys[-1]
+            x_1, y_1 = xys[0]
+        return y_0+(y_1-y_0)/(x_1-x_0)*(xnew-x_0)
 
     def _setshape(self, shape):
         try:
@@ -1103,7 +1474,7 @@ class SeasonalParameter(MultiParameter):
         except TypeError:
             pass
         shape = list(shape)
-        if self.simulationstep is None:
+        if not self.simulationstep:
             raise RuntimeError(
                 'It is not possible the set the shape of the seasonal '
                 'parameter `%s` of element `%s` at the moment.  You can '
@@ -1113,6 +1484,7 @@ class SeasonalParameter(MultiParameter):
         shape[0] = timetools.Period('366d')/self.simulationstep
         shape[0] = int(numpy.ceil(round(shape[0], 10)))
         MultiParameter._setshape(self, shape)
+
     shape = property(MultiParameter._getshape, _setshape)
 
     def __iter__(self):
@@ -1124,7 +1496,7 @@ class SeasonalParameter(MultiParameter):
             try:
                 return self._toy2values[timetools.TOY(name)]
             except BaseException:
-                objecttools.augmentexcmessage(
+                objecttools.augment_excmessage(
                     'While trying to get an existing toy-value pair for '
                     'the seasonal parameter `%s` of element `%s`'
                     % (self.name, objecttools.devicename(self)))
@@ -1141,7 +1513,7 @@ class SeasonalParameter(MultiParameter):
                 self._toy2values[timetools.TOY(name)] = value
                 self.refresh()
             except BaseException:
-                objecttools.augmentexcmessage(
+                objecttools.augment_excmessage(
                     'While trying to add a new or change an existing '
                     'toy-value pair for the seasonal parameter `%s` of '
                     'element `%s`' % (self.name, objecttools.devicename(self)))
@@ -1154,7 +1526,7 @@ class SeasonalParameter(MultiParameter):
                 del self._toy2values[timetools.TOY(name)]
                 self.refresh()
             except BaseException:
-                objecttools.augmentexcmessage(
+                objecttools.augment_excmessage(
                     'While trying to delete an existing toy-value pair for '
                     'the seasonal parameter `%s` of element `%s`'
                     % (self.name, objecttools.devicename(self)))
@@ -1171,25 +1543,24 @@ class SeasonalParameter(MultiParameter):
         else:
             def assign(values, prefix):
                 return prefix+str(values)
-        if len(self) == 0:
+        if not len(self):
             return self.name+'()'
-        else:
-            lines = []
-            blanks = ' '*(len(self.name)+1)
-            for idx, (toy, value) in enumerate(self):
-                if idx == 0:
-                    prefix = '%s(%s=' % (self.name, toy)
-                else:
-                    prefix = '%s%s=' % (blanks, toy)
-                lines.append(assign(value, prefix, width=79))
-            lines[-1] += ')'
-            return ',\n'.join(lines)
+        lines = []
+        blanks = ' '*(len(self.name)+1)
+        for idx, (toy, value) in enumerate(self):
+            if idx == 0:
+                prefix = '%s(%s=' % (self.name, toy)
+            else:
+                prefix = '%s%s=' % (blanks, toy)
+            lines.append(assign(value, prefix, width=79))
+        lines[-1] += ')'
+        return ',\n'.join(lines)
 
     def __len__(self):
         return len(self._toy2values)
 
     def __dir__(self):
-        return objecttools.dir_(self) + [str(toy) for (toy, value) in self]
+        return objecttools.dir_(self) + [str(toy) for (toy, dummy) in self]
 
 
 class KeywordParameter2DType(type):
@@ -1207,7 +1578,7 @@ class KeywordParameter2DType(type):
 
 
 KeywordParameter2DMetaclass = KeywordParameter2DType(
-                          'KeywordParameter2DMetaclass', (MultiParameter,), {})
+    'KeywordParameter2DMetaclass', (MultiParameter,), {})
 
 
 class KeywordParameter2D(KeywordParameter2DMetaclass):
@@ -1253,7 +1624,9 @@ class KeywordParameter2D(KeywordParameter2DMetaclass):
     >>> iswarm(north=[True, False])
     Traceback (most recent call last):
     ...
-    ValueError: When setting parameter `iswarm` of element `?` via row related keyword arguments, each string defined in `ROWNAMES` must be used as a keyword, but the following keyword is not: `south`.
+    ValueError: When setting parameter `iswarm` of element `?` via row \
+related keyword arguments, each string defined in `ROWNAMES` must be used \
+as a keyword, but the following keyword is not: `south`.
 
     But one can modify single rows via attribute access:
 
@@ -1281,17 +1654,23 @@ class KeywordParameter2D(KeywordParameter2DMetaclass):
     >>> iswarm.north = True, True, True
     Traceback (most recent call last):
     ...
-    ValueError: While trying to assign new values to parameter `iswarm` of element `?` via the row related attribute `north`, the following error occured: cannot copy sequence with size 3 to array axis with dimension 2
+    ValueError: While trying to assign new values to parameter `iswarm` of \
+element `?` via the row related attribute `north`, the following error \
+occured: cannot copy sequence with size 3 to array axis with dimension 2
     >>> iswarm.apr2sep = True, True, True
     Traceback (most recent call last):
     ...
-    ValueError: While trying to assign new values to parameter `iswarm` of element `?` via the column related attribute `apr2sep`, the following error occured: cannot copy sequence with size 3 to array axis with dimension 2
+    ValueError: While trying to assign new values to parameter `iswarm` of \
+element `?` via the column related attribute `apr2sep`, the following error \
+occured: cannot copy sequence with size 3 to array axis with dimension 2
 
     >>> iswarm.shape = (1, 1)
     >>> iswarm.south_apr2sep = False
     Traceback (most recent call last):
     ...
-    IndexError: While trying to assign new values to parameter `iswarm` of element `?` via the row and column related attribute `south_apr2sep`, the following error occured: index 1 is out of bounds for axis 0 with size 1
+    IndexError: While trying to assign new values to parameter `iswarm` of \
+element `?` via the row and column related attribute `south_apr2sep`, the \
+following error occured: index 1 is out of bounds for axis 0 with size 1
     >>> iswarm.shape = (2, 2)
 
     Of course, one can define the parameter values in the common manner, e.g.:
@@ -1355,7 +1734,7 @@ class KeywordParameter2D(KeywordParameter2DMetaclass):
             try:
                 return self.values[self.ROWNAMES.index(key), :]
             except BaseException:
-                objecttools.augmentexcmessage(
+                objecttools.augment_excmessage(
                     'While trying to retrieve values from parameter `%s` of '
                     'element `%s` via the row related attribute `%s`'
                     % (self.name, objecttools.devicename(self), key))
@@ -1363,7 +1742,7 @@ class KeywordParameter2D(KeywordParameter2DMetaclass):
             try:
                 return self.values[:, self.COLNAMES.index(key)]
             except BaseException:
-                objecttools.augmentexcmessage(
+                objecttools.augment_excmessage(
                     'While trying to retrieve values from parameter `%s` of '
                     'element `%s` via the columnd related attribute `%s`'
                     % (self.name, objecttools.devicename(self), key))
@@ -1372,7 +1751,7 @@ class KeywordParameter2D(KeywordParameter2DMetaclass):
             try:
                 return self.values[idx, jdx]
             except BaseException:
-                objecttools.augmentexcmessage(
+                objecttools.augment_excmessage(
                     'While trying to retrieve values from parameter `%s` of '
                     'element `%s` via the row and column related attribute '
                     '`%s`' % (self.name, objecttools.devicename(self), key))
@@ -1384,7 +1763,7 @@ class KeywordParameter2D(KeywordParameter2DMetaclass):
             try:
                 self.values[self.ROWNAMES.index(key), :] = values
             except BaseException:
-                objecttools.augmentexcmessage(
+                objecttools.augment_excmessage(
                     'While trying to assign new values to parameter `%s` of '
                     'element `%s` via the row related attribute `%s`'
                     % (self.name, objecttools.devicename(self), key))
@@ -1392,7 +1771,7 @@ class KeywordParameter2D(KeywordParameter2DMetaclass):
             try:
                 self.values[:, self.COLNAMES.index(key)] = values
             except BaseException:
-                objecttools.augmentexcmessage(
+                objecttools.augment_excmessage(
                     'While trying to assign new values to parameter `%s` of '
                     'element `%s` via the column related attribute `%s`'
                     % (self.name, objecttools.devicename(self), key))
@@ -1401,7 +1780,7 @@ class KeywordParameter2D(KeywordParameter2DMetaclass):
             try:
                 self.values[idx, jdx] = values
             except BaseException:
-                objecttools.augmentexcmessage(
+                objecttools.augment_excmessage(
                     'While trying to assign new values to parameter `%s` of '
                     'element `%s` via the row and column related attribute '
                     '`%s`' % (self.name, objecttools.devicename(self), key))
@@ -1451,7 +1830,6 @@ class LeftRightParameter(MultiParameter):
         self.values[0] = value
 
     left = property(_getleft, _setleft)
-    l = left
 
     def _getright(self):
         """The "right" value of the actual parameter."""
@@ -1461,7 +1839,6 @@ class LeftRightParameter(MultiParameter):
         self.values[1] = value
 
     right = property(_getright, _setright)
-    r = right
 
 
 class IndexParameter(MultiParameter):

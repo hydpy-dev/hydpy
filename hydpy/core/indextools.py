@@ -56,7 +56,7 @@ class Indexer(object):
         29th of February.  Hence, it is missing in non-leap years:
 
         >>> from hydpy import pub
-        >>> from hydpy.core.timetools import Timegrids, Timegrid
+        >>> from hydpy import Timegrids, Timegrid
         >>> from hydpy.core.indextools import Indexer
         >>> pub.timegrids = Timegrids(Timegrid('27.02.2004',
         ...                                    '3.03.2004',
@@ -97,7 +97,7 @@ class Indexer(object):
         property :attr:`~Indexer.dayofyear`:
 
         >>> from hydpy import pub
-        >>> from hydpy.core.timetools import Timegrids, Timegrid
+        >>> from hydpy import Timegrids, Timegrid
         >>> from hydpy.core.indextools import Indexer
         >>> pub.timegrids = Timegrids(Timegrid('27.02.2005',
         ...                                    '3.03.2005',
@@ -168,43 +168,43 @@ class Indexer(object):
         try:
             array = numpy.array(values, dtype=int)
         except BaseException:
-            objecttools.augmentexcmessage('While trying to assign a new `%s` '
-                                          'index array to an Indexer object'
-                                          % name)
+            objecttools.augment_excmessage(
+                'While trying to assign a new `%s` '
+                'index array to an Indexer object'
+                % name)
         if array.ndim != 1:
-            raise ValueError('The `%s` index array of an Indexer object must '
-                             'be 1-dimensional.  However, the given value has '
-                             'interpreted as a %d-dimensional object.'
-                             % (name, array.ndim))
+            raise ValueError(
+                'The `%s` index array of an Indexer object must be '
+                '1-dimensional.  However, the given value has interpreted '
+                'as a %d-dimensional object.'
+                % (name, array.ndim))
         if pub.timegrids is not None:
             if len(array) != len(pub.timegrids.init):
-                raise ValueError('The %s` index array of an Indexer object '
-                                 'must have a number of entries fitting to '
-                                 'the initialization time period precisely.  '
-                                 'However, the given value has been '
-                                 'interpreted to be of length %d and the '
-                                 'length of the Timegrid object representing '
-                                 'the actual initialization time period is %d.'
-                                 % (name, len(array), len(pub.timegrids.init)))
+                raise ValueError(
+                    'The %s` index array of an Indexer object must have a '
+                    'number of entries fitting to the initialization time '
+                    'period precisely.  However, the given value has been '
+                    'interpreted to be of length %d and the length of the '
+                    'Timegrid object representing the actual initialization '
+                    'time period is %d.'
+                    % (name, len(array), len(pub.timegrids.init)))
         return array
 
     def _calcidxs(self, func):
         """Return the required indexes based on the given lambda function and
-        the :class:`~hydpy.core.timetools.Timegrids` object handled by module
-        :mod:`~hydpy.pub`.  Raise a :class:`~exceptions.RuntimeError` if the
-        latter is not available.
+        the |Timegrids| object handled by module |pub|.  Raise a
+        :class:`~exceptions.RuntimeError` if the latter is not available.
         """
         if pub.timegrids is None:
-            raise RuntimeError('An Indexer object has been asked for an '
-                               '%s array.  Such an array has neither been '
-                               'determined yet nor can it be determined '
-                               'automatically at the moment.   Either '
-                               'define an %s array manually and pass it to '
-                               'the Indexer object, or make a proper '
-                               'Timegrids object available within the pub '
-                               'module.  In usual HydPy applications, the '
-                               'latter is done automatically.'
-                               % (func.__name__, func.__name__))
+            raise RuntimeError(
+                'An Indexer object has been asked for an %s array.  Such an '
+                'array has neither been determined yet nor can it be '
+                'determined automatically at the moment.   Either define an '
+                '%s array manually and pass it to the Indexer object, or make '
+                'a proper Timegrids object available within the pub module.  '
+                'In usual HydPy applications, the latter is done '
+                'automatically.'
+                % (func.__name__, func.__name__))
         idxs = numpy.empty(len(pub.timegrids.init), dtype=int)
         for (jdx, date) in enumerate(pub.timegrids.init):
             idxs[jdx] = func(date)

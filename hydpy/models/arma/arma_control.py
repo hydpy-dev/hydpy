@@ -196,9 +196,10 @@ class Responses(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
     def __init__(self, *args, **kwargs):
-        self.__dict__['subpars'] = None
-        self.__dict__['fastaccess'] = None
-        self.__dict__['_coefs'] = {}
+        with objecttools.ResetAttrFuncs(self):
+            self.subpars = None
+            self.fastaccess = None
+            self._coefs = {}
         super(Responses, self).__init__(*args, **kwargs)
 
     def connect(self, subpars):
@@ -264,7 +265,7 @@ class Responses(parametertools.Parameter):
                     self._coefs[std_key] = (tuple(float(v) for v in value[0]),
                                             tuple(float(v) for v in value[1]))
             except BaseException:
-                objecttools.augmentexcmessage(
+                objecttools.augment_excmessage(
                     'While trying to set a new threshold (%s) coefficient '
                     'pair for parameter `%s` of element `%s`'
                     % (key, self.name, objecttools.devicename(self.subpars)))

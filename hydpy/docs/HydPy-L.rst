@@ -26,7 +26,7 @@ have been programmed more independently and were incorporated into the
 original LARSIM implementation later.
 
 
-HydPy-H is divided into three base models, which can be used to compile
+HydPy-L is divided into three base models, which can be used to compile
 different application models:
 
 .. toctree::
@@ -41,15 +41,15 @@ So far the following application models are compiled:
 
 .. toctree::
 
-   lland_v1 (LARSIM-Xinanjiang-Turc-Wendling version of HydPy-H-Land) <lland_v1>
+   lland_v1 (LARSIM-Xinanjiang-Turc-Wendling version of HydPy-L-Land) <lland_v1>
    lland_v2 (External potential evaporation version of lland_v1) <lland_v2>
-   lstream_v1 (LARSIM-Manning version of HydPy-H-Stream) <lstream_v1>
-   llake_v1 (LARSIM-Lake version of HydPy-H-Branch) <llake_v1>
+   lstream_v1 (LARSIM-Manning version of HydPy-L-Stream) <lstream_v1>
+   llake_v1 (LARSIM-Lake version of HydPy-L-Branch) <llake_v1>
 
 All these application models are stand-alone models, which can be
-combined freely with all other models implemented in HydPy.
+combined freely with other models implemented in HydPy.
 
-For the reasons of consistency with the original LARSIM implementation, the
+For reason of consistency with the original LARSIM implementation, the
 names of all parameter and sequence classes are German terms and abbreviations.
-However, the documentation on each class or sequence contains an English
+However, the documentation on each parameter or sequence contains an English
 translation.

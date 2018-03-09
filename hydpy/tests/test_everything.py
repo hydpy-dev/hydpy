@@ -89,6 +89,7 @@ pub.options.reprcomments = False
 import hydpy
 from hydpy.core import devicetools
 from hydpy.core import parametertools
+from hydpy.core import testtools
 alldoctests = ({}, {})
 allsuccessfuldoctests = ({}, {})
 allfaileddoctests = ({}, {})
@@ -127,6 +128,7 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                     raise(exc)
             else:
                 opt = pub.options
+                Par = parametertools.Parameter
                 with opt.usedefaultvalues(False), \
                         opt.usedefaultvalues(False), \
                         opt.printprogress(False), \
@@ -135,19 +137,25 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                         opt.reprcomments(False), \
                         opt.ellipsis(0), \
                         opt.reprdigits(6), \
-                        opt.warntrim(False):
+                        opt.warntrim(False), \
+                        Par.parameterstep.delete(), \
+                        Par.simulationstep.delete():
                     pub.timegrids = None
                     devicetools.Node.clear_registry()
                     devicetools.Element.clear_registry()
-                    parametertools.Parameter._simulationstep = None
+                    testtools.IntegrationTest.plotting_options = \
+                        testtools.PlottingOptions()
                     if name.endswith('.rst'):
                         name = name[name.find('hydpy'+os.sep):]
                     warnings.filterwarnings('error', module='hydpy')
                     warnings.filterwarnings('ignore', category=ImportWarning)
-                    warnings.filterwarnings("ignore",
+                    warnings.filterwarnings('ignore',
                                             message="numpy.dtype size changed")
-                    warnings.filterwarnings("ignore",
+                    warnings.filterwarnings('ignore',
                                             message="numpy.ufunc size changed")
+                    warnings.filterwarnings(
+                        'ignore',
+                        message='the imp module is deprecated')
                     doctests[name] = runner.run(suite)
                     warnings.resetwarnings()
                     doctests[name].nmbproblems = (len(doctests[name].errors) +

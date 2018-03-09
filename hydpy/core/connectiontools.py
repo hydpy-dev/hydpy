@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-"""This modules implements tools for handling connections between
-:class:`~hydpy.core.devicetools.Node` and
-:class:`~hydpy.core.devicetools.Element` instances.
+"""This modules implements tools for handling connections between |Node| and
+|Element| instances.
 """
 # import...
 # ...from standard library
@@ -11,15 +10,15 @@ from hydpy.core import autodoctools
 
 
 class Connections(object):
-    """Connection between :class:`~hydpy.core.devicetools.Node` and
-    :class:`~hydpy.core.devicetools.Element` instances.
+    """Connection between |Node| and |Element| instances.
     """
 
-    __slots__ = ('master', '_slaves')
+    __slots__ = ('master', 'name', '_slaves')
 
-    def __init__(self, master, *slaves):
+    def __init__(self, master, name):
         self.master = master
-        self._slaves = set(slaves)
+        self.name = name
+        self._slaves = set()
 
     def __iadd__(self, slave):
         self._slaves.add(slave)
@@ -49,6 +48,10 @@ class Connections(object):
             raise AttributeError(
                 'The selected connection neither has a attribute nor does '
                 'it handle a slave named `%s`.' % name)
+
+    def __delattr__(self, name):
+        slave = getattr(self, name)
+        self._slaves.remove(slave)
 
     def __contains__(self, value):
         try:

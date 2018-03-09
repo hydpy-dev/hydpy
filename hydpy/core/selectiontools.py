@@ -152,10 +152,8 @@ class Selection(object):
 
     Attributes:
         * name (:class:`str`): Name of the selection.
-        * nodes (:class:`~hydpy.core.node.Nodes`):
-          Currently selected nodes.
-        * elements (:class:`~hydpy.core.element.Elements`):
-          Currently selected elements.
+        * nodes (|Nodes|): Currently selected nodes.
+        * elements (|Elements|): Currently selected elements.
     """
 
     def __init__(self, name, nodes=None, elements=None):
@@ -376,7 +374,7 @@ class Selection(object):
         """Save the selection as a network file."""
         if path is None:
             path = self.name + '.py'
-        with open(path, 'w') as file_:
+        with open(path, 'w', encoding="utf-8") as file_:
             file_.write('# -*- coding: utf-8 -*-\n')
             file_.write('\nfrom hydpy import Node, Element\n\n')
             if write_nodes:

@@ -12,7 +12,7 @@ class Test01Connections(unittest.TestCase):
     def setUp(self):
         self.test1 = Node('test1')
         self.test2 = Node('test2')
-        self.cons = Connections(None)
+        self.cons = Connections(None, 'cons')
         self.cons += self.test1
         self.cons += self.test2
 
@@ -38,7 +38,7 @@ class Test01Self2Node(unittest.TestCase):
         Element.clear_registry()
 
     def test_01_iadd(self):
-        test = Connections(None)
+        test = Connections(None, 'test')
         n1 = Node('n1', 'Q')
         test += n1
         self.assertIsInstance(test, Connections)
@@ -54,7 +54,7 @@ class Test01Self2Node(unittest.TestCase):
         self.assertIs(test.n2, n2)
 
     def test_02_variables(self):
-        test = Connections(None)
+        test = Connections(None, 'test')
         self.assertListEqual(test.variables, [])
         n1 = Node('n1', 'Q')
         test += n1

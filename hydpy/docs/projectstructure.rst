@@ -1,6 +1,0 @@
-
-.. _projectstructure:
-
-Project Structure
-=================
-

@@ -5,21 +5,15 @@ of the different objects defined by the HydPy framework.
 # import...
 # ...from standard library
 from __future__ import division, print_function
+import copy
 import inspect
+import numbers
 import sys
 import textwrap
-import numbers
-# ...from site-packages
-import numpy
 # ...from HydPy
 from hydpy import pub
-from hydpy.cythons import pointerutils
+from hydpy.core import abctools
 from hydpy.core import autodoctools
-
-
-_INT_NAN = -999999
-"""Surrogate for `nan`, which is available for floating point values
-but not for integer values."""
 
 
 def dir_(self):
@@ -81,6 +75,20 @@ def instancename(self):
     options
     """
     return classname(self).lower()
+
+
+def value_of_type(value):
+    """Returns a string containing both the informal string and the type
+    of the given value.
+
+    This function is intendet to simplifying writing HydPy exceptions,
+    which frequently contain the following phrase:
+
+    >>> from hydpy.core.objecttools import value_of_type
+    >>> value_of_type(999)
+    'value `999` of type `int`'
+    """
+    return 'value `%s` of type `%s`' % (value, classname(value))
 
 
 def name(self):
@@ -157,14 +165,17 @@ def valid_variable_identifier(name):
     >>> valid_variable_identifier('test 1')
     Traceback (most recent call last):
     ...
-    ValueError: The given name string `test 1` does not define a valid variable identifier.  Valid identifiers do not contain signs like `-` or empty spaces, do not start with numbers, cannot be mistaken with Python built-ins like `for`...)
+    ValueError: The given name string `test 1` does not define a valid \
+variable identifier.  Valid identifiers do not contain characters like \
+`-` or empty spaces, do not start with numbers, cannot be mistaken with \
+Python built-ins like `for`...)
 
     Also, names of Python built ins are not allowed:
 
     >>> valid_variable_identifier('while')
     Traceback (most recent call last):
     ...
-    ValueError: The given name string `while` does not define a valid variable identifier.  Valid identifiers do not contain signs like `-` or empty spaces, do not start with numbers, cannot be mistaken with Python built-ins like `for`...)
+    ValueError: The given name string `while` does not define...
     """
     string = str(name)
     try:
@@ -174,12 +185,12 @@ def valid_variable_identifier(name):
     except SyntaxError:
         raise ValueError(
             'The given name string `%s` does not define a valid variable '
-            'identifier.  Valid identifiers do not contain signs like `-` '
-            'or empty spaces, do not start with numbers, cannot be '
+            'identifier.  Valid identifiers do not contain characters like '
+            '`-` or empty spaces, do not start with numbers, cannot be '
             'mistaken with Python built-ins like `for`...)' % name)
 
 
-def augmentexcmessage(prefix=None, suffix=None):
+def augment_excmessage(prefix=None, suffix=None):
     """Augment an exception message with additional information while keeping
     the original traceback.
 
@@ -195,14 +206,14 @@ def augmentexcmessage(prefix=None, suffix=None):
     ...     try:
     ...         prefix = 'While showing how prefixing works'
     ...         suffix = '(This is a final remark.)'
-    ...         objecttools.augmentexcmessage(prefix, suffix)
+    ...         objecttools.augment_excmessage(prefix, suffix)
     ...     except TypeError as exc:
     ...         for line in textwrap.wrap(exc.args[0], width=76):
     ...             print(line)
     While showing how prefixing works, the following error occured: unsupported
     operand type(s) for +: 'int' and 'str' (This is a final remark.)
 
-    Note that the ancillary purpose of function :func:`augmentexcmessage` is
+    Note that the ancillary purpose of function :func:`augment_excmessage` is
     to make re-raising exceptions compatible with both Python 2 and 3.
     """
     exception, message, traceback_ = sys.exc_info()
@@ -215,6 +226,152 @@ def augmentexcmessage(prefix=None, suffix=None):
         exec('raise exception, message, traceback_')
     else:
         raise exception(message).with_traceback(traceback_)
+
+
+class ResetAttrFuncs(object):
+    """Reset all attribute related methods of the given class temporarily.
+
+    The "related methods" are defined in class attribute
+    :attr:`~ResetAttrFuncs.funcnames`.
+
+    There are (at least) two use cases for  class :class:`ResetAttrFuncs`,
+    initialization and copying, which are described below.
+
+    In HydPy, some classes define a `__setattr__` method which raises
+    exceptions when one tries to set "improper" instance attributes.
+    The problem is, that such customized `setattr` methods often prevent
+    from defining instance attributes within `__init__` methods in the
+    usual manner.  Working on instance dictionaries instead can confuse
+    some automatic tools (e.g. pylint).  Class :class:`ResetAttrFuncs`
+    implements a trick to circumvent this problem.
+
+    To show how :class:`ResetAttrFuncs` works, we first define a class
+    with a `__setattr__` method that does not allow to set any attribute:
+
+    >>> class Test(object):
+    ...     def __setattr__(self, name, value):
+    ...         raise AttributeError
+    >>> test = Test()
+    >>> test.var1 = 1
+    Traceback (most recent call last):
+    ...
+    AttributeError
+
+    Assigning this class to :class:`ResetAttrFuncs` allows for setting
+    attributes to all its instances inside a `with` block in the
+    usual manner:
+
+    >>> from hydpy.core.objecttools import ResetAttrFuncs
+    >>> with ResetAttrFuncs(test):
+    ...     test.var1 = 1
+    >>> test.var1
+    1
+
+    After the end of the `with` block, the custom `__setattr__` method
+    of the test class works again and prevents from setting attributes:
+
+    >>> test.var2 = 2
+    Traceback (most recent call last):
+    ...
+    AttributeError
+
+    The second use case is related to method `__getattr__` and copying.
+    The following test class stores its attributes (for whatever reasons)
+    in a special dictionary called "dic" (note that how
+    :class:`ResetAttrFuncs` is used in the `__init__` method):
+
+    >>> class Test(object):
+    ...     def __init__(self):
+    ...         with ResetAttrFuncs(self):
+    ...             self.dic = {}
+    ...     def __setattr__(self, name, value):
+    ...         self.dic[name] = value
+    ...     def __getattr__(self, name):
+    ...         try:
+    ...             return self.dic[name]
+    ...         except KeyError:
+    ...             raise AttributeError
+
+    Principally, this simple implementation does its job but its
+    instances are not easily copyable under all Python versions:
+
+    >>> test = Test()
+    >>> test.var1 = 1
+    >>> test.var1
+    1
+    >>> import copy
+    >>> copy.deepcopy(test)   # doctest: +SKIP
+    Traceback (most recent call last):
+    ...
+    RecursionError: maximum recursion depth exceeded ...
+
+    :class:`ResetAttrFuncs` can be used to implement specialized
+    `__copy__` and `__deepcopy__` methods, which rely on the temporary
+    disabling of `__getattr__`.  For simple cases, one can import the
+    predefined functions :func:`~hydpy.core.objecttools.copy_` and
+    :func:`~hydpy.core.objecttools.deepcopy_`:
+
+    >>> from hydpy.core.objecttools import copy_, deepcopy_
+    >>> Test.__copy__ = copy_
+    >>> test2 = copy.copy(test)
+    >>> test2.var1
+    1
+    >>> Test.__deepcopy__ = deepcopy_
+    >>> test3 = copy.deepcopy(test)
+    >>> test3.var1
+    1
+
+    Note that an infinite recursion is avoided by also disabling methods
+    `__copy__` and `__deepcopy__` themselves.
+
+    """
+    __slots__ = ('cls', 'name2func')
+    funcnames = ('__getattr__', '__setattr__', '__delattr__',
+                 '__copy__', '__deepcopy__')
+
+    def __init__(self, obj):
+        self.cls = type(obj)
+        self.name2func = {}
+        for name in self.funcnames:
+            if hasattr(self.cls, name):
+                self.name2func[name] = self.cls.__dict__.get(name)
+
+    def __enter__(self):
+        for name in self.name2func.keys():
+            if name in ('__setattr__', '__delattr__'):
+                setattr(self.cls, name, getattr(object, name))
+            elif name == '__getattr__':
+                setattr(self.cls, name, object.__getattribute__)
+            else:
+                setattr(self.cls, name, None)
+        return self
+
+    def __exit__(self, exception, message, traceback_):
+        for name, func in self.name2func.items():
+            if func:
+                setattr(self.cls, name, func)
+            else:
+                delattr(self.cls, name)
+
+
+def copy_(self):
+    """Copy function for classes with modified attribute functions.
+
+    See the documentation on class :class:`ResetAttrFuncs` for
+    further information.
+    """
+    with ResetAttrFuncs(self):
+        return copy.copy(self)
+
+
+def deepcopy_(self, memo):
+    """Deepcopy function for classes with modified attribute functions.
+
+    See the documentation on class :class:`ResetAttrFuncs` for
+    further information.
+    """
+    with ResetAttrFuncs(self):
+        return copy.deepcopy(self, memo)
 
 
 class _PreserveStrings(object):
@@ -325,8 +482,6 @@ class _Repr_(object):
                 return '"%s"' % value
             else:
                 return value
-        if isinstance(value, (pointerutils.Double, pointerutils.PDouble)):
-            value = float(value)
         if ((decimals > -1) and
                 isinstance(value, numbers.Real) and
                 (not isinstance(value, numbers.Integral))):
@@ -357,6 +512,28 @@ def repr_values(values):
     Note that the returned string is not wrapped.
     """
     return '%s' % ', '.join(repr_(value) for value in values)
+
+
+def print_values(values, width=70):
+    """Print the given values in multiple lines with a certain maximum width.
+
+    By default, each line contains at most 70 characters:
+
+    >>> from hydpy import print_values
+    >>> print_values(range(21))
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+    20
+
+    You can change this default behaviour by passing an alternative
+    number of characters:
+
+    >>> print_values(range(21), width=30)
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+    10, 11, 12, 13, 14, 15, 16,
+    17, 18, 19, 20
+    """
+    for line in textwrap.wrap(repr_values(values), width=width):
+        print(line)
 
 
 def repr_tuple(values):
@@ -834,7 +1011,7 @@ def round_(values, decimals=None, width=0,
     Usually one would apply function :func:`round_` on a single or a vector
     of numbers:
 
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> round_(1./3., decimals=6)
     0.333333
     >>> round_((1./2., 1./3., 1./4.), decimals=4)
@@ -855,12 +1032,13 @@ def round_(values, decimals=None, width=0,
     >>> round_(1.0, lfill='_', rfill='0')
     Traceback (most recent call last):
     ...
-    ValueError: For function `round_` values are passed for both arguments `lfill` and `rfill`.  This is not allowed.
+    ValueError: For function `round_` values are passed for both \
+arguments `lfill` and `rfill`.  This is not allowed.
     """
     if decimals is None:
         decimals = pub.options.reprdigits
     with pub.options.reprdigits(decimals):
-        if hasattr(values, '__iter__') and (not isinstance(values, str)):
+        if isinstance(values, abctools.IterableNonStringABC):
             string = repr_values(values)
         else:
             string = repr_(values)
@@ -880,7 +1058,7 @@ def round_(values, decimals=None, width=0,
 def extract(values, types, skip=False):
     """Return a generator that extracts certain objects from `values`.
 
-    This function is thought for supporting the definition of functios
+    This function is thought for supporting the definition of functions
     with arguments, that can be objects of of contain types or that can
     be iterables containing these objects.
 
@@ -901,7 +1079,8 @@ def extract(values, types, skip=False):
     >>> tuple(extract((['str1', 'str2'], [None, 1]), (str, int)))
     Traceback (most recent call last):
     ...
-    TypeError: The given value `None` is neither iterable nor an instance of the following classes: str, int.
+    TypeError: The given value `'None'` is neither iterable nor \
+an instance of the following classes: str and int.
 
     Optionally, :class:`None` values can be skipped:
     >>> tuple(extract(None, (str, int), True))
@@ -923,445 +1102,51 @@ def extract(values, types, skip=False):
                 raise exc
             else:
                 raise TypeError(
-                    'The given value `%s` is neither iterable nor an '
-                    'instance of the following classes: %s.'
-                    % (values,
-                       ', '.join(instancename(type_) for type_ in types)))
+                    'The given value `{0!r}` is neither iterable nor an '
+                    'instance of the following classes: {1}.'
+                    .format(repr(values),
+                            enumeration(types, converter=instancename)))
 
 
-def trim(self, lower=None, upper=None):
-    """Trim the value(s) of  a :class:`ValueMath` instance.
+def enumeration(values, converter=str, default=''):
+    """Return an enumeration string based on the given values.
 
-    One can pass the lower and/or the upper boundary as a function argument.
-    Otherwise, boundary values are taken from the class attribute `SPAN`
-    of the given :class:`ValueMath` instance, if available.
+    The following four examples show the standard output of function
+    :func:`enumeration`:
 
-    Note that method :func:`trim` works differently on :class:`ValueMath`
-    instances handling values of different types.  For floating point values,
-    an actual trimming is performed.  Additionally, a warning message is
-    raised if the trimming results in a change in value exceeding the
-    threshold value defined by function :func:`_tolerance`.  (This warning
-    message can be suppressed by setting the related option flag to False.)
-    For integer values, instead of a warning an exception is raised.
+    >>> from hydpy.core.objecttools import enumeration
+    >>> enumeration(('text', 3, []))
+    'text, 3, and []'
+    >>> enumeration(('text', 3))
+    'text and 3'
+    >>> enumeration(('text',))
+    'text'
+    >>> enumeration(())
+    ''
+
+    All given objects are converted to strings by function :func:`str`,
+    as shown by the first two examples.  This behaviour can be changed
+    by another function expecting a single argument and returning a string:
+
+    >>> from hydpy.core.objecttools import classname
+    >>> enumeration(('text', 3, []), converter=classname)
+    'str, int, and list'
+
+    Furthermore, you can define a default string that is returned
+    in case an empty iterable is given:
+
+    >>> enumeration((), default='nothing')
+    'nothing'
     """
-    span = getattr(self, 'SPAN', (None, None))
-    if lower is None:
-        lower = span[0]
-    if upper is None:
-        upper = span[1]
-    type_ = getattr(self, 'TYPE', float)
-    if type_ is float:
-        if self.NDIM == 0:
-            _trim_float_0d(self, lower, upper)
-        else:
-            _trim_float_nd(self, lower, upper)
-    elif type_ in (int, bool):
-        if self.NDIM == 0:
-            _trim_int_0d(self, lower, upper)
-        else:
-            _trim_int_nd(self, lower, upper)
+    values = tuple(converter(value) for value in values)
+    if len(values) == 0:
+        return default
+    elif len(values) == 1:
+        return values[0]
+    elif len(values) == 2:
+        return ' and '.join(values)
     else:
-        raise NotImplementedError(
-            'Method `trim` can only be applied on parameters handling '
-            'integer or floating point values, but value type of parameter '
-            '`%s` is `%s`.' % (self.name, classname(self.TYPE)))
-
-
-def _trim_float_0d(self, lower, upper):
-    if numpy.isnan(self.value):
-        return
-    if (lower is None) or numpy.isnan(lower):
-        lower = -numpy.inf
-    if (upper is None) or numpy.isnan(upper):
-        upper = numpy.inf
-    if self < lower:
-        if (self+_tolerance(self)) < (lower-_tolerance(lower)):
-            if pub.options.warntrim:
-                self.warntrim()
-        self.value = lower
-    elif self > upper:
-        if (self-_tolerance(self)) > (upper+_tolerance(upper)):
-            if pub.options.warntrim:
-                self.warntrim()
-        self.value = upper
-
-
-def _trim_float_nd(self, lower, upper):
-    if lower is None:
-        lower = -numpy.inf
-    lower = numpy.full(self.shape, lower, dtype=float)
-    lower[numpy.where(numpy.isnan(lower))] = -numpy.inf
-    if upper is None:
-        upper = numpy.inf
-    upper = numpy.full(self.shape, upper, dtype=float)
-    upper[numpy.where(numpy.isnan(upper))] = numpy.inf
-    idxs = numpy.where(numpy.isnan(self.values))
-    self[idxs] = lower[idxs]
-    if numpy.any(self < lower) or numpy.any(self > upper):
-        if (numpy.any((self+_tolerance(self)) <
-                      (lower-_tolerance(lower))) or
-                numpy.any((self-_tolerance(self)) >
-                          (upper+_tolerance(upper)))):
-            if pub.options.warntrim:
-                self.warntrim()
-        self.values = numpy.clip(self.values, lower, upper)
-    self[idxs] = numpy.nan
-
-
-def _trim_int_0d(self, lower, upper):
-    if lower is None:
-        lower = _INT_NAN
-    if upper is None:
-        upper = -_INT_NAN
-    if (self != _INT_NAN) and ((self < lower) or (self > upper)):
-        raise ValueError(
-            'The value `%d` of parameter `%s` of element `%s` is not valid.  '
-            % (self.value, self.name, devicename(self)))
-
-
-def _trim_int_nd(self, lower, upper):
-    if lower is None:
-        lower = _INT_NAN
-    lower = numpy.full(self.shape, lower, dtype=int)
-    if upper is None:
-        upper = -_INT_NAN
-    upper = numpy.full(self.shape, upper, dtype=int)
-    idxs = numpy.where(self == _INT_NAN)
-    self[idxs] = lower[idxs]
-    if numpy.any(self < lower) or numpy.any(self > upper):
-        raise ValueError(
-            'At least one value of parameter `%s` of element `%s` is not '
-            'valid.' % (self.name, devicename(self)))
-    self[idxs] = _INT_NAN
-
-
-def _tolerance(values):
-    """Returns some sort of "numerical accuracy" to be expected for the
-    given floating point value, see method :func:`trim`."""
-    return abs(values*1e-15)
-
-
-class ValueMath(object):
-    """Base class for :class:`~hydpy.core.parametertools.Parameter` and
-    :class:`~hydpy.core.sequencetools.Sequence`.  Implements special
-    methods for arithmetic calculations, comparisons and type conversions.
-
-    The subclasses are required to provide the members `NDIM` (usually a
-    class attribute) and `value` (usually a property).  But for testing
-    purposes, one can simply add them as instance attributes.
-
-    A few examples for 0-dimensional objects:
-
-    >>> from hydpy.core.objecttools import ValueMath
-    >>> vm0 = ValueMath()
-    >>> vm0.NDIM = 0
-    >>> vm0.shape = ()
-    >>> vm0.value = 2.
-    >>> print(vm0 + vm0)
-    4.0
-    >>> print(3. - vm0)
-    1.0
-    >>> vm0 /= 2.
-    >>> print(vm0.value)
-    1.0
-    >>> print(vm0 > vm0)
-    False
-    >>> print(vm0 != 1.5)
-    True
-    >>> vm0.length
-    1
-
-    Similar examples for 1-dimensional objects:
-
-    >>> import numpy
-    >>> vm1 = ValueMath()
-    >>> vm1.NDIM = 1
-    >>> vm1.shape = (5,)
-    >>> vm1.value = numpy.array([1.,2.,3.])
-    >>> print(vm1 + vm1)
-    [ 2.  4.  6.]
-    >>> print(3. - vm1)
-    [ 2.  1.  0.]
-    >>> vm1 /= 2.
-    >>> print(vm1.value)
-    [ 0.5  1.   1.5]
-    >>> print(vm1 > vm1)
-    [False False False]
-    >>> print(vm1 != 1.5)
-    [ True  True False]
-    >>>
-    >>> vm1.length
-    5
-    """
-    # Subclasses need to define...
-    NDIM = None    # ... e.g. as class attribute (int)
-    name = None    # ... e.g. as property (str)
-    value = None   # ... e.g. as property (float or ndarray of dtype float)
-    shape = None   # ... e.gl as property (tuple of values of type int)
-    # ...and optionally...
-    INIT = None
-
-    @staticmethod
-    def _arithmetic_conversion(other):
-        try:
-            return other.value
-        except AttributeError:
-            return other
-
-    def _arithmetic_exception(self, verb, other):
-        augmentexcmessage('While trying to %s %s instance `%s` and %s `%s`'
-                          % (verb, classname(self), self.name,
-                             classname(other), other))
-
-    @property
-    def length(self):
-        length = 1
-        for idx in range(self.NDIM):
-            length *= self.shape[idx]
-        return length
-
-    def __add__(self, other):
-        try:
-            return self.value + self._arithmetic_conversion(other)
-        except BaseException:
-            self._arithmetic_exception('add', other)
-
-    def __radd__(self, other):
-        return self.__add__(other)
-
-    def __iadd__(self, other):
-        self.value = self.__add__(other)
-        return self
-
-    def __sub__(self, other):
-        try:
-            return self.value - self._arithmetic_conversion(other)
-        except BaseException:
-            self._arithmetic_exception('subtract', other)
-
-    def __rsub__(self, other):
-        try:
-            return self._arithmetic_conversion(other) - self.value
-        except BaseException:
-            self._arithmetic_exception('subtract', other)
-
-    def __isub__(self, other):
-        self.value = self.__sub__(other)
-        return self
-
-    def __mul__(self, other):
-        try:
-            return self.value * self._arithmetic_conversion(other)
-        except BaseException:
-            self._arithmetic_exception('multiply', other)
-
-    def __rmul__(self, other):
-        return self.__mul__(other)
-
-    def __imul__(self, other):
-        self.value = self.__mul__(other)
-        return self
-
-    def __truediv__(self, other):
-        try:
-            return self.value / self._arithmetic_conversion(other)
-        except BaseException:
-            self._arithmetic_exception('divide', other)
-
-    def __rtruediv__(self, other):
-        try:
-            return self._arithmetic_conversion(other) / self.value
-        except BaseException:
-            self._arithmetic_exception('divide', other)
-
-    def __itruediv__(self, other):
-        self.value = self.__truediv__(other)
-        return self
-
-    def __floordiv__(self, other):
-        try:
-            return self.value // self._arithmetic_conversion(other)
-        except BaseException:
-            self._arithmetic_exception('floor divide', other)
-
-    def __rfloordiv__(self, other):
-        try:
-            return self._arithmetic_conversion(other) // self.value
-        except BaseException:
-            self._arithmetic_exception('floor divide', other)
-
-    def __ifloordiv__(self, other):
-        self.value = self.__floordiv__(other)
-        return self
-
-    def __mod__(self, other):
-        try:
-            return self.value % self._arithmetic_conversion(other)
-        except BaseException:
-            self._arithmetic_exception('mod divide', other)
-
-    def __rmod__(self, other):
-        try:
-            return self._arithmetic_conversion(other) % self.value
-        except BaseException:
-            self._arithmetic_exception('mod divide', other)
-
-    def __imod__(self, other):
-        self.value = self.__mod__(other)
-        return self
-
-    def __pow__(self, other):
-        try:
-            return self.value**self._arithmetic_conversion(other)
-        except BaseException:
-            self._arithmetic_exception('exponentiate', other)
-
-    def __rpow__(self, other):
-        try:
-            return self._arithmetic_conversion(other)**self.value
-        except BaseException:
-            self._arithmetic_exception('exponentiate', other)
-
-    def __ipow__(self, other):
-        self.value = self.__pow__(other)
-        return self
-
-    def __neg__(self):
-        return -self.value
-
-    def __pos__(self):
-        return +self.value
-
-    def __abs__(self):
-        return abs(self.value)
-
-    def __invert__(self):
-        return 1./self.value
-
-    def __floor__(self):
-        return self.value // 1.
-
-    def __ceil__(self):
-        return numpy.ceil(self.value)
-
-    def __trunc__(self):
-        return numpy.trunc(self.value)
-
-    def __divmod__(self, other):
-        return numpy.divmod(self.value, other)
-
-    def __rdivmod__(self, other):
-        return numpy.divmod(other, self.value)
-
-    def __lt__(self, other):
-        try:
-            return self.value < self._arithmetic_conversion(other)
-        except BaseException:
-            self._arithmetic_exception('compare (<)', other)
-
-    def __le__(self, other):
-        try:
-            return self.value <= self._arithmetic_conversion(other)
-        except BaseException:
-            self._arithmetic_exception('compare (<=)', other)
-
-    def __eq__(self, other):
-        try:
-            return self.value == self._arithmetic_conversion(other)
-        except BaseException:
-            self._arithmetic_exception('compare (==)', other)
-
-    def __ne__(self, other):
-        try:
-            return self.value != self._arithmetic_conversion(other)
-        except BaseException:
-            self._arithmetic_exception('compare (!=)', other)
-
-    def __ge__(self, other):
-        try:
-            return self.value >= self._arithmetic_conversion(other)
-        except BaseException:
-            self._arithmetic_exception('compare (>=)', other)
-
-    def __gt__(self, other):
-        try:
-            return self.value > self._arithmetic_conversion(other)
-        except BaseException:
-            self._arithmetic_exception('compare (>)', other)
-
-    def _typeconversion(self, type_):
-        if not self.NDIM:
-            if isinstance(type_, type):
-                return type_(self.value)
-            else:
-                attr = getattr(self.value, type_)
-                try:
-                    return attr()
-                except TypeError:
-                    return attr
-        else:
-            raise TypeError('The %s instance `%s` is %d-dimensional and thus '
-                            'cannot be converted to a scalar %s value.'
-                            % (classname(self), self.name, self.NDIM,
-                               classname(type_)))
-
-    def __bool__(self):
-        return self._typeconversion(bool)
-
-    def __float__(self):
-        return self._typeconversion(float)
-
-    def __int__(self):
-        return self._typeconversion(int)
-
-    @property
-    def real(self):
-        return self._typeconversion('real')
-
-    @property
-    def imag(self):
-        return self._typeconversion('imag')
-
-    def conjugate(self):
-        return self._typeconversion('conjugate')
-
-    def __complex__(self):
-        return numpy.complex(self.value)
-
-    def __round__(self, ndigits=0):
-        return numpy.round(self.value, ndigits)
-
-    def commentrepr(self):
-        """Returns a list with comments, e.g. for making string representations
-        more informative.  When :attr:`pub.options.reprcomments` is set to
-        `False`, an empty list is returned.
-        """
-        if pub.options.reprcomments:
-            return ['# %s' % line for line in
-                    textwrap.wrap(autodoctools.description(self), 78)]
-        else:
-            return []
-
-    def _repr(self, values, islong):
-        prefix = '%s(' % self.name
-        if self.NDIM == 0:
-            string = '%s(%s)' % (self.name, repr_(values))
-        elif self.NDIM == 1:
-            if islong:
-                string = assignrepr_list(values, prefix, 75) + ')'
-            else:
-                string = assignrepr_values(values, prefix, 75) + ')'
-        elif self.NDIM == 2:
-            if islong:
-                string = assignrepr_list2(values, prefix, 75) + ')'
-            else:
-                string = assignrepr_values2(values, prefix) + ')'
-        else:
-            raise NotImplementedError(
-                '`repr` does not yet support parameters or sequences like `%s`'
-                'of element `%s` which handle %d-dimensional matrices.'
-                % self.NDIM)
-        return '\n'.join(self.commentrepr() + [string])
+        return ', and '.join((', '.join(values[:-1]), values[-1]))
 
 
 class FastAccess(object):

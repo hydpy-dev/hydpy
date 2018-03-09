@@ -22,7 +22,7 @@ class MultiParameter(parametertools.ZipParameter):
     `ilake,` and `default`.  If available, the respective values are used to
     define the values of those 1-dimensional arrays, whose entries are related
     to the different zone types. Also the method
-    :func:`~MultiParameter.compressrepr` tries to find compressed string
+    :func:`~MultiParameter.compress_repr` tries to find compressed string
     representations based on the mentioned zone types.
 
     Examples:
@@ -42,7 +42,10 @@ class MultiParameter(parametertools.ZipParameter):
         >>> mp.shape
         Traceback (most recent call last):
         ...
-        RuntimeError: Shape information for parameter `multiparameter` can only be retrieved after it has been defined.  You can do this manually, but usually it is done automatically by defining the value of parameter `nmbzones` first in each parameter control file.
+        RuntimeError: Shape information for parameter `multiparameter` can \
+only be retrieved after it has been defined.  You can do this manually, \
+but usually it is done automatically by defining the value of \
+parameter `nmbzones` first in each parameter control file.
 
         But here it is set manually to the value 5 for representing
         five different zone types:
@@ -273,8 +276,8 @@ class Parameters(parametertools.Parameters):
         """
         con = self.control
         der = self.derived
-        landzonearea = con.zonearea.copy()
-        landzonearea[con.zonetype == ILAKE] = 0.
+        landzonearea = con.zonearea.values.copy()
+        landzonearea[con.zonetype.values == ILAKE] = 0.
         landarea = numpy.sum(landzonearea)
         if landarea > 0.:
             der.rellandzonearea(landzonearea/landarea)
@@ -340,9 +343,9 @@ class Parameters(parametertools.Parameters):
         """
         con = self.control
         der = self.derived
-        soilzonearea = con.zonearea.copy()
-        soilzonearea[con.zonetype == GLACIER] = 0.
-        soilzonearea[con.zonetype == ILAKE] = 0.
+        soilzonearea = con.zonearea.values.copy()
+        soilzonearea[con.zonetype.values == GLACIER] = 0.
+        soilzonearea[con.zonetype.values == ILAKE] = 0.
         soilarea = numpy.sum(soilzonearea)
         if soilarea > 0.:
             der.relsoilzonearea(soilzonearea/soilarea)

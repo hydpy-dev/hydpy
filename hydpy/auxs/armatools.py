@@ -23,7 +23,7 @@ class MA(object):
 
     The MA coefficients can be set manually:
 
-    >>> from hydpy.auxs.armatools import MA
+    >>> from hydpy import MA
     >>> ma = MA(coefs=(.8, .2))
     >>> ma
     MA(coefs=(0.8, 0.2))
@@ -33,11 +33,11 @@ class MA(object):
 
     Otherwise they are determined by method :func:`~MA.update_coefs`.
     But this requires that a integrable function object is given.
-    Usually, this function object is a :class:`~hydpy.auxs.iuhtools.IUH`
-    subclass object, but (as in the following example) other function objects
-    defining instantaneuous unit hydrographs are accepted.  However, they
-    should be well-behaved (e.g. be relatively smooth, unimodal, strictly
-    positive, unity integral surface in the positive range).
+    Usually, this function object is a |IUH| subclass object, but
+    (as in the following example) other function objects defining
+    instantaneuous unit hydrographs are accepted.  However, they
+    should be well-behaved (e.g. be relatively smooth, unimodal,
+    strictly positive, unity integral surface in the positive range).
 
     For educational purposes, some discontinuous functions are applied in
     the following. One can suppress the associated warning messages with
@@ -74,7 +74,7 @@ class MA(object):
     >>> ma = MA(iuh=lambda x: 1. if x < 1. else 0.)
     >>> ma
     MA(coefs=(0.5, 0.5))
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> round_(ma.moments, 6)
     0.5, 0.5
 
@@ -239,7 +239,7 @@ class ARMA(object):
 
     All ARMA coefficients can be set manually:
 
-    >>> from hydpy.auxs.armatools import MA, ARMA
+    >>> from hydpy import MA, ARMA
     >>> arma = ARMA(ar_coefs=(.5,), ma_coefs=(.3, .2))
     >>> arma.coefs
     (array([ 0.5]), array([ 0.3,  0.2]))
@@ -272,7 +272,7 @@ class ARMA(object):
     accuracy, one can check the central moments of their responses to a
     standard delta time impulse:
 
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> round_(ma.moments)
     4.110496, 1.926798
     >>> round_(arma.moments)
@@ -540,8 +540,9 @@ class ARMA(object):
         turning_idx, _ = ma_model.turningpoint
         values = ma_model.coefs[turning_idx:]
         self.ar_coefs, residuals = numpy.linalg.lstsq(
-                                            self.get_a(values, ar_order),
-                                            self.get_b(values, ar_order))[:2]
+            self.get_a(values, ar_order),
+            self.get_b(values, ar_order),
+            rcond=-1)[:2]
         if len(residuals) == 1:
             self.rel_rmse = numpy.sqrt(residuals[0])/numpy.sum(values)
         else:

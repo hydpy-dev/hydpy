@@ -29,7 +29,7 @@ def solve_dv_dt_v1(self):
     Afterwards, select a :class:`~hydpy.models.llake.llake_control.MaxDT`
     value  lower than one which results in acceptable approximations for
     all test waves.  The computation time of the llake mode per substep is
-    rather small, so always include a savety factor.
+    rather small, so always include a safety factor.
 
     Of course, an adaptive step size determination would be much more
     convenient...
@@ -138,7 +138,7 @@ def interp_qa_v1(self):
         the required model object:
 
         >>> from hydpy import pub
-        >>> from hydpy.core.timetools import Timegrids, Timegrid
+        >>> from hydpy import Timegrids, Timegrid
         >>> pub.timegrids = Timegrids(Timegrid('2000.01.01',
         ...                                    '2000.01.04',
         ...                                    '12h'))
@@ -457,7 +457,7 @@ def corr_dw_v1(self):
         the required model object:
 
         >>> from hydpy import pub
-        >>> from hydpy.core.timetools import Timegrids, Timegrid
+        >>> from hydpy import Timegrids, Timegrid
         >>> pub.timegrids = Timegrids(Timegrid('2000.01.01',
         ...                                    '2000.01.04',
         ...                                    '12h'))
@@ -496,7 +496,7 @@ def corr_dw_v1(self):
         maxdw(toy_1_1_18_0_0=0.1,
               toy_1_2_6_0_0=0.4,
               toy_1_2_18_0_0=0.1)
-        >>> from hydpy.core.objecttools import round_
+        >>> from hydpy import round_
         >>> round_(maxdw.value[2])
         0.2
 
@@ -591,7 +591,7 @@ def modify_qa_v1(self):
         the required model object:
 
         >>> from hydpy import pub
-        >>> from hydpy.core.timetools import Timegrids, Timegrid
+        >>> from hydpy import Timegrids, Timegrid
         >>> pub.timegrids = Timegrids(Timegrid('2000.01.01',
         ...                                    '2000.01.04',
         ...                                    '12h'))

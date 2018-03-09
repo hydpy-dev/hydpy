@@ -83,7 +83,7 @@ class YPoints(parametertools.MultiParameter):
                                      % (self.shape[1], key, len(value)))
                 else:
                     message = 'The affected keyword argument is `%s`' % key
-                    objecttools.augmentexcmessage(suffix=message)
+                    objecttools.augment_excmessage(suffix=message)
             setattr(self, key, self[idx])
             self.subpars.pars.model.nodenames.append(key)
 

@@ -4,16 +4,15 @@
 # import...
 # ...from standard library
 from __future__ import division, print_function
-import os
 import warnings
 # ...from HydPy
 from hydpy import pub
-from hydpy.core import objecttools
-from hydpy.core import filetools
-from hydpy.core import devicetools
-from hydpy.core import selectiontools
+from hydpy.core import abctools
 from hydpy.core import autodoctools
+from hydpy.core import devicetools
+from hydpy.core import filetools
 from hydpy.core import magictools
+from hydpy.core import selectiontools
 
 
 class HydPy(object):
@@ -35,129 +34,84 @@ class HydPy(object):
                           'in what manner HydPy is relying on some global '
                           'information stored in module `pub`.'
                           % HydPy.nmb_instances)
-
+        self.nodes = None
+        self.elements = None
+        self.deviceorder = None
         # Store public information in a seperate module.
         if projectname is not None:
             pub.projectname = projectname
-            pub.filemanager = filetools.MainManager()
             pub.networkmanager = filetools.NetworkManager()
             pub.controlmanager = filetools.ControlManager()
             pub.sequencemanager = filetools.SequenceManager()
             pub.conditionmanager = filetools.ConditionManager()
 
     @magictools.printprogress
-    def preparenetwork(self):
+    def prepare_network(self):
+        """Load all network files as |Selections| (stored in module |pub|)
+        and assign the "complete" selection to the |HydPy| object."""
         pub.selections = selectiontools.Selections()
-        pub.selections += pub.networkmanager.load()
-        self.updatedevices(pub.selections.complete)
+        pub.selections += pub.networkmanager.load_files()
+        self.update_devices(pub.selections.complete)
 
-    @magictools.printprogress
     def init_models(self):
-        warn = pub.options.warnsimulationstep
-        pub.options.warnsimulationstep = False
-        try:
-            for element in magictools.progressbar(self.elements):
-                try:
-                    element.init_model()
-                except IOError as exc:
-                    temp = 'While trying to load the control file'
-                    if ((temp in str(exc)) and
-                            pub.options.warnmissingcontrolfile):
-                        warnings.warn('No model could be initialized for '
-                                      'element `%s`' % element)
-                        self.model = None
-                    else:
-                        objecttools.augmentexcmessage(
-                            'While trying to initialize the model of '
-                            'element `%s`' % element)
-                else:
-                    element.model.parameters.update()
-        finally:
-            pub.options.warnsimulationstep = warn
+        """Call method :func:`~hydpy.core.devicetools.Element.init_model` of
+        all |Element| objects currently handled by the |HydPy| object."""
+        self.elements.init_models()
 
-    @magictools.printprogress
-    def savecontrols(self, controldirectory=None, projectdirectory=None,
-                     parameterstep=None, simulationstep=None):
-        _controldirectory = pub.controlmanager._controldirectory
-        _projectdirectory = pub.controlmanager._projectdirectory
-        try:
-            if controldirectory:
-                pub.controlmanager.controldirectory = controldirectory
-            if projectdirectory:
-                pub.controlmanager.projectdirectory = projectdirectory
-            for element in magictools.progressbar(self.elements):
-                element.model.parameters.savecontrols(parameterstep,
-                                                      simulationstep)
-        finally:
-            pub.controlmanager._controldirectory = _controldirectory
-            pub.controlmanager._projectdirectory = _projectdirectory
+    def save_controls(self, controldir=None, projectdir=None,
+                      parameterstep=None, simulationstep=None,
+                      auxfiler=None):
+        """Call method :func:`~hydpy.core.devicetools.Element.save_controls`
+        of the |Elements| object currently handled by the |HydPy| object."""
+        self.elements.save_controls(controldir=controldir,
+                                    projectdir=projectdir,
+                                    parameterstep=parameterstep,
+                                    simulationstep=simulationstep,
+                                    auxfiler=auxfiler)
 
-    @magictools.printprogress
-    def loadconditions(self, conditiondirectory=None, controldirectory=None,
-                       projectdirectory=None):
-        self._ioconditions(conditiondirectory,  controldirectory,
-                           projectdirectory, True)
+    def load_conditions(self, conditiondir=None, projectdir=None):
+        """Call method :func:`~hydpy.core.devicetools.Element.load_conditions`
+        of the |Elements| object currently handled by the |HydPy| object."""
+        self.elements.load_conditions(conditiondir=conditiondir,
+                                      projectdir=projectdir)
 
-    @magictools.printprogress
-    def saveconditions(self, conditiondirectory=None, controldirectory=None,
-                       projectdirectory=None):
-        self._ioconditions(conditiondirectory,  controldirectory,
-                           projectdirectory, False)
+    def save_conditions(self, conditiondir=None, projectdir=None,
+                        controldir=None):
+        """Call method :func:`~hydpy.core.devicetools.Element.save_conditions`
+        of the |Elements| object currently handled by the |HydPy| object."""
+        self.elements.save_conditions(conditiondir=conditiondir,
+                                      projectdir=projectdir,
+                                      controldir=controldir)
 
-    def _ioconditions(self, conditiondirectory, controldirectory,
-                      projectdirectory, loadflag):
-        if loadflag:
-            _conditiondirectory = pub.conditionmanager._loaddirectory
-        else:
-            _conditiondirectory = pub.conditionmanager._savedirectory
-        _controldirectory = pub.controlmanager._controldirectory
-        _projectdirectory = pub.conditionmanager._projectdirectory
-        try:
-            if projectdirectory:
-                pub.conditionmanager.projectdirectory = projectdirectory
-            if conditiondirectory:
-                if loadflag:
-                    pub.conditionmanager.loaddirectory = conditiondirectory
-                else:
-                    pub.conditionmanager.savedirectory = conditiondirectory
-            if controldirectory:
-                pub.controlmanager.controldirectory = controldirectory
-            for element in magictools.progressbar(self.elements):
-                if loadflag:
-                    element.model.sequences.loadconditions()
-                else:
-                    element.model.sequences.saveconditions()
-        finally:
-            if loadflag:
-                pub.conditionmanager._loaddirectory = _conditiondirectory
-            else:
-                pub.conditionmanager._savedirectory = _conditiondirectory
-            pub.controlmanager._controldirectory = _controldirectory
-            pub.conditionmanager._projectdirectory = _projectdirectory
+    def trim_conditions(self):
+        """Call method :func:`~hydpy.core.devicetools.Element.trim_conditions`
+        of the |Elements| object currently handled by the |HydPy| object."""
+        self.elements.trim_conditions()
 
-    def trimconditions(self):
-        for element in self.elements:
-            element.model.sequences.trimconditions()
-
-    def resetconditions(self):
-        for element in self.elements:
-            element.model.sequences.reset()
+    def reset_conditions(self):
+        """Call method :func:`~hydpy.core.devicetools.Element.reset_conditions`
+        of the |Elements| object currently handled by the |HydPy| object."""
+        self.elements.reset_conditions()
 
     def connect(self):
-        for element in self.elements:
-            element.connect()
-            element.model.parameters.update()
+        """Call method :func:`~hydpy.core.devicetools.Element.connect`
+        of the |Elements| object currently handled by the |HydPy| object."""
+        self.elements.connect()
 
     @property
-    def network_properties(self):
+    def networkproperties(self):
+        """Print out some properties of the network defined by the |Node| and
+        |Element| objects currently handled by the |HydPy| object."""
         print('Number of nodes: %d' % len(self.nodes))
         print('Number of elements: %d' % len(self.elements))
         print('Number of end nodes: %d' % len(self.endnodes))
-        print('Number of distinct networks: %d' % len(self.distinct_networks))
+        print('Number of distinct networks: %d' % len(self.numberofnetworks))
         print('Applied node variables: %s' % ', '.join(self.variables))
 
     @property
-    def distinct_networks(self):
+    def numberofnetworks(self):
+        """The number of distinct networks defined by the|Node| and
+        |Element| objects currently handled by the |HydPy| object."""
         sels1 = selectiontools.Selections()
         sels2 = selectiontools.Selections()
         complete = selectiontools.Selection('complete',
@@ -175,7 +129,7 @@ class HydPy(object):
                 del sels1[name]
         return sels1
 
-    def _updatedeviceorder(self):
+    def _update_deviceorder(self):
         self.deviceorder = []
         for node in self.endnodes:
             self._nextnode(node)
@@ -204,6 +158,8 @@ class HydPy(object):
 
     @property
     def endnodes(self):
+        """|Nodes| object containing all |Node| objects currently handled by
+        the |HydPy| object which define a downstream end point of a network."""
         endnodes = devicetools.Nodes()
         for node in self.nodes:
             for element in node.exits:
@@ -216,6 +172,8 @@ class HydPy(object):
 
     @property
     def variables(self):
+        """Sorted list of strings summarizing all variables handled by the
+        |Node| objects"""
         variables = set([])
         for node in self.nodes:
             variables.add(node.variable)
@@ -223,40 +181,57 @@ class HydPy(object):
 
     @property
     def simindices(self):
+        """Tuple containing the start and end index of the simulation period
+        regarding the initialization period defined by the |Timegrids| object
+        stored in module |pub|."""
         return (pub.timegrids.init[pub.timegrids.sim.firstdate],
                 pub.timegrids.init[pub.timegrids.sim.lastdate])
 
-    def openfiles(self, idx=0):
-        for element in self.elements:
-            element.model.sequences.openfiles(idx)
-        for node in self.nodes:
-            node.sequences.openfiles(idx)
+    def open_files(self, idx=0):
+        """Call method :func:`~hydpy.core.devicetools.Devcies.open_files`
+        of the |Nodes| and |Elements| objects currently handled by the
+        |HydPy| object."""
+        self.elements.open_files(idx=idx)
+        self.nodes.open_files(idx=idx)
 
-    def closefiles(self):
-        for element in self.elements:
-            element.model.sequences.closefiles()
-        for node in self.nodes:
-            node.sequences.closefiles()
+    def close_files(self):
+        """Call method :func:`~hydpy.core.devicetools.Devcies.close_files`
+        of the |Nodes| and |Elements| objects currently handled by the
+        |HydPy| object."""
+        self.elements.close_files()
+        self.nodes.close_files()
 
-    def updatedevices(self, selection=None):
+    def update_devices(self, selection=None):
+        """Determines the order, in which the |Node| and |Element| objects
+        currently handled by the |HydPy| objects need to be processed during
+        a simulation time step.  Optionally, a |Selection| object for defining
+        new |Node| and |Element| objects can be passed."""
         if selection is not None:
             self.nodes = selection.nodes
             self.elements = selection.elements
-        self._updatedeviceorder()
+        self._update_deviceorder()
 
     @property
-    def funcorder(self):
+    def methodorder(self):
+        """A list containing all methods of all |Node| and |Element| objects
+        that need to be processed during a simulation time step in the
+        order they must be called."""
+        # Some private methods of other classes are called.  The wrong usage
+        # of these method could cause segmentation faults in Cython mode.
+        # Hence it seems to be a good idea to make them "invisible" for
+        # novice users via declaring them as private:
+        # pylint: disable=protected-access
         funcs = []
         for node in self.nodes:
-            if node.deploy_mode == 'oldsim':
-                funcs.append(node._loaddata_sim)
+            if node.deploymode == 'oldsim':
+                funcs.append(node._load_data_sim)
             elif node.sequences.obs.use_ext:
-                funcs.append(node._loaddata_obs)
+                funcs.append(node._load_data_obs)
         for node in self.nodes:
-            if node.deploy_mode != 'oldsim':
+            if node.deploymode != 'oldsim':
                 funcs.append(node.reset)
         for device in self.deviceorder:
-            if isinstance(device, devicetools.Element):
+            if isinstance(device, abctools.ElementABC):
                 funcs.append(device.model.doit)
         for element in self.elements:
             if element.senders:
@@ -264,112 +239,108 @@ class HydPy(object):
         for element in self.elements:
             if element.receivers:
                 funcs.append(element.model.update_receivers)
+        for element in self.elements:
+            funcs.append(element.model.save_data)
         for node in self.nodes:
-            if node.deploy_mode != 'oldsim':
-                funcs.append(node._savedata_sim)
+            if node.deploymode != 'oldsim':
+                funcs.append(node._save_data_sim)
         return funcs
 
     @magictools.printprogress
     def doit(self):
+        """Perform a simulation run over the actual simulation time period
+        defined by the |Timegrids| object stored in module |pub|."""
         idx_start, idx_end = self.simindices
-        self.openfiles(idx_start)
-        funcorder = self.funcorder
+        self.open_files(idx_start)
+        methodorder = self.methodorder
         for idx in magictools.progressbar(range(idx_start, idx_end)):
-            for func in funcorder:
+            for func in methodorder:
                 func(idx)
-        self.closefiles()
+        self.close_files()
 
-    @magictools.printprogress
     def prepare_modelseries(self, ramflag=True):
-        for element in magictools.progressbar(self.elements):
-            element.prepare_allseries(ramflag)
+        """Call method
+        :func:`~hydpy.core.devicetools.Element.prepare_allseries`
+        of the |Elements| object currently handled by the |HydPy| object."""
+        self.elements.prepare_allseries(ramflag=ramflag)
 
-    @magictools.printprogress
     def prepare_inputseries(self, ramflag=True):
-        for element in magictools.progressbar(self.elements):
-            element.prepare_inputseries(ramflag)
+        """Call method
+        :func:`~hydpy.core.devicetools.Element.prepare_inputseries`
+        of the |Elements| object currently handled by the |HydPy| object."""
+        self.elements.prepare_inputseries(ramflag=ramflag)
 
-    @magictools.printprogress
     def prepare_fluxseries(self, ramflag=True):
-        for element in magictools.progressbar(self.elements):
-            element.prepare_fluxseries(ramflag)
+        """Call method
+        :func:`~hydpy.core.devicetools.Element.prepare_fluxseries`
+        of the |Elements| object currently handled by the |HydPy| object."""
+        self.elements.prepare_fluxseries(ramflag=ramflag)
 
-    @magictools.printprogress
     def prepare_stateseries(self, ramflag=True):
-        for element in magictools.progressbar(self.elements):
-            element.prepare_stateseries(ramflag)
+        """Call method
+        :func:`~hydpy.core.devicetools.Element.prepare_stateseries`
+        of the |Elements| object currently handled by the |HydPy| object."""
+        self.elements.prepare_stateseries(ramflag=ramflag)
 
-    @magictools.printprogress
     def prepare_nodeseries(self, ramflag=True):
-        self.prepare_simseries(ramflag)
-        self.prepare_obsseries(ramflag)
+        """Call method
+        :func:`~hydpy.core.devicetools.Node.prepare_allseries`
+        of the |Nodes| object currently handled by the |HydPy| object."""
+        self.nodes.prepare_allseries(ramflag=ramflag)
 
-    @magictools.printprogress
     def prepare_simseries(self, ramflag=True):
-        for node in magictools.progressbar(self.nodes):
-            node.prepare_simseries(ramflag)
+        """Call method
+        :func:`~hydpy.core.devicetools.Node.prepare_simseries`
+        of the |Nodes| object currently handled by the |HydPy| object."""
+        self.nodes.prepare_simseries(ramflag=ramflag)
 
-    @magictools.printprogress
     def prepare_obsseries(self, ramflag=True):
-        for node in magictools.progressbar(self.nodes):
-            node.prepare_obsseries(ramflag)
+        """Call method
+        :func:`~hydpy.core.devicetools.Node.prepare_obsseries`
+        of the |Nodes| object currently handled by the |HydPy| object."""
+        self.nodes.prepare_obsseries(ramflag=ramflag)
 
-    @magictools.printprogress
     def save_modelseries(self):
-        self.save_inputseries()
-        self.save_fluxseries()
-        self.save_stateseries()
+        """Call method
+        :func:`~hydpy.core.devicetools.Element.save_allseries`
+        of the |Elements| object currently handled by the |HydPy| object."""
+        self.elements.save_allseries()
 
-    @magictools.printprogress
     def save_inputseries(self):
-        self._save_modelseries('inputs', pub.sequencemanager.inputoverwrite)
+        """Call method
+        :func:`~hydpy.core.devicetools.Element.save_inputseries`
+        of the |Elements| object currently handled by the |HydPy| object."""
+        self.elements.save_inputseries()
 
-    @magictools.printprogress
     def save_fluxseries(self):
-        self._save_modelseries('fluxes', pub.sequencemanager.outputoverwrite)
+        """Call method
+        :func:`~hydpy.core.devicetools.Element.save_fluxseries`
+        of the |Elements| object currently handled by the |HydPy| object."""
+        self.elements.save_fluxseries()
 
-    @magictools.printprogress
     def save_stateseries(self):
-        self._save_modelseries('states', pub.sequencemanager.outputoverwrite)
+        """Call method
+        :func:`~hydpy.core.devicetools.Element.save_stateseries`
+        of the |Elements| object currently handled by the |HydPy| object."""
+        self.elements.save_stateseries()
 
-    def _save_modelseries(self, name_subseqs, overwrite):
-        for element in magictools.progressbar(self.elements):
-            sequences = element.model.sequences
-            subseqs = getattr(sequences, name_subseqs, ())
-            for (name, seq) in subseqs:
-                if seq.memoryflag:
-                    if overwrite or not os.path.exists(seq.filepath_ext):
-                        seq.save_ext()
-                    else:
-                        warnings.warn('Due to the argument `overwrite` beeing '
-                                      '`False` it is not allowed to overwrite '
-                                      'the already existing file `%s`.'
-                                      % seq.filepath_ext)
-
-    @magictools.printprogress
     def save_nodeseries(self):
-        self.save_simseries()
-        self.save_obsseries()
+        """Call method
+        :func:`~hydpy.core.devicetools.Node.save_allseries`
+        of the |Nodes| object currently handled by the |HydPy| object."""
+        self.nodes.save_allseries()
 
-    @magictools.printprogress
-    def save_simseries(self, ramflag=True):
-        self._save_nodeseries('sim', pub.sequencemanager.simoverwrite)
+    def save_simseries(self):
+        """Call method
+        :func:`~hydpy.core.devicetools.Node.save_simseries`
+        of the |Nodes| object currently handled by the |HydPy| object."""
+        self.nodes.save_simseries()
 
-    @magictools.printprogress
-    def save_obsseries(self, ramflag=True):
-        self._save_nodeseries('obs', pub.sequencemanager.obsoverwrite)
-
-    def _save_nodeseries(self, seqname, overwrite):
-        for node in magictools.progressbar(self.nodes):
-            seq = getattr(node.sequences, seqname)
-            if seq.memoryflag:
-                if overwrite or not os.path.exists(seq.filepath_ext):
-                    seq.save_ext()
-                else:
-                    warnings.warn('Due to the argument `overwrite` beeing '
-                                  '`False` it is not allowed to overwrite '
-                                  'the already existing file `%s`.'
-                                  % seq.filepath_ext)
+    def save_obsseries(self):
+        """Call method
+        :func:`~hydpy.core.devicetools.Node.save_obsseries`
+        of the |Nodes| object currently handled by the |HydPy| object."""
+        self.nodes.save_obsseries()
 
 
 autodoctools.autodoc_module()

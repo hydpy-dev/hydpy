@@ -3,6 +3,8 @@
 :mod:`~hydpy.auxs.anntools`.
 """
 
+from cpython cimport PyObject
+
 cimport numpy
 
 cdef class ANN(object):
@@ -21,3 +23,16 @@ cdef class ANN(object):
     cdef public double[:, :] neurons
 
     cpdef inline void process_actual_input(self) nogil
+
+
+cdef class SeasonalANN(object):
+
+    cdef public int nmb_anns
+    cdef public int nmb_inputs
+    cdef public int nmb_outputs
+    cdef PyObject **canns
+    cdef public double[:, :] ratios
+    cdef public double[:] inputs
+    cdef public double[:] outputs
+
+    cpdef inline void process_actual_input(self, int idx_season) nogil

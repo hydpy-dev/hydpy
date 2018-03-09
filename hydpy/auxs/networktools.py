@@ -30,7 +30,8 @@ class RiverBasinNumber(str):
     >>> RiverBasinNumber('123A')
     Traceback (most recent call last):
     ...
-    ValueError: The given value `123A` could not be interpreted as a river basin number.
+    ValueError: The given value `123A` could not be interpreted as a river \
+basin number.
     """
 
     def __new__(cls, value):
@@ -44,7 +45,7 @@ class RiverBasinNumber(str):
     def is_rivermouth(self):
         """Only true if the river basin number ends with `9`.
 
-        >>> from hydpy.auxs.networktools import RiverBasinNumber
+        >>> from hydpy import RiverBasinNumber
         >>> RiverBasinNumber(129).is_rivermouth
         True
         >>> RiverBasinNumber(123).is_rivermouth
@@ -56,7 +57,7 @@ class RiverBasinNumber(str):
     def is_mainchannel(self):
         """Only true if the river basin number ends with an odd number.
 
-        >>> from hydpy.auxs.networktools import RiverBasinNumber
+        >>> from hydpy import RiverBasinNumber
         >>> for number in range(120, 130):
         ...     rbn = RiverBasinNumber(number)
         ...     print(number, rbn, rbn.is_mainchannel)
@@ -77,7 +78,7 @@ class RiverBasinNumber(str):
     def is_tributary(self):
         """Only true if the river basin number ends with an even number.
 
-        >>> from hydpy.auxs.networktools import RiverBasinNumber
+        >>> from hydpy import RiverBasinNumber
         >>> for number in range(120, 130):
         ...     rbn = RiverBasinNumber(number)
         ...     print(number, rbn, rbn.is_tributary)
@@ -112,7 +113,7 @@ class RiverBasinNumber(str):
         The candidate numbers might be incomplete.  For example, the next
         number downstream of `123` could be `1251` instead of `125`.
 
-        >>> from hydpy.auxs.networktools import RiverBasinNumber
+        >>> from hydpy import RiverBasinNumber
         >>> for number in range(120, 130):
         ...     rbn = RiverBasinNumber(number)
         ...     print(number, rbn, rbn.possible_next_initial_digits)
@@ -134,7 +135,7 @@ class RiverBasinNumber(str):
     def nmb_digits(self):
         """Number of (significant) digits of a river basin number.
 
-        >>> from hydpy.auxs.networktools import RiverBasinNumber
+        >>> from hydpy import RiverBasinNumber
         >>> RiverBasinNumber(120).nmb_digits
         2
         """
@@ -147,7 +148,7 @@ class RiverBasinNumber(str):
 class RiverBasinNumbers(tuple):
     """A sorted collection of :class:`RiverBasinNumber` objects.
 
-        >>> from hydpy.auxs.networktools import RiverBasinNumbers
+        >>> from hydpy import RiverBasinNumbers
         >>> RiverBasinNumbers((111, 113, 1129, 11269, 1125, 11261,
         ...                    11262, 1123, 1124, 1122, 1121))
         RiverBasinNumbers((111, 1121, 1122, 1123, 1124, 1125, 11261,
@@ -189,7 +190,7 @@ class RiverBasinNumbers(tuple):
         At first, only the black arrows are considered, exemplifying the basic
         definition of river basin numbers:
 
-        >>> from hydpy.auxs.networktools import RiverBasinNumbers
+        >>> from hydpy import RiverBasinNumbers
         >>> rbns = RiverBasinNumbers((111, 113, 1129, 11269, 1125, 11261,
         ...                           11262, 1123, 1124, 1122, 1121))
         >>> for this_rbn, next_rbn in zip(rbns, rbns.next_numbers):
@@ -209,7 +210,7 @@ class RiverBasinNumbers(tuple):
         The coloured arrows exemplify the situation, where some additional
         subdivisions become necessary:
 
-        >>> from hydpy.auxs.networktools import RiverBasinNumbers
+        >>> from hydpy import RiverBasinNumbers
         >>> rbns = RiverBasinNumbers((1111, 1119, 113, 1129, 1127,
         ...                           11269, 1125, 11261, 11262, 11239,
         ...                           11231, 1124, 1122, 1121))
@@ -239,9 +240,8 @@ class RiverBasinNumbers(tuple):
 
 
 class RiverBasinNumbers2Selection(object):
-    """Class for defining a :class:`~hydpy.core.selectiontools.Selection`
-    object (consisting of connected nodes and elements) based on given
-    :class:`RiverBasinNumber` objects.
+    """Class for defining a |Selection| object (consisting of connected
+    nodes and elements) based on given |RiverBasinNumber| objects.
 
     Note that this class is not intended to cover all possible HydPy
     networks.  So it might be necessary to make some adjustments on
@@ -249,8 +249,8 @@ class RiverBasinNumbers2Selection(object):
     elements or nodes.
 
     All examples of the methods and propertys of
-    :class:`RiverBasinNumbers2Selection` are based on the river basin numbers
-    defined in the documentation on class :class:`RiverBasinNumbers`.
+    |RiverBasinNumbers2Selection| are based on the river basin numbers
+    defined in the documentation on class |RiverBasinNumbers|.
     """
 
     def __init__(self, numbers):
@@ -284,13 +284,12 @@ class RiverBasinNumbers2Selection(object):
 
     @property
     def supplier_elements(self):
-        """A :class:`~hydpy.core.devicetools.Elements` collection of all
-        "supplying" basins.
+        """A |Elements| collection of all "supplying" basins.
 
         (All river basins are assumed to supply something to the downstream
         basin.)
 
-        >>> from hydpy.auxs.networktools import RiverBasinNumbers2Selection
+        >>> from hydpy import RiverBasinNumbers2Selection
         >>> rbns2s = RiverBasinNumbers2Selection(
         ...                            (111, 113, 1129, 11269, 1125, 11261,
         ...                             11262, 1123, 1124, 1122, 1121))
@@ -345,13 +344,12 @@ class RiverBasinNumbers2Selection(object):
 
     @property
     def router_elements(self):
-        """A :class:`~hydpy.core.devicetools.Elements` collection of all
-        "routing" basins.
+        """A |Elements| collection of all "routing" basins.
 
         (Only river basins with a upstream basin are assumed to route
         something to the downstream basin.)
 
-        >>> from hydpy.auxs.networktools import RiverBasinNumbers2Selection
+        >>> from hydpy import RiverBasinNumbers2Selection
         >>> rbns2s = RiverBasinNumbers2Selection(
         ...                            (111, 113, 1129, 11269, 1125, 11261,
         ...                             11262, 1123, 1124, 1122, 1121))
@@ -405,10 +403,9 @@ class RiverBasinNumbers2Selection(object):
 
     @property
     def nodes(self):
-        """A :class:`~hydpy.core.devicetools.Nodes` collection of all
-        required nodes.
+        """A |Nodes| collection of all required nodes.
 
-        >>> from hydpy.auxs.networktools import RiverBasinNumbers2Selection
+        >>> from hydpy import RiverBasinNumbers2Selection
         >>> rbns2s = RiverBasinNumbers2Selection(
         ...                            (111, 113, 1129, 11269, 1125, 11261,
         ...                             11262, 1123, 1124, 1122, 1121))
@@ -433,11 +430,10 @@ class RiverBasinNumbers2Selection(object):
 
     @property
     def selection(self):
-        """A complete :class:`~hydpy.core.selectiontools.Selection` object
-        of all "supplying" and "routing" elements and required nodes.
+        """A complete |Selection| object of all "supplying" and "routing"
+        elements and required nodes.
 
-
-        >>> from hydpy.auxs.networktools import RiverBasinNumbers2Selection
+        >>> from hydpy import RiverBasinNumbers2Selection
         >>> rbns2s = RiverBasinNumbers2Selection(
         ...                            (111, 113, 1129, 11269, 1125, 11261,
         ...                             11262, 1123, 1124, 1122, 1121))

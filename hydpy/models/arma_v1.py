@@ -33,7 +33,7 @@ Integration examples:
     `sim` is added in order to prove that the values calculated for `qout` are
     actually passed to `sim`:
 
-    >>> from hydpy.core.testtools import IntegrationTest
+    >>> from hydpy import IntegrationTest
     >>> test = IntegrationTest(stream,
     ...                        seqs=(fluxes.qin, fluxes.qpin, fluxes.qpout,
     ...                              fluxes.qout, nodes.output.sequences.sim))
@@ -46,6 +46,7 @@ Integration examples:
     ...               (logs.logout, 2.))
 
     Print just the time instead of the whole date:
+
     >>> test.dateformat = '%H:%M'
 
     Define two flood events, one for each lake inflow:

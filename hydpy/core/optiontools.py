@@ -138,10 +138,10 @@ class Options(object):
         in color eventually or not. The default is `True`.""")
 
     reprcomments = _Option(
-        True, None,
+        False, None,
         """True/False flag indicationg whether comments shall be included
         in string representations of some classes of the HydPy framework or
-        not.  The default is `True`.""")
+        not.  The default is `False`.""")
 
     reprdigits = _Option(
         -999, -999,
@@ -200,7 +200,7 @@ class Options(object):
         True, None,
         """True/False flag indicating whether a warning shall be raised
         whenever certain values needed to be trimmed due to violating
-        certain boundaries. Such warnings increase savety and are thus
+        certain boundaries. Such warnings increase safety and are thus
         the default is `True`.  However, to cope with the limited precision
         of floating point numbers only those violations beyond a small
         tolerance value are reported (see :class:`Trimmer`).  Warnings

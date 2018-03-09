@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
+# pylint: enable=missing-docstring
 
 # imports...
 # ...standard library
@@ -9,10 +11,39 @@ from hydpy.cythons import smoothutils
 
 
 def pic_inflow_v1(self):
-    """Update the inlet link sequence."""
+    """Update the inlet link sequence.
+
+    Required inlet sequence:
+      |dam_inlets.Q|
+
+    Calculated flux sequence:
+      |Inflow|
+
+    Basic equation:
+      :math:`Inflow = Q`
+    """
     flu = self.sequences.fluxes.fastaccess
     inl = self.sequences.inlets.fastaccess
     flu.inflow = inl.q[0]
+
+
+def pic_inflow_v2(self):
+    """Update the inlet link sequences.
+
+    Required inlet sequences:
+      |dam_inlets.Q|
+      |dam_inlets.S|
+      |dam_inlets.R|
+
+    Calculated flux sequence:
+      |Inflow|
+
+    Basic equation:
+      :math:`Inflow = Q + S + R`
+    """
+    flu = self.sequences.fluxes.fastaccess
+    inl = self.sequences.inlets.fastaccess
+    flu.inflow = inl.q[0]+inl.s[0]+inl.r[0]
 
 
 def pic_totalremotedischarge_v1(self):
@@ -22,17 +53,38 @@ def pic_totalremotedischarge_v1(self):
     flu.totalremotedischarge = rec.q[0]
 
 
+def pic_loggedrequiredremoterelease_v1(self):
+    """Update the receiver link sequence."""
+    log = self.sequences.logs.fastaccess
+    rec = self.sequences.receivers.fastaccess
+    log.loggedrequiredremoterelease[0] = rec.d[0]
+
+
+def pic_loggedrequiredremoterelease_v2(self):
+    """Update the receiver link sequence."""
+    log = self.sequences.logs.fastaccess
+    rec = self.sequences.receivers.fastaccess
+    log.loggedrequiredremoterelease[0] = rec.s[0]
+
+
+def pic_loggedallowedremoterelieve_v1(self):
+    """Update the receiver link sequence."""
+    log = self.sequences.logs.fastaccess
+    rec = self.sequences.receivers.fastaccess
+    log.loggedallowedremoterelieve[0] = rec.r[0]
+
+
 def update_loggedtotalremotedischarge_v1(self):
     """Log a new entry of discharge at a cross section far downstream.
 
     Required control parameter:
-      :class:`~hydpy.models.dam.dam_derived.NmbLogEntries`
+      |NmbLogEntries|
 
     Required flux sequence:
-      :class:`~hydpy.models.dam.dam_fluxes.TotalRemoteDischarge`
+      |TotalRemoteDischarge|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.dam.dam_logs.LoggedTotalRemoteDischarge`
+      |LoggedTotalRemoteDischarge|
 
     Example:
 
@@ -43,15 +95,19 @@ def update_loggedtotalremotedischarge_v1(self):
         >>> from hydpy.models.dam import *
         >>> parameterstep()
         >>> nmblogentries(3)
-        >>> from hydpy.core.testtools import UnitTest
+        >>> logs.loggedtotalremotedischarge = 0.0
+        >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.update_loggedtotalremotedischarge_v1,
-        ...                 last_example=4)
+        ...                 last_example=4,
+        ...                 parseqs=(fluxes.totalremotedischarge,
+        ...                          logs.loggedtotalremotedischarge))
         >>> test.nexts.totalremotedischarge = [1., 3., 2., 4]
+        >>> del test.inits.loggedtotalremotedischarge
         >>> test()
         | ex. | totalremotedischarge |           loggedtotalremotedischarge |
         ---------------------------------------------------------------------
-        |   1 |                  1.0 | 1.0  nan                         nan |
-        |   2 |                  3.0 | 3.0  1.0                         nan |
+        |   1 |                  1.0 | 1.0  0.0                         0.0 |
+        |   2 |                  3.0 | 3.0  1.0                         0.0 |
         |   3 |                  2.0 | 2.0  3.0                         1.0 |
         |   4 |                  4.0 | 4.0  2.0                         3.0 |
     """
@@ -69,13 +125,13 @@ def calc_waterlevel_v1(self):
     describing the relationship between water level and water stage.
 
     Required control parameter:
-      :class:`~hydpy.models.dam.dam_derived.WaterVolume2WaterLevel`
+      |WaterVolume2WaterLevel|
 
     Required state sequence:
-      :class:`~hydpy.models.dam.dam_states.WaterVolume`
+      |WaterVolume|
 
     Calculated aide sequence:
-      :class:`~hydpy.models.dam.dam_aides.WaterLevel`
+      |WaterLevel|
 
     Example:
 
@@ -94,7 +150,7 @@ def calc_waterlevel_v1(self):
         At least in the water volume range used in the following examples,
         the shape of the relationship looks acceptable:
 
-        >>> from hydpy.core.testtools import UnitTest
+        >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.calc_waterlevel_v1, last_example=10)
         >>> test.nexts.watervolume = range(10)
         >>> test()
@@ -122,19 +178,225 @@ def calc_waterlevel_v1(self):
     aid.waterlevel = con.watervolume2waterlevel.outputs[0]
 
 
+def calc_allowedremoterelieve_v2(self):
+    """Calculate the allowed maximum relieve another location
+    is allowed to discharge into the dam.
+
+    Required control parameters:
+      |HighestRemoteRelieve|
+      |WaterLevelRelieveThreshold|
+
+    Required derived parameter:
+      |WaterLevelRelieveSmoothPar|
+
+    Required aide sequence:
+      |WaterLevel|
+
+    Calculated flux sequence:
+      |AllowedRemoteRelieve|
+
+    Basic equation:
+      :math:`ActualRemoteRelease = HighestRemoteRelease \\cdot
+      smooth_{logistic1}(WaterLevelRelieveThreshold-WaterLevel,
+      WaterLevelRelieveSmoothPar)`
+
+    Used auxiliary method:
+      |smooth_logistic1|
+
+    Examples:
+
+        All control parameters that are involved in the calculation of
+        |AllowedRemoteRelieve| are derived from |SeasonalParameter|.
+        This allows to simulate seasonal dam control schemes.
+        To show how this works, we first define a short simulation
+        time period of only two days:
+
+        >>> from hydpy import pub
+        >>> from hydpy import Timegrids, Timegrid
+        >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
+        ...                                    '2001.04.03',
+        ...                                    '1d'))
+
+        Now we prepare the dam model and define two different control
+        schemes for the hydrological summer (April to October) and
+        winter month (November to May)
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> highestremoterelieve(_11_1_12=1.0, _03_31_12=1.0,
+        ...                      _04_1_12=2.0, _10_31_12=2.0)
+        >>> waterlevelrelievethreshold(_11_1_12=3.0, _03_31_12=2.0,
+        ...                            _04_1_12=4.0, _10_31_12=4.0)
+        >>> waterlevelrelievetolerance(_11_1_12=0.0, _03_31_12=0.0,
+        ...                            _04_1_12=1.0, _10_31_12=1.0)
+        >>> derived.waterlevelrelievesmoothpar.update()
+        >>> derived.toy.update()
+
+        The following test function is supposed to calculate
+        |AllowedRemoteRelieve| for values of |WaterLevel| ranging
+        from 0 and 8 m:
+
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(model,
+        ...                 model.calc_allowedremoterelieve_v2,
+        ...                 last_example=9,
+        ...                 parseqs=(aides.waterlevel,
+        ...                          fluxes.allowedremoterelieve))
+        >>> test.nexts.waterlevel = range(9)
+
+        On March 30 (which is the last day of the winter month and the
+        first day of the simulation period), the value of
+        |WaterLevelRelieveSmoothPar| is zero.  Hence, |AllowedRemoteRelieve|
+        drops abruptly from 1 m³/s (the value of |HighestRemoteRelieve|) to
+        0 m³/s, as soon as |WaterLevel| reaches 3 m (the value
+        of |WaterLevelRelieveThreshold|):
+
+        >>> model.idx_sim = pub.timegrids.init['2001.03.30']
+        >>> test(first_example=2, last_example=6)
+        | ex. | waterlevel | allowedremoterelieve |
+        -------------------------------------------
+        |   3 |        1.0 |                  1.0 |
+        |   4 |        2.0 |                  1.0 |
+        |   5 |        3.0 |                  0.0 |
+        |   6 |        4.0 |                  0.0 |
+
+        On April 1 (which is the first day of the sommer month and the
+        last day of the simulation period), all parameter values are
+        increased.  The value of parameter |WaterLevelRelieveSmoothPar|
+        is 1 m.  Hence, loosely speaking, |AllowedRemoteRelieve| approaches
+        the "discontinuous extremes (2 m³/s -- which is the value of
+        |HighestRemoteRelieve| -- and 0 m³/s) to 99 % within a span of
+        2 m³/s around the original threshold value of 4 m³/s defined by
+        |WaterLevelRelieveThreshold|:
+
+        >>> model.idx_sim = pub.timegrids.init['2001.04.01']
+        >>> test()
+        | ex. | waterlevel | allowedremoterelieve |
+        -------------------------------------------
+        |   1 |        0.0 |                  2.0 |
+        |   2 |        1.0 |             1.999998 |
+        |   3 |        2.0 |             1.999796 |
+        |   4 |        3.0 |                 1.98 |
+        |   5 |        4.0 |                  1.0 |
+        |   6 |        5.0 |                 0.02 |
+        |   7 |        6.0 |             0.000204 |
+        |   8 |        7.0 |             0.000002 |
+        |   9 |        8.0 |                  0.0 |
+    """
+    con = self.parameters.control.fastaccess
+    der = self.parameters.derived.fastaccess
+    flu = self.sequences.fluxes.fastaccess
+    aid = self.sequences.aides.fastaccess
+    toy = der.toy[self.idx_sim]
+    flu.allowedremoterelieve = (
+        con.highestremoterelieve[toy] *
+        smoothutils.smooth_logistic1(
+            con.waterlevelrelievethreshold[toy]-aid.waterlevel,
+            der.waterlevelrelievesmoothpar[toy]))
+
+
+def calc_requiredremotesupply_v1(self):
+    """Calculate the required maximum supply from another location
+    that can be discharged into the dam.
+
+    Required control parameters:
+      |HighestRemoteSupply|
+      |WaterLevelSupplyThreshold|
+
+    Required derived parameter:
+      |WaterLevelSupplySmoothPar|
+
+    Required aide sequence:
+      |WaterLevel|
+
+    Calculated flux sequence:
+      |RequiredRemoteSupply|
+
+    Basic equation:
+      :math:`RequiredRemoteSupply = HighestRemoteSupply \\cdot
+      smooth_{logistic1}(WaterLevelSupplyThreshold-WaterLevel,
+      WaterLevelSupplySmoothPar)`
+
+    Used auxiliary method:
+      |smooth_logistic1|
+
+    Examples:
+
+        Method |calc_requiredremotesupply_v1| is functionally identical
+        with method |calc_allowedremoterelieve_v2|.  Hence the following
+        examples serve for testing purposes only (see the documentation
+        on function |calc_allowedremoterelieve_v2| for more detailed
+        information):
+
+        >>> from hydpy import pub
+        >>> from hydpy import Timegrids, Timegrid
+        >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
+        ...                                    '2001.04.03',
+        ...                                    '1d'))
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> highestremotesupply(_11_1_12=1.0, _03_31_12=1.0,
+        ...                     _04_1_12=2.0, _10_31_12=2.0)
+        >>> waterlevelsupplythreshold(_11_1_12=3.0, _03_31_12=2.0,
+        ...                           _04_1_12=4.0, _10_31_12=4.0)
+        >>> waterlevelsupplytolerance(_11_1_12=0.0, _03_31_12=0.0,
+        ...                           _04_1_12=1.0, _10_31_12=1.0)
+        >>> derived.waterlevelsupplysmoothpar.update()
+        >>> derived.toy.update()
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(model,
+        ...                 model.calc_requiredremotesupply_v1,
+        ...                 last_example=9,
+        ...                 parseqs=(aides.waterlevel,
+        ...                          fluxes.requiredremotesupply))
+        >>> test.nexts.waterlevel = range(9)
+        >>> model.idx_sim = pub.timegrids.init['2001.03.30']
+        >>> test(first_example=2, last_example=6)
+        | ex. | waterlevel | requiredremotesupply |
+        -------------------------------------------
+        |   3 |        1.0 |                  1.0 |
+        |   4 |        2.0 |                  1.0 |
+        |   5 |        3.0 |                  0.0 |
+        |   6 |        4.0 |                  0.0 |
+        >>> model.idx_sim = pub.timegrids.init['2001.04.01']
+        >>> test()
+        | ex. | waterlevel | requiredremotesupply |
+        -------------------------------------------
+        |   1 |        0.0 |                  2.0 |
+        |   2 |        1.0 |             1.999998 |
+        |   3 |        2.0 |             1.999796 |
+        |   4 |        3.0 |                 1.98 |
+        |   5 |        4.0 |                  1.0 |
+        |   6 |        5.0 |                 0.02 |
+        |   7 |        6.0 |             0.000204 |
+        |   8 |        7.0 |             0.000002 |
+        |   9 |        8.0 |                  0.0 |
+    """
+    con = self.parameters.control.fastaccess
+    der = self.parameters.derived.fastaccess
+    flu = self.sequences.fluxes.fastaccess
+    aid = self.sequences.aides.fastaccess
+    toy = der.toy[self.idx_sim]
+    flu.requiredremotesupply = (
+        con.highestremotesupply[toy] *
+        smoothutils.smooth_logistic1(
+            con.waterlevelsupplythreshold[toy]-aid.waterlevel,
+            der.waterlevelsupplysmoothpar[toy]))
+
+
 def calc_naturalremotedischarge_v1(self):
     """Try to estimate the natural discharge of a cross section far downstream
     based on the last few simulation steps.
 
     Required control parameter:
-      :class:`~hydpy.models.dam.dam_derived.NmbLogEntries`
+      |NmbLogEntries|
 
     Required log sequences:
-      :class:`~hydpy.models.dam.dam_logs.LoggedTotalRemoteDischarge`
-      :class:`~hydpy.models.dam.dam_logs.LoggedOutflow`
+      |LoggedTotalRemoteDischarge|
+      |LoggedOutflow|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.dam.dam_fluxes.NaturalRemoteDischarge`
+      |NaturalRemoteDischarge|
 
     Basic equation:
       :math:`RemoteDemand =
@@ -172,7 +434,7 @@ def calc_naturalremotedischarge_v1(self):
     flu.naturalremotedischarge = 0.
     for idx in range(con.nmblogentries):
         flu.naturalremotedischarge += (
-                log.loggedtotalremotedischarge[idx] - log.loggedoutflow[idx])
+            log.loggedtotalremotedischarge[idx] - log.loggedoutflow[idx])
     if flu.naturalremotedischarge > 0.:
         flu.naturalremotedischarge /= con.nmblogentries
     else:
@@ -183,16 +445,16 @@ def calc_remotedemand_v1(self):
     """Estimate the discharge demand of a cross section far downstream.
 
     Required control parameter:
-      :class:`~hydpy.models.dam.dam_derived.RemoteDischargeMinimum`
+      |RemoteDischargeMinimum|
 
     Required derived parameters:
-      :class:`~hydpy.models.dam.dam_derived.TOY`
+      |dam_derived.TOY|
 
     Required flux sequence:
-      :class:`~hydpy.models.dam.dam_fluxes.NaturalRemoteDischage`
+      |dam_derived.TOY|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.dam.dam_fluxes.RemoteDemand`
+      |RemoteDemand|
 
     Basic equation:
       :math:`RemoteDemand =
@@ -210,7 +472,7 @@ def calc_remotedemand_v1(self):
         throughout the year actually works:
 
         >>> from hydpy import pub
-        >>> from hydpy.core.timetools import Timegrids, Timegrid
+        >>> from hydpy import Timegrids, Timegrid
         >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
         ...                                    '2001.04.03',
         ...                                    '1d'))
@@ -232,7 +494,7 @@ def calc_remotedemand_v1(self):
         based on the parameter values defined above and for natural remote
         discharge values ranging between 0 and 3 m³/s:
 
-        >>> from hydpy.core.testtools import UnitTest
+        >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.calc_remotedemand_v1, last_example=4,
         ...                 parseqs=(fluxes.naturalremotedischarge,
         ...                          fluxes.remotedemand))
@@ -272,17 +534,17 @@ def calc_remotefailure_v1(self):
     of a cross section far downstream.
 
     Required control parameters:
-      :class:`~hydpy.models.dam.dam_derived.NmbLogEntries`
-      :class:`~hydpy.models.dam.dam_derived.RemoteDischargeMinimum`
+      |NmbLogEntries|
+      |RemoteDischargeMinimum|
 
     Required derived parameters:
-      :class:`~hydpy.models.dam.dam_derived.TOY`
+      |dam_derived.TOY|
 
     Required log sequence:
-      :class:`~hydpy.models.dam.dam_logs.LoggedTotalRemoteDischarge`
+      |LoggedTotalRemoteDischarge|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.dam.dam_fluxes.RemoteFailure`
+      |RemoteFailure|
 
     Basic equation:
       :math:`RemoteFailure =
@@ -291,12 +553,11 @@ def calc_remotefailure_v1(self):
 
     Examples:
 
-        As explained in the documentation on method
-        :func:`calc_remotedemand_v1`, we have to define a
-        simulation period first:
+        As explained in the documentation on method |calc_remotedemand_v1|,
+        we have to define a simulation period first:
 
         >>> from hydpy import pub
-        >>> from hydpy.core.timetools import Timegrids, Timegrid
+        >>> from hydpy import Timegrids, Timegrid
         >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
         ...                                    '2001.04.03',
         ...                                    '1d'))
@@ -350,32 +611,32 @@ def calc_requiredremoterelease_v1(self):
     value at a cross section far downstream with a certain level of certainty.
 
     Required control parameter:
-      :class:`~hydpy.models.dam.dam_control.RemoteDischargeSafety`
+      |RemoteDischargeSafety|
 
     Required derived parameters:
-      :class:`~hydpy.models.dam.dam_derived.RemoteDischargeSmoothPar`
-      :class:`~hydpy.models.dam.dam_derived.TOY`
+      |RemoteDischargeSmoothPar|
+      |dam_derived.TOY|
 
     Required flux sequence:
-      :class:`~hydpy.models.dam.dam_fluxes.RemoteDemand`
-      :class:`~hydpy.models.dam.dam_fluxes.RemoteFailure`
+      |RemoteDemand|
+      |RemoteFailure|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.dam.dam_fluxes.RequiredRelease`
+      |RequiredRemoteRelease|
 
     Basic equation:
       :math:`RequiredRemoteRelease = RemoteDemand + RemoteDischargeSafety
-      \\cdot smooth\_logistic1(RemoteFailure, RemoteDischargeSmoothPar)`
+      \\cdot smooth_{logistic1}(RemoteFailure, RemoteDischargeSmoothPar)`
 
     Used auxiliary method:
-      :func:`~hydpy.cythons.smoothutils.smooth_logistic1`.
+      |smooth_logistic1|
 
     Examples:
 
         As in the examples above, define a short simulation time period first:
 
         >>> from hydpy import pub
-        >>> from hydpy.core.timetools import Timegrids, Timegrid
+        >>> from hydpy import Timegrids, Timegrid
         >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
         ...                                    '2001.04.03',
         ...                                    '1d'))
@@ -386,10 +647,10 @@ def calc_requiredremoterelease_v1(self):
         >>> parameterstep()
         >>> derived.toy.update()
 
-        Define a savety factor of 0.5 m³/s for the summer months and
-        no savety factor at all for the winter months:
+        Define a safety factor of 0.5 m³/s for the summer months and
+        no safety factor at all for the winter months:
 
-        >>> remotedischargesavety(_11_1_12=0.0, _03_31_12=0.0,
+        >>> remotedischargesafety(_11_1_12=0.0, _03_31_12=0.0,
         ...                       _04_1_12=1.0, _10_31_12=1.0)
         >>> derived.remotedischargesmoothpar.update()
 
@@ -402,14 +663,14 @@ def calc_requiredremoterelease_v1(self):
         based on the parameter values defined above and for a "remote
         failure" values ranging between -4 and 4 m³/s:
 
-        >>> from hydpy.core.testtools import UnitTest
+        >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.calc_requiredremoterelease_v1,
         ...                 last_example=9,
         ...                 parseqs=(fluxes.remotefailure,
         ...                          fluxes.requiredremoterelease))
         >>> test.nexts.remotefailure = range(-4, 5)
 
-        On May 31, the savety factor is 0 m³/s.  Hence no discharge is
+        On May 31, the safety factor is 0 m³/s.  Hence no discharge is
         added to the estimated remote demand of 2 m³/s:
 
         >>> model.idx_sim = pub.timegrids.init['2001.03.31']
@@ -426,7 +687,7 @@ def calc_requiredremoterelease_v1(self):
         |   8 |           3.0 |                   2.0 |
         |   9 |           4.0 |                   2.0 |
 
-        On April 1, the savety factor is 1 m³/s.  If the remote failure was
+        On April 1, the safety factor is 1 m³/s.  If the remote failure was
         exactly zero in the past, meaning the control of the dam was perfect,
         only 0.5 m³/s are added to the estimated remote demand of 2 m³/s.
         If the actual recharge did actually fall below the threshold value,
@@ -452,43 +713,96 @@ def calc_requiredremoterelease_v1(self):
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
     flu.requiredremoterelease = (
-            flu.remotedemand+con.remotedischargesavety[der.toy[self.idx_sim]] *
-            smoothutils.smooth_logistic1(
-                    flu.remotefailure,
-                    der.remotedischargesmoothpar[der.toy[self.idx_sim]]))
+        flu.remotedemand+con.remotedischargesafety[der.toy[self.idx_sim]] *
+        smoothutils.smooth_logistic1(
+            flu.remotefailure,
+            der.remotedischargesmoothpar[der.toy[self.idx_sim]]))
+
+
+def calc_requiredremoterelease_v2(self):
+    """Get the required remote release of the last simulation step.
+
+    Required log sequence:
+      |LoggedRequiredRemoteRelease|
+
+    Calculated flux sequence:
+      |RequiredRemoteRelease|
+
+    Basic equation:
+      :math:`RequiredRemoteRelease = LoggedRequiredRemoteRelease`
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> logs.loggedrequiredremoterelease = 3.0
+        >>> model.calc_requiredremoterelease_v2()
+        >>> fluxes.requiredremoterelease
+        requiredremoterelease(3.0)
+    """
+    flu = self.sequences.fluxes.fastaccess
+    log = self.sequences.logs.fastaccess
+    flu.requiredremoterelease = log.loggedrequiredremoterelease[0]
+
+
+def calc_allowedremoterelieve_v1(self):
+    """Get the allowed remote relieve of the last simulation step.
+
+    Required log sequence:
+      |LoggedAllowedRemoteRelieve|
+
+    Calculated flux sequence:
+      |AllowedRemoteRelieve|
+
+    Basic equation:
+      :math:`AllowedRemoteRelieve = LoggedAllowedRemoteRelieve`
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> logs.loggedallowedremoterelieve = 2.0
+        >>> model.calc_allowedremoterelieve_v1()
+        >>> fluxes.allowedremoterelieve
+        allowedremoterelieve(2.0)
+    """
+    flu = self.sequences.fluxes.fastaccess
+    log = self.sequences.logs.fastaccess
+    flu.allowedremoterelieve = log.loggedallowedremoterelieve[0]
 
 
 def calc_requiredrelease_v1(self):
-    """Calculate the total water release required for reducing drought events.
+    """Calculate the total water release (immediately and far downstream)
+    required for reducing drought events.
 
     Required control parameter:
-      :class:`~hydpy.models.dam.dam_control.NearDischargeMinimumThreshold`
+      |NearDischargeMinimumThreshold|
 
     Required derived parameters:
-      :class:`~hydpy.models.dam.dam_derived.NearDischargeMinimumSmoothPar2`
-      :class:`~hydpy.models.dam.dam_derived.TOY`
+      |NearDischargeMinimumSmoothPar2|
+      |dam_derived.TOY|
 
     Required flux sequence:
-      :class:`~hydpy.models.dam.dam_fluxes.RequiredRemoteRelease`
+      |RequiredRemoteRelease|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.dam.dam_fluxes.RequiredRelease`
+      |RequiredRelease|
 
     Basic equation:
       :math:`RequiredRelease = RequiredRemoteRelease
-      \\cdot smooth\_logistic2(
+      \\cdot smooth_{logistic2}(
       RequiredRemoteRelease-NearDischargeMinimumThreshold,
       NearDischargeMinimumSmoothPar2)`
 
     Used auxiliary method:
-      :func:`~hydpy.cythons.smoothutils.smooth_logistic2`.
+      |smooth_logistic2|
 
     Examples:
 
         As in the examples above, define a short simulation time period first:
 
         >>> from hydpy import pub
-        >>> from hydpy.core.timetools import Timegrids, Timegrid
+        >>> from hydpy import Timegrids, Timegrid
         >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
         ...                                    '2001.04.03',
         ...                                    '1d'))
@@ -517,7 +831,7 @@ def calc_requiredrelease_v1(self):
         based on the parameter values defined above and for a required value
         for a cross section far downstream ranging from 0 m³/s to 8 m³/s:
 
-        >>> from hydpy.core.testtools import UnitTest
+        >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.calc_requiredrelease_v1,
         ...                 last_example=9,
         ...                 parseqs=(fluxes.requiredremoterelease,
@@ -568,12 +882,300 @@ def calc_requiredrelease_v1(self):
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
     flu.requiredrelease = con.neardischargeminimumthreshold[
-                                                    der.toy[self.idx_sim]]
-    flu.requiredrelease = (flu.requiredrelease +
-                           smoothutils.smooth_logistic2(
-                               flu.requiredremoterelease-flu.requiredrelease,
-                               der.neardischargeminimumsmoothpar2[
-                                                    der.toy[self.idx_sim]]))
+        der.toy[self.idx_sim]]
+    flu.requiredrelease = (
+        flu.requiredrelease +
+        smoothutils.smooth_logistic2(
+            flu.requiredremoterelease-flu.requiredrelease,
+            der.neardischargeminimumsmoothpar2[
+                der.toy[self.idx_sim]]))
+
+
+def calc_requiredrelease_v2(self):
+    """Calculate the water release (immediately downstream) required for
+    reducing drought events.
+
+    Required control parameter:
+      |NearDischargeMinimumThreshold|
+
+    Required derived parameter:
+      |dam_derived.TOY|
+
+    Calculated flux sequence:
+      |RequiredRelease|
+
+    Basic equation:
+      :math:`RequiredRelease = NearDischargeMinimumThreshold`
+
+    Examples:
+
+        As in the examples above, define a short simulation time period first:
+
+        >>> from hydpy import pub
+        >>> from hydpy import Timegrids, Timegrid
+        >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
+        ...                                    '2001.04.03',
+        ...                                    '1d'))
+
+        Prepare the dam model:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> derived.toy.update()
+
+        Define a minimum discharge value for a cross section immediately
+        downstream of 4 m³/s for the summer months and of 0 m³/s for the
+        winter months:
+
+        >>> neardischargeminimumthreshold(_11_1_12=0.0, _03_31_12=0.0,
+        ...                               _04_1_12=4.0, _10_31_12=4.0)
+
+
+        As to be expected, the calculated required release is 0.0 m³/s
+        on May 31 and 4.0 m³/s on April 1:
+
+        >>> model.idx_sim = pub.timegrids.init['2001.03.31']
+        >>> model.calc_requiredrelease_v2()
+        >>> fluxes.requiredrelease
+        requiredrelease(0.0)
+        >>> model.idx_sim = pub.timegrids.init['2001.04.01']
+        >>> model.calc_requiredrelease_v2()
+        >>> fluxes.requiredrelease
+        requiredrelease(4.0)
+    """
+    con = self.parameters.control.fastaccess
+    der = self.parameters.derived.fastaccess
+    flu = self.sequences.fluxes.fastaccess
+    flu.requiredrelease = con.neardischargeminimumthreshold[
+        der.toy[self.idx_sim]]
+
+
+def calc_possibleremoterelieve_v1(self):
+    """Calculate the highest possible water release that can be routed to
+    a remote location based on an artificial neural network describing the
+    relationship between possible release and water stage.
+
+    Required control parameter:
+      |WaterLevel2PossibleRemoteRelieve|
+
+    Required aide sequence:
+      |WaterLevel|
+
+    Calculated flux sequence:
+      |PossibleRemoteRelieve|
+
+    Example:
+
+        For simplicity, the example of method |calc_flooddischarge_v1|
+        is reused.  See the documentation on the mentioned method for
+        further information:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> waterlevel2possibleremoterelieve(
+        ...     nmb_inputs=1,
+        ...     nmb_neurons=(2,),
+        ...     nmb_outputs=1,
+        ...     weights_input=[[50., 4]],
+        ...     weights_output=[[2.], [30]],
+        ...     intercepts_hidden=[[-13000, -1046]],
+        ...     intercepts_output=[0.])
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(model, model.calc_possibleremoterelieve_v1,
+        ...                 last_example=21)
+        >>> test.nexts.waterlevel = numpy.arange(257, 261.1, 0.2)
+        >>> test()
+        | ex. | possibleremoterelieve | waterlevel |
+        --------------------------------------------
+        |   1 |                   0.0 |      257.0 |
+        |   2 |              0.000001 |      257.2 |
+        |   3 |              0.000002 |      257.4 |
+        |   4 |              0.000005 |      257.6 |
+        |   5 |              0.000011 |      257.8 |
+        |   6 |              0.000025 |      258.0 |
+        |   7 |              0.000056 |      258.2 |
+        |   8 |              0.000124 |      258.4 |
+        |   9 |              0.000275 |      258.6 |
+        |  10 |              0.000612 |      258.8 |
+        |  11 |              0.001362 |      259.0 |
+        |  12 |              0.003031 |      259.2 |
+        |  13 |              0.006745 |      259.4 |
+        |  14 |              0.015006 |      259.6 |
+        |  15 |              0.033467 |      259.8 |
+        |  16 |              1.074179 |      260.0 |
+        |  17 |              2.164498 |      260.2 |
+        |  18 |              2.363853 |      260.4 |
+        |  19 |               2.79791 |      260.6 |
+        |  20 |              3.719725 |      260.8 |
+        |  21 |              5.576088 |      261.0 |
+    """
+    con = self.parameters.control.fastaccess
+    flu = self.sequences.fluxes.fastaccess
+    aid = self.sequences.aides.fastaccess
+    con.waterlevel2possibleremoterelieve.inputs[0] = aid.waterlevel
+    con.waterlevel2possibleremoterelieve.process_actual_input()
+    flu.possibleremoterelieve = con.waterlevel2possibleremoterelieve.outputs[0]
+
+
+def calc_actualremoterelieve_v1(self):
+    """Calculate the actual amount of water released to a remote location
+    to relieve the dam during high flow conditions.
+
+    Required control parameter:
+      |RemoteRelieveTolerance|
+
+    Required flux sequences:
+      |AllowedRemoteRelieve|
+      |PossibleRemoteRelieve|
+
+    Calculated flux sequence:
+      |ActualRemoteRelieve|
+
+    Basic equation - discontinous:
+      :math:`ActualRemoteRelease = min(PossibleRemoteRelease,
+      AllowedRemoteRelease)`
+
+    Basic equation - continous:
+      :math:`ActualRemoteRelease = smooth_min1(PossibleRemoteRelease,
+      AllowedRemoteRelease, RemoteRelieveTolerance)`
+
+    Used auxiliary methods:
+      |smooth_min1|
+      |smooth_max1|
+
+
+    Note that the given continous basic equation is a simplification of
+    the complete algorithm to calculate |ActualRemoteRelieve|, which also
+    makes use of |smooth_max1| to prevent from gaining negative values
+    in a smooth manner.
+
+
+    Examples:
+
+        Prepare a dam model:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+
+        Prepare a test function object that performs seven examples with
+        |PossibleRemoteRelieve| ranging from -1 to 5 m³/s:
+
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(model, model.calc_actualremoterelieve_v1,
+        ...                 last_example=7,
+        ...                 parseqs=(fluxes.possibleremoterelieve,
+        ...                          fluxes.actualremoterelieve))
+        >>> test.nexts.possibleremoterelieve = range(-1, 6)
+
+        We begin with a |AllowedRemoteRelieve| value of 3 m³/s:
+
+        >>> fluxes.allowedremoterelieve = 3.0
+
+        Through setting the value of |RemoteRelieveTolerance| to the
+        lowest possible value, there is no smoothing.  Instead, the
+        relationship between |ActualRemoteRelieve| and |PossibleRemoteRelieve|
+        follows the simple discontinous minimum function:
+
+        >>> remoterelievetolerance(0.0)
+        >>> test()
+        | ex. | possibleremoterelieve | actualremoterelieve |
+        -----------------------------------------------------
+        |   1 |                  -1.0 |                 0.0 |
+        |   2 |                   0.0 |                 0.0 |
+        |   3 |                   1.0 |                 1.0 |
+        |   4 |                   2.0 |                 2.0 |
+        |   5 |                   3.0 |                 3.0 |
+        |   6 |                   4.0 |                 3.0 |
+        |   7 |                   5.0 |                 3.0 |
+
+        Increasing the value of parameter |RemoteRelieveTolerance| to a
+        sensible value results in a moderate smoothing:
+
+        >>> remoterelievetolerance(0.2)
+        >>> test()
+        | ex. | possibleremoterelieve | actualremoterelieve |
+        -----------------------------------------------------
+        |   1 |                  -1.0 |                 0.0 |
+        |   2 |                   0.0 |                 0.0 |
+        |   3 |                   1.0 |            0.970639 |
+        |   4 |                   2.0 |             1.89588 |
+        |   5 |                   3.0 |            2.584112 |
+        |   6 |                   4.0 |            2.896195 |
+        |   7 |                   5.0 |            2.978969 |
+
+        Even when setting a very large smoothing parameter value, the actual
+        remote relieve does not fall below 0 m³/s:
+
+        >>> remoterelievetolerance(1.0)
+        >>> test()
+        | ex. | possibleremoterelieve | actualremoterelieve |
+        -----------------------------------------------------
+        |   1 |                  -1.0 |                 0.0 |
+        |   2 |                   0.0 |                 0.0 |
+        |   3 |                   1.0 |            0.306192 |
+        |   4 |                   2.0 |            0.634882 |
+        |   5 |                   3.0 |            1.037708 |
+        |   6 |                   4.0 |            1.436494 |
+        |   7 |                   5.0 |            1.788158 |
+
+        Now we repeat the last example with a allowed remote relieve of
+        only 0.03 m³/s instead of 3 m³/s:
+
+        >>> fluxes.allowedremoterelieve = 0.03
+        >>> test()
+        | ex. | possibleremoterelieve | actualremoterelieve |
+        -----------------------------------------------------
+        |   1 |                  -1.0 |                 0.0 |
+        |   2 |                   0.0 |                 0.0 |
+        |   3 |                   1.0 |                0.03 |
+        |   4 |                   2.0 |                0.03 |
+        |   5 |                   3.0 |                0.03 |
+        |   6 |                   4.0 |                0.03 |
+        |   7 |                   5.0 |                0.03 |
+
+        The result above is as expected, but the smooth part of the
+        relationship is not resolved.  By increasing the resolution we
+        see a relationship that corresponds to the one shown above
+        for an allowed relieve of 3 m³/s.  This points out, that the
+        degree of smoothing is releative to the allowed relieve:
+
+        >>> import numpy
+        >>> test.nexts.possibleremoterelieve = numpy.arange(-0.01, 0.06, 0.01)
+        >>> test()
+        | ex. | possibleremoterelieve | actualremoterelieve |
+        -----------------------------------------------------
+        |   1 |                 -0.01 |                 0.0 |
+        |   2 |                   0.0 |                 0.0 |
+        |   3 |                  0.01 |            0.003062 |
+        |   4 |                  0.02 |            0.006349 |
+        |   5 |                  0.03 |            0.010377 |
+        |   6 |                  0.04 |            0.014365 |
+        |   7 |                  0.05 |            0.017882 |
+
+        One can reperform the shown experiments with an even higher
+        resolution to see that the relationship between
+        |ActualRemoteRelieve| and |PossibleRemoteRelieve| is
+        (at least in most cases) in fact very smooth.  But a more analytical
+        approach would possibly be favourable regarding the smoothness in
+        some edge cases and computational efficiency.
+    """
+    con = self.parameters.control.fastaccess
+    flu = self.sequences.fluxes.fastaccess
+    d_smoothpar = con.remoterelievetolerance*flu.allowedremoterelieve
+    flu.actualremoterelieve = smoothutils.smooth_min1(
+        flu.possibleremoterelieve, flu.allowedremoterelieve, d_smoothpar)
+    for dummy in range(5):
+        d_smoothpar /= 5.
+        flu.actualremoterelieve = smoothutils.smooth_max1(
+            flu.actualremoterelieve, 0., d_smoothpar)
+        d_smoothpar /= 5.
+        flu.actualremoterelieve = smoothutils.smooth_min1(
+            flu.actualremoterelieve, flu.possibleremoterelieve, d_smoothpar)
+    flu.actualremoterelieve = min(flu.actualremoterelieve,
+                                  flu.possibleremoterelieve)
+    flu.actualremoterelieve = min(flu.actualremoterelieve,
+                                  flu.allowedremoterelieve)
+    flu.actualremoterelieve = max(flu.actualremoterelieve, 0.)
 
 
 def calc_targetedrelease_v1(self):
@@ -582,41 +1184,40 @@ def calc_targetedrelease_v1(self):
     inflow into the dam.
 
     Some dams are supposed to maintain a certain degree of low flow
-    variability downstream.  Method
-    :func:`~hydpy.models.dam.dam_model.calc_targetedrelease_v1` simulates
+    variability downstream.  Method |calc_targetedrelease_v1| simulates
     this by (approximately) passing inflow as outflow whenever inflow
     is below the value of the threshold parameter
-    :class:`~hydpy.models.dam.dam_control.NearDischargeMinimumThreshold`.
+    |NearDischargeMinimumThreshold|.
 
     Required control parameter:
-      :class:`~hydpy.models.dam.dam_control.NearDischargeMinimumThreshold`
+      |NearDischargeMinimumThreshold|
 
     Required derived parameters:
-      :class:`~hydpy.models.dam.dam_derived.NearDischargeMinimumSmoothPar1`
-      :class:`~hydpy.models.dam.dam_derived.TOY`
+      |NearDischargeMinimumSmoothPar1|
+      |dam_derived.TOY|
 
     Required flux sequence:
-      :class:`~hydpy.models.dam.dam_fluxes.RequiredRelease`
+      |RequiredRelease|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.dam.dam_fluxes.TargetedRelease`
+      |TargetedRelease|
 
     Used auxiliary method:
-      :func:`~hydpy.cythons.smoothutils.smooth_logistic1`
+      |smooth_logistic1|
 
     Basic equation:
       :math:`TargetedRelease =
       w \\cdot RequiredRelease + (1-w) \\cdot Inflow`
 
-      :math:`w = smooth\\_logistic1(
-      Inflow-NearDischargeMinimumThreshold, NearDischargeMinimumSmoothPar)`
+      :math:`w = smooth_{logistic1}(
+      Inflow-NearDischargeMinimumThreshold, NearDischargeMinimumSmoothPar1)`
 
     Examples:
 
         As in the examples above, define a short simulation time period first:
 
         >>> from hydpy import pub
-        >>> from hydpy.core.timetools import Timegrids, Timegrid
+        >>> from hydpy import Timegrids, Timegrid
         >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
         ...                                    '2001.04.03',
         ...                                    '1d'))
@@ -645,7 +1246,7 @@ def calc_targetedrelease_v1(self):
         based on the parameter values defined above and for inflows into
         the dam ranging from 0 m³/s to 10 m³/s:
 
-        >>> from hydpy.core.testtools import UnitTest
+        >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.calc_targetedrelease_v1,
         ...                 last_example=21,
         ...                 parseqs=(fluxes.inflow,
@@ -847,9 +1448,9 @@ def calc_targetedrelease_v1(self):
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
     flu.targetedrelease = smoothutils.smooth_logistic1(
-            flu.inflow-con.neardischargeminimumthreshold[
-                                                der.toy[self.idx_sim]],
-            der.neardischargeminimumsmoothpar1[der.toy[self.idx_sim]])
+        flu.inflow-con.neardischargeminimumthreshold[
+            der.toy[self.idx_sim]],
+        der.neardischargeminimumsmoothpar1[der.toy[self.idx_sim]])
     flu.targetedrelease = (flu.targetedrelease * flu.requiredrelease +
                            (1.-flu.targetedrelease) * flu.inflow)
 
@@ -859,27 +1460,27 @@ def calc_actualrelease_v1(self):
     dam considering the targeted release and the given water level.
 
     Required control parameter:
-      :class:`~hydpy.models.dam.dam_control.WaterLevelMinimumThreshold`
+      |WaterLevelMinimumThreshold|
 
     Required derived parameters:
-      :class:`~hydpy.models.dam.dam_derived.WaterLevelMinimumSmoothPar`
+      |WaterLevelMinimumSmoothPar|
 
     Required flux sequence:
-      :class:`~hydpy.models.dam.dam_fluxes.TargetedRelease`
+      |TargetedRelease|
 
     Required aide sequence:
-      :class:`~hydpy.models.dam.dam_aides.WaterLevel`
+      |WaterLevel|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.dam.dam_fluxes.ActualRelease`
+      |ActualRelease|
 
     Basic equation:
       :math:`ActualRelease = TargetedRelease \\cdot
-      smooth\_logistic1(WaterLevelMinimumThreshold-WaterLevel,
+      smooth_{logistic1}(WaterLevelMinimumThreshold-WaterLevel,
       WaterLevelMinimumSmoothPar)`
 
     Used auxiliary method:
-      :func:`~hydpy.cythons.smoothutils.smooth_logistic1`.
+      |smooth_logistic1|
 
     Examples:
 
@@ -896,12 +1497,16 @@ def calc_actualrelease_v1(self):
         Prepare a test function, that calculates the targeted water release
         for water levels ranging between -1 and 5 m:
 
-        >>> from hydpy.core.testtools import UnitTest
+        >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.calc_actualrelease_v1,
         ...                 last_example=7,
         ...                 parseqs=(aides.waterlevel,
         ...                          fluxes.actualrelease))
         >>> test.nexts.waterlevel = range(-1, 6)
+
+        .. _dam_calc_actualrelease_v1_ex01:
+
+        **Example 1**
 
         Firstly, we define a sharp minimum water level of 0 m:
 
@@ -933,6 +1538,10 @@ def calc_actualrelease_v1(self):
         of a complete emptying of a dam emtying (which is a water level
         of 0 m), only with a certain accuracy.
 
+        .. _dam_calc_actualrelease_v1_ex02:
+
+        **Example 2**
+
         Nonetheless, it can (besides some other possible advantages)
         dramatically increase the speed of numerical integration algorithms
         to define a smooth transition area instead of sharp threshold value,
@@ -955,6 +1564,10 @@ def calc_actualrelease_v1(self):
         |   5 |        3.0 |          0.02 |
         |   6 |        4.0 |           1.0 |
         |   7 |        5.0 |          1.98 |
+
+        .. _dam_calc_actualrelease_v1_ex03:
+
+        **Example 3**
 
         Note that it is possible to set both parameters in a manner that
         might result in negative water stages beyond numerical inaccuracy:
@@ -985,8 +1598,377 @@ def calc_actualrelease_v1(self):
     aid = self.sequences.aides.fastaccess
     flu.actualrelease = (flu.targetedrelease *
                          smoothutils.smooth_logistic1(
-                                 aid.waterlevel-con.waterlevelminimumthreshold,
-                                 der.waterlevelminimumsmoothpar))
+                             aid.waterlevel-con.waterlevelminimumthreshold,
+                             der.waterlevelminimumsmoothpar))
+
+
+def calc_missingremoterelease_v1(self):
+    """Calculate the portion of the required remote demand that could not
+    be met by the actual discharge release.
+
+    Required flux sequences:
+      |RequiredRemoteRelease|
+      |ActualRelease|
+
+    Calculated flux sequence:
+      |MissingRemoteRelease|
+
+    Basic equation:
+      :math:`MissingRemoteRelease = max(
+      RequiredRemoteRelease-ActualRelease, 0)`
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> fluxes.requiredremoterelease = 2.0
+        >>> fluxes.actualrelease = 1.0
+        >>> model.calc_missingremoterelease_v1()
+        >>> fluxes.missingremoterelease
+        missingremoterelease(1.0)
+        >>> fluxes.actualrelease = 3.0
+        >>> model.calc_missingremoterelease_v1()
+        >>> fluxes.missingremoterelease
+        missingremoterelease(0.0)
+    """
+    flu = self.sequences.fluxes.fastaccess
+    flu.missingremoterelease = max(
+        flu.requiredremoterelease-flu.actualrelease, 0.)
+
+
+def calc_actualremoterelease_v1(self):
+    """Calculate the actual remote water release that can be supplied by the
+    dam considering the required remote release and the given water level.
+
+    Required control parameter:
+      |WaterLevelMinimumRemoteThreshold|
+
+    Required derived parameters:
+      |WaterLevelMinimumRemoteSmoothPar|
+
+    Required flux sequence:
+      |RequiredRemoteRelease|
+
+    Required aide sequence:
+      |WaterLevel|
+
+    Calculated flux sequence:
+      |ActualRemoteRelease|
+
+    Basic equation:
+      :math:`ActualRemoteRelease = RequiredRemoteRelease \\cdot
+      smooth_{logistic1}(WaterLevelMinimumRemoteThreshold-WaterLevel,
+      WaterLevelMinimumRemoteSmoothPar)`
+
+    Used auxiliary method:
+      |smooth_logistic1|
+
+    Examples:
+
+        Note that method |calc_actualremoterelease_v1| is functionally
+        identical with method |calc_actualrelease_v1|.  This is why we
+        omit to explain the following examples, as they are just repetitions
+        of the ones of method |calc_actualremoterelease_v1| with partly
+        different variable names.  Please follow the links to read the
+        corresponding explanations.
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> fluxes.requiredremoterelease = 2.0
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(model, model.calc_actualremoterelease_v1,
+        ...                 last_example=7,
+        ...                 parseqs=(aides.waterlevel,
+        ...                          fluxes.actualremoterelease))
+        >>> test.nexts.waterlevel = range(-1, 6)
+
+        :ref:`Recalculation of example 1 <dam_calc_actualrelease_v1_ex01>`
+
+        >>> waterlevelminimumremotethreshold(0.)
+        >>> waterlevelminimumremotetolerance(0.)
+        >>> derived.waterlevelminimumremotesmoothpar.update()
+        >>> test()
+        | ex. | waterlevel | actualremoterelease |
+        ------------------------------------------
+        |   1 |       -1.0 |                 0.0 |
+        |   2 |        0.0 |                 1.0 |
+        |   3 |        1.0 |                 2.0 |
+        |   4 |        2.0 |                 2.0 |
+        |   5 |        3.0 |                 2.0 |
+        |   6 |        4.0 |                 2.0 |
+        |   7 |        5.0 |                 2.0 |
+
+
+        :ref:`Recalculation of example 2 <dam_calc_actualrelease_v1_ex02>`
+
+        >>> waterlevelminimumremotethreshold(4.)
+        >>> waterlevelminimumremotetolerance(1.)
+        >>> derived.waterlevelminimumremotesmoothpar.update()
+        >>> test()
+        | ex. | waterlevel | actualremoterelease |
+        ------------------------------------------
+        |   1 |       -1.0 |                 0.0 |
+        |   2 |        0.0 |                 0.0 |
+        |   3 |        1.0 |            0.000002 |
+        |   4 |        2.0 |            0.000204 |
+        |   5 |        3.0 |                0.02 |
+        |   6 |        4.0 |                 1.0 |
+        |   7 |        5.0 |                1.98 |
+
+        :ref:`Recalculation of example 3 <dam_calc_actualrelease_v1_ex03>`
+
+        >>> waterlevelminimumremotethreshold(1.)
+        >>> waterlevelminimumremotetolerance(2.)
+        >>> derived.waterlevelminimumremotesmoothpar.update()
+        >>> test()
+        | ex. | waterlevel | actualremoterelease |
+        ------------------------------------------
+        |   1 |       -1.0 |                0.02 |
+        |   2 |        0.0 |             0.18265 |
+        |   3 |        1.0 |                 1.0 |
+        |   4 |        2.0 |             1.81735 |
+        |   5 |        3.0 |                1.98 |
+        |   6 |        4.0 |            1.997972 |
+        |   7 |        5.0 |            1.999796 |
+    """
+    con = self.parameters.control.fastaccess
+    der = self.parameters.derived.fastaccess
+    flu = self.sequences.fluxes.fastaccess
+    aid = self.sequences.aides.fastaccess
+    flu.actualremoterelease = (
+        flu.requiredremoterelease *
+        smoothutils.smooth_logistic1(
+            aid.waterlevel-con.waterlevelminimumremotethreshold,
+            der.waterlevelminimumremotesmoothpar))
+
+
+def update_actualremoterelieve_v1(self):
+    """Constrain the actual relieve discharge to a remote location.
+
+    Required control parameter:
+      |HighestRemoteDischarge|
+
+    Required derived parameter:
+      |HighestRemoteSmoothPar|
+
+    Updated flux sequence:
+      |ActualRemoteRelieve|
+
+    Basic equation - discontinous:
+      :math:`ActualRemoteRelieve = min(ActualRemoteRelease,
+      HighestRemoteDischarge)`
+
+    Basic equation - continous:
+      :math:`ActualRemoteRelieve = smooth_min1(ActualRemoteRelieve,
+      HighestRemoteDischarge, HighestRemoteSmoothPar)`
+
+    Used auxiliary methods:
+      |smooth_min1|
+      |smooth_max1|
+
+    Note that the given continous basic equation is a simplification of
+    the complete algorithm to update |ActualRemoteRelieve|, which also
+    makes use of |smooth_max1| to prevent from gaining negative values
+    in a smooth manner.
+
+    Examples:
+
+        Prepare a dam model:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+
+        Prepare a test function object that performs eight examples with
+        |ActualRemoteRelieve| ranging from 0 to 8 m³/s and a fixed
+        initial value of parameter |HighestRemoteDischarge| of 4 m³/s:
+
+        >>> highestremotedischarge(4.0)
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(model, model.update_actualremoterelieve_v1,
+        ...                 last_example=8,
+        ...                 parseqs=(fluxes.actualremoterelieve,))
+        >>> test.nexts.actualremoterelieve = range(8)
+
+        Through setting the value of |HighestRemoteTolerance| to the
+        lowest possible value, there is no smoothing.  Instead, the
+        shown relationship agrees with a combination of the discontinuous
+        minimum and maximum function:
+
+        >>> highestremotetolerance(0.0)
+        >>> derived.highestremotesmoothpar.update()
+        >>> test()
+        | ex. | actualremoterelieve |
+        -----------------------------
+        |   1 |                 0.0 |
+        |   2 |                 1.0 |
+        |   3 |                 2.0 |
+        |   4 |                 3.0 |
+        |   5 |                 4.0 |
+        |   6 |                 4.0 |
+        |   7 |                 4.0 |
+        |   8 |                 4.0 |
+
+        Setting a sensible |HighestRemoteTolerance| value results in
+        a moderate smoothing:
+
+        >>> highestremotetolerance(0.1)
+        >>> derived.highestremotesmoothpar.update()
+        >>> test()
+        | ex. | actualremoterelieve |
+        -----------------------------
+        |   1 |                 0.0 |
+        |   2 |            0.999999 |
+        |   3 |             1.99995 |
+        |   4 |            2.996577 |
+        |   5 |            3.836069 |
+        |   6 |            3.991578 |
+        |   7 |            3.993418 |
+        |   8 |            3.993442 |
+
+        Method |update_actualremoterelieve_v1| is defined in a similar
+        way as method |calc_actualremoterelieve_v1|.  Please read the
+        documentation on |calc_actualremoterelieve_v1| for further
+        information.
+    """
+    con = self.parameters.control.fastaccess
+    der = self.parameters.derived.fastaccess
+    flu = self.sequences.fluxes.fastaccess
+    d_smooth = der.highestremotesmoothpar
+    d_highest = con.highestremotedischarge
+    d_value = smoothutils.smooth_min1(
+        flu.actualremoterelieve, d_highest, d_smooth)
+    for dummy in range(5):
+        d_smooth /= 5.
+        d_value = smoothutils.smooth_max1(
+            d_value, 0., d_smooth)
+        d_smooth /= 5.
+        d_value = smoothutils.smooth_min1(
+            d_value, d_highest, d_smooth)
+    d_value = min(d_value, flu.actualremoterelieve)
+    d_value = min(d_value, d_highest)
+    flu.actualremoterelieve = max(d_value, 0.)
+
+
+def update_actualremoterelease_v1(self):
+    """Constrain the actual release (supply discharge) to a remote location.
+
+    Required control parameter:
+      |HighestRemoteDischarge|
+
+    Required derived parameter:
+      |HighestRemoteSmoothPar|
+
+    Required flux sequences:
+      |ActualRemoteRelieve|
+
+    Updated flux sequence:
+      |ActualRemoteRelease|
+
+    Basic equation - discontinous:
+      :math:`ActualRemoteRelease = min(ActualRemoteRelease,
+      HighestRemoteDischarge-ActualRemoteRelieve)`
+
+    Basic equation - continous:
+      :math:`ActualRemoteRelease = smooth_min1(ActualRemoteRelease,
+      HighestRemoteDischarge-ActualRemoteRelieve, HighestRemoteSmoothPar)`
+
+    Used auxiliary methods:
+      |smooth_min1|
+      |smooth_max1|
+
+    Note that the given continous basic equation is a simplification of
+    the complete algorithm to update |ActualRemoteRelease|, which also
+    makes use of |smooth_max1| to prevent from gaining negative values
+    in a smooth manner.
+
+    Examples:
+
+        Prepare a dam model:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+
+        Prepare a test function object that performs eight examples with
+        |ActualRemoteRelieve| ranging from 0 to 8 m³/s and a fixed initial
+        value of parameter |ActualRemoteRelease| of 2 m³/s:
+
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(model, model.update_actualremoterelease_v1,
+        ...                 last_example=8,
+        ...                 parseqs=(fluxes.actualremoterelieve,
+        ...                          fluxes.actualremoterelease))
+        >>> test.nexts.actualremoterelieve = range(8)
+        >>> test.inits.actualremoterelease = 2.0
+
+        Through setting the value of |HighestRemoteTolerance| to the
+        lowest possible value, there is no smoothing.  Instead, the
+        shown relationship agrees with a combination of the discontinuous
+        minimum and maximum function:
+
+        >>> highestremotedischarge(6.0)
+        >>> highestremotetolerance(0.0)
+        >>> derived.highestremotesmoothpar.update()
+        >>> test()
+        | ex. | actualremoterelieve | actualremoterelease |
+        ---------------------------------------------------
+        |   1 |                 0.0 |                 2.0 |
+        |   2 |                 1.0 |                 2.0 |
+        |   3 |                 2.0 |                 2.0 |
+        |   4 |                 3.0 |                 2.0 |
+        |   5 |                 4.0 |                 2.0 |
+        |   6 |                 5.0 |                 1.0 |
+        |   7 |                 6.0 |                 0.0 |
+        |   8 |                 7.0 |                 0.0 |
+
+        Setting a sensible |HighestRemoteTolerance| value results in
+        a moderate smoothing.  But note that this is only true for
+        the minimum function (restricting the larger
+        |ActualRemoteRelease| values).  Instead of smoothing the
+        maximum function as well, |ActualRemoteRelease| is exactly
+        0 m³/s for a |ActualRemoteRelieve| value of 6 m³/s (within
+        the shown precision). The remaining discontinuity does not
+        pose a problem, as long |ActualRemoteRelieve| does not exceed
+        the value of |HighestRemoteDischarge|.  (Application models
+        using method |update_actualremoterelease_v1| should generally
+        enforce this restriction). In case of exceedance, extended
+        computation times might occur:
+
+        >>> highestremotetolerance(0.1)
+        >>> derived.highestremotesmoothpar.update()
+        >>> test()
+        | ex. | actualremoterelieve | actualremoterelease |
+        ---------------------------------------------------
+        |   1 |                 0.0 |            1.999996 |
+        |   2 |                 1.0 |            1.999925 |
+        |   3 |                 2.0 |            1.998739 |
+        |   4 |                 3.0 |            1.979438 |
+        |   5 |                 4.0 |            1.754104 |
+        |   6 |                 5.0 |            0.976445 |
+        |   7 |                 6.0 |                 0.0 |
+        |   8 |                 7.0 |                 0.0 |
+
+        Method |update_actualremoterelease_v1| is defined in a similar
+        way as method |calc_actualremoterelieve_v1|.  Please read the
+        documentation on |calc_actualremoterelieve_v1| for further
+        information.
+    """
+    con = self.parameters.control.fastaccess
+    der = self.parameters.derived.fastaccess
+    flu = self.sequences.fluxes.fastaccess
+    d_smooth = der.highestremotesmoothpar
+    d_highest = con.highestremotedischarge-flu.actualremoterelieve
+    d_value = smoothutils.smooth_min1(
+        flu.actualremoterelease, d_highest, d_smooth)
+    for dummy in range(5):
+        d_smooth /= 5.
+        d_value = smoothutils.smooth_max1(
+            d_value, 0., d_smooth)
+        d_smooth /= 5.
+        d_value = smoothutils.smooth_min1(
+            d_value, d_highest, d_smooth)
+    d_value = min(d_value, flu.actualremoterelease)
+    d_value = min(d_value, d_highest)
+    flu.actualremoterelease = max(d_value, 0.)
 
 
 def calc_flooddischarge_v1(self):
@@ -995,13 +1977,13 @@ def calc_flooddischarge_v1(self):
     and water stage.
 
     Required control parameter:
-      :class:`~hydpy.models.dam.dam_control.WaterLevel2FloodDischarge`
+      |WaterLevel2FloodDischarge|
 
     Required aide sequence:
-      :class:`~hydpy.models.dam.dam_aides.WaterLevel`
+      |WaterLevel|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.dam.dam_fluxes.FloodDischarge`
+      |FloodDischarge|
 
     Example:
 
@@ -1029,7 +2011,7 @@ def calc_flooddischarge_v1(self):
         261 meters, which could describe the uncontrolled flow over a
         spillway:
 
-        >>> from hydpy.core.testtools import UnitTest
+        >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.calc_flooddischarge_v1,
         ...                 last_example=21)
         >>> test.nexts.waterlevel = numpy.arange(257, 261.1, 0.2)
@@ -1057,7 +2039,6 @@ def calc_flooddischarge_v1(self):
         |  19 |        2.79791 |      260.6 |
         |  20 |       3.719725 |      260.8 |
         |  21 |       5.576088 |      261.0 |
-
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
@@ -1075,11 +2056,11 @@ def calc_outflow_v1(self):
     numerical accuracy.
 
     Required flux sequences:
-      :class:`~hydpy.models.dam.dam_fluxes.ActualRelease`
-      :class:`~hydpy.models.dam.dam_fluxes.FloodDischarge`
+      |ActualRelease|
+      |FloodDischarge|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.dam.dam_fluxes.Outflow`
+      |Outflow|
 
     Basic equation:
       :math:`Outflow = max(ActualRelease + FloodDischarge, 0.)`
@@ -1106,14 +2087,14 @@ def update_watervolume_v1(self):
     """Update the actual water volume.
 
     Required derived parameter:
-      :class:`~hydpy.models.dam.dam_derived.Seconds`
+      |Seconds|
 
     Required flux sequences:
-      :class:`~hydpy.models.dam.dam_fluxes.Inflow`
-      :class:`~hydpy.models.dam.dam_fluxes.Outflow`
+      |Inflow|
+      |Outflow|
 
     Updated state sequence:
-      :class:`~hydpy.models.dam.dam_states.WaterVolume`
+      |WaterVolume|
 
     Basic equation:
       :math:`\\frac{d}{dt}WaterVolume = 1e-6 \\cdot (Inflow-Outflow)`
@@ -1138,6 +2119,91 @@ def update_watervolume_v1(self):
                        der.seconds*(flu.inflow-flu.outflow)/1e6)
 
 
+def update_watervolume_v2(self):
+    """Update the actual water volume.
+
+    Required derived parameter:
+      |Seconds|
+
+    Required flux sequences:
+      |Inflow|
+      |Outflow|
+      |ActualRemoteRelease|
+
+    Updated state sequence:
+      |WaterVolume|
+
+    Basic equation:
+      :math:`\\frac{d}{dt}WaterVolume = 10^{-6}
+      \\cdot (Inflow-Outflow-ActualRemoteRelease)`
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> derived.seconds = 2e6
+        >>> states.watervolume.old = 5.0
+        >>> fluxes.inflow = 2.0
+        >>> fluxes.outflow = 3.0
+        >>> fluxes.actualremoterelease = 1.0
+        >>> model.update_watervolume_v2()
+        >>> states.watervolume
+        watervolume(1.0)
+    """
+    der = self.parameters.derived.fastaccess
+    flu = self.sequences.fluxes.fastaccess
+    old = self.sequences.states.fastaccess_old
+    new = self.sequences.states.fastaccess_new
+    new.watervolume = (
+        old.watervolume +
+        der.seconds*(flu.inflow-flu.outflow-flu.actualremoterelease)/1e6)
+
+
+def update_watervolume_v3(self):
+    """Update the actual water volume.
+
+    Required derived parameter:
+      |Seconds|
+
+    Required flux sequences:
+      |Inflow|
+      |Outflow|
+      |ActualRemoteRelease|
+      |ActualRemoteRelieve|
+
+    Updated state sequence:
+      |WaterVolume|
+
+    Basic equation:
+      :math:`\\frac{d}{dt}WaterVolume = 10^{-6}
+      \\cdot (Inflow-Outflow-ActualRemoteRelease-ActualRemoteRelieve)`
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> derived.seconds = 2e6
+        >>> states.watervolume.old = 5.0
+        >>> fluxes.inflow = 2.0
+        >>> fluxes.outflow = 3.0
+        >>> fluxes.actualremoterelease = 1.0
+        >>> fluxes.actualremoterelieve = 0.5
+        >>> model.update_watervolume_v3()
+        >>> states.watervolume
+        watervolume(0.0)
+    """
+    der = self.parameters.derived.fastaccess
+    flu = self.sequences.fluxes.fastaccess
+    old = self.sequences.states.fastaccess_old
+    new = self.sequences.states.fastaccess_new
+    new.watervolume = (
+        old.watervolume +
+        der.seconds*(flu.inflow -
+                     flu.outflow -
+                     flu.actualremoterelease -
+                     flu.actualremoterelieve)/1e6)
+
+
 def pass_outflow_v1(self):
     """Update the outlet link sequence."""
     flu = self.sequences.fluxes.fastaccess
@@ -1145,17 +2211,49 @@ def pass_outflow_v1(self):
     out.q[0] += flu.outflow
 
 
+def pass_actualremoterelease_v1(self):
+    """Update the outlet link sequence."""
+    flu = self.sequences.fluxes.fastaccess
+    out = self.sequences.outlets.fastaccess
+    out.s[0] += flu.actualremoterelease
+
+
+def pass_actualremoterelieve_v1(self):
+    """Update outlet link sequence."""
+    flu = self.sequences.fluxes.fastaccess
+    out = self.sequences.outlets.fastaccess
+    out.r[0] += flu.actualremoterelieve
+
+
+def pass_missingremoterelease_v1(self):
+    flu = self.sequences.fluxes.fastaccess
+    sen = self.sequences.senders.fastaccess
+    sen.d[0] += flu.missingremoterelease
+
+
+def pass_allowedremoterelieve_v1(self):
+    flu = self.sequences.fluxes.fastaccess
+    sen = self.sequences.senders.fastaccess
+    sen.r[0] += flu.allowedremoterelieve
+
+
+def pass_requiredremotesupply_v1(self):
+    flu = self.sequences.fluxes.fastaccess
+    sen = self.sequences.senders.fastaccess
+    sen.s[0] += flu.requiredremotesupply
+
+
 def update_loggedoutflow_v1(self):
     """Log a new entry of discharge at a cross section far downstream.
 
     Required control parameter:
-      :class:`~hydpy.models.dam.dam_derived.NmbLogEntries`
+      |NmbLogEntries|
 
     Required flux sequence:
-      :class:`~hydpy.models.dam.dam_fluxes.Outflow`
+      |Outflow|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.dam.dam_logs.LoggedOutflow`
+      |LoggedOutflow|
 
     Example:
 
@@ -1166,15 +2264,19 @@ def update_loggedoutflow_v1(self):
         >>> from hydpy.models.dam import *
         >>> parameterstep()
         >>> nmblogentries(3)
-        >>> from hydpy.core.testtools import UnitTest
+        >>> logs.loggedoutflow = 0.0
+        >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.update_loggedoutflow_v1,
-        ...                 last_example=4)
-        >>> test.nexts.outflow = [1., 3., 2., 4]
+        ...                 last_example=4,
+        ...                 parseqs=(fluxes.outflow,
+        ...                          logs.loggedoutflow))
+        >>> test.nexts.outflow = [1.0, 3.0, 2.0, 4.0]
+        >>> del test.inits.loggedoutflow
         >>> test()
         | ex. | outflow |           loggedoutflow |
         -------------------------------------------
-        |   1 |     1.0 | 1.0  nan            nan |
-        |   2 |     3.0 | 3.0  1.0            nan |
+        |   1 |     1.0 | 1.0  0.0            0.0 |
+        |   2 |     3.0 | 3.0  1.0            0.0 |
         |   3 |     2.0 | 2.0  3.0            1.0 |
         |   4 |     4.0 | 4.0  2.0            3.0 |
     """
@@ -1190,19 +2292,41 @@ class Model(modeltools.ModelELS):
     """Dam base model."""
 
     _INLET_METHODS = (pic_inflow_v1,
+                      pic_inflow_v2,
                       calc_naturalremotedischarge_v1,
                       calc_remotedemand_v1,
                       calc_remotefailure_v1,
                       calc_requiredremoterelease_v1,
                       calc_requiredrelease_v1,
+                      calc_requiredrelease_v2,
                       calc_targetedrelease_v1)
     _RECEIVER_METHODS = (pic_totalremotedischarge_v1,
-                         update_loggedtotalremotedischarge_v1)
+                         update_loggedtotalremotedischarge_v1,
+                         pic_loggedrequiredremoterelease_v1,
+                         pic_loggedrequiredremoterelease_v2,
+                         calc_requiredremoterelease_v2,
+                         pic_loggedallowedremoterelieve_v1,
+                         calc_allowedremoterelieve_v1)
     _PART_ODE_METHODS = (pic_inflow_v1,
                          calc_waterlevel_v1,
                          calc_actualrelease_v1,
+                         calc_possibleremoterelieve_v1,
+                         calc_actualremoterelieve_v1,
+                         calc_actualremoterelease_v1,
+                         update_actualremoterelieve_v1,
+                         update_actualremoterelease_v1,
                          calc_flooddischarge_v1,
                          calc_outflow_v1)
-    _FULL_ODE_METHODS = (update_watervolume_v1,)
+    _FULL_ODE_METHODS = (update_watervolume_v1,
+                         update_watervolume_v2,
+                         update_watervolume_v3)
     _OUTLET_METHODS = (pass_outflow_v1,
-                       update_loggedoutflow_v1)
+                       update_loggedoutflow_v1,
+                       pass_actualremoterelease_v1,
+                       pass_actualremoterelieve_v1)
+    _SENDER_METHODS = (calc_missingremoterelease_v1,
+                       pass_missingremoterelease_v1,
+                       calc_allowedremoterelieve_v2,
+                       pass_allowedremoterelieve_v1,
+                       calc_requiredremotesupply_v1,
+                       pass_requiredremotesupply_v1)

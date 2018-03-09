@@ -32,6 +32,7 @@ for name in os.listdir('hydpy'):
             os.path.isfile(os.path.join('hydpy', name))):
         packages.append('.'.join(('hydpy', name)))
 packages.append('hydpy.cythons.autogen')
+packages.append('hydpy.docs.html')
 # Additionally, select all base model packages.
 for name in os.listdir(os.path.join('hydpy', 'models')):
     if not (name.startswith('_') or
@@ -166,6 +167,14 @@ if install:
               'HydPy are broken or perhaps only some typing errors in '
               'documentation were detected.  (exit code: %d)' % exitcode)
         sys.exit(1)
+    # Copy all generated additional docfiles into the orignal docs subpackage
+    # (on Travis-CI: for including them into the online-documentation).
+    path_html = os.path.join(oldpath, 'hydpy', 'docs', 'html')
+    import hydpy.docs.html
+    for filename in os.listdir(hydpy.docs.html.__path__[0]):
+        if filename.endswith('.html'):
+            shutil.copy(os.path.join(hydpy.docs.html.__path__[0], filename),
+                        os.path.join(path_html, filename))
     # Prepare coverage report and prepare it for sphinx.
     if coverage_report:
         os.system('coverage report -m --skip-covered')

@@ -7,16 +7,21 @@ structure HydPy projects.
 # ...from standard library
 from __future__ import division, print_function
 import copy
+import os
 import struct
+import warnings
 import weakref
 # ...from site-packages
 from matplotlib import pyplot
 # ...from HydPy
 from hydpy import pub
+from hydpy.core import abctools
+from hydpy.core import autodoctools
 from hydpy.core import connectiontools
+# from hydpy.core import filetools   actual import below, Python 2 issue
+from hydpy.core import magictools
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
-from hydpy.core import autodoctools
 from hydpy.cythons import pointerutils
 
 
@@ -73,7 +78,7 @@ class Keywords(set):
             for name in names:
                 objecttools.valid_variable_identifier(name)
         except ValueError:
-            objecttools.augmentexcmessage(
+            objecttools.augment_excmessage(
                 'While trying to add the keyword `%s` to device `%s`'
                 % (name, objecttools.devicename(self)))
 
@@ -135,7 +140,7 @@ valid variable identifier.  ...
     def __repr__(self):
         with objecttools.repr_.preserve_strings(True):
             return objecttools.assignrepr_list(
-                        sorted(self), 'Keywords(', width=70) + ')'
+                sorted(self), 'Keywords(', width=70) + ')'
 
     __dir__ = objecttools.dir_
 
@@ -271,7 +276,7 @@ does not define a valid variable identifier.  ...
         try:
             objecttools.valid_variable_identifier(name)
         except ValueError:
-            objecttools.augmentexcmessage(
+            objecttools.augment_excmessage(
                 'While trying to initialize a `%s` object with value `%s` '
                 'of type `%s`' % (objecttools.classname(self), name,
                                   objecttools.classname(name)))
@@ -335,9 +340,8 @@ does not define a valid variable identifier.  ...
         self._handlers.remove(handler)
 
     def __iter__(self):
-        for (key, value) in vars(self).items():
-            if isinstance(value, connectiontools.Connections):
-                yield (key, value)
+        for connections in self._all_connections:
+            yield connections
 
     def __lt__(self, other):
         return self.name < other.name
@@ -472,10 +476,11 @@ Keep in mind, that `name` is the unique identifier of node objects.
                 self._variable = variable
             self._keywords = Keywords()
             self._keywords.device = self
-            self.entries = connectiontools.Connections(self)
-            self.exits = connectiontools.Connections(self)
+            self.entries = connectiontools.Connections(self, 'entries')
+            self.exits = connectiontools.Connections(self, 'exits')
+            self._all_connections = (self.entries, self.exits)
             self.sequences = sequencetools.NodeSequences(self)
-            self.deploy_mode = 'newsim'
+            self.deploymode = 'newsim'
             self._blackhole = None
             self._handlers = weakref.WeakSet()
             cls._registry[name] = self
@@ -512,7 +517,7 @@ Keep in mind, that `name` is the unique identifier of node objects.
         cls._selection.clear()
         return nodes
 
-    def _get_deploy_mode(self):
+    def _get_deploymode(self):
         """Defines the kind of information a node deploys.
 
         The following modes are supported:
@@ -540,9 +545,9 @@ Keep in mind, that `name` is the unique identifier of node objects.
         simulation are not available (e.g. for parameter calibration)
         after the simulation is finished.
         """
-        return self._deploy_mode
+        return self._deploymode
 
-    def _set_deploy_mode(self, value):
+    def _set_deploymode(self, value):
         if value == 'newsim':
             self.sequences.sim.use_ext = False
         elif value == 'obs':
@@ -556,31 +561,75 @@ Keep in mind, that `name` is the unique identifier of node objects.
                 'When trying to set the routing mode of node %s, the value '
                 '`%s` was given, but only the following values are allowed: '
                 '`newsim`, `obs` and `oldsim`.' % (self.name, value))
-        self._deploy_mode = value
+        self._deploymode = value
 
-    deploy_mode = property(_get_deploy_mode, _set_deploy_mode)
+    deploymode = property(_get_deploymode, _set_deploymode)
+
+    def get_double(self, group):
+        """Return the :class:`~hydpy.cythons.pointertools.Double` object
+        appropriate for the given group and the predefined deploy mode.
+
+        >>> from hydpy import Node
+        >>> node = Node('node1')
+        >>> node.sequences.sim = 1.0
+        >>> node.sequences.obs = 2.0
+        >>> def test(deploymode):
+        ...     node.deploymode = deploymode
+        ...     for group in ('inlets', 'receivers', 'outlets', 'senders'):
+        ...         print(node.get_double(group), end='')
+        ...         if group != 'senders':
+        ...             print(end=' ')
+        >>> test('newsim')
+        1.0 1.0 1.0 1.0
+        >>> test('obs')
+        2.0 2.0 1.0 1.0
+        >>> test('oldsim')
+        1.0 1.0 0.0 0.0
+        >>> node.get_double('test')
+        Traceback (most recent call last):
+        ...
+        ValueError: Function `get_double` of class `Node` does not support \
+the given group name `test`.
+        """
+        if group in ('inlets', 'receivers'):
+            return self.get_double_via_exits()
+        elif group in ('outlets', 'senders'):
+            return self.get_double_via_entries()
+        raise ValueError(
+            'Function `get_double` of class `Node` does not '
+            'support the given group name `%s`.' % group)
 
     def get_double_via_exits(self):
         """Return the :class:`~hydpy.cythons.pointertools.Double` object that
         is supposed to deploy its value to the downstream elements."""
-        if self.deploy_mode != 'obs':
+        if self.deploymode != 'obs':
             return self.sequences.fastaccess.sim
-        else:
-            return self.sequences.fastaccess.obs
+        return self.sequences.fastaccess.obs
 
     def get_double_via_entries(self):
         """Return the :class:`~hydpy.cythons.pointertools.Double` object that
         is supposed to receive the value(s) of the upstream elements."""
-        if self.deploy_mode != 'oldsim':
+        if self.deploymode != 'oldsim':
             return self.sequences.fastaccess.sim
-        else:
-            return self._blackhole
+        return self._blackhole
 
     def reset(self, idx=None):
         """Reset the actual value of the simulation sequence to zero."""
         self.sequences.fastaccess.sim[0] = 0.
 
-    def _loaddata_sim(self, idx):
+    def open_files(self, idx=0):
+        """Call method
+        :func:`~hydpy.core.sequencetools.Sequences.open_files` of the
+        |Sequences| object handled (indirectly) by the actual |Node| object."""
+        self.sequences.open_files(idx)
+
+    def close_files(self):
+        """Call method
+        :func:`~hydpy.core.sequencetools.Sequences.close_files` of the
+        |Sequences| object handled (indirectly) by the actual |Node| object."""
+        self.sequences.close_files()
+
+    def _load_data_sim(self, idx):
         """Load the next sim sequence value (of the given index).
 
         Used during simulations in Python mode only.
@@ -592,7 +641,7 @@ Keep in mind, that `name` is the unique identifier of node objects.
             raw = fastaccess._sim_file.read(8)
             fastaccess.sim[0] = struct.unpack('d', raw)
 
-    def _savedata_sim(self, idx):
+    def _save_data_sim(self, idx):
         """Save the last sim sequence value (of the given index).
 
         Used during simulations in Python mode only.
@@ -604,7 +653,7 @@ Keep in mind, that `name` is the unique identifier of node objects.
             raw = struct.pack('d', fastaccess.sim[0])
             fastaccess._sim_file.write(raw)
 
-    def _loaddata_obs(self, idx):
+    def _load_data_obs(self, idx):
         """Load the next obs sequence value (of the given index).
 
         Used during simulations in Python mode only.
@@ -616,6 +665,7 @@ Keep in mind, that `name` is the unique identifier of node objects.
             raw = fastaccess._obs_file.read(8)
             fastaccess.obs[0] = struct.unpack('d', raw)
 
+    @magictools.printprogress
     def prepare_allseries(self, ramflag=True):
         """Prepare the series objects of both the `sim` and the `obs` sequence.
 
@@ -651,12 +701,12 @@ Keep in mind, that `name` is the unique identifier of node objects.
         else:
             seq.activate_disk()
 
-    def comparison_plot(self, **kwargs):
+    def plot_allseries(self, **kwargs):
         """Plot the series of both the `sim` and (if available) the `obs`
         sequence."""
-        for (name, seq) in self.sequences:
+        for seq in self.sequences:
             if pyplot.isinteractive():
-                name = ' '.join((self.name, name))
+                name = ' '.join((self.name, seq.name))
             pyplot.plot(seq.series, label=name, **kwargs)
         pyplot.legend()
         variable = self.variable
@@ -681,10 +731,13 @@ Keep in mind, that `name` is the unique identifier of node objects.
             with objecttools.repr_.preserve_strings(True):
                 with objecttools.assignrepr_tuple.always_bracketed(False):
                     line = objecttools.assignrepr_list(
-                                sorted(self.keywords), subprefix, width=70)
+                        sorted(self.keywords), subprefix, width=70)
             lines.append(line + ',')
         lines[-1] = lines[-1][:-1]+')'
         return '\n'.join(lines)
+
+
+abctools.NodeABC.register(Node)
 
 
 class Element(Device):
@@ -795,10 +848,12 @@ defined as a receiver, node which is not allowed.
             self = object.__new__(Element)
             self._check_name(name)
             self._name = name
-            self.inlets = connectiontools.Connections(self)
-            self.outlets = connectiontools.Connections(self)
-            self.receivers = connectiontools.Connections(self)
-            self.senders = connectiontools. Connections(self)
+            self.inlets = connectiontools.Connections(self, 'inlets')
+            self.outlets = connectiontools.Connections(self, 'outlets')
+            self.receivers = connectiontools.Connections(self, 'receivers')
+            self.senders = connectiontools.Connections(self, 'senders')
+            self._all_connections = (self.inlets, self.outlets,
+                                     self.receivers, self.senders)
             self._keywords = Keywords()
             self._keywords.device = self
             self.model = None
@@ -885,18 +940,19 @@ defined as a receiver, node which is not allowed.
         ['X', 'Y1', 'Y2', 'Y3', 'Y4']
         """
         variables = set()
-        for (name, connections) in self:
+        for connections in self:
             variables.update(connections.variables)
         return variables
 
-    def init_model(self):
-        """Initialize the model to be handled by this element and build
-        the required connections."""
-        dict_ = pub.controlmanager.loadfile(element=self)
-        self.connect(dict_['model'])
+    def init_model(self, clear_registry=True):
+        """Load the control file of the actual |Element| object, initialize
+        its |Model| object and build the required connections."""
+        info = pub.controlmanager.load_file(
+            element=self, clear_registry=clear_registry)
+        self.connect(info['model'])
 
     def connect(self, model=None):
-        """Connect the handled model with this element.
+        """Connect the handled |Model| with the actual |Element| object.
 
         The following examples involve an error that is catched cleanly
         only in pure Python mode, hence Cython is disabled:
@@ -942,7 +998,7 @@ defined as a receiver, node which is not allowed.
         Traceback (most recent call last):
         ...
         RuntimeError: The pointer of the acutal `PPDouble` instance at \
-index 0 requested, but not prepared yet via `setpointer`.
+index 0 requested, but not prepared yet via `set_pointer`.
 
         The last command resulted in a somewhat strange error message.  The
         reason for the explained error is that the `hbranch` model does now
@@ -985,9 +1041,23 @@ assigned to the element so far.
             else:
                 self.model.connect()
         except BaseException:
-            objecttools.augmentexcmessage(
+            objecttools.augment_excmessage(
                 'While trying to build the connections of the model handled '
                 'by element `%s`' % self.name)
+
+    def open_files(self, idx=0):
+        """Call method
+        :func:`~hydpy.core.sequencetools.Sequences.open_files` of the
+        |Sequences| object handled (indirectly) by the actual |Element|
+        object."""
+        self.model.sequences.open_files(idx)
+
+    def close_files(self):
+        """Call method
+        :func:`~hydpy.core.sequencetools.Sequences.close_files` of the
+        |Sequences| object handled (indirectly) by the actual |Element|
+        object."""
+        self.model.sequences.close_files()
 
     def prepare_allseries(self, ramflag=True):
         """Prepare the series objects of all `input`, `flux` and `state`
@@ -1005,6 +1075,7 @@ assigned to the element so far.
         self.prepare_fluxseries(ramflag)
         self.prepare_stateseries(ramflag)
 
+    @magictools.printprogress
     def prepare_inputseries(self, ramflag=True):
         """Prepare the series objects of the `input` sequences of the model
         handled by this element.
@@ -1013,6 +1084,7 @@ assigned to the element so far.
         """
         self._prepare_series('inputs', ramflag)
 
+    @magictools.printprogress
     def prepare_fluxseries(self, ramflag=True):
         """Prepare the series objects of the `flux` sequences of the model
         handled by this element.
@@ -1021,6 +1093,7 @@ assigned to the element so far.
         """
         self._prepare_series('fluxes', ramflag)
 
+    @magictools.printprogress
     def prepare_stateseries(self, ramflag=True):
         """Prepare the series objects of the `state` sequences of the model
         handled by this element.
@@ -1039,9 +1112,11 @@ assigned to the element so far.
                 subseqs.activate_disk()
 
     def _plot(self, subseqs, names, kwargs):
-        if names is not None:
-            subseqs = ((name, getattr(name)) for name in names)
-        for seq in subseqs:
+        if names:
+            selseqs = (getattr(subseqs, name) for name in names)
+        else:
+            selseqs = subseqs
+        for seq in selseqs:
             if seq.NDIM == 0:
                 label = kwargs.pop('label', ' '.join((self.name, seq.name)))
                 pyplot.plot(seq.series, label=label, **kwargs)
@@ -1052,7 +1127,7 @@ assigned to the element so far.
         if not pyplot.isinteractive():
             pyplot.show()
 
-    def input_plot(self, names=None, **kwargs):
+    def plot_inputseries(self, names=None, **kwargs):
         """Plot the `input` series of the handled model.
 
         To plot the series of a subset of all sequences, pass the respective
@@ -1060,7 +1135,7 @@ assigned to the element so far.
         """
         self._plot(self.model.sequences.inputs, names, kwargs)
 
-    def flux_plot(self, names=None, **kwargs):
+    def plot_fluxseries(self, names=None, **kwargs):
         """Plot the `flux` series of the handled model.
 
         To plot the series of a subset of all sequences, pass the respective
@@ -1068,7 +1143,7 @@ assigned to the element so far.
         """
         self._plot(self.model.sequences.fluxes, names, kwargs)
 
-    def state_plot(self, names=None, **kwargs):
+    def plot_stateseries(self, names=None, **kwargs):
         """Plot the `state` series of the handled model.
 
         To plot the series of a subset of all sequences, pass the respective
@@ -1091,18 +1166,21 @@ assigned to the element so far.
                         subprefix = '%s%s=' % (blanks, conname)
                         nodes = [str(node) for node in connections.slaves]
                         line = objecttools.assignrepr_list(
-                                                nodes, subprefix, width=70)
+                            nodes, subprefix, width=70)
                         lines.append(line + ',')
                 if self.keywords:
                     subprefix = '%skeywords=' % blanks
                     line = objecttools.assignrepr_list(
-                                sorted(self.keywords), subprefix, width=70)
+                        sorted(self.keywords), subprefix, width=70)
                     lines.append(line + ',')
                 lines[-1] = lines[-1][:-1]+')'
                 return '\n'.join(lines)
 
     def __repr__(self):
         return self.assignrepr('')
+
+
+abctools.ElementABC.register(Element)
 
 
 class Devices(object):
@@ -1140,6 +1218,17 @@ class Devices(object):
     AttributeError: The selected Nodes object has neither a `na_` \
 attribute nor does it handle a Node object with name or keyword `na_`, \
 which could be returned.
+
+    Sometimes it is more convenient to receive empty always iterables, even
+    empty ones (especially when using keyword access, see below).  This
+    cann be done by change the `return_always_iterables` class flag:
+
+    >>> Nodes.return_always_iterables = True
+    >>> nodes.na_
+    Nodes()
+    >>> nodes.na
+    Nodes("na")
+    >>> Nodes.return_always_iterables = False
 
     Attribute deleting is supported:
 
@@ -1218,20 +1307,22 @@ as a "normal" attribute and is thus not support.
     """
 
     _contentclass = None
+    return_always_iterables = False
 
     def __init__(self, *values):
-        self.__dict__['_devices'] = {}
-        self.__dict__['_shadowed_keywords'] = set()
+        with objecttools.ResetAttrFuncs(self):
+            self._devices = {}
+            self._shadowed_keywords = set()
         try:
             self._extract_values(values)
         except BaseException:
-            objecttools.augmentexcmessage(
+            objecttools.augment_excmessage(
                 'While trying to initialize a `%s` object'
                 % objecttools.classname(self))
 
     def _extract_values(self, values):
         for value in objecttools.extract(
-                        values, types=(self._contentclass, str), skip=True):
+                values, types=(self._contentclass, str), skip=True):
             self.add_device(value)
 
     def add_device(self, device):
@@ -1332,7 +1423,8 @@ as a "normal" attribute and is thus not support.
 
         >>> subsubgroup = subgroup.group_b
         >>> subsubgroup
-        Nodes("ne")
+        Node("ne", variable="Q",
+             keywords=["group_1", "group_b"])
 
         Node that the keywords already used for building a subgroup of nodes
         are no informative anymore (as they hold true for each node) and are
@@ -1340,20 +1432,31 @@ as a "normal" attribute and is thus not support.
 
         >>> sorted(subgroup.keywords)
         ['group_a', 'group_b']
-        >>> sorted(subsubgroup.keywords)
-        []
 
         The latter might be confusing, if you intend to work with a subgroup
         of nodes for a longer time.  After copying the subgroup, all keywords
         of the contained devices are available again:
 
-        >>> newgroup = subsubgroup.copy()
+        >>> newgroup = subgroup.copy()
         >>> sorted(newgroup.keywords)
-        ['group_1', 'group_b']
+        ['group_1', 'group_a', 'group_b']
         """
         return set(keyword for device in self
                    for keyword in device.keywords if
                    keyword not in self._shadowed_keywords)
+
+    def open_files(self, idx=0):
+        """Call method :func:`~Node.open_files` or :func:`~Element.open_files`
+        of all contained |Node| or |Element| objects."""
+        for device in self:
+            device.open_files(idx)
+
+    def close_files(self):
+        """Call method :func:`~Node.close_files` or
+        :func:`~Element.close_files` of all contained |Node| or
+        |Element| objects."""
+        for device in self:
+            device.close_files()
 
     def copy(self):
         """Return a shallow copy of the actual :class:`Devices` instance.
@@ -1421,12 +1524,17 @@ which is in conflict with using their names as identifiers.
     def __getattr__(self, name):
         try:
             _devices = super(Devices, self).__getattribute__('_devices')
-            return _devices[name]
+            _device = _devices[name]
+            if self.return_always_iterables:
+                return self.__class__(_device)
+            return _device
         except KeyError:
             pass
         _devices = self._select_devices_by_keyword(name)
-        if len(_devices) > 0:
+        if self.return_always_iterables or len(_devices) > 1:
             return _devices
+        elif len(_devices) == 1:
+            return _devices.devices[0]
         else:
             raise AttributeError(
                 'The selected %s object has neither a `%s` attribute '
@@ -1518,11 +1626,13 @@ which is in conflict with using their names as identifiers.
         return self.assignrepr('')
 
     def assignrepr(self, prefix):
+        """Return a string representation of the actual |Devices| object
+        prefixed with the given string."""
         with objecttools.repr_.preserve_strings(True):
             with pub.options.ellipsis(2, optional=True):
                 prefix += '%s(' % objecttools.classname(self)
                 repr_ = objecttools.assignrepr_values(
-                                        self.names, prefix, width=70)
+                    self.names, prefix, width=70)
                 return repr_ + ')'
 
     def __dir__(self):
@@ -1531,9 +1641,11 @@ which is in conflict with using their names as identifiers.
         >>> from hydpy import dummies
         >>> from hydpy.core.objecttools import assignrepr_values
         >>> print(assignrepr_values(dir(dummies.nodes), '', 70))
-        add_device, assignrepr, copy, devices, group_1, group_2, group_a,
-        group_b, keywords, na, names, nb, nc, nd, ne, prepare_allseries,
-        prepare_obsseries, prepare_simseries, remove_device
+        add_device, assignrepr, close_files, copy, devices, group_1, group_2,
+        group_a, group_b, keywords, na, names, nb, nc, nd, ne, open_files,
+        prepare_allseries, prepare_obsseries, prepare_simseries,
+        remove_device, return_always_iterables, save_allseries,
+        save_obsseries, save_simseries
         """
         return objecttools.dir_(self) + list(self.names) + list(self.keywords)
 
@@ -1543,23 +1655,63 @@ class Nodes(Devices):
 
     _contentclass = Node
 
+    @magictools.printprogress
     def prepare_allseries(self, ramflag=True):
-        """Call method :func:`~Node.prepare_allseries` of all handled
-        elements."""
+        """Call methods :func:`~Node.prepare_simseries` and
+        :func:`~Node.prepare_obsseries`."""
         self.prepare_simseries(ramflag)
         self.prepare_obsseries(ramflag)
 
+    @magictools.printprogress
     def prepare_simseries(self, ramflag=True):
-        """Call method :func:`~Node.prepare_simseries` of all handled
-        elements."""
-        for node in self:
+        """Call method :func:`~Node.prepare_simseries` of each handled
+        |Node| object."""
+        for node in magictools.progressbar(self):
             node.prepare_simseries(ramflag)
 
+    @magictools.printprogress
     def prepare_obsseries(self, ramflag=True):
-        """Call method :func:`~Node.prepare_obsseries` of all handled
-        elements."""
-        for node in self:
+        """Call method :func:`~Node.prepare_obsseries` of each handled
+        |Node| object."""
+        for node in magictools.progressbar(self):
             node.prepare_obsseries(ramflag)
+
+    @magictools.printprogress
+    def save_allseries(self):
+        """Call methods :func:`~Nodes.save_simseries` and
+        :func:`~Nodes.save_obsseries`."""
+        self.save_inputseries()
+        self.save_simseries()
+        self.save_obsseries()
+
+    @magictools.printprogress
+    def save_simseries(self, ramflag=True):
+        """Call method
+        :func:`~hydpy.core.sequencetools.IOSequence.save_ext` of all
+        "memory flag activated" |NodeSequence| objects storing simulated
+        values handled (indirectly) by each |Node| object."""
+        self._save_nodeseries('sim', pub.sequencemanager.simoverwrite)
+
+    @magictools.printprogress
+    def save_obsseries(self, ramflag=True):
+        """Call method
+        :func:`~hydpy.core.sequencetools.IOSequence.save_ext` of all
+        "memory flag activated" |NodeSequence| objects storing observed
+        values handled (indirectly) by each |Node| object."""
+        self._save_nodeseries('obs', pub.sequencemanager.obsoverwrite)
+
+    def _save_nodeseries(self, seqname, overwrite):
+        for node in magictools.progressbar(self):
+            seq = getattr(node.sequences, seqname)
+            if seq.memoryflag:
+                if overwrite or not os.path.exists(seq.filepath_ext):
+                    seq.save_ext()
+                else:
+                    warnings.warn(
+                        'Due to the argument `overwrite` beeing `False` '
+                        'it is not allowed to overwrite the already '
+                        'existing file `%s`.'
+                        % seq.filepath_ext)
 
 
 class Elements(Devices):
@@ -1567,29 +1719,197 @@ class Elements(Devices):
 
     _contentclass = Element
 
-    def prepare_allseries(self, ramflag=True):
-        """Call method :func:`~Element.prepare_allseries` of all handled
-        elements."""
+    @magictools.printprogress
+    def init_models(self):
+        from hydpy.core import filetools
+        """Call method :func:`~Element.init_model` of each handled
+        |Element| object and afterwards method
+        :func:`~hydpy.core.parametertools.Parameters.update` of the
+        |Parameters| object handled (indirectly) by each |Element| object."""
+        warn = pub.options.warnsimulationstep
+        pub.options.warnsimulationstep = False
+        try:
+            for element in magictools.progressbar(self):
+                try:
+                    element.init_model(clear_registry=False)
+                except IOError as exc:
+                    temp = 'While trying to load the control file'
+                    if ((temp in str(exc)) and
+                            pub.options.warnmissingcontrolfile):
+                        warnings.warn('No model could be initialized for '
+                                      'element `%s`' % element)
+                        self.model = None
+                    else:
+                        objecttools.augment_excmessage(
+                            'While trying to initialize the model of '
+                            'element `%s`' % element)
+                else:
+                    element.model.parameters.update()
+        finally:
+            pub.options.warnsimulationstep = warn
+            filetools.ControlManager.clear_registry()
+
+    def connect(self):
+        """Call method :func:`~Element.connect` of each |Element| object
+        and function :func:`~hydpy.core.sequencetools.Sequences.update` of the
+        |Sequences| object handled (indirectly) by each |Element| object."""
         for element in self:
+            element.connect()
+            element.model.parameters.update()
+
+    @magictools.printprogress
+    def save_controls(self, controldir=None, projectdir=None,
+                      parameterstep=None, simulationstep=None,
+                      auxfiler=None):
+        """Save the control parameters of the |Model| object handled by
+        each |Element| object and eventually the ones handled by the
+        given |Auxfiler| object."""
+        _currentdir = pub.controlmanager._currentdir
+        _projectdir = pub.controlmanager.projectdir
+        try:
+            if controldir:
+                pub.controlmanager.currentdir = controldir
+            if projectdir:
+                pub.controlmanager.projectdir = projectdir
+            if auxfiler:
+                auxfiler.save()
+            for element in magictools.progressbar(self):
+                element.model.parameters.save_controls(
+                    parameterstep=parameterstep,
+                    simulationstep=simulationstep,
+                    auxfiler=auxfiler)
+        finally:
+            pub.controlmanager._currentdir = _currentdir
+            pub.controlmanager.projectdir = _projectdir
+
+    @magictools.printprogress
+    def load_conditions(self, conditiondir=None, projectdir=None):
+        """Save the initial conditions of the |Model| object handled by
+        each |Element| object."""
+        _currentdir = pub.conditionmanager._currentdir
+        _projectdir = pub.conditionmanager.projectdir
+        try:
+            if projectdir:
+                pub.conditionmanager.projectdir = projectdir
+            if conditiondir:
+                pub.conditionmanager.currentdir = conditiondir
+            for element in magictools.progressbar(self):
+                element.model.sequences.load_conditions()
+        finally:
+            pub.conditionmanager._currentdir = _currentdir
+            pub.conditionmanager.projectdir = _projectdir
+
+    @magictools.printprogress
+    def save_conditions(self, conditiondir=None, projectdir=None,
+                        controldir=None):
+        """Save the calculated conditions of the |Model| object handled by
+        each |Element| object."""
+        _conditiondir = pub.conditionmanager._currentdir
+        _projectdir = pub.conditionmanager.projectdir
+        _controldir = pub.controlmanager._currentdir
+        try:
+            if projectdir:
+                pub.conditionmanager.projectdir = projectdir
+            if conditiondir:
+                pub.conditionmanager.currentdir = conditiondir
+            if controldir:
+                pub.controlmanager.currentdir = controldir
+            for element in magictools.progressbar(self):
+                element.model.sequences.save_conditions()
+        finally:
+            pub.conditionmanager._currentdir = _conditiondir
+            pub.conditionmanager.projectdir = _projectdir
+            pub.controlmanager._currentdir = _controldir
+
+    def trim_conditions(self):
+        """Call method
+        :func:`~hydpy.core.sequencetools.Sequences.trim_conditions` of the
+        |Sequences| object handled (indirectly) by each |Element| object."""
+        for element in self:
+            element.model.sequences.trim_conditions()
+
+    def reset_conditions(self):
+        """Call method
+        :func:`~hydpy.core.sequencetools.Sequences.reset` of the
+        |Sequences| object handled (indirectly) by each |Element| object."""
+        for element in self:
+            element.model.sequences.reset()
+
+    @magictools.printprogress
+    def prepare_allseries(self, ramflag=True):
+        """Call method :func:`~Element.prepare_allseries` of each handled
+        |Element| object."""
+        for element in magictools.progressbar(self):
             element.prepare_allseries(ramflag)
 
+    @magictools.printprogress
     def prepare_inputseries(self, ramflag=True):
-        """Call method :func:`~Element.prepare_inputseries` of all handled
-        elements."""
-        for element in self:
+        """Call method :func:`~Element.prepare_inputseries` of each handled
+        |Element| object."""
+        for element in magictools.progressbar(self):
             element.prepare_inputseries(ramflag)
 
+    @magictools.printprogress
     def prepare_fluxseries(self, ramflag=True):
-        """Call method :func:`~Element.prepare_fluxseries` of all handled
-        elements."""
-        for element in self:
+        """Call method :func:`~Element.prepare_fluxseries` of each handled
+        |Element| object."""
+        for element in magictools.progressbar(self):
             element.prepare_fluxseries(ramflag)
 
+    @magictools.printprogress
     def prepare_stateseries(self, ramflag=True):
-        """Call method :func:`~Element.prepare_stateseries` of all handled
-        elements."""
-        for element in self:
+        """Call method :func:`~Element.prepare_stateseries` of each handled
+        |Element| object."""
+        for element in magictools.progressbar(self):
             element.prepare_stateseries(ramflag)
+
+    @magictools.printprogress
+    def save_allseries(self):
+        """Call methods :func:`~Elements.save_inputseries`,
+        :func:`~Elements.save_fluxseries`,
+        and :func:`~Elements.save_stateseries`."""
+        self.save_inputseries()
+        self.save_fluxseries()
+        self.save_stateseries()
+
+    @magictools.printprogress
+    def save_inputseries(self):
+        """Call method
+        :func:`~hydpy.core.sequencetools.IOSequence.save_ext` of all
+        "memory flag activated" |InputSequence| objects handled (indirectly)
+        by each |Element| object."""
+        self._save_modelseries('inputs', pub.sequencemanager.inputoverwrite)
+
+    @magictools.printprogress
+    def save_fluxseries(self):
+        """Call method
+        :func:`~hydpy.core.sequencetools.IOSequence.save_ext` of all
+        "memory flag activated" |FluxSequence| objects handled (indirectly)
+        by each |Element| object."""
+        self._save_modelseries('fluxes', pub.sequencemanager.outputoverwrite)
+
+    @magictools.printprogress
+    def save_stateseries(self):
+        """Call method
+        :func:`~hydpy.core.sequencetools.IOSequence.save_ext` of all
+        "memory flag activated" |StateSequence| objects handled (indirectly)
+        by each |Element| object."""
+        self._save_modelseries('states', pub.sequencemanager.outputoverwrite)
+
+    def _save_modelseries(self, name_subseqs, overwrite):
+        for element in magictools.progressbar(self):
+            sequences = element.model.sequences
+            subseqs = getattr(sequences, name_subseqs, ())
+            for seq in subseqs:
+                if seq.memoryflag:
+                    if overwrite or not os.path.exists(seq.filepath_ext):
+                        seq.save_ext()
+                    else:
+                        warnings.warn(
+                            'Due to the argument `overwrite` beeing `False` '
+                            'it is not allowed to overwrite the already '
+                            'existing file `%s`.'
+                            % seq.filepath_ext)
 
 
 autodoctools.autodoc_module()

@@ -16,7 +16,7 @@ cpdef double MAX_LOG_FLOAT = 700.0
 Values below and slightly above can be assigned to the exponential function:
 
 >>> from numpy import exp, log
->>> from hydpy.core.objecttools import round_
+>>> from hydpy import round_
 >>> round_(log(exp(700.0)))
 700.0
 
@@ -32,14 +32,14 @@ inf
 The exact value of :const:`MAX_LOG_FLOAT` might differ between different
 systems.  So an automated estimation of this value would be advisable.
 (On Windows using 64 bit Python, even 709.0 works.  But a not too small
-savety factor seemed preferable.)
+safety factor seemed preferable.)
 """
 
 cpdef inline double _max(double x_value, double y_value) nogil:
     """The usual (discontinuous) maximum function.
 
     >>> from hydpy.cythons import smoothutils
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> round_(smoothutils._max(1.5, 2.5))
     2.5
     >>> round_(smoothutils._max(-1.5, -2.5))
@@ -57,7 +57,7 @@ cpdef inline double _min(double x_value, double y_value) nogil:
     """The usual (discontinuous) minimum function.
 
     >>> from hydpy.cythons import smoothutils
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> round_(smoothutils._min(1.5, 2.5))
     1.5
     >>> round_(smoothutils._min(-1.5, -2.5))
@@ -80,7 +80,7 @@ cpdef inline double smooth_logistic1(double value, double parameter) nogil:
     for four different smoothing parameters:
 
     >>> from hydpy.cythons import smoothutils
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> for value in range(-5, 6):
     ...     if value == -5:
     ...         round_('value, par=10.0,  par=1.0,  par=0.1,  par=0.0')
@@ -140,7 +140,7 @@ cpdef inline double smooth_logistic2(double value, double parameter) nogil:
     logistic function for four different smoothing parameters:
 
     >>> from hydpy.cythons import smoothutils
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> for value in range(-5, 6):
     ...     if value == -5:
     ...         round_('value, par=3.0,  par=1.0,  par=0.1,  par=0.0')
@@ -200,7 +200,7 @@ cpdef inline double smooth_logistic2_derivative(double value,
     parameters:
 
     >>> from hydpy.cythons import smoothutils
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> for value in range(-5, 6):
     ...     if value == -5:
     ...         round_('value,  par=3.0,  par=1.0,  par=0.1, par=0.0')
@@ -292,7 +292,7 @@ cpdef inline double smooth_logistic3(double value, double parameter) nogil:
     function for three different smoothing parameters:
 
     >>> from hydpy.cythons import smoothutils
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> from numpy import arange
     >>> for value in arange(-5.5, 6):
     ...     if value == -5.5:
@@ -343,7 +343,7 @@ cpdef inline double smooth_max1(
     x is constantly set to 5, parameter y is varied between 0 and 10:
 
     >>> from hydpy.cythons import smoothutils
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> for value in range(11):
     ...     if value == 0:
     ...         round_('y_value, par=3.0,  par=1.0,  par=0.3,  par=0.0')
@@ -407,7 +407,7 @@ cpdef inline double smooth_min1(
     x is constantly set to 5, parameter y is varied between 0 and 10:
 
     >>> from hydpy.cythons import smoothutils
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> for value in range(11):
     ...     if value == 0:
     ...         round_('y_value, par=3.0,  par=1.0,  par=0.3,  par=0.0')

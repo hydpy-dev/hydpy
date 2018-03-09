@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
+# pylint: enable=missing-docstring
 
 # import...
 # ...from standard library
@@ -47,6 +49,30 @@ class RequiredRemoteRelease(sequencetools.FluxSequence):
     NDIM, NUMERIC = 0, False
 
 
+class AllowedRemoteRelieve(sequencetools.FluxSequence):
+    """Allowed water release to relieve a dam during high
+    flow conditions [m³/s]."""
+    NDIM, NUMERIC = 0, False
+
+
+class RequiredRemoteSupply(sequencetools.FluxSequence):
+    """Required water supply, e.g. to fill a dam during low water conditions
+    [m³/s]."""
+    NDIM, NUMERIC = 0, False
+
+
+class PossibleRemoteRelieve(sequencetools.FluxSequence):
+    """Maximum possible water release to a remote location to relieve the
+    dam during high flow conditions [m³/s]."""
+    NDIM, NUMERIC = 0, True
+
+
+class ActualRemoteRelieve(sequencetools.FluxSequence):
+    """Actual water release to a remote location to relieve the
+    dam during high flow conditions [m³/s]."""
+    NDIM, NUMERIC = 0, True
+
+
 class RequiredRelease(sequencetools.FluxSequence):
     """Required water release for reducing drought events downstream [m³/s]."""
     NDIM, NUMERIC = 0, False
@@ -60,8 +86,19 @@ class TargetedRelease(sequencetools.FluxSequence):
 
 
 class ActualRelease(sequencetools.FluxSequence):
-    """Actual water release thought for reducing with drought events
+    """Actual water release thought for reducing drought events
     downstream [m³/s]."""
+    NDIM, NUMERIC = 0, True
+
+
+class MissingRemoteRelease(sequencetools.FluxSequence):
+    """Amount of the required remote demand that could not be met
+    by the actual release [m³/s]."""
+    NDIM, NUMERIC = 0, False
+
+
+class ActualRemoteRelease(sequencetools.FluxSequence):
+    """Actual water release thought for arbitrary "remote" purposes [m³/s]."""
     NDIM, NUMERIC = 0, True
 
 
@@ -78,8 +115,14 @@ class FluxSequences(sequencetools.FluxSequences):
                    RemoteDemand,
                    RemoteFailure,
                    RequiredRemoteRelease,
+                   AllowedRemoteRelieve,
+                   RequiredRemoteSupply,
+                   PossibleRemoteRelieve,
+                   ActualRemoteRelieve,
                    RequiredRelease,
                    TargetedRelease,
                    ActualRelease,
+                   MissingRemoteRelease,
+                   ActualRemoteRelease,
                    FloodDischarge,
                    Outflow)

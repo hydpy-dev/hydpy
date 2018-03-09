@@ -1,37 +1,36 @@
 # -*- coding: utf-8 -*-
-"""This modules implements tools for handling connections between
-:class:`~hydpy.core.devicetools.Node` and
-:class:`~hydpy.core.devicetools.Element` instances.
+"""This modules implements tools for handling connections between |Node| and
+|Element| instances.
 """
 # import...
 # ...from standard library
 from __future__ import division, print_function
 # ...from Hydpy
-from hydpy.core import objecttools
 from hydpy.core import autodoctools
 
 
 class Connections(object):
-    """Connection between :class:`~hydpy.core.devicetools.Node` and
-    :class:`~hydpy.core.devicetools.Element` instances.
+    """Connection between |Node| and |Element| instances.
     """
 
-    def __init__(self, master, *slaves):
+    __slots__ = ('master', 'name', '_slaves')
+
+    def __init__(self, master, name):
         self.master = master
-        for slave in slaves:
-            self += slave
+        self.name = name
+        self._slaves = set()
 
     def __iadd__(self, slave):
-        setattr(self, slave.name, slave)
+        self._slaves.add(slave)
         return self
 
     @property
     def names(self):
-        return [name for (name, slave) in self]
+        return tuple(slave.name for slave in sorted(self._slaves))
 
     @property
     def slaves(self):
-        return [slave for (name, slave) in self]
+        return tuple(slave for slave in sorted(self._slaves))
 
     @property
     def variables(self):
@@ -39,27 +38,37 @@ class Connections(object):
         if variable:
             return [variable]
         else:
-            return sorted(set([slave.variable for (name, slave) in self]))
+            return sorted(set([slave.variable for slave in self]))
+
+    def __getattr__(self, name):
+        for slave in self._slaves:
+            if name == slave.name:
+                return slave
+        else:
+            raise AttributeError(
+                'The selected connection neither has a attribute nor does '
+                'it handle a slave named `%s`.' % name)
+
+    def __delattr__(self, name):
+        slave = getattr(self, name)
+        self._slaves.remove(slave)
 
     def __contains__(self, value):
-        return value in (self.names + self.slaves)
-
-    def __setitem__(self, name, value):
-        self.__dict__[name] = value
-
-    def __getitem__(self, name):
-        return self.__dict__[name]
+        try:
+            value = value.name
+        except AttributeError:
+            pass
+        return value in self.names
 
     def __iter__(self):
-        for (name, slave) in vars(self).items():
-            if name != 'master':
-                yield (name, slave)
+        for slave in sorted(self._slaves):
+            yield slave
 
     def __len__(self):
-        return len(self.names)
+        return len(self._slaves)
 
     def __dir__(self):
-        return objecttools.dir_(self)
+        return ['names', 'slaves', 'variables'] + list(self.names)
 
 
 autodoctools.autodoc_module()

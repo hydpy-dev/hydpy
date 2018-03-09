@@ -1,4 +1,7 @@
-
+#!python
+#cython: boundscheck=False
+#cython: wraparound=False
+#cython: initializedcheck=False
 """This module gives Python objects pointer access to C variables of type
 `double` via Cython.
 
@@ -158,8 +161,13 @@ Note:
 # import...
 # ...from standard library
 from __future__ import division, print_function
+import numbers
+import cython
+# ...from site-packages
 import numpy
+# cimport...
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
+
 
 cdef inline double conv2double(value):
     """Convert `value` (`Double`, `PDouble`, `float`, `int` object) to a
@@ -227,11 +235,11 @@ cdef class DoubleBase(object):
     def __float__(self):
         return float(conv2double(self))
 
-    def __repr__(self):
-        return repr(conv2double(self))
-
     def __str__(self):
         return str(conv2double(self))
+
+    def __format__(self, digits):
+        return format(float(self), digits)
 
     def __richcmp__(x, y, int z):
         cdef double _x = conv2double(x)
@@ -254,6 +262,10 @@ cdef class DoubleBase(object):
         return ()
 
 
+numbers.Real.register(DoubleBase)
+
+
+@cython.final
 cdef class Double(DoubleBase):
     """Handle a variable of the C type `double` in Python.
 
@@ -302,7 +314,11 @@ cdef class Double(DoubleBase):
         self.value %= conv2double(x)
         return self
 
+    def __repr__(self):
+        return 'Double(%s)' % conv2double(self)
 
+
+@cython.final
 cdef class PDouble(DoubleBase):
     """Handle a pointer to a variable of the C type `double` in Python.
 
@@ -353,7 +369,11 @@ cdef class PDouble(DoubleBase):
         self.p_value[0] %= conv2double(x)
         return self
 
+    def __repr__(self):
+        return 'PDouble(Double(%s))' % conv2double(self)
 
+
+@cython.final
 cdef class PPDouble(object):
     """Handle pointers to multiple variables of the C type `double` in Python.
 
@@ -381,9 +401,9 @@ cdef class PPDouble(object):
         if not self.ready[idx]:
             raise RuntimeError('The pointer of the acutal `PPDouble` instance '
                                'at index %s requested, but not prepared yet '
-                               'via `setpointer`.' % idx)
+                               'via `set_pointer`.' % idx)
 
-    def setpointer(self, value, idx):
+    def set_pointer(self, value, idx):
         self.check0()
         self.check1(idx)
         cdef int _idx = idx

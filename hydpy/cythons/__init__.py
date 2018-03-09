@@ -1,7 +1,13 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Jan 30 14:23:11 2017
 
-@author: tyralla
-"""
+import sys
+import importlib
 
+_modulenames = ('pointerutils',
+                'annutils',
+                'configutils',
+                'smoothutils')
+
+for modulename in _modulenames:
+    module = importlib.import_module('hydpy.cythons.autogen.'+modulename)
+    sys.modules['hydpy.cythons.'+modulename] = module
+    locals()[modulename] = module

@@ -68,7 +68,7 @@ class YPoints(parametertools.MultiParameter):
         self.subpars.pars.model.sequences.fluxes.outputs.shape = self.shape[0]
         for (idx, key) in enumerate(sorted(kwargs)):
             value = kwargs[key]
-            if ((key not in devicetools.Node.registerednames()) and
+            if ((key not in devicetools.Node.registered_names()) and
                     (pub.timegrids is not None)):
                 raise ValueError('Node `%s` does not exist so far.  Hence it '
                                  'is not possible to branch to it.' % key)
@@ -83,7 +83,7 @@ class YPoints(parametertools.MultiParameter):
                                      % (self.shape[1], key, len(value)))
                 else:
                     message = 'The affected keyword argument is `%s`' % key
-                    objecttools.augmentexcmessage(suffix=message)
+                    objecttools.augment_excmessage(suffix=message)
             setattr(self, key, self[idx])
             self.subpars.pars.model.nodenames.append(key)
 

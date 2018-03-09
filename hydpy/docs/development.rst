@@ -227,7 +227,7 @@ HydPy functionalities must be coded twice.  Use `pyversion` in these cases:
     SystemError: just a test
 
 (The example above is already taken into account by function
-:func:`~hydpy.core.objecttools.augmentexcmessage`.)
+:func:`~hydpy.core.objecttools.augment_excmessage`.)
 
 
 Site Packages
@@ -257,7 +257,7 @@ Always use the following pattern at the top of a new module
     >>> import numpy
     >>> # ...from HydPy
     >>> from hydpy.core import sequencetools
-    >>> from hydpy.cythons import pointer
+    >>> from hydpy.cythons import pointerutils
 
 Note that each import command has its own line.  Always import
 complete modules from HydPy without changing their names. ---
@@ -303,12 +303,12 @@ consistent, whenever this appears to be useful. One example is that it
 is not allowed to assign an unknown string to the `outputfiletype` of a
 :class:`~hydpy.core.filetools.SequenceManager`:
 
-    >>> from hydpy import SequenceManager
+    >>> from hydpy.core.filetools import SequenceManager
     >>> sm = SequenceManager()
     >>> sm.outputfiletype = 'test'
     Traceback (most recent call last):
       ...
-    NotImplementedError: The given output file type `test` is not implemented yet.  Please choose one of the following file types: ('npy', 'asc').
+    ValueError: The given sequence file type `test` is not implemented.  Please choose one of the following file types: npy and asc.
 
 Of course, the extensive usage of protected attributes increases
 the length of the source code and slows computation time.  But,
@@ -345,7 +345,7 @@ containing the given object, which is in many cases the most relevant
 information for identifying the error source.)
 
 Whenever possible, us function
-:func:`~hydpy.core.objecttools.augmentexcmessage` to augment
+:func:`~hydpy.core.objecttools.augment_excmessage` to augment
 standard Python error messages with `HydPy information`.
 
 
@@ -393,18 +393,14 @@ Collection Classes
 The naming (of the instances) of collection classes is discussed just
 above.  Additionally, try to follow the following recommendations.
 
-Each collection object should be iterable.  Normally, both the names of
-the handled objects (as known to the collection object) and the objects
-themself should be returned, e.g.:
+Each collection object should be iterable, e.g.:
 
     >>> from hydpy import Nodes
-    >>> nodes = Nodes()
-    >>> nodes += 'gauge1'
-    >>> nodes += 'gauge2'
-    >>> for (name, node) in nodes:
-    ...     name, node
-    ('gauge1', Node("gauge1", variable="Q"))
-    ('gauge2', Node("gauge2", variable="Q"))
+    >>> nodes = Nodes('gauge1', 'gauge2')
+    >>> for node in nodes:
+    ...     node
+    Node("gauge1", variable="Q")
+    Node("gauge2", variable="Q")
 
 To ease working in the interactive mode, objects handled by a
 collection object should be accessible as attributes:
@@ -418,7 +414,7 @@ Whenever usefull, define convenience functions which simplify the
 handling of collection objects, e.g.:
 
     >>> nodes += Node('gauge1')
-    >>> nodes.gauge1 is nodes['gauge1']
+    >>> nodes.gauge1 is Node('gauge1')
     True
     >>> len(nodes)
     2
@@ -808,7 +804,7 @@ functioning online documentation.  If nothing goes wrong, the
 `gh-pages branch`_ automatically, meaning, that this
 `online documentation`_ is updated immediately.  This deploy process
 is restricted to the `master branch`_ of the main development line
-and has disabled pull request option for savety reasons.
+and has disabled pull request option for safety reasons.
 
 
 Test Coverage

@@ -31,6 +31,7 @@ from hydpy.core.magictools import parameterstep
 from hydpy.core.magictools import simulationstep
 from hydpy.core.magictools import controlcheck
 from hydpy.core.autodoctools import autodoc_basemodel
+from hydpy.core.autodoctools import autodoc_applicationmodel
 from hydpy.core.magictools import Tester
 from hydpy.cythons.modelutils import Cythonizer
 

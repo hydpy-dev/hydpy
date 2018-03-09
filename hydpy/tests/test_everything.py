@@ -24,7 +24,7 @@ if standard_backend_missing:
           'server.  Instead, the widely available backend `Agg` is selected.')
 
 
-# Priorise site-packages (on Debian-based Linux distributions as Ubunte
+# Priorise site-packages (on Debian-based Linux distributions as Ubuntu
 # also dist-packages) in the import order to make sure, the following
 # imports refer to the newly build hydpy package on the respective computer.
 paths = [path for path in sys.path if path.endswith('-packages')]
@@ -89,6 +89,7 @@ pub.options.reprcomments = False
 import hydpy
 from hydpy.core import devicetools
 from hydpy.core import parametertools
+from hydpy.core import testtools
 alldoctests = ({}, {})
 allsuccessfuldoctests = ({}, {})
 allfaileddoctests = ({}, {})
@@ -96,16 +97,16 @@ iterable = zip(('Python', 'Cython'), alldoctests,
                allsuccessfuldoctests, allfaileddoctests)
 for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
     pub.options.usecython = mode == 'Cython'
-    for dirinfo in os.walk(hydpy.__path__[0]):
-        if dirinfo[0].endswith('tests') or '__init__.py' not in dirinfo[2]:
+    for dirpath, dirnames, filenames_ in os.walk(hydpy.__path__[0]):
+        if dirpath.endswith('tests') or '__init__.py' not in filenames_:
             continue
-        packagename = dirinfo[0].replace(os.sep, '.')+'.'
+        packagename = dirpath.replace(os.sep, '.')+'.'
         packagename = packagename[packagename.find('hydpy.'):]
         level = packagename.count('.')-1
         modulenames = [packagename+fn.split('.')[0]
-                       for fn in dirinfo[2] if fn.endswith('.py')]
-        docfilenames = [os.path.join(dirinfo[0], fn)
-                        for fn in dirinfo[2] if fn.endswith('.rst')]
+                       for fn in filenames_ if fn.endswith('.py')]
+        docfilenames = [os.path.join(dirpath, fn)
+                        for fn in filenames_ if fn.endswith('.rst')]
         for name in (modulenames + docfilenames):
             if name.endswith('apidoc'):
                 continue
@@ -126,29 +127,40 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                 if exc.args[-1] != 'has no docstrings':
                     raise(exc)
             else:
-                pub.options.usedefaultvalues = False
-                pub.options.printprogress = False
-                pub.options.printincolor = False
-                pub.options.warnsimulationstep = False
-                pub.timegrids = None
-                pub.options.reprcomments = False
-                pub.options.reprdigits = 6
-                pub.options.warntrim = False
-                devicetools.Node.clearregistry()
-                devicetools.Element.clearregistry()
-                parametertools.Parameter._simulationstep = None
-                if name.endswith('.rst'):
-                    name = name[name.find('hydpy'+os.sep):]
-                warnings.filterwarnings('error', module='hydpy')
-                warnings.filterwarnings('ignore', category=ImportWarning)
-                warnings.filterwarnings("ignore",
-                                        message="numpy.dtype size changed")
-                warnings.filterwarnings("ignore",
-                                        message="numpy.ufunc size changed")
-                doctests[name] = runner.run(suite)
-                warnings.resetwarnings()
-                doctests[name].nmbproblems = (len(doctests[name].errors) +
-                                              len(doctests[name].failures))
+                opt = pub.options
+                Par = parametertools.Parameter
+                with opt.usedefaultvalues(False), \
+                        opt.usedefaultvalues(False), \
+                        opt.printprogress(False), \
+                        opt.printincolor(False), \
+                        opt.warnsimulationstep(False), \
+                        opt.reprcomments(False), \
+                        opt.ellipsis(0), \
+                        opt.reprdigits(6), \
+                        opt.warntrim(False), \
+                        Par.parameterstep.delete(), \
+                        Par.simulationstep.delete():
+                    pub.timegrids = None
+                    devicetools.Node.clear_registry()
+                    devicetools.Element.clear_registry()
+                    testtools.IntegrationTest.plotting_options = \
+                        testtools.PlottingOptions()
+                    if name.endswith('.rst'):
+                        name = name[name.find('hydpy'+os.sep):]
+                    warnings.filterwarnings('error', module='hydpy')
+                    warnings.filterwarnings('ignore', category=ImportWarning)
+                    warnings.filterwarnings('ignore',
+                                            message="numpy.dtype size changed")
+                    warnings.filterwarnings('ignore',
+                                            message="numpy.ufunc size changed")
+                    warnings.filterwarnings(
+                        'ignore',
+                        message='the imp module is deprecated')
+                    doctests[name] = runner.run(suite)
+                    warnings.resetwarnings()
+                    doctests[name].nmbproblems = (len(doctests[name].errors) +
+                                                  len(doctests[name].failures))
+                    hydpy.dummies.clear()
     successfuldoctests.update({name: runner for (name, runner)
                               in doctests.items() if not runner.nmbproblems})
     faileddoctests.update({name: runner for (name, runner)

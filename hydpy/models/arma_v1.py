@@ -33,7 +33,7 @@ Integration examples:
     `sim` is added in order to prove that the values calculated for `qout` are
     actually passed to `sim`:
 
-    >>> from hydpy.core.testtools import IntegrationTest
+    >>> from hydpy import IntegrationTest
     >>> test = IntegrationTest(stream,
     ...                        seqs=(fluxes.qin, fluxes.qpin, fluxes.qpout,
     ...                              fluxes.qout, nodes.output.sequences.sim))
@@ -46,6 +46,7 @@ Integration examples:
     ...               (logs.logout, 2.))
 
     Print just the time instead of the whole date:
+
     >>> test.dateformat = '%H:%M'
 
     Define two flood events, one for each lake inflow:
@@ -253,15 +254,15 @@ from hydpy.models.arma import arma_outlets
 class Model(modeltools.Model):
     """Rimo/Rido version of ARMA (arma_v1)."""
 
-    _RUNMETHODS = (arma_model.update_inlets_v1,
-                   arma_model.calc_qpin_v1,
-                   arma_model.calc_login_v1,
-                   arma_model.calc_qma_v1,
-                   arma_model.calc_qar_v1,
-                   arma_model.calc_qpout_v1,
-                   arma_model.calc_logout_v1,
-                   arma_model.calc_qout_v1,
-                   arma_model.update_outlets_v1)
+    _INLET_METHODS = (arma_model.pick_q_v1,)
+    _RUN_METHODS = (arma_model.calc_qpin_v1,
+                    arma_model.calc_login_v1,
+                    arma_model.calc_qma_v1,
+                    arma_model.calc_qar_v1,
+                    arma_model.calc_qpout_v1,
+                    arma_model.calc_logout_v1,
+                    arma_model.calc_qout_v1)
+    _OUTLET_METHODS = (arma_model.pass_q_v1,)
 
 
 class ControlParameters(parametertools.SubParameters):

@@ -12,6 +12,7 @@ import numpy
 from scipy import integrate
 from matplotlib import pyplot
 # ...from HydPy
+from hydpy import pub
 from hydpy.core import autodoctools
 from hydpy.core import objecttools
 from hydpy.auxs import statstools
@@ -22,7 +23,7 @@ class MA(object):
 
     The MA coefficients can be set manually:
 
-    >>> from hydpy.auxs.armatools import MA
+    >>> from hydpy import MA
     >>> ma = MA(coefs=(.8, .2))
     >>> ma
     MA(coefs=(0.8, 0.2))
@@ -32,11 +33,11 @@ class MA(object):
 
     Otherwise they are determined by method :func:`~MA.update_coefs`.
     But this requires that a integrable function object is given.
-    Usually, this function object is a :class:`~hydpy.auxs.iuhtools.IUH`
-    subclass object, but (as in the following example) other function objects
-    defining instantaneuous unit hydrographs are accepted.  However, they
-    should be well-behaved (e.g. be relatively smooth, unimodal, strictly
-    positive, unity integral surface in the positive range).
+    Usually, this function object is a |IUH| subclass object, but
+    (as in the following example) other function objects defining
+    instantaneuous unit hydrographs are accepted.  However, they
+    should be well-behaved (e.g. be relatively smooth, unimodal,
+    strictly positive, unity integral surface in the positive range).
 
     For educational purposes, some discontinuous functions are applied in
     the following. One can suppress the associated warning messages with
@@ -73,7 +74,7 @@ class MA(object):
     >>> ma = MA(iuh=lambda x: 1. if x < 1. else 0.)
     >>> ma
     MA(coefs=(0.5, 0.5))
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> round_(ma.moments, 6)
     0.5, 0.5
 
@@ -102,6 +103,11 @@ class MA(object):
     the turning point, which is printed as a red dot.
 
     >>> ma.plot(threshold=0.9)
+
+    You can close the plotting window manually or by writing:
+
+    >>> from matplotlib import pyplot
+    >>> pyplot.close()
 
     The turning point detection also works for functions which include
     both a rising and a falling limb.  This can be shown shifting the
@@ -207,8 +213,14 @@ class MA(object):
 
     def plot(self, threshold=None, **kwargs):
         """Barplot of the MA coefficients."""
-        pyplot.bar(left=self.delays+.5, height=self.coefs,
-                   width=1., fill=False, **kwargs)
+        try:
+            # Works under matplotlib 3.
+            pyplot.bar(x=self.delays+.5, height=self.coefs,
+                       width=1., fill=False, **kwargs)
+        except TypeError:
+            # Works under matplotlib 2.
+            pyplot.bar(left=self.delays+.5, height=self.coefs,
+                       width=1., fill=False, **kwargs)
         pyplot.xlabel('time')
         pyplot.ylabel('response')
         if threshold is not None:
@@ -227,7 +239,7 @@ class ARMA(object):
 
     All ARMA coefficients can be set manually:
 
-    >>> from hydpy.auxs.armatools import MA, ARMA
+    >>> from hydpy import MA, ARMA
     >>> arma = ARMA(ar_coefs=(.5,), ma_coefs=(.3, .2))
     >>> arma.coefs
     (array([ 0.5]), array([ 0.3,  0.2]))
@@ -260,7 +272,7 @@ class ARMA(object):
     accuracy, one can check the central moments of their responses to a
     standard delta time impulse:
 
-    >>> from hydpy.core.objecttools import round_
+    >>> from hydpy import round_
     >>> round_(ma.moments)
     4.110496, 1.926798
     >>> round_(arma.moments)
@@ -480,13 +492,15 @@ class ARMA(object):
             if self.rel_rmse < self.max_rel_rmse:
                 break
         else:
-            raise RuntimeError(
-                'Method `update_ar_coefs` is not able to determine the AR '
-                'coefficients of the ARMA model with the desired accuracy.  '
-                'You can either set the tolerance value `max_rel_rmse` to '
-                'a higher value or increase the allowed `max_ar_order`.  '
-                'An accuracy of `%s` has been reached using `%d` coefficients.'
-                % (objecttools.repr_(self.rel_rmse, 12), ar_order))
+            with pub.options.reprdigits(12):
+                raise RuntimeError(
+                    'Method `update_ar_coefs` is not able to determine '
+                    'the AR coefficients of the ARMA model with the desired '
+                    'accuracy.  You can either set the tolerance value '
+                    '`max_rel_rmse` to a higher value or increase the '
+                    'allowed `max_ar_order`.  An accuracy of `%s` has been '
+                    'reached using `%d` coefficients.'
+                    % (objecttools.repr_(self.rel_rmse), ar_order))
 
     @property
     def dev_moments(self):
@@ -526,8 +540,9 @@ class ARMA(object):
         turning_idx, _ = ma_model.turningpoint
         values = ma_model.coefs[turning_idx:]
         self.ar_coefs, residuals = numpy.linalg.lstsq(
-                                            self.get_a(values, ar_order),
-                                            self.get_b(values, ar_order))[:2]
+            self.get_a(values, ar_order),
+            self.get_b(values, ar_order),
+            rcond=-1)[:2]
         if len(residuals) == 1:
             self.rel_rmse = numpy.sqrt(residuals[0])/numpy.sum(values)
         else:
@@ -569,13 +584,14 @@ class ARMA(object):
                 self.norm_coefs()
                 break
         else:
-            raise RuntimeError(
-                'Method `update_ma_coefs` is not able to determine the MA '
-                'coefficients of the ARMA model with the desired accuracy.  '
-                'You can set the tolerance value ´max_dev_coefs` to a '
-                'higher value.  An accuracy of `%s` has been reached using '
-                '`%d` MA coefficients.'
-                % (objecttools.repr_(self.dev_coefs, 12), ma_order))
+            with pub.options.reprdigits(12):
+                raise RuntimeError(
+                    'Method `update_ma_coefs` is not able to determine the MA '
+                    'coefficients of the ARMA model with the desired accuracy.'
+                    '  You can set the tolerance value ´max_dev_coefs` to a '
+                    'higher value.  An accuracy of `%s` has been reached '
+                    'using `%d` MA coefficients.'
+                    % (objecttools.repr_(self.dev_coefs), ma_order))
         if numpy.min(self.response) < 0.:
             warnings.warn(
                 'Note that the smallest response to a standard impulse of the '
@@ -634,8 +650,14 @@ class ARMA(object):
 
     def plot(self, threshold=None, **kwargs):
         """Barplot of the ARMA response."""
-        pyplot.bar(left=self.ma.delays+.5, height=self.response,
-                   width=1., fill=False, **kwargs)
+        try:
+            # Works under matplotlib 3.
+            pyplot.bar(x=self.ma.delays+.5, height=self.response,
+                       width=1., fill=False, **kwargs)
+        except TypeError:
+            # Works under matplotlib 2.
+            pyplot.bar(left=self.ma.delays+.5, height=self.response,
+                       width=1., fill=False, **kwargs)
         pyplot.xlabel('time')
         pyplot.ylabel('response')
         if threshold is not None:

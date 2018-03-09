@@ -130,7 +130,7 @@ class LZ(sequencetools.StateSequence):
         """
         if upper is None:
             control = self.subseqs.seqs.model.parameters.control
-            if not any(control.zonetype == ILAKE):
+            if not any(control.zonetype.values == ILAKE):
                 lower = 0.
         sequencetools.StateSequence.trim(self, lower, upper)
 

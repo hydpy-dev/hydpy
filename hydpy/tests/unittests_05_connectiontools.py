@@ -10,33 +10,35 @@ from hydpy.core.connectiontools import *
 class Test01Connections(unittest.TestCase):
 
     def setUp(self):
-        self.cons = Connections(None)
-        setattr(self.cons, 'test1', 1)
-        setattr(self.cons, 'test2', 2)
+        self.test1 = Node('test1')
+        self.test2 = Node('test2')
+        self.cons = Connections(None, 'cons')
+        self.cons += self.test1
+        self.cons += self.test2
 
     def test_01_properties(self):
-        self.assertListEqual(sorted(self.cons.names), ['test1', 'test2'])
-        self.assertListEqual(sorted(self.cons.slaves), [1, 2])
+        self.assertListEqual(sorted(self.cons.names),
+                             ['test1', 'test2'])
+        self.assertListEqual(sorted(self.cons.slaves),
+                             [self.test1, self.test2])
     def test_02_contains(self):
         self.assertTrue('test1' in self.cons)
         self.assertTrue('test2' in self.cons)
-        self.assertTrue(1 in self.cons)
-        self.assertTrue(2 in self.cons)
+        self.assertTrue(self.test1 in self.cons)
+        self.assertTrue(self.test2 in self.cons)
     def test_03_iterable(self):
-        names, cons = [], []
-        for (name, con) in self.cons:
-            names.append(name)
-            cons.append(con)
-        self.assertListEqual(sorted(names), ['test1', 'test2'])
-        self.assertListEqual(sorted(cons), [1, 2])
+        devices = []
+        for device in self.cons:
+            devices.append(device)
+        self.assertListEqual(devices, [self.test1, self.test2])
 
 class Test01Self2Node(unittest.TestCase):
 
     def tearDown(self):
-        Element.clearregistry()
+        Element.clear_registry()
 
     def test_01_iadd(self):
-        test = Connections(None)
+        test = Connections(None, 'test')
         n1 = Node('n1', 'Q')
         test += n1
         self.assertIsInstance(test, Connections)
@@ -52,7 +54,7 @@ class Test01Self2Node(unittest.TestCase):
         self.assertIs(test.n2, n2)
 
     def test_02_variables(self):
-        test = Connections(None)
+        test = Connections(None, 'test')
         self.assertListEqual(test.variables, [])
         n1 = Node('n1', 'Q')
         test += n1

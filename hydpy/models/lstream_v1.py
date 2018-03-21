@@ -1,47 +1,60 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
 """
 .. _Pegasus method: https://link.springer.com/article/10.1007/BF01932959
+
+
+.. warning::
+
+    Before using |lstream_v1|, read this documentation carefully.
+    |lstream_v1| does not keep the water balance.  This flaw is
+    under discussion at the moment and should be fixed within the
+    next few weeks.
 
 Version 1 of HydPy-L-Stream (called lstream_v1) implements the Williams
 routing method in a similar manner as the LARSIM model used by the
 German Federal Institute of Hydrology (BfG).  Essentially, routing is
 performed via a simple linear storage in each simulation time step.
-But the linear storage coefficient is adapted to the actual flow conditions
-at the beginning of each time step, making the approach nonlinear for
-instationary inputs.  The storage coefficient is determined via the
-Gauckler-Manning-Strickler formula, which is applied on the `triple
-trapezoid profile`, shown in the following figure:
+But the linear storage coefficient (|RK|) is adapted to the actual
+flow conditions at the beginning of each time step, making the approach
+nonlinear for instationary inputs.  The storage coefficient is determined
+via the Gauckler-Manning-Strickler formula, which is applied on the
+`triple trapezoid profile`, shown in the following figure:
 
 .. image:: HydPy-L-Stream_Version-1.png
 
-The linear storage coefficient depends on the length of the considered
-channel and the velocity. To calculate the velocity based on the Manning
-formula, one needs to know the current water stage.  This water stage is
-determined by iteration based on the current reference discharge.  As the
-relation between water stage and discharge is discontinuous due to the
-sharp transitions of the `triple trapezoid profile`, we decided on an
-iteration algorithm called `Pegasus method`_, which is an improved
-`Regulari Falsi` method that can be used when the bounds of the search
-interval are known.  At the beginning of each simulation interval, we first
-determine the `highest part` of the `triple trapozoid profile` containing
-water (for low flow conditions, this would be the the main channel), use
-its lower und upper height (in the given example zero and `HM`) as the
-initial boundaries and refine them afterwards until the actual water stage
-is identified with sufficient accuracy.  This is much effort for a simple
-storage routing method, but due to the superlinear convergence properties
-of the `Pegasus method`_ the required computation time seems acceptable.
+|RK| depends on the length of the considered channel (|Laen|) and the
+mean velocity within the channel. To calculate the velocity based on
+the Manning formula, one needs to know the current water stage (|H|).
+This water stage is determined by iteration based on the current
+reference discharge (|QRef|).  As the relation between |H| and
+discharge (|QG|) is discontinuous due to the sharp transitions of the
+`triple trapezoid profile`, we decided on an iteration algorithm called
+`Pegasus method`_, which is an improved `Regulari Falsi` method that
+can be used when the bounds of the search interval are known.  At the
+beginning of each simulation interval, we first determine the `highest
+section` of the `triple trapozoid profile` containing water (for low flow
+conditions, this would be the the main channel).  Then we use its lower
+and upper height (in the given example zero and |HM|) as the initial
+boundaries and refine them afterwards until the actual water stage |H|
+is identified with sufficient accuracy (defined by the tolerance values
+|HTol| and |QTol|).  This is much effort for a simple storage routing
+method, but due to the superlinear convergence properties of the
+`Pegasus method`_ the required computation times seem acceptable.
 
 The above paragraph is a little inaccurate regarding the term `velocity`.
 It is well known that a flood wave has usually a considerably higher
-velocity than the water itself.  But, if we understand correctly, the
-original LARSIM implementation assumes that the wave velocity is identical
-with the water velocity.  This should result in a systematic overestimation
-of travel times.  This is important to note, if one determines the
-parameters of `lstream_v1` based on real channel geometries and roughness
-coefficients and should eventually be compensated through increasing the
-roughness related calibration coefficients
-:class:`~hydpy.models.lstream.lstream_control.EKM` and
-:class:`~hydpy.models.lstream.lstream_control.EKV`.
+velocity than the water itself.  Hence |lstream_v1| should have a
+tendency to overestimate travel times.  This is important to note, if
+one determines the parameters of |lstream_v1| based on real channel
+geometries and roughness coefficients, and should eventually be
+compensated through increasing the roughness related calibration
+coefficients |EKM| and |EKV|.  However, we took the decision to use
+the water velocity, as the same assumption was initially made by the
+original LARSIM model.  Later, LARSIM introduced the "dVdQ" option,
+allowing to use the actual wave travel time for calculating |RK|.
+Maybe the same should also be done for |lstream| through defining
+an additional application model.
 
 
 Integration test:
@@ -73,9 +86,13 @@ Integration test:
     ...                  outlets='output')
     >>> stream.connect(model)
 
-    Prepare a test function object, which prints ....  The node sequence ...:
+    Prepare a test function object, which sets the initial inflow (|QZ|)
+    and outflow (|QA|) to zero before each simulation run:
 
     >>> from hydpy.core.testtools import IntegrationTest
+    >>> IntegrationTest.plotting_options.height = 550
+    >>> IntegrationTest.plotting_options.activated=(
+    ...     states.qz, states.qa)
     >>> test = IntegrationTest(stream,
     ...                        inits=((states.qz, 0.),
     ...                               (states.qa, 0.)))
@@ -98,7 +115,9 @@ Integration test:
     >>> laen(10.)
 
     Set the error tolerances of the iteration small enough, to not
-    compromise the first six decimal places shown in the following results:
+    compromise the first six decimal places shown in the following
+    results (this increases computation times and should not be
+    necessary for usual applications of |lstream_v1|):
 
     >>> qtol(1e-10)
     >>> htol(1e-10)
@@ -112,7 +131,15 @@ Integration test:
     ...                     0., 1., 5., 9., 8., 5., 3., 2., 1., 0.,
     ...                     0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]
 
-    >>> test()
+    The following table and figure show all relevant input and output data
+    as well as all relevant variables calculated internally.  Note that the
+    total sum of all input values (|QZ|) is 41, but the total sum of all
+    output values (|QA|) is above 46.  In our opinion, this is due to
+    |lstream_v1| not applying the actual correction after Williams for
+    adjusting the flow values to changes in the retention coefficient |RK|.
+    We hope to be able to fix this flaw soon...
+
+    >>> test('lstream_v1_ex1')
     |  date |     qref |        h |       am |       av |      avr |       ag |       um |       uv |      uvr |       qm |       qv |      qvr |       qg |       rk |   qz |       qa | input1 | input2 |   output |
     ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 00:00 |      0.0 |      0.0 |      0.0 | 0.0  0.0 | 0.0  0.0 |      0.0 |      0.0 | 0.0  0.0 | 0.0  0.0 |      0.0 | 0.0  0.0 | 0.0  0.0 |      0.0 |      0.0 |  0.0 |      0.0 |    0.0 |    0.0 |      0.0 |
@@ -135,6 +162,20 @@ Integration test:
     | 17:00 | 0.125134 |  0.09733 | 0.232553 | 0.0  0.0 | 0.0  0.0 | 0.232553 | 2.802606 | 0.0  0.0 | 0.0  0.0 | 0.125134 | 0.0  0.0 | 0.0  0.0 | 0.125134 | 5.162328 |  0.0 | 0.309291 |    0.0 |    0.0 | 0.309291 |
     | 18:00 | 0.103097 |  0.08709 | 0.204518 | 0.0  0.0 | 0.0  0.0 | 0.204518 |  2.71816 | 0.0  0.0 | 0.0  0.0 | 0.103097 | 0.0  0.0 | 0.0  0.0 | 0.103097 | 5.510384 |  0.0 | 0.257961 |    0.0 |    0.0 | 0.257961 |
     | 19:00 | 0.085987 | 0.078434 | 0.181476 | 0.0  0.0 | 0.0  0.0 | 0.181476 | 2.646786 | 0.0  0.0 | 0.0  0.0 | 0.085987 | 0.0  0.0 | 0.0  0.0 | 0.085987 | 5.862528 |  0.0 | 0.217508 |    0.0 |    0.0 | 0.217508 |
+
+    .. raw:: html
+
+        <iframe
+            src="lstream_v1_ex1.html"
+            width="100%"
+            height="580"
+            frameborder=0
+        ></iframe>
+
+    In the above example, water flows in the main channel only.  At
+    least one example needs to be added, in which also the river
+    banks are activated.  This could for example be done by reducing
+    channel slope:
 
     >>> gef(.002)
 
@@ -250,6 +291,9 @@ class OutletSequences(sequencetools.LinkSequences):
     _SEQCLASSES = (lstream_outlets.Q,)
 
 
+autodoc_applicationmodel()
+
+# pylint: disable=invalid-name
 tester = Tester()
 cythonizer = Cythonizer()
 cythonizer.complete()

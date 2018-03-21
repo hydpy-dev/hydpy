@@ -434,27 +434,40 @@ class IntegrationTest(Test):
         plot.plot_height = height
         legend_entries = []
         viridis = bokeh.palettes.viridis   # pylint: disable=no-member
+        headers = [header for header in self.raw_header_strings[1:]
+                   if header]
         zipped = zip(selected,
                      viridis(len(selected)),
-                     self.raw_header_strings[1:])
+                     headers)
         for (seq, col, header) in zipped:
+            series = seq.series.copy()
             if seq.NDIM == 0:
-                series = seq.series.copy()
-            elif (seq.NDIM == 1) and (seq.shape == (1,)):
-                series = seq.series[:, 0].copy()
+                listofseries = [series]
+                listofsuffixes = ['']
+            elif seq.NDIM == 1:
+                nmb = seq.shape[0]
+                listofseries = [series[:, idx] for idx in range(nmb)]
+                if nmb == 1:
+                    listofsuffixes = ['']
+                else:
+                    listofsuffixes = ['-%d' % idx for idx in range(nmb)]
             else:
                 raise RuntimeError(
-                    'IntegrationTest does not support plotting multiple '
-                    'lines for one sequences so far.')
-            line = plot.line(self._datetimes, series,
-                             alpha=0.8, muted_alpha=0.0,
-                             line_width=2, color=col)
-            line.muted = seq.name not in activated
-            if header == seq.name:
-                header = objecttools.classname(seq)
-            else:
-                header = header.capitalize()
-            legend_entries.append((header, [line]))
+                    'IntegrationTest does not support plotting values of '
+                    'sequences with more than 1 dimension so far, but '
+                    'sequence `%s` is %d-dimensional.'
+                    % (seq.name, seq.NDIM))
+            for subseries, suffix in zip(listofseries, listofsuffixes):
+                line = plot.line(self._datetimes, subseries,
+                                 alpha=0.8, muted_alpha=0.0,
+                                 line_width=2, color=col)
+                line.muted = seq.name not in activated
+                if header.strip() == seq.name:
+                    title = objecttools.classname(seq)
+                else:
+                    title = header.capitalize()
+                title += suffix
+                legend_entries.append((title, [line]))
         legend = bokeh.models.Legend(items=legend_entries,
                                      click_policy='mute')
         legend.border_line_color = None

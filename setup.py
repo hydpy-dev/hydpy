@@ -80,12 +80,11 @@ setup(name='HydPy',
       author='Christoph Tyralla',
       author_email='Christoph.Tyralla@rub.de',
       url='https://github.com/tyralla/hydpy',
-      license='GPL-3.0',
+      license='LGPL-3.0',
       classifiers=[
           'Intended Audience :: Education',
           'Intended Audience :: Science/Research',
-          'Intended Audience :: Financial and Insurance Industry',
-          'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+          'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)',
           'Operating System :: POSIX :: Linux',
           'Operating System :: Microsoft :: Windows',
           'Operating System :: Microsoft :: Windows :: Windows 7',
@@ -104,7 +103,8 @@ setup(name='HydPy',
       ext_modules=Cython.Build.cythonize(ext_modules),
       include_dirs=[numpy.get_include()],
       include_package_data=True,
-      install_requires=['Cython', 'numpy', 'matplotlib'])
+      install_requires=['Cython', 'numpy', 'scipy', 'matplotlib',
+                        'bokeh', 'coverage'])
 
 if install:
     # Priorise site-packages (on Debian-based Linux distributions as Ubuntu
@@ -146,7 +146,8 @@ if install:
     # Copy all compiled Cython files (pyd or so) into the original folder.
     # (Thought for developers only - if it fails, its not that a big deal...)
     for filename in os.listdir(hydpy.cythons.autogen.__path__[0]):
-        if filename.endswith('.pyd') or filename.endswith('.so'):
+        ending = filename.split('.')[-1]
+        if ending in ('pyd', 'so', 'pyx'):
             try:
                 shutil.copy(
                     os.path.join(hydpy.cythons.autogen.__path__[0], filename),

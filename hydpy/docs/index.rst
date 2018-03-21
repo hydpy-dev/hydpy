@@ -90,7 +90,7 @@ be set up meaningfully.  Ideally, the model configuration should
 be variied to show different aspects of the its functionality.
 See e.g. `example 13`_ of the documentation on model
 :mod:`~hydpy.models.dam_v001`, which discusses the implemented
-its flood retention routine.  Here, example calculations are performed
+flood retention routine.  Here, example calculations are performed
 for a period of 20 days, and for each day all input and output
 values as well as all internal states (e.g. the
 :class:`~hydpy.models.dam.dam_states.WaterVolume`) are tabulated.  Again,
@@ -100,12 +100,12 @@ are shown in a `Bokeh`_ plot, which is also updated for each new
 :ref:`HydPy` version automatically.  You can click on the variables
 and zoom into some details you are actually interested in.
 
-If there e.g. were some methodical or technical flaws in the retention
+If there were some methodical or technical flaws in the retention
 routine of :mod:`~hydpy.models.dam_v001`, you would have good chances
 to find them when reading the documentation critically.  You could tell
 us about your finding via a `GitHub issue`_, allowing us or others to read
 (and at best solve) the problem.  Or you could try to solve it on your
-own and offer your solution as a `Pull Request`_ .  You could
+own and offer your solution as a `Pull Request`_.  You could
 also add a new test to the documentation files to prove that something
 goes wrong and offer it via a `Pull Request`_, which would enable
 `Travis CI`_ to reject future :ref:`HydPy` versions that still contain

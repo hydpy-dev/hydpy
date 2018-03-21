@@ -1348,19 +1348,19 @@ def calc_qdgz_v1(self):
     Examples:
 
         The first example shows that |QDGZ| is the area weighted sum of
-        |QDB| from "soil type" HRUs like arable land (|ACKER|) and of
-        |NKor|-|EvI| from water areas of type |FLUSS|.  All other water
-        areas (|WASSER| and |SEE|) and also sealed surfaces (|VERS|)
-        have no impact on |QDGZ|:
+        |QDB| from "land type" HRUs like arable land (|ACKER|) and sealed
+        surfaces (|VERS|) as well as of |NKor|-|EvI| from water areas of
+        type |FLUSS|.  Water areas of type |WASSER| and |SEE| have no
+        impact on |QDGZ|:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep()
-        >>> nhru(6)
-        >>> lnk(ACKER, ACKER, VERS, WASSER, SEE, FLUSS)
-        >>> fhru(0.1, 0.2, 0.1, 0.1, 0.1, 0.4)
-        >>> fluxes.qdb = 2., 4.0, 300.0, 300.0, 300.0, 300.0
-        >>> fluxes.nkor = 200.0, 200.0, 200.0, 200.0, 200.0, 20.0
-        >>> fluxes.evi = 100.0, 100.0, 100.0, 100.0, 100.0, 10.0
+        >>> nhru(5)
+        >>> lnk(ACKER, VERS, WASSER, SEE, FLUSS)
+        >>> fhru(0.1, 0.2, 0.1, 0.2, 0.4)
+        >>> fluxes.qdb = 2., 4.0, 300.0, 300.0, 300.0
+        >>> fluxes.nkor = 200.0, 200.0, 200.0, 200.0, 20.0
+        >>> fluxes.evi = 100.0, 100.0, 100.0, 100.0, 10.0
         >>> model.calc_qdgz_v1()
         >>> fluxes.qdgz
         qdgz(5.0)
@@ -1368,7 +1368,7 @@ def calc_qdgz_v1(self):
         The second example shows that large evaporation values above a
         HRU of type |FLUSS| can result in negative values of |QDGZ|:
 
-        >>> fluxes.evi[5] = 30
+        >>> fluxes.evi[4] = 30
         >>> model.calc_qdgz_v1()
         >>> fluxes.qdgz
         qdgz(-3.0)
@@ -1379,7 +1379,7 @@ def calc_qdgz_v1(self):
     for k in range(con.nhru):
         if con.lnk[k] == FLUSS:
             flu.qdgz += con.fhru[k]*(flu.nkor[k]-flu.evi[k])
-        elif con.lnk[k] not in (WASSER, SEE, VERS):
+        elif con.lnk[k] not in (WASSER, SEE):
             flu.qdgz += con.fhru[k]*flu.qdb[k]
 
 

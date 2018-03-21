@@ -665,7 +665,6 @@ the given group name `test`.
             raw = fastaccess._obs_file.read(8)
             fastaccess.obs[0] = struct.unpack('d', raw)
 
-    @magictools.printprogress
     def prepare_allseries(self, ramflag=True):
         """Prepare the series objects of both the `sim` and the `obs` sequence.
 
@@ -1075,7 +1074,6 @@ assigned to the element so far.
         self.prepare_fluxseries(ramflag)
         self.prepare_stateseries(ramflag)
 
-    @magictools.printprogress
     def prepare_inputseries(self, ramflag=True):
         """Prepare the series objects of the `input` sequences of the model
         handled by this element.
@@ -1084,7 +1082,6 @@ assigned to the element so far.
         """
         self._prepare_series('inputs', ramflag)
 
-    @magictools.printprogress
     def prepare_fluxseries(self, ramflag=True):
         """Prepare the series objects of the `flux` sequences of the model
         handled by this element.
@@ -1093,7 +1090,6 @@ assigned to the element so far.
         """
         self._prepare_series('fluxes', ramflag)
 
-    @magictools.printprogress
     def prepare_stateseries(self, ramflag=True):
         """Prepare the series objects of the `state` sequences of the model
         handled by this element.

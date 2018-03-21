@@ -78,7 +78,7 @@ class QG(sequencetools.FluxSequence):
 
 
 class RK(sequencetools.FluxSequence):
-    """Schwerpunktlaufzeit (traveling time) [s]."""
+    """Schwerpunktlaufzeit (traveling time) [T]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
 
 

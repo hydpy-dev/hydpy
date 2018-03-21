@@ -15,11 +15,11 @@ Version 1 of HydPy-L-Stream (called lstream_v1) implements the Williams
 routing method in a similar manner as the LARSIM model used by the
 German Federal Institute of Hydrology (BfG).  Essentially, routing is
 performed via a simple linear storage in each simulation time step.
-But the linear storage coefficient (|RK|) is adapted to the actual
-flow conditions at the beginning of each time step, making the approach
-nonlinear for instationary inputs.  The storage coefficient is determined
-via the Gauckler-Manning-Strickler formula, which is applied on the
-`triple trapezoid profile`, shown in the following figure:
+But the travel time (|RK|) is adapted to the actual flow conditions at
+the beginning of each time step, making the approach nonlinear for
+instationary inputs.  The storage coefficient is determined via the
+Gauckler-Manning-Strickler formula, which is applied on the `triple
+trapezoid profile`, shown in the following figure:
 
 .. image:: HydPy-L-Stream_Version-1.png
 
@@ -52,9 +52,9 @@ compensated through increasing the roughness related calibration
 coefficients |EKM| and |EKV|.  However, we took the decision to use
 the water velocity, as the same assumption was initially made by the
 original LARSIM model.  Later, LARSIM introduced the "dVdQ" option,
-allowing to use the actual wave travel time for calculating |RK|.
-Maybe the same should also be done for |lstream| through defining
-an additional application model.
+allowing to calculate |RK| as the actual wave travel time.  Maybe the
+same should also be done for |lstream| through defining an additional
+application model.
 
 
 Integration test:
@@ -136,7 +136,7 @@ Integration test:
     total sum of all input values (|QZ|) is 41, but the total sum of all
     output values (|QA|) is above 46.  In our opinion, this is due to
     |lstream_v1| not applying the actual correction after Williams for
-    adjusting the flow values to changes in the retention coefficient |RK|.
+    adjusting the flow values to changes in the travel time |RK|.
     We hope to be able to fix this flaw soon...
 
     >>> test('lstream_v1_ex1')

@@ -11,11 +11,11 @@ def calc_qref_v1(self):
     """Determine the reference discharge within the given space-time intervall.
 
     Required state sequences:
-      :class:`~hydpy.model.lstream.lstream_states.QZ`
-      :class:`~hydpy.model.lstream.lstream_states.QA`
+      |QZ|
+      |QA|
 
     Calculated flux sequence:
-      :class:`~hydpy.model.lstream.lstream_fluxes.QRef`
+      |QRef|
 
     Basic equation:
       :math:`QRef = \\frac{QZ_{new}+QZ_{old}+QA_{old}}{3}`
@@ -41,14 +41,14 @@ def calc_rk_v1(self):
     """Determine the actual traveling time of the water (not of the wave!).
 
     Required derived parameter:
-      :class:`~hydpy.model.lstream.lstream_derived.Sek`
+      |Sek|
 
     Required flux sequences:
-      :class:`~hydpy.model.lstream.lstream_fluxes.A`
-      :class:`~hydpy.model.lstream.lstream_fluxes.QRef`
+      |AG|
+      |QRef|
 
     Calculated flux sequence:
-      :class:`~hydpy.model.lstream.lstream_fluxes.RK`
+      |RK|
 
     Basic equation:
       :math:`RK = \\frac{Laen \\cdot A}{QRef}`
@@ -68,10 +68,8 @@ def calc_rk_v1(self):
         >>> fluxes.rk
         rk(2.893519)
 
-        Second, for negative values or zero values of
-        :class:`~hydpy.model.lstream.lstream_fluxes.A` or
-        :class:`~hydpy.model.lstream.lstream_fluxes.QRef`, the value of
-        :class:`~hydpy.model.lstream.lstream_fluxes.RK` is set to zero:
+        Second, for negative values or zero values of |AG| or |QRef|,
+        the value of |RK| is set to zero:
 
         >>> fluxes.ag = 0.
         >>> fluxes.qref = 1.
@@ -100,22 +98,21 @@ def calc_am_um_v1(self):
 
     Note that the main channel is assumed to have identical slopes on
     both sides and that water flowing exactly above the main channel is
-    contributing to :class:`~hydpy.model.lstream.lstream_fluxes.AM`.
-    Both theoretical surfaces seperating water above the main channel
-    from water above both forelands are contributing to
-    :class:`~hydpy.model.lstream.lstream_fluxes.UM`.
+    contributing to |AM|.  Both theoretical surfaces seperating water
+    above the main channel from water above both forelands are
+    contributing to |UM|.
 
     Required control parameters:
-      :class:`~hydpy.model.lstream.lstream_control.HM`
-      :class:`~hydpy.model.lstream.lstream_control.BM`
-      :class:`~hydpy.model.lstream.lstream_control.BNM`
+      |HM|
+      |BM|
+      |BNM|
 
     Required flux sequence:
-      :class:`~hydpy.model.lstream.lstream_fluxes.H`
+      |H|
 
     Calculated flux sequence:
-      :class:`~hydpy.model.lstream.lstream_fluxes.AM`
-      :class:`~hydpy.model.lstream.lstream_fluxes.UM`
+      |AM|
+      |UM|
 
     Examples:
 
@@ -130,10 +127,8 @@ def calc_am_um_v1(self):
         >>> bnm(4.)
         >>> hm(1.)
 
-        The first example deals with normal flow conditions, where water flows
-        within the main channel completely:
-        (:class:`~hydpy.model.lstream.lstream_fluxes.H` <
-        :class:`~hydpy.model.lstream.lstream_control.HM`):
+        The first example deals with normal flow conditions, where water
+        flows within the main channel completely (|H| < |HM|):
 
         >>> fluxes.h = .5
         >>> model.calc_am_um_v1()
@@ -142,10 +137,8 @@ def calc_am_um_v1(self):
         >>> fluxes.um
         um(6.123106)
 
-        The second example deals with high flow conditions, where water flows
-        over the foreland also:
-        (:class:`~hydpy.model.lstream.lstream_fluxes.H` >
-        :class:`~hydpy.model.lstream.lstream_control.HM`):
+        The second example deals with high flow conditions, where water
+        flows over the foreland also (|H| > |HM|):
 
         >>> fluxes.h = 1.5
         >>> model.calc_am_um_v1()
@@ -193,16 +186,16 @@ def calc_qm_v1(self):
     """Calculate the discharge of the main channel after Manning-Strickler.
 
     Required control parameters:
-      :class:`~hydpy.model.lstream.lstream_control.EKM`
-      :class:`~hydpy.model.lstream.lstream_control.SKM`
-      :class:`~hydpy.model.lstream.lstream_control.Gef`
+      |EKM|
+      |SKM|
+      |Gef|
 
     Required flux sequence:
-      :class:`~hydpy.model.lstream.lstream_fluxes.AM`
-      :class:`~hydpy.model.lstream.lstream_fluxes.UM`
+      |AM|
+      |UM|
 
     Calculated flux sequence:
-      :class:`~hydpy.model.lstream.lstream_fluxes.QM`
+      |lstream_fluxes.QM|
 
     Examples:
 
@@ -248,27 +241,25 @@ def calc_av_uv_v1(self):
 
     Note that the each foreland lies between the main channel and one
     outer embankment and that water flowing exactly above the a foreland
-    is contributing to :class:`~hydpy.model.lstream.lstream_fluxes.AV`.
-    The theoretical surface seperating water above the main channel from
-    water above the foreland is not contributing to
-    :class:`~hydpy.model.lstream.lstream_fluxes.UV`, but the surface
-    seperating water above the foreland from water above its outer embankment
-    is contributing to :class:`~hydpy.model.lstream.lstream_fluxes.UV`.
+    is contributing to |AV|.  The theoretical surface seperating water
+    above the main channel from water above the foreland is not
+    contributing to |UV|, but the surface seperating water above the
+    foreland from water above its outer embankment is contributing to |UV|.
 
     Required control parameters:
-      :class:`~hydpy.model.lstream.lstream_control.HM`
-      :class:`~hydpy.model.lstream.lstream_control.BV`
-      :class:`~hydpy.model.lstream.lstream_control.BNV`
+      |HM|
+      |BV|
+      |BNV|
 
     Required derived parameter:
-      :class:`~hydpy.model.lstream.lstream_derived.HV`
+      |HV|
 
     Required flux sequence:
-      :class:`~hydpy.model.lstream.lstream_fluxes.H`
+      |H|
 
     Calculated flux sequence:
-      :class:`~hydpy.model.lstream.lstream_fluxes.AV`
-      :class:`~hydpy.model.lstream.lstream_fluxes.UV`
+      |AV|
+      |UV|
 
     Examples:
 
@@ -286,9 +277,7 @@ def calc_av_uv_v1(self):
         >>> derived.hv(1.)
 
         The first example deals with normal flow conditions, where water flows
-        within the main channel completely:
-        (:class:`~hydpy.model.lstream.lstream_fluxes.H` <
-        :class:`~hydpy.model.lstream.lstream_control.HM`):
+        within the main channel completely (|H| < |HM|):
 
         >>> fluxes.h = .5
         >>> model.calc_av_uv_v1()
@@ -298,11 +287,8 @@ def calc_av_uv_v1(self):
         uv(0.0, 0.0)
 
         The second example deals with moderate high flow conditions, where
-        water flows over both forelands, but not over their embankments:
-        (:class:`~hydpy.model.lstream.lstream_control.HM` <
-        :class:`~hydpy.model.lstream.lstream_fluxes.H` <
-        (:class:`~hydpy.model.lstream.lstream_control.HM` +
-        :class:`~hydpy.model.lstream.lstream_derived.HV`)):
+        water flows over both forelands, but not over their embankments
+        (|HM| < |H| < (|HM| + |HV|)):
 
         >>> fluxes.h = 1.5
         >>> model.calc_av_uv_v1()
@@ -312,10 +298,8 @@ def calc_av_uv_v1(self):
         uv(4.061553, 4.061553)
 
         The third example deals with extreme high flow conditions, where
-        water flows over the both foreland and their outer embankments:
-        ((:class:`~hydpy.model.lstream.lstream_control.HM` +
-        :class:`~hydpy.model.lstream.lstream_derived.HV`) <
-        :class:`~hydpy.model.lstream.lstream_fluxes.H`):
+        water flows over the both foreland and their outer embankments
+        ((|HM| + |HV|) < |H|):
 
         >>> fluxes.h = 2.5
         >>> model.calc_av_uv_v1()
@@ -357,16 +341,16 @@ def calc_qv_v1(self):
     """Calculate the discharge of both forelands after Manning-Strickler.
 
     Required control parameters:
-      :class:`~hydpy.model.lstream.lstream_control.EKV`
-      :class:`~hydpy.model.lstream.lstream_control.SKV`
-      :class:`~hydpy.model.lstream.lstream_control.Gef`
+      |EKV|
+      |SKV|
+      |Gef|
 
     Required flux sequence:
-      :class:`~hydpy.model.lstream.lstream_fluxes.AV`
-      :class:`~hydpy.model.lstream.lstream_fluxes.UV`
+      |AV|
+      |UV|
 
     Calculated flux sequence:
-      :class:`~hydpy.model.lstream.lstream_fluxes.QV`
+      |lstream_fluxes.QV|
 
     Examples:
 
@@ -407,25 +391,23 @@ def calc_avr_uvr_v1(self):
     outer embankments.
 
     Note that each outer embankment lies beyond its foreland and that all
-    water flowing exactly above the a embankment is added to
-    :class:`~hydpy.model.lstream.lstream_fluxes.AVR`.
+    water flowing exactly above the a embankment is added to |AVR|.
     The theoretical surface seperating water above the foreland from water
-    above its embankment is not contributing to
-    :class:`~hydpy.model.lstream.lstream_fluxes.UVR`.
+    above its embankment is not contributing to |UVR|.
 
     Required control parameters:
-      :class:`~hydpy.model.lstream.lstream_control.HM`
-      :class:`~hydpy.model.lstream.lstream_control.BNVR`
+      |HM|
+      |BNVR|
 
     Required derived parameter:
-      :class:`~hydpy.model.lstream.lstream_derived.HV`
+      |HV|
 
     Required flux sequence:
-      :class:`~hydpy.model.lstream.lstream_fluxes.H`
+      |H|
 
     Calculated flux sequence:
-      :class:`~hydpy.model.lstream.lstream_fluxes.AVR`
-      :class:`~hydpy.model.lstream.lstream_fluxes.UVR`
+      |AVR|
+      |UVR|
 
     Examples:
 
@@ -449,11 +431,8 @@ def calc_avr_uvr_v1(self):
         >>> derived.hv(1.)
 
         The first example deals with moderate high flow conditions, where
-        water flows over the forelands, but not over their outer embankments:
-        (:class:`~hydpy.model.lstream.lstream_control.HM` <
-        :class:`~hydpy.model.lstream.lstream_fluxes.H` <
-        (:class:`~hydpy.model.lstream.lstream_control.HM` +
-        :class:`~hydpy.model.lstream.lstream_derived.HV`)):
+        water flows over the forelands, but not over their outer embankments
+        (|HM| < |H| < (|HM| + |HV|)):
 
         >>> fluxes.h = 1.5
         >>> model.calc_avr_uvr_v1()
@@ -463,10 +442,8 @@ def calc_avr_uvr_v1(self):
         uvr(0.0, 0.0)
 
         The second example deals with extreme high flow conditions, where
-        water flows over the both foreland and their outer embankments:
-        ((:class:`~hydpy.model.lstream.lstream_control.HM` +
-        :class:`~hydpy.model.lstream.lstream_derived.HV`) <
-        :class:`~hydpy.model.lstream.lstream_fluxes.H`):
+        water flows over the both foreland and their outer embankments
+        ((|HM| + |HV|) < |H|):
 
         >>> fluxes.h = 2.5
         >>> model.calc_avr_uvr_v1()
@@ -492,16 +469,16 @@ def calc_qvr_v1(self):
     Manning-Strickler.
 
     Required control parameters:
-      :class:`~hydpy.model.lstream.lstream_control.EKV`
-      :class:`~hydpy.model.lstream.lstream_control.SKV`
-      :class:`~hydpy.model.lstream.lstream_control.Gef`
+      |EKV|
+      |SKV|
+      |Gef|
 
     Required flux sequence:
-      :class:`~hydpy.model.lstream.lstream_fluxes.AVR`
-      :class:`~hydpy.model.lstream.lstream_fluxes.UVR`
+      |AVR|
+      |UVR|
 
     Calculated flux sequence:
-      :class:`~hydpy.model.lstream.lstream_fluxes.QVR`
+      |QVR|
 
     Examples:
 
@@ -541,12 +518,12 @@ def calc_ag_v1(self):
     """Sum the through flown area of the total cross section.
 
     Required flux sequences:
-      :class:`~hydpy.model.lstream.lstream_fluxes.AM`
-      :class:`~hydpy.model.lstream.lstream_fluxes.AV`
-      :class:`~hydpy.model.lstream.lstream_fluxes.AVR`
+      |AM|
+      |AV|
+      |AVR|
 
     Calculated flux sequence:
-      :class:`~hydpy.model.lstream.lstream_fluxes.AG`
+      |AG|
 
     Example:
 
@@ -566,8 +543,8 @@ def calc_ag_v1(self):
 def calc_qg_v1(self):
     """Calculate the discharge of the total cross section.
 
-    Method :func:`calc_qg_v1` applies the actual versions of all methods
-    for calculating the flown through areas, wetted perimeters and discharges
+    Method |calc_qg_v1| applies the actual versions of all methods for
+    calculating the flown through areas, wetted perimeters and discharges
     of the different cross section compartments.  Hence its requirements
     might be different for various application models.
     """
@@ -583,36 +560,35 @@ def calc_qg_v1(self):
 
 def calc_hmin_qmin_hmax_qmax_v1(self):
     """Determine an starting interval for iteration methods as the one
-    implemented in method
-    :func:`~hydpy.models.lstream.lstream_model.calc_h_v1`.
+    implemented in method |calc_h_v1|.
 
     The resulting interval is determined in a manner, that on the
     one hand :math:`Qmin \\leq QRef \\leq Qmax` is fulfilled and on the
-    other hand the results of method :func:`calc_qg_v1` are continuous
+    other hand the results of method |calc_qg_v1| are continuous
     for :math:`Hmin \\leq H \\leq Hmax`.
 
     Required control parameter:
-      :class:`~hydpy.model.lstream.lstream_control.HM`
+      |HM|
 
-    Required derived paramters:
-      :class:`~hydpy.model.lstream.lstream_derived.HV`
-      :class:`~hydpy.model.lstream.lstream_derived.QM`
-      :class:`~hydpy.model.lstream.lstream_derived.QV`
+    Required derived parameters:
+      |HV|
+      |lstream_derived.QM|
+      |lstream_derived.QV|
 
     Required flux sequence:
-      :class:`~hydpy.model.lstream.lstream_fluxes.QRef`
+      |QRef|
 
     Calculated aide sequences:
-      :class:`~hydpy.model.lstream.lstream_aides.HMin`
-      :class:`~hydpy.model.lstream.lstream_aides.HMax`
-      :class:`~hydpy.model.lstream.lstream_aides.QMin`
-      :class:`~hydpy.model.lstream.lstream_aides.QMax`
+      |HMin|
+      |HMax|
+      |QMin|
+      |QMax|
 
     Besides the mentioned required parameters and sequences, those of the
     actual method for calculating the discharge of the total cross section
     might be required.  This is the case whenever water flows on both outer
     embankments.  In such occasions no previously determined upper boundary
-    values are available and method :func:`calc_hmin_qmin_hmax_qmax_v1` needs
+    values are available and method |calc_hmin_qmin_hmax_qmax_v1| needs
     to increase the value of :math:`HMax` successively until the condition
     :math:`QG \\leq QMax` is met.
     """
@@ -656,20 +632,20 @@ def calc_h_v1(self):
     with the Pegasus iteration method.
 
     Required control parameters:
-      :class:`~hydpy.model.lstream.lstream_control.QTol`
-      :class:`~hydpy.model.lstream.lstream_control.HTol`
+      |QTol|
+      |HTol|
 
     Required flux sequence:
-      :class:`~hydpy.model.lstream.lstream_fluxes.QRef`
+      |QRef|
 
     Calculated aide sequences:
-      :class:`~hydpy.model.lstream.lstream_aides.HMin`
-      :class:`~hydpy.model.lstream.lstream_aides.HMax`
-      :class:`~hydpy.model.lstream.lstream_aides.QMin`
-      :class:`~hydpy.model.lstream.lstream_aides.QMax`
+      |HMin|
+      |HMax|
+      |QMin|
+      |QMax|
 
     Calculated flux sequence:
-      :class:`~hydpy.model.lstream.lstream_fluxes.H`
+      |H|
 
     Besides the parameters and sequences given above, those of the
     actual method for calculating the discharge of the total cross section
@@ -682,8 +658,8 @@ def calc_h_v1(self):
         Newton-Raphson algorithm).  Ideally, its convergence should be proved
         for each application model to be derived from HydPy-L-Stream.
         The following examples focus on the methods
-        :func:`calc_hmin_qmin_hmax_qmax_v1` and :func:`calc_qg_v1`
-        (including their submethods) only:
+        |calc_hmin_qmin_hmax_qmax_v1| and |calc_qg_v1| (including their
+        submethods) only:
 
         >>> from hydpy.models.lstream import *
         >>> parameterstep()
@@ -892,18 +868,18 @@ def calc_qa_v1(self):
     the simulation time step.
 
     Required flux sequence:
-      :class:`~hydpy.model.lstream.lstream_fluxes.RK`
+      |RK|
 
     Required state sequence:
-      :class:`~hydpy.model.lstream.lstream_states.QZ`
+      |QZ|
 
     Updated state sequence:
-      :class:`~hydpy.model.lstream.lstream_states.QA`
+      |QA|
 
     Basic equation:
        :math:`QA_{neu} = QA_{alt} +
        (QZ_{alt}-QA_{alt}) \\cdot (1-exp(-RK^{-1})) +
-       (QZ_{neu}-QZ_{alt}) \\cdot (1-KR\\cdot(1-exp(-KR^{-1})))`
+       (QZ_{neu}-QZ_{alt}) \\cdot (1-RK\\cdot(1-exp(-RK^{-1})))`
 
     Examples:
 

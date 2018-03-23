@@ -1973,11 +1973,14 @@ def update_actualremoterelease_v1(self):
 
 def calc_flooddischarge_v1(self):
     """Calculate the discharge during and after a flood event based on an
-    artificial neural network describing the relationship between discharge
-    and water stage.
+    |SeasonalANN| describing the relationship(s) between discharge and
+    water stage.
 
     Required control parameter:
       |WaterLevel2FloodDischarge|
+
+    Required derived parameter:
+      |TOY|
 
     Required aide sequence:
       |WaterLevel|
@@ -1987,29 +1990,50 @@ def calc_flooddischarge_v1(self):
 
     Example:
 
-        Prepare a dam model:
+
+        The control parameter |WaterLevel2FloodDischarge| is derived from
+        |SeasonalParameter|.  This allows to simulate different seasonal
+        dam control schemes.  To show that the seasonal selection mechanism
+        is implemented properly, we define a short simulation period of
+        three days:
+
+        >>> from hydpy import pub
+        >>> from hydpy import Timegrids, Timegrid
+        >>> pub.timegrids = Timegrids(Timegrid('2001.01.01',
+        ...                                    '2001.01.04',
+        ...                                    '1d'))
+
+        Now we prepare a dam model and define two different relationships
+        between water level and flood discharge.  The first relatively
+        simple relationship (for January, 2) is based on two neurons
+        contained in a single hidden layer and is used in the following
+        example.  The second neural network (for January, 3) is not
+        applied at all, which is why we do not need to assign any parameter
+        values to it:
 
         >>> from hydpy.models.dam import *
         >>> parameterstep()
+        >>> waterlevel2flooddischarge(
+        ...     _01_02_12 = ann(nmb_inputs=1,
+        ...                     nmb_neurons=(2,),
+        ...                     nmb_outputs=1,
+        ...                     weights_input=[[50., 4]],
+        ...                     weights_output=[[2.], [30]],
+        ...                     intercepts_hidden=[[-13000, -1046]],
+        ...                     intercepts_output=[0.]),
+        ...     _01_03_12 = ann(nmb_inputs=1,
+        ...                     nmb_neurons=(2,),
+        ...                     nmb_outputs=1))
+        >>> derived.toy.update()
+        >>> model.idx_sim = pub.timegrids.sim['2001.01.02']
 
-        Prepare a relatively simple relationship based on two neuron
-        contained in a single hidden layer:
-
-        >>> waterlevel2flooddischarge(nmb_inputs=1,
-        ...                           nmb_neurons=(2,),
-        ...                           nmb_outputs=1,
-        ...                           weights_input=[[50., 4]],
-        ...                           weights_output=[[2.], [30]],
-        ...                           intercepts_hidden=[[-13000, -1046]],
-        ...                           intercepts_output=[0.])
-
-        The following example shows two distinct effects of both neurons.
-        One neuron describes a relatively sharp increase between 259.8
-        and 260.2 meters from about 0 to 2 m³/s.  This could describe
-        a release of water through a bottom outlet controlled by a valve.
-        The add something like an exponential increase between 260 and
-        261 meters, which could describe the uncontrolled flow over a
-        spillway:
+        The following example shows two distinct effects of both neurons
+        in the first network.  One neuron describes a relatively sharp
+        increase between 259.8 and 260.2 meters from about 0 to 2 m³/s.
+        This could describe a release of water through a bottom outlet
+        controlled by a valve.  The add something like an exponential
+        increase between 260 and 261 meters, which could describe the
+        uncontrolled flow over a spillway:
 
         >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.calc_flooddischarge_v1,
@@ -2041,10 +2065,11 @@ def calc_flooddischarge_v1(self):
         |  21 |       5.576088 |      261.0 |
     """
     con = self.parameters.control.fastaccess
+    der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
     aid = self.sequences.aides.fastaccess
     con.waterlevel2flooddischarge.inputs[0] = aid.waterlevel
-    con.waterlevel2flooddischarge.process_actual_input()
+    con.waterlevel2flooddischarge.process_actual_input(der.toy[self.idx_sim])
     flu.flooddischarge = con.waterlevel2flooddischarge.outputs[0]
 
 

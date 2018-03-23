@@ -68,9 +68,9 @@
     >>> watervolume2waterlevel(
     ...         weights_input=1e-6, weights_output=1e6,
     ...         intercepts_hidden=0.0, intercepts_output=-1e6/2)
-    >>> waterlevel2flooddischarge(
+    >>> waterlevel2flooddischarge(ann(
     ...        weights_input=0.0, weights_output=0.0,
-    ...        intercepts_hidden=0.0, intercepts_output=0.0)
+    ...        intercepts_hidden=0.0, intercepts_output=0.0))
     >>> catchmentarea(86.4)
     >>> neardischargeminimumthreshold(0.2)
     >>> neardischargeminimumtolerance(0.2)
@@ -401,9 +401,9 @@
     >>> waterlevelminimumtolerance(0.0)
     >>> waterlevelminimumremotethreshold(0.0)
     >>> waterlevelminimumremotetolerance(0.0)
-    >>> waterlevel2flooddischarge(
+    >>> waterlevel2flooddischarge(ann(
     ...         weights_input=1e-6, weights_output=1e7,
-    ...         intercepts_hidden=0.0, intercepts_output=-1e7/2)
+    ...         intercepts_hidden=0.0, intercepts_output=-1e7/2))
     >>> neardischargeminimumthreshold(0.0)
     >>> inflow.sequences.sim.series = [ 0., 1., 5., 9., 8., 5., 3., 2., 1., 0.,
     ...                                 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]
@@ -515,6 +515,7 @@ from hydpy.core import parametertools
 from hydpy.core import sequencetools
 # ...from HydPy
 from hydpy.core.modelimports import *
+from hydpy.auxs.anntools import ann
 # ...from dam
 from hydpy.models.dam import dam_model
 from hydpy.models.dam import dam_control

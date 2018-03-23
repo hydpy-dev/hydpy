@@ -153,7 +153,7 @@ class WaterVolume2WaterLevel(anntools.ANN):
     water level and water volume [-]."""
 
 
-class WaterLevel2FloodDischarge(anntools.ANN):
+class WaterLevel2FloodDischarge(anntools.SeasonalANN):
     """Artificial neural network describing the relationship between
     flood discharge and water volume [-]."""
 

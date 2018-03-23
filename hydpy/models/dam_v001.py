@@ -161,9 +161,9 @@ Integration examples:
     related processes.  This is accomplished by setting the weights and
     intercepts of the |WaterLevel2FloodDischarge| to zero:
 
-    >>> waterlevel2flooddischarge(
+    >>> waterlevel2flooddischarge(ann(
     ...        weights_input=0.0, weights_output=0.0,
-    ...        intercepts_hidden=0.0, intercepts_output=0.0)
+    ...        intercepts_hidden=0.0, intercepts_output=0.0))
     >>> waterlevel2flooddischarge.plot(0.0, 25.0)
 
     .. testsetup::
@@ -855,9 +855,9 @@ Integration examples:
     and the water level is also approximately linear in this range, with a
     discharge value of 62.5 m³/s for a water level 25 m:
 
-    >>> waterlevel2flooddischarge(
+    >>> waterlevel2flooddischarge(ann(
     ...         weights_input=1e-6, weights_output=1e7,
-    ...         intercepts_hidden=0.0, intercepts_output=-1e7/2)
+    ...         intercepts_hidden=0.0, intercepts_output=-1e7/2))
     >>> waterlevel2flooddischarge.plot(0.0, 25.0)
 
     .. testsetup::
@@ -1020,9 +1020,9 @@ Integration examples:
     highly reactive manner:
 
     >>> solver.abserrormax(1e-2)
-    >>> waterlevel2flooddischarge(
+    >>> waterlevel2flooddischarge(ann(
     ...         weights_input=1e-4, weights_output=1e7,
-    ...         intercepts_hidden=0.0, intercepts_output=-1e7/2)
+    ...         intercepts_hidden=0.0, intercepts_output=-1e7/2))
     >>> waterlevel2flooddischarge.plot(0.0, 25.0)
 
     .. testsetup::
@@ -1100,6 +1100,7 @@ from hydpy.core import parametertools
 from hydpy.core import sequencetools
 # ...from HydPy
 from hydpy.core.modelimports import *
+from hydpy.auxs.anntools import ann
 # ...from dam
 from hydpy.models.dam import dam_model
 from hydpy.models.dam import dam_control

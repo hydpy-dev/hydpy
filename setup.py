@@ -143,17 +143,6 @@ if install:
                 os.path.isfile(os.path.join('hydpy', 'conf', filename))):
             shutil.copy(os.path.join('hydpy', 'conf', filename),
                         os.path.join(hydpy.conf.__path__[0], filename))
-    # Copy all compiled Cython files (pyd or so) into the original folder.
-    # (Thought for developers only - if it fails, its not that a big deal...)
-    for filename in os.listdir(hydpy.cythons.autogen.__path__[0]):
-        ending = filename.split('.')[-1]
-        if ending in ('pyd', 'so', 'pyx'):
-            try:
-                shutil.copy(
-                    os.path.join(hydpy.cythons.autogen.__path__[0], filename),
-                    os.path.join('hydpy', 'cythons', 'autogen', filename))
-            except BaseException as exc:
-                print(type(exc), exc)
     # Execute all tests.
     oldpath = os.path.abspath('.')
     import hydpy.tests
@@ -161,13 +150,19 @@ if install:
     exitcode = int(os.system('coverage run -m --branch '
                              '--source hydpy --omit=test_everything.py '
                              'test_everything'))
-    if exitcode:
-        print('Use this HydPy version with caution on your system.  At '
-              'least one verification test failed.  You should see in the '
-              'information given above, whether essential features of '
-              'HydPy are broken or perhaps only some typing errors in '
-              'documentation were detected.  (exit code: %d)' % exitcode)
-        sys.exit(1)
+    # Copy all extension files (pyx) and all compiled Cython files (pyd or so)
+    # into the original `autogen` folder.
+    # (Thought for developers only - if it fails, its not that a big deal...)
+    path_autogen = os.path.join(oldpath, 'hydpy', 'cythons', 'autogen')
+    for filename in os.listdir(hydpy.cythons.autogen.__path__[0]):
+        ending = filename.split('.')[-1]
+        if ending in ('pyd', 'so', 'pyx', 'pxd'):
+            try:
+                shutil.copy(
+                    os.path.join(hydpy.cythons.autogen.__path__[0], filename),
+                    os.path.join(path_autogen, filename))
+            except BaseException:
+                pass
     # Copy all generated additional docfiles into the orignal docs subpackage
     # (on Travis-CI: for including them into the online-documentation).
     path_html = os.path.join(oldpath, 'hydpy', 'docs', 'html')
@@ -176,6 +171,13 @@ if install:
         if filename.endswith('.html'):
             shutil.copy(os.path.join(hydpy.docs.html.__path__[0], filename),
                         os.path.join(path_html, filename))
+    if exitcode:
+        print('Use this HydPy version with caution on your system.  At '
+              'least one verification test failed.  You should see in the '
+              'information given above, whether essential features of '
+              'HydPy are broken or perhaps only some typing errors in '
+              'documentation were detected.  (exit code: %d)' % exitcode)
+        sys.exit(1)
     # Prepare coverage report and prepare it for sphinx.
     if coverage_report:
         os.system('coverage report -m --skip-covered')

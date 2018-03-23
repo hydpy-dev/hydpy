@@ -155,6 +155,11 @@ class ANNABC(DocABC):
     classes."""
 
 
+class SeasonalANNABC(DocABC):
+    """Abstract base class for registering custom seasonal artificial neural
+    network classes."""
+
+
 class IOSubSequencesABC(DocABC):
     """Abstract base class for registering custom input-output subsequence
     collection classes."""

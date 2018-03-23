@@ -1179,8 +1179,7 @@ seasonal neural network collection `seasonalann` of element `?` based on \
 name `toy_1_1_12`, the following error occured: No neural network is \
 registered under a TOY object named `toy_1_1_12_0_0`.
     """
-
-    NDIM = 1
+    NDIM = 0
     TYPE = 'annutils.SeasonalANN'
     TIME = None
     SPAN = (None, None)
@@ -1203,8 +1202,17 @@ registered under a TOY object named `toy_1_1_12_0_0`.
 
     name = property(objecttools.name)
 
-    def __call__(self, **kwargs):
+    def __call__(self, *args, **kwargs):
         self._toy2ann.clear()
+        if (len(args) > 1) or (args and kwargs):
+            raise ValueError(
+                'Type `%s` accepts either a single positional argument or '
+                'an arbitrary number of keyword arguments, but for the  '
+                'corresponding parameter of element `%s` %d positional and '
+                '%d keyword arguments have been given.'
+                % (objecttools.classname(self), len(args), len(kwargs)))
+        if args:
+            kwargs['_1'] = args[0]
         if kwargs:
             self._do_refresh = False
             try:
@@ -1451,6 +1459,18 @@ year `toy_1_1_12_0_0` requires `2` input and `3` output values.
         """
         self._sann.process_actual_input(idx_toy)
 
+    def plot(self, xmin, xmax, idx_input=0, idx_output=0, points=100,
+             **kwargs):
+        """Call method :func:`ANN.plot` of all |ANN| objects handled by
+        the actual |SeasonalANN| object.
+        """
+        for toy, ann in self:
+            ann.plot(xmin, xmax,
+                     idx_input=idx_input, idx_output=idx_output,
+                     points=points,
+                     label=str(toy))
+        pyplot.legend()
+
     def __getattribute__(self, name):
         if name.startswith('toy_'):
             try:
@@ -1532,6 +1552,10 @@ year `toy_1_1_12_0_0` requires `2` input and `3` output values.
 
     def __dir__(self):
         return objecttools.dir_(self) + [str(toy) for toy in self.toys]
+
+
+abctools.ParameterABC.register(SeasonalANN)
+abctools.SeasonalANNABC.register(SeasonalANN)
 
 
 autodoctools.autodoc_module()

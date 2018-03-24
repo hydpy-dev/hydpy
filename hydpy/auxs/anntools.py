@@ -1464,8 +1464,8 @@ year `toy_1_1_12_0_0` requires `2` input and `3` output values.
 
     def plot(self, xmin, xmax, idx_input=0, idx_output=0, points=100,
              **kwargs):
-        """Call method :func:`ANN.plot` of all |ANN| objects handled by
-        the actual |SeasonalANN| object.
+        """Call method :func:`ANN.plot` of all :class:`ANN` objects handled by
+        the actual :class:`SeasonalANN` object.
         """
         for toy, ann in self:
             ann.plot(xmin, xmax,

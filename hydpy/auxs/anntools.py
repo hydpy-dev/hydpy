@@ -106,6 +106,9 @@ class ANN(object):
     TIME = None
     SPAN = (None, None)
 
+    parameterstep = parametertools.Parameter.__dict__['parameterstep']
+    simulationstep = parametertools.Parameter.__dict__['simulationstep']
+
     def __init__(self):
         self.subpars = None
         self.fastaccess = objecttools.FastAccess()
@@ -1184,8 +1187,8 @@ registered under a TOY object named `toy_1_1_12_0_0`.
     TIME = None
     SPAN = (None, None)
 
-    parameterstep = parametertools.Parameterstep()
-    simulationstep = parametertools.Simulationstep()
+    parameterstep = parametertools.Parameter.__dict__['parameterstep']
+    simulationstep = parametertools.Parameter.__dict__['simulationstep']
 
     def __init__(self):
         self.subpars = None

@@ -263,14 +263,27 @@ def calc_pc_v1(self):
         The fifth zone illustrates the interaction between all corrections
         --- note that each correction (except the first one) is based the
         corrected precipitation value determined beforehand.
+        Usually, one would set zero or positive values for parameter |PCAlt|.
+        But it is also allowed to set negative values, in order to reflect
+        possible negative relationships between precipitation and altitude.
+        To prevent from calculating negative precipitation when too large
+        negative values are applied, a truncation is performed:
+
+        >>> pcalt(-1.0)
+        >>> model.calc_pc_v1()
+        >>> fluxes.pc
+        pc(0.0, 0.0, 0.0, 0.0, 0.0)
+
     """
     con = self.parameters.control.fastaccess
     inp = self.sequences.inputs.fastaccess
     flu = self.sequences.fluxes.fastaccess
     for k in range(con.nmbzones):
-        flu.pc[k] = inp.p*con.pcorr[k]
-        flu.pc[k] *= 1.+con.pcalt[k]*(con.zonez[k]-con.zrelp)
-        flu.pc[k] *= flu.rfc[k]+flu.sfc[k]
+        flu.pc[k] = inp.p*(1.+con.pcalt[k]*(con.zonez[k]-con.zrelp))
+        if flu.pc[k] <= 0.:
+            flu.pc[k] = 0.
+        else:
+            flu.pc[k] *= con.pcorr[k]*(flu.rfc[k]+flu.sfc[k])
 
 
 def calc_ep_v1(self):
@@ -397,13 +410,24 @@ def calc_epc_v1(self):
         The fourth zone illustrates the interaction between all corrections
         --- note that each correction (except the first one) is based the
         corrected evaporation value determined beforehand.
+        To prevent from calculating negative evaporation values when too
+        large values for parameter |ECAlt| are set, a truncation is performed:
+
+        >>> ecalt(2.0)
+        >>> model.calc_epc_v1()
+        >>> fluxes.epc
+        epc(0.0, 0.0, 0.0, 0.0)
+
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
     for k in range(con.nmbzones):
         flu.epc[k] = (flu.ep[k]*con.ecorr[k] *
                       (1. - con.ecalt[k]*(con.zonez[k]-con.zrele)))
-        flu.epc[k] *= modelutils.exp(-con.epf[k]*flu.pc[k])
+        if flu.epc[k] <= 0.:
+            flu.epc[k] = 0.
+        else:
+            flu.epc[k] *= modelutils.exp(-con.epf[k]*flu.pc[k])
 
 
 def calc_tf_ic_v1(self):

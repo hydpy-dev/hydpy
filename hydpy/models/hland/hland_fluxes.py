@@ -57,33 +57,13 @@ class TF(sequencetools.FluxSequence):
     NDIM, NUMERIC = 1, False
 
 
-class TFWat(sequencetools.FluxSequence):
-    """Liquid throughfall [mm]."""
-    NDIM, NUMERIC = 1, False
-
-
-class TFIce(sequencetools.FluxSequence):
-    """Frozen throughfall [mm]."""
-    NDIM, NUMERIC = 1, False
-
-
 class GlMelt(sequencetools.FluxSequence):
     """Glacier melt [mm]."""
     NDIM, NUMERIC = 1, False
 
 
-class MeltPot(sequencetools.FluxSequence):
-    """Potential melting of frozen water stored in the snow layer [mm]."""
-    NDIM, NUMERIC = 1, False
-
-
 class Melt(sequencetools.FluxSequence):
     """Actual melting of frozen water stored in the snow layer [mm]."""
-    NDIM, NUMERIC = 1, False
-
-
-class RefrPot(sequencetools.FluxSequence):
-    """Potential (re)freezing of liquid water stored in the snow layer [mm]."""
     NDIM, NUMERIC = 1, False
 
 
@@ -164,7 +144,6 @@ class QT(sequencetools.FluxSequence):
 
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of the HydPy-H-Land model."""
-    _SEQCLASSES = (TMean, TC, FracRain, RfC, SfC, PC, EP, EPC, EI, TF, TFWat,
-                   TFIce, GlMelt, MeltPot, Melt, RefrPot, Refr, In_, R,
-                   EA, CFPot, CF, Perc, ContriArea, InUZ, Q0, EL, Q1,
-                   InUH, OutUH, QT)
+    _SEQCLASSES = (TMean, TC, FracRain, RfC, SfC, PC, EP, EPC, EI, TF,
+                   GlMelt, Melt, Refr, In_, R, EA, CFPot, CF, Perc,
+                   ContriArea, InUZ, Q0, EL, Q1, InUH, OutUH, QT)

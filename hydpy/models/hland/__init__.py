@@ -20,7 +20,6 @@ from hydpy.models.hland.hland_derived import DerivedParameters
 from hydpy.models.hland.hland_inputs import InputSequences
 from hydpy.models.hland.hland_fluxes import FluxSequences
 from hydpy.models.hland.hland_states import StateSequences
-from hydpy.models.hland.hland_aides import AideSequences
 from hydpy.models.hland.hland_logs import LogSequences
 from hydpy.models.hland.hland_outlets import OutletSequences
 from hydpy.models.hland.hland_model import Model

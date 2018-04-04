@@ -23,7 +23,6 @@ from hydpy.models.hland import hland_derived
 from hydpy.models.hland import hland_inputs
 from hydpy.models.hland import hland_fluxes
 from hydpy.models.hland import hland_states
-from hydpy.models.hland import hland_aides
 from hydpy.models.hland import hland_logs
 from hydpy.models.hland import hland_outlets
 from hydpy.models.hland.hland_parameters import Parameters
@@ -139,12 +138,8 @@ class FluxSequences(sequencetools.FluxSequences):
                    hland_fluxes.EPC,
                    hland_fluxes.EI,
                    hland_fluxes.TF,
-                   hland_fluxes.TFWat,
-                   hland_fluxes.TFIce,
                    hland_fluxes.GlMelt,
-                   hland_fluxes.MeltPot,
                    hland_fluxes.Melt,
-                   hland_fluxes.RefrPot,
                    hland_fluxes.Refr,
                    hland_fluxes.In_,
                    hland_fluxes.R,
@@ -175,12 +170,6 @@ class StateSequences(sequencetools.StateSequences):
 class LogSequences(sequencetools.AideSequences):
     """Aide sequences of hland_v1."""
     _SEQCLASSES = (hland_logs.QUH,)
-
-
-class AideSequences(sequencetools.AideSequences):
-    """Aide sequences of hland_v1."""
-    _SEQCLASSES = (hland_aides.Perc,
-                   hland_aides.Q0)
 
 
 class OutletSequences(sequencetools.LinkSequences):

@@ -15,16 +15,16 @@ def calc_tc_v1(self):
     individual zones.
 
     Required control parameters:
-      :class:`~hydpy.models.hland.hland_control.NmbZones`
-      :class:`~hydpy.models.hland.hland_control.TCAlt`
-      :class:`~hydpy.models.hland.hland_control.ZoneZ`
-      :class:`~hydpy.models.hland.hland_control.ZRelT`
+      |NmbZones|
+      |TCAlt|
+      |ZoneZ|
+      |ZRelT|
 
     Required input sequence:
-      :class:`~hydpy.models.hland.hland_inputs.T`
+      |T|
 
     Calculated flux sequences:
-      :class:`~hydpy.models.hland.hland_fluxes.TC`
+      |TC|
 
     Basic equation:
       :math:`TC = T - TCAlt \\cdot (ZoneZ-ZRelT)`
@@ -58,13 +58,13 @@ def calc_tmean_v1(self):
     """Calculate the areal mean temperature of the subbasin.
 
     Required derived parameter:
-      :class:`~hydpy.models.hland.hland_derived.RelZoneArea`
+      |RelZoneArea|
 
     Required flux sequence:
-      :class:`~hydpy.models.hland.hland_fluxes.TC`
+      |TC|
 
     Calculated flux sequences:
-      :class:`~hydpy.models.hland.hland_fluxes.TMean`
+      |TMean|
 
     Examples:
         Prepare sized zones, the first one beeing twice as large
@@ -96,15 +96,15 @@ def calc_fracrain_v1(self):
     and (total) precipitation.
 
     Required control parameters:
-      :class:`~hydpy.models.hland.hland_control.NmbZones`
-      :class:`~hydpy.models.hland.hland_control.TT`,
-      :class:`~hydpy.models.hland.hland_control.TTInt`
+      |NmbZones|
+      |TT|,
+      |TTInt|
 
     Required flux sequence:
-      :class:`~hydpy.models.hland.hland_fluxes.TC`
+      |TC|
 
     Calculated flux sequences:
-      :class:`~hydpy.models.hland.hland_fluxes.FracRain`
+      |FracRain|
 
     Basic equation:
       :math:`FracRain = \\frac{TC-(TT-\\frac{TTInt}{2})}{TTInt}`
@@ -157,13 +157,13 @@ def calc_rfc_sfc_v1(self):
     precipitation.
 
     Required control parameters:
-      :class:`~hydpy.models.hland.hland_control.NmbZones`
-      :class:`~hydpy.models.hland.hland_control.RfCF`
-      :class:`~hydpy.models.hland.hland_control.SfCF`
+      |NmbZones|
+      |RfCF|
+      |SfCF|
 
     Calculated flux sequences:
-      :class:`~hydpy.models.hland.hland_fluxes.RfC`
-      :class:`~hydpy.models.hland.hland_fluxes.SfC`
+      |RfC|
+      |SfC|
 
     Basic equations:
       :math:`RfC = RfCF \\cdot FracRain` \n
@@ -214,43 +214,45 @@ def calc_pc_v1(self):
     to the altitude of the individual zones.
 
     Required control parameters:
-      :class:`~hydpy.models.hland.hland_control.NmbZones`
-      :class:`~hydpy.models.hland.hland_control.PCorr`
-      :class:`~hydpy.models.hland.hland_control.PCAlt`
-      :class:`~hydpy.models.hland.hland_control.ZoneZ`
-      :class:`~hydpy.models.hland.hland_control.ZRelP`
+      |NmbZones|
+      |PCorr|
+      |PCAlt|
+      |ZoneZ|
+      |ZRelP|
 
     Required input sequence:
-      :class:`~hydpy.models.hland.hland_inputs.P`
+      |P|
 
     Required flux sequences:
-      :class:`~hydpy.models.hland.hland_fluxes.RfC`
-      :class:`~hydpy.models.hland.hland_fluxes.SfC`
+      |RfC|
+      |SfC|
 
     Calculated flux sequences:
-      :class:`~hydpy.models.hland.hland_fluxes.PC`
+      |PC|
+
+    Basic equation:
+      :math:`PC = P \\cdot PCorr
+      \\cdot (1+PCAlt \\cdot (ZoneZ-ZRelP))
+      \\cdot (RfC + SfC)`
 
     Examples:
+
         Five zones are at an elevation of 200 m.  A precipitation value
         of 5 mm has been measured at a gauge at an elevation of 300 m:
 
         >>> from hydpy.models.hland import *
         >>> parameterstep('1d')
         >>> nmbzones(5)
-        >>> zrelp(2.)
-        >>> zonez(3.)
-        >>> inputs.p = 5.
-
-        Basic equation:
-          :math:`PC = P \\cdot PCorr
-          \\cdot (1+PCAlt \\cdot (ZoneZ-ZRelP))
-          \\cdot (RfC + SfC)`
+        >>> zrelp(2.0)
+        >>> zonez(3.0)
+        >>> inputs.p = 5.0
 
         The first four zones illustrate the individual precipitation
         corrections due to the general precipitation correction factor
-        (first zone), the altitude correction (second zone), the rainfall
-        related correction factor (third zone), and the snowfall related
-        correction factor (fourth zone):
+        (|PCorr|, first zone), the altitude correction factor (|PCAlt|,
+        second zone), the rainfall related correction (|RfC|, third zone),
+        and the snowfall related correction factor (|SfC|, fourth zone).
+        The fifth zone illustrates the interaction between all corrections:
 
         >>> pcorr(1.3, 1.0, 1.0, 1.0, 1.3)
         >>> pcalt(0.0, 0.1, 0.0, 0.0, 0.1)
@@ -260,9 +262,6 @@ def calc_pc_v1(self):
         >>> fluxes.pc
         pc(6.5, 5.5, 4.5, 6.0, 7.865)
 
-        The fifth zone illustrates the interaction between all corrections
-        --- note that each correction (except the first one) is based the
-        corrected precipitation value determined beforehand.
         Usually, one would set zero or positive values for parameter |PCAlt|.
         But it is also allowed to set negative values, in order to reflect
         possible negative relationships between precipitation and altitude.
@@ -290,18 +289,18 @@ def calc_ep_v1(self):
     """Adjust potential norm evaporation to the actual temperature.
 
     Required control parameters:
-      :class:`~hydpy.models.hland.hland_control.NmbZones`
-      :class:`~hydpy.models.hland.hland_control.ETF`
+      |NmbZones|
+      |ETF|
 
     Required input sequence:
-      :class:`~hydpy.models.hland.hland_inputs.EPN`
-      :class:`~hydpy.models.hland.hland_inputs.TN`
+      |EPN|
+      |TN|
 
     Required flux sequence:
-      :class:`~hydpy.models.hland.hland_fluxes.TMean`
+      |TMean|
 
     Calculated flux sequences:
-      :class:`~hydpy.models.hland.hland_fluxes.EP`
+      |EP|
 
     Basic equation:
       :math:`EP = EPN \\cdot (1 + ETF \\cdot (TMean - TN))`
@@ -361,19 +360,19 @@ def calc_epc_v1(self):
     depends on the actual precipitation.
 
     Required control parameters:
-      :class:`~hydpy.models.hland.hland_control.NmbZones`
-      :class:`~hydpy.models.hland.hland_control.ECorr`
-      :class:`~hydpy.models.hland.hland_control.ECAlt`
-      :class:`~hydpy.models.hland.hland_control.ZoneZ`
-      :class:`~hydpy.models.hland.hland_control.ZRelE`
-      :class:`~hydpy.models.hland.hland_control.EPF`
+      |NmbZones|
+      |ECorr|
+      |ECAlt|
+      |ZoneZ|
+      |ZRelE|
+      |EPF|
 
     Required flux sequences:
-      :class:`~hydpy.models.hland.hland_fluxes.EP`
-      :class:`~hydpy.models.hland.hland_fluxes.PC`
+      |EP|
+      |PC|
 
     Calculated flux sequences:
-      :class:`~hydpy.models.hland.hland_fluxes.EPC`
+      |EPC|
 
     Basic equation:
       :math:`EPC = EP \\cdot ECorr
@@ -382,6 +381,7 @@ def calc_epc_v1(self):
 
 
     Examples:
+
         Four zones are at an elevation of 200 m.  A (uncorrected)
         potential evaporation value of 2 mm and a (corrected) precipitation
         value of 5 mm have been determined for each zone beforehand:
@@ -390,15 +390,17 @@ def calc_epc_v1(self):
         >>> parameterstep('1d')
         >>> simulationstep('12h')
         >>> nmbzones(4)
-        >>> zrele(2.)
-        >>> zonez(3.)
-        >>> fluxes.ep = 2.
-        >>> fluxes.pc = 5.
+        >>> zrele(2.0)
+        >>> zonez(3.0)
+        >>> fluxes.ep = 2.0
+        >>> fluxes.pc = 5.0
 
         The first three zones  illustrate the individual evaporation
         corrections due to the general evaporation correction factor
-        (first zone), the altitude correction (second zone), the
-        precipitation related correction (third zone):
+        (|ECorr|, first zone), the altitude correction factor (|ECAlt|,
+        second zone), the precipitation related correction factor
+        (|EPF|, third zone).  The fourth zone illustrates the interaction
+        between all corrections:
 
         >>> ecorr(1.3, 1.0, 1.0, 1.3)
         >>> ecalt(0.0, 0.1, 0.0, 0.1)
@@ -407,9 +409,6 @@ def calc_epc_v1(self):
         >>> fluxes.epc
         epc(2.6, 1.8, 1.4, 1.638)
 
-        The fourth zone illustrates the interaction between all corrections
-        --- note that each correction (except the first one) is based the
-        corrected evaporation value determined beforehand.
         To prevent from calculating negative evaporation values when too
         large values for parameter |ECAlt| are set, a truncation is performed:
 
@@ -435,18 +434,18 @@ def calc_tf_ic_v1(self):
     accordingly.
 
     Required control parameters:
-      :class:`~hydpy.models.hland.hland_control.NmbZones`
-      :class:`~hydpy.models.hland.hland_control.ZoneType`
-      :class:`~hydpy.models.hland.hland_control.IcMax`
+      |NmbZones|
+      |ZoneType|
+      |IcMax|
 
     Required flux sequences:
-      :class:`~hydpy.models.hland.hland_fluxes.PC`
+      |PC|
 
     Calculated fluxes sequences:
-      :class:`~hydpy.models.hland.hland_fluxes.TF`
+      |TF|
 
     Updated state sequence:
-      :class:`~hydpy.models.hland.hland_states.Ic`
+      |Ic|
 
     Basic equation:
       :math:`TF = \\Bigl \\lbrace
@@ -523,17 +522,17 @@ def calc_ei_ic_v1(self):
     storage accordingly.
 
     Required control parameters:
-      :class:`~hydpy.models.hland.hland_control.NmbZones`
-      :class:`~hydpy.models.hland.hland_control.ZoneType`
+      |NmbZones|
+      |ZoneType|
 
     Required flux sequences:
-      :class:`~hydpy.models.hland.hland_fluxes.EPC`
+      |EPC|
 
     Calculated fluxes sequences:
-      :class:`~hydpy.models.hland.hland_fluxes.EI`
+      |EI|
 
     Updated state sequence:
-      :class:`~hydpy.models.hland.hland_states.Ic`
+      |Ic|
 
     Basic equation:
       :math:`EI = \\Bigl \\lbrace
@@ -606,17 +605,17 @@ def calc_sp_wc_v1(self):
     """Add throughfall to the snow layer.
 
     Required control parameters:
-      :class:`~hydpy.models.hland.hland_control.NmbZones`
-      :class:`~hydpy.models.hland.hland_control.ZoneType`
+      |NmbZones|
+      |ZoneType|
 
     Required flux sequences:
-      :class:`~hydpy.models.hland.hland_fluxes.TF`
-      :class:`~hydpy.models.hland.hland_fluxes.RfC`
-      :class:`~hydpy.models.hland.hland_fluxes.SfC`
+      |TF|
+      |RfC|
+      |SfC|
 
     Updated state sequences:
-      :class:`~hydpy.models.hland.hland_states.WC`
-      :class:`~hydpy.models.hland.hland_states.SP`
+      |WC|
+      |SP|
 
     Basic equations:
       :math:`\\frac{dSP}{dt} = TF \\cdot \\frac{SfC}{SfC+RfC}` \n
@@ -682,24 +681,24 @@ def calc_melt_sp_wc_v1(self):
     update both the snow layers ice and the water content.
 
     Required control parameters:
-      :class:`~hydpy.models.hland.hland_control.NmbZones`
-      :class:`~hydpy.models.hland.hland_control.ZoneType`
-      :class:`~hydpy.models.hland.hland_control.CFMax`
+      |NmbZones|
+      |ZoneType|
+      |CFMax|
 
     Required derived parameter:
-      :class:`~hydpy.models.hland.hland_derived.TTM`
+      |TTM|
 
     Required flux sequences:
-      :class:`~hydpy.models.hland.hland_fluxes.TC`
+      |TC|
 
     Calculated fluxes sequences:
-      :class:`~hydpy.models.hland.hland_fluxes.Melt`
+      |Melt|
 
     Required state sequence:
-      :class:`~hydpy.models.hland.hland_states.SP`
+      |SP|
 
     Updatet state sequence:
-        :class:`~hydpy.models.hland.hland_states.WC`
+        |WC|
 
     Basic equations:
       :math:`\\frac{dSP}{dt} = - Melt` \n
@@ -798,25 +797,25 @@ def calc_refr_sp_wc_v1(self):
     update both the snow layers ice and the water content.
 
     Required control parameters:
-      :class:`~hydpy.models.hland.hland_control.NmbZones`
-      :class:`~hydpy.models.hland.hland_control.ZoneType`
-      :class:`~hydpy.models.hland.hland_control.CFMax`
-      :class:`~hydpy.models.hland.hland_control.CFR`
+      |NmbZones|
+      |ZoneType|
+      |CFMax|
+      |CFR|
 
     Required derived parameter:
-      :class:`~hydpy.models.hland.hland_derived.TTM`
+      |TTM|
 
     Required flux sequences:
-      :class:`~hydpy.models.hland.hland_fluxes.TC`
+      |TC|
 
     Calculated fluxes sequences:
-      :class:`~hydpy.models.hland.hland_fluxes.Refr`
+      |Refr|
 
     Required state sequence:
-      :class:`~hydpy.models.hland.hland_states.WC`
+      |WC|
 
     Updated state sequence:
-      :class:`~hydpy.models.hland.hland_states.SP`
+      |SP|
 
     Basic equations:
       :math:`\\frac{dSP}{dt} =  + Refr` \n
@@ -936,21 +935,21 @@ def calc_in_wc_v1(self):
     exceedance of the snow layers capacity for (liquid) water.
 
     Required control parameters:
-      :class:`~hydpy.models.hland.hland_control.NmbZones`
-      :class:`~hydpy.models.hland.hland_control.ZoneType`
-      :class:`~hydpy.models.hland.hland_control.WHC`
+      |NmbZones|
+      |ZoneType|
+      |WHC|
 
     Required state sequence:
-      :class:`~hydpy.models.hland.hland_states.SP`
+      |SP|
 
     Required flux sequence
-      :class:`~hydpy.models.hland.hland_fluxes.TF`
+      |TF|
 
     Calculated fluxes sequences:
-      :class:`~hydpy.models.hland.hland_fluxes.In_`
+      |In_|
 
     Updated state sequence:
-      :class:`~hydpy.models.hland.hland_states.WC`
+      |WC|
 
     Basic equations:
       :math:`\\frac{dWC}{dt} = -In` \n
@@ -1026,21 +1025,21 @@ def calc_glmelt_in_v1(self):
     a snow layer and add it to the water release of the snow module.
 
     Required control parameters:
-      :class:`~hydpy.models.hland.hland_control.NmbZones`
-      :class:`~hydpy.models.hland.hland_control.ZoneType`
-      :class:`~hydpy.models.hland.hland_control.GMelt`
+      |NmbZones|
+      |ZoneType|
+      |GMelt|
 
     Required state sequence:
-      :class:`~hydpy.models.hland.hland_states.SP`
+      |SP|
 
     Required flux sequence:
-      :class:`~hydpy.models.hland.hland_fluxes.TC`
+      |TC|
 
     Calculated fluxes sequence:
-      :class:`~hydpy.models.hland.hland_fluxes.GlMelt`
+      |GlMelt|
 
     Updated flux sequence:
-      :class:`~hydpy.models.hland.hland_fluxes.In_`
+      |In_|
 
     Basic equation:
 
@@ -1100,19 +1099,19 @@ def calc_r_sm_v1(self):
     """Calculate effective precipitation and update soil moisture.
 
     Required control parameters:
-      :class:`~hydpy.models.hland.hland_control.NmbZones`
-      :class:`~hydpy.models.hland.hland_control.ZoneType`
-      :class:`~hydpy.models.hland.hland_control.FC`
-      :class:`~hydpy.models.hland.hland_control.Beta`
+      |NmbZones|
+      |ZoneType|
+      |FC|
+      |Beta|
 
     Required fluxes sequence:
-      :class:`~hydpy.models.hland.hland_fluxes.In_`
+      |In_|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.hland.hland_fluxes.R`
+      |R|
 
     Updated state sequence:
-      :class:`~hydpy.models.hland.hland_states.SM`
+      |SM|
 
     Basic equations:
       :math:`\\frac{dSM}{dt} = IN - R` \n
@@ -1191,22 +1190,22 @@ def calc_cf_sm_v1(self):
     """Calculate capillary flow and update soil moisture.
 
     Required control parameters:
-      :class:`~hydpy.models.hland.hland_control.NmbZones`
-      :class:`~hydpy.models.hland.hland_control.ZoneType`
-      :class:`~hydpy.models.hland.hland_control.FC`
-      :class:`~hydpy.models.hland.hland_control.CFlux`
+      |NmbZones|
+      |ZoneType|
+      |FC|
+      |CFlux|
 
     Required fluxes sequence:
-      :class:`~hydpy.models.hland.hland_fluxes.R`
+      |R|
 
     Required state sequence:
-      :class:`~hydpy.models.hland.hland_states.UZ`
+      |UZ|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.hland.hland_fluxes.CF`
+      |CF|
 
     Updated state sequence:
-      :class:`~hydpy.models.hland.hland_states.SM`
+      |SM|
 
     Basic equations:
       :math:`\\frac{dSM}{dt} = CF` \n
@@ -1332,24 +1331,24 @@ def calc_ea_sm_v1(self):
     """Calculate soil evaporation and update soil moisture.
 
     Required control parameters:
-      :class:`~hydpy.models.hland.hland_control.NmbZones`
-      :class:`~hydpy.models.hland.hland_control.ZoneType`
-      :class:`~hydpy.models.hland.hland_control.FC`
-      :class:`~hydpy.models.hland.hland_control.LP`
-      :class:`~hydpy.models.hland.hland_control.ERed`
+      |NmbZones|
+      |ZoneType|
+      |FC|
+      |LP|
+      |ERed|
 
     Required fluxes sequences:
-      :class:`~hydpy.models.hland.hland_fluxes.EPC`
-      :class:`~hydpy.models.hland.hland_fluxes.EI`
+      |EPC|
+      |EI|
 
     Required state sequence:
-      :class:`~hydpy.models.hland.hland_states.SP`
+      |SP|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.hland.hland_fluxes.EA`
+      |EA|
 
     Updated state sequence:
-      :class:`~hydpy.models.hland.hland_states.SM`
+      |SM|
 
     Basic equations:
       :math:`\\frac{dSM}{dt} = - EA` \n
@@ -1463,18 +1462,18 @@ def calc_inuz_v1(self):
     """Accumulate the total inflow into the upper zone layer.
 
     Required control parameters:
-      :class:`~hydpy.models.hland.hland_control.NmbZones`
-      :class:`~hydpy.models.hland.hland_control.ZoneType`
+      |NmbZones|
+      |ZoneType|
 
     Required derived parameters:
-      :class:`~hydpy.models.hland.hland_derived.RelLandZoneArea`
+      |RelLandZoneArea|
 
     Required fluxes sequences:
-      :class:`~hydpy.models.hland.hland_fluxes.R`
-      :class:`~hydpy.models.hland.hland_fluxes.CF`
+      |R|
+      |CF|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.hland.hland_fluxes.InUZ`
+      |InUZ|
 
     Basic equation:
       :math:`InUZ = R - CF`
@@ -1518,20 +1517,20 @@ def calc_contriarea_v1(self):
     subbasin.
 
     Required control parameters:
-      :class:`~hydpy.models.hland.hland_control.NmbZones`
-      :class:`~hydpy.models.hland.hland_control.ZoneType`
-      :class:`~hydpy.models.hland.hland_control.RespArea`
-      :class:`~hydpy.models.hland.hland_control.FC`
-      :class:`~hydpy.models.hland.hland_control.Beta`
+      |NmbZones|
+      |ZoneType|
+      |RespArea|
+      |FC|
+      |Beta|
 
     Required derived parameter:
-    :class:`~hydpy.models.hland.hland_derived.RelSoilArea`
+    |RelSoilArea|
 
     Required state sequence:
-      :class:`~hydpy.models.hland.hland_states.SM`
+      |SM|
 
     Calculated fluxes sequences:
-      :class:`~hydpy.models.hland.hland_fluxes.ContriArea`
+      |ContriArea|
 
     Basic equation:
       :math:`ContriArea = \\left( \\frac{SM}{FC} \\right)^{Beta}`
@@ -1624,35 +1623,31 @@ def calc_q0_perc_uz_v1(self):
     """Perform the upper zone layer routine which determines percolation
     to the lower zone layer and the fast response of the hland model.
     Note that the system behaviour of this method depends strongly on the
-    specifications of the options :class:`RespArea` and :class:`RecStep`.
+    specifications of the options |RespArea| and |RecStep|.
 
     Required control parameters:
-      :class:`~hydpy.models.hland.hland_control.RecStep`
-      :class:`~hydpy.models.hland.hland_control.PercMax`
-      :class:`~hydpy.models.hland.hland_control.K`
-      :class:`~hydpy.models.hland.hland_control.Alpha`
+      |RecStep|
+      |PercMax|
+      |K|
+      |Alpha|
 
     Required derived parameters:
-      :class:`~hydpy.models.hland.hland_control.DT`
+      |DT|
 
     Required fluxes sequence:
-      :class:`~hydpy.models.hland.hland_fluxes.InUZ`
-
-    Used Aide sequences:
-      :class:`~hydpy.models.hland.hland_aides.Perc`
-      :class:`~hydpy.models.hland.hland_aides.Q0`
+      |InUZ|
 
     Calculated fluxes sequences:
-      :class:`~hydpy.models.hland.hland_fluxes.Perc`
-      :class:`~hydpy.models.hland.hland_fluxes.Q0`
+      |Perc|
+      |Q0|
 
     Updated state sequence:
-      :class:`~hydpy.models.hland.hland_states.UZ`
+      |UZ|
 
     Basic equations:
       :math:`\\frac{dUZ}{dt} = InUZ - Perc - Q0` \n
       :math:`Perc = PercMax \\cdot ContriArea` \n
-      :math:`Q0 = \\left( \\frac{UZ}{ContriArea} \\right)^{1+Alpha}`
+      :math:`Q0 = K * \\cdot \\left( \\frac{UZ}{ContriArea} \\right)^{1+Alpha}`
 
     Examples:
         The upper zone layer routine is an exception compared to
@@ -1786,28 +1781,27 @@ def calc_q0_perc_uz_v1(self):
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
-    aid = self.sequences.aides.fastaccess
     flu.perc = 0.
     flu.q0 = 0.
     for jdx in range(con.recstep):
         # First state update related to the upper zone input.
         sta.uz += der.dt*flu.inuz
         # Second state update related to percolation.
-        aid.perc = min(der.dt*con.percmax*flu.contriarea, sta.uz)
-        sta.uz -= aid.perc
-        flu.perc += aid.perc
+        d_perc = min(der.dt*con.percmax*flu.contriarea, sta.uz)
+        sta.uz -= d_perc
+        flu.perc += d_perc
         # Third state update related to fast runoff response.
         if sta.uz > 0.:
             if flu.contriarea > 0.:
-                aid.q0 = (der.dt*con.k *
-                          (sta.uz/flu.contriarea)**(1.+con.alpha))
-                aid.q0 = min(aid.q0, sta.uz)
+                d_q0 = (der.dt*con.k *
+                        (sta.uz/flu.contriarea)**(1.+con.alpha))
+                d_q0 = min(d_q0, sta.uz)
             else:
-                aid.q0 = sta.uz
-            sta.uz -= aid.q0
-            flu.q0 += aid.q0
+                d_q0 = sta.uz
+            sta.uz -= d_q0
+            flu.q0 += d_q0
         else:
-            aid.q0 = 0.
+            d_q0 = 0.
 
 
 def calc_lz_v1(self):
@@ -1816,19 +1810,19 @@ def calc_lz_v1(self):
     lake precipitation.
 
     Required control parameters:
-      :class:`~hydpy.models.hland.hland_control.NmbZones`
-      :class:`~hydpy.models.hland.hland_control.ZoneType`
+      |NmbZones|
+      |ZoneType|
 
     Required derived parameters:
-      :class:`~hydpy.models.hland.hland_control.RelLandArea`
-      :class:`~hydpy.models.hland.hland_control.RelZoneArea`
+      |RelLandArea|
+      |RelZoneArea|
 
     Required fluxes sequences:
-      :class:`~hydpy.models.hland.hland_fluxes.PC`
-      :class:`~hydpy.models.hland.hland_fluxes.Perc`
+      |PC|
+      |Perc|
 
     Updated state sequence:
-      :class:`~hydpy.models.hland.hland_states.LZ`
+      |LZ|
 
     Basic equation:
       :math:`\\frac{dLZ}{dt} = Perc + Pc`
@@ -1884,19 +1878,19 @@ def calc_el_lz_v1(self):
     """Calculate lake evaporation.
 
     Required control parameters:
-        :class:`~hydpy.models.hland.hland_control.NmbZones`
-        :class:`~hydpy.models.hland.hland_control.ZoneType`
-        :class:`~hydpy.models.hland.hland_control.TTIce`
+        |NmbZones|
+        |ZoneType|
+        |TTIce|
 
     Required derived parameters:
-        :class:`~hydpy.models.hland.hland_control.RelZoneArea`
+        |RelZoneArea|
 
     Required fluxes sequences:
-        :class:`~hydpy.models.hland.hland_fluxes.TC`
-        :class:`~hydpy.models.hland.hland_fluxes.EPC`
+        |TC|
+        |EPC|
 
     Updated state sequence:
-        :class:`~hydpy.models.hland.hland_states.LZ`
+        |LZ|
 
     Basic equations:
         :math:`\\frac{dLZ}{dt} = -EL` \n
@@ -1957,14 +1951,14 @@ def calc_q1_lz_v1(self):
     """Calculate the slow response of the lower zone layer.
 
     Required control parameters:
-        :class:`~hydpy.models.hland.hland_control.K4`
-        :class:`~hydpy.models.hland.hland_control.Gamma`
+        |K4|
+        |Gamma|
 
     Calculated fluxes sequence:
-        :class:`~hydpy.models.hland.hland_fluxes.Q1`
+        |Q1|
 
     Updated state sequence:
-        :class:`~hydpy.models.hland.hland_states.LZ`
+        |LZ|
 
     Basic equations:
         :math:`\\frac{dLZ}{dt} = -Q1` \n
@@ -2041,14 +2035,14 @@ def calc_inuh_v1(self):
     """Calculate the unit hydrograph input.
 
     Required derived parameters:
-      :class:`~hydpy.models.hland.hland_derived.RelLandArea`
+      |RelLandArea|
 
     Required flux sequences:
-      :class:`~hydpy.models.hland.hland_fluxes.Q0`
-      :class:`~hydpy.models.hland.hland_fluxes.Q1`
+      |Q0|
+      |Q1|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.hland.hland_fluxes.InUH`
+      |InUH|
 
     Basic equation:
         :math:`InUH = Q0 + Q1`
@@ -2078,19 +2072,19 @@ def calc_outuh_quh_v1(self):
     """Calculate the unit hydrograph output (convolution).
 
     Required derived parameters:
-        :class:`~hydpy.models.hland.hland_derived.UH`
-        :class:`~hydpy.models.hland.hland_derived.NmbUH`
+        |UH|
+        |NmbUH|
 
     Required flux sequences:
-        :class:`~hydpy.models.hland.hland_fluxes.Q0`
-        :class:`~hydpy.models.hland.hland_fluxes.Q1`
-        :class:`~hydpy.models.hland.hland_fluxes.InUH`
+        |Q0|
+        |Q1|
+        |InUH|
 
     Updated log sequence:
-        :class:`~hydpy.models.hland.hland_logs.QUH`
+        |QUH|
 
     Calculated flux sequence:
-        :class:`~hydpy.models.hland.hland_fluxes.OutUH`
+        |OutUH|
 
     Examples:
         Prepare a unit hydrograph with only three ordinates ---
@@ -2172,13 +2166,13 @@ def calc_qt_v1(self):
     """Calcutate the total discharge after possible abstractions.
 
     Required control parameter:
-      :class:`~hydpy.models.hland.hland_control.Abstr`
+      |Abstr|
 
     Required flux sequence:
-      :class:`~hydpy.models.hland.hland_fluxes.OutUH`
+      |OutUH|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.hland.hland_fluxes.QT`
+      |QT|
 
     Basic equation:
         :math:`QT = max(OutUH - Abstr, 0)`

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
 
 # import...
 # ...from standard library
@@ -49,6 +51,8 @@ class OutletSequences(sequencetools.LinkSequences):
     """Downstream link sequences of hbranch_v1."""
     _SEQCLASSES = (hbranch_outlets.Branched,)
 
+
+autodoc_applicationmodel()
 
 tester = Tester()
 cythonizer = Cythonizer()

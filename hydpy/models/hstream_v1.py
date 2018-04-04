@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
 
 # import...
 # ...from standard library
@@ -53,6 +54,8 @@ class OutletSequences(sequencetools.LinkSequences):
     """Downstream link sequences of hstream_v1."""
     _SEQCLASSES = (hstream_outlets.Q,)
 
+
+autodoc_applicationmodel()
 
 tester = Tester()
 cythonizer = Cythonizer()

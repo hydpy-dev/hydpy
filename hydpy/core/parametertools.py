@@ -79,6 +79,18 @@ def header_controlfile(model, parameterstep=None, simulationstep=None):
                 % (model, Parameter.simulationstep, Parameter.parameterstep))
 
 
+class Constants(dict):
+    """Base class for defining integer constants for a specific model."""
+
+    def __init__(self, *args, **kwargs):
+        frame = inspect.currentframe().f_back
+        for (key, value) in frame.f_locals.items():
+            if key.isupper() and isinstance(value, int):
+                kwargs[key] = value
+        super(Constants, self).__init__(*args, **kwargs)
+        self.__module__ = frame.f_locals['__name__']
+
+
 class Parameters(object):
     """Base class for handling all parameters of a specific model."""
 

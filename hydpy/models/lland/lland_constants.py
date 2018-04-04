@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""The HydPy-L-Land model (`lland`) allows for the subdivision of subbasins
+"""The HydPy-L-Land model (|lland|) allows for the subdivision of subbasins
 into hydrological response units (hru).  Some processes, e.g. interception,
 are calculated seperately for each zone.  This is why some parameters (e.g.
 the usable field capacity |NFk|) and some sequences (e.g. the actual soil
@@ -26,6 +26,7 @@ these are available in your local namespace:
 ...  FEUCHT, GRUE_E, BAUMB, NADELW, LAUBW, MISCHW, WASSER, FLUSS, SEE)
 (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18)
 """
+from hydpy.core import parametertools
 
 SIED_D = 1
 """Constant for `Siedlung, dicht` (settlement, dense)."""
@@ -66,8 +67,8 @@ FLUSS = 17
 """Constant for `Fluss` (river surface)."""
 SEE = 18
 """Constant for `See` (lake surface)."""
-CONSTANTS = {key: value for key, value in locals().items()
-             if key.isupper() and isinstance(value, int)}
+
+CONSTANTS = parametertools.Constants()
 """Dictionary containing all constants defined by HydPy-L-Land."""
 
 # Make only the constants available on wildcard-imports.

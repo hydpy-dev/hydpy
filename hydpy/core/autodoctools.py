@@ -218,12 +218,12 @@ class Substituter(object):
         for (name, member) in module.__dict__.items():
             if name.startswith('_'):
                 continue
+            if getattr(member, '__module__', None) != module.__name__:
+                continue
             if name == 'CONSTANTS':
                 for key, value in member.items():
                     self._add_single_object(
                         'const', name_module, module, key, value, cython)
-                continue
-            if getattr(member, '__module__', None) != module.__name__:
                 continue
             if inspect.isfunction(member):
                 role = 'func'

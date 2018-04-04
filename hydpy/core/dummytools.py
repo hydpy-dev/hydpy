@@ -14,7 +14,7 @@ class Dummies(object):
 
     A typical use pattern is to generated the instance of a class in the
     main docstring of the class and to test the different class methods
-    based on this instance in seperate docstrings afterwards.
+    based on this instance in separate docstrings afterwards.
 
     Class :class:`Dummies` tries to ensure that the original objects are
     not altered due to performing different tests.  This protection

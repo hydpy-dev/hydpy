@@ -468,8 +468,8 @@ def calc_sbes_v1(self):
         >>> fluxes.sbes
         sbes(4.0, 4.0, 3.0, 2.0, 1.0, 0.0, 0.0)
 
-        Note the special case of a zero temperature intervall.  With the
-        actual temperature beeing equal to the threshold temperature, the
+        Note the special case of a zero temperature interval.  With the
+        actual temperature being equal to the threshold temperature, the
         the value of `sbes` is zero:
 
         >>> tsp(0.)
@@ -492,7 +492,7 @@ def calc_sbes_v1(self):
 
 
 def calc_wgtf_v1(self):
-    """Calculate the potential snow melt.
+    """Calculate the potential snowmelt.
 
     Required control parameters:
       |NHRU|
@@ -537,7 +537,7 @@ def calc_wgtf_v1(self):
 
         Note that the values of the degree-day factor are only half
         as much as the given value, due to the simulation step size
-        beeing only half as long as the parameter step size:
+        being only half as long as the parameter step size:
 
         >>> gtf
         gtf(5.0)
@@ -555,7 +555,7 @@ def calc_wgtf_v1(self):
         first two zones show the influence of the additional energy intake
         due to "warm" precipitation.  Obviously, this additional term is
         quite negligible for common parameterizations, even if lower
-        values for the seperate threshold temperature |TRefT| would be
+        values for the separate threshold temperature |TRefT| would be
         taken into account:
 
         >>> model.calc_wgtf_v1()
@@ -604,7 +604,7 @@ def calc_schm_wats_v1(self):
         Initialize two water (|FLUSS| and |SEE|) and four arable land
         (|ACKER|) HRUs.  Assume the same values for the initial amount
         of frozen water (|WATS|) and the frozen part of stand precipitation
-        (|SBes|), but different values for potential snow melt (|WGTF|):
+        (|SBes|), but different values for potential snowmelt (|WGTF|):
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
@@ -1193,7 +1193,7 @@ def calc_qbgz_v1(self):
     and the "net precipitation" above water areas of type |SEE|.
 
     Water areas of type |SEE| are assumed to be directly connected with
-    ground water, but not with the stream network.  This is modelled by
+    groundwater, but not with the stream network.  This is modelled by
     adding their (positive or negative) "net input" (|NKor|-|EvI|) to the
     "percolation output" of the soil containing HRUs.
 
@@ -1820,7 +1820,7 @@ def calc_q_v1(self):
     Note that, in case there are water areas, their |NKor| values are
     added and their |EvPo| values are subtracted from the "potential"
     runoff value, if possible.  This hold true for |WASSER| only and is
-    due to compatibility with the orginal LARSIM implementation. Using land
+    due to compatibility with the original LARSIM implementation. Using land
     type |WASSER| can result  in problematic modifications of simulated
     runoff series. It seems advisable to use land type |FLUSS| and/or
     land type |SEE| instead.

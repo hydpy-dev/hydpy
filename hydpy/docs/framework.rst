@@ -11,17 +11,17 @@ be most interested in when getting used to :ref:`HydPy`.
 
 The most basic features are explained in some detail in subsection
 :ref:`core`.  Subsection :ref:`cythons` deals mainly with programming
-details related to computational efficiency, and should be of importance
+details related to computational efficiency and should be of importance
 for framework developers (and eventually some model developers) only.
 Subsection :ref:`cythons` covers some additional features, which are
-not required when using :ref:`HydPy` in general, but can be helpful
+not required when using :ref:`HydPy` in general but can be helpful
 for programming new models or for writing new workflow scripts.
 
 The mentioned subsections are related to different `subpackages` of
 :ref:`HydPy`.  But users do not need to know exactly what kind of feature
-is implemented where and why.  All features that are intendet to be
-actually applied by users, are directly accessible via imports from
-the :ref:`HydPy` package itself.  It is no good programming practise,
+is implemented where and why.  All features that are intended to be
+actually applied by users are directly accessible via imports from
+the :ref:`HydPy` package itself.  It is no good programming practice,
 but in small scripts perfectly ok to make a "wildcard import" to load
 all relevant features:
 
@@ -37,7 +37,7 @@ Date('01.01.2000 00:00:00')
 >>> date
 Date('02.01.2000 00:00:00')
 
-The cleaner approach would be to import the required features explicitely,
+The cleaner approach would be to import the required features explicitly,
 e.g. class :class:`~hydpy.core.timetools.Period`:
 
 >>> from hydpy import Period

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """The HydPy-H-Land model (|hland|) allows for the subdivision of subbasins
 into zones (hydrological response units).  Some processes, e.g. interception,
-are calculated seperately for each zone.  This is why some parameters (e.g.
+are calculated separately for each zone.  This is why some parameters (e.g.
 the interception capacity |IcMax|) and some sequences (e.g. the actual
 interception storage |Ic|) are 1-dimensional.  Each entry represents the
 value of a different zone.

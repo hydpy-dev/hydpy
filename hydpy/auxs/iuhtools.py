@@ -86,7 +86,7 @@ class MetaIUH(type):
     """Metaclass for class :class:`IUH`.
 
     For storing :class:`PrimaryParameter` and :class:`SecondaryParameter` in
-    seperate dictionaries.
+    separate dictionaries.
     """
 
     def __new__(cls, name, parents, dict_):

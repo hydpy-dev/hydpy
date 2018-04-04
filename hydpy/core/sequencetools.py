@@ -864,7 +864,7 @@ class IOSequence(Sequence):
 
     @property
     def seriesshape(self):
-        """Shape of the whole time series (time beeing the first dimension)."""
+        """Shape of the whole time series (time being the first dimension)."""
         seriesshape = [len(pub.timegrids.init)]
         seriesshape.extend(self.shape)
         return tuple(seriesshape)
@@ -872,7 +872,7 @@ class IOSequence(Sequence):
     @property
     def numericshape(self):
         """Shape of the array of temporary values required for the numerical
-        solver actually beeing selected."""
+        solver actually being selected."""
         try:
             numericshape = [self.subseqs.seqs.model.numconsts.nmb_stages]
         except AttributeError:

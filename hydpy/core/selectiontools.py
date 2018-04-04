@@ -32,7 +32,7 @@ class Selections(object):
         return tuple(vars(self).keys())
 
     def save(self, path='', write_nodes=False):
-        """Save all selections in seperate network files."""
+        """Save all selections in separate network files."""
         for selection in self:
             fullpath = os.path.join(path, selection.name+'.py')
             selection.save(fullpath, write_nodes)

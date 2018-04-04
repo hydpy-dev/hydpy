@@ -50,7 +50,7 @@ in HydPy::
     print id(x), x
     print id(y), y
     # Obviously, x and y refer to different data.  This behaviour is due to x
-    # and y beeing not typed and Python float objects beeing immutable
+    # and y being not typed and Python float objects being immutable
     # (thoroughly explained in the official documentation of Python).
     # In C the result would be the same, but the reason were that both
     # variables x and y constantly address a different position in the working

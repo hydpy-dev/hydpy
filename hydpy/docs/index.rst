@@ -18,14 +18,14 @@ HydPy
 =====
 
 :ref:`HydPy` is an interactive framework for developing and applying
-different types of hydrological models.  It was orginally developed
+different types of hydrological models.  It was originally developed
 at the `Ruhr-University Bochum`_ for specific research purposes.
 Later it was extended on behalf of the `German Federal Institute of
 Hydrology`_ in order to be applicable in practical applications like
 runoff forecasting in large river basins.  Now it is being maintained
 by `Björnsen Consulting Engineers`_.
 
-:ref:`HydPy` is thought as a modern open source software.  It is based
+:ref:`HydPy` is intended to be a modern open source software.  It is based
 on the programming language `Python`_, which is commonly used in
 many scientific fields.  Through using different well-established
 `Python`_ libraries and design principles, high quality and transparency
@@ -55,7 +55,7 @@ source and the mentioned third parties are allowed to pass this
 modified source code to you.
 
 :ref:`HydPy` offers many functionalities to make the implemented
-models as transparent and reliable as possible.  For this reason
+models as transparent and reliable as possible.  For this reason,
 the online documentation is automatically updated for each new
 :ref:`HydPy` version and includes  a `documentation tests` mechanism
 thas ensures that :ref:`HydPy` is working properly and that the
@@ -65,7 +65,7 @@ See for example the documentation of the (very simple) method
 :func:`~hydpy.models.lland.lland_model.calc_nkor_v1`.  The text
 describes what the method does and what input data it requires.
 It is comprehensive but, as in common documentations, technical
-reports and scientic articles, could be outdated or be wrong in other
+reports and scientific articles, could be outdated or be wrong in other
 ways.  This is not the case for the example calculation shown in the
 green box.  This example is actual `Python`_ code that shows how
 method :func:`~hydpy.models.lland.lland_model.calc_nkor_v1` can be
@@ -82,18 +82,18 @@ last line of the example.
 
 Such basic "unit tests" should provide a good basis for discussing the
 proper implementation of certain hydrological processes.  But they
-are no proof the a complete model is actually working well.  Therefore
+are no proof a complete model is actually working well.  Therefore
 :ref:`HydPy` also offers some "integration test" functionalities.
 
 Each integration test should demonstrate how a certain model could
 be set up meaningfully.  Ideally, the model configuration should
-be variied to show different aspects of the its functionality.
+be varied to show different aspects of its functionality.
 See e.g. `example 13`_ of the documentation on model
 :mod:`~hydpy.models.dam_v001`, which discusses the implemented
 flood retention routine.  Here, example calculations are performed
 for a period of 20 days, and for each day all input and output
-values as well as all internal states (e.g. the
-:class:`~hydpy.models.dam.dam_states.WaterVolume`) are tabulated.  Again,
+values, as well as all internal states (e.g. the
+:class:`~hydpy.models.dam.dam_states.WaterVolume`), are tabulated.  Again,
 `Travis CI`_ checks that all of these values are exactly recalculated
 by each new :ref:`HydPy` version.  Additionally, the tabulated values
 are shown in a `Bokeh`_ plot, which is also updated for each new

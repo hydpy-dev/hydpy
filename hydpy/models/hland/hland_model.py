@@ -67,7 +67,7 @@ def calc_tmean_v1(self):
       |TMean|
 
     Examples:
-        Prepare sized zones, the first one beeing twice as large
+        Prepare sized zones, the first one being twice as large
         as the second one:
 
         >>> from hydpy.models.hland import *
@@ -92,7 +92,7 @@ def calc_tmean_v1(self):
 
 
 def calc_fracrain_v1(self):
-    """Determine the temperature dependend fraction of (liquid) rainfall
+    """Determine the temperature-dependent fraction of (liquid) rainfall
     and (total) precipitation.
 
     Required control parameters:
@@ -115,7 +115,7 @@ def calc_fracrain_v1(self):
 
     Examples:
         The threshold temperature of seven zones is 0°C and the corresponding
-        temperature intervall of mixed precipitation 2°C:
+        temperature interval of mixed precipitation 2°C:
 
         >>> from hydpy.models.hland import *
         >>> parameterstep('1d')
@@ -131,8 +131,8 @@ def calc_fracrain_v1(self):
         >>> fluxes.fracrain
         fracrain(0.0, 0.0, 0.25, 0.5, 0.75, 1.0, 1.0)
 
-        Note the special case of a zero temperature intervall.  With a
-        actual temperature beeing equal to the threshold temperature, the
+        Note the special case of a zero temperature interval.  With a
+        actual temperature being equal to the threshold temperature, the
         rainfall fraction is one:
 
         >>> ttint(0.)
@@ -179,7 +179,7 @@ def calc_rfc_sfc_v1(self):
         >>> fluxes.fracrain = 0., .25, .5, .75, 1.
 
         With no rainfall and no snowfall correction (implied by the
-        respective factors beeing one), the corrected fraction related
+        respective factors being one), the corrected fraction related
         to rainfall is identical with the original fraction and the
         corrected fraction related to snowfall behaves opposite:
 
@@ -983,7 +983,7 @@ def calc_in_wc_v1(self):
 
         When there is a (liquid) water content in the snow layer, the water
         release depends on the frozen water content.  Note the special
-        cases of the first zone beeing an internal lake, for which the snow
+        cases of the first zone being an internal lake, for which the snow
         routine does not apply, and of the last zone, which has no ice
         content and thus effectively not really a snow layer:
 
@@ -1414,7 +1414,7 @@ def calc_ea_sm_v1(self):
         >>> states.sm
         sm(0.0, 0.0, 99.0, 99.0, 99.0, 99.0, 99.0)
 
-        Any occurence of a snow layer suppresses soil evaporation
+        Any occurrence of a snow layer suppresses soil evaporation
         completely:
 
         >>> states.sp = 0.01
@@ -1654,7 +1654,7 @@ def calc_q0_perc_uz_v1(self):
         the other routines of the HydPy-H-Land model, regarding its
         consideration of numerical accuracy.  To increase the accuracy of
         the numerical integration of the underlying ordinary differential
-        equation, each simulation step can be devided into substeps, which
+        equation, each simulation step can be divided into substeps, which
         are all solved with first order accuracy.  In the first example,
         this option is omitted through setting the RecStep parameter to one:
 
@@ -2163,7 +2163,7 @@ def calc_outuh_quh_v1(self):
 
 
 def calc_qt_v1(self):
-    """Calcutate the total discharge after possible abstractions.
+    """Calculate the total discharge after possible abstractions.
 
     Required control parameter:
       |Abstr|

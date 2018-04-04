@@ -3,18 +3,18 @@
 """
 Version 1 of the L-Land model is designed to agree with the LARSIM-ME
 configuration of the LARSIM model used by the German Federal Institute
-of Hydrology (BfG), but offers more flexibility in some regards (e.g. in
+of Hydrology (BfG) but offers more flexibility in some regards (e.g. in
 parameterization).  It can briefly be summarized as follows:
 
  * Simple routines for adjusting the meteorological input data.
  * Reference evapotranspiration after Turc-Wendling.
- * An enhanced degree-day-method for calculating snow melt.
+ * An enhanced degree-day method for calculating snowmelt.
  * A simple snow retention routine.
  * Landuse and month specific potential evapotranspiration.
  * Actual soil evapotranspiration after ATV-DVWK- 504 (2002).
  * A Soil routine based on the Xinanjiang model.
  * One base flow, two interflow and two direct flow components.
- * Seperate linear storages for modelling runoff concentration.
+ * separate linear storages for modelling runoff concentration.
  * Additional evaporation from water areas.
 
 The following figure shows the general structure of L-Land Version 1.  Note
@@ -175,7 +175,7 @@ Integration tests:
     might realize the "linear storage" type of relationship between inflow
     |Nied| and outflow |lland_fluxes.Q|.  This is due to the dominance
     of the direct runoff generation (|QDGZ|) based on the Xinanjiang model
-    and runoff concentration beeing modelled by linear storages only
+    and runoff concentration being modelled by linear storages only
     (easy inspectable through clicking e.g. on |QDGZ1| and |QDGA1|):
 
     >>> test('lland_v1_ex1')
@@ -420,7 +420,7 @@ Integration tests:
 
     As an alternative for water type |WASSER|, HydPy-L offers water type |SEE|
     for representing lakes not directly connected to the stream network, but
-    to the ground water.  In some aggreement with the implementation of
+    to the groundwater.  In some aggreement with the implementation of
     "internal lakes" in the HBV96 model (see |hland|), precipitation and
     evaporation values of |SEE| HRUs are directly added and removed from the
     input of the linear storage for base flow (|QBGZ|).  Hence, defining
@@ -542,7 +542,7 @@ Integration tests:
 
     The second alternative for water type |WASSER| is water type |FLUSS|
     for representing streams.  Precipitation and evaporation values of
-    |FLUSS| HRUs are directly added and removed from the (not yet seperated)
+    |FLUSS| HRUs are directly added and removed from the (not yet separated)
     input of the linear storages for direct flow (|QDGZ|).  In contrast
     to water type |SEE|, defining HRUs of type |FLUSS| increases the
     responsiveness of a catchment, but to a lessen extent than type |WASSER|.

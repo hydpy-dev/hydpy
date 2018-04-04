@@ -7,7 +7,7 @@
     and to remote locations.  The difference is that |dam_v003|
     can discharge water only to a single remote location, e.g. to a
     drinking water treatment plant, while |dam_v004| is also able to
-    discharge water to a seperate remote location independently, e.g.
+    discharge water to a separate remote location independently, e.g.
     to relieve water during high flow conditions.
 
     Integration examples:

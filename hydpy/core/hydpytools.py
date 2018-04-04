@@ -37,7 +37,7 @@ class HydPy(object):
         self.nodes = None
         self.elements = None
         self.deviceorder = None
-        # Store public information in a seperate module.
+        # Store public information in a separate module.
         if projectname is not None:
             pub.projectname = projectname
             pub.networkmanager = filetools.NetworkManager()

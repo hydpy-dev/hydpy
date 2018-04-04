@@ -64,7 +64,7 @@ Integration examples:
     >>> responses(((), (0.2, 0.4, 0.3, 0.1)))
 
     This leads to a usual "unit hydrograph" convolution result, where all
-    inflow "impulses" are seperated onto the actual and the three subsequent
+    inflow "impulses" are separated onto the actual and the three subsequent
     time steps:
 
     >>> test()
@@ -188,7 +188,7 @@ Integration examples:
     In the fifth example, the coefficients of the first two examples are
     combined.  For inflow discharges between 0 and 7m³/s, the pure AR
     process is applied.  For inflow discharges exceeding 7m³/s, inflow
-    is seperated.  The AR process is still applied on a portion of 7m³/s,
+    is separated.  The AR process is still applied on a portion of 7m³/s,
     but for the inflow exceeding the threshold the mixed ARMA model is
     applied:
 
@@ -203,7 +203,7 @@ Integration examples:
     >>> test.inits.login = [[2.0], [0.0]]
     >>> test.inits.logout = [[2.0], [0.0]]
 
-    The seperate handling of the inflow can be studied by inspecting the
+    The separate handling of the inflow can be studied by inspecting the
     columns of sequence `qpin` and sequence `qpout`.  The respective left
     columns show the input and output of the MA model, the respective right
     colums show the input and output of the ARMA model:

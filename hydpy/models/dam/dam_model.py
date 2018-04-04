@@ -482,7 +482,7 @@ def calc_remotedemand_v1(self):
         >>> from hydpy.models.dam import *
         >>> parameterstep()
 
-        Assume the required discharge at a gauge downstream beeing 2 m³/s
+        Assume the required discharge at a gauge downstream being 2 m³/s
         in the hydrological summer half-year (April to October).  In the
         winter month (November to May), there is no such requirement:
 

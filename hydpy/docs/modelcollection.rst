@@ -6,17 +6,17 @@
 Model Collection
 ================
 
-In :ref:`HydPy`, many models are devided into groups (e.g. :ref:`HydPy-L`)
+In :ref:`HydPy`, many models are divided into groups (e.g. :ref:`HydPy-L`)
 and subgroups (e.g. :ref:`HydPy-L-Land`).
 
 The existence of the groups is primarily due to historical reasons.
-For example, all subgroups related to the orginal `LARSIM`_ model are
+For example, all subgroups related to the original `LARSIM`_ model are
 part of group :ref:`HydPy-L`, despite their different functionality
 (:ref:`HydPy-L-Land` for modelling "land processes", :ref:`HydPy-L-Stream`
 for modelling "stream processes", and :ref:`HydPy-L-Lake` for modelling
 "lake processes").
 
-The seperation into subgroups is of greater importance.  Each subgroup
+The separation into subgroups is of greater importance.  Each subgroup
 (e.g. :ref:`HydPy-L-Land`) consists of one base model (e.g.
 :mod:`~hydpy.models.lland`) and a number of application models
 (e.g. :mod:`~hydpy.models.lland_v1`).  The base models offer basic

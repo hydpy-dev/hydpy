@@ -178,7 +178,7 @@ def calc_qma_v1(self):
         >>> fluxes.qma.shape = 3
 
         The coefficients of the different MA processes are stored in
-        seperate rows of the 2-dimensional parameter `ma_coefs`:
+        separate rows of the 2-dimensional parameter `ma_coefs`:
 
         >>> derived.ma_coefs = ((1.0, nan, nan),
         ...                     (0.8, 0.2, nan),
@@ -239,7 +239,7 @@ def calc_qar_v1(self):
         >>> fluxes.qar.shape = 4
 
         The coefficients of the different AR processes are stored in
-        seperate rows of the 2-dimensional parameter `ma_coefs`.
+        separate rows of the 2-dimensional parameter `ma_coefs`.
         Note the special case of the first AR process of zero order
         (first row), which involves no autoregressive memory at all:
 

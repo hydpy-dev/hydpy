@@ -633,7 +633,7 @@ Integration examples:
         ></iframe>
 
     This behaviour of the dam model is due to method |calc_actualrelease_v1|
-    beeing involved in the set of differential equation that are solved
+    being involved in the set of differential equation that are solved
     approximately by a numerical integration algorithm.  Theoretically,
     we could decrease the local truncation error to decrease this
     problem significantly.  But this could result in quite huge
@@ -783,7 +783,7 @@ Integration examples:
 
     It seems advisable to increase the number of observations taken into
     account to estimate the natural discharge at the cross section.
-    For this purpuse, the value of parameter |NmbLogEntries| is set to
+    For this purpose, the value of parameter |NmbLogEntries| is set to
     two days:
 
     >>> nmblogentries(2)

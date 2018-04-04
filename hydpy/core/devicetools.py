@@ -1704,7 +1704,7 @@ class Nodes(Devices):
                     seq.save_ext()
                 else:
                     warnings.warn(
-                        'Due to the argument `overwrite` beeing `False` '
+                        'Due to the argument `overwrite` being `False` '
                         'it is not allowed to overwrite the already '
                         'existing file `%s`.'
                         % seq.filepath_ext)
@@ -1902,7 +1902,7 @@ class Elements(Devices):
                         seq.save_ext()
                     else:
                         warnings.warn(
-                            'Due to the argument `overwrite` beeing `False` '
+                            'Due to the argument `overwrite` being `False` '
                             'it is not allowed to overwrite the already '
                             'existing file `%s`.'
                             % seq.filepath_ext)

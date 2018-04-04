@@ -413,7 +413,7 @@ class _Stepsize(object):
 class Parameterstep(_Stepsize):
     """The actual parameter time step size.
 
-    Usually, the time step size of the units of certain paramaters
+    Usually, the time step size of the units of certain parameters
     is defined within control files via function
     :func:`~hydpy.core.magictools.parameterstep`.  But it can also
     be changed interactively with the help of any |Parameter| object:
@@ -507,7 +507,7 @@ class Simulationstep(_Stepsize):
     Usually, the simulation step size is defined globally in module
     :mod:`~hydpy.pub` via a :class:`~hydpy.core.timetools.Timegrids` object,
     or locally via function :func:`~hydpy.core.magictools.simulationstep`
-    in seperate control files.  But you can also change it interactively
+    in separate control files.  But you can also change it interactively
     with the help of |Parameter| objects.
 
     Generally, the documentation on class :class:`Parameterstep` also holds
@@ -695,7 +695,7 @@ class Parameter(variabletools.Variable):
         >>> test
         test(nan)
 
-        For time dependend parameter values, the `INIT` attribute is assumed
+        For time dependent parameter values, the `INIT` attribute is assumed
         to be related to a :class:`Parameterstep` of one day:
 
         >>> test.parameterstep = '2d'
@@ -993,7 +993,7 @@ class MultiParameter(Parameter):
     def _getverifymask(self):
         """A numpy array with all entries being `True` of the same
         shape as the values handled by the respective parameter.  All entries
-        beeing `True` indicates that the method :func:`~MultiParameter.verify`
+        being `True` indicates that the method :func:`~MultiParameter.verify`
         checks all entries of the numpy array storing the parameter values.
         Overwrite :func:`~MultiParameter.verify` for :class:`MultiParameter`
         subclasses, where certain entries do not to be checked.
@@ -1367,7 +1367,7 @@ into shape (3)
 
         If one wants to preserve the original values in this example, one
         would have to set the corresponding toy instances in the middle of
-        some simulation step intervalls:
+        some simulation step intervals:
 
         >>> del sp.toy_1
         >>> del sp.toy_12_31
@@ -1490,7 +1490,8 @@ into shape (3)
                 'It is not possible the set the shape of the seasonal '
                 'parameter `%s` of element `%s` at the moment.  You can '
                 'define it manually.  In complete HydPy projects it is '
-                'indirecty defined via `pub.timegrids.stepsize` automatically.'
+                'indirectly defined via `pub.timegrids.stepsize` '
+                'automatically.'
                 % (self.name, objecttools.devicename(self)))
         shape[0] = timetools.Period('366d')/self.simulationstep
         shape[0] = int(numpy.ceil(round(shape[0], 10)))

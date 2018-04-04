@@ -80,7 +80,7 @@ class Lnk(lland_parameters.MultiParameter):
 
     def compress_repr(self):
         """Returns a list which contains a string representation with land
-        uses beeing defined by the constants
+        uses being defined by the constants
         :const:`~hydpy.models.lland.lland_constants.SIED_D`,
         :const:`~hydpy.models.lland.lland_constants.SIED_L`...
         """
@@ -249,7 +249,7 @@ class PWMax(lland_parameters.MultiParameterLand):
 
 
 class GrasRef_R(parametertools.SingleParameter):
-    """Bodenfeuchte-Verdunstung-Parameter (soil moisture dependend
+    """Bodenfeuchte-Verdunstung-Parameter (soil moisture-dependent
     evaporation factor) [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
     INIT = 5.

@@ -103,7 +103,7 @@ class Indexer(object):
         ...                                    '3.03.2005',
         ...                                    '1d'))
 
-        Due to the simulation stepsize beeing one day, the index arrays
+        Due to the simulation stepsize being one day, the index arrays
         calculated by both properties are identical:
 
         >>> Indexer().dayofyear
@@ -129,7 +129,7 @@ class Indexer(object):
         >>> Indexer().timeofyear
         array([114, 115, 116, 117, 120, 121, 122, 123])
 
-        Note the gap in the returned index array due to 2005 beeing not a
+        Note the gap in the returned index array due to 2005 being not a
         leap year.
         """
         if ((self._timeofyear is None) or

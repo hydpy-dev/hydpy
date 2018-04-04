@@ -22,7 +22,7 @@ is understood as water that is discharged from another location in order
 to relieve the other location (possibly another dam) during floods.
 |dam_v005| calculates both the desirable `supply discharge` and the
 acceptable `relieve discharge` and passes that information to one single
-or to two seperate remote locations.
+or to two separate remote locations.
 
 Integration examples:
 
@@ -79,7 +79,7 @@ Integration examples:
     names).  In addition, |dam_v005| expects two input nodes handling the
     actual supply and relieve discharge values from remote locations
     (node `actual_supply` and node `actual_relieve`) and three sender nodes
-    for informing other models (which are not modelled explicitely in the
+    for informing other models (which are not modelled explicitly in the
     following examples) of its required supply and allowed relieve (node
     `required_supply` and node `allowed_relieve`) and its own expected
     failure in increasing low discharge values downstream (`remote_failure`).
@@ -144,7 +144,7 @@ Integration examples:
     Note the the last three commands above, defining  the three input
     series.  In the example of |dam_v001|, the dam model receives an
     constant inflow of 1 m³/s from a single node.  In this example,
-    the dam model receives the same sum of inflow via three seperate
+    the dam model receives the same sum of inflow via three separate
     pathways.  This is thought to prove that all node connections are
     actually working.
 
@@ -164,14 +164,14 @@ Integration examples:
     same outflow values as simulated in the corresponding integration
     example of |dam_v001|.  Secondly, the following table and figure
     contains results specific to |dam_v005|, with |RequiredRemoteRelease|
-    beeing the most interesting case.  At the beginning of the simulation
+    being the most interesting case.  At the beginning of the simulation
     period, its value is 1 m³/s, which is the value of |HighestRemoteSupply|.
     When |WaterLevel| reaches the value of parameter
     |WaterLevelRelieveThreshold|, |RequiredRemoteRelease| decreases and
     reaches finally 0 m³/s.  Note that this decrease happens rather
     smoothly around the threshold |WaterLevel| of 0.2 m (which corresponds
     to a |WaterVolume| of 0.8 million m³), due to the smoothing parameter
-    |WaterLevelSupplyTolerance| beeing set to a relatively large value:
+    |WaterLevelSupplyTolerance| being set to a relatively large value:
 
     >>> test('dam_v005_ex7')
     |   date | inflow | totalremotedischarge | naturalremotedischarge | remotedemand | remotefailure | requiredremoterelease | allowedremoterelieve | requiredremotesupply | requiredrelease | targetedrelease | actualrelease | missingremoterelease | flooddischarge |  outflow | watervolume | actual_inflow | actual_relieve | actual_supply | allowed_relieve | dam_outflow | remote_failure | required_supply | tributary_inflow | tributary_mouth |

@@ -3,16 +3,16 @@
 """
 Version 1 of the H-Land model is designed to agree with the HBV96
 configuration of the HBV model used by the German Federal Institute
-of Hydrology (BfG), but offers more flexibility in some regards (e.g. in
+of Hydrology (BfG) but offers more flexibility in some regards (e.g. in
 parameterization).  It can briefly be summarized as follows:
 
  * Calculates the *actual* potential evapotranspiration from *reference*
    potential evaporation values.
- * Applies seperate correction factors on the liquid and the frozen
+ * Applies separate correction factors on the liquid and the frozen
    amount of precipitation.
  * Implements interception with simple "buckets".
- * Uses the degree-day-method for calculating snow melt.
- * Consideres both the melting of ice and the (re)freezing of water
+ * Uses the degree-day method for calculating snowmelt.
+ * Considers both the melting of ice and the (re)freezing of water
    within the snow layer.
  * Assumes a linear relationship between soil evaporation and relative soil
    moisture (as long as a maximum evaporation value is not exceeded).
@@ -22,13 +22,13 @@ parameterization).  It can briefly be summarized as follows:
  * Distinguishes between an upper zone layer related to direct runoff and a
    lower zone layer related to base flow.
  * Allows for percolation from the upper to the lower zone layer and allows
-   for capillary rise from upper zone layer to the soils layer.
- * Consideres water areas as "ground water lakes" beeing connected with
+   for a capillary rise from upper zone layer to the soils layer.
+ * Considers water areas as "groundwater lakes" being connected with
    the lower zone layer.
  * In contrast to the original HBV96 implementation, both the upper and
    the lower zone layer can be handled as nonlinear storages.
  * Conceptualizes the melting of glacial ice with an additional application
-   of the degree-day-method.
+   of the degree-day method.
 
 The following figure shows the general structure of H-Land Version 1.
 Note that zones of type |FIELD| and |FOREST| are based on the same set of
@@ -38,7 +38,7 @@ process equations:
 
 Integration tests:
 
-    The following integration tests are based on the data used for the testing
+    The following integration tests are based on the data used for testing
     application model |lland_v2|.  Hopefully, this eases drawing comparisons
     between both models.
 
@@ -195,7 +195,7 @@ Integration tests:
     The following results show the response of application model |hland_v1|
     to the given extreme precipitation event, which is strongly
     attenuated by the large evaporation values.  One striking difference
-    to other models like |lland_v2| is the block-like appearence of
+    to other models like |lland_v2| is the block-like appearance of
     percolation (|Perc|), which is one reason for the unusual transitions
     between event periods (with relevant amounts of both runoff components
     |Q0| and |Q1|) and the subsequent pure base flow periods (with relevant
@@ -439,8 +439,8 @@ Integration tests:
     careful when reducing the value of |RecStep| in order to save
     computation times.  Setting |RecStep| to one, which is the lowest
     possible value, results in low accuracies in the calculation of |Q0|.
-    This can easily be seen when comparing the |Q0| graph of the last
-    and the |Q0| graph of this example.  Obviously, the |Q0| graph of the
+    This can easily be seen when comparing the |Q0| graph of the last example
+    and the |Q0| graph of this example.  Obviously, the |Q0| graph of
     this example is (much more) wrong, as its maximum peak is largely
     above the maximum peak of |R|, which is physically impossible:
 
@@ -566,7 +566,7 @@ Integration tests:
     empty, possibly resulting in negative storage values in drought periods.
     The only case for which lake evaporation (|EL|) is prevented is when
     the actual temperature (|TC|) is below the threshold temperature
-    for the occurence of lake ice (|TTIce|).  In this exammple, the value
+    for the occurrence of lake ice (|TTIce|).  In this example, the value
     of |TTIce| is set to the unrealistic value of 13°C, resulting in a
     deviation between the graphs of |EPC| and |EL| for the last day of
     the simulation period:
@@ -699,8 +699,8 @@ Integration tests:
     On the first two days (-20°C), the snow layer builds up.  On the third
     day (+20°C and |SP| > 0), the snow melts and (with some time delay)
     the melted water is released. On the fourth day (+20°C and |SP| = 0),
-    even more water is passed to |UZ|, as |GMelt| is set to a larger value
-    than |CFMax|:
+    an increased amount of water is passed to |UZ|, as |GMelt| is set to
+    a larger value than |CFMax|:
 
     >>> zonetype(GLACIER)
     >>> parameters.update()

@@ -54,7 +54,7 @@ parameter `nmbzones` first in each parameter control file.
         >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, FIELD)
         >>> mp.shape = 5
 
-        Assign values to all four zone types explicitely:
+        Assign values to all four zone types explicitly:
 
         >>> mp(field=2., forest=1., glacier=4., ilake=3.)
         >>> mp
@@ -176,7 +176,7 @@ class Parameters(parametertools.Parameters):
         """Determine the values of the parameters handled by
         :class:`DerivedParameters` based on the values of the parameters
         handled by :class:`ControlParameters`.  The results of the different
-        methods are not interdependend, meaning their order could be changed.
+        methods are not interdependent, meaning their order could be changed.
         """
         self.calc_relzonearea()
         self.calc_landzonearea()
@@ -237,7 +237,7 @@ class Parameters(parametertools.Parameters):
 
         Examples:
 
-            With all zones beeing "land zones", the relative land area is
+            With all zones being "land zones", the relative land area is
             one by definition and the relative "land zone" areas are in
             accordance with the original zone areas:
 
@@ -253,7 +253,7 @@ class Parameters(parametertools.Parameters):
             >>> derived.rellandzonearea
             rellandzonearea(field=0.25, forest=0.25, glacier=0.5)
 
-            With one zone beeing a lake zone, the relative "land area" is
+            With one zone being a lake zone, the relative "land area" is
             decreased and the relative "land zone" areas are increased ---
             except the one related to the internal lake, which is set to zero:
 
@@ -264,7 +264,7 @@ class Parameters(parametertools.Parameters):
             >>> derived.rellandzonearea
             rellandzonearea(field=0.5, forest=0.5, ilake=0.0)
 
-            With all zones beeing lake zones, all relative areas are zero:
+            With all zones being lake zones, all relative areas are zero:
 
             >>> zonetype(ILAKE, ILAKE, ILAKE)
             >>> model.parameters.calc_landzonearea()
@@ -302,7 +302,7 @@ class Parameters(parametertools.Parameters):
 
         Examples:
 
-            With all zones beeing "soil zones", the relative land area is
+            With all zones being "soil zones", the relative land area is
             one by definition and the relative "soil zone" areas are in
             accordance with the original zone areas:
 
@@ -318,7 +318,7 @@ class Parameters(parametertools.Parameters):
             >>> derived.relsoilzonearea
             relsoilzonearea(0.25)
 
-            With one zone beeing a lake zone one one zone beeing a glacier
+            With one zone being a lake zone one one zone being a glacier
             zone, the relative "soil area" is decreased and the relative
             "soil zone" areas are increased --- except the ones related to
             the internal lake and the glacier, which are set to zero:
@@ -330,7 +330,7 @@ class Parameters(parametertools.Parameters):
             >>> derived.relsoilzonearea
             relsoilzonearea(field=0.5, forest=0.5, glacier=0.0, ilake=0.0)
 
-            With all zones beeing lake or glacier zones, all relative areas
+            With all zones being lake or glacier zones, all relative areas
             are zero:
 
             >>> zonetype(GLACIER, GLACIER, ILAKE, ILAKE)
@@ -471,7 +471,7 @@ class Parameters(parametertools.Parameters):
         Examples:
 
             MaxBaz determines the end point of the triangle.  A value of
-            MaxBaz beeing not larger than the simulation step size is
+            MaxBaz being not larger than the simulation step size is
             identical with applying no unit hydrograph at all:
 
             >>> from hydpy.models.hland import *

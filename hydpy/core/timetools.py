@@ -1125,7 +1125,7 @@ class Timegrids(object):
     represented by two different :class:`Timegrid` objects, which are both
     handled by a single :class:`Timegrids` object.  (The `data` time frames
     are also defined via :class:`Timegrid` objects, but for each input data
-    file seperately. See module :mod:`~hydpy.core.sequencetools` for
+    file separately. See module :mod:`~hydpy.core.sequencetools` for
     further information.)
 
     There is usually only one :class:`Timegrids` object required within each
@@ -1346,7 +1346,7 @@ class TOY(object):
 
     Normally, for initialization a string is passed, defining the month, the
     day, the hour, the minute and the second in the order they are mentioned,
-    seperated by a single underscore:
+    separated by a single underscore:
 
     >>> from hydpy.core.timetools import TOY
     >>> t = TOY('3_13_23_33_43')

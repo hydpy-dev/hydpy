@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """The HydPy-L-Land model (|lland|) allows for the subdivision of subbasins
 into hydrological response units (hru).  Some processes, e.g. interception,
-are calculated seperately for each zone.  This is why some parameters (e.g.
+are calculated separately for each zone.  This is why some parameters (e.g.
 the usable field capacity |NFk|) and some sequences (e.g. the actual soil
 water storage |BoWa|) are 1-dimensional.  Each entry represents the value
 of a different hru.

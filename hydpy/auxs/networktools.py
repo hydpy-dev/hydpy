@@ -417,7 +417,7 @@ class RiverBasinNumbers2Selection(object):
               "node_outlet")
 
         It is both possible to change the prefix names of the nodes and
-        the name of the outlet node seperately:
+        the name of the outlet node separately:
 
         >>> rbns2s.node_prefix = 'b_'
         >>> rbns2s.last_node = 'l_node'

@@ -550,7 +550,7 @@ class ARMA(object):
 
     @staticmethod
     def get_a(values, n):
-        """Extract the independend variables of the given values and return
+        """Extract the independent variables of the given values and return
         them as a matrix with n columns in a form suitable for the least
         squares approach applied in method :func:`~ARMA.calc_ar_coefs`.
         """
@@ -564,7 +564,7 @@ class ARMA(object):
 
     @staticmethod
     def get_b(values, n):
-        """Extract the dependend variables of the values in a vector with n
+        """Extract the dependent variables of the values in a vector with n
         entries in a form suitable for the least squares approach applied in
         method :func:`~ARMA.calc_ar_coefs`.
         """

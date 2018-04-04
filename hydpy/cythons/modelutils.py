@@ -241,24 +241,24 @@ class Cythonizer(object):
 
         Things to be aware of:
           * The file extension either `pyd` (Window) or `so` (Linux).
-          * The folder containing the dll file is system dependend, but is
+          * The folder containing the dll file is system dependent, but is
             always a subfolder of the `cythons` package.
           * Under Linux, the filename might contain system information, e.g.
             ...cpython-36m-x86_64-linux-gnu.so.
         """
         dirinfos = os.walk(self.buildpath)
         next(dirinfos)
-        system_dependend_filename = None
+        system_dependent_filename = None
         for dirinfo in dirinfos:
             for filename in dirinfo[2]:
                 if (filename.startswith(self.cyname) and
                         filename.endswith(dllextension)):
-                    system_dependend_filename = filename
+                    system_dependent_filename = filename
                     break
-            if system_dependend_filename:
+            if system_dependent_filename:
                 try:
                     shutil.move(os.path.join(dirinfo[0],
-                                             system_dependend_filename),
+                                             system_dependent_filename),
                                 os.path.join(self.cydirpath,
                                              self.cyname+dllextension))
                     break
@@ -266,7 +266,7 @@ class Cythonizer(object):
                     prefix = ('After trying to cythonize module %s, when '
                               'trying to move the final cython module %s '
                               'from directory %s to directory %s'
-                              % (self.pyname, system_dependend_filename,
+                              % (self.pyname, system_dependent_filename,
                                  self.buildpath, self.cydirpath))
                     suffix = ('A likely error cause is that the cython module '
                               '%s does already exist in this directory and is '

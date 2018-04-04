@@ -180,7 +180,7 @@ Integration examples:
 
     In the following, the given examples above repeated.  The only
     parameter that will be altered is the internal simulation step size,
-    beeing one hour instead of one day:
+    being one hour instead of one day:
 
     >>> maxdt('1h')
     >>> model.parameters.update()

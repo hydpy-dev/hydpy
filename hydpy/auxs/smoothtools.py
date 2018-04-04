@@ -145,7 +145,7 @@ def calc_smoothpar_logistic3(metapar):
     In contrast to the examples shown for functions |smooth_logistic1| and
     |smooth_logistic2|, the smoothing parameter determined for function
     |smooth_logistic3| is not in perfect agreement with the given meta
-    parameter.  For most purpuses, the resulting error is negligible.
+    parameter.  For most purposes, the resulting error is negligible.
     If one needs a higher accuracy, some iterative refinement should be
     implemented.
     """

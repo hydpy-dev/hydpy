@@ -2,7 +2,7 @@
 """The HydPy-H-Branch model allows for branching the input from a
 single inlet |Node| instance to an arbitrary number of outlet |Node|
 instances.  In the original HBV96 implementation, it is supposed to
-seperate inflowing discharge, but in :ref:`HydPy` it can be used for
+separate inflowing discharge, but in :ref:`HydPy` it can be used for
 arbitrary variables.  Calculations are performed for each branch
 individually by linear interpolation (or extrapolation) in accordance
 with tabulated supporting points.

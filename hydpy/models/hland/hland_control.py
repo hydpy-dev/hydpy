@@ -73,7 +73,7 @@ class ZoneType(hland_parameters.MultiParameter):
 
     def compress_repr(self):
         """Returns a list which contains a string representation with zone
-        types beeing defined by the constants `FIELD`, `FOREST`...
+        types being defined by the constants `FIELD`, `FOREST`...
         """
         invmap = {value: key for key, value in
                   hland_constants.CONSTANTS.items()}

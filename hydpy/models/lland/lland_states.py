@@ -16,7 +16,7 @@ class Inzp(sequencetools.StateSequence):
     (as opposed to :class:`~hydpy.models.hland.hland_states.Ic` of HydPy-H).
     This is due the discontinuous evolution of
     :class:`~hydpy.models.lland.lland_control.IcC` in time.  In accordance
-    with the orginal LARSIM implementation, :class:`Inzp` can be temporarily
+    with the original LARSIM implementation, :class:`Inzp` can be temporarily
     overfilled during rain periods whenever
     :class:`~hydpy.models.lland.lland_control.IcC` drops rapidly between two
     months.  A specialized trim method would just make the excess water

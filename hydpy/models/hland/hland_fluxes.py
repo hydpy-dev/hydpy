@@ -73,7 +73,7 @@ class Refr(sequencetools.FluxSequence):
 
 
 class In_(sequencetools.FluxSequence):
-    """Snow module release / soil module inflow [mm]."""
+    """Snow module release/soil module inflow [mm]."""
     NDIM, NUMERIC = 1, False
 
 

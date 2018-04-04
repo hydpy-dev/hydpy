@@ -177,7 +177,7 @@ class NetworkManager(FileManager):
 
     def load_files(self):
         """Load nodes and elements from all network files and return them in
-        a |Selections| instance.  Each single network file defines a seperate
+        a |Selections| instance.  Each single network file defines a separate
         |Selection| instance.  Additionally, all |Element| and |Node| objects
         are bundled in a selection named `complete`.
         """
@@ -211,7 +211,7 @@ class NetworkManager(FileManager):
 
     def save_files(self, selections):
         """Save the nodes and elements from each |Selection| object contained
-        within the given |Selections| instance to a seperate network file of
+        within the given |Selections| instance to a separate network file of
         the same name.
         """
         try:
@@ -348,7 +348,7 @@ class ConditionManager(FileManager):
     def load_file(self, filename):
         """Read and return the content of the given file.
 
-        If the current directory is not defined explicitely, the directory
+        If the current directory is not defined explicitly, the directory
         name is constructed with the actual simulation start date.  If
         such an directory does not exist, it is created immediately.
         """
@@ -375,7 +375,7 @@ class ConditionManager(FileManager):
         """Save the given text under the given condition filename and the
         current path.
 
-        If the current directory is not defined explicitely, the directory
+        If the current directory is not defined explicitly, the directory
         name is constructed with the actual simulation end date.  If
         such an directory does not exist, it is created immediately.
         """

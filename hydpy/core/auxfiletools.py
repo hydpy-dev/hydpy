@@ -332,7 +332,7 @@ class Variable2Auxfile(object):
     """Map |Variable| objects to names of auxiliary files.
 
     Normally, |Variable2Auxfile| object are not initialized by the
-    user explicitely but made available by a `master` |Auxfiler| object.
+    user explicitly but made available by a `master` |Auxfiler| object.
 
     To show how |Variable2Auxfile| works, we firstly initialize a
     HydPy-L-Land (version 1) model:

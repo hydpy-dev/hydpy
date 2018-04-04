@@ -8,7 +8,7 @@ from hydpy.cythons import modelutils
 
 
 def calc_qref_v1(self):
-    """Determine the reference discharge within the given space-time intervall.
+    """Determine the reference discharge within the given space-time interval.
 
     Required state sequences:
       |QZ|
@@ -158,7 +158,7 @@ def calc_am_um_v1(self):
         um(5.0)
 
         The fourth example checks the special case of the actual water stage
-        not beeing larger than zero (empty channel):
+        not being larger than zero (empty channel):
 
         >>> fluxes.h = 0.
         >>> hm(1.)

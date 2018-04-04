@@ -36,10 +36,10 @@ Development
 You can install HydPy from the `hydpy package`_ available on the
 `Python package index`_ or fork from this `GitHub repository`_ available
 on `GitHub`_.  Afterwards, you can implement your own models or
-change the frameworks structure in a manner that meets your personal
+change the framework's structure in a manner that meets your personal
 goals and preferences.  There are many other Python tools freely
 available, which will be of great help while trying to achieve more
-complex tasks like paramater calibration or regionalization.  Cherry
+complex tasks like parameter calibration or regionalization.  Cherry
 picking from many different Python packages can be a huge time-saving.
 Very often it is not necessary to write a "real" Python program.
 Instead, just writing a simple script calling different functionalities
@@ -47,20 +47,20 @@ of different packages in the correct order often gets the job done.
 
 However, if you intend to contribute to the further development of HydPy
 (hopefully you will!), you must abdicate some parts of the freedom and
-ease of use Python offers.  The number of depencencies to other Python
+ease of use Python offers.  The number of dependencies to other Python
 packages, in particular those with some relevant shortcomings and those
 which might not be further supported in the future, should be kept as
-small as possible.  Otherwise it would be to hard to guarantee the
+small as possible.  Otherwise, it would be too hard to guarantee the
 long-term applicability of HydPy.  Additionally, the Python code
 contributed by different developers should be as consistent as possible.
-Otherwise there would be a risk of the code base becoming opaque, making
+Otherwise, there would be a risk of the code base becoming opaque, making
 future extensions of HydPy impossible.
 
 The following sections try to define a strategy allowing HydPy to be
 developed as an open source project while maintaining sufficiently
-high quality standards for practical applications.  The hydrological
+high-quality standards for practical applications.  The hydrological
 modelling community has not made that much progress in this field yet.
-This is why the outlined strategy his highly influenced from other
+This is why the outlined strategy is highly influenced by other
 non-hydrological open source projects like `pandas`_.  Discussions on
 how to improve the outlined strategy are welcome!
 
@@ -87,26 +87,26 @@ Most likely, you would prefer to install Git together with a graphical
 user interface like `source tree`_.
 
 To contribute to HydPy requires essentially three or four steps, no matter
-if working directy online on GitHub or with your local Git software.  For
+if working directly online on GitHub or with your local Git software.  For
 simplicity and generality, these steps are explained using the example
 of a single change to the documentation via GitHub:
 
   * Go to this `GitHub repository`_ and click on "Fork".  This is how you
     create your own working copy of HydPy, allowing you to add, change,
-    or delete any files without interfering in the original repository.
+    or delete any files without interfering with the original repository.
   * Click on "Branch: master", type a name that reflects what you want
     to accomplish and press enter. Now that you have created a new
-    branch, you can experiment without affecting the orginal branch or your
+    branch, you can experiment without affecting the original branch or your
     own  master branch. (This step is not really required; you could
     apply the following steps on your own master branch likewise.
-    But to create branches for different tasks helps structuring your
+    But to create branches for different tasks helps to structure your
     work and to cooperate with others.)
   * Change something.  For example
       * click on ".gitignore"
       * click on the marker symbol ("Edit this file")
       * change the order of two lines (e.g. "*c." and "*.h")
       * write something under "Commit changes" to explain your doing
-        (e.g. "change order of lines in .gitignore")
+        (e.g. "change the order of lines in .gitignore")
       * click on the green "Commit changes" button
 
     Now you have changed the file .gitignore in your own branch
@@ -116,24 +116,24 @@ of a single change to the documentation via GitHub:
   * At last, you can suggest your changes to be included in HydPy's
     main repository.  Click on "Compare" to visualize the relevant
     differences.  Click on "Create pull request" to ask others
-    to diskuss your changes and to eventually merge them into their
+    to discuss your changes and to eventually merge them into their
     projects.  In other words: you request other people to pull (get)
     your own changes and to merge (incorporate) these changes into their
     repositories.
 
 Note that everyone is responsible for his or her own repository, you
-do not have to be afraid to break another persons repository accidentally.
-But you are responsibility the make pull requests focussing on one issue
-that is clearly explained.  Otherwise your contribution is likely to be
+do not have to be afraid to break another person's repository accidentally.
+But you are responsible the make pull requests focussing on one issue
+that is clearly explained.  Otherwise, your contribution is likely to be
 refused.
 
 Of course, it is not always as easy as in the given example.  Not only
-your branches, but also the main line of development evolves.  Often,
+your branches but also the main line of development evolves.  Often,
 you will have to retrieve changes from the main branch and eventually
 resolve some conflicts before you can make "good" pull request.  See
 much more thorough explanations as `Pro Git`_ on how to improve your
 skills in using Git.  Here is a very nice description on
-`How to Rebase a Pull Request`_ (this could be good starting point for
+`How to Rebase a Pull Request`_ (this could be a good starting point for
 explaining how to add newly developed models into the main line in
 this documentation).
 
@@ -152,17 +152,17 @@ their scientific questions and to publish as many research articles
 as possible within a limited period of time.  The source code
 resulting from such a rush is understandably often a mess.  And even
 the better software results often prove inadequate when it comes
-to transfering the software into practical applications or sharing it
+to transferring the software into practical applications or sharing it
 with other researchers.
 
 This is why we defined the HydPy Style Guide, which is a refinement
 of `PEP 8`_ --- the "official" Style Guide for Python Code.
 `PEP 8`_ gives coding conventions that help to write clear code.
 And it eases diving into already existing source code, as one has
-less effort with unraveling the mysteries of overly creative
+less effort with unravelling the mysteries of overly creative
 programming solutions.
 
-In some regards the HydPy Style Guide deviates substantially from `PEP 8`_.
+In some regards, the HydPy Style Guide deviates substantially from `PEP 8`_.
 This is mostly due to following two aims.  First, that the HydPy framework
 shall be applicable for hydrologists with little or even no programming
 experience.  Ideally, such framework users should not even notice that they
@@ -186,7 +186,7 @@ your code in a readable, object-oriented design.  This section describes
 some conventions for the development of HydPy, but is no guidance on how
 to write good source code in general.  So, if you have little experience
 in programming, first make sure to learn the basics of Python through some
-`Python tutorials`_.  Afterwards, improve your  knowledge on code quality
+`Python tutorials`_.  Afterwards, improve your knowledge of code quality
 through reading more advanced literature like this
 `book on object-oriented design`_.
 
@@ -194,7 +194,7 @@ Python Version
 ..............
 The `End Of Life for Python 2.7` is scheduled for 2020. Nevertheless,
 still many scientists are using it.  This is why HydPy is continuously
-tested both on Python 2 and Python 3. For the time beeing future HydPy
+tested both on Python 2 and Python 3. For the time being future HydPy
 versions should be applicable on both Python versions.
 
 Always insert
@@ -206,7 +206,7 @@ and print statement of Python 3 into Python 2 (when using Python 3, this
 import statement is automatically skipped).
 
 Whenever there are two multiple options to achieve something, prefer
-one that is fits best to Python 3.  For example, always use :func:`range`.
+one that fits best with Python 3.  For example, always use :func:`range`.
 While under Python three often :func:`xrange` would be preferable
 regarding time and memory efficiency, just using :func:`range` leads to
 a clean syntax and is future-proof.  (Have a look at the
@@ -230,17 +230,17 @@ HydPy functionalities must be coded twice.  Use `pyversion` in these cases:
 :func:`~hydpy.core.objecttools.augment_excmessage`.)
 
 
-Site Packages
+site-packages
 .............
-Whenever reasonable, import only packages of the
+Whenever reasonable, import only packages of
 `The Python Standard Library`_ or at least restrict yourself
-to mature and stable site packages.  At the moment, HydPy relies
-only on the highly accepted site packages `Cython`_, `NumPy`_,
+to mature and stable site-packages.  At the moment, HydPy relies
+only on the highly accepted site-packages `Cython`_, `NumPy`_,
 and `matplotlib`_.  Further developments of HydPy based on more
-specialized site packages (e.g. for plotting maps) might be
+specialized site-packages (e.g. for plotting maps) might be
 useful.  But the related import commands should be secured in
 a way that allows for the application of HydPy without having
-these specialized site packages available.
+these specialized site-packages available.
 
 Imports
 .......
@@ -327,10 +327,10 @@ to two reasons: First, they are probably read by someone who has
 no experience in understanding Pythons exception handling system.
 And secondly, they do not tell in which context a problem occurs.
 Here, "context" does not mean the relevant part of the source code,
-which is of course referenced in the traceback; instead it means
+which is of course referenced in the traceback; instead, it means
 things like the concerned geographical location.  It would, for example,
 be of little help to only know that the required value of a certain
-parameter is not available, when the same parameter is applied
+parameter is not available when the same parameter is applied
 thousands of times in different subcatchments.  Try to add as much
 helpful information to error messages as possible, e.g.::
 
@@ -557,7 +557,7 @@ Now the representation string (only) of this instance is changed:
 As you can see, it is easy to retrieve information from living objects
 and to adjust them to specific situations.  With little effort, one
 can do much more tricky things. But when writing production code, one
-has to be cautious.  First do not all Python implementations support
+has to be cautious.  First, do not all Python implementations support
 each introspection feature of CPython.  Secondly is introspection often
 a possible source of confusion.  For HydPy, only the second issue is of
 importance, as the use of Cython rules out its application on alternative
@@ -570,12 +570,12 @@ that do not deal with hydrological modelling directly.  Section `Imports`_
 discusses the usage of wildcard imports in parameter control files.
 However, the real comfort comes primarily from the `magic` implemented
 in the function :func:`~hydpy.core.magictools.parameterstep`.  Through
-calling this function one does not only define a relevant time intervall
+calling this function one does not only define a relevant time interval
 length for the following parameter values.  One also initializes a new
 model instance (if such an instance does not already exist) and makes
 its control parameter objects available in the local namespace.  Hence,
-in the sake of the users comfort, each parameter control file purponts
-beeing a simple configuration file that somehow checks its own validity.
+for the sake of the user's comfort, each parameter control file purports
+being a simple configuration file that somehow checks its own validity.
 On the downside, to modify the operating principle of HydPy's parameter
 control files requires more thought than if everything would have
 been accomplished in a more direct manner.
@@ -607,7 +607,7 @@ and misleading code documentation of hydrological computer models.
 (Of course, such a study would be hard to conduct due to several
 reasons.) Given the little attention paid during the peer-review
 process to the correctness of model code and its transparent
-documentation, the danger of scientific results beeing corrupted
+documentation, the danger of scientific results being corrupted
 by such flaws can --- carefully worded --- at least not be ruled
 out.
 
@@ -633,7 +633,7 @@ of the functionality to be testet.  Each test class must inherit from
 :class:`~unittest.TestCase`, allowing for using its assert methods.
 Last but not least, add the different test methods.  Again, each
 name should start with 'test' and a consecutive number, but this time
-in lower case letters seperated by underscores. By way of example,
+in lower case letters separated by underscores. By way of example,
 consider a snipplet of the test class for the initialization of
 :class:`~hydpy.core.timetools.Date` objects:
 
@@ -697,27 +697,27 @@ Doctests
 
 When defining `conventional` unit tests, one tries to achieve a large
 test coverage with few lines of code (don't repeat yourself!).
-Therefore, sophisticated tools as the `mock object library`_ are
-available.  Unit tests might also save the purpuse to explain the
-functioning of the main code, as they explicitely show how it can
+Therefore, sophisticated tools like the `mock object library`_ are
+available.  Unit tests might also save the purpose to explain the
+functioning of the main code, as they explicitly show how it can
 be used.  However, the latter is pie in the sky when the unit tests
 are interpreted by someone who has little experience in unit testing
 and maybe little experience in programming at all.  This might not be
 a relevant problem as long as we test such basic functionalities of
 the HydPy framework, the user is not really interested in directly or
 just expects to work.  However, at the latest when the implemented
-hydrological model are involved, the clarity of the defined unit tests
+hydrological models are involved, the clarity of the defined unit tests
 is desirable even for non-programmers (and --- in our opinion ---
 it is scientifically necessary).
 
-Each model implemented in HydPy should be tested in manner that is
+Each model implemented in HydPy should be tested in a manner that is
 as clear and comprehensible as possible.  To this end, the documentation
 test principle defined by the module :mod:`doctest` should be applied
 extensively.  At least, all code branches including (hydrological)
 equations should be captured completely via doctests. (More technical
 branches, e.g. those including the treatment of exceptions, can be
 left to conventional unit tests.)  Often only one or two sentences
-are required to expain a doctest in a way, allowing a non-programmer
+are required to explain a doctest in a way, allowing a non-programmer
 to understand and repeat it.  And through repetition, he learns to
 apply the model.
 
@@ -740,7 +740,7 @@ core package contains a module named `objecttools`.
 
 To support the frequent usage of doctests, one is allowed to use
 them at any section of the documentation, accepting possible
-reduncancies with defined `conventional` unit tests.  The module
+redundancies with defined `conventional` unit tests.  The module
 :mod:`~hydpy.tests.test_everything` searches for doctests in
 all Python modules and all `reStructuredText`_ files contained
 in the package hydpy and executes them.
@@ -750,18 +750,18 @@ Continuous Integration
 ----------------------
 
 To improve the code base of HydPy, you need your own working copy
-(your own fork, see section `How to contribute?`_).  The existance
+(your own fork, see section `How to contribute?`_).  The existence
 of multiple working copies inevitably leads to the danger of
 integration problems, meaning that different changes in different
 working copies lead to source code incompatibilities.  To reduce
-this risk, the different working copies should be merged `continously`.
+this risk, the different working copies should be merged `continuously`.
 This decreases the likelihood of simultaneous changes to the same
 code sections and keeps the complexity of possible conflicts to
 a minimum.
 
 The current (online) development of HydPy relies, besides `GitHub`_,
 on `Travis CI`_.  `Travis CI`_ is a hosted, distributed continuous
-integration service.  This `Travis CI project`_ has been been linked
+integration service.  This `Travis CI project`_ has been linked
 to HydPy's `GitHub repository`_.  It is configured to accomplish
 the following tasks for each new commit or pull request:
 
@@ -773,10 +773,10 @@ the following tasks for each new commit or pull request:
   * Prepare a `Test Coverage`_ report based on Python 2.7.
   * Update this `online documentation`_ based on Python 2.7.
 
-Installation and testing is performed using Python 2.7, 3.4, 3.5 and 3.6.
+Installation and testing are performed using Python 2.7, 3.4, 3.5 and 3.6.
 2.7 still seems to be the Python version most frequently used by scientists.
 Python versions 3.0 to 3.3 do not seem to be of great importance anymore.
-Additionally, installation and testing is performed using the development
+Additionally, installation and testing are performed using the development
 branches of version 3.5, 3.6 and (the still not released) version 3.7.
 This offers the advantage of anticipating future problems and to
 `test future Python`_ itself, possibly helping to avoid future bugs.
@@ -790,17 +790,17 @@ one of Python's principle, it is easier to ask for forgiveness than
 permission: let Travis evaluate your current working branch and see what
 happens...
 
-Not only the source code, but also the contributed documentation
+Not only the source code but also the contributed documentation
 text is checked in two ways. Doctesting is discussed above and always
 performed using each mentioned Python version.  Additionally, when
 using  Python 2.7 the properness of the whole documentation text is
-considered. `Sphinx`_ is applied to create the html pages of this
+considered. `Sphinx`_ is applied to create the HTML pages of this
 `online documentation`_ based on the given `reStructuredText`_ files.
-In case of occuring problems, e.g. due to faulty inline markup, the
+In case problems occur, e.g. due to faulty inline markup, the
 total build (including all Python versions) is regarded as defective.
-This assures that each new HydPy version is a accompanied by a
+This assures that each new HydPy version is accompanied by a
 functioning online documentation.  If nothing goes wrong, the
-`travis-sphinx`_ script is used to push thefinal html pages to the
+`travis-sphinx`_ script is used to push the final HTML pages to the
 `gh-pages branch`_ automatically, meaning, that this
 `online documentation`_ is updated immediately.  This deploy process
 is restricted to the `master branch`_ of the main development line
@@ -819,7 +819,7 @@ the runtime behaviour of the tests themselves in order to find out
 which code sections they do invoke and which not.  HydPy's
 `Travis CI project`_ has been configured to perform such an evaluation
 automatically for each build process based on `Coverage.py`_.  The
-resulting html report is linked to this `online documentation`_
+resulting HTML report is linked to this `online documentation`_
 automatically.
 
 The coverage report does only include modules with a percentage

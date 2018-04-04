@@ -81,7 +81,7 @@ def value_of_type(value):
     """Returns a string containing both the informal string and the type
     of the given value.
 
-    This function is intendet to simplifying writing HydPy exceptions,
+    This function is intended to simplifying writing HydPy exceptions,
     which frequently contain the following phrase:
 
     >>> from hydpy.core.objecttools import value_of_type
@@ -419,7 +419,7 @@ class _Repr_(object):
     When value is a float, the result depends on how the option
     :attr:`~hydpy.core.optiontools.Options.reprdigits` is set. If it is
     to -999, :func:`repr` defines the number of digits in
-    the usual, system dependend manner:
+    the usual, system dependent manner:
 
     >>> from hydpy.pub import options
     >>> options.reprdigits = -999
@@ -502,7 +502,7 @@ repr_ = _Repr_()
 
 
 def repr_values(values):
-    """Return comma seperated representations of the given values using
+    """Return comma separated representations of the given values using
     function :func:`repr_`.
 
     >>> from hydpy.core.objecttools import repr_values

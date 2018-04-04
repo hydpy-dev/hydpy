@@ -157,6 +157,8 @@ def autodoc_basemodel():
             lines += new_lines
     doc += '\n'.join(lines)
     namespace['__doc__'] = doc
+    basemodule = importlib.import_module(namespace['__name__'])
+    substituter.add_everything(basemodule)
     substituter.apply_on_members()
     namespace['substituter'] = substituter
 

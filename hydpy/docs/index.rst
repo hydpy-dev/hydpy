@@ -118,13 +118,14 @@ on how to actually participate in the further development of :ref:`HydPy`.
 Section :ref:`modelcollection` lists all models implemented so far.
 Sections :ref:`core` covers the basic functionalities of the
 :ref:`HydPy` framework.  We hope to be able to offer some beginner
-tutorials based on real data soon.
+:ref:`tutorials` based on real data soon.
 
 .. toctree::
    :hidden:
 
-   development
-   modelcollection
    framework
+   modelcollection
+   tutorials
+   development
 
 

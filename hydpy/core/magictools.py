@@ -425,18 +425,20 @@ lines_print_progress_wrapper = \
      '    try:',
      '        if pub.options.printprogress:',
      '            with PrintStyle(color=34, font=1):',
-     "                print('\\n%sHydPy method %s...'",
+     "                print('\\n%smethod %s...'",
      "                      % (' '*pub._printprogress_indentation,",
      '                         printprogress_wrapped.__name__))',
      '                print("%s    ...started at %s."',
      "                      % (' '*pub._printprogress_indentation,",
      '                         time.strftime("%X")))',
+     '            sys.stdout.flush()',
      '        printprogress_wrapped()',
      '        if pub.options.printprogress:',
      '            with PrintStyle(color=34, font=1):',
      '                print("%s    ...ended at %s."',
      "                      % (' '*pub._printprogress_indentation,",
      '                         time.strftime("%X")))',
+     '            sys.stdout.flush()',
      '    finally:',
      '        pub._printprogress_indentation -= 4']
 
@@ -491,7 +493,7 @@ def printprogress(printprogress_wrapped):
     sign = signature(printprogress_wrapped)
     short_sign = _signature_without_default_values(sign)
     lines[0] = lines[0].replace('(*args, **kwargs)', sign)
-    lines[21] = lines[21].replace('()', short_sign)
+    lines[22] = lines[22].replace('()', short_sign)
     exec('\n'.join(lines), locals(), globals())
     functools.update_wrapper(eval(funcname), printprogress_wrapped)
     return eval(funcname)
@@ -603,6 +605,7 @@ def progressbar(iterable, length=23):
             print()
             with open(temp_name, 'r') as temp_stdout:
                 sys.stdout.write(temp_stdout.read())
+            sys.stdout.flush()
     else:
         for next_ in iterable:
             yield next_

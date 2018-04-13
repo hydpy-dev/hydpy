@@ -47,7 +47,7 @@ Selecting a HydPy version
 
 If you want to contribute to the development of  :ref:`HydPy` or implement
 own models, please see the :ref:`development` section.  If you want to
-apply :ref:`HydPy`, you should start with a stable version available
+apply :ref:`HydPy` only, you should start with a stable version available
 under `releases`_.
 
 Probably, you are interested in using the latest version of :ref:`HydPy`,
@@ -59,12 +59,12 @@ with interfacing systems.  "Y" is the minor revision number, indicating
 some improvements, but no potentially problematic changes, e.g. the
 implementation of additional models.  "Z" is the revision number,
 indicating some necessary corrections of the framework or its implemented
-models.  In any case, you should make sure to select the revision number
-available, meaning you should prefer using "X.Y.1" over "X.Y.0".
+models.  In any case, you should make sure to select the highest revision
+number available, meaning you should prefer using "X.Y.1" over "X.Y.0".
 
 Each release is available in different compressed archives,
 corresponding to different environments.  Currently, we distribute
-pre-compiled binaries for 64-bit Windows and Python 2.7 and Python 3.6
+pre-compiled binaries for Python 2.7 and Python 3.6 on 64-bit Windows
 only.  These are most easy to use.  Download and unpack them in
 your site-packages directory.  The site-packages directory is the place
 to store additional Python libraries.  Usually, each installed
@@ -100,9 +100,9 @@ Selecting a C Compiler
 ----------------------
 
 You only need to care about selecting a C compiler, if no pre-compiled
-binaries are not available for your system or if you want to implement
+binaries are available for your system or if you want to implement
 new models into the :ref:`HydPy` framework.  Also, Linux users should
-have no trouble, as the `GNU Compiler Collection` is ready for
+have no trouble, as the `GNU Compiler Collection`_ is ready for
 use on standard Linux distributions.  Unfortunately, Windows does not
 include compilers by default.  Search `Windows Compilers page`_ on how
 to select and install the correct compiler.

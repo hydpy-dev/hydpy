@@ -211,14 +211,26 @@ class IUH(_MetaIUH):
             pyplot.xlim(0., delays[idx])
 
     @property
+    def moment1(self):
+        """The first time delay weighted statistical moment of the
+        instantaneous unit hydrograph."""
+        delays, response = self.delay_response_series
+        return statstools.calc_mean_time(delays, response)
+
+    @property
+    def moment2(self):
+        """The second time delay weighted statistical momens of the
+        instantaneous unit hydrograph."""
+        moment1 = self.moment1
+        delays, response = self.delay_response_series
+        return statstools.calc_mean_time_deviation(
+            delays, response, moment1)
+
+    @property
     def moments(self):
         """The first two time delay weighted statistical moments of the
         instantaneous unit hydrograph."""
-        delays, response = self.delay_response_series
-        moment1 = statstools.calc_mean_time(delays, response)
-        moment2 = statstools.calc_mean_time_deviation(delays, response,
-                                                      moment1)
-        return numpy.array([moment1, moment2])
+        return numpy.array([self.moment1, self.moment2])
 
     def __repr__(self):
         parts = [objecttools.classname(self), '(']
@@ -262,16 +274,16 @@ class TranslationDiffusionEquation(IUH):
     >>> round_((tde.a, tde.b))
     6.454972, 0.645497
 
-    The function can be evaluated for time delays larger zero, but not for
-    zero time delay:
+    The function can principally be evaluated for time delays larger zero,
+    but not for zero time delay, which can cause trouble when applying
+    numerical integration algorithms.  This is why we clip the given time
+    delay to minimum value of 1e-10 internally.  In most cases (like the
+    following), the returned result should be workable for integration
+    algorithms:
 
     >>> import numpy
-    >>> round_(tde(numpy.array([5., 10., 15., 20.])))
-    0.040559, 0.115165, 0.031303, 0.00507
-    >>> tde(0.)
-    Traceback (most recent call last):
-    ...
-    ZeroDivisionError: float division by zero
+    >>> round_(tde([0.0, 5.0, 10.0, 15.0, 20.0]))
+    0.0, 0.040559, 0.115165, 0.031303, 0.00507
 
     The first delay weighted central moment of the translation diffusion
     equation corresponds to the time lag (`x`/`u`), the second one to
@@ -284,10 +296,10 @@ class TranslationDiffusionEquation(IUH):
 
     >>> tde.plot(threshold=0.9)
 
-    You can close the plotting window manually or by writing:
+    .. testsetup::
 
-    >>> from matplotlib import pyplot
-    >>> pyplot.close()
+        >>> from matplotlib import pyplot
+        >>> pyplot.close()
 
     All instances of the subclasses of :class:`IUH` provide a pure
     Moving Average and an Autoregressive-Moving Average approximation to the
@@ -370,7 +382,15 @@ the following keywords were given: d, u.
         self.b = self.u/(2.*self.d**.5)
 
     def __call__(self, t):
+        t = numpy.array(t)
+        t = numpy.clip(t, 1e-10, numpy.inf)
         return self.a/(t*(numpy.pi*t)**.5)*numpy.exp(-t*(self.a/t-self.b)**2)
+
+    @property
+    def moment1(self):
+        """The first time delay weighted statistical moment of the
+        translation diffusion equation."""
+        return self.x/self.u
 
 
 class LinearStorageCascade(IUH):
@@ -408,6 +428,12 @@ class LinearStorageCascade(IUH):
 
     def __call__(self, t):
         return self.c*(t/self.k)**(self.n-1)*numpy.exp(-t/self.k)
+
+    @property
+    def moment1(self):
+        """The first time delay weighted statistical moment of the
+        linear storage cascade."""
+        return self.k*self.n
 
 
 autodoctools.autodoc_module()

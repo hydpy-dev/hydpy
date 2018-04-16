@@ -12,6 +12,7 @@ import sys
 import warnings
 # ...from site-packages
 import numpy
+from scipy import integrate
 # ...from HydPy
 from hydpy import pub
 from hydpy import auxs
@@ -72,6 +73,7 @@ def customwarn(message, category, filename, lineno, file=None, line=None):
 warnings.showwarning = customwarn
 warnings.filterwarnings('always', category=HydPyDeprecationWarning)
 warnings.filterwarnings('ignore', r'All-NaN (slice|axis) encountered')
+warnings.filterwarnings('error', category=integrate.IntegrationWarning)
 
 # Numpy introduced new string representations in version 1.14 affecting
 # our doctests.  Hence, the old style is selected for now:

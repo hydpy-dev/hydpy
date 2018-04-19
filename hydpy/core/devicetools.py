@@ -1676,7 +1676,6 @@ class Nodes(Devices):
     def save_allseries(self):
         """Call methods :func:`~Nodes.save_simseries` and
         :func:`~Nodes.save_obsseries`."""
-        self.save_inputseries()
         self.save_simseries()
         self.save_obsseries()
 
@@ -1734,7 +1733,7 @@ class Elements(Devices):
                             pub.options.warnmissingcontrolfile):
                         warnings.warn('No model could be initialized for '
                                       'element `%s`' % element)
-                        self.model = None
+                        self.__dict__['model'] = None
                     else:
                         objecttools.augment_excmessage(
                             'While trying to initialize the model of '

@@ -107,16 +107,19 @@ class FileManager(object):
                     'set directory `%s` and creating a new directory is '
                     'currently disabled.'
                     % (self.basepath, self._currentdir))
-        directory = self._make_and_get_currentdir(
-            directories, self._defaultdir)
+        if self._defaultdir:
+            directory = self._make_and_get_currentdir(
+                directories, self._defaultdir)
+        else:
+            directory = None
         if directory:
             return directory
         else:
             raise IOError(
-                'The base path `%s` contains multiple directories, and '
-                'none could be determined automatically.  Please specify '
-                'the current directory to be worked with manually.'
-                % self.basepath)
+                'The base path `%s` does not contain the default directory '
+                '`%s`.  Please specify he current directory to be worked '
+                'with manually.'
+                % (self.basepath, self._defaultdir))
 
     def _make_and_get_currentdir(self, directories, directory):
         try:

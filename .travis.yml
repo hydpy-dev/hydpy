@@ -17,6 +17,8 @@ install:
   - pip install matplotlib
   - pip install bokeh
   - pip install coverage
+  - pip install pandas
+  - pip install wrapt
   - if [ $TRAVIS_PYTHON_VERSION = "3.6" ] ; then pip install pycobertura; fi
   - if [ $TRAVIS_PYTHON_VERSION = "3.6" ] ; then pip install sphinx==1.6.7; fi
   - if [ $TRAVIS_PYTHON_VERSION = "3.6" ] ; then pip install travis-sphinx; fi

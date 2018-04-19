@@ -12,6 +12,7 @@ import struct
 import warnings
 import weakref
 # ...from site-packages
+import numpy
 from matplotlib import pyplot
 # ...from HydPy
 from hydpy import pub
@@ -714,6 +715,57 @@ the given group name `test`.
         pyplot.ylabel(variable)
         if not pyplot.isinteractive():
             pyplot.show()
+
+    @staticmethod
+    def _calc_idxs(values):
+        return ~numpy.isnan(values) * ~numpy.isinf(values)
+
+    def violinplot(self, logscale=True):
+        old_settings = numpy.seterr(divide='ignore')
+        try:
+            sim = self.sequences.sim
+            obs = self.sequences.obs
+            if not (sim.memoryflag or obs.memoryflag):
+                raise RuntimeError(
+                    'neither sim nor obs')
+            if sim.memoryflag:
+                sim_values = sim.series
+                if logscale:
+                    sim_values = numpy.log10(sim_values)
+            if obs.memoryflag:
+                obs_values = obs.series
+                if logscale:
+                    obs_values = numpy.log10(obs_values)
+            if sim.memoryflag and obs.memoryflag:
+                idxs = self._calc_idxs(sim_values)*self._calc_idxs(obs_values)
+                data = (sim_values[idxs], obs_values[idxs])
+                pyplot.xticks([1, 2], ['sim', 'obs'])
+            elif sim.memoryflag:
+                idxs = self._calc_idxs(sim_values)
+                data = sim_values[idxs]
+                pyplot.xticks([1], ['sim'])
+            else:
+                idxs = self._calc_idxs(obs_values)
+                data = obs_values[idxs]
+                pyplot.xticks([1], ['obs'])
+            if logscale:
+                points = 100
+            else:
+                points = min(max(int(numpy.sum(idxs)/10), 100), 1000)
+            pyplot.violinplot(data, showmeans=True, widths=0.8, points=points)
+            pyplot.title(self.name)
+            if logscale:
+                ticks, labels = pyplot.yticks()
+                pyplot.yticks(ticks, ['%.1e' % 10**tick for tick in ticks])
+            variable = self.variable
+            pyplot.subplots_adjust(left=.2)
+            if variable == 'Q':
+                variable = u'Q [m³/s]'
+            pyplot.ylabel(variable)
+            if not pyplot.isinteractive():
+                pyplot.show()
+        finally:
+            numpy.seterr(**old_settings)
 
     def __repr__(self):
         return self.assignrepr()

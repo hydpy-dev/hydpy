@@ -12,6 +12,7 @@ import sys
 import warnings
 # ...from site-packages
 import numpy
+from numpy import nan
 from scipy import integrate
 # ...from HydPy
 from hydpy import pub
@@ -54,6 +55,18 @@ from hydpy.auxs.iuhtools import TranslationDiffusionEquation
 from hydpy.auxs.networktools import RiverBasinNumber
 from hydpy.auxs.networktools import RiverBasinNumbers
 from hydpy.auxs.networktools import RiverBasinNumbers2Selection
+from hydpy.auxs.statstools import bias_abs
+from hydpy.auxs.statstools import bias_rel
+from hydpy.auxs.statstools import calc_mean_time
+from hydpy.auxs.statstools import calc_mean_time_deviation
+from hydpy.auxs.statstools import corr
+from hydpy.auxs.statstools import evaluationtable
+from hydpy.auxs.statstools import hsepd
+from hydpy.auxs.statstools import hsepd_manual
+from hydpy.auxs.statstools import hsepd_pdf
+from hydpy.auxs.statstools import nse
+from hydpy.auxs.statstools import prepare_arrays
+from hydpy.auxs.statstools import std_ratio
 from hydpy.cythons.autogen import annutils
 from hydpy.cythons.autogen import pointerutils
 from hydpy.cythons.autogen import smoothutils
@@ -129,4 +142,17 @@ __all__ = ['pub',
            'TranslationDiffusionEquation',
            'RiverBasinNumber',
            'RiverBasinNumbers',
-           'RiverBasinNumbers2Selection']
+           'RiverBasinNumbers2Selection',
+           'nan',
+           'bias_abs',
+           'bias_rel',
+           'calc_mean_time',
+           'calc_mean_time_deviation',
+           'corr',
+           'evaluationtable',
+           'hsepd',
+           'hsepd_manual',
+           'hsepd_pdf',
+           'nse',
+           'prepare_arrays',
+           'std_ratio']

@@ -12,17 +12,14 @@ from hydpy.core import sequencetools
 class Inzp(sequencetools.StateSequence):
     """Interzeptionsspeicherung (interception storage) [mm].
 
-    Note that :class:`Inzp` of HydPy-L implements no specialized trim method
-    (as opposed to :class:`~hydpy.models.hland.hland_states.Ic` of HydPy-H).
-    This is due the discontinuous evolution of
-    :class:`~hydpy.models.lland.lland_control.IcC` in time.  In accordance
-    with the original LARSIM implementation, :class:`Inzp` can be temporarily
-    overfilled during rain periods whenever
-    :class:`~hydpy.models.lland.lland_control.IcC` drops rapidly between two
+    Note that |Inzp| of HydPy-L implements no specialized trim method
+    (as opposed to :class:`~hydpy.models.hland.hland_states.Ic` of |hland|).
+    This is due the discontinuous evolution of |KInz| in time.  In accordance
+    with the original LARSIM implementation, |Inzp| can be temporarily
+    overfilled during rain periods whenever |KInz| drops rapidly between two
     months.  A specialized trim method would just make the excess water
-    vanish.  But in HydPy-L, the excess water becomes
-    :class:`~hydpy.models.lland.lland_fluxes.ThruFall` in the first simulation
-    step of the new month.
+    vanish.  But in HydPy-L, the excess water becomes |NBes| in the first
+    simulation step of the new month.
     """
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
@@ -160,5 +157,17 @@ class QBGA(sequencetools.StateSequence):
 
 class StateSequences(sequencetools.StateSequences):
     """State sequences of the HydPy-L-Land model."""
-    _SEQCLASSES = (Inzp, WATS, WAeS, BoWa, QDGZ1, QDGZ2, QIGZ1, QIGZ2,
-                   QBGZ, QDGA1, QDGA2, QIGA1, QIGA2, QBGA)
+    _SEQCLASSES = (Inzp,
+                   WATS,
+                   WAeS,
+                   BoWa,
+                   QDGZ1,
+                   QDGZ2,
+                   QIGZ1,
+                   QIGZ2,
+                   QBGZ,
+                   QDGA1,
+                   QDGA2,
+                   QIGA1,
+                   QIGA2,
+                   QBGA)

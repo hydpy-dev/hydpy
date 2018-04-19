@@ -126,12 +126,14 @@ def calc_et0_v1(self):
                                   (1.+0.00019*min(con.hnn[k], 600.)))))
 
 
-def calc_et0_v2(self):
-    """Correct the given reference evapotranspiration.
+def calc_et0_wet0_v1(self):
+    """Correct the given reference evapotranspiration and update the
+    corresponding log sequence.
 
     Required control parameters:
       |NHRU|
       |KE|
+      |WfET0|
 
     Required input sequence:
       |PET|
@@ -139,26 +141,55 @@ def calc_et0_v2(self):
     Calculated flux sequence:
       |ET0|
 
-    Basic equation:
-      :math:`ET0 = KE \\cdot PET`
+    Updated log sequence:
+      |WET0|
+
+    Basic equations:
+      :math:`ET0_{new} = WfET0 \\cdot KE \\cdot PET +
+      (1-WfET0) \\cdot ET0_{alt}`
 
     Example:
+
+        Prepare four hydrological response units with different value
+        combinations of parameters |KE| and |WfET0|:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> simulationstep('12h')
-        >>> nhru(2)
-        >>> ke(0.8, 1.2)
-        >>> inputs.pet = 2.
-        >>> model.calc_et0_v2()
+        >>> nhru(4)
+        >>> ke(0.8, 1.2, 0.8, 1.2)
+        >>> wfet0(2.0, 2.0, 0.2, 0.2)
+
+        Note that the actual value of time dependend parameter |WfET0|
+        is reduced due the difference between the given parameter and
+        simulation time steps:
+
+        >>> from hydpy import round_
+        >>> round_(wfet0.values)
+        1.0, 1.0, 0.1, 0.1
+
+        For the first two hydrological response units, the given |PET|
+        value is modified by -0.4 mm and +0.4 mm, respectively.  For the
+        other two response units, which weight the "new" evaporation
+        value with 10 %, |ET0| does deviate from the old value of |WET0|
+        by -0.04 mm and +0.04 mm only:
+
+        >>> inputs.pet = 2.0
+        >>> logs.wet0 = 2.0
+        >>> model.calc_et0_wet0_v1()
         >>> fluxes.et0
-        et0(1.6, 2.4)
+        et0(1.6, 2.4, 1.96, 2.04)
+        >>> logs.wet0
+        wet0(1.6, 2.4, 1.96, 2.04)
     """
     con = self.parameters.control.fastaccess
     inp = self.sequences.inputs.fastaccess
     flu = self.sequences.fluxes.fastaccess
+    log = self.sequences.logs.fastaccess
     for k in range(con.nhru):
-        flu.et0[k] = con.ke[k]*inp.pet
+        flu.et0[k] = (con.wfet0[k]*con.ke[k]*inp.pet +
+                      (1.-con.wfet0[k])*log.wet0[0, k])
+        log.wet0[0, k] = flu.et0[k]
 
 
 def calc_evpo_v1(self):
@@ -1550,10 +1581,10 @@ def calc_qbga_v1(self):
     elif der.kb > 1e200:
         new.qbga = old.qbga+new.qbgz-old.qbgz
     else:
-        aid.temp = (1.-modelutils.exp(-1./der.kb))
+        d_temp = (1.-modelutils.exp(-1./der.kb))
         new.qbga = (old.qbga +
-                    (old.qbgz-old.qbga)*aid.temp +
-                    (new.qbgz-old.qbgz)*(1.-der.kb*aid.temp))
+                    (old.qbgz-old.qbga)*d_temp +
+                    (new.qbgz-old.qbgz)*(1.-der.kb*d_temp))
 
 
 def calc_qiga1_v1(self):
@@ -1615,10 +1646,10 @@ def calc_qiga1_v1(self):
     elif der.ki1 > 1e200:
         new.qiga1 = old.qiga1+new.qigz1-old.qigz1
     else:
-        aid.temp = (1.-modelutils.exp(-1./der.ki1))
+        d_temp = (1.-modelutils.exp(-1./der.ki1))
         new.qiga1 = (old.qiga1 +
-                     (old.qigz1-old.qiga1)*aid.temp +
-                     (new.qigz1-old.qigz1)*(1.-der.ki1*aid.temp))
+                     (old.qigz1-old.qiga1)*d_temp +
+                     (new.qigz1-old.qigz1)*(1.-der.ki1*d_temp))
 
 
 def calc_qiga2_v1(self):
@@ -1680,10 +1711,10 @@ def calc_qiga2_v1(self):
     elif der.ki2 > 1e200:
         new.qiga2 = old.qiga2+new.qigz2-old.qigz2
     else:
-        aid.temp = (1.-modelutils.exp(-1./der.ki2))
+        d_temp = (1.-modelutils.exp(-1./der.ki2))
         new.qiga2 = (old.qiga2 +
-                     (old.qigz2-old.qiga2)*aid.temp +
-                     (new.qigz2-old.qigz2)*(1.-der.ki2*aid.temp))
+                     (old.qigz2-old.qiga2)*d_temp +
+                     (new.qigz2-old.qigz2)*(1.-der.ki2*d_temp))
 
 
 def calc_qdga1_v1(self):
@@ -1744,10 +1775,10 @@ def calc_qdga1_v1(self):
     elif der.kd1 > 1e200:
         new.qdga1 = old.qdga1+new.qdgz1-old.qdgz1
     else:
-        aid.temp = (1.-modelutils.exp(-1./der.kd1))
+        d_temp = (1.-modelutils.exp(-1./der.kd1))
         new.qdga1 = (old.qdga1 +
-                     (old.qdgz1-old.qdga1)*aid.temp +
-                     (new.qdgz1-old.qdgz1)*(1.-der.kd1*aid.temp))
+                     (old.qdgz1-old.qdga1)*d_temp +
+                     (new.qdgz1-old.qdgz1)*(1.-der.kd1*d_temp))
 
 
 def calc_qdga2_v1(self):
@@ -1808,10 +1839,10 @@ def calc_qdga2_v1(self):
     elif der.kd2 > 1e200:
         new.qdga2 = old.qdga2+new.qdgz2-old.qdgz2
     else:
-        aid.temp = (1.-modelutils.exp(-1./der.kd2))
+        d_temp = (1.-modelutils.exp(-1./der.kd2))
         new.qdga2 = (old.qdga2 +
-                     (old.qdgz2-old.qdga2)*aid.temp +
-                     (new.qdgz2-old.qdgz2)*(1.-der.kd2*aid.temp))
+                     (old.qdgz2-old.qdga2)*d_temp +
+                     (new.qdgz2-old.qdgz2)*(1.-der.kd2*d_temp))
 
 
 def calc_q_v1(self):
@@ -1990,7 +2021,7 @@ class Model(modeltools.Model):
     _RUN_METHODS = (calc_nkor_v1,
                     calc_tkor_v1,
                     calc_et0_v1,
-                    calc_et0_v2,
+                    calc_et0_wet0_v1,
                     calc_evpo_v1,
                     calc_nbes_inzp_v1,
                     calc_evi_inzp_v1,

@@ -922,7 +922,6 @@ from hydpy.models.lland import lland_fluxes
 from hydpy.models.lland import lland_states
 from hydpy.models.lland import lland_aides
 from hydpy.models.lland import lland_outlets
-from hydpy.models.lland.lland_parameters import Parameters
 from hydpy.models.lland.lland_constants import *
 
 
@@ -1061,8 +1060,7 @@ class StateSequences(sequencetools.StateSequences):
 
 class AideSequences(sequencetools.AideSequences):
     """Aide sequences of lland_v1."""
-    _SEQCLASSES = (lland_aides.Temp,
-                   lland_aides.SfA,
+    _SEQCLASSES = (lland_aides.SfA,
                    lland_aides.Exz,
                    lland_aides.BVl,
                    lland_aides.MVl,

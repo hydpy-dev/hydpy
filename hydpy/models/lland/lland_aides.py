@@ -7,11 +7,6 @@ from __future__ import division, print_function
 from hydpy.core import sequencetools
 
 
-class Temp(sequencetools.AideSequence):
-    """Temporary variable used in different methods [mm]."""
-    NDIM, NUMERIC = 0, False
-
-
 class SfA(sequencetools.AideSequence):
     """Sättigungsflächen-Aktivität (activity of the saturated surface) [mm]."""
     NDIM, NUMERIC = 1, False
@@ -47,4 +42,9 @@ class EPW(sequencetools.AideSequence):
 
 class AideSequences(sequencetools.AideSequences):
     """Aide sequences of the HydPy-L-Land model."""
-    _SEQCLASSES = (Temp, SfA, Exz, BVl, MVl, RVl, EPW)
+    _SEQCLASSES = (SfA,
+                   Exz,
+                   BVl,
+                   MVl,
+                   RVl,
+                   EPW)

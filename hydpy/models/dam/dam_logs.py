@@ -23,10 +23,10 @@ class LoggedOutflow(sequencetools.LogSequence):
 
 
 class ShapeOne(sequencetools.LogSequence):
-    """Base class for log sequences with a shape of one
+    """Base class for log sequences with a shape of one.
 
-    Parameter derived from :class:`ShapeOne` are generally initialized
-    with a shape of one.  Taking parameter :class:`LoggedRequiredRemoteRelease`
+    Parameter derived from |ShapeOne| are generally initialized
+    with a shape of one.  Taking parameter |LoggedRequiredRemoteRelease|
     as an example:
 
     >>> from hydpy.models.dam import *

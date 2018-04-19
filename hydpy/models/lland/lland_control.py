@@ -7,6 +7,7 @@ import warnings
 # ...from site-packages
 import numpy
 # ...HydPy specific
+from hydpy.core import abctools
 from hydpy.core import parametertools
 from hydpy.core import objecttools
 from hydpy.core import timetools
@@ -24,10 +25,11 @@ class NHRU(parametertools.SingleParameter):
     """Anzahl der Hydrotope (number of hydrological response units) [-].
 
     Note that |NHRU| determines the length of most 1-dimensional HydPy-L-Land
-    parameters and sequences.  This required that the value of the respective
-    |NHRU| instance is set before any of the values of these 1-dimensional
-    parameters or sequences are set.  Changing the value of the |NHRU|
-    instance necessitates setting their values again.
+    parameters and sequences as well the shape of 2-dimensional log sequences
+    with a predefined length of one axis (see |WET0|).  This required that
+    the value of the respective |NHRU| instance is set before any of the
+    values of these 1-dimensional parameters or sequences are set.  Changing
+    the value of the |NHRU| instance necessitates setting their values again.
 
     Examples:
 
@@ -38,6 +40,8 @@ class NHRU(parametertools.SingleParameter):
         (5,)
         >>> fluxes.tkor.shape
         (5,)
+        >>> logs.wet0.shape
+        (1, 5)
     """
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
@@ -49,7 +53,9 @@ class NHRU(parametertools.SingleParameter):
                     par.shape = self.value
         for subseqs in self.subpars.pars.model.sequences:
             for seq in subseqs:
-                if (seq.NDIM == 1) and (seq.name != 'moy'):
+                if (((seq.NDIM == 1) and (seq.name != 'moy')) or
+                    ((seq.NDIM == 2) and
+                     isinstance(seq, abctools.LogSequenceABC))):
                     seq.shape = self.value
 
 
@@ -63,7 +69,7 @@ class Lnk(lland_parameters.MultiParameter):
     """Landnutzungsklasse (land use class) [-].
 
     For increasing legibility, the HydPy-L-Land constants are used for string
-    representions of :class:`Lnk` instances:
+    representions of |Lnk| instances:
 
     >>> from hydpy.models.lland import *
     >>> parameterstep('1d')
@@ -121,6 +127,12 @@ class KF(lland_parameters.MultiParameter):
     [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (.6, 1.)
     INIT = 1.
+
+
+class WfET0(lland_parameters.MultiParameter):
+    """Zeitlicher Wichtungsfaktor der Grasreferenzverdunsung (temporal
+    weighting factor for reference evapotranspiration)."""
+    NDIM, TYPE, TIME, SPAN = 1, float, True, (0., 1.)
 
 
 class FLn(lland_parameters.LanduseMonthParameter):
@@ -195,8 +207,8 @@ class PWMax(lland_parameters.MultiParameterLand):
     """Maximalverhältnis Gesamt- zu Trockenschnee (maximum ratio of the
     total and the frozen water equivalent stored in the snow cover) [-].
 
-    In addition to the :class:`parametertools.SingleParameter` call method, it
-    is possible to set the value of parameter :class:`PWMax` in accordance to
+    In addition to the |parametertools| call method, it
+    is possible to set the value of parameter |PWMax| in accordance to
     the keyword arguments `rhot0` and `rhodkrit`.
 
     Basic Equation:
@@ -217,7 +229,7 @@ class PWMax(lland_parameters.MultiParameterLand):
         >>> pwmax
         pwmax(1.427833)
 
-        This is also the default value of :class:`PWMax` and means that
+        This is also the default value of |PWMax| and means that
         the proportion of the liquid water in the snow cover cannot go
         above 30%.
     """
@@ -225,7 +237,7 @@ class PWMax(lland_parameters.MultiParameterLand):
     INIT = 1.4278333871488538
 
     def __call__(self, *args, **kwargs):
-        """The prefered way to pass values to :class:`PWMax` instances
+        """The prefered way to pass values to |PWMax| instances
         within parameter control files.
         """
         try:
@@ -325,8 +337,8 @@ class DMin(lland_parameters.MultiParameterSoil):
     """Drainageindex des mittleren Bodenspeichers (flux rate for
     releasing interflow from the middle soil compartment) [mm/T].
 
-    In addition to the :class:`parametertools.MultiParameterSoil` call method,
-    it is possible to set the value of parameter :class:`DMin` in accordance
+    In addition to the |MultiParameterSoil| call method,
+    it is possible to set the value of parameter |DMin| in accordance
     to the keyword argument `r_dmin` due to compatibility reasons with the
     original LARSIM implemetation.
 
@@ -354,7 +366,7 @@ class DMin(lland_parameters.MultiParameterSoil):
     INIT = 0.
 
     def __call__(self, *args, **kwargs):
-        """The prefered way to pass values to :class:`DMin` instances
+        """The prefered way to pass values to |DMin| instances
         within parameter control files.
         """
         try:
@@ -388,8 +400,8 @@ class DMax(lland_parameters.MultiParameterSoil):
     """Drainageindex des oberen Bodenspeichers (additional flux rate for
     releasing interflow from the upper soil compartment) [mm/T].
 
-    In addition to the :class:`parametertools.MultiParameterSoil` call method,
-    it is possible to set the value of parameter :class:`DMax` in accordance
+    In addition to the |MultiParameterSoil| call method,
+    it is possible to set the value of parameter |DMax| in accordance
     to the keyword argument `r_dmax` due to compatibility reasons with the
     original LARSIM implemetation.
 
@@ -417,7 +429,7 @@ class DMax(lland_parameters.MultiParameterSoil):
     INIT = 1.
 
     def __call__(self, *args, **kwargs):
-        """The prefered way to pass values to :class:`DMin` instances
+        """The prefered way to pass values to |DMax| instances
         within parameter control files.
         """
         try:
@@ -476,12 +488,12 @@ class A2(parametertools.SingleParameter):
 class TInd(parametertools.SingleParameter):
     """Fließzeitindex (factor related to the time of concentration) [T].
 
-    In addition to the :class:`parametertools.SingleParameter` call method, it
-    is possible to set the value of parameter :class:`TInd` in accordance to
+    In addition to the |SingleParameter| call method, it
+    is possible to set the value of parameter |TInd| in accordance to
     the keyword arguments `tal` (talweg, [km]), `hot` (higher reference
     altitude, [m]), and `hut` (lower reference altitude, [m]).  This is
     supposed to decrease the time of runoff concentration in small and/or
-    steep catchments.  Note that :class:`TInd` does not only affect direct
+    steep catchments.  Note that |TInd| does not only affect direct
     runoff, but interflow and base flow as well.  Hence it seems advisable
     to use this regionalization strategy with caution.
 
@@ -509,26 +521,35 @@ class TInd(parametertools.SingleParameter):
         >>> tind(tal=5., hot=200., hut=200.)
         Traceback (most recent call last):
         ...
-        ValueError: For the alternative calculation of parameter `tind`, the value assigned to keyword argument `tal` must be greater then zero and the one of `hot` must be greater than the one of `hut`.  However, for element ?, the values `5.0`, `200.0` and `200.0` were given respectively.
+        ValueError: For the alternative calculation of parameter `tind`, \
+the value assigned to keyword argument `tal` must be greater then zero and \
+the one of `hot` must be greater than the one of `hut`.  However, for \
+element ?, the values `5.0`, `200.0` and `200.0` were given respectively.
+
         >>> tind(tal=0., hot=210., hut=200.)
         Traceback (most recent call last):
         ...
-        ValueError: For the alternative calculation of parameter `tind`, the value assigned to keyword argument `tal` must be greater then zero and the one of `hot` must be greater than the one of `hut`.  However, for element ?, the values `0.0`, `210.0` and `200.0` were given respectively.
+        ValueError: For the alternative calculation of parameter `tind`, \
+the value assigned to keyword argument `tal` must be greater then zero and \
+the one of `hot` must be greater than the one of `hut`.  However, for \
+element ?, the values `0.0`, `210.0` and `200.0` were given respectively.
 
         However, it is hard to define exact bounds for the value of
-        :class:`TInd` itself.  Whenever it is below 0.001 or above 1000 days,
+        |TInd| itself.  Whenever it is below 0.001 or above 1000 days,
         the following warning is given:
 
         >>> tind(tal=.001, hot=210., hut=200.)
         Traceback (most recent call last):
         ...
-        UserWarning: Due to the given values for the keyword arguments `tal` (0.001), `hot` (210.0) and `hut` (200.0), parameter `tind` of element `?` has been set to an unrealistic value of `0.000134 hours`.
+        UserWarning: Due to the given values for the keyword arguments \
+`tal` (0.001), `hot` (210.0) and `hut` (200.0), parameter `tind` of \
+element `?` has been set to an unrealistic value of `0.000134 hours`.
     """
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0., None)
     INIT = 1.
 
     def __call__(self, *args, **kwargs):
-        """The prefered way to pass values to :class:`TInd` instances
+        """The prefered way to pass values to |TInd| instances
         within parameter control files.
         """
         try:
@@ -744,7 +765,41 @@ class EQD2(parametertools.SingleParameter):
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of HydPy-L-Land, directly defined by the user."""
-    _PARCLASSES = (FT, NHRU, Lnk, FHRU, HNN, KG, KT, KE, KF, FLn, HInz, LAI,
-                   TRefT, TRefN, TGr, TSp, GTF, RSchmelz, CPWasser, PWMax,
-                   GrasRef_R, NFk, RelWZ, RelWB, Beta, FBeta, DMax, DMin, BSf,
-                   A1, A2, TInd, EQB, EQI1, EQI2, EQD1, EQD2)
+    _PARCLASSES = (FT,
+                   NHRU,
+                   Lnk,
+                   FHRU,
+                   HNN,
+                   KG,
+                   KT,
+                   KE,
+                   KF,
+                   WfET0,
+                   FLn,
+                   HInz,
+                   LAI,
+                   TRefT,
+                   TRefN,
+                   TGr,
+                   TSp,
+                   GTF,
+                   RSchmelz,
+                   CPWasser,
+                   PWMax,
+                   GrasRef_R,
+                   NFk,
+                   RelWZ,
+                   RelWB,
+                   Beta,
+                   FBeta,
+                   DMax,
+                   DMin,
+                   BSf,
+                   A1,
+                   A2,
+                   TInd,
+                   EQB,
+                   EQI1,
+                   EQI2,
+                   EQD1,
+                   EQD2)

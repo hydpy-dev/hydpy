@@ -13,8 +13,8 @@ class MultiParameter(parametertools.ZipParameter):
     """Base class for handling parameters of the HydPy-L-Land model
     (potentially) handling multiple values.
 
-    Class :class:`MultiParameter` of HydPy-L-Land basically works like
-    Class :class:`~hydpy.models.lland.lland_parameters.MultiParameter` of
+    Class |lland_parameters.MultiParameter| of HydPy-L-Land basically works
+    like Class :class:`~hydpy.models.lland.lland_parameters.MultiParameter` of
     HydPy-H-Land, except that keyword arguments specific to HydPy-L-Land
     are applied (acker, nadelw, wasser..., see module |lland_constants|)
     and except that parameter |NHRU| determines the number of entries:
@@ -76,7 +76,3 @@ class LanduseMonthParameter(parametertools.KeywordParameter2D):
     ROWNAMES = tuple(key.lower() for (idx, key)
                      in (sorted((idx, key) for (key, idx) in
                          lland_constants.CONSTANTS.items())))
-
-
-class Parameters(parametertools.Parameters):
-    """All parameters of the HydPy-L-Land model."""

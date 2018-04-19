@@ -74,7 +74,7 @@ except AttributeError:
     build_ext = Cython.Distutils.build_ext
 # The usual setup definitions.
 setup(name='HydPy',
-      version='2.0.2',
+      version='2.0.3',
       description='A framework for the development and application of '
                   'hydrological models.',
       author='Christoph Tyralla',

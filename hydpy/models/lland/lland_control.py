@@ -763,6 +763,13 @@ class EQD2(parametertools.SingleParameter):
         parametertools.SingleParameter.trim(self, lower, upper)
 
 
+class NegQ(parametertools.SingleParameter):
+    """Option: sind negative Abflüsse erlaubt (flag that indicated wether
+    negative discharge values are allowed or not) [-]."""
+    NDIM, TYPE, TIME, SPAN = 0, bool, None, (0., None)
+    INIT = False
+
+
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of HydPy-L-Land, directly defined by the user."""
     _PARCLASSES = (FT,
@@ -802,4 +809,5 @@ class ControlParameters(parametertools.SubParameters):
                    EQI1,
                    EQI2,
                    EQD1,
-                   EQD2)
+                   EQD2,
+                   NegQ)

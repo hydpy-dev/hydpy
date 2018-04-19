@@ -1575,7 +1575,6 @@ def calc_qbga_v1(self):
     der = self.parameters.derived.fastaccess
     old = self.sequences.states.fastaccess_old
     new = self.sequences.states.fastaccess_new
-    aid = self.sequences.aides.fastaccess
     if der.kb <= 0.:
         new.qbga = new.qbgz
     elif der.kb > 1e200:
@@ -1640,7 +1639,6 @@ def calc_qiga1_v1(self):
     der = self.parameters.derived.fastaccess
     old = self.sequences.states.fastaccess_old
     new = self.sequences.states.fastaccess_new
-    aid = self.sequences.aides.fastaccess
     if der.ki1 <= 0.:
         new.qiga1 = new.qigz1
     elif der.ki1 > 1e200:
@@ -1705,7 +1703,6 @@ def calc_qiga2_v1(self):
     der = self.parameters.derived.fastaccess
     old = self.sequences.states.fastaccess_old
     new = self.sequences.states.fastaccess_new
-    aid = self.sequences.aides.fastaccess
     if der.ki2 <= 0.:
         new.qiga2 = new.qigz2
     elif der.ki2 > 1e200:
@@ -1769,7 +1766,6 @@ def calc_qdga1_v1(self):
     der = self.parameters.derived.fastaccess
     old = self.sequences.states.fastaccess_old
     new = self.sequences.states.fastaccess_new
-    aid = self.sequences.aides.fastaccess
     if der.kd1 <= 0.:
         new.qdga1 = new.qdgz1
     elif der.kd1 > 1e200:
@@ -1833,7 +1829,6 @@ def calc_qdga2_v1(self):
     der = self.parameters.derived.fastaccess
     old = self.sequences.states.fastaccess_old
     new = self.sequences.states.fastaccess_new
-    aid = self.sequences.aides.fastaccess
     if der.kd2 <= 0.:
         new.qdga2 = new.qdgz2
     elif der.kd2 > 1e200:
@@ -1860,6 +1855,7 @@ def calc_q_v1(self):
       |NHRU|
       |FHRU|
       |Lnk|
+      |NegQ|
 
     Required flux sequence:
       |NKor|
@@ -1893,6 +1889,7 @@ def calc_q_v1(self):
         >>> nhru(3)
         >>> lnk(ACKER, ACKER, ACKER)
         >>> fhru(0.5, 0.2, 0.3)
+        >>> negq(False)
         >>> states.qbga = 0.1
         >>> states.qiga1 = 0.3
         >>> states.qiga2 = 0.5
@@ -1938,7 +1935,7 @@ def calc_q_v1(self):
         evi(3.333333, 4.166667, 3.0)
 
         The handling from water areas of type |FLUSS| and |SEE| differs
-        from those of type |WASSER|, as these do receiver their net input
+        from those of type |WASSER|, as these do receive their net input
         before the runoff concentration routines are applied.  This
         should be more realistic in most cases (especially for type |SEE|
         representing lakes not direct connected to the stream network).
@@ -1963,29 +1960,44 @@ def calc_q_v1(self):
         even negative |EvI| values might occur.  This seems acceptable,
         as long as the adjustment of |EvI| is rarely triggered.  When in
         doubt about this, check sequences |EvPo| and |EvI| of HRUs of
-        types |FLUSS| and |SEE| for possible discrepancies.
+        types |FLUSS| and |SEE| for possible discrepancies.  Also note
+        that there might occur unnecessary corrections of |lland_fluxes.Q|
+        in case landtype |WASSER| is combined with either landtype
+        |SEE| or |FLUSS|.
+
+        Eventually you might want to avoid correcting |lland_fluxes.Q|.
+        This can be achieved by setting parameter |NegQ| to `True`:
+
+        >>> negq(True)
+        >>> fluxes.evi = 4.0, 5.0, 3.0
+        >>> model.calc_q_v1()
+        >>> fluxes.q
+        q(-1.0)
+        >>> fluxes.evi
+        evi(4.0, 5.0, 3.0)
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
     aid = self.sequences.aides.fastaccess
     flu.q = sta.qbga+sta.qiga1+sta.qiga2+sta.qdga1+sta.qdga2
-    if flu.q < 0.:
-        d_area = 0.
-        for k in range(con.nhru):
-            if con.lnk[k] in (FLUSS, SEE):
-                d_area += con.fhru[k]
-        if d_area > 0.:
+    if not con.negq:
+        if flu.q < 0.:
+            d_area = 0.
             for k in range(con.nhru):
                 if con.lnk[k] in (FLUSS, SEE):
-                    flu.evi[k] += flu.q/d_area
-        flu.q = 0.
+                    d_area += con.fhru[k]
+            if d_area > 0.:
+                for k in range(con.nhru):
+                    if con.lnk[k] in (FLUSS, SEE):
+                        flu.evi[k] += flu.q/d_area
+            flu.q = 0.
     aid.epw = 0.
     for k in range(con.nhru):
         if con.lnk[k] == WASSER:
             flu.q += con.fhru[k]*flu.nkor[k]
             aid.epw += con.fhru[k]*flu.evi[k]
-    if flu.q > aid.epw:
+    if (flu.q > aid.epw) or con.negq:
         flu.q -= aid.epw
     elif aid.epw > 0.:
         for k in range(con.nhru):

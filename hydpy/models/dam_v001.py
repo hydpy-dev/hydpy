@@ -195,6 +195,11 @@ Integration examples:
     >>> solver.abserrormax
     abserrormax(0.01)
 
+    If not stated otherwise, we enable the |RestrictTargetedRelease| option
+    flag in the following examples:
+
+    >>> restricttargetedrelease(True)
+
     .. _dam_v001_ex01:
 
     **Example 1**
@@ -525,15 +530,16 @@ Integration examples:
             frameborder=0
         ></iframe>
 
-    .. _dam_v001_ex08:
+    .. _dam_v001_ex08_1:
 
-    **Example 8**
+    **Example 8.1**
 
-    Version 1 of the dam model that is forced to keep a certain degree
-    of low flow variability.  It is not allowed to release an arbitrary
-    amount of water when its inflow falls below the required minimum
-    water release.  We show this by decreasing the inflow in the
-    second half of the simulation period to 0.1 m³/s:
+    |dam_v001| is forced to keep a certain degree of low flow variability
+    when the option flag |RestrictTargetedRelease| is enabled.  Then it is
+    not allowed to release an arbitrary amount of water when the inflow
+    falls below the required minimum water release.  We show this by
+    decreasing the inflow in the second half of the simulation period
+    to 0.1 m³/s:
 
     >>> input_.sequences.sim.series[10:] = 0.1
 
@@ -547,7 +553,7 @@ Integration examples:
     But, due to the time delay of the discharge released earlier, the
     largest violation of the threshold value takes place on January, 13:
 
-    >>> test('dam_v001_ex8')
+    >>> test('dam_v001_ex8_1')
     |   date | inflow | totalremotedischarge | naturalremotedischarge | remotedemand | remotefailure | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | input | natural |   output |   remote |
     ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |             1.838333 |                    1.9 |          0.0 |          -0.5 |                 0.005 |             0.2 |             0.2 |      0.191667 |            0.0 | 0.191667 |     0.06984 |   1.0 |     1.8 | 0.191667 | 1.838333 |
@@ -574,11 +580,55 @@ Integration examples:
     .. raw:: html
 
         <iframe
-            src="dam_v001_ex8.html"
+            src="dam_v001_ex8_1.html"
             width="100%"
             height="330px"
             frameborder=0
         ></iframe>
+
+    .. _dam_v001_ex08_2:
+
+    **Example 8.2**
+
+    This modification of the last example shows that with an disabled
+    |RestrictTargetedRelease| flag the amount of water released is
+    allowed to exceed the the inflow in any case:
+
+    >>> restricttargetedrelease(False)
+    >>> test('dam_v001_ex8_2')
+    |   date | inflow | totalremotedischarge | naturalremotedischarge | remotedemand | remotefailure | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | input | natural |   output |   remote |
+    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01.01. |    1.0 |             1.838333 |                    1.9 |          0.0 |          -0.5 |                 0.005 |             0.2 |             0.2 |      0.191667 |            0.0 | 0.191667 |     0.06984 |   1.0 |     1.8 | 0.191667 | 1.838333 |
+    | 02.01. |    1.0 |             1.816667 |               1.646667 |          0.0 |     -0.438333 |              0.008746 |             0.2 |             0.2 |           0.2 |            0.0 |      0.2 |     0.13896 |   1.0 |     1.7 |      0.2 | 1.816667 |
+    | 03.01. |    1.0 |               1.7775 |               1.616667 |          0.0 |     -0.416667 |              0.010632 |             0.2 |             0.2 |           0.2 |            0.0 |      0.2 |     0.20808 |   1.0 |     1.6 |      0.2 |   1.7775 |
+    | 04.01. |    1.0 |             1.699167 |                 1.5775 |          0.0 |       -0.3775 |              0.015099 |             0.2 |             0.2 |           0.2 |            0.0 |      0.2 |      0.2772 |   1.0 |     1.5 |      0.2 | 1.699167 |
+    | 05.01. |    1.0 |                  1.6 |               1.499167 |          0.0 |     -0.299167 |               0.03006 |             0.2 |             0.2 |           0.2 |            0.0 |      0.2 |     0.34632 |   1.0 |     1.4 |      0.2 |      1.6 |
+    | 06.01. |    1.0 |                  1.5 |                    1.4 |          0.0 |          -0.2 |              0.068641 |             0.2 |             0.2 |           0.2 |            0.0 |      0.2 |     0.41544 |   1.0 |     1.3 |      0.2 |      1.5 |
+    | 07.01. |    1.0 |             1.408516 |                    1.3 |          0.1 |          -0.1 |              0.242578 |        0.242578 |        0.242578 |      0.242578 |            0.0 | 0.242578 |    0.480881 |   1.0 |     1.2 | 0.242578 | 1.408516 |
+    | 08.01. |    1.0 |             1.371888 |               1.165937 |     0.234063 |     -0.008516 |              0.474285 |        0.474285 |        0.474285 |      0.474285 |            0.0 | 0.474285 |    0.526303 |   1.0 |     1.1 | 0.474285 | 1.371888 |
+    | 09.01. |    1.0 |              1.43939 |               0.897603 |     0.502397 |      0.028112 |              0.784512 |        0.784512 |        0.784512 |      0.784512 |            0.0 | 0.784512 |    0.544921 |   1.0 |     1.0 | 0.784512 |  1.43939 |
+    | 10.01. |    1.0 |              1.67042 |               0.654878 |     0.745122 |      -0.03939 |               0.95036 |         0.95036 |         0.95036 |       0.95036 |            0.0 |  0.95036 |     0.54921 |   1.0 |     1.0 |  0.95036 |  1.67042 |
+    | 11.01. |    0.1 |             1.806604 |               0.720061 |     0.679939 |      -0.27042 |               0.71839 |         0.71839 |         0.71839 |       0.71839 |            0.0 |  0.71839 |    0.495781 |   0.1 |     1.0 |  0.71839 | 1.806604 |
+    | 12.01. |    0.1 |               1.7156 |               1.088214 |     0.311786 |     -0.406604 |              0.323424 |        0.323424 |        0.323424 |      0.323424 |            0.0 | 0.323424 |    0.476477 |   0.1 |     1.0 | 0.323424 |   1.7156 |
+    | 13.01. |    0.1 |             1.579922 |               1.392176 |     0.007824 |       -0.3156 |               0.03389 |             0.2 |             0.2 |           0.2 |            0.0 |      0.2 |    0.467837 |   0.1 |     1.1 |      0.2 | 1.579922 |
+    | 14.01. |    0.1 |             1.488866 |               1.379922 |     0.020078 |     -0.179922 |              0.100394 |             0.2 |             0.2 |           0.2 |            0.0 |      0.2 |    0.459197 |   0.1 |     1.2 |      0.2 | 1.488866 |
+    | 15.01. |    0.1 |             1.525216 |               1.288866 |     0.111134 |     -0.088866 |              0.264366 |        0.264366 |        0.264366 |      0.264366 |            0.0 | 0.264366 |    0.444996 |   0.1 |     1.3 | 0.264366 | 1.525216 |
+    | 16.01. |    0.1 |             1.637612 |               1.260849 |     0.139151 |     -0.125216 |              0.259326 |        0.259326 |        0.259326 |      0.259326 |            0.0 | 0.259326 |     0.43123 |   0.1 |     1.4 | 0.259326 | 1.637612 |
+    | 17.01. |    0.1 |              1.74304 |               1.378286 |     0.021714 |     -0.237612 |              0.072326 |             0.2 |             0.2 |           0.2 |            0.0 |      0.2 |     0.42259 |   0.1 |     1.5 |      0.2 |  1.74304 |
+    | 18.01. |    0.1 |             1.824234 |                1.54304 |          0.0 |      -0.34304 |              0.020494 |             0.2 |             0.2 |           0.2 |            0.0 |      0.2 |     0.41395 |   0.1 |     1.6 |      0.2 | 1.824234 |
+    | 19.01. |    0.1 |             1.905933 |               1.624234 |          0.0 |     -0.424234 |              0.009932 |             0.2 |             0.2 |           0.2 |            0.0 |      0.2 |     0.40531 |   0.1 |     1.7 |      0.2 | 1.905933 |
+    | 20.01. |    0.1 |                  2.0 |               1.705933 |          0.0 |     -0.505933 |              0.004737 |             0.2 |             0.2 |           0.2 |            0.0 |      0.2 |     0.39667 |   0.1 |     1.8 |      0.2 |      2.0 |
+
+    .. raw:: html
+
+        <iframe
+            src="dam_v001_ex8_2.html"
+            width="100%"
+            height="330px"
+            frameborder=0
+        ></iframe>
+
+    >>> restricttargetedrelease(True)
 
     .. _dam_v001_ex09:
 
@@ -1145,6 +1195,7 @@ class ControlParameters(parametertools.SubParameters):
                    dam_control.RemoteDischargeSafety,
                    dam_control.NearDischargeMinimumThreshold,
                    dam_control.NearDischargeMinimumTolerance,
+                   dam_control.RestrictTargetedRelease,
                    dam_control.WaterLevelMinimumThreshold,
                    dam_control.WaterLevelMinimumTolerance,
                    dam_control.WaterVolume2WaterLevel,

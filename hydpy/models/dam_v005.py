@@ -134,6 +134,7 @@ Integration examples:
     >>> neardischargeminimumtolerance(0.2)
     >>> waterlevelminimumthreshold(0.0)
     >>> waterlevelminimumtolerance(0.0)
+    >>> restricttargetedrelease(True)
     >>> tributary_inflow.sequences.sim.series = [
     ...         1.8, 1.7, 1.6, 1.5, 1.4, 1.3, 1.2, 1.1, 1.0, 1.0,
     ...         1.0, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8]
@@ -206,7 +207,7 @@ Integration examples:
             frameborder=0
         ></iframe>
 
-   :ref:`Recalculation of example 8 <dam_v001_ex08>`
+   :ref:`Recalculation of example 8.1 <dam_v001_ex08_1>`
 
     The next recalculation confirms that the restriction on releasing
     water when there is little inflow works as explained for model
@@ -412,6 +413,7 @@ class ControlParameters(parametertools.SubParameters):
                    dam_control.RemoteDischargeSafety,
                    dam_control.NearDischargeMinimumThreshold,
                    dam_control.NearDischargeMinimumTolerance,
+                   dam_control.RestrictTargetedRelease,
                    dam_control.WaterLevelMinimumThreshold,
                    dam_control.WaterLevelMinimumTolerance,
                    dam_control.HighestRemoteRelieve,

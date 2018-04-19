@@ -83,6 +83,7 @@ Integration examples:
     >>> waterlevelminimumtolerance(0.0)
     >>> waterlevelminimumremotethreshold(0.0)
     >>> waterlevelminimumremotetolerance(0.0)
+    >>> restricttargetedrelease(True)
     >>> parameters.update()
 
     Despite trying to make this example comparable with
@@ -129,7 +130,7 @@ Integration examples:
 
     .. _dam_v003_ex08:
 
-    :ref:`Recalculation of example 8 <dam_v001_ex08>`
+    :ref:`Recalculation of example 8.1 <dam_v001_ex08_1>`
 
     The next recalculation shows that the restriction on releasing
     water during low inflow conditions concerns the release into
@@ -142,7 +143,7 @@ Integration examples:
     ...     0.034564, 0.299482, 0.585979, 0.557422, 0.229369,
     ...     0.142578, 0.068641, 0.029844, 0.012348, 0.0]
     >>> neardischargeminimumtolerance(0.0)
-    >>> test('dam_v003_ex8')
+    >>> test('dam_v003_ex8_1')
     |   date | inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume |   demand | inflow |  release |   supply |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |                 0.005 |             0.2 |             0.2 |      0.191667 |            0.004792 |            0.0 | 0.191667 |    0.069426 | 0.008746 |    1.0 | 0.191667 | 0.004792 |
@@ -169,7 +170,7 @@ Integration examples:
     .. raw:: html
 
         <iframe
-            src="dam_v003_ex8.html"
+            src="dam_v003_ex8_1.html"
             width="100%"
             height="280px"
             frameborder=0
@@ -337,6 +338,7 @@ class ControlParameters(parametertools.SubParameters):
     _PARCLASSES = (dam_control.CatchmentArea,
                    dam_control.NearDischargeMinimumThreshold,
                    dam_control.NearDischargeMinimumTolerance,
+                   dam_control.RestrictTargetedRelease,
                    dam_control.WaterLevelMinimumThreshold,
                    dam_control.WaterLevelMinimumTolerance,
                    dam_control.WaterLevelMinimumRemoteThreshold,

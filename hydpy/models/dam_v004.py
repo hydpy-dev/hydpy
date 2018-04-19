@@ -84,6 +84,7 @@
     >>> remoterelievetolerance(0.0)
     >>> highestremotedischarge(inf)
     >>> highestremotetolerance(0.1)
+    >>> restricttargetedrelease(True)
     >>> parameters.update()
 
     Comparing the results of the following table with the ones shown for
@@ -563,6 +564,7 @@ class ControlParameters(parametertools.SubParameters):
                    dam_control.RemoteRelieveTolerance,
                    dam_control.NearDischargeMinimumThreshold,
                    dam_control.NearDischargeMinimumTolerance,
+                   dam_control.RestrictTargetedRelease,
                    dam_control.WaterLevelMinimumThreshold,
                    dam_control.WaterLevelMinimumTolerance,
                    dam_control.WaterLevelMinimumRemoteThreshold,

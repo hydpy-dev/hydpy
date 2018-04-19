@@ -1184,12 +1184,16 @@ def calc_targetedrelease_v1(self):
     inflow into the dam.
 
     Some dams are supposed to maintain a certain degree of low flow
-    variability downstream.  Method |calc_targetedrelease_v1| simulates
+    variability downstream.  In case parameter |RestrictTargetedRelease|
+    is set to `True`, method |calc_targetedrelease_v1| simulates
     this by (approximately) passing inflow as outflow whenever inflow
     is below the value of the threshold parameter
-    |NearDischargeMinimumThreshold|.
+    |NearDischargeMinimumThreshold|. If parameter |RestrictTargetedRelease|
+    is set to `False`, does nothing except assigning the value of sequence
+    |RequiredRelease| to sequence |TargetedRelease|.
 
     Required control parameter:
+      |RestrictTargetedRelease|
       |NearDischargeMinimumThreshold|
 
     Required derived parameters:
@@ -1227,6 +1231,10 @@ def calc_targetedrelease_v1(self):
         >>> from hydpy.models.dam import *
         >>> parameterstep()
         >>> derived.toy.update()
+
+        We start with enabling |RestrictTargetedRelease|:
+
+        >>> restricttargetedrelease(True)
 
         Define a minimum discharge value for a cross section immediately
         downstream of 6 m³/s for the summer months and of 4 m³/s for the
@@ -1443,16 +1451,49 @@ def calc_targetedrelease_v1(self):
         |  19 |    9.0 |        4.000051 |
         |  20 |    9.5 |        4.000018 |
         |  21 |   10.0 |        4.000006 |
+
+        Repeating the above example with the |RestrictTargetedRelease| flag
+        disabled results in identical values for sequences |RequiredRelease|
+        and |TargetedRelease|:
+
+        >>> restricttargetedrelease(False)
+        >>> test()
+        | ex. | inflow | targetedrelease |
+        ----------------------------------
+        |   1 |    0.0 |             4.0 |
+        |   2 |    0.5 |             4.0 |
+        |   3 |    1.0 |             4.0 |
+        |   4 |    1.5 |             4.0 |
+        |   5 |    2.0 |             4.0 |
+        |   6 |    2.5 |             4.0 |
+        |   7 |    3.0 |             4.0 |
+        |   8 |    3.5 |             4.0 |
+        |   9 |    4.0 |             4.0 |
+        |  10 |    4.5 |             4.0 |
+        |  11 |    5.0 |             4.0 |
+        |  12 |    5.5 |             4.0 |
+        |  13 |    6.0 |             4.0 |
+        |  14 |    6.5 |             4.0 |
+        |  15 |    7.0 |             4.0 |
+        |  16 |    7.5 |             4.0 |
+        |  17 |    8.0 |             4.0 |
+        |  18 |    8.5 |             4.0 |
+        |  19 |    9.0 |             4.0 |
+        |  20 |    9.5 |             4.0 |
+        |  21 |   10.0 |             4.0 |
     """
     con = self.parameters.control.fastaccess
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
-    flu.targetedrelease = smoothutils.smooth_logistic1(
-        flu.inflow-con.neardischargeminimumthreshold[
-            der.toy[self.idx_sim]],
-        der.neardischargeminimumsmoothpar1[der.toy[self.idx_sim]])
-    flu.targetedrelease = (flu.targetedrelease * flu.requiredrelease +
-                           (1.-flu.targetedrelease) * flu.inflow)
+    if con.restricttargetedrelease:
+        flu.targetedrelease = smoothutils.smooth_logistic1(
+            flu.inflow-con.neardischargeminimumthreshold[
+                der.toy[self.idx_sim]],
+            der.neardischargeminimumsmoothpar1[der.toy[self.idx_sim]])
+        flu.targetedrelease = (flu.targetedrelease * flu.requiredrelease +
+                               (1.-flu.targetedrelease) * flu.inflow)
+    else:
+        flu.targetedrelease = flu.requiredrelease
 
 
 def calc_actualrelease_v1(self):

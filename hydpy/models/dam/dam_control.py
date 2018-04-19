@@ -84,6 +84,12 @@ class NearDischargeMinimumTolerance(parametertools.SeasonalParameter):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 
+class RestrictTargetedRelease(parametertools.SingleParameter):
+    """A flag indicating whether low flow variability has to be preserved
+    or not [-]."""
+    NDIM, TYPE, TIME, SPAN = 0, bool, None, (None, None)
+
+
 class WaterLevelMinimumThreshold(parametertools.SingleParameter):
     """The minimum operating water level of the dam [m]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
@@ -168,6 +174,7 @@ class ControlParameters(parametertools.SubParameters):
                    RemoteRelieveTolerance,
                    NearDischargeMinimumThreshold,
                    NearDischargeMinimumTolerance,
+                   RestrictTargetedRelease,
                    WaterLevelMinimumThreshold,
                    WaterLevelMinimumTolerance,
                    WaterLevelMinimumRemoteThreshold,

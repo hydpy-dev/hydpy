@@ -10,6 +10,7 @@ import inspect
 import numbers
 import sys
 import textwrap
+import wrapt
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import abctools
@@ -226,6 +227,71 @@ def augment_excmessage(prefix=None, suffix=None):
         exec('raise exception, message, traceback_')
     else:
         raise exception(message).with_traceback(traceback_)
+
+
+def excmessage_decorator(description):
+    """Wrap a function with |augment_excmessage|.
+
+    Function |excmessage_decorator| is a means to apply function
+    |augment_excmessage| more efficiently.  Suppose you would apply
+    function |augment_excmessage| in a function that adds and returns
+    to numbers:
+
+    >>> from  hydpy.core import objecttools
+    >>> def add(x, y):
+    ...     try:
+    ...         return x + y
+    ...     except BaseException:
+    ...         objecttools.augment_excmessage(
+    ...             'While trying to add `x` and `y`')
+
+    This works as excepted...
+
+    >>> add(1, 2)
+    3
+    >>> add(1, [])
+    Traceback (most recent call last):
+    ...
+    TypeError: While trying to add `x` and `y`, the following error \
+occured: unsupported operand type(s) for +: 'int' and 'list'
+
+    ...but can be achieved with much less code using |excmessage_decorator|:
+
+    >>> @objecttools.excmessage_decorator(
+    ...     'add `x` and `y`')
+    ... def add(x, y):
+    ...     return x+y
+
+    >>> add(1, 2)
+    3
+
+    >>> add(1, [])
+    Traceback (most recent call last):
+    ...
+    TypeError: While trying to add `x` and `y`, the following error \
+occured: unsupported operand type(s) for +: 'int' and 'list'
+
+    Additionally, exception messages related to wrong function calls
+    are now also augmented:
+
+    >>> add(1)
+    Traceback (most recent call last):
+    ...
+    TypeError: While trying to add `x` and `y`, the following error \
+occured: add() missing 1 required positional argument: 'y'
+
+    It is made sure that no information of the decorated function is lost:
+
+    >>> add.__name__
+    'add'
+    """
+    @wrapt.decorator
+    def wrapper(wrapped, instance, args, kwargs):
+        try:
+            return wrapped(*args, **kwargs)
+        except BaseException:
+            augment_excmessage('While trying to %s' % description)
+    return wrapper
 
 
 class ResetAttrFuncs(object):

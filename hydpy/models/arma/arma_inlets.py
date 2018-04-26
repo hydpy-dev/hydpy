@@ -8,7 +8,7 @@ from hydpy.core import sequencetools
 
 
 class Q(sequencetools.LinkSequence):
-    """Abfluss (runoff) [m³/s]."""
+    """Runoff [m³/s]."""
     NDIM, NUMERIC = 1, False
 
 

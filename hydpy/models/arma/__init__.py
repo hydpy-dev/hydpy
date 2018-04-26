@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=invalid-name
+# pylint: disable=wildcard-import
 """
+The HydPy-A base model provides features to implement flood routing models
+based on autoregressive (AR) and moving-average (MA) methods.
 """
 # import...
 # ...from standard library

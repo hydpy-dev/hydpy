@@ -46,10 +46,10 @@ Does the dam model…                                               v001 v002 v0
 …allow for discharge from a remote location for flood protection? no   no   no   no   yes
 ================================================================= ==== ==== ==== ==== ====
 
-|dam_v001| has been the starting point for the development of the other
-application models. Hence its documentation is very comprehensive, and
-it seems to be a good starting point to become acquainted with any of
-the application models prepared so far.
+:mod:`~hydpy.models.dam_v001` has been the starting point for the
+development of the other application models. Hence its documentation
+is very comprehensive, and it seems to be a good starting point to
+become acquainted with any of the application models prepared so far.
 
 Base model:
 

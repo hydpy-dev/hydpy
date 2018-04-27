@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=wildcard-import
-
+"""
+The HydPy-D base model provides features to implement water barriers like
+dams, weirs, lakes, or polders.
+"""
 # import...
 # ...from standard library
 from __future__ import division, print_function

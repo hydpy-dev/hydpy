@@ -2,12 +2,6 @@
 # pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
 """Version 1 application model of HydPy-Dam.
 
-Application model |dam_v001| has been the starting point for the
-development of the other application models of base model |dam|.
-Hence its documentation is very comprehensive.  It seems advisable to
-read the following explanations before reading the documentation
-of the application model you are actually interested in.
-
 |dam_v001| is supposed to represent a dam with an `active` low water
 control scheme and a `passive` high water control scheme.
 

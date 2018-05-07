@@ -216,7 +216,8 @@ class PWMax(lland_parameters.MultiParameterLand):
         {rhot0 + 0.474 \\cdot rhodkrit}`
 
     Example:
-        Using the common values for both rhot0 and rhodkrit...
+
+        Using the common values for both `rhot0` and `rhodkrit`...
 
         >>> from hydpy.models.lland import *
         >>> parameterstep()
@@ -224,14 +225,44 @@ class PWMax(lland_parameters.MultiParameterLand):
         >>> lnk(ACKER)
         >>> pwmax(rhot0=0.2345, rhodkrit=0.42)
 
-        ...leads to,...
+        ...results in:
 
         >>> pwmax
         pwmax(1.427833)
 
-        This is also the default value of |PWMax| and means that
-        the proportion of the liquid water in the snow cover cannot go
-        above 30%.
+        This is also the default value of |PWMax|, meaning the relative
+        portion of liquid water in the snow cover cannot exceed 30 %.
+
+        Additional error messages try to clarify how to pass parameters:
+
+        >>> pwmax(rhot0=0.2345)
+        Traceback (most recent call last):
+        ...
+        ValueError: For the calculating parameter `pwmax`, both keyword \
+arguments `rhot0` and `rhodkrit` are required.
+
+        >>> pwmax(rho_t_0=0.2345)
+        Traceback (most recent call last):
+        ...
+        ValueError: Parameter `pwmax` can be set by directly passing a \
+single value or a list of values, by assigning single values to landuse \
+keywords, or by calculating a value based on the keyword arguments \
+`rhot0` and `rhodkrit`.
+
+        Passing landuse specific parameter values is also supported
+        (but not in combination with `rhot0` and `rhodkrit`):
+
+        >>> pwmax(acker=2.0, vers=3.0)
+        >>> pwmax
+        pwmax(2.0)
+
+        The "normal" input error management still works:
+
+        >>> pwmax()
+        Traceback (most recent call last):
+        ...
+        ValueError: For parameter pwmax of element ? neither a positional \
+nor a keyword argument is given.
     """
     NDIM, TYPE, TIME, SPAN = 1, float, None, (1., None)
     INIT = 1.4278333871488538
@@ -240,24 +271,29 @@ class PWMax(lland_parameters.MultiParameterLand):
         """The prefered way to pass values to |PWMax| instances
         within parameter control files.
         """
+        rhot0 = float(kwargs.pop('rhot0', numpy.nan))
+        rhodkrit = float(kwargs.pop('rhodkrit', numpy.nan))
+        missing = int(numpy.isnan(rhot0)) + int(numpy.isnan(rhodkrit))
         try:
             lland_parameters.MultiParameterLand.__call__(self, *args, **kwargs)
+            return
         except NotImplementedError:
-            counter = ('rhot0' in kwargs) + ('rhodkrit' in kwargs)
-            if counter == 0:
-                raise ValueError('For parameter `pwmax` a value can be set '
-                                 'directly by passing a single value or '
-                                 'indirectly by using the keyword arguments '
-                                 '`rhot0` and `rhodkrit`.')
-            elif counter == 1:
-                raise ValueError('For the alternative calculation of '
-                                 'parameter `pwmax`, values for both keyword '
-                                 'keyword arguments `rhot0` and `rhodkrit` '
-                                 'must be given.')
-            else:
-                rhot0 = float(kwargs['rhot0'])
-                rhodkrit = float(kwargs['rhodkrit'])
-                self(1.474*rhodkrit/(rhot0+0.474*rhodkrit))
+            pass
+        except BaseException as exc:
+            if missing == 2:
+                raise exc
+        if not missing:
+            self(1.474*rhodkrit/(rhot0+0.474*rhodkrit))
+        elif missing == 1:
+            raise ValueError(
+                'For the calculating parameter `pwmax`, both keyword '
+                'arguments `rhot0` and `rhodkrit` are required.')
+        else:
+            raise ValueError(
+                'Parameter `pwmax` can be set by directly passing a '
+                'single value or a list of values, by assigning single '
+                'values to landuse keywords, or by calculating a value '
+                'based on the keyword arguments `rhot0` and `rhodkrit`.')
 
 
 class GrasRef_R(parametertools.SingleParameter):
@@ -346,13 +382,14 @@ class DMin(lland_parameters.MultiParameterSoil):
         :math:`Dmin = 0.024192 \\cdot r_dmin`
 
     Example:
+
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> simulationstep('12h')
         >>> nhru(1)
         >>> lnk(ACKER)
         >>> dmax(10.) # to prevent trimming of dmin, see below
-        >>> dmin(r_dmin=10.)
+        >>> dmin(r_dmin=10.0)
         >>> dmin
         dmin(0.24192)
 
@@ -361,6 +398,15 @@ class DMin(lland_parameters.MultiParameterSoil):
 
         >>> dmin.values
         array([ 0.12096])
+
+        A wrong keyword results in the right answer:
+
+        >>> dmin(rdmin=10.0)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: The value(s) of parameter dmin of element ? \
+could not be set based on the given keyword arguments.
+
     """
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
     INIT = 0.
@@ -409,13 +455,14 @@ class DMax(lland_parameters.MultiParameterSoil):
         :math:`Dmax = 2.4192 \\cdot r_dmax`
 
     Example:
+
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> simulationstep('12h')
         >>> nhru(1)
         >>> lnk(ACKER)
         >>> dmin(0.) # to prevent trimming of dmax, see below
-        >>> dmax(r_dmax=10.)
+        >>> dmax(r_dmax=10.0)
         >>> dmax
         dmax(24.192)
 
@@ -424,6 +471,15 @@ class DMax(lland_parameters.MultiParameterSoil):
 
         >>> dmax.values
         array([ 12.096])
+
+        A wrong keyword results in the right answer:
+
+        >>> dmax(rdmax=10.0)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: The value(s) of parameter dmax of element ? \
+could not be set based on the given keyword arguments.
+
     """
     NDIM, TYPE, TIME, SPAN = 1, float, True, (None, None)
     INIT = 1.
@@ -501,12 +557,13 @@ class TInd(parametertools.SingleParameter):
         :math:`TInd[h] = (0.868 \\cdot \\frac{Tal^3}{HOT-HUT})^{0.385}`
 
     Examples:
+
         Using typical values:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> simulationstep('12h')
-        >>> tind(tal=5., hot=210., hut=200.)
+        >>> tind(tal=5.0, hot=210.0, hut=200.0)
         >>> tind
         tind(0.104335)
 
@@ -514,11 +571,13 @@ class TInd(parametertools.SingleParameter):
         of one day.  The value related to the selected simulation step size
         of 12 hours is:
 
-        >>> round(tind.value, 6)
+        >>> from hydpy import round_
+        >>> round_(tind.value)
         0.20867
 
-        Unplausible input values lead to the following exception:
-        >>> tind(tal=5., hot=200., hut=200.)
+        Unplausible input values lead to the following exceptions:
+
+        >>> tind(tal=5.0, hot=200.0, hut=200.0)
         Traceback (most recent call last):
         ...
         ValueError: For the alternative calculation of parameter `tind`, \
@@ -526,7 +585,7 @@ the value assigned to keyword argument `tal` must be greater then zero and \
 the one of `hot` must be greater than the one of `hut`.  However, for \
 element ?, the values `5.0`, `200.0` and `200.0` were given respectively.
 
-        >>> tind(tal=0., hot=210., hut=200.)
+        >>> tind(tal=0.0, hot=210.0, hut=200.0)
         Traceback (most recent call last):
         ...
         ValueError: For the alternative calculation of parameter `tind`, \
@@ -538,12 +597,23 @@ element ?, the values `0.0`, `210.0` and `200.0` were given respectively.
         |TInd| itself.  Whenever it is below 0.001 or above 1000 days,
         the following warning is given:
 
-        >>> tind(tal=.001, hot=210., hut=200.)
+        >>> tind(tal=0.001, hot=210.0, hut=200.0)
         Traceback (most recent call last):
         ...
         UserWarning: Due to the given values for the keyword arguments \
 `tal` (0.001), `hot` (210.0) and `hut` (200.0), parameter `tind` of \
 element `?` has been set to an unrealistic value of `0.000134 hours`.
+
+        Additionally, exceptions for missing (or wrong) keywords are
+        implemented
+
+        >>> tind(tal=5.0, hot=210.0)
+        Traceback (most recent call last):
+        ...
+        ValueError: For the alternative calculation of parameter `tind`, \
+values for all three keyword keyword arguments `tal`, `hot`, and `hut` \
+must be given.
+
     """
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0., None)
     INIT = 1.
@@ -555,42 +625,34 @@ element `?` has been set to an unrealistic value of `0.000134 hours`.
         try:
             parametertools.SingleParameter.__call__(self, *args, **kwargs)
         except NotImplementedError:
-            counter = ('tal' in kwargs) + ('hot' in kwargs) + ('hut' in kwargs)
-            if counter == 0:
-                raise ValueError('For parameter `tind` a value can be set '
-                                 'directly by passing a single value or '
-                                 'indirectly by using the keyword arguments '
-                                 '`tal`, `hot`, and `hut`.')
-            elif counter < 3:
-                raise ValueError('For the alternative calculation of '
-                                 'parameter `tind`, values for all three '
-                                 'keyword keyword arguments `tal`, `hot`, '
-                                 'and `hut` must be given.')
-            else:
+            try:
                 tal = float(kwargs['tal'])
                 hot = float(kwargs['hot'])
                 hut = float(kwargs['hut'])
-                if (tal <= 0.) or (hot <= hut):
-                    raise ValueError('For the alternative calculation of '
-                                     'parameter `tind`, the value assigned to '
-                                     'keyword argument `tal` must be greater '
-                                     'then zero and the one of `hot` must be '
-                                     'greater than the one of `hut`.  '
-                                     'However, for element %s, the values '
-                                     '`%s`, `%s` and `%s` were given '
-                                     'respectively.'
-                                     % (objecttools.devicename(self),
-                                        tal, hot, hut))
-                self.value = (.868*tal**3/(hot-hut))**.385
-                if (self > 1000.) or (self < .001):
-                    warnings.warn('Due to the given values for the keyword '
-                                  'arguments `tal` (%s), `hot` (%s) and `hut` '
-                                  '(%s), parameter `tind` of element `%s` has '
-                                  'been set to an unrealistic value of `%s '
-                                  'hours`.' % (tal, hot, hut,
-                                               objecttools.devicename(self),
-                                               round(self.value, 6)))
-                self.value *= timetools.Period('1h')/self.simulationstep
+            except KeyError:
+                raise ValueError(
+                    'For the alternative calculation of parameter `tind`, '
+                    'values for all three keyword keyword arguments `tal`, '
+                    '`hot`, and `hut` must be given.')
+            if (tal <= 0.) or (hot <= hut):
+                raise ValueError(
+                    'For the alternative calculation of parameter '
+                    '`tind`, the value assigned to keyword argument '
+                    '`tal` must be greater then zero and the one of '
+                    '`hot` must be greater than the one of `hut`.  '
+                    'However, for element %s, the values `%s`, `%s` '
+                    'and `%s` were given respectively.'
+                    % (objecttools.devicename(self), tal, hot, hut))
+            self.value = (.868*tal**3/(hot-hut))**.385
+            if (self > 1000.) or (self < .001):
+                warnings.warn(
+                    'Due to the given values for the keyword arguments '
+                    '`tal` (%s), `hot` (%s) and `hut` (%s), parameter '
+                    '`tind` of element `%s` has been set to an '
+                    'unrealistic value of `%s hours`.'
+                    % (tal, hot, hut, objecttools.devicename(self),
+                       objecttools.repr_(self.value)))
+            self.value *= timetools.Period('1h')/self.simulationstep
 
 
 class EQB(parametertools.SingleParameter):

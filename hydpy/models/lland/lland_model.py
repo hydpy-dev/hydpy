@@ -1567,7 +1567,7 @@ def calc_qbga_v1(self):
 
         Second extreme test case (numerical overflow is circumvented):
 
-        >>> derived.kb(1e200)
+        >>> derived.kb(1e500)
         >>> model.calc_qbga_v1()
         >>> states.qbga
         qbga(5.0)
@@ -1631,7 +1631,7 @@ def calc_qiga1_v1(self):
 
         Second extreme test case (numerical overflow is circumvented):
 
-        >>> derived.ki1(1e200)
+        >>> derived.ki1(1e500)
         >>> model.calc_qiga1_v1()
         >>> states.qiga1
         qiga1(5.0)
@@ -1695,7 +1695,7 @@ def calc_qiga2_v1(self):
 
         Second extreme test case (numerical overflow is circumvented):
 
-        >>> derived.ki2(1e200)
+        >>> derived.ki2(1e500)
         >>> model.calc_qiga2_v1()
         >>> states.qiga2
         qiga2(5.0)
@@ -1758,7 +1758,7 @@ def calc_qdga1_v1(self):
 
         Second extreme test case (numerical overflow is circumvented):
 
-        >>> derived.kd1(1e200)
+        >>> derived.kd1(1e500)
         >>> model.calc_qdga1_v1()
         >>> states.qdga1
         qdga1(5.0)
@@ -1821,7 +1821,7 @@ def calc_qdga2_v1(self):
 
         Second extreme test case (numerical overflow is circumvented):
 
-        >>> derived.kd2(1e200)
+        >>> derived.kd2(1e500)
         >>> model.calc_qdga2_v1()
         >>> states.qdga2
         qdga2(5.0)

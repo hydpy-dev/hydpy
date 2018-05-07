@@ -292,6 +292,16 @@ class TranslationDiffusionEquation(IUH):
     >>> round_(tde.moments)
     10.0, 3.464101
 
+    Class |TranslationDiffusionEquation| implements its own property
+    `moment1` (used in the example above), which is computationally
+    more efficient and robust than the one of its base class |IUH|.
+    But both normally, both should return very similar values:
+
+    >>> from hydpy.auxs.iuhtools import IUH
+    >>> round_(IUH.moment1.fget(tde))
+    10.0
+
+
     You can also plot the graph corresponding to the actual parameterization:
 
     >>> tde.plot(threshold=0.9)

@@ -1115,14 +1115,13 @@ class ZipParameter(MultiParameter):
             if kwargs:
                 refvalues = self.refparameter.values
                 if min(refvalues) < 1:
-                    raise RuntimeError('Parameter %s does not seem to '
-                                       'be prepared properly for element %s.  '
-                                       'Hence, setting values for parameter '
-                                       '%s via keyword arguments is not '
-                                       'possible.'
-                                       % (self.refparameter.name,
-                                          objecttools.devicename(self),
-                                          self.name))
+                    raise RuntimeError(
+                        'Parameter %s does not seem to be prepared properly '
+                        'for element %s.  Hence, setting values for '
+                        'parameter %s via keyword arguments is not possible.'
+                        % (self.refparameter.name,
+                           objecttools.devicename(self),
+                           self.name))
                 self.values = kwargs.pop('default', numpy.nan)
                 for (key, value) in kwargs.items():
                     sel = self.MODEL_CONSTANTS.get(key.upper())

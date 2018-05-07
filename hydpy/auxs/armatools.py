@@ -217,7 +217,7 @@ Please check the calculated coefficients: 0.0, 0.0, 0.0, 0.0, 0.75, 0.25.
                     '`%s` a numerical integration problem occured.  '
                     'Please check the calculated coefficients: %s.'
                     % (repr(self.iuh), objecttools.repr_values(coefs)))
-                break
+                break   # pragma: no cover
             sum_coefs += coef
             if (sum_coefs > .9) and (coef < self.smallest_coeff):
                 coefs = numpy.array(coefs)
@@ -265,7 +265,7 @@ Please check the calculated coefficients: 0.0, 0.0, 0.0, 0.0, 0.75, 0.25.
             # Works under matplotlib 3.
             pyplot.bar(x=self.delays+.5, height=self.coefs,
                        width=1., fill=False, **kwargs)
-        except TypeError:
+        except TypeError:   # pragma: no cover
             # Works under matplotlib 2.
             pyplot.bar(left=self.delays+.5, height=self.coefs,
                        width=1., fill=False, **kwargs)
@@ -715,7 +715,7 @@ coefficients.
             # Works under matplotlib 3.
             pyplot.bar(x=self.ma.delays+.5, height=self.response,
                        width=1., fill=False, **kwargs)
-        except TypeError:
+        except TypeError:   # pragma: no cover
             # Works under matplotlib 2.
             pyplot.bar(left=self.ma.delays+.5, height=self.response,
                        width=1., fill=False, **kwargs)

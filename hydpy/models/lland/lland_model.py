@@ -180,7 +180,7 @@ def calc_et0_wet0_v1(self):
         >>> fluxes.et0
         et0(1.6, 2.4, 1.96, 2.04)
         >>> logs.wet0
-        wet0(1.6, 2.4, 1.96, 2.04)
+        wet0([[1.6, 2.4, 1.96, 2.04]])
     """
     con = self.parameters.control.fastaccess
     inp = self.sequences.inputs.fastaccess

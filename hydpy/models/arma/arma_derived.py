@@ -143,15 +143,15 @@ class AR_Coefs(parametertools.MultiParameter):
     >>> responses(((1., 2.), (1.,)), th_3=((1.,), (1., 2., 3.)))
     >>> derived.ar_coefs.update()
     >>> derived.ar_coefs
-    ar_coefs(1.0, 2.0,
-             1.0, nan)
+    ar_coefs([[1.0, 2.0],
+              [1.0, nan]])
 
     Note that updating parameter `ar_coefs` sets the shape of the log
     sequence :class:`~hydpy.models.arma.arma_logs.LogOut` automatically.
 
     >>> logs.logout
-    logout(nan, nan,
-           nan, nan)
+    logout([[nan, nan],
+            [nan, nan]])
     """
     NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
 
@@ -173,15 +173,15 @@ class MA_Coefs(parametertools.MultiParameter):
     >>> responses(((1., 2.), (1.,)), th_3=((1.,), (1., 2., 3.)))
     >>> derived.ma_coefs.update()
     >>> derived.ma_coefs
-    ma_coefs(1.0, nan, nan,
-             1.0, 2.0, 3.0)
+    ma_coefs([[1.0, nan, nan],
+              [1.0, 2.0, 3.0]])
 
     Note that updating parameter `ar_coefs` sets the shape of the log
     sequence :class:`~hydpy.models.arma.arma_logs.LogIn` automatically.
 
     >>> logs.login
-    login(nan, nan, nan,
-          nan, nan, nan)
+    login([[nan, nan, nan],
+           [nan, nan, nan]])
     """
     NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
 

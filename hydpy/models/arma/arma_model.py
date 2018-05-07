@@ -135,9 +135,9 @@ def calc_login_v1(self):
 
         >>> model.calc_login_v1()
         >>> logs.login
-        login(7.0, nan, nan,
-              8.0, 2.0, nan,
-              9.0, 4.0, 5.0)
+        login([[7.0, nan, nan],
+               [8.0, 2.0, nan],
+               [9.0, 4.0, 5.0]])
     """
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
@@ -364,10 +364,10 @@ def calc_logout_v1(self):
 
         >>> model.calc_logout_v1()
         >>> logs.logout
-        logout(nan, nan, nan,
-               7.0, nan, nan,
-               8.0, 1.0, nan,
-               9.0, 3.0, 4.0)
+        logout([[nan, nan, nan],
+                [7.0, nan, nan],
+                [8.0, 1.0, nan],
+                [9.0, 3.0, 4.0]])
 
     """
     der = self.parameters.derived.fastaccess

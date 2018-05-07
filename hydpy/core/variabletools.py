@@ -541,10 +541,7 @@ error occured: operands could not be broadcast together with shapes (2,) (3,)
                 string = objecttools.assignrepr_values(
                     values, prefix, 75) + ')'
         elif self.NDIM == 2:
-            if islong:
-                string = objecttools.assignrepr_list2(values, prefix, 75) + ')'
-            else:
-                string = objecttools.assignrepr_values2(values, prefix) + ')'
+            string = objecttools.assignrepr_list2(values, prefix, 75) + ')'
         else:
             raise NotImplementedError(
                 '`repr` does not yet support parameters or sequences like `%s`'

@@ -103,7 +103,7 @@ class QDGZ1(sequencetools.StateSequence):
 class QDGZ2(sequencetools.StateSequence):
     """Zufluss in den dynamischeren Direktabfluss-Gebietsspeicher (inflow into
     the more responsive storage compartment for direct runoff) [mm]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
+    NDIM, NUMERIC, SPAN = 0, False, (None, None)
 
 
 class QIGZ1(sequencetools.StateSequence):
@@ -121,7 +121,7 @@ class QIGZ2(sequencetools.StateSequence):
 class QBGZ(sequencetools.StateSequence):
     """Zufluss in den Basisabfluss-Gebietsspeicher (inflow into the
     storage compartment for base flow) [mm]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
+    NDIM, NUMERIC, SPAN = 0, False, (None, None)
 
 
 class QDGA1(sequencetools.StateSequence):
@@ -133,7 +133,7 @@ class QDGA1(sequencetools.StateSequence):
 class QDGA2(sequencetools.StateSequence):
     """Abfluss aus dem dynamischeren Direktabfluss-Gebietsspeicher (outflow
     from the more responsive storage compartment for direct runoff) [mm]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
+    NDIM, NUMERIC, SPAN = 0, False, (None, None)
 
 
 class QIGA1(sequencetools.StateSequence):
@@ -151,7 +151,7 @@ class QIGA2(sequencetools.StateSequence):
 class QBGA(sequencetools.StateSequence):
     """Abfluss aus dem Basisabfluss-Gebietsspeicher (outflow from the
     storage compartment for base flow) [mm]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
+    NDIM, NUMERIC, SPAN = 0, False, (None, None)
 
 
 class StateSequences(sequencetools.StateSequences):

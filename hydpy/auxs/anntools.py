@@ -13,7 +13,7 @@ the actual calculations are defined in the Cython extension module
 from __future__ import division, print_function
 # ...from site-packages
 import numpy
-from matplotlib import pyplot
+from hydpy import pyplot
 # ...from HydPy
 from hydpy.core import abctools
 from hydpy.core import autodoctools

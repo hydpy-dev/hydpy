@@ -7,7 +7,7 @@ hydrological modelling.
 from __future__ import division, print_function
 # ...from site-packages
 import numpy
-import pandas
+from hydpy import pandas
 from scipy import optimize
 from scipy import special
 # ...from HydPy

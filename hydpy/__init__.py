@@ -11,9 +11,12 @@ import pkgutil
 import sys
 import warnings
 # ...from site-packages
+from hydpy.core.exceptiontools import OptionalImport
 import numpy
 from numpy import nan
 from scipy import integrate
+pandas = OptionalImport('import pandas')
+pyplot = OptionalImport('from matplotlib import pyplot')
 # ...from HydPy
 from hydpy import pub
 from hydpy import auxs
@@ -113,7 +116,9 @@ if not getattr(sys, 'frozen', False):
     substituter.apply_on_members()
 
 
-__all__ = ['pub',
+__all__ = ['pandas',
+           'pyplot',
+           'pub',
            'Auxfiler',
            'Element',
            'Elements',

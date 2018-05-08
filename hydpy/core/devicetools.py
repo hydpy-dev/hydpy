@@ -13,7 +13,7 @@ import warnings
 import weakref
 # ...from site-packages
 import numpy
-from matplotlib import pyplot
+from hydpy import pyplot
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import abctools

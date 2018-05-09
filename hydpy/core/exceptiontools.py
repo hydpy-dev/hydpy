@@ -25,7 +25,7 @@ class OptionalImport(object):
     When the module is not available:
 
     >>> numpie = OptionalImport('import numpie')
-    >>> numpie.nan
+    >>> numpie.nan   # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ...
     hydpy.core.exceptiontools.ModuleNotAvailable: HydPy could not load \

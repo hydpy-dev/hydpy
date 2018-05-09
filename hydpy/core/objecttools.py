@@ -272,13 +272,14 @@ occured: unsupported operand type(s) for +: 'int' and 'list'
 occured: unsupported operand type(s) for +: 'int' and 'list'
 
     Additionally, exception messages related to wrong function calls
-    are now also augmented:
+    are now also augmented (the end of the message depends on the
+    employed Python version):
 
     >>> add(1)
     Traceback (most recent call last):
     ...
     TypeError: While trying to add `x` and `y`, the following error \
-occured: add() missing 1 required positional argument: 'y'
+occured: add() ...
 
     It is made sure that no information of the decorated function is lost:
 

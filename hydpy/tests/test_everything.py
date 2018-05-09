@@ -147,17 +147,18 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                         testtools.PlottingOptions()
                     if name.endswith('.rst'):
                         name = name[name.find('hydpy'+os.sep):]
-                    warnings.filterwarnings('error', module='hydpy')
-                    warnings.filterwarnings('ignore', category=ImportWarning)
-                    warnings.filterwarnings('ignore',
-                                            message="numpy.dtype size changed")
-                    warnings.filterwarnings('ignore',
-                                            message="numpy.ufunc size changed")
-                    warnings.filterwarnings(
-                        'ignore',
-                        message='the imp module is deprecated')
-                    doctests[name] = runner.run(suite)
-                    warnings.resetwarnings()
+                    with warnings.catch_warnings():
+                        warnings.filterwarnings(
+                            'error', module='hydpy')
+                        warnings.filterwarnings(
+                            'ignore', category=ImportWarning)
+                        warnings.filterwarnings(
+                            'ignore', message="numpy.dtype size changed")
+                        warnings.filterwarnings(
+                            'ignore', message="numpy.ufunc size changed")
+                        warnings.filterwarnings(
+                            'ignore', message='the imp module is deprecated')
+                        doctests[name] = runner.run(suite)
                     doctests[name].nmbproblems = (len(doctests[name].errors) +
                                                   len(doctests[name].failures))
                     hydpy.dummies.clear()

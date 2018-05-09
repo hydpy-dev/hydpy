@@ -97,13 +97,14 @@ class Tester(object):
                         with StdOutErr(indent=8):
                             modulename = '.'.join((self.package, name))
                             module = importlib.import_module(modulename)
-                            warnings.filterwarnings('error', module=modulename)
-                            warnings.filterwarnings('ignore',
-                                                    category=ImportWarning)
-                            doctest.testmod(
-                                module, extraglobs={'testing': True},
-                                optionflags=doctest.ELLIPSIS)
-                            warnings.resetwarnings()
+                            with warnings.catch_warnings():
+                                warnings.filterwarnings(
+                                    'error', module=modulename)
+                                warnings.filterwarnings(
+                                    'ignore', category=ImportWarning)
+                                doctest.testmod(
+                                    module, extraglobs={'testing': True},
+                                    optionflags=doctest.ELLIPSIS)
             finally:
                 pub.timegrids = timegrids
                 devicetools.Node.clear_registry()

@@ -45,8 +45,8 @@ class MA(object):
 
     >>> import warnings
     >>> from scipy import integrate
-    >>> warnings.filterwarnings('ignore',
-    ...                         category=integrate.IntegrationWarning)
+    >>> warnings.filterwarnings(
+    ... 'ignore', category=integrate.IntegrationWarning)
 
     The first example is a simple rectangle impuls:
 
@@ -135,6 +135,14 @@ class MA(object):
     RuntimeError: Not able to detect a turning point in the impulse response \
 defined by the MA coefficients 1.0, 1.0, 1.0.
 
+    The next example requires reactivating the warning suppressed above
+    (and under Python 2.7 some registry clearing):
+
+    >>> warnings.filterwarnings(
+    ...     'error', category=integrate.IntegrationWarning)
+    >>> from scipy.integrate import quadpack
+    >>> quadpack.__warningregistry__ = {}
+
     The MA coefficients need to be approximated numerically.  For very
     spiky response function, the underlying integration algorithm might
     fail.  Then it is assumed that the complete mass of the response
@@ -142,10 +150,7 @@ defined by the MA coefficients 1.0, 1.0, 1.0.
     `moment1` of the instantaneous unit hydrograph.  Hopefully, this
     leads to plausible results.  However, we raise an additional warning
     message to allow users to determine the coefficients by a different
-    approach:
-
-    >>> warnings.filterwarnings('error',
-    ...                         category=integrate.IntegrationWarning)
+    approach :
 
     >>> ma.iuh = lambda x: 10.0 if 4.2 < x <= 4.3 else 0.0
     >>> ma.iuh.moment1 = 4.25

@@ -30,11 +30,11 @@ class ANN(object):
 
       :math:`f(x) = \\frac{1}{1+exp(-x)}`
 
-    Class :class:`ANN` is intended to be subclassed for the derivation of
+    Class |anntools.ANN| is intended to be subclassed for the derivation of
     very complex control parameters.  Its original purpose was to allow for
     defining arbitrary continuous relationsships between the water stored
     in a dam and the associated water stage (see model ...).  However,
-    class :class:`ANN` can also be applied directly, as shown in the
+    class |anntools.ANN| can also be applied directly, as shown in the
     following examples.  But if you are looking for a flexible stand-alone
     artifical neural network implementation in Python, you will find much
     more general tools easily.
@@ -43,7 +43,7 @@ class ANN(object):
     only one input node, neuron, and output node respectively, and pass
     some arbitrary network parameters:
 
-    >>> from hydpy import ANN
+    >>> from hydpy import ANN, nan
     >>> ann = ANN()
     >>> ann(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
     ...     weights_input=4.0, weights_output=3.0,
@@ -98,8 +98,93 @@ class ANN(object):
     >>> round_(ann.outputs)
     1.822222, 1.876983
 
-    A example for a multi layer networks is still missing...
+    The next example shows how to solve the XOR problem with a two layer
+    network.  As usual, `1` stands for `True` and `0` stands for `False`.
 
+    We define a network with two inputs (`I1` and `I2`), two neurons in
+    the first hidden layer (`H11` and `H12`), one neuron in the second
+    hidden layer (`H2`), and a single output (`O1`):
+
+    >>> ann.nmb_inputs = 2
+    >>> ann.nmb_neurons = (2, 1)
+    >>> ann.nmb_outputs = 1
+
+    The value of `O1` shall be identical with the activation of `H2`:
+
+    >>> ann.weights_output = 1.0
+    >>> ann.intercepts_output = 0.0
+
+    All intercepts of the neurons of the hidden layer are set to 750,
+    so that an input of 500 results in an activation of approximately
+    zero and an input of 1000 results in an activation of approximately
+    one (note that matrix entries are not required should preferably be
+    initialized with `nan` to avoid confusion):
+
+    >>> ann.intercepts_hidden = [[-750.0, -750.0],
+    ...                          [-750.0, nan]]
+
+    The weighting factor between the both inputs and `H11` is 1000.
+    Hence, one `True` input is sufficient to activate `H1`.  In contrast,
+    the weighting factor between the both inputs and `H12` is 500 only.
+    Hence, two `True` inputs are required to activate `H12`:
+
+    >>> ann.weights_input= [[1000.0, 500.0],
+    ...                     [1000.0, 500.0]]
+
+    The weighting factor between `H11` and `H2` is 1000.  Hence, in
+    principle, `H11` can activate `H2`.  However, the weighting factor
+    between `H12` and `H2` is -1000.  Hence, `H12` is able to prevent
+    `H2` from becoming activated even when `H11` is activated:
+
+    >>> ann.weights_hidden= [[[1000.0, nan],
+    ...                      [-1000.0, nan]]]
+
+    To recapitulate, `H11` determines if at least one input is `True`,
+    `H12` determines if both inputs are `True`, and `H2` determines
+    if exactly one input is `True`, which is the solution for the XOR-problem:
+
+    >>> ann
+    ann(nmb_inputs=2,
+        nmb_neurons=(2, 1),
+        nmb_outputs=1,
+        weights_input=[[1000.0, 500.0],
+                       [1000.0, 500.0]],
+        weights_hidden=[[[1000.0, nan],
+                         [-1000.0, nan]]],
+        weights_output=[[1.0]],
+        intercepts_hidden=[[-750.0, -750.0],
+                           [-750.0, nan]],
+        intercepts_output=[0.0])
+
+    The following calculation confirms that the network is properly
+    configured:
+
+    >>> for inputs in ((0.0, 0.0),
+    ...                (1.0, 0.0),
+    ...                (0.0, 1.0),
+    ...                (1.0, 1.0)):
+    ...    ann.inputs = inputs
+    ...    ann.process_actual_input()
+    ...    print(*inputs, ann.outputs[0])
+    0.0 0.0 0.0
+    1.0 0.0 1.0
+    0.0 1.0 1.0
+    1.0 1.0 0.0
+
+    To elaborate on the last calculation, the corresponding activations
+    of the hidden neurons are shown. As both inputs are `True`, both
+    `H12` (upper left value) and `H22` (upper right value) activated,
+    but `H2` (lower left value) is not:
+
+    >>> ann.neurons
+    array([[ 1.,  1.],
+           [ 0.,  0.]])
+
+    The last defined configuration is used in some examples of the
+    documentation of the members of class |anntools.ANN|:
+
+    >>> from hydpy import dummies
+    >>> dummies.ann = ann
     """
     NDIM = 0
     TYPE = 'annutils.ANN'
@@ -116,7 +201,7 @@ class ANN(object):
         self._max_nmb_neurons = None
 
     def connect(self, subpars):
-        """Connect the actual :class:`ANN` object with the given
+        """Connect the actual |anntools.ANN| object with the given
         |SubParameters| object."""
         self.subpars = subpars
         self.fastaccess = subpars.fastaccess
@@ -150,7 +235,12 @@ class ANN(object):
         self._update_hidden()
 
     def _get_nmb_inputs(self):
-        """Number of input nodes."""
+        """Number of input nodes.
+
+        >>> from hydpy import dummies
+        >>> dummies.ann.nmb_inputs
+        2
+        """
         return self._cann.nmb_inputs
 
     def _set_nmb_inputs(self, value):
@@ -160,7 +250,12 @@ class ANN(object):
     nmb_inputs = property(_get_nmb_inputs, _set_nmb_inputs)
 
     def _get_nmb_outputs(self):
-        """Number of output nodes."""
+        """Number of output nodes.
+
+        >>> from hydpy import dummies
+        >>> dummies.ann.nmb_outputs
+        1
+        """
         return self._cann.nmb_outputs
 
     def _set_nmb_outputs(self, value):
@@ -171,11 +266,21 @@ class ANN(object):
 
     @property
     def nmb_layers(self):
-        """Number of hidden layers."""
+        """Number of hidden layers.
+
+        >>> from hydpy import dummies
+        >>> dummies.ann.nmb_layers
+        2
+        """
         return self._cann.nmb_layers
 
     def _get_nmb_neurons(self):
-        """Number of neurons of the inner layers."""
+        """Number of neurons of the hidden layers.
+
+        >>> from hydpy import dummies
+        >>> dummies.ann.nmb_neurons
+        (2, 1)
+        """
         return tuple(numpy.asarray(self._cann.nmb_neurons))
 
     def _set_nmb_neurons(self, value):
@@ -220,14 +325,14 @@ class ANN(object):
         >>> ann.weights_input = numpy.eye(2, 3)
         >>> ann.weights_input
         array([[ 1.,  0.,  0.],
-               [ 0.,  1.,  0.]])
+        ...    [ 0.,  1.,  0.]])
 
         One can also delete the values contained in the array:
 
         >>> del ann.weights_input
         >>> ann.weights_input
         array([[ 0.,  0.,  0.],
-               [ 0.,  0.,  0.]])
+        ...    [ 0.,  0.,  0.]])
 
         Errors like wrong shapes (or unconvertible inputs) result in error
         messages:
@@ -238,11 +343,6 @@ class ANN(object):
         ValueError: While trying to set the input weights of the artificial \
 neural network `ann` of element `?`, the following error occured: could not \
 broadcast input array from shape (3,3) into shape (2,3)
-
-        The number of input weights is available as a property:
-
-        >>> ann.nmb_weights_input
-        6
         """
         return numpy.asarray(self._cann.weights_input)
 
@@ -268,12 +368,22 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     @property
     def shape_weights_input(self):
-        """Shape of the array containing the input weights"""
+        """Shape of the array containing the input weights.
+
+        >>> from hydpy import dummies
+        >>> dummies.ann.shape_weights_input
+        (2, 2)
+        """
         return (self.nmb_inputs, self.nmb_neurons[0])
 
     @property
     def nmb_weights_input(self):
-        """Number of input weights."""
+        """Number of input weights.
+
+        >>> from hydpy import dummies
+        >>> dummies.ann.shape_weights_output
+        (1, 1)
+        """
         return self.nmb_neurons[0]*self.nmb_inputs
 
     def _get_weights_output(self):
@@ -333,11 +443,6 @@ broadcast input array from shape (3,3) into shape (2,3)
         ValueError: While trying to set the output weights of the artificial \
 neural network `ann` of element `?`, the following error occured: could not \
 broadcast input array from shape (3,3) into shape (3,2)
-
-        The number of output weights is available as a property:
-
-        >>> ann.nmb_weights_output
-        6
         """
         return numpy.asarray(self._cann.weights_output)
 
@@ -363,12 +468,22 @@ broadcast input array from shape (3,3) into shape (3,2)
 
     @property
     def shape_weights_output(self):
-        """Shape of the array containing the output weights"""
+        """Shape of the array containing the output weights.
+
+        >>> from hydpy import dummies
+        >>> dummies.ann.shape_weights_output
+        (1, 1)
+        """
         return (self.nmb_neurons[-1], self.nmb_outputs)
 
     @property
     def nmb_weights_output(self):
-        """Number of output weights."""
+        """Number of output weights.
+
+        >>> from hydpy import dummies
+        >>> dummies.ann.nmb_weights_output
+        1
+        """
         return self.nmb_neurons[-1]*self.nmb_outputs
 
     def _get_weights_hidden(self):
@@ -448,11 +563,6 @@ broadcast input array from shape (3,3) into shape (3,2)
         ValueError: While trying to set the hidden weights of the artificial \
 neural network `ann` of element `?`, the following error occured: could not \
 broadcast input array from shape (3,2) into shape (2,3,3)
-
-        The number of input weights is available as a property:
-
-        >>> ann.nmb_weights_hidden
-        12
         """
         return numpy.asarray(self._cann.weights_hidden)
 
@@ -485,7 +595,11 @@ broadcast input array from shape (3,2) into shape (2,3,3)
 
     @property
     def shape_weights_hidden(self):
-        """Shape of the array containing the activations of the hidden neurons.
+        """Shape of the array containing the activation of the hidden neurons.
+
+        >>> from hydpy import dummies
+        >>> dummies.ann.shape_weights_hidden
+        (1, 2, 2)
         """
         if self.nmb_layers > 1:
             return (self.nmb_layers-1,
@@ -495,7 +609,12 @@ broadcast input array from shape (3,2) into shape (2,3,3)
 
     @property
     def nmb_weights_hidden(self):
-        """Number of hidden weights."""
+        """Number of hidden weights.
+
+        >>> from hydpy import dummies
+        >>> dummies.ann.nmb_weights_hidden
+        2
+        """
         nmb = 0
         for idx_layer in range(self.nmb_layers-1):
             nmb += self.nmb_neurons[idx_layer] * self.nmb_neurons[idx_layer+1]
@@ -640,11 +759,6 @@ could not broadcast input array from shape (2) into shape (2,3)
         ValueError: While trying to set the output node related intercepts \
 of the artificial neural network `ann` of element `?`, the following error \
 occured: could not broadcast input array from shape (2) into shape (3)
-
-        The number of output intercepts is available as a property:
-
-        >>> ann.nmb_intercepts_output
-        3
         """
         return numpy.asarray(self._cann.intercepts_output)
 
@@ -672,12 +786,22 @@ occured: could not broadcast input array from shape (2) into shape (3)
     @property
     def shape_intercepts_output(self):
         """Shape if the array containing the intercepts of neurons of
-        the hidden layers."""
+        the hidden layers.
+
+        >>> from hydpy import dummies
+        >>> dummies.ann.shape_intercepts_output
+        (1,)
+        """
         return (self.nmb_outputs,)
 
     @property
     def nmb_intercepts_output(self):
-        """Number of output intercepts."""
+        """Number of output intercepts.
+
+        >>> from hydpy import dummies
+        >>> dummies.ann.nmb_intercepts_output
+        1
+        """
         return self.nmb_outputs
 
     def _get_inputs(self):
@@ -729,17 +853,14 @@ broadcast input array from shape (2) into shape (3)
         return numpy.asarray(self._cann.inputs)
 
     def _set_inputs(self, values):
-        if values is None:
-            self._del_inputs()
-        else:
-            try:
-                self._cann.inputs = numpy.full(self.nmb_inputs,
-                                               values, dtype=float)
-            except BaseException:
-                objecttools.augment_excmessage(
-                    'While trying to set the inputs of the artificial '
-                    'neural network `%s` of element `%s`'
-                    % (self.name, objecttools.devicename(self)))
+        try:
+            self._cann.inputs = numpy.full(self.nmb_inputs,
+                                           values, dtype=float)
+        except BaseException:
+            objecttools.augment_excmessage(
+                'While trying to set the inputs of the artificial '
+                'neural network `%s` of element `%s`'
+                % (self.name, objecttools.devicename(self)))
 
     def _del_inputs(self):
         self._cann.inputs = numpy.zeros(self.nmb_inputs)
@@ -771,6 +892,17 @@ broadcast input array from shape (2) into shape (3)
 
     outputs = property(_get_outputs, fdel=_del_outputs)
 
+    @property
+    def neurons(self):
+        """The activation of the neurons of the hidden layers.
+
+        >>> from hydpy import dummies
+        >>> dummies.ann.neurons
+        array([[ 1.,  1.],
+               [ 0.,  0.]])
+        """
+        return numpy.array(self._cann.neurons)
+
     def _update_hidden(self):
         nmb_neurons = numpy.asarray(self._cann.nmb_neurons)
         self._cann.neurons = numpy.zeros((self.nmb_layers, max(nmb_neurons)))
@@ -779,13 +911,18 @@ broadcast input array from shape (2) into shape (3)
         """Calculates the network output values based on the input values
         defined previously.
 
-        For more information see the documentation on class :class:`ANN`.
+        For more information see the documentation on class |anntools.ANN|.
         """
         self._cann.process_actual_input()
 
     @property
     def nmb_weights(self):
-        """Number of all input, inner, and output weights."""
+        """Number of all input, inner, and output weights.
+
+        >>> from hydpy import dummies
+        >>> dummies.ann.nmb_weights
+        7
+        """
         nmb = self.nmb_inputs*self.nmb_neurons[0]
         for idx_layer in range(self.nmb_layers-1):
             nmb += self.nmb_neurons[idx_layer]*self.nmb_neurons[idx_layer+1]
@@ -794,16 +931,26 @@ broadcast input array from shape (2) into shape (3)
 
     @property
     def nmb_intercepts(self):
-        """Number of all inner and output intercepts."""
+        """Number of all inner and output intercepts.
+
+        >>> from hydpy import dummies
+        >>> dummies.ann.nmb_intercepts
+        4
+        """
         return sum(self.nmb_neurons) + self.nmb_outputs
 
     @property
     def nmb_parameters(self):
-        """Sum of :attr:`~ANN.nmb_weights` and :attr:`~ANN.nmb_intercepts`."""
+        """Sum of :attr:`~ANN.nmb_weights` and :attr:`~ANN.nmb_intercepts`.
+
+        >>> from hydpy import dummies
+        >>> dummies.ann.nmb_parameters
+        11
+        """
         return self.nmb_weights + self.nmb_intercepts
 
     def assignrepr(self, prefix):
-        """Return a string representation of the actual :class:`ANN` object
+        """Return a string representation of the actual |anntools.ANN| object
         that is prefixed with the given string."""
         prefix = '%s%s(' % (prefix, self.name)
         blanks = len(prefix)*' '
@@ -833,7 +980,7 @@ broadcast input array from shape (2) into shape (3)
              **kwargs):
         """Plot the relationship between a certain input (`idx_input`) and a
         certain output (`idx_output`) variable described by the actual
-        :class:`ANN` object.
+        |anntools.ANN| object.
 
         Define the lower and the upper bound of the x axis via arguments
         `xmin` and `xmax`.  The number of plotting points can be modified
@@ -854,13 +1001,13 @@ abctools.ANNABC.register(ANN)
 
 
 def ann(**kwargs):
-    """Return a new stand alone :class:`ANN` object with the given parameter
+    """Return a new stand alone |anntools.ANN| object with the given parameter
     values.
 
     The purpose of this function is to allow for string representations of
-    parameters containing multiple :class:`ANN` instances.
+    parameters containing multiple |anntools.ANN| instances.
 
-    When passing no arguments, the default values of class :class:`ANN` will
+    When passing no arguments, the default values of class |anntools.ANN| will
     be applied:
 
     >>> from hydpy import ANN
@@ -889,8 +1036,8 @@ def ann(**kwargs):
         intercepts_output=[-1.0])
 
     The following line is just thought to make clear, that two independent
-    :class:`ANN` objects have been initialized (instead of changing the
-    values of an existing :class:`ANN` object vai its `call` method):
+    |anntools.ANN| objects have been initialized (instead of changing the
+    values of an existing |anntools.ANN| object vai its `call` method):
 
     >>> ann1 is ann2
     False
@@ -904,16 +1051,15 @@ class SeasonalANN(object):
     """Handles relationships described by artificial neural networks that
     vary within an anual cycle.
 
-    Class :class:`SeasonalANN` is an alternative implementation of class
-    |SeasonalParameter| specifically
-    designed for handling multiple :class:`ANN` objects that are valid
-    for different times of the year, described by |TOY| objects.  The
-    total output of a :class:`SeasonalANN` object is a weighted mean of
-    the output of one or two "normal" neural networks.  The
-    :attr:`~SeasonalANN.ratios` used for weighting depend on the actual
-    time of the year.
+    Class |anntools.SeasonalANN| is an alternative implementation of class
+    |SeasonalParameter| specifically designed for handling multiple
+    |anntools.ANN| objects that are valid for different times of the year,
+    described by |TOY| objects.  The total output of a |anntools.SeasonalANN|
+    object is a weighted mean of the output of one or two "normal" neural
+    networks.  The :attr:`~SeasonalANN.ratios` used for weighting depend
+    on the actual time of the year.
 
-    To explain this in more detail, let us define a :class:`SeasonalANN`
+    To explain this in more detail, let us define a |anntools.SeasonalANN|
     object first, that contains three "normal" networks for January, 1,
     March, 1, and July, 1, respectively (note that this example is similar
     to the example used to describe class
@@ -934,7 +1080,7 @@ class SeasonalANN(object):
     ...                 intercepts_hidden=0.0, intercepts_output=-1.0))
 
     The confused time order in the initialization call above does not pose
-    a problem, as :class:`SeasonalANN` performs time sorting internally:
+    a problem, as |anntools.SeasonalANN| performs time sorting internally:
 
     >>> seasonalann
     seasonalann(toy_1_1_12_0_0=ann(nmb_inputs=1,
@@ -1034,11 +1180,11 @@ class SeasonalANN(object):
     0.005435, 0.0, 0.994565
 
     Inserting data, processing this data, and fetching the output works
-    as explained for class :class:`ANN`, except that the index of the
+    as explained for class |anntools.ANN|, except that the index of the
     actual time of year needs to be passed as the single argument of
     :func:`~SeasonalANN.process_actual_input`.  Passing the index value
     `182` activates the third network only, which is configured exactly
-    as the one exemplifying class :class:`ANN`:
+    as the one exemplifying class |anntools.ANN|:
 
     >>> from hydpy import round_
     >>> for input_ in range(9):
@@ -1198,7 +1344,7 @@ registered under a TOY object named `toy_1_1_12_0_0`.
         self._do_refresh = True
 
     def connect(self, subpars):
-        """Connect the actual :class:`SeasonalANN` object with the given
+        """Connect the actual |anntools.SeasonalANN| object with the given
         |SubParameters| object."""
         self.subpars = subpars
         self.fastaccess = subpars.fastaccess
@@ -1210,10 +1356,12 @@ registered under a TOY object named `toy_1_1_12_0_0`.
         if (len(args) > 1) or (args and kwargs):
             raise ValueError(
                 'Type `%s` accepts either a single positional argument or '
-                'an arbitrary number of keyword arguments, but for the  '
+                'an arbitrary number of keyword arguments, but for the '
                 'corresponding parameter of element `%s` %d positional and '
                 '%d keyword arguments have been given.'
-                % (objecttools.classname(self), len(args), len(kwargs)))
+                % (objecttools.classname(self),
+                   objecttools.devicename(self),
+                   len(args), len(kwargs)))
         if args:
             kwargs['_1'] = args[0]
         if kwargs:
@@ -1241,12 +1389,12 @@ registered under a TOY object named `toy_1_1_12_0_0`.
             self.refresh()
 
     def refresh(self):
-        """Prepare the actual :class:`SeasonalANN` object for calculations.
+        """Prepare the actual |anntools.SeasonalANN| object for calculations.
 
         Dispite all automated refreshings explained in the general
-        documentation on class :class:`SeasonalANN`, it is still possible
-        to destroy the inner consistency of a :class:`SeasonalANN` instance,
-        as it stores its :class:`ANN` objects by reference.  This is shown
+        documentation on class |anntools.SeasonalANN|, it is still possible
+        to destroy the inner consistency of a |anntools.SeasonalANN| instance,
+        as it stores its |anntools.ANN| objects by reference.  This is shown
         by the following example:
 
         >>> from hydpy import SeasonalANN, ann
@@ -1263,7 +1411,7 @@ registered under a TOY object named `toy_1_1_12_0_0`.
         (1, 1)
 
         Due to the C level implementation of the mathematical core of
-        both :class:`ANN` and :class:`SeasonalANN` in module
+        both |anntools.ANN| and |anntools.SeasonalANN| in module
         :mod:`~hydpy.cythons.autogen.autogen.annutils`, such an
         inconsistency might result in a program crash without any
         informative error message.  Whenever you are afraid some
@@ -1294,9 +1442,9 @@ registered under a TOY object named `toy_1_1_12_0_0`.
         neural networks, if the they are defined inconsistently.
 
         Dispite all automated safety checks explained in the general
-        documentation on class :class:`SeasonalANN`, it is still possible
-        to destroy the inner consistency of a :class:`SeasonalANN` instance,
-        as it stores its :class:`ANN` objects by reference.  This is shown
+        documentation on class |anntools.SeasonalANN|, it is still possible
+        to destroy the inner consistency of a |anntools.SeasonalANN| instance,
+        as it stores its |anntools.ANN| objects by reference.  This is shown
         by the following example:
 
         >>> from hydpy import SeasonalANN, ann
@@ -1313,7 +1461,7 @@ registered under a TOY object named `toy_1_1_12_0_0`.
         (1, 1)
 
         Due to the C level implementation of the mathematical core of both
-        :class:`ANN` and :class:`SeasonalANN` in module
+        |anntools.ANN| and |anntools.SeasonalANN| in module
         :mod:`~hydpy.cythons.annutils`, such an inconsistency might result
         in a program crash without any informative error message.  Whenever
         you are afraid some inconsistency might have crept in, and you want
@@ -1410,7 +1558,7 @@ year `toy_1_1_12_0_0` requires `2` input and `3` output values.
 
     @property
     def anns(self):
-        """A sorted :class:`tuple` of all contained :class:`ANN` objects."""
+        """A sorted :class:`tuple` of all contained |anntools.ANN| objects."""
         return tuple(ann for (toy, ann) in self)
 
     @property
@@ -1464,8 +1612,8 @@ year `toy_1_1_12_0_0` requires `2` input and `3` output values.
 
     def plot(self, xmin, xmax, idx_input=0, idx_output=0, points=100,
              **kwargs):
-        """Call method :func:`ANN.plot` of all :class:`ANN` objects handled by
-        the actual :class:`SeasonalANN` object.
+        """Call method :func:`ANN.plot` of all |anntools.ANN| objects
+        handled bythe actual |anntools.SeasonalANN| object.
         """
         for toy, ann in self:
             ann.plot(xmin, xmax,

@@ -134,10 +134,8 @@ def modulename(self):
 
 
 def devicename(self):
-    """Try to return the name of the (indirect) master
-    :class:`~hydpy.core.devicetools.Node` or
-    :class:`~hydpy.core.devicetools.Element` instance,
-    otherwise return `?`.
+    """Try to return the name of the (indirect) master |Node| or
+    |Element| instance, otherwise return `?`.
     """
     while True:
         device = getattr(self, 'element', getattr(self, 'node', None))
@@ -214,7 +212,7 @@ def augment_excmessage(prefix=None, suffix=None):
     While showing how prefixing works, the following error occured: unsupported
     operand type(s) for +: 'int' and 'str' (This is a final remark.)
 
-    Note that the ancillary purpose of function :func:`augment_excmessage` is
+    Note that the ancillary purpose of function |augment_excmessage| is
     to make re-raising exceptions compatible with both Python 2 and 3.
     """
     exception, message, traceback_ = sys.exc_info()
@@ -301,7 +299,7 @@ class ResetAttrFuncs(object):
     The "related methods" are defined in class attribute
     :attr:`~ResetAttrFuncs.funcnames`.
 
-    There are (at least) two use cases for  class :class:`ResetAttrFuncs`,
+    There are (at least) two use cases for  class |ResetAttrFuncs|,
     initialization and copying, which are described below.
 
     In HydPy, some classes define a `__setattr__` method which raises
@@ -309,10 +307,10 @@ class ResetAttrFuncs(object):
     The problem is, that such customized `setattr` methods often prevent
     from defining instance attributes within `__init__` methods in the
     usual manner.  Working on instance dictionaries instead can confuse
-    some automatic tools (e.g. pylint).  Class :class:`ResetAttrFuncs`
+    some automatic tools (e.g. pylint).  Class |ResetAttrFuncs|
     implements a trick to circumvent this problem.
 
-    To show how :class:`ResetAttrFuncs` works, we first define a class
+    To show how |ResetAttrFuncs| works, we first define a class
     with a `__setattr__` method that does not allow to set any attribute:
 
     >>> class Test(object):
@@ -324,7 +322,7 @@ class ResetAttrFuncs(object):
     ...
     AttributeError
 
-    Assigning this class to :class:`ResetAttrFuncs` allows for setting
+    Assigning this class to |ResetAttrFuncs| allows for setting
     attributes to all its instances inside a `with` block in the
     usual manner:
 
@@ -345,7 +343,7 @@ class ResetAttrFuncs(object):
     The second use case is related to method `__getattr__` and copying.
     The following test class stores its attributes (for whatever reasons)
     in a special dictionary called "dic" (note that how
-    :class:`ResetAttrFuncs` is used in the `__init__` method):
+    |ResetAttrFuncs| is used in the `__init__` method):
 
     >>> class Test(object):
     ...     def __init__(self):
@@ -372,11 +370,10 @@ class ResetAttrFuncs(object):
     ...
     RecursionError: maximum recursion depth exceeded ...
 
-    :class:`ResetAttrFuncs` can be used to implement specialized
+    |ResetAttrFuncs| can be used to implement specialized
     `__copy__` and `__deepcopy__` methods, which rely on the temporary
     disabling of `__getattr__`.  For simple cases, one can import the
-    predefined functions :func:`~hydpy.core.objecttools.copy_` and
-    :func:`~hydpy.core.objecttools.deepcopy_`:
+    predefined functions |copy_| and |deepcopy_|:
 
     >>> from hydpy.core.objecttools import copy_, deepcopy_
     >>> Test.__copy__ = copy_
@@ -424,8 +421,7 @@ class ResetAttrFuncs(object):
 def copy_(self):
     """Copy function for classes with modified attribute functions.
 
-    See the documentation on class :class:`ResetAttrFuncs` for
-    further information.
+    See the documentation on class |ResetAttrFuncs| for further information.
     """
     with ResetAttrFuncs(self):
         return copy.copy(self)
@@ -434,15 +430,14 @@ def copy_(self):
 def deepcopy_(self, memo):
     """Deepcopy function for classes with modified attribute functions.
 
-    See the documentation on class :class:`ResetAttrFuncs` for
-    further information.
+    See the documentation on class |ResetAttrFuncs| for further information.
     """
     with ResetAttrFuncs(self):
         return copy.deepcopy(self, memo)
 
 
 class _PreserveStrings(object):
-    """Helper class for :class:`_Repr_`."""
+    """Helper class for |_Repr_|."""
 
     def __init__(self, preserve_strings):
         self.new_value = preserve_strings
@@ -485,7 +480,7 @@ class _Repr_(object):
 
     When value is a float, the result depends on how the option
     :attr:`~hydpy.core.optiontools.Options.reprdigits` is set. If it is
-    to -999, :func:`repr` defines the number of digits in
+    to -999, |repr| defines the number of digits in
     the usual, system dependent manner:
 
     >>> from hydpy.pub import options
@@ -530,7 +525,7 @@ class _Repr_(object):
     Note that the deviation from the `true` result in the last example is due
     to the low precision of :class:`~numpy.float16`.
 
-    On all types not mentioned above, the usual :func:`repr` function is
+    On all types not mentioned above, the usual |repr| function is
     applied, e.g.:
 
     >>> repr([1, 2, 3])
@@ -715,7 +710,7 @@ def assignrepr_values(values, prefix, width=None, _fakeend=0):
 
 
 class _AlwaysBracketed(object):
-    """Helper class for :class:`_AssignReprBracketed`."""
+    """Helper class for |_AssignReprBracketed|."""
 
     def __init__(self, value):
         self.new_value = value
@@ -843,7 +838,7 @@ def assignrepr_values2(values, prefix):
          0.0, 1.0, 0.0,
          0.0, 0.0, 1.0)
 
-    Functions :func:`assignrepr_values2` works also on empty iterables:
+    Functions |assignrepr_values2| works also on empty iterables:
 
     >>> print(assignrepr_values2([[]], 'test(') + ')')
     test()
@@ -900,7 +895,7 @@ def assignrepr_tuple2(values, prefix, width=None):
             (0.0, 1.0, 0.0),
             (0.0, 0.0, 1.0))
 
-    Functions :func:`assignrepr_tuple2` works also on empty iterables and
+    Functions |assignrepr_tuple2| works also on empty iterables and
     those which possess only one entry:
 
     >>> print(assignrepr_tuple2([[]], 'test = '))
@@ -934,7 +929,7 @@ def assignrepr_list2(values, prefix, width=None):
             [0.0, 1.0, 0.0],
             [0.0, 0.0, 1.0]]
 
-    Functions :func:`assignrepr_list2` works also on empty iterables:
+    Functions |assignrepr_list2| works also on empty iterables:
 
     >>> print(assignrepr_list2([[]], 'test = '))
     test = [[]]
@@ -1006,7 +1001,7 @@ def assignrepr_tuple3(values, prefix, width=None):
              (1.0, 1.0, 1.0),
              (1.0, 1.0, 1.0)))
 
-    Functions :func:`assignrepr_tuple3` works also on empty iterables and
+    Functions |assignrepr_tuple3| works also on empty iterables and
     those which possess only one entry:
 
     >>> print(assignrepr_tuple3([[[]]], 'test = '))
@@ -1056,7 +1051,7 @@ def assignrepr_list3(values, prefix, width=None):
              [1.0, 1.0, 1.0],
              [1.0, 1.0, 1.0]]]
 
-    Functions :func:`assignrepr_list3` works also on empty iterables and
+    Functions |assignrepr_list3| works also on empty iterables and
     those which possess only one entry:
 
     >>> print(assignrepr_list3([[[]]], 'test = '))
@@ -1075,7 +1070,7 @@ def round_(values, decimals=None, width=0,
     See the documentation on function :func:`repr_` for more details.  And
     note thate the option keyword arguments are passed to the print function.
 
-    Usually one would apply function :func:`round_` on a single or a vector
+    Usually one would apply function |round_| on a single or a vector
     of numbers:
 
     >>> from hydpy import round_
@@ -1129,7 +1124,7 @@ def extract(values, types, skip=False):
     with arguments, that can be objects of of contain types or that can
     be iterables containing these objects.
 
-    The following examples show that function :func:`extract`
+    The following examples show that function |extract|
     basically implements a type specific flattening mechanism:
 
     >>> from hydpy.core.objecttools import extract
@@ -1179,7 +1174,7 @@ def enumeration(values, converter=str, default=''):
     """Return an enumeration string based on the given values.
 
     The following four examples show the standard output of function
-    :func:`enumeration`:
+    |enumeration|:
 
     >>> from hydpy.core.objecttools import enumeration
     >>> enumeration(('text', 3, []))

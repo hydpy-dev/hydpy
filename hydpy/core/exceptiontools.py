@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 """This module implements some exception classes and related features."""
 
+# import...
+# ...from HydPy
 from hydpy import pub
+from hydpy.core import autodoctools
 
 
 class ModuleNotAvailable(ImportError):
@@ -25,12 +28,11 @@ class OptionalImport(object):
     When the module is not available:
 
     >>> numpie = OptionalImport('import numpie')
-    >>> numpie.nan   # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> numpie.nan
     Traceback (most recent call last):
     ...
-    hydpy.core.exceptiontools.ModuleNotAvailable: HydPy could not load \
-module `numpie`.  This module is no general requirement but necessary \
-for some specific functionalities.
+    ModuleNotAvailable: HydPy could not load module `numpie`.  This module \
+is no general requirement but necessary for some specific functionalities.
     """
 
     def __new__(cls, command, do_not_freeze=True):
@@ -51,3 +53,6 @@ for some specific functionalities.
             'general requirement but necessary for some specific '
             'functionalities.'
             % self.name)
+
+
+autodoctools.autodoc_module()

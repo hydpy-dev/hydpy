@@ -15,6 +15,7 @@ import sys
 import types
 # ...from HydPy
 import hydpy
+from hydpy import pub
 # from hydpy.core import objecttools (actual import commands moved to
 # different functions below to avoid circular dependencies)
 
@@ -215,12 +216,12 @@ class Substituter(object):
         self.substitutions[short] = ':mod:`~%s`' % module.__name__
         if not cython:
             self.members.append(module)
-        for (name, member) in module.__dict__.items():
-            if name.startswith('_'):
+        for (name_member, member) in module.__dict__.items():
+            if name_member.startswith('_'):
                 continue
             if getattr(member, '__module__', None) != module.__name__:
                 continue
-            if name == 'CONSTANTS':
+            if name_member == 'CONSTANTS':
                 for key, value in member.items():
                     self._add_single_object(
                         'const', name_module, module, key, value, cython)
@@ -234,7 +235,7 @@ class Substituter(object):
             else:
                 continue
             self._add_single_object(
-                role, name_module, module, name, member, cython)
+                role, name_module, module, name_member, member, cython)
 
     def _add_single_object(
             self, role, name_module, module, name_member, member, cython):
@@ -248,6 +249,13 @@ class Substituter(object):
             else:
                 self.substitutions[short] = long
         self.substitutions[medium] = long
+        if ((pub.pyversion > 2) and
+                inspect.isclass(member) and
+                issubclass(member, BaseException)):
+            for prefix in (' ', '\n'):
+                short = '%s%s:' % (prefix, name_member)
+                long = ('%s%s.%s:' % (prefix, member.__module__, name_member))
+                self.substitutions[short] = long
         if not cython:
             self.members.append(member)
 

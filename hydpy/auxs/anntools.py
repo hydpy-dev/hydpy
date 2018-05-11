@@ -165,7 +165,7 @@ class ANN(object):
     ...                (1.0, 1.0)):
     ...    ann.inputs = inputs
     ...    ann.process_actual_input()
-    ...    print(*inputs, ann.outputs[0])
+    ...    print(inputs[0], inputs[1], ann.outputs[0])
     0.0 0.0 0.0
     1.0 0.0 1.0
     0.0 1.0 1.0

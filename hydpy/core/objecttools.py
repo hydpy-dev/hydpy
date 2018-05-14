@@ -133,21 +133,113 @@ def modulename(self):
     return self.__module__.split('.')[-1]
 
 
-def devicename(self):
-    """Try to return the name of the (indirect) master |Node| or
-    |Element| instance, otherwise return `?`.
-    """
+def _search_device(self):
     while True:
         device = getattr(self, 'element', getattr(self, 'node', None))
         if device is not None:
-            return device.name
+            return device
         for test in ('model', 'seqs', 'subseqs', 'pars', 'subpars'):
             master = getattr(self, test, None)
             if master is not None:
                 self = master
                 break
         else:
-            return '?'
+            return None
+
+
+def devicename(self):
+    """Try to return the name of the (indirect) master |Node| or
+    |Element| instance, if not possible return `?`.
+
+    >>> from hydpy.core.modeltools import Model
+    >>> model = Model()
+    >>> from hydpy.core.objecttools import devicename
+    >>> devicename(model)
+    '?'
+
+    >>> from hydpy import Element
+    >>> e1 = Element('e1')
+    >>> e1.connect(model)
+    >>> devicename(model)
+    'e1'
+    """
+    device = _search_device(self)
+    return getattr(device, 'name', '?')
+
+
+def _devicephrase(self, objname=None):
+    device = _search_device(self)
+    if device and objname:
+        return ' of %s `%s` ' % (objname, device.name)
+    elif objname:
+        return ' of %s `?` ' % objname
+    elif device:
+        return (' of %s `%s` '
+                % (instancename(device), device.name))
+    else:
+        return ' '
+
+
+def elementphrase(self):
+    """Return the phrase used in exception messages to indicate
+    which |Element| is affected.
+
+    >>> from hydpy.core.modeltools import Model
+    >>> model = Model()
+    >>> from hydpy.core.objecttools import elementphrase
+    >>> elementphrase(model)
+    ' of element `?` '
+
+    >>> from hydpy import Element
+    >>> e1 = Element('e1')
+    >>> e1.connect(model)
+    >>> elementphrase(model)
+    ' of element `e1` '
+    """
+    return _devicephrase(self, 'element')
+
+
+def nodephrase(self):
+    """Return the phrase used in exception messages to indicate
+    which |Node| is affected.
+
+    >>> from hydpy.core.sequencetools import Sequences
+    >>> sequences = Sequences()
+    >>> from hydpy.core.objecttools import nodephrase
+    >>> nodephrase(sequences)
+    ' of node `?` '
+
+    >>> from hydpy import Node
+    >>> n1 = Node('n1')
+    >>> nodephrase(n1.sequences.sim)
+    ' of node `n1` '
+    """
+    return _devicephrase(self, 'node')
+
+
+def devicephrase(self):
+    """Try to return the phrase used in exception messages to
+    indicate which |Element| or which |Node| is affected.
+    If not possible return a single empty space.
+
+    >>> from hydpy.core.modeltools import Model
+    >>> model = Model()
+    >>> from hydpy.core.objecttools import devicephrase
+    >>> devicephrase(model)
+    ' '
+
+    >>> from hydpy import Element
+    >>> e1 = Element('e1')
+    >>> e1.connect(model)
+    >>> devicephrase(model)
+    ' of element `e1` '
+
+    >>> from hydpy import Node
+    >>> n1 = Node('n1')
+    >>> devicephrase(n1.sequences.sim)
+    ' of node `n1` '
+    """
+    return _devicephrase(self)
 
 
 def valid_variable_identifier(name):

@@ -1688,7 +1688,7 @@ year `toy_1_1_12_0_0` requires `2` input and `3` output values.
                     '`%s` of element `%s` based on name `%s`'
                     % (self.name, objecttools.devicename(self), name))
         else:
-            return super(SeasonalANN, self).__getattribute__(name)
+            return object.__getattribute__(self, name)
 
     def __setattr__(self, name, value):
         if name.startswith('toy_'):
@@ -1707,7 +1707,7 @@ year `toy_1_1_12_0_0` requires `2` input and `3` output values.
                     'element `%s` based on name `%s`'
                     % (self.name, objecttools.devicename(self), name))
         else:
-            super(SeasonalANN, self).__setattr__(name, value)
+            object.__setattr__(self, name, value)
 
     def __delattr__(self, name):
         if name.startswith('toy_'):
@@ -1727,7 +1727,7 @@ year `toy_1_1_12_0_0` requires `2` input and `3` output values.
                     'element `%s` based on name `%s`'
                     % (self.name, objecttools.devicename(self), name))
         else:
-            super(SeasonalANN, self).__delattr__(name)
+            object.__delattr__(self, name)
 
     def __iter__(self):
         for toy, ann_ in sorted(self._toy2ann.items()):

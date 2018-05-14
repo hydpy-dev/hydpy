@@ -1,5 +1,5 @@
 
-.. _abcdoctools:
+.. _abctools:
 
 abctools
 ========

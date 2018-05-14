@@ -7,16 +7,16 @@ from hydpy import pub
 from hydpy.core import autodoctools
 
 
-class ModuleNotAvailable(ImportError):
-    """To be raised when a `HydPy` function requiring an optional module is
-    called, but this module is not available."""
+class OptionalModuleNotAvailable(ImportError):
+    """A `HydPy` function requiring an optional module is called, but this
+    module is not available."""
 
 
 class OptionalImport(object):
     """Exectutes the given import command and returns the imported module.
     If the import is not possible, it returns and dummy object which raises
-    a |ModuleNotAvailable| each time a function tries to access a member of
-    the orignal module.
+    a |OptionalModuleNotAvailable| each time a function tries to access a
+    member of the orignal module.
 
     When the module is availabe:
 
@@ -31,8 +31,9 @@ class OptionalImport(object):
     >>> numpie.nan
     Traceback (most recent call last):
     ...
-    ModuleNotAvailable: HydPy could not load module `numpie`.  This module \
-is no general requirement but necessary for some specific functionalities.
+    OptionalModuleNotAvailable: HydPy could not load module `numpie`.  \
+This module is no general requirement but necessary for some \
+specific functionalities.
     """
 
     def __new__(cls, command, do_not_freeze=True):
@@ -48,7 +49,7 @@ is no general requirement but necessary for some specific functionalities.
         self.name = command.split()[-1]
 
     def __getattr__(self, name):
-        raise ModuleNotAvailable(
+        raise OptionalModuleNotAvailable(
             'HydPy could not load module `%s`.  This module is no '
             'general requirement but necessary for some specific '
             'functionalities.'

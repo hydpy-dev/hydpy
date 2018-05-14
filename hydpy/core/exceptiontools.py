@@ -78,6 +78,9 @@ class IsReady(object):
     def __bool__(self):
         return all(vars(self).values())
 
+    def __nonzero__(self):
+        return self.__bool__()
+
     def __iter__(self):
         for key, value in sorted(vars(self).items()):
             yield key, value

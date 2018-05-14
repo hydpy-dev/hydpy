@@ -70,6 +70,7 @@ different kinds of features to simplify and standardize writing
    connectiontools
    devicetools
    dummytools
+   exceptiontools
    filetools
    hydpytools
    indextools

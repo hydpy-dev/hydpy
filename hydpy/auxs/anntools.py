@@ -1287,6 +1287,55 @@ class SeasonalANN(object):
     RuntimeError: The seasonal neural network collection `seasonalann` \
 of element `?` has not been properly prepared so far.
 
+    >>> seasonalann(1)
+    Traceback (most recent call last):
+    ...
+    TypeError: Type `int` is not (a subclass of) type `ANN`.
+
+    >>> seasonalann(
+    ...     _13_1_12=ann(nmb_inputs=2, nmb_neurons=(1,), nmb_outputs=1,
+    ...                  weights_input=0.0, weights_output=0.0,
+    ...                  intercepts_hidden=0.0, intercepts_output=1.0))
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to add a season specific neural network to \
+parameter `seasonalann` of element `?`, the following error occured: \
+While trying to retrieve the month for TOY (time of year) object based \
+on the string `_13_1_12`, the following error occured: \
+The value of property `month` of TOY (time of year) objects must lie \
+within the range `(1, 12)`, but the given value is `13`.
+
+    >>> seasonalann(
+    ...     ann(nmb_inputs=2, nmb_neurons=(1,), nmb_outputs=1,
+    ...         weights_input=0.0, weights_output=0.0,
+    ...         intercepts_hidden=0.0, intercepts_output=1.0))
+    >>> seasonalann
+    seasonalann(ann(nmb_inputs=2,
+                    nmb_neurons=(1,),
+                    nmb_outputs=1,
+                    weights_input=[[0.0],
+                                   [0.0]],
+                    weights_output=[[0.0]],
+                    intercepts_hidden=[[0.0]],
+                    intercepts_output=[1.0]))
+
+    >>> seasonalann(
+    ...     ann(nmb_inputs=2, nmb_neurons=(1,), nmb_outputs=1,
+    ...         weights_input=0.0, weights_output=0.0,
+    ...         intercepts_hidden=0.0, intercepts_output=1.0),
+    ...     _7_1_12=ann(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
+    ...                 weights_input=4.0, weights_output=3.0,
+    ...                 intercepts_hidden=-16.0, intercepts_output=-1.0),
+    ...     _3_1_12=ann(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
+    ...                 weights_input=0.0, weights_output=0.0,
+    ...                 intercepts_hidden=0.0, intercepts_output=-1.0))
+    Traceback (most recent call last):
+    ...
+    ValueError: Type `SeasonalANN` accepts either a single positional \
+argument or an arbitrary number of keyword arguments, but for the \
+corresponding parameter of element `?` 1 positional and 2 keyword \
+arguments have been given.
+
     >>> seasonalann(
     ...     _1_1_12=ann(nmb_inputs=2, nmb_neurons=(1,), nmb_outputs=1,
     ...                 weights_input=0.0, weights_output=0.0,
@@ -1310,6 +1359,12 @@ year `toy_3_1_12_0_0` requires `1` input and `1` output values.
 
     >>> seasonalann
     seasonalann()
+
+    >>> SeasonalANN().ratios
+    Traceback (most recent call last):
+    ...
+    RuntimeError: The seasonal neural network collection `seasonalann` \
+of element `?` has not been properly prepared so far.
 
     Alternatively, neural networks can be added individually via
     attribute access:
@@ -1360,6 +1415,8 @@ requires `2` input and `1` output values.
         intercepts_output=[1.0])
     >>> del seasonalann.toy_1_1_12
 
+    These error messages related to attribute access are provided:
+
     >>> seasonalann.toy_1_1_12
     Traceback (most recent call last):
     ...
@@ -1375,6 +1432,25 @@ is registered under a TOY object named `toy_1_1_12_0_0`.
 seasonal neural network collection `seasonalann` of element `?` based on \
 name `toy_1_1_12`, the following error occured: No neural network is \
 registered under a TOY object named `toy_1_1_12_0_0`.
+
+    >>> seasonalann.toy_1_1_12 = 1
+    Traceback (most recent call last):
+    ...
+    TypeError: While trying to assign a new neural network to the seasonal \
+neural network collection `seasonalann` of element `?` based on name \
+`toy_1_1_12`, the following error occured: Value `1` of type `int` has \
+been given, but a value of type `ANN` is required.
+
+    Setting and deleting "normal" attributes is supported:
+
+    >>> seasonalann.temp = 999
+    >>> seasonalann.temp
+    999
+    >>> del seasonalann.temp
+    >>> seasonalann.temp
+    Traceback (most recent call last):
+    ...
+    AttributeError: 'SeasonalANN' object has no attribute 'temp'
     """
     NDIM = 0
     TYPE = 'annutils.SeasonalANN'
@@ -1425,10 +1501,8 @@ registered under a TOY object named `toy_1_1_12_0_0`.
                     except BaseException:
                         objecttools.augment_excmessage(
                             'While trying to add a season specific neural '
-                            'network based on %s for time of year `%s` to '
-                            'parameter `%s` of element `%s`'
-                            % (objecttools.value_of_type(value), toystr,
-                               self.name, objecttools.devicename(self)))
+                            'network to parameter `%s` of element `%s`'
+                            % (self.name, objecttools.devicename(self)))
                 self._do_refresh = True
                 self.refresh()
             finally:
@@ -1525,6 +1599,17 @@ identical and be known by the containing object.  But the seasonal \
 neural network collection `seasonalann` of element `?` assumes `1` input \
 and `1` output values, while the network corresponding to the time of \
 year `toy_1_1_12_0_0` requires `2` input and `3` output values.
+
+        >>> seasonalann
+        seasonalann()
+
+        >>> seasonalann.verify()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Seasonal artificial neural network collections need \
+to handle at least one "normal" single neural network, but for the seasonal \
+neural network `seasonalann` of element `?` none has been defined so far.
+
         """
         if not self.anns:
             self._toy2ann.clear()
@@ -1581,21 +1666,14 @@ year `toy_1_1_12_0_0` requires `2` input and `3` output values.
 
     def _setshape(self, shape):
         try:
-            try:
-                shape = (int(shape),)
-            except TypeError:
-                pass
-            shp = list(shape)
-            shp[0] = timetools.Period('366d')/self.simulationstep
-            shp[0] = int(numpy.ceil(round(shp[0], 10)))
-            getattr(self.fastaccess, self.name).ratios = numpy.zeros(
-                shp, dtype=float)
-        except BaseException:
-            objecttools.augment_excmessage(
-                'While trying to set the shape of the seasonal '
-                'neural network `%s` of element `%s` with %s'
-                % (self.name, objecttools.devicename(self),
-                   objecttools.value_of_type(shape)))
+            shape = (int(shape),)
+        except TypeError:
+            pass
+        shp = list(shape)
+        shp[0] = timetools.Period('366d')/self.simulationstep
+        shp[0] = int(numpy.ceil(round(shp[0], 10)))
+        getattr(self.fastaccess, self.name).ratios = numpy.zeros(
+            shp, dtype=float)
 
     shape = property(_getshape,
                      doc='The shape of array :func:`~SeasonalANN.ratios`.')
@@ -1736,6 +1814,8 @@ year `toy_1_1_12_0_0` requires `2` input and `3` output values.
     def __repr__(self):
         if not self:
             return self.name+'()'
+        elif (len(self) == 1) and (self.toys[0] == timetools.TOY('1_1_0_0_0')):
+            return self.anns[0].assignrepr('%s(' % self.name) + ')'
         lines = []
         blanks = ' '*(len(self.name)+1)
         for idx, (toy, ann_) in enumerate(self):
@@ -1751,6 +1831,19 @@ year `toy_1_1_12_0_0` requires `2` input and `3` output values.
         return len(self._toy2ann)
 
     def __dir__(self):
+        """
+        >>> from hydpy import SeasonalANN, ann
+        >>> seasonalann = SeasonalANN()
+        >>> seasonalann(ann(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
+        ...                 weights_input=0.0, weights_output=0.0,
+        ...                 intercepts_hidden=0.0, intercepts_output=1.0))
+        >>> from hydpy.core.objecttools import assignrepr_values
+        >>> print(assignrepr_values(sorted(dir(seasonalann)), '', 70))
+        NDIM, SPAN, TIME, TYPE, anns, connect, fastaccess, inputs, name,
+        nmb_inputs, nmb_outputs, outputs, parameterstep, plot,
+        process_actual_input, ratios, refresh, shape, simulationstep, subpars,
+        toy_1_1_0_0_0, toys, verify
+        """
         return objecttools.dir_(self) + [str(toy) for toy in self.toys]
 
 

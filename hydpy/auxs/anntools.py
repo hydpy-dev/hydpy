@@ -1481,11 +1481,11 @@ registered under a TOY object named `toy_1_1_12_0_0`.
                     self._interp()
                 else:
                     self._sann.ratios[:, 0] = 1.
-                self.check()
+                self.verify()
             else:
                 self.__sann = None
 
-    def check(self):
+    def verify(self):
         """Raise a :class:`~exceptions.RuntimeError` and removes all handled
         neural networks, if the they are defined inconsistently.
 
@@ -1514,9 +1514,9 @@ registered under a TOY object named `toy_1_1_12_0_0`.
         in a program crash without any informative error message.  Whenever
         you are afraid some inconsistency might have crept in, and you want
         to find out if this is actually the case, call method
-        :func:`~SeasonalANN.check` explicitly:
+        :func:`~SeasonalANN.verify` explicitly:
 
-        >>> seasonalann.check()
+        >>> seasonalann.verify()
         Traceback (most recent call last):
         ...
         RuntimeError: The number of input and output values of all neural \
@@ -1535,6 +1535,7 @@ year `toy_1_1_12_0_0` requires `2` input and `3` output values.
                 '`%s` none has been defined so far.'
                 % (self.name, objecttools.devicename(self)))
         for toy, ann_ in self:
+            ann_.verify()
             if ((self.nmb_inputs != ann_.nmb_inputs) or
                     (self.nmb_outputs != ann_.nmb_outputs)):
                 self._toy2ann.clear()

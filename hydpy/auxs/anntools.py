@@ -976,6 +976,27 @@ cannot be used this way.
         """
         return self.nmb_weights + self.nmb_intercepts
 
+    def verify(self):
+        """Raise a :class:`~exceptions.RuntimeError` if the network's shape
+        is not defined completely.
+
+
+        >>> from hydpy import dummies
+        >>> dummies.ann.verify()
+
+        >>> from hydpy import ANN
+        >>> ANN().verify()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The shape of the the artificial neural network \
+parameter `ann` of element `?` has not been defined so far.
+        """
+        if not self._isready:
+            raise RuntimeError(
+                'The shape of the the artificial neural network '
+                'parameter `%s`%shas not been defined so far.'
+                % (self.name, objecttools.elementphrase(self)))
+
     def assignrepr(self, prefix):
         """Return a string representation of the actual |anntools.ANN| object
         that is prefixed with the given string."""

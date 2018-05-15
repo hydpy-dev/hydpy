@@ -403,8 +403,8 @@ broadcast input array from shape (3,3) into shape (2,3)
         """Number of input weights.
 
         >>> from hydpy import dummies
-        >>> dummies.ann.shape_weights_output
-        (1, 1)
+        >>> dummies.ann.nmb_weights_input
+        4
         """
         return self.nmb_neurons[0]*self.nmb_inputs
 
@@ -950,11 +950,9 @@ cannot be used this way.
         >>> dummies.ann.nmb_weights
         7
         """
-        nmb = self.nmb_inputs*self.nmb_neurons[0]
-        for idx_layer in range(self.nmb_layers-1):
-            nmb += self.nmb_neurons[idx_layer]*self.nmb_neurons[idx_layer+1]
-        nmb += self.nmb_neurons[-1]*self.nmb_outputs
-        return nmb
+        return (self.nmb_weights_input +
+                self.nmb_weights_hidden +
+                self.nmb_weights_output)
 
     @property
     def nmb_intercepts(self):
@@ -964,7 +962,7 @@ cannot be used this way.
         >>> dummies.ann.nmb_intercepts
         4
         """
-        return sum(self.nmb_neurons) + self.nmb_outputs
+        return self.nmb_intercepts_hidden + self.nmb_intercepts_output
 
     @property
     def nmb_parameters(self):
@@ -1360,12 +1358,6 @@ year `toy_3_1_12_0_0` requires `1` input and `1` output values.
     >>> seasonalann
     seasonalann()
 
-    >>> SeasonalANN().ratios
-    Traceback (most recent call last):
-    ...
-    RuntimeError: The seasonal neural network collection `seasonalann` \
-of element `?` has not been properly prepared so far.
-
     Alternatively, neural networks can be added individually via
     attribute access:
 
@@ -1477,37 +1469,36 @@ been given, but a value of type `ANN` is required.
 
     def __call__(self, *args, **kwargs):
         self._toy2ann.clear()
-        if (len(args) > 1) or (args and kwargs):
-            raise ValueError(
-                'Type `%s` accepts either a single positional argument or '
-                'an arbitrary number of keyword arguments, but for the '
-                'corresponding parameter of element `%s` %d positional and '
-                '%d keyword arguments have been given.'
-                % (objecttools.classname(self),
-                   objecttools.devicename(self),
-                   len(args), len(kwargs)))
-        if args:
-            kwargs['_1'] = args[0]
-        if kwargs:
-            self._do_refresh = False
-            try:
-                for (toystr, value) in kwargs.items():
-                    if not isinstance(value, abctools.ANNABC):
-                        raise TypeError(
-                            'Type `%s` is not (a subclass of) type `ANN`.'
-                            % objecttools.classname(value))
-                    try:
-                        setattr(self, str(timetools.TOY(toystr)), value)
-                    except BaseException:
-                        objecttools.augment_excmessage(
-                            'While trying to add a season specific neural '
-                            'network to parameter `%s` of element `%s`'
-                            % (self.name, objecttools.devicename(self)))
-                self._do_refresh = True
-                self.refresh()
-            finally:
-                self._do_refresh = True
-        else:
+        self._do_refresh = False
+        try:
+            if (len(args) > 1) or (args and kwargs):
+                raise ValueError(
+                    'Type `%s` accepts either a single positional argument or '
+                    'an arbitrary number of keyword arguments, but for the '
+                    'corresponding parameter of element `%s` %d positional '
+                    'and %d keyword arguments have been given.'
+                    % (objecttools.classname(self),
+                       objecttools.devicename(self),
+                       len(args), len(kwargs)))
+            if args:
+                kwargs['_1'] = args[0]
+            for (toystr, value) in kwargs.items():
+                if not isinstance(value, abctools.ANNABC):
+                    raise TypeError(
+                        'Type `%s` is not (a subclass of) type `ANN`.'
+                        % objecttools.classname(value))
+                try:
+                    setattr(self, str(timetools.TOY(toystr)), value)
+                except BaseException:
+                    objecttools.augment_excmessage(
+                        'While trying to add a season specific neural '
+                        'network to parameter `%s` of element `%s`'
+                        % (self.name, objecttools.devicename(self)))
+        except BaseException as exc:
+            self._toy2ann.clear()
+            raise exc
+        finally:
+            self._do_refresh = True
             self.refresh()
 
     def refresh(self):
@@ -1691,13 +1682,7 @@ neural network `seasonalann` of element `?` none has been defined so far.
     @property
     def ratios(self):
         """Ratios for weighting the single neural network outputs."""
-        if self._sann:
-            return numpy.asarray(self._sann.ratios)
-        else:
-            raise RuntimeError(
-                'The ratios of the seasonal neural network collection '
-                '`%s` of element `%s` have not been calculated so far.'
-                % (self.name, objecttools.devicename(self)))
+        return numpy.asarray(self._sann.ratios)
 
     @property
     def _sann(self):

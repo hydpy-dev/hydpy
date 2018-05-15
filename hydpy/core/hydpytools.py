@@ -45,7 +45,7 @@ class HydPy(object):
             pub.sequencemanager = filetools.SequenceManager()
             pub.conditionmanager = filetools.ConditionManager()
 
-    @magictools.printprogress
+    @magictools.print_progress
     def prepare_network(self):
         """Load all network files as |Selections| (stored in module |pub|)
         and assign the "complete" selection to the |HydPy| object."""
@@ -246,7 +246,7 @@ class HydPy(object):
                 funcs.append(node._save_data_sim)
         return funcs
 
-    @magictools.printprogress
+    @magictools.print_progress
     def doit(self):
         """Perform a simulation run over the actual simulation time period
         defined by the |Timegrids| object stored in module |pub|."""

@@ -369,7 +369,7 @@ specific functionalities.
 
     def __new__(cls, command, do_not_freeze=True):
         try:
-            if pub._am_i_an_exe and do_not_freeze:
+            if pub._is_hydpy_bundled and not bundle_module:
                 raise ImportError()
             exec(command)
             return eval(command.split()[-1])

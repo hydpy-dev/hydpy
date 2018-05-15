@@ -78,7 +78,7 @@ class IsReady(object):
     def __bool__(self):
         return all(vars(self).values())
 
-    def __nonzero__(self):
+    def __nonzero__(self):   # pragma: no cover
         return self.__bool__()
 
     def __iter__(self):
@@ -345,18 +345,18 @@ class OptionalModuleNotAvailable(ImportError):
 
 class OptionalImport(object):
     """Exectutes the given import command and returns the imported module.
-    If the import is not possible, it returns and dummy object which raises
-    a |OptionalModuleNotAvailable| each time a function tries to access a
+    If importomg is not possible, it returns a dummy object which raises
+    a |OptionalModuleNotAvailable| each time a one tries to access a
     member of the orignal module.
 
-    When the module is availabe:
+    If the module is availabe:
 
     >>> from hydpy.core.exceptiontools import OptionalImport
     >>> numpy = OptionalImport('import numpy')
     >>> numpy.nan
     nan
 
-    When the module is not available:
+    If the module is not available:
 
     >>> numpie = OptionalImport('import numpie')
     >>> numpie.nan
@@ -365,9 +365,31 @@ class OptionalImport(object):
     OptionalModuleNotAvailable: HydPy could not load module `numpie`.  \
 This module is no general requirement but necessary for some \
 specific functionalities.
+
+    If the module is available, but HydPy had been bundled to an
+    executable:
+
+    >>> from hydpy import pub
+    >>> pub._is_hydpy_bundled = True
+    >>> os = OptionalImport('import os')
+    >>> os.getcwd()
+    Traceback (most recent call last):
+    ...
+    OptionalModuleNotAvailable: HydPy could not load module `os`.  \
+This module is no general requirement but necessary for some \
+specific functionalities.
+
+    The latter can be prevented by passing a `True` `bundle_module`
+    argument:
+
+    >>> textwrap = OptionalImport('import textwrap', bundle_module=True)
+    >>> textwrap.wrap('')
+    []
+
+    >>> pub._is_hydpy_bundled = False
     """
 
-    def __new__(cls, command, do_not_freeze=True):
+    def __new__(cls, command, bundle_module=False):
         try:
             if pub._is_hydpy_bundled and not bundle_module:
                 raise ImportError()

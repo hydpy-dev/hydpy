@@ -73,12 +73,13 @@ different kinds of features to simplify and standardize writing
    exceptiontools
    filetools
    hydpytools
+   importtools
    indextools
-   magictools
    modelimports
    modeltools
    objecttools
    parametertools
+   printtools
    selectiontools
    sequencetools
    testtools

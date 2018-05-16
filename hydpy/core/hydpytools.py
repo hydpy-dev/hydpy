@@ -11,7 +11,7 @@ from hydpy.core import abctools
 from hydpy.core import autodoctools
 from hydpy.core import devicetools
 from hydpy.core import filetools
-from hydpy.core import magictools
+from hydpy.core import printtools
 from hydpy.core import selectiontools
 
 
@@ -45,7 +45,7 @@ class HydPy(object):
             pub.sequencemanager = filetools.SequenceManager()
             pub.conditionmanager = filetools.ConditionManager()
 
-    @magictools.print_progress
+    @printtools.print_progress
     def prepare_network(self):
         """Load all network files as |Selections| (stored in module |pub|)
         and assign the "complete" selection to the |HydPy| object."""
@@ -246,14 +246,14 @@ class HydPy(object):
                 funcs.append(node._save_data_sim)
         return funcs
 
-    @magictools.print_progress
+    @printtools.print_progress
     def doit(self):
         """Perform a simulation run over the actual simulation time period
         defined by the |Timegrids| object stored in module |pub|."""
         idx_start, idx_end = self.simindices
         self.open_files(idx_start)
         methodorder = self.methodorder
-        for idx in magictools.progressbar(range(idx_start, idx_end)):
+        for idx in printtools.progressbar(range(idx_start, idx_end)):
             for func in methodorder:
                 func(idx)
         self.close_files()

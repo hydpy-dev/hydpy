@@ -19,9 +19,8 @@ from hydpy import pub
 from hydpy.core import abctools
 from hydpy.core import autodoctools
 from hydpy.core import connectiontools
-# from hydpy.core import filetools   actual import below, Python 2 issue
-from hydpy.core import magictools
 from hydpy.core import objecttools
+from hydpy.core import printtools
 from hydpy.core import sequencetools
 from hydpy.cythons import pointerutils
 
@@ -1703,35 +1702,35 @@ class Nodes(Devices):
 
     _contentclass = Node
 
-    @magictools.print_progress
+    @printtools.print_progress
     def prepare_allseries(self, ramflag=True):
         """Call methods :func:`~Node.prepare_simseries` and
         :func:`~Node.prepare_obsseries`."""
         self.prepare_simseries(ramflag)
         self.prepare_obsseries(ramflag)
 
-    @magictools.print_progress
+    @printtools.print_progress
     def prepare_simseries(self, ramflag=True):
         """Call method :func:`~Node.prepare_simseries` of each handled
         |Node| object."""
-        for node in magictools.progressbar(self):
+        for node in printtools.progressbar(self):
             node.prepare_simseries(ramflag)
 
-    @magictools.print_progress
+    @printtools.print_progress
     def prepare_obsseries(self, ramflag=True):
         """Call method :func:`~Node.prepare_obsseries` of each handled
         |Node| object."""
-        for node in magictools.progressbar(self):
+        for node in printtools.progressbar(self):
             node.prepare_obsseries(ramflag)
 
-    @magictools.print_progress
+    @printtools.print_progress
     def save_allseries(self):
         """Call methods :func:`~Nodes.save_simseries` and
         :func:`~Nodes.save_obsseries`."""
         self.save_simseries()
         self.save_obsseries()
 
-    @magictools.print_progress
+    @printtools.print_progress
     def save_simseries(self, ramflag=True):
         """Call method
         :func:`~hydpy.core.sequencetools.IOSequence.save_ext` of all
@@ -1739,7 +1738,7 @@ class Nodes(Devices):
         values handled (indirectly) by each |Node| object."""
         self._save_nodeseries('sim', pub.sequencemanager.simoverwrite)
 
-    @magictools.print_progress
+    @printtools.print_progress
     def save_obsseries(self, ramflag=True):
         """Call method
         :func:`~hydpy.core.sequencetools.IOSequence.save_ext` of all
@@ -1748,7 +1747,7 @@ class Nodes(Devices):
         self._save_nodeseries('obs', pub.sequencemanager.obsoverwrite)
 
     def _save_nodeseries(self, seqname, overwrite):
-        for node in magictools.progressbar(self):
+        for node in printtools.progressbar(self):
             seq = getattr(node.sequences, seqname)
             if seq.memoryflag:
                 if overwrite or not os.path.exists(seq.filepath_ext):
@@ -1766,17 +1765,16 @@ class Elements(Devices):
 
     _contentclass = Element
 
-    @magictools.print_progress
+    @printtools.print_progress
     def init_models(self):
         """Call method :func:`~Element.init_model` of each handled
         |Element| object and afterwards method
         :func:`~hydpy.core.parametertools.Parameters.update` of the
         |Parameters| object handled (indirectly) by each |Element| object."""
-        from hydpy.core import filetools
         warn = pub.options.warnsimulationstep
         pub.options.warnsimulationstep = False
         try:
-            for element in magictools.progressbar(self):
+            for element in printtools.progressbar(self):
                 try:
                     element.init_model(clear_registry=False)
                 except IOError as exc:
@@ -1794,7 +1792,7 @@ class Elements(Devices):
                     element.model.parameters.update()
         finally:
             pub.options.warnsimulationstep = warn
-            filetools.ControlManager.clear_registry()
+            pub.controlmanager.clear_registry()
 
     def connect(self):
         """Call method :func:`~Element.connect` of each |Element| object
@@ -1804,7 +1802,7 @@ class Elements(Devices):
             element.connect()
             element.model.parameters.update()
 
-    @magictools.print_progress
+    @printtools.print_progress
     def save_controls(self, controldir=None, projectdir=None,
                       parameterstep=None, simulationstep=None,
                       auxfiler=None):
@@ -1820,7 +1818,7 @@ class Elements(Devices):
                 pub.controlmanager.projectdir = projectdir
             if auxfiler:
                 auxfiler.save()
-            for element in magictools.progressbar(self):
+            for element in printtools.progressbar(self):
                 element.model.parameters.save_controls(
                     parameterstep=parameterstep,
                     simulationstep=simulationstep,
@@ -1829,7 +1827,7 @@ class Elements(Devices):
             pub.controlmanager._currentdir = _currentdir
             pub.controlmanager.projectdir = _projectdir
 
-    @magictools.print_progress
+    @printtools.print_progress
     def load_conditions(self, conditiondir=None, projectdir=None):
         """Save the initial conditions of the |Model| object handled by
         each |Element| object."""
@@ -1840,13 +1838,13 @@ class Elements(Devices):
                 pub.conditionmanager.projectdir = projectdir
             if conditiondir:
                 pub.conditionmanager.currentdir = conditiondir
-            for element in magictools.progressbar(self):
+            for element in printtools.progressbar(self):
                 element.model.sequences.load_conditions()
         finally:
             pub.conditionmanager._currentdir = _currentdir
             pub.conditionmanager.projectdir = _projectdir
 
-    @magictools.print_progress
+    @printtools.print_progress
     def save_conditions(self, conditiondir=None, projectdir=None,
                         controldir=None):
         """Save the calculated conditions of the |Model| object handled by
@@ -1861,7 +1859,7 @@ class Elements(Devices):
                 pub.conditionmanager.currentdir = conditiondir
             if controldir:
                 pub.controlmanager.currentdir = controldir
-            for element in magictools.progressbar(self):
+            for element in printtools.progressbar(self):
                 element.model.sequences.save_conditions()
         finally:
             pub.conditionmanager._currentdir = _conditiondir
@@ -1882,35 +1880,35 @@ class Elements(Devices):
         for element in self:
             element.model.sequences.reset()
 
-    @magictools.print_progress
+    @printtools.print_progress
     def prepare_allseries(self, ramflag=True):
         """Call method :func:`~Element.prepare_allseries` of each handled
         |Element| object."""
-        for element in magictools.progressbar(self):
+        for element in printtools.progressbar(self):
             element.prepare_allseries(ramflag)
 
-    @magictools.print_progress
+    @printtools.print_progress
     def prepare_inputseries(self, ramflag=True):
         """Call method :func:`~Element.prepare_inputseries` of each handled
         |Element| object."""
-        for element in magictools.progressbar(self):
+        for element in printtools.progressbar(self):
             element.prepare_inputseries(ramflag)
 
-    @magictools.print_progress
+    @printtools.print_progress
     def prepare_fluxseries(self, ramflag=True):
         """Call method :func:`~Element.prepare_fluxseries` of each handled
         |Element| object."""
-        for element in magictools.progressbar(self):
+        for element in printtools.progressbar(self):
             element.prepare_fluxseries(ramflag)
 
-    @magictools.print_progress
+    @printtools.print_progress
     def prepare_stateseries(self, ramflag=True):
         """Call method :func:`~Element.prepare_stateseries` of each handled
         |Element| object."""
-        for element in magictools.progressbar(self):
+        for element in printtools.progressbar(self):
             element.prepare_stateseries(ramflag)
 
-    @magictools.print_progress
+    @printtools.print_progress
     def save_allseries(self):
         """Call methods :func:`~Elements.save_inputseries`,
         :func:`~Elements.save_fluxseries`,
@@ -1919,7 +1917,7 @@ class Elements(Devices):
         self.save_fluxseries()
         self.save_stateseries()
 
-    @magictools.print_progress
+    @printtools.print_progress
     def save_inputseries(self):
         """Call method
         :func:`~hydpy.core.sequencetools.IOSequence.save_ext` of all
@@ -1927,7 +1925,7 @@ class Elements(Devices):
         by each |Element| object."""
         self._save_modelseries('inputs', pub.sequencemanager.inputoverwrite)
 
-    @magictools.print_progress
+    @printtools.print_progress
     def save_fluxseries(self):
         """Call method
         :func:`~hydpy.core.sequencetools.IOSequence.save_ext` of all
@@ -1935,7 +1933,7 @@ class Elements(Devices):
         by each |Element| object."""
         self._save_modelseries('fluxes', pub.sequencemanager.outputoverwrite)
 
-    @magictools.print_progress
+    @printtools.print_progress
     def save_stateseries(self):
         """Call method
         :func:`~hydpy.core.sequencetools.IOSequence.save_ext` of all
@@ -1944,7 +1942,7 @@ class Elements(Devices):
         self._save_modelseries('states', pub.sequencemanager.outputoverwrite)
 
     def _save_modelseries(self, name_subseqs, overwrite):
-        for element in magictools.progressbar(self):
+        for element in printtools.progressbar(self):
             sequences = element.model.sequences
             subseqs = getattr(sequences, name_subseqs, ())
             for seq in subseqs:

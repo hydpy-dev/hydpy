@@ -22,12 +22,11 @@ import numpy
 # ...from HydPy
 from hydpy import pub
 from hydpy import cythons
+from hydpy.core import autodoctools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
+from hydpy.core import printtools
 from hydpy.core import sequencetools
-from hydpy.core import magictools
-from hydpy.core import autodoctools
-from hydpy.cythons import smoothutils
 
 
 if platform.system().lower() == 'windows':
@@ -131,13 +130,13 @@ class Cythonizer(object):
                 pub.options.usecython = usecython
 
     def doit(self):
-        with magictools.PrintStyle(color=33, font=4):
+        with printtools.PrintStyle(color=33, font=4):
             print('Translate module/package %s.' % self.pyname)
-        with magictools.PrintStyle(color=33, font=2):
+        with printtools.PrintStyle(color=33, font=2):
             self.pyxwriter.write()
-        with magictools.PrintStyle(color=31, font=4):
+        with printtools.PrintStyle(color=31, font=4):
             print('Compile module %s.' % self.cyname)
-        with magictools.PrintStyle(color=31, font=2):
+        with printtools.PrintStyle(color=31, font=2):
             self.compile_()
             self.move_dll()
 

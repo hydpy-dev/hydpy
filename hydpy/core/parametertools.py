@@ -414,9 +414,9 @@ class Parameterstep(_Stepsize):
     """The actual parameter time step size.
 
     Usually, the time step size of the units of certain parameters
-    is defined within control files via function
-    :func:`~hydpy.core.magictools.parameterstep`.  But it can also
-    be changed interactively with the help of any |Parameter| object:
+    is defined within control files via function |parameterstep|.
+    But it can also be changed interactively with the help of any
+    |Parameter| object:
 
     >>> from hydpy.core.parametertools import Parameter
     >>> parameter = Parameter()
@@ -505,13 +505,12 @@ class Simulationstep(_Stepsize):
        Period()
 
     Usually, the simulation step size is defined globally in module
-    :mod:`~hydpy.pub` via a :class:`~hydpy.core.timetools.Timegrids` object,
-    or locally via function :func:`~hydpy.core.magictools.simulationstep`
+    |pub| via a |Timegrids| object, or locally via function |simulationstep|
     in separate control files.  But you can also change it interactively
     with the help of |Parameter| objects.
 
-    Generally, the documentation on class :class:`Parameterstep` also holds
-    true for class :class:`Simulationstep`.  The following explanations
+    Generally, the documentation on class |Parameterstep| also holds
+    true for class |Simulationstep|.  The following explanations
     focus on the differences only.
 
     As long as no usual or surrogate simulation time step is defined, an

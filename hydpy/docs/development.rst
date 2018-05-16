@@ -569,7 +569,7 @@ serves the purpose of relieving non-programmers from writing code lines
 that do not deal with hydrological modelling directly.  Section `Imports`_
 discusses the usage of wildcard imports in parameter control files.
 However, the real comfort comes primarily from the `magic` implemented
-in the function :func:`~hydpy.core.magictools.parameterstep`.  Through
+in the function :func:`~hydpy.core.importtools.parameterstep`.  Through
 calling this function one does not only define a relevant time interval
 length for the following parameter values.  One also initializes a new
 model instance (if such an instance does not already exist) and makes

@@ -1,6 +1,6 @@
-"""This module bundles imports generally required for implementing nmodels.
+"""This module bundles imports generally required for implementing new models.
 
-Module :mod:`modelimports` is supposed to shorten the import section
+Module |modelimports| is supposed to shorten the import section
 of base and application models implemented.  Just write:
 
 >>> from hydpy.core.modelimports import *
@@ -8,14 +8,10 @@ of base and application models implemented.  Just write:
 Thereafter, the following objects are available:
  * module :mod:`numpy`
  * numpys :obj:`~numpy.nan` and :obj:`~numpy.inf`
- * functions :func:`~hydpy.core.magictools.parameterstep`,
-   :func:`~hydpy.core.magictools.simulationstep`,
-   :func:`~hydpy.core.autodoctools.autodoc_basemodel`,
-   of module :mod:`~hydpy.core.magictools`
- * class :class:`~hydpy.core.magictools.Tester`
-   of module :mod:`~hydpy.core.magictools`
- * class :class:`~hydpy.cythons.modelutils.Cythonizer`
-   of module :mod:`~hydpy.cythons.modelutils`
+ * functions |parameterstep|, |simulationstep|, and |controlcheck|
+   of module |importtools|
+ * class |Tester| of module |testtools|
+ * class |Cythonizer| of module |modelutils|
 
 """
 # import...
@@ -27,11 +23,11 @@ from numpy import nan
 from numpy import inf
 # ...HydPy specific
 # Load the required `magic` functions into the local namespace.
-from hydpy.core.magictools import parameterstep
-from hydpy.core.magictools import simulationstep
-from hydpy.core.magictools import controlcheck
+from hydpy.core.importtools import parameterstep
+from hydpy.core.importtools import simulationstep
+from hydpy.core.importtools import controlcheck
 from hydpy.core.autodoctools import autodoc_basemodel
 from hydpy.core.autodoctools import autodoc_applicationmodel
-from hydpy.core.magictools import Tester
+from hydpy.core.testtools import Tester
 from hydpy.cythons.modelutils import Cythonizer
 

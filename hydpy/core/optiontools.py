@@ -193,8 +193,7 @@ class Options(object):
     warnsimulationstep = _Option(
         True, None,
         """True/False flag indicating whether a warning shall be raised
-        when function :func:`~hydpy.core.magictools.simulationstep` is
-        called for the first time.""")
+        when function |simulationstep| called for the first time.""")
 
     warntrim = _Option(
         True, None,

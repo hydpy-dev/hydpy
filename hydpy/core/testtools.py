@@ -4,13 +4,18 @@
 # ...from standard library
 from __future__ import division, print_function
 import abc
+import sys
 try:
     import builtins
 except ImportError:
     import __builtin__ as builtins
 import datetime
+import doctest
+import importlib
+import inspect
 import itertools
 import os
+import warnings
 # ...from site-packages
 # the following import are actually performed below due to performance issues:
 # import bokeh.models
@@ -18,6 +23,7 @@ import os
 # import bokeh.plotting
 import numpy
 # ...from HydPy
+import hydpy
 from hydpy import pub
 from hydpy import docs
 from hydpy.core import abctools
@@ -25,6 +31,8 @@ from hydpy.core import autodoctools
 from hydpy.core import devicetools
 from hydpy.core import hydpytools
 from hydpy.core import objecttools
+from hydpy.core import parametertools
+from hydpy.core import printtools
 from hydpy.core import selectiontools
 from hydpy.core import timetools
 
@@ -33,6 +41,116 @@ if pub.pyversion == 2:
     abstractstaticmethod = abc.abstractmethod
 else:
     abstractstaticmethod = abc.abstractstaticmethod
+
+
+class StdOutErr(object):
+
+    def __init__(self, indent=0):
+        self.indent = indent
+        self.stdout = sys.stdout
+        self.stderr = sys.stderr
+        self.encoding = sys.stdout.encoding
+        self.texts = []
+
+    def __enter__(self):
+        self.encoding = sys.stdout.encoding
+        sys.stdout = self
+        sys.stderr = self
+
+    def __exit__(self, exception, message, traceback_):
+        if not self.texts:
+            self.print_('no failures occurred')
+        else:
+            for text in self.texts:
+                self.print_(text)
+        sys.stdout = self.stdout
+        sys.stderr = self.stderr
+        if exception:
+            objecttools.augment_excmessage()
+
+    def write(self, text):
+        self.texts.extend(text.split('\n'))
+
+    def print_(self, text):
+        if text.strip():
+            self.stdout.write(self.indent*' ' + text + '\n')
+
+    def flush(self):
+        pass
+
+
+class Tester(object):
+
+    def __init__(self):
+        frame = inspect.currentframe().f_back
+        self.filepath = frame.f_code.co_filename
+        self.package = frame.f_locals['__package__']
+        self.ispackage = os.path.split(self.filepath)[-1] == '__init__.py'
+
+    @property
+    def filenames(self):
+        if self.ispackage:
+            return os.listdir(os.path.dirname(self.filepath))
+        return [self.filepath]
+
+    @property
+    def modulenames(self):
+        return [os.path.split(fn)[-1].split('.')[0] for fn in self.filenames
+                if (fn.endswith('.py') and not fn.startswith('_'))]
+
+    def doit(self):
+        opt = pub.options
+        par = parametertools.Parameter
+        with opt.usedefaultvalues(False), \
+                opt.usedefaultvalues(False), \
+                opt.printprogress(False), \
+                opt.printincolor(False), \
+                opt.warnsimulationstep(False), \
+                opt.reprcomments(False), \
+                opt.ellipsis(0), \
+                opt.reprdigits(6), \
+                opt.warntrim(False), \
+                par.parameterstep.delete(), \
+                par.simulationstep.delete():
+            timegrids = pub.timegrids
+            pub.timegrids = None
+            nodes = devicetools.Node._registry.copy()
+            elements = devicetools.Element._registry.copy()
+            devicetools.Node.clear_registry()
+            devicetools.Element.clear_registry()
+            plotting_options = IntegrationTest.plotting_options
+            IntegrationTest.plotting_options = PlottingOptions()
+            try:
+                color = 34 if pub.options.usecython else 36
+                with printtools.PrintStyle(color=color, font=4):
+                    print(
+                        'Test %s %s in %sython mode.'
+                        % ('package' if self.ispackage else 'module',
+                           self.package if self.ispackage else
+                           self.modulenames[0],
+                           'C' if pub.options.usecython else 'P'))
+                with printtools.PrintStyle(color=color, font=2):
+                    for name in self.modulenames:
+                        print('    * %s:' % name, )
+                        with StdOutErr(indent=8):
+                            modulename = '.'.join((self.package, name))
+                            module = importlib.import_module(modulename)
+                            with warnings.catch_warnings():
+                                warnings.filterwarnings(
+                                    'error', module=modulename)
+                                warnings.filterwarnings(
+                                    'ignore', category=ImportWarning)
+                                doctest.testmod(
+                                    module, extraglobs={'testing': True},
+                                    optionflags=doctest.ELLIPSIS)
+            finally:
+                pub.timegrids = timegrids
+                devicetools.Node.clear_registry()
+                devicetools.Element.clear_registry()
+                devicetools.Node._registry = nodes
+                devicetools.Element._registry = elements
+                IntegrationTest.plotting_options = plotting_options
+                hydpy.dummies.clear()
 
 
 class Array(object):

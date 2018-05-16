@@ -16,8 +16,6 @@ import types
 # ...from HydPy
 import hydpy
 from hydpy import pub
-# from hydpy.core import objecttools (actual import commands moved to
-# different functions below to avoid circular dependencies)
 
 
 def description(self):

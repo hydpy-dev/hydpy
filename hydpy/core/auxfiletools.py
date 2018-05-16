@@ -35,7 +35,7 @@ import types
 from hydpy import pub
 from hydpy.core import abctools
 from hydpy.core import autodoctools
-from hydpy.core import magictools
+from hydpy.core import importtools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 
@@ -201,7 +201,7 @@ Variable type `EQD1` is not handled by model `lstream_v1`.
                     % value)
         if isinstance(value, types.ModuleType):
             try:
-                value = magictools.prepare_model(value)
+                value = importtools.prepare_model(value)
             except BaseException:
                 objecttools.augment_excmessage(
                     'While trying to prepare the model defined in'

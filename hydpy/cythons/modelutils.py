@@ -58,17 +58,17 @@ class Lines(list):
     """Handles lines to be written into a `.pyx` file."""
 
     def __init__(self, *args):
-        super(Lines, self).__init__(args)
+        list.__init__(self, args)
 
     def add(self, indent, line):
         """Appends the given text line with prefixed spaces in accordance with
         the given number of indentation levels.
         """
         if isinstance(line, str):
-            super(Lines, self).append(indent*4*' ' + line)
+            list.append(self, indent*4*' ' + line)
         else:
             for subline in line:
-                super(Lines, self).append(indent*4*' ' + subline)
+                list.append(self, indent*4*' ' + subline)
 
     def __repr__(self):
         return '\n'.join(self) + '\n'

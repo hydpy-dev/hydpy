@@ -23,7 +23,7 @@ class WET0(sequencetools.LogSequence):
     NDIM, NUMERIC = 2, False
 
     def _setshape(self, shape):
-        super(WET0, self)._setshape((1, shape))
+        sequencetools.LogSequence._setshape(self, (1, shape))
 
     shape = property(sequencetools.LogSequence._getshape, _setshape)
 

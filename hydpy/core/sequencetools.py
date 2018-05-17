@@ -1209,7 +1209,7 @@ class FluxSequence(ModelIOSequence):
     """ """
 
     def _initvalues(self):
-        super(FluxSequence, self)._initvalues()
+        ModelIOSequence._initvalues(self)
         if self.NUMERIC:
             value = None if self.NDIM else numpy.zeros(self.numericshape)
             self._connect_subattr('points', value)
@@ -1219,7 +1219,7 @@ class FluxSequence(ModelIOSequence):
             self._connect_subattr('sum', value)
 
     def _setshape(self, shape):
-        super(FluxSequence, self)._setshape(shape)
+        ModelIOSequence._setshape(self, shape)
         if self.NDIM and self.NUMERIC:
             self._connect_subattr('points', numpy.zeros(self.numericshape))
             self._connect_subattr('integrals', numpy.zeros(self.numericshape))
@@ -1308,14 +1308,14 @@ class StateSequence(ModelIOSequence, ConditionSequence):
             setattr(self.fastaccess_old, self.name, 0.)
 
     def _initvalues(self):
-        super(StateSequence, self)._initvalues()
+        ModelIOSequence._initvalues(self)
         if self.NUMERIC:
             value = None if self.NDIM else numpy.zeros(self.numericshape)
             self._connect_subattr('points', value)
             self._connect_subattr('results', copy.copy(value))
 
     def _setshape(self, shape):
-        super(StateSequence, self)._setshape(shape)
+        ModelIOSequence._setshape(self, shape)
         if self.NDIM:
             setattr(self.fastaccess_old, self.name, self.new.copy())
             if self.NUMERIC:

@@ -200,7 +200,7 @@ class Responses(parametertools.Parameter):
             self.subpars = None
             self.fastaccess = None
             self._coefs = {}
-        super(Responses, self).__init__(*args, **kwargs)
+        parametertools.Parameter.__init__(self, *args, **kwargs)
 
     def connect(self, subpars):
         self.__dict__['subpars'] = subpars

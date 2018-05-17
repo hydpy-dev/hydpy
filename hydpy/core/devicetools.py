@@ -44,7 +44,7 @@ class Keywords(set):
             names = []
         self.device = None
         self._check_keywords(names)
-        super(Keywords, self).__init__(names)
+        set.__init__(self, names)
 
     def startswith(self, name):
         """Returns a list of all keywords starting with the given string.
@@ -109,7 +109,7 @@ valid variable identifier.  ...
                   "second_keyword", "test_1", "test_2"])
         """
         self._check_keywords(names)
-        super(Keywords, self).update(names)
+        set.update(self, names)
 
     def add(self, name):
         """Before adding a new name, it is checked to be valid variable identifiers.
@@ -135,7 +135,7 @@ valid variable identifier.  ...
                   "one_test", "second_keyword"])
         """
         self._check_keywords([name])
-        super(Keywords, self).add(name)
+        set.add(self, name)
 
     def __repr__(self):
         with objecttools.repr_.preserve_strings(True):
@@ -1570,7 +1570,7 @@ which is in conflict with using their names as identifiers.
 
     def __getattr__(self, name):
         try:
-            _devices = super(Devices, self).__getattribute__('_devices')
+            _devices = object.__getattribute__(self, '_devices')
             _device = _devices[name]
             if self.return_always_iterables:
                 return self.__class__(_device)
@@ -1601,7 +1601,7 @@ which is in conflict with using their names as identifiers.
     def __delattr__(self, name):
         deleted_something = False
         if name in vars(self):
-            super(Devices, self).__delattr__(name)
+            Devices.__delattr__(self, name)
             deleted_something = True
         if name in self._devices:
             self.remove_device(name)

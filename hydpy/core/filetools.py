@@ -174,7 +174,7 @@ class NetworkManager(FileManager):
     """Manager for network files."""
 
     def __init__(self):
-        super(NetworkManager, self).__init__()
+        FileManager.__init__(self)
         self._BASEDIR = 'network'
         self._defaultdir = 'default'
 
@@ -263,7 +263,7 @@ class ControlManager(FileManager):
     _workingpath = '.'
 
     def __init__(self):
-        super(ControlManager, self).__init__()
+        FileManager.__init__(self)
         self._BASEDIR = 'control'
         self._defaultdir = 'default'
 
@@ -344,7 +344,7 @@ class ConditionManager(FileManager):
     """Manager for condition files."""
 
     def __init__(self):
-        super(ConditionManager, self).__init__()
+        FileManager.__init__(self)
         self._BASEDIR = 'conditions'
         self._defaultdir = None
 
@@ -510,7 +510,7 @@ class SequenceManager(FileManager):
     tempoverwrite = _ContextOverwrite(False, 'temporary')
 
     def __init__(self):
-        super(SequenceManager, self).__init__()
+        FileManager.__init__(self)
         self._BASEDIR = 'sequences'
         self._defaultdir = None
 

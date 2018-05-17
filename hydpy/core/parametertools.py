@@ -87,7 +87,7 @@ class Constants(dict):
         for (key, value) in frame.f_locals.items():
             if key.isupper() and isinstance(value, int):
                 kwargs[key] = value
-        super(Constants, self).__init__(*args, **kwargs)
+        dict.__init__(self, *args, **kwargs)
         self.__module__ = frame.f_locals['__name__']
 
 
@@ -353,7 +353,7 @@ class _Period(timetools.Period):
 
     def __init__(self, stepsize=None):
         self.stepsize = stepsize
-        super(_Period, self).__init__(stepsize.period)
+        timetools.Period.__init__(self, stepsize.period)
         self.old_period = timetools.Period(self)
         self.__doc__ = stepsize.__doc__
 
@@ -816,7 +816,7 @@ defined, but no standard value for its TYPE `list` is available
         more informative.  When :attr:`pub.options.reprcomments` is set to
         `False`, an empty list is returned.
         """
-        lines = super(Parameter, self).commentrepr()
+        lines = variabletools.Variable.commentrepr(self)
         if (pub.options.reprcomments and
                 (getattr(self, 'TIME', None) is not None)):
             lines.append('# The actual value representation depends on '
@@ -1084,7 +1084,7 @@ class MultiParameter(Parameter):
                 % self.name)
         else:
             islong = False
-        return super(MultiParameter, self).repr_(values, islong)
+        return Parameter.repr_(self, values, islong)
 
 
 class ZipParameter(MultiParameter):
@@ -1511,7 +1511,7 @@ into shape (3)
                     'the seasonal parameter `%s` of element `%s`'
                     % (self.name, objecttools.devicename(self)))
         else:
-            return super(SeasonalParameter, self).__getattribute__(name)
+            return MultiParameter.__getattribute__(self, name)
 
     def __setattr__(self, name, value):
         if name.startswith('toy_'):
@@ -1860,11 +1860,11 @@ class IndexParameter(MultiParameter):
 class SolverParameter(SingleParameter):
 
     def __init__(self):
-        super(SolverParameter, self).__init__()
+        SingleParameter.__init__(self)
         self._alternative_initvalue = None
 
     def __call__(self, *args, **kwargs):
-        super(SolverParameter, self).__call__(*args, **kwargs)
+        SingleParameter.__call__(self, *args, **kwargs)
         self.alternative_initvalue = self.value
 
     def update(self):

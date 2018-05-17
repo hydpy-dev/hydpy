@@ -90,11 +90,11 @@ class Dummies(object):
             delattr(self, name)
 
     def __setattr__(self, name, value):
-        super(Dummies, self).__setattr__('_'+name, value)
+        object.__setattr__(self, '_'+name, value)
 
     def __getattr__(self, name):
         try:
-            obj = super(Dummies, self).__getattribute__('_'+name)
+            obj = object.__getattribute__(self, '_'+name)
         except AttributeError:
             raise AttributeError('Dummies object does not handle an object '
                                  'named `%s` at the moment.' % name)

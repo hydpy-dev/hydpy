@@ -261,7 +261,7 @@ class ModelELS(Model):
     NUMERICAL = True
 
     def __init__(self):
-        super(ModelELS, self).__init__()
+        Model.__init__(self)
         self.numconsts = NumConstsELS()
         self.numvars = NumVarsELS()
 

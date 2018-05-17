@@ -23,19 +23,19 @@ class _Context(object):
 class _IntContext(_Context, int):
 
     def __new__(cls, option):
-        return super(_Context, cls).__new__(cls, option.value)
+        return int.__new__(cls, option.value)
 
 
 class _FloatContext(_Context, float):
 
     def __new__(cls, option):
-        return super(_Context, cls).__new__(cls, option.value)
+        return float.__new__(cls, option.value)
 
 
 class _StrContext(_Context, str):
 
     def __new__(cls, option):
-        return super(_Context, cls).__new__(cls, option.value)
+        return str.__new__(cls, option.value)
 
 
 class _Option(object):

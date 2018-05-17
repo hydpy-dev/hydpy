@@ -35,7 +35,7 @@ class NmbLogEntries(parametertools.SingleParameter):
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
     def __call__(self, *args, **kwargs):
-        super(NmbLogEntries, self).__call__(*args, **kwargs)
+        parametertools.SingleParameter.__call__(self, *args, **kwargs)
         for seq in self.subpars.pars.model.sequences.logs:
             try:
                 seq.shape = self
@@ -50,7 +50,7 @@ class RemoteDischargeMinimum(parametertools.SeasonalParameter):
 
     def __call__(self, *args, **kwargs):
         self.shape = (None, )
-        super(RemoteDischargeMinimum, self).__call__(*args, **kwargs)
+        parametertools.SeasonalParameter.__call__(self, *args, **kwargs)
 
 
 class RemoteDischargeSafety(parametertools.SeasonalParameter):
@@ -76,7 +76,7 @@ class NearDischargeMinimumThreshold(parametertools.SeasonalParameter):
 
     def __call__(self, *args, **kwargs):
         self.shape = (None, )
-        super(NearDischargeMinimumThreshold, self).__call__(*args, **kwargs)
+        parametertools.SeasonalParameter.__call__(self, *args, **kwargs)
 
 
 class NearDischargeMinimumTolerance(parametertools.SeasonalParameter):

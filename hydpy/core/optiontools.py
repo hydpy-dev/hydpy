@@ -74,7 +74,7 @@ class _Option(object):
 
 
 class Options(object):
-    """Singleton class for `global` options placed in module :mod:`~hydpy.pub`.
+    """Singleton class for `global` options placed in module |pub|.
 
     Note that Most options are simple True/False or 0/1 flags.
 
@@ -184,7 +184,8 @@ class Options(object):
 
     warnsimulationstep = _Option(True, None)
     """True/False flag indicating whether a warning shall be raised
-    when function |simulationstep| called for the first time."""
+    when function :func:`~hydpy.core.importtools.simulationstep` called
+    for the first time."""
 
     warntrim = _Option(True, None)
     """True/False flag indicating whether a warning shall be raised
@@ -192,18 +193,23 @@ class Options(object):
     certain boundaries. Such warnings increase safety and are thus
     the default is `True`.  However, to cope with the limited precision
     of floating point numbers only those violations beyond a small
-    tolerance value are reported (see :class:`Trimmer`).  Warnings
-    with identical information are reported only once."""
+    tolerance value are reported (see function
+    :func:`~hydpy.core.variabletools.trim`).  Warnings with identical
+    information are reported only once."""
 
 
-# Assign docstrings to the corresponding attributes of class `Options`
-# to make them available in the interactive mode of Python.
-source = inspect.getsource(Options)
-docstrings = source.split('"""')[3::2]
-attributes = [line.strip().split()[0] for line in source.split('\n')
-              if '_Option(' in line]
-for attribute, docstring in zip(attributes, docstrings):
-    Options.__dict__[attribute].__doc__ = docstring
+@autodoctools.make_autodoc_optional
+def _prepare_docstrings():
+    """Assign docstrings to the corresponding attributes of class `Options`
+     to make them available in the interactive mode of Python."""
+    source = inspect.getsource(Options)
+    docstrings = source.split('"""')[3::2]
+    attributes = [line.strip().split()[0] for line in source.split('\n')
+                  if '_Option(' in line]
+    for attribute, docstring in zip(attributes, docstrings):
+        Options.__dict__[attribute].__doc__ = docstring
 
+
+_prepare_docstrings()
 
 autodoctools.autodoc_module()

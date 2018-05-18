@@ -10,12 +10,22 @@ import copy
 import importlib
 import inspect
 import os
+import pkgutil
 import re
-import sys
 import types
+# ...from site-packages
+import wrapt
 # ...from HydPy
 import hydpy
 from hydpy import pub
+from hydpy import config
+from hydpy import auxs
+from hydpy import core
+from hydpy import cythons
+from hydpy import models
+from hydpy.cythons.autogen import annutils
+from hydpy.cythons.autogen import pointerutils
+from hydpy.cythons.autogen import smoothutils
 
 
 def description(self):
@@ -57,6 +67,17 @@ _SEQ_SPEC2CAPT = collections.OrderedDict((('sequences', 'Sequence tools'),
 
 _all_spec2capt = _PAR_SPEC2CAPT.copy()   # pylint: disable=invalid-name
 _all_spec2capt.update(_SEQ_SPEC2CAPT)
+
+
+@wrapt.decorator
+def make_autodoc_optional(wrapped, instance, args, kwargs):
+    """Decorate function related to automatic documentation refinement,
+    so that they will be applied only when requested (when `use_autodoc`
+    of module |config| is `True`) or when possible (when `HydPy` is not
+    frozen/bundled)."""
+    if config.use_autodoc and not pub._is_hydpy_bundled:
+        return wrapped(*args, **kwargs)
+    return None
 
 
 def _add_title(title, marker):
@@ -103,6 +124,7 @@ def _add_lines(specification, module):
     return lines
 
 
+@make_autodoc_optional
 def autodoc_basemodel():
     """Add an exhaustive docstring to the `__init__` module of a basemodel.
 
@@ -120,10 +142,7 @@ def autodoc_basemodel():
     modules of the basemodel are named in the standard way, e.g. `lland_model`,
     `lland_control`, `lland_inputs`.
     """
-    if getattr(sys, 'frozen', False):
-        # Do nothing when HydPy has been freezed with PyInstaller.
-        return
-    namespace = inspect.currentframe().f_back.f_locals
+    namespace = inspect.currentframe().f_back.f_back.f_locals
     doc = namespace.get('__doc__')
     if doc is None:
         doc = ''
@@ -162,6 +181,7 @@ def autodoc_basemodel():
     namespace['substituter'] = substituter
 
 
+@make_autodoc_optional
 def autodoc_applicationmodel():
     """Improves the docstrings of application models when called
     at the bottom of the respective module.
@@ -170,10 +190,7 @@ def autodoc_applicationmodel():
     |autodoc_basemodel|, that both the application model and its
     base model are defined in the conventional way.
     """
-    if getattr(sys, 'frozen', False):
-        # Do nothing when HydPy has been freezed with PyInstaller.
-        return
-    namespace = inspect.currentframe().f_back.f_locals
+    namespace = inspect.currentframe().f_back.f_back.f_locals
     doc = namespace.get('__doc__')
     if doc is None:
         doc = ''
@@ -246,7 +263,9 @@ class Substituter(object):
                 del self.substitutions[short]
             else:
                 self.substitutions[short] = long
+                self._add_single_objects_members(member, short, long)
         self.substitutions[medium] = long
+        self._add_single_objects_members(member, medium, long)
         if ((pub.pyversion > 2) and
                 inspect.isclass(member) and
                 issubclass(member, BaseException)):
@@ -256,6 +275,14 @@ class Substituter(object):
                 self.substitutions[short] = long
         if not cython:
             self.members.append(member)
+
+    def _add_single_objects_members(self, member, short, long):
+        if inspect.isclass(member):
+            for name_submember in vars(member).keys():
+                if not name_submember.startswith('_'):
+                    subshort = '%s.%s|' % (short[:-1], name_submember)
+                    sublong = '%s.%s`' % (long[:-1], name_submember)
+                    self.substitutions[subshort] = sublong
 
     def add_modules(self, package):
         """Add the modules of the given package without not their members."""
@@ -288,6 +315,28 @@ class Substituter(object):
                     pass
 
 
+@make_autodoc_optional
+def _prepare_mainsubstituter():
+    """Prepare, execute, and return a |Substituter| object for the main
+    `__init__` file of `HydPy`."""
+    substituter = Substituter()
+    substituter.substitutions['|idx_sim|'] = \
+        ':attr:`~hydpy.core.modeltools.Model.idx_sim`'
+    substituter.substitutions['|pub|'] = \
+        ':mod:`~hydpy.pub`'
+    substituter.substitutions['|config|'] = \
+        ':mod:`~hydpy.config`'
+    for subpackage in (auxs, core, cythons):
+        for dummy, name, dummy in pkgutil.walk_packages(subpackage.__path__):
+            full_name = subpackage.__name__ + '.' + name
+            substituter.add_everything(importlib.import_module(full_name))
+    substituter.add_modules(models)
+    for cymodule in (annutils, smoothutils, pointerutils):
+        substituter.add_everything(cymodule, cython=True)
+    substituter.apply_on_members()
+    return substituter
+
+
 def _number_of_line(member_tuple):
     """Try to return the number of the first line of the definition of a
     member of a module."""
@@ -308,6 +357,7 @@ def _number_of_line(member_tuple):
     return 0
 
 
+@make_autodoc_optional
 def autodoc_module():
     """Add a short summary of all implemented members to a modules docstring.
 
@@ -318,10 +368,7 @@ def autodoc_module():
     modules defining models.  For base models, see function
     :func:`autodoc_basemodel` instead.
     """
-    if getattr(sys, 'frozen', False):
-        # Do nothing when HydPy has been freezed with PyInstaller.
-        return
-    module = inspect.getmodule(inspect.currentframe().f_back)
+    module = inspect.getmodule(inspect.currentframe().f_back.f_back)
     doc = module.__doc__
     if doc is None:
         doc = ''

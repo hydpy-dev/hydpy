@@ -6,8 +6,6 @@ hydrological models.
 """
 # import...
 # ...from standard library
-import importlib
-import pkgutil
 import sys
 import warnings
 # ...from site-packages
@@ -19,15 +17,11 @@ pandas = OptionalImport('import pandas')
 pyplot = OptionalImport('from matplotlib import pyplot')
 # ...from HydPy
 from hydpy import pub
-from hydpy import auxs
-from hydpy import core
-from hydpy import cythons
-from hydpy import models
 from hydpy.core import dummytools
 from hydpy.core import indextools
 from hydpy.core import optiontools
 from hydpy.cythons import configutils
-from hydpy.core.autodoctools import Substituter
+from hydpy.core.autodoctools import _prepare_mainsubstituter
 from hydpy.core.auxfiletools import Auxfiler
 from hydpy.core.devicetools import Element
 from hydpy.core.devicetools import Elements
@@ -70,9 +64,7 @@ from hydpy.auxs.statstools import hsepd_pdf
 from hydpy.auxs.statstools import nse
 from hydpy.auxs.statstools import prepare_arrays
 from hydpy.auxs.statstools import std_ratio
-from hydpy.cythons.autogen import annutils
-from hydpy.cythons.autogen import pointerutils
-from hydpy.cythons.autogen import smoothutils
+
 
 pub.options = optiontools.Options()
 pub.indexer = indextools.Indexer()
@@ -99,21 +91,7 @@ try:
 except TypeError:
     pass
 
-if not getattr(sys, 'frozen', False):
-    # Don't do this when HydPy has been freezed with PyInstaller.
-    substituter = Substituter()
-    substituter.substitutions['|idx_sim|'] = \
-        ':attr:`~hydpy.core.modeltools.Model.idx_sim`'
-    substituter.substitutions['|pub|'] = \
-        ':mod:`~hydpy.pub`'
-    for subpackage in (auxs, core, cythons):
-        for loader, name, is_pkg in pkgutil.walk_packages(subpackage.__path__):
-            full_name = subpackage.__name__ + '.' + name
-            substituter.add_everything(importlib.import_module(full_name))
-    substituter.add_modules(models)
-    for cymodule in (annutils, smoothutils, pointerutils):
-        substituter.add_everything(cymodule, cython=True)
-    substituter.apply_on_members()
+substituter = _prepare_mainsubstituter()
 
 
 __all__ = ['pandas',

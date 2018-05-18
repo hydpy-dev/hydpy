@@ -78,6 +78,7 @@ different kinds of features to simplify and standardize writing
    modelimports
    modeltools
    objecttools
+   optiontools
    parametertools
    printtools
    selectiontools

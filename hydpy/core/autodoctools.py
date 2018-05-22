@@ -23,6 +23,7 @@ from hydpy import config
 from hydpy import auxs
 from hydpy import core
 from hydpy import cythons
+from hydpy import docs
 from hydpy import models
 from hydpy.cythons.autogen import annutils
 from hydpy.cythons.autogen import pointerutils
@@ -321,6 +322,16 @@ class Substituter(object):
                     except BaseException:
                         continue
                     submember.__doc__ = self(__doc__)
+        filename = os.path.join(docs.__path__[0], 'rst_prolog.temp')
+        with open(filename, 'a') as file_:
+            for key, value in self.substitutions.items():
+                file_.write('.. %s replace:: %s\n'
+                            % (key, value))
+
+    def find(self, text):
+        for key, value in self.substitutions.items():
+            if (text in key) or (text in value):
+                print(key, value)
 
 
 @make_autodoc_optional

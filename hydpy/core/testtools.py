@@ -5,10 +5,7 @@
 from __future__ import division, print_function
 import abc
 import sys
-try:
-    import builtins
-except ImportError:
-    import __builtin__ as builtins
+from hydpy import builtins
 import datetime
 import doctest
 import importlib

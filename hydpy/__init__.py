@@ -8,6 +8,10 @@ hydrological models.
 # ...from standard library
 import sys
 import warnings
+try:
+    import builtins
+except ImportError:
+    import __builtin__ as builtins
 # ...from site-packages
 from hydpy.core.exceptiontools import OptionalImport
 import numpy
@@ -94,7 +98,8 @@ except TypeError:
 substituter = _prepare_mainsubstituter()
 
 
-__all__ = ['pandas',
+__all__ = ['builtins',
+           'pandas',
            'pyplot',
            'pub',
            'Auxfiler',

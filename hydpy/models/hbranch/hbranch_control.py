@@ -35,9 +35,8 @@ class YPoints(parametertools.MultiParameter):
     """Supporting points for the dependent output variables [eg. m³/s].
 
 
-    The documentation on method
-    :func:`~hydpy.models.hbranch.Model.calc_outputs_v1` gives examples on how
-    to set the values of :class:`~hydpy.models.hbranch.YPoints` properly.
+    The documentation on method |calc_outputs_v1| gives examples on how
+    to set the values of |YPoints| properly.
     """
     NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
 
@@ -103,10 +102,8 @@ class YPoints(parametertools.MultiParameter):
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of hbranch, directly defined by the user.
 
-    Note that the number of supporting points handled parameter
-    :class:`~hydpy.models.hbranch.XPoints` and
-    :class:`~hydpy.models.hbranch.YPoints` must be identical.  First
-    define the values of parameter :class:`~hydpy.models.hbranch.XPoints`,
-    then the values  of parameter :class:`~hydpy.models.hbranch.YPoints`.
+    Note that the number of supporting points handled parameter |XPoints|
+    and |YPoints| must be identical.  First define the values of parameter
+    |XPoints|, then the values  of parameter |YPoints|.
     """
     _PARCLASSES = (XPoints, YPoints)

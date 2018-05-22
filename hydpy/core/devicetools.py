@@ -146,7 +146,7 @@ valid variable identifier.  ...
 
 
 class Device(object):
-    """Base class for class :class:`Element` and class :class:`Node`.
+    """Base class for class |Element| and class |Node|.
 
     For framework programmers it is important to know, that all created
     devices are registered.  Besides some other simplifications for
@@ -166,7 +166,7 @@ class Device(object):
     >>> node1 = Node('n1')
     >>> node2 = Node('n2')
 
-    Each time we pass the same names to the constructor of class :class:`Node`,
+    Each time we pass the same names to the constructor of class |Node|,
     the same object is returned:
 
     >>> node1 is Node('n1')
@@ -200,9 +200,9 @@ class Device(object):
     >>> new_node1 == node1
     True
 
-    The examples above also work for class :class:`Element`, except that
-    method `registered_nodes` must be exchanged with method
-    `registered_elements`, of course:
+    The examples above also work for class |Element|, except that method
+    |Node.registered_nodes| must be exchanged with method
+    |Element.registered_elements|, of course:
 
     >>> from hydpy import Element
     >>> Element.clear_registry()
@@ -216,8 +216,8 @@ class Device(object):
     def _get_name(self):
         """Name of the actual device (node or element).
 
-        Names are the identifiers of :class:`Node` and :class:`Element`
-        objects.  So define them carefully:
+        Names are the identifiers of |Node| and |Element| objects.
+        So define them carefully:
 
         >>> from hydpy import Node
         >>> node1, node2 = Node('n1'), Node('n2')
@@ -244,10 +244,10 @@ class Device(object):
 `n 3` of type `str`, the following error occured: The given name string `n 3` \
 does not define a valid variable identifier.  ...
 
-        When you change the name of a :class:`Node` and :class:`Element`
-        object (only do this for a good reason), the corresponding key of
-        all related :class:`Nodes` and :class:`Elements` objects (as well
-        as of the internal registry) changes automatically:
+        When you change the name of a |Node| and |Element| object (only
+        do this for a good reason), the corresponding key of all related
+        |Nodes| and |Elements| objects (as well as of the internal registry)
+        changes automatically:
 
         >>> node1.name = 'n1a'
         >>> nodes
@@ -284,7 +284,7 @@ does not define a valid variable identifier.  ...
     def _get_keywords(self):
         """Keywords describing this device.
 
-        The keywords are contained within a :class:`Keywords` object:
+        The keywords are contained within a |Keywords| object:
 
         >>> from hydpy import Node
         >>> node = Node('n')
@@ -326,16 +326,16 @@ does not define a valid variable identifier.  ...
 
     @classmethod
     def registered_names(cls):
-        """Get all names of :class:`Device` objects initialized so far."""
+        """Get all names of |Device| objects initialized so far."""
         return cls._registry.keys()
 
     def add_handler(self, handler):
-        """Add the given handler (either an :class:`Elements` or
+        """Add the given handler (either an |Elements| or
         :class`Nodes` object) to the set of handlers stored internally."""
         self._handlers.add(handler)
 
     def remove_handler(self, handler):
-        """Remove the given handler (either an :class:`Elements` or
+        """Remove the given handler (either an |Elements| or
         :class`Nodes` object) from the set of handlers stored internally."""
         self._handlers.remove(handler)
 
@@ -371,9 +371,9 @@ does not define a valid variable identifier.  ...
 
 
 class Node(Device):
-    """Handles the data flow between :class:`Element` objects.
+    """Handles the data flow between |Element| objects.
 
-    When initializing :class:`Node` objects, values for the optional `variable`
+    When initializing |Node| objects, values for the optional `variable`
     and `keywords` can be passed, which default to `Q` and "empty:
 
     >>> from hydpy import Node
@@ -411,7 +411,7 @@ Keep in mind, that `name` is the unique identifier of node objects.
 
 
     To fully understand the last example, read the technical remarks
-    regarding the registry of :class:`Device` objects explained above.
+    regarding the registry of |Device| objects explained above.
     On top of this persistent registry, there is also a temporal one,
     which helps to identify when certain nodes where created
     (e.g. during the execution of a certain network file).
@@ -462,7 +462,7 @@ Keep in mind, that `name` is the unique identifier of node objects.
     _predefinedvariable = 'Q'
 
     def __new__(cls, value, variable=None, keywords=None):
-        """Return an already existing :class:`Node` instance or, if such
+        """Return an already existing |Node| instance or, if such
         an instance does not exist yet, return a newly created one.
         """
         name = str(value)
@@ -504,12 +504,12 @@ Keep in mind, that `name` is the unique identifier of node objects.
 
     @classmethod
     def registered_nodes(cls):
-        """Get all :class:`Node` objects initialized so far."""
+        """Get all |Node| objects initialized so far."""
         return Nodes(cls._registry.values())
 
     @classmethod
     def gather_new_nodes(cls):
-        """Gather all `new` :class:`Node` objects. :class:`Node` objects
+        """Gather all `new` |Node| objects. |Node| objects
         are deemed to be new if they have been created after the last usage
         of this method.
         """
@@ -531,8 +531,7 @@ Keep in mind, that `name` is the unique identifier of node objects.
             element(s).  But it deploys values to its downstream nodes which
             are defined externally.  Usually, these values are observations
             made available within an Sequence file. See module
-            :mod:`~hydpy.core.sequencetools` for further information on
-            file specifications.
+            |sequencetools| for further information on file specifications.
           * oldsim: Simular to mode `obs`.  But it is usually applied when
             a node is supposed to deploy simulated values which have been
             calculated in a previous simulation run and stored in a sequence
@@ -566,8 +565,8 @@ Keep in mind, that `name` is the unique identifier of node objects.
     deploymode = property(_get_deploymode, _set_deploymode)
 
     def get_double(self, group):
-        """Return the :class:`~hydpy.cythons.pointertools.Double` object
-        appropriate for the given group and the predefined deploy mode.
+        """Return the |Double| object appropriate for the given group and
+        the predefined deploy mode.
 
         >>> from hydpy import Node
         >>> node = Node('node1')
@@ -600,15 +599,15 @@ the given group name `test`.
             'support the given group name `%s`.' % group)
 
     def get_double_via_exits(self):
-        """Return the :class:`~hydpy.cythons.pointertools.Double` object that
-        is supposed to deploy its value to the downstream elements."""
+        """Return the |Double| object that is supposed to deploy its value
+        to the downstream elements."""
         if self.deploymode != 'obs':
             return self.sequences.fastaccess.sim
         return self.sequences.fastaccess.obs
 
     def get_double_via_entries(self):
-        """Return the :class:`~hydpy.cythons.pointertools.Double` object that
-        is supposed to receive the value(s) of the upstream elements."""
+        """Return the |Double| object that is supposed to receive the
+        value(s) of the upstream elements."""
         if self.deploymode != 'oldsim':
             return self.sequences.fastaccess.sim
         return self._blackhole
@@ -770,7 +769,7 @@ the given group name `test`.
         return self.assignrepr()
 
     def assignrepr(self, prefix=''):
-        """Defines the `visual appearence` of :class:`Node` objects.
+        """Defines the `visual appearence` of |Node| objects.
 
         You can pass a string which prefixes the string representation.
         """
@@ -791,11 +790,10 @@ abctools.NodeABC.register(Node)
 
 
 class Element(Device):
-    """Handles a :class:`~hydpy.core.modeltools.Model` and connects it to
-    other models via :class:`Node` objects.
+    """Handles a |Model| and connects it to other models via |Node| objects.
 
-    You are allowed to pass keywords to the constructor of class
-    :class:`Element`, as shown above for class :class:`Node`.
+    You are allowed to pass keywords to the constructor of class |Element|,
+    as shown above for class |Node|.
 
     Additionally, you are allowed to pass different nodes (or names of
     nodes) by successive constructor calls, e.g.:
@@ -867,10 +865,10 @@ defined as a receiver, node which is not allowed.
 
 
     Note the technical remarks regarding the permanent registry of
-    :class:`Device` objects explained above (which also help to understand
+    |Device| objects explained above (which also help to understand
     how the last examples work behind the scenes.)  Additionally, the
-    remarks on the temperal registry of :class:`Node` objects also apply
-    on :class:`Element` objects.  Without to repeat the whole explanation,
+    remarks on the temperal registry of |Node| objects also apply
+    on |Element| objects.  Without to repeat the whole explanation,
     this can be shown by the following short example:
 
     >>> from hydpy import Elements
@@ -890,7 +888,7 @@ defined as a receiver, node which is not allowed.
 
     def __new__(cls, value, inlets=None, outlets=None,
                 receivers=None, senders=None, keywords=None):
-        """Return an already existing :class:`Element` instance or, if such
+        """Return an already existing |Element| instance or, if such
         an instance does not exist yet, a new newly created one.
         """
         name = str(value)
@@ -914,8 +912,8 @@ defined as a receiver, node which is not allowed.
 
     def __init__(self, name, inlets=None, outlets=None,
                  receivers=None, senders=None, keywords=None):
-        """Add the given :class:`Node` objects via the corresponding
-        :class:`~hydpy.core.connectiontools.Connection` objects."""
+        """Add the given |Node| objects via the corresponding |Connection|
+        objects."""
         if inlets is not None:
             for inlet in Nodes(inlets):
                 if inlet in self.outlets:
@@ -956,13 +954,13 @@ defined as a receiver, node which is not allowed.
 
     @classmethod
     def registered_elements(cls):
-        """Get all :class:`Element` objects initialized so far."""
+        """Get all |Element| objects initialized so far."""
         return Elements(cls._registry.values())
 
     @classmethod
     def gather_new_elements(cls):
-        """Gather all `new` :class:`Element` objects. :class:`Element` objects
-        are deemed to be new if they have been created after the last usage
+        """Gather all `new` |Element| objects. |Element| objects are
+        deemed to be new if they have been created after the last usage
         of this method.
         """
         elements = Elements(cls._selection.values())
@@ -1011,9 +1009,9 @@ defined as a receiver, node which is not allowed.
         >>> pub.options.usecython = False
 
         If a model is passed, proper connections with this model are build
-        We use the "HBV branch model" :mod:`~hydpy.models.hbranch as an
-        example, which branches a single input value (from to node `inp`)
-        to multiple outputs (nodes `out1` and `out2`):
+        We use the "HBV branch model" |hbranch| as an  example, which
+        branches a single input value (from to node `inp`) to multiple
+        outputs (nodes `out1` and `out2`):
 
         >>> from hydpy import Element, Node
         >>> element = Element('a_branch',
@@ -1199,7 +1197,7 @@ assigned to the element so far.
         self._plot(self.model.sequences.states, names, kwargs)
 
     def assignrepr(self, prefix):
-        """Defines the `visual appearence` of :class:`Element` objects.
+        """Defines the `visual appearence` of |Element| objects.
 
         You can pass a string which prefixes the string representation.
         """
@@ -1231,14 +1229,13 @@ abctools.ElementABC.register(Element)
 
 
 class Devices(object):
-    """Base class for class :class:`Elements` and class :class:`Nodes`.
+    """Base class for class |Elements| and class |Nodes|.
 
-    There are only small differences between class :class:`Elements`
-    and class :class:`Nodes`.  We focus our explanations on class
-    :class:`Nodes` arbitrarily.
+    There are only small differences between class |Elements| and class
+    |Nodes|.  We focus our explanations on class |Nodes| arbitrarily.
 
     The following test objects are used to explain the methods
-    and properties of class :class:`Device` (note the different types of
+    and properties of class |Device| (note the different types of
     the initialization arguments):
 
     >>> from hydpy import dummies
@@ -1250,7 +1247,7 @@ class Devices(object):
     ...                       Node('ne', keywords=('group_b', 'group_1')))
     >>> dummies.elements = Elements('ea', Element('eb'))
 
-    In a nutshell, :class:`Devices` instances are containers supporting
+    In a nutshell, |Devices| instances are containers supporting
     attribute access.  You can access each device directly by its name:
 
     >>> nodes = dummies.nodes
@@ -1373,7 +1370,7 @@ as a "normal" attribute and is thus not support.
             self.add_device(value)
 
     def add_device(self, device):
-        """Add the given :class:`Node` or :class:`Element` object.
+        """Add the given |Node| or |Element| object.
 
         >>> from hydpy import Nodes
         >>> nodes = Nodes('old_node')
@@ -1392,7 +1389,7 @@ as a "normal" attribute and is thus not support.
         device.add_handler(self)
 
     def remove_device(self, device):
-        """Remove the given :class:`Node` or :class:`Element` object.
+        """Remove the given |Node| or |Element| object.
 
         >>> from hydpy import Node, Nodes
         >>> nodes = Nodes('node_x', 'node_y')
@@ -1445,7 +1442,7 @@ as a "normal" attribute and is thus not support.
         """A set of all keywords of all handled devices.
 
         In addition to attribute access via device names described above,
-        :class:`Device` objects allow for attribute access via keywords.
+        |Device| objects allow for attribute access via keywords.
         This allows for an efficient search of certain groups of devices.
         Lets use the example from above, where the nodes `na` and `nb`
         have no keywords but each of the other three nodes both belongs
@@ -1506,9 +1503,9 @@ as a "normal" attribute and is thus not support.
             device.close_files()
 
     def copy(self):
-        """Return a shallow copy of the actual :class:`Devices` instance.
+        """Return a shallow copy of the actual |Devices| instance.
 
-        Make a flat copy of the :class:`Nodes` object defined above:
+        Make a flat copy of the |Nodes| object defined above:
 
         >>> from hydpy import dummies
         >>> old = dummies.nodes
@@ -1529,7 +1526,7 @@ as a "normal" attribute and is thus not support.
         The private variable `_devices` obviously has also been copied,
         but not the device `na`.  Allowing also to copy devices like `na`
         would be in conflict with using their names as identifiers.
-        For this reason deep copying :class:`Devices` objects is disabled:
+        For this reason deep copying |Devices| objects is disabled:
 
         >>> copy.deepcopy(dummies.nodes)
         Traceback (most recent call last):
@@ -1698,7 +1695,7 @@ which is in conflict with using their names as identifiers.
 
 
 class Nodes(Devices):
-    """A container for handling :class:`Node` objects."""
+    """A container for handling |Node| objects."""
 
     _contentclass = Node
 
@@ -1761,7 +1758,7 @@ class Nodes(Devices):
 
 
 class Elements(Devices):
-    """A container for handling :class:`Element` objects."""
+    """A container for handling |Element| objects."""
 
     _contentclass = Element
 

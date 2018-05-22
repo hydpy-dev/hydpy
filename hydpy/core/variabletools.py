@@ -33,6 +33,7 @@ def trim(self, lower=None, upper=None):
 
     Note that method |trim| works differently on |Variable| instances
     handling values of different types.  For floating point values,
+
     an actual trimming is performed.  Additionally, a warning message is
     raised if the trimming results in a change in value exceeding the
     threshold value defined by function |tolerance|.  (This warning
@@ -176,7 +177,7 @@ def _compare_variables_function_generator(
 
 
 class Variable(object):
-    """Abstract base class for |Parameter| and |Sequence| subclasses.
+    """Base class for |Parameter| and |Sequence|.
 
     This base class Implements special methods for arithmetic calculations,
     comparisons and type conversions.  See the  following exemples on how

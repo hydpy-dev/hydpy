@@ -3,7 +3,7 @@
 #cython: wraparound=False
 #cython: initializedcheck=False
 """This Cython module implements the performance-critical methods of the
-Python module :mod:`~hydpy.auxs.anntools`.
+Python module |anntools|`.
 """
 
 # import...

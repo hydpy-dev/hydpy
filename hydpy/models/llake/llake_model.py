@@ -13,11 +13,10 @@ def solve_dv_dt_v1(self):
     At the moment, HydPy-L only implements a simple numerical solution of
     its underlying ordinary differential equation.  To increase the accuracy
     (or sometimes even to prevent instability) of this approximation, one
-    can set the value of parameter
-    :class:`~hydpy.models.llake.llake_control.MaxDT` to a value smaller than
-    the actual simulation step size.  Method :func:`solve_dv_dt_v1` then
-    applies the methods related to the numerical approximation multiple times
-    and aggregates the results.
+    can set the value of parameter |MaxDT| to a value smaller than the actual
+    simulation step size.  Method |solve_dv_dt_v1| then applies the methods
+    related to the numerical approximation multiple times and aggregates
+    the results.
 
     Note that the order of convergence is one only.  It is hard to tell how
     short the internal simulation step needs to be to ensure a certain degree
@@ -25,27 +24,26 @@ def solve_dv_dt_v1(self):
     sufficient to gain acceptable results.  However, this strongly depends on
     the given water stage-volume-discharge relationship.  Hence it seems
     advisable to always define a few test waves and apply the llake model with
-    different :class:`~hydpy.models.llake.llake_control.MaxDT` values.
-    Afterwards, select a :class:`~hydpy.models.llake.llake_control.MaxDT`
-    value  lower than one which results in acceptable approximations for
-    all test waves.  The computation time of the llake mode per substep is
-    rather small, so always include a safety factor.
+    different |MaxDT| values.  Afterwards, select a |MaxDT| value  lower than
+    one which results in acceptable approximations for all test waves.  The
+    computation time of the llake mode per substep is rather small, so always
+    include a safety factor.
 
     Of course, an adaptive step size determination would be much more
     convenient...
 
     Required derived parameter:
-      :class:`~hydpy.models.llake.llake_derived.NmbSubsteps`
+      |NmbSubsteps|
 
     Used aide sequence:
-      :class:`~hydpy.models.llake.llake_aides.V`
-      :class:`~hydpy.models.llake.llake_aides.QA`
+      |llake_aides.V|
+      |llake_aides.QA|
 
     Updated state sequence:
-      :class:`~hydpy.models.llake.llake_states.V`
+      |lake_states.V|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.llake.llake_fluxes.QA`
+      |llake_fluxes.QA|
 
     Note that method :func:`solve_dv_dt_v1` calls the versions of `calc_vq`,
     `interp_qa` and `calc_v_qa` selected by the respective application model.
@@ -75,17 +73,17 @@ def calc_vq_v1(self):
     """Calculate the auxiliary term.
 
     Required derived parameters:
-      :class:`~hydpy.models.llake.llake_derived.Seconds`
-      :class:`~hydpy.models.llake.llake_derived.NmbSubsteps`
+      |Seconds|
+      |NmbSubsteps|
 
     Required flux sequence:
-      :class:`~hydpy.models.llake.llake_fluxes.QZ`
+      |QZ|
 
     Required aide sequence:
-      :class:`~hydpy.models.llake.llake_aides.V`
+      |llake_aides.V|
 
     Calculated aide sequence:
-      :class:`~hydpy.models.llake.llake_aides.VQ`
+      |llake_aides.VQ|
 
     Basic equation:
       :math:`VQ = 2 \\cdot V + \\frac{Seconds}{NmbSubsteps} \\cdot QZ`
@@ -118,18 +116,18 @@ def interp_qa_v1(self):
     """Calculate the lake outflow based on linear interpolation.
 
     Required control parameters:
-      :class:`~hydpy.models.llake.llake_control.N`
-      :class:`~hydpy.models.llake.llake_control.Q`
+      |N|
+      |llake_control.Q|
 
     Required derived parameters:
-      :class:`~hydpy.models.llake.llake_derived.TOY`
-      :class:`~hydpy.models.llake.llake_derived.VQ`
+      |llake_derived.TOY|
+      |llake_derived.VQ|
 
     Required aide sequence:
-      :class:`~hydpy.models.llake.llake_aides.VQ`
+      |llake_aides.VQ|
 
     Calculated aide sequence:
-      :class:`~hydpy.models.llake.llake_aides.QA`
+      |llake_aides.QA|
 
     Examples:
 
@@ -234,15 +232,15 @@ def calc_v_qa_v1(self):
     the lake, the outflow is trimmed.
 
     Required derived parameters:
-      :class:`~hydpy.models.llake.llake_derived.Seconds`
-      :class:`~hydpy.models.llake.llake_derived.NmbSubsteps`
+      |Seconds|
+      |NmbSubsteps|
 
     Required flux sequence:
-      :class:`~hydpy.models.llake.llake_fluxes.QZ`
+      |QZ|
 
     Updated aide sequences:
-      :class:`~hydpy.models.llake.llake_aides.QA`
-      :class:`~hydpy.models.llake.llake_aides.V`
+      |llake_aides.QA|
+      |llake_aides.V|
 
     Basic Equation:
       :math:`\\frac{dV}{dt}= QZ - QA`
@@ -299,15 +297,15 @@ def interp_w_v1(self):
     """Calculate the actual water stage based on linear interpolation.
 
     Required control parameters:
-      :class:`~hydpy.models.llake.llake_control.N`
-      :class:`~hydpy.models.llake.llake_control.V`
-      :class:`~hydpy.models.llake.llake_control.W`
+      |N|
+      |llake_control.V|
+      |llake_control.W|
 
     Required state sequence:
-      :class:`~hydpy.models.llake.llake_states.V`
+      |lake_states.V|
 
     Calculated state sequence:
-      :class:`~hydpy.models.llake.llake_states.W`
+      |lake_states.W|
 
     Examples:
 
@@ -363,15 +361,15 @@ def interp_v_v1(self):
     """Calculate the actual water volume based on linear interpolation.
 
     Required control parameters:
-      :class:`~hydpy.models.llake.llake_control.N`
-      :class:`~hydpy.models.llake.llake_control.V`
-      :class:`~hydpy.models.llake.llake_control.W`
+      |N|
+      |llake_control.V|
+      |llake_control.W|
 
     Required state sequence:
-      :class:`~hydpy.models.llake.llake_states.W`
+      |lake_states.W|
 
     Calculated state sequence:
-      :class:`~hydpy.models.llake.llake_states.V`
+      |lake_states.V|
 
     Examples:
 
@@ -431,21 +429,21 @@ def corr_dw_v1(self):
     `interp_v` need to be considered additionally.
 
     Required control parameter:
-      :class:`~hydpy.models.llake.llake_control.MaxDW`
+      |MaxDW|
 
     Required derived parameters:
-      :class:`~hydpy.models.llake.llake_derived.TOY`
-      :class:`~hydpy.models.llake.llake_derived.Seconds`
+      |llake_derived.TOY|
+      |Seconds|
 
     Required flux sequence:
-      :class:`~hydpy.models.llake.llake_fluxes.QZ`
+      |QZ|
 
     Updated flux sequence:
-      :class:`~hydpy.models.llake.llake_fluxes.QA`
+      |llake_fluxes.QA|
 
     Updated state sequences:
-      :class:`~hydpy.models.llake.llake_states.W`
-      :class:`~hydpy.models.llake.llake_states.V`
+      |lake_states.W|
+      |lake_states.V|
 
     Basic Restriction:
       :math:`W_{old} - W_{new} \\leq MaxDW`
@@ -574,13 +572,13 @@ def modify_qa_v1(self):
     """Add water to or remove water from the calculated lake outflow.
 
     Required control parameter:
-      :class:`~hydpy.models.llake.llake_control.Verzw`
+      |Verzw|
 
     Required derived parameter:
-      :class:`~hydpy.models.llake.llake_derived.TOY`
+      |llake_derived.TOY|
 
     Updated flux sequence:
-      :class:`~hydpy.models.llake.llake_fluxes.QA`
+      |llake_fluxes.QA|
 
     Basic Equation:
       :math:`QA = QA* - Verzw`

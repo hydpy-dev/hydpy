@@ -27,8 +27,8 @@ all relevant features:
 
 >>> from hydpy import *
 
-After such an import, features like the :class:`~hydpy.core.timetools.Date`
-class can be used and learned interactively:
+After such an import, features like the |Date| class can be used and
+learned interactively:
 
 >>> date = Date('01.01.2000')
 >>> date
@@ -38,7 +38,7 @@ Date('01.01.2000 00:00:00')
 Date('02.01.2000 00:00:00')
 
 The cleaner approach would be to import the required features explicitly,
-e.g. class :class:`~hydpy.core.timetools.Period`:
+e.g. class |Period|:
 
 >>> from hydpy import Period
 >>> date += 2*Period('1d')
@@ -50,9 +50,8 @@ one has the use the programming language Python to control :ref:`HydPy`,
 one can often write simple commands that are even understandable for
 people not familiar with Python at all.
 
-To learn what can be done else with classes :class:`~hydpy.core.timetools.Date`
-and :class:`~hydpy.core.timetools.Period`, see the detailed examples
-of the documentation on module :mod:`~hydpy.core.timetools`.
+To learn what can be done else with classes |Date| and |Period|, see the
+detailed examples of the documentation on module |timetools|.
 
 .. toctree::
    :hidden:

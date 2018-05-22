@@ -151,7 +151,7 @@ class Tester(object):
 
 
 class Array(object):
-    """Assures that attributes are :class:`~numpy.ndarray` objects."""
+    """Assures that attributes are |ndarray| objects."""
 
     def __setattr__(self, name, value):
         object.__setattr__(self, name, numpy.array(value))
@@ -191,13 +191,13 @@ class Test(object):
 
     @abc.abstractproperty
     def raw_first_col_strings(self):
-        """To be implemented by the subclasses of :class:`Test`."""
+        """To be implemented by the subclasses of |Test|."""
         return NotImplementedError
 
     @abstractstaticmethod
     def get_output_array(parseq):
         # pylint: disable=unused-argument
-        """To be implemented by the subclasses of :class:`Test`."""
+        """To be implemented by the subclasses of |Test|."""
         return NotImplementedError
 
     parseqs = NotImplemented
@@ -386,7 +386,7 @@ class IntegrationTest(Test):
 
         Plotting is only performed, when a filename is given as first
         argument.  Additionally, all other arguments of function
-        :class:`~IntegrationTest.plot` are allowed to modify plot design.
+        |IntegrationTest.plot| are allowed to modify plot design.
         """
         self.prepare_model()
         self.hydpy.doit()
@@ -407,7 +407,7 @@ class IntegrationTest(Test):
     def _getdateformat(self):
         """Format string for printing dates in the first column of the table.
 
-        See :mod:`datetime` for the format strings allowed.
+        See |datetime| for the format strings allowed.
         """
         if self._dateformat is None:
             return timetools.Date._formatstrings['iso']

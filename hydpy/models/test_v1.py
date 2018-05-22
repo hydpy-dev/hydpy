@@ -4,8 +4,7 @@ strategies.  It can be seen from two perspectives.  On the one hand
 it implements the Dahlquist test equation (on the real axis only), which is
 related to stiff initial value problems.  On the other hand it describes a
 simple storage with a linear loss term and without any input.  The loss rate
-:class:`test_fluxes.Q` and the initial storage content :class:`test_states.S`
-can be set as required.
+|Q| and the initial storage content |S| can be set as required.
 """
 # imports...
 # ...standard library

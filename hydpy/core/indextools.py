@@ -15,9 +15,9 @@ from hydpy.core import autodoctools
 class Indexer(object):
     """Handles arrays containing indexes.
 
-    One can specify the index arrays manually, but usually they are determined
-    automatically based on the :class:`~hydpy.core.timetools.Timegrids` object
-    made available through module :mod:`~hydpy.pub`.
+    One can specify the index arrays manually, but usually they are
+    determined automatically based on the |Timegrids| object made
+    available through module |pub|.
     """
     def __init__(self):
         self._monthofyear = None
@@ -160,10 +160,9 @@ class Indexer(object):
     timeofyear = property(_gettimeofyear, _settimeofyear, _deltimeofyear)
 
     def _convertandtest(self, values, name):
-        """Try to convert the given values to a :mod:`numpy`
-        :class:`~numpy.ndarrray` and check if it is plausible.  If so, return
-        the array, other raise a :class:`~exceptions.ValueError` or re-raise a
-        :mod:`numpy` specific exception.
+        """Try to convert the given values to a |numpy| |ndarray| and
+        check if it is plausible.  If so, return the array, other raise
+        a |ValueError| or re-raise a |numpy| specific exception.
         """
         try:
             array = numpy.array(values, dtype=int)
@@ -191,9 +190,9 @@ class Indexer(object):
         return array
 
     def _calcidxs(self, func):
-        """Return the required indexes based on the given lambda function and
-        the |Timegrids| object handled by module |pub|.  Raise a
-        :class:`~exceptions.RuntimeError` if the latter is not available.
+        """Return the required indexes based on the given lambda function
+        and the |Timegrids| object handled by module |pub|.  Raise a
+        |RuntimeError| if the latter is not available.
         """
         if pub.timegrids is None:
             raise RuntimeError(

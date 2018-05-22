@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""This module defines the Cython declarations related to module
-:mod:`~hydpy.auxs.anntools`.
+"""This module defines the Cython declarations related to module |anntools|.
 """
 
 from cpython cimport PyObject

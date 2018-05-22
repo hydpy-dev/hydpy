@@ -267,8 +267,7 @@ def calc_evpo_v1(self):
         >>> fluxes.evpo
         evpo(2.608, 2.73)
 
-        Reset module :mod:`~hydpy.pub` to not interfere the following
-        examples:
+        Reset module |pub| to not interfere the following examples:
 
         >>> pub.timegrids = None
     """

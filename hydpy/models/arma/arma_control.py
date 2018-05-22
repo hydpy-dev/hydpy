@@ -13,7 +13,7 @@ from hydpy.core import objecttools
 class Responses(parametertools.Parameter):
     """Assigns different ARMA models to different discharge thresholds.
 
-    Parameter :class:`Responses` is not involved in the actual calculations
+    Parameter |Responses| is not involved in the actual calculations
     during the simulation run.  Instead, it is thought for the intuitive
     handling of different ARMA models.  It can be applied as follows.
 
@@ -107,7 +107,7 @@ class Responses(parametertools.Parameter):
     Except for the mentioned conversion to floating point values, there are
     no plausibility checks performed.  You have to use other tools to gain
     plausible coefficients.  The HydPy framework offers the module
-    :mod:`~hydpy.auxs.iuhtools` for such purposes.
+    |iuhtools| for such purposes.
 
     Prepare one instantaneous unit hydrograph (iuh) based on the
     Translation Diffusion Equation and another one based on the Linear

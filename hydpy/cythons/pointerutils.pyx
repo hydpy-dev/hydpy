@@ -6,20 +6,17 @@
 `double` via Cython.
 
 The following `cdef classes` (Cython extension types) are implemented:
-  * :class:`DoubleBase`: Base class, only for inheritance.
-  * :class:`Double`: For C variables of type double.
-  * :class:`PDouble`: For C pointers referencing C variables of type double.
+  * |DoubleBase|: Base class, only for inheritance.
+  * |Double|: For C variables of type double.
+  * |PDouble|: For C pointers referencing C variables of type double.
 
-Classes :class:`Double` and :class:`PDouble` support arithmetic operations in
-a similar manner as the immutable standard data type for floating operations
-:class:`float`.  :class:`Double` and :class:`PDouble` should be preferred
-to :class:`float` only in cases, where their mutability and pointer
-functionality is required.  At the moment, the only usage of :class:`Double`
-and :class:`PDouble` within HydPy is to directly share information between
-:class:`~hydpy.core.sequence.SimulationSequence` objects of
-:class:`~hydpy.core.node.Node` instances and
-:class:`~hydpy.core.sequence.LinkSequence` objects of
-:class:`~hydpy.core.model.Model` instances.
+Classes |Double| and |PDouble| support arithmetic operations in a similar
+manner as the immutable standard data type for floating operations |float|.
+|Double| and |PDouble| should be preferred to |float| only in cases, where
+their mutability and pointer functionality is required.  At the moment,
+the only usage of |Double| and |PDouble| within HydPy is to directly share
+information between |SimulationSequence| objects of |Node| instances and
+|LinkSequence| objects of |Model| instances.
 
 The following examples try to give an idea of the purpose of using pointers
 in HydPy::
@@ -68,12 +65,12 @@ in HydPy::
     px.setvalue(2.)
     print x, px
 
-:class:`Double` and :class:`PDouble` implement many convenience functions
+|Double| and |PDouble| implement many convenience functions
 (Python's `special methods`). Accordingly, their instances can for example be
-included into numerical calculations as one knows from :class:`float` objects.
+included into numerical calculations as one knows from |float| objects.
 In order to increase the compatibility with external modules, when new objects
-are generated, these are of type :class:`float` (except for type conversions
-and comparision which await :class:`bool` objects). Some examples::
+are generated, these are of type |float| (except for type conversions
+and comparision which await |bool| objects). Some examples::
 
     from hydpy.cythons.pointer import Double, PDouble
 
@@ -150,8 +147,8 @@ pointers::
     print id(x), id(y), id(z)
 
 Note:
-    :class:`Double` is used in Python mode only; in Cython mode, the usual
-    C type `double` is applied.  :class:`PDouble` is also used in Cython mode,
+    |Double| is used in Python mode only; in Cython mode, the usual
+    C type `double` is applied.  |PDouble| is also used in Cython mode,
     where it essentially serves the purpose pass C a pointers of type
     'double' from Cython module to another.
 
@@ -193,8 +190,8 @@ cdef inline double conv2double(value):
 
 
 cdef class DoubleBase(object):
-    """Base class for :class:`Double` and :class:`PDouble` that implements
-    operators which return builtin Python objects."""
+    """Base class for |Double| and |PDouble| that implements operators
+    which return builtin Python objects."""
 
     def __add__(x, y):
         return conv2double(x) + conv2double(y)

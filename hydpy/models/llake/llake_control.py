@@ -95,8 +95,7 @@ class MaxDT(parametertools.SingleParameter):
         >>> maxdt('1h')
 
         Internally, the value of maxdt is stored in seconds, but in string
-        representations it is shown as a :class:`~hydpy.core.timetools.Period`
-        string:
+        representations it is shown as a |Period| string:
 
         >>> maxdt.value
         3600.0

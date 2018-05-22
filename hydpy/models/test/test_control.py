@@ -10,7 +10,7 @@ from hydpy.core import parametertools
 class K(parametertools.SingleParameter):
     """Storage coefficient [1/T].
 
-    For educational purposes, the actual value of parameter :class:`K` does
+    For educational purposes, the actual value of parameter |K| does
     not depend on the difference between the actual simulation time step and
     the actual parameter time step.
     """

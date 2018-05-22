@@ -21,11 +21,8 @@ class Nmb(parametertools.SingleParameter):
     >>> derived.nmb
     nmb(2)
 
-    Note that updating parameter `nmb` sets the shape of the
-    flux sequences :class:`~hydpy.models.arma.arma_fluxes.QPIn`,
-    :class:`~hydpy.models.arma.arma_fluxes.QPOut`,
-    :class:`~hydpy.models.arma.arma_fluxes.QMA`, and
-    :class:`~hydpy.models.arma.arma_fluxes.QAR` automatically.
+    Note that updating parameter `nmb` sets the shape of the flux
+    sequences |QPIn|, |QPOut|, |QMA|, and |QAR| automatically.
 
     >>> fluxes.qpin
     qpin(nan, nan)
@@ -70,7 +67,7 @@ class MaxQ(parametertools.MultiParameter):
 
 
 class DiffQ(parametertools.MultiParameter):
-    """Differences between the values of :class:`MaxQ` [m³/s].
+    """Differences between the values of |MaxQ| [m³/s].
 
     Example:
 
@@ -147,7 +144,7 @@ class AR_Coefs(parametertools.MultiParameter):
               [1.0, nan]])
 
     Note that updating parameter `ar_coefs` sets the shape of the log
-    sequence :class:`~hydpy.models.arma.arma_logs.LogOut` automatically.
+    sequence |LogOut| automatically.
 
     >>> logs.logout
     logout([[nan, nan],
@@ -177,7 +174,7 @@ class MA_Coefs(parametertools.MultiParameter):
               [1.0, 2.0, 3.0]])
 
     Note that updating parameter `ar_coefs` sets the shape of the log
-    sequence :class:`~hydpy.models.arma.arma_logs.LogIn` automatically.
+    sequence |LogIn| automatically.
 
     >>> logs.login
     login([[nan, nan, nan],

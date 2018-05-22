@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-"""This module provides additional features for module
-:mod:`~hydpy.auxs.iuhtools`, related to Autoregressive-Moving Average (ARMA)
-models."""
+"""This module provides additional features for module |iuhtools|,
+related to Autoregressive-Moving Average (ARMA) models."""
 # import...
 # ...from standard library
 from __future__ import division, print_function
@@ -31,7 +30,7 @@ class MA(object):
     >>> ma
     MA(coefs=(0.2, 0.8))
 
-    Otherwise they are determined by method :func:`~MA.update_coefs`.
+    Otherwise they are determined by method |MA.update_coefs|.
     But this requires that a integrable function object is given.
     Usually, this function object is a |IUH| subclass object, but
     (as in the following example) other function objects defining
@@ -58,7 +57,7 @@ class MA(object):
               0.025))
 
     The number of the coefficients can be modified by changing the
-    class attribute :attr:`~MA.smallest_coeff`:
+    class attribute |MA.smallest_coeff|:
 
     >>> ma.smallest_coeff = 0.03
     >>> ma.update_coefs()
@@ -176,7 +175,7 @@ Please check the calculated coefficients: 0.0, 0.0, 0.0, 0.0, 0.75, 0.25.
             self.coefs = coefs
 
     def _get_coefs(self):
-        """:class:`~numpy.ndarray` containing all MA coefficents."""
+        """|ndarray| containing all MA coefficents."""
         if self._coefs is None:
             self.update_coefs()
         return self._coefs
@@ -307,10 +306,10 @@ class ARMA(object):
          ma_coefs=(0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0,
                    11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0))
 
-    Otherwise they are determined by method :func:`~ARMA.update_coefs`.
-    But this requires that a :class:`MA` object is given.  Let us use
+    Otherwise they are determined by method |ARMA.update_coefs|.
+    But this requires that a |MA| object is given.  Let us use
     the MA model based on the shifted normal distribution of the
-    documentation on class :class:`MA` as an example:
+    documentation on class |MA| as an example:
 
     >>> from scipy import stats
     >>> ma = MA(iuh=lambda x: 1.02328*stats.norm.pdf(x, 4.0, 2.0))
@@ -332,9 +331,9 @@ class ARMA(object):
     >>> round_(arma.moments)
     4.110496, 1.926798
 
-    On can check the accuray of the approximation directly via the property
-    :attr:`~ARMA.dev_moments`, which is the sum of the absolute values of
-    the deviations of both methods:
+    On can check the accuray of the approximation directly via the
+    property |ARMA.dev_moments|, which is the sum of the absolute values
+    of the deviations of both methods:
 
     >>> round_(arma.dev_moments)
     0.0
@@ -461,15 +460,15 @@ coefficients.
 
     max_ar_order = 10
     """Maximum number of AR coefficients that are to be determined by method
-    :func:`~ARMA.update_coefs`."""
+    |ARMA.update_coefs|."""
 
     max_rel_rmse = 1e-6
     """Maximum relative root mean squared error to be accepted by method
-    :func:`~ARMA.update_coefs`."""
+    |ARMA.update_coefs|."""
 
     max_dev_coefs = 1e-6
     """Maximum deviation of the sum of all coefficents from one to be accepted
-    by method :func:`~ARMA.update_coefs`."""
+    by method |ARMA.update_coefs|."""
 
     _ma_coefs = None
     _ar_coefs = None
@@ -540,8 +539,8 @@ coefficients.
         """The maximum number of AR coefficients that shall or can be
         determined.
 
-        It is the minimum of :attr:`~ARMA.max_ar_order` and the number of
-        coefficients of the pure :class:`MA` after their turning point.
+        It is the minimum of |ARMA.max_ar_order| and the number of
+        coefficients of the pure |MA| after their turning point.
         """
         return min(self.max_ar_order, self.ma.order-self.ma.turningpoint[0]-1)
 
@@ -549,8 +548,8 @@ coefficients.
         """Determine the AR coefficients.
 
         The number of AR coefficients is subsequently increased until the
-        required precision :attr:`~ARMA.max_rel_rmse` is reached.  Otherwise,
-        a :class:`~exceptions.RuntimeError` is raised.
+        required precision |ARMA.max_rel_rmse| is reached.  Otherwise,
+        a |RuntimeError| is raised.
         """
         del self.ar_coefs
         for ar_order in range(1, self.effective_max_ar_order+1):
@@ -588,19 +587,19 @@ coefficients.
 
     @property
     def dev_coefs(self):
-        """Absolute deviation of :attr:`~ARMA.sum_coefs` from one."""
+        """Absolute deviation of |ARMA.sum_coefs| from one."""
         return abs(self.sum_coefs-1.)
 
     def calc_all_ar_coefs(self, ar_order, ma_model):
         """Determine the AR coeffcients based on a least squares approach.
 
         The argument `ar_order` defines the number of AR coefficients to be
-        determined.  The argument `ma_order` defines a pure :class:`MA` model.
+        determined.  The argument `ma_order` defines a pure |MA| model.
         The least squares approach is applied on all those coefficents of the
         pure MA model, which are associated with the part of the recession
         curve behind its turning point.
 
-        The attribute :attr:`~ARMA.rel_rmse` is updated with the resulting
+        The attribute |ARMA.rel_rmse| is updated with the resulting
         relative root mean square error.
         """
         turning_idx, _ = ma_model.turningpoint
@@ -618,7 +617,7 @@ coefficients.
     def get_a(values, n):
         """Extract the independent variables of the given values and return
         them as a matrix with n columns in a form suitable for the least
-        squares approach applied in method :func:`~ARMA.calc_ar_coefs`.
+        squares approach applied in method |ARMA.calc_ar_coefs|.
         """
         m = len(values)-n
         a = numpy.empty((m, n), dtype=float)
@@ -632,7 +631,7 @@ coefficients.
     def get_b(values, n):
         """Extract the dependent variables of the values in a vector with n
         entries in a form suitable for the least squares approach applied in
-        method :func:`~ARMA.calc_ar_coefs`.
+        method |ARMA.calc_ar_coefs|.
         """
         return numpy.array(values[n:])
 
@@ -640,8 +639,8 @@ coefficients.
         """Determine the MA coefficients.
 
         The number of MA coefficients is subsequently increased until the
-        required precision :attr:`~ARMA.max_dev_coefs` is reached.  Otherwise,
-        a :class:`~exceptions.RuntimeError` is raised.
+        required precision |ARMA.max_dev_coefs| is reached.  Otherwise,
+        a |RuntimeError| is raised.
         """
         self.ma_coefs = []
         for ma_order in range(1, self.ma.order+1):
@@ -667,7 +666,7 @@ coefficients.
     def calc_next_ma_coef(self, ma_order, ma_model):
         """Determine the MA coefficients of the ARMA model based on its
         predetermined AR coefficients and the MA ordinates of the given
-        :class:`MA` model.
+        |MA| model.
 
         The MA coefficients are determined one at a time, beginning with the
         first one.  Each ARMA MA coefficient in set in a manner that allows

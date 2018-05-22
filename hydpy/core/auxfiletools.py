@@ -248,7 +248,7 @@ Variable type `EQD1` is not handled by model `lstream_v1`.
         The target path is taken from the |ControlManager| object
         stored in module |pub|.  Hence we initialize one and
         overwrite its :func:`property` `currentpath` with a simple
-        :class:`str` object defining the test target path:
+        |str| object defining the test target path:
 
         >>> from hydpy import pub
         >>> pub.projectname = 'test'
@@ -606,8 +606,8 @@ object has already been allocated to filename `file1`.
         return sorted(variables, key=lambda x: (x.name, sum(x)))
 
     def get_filename(self, variable):
-        """Return the auxiliary file name the given variable is allocated to
-        or :class:`None` if the given variable is not allocated to any
+        """Return the auxiliary file name the given variable is allocated
+        to or |None| if the given variable is not allocated to any
         auxiliary file name.
 
         >>> from hydpy import dummies

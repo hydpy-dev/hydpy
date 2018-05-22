@@ -243,8 +243,8 @@ def devicephrase(self):
 
 
 def valid_variable_identifier(name):
-    """Raises an :class:`~exceptions.ValueError` if the given name is not
-    a valid Python identifier.
+    """Raises an |ValueError| if the given name is not a valid Python
+    identifier.
 
     For example, the string `test_1` (with underscore) is valid...
 
@@ -544,8 +544,8 @@ class _PreserveStrings(object):
 
 
 class _Repr_(object):
-    """Modifies :func:`repr` for strings and floats, mainly for supporting
-    clean float representations that are compatible with :mod:`doctest`.
+    """Modifies |repr| for strings and floats, mainly for supporting
+    clean float representations that are compatible with |doctest|.
 
     When value is a string, it is returned without any modification:
 
@@ -615,7 +615,7 @@ class _Repr_(object):
     '0.333252'
 
     Note that the deviation from the `true` result in the last example is due
-    to the low precision of :class:`~numpy.float16`.
+    to the low precision of |float16|.
 
     On all types not mentioned above, the usual |repr| function is
     applied, e.g.:
@@ -1236,7 +1236,8 @@ def extract(values, types, skip=False):
     TypeError: The given value `'None'` is neither iterable nor \
 an instance of the following classes: str and int.
 
-    Optionally, :class:`None` values can be skipped:
+    Optionally, |None| values can be skipped:
+
     >>> tuple(extract(None, (str, int), True))
     ()
     >>> tuple(extract((['str1', 'str2'], [None, 1]), (str, int), True))

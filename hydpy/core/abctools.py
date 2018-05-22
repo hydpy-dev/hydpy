@@ -133,7 +133,7 @@ class VariableABC(DocABC):
 
     Usually, new classes should either be registered as a parameter
     or a sequence.  Afterwards, they are automatically handled as
-    :class:`Variable` subclasses:
+    |Variable| subclasses:
 
     >>> from hydpy.core.abctools import VariableABC, ParameterABC
     >>> class New(object):

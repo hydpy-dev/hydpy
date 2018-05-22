@@ -50,8 +50,7 @@ def header_controlfile(model, parameterstep=None, simulationstep=None):
     The second example shows the saver option to pass the proper model object.
     It also shows that function :func:`header_controlfile` tries to gain the
     parameter and simulation step sizes from the global
-    :class:`~hydpy.core.timetools.Timegrids` object contained in module
-    :mod:`~hydpy.pub` when necessary:
+    |Timegrids| object contained in module |pub| when necessary:
 
     >>> from hydpy.models.lland_v1 import *
     >>> parameterstep('1d')
@@ -220,7 +219,7 @@ class SubParameters(_MetaSubParametersClass):
     When trying to implement a new model, one has to define its parameter
     classes.  Currently, the HydPy framework  distinguishes between control
     parameters and derived parameters.  These parameter classes should be
-    collected by subclasses of class :class:`SubParameters` called
+    collected by subclasses of class |SubParameters| called
     `ControlParameters` or `DerivedParameters` respectivly.  This should be
     done via the `_PARCLASSES` tuple in the following manner:
 
@@ -239,9 +238,9 @@ class SubParameters(_MetaSubParametersClass):
     par2(nan)
     par1(nan)
 
-    If one forgets to define a `_PARCLASSES` tuple so (and maybe tries to add
-    the parameters in the constructor of the subclass of
-    :class:`SubParameters`, the following error is raised:
+    If one forgets to define a `_PARCLASSES` tuple so (and maybe tries to
+    add the parameters in the constructor of the subclass of |SubParameters|,
+    the following error is raised:
 
     >>> class ControlParameters(SubParameters):
     ...     pass
@@ -251,7 +250,7 @@ class SubParameters(_MetaSubParametersClass):
 tuple `_PARCLASSES` is not defined.  Please see the documentation of \
 class `SubParameters` of module `parametertools` for further information.
 
-    The `in` operator can be used to check if a certain :class:`SubParameters`
+    The `in` operator can be used to check if a certain |SubParameters|
     object handles a certain type of parameter:
 
     >>> Par1 in control
@@ -380,8 +379,8 @@ class _Period(timetools.Period):
 
 
 class _Stepsize(object):
-    """Base class of the descriptor classes :class:`Parameterstep` and
-    :class:`Simulationstep`."""
+    """Base class of the descriptor classes |Parameterstep| and
+    |Simulationstep|."""
 
     def __init__(self):
         self.period = timetools.Period()
@@ -469,7 +468,7 @@ step size allowed is one second.
     >>> parameter.parameterstep
     Period('1d')
 
-    Passing `None` means "change nothing in this context" (usefull for
+    Passing |None| means "change nothing in this context" (usefull for
     defining functions with optional `parameterstep` arguments):
 
     >>> with parameter.parameterstep(None):
@@ -537,8 +536,7 @@ been defined.
 
     But in complete HydPy applications, changing the simulation step
     size  would be highly error prone.  Hence, being defined globally
-    within the :mod:`~hydpy.pub` module, predefined surrogate values
-    are ignored:
+    within the |pub| module, predefined surrogate values are ignored:
 
     >>> from hydpy import pub
     >>> from hydpy import Timegrids, Timegrid
@@ -576,7 +574,7 @@ been defined.
 
 
 class Parameter(variabletools.Variable):
-    """Base class for :class:`SingleParameter` and :class:`MultiParameter`."""
+    """Base class for |SingleParameter| and |MultiParameter|."""
 
     NOT_DEEPCOPYABLE_MEMBERS = ('subpars', 'fastaccess')
 
@@ -657,8 +655,7 @@ class Parameter(variabletools.Variable):
 
         Some |Parameter| subclasses define a class attribute `INIT`.
         Let's define a test class and prepare a function for initializing
-        a parameter object and connecting it to a :class:`SubParameters`
-        object:
+        a parameter object and connecting it to a |SubParameters| object:
 
         >>> from hydpy.core import parametertools
         >>> class Test(parametertools.SingleParameter):
@@ -677,7 +674,7 @@ class Parameter(variabletools.Variable):
         >>> test
         test(nan)
 
-        This can be changed through setting option `usedefaultvalues` to
+        This can be changed through setting |Options.usedefaultvalues| to
         `True`:
 
         >>> from hydpy import pub
@@ -686,8 +683,8 @@ class Parameter(variabletools.Variable):
         >>> test
         test(2.0)
 
-        When no `INIT` attribute is defined, enabling `usedefaultvalues` has
-        no effect, of course:
+        When no `INIT` attribute is defined, enabling
+        |Options.usedefaultvalues| has no effect, of course:
 
         >>> del Test.INIT
         >>> test = prepare()
@@ -695,7 +692,7 @@ class Parameter(variabletools.Variable):
         test(nan)
 
         For time dependent parameter values, the `INIT` attribute is assumed
-        to be related to a :class:`Parameterstep` of one day:
+        to be related to a |Parameterstep| of one day:
 
         >>> test.parameterstep = '2d'
         >>> test.simulationstep = '12h'
@@ -707,8 +704,8 @@ class Parameter(variabletools.Variable):
         >>> test.value
         1.0
 
-        Note the following `nan` surrogate values for types :class:`bool` and
-        :class:`int` (for :class:`bool`, a better solution should be found):
+        Note the following `nan` surrogate values for types |bool| and
+        |int| (for |bool|, a better solution should be found):
 
         >>> Test.TIME = None
         >>> Test.TYPE = bool
@@ -845,7 +842,7 @@ class SingleParameter(Parameter):
 
     def _getshape(self):
         """An empty tuple.  (Only intended for increasing consistent usability
-        of :class:`SingleParameter` and :class:`MultiParameter` instances.)
+        of |SingleParameter| and |MultiParameter| instances.)
         """
         return ()
 
@@ -857,7 +854,7 @@ class SingleParameter(Parameter):
 
     def _getvalue(self):
         """The actual parameter value handled by the respective
-        :class:`SingleParameter` instance.
+        |SingleParameter| instance.
         """
         return getattr(self.fastaccess, self.name, numpy.nan)
 
@@ -884,9 +881,8 @@ class SingleParameter(Parameter):
     values = value
 
     def verify(self):
-        """Raises a :class:`~exceptions.RuntimeError` if the value of the
-        instance of the respective subclass of :class:`SingleParameter` is
-        `nan`.
+        """Raises a |RuntimeError| if the value of the instance of the
+        respective subclass of |SingleParameter| is `nan`.
         """
         if numpy.isnan(self.value):
             raise RuntimeError('The value of parameter `%s` has not been '
@@ -894,8 +890,7 @@ class SingleParameter(Parameter):
 
     def __len__(self):
         """Returns 1.  (This method is only intended for increasing consistent
-        usability of :class:`SingleParameter` and :class:`MultiParameter`
-        instances.)
+        usability of |SingleParameter| and |MultiParameter| instances.)
         """
         return 1
 
@@ -994,7 +989,7 @@ class MultiParameter(Parameter):
         shape as the values handled by the respective parameter.  All entries
         being `True` indicates that the method :func:`~MultiParameter.verify`
         checks all entries of the numpy array storing the parameter values.
-        Overwrite :func:`~MultiParameter.verify` for :class:`MultiParameter`
+        Overwrite :func:`~MultiParameter.verify` for |MultiParameter|
         subclasses, where certain entries do not to be checked.
         """
         return numpy.full(self.shape, True, dtype=bool)
@@ -1002,11 +997,10 @@ class MultiParameter(Parameter):
     verifymask = property(_getverifymask)
 
     def verify(self):
-        """Raises a :class:`~exceptions.RuntimeError` if at least one of the
-        required values of the instance of the respective subclass of
-        :class:`MultiParameter` is `None` or `nan`. The property
-        :func:`~MultiParameter.verifymask` defines, which values are
-        considered to be necessary.
+        """Raises a |RuntimeError| if at least one of the required values
+        of the instance of the respective subclass of |MultiParameter| is
+        |None| or `nan`. The property |MultiParameter.verifymask| defines,
+        which values are considered to be necessary.
         """
         if self.values is None:
             raise RuntimeError('The values of parameter `%s` have not '
@@ -1017,7 +1011,7 @@ class MultiParameter(Parameter):
                                'not been set yet.' % (self.name, nmbnan))
 
     def __len__(self):
-        """Returns the number of values handled by the :class:`MultiParameter`
+        """Returns the number of values handled by the |MultiParameter|
         instance.  It is required, that the `shape` has been set beforehand,
         which specifies the length in each dimension.
         """
@@ -1047,8 +1041,8 @@ class MultiParameter(Parameter):
     def compress_repr(self):
         """Returns a compressed parameter value string, which is (in
         accordance with :attr:`~MultiParameter.NDIM`) contained in a
-        nested list.  If the compression fails, a
-        :class:`~exceptions.NotImplementedError` is raised.
+        nested list.  If the compression fails, a |NotImplementedError|
+        is raised.
         """
         if self.value is None:
             unique = numpy.array([numpy.nan])
@@ -1093,8 +1087,8 @@ class ZipParameter(MultiParameter):
 
     When inheriting an actual parameter class from |ZipParameter| one needs
     to define suitable class constants :const:`~ZipParameter.REQUIRED_VALUES`
-    (a :class:`tuple`) and :const:`~ZipParameter.MODEL_CONSTANTS`
-    (a :class:`dict`).  Additionally, a property named `refparameter` must
+    (a |tuple|) and :const:`~ZipParameter.MODEL_CONSTANTS`
+    (a |dict|).  Additionally, a property named `refparameter` must
     be defined.
 
     The implementation and functioning of subclasses of |ZipParameter|
@@ -1167,8 +1161,7 @@ class ZipParameter(MultiParameter):
     def compress_repr(self):
         """Return a compressed parameter value string, which is (in
         accordance with :attr:`NDIM`) contained in a nested list.  If the
-        compression fails, a :class:`~exceptions.NotImplementedError` is
-        raised.
+        compression fails, a |NotImplementedError| is raised.
         """
         try:
             return MultiParameter.compress_repr(self)
@@ -1198,7 +1191,7 @@ class ZipParameter(MultiParameter):
 class SeasonalParameter(MultiParameter):
     """Class for the flexible handling of parameters with anual cycles.
 
-    Let us prepare a 1-dimensional :class:`SeasonalParameter` instance:
+    Let us prepare a 1-dimensional |SeasonalParameter| instance:
 
     >>> from hydpy.core.parametertools import SeasonalParameter
     >>> seasonalparameter = SeasonalParameter()
@@ -1208,7 +1201,7 @@ class SeasonalParameter(MultiParameter):
 
     >>> seasonalparameter.simulationstep = '1d'
 
-    To define its shape, the first entry of the assigned :class:`tuple`
+    To define its shape, the first entry of the assigned |tuple|
     object is ignored:
 
     >>> seasonalparameter.shape = (None,)
@@ -1219,15 +1212,14 @@ class SeasonalParameter(MultiParameter):
     (366,)
 
     The annual pattern of seasonal parameters is defined through pairs of
-    :class:`~hydpy.core.timetools.TOY` objects and different values (e.g.
-    of type :class:`float`).  One can define them all at once in the
-    following manner:
+    |TOY| objects and different values (e.g. of type |float|).  One can
+    define them all at once in the following manner:
 
     >>> seasonalparameter(_1=2., _7_1=4., _3_1_0_0_0=5.)
 
-    Note that, as :class:`str` objects, all keywords in the call above would
-    be proper :class:`~hydpy.core.timetools.TOY` initialization arguments.
-    If they are not properly written, the following exception is raised:
+    Note that, as |str| objects, all keywords in the call above would
+    be proper |TOY| initialization arguments. If they are not properly
+    written, the following exception is raised:
 
     >>> SeasonalParameter()(_a=1.)
     Traceback (most recent call last):
@@ -1241,7 +1233,7 @@ but the value `a` of type `str` given for property `month` cannot be \
 converted to `int`.
 
     As the following string representation shows, are the pairs of each
-    :class:`SeasonalParameter` instance automatically sorted:
+    |SeasonalParameter| instance automatically sorted:
 
     >>> seasonalparameter
     seasonalparameter(toy_1_1_0_0_0=2.0,
@@ -1260,7 +1252,7 @@ converted to `int`.
                       toy_3_1_0_0_0=5.0,
                       toy_7_1_0_0_0=4.0)
 
-    On applying function :func:`len` on :class:`SeasonalParameter` objects,
+    On applying function :func:`len` on |SeasonalParameter| objects,
     the number of toy-value pairs is returned:
 
     >>> len(seasonalparameter)
@@ -1325,7 +1317,7 @@ into shape (3)
         called by methods __call__, __setattr__ and __delattr__ automatically,
         when required.
 
-        Instantiate a 1-dimensional :class:`SeasonalParameter` object:
+        Instantiate a 1-dimensional |SeasonalParameter| object:
 
         >>> from hydpy.core.parametertools import SeasonalParameter
         >>> sp = SeasonalParameter()
@@ -1333,9 +1325,9 @@ into shape (3)
         >>> sp.NDIM = 1
         >>> sp.shape = (None,)
 
-        When a :class:`SeasonalParameter` object does not contain any
-        toy-value pairs yet, the method :func:`SeasonalParameter.refresh`
-        sets all actual simulation values to zero:
+        When a |SeasonalParameter| object does not contain any toy-value
+        pairs yet, the method |SeasonalParameter.refresh| sets all actual
+        simulation values to zero:
 
         >>> sp.values = 1.
         >>> sp.refresh()
@@ -1397,10 +1389,9 @@ into shape (3)
 
     def interp(self, date):
         """Perform a linear value interpolation for a date defined by the
-        passed :class:`~hydpy.core.timetools.Date` object and return the
-        result.
+        passed |Date| object and return the result.
 
-        Instantiate a 1-dimensional :class:`SeasonalParameter` object:
+        Instantiate a 1-dimensional |SeasonalParameter| object:
 
         >>> sp = SeasonalParameter()
         >>> from hydpy import Date, Period
@@ -1411,9 +1402,8 @@ into shape (3)
         Define three toy-value pairs:
         >>> sp(_1=2.0, _2=5.0, _12_31=4.0)
 
-        Passing a :class:`~hydpy.core.timetools.Date` object excatly matching
-        a :class:`~hydpy.core.timetools.TOY` object of course simply returns
-        the associated value:
+        Passing a |Date| object excatly matching a |TOY| object of course
+        simply returns the associated value:
 
         >>> sp.interp(Date('2000.01.01'))
         2.0
@@ -1595,10 +1585,10 @@ class KeywordParameter2D(KeywordParameter2DMetaclass):
     """Base class for 2-dimensional model parameters which values which depend
     on two factors.
 
-    When inheriting an actual parameter class from :class:`KeywordParameter2D`
+    When inheriting an actual parameter class from |KeywordParameter2D|
     one needs to define the class attributes
     :const:`~KeywordParameter2D.ROWNAMES` and
-    :const:`~KeywordParameter2D.COLNAMES` (both of type :class:`tuple`).
+    :const:`~KeywordParameter2D.COLNAMES` (both of type |tuple|).
     One usual setting would be that :const:`~KeywordParameter2D.ROWNAMES`
     defines some land use classes and :const:`~KeywordParameter2D.COLNAMES`
     defines seasons, months, or the like.
@@ -1617,7 +1607,7 @@ class KeywordParameter2D(KeywordParameter2DMetaclass):
     >>> iswarm = IsWarm()
     >>> iswarm.shape = (2, 2)
 
-    :class:`KeywordParameter2D` allows to set the values of all rows via
+    |KeywordParameter2D| allows to set the values of all rows via
     keyword arguments:
 
     >>> iswarm(north=[True, False],
@@ -1629,7 +1619,7 @@ class KeywordParameter2D(KeywordParameter2DMetaclass):
     array([[ True, False],
            [False,  True]], dtype=bool)
 
-    If a keyword is missing, a :class:`~exceptions.TypeError` is raised:
+    If a keyword is missing, a |TypeError| is raised:
 
     >>> iswarm(north=[True, False])
     Traceback (most recent call last):

@@ -20,8 +20,7 @@ calculated beforehand.  Both associated scalar parameters are allowed
 to vary in time, as explained for the outflow vector.
 
 Note that the accuracy of the results calculated by lake_v1 depend
-on the internal step size parameter
-:class:`~hydpy.models.llake.llake_control.MaxDT`.
+on the internal step size parameter |MaxDT|.
 
 Integration examples:
 

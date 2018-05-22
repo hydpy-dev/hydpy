@@ -86,9 +86,7 @@ class Lnk(lland_parameters.MultiParameter):
 
     def compress_repr(self):
         """Returns a list which contains a string representation with land
-        uses being defined by the constants
-        :const:`~hydpy.models.lland.lland_constants.SIED_D`,
-        :const:`~hydpy.models.lland.lland_constants.SIED_L`...
+        uses being defined by the constants |SIED_D|, |SIED_L|...
         """
         invmap = {value: key for key, value in
                   lland_constants.CONSTANTS.items()}

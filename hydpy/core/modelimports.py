@@ -6,8 +6,8 @@ of base and application models implemented.  Just write:
 >>> from hydpy.core.modelimports import *
 
 Thereafter, the following objects are available:
- * module :mod:`numpy`
- * numpys :obj:`~numpy.nan` and :obj:`~numpy.inf`
+ * module |numpy|
+ * numpys |nan| and |inf|
  * functions |parameterstep|, |simulationstep|, and |controlcheck|
    of module |importtools|
  * class |Tester| of module |testtools|

@@ -15,8 +15,8 @@ class HV(parametertools.LeftRightParameter):
         """Update value based on :math:`HV=BBV/BNV`.
 
         Required Parameters:
-            :class:`BBV`
-            :class:`BNV`
+            |BBV|
+            |BNV|
 
         Examples:
             >>> from hydpy.models.lstream import *
@@ -46,16 +46,14 @@ class QM(parametertools.SingleParameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
     def update(self):
-        """Update value based on the actual
-        :func:`~hydpy.models.lstream.lstream_model.calc_qg` method.
+        """Update value based on the actual |calc_qg| method.
 
         Required derived parameter:
-            :class:`~hydpy.models.lstream.lstream_control.H`
+            |H|
 
-        Note that the value of parameter :class:`QM` is directly related to
-        the value of parameter :class:`HM` and indirectly related to all
-        parameters values relevant for method
-        :func:`~hydpy.models.lstream.lstream_model.calc_qg`. Hence the
+        Note that the value of parameter |QM| is directly related to
+        the value of parameter |HM| and indirectly related to all
+        parameters values relevant for method |calc_qg|. Hence the
         complete paramter (and sequence) requirements might differ for
         various application models.
 
@@ -75,16 +73,14 @@ class QV(parametertools.LeftRightParameter):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
     def update(self):
-        """Update value based on the actual
-        :func:`~hydpy.models.lstream.lstream_model.calc_qg` method.
+        """Update value based on the actual |calc_qg| method.
 
         Required derived parameter:
-            :class:`HV`
+            |HV|
 
-        Note that the values of parameter :class:`QV` are directly related to
-        the values of parameter :class:`HV` and indirectly related to all
-        parameters values relevant for method
-        :func:`~hydpy.models.lstream.lstream_model.calc_qg`. Hence the
+        Note that the values of parameter |QV| are directly related to
+        the values of parameter |HV| and indirectly related to all
+        parameters values relevant for method |calc_qg|. Hence the
         complete paramter (and sequence) requirements might differ for
         various application models.
 
@@ -109,8 +105,8 @@ class Sek(parametertools.SingleParameter):
         """Update value based on :math:`HL=BBR/BNR`.
 
         Required Parameters:
-            :class:`BBR`
-            :class:`BNR`
+            |BBR|
+            |BNR|
 
         Example:
             >>> from hydpy.models.lstream import *

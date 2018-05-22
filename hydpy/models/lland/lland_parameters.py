@@ -13,11 +13,11 @@ class MultiParameter(parametertools.ZipParameter):
     """Base class for handling parameters of the HydPy-L-Land model
     (potentially) handling multiple values.
 
-    Class |lland_parameters.MultiParameter| of HydPy-L-Land basically works
-    like Class :class:`~hydpy.models.lland.lland_parameters.MultiParameter` of
-    HydPy-H-Land, except that keyword arguments specific to HydPy-L-Land
-    are applied (acker, nadelw, wasser..., see module |lland_constants|)
-    and except that parameter |NHRU| determines the number of entries:
+    Class |lland_parameters.MultiParameter| of HydPy-L-Land basically
+    works like class |hland_parameters.MultiParameter| of HydPy-H-Land,
+    except that keyword arguments specific to HydPy-L-Land are applied
+    (acker, nadelw, wasser..., see module |lland_constants|) and except
+    that parameter |NHRU| determines the number of entries:
 
     >>> from hydpy.models.lland.lland_parameters import MultiParameter
     >>> from hydpy.models.lland import *

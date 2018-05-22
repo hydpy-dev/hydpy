@@ -23,7 +23,7 @@ def parameterstep(timestep=None):
     """Define a parameter time step size within a parameter control file.
 
     Argument:
-      * timestep(:class:`~hydpy.core.timetools.Period`): Time step size.
+      * timestep(|Period|): Time step size.
 
     Function parameterstep should usually be be applied in a line
     immediately behind the model import.  Defining the step size of time
@@ -31,7 +31,7 @@ def parameterstep(timestep=None):
     parameter.
 
     Note that parameterstep implements some namespace magic by
-    means of the module :mod:`inspect`.  This makes things a little
+    means of the module |inspect|.  This makes things a little
     complicated for framework developers, but it eases the definition of
     parameter control files for framework users.
     """
@@ -97,8 +97,7 @@ def reverse_model_wildcard_import():
 
     >>> from hydpy import reverse_model_wildcard_import
 
-    Assume you wildcard import the first version of HydPy-L-Land
-    (:mod:`~hydpy.models.lland_v1`):
+    Assume you wildcard import the first version of HydPy-L-Land (|lland_v1|):
 
     >>> from hydpy.models.lland_v1 import *
 
@@ -109,7 +108,7 @@ def reverse_model_wildcard_import():
     control
 
     Calling function |parameterstep| for example prepares the control
-    parameter object :class:`~hydpy.models.lland.lland_control.nhru`:
+    parameter object |lland_control.nhru|:
 
     >>> parameterstep('1d')
     >>> nhru
@@ -170,8 +169,8 @@ def prepare_model(module, timestep=None):
     |prepare_model|, which just returns a reference to the model
     and nothing else.
 
-    See the documentation of :mod:`~hydpy.models.dam_v001` on how to apply
-    function |prepare_model| properly.
+    See the documentation of |dam_v001| on how to apply function
+    |prepare_model| properly.
     """
     if timestep is not None:
         parametertools.Parameter.parameterstep(timetools.Period(timestep))

@@ -14,7 +14,7 @@ class Parameters(parametertools.Parameters):
 
     def update(self):
         """Determines the values of the parameters handled by
-        :class:`DerivedParameters` based on the values of the parameters.
+        |DerivedParameters| based on the values of the parameters.
         """
         self.calc_nmbsegments()
         self.calc_coefficients()
@@ -22,16 +22,16 @@ class Parameters(parametertools.Parameters):
     def calc_nmbsegments(self):
         """Determines in how many segments the whole reach needs to be
         divided to approximate the desired lag time via integer rounding.
-        Adjusts the shape of sequence :class:`QJoints` additionally.
+        Adjusts the shape of sequence |QJoints| additionally.
 
         Required control parameters:
-          :class:`Lag`
+          |Lag|
 
         Calculated derived parameters:
-          :class:`NmbSegments`
+          |NmbSegments|
 
         Prepared state sequence:
-          :class:`QJoints`
+          |QJoints|
 
         Example:
 
@@ -71,12 +71,12 @@ class Parameters(parametertools.Parameters):
         """Calculates the Muskingum coefficients.
 
         Required control parameters:
-          :class:`Damp`
+          |Damp|
 
         Calculated derived parameters:
-          :class:`C1`
-          :class:`C2`
-          :class:`C3`
+          |C1|
+          |C2|
+          |C3|
 
         Basic equations:
           :math:`c_1 = \\frac{Damp}{1+Damp}`\n

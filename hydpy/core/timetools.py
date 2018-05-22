@@ -26,16 +26,16 @@ time.strptime('1999', '%Y')
 class Date(object):
     """Handles a single date.
 
-    Classes :class:`Date` is build on top of the Python module :mod:`datetime`.
-    In essence, it wraps the :mod:`datetime` class :class:`~datetime.datetime`,
-    and is supposed to specialise this general class on the needs of HydPy
-    users.
+    Classes |Date| is build on top of the Python module |datetime|.
+    In essence, it wraps the |datetime| class |datetime.datetime|,
+    and is supposed to specialise this general class on the needs
+    of HydPy users.
 
-    Be aware of the different minimum time resolution of module :mod:`datetime`
-    (microseconds) and module :mod:`~hydpy.core.timetools` (seconds).
+    Be aware of the different minimum time resolution of module |datetime|
+    (microseconds) and module |timetools| (seconds).
 
-    :class:`Date` objects can be initialized via :class:`~datetime.datetime`
-    objects directly, e.g.:
+    |Date| objects can be initialized via |datetime.datetime| objects
+    directly, e.g.:
 
         >>> from datetime import datetime
         >>> from hydpy import Date
@@ -44,8 +44,8 @@ class Date(object):
         >>> # ...and use it to initialise a `Date` object.
         >>> date1 = Date(datetime_object)
 
-    Alternatively, one can use :class:`str` objects as initialization
-    arguments, which need to match one of the following format styles:
+    Alternatively, one can use |str| objects as initialization arguments,
+    which need to match one of the following format styles:
 
         >>> # The `os` style without empty space and colon, which is applied in
         >>> # text files and folder names:
@@ -58,7 +58,7 @@ class Date(object):
         >>> # to a german norm):
         >>> date2 = Date('01.11.1997 00:00:00')
 
-    :class:`Date` keeps the chosen style in mind and uses it for printing.
+    |Date| keeps the chosen style in mind and uses it for printing.
     But the user is also allowed to change it:
 
         >>> # Print in accordance with the `iso` style...
@@ -89,11 +89,10 @@ class Date(object):
         1996.11.01 00:00:00
         1996.11.01 00:00:00
 
-    If :class:`Date` has not been initialized via a :class:`str` object and
-    the style property has not been set manually, the default style `iso`
-    is selected.
+    If |Date| has not been initialized via a |str| object and the style
+    property has not been set manually, the default style `iso` is selected.
 
-    One can change the year, month... of a :class:`Date` object via numbers:
+    One can change the year, month... of a |Date| object via numbers:
 
         >>> # Assign an integer...
         >>> test4.year = 1997
@@ -126,8 +125,8 @@ class Date(object):
         >>> nov.wateryear
         1997
 
-    Note that :class:`Date` objects are mutable.  Use the `copy` method
-    to prevent from unintentional results:
+    Note that |Date| objects are mutable.  Use the `copy` method to prevent
+    from unintentional results:
 
         >>> date1 = Date('1996.11.01 00:00')
         >>> date2 = date1
@@ -170,10 +169,10 @@ class Date(object):
                             'The given arguments type is %s.' % type(date))
 
     def _initfromstr(self, date):
-        """Try to initialize `datetime` from the given :class:`str` instance.
+        """Try to initialize `datetime` from the given |str| instance.
 
         Arguments:
-            * date (:class:`str`): Initialization date.
+            * date (|str|): Initialization date.
         """
         for (style, string) in self._formatstrings.items():
             for dummy in range(4):
@@ -189,18 +188,17 @@ class Date(object):
 
     @classmethod
     def fromarray(cls, array):
-        """Returns a :class:`Date` instance based on date information (year,
-        month, day, hour, minute, second) stored as the first entries of the
-        successive rows of a :class:`~numpy.ndarray` object."""
+        """Returns a |Date| instance based on date information (year,
+        month, day, hour, minute, second) stored as the first entries of
+        the successive rows of a |ndarray| object."""
         intarray = numpy.array(array, dtype=int)
         for dummy in range(1, array.ndim):
             intarray = intarray[:, 0]
         return cls(datetime.datetime(*intarray))
 
     def toarray(self):
-        """Returns a 1-dimensional :mod:`numpy` :class:`~numpy.ndarray` with
-        six entries defining the actual date (year, month, day, hour, minute,
-        second)."""
+        """Returns a 1-dimensional |numpy| |ndarray| with six entries
+        defining the actual date (year, month, day, hour, minute, second)."""
         return numpy.array([self.year, self.month, self.day, self.hour,
                             self.minute, self.second], dtype=float)
 
@@ -208,7 +206,7 @@ class Date(object):
         """First month of the hydrological year. The default value is 11
         (November which is the german reference month). Setting it e.g. to 10
         (October is another common reference month many different countries)
-        affects all :class:`Date` instances."""
+        affects all |Date| instances."""
         return type(self)._firstmonth_wateryear
 
     def _setrefmonth(self, value):
@@ -331,7 +329,7 @@ class Date(object):
                 (((year % 100) != 0) or ((year % 400) == 0)))
 
     def copy(self):
-        """Returns a deep copy of the :class:`Date` instance."""
+        """Returns a deep copy of the |Date| instance."""
         return copy.deepcopy(self)
 
     def __add__(self, other):
@@ -379,7 +377,7 @@ class Date(object):
         return self.datetime >= Date(other).datetime
 
     def string(self, style):
-        """Returns a :class:`str` object representing the actual date in
+        """Returns a |str| object representing the actual date in
         accordance with the given style.
         """
         retain = self.style
@@ -405,16 +403,16 @@ abctools.DateABC.register(Date)
 class Period(object):
     """Handles the length of a single time period.
 
-    Class :class:`Period` is build on top of the Python module :mod:`datetime`.
-    In essence, it wraps the :mod:`datetime` class
-    :class:`~datetime.timedelta` and is supposed to specialise this general
-    classes on the needs of HydPy users.
+    Class |Period| is build on top of the Python module |datetime|.
+    In essence, it wraps the |datetime| class |datetime.timedelta| and
+    is supposed to specialise this general classes on the needs of HydPy
+    users.
 
-    Be aware of the different minimum time resolution of module :mod:`datetime`
-    (microseconds) and module :mod:`~hydpy.core.timetools` (seconds).
+    Be aware of the different minimum time resolution of module |datetime|
+    (microseconds) and module |timetools| (seconds).
 
-    :class:`Period` objects can be directly initialized via
-    :class:`~datetime.timedelta` objects, e.g.:
+    |Period| objects can be directly initialized via |datetime.timedelta|
+    objects, e.g.:
 
         >>> from datetime import timedelta
         >>> from hydpy import Period
@@ -423,9 +421,9 @@ class Period(object):
         >>> # ...and use it to initialise a `Period` object
         >>> period = Period(timedelta_object)
 
-    Alternatively, one can initialize from :class:`str` objects.  These must
-    consist of some characters defining an integer value directly followed by
-    a single character defining the unit:
+    Alternatively, one can initialize from |str| objects.  These must
+    consist of some characters defining an integer value directly followed
+    by a single character defining the unit:
 
         >>> # 30 seconds:
         >>> period = Period('30s')
@@ -436,14 +434,14 @@ class Period(object):
         >>> # 1 day:
         >>> period = Period('1d')
 
-    In case you need an "empty" period object, just pass nothing or `None`:
+    In case you need an "empty" period object, just pass nothing or |None|:
 
         >>> Period()
         Period()
         >>> Period(None)
         Period()
 
-    :class:`Period` always determines the unit leading to the most legigible
+    |Period| always determines the unit leading to the most legigible
     expression:
 
         >>> # Print using the unit leading to the smallest integer value:
@@ -515,8 +513,8 @@ However, for the given `timedelta` object, it is`857142` instead.
         >>> period != '12h'
         True
 
-    Note that :class:`Period` objects are mutable.  Use the `copy` method
-    to prevent from unintentional results::
+    Note that |Period| objects are mutable.  Use the `copy` method to
+    prevent from unintentional results::
 
         >>> period1 = Period('6h')
         >>> period2 = period1
@@ -564,10 +562,10 @@ However, for the given `timedelta` object, it is`857142` instead.
     timedelta = property(_get_timedelta, _set_timedelta, _del_timedelta)
 
     def _initfromstr(self, period):
-        """Try to initialize `timedelta` from the given :class:`str` instance.
+        """Try to initialize `timedelta` from the given |str| instance.
 
         Arguments:
-            * period (:class:`str`): Period length.
+            * period (|str|): Period length.
          """
         try:
             number = int(period[:-1])
@@ -593,8 +591,7 @@ However, for the given `timedelta` object, it is`857142` instead.
 
     @classmethod
     def fromseconds(cls, seconds):
-        """Returns a :class:`Period` instance based on a given number of
-        seconds.
+        """Returns a |Period| instance based on a given number of seconds.
         """
         try:
             seconds = int(seconds)
@@ -645,7 +642,7 @@ However, for the given `timedelta` object, it is`857142` instead.
     days = property(_getdays)
 
     def copy(self):
-        """Returns a deep copy of the :class:`Period` instance."""
+        """Returns a deep copy of the |Period| instance."""
         return copy.deepcopy(self)
 
     def __bool__(self):
@@ -750,8 +747,8 @@ class Timegrid(object):
     In hydrological modelling, input (and output) data are usually only
     available with a certain resolution, which also determines the possible
     resolution of the actual simulation.  This is reflected by the class
-    :class:`Timegrid`, which represents the first and the last date of e.g.
-    a simulation period as well as the intermediate dates. A :class:`Timegrid`
+    |Timegrid|, which represents the first and the last date of e.g.
+    a simulation period as well as the intermediate dates. A |Timegrid|
     object is initialized by defining its first date, its last date and its
     stepsize:
 
@@ -772,7 +769,7 @@ class Timegrid(object):
                  '1997.11.01 00:00:00',
                  '1d')
 
-    :class:`Timegrid` provides functionalities to ease and secure the handling
+    |Timegrid| provides functionalities to ease and secure the handling
     of dates in HydPy. Here some examples:
 
         >>> # Retrieve a date via indexing, e.g. the second one:
@@ -805,7 +802,7 @@ class Timegrid(object):
         1997.09.01 00:00:00
         1997.10.01 00:00:00
 
-    After doing some changes one should call the :func:`~Timegrid.verify`
+    After doing some changes one should call the |Timegrid.verify|
     method:
 
         >>> # `verify` keeps silent if everything seems to be alright...
@@ -819,7 +816,7 @@ class Timegrid(object):
 dates 1996.11.01 00:30:00 and 1997.11.01 00:00:00 is not a multiple of the \
 given step size 1d.
 
-    One can check two :class:`Timegrid` instances for equality:
+    One can check two |Timegrid| instances for equality:
 
         >>> # Make a deep copy of the timegrid already existing.
         >>> timegrid_test = timegrid_sim.copy()
@@ -837,7 +834,7 @@ given step size 1d.
         True
 
     Also, one can check if a date or even the whole timegrid lies within a
-    span defined by a :class:`Timegrid` instance::
+    span defined by a |Timegrid| instance::
 
         >>> # Define a long timegrid:
         >>> timegrid_long = Timegrid('1996.11.01', '2006.11.01', '1d')
@@ -901,9 +898,8 @@ given step size 1d.
 
     @classmethod
     def fromarray(cls, array):
-        """Returns a :class:`Timegrid` instance based on two date and one
-        period information stored in the first 13 rows of a
-        :class:`~numpy.ndarray` object.
+        """Returns a |Timegrid| instance based on two date and one period
+        information stored in the first 13 rows of a |ndarray| object.
         """
         try:
             return cls(firstdate=Date.fromarray(array[:6]),
@@ -915,9 +911,9 @@ given step size 1d.
                              'consist of %d entries/rows only.' % len(array))
 
     def toarray(self):
-        """Returns a 1-dimensional :mod:`numpy` :class:`~numpy.ndarray` with
-        thirteen entries first defining the start date, secondly defining the
-        end date and thirdly the step size in seconds.
+        """Returns a 1-dimensional |numpy| |ndarray| with thirteen entries
+        first defining the start date, secondly defining the end date and
+        thirdly the step size in seconds.
         """
 
         values = numpy.empty(13, dtype=float)
@@ -1025,8 +1021,8 @@ timegrid object is `4` and the length of the array object is `2`.
         return series
 
     def verify(self):
-        """Raise an :class:`~exceptions.ValueError` if the dates or the
-        step size of the time frame are inconsistent.
+        """Raise an |ValueError| if the dates or the step size of the time
+        frame are inconsistent.
         """
         if self.firstdate >= self.lastdate:
             raise ValueError('Unplausible timegrid. The first given '
@@ -1039,7 +1035,7 @@ timegrid object is `4` and the length of the array object is `2`.
                              (self.firstdate, self.lastdate, self.stepsize))
 
     def copy(self):
-        """Returns a deep copy of the :class:`Timegrid` instance."""
+        """Returns a deep copy of the |Timegrid| instance."""
         return copy.deepcopy(self)
 
     def __len__(self):
@@ -1096,10 +1092,10 @@ timegrid object is `4` and the length of the array object is `2`.
         return self.assignrepr('')
 
     def assignrepr(self, prefix):
-        """Return a :func:`repr` string with an prefixed assignement.
+        """Return a |repr| string with an prefixed assignement.
 
         Argument:
-            * prefix(:class:`str`): Usually something like 'x = '.
+            * prefix(|str|): Usually something like 'x = '.
         """
         skip = len(prefix) + 9
         blanks = ' ' * skip
@@ -1116,23 +1112,21 @@ abctools.TimegridABC.register(Timegrid)
 
 
 class Timegrids(object):
-    """Handles all :class:`Timegrid` instances of a HydPy project.
+    """Handles all |Timegrid| instances of a HydPy project.
 
     The HydPy framework distinguishes three `time frames`, one associated
     with the input date available on disk (`data`), one associated, with the
     initialisation period (`init`), and one associated with the actual
     simulation period (`sim`).  The last two latter time frames are
-    represented by two different :class:`Timegrid` objects, which are both
-    handled by a single :class:`Timegrids` object.  (The `data` time frames
-    are also defined via :class:`Timegrid` objects, but for each input data
-    file separately. See module :mod:`~hydpy.core.sequencetools` for
-    further information.)
+    represented by two different |Timegrid| objects, which are both
+    handled by a single |Timegrids| object.  (The `data` time frames
+    are also defined via |Timegrid| objects, but for each input data
+    file separately. See module |sequencetools| for further information.)
 
-    There is usually only one :class:`Timegrids` object required within each
+    There is usually only one |Timegrids| object required within each
     HydPy project.  Usually It is instantiated in the project's main file
     or at the top of script defining a HydPy workflow and assigned to the
-    :mod:`~hydpy.pub` module, which provides access to "global" project
-    settings:
+    |pub| module, which provides access to "global" project settings:
 
         >>> from hydpy import Timegrid, Timegrids
         >>> from hydpy import pub
@@ -1165,7 +1159,7 @@ class Timegrids(object):
                                '2002.11.11 00:00:00',
                                '1h'))
 
-    Some examples on the usage of this :class:`Timegrids` instance:
+    Some examples on the usage of this |Timegrids| instance:
 
         >>> # Get the general data and simulation step size:
         >>> pub.timegrids.stepsize
@@ -1180,8 +1174,8 @@ class Timegrids(object):
         8760
 
     Each manual change should be followed by calling the
-    :func:`~Timegrids.verify` method, which calls the :func:`~Timegrid.verify`
-    method of the single :class:`Timegrid` instances and performs some
+    |Timegrids.verify| method, which calls the |Timegrid.verify|
+    method of the single |Timegrid| instances and performs some
     additional tests:
 
         >>> # To postpone the end of the `simulation time frame` exactly
@@ -1243,7 +1237,7 @@ on the initialization time grid.
         self.verify()
 
     def _getstepsize(self):
-        """Stepsize of all handled :class:`Timegrid` objects."""
+        """Stepsize of all handled |Timegrid| objects."""
         return self.init.stepsize
 
     def _setstepsize(self, stepsize):
@@ -1254,9 +1248,8 @@ on the initialization time grid.
     stepsize = property(_getstepsize, _setstepsize)
 
     def verify(self):
-        """Raise an :class:`~exceptions.ValueError` it the different
-        time grids are inconsistent.
-        """
+        """Raise an |ValueError| it the different time grids are
+        inconsistent."""
         self.init.verify()
         self.sim.verify()
         if self.init.firstdate > self.sim.firstdate:
@@ -1284,7 +1277,7 @@ on the initialization time grid.
         """Return the factor for converting `mm/stepsize` to `m^3/s`.
 
         Argument:
-            * area (:class:`float`): Reference area, which must be given in
+            * area (|float|): Reference area, which must be given in
               the unit `km^2`.
         """
         return area * 1000. / self.stepsize.seconds
@@ -1293,13 +1286,13 @@ on the initialization time grid.
         """Return the factor for converting parameter to simulation step size.
 
         Argument:
-            * stepsize (:class:`Period` or an suitable initialization argument
+            * stepsize (|Period| or an suitable initialization argument
               thereof): Time interval, to which the parameter values refer.
         """
         return self.stepsize / Period(stepsize)
 
     def copy(self):
-        """Returns a deep copy of the :class:`Timegrids` instance."""
+        """Returns a deep copy of the |Timegrids| instance."""
         return copy.deepcopy(self)
 
     def __iter__(self):
@@ -1313,10 +1306,10 @@ on the initialization time grid.
         return self.assignrepr('')
 
     def assignrepr(self, prefix):
-        """Return a :func:`repr` string with an prefixed assignement.
+        """Return a |repr| string with an prefixed assignement.
 
         Argument:
-            * prefix(:class:`str`): Usually something like 'x = '.
+            * prefix(|str|): Usually something like 'x = '.
         """
         caller = 'Timegrids('
         blanks = ' ' * (len(prefix) + len(caller))
@@ -1340,8 +1333,8 @@ abctools.TimegridsABC.register(Timegrids)
 class TOY(object):
     """Time of year handler.
 
-    :class:`TOY` objects are used to define certain things that are true for
-    a certain time point in each year.  The smallest supported time unit is
+    |TOY| objects are used to define certain things that are true for a
+    certain time point in each year.  The smallest supported time unit is
     seconds.
 
     Normally, for initialization a string is passed, defining the month, the
@@ -1380,13 +1373,13 @@ class TOY(object):
 
     As one can see, the prefixed information is lost in the printed string
     representation.  But a string with a standard prefix is returned through
-    applying :class:`str` on :class:`TOY` instances:
+    applying |str| on |TOY| instances:
 
     >>> str(TOY('something_3_13_23_33_2'))
     'toy_3_13_23_33_2'
 
-    Alternatively, one can use a :class:`Date` object as a initialization
-    argument, ommitting the year:
+    Alternatively, one can use a |Date| object as a initialization argument,
+    ommitting the year:
 
     >>> TOY(Date('2001.02.03 04:05:06'))
     TOY('2_3_4_5_6')
@@ -1454,7 +1447,7 @@ has already been set to `31`.
 object must lie within the range `(1, 28)`, as the month has already been \
 set to `2`, but the given value is `29`.
 
-    It is possible to compare two :class:`TOY` instances:
+    It is possible to compare two |TOY| instances:
 
     >>> t1, t2 = TOY('1'), TOY('2')
     >>> (t1 < t1, t1 < t2, t2 < t1)
@@ -1470,14 +1463,13 @@ set to `2`, but the given value is `29`.
     >>> (t1 > t1, t1 > t2, t2 > t1)
     (False, False, True)
 
-    Subtracting two :class:`TOY` object gives their time difference in seconds:
+    Subtracting two |TOY| object gives their time difference in seconds:
 
     >>> TOY('1_1_0_3_0') - TOY('1_1_0_1_30')
     90
 
-    Instead of negative values, it is always assumed that the first
-    :class:`TOY` object lies within the future (eventually within the
-    subsequent year):
+    Instead of negative values, it is always assumed that the first |TOY|
+    object lies within the future (eventually within the subsequent year):
 
     >>> TOY('1_1_0_1_30') - TOY('12_31_23_58_30')
     180

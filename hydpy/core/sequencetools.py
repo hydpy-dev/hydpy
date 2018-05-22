@@ -47,57 +47,57 @@ class Sequences(object):
                 yield subseqs
 
     def activate_disk(self, names=None):
-        """Call method :func:`~IOSubSequences.activate_disk` of all handled
+        """Call method |IOSubSequences.activate_disk| of all handled
         |IOSubSequences| objects."""
         for subseqs in self._yield_iosubsequences():
             subseqs.activate_disk(names)
 
     def deactivate_disk(self, names=None):
-        """Call method :func:`~IOSubSequences.deactivate_disk` of all handled
+        """Call method |IOSubSequences.deactivate_disk| of all handled
         |IOSubSequences| objects."""
         for subseqs in self._yield_iosubsequences():
             subseqs.deactivate_disk(names)
 
     def activate_ram(self, names=None):
-        """Call method :func:`~IOSubSequences.activate_ram` of all handled
+        """Call method |IOSubSequences.activate_ram| of all handled
         |IOSubSequences| objects."""
         for subseqs in self._yield_iosubsequences():
             subseqs.activate_ram(names)
 
     def deactivate_ram(self, names=None):
-        """Call method :func:`~IOSubSequences.deactivate_ram` of all handled
+        """Call method |IOSubSequences.deactivate_ram| of all handled
         |IOSubSequences| objects."""
         for subseqs in self._yield_iosubsequences():
             subseqs.deactivate_ram(names)
 
     def open_files(self, idx=0):
-        """Call method :func:`~IOSubSequences.open_files` of all handled
+        """Call method |IOSubSequences.open_files| of all handled
         |IOSubSequences| objects."""
         for subseqs in self._yield_iosubsequences():
             subseqs.open_files(idx)
 
     def close_files(self):
-        """Call method :func:`~IOSubSequences.close_files` of all handled
+        """Call method |IOSubSequences.close_files| of all handled
         |IOSubSequences| objects."""
         for subseqs in self._yield_iosubsequences():
             subseqs.close_files()
 
     def load_data(self, idx):
-        """Call method :func:`~IOSubSequences.load_data` of all handled
+        """Call method |IOSubSequences.load_data| of all handled
         |InputSequences| objects."""
         for subseqs in self:
             if isinstance(subseqs, abctools.InputSubSequencesABC):
                 subseqs.load_data(idx)
 
     def save_data(self, idx):
-        """Call method :func:`~IOSubSequences.save_data` of all handled
+        """Call method |IOSubSequences.save_data| of all handled
         |IOSubSequences| objects."""
         for subseqs in self:
             if isinstance(subseqs, abctools.OutputSubSequencesABC):
                 subseqs.save_data(idx)
 
     def reset(self):
-        """Call method :func:`~ConditionSequence.reset` of all handled
+        """Call method |ConditionSequence.reset| of all handled
         |ConditionSequence| objects."""
         for subseqs in self:
             if isinstance(subseqs, abctools.ConditionSequenceABC):
@@ -185,7 +185,7 @@ class Sequences(object):
             pub.conditionmanager.save_file(filename, ''.join(lines))
 
     def trim_conditions(self):
-        """Call method :func:`~ConditionSequence.trim` of each handled
+        """Call method |ConditionSequence.trim| of each handled
         |ConditionSequence|."""
         for seq in self.conditions:
             seq.trim()
@@ -225,16 +225,16 @@ class SubSequences(_MetaSubSequencesClass):
     """Base class for handling subgroups of sequences.
 
     Attributes:
-      * seqs: The parent :class:`Sequences` object.
-      * fastaccess: The  :class:`FastAccess` object allowing fast access to
+      * seqs: The parent |Sequences| object.
+      * fastaccess: The  |FastAccess| object allowing fast access to
         the sequence values. In `Cython` mode, model specific cdef
         classes are applied.
 
-    Additional attributes are the actual :class:`Sequence` instances,
-    representing the individual time series.  These need to be defined in
-    :class:`SubSequences` subclass.  Therefore, one needs to collect the
-    appropriate :class:`Sequence` subclasses in the (hidden) class attribute
-    :attr:`~SubSequences._SEQCLASSES`, as shown in the following example:
+    Additional attributes are the actual |Sequence| instances, representing
+    the individual time series.  These need to be defined in
+    |SubSequences| subclasses.  Therefore, one needs to collect the
+    appropriate |Sequence| subclasses in the (hidden) class attribute
+    |SubSequences._SEQCLASSES|, as shown in the following example:
 
     >>> from hydpy.core.sequencetools import *
     >>> class Temperature(Sequence):
@@ -255,9 +255,9 @@ class SubSequences(_MetaSubSequencesClass):
     temperature(nan)
     precipitation(nan)
 
-    If one forgets to define a `_SEQCLASSES` tuple so (and maybe tries to add
-    the sequences in the constructor of the subclass of
-    :class:`SubSequences`, the following error is raised:
+    If one forgets to define a `_SEQCLASSES` tuple so (and maybe tries to
+    add the sequences in the constructor of the subclass of |SubSequences|,
+    the following error is raised:
 
     >>> class InputSequences(SubSequences):
     ...     pass
@@ -296,8 +296,8 @@ class SubSequences(_MetaSubSequencesClass):
 
     def __setattr__(self, name, value):
         """Attributes and methods should usually not be replaced.  Existing
-        :class:`Sequence` attributes are protected in a way, that only their
-        values are changed through assignements.  For new :class:`Sequence`
+        |Sequence| attributes are protected in a way, that only their
+        values are changed through assignements.  For new |Sequence|
         attributes, additional `fastaccess` references are defined.  If you
         actually want to replace a sequence, you have to delete it first.
         """
@@ -501,7 +501,7 @@ class Sequence(variabletools.Variable):
         setattr(self.fastaccess, '_%s_%s' % (self.name, suffix), value)
 
     def __call__(self, *args):
-        """The prefered way to pass values to :class:`Sequence` instances
+        """The prefered way to pass values to |Sequence| instances
         within initial condition files.
         """
         self.values = args
@@ -522,7 +522,7 @@ class Sequence(variabletools.Variable):
 
     def _getvalue(self):
         """The actual time series value(s) handled by the respective
-        :class:`Sequence` instance.  For consistency, `value` and `values`
+        |Sequence| instance.  For consistency, `value` and `values`
         can always be used interchangeably.
         """
         value = getattr(self.fastaccess, self.name, None)
@@ -969,11 +969,9 @@ class IOSequence(Sequence):
         for comparison (e.g. observed runoff used for calibration),
         incomplete time series might also be helpful.  This method it
         thought for adjusting such incomplete series to the public
-        initialization time grid stored in module :mod:`~hydpy.pub`.
-        It is automatically called in method
-        :func:`~hydpy.core.sequencetools.load_ext` if necessary provided
-        that the option
-        :attr:`~hydpy.core.objecttools.Options.checkseries` is disabled.
+        initialization time grid stored in module |pub|.  It is
+        automatically called in method |IOSequence.load_ext| if necessary
+        provided that the option |Options.checkseries| is disabled.
 
         Assume the initialization time period of a HydPy project spans
         five day:
@@ -990,7 +988,7 @@ class IOSequence(Sequence):
 
         Prepare a test function that expects the timegrid of the
         data and the data itself, which returns the ajdusted array by
-        means of calling method :func:`adjust_short_series`:
+        means of calling method |IOSequence.adjust_short_series|:
 
         >>> import numpy
         >>> def test(timegrid):
@@ -1021,8 +1019,7 @@ class IOSequence(Sequence):
         >>> test(Timegrid('2000.01.16', '2000.01.18', '1d'))
         array([ nan,  nan,  nan,  nan,  nan])
 
-        Through enabling option
-        :attr:`~hydpy.core.objecttools.Options.usedefaultvalues` the missing
+        Through enabling option |Options.usedefaultvalues| the missing
         values are initialized with zero instead of nan:
 
         >>> pub.options.usedefaultvalues = True
@@ -1293,8 +1290,8 @@ class StateSequence(ModelIOSequence, ConditionSequence):
         self._oldargs = None
 
     def __call__(self, *args):
-        """The prefered way to pass values to :class:`Sequence` instances
-        within initial condition files.
+        """The prefered way to pass values to |Sequence| instances within
+        initial condition files.
         """
         ConditionSequence.__call__(self, *args)
         self.new2old()
@@ -1328,10 +1325,10 @@ class StateSequence(ModelIOSequence, ConditionSequence):
     shape = property(ModelIOSequence._getshape, _setshape)
 
     new = Sequence.values
-    """Complete access to the state value(s), which will be used in the next
-    calculation steps.  Note that :attr:`~StateSequence.new` is a synonym of
-    :attr:`~StateSequence.value`.  Use this property to modify the initial
-    condition(s) of a single :class:`StateSequence` object.
+    """Complete access to the state value(s), which will be used in the
+    next calculation steps.  Note that |StateSequence.new| is a synonym
+    of |value|.  Use this property to modify the initial condition(s) of
+    a single |StateSequence| object.
     """
 
     def _getold(self):
@@ -1639,26 +1636,26 @@ class FastAccess(object):
 
     The following details are of relevance for :ref:`HydPy` developers only.
 
-    :class:`FastAccess` is applied in Python mode only.  In Cython mode,
+    |FastAccess| is applied in Python mode only.  In Cython mode,
     specialized and more efficient cdef classes replace it.  For
-    compatibility with these cdef classes, :class:`FastAccess` objects
+    compatibility with these cdef classes, |FastAccess| objects
     work with dynamically set instance members.  Suppose there is a
     sequence named `seq1` which is 2-dimensional, then its associated
     attributes are:
 
-      * seq1 (:class:`~numpy.ndarray`): The actual sequence values.
-      * _seq1_ndim (:class:`int`): Number of dimensions.
-      * _seq1_length_0 (:class:`int`): Length in the first dimension.
-      * _seq1_length_1 (:class:`int`): Length in the second dimension.
-      * _seq1_ramflag (:class:`bool`): Handle internal data in RAM?
-      * _seq1_diskflag (:class:`bool`): Handle internal data on disk?
-      * _seq1_path (:class:`str`): Path of the internal data file.
+      * seq1 (|ndarray|): The actual sequence values.
+      * _seq1_ndim (|int|): Number of dimensions.
+      * _seq1_length_0 (|int|): Length in the first dimension.
+      * _seq1_length_1 (|int|): Length in the second dimension.
+      * _seq1_ramflag (|bool|): Handle internal data in RAM?
+      * _seq1_diskflag (|bool|): Handle internal data on disk?
+      * _seq1_path (|str|): Path of the internal data file.
       * _seq1_file (:class:`file`): Object handling the internal data file.
 
     Note that all these dynamical attributes and the following methods are
-    initialised, changed or applied by the respective :class:`SubSequences`
-    and :class:`Sequence` objects.  Handling them directly is error prone
-    and thus not recommended.
+    initialised, changed or applied by the respective |SubSequences| and
+    |Sequence| objects.  Handling them directly is error prone and thus
+    not recommended.
     """
 
     def open_files(self, idx):

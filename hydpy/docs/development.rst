@@ -206,11 +206,11 @@ and print statement of Python 3 into Python 2 (when using Python 3, this
 import statement is automatically skipped).
 
 Whenever there are two multiple options to achieve something, prefer
-one that fits best with Python 3.  For example, always use :func:`range`.
-While under Python three often :func:`xrange` would be preferable
-regarding time and memory efficiency, just using :func:`range` leads to
-a clean syntax and is future-proof.  (Have a look at the
-`Python 2-3 cheat sheet`_ whenever in compatibility trouble.)
+one that fits best with Python 3.  For example, always use |range|.
+While under Python 2 often `xrange` would be preferable regarding time
+and memory efficiency, just using |range| leads to a clean syntax
+and is future-proof.  (Have a look at the `Python 2-3 cheat sheet`_
+whenever in compatibility trouble.)
 
 Sometimes incompatibilities of Python 2 and Python 3 require that specific
 HydPy functionalities must be coded twice.  Use `pyversion` in these cases:
@@ -227,7 +227,7 @@ HydPy functionalities must be coded twice.  Use `pyversion` in these cases:
     SystemError: just a test
 
 (The example above is already taken into account by function
-:func:`~hydpy.core.objecttools.augment_excmessage`.)
+|augment_excmessage|.)
 
 
 site-packages
@@ -301,7 +301,7 @@ the names of simple public attributes.  Instead, use protected attributes
 (usually properties) to assure that the internal states of objects remain
 consistent, whenever this appears to be useful. One example is that it
 is not allowed to assign an unknown string to the `outputfiletype` of a
-:class:`~hydpy.core.filetools.SequenceManager`:
+|SequenceManager|:
 
     >>> from hydpy.core.filetools import SequenceManager
     >>> sm = SequenceManager()
@@ -338,14 +338,12 @@ helpful information to error messages as possible, e.g.::
                        'defined so far.  Hence it is not possible to...'
                        % (parameter.name, objecttools.devicename(parameter)))
 
-(The function :func:`~hydpy.core.objecttools.devicename` tries
-to determine the name of the :class:`~hydpy.core.devicetools.Node`
-or :class:`~hydpy.core.devicetools.Element` instance (indirectly)
-containing the given object, which is in many cases the most relevant
-information for identifying the error source.)
+(The function |devicename| tries to determine the name of the |Node|
+or |Element| instance (indirectly) containing the given object, which
+is in many cases the most relevant information for identifying the
+error source.)
 
-Whenever possible, us function
-:func:`~hydpy.core.objecttools.augment_excmessage` to augment
+Whenever possible, us function |augment_excmessage| to augment
 standard Python error messages with `HydPy information`.
 
 
@@ -371,8 +369,7 @@ the property `name`:
     >>> InputSequences(None).name
     'inputs'
 
-For classes like :class:`~hydpy.core.devicetools.Element` or
-:class:`~hydpy.core.devicetools.Node`, where names (and not
+For classes like |Element| or |Node|, where names (and not
 namespaces) are used to differentiate between instances, the
 property `name` is also implemented, but --- of course --- not
 related to the class name, e.g.:
@@ -383,10 +380,9 @@ related to the class name, e.g.:
 
 In HydPy, instances of the same or similar type should be grouped in
 collection objects with a similar name, but with an attached letter "s".
-Different :class:`~hydpy.core.devicetools.Element` instances are stored
-in an instance of the class :class:`~hydpy.core.devicetools.Elements`,
-different :class:`~hydpy.core.devicetools.Node` instances are stored in
-an instance of the class :class:`~hydpy.core.devicetools.Nodes`...
+Different |Element| instances are storedin an instance of the class
+|Elements|, different |Node| instances are stored in an instance of
+the class |Nodes|...
 
 Collection Classes
 ..................
@@ -434,8 +430,8 @@ handling of collection objects, e.g.:
 
 String Representations
 ......................
-Be aware of the difference between :func:`str` and :func:`repr`.
-A good string representation (return value of :func:`repr`) is one
+Be aware of the difference between |str| and |repr|.  A good string
+representation (return value of |repr|) is one
 that a Non-Python-Programmer does not identify to be a string.
 The first ideal case is that copy-pasting the string representation
 within a command line to evaluate it returns a reference to the same
@@ -497,7 +493,7 @@ SubParameters(None)...
 
 Sometimes, additional information might increase the value of a
 string representation.  Add comments in these cases, but only when
-the :attr:`~hydpy.pub.options.reprcomments` flag is activated:
+the |options.reprcomments| flag is activated:
 
     >>> from hydpy.models.hland import *
     >>> parameterstep('1d')
@@ -535,14 +531,14 @@ One of Pythons major strengths is `introspection`, allowing you to analyze
 be to access and change the documentation of a single HBV `number of zones`
 parameter initialized at runtime.  Here, the given string representation
 comment is simply the first line of the documentation string of class
-:class:`~hydpy.models.hland.hland_control.NmbZones`:
+|hland_control.NmbZones|:
 
     >>> from hydpy.models.hland.hland_control import NmbZones
     >>> NmbZones.__doc__.split('\n')[0]
     'Number of zones (hydrological response units) in a subbasin [-].'
 
 However, we could define a unique documentation string for the specific
-:class:`~hydpy.models.hland.hland_control.NmbZones` instance defined above:
+|hland_control.NmbZones| instance defined above:
 
     >>> nmbzones.__doc__ = NmbZones.__doc__.replace('a subbasin',
     ...                                             'the amazonas basin')
@@ -569,28 +565,25 @@ serves the purpose of relieving non-programmers from writing code lines
 that do not deal with hydrological modelling directly.  Section `Imports`_
 discusses the usage of wildcard imports in parameter control files.
 However, the real comfort comes primarily from the `magic` implemented
-in the function :func:`~hydpy.core.importtools.parameterstep`.  Through
-calling this function one does not only define a relevant time interval
-length for the following parameter values.  One also initializes a new
-model instance (if such an instance does not already exist) and makes
-its control parameter objects available in the local namespace.  Hence,
-for the sake of the user's comfort, each parameter control file purports
-being a simple configuration file that somehow checks its own validity.
-On the downside, to modify the operating principle of HydPy's parameter
-control files requires more thought than if everything would have
-been accomplished in a more direct manner.
+in the function |parameterstep|.  Through calling this function one does
+not only define a relevant time interval length for the following parameter
+values.  One also initializes a new model instance (if such an instance
+does not already exist) and makes its control parameter objects available
+in the local namespace.  Hence, for the sake of the user's comfort, each
+parameter control file purports being a simple configuration file that
+somehow checks its own validity.  On the downside, to modify the operating
+principle of HydPy's parameter control files requires more thought than if
+everything would have been accomplished in a more direct manner.
 
 It is encouraged to implement additional introspection features into
 HydPy, as long as they improve the intuitive usability for non-programmers.
 But one should be particularly cautious when doing so and document the
 why and how thoroughly.  To ensure traceability, one should usually add
-such code to the modules :mod:`~hydpy.cythons.modelutils` and
-:mod:`~hydpy.core.magictools`.  Module :mod:`~hydpy.cythons.modelutils`
+such code to the modules |modelutils| and |magictools|.  Module |modelutils|
 deals with all introspection needed to `cythonize` Python models
-automatically.  Module :mod:`~hydpy.core.magictools` serves for
-(most of) the rest of HydPy's magical introspection features.  Of course,
-it might be necessary to define other specialized inspection modules in
-the future.
+automatically.  Module |magictools| serves for (most of) the rest of
+HydPy's magical introspection features.  Of course, it might be necessary
+to define other specialized inspection modules in the future.
 
 Model specific features
 -----------------------
@@ -619,23 +612,21 @@ Conventional Unit-Tests
 -----------------------
 
 After installing HydPy through executing the `setup.py` module with
-the argument `install`, the module :mod:`~hydpy.tests.test_everything`
-is executed as well.  The first task of the latter module is to
-perform all `conventional` unit tests.  Therefore, all modules
-within the package :mod:`~hydpy.tests` named 'unittests_*.py' are
-evaluated based on the unit testing framework :mod:`unittest` of
-Pythons standard library.  Each new HydPy module should be complemented
-by a corresponding unittest file, testing its functionality thoroughly.
-Just write test classes in each unittest file.  These are evaluated
-automatically by module :mod:`~hydpy.tests.test_everything`.  Let each
-class name start with 'Test', a consecutive number, and a description
-of the functionality to be testet.  Each test class must inherit from
-:class:`~unittest.TestCase`, allowing for using its assert methods.
-Last but not least, add the different test methods.  Again, each
-name should start with 'test' and a consecutive number, but this time
-in lower case letters separated by underscores. By way of example,
-consider a snipplet of the test class for the initialization of
-:class:`~hydpy.core.timetools.Date` objects:
+the argument `install`, the module |test_everything| is executed as well.
+The first task of the latter module is to perform all `conventional`
+unit tests.  Therefore, all modules within the package |tests| named
+'unittests_*.py' are evaluated based on the unit testing framework
+|unittest| of Pythons standard library.  Each new HydPy module should
+be complemented by a corresponding unittest file, testing its functionality
+thoroughly.  Just write test classes in each unittest file.  These are
+evaluated automatically by module |test_everything|.  Let each class
+name  start with 'Test', a consecutive number, and a description of the
+functionality to be testet.  Each test class must inherit from
+|unittest.TestCase|, allowing for using its assert methods.  Last but not
+least, add the different test methods.  Again, each name should start with
+'test' and a consecutive number, but this time in lower case letters
+separated by underscores. By way of example, consider a snipplet of the
+test class for the initialization of |Date| objects:
 
     >>> import unittest
     >>> import datetime
@@ -651,20 +642,19 @@ consider a snipplet of the test class for the initialization of
     ...         self.assertEqual(self.refdate_hour,
     ...                          timetools.Date('1997_11_01_12').datetime)
 
-The :func:`~unittest.TestCase.setUp` method allows for some preparations
-that have to be conducted before the test methods can be called.  The status
-defined in the :func:`~unittest.TestCase.setUp` method is restored
-before each test method call, hence --- normally --- the single test
-methods do not affect each other (the consecutive numbers are only used
-for reporting the test results in a sorted manner).  In case the test
-methods affect some global variables, add a
-:func:`~unittest.TestCase.tearDown` method to your test class, which
-will be executed after each test method call. See the documentation
-on :class:`~unittest.TestCase` regarding the available assert methods.
+The |TestCase.setUp| method allows for some preparations that have to be
+conducted before the test methods can be called.  The status defined in
+the |TestCase.setUp| method is restored before each test method call,
+hence --- normally --- the single test methods do not affect each other
+(the consecutive numbers are only used for reporting the test results in a
+sorted manner).  In case the test methods affect some global variables,
+add a |TestCase.tearDown| method to your test class, which will be executed
+after each test method call. See the documentation on |TestCase| regarding
+the available assert methods.
 
 To elaborate the example above, the two test methods are executed manually
-(normally, this is done by module :mod:`~hydpy.tests.test_everything`
-automatically).  First prepare an object for the test results:
+(normally, this is done by module |test_everything| automatically).  First
+prepare an object for the test results:
 
     >>> result = unittest.result.TestResult()
 
@@ -712,7 +702,7 @@ it is scientifically necessary).
 
 Each model implemented in HydPy should be tested in a manner that is
 as clear and comprehensible as possible.  To this end, the documentation
-test principle defined by the module :mod:`doctest` should be applied
+test principle defined by the module |doctest| should be applied
 extensively.  At least, all code branches including (hydrological)
 equations should be captured completely via doctests. (More technical
 branches, e.g. those including the treatment of exceptions, can be
@@ -741,9 +731,9 @@ core package contains a module named `objecttools`.
 To support the frequent usage of doctests, one is allowed to use
 them at any section of the documentation, accepting possible
 redundancies with defined `conventional` unit tests.  The module
-:mod:`~hydpy.tests.test_everything` searches for doctests in
-all Python modules and all `reStructuredText`_ files contained
-in the package hydpy and executes them.
+|test_everything| searches for doctests in all Python modules and
+all `reStructuredText`_ files contained in the package hydpy and
+executes them.
 
 
 Continuous Integration

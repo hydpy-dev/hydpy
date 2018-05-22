@@ -79,9 +79,9 @@ Integration examples:
     >>> stream2 = Element('stream2', inlets=natural, outlets=remote)
 
     Now the models can be prepared.  We begin with the `stream2` model.
-    By setting the :class:`~hydpy.models.arma.arma_control.Responses`
-    parameter in the following manner we define a pure Moving Average
-    model that neither results in translation nor retention processes:
+    By setting the |arma_control.Responses| parameter in the following
+    manner we define a pure Moving Average model that neither results
+    in translation nor retention processes:
 
     >>> from hydpy import prepare_model
     >>> from hydpy.models import arma_v1

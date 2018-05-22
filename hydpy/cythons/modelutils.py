@@ -42,7 +42,7 @@ TYPE2STR = {bool: 'bint',
             None: 'void'}
 """Maps Python types to Cython compatible type declarations.
 
-The Cython type belonging to Python's :class:`int` is selected to be in
+The Cython type belonging to Python's |int| is selected to be in
 agreement with numpy's default integer type on the respective platform/system.
 """
 
@@ -86,10 +86,10 @@ def method_header(method_name, nogil=False, idx_as_arg=False):
 
 
 def decorate_method(wrapped):
-    """The decorated method will return a :class:`Lines` object including
-    a method header.  However, the :class:`Lines` object will be empty if
-    the respective model does not implement a method with the same name as
-    the wrapped method.
+    """The decorated method will return a |Lines| object including
+    a method header.  However, the |Lines| object will be empty if
+    the respective model does not implement a method with the same
+    name as the wrapped method.
     """
     def wrapper(self):
         lines = Lines()
@@ -438,8 +438,7 @@ class PyxWriter(object):
         return lines
 
     def iosequence(self, seq):
-        """Special declaration lines for the given
-        :class:`~hydpy.core.sequencetools.IOSequence` object.
+        """Special declaration lines for the given |IOSequence| object.
         """
         lines = Lines()
         lines.add(1, 'cdef public bint _%s_diskflag' % seq.name)

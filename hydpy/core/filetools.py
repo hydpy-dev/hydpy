@@ -231,9 +231,8 @@ class NetworkManager(FileManager):
                 % selections)
 
     def delete_files(self, selections):
-        """Delete network files.  One or more filenames and/or
-        :class:`~hydpy.selectiontools.Selection` instances can serve as
-        function arguments.
+        """Delete network files.  One or more filenames and/or |Selection|
+        instances can serve as function arguments.
         """
         try:
             currentpath = self.currentpath
@@ -269,7 +268,7 @@ class ControlManager(FileManager):
 
     def load_file(self, element=None, filename=None, clear_registry=True):
         """Return the namespace of the given file (and eventually of its
-        corresponding auxiliary subfiles) as a :class:`dict`.
+        corresponding auxiliary subfiles) as a |dict|.
 
         By default, the internal registry is cleared when a control file and
         all its corresponding auxiliary files have been loaded.  You can
@@ -297,9 +296,9 @@ class ControlManager(FileManager):
     def read2dict(cls, filename, info):
         """Read the control parameters from the given path (and its
         auxiliary paths, where appropriate) and store them in the given
-        :class:`dict` object `info`.
+        |dict| object `info`.
 
-        Note that the :class:`dict` `info` can be used to feed information
+        Note that the |dict| `info` can be used to feed information
         into the execution of control files.  Use this method only if you
         are completely sure on how the control parameter import of HydPy
         works.  Otherwise, you should most probably prefer to use

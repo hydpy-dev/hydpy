@@ -14,12 +14,12 @@ from hydpy.core import autodoctools
 
 
 class Selections(object):
-    """Collects :class:`Selection` instances.
+    """Collects |Selection| instances.
 
     Attributes:
-        * ? (:class:`Selection`): An arbitrary number of :class:`Selection`
-          objects, which can be added (and removed) on demand.  Choose
-          attribute names that are meaningfull within your specific project.
+        * ? (|Selection|): An arbitrary number of |Selection| objects,
+          which can be added (and removed) on demand.  Choose attribute
+          names that are meaningfull within your specific project.
     """
 
     def __init__(self, *selections):
@@ -67,12 +67,12 @@ class Selections(object):
 
     @staticmethod
     def _getiterable(value):
-        """Tries to convert the given argument to a :class:`list` of
-        :class:`Selection` objects and returns it.
+        """Tries to convert the given argument to a |list| of |Selection|
+        objects and returns it.
 
         Argument:
-            * value (:class:`Selection`, :class:`Selections` of a simple
-            iterable containing :class:`Selection` objects): The second
+            * value (|Selection|, |Selections| of a simple
+            iterable containing |Selection| objects): The second
             operand applied in an arithmetic operation.
         """
         if isinstance(value, Selection):
@@ -130,10 +130,10 @@ class Selections(object):
         return self.assignrepr('')
 
     def assignrepr(self, prefix):
-        """Return a :func:`repr` string with an prefixed assignement.
+        """Return a |repr| string with an prefixed assignement.
 
         Argument:
-            * prefix(:class:`str`): Usually something like 'x = '.
+            * prefix(|str|): Usually something like 'x = '.
         """
         with objecttools.repr_.preserve_strings(True):
             with pub.options.ellipsis(2, optional=True):
@@ -146,12 +146,11 @@ class Selections(object):
 
 
 class Selection(object):
-    """Defines a combination of :class:`~hydpy.core.node.Node` and
-    :class:`~hydpy.core.element.Element` objects suitable for a
+    """Defines a combination of |Node| and |Element| objects suitable for a
     specific task.
 
     Attributes:
-        * name (:class:`str`): Name of the selection.
+        * name (|str|): Name of the selection.
         * nodes (|Nodes|): Currently selected nodes.
         * elements (|Elements|): Currently selected elements.
     """
@@ -166,9 +165,7 @@ class Selection(object):
         starting point, including the starting point itself.
 
         Argument:
-            * device (:class:`~hydpy.core.devicetools.Node` or
-              :class:`~hydpy.core.devicetools.Element`): Lowest point
-              to be selected.
+            * device (|Node| or |Element|): Lowest point to be selected.
         """
         self.nodes, self.elements = self.getby_upstream(device)
         return self
@@ -178,9 +175,7 @@ class Selection(object):
         current selection, including the starting point itself.
 
         Argument:
-            * device (:class:`~hydpy.core.devicetools.Node` or
-              :class:`~hydpy.core.devicetools.Element`): Highest point
-              to be deselected.
+            * device (|Node| or |Element|): Highest point to be deselected.
         """
         nodes, elements = self.getby_upstream(device)
         self.nodes -= nodes
@@ -192,9 +187,7 @@ class Selection(object):
         the starting point itself.
 
         Argument:
-            * device (:class:`~hydpy.core.devicetools.Node` or
-              :class:`~hydpy.core.devicetools.Element`): Lowest point
-              to be selected.
+            * device (|Node| or |Element|): Lowest point to be selected.
         """
         nodes = devicetools.Nodes()
         elements = devicetools.Elements()
@@ -213,12 +206,10 @@ class Selection(object):
         """First recursion method for :func:`~Selection.getupstreamnetwork`.
 
         Arguments:
-            * node (:class:`~hydpy.core.devicetools.Node`): The node which
-              is selected currently.
-            * nodes (:class:`~hydpy.core.devicetools.Nodes`): All nodes
-            which have been selected so far.
-            * elements (:class:`~hydpy.core.devicetools.Elements`): All
-            elements which have been selected so far.
+            * node (|Node|): The node which is selected currently.
+            * nodes (|Nodes|): All nodes which have been selected so far.
+            * elements (|Elements|): All elements which have been selected
+            so far.
         """
         if (node not in nodes) and (node in self.nodes):
             nodes += node
@@ -230,12 +221,10 @@ class Selection(object):
         """Second recursion method for :func:`~Selection.getupstreamnetwork`.
 
         Arguments:
-            * element (:class:`~hydpy.core.devicetools.Element`): The
-              element which is selected currently.
-            * nodes (:class:`~hydpy.core.devicetools.Nodes`): All nodes
-            which have been selected so far.
-            * elements (:class:`~hydpy.core.devicetools.Elements`): All
-            elements which have been selected so far.
+            * element (|Element|): The element which is selected currently.
+            * nodes (|Nodes|): All nodes which have been selected so far.
+            * elements (|Element|): All elements which have been selected
+            so far.
         """
         if (element not in elements) and (element in self.elements):
             elements += element
@@ -248,8 +237,8 @@ class Selection(object):
         given modelclass(es).  (All nodes are removed.)
 
         Argument:
-            * modelclass (subclass of :class:`~hydpy.core.models.Model`):
-              Model type(s) as the selection criterion/criteria.
+            * modelclass (subclass of |Model|): Model type(s) as the
+            selection criterion/criteria.
         """
         self.nodes = devicetools.Nodes()
         self.elements = self.getby_modelclasses(modelclass)
@@ -260,8 +249,8 @@ class Selection(object):
         given modelclass(es).  (All nodes are removed.)
 
         Argument:
-            * modelclass (subclass of :class:`~hydpy.core.models.Model`):
-              Model type(s) as the selection criterion/criteria.
+            * modelclass (subclass of |Model|): Model type(s) as the
+            selection criterion/criteria.
         """
         self.nodes = devicetools.Nodes()
         self.elements -= self.getby_modelclasses(*modelclasses)
@@ -272,8 +261,8 @@ class Selection(object):
         modelclass(es).
 
         Argument:
-            * modelclass (subclass of :class:`~hydpy.core.models.Model`):
-              Model type(s) as the selection criterion/criteria.
+            * modelclass (subclass of |Model|): Model type(s) as the
+            selection criterion/criteria.
         """
         elements = devicetools.Elements()
         for element in self.elements:
@@ -291,7 +280,7 @@ class Selection(object):
         containing the given substring(s).  (All elements are unaffected.)
 
         Argument:
-            * substrings (:class:`str`): (Possible) Part(s) of the nodes
+            * substrings (|str|): (Possible) Part(s) of the nodes
               name as the selection criterion/criteria.
         """
         self.nodes = self.getby_nodenames(*substrings)
@@ -302,7 +291,7 @@ class Selection(object):
         not containing the given substring(s).  (All elements are unaffected.)
 
         Argument:
-            * substrings (:class:`str`): (Possible) Part(s) of the nodes
+            * substrings (|str|): (Possible) Part(s) of the nodes
               name as the selection criterion/criteria.
         """
         self.nodes -= self.getby_nodenames(*substrings)
@@ -313,7 +302,7 @@ class Selection(object):
         containing the given substrings(s).
 
         Argument:
-            * substrings (:class:`str`): (Possible) Part(s) of the nodes
+            * substrings (|str|): (Possible) Part(s) of the nodes
               name as the selection criterion/criteria.
         """
         nodes = devicetools.Nodes()
@@ -329,7 +318,7 @@ class Selection(object):
         containing the given substring(s).  (All nodes are unaffected.)
 
         Argument:
-            * substrings (:class:`str`): (Possible) Part(s) of the elements
+            * substrings (|str|): (Possible) Part(s) of the elements
               name as the selection criterion/criteria.
         """
         self.elements = self.getby_elementnames(*substrings)
@@ -340,7 +329,7 @@ class Selection(object):
         not containing the given substring(s).  (All nodes are unaffected.)
 
         Argument:
-            * substrings (:class:`str`): (Possible) Part(s) of the elements
+            * substrings (|str|): (Possible) Part(s) of the elements
               name as the selection criterion/criteria.
         """
         self.elements -= self.getby_elementnames(*substrings)
@@ -351,7 +340,7 @@ class Selection(object):
         containing the given substrings(s).
 
         Argument:
-            * substrings (:class:`str`): (Possible) Part(s) of the elements
+            * substrings (|str|): (Possible) Part(s) of the elements
               name as the selection criterion/criteria.
         """
         elements = devicetools.Elements()
@@ -366,7 +355,7 @@ class Selection(object):
         """Returns a semi-deep copy of the current selection.
 
         Arguments:
-            * name (:class:`str`): Name of the new :class:`Selection` instance.
+            * name (|str|): Name of the new |Selection| instance.
         """
         return Selection(name, self.nodes.copy(), self.elements.copy())
 
@@ -428,10 +417,10 @@ class Selection(object):
         return self.assignrepr('')
 
     def assignrepr(self, prefix):
-        """Return a :func:`repr` string with an prefixed assignement.
+        """Return a |repr| string with an prefixed assignement.
 
         Argument:
-            * prefix(:class:`str`): Usually something like 'x = '.
+            * prefix(|str|): Usually something like 'x = '.
         """
         with objecttools.repr_.preserve_strings(True):
             with pub.options.ellipsis(2, optional=True):

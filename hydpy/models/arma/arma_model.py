@@ -12,15 +12,15 @@ def calc_qpin_v1(self):
     functions.
 
     Required derived parameters:
-      :class:`~hydpy.models.arma.arma_derived.Nmb`
-      :class:`~hydpy.models.arma.arma_derived.MaxQ`
-      :class:`~hydpy.models.arma.arma_derived.DiffQ`
+      |Nmb|
+      |MaxQ|
+      |DiffQ|
 
     Required flux sequence:
-      :class:`~hydpy.models.arma.arma_fluxes.QIn`
+      |QIn|
 
     Calculated flux sequences:
-      :class:`~hydpy.models.arma.arma_fluxes.QPIn`
+      |QPIn|
 
     Examples:
 
@@ -93,14 +93,14 @@ def calc_login_v1(self):
     """Refresh the input log sequence for the different MA processes.
 
     Required derived parameters:
-      :class:`~hydpy.models.arma.arma_derived.Nmb`
-      :class:`~hydpy.models.arma.arma_derived.MA_Order`
+      |Nmb|
+      |MA_Order|
 
     Required flux sequence:
-      :class:`~hydpy.models.arma.arma_fluxes.QPIn`
+      |QPIn|
 
     Updated log sequence:
-      :class:`~hydpy.models.arma.arma_log.LogIn`
+      |LogIn|
 
     Example:
 
@@ -153,15 +153,15 @@ def calc_qma_v1(self):
     """Calculate the discharge responses of the different MA processes.
 
     Required derived parameters:
-      :class:`~hydpy.models.arma.arma_derived.Nmb`
-      :class:`~hydpy.models.arma.arma_derived.MA_Order`
-      :class:`~hydpy.models.arma.arma_derived.MA_Coeffs`
+      |Nmb|
+      |MA_Order|
+      |MA_Coeffs|
 
     Required log sequence:
-      :class:`~hydpy.models.arma.arma_log.LogIn`
+      |LogIn|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.arma.arma_fluxes.QMA`
+      |QMA|
 
     Examples:
 
@@ -214,15 +214,15 @@ def calc_qar_v1(self):
     """Calculate the discharge responses of the different AR processes.
 
     Required derived parameters:
-      :class:`~hydpy.models.arma.arma_derived.Nmb`
-      :class:`~hydpy.models.arma.arma_derived.AR_Order`
-      :class:`~hydpy.models.arma.arma_derived.AR_Coeffs`
+      |Nmb|
+      |AR_Order|
+      |arma_derived.AR_Coeffs|
 
     Required log sequence:
-      :class:`~hydpy.models.arma.arma_log.LogOut`
+      |LogOut|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.arma.arma_fluxes.QAR`
+      |QAR|
 
     Examples:
 
@@ -279,14 +279,14 @@ def calc_qpout_v1(self):
     """Calculate the ARMA results for the different response functions.
 
     Required derived parameter:
-      :class:`~hydpy.models.arma.arma_derived.Nmb`
+      |Nmb|
 
     Required flux sequences:
-      :class:`~hydpy.models.arma.arma_fluxes.QMA`
-      :class:`~hydpy.models.arma.arma_fluxes.QAR`
+      |QMA|
+      |QAR|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.arma.arma_fluxes.QPOut`
+      |QPOut|
 
     Examples:
 
@@ -319,14 +319,14 @@ def calc_logout_v1(self):
     """Refresh the log sequence for the different AR processes.
 
     Required derived parameters:
-      :class:`~hydpy.models.arma.arma_derived.Nmb`
-      :class:`~hydpy.models.arma.arma_derived.AR_Order`
+      |Nmb|
+      |AR_Order|
 
     Required flux sequence:
-      :class:`~hydpy.models.arma.arma_fluxes.QPOut`
+      |QPOut|
 
     Updated log sequence:
-      :class:`~hydpy.models.arma.arma_log.LogOut`
+      |LogOut|
 
     Example:
 
@@ -385,13 +385,13 @@ def calc_qout_v1(self):
     """Sum up the results of the different response functions.
 
     Required derived parameter:
-      :class:`~hydpy.models.arma.arma_derived.Nmb`
+      |Nmb|
 
     Required flux sequences:
-      :class:`~hydpy.models.arma.arma_fluxes.QPOut`
+      |QPOut|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.arma.arma_fluxes.QOut`
+      |QOut|
 
     Examples:
 

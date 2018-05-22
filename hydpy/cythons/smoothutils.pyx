@@ -3,7 +3,7 @@
 #cython: wraparound=False
 #cython: initializedcheck=False
 """This Cython module implements the performance-critical functions of the
-Python module :mod:`~hydpy.auxs.smoothtools`.
+Python module |smoothtools|.
 """
 
 import cython
@@ -29,10 +29,9 @@ RuntimeWarning: overflow encountered in exp
 >>> x
 inf
 
-The exact value of :const:`MAX_LOG_FLOAT` might differ between different
-systems.  So an automated estimation of this value would be advisable.
-(On Windows using 64 bit Python, even 709.0 works.  But a not too small
-safety factor seemed preferable.)
+The exact value of might differ between different systems.  So an automated
+estimation of this value would be advisable.  (On Windows using 64 bit Python,
+even 709.0 works.  But a not too small safety factor seemed preferable.)
 """
 
 cpdef inline double _max(double x_value, double y_value) nogil:

@@ -4,8 +4,8 @@ strategies.  It can be seen from two perspectives.  On the one hand
 it implements a simple discontinous equation, bringing numerical integration
 algorithms into trouble.  On the other hand it describes a simple storage
 with a loss that is constant over time, as long as some storage content is
-left.  The loss rate :class:`test_fluxes.Q` and the initial storage content
-:class:`test_states.S` can be set as required.
+left.  The loss rate |Q| and the initial storage content |S| can be set as
+required.
 """
 # imports...
 # ...standard library

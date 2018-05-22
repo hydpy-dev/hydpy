@@ -5,7 +5,7 @@ This module implements some abstract descriptor classes, metaclasses and base
 classes.  If you are just interested in applying a certain instantaneous
 unit hydrograph (iuh) function or if you want to implement an additional
 iuh, see the examples or the source code of class
-:class:`TranslationDiffusionEquation`.
+|TranslationDiffusionEquation|.
 """
 # import...
 # ...from standard library
@@ -23,12 +23,11 @@ from hydpy.auxs import armatools
 
 
 class IUH_Parameter(object):
-    """Descriptor base class for :class:`PrimaryParameter` and
-    :class:`SecondaryParameter`.
+    """Descriptor base class for |PrimaryParameter| and |SecondaryParameter|.
 
     The first initialization argument is the parameters name.  Optionally,
-    an alternative type (the default type is :class:`float`) and a
-    documentation string can be passed.
+    an alternative type (the default type is |float|) and a documentation
+    string can be passed.
     """
 
     def __init__(self, name, type_=float, doc=None):
@@ -83,10 +82,10 @@ class SecondaryParameter(IUH_Parameter):
 
 
 class MetaIUH(type):
-    """Metaclass for class :class:`IUH`.
+    """Metaclass for class |IUH|.
 
-    For storing :class:`PrimaryParameter` and :class:`SecondaryParameter` in
-    separate dictionaries.
+    For storing |PrimaryParameter| and |SecondaryParameter| in separate
+    dictionaries.
     """
 
     def __new__(cls, name, parents, dict_):
@@ -109,11 +108,11 @@ _MetaIUH = MetaIUH('_MetaIUH', (), {})
 class IUH(_MetaIUH):
     """Base class for instantaneous unit hydrograph function objects.
 
-    See class :class:`TranslationDiffusionEquation` for explanations and
+    See class |TranslationDiffusionEquation| for explanations and
     application examples.
 
     For developers: The string representation does also work for
-    parameter-free :class:`IUH` subclasses:
+    parameter-free |IUH| subclasses:
 
     >>> from hydpy.auxs.iuhtools import IUH
     >>> class Test(IUH):
@@ -311,11 +310,11 @@ class TranslationDiffusionEquation(IUH):
         >>> from matplotlib import pyplot
         >>> pyplot.close()
 
-    All instances of the subclasses of :class:`IUH` provide a pure
-    Moving Average and an Autoregressive-Moving Average approximation to the
-    dt standard impulse of the instantaneous unit hydrograph function.  In
-    the given example, the MA approximation involves 57 coefficients, and the
-    ARMA approximation invoves 17 coefficients:
+    All instances of the subclasses of |IUH| provide a pure Moving Average
+    and an Autoregressive-Moving Average approximation to the dt standard
+    impulse of the instantaneous unit hydrograph function.  In the given
+    example, the MA approximation involves 57 coefficients, and the ARMA
+    approximation invoves 17 coefficients:
 
     >>> tde.ma.order
     57
@@ -333,7 +332,7 @@ class TranslationDiffusionEquation(IUH):
     10.000091, 3.488377
 
     For further information on using MA and ARMA models, read the
-    documentation on module :mod:`~hydpy.auxs.armatools`.
+    documentation on module |armatools|.
 
     Changing a primary parameter results in an updating of the secondary
     parameters as well as the MA and the ARMA model:

@@ -30,9 +30,9 @@ on the programming language `Python`_, which is commonly used in
 many scientific fields.  Through using different well-established
 `Python`_ libraries and design principles, high quality and transparency
 standards are targeted.  In order to avoid writing model cores (like
-:class:`~hydpy.models.lland_v1`) in a more native programming language,
-:ref:`HydPy` includes a `Cython`_ based mechanism to automatically
-translate Python code to C code and to compile it.
+|lland_v1|) in a more native programming language, :ref:`HydPy` includes
+a `Cython`_ based mechanism to automatically translate Python code to C
+code and to compile it.
 
 :ref:`HydPy` has no graphical user interface. Instead, :ref:`HydPy`
 is controlled by  `Python`_ scripts.  These scripts help to increase
@@ -62,54 +62,47 @@ thas ensures that :ref:`HydPy` is working properly and that the
 documentation is actually up-to-date.
 
 See for example the documentation of the (very simple) method
-:func:`~hydpy.models.lland.lland_model.calc_nkor_v1`.  The text
-describes what the method does and what input data it requires.
-It is comprehensive but, as in common documentations, technical
-reports and scientific articles, could be outdated or be wrong in other
-ways.  This is not the case for the example calculation shown in the
-green box.  This example is actual `Python`_ code that shows how
-method :func:`~hydpy.models.lland.lland_model.calc_nkor_v1` can be
-used and how different input values (for variables
-:class:`~hydpy.models.lland.lland_inputs.Nied` and
-:class:`~hydpy.models.lland.lland_control.KG`) result in different
-output values (for variable :class:`~hydpy.models.lland.lland_fluxes.NKor`).
-Each time a new :ref:`HydPy` version is pushed into the
-`GitHub repository`_, automatic test routines on `Travis CI`_ are
-trigged.  The new :ref:`HydPy` version is rejected, if the
-actual :func:`~hydpy.models.lland.lland_model.calc_nkor_v1` method
-does not result in the exact same output values as given in the
-last line of the example.
+|lland_model.calc_nkor_v1|.  The text describes what the method does
+and what input data it requires.  It is comprehensive but, as in common
+documentations, technical reports and scientific articles, could be
+outdated or be wrong in other ways.  This is not the case for the
+example calculation shown in the green box.  This example is actual
+`Python`_ code that shows how method |lland_model.calc_nkor_v1| can be
+used and how different input values (for variables |lland_inputs.Nied|
+and |lland_control.KG|) result in different output values (for variable
+|lland_fluxes.NKor|).  Each time a new :ref:`HydPy` version is pushed
+into the `GitHub repository`_, automatic test routines on `Travis CI`_
+are trigged.  The new :ref:`HydPy` version is rejected, if the
+actual |lland_model.calc_nkor_v1| method does not result in the exact
+same output values as given in the last line of the example.
 
 Such basic "unit tests" should provide a good basis for discussing the
 proper implementation of certain hydrological processes.  But they
 are no proof a complete model is actually working well.  Therefore
 :ref:`HydPy` also offers some "integration test" functionalities.
 
-Each integration test should demonstrate how a certain model could
-be set up meaningfully.  Ideally, the model configuration should
-be varied to show different aspects of its functionality.
-See e.g. `example 13`_ of the documentation on model
-:mod:`~hydpy.models.dam_v001`, which discusses the implemented
-flood retention routine.  Here, example calculations are performed
-for a period of 20 days, and for each day all input and output
-values, as well as all internal states (e.g. the
-:class:`~hydpy.models.dam.dam_states.WaterVolume`), are tabulated.  Again,
-`Travis CI`_ checks that all of these values are exactly recalculated
-by each new :ref:`HydPy` version.  Additionally, the tabulated values
-are shown in a `Bokeh`_ plot, which is also updated for each new
-:ref:`HydPy` version automatically.  You can click on the variables
-and zoom into some details you are actually interested in.
+Each integration test should demonstrate how a certain model could be
+set up meaningfully.  Ideally, the model configuration should be varied
+to show different aspects of its functionality.  See e.g. `example 13`_
+of the documentation on model |dam_v001|, which discusses the implemented
+flood retention routine.  Here, example calculations are performed for a
+period of 20 days, and for each day all input and output values, as well
+as all internal states (e.g. the |dam_states.WaterVolume|), are tabulated.
+Again, `Travis CI`_ checks that all of these values are exactly recalculated
+by each new :ref:`HydPy` version.  Additionally, the tabulated values are
+shown in a `Bokeh`_ plot, which is also updated for each new :ref:`HydPy`
+version automatically.  You can click on the variables and zoom into some
+details you are actually interested in.
 
-If there were some methodical or technical flaws in the retention
-routine of :mod:`~hydpy.models.dam_v001`, you would have good chances
-to find them when reading the documentation critically.  You could tell
-us about your finding via a `GitHub issue`_, allowing us or others to read
-(and at best solve) the problem.  Or you could try to solve it on your
-own and offer your solution as a `Pull Request`_.  You could
-also add a new test to the documentation files to prove that something
-goes wrong and offer it via a `Pull Request`_, which would enable
-`Travis CI`_ to reject future :ref:`HydPy` versions that still contain
-this flaw.
+If there were some methodical or technical flaws in the retention routine
+of |dam_v001|, you would have good chances to find them when reading the
+documentation critically.  You could tell us about your finding via a
+`GitHub issue`_, allowing us or others to read (and at best solve) the
+problem.  Or you could try to solve it on your own and offer your solution
+as a `Pull Request`_.  You could also add a new test to the documentation
+files to prove that something goes wrong and offer it via a
+`Pull Request`_, which would enable `Travis CI`_ to reject future
+:ref:`HydPy` versions that still contain this flaw.
 
 We hope to have made clear that the design of :ref:`HydPy` focusses
 on open collaboration in order to improve existing and to develop

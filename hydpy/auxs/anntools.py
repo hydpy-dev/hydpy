@@ -966,7 +966,7 @@ cannot be used this way.
 
     @property
     def nmb_parameters(self):
-        """Sum of :attr:`~ANN.nmb_weights` and :attr:`~ANN.nmb_intercepts`.
+        """Sum of |anntools.ANN.nmb_weights| and |anntools.ANN.nmb_intercepts|.
 
         >>> from hydpy import dummies
         >>> dummies.ann.nmb_parameters
@@ -975,8 +975,8 @@ cannot be used this way.
         return self.nmb_weights + self.nmb_intercepts
 
     def verify(self):
-        """Raise a :class:`~exceptions.RuntimeError` if the network's shape
-        is not defined completely.
+        """Raise a |RuntimeError| if the network's shape is not defined
+        completely.
 
 
         >>> from hydpy import dummies
@@ -1102,7 +1102,7 @@ class SeasonalANN(object):
     |anntools.ANN| objects that are valid for different times of the year,
     described by |TOY| objects.  The total output of a |anntools.SeasonalANN|
     object is a weighted mean of the output of one or two "normal" neural
-    networks.  The :attr:`~SeasonalANN.ratios` used for weighting depend
+    networks.  |anntools.SeasonalANN.ratios| used for weighting depend
     on the actual time of the year.
 
     To explain this in more detail, let us define a |anntools.SeasonalANN|
@@ -1151,14 +1151,14 @@ class SeasonalANN(object):
                                    intercepts_hidden=[[-16.0]],
                                    intercepts_output=[-1.0]))
 
-    The property :attr:`~SeasonalANN.shape` does reflect the number of
+    The property |anntools.SeasonalANN.shape| does reflect the number of
     required weighting ratios for each time of year (in this example:
     366 days per year) and each neural network (in this example: three):
 
     >>> seasonalann.shape
     (366, 3)
 
-    For safety reasons, :attr:`~SeasonalANN.shape` should normally not
+    For safety reasons, |anntools.SeasonalANN.shape| should normally not
     be changed manually:
 
     >>> seasonalann.shape = (366, 4)
@@ -1166,7 +1166,7 @@ class SeasonalANN(object):
     ...
     AttributeError: can't set attribute
 
-    The following interactive shows how the :attr:`~SeasonalANN.ratios`
+    The following interactive shows how the |anntools.SeasonalANN.ratios|
     used for weighting are calculated:
 
     .. testsetup::
@@ -1228,9 +1228,9 @@ class SeasonalANN(object):
     Inserting data, processing this data, and fetching the output works
     as explained for class |anntools.ANN|, except that the index of the
     actual time of year needs to be passed as the single argument of
-    :func:`~SeasonalANN.process_actual_input`.  Passing the index value
-    `182` activates the third network only, which is configured exactly
-    as the one exemplifying class |anntools.ANN|:
+    |SeasonalANN.process_actual_input|.  Passing the index value `182`
+    activates the third network only, which is configured exactly as
+    the one exemplifying class |anntools.ANN|:
 
     >>> from hydpy import round_
     >>> for input_ in range(9):
@@ -1524,12 +1524,11 @@ been given, but a value of type `ANN` is required.
         (1, 1)
 
         Due to the C level implementation of the mathematical core of
-        both |anntools.ANN| and |anntools.SeasonalANN| in module
-        :mod:`~hydpy.cythons.autogen.autogen.annutils`, such an
-        inconsistency might result in a program crash without any
+        both |anntools.ANN| and |anntools.SeasonalANN| in module |annutils|,
+        such an inconsistency might result in a program crash without any
         informative error message.  Whenever you are afraid some
         inconsistency might have crept in, and you want to repair it,
-        call method :func:`~SeasonalANN.refresh` explicitly:
+        call method |anntools.SeasonalANN.refresh| explicitly:
 
         >>> seasonalann.refresh()
         >>> jan.nmb_inputs, jan.nmb_outputs
@@ -1551,8 +1550,8 @@ been given, but a value of type `ANN` is required.
                 self.__sann = None
 
     def verify(self):
-        """Raise a :class:`~exceptions.RuntimeError` and removes all handled
-        neural networks, if the they are defined inconsistently.
+        """Raise a |RuntimeError| and removes all handled neural networks,
+        if the they are defined inconsistently.
 
         Dispite all automated safety checks explained in the general
         documentation on class |anntools.SeasonalANN|, it is still possible
@@ -1574,12 +1573,12 @@ been given, but a value of type `ANN` is required.
         (1, 1)
 
         Due to the C level implementation of the mathematical core of both
-        |anntools.ANN| and |anntools.SeasonalANN| in module
-        :mod:`~hydpy.cythons.annutils`, such an inconsistency might result
-        in a program crash without any informative error message.  Whenever
-        you are afraid some inconsistency might have crept in, and you want
-        to find out if this is actually the case, call method
-        :func:`~SeasonalANN.verify` explicitly:
+        |anntools.ANN| and |anntools.SeasonalANN| in module |annutils|,
+        such an inconsistency might result in a program crash without any
+        informative error message.  Whenever you are afraid some
+        inconsistency might have crept in, and you want to find out if this
+        is actually the case, call method |anntools.SeasonalANN.verify|
+        explicitly:
 
         >>> seasonalann.verify()
         Traceback (most recent call last):
@@ -1667,16 +1666,16 @@ neural network `seasonalann` of element `?` none has been defined so far.
             shp, dtype=float)
 
     shape = property(_getshape,
-                     doc='The shape of array :func:`~SeasonalANN.ratios`.')
+                     doc='The shape of array |SeasonalANN.ratios|.')
 
     @property
     def toys(self):
-        """A sorted :class:`tuple` of all contained |TOY| objects."""
+        """A sorted |tuple| of all contained |TOY| objects."""
         return tuple(toy for (toy, ann) in self)
 
     @property
     def anns(self):
-        """A sorted :class:`tuple` of all contained |anntools.ANN| objects."""
+        """A sorted |tuple| of all contained |anntools.ANN| objects."""
         return tuple(ann for (toy, ann) in self)
 
     @property
@@ -1724,7 +1723,7 @@ neural network `seasonalann` of element `?` none has been defined so far.
 
     def plot(self, xmin, xmax, idx_input=0, idx_output=0, points=100,
              **kwargs):
-        """Call method :func:`ANN.plot` of all |anntools.ANN| objects
+        """Call method |ANN.plot| of all |anntools.ANN| objects
         handled bythe actual |anntools.SeasonalANN| object.
         """
         for toy, ann in self:

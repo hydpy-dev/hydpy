@@ -17,8 +17,7 @@ from hydpy.auxs import validtools
 
 
 def prepare_arrays(sim=None, obs=None, node=None, skip_nan=False):
-    """Prepare and return two :mod:`numpy` arrays based on the given
-    arguments.
+    """Prepare and return two |numpy| arrays based on the given arguments.
 
     Note that many functions provided by module |statstools| apply function
     |prepare_arrays| internally (e.g. |nse|).  But you can also apply it
@@ -53,9 +52,8 @@ def prepare_arrays(sim=None, obs=None, node=None, skip_nan=False):
     >>> round_(arrays[1])
     4.0, 5.0, nan, nan, nan, 6.0
 
-    Alternatively, we can pass directly any iterables (e.g. :class:`list`
-    and :class:`tuple` objects) containing the `simulated` and `observed`
-    data:
+    Alternatively, we can pass directly any iterables (e.g. |list| and
+    |tuple| objects) containing the `simulated` and `observed` data:
 
     >>> arrays = prepare_arrays(sim=list(node.sequences.sim.series),
     ...                         obs=tuple(node.sequences.obs.series))

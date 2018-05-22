@@ -12,18 +12,18 @@ def calc_outputs_v1(self):
     """Performs the actual interpolation or extrapolation.
 
     Required control parameters:
-      :class:`~hydpy.models.hbranch.XPoints`
-      :class:`~hydpy.models.hbranch.YPoints`
+      |XPoints|
+      |YPoints|
 
     Required derived parameter:
-      :class:`~hydpy.models.hbranch.hbranch_derived.NmbPoints`
-      :class:`~hydpy.models.hbranch.hbranch_derived.NmbBranches`
+      |NmbPoints|
+      |NmbBranches|
 
     Required flux sequence:
-      :class:`~hydpy.models.hbranch.hbranch_fluxes.Input`
+      |Input|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.hbranch.hbranch_fluxes.Outputs`
+      |Outputs|
 
     Examples:
 
@@ -96,16 +96,14 @@ def calc_outputs_v1(self):
 
 
 def pick_input_v1(self):
-    """Updates :class:`~hydpy.models.hbranch.Input` based on
-    :class:`~hydpy.models.hbranch.Total`."""
+    """Updates |Input| based on |Total|."""
     flu = self.sequences.fluxes.fastaccess
     inl = self.sequences.inlets.fastaccess
     flu.input = inl.total[0]
 
 
 def pass_outputs_v1(self):
-    """Updates :class:`~hydpy.models.hbranch.Branched` based on
-    :class:`~hydpy.models.hbranch.Outputs`."""
+    """Updates |Branched| based on |Outputs|."""
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
     out = self.sequences.outlets.fastaccess
@@ -117,7 +115,7 @@ class Model(modeltools.Model):
     """The HydPy-H-Branch model.
 
     Additional attribute:
-      * nodenames (:class:`list`): Names of the outlet node names, the
+      * nodenames (|list|): Names of the outlet node names, the
         actual model shall be connected to.
     """
     _INLET_METHODS = (pick_input_v1,)
@@ -129,10 +127,9 @@ class Model(modeltools.Model):
         self.nodenames = []
 
     def connect(self):
-        """Connect the :class:`~hydpy.core.sequencetools.LinkSequence`
-        instances handled by the actual model to the
-        :class:`~hydpy.core.sequencetools.NodeSequence` instances
-        handled by one inlet node and multiple oulet nodes.
+        """Connect the |LinkSequence|instances handled by the actual model
+        to the |NodeSequence| instances handled by one inlet node and
+        multiple oulet nodes.
 
         The HydPy-H-Branch model passes multiple output values to different
         outlet nodes.  This requires additional information regarding the
@@ -144,8 +141,8 @@ class Model(modeltools.Model):
         >>> n1, n1a, n1b = Node('n1'), Node('n1a'), Node('n1b')
         >>> e1 = Element('e1', inlets=n1, outlets=[n1a, n1b])
 
-        Then parameter :class:`YPoints` relates different supporting
-        points via its keyword arguments to the respective nodes:
+        Then parameter |YPoints| relates different supporting points via
+        its keyword arguments to the respective nodes:
 
         >>> from hydpy.models.hbranch import *
         >>> parameterstep()
@@ -160,8 +157,7 @@ class Model(modeltools.Model):
         >>> model.connect()
 
         ...you can see that an example discharge value handled by the
-        :class:`~hydpy.core.devicetools.Node` instance `n1` is properly
-        divided:
+        |Node| instance `n1` is properly divided:
 
         >>> n1.sequences.sim = 6.
         >>> model.doit(0)

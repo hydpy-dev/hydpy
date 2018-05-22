@@ -146,7 +146,7 @@ basin number.
 
 
 class RiverBasinNumbers(tuple):
-    """A sorted collection of :class:`RiverBasinNumber` objects.
+    """A sorted collection of |RiverBasinNumber| objects.
 
         >>> from hydpy import RiverBasinNumbers
         >>> RiverBasinNumbers((111, 113, 1129, 11269, 1125, 11261,
@@ -172,12 +172,11 @@ class RiverBasinNumbers(tuple):
         """A tuple of the next downstream river basin numbers.
 
         The order of the returned numbers corresponds to the order of the
-        numbers contained by the :class:`RiverBasinNumbers` object.
+        numbers contained by the |RiverBasinNumbers| object.
 
         The number of the subcatchment immediately downstream of the outlet
-        subcatchment is not known.  The tuple contains a :class:`None` object
-        instead (or multiple :class:`None` objects in case of multiple
-        outlets).
+        subcatchment is not known.  The tuple contains a |None| object
+        instead (or multiple |None| objects in case of multiple outlets).
 
         Eventually, not all possible combinations of river basin numbers
         are covered.  Please keep us informed if you notices a problem

@@ -11,13 +11,13 @@ def calc_qjoints_v1(self):
     """Apply the routing equation.
 
     Required derived parameters:
-      :class:`~hydpy.models.hstream.hstream_derived.NmbSegments`
-      :class:`~hydpy.models.hstream.hstream_derived.C1`
-      :class:`~hydpy.models.hstream.hstream_derived.C2`
-      :class:`~hydpy.models.hstream.hstream_derived.C3`
+      |NmbSegments|
+      |C1|
+      |C2|
+      |C3|
 
     Updated state sequence:
-      :class:`~hydpy.models.hstream.hstream_states.QJoints`
+      |QJoints|
 
     Basic equation:
       :math:`Q_{space+1,time+1} =

@@ -16,18 +16,17 @@ class MultiParameter(parametertools.ZipParameter):
     """Base class for handling parameters of the HydPy-H-Land model
     (potentially) handling multiple values.
 
-    Due to inheriting from :class:`~hydpy.core.parametertools.ZipParameter`,
-    additional keyword zipping functionality is offered.  The optional
-    `kwargs` are checked for the keywords `field`, `forest`, `glacier`,
-    `ilake,` and `default`.  If available, the respective values are used to
-    define the values of those 1-dimensional arrays, whose entries are related
-    to the different zone types. Also the method
-    :func:`~MultiParameter.compress_repr` tries to find compressed string
-    representations based on the mentioned zone types.
+    Due to inheriting from |ZipParameter|, additional keyword zipping
+    functionality is offered.  The optional `kwargs` are checked for the
+    keywords `field`, `forest`, `glacier`, `ilake,` and `default`.  If
+    available, the respective values are used to define the values of
+    those 1-dimensional arrays, whose entries are related to the different
+    zone types. Also the method |MultiParameter.compress_repr| tries to
+    find compressed string representations based on the mentioned zone types.
 
     Examples:
 
-        Prepare a :class:`MultiParameter` instance:
+        Prepare a |MultiParameter| instance:
 
         >>> from hydpy.models.hland.hland_parameters import MultiParameter
         >>> from hydpy.models.hland import *
@@ -37,7 +36,7 @@ class MultiParameter(parametertools.ZipParameter):
         >>> mp.subpars = control
 
         Usually, one would indirectly define its shape through parameter
-        :class:`~hydpy.models.hland.hland_control.NmbZones`:
+        |NmbZones|:
 
         >>> mp.shape
         Traceback (most recent call last):
@@ -93,10 +92,10 @@ parameter `nmbzones` first in each parameter control file.
         >>> mp.values
         array([ 5.,  4.,  3.,  2.,  1.])
 
-    Another feature of :class:`MultiParameter` is that it relates the property
-    :func:`~MultiParameter.verifymask` to the defined zone types.
-    This requires the definition of the class attribute
-    :const:`~MultiParameter.REQUIRED_VALUES` for :class:`MultiParameter`
+    Another feature of |MultiParameter| is that it relates the property
+    |MultiParameter.verifymask| to the defined zone types.  This requires
+    the definition of the class attribute
+    :const:`~MultiParameter.REQUIRED_VALUES` for |MultiParameter|
     subclasses.
 
     Examples:
@@ -121,15 +120,13 @@ parameter `nmbzones` first in each parameter control file.
 
     @property
     def refparameter(self):
-        """Alias for the associated instance of
-        :class:`~hydpy.models.hland.hland_control.ZoneType`.
+        """Alias for the associated instance of |ZoneType|.
         """
         return self.subpars.pars.control.zonetype
 
     @property
     def shapeparameter(self):
-        """Alias for the associated instance of
-        :class:`~hydpy.models.lland.lland_control.NmbZones`.
+        """Alias for the associated instance of |NmbZones|.
         """
         return self.subpars.pars.control.nmbzones
 
@@ -174,8 +171,8 @@ class Parameters(parametertools.Parameters):
 
     def update(self):
         """Determine the values of the parameters handled by
-        :class:`DerivedParameters` based on the values of the parameters
-        handled by :class:`ControlParameters`.  The results of the different
+        |DerivedParameters| based on the values of the parameters
+        handled by |ControlParameters|.  The results of the different
         methods are not interdependent, meaning their order could be changed.
         """
         self.calc_relzonearea()
@@ -190,10 +187,10 @@ class Parameters(parametertools.Parameters):
         """Calculate the relative areas of all zones within the subbasin.
 
         Required control parameters:
-          :class:`~hydpy.models.hland.hland_control.ZoneArea`
+          |ZoneArea|
 
         Calculated derived parameters:
-          :class:`~hydpy.models.hland.hland_derived.RelZoneArea`
+          |RelZoneArea|
 
         Examples:
 
@@ -227,13 +224,13 @@ class Parameters(parametertools.Parameters):
         of the subbasin.
 
         Required control parameters:
-          :class:`~hydpy.models.hland.hland_control.Area`
-          :class:`~hydpy.models.hland.hland_control.ZoneArea`
-          :class:`~hydpy.models.hland.hland_control.ZoneType`
+          |Area|
+          |ZoneArea|
+          |ZoneType|
 
         Calculated derived parameters:
-          :class:`~hydpy.models.hland.hland_derived.RelLandArea`
-          :class:`~hydpy.models.hland.hland_derived.RelLandZoneArea`
+          |RelLandArea|
+          |RelLandZoneArea|
 
         Examples:
 
@@ -292,13 +289,13 @@ class Parameters(parametertools.Parameters):
         of the subbasin.
 
         Required control parameters:
-          :class:`~hydpy.models.hland.hland_control.Area`
-          :class:`~hydpy.models.hland.hland_control.ZoneArea`
-          :class:`~hydpy.models.hland.hland_control.ZoneType`
+          |Area|
+          |ZoneArea|
+          |ZoneType|
 
         Calculated derived parameters:
-          :class:`~hydpy.models.hland.hland_derived.RelSoilArea`
-          :class:`~hydpy.models.hland.hland_derived.RelSoilZoneArea`
+          |RelSoilArea|
+          |RelSoilZoneArea|
 
         Examples:
 
@@ -357,11 +354,11 @@ class Parameters(parametertools.Parameters):
         """Calculate the threshold temperature for melting and refreezing.
 
         Required control parameters:
-          :class:`~hydpy.models.hland.hland_control.TT`
-          :class:`~hydpy.models.hland.hland_control.DTTM`
+          |TT|
+          |DTTM|
 
         Calculated derived parameter:
-          :class:`~hydpy.models.hland.hland_derived.TTM`
+          |TTM|
 
         Basic equation:
           :math:`TTM = TT+DTTM`
@@ -386,10 +383,10 @@ class Parameters(parametertools.Parameters):
         zone layer routine.
 
         Required control parameter:
-          :class:`~hydpy.models.hland.hland_control.RecStep`
+          |RecStep|
 
         Calculated derived parameter:
-          :class:`~hydpy.models.hland.hland_derived.DT`
+          |DT|
 
         Basic equation:
           :math:`DT = \\frac{1}{RecStep}`
@@ -421,20 +418,17 @@ class Parameters(parametertools.Parameters):
         der.dt(1./con.recstep)
 
     def calc_qfactor(self):
-        """Determine the factor for converting values of
-        :class:`~hydpy.models.hland.hland_fluxes.QT` [mm/T] to values of
-        :class:`~hydpy.models.hland.hland_outlets.Q` [m³/s].
+        """Determine the factor for converting values of |QT| [mm/T] to
+        values of |Q| [m³/s].
 
         Required control parameter:
-          :class:`~hydpy.models.hland.hland_control.Area`
+          |Area|
 
-        Required property of
-        :class:`~hydpy.core.parametertools.Parameter`:
-
+        Required property of |Parameter|:
           :attr:`~hydpy.core.parametertools.Parameter.seconds`
 
         Calculated derived parameter:
-          :class:`~hydpy.models.hland.hland_derived.QFactor`
+          |QFactor|
 
         Example:
 
@@ -454,19 +448,18 @@ class Parameters(parametertools.Parameters):
     def calc_nmbuh_uh(self):
         """Calculate the ordinates of the triangle unit hydrograph.
 
-        Note that also the shape of sequence
-        :class:`~hydpy.models.hland.hland_logs.QUH` is defined in accordance
-        with :class:`~hydpy.models.hland.hland_derived.NmbUH`.
+        Note that also the shape of sequence |QUH| is defined in accordance
+        with NmbUH.
 
         Required control parameter:
-          :class:`~hydpy.models.hland.hland_control.MaxBaz`
+          |MaxBaz|
 
         Calculated derived parameters:
-          :class:`~hydpy.models.hland.hland_derived.NmbUH`
-          :class:`~hydpy.models.hland.hland_derived.UH`
+          NmbUH
+          UH
 
         Prepared log sequence:
-          :class:`~hydpy.models.hland.hland_logs.QUH`
+          |QUH|
 
         Examples:
 

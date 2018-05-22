@@ -13,13 +13,13 @@ def calc_q_v1(self):
     This simple equation is continuous but potentially stiff.
 
     Required control parameter:
-      :class:`~hydpy.models.test.test_control.K`
+      |K|
 
     Required state sequence:
-     :class:`~hydpy.models.test.test_states.S`
+     |S|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.test.test_fluxes.Q`
+      |Q|
 
     Basic equation:
       :math:`Q = K \\cdot S`
@@ -46,13 +46,13 @@ def calc_q_v2(self):
     This simple equation is discontinuous.
 
     Required control parameter:
-      :class:`~hydpy.models.test.test_control.K`
+      |K|
 
     Required state sequence:
-     :class:`~hydpy.models.test.test_states.S`
+     |S|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.test.test_fluxes.Q`
+      |Q|`
 
     Basic equation:
       :math:`Q = \\Bigl \\lbrace
@@ -85,10 +85,10 @@ def calc_s_v1(self):
     """Calculate the actual storage content.
 
     Required flux sequence:
-      :class:`~hydpy.models.test.test_fluxes.Q`
+      |Q|
 
     Calculated state sequence:
-     :class:`~hydpy.models.test.test_states.S`
+     |S|
 
     Basic equation:
       :math:`\\frac{dS}{dt} = Q`

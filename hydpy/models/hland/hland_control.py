@@ -18,11 +18,11 @@ class Area(parametertools.SingleParameter):
 class NmbZones(parametertools.SingleParameter):
     """Number of zones (hydrological response units) in a subbasin [-].
 
-    Note that :class:`NmbZones` determines the length of most 1-dimensional
+    Note that |NmbZones| determines the length of most 1-dimensional
     HydPy-H-Land parameters and sequences.  This required that the value of
-    the respective :class:`NmbZones` instance is set before any of the values
+    the respective |NmbZones| instance is set before any of the values
     of these 1-dimensional parameters or sequences are set.  Changing the
-    value of the :class:`NmbZones` instance necessitates setting their values
+    value of the |NmbZones| instance necessitates setting their values
     again.
 
     Examples:
@@ -38,10 +38,10 @@ class NmbZones(parametertools.SingleParameter):
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
     def __call__(self, *args, **kwargs):
-        """The prefered way to pass a value to :class:`NmbZones` instances
-        within parameter control files.  Sets the shape of most 1-dimensional
-        parameter objects (except :class:`UH`) and sequence objects (except
-        :class:`QUH`) additionally.
+        """The prefered way to pass a value to |NmbZones| instances within
+        parameter control files.  Sets the shape of most 1-dimensional
+        parameter objects (except |UH|) and sequence objects (except |QUH|)
+        additionally.
         """
         parametertools.SingleParameter.__call__(self, *args, **kwargs)
         for subpars in self.subpars.pars.model.parameters:
@@ -58,7 +58,7 @@ class ZoneType(hland_parameters.MultiParameter):
     """Type of each zone: 1 (FIELD), 2 (FOREST), 3 (GLACIER), or 4 (ILAKE).
 
     For increasing legibility, the HydPy-H-Land constants are used for string
-    representions of :class:`ZoneType` instances:
+    representions of |ZoneType| instances:
 
     >>> from hydpy.models.hland import *
     >>> parameterstep('1d')
@@ -177,7 +177,7 @@ class TTInt(hland_parameters.MultiParameter):
 
 
 class DTTM(hland_parameters.MultiParameterLand):
-    """Difference between :class:`TTM` and :class:`TT` [°C]."""
+    """Difference between |TTM| and |TT| [°C]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
 
@@ -243,12 +243,11 @@ class PercMax(parametertools.SingleParameter):
 class K(parametertools.SingleParameter):
     """Recession coefficient of the upper zone layer [1/T/mm^alpha].
 
-    In addition to the :class:`parametertools.SingleParameter` call method, it
-    is possible to set the value of parameter :class:`K` in accordance to
-    the keyword arguments `khq`, `hq` and (optionally) `alpha`.  If `alpha`
-    is not given, the value of the respective :class:`Alpha` instance is
-    taken.  This requires the :class:`Alpha` instance to be initialized
-    beforehand.
+    In addition to the |SingleParameter| call method, it is possible to
+    set the value of parameter |K| in accordance to the keyword arguments
+    `khq`, `hq` and (optionally) `alpha`.  If `alpha` is not given, the
+    value of the respective |Alpha| instance is taken.  This requires the
+    |Alpha| instance to be initialized beforehand.
 
     Basic Equation:
         :math:`K = \\frac{HQ}{(HQ/KHQ)^{1+Alpha}}`
@@ -290,9 +289,6 @@ class K(parametertools.SingleParameter):
     NDIM, TYPE, TIME, SPAN = 0, float, True, (0., None)
 
     def __call__(self, *args, **kwargs):
-        """The prefered way to pass values to :class:`K` instances
-        within parameter control files.
-        """
         try:
             parametertools.SingleParameter.__call__(self, *args, **kwargs)
         except NotImplementedError:

@@ -16,7 +16,7 @@ class Dummies(object):
     main docstring of the class and to test the different class methods
     based on this instance in separate docstrings afterwards.
 
-    Class :class:`Dummies` tries to ensure that the original objects are
+    Class |Dummies| tries to ensure that the original objects are
     not altered due to performing different tests.  This protection
     mechanism is successfull for the simple following test class:
 
@@ -40,8 +40,8 @@ class Dummies(object):
     >>> dummies.test.values
     [1, 2, 3]
 
-    The show pretection mechanism is implemented via making "deep copies" of
-    objects handled by :class:`Dummies` objects.  So lets see what happens
+    The show pretection mechanism is implemented via making "deep copies"
+    of objects handled by |Dummies| objects.  So lets see what happens
     when we subclass the test class and disable deep copying:
 
     >>> class Test(Test):

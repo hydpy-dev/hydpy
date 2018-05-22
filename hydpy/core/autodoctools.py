@@ -305,15 +305,22 @@ class Substituter(object):
         """Apply all substitutions defined so far on all handled members."""
         self.update()
         for member in self.members:
-            try:
-                member.__doc__ = self(member.__doc__)
-            except (AttributeError, TypeError):
-                pass
-            for submember in getattr(member, '__dict__', {}).values():
+            __doc__ = member.__doc__
+            if __doc__:
                 try:
-                    submember.__doc__ = self(submember.__doc__)
-                except (AttributeError, TypeError):
-                    pass
+                    member.__doc__ = ''
+                except BaseException:
+                    continue
+                member.__doc__ = self(__doc__)
+            for submember in getattr(member, '__dict__', {}).values():
+                submember = getattr(submember, '__func__', submember)
+                __doc__ = submember.__doc__
+                if __doc__:
+                    try:
+                        submember.__doc__ = ''
+                    except BaseException:
+                        continue
+                    submember.__doc__ = self(__doc__)
 
 
 @make_autodoc_optional
@@ -321,12 +328,24 @@ def _prepare_mainsubstituter():
     """Prepare, execute, and return a |Substituter| object for the main
     `__init__` file of `HydPy`."""
     substituter = Substituter()
-    substituter.substitutions['|idx_sim|'] = \
-        ':attr:`~hydpy.core.modeltools.Model.idx_sim`'
-    substituter.substitutions['|pub|'] = \
-        ':mod:`~hydpy.pub`'
-    substituter.substitutions['|config|'] = \
-        ':mod:`~hydpy.config`'
+    subs = substituter.substitutions
+    for key, value in vars(builtins).items():
+        if key.startswith('_'):
+            continue
+        elif isinstance(value, BaseException):
+            subs['|%s|' % key] = ':class:`~exceptions.%s`' % key
+        elif inspect.isfunction(value):
+            subs['|%s|' % key] = ':func:`%s`' % key
+        elif inspect.isclass(value):
+            subs['|%s|' % key] = ':class:`%s`' % key
+    subs['|None|'] = ':class:`~builtins.None`'
+    subs['|idx_sim|'] = ':attr:`~hydpy.core.modeltools.Model.idx_sim`'
+    subs['|pub|'] = ':mod:`~hydpy.pub`'
+    subs['|config|'] = ':mod:`~hydpy.config`'
+    subs['|numpy|'] = ':mod:`numpy`'
+    subs['|ndarray|'] = ':class:`~numpy.ndarray`'
+    subs['|nan|'] = ':const:`~numpy.nan`'
+    subs['|inf|'] = ':const:`~numpy.inf`'
     for subpackage in (auxs, core, cythons):
         for dummy, name, dummy in pkgutil.walk_packages(subpackage.__path__):
             full_name = subpackage.__name__ + '.' + name

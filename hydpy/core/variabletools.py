@@ -3,8 +3,7 @@
 parameters and sequences.
 
 Features more specific to either parameters or sequences are implemented
-in modules :mod:`~hydpy.core.parametertools` and
-:mod:`~hydpy.core.sequencetools` respectively.
+in modules |parametertools| and |sequencetools| respectively.
 """
 # import...
 # ...from standard library
@@ -26,17 +25,17 @@ but not for integer values."""
 
 
 def trim(self, lower=None, upper=None):
-    """Trim the value(s) of  a :class:`Variable` instance.
+    """Trim the value(s) of  a |Variable| instance.
 
-    One can pass the lower and/or the upper boundary as a function argument.
-    Otherwise, boundary values are taken from the class attribute `SPAN`
-    of the given :class:`Variable` instance, if available.
+    One can pass the lower and/or the upper boundary as a function
+    argument.  Otherwise, boundary values are taken from the class
+    attribute `SPAN` of the given |Variable| instance, if available.
 
-    Note that method :func:`trim` works differently on :class:`Variable`
-    instances handling values of different types.  For floating point values,
+    Note that method |trim| works differently on |Variable| instances
+    handling values of different types.  For floating point values,
     an actual trimming is performed.  Additionally, a warning message is
     raised if the trimming results in a change in value exceeding the
-    threshold value defined by function :func:`_tolerance`.  (This warning
+    threshold value defined by function |tolerance|.  (This warning
     message can be suppressed by setting the related option flag to False.)
     For integer values, instead of a warning an exception is raised.
     """
@@ -60,9 +59,10 @@ def trim(self, lower=None, upper=None):
         pass
     else:
         raise NotImplementedError(
-            'Method `trim` can only be applied on parameters handling '
-            'integer or floating point values, but value type of parameter '
-            '`%s` is `%s`.' % (self.name, objecttools.classname(self.TYPE)))
+            'Method `trim` can only be applied on parameters '
+            'handling integer or floating point values, but '
+            'value type of parameter `%s` is `%s`.'
+            % (self.name, objecttools.classname(self.TYPE)))
 
 
 def _trim_float_0d(self, lower, upper):
@@ -73,12 +73,12 @@ def _trim_float_0d(self, lower, upper):
     if (upper is None) or numpy.isnan(upper):
         upper = numpy.inf
     if self < lower:
-        if (self+_tolerance(self)) < (lower-_tolerance(lower)):
+        if (self+tolerance(self)) < (lower-tolerance(lower)):
             if pub.options.warntrim:
                 self.warn_trim()
         self.value = lower
     elif self > upper:
-        if (self-_tolerance(self)) > (upper+_tolerance(upper)):
+        if (self-tolerance(self)) > (upper+tolerance(upper)):
             if pub.options.warntrim:
                 self.warn_trim()
         self.value = upper
@@ -96,10 +96,10 @@ def _trim_float_nd(self, lower, upper):
     idxs = numpy.where(numpy.isnan(self.values))
     self[idxs] = lower[idxs]
     if numpy.any(self.values < lower) or numpy.any(self.values > upper):
-        if (numpy.any((self+_tolerance(self)) <
-                      (lower-_tolerance(lower))) or
-                numpy.any((self-_tolerance(self)) >
-                          (upper+_tolerance(upper)))):
+        if (numpy.any((self+tolerance(self)) <
+                      (lower-tolerance(lower))) or
+                numpy.any((self-tolerance(self)) >
+                          (upper+tolerance(upper)))):
             if pub.options.warntrim:
                 self.warn_trim()
         self.values = numpy.clip(self.values, lower, upper)
@@ -133,19 +133,19 @@ def _trim_int_nd(self, lower, upper):
     self[idxs] = _INT_NAN
 
 
-def _tolerance(values):
-    """Returns some sort of "numerical accuracy" to be expected for the
-    given floating point value, see method :func:`trim`."""
+def tolerance(values):
+    """Return some sort of "numerical accuracy" to be expected for the
+    given floating point value (see method |trim|)."""
     return abs(values*1e-15)
 
 
 def _compare_variables_function_generator(
         method_string, aggregation_func):
     """Return a function that can be used as a comparison method of class
-    :class:`Variable`.
+    |Variable|.
 
-    Pass the specific method (e.g. '__eq__') and the corresponding operator
-    (e.g. `==`) as strings.  Also pass either :func:`all` or :func:`any`
+    Pass the specific method (e.g. '__eq__') and the corresponding
+    operator (e.g. `==`) as strings.  Also pass either |all| or |any|
     for aggregating multiple boolean values.
     """
     def comparison_function(self, other):
@@ -176,8 +176,7 @@ def _compare_variables_function_generator(
 
 
 class Variable(object):
-    """Base class for :class:`~hydpy.core.parametertools.Parameter` and
-    :class:`~hydpy.core.sequencetools.Sequence`.
+    """Abstract base class for |Parameter| and |Sequence| subclasses.
 
     This base class Implements special methods for arithmetic calculations,
     comparisons and type conversions.  See the  following exemples on how
@@ -217,7 +216,7 @@ class Variable(object):
     >>> variable
     variable(0.5, 1.0, 1.5)
 
-    Note that comparisons on :class:`Variable` objects containg multiple
+    Note that comparisons on |Variable| objects containg multiple
     values return a single boolean only:
 
     >>> variable.value = numpy.array([1.0, 3.0])

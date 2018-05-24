@@ -5,7 +5,7 @@ import webbrowser
 os.system(r'make clean')
 os.system(r'make html')
 
-folder = os.path.join('auto', '_build', 'html')
+folder = r'C:\HydPy\hydpy\docs\auto\_build\html'
 paths = [os.path.join(folder, fn) for fn in os.listdir(folder)
          if fn.endswith('.html')]
 for path in paths:
@@ -27,5 +27,4 @@ for path in paths:
 
 os.chdir(r'C:\Program Files (x86)\Mozilla Firefox')
 webbrowser.register('firefox', None, webbrowser.GenericBrowser('firefox'), 1)
-webbrowser.get('firefox').open_new_tab(
-    r'C:\HydPy\hydpy\docs\auto\_build\html\index.html')
+webbrowser.get('firefox').open_new_tab(os.path.join(folder, 'index.html'))

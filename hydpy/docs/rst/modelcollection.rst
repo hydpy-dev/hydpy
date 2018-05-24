@@ -7,23 +7,24 @@ Model Collection
 ================
 
 In :ref:`HydPy`, many models are divided into groups (e.g. :ref:`HydPy-L`)
-and subgroups (e.g. :ref:`HydPy-L-Land`).
+and subgroups (e.g. `HydPy-L-Land`).
 
 The existence of the groups is primarily due to historical reasons.
 For example, all subgroups related to the original `LARSIM`_ model are
 part of group :ref:`HydPy-L`, despite their different functionality
-(:ref:`HydPy-L-Land` for modelling "land processes", :ref:`HydPy-L-Stream`
-for modelling "stream processes", and :ref:`HydPy-L-Lake` for modelling
-"lake processes").
+(`HydPy-L-Land` for modelling "land processes", `HydPy-L-Stream` for
+modelling "stream processes", and `HydPy-L-Lake` for modelling "lake
+processes").
 
 The separation into subgroups is of greater importance.  Each subgroup
-(e.g. :ref:`HydPy-L-Land`) consists of one base model (e.g. |lland|) and
-a number of application models (e.g. |lland_v1|).  The base models offer
-basic features like model parameter classes (e.g. |KG|), sequence classes
+consists of one base model (e.g. |lland|) and a number of application
+models (e.g. |lland_v1|).  The base models offer basic features like
+model parameter classes (e.g. |lland_control.KG|), sequence classes
 (e.g. |lland_fluxes.NKor|) and process equation methods (e.g.
 |lland_model.calc_nkor_v1|), but cannot perform an actual simulation run.
-This is the task of the application models, which select different parameters,
-sequences, and process equations in a meaningful combination and order.
+This is the task of the application models, which select different
+parameters, sequences, and process equations in a meaningful combination
+and order.
 
 If not stated otherwise, all models can be freely combined and applied
 on arbitrary simulation time steps.  It is, for example, possible to
@@ -80,5 +81,6 @@ and will have to be discussed later.
    HydPy-D
    HydPy-H
    HydPy-L
+   HydPy-T
 
 

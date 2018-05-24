@@ -1,8 +1,8 @@
 
 .. _HydPy-D:
 
-HydPy-D
-=======
+HydPy-D (DAM)
+=============
 
 The HydPy-D is intended for modelling dams and similar natural and
 anthropogenic flow barriers.  It is the first model family of HydPy
@@ -27,8 +27,6 @@ little hard to pick the correct application model.  We will have to find
 a way to prevent selecting the right model becoming too hard when the
 set of application models grows.  For the moment, the following overview
 might be helpful:
-
-
 
 ================================================================= ==== ==== ==== ==== ====
 Does the dam model…                                               v001 v002 v003 v004 v005

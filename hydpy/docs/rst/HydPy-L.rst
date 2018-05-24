@@ -32,9 +32,9 @@ different application models:
 .. toctree::
    :maxdepth: 1
 
-   HydPy-L-Land
-   HydPy-L-Stream
-   HydPy-L-Lake
+   lland (HydPy-L-Land) <lland>
+   lstream (HydPy-L-Stream) <lstream>
+   llake (HydPy-L-Lake) <llake>
 
 
 So far the following application models are compiled:
@@ -44,7 +44,7 @@ So far the following application models are compiled:
    lland_v1 (LARSIM-Xinanjiang-Turc-Wendling version of HydPy-L-Land) <lland_v1>
    lland_v2 (External potential evaporation version of lland_v1) <lland_v2>
    lstream_v1 (LARSIM-Manning version of HydPy-L-Stream) <lstream_v1>
-   llake_v1 (LARSIM-Lake version of HydPy-L-Branch) <llake_v1>
+   llake_v1 (LARSIM-Lake version of HydPy-L-Lake) <llake_v1>
 
 All these application models are stand-alone models, which can be
 combined freely with other models implemented in HydPy.

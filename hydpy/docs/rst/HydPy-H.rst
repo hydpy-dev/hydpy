@@ -24,9 +24,9 @@ different application models:
 .. toctree::
    :maxdepth: 1
 
-   HydPy-H-Land
-   HydPy-H-Stream
-   HydPy-H-Branch
+   hland (HydPy-H-Land) <hland>
+   hstream (HydPy-H-Stream) <hstream>
+   hbranch (HydPy-H-Branch) <hbranch>
 
 So far the following application models are compiled:
 

@@ -1,8 +1,8 @@
 
 .. _HydPy-A:
 
-HydPy-A
-=======
+HydPy-A (RIMO/RIDO)
+===================
 
 Many hydrologists use linear system approaches to solve flood routing
 problems approximately.  Famous examples are the Unit Hydrograph approach

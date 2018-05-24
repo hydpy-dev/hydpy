@@ -11,6 +11,7 @@ hydpy/cythons/autogen/*.pxd
 hydpy/cythons/autogen/*.c
 hydpy/cythons/autogen/*.h
 hydpy/docs/html/*.html
+hydpy/docs/auto
 build
 _build
 dist

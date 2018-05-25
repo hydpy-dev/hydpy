@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
 """This simple test model is thought for testing numerical integration
 strategies.  It can be seen from two perspectives.  On the one hand
 it implements the Dahlquist test equation (on the real axis only), which is
@@ -48,7 +49,10 @@ class StateSequences(sequencetools.StateSequences):
     """State sequences of Test model, Version 1."""
     _SEQCLASSES = (test_states.S,)
 
+autodoc_applicationmodel()
 
+
+# pylint: disable=invalid-name
 tester = Tester()
 cythonizer = Cythonizer()
 cythonizer.complete()

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
 """This simple test model is thought for testing numerical integration
 strategies.  It can be seen from two perspectives.  On the one hand
 it implements a simple discontinous equation, bringing numerical integration
@@ -50,6 +51,9 @@ class StateSequences(sequencetools.StateSequences):
     _SEQCLASSES = (test_states.S,)
 
 
+autodoc_applicationmodel()
+
+# pylint: disable=invalid-name
 tester = Tester()
 cythonizer = Cythonizer()
 cythonizer.complete()

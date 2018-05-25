@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
 """
 The LARSIM-Lake version of HydPy-L-Lake (called llake_v1) is a simple lake
 model. Its continuity equation is primarily solved via a central finite
@@ -353,6 +354,9 @@ class OutletSequences(sequencetools.LinkSequences):
     _SEQCLASSES = (llake_outlets.Q,)
 
 
+autodoc_applicationmodel()
+
+# pylint: disable=invalid-name
 tester = Tester()
 cythonizer = Cythonizer()
 cythonizer.complete()

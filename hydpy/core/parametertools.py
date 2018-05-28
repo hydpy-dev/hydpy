@@ -78,16 +78,41 @@ def header_controlfile(model, parameterstep=None, simulationstep=None):
                 % (model, Parameter.simulationstep, Parameter.parameterstep))
 
 
+class IntConstant(int):
+    """Class for |int| objects with individual docstrings."""
+
+    def __new__(cls, value):
+        const = int.__new__(cls, value)
+        const.__doc__ = None
+        frame = inspect.currentframe().f_back
+        const.__module__ = frame.f_locals['__name__']
+        return const
+
+
 class Constants(dict):
     """Base class for defining integer constants for a specific model."""
 
     def __init__(self, *args, **kwargs):
         frame = inspect.currentframe().f_back
         for (key, value) in frame.f_locals.items():
-            if key.isupper() and isinstance(value, int):
+            if key.isupper() and isinstance(value, IntConstant):
                 kwargs[key] = value
         dict.__init__(self, *args, **kwargs)
         self.__module__ = frame.f_locals['__name__']
+        self._prepare_docstrings(frame)
+
+    @autodoctools.make_autodoc_optional
+    def _prepare_docstrings(self, frame):
+        """Assign docstrings to the constants handled by |Constants|
+        to make them available in the interactive mode of Python."""
+        filename = inspect.getsourcefile(frame)
+        sources = open(filename).read().split('"""')
+        for code, doc in zip(sources[::2], sources[1::2]):
+            code = code.strip()
+            key = code.split('\n')[-1].split()[0]
+            value = self.get(key)
+            if value:
+                value.__doc__ = doc
 
 
 class Parameters(object):

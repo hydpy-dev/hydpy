@@ -29,13 +29,13 @@ these are available in your local namespace:
 """
 from hydpy.core import parametertools
 
-FIELD = 1
+FIELD = parametertools.IntConstant(1)
 """Constant for the zone type `field`."""
-FOREST = 2
-"""Constant for the zone type `forest.`"""
-GLACIER = 3
+FOREST = parametertools.IntConstant(2)
+"""Constant for the zone type `forest`."""
+GLACIER = parametertools.IntConstant(3)
 """Constant for the zone type `glacier`."""
-ILAKE = 4
+ILAKE = parametertools.IntConstant(4)
 """Constant for the zone type `internal lake`."""
 
 CONSTANTS = parametertools.Constants()

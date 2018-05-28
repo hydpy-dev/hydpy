@@ -35,8 +35,11 @@ if platform.system().lower() == 'windows':
 else:
     dllextension = '.so'
 
+_int = 'numpy.'+str(numpy.array([1]).dtype)+'_t'
+
 TYPE2STR = {bool: 'bint',
-            int: 'numpy.'+str(numpy.array([1]).dtype)+'_t',
+            int: _int,
+            parametertools.IntConstant: _int,
             float: 'double',
             str: 'str',
             None: 'void'}

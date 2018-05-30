@@ -221,33 +221,33 @@ class NodeSequenceABC(SequenceABC):
     pass
 
 
-class DateABC(SequenceABC):
     """Abstract base class for registering custom date classes."""
+class DateABC(DocABC):
     pass
 
 
-class PeriodABC(SequenceABC):
     """Abstract base class for registering custom period classes."""
+class PeriodABC(DocABC):
     pass
 
 
-class TimegridABC(SequenceABC):
     """Abstract base class for registering custom timegrid classes."""
+class TimegridABC(DocABC):
     pass
 
 
-class TimegridsABC(SequenceABC):
     """Abstract base class for registering custom timegrids classes."""
+class TimegridsABC(DocABC):
     pass
 
 
-class TOYABC(SequenceABC):
     """Abstract base class for registering custom TOY classes."""
+class TOYABC(DocABC):
     pass
 
 
-class ModelABC(SequenceABC):
     """Abstract base class for registering custom Model classes."""
+class ModelABC(DocABC):
     pass
 
 

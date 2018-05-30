@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Feb 27 13:57:25 2017
-
-@author: tyralla
+"""Test all "conventional" unit tests defined in subpackage `tests` and
+all doctests defined in the different modules and documentation files.
 """
 
 

@@ -32,7 +32,10 @@ for name in os.listdir('hydpy'):
             os.path.isfile(os.path.join('hydpy', name))):
         packages.append('.'.join(('hydpy', name)))
 packages.append('hydpy.cythons.autogen')
+packages.append('hydpy.docs.figs')
 packages.append('hydpy.docs.html')
+packages.append('hydpy.docs.rst')
+packages.append('hydpy.docs.sphinx')
 # Additionally, select all base model packages.
 for name in os.listdir(os.path.join('hydpy', 'models')):
     if not (name.startswith('_') or
@@ -130,12 +133,20 @@ if install:
             shutil.copy(os.path.join('hydpy', 'cythons', 'autogen', filename),
                         os.path.join(hydpy.cythons.autogen.__path__[0],
                                      filename))
-    # Make all restructured text documentation files available for doctesting.
-    import hydpy.docs
-    for filename in os.listdir(os.path.join('hydpy', 'docs')):
-        if filename.endswith('.rst') or filename.endswith('.png'):
-            shutil.copy(os.path.join('hydpy', 'docs', filename),
-                        os.path.join(hydpy.docs.__path__[0], filename))
+    # Make all restructured text documentation files available.
+    import hydpy.docs.rst
+    for filename in os.listdir(os.path.join('hydpy', 'docs', 'rst')):
+        if ((not (filename.endswith('.py') or filename.endswith('.pyc'))) and
+                (not filename.startswith('_'))):
+            shutil.copy(os.path.join('hydpy', 'docs', 'rst', filename),
+                        os.path.join(hydpy.docs.rst.__path__[0], filename))
+    # Make all additional figures available.
+    import hydpy.docs.figs
+    for filename in os.listdir(os.path.join('hydpy', 'docs', 'figs')):
+        if ((not (filename.endswith('.py') or filename.endswith('.pyc'))) and
+                (not filename.startswith('_'))):
+            shutil.copy(os.path.join('hydpy', 'docs', 'figs', filename),
+                        os.path.join(hydpy.docs.figs.__path__[0], filename))
     # Make all kinds of configuration data available.
     import hydpy.conf
     for filename in os.listdir(os.path.join('hydpy', 'conf')):

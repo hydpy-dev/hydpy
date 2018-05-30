@@ -157,7 +157,7 @@ if install:
     # Execute all tests.
     oldpath = os.path.abspath('.')
     import hydpy.tests
-    os.chdir(os.sep.join(hydpy.tests.__file__.split(os.sep)[:-1]))
+    os.chdir(hydpy.tests.__path__[0])
     exitcode = int(os.system('coverage run -m --branch '
                              '--source hydpy --omit=test_everything.py '
                              'test_everything'))
@@ -195,5 +195,6 @@ if install:
         os.system('coverage xml')
         os.system('pycobertura show --format html '
                   '--output coverage.html coverage.xml')
-        shutil.move('coverage.html',
-                    os.path.join(oldpath, 'hydpy', 'docs', 'coverage.html'))
+        shutil.copy(
+            os.path.join(hydpy.tests.__path__[0], 'coverage.html'),
+            os.path.join(oldpath, 'hydpy', 'docs', 'auto', 'coverage.html'))

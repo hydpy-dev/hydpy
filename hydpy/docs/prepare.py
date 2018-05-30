@@ -1,4 +1,4 @@
-    # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """Move, create and modify documentation files before applying `Sphinx`.
 
 Sphinx is to be executed in a freshly created folder named `auto`.  If
@@ -14,7 +14,8 @@ import inspect
 import os
 import shutil
 import sys
-sys.path.insert(0, os.path.join('..', '..'))
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.abspath(os.path.join('..', '..')))
 # pylint: disable=wrong-import-position
 # (changing the path is necessary when calling `prepare.py` from the
 # command line)

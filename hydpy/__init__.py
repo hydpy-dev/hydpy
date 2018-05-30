@@ -25,7 +25,7 @@ from hydpy.core import dummytools
 from hydpy.core import indextools
 from hydpy.core import optiontools
 from hydpy.cythons import configutils
-from hydpy.core.autodoctools import _prepare_mainsubstituter
+from hydpy.core.autodoctools import prepare_mainsubstituter
 from hydpy.core.auxfiletools import Auxfiler
 from hydpy.core.devicetools import Element
 from hydpy.core.devicetools import Elements
@@ -95,7 +95,7 @@ try:
 except TypeError:
     pass
 
-substituter = _prepare_mainsubstituter()
+substituter = prepare_mainsubstituter()
 
 
 __all__ = ['builtins',

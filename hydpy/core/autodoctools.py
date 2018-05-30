@@ -5,25 +5,28 @@ standardisation of the online documentation generated with Sphinx.
 # import...
 # ...from the Python standard library
 from __future__ import division, print_function
-from hydpy import builtins
 import collections
 import copy
+import datetime
+import doctest
 import importlib
 import inspect
+import io
 import os
 import pkgutil
-import re
 import types
+import unittest
 # ...from site-packages
+import numpy
 import wrapt
 # ...from HydPy
 import hydpy
+from hydpy import builtins
 from hydpy import pub
 from hydpy import config
 from hydpy import auxs
 from hydpy import core
 from hydpy import cythons
-from hydpy import docs
 from hydpy import models
 from hydpy.cythons.autogen import annutils
 from hydpy.cythons.autogen import pointerutils
@@ -160,7 +163,7 @@ def autodoc_basemodel():
         module = modules[modulename]
         lines += _add_title('Model features', '-')
         lines += _add_lines(specification, module)
-        substituter.add_everything(module)
+        substituter.add_module(module)
     for (spec2capt, title) in zip((_PAR_SPEC2CAPT, _SEQ_SPEC2CAPT),
                                   ('Parameter features', 'Sequence features')):
         new_lines = _add_title(title, '-')
@@ -172,14 +175,14 @@ def autodoc_basemodel():
                 found_module = True
                 new_lines += _add_title(caption, '.')
                 new_lines += _add_lines(specification, module)
-                substituter.add_everything(module)
+                substituter.add_module(module)
         if found_module:
             lines += new_lines
     doc += '\n'.join(lines)
     namespace['__doc__'] = doc
     basemodule = importlib.import_module(namespace['__name__'])
-    substituter.add_everything(basemodule)
-    substituter.apply_on_members()
+    substituter.add_module(basemodule)
+    substituter.update_masters()
     namespace['substituter'] = substituter
 
 
@@ -201,170 +204,449 @@ def autodoc_applicationmodel():
     name_basemodel = name_applicationmodel.split('_')[0]
     module_basemodel = importlib.import_module(name_basemodel)
     substituter = Substituter(module_basemodel.substituter)
-    substituter.add_everything(module_applicationmodel)
-    substituter.apply_on_members()
+    substituter.add_module(module_applicationmodel)
+    substituter.update_masters()
     namespace['substituter'] = substituter
 
 
 class Substituter(object):
     """Implements a HydPy specific docstring substitution mechanism."""
 
-    def __init__(self, substituter=None):
-        if substituter:
-            self.substitutions = copy.deepcopy(substituter.substitutions)
-            self.fallbacks = copy.deepcopy(substituter.fallbacks)
-            self.blacklist = copy.deepcopy(substituter.blacklist)
+    def __init__(self, master=None):
+        self.master = master
+        if master:
+            self._short2long = copy.deepcopy(master._short2long)
+            self._medium2long = copy.deepcopy(master._medium2long)
+            self._blacklist = copy.deepcopy(master._blacklist)
         else:
-            self.substitutions = {}
-            self.fallbacks = {}
-            self.blacklist = set()
-        self.members = []
-        self.regex = None
+            self._short2long = {}
+            self._medium2long = {}
+            self._blacklist = set()
 
-    def update(self):
-        """Update the internal substitution commands based on all
-        substitutions defined so far."""
-        self.regex = re.compile('|'.join(map(re.escape, self.substitutions)))
+    @staticmethod
+    def consider_member(name_member, member, module):
+        """Return |True| if the given member should be add to the
+        substitutions. If not return |False|.
 
-    def add_everything(self, module, cython=False):
-        """Add all members of the given module including the module itself."""
+        Some examples based on the site-package |numpy|:
+
+        >>> from hydpy.core.autodoctools import Substituter
+        >>> import numpy
+
+        A constant like |nan| should be added:
+
+        >>> Substituter.consider_member(
+        ...     'nan', numpy.nan, numpy)
+        True
+
+        Members with a prefixed underscore should not be added:
+
+        >>> Substituter.consider_member(
+        ...     '_NoValue', numpy._NoValue, numpy)
+        False
+
+        Members that are actually imported modules should not be added:
+
+        >>> Substituter.consider_member(
+        ...     'warnings', numpy.warnings, numpy)
+        False
+
+        Members that are actually defined in other modules should
+        not be added:
+
+        >>> numpy.Substituter = Substituter
+        >>> Substituter.consider_member(
+        ...     'Substituter', numpy.Substituter, numpy)
+        False
+        >>> del numpy.Substituter
+
+        Members that are defined in submodules of a given package
+        (either from the standard library or from site-packages)
+        should be added...
+
+        >>> Substituter.consider_member(
+        ...     'clip', numpy.clip, numpy)
+        True
+
+        ...but not members defined in :ref:`HydPy` submodules:
+
+        >>> import hydpy
+        >>> Substituter.consider_member(
+        ...     'Node', hydpy.Node, hydpy)
+        False
+        """
+        if name_member.startswith('_'):
+            return False
+        if inspect.ismodule(member):
+            return False
+        real_module = getattr(member, '__module__', None)
+        if not real_module:
+            return True
+        if real_module != module.__name__:
+            if 'hydpy' in real_module:
+                return False
+            elif module.__name__ not in real_module:
+                return False
+        return True
+
+    @staticmethod
+    def get_role(member, cython=False):
+        """Return the reStructuredText role `func`, `class`, or `const`
+        best describing the given member.
+
+        Some examples based on the site-package |numpy|.  |numpy.clip|
+        is a function:
+
+        >>> from hydpy.core.autodoctools import Substituter
+        >>> import numpy
+        >>> Substituter.get_role(numpy.clip)
+        'func'
+
+        |numpy.ndarray| is a class:
+
+        >>> Substituter.get_role(numpy.ndarray)
+        'class'
+
+        |numpy.ndarray.clip| is a method, for which also the `function`
+        role is returned:
+
+        >>> Substituter.get_role(numpy.ndarray.clip)
+        'func'
+
+        For everything else the `constant` role is returned:
+
+        >>> Substituter.get_role(numpy.nan)
+        'const'
+
+        When analysing cython extension modules, set the option `cython`
+        flag to |True|.  |Double| is correctly identified as a class:
+
+        >>> from hydpy.cythons import pointerutils
+        >>> Substituter.get_role(pointerutils.Double, cython=True)
+        'class'
+
+        Only with the `cython` flag beeing |True|, for everything else
+        the `function` text role is returned (doesn't make sense here,
+        but the |numpy| module is not something defined in module
+        |pointerutils| anyway):
+
+        >>> Substituter.get_role(pointerutils.numpy, cython=True)
+        'func'
+        """
+        if inspect.isroutine(member) or isinstance(member, numpy.ufunc):
+            return 'func'
+        elif inspect.isclass(member):
+            return 'class'
+        elif cython:
+            return 'func'
+        return 'const'
+
+    def add_substitution(self, short, medium, long, module):
+        """Add the given substitutions both as a `short2long` and a
+        `medium2long` mapping.
+
+        Assume `variable1` is defined in the hydpy module `module1` and the
+        short and medium descriptions are `var1` and `mod1.var1`:
+
+        >>> import types
+        >>> module1 = types.ModuleType('hydpy.module1')
+        >>> from hydpy.core.autodoctools import Substituter
+        >>> substituter = Substituter()
+        >>> substituter.add_substitution(
+        ...     'var1', 'mod1.var1', 'module1.variable1', module1)
+        >>> print(substituter.get_commands())
+        .. var1 replace:: module1.variable1
+        .. mod1.var1 replace:: module1.variable1
+
+        Adding `variable2` of `module2` has no effect on the predefined
+        substitutions:
+
+        >>> module2 = types.ModuleType('hydpy.module2')
+        >>> substituter.add_substitution(
+        ...     'var2', 'mod2.var2', 'module2.variable2', module2)
+        >>> print(substituter.get_commands())
+        .. var1 replace:: module1.variable1
+        .. var2 replace:: module2.variable2
+        .. mod1.var1 replace:: module1.variable1
+        .. mod2.var2 replace:: module2.variable2
+
+        But when adding `variable1` of `module2`, the `short2long` mapping
+        of `variable1` would become inconclusive, which is why the new
+        one (related to `module2`) is not stored and the old one (related
+        to `module1`) is removed:
+
+        >>> substituter.add_substitution(
+        ...     'var1', 'mod2.var1', 'module2.variable1', module2)
+        >>> print(substituter.get_commands())
+        .. var2 replace:: module2.variable2
+        .. mod1.var1 replace:: module1.variable1
+        .. mod2.var1 replace:: module2.variable1
+        .. mod2.var2 replace:: module2.variable2
+
+        Adding `variable2` of `module2` accidentally again, does not
+        result in any undesired side-effects:
+
+        >>> substituter.add_substitution(
+        ...     'var2', 'mod2.var2', 'module2.variable2', module2)
+        >>> print(substituter.get_commands())
+        .. var2 replace:: module2.variable2
+        .. mod1.var1 replace:: module1.variable1
+        .. mod2.var1 replace:: module2.variable1
+        .. mod2.var2 replace:: module2.variable2
+
+        In order to reduce the risk of name conflicts, only the
+        `medium2long` mapping is supported for modules not part of the
+        :ref:`HydPy` package:
+
+        >>> module3 = types.ModuleType('module3')
+        >>> substituter.add_substitution(
+        ...     'var3', 'mod3.var3', 'module3.variable3', module3)
+        >>> print(substituter.get_commands())
+        .. var2 replace:: module2.variable2
+        .. mod1.var1 replace:: module1.variable1
+        .. mod2.var1 replace:: module2.variable1
+        .. mod2.var2 replace:: module2.variable2
+        .. mod3.var3 replace:: module3.variable3
+
+        The only exception to this rule is |builtins|, for which only
+        the `short2long` mapping is supported (note also, that the
+        module name `builtins` is removed from string `long`):
+
+        >>> from hydpy import builtins
+        >>> substituter.add_substitution(
+        ...     'str', 'blt.str', ':func:`~builtins.str`', builtins)
+        >>> print(substituter.get_commands())
+        .. str replace:: :func:`str`
+        .. var2 replace:: module2.variable2
+        .. mod1.var1 replace:: module1.variable1
+        .. mod2.var1 replace:: module2.variable1
+        .. mod2.var2 replace:: module2.variable2
+        .. mod3.var3 replace:: module3.variable3
+        """
+        name = module.__name__
+        if 'builtin' in name:
+            self._short2long[short] = long.split('~')[0] + long.split('.')[-1]
+        else:
+            if ('hydpy' in name) and (short not in self._blacklist):
+                if short in self._short2long:
+                    if self._short2long[short] != long:
+                        self._blacklist.add(short)
+                        del self._short2long[short]
+                else:
+                    self._short2long[short] = long
+            self._medium2long[medium] = long
+
+    def add_module(self, module, cython=False):
+        """Add the given module, its members, and their submembers.
+
+        The first examples are based on the site-package |numpy|: which
+        is passed to method |Substituter.add_module|:
+
+        >>> from hydpy.core.autodoctools import Substituter
+        >>> substituter = Substituter()
+        >>> import numpy
+        >>> substituter.add_module(numpy)
+
+        Firstly, the module itself is added:
+
+        >>> substituter.find('|numpy|')
+        |numpy| :mod:`~numpy`
+
+        Secondly, constants like |numpy.nan| are added:
+
+        >>> substituter.find('|numpy.nan|')
+        |numpy.nan| :const:`~numpy.nan`
+
+        Thirdly, functions like |numpy.clip| are added:
+
+        >>> substituter.find('|numpy.clip|')
+        |numpy.clip| :func:`~numpy.clip`
+
+        Fourthly, clases line |numpy.ndarray| are added:
+
+        >>> substituter.find('|numpy.ndarray|')
+        |numpy.ndarray| :class:`~numpy.ndarray`
+
+        When adding Cython modules, the `cython` flag should be set |True|:
+
+        >>> from hydpy.cythons import pointerutils
+        >>> substituter.add_module(pointerutils, cython=True)
+        >>> substituter.find('set_pointer')
+        |PPDouble.set_pointer| \
+:func:`~hydpy.cythons.autogen.pointerutils.PPDouble.set_pointer`
+        |pointerutils.PPDouble.set_pointer| \
+:func:`~hydpy.cythons.autogen.pointerutils.PPDouble.set_pointer`
+        """
         name_module = module.__name__.split('.')[-1]
-        short = '|%s|' % name_module
-        self.substitutions[short] = ':mod:`~%s`' % module.__name__
-        if not cython:
-            self.members.append(module)
-        for (name_member, member) in module.__dict__.items():
-            if name_member.startswith('_'):
-                continue
-            if getattr(member, '__module__', None) != module.__name__:
-                continue
-            if name_member == 'CONSTANTS':
-                for key, value in member.items():
-                    self._add_single_object(
-                        'const', name_module, module, key, value, cython)
-                continue
-            if inspect.isfunction(member):
-                role = 'func'
-            elif inspect.isclass(member):
-                role = 'class'
-            elif cython:
-                role = 'func'
-            else:
-                continue
-            self._add_single_object(
-                role, name_module, module, name_member, member, cython)
-
-    def _add_single_object(
-            self, role, name_module, module, name_member, member, cython):
-        short = '|%s|' % name_member
-        medium = ('|%s.%s|' % (name_module, name_member))
-        long = ':%s:`~%s.%s`' % (role, module.__name__, name_member)
-        if short not in self.blacklist:
-            if short in self.substitutions:
-                self.blacklist.add(short)
-                del self.substitutions[short]
-            else:
-                self.substitutions[short] = long
-                self._add_single_objects_members(member, short, long)
-        self.substitutions[medium] = long
-        self._add_single_objects_members(member, medium, long)
-        if ((pub.pyversion > 2) and
-                inspect.isclass(member) and
-                issubclass(member, BaseException)):
-            for prefix in (' ', '\n'):
-                short = '%s%s:' % (prefix, name_member)
-                long = ('%s%s.%s:' % (prefix, member.__module__, name_member))
-                self.substitutions[short] = long
-        if not cython:
-            self.members.append(member)
-
-    def _add_single_objects_members(self, member, short, long):
-        if inspect.isclass(member):
-            for name_submember in vars(member).keys():
-                if not name_submember.startswith('_'):
-                    subshort = '%s.%s|' % (short[:-1], name_submember)
-                    sublong = '%s.%s`' % (long[:-1], name_submember)
-                    self.substitutions[subshort] = sublong
+        short = ('|%s|'
+                 % name_module)
+        long = (':mod:`~%s`'
+                % module.__name__)
+        self._short2long[short] = long
+        for (name_member, member) in vars(module).items():
+            if self.consider_member(
+                    name_member, member, module):
+                role = self.get_role(member, cython)
+                short = ('|%s|'
+                         % name_member)
+                medium = ('|%s.%s|'
+                          % (name_module,
+                             name_member))
+                long = (':%s:`~%s.%s`'
+                        % (role,
+                           module.__name__,
+                           name_member))
+                self.add_substitution(short, medium, long, module)
+                if inspect.isclass(member):
+                    for name_submember, submember in vars(member).items():
+                        if self.consider_member(
+                                name_submember, submember, module):
+                            role = self.get_role(submember, cython)
+                            short = ('|%s.%s|'
+                                     % (name_member,
+                                        name_submember))
+                            medium = ('|%s.%s.%s|'
+                                      % (name_module,
+                                         name_member,
+                                         name_submember))
+                            long = (':%s:`~%s.%s.%s`'
+                                    % (role,
+                                       module.__name__,
+                                       name_member,
+                                       name_submember))
+                            self.add_substitution(short, medium, long, module)
 
     def add_modules(self, package):
-        """Add the modules of the given package without not their members."""
+        """Add the modules of the given package without their members."""
         for name in os.listdir(package.__path__[0]):
             if name.startswith('_'):
                 continue
             name = name.split('.')[0]
             short = '|%s|' % name
             long = ':mod:`~%s.%s`' % (package.__package__, name)
-            self.substitutions[short] = long
+            self._short2long[short] = long
 
-    def _get_substitute(self, match):
-        return self.substitutions[match.group(0)]
+    def update_masters(self):
+        """Update all `master` |Substituter| objects.
 
-    def __call__(self, text):
-        return self.regex.sub(self._get_substitute, text)
+        If a |Substituter| objects is passed to the constructor of another
+        |Substituter| object, it becomes its `master`:
 
-    def apply_on_members(self):
-        """Apply all substitutions defined so far on all handled members."""
-        self.update()
-        for member in self.members:
-            __doc__ = member.__doc__
-            if __doc__:
-                try:
-                    member.__doc__ = ''
-                except BaseException:
-                    continue
-                member.__doc__ = self(__doc__)
-            for submember in getattr(member, '__dict__', {}).values():
-                submember = getattr(submember, '__func__', submember)
-                __doc__ = submember.__doc__
-                if __doc__:
-                    try:
-                        submember.__doc__ = ''
-                    except BaseException:
-                        continue
-                    submember.__doc__ = self(__doc__)
-        filename = os.path.join(docs.__path__[0], 'rst_prolog.temp')
-        with open(filename, 'a') as file_:
-            for key, value in self.substitutions.items():
-                file_.write('.. %s replace:: %s\n'
-                            % (key, value))
+        >>> from hydpy.core.autodoctools import Substituter
+        >>> sub1 = Substituter()
+        >>> from hydpy.core import devicetools
+        >>> sub1.add_module(devicetools)
+        >>> sub2 = Substituter(sub1)
+        >>> sub3 = Substituter(sub2)
+        >>> sub3.master.master is sub1
+        True
+
+        During initialization, all mappings handled by the master object
+        are passed to its slave:
+
+        >>> sub3.find('Node|')
+        |Node| :class:`~hydpy.core.devicetools.Node`
+        |devicetools.Node| :class:`~hydpy.core.devicetools.Node`
+
+
+        Updating a slave, does not affect its master directly:
+
+        >>> from hydpy.core import hydpytools
+        >>> sub3.add_module(hydpytools)
+        >>> sub3.find('HydPy|')
+        |HydPy| :class:`~hydpy.core.hydpytools.HydPy`
+        |hydpytools.HydPy| :class:`~hydpy.core.hydpytools.HydPy`
+        >>> sub2.find('HydPy|')
+
+        Through calling |Substituter.update_masters|, the `medium2long`
+        mappings are passed the slave to its master:
+
+        >>> sub3.update_masters()
+        >>> sub2.find('HydPy|')
+        |hydpytools.HydPy| :class:`~hydpy.core.hydpytools.HydPy`
+
+        Then each master object updates its own master object also:
+
+        >>> sub1.find('HydPy|')
+        |hydpytools.HydPy| :class:`~hydpy.core.hydpytools.HydPy`
+        """
+        if self.master is not None:
+            self.master._medium2long.update(self._medium2long)
+            self.master.update_masters()
+
+    def get_commands(self, source=None):
+        """Return a string containing multiple `reStructuredText`
+        replacements with the substitutions currently defined.
+
+        Some examples based on the subpackage |optiontools|:
+
+        >>> from hydpy.core.autodoctools import Substituter
+        >>> substituter = Substituter()
+        >>> from hydpy.core import optiontools
+        >>> substituter.add_module(optiontools)
+
+        When calling |Substituter.get_commands| with the `source`
+        argument, the complete `short2long` and `medium2long` mappings
+        are translated into replacement commands (only a few of them
+        are shown):
+
+        >>> print(substituter.get_commands())
+        .. |Options.checkseries| replace:: \
+:const:`~hydpy.core.optiontools.Options.checkseries`
+        .. |Options.dirverbose| replace:: \
+:const:`~hydpy.core.optiontools.Options.dirverbose`
+        ...
+        .. |optiontools.Options.warntrim| replace:: \
+:const:`~hydpy.core.optiontools.Options.warntrim`
+        .. |optiontools.Options| replace:: \
+:class:`~hydpy.core.optiontools.Options`
+
+        Through passing a string (usually the source code of a file
+        to be documented), only the replacement commands relevant for
+        this string are translated:
+
+        >>> from hydpy.core import objecttools
+        >>> import inspect
+        >>> source = inspect.getsource(objecttools)
+        >>> print(substituter.get_commands(source))
+        .. |Options.reprdigits| replace:: \
+:const:`~hydpy.core.optiontools.Options.reprdigits`
+        """
+        commands = []
+        for key, value in self:
+            if (source is None) or (key in source):
+                commands.append('.. %s replace:: %s' % (key, value))
+        return '\n'.join(commands)
 
     def find(self, text):
-        for key, value in self.substitutions.items():
+        """Print all substitutions that include the given text string."""
+        for key, value in self:
             if (text in key) or (text in value):
                 print(key, value)
 
+    def __iter__(self):
+        for item in sorted(self._short2long.items()):
+            yield item
+        for item in sorted(self._medium2long.items()):
+            yield item
+
 
 @make_autodoc_optional
-def _prepare_mainsubstituter():
-    """Prepare, execute, and return a |Substituter| object for the main
-    `__init__` file of `HydPy`."""
+def prepare_mainsubstituter():
+    """Prepare and return a |Substituter| object for the main `__init__`
+    file of :ref:`HydPy`."""
     substituter = Substituter()
-    subs = substituter.substitutions
-    for key, value in vars(builtins).items():
-        if key.startswith('_'):
-            continue
-        elif isinstance(value, BaseException):
-            subs['|%s|' % key] = ':class:`~exceptions.%s`' % key
-        elif inspect.isfunction(value):
-            subs['|%s|' % key] = ':func:`%s`' % key
-        elif inspect.isclass(value):
-            subs['|%s|' % key] = ':class:`%s`' % key
-    subs['|None|'] = ':class:`~builtins.None`'
-    subs['|idx_sim|'] = ':attr:`~hydpy.core.modeltools.Model.idx_sim`'
-    subs['|pub|'] = ':mod:`~hydpy.pub`'
-    subs['|config|'] = ':mod:`~hydpy.config`'
-    subs['|numpy|'] = ':mod:`numpy`'
-    subs['|ndarray|'] = ':class:`~numpy.ndarray`'
-    subs['|nan|'] = ':const:`~numpy.nan`'
-    subs['|inf|'] = ':const:`~numpy.inf`'
+    for module in (builtins, numpy, datetime, unittest, doctest, inspect, io):
+        substituter.add_module(module)
     for subpackage in (auxs, core, cythons):
         for dummy, name, dummy in pkgutil.walk_packages(subpackage.__path__):
             full_name = subpackage.__name__ + '.' + name
-            substituter.add_everything(importlib.import_module(full_name))
+            substituter.add_module(importlib.import_module(full_name))
     substituter.add_modules(models)
     for cymodule in (annutils, smoothutils, pointerutils):
-        substituter.add_everything(cymodule, cython=True)
-    substituter.apply_on_members()
+        substituter.add_module(cymodule, cython=True)
+    substituter._short2long['|pub|'] = ':mod:`~hydpy.pub`'
+    substituter._short2long['|config|'] = ':mod:`~hydpy.config`'
     return substituter
 
 

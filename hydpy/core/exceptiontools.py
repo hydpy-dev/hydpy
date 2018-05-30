@@ -98,7 +98,7 @@ def _objectname(self):
 
 
 def protected_property(propname, fget, fset=None, fdel=None):
-    """Return a :func:`property` which prevents getting an attribute
+    """Return a |property| which prevents getting an attribute
     before setting it.
 
     Under some circumstances, an attribute value needs to be prepared
@@ -132,9 +132,9 @@ def protected_property(propname, fget, fset=None, fdel=None):
     ...     x = protected_property(
     ...         'x', _get_x, _set_x, _del_x)
 
-    Due to using |protected_property| instead of :func:`property`,
-    trying to query `x` after initializing a `Test` object results
-    in an |AttributeNotReady| error:
+    Due to using |protected_property| instead of |property|, trying
+    to query `x` after initializing a `Test` object results in an
+    |AttributeNotReady| error:
 
     >>> test = Test()
     >>> test.x
@@ -173,8 +173,8 @@ prepared so far.
     AttributeNotReady: Attribute `x` of object `name_object` of \
 element `name_element` has not been prepared so far.
 
-    As for :func:`property`, the `set` and `del` can be omitted.  As
-    an example, we redefine class `Test` with a `get` method only:
+    As for |property|, the `set` and `del` can be omitted.  As an
+    example, we redefine class `Test` with a `get` method only:
 
     >>> class Test(object):
     ...
@@ -255,8 +255,8 @@ prepared so far.
 
 
 def dependent_property(propname, fget, fset=None, fdel=None):
-    """Return a :func:`property` which prevents accessing a dependent
-    attribute before other attributes have been prepared.
+    """Return a |property| which prevents accessing a dependent attribute
+    before other attributes have been prepared.
 
     The following explanations suppose first reading the documentation
     on function |protected_property|.  Here the example class `Test` is

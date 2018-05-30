@@ -46,14 +46,14 @@ class QM(parametertools.SingleParameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
     def update(self):
-        """Update value based on the actual |calc_qg| method.
+        """Update value based on the actual |calc_qg_v1| method.
 
         Required derived parameter:
             |H|
 
-        Note that the value of parameter |QM| is directly related to
-        the value of parameter |HM| and indirectly related to all
-        parameters values relevant for method |calc_qg|. Hence the
+        Note that the value of parameter |lstream_derived.QM| is directly
+        related to the value of parameter |HM| and indirectly related to
+        all parameters values relevant for method |calc_qg_v1|. Hence the
         complete paramter (and sequence) requirements might differ for
         various application models.
 
@@ -73,16 +73,16 @@ class QV(parametertools.LeftRightParameter):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
     def update(self):
-        """Update value based on the actual |calc_qg| method.
+        """Update value based on the actual |calc_qg_v1| method.
 
         Required derived parameter:
             |HV|
 
-        Note that the values of parameter |QV| are directly related to
-        the values of parameter |HV| and indirectly related to all
-        parameters values relevant for method |calc_qg|. Hence the
-        complete paramter (and sequence) requirements might differ for
-        various application models.
+        Note that the values of parameter |lstream_derived.QV| are
+        directly related to the values of parameter |HV| and indirectly
+        related to all parameters values relevant for method |calc_qg_v1|.
+        Hence the complete paramter (and sequence) requirements might
+        differ for various application models.
 
         For examples, see the documentation on method ToDo.
         """
@@ -102,11 +102,7 @@ class Sek(parametertools.SingleParameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
     def update(self):
-        """Update value based on :math:`HL=BBR/BNR`.
-
-        Required Parameters:
-            |BBR|
-            |BNR|
+        """Update value based on |Parameter.simulationstep|.
 
         Example:
             >>> from hydpy.models.lstream import *

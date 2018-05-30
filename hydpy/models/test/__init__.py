@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-The base model `Test`is intended for implementing small application model
+The base model |test| is intended for implementing small application model
 that allow for testing or demonstrating specific features of the HydPy
 framework.
 """

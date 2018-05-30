@@ -677,9 +677,9 @@ def autodoc_module():
     Just write `autodoctools.autodoc_module()` at the very bottom of the
     module.
 
-    Note that function :func:`autodoc_module` is not thought to be used for
+    Note that function |autodoc_module| is not thought to be used for
     modules defining models.  For base models, see function
-    :func:`autodoc_basemodel` instead.
+    |autodoc_basemodel| instead.
     """
     module = inspect.getmodule(inspect.currentframe().f_back.f_back)
     doc = module.__doc__

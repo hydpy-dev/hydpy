@@ -44,12 +44,11 @@ Integration examples:
     >>> parameterstep('1d')
     >>> dam.connect(model)
 
-    Method :func:`~hydpy.core.modeltools.Model.connect` recognizes the
-    different purposes of both output nodes through the given `variable`
-    keyword.  Each |dam_v003| model must be connecte  to exactly two nodes.
-    The `Q`-node (discharge) handles the release into the stream bed
-    downstream and the `S`-node (supply) passes the water flow to another
-    (arbitrary) model.
+    Method |Model.connect| recognizes the different purposes of both
+    output nodes through the given `variable` keyword.  Each |dam_v003|
+    model must be connecte  to exactly two nodes.  The `Q`-node
+    (discharge) handles the release into the stream bed downstream and
+    the `S`-node (supply) passes the water flow to another (arbitrary) model.
 
     As explained for model |dam_v002|, the following initial conditions,
     external time series data, and parameter values are set in favour of

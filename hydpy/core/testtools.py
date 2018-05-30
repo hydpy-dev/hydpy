@@ -26,6 +26,7 @@ from hydpy import docs
 from hydpy.core import abctools
 from hydpy.core import autodoctools
 from hydpy.core import devicetools
+from hydpy.core import exceptiontools
 from hydpy.core import hydpytools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
@@ -77,6 +78,12 @@ class StdOutErr(object):
 
 
 class Tester(object):
+    """Tests either a base or an application model.
+
+    Usually, a |Tester| object is initialized at the end of the `__init__`
+    file of its base model or at the end of the module of an application
+    modele.
+    """
 
     def __init__(self):
         frame = inspect.currentframe().f_back
@@ -86,16 +93,25 @@ class Tester(object):
 
     @property
     def filenames(self):
+        """|list| of all filenames to be taken into account for testing."""
         if self.ispackage:
             return os.listdir(os.path.dirname(self.filepath))
         return [self.filepath]
 
     @property
     def modulenames(self):
+        """|list| of all module names to be taken into account for testing."""
         return [os.path.split(fn)[-1].split('.')[0] for fn in self.filenames
                 if (fn.endswith('.py') and not fn.startswith('_'))]
 
     def doit(self):
+        """Perform all doctests either in Python or in Cython mode depending
+        on the state of |Options.usecython| set in module |pub|.
+
+        Usually, |Tester.doit| is triggered automatically by a |Cythonizer|
+        object assigned to the same base or application model as a
+        |Tester| object.
+        """
         opt = pub.options
         par = parametertools.Parameter
         with opt.usedefaultvalues(False), \
@@ -152,7 +168,7 @@ class Tester(object):
 
 
 class Array(object):
-    """Assures that attributes are |ndarray| objects."""
+    """Assures that attributes are |numpy.ndarray| objects."""
 
     def __setattr__(self, name, value):
         object.__setattr__(self, name, numpy.array(value))
@@ -737,14 +753,14 @@ class UnitTest(Test):
         return tuple(parseqs)
 
     def _update_inputs(self, idx):
-        """Update the actual values with the :attr:`~UnitTest.nexts` data of
+        """Update the actual values with the |UnitTest.nexts| data of
         the given index."""
         for parseq in self.parseqs:
             if hasattr(self.nexts, parseq.name):
                 parseq(getattr(self.nexts, parseq.name)[idx])
 
     def _update_outputs(self, idx):
-        """Update the :attr:`~UnitTest.results` data with the actual values of
+        """Update the |UnitTest.results| data with the actual values of
         the given index."""
         for parseq in self.parseqs:
             if hasattr(self.results, parseq.name):
@@ -790,12 +806,12 @@ class _Open(object):
 
 
 class Open(object):
-    """Replace :func:`open` in doctests temporarily.
+    """Replace |open| in doctests temporarily.
 
-    Class |Open| to intended to make writing to files visible
-    and testable in docstrings.  Therefore, Python's built in function
-    :func:`open` is temporarily replaced by another object, printing
-    the filename and the file contend as shown in the following example:
+    Class |Open| to intended to make writing to files visible and testable
+    in docstrings.  Therefore, Python's built in function |open| is
+    temporarily replaced by another object, printing the filename and the
+    file contend as shown in the following example:
 
     >>> import os
     >>> path = os.path.join('folder', 'test.py')

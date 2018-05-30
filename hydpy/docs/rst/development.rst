@@ -493,7 +493,7 @@ SubParameters(None)...
 
 Sometimes, additional information might increase the value of a
 string representation.  Add comments in these cases, but only when
-the |options.reprcomments| flag is activated:
+the |Options.reprcomments| flag handled in module |pub| is activated:
 
     >>> from hydpy.models.hland import *
     >>> parameterstep('1d')
@@ -579,11 +579,10 @@ It is encouraged to implement additional introspection features into
 HydPy, as long as they improve the intuitive usability for non-programmers.
 But one should be particularly cautious when doing so and document the
 why and how thoroughly.  To ensure traceability, one should usually add
-such code to the modules |modelutils| and |magictools|.  Module |modelutils|
-deals with all introspection needed to `cythonize` Python models
-automatically.  Module |magictools| serves for (most of) the rest of
-HydPy's magical introspection features.  Of course, it might be necessary
-to define other specialized inspection modules in the future.
+such code to the modules like |modelutils| and |autodoctools|.  Module
+|modelutils| deals with all introspection needed to `cythonize` Python models
+automatically.  Module |autodoctools| serves for improving HydPy's online
+documentation automatically.
 
 Model specific features
 -----------------------
@@ -612,14 +611,14 @@ Conventional Unit-Tests
 -----------------------
 
 After installing HydPy through executing the `setup.py` module with
-the argument `install`, the module |test_everything| is executed as well.
+the argument `install`, the script `test_everything` is executed as well.
 The first task of the latter module is to perform all `conventional`
-unit tests.  Therefore, all modules within the package |tests| named
+unit tests.  Therefore, all modules within the subpackage `tests` named
 'unittests_*.py' are evaluated based on the unit testing framework
 |unittest| of Pythons standard library.  Each new HydPy module should
 be complemented by a corresponding unittest file, testing its functionality
 thoroughly.  Just write test classes in each unittest file.  These are
-evaluated automatically by module |test_everything|.  Let each class
+evaluated automatically by the script `test_everything`.  Let each class
 name  start with 'Test', a consecutive number, and a description of the
 functionality to be testet.  Each test class must inherit from
 |unittest.TestCase|, allowing for using its assert methods.  Last but not
@@ -642,19 +641,19 @@ test class for the initialization of |Date| objects:
     ...         self.assertEqual(self.refdate_hour,
     ...                          timetools.Date('1997_11_01_12').datetime)
 
-The |TestCase.setUp| method allows for some preparations that have to be
-conducted before the test methods can be called.  The status defined in
-the |TestCase.setUp| method is restored before each test method call,
-hence --- normally --- the single test methods do not affect each other
-(the consecutive numbers are only used for reporting the test results in a
-sorted manner).  In case the test methods affect some global variables,
-add a |TestCase.tearDown| method to your test class, which will be executed
-after each test method call. See the documentation on |TestCase| regarding
-the available assert methods.
+The |unittest.TestCase.setUp| method allows for some preparations that
+have to beconducted before the test methods can be called.  The status
+defined in the |unittest.TestCase.setUp| method is restored before each
+test method call, hence --- normally --- the single test methods do not
+affect each other (the consecutive numbers are only used for reporting
+the test results in a sorted manner).  In case the test methods affect
+some global variables, add a |unittest.TestCase.tearDown| method to your
+test class, which will be executed after each test method call. See the
+documentation on |unittest.TestCase| regarding the available assert methods.
 
 To elaborate the example above, the two test methods are executed manually
-(normally, this is done by module |test_everything| automatically).  First
-prepare an object for the test results:
+(normally, this is done by the script `test_everything` automatically).
+First prepare an object for the test results:
 
     >>> result = unittest.result.TestResult()
 
@@ -730,8 +729,8 @@ core package contains a module named `objecttools`.
 
 To support the frequent usage of doctests, one is allowed to use
 them at any section of the documentation, accepting possible
-redundancies with defined `conventional` unit tests.  The module
-|test_everything| searches for doctests in all Python modules and
+redundancies with defined `conventional` unit tests.  The script
+`test_everything` searches for doctests in all Python modules and
 all `reStructuredText`_ files contained in the package hydpy and
 executes them.
 

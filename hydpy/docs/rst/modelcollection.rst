@@ -29,30 +29,29 @@ and order.
 If not stated otherwise, all models can be freely combined and applied
 on arbitrary simulation time steps.  It is, for example, possible to
 simulate the "land processes" with |hland_v1|, the "stream processes"
-with |arma_v1|, the "lake processes" with |llake_v1| in either a daily
+with |arma_v1|, the "dam processes" with |dam_v001| in either a daily
 or hourly time step.
 
 Often base models offer different versions of a method to calculate the
-value of the same variable.  For example, base model |hland| offers two
-methods for calculating |lland_fluxes.ET0|: |lland_model.calc_et0_v1| and
-|lland_model.calc_et0_v2|.  Each application model has to select a
-specific version of the method.  For example, application model |hland_v1|
-selects |lland_model.calc_et0_v1|...
+value of the same variable.  For example, base model |dam| offers two
+methods for picking its |dam_fluxes.Inflow|: |dam_model.pic_inflow_v1|
+and |dam_model.pic_inflow_v2|.  Each application model has to select a
+specific version of the method.  Exemples here are application model
+|dam_v001| selecting |dam_model.pic_inflow_v1| and application model
+|dam_v005| selecting |dam_model.pic_inflow_v2|.  The following example
+shows this for application model |dam_v005|:
 
->>> from hydpy.models.lland_v1 import *
+>>> from hydpy.models.dam_v005 import *
 >>> parameterstep('1d')
->>> hasattr(model, 'calc_et0_v1')
+>>> hasattr(model, 'pic_inflow_v2')
 True
-
-...but not |lland_model.calc_et0_v2|:
-
->>> hasattr(model, 'calc_et0_v2')
+>>> hasattr(model, 'pic_inflow_v1')
 False
 
 For simplicity, you can skip the version number when trying to access
 a certain method of an application model:
 
->>> hasattr(model, 'calc_et0')
+>>> hasattr(model, 'pic_inflow')
 True
 
 Note that this way to construct different application models is very

@@ -127,7 +127,7 @@ class Model(modeltools.Model):
         self.nodenames = []
 
     def connect(self):
-        """Connect the |LinkSequence|instances handled by the actual model
+        """Connect the |LinkSequence| instances handled by the actual model
         to the |NodeSequence| instances handled by one inlet node and
         multiple oulet nodes.
 

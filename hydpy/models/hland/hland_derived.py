@@ -30,7 +30,8 @@ class RelLandZoneArea(hland_parameters.MultiParameter):
 
 
 class RelLandArea(parametertools.SingleParameter):
-    """Quotient of the sum of |LandZoneArea| and |Area| [-]."""
+    """Quotient of the sum of |ZoneArea| and |Area| for zones that
+    are not of type |ILAKE| [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
 
 

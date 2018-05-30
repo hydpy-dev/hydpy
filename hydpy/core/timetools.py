@@ -190,14 +190,14 @@ class Date(object):
     def fromarray(cls, array):
         """Returns a |Date| instance based on date information (year,
         month, day, hour, minute, second) stored as the first entries of
-        the successive rows of a |ndarray| object."""
+        the successive rows of a |numpy.ndarray| object."""
         intarray = numpy.array(array, dtype=int)
         for dummy in range(1, array.ndim):
             intarray = intarray[:, 0]
         return cls(datetime.datetime(*intarray))
 
     def toarray(self):
-        """Returns a 1-dimensional |numpy| |ndarray| with six entries
+        """Returns a 1-dimensional |numpy| |numpy.ndarray| with six entries
         defining the actual date (year, month, day, hour, minute, second)."""
         return numpy.array([self.year, self.month, self.day, self.hour,
                             self.minute, self.second], dtype=float)
@@ -551,10 +551,11 @@ However, for the given `timedelta` object, it is`857142` instead.
         elif isinstance(period, str):
             self._initfromstr(period)
         else:
-            raise ValueError('The supplied argument must be either an '
-                             'instance of `datetime.timedelta` or `str`.  '
-                             'The given arguments type is %s.'
-                             % objecttools.classname(period))
+            raise ValueError(
+                'The supplied argument must be either an '
+                'instance of `datetime.timedelta` or `str`.  '
+                'The given arguments type is %s.'
+                % objecttools.classname(period))
 
     def _del_timedelta(self):
         self._timedelta = None
@@ -570,16 +571,19 @@ However, for the given `timedelta` object, it is`857142` instead.
         try:
             number = int(period[:-1])
         except ValueError:
-            raise ValueError('All characters of the given period string, '
-                             'except the last one which represents the unit, '
-                             'need to define a whole decimal number.  Instead,'
-                             ' these characters are `%s`.' % period[:-1])
+            raise ValueError(
+                'All characters of the given period string, '
+                'except the last one which represents the unit, '
+                'need to define a whole decimal number.  Instead,'
+                ' these characters are `%s`.'
+                % period[:-1])
         self._unit = period[-1]
         if self._unit not in ('d', 'h', 'm', 's'):
-            raise ValueError('The last character of the given period string '
-                             'needs to be either `d` (days), `h` (hours) or '
-                             '`m` (minutes).  Instead, the last character is '
-                             '`%s`.' % self._unit)
+            raise ValueError(
+                'The last character of the given period string '
+                'needs to be either `d` (days), `h` (hours) or '
+                '`m` (minutes).  Instead, the last character is `%s`.'
+                % self._unit)
         if self._unit == 'd':
             self._timedelta = datetime.timedelta(number, 0)
         elif self._unit == 'h':
@@ -591,8 +595,7 @@ However, for the given `timedelta` object, it is`857142` instead.
 
     @classmethod
     def fromseconds(cls, seconds):
-        """Returns a |Period| instance based on a given number of seconds.
-        """
+        """Return a |Period| instance based on a given number of seconds."""
         try:
             seconds = int(seconds)
         except TypeError:
@@ -899,7 +902,7 @@ given step size 1d.
     @classmethod
     def fromarray(cls, array):
         """Returns a |Timegrid| instance based on two date and one period
-        information stored in the first 13 rows of a |ndarray| object.
+        information stored in the first 13 rows of a |numpy.ndarray| object.
         """
         try:
             return cls(firstdate=Date.fromarray(array[:6]),
@@ -911,9 +914,9 @@ given step size 1d.
                              'consist of %d entries/rows only.' % len(array))
 
     def toarray(self):
-        """Returns a 1-dimensional |numpy| |ndarray| with thirteen entries
-        first defining the start date, secondly defining the end date and
-        thirdly the step size in seconds.
+        """Returns a 1-dimensional |numpy| |numpy.ndarray| with thirteen
+        entries first defining the start date, secondly defining the end
+        date and thirdly the step size in seconds.
         """
 
         values = numpy.empty(13, dtype=float)

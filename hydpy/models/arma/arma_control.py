@@ -50,7 +50,7 @@ class Responses(parametertools.Parameter):
                        18.0, 19.0)))
 
     All ARMA models are available via attribute access and their attribute
-    names are made available to function :func:`dir`:
+    names are made available to function |dir|:
 
     >>> 'th_1_0' in dir(responses)
     True

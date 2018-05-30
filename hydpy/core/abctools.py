@@ -2,11 +2,11 @@
 """This module provides some abstract base classes.
 
 There are some type checks within the HydPy framework relying on the
-build in  function :func:`isinstance`.  In order to keep HydPy
-"pythonic", the following abstract base classes are defined.  All
-calls to :func:`isinstance` should rely these abstract base classes
-instead of the respective original classes.  This helps to build e.g.
-a new parameter class when one wants to avoid to inherit from |Parameter|.
+build in  function |isinstance|.  In order to keep HydPy "pythonic",
+the following abstract base classes are defined.  All calls to |isinstance|
+should rely these abstract base classes instead of the respective
+original classes.  This helps to build e.g. a new parameter class when
+one wants to avoid to inherit from |Parameter|.
 
 At the moment, the provided classes do not provide things like abstract
 methods (should be added later).  Just use them to register new classes
@@ -119,17 +119,17 @@ class IterableNonStringABC(_ABC):
 
 
 class ElementABC(DocABC):
-    """Abstract base class for registering custom element classes."""
+    """Abstract base class for registering custom |Element| classes."""
     pass
 
 
 class NodeABC(DocABC):
-    """Abstract base class for registering custom node classes."""
+    """Abstract base class for registering custom |Node| classes."""
     pass
 
 
 class VariableABC(DocABC):
-    """Abstract base class for registering custom variable classes.
+    """Abstract base class for registering custom |Variable| classes.
 
     Usually, new classes should either be registered as a parameter
     or a sequence.  Afterwards, they are automatically handled as
@@ -147,107 +147,104 @@ class VariableABC(DocABC):
 
 
 class ParameterABC(VariableABC):
-    """Abstract base class for registering custom parameter classes."""
+    """Abstract base class for registering custom |Parameter| classes."""
 
 
 class ANNABC(DocABC):
-    """Abstract base class for registering custom artificial neural network
-    classes."""
+    """Abstract base class for registering custom |anntools.ANN| classes."""
 
 
 class SeasonalANNABC(DocABC):
-    """Abstract base class for registering custom seasonal artificial neural
-    network classes."""
+    """Abstract base class for registering custom |anntools.SeasonalANN|
+    classes."""
 
 
-class IOSubSequencesABC(DocABC):
-    """Abstract base class for registering custom input-output subsequence
-    collection classes."""
+class IOSequencesABC(DocABC):
+    """Abstract base class for registering custom |IOSequences| classes."""
 
 
-class InputSubSequencesABC(DocABC):
-    """Abstract base class for registering custom input subsequence
-    collection classes."""
+class InputSequencesABC(DocABC):
+    """Abstract base class for registering custom |InputSequences| classes."""
 
 
-class OutputSubSequencesABC(DocABC):
-    """Abstract base class for registering custom output subsequence
-    collection classes."""
+class OutputSequencesABC(DocABC):
+    """Abstract base class for registering custom "OutputSequences" classes
+    like |FluxSequences|."""
 
 
 class SequenceABC(VariableABC):
-    """Abstract base class for registering custom sequence classes."""
+    """Abstract base class for registering custom |Sequence| classes."""
     pass
 
 
 class InputSequenceABC(SequenceABC):
-    """Abstract base class for registering custom input sequence classes."""
+    """Abstract base class for registering custom |InputSequence| classes."""
     pass
 
 
 class FluxSequenceABC(SequenceABC):
-    """Abstract base class for registering custom flux sequence classes."""
+    """Abstract base class for registering custom |FluxSequence| classes."""
     pass
 
 
 class ConditionSequenceABC(SequenceABC):
-    """Abstract base class for registering custom condition sequence classes.
+    """Abstract base class for registering custom |ConditionSequence| classes.
     """
     pass
 
 
 class StateSequenceABC(ConditionSequenceABC):
-    """Abstract base class for registering custom state sequence classes."""
+    """Abstract base class for registering custom |StateSequence| classes."""
     pass
 
 
 class LogSequenceABC(ConditionSequenceABC):
-    """Abstract base class for registering custom log sequence classes."""
+    """Abstract base class for registering custom |LogSequence| classes."""
     pass
 
 
 class AideSequenceABC(SequenceABC):
-    """Abstract base class for registering custom aide sequence classes."""
+    """Abstract base class for registering custom |AideSequence| classes."""
     pass
 
 
 class LinkSequenceABC(SequenceABC):
-    """Abstract base class for registering custom link sequence classes."""
+    """Abstract base class for registering custom |LinkSequence| classes."""
     pass
 
 
 class NodeSequenceABC(SequenceABC):
-    """Abstract base class for registering custom node sequence classes."""
+    """Abstract base class for registering custom |NodeSequence| classes."""
     pass
 
 
-    """Abstract base class for registering custom date classes."""
 class DateABC(DocABC):
+    """Abstract base class for registering custom |Date| classes."""
     pass
 
 
-    """Abstract base class for registering custom period classes."""
 class PeriodABC(DocABC):
+    """Abstract base class for registering custom |Period| classes."""
     pass
 
 
-    """Abstract base class for registering custom timegrid classes."""
 class TimegridABC(DocABC):
+    """Abstract base class for registering custom |Timegrid| classes."""
     pass
 
 
-    """Abstract base class for registering custom timegrids classes."""
 class TimegridsABC(DocABC):
+    """Abstract base class for registering custom |Timegrids| classes."""
     pass
 
 
-    """Abstract base class for registering custom TOY classes."""
 class TOYABC(DocABC):
+    """Abstract base class for registering custom |TOY| classes."""
     pass
 
 
-    """Abstract base class for registering custom Model classes."""
 class ModelABC(DocABC):
+    """Abstract base class for registering custom |Model| classes."""
     pass
 
 

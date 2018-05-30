@@ -72,8 +72,8 @@ class Selections(object):
 
         Argument:
             * value (|Selection|, |Selections| of a simple
-            iterable containing |Selection| objects): The second
-            operand applied in an arithmetic operation.
+              iterable containing |Selection| objects): The second
+              operand applied in an arithmetic operation.
         """
         if isinstance(value, Selection):
             return [value]
@@ -203,13 +203,13 @@ class Selection(object):
         return nodes, elements
 
     def _nextnode(self, node, nodes, elements):
-        """First recursion method for :func:`~Selection.getupstreamnetwork`.
+        """First recursion method for |Selection.getupstreamnetwork|.
 
         Arguments:
             * node (|Node|): The node which is selected currently.
             * nodes (|Nodes|): All nodes which have been selected so far.
             * elements (|Elements|): All elements which have been selected
-            so far.
+              so far.
         """
         if (node not in nodes) and (node in self.nodes):
             nodes += node
@@ -218,13 +218,13 @@ class Selection(object):
         return nodes, elements
 
     def _nextelement(self, element, nodes, elements):
-        """Second recursion method for :func:`~Selection.getupstreamnetwork`.
+        """Second recursion method for |Selection.getupstreamnetwork|.
 
         Arguments:
             * element (|Element|): The element which is selected currently.
             * nodes (|Nodes|): All nodes which have been selected so far.
             * elements (|Element|): All elements which have been selected
-            so far.
+              so far.
         """
         if (element not in elements) and (element in self.elements):
             elements += element
@@ -238,7 +238,7 @@ class Selection(object):
 
         Argument:
             * modelclass (subclass of |Model|): Model type(s) as the
-            selection criterion/criteria.
+              selection criterion/criteria.
         """
         self.nodes = devicetools.Nodes()
         self.elements = self.getby_modelclasses(modelclass)
@@ -250,7 +250,7 @@ class Selection(object):
 
         Argument:
             * modelclass (subclass of |Model|): Model type(s) as the
-            selection criterion/criteria.
+              selection criterion/criteria.
         """
         self.nodes = devicetools.Nodes()
         self.elements -= self.getby_modelclasses(*modelclasses)
@@ -262,7 +262,7 @@ class Selection(object):
 
         Argument:
             * modelclass (subclass of |Model|): Model type(s) as the
-            selection criterion/criteria.
+              selection criterion/criteria.
         """
         elements = devicetools.Elements()
         for element in self.elements:

@@ -17,16 +17,17 @@ class MultiParameter(parametertools.ZipParameter):
     (potentially) handling multiple values.
 
     Due to inheriting from |ZipParameter|, additional keyword zipping
-    functionality is offered.  The optional `kwargs` are checked for the
-    keywords `field`, `forest`, `glacier`, `ilake,` and `default`.  If
-    available, the respective values are used to define the values of
-    those 1-dimensional arrays, whose entries are related to the different
-    zone types. Also the method |MultiParameter.compress_repr| tries to
-    find compressed string representations based on the mentioned zone types.
+    functionality is offered.  The optional `kwargs` are checked for
+    the keywords `field`, `forest`, `glacier`, `ilake,` and `default`.
+    If available, the respective values are used to define the values
+    of those 1-dimensional arrays, whose entries are related to the
+    different zone types. Also the method
+    |parametertools.MultiParameter.compress_repr| tries to find compressed
+    string representations based on the mentioned zone types.
 
     Examples:
 
-        Prepare a |MultiParameter| instance:
+        Prepare a |hland_parameters.MultiParameter| instance:
 
         >>> from hydpy.models.hland.hland_parameters import MultiParameter
         >>> from hydpy.models.hland import *
@@ -92,11 +93,11 @@ parameter `nmbzones` first in each parameter control file.
         >>> mp.values
         array([ 5.,  4.,  3.,  2.,  1.])
 
-    Another feature of |MultiParameter| is that it relates the property
-    |MultiParameter.verifymask| to the defined zone types.  This requires
-    the definition of the class attribute
-    :const:`~MultiParameter.REQUIRED_VALUES` for |MultiParameter|
-    subclasses.
+    Another feature of |hland_parameters.MultiParameter| is that it
+    relates the |property| |parametertools.MultiParameter.verifymask|
+    to the defined zone types.  This requires the definition of the
+    class attribute |hland_parameters.MultiParameter.REQUIRED_VALUES|
+    for |hland_parameters.MultiParameter| subclasses.
 
     Examples:
 
@@ -423,9 +424,6 @@ class Parameters(parametertools.Parameters):
 
         Required control parameter:
           |Area|
-
-        Required property of |Parameter|:
-          :attr:`~hydpy.core.parametertools.Parameter.seconds`
 
         Calculated derived parameter:
           |QFactor|

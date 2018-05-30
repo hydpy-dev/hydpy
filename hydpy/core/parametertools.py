@@ -47,9 +47,9 @@ def header_controlfile(model, parameterstep=None, simulationstep=None):
     <BLANKLINE>
     <BLANKLINE>
 
-    The second example shows the saver option to pass the proper model object.
-    It also shows that function :func:`header_controlfile` tries to gain the
-    parameter and simulation step sizes from the global
+    The second example shows the saver option to pass the proper model
+    object.  It also shows that function |header_controlfile| tries to
+    gain the parameter and simulation step sizes from the global
     |Timegrids| object contained in module |pub| when necessary:
 
     >>> from hydpy.models.lland_v1 import *
@@ -650,7 +650,7 @@ class Parameter(variabletools.Variable):
         with the given name.
 
         Things are a little complicated here.  To understand this method, you
-        should first take a look at function :func:`parameterstep`.
+        should first take a look at function |parameterstep|.
         """
         frame = inspect.currentframe().f_back.f_back
         while frame:
@@ -773,8 +773,8 @@ defined, but no standard value for its TYPE `list` is available
         return initvalue
 
     def _gettimefactor(self):
-        """Factor to adapt a new parameter value related to
-        :attr:`parameterstep` to a different simulation time step.
+        """Factor to adapt a new parameter value related to |parameterstep|
+        to a different simulation time step.
         """
         try:
             parfactor = pub.timegrids.parfactor
@@ -798,7 +798,9 @@ defined, but no standard value for its TYPE `list` is available
 
     timefactor = property(_gettimefactor)
 
-    trim = variabletools.trim
+    def trim(self, lower=None, upper=None):
+        """Apply |trim| of module |variabletools|."""
+        variabletools.trim(self, lower, upper)
 
     def warn_trim(self):
         warnings.warn(
@@ -834,9 +836,9 @@ defined, but no standard value for its TYPE `list` is available
         return values
 
     def commentrepr(self):
-        """Returns a list with comments, e.g. for making string representations
-        more informative.  When :attr:`pub.options.reprcomments` is set to
-        `False`, an empty list is returned.
+        """Returns a list with comments, e.g. for making string
+        representations more informative.  When |Options.reprcomments|
+        is set to |False|, an empty list is returned.
         """
         lines = variabletools.Variable.commentrepr(self)
         if (pub.options.reprcomments and
@@ -1000,21 +1002,21 @@ class MultiParameter(Parameter):
         try:
             value = numpy.full(self.shape, value, dtype=self.TYPE)
         except ValueError:
-            raise ValueError('The values `%s` cannot be converted to a numpy '
-                             'ndarray with shape %s containing entries of '
-                             'type %s.' % (value, self.shape,
-                                           objecttools.classname(self.TYPE)))
+            raise ValueError(
+                'The values `%s` cannot be converted to a numpy ndarray '
+                'with shape %s containing entries of type %s.'
+                % (value, self.shape, objecttools.classname(self.TYPE)))
         setattr(self.fastaccess, self.name, value)
 
     value = property(_getvalue, _setvalue)
     values = value
 
     def _getverifymask(self):
-        """A numpy array with all entries being `True` of the same
+        """A numpy array with all entries being |True| of the same
         shape as the values handled by the respective parameter.  All entries
-        being `True` indicates that the method :func:`~MultiParameter.verify`
+        being |True| indicates that the method |MultiParameter.verify|
         checks all entries of the numpy array storing the parameter values.
-        Overwrite :func:`~MultiParameter.verify` for |MultiParameter|
+        Overwrite |MultiParameter.verify| for |MultiParameter|
         subclasses, where certain entries do not to be checked.
         """
         return numpy.full(self.shape, True, dtype=bool)
@@ -1024,16 +1026,19 @@ class MultiParameter(Parameter):
     def verify(self):
         """Raises a |RuntimeError| if at least one of the required values
         of the instance of the respective subclass of |MultiParameter| is
-        |None| or `nan`. The property |MultiParameter.verifymask| defines,
-        which values are considered to be necessary.
+        |None| or |numpy.nan|. The property |MultiParameter.verifymask|
+        defines, which values are considered to be necessary.
         """
         if self.values is None:
-            raise RuntimeError('The values of parameter `%s` have not '
-                               'been set yet.' % self.name)
+            raise RuntimeError(
+                'The values of parameter `%s` have not been set yet.'
+                % self.name)
         nmbnan = sum(numpy.isnan(self.values[self.verifymask]))
         if nmbnan:
-            raise RuntimeError('For parameter `%s`, %d required values have '
-                               'not been set yet.' % (self.name, nmbnan))
+            raise RuntimeError(
+                'For parameter `%s`, %d required values have '
+                'not been set yet.'
+                % (self.name, nmbnan))
 
     def __len__(self):
         """Returns the number of values handled by the |MultiParameter|
@@ -1056,8 +1061,9 @@ class MultiParameter(Parameter):
 
     def _raiseitemexception(self):
         if self.values is None:
-            raise RuntimeError('Parameter `%s` has no values so far.'
-                               % self.name)
+            raise RuntimeError(
+                'Parameter `%s` has no values so far.'
+                % self.name)
         else:
             objecttools.augment_excmessage(
                 'While trying to item access the values of parameter `%s`'
@@ -1065,9 +1071,8 @@ class MultiParameter(Parameter):
 
     def compress_repr(self):
         """Returns a compressed parameter value string, which is (in
-        accordance with :attr:`~MultiParameter.NDIM`) contained in a
-        nested list.  If the compression fails, a |NotImplementedError|
-        is raised.
+        accordance with |MultiParameter.NDIM|) contained in a nested list.
+        If the compression fails, a |NotImplementedError| is raised.
         """
         if self.value is None:
             unique = numpy.array([numpy.nan])
@@ -1085,10 +1090,10 @@ class MultiParameter(Parameter):
                 result = [result]
             return result
         else:
-            raise NotImplementedError('For parameter `%s` there is no '
-                                      'compression method implemented, '
-                                      'working for its actual values.'
-                                      % self.name)
+            raise NotImplementedError(
+                'For parameter `%s` there is no compression method '
+                'implemented, working for its actual values.'
+                % self.name)
 
     def __repr__(self):
         try:
@@ -1107,14 +1112,13 @@ class MultiParameter(Parameter):
 
 
 class ZipParameter(MultiParameter):
-    """Base class for model parameters handling multiple values that offers
-    additional keyword zipping fuctionality.
+    """Base class for model parameters handling multiple values that
+    offers additional keyword zipping fuctionality.
 
-    When inheriting an actual parameter class from |ZipParameter| one needs
-    to define suitable class constants :const:`~ZipParameter.REQUIRED_VALUES`
-    (a |tuple|) and :const:`~ZipParameter.MODEL_CONSTANTS`
-    (a |dict|).  Additionally, a property named `refparameter` must
-    be defined.
+    When inheriting an actual parameter class from |ZipParameter| one
+    needs to define suitable class constants |ZipParameter.REQUIRED_VALUES|
+    (a |tuple|) and |ZipParameter.MODEL_CONSTANTS| (a |dict|).
+    Additionally, a property named `refparameter` must be defined.
 
     The implementation and functioning of subclasses of |ZipParameter|
     is best illustrated by an example: see the documentation of the class
@@ -1173,7 +1177,7 @@ class ZipParameter(MultiParameter):
         """A numpy array of the same shape as the value array handled
         by the respective parameter.  `True` entries indicate that certain
         parameter values are required, which depends on the tuple
-        :const:`REQUIRED_VALUES` of the respective subclass.
+        `REQUIRED_VALUES` of the respective subclass.
         """
         mask = numpy.full(self.shape, False, dtype=bool)
         refvalues = self.refparameter.values
@@ -1185,7 +1189,7 @@ class ZipParameter(MultiParameter):
 
     def compress_repr(self):
         """Return a compressed parameter value string, which is (in
-        accordance with :attr:`NDIM`) contained in a nested list.  If the
+        accordance with `NDIM`) contained in a nested list.  If the
         compression fails, a |NotImplementedError| is raised.
         """
         try:
@@ -1277,8 +1281,8 @@ converted to `int`.
                       toy_3_1_0_0_0=5.0,
                       toy_7_1_0_0_0=4.0)
 
-    On applying function :func:`len` on |SeasonalParameter| objects,
-    the number of toy-value pairs is returned:
+    On applying function |len| on |SeasonalParameter| objects, the number
+    of toy-value pairs is returned:
 
     >>> len(seasonalparameter)
     3
@@ -1366,10 +1370,10 @@ into shape (3)
         >>> sp.values[0]
         2.0
 
-        Method :func:`SeasonalParameter.refresh` performs a linear
-        interpolation for the central time points of each simulation time
-        step.  Hence, in the following example the original values of the
-        toy-value pairs do not show up:
+        Method |SeasonalParameter.refresh| performs a linear interpolation
+        for the central time points of each simulation time step.  Hence,
+        in the following example the original values of the toy-value pairs
+        do not show up:
 
         >>> sp.toy_12_31 = 4.
         >>> from hydpy import round_
@@ -1611,12 +1615,11 @@ class KeywordParameter2D(KeywordParameter2DMetaclass):
     on two factors.
 
     When inheriting an actual parameter class from |KeywordParameter2D|
-    one needs to define the class attributes
-    :const:`~KeywordParameter2D.ROWNAMES` and
-    :const:`~KeywordParameter2D.COLNAMES` (both of type |tuple|).
-    One usual setting would be that :const:`~KeywordParameter2D.ROWNAMES`
-    defines some land use classes and :const:`~KeywordParameter2D.COLNAMES`
-    defines seasons, months, or the like.
+    one needs to define the class attributes |KeywordParameter2D.ROWNAMES|
+    and |KeywordParameter2D.COLNAMES| (both of type |tuple|).  One usual
+    setting would be that |KeywordParameter2D.ROWNAMES| defines some land
+    use classes and |KeywordParameter2D.COLNAMES| defines seasons, months,
+    or the like.
 
     Consider the following example, where the boolean parameter `IsWarm` both
     depends on the half-year period and the hemisphere:

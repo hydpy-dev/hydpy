@@ -15,7 +15,7 @@ manner as the immutable standard data type for floating operations |float|.
 |Double| and |PDouble| should be preferred to |float| only in cases, where
 their mutability and pointer functionality is required.  At the moment,
 the only usage of |Double| and |PDouble| within HydPy is to directly share
-information between |SimulationSequence| objects of |Node| instances and
+information between |NodeSequence| objects of |Node| instances and
 |LinkSequence| objects of |Model| instances.
 
 The following examples try to give an idea of the purpose of using pointers
@@ -151,8 +151,6 @@ Note:
     C type `double` is applied.  |PDouble| is also used in Cython mode,
     where it essentially serves the purpose pass C a pointers of type
     'double' from Cython module to another.
-
-------------------------------------------------------------------------------
 """
 
 # import...

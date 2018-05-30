@@ -525,7 +525,8 @@ class ModelELS(Model):
         self.get_sum_fluxes()
 
     def calculate_single_terms(self):
-        """Apply all methods stored in :attr:`_PART_ODE_METHODS`.
+        """Apply all methods stored in the hidden attribute
+        `_PART_ODE_METHODS`.
 
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()

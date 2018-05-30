@@ -18,7 +18,7 @@ from hydpy.core import autodoctools
 
 
 def dir_(self):
-    """The prefered way for HydPy objects to respond to :func:`dir`.
+    """The prefered way for HydPy objects to respond to |dir|.
 
     Note the depencence on the `pub.options.dirverbose`.  If this option is
     set `True`, all attributes and methods of the given instance and its
@@ -389,7 +389,7 @@ class ResetAttrFuncs(object):
     """Reset all attribute related methods of the given class temporarily.
 
     The "related methods" are defined in class attribute
-    :attr:`~ResetAttrFuncs.funcnames`.
+    |ResetAttrFuncs.funcnames|.
 
     There are (at least) two use cases for  class |ResetAttrFuncs|,
     initialization and copying, which are described below.
@@ -557,32 +557,31 @@ class _Repr_(object):
     >>> print(repr_('test'))
     test
 
-    You can change this behaviour of function object :func:`repr_`,
+    You can change this behaviour of function object |repr|,
     when necessary:
 
     >>> with repr_.preserve_strings(True):
     ...     print(repr_('test'))
     "test"
 
-    Behind the with block, :func:`repr_` works as before
+    Behind the with block, |repr_| works as before
     (even in case of an error):
 
     >>> print(repr_('test'))
     test
 
     When value is a float, the result depends on how the option
-    :attr:`~hydpy.core.optiontools.Options.reprdigits` is set. If it is
-    to -999, |repr| defines the number of digits in
-    the usual, system dependent manner:
+    |Options.reprdigits| is set. If it is to -999, |repr| defines the
+    number of digits in the usual, system dependent manner:
 
     >>> from hydpy.pub import options
     >>> options.reprdigits = -999
     >>> repr(1./3.) == repr_(1./3.)
     True
 
-    Through setting :attr:`~hydpy.core.optiontools.Options.reprdigits` to a
-    positive integer value, one defines the maximum number of decimal places,
-    which allows for doctesting across different systems and Python versions:
+    Through setting |Options.reprdigits| to a positive integer value,
+    one defines the maximum number of decimal places, which allows for
+    doctesting across different systems and Python versions:
 
     >>> options.reprdigits = 6
     >>> repr_(1./3.)
@@ -602,7 +601,7 @@ class _Repr_(object):
     >>> repr_(1./3.)
     '0.333333'
 
-    :func:`repr_` can also be applied on numpy's float types:
+    |repr| can also be applied on numpy's float types:
 
     >>> import numpy
     >>> repr_(numpy.float(1./3.))
@@ -657,7 +656,7 @@ repr_ = _Repr_()
 
 def repr_values(values):
     """Return comma separated representations of the given values using
-    function :func:`repr_`.
+    function |repr|.
 
     >>> from hydpy.core.objecttools import repr_values
     >>> repr_values([1./1., 1./2., 1./3.])
@@ -692,7 +691,7 @@ def print_values(values, width=70):
 
 def repr_tuple(values):
     """Return a tuple representation of the given values using function
-    :func:`repr_`.
+    |repr|.
 
     >>> from hydpy.core.objecttools import repr_tuple
     >>> repr_tuple([1./1., 1./2., 1./3.])
@@ -714,7 +713,7 @@ def repr_tuple(values):
 
 def repr_list(values):
     """Return a list representation of the given values using function
-    :func:`repr_`.
+    |repr|.
 
     >>> from hydpy.core.objecttools import repr_list
     >>> repr_list([1./1., 1./2., 1./3.])
@@ -727,10 +726,10 @@ def repr_list(values):
 
 def assignrepr_value(value, prefix, width=None):
     """Return a prefixed string representation of the given value using
-    function :func:`repr_`.
+    function |repr|.
 
     Note that the argument has no effect. It is thought for increasing
-    usage compatibility with functions like :func:`assignrepr_list` only.
+    usage compatibility with functions like |assignrepr_list| only.
 
     >>> from hydpy.core.objecttools import assignrepr_value
     >>> print(assignrepr_value(1./3., 'test = '))
@@ -741,7 +740,7 @@ def assignrepr_value(value, prefix, width=None):
 
 def assignrepr_values(values, prefix, width=None, _fakeend=0):
     """Return a prefixed, wrapped and properly aligned string representation
-    of the given values using function :func:`repr_`.
+    of the given values using function |repr|.
 
     >>> from hydpy.core.objecttools import assignrepr_values
     >>> print(assignrepr_values(range(1, 13), 'test(', 20) + ')')
@@ -817,7 +816,7 @@ class _AlwaysBracketed(object):
 
 class _AssignReprBracketed(object):
     """"Double Singleton class", see the documentation on
-    :func:`assignrepr_tuple` and :func:`assignrepr_list`."""
+    |assignrepr_tuple| and |assignrepr_list|."""
 
     _always_bracketed = True
 
@@ -844,7 +843,7 @@ class _AssignReprBracketed(object):
 
 assignrepr_tuple = _AssignReprBracketed('()')
 """Return a prefixed, wrapped and properly aligned tuple string
-representation of the given values using function :func:`repr_`.
+representation of the given values using function |repr|.
 
 >>> from hydpy.core.objecttools import assignrepr_tuple
 >>> print(assignrepr_tuple(range(10), 'test = ', 22))
@@ -856,7 +855,7 @@ If no width is given, no wrapping is performed:
 >>> print(assignrepr_tuple(range(10), 'test = '))
 test = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
-Functions :func:`assignrepr_tuple` works also on empty iterables and
+Functions |assignrepr_tuple| works also on empty iterables and
 those which possess only one entry:
 
 >>> print(assignrepr_tuple([], 'test = '))
@@ -874,7 +873,7 @@ test = ()
 test = 10
 test = (10, 10)
 
-Behind the with block, :func:`assignrepr_tuple` works as before
+Behind the with block, |assignrepr_tuple| works as before
 (even in case of an error):
 
 >>> print(assignrepr_tuple([10], 'test = '))
@@ -884,7 +883,7 @@ test = (10,)
 
 assignrepr_list = _AssignReprBracketed('[]')
 """Return a prefixed, wrapped and properly aligned list string
-representation of the given values using function :func:`repr_`.
+representation of the given values using function |repr|.
 
 >>> from hydpy.core.objecttools import assignrepr_list
 >>> print(assignrepr_list(range(10), 'test = ', 22))
@@ -896,7 +895,7 @@ If no width is given, no wrapping is performed:
 >>> print(assignrepr_list(range(10), 'test = '))
 test = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
-Functions :func:`assignrepr_list` works also on empty iterables:
+Functions |assignrepr_list| works also on empty iterables:
 
 >>> print(assignrepr_list((), 'test = '))
 test = []
@@ -911,7 +910,7 @@ test = []
 test = 10
 test = [10, 10]
 
-Behind the with block, :func:`assignrepr_list` works as before
+Behind the with block, |assignrepr_list| works as before
 (even in case of an error):
 
 >>> print(assignrepr_list([10], 'test = '))
@@ -921,7 +920,7 @@ test = [10,]
 
 def assignrepr_values2(values, prefix):
     """Return a prefixed and properly aligned string representation
-    of the given 2-dimensional value matrix using function :func:`repr_`.
+    of the given 2-dimensional value matrix using function |repr|.
 
     >>> from hydpy.core.objecttools import assignrepr_values2
     >>> import numpy
@@ -949,7 +948,7 @@ def assignrepr_values2(values, prefix):
 def _assignrepr_bracketed2(assignrepr_bracketed1, values, prefix, width=None):
     """Return a prefixed, wrapped and properly aligned bracketed string
     representation of the given 2-dimensional value matrix using function
-    :func:`repr_`."""
+    |repr|."""
     prefix += assignrepr_bracketed1._brackets[0]
     lines = []
     blanks = ' '*len(prefix)
@@ -968,7 +967,7 @@ def _assignrepr_bracketed2(assignrepr_bracketed1, values, prefix, width=None):
 def assignrepr_tuple2(values, prefix, width=None):
     """Return a prefixed, wrapped and properly aligned tuple string
     representation of the given 2-dimensional value matrix using function
-    :func:`repr_`.
+    |repr|.
 
     >>> from hydpy.core.objecttools import assignrepr_tuple2
     >>> import numpy
@@ -1002,7 +1001,7 @@ def assignrepr_tuple2(values, prefix, width=None):
 def assignrepr_list2(values, prefix, width=None):
     """Return a prefixed, wrapped and properly aligned list string
     representation of the given 2-dimensional value matrix using function
-    :func:`repr_`.
+    |repr|.
 
     >>> from hydpy.core.objecttools import assignrepr_list2
     >>> import numpy
@@ -1035,7 +1034,7 @@ def assignrepr_list2(values, prefix, width=None):
 def _assignrepr_bracketed3(assignrepr_bracketed1, values, prefix, width=None):
     """Return a prefixed, wrapped and properly aligned bracketed string
     representation of the given 3-dimensional value matrix using function
-    :func:`repr_`."""
+    |repr|."""
     prefix += assignrepr_bracketed1._brackets[0]
     lines = []
     blanks = ' '*len(prefix)
@@ -1058,7 +1057,7 @@ def _assignrepr_bracketed3(assignrepr_bracketed1, values, prefix, width=None):
 def assignrepr_tuple3(values, prefix, width=None):
     """Return a prefixed, wrapped and properly aligned tuple string
     representation of the given 3-dimensional value matrix using function
-    :func:`repr_`.
+    |repr|.
 
     >>> from hydpy.core.objecttools import assignrepr_tuple3
     >>> import numpy
@@ -1108,7 +1107,7 @@ def assignrepr_tuple3(values, prefix, width=None):
 def assignrepr_list3(values, prefix, width=None):
     """Return a prefixed, wrapped and properly aligned list string
     representation of the given 3-dimensional value matrix using function
-    :func:`repr_`.
+    |repr|.
 
     >>> from hydpy.core.objecttools import assignrepr_list3
     >>> import numpy
@@ -1159,7 +1158,7 @@ def round_(values, decimals=None, width=0,
            lfill=None, rfill=None, **kwargs):
     """Prints values with a maximum number of digits in doctests.
 
-    See the documentation on function :func:`repr_` for more details.  And
+    See the documentation on function |repr| for more details.  And
     note thate the option keyword arguments are passed to the print function.
 
     Usually one would apply function |round_| on a single or a vector
@@ -1279,9 +1278,9 @@ def enumeration(values, converter=str, default=''):
     >>> enumeration(())
     ''
 
-    All given objects are converted to strings by function :func:`str`,
-    as shown by the first two examples.  This behaviour can be changed
-    by another function expecting a single argument and returning a string:
+    All given objects are converted to strings by function |str|, as shown
+    by the first two examples.  This behaviour can be changed by another
+    function expecting a single argument and returning a string:
 
     >>> from hydpy.core.objecttools import classname
     >>> enumeration(('text', 3, []), converter=classname)

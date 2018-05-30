@@ -175,7 +175,7 @@ Please check the calculated coefficients: 0.0, 0.0, 0.0, 0.0, 0.75, 0.25.
             self.coefs = coefs
 
     def _get_coefs(self):
-        """|ndarray| containing all MA coefficents."""
+        """|numpy.ndarray| containing all MA coefficents."""
         if self._coefs is None:
             self.update_coefs()
         return self._coefs
@@ -193,7 +193,7 @@ Please check the calculated coefficients: 0.0, 0.0, 0.0, 0.0, 0.75, 0.25.
         """MA order."""
         return len(self.coefs)
 
-    def quad(self, dt, t):
+    def _quad(self, dt, t):
         return integrate.quad(
             self.iuh, max(t-1.+dt, 0.), t+dt)[0]
 
@@ -207,7 +207,7 @@ Please check the calculated coefficients: 0.0, 0.0, 0.0, 0.0, 0.75, 0.25.
             points = (moment1 % 1,) if t <= moment1 <= (t+2.) else ()
             try:
                 coef = integrate.quad(
-                    self.quad, 0., 1., args=(t,), points=points)[0]
+                    self._quad, 0., 1., args=(t,), points=points)[0]
             except integrate.IntegrationWarning:
                 idx = int(moment1)
                 coefs = numpy.zeros(idx+2, dtype=float)
@@ -243,11 +243,10 @@ Please check the calculated coefficients: 0.0, 0.0, 0.0, 0.0, 0.75, 0.25.
                 return idx, coefs[idx]
             else:
                 old_dc = new_dc
-        else:
-            raise RuntimeError(
-                'Not able to detect a turning point in the impulse response '
-                'defined by the MA coefficients %s.'
-                % objecttools.repr_values(coefs))
+        raise RuntimeError(
+            'Not able to detect a turning point in the impulse response '
+            'defined by the MA coefficients %s.'
+            % objecttools.repr_values(coefs))
 
     @property
     def delays(self):
@@ -260,7 +259,7 @@ Please check the calculated coefficients: 0.0, 0.0, 0.0, 0.0, 0.75, 0.25.
         MA coefficients."""
         moment1 = statstools.calc_mean_time(self.delays, self.coefs)
         moment2 = statstools.calc_mean_time_deviation(
-                                    self.delays, self.coefs, moment1)
+            self.delays, self.coefs, moment1)
         return numpy.array([moment1, moment2])
 
     def plot(self, threshold=None, **kwargs):
@@ -479,7 +478,13 @@ coefficients.
             self.ar_coefs = ar_coefs
         if ma_coefs is not None:
             self.ma_coefs = ma_coefs
-        self.rel_rmse = None
+        self._rel_rmse = None
+
+    @property
+    def rel_rmse(self):
+        """Relative root mean squared error the last time achieved by method
+        |ARMA.update_coefs|."""
+        return self._rel_rmse
 
     def _get_ar_coefs(self):
         """The AR coefficients of the AR model."""
@@ -554,7 +559,7 @@ coefficients.
         del self.ar_coefs
         for ar_order in range(1, self.effective_max_ar_order+1):
             self.calc_all_ar_coefs(ar_order, self.ma)
-            if self.rel_rmse < self.max_rel_rmse:
+            if self._rel_rmse < self.max_rel_rmse:
                 break
         else:
             with pub.options.reprdigits(12):
@@ -565,7 +570,7 @@ coefficients.
                     '`max_rel_rmse` to a higher value or increase the '
                     'allowed `max_ar_order`.  An accuracy of `%s` has been '
                     'reached using `%d` coefficients.'
-                    % (objecttools.repr_(self.rel_rmse), ar_order))
+                    % (objecttools.repr_(self._rel_rmse), ar_order))
 
     @property
     def dev_moments(self):
@@ -609,15 +614,15 @@ coefficients.
             self.get_b(values, ar_order),
             rcond=-1)[:2]
         if len(residuals) == 1:
-            self.rel_rmse = numpy.sqrt(residuals[0])/numpy.sum(values)
+            self._rel_rmse = numpy.sqrt(residuals[0])/numpy.sum(values)
         else:
-            self.rel_rmse = 0.
+            self._rel_rmse = 0.
 
     @staticmethod
     def get_a(values, n):
         """Extract the independent variables of the given values and return
         them as a matrix with n columns in a form suitable for the least
-        squares approach applied in method |ARMA.calc_ar_coefs|.
+        squares approach applied in method |ARMA.update_ar_coefs|.
         """
         m = len(values)-n
         a = numpy.empty((m, n), dtype=float)
@@ -631,7 +636,7 @@ coefficients.
     def get_b(values, n):
         """Extract the dependent variables of the values in a vector with n
         entries in a form suitable for the least squares approach applied in
-        method |ARMA.calc_ar_coefs|.
+        method |ARMA.update_ar_coefs|.
         """
         return numpy.array(values[n:])
 
@@ -710,7 +715,7 @@ coefficients.
         response = self.response
         moment1 = statstools.calc_mean_time(timepoints, response)
         moment2 = statstools.calc_mean_time_deviation(
-                                            timepoints, response, moment1)
+            timepoints, response, moment1)
         return numpy.array([moment1, moment2])
 
     def plot(self, threshold=None, **kwargs):

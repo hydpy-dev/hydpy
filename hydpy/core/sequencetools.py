@@ -43,57 +43,57 @@ class Sequences(object):
 
     def _yield_iosubsequences(self):
         for subseqs in self:
-            if isinstance(subseqs, abctools.IOSubSequencesABC):
+            if isinstance(subseqs, abctools.IOSequencesABC):
                 yield subseqs
 
     def activate_disk(self, names=None):
-        """Call method |IOSubSequences.activate_disk| of all handled
-        |IOSubSequences| objects."""
+        """Call method |IOSequences.activate_disk| of all handled
+        |IOSequences| objects."""
         for subseqs in self._yield_iosubsequences():
             subseqs.activate_disk(names)
 
     def deactivate_disk(self, names=None):
-        """Call method |IOSubSequences.deactivate_disk| of all handled
-        |IOSubSequences| objects."""
+        """Call method |IOSequences.deactivate_disk| of all handled
+        |IOSequences| objects."""
         for subseqs in self._yield_iosubsequences():
             subseqs.deactivate_disk(names)
 
     def activate_ram(self, names=None):
-        """Call method |IOSubSequences.activate_ram| of all handled
-        |IOSubSequences| objects."""
+        """Call method |IOSequences.activate_ram| of all handled
+        |IOSequences| objects."""
         for subseqs in self._yield_iosubsequences():
             subseqs.activate_ram(names)
 
     def deactivate_ram(self, names=None):
-        """Call method |IOSubSequences.deactivate_ram| of all handled
-        |IOSubSequences| objects."""
+        """Call method |IOSequences.deactivate_ram| of all handled
+        |IOSequences| objects."""
         for subseqs in self._yield_iosubsequences():
             subseqs.deactivate_ram(names)
 
     def open_files(self, idx=0):
-        """Call method |IOSubSequences.open_files| of all handled
-        |IOSubSequences| objects."""
+        """Call method |IOSequences.open_files| of all handled
+        |IOSequences| objects."""
         for subseqs in self._yield_iosubsequences():
             subseqs.open_files(idx)
 
     def close_files(self):
-        """Call method |IOSubSequences.close_files| of all handled
-        |IOSubSequences| objects."""
+        """Call method |IOSequences.close_files| of all handled
+        |IOSequences| objects."""
         for subseqs in self._yield_iosubsequences():
             subseqs.close_files()
 
     def load_data(self, idx):
-        """Call method |IOSubSequences.load_data| of all handled
+        """Call method |InputSequences.load_data| of all handled
         |InputSequences| objects."""
         for subseqs in self:
-            if isinstance(subseqs, abctools.InputSubSequencesABC):
+            if isinstance(subseqs, abctools.InputSequencesABC):
                 subseqs.load_data(idx)
 
     def save_data(self, idx):
-        """Call method |IOSubSequences.save_data| of all handled
-        |IOSubSequences| objects."""
+        """Call method `save_data|` of all handled |IOSequences|
+        objects registered under |OutputSequencesABC|."""
         for subseqs in self:
-            if isinstance(subseqs, abctools.OutputSubSequencesABC):
+            if isinstance(subseqs, abctools.OutputSequencesABC):
                 subseqs.save_data(idx)
 
     def reset(self):
@@ -185,8 +185,7 @@ class Sequences(object):
             pub.conditionmanager.save_file(filename, ''.join(lines))
 
     def trim_conditions(self):
-        """Call method |ConditionSequence.trim| of each handled
-        |ConditionSequence|."""
+        """Call method |trim| of each handled |ConditionSequence|."""
         for seq in self.conditions:
             seq.trim()
 
@@ -226,15 +225,15 @@ class SubSequences(_MetaSubSequencesClass):
 
     Attributes:
       * seqs: The parent |Sequences| object.
-      * fastaccess: The  |FastAccess| object allowing fast access to
-        the sequence values. In `Cython` mode, model specific cdef
-        classes are applied.
+      * fastaccess: The  |sequencetools.FastAccess| object allowing fast
+        access to the sequence values. In `Cython` mode, model specific
+        cdef classes are applied.
 
     Additional attributes are the actual |Sequence| instances, representing
     the individual time series.  These need to be defined in
     |SubSequences| subclasses.  Therefore, one needs to collect the
     appropriate |Sequence| subclasses in the (hidden) class attribute
-    |SubSequences._SEQCLASSES|, as shown in the following example:
+    `_SEQCLASSES`, as shown in the following example:
 
     >>> from hydpy.core.sequencetools import *
     >>> class Temperature(Sequence):
@@ -346,7 +345,7 @@ class SubSequences(_MetaSubSequencesClass):
         return objecttools.dir_(self)
 
 
-class IOSubSequences(SubSequences):
+class IOSequences(SubSequences):
     _SEQCLASSES = ()
 
     def open_files(self, idx=0):
@@ -380,10 +379,10 @@ class IOSubSequences(SubSequences):
             seq.disk2ram()
 
 
-abctools.IOSubSequencesABC.register(IOSubSequences)
+abctools.IOSequencesABC.register(IOSequences)
 
 
-class InputSequences(IOSubSequences):
+class InputSequences(IOSequences):
     """Base class for handling input sequences."""
     _SEQCLASSES = ()
 
@@ -391,10 +390,10 @@ class InputSequences(IOSubSequences):
         self.fastaccess.load_data(idx)
 
 
-abctools.InputSubSequencesABC.register(InputSequences)
+abctools.InputSequencesABC.register(InputSequences)
 
 
-class FluxSequences(IOSubSequences):
+class FluxSequences(IOSequences):
     """Base class for handling flux sequences."""
     _SEQCLASSES = ()
 
@@ -417,15 +416,15 @@ class FluxSequences(IOSubSequences):
                 yield flux
 
 
-abctools.OutputSubSequencesABC.register(FluxSequences)
+abctools.OutputSequencesABC.register(FluxSequences)
 
 
-class StateSequences(IOSubSequences):
+class StateSequences(IOSequences):
     """Base class for handling state sequences."""
     _SEQCLASSES = ()
 
     def _initfastaccess(self, cls_fastaccess, cymodel):
-        IOSubSequences._initfastaccess(self, cls_fastaccess, cymodel)
+        IOSequences._initfastaccess(self, cls_fastaccess, cymodel)
         self.fastaccess_new = self.fastaccess
         if cls_fastaccess is None:
             self.fastaccess_old = FastAccess()
@@ -449,7 +448,7 @@ class StateSequences(IOSubSequences):
             seq.reset()
 
 
-abctools.OutputSubSequencesABC.register(StateSequences)
+abctools.OutputSequencesABC.register(StateSequences)
 
 
 class LogSequences(SubSequences):
@@ -580,7 +579,7 @@ class Sequence(variabletools.Variable):
         """A tuple containing the lengths in all dimensions of the sequence
         values at a specific time point.  Note that setting a new shape
         results in a loss of the actual values of the respective sequence.
-        For 0-dimensional sequences :attr:`shape` is always an empty tuple.
+        For 0-dimensional sequences an empty tuple is returned.
         """
         if self.NDIM:
             try:
@@ -917,7 +916,7 @@ class IOSequence(Sequence):
 
     def load_ext(self):
         """Load the external data series in accordance with
-        :attr:`~IOSequence.timegrid_init` and store it as internal data.
+        `pub.timegrids.init` and store it as internal data.
         """
         if self.filetype_ext == 'npy':
             timegrid_data, values = self._load_npy()
@@ -1263,7 +1262,9 @@ class ConditionSequence(object):
         self.trim()
         self._oldargs = copy.deepcopy(args)
 
-    trim = variabletools.trim
+    def trim(self, lower=None, upper=None):
+        """Apply |trim| of module |variabletools|."""
+        variabletools.trim(self, lower, upper)
 
     def warn_trim(self):
         warnings.warn(
@@ -1327,8 +1328,8 @@ class StateSequence(ModelIOSequence, ConditionSequence):
     new = Sequence.values
     """Complete access to the state value(s), which will be used in the
     next calculation steps.  Note that |StateSequence.new| is a synonym
-    of |value|.  Use this property to modify the initial condition(s) of
-    a single |StateSequence| object.
+    of |Sequence.values|.  Use this property to modify the initial
+    condition(s) of a single |StateSequence| object.
     """
 
     def _getold(self):
@@ -1614,12 +1615,12 @@ class Obs(NodeSequence):
         return self.memoryflag and not numpy.any(numpy.isnan(self.series))
 
 
-class NodeSequences(IOSubSequences):
+class NodeSequences(IOSequences):
     """Base class for handling node sequences."""
     _SEQCLASSES = (Sim, Obs)
 
     def __init__(self, seqs, cls_fastaccess=None):
-        IOSubSequences.__init__(self, seqs, cls_fastaccess)
+        IOSequences.__init__(self, seqs, cls_fastaccess)
         self.node = seqs
 
     def load_data(self, idx):
@@ -1636,21 +1637,21 @@ class FastAccess(object):
 
     The following details are of relevance for :ref:`HydPy` developers only.
 
-    |FastAccess| is applied in Python mode only.  In Cython mode,
-    specialized and more efficient cdef classes replace it.  For
-    compatibility with these cdef classes, |FastAccess| objects
-    work with dynamically set instance members.  Suppose there is a
-    sequence named `seq1` which is 2-dimensional, then its associated
+    |sequencetools.FastAccess| is applied in Python mode only.  In Cython
+    mode, specialized and more efficient cdef classes replace it.  For
+    compatibility with these cdef classes, |sequencetools.FastAccess|
+    objects work with dynamically set instance members.  Suppose there
+    is a sequence named `seq1` which is 2-dimensional, then its associated
     attributes are:
 
-      * seq1 (|ndarray|): The actual sequence values.
+      * seq1 (|numpy.ndarray|): The actual sequence values.
       * _seq1_ndim (|int|): Number of dimensions.
       * _seq1_length_0 (|int|): Length in the first dimension.
       * _seq1_length_1 (|int|): Length in the second dimension.
       * _seq1_ramflag (|bool|): Handle internal data in RAM?
       * _seq1_diskflag (|bool|): Handle internal data on disk?
       * _seq1_path (|str|): Path of the internal data file.
-      * _seq1_file (:class:`file`): Object handling the internal data file.
+      * _seq1_file (|io.open|): Object handling the internal data file.
 
     Note that all these dynamical attributes and the following methods are
     initialised, changed or applied by the respective |SubSequences| and

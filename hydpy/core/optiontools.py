@@ -146,7 +146,7 @@ class Options(object):
     reprdigits = _Option(-999, -999)
     """Required precision of string representations of floating point
     numbers, defined as the minimum number of digits to be reproduced
-    by the string representation (see function :func:`repr_`)."""
+    by the string representation (see function |repr_|)."""
 
     skipdoctests = _Option(False, None)
     """True/False flag indicating whether documetation tests shall be
@@ -184,8 +184,7 @@ class Options(object):
 
     warnsimulationstep = _Option(True, None)
     """True/False flag indicating whether a warning shall be raised
-    when function :func:`~hydpy.core.importtools.simulationstep` called
-    for the first time."""
+    when function |simulationstep| called for the first time."""
 
     warntrim = _Option(True, None)
     """True/False flag indicating whether a warning shall be raised
@@ -193,9 +192,8 @@ class Options(object):
     certain boundaries. Such warnings increase safety and are thus
     the default is `True`.  However, to cope with the limited precision
     of floating point numbers only those violations beyond a small
-    tolerance value are reported (see function
-    :func:`~hydpy.core.variabletools.trim`).  Warnings with identical
-    information are reported only once."""
+    tolerance value are reported (see function |trim|).  Warnings
+    with identical information are reported only once."""
 
 
 @autodoctools.make_autodoc_optional

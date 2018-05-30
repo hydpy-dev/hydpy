@@ -11,7 +11,7 @@ is quite large.  The following paragraphs try to give some hints to
 novices, which basic aspects of using :ref:`HydPy` are related with
 which module.
 
-Module :ref:`hydpytools` provides the |HydPy| class.  The main purpose
+Module |hydpytools| provides the |HydPy| class.  The main purpose
 of this class is to help users accomplish possibly complex things via
 a simple interface.  Very often, you will only need to initialize an
 |HydPy| object and to call its methods in order to e.g. load all input
@@ -36,7 +36,7 @@ The actual data to run a certain model is handled in `control files`
 (containing parameter values), `condition files` (containing state
 conditions) and `sequence files` (containing input or output time
 series).  Modules |parametertools| and |sequencetools| provide
- features to handle these different kinds of data.
+features to handle these different kinds of data.
 
 Module |timetools| provides the |Timegrids| class, of which an object
 needs to be stored in the "global information" module |pub|.  Use this

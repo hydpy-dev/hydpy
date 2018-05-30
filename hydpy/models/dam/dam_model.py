@@ -151,7 +151,10 @@ def calc_waterlevel_v1(self):
         the shape of the relationship looks acceptable:
 
         >>> from hydpy import UnitTest
-        >>> test = UnitTest(model, model.calc_waterlevel_v1, last_example=10)
+        >>> test = UnitTest(
+        ...     model, model.calc_waterlevel_v1,
+        ...     last_example=10,
+        ...     parseqs=(states.watervolume, aides.waterlevel))
         >>> test.nexts.watervolume = range(10)
         >>> test()
         | ex. | watervolume | waterlevel |
@@ -981,33 +984,35 @@ def calc_possibleremoterelieve_v1(self):
         ...     intercepts_hidden=[[-13000, -1046]],
         ...     intercepts_output=[0.])
         >>> from hydpy import UnitTest
-        >>> test = UnitTest(model, model.calc_possibleremoterelieve_v1,
-        ...                 last_example=21)
+        >>> test = UnitTest(
+        ...     model, model.calc_possibleremoterelieve_v1,
+        ...     last_example=21,
+        ...     parseqs=(aides.waterlevel, fluxes.possibleremoterelieve))
         >>> test.nexts.waterlevel = numpy.arange(257, 261.1, 0.2)
         >>> test()
-        | ex. | possibleremoterelieve | waterlevel |
+        | ex. | waterlevel | possibleremoterelieve |
         --------------------------------------------
-        |   1 |                   0.0 |      257.0 |
-        |   2 |              0.000001 |      257.2 |
-        |   3 |              0.000002 |      257.4 |
-        |   4 |              0.000005 |      257.6 |
-        |   5 |              0.000011 |      257.8 |
-        |   6 |              0.000025 |      258.0 |
-        |   7 |              0.000056 |      258.2 |
-        |   8 |              0.000124 |      258.4 |
-        |   9 |              0.000275 |      258.6 |
-        |  10 |              0.000612 |      258.8 |
-        |  11 |              0.001362 |      259.0 |
-        |  12 |              0.003031 |      259.2 |
-        |  13 |              0.006745 |      259.4 |
-        |  14 |              0.015006 |      259.6 |
-        |  15 |              0.033467 |      259.8 |
-        |  16 |              1.074179 |      260.0 |
-        |  17 |              2.164498 |      260.2 |
-        |  18 |              2.363853 |      260.4 |
-        |  19 |               2.79791 |      260.6 |
-        |  20 |              3.719725 |      260.8 |
-        |  21 |              5.576088 |      261.0 |
+        |   1 |      257.0 |                   0.0 |
+        |   2 |      257.2 |              0.000001 |
+        |   3 |      257.4 |              0.000002 |
+        |   4 |      257.6 |              0.000005 |
+        |   5 |      257.8 |              0.000011 |
+        |   6 |      258.0 |              0.000025 |
+        |   7 |      258.2 |              0.000056 |
+        |   8 |      258.4 |              0.000124 |
+        |   9 |      258.6 |              0.000275 |
+        |  10 |      258.8 |              0.000612 |
+        |  11 |      259.0 |              0.001362 |
+        |  12 |      259.2 |              0.003031 |
+        |  13 |      259.4 |              0.006745 |
+        |  14 |      259.6 |              0.015006 |
+        |  15 |      259.8 |              0.033467 |
+        |  16 |      260.0 |              1.074179 |
+        |  17 |      260.2 |              2.164498 |
+        |  18 |      260.4 |              2.363853 |
+        |  19 |      260.6 |               2.79791 |
+        |  20 |      260.8 |              3.719725 |
+        |  21 |      261.0 |              5.576088 |
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess

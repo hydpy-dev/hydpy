@@ -90,11 +90,11 @@ class Indexer(object):
     def _gettimeofyear(self):
         """Time of the year index (first simulation step of each year = 0...).
 
-        The property :attr:`~Indexer.timeofyear` is best explained through
-        it with property :attr:`~Indexer.dayofyear`:
+        The property |Indexer.timeofyear| is best explained through
+        comparing it with property |Indexer.dayofyear|:
 
         Let us reconsider one of the examples of the documentation on
-        property :attr:`~Indexer.dayofyear`:
+        property |Indexer.dayofyear|:
 
         >>> from hydpy import pub
         >>> from hydpy import Timegrids, Timegrid
@@ -160,7 +160,7 @@ class Indexer(object):
     timeofyear = property(_gettimeofyear, _settimeofyear, _deltimeofyear)
 
     def _convertandtest(self, values, name):
-        """Try to convert the given values to a |numpy| |ndarray| and
+        """Try to convert the given values to a |numpy| |numpy.ndarray| and
         check if it is plausible.  If so, return the array, other raise
         a |ValueError| or re-raise a |numpy| specific exception.
         """

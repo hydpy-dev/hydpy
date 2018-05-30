@@ -211,7 +211,7 @@ def calc_evpo_v1(self):
       |EvPo|
 
     Additional requirements:
-      |idx_sim|
+      |Model.idx_sim|
 
     Basic equation:
       :math:`EvPo = FLn \\cdot ET0`
@@ -299,7 +299,7 @@ def calc_nbes_inzp_v1(self):
       |Inzp|
 
     Additional requirements:
-      |idx_sim|
+      |Model.idx_sim|
 
     Basic equation:
       :math:`NBes = \\Bigl \\lbrace

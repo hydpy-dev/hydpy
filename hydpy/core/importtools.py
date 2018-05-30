@@ -12,6 +12,7 @@ import inspect
 import warnings
 # ...from HydPy
 from hydpy import pub
+from hydpy.core import autodoctools
 from hydpy.core import filetools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
@@ -108,7 +109,7 @@ def reverse_model_wildcard_import():
     control
 
     Calling function |parameterstep| for example prepares the control
-    parameter object |lland_control.nhru|:
+    parameter object |lland_control.NHRU|:
 
     >>> parameterstep('1d')
     >>> nhru
@@ -252,3 +253,6 @@ def controlcheck(controldir='default', projectdir=None, controlfile=None):
             if subseqs is not None:
                 for seq in subseqs:
                     namespace[seq.name] = seq
+
+
+autodoctools.autodoc_module()

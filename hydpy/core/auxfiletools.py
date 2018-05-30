@@ -245,10 +245,10 @@ Variable type `EQD1` is not handled by model `lstream_v1`.
     def save(self, parameterstep=None, simulationstep=None):
         """Save all defined auxiliary control files.
 
-        The target path is taken from the |ControlManager| object
-        stored in module |pub|.  Hence we initialize one and
-        overwrite its :func:`property` `currentpath` with a simple
-        |str| object defining the test target path:
+        The target path is taken from the |ControlManager| object stored
+        in module |pub|.  Hence we initialize one and overwrite its
+        |property| `currentpath` with a simple |str| object defining the
+        test target path:
 
         >>> from hydpy import pub
         >>> pub.projectname = 'test'
@@ -484,7 +484,7 @@ object has already been allocated to filename `file1`.
 
         The variables to be removed can be selected in two ways.  But the
         first example shows that passing nothing or an empty iterable to
-        method :func:`~Variable2Auxfile.remove` does not remove any variable:
+        method |Variable2Auxfile.remove| does not remove any variable:
 
         >>> from hydpy import dummies
         >>> v2af = dummies.v2af

@@ -49,10 +49,10 @@ def calc_q_v2(self):
       |K|
 
     Required state sequence:
-     |S|
+      |S|
 
     Calculated flux sequence:
-      |Q|`
+      |Q|
 
     Basic equation:
       :math:`Q = \\Bigl \\lbrace

@@ -40,12 +40,12 @@ def solve_dv_dt_v1(self):
       |llake_aides.QA|
 
     Updated state sequence:
-      |lake_states.V|
+      |llake_states.V|
 
     Calculated flux sequence:
       |llake_fluxes.QA|
 
-    Note that method :func:`solve_dv_dt_v1` calls the versions of `calc_vq`,
+    Note that method |solve_dv_dt_v1| calls the versions of `calc_vq`,
     `interp_qa` and `calc_v_qa` selected by the respective application model.
     Hence, also their parameter and sequence specifications need to be
     considered.
@@ -282,7 +282,7 @@ def calc_v_qa_v1(self):
         >>> aides.qa
         qa(2.0)
 
-        Note that the results of method :func:`calc_v_qa_v1` are not based
+        Note that the results of method |calc_v_qa_v1| are not based
         depend on the (outer) simulation step size but on the (inner)
         calculation step size defined by parameter `maxdt`.
     """
@@ -302,10 +302,10 @@ def interp_w_v1(self):
       |llake_control.W|
 
     Required state sequence:
-      |lake_states.V|
+      |llake_states.V|
 
     Calculated state sequence:
-      |lake_states.W|
+      |llake_states.W|
 
     Examples:
 
@@ -366,10 +366,10 @@ def interp_v_v1(self):
       |llake_control.W|
 
     Required state sequence:
-      |lake_states.W|
+      |llake_states.W|
 
     Calculated state sequence:
-      |lake_states.V|
+      |llake_states.V|
 
     Examples:
 
@@ -424,7 +424,7 @@ def corr_dw_v1(self):
     """Adjust the water stage drop to the highest value allowed and correct
     the associated fluxes.
 
-    Note that method :func:`corr_dw_v1` calls the method `interp_v` of the
+    Note that method |corr_dw_v1| calls the method `interp_v` of the
     respective application model.  Hence the requirements of the actual
     `interp_v` need to be considered additionally.
 
@@ -442,8 +442,8 @@ def corr_dw_v1(self):
       |llake_fluxes.QA|
 
     Updated state sequences:
-      |lake_states.W|
-      |lake_states.V|
+      |llake_states.W|
+      |llake_states.V|
 
     Basic Restriction:
       :math:`W_{old} - W_{new} \\leq MaxDW`
@@ -469,7 +469,7 @@ def corr_dw_v1(self):
 
         >>> model.idx_sim = pub.timegrids.init['2000.01.02']
 
-        The following tests are based on method :func:`interp_v_v1` for the
+        The following tests are based on method |interp_v_v1| for the
         interpolation of the stored water volume based on the corrected
         water stage:
 
@@ -513,7 +513,7 @@ def corr_dw_v1(self):
         >>> fluxes.qz = 1.
         >>> fluxes.qa = 0.
 
-        Calling the :func:`corr_dw_v1` method does not change the values of
+        Calling the |corr_dw_v1| method does not change the values of
         either of following sequences, as the actual drop (0.1 m/12h) is
         smaller than the allowed drop (0.2 m/12h):
 
@@ -542,9 +542,8 @@ def corr_dw_v1(self):
         qa(5.62963)
 
         Through setting the maximum water stage drop to zero, method
-        :func:`corr_dw_v1` is effectively disabled.  Regardless of the
-        actual change in water stage, no trimming or recalculating is
-        performed:
+        |corr_dw_v1| is effectively disabled.  Regardless of the actual
+        change in water stage, no trimming or recalculating is performed:
 
         >>> maxdw.toy_01_02_06 = 0.
         >>> states.w.new = .6

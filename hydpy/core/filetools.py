@@ -275,7 +275,7 @@ class ControlManager(FileManager):
         change this behaviour by passing `False` for the `clear_registry`
         argument.  This might decrease model initialization times
         significantly.  But then it is your own responsibility to call
-        method :func:`~ControlManager.clear_registry` when necessary (before
+        method |ControlManager.clear_registry| when necessary (before
         reloading a changed control file).
         """
         if not filename:
@@ -302,7 +302,7 @@ class ControlManager(FileManager):
         into the execution of control files.  Use this method only if you
         are completely sure on how the control parameter import of HydPy
         works.  Otherwise, you should most probably prefer to use
-        :func:`~ControlManager.load_file`.
+        |ControlManager.load_file|.
         """
         if not filename.endswith('.py'):
             filename += '.py'

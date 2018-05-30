@@ -56,7 +56,7 @@ class PrimaryParameter(IUH_Parameter):
     functions to be defined by the user.
 
     When a primary parameter value is set or deleted, the master instance is
-    instructed to :func:`~IUH.update` all secondary parameter values.
+    instructed to |IUH.update| all secondary parameter values.
     """
 
     def __set__(self, obj, value):

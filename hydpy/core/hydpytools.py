@@ -54,15 +54,15 @@ class HydPy(object):
         self.update_devices(pub.selections.complete)
 
     def init_models(self):
-        """Call method :func:`~hydpy.core.devicetools.Element.init_model` of
-        all |Element| objects currently handled by the |HydPy| object."""
+        """Call method |Element.init_model| of all |Element| objects
+        currently handled by the |HydPy| object."""
         self.elements.init_models()
 
     def save_controls(self, controldir=None, projectdir=None,
                       parameterstep=None, simulationstep=None,
                       auxfiler=None):
-        """Call method :func:`~hydpy.core.devicetools.Element.save_controls`
-        of the |Elements| object currently handled by the |HydPy| object."""
+        """Call method |Elements.save_controls| of the |Elements| object
+        currently handled by the |HydPy| object."""
         self.elements.save_controls(controldir=controldir,
                                     projectdir=projectdir,
                                     parameterstep=parameterstep,
@@ -70,32 +70,32 @@ class HydPy(object):
                                     auxfiler=auxfiler)
 
     def load_conditions(self, conditiondir=None, projectdir=None):
-        """Call method :func:`~hydpy.core.devicetools.Element.load_conditions`
-        of the |Elements| object currently handled by the |HydPy| object."""
+        """Call method |Elements.load_conditions| of the |Elements| object
+        currently handled by the |HydPy| object."""
         self.elements.load_conditions(conditiondir=conditiondir,
                                       projectdir=projectdir)
 
     def save_conditions(self, conditiondir=None, projectdir=None,
                         controldir=None):
-        """Call method :func:`~hydpy.core.devicetools.Element.save_conditions`
-        of the |Elements| object currently handled by the |HydPy| object."""
+        """Call method |Elements.save_conditions| of the |Elements| object
+        currently handled by the |HydPy| object."""
         self.elements.save_conditions(conditiondir=conditiondir,
                                       projectdir=projectdir,
                                       controldir=controldir)
 
     def trim_conditions(self):
-        """Call method :func:`~hydpy.core.devicetools.Element.trim_conditions`
-        of the |Elements| object currently handled by the |HydPy| object."""
+        """Call method |Elements.trim_conditions| of the |Elements| object
+        currently handled by the |HydPy| object."""
         self.elements.trim_conditions()
 
     def reset_conditions(self):
-        """Call method :func:`~hydpy.core.devicetools.Element.reset_conditions`
-        of the |Elements| object currently handled by the |HydPy| object."""
+        """Call method |Elements.reset_conditions| of the |Elements| object
+        currently handled by the |HydPy| object."""
         self.elements.reset_conditions()
 
     def connect(self):
-        """Call method :func:`~hydpy.core.devicetools.Element.connect`
-        of the |Elements| object currently handled by the |HydPy| object."""
+        """Call method |Elements.connect| of the |Elements| object currently
+        handled by the |HydPy| object."""
         self.elements.connect()
 
     @property
@@ -188,16 +188,14 @@ class HydPy(object):
                 pub.timegrids.init[pub.timegrids.sim.lastdate])
 
     def open_files(self, idx=0):
-        """Call method :func:`~hydpy.core.devicetools.Devcies.open_files`
-        of the |Nodes| and |Elements| objects currently handled by the
-        |HydPy| object."""
+        """Call method |Devices.open_files| of the |Nodes| and |Elements|
+        objects currently handled by the |HydPy| object."""
         self.elements.open_files(idx=idx)
         self.nodes.open_files(idx=idx)
 
     def close_files(self):
-        """Call method :func:`~hydpy.core.devicetools.Devcies.close_files`
-        of the |Nodes| and |Elements| objects currently handled by the
-        |HydPy| object."""
+        """Call method |Devices.close_files| of the |Nodes| and |Elements|
+        objects currently handled by the |HydPy| object."""
         self.elements.close_files()
         self.nodes.close_files()
 
@@ -259,87 +257,73 @@ class HydPy(object):
         self.close_files()
 
     def prepare_modelseries(self, ramflag=True):
-        """Call method
-        :func:`~hydpy.core.devicetools.Element.prepare_allseries`
-        of the |Elements| object currently handled by the |HydPy| object."""
+        """Call method |Elements.prepare_allseries| of the |Elements| object
+        currently handled by the |HydPy| object."""
         self.elements.prepare_allseries(ramflag=ramflag)
 
     def prepare_inputseries(self, ramflag=True):
-        """Call method
-        :func:`~hydpy.core.devicetools.Element.prepare_inputseries`
-        of the |Elements| object currently handled by the |HydPy| object."""
+        """Call method |Elements.prepare_inputseries| of the |Elements|
+        object currently handled by the |HydPy| object."""
         self.elements.prepare_inputseries(ramflag=ramflag)
 
     def prepare_fluxseries(self, ramflag=True):
-        """Call method
-        :func:`~hydpy.core.devicetools.Element.prepare_fluxseries`
-        of the |Elements| object currently handled by the |HydPy| object."""
+        """Call method |Elements.prepare_fluxseries| of the |Elements| object
+        currently handled by the |HydPy| object."""
         self.elements.prepare_fluxseries(ramflag=ramflag)
 
     def prepare_stateseries(self, ramflag=True):
-        """Call method
-        :func:`~hydpy.core.devicetools.Element.prepare_stateseries`
-        of the |Elements| object currently handled by the |HydPy| object."""
+        """Call method |Elements.prepare_stateseries| of the |Elements|
+        object currently handled by the |HydPy| object."""
         self.elements.prepare_stateseries(ramflag=ramflag)
 
     def prepare_nodeseries(self, ramflag=True):
-        """Call method
-        :func:`~hydpy.core.devicetools.Node.prepare_allseries`
-        of the |Nodes| object currently handled by the |HydPy| object."""
+        """Call method |Nodes.prepare_allseries| of the |Nodes| object
+        currently handled by the |HydPy| object."""
         self.nodes.prepare_allseries(ramflag=ramflag)
 
     def prepare_simseries(self, ramflag=True):
-        """Call method
-        :func:`~hydpy.core.devicetools.Node.prepare_simseries`
-        of the |Nodes| object currently handled by the |HydPy| object."""
+        """Call method |Nodes.prepare_simseries| of the |Nodes| object
+        currently handled by the |HydPy| object."""
         self.nodes.prepare_simseries(ramflag=ramflag)
 
     def prepare_obsseries(self, ramflag=True):
-        """Call method
-        :func:`~hydpy.core.devicetools.Node.prepare_obsseries`
-        of the |Nodes| object currently handled by the |HydPy| object."""
+        """Call method |Nodes.prepare_obsseries| of the |Nodes| object
+        currently handled by the |HydPy| object."""
         self.nodes.prepare_obsseries(ramflag=ramflag)
 
     def save_modelseries(self):
-        """Call method
-        :func:`~hydpy.core.devicetools.Element.save_allseries`
-        of the |Elements| object currently handled by the |HydPy| object."""
+        """Call method |Elements.save_allseries| of the |Elements| object
+        currently handled by the |HydPy| object."""
         self.elements.save_allseries()
 
     def save_inputseries(self):
-        """Call method
-        :func:`~hydpy.core.devicetools.Element.save_inputseries`
-        of the |Elements| object currently handled by the |HydPy| object."""
+        """Call method |Elements.save_inputseries| of the |Elements| object
+        currently handled by the |HydPy| object."""
         self.elements.save_inputseries()
 
     def save_fluxseries(self):
-        """Call method
-        :func:`~hydpy.core.devicetools.Element.save_fluxseries`
-        of the |Elements| object currently handled by the |HydPy| object."""
+        """Call method |Elements.save_fluxseries| of the |Elements| object
+        currently handled by the |HydPy| object."""
         self.elements.save_fluxseries()
 
     def save_stateseries(self):
-        """Call method
-        :func:`~hydpy.core.devicetools.Element.save_stateseries`
-        of the |Elements| object currently handled by the |HydPy| object."""
+        """Call method |Elements.save_stateseries| of the |Elements| object
+        currently handled by the |HydPy| object."""
         self.elements.save_stateseries()
 
     def save_nodeseries(self):
-        """Call method
-        :func:`~hydpy.core.devicetools.Node.save_allseries`
-        of the |Nodes| object currently handled by the |HydPy| object."""
+        """Call method |Nodes.save_allseries| of the |Nodes| object currently
+        handled by the |HydPy| object."""
         self.nodes.save_allseries()
 
     def save_simseries(self):
-        """Call method
-        :func:`~hydpy.core.devicetools.Node.save_simseries`
-        of the |Nodes| object currently handled by the |HydPy| object."""
+        """Call method |Nodes.save_simseries| of the |Nodes| object currently
+        handled by the |HydPy| object."""
         self.nodes.save_simseries()
 
     def save_obsseries(self):
-        """Call method
-        :func:`~hydpy.core.devicetools.Node.save_obsseries`
-        of the |Nodes| object currently handled by the |HydPy| object."""
+        """Call method |Nodes.save_obsseries| of the |Nodes| object currently
+        handled by the |HydPy| object."""
         self.nodes.save_obsseries()
 
 

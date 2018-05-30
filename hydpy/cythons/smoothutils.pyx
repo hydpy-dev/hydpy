@@ -108,7 +108,7 @@ cpdef inline double smooth_logistic1(double value, double parameter) nogil:
     approximates a streight line.  With the lowest smoothing parameter (0.0),
     the result is identical with a discontinous first order step function.
 
-    Function :func:`smooth_logistic1` is protected against numerical overflow.
+    Function |smooth_logistic1| is protected against numerical overflow.
     Hence even extremely high `value/parameter` ratios are allowed:
 
     >>> round_(smooth_logistic1(1000., .1))
@@ -168,7 +168,7 @@ cpdef inline double smooth_logistic2(double value, double parameter) nogil:
     line is relatively straight.  With the lowest smoothing parameter (0.0),
     the result is identical with a second order discontinous step function.
 
-    Function :func:`smooth_logistic2` is protected against numerical overflow.
+    Function |smooth_logistic2| is protected against numerical overflow.
     Hence even extremely high `value/parameter` ratios are allowed:
 
     >>> round_(smooth_logistic2(1000., .1))
@@ -189,7 +189,7 @@ cpdef inline double smooth_logistic2(double value, double parameter) nogil:
 
 cpdef inline double smooth_logistic2_derivative(double value,
                                                 double parameter) nogil:
-    """Derivative of the function :func:`smooth_logistic2` regarding its
+    """Derivative of the function |smooth_logistic2| regarding its
     smoothing parameter.
 
     :math:`\\frac{d}{dc}f_{log2}(x, c) =
@@ -254,9 +254,9 @@ cpdef inline double smooth_logistic2_derivative(double value,
         4, 0.512107, 0.090095, 0.000000, 0.000000
         5, 0.437790, 0.040180, 0.000000, 0.000000
 
-    Function :func:`smooth_logistic2_derivative` is protected against
-    numerical overflow. Hence even extremely high negative`value/parameter`
-    ratios are allowed:
+    Function |smooth_logistic2_derivative| is protected against numerical
+    overflow. Hence even extremely high negative `value/parameter` ratios
+    are allowed:
 
     >>> round_(smooth_logistic2_derivative(-1000., .1))
     0.0
@@ -276,8 +276,8 @@ cpdef inline double smooth_logistic2_derivative(double value,
 
 
 cpdef inline double smooth_logistic3(double value, double parameter) nogil:
-    """Smoothing kernel which combines :func:`smooth_logistic1`  and
-    :func:`smooth_logistic2` for the regularization of functions containing
+    """Smoothing kernel which combines |smooth_logistic1| and
+    |smooth_logistic2| for the regularization of functions containing
     two second order discontinuities.
 
     :math:`f_{log3}(x, c) =
@@ -371,10 +371,10 @@ cpdef inline double smooth_max1(
     line is relatively straight.  With the lowest smoothing parameter (0.0),
     the result is identical with the usual (discontinuous) maximum function.
 
-    Function :func:`smooth_max1` is protected against numerical underflow
-    and overflow.  In the following example, extreme values are added to
-    both the x and the y value of 5 and 6 respectively.  The degree of
-    smoothing is always identical:
+    Function |smooth_max1| is protected against numerical underflow and
+    overflow.  In the following example, extreme values are added to both
+    the x and the y value of 5 and 6 respectively.  The degree of smoothing
+    is always identical:
 
     >>> for test in ['-1e8', '0.0', '1e8']:
     ...     round_(test, end=', ')
@@ -435,10 +435,10 @@ cpdef inline double smooth_min1(
     line is relatively straight.  With the lowest smoothing parameter (0.0),
     the result is identical with the usual (discontinuous) minimum function.
 
-    Function :func:`smooth_min1` is protected against numerical underflow
-    and overflow.  In the following example, extreme values are added to
-    both the x and the y value of 5 and 6 respectively.  The degree of
-    smoothing is always identical:
+    Function |smooth_min1| is protected against numerical underflow and
+    overflow.  In the following example, extreme values are added to both
+    the x and the y value of 5 and 6 respectively.  The degree of smoothing
+    is always identical:
 
     >>> for test in ['-1e8', ' 0.0', ' 1e8']:
     ...     round_(test, end=', ')

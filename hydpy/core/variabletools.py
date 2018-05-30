@@ -25,7 +25,7 @@ but not for integer values."""
 
 
 def trim(self, lower=None, upper=None):
-    """Trim the value(s) of  a |Variable| instance.
+    """Trim the value(s) of a |Variable| instance.
 
     One can pass the lower and/or the upper boundary as a function
     argument.  Otherwise, boundary values are taken from the class
@@ -521,9 +521,9 @@ error occured: operands could not be broadcast together with shapes (2,) (3,)
         return numpy.round(self.value, ndigits)
 
     def commentrepr(self):
-        """Returns a list with comments, e.g. for making string representations
-        more informative.  When :attr:`pub.options.reprcomments` is set to
-        `False`, an empty list is returned.
+        """Returns a list with comments, e.g. for making string
+        representations more informative.  When `pub.options.reprcomments`
+        is set to |False|, an empty list is returned.
         """
         if pub.options.reprcomments:
             return ['# %s' % line for line in

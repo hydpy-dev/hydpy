@@ -1228,9 +1228,9 @@ class SeasonalANN(object):
     Inserting data, processing this data, and fetching the output works
     as explained for class |anntools.ANN|, except that the index of the
     actual time of year needs to be passed as the single argument of
-    |SeasonalANN.process_actual_input|.  Passing the index value `182`
-    activates the third network only, which is configured exactly as
-    the one exemplifying class |anntools.ANN|:
+    |anntools.SeasonalANN.process_actual_input|.  Passing the index value
+    `182` activates the third network only, which is configured exactly
+    as the one exemplifying class |anntools.ANN|:
 
     >>> from hydpy import round_
     >>> for input_ in range(9):
@@ -1665,8 +1665,9 @@ neural network `seasonalann` of element `?` none has been defined so far.
         getattr(self.fastaccess, self.name).ratios = numpy.zeros(
             shp, dtype=float)
 
-    shape = property(_getshape,
-                     doc='The shape of array |SeasonalANN.ratios|.')
+    shape = property(
+        _getshape,
+        doc='The shape of array |anntools.SeasonalANN.ratios|.')
 
     @property
     def toys(self):

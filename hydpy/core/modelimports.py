@@ -7,7 +7,7 @@ of base and application models implemented.  Just write:
 
 Thereafter, the following objects are available:
  * module |numpy|
- * numpys |nan| and |inf|
+ * numpys |numpy.nan| and |numpy.inf|
  * functions |parameterstep|, |simulationstep|, and |controlcheck|
    of module |importtools|
  * class |Tester| of module |testtools|

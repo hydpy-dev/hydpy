@@ -43,23 +43,26 @@ def calc_qpin_v1(self):
         0 to 12 m³/s:
 
         >>> from hydpy import UnitTest
-        >>> test = UnitTest(model, model.calc_qpin_v1, last_example=6)
+        >>> test = UnitTest(
+        ...     model, model.calc_qpin_v1,
+        ...     last_example=6,
+        ...     parseqs=(fluxes.qin, fluxes.qpin))
         >>> test.nexts.qin = 0., 1., 2., 4., 6., 12.
         >>> test()
-        | ex. | nmb |           maxq |      diffq |  qin |           qpin |
-        -------------------------------------------------------------------
-        |   1 |   3 | 0.0  2.0   6.0 | 2.0    4.0 |  0.0 | 0.0  0.0   0.0 |
-        |   2 |   3 | 0.0  2.0   6.0 | 2.0    4.0 |  1.0 | 1.0  0.0   0.0 |
-        |   3 |   3 | 0.0  2.0   6.0 | 2.0    4.0 |  2.0 | 2.0  0.0   0.0 |
-        |   4 |   3 | 0.0  2.0   6.0 | 2.0    4.0 |  4.0 | 2.0  2.0   0.0 |
-        |   5 |   3 | 0.0  2.0   6.0 | 2.0    4.0 |  6.0 | 2.0  4.0   0.0 |
-        |   6 |   3 | 0.0  2.0   6.0 | 2.0    4.0 | 12.0 | 2.0  4.0   6.0 |
+        | ex. |  qin |           qpin |
+        -------------------------------
+        |   1 |  0.0 | 0.0  0.0   0.0 |
+        |   2 |  1.0 | 1.0  0.0   0.0 |
+        |   3 |  2.0 | 2.0  0.0   0.0 |
+        |   4 |  4.0 | 2.0  2.0   0.0 |
+        |   5 |  6.0 | 2.0  4.0   0.0 |
+        |   6 | 12.0 | 2.0  4.0   6.0 |
 
 
-        The following two additional examples are just supposed to demonstrate
-        method :func:`calc_qpin_v1` also functions properly if there is only
-        one response function, wherefore total discharge does not need to be
-        divided:
+        The following two additional examples are just supposed to
+        demonstrate method |calc_qpin_v1| also functions properly if
+        there is only one response function, wherefore total discharge
+        does not need to be divided:
 
         >>> derived.nmb = 1
         >>> derived.maxq.shape = 1
@@ -67,14 +70,17 @@ def calc_qpin_v1(self):
         >>> fluxes.qpin.shape = 1
         >>> derived.maxq(0.)
 
-        >>> test = UnitTest(model, model.calc_qpin_v1,
-        ...                 first_example=7, last_example=8)
+        >>> test = UnitTest(
+        ...     model, model.calc_qpin_v1,
+        ...     first_example=7, last_example=8,
+        ...                 parseqs=(fluxes.qin,
+        ...                          fluxes.qpin))
         >>> test.nexts.qin = 0., 12.
         >>> test()
-        | ex. | nmb | maxq | diffq |  qin | qpin |
-        ------------------------------------------
-        |   7 |   1 |  0.0 | empty |  0.0 |  0.0 |
-        |   8 |   1 |  0.0 | empty | 12.0 | 12.0 |
+        | ex. |  qin | qpin |
+        ---------------------
+        |   7 |  0.0 |  0.0 |
+        |   8 | 12.0 | 12.0 |
 
     """
     der = self.parameters.derived.fastaccess
@@ -127,11 +133,11 @@ def calc_login_v1(self):
 
         >>> fluxes.qpin = 7.0, 8.0, 9.0
 
-        Through applying method :func:`calc_login_v1` all values already
-        existing are shifted to the right ("into the past").  Values, which
-        are no longer required due to the limited order or the different
-        MA processes, are discarded.  The new values are inserted in the
-        first column:
+        Through applying method |calc_login_v1| all values already
+        existing are shifted to the right ("into the past").  Values,
+        which are no longer required due to the limited order or the
+        different MA processes, are discarded.  The new values are
+        inserted in the first column:
 
         >>> model.calc_login_v1()
         >>> logs.login
@@ -155,7 +161,7 @@ def calc_qma_v1(self):
     Required derived parameters:
       |Nmb|
       |MA_Order|
-      |MA_Coeffs|
+      |MA_Coefs|
 
     Required log sequence:
       |LogIn|
@@ -193,8 +199,8 @@ def calc_qma_v1(self):
         ...               (2.0, 3.0, nan),
         ...               (4.0, 5.0, 6.0))
 
-        Applying method :func:`calc_qma_v1` is equivalent to calculating
-        the inner product of the different rows of both matrices:
+        Applying method |calc_qma_v1| is equivalent to calculating the
+        inner product of the different rows of both matrices:
 
         >>> model.calc_qma_v1()
         >>> fluxes.qma
@@ -216,7 +222,7 @@ def calc_qar_v1(self):
     Required derived parameters:
       |Nmb|
       |AR_Order|
-      |arma_derived.AR_Coeffs|
+      |AR_Coefs|
 
     Required log sequence:
       |LogOut|
@@ -258,8 +264,8 @@ def calc_qar_v1(self):
         ...                (2.0, 3.0, nan),
         ...                (4.0, 5.0, 6.0))
 
-        Applying method :func:`calc_qar_v1` is equivalent to calculating
-        the inner product of the different rows of both matrices:
+        Applying method |calc_qar_v1| is equivalent to calculating the
+        inner product of the different rows of both matrices:
 
         >>> model.calc_qar_v1()
         >>> fluxes.qar
@@ -301,7 +307,7 @@ def calc_qpout_v1(self):
 
         Define the output values of the MA and of the AR processes
         associated with the three response functions and apply
-        method :func:`calc_qpout_v1`:
+        method |calc_qpout_v1|:
 
         >>> fluxes.qar = 4.0, 5.0, 6.0
         >>> fluxes.qma = 1.0, 2.0, 3.0
@@ -356,7 +362,7 @@ def calc_logout_v1(self):
 
         >>> fluxes.qpout = 6.0, 7.0, 8.0, 9.0
 
-        Through applying method :func:`calc_logout_v1` all values already
+        Through applying method |calc_logout_v1| all values already
         existing are shifted to the right ("into the past").  Values, which
         are no longer required due to the limited order or the different
         AR processes, are discarded.  The new values are inserted in the
@@ -403,7 +409,7 @@ def calc_qout_v1(self):
         >>> fluxes.qpout.shape = 3
 
         Define the output values of the three response functions and
-        apply method :func:`calc_qout_v1`:
+        apply method |calc_qout_v1|:
 
         >>> fluxes.qpout = 1.0, 2.0, 3.0
         >>> model.calc_qout_v1()

@@ -227,8 +227,7 @@ class Device(object):
         False
 
         Note that each name name must be a valid variable identifier (see
-        function :func:`~hydpy.core.objecttools.valid_variable_identifier`),
-        to allow for attribute access:
+        function |valid_variable_identifier|), to allow for attribute access:
 
         >>> from hydpy import Nodes
         >>> nodes = Nodes(node1, 'n2')
@@ -617,15 +616,13 @@ the given group name `test`.
         self.sequences.fastaccess.sim[0] = 0.
 
     def open_files(self, idx=0):
-        """Call method
-        :func:`~hydpy.core.sequencetools.Sequences.open_files` of the
-        |Sequences| object handled (indirectly) by the actual |Node| object."""
+        """Call method |Sequences.open_files| of the |Sequences| object
+        handled (indirectly) by the actual |Node| object."""
         self.sequences.open_files(idx)
 
     def close_files(self):
-        """Call method
-        :func:`~hydpy.core.sequencetools.Sequences.close_files` of the
-        |Sequences| object handled (indirectly) by the actual |Node| object."""
+        """Call method |Sequences.close_files| of the |Sequences| object
+        handled (indirectly) by the actual |Node| object."""
         self.sequences.close_files()
 
     def _load_data_sim(self, idx):
@@ -681,14 +678,14 @@ the given group name `test`.
     def prepare_simseries(self, ramflag=True):
         """Prepare the series object of the `sim` sequence.
 
-        See method :func:`Node.prepare_allseries` for further information.
+        See method |Node.prepare_allseries| for further information.
         """
         self._prepare_nodeseries('sim', ramflag)
 
     def prepare_obsseries(self, ramflag=True):
         """Prepare the series object of the `obs` sequence.
 
-        See method :func:`Node.prepare_allseries` for further information.
+        See method |Node.prepare_allseries| for further information.
         """
         self._prepare_nodeseries('obs', ramflag)
 
@@ -1094,17 +1091,13 @@ assigned to the element so far.
                 'by element `%s`' % self.name)
 
     def open_files(self, idx=0):
-        """Call method
-        :func:`~hydpy.core.sequencetools.Sequences.open_files` of the
-        |Sequences| object handled (indirectly) by the actual |Element|
-        object."""
+        """Call method |Sequences.open_files| of the |Sequences| object
+        handled (indirectly) by the actual |Element| object."""
         self.model.sequences.open_files(idx)
 
     def close_files(self):
-        """Call method
-        :func:`~hydpy.core.sequencetools.Sequences.close_files` of the
-        |Sequences| object handled (indirectly) by the actual |Element|
-        object."""
+        """Call method |Sequences.close_files| of the |Sequences| object
+        handled (indirectly) by the actual |Element| object."""
         self.model.sequences.close_files()
 
     def prepare_allseries(self, ramflag=True):
@@ -1127,7 +1120,7 @@ assigned to the element so far.
         """Prepare the series objects of the `input` sequences of the model
         handled by this element.
 
-        See method :func:`Element.prepare_allseries` for further information.
+        See method |Element.prepare_allseries| for further information.
         """
         self._prepare_series('inputs', ramflag)
 
@@ -1135,7 +1128,7 @@ assigned to the element so far.
         """Prepare the series objects of the `flux` sequences of the model
         handled by this element.
 
-        See method :func:`Element.prepare_allseries` for further information.
+        See method |Element.prepare_allseries| for further information.
         """
         self._prepare_series('fluxes', ramflag)
 
@@ -1143,7 +1136,7 @@ assigned to the element so far.
         """Prepare the series objects of the `state` sequences of the model
         handled by this element.
 
-        See method :func:`Element.prepare_allseries` for further information.
+        See method |Element.prepare_allseries| for further information.
         """
         self._prepare_series('states', ramflag)
 
@@ -1289,7 +1282,7 @@ nor does it handle a Node object named `na`, which could be deleted.
 
     However, exemplified by the next example, setting devices as attributes
     "pythonically" could result in inconsistencies and is not allowed
-    (see method :func:`~Devices.add_device` instead):
+    (see method |Devices.add_device| instead):
 
     >>> nodes.NF = Node('nf')
     Traceback (most recent call last):
@@ -1490,15 +1483,14 @@ as a "normal" attribute and is thus not support.
                    keyword not in self._shadowed_keywords)
 
     def open_files(self, idx=0):
-        """Call method :func:`~Node.open_files` or :func:`~Element.open_files`
-        of all contained |Node| or |Element| objects."""
+        """Call method |Node.open_files| or |Element.open_files| of all
+        contained |Node| or |Element| objects."""
         for device in self:
             device.open_files(idx)
 
     def close_files(self):
-        """Call method :func:`~Node.close_files` or
-        :func:`~Element.close_files` of all contained |Node| or
-        |Element| objects."""
+        """Call method |Node.close_files| or |Element.close_files| of
+        all contained |Node| or |Element| objects."""
         for device in self:
             device.close_files()
 
@@ -1701,46 +1693,43 @@ class Nodes(Devices):
 
     @printtools.print_progress
     def prepare_allseries(self, ramflag=True):
-        """Call methods :func:`~Node.prepare_simseries` and
-        :func:`~Node.prepare_obsseries`."""
+        """Call methods |Node.prepare_simseries| and |
+        Node.prepare_obsseries|."""
         self.prepare_simseries(ramflag)
         self.prepare_obsseries(ramflag)
 
     @printtools.print_progress
     def prepare_simseries(self, ramflag=True):
-        """Call method :func:`~Node.prepare_simseries` of each handled
+        """Call method |Node.prepare_simseries| of each handled
         |Node| object."""
         for node in printtools.progressbar(self):
             node.prepare_simseries(ramflag)
 
     @printtools.print_progress
     def prepare_obsseries(self, ramflag=True):
-        """Call method :func:`~Node.prepare_obsseries` of each handled
+        """Call method |Node.prepare_obsseries| of each handled
         |Node| object."""
         for node in printtools.progressbar(self):
             node.prepare_obsseries(ramflag)
 
     @printtools.print_progress
     def save_allseries(self):
-        """Call methods :func:`~Nodes.save_simseries` and
-        :func:`~Nodes.save_obsseries`."""
+        """Call methods |Nodes.save_simseries| and |Nodes.save_obsseries|."""
         self.save_simseries()
         self.save_obsseries()
 
     @printtools.print_progress
     def save_simseries(self, ramflag=True):
-        """Call method
-        :func:`~hydpy.core.sequencetools.IOSequence.save_ext` of all
-        "memory flag activated" |NodeSequence| objects storing simulated
-        values handled (indirectly) by each |Node| object."""
+        """Call method |IOSequence.save_ext| of all  "memory flag activated"
+        |NodeSequence| objects storing simulated  values handled (indirectly)
+        by each |Node| object."""
         self._save_nodeseries('sim', pub.sequencemanager.simoverwrite)
 
     @printtools.print_progress
     def save_obsseries(self, ramflag=True):
-        """Call method
-        :func:`~hydpy.core.sequencetools.IOSequence.save_ext` of all
-        "memory flag activated" |NodeSequence| objects storing observed
-        values handled (indirectly) by each |Node| object."""
+        """Call method |IOSequence.save_ext| of all "memory flag activated"
+        |NodeSequence| objects storing observed values handled (indirectly)
+        by each |Node| object."""
         self._save_nodeseries('obs', pub.sequencemanager.obsoverwrite)
 
     def _save_nodeseries(self, seqname, overwrite):
@@ -1764,10 +1753,9 @@ class Elements(Devices):
 
     @printtools.print_progress
     def init_models(self):
-        """Call method :func:`~Element.init_model` of each handled
-        |Element| object and afterwards method
-        :func:`~hydpy.core.parametertools.Parameters.update` of the
-        |Parameters| object handled (indirectly) by each |Element| object."""
+        """Call method |Element.init_model| of each handled |Element| object
+        and afterwards method |Parameters.update| of the |Parameters| object
+        handled (indirectly) by each |Element| object."""
         warn = pub.options.warnsimulationstep
         pub.options.warnsimulationstep = False
         try:
@@ -1792,9 +1780,9 @@ class Elements(Devices):
             pub.controlmanager.clear_registry()
 
     def connect(self):
-        """Call method :func:`~Element.connect` of each |Element| object
-        and function :func:`~hydpy.core.sequencetools.Sequences.update` of the
-        |Sequences| object handled (indirectly) by each |Element| object."""
+        """Call method |Element.connect| of each |Element| object and
+        function |Parameters.update| of the |Parameters| object handled
+        (indirectly) by each |Element| object."""
         for element in self:
             element.connect()
             element.model.parameters.update()
@@ -1864,78 +1852,72 @@ class Elements(Devices):
             pub.controlmanager._currentdir = _controldir
 
     def trim_conditions(self):
-        """Call method
-        :func:`~hydpy.core.sequencetools.Sequences.trim_conditions` of the
-        |Sequences| object handled (indirectly) by each |Element| object."""
+        """Call method |Sequences.trim_conditions| of the |Sequences|
+        object handled (indirectly) by each |Element| object."""
         for element in self:
             element.model.sequences.trim_conditions()
 
     def reset_conditions(self):
-        """Call method
-        :func:`~hydpy.core.sequencetools.Sequences.reset` of the
-        |Sequences| object handled (indirectly) by each |Element| object."""
+        """Call method |Sequences.reset| of the |Sequences| object
+        handled (indirectly) by each |Element| object."""
         for element in self:
             element.model.sequences.reset()
 
     @printtools.print_progress
     def prepare_allseries(self, ramflag=True):
-        """Call method :func:`~Element.prepare_allseries` of each handled
+        """Call method |Element.prepare_allseries| of each handled
         |Element| object."""
         for element in printtools.progressbar(self):
             element.prepare_allseries(ramflag)
 
     @printtools.print_progress
     def prepare_inputseries(self, ramflag=True):
-        """Call method :func:`~Element.prepare_inputseries` of each handled
+        """Call method |Element.prepare_inputseries| of each handled
         |Element| object."""
         for element in printtools.progressbar(self):
             element.prepare_inputseries(ramflag)
 
     @printtools.print_progress
     def prepare_fluxseries(self, ramflag=True):
-        """Call method :func:`~Element.prepare_fluxseries` of each handled
+        """Call method |Element.prepare_fluxseries| of each handled
         |Element| object."""
         for element in printtools.progressbar(self):
             element.prepare_fluxseries(ramflag)
 
     @printtools.print_progress
     def prepare_stateseries(self, ramflag=True):
-        """Call method :func:`~Element.prepare_stateseries` of each handled
+        """Call method |Element.prepare_stateseries| of each handled
         |Element| object."""
         for element in printtools.progressbar(self):
             element.prepare_stateseries(ramflag)
 
     @printtools.print_progress
     def save_allseries(self):
-        """Call methods :func:`~Elements.save_inputseries`,
-        :func:`~Elements.save_fluxseries`,
-        and :func:`~Elements.save_stateseries`."""
+        """Call methods |Elements.save_inputseries|,
+        |Elements.save_fluxseries|, and |Elements.save_stateseries|."""
         self.save_inputseries()
         self.save_fluxseries()
         self.save_stateseries()
 
     @printtools.print_progress
     def save_inputseries(self):
-        """Call method
-        :func:`~hydpy.core.sequencetools.IOSequence.save_ext` of all
-        "memory flag activated" |InputSequence| objects handled (indirectly)
-        by each |Element| object."""
+        """Call method |IOSequence.save_ext| of all "memory flag activated"
+        |InputSequence| objects handled (indirectly) by each |Element|
+        object."""
         self._save_modelseries('inputs', pub.sequencemanager.inputoverwrite)
 
     @printtools.print_progress
     def save_fluxseries(self):
-        """Call method
-        :func:`~hydpy.core.sequencetools.IOSequence.save_ext` of all
-        "memory flag activated" |FluxSequence| objects handled (indirectly)
-        by each |Element| object."""
+        """Call method |IOSequence.save_ext| of all "memory flag activated"
+        |FluxSequence| objects handled (indirectly) by each |Element|
+        object."""
         self._save_modelseries('fluxes', pub.sequencemanager.outputoverwrite)
 
     @printtools.print_progress
     def save_stateseries(self):
-        """Call method
-        :func:`~hydpy.core.sequencetools.IOSequence.save_ext` of all
-        "memory flag activated" |StateSequence| objects handled (indirectly)
-        by each |Element| object."""
+        """Call method |IOSequence.save_ext| of all "memory flag activated"
+        |StateSequence| objects handled (indirectly) by each |Element|
+        object."""
         self._save_modelseries('states', pub.sequencemanager.outputoverwrite)
 
     def _save_modelseries(self, name_subseqs, overwrite):

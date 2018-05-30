@@ -211,8 +211,8 @@ class Cythonizer(object):
 
     @property
     def outdated(self):
-        """True if at least one of the :attr:`~Cythonizer.pysourcefiles`
-        is newer than the compiled file under :attr:`~Cythonizer.cyfilepath`,
+        """True if at least one of the |Cythonizer.pysourcefiles| is
+        newer than the compiled file under |Cythonizer.cyfilepath|,
         otherwise False.
         """
         if not os.path.exists(self.cyfilepath):
@@ -427,11 +427,11 @@ class PyxWriter(object):
                                      % (ctype_numeric, seq.name))
                         lines.add(1, 'cdef public %s _%s_sum'
                                      % (ctype, seq.name))
-                if isinstance(subseqs, sequencetools.IOSubSequences):
+                if isinstance(subseqs, sequencetools.IOSequences):
                     lines.extend(self.iosequence(seq))
             if isinstance(subseqs, sequencetools.InputSequences):
                 lines.extend(self.load_data(subseqs))
-            if isinstance(subseqs, sequencetools.IOSubSequences):
+            if isinstance(subseqs, sequencetools.IOSequences):
                 lines.extend(self.open_files(subseqs))
                 lines.extend(self.close_files(subseqs))
                 if not isinstance(subseqs, sequencetools.InputSequence):

@@ -132,6 +132,7 @@ class Tester(object):
                         with StdOutErr(indent=8):
                             modulename = '.'.join((self.package, name))
                             module = importlib.import_module(modulename)
+                            solve_exception_doctest_issue(module)
                             with warnings.catch_warnings():
                                 warnings.filterwarnings(
                                     'error', module=modulename)
@@ -828,6 +829,41 @@ class Open(object):
 
     def __exit__(self, exception, message, traceback_):
         builtins.open = self.open
+
+
+def solve_exception_doctest_issue(module):
+    """Insert the string `hydpy.core.exceptiontools.` into the
+    docstrings of the given module related to exceptions defined
+    in module |exceptiontools| (not relevant for Python 2)."""
+    if pub.pyversion > 2:
+        _replace(module)
+        try:
+            for member in vars(module).values():
+                _replace(member)
+                try:
+                    for submember in vars(member).values():
+                        submember = getattr(submember, '__func__', submember)
+                        _replace(submember)
+                except (TypeError, KeyError):
+                    pass
+        except TypeError:
+            pass
+
+
+def _replace(obj):
+    try:
+        doc = obj.__doc__
+        for key, value in vars(exceptiontools).items():
+            if inspect.isclass(value) and issubclass(value, BaseException):
+                doc = doc.replace(
+                    '    ' + key,
+                    '    hydpy.core.exceptiontools.' + key)
+                doc = doc.replace(
+                    '\n' + key,
+                    '\nhydpy.core.exceptiontools.' + key)
+        obj.__doc__ = doc
+    except BaseException:
+        pass
 
 
 autodoctools.autodoc_module()

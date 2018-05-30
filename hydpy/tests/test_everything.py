@@ -112,6 +112,7 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                 continue
             if not name.endswith('.rst'):
                 module = importlib.import_module(name)
+                testtools.solve_exception_doctest_issue(module)
             runner = unittest.TextTestRunner(stream=open(os.devnull, 'w'))
             suite = unittest.TestSuite()
             try:

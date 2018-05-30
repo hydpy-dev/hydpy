@@ -32,7 +32,8 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.inheritance_diagram',
               'sphinx.ext.mathjax',
               'sphinx.ext.doctest',
-              'sphinxcontrib.fulltoc']
+              'sphinxcontrib.fulltoc',
+              'sphinxprettysearchresults']
 
 autoclass_content = 'class'
 autodoc_default_flags = ['undoc-members']

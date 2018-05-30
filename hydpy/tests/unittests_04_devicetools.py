@@ -2,10 +2,8 @@
 # import...
 # ...from standard library
 from __future__ import division, print_function
-import sys
 import unittest
 # ...from HydPy
-sys.path.insert(0, '..\\..\\..\\HydPy')
 from hydpy.core.devicetools import *
 from hydpy.core.connectiontools import *
 

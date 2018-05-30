@@ -40,6 +40,11 @@ if os.path.exists(AUTOPATH):
 os.makedirs(AUTOPATH)
 shutil.copytree(os.path.join(docs.__path__[0], 'html'),
                 os.path.join(AUTOPATH, 'html'))
+try:
+    shutil.move(os.path.join(AUTOPATH, 'html', 'coverage.html'),
+                os.path.join(AUTOPATH, 'coverage.html'))
+except BaseException:
+    print('coverage.html could not be moved')
 
 # Import all base and application models, to make sure all substituters
 # are up-to-date. (I am not sure, if this is really necessary, but it

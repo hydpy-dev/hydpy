@@ -98,7 +98,10 @@ iterable = zip(('Python', 'Cython'), alldoctests,
 for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
     pub.options.usecython = mode == 'Cython'
     for dirpath, dirnames, filenames_ in os.walk(hydpy.__path__[0]):
-        if dirpath.endswith('tests') or '__init__.py' not in filenames_:
+        if (('__init__.py' not in filenames_) or
+                dirpath.endswith('tests') or
+                dirpath.endswith('__pycache__') or
+                dirpath.endswith('build')):
             continue
         packagename = dirpath.replace(os.sep, '.')+'.'
         packagename = packagename[packagename.find('hydpy.'):]
@@ -108,7 +111,7 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
         docfilenames = [os.path.join(dirpath, fn)
                         for fn in filenames_ if fn.endswith('.rst')]
         for name in (modulenames + docfilenames):
-            if name.endswith('apidoc'):
+            if name.split('.')[-1] in ('apidoc', 'prepare', 'modify_html'):
                 continue
             if not name.endswith('.rst'):
                 module = importlib.import_module(name)

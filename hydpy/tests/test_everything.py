@@ -200,7 +200,7 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
 
 
 # 4. Return the exit code.
-print('test_everything.py resulted in %d failing unit test suites, '
+print('\ntest_everything.py resulted in %d failing unit test suites, '
       '%d failing doctest suites in Python mode and %d failing '
       'doctest suites in Cython mode.' % (len(failedunittests),
                                           len(allfaileddoctests[0]),

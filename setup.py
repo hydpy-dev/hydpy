@@ -212,6 +212,13 @@ if install:
     exitcode = int(os.system('coverage run -m --branch '
                              '--source hydpy --omit=test_everything.py '
                              'test_everything'))
+    if exitcode:
+        print_('Use this HydPy version with caution on your system.  At '
+               'least one verification test failed.  You should see in the '
+               'information given above, whether essential features of '
+               'HydPy are broken or perhaps only some typing errors in '
+               'documentation were detected.  (exit code: %d)\n' % exitcode)
+        sys.exit(1)
 
     # Copy all extension files (pyx) and all compiled Cython files (pyd or so)
     # into the original `autogen` folder.
@@ -239,14 +246,6 @@ if install:
             path_out = prep(path_html, filename)
             source2target(path_in, path_out)
 
-    if exitcode:
-        print_('Use this HydPy version with caution on your system.  At '
-               'least one verification test failed.  You should see in the '
-               'information given above, whether essential features of '
-               'HydPy are broken or perhaps only some typing errors in '
-               'documentation were detected.  (exit code: %d)' % exitcode)
-        sys.exit(1)
-
     # Prepare coverage report and prepare it for sphinx.
     if coverage_report:
         print_('\nPrepare coverage html file:')
@@ -258,3 +257,5 @@ if install:
         path_in = prep(hydpy.tests.__path__[0], 'coverage.html')
         path_out = prep(oldpath, 'hydpy', 'docs', 'html', 'coverage.html')
         source2target(path_in, path_out)
+
+    print('\nNo problems encountered during testing!\n')

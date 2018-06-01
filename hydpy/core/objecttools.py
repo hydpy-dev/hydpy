@@ -168,16 +168,17 @@ def devicename(self):
 
 
 def _devicephrase(self, objname=None):
+    name = getattr(self, 'name', instancename(self))
     device = _search_device(self)
     if device and objname:
-        return ' of %s `%s` ' % (objname, device.name)
+        return '`%s` of %s `%s`' % (name, objname, device.name)
     elif objname:
-        return ' of %s `?` ' % objname
+        return '`%s` of %s `?`' % (name, objname)
     elif device:
-        return (' of %s `%s` '
-                % (instancename(device), device.name))
+        return ('`%s` of %s `%s`'
+                % (name, instancename(device), device.name))
     else:
-        return ' '
+        return '`%s`' % name
 
 
 def elementphrase(self):
@@ -188,13 +189,17 @@ def elementphrase(self):
     >>> model = Model()
     >>> from hydpy.core.objecttools import elementphrase
     >>> elementphrase(model)
-    ' of element `?` '
+    '`model` of element `?`'
+
+    >>> model.name = 'test'
+    >>> elementphrase(model)
+    '`test` of element `?`'
 
     >>> from hydpy import Element
     >>> e1 = Element('e1')
     >>> e1.connect(model)
     >>> elementphrase(model)
-    ' of element `e1` '
+    '`test` of element `e1`'
     """
     return _devicephrase(self, 'element')
 
@@ -207,12 +212,16 @@ def nodephrase(self):
     >>> sequences = Sequences()
     >>> from hydpy.core.objecttools import nodephrase
     >>> nodephrase(sequences)
-    ' of node `?` '
+    '`sequences` of node `?`'
+
+    >>> sequences.name = 'test'
+    >>> nodephrase(sequences)
+    '`test` of node `?`'
 
     >>> from hydpy import Node
     >>> n1 = Node('n1')
     >>> nodephrase(n1.sequences.sim)
-    ' of node `n1` '
+    '`sim` of node `n1`'
     """
     return _devicephrase(self, 'node')
 
@@ -224,20 +233,21 @@ def devicephrase(self):
 
     >>> from hydpy.core.modeltools import Model
     >>> model = Model()
+    >>> model.name = 'test'
     >>> from hydpy.core.objecttools import devicephrase
     >>> devicephrase(model)
-    ' '
+    '`test`'
 
     >>> from hydpy import Element
     >>> e1 = Element('e1')
     >>> e1.connect(model)
     >>> devicephrase(model)
-    ' of element `e1` '
+    '`test` of element `e1`'
 
     >>> from hydpy import Node
     >>> n1 = Node('n1')
     >>> devicephrase(n1.sequences.sim)
-    ' of node `n1` '
+    '`sim` of node `n1`'
     """
     return _devicephrase(self)
 

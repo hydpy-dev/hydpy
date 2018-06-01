@@ -226,10 +226,8 @@ prepared so far.
             return wrapped(*args, **kwargs)
         else:
             raise AttributeNotReady(
-                'Attribute `%s` of object `%s`%shas not been prepared so far.'
-                % (propname,
-                   _objectname(self),
-                   objecttools.devicephrase(self)))
+                'Attribute `%s` of object %s has not been prepared so far.'
+                % (propname, objecttools.devicephrase(self)))
 
     @wrapt.decorator
     def wrap_fset(wrapped, instance, args, kwargs):
@@ -322,18 +320,14 @@ def dependent_property(propname, fget, fset=None, fdel=None):
         self = args[0]
         if not wrapped:
             raise AttributeError(
-                'Attribute `%s` of object `%s`%scannot be used this way.'
-                % (propname,
-                   _objectname(self),
-                   objecttools.devicephrase(self)))
+                'Attribute `%s` of object %s cannot be used this way.'
+                % (propname, objecttools.devicephrase(self)))
         elif self._isready:
             return wrapped(*args, **kwargs)
         else:
             raise AttributeNotReady(
-                'Attribute `%s` of object `%s`%sis not usable so far.'
-                % (propname,
-                   _objectname(self),
-                   objecttools.devicephrase(self)))
+                'Attribute `%s` of object %s is not usable so far.'
+                % (propname, objecttools.devicephrase(self)))
 
     return property(wrapper(fget), wrapper(fset), wrapper(fdel))
 

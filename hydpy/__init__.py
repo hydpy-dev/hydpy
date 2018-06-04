@@ -17,8 +17,12 @@ from hydpy.core.exceptiontools import OptionalImport
 import numpy
 from numpy import nan
 from scipy import integrate
-pandas = OptionalImport('import pandas')
-pyplot = OptionalImport('from matplotlib import pyplot')
+pandas = OptionalImport(
+    'pandas',
+    ['import pandas'])
+pyplot = OptionalImport(
+    'matplotlib.pyplot',
+    ['from matplotlib import pyplot'])
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import dummytools

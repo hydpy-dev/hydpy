@@ -338,21 +338,23 @@ class OptionalModuleNotAvailable(ImportError):
 
 
 class OptionalImport(object):
-    """Exectutes the given import command and returns the imported module.
-    If importomg is not possible, it returns a dummy object which raises
-    a |OptionalModuleNotAvailable| each time a one tries to access a
-    member of the orignal module.
+    """Exectutes the given import commands sequentially and returns the
+    first importable module.  If no module could be imported at all, it
+    returns a dummy object which raises a |OptionalModuleNotAvailable|
+    each time a one tries to access a member of the original module.
 
-    If the module is availabe:
+    If a module is availabe:
 
     >>> from hydpy.core.exceptiontools import OptionalImport
-    >>> numpy = OptionalImport('import numpy')
+    >>> numpy = OptionalImport(
+    ...     'numpy',
+    ...     ['import numpie', 'import numpy', 'import os'])
     >>> numpy.nan
     nan
 
-    If the module is not available:
+    If no module is not available:
 
-    >>> numpie = OptionalImport('import numpie')
+    >>> numpie = OptionalImport('numpie', ['import numpie'])
     >>> numpie.nan
     Traceback (most recent call last):
     ...
@@ -365,7 +367,7 @@ specific functionalities.
 
     >>> from hydpy import pub
     >>> pub._is_hydpy_bundled = True
-    >>> os = OptionalImport('import os')
+    >>> os = OptionalImport('os', 'import os')
     >>> os.getcwd()
     Traceback (most recent call last):
     ...
@@ -376,24 +378,27 @@ specific functionalities.
     The latter can be prevented by passing a `True` `bundle_module`
     argument:
 
-    >>> textwrap = OptionalImport('import textwrap', bundle_module=True)
+    >>> textwrap = OptionalImport(
+    ...     'textwrap', ['import textwrap'], bundle_module=True)
     >>> textwrap.wrap('')
     []
 
     >>> pub._is_hydpy_bundled = False
     """
 
-    def __new__(cls, command, bundle_module=False):
-        try:
-            if pub._is_hydpy_bundled and not bundle_module:
-                raise ImportError()
-            exec(command)
-            return eval(command.split()[-1])
-        except BaseException:
+    def __new__(cls, name, commands, bundle_module=False):
+        if pub._is_hydpy_bundled and not bundle_module:
             return object.__new__(cls)
+        for command in commands:
+            try:
+                exec(command)
+                return eval(command.split()[-1])
+            except BaseException:
+                pass
+        return object.__new__(cls)
 
-    def __init__(self, command):
-        self.name = command.split()[-1]
+    def __init__(self, name, commands, bundle_module=False):
+        self.name = name
 
     def __getattr__(self, name):
         raise OptionalModuleNotAvailable(

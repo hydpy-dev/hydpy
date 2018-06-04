@@ -1369,25 +1369,18 @@ or prepare `pub.sequencemanager` correctly.
 
     shape = property(Sequence._getshape, _setshape)
 
-
-class ModelIOSequence(IOSequence):
-    """Base class for sequences to be handled by |Model| objects."""
-
     def _getrawfilename(self):
         """Filename without ending for external and internal date files."""
         if self._rawfilename:
             return self._rawfilename
         else:
             try:
-                return '%s_%s_%s' % (
-                    self.subseqs.seqs.model.element.name,
-                    objecttools.classname(self.subseqs)[:-9].lower(),
-                    self.name)
+                return '%s_%s' % (self.descr_device, self.descr_sequence)
             except AttributeError:
                 raise RuntimeError(
                     'For sequence `%s` the raw filename cannot determined.  '
                     'Either set it manually or embed the sequence object '
-                    'into an element object.'
+                    'into a device object.'
                     % self.name)
 
     def _setrawfilename(self, name):
@@ -1397,6 +1390,53 @@ class ModelIOSequence(IOSequence):
         self._rawfilename = None
 
     rawfilename = property(_getrawfilename, _setrawfilename, _delrawfilename)
+
+
+class ModelIOSequence(IOSequence):
+    """Base class for sequences to be handled by |Model| objects."""
+
+    @property
+    def descr_sequence(self):
+        """Description of the |ModelIOSequence| object itself and the
+        |SubSequences| group it belongs to.
+
+        >>> from hydpy import prepare_model
+        >>> from hydpy.models import test_v1
+        >>> model = prepare_model(test_v1)
+        >>> model.sequences.fluxes.q.descr_sequence
+        'q_fluxes'
+        """
+        return '%s_%s' % (self.name, self.subseqs.name)
+
+    @property
+    def descr_model(self):
+        """Description of the |Model| the |ModelIOSequence| object belongs to.
+
+        >>> from hydpy import prepare_model
+        >>> from hydpy.models import test, test_v1
+        >>> model = prepare_model(test)
+        >>> model.sequences.fluxes.q.descr_model
+        'test'
+        >>> model = prepare_model(test_v1)
+        >>> model.sequences.fluxes.q.descr_model
+        'test_v1'
+        """
+        return self.subseqs.seqs.model.__module__.split('.')[2]
+
+    @property
+    def descr_device(self):
+        """Description of the |Element| object the |ModelIOSequence| object
+        belongs to.
+
+        >>> from hydpy import prepare_model, Element
+        >>> element = Element('test_element_1')
+        >>> from hydpy.models import test_v1
+        >>> model = prepare_model(test_v1)
+        >>> element.connect(model)
+        >>> model.sequences.fluxes.q.descr_device
+        'test_element_1'
+        """
+        return self.subseqs.seqs.model.element.name
 
 
 class InputSequence(ModelIOSequence):
@@ -1696,30 +1736,27 @@ abctools.LinkSequenceABC.register(LinkSequence)
 class NodeSequence(IOSequence):
     """Base class for all sequences to be handled by |Node| objects."""
 
-    def _getrawfilename(self):
-        """Filename without ending for external and internal date files."""
-        if self._rawfilename:
-            return self._rawfilename
-        else:
-            try:
-                return '%s_%s_%s' % (
-                    self.subseqs.node.name,
-                    self.name,
-                    self.subseqs.node.variable.lower())
-            except AttributeError:
-                raise RuntimeError(
-                    'For sequence `%s` the raw filename cannot determined.  '
-                    'Either set it manually or embed the sequence object '
-                    'into a node object.'
-                    % self.name)
+    @property
+    def descr_sequence(self):
+        """Description of the |NodeSequence| object including the
+        |Node.variable| to be represented.
 
-    def _setrawfilename(self, name):
-        self._rawfilename = str(name)
+        >>> from hydpy import Node
+        >>> Node('test_node_1', 'T').sequences.sim.descr_sequence
+        'sim_T'
+        """
+        return '%s_%s' % (self.name, self.subseqs.node.variable)
 
-    def _delrawfilename(self):
-        self._rawfilename = None
+    @property
+    def descr_device(self):
+        """Description of the |Node| object the |NodeSequence| object
+        belongs to.
 
-    rawfilename = property(_getrawfilename, _setrawfilename, _delrawfilename)
+        >>> from hydpy import Node
+        >>> Node('test_node_2').sequences.sim.descr_device
+        'test_node_2'
+        """
+        return self.subseqs.node.name
 
     def _initvalues(self):
         setattr(self.fastaccess, self.name, pointerutils.Double(0.))

@@ -229,7 +229,7 @@ def nodephrase(self):
 def devicephrase(self):
     """Try to return the phrase used in exception messages to
     indicate which |Element| or which |Node| is affected.
-    If not possible return a single empty space.
+    If not possible, return just the name of the given object.
 
     >>> from hydpy.core.modeltools import Model
     >>> model = Model()

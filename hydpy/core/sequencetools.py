@@ -1392,6 +1392,9 @@ or prepare `pub.sequencemanager` correctly.
     rawfilename = property(_getrawfilename, _setrawfilename, _delrawfilename)
 
 
+abctools.IOSequenceABC.register(IOSequence)
+
+
 class ModelIOSequence(IOSequence):
     """Base class for sequences to be handled by |Model| objects."""
 
@@ -1437,6 +1440,9 @@ class ModelIOSequence(IOSequence):
         'test_element_1'
         """
         return self.subseqs.seqs.model.element.name
+
+
+abctools.ModelIOSequenceABC.register(IOSequence)
 
 
 class InputSequence(ModelIOSequence):

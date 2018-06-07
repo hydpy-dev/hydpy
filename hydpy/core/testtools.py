@@ -12,6 +12,7 @@ import importlib
 import inspect
 import itertools
 import os
+import shutil
 import warnings
 # ...from site-packages
 # the following import are actually performed below due to performance issues:
@@ -21,6 +22,7 @@ import warnings
 import numpy
 # ...from HydPy
 import hydpy
+from hydpy import tests
 from hydpy import pub
 from hydpy import docs
 from hydpy.core import abctools
@@ -33,6 +35,7 @@ from hydpy.core import parametertools
 from hydpy.core import printtools
 from hydpy.core import selectiontools
 from hydpy.core import timetools
+from hydpy.tests import iotesting
 
 
 if pub.pyversion == 2:
@@ -880,6 +883,113 @@ def _replace(obj):
         obj.__doc__ = doc
     except BaseException:
         pass
+
+
+class TestIO(object):
+    """Prepare an environment for testing IO functionalities.
+
+    Primarily, |TestIO| changes the current working during the
+    execution of with| blocks.  Inspecting your current working
+    directory, |os| will likely find no file called `testfile.txt`:
+
+    >>> import os
+    >>> os.path.exists('testfile.txt')
+    False
+
+    If some tests require writing such a file, this should be done
+    within HydPy's `iotesting` folder in subpackage |tests|, which
+    is achieved by appyling the |with| statement on |TestIO|:
+
+    >>> from hydpy import TestIO
+    >>> with TestIO():
+    ...     open('testfile.txt', 'w').close()
+    ...     print(os.path.exists('testfile.txt'))
+    True
+
+    After the |with| block, the working directory is reset automatically:
+
+    >>> os.path.exists('testfile.txt')
+    False
+
+    Nevertheless, `testfile.txt` still exists in folder `iotesting`:
+
+    >>> with TestIO():
+    ...     print(os.path.exists('testfile.txt'))
+    True
+
+    Optionally, files and folders created within the current |with| block
+    can be removed automatically by setting `clear_own` to |True|
+    (modified files and folders are not affected):
+
+    >>> with TestIO(clear_own=True):
+    ...     open('testfile.txt', 'w').close()
+    ...     os.makedirs('testfolder')
+    ...     print(os.path.exists('testfile.txt'),
+    ...           os.path.exists('testfolder'))
+    True True
+    >>> with TestIO(clear_own=True):
+    ...     print(os.path.exists('testfile.txt'),
+    ...           os.path.exists('testfolder'))
+    True False
+
+    Alternatively, all files and folders contained in folder `iotesting`
+    can be removed after leaving the |with| block:
+
+    >>> with TestIO(clear_all=True):
+    ...     os.makedirs('testfolder')
+    ...     print(os.path.exists('testfile.txt'),
+    ...           os.path.exists('testfolder'))
+    True True
+    >>> with TestIO(clear_own=True):
+    ...     print(os.path.exists('testfile.txt'),
+    ...           os.path.exists('testfolder'))
+    False False
+
+    For just clearing the `iofolder, one can call method |IOTest.clear|
+    alternatively:
+
+    >>> with TestIO():
+    ...     open('testfile.txt', 'w').close()
+    ...     print(os.path.exists('testfile.txt'))
+    True
+    >>> TestIO.clear()
+    >>> with TestIO():
+    ...     print(os.path.exists('testfile.txt'))
+    False
+    """
+    def __init__(self, clear_own=False, clear_all=False):
+        self._clear_own = clear_own
+        self._clear_all = clear_all
+        self._path = None
+        self._olds = None
+
+    def __enter__(self):
+        self._path = os.getcwd()
+        os.chdir(os.path.join(iotesting.__path__[0]))
+        if self._clear_own:
+            self._olds = os.listdir('.')
+        return self
+
+    def __exit__(self, exception, message, traceback_):
+        for file in os.listdir('.'):
+            try:
+                if ((file != '__init__.py') and
+                        (self._clear_all or
+                         (self._clear_own and (file not in self._olds)))):
+                    if os.path.exists(file):
+                        if os.path.isfile(file):
+                            os.remove(file)
+                        else:
+                            shutil.rmtree(file)
+            except BaseException:
+                pass
+        os.chdir(self._path)
+
+    @classmethod
+    def clear(cls):
+        """Remove all files from the `iotesting` folder."""
+        with cls(clear_all=True):
+            pass
 
 
 autodoctools.autodoc_module()

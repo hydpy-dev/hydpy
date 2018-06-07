@@ -49,6 +49,7 @@ from hydpy.core.timetools import Timegrid
 from hydpy.core.timetools import Timegrids
 from hydpy.core.testtools import IntegrationTest
 from hydpy.core.testtools import Open
+from hydpy.core.testtools import TestIO
 from hydpy.core.testtools import UnitTest
 from hydpy.auxs.armatools import ARMA
 from hydpy.auxs.armatools import MA
@@ -124,6 +125,7 @@ __all__ = ['builtins',
            'Timegrids',
            'IntegrationTest',
            'Open',
+           'TestIO',
            'UnitTest',
            'ARMA',
            'MA',

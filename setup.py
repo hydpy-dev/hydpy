@@ -53,6 +53,7 @@ packages.append('hydpy.docs.figs')
 packages.append('hydpy.docs.html')
 packages.append('hydpy.docs.rst')
 packages.append('hydpy.docs.sphinx')
+packages.append('hydpy.tests.iotesting')
 # Additionally, select all base model packages.
 for name in os.listdir(os.path.join('hydpy', 'models')):
     if not (name.startswith('_') or
@@ -120,7 +121,8 @@ setup(name='HydPy',
       classifiers=[
           'Intended Audience :: Education',
           'Intended Audience :: Science/Research',
-          'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)',
+          ('License :: OSI Approved :: '
+           'GNU Lesser General Public License v3 (LGPLv3)'),
           'Operating System :: POSIX :: Linux',
           'Operating System :: Microsoft :: Windows',
           'Operating System :: Microsoft :: Windows :: Windows 7',

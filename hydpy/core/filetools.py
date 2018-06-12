@@ -487,6 +487,39 @@ class _ContextOverwrite(object):
         self.value = bool(value)
 
 
+class _ContextPath(object):
+
+    def __init__(self, sequence_dir, sequence_type):
+        self.value = None
+        self.sequence_dir = sequence_dir
+        self.sequence_type = sequence_type
+        self.__doc__ = (
+            'Path of the %s sequence directory.'
+            % sequence_type)
+
+    def __get__(self, obj, type_=None):
+        if obj is None:
+            return self
+        if self.value:
+            return self.value
+        else:
+            return os.path.join(obj.basepath, getattr(obj, self.sequence_dir))
+
+    def __set__(self, obj, path):
+        if os.path.exists(path):
+            self.value = path
+        elif obj.createdirs:
+            os.makedirs(path)
+            self.value = path
+        elif obj.check_exists:
+            raise IOError(
+                'The %s sequence path `%s` does not exist.'
+                % (self.sequence_type, os.path.abspath(path)))
+
+    def __delete__(self, obj):
+        self.value = None
+
+
 class SequenceManager(FileManager):
     """Manager for sequence files."""
 
@@ -508,30 +541,19 @@ class SequenceManager(FileManager):
     obsoverwrite = _ContextOverwrite(False, 'obs node')
     tempoverwrite = _ContextOverwrite(False, 'temporary')
 
+    inputpath = _ContextPath('inputdir', 'input')
+    outputpath = _ContextPath('outputdir', 'output')
+    nodepath = _ContextPath('nodedir', 'node')
+    temppath = _ContextPath('tempdir', 'temporary')
+
     def __init__(self):
         FileManager.__init__(self)
         self._BASEDIR = 'sequences'
         self._defaultdir = None
 
-    @property
-    def inputpath(self):
-        """Absolute paths of the input sequence directory."""
-        return os.path.join(self.basepath, self.inputdir)
 
-    @property
-    def outputpath(self):
-        """Absolute paths of the selected output sequence directory."""
-        return os.path.join(self.basepath, self.outputdir)
 
-    @property
-    def nodepath(self):
-        """Absolute paths of the selected node sequence directory."""
-        return os.path.join(self.basepath, self.nodedir)
 
-    @property
-    def temppath(self):
-        """Absolute paths of the selected temporary sequence directory."""
-        return os.path.join(self.basepath, self.tempdir)
 
     def __dir__(self):
         return objecttools.dir_(self)

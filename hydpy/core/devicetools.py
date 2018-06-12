@@ -661,36 +661,37 @@ the given group name `test`.
             raw = fastaccess._obs_file.read(8)
             fastaccess.obs[0] = struct.unpack('d', raw)
 
-    def prepare_allseries(self, ramflag=True):
-        """Prepare the series objects of both the `sim` and the `obs` sequence.
+    def prepare_allseries(self, ramflag=True, use_ext=None):
+        """Prepare the series objects of both the |Sim| and the |Obs| sequence.
 
         Call this method before a simulation run, if you need access to the
         whole time series of the simulated and the observed series after the
         simulation run is finished.
 
         By default, the series are stored in RAM, which is the faster
-        option.  If your RAM is limited, pass the `False` for function
+        option.  If your RAM is limited, pass |False| to function
         argument `ramflag` to store the series on disk.
         """
-        self.prepare_simseries(ramflag)
-        self.prepare_obsseries(ramflag)
+        self.prepare_simseries(ramflag, use_ext)
+        self.prepare_obsseries(ramflag, use_ext)
 
-    def prepare_simseries(self, ramflag=True):
+    def prepare_simseries(self, ramflag=True, use_ext=None):
         """Prepare the series object of the `sim` sequence.
 
         See method |Node.prepare_allseries| for further information.
         """
-        self._prepare_nodeseries('sim', ramflag)
+        self._prepare_nodeseries('sim', ramflag, use_ext)
 
-    def prepare_obsseries(self, ramflag=True):
+    def prepare_obsseries(self, ramflag=True, use_ext=None):
         """Prepare the series object of the `obs` sequence.
 
         See method |Node.prepare_allseries| for further information.
         """
-        self._prepare_nodeseries('obs', ramflag)
+        self._prepare_nodeseries('obs', ramflag, use_ext)
 
-    def _prepare_nodeseries(self, seqname, ramflag):
+    def _prepare_nodeseries(self, seqname, ramflag, use_ext):
         seq = getattr(self.sequences, seqname)
+        seq.use_ext = use_ext
         if ramflag:
             seq.activate_ram()
         else:
@@ -1100,7 +1101,7 @@ assigned to the element so far.
         handled (indirectly) by the actual |Element| object."""
         self.model.sequences.close_files()
 
-    def prepare_allseries(self, ramflag=True):
+    def prepare_allseries(self, ramflag=True, use_ext=None):
         """Prepare the series objects of all `input`, `flux` and `state`
         sequences of the model handled by this element.
 
@@ -1112,38 +1113,39 @@ assigned to the element so far.
         option.  If your RAM is limited, pass the `False` for function
         argument `ramflag` to store the series on disk.
         """
-        self.prepare_inputseries(ramflag)
-        self.prepare_fluxseries(ramflag)
-        self.prepare_stateseries(ramflag)
+        self.prepare_inputseries(ramflag, use_ext)
+        self.prepare_fluxseries(ramflag, use_ext)
+        self.prepare_stateseries(ramflag, use_ext)
 
-    def prepare_inputseries(self, ramflag=True):
+    def prepare_inputseries(self, ramflag=True, use_ext=None):
         """Prepare the series objects of the `input` sequences of the model
         handled by this element.
 
         See method |Element.prepare_allseries| for further information.
         """
-        self._prepare_series('inputs', ramflag)
+        self._prepare_series('inputs', ramflag, use_ext)
 
-    def prepare_fluxseries(self, ramflag=True):
+    def prepare_fluxseries(self, ramflag=True, use_ext=None):
         """Prepare the series objects of the `flux` sequences of the model
         handled by this element.
 
         See method |Element.prepare_allseries| for further information.
         """
-        self._prepare_series('fluxes', ramflag)
+        self._prepare_series('fluxes', ramflag, use_ext)
 
-    def prepare_stateseries(self, ramflag=True):
+    def prepare_stateseries(self, ramflag=True, use_ext=None):
         """Prepare the series objects of the `state` sequences of the model
         handled by this element.
 
         See method |Element.prepare_allseries| for further information.
         """
-        self._prepare_series('states', ramflag)
+        self._prepare_series('states', ramflag, use_ext)
 
-    def _prepare_series(self, name_subseqs, ramflag):
+    def _prepare_series(self, name_subseqs, ramflag, use_ext):
         sequences = self.model.sequences
-        subseqs = getattr(sequences, name_subseqs, None)
-        if subseqs:
+        subseqs = getattr(sequences, name_subseqs, ())
+        for seq in subseqs:
+            seq.use_ext = use_ext
             if ramflag:
                 subseqs.activate_ram()
             else:
@@ -1692,25 +1694,25 @@ class Nodes(Devices):
     _contentclass = Node
 
     @printtools.print_progress
-    def prepare_allseries(self, ramflag=True):
+    def prepare_allseries(self, ramflag=True, use_ext=None):
         """Call methods |Node.prepare_simseries| and |
         Node.prepare_obsseries|."""
-        self.prepare_simseries(ramflag)
-        self.prepare_obsseries(ramflag)
+        self.prepare_simseries(ramflag, use_ext)
+        self.prepare_obsseries(ramflag, use_ext)
 
     @printtools.print_progress
-    def prepare_simseries(self, ramflag=True):
+    def prepare_simseries(self, ramflag=True, use_ext=None):
         """Call method |Node.prepare_simseries| of each handled
         |Node| object."""
         for node in printtools.progressbar(self):
-            node.prepare_simseries(ramflag)
+            node.prepare_simseries(ramflag, use_ext)
 
     @printtools.print_progress
-    def prepare_obsseries(self, ramflag=True):
+    def prepare_obsseries(self, ramflag=True, use_ext=None):
         """Call method |Node.prepare_obsseries| of each handled
         |Node| object."""
         for node in printtools.progressbar(self):
-            node.prepare_obsseries(ramflag)
+            node.prepare_obsseries(ramflag, use_ext)
 
     @printtools.print_progress
     def save_allseries(self):
@@ -1864,32 +1866,32 @@ class Elements(Devices):
             element.model.sequences.reset()
 
     @printtools.print_progress
-    def prepare_allseries(self, ramflag=True):
+    def prepare_allseries(self, ramflag=True, use_ext=None):
         """Call method |Element.prepare_allseries| of each handled
         |Element| object."""
         for element in printtools.progressbar(self):
-            element.prepare_allseries(ramflag)
+            element.prepare_allseries(ramflag, use_ext)
 
     @printtools.print_progress
-    def prepare_inputseries(self, ramflag=True):
+    def prepare_inputseries(self, ramflag=True, use_ext=None):
         """Call method |Element.prepare_inputseries| of each handled
         |Element| object."""
         for element in printtools.progressbar(self):
-            element.prepare_inputseries(ramflag)
+            element.prepare_inputseries(ramflag, use_ext)
 
     @printtools.print_progress
-    def prepare_fluxseries(self, ramflag=True):
+    def prepare_fluxseries(self, ramflag=True, use_ext=None):
         """Call method |Element.prepare_fluxseries| of each handled
         |Element| object."""
         for element in printtools.progressbar(self):
-            element.prepare_fluxseries(ramflag)
+            element.prepare_fluxseries(ramflag, use_ext)
 
     @printtools.print_progress
-    def prepare_stateseries(self, ramflag=True):
+    def prepare_stateseries(self, ramflag=True, use_ext=None):
         """Call method |Element.prepare_stateseries| of each handled
         |Element| object."""
         for element in printtools.progressbar(self):
-            element.prepare_stateseries(ramflag)
+            element.prepare_stateseries(ramflag, use_ext)
 
     @printtools.print_progress
     def save_allseries(self):
@@ -1926,7 +1928,7 @@ class Elements(Devices):
             subseqs = getattr(sequences, name_subseqs, ())
             for seq in subseqs:
                 if seq.memoryflag:
-                    if overwrite or not os.path.exists(seq.filepath_ext):
+                    if overwrite or not seq.would_overwrite_file:
                         seq.save_ext()
                     else:
                         warnings.warn(

@@ -136,7 +136,7 @@ class FileManager(object):
         if not os.path.exists(path):
             if self.createdirs:
                 os.makedirs(path)
-            else:
+            elif self.check_exists:
                 raise IOError(
                     'The base path `%s` does not contain directory `%s` '
                     'and creating a new directory is currently disabled.'

@@ -256,40 +256,40 @@ class HydPy(object):
                 func(idx)
         self.close_files()
 
-    def prepare_modelseries(self, ramflag=True):
+    def prepare_modelseries(self, ramflag=True, use_ext=None):
         """Call method |Elements.prepare_allseries| of the |Elements| object
         currently handled by the |HydPy| object."""
-        self.elements.prepare_allseries(ramflag=ramflag)
+        self.elements.prepare_allseries(ramflag=ramflag, use_ext=use_ext)
 
-    def prepare_inputseries(self, ramflag=True):
+    def prepare_inputseries(self, ramflag=True, use_ext=None):
         """Call method |Elements.prepare_inputseries| of the |Elements|
         object currently handled by the |HydPy| object."""
-        self.elements.prepare_inputseries(ramflag=ramflag)
+        self.elements.prepare_inputseries(ramflag=ramflag, use_ext=use_ext)
 
-    def prepare_fluxseries(self, ramflag=True):
+    def prepare_fluxseries(self, ramflag=True, use_ext=None):
         """Call method |Elements.prepare_fluxseries| of the |Elements| object
         currently handled by the |HydPy| object."""
-        self.elements.prepare_fluxseries(ramflag=ramflag)
+        self.elements.prepare_fluxseries(ramflag=ramflag, use_ext=use_ext)
 
-    def prepare_stateseries(self, ramflag=True):
+    def prepare_stateseries(self, ramflag=True, use_ext=None):
         """Call method |Elements.prepare_stateseries| of the |Elements|
         object currently handled by the |HydPy| object."""
-        self.elements.prepare_stateseries(ramflag=ramflag)
+        self.elements.prepare_stateseries(ramflag=ramflag, use_ext=use_ext)
 
-    def prepare_nodeseries(self, ramflag=True):
+    def prepare_nodeseries(self, ramflag=True, use_ext=None):
         """Call method |Nodes.prepare_allseries| of the |Nodes| object
         currently handled by the |HydPy| object."""
-        self.nodes.prepare_allseries(ramflag=ramflag)
+        self.nodes.prepare_allseries(ramflag=ramflag, use_ext=use_ext)
 
-    def prepare_simseries(self, ramflag=True):
+    def prepare_simseries(self, ramflag=True, use_ext=None):
         """Call method |Nodes.prepare_simseries| of the |Nodes| object
         currently handled by the |HydPy| object."""
-        self.nodes.prepare_simseries(ramflag=ramflag)
+        self.nodes.prepare_simseries(ramflag=ramflag, use_ext=use_ext)
 
-    def prepare_obsseries(self, ramflag=True):
+    def prepare_obsseries(self, ramflag=True, use_ext=None):
         """Call method |Nodes.prepare_obsseries| of the |Nodes| object
         currently handled by the |HydPy| object."""
-        self.nodes.prepare_obsseries(ramflag=ramflag)
+        self.nodes.prepare_obsseries(ramflag=ramflag, use_ext=use_ext)
 
     def save_modelseries(self):
         """Call method |Elements.save_allseries| of the |Elements| object

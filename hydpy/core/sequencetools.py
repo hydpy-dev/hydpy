@@ -662,6 +662,36 @@ class IOSequence(Sequence):
         self._dirpath_int = None
         self._filepath_ext = None
         self._filepath_int = None
+        self._use_ext = False
+
+    def _get_use_ext(self):
+        """|True|/|False| flag whether "external" data should be loaded
+        from file when preparing a |IOSequence.series| or if an
+        initialization with zero values is prefered.
+
+        Defaults to |False| for class |IOSequence|, but to |True| for
+        classes |InputSequence| and |Obs|.
+
+        Note that passing |None| values changes nothing:
+
+        >>> from hydpy.core.sequencetools import IOSequence
+        >>> seq = IOSequence()
+        >>> seq.use_ext
+        False
+        >>> seq.use_ext = None
+        >>> seq.use_ext
+        False
+        >>> seq.use_ext = True
+        >>> seq.use_ext
+        True
+        """
+        return self._use_ext
+
+    def _set_use_ext(self, value):
+        if value is not None:
+            self._use_ext = bool(value)
+
+    use_ext = property(_get_use_ext, _set_use_ext)
 
     def _getfiletype_ext(self):
         """Ending of the external data file.
@@ -1093,8 +1123,8 @@ or prepare `pub.sequencemanager` correctly.
             return self._getarray()
         else:
             raise RuntimeError(
-                'Sequence %s is not requested to make any internal '
-                'data available to the user.'
+                'Sequence %s is not requested to make any '
+                'internal data available to the user.'
                 % objecttools.devicephrase(self))
 
     def _setseries(self, values):
@@ -1317,8 +1347,16 @@ or prepare `pub.sequencemanager` correctly.
         """Demand reading/writing internal data from/to hard disk."""
         self.deactivate_ram()
         self.diskflag = True
-        if (isinstance(self, InputSequence) or
-                (isinstance(self, NodeSequence) and self.use_ext)):
+        self._activate()
+
+    def activate_ram(self):
+        """Demand reading/writing internal data from/to hard disk."""
+        self.deactivate_disk()
+        self.ramflag = True
+        self._activate()
+
+    def _activate(self):
+        if self.use_ext:
             self.load_ext()
         else:
             self.zero_int()
@@ -1329,17 +1367,6 @@ or prepare `pub.sequencemanager` correctly.
         if self.diskflag:
             del self.series
             self.diskflag = False
-
-    def activate_ram(self):
-        """Demand reading/writing internal data from/to hard disk."""
-        self.deactivate_disk()
-        self.ramflag = True
-        if (isinstance(self, InputSequence) or
-                (isinstance(self, NodeSequence) and self.use_ext)):
-            self.load_ext()
-        else:
-            self.zero_int()
-        self.update_fastaccess()
 
     def deactivate_ram(self):
         """Prevent from reading/writing internal data from/to hard disk."""
@@ -1390,6 +1417,47 @@ or prepare `pub.sequencemanager` correctly.
         self._rawfilename = None
 
     rawfilename = property(_getrawfilename, _setrawfilename, _delrawfilename)
+
+    @property
+    def would_overwrite_file(self):
+        """|True|/|False| flag, whether an existing file would be
+        overwritten when storing a new file under |IOSequence.filepath_ext|.
+
+        For plain files, containing the time series data of one
+        |IOSequence| object only, |IOSequence.filepath_ext| returns
+        |True| in case a file already exists and otherwise |False|:
+
+        >>> from hydpy.core.sequencetools import IOSequence
+        >>> seq = IOSequence()
+        >>> seq.dirpath_ext = '.'
+        >>> seq.rawfilename = 'file'
+        >>> seq.filetype_ext = 'npy'
+
+        >>> from hydpy.core.testtools import TestIO
+        >>> with TestIO():
+        ...     print(seq.would_overwrite_file)
+        ...     open('file.npy', 'w').close()
+        ...     print(seq.would_overwrite_file)
+        False
+        True
+
+        For complex files, containing the time series data of
+        multiple |IOSequence| objects, |IOSequence.filepath_ext|
+        always returns |False|:
+
+        >>> seq.filetype_ext = 'nc'
+        >>> with TestIO(clear_all=True):
+        ...     print(seq.would_overwrite_file)
+        ...     open('file.nc', 'w').close()
+        ...     print(seq.would_overwrite_file)
+        False
+        False
+        """
+        if self.filetype_ext == 'nc':
+            return False
+        elif os.path.exists(self.filepath_ext):
+            return True
+        return False
 
 
 abctools.IOSequenceABC.register(IOSequence)
@@ -1660,7 +1728,12 @@ abctools.LogSequenceABC.register(LogSequence)
 
 
 class AideSequence(Sequence):
-    """Base class for aide sequences of |Model| objects."""
+    """Base class for aide sequences of |Model| objects.
+
+    Aide sequences are thought for storing data that is of importance
+    only temporarily but needs to be shared between different
+    calculation methods of a |Model| object.
+    """
     pass
 
 
@@ -1668,7 +1741,13 @@ abctools.AideSequenceABC.register(AideSequence)
 
 
 class LinkSequence(Sequence):
-    """Base class for link sequences of |Model| objects."""
+    """Base class for link sequences of |Model| objects.
+
+    Link sequences point (based on module |pointerutils| to data
+    values of |NodeSequence| objects.  This allows |Model| objects,
+    which are handled by |Element| objects, to query and to modify
+    data, which lies in the area of responsibility of |Node| objects.
+    """
 
     def set_pointer(self, double, idx=0):
         pdouble = pointerutils.PDouble(double)
@@ -1692,7 +1771,6 @@ class LinkSequence(Sequence):
             pass
 
     def _getvalue(self):
-        """ToDo"""
         raise AttributeError(
             'To retrieve a pointer is very likely to result in bugs '
             'and is thus not supported at the moment.')
@@ -1791,10 +1869,6 @@ abctools.NodeSequenceABC.register(NodeSequence)
 class Sim(NodeSequence):
     """Base class for simulation sequences of |Node| objects."""
     NDIM, NUMERIC = 0, False
-
-    def __init__(self):
-        NodeSequence.__init__(self)
-        self.use_ext = False
 
     def activate_disk(self):
         try:

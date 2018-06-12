@@ -554,31 +554,34 @@ class _PreserveStrings(object):
 
 
 class _Repr_(object):
-    """Modifies |repr| for strings and floats, mainly for supporting
-    clean float representations that are compatible with |doctest|.
+    r"""Modifies |repr| for strings and floats, mainly for supporting
+    clean float and path representations that are compatible with |doctest|.
 
-    When value is a string, it is returned without any modification:
+    When value is a string, it is returned without any modification,
+    except that the path separator "\" (Windows) is replaced with "/"
+    (Linux):
 
     >>> from hydpy.core.objecttools import repr_
-    >>> print('test')
-    test
-    >>> print(repr('test'))
-    'test'
-    >>> print(repr_('test'))
-    test
+
+    >>> print(r'directory\file')
+    directory\file
+    >>> print(repr(r'directory\file'))
+    'directory\\file'
+    >>> print(repr_(r'directory\file'))
+    directory/file
 
     You can change this behaviour of function object |repr|,
     when necessary:
 
     >>> with repr_.preserve_strings(True):
-    ...     print(repr_('test'))
-    "test"
+    ...     print(repr_(r'directory\file'))
+    "directory/file"
 
     Behind the with block, |repr_| works as before
     (even in case of an error):
 
-    >>> print(repr_('test'))
-    test
+    >>> print(repr_(r'directory\file'))
+    directory/file
 
     When value is a float, the result depends on how the option
     |Options.reprdigits| is set. If it is to -999, |repr| defines the
@@ -641,11 +644,12 @@ class _Repr_(object):
     def __call__(self, value):
         decimals = pub.options.reprdigits
         if isinstance(value, str):
+            string = value.replace('\\', '/')
             if self._preserve_strings:
-                return '"%s"' % value
+                return '"%s"' % string
             else:
-                return value
-        if ((decimals > -1) and
+                return string
+        elif ((decimals > -1) and
                 isinstance(value, numbers.Real) and
                 (not isinstance(value, numbers.Integral))):
             string = '{0:.{1}f}'.format(value, decimals)

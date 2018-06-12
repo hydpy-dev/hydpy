@@ -41,6 +41,7 @@ from hydpy.core.importtools import reverse_model_wildcard_import
 from hydpy.core.objecttools import HydPyDeprecationWarning
 from hydpy.core.objecttools import print_values
 from hydpy.core.objecttools import round_
+from hydpy.core.objecttools import repr_
 from hydpy.core.selectiontools import Selection
 from hydpy.core.selectiontools import Selections
 from hydpy.core.timetools import Date
@@ -116,6 +117,7 @@ __all__ = ['builtins',
            'prepare_model',
            'reverse_model_wildcard_import',
            'print_values',
+           'repr_',
            'round_',
            'Selection',
            'Selections',

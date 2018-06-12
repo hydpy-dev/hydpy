@@ -33,6 +33,7 @@ class Selections(object):
 
     def save(self, path='', write_nodes=False):
         """Save all selections in separate network files."""
+        # !!!   better use filetools.NetworkManager.save_files
         for selection in self:
             fullpath = os.path.join(path, selection.name+'.py')
             selection.save(fullpath, write_nodes)
@@ -50,16 +51,15 @@ class Selections(object):
         return self.__dict__[key]
 
     def __delitem__(self, key):
-        del(self.__dict__[key])
+        del self.__dict__[key]
 
     def __contains__(self, value):
         if isinstance(value, Selection):
             return value in self.selections
-        else:
-            return value in self.names
+        return value in self.names
 
     def __iter__(self):
-        for (name, selection) in sorted(vars(self).items()):
+        for (dummy, selection) in sorted(vars(self).items()):
             yield selection
 
     def __len__(self):
@@ -75,6 +75,7 @@ class Selections(object):
               iterable containing |Selection| objects): The second
               operand applied in an arithmetic operation.
         """
+        # !!!   better use "objecttools.extract"?
         if isinstance(value, Selection):
             return [value]
         elif isinstance(value, Selections):
@@ -86,13 +87,13 @@ class Selections(object):
                     break
                 return list(value)
             except (KeyError, AttributeError):
-                raise TypeError('Arithmetic operations on `Selections` '
-                                'objects are defined for other `Selections` '
-                                'objects, single `Selection` objects or '
-                                'simple iterables (like `list` objects) '
-                                'containing `Selection` objects only.  The '
-                                'given arguments type is `%s`.'
-                                % type(value))
+                raise TypeError(
+                    'Arithmetic operations on `Selections` objects are '
+                    'defined for other `Selections` objects, single '
+                    '`Selection` objects or simple iterables (like '
+                    '`list` objects) containing `Selection` objects '
+                    'only.  The given arguments type is `%s`.'
+                    % objecttools.classname(value))
 
     def __add__(self, value):
         selections = self._getiterable(value)
@@ -112,7 +113,7 @@ class Selections(object):
         new = self.copy()
         for selection in selections:
             try:
-                del(new[selection.name])
+                del new[selection.name]
             except KeyError:
                 pass
         return new
@@ -121,7 +122,7 @@ class Selections(object):
         selections = self._getiterable(value)
         for selection in selections:
             try:
-                del(self[selection.name])
+                del self[selection.name]
             except KeyError:
                 pass
         return self
@@ -196,10 +197,10 @@ class Selection(object):
         elif isinstance(device, devicetools.Element):
             nodes, elements = self._nextelement(device, nodes, elements)
         else:
-            raise AttributeError('Pass either a `Node` or an `Element` '
-                                 'instance to the function.  The given '
-                                 '`device` value `%s` is of type `%s`.'
-                                 % (device, type(device)))
+            raise AttributeError(
+                'Pass either a `Node` or an `Element` instance to the '
+                'function.  The given `device` value `%s` is of type `%s`.'
+                % (device, type(device)))
         return nodes, elements
 
     def _nextnode(self, node, nodes, elements):
@@ -267,10 +268,11 @@ class Selection(object):
         elements = devicetools.Elements()
         for element in self.elements:
             if element.model is None:
-                raise RuntimeError('For element `%s` no model object has been '
-                                   'initialized so far, which is a necessary '
-                                   'condition to perform (de)selections based '
-                                   'on model classes.' % element)
+                raise RuntimeError(
+                    'For element `%s` no model object has been initialized '
+                    'so far, which is a necessary condition to perform '
+                    '(de)selections based on model classes.'
+                    % element)
             if isinstance(element.model, modelclasses):
                 elements += element
         return elements
@@ -361,6 +363,7 @@ class Selection(object):
 
     def save(self, path=None, write_nodes=False):
         """Save the selection as a network file."""
+        # !!!   better use filetools.NetworkManager.save_files
         if path is None:
             path = self.name + '.py'
         with open(path, 'w', encoding="utf-8") as file_:
@@ -429,9 +432,9 @@ class Selection(object):
                     blanks = ' ' * len(prefix)
                     lines = ['%s"%s",' % (prefix, self.name)]
                     lines.append(objecttools.assignrepr_tuple(
-                            self.elements.names, blanks+'elements=', 70) + ',')
+                        self.elements.names, blanks+'elements=', 70) + ',')
                     lines.append(objecttools.assignrepr_tuple(
-                            self.nodes.names, blanks+'nodes=', 70) + ')')
+                        self.nodes.names, blanks+'nodes=', 70) + ')')
                     return '\n'.join(lines)
 
     def __dir__(self):

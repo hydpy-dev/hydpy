@@ -480,6 +480,8 @@ class Sequence(variabletools.Variable):
     def __init__(self):
         self.subseqs = None
         self.fastaccess = objecttools.FastAccess()
+        self.diskflag = False
+        self.ramflag = False
 
     def connect(self, subseqs):
         self.subseqs = subseqs

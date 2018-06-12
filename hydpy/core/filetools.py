@@ -441,7 +441,6 @@ class _ContextDir(object):
             obj._currentdir = None
 
     def __set__(self, obj, directory):
-        obj._inputdir = None
         try:
             obj.currentdir = directory
             self.value = directory

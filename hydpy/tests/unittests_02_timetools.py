@@ -2,8 +2,9 @@
 # import...
 # ...from standard library
 from __future__ import division, print_function
-import unittest
+import copy
 import datetime
+import unittest
 # ...from HydPy
 from hydpy.core import timetools
 
@@ -85,37 +86,37 @@ class Test02DateProperties(unittest.TestCase):
         self.testdate.year = 2000
         refdate = datetime.datetime(2000, 11, 1, 12, 30, 5)
         self.assertEqual(refdate.year, self.testdate.datetime.year)
-        with self.assertRaises(ValueError):
+        with self.assertRaises(TypeError):
             self.testdate.year = 'wrong'
     def test_08_set_month(self):
         self.testdate.month = 5
         refdate = datetime.datetime(1996, 5, 1, 12, 30, 5)
         self.assertEqual(refdate.month, self.testdate.datetime.month)
-        with self.assertRaises(ValueError):
+        with self.assertRaises(TypeError):
             self.testdate.month = 'wrong'
     def test_09_set_day(self):
         self.testdate.day = 30
         refdate = datetime.datetime(1996, 11, 30, 12, 30, 5)
         self.assertEqual(refdate.day, self.testdate.datetime.day)
-        with self.assertRaises(ValueError):
+        with self.assertRaises(TypeError):
             self.testdate.day = 'wrong'
     def test_10_set_hour(self):
         self.testdate.hour = 0
         refdate = datetime.datetime(1996, 11, 1, 0, 30, 5)
         self.assertEqual(refdate.hour, self.testdate.datetime.hour)
-        with self.assertRaises(ValueError):
+        with self.assertRaises(TypeError):
             self.testdate.hour = 'wrong'
     def test_11_set_minute(self):
         self.testdate.minute = 59
         refdate = datetime.datetime(1996, 11, 1, 12, 59, 5)
         self.assertEqual(refdate.minute, self.testdate.datetime.minute)
-        with self.assertRaises(ValueError):
+        with self.assertRaises(TypeError):
             self.testdate.minute = 'wrong'
     def test_12_set_second(self):
         self.testdate.second = 7
         refdate = datetime.datetime(1996, 11, 1, 12, 30, 7)
         self.assertEqual(refdate.second, self.testdate.datetime.second)
-        with self.assertRaises(ValueError):
+        with self.assertRaises(TypeError):
             self.testdate.second = 'wrong'
     def test_13_get_wateryear(self):
         self.assertEqual(self.testdate.wateryear, self.testdate.year+1)
@@ -137,27 +138,13 @@ class Test03DateStyle(unittest.TestCase):
         self.date = timetools.Date('01.11.1996')
 
     def test_01_remember_style(self):
-        self.assertEqual(self.date.style, 'din')
+        self.assertEqual(self.date.style, 'din1')
     def test_02_dontforget_style(self):
-        self.date.string('iso')
-        self.assertEqual(self.date.style, 'din')
+        self.date.to_string('iso2')
+        self.assertEqual(self.date.style, 'din1')
     def test_03_change_style(self):
-        self.date.style = 'iso'
-        self.assertEqual(self.date.style, 'iso')
-
-
-class Test04DateCopy(unittest.TestCase):
-
-    def setUp(self):
-        self.date = timetools.Date('01.11.1996')
-
-    def test_01_ids(self):
-        testdate = self.date.copy()
-        self.assertNotEqual(id(testdate), id(self.date))
-    def test_02_values(self):
-        testdate = self.date.copy()
-        testdate.year = 2000
-        self.assertNotEqual(testdate.datetime.year, self.date.datetime.year)
+        self.date.style = 'iso2'
+        self.assertEqual(self.date.style, 'iso2')
 
 
 class Test05DateComparisons(unittest.TestCase):
@@ -203,19 +190,19 @@ class Test06DateArithmetic(unittest.TestCase):
     def test_01_add(self):
         testdate = self.earlydate + self.period
         self.assertEqual(self.latedate, testdate)
-        self.assertEqual(testdate.style, 'din')
+        self.assertEqual(testdate.style, 'din1')
     def test_02_iadd(self):
         self.earlydate += self.period
         self.assertEqual(self.earlydate, self.latedate)
-        self.assertEqual(self.earlydate.style, 'din')
+        self.assertEqual(self.earlydate.style, 'din1')
     def test_03_sub(self):
         testdate = self.latedate - self.period
         self.assertEqual(self.earlydate, testdate)
-        self.assertEqual(testdate.style, 'din')
+        self.assertEqual(testdate.style, 'din1')
     def test_04_isub(self):
         self.latedate -= self.period
         self.assertEqual(self.latedate, self.earlydate)
-        self.assertEqual(self.latedate.style, 'din')
+        self.assertEqual(self.latedate.style, 'din1')
 
 
 class Test07PeriodInitialization(unittest.TestCase):
@@ -283,22 +270,6 @@ class Test09PeriodUnit(unittest.TestCase):
         self.assertEqual(timetools.Period('1s').unit, 's')
 
 
-class Test10PeriodCopy(unittest.TestCase):
-
-    def setUp(self):
-        self.period = timetools.Period('1d')
-
-    def test_01_ids(self):
-        testperiod = self.period.copy()
-        self.assertNotEqual(id(testperiod), id(self.period))
-    def test_02_values(self):
-        testperiod = self.period.copy()
-        testperiod += '1d'
-        self.assertNotEqual(testperiod.timedelta,
-                            self.period.timedelta)
-
-
-
 class Test11PeriodComparisons(unittest.TestCase):
 
     def setUp(self):
@@ -347,7 +318,7 @@ class Test12PeriodArithmetic(unittest.TestCase):
     def test_01_add(self):
         testdate = self.oneyear + self.year97
         self.assertEqual(self.year98, testdate)
-        self.assertEqual(testdate.style, 'din')
+        self.assertEqual(testdate.style, 'din1')
         self.assertEqual(self.oneyear + self.oneday, timetools.Period('366d'))
     def test_02_iadd(self):
         self.oneyear += self.oneday
@@ -451,26 +422,26 @@ class Test15TimegridComparisons(unittest.TestCase):
                                            self.oneday)
 
     def test_01_eq(self):
-        timegridtest = self.timegrid.copy()
+        timegridtest = copy.deepcopy(self.timegrid)
         self.assertTrue(timegridtest == self.timegrid)
         timegridtest.firstdate.year = 1995
         self.assertFalse(timegridtest == self.timegrid)
-        timegridtest = self.timegrid.copy()
+        timegridtest = copy.deepcopy(self.timegrid)
         timegridtest.lastdate.year = 1998
         self.assertFalse(timegridtest == self.timegrid)
-        timegridtest = self.timegrid.copy()
+        timegridtest = copy.deepcopy(self.timegrid)
         timegridtest.stepsize = self.onehour
         self.assertFalse(timegridtest == self.timegrid)
 
     def test_02_ne(self):
-        timegridtest = self.timegrid.copy()
+        timegridtest = copy.deepcopy(self.timegrid)
         self.assertFalse(timegridtest != self.timegrid)
         timegridtest.firstdate.year = 1995
         self.assertTrue(timegridtest != self.timegrid)
-        timegridtest = self.timegrid.copy()
+        timegridtest = copy.deepcopy(self.timegrid)
         timegridtest.lastdate.year = 1998
         self.assertTrue(timegridtest != self.timegrid)
-        timegridtest = self.timegrid.copy()
+        timegridtest = copy.deepcopy(self.timegrid)
         timegridtest.stepsize = self.onehour
         self.assertTrue(timegridtest != self.timegrid)
 
@@ -487,27 +458,27 @@ class Test15TimegridComparisons(unittest.TestCase):
         self.assertFalse(self.year98+'12h' in self.timegrid)
 
     def test_04_timegrid_in(self):
-        timegridtest = self.timegrid.copy()
+        timegridtest = copy.deepcopy(self.timegrid)
         self.assertTrue(timegridtest in self.timegrid)
         self.assertTrue(self.timegrid in timegridtest)
         timegridtest.firstdate -= '1d'
         self.assertFalse(timegridtest in self.timegrid)
         self.assertTrue(self.timegrid in timegridtest)
-        timegridtest = self.timegrid.copy()
+        timegridtest = copy.deepcopy(self.timegrid)
         timegridtest.lastdate += '1d'
         self.assertFalse(timegridtest in self.timegrid)
         self.assertTrue(self.timegrid in timegridtest)
-        timegridtest = self.timegrid.copy()
+        timegridtest = copy.deepcopy(self.timegrid)
         timegridtest.firstdate -= '1d'
         timegridtest.lastdate += '1d'
         self.assertFalse(timegridtest in self.timegrid)
         self.assertTrue(self.timegrid in timegridtest)
-        timegridtest = self.timegrid.copy()
+        timegridtest = copy.deepcopy(self.timegrid)
         timegridtest.firstdate += '12h'
         timegridtest.lastdate -= '12d'
         self.assertFalse(timegridtest in self.timegrid)
         self.assertFalse(self.timegrid in timegridtest)
-        timegridtest = self.timegrid.copy()
+        timegridtest = copy.deepcopy(self.timegrid)
         timegridtest.stepsize /= 24
         self.assertFalse(timegridtest in self.timegrid)
         self.assertFalse(self.timegrid in timegridtest)

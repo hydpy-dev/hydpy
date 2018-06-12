@@ -3,6 +3,7 @@
 # import...
 # ...from standard library
 from __future__ import division, print_function
+import copy
 # ...from site-packages
 import numpy
 # ...from HydPy
@@ -142,7 +143,7 @@ class Indexer(object):
                                              pub.timegrids.stepsize)
 
             def timeofyear(date):
-                date = date.copy()
+                date = copy.deepcopy(date)
                 date.year = 2000
                 return refgrid[date]
 

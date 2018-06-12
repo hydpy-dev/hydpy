@@ -127,7 +127,7 @@ class MaxDT(parametertools.SingleParameter):
         >>> maxdt(60.)
         Traceback (most recent call last):
         ...
-        ValueError: While trying the set the value of parameter `maxdt` of \
+        TypeError: While trying the set the value of parameter `maxdt` of \
 the lake model handled by element `?`, the following error occured: \
 The supplied argument must be either an instance of `datetime.timedelta` \
 or `str`.  The given arguments type is float. (An example: set `max dt` to \

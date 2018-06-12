@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
-"""This module specifies how  dates and periods are handled in HydPy."""
+"""This module specifies how  dates and periods are handled in HydPy.
+
+.. _`Time Coordinate`: http://cfconventions.org/Data/cf-conventions/\
+cf-conventions-1.7/cf-conventions.html#time-coordinate
+"""
 # import...
 # ...from standard library
 from __future__ import division, print_function
@@ -35,114 +39,75 @@ class Date(object):
     (microseconds) and module |timetools| (seconds).
 
     |Date| objects can be initialized via |datetime.datetime| objects
-    directly, e.g.:
+    directly:
 
-        >>> from datetime import datetime
-        >>> from hydpy import Date
-        >>> # Initialize a `datetime` object...
-        >>> datetime_object = datetime(1996, 11, 1, 0, 0, 0)
-        >>> # ...and use it to initialise a `Date` object.
-        >>> date1 = Date(datetime_object)
+    >>> from datetime import datetime
+    >>> datetime_object = datetime(1996, 11, 1, 0, 0, 0)
+    >>> from hydpy import Date
+    >>> Date(datetime_object)
+    Date('1996-11-01 00:00:00')
 
     Alternatively, one can use |str| objects as initialization arguments,
-    which need to match one of the following format styles:
+    which need to match one of the following format styles.  The `os`
+    style is applied in text files and folder names, and does not include
+    any empty spaces or colons:
 
-        >>> # The `os` style without empty space and colon, which is applied in
-        >>> # text files and folder names:
-        >>> date2 = Date('1997_11_01_00_00_00')
-        >>> # The `iso` style, which is more legible and in accordance with the
-        >>> # international ISO norm:
-        >>> date2 = Date('1997.11.01 00:00:00')
-        >>> # The `din` style, which is more legible for users in countries
-        >>> # where the position of day and year are interchanged (DIN refers
-        >>> # to a german norm):
-        >>> date2 = Date('01.11.1997 00:00:00')
+    >>> Date('1997_11_01_00_00_00').style
+    'os'
+
+    The `iso` styles are more legible and and comes in two flavours.
+    `iso1` is in accordance with ISO 8601, and `iso2` (which is the
+    default style) omits the `T` between date and time:
+
+    >>> Date('1997-11-01T00:00:00').style
+    'iso1'
+    >>> Date('1997-11-01 00:00:00').style
+    'iso2'
+
+    The `din` styles rely on points instead of hyphens.  The difference
+    between the available flavours lies in the order of the date literals
+    (DIN refers to a german norm):
+
+    >>> Date('01.11.1997 00:00:00').style
+    'din1'
+    >>> Date('1997.11.01 00:00:00').style
+    'din2'
 
     |Date| keeps the chosen style in mind and uses it for printing.
-    But the user is also allowed to change it:
+    But one is also allowed to change it either temporarily via method
+    |Date.to_string| or permanently via property |Date.style|:
 
-        >>> # Print in accordance with the `iso` style...
-        >>> date2.string('iso')
-        '1997.11.01 00:00:00'
-        >>> # ...without changing the memorized `din` style:
-        >>> date2.style
-        'din'
+    >>> date = Date('01.11.1997 00:00:00')
+    >>> date
+    Date('01.11.1997 00:00:00')
+    >>> date.to_string('os')
+    '1997_11_01_00_00_00'
+    >>> date.style
+    'din1'
+    >>> date.style = 'iso2'
+    >>> str(date)
+    '1997-11-01 00:00:00'
 
-        >>> # Alternatively, the style property can be set permanentely:
-        >>> date2.style = 'iso'
-        >>> str(date2)
-        '1997.11.01 00:00:00'
+    It is allowed to abbreviate the input strings:
 
-    It is allowed to abbreviate the input strings. Using the `iso` style as an
-    example:
-
-        >>> # The following three input arguments...
-        >>> test1 = Date('1996.11.01 00:00:00')
-        >>> test2 = Date('1996.11.01 00:00')
-        >>> test3 = Date('1996.11.01 00')
-        >>> test4 = Date('1996.11.01')
-        >>> # ...all lead to identical `Date` instances.
-        >>> for test in (test1, test2, test3, test4):
-        ...     print(test)
-        1996.11.01 00:00:00
-        1996.11.01 00:00:00
-        1996.11.01 00:00:00
-        1996.11.01 00:00:00
-
-    If |Date| has not been initialized via a |str| object and the style
-    property has not been set manually, the default style `iso` is selected.
-
-    One can change the year, month... of a |Date| object via numbers:
-
-        >>> # Assign an integer...
-        >>> test4.year = 1997
-        >>> # ...or something that can be converted to an integer.
-        >>> test4.month = '10'
-        >>> print(test4)
-        1997.10.01 00:00:00
-
-    One can ask for the actual water year, which depends on the selected
-    reference month:
-
-        >>> oct = Date('1996.10.01')
-        >>> nov = Date('1996.11.01')
-        >>> # Under the standard settings, the water year is assumed to start
-        >>> # November.
-        >>> oct.wateryear
-        1996
-        >>> nov.wateryear
-        1997
-        >>> # Changing the reference month via one `Date` object affects all
-        >>> # objects.
-        >>> test4.refmonth = 10
-        >>> oct.wateryear
-        1997
-        >>> nov.wateryear
-        1997
-        >>> test4.refmonth = 'November'
-        >>> oct.wateryear
-        1996
-        >>> nov.wateryear
-        1997
-
-    Note that |Date| objects are mutable.  Use the `copy` method to prevent
-    from unintentional results:
-
-        >>> date1 = Date('1996.11.01 00:00')
-        >>> date2 = date1
-        >>> date3 = date1.copy()
-        >>> date1.year = 1997
-        >>> for date in (date1, date2, date3):
-        ...     print(date)
-        1997.11.01 00:00:00
-        1997.11.01 00:00:00
-        1996.11.01 00:00:00
+    >>> for string in ('1996-11-01 00:00:00',
+    ...                '1996-11-01 00:00',
+    ...                '1996-11-01 00',
+    ...                '1996-11-01'):
+    ...     print(Date(string))
+    1996-11-01 00:00:00
+    1996-11-01 00:00:00
+    1996-11-01 00:00:00
+    1996-11-01 00:00:00
     """
 
     # These are the so far accepted date format strings.
-    _formatstrings = {'os': '%Y_%m_%d_%H_%M_%S',
-                      'iso': '%Y.%m.%d %H:%M:%S',
-                      'din': '%d.%m.%Y %H:%M:%S'}
+    _formatstrings = collections.OrderedDict([
+        ('os', '%Y_%m_%d_%H_%M_%S'),
+        ('iso2', '%Y-%m-%d %H:%M:%S'),
+        ('iso1', '%Y-%m-%dT%H:%M:%S'),
+        ('din1', '%d.%m.%Y %H:%M:%S'),
+        ('din2', '%Y.%m.%d %H:%M:%S')])
     # The first month of the hydrological year (e.g. November in Germany)
     _firstmonth_wateryear = 11
 
@@ -153,42 +118,42 @@ class Date(object):
             self.datetime = date.datetime
         elif isinstance(date, datetime.datetime):
             if date.microsecond:
-                raise ValueError('For `Date` instances, the microsecond must '
-                                 'be `0`.  For the given `datetime` object, '
-                                 'it is `%d` instead.' % date.microsecond)
+                raise ValueError(
+                    'For `Date` instances, the microsecond must be `0`.  '
+                    'For the given `datetime` object, it is `%d` instead.'
+                    % date.microsecond)
             self.datetime = date
         elif isinstance(date, str):
-            self._initfromstr(date)
+            self._init_from_string(date)
         elif isinstance(date, abctools.TOYABC):
-            self.datetime = datetime.datetime(2000,
-                                              date.month, date.day, date.hour,
-                                              date.minute, date.second)
+            self.datetime = datetime.datetime(
+                2000, date.month, date.day,
+                date.hour, date.minute, date.second)
         else:
-            raise TypeError('The supplied argument must be either an '
-                            'instance of `datetime.datetime` or of `str`.  '
-                            'The given arguments type is %s.' % type(date))
+            raise TypeError(
+                'The supplied argument must be either an instance of '
+                '`datetime.datetime` or of `str`.  The given arguments '
+                'type is %s.'
+                % type(date))
 
-    def _initfromstr(self, date):
-        """Try to initialize `datetime` from the given |str| instance.
-
-        Arguments:
-            * date (|str|): Initialization date.
-        """
+    def _init_from_string(self, date):
         for (style, string) in self._formatstrings.items():
             for dummy in range(4):
                 try:
                     self.datetime = datetime.datetime.strptime(date, string)
                     self._style = style
+                    return
                 except ValueError:
                     string = string[:-3]
-        if self.datetime is None:
-            raise ValueError('Date could not be identified out of the given '
-                             'string %s.  The available formats are %s.'
-                             % (date, self._formatstrings))
+        else:
+            raise ValueError(
+                'Date could not be identified out of the given '
+                'string %s.  The available formats are %s.'
+                % (date, self._formatstrings))
 
     @classmethod
-    def fromarray(cls, array):
-        """Returns a |Date| instance based on date information (year,
+    def from_array(cls, array):
+        """Return a |Date| instance based on date information (year,
         month, day, hour, minute, second) stored as the first entries of
         the successive rows of a |numpy.ndarray| object."""
         intarray = numpy.array(array, dtype=int)
@@ -196,20 +161,20 @@ class Date(object):
             intarray = intarray[:, 0]
         return cls(datetime.datetime(*intarray))
 
-    def toarray(self):
-        """Returns a 1-dimensional |numpy| |numpy.ndarray| with six entries
+    def to_array(self):
+        """Return a 1-dimensional |numpy| |numpy.ndarray| with six entries
         defining the actual date (year, month, day, hour, minute, second)."""
         return numpy.array([self.year, self.month, self.day, self.hour,
                             self.minute, self.second], dtype=float)
 
-    def _getrefmonth(self):
+    def _get_refmonth(self):
         """First month of the hydrological year. The default value is 11
         (November which is the german reference month). Setting it e.g. to 10
         (October is another common reference month many different countries)
         affects all |Date| instances."""
         return type(self)._firstmonth_wateryear
 
-    def _setrefmonth(self, value):
+    def _set_refmonth(self, value):
         try:
             type(self)._firstmonth_wateryear = int(value)
         except ValueError:
@@ -219,99 +184,184 @@ class Date(object):
                           'jul', 'aug', 'sew', 'oct', 'nov', 'dec']
                 type(self)._firstmonth_wateryear = months.index(string) + 1
             except ValueError:
-                raise ValueError('The given value `%s` cannot be interpreted '
-                                 'as a month. Supply e.g. a number between 1 '
-                                 'and 12 or a month name instead.' % value)
+                raise ValueError(
+                    'The given value `%s` cannot be interpreted '
+                    'as a month. Supply e.g. a number between 1 '
+                    'and 12 or a month name instead.'
+                    % value)
 
-    refmonth = property(_getrefmonth, _setrefmonth)
+    refmonth = property(_get_refmonth, _set_refmonth)
 
-    def _getstyle(self):
+    def _get_style(self):
         """Date format style to be applied in printing."""
         if self._style is None:
-            return 'iso'
+            return 'iso2'
         return self._style
 
-    def _setstyle(self, style):
+    def _set_style(self, style):
         if style in self._formatstrings:
             self._style = style
         else:
             self._style = None
-            raise KeyError('Date format style `%s` is not available.' % style)
+            raise KeyError(
+                'Date format style `%s` is not available.'
+                % style)
 
-    style = property(_getstyle, _setstyle)
+    style = property(_get_style, _set_style)
 
-    def _setthing(self, thing, value):
-        """Convenience method for `_setyear`, `_setmonth`..."""
+    def _set_thing(self, thing, value):
+        """Convenience method for `_set_year`, `_set_month`..."""
         try:
             value = int(value)
         except (TypeError, ValueError):
-            raise ValueError('Changing the %s of a `Date` instance is only '
-                             'allowed via numbers, but the given value `%s` '
-                             'is of type `%s` instead.'
-                             % (thing, value, type(value)))
+            raise TypeError(
+                'Changing the %s of a `Date` instance is only allowed via '
+                'numbers, but the given value `%s` is of type `%s` instead.'
+                % (thing, value, type(value)))
         kwargs = {}
         for unit in ('year', 'month', 'day', 'hour', 'minute', 'second'):
             kwargs[unit] = getattr(self, unit)
         kwargs[thing] = value
         self.datetime = datetime.datetime(**kwargs)
 
-    def _getsecond(self):
-        """The actual second."""
+    def _get_second(self):
+        """The actual second.
+
+        >>> from hydpy import Date
+        >>> date = Date('2000-01-01 00:00:00')
+        >>> date.second
+        0
+        >>> date.second = 30
+        >>> date.second
+        30
+        """
         return self.datetime.second
 
-    def _setsecond(self, second):
-        self._setthing('second', second)
+    def _set_second(self, second):
+        self._set_thing('second', second)
 
-    second = property(_getsecond, _setsecond)
+    second = property(_get_second, _set_second)
 
-    def _getminute(self):
-        """The actual minute."""
+    def _get_minute(self):
+        """The actual minute.
+
+        >>> from hydpy import Date
+        >>> date = Date('2000-01-01 00:00:00')
+        >>> date.minute
+        0
+        >>> date.minute = 30
+        >>> date.minute
+        30
+        """
         return self.datetime.minute
 
-    def _setminute(self, minute):
-        self._setthing('minute', minute)
+    def _set_minute(self, minute):
+        self._set_thing('minute', minute)
 
-    minute = property(_getminute, _setminute)
+    minute = property(_get_minute, _set_minute)
 
-    def _gethour(self):
-        """The actual hour."""
+    def _get_hour(self):
+        """The actual hour.
+
+        >>> from hydpy import Date
+        >>> date = Date('2000-01-01 00:00:00')
+        >>> date.hour
+        0
+        >>> date.hour = 12
+        >>> date.hour
+        12
+        """
         return self.datetime.hour
 
-    def _sethour(self, hour):
-        self._setthing('hour', hour)
+    def _set_hour(self, hour):
+        self._set_thing('hour', hour)
 
-    hour = property(_gethour, _sethour)
+    hour = property(_get_hour, _set_hour)
 
-    def _getday(self):
-        """The actual day."""
+    def _get_day(self):
+        """The actual day.
+
+        >>> from hydpy import Date
+        >>> date = Date('2000-01-01 00:00:00')
+        >>> date.day
+        1
+        >>> date.day = 15
+        >>> date.day
+        15
+        """
         return self.datetime.day
 
-    def _setday(self, day):
-        self._setthing('day', day)
+    def _set_day(self, day):
+        self._set_thing('day', day)
 
-    day = property(_getday, _setday)
+    day = property(_get_day, _set_day)
 
-    def _getmonth(self):
-        """The actual month."""
+    def _get_month(self):
+        """The actual month.
+
+        >>> from hydpy import Date
+        >>> date = Date('2000-01-01 00:00:00')
+        >>> date.month
+        1
+        >>> date.month = 7
+        >>> date.month
+        7
+        """
         return self.datetime.month
 
-    def _setmonth(self, month):
-        self._setthing('month', month)
+    def _set_month(self, month):
+        self._set_thing('month', month)
 
-    month = property(_getmonth, _setmonth)
+    month = property(_get_month, _set_month)
 
-    def _getyear(self):
-        """The actual year."""
+    def _get_year(self):
+        """The actual year.
+
+        >>> from hydpy import Date
+        >>> date = Date('2000-01-01 00:00:00')
+        >>> date.year
+        2000
+        >>> date.year = 1   # smallest possible value
+        >>> date.year
+        1
+        >>> date.year = 9999   # highest possible value
+        >>> date.year
+        9999
+        """
         return self.datetime.year
 
-    def _setyear(self, year):
-        self._setthing('year', year)
+    def _set_year(self, year):
+        self._set_thing('year', year)
 
-    year = property(_getyear, _setyear)
+    year = property(_get_year, _set_year)
 
     @property
     def wateryear(self):
-        """The actual hydrological year according selected reference month."""
+        """The actual hydrological year according to the selected
+        reference month.
+
+        The reference mont reference |Date.refmonth| defaults to November:
+
+        >>> oct = Date('1996.10.01')
+        >>> nov = Date('1996.11.01')
+        >>> oct.wateryear
+        1996
+        >>> nov.wateryear
+        1997
+
+        Note that changing |Date.refmonth| affects all |Date| objects:
+
+        >>> oct.refmonth = 10
+        >>> oct.wateryear
+        1997
+        >>> nov.wateryear
+        1997
+        >>> oct.refmonth = 'November'
+        >>> oct.wateryear
+        1996
+        >>> nov.wateryear
+        1997
+        """
         if self.month < self._firstmonth_wateryear:
             return self.year
         return self.year + 1
@@ -327,10 +377,6 @@ class Date(object):
         year = self.year
         return (((year % 4) == 0) and
                 (((year % 100) != 0) or ((year % 400) == 0)))
-
-    def copy(self):
-        """Returns a deep copy of the |Date| instance."""
-        return copy.deepcopy(self)
 
     def __add__(self, other):
         new = Date(self.datetime + Period(other).timedelta)
@@ -350,9 +396,10 @@ class Date(object):
                 new.style = self.style
                 return new
             except (TypeError, ValueError):
-                raise Exception('Object `%s` of type `%s` can not be '
-                                'substracted from a `Date` instance.'
-                                % (str(other), type(other)))
+                raise Exception(
+                    'Object `%s` of type `%s` can not be '
+                    'substracted from a `Date` instance.'
+                    % (str(other), type(other)))
 
     def __isub__(self, other):
         self.datetime -= Period(other).timedelta
@@ -376,7 +423,7 @@ class Date(object):
     def __ge__(self, other):
         return self.datetime >= Date(other).datetime
 
-    def string(self, style):
+    def to_string(self, style):
         """Returns a |str| object representing the actual date in
         accordance with the given style.
         """
@@ -414,114 +461,104 @@ class Period(object):
     |Period| objects can be directly initialized via |datetime.timedelta|
     objects, e.g.:
 
-        >>> from datetime import timedelta
-        >>> from hydpy import Period
-        >>> # Initialize a `timedelta` object...
-        >>> timedelta_object = timedelta(1, 0)
-        >>> # ...and use it to initialise a `Period` object
-        >>> period = Period(timedelta_object)
+    >>> from datetime import timedelta
+    >>> from hydpy import Period
+    >>> # Initialize a `timedelta` object...
+    >>> timedelta_object = timedelta(1, 0)
+    >>> # ...and use it to initialise a `Period` object
+    >>> period = Period(timedelta_object)
 
     Alternatively, one can initialize from |str| objects.  These must
     consist of some characters defining an integer value directly followed
     by a single character defining the unit:
 
-        >>> # 30 seconds:
-        >>> period = Period('30s')
-        >>> # 5 minutes:
-        >>> period = Period('5m')
-        >>> # 6 hours:
-        >>> period = Period('6h')
-        >>> # 1 day:
-        >>> period = Period('1d')
+    >>> # 30 seconds:
+    >>> period = Period('30s')
+    >>> # 5 minutes:
+    >>> period = Period('5m')
+    >>> # 6 hours:
+    >>> period = Period('6h')
+    >>> # 1 day:
+    >>> period = Period('1d')
 
     In case you need an "empty" period object, just pass nothing or |None|:
 
-        >>> Period()
-        Period()
-        >>> Period(None)
-        Period()
+    >>> Period()
+    Period()
+    >>> Period(None)
+    Period()
 
     |Period| always determines the unit leading to the most legigible
     expression:
 
-        >>> # Print using the unit leading to the smallest integer value:
-        >>> print(period)
-        1d
-        >>> # Alternatively, the values of all time units are directly
-        >>> # available as `float` objects:
-        >>> period.days
-        1.0
-        >>> period.hours
-        24.0
-        >>> period.minutes
-        1440.0
-        >>> period.seconds
-        86400.0
+    >>> # Print using the unit leading to the smallest integer value:
+    >>> print(period)
+    1d
+    >>> # Alternatively, the values of all time units are directly
+    >>> # available as `float` objects:
+    >>> period.days
+    1.0
+    >>> period.hours
+    24.0
+    >>> period.minutes
+    1440.0
+    >>> period.seconds
+    86400.0
 
     If considered useful, logic and arithmetic operations are supported.
     Some examples:
 
-        >>> # Determine the period length between two dates.
-        >>> from hydpy import Date
-        >>> date1, date2 = Date('1997.11.01'), Date('1996.11.01')
-        >>> wholeperiod = date1 - date2
-        >>> print(wholeperiod)
-        365d
-        >>> # Determine, how often one period fits into the other.
-        >>> wholeperiod / period
-        365.0
-        >>> # Get one sixths of period:
-        >>> period / 6
-        Period('4h')
-        >>> # But when trying to get one seventh of period, the following
-        >>> # error is raised:
-        >>> period / 7
-        Traceback (most recent call last):
-        ...
-        ValueError: For `Period` instances, microseconds must be zero.  \
+    >>> # Determine the period length between two dates.
+    >>> from hydpy import Date
+    >>> date1, date2 = Date('1997-11-01'), Date('1996-11-01')
+    >>> wholeperiod = date1 - date2
+    >>> print(wholeperiod)
+    365d
+    >>> # Determine, how often one period fits into the other.
+    >>> wholeperiod / period
+    365.0
+    >>> # Get one sixths of period:
+    >>> period / 6
+    Period('4h')
+    >>> # But when trying to get one seventh of period, the following
+    >>> # error is raised:
+    >>> period / 7
+    Traceback (most recent call last):
+    ...
+    ValueError: For `Period` instances, microseconds must be zero.  \
 However, for the given `timedelta` object, it is`857142` instead.
 
-        >>> # Double a period duration.
-        >>> period *= 2
-        >>> period
-        Period('2d')
-        >>> # Shift a date.
-        >>> date1 - period
-        Date('1997.10.30 00:00:00')
-        >>> # Note that the modulo operator returns a boolean value, indicating
-        >>> # whether division results in a remainder or not:
-        >>> Period('1d') % Period('12h')
-        False
-        >>> Period('1d') % Period('13h')
-        True
-        >>> # Following the same line of thinking, floor division leads to the
-        >>> # opposite results:
-        >>> Period('1d') // Period('12h')
-        True
-        >>> Period('1d') // Period('13h')
-        False
-        >>> # Compare dates or periods.
-        >>> date1 < date2
-        False
-        >>> min(date1, date2)
-        Date('1996.11.01 00:00:00')
-        >>> period == wholeperiod
-        False
-        >>> # Operations on initialisation arguments are supported.
-        >>> date1 + '5m'
-        Date('1997.11.01 00:05:00')
-        >>> period != '12h'
-        True
-
-    Note that |Period| objects are mutable.  Use the `copy` method to
-    prevent from unintentional results::
-
-        >>> period1 = Period('6h')
-        >>> period2 = period1
-        >>> period3 = period1.copy()
-        >>> period1 -= '2h'
-        >>> period1, period2, period3
-        (Period('4h'), Period('4h'), Period('6h'))
+    >>> # Double a period duration.
+    >>> period *= 2
+    >>> period
+    Period('2d')
+    >>> # Shift a date.
+    >>> date1 - period
+    Date('1997-10-30 00:00:00')
+    >>> # Note that the modulo operator returns a boolean value, indicating
+    >>> # whether division results in a remainder or not:
+    >>> Period('1d') % Period('12h')
+    False
+    >>> Period('1d') % Period('13h')
+    True
+    >>> # Following the same line of thinking, floor division leads to the
+    >>> # opposite results:
+    >>> Period('1d') // Period('12h')
+    True
+    >>> Period('1d') // Period('13h')
+    False
+    >>> # Compare dates or periods.
+    >>> date1 < date2
+    False
+    >>> min(date1, date2)
+    Date('1996-11-01 00:00:00')
+    >>> period == wholeperiod
+    False
+    >>> # Operations on initialisation arguments are supported.
+    >>> date1 + '5m'
+    Date('1997-11-01 00:05:00')
+    >>> period != '12h'
+    True
     """
     def __init__(self, period=None):
         self._timedelta = None
@@ -549,9 +586,9 @@ However, for the given `timedelta` object, it is`857142` instead.
                     '`%d` instead.' % period.microseconds)
             self._timedelta = period
         elif isinstance(period, str):
-            self._initfromstr(period)
+            self._init_from_string(period)
         else:
-            raise ValueError(
+            raise TypeError(
                 'The supplied argument must be either an '
                 'instance of `datetime.timedelta` or `str`.  '
                 'The given arguments type is %s.'
@@ -562,12 +599,7 @@ However, for the given `timedelta` object, it is`857142` instead.
 
     timedelta = property(_get_timedelta, _set_timedelta, _del_timedelta)
 
-    def _initfromstr(self, period):
-        """Try to initialize `timedelta` from the given |str| instance.
-
-        Arguments:
-            * period (|str|): Period length.
-         """
+    def _init_from_string(self, period):
         try:
             number = int(period[:-1])
         except ValueError:
@@ -620,33 +652,29 @@ However, for the given `timedelta` object, it is`857142` instead.
 
     unit = property(_guessunit)
 
-    def _getseconds(self):
+    def _get_seconds(self):
         """Period length in seconds."""
         return self.timedelta.total_seconds()
 
-    seconds = property(_getseconds)
+    seconds = property(_get_seconds)
 
-    def _getminutes(self):
+    def _get_minutes(self):
         """Period length in minutes."""
         return self.seconds / 60
 
-    minutes = property(_getminutes)
+    minutes = property(_get_minutes)
 
-    def _gethours(self):
+    def _get_hours(self):
         """Period length in hours."""
         return self.minutes / 60
 
-    hours = property(_gethours)
+    hours = property(_get_hours)
 
-    def _getdays(self):
+    def _get_days(self):
         """Period length in days."""
         return self.hours / 24
 
-    days = property(_getdays)
-
-    def copy(self):
-        """Returns a deep copy of the |Period| instance."""
-        return copy.deepcopy(self)
+    days = property(_get_days)
 
     def __bool__(self):
         return self._timedelta is not None
@@ -725,12 +753,11 @@ However, for the given `timedelta` object, it is`857142` instead.
             return '?'
         if self.unit == 'd':
             return '%dd' % self.days
-        elif self.unit == 'h':
+        if self.unit == 'h':
             return '%dh' % self.hours
-        elif self.unit == 'm':
+        if self.unit == 'm':
             return '%dm' % self.minutes
-        elif self.unit == 's':
-            return '%ds' % self.seconds
+        return '%ds' % self.seconds
 
     def __repr__(self):
         if self:
@@ -755,115 +782,109 @@ class Timegrid(object):
     object is initialized by defining its first date, its last date and its
     stepsize:
 
-        >>> from hydpy import Date, Period, Timegrid
-        >>> # Either pass the proper attributes directly...
-        >>> firstdate = Date('1996.11.01')
-        >>> lastdate = Date('1997.11.01')
-        >>> stepsize = Period('1d')
-        >>> timegrid_sim = Timegrid(firstdate, lastdate, stepsize)
-        >>> timegrid_sim
-        Timegrid('1996.11.01 00:00:00',
-                 '1997.11.01 00:00:00',
-                 '1d')
-        >>> # ...or pass their initialization arguments:
-        >>> timegrid_sim = Timegrid('1996.11.01', '1997.11.01', '1d')
-        >>> timegrid_sim
-        Timegrid('1996.11.01 00:00:00',
-                 '1997.11.01 00:00:00',
-                 '1d')
+    >>> from hydpy import Date, Period, Timegrid
+    >>> # Either pass the proper attributes directly...
+    >>> firstdate = Date('1996-11-01')
+    >>> lastdate = Date('1997-11-01')
+    >>> stepsize = Period('1d')
+    >>> timegrid_sim = Timegrid(firstdate, lastdate, stepsize)
+    >>> timegrid_sim
+    Timegrid('1996-11-01 00:00:00',
+             '1997-11-01 00:00:00',
+             '1d')
+    >>> # ...or pass their initialization arguments:
+    >>> timegrid_sim = Timegrid('1996-11-01', '1997-11-01', '1d')
+    >>> timegrid_sim
+    Timegrid('1996-11-01 00:00:00',
+             '1997-11-01 00:00:00',
+             '1d')
 
     |Timegrid| provides functionalities to ease and secure the handling
     of dates in HydPy. Here some examples:
 
-        >>> # Retrieve a date via indexing, e.g. the second one:
-        >>> date = timegrid_sim[1]
-        >>> date
-        Date('1996.11.02 00:00:00')
-        >>> # Or the other way round, retrieve the index belonging to a date:
-        >>> timegrid_sim[date]
-        1
-        >>> # Indexing beyond the ranges of the actual time period is allowed:
-        >>> timegrid_sim[-366]
-        Date('1995.11.01 00:00:00')
-        >>> timegrid_sim[timegrid_sim[date+'365d']]
-        Date('1997.11.02 00:00:00')
-        >>> # Iterate through all time grid points (e.g. to print the first
-        >>> # day of each month):
-        >>> for date in timegrid_sim:
-        ...     if date.day == 1:
-        ...         print(date)
-        1996.11.01 00:00:00
-        1996.12.01 00:00:00
-        1997.01.01 00:00:00
-        1997.02.01 00:00:00
-        1997.03.01 00:00:00
-        1997.04.01 00:00:00
-        1997.05.01 00:00:00
-        1997.06.01 00:00:00
-        1997.07.01 00:00:00
-        1997.08.01 00:00:00
-        1997.09.01 00:00:00
-        1997.10.01 00:00:00
+    >>> # Retrieve a date via indexing, e.g. the second one:
+    >>> date = timegrid_sim[1]
+    >>> date
+    Date('1996-11-02 00:00:00')
+    >>> # Or the other way round, retrieve the index belonging to a date:
+    >>> timegrid_sim[date]
+    1
+    >>> # Indexing beyond the ranges of the actual time period is allowed:
+    >>> timegrid_sim[-366]
+    Date('1995-11-01 00:00:00')
+    >>> timegrid_sim[timegrid_sim[date+'365d']]
+    Date('1997-11-02 00:00:00')
+    >>> # Iterate through all time grid points (e.g. to print the first
+    >>> # day of each month):
+    >>> for date in timegrid_sim:
+    ...     if date.day == 1:
+    ...         print(date)
+    1996-11-01 00:00:00
+    1996-12-01 00:00:00
+    ...
+    1997-09-01 00:00:00
+    1997-10-01 00:00:00
 
     After doing some changes one should call the |Timegrid.verify|
     method:
 
-        >>> # `verify` keeps silent if everything seems to be alright...
-        >>> timegrid_sim.verify()
-        >>> # ...but raises an suitable exception otherwise:
-        >>> timegrid_sim.firstdate.minute = 30
-        >>> timegrid_sim.verify()
-        Traceback (most recent call last):
-        ...
-        ValueError: Unplausible timegrid. The period span between the given \
-dates 1996.11.01 00:30:00 and 1997.11.01 00:00:00 is not a multiple of the \
+    >>> # `verify` keeps silent if everything seems to be alright...
+    >>> timegrid_sim.verify()
+    >>> # ...but raises an suitable exception otherwise:
+    >>> timegrid_sim.firstdate.minute = 30
+    >>> timegrid_sim.verify()
+    Traceback (most recent call last):
+    ...
+    ValueError: Unplausible timegrid. The period span between the given \
+dates 1996-11-01 00:30:00 and 1997-11-01 00:00:00 is not a multiple of the \
 given step size 1d.
 
     One can check two |Timegrid| instances for equality:
 
-        >>> # Make a deep copy of the timegrid already existing.
-        >>> timegrid_test = timegrid_sim.copy()
-        >>> # Test for equality and non-equality.
-        >>> timegrid_sim == timegrid_test
-        True
-        >>> timegrid_sim != timegrid_test
-        False
-        >>> # Modify one date of the new timegrid.
-        >>> timegrid_test.firstdate += '1d'
-        >>> # Again, test for equality and non-equality.
-        >>> timegrid_sim == timegrid_test
-        False
-        >>> timegrid_sim != timegrid_test
-        True
+    >>> # Make a deep copy of the timegrid already existing.
+    >>> import copy
+    >>> timegrid_test = copy.deepcopy(timegrid_sim)
+    >>> # Test for equality and non-equality.
+    >>> timegrid_sim == timegrid_test
+    True
+    >>> timegrid_sim != timegrid_test
+    False
+    >>> # Modify one date of the new timegrid.
+    >>> timegrid_test.firstdate += '1d'
+    >>> # Again, test for equality and non-equality.
+    >>> timegrid_sim == timegrid_test
+    False
+    >>> timegrid_sim != timegrid_test
+    True
 
     Also, one can check if a date or even the whole timegrid lies within a
     span defined by a |Timegrid| instance::
 
-        >>> # Define a long timegrid:
-        >>> timegrid_long = Timegrid('1996.11.01', '2006.11.01', '1d')
-        >>> # Check different dates for lying in the defined time period:
-        >>> '1996.10.31' in timegrid_long
-        False
-        >>> '1996.11.01' in timegrid_long
-        True
-        >>> '1996.11.02' in timegrid_long
-        True
-        >>> # For dates not alligned on the grid `False` is returned:
-        >>> '1996.11.01 12:00' in timegrid_long
-        False
+    >>> # Define a long timegrid:
+    >>> timegrid_long = Timegrid('1996.11.01', '2006.11.01', '1d')
+    >>> # Check different dates for lying in the defined time period:
+    >>> '1996-10-31' in timegrid_long
+    False
+    >>> '1996-11-01' in timegrid_long
+    True
+    >>> '1996-11-02' in timegrid_long
+    True
+    >>> # For dates not alligned on the grid `False` is returned:
+    >>> '1996-11-01 12:00' in timegrid_long
+    False
 
-        >>> # Now define a timegrid containing only the first year of the
-        >>> # long one:
-        >>> timegrid_short = Timegrid('1996.11.01', '1997.11.01', '1d')
-        >>> # Check which timegrid is contained by the other:
-        >>> timegrid_short in timegrid_long
-        True
-        >>> timegrid_long in timegrid_short
-        False
-        >>> # For timegrids with different stepsizes `False` is returned:
-        >>> timegrid_short.stepsize = Period('1h')
-        >>> timegrid_short in timegrid_long
-        False
+    >>> # Now define a timegrid containing only the first year of the
+    >>> # long one:
+    >>> timegrid_short = Timegrid('1996-11-01', '1997-11-01', '1d')
+    >>> # Check which timegrid is contained by the other:
+    >>> timegrid_short in timegrid_long
+    True
+    >>> timegrid_long in timegrid_short
+    False
+    >>> # For timegrids with different stepsizes `False` is returned:
+    >>> timegrid_short.stepsize = Period('1h')
+    >>> timegrid_short in timegrid_long
+    False
     """
     _firstdate = None
     _lastdate = None
@@ -875,53 +896,54 @@ given step size 1d.
         self.stepsize = stepsize
         self.verify()
 
-    def _getfirstdate(self):
+    def _get_firstdate(self):
         return self._firstdate
 
-    def _setfirstdate(self, firstdate):
+    def _set_firstdate(self, firstdate):
         self._firstdate = Date(firstdate)
 
-    firstdate = property(_getfirstdate, _setfirstdate)
+    firstdate = property(_get_firstdate, _set_firstdate)
 
-    def _getlastdate(self):
+    def _get_lastdate(self):
         return self._lastdate
 
-    def _setlastdate(self, lastdate):
+    def _set_lastdate(self, lastdate):
         self._lastdate = Date(lastdate)
 
-    lastdate = property(_getlastdate, _setlastdate)
+    lastdate = property(_get_lastdate, _set_lastdate)
 
-    def _getstepsize(self):
+    def _get_stepsize(self):
         return self._stepsize
 
-    def _setstepsize(self, stepsize):
+    def _set_stepsize(self, stepsize):
         self._stepsize = Period(stepsize)
 
-    stepsize = property(_getstepsize, _setstepsize)
+    stepsize = property(_get_stepsize, _set_stepsize)
 
     @classmethod
-    def fromarray(cls, array):
+    def from_array(cls, array):
         """Returns a |Timegrid| instance based on two date and one period
         information stored in the first 13 rows of a |numpy.ndarray| object.
         """
         try:
-            return cls(firstdate=Date.fromarray(array[:6]),
-                       lastdate=Date.fromarray(array[6:12]),
+            return cls(firstdate=Date.from_array(array[:6]),
+                       lastdate=Date.from_array(array[6:12]),
                        stepsize=Period.fromseconds(array[12]))
         except IndexError:
-            raise IndexError('To define a Timegrid instance via an array, 13 '
-                             'numbers are required.  However, the given array '
-                             'consist of %d entries/rows only.' % len(array))
+            raise IndexError(
+                'To define a Timegrid instance via an array, 13 '
+                'numbers are required.  However, the given array '
+                'consist of %d entries/rows only.'
+                % len(array))
 
-    def toarray(self):
+    def to_array(self):
         """Returns a 1-dimensional |numpy| |numpy.ndarray| with thirteen
         entries first defining the start date, secondly defining the end
         date and thirdly the step size in seconds.
         """
-
         values = numpy.empty(13, dtype=float)
-        values[:6] = self.firstdate.toarray()
-        values[6:12] = self.lastdate.toarray()
+        values[:6] = self.firstdate.to_array()
+        values[6:12] = self.lastdate.to_array()
         values[12] = self.stepsize.seconds
         return values
 
@@ -935,7 +957,7 @@ given step size 1d.
         numbers:
 
         >>> from hydpy import Timegrid
-        >>> timegrid = Timegrid('2000.11.01 00:00', '2000.11.01 04:00', '1h')
+        >>> timegrid = Timegrid('2000-11-01 00:00', '2000-11-01 04:00', '1h')
         >>> series = timegrid.array2series([1, 2, 3.5, '5.0'])
 
         The first six entries contain the first date of the timegrid (year,
@@ -1003,14 +1025,16 @@ timegrid object is `4` and the length of the array object is `2`.
         try:
             array = numpy.array(array, dtype=float)
         except BaseException:
-            objecttools.augment_excmessage('While trying to prefix timegrid '
-                                           'information to the given array')
+            objecttools.augment_excmessage(
+                'While trying to prefix timegrid information to the '
+                'given array')
         if len(array) != len(self):
             raise ValueError(
                 'When converting an array to a sequence, the lengths of the '
                 'timegrid and the given array must be equal, but the length '
                 'of the timegrid object is `%s` and the length of the array '
-                'object is `%s`.' % (len(self), len(array)))
+                'object is `%s`.'
+                % (len(self), len(array)))
         shape = list(array.shape)
         shape[0] += 13
         series = numpy.full(shape, numpy.nan)
@@ -1019,7 +1043,7 @@ timegrid object is `4` and the length of the array object is `2`.
         for dummy in range(1, series.ndim):
             slices.append(slice(0, 1))
             subshape.append(1)
-        series[slices] = self.toarray().reshape(subshape)
+        series[slices] = self.to_array().reshape(subshape)
         series[13:] = array
         return series
 
@@ -1028,18 +1052,16 @@ timegrid object is `4` and the length of the array object is `2`.
         frame are inconsistent.
         """
         if self.firstdate >= self.lastdate:
-            raise ValueError('Unplausible timegrid. The first given '
-                             'date %s, the second given date is %s. '
-                             % (self.firstdate, self.lastdate))
+            raise ValueError(
+                'Unplausible timegrid. The first given '
+                'date %s, the second given date is %s. '
+                % (self.firstdate, self.lastdate))
         if (self.lastdate-self.firstdate) % self.stepsize:
-            raise ValueError('Unplausible timegrid. The period span '
-                             'between the given dates %s and %s is not '
-                             'a multiple of the given step size %s.' %
-                             (self.firstdate, self.lastdate, self.stepsize))
-
-    def copy(self):
-        """Returns a deep copy of the |Timegrid| instance."""
-        return copy.deepcopy(self)
+            raise ValueError(
+                'Unplausible timegrid. The period span '
+                'between the given dates %s and %s is not '
+                'a multiple of the given step size %s.'
+                % (self.firstdate, self.lastdate, self.stepsize))
 
     def __len__(self):
         return abs(int((self.lastdate-self.firstdate) / self.stepsize))
@@ -1051,13 +1073,15 @@ timegrid object is `4` and the length of the array object is `2`.
             key = Date(key)
             index = (key-self.firstdate) / self.stepsize
             if index % 1.:
-                raise ValueError('The given date `%s` is not properly '
-                                 'alligned on the indexed timegrid.' % key)
+                raise ValueError(
+                    'The given date `%s` is not properly alligned on '
+                    'the indexed timegrid.'
+                    % key)
             else:
                 return int(index)
 
     def __iter__(self):
-        date = self.firstdate.copy()
+        date = copy.deepcopy(self.firstdate)
         while date < self.lastdate:
             yield date
             date = date + self.stepsize
@@ -1131,98 +1155,98 @@ class Timegrids(object):
     or at the top of script defining a HydPy workflow and assigned to the
     |pub| module, which provides access to "global" project settings:
 
-        >>> from hydpy import Timegrid, Timegrids
-        >>> from hydpy import pub
+    >>> from hydpy import Timegrid, Timegrids
+    >>> from hydpy import pub
 
     In many cases, one want to perform the simulation over the whole
     initialization period.  Then only one Timegrid instance must be
     defined:
 
-        >>> pub.timegrids = Timegrids(Timegrid('2000.11.11',
-        ...                                    '2003.11.11',
-        ...                                     '1d'))
-        >>> pub.timegrids
-        Timegrids(Timegrid('2000.11.11 00:00:00',
-                           '2003.11.11 00:00:00',
-                           '1d'))
+    >>> pub.timegrids = Timegrids(Timegrid('2000-11-11',
+    ...                                    '2003-11-11',
+    ...                                     '1d'))
+    >>> pub.timegrids
+    Timegrids(Timegrid('2000-11-11 00:00:00',
+                       '2003-11-11 00:00:00',
+                       '1d'))
 
     Otherwise, two Timegrid instances must be given:
 
-        >>> pub.timegrids = Timegrids(init=Timegrid('2000.11.11',
-        ...                                         '2003.11.11',
-        ...                                         '1h'),
-        ...                           sim=Timegrid('2001.11.11',
-        ...                                        '2002.11.11',
-        ...                                        '1h'))
-        >>> pub.timegrids
-        Timegrids(init=Timegrid('2000.11.11 00:00:00',
-                                '2003.11.11 00:00:00',
-                                '1h'),
-                  sim=Timegrid('2001.11.11 00:00:00',
-                               '2002.11.11 00:00:00',
-                               '1h'))
+    >>> pub.timegrids = Timegrids(init=Timegrid('2000-11-11',
+    ...                                         '2003-11-11',
+    ...                                         '1h'),
+    ...                           sim=Timegrid('2001-11-11',
+    ...                                        '2002-11-11',
+    ...                                        '1h'))
+    >>> pub.timegrids
+    Timegrids(init=Timegrid('2000-11-11 00:00:00',
+                            '2003-11-11 00:00:00',
+                            '1h'),
+              sim=Timegrid('2001-11-11 00:00:00',
+                           '2002-11-11 00:00:00',
+                           '1h'))
 
     Some examples on the usage of this |Timegrids| instance:
 
-        >>> # Get the general data and simulation step size:
-        >>> pub.timegrids.stepsize
-        Period('1h')
-        >>> # Get the factor to convert `mm/stepsize` to m^3/s for an area
-        >>> # of 36 km^2:
-        >>> pub.timegrids.qfactor(36.)
-        10.0
-        >>> # Get the index of the first values of the `initialization frame`
-        >>> # which belong to the `simulation frame`.
-        >>> pub.timegrids.init[pub.timegrids.sim.firstdate]
-        8760
+    >>> # Get the general data and simulation step size:
+    >>> pub.timegrids.stepsize
+    Period('1h')
+    >>> # Get the factor to convert `mm/stepsize` to m^3/s for an area
+    >>> # of 36 km^2:
+    >>> pub.timegrids.qfactor(36.)
+    10.0
+    >>> # Get the index of the first values of the `initialization frame`
+    >>> # which belong to the `simulation frame`.
+    >>> pub.timegrids.init[pub.timegrids.sim.firstdate]
+    8760
 
     Each manual change should be followed by calling the
     |Timegrids.verify| method, which calls the |Timegrid.verify|
     method of the single |Timegrid| instances and performs some
     additional tests:
 
-        >>> # To postpone the end of the `simulation time frame` exactly
-        >>> # one year is fine:
-        >>> pub.timegrids.sim.lastdate += '365d'
-        >>> pub.timegrids.verify()
-        >>> # But any additional day shifts it outside the `initialisation
-        >>> # time frame`, so verification raises a value error:
-        >>> pub.timegrids.sim.lastdate += '1d'
-        >>> pub.timegrids.verify()
-        Traceback (most recent call last):
-        ...
-        ValueError: The last date of the initialisation period \
-(2003.11.11 00:00:00) must not be earlier than the last date of the \
-simulation period (2003.11.12 00:00:00).
-        >>> pub.timegrids.sim.lastdate -= '1d'
+    >>> # To postpone the end of the `simulation time frame` exactly
+    >>> # one year is fine:
+    >>> pub.timegrids.sim.lastdate += '365d'
+    >>> pub.timegrids.verify()
+    >>> # But any additional day shifts it outside the `initialisation
+    >>> # time frame`, so verification raises a value error:
+    >>> pub.timegrids.sim.lastdate += '1d'
+    >>> pub.timegrids.verify()
+    Traceback (most recent call last):
+    ...
+    ValueError: The last date of the initialisation period \
+(2003-11-11 00:00:00) must not be earlier than the last date of the \
+simulation period (2003-11-12 00:00:00).
+    >>> pub.timegrids.sim.lastdate -= '1d'
 
-        >>> # The other boundary is also checked:
-        >>> pub.timegrids.sim.firstdate -= '366d'
-        >>> pub.timegrids.verify()
-        Traceback (most recent call last):
-        ...
-        ValueError: The first date of the initialisation period \
-(2000.11.11 00:00:00) must not be later than the first date of the \
-simulation period (2000.11.10 00:00:00).
+    >>> # The other boundary is also checked:
+    >>> pub.timegrids.sim.firstdate -= '366d'
+    >>> pub.timegrids.verify()
+    Traceback (most recent call last):
+    ...
+    ValueError: The first date of the initialisation period \
+(2000-11-11 00:00:00) must not be later than the first date of the \
+simulation period (2000-11-10 00:00:00).
 
-        >>> # Both timegrids are checked to have the same step size:
-        >>> pub.timegrids.sim = Timegrid('2001.11.11',
-        ...                              '2002.11.11',
-        ...                              '1d')
-        >>> pub.timegrids.verify()
-        Traceback (most recent call last):
-        ...
-        ValueError: The initialization stepsize (1h) must be identical \
+    >>> # Both timegrids are checked to have the same step size:
+    >>> pub.timegrids.sim = Timegrid('2001-11-11',
+    ...                              '2002-11-11',
+    ...                              '1d')
+    >>> pub.timegrids.verify()
+    Traceback (most recent call last):
+    ...
+    ValueError: The initialization stepsize (1h) must be identical \
 with the simulation stepsize (1d).
 
-        >>> # Also, they are checked to be properly aligned:
-        >>> pub.timegrids.sim = Timegrid('2001.11.11 00:30',
-        ...                              '2002.11.11 00:30',
-        ...                              '1h')
-        >>> pub.timegrids.verify()
-        Traceback (most recent call last):
-        ...
-        ValueError: The simulation time grid is not properly alligned \
+    >>> # Also, they are checked to be properly aligned:
+    >>> pub.timegrids.sim = Timegrid('2001-11-11 00:30',
+    ...                              '2002-11-11 00:30',
+    ...                              '1h')
+    >>> pub.timegrids.verify()
+    Traceback (most recent call last):
+    ...
+    ValueError: The simulation time grid is not properly alligned \
 on the initialization time grid.
     """
     def __init__(self, init, sim=None, data=None):
@@ -1234,21 +1258,21 @@ on the initialization time grid.
                 'does nothing and will be banned in the future.'))
         self.init = init
         if sim is None:
-            self.sim = self.init.copy()
+            self.sim = copy.deepcopy(self.init)
         else:
             self.sim = sim
         self.verify()
 
-    def _getstepsize(self):
+    def _get_stepsize(self):
         """Stepsize of all handled |Timegrid| objects."""
         return self.init.stepsize
 
-    def _setstepsize(self, stepsize):
+    def _set_stepsize(self, stepsize):
         stepsize = Period(stepsize)
         for (dummy, timegrid) in self:
             timegrid.stepsize = stepsize
 
-    stepsize = property(_getstepsize, _setstepsize)
+    stepsize = property(_get_stepsize, _set_stepsize)
 
     def verify(self):
         """Raise an |ValueError| it the different time grids are
@@ -1256,25 +1280,29 @@ on the initialization time grid.
         self.init.verify()
         self.sim.verify()
         if self.init.firstdate > self.sim.firstdate:
-            raise ValueError('The first date of the initialisation period '
-                             '(%s) must not be later than the first date '
-                             'of the simulation period (%s).'
-                             % (self.init.firstdate, self.sim.firstdate))
+            raise ValueError(
+                'The first date of the initialisation period '
+                '(%s) must not be later than the first date '
+                'of the simulation period (%s).'
+                % (self.init.firstdate, self.sim.firstdate))
         elif self.init.lastdate < self.sim.lastdate:
-            raise ValueError('The last date of the initialisation period '
-                             '(%s) must not be earlier than the last date '
-                             'of the simulation period (%s).'
-                             % (self.init.lastdate, self.sim.lastdate))
+            raise ValueError(
+                'The last date of the initialisation period '
+                '(%s) must not be earlier than the last date '
+                'of the simulation period (%s).'
+                % (self.init.lastdate, self.sim.lastdate))
         elif self.init.stepsize != self.sim.stepsize:
-            raise ValueError('The initialization stepsize (%s) must be '
-                             'identical with the simulation stepsize (%s).'
-                             % (self.init.stepsize, self.sim.stepsize))
+            raise ValueError(
+                'The initialization stepsize (%s) must be '
+                'identical with the simulation stepsize (%s).'
+                % (self.init.stepsize, self.sim.stepsize))
         else:
             try:
                 self.init[self.sim.firstdate]
             except ValueError:
-                raise ValueError('The simulation time grid is not properly '
-                                 'alligned on the initialization time grid.')
+                raise ValueError(
+                    'The simulation time grid is not properly '
+                    'alligned on the initialization time grid.')
 
     def qfactor(self, area):
         """Return the factor for converting `mm/stepsize` to `m^3/s`.
@@ -1293,10 +1321,6 @@ on the initialization time grid.
               thereof): Time interval, to which the parameter values refer.
         """
         return self.stepsize / Period(stepsize)
-
-    def copy(self):
-        """Returns a deep copy of the |Timegrids| instance."""
-        return copy.deepcopy(self)
 
     def __iter__(self):
         for (name, timegrid) in dict(self).items():

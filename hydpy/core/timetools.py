@@ -288,6 +288,64 @@ literal for int() with base 10: '0X'
         return numpy.array([self.year, self.month, self.day, self.hour,
                             self.minute, self.second], dtype=float)
 
+    @classmethod
+    def from_cfunits(cls, units):
+        """Return a |Date| object representing the reference date of the
+        given `units` string aggreeing with the NetCDF-CF conventions.
+
+        The following example string is taken from the `Time Coordinate`_
+        chapter of the NetCDF-CF conventions documentation (modified).
+        Note that the first entry (the unit) is ignored:
+
+        >>> from hydpy import Date
+        >>> Date.from_cfunits('seconds since 1992-10-8 15:15:42 -6:00')
+        Date('1992-10-08 22:15:42')
+        >>> Date.from_cfunits(' day since 1992-10-8 15:15:00')
+        Date('1992-10-08 15:15:00')
+        >>> Date.from_cfunits('seconds since 1992-10-8 -6:00')
+        Date('1992-10-08 07:00:00')
+        >>> Date.from_cfunits('m since 1992-10-8')
+        Date('1992-10-08 00:00:00')
+
+        Without modification, the example string from `Time Coordinate`_
+        results in an error, as |Date| does not support microseconds:
+
+        >>> Date.from_cfunits('seconds since 1992-10-8 15:15:42.5 -6:00')
+        Traceback (most recent call last):
+        ...
+        ValueError: Date could not be identified out of the given string \
+1992-10-8 15:15:42.5 -6:00...
+        """
+        return cls(units[units.find('since')+6:])
+
+    def to_cfunits(self, unit='hours', utcoffset=None):
+        """Return a `units` string aggreeing with the NetCDF-CF conventions.
+
+        By default, |Date.to_cfunits| takes `hours` as time unit, and the
+        the actual value of |Options.utcoffset| as time zone information:
+
+        >>> from hydpy import Date
+        >>> date = Date('1992-10-08 15:15:42')
+        >>> date.to_cfunits()
+        'hours since 1992-10-08 15:15:42 +01:00'
+
+        Other time units are allowed (no checks are performed, so select
+        something useful):
+
+        >>> date.to_cfunits(unit='minutes')
+        'minutes since 1992-10-08 15:15:42 +01:00'
+
+        For changing the time zone, pass the corresponding offset in minutes:
+
+        >>> date.to_cfunits(unit='sec', utcoffset=-60)
+        'sec since 1992-10-08 13:15:42 -01:00'
+        """
+        if utcoffset is None:
+            utcoffset = pub.options.utcoffset
+        string = self.to_string('iso2', utcoffset)
+        string = ' '.join((string[:-6], string[-6:]))
+        return '%s since %s' % (unit, string)
+
     def _get_refmonth(self):
         """First month of the hydrological year. The default value is 11
         (November which is the german reference month). Setting it e.g. to 10
@@ -851,6 +909,25 @@ However, for the given `timedelta` object, it is`857142` instead.
         except TypeError:
             seconds = int(seconds.flatten()[0])
         return cls(datetime.timedelta(0, int(seconds)))
+
+    @classmethod
+    def from_cfunits(cls, units):
+        """Return a |Period| object representing the time unit of the
+        given `units` string aggreeing with the NetCDF-CF conventions.
+
+        The following example string is taken from the `Time Coordinate`_
+        chapter of the NetCDF-CF conventions.  Note that the character
+        of the first entry (the actual time unit) is of relevance:
+
+        >>> from hydpy import Period
+        >>> Period.from_cfunits('seconds since 1992-10-8 15:15:42.5 -6:00')
+        Period('1s')
+        >>> Period.from_cfunits(' day since 1992-10-8 15:15:00')
+        Period('1d')
+        >>> Period.from_cfunits('m since 1992-10-8')
+        Period('1m')
+        """
+        return cls('1%s' % units.strip()[0])
 
     def _guessunit(self):
         """Guess the unit of the period as the largest one, which results in

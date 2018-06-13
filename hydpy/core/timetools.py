@@ -247,15 +247,44 @@ literal for int() with base 10: '0X'
     def from_array(cls, array):
         """Return a |Date| instance based on date information (year,
         month, day, hour, minute, second) stored as the first entries of
-        the successive rows of a |numpy.ndarray| object."""
+        the successive rows of a |numpy.ndarray|.
+
+        >>> from hydpy import Date
+        >>> import numpy
+        >>> array1d = numpy.array([1992, 10, 8, 15, 15, 42, 999])
+        >>> Date.from_array(array1d)
+        Date('1992-10-08 15:15:42')
+
+        >>> array3d = numpy.zeros((7, 2, 2))
+        >>> array3d[:, 0, 0] = array1d
+        >>> Date.from_array(array3d)
+        Date('1992-10-08 15:15:42')
+
+        .. note::
+
+           The date defined by the given |numpy.ndarray| cannot
+           include any time zone information and corresponds to
+           |Options.utcoffset|, which defaults to UTC+01:00.
+        """
         intarray = numpy.array(array, dtype=int)
         for dummy in range(1, array.ndim):
             intarray = intarray[:, 0]
-        return cls(datetime.datetime(*intarray))
+        return cls(datetime.datetime(*intarray[:6]))
 
     def to_array(self):
-        """Return a 1-dimensional |numpy| |numpy.ndarray| with six entries
-        defining the actual date (year, month, day, hour, minute, second)."""
+        """Return a 1-dimensional |numpy| |numpy.ndarray|  with six entries
+        defining the actual date (year, month, day, hour, minute, second).
+
+        >>> from hydpy import Date
+        >>> Date('1992-10-8 15:15:42').to_array()
+        array([ 1992.,    10.,     8.,    15.,    15.,    42.])
+
+        .. note::
+
+           The date defined by the returned |numpy.ndarray| does not
+           include any time zone information and corresponds to
+           |Options.utcoffset|, which defaults to UTC+01:00.
+        """
         return numpy.array([self.year, self.month, self.day, self.hour,
                             self.minute, self.second], dtype=float)
 
@@ -484,12 +513,30 @@ literal for int() with base 10: '0X'
 
     @property
     def dayofyear(self):
-        """Day of year as an integer value."""
+        """Day of year as an integer value.
+
+        >>> from hydpy import Date
+        >>> Date('2003-03-01').dayofyear
+        60
+        >>> Date('2004-03-01').dayofyear
+        61
+        """
         return self.datetime.timetuple().tm_yday
 
     @property
     def leapyear(self):
-        """Return whether the actual date falls in a leap year or not."""
+        """Return whether the actual date falls in a leap year or not.
+
+        >>> from hydpy import Date
+        >>> Date('2003-03-01').leapyear
+        False
+        >>> Date('2004-03-01').leapyear
+        True
+        >>> Date('2000-03-01').leapyear
+        True
+        >>> Date('2100-03-01').leapyear
+        False
+        """
         year = self.year
         return (((year % 4) == 0) and
                 (((year % 100) != 0) or ((year % 400) == 0)))

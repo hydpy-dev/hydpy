@@ -1242,6 +1242,95 @@ given step size 1d.
         values[12] = self.stepsize.seconds
         return values
 
+    @classmethod
+    def from_timepoints(cls, timepoints, refdate, unit='hours'):
+        """Return a |Timegrid| object representing the given starting
+        `timepoints` in relation to the given `refdate`.
+
+        The following examples identical with the ones of
+        |Timegrid.to_timepoints| but reversed.
+
+        The at least two given time points must be increasing and
+        equidistant.  By default, they are assumed in hours since
+        the given reference date:
+
+        >>> from hydpy import Timegrid
+        >>> Timegrid.from_timepoints(
+        ...     [0.0, 6.0, 12.0, 18.0], '2000.01.01')
+        Timegrid('2000-01-01 00:00:00',
+                 '2000-01-02 00:00:00',
+                 '6h')
+        >>> Timegrid.from_timepoints(
+        ...     [24.0, 30.0, 36.0, 42.0], '1999-12-31')
+        Timegrid('2000-01-01 00:00:00',
+                 '2000-01-02 00:00:00',
+                 '6h')
+
+        Other time units (`days` or `min`) must be passed explicitely
+        (only the first character counts):
+
+        >>> Timegrid.from_timepoints(
+        ...     [0.0, 0.25, 0.5, 0.75], '2000.01.01', unit='d')
+        Timegrid('2000-01-01 00:00:00',
+                 '2000-01-02 00:00:00',
+                 '6h')
+        >>> Timegrid.from_timepoints(
+        ...     [1.0, 1.25, 1.5, 1.75], '1999.12.31', unit='day')
+        Timegrid('2000-01-01 00:00:00',
+                 '2000-01-02 00:00:00',
+                 '6h')
+        """
+        refdate = Date(refdate)
+        unit = Period.from_cfunits(unit)
+        delta = timepoints[1]-timepoints[0]
+        firstdate = refdate+timepoints[0]*unit
+        lastdate = refdate+(timepoints[-1]+delta)*unit
+        stepsize = (lastdate-firstdate)/len(timepoints)
+        return cls(firstdate, lastdate, stepsize)
+
+    def to_timepoints(self, unit='hours', offset=None):
+        """Return an |numpy.ndarray| representing the starting time points
+        of the |Timegrid| object.
+
+        The following examples identical with the ones of
+        |Timegrid.from_timepoints| but reversed.
+
+        By default, the time points are given in hours:
+
+        >>> from hydpy import Timegrid
+        >>> timegrid = Timegrid('2000-01-01', '2000-01-02', '6h')
+        >>> timegrid.to_timepoints()
+        array([  0.,   6.,  12.,  18.])
+
+        Other time units (`days` or `min`) can be defined (only the first
+        character counts):
+
+        >>> timegrid.to_timepoints(unit='d')
+        array([ 0.  ,  0.25,  0.5 ,  0.75])
+
+        Additionally, one can pass an `offset` that must be of type |int|
+        or an valid |Period| initialization argument:
+
+        >>> timegrid.to_timepoints(offset=24)
+        array([ 24.,  30.,  36.,  42.])
+        >>> timegrid.to_timepoints(offset='1d')
+        array([ 24.,  30.,  36.,  42.])
+        >>> timegrid.to_timepoints(unit='day', offset='1d')
+        array([ 1.  ,  1.25,  1.5 ,  1.75])
+        """
+        unit = Period.from_cfunits(unit)
+        if offset is None:
+            offset = 0.
+        else:
+            try:
+                offset = Period(offset)/unit
+            except TypeError:
+                offset = offset
+        step = self.stepsize/unit
+        nmb = len(self)
+        variable = numpy.linspace(offset, offset+step*(nmb-1), nmb)
+        return variable
+
     def array2series(self, array):
         """Prefix the information of the actual Timegrid object to the given
         array and return it.

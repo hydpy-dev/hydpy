@@ -17,6 +17,7 @@ import warnings
 # ...from third party packages
 import numpy
 # ...from HydPy
+from hydpy import pub
 from hydpy.core import abctools
 from hydpy.core import autodoctools
 from hydpy.core import objecttools
@@ -41,16 +42,40 @@ class Date(object):
     |Date| objects can be initialized via |datetime.datetime| objects
     directly:
 
-    >>> from datetime import datetime
-    >>> datetime_object = datetime(1996, 11, 1, 0, 0, 0)
+    >>> import datetime
+    >>> date = datetime.datetime(1996, 11, 1, 0, 0, 0)
     >>> from hydpy import Date
-    >>> Date(datetime_object)
+    >>> Date(date)
     Date('1996-11-01 00:00:00')
 
-    Alternatively, one can use |str| objects as initialization arguments,
-    which need to match one of the following format styles.  The `os`
-    style is applied in text files and folder names, and does not include
-    any empty spaces or colons:
+    |Date| objects do not store time zone information.  The |Date| object
+    prepared above refers to zero o'clock in the time zone defined by
+    |Options.utcoffset| (UTC+01:00 by default).  When the initialization
+    argument provides its own time zone information, its date information
+    is adjusted.  This is shown in the following example, where the
+    prepared |datetime.datetime| object refers to UTC-01:00:
+
+    >>> timezone = datetime.timezone(datetime.timedelta(hours=-1))
+    >>> date = datetime.datetime(1996, 11, 1, 0, 0, 0, tzinfo=timezone)
+    >>> Date(date)
+    Date('1996-11-01 02:00:00')
+
+    One can change |Options.utcoffset|, but this does not change the
+    |Date| objects already existing:
+
+    >>> from hydpy import pub
+    >>> pub.options.utcoffset = 0
+    >>> temp = Date(date)
+    >>> temp
+    Date('1996-11-01 01:00:00')
+    >>> pub.options.utcoffset = 60
+    >>> temp
+    Date('1996-11-01 01:00:00')
+
+    Usually, one uss |str| objects as initialization arguments, which
+    need to match one of the following format styles.  The `os` style is
+    applied in text files and folder names, and does not include any
+    empty spaces or colons:
 
     >>> Date('1997_11_01_00_00_00').style
     'os'
@@ -73,21 +98,6 @@ class Date(object):
     >>> Date('1997.11.01 00:00:00').style
     'din2'
 
-    |Date| keeps the chosen style in mind and uses it for printing.
-    But one is also allowed to change it either temporarily via method
-    |Date.to_string| or permanently via property |Date.style|:
-
-    >>> date = Date('01.11.1997 00:00:00')
-    >>> date
-    Date('01.11.1997 00:00:00')
-    >>> date.to_string('os')
-    '1997_11_01_00_00_00'
-    >>> date.style
-    'din1'
-    >>> date.style = 'iso2'
-    >>> str(date)
-    '1997-11-01 00:00:00'
-
     It is allowed to abbreviate the input strings:
 
     >>> for string in ('1996-11-01 00:00:00',
@@ -99,6 +109,44 @@ class Date(object):
     1996-11-01 00:00:00
     1996-11-01 00:00:00
     1996-11-01 00:00:00
+
+    All styles described above can be combined with ISO time zone
+    identifiers.  Some examples:
+
+    >>> Date('1997-11-01T00:00:00Z')
+    Date('1997-11-01T01:00:00')
+    >>> Date('1997-11-01 00:00:00-11:00')
+    Date('1997-11-01 12:00:00')
+    >>> Date('1997-11-01 +1300')
+    Date('1997-10-31 12:00:00')
+    >>> Date('01.11.1997 00-500')
+    Date('01.11.1997 06:00:00')
+
+    Poorly formatted date strings result in the following or comparable
+    error messages:
+
+    >>> Date('1997/11/01')
+    Traceback (most recent call last):
+    ...
+    ValueError: Date could not be identified out of the given string \
+1997/11/01.  The available formats are OrderedDict([\
+('os', '%Y_%m_%d_%H_%M_%S'), ('iso2', '%Y-%m-%d %H:%M:%S'), \
+('iso1', '%Y-%m-%dT%H:%M:%S'), ('din1', '%d.%m.%Y %H:%M:%S'), \
+('din2', '%Y.%m.%d %H:%M:%S')]).
+
+    >>> Date('1997-11-01 +0000001')
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to apply the time zone offset from string \
+`1997-11-01 +0000001`, the following error occured: wrong number of \
+offset characters
+
+    >>> Date('1997-11-01 +0X:00')
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to apply the time zone offset from string \
+`1997-11-01 +0X:00`, the following error occured: invalid \
+literal for int() with base 10: '0X'
     """
 
     # These are the so far accepted date format strings.
@@ -116,40 +164,84 @@ class Date(object):
         self._style = None
         if isinstance(date, abctools.DateABC):
             self.datetime = date.datetime
-        elif isinstance(date, datetime.datetime):
+            return
+        if isinstance(date, datetime.datetime):
             if date.microsecond:
                 raise ValueError(
                     'For `Date` instances, the microsecond must be `0`.  '
                     'For the given `datetime` object, it is `%d` instead.'
                     % date.microsecond)
-            self.datetime = date
-        elif isinstance(date, str):
+            date = date.isoformat().replace('T', ' ')
+        if isinstance(date, str):
             self._init_from_string(date)
-        elif isinstance(date, abctools.TOYABC):
+            return
+        if isinstance(date, abctools.TOYABC):
             self.datetime = datetime.datetime(
                 2000, date.month, date.day,
                 date.hour, date.minute, date.second)
-        else:
-            raise TypeError(
-                'The supplied argument must be either an instance of '
-                '`datetime.datetime` or of `str`.  The given arguments '
-                'type is %s.'
-                % type(date))
+            return
+        raise TypeError(
+            'The supplied argument must be either an instance of '
+            '`datetime.datetime` or of `str`.  The given arguments '
+            'type is %s.'
+            % type(date))
 
-    def _init_from_string(self, date):
-        for (style, string) in self._formatstrings.items():
+    def _init_from_string(self, string):
+        substring, offset = self._extract_offset(string)
+        style, date = self._extract_date(substring, string)
+        self.datetime = self._modify_date(date, offset, string)
+        self._style = style
+        return
+
+    @staticmethod
+    def _extract_offset(string):
+        if 'Z' in string:
+            return string.split('Z')[0].strip(), '+0000'
+        if '+' in string:
+            idx = string.find('+')
+        elif string.count('-') in (1, 3):
+            idx = string.rfind('-')
+        else:
+            return string, None
+        return string[:idx].strip(), string[idx:].strip()
+
+    @classmethod
+    def _extract_date(cls, substring, string):
+        for (style, format_) in cls._formatstrings.items():
             for dummy in range(4):
                 try:
-                    self.datetime = datetime.datetime.strptime(date, string)
-                    self._style = style
-                    return
+                    date = datetime.datetime.strptime(substring, format_)
+                    return style, date
                 except ValueError:
-                    string = string[:-3]
-        else:
-            raise ValueError(
-                'Date could not be identified out of the given '
-                'string %s.  The available formats are %s.'
-                % (date, self._formatstrings))
+                    format_ = format_[:-3]
+        raise ValueError(
+            'Date could not be identified out of the given '
+            'string %s.  The available formats are %s.'
+            % (string, cls._formatstrings))
+
+    @staticmethod
+    def _modify_date(date, offset, string):
+        try:
+            if offset is None:
+                return date
+            else:
+                factor = 1 if (offset[0] == '+') else -1
+                offset = offset[1:].strip().replace(':', '')
+                if len(offset) <= 2:
+                    minutes = int(offset)*60
+                elif len(offset) <= 4:
+                    minutes = int(offset[:-2])*60 + int(offset[-2:])
+                else:
+                    raise ValueError(
+                        'wrong number of offset characters')
+                delta = datetime.timedelta(
+                    minutes=factor*minutes-pub.options.utcoffset)
+                return date - delta
+        except BaseException:
+            objecttools.augment_excmessage(
+                'While trying to apply the time zone offset '
+                'from string `%s`'
+                % string)
 
     @classmethod
     def from_array(cls, array):
@@ -193,7 +285,31 @@ class Date(object):
     refmonth = property(_get_refmonth, _set_refmonth)
 
     def _get_style(self):
-        """Date format style to be applied in printing."""
+        """Date format style to be applied in printing.
+
+        Initially, |Date.style| corresponds to the format style of the
+        string used as the initialization object of a |Date| object:
+
+        >>> from hydpy import Date
+        >>> date = Date('01.11.1997 00:00:00')
+        >>> date.style
+        'din1'
+        >>> date
+        Date('01.11.1997 00:00:00')
+
+        However, you are allowed to change it:
+
+        >>> date.style = 'iso2'
+        >>> date
+        Date('1997-11-01 00:00:00')
+
+        Trying to set a non-existing style results in:
+
+        >>> date.style = 'iso'
+        Traceback (most recent call last):
+        ...
+        KeyError: 'Date format style `iso` is not available.'
+        """
         if self._style is None:
             return 'iso2'
         return self._style
@@ -423,22 +539,77 @@ class Date(object):
     def __ge__(self, other):
         return self.datetime >= Date(other).datetime
 
-    def to_string(self, style):
-        """Returns a |str| object representing the actual date in
-        accordance with the given style.
+    def to_string(self, style=None, utcoffset=None):
+        """Return a |str| object representing the actual date in
+        accordance with the given style and the eventually given
+        UTC offset (in minutes).
+
+        Without any input arguments, the actual |Date.style| is used
+        to return a date string in your local time zone:
+
+        >>> from hydpy import Date
+        >>> date = Date('01.11.1997 00:00:00')
+        >>> date.to_string()
+        '01.11.1997 00:00:00'
+
+        Passing a style string affects the returned |str| object, but
+        not the |Date.style| property:
+
+        >>> date.style
+        'din1'
+        >>> date.to_string(style='iso2')
+        '1997-11-01 00:00:00'
+        >>> date.style
+        'din1'
+
+        When passing the `utcoffset` in minutes, the offset string is
+        appended:
+
+        >>> date.to_string(style='iso2', utcoffset=60)
+        '1997-11-01 00:00:00+01:00'
+
+        If the given offset does not correspond to your local offset
+        defined by |Options.utcoffset| (which defaults to UTC+01:00),
+        the date string is adapted:
+
+        >>> date.to_string(style='iso1', utcoffset=0)
+        '1997-10-31T23:00:00+00:00'
         """
-        retain = self.style
-        try:
-            self.style = style
-            return str(self)
-        finally:
-            self.style = retain
+        if not style:
+            style = self.style
+        if utcoffset is None:
+            string = ''
+            date = self.datetime
+        else:
+            sign = '+' if utcoffset >= 0 else '-'
+            hours = abs(utcoffset // 60)
+            minutes = abs(utcoffset % 60)
+            string = '%s%02d:%02d' % (sign, hours, minutes)
+            offset = utcoffset-pub.options.utcoffset
+            date = self.datetime + datetime.timedelta(minutes=offset)
+        return date.strftime(self._formatstrings[style]) + string
+
+    def to_repr(self, style=None, utcoffset=None):
+        """Similar as method |Date.to_string|, but returns a proper
+        string representation instead.
+
+        See method |Date.to_string| for explanations on the following
+        examples:
+
+        >>> from hydpy import Date
+        >>> date = Date('01.11.1997 00:00:00')
+        >>> date.to_repr()
+        "Date('01.11.1997 00:00:00')"
+        >>> date.to_repr('iso1', utcoffset=0)
+        "Date('1997-10-31T23:00:00+00:00')"
+        """
+        return "Date('%s')" % self.to_string(style, utcoffset)
 
     def __str__(self):
-        return self.datetime.strftime(self._formatstrings[self.style])
+        return self.to_string(self.style)
 
     def __repr__(self):
-        return "Date('%s')" % str(self)
+        return self.to_repr()
 
     def __dir__(self):
         return objecttools.dir_(self)
@@ -1111,25 +1282,42 @@ timegrid object is `4` and the length of the array object is `2`.
                 (self.lastdate != other.lastdate) or
                 (self.stepsize != other.stepsize))
 
-    def __str__(self):
-        return ('from %s to %s in %s steps'
-                % (self.firstdate, self.lastdate, self.stepsize))
-
     def __repr__(self):
         return self.assignrepr('')
 
-    def assignrepr(self, prefix):
+    def assignrepr(self, prefix, style=None, utcoffset=None):
         """Return a |repr| string with an prefixed assignement.
 
-        Argument:
-            * prefix(|str|): Usually something like 'x = '.
+        Without option arguments given, printing the returned string
+        looks like:
+
+        >>> from hydpy import Timegrid
+        >>> timegrid = Timegrid('1996-11-01 00:00:00',
+        ...                     '1997-11-01 00:00:00',
+        ...                     '1d')
+        >>> print(timegrid.assignrepr(prefix='timegrid = '))
+        timegrid = Timegrid('1996-11-01 00:00:00',
+                            '1997-11-01 00:00:00',
+                            '1d')
+
+        The optional arguments are passed to method |Date.to_repr|
+        without any modifications:
+
+        >>> print(timegrid.assignrepr(
+        ...     prefix='', style='iso1', utcoffset=120))
+        Timegrid('1996-11-01T01:00:00+02:00',
+                 '1997-11-01T01:00:00+02:00',
+                 '1d')
         """
         skip = len(prefix) + 9
         blanks = ' ' * skip
-        lines = ["%sTimegrid('%s'," % (prefix, str(self.firstdate)),
-                 "%s'%s'," % (blanks, str(self.lastdate)),
-                 "%s'%s')" % (blanks, str(self.stepsize))]
-        return '\n'.join(lines)
+        line1 = ("%sTimegrid('%s',"
+                 % (prefix, self.firstdate.to_string(style, utcoffset)))
+        line2 = ("%s'%s',"
+                 % (blanks, self.lastdate.to_string(style, utcoffset)))
+        line3 = ("%s'%s')"
+                 % (blanks, str(self.stepsize)))
+        return '\n'.join((line1, line2, line3))
 
     def __dir__(self):
         return objecttools.dir_(self)

@@ -112,6 +112,12 @@ class Options(object):
     when e.g. an incomplete input time series, not spanning the whole
     initialization time period, is loaded."""
 
+    dirverbose = _Option(False, None)
+    """True/False flag indicationg whether the listboxes for the member
+    selection of the classes of the HydPy framework should be complete
+    (True) or restrictive (False).  The latter is more viewable and hence
+    the default."""
+
     ellipsis = _Option(-999, -999)
     """Ellipsis points are used to shorten the string representations
     of iterable HydPy objects containing many entries.  Set a value
@@ -162,11 +168,9 @@ class Options(object):
     """True/False flag indicating whether parameters values shall be
     initialized with standard values or not."""
 
-    dirverbose = _Option(False, None)
-    """True/False flag indicationg whether the listboxes for the member
-    selection of the classes of the HydPy framework should be complete
-    (True) or restrictive (False).  The latter is more viewable and hence
-    the default."""
+    utcoffset = _Option(60, None)
+    """Offset of your local time from UTC in minutes.  Defaults to 60,
+    which corresponds to UTC+01:00."""
 
     warnmissingcontrolfile = _Option(False, None)
     """True/False flag indicating whether only a warning shall be raised

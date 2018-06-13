@@ -17,7 +17,6 @@ from hydpy import pub
 from hydpy.core import abctools
 from hydpy.core import autodoctools
 from hydpy.core import objecttools
-from hydpy.core import timetools
 from hydpy.core import variabletools
 from hydpy.cythons.autogen import pointerutils
 
@@ -1151,13 +1150,17 @@ or prepare `pub.sequencemanager` correctly.
     series = property(_getseries, _setseries, _delseries)
 
     def load_ext(self):
-        """Load the external data series in accordance with
-        `pub.timegrids.init` and store it as internal data.
-        """
-        if self.filetype_ext == 'npy':
-            timegrid_data, values = self._load_npy()
-        else:
-            timegrid_data, values = self._load_asc()
+        """Write the internal data into an external data file."""
+        try:
+            sequencemanager = pub.sequencemanager
+        except AttributeError:
+            raise RuntimeError(
+                'The time series of sequence %s cannot be loaded.  Firstly, '
+                'you have to prepare `pub.sequencemanager` correctly.'
+                % objecttools.devicephrase(self))
+        sequencemanager.load_file(self)
+
+    def adjust_series(self, timegrid_data, values):
         if self.shape != values.shape[1:]:
             raise RuntimeError(
                 'The shape of sequence %s is `%s`, but according to '
@@ -1180,20 +1183,10 @@ or prepare `pub.sequencemanager` correctly.
                     % (objecttools.devicephrase(self), pub.timegrids.init,
                        self.filepath_ext, timegrid_data))
             else:
-                values = self.adjust_short_series(timegrid_data, values)
-        else:
-            idx1 = timegrid_data[pub.timegrids.init.firstdate]
-            idx2 = timegrid_data[pub.timegrids.init.lastdate]
-            values = values[idx1:idx2]
-        if self.diskflag:
-            self._save_int(values)
-        elif self.ramflag:
-            self._setarray(values)
-        else:
-            raise RuntimeError(
-                'Sequence %s is not requested to make '
-                'any internal data available the the user.'
-                % objecttools.devicephrase(self))
+                return self.adjust_short_series(timegrid_data, values)
+        idx1 = timegrid_data[pub.timegrids.init.firstdate]
+        idx2 = timegrid_data[pub.timegrids.init.lastdate]
+        return values[idx1:idx2]
 
     def adjust_short_series(self, timegrid, values):
         """Adjust a short time series to a longer timegrid.
@@ -1205,8 +1198,9 @@ or prepare `pub.sequencemanager` correctly.
         incomplete time series might also be helpful.  This method it
         thought for adjusting such incomplete series to the public
         initialization time grid stored in module |pub|.  It is
-        automatically called in method |IOSequence.load_ext| if necessary
-        provided that the option |Options.checkseries| is disabled.
+        automatically called in method |IOSequence.adjust_series| when
+        necessary provided that the option |Options.checkseries| is
+        disabled.
 
         Assume the initialization time period of a HydPy project spans
         five day:
@@ -1285,42 +1279,13 @@ or prepare `pub.sequencemanager` correctly.
 
     def save_ext(self):
         """Write the internal data into an external data file."""
-        if self.filetype_ext == 'npy':
-            series = pub.timegrids.init.array2series(self.series)
-            numpy.save(self.filepath_ext, series)
-        else:
-            with open(self.filepath_ext, 'w') as file_:
-                file_.write(repr(pub.timegrids.init) + '\n')
-            with open(self.filepath_ext, 'ab') as file_:
-                numpy.savetxt(file_, self.series, delimiter='\t')
-
-    def _load_npy(self):
-        """Return the data timegrid and the complete external data from a
-        binary numpy file.
-        """
         try:
-            data = numpy.load(self.filepath_ext)
-        except BaseException:
-            objecttools.augment_excmessage(
-                'While trying to load the external data of sequence '
-                '%s from file `%s`'
-                % (objecttools.devicephrase(self), self.filepath_ext))
-        try:
-            timegrid_data = timetools.Timegrid.fromarray(data)
-        except BaseException:
-            objecttools.augment_excmessage(
-                'While trying to retrieve the data timegrid of the '
-                'external data file `%s` of sequence %s'
-                % (self.filepath_ext, objecttools.devicephrase(self)))
-        return timegrid_data, data[13:]
-
-    def _load_asc(self):
-        with open(self.filepath_ext) as file_:
-            header = '\n'.join([file_.readline() for idx in range(3)])
-        timegrid_data = eval(header, {}, {'Timegrid': timetools.Timegrid})
-        values = numpy.loadtxt(self.filepath_ext, skiprows=3,
-                               ndmin=self.NDIM+1)
-        return timegrid_data, values
+            pub.sequencemanager.save_file(self)
+        except AttributeError:
+            raise RuntimeError(
+                'The time series of sequence %s cannot be saved.  Firstly,'
+                'you have to prepare `pub.sequencemanager` correctly.'
+                % objecttools.devicephrase(self))
 
     def _load_int(self):
         """Load internal data from file and return it."""

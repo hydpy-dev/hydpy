@@ -7,6 +7,8 @@ of HydPy projects.
 from __future__ import division, print_function
 import os
 import runpy
+# ...from site-packages
+import numpy
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import autodoctools
@@ -14,6 +16,7 @@ from hydpy.core import devicetools
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import selectiontools
+from hydpy.core import timetools
 
 
 class _Directories(object):
@@ -567,8 +570,65 @@ class SequenceManager(FileManager):
         self._BASEDIR = 'sequences'
         self._defaultdir = None
 
+    def load_file(self, sequence):
+        """Load data from an "external" data file an pass it to
+        the given |IOSequence|."""
+        try:
+            if sequence.filetype_ext == 'npy':
+                sequence.series = sequence.adjust_series(
+                    *self._load_npy(sequence))
+            elif sequence.filetype_ext == 'asc':
+                sequence.series = sequence.adjust_series(
+                    *self._load_asc(sequence))
+        except BaseException:
+            objecttools.augment_excmessage(
+                'While trying to load the external data of sequence %s'
+                % objecttools.devicephrase(sequence))
+
+    @staticmethod
+    def _load_npy(sequence):
+        data = numpy.load(sequence.filepath_ext)
+        timegrid_data = timetools.Timegrid.from_array(data)
+        return timegrid_data, data[13:]
+
+    @staticmethod
+    def _load_asc(sequence):
+        with open(sequence.filepath_ext) as file_:
+            header = '\n'.join([file_.readline() for idx in range(3)])
+        timegrid_data = eval(header, {}, {'Timegrid': timetools.Timegrid})
+        values = numpy.loadtxt(
+            sequence.filepath_ext, skiprows=3, ndmin=sequence.NDIM+1)
+        return timegrid_data, values
 
 
+    def save_file(self, sequence):
+        """Write the date stored in |IOSequence.series| of the given
+        |IOSequence| into an "external" data file. """
+        try:
+            if sequence.filetype_ext == 'npy':
+                self._save_npy(sequence)
+            elif sequence.filetype_ext == 'asc':
+                self._save_asc(sequence)
+        except BaseException:
+            objecttools.augment_excmessage(
+                'While trying to save the external data of sequence %s'
+                % objecttools.devicephrase(sequence))
+
+    @staticmethod
+    def _save_npy(sequence):
+        series = pub.timegrids.init.array2series(sequence.series)
+        numpy.save(sequence.filepath_ext, series)
+
+    @staticmethod
+    def _save_asc(sequence):
+        with open(sequence.filepath_ext, 'w') as file_:
+            file_.write(
+                pub.timegrids.init.assignrepr(
+                    prefix='',
+                    style='iso2',
+                    utcoffset=pub.options.utcoffset) + '\n')
+        with open(sequence.filepath_ext, 'ab') as file_:
+            numpy.savetxt(file_, sequence.series, delimiter='\t')
 
 
     def __dir__(self):

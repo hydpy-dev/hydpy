@@ -705,9 +705,9 @@ class IOSequence(Sequence):
         >>> pub.sequencemanager = SequenceManager()
 
         Depending if the actual sequence is logged as an |InputSequenceABC|,
-        |OutputSequenceABC|, or |NodeSequenceABC|, either
-        |SequenceManager.inputfiletype|, |SequenceManager.outputfiletype|,
-        or |SequenceManager.nodefiletype| are queried:
+        an |NodeSequenceABC|, or not, either
+        |SequenceManager.inputfiletype|, |SequenceManager.nodefiletype|,
+        or |SequenceManager.outputfiletype| are queried:
 
         >>> pub.sequencemanager.inputfiletype = 'npy'
         >>> pub.sequencemanager.outputfiletype = 'asc'
@@ -772,12 +772,10 @@ prepare `pub.sequencemanager` correctly.
     def _getfilename_ext(self):
         """Complete filename of the external data file.
 
-        The "external" filename consists either of
-        |ModelIOSequence.rawfilename| of subclass |ModelIOSequence] of
-        |NodeSequence.rawfilename| of subclass |NodeSequence], and of
-        |IOSequence.filetype_ext| of class |IOSequence|.  For simplicity,
-        we define add the attribute `rawfilename` to the initialized
-        sequence object in the following example:
+        The "external" filename consists of |IOSequence.rawfilename| and
+        of |IOSequence.filetype_ext|.  For simplicity, we define add the
+        attribute `rawfilename` to the initialized sequence object in the
+        following example:
 
         >>> from hydpy.core import sequencetools as st
         >>> seq = st.IOSequence()
@@ -802,12 +800,10 @@ prepare `pub.sequencemanager` correctly.
     def _getfilename_int(self):
         """Complete filename of the internal data file.
 
-        The "external" filename consists either of
-        |ModelIOSequence.rawfilename| of subclass |ModelIOSequence] of
-        |NodeSequence.rawfilename| of subclass |NodeSequence] and the
-        file ending `.bin`.  For simplicity, we define add the attribute
-        `rawfilename` to the initialized sequence object in the following
-        example:
+        The "internal" filename consists of |IOSequence.rawfilename|
+        and the file ending `.bin`.  For simplicity, we define add
+        the attribute `rawfilename` to the initialized sequence object
+        in the following example:
 
         >>> from hydpy.core.sequencetools import IOSequence
         >>> seq = IOSequence()
@@ -838,9 +834,9 @@ prepare `pub.sequencemanager` correctly.
         >>> pub.sequencemanager.check_exists = False
 
         Depending if the actual sequence is logged as an |InputSequenceABC|,
-        |OutputSequenceABC|, or |NodeSequenceABC|, either
-        |SequenceManager.inputpath|, |SequenceManager.outputpath|,
-        or |SequenceManager.nodepath| are queried:
+        a |NodeSequenceABC|, or not, either |SequenceManager.inputpath|,
+        |SequenceManager.nodepath|, or |SequenceManager.outputpath| are
+        queried:
 
         >>> from hydpy.core import sequencetools as st
         >>> from hydpy import repr_

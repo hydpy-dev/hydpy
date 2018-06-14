@@ -897,8 +897,8 @@ class TestIO(object):
     False
 
     If some tests require writing such a file, this should be done
-    within HydPy's `iotesting` folder in subpackage |tests|, which
-    is achieved by appyling the |with| statement on |TestIO|:
+    within HydPy's `iotesting` folder in subpackage `tests`, which
+    is achieved by appyling the `with` statement on |TestIO|:
 
     >>> from hydpy import TestIO
     >>> with TestIO():
@@ -906,7 +906,7 @@ class TestIO(object):
     ...     print(os.path.exists('testfile.txt'))
     True
 
-    After the |with| block, the working directory is reset automatically:
+    After the `with` block, the working directory is reset automatically:
 
     >>> os.path.exists('testfile.txt')
     False
@@ -917,7 +917,7 @@ class TestIO(object):
     ...     print(os.path.exists('testfile.txt'))
     True
 
-    Optionally, files and folders created within the current |with| block
+    Optionally, files and folders created within the current `with` block
     can be removed automatically by setting `clear_own` to |True|
     (modified files and folders are not affected):
 
@@ -933,7 +933,7 @@ class TestIO(object):
     True False
 
     Alternatively, all files and folders contained in folder `iotesting`
-    can be removed after leaving the |with| block:
+    can be removed after leaving the `with` block:
 
     >>> with TestIO(clear_all=True):
     ...     os.makedirs('testfolder')
@@ -945,7 +945,7 @@ class TestIO(object):
     ...           os.path.exists('testfolder'))
     False False
 
-    For just clearing the `iofolder, one can call method |IOTest.clear|
+    For just clearing the `iofolder`, one can call method |TestIO.clear|
     alternatively:
 
     >>> with TestIO():

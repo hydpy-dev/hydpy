@@ -1153,7 +1153,7 @@ given step size 1d.
     True
 
     Also, one can check if a date or even the whole timegrid lies within a
-    span defined by a |Timegrid| instance::
+    span defined by a |Timegrid| instance:
 
     >>> # Define a long timegrid:
     >>> timegrid_long = Timegrid('1996.11.01', '2006.11.01', '1d')

@@ -135,13 +135,13 @@ class NetCDFInterface(object):
     ...     print(''.join(char.decode('utf-8') for char in chars))
     e1
     e2
-    >>> v1['nkor_fluxes'][:][0]
+    >>> numpy.array(v1['nkor_fluxes'][:][0])
     array([[   0., -999.],
            [   1., -999.],
            [   2., -999.],
            [   3., -999.]])
 
-    >>> v1['nkor_fluxes'][:][1]
+    >>> numpy.array(v1['nkor_fluxes'][:][1])
     array([[  4.,   5.],
            [  6.,   7.],
            [  8.,   9.],
@@ -150,7 +150,7 @@ class NetCDFInterface(object):
     >>> for chars in v2['devices'][:]:
     ...     print(''.join(char.decode('utf-8') for char in chars))
     e3
-    >>> v2['bowa_states'][:][0]
+    >>> numpy.array(v2['bowa_states'][:][0])
     array([[ 12.,  13.,  14.],
            [ 15.,  16.,  17.],
            [ 18.,  19.,  20.],

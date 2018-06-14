@@ -14,6 +14,7 @@ import inspect
 import io
 import os
 import pkgutil
+import sys
 import types
 import unittest
 # ...from site-packages
@@ -636,7 +637,8 @@ def prepare_mainsubstituter():
     """Prepare and return a |Substituter| object for the main `__init__`
     file of :ref:`HydPy`."""
     substituter = Substituter()
-    for module in (builtins, numpy, datetime, unittest, doctest, inspect, io):
+    for module in (builtins, numpy, datetime, unittest, doctest, inspect, io,
+                   os, sys):
         substituter.add_module(module)
     for subpackage in (auxs, core, cythons):
         for dummy, name, dummy in pkgutil.walk_packages(subpackage.__path__):

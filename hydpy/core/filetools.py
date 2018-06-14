@@ -421,10 +421,27 @@ class ConditionManager(FileManager):
             self._defaultdir = _defaultdir
 
 
-class _ContextDir(object):
+class _Context(object):
 
-    def __init__(self, value, sequence_type):
-        self.value = value
+    def __init__(self, name, default):
+        self.default = default
+        self.attrname = '_%s_value' % name
+
+    def get_value(self, obj):
+        value = getattr(obj, self.attrname, None)
+        return self.default if (value is None) else value
+
+    def set_value(self, obj, value):
+        setattr(obj, self.attrname, value)
+
+    def del_value(self, obj):
+        setattr(obj, self.attrname, None)
+
+
+class _ContextDir(_Context):
+
+    def __init__(self, name, default, sequence_type):
+        _Context.__init__(self, name, default)
         self.sequence_type = sequence_type
         self.__doc__ = (
             'Current directory containing the %s sequence files.'
@@ -434,7 +451,7 @@ class _ContextDir(object):
         if obj is None:
             return self
         try:
-            obj.currentdir = self.value
+            obj.currentdir = self.get_value(obj)
             return obj._currentdir
         except IOError:
             objecttools.augment_excmessage(
@@ -446,7 +463,7 @@ class _ContextDir(object):
     def __set__(self, obj, directory):
         try:
             obj.currentdir = directory
-            self.value = directory
+            self.set_value(obj, directory)
         except IOError:
             objecttools.augment_excmessage(
                 'While trying to set the %s sequence directory'
@@ -456,19 +473,19 @@ class _ContextDir(object):
 
     def __delete__(self, obj):
         try:
-            obj.currentdir = self.value
+            obj.currentdir = self.get_value(obj)
             del obj.currentdir
         except IOError:
             objecttools.augment_excmessage(
                 'While trying to delete the input sequence directory')
         finally:
-            self.value = None
+            self.del_value(obj)
 
 
-class _ContextType(object):
+class _ContextType(_Context):
 
-    def __init__(self, value, sequence_type):
-        self.value = value
+    def __init__(self, name, default, sequence_type):
+        _Context.__init__(self, name, default)
         self.__doc__ = (
             'Currently selected type of the %s sequence files.'
             % sequence_type)
@@ -476,12 +493,12 @@ class _ContextType(object):
     def __get__(self, obj, type_=None):
         if obj is None:
             return self
-        return self.value
+        return self.get_value(obj)
 
     def __set__(self, obj, value):
         value = str(value)
         if value in obj._supportedmodes:
-            self.value = value
+            self.set_value(obj, value)
         else:
             raise ValueError(
                 'The given sequence file type `%s` is not implemented.  '
@@ -489,10 +506,10 @@ class _ContextType(object):
                 % (value, objecttools.enumeration(obj._supportedmodes)))
 
 
-class _ContextOverwrite(object):
+class _ContextOverwrite(_Context):
 
-    def __init__(self, value, sequence_type):
-        self.value = value
+    def __init__(self, name, default, sequence_type):
+        _Context.__init__(self, name, default)
         self.__doc__ = (
             'Currently selected overwrite flag of the %s sequence files.'
             % sequence_type)
@@ -500,16 +517,16 @@ class _ContextOverwrite(object):
     def __get__(self, obj, type_=None):
         if obj is None:
             return self
-        return self.value
+        return self.get_value(obj)
 
     def __set__(self, obj, value):
-        self.value = bool(value)
+        self.set_value(obj, value)
 
 
-class _ContextPath(object):
+class _ContextPath(_Context):
 
-    def __init__(self, sequence_dir, sequence_type):
-        self.value = None
+    def __init__(self, name, sequence_dir, sequence_type):
+        _Context.__init__(self, name, None)
         self.sequence_dir = sequence_dir
         self.sequence_type = sequence_type
         self.__doc__ = (
@@ -519,24 +536,28 @@ class _ContextPath(object):
     def __get__(self, obj, type_=None):
         if obj is None:
             return self
-        if self.value:
-            return self.value
-        else:
+        value = self.get_value(obj)
+        if value is None:
             return os.path.join(obj.basepath, getattr(obj, self.sequence_dir))
+        return value
 
     def __set__(self, obj, path):
-        if os.path.exists(path):
-            self.value = path
+        path = str(path)
+        abspath = os.path.abspath(path)
+        if os.path.exists(abspath):
+            self.set_value(obj, path)
         elif obj.createdirs:
-            os.makedirs(path)
-            self.value = path
+            os.makedirs(abspath)
+            self.set_value(obj, path)
         elif obj.check_exists:
             raise IOError(
                 'The %s sequence path `%s` does not exist.'
-                % (self.sequence_type, os.path.abspath(path)))
+                % (self.sequence_type, abspath))
+        else:
+            self.set_value(obj, path)
 
     def __delete__(self, obj):
-        self.value = None
+        self.del_value(obj)
 
 
 class SequenceManager(FileManager):
@@ -544,26 +565,26 @@ class SequenceManager(FileManager):
 
     _supportedmodes = ('npy', 'asc')
 
-    inputdir = _ContextDir('input', 'input')
-    outputdir = _ContextDir('output', 'output')
-    nodedir = _ContextDir('node', 'node')
-    tempdir = _ContextDir('temp', 'temporary')
+    inputdir = _ContextDir('inputdir', 'input', 'input')
+    outputdir = _ContextDir('outputdir', 'output', 'output')
+    nodedir = _ContextDir('nodedir', 'node', 'node')
+    tempdir = _ContextDir('tempdir', 'temp', 'temporary')
 
-    inputfiletype = _ContextType('npy', 'input')
-    outputfiletype = _ContextType('npy', 'output')
-    nodefiletype = _ContextType('npy', 'node')
-    tempfiletype = _ContextType('npy', 'temporary')
+    inputfiletype = _ContextType('inputfiletype', 'npy', 'input')
+    outputfiletype = _ContextType('outputfiletype', 'npy', 'output')
+    nodefiletype = _ContextType('nodefiletype', 'npy', 'node')
+    tempfiletype = _ContextType('tempfiletype', 'npy', 'temporary')
 
-    inputoverwrite = _ContextOverwrite(False, 'input')
-    outputoverwrite = _ContextOverwrite(False, 'output')
-    simoverwrite = _ContextOverwrite(False, 'sim node')
-    obsoverwrite = _ContextOverwrite(False, 'obs node')
-    tempoverwrite = _ContextOverwrite(False, 'temporary')
+    inputoverwrite = _ContextOverwrite('inputoverwrite', False, 'input')
+    outputoverwrite = _ContextOverwrite('outputoverwrite', False, 'output')
+    simoverwrite = _ContextOverwrite('simoverwrite', False, 'sim node')
+    obsoverwrite = _ContextOverwrite('obsoverwrite', False, 'obs node')
+    tempoverwrite = _ContextOverwrite('tempoverwrite', False, 'temporary')
 
-    inputpath = _ContextPath('inputdir', 'input')
-    outputpath = _ContextPath('outputdir', 'output')
-    nodepath = _ContextPath('nodedir', 'node')
-    temppath = _ContextPath('tempdir', 'temporary')
+    inputpath = _ContextPath('inputpath', 'inputdir', 'input')
+    outputpath = _ContextPath('outputpath', 'outputdir', 'output')
+    nodepath = _ContextPath('nodepath', 'nodedir', 'node')
+    temppath = _ContextPath('temppath', 'tempdir', 'temporary')
 
     def __init__(self):
         FileManager.__init__(self)

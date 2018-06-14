@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""This module implements tools for handling the folder structure
-of HydPy projects.
+"""This module implements features for handling the folder structure of
+HydPy projects as well as loading data from and storing data to files.
 """
 # import...
 # ...from standard library
@@ -562,7 +562,138 @@ class _ContextPath(_Context):
 
 
 class SequenceManager(FileManager):
-    """Manager for sequence files."""
+    """Manager for sequence files.
+
+    Usually, there is only one |SequenceManager| used within each HydPy
+    project, stored in module |pub|.  This object is responsible for the
+    actual I/O tasks related to |IOSequence| objects.
+
+    In complete HydPy project, the |SequenceManager| object is often not
+    used directly by the user, except if one wishes to load data from or
+    store data to directories that differ from the default settings.
+    In the following examples, we partially set up a project manually,
+    and show the basic features of class |SequenceManager|.
+
+    Firstly, we define project called `test_project`, set a short time
+    period and prepare a |SequenceManager| object:
+
+    >>> from hydpy import pub, Timegrids, Timegrid
+    >>> pub.projectname = 'test_project'
+    >>> pub.timegrids = Timegrids(Timegrid('01.01.2000',
+    ...                                    '05.01.2000',
+    ...                                    '1d'))
+    >>> from hydpy.core.filetools import SequenceManager
+    >>> pub.sequencemanager = SequenceManager()
+
+    Allowing the |SequenceManager| object to create missing directories
+    is not default, but more convenient for the following examples:
+
+    >>> pub.sequencemanager.createdirs = True
+
+    Secondly, we prepare an 0-dimensional |IOSequence| object called
+    `test_sequence` and assign a small time series to it:
+
+    >>> from hydpy.core.sequencetools import IOSequence
+    >>> seq = IOSequence()
+    >>> seq.NDIM = 0
+    >>> seq.rawfilename = 'test_sequence'
+    >>> seq.activate_ram()
+    >>> seq.series = 1.0, 2.0, 3.0, 4.0
+
+    Now we can store this time series in an ASCII file:
+
+    >>> seq.filetype_ext = 'asc'
+    >>> from hydpy import TestIO
+    >>> with TestIO():
+    ...     pub.sequencemanager.save_file(seq)
+
+    To check that this was actually successful, be can load the file
+    content from the standard output directory and print it:
+
+    >>> import os
+    >>> path = os.path.join(
+    ...     'test_project', 'sequences', 'output', 'test_sequence.asc')
+    >>> with TestIO():
+    ...     with open(path) as file_:
+    ...         print(file_.read().strip())
+    Timegrid('2000-01-01 00:00:00+01:00',
+             '2000-01-05 00:00:00+01:00',
+             '1d')
+    1.000000000000000000e+00
+    2.000000000000000000e+00
+    3.000000000000000000e+00
+    4.000000000000000000e+00
+
+    To show that reloading the data works, we first set the values of
+    the internal time series of the |IOSequence| object to zero:
+
+    >>> seq.series = 0.
+    >>> seq.series
+    array([ 0.,  0.,  0.,  0.])
+    >>> with TestIO():
+    ...     pub.sequencemanager.load_file(seq)
+    >>> seq.series
+    array([ 1.,  2.,  3.,  4.])
+
+    Badly formated ASCII files should result in clear error messages:
+
+    >>> with TestIO():
+    ...     with open(path) as file_:
+    ...         right = file_.read()
+    ...     wrong = right.replace('Timegrid', 'timegrid')
+    ...     with open(path, 'w') as file_:
+    ...         _ = file_.write(wrong)
+    >>> with TestIO(clear_all=True):
+    ...     pub.sequencemanager.load_file(seq)
+    Traceback (most recent call last):
+    ...
+    NameError: While trying to load the external data of sequence \
+`iosequence`, the following error occured: name 'timegrid' is not defined
+
+    Another option is to store data using |numpy| binary files, which
+    is a good option for saving computation times, but a bad option for
+    sharing data with collegues:
+
+    >>> seq.filetype_ext = 'npy'
+    >>> with TestIO():
+    ...     pub.sequencemanager.save_file(seq)
+
+    The data time period information is stored without time zone information
+    within the first thirteen entries:
+
+    >>> path = os.path.join(
+    ...     'test_project', 'sequences', 'output', 'test_sequence.npy')
+    >>> from hydpy import numpy, print_values
+    >>> with TestIO():
+    ...     print_values(numpy.load(path))
+    2000.0, 1.0, 1.0, 0.0, 0.0, 0.0, 2000.0, 1.0, 5.0, 0.0, 0.0, 0.0,
+    86400.0, 1.0, 2.0, 3.0, 4.0
+
+    Reloading the data works as expected:
+
+    >>> seq.series = 0.
+    >>> seq.series
+    array([ 0.,  0.,  0.,  0.])
+    >>> with TestIO():
+    ...     pub.sequencemanager.load_file(seq)
+    >>> seq.series
+    array([ 1.,  2.,  3.,  4.])
+
+    In the ASCII example, an example error messages for loading data
+    was shown.  Here is an example for saving data:
+
+    >>> seq.deactivate_ram()
+    >>> with TestIO(clear_all=True):
+    ...     pub.sequencemanager.save_file(seq)
+    Traceback (most recent call last):
+    ...
+    RuntimeError: While trying to save the external data of sequence \
+`iosequence`, the following error occured: Sequence `iosequence` is not \
+requested to make any internal data available to the user.
+
+    The third option to store data in netCDF files, which is explained
+    separately in the documentation on class |NetCDFInterface|.
+    """
 
     _supportedmodes = ('npy', 'asc', 'nc')
 

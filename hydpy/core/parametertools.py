@@ -106,7 +106,8 @@ class Constants(dict):
         """Assign docstrings to the constants handled by |Constants|
         to make them available in the interactive mode of Python."""
         filename = inspect.getsourcefile(frame)
-        sources = open(filename).read().split('"""')
+        with open(filename) as file_:
+            sources = file_.read().split('"""')
         for code, doc in zip(sources[::2], sources[1::2]):
             code = code.strip()
             key = code.split('\n')[-1].split()[0]

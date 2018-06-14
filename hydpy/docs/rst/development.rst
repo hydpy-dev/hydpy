@@ -308,7 +308,7 @@ is not allowed to assign an unknown string to the `outputfiletype` of a
     >>> sm.outputfiletype = 'test'
     Traceback (most recent call last):
       ...
-    ValueError: The given sequence file type `test` is not implemented.  Please choose one of the following file types: npy and asc.
+    ValueError: The given sequence file type `test` is not implemented.  Please choose one of the following file types: npy, asc, and nc.
 
 Of course, the extensive usage of protected attributes increases
 the length of the source code and slows computation time.  But,

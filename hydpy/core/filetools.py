@@ -14,6 +14,7 @@ from hydpy import pub
 from hydpy.core import autodoctools
 from hydpy.core import devicetools
 from hydpy.core import exceptiontools
+from hydpy.core import netcdftools
 from hydpy.core import objecttools
 from hydpy.core import selectiontools
 from hydpy.core import timetools
@@ -563,7 +564,7 @@ class _ContextPath(_Context):
 class SequenceManager(FileManager):
     """Manager for sequence files."""
 
-    _supportedmodes = ('npy', 'asc')
+    _supportedmodes = ('npy', 'asc', 'nc')
 
     inputdir = _ContextDir('inputdir', 'input', 'input')
     outputdir = _ContextDir('outputdir', 'output', 'output')
@@ -590,6 +591,11 @@ class SequenceManager(FileManager):
         FileManager.__init__(self)
         self._BASEDIR = 'sequences'
         self._defaultdir = None
+        self.netcdf_reader = None
+        self.netcdf_writer = None
+
+    def new_netcdf(self):
+        pass
 
     def load_file(self, sequence):
         """Load data from an "external" data file an pass it to
@@ -601,6 +607,8 @@ class SequenceManager(FileManager):
             elif sequence.filetype_ext == 'asc':
                 sequence.series = sequence.adjust_series(
                     *self._load_asc(sequence))
+            elif sequence.filetype_ext == 'nc':
+                self._load_nc(sequence)
         except BaseException:
             objecttools.augment_excmessage(
                 'While trying to load the external data of sequence %s'
@@ -621,6 +629,12 @@ class SequenceManager(FileManager):
             sequence.filepath_ext, skiprows=3, ndmin=sequence.NDIM+1)
         return timegrid_data, values
 
+    def _load_nc(self, sequence):
+        try:
+            self.netcdf_reader.log(sequence)
+        except AttributeError:
+            raise RuntimeError(
+                'to do')
 
     def save_file(self, sequence):
         """Write the date stored in |IOSequence.series| of the given
@@ -630,6 +644,8 @@ class SequenceManager(FileManager):
                 self._save_npy(sequence)
             elif sequence.filetype_ext == 'asc':
                 self._save_asc(sequence)
+            elif sequence.filetype_ext == 'nc':
+                self._save_nc(sequence)
         except BaseException:
             objecttools.augment_excmessage(
                 'While trying to save the external data of sequence %s'
@@ -651,6 +667,26 @@ class SequenceManager(FileManager):
         with open(sequence.filepath_ext, 'ab') as file_:
             numpy.savetxt(file_, sequence.series, delimiter='\t')
 
+    def _save_nc(self, sequence):
+        try:
+            self.netcdf_writer.log(sequence)
+        except AttributeError:
+            raise RuntimeError(
+                'to do')
+
+    def open_netcdf_reader(self):
+        self.netcdf_reader = netcdftools.NetCDFInterface()
+
+    def close_netcdf_reader(self):
+        self.netcdf_reader.read()
+        self.netcdf_reader = None
+
+    def open_netcdf_writer(self):
+        self.netcdf_writer = netcdftools.NetCDFInterface()
+
+    def close_netcdf_writer(self):
+        self.netcdf_writer.write()
+        self.netcdf_writer = None
 
     def __dir__(self):
         return objecttools.dir_(self)

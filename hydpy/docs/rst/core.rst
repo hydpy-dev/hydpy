@@ -23,7 +23,8 @@ The documentation on module |filetools| describes the standard
 directory structure of :ref:`HydPy` projects.  Module |filetools|
 offers some flexibility in adjusting this project structure to your
 needs.  Also, it is responsible for many aspects of loading data from
-files and storing data to files.
+files and storing data to files.  It is supplemented by module
+|netcdftools| for reading data from and storing data to NetCDF files.
 
 :ref:`HydPy` represents the network of a river basin via connected
 objects of the classes |Node| and |Element|.  These are defined in module
@@ -71,6 +72,7 @@ standardize writing :ref:`HydPy` code.
    indextools
    modelimports
    modeltools
+   netcdftools
    objecttools
    optiontools
    parametertools

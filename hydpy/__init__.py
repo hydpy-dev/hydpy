@@ -17,6 +17,10 @@ from hydpy.core.exceptiontools import OptionalImport
 import numpy
 from numpy import nan
 from scipy import integrate
+netcdf4 = OptionalImport(
+    'netcdf4',
+    ['import netCDF4', 'import h5netcdf.legacyapi'],
+    bundle_module=True)
 pandas = OptionalImport(
     'pandas',
     ['import pandas'])
@@ -105,6 +109,7 @@ substituter = prepare_mainsubstituter()
 
 
 __all__ = ['builtins',
+           'netcdf4',
            'pandas',
            'pyplot',
            'pub',

@@ -14,6 +14,7 @@ except ImportError:
     import __builtin__ as builtins
 # ...from site-packages
 from hydpy.core.exceptiontools import OptionalImport
+warnings.filterwarnings('ignore')
 import numpy
 from numpy import nan
 from scipy import integrate
@@ -27,6 +28,7 @@ pandas = OptionalImport(
 pyplot = OptionalImport(
     'matplotlib.pyplot',
     ['from matplotlib import pyplot'])
+warnings.resetwarnings()
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import dummytools

@@ -124,7 +124,7 @@ class StringABC(DocABC):
 
 
 if pub.pyversion == 2:
-    # pylint: isable=undefined-variable
+    # pylint: disable=undefined-variable
     StringABC.register(basestring)   # pragma: no cover
 else:
     StringABC.register(str)

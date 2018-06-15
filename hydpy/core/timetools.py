@@ -53,10 +53,14 @@ class Date(object):
     |Options.utcoffset| (UTC+01:00 by default).  When the initialization
     argument provides its own time zone information, its date information
     is adjusted.  This is shown in the following example, where the
-    prepared |datetime.datetime| object refers to UTC-01:00:
+    prepared |datetime.datetime| object refers to UTC-01:00 (Python 2.7
+    does not implement a concrete |datetime.timezone| class, which is
+    why define a lazy one first):
 
-    >>> timezone = datetime.timezone(datetime.timedelta(hours=-1))
-    >>> date = datetime.datetime(1996, 11, 1, 0, 0, 0, tzinfo=timezone)
+    >>> class UTC_1(datetime.tzinfo):
+    ...     def utcoffset(self, dt):
+    ...         return datetime.timedelta(hours=-1)
+    >>> date = datetime.datetime(1996, 11, 1, 0, 0, 0, tzinfo=UTC_1())
     >>> Date(date)
     Date('1996-11-01 02:00:00')
 

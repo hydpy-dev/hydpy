@@ -227,11 +227,12 @@ class NetCDFInterface(object):
             slave.read()
 
     def write(self):
-        init = pub.timegrids.init
-        timeunits = init.firstdate.to_cfunits('hours')
-        timepoints = init.to_timepoints('hours')
-        for slave in self._slaves.values():
-            slave.write(timeunits, timepoints)
+        if self._slaves:
+            init = pub.timegrids.init
+            timeunits = init.firstdate.to_cfunits('hours')
+            timepoints = init.to_timepoints('hours')
+            for slave in self._slaves.values():
+                slave.write(timeunits, timepoints)
 
     def __getattr__(self, name):
         try:

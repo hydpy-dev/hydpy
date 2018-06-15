@@ -30,16 +30,10 @@ class _Directories(object):
 
     def add(self, directory, path=None):
         """Add a directory and optionally its path."""
+        objecttools.valid_variable_identifier(directory)
         if path is None:
             path = directory
-        try:
-            exec('self.%s = r"%s"' % (directory, path))
-        except BaseException:
-            raise IOError(
-                'The directory name `%s` cannot be handled as a '
-                'variable name.  Please avoid arithmetic operators '
-                'like `-`, prefixed numbers...'
-                % directory)
+        setattr(self, directory, path)
 
     def __iter__(self):
         for (key, value) in vars(self).items():
@@ -73,10 +67,12 @@ class FileManager(object):
     """Base class for the more specific file managers implemented in
     module |filetools|."""
 
+    _BASEDIR = 'must_be_overwritten'
+
     def __init__(self):
         self.check_exists = True
-        self._isready = exceptiontools.IsReady(false=['projectdir'])
-        self._BASEDIR = 'must_be_overwritten'
+        self.__dict__['_isready'] = (
+            exceptiontools.IsReady(false=['projectdir']))
         self._projectdir = None
         if pub.projectname:
             self.projectdir = pub.projectname
@@ -194,9 +190,10 @@ class FileManager(object):
 class NetworkManager(FileManager):
     """Manager for network files."""
 
+    _BASEDIR = 'network'
+
     def __init__(self):
         FileManager.__init__(self)
-        self._BASEDIR = 'network'
         self._defaultdir = 'default'
 
     def load_files(self):
@@ -281,10 +278,10 @@ class ControlManager(FileManager):
     # the same auxiliary control parameter file from disk multiple times.
     _registry = {}
     _workingpath = '.'
+    _BASEDIR = 'control'
 
     def __init__(self):
         FileManager.__init__(self)
-        self._BASEDIR = 'control'
         self._defaultdir = 'default'
 
     def load_file(self, element=None, filename=None, clear_registry=True):
@@ -363,9 +360,10 @@ class ControlManager(FileManager):
 class ConditionManager(FileManager):
     """Manager for condition files."""
 
+    _BASEDIR = 'conditions'
+
     def __init__(self):
         FileManager.__init__(self)
-        self._BASEDIR = 'conditions'
         self._defaultdir = None
 
     def load_file(self, filename):
@@ -429,13 +427,16 @@ class _Context(object):
         self.attrname = '_%s_value' % name
 
     def get_value(self, obj):
+        """Get the value from the given object and return it."""
         value = getattr(obj, self.attrname, None)
         return self.default if (value is None) else value
 
     def set_value(self, obj, value):
+        """Assign the given value to the given object."""
         setattr(obj, self.attrname, value)
 
     def del_value(self, obj):
+        """Delete the value from the given object."""
         setattr(obj, self.attrname, None)
 
 
@@ -453,13 +454,13 @@ class _ContextDir(_Context):
             return self
         try:
             obj.currentdir = self.get_value(obj)
-            return obj._currentdir
+            return getattr(obj, '_currentdir')
         except IOError:
             objecttools.augment_excmessage(
                 'While trying to get the %s sequence directory'
                 % self.sequence_type)
         finally:
-            obj._currentdir = None
+            setattr(obj, '_currentdir', None)
 
     def __set__(self, obj, directory):
         try:
@@ -470,7 +471,7 @@ class _ContextDir(_Context):
                 'While trying to set the %s sequence directory'
                 % self.sequence_type)
         finally:
-            obj._currentdir = None
+            setattr(obj, '_currentdir', None)
 
     def __delete__(self, obj):
         try:
@@ -498,13 +499,13 @@ class _ContextType(_Context):
 
     def __set__(self, obj, value):
         value = str(value)
-        if value in obj._supportedmodes:
+        if value in obj.SUPPORTED_MODES:
             self.set_value(obj, value)
         else:
             raise ValueError(
                 'The given sequence file type `%s` is not implemented.  '
                 'Please choose one of the following file types: %s.'
-                % (value, objecttools.enumeration(obj._supportedmodes)))
+                % (value, objecttools.enumeration(obj.SUPPORTED_MODES)))
 
 
 class _ContextOverwrite(_Context):
@@ -695,7 +696,8 @@ requested to make any internal data available to the user.
     separately in the documentation on class |NetCDFInterface|.
     """
 
-    _supportedmodes = ('npy', 'asc', 'nc')
+    SUPPORTED_MODES = ('npy', 'asc', 'nc')
+    _BASEDIR = 'sequences'
 
     inputdir = _ContextDir('inputdir', 'input', 'input')
     outputdir = _ContextDir('outputdir', 'output', 'output')
@@ -720,13 +722,9 @@ requested to make any internal data available to the user.
 
     def __init__(self):
         FileManager.__init__(self)
-        self._BASEDIR = 'sequences'
         self._defaultdir = None
-        self.netcdf_reader = None
-        self.netcdf_writer = None
-
-    def new_netcdf(self):
-        pass
+        self._netcdf_reader = None
+        self._netcdf_writer = None
 
     def load_file(self, sequence):
         """Load data from an "external" data file an pass it to
@@ -805,19 +803,88 @@ requested to make any internal data available to the user.
             raise RuntimeError(
                 'to do')
 
+    @property
+    def netcdf_reader(self):
+        """A |NetCDFInferface| object to be prepared by method
+        |SequenceManager.open_netcdf_reader| and to be finalized
+        by method |SequenceManager.close_netcdf_reader|.
+
+        >>> from hydpy.core.filetools import SequenceManager
+        >>> sm = SequenceManager()
+        >>> sm.netcdf_reader
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The sequence file manager does currently handle \
+no NetCDF reader object.
+
+        >>> sm.open_netcdf_reader()
+        >>> from hydpy.core.objecttools import classname
+        >>> classname(sm.netcdf_reader)
+        'NetCDFInterface'
+
+        >>> sm.close_netcdf_reader()
+        >>> sm.netcdf_reader
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The sequence file manager does currently handle \
+no NetCDF reader object.
+        """
+        if self._netcdf_reader:
+            return self._netcdf_reader
+        raise RuntimeError(
+            'The sequence file manager does currently handle '
+            'no NetCDF reader object.')
+
     def open_netcdf_reader(self):
-        self.netcdf_reader = netcdftools.NetCDFInterface()
+        """Prepare a new |NetCDFInterface| object for reading data."""
+        self._netcdf_reader = netcdftools.NetCDFInterface()
 
     def close_netcdf_reader(self):
-        self.netcdf_reader.read()
-        self.netcdf_reader = None
+        """Read data with a prepared |NetCDFInterface| object and remove it."""
+        self._netcdf_reader.read()
+        self._netcdf_reader = None
+
+    @property
+    def netcdf_writer(self):
+        """A |NetCDFInferface| object to be prepared by method
+        |SequenceManager.open_netcdf_writer| and to be finalized
+        by method |SequenceManager.close_netcdf_writer|.
+
+        >>> from hydpy.core.filetools import SequenceManager
+        >>> sm = SequenceManager()
+        >>> sm.netcdf_writer
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The sequence file manager does currently handle \
+no NetCDF writer object.
+
+        >>> sm.open_netcdf_writer()
+        >>> from hydpy.core.objecttools import classname
+        >>> classname(sm.netcdf_writer)
+        'NetCDFInterface'
+
+        >>> sm.close_netcdf_writer()
+        >>> sm.netcdf_writer
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The sequence file manager does currently handle \
+no NetCDF writer object.
+        """
+        if self._netcdf_writer:
+            return self._netcdf_writer
+        raise RuntimeError(
+            'The sequence file manager does currently handle '
+            'no NetCDF writer object.')
 
     def open_netcdf_writer(self):
-        self.netcdf_writer = netcdftools.NetCDFInterface()
+        """Prepare a new |NetCDFInterface| object for writing data."""
+        self._netcdf_writer = netcdftools.NetCDFInterface()
 
     def close_netcdf_writer(self):
-        self.netcdf_writer.write()
-        self.netcdf_writer = None
+        """Write data with a prepared |NetCDFInterface| object and remove it.
+        """
+        self._netcdf_writer.write()
+        self._netcdf_writer = None
 
     def __dir__(self):
         return objecttools.dir_(self)

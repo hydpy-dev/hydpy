@@ -1,4 +1,4 @@
-# import...
+# -*- coding: utf-8 -*-
 """This module implements features for the validation of (numerical) input
 data.
 """

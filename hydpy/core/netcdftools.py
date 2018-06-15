@@ -494,9 +494,9 @@ class NetCDFVariable(object):
         of all current device names (first axis).
 
         >>> from hydpy import dummies
-        >>> dummies.nc.devicechars
-        array([[b'z', b'e', b'r', b'o', b's'],
-               [b'o', b'n', b'e', b's', b'']],
+        >>> print(repr(dummies.nc.devicechars).replace('b', ''))
+        array([['z', 'e', 'r', 'o', 's'],
+               ['o', 'n', 'e', 's', '']],
               dtype='|S1')
         """
         maxlen = 0
@@ -504,7 +504,7 @@ class NetCDFVariable(object):
         for name in devicenames:
             maxlen = max(maxlen, len(name))
         chars = numpy.full(
-            (len(devicenames), maxlen), bytes(0), dtype='|S1')
+            (len(devicenames), maxlen), b'', dtype='|S1')
         for idx, name in enumerate(self.devicenames):
             for jdx, char in enumerate(name):
                 chars[idx, jdx] = char.encode('utf-8')

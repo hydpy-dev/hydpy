@@ -192,7 +192,7 @@ Variable type `EQD1` is not handled by model `lstream_v1`.
 
     @staticmethod
     def _get_model(value):
-        if isinstance(value, str):
+        if isinstance(value, abctools.StringABC):
             try:
                 value = importlib.import_module('hydpy.models.'+value)
             except BaseException:

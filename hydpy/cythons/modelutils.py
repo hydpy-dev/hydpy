@@ -22,6 +22,7 @@ import numpy
 # ...from HydPy
 from hydpy import pub
 from hydpy import cythons
+from hydpy.core import abctools
 from hydpy.core import autodoctools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
@@ -67,7 +68,7 @@ class Lines(list):
         """Appends the given text line with prefixed spaces in accordance with
         the given number of indentation levels.
         """
-        if isinstance(line, str):
+        if isinstance(line, abctools.StringABC):
             list.append(self, indent*4*' ' + line)
         else:
             for subline in line:

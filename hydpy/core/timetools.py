@@ -172,7 +172,7 @@ literal for int() with base 10: '0X'
                     'For the given `datetime` object, it is `%d` instead.'
                     % date.microsecond)
             date = date.isoformat().replace('T', ' ')
-        if isinstance(date, str):
+        if isinstance(date, abctools.StringABC):
             self._init_from_string(date)
             return
         if isinstance(date, abctools.TOYABC):
@@ -861,7 +861,7 @@ However, for the given `timedelta` object, it is`857142` instead.
                     'However, for the given `timedelta` object, it is'
                     '`%d` instead.' % period.microseconds)
             self._timedelta = period
-        elif isinstance(period, str):
+        elif isinstance(period, abctools.StringABC):
             self._init_from_string(period)
         else:
             raise TypeError(

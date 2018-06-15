@@ -10,6 +10,11 @@ from hydpy.core import autodoctools
 from hydpy.core import objecttools
 
 
+class HydPyDeprecationWarning(DeprecationWarning):
+    """Warning for deprecated HydPy features."""
+    pass
+
+
 class AttributeNotReady(AttributeError):
     """The attribute is principally defined, but must be prepared first."""
 

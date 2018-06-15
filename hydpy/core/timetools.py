@@ -20,6 +20,7 @@ import numpy
 from hydpy import pub
 from hydpy.core import abctools
 from hydpy.core import autodoctools
+from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 
 
@@ -1685,7 +1686,7 @@ on the initialization time grid.
     """
     def __init__(self, init, sim=None, data=None):
         if data is not None:
-            warnings.warn(objecttools.HydPyDeprecationWarning(
+            warnings.warn(exceptiontools.HydPyDeprecationWarning(
                 'The global `data` timegrid information is outdated.  Now '
                 'each time series file contains its own `data` timegrid.  '
                 'Supplying the `data` keyword to the `Timegrids` constructor '

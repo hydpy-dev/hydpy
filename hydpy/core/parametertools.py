@@ -14,6 +14,7 @@ import numpy
 from hydpy import pub
 from hydpy.core import abctools
 from hydpy.core import autodoctools
+from hydpy.core import exceptiontools
 from hydpy.core import filetools
 from hydpy.core import objecttools
 from hydpy.core import timetools
@@ -625,7 +626,7 @@ class Parameter(variabletools.Variable):
                              'positional nor a keyword argument is given.'
                              % (self.name, objecttools.devicename(self)))
         elif 'pyfile' in kwargs:
-            warnings.warn(objecttools.HydPyDeprecationWarning(
+            warnings.warn(exceptiontools.HydPyDeprecationWarning(
                 'The keyword name to define a parameter value in an auxiliary '
                 'control file is now `auxfile`.  The old keyword name '
                 '`pyfile` will be banned in the future.'))
@@ -1582,7 +1583,10 @@ into shape (3)
                 prefix = '%s(%s=' % (self.name, toy)
             else:
                 prefix = '%s%s=' % (blanks, toy)
-            lines.append(assign(value, prefix, width=79))
+            if self.NDIM == 1:
+                lines.append(assign(value, prefix))
+            else:
+                lines.append(assign(value, prefix, width=79))
         lines[-1] += ')'
         return ',\n'.join(lines)
 

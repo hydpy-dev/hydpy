@@ -42,10 +42,10 @@ from hydpy.core.devicetools import Element
 from hydpy.core.devicetools import Elements
 from hydpy.core.devicetools import Node
 from hydpy.core.devicetools import Nodes
+from hydpy.core.exceptiontools import HydPyDeprecationWarning
 from hydpy.core.hydpytools import HydPy
 from hydpy.core.importtools import prepare_model
 from hydpy.core.importtools import reverse_model_wildcard_import
-from hydpy.core.objecttools import HydPyDeprecationWarning
 from hydpy.core.objecttools import print_values
 from hydpy.core.objecttools import round_
 from hydpy.core.objecttools import repr_

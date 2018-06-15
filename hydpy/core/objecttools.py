@@ -41,9 +41,9 @@ def dir_(self):
     """
     names = set()
     for thing in list(inspect.getmro(type(self))) + [self]:
-        for name in vars(thing).keys():
-            if pub.options.dirverbose or not name.startswith('_'):
-                names.add(name)
+        for key in vars(thing).keys():
+            if pub.options.dirverbose or not key.startswith('_'):
+                names.add(key)
     if names:
         names = list(names)
     else:
@@ -115,11 +115,12 @@ def name(self):
     >>> test2._name
     'test'
     """
+    cls = type(self)
     try:
-        return type(self).__dict__['_name']
+        return cls.__dict__['_name']
     except KeyError:
-        type(self)._name = instancename(self)
-        return type(self).__dict__['_name']
+        setattr(cls, '_name', instancename(self))
+        return cls.__dict__['_name']
 
 
 def modulename(self):
@@ -168,17 +169,16 @@ def devicename(self):
 
 
 def _devicephrase(self, objname=None):
-    name = getattr(self, 'name', instancename(self))
+    name_ = getattr(self, 'name', instancename(self))
     device = _search_device(self)
     if device and objname:
-        return '`%s` of %s `%s`' % (name, objname, device.name)
-    elif objname:
-        return '`%s` of %s `?`' % (name, objname)
-    elif device:
+        return '`%s` of %s `%s`' % (name_, objname, device.name)
+    if objname:
+        return '`%s` of %s `?`' % (name_, objname)
+    if device:
         return ('`%s` of %s `%s`'
-                % (name, instancename(device), device.name))
-    else:
-        return '`%s`' % name
+                % (name_, instancename(device), device.name))
+    return '`%s`' % name_
 
 
 def elementphrase(self):
@@ -252,7 +252,7 @@ def devicephrase(self):
     return _devicephrase(self)
 
 
-def valid_variable_identifier(name):
+def valid_variable_identifier(string):
     """Raises an |ValueError| if the given name is not a valid Python
     identifier.
 
@@ -278,17 +278,18 @@ Python built-ins like `for`...)
     ...
     ValueError: The given name string `while` does not define...
     """
-    string = str(name)
+    string = str(string)
     try:
         exec('%s = None' % string)
-        if name in dir(__builtins__):
+        if string in dir(__builtins__):
             raise SyntaxError()
     except SyntaxError:
         raise ValueError(
             'The given name string `%s` does not define a valid variable '
             'identifier.  Valid identifiers do not contain characters like '
             '`-` or empty spaces, do not start with numbers, cannot be '
-            'mistaken with Python built-ins like `for`...)' % name)
+            'mistaken with Python built-ins like `for`...)'
+            % string)
 
 
 def augment_excmessage(prefix=None, suffix=None):
@@ -388,6 +389,8 @@ occured: add() ...
     """
     @wrapt.decorator
     def wrapper(wrapped, instance, args, kwargs):
+        """Apply |augment_excmessage| when the wrapped function fails."""
+        # pylint: disable=unused-argument
         try:
             return wrapped(*args, **kwargs)
         except BaseException:
@@ -498,26 +501,26 @@ class ResetAttrFuncs(object):
     def __init__(self, obj):
         self.cls = type(obj)
         self.name2func = {}
-        for name in self.funcnames:
-            if hasattr(self.cls, name):
-                self.name2func[name] = self.cls.__dict__.get(name)
+        for name_ in self.funcnames:
+            if hasattr(self.cls, name_):
+                self.name2func[name_] = self.cls.__dict__.get(name_)
 
     def __enter__(self):
-        for name in self.name2func.keys():
-            if name in ('__setattr__', '__delattr__'):
-                setattr(self.cls, name, getattr(object, name))
-            elif name == '__getattr__':
-                setattr(self.cls, name, object.__getattribute__)
+        for name_ in self.name2func:
+            if name_ in ('__setattr__', '__delattr__'):
+                setattr(self.cls, name_, getattr(object, name_))
+            elif name_ == '__getattr__':
+                setattr(self.cls, name_, object.__getattribute__)
             else:
-                setattr(self.cls, name, None)
+                setattr(self.cls, name_, None)
         return self
 
     def __exit__(self, exception, message, traceback_):
-        for name, func in self.name2func.items():
+        for name_, func in self.name2func.items():
             if func:
-                setattr(self.cls, name, func)
+                setattr(self.cls, name_, func)
             else:
-                delattr(self.cls, name)
+                delattr(self.cls, name_)
 
 
 def copy_(self):
@@ -543,17 +546,17 @@ class _PreserveStrings(object):
 
     def __init__(self, preserve_strings):
         self.new_value = preserve_strings
-        self.old_value = repr_._preserve_strings
+        self.old_value = getattr(repr_, '_preserve_strings')
 
     def __enter__(self):
-        repr_._preserve_strings = self.new_value
+        setattr(repr_, '_preserve_strings', self.new_value)
         return None
 
     def __exit__(self, type_, value, traceback):
-        repr_._preserve_strings = self.old_value
+        setattr(repr_, '_preserve_strings', self.old_value)
 
 
-class _Repr_(object):
+class _Repr(object):
     r"""Modifies |repr| for strings and floats, mainly for supporting
     clean float and path representations that are compatible with |doctest|.
 
@@ -647,25 +650,24 @@ class _Repr_(object):
             string = value.replace('\\', '/')
             if self._preserve_strings:
                 return '"%s"' % string
-            else:
-                return string
+            return string
         elif ((decimals > -1) and
-                isinstance(value, numbers.Real) and
-                (not isinstance(value, numbers.Integral))):
+              isinstance(value, numbers.Real) and
+              (not isinstance(value, numbers.Integral))):
             string = '{0:.{1}f}'.format(value, decimals)
             string = string.rstrip('0')
             if string.endswith('.'):
                 string += '0'
             return string
-        else:
-            return repr(value)
+        return repr(value)
 
-    def preserve_strings(self, preserve_strings):
+    @staticmethod
+    def preserve_strings(preserve_strings):
         """Change the `preserve_string` option inside a with block."""
         return _PreserveStrings(preserve_strings)
 
 
-repr_ = _Repr_()
+repr_ = _Repr()   # pylint: disable=invalid-name
 
 
 def repr_values(values):
@@ -721,8 +723,7 @@ def repr_tuple(values):
     """
     if len(values) == 1:
         return '(%s,)' % repr_values(values)
-    else:
-        return '(%s)' % repr_values(values)
+    return '(%s)' % repr_values(values)
 
 
 def repr_list(values):
@@ -738,7 +739,7 @@ def repr_list(values):
     return '[%s]' % repr_values(values)
 
 
-def assignrepr_value(value, prefix, width=None):
+def assignrepr_value(value, prefix):
     """Return a prefixed string representation of the given value using
     function |repr|.
 
@@ -819,13 +820,13 @@ class _AlwaysBracketed(object):
 
     def __init__(self, value):
         self.new_value = value
-        self.old_value = _AssignReprBracketed._always_bracketed
+        self.old_value = getattr(_AssignReprBracketed, '_always_bracketed')
 
     def __enter__(self):
-        _AssignReprBracketed._always_bracketed = self.new_value
+        setattr(_AssignReprBracketed, '_always_bracketed', self.new_value)
 
     def __exit__(self, type_, value, traceback):
-        _AssignReprBracketed._always_bracketed = self.old_value
+        setattr(_AssignReprBracketed, '_always_bracketed', self.old_value)
 
 
 class _AssignReprBracketed(object):
@@ -840,22 +841,21 @@ class _AssignReprBracketed(object):
     def __call__(self, values, prefix, width=None):
         if (len(values) == 1) and not self._always_bracketed:
             return assignrepr_value(values[0], prefix)
-        elif len(values):
+        if len(values) > 0:
             string = assignrepr_values(
                 values, prefix+self._brackets[0], width, 1) + self._brackets[1]
             if (len(values) == 1) and (self._brackets[1] == ')'):
                 return string[:-1] + ',)'
-            else:
-                return string
-        else:
-            return prefix + self._brackets
+            return string
+        return prefix + self._brackets
 
-    def always_bracketed(self, always_bracketed):
+    @staticmethod
+    def always_bracketed(always_bracketed):
         """Change the `always_bracketed` option inside a with block."""
         return _AlwaysBracketed(always_bracketed)
 
 
-assignrepr_tuple = _AssignReprBracketed('()')
+assignrepr_tuple = _AssignReprBracketed('()')   # pylint: disable=invalid-name
 """Return a prefixed, wrapped and properly aligned tuple string
 representation of the given values using function |repr|.
 
@@ -895,7 +895,7 @@ test = (10,)
 """
 
 
-assignrepr_list = _AssignReprBracketed('[]')
+assignrepr_list = _AssignReprBracketed('[]')   # pylint: disable=invalid-name
 """Return a prefixed, wrapped and properly aligned list string
 representation of the given values using function |repr|.
 
@@ -963,7 +963,8 @@ def _assignrepr_bracketed2(assignrepr_bracketed1, values, prefix, width=None):
     """Return a prefixed, wrapped and properly aligned bracketed string
     representation of the given 2-dimensional value matrix using function
     |repr|."""
-    prefix += assignrepr_bracketed1._brackets[0]
+    brackets = getattr(assignrepr_bracketed1, '_brackets')
+    prefix += brackets[0]
     lines = []
     blanks = ' '*len(prefix)
     for (idx, subvalues) in enumerate(values):
@@ -974,7 +975,7 @@ def _assignrepr_bracketed2(assignrepr_bracketed1, values, prefix, width=None):
         if (len(subvalues) == 1) and (lines[-1] == ')'):
             lines[-1] = lines[-1].replace(')', ',)')
         lines[-1] += ','
-    lines[-1] = lines[-1][:-1] + assignrepr_bracketed1._brackets[1]
+    lines[-1] = lines[-1][:-1] + brackets[1]
     return '\n'.join(lines)
 
 
@@ -1049,20 +1050,23 @@ def _assignrepr_bracketed3(assignrepr_bracketed1, values, prefix, width=None):
     """Return a prefixed, wrapped and properly aligned bracketed string
     representation of the given 3-dimensional value matrix using function
     |repr|."""
-    prefix += assignrepr_bracketed1._brackets[0]
+    brackets = getattr(assignrepr_bracketed1, '_brackets')
+    prefix += brackets[0]
     lines = []
     blanks = ' '*len(prefix)
     for (idx, subvalues) in enumerate(values):
         if idx == 0:
-            lines.append(_assignrepr_bracketed2(
-                            assignrepr_bracketed1, subvalues, prefix, width))
+            lines.append(
+                _assignrepr_bracketed2(
+                    assignrepr_bracketed1, subvalues, prefix, width))
         else:
-            lines.append(_assignrepr_bracketed2(
-                            assignrepr_bracketed1, subvalues, blanks, width))
+            lines.append(
+                _assignrepr_bracketed2(
+                    assignrepr_bracketed1, subvalues, blanks, width))
         if (len(subvalues) <= 1) and (lines[-1][-1] == ')'):
             lines[-1] = lines[-1][:-1] + ',)'
         lines[-1] += ','
-    lines[-1] = lines[-1][:-1] + assignrepr_bracketed1._brackets[1]
+    lines[-1] = lines[-1][:-1] + brackets[1]
     if (len(values) <= 1) and (lines[-1][-1] == ')'):
         lines[-1] = lines[-1][:-1] + ',)'
     return '\n'.join(lines)
@@ -1307,23 +1311,18 @@ def enumeration(values, converter=str, default=''):
     'nothing'
     """
     values = tuple(converter(value) for value in values)
-    if len(values) == 0:
+    if not values:
         return default
-    elif len(values) == 1:
+    if len(values) == 1:
         return values[0]
-    elif len(values) == 2:
+    if len(values) == 2:
         return ' and '.join(values)
-    else:
-        return ', and '.join((', '.join(values[:-1]), values[-1]))
+    return ', and '.join((', '.join(values[:-1]), values[-1]))
 
 
 class FastAccess(object):
     """Used as a surrogate for typed Cython classes when working in
     pure Python mode."""
-
-
-class HydPyDeprecationWarning(DeprecationWarning):
-    pass
 
 
 autodoctools.autodoc_module()

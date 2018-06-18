@@ -805,7 +805,7 @@ requested to make any internal data available to the user.
 
     @property
     def netcdf_reader(self):
-        """A |NetCDFInferface| object to be prepared by method
+        """A |NetCDFInterface| object to be prepared by method
         |SequenceManager.open_netcdf_reader| and to be finalized
         by method |SequenceManager.close_netcdf_reader|.
 
@@ -846,7 +846,7 @@ no NetCDF reader object.
 
     @property
     def netcdf_writer(self):
-        """A |NetCDFInferface| object to be prepared by method
+        """A |NetCDFInterface| object to be prepared by method
         |SequenceManager.open_netcdf_writer| and to be finalized
         by method |SequenceManager.close_netcdf_writer|.
 

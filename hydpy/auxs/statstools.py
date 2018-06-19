@@ -261,7 +261,6 @@ def corr(sim=None, obs=None, node=None, skip_nan=False):
 
 
 def _pars_sepd(xi, beta):
-    # pylint: disable=invalid-name
     gamma1 = special.gamma(3.*(1.+beta)/2.)
     gamma2 = special.gamma((1.+beta)/2.)
     w_beta = gamma1**.5 / (1.+beta) / gamma2**1.5
@@ -378,7 +377,6 @@ def hsepd_pdf(sigma1, sigma2, xi, beta,
         >>> from matplotlib import pyplot
         >>> pyplot.close()
     """
-    # pylint: disable=invalid-name
     sim, obs = prepare_arrays(sim, obs, node, skip_nan)
     sigmas = _pars_h(sigma1, sigma2, sim)
     mu_xi, sigma_xi, w_beta, c_beta = _pars_sepd(xi, beta)
@@ -394,7 +392,6 @@ def hsepd_pdf(sigma1, sigma2, xi, beta,
 
 
 def _hsepd_manual(sigma1, sigma2, xi, beta, sim, obs):
-    # pylint: disable=invalid-name
     ps = hsepd_pdf(sigma1, sigma2, xi, beta, sim, obs)
     ps[ps < 1e-200] = 1e-200
     return numpy.mean(numpy.log(ps))
@@ -430,7 +427,6 @@ def hsepd_manual(sigma1, sigma2, xi, beta,
     ...                     obs=numpy.full(31, 25.0)))
     -209.539335
     """
-    # pylint: disable=invalid-name
     sim, obs = prepare_arrays(sim, obs, node, skip_nan)
     return _hsepd_manual(sigma1, sigma2, xi, beta, sim, obs)
 
@@ -502,7 +498,6 @@ def hsepd(sim=None, obs=None, node=None, skip_nan=False,
     >>> round_(pars)
     0.0, 0.213179, 1.705485, 0.505112
     """
-    # pylint: disable=invalid-name
 
     def transform(pars):
         """Transform the actual optimization problem into a function to

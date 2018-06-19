@@ -28,7 +28,8 @@ def test_equal_shape(**kwargs):
     ...                  arr3=numpy.array([5., 6.]))
     Traceback (most recent call last):
     ...
-    ValueError: The shapes of the following objects are not equal: arr1 (2,), arr2 (1,), arr3 (2,).
+    ValueError: The shapes of the following objects are not equal: \
+arr1 (2,), arr2 (1,), arr3 (2,).
 
     For flexibility in the functions application, it is allowed to pass only
     one array or no arrays at all:
@@ -64,7 +65,8 @@ def test_non_negative(**kwargs):
     ...                   arr3=numpy.array([5., 6.]))
     Traceback (most recent call last):
     ...
-    ValueError: For the following objects, at least one value is negative: arr2.
+    ValueError: For the following objects, at least one value is negative: \
+arr2.
 
     For flexibility in the functions application, it is allowed to pass
     no arrays at all:
@@ -77,5 +79,6 @@ def test_non_negative(**kwargs):
         raise ValueError(
             'For the following objects, at least one value is negative: %s.'
             % ', '.join(name for name, neg in sorted(zip(names, negs)) if neg))
+
 
 autodoctools.autodoc_module()

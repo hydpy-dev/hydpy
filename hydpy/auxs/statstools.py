@@ -7,10 +7,10 @@ hydrological modelling.
 from __future__ import division, print_function
 # ...from site-packages
 import numpy
-from hydpy import pandas
 from scipy import optimize
 from scipy import special
 # ...from HydPy
+from hydpy import pandas
 from hydpy.core import autodoctools
 from hydpy.core import objecttools
 from hydpy.auxs import validtools
@@ -519,7 +519,7 @@ def hsepd(sim=None, obs=None, node=None, skip_nan=False,
     values = optimize.fmin(transform, inits,
                            ftol=1e-12, xtol=1e-12,
                            disp=not silent)
-    values = constrain(*values)   # pylint: disable=too-many-function-args
+    values = constrain(*values)
     result = _hsepd_manual(*values, sim=sim, obs=obs)
     if return_pars:
         return result, values

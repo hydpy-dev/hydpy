@@ -642,7 +642,7 @@ class Sequence(variabletools.Variable):
 
     def __repr__(self):
         islong = self.length > 255
-        return variabletools.Variable.repr_(self, self.values, islong)
+        return variabletools.Variable.to_repr(self, self.values, islong)
 
     def __dir__(self):
         return objecttools.dir_(self)

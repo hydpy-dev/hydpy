@@ -150,6 +150,7 @@ def _compare_variables_function_generator(
     for aggregating multiple boolean values.
     """
     def comparison_function(self, other):
+        """Wrapper for comparison functions for class |Variable|."""
         try:
             method = getattr(self.value, method_string)
         except AttributeError:
@@ -270,10 +271,20 @@ error occured: operands could not be broadcast together with shapes (2,) (3,)
     """
     # Subclasses need to define...
     NDIM = None    # ... e.g. as class attribute (int)
-    value = None   # ... e.g. as property (float or ndarray of dtype float)
-    shape = None   # ... e.g. as property (tuple of values of type int)
     # ...and optionally...
     INIT = None
+
+    @property
+    def value(self):
+        """Actual value or |ndarray| of the actual values, to be defined
+        by the subclasses of |Variable|."""
+        raise NotImplementedError
+
+    @property
+    def shape(self):
+        """Shape information as |tuple| of |int| values, to be defined
+        by the subclasses of |Variable|."""
+        raise NotImplementedError
 
     NOT_DEEPCOPYABLE_MEMBERS = ()
 
@@ -462,9 +473,11 @@ error occured: operands could not be broadcast together with shapes (2,) (3,)
         return numpy.trunc(self.value)
 
     def __divmod__(self, other):
+        # pylint: disable=no-member
         return numpy.divmod(self.value, other)
 
     def __rdivmod__(self, other):
+        # pylint: disable=no-member
         return numpy.divmod(other, self.value)
 
     __lt__ = _compare_variables_function_generator('__lt__', numpy.all)
@@ -503,17 +516,6 @@ error occured: operands could not be broadcast together with shapes (2,) (3,)
     def __int__(self):
         return self._typeconversion(int)
 
-    @property
-    def real(self):
-        return self._typeconversion('real')
-
-    @property
-    def imag(self):
-        return self._typeconversion('imag')
-
-    def conjugate(self):
-        return self._typeconversion('conjugate')
-
     def __complex__(self):
         return numpy.complex(self.value)
 
@@ -530,7 +532,9 @@ error occured: operands could not be broadcast together with shapes (2,) (3,)
                     textwrap.wrap(autodoctools.description(self), 78)]
         return []
 
-    def repr_(self, values, islong):
+    def to_repr(self, values, islong):
+        """Return a valid string representation of the actual |Variable|
+        object."""
         prefix = '%s(' % self.name
         if self.NDIM == 0:
             string = '%s(%s)' % (self.name, objecttools.repr_(values))
@@ -550,7 +554,7 @@ error occured: operands could not be broadcast together with shapes (2,) (3,)
         return '\n'.join(self.commentrepr() + [string])
 
     def __repr__(self):
-        return self.repr_(self.value, False)
+        return self.to_repr(self.value, False)
 
 
 abctools.VariableABC.register(Variable)

@@ -1110,7 +1110,7 @@ class MultiParameter(Parameter):
                 % self.name)
         else:
             islong = False
-        return Parameter.repr_(self, values, islong)
+        return Parameter.to_repr(self, values, islong)
 
 
 class ZipParameter(MultiParameter):

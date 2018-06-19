@@ -164,8 +164,7 @@ class RiverBasinNumbers(tuple):
             neighbours = [rbn for rbn in self if rbn.startswith(pdn1)]
             if neighbours:
                 return min(neighbours)
-        else:
-            return None
+        return None
 
     @property
     def next_numbers(self):
@@ -392,7 +391,7 @@ class RiverBasinNumbers2Selection(object):
             except TypeError:
                 outlet = self.last_node
             elements += devicetools.Element(
-                            element, inlets=inlet, outlets=outlet)
+                element, inlets=inlet, outlets=outlet)
         return elements
 
     @property
@@ -423,9 +422,10 @@ class RiverBasinNumbers2Selection(object):
         >>> rbns2s.nodes
         Nodes("b_1123", "b_1125", "b_11269", "b_1129", "b_113", "l_node")
         """
-        return (devicetools.Nodes(self.node_prefix+routers for
-                                  routers in self._router_numbers) +
-                devicetools.Node(self.last_node))
+        return (
+            devicetools.Nodes(
+                self.node_prefix+routers for routers in self._router_numbers) +
+            devicetools.Node(self.last_node))
 
     @property
     def selection(self):
@@ -458,4 +458,4 @@ class RiverBasinNumbers2Selection(object):
                   nodes=("node_1123", ...,"node_outlet"))
         """
         return selectiontools.Selection(
-                            self.selection_name, self.nodes, self.elements)
+            self.selection_name, self.nodes, self.elements)

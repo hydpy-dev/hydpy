@@ -1410,11 +1410,8 @@ into shape (3)
             values = list(self._toy2values.values())[0]
             self.values[:] = self.apply_timefactor(values)
         else:
-            timegrid = timetools.Timegrid(
-                timetools.TOY._STARTDATE+self.simulationstep/2,
-                timetools.TOY._ENDDATE+self.simulationstep/2,
-                self.simulationstep)
-            for idx, date in enumerate(timegrid):
+            for idx, date in enumerate(
+                    timetools.TOY.centred_timegrid(self.simulationstep)):
                 values = self.interp(date)
                 self.values[idx] = self.apply_timefactor(values)
 

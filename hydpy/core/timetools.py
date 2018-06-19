@@ -2012,65 +2012,82 @@ set to `2`, but the given value is `29`.
         object.__setattr__(self, name, value)
 
     @property
-    def passed_seconds(self):
+    def seconds_passed(self):
         """Amount of time passed in seconds since the beginning of the year.
 
         In the first example, the year is only one minute and thirty seconds
         old:
 
         >>> from hydpy.core.timetools import TOY
-        >>> TOY('1_1_0_1_30').passed_seconds
+        >>> TOY('1_1_0_1_30').seconds_passed
         90
 
         The second example shows that the 29th February is generally included:
 
-        >>> TOY('3').passed_seconds
+        >>> TOY('3').seconds_passed
         5184000
         """
         return int((Date(self).datetime -
                     self._STARTDATE.datetime).total_seconds())
 
     @property
-    def left_seconds(self):
+    def seconds_left(self):
         """Remaining part of the year in seconds.
 
         In the first example, only one minute and thirty seconds of the year
         remain:
 
         >>> from hydpy.core.timetools import TOY
-        >>> TOY('12_31_23_58_30').left_seconds
+        >>> TOY('12_31_23_58_30').seconds_left
         90
 
         The second example shows that the 29th February is generally included:
 
-        >>> TOY('2').left_seconds
+        >>> TOY('2').seconds_left
         28944000
         """
         return int((self._ENDDATE.datetime -
                     Date(self).datetime).total_seconds())
 
+    @classmethod
+    def centred_timegrid(cls, simulationstep):
+        """Return a |Timegrid| object defining the central time points
+        of the year 2000 for the given simulation step.
+
+        >>> from hydpy.core.timetools import TOY
+        >>> TOY.centred_timegrid('1d')
+        Timegrid('2000-01-01 12:00:00',
+                 '2001-01-01 12:00:00',
+                 '1d')
+        """
+        simulationstep = Period(simulationstep)
+        return Timegrid(
+            cls._STARTDATE+simulationstep/2,
+            cls._ENDDATE+simulationstep/2,
+            simulationstep)
+
     def __lt__(self, other):
-        return self.passed_seconds < other.passed_seconds
+        return self.seconds_passed < other.seconds_passed
 
     def __le__(self, other):
-        return self.passed_seconds <= other.passed_seconds
+        return self.seconds_passed <= other.seconds_passed
 
     def __eq__(self, other):
-        return self.passed_seconds == other.passed_seconds
+        return self.seconds_passed == other.seconds_passed
 
     def __ne__(self, other):
-        return self.passed_seconds != other.passed_seconds
+        return self.seconds_passed != other.seconds_passed
 
     def __gt__(self, other):
-        return self.passed_seconds > other.passed_seconds
+        return self.seconds_passed > other.seconds_passed
 
     def __ge__(self, other):
-        return self.passed_seconds >= other.passed_seconds
+        return self.seconds_passed >= other.seconds_passed
 
     def __sub__(self, other):
         if self >= other:
-            return self.passed_seconds - other.passed_seconds
-        return self.passed_seconds + other.left_seconds
+            return self.seconds_passed - other.seconds_passed
+        return self.seconds_passed + other.seconds_left
 
     def __hash__(self):
         return hash(str(self))

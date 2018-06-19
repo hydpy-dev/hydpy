@@ -1632,11 +1632,8 @@ neural network `seasonalann` of element `?` none has been defined so far.
         ratios = self.ratios
         ratios[:, :] = 0.0
         toys = self.toys
-        timegrid = timetools.Timegrid(
-            timetools.TOY._STARTDATE+self.simulationstep/2,
-            timetools.TOY._ENDDATE+self.simulationstep/2,
-            self.simulationstep)
-        for tdx, date in enumerate(timegrid):
+        for tdx, date in enumerate(
+                timetools.TOY.centred_timegrid(self.simulationstep)):
             xnew = timetools.TOY(date)
             for idx_1, x_1 in enumerate(toys):
                 if x_1 > xnew:

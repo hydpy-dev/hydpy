@@ -2,7 +2,8 @@
 """This module implements features which help to regularize discontinuous
 process equations.
 
-.. _Tyralla (2016): http://www.hydrology.ruhr-uni-bochum.de/hydrolgy/mam/download/schriftenreihe_29.pdf
+.. _Tyralla (2016): http://www.hydrology.ruhr-uni-bochum.de/hydrolgy/mam/\
+download/schriftenreihe_29.pdf
 
 Many hydrological models rely heavily on discontinous equations describing
 hydrological processes.  The related "if-else" blocks are often not
@@ -31,7 +32,7 @@ from __future__ import division, print_function
 import numpy
 from scipy import optimize
 # ...from HydPy
-from hydpy.cythons import smoothutils
+from hydpy.cythons.autogen import smoothutils
 from hydpy.core import autodoctools
 
 
@@ -110,11 +111,10 @@ def calc_smoothpar_logistic2(metapar):
     """
     if metapar <= 0.:
         return 0.
-    else:
-        return optimize.newton(_error_smoothpar_logistic2,
-                               .3 * metapar**.84,
-                               _smooth_logistic2_derivative,
-                               args=(metapar,))
+    return optimize.newton(_error_smoothpar_logistic2,
+                           .3 * metapar**.84,
+                           _smooth_logistic2_derivative,
+                           args=(metapar,))
 
 
 def calc_smoothpar_logistic3(metapar):

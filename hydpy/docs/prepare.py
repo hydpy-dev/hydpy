@@ -74,7 +74,8 @@ for subpackage in (auxs, core, cythons, models):
             (filename not in ('build', '__pycache__')))
         if is_module:
             path = os.path.join(subpackage.__path__[0], filename)
-            sources = [open(path, encoding='utf-8').read()]
+            with open(path, encoding='utf-8') as file_:
+                sources = [file_.read()]
             module = importlib.import_module(
                 '%s.%s' % (subpackage.__name__, filename.split('.')[0]))
             for member in getattr(module, '__dict__', {}).values():
@@ -90,7 +91,8 @@ for subpackage in (auxs, core, cythons, models):
             for subfilename in os.listdir(path):
                 if subfilename.endswith('.py'):
                     subpath = os.path.join(path, subfilename)
-                    sources.append(open(subpath, encoding='utf-8').read())
+                    with open(subpath, encoding='utf-8') as file_:
+                        sources.append(file_.read())
             source = '\n'.join(sources)
         filename = filename.split('.')[0]
         if (is_module and (subpackage is models)) or is_package:
@@ -124,7 +126,8 @@ for subpackage in (figs, sphinx, rst):
         path_out = os.path.join(AUTOPATH, filename)
         if filename not in ('__init__.py', '__pycache__'):
             if subpackage is rst:
-                orig = open(path_in, encoding="utf-8").read()
+                with open(path_in, encoding="utf-8") as file_:
+                    orig = file_.read()
                 with open(path_out, 'w', encoding="utf-8") as file_:
                     file_.write(hydpy.substituter.get_commands(orig))
                     file_.write('\n')

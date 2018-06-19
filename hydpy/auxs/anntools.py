@@ -212,7 +212,7 @@ is not usable so far.
         self.subpars = None
         self.fastaccess = objecttools.FastAccess()
         self._isready = exceptiontools.IsReady(
-            false=('nmb_inputs',  'nmb_outputs', 'nmb_neurons'))
+            false=('nmb_inputs', 'nmb_outputs', 'nmb_neurons'))
         self._cann = annutils.ANN()
         self._max_nmb_neurons = None
 
@@ -485,7 +485,7 @@ broadcast input array from shape (3,3) into shape (3,2)
         self._cann.weights_output = numpy.zeros(self.shape_weights_output)
 
     weights_output = exceptiontools.dependent_property(
-        'weights_output',  _get_weights_output,
+        'weights_output', _get_weights_output,
         _set_weights_output, _del_weights_output)
 
     @property
@@ -1599,7 +1599,6 @@ year `toy_1_1_12_0_0` requires `2` input and `3` output values.
         RuntimeError: Seasonal artificial neural network collections need \
 to handle at least one "normal" single neural network, but for the seasonal \
 neural network `seasonalann` of element `?` none has been defined so far.
-
         """
         if not self.anns:
             self._toy2ann.clear()
@@ -1724,11 +1723,12 @@ neural network `seasonalann` of element `?` none has been defined so far.
         """Call method |ANN.plot| of all |anntools.ANN| objects
         handled bythe actual |anntools.SeasonalANN| object.
         """
-        for toy, ann in self:
-            ann.plot(xmin, xmax,
-                     idx_input=idx_input, idx_output=idx_output,
-                     points=points,
-                     label=str(toy))
+        for toy, ann_ in self:
+            ann_.plot(xmin, xmax,
+                      idx_input=idx_input, idx_output=idx_output,
+                      points=points,
+                      label=str(toy),
+                      **kwargs)
         pyplot.legend()
 
     def __getattribute__(self, name):

@@ -7,6 +7,7 @@ HydPy projects as well as loading data from and storing data to files.
 from __future__ import division, print_function
 import os
 import runpy
+import weakref
 # ...from site-packages
 import numpy
 # ...from HydPy
@@ -420,30 +421,29 @@ class ConditionManager(FileManager):
             self._defaultdir = _defaultdir
 
 
-class _Context(object):
+class _Descriptor(object):
 
-    def __init__(self, name, default):
+    def __init__(self, default):
         self.default = default
-        self.attrname = '_%s_value' % name
+        self.obj2value = weakref.WeakKeyDictionary()
 
     def get_value(self, obj):
         """Get the value from the given object and return it."""
-        value = getattr(obj, self.attrname, None)
-        return self.default if (value is None) else value
+        return self.obj2value.get(obj, self.default)
 
     def set_value(self, obj, value):
         """Assign the given value to the given object."""
-        setattr(obj, self.attrname, value)
+        self.obj2value[obj] = value
 
     def del_value(self, obj):
         """Delete the value from the given object."""
-        setattr(obj, self.attrname, None)
+        del self.obj2value[obj]
 
 
-class _ContextDir(_Context):
+class _DescriptorDir(_Descriptor):
 
-    def __init__(self, name, default, sequence_type):
-        _Context.__init__(self, name, default)
+    def __init__(self, default, sequence_type):
+        _Descriptor.__init__(self, default)
         self.sequence_type = sequence_type
         self.__doc__ = (
             'Current directory containing the %s sequence files.'
@@ -484,10 +484,10 @@ class _ContextDir(_Context):
             self.del_value(obj)
 
 
-class _ContextType(_Context):
+class _DescriptorType(_Descriptor):
 
-    def __init__(self, name, default, sequence_type):
-        _Context.__init__(self, name, default)
+    def __init__(self, default, sequence_type):
+        _Descriptor.__init__(self, default)
         self.__doc__ = (
             'Currently selected type of the %s sequence files.'
             % sequence_type)
@@ -508,10 +508,10 @@ class _ContextType(_Context):
                 % (value, objecttools.enumeration(obj.SUPPORTED_MODES)))
 
 
-class _ContextOverwrite(_Context):
+class _DescriptorOverwrite(_Descriptor):
 
-    def __init__(self, name, default, sequence_type):
-        _Context.__init__(self, name, default)
+    def __init__(self, default, sequence_type):
+        _Descriptor.__init__(self, default)
         self.__doc__ = (
             'Currently selected overwrite flag of the %s sequence files.'
             % sequence_type)
@@ -525,10 +525,10 @@ class _ContextOverwrite(_Context):
         self.set_value(obj, value)
 
 
-class _ContextPath(_Context):
+class _DescriptorPath(_Descriptor):
 
-    def __init__(self, name, sequence_dir, sequence_type):
-        _Context.__init__(self, name, None)
+    def __init__(self, sequence_dir, sequence_type):
+        _Descriptor.__init__(self, None)
         self.sequence_dir = sequence_dir
         self.sequence_type = sequence_type
         self.__doc__ = (
@@ -699,26 +699,26 @@ requested to make any internal data available to the user.
     SUPPORTED_MODES = ('npy', 'asc', 'nc')
     _BASEDIR = 'sequences'
 
-    inputdir = _ContextDir('inputdir', 'input', 'input')
-    outputdir = _ContextDir('outputdir', 'output', 'output')
-    nodedir = _ContextDir('nodedir', 'node', 'node')
-    tempdir = _ContextDir('tempdir', 'temp', 'temporary')
+    inputdir = _DescriptorDir('input', 'input')
+    outputdir = _DescriptorDir('output', 'output')
+    nodedir = _DescriptorDir('node', 'node')
+    tempdir = _DescriptorDir('temp', 'temporary')
 
-    inputfiletype = _ContextType('inputfiletype', 'npy', 'input')
-    outputfiletype = _ContextType('outputfiletype', 'npy', 'output')
-    nodefiletype = _ContextType('nodefiletype', 'npy', 'node')
-    tempfiletype = _ContextType('tempfiletype', 'npy', 'temporary')
+    inputfiletype = _DescriptorType('npy', 'input')
+    outputfiletype = _DescriptorType('npy', 'output')
+    nodefiletype = _DescriptorType('npy', 'node')
+    tempfiletype = _DescriptorType('npy', 'temporary')
 
-    inputoverwrite = _ContextOverwrite('inputoverwrite', False, 'input')
-    outputoverwrite = _ContextOverwrite('outputoverwrite', False, 'output')
-    simoverwrite = _ContextOverwrite('simoverwrite', False, 'sim node')
-    obsoverwrite = _ContextOverwrite('obsoverwrite', False, 'obs node')
-    tempoverwrite = _ContextOverwrite('tempoverwrite', False, 'temporary')
+    inputoverwrite = _DescriptorOverwrite(False, 'input')
+    outputoverwrite = _DescriptorOverwrite(False, 'output')
+    simoverwrite = _DescriptorOverwrite(False, 'sim node')
+    obsoverwrite = _DescriptorOverwrite(False, 'obs node')
+    tempoverwrite = _DescriptorOverwrite(False, 'temporary')
 
-    inputpath = _ContextPath('inputpath', 'inputdir', 'input')
-    outputpath = _ContextPath('outputpath', 'outputdir', 'output')
-    nodepath = _ContextPath('nodepath', 'nodedir', 'node')
-    temppath = _ContextPath('temppath', 'tempdir', 'temporary')
+    inputpath = _DescriptorPath('inputdir', 'input')
+    outputpath = _DescriptorPath('outputdir', 'output')
+    nodepath = _DescriptorPath('nodedir', 'node')
+    temppath = _DescriptorPath('tempdir', 'temporary')
 
     def __init__(self):
         FileManager.__init__(self)

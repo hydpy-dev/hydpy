@@ -22,8 +22,9 @@ from hydpy.auxs import statstools
 from hydpy.auxs import armatools
 
 
-class IUH_Parameter(object):
-    """Descriptor base class for |PrimaryParameter| and |SecondaryParameter|.
+class ParameterIUH(object):
+    """Descriptor base class for |PrimaryParameterIUH| and
+    |SecondaryParameterIUH|.
 
     The first initialization argument is the parameters name.  Optionally,
     an alternative type (the default type is |float|) and a documentation
@@ -51,7 +52,7 @@ class IUH_Parameter(object):
                    objecttools.classname(self.type_), self.name))
 
 
-class PrimaryParameter(IUH_Parameter):
+class PrimaryParameterIUH(ParameterIUH):
     """Descriptor base class for parameters of instantaneous unit hydrograph
     functions to be defined by the user.
 
@@ -69,7 +70,7 @@ class PrimaryParameter(IUH_Parameter):
         obj.update()
 
 
-class SecondaryParameter(IUH_Parameter):
+class SecondaryParameterIUH(ParameterIUH):
     """Descriptor base class for parameters of instantaneous unit hydrograph
     functions which can be determined automatically."""
 
@@ -84,21 +85,21 @@ class SecondaryParameter(IUH_Parameter):
 class MetaIUH(type):
     """Metaclass for class |IUH|.
 
-    For storing |PrimaryParameter| and |SecondaryParameter| in separate
+    For storing |PrimaryParameterIUH| and |SecondaryParameterIUH| in separate
     dictionaries.
     """
 
-    def __new__(cls, name, parents, dict_):
+    def __new__(mcs, name, parents, dict_):
         primary_parameters = {}
         secondary_parameters = {}
         for key, value in dict_.items():
-            if isinstance(value, PrimaryParameter):
+            if isinstance(value, PrimaryParameterIUH):
                 primary_parameters[key] = value
-            elif isinstance(value, SecondaryParameter):
+            elif isinstance(value, SecondaryParameterIUH):
                 secondary_parameters[key] = value
-        dict_['_primary_parameters'] = primary_parameters
-        dict_['_secondary_parameters'] = secondary_parameters
-        return type.__new__(cls, name, parents, dict_)
+        dict_['_PRIMARY_PARAMETERS'] = primary_parameters
+        dict_['_SECONDARY_PARAMETERS'] = secondary_parameters
+        return type.__new__(mcs, name, parents, dict_)
 
 
 # Just for making MetaIUH the type of class IUH both in Python 2 and 3:
@@ -128,16 +129,24 @@ class IUH(_MetaIUH):
     """Smallest value taken into account for plotting and analyzing iuh
     functions."""
 
+    # Overwritten by metaclass:
+    _PRIMARY_PARAMETERS = {}
+    _SECONDARY_PARAMETERS = {}
+
     def __init__(self, **kwargs):
         self.ma = armatools.MA(self)
         self.arma = armatools.ARMA(ma_model=self.ma)
         if kwargs:
             self.set_primary_parameters(**kwargs)
 
+    def __call__(self):
+        """Must be implemented by the concrete |IUH| subclass."""
+        raise NotImplementedError
+
     def set_primary_parameters(self, **kwargs):
         """Set all primary parameters at once."""
         given = sorted(kwargs.keys())
-        required = sorted(self._primary_parameters)
+        required = sorted(self._PRIMARY_PARAMETERS)
         if given == required:
             for (key, value) in kwargs.items():
                 setattr(self, key, value)
@@ -153,13 +162,17 @@ class IUH(_MetaIUH):
                    ', '.join(required), ', '.join(given)))
 
     @property
-    def are_primary_parameters_complete(self):
+    def primary_parameters_complete(self):
         """True/False flag that indicates wheter the values of all primary
         parameters are defined or not."""
-        for primpar in self._primary_parameters.values():
+        for primpar in self._PRIMARY_PARAMETERS.values():
             if primpar.__get__(self) is None:
                 return False
         return True
+
+    def calc_secondary_parameters(self):
+        """Must be implemented by the concrete |IUH| subclass."""
+        raise NotImplementedError
 
     def update(self):
         """Delete the coefficients of the pure MA model and also all MA and
@@ -170,10 +183,10 @@ class IUH(_MetaIUH):
         del self.ma.coefs
         del self.arma.ma_coefs
         del self.arma.ar_coefs
-        if self.are_primary_parameters_complete:
+        if self.primary_parameters_complete:
             self.calc_secondary_parameters()
         else:
-            for secpar in self._secondary_parameters.values():
+            for secpar in self._SECONDARY_PARAMETERS.values():
                 secpar.__delete__(self)
 
     @property
@@ -233,7 +246,7 @@ class IUH(_MetaIUH):
 
     def __repr__(self):
         parts = [objecttools.classname(self), '(']
-        for (name, primpar) in sorted(self._primary_parameters.items()):
+        for (name, primpar) in sorted(self._PRIMARY_PARAMETERS.items()):
             value = primpar.__get__(self)
             if value is not None:
                 parts.extend([name, '=', objecttools.repr_(value), ', '])
@@ -379,11 +392,11 @@ arguments of the instantaneous unit hydrograph class \
 keyword arguments.  But instead of the primary parameter names `d, u, x` \
 the following keywords were given: d, u.
     """
-    u = PrimaryParameter('u', doc='Wave velocity.')
-    d = PrimaryParameter('d', doc='Diffusion coefficient.')
-    x = PrimaryParameter('x', doc='Routing distance.')
-    a = SecondaryParameter('a', doc='Distance related coefficient.')
-    b = SecondaryParameter('b', doc='Velocity related coefficient.')
+    u = PrimaryParameterIUH('u', doc='Wave velocity.')
+    d = PrimaryParameterIUH('d', doc='Diffusion coefficient.')
+    x = PrimaryParameterIUH('x', doc='Routing distance.')
+    a = SecondaryParameterIUH('a', doc='Distance related coefficient.')
+    b = SecondaryParameterIUH('b', doc='Velocity related coefficient.')
 
     def calc_secondary_parameters(self):
         """Determine the values of the secondary parameters `a` and `b`."""
@@ -426,10 +439,10 @@ class LinearStorageCascade(IUH):
     0.122042, 0.028335, 0.004273, 0.00054
 
     """
-    n = PrimaryParameter('n', doc='Number of linear storages.')
-    k = PrimaryParameter(
+    n = PrimaryParameterIUH('n', doc='Number of linear storages.')
+    k = PrimaryParameterIUH(
         'k', doc='Time of concentration of each individual storage.')
-    c = SecondaryParameter('c', doc='Proportionality factor.')
+    c = SecondaryParameterIUH('c', doc='Proportionality factor.')
 
     def calc_secondary_parameters(self):
         """Determine the value of the secondary parameter `c`."""

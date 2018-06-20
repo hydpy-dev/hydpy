@@ -541,6 +541,23 @@ def deepcopy_(self, memo):
         return copy.deepcopy(self, memo)
 
 
+def copy_class(cls):
+    """Return a copy (actually a subclass) of the given class.
+
+    Function |copy_class| simplifies testing classes through changing them:
+
+    >>> x = int(3)
+    >>> x.bit_length()
+    2
+    >>> from hydpy.core.objecttools import copy_class
+    >>> int = copy_class(int)
+    >>> int.bit_length = lambda self: 'test'
+    >>> int(3).bit_length()
+    'test'
+    """
+    return type(cls.__name__, (cls,), {})
+
+
 class _PreserveStrings(object):
     """Helper class for |_Repr_|."""
 

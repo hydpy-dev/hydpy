@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
+# pylint: enable=missing-docstring
+
 
 # import...
 # ...standard library
@@ -37,14 +40,12 @@ first in each parameter control file.
 
     @property
     def refparameter(self):
-        """Alias for the associated instance of |Lnk|.
-        """
+        """Alias for the associated instance of |Lnk|."""
         return self.subpars.pars.control.lnk
 
     @property
     def shapeparameter(self):
-        """Alias for the associated instance of |NHRU|.
-        """
+        """Alias for the associated instance of |NHRU|."""
         return self.subpars.pars.control.nhru
 
 
@@ -52,9 +53,10 @@ class MultiParameterLand(MultiParameter):
     """Base class for handling parameters of HydPy-L-Land (potentially)
     handling multiple values relevant for non water HRUs.
     """
-    REQUIRED_VALUES = tuple(value for (key, value)
-                            in lland_constants.CONSTANTS.items()
-                            if value != 'WASSER')
+    REQUIRED_VALUES = tuple(
+        value for (key, value)
+        in lland_constants.CONSTANTS.items()
+        if value not in ('WASSER', 'SEE', 'FLUSS'))
 
 
 class MultiParameterSoil(MultiParameter):
@@ -62,9 +64,10 @@ class MultiParameterSoil(MultiParameter):
     handling multiple values relevant for non water HRUs without sealed
     surfaces.
     """
-    REQUIRED_VALUES = tuple(value for (key, value)
-                            in lland_constants.CONSTANTS.items()
-                            if value not in ('WASSER', 'VERS'))
+    REQUIRED_VALUES = tuple(
+        value for (key, value)
+        in lland_constants.CONSTANTS.items()
+        if value not in ('WASSER', 'SEE', 'FLUSS', 'VERS'))
 
 
 class LanduseMonthParameter(parametertools.KeywordParameter2D):
@@ -73,6 +76,6 @@ class LanduseMonthParameter(parametertools.KeywordParameter2D):
     """
     COLNAMES = ('jan', 'feb', 'mar', 'apr', 'mai', 'jun',
                 'jul', 'aug', 'sep', 'oct', 'nov', 'dec')
-    ROWNAMES = tuple(key.lower() for (idx, key)
-                     in (sorted((idx, key) for (key, idx) in
-                         lland_constants.CONSTANTS.items())))
+    ROWNAMES = tuple(
+        key.lower() for (idx, key) in sorted(
+            (idx, key) for (key, idx) in lland_constants.CONSTANTS.items()))

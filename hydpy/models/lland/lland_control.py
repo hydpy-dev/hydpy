@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
+# pylint: enable=missing-docstring
 
 # import...
 # ...from standard library
@@ -54,8 +56,8 @@ class NHRU(parametertools.SingleParameter):
         for subseqs in self.subpars.pars.model.sequences:
             for seq in subseqs:
                 if (((seq.NDIM == 1) and (seq.name != 'moy')) or
-                    ((seq.NDIM == 2) and
-                     isinstance(seq, abctools.LogSequenceABC))):
+                        ((seq.NDIM == 2) and
+                         isinstance(seq, abctools.LogSequenceABC))):
                     seq.shape = self.value
 
 

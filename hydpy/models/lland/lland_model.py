@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
+# pylint: enable=missing-docstring
+
 
 # imports...
 # ...standard library
@@ -599,8 +602,8 @@ def calc_wgtf_v1(self):
             flu.wgtf[k] = 0.
         else:
             flu.wgtf[k] = (
-              max(con.gtf[k]*(flu.tkor[k]-con.treft[k]), 0) +
-              max(con.cpwasser/con.rschmelz*(flu.tkor[k]-con.trefn[k]), 0.))
+                max(con.gtf[k]*(flu.tkor[k]-con.treft[k]), 0) +
+                max(con.cpwasser/con.rschmelz*(flu.tkor[k]-con.trefn[k]), 0.))
 
 
 def calc_schm_wats_v1(self):
@@ -1117,7 +1120,7 @@ def calc_qdb_v1(self):
         if con.lnk[k] == WASSER:
             flu.qdb[k] = 0.
         elif ((con.lnk[k] in (VERS, FLUSS, SEE)) or
-                (con.nfk[k] <= 0.)):
+              (con.nfk[k] <= 0.)):
             flu.qdb[k] = flu.wada[k]
         else:
             if sta.bowa[k] < con.nfk[k]:
@@ -1980,17 +1983,16 @@ def calc_q_v1(self):
     sta = self.sequences.states.fastaccess
     aid = self.sequences.aides.fastaccess
     flu.q = sta.qbga+sta.qiga1+sta.qiga2+sta.qdga1+sta.qdga2
-    if not con.negq:
-        if flu.q < 0.:
-            d_area = 0.
+    if (not con.negq) and (flu.q < 0.):
+        d_area = 0.
+        for k in range(con.nhru):
+            if con.lnk[k] in (FLUSS, SEE):
+                d_area += con.fhru[k]
+        if d_area > 0.:
             for k in range(con.nhru):
                 if con.lnk[k] in (FLUSS, SEE):
-                    d_area += con.fhru[k]
-            if d_area > 0.:
-                for k in range(con.nhru):
-                    if con.lnk[k] in (FLUSS, SEE):
-                        flu.evi[k] += flu.q/d_area
-            flu.q = 0.
+                    flu.evi[k] += flu.q/d_area
+        flu.q = 0.
     aid.epw = 0.
     for k in range(con.nhru):
         if con.lnk[k] == WASSER:

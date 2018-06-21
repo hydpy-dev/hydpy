@@ -160,8 +160,8 @@ class Parameters(object):
                 variable2auxfile = getattr(auxfiler, str(self.model), None)
             else:
                 variable2auxfile = None
-            lines = [header_controlfile(
-                     self.model, parameterstep, simulationstep)]
+            lines = [
+                header_controlfile(self.model, parameterstep, simulationstep)]
             for par in self.control:
                 if variable2auxfile:
                     auxfilename = variable2auxfile.get_filename(par)
@@ -214,7 +214,7 @@ class Parameters(object):
 
 class _MetaSubParametersType(type):
 
-    def __new__(cls, name, parents, dict_):
+    def __new__(mcs, name, parents, dict_):
         parclasses = dict_.get('_PARCLASSES')
         if parclasses is None:
             raise NotImplementedError(
@@ -233,7 +233,7 @@ class _MetaSubParametersType(type):
             if doc is None:
                 doc = ''
             dict_['__doc__'] = doc + '\n'.join(l for l in lst)
-        return type.__new__(cls, name, parents, dict_)
+        return type.__new__(mcs, name, parents, dict_)
 
 
 _MetaSubParametersClass = _MetaSubParametersType('_MetaSubParametersClass',
@@ -327,7 +327,7 @@ parameter class nor a parameter instance.
                 value.connect(self)
         else:
             try:
-                attr._setvalue(value)
+                attr._set_value(value)
             except AttributeError:
                 raise RuntimeError(
                     '`%s` instances do not allow the direct replacement of '
@@ -604,6 +604,9 @@ class Parameter(variabletools.Variable):
     """Base class for |SingleParameter| and |MultiParameter|."""
 
     NOT_DEEPCOPYABLE_MEMBERS = ('subpars', 'fastaccess')
+    TYPE2INITVALUE = {float: numpy.nan,
+                      int: variabletools._INT_NAN,
+                      bool: False}
 
     parameterstep = Parameterstep()
     simulationstep = Simulationstep()
@@ -630,11 +633,11 @@ class Parameter(variabletools.Variable):
                 'The keyword name to define a parameter value in an auxiliary '
                 'control file is now `auxfile`.  The old keyword name '
                 '`pyfile` will be banned in the future.'))
-            values = self._getvalues_from_auxiliaryfile(kwargs['pyfile'])
+            values = self._get_values_from_auxiliaryfile(kwargs['pyfile'])
             self.values = self.apply_timefactor(values)
             del kwargs['pyfile']
         elif 'auxfile' in kwargs:
-            values = self._getvalues_from_auxiliaryfile(kwargs['auxfile'])
+            values = self._get_values_from_auxiliaryfile(kwargs['auxfile'])
             self.values = self.apply_timefactor(values)
             del kwargs['auxfile']
         elif args:
@@ -647,7 +650,7 @@ class Parameter(variabletools.Variable):
                                          objecttools.devicename(self)))
         self.trim()
 
-    def _getvalues_from_auxiliaryfile(self, pyfile):
+    def _get_values_from_auxiliaryfile(self, pyfile):
         """Tries to return the parameter values from the auxiliary control file
         with the given name.
 
@@ -751,24 +754,20 @@ class Parameter(variabletools.Variable):
         >>> test = prepare()
         Traceback (most recent call last):
         ...
-        AttributeError: For parameter `test` no `INIT` class attribute is \
-defined, but no standard value for its TYPE `list` is available
+        AttributeError: For parameter ``test` of element `?`` no `INIT` \
+class attribute is defined, but no standard value for its type `list` is \
+available.
         """
         initvalue = (getattr(self, 'INIT', None) if
                      pub.options.usedefaultvalues else None)
         if initvalue is None:
-            type_ = getattr(self, 'TYPE', float)
-            if type_ is float:
-                initvalue = numpy.nan
-            elif type_ is int:
-                initvalue = variabletools._INT_NAN
-            elif type_ is bool:
-                initvalue = False
-            else:
+            initvalue = self.TYPE2INITVALUE.get(self.TYPE)
+            if initvalue is None:
                 raise AttributeError(
                     'For parameter `%s` no `INIT` class attribute is defined, '
-                    'but no standard value for its TYPE `%s` is available'
-                    % (self.name, objecttools.classname(type_)))
+                    'but no standard value for its type `%s` is available.'
+                    % (objecttools.elementphrase(self),
+                       objecttools.classname(self.TYPE)))
         else:
             with Parameter.parameterstep('1d'):
                 initvalue = self.apply_timefactor(initvalue)
@@ -869,44 +868,49 @@ class SingleParameter(Parameter):
         self.fastaccess = subpars.fastaccess
         setattr(self.fastaccess, self.name, self.initvalue)
 
-    def _getshape(self):
+    @staticmethod
+    def _getshape():
         """An empty tuple.  (Only intended for increasing consistent usability
         of |SingleParameter| and |MultiParameter| instances.)
         """
         return ()
 
     def _setshape(self, shape):
-        raise RuntimeError('The shape information of `SingleParameters` '
-                           'as `%s` cannot be changed.' % self.name)
+        raise RuntimeError(
+            'The shape information of `SingleParameters` '
+            'as `%s` cannot be changed.'
+            % objecttools.elementphrase(self))
 
     shape = property(_getshape, _setshape)
 
-    def _getvalue(self):
+    def _get_value(self):
         """The actual parameter value handled by the respective
         |SingleParameter| instance.
         """
         return getattr(self.fastaccess, self.name, numpy.nan)
 
-    def _setvalue(self, value):
+    def _set_value(self, value):
         try:
             temp = value[0]
             if len(value) > 1:
-                raise ValueError('%d values are assigned to the scalar '
-                                 'parameter `%s`, which is ambiguous.'
-                                 % (len(value)), self.name)
+                raise ValueError(
+                    '%d values are assigned to the scalar '
+                    'parameter `%s`, which is ambiguous.'
+                    % (len(value), objecttools.elementphrase(self)))
             value = temp
         except (TypeError, IndexError):
             pass
         try:
             value = self.TYPE(value)
         except (ValueError, TypeError):
-            raise TypeError('When trying to set the value of parameter `%s`, '
-                            'it was not possible to convert `%s` to type '
-                            '`%s`.' % (self.name, value,
-                                       objecttools.classname(self.TYPE)))
+            raise TypeError(
+                'When trying to set the value of parameter `%s`, '
+                'it was not possible to convert `%s` to type `%s`.'
+                % (objecttools.elementphrase(self), value,
+                   objecttools.classname(self.TYPE)))
         setattr(self.fastaccess, self.name, value)
 
-    value = property(_getvalue, _setvalue)
+    value = property(_get_value, _set_value)
     values = value
 
     def verify(self):
@@ -927,23 +931,26 @@ class SingleParameter(Parameter):
         if key in (0, slice(None, None, None)):
             return self.value
         else:
-            raise IndexError('The only allowed index for scalar parameters '
-                             'like `%s` is `0` (or `:`), but `%s` is given.'
-                             % (self.name, key))
+            raise IndexError(
+                'The only allowed index for scalar parameters '
+                'like `%s` is `0` (or `:`), but `%s` is given.'
+                % (objecttools.elementphrase(self), key))
 
     def __setitem__(self, key, value):
         if key in (0, slice(None, None, None)):
             self.value = value
         else:
-            raise IndexError('The only allowed index for scalar parameters '
-                             'like `%s` is `0` (or `:`), but `%s` is given.'
-                             % (self.name, key))
+            raise IndexError(
+                'The only allowed index for scalar parameters '
+                'like `%s` is `0` (or `:`), but `%s` is given.'
+                % (objecttools.elementphrase(self), key))
 
     def __repr__(self):
         lines = self.commentrepr()
-        lines.append('%s(%s)'
-                     % (self.name,
-                        objecttools.repr_(self.revert_timefactor(self.value))))
+        lines.append(
+            '%s(%s)'
+            % (self.name,
+               objecttools.repr_(self.revert_timefactor(self.value))))
         return '\n'.join(lines)
 
 
@@ -965,9 +972,10 @@ class MultiParameter(Parameter):
             shape = getattr(self.fastaccess, self.name).shape
             return tuple(int(x) for x in shape)
         except AttributeError:
-            raise RuntimeError('Shape information for parameter `%s` '
-                               'can only be retrieved after it has been '
-                               'defined.' % self.name)
+            raise RuntimeError(
+                'Shape information for parameter `%s` can only '
+                'be retrieved after it has been defined.'
+                % objecttools.elementphrase(self))
 
     def _setshape(self, shape):
         try:
@@ -975,18 +983,18 @@ class MultiParameter(Parameter):
         except BaseException:
             objecttools.augment_excmessage(
                 'While trying create a new numpy ndarray` for parameter `%s`'
-                % self.name)
+                % objecttools.elementphrase(self))
         if array.ndim == self.NDIM:
             setattr(self.fastaccess, self.name, array)
         else:
             raise ValueError(
                 'Parameter `%s` is %d-dimensional but the '
                 'given shape indicates %d dimensions.'
-                % (self.name, self.NDIM, array.ndim))
+                % (objecttools.elementphrase(self), self.NDIM, array.ndim))
 
     shape = property(_getshape, _setshape)
 
-    def _getvalue(self):
+    def _get_value(self):
         """The actual parameter value(s) handled by the respective
         |Parameter| instance.  For consistency, `value` and `values`
         can always be used interchangeably.
@@ -996,7 +1004,7 @@ class MultiParameter(Parameter):
             return value
         return numpy.asarray(value)
 
-    def _setvalue(self, value):
+    def _set_value(self, value):
         try:
             value = value.value
         except AttributeError:
@@ -1010,7 +1018,7 @@ class MultiParameter(Parameter):
                 % (value, self.shape, objecttools.classname(self.TYPE)))
         setattr(self.fastaccess, self.name, value)
 
-    value = property(_getvalue, _setvalue)
+    value = property(_get_value, _set_value)
     values = value
 
     def _getverifymask(self):
@@ -1077,11 +1085,11 @@ class MultiParameter(Parameter):
         If the compression fails, a |NotImplementedError| is raised.
         """
         if self.value is None:
-            unique = numpy.array([numpy.nan])
+            unique = numpy.array([self.TYPE2INITVALUE.get(self.TYPE)])
         elif self.length == 0:
             return ['']
         else:
-            unique = numpy.unique(self.values)
+            unique = numpy.unique(self.values[self.mask])
         if sum(numpy.isnan(unique)) == len(unique.flatten()):
             unique = numpy.array([numpy.nan])
         else:
@@ -1093,9 +1101,9 @@ class MultiParameter(Parameter):
             return result
         else:
             raise NotImplementedError(
-                'For parameter `%s` there is no compression method '
+                'For parameter %s there is no compression method '
                 'implemented, working for its actual values.'
-                % self.name)
+                % objecttools.elementphrase(self))
 
     def __repr__(self):
         try:
@@ -1120,11 +1128,11 @@ class ZipParameter(MultiParameter):
     When inheriting an actual parameter class from |ZipParameter| one
     needs to define suitable class constants |ZipParameter.REQUIRED_VALUES|
     (a |tuple|) and |ZipParameter.MODEL_CONSTANTS| (a |dict|).
-    Additionally, a property named `refparameter` must be defined.
+    Additionally, property |ZipParameter.refparameter| must be overwritten.
 
     The implementation and functioning of subclasses of |ZipParameter|
     is best illustrated by an example: see the documentation of the class
-    |MultiParameter| of the HydPy-H-Land model.
+    |hland_parameters.MultiParameter| of base model |hland|.
     """
     REQUIRED_VALUES = ()
     MODEL_CONSTANTS = {}
@@ -1141,10 +1149,10 @@ class ZipParameter(MultiParameter):
                 if min(refvalues) < 1:
                     raise RuntimeError(
                         'Parameter %s does not seem to be prepared properly '
-                        'for element %s.  Hence, setting values for '
-                        'parameter %s via keyword arguments is not possible.'
+                        'for %s.  Hence, setting values for parameter %s '
+                        'via keyword arguments is not possible.'
                         % (self.refparameter.name,
-                           objecttools.devicename(self),
+                           objecttools.elementphrase(self),
                            self.name))
                 self.values = kwargs.pop('default', numpy.nan)
                 for (key, value) in kwargs.items():
@@ -1165,29 +1173,28 @@ class ZipParameter(MultiParameter):
         try:
             return MultiParameter._getshape(self)
         except RuntimeError:
-            raise RuntimeError('Shape information for parameter `%s` can '
-                               'only be retrieved after it has been defined. '
-                               ' You can do this manually, but usually it is '
-                               'done automatically by defining the value of '
-                               'parameter `%s` first in each parameter '
-                               'control file.'
-                               % (self.name, self.shapeparameter.name))
+            raise RuntimeError(
+                'Shape information for parameter `%s` can only be '
+                'retrieved after it has been defined.  You can do '
+                'this manually, but usually it is done automatically '
+                'by defining the value of parameter `%s` first in '
+                'each parameter control file.'
+                % (self.name, self.shapeparameter.name))
 
     shape = property(_getshape, MultiParameter._setshape)
 
-    def _getverifymask(self):
-        """A numpy array of the same shape as the value array handled
-        by the respective parameter.  `True` entries indicate that certain
-        parameter values are required, which depends on the tuple
-        `REQUIRED_VALUES` of the respective subclass.
+    @property
+    def verifymask(self):
+        """A |numpy.ndarray| of the same shape as the value array handled
+        by the respective |ZipParameter| object.  |True| entries indicate
+        that certain parameter values are required, which depends on the
+        tuple |ZipParameter.REQUIRED_VALUES| of the respective subclass.
         """
         mask = numpy.full(self.shape, False, dtype=bool)
         refvalues = self.refparameter.values
         for reqvalue in self.REQUIRED_VALUES:
             mask[refvalues == reqvalue] = True
         return mask
-
-    verifymask = property(_getverifymask)
 
     def compress_repr(self):
         """Return a compressed parameter value string, which is (in
@@ -1200,9 +1207,9 @@ class ZipParameter(MultiParameter):
             results = []
             refvalues = self.refparameter.values
             if min(refvalues) < 1:
-                raise NotImplementedError('Parameter %s is not defined '
-                                          'poperly, which circumvents finding '
-                                          'a suitable compressed.')
+                raise NotImplementedError(
+                    'Parameter %s is not defined poperly, which '
+                    'circumvents finding a suitable compressed.')
             for (key, value) in self.MODEL_CONSTANTS.items():
                 if value in self.REQUIRED_VALUES:
                     unique = numpy.unique(self.values[refvalues == value])
@@ -1217,6 +1224,29 @@ class ZipParameter(MultiParameter):
             for dummy in range(self.NDIM):
                 result = [result]
             return result
+
+    @property
+    def refparameter(self):
+        """Reference to the associated |MultiParameter| object providing
+        the actual constant values.
+
+        Needs to be overwritten by subclasses:
+
+        >>> from hydpy.core.parametertools import ZipParameter
+        >>> class Test(ZipParameter):
+        ...     pass
+        >>> Test().refparameter
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Property `refparameter` of class \
+`ZipParameter` must be overwritten by subclasses, which is not \
+the case for class `Test`.
+        """
+        raise NotImplementedError(
+            'Property `refparameter` of class `ZipParameter` '
+            'must be overwritten by subclasses, which is not '
+            'the case for class `%s`.'
+            % objecttools.classname(self))
 
 
 class SeasonalParameter(MultiParameter):
@@ -1592,7 +1622,6 @@ into shape (3)
 
     def __dir__(self):
         return objecttools.dir_(self) + [str(toy) for (toy, dummy) in self]
-
 
 class KeywordParameter2DType(type):
     """Add the construction of `_ROWCOLMAPPING` to :class:`type`."""

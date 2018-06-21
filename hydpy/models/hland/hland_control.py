@@ -54,31 +54,25 @@ class NmbZones(parametertools.SingleParameter):
                     seq.shape = self.value
 
 
-class ZoneType(hland_parameters.MultiParameter):
-    """Type of each zone: 1 (FIELD), 2 (FOREST), 3 (GLACIER), or 4 (ILAKE).
+class ZoneType(parametertools.NameParameter):
+    """Type of each zone.
 
-    For increasing legibility, the HydPy-H-Land constants are used for string
-    representions of |ZoneType| instances:
+    For increasing legibility, the HydPy-H-Land constants are used for
+    string representions of |ZoneType| objects:
 
     >>> from hydpy.models.hland import *
     >>> parameterstep('1d')
-    >>> nmbzones(8)
-    >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, ILAKE, GLACIER, FOREST, FIELD)
+    >>> nmbzones(6)
+    >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, ILAKE, FIELD)
     >>> zonetype.values
-    array([1, 2, 3, 4, 4, 3, 2, 1])
+    array([1, 2, 3, 4, 4,1])
     >>> zonetype
-    zonetype(FIELD, FOREST, GLACIER, ILAKE, ILAKE, GLACIER, FOREST, FIELD)
+    zonetype(FIELD, FOREST, GLACIER, ILAKE, ILAKE, FIELD)
     """
-    NDIM, TYPE, TIME, SPAN = 1, int, None, (1, 4)
-
-    def compress_repr(self):
-        """Returns a list which contains a string representation with zone
-        types being defined by the constants `FIELD`, `FOREST`...
-        """
-        invmap = {value: key for key, value in
-                  hland_constants.CONSTANTS.items()}
-        return [', '.join(invmap.get(value, repr(value))
-                          for value in self.values)]
+    NDIM, TYPE, TIME = 1, int, None
+    SPAN = (min(hland_constants.CONSTANTS.values()),
+            max(hland_constants.CONSTANTS.values()))
+    CONSTANTS = hland_constants.CONSTANTS
 
 
 class ZoneArea(hland_parameters.MultiParameter):

@@ -1121,6 +1121,29 @@ class MultiParameter(Parameter):
         return Parameter.to_repr(self, values, islong)
 
 
+class NameParameter(MultiParameter):
+    """Parameter displaying the names of constants instead of their values.
+
+    See parameter |lland_control.Lnk| of base model |lland| to see how
+    a concrete implementation of class |NameParameter| works.
+    """
+    NDIM, TYPE, TIME, SPAN = 1, int, None, (None, None)
+    CONSTANTS = {}
+
+    def compress_repr(self):
+        """Works as |MultiParameter.compress_repr|, but always returns
+        a string with constant names instead of constant values."""
+        try:
+            values = [
+                int(MultiParameter.compress_repr(self)[0])]
+        except NotImplementedError:
+            values = self.values
+        invmap = {value: key for key, value in
+                  self.CONSTANTS.items()}
+        return [', '.join(invmap.get(value, repr(value))
+                          for value in values)]
+
+
 class ZipParameter(MultiParameter):
     """Base class for model parameters handling multiple values that
     offers additional keyword zipping fuctionality.

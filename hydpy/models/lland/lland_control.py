@@ -67,33 +67,30 @@ class FHRU(lland_parameters.MultiParameter):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., 1.)
 
 
-class Lnk(lland_parameters.MultiParameter):
+class Lnk(parametertools.NameParameter):
     """Landnutzungsklasse (land use class) [-].
 
-    For increasing legibility, the HydPy-L-Land constants are used for string
-    representions of |Lnk| instances:
+    For increasing legibility, the HydPy-L-Land constants are used for
+    string representions of |Lnk| objects:
 
     >>> from hydpy.models.lland import *
     >>> parameterstep('1d')
+    >>> lnk
+    lnk(-999999)
     >>> nhru(4)
     >>> lnk(ACKER, ACKER, WASSER, MISCHW)
     >>> lnk.values
     array([ 4,  4, 16, 15])
     >>> lnk
     lnk(ACKER, ACKER, WASSER, MISCHW)
+    >>> lnk(ACKER)
+    >>> lnk
+    lnk(ACKER)
     """
     NDIM, TYPE, TIME = 1, int, None
     SPAN = (min(lland_constants.CONSTANTS.values()),
             max(lland_constants.CONSTANTS.values()))
-
-    def compress_repr(self):
-        """Returns a list which contains a string representation with land
-        uses being defined by the constants |SIED_D|, |SIED_L|...
-        """
-        invmap = {value: key for key, value in
-                  lland_constants.CONSTANTS.items()}
-        return [', '.join(invmap.get(value, repr(value))
-                          for value in self.values)]
+    CONSTANTS = lland_constants.CONSTANTS
 
 
 class HNN(lland_parameters.MultiParameter):

@@ -833,7 +833,6 @@ from hydpy.models.hland import hland_fluxes
 from hydpy.models.hland import hland_states
 from hydpy.models.hland import hland_logs
 from hydpy.models.hland import hland_outlets
-from hydpy.models.hland.hland_parameters import Parameters
 from hydpy.models.hland.hland_constants import *
 
 
@@ -921,7 +920,6 @@ class DerivedParameters(parametertools.SubParameters):
                    hland_derived.RelLandArea,
                    hland_derived.TTM,
                    hland_derived.DT,
-                   hland_derived.NmbUH,
                    hland_derived.UH,
                    hland_derived.QFactor)
 

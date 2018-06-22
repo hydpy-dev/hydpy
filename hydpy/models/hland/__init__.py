@@ -14,7 +14,6 @@ from __future__ import division, print_function
 from hydpy.core.modelimports import *
 # ...from hland
 from hydpy.models.hland.hland_constants import FIELD, FOREST, GLACIER, ILAKE
-from hydpy.models.hland.hland_parameters import Parameters
 from hydpy.models.hland.hland_control import ControlParameters
 from hydpy.models.hland.hland_derived import DerivedParameters
 from hydpy.models.hland.hland_inputs import InputSequences

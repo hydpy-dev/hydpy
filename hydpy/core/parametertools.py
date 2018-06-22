@@ -236,8 +236,8 @@ class _MetaSubParametersType(type):
         return type.__new__(mcs, name, parents, dict_)
 
 
-_MetaSubParametersClass = _MetaSubParametersType('_MetaSubParametersClass',
-                                                 (), {'_PARCLASSES': ()})
+_MetaSubParametersClass = _MetaSubParametersType(
+    '_MetaSubParametersClass', (), {'_PARCLASSES': ()})
 
 
 class SubParameters(_MetaSubParametersClass):
@@ -1043,9 +1043,112 @@ class MultiParameter(Parameter):
                 % self.name)
 
     def compress_repr(self):
-        """Returns a compressed parameter value string, which is (in
-        accordance with |MultiParameter.NDIM|) contained in a nested list.
+        """Return a compressed parameter value string, which is (in
+        accordance with |MultiParameter.NDIM|) contained in a nested |list|.
         If the compression fails, a |NotImplementedError| is raised.
+
+        For the following examples, we define a 1-dimensional sequence
+        handling time dependent floating point values:
+
+        >>> from hydpy.core.parametertools import MultiParameter
+        >>> class Test(MultiParameter):
+        ...     NDIM = 1
+        ...     TYPE = float
+        ...     TIME = True
+        >>> test = Test()
+
+        Before and directly after defining the parameter shape, `nan`
+        is returned:
+
+        >>> test.compress_repr()
+        ['nan']
+        >>> test
+        test(nan)
+        >>> test.shape = 4
+        >>> test
+        test(nan)
+
+        Due to the time dependence of the parameter values, we have
+        to specificy a parameter and a simulation time step:
+
+        >>> test.parameterstep = '1d'
+        >>> test.simulationstep = '8h'
+
+        Compression is performed when all required values are identical:
+
+        >>> test(3.0, 3.0, 3.0, 3.0)
+        >>> test.values
+        array([ 1.,  1.,  1.,  1.])
+        >>> test.compress_repr()
+        ['3.0']
+        >>> test
+        test(3.0)
+
+        In case of different required values, an exception is raised:
+
+        >>> test(1.0, 2.0, 3.0, 3.0)
+        >>> test.compress_repr()
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: For parameter `test` of element `?` there \
+is no compression method implemented, working for its actual values.
+        >>> test
+        test(1.0, 2.0, 3.0, 3.0)
+
+        If some values are not required, this must be indicated by
+        |Variable.mask|:
+
+        >>> import numpy
+        >>> test(3.0, 3.0, 3.0, numpy.nan)
+        >>> test
+        test(3.0, 3.0, 3.0, nan)
+        >>> Test.mask = numpy.array([True, True, True, False])
+        >>> test
+        test(3.0)
+
+        For a shape of zero, an empty string is returned:
+
+        >>> test.shape = 0
+        >>> test.compress_repr()
+        ['']
+        >>> test
+        test()
+
+        Method |MultiParameter.compress_repr| works similarly for
+        subclasses which are defined differently.  The following
+        examples are based on a 2-dimensional sequence handling
+        integer values:
+
+        >>> from hydpy.core.parametertools import MultiParameter
+        >>> class Test(MultiParameter):
+        ...     NDIM = 2
+        ...     TYPE = int
+        >>> test = Test()
+
+        >>> test.compress_repr()
+        [['-999999']]
+        >>> test
+        test([[-999999]])
+        >>> test.shape = (2, 3)
+        >>> test
+        test([[-999999]])
+
+        >>> test([[3, 3, 3],
+        ...       [3, 3, 3]])
+        >>> test
+        test([[3]])
+
+        >>> test([[3, 3, -999999],
+        ...       [3, 3, 3]])
+        >>> test
+        test([[3, 3, -999999],
+              [3, 3, 3]])
+
+        >>> Test.mask = numpy.array([
+        ...     [True, True, False],
+        ...     [True, True, True]])
+        >>> test
+        test([[3]])
         """
         if self.value is None:
             unique = numpy.array([self.TYPE2INITVALUE.get(self.TYPE)])

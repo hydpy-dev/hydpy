@@ -308,10 +308,10 @@ def calc_ep_v1(self):
       :math:`EP = EPN \\cdot (1 + ETF \\cdot (TMean - TN))`
 
     Restriction:
-      :math:`0 \leq EP \leq 2 \\cdot EPN`
-
+      :math:`0 \\leq EP \\leq 2 \\cdot EPN`
 
     Examples:
+
         Assume four zones with different values of the temperature
         related factor for the adjustment of evaporation (the
         negative value of the first zone is not meaningful, but used
@@ -511,7 +511,7 @@ def calc_tf_ic_v1(self):
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
     for k in range(con.nmbzones):
-        if (con.zonetype[k] == FIELD) or (con.zonetype[k] == FOREST):
+        if con.zonetype[k] in (FIELD, FOREST):
             flu.tf[k] = max(flu.pc[k]-(con.icmax[k]-sta.ic[k]), 0.)
             sta.ic[k] += flu.pc[k]-flu.tf[k]
         else:
@@ -595,7 +595,7 @@ def calc_ei_ic_v1(self):
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
     for k in range(con.nmbzones):
-        if (con.zonetype[k] == FIELD) or (con.zonetype[k] == FOREST):
+        if con.zonetype[k] in (FIELD, FOREST):
             flu.ei[k] = min(flu.epc[k], sta.ic[k])
             sta.ic[k] -= flu.ei[k]
         else:
@@ -1176,7 +1176,7 @@ def calc_r_sm_v1(self):
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
     for k in range(con.nmbzones):
-        if (con.zonetype[k] == FIELD) or (con.zonetype[k] == FOREST):
+        if con.zonetype[k] in (FIELD, FOREST):
             if con.fc[k] > 0.:
                 flu.r[k] = flu.in_[k]*(sta.sm[k]/con.fc[k])**con.beta[k]
                 flu.r[k] = max(flu.r[k], sta.sm[k]+flu.in_[k]-con.fc[k])
@@ -1316,7 +1316,7 @@ def calc_cf_sm_v1(self):
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
     for k in range(con.nmbzones):
-        if (con.zonetype[k] == FIELD) or (con.zonetype[k] == FOREST):
+        if con.zonetype[k] in (FIELD, FOREST):
             if con.fc[k] > 0.:
                 flu.cf[k] = con.cflux[k]*(1.-sta.sm[k]/con.fc[k])
                 flu.cf[k] = min(flu.cf[k], sta.uz+flu.r[k])
@@ -1442,7 +1442,7 @@ def calc_ea_sm_v1(self):
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
     for k in range(con.nmbzones):
-        if (con.zonetype[k] == FIELD) or (con.zonetype[k] == FOREST):
+        if con.zonetype[k] in (FIELD, FOREST):
             if sta.sp[k] <= 0.:
                 if (con.lp[k]*con.fc[k]) > 0.:
                     flu.ea[k] = flu.epc[k]*sta.sm[k]/(con.lp[k]*con.fc[k])
@@ -1611,7 +1611,7 @@ def calc_contriarea_v1(self):
     if con.resparea and (der.relsoilarea > 0.):
         flu.contriarea = 0.
         for k in range(con.nmbzones):
-            if (con.zonetype[k] == FIELD) or (con.zonetype[k] == FOREST):
+            if con.zonetype[k] in (FIELD, FOREST):
                 if con.fc[k] > 0.:
                     flu.contriarea += (der.relsoilzonearea[k] *
                                        (sta.sm[k]/con.fc[k])**con.beta[k])
@@ -1785,7 +1785,7 @@ def calc_q0_perc_uz_v1(self):
     sta = self.sequences.states.fastaccess
     flu.perc = 0.
     flu.q0 = 0.
-    for jdx in range(con.recstep):
+    for dummy in range(con.recstep):
         # First state update related to the upper zone input.
         sta.uz += der.dt*flu.inuz
         # Second state update related to percolation.
@@ -2075,7 +2075,6 @@ def calc_outuh_quh_v1(self):
 
     Required derived parameters:
         |UH|
-        |NmbUH|
 
     Required flux sequences:
         |Q0|
@@ -2095,8 +2094,7 @@ def calc_outuh_quh_v1(self):
 
         >>> from hydpy.models.hland import *
         >>> parameterstep('1d')
-        >>> derived.nmbuh = 3
-        >>> derived.uh.shape = derived.nmbuh
+        >>> derived.uh.shape = 3
         >>> derived.uh = 0.3, 0.5, 0.2
         >>> logs.quh.shape = 3
         >>> logs.quh = 1., 3., 0.
@@ -2138,8 +2136,7 @@ def calc_outuh_quh_v1(self):
         A unit hydrograph with only one ordinate results in the direct
         routing of the input:
 
-        >>> derived.nmbuh = 1
-        >>> derived.uh.shape = derived.nmbuh
+        >>> derived.uh.shape = 1
         >>> derived.uh = 1.
         >>> fluxes.inuh = 0.
         >>> logs.quh.shape = 1
@@ -2160,7 +2157,7 @@ def calc_outuh_quh_v1(self):
     flu = self.sequences.fluxes.fastaccess
     log = self.sequences.logs.fastaccess
     flu.outuh = der.uh[0]*flu.inuh+log.quh[0]
-    for jdx in range(1, der.nmbuh):
+    for jdx in range(1, len(der.uh)):
         log.quh[jdx-1] = der.uh[jdx]*flu.inuh+log.quh[jdx]
 
 

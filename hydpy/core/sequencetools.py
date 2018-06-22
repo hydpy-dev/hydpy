@@ -1438,9 +1438,11 @@ class ModelIOSequence(IOSequence):
         >>> from hydpy.models import test_v1
         >>> model = prepare_model(test_v1)
         >>> model.sequences.fluxes.q.descr_sequence
-        'q_fluxes'
+        'flux_q'
         """
-        return '%s_%s' % (self.name, self.subseqs.name)
+        return ('%s_%s'
+                % (objecttools.classname(self.subseqs)[:-9].lower(),
+                   self.name))
 
     @property
     def descr_model(self):

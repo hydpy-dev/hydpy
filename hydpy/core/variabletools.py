@@ -425,6 +425,122 @@ has not been set yet.
                 'not been set yet.'
                 % (objecttools.devicephrase(self), nmbnan, text))
 
+    @property
+    def weights(self):
+        """Reference to a |Parameter| object that defines weighting
+        coefficients (e.g. fractional areas) for calculating
+        |Variable.meanvalue|.  Must be overwritten by subclasses,
+        when required."""
+        raise NotImplementedError(
+            'Variable %s does not define any weighting coefficients.'
+            % objecttools.devicephrase(self))
+
+    @property
+    def meanvalue(self):
+        """Mean value.
+
+        For 0-dimensional |Variable| objects, |Variable.meanvalue|
+        equals |Variable.value|.  The following example showns this
+        for the sloppily defined class `SoilMoisture`:
+
+        >>> from hydpy.core.variabletools import Variable
+        >>> class SoilMoisture(Variable):
+        ...     NDIM = 0
+        ...     value = 200.0
+        >>> soilmoisture = SoilMoisture()
+        >>> soilmoisture.meanvalue
+        200.0
+
+        When the dimensionality of this class is increased to one,
+        querying |Variable.meanvalue| results in the following error:
+
+        >>> SoilMoisture.NDIM = 1
+        >>> import numpy
+        >>> SoilMoisture.shape = (3,)
+        >>> SoilMoisture.values = numpy.array([200.0, 400.0, 500.0])
+        >>> soilmoisture.meanvalue
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: While trying to calculate the mean value \
+of variable `soilmoisture` , the following error occured: Variable \
+`soilmoisture` does not define any weighting coefficients.
+
+        So model developers have to define another (in this case
+        1-dimensional) |Variable| subclass (usually a |MultiParameter|
+        subclass), and make the relevant object available via property
+        |Variable.weights|:
+
+        >>> class Area(Variable):
+        ...     shape = (3,)
+        ...     values = numpy.array([0.25, 0.25, 0.5])
+        >>> area = Area()
+        >>> SoilMoisture.weights = property(lambda self: area)
+        >>> soilmoisture.meanvalue
+        400.0
+
+        In the examples above are all single entries of `values` relevant,
+        which is the default case.  But subclasses of |Variable| can
+        define an alternative |Variable.mask|, allowing to make some
+        entries irrelevant. Assume for example, that our `SoilMoisture`
+        object contains three single values, because each one is
+        associated with a specific hydrological response unit.  To
+        indicate that soil moisture is not defined for the third unit,
+        (maybe because it is a water area), we set the third entry of
+        the verification mask to |False|:
+
+        >>> SoilMoisture.mask = numpy.array([True, True, False])
+        >>> soilmoisture.meanvalue
+        Traceback (most recent call last):
+        ...
+        RuntimeError: While trying to calculate the mean value of \
+variable `soilmoisture` based on weighting parameter `area`, the \
+following error occured: The verification matrices of parameters \
+`soilmoisture` and `area` are inconsistent.
+
+        This error message tells us, that we have to adapt the
+        verification mask of the `Area` object (and to make the
+        result reasonable, also its `values` attribute.  Now the
+        calculated mean valuereflects the area and the soil moisture
+        of the first to hydrological response units only:
+
+        >>> Area.mask = numpy.array([True, True, False])
+        >>> Area.values = numpy.array([0.25, 0.75, numpy.nan])
+        >>> soilmoisture.meanvalue
+        350.0
+
+        For verification mask containing |False| only, |numpy.nan| is
+        returned:
+
+        >>> SoilMoisture.mask[:] = False
+        >>> Area.mask[:] = False
+        >>> soilmoisture.meanvalue
+        nan
+        """
+        if not self.NDIM:
+            return self.value
+        try:
+            weights = self.weights
+        except BaseException:
+            objecttools.augment_excmessage(
+                'While trying to calculate the mean value of variable %s '
+                % objecttools.devicephrase(self))
+        try:
+            idxs_w = weights.mask
+            idxs_v = self.mask
+            if any(idxs_w != idxs_v):
+                raise RuntimeError(
+                    'The verification matrices of parameters '
+                    '`%s` and `%s` are inconsistent.'
+                    % (self.name, weights.name))
+            if any(idxs_w):
+                return numpy.sum(weights.values[idxs_w]*self.values[idxs_v])
+            return numpy.nan
+        except BaseException:
+            objecttools.augment_excmessage(
+                'While trying to calculate the mean value of variable %s '
+                'based on weighting parameter `%s`'
+                % (objecttools.devicephrase(self), weights.name))
+
     def __deepcopy__(self, memo):
         new = type(self)()
         for (key, value) in vars(self).items():

@@ -246,7 +246,7 @@ Variable type `EQD1` is not handled by model `lstream_v1`.
         """Save all defined auxiliary control files.
 
         The target path is taken from the |ControlManager| object stored
-        in module |pub|.  Hence we initialize one and overwrite its
+        in module |pub|.  Hence we initialize one and override its
         |property| `currentpath` with a simple |str| object defining the
         test target path:
 

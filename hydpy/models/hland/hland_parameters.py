@@ -13,8 +13,8 @@ from hydpy.models.hland.hland_constants import CONSTANTS
 
 
 class MultiParameter(parametertools.ZipParameter):
-    """Base class for handling parameters of the HydPy-H-Land model
-    (potentially) handling multiple values.
+    """Base class for 1-dimensional parameters relevant for all types
+    of zones.
 
     Due to inheriting from |ZipParameter|, additional keyword zipping
     functionality is offered.  The optional `kwargs` are checked for
@@ -25,147 +25,299 @@ class MultiParameter(parametertools.ZipParameter):
     |parametertools.MultiParameter.compress_repr| tries to find compressed
     string representations based on the mentioned zone types.
 
-    Examples:
+    The following examples are based on parameter |PCorr|, which is
+    directly derived from |hland_parameters.MultiParameter|.
 
-        Prepare a |hland_parameters.MultiParameter| instance:
+    >>> from hydpy.models.hland import *
+    >>> parameterstep('1d')
 
-        >>> from hydpy.models.hland.hland_parameters import MultiParameter
-        >>> from hydpy.models.hland import *
-        >>> parameterstep('1d')
-        >>> mp = MultiParameter()
-        >>> mp.DIM, mp.TYPE, mp.TIME = 1, float, None
-        >>> mp.subpars = control
+    Usually, one defines its shape through parameter |NmbZones|:
 
-        Usually, one would indirectly define its shape through parameter
-        |NmbZones|:
+    >>> pcorr.shape
+    Traceback (most recent call last):
+    ...
+    RuntimeError: Shape information for parameter `pcorr` can only be \
+retrieved after it has been defined.  You can do this manually, but usually \
+it is done automatically by defining the value of parameter `nmbzones` first \
+in each parameter control file.
 
-        >>> mp.shape
-        Traceback (most recent call last):
-        ...
-        RuntimeError: Shape information for parameter `multiparameter` can \
-only be retrieved after it has been defined.  You can do this manually, \
-but usually it is done automatically by defining the value of \
-parameter `nmbzones` first in each parameter control file.
 
-        But here it is set manually to the value 5 for representing
-        five different zone types:
+    >>> nmbzones(5)
+    >>> pcorr.shape
+    (5,)
 
-        >>> zonetype.shape = 5
-        >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, FIELD)
-        >>> mp.shape = 5
+    Now, principally, the five entries of the parameter |PCorr| can
+    be filled with values via keyword arguments corresponding to
+    the constants defined in module |hland_constants|:
 
-        Assign values to all four zone types explicitly:
+    >>> pcorr(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
+    Traceback (most recent call last):
+    ...
+    RuntimeError: Parameter zonetype does not seem to be prepared \
+properly for `pcorr` of element `?`.  Hence, setting values for parameter \
+pcorr via keyword arguments is not possible.
 
-        >>> mp(field=2., forest=1., glacier=4., ilake=3.)
-        >>> mp
-        multiparameter(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
-        >>> mp.values
-        array([ 2.,  1.,  4.,  3.,  2.])
+    But, of course only after the reference parameter |ZoneType| has been
+    properly prepared completely:
 
-        Specify a default value for all zone types not included in the
-        keyword list:
+    >>> zonetype(-999999)
+    >>> pcorr(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
+    Traceback (most recent call last):
+    ...
+    RuntimeError: Parameter zonetype does not seem to be prepared \
+properly for `pcorr` of element `?`.  Hence, setting values for parameter \
+pcorr via keyword arguments is not possible.
 
-        >>> mp(field=2., forest=1., default=9.)
-        >>> mp
-        multiparameter(field=2.0, forest=1.0, glacier=9.0, ilake=9.0)
-        >>> mp.values
-        array([ 2.,  1.,  9.,  9.,  2.])
+    >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, FIELD)
+    >>> pcorr(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
+    >>> pcorr
+    pcorr(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
+    >>> pcorr.values
+    array([ 2.,  1.,  4.,  3.,  2.])
 
-        If no default value is given, numpys `nan` is applied:
+    One can specify a default value for all zone types not included in
+    the keyword list:
 
-        >>> mp(field=2., forest=1.)
-        >>> mp
-        multiparameter(field=2.0, forest=1.0, glacier=nan, ilake=nan)
-        >>> mp.values
-        array([  2.,   1.,  nan,  nan,   2.])
+    >>> pcorr(field=2.0, forest=1.0, default=9.0)
+    >>> pcorr
+    pcorr(field=2.0, forest=1.0, glacier=9.0, ilake=9.0)
+    >>> pcorr.values
+    array([ 2.,  1.,  9.,  9.,  2.])
 
-        Of course, the usual value assignments remain unaffected:
+    If no default value is given, numpys |nan| is applied:
 
-        >>> mp.values = 5.
-        >>> mp
-        multiparameter(5.0)
-        >>> mp.values
-        array([ 5.,  5.,  5.,  5.,  5.])
+    >>> pcorr(field=2.0, forest=1.0)
+    >>> pcorr
+    pcorr(field=2.0, forest=1.0, glacier=nan, ilake=nan)
+    >>> pcorr.values
+    array([  2.,   1.,  nan,  nan,   2.])
 
-        >>> mp.values = 5., 4., 3., 2., 1.
-        >>> mp
-        multiparameter(5.0, 4.0, 3.0, 2.0, 1.0)
-        >>> mp.values
-        array([ 5.,  4.,  3.,  2.,  1.])
+    The way positional arguments are understood remains unaffected:
 
-    Another feature of |hland_parameters.MultiParameter| is that it
-    relates the |property| |parametertools.MultiParameter.verifymask|
-    to the defined zone types.  This requires the definition of the
-    class attribute |hland_parameters.MultiParameter.REQUIRED_VALUES|
-    for |hland_parameters.MultiParameter| subclasses.
+    >>> pcorr(5.0)
+    >>> pcorr
+    pcorr(5.0)
+    >>> pcorr.values
+    array([ 5.,  5.,  5.,  5.,  5.])
 
-    Examples:
+    >>> pcorr(5.0, 4.0, 3.0, 2.0, 1.0)
+    >>> pcorr
+    pcorr(5.0, 4.0, 3.0, 2.0, 1.0)
+    >>> pcorr.values
+    array([ 5.,  4.,  3.,  2.,  1.])
 
-        When values for all zone types are required, all entries of the
-        verification mask are `True`:
+    As shown above |hland_parameters.MultiParameter| implements
+    parameter |ZoneType| as its "reference parameter" (see |property|
+    |hland_parameters.MultiParameter.refparameter|).
+    Additionally, due to the class attribute
+    |hland_parameters.MultiParameter.REQUIRED_VALUES| containing all
+    four zone types, the |property| |parametertools.MultiParameter.mask|
+    is |True| for all entries:
 
-        >>> mp.REQUIRED_VALUES = (FIELD, FOREST, GLACIER, ILAKE)
-        >>> mp.verifymask
-        array([ True,  True,  True,  True,  True], dtype=bool)
+    >>> pcorr.REQUIRED_VALUES
+    (1, 2, 3, 4)
+    >>> pcorr.mask
+    array([ True,  True,  True,  True,  True], dtype=bool)
 
-        When values for field and forest zones are required only, the
-        entries related to glacier and ilake zones are `False`:
+    Finally, |hland_parameters.MultiParameter| implements parameter
+    |RelZoneArea| for calculating areal mean values (see |property|
+    |hland_parameters.MultiParameter.weights|).
 
-        >>> mp.REQUIRED_VALUES = (FIELD, FOREST)
-        >>> mp.verifymask
-        array([ True,  True, False, False,  True], dtype=bool)
-
+    >>> pcorr.meanvalue
+    nan
+    >>> derived.relzonearea(0.0, 0.1, 0.2, 0.3, 0.4)
+    >>> pcorr.meanvalue
+    2.0
     """
     REQUIRED_VALUES = (FIELD, FOREST, GLACIER, ILAKE)
     MODEL_CONSTANTS = CONSTANTS
 
     @property
     def refparameter(self):
-        """Alias for the associated instance of |ZoneType|.
-        """
+        """Reference to the associated instance of |ZoneType|."""
         return self.subpars.pars.control.zonetype
 
     @property
     def shapeparameter(self):
-        """Alias for the associated instance of |NmbZones|.
-        """
+        """Reference to the associated instance of |NmbZones|."""
         return self.subpars.pars.control.nmbzones
+
+    @property
+    def weights(self):
+        """Reference to the associated instance of |RelZoneArea| for
+        calculating areal mean values."""
+        return self.subpars.pars.derived.relzonearea
 
 
 class MultiParameterSoil(MultiParameter):
-    """Base class for handling parameters of the hland model (potentially)
-    handling multiple values relevant for `soil zones` (and interception).
+    """Base class for 1-dimensional parameters relevant |FIELD| and |FOREST|
+    zones.
+
+    |MultiParameterSoil| works similar to |hland_parameters.MultiParameter|.
+    Some examples based on parameter |ICMax|:
+
+    >>> from hydpy.models.hland import *
+    >>> parameterstep('1d')
+    >>> nmbzones(5)
+    >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, FIELD)
+    >>> icmax(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
+    >>> icmax
+    icmax(field=2.0, forest=1.0)
+    >>> icmax(field=2.0, default=9.0)
+    >>> icmax
+    icmax(field=2.0, forest=9.0)
+    >>> derived.relsoilzonearea(0.0, 0.25, numpy.nan, numpy.nan, 0.75)
+    >>> icmax.meanvalue
+    3.75
     """
     REQUIRED_VALUES = (FIELD, FOREST)
 
+    @property
+    def weights(self):
+        """Reference to the associated instance of |RelSoilZoneArea| for
+        calculating areal mean values."""
+        return self.subpars.pars.derived.relsoilzonearea
+
 
 class MultiParameterLand(MultiParameter):
-    """Base class for handling parameters of the hland model (potentially)
-    handling multiple values relevant for all `land zones`.
+    """Base class for 1-dimensional parameters relevant |FIELD|, |FOREST|,
+    and |GLACIER| zones.
+
+    |MultiParameterSoil| works similar to |hland_parameters.MultiParameter|.
+    Some examples based on parameter |WHC|:
+
+    >>> from hydpy.models.hland import *
+    >>> parameterstep('1d')
+    >>> nmbzones(5)
+    >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, FIELD)
+    >>> whc(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
+    >>> whc
+    whc(field=2.0, forest=1.0, glacier=4.0)
+    >>> whc(field=2.0, default=9.0)
+    >>> whc
+    whc(field=2.0, forest=9.0, glacier=9.0)
+    >>> derived.rellandzonearea(0.25, 0.25, 0.25, numpy.nan, 0.25)
+    >>> whc.meanvalue
+    5.5
     """
     REQUIRED_VALUES = (FIELD, FOREST, GLACIER)
 
+    @property
+    def weights(self):
+        """Reference to the associated instance of |RelLandZoneArea| for
+        calculating areal mean values."""
+        return self.subpars.pars.derived.rellandzonearea
+
 
 class MultiParameterLake(MultiParameter):
-    """Base class for handling parameters of the hland model (potentially)
-    handling multiple values relevant for `lake zones` only.
+    """Base class for 1-dimensional parameters relevant |ILAKE| zones.
+
+    |MultiParameterLake| works similar to |hland_parameters.MultiParameter|.
+    Some examples based on parameter |TTIce|:
+
+    >>> from hydpy.models.hland import *
+    >>> parameterstep('1d')
+    >>> nmbzones(5)
+    >>> zonetype(ILAKE, FOREST, GLACIER, ILAKE, FIELD)
+    >>> ttice(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
+    >>> ttice
+    ttice(3.0)
+    >>> ttice(field=2.0, forest=9.0, default=9.0)
+    >>> ttice
+    ttice(9.0)
+    >>> derived.rellakezonearea(0.5, numpy.nan, numpy.nan, 0.5, numpy.nan)
+    >>> ttice.meanvalue
+    9.0
     """
     REQUIRED_VALUES = (ILAKE,)
 
+    @property
+    def weights(self):
+        """Reference to the associated instance of |RelLakeZoneArea| for
+        calculating areal mean values."""
+        return self.subpars.pars.derived.rellakezonearea
+
 
 class MultiParameterGlacier(MultiParameter):
-    """Base class for handling parameters of the hland model (potentially)
-    handling multiple values relevant for `glacier zones` only.
+    """Base class for 1-dimensional parameters relevant |GLACIER| zones.
+
+    |MultiParameterLake| works similar to |hland_parameters.MultiParameter|.
+    Some examples based on parameter |GMelt|:
+
+    >>> from hydpy.models.hland import *
+    >>> parameterstep('1d')
+    >>> simulationstep('1d')
+    >>> nmbzones(5)
+    >>> zonetype(GLACIER, FOREST, ILAKE, GLACIER, FIELD)
+    >>> gmelt(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
+    >>> gmelt
+    gmelt(4.0)
+    >>> gmelt(field=2.0, forest=9.0, default=8.0)
+    >>> gmelt
+    gmelt(8.0)
+    >>> derived.relglacierzonearea(0.5, numpy.nan, numpy.nan, 0.5, numpy.nan)
+    >>> gmelt.meanvalue
+    8.0
     """
     REQUIRED_VALUES = (GLACIER,)
 
+    @property
+    def weights(self):
+        """Reference to the associated instance of |RelLakeGlacierArea| for
+        calculating areal mean values."""
+        return self.subpars.pars.derived.relglacierzonearea
+
 
 class MultiParameterNoGlacier(MultiParameter):
-    """Base class for handling parameters of the hland model (potentially)
-    handling multiple values relevant for `glacier free zones` only.
+    """Base class for 1-dimensional parameters relevant |FIELD|, |FOREST|,
+    and |ILAKE| zones.
+
+    |MultiParameterSoil| works similar to |hland_parameters.MultiParameter|.
+    Some examples based on parameter |ECorr|:
+
+    >>> from hydpy.models.hland import *
+    >>> parameterstep('1d')
+    >>> nmbzones(5)
+    >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, FIELD)
+    >>> ecorr(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
+    >>> ecorr
+    ecorr(field=2.0, forest=1.0, ilake=3.0)
+    >>> ecorr(field=2.0, default=9.0)
+    >>> ecorr
+    ecorr(field=2.0, forest=9.0, ilake=9.0)
+    >>> derived.relnoglacierzonearea(0.25, 0.25, numpy.nan, 0.25, 0.25)
+    >>> ecorr.meanvalue
+    5.5
     """
     REQUIRED_VALUES = (FIELD, FOREST, ILAKE)
 
+    @property
+    def weights(self):
+        """Reference to the associated instance of |RelNoGlacierZoneArea| for
+        calculating areal mean values."""
+        return self.subpars.pars.derived.relnoglacierzonearea
+
+
+class RelZoneAreaMixin(parametertools.RelSubvaluesMixin):
+    """Mixin class to be combined with class |hland_parameters.MultiParameter|
+    or the classes derived from it.
+
+    The following example shows how |RelLandZoneArea| works, which mixes
+    |MultiParameterLand| and |RelZoneArea|:
+
+    >>> from hydpy.models.hland import *
+    >>> parameterstep('1d')
+    >>> nmbzones(4)
+    >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
+    >>> area(100.0)
+    >>> zonearea(10.0, 20.0, 30.0, 40.0)
+    >>> derived.rellandzonearea.update()
+    >>> derived.rellandzonearea
+    rellandzonearea(field=0.166667, forest=0.333333, glacier=0.5)
+    >>> zonetype(ILAKE)
+    >>> derived.rellandzonearea
+    rellandzonearea(nan)
+    """
 
 class Parameters(parametertools.Parameters):
     """All parameters of the hland model."""

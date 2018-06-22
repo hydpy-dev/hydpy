@@ -426,7 +426,7 @@ has not been set yet.
                 % (objecttools.devicephrase(self), nmbnan, text))
 
     @property
-    def weights(self):
+    def refweights(self):
         """Reference to a |Parameter| object that defines weighting
         coefficients (e.g. fractional areas) for calculating
         |Variable.meanvalue|.  Must be overwritten by subclasses,
@@ -468,13 +468,13 @@ of variable `soilmoisture` , the following error occured: Variable \
         So model developers have to define another (in this case
         1-dimensional) |Variable| subclass (usually a |MultiParameter|
         subclass), and make the relevant object available via property
-        |Variable.weights|:
+        |Variable.refweights|:
 
         >>> class Area(Variable):
         ...     shape = (3,)
         ...     values = numpy.array([0.25, 0.25, 0.5])
         >>> area = Area()
-        >>> SoilMoisture.weights = property(lambda self: area)
+        >>> SoilMoisture.refweights = property(lambda self: area)
         >>> soilmoisture.meanvalue
         400.0
 
@@ -519,7 +519,7 @@ following error occured: The verification matrices of parameters \
         if not self.NDIM:
             return self.value
         try:
-            weights = self.weights
+            weights = self.refweights
         except BaseException:
             objecttools.augment_excmessage(
                 'While trying to calculate the mean value of variable %s '

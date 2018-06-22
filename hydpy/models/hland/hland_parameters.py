@@ -121,7 +121,7 @@ pcorr via keyword arguments is not possible.
 
     Finally, |hland_parameters.MultiParameter| implements parameter
     |RelZoneArea| for calculating areal mean values (see |property|
-    |hland_parameters.MultiParameter.weights|).
+    |hland_parameters.MultiParameter.refweights|).
 
     >>> pcorr.meanvalue
     nan
@@ -143,7 +143,7 @@ pcorr via keyword arguments is not possible.
         return self.subpars.pars.control.nmbzones
 
     @property
-    def weights(self):
+    def refweights(self):
         """Reference to the associated instance of |RelZoneArea| for
         calculating areal mean values."""
         return self.subpars.pars.derived.relzonearea
@@ -173,7 +173,7 @@ class MultiParameterSoil(MultiParameter):
     REQUIRED_VALUES = (FIELD, FOREST)
 
     @property
-    def weights(self):
+    def refweights(self):
         """Reference to the associated instance of |RelSoilZoneArea| for
         calculating areal mean values."""
         return self.subpars.pars.derived.relsoilzonearea
@@ -203,7 +203,7 @@ class MultiParameterLand(MultiParameter):
     REQUIRED_VALUES = (FIELD, FOREST, GLACIER)
 
     @property
-    def weights(self):
+    def refweights(self):
         """Reference to the associated instance of |RelLandZoneArea| for
         calculating areal mean values."""
         return self.subpars.pars.derived.rellandzonearea
@@ -232,7 +232,7 @@ class MultiParameterLake(MultiParameter):
     REQUIRED_VALUES = (ILAKE,)
 
     @property
-    def weights(self):
+    def refweights(self):
         """Reference to the associated instance of |RelLakeZoneArea| for
         calculating areal mean values."""
         return self.subpars.pars.derived.rellakezonearea
@@ -262,7 +262,7 @@ class MultiParameterGlacier(MultiParameter):
     REQUIRED_VALUES = (GLACIER,)
 
     @property
-    def weights(self):
+    def refweights(self):
         """Reference to the associated instance of |RelLakeGlacierArea| for
         calculating areal mean values."""
         return self.subpars.pars.derived.relglacierzonearea
@@ -292,7 +292,7 @@ class MultiParameterNoGlacier(MultiParameter):
     REQUIRED_VALUES = (FIELD, FOREST, ILAKE)
 
     @property
-    def weights(self):
+    def refweights(self):
         """Reference to the associated instance of |RelNoGlacierZoneArea| for
         calculating areal mean values."""
         return self.subpars.pars.derived.relnoglacierzonearea

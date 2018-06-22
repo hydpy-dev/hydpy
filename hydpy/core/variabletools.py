@@ -472,7 +472,7 @@ of variable `soilmoisture` , the following error occured: Variable \
 
         >>> class Area(Variable):
         ...     shape = (3,)
-        ...     values = numpy.array([0.25, 0.25, 0.5])
+        ...     values = numpy.array([1.0, 1.0, 2.0])
         >>> area = Area()
         >>> SoilMoisture.refweights = property(lambda self: area)
         >>> soilmoisture.meanvalue
@@ -533,7 +533,9 @@ following error occured: The verification matrices of parameters \
                     '`%s` and `%s` are inconsistent.'
                     % (self.name, weights.name))
             if any(idxs_w):
-                return numpy.sum(weights.values[idxs_w]*self.values[idxs_v])
+                return (
+                    numpy.sum(weights.values[idxs_w]*self.values[idxs_v]) /
+                    numpy.sum(weights.values[idxs_w]))
             return numpy.nan
         except BaseException:
             objecttools.augment_excmessage(

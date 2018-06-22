@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
+# pylint: enable=missing-docstring
 
 # import...
 # ...from standard library
@@ -65,7 +67,7 @@ class ZoneType(parametertools.NameParameter):
     >>> nmbzones(6)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, ILAKE, FIELD)
     >>> zonetype.values
-    array([1, 2, 3, 4, 4,1])
+    array([1, 2, 3, 4, 4, 1])
     >>> zonetype
     zonetype(FIELD, FOREST, GLACIER, ILAKE, ILAKE, FIELD)
     """

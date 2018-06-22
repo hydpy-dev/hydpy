@@ -1943,6 +1943,31 @@ following error occured: index 1 is out of bounds for axis 0 with size 1
                 list(self.COLNAMES) + list(self._ROWCOLMAPPINGS.keys()))
 
 
+class RelSubvaluesMixin(object):
+    """Mixin class for derived parameters reflecting the absolute values
+    of control parameters in multiple relative terms.
+
+    |RelSubvaluesMixin| is supposed to be combined with parameters
+    implementing property `refparameter` like class |ZipParameter|.
+    The resulting class also has to define property
+    |RelSubvaluesMixin.refabsolutes|. The documentation on class
+    |hland_parameters.RelZoneArea| of base model |hland| gives some
+    examples.
+    """
+
+    @property
+    def refabsolutes(self):
+        """Reference to a control |MultiParameter| object handling the
+        absolute values needed to calculate the relative values."""
+        raise NotImplementedError
+
+    def update(self):
+        """Update the values of the object of the derived class."""
+        temp = self.refabsolutes.values.copy()
+        temp[~self.mask] = numpy.nan
+        self(temp/numpy.nansum(temp))
+
+
 class LeftRightParameter(MultiParameter):
     NDIM = 1
 

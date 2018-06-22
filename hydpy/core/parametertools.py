@@ -218,10 +218,11 @@ class _MetaSubParametersType(type):
         parclasses = dict_.get('_PARCLASSES')
         if parclasses is None:
             raise NotImplementedError(
-                'For class `%s`, the required tuple `_PARCLASSES` is not '
-                'defined.  Please see the documentation of class '
-                '`SubParameters` of module `parametertools` for further '
-                'information.' % name)
+                'For class `%s`, the required tuple `_PARCLASSES` '
+                'is not defined.  Please see the documentation of '
+                'class `SubParameters` of module `parametertools` '
+                'for further information.'
+                % name)
         if parclasses:
             lst = ['\n\n\n    The following parameter classes are selected:']
             for parclass in parclasses:
@@ -1243,12 +1244,14 @@ class ZipParameter(MultiParameter):
                         % (self.refparameter.name,
                            objecttools.elementphrase(self),
                            self.name))
-                self.values = kwargs.pop('default', numpy.nan)
+                self.values = numpy.nan
+                if 'default' in kwargs:
+                    self.values[self.mask] = kwargs.pop('default')
                 for (key, value) in kwargs.items():
                     sel = self.MODEL_CONSTANTS.get(key.upper())
                     if sel is None:
                         raise exc
-                    else:
+                    elif sel in self.REQUIRED_VALUES:
                         self.values[refvalues == sel] = value
                 self.values = self.apply_timefactor(self.values)
                 self.trim()

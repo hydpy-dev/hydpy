@@ -120,12 +120,12 @@ pcorr via keyword arguments is not possible.
     array([ True,  True,  True,  True,  True], dtype=bool)
 
     Finally, |hland_parameters.MultiParameter| implements parameter
-    |RelZoneArea| for calculating areal mean values (see |property|
+    |ZoneArea| for calculating areal mean values (see |property|
     |hland_parameters.MultiParameter.refweights|).
 
     >>> pcorr.meanvalue
     nan
-    >>> derived.relzonearea(0.0, 0.1, 0.2, 0.3, 0.4)
+    >>> zonearea(0.0, 1.0, 2.0, 3.0, 4.0)
     >>> pcorr.meanvalue
     2.0
     """
@@ -146,7 +146,7 @@ pcorr via keyword arguments is not possible.
     def refweights(self):
         """Reference to the associated instance of |RelZoneArea| for
         calculating areal mean values."""
-        return self.subpars.pars.derived.relzonearea
+        return self.subpars.pars.control.zonearea
 
 
 class MultiParameterSoil(MultiParameter):
@@ -166,17 +166,11 @@ class MultiParameterSoil(MultiParameter):
     >>> icmax(field=2.0, default=9.0)
     >>> icmax
     icmax(field=2.0, forest=9.0)
-    >>> derived.relsoilzonearea(0.0, 0.25, numpy.nan, numpy.nan, 0.75)
+    >>> zonearea(0.0, 1.0, nan, nan, 3.0)
     >>> icmax.meanvalue
     3.75
     """
     REQUIRED_VALUES = (FIELD, FOREST)
-
-    @property
-    def refweights(self):
-        """Reference to the associated instance of |RelSoilZoneArea| for
-        calculating areal mean values."""
-        return self.subpars.pars.derived.relsoilzonearea
 
 
 class MultiParameterLand(MultiParameter):
@@ -196,17 +190,11 @@ class MultiParameterLand(MultiParameter):
     >>> whc(field=2.0, default=9.0)
     >>> whc
     whc(field=2.0, forest=9.0, glacier=9.0)
-    >>> derived.rellandzonearea(0.25, 0.25, 0.25, numpy.nan, 0.25)
+    >>> zonearea(1.0, 1.0, 1.0, nan, 1.0)
     >>> whc.meanvalue
     5.5
     """
     REQUIRED_VALUES = (FIELD, FOREST, GLACIER)
-
-    @property
-    def refweights(self):
-        """Reference to the associated instance of |RelLandZoneArea| for
-        calculating areal mean values."""
-        return self.subpars.pars.derived.rellandzonearea
 
 
 class MultiParameterLake(MultiParameter):
@@ -225,17 +213,11 @@ class MultiParameterLake(MultiParameter):
     >>> ttice(field=2.0, forest=9.0, default=9.0)
     >>> ttice
     ttice(9.0)
-    >>> derived.rellakezonearea(0.5, numpy.nan, numpy.nan, 0.5, numpy.nan)
+    >>> zonearea(1.0, nan, nan, 1.0, nan)
     >>> ttice.meanvalue
     9.0
     """
     REQUIRED_VALUES = (ILAKE,)
-
-    @property
-    def refweights(self):
-        """Reference to the associated instance of |RelLakeZoneArea| for
-        calculating areal mean values."""
-        return self.subpars.pars.derived.rellakezonearea
 
 
 class MultiParameterGlacier(MultiParameter):
@@ -255,17 +237,11 @@ class MultiParameterGlacier(MultiParameter):
     >>> gmelt(field=2.0, forest=9.0, default=8.0)
     >>> gmelt
     gmelt(8.0)
-    >>> derived.relglacierzonearea(0.5, numpy.nan, numpy.nan, 0.5, numpy.nan)
+    >>> zonearea(1.0, nan, nan, 1.0, nan)
     >>> gmelt.meanvalue
     8.0
     """
     REQUIRED_VALUES = (GLACIER,)
-
-    @property
-    def refweights(self):
-        """Reference to the associated instance of |RelLakeGlacierArea| for
-        calculating areal mean values."""
-        return self.subpars.pars.derived.relglacierzonearea
 
 
 class MultiParameterNoGlacier(MultiParameter):
@@ -285,17 +261,11 @@ class MultiParameterNoGlacier(MultiParameter):
     >>> ecorr(field=2.0, default=9.0)
     >>> ecorr
     ecorr(field=2.0, forest=9.0, ilake=9.0)
-    >>> derived.relnoglacierzonearea(0.25, 0.25, numpy.nan, 0.25, 0.25)
+    >>> zonearea(1.0, 1.0, nan, 1.0, 1.0)
     >>> ecorr.meanvalue
     5.5
     """
     REQUIRED_VALUES = (FIELD, FOREST, ILAKE)
-
-    @property
-    def refweights(self):
-        """Reference to the associated instance of |RelNoGlacierZoneArea| for
-        calculating areal mean values."""
-        return self.subpars.pars.derived.relnoglacierzonearea
 
 
 class RelZoneAreaMixin(parametertools.RelSubvaluesMixin):
@@ -319,3 +289,7 @@ class RelZoneAreaMixin(parametertools.RelSubvaluesMixin):
     rellandzonearea(nan)
     """
 
+    @property
+    def refabsolutes(self):
+        """Reference to the associated instance of |ZoneArea|."""
+        return self.subpars.pars.control.zonearea

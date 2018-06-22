@@ -1218,7 +1218,7 @@ class ZipParameter(MultiParameter):
     When inheriting an actual parameter class from |ZipParameter| one
     needs to define suitable class constants |ZipParameter.REQUIRED_VALUES|
     (a |tuple|) and |ZipParameter.MODEL_CONSTANTS| (a |dict|).
-    Additionally, property |ZipParameter.refparameter| must be overwritten.
+    Additionally, property |ZipParameter.refindices| must be overwritten.
 
     The implementation and functioning of subclasses of |ZipParameter|
     is best illustrated by an example: see the documentation of the class
@@ -1235,13 +1235,13 @@ class ZipParameter(MultiParameter):
             Parameter.__call__(self, *args, **kwargs)
         except NotImplementedError as exc:
             if kwargs:
-                refvalues = self.refparameter.values
+                refvalues = self.refindices.values
                 if min(refvalues) < 1:
                     raise RuntimeError(
                         'Parameter %s does not seem to be prepared properly '
                         'for %s.  Hence, setting values for parameter %s '
                         'via keyword arguments is not possible.'
-                        % (self.refparameter.name,
+                        % (self.refindices.name,
                            objecttools.elementphrase(self),
                            self.name))
                 self.values = numpy.nan
@@ -1283,7 +1283,7 @@ class ZipParameter(MultiParameter):
         tuple |ZipParameter.REQUIRED_VALUES| of the respective subclass.
         """
         mask = numpy.full(self.shape, False, dtype=bool)
-        refvalues = self.refparameter.values
+        refvalues = self.refindices.values
         for reqvalue in self.REQUIRED_VALUES:
             mask[refvalues == reqvalue] = True
         return mask
@@ -1297,11 +1297,11 @@ class ZipParameter(MultiParameter):
             return MultiParameter.compress_repr(self)
         except NotImplementedError as exc:
             results = []
-            refvalues = self.refparameter.values
             if min(refvalues) < 1:
                 raise NotImplementedError(
                     'Parameter %s is not defined poperly, which '
                     'circumvents finding a suitable compressed.')
+            refvalues = self.refindices.values
             for (key, value) in self.MODEL_CONSTANTS.items():
                 if value in self.REQUIRED_VALUES:
                     unique = numpy.unique(self.values[refvalues == value])
@@ -1318,7 +1318,7 @@ class ZipParameter(MultiParameter):
             return result
 
     @property
-    def refparameter(self):
+    def refindices(self):
         """Reference to the associated |MultiParameter| object providing
         the actual constant values.
 
@@ -1327,15 +1327,15 @@ class ZipParameter(MultiParameter):
         >>> from hydpy.core.parametertools import ZipParameter
         >>> class Test(ZipParameter):
         ...     pass
-        >>> Test().refparameter
+        >>> Test().refindices
         Traceback (most recent call last):
         ...
-        NotImplementedError: Property `refparameter` of class \
+        NotImplementedError: Property `refindices` of class \
 `ZipParameter` must be overwritten by subclasses, which is not \
 the case for class `Test`.
         """
         raise NotImplementedError(
-            'Property `refparameter` of class `ZipParameter` '
+            'Property `refindices` of class `ZipParameter` '
             'must be overwritten by subclasses, which is not '
             'the case for class `%s`.'
             % objecttools.classname(self))
@@ -1948,7 +1948,7 @@ class RelSubvaluesMixin(object):
     of control parameters in multiple relative terms.
 
     |RelSubvaluesMixin| is supposed to be combined with parameters
-    implementing property `refparameter` like class |ZipParameter|.
+    implementing property `refindices` like class |ZipParameter|.
     The resulting class also has to define property
     |RelSubvaluesMixin.refabsolutes|. The documentation on class
     |hland_parameters.RelZoneArea| of base model |hland| gives some

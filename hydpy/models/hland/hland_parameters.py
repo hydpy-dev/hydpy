@@ -108,7 +108,7 @@ pcorr via keyword arguments is not possible.
 
     As shown above |hland_parameters.MultiParameter| implements
     parameter |ZoneType| as its "reference parameter" (see |property|
-    |hland_parameters.MultiParameter.refparameter|).
+    |hland_parameters.MultiParameter.refindices|).
     Additionally, due to the class attribute
     |hland_parameters.MultiParameter.REQUIRED_VALUES| containing all
     four zone types, the |property| |parametertools.MultiParameter.mask|
@@ -133,7 +133,7 @@ pcorr via keyword arguments is not possible.
     MODEL_CONSTANTS = CONSTANTS
 
     @property
-    def refparameter(self):
+    def refindices(self):
         """Reference to the associated instance of |ZoneType|."""
         return self.subpars.pars.control.zonetype
 

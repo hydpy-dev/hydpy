@@ -39,7 +39,7 @@ first in each parameter control file.
     MODEL_CONSTANTS = lland_constants.CONSTANTS
 
     @property
-    def refparameter(self):
+    def refindices(self):
         """Alias for the associated instance of |Lnk|."""
         return self.subpars.pars.control.lnk
 

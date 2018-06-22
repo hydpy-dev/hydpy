@@ -913,14 +913,6 @@ class SingleParameter(Parameter):
     value = property(_get_value, _set_value)
     values = value
 
-    def verify(self):
-        """Raises a |RuntimeError| if the value of the instance of the
-        respective subclass of |SingleParameter| is `nan`.
-        """
-        if numpy.isnan(self.value):
-            raise RuntimeError('The value of parameter `%s` has not been '
-                               'set yet.' % self.name)
-
     def __len__(self):
         """Returns 1.  (This method is only intended for increasing consistent
         usability of |SingleParameter| and |MultiParameter| instances.)
@@ -1020,35 +1012,6 @@ class MultiParameter(Parameter):
 
     value = property(_get_value, _set_value)
     values = value
-
-    def _getverifymask(self):
-        """A numpy array with all entries being |True| of the same
-        shape as the values handled by the respective parameter.  All entries
-        being |True| indicates that the method |MultiParameter.verify|
-        checks all entries of the numpy array storing the parameter values.
-        Overwrite |MultiParameter.verify| for |MultiParameter|
-        subclasses, where certain entries do not to be checked.
-        """
-        return numpy.full(self.shape, True, dtype=bool)
-
-    verifymask = property(_getverifymask)
-
-    def verify(self):
-        """Raises a |RuntimeError| if at least one of the required values
-        of the instance of the respective subclass of |MultiParameter| is
-        |None| or |numpy.nan|. The property |MultiParameter.verifymask|
-        defines, which values are considered to be necessary.
-        """
-        if self.values is None:
-            raise RuntimeError(
-                'The values of parameter `%s` have not been set yet.'
-                % self.name)
-        nmbnan = sum(numpy.isnan(self.values[self.verifymask]))
-        if nmbnan:
-            raise RuntimeError(
-                'For parameter `%s`, %d required values have '
-                'not been set yet.'
-                % (self.name, nmbnan))
 
     def __len__(self):
         """Returns the number of values handled by the |MultiParameter|
@@ -1207,7 +1170,7 @@ class ZipParameter(MultiParameter):
     shape = property(_getshape, MultiParameter._setshape)
 
     @property
-    def verifymask(self):
+    def mask(self):
         """A |numpy.ndarray| of the same shape as the value array handled
         by the respective |ZipParameter| object.  |True| entries indicate
         that certain parameter values are required, which depends on the

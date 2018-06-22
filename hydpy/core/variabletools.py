@@ -335,6 +335,85 @@ error occured: operands could not be broadcast together with shapes (2,) (3,)
             length *= self.shape[idx]
         return length
 
+    @property
+    def mask(self):
+        """A |numpy.ndarray| with all entries being |True| of the same shape
+        as the values handled by the respective |Variable| object.
+
+        All entries being |True| indicates that method |Variable.verify|
+        checks all entries of the |numpy.ndarray| storing the parameter
+        values.  Overwrite |Variable.mask| for |Variable| subclasses,
+        where certain entries do not need to be checked.
+
+        >>> from hydpy.core.objecttools import copy_class
+        >>> from hydpy.core.variabletools import Variable
+        >>> Variable = copy_class(Variable)
+        >>> Variable.shape = (2,3)
+        >>> Variable().mask
+        array([[ True,  True,  True],
+               [ True,  True,  True]], dtype=bool)
+        """
+        return numpy.full(self.shape, True, dtype=bool)
+
+    def verify(self):
+        """Raises a |RuntimeError| if at least one of the required values
+        of a |Variable| object is |None| or |numpy.nan|. Property
+        |Variable.mask| defines, which values are considered to be
+        necessary.
+
+        Example on a 0-dimensional |Variable|:
+
+        >>> from hydpy.core.objecttools import copy_class
+        >>> from hydpy.core.variabletools import Variable
+        >>> Variable = copy_class(Variable)
+        >>> variable = Variable()
+        >>> import numpy
+        >>> Variable.shape = ()
+        >>> Variable.value = 1.0
+        >>> variable.verify()
+        >>> Variable.value = numpy.nan
+        >>> variable.verify()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: For variable `variable`, 1 required value \
+has not been set yet.
+
+        Example on a 2-dimensional |Variable|:
+
+        >>> Variable = copy_class(Variable)
+        >>> variable = Variable()
+        >>> Variable.shape = (2, 3)
+        >>> Variable.value = numpy.ones((2,3))
+        >>> Variable.value[:, 1] = numpy.nan
+        >>> variable.verify()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: For variable `variable`, 2 required values \
+have not been set yet.
+
+        >>> Variable.mask = variable.mask
+        >>> Variable.mask[0, 1] = False
+        >>> variable.verify()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: For variable `variable`, 1 required value \
+has not been set yet.
+
+        >>> Variable.mask[1, 1] = False
+        >>> variable.verify()
+        """
+        nmbnan = numpy.sum(numpy.isnan(
+            numpy.array(self.value)[self.mask]))
+        if nmbnan:
+            if nmbnan == 1:
+                text = 'value has'
+            else:
+                text = 'values have'
+            raise RuntimeError(
+                'For variable %s, %d required %s '
+                'not been set yet.'
+                % (objecttools.devicephrase(self), nmbnan, text))
+
     def __deepcopy__(self, memo):
         new = type(self)()
         for (key, value) in vars(self).items():

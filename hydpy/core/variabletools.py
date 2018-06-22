@@ -184,17 +184,21 @@ class Variable(object):
     comparisons and type conversions.  See the  following exemples on how
     to do math with HydPys parameter and sequence objects.
 
-    The subclasses are required to provide the members `NDIM` (usually a
-    class attribute) and `value` (usually a property).  But for testing
-    purposes, one can simply add them as instance attributes.
+    The subclasses are required to provide the members as `NDIM` (usually
+    a class attribute) and `value` (usually a property).  For testing
+    purposes, we simply add them as class attributes to a copy of class
+    |Variable|.
+
+    >>> from hydpy.core.objecttools import copy_class
+    >>> from hydpy.core.variabletools import Variable
+    >>> Variable = copy_class(Variable)
+    >>> variable = Variable()
 
     A few examples for 0-dimensional objects:
 
-    >>> from hydpy.core.variabletools import Variable
-    >>> variable = Variable()
-    >>> variable.NDIM = 0
-    >>> variable.shape = ()
-    >>> variable.value = 2.0
+    >>> Variable.NDIM = 0
+    >>> Variable.shape = ()
+    >>> Variable.value = 2.0
     >>> variable + variable
     4.0
     >>> 3.0 - variable
@@ -206,9 +210,8 @@ class Variable(object):
     Similar examples for 1-dimensional objects:
 
     >>> import numpy
-    >>> variable = Variable()
-    >>> variable.NDIM = 1
-    >>> variable.shape = (3,)
+    >>> Variable.NDIM = 1
+    >>> Variable.shape = (3,)
     >>> variable.value = numpy.array([1.0, 2.0, 3.0])
     >>> print(variable + variable)
     [ 2.  4.  6.]
@@ -250,8 +253,8 @@ class Variable(object):
 element `?` with object `[1.0, 2.0, 3.0]` of type `list`, the following \
 error occured: operands could not be broadcast together with shapes (2,) (3,)
 
-    >>> variable.NDIM = 0
-    >>> variable.value = 1.0
+    >>> Variable.NDIM = 0
+    >>> Variable.value = 1.0
     >>> variable < 'text'   # doctest: +SKIP
     Traceback (most recent call last):
     ...
@@ -276,8 +279,14 @@ error occured: operands could not be broadcast together with shapes (2,) (3,)
 
     @property
     def value(self):
-        """Actual value or |ndarray| of the actual values, to be defined
-        by the subclasses of |Variable|."""
+        """Actual value or |numpy.ndarray| of the actual values, to be
+        defined by the subclasses of |Variable|."""
+        raise NotImplementedError
+
+    @property
+    def values(self):
+        """Actual value or |numpy.ndarray| of the actual values, to be
+        defined by the subclasses of |Variable|."""
         raise NotImplementedError
 
     @property
@@ -309,7 +318,9 @@ error occured: operands could not be broadcast together with shapes (2,) (3,)
 
         For 0-dimensional sequences, `length` is always one:
 
+        >>> from hydpy.core.objecttools import copy_class
         >>> from hydpy.core.variabletools import Variable
+        >>> Variable = copy_class(Variable)
         >>> variable = Variable()
         >>> Variable.NDIM = 0
         >>> variable.length
@@ -318,7 +329,7 @@ error occured: operands could not be broadcast together with shapes (2,) (3,)
         For 1-dimensional sequences, it is the vector length:
 
         >>> Variable.NDIM = 1
-        >>> variable.shape = (5,)
+        >>> Variable.shape = (5,)
         >>> variable.length
         5
 
@@ -326,7 +337,7 @@ error occured: operands could not be broadcast together with shapes (2,) (3,)
         of the matrix are multiplied:
 
         >>> Variable.NDIM = 3
-        >>> variable.shape = (2, 1, 4)
+        >>> Variable.shape = (2, 1, 4)
         >>> variable.length
         8
         """

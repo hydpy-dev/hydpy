@@ -35,7 +35,7 @@ be retrieved after it has been defined.  You can do this manually, but \
 usually it is done automatically by defining the value of parameter `nhru` \
 first in each parameter control file.
     """
-    REQUIRED_VALUES = tuple(lland_constants.CONSTANTS.values())
+    RELEVANT_VALUES = tuple(lland_constants.CONSTANTS.values())
     MODEL_CONSTANTS = lland_constants.CONSTANTS
 
     @property
@@ -53,7 +53,7 @@ class MultiParameterLand(MultiParameter):
     """Base class for handling parameters of HydPy-L-Land (potentially)
     handling multiple values relevant for non water HRUs.
     """
-    REQUIRED_VALUES = tuple(
+    RELEVANT_VALUES = tuple(
         value for (key, value)
         in lland_constants.CONSTANTS.items()
         if value not in ('WASSER', 'SEE', 'FLUSS'))
@@ -64,7 +64,7 @@ class MultiParameterSoil(MultiParameter):
     handling multiple values relevant for non water HRUs without sealed
     surfaces.
     """
-    REQUIRED_VALUES = tuple(
+    RELEVANT_VALUES = tuple(
         value for (key, value)
         in lland_constants.CONSTANTS.items()
         if value not in ('WASSER', 'SEE', 'FLUSS', 'VERS'))

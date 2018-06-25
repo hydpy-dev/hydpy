@@ -1216,7 +1216,7 @@ class ZipParameter(MultiParameter):
     offers additional keyword zipping fuctionality.
 
     When inheriting an actual parameter class from |ZipParameter| one
-    needs to define suitable class constants |ZipParameter.REQUIRED_VALUES|
+    needs to define suitable class constants |ZipParameter.RELEVANT_VALUES|
     (a |tuple|) and |ZipParameter.MODEL_CONSTANTS| (a |dict|).
     Additionally, property |ZipParameter.refindices| must be overwritten.
 
@@ -1224,7 +1224,7 @@ class ZipParameter(MultiParameter):
     is best illustrated by an example: see the documentation of the class
     |hland_parameters.MultiParameter| of base model |hland|.
     """
-    REQUIRED_VALUES = ()
+    RELEVANT_VALUES = ()
     MODEL_CONSTANTS = {}
 
     def __call__(self, *args, **kwargs):
@@ -1251,7 +1251,7 @@ class ZipParameter(MultiParameter):
                     sel = self.MODEL_CONSTANTS.get(key.upper())
                     if sel is None:
                         raise exc
-                    elif sel in self.REQUIRED_VALUES:
+                    elif sel in self.RELEVANT_VALUES:
                         self.values[refvalues == sel] = value
                 self.values = self.apply_timefactor(self.values)
                 self.trim()
@@ -1280,11 +1280,11 @@ class ZipParameter(MultiParameter):
         """A |numpy.ndarray| of the same shape as the value array handled
         by the respective |ZipParameter| object.  |True| entries indicate
         that certain parameter values are required, which depends on the
-        tuple |ZipParameter.REQUIRED_VALUES| of the respective subclass.
+        tuple |ZipParameter.RELEVANT_VALUES| of the respective subclass.
         """
         mask = numpy.full(self.shape, False, dtype=bool)
         refvalues = self.refindices.values
-        for reqvalue in self.REQUIRED_VALUES:
+        for reqvalue in self.RELEVANT_VALUES:
             mask[refvalues == reqvalue] = True
         return mask
 
@@ -1303,7 +1303,7 @@ class ZipParameter(MultiParameter):
                     'circumvents finding a suitable compressed.')
             refvalues = self.refindices.values
             for (key, value) in self.MODEL_CONSTANTS.items():
-                if value in self.REQUIRED_VALUES:
+                if value in self.RELEVANT_VALUES:
                     unique = numpy.unique(self.values[refvalues == value])
                     unique = self.revert_timefactor(unique)
                     if len(unique) == 1:
@@ -1714,6 +1714,7 @@ into shape (3)
 
     def __dir__(self):
         return objecttools.dir_(self) + [str(toy) for (toy, dummy) in self]
+
 
 class KeywordParameter2DType(type):
     """Add the construction of `_ROWCOLMAPPING` to :class:`type`."""

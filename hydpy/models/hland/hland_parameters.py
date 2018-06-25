@@ -110,11 +110,11 @@ pcorr via keyword arguments is not possible.
     parameter |ZoneType| as its "reference parameter" (see |property|
     |hland_parameters.MultiParameter.refindices|).
     Additionally, due to the class attribute
-    |hland_parameters.MultiParameter.REQUIRED_VALUES| containing all
+    |hland_parameters.MultiParameter.RELEVANT_VALUES| containing all
     four zone types, the |property| |parametertools.MultiParameter.mask|
     is |True| for all entries:
 
-    >>> pcorr.REQUIRED_VALUES
+    >>> pcorr.RELEVANT_VALUES
     (1, 2, 3, 4)
     >>> pcorr.mask
     array([ True,  True,  True,  True,  True], dtype=bool)
@@ -129,7 +129,7 @@ pcorr via keyword arguments is not possible.
     >>> pcorr.meanvalue
     2.0
     """
-    REQUIRED_VALUES = (FIELD, FOREST, GLACIER, ILAKE)
+    RELEVANT_VALUES = (FIELD, FOREST, GLACIER, ILAKE)
     MODEL_CONSTANTS = CONSTANTS
 
     @property
@@ -170,7 +170,7 @@ class MultiParameterSoil(MultiParameter):
     >>> icmax.meanvalue
     3.75
     """
-    REQUIRED_VALUES = (FIELD, FOREST)
+    RELEVANT_VALUES = (FIELD, FOREST)
 
 
 class MultiParameterLand(MultiParameter):
@@ -194,7 +194,7 @@ class MultiParameterLand(MultiParameter):
     >>> whc.meanvalue
     5.5
     """
-    REQUIRED_VALUES = (FIELD, FOREST, GLACIER)
+    RELEVANT_VALUES = (FIELD, FOREST, GLACIER)
 
 
 class MultiParameterLake(MultiParameter):
@@ -217,7 +217,7 @@ class MultiParameterLake(MultiParameter):
     >>> ttice.meanvalue
     9.0
     """
-    REQUIRED_VALUES = (ILAKE,)
+    RELEVANT_VALUES = (ILAKE,)
 
 
 class MultiParameterGlacier(MultiParameter):
@@ -241,7 +241,7 @@ class MultiParameterGlacier(MultiParameter):
     >>> gmelt.meanvalue
     8.0
     """
-    REQUIRED_VALUES = (GLACIER,)
+    RELEVANT_VALUES = (GLACIER,)
 
 
 class MultiParameterNoGlacier(MultiParameter):
@@ -265,8 +265,6 @@ class MultiParameterNoGlacier(MultiParameter):
     >>> ecorr.meanvalue
     5.5
     """
-    REQUIRED_VALUES = (FIELD, FOREST, ILAKE)
-
 
 class RelZoneAreaMixin(parametertools.RelSubvaluesMixin):
     """Mixin class to be combined with class |hland_parameters.MultiParameter|

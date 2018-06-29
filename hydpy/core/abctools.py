@@ -240,6 +240,11 @@ class NodeSequenceABC(IOSequenceABC):
     pass
 
 
+class MaskABC(DocABC):
+    """Abstract base class for registering custom |Mask| classes."""
+    pass
+
+
 class DateABC(DocABC):
     """Abstract base class for registering custom |Date| classes."""
     pass

@@ -70,6 +70,7 @@ standardize writing :ref:`HydPy` code.
    hydpytools
    importtools
    indextools
+   masktools
    modelimports
    modeltools
    netcdftools

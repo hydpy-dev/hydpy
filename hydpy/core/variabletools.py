@@ -181,9 +181,9 @@ def _compare_variables_function_generator(
 class Variable(object):
     """Base class for |Parameter| and |Sequence|.
 
-    This base class Implements special methods for arithmetic calculations,
-    comparisons and type conversions.  See the  following exemples on how
-    to do math with HydPys parameter and sequence objects.
+    This base class implements special methods for arithmetic calculations,
+    comparisons and type conversions.  See the  following examples on how
+    to do math with HydPys |Parameter| and |Sequence| objects.
 
     The subclasses are required to provide the members as `NDIM` (usually
     a class attribute) and `value` (usually a property).  For testing
@@ -207,6 +207,16 @@ class Variable(object):
     >>> variable /= 2.
     >>> variable
     variable(1.0)
+    >>> variable[0] = 2.0 * variable[:]
+    >>> variable[0]
+    2.0
+    >>> variable[1]
+    Traceback (most recent call last):
+    ...
+    IndexError: While trying to access the value(s) of variable `variable` \
+with key `1`, the following error occured: The only allowed keys for \
+0-dimensional variables are `0` and `:`.
+
 
     Similar examples for 1-dimensional objects:
 
@@ -221,6 +231,15 @@ class Variable(object):
     >>> variable /= 2.
     >>> variable
     variable(0.5, 1.0, 1.5)
+    >>> variable[:] = variable[1]
+    >>> variable[:2]
+    array([ 1.,  1.])
+    >>> variable[:] = 'test'
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to set the value(s) of variable `variable` \
+with key `slice(None, None, None)`, the following error occured: \
+could not convert string to float: 'test'
 
     Note that comparisons on |Variable| objects containg multiple
     values return a single boolean only:
@@ -553,6 +572,38 @@ following error occured: The verification matrices of parameters \
             new.shape = self.shape
         new.value = self.value
         return new
+
+    def __getitem__(self, key):
+        try:
+            if self.NDIM:
+                return self.value[key]
+            self._check_key(key)
+            return self.value
+        except BaseException:
+            objecttools.augment_excmessage(
+                'While trying to access the value(s) of '
+                'variable %s with key `%s`'
+                % (objecttools.devicephrase(self), key))
+
+    def __setitem__(self, key, value):
+        try:
+            if self.NDIM:
+                self.value[key] = value
+            else:
+                self._check_key(key)
+                self.value = value
+        except BaseException:
+            objecttools.augment_excmessage(
+                'While trying to set the value(s) of variable %s '
+                'with key `%s`'
+                % (objecttools.devicephrase(self), key))
+
+    @staticmethod
+    def _check_key(key):
+        if key not in (0, slice(None, None, None)):
+            raise IndexError(
+                'The only allowed keys for 0-dimensional variables '
+                'are `0` and `:`.')
 
     def __add__(self, other):
         try:

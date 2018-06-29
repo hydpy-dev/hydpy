@@ -856,24 +856,6 @@ class SingleParameter(Parameter):
         """
         return 1
 
-    def __getitem__(self, key):
-        if key in (0, slice(None, None, None)):
-            return self.value
-        else:
-            raise IndexError(
-                'The only allowed index for scalar parameters '
-                'like `%s` is `0` (or `:`), but `%s` is given.'
-                % (objecttools.elementphrase(self), key))
-
-    def __setitem__(self, key, value):
-        if key in (0, slice(None, None, None)):
-            self.value = value
-        else:
-            raise IndexError(
-                'The only allowed index for scalar parameters '
-                'like `%s` is `0` (or `:`), but `%s` is given.'
-                % (objecttools.elementphrase(self), key))
-
     def __repr__(self):
         lines = self.commentrepr()
         lines.append(
@@ -956,28 +938,6 @@ class MultiParameter(Parameter):
         which specifies the length in each dimension.
         """
         return numpy.cumprod(self.shape)[-1]
-
-    def __getitem__(self, key):
-        try:
-            return self.values[key]
-        except BaseException:
-            self._raiseitemexception()
-
-    def __setitem__(self, key, values):
-        try:
-            self.values[key] = values
-        except BaseException:
-            self._raiseitemexception()
-
-    def _raiseitemexception(self):
-        if self.values is None:
-            raise RuntimeError(
-                'Parameter `%s` has no values so far.'
-                % self.name)
-        else:
-            objecttools.augment_excmessage(
-                'While trying to item access the values of parameter `%s`'
-                % self.name)
 
     def compress_repr(self):
         """Return a compressed parameter value string, which is (in

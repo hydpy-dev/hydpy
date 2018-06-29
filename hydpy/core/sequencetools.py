@@ -510,28 +510,6 @@ class Sequence(variabletools.Variable):
 
     shape = property(_getshape, _setshape)
 
-    def __getitem__(self, key):
-        try:
-            return self.values[key]
-        except BaseException:
-            self._raiseitemexception()
-
-    def __setitem__(self, key, values):
-        try:
-            self.values[key] = values
-        except BaseException:
-            self._raiseitemexception()
-
-    def _raiseitemexception(self):
-        if self.values is None:
-            raise RuntimeError(
-                'Sequence %s has no values so far.'
-                % objecttools.devicephrase(self))
-        else:
-            objecttools.augment_excmessage(
-                'While trying to item access the values of sequence %s'
-                % objecttools.devicephrase(self))
-
     def __repr__(self):
         islong = self.length > 255
         return variabletools.Variable.to_repr(self, self.values, islong)

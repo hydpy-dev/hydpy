@@ -72,6 +72,9 @@ def parameterstep(timestep=None):
         namespace['sequences'] = model.sequences
         for seqs in model.sequences:
             namespace[seqs.name] = seqs
+        if 'Masks' in namespace:
+            model.masks = namespace['Masks'](model)
+            namespace['masks'] = model.masks
     try:
         namespace.update(namespace['CONSTANTS'])
     except KeyError:
@@ -145,8 +148,8 @@ def reverse_model_wildcard_import():
                 namespace.pop(objecttools.classname(seq), None)
             namespace.pop(subseqs.name, None)
             namespace.pop(objecttools.classname(subseqs), None)
-        for name in ('parameters', 'sequences', 'model',
-                     'Parameters', 'Sequences', 'Model',
+        for name in ('parameters', 'sequences', 'masks', 'model',
+                     'Parameters', 'Sequences', 'Masks', 'Model',
                      'cythonizer', 'cymodel', 'cythonmodule'):
             namespace.pop(name, None)
         for key in list(namespace.keys()):
@@ -206,6 +209,8 @@ def prepare_model(module, timestep=None):
         model.sequences = module.Sequences(**dict_)
     else:
         model.sequences = sequencetools.Sequences(**dict_)
+    if hasattr(module, 'Masks'):
+        model.masks = module.Masks(model)
     return model
 
 

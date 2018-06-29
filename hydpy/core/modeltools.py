@@ -93,6 +93,7 @@ class Model(_MetaModel_):
         self.element = None
         self.parameters = None
         self.sequences = None
+        self._masks = None
         self.cymodel = objecttools.FastAccess()
         self.cymodel.idx_sim = -999
         self._init_methods()
@@ -162,6 +163,14 @@ class Model(_MetaModel_):
                 'The following nodes have not been connected '
                 'to any sequences: `%s`.'
                 % ', '.join(remaining_nodes))
+
+    @property
+    def mask(self):
+        if self._mask is None:
+            raise AttributeError(
+                'Model `%s` does not handle a group of masks.'
+                % objecttools.modulename(self))
+        return self._masks
 
     def doit(self, idx):
         self.idx_sim = idx

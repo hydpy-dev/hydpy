@@ -12,6 +12,7 @@ import numpy
 from hydpy import conf
 from hydpy.core import abctools
 from hydpy.core import autodoctools
+from hydpy.core import metatools
 from hydpy.core import objecttools
 from hydpy.cythons import modelutils
 
@@ -64,7 +65,7 @@ class _MetaModel(type):
                     lst.append('      * :func:`~%s` %s'
                                % ('.'.join((method.__module__,
                                             method.__name__)),
-                                  autodoctools.description(method)))
+                                  metatools.description(method)))
                 doc = dict_.get('__doc__', 'Undocumented model.')
                 dict_['__doc__'] = doc + '\n'.join(l for l in lst)
 

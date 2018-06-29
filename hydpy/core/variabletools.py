@@ -16,6 +16,7 @@ import numpy
 from hydpy import pub
 from hydpy.core import abctools
 from hydpy.core import autodoctools
+from hydpy.core import metatools
 from hydpy.core import objecttools
 
 
@@ -737,7 +738,7 @@ following error occured: The verification matrices of parameters \
         """
         if pub.options.reprcomments:
             return ['# %s' % line for line in
-                    textwrap.wrap(autodoctools.description(self), 78)]
+                    textwrap.wrap(metatools.description(self), 78)]
         return []
 
     def to_repr(self, values, islong):
@@ -766,6 +767,89 @@ following error occured: The verification matrices of parameters \
 
 
 abctools.VariableABC.register(Variable)
+
+
+class SubVariables(metatools.MetaSubgroupClass):
+    """Base class for |SubParameters| and |SubSequences|.
+
+    See class |SubParameters| for further information.
+    """
+    CLASSES = ()
+    VARTYPE = None
+
+    def __init__(self, variables, cls_fastaccess=None, cymodel=None):
+        self.vars = variables
+        self._init_fastaccess(cls_fastaccess, cymodel)
+        for cls in self.CLASSES:
+            setattr(self, objecttools.instancename(cls), cls())
+
+    @property
+    def name(self):
+        """Must be implemented by subclasses."""
+        return NotImplementedError()
+
+    def __setattr__(self, name, value):
+        """Attributes and methods should usually not be replaced.  Existing
+        |Variable| attributes are protected in a way, that only their
+        values are changed through assignements.  For new |Variable|
+        attributes, additional `fastaccess` references are defined.  If you
+        actually want to replace a parameter, you have to delete it first.
+        """
+        try:
+            attr = getattr(self, name)
+        except AttributeError:
+            object.__setattr__(self, name, value)
+            if isinstance(value, self.VARTYPE):
+                value.connect(self)
+        else:
+            try:
+                attr.value = value
+            except AttributeError:
+                raise RuntimeError(
+                    '`%s` instances do not allow the direct replacement of '
+                    'their members.  After initialization you should usually '
+                    'only change parameter values through assignements.  '
+                    'If you really need to replace a object member, '
+                    'delete it beforehand.'
+                    % objecttools.classname(self))
+
+    def __iter__(self):
+        for cls in self.CLASSES:
+            name = objecttools.instancename(cls)
+            yield getattr(self, name)
+
+    def __contains__(self, variable):
+        if isinstance(variable, self.VARTYPE):
+            variable = type(variable)
+        if variable in self.CLASSES:
+            return True
+        try:
+            if issubclass(variable, self.VARTYPE):
+                return False
+        except TypeError:
+            pass
+        name = objecttools.instancename(self.VARTYPE)[:-3]
+        raise TypeError(
+            'The given %s is neither a %s class nor a %s instance.'
+            % (objecttools.value_of_type(variable), name, name))
+
+    def __repr__(self):
+        lines = []
+        if pub.options.reprcomments:
+            lines.append('# %s object defined in module %s.'
+                         % (objecttools.classname(self),
+                            objecttools.modulename(self)))
+            lines.append('# The implemented variables with their actual '
+                         'values are:')
+        for variable in self:
+            try:
+                lines.append('%s' % repr(variable))
+            except BaseException:
+                lines.append('%s(?)' % variable.name)
+        return '\n'.join(lines)
+
+    def __dir__(self):
+        return objecttools.dir_(self)
 
 
 autodoctools.autodoc_module()

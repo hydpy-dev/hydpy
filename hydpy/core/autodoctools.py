@@ -29,30 +29,10 @@ from hydpy import auxs
 from hydpy import core
 from hydpy import cythons
 from hydpy import models
+from hydpy.core import metatools
 from hydpy.cythons.autogen import annutils
 from hydpy.cythons.autogen import pointerutils
 from hydpy.cythons.autogen import smoothutils
-
-
-def description(self):
-    """Returns the first "paragraph" of the docstring of the given object.
-
-    Note that ugly things like multiple whitespaces and newline characters
-    are removed:
-
-    >>> from hydpy.core import autodoctools, objecttools
-    >>> autodoctools.description(objecttools.augment_excmessage)
-    'Augment an exception message with additional information while keeping \
-the original traceback.'
-
-    In case the given object does not define a docstring, the following
-    is returned:
-    >>> autodoctools.description(type('Test', (), {}))
-    'no description available'
-    """
-    if self.__doc__ in (None, ''):
-        return 'no description available'
-    return ' '.join(self.__doc__.split('\n\n')[0].split())
 
 
 _PAR_SPEC2CAPT = collections.OrderedDict((('parameters', 'Parameter tools'),
@@ -703,7 +683,7 @@ def autodoc_module():
         else:
             type_ = 'obj'
         lines.append('      * :%s:`~%s` %s'
-                     % (type_, name, description(member)))
+                     % (type_, name, metatools.description(member)))
     module.__doc__ = doc + '\n\n' + '\n'.join(lines) + '\n\n' + 80*'_'
 
 

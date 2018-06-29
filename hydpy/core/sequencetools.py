@@ -192,156 +192,48 @@ class Sequences(object):
         return len(dict(self))
 
 
-class _MetaSubSequencesType(type):
-    def __new__(mcs, name, parents, dict_):
-        seqclasses = dict_.get('_SEQCLASSES')
-        if seqclasses is None:
-            raise NotImplementedError(
-                'For class `%s`, the required tuple `_SEQCLASSES` is not '
-                'defined.  Please see the documentation of class '
-                '`SubSequences` of module `sequencetools` for further '
-                'information.' % name)
-        if seqclasses:
-            lst = ['\n\n\n    The following sequence classes are selected:']
-            for seqclass in seqclasses:
-                lst.append('      * :class:`~%s` %s'
-                           % ('.'.join((seqclass.__module__,
-                                        seqclass.__name__)),
-                              autodoctools.description(seqclass)))
-            doc = dict_.get('__doc__', None)
-            if doc is None:
-                doc = ''
-            dict_['__doc__'] = doc + '\n'.join(l for l in lst)
-        return type.__new__(mcs, name, parents, dict_)
-
-
-_MetaSubSequencesClass = _MetaSubSequencesType('_MetaSubSequencesClass',
-                                               (), {'_SEQCLASSES': ()})
-
-
-class SubSequences(_MetaSubSequencesClass):
+class SubSequences(variabletools.SubVariables):
     """Base class for handling subgroups of sequences.
 
     Attributes:
+      * vars: The parent |Sequences| object.
       * seqs: The parent |Sequences| object.
       * fastaccess: The  |sequencetools.FastAccess| object allowing fast
         access to the sequence values. In `Cython` mode, model specific
         cdef classes are applied.
 
-    Additional attributes are the actual |Sequence| instances, representing
-    the individual time series.  These need to be defined in
-    |SubSequences| subclasses.  Therefore, one needs to collect the
-    appropriate |Sequence| subclasses in the (hidden) class attribute
-    `_SEQCLASSES`, as shown in the following example:
-
-    >>> from hydpy.core.sequencetools import *
-    >>> class Temperature(Sequence):
-    ...    NDIM, NUMERIC = 0, False
-    >>> class Precipitation(Sequence):
-    ...    NDIM, NUMERIC = 0, True
-    >>> class InputSequences(SubSequences):
-    ...     _SEQCLASSES = (Temperature, Precipitation)
-    >>> inputs = InputSequences(None) # Assign `None` for brevity.
-    >>> inputs
-    temperature(nan)
-    precipitation(nan)
-
-    The order within the tuple determines the order of iteration, hence:
-
-    >>> for sequence in inputs:
-    ...     print(sequence)
-    temperature(nan)
-    precipitation(nan)
-
-    If one forgets to define a `_SEQCLASSES` tuple so (and maybe tries to
-    add the sequences in the constructor of the subclass of |SubSequences|,
-    the following error is raised:
-
-    >>> class InputSequences(SubSequences):
-    ...     pass
-    Traceback (most recent call last):
-    ...
-    NotImplementedError: For class `InputSequences`, the required tuple \
-`_SEQCLASSES` is not defined.  Please see the documentation of class \
-`SubSequences` of module `sequencetools` for further information.
-
+    See the documentation of similar class |SubParameters| for further
+    information.  But note the difference, that model developers should
+    not subclass |SubSequences| directly, but specialized subclasses
+    like |FluxSequences| or |StateSequences| instead.
     """
-    _SEQCLASSES = ()
+    CLASSES = ()
+    VARTYPE = abctools.SequenceABC
 
-    def __init__(self, seqs, cls_fastaccess=None, cymodel=None):
-        self.seqs = seqs
-        self._initfastaccess(cls_fastaccess, cymodel)
-        self._initsequences()
+    def __init__(self, variables, cls_fastaccess=None, cymodel=None):
+        self.seqs = variables
+        variabletools.SubVariables.__init__(
+            self, variables, cls_fastaccess, cymodel)
 
-    def _initfastaccess(self, cls_fastaccess, cymodel):
+    def _init_fastaccess(self, cls_fastaccess, cymodel):
         if cls_fastaccess is None:
             self.fastaccess = FastAccess()
         else:
             self.fastaccess = cls_fastaccess()
             setattr(cymodel.sequences, self.name, self.fastaccess)
 
-    def _initsequences(self):
-        for cls_seq in self._SEQCLASSES:
-            setattr(self, objecttools.instancename(cls_seq), cls_seq())
-
-    @classmethod
-    def getname(cls):
-        return objecttools.instancename(cls)[:-8]
-
     @property
     def name(self):
-        return self.getname()
+        """The classname in lower case letters ommiting the last
+        eight characters ("equences").
 
-    def __setattr__(self, name, value):
-        """Attributes and methods should usually not be replaced.  Existing
-        |Sequence| attributes are protected in a way, that only their
-        values are changed through assignements.  For new |Sequence|
-        attributes, additional `fastaccess` references are defined.  If you
-        actually want to replace a sequence, you have to delete it first.
+        >>> from hydpy.core.sequencetools import SubSequences
+        >>> class StateSequences(SubSequences):
+        ...     CLASSES = ()
+        >>> StateSequences(None).name
+        'states'
         """
-        try:
-            attr = getattr(self, name)
-        except AttributeError:
-            object.__setattr__(self, name, value)
-            if isinstance(value, Sequence):
-                value.connect(self)
-        else:
-            try:
-                attr.values = value
-            except AttributeError:
-                raise RuntimeError(
-                    '`%s` instances do not allow the direct replacement of '
-                    'their members.  After initialization you should usually '
-                    'only change parameter values through assignements.  '
-                    'If you really need to replace a object member, delete '
-                    'it beforehand.'
-                    % objecttools.classname(self))
-
-    def __iter__(self):
-        for seqclass in self._SEQCLASSES:
-            name = objecttools.instancename(seqclass)
-            yield getattr(self, name)
-
-    def __getitem__(self, key):
-        return self.__dict__[key]
-
-    def __repr__(self):
-        lines = []
-        if pub.options.reprcomments:
-            lines.append('#%s object defined in module %s.'
-                         % (objecttools.classname(self),
-                            objecttools.modulename(self)))
-            lines.append('#The implemented sequences with their actual '
-                         'values are:')
-        for sequence in self:
-            try:
-                lines.append('%s' % repr(sequence))
-            except BaseException:
-                lines.append('%s(?)' % sequence.name)
-        return '\n'.join(lines)
-
-    def __dir__(self):
-        return objecttools.dir_(self)
+        return objecttools.instancename(self)[:-8]
 
 
 class IOSequences(SubSequences):

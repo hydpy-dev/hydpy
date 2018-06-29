@@ -212,52 +212,32 @@ class Parameters(object):
         return objecttools.dir_(self)
 
 
-class _MetaSubParametersType(type):
-
-    def __new__(mcs, name, parents, dict_):
-        parclasses = dict_.get('_PARCLASSES')
-        if parclasses is None:
-            raise NotImplementedError(
-                'For class `%s`, the required tuple `_PARCLASSES` '
-                'is not defined.  Please see the documentation of '
-                'class `SubParameters` of module `parametertools` '
-                'for further information.'
-                % name)
-        if parclasses:
-            lst = ['\n\n\n    The following parameter classes are selected:']
-            for parclass in parclasses:
-                lst.append('      * :class:`~%s` %s'
-                           % ('.'.join((parclass.__module__,
-                                        parclass.__name__)),
-                              autodoctools.description(parclass)))
-            doc = dict_.get('__doc__', None)
-            if doc is None:
-                doc = ''
-            dict_['__doc__'] = doc + '\n'.join(l for l in lst)
-        return type.__new__(mcs, name, parents, dict_)
-
-
-_MetaSubParametersClass = _MetaSubParametersType(
-    '_MetaSubParametersClass', (), {'_PARCLASSES': ()})
-
-
-class SubParameters(_MetaSubParametersClass):
+class SubParameters(variabletools.SubVariables):
     """Base class for handling subgroups of model parameters.
+
+    Attributes:
+      * vars: The parent |Parameters| object.
+      * pars: The parent |Parameters| object.
+      * fastaccess: The  |objecttools.FastAccess| object allowing fast
+        access to the sequence values. In `Cython` mode, model specific
+        cdef classes are applied.
 
     When trying to implement a new model, one has to define its parameter
     classes.  Currently, the HydPy framework  distinguishes between control
     parameters and derived parameters.  These parameter classes should be
     collected by subclasses of class |SubParameters| called
     `ControlParameters` or `DerivedParameters` respectivly.  This should be
-    done via the `_PARCLASSES` tuple in the following manner:
+    done via the `CLASSES` tuple in the following manner:
 
     >>> from hydpy.core.parametertools import SingleParameter, SubParameters
     >>> class Par2(SingleParameter):
-    ...     pass
+    ...     'Parameter 2 [-]'
     >>> class Par1(SingleParameter):
-    ...     pass
+    ...     'Parameter 1 [-]'
     >>> class ControlParameters(SubParameters):
-    ...     _PARCLASSES = (Par2, Par1)
+    ...     'Control Parameters'
+    ...     CLASSES = (Par2,
+    ...                Par1)
 
     The order within the tuple determines the order of iteration, e.g.:
 
@@ -266,8 +246,8 @@ class SubParameters(_MetaSubParametersClass):
     par2(nan)
     par1(nan)
 
-    If one forgets to define a `_PARCLASSES` tuple so (and maybe tries to
-    add the parameters in the constructor of the subclass of |SubParameters|,
+    If one forgets to define a `CLASSES` tuple (and maybe tries to add
+    parameters in the constructor of the subclass of |SubParameters|,
     the following error is raised:
 
     >>> class ControlParameters(SubParameters):
@@ -275,8 +255,18 @@ class SubParameters(_MetaSubParametersClass):
     Traceback (most recent call last):
     ...
     NotImplementedError: For class `ControlParameters`, the required \
-tuple `_PARCLASSES` is not defined.  Please see the documentation of \
-class `SubParameters` of module `parametertools` for further information.
+tuple `CLASSES` is not defined.
+
+    The docstring is extended with the selected parameter classes
+    automatically:
+
+    >>> print(ControlParameters.__doc__)
+    Control Parameters
+    <BLANKLINE>
+    <BLANKLINE>
+        The following classes are selected:
+          * :class:`~...Par2` Parameter 2 [-]
+          * :class:`~...Par1` Parameter 1 [-]
 
     The `in` operator can be used to check if a certain |SubParameters|
     object handles a certain type of parameter:
@@ -293,87 +283,33 @@ class `SubParameters` of module `parametertools` for further information.
     TypeError: The given value `1` of type `int` is neither a \
 parameter class nor a parameter instance.
     """
-    _PARCLASSES = ()
+    CLASSES = ()
+    VARTYPE = abctools.ParameterABC
 
-    def __init__(self, pars, cls_fastaccess=None, cymodel=None):
-        self.pars = pars
+    def __init__(self, variables, cls_fastaccess=None, cymodel=None):
+        self.pars = variables
+        variabletools.SubVariables.__init__(
+            self, variables, cls_fastaccess, cymodel)
+
+    def _init_fastaccess(self, cls_fastaccess, cymodel):
         if cls_fastaccess is None:
             self.fastaccess = objecttools.FastAccess()
         else:
             self.fastaccess = cls_fastaccess()
             setattr(cymodel.parameters, self.name, self.fastaccess)
-        for par in self._PARCLASSES:
-            setattr(self, objecttools.instancename(par), par())
-
-    @classmethod
-    def getname(cls):
-        return objecttools.instancename(cls)[:-10]
 
     @property
     def name(self):
-        return self.getname()
+        """Classname in lower case letters ommiting the last
+        ten characters ("parameters").
 
-    def __setattr__(self, name, value):
-        """Attributes and methods should usually not be replaced.  Existing
-        |Parameter| attributes are protected in a way, that only their
-        values are changed through assignements.  For new |Parameter|
-        attributes, additional `fastaccess` references are defined.  If you
-        actually want to replace a parameter, you have to delete it first.
+        >>> from hydpy.core.parametertools import SubParameters
+        >>> class ControlParameters(SubParameters):
+        ...     CLASSES = ()
+        >>> ControlParameters(None).name
+        'control'
         """
-        try:
-            attr = getattr(self, name)
-        except AttributeError:
-            object.__setattr__(self, name, value)
-            if isinstance(value, abctools.ParameterABC):
-                value.connect(self)
-        else:
-            try:
-                attr._set_value(value)
-            except AttributeError:
-                raise RuntimeError(
-                    '`%s` instances do not allow the direct replacement of '
-                    'their members.  After initialization you should usually '
-                    'only change parameter values through assignements.  '
-                    'If you really need to replace a object member, '
-                    'delete it beforehand.' % objecttools.classname(self))
-
-    def __iter__(self):
-        for par in self._PARCLASSES:
-            name = objecttools.instancename(par)
-            yield getattr(self, name)
-
-    def __contains__(self, parameter):
-        if isinstance(parameter, abctools.ParameterABC):
-            parameter = type(parameter)
-        if parameter in self._PARCLASSES:
-            return True
-        try:
-            if issubclass(parameter, abctools.ParameterABC):
-                return False
-        except TypeError:
-            pass
-        raise TypeError(
-            'The given %s is neither a parameter class '
-            'nor a parameter instance.'
-            % objecttools.value_of_type(parameter))
-
-    def __repr__(self):
-        lines = []
-        if pub.options.reprcomments:
-            lines.append('# %s object defined in module %s.'
-                         % (objecttools.classname(self),
-                            objecttools.modulename(self)))
-            lines.append('# The implemented parameters with their actual '
-                         'values are:')
-        for parameter in self:
-            try:
-                lines.append('%s' % repr(parameter))
-            except BaseException:
-                lines.append('%s(?)' % parameter.name)
-        return '\n'.join(lines)
-
-    def __dir__(self):
-        return objecttools.dir_(self)
+        return objecttools.instancename(self)[:-10]
 
 
 class _Period(timetools.Period):

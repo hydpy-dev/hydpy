@@ -10,64 +10,98 @@ from __future__ import division, print_function
 from hydpy.core import parametertools
 # ...model specific
 from hydpy.models.lland import lland_constants
+from hydpy.models.lland import lland_masks
 
 
-class MultiParameter(parametertools.ZipParameter):
-    """Base class for handling parameters of the HydPy-L-Land model
-    (potentially) handling multiple values.
+class ParameterComplete(parametertools.ZipParameter):
+    """Base class for 1-dimensional parameters relevant for all types
+    of landuse.
 
-    Class |lland_parameters.MultiParameter| of HydPy-L-Land basically
-    works like class |hland_parameters.MultiParameter| of HydPy-H-Land,
-    except that keyword arguments specific to HydPy-L-Land are applied
-    (acker, nadelw, wasser..., see module |lland_constants|) and except
-    that parameter |NHRU| determines the number of entries:
+    Class |ParameterComplete| of base model |lland| basically works
+    like class |hland_parameters.ParameterComplete| of base model
+    |hland|, but references |lland| specific parameters and constants,
+    as shown in the following examples based on parameter |KG| (for
+    explanations, see the documentation on class
+    |hland_parameters.ParameterComplete|):
 
-    >>> from hydpy.models.lland.lland_parameters import MultiParameter
     >>> from hydpy.models.lland import *
     >>> parameterstep('1d')
-    >>> mp = MultiParameter()
-    >>> mp.subpars = control
-    >>> mp.shape
-    Traceback (most recent call last):
-    ...
-    RuntimeError: Shape information for parameter `multiparameter` can only \
-be retrieved after it has been defined.  You can do this manually, but \
-usually it is done automatically by defining the value of parameter `nhru` \
-first in each parameter control file.
+    >>> nhru(5)
+    >>> lnk(ACKER, VERS, GLETS, SEE, ACKER)
+    >>> kg(acker=2.0, vers=1.0, glets=4.0, see=3.0)
+    >>> kg
+    kg(acker=2.0, glets=4.0, see=3.0, vers=1.0)
+    >>> kg.values
+    array([ 2.,  1.,  4.,  3.,  2.])
+    >>> kg(5.0, 4.0, 3.0, 2.0, 1.0)
+    >>> derived.absfhru(0.0, 0.1, 0.2, 0.3, 0.4)
+    >>> from hydpy import round_
+    >>> round_(kg.average_values())
+    2.0
     """
-    RELEVANT_VALUES = tuple(lland_constants.CONSTANTS.values())
     MODEL_CONSTANTS = lland_constants.CONSTANTS
-
-    @property
-    def refindices(self):
-        """Alias for the associated instance of |Lnk|."""
-        return self.subpars.pars.control.lnk
+    mask = lland_masks.Complete()
 
     @property
     def shapeparameter(self):
         """Alias for the associated instance of |NHRU|."""
         return self.subpars.pars.control.nhru
 
+    @property
+    def refweights(self):
+        """Alias for the associated instance of |FHRU| for calculating
+        areal mean values."""
+        return self.subpars.pars.derived.absfhru
 
-class MultiParameterLand(MultiParameter):
-    """Base class for handling parameters of HydPy-L-Land (potentially)
-    handling multiple values relevant for non water HRUs.
+
+class ParameterLand(ParameterComplete):
+    """Base class for 1-dimensional parameters relevant for all hydrological
+    response units except those of type |WASSER|, |FLUSS|, and |SEE|.
+
+    |ParameterLand| works similar to |lland_parameters.ParameterComplete|.
+    Some examples based on parameter |TGr|:
+
+    >>> from hydpy.models.lland import *
+    >>> parameterstep('1d')
+    >>> nhru(5)
+    >>> lnk(WASSER, ACKER, FLUSS, VERS, ACKER)
+    >>> tgr(wasser=2.0, acker=1.0, fluss=4.0, vers=3.0)
+    >>> tgr
+    tgr(acker=1.0, vers=3.0)
+    >>> tgr(acker=2.0, default=8.0)
+    >>> tgr
+    tgr(acker=2.0, vers=8.0)
+    >>> derived.absfhru(nan, 1.0, nan, 1.0, 1.0)
+    >>> from hydpy import round_
+    >>> round_(tgr.average_values())
+    4.0
     """
-    RELEVANT_VALUES = tuple(
-        value for (key, value)
-        in lland_constants.CONSTANTS.items()
-        if value not in ('WASSER', 'SEE', 'FLUSS'))
+    mask = lland_masks.Land()
 
 
-class MultiParameterSoil(MultiParameter):
-    """Base class for handling parameters of HydPy-L-Land (potentially)
-    handling multiple values relevant for non water HRUs without sealed
-    surfaces.
+class ParameterSoil(ParameterComplete):
+    """Base class for 1-dimensional parameters relevant for all hydrological
+    response units except those of type |WASSER|, |FLUSS|, |SEE|, and |VERS|.
+
+    |ParameterLand| works similar to |lland_parameters.ParameterComplete|.
+    Some examples based on parameter |NFk|:
+
+    >>> from hydpy.models.lland import *
+    >>> parameterstep('1d')
+    >>> nhru(5)
+    >>> lnk(WASSER, ACKER, LAUBW, VERS, ACKER)
+    >>> nfk(wasser=300.0, acker=200.0, laubw=400.0, vers=300.0)
+    >>> nfk
+    nfk(acker=200.0, laubw=400.0)
+    >>> nfk(acker=200.0, default=800.0)
+    >>> nfk
+    nfk(acker=200.0, laubw=800.0)
+    >>> derived.absfhru(nan, 1.0, 1.0, nan, 1.0)
+    >>> from hydpy import round_
+    >>> round_(nfk.average_values())
+    400.0
     """
-    RELEVANT_VALUES = tuple(
-        value for (key, value)
-        in lland_constants.CONSTANTS.items()
-        if value not in ('WASSER', 'SEE', 'FLUSS', 'VERS'))
+    mask = lland_masks.Soil()
 
 
 class LanduseMonthParameter(parametertools.KeywordParameter2D):

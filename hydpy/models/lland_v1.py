@@ -1044,6 +1044,7 @@ from hydpy.models.lland import lland_fluxes
 from hydpy.models.lland import lland_states
 from hydpy.models.lland import lland_aides
 from hydpy.models.lland import lland_outlets
+from hydpy.models.lland.lland_masks import Masks
 from hydpy.models.lland.lland_constants import *
 
 
@@ -1124,6 +1125,7 @@ class ControlParameters(parametertools.SubParameters):
 class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of lland_v1, indirectly defined by the user."""
     CLASSES = (lland_derived.MOY,
+               lland_derived.AbsFHRU,
                lland_derived.KInz,
                lland_derived.WB,
                lland_derived.WZ,

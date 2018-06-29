@@ -2,15 +2,17 @@
 # pylint: disable=missing-docstring
 # pylint: enable=missing-docstring
 
-
 # import...
 # ...from standard library
 from __future__ import division, print_function
 # ...HydPy specific
 from hydpy import pub
 from hydpy.core import parametertools
+# ...from site-packages
+import numpy
 # ...model specific
 from hydpy.models.lland import lland_parameters
+from hydpy.models.lland.lland_constants import WASSER, FLUSS, SEE
 
 
 class MOY(parametertools.IndexParameter):
@@ -33,6 +35,27 @@ class MOY(parametertools.IndexParameter):
         moy(1, 1, 1, 2, 2)
         """
         self.setreference(pub.indexer.monthofyear)
+
+
+class AbsFHRU(lland_parameters.ParameterComplete):
+    """Flächen der Hydrotope (areas of the respective HRUs) [km²]."""
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+
+    def update(self):
+        """Update |AbsFHRU| based on |FT| and |FHRU|.
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep('1d')
+        >>> nhru(2)
+        >>> lnk(ACKER)
+        >>> ft(100.0)
+        >>> fhru(0.2, 0.8)
+        >>> derived.absfhru.update()
+        >>> derived.absfhru
+        absfhru(20.0, 80.0)
+        """
+        control = self.subpars.pars.control
+        self(control.ft*control.fhru)
 
 
 class KInz(lland_parameters.LanduseMonthParameter):
@@ -60,7 +83,7 @@ class KInz(lland_parameters.LanduseMonthParameter):
         self(con.hinz*con.lai)
 
 
-class WB(lland_parameters.MultiParameter):
+class WB(lland_parameters.ParameterComplete):
     """Absolute Mindestbodenfeuchte für die Basisabflussentstehung (threshold
        value of absolute soil moisture for base flow generation) [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
@@ -71,6 +94,7 @@ class WB(lland_parameters.MultiParameter):
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> nhru(2)
+        >>> lnk(ACKER)
         >>> relwb(0.2)
         >>> nfk(100.0, 200.0)
         >>> derived.wb.update()
@@ -81,7 +105,7 @@ class WB(lland_parameters.MultiParameter):
         self(con.relwb*con.nfk)
 
 
-class WZ(lland_parameters.MultiParameter):
+class WZ(lland_parameters.ParameterComplete):
     """Absolute Mindestbodenfeuchte für die Interflowentstehung (threshold
        value of absolute soil moisture for interflow generation) [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
@@ -92,6 +116,7 @@ class WZ(lland_parameters.MultiParameter):
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> nhru(2)
+        >>> lnk(ACKER)
         >>> relwz(0.8)
         >>> nfk(100.0, 200.0)
         >>> derived.wz.update()
@@ -224,6 +249,7 @@ class QFactor(parametertools.SingleParameter):
 class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of HydPy-H-Land, indirectly defined by the user."""
     CLASSES = (MOY,
+               AbsFHRU,
                KInz,
                WB,
                WZ,

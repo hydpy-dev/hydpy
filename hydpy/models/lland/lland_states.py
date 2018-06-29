@@ -2,17 +2,18 @@
 # pylint: disable=missing-docstring
 # pylint: enable=missing-docstring
 
-
 # import...
 # ...from standard library
 from __future__ import division, print_function
 # ...from site-packages
 import numpy
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.models.lland import lland_masks
+from hydpy.models.lland import lland_sequences
 
 
-class Inzp(sequencetools.StateSequence):
+class Inzp(lland_sequences.State1DSequence):
     """Interzeptionsspeicherung (interception storage) [mm].
 
     Note that |Inzp| of HydPy-L implements no specialized trim method
@@ -25,12 +26,14 @@ class Inzp(sequencetools.StateSequence):
     simulation step of the new month.
     """
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
+    mask = lland_masks.Land()
 
 
-class WATS(sequencetools.StateSequence):
+class WATS(lland_sequences.State1DSequence):
     """Wasseräquivalent Trockenschnee (frozen water equivalent of the snow
     cover) [mm]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
+    mask = lland_masks.Land
 
     def trim(self, lower=None, upper=None):
         """Trim values in accordance with :math:`WAeS \\leq PWMax \\cdot WATS`,
@@ -50,13 +53,14 @@ class WATS(sequencetools.StateSequence):
         if lower is None:
             lower = numpy.clip(waes/pwmax, 0., numpy.inf)
             lower[numpy.isnan(lower)] = 0.0
-        sequencetools.StateSequence.trim(self, lower, upper)
+        lland_sequences.State1DSequence.trim(self, lower, upper)
 
 
-class WAeS(sequencetools.StateSequence):
+class WAeS(lland_sequences.State1DSequence):
     """Wasseräquivalent Gesamtschnee (total water equivalent of the snow
     cover) [mm]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
+    mask = lland_masks.Land()
 
     def trim(self, lower=None, upper=None):
         """Trim values in accordance with :math:`WAeS \\leq PWMax \\cdot WATS`.
@@ -74,12 +78,13 @@ class WAeS(sequencetools.StateSequence):
         wats = self.subseqs.wats
         if upper is None:
             upper = pwmax*wats
-        sequencetools.StateSequence.trim(self, lower, upper)
+        lland_sequences.State1DSequence.trim(self, lower, upper)
 
 
-class BoWa(sequencetools.StateSequence):
+class BoWa(lland_sequences.State1DSequence):
     """Bodenwasserspeicherung (soil water storage) [mm]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
+    mask = lland_masks.Soil()
 
     def trim(self, lower=None, upper=None):
         """Trim values in accordance with :math:`BoWa \\leq NFk`.
@@ -94,7 +99,7 @@ class BoWa(sequencetools.StateSequence):
         """
         if upper is None:
             upper = self.subseqs.seqs.model.parameters.control.nfk
-        sequencetools.StateSequence.trim(self, lower, upper)
+        lland_sequences.State1DSequence.trim(self, lower, upper)
 
 
 class QDGZ1(sequencetools.StateSequence):

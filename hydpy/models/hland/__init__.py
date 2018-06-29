@@ -21,6 +21,7 @@ from hydpy.models.hland.hland_fluxes import FluxSequences
 from hydpy.models.hland.hland_states import StateSequences
 from hydpy.models.hland.hland_logs import LogSequences
 from hydpy.models.hland.hland_outlets import OutletSequences
+from hydpy.models.hland.hland_masks import Masks
 from hydpy.models.hland.hland_model import Model
 
 autodoc_basemodel()

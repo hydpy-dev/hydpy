@@ -146,8 +146,8 @@ class Model(modeltools.Model):
 
         >>> from hydpy.models.hbranch import *
         >>> parameterstep()
-        >>> xpoints(0., 3.)
-        >>> ypoints(n1a=[0., 1.], n1b=[0., 2.])
+        >>> xpoints(0.0, 3.0)
+        >>> ypoints(n1a=[0.0, 1.0], n1b=[0.0, 2.0])
 
         After doing some preparations which are normally handled by
         :ref:`HydPy` automatically ...
@@ -159,33 +159,35 @@ class Model(modeltools.Model):
         ...you can see that an example discharge value handled by the
         |Node| instance `n1` is properly divided:
 
-        >>> n1.sequences.sim = 6.
+        >>> n1.sequences.sim = 6.0
         >>> model.doit(0)
         >>> print(n1a.sequences.sim, n1b.sequences.sim)
         sim(2.0) sim(4.0)
-
         """
         nodes = self.element.inlets.slaves
         if len(nodes) == 1:
             double = nodes[0].get_double_via_exits()
             self.sequences.inlets.total.set_pointer(double)
         else:
-            RuntimeError('The hbranch model must be connected to exactly one '
-                         'inlet node, but its parent element `%s` references '
-                         'currently %d inlet nodes.'
-                         % (self.element.name, len(nodes)))
+            RuntimeError(
+                'The hbranch model must be connected to exactly one '
+                'inlet node, but its parent element `%s` references '
+                'currently %d inlet nodes.'
+                % (self.element.name, len(nodes)))
         for (idx, name) in enumerate(self.nodenames):
             try:
                 outlet = getattr(self.element.outlets, name)
                 double = outlet.get_double_via_entries()
             except KeyError:
                 if name in devicetools.Node.registered_names():
-                    RuntimeError('The hbranch model tried to connect to the '
-                                 'outlet node `%s`, but its parent element '
-                                 '`%s` does not reference this node as an '
-                                 'outlet node.' % (name, self.element.name))
+                    RuntimeError(
+                        'The hbranch model tried to connect to the outlet '
+                        'node `%s`, but its parent element `%s` does not '
+                        'reference this node as an outlet node.'
+                        % (name, self.element.name))
                 else:
-                    RuntimeError('The hbranch model tried to connect to an '
-                                 'outlet node named `%s`, which is not '
-                                 'initialized yet.' % name)
+                    RuntimeError(
+                        'The hbranch model tried to connect to an outlet '
+                        'node named `%s`, which is not initialized yet.'
+                        % name)
             self.sequences.outlets.branched.set_pointer(double, idx)

@@ -9,6 +9,7 @@ in modules |parametertools| and |sequencetools| respectively.
 # ...from standard library
 from __future__ import division, print_function
 import copy
+import inspect
 import textwrap
 # ...from site-packages
 import numpy
@@ -16,6 +17,7 @@ import numpy
 from hydpy import pub
 from hydpy.core import abctools
 from hydpy.core import autodoctools
+from hydpy.core import masktools
 from hydpy.core import metatools
 from hydpy.core import objecttools
 
@@ -297,6 +299,8 @@ error occured: operands could not be broadcast together with shapes (2,) (3,)
     # ...and optionally...
     INIT = None
 
+    mask = masktools.DefaultMask()
+
     @property
     def value(self):
         """Actual value or |numpy.ndarray| of the actual values, to be
@@ -369,26 +373,6 @@ error occured: operands could not be broadcast together with shapes (2,) (3,)
             length *= self.shape[idx]
         return length
 
-    @property
-    def mask(self):
-        """A |numpy.ndarray| with all entries being |True| of the same shape
-        as the values handled by the respective |Variable| object.
-
-        All entries being |True| indicates that method |Variable.verify|
-        checks all entries of the |numpy.ndarray| storing the parameter
-        values.  Overwrite |Variable.mask| for |Variable| subclasses,
-        where certain entries do not need to be checked.
-
-        >>> from hydpy.core.objecttools import copy_class
-        >>> from hydpy.core.variabletools import Variable
-        >>> Variable = copy_class(Variable)
-        >>> Variable.shape = (2,3)
-        >>> Variable().mask
-        array([[ True,  True,  True],
-               [ True,  True,  True]], dtype=bool)
-        """
-        return numpy.full(self.shape, True, dtype=bool)
-
     def verify(self):
         """Raises a |RuntimeError| if at least one of the required values
         of a |Variable| object is |None| or |numpy.nan|. Property
@@ -451,41 +435,41 @@ has not been set yet.
     @property
     def refweights(self):
         """Reference to a |Parameter| object that defines weighting
-        coefficients (e.g. fractional areas) for calculating
-        |Variable.meanvalue|.  Must be overwritten by subclasses,
+        coefficients (e.g. fractional areas) for applying
+        |Variable.average_values|.  Must be overwritten by subclasses,
         when required."""
         raise NotImplementedError(
             'Variable %s does not define any weighting coefficients.'
             % objecttools.devicephrase(self))
 
-    @property
-    def meanvalue(self):
+    def average_values(self, *args, **kwargs):
         """Mean value.
 
-        For 0-dimensional |Variable| objects, |Variable.meanvalue|
-        equals |Variable.value|.  The following example showns this
-        for the sloppily defined class `SoilMoisture`:
+        For 0-dimensional |Variable| objects, the result of
+        |Variable.average_values| equals |Variable.value|.  The
+        following example showns this for the sloppily defined class
+        `SoilMoisture`:
 
         >>> from hydpy.core.variabletools import Variable
         >>> class SoilMoisture(Variable):
         ...     NDIM = 0
         ...     value = 200.0
-        >>> soilmoisture = SoilMoisture()
-        >>> soilmoisture.meanvalue
+        >>> sm = SoilMoisture()
+        >>> sm.average_values()
         200.0
 
         When the dimensionality of this class is increased to one,
-        querying |Variable.meanvalue| results in the following error:
+        applying |Variable.average_values| results in the following error:
 
         >>> SoilMoisture.NDIM = 1
         >>> import numpy
         >>> SoilMoisture.shape = (3,)
-        >>> SoilMoisture.values = numpy.array([200.0, 400.0, 500.0])
-        >>> soilmoisture.meanvalue
+        >>> SoilMoisture.value = numpy.array([200.0, 400.0, 500.0])
+        >>> sm.average_values()
         Traceback (most recent call last):
         ...
         NotImplementedError: While trying to calculate the mean value \
-of variable `soilmoisture` , the following error occured: Variable \
+of variable `soilmoisture`, the following error occured: Variable \
 `soilmoisture` does not define any weighting coefficients.
 
         So model developers have to define another (in this case
@@ -494,11 +478,12 @@ of variable `soilmoisture` , the following error occured: Variable \
         |Variable.refweights|:
 
         >>> class Area(Variable):
+        ...     NDIM = 1
         ...     shape = (3,)
-        ...     values = numpy.array([1.0, 1.0, 2.0])
+        ...     value = numpy.array([1.0, 1.0, 2.0])
         >>> area = Area()
         >>> SoilMoisture.refweights = property(lambda self: area)
-        >>> soilmoisture.meanvalue
+        >>> sm.average_values()
         400.0
 
         In the examples above are all single entries of `values` relevant,
@@ -506,65 +491,155 @@ of variable `soilmoisture` , the following error occured: Variable \
         define an alternative |Variable.mask|, allowing to make some
         entries irrelevant. Assume for example, that our `SoilMoisture`
         object contains three single values, because each one is
-        associated with a specific hydrological response unit.  To
+        associated with a specific hydrological response unit (hru).  To
         indicate that soil moisture is not defined for the third unit,
         (maybe because it is a water area), we set the third entry of
         the verification mask to |False|:
 
-        >>> SoilMoisture.mask = numpy.array([True, True, False])
-        >>> soilmoisture.meanvalue
+        >>> from hydpy.core.masktools import DefaultMask
+        >>> class Soil(DefaultMask):
+        ...     @classmethod
+        ...     def new(cls, variable, **kwargs):
+        ...         return cls.array2mask([True, True, False])
+        >>> SoilMoisture.mask = Soil()
+        >>> sm.average_values()
+        300.0
+
+        Alternatively, method |Variable.average_values| accepts additional
+        masking information as positional or keyword arguments.  Therefore,
+        the corresponding model must implement some alternative masks,
+        which are provided by property |Variable.availablemasks|.
+        We mock this property with a new |Masks| object, handling one
+        mask for flat soils (only the first hru), one mask for deep soils
+        (only the second hru), and one mask for water areas (only the
+        third hru):
+
+        >>> from hydpy.core.masktools import Masks
+        >>> class FlatSoil(DefaultMask):
+        ...     @classmethod
+        ...     def new(cls, variable, **kwargs):
+        ...         return cls.array2mask([True, False, False])
+        >>> class DeepSoil(DefaultMask):
+        ...     @classmethod
+        ...     def new(cls, variable, **kwargs):
+        ...         return cls.array2mask([False, True, False])
+        >>> class Water(DefaultMask):
+        ...     @classmethod
+        ...     def new(cls, variable, **kwargs):
+        ...         return cls.array2mask([False, False, True])
+        >>> class Masks(Masks):
+        ...     CLASSES = (FlatSoil,
+        ...                DeepSoil,
+        ...                Water)
+        >>> SoilMoisture.availablemasks = Masks(None)
+
+        One can pass either the mask classes themselves, or their names:
+
+        >>> sm.average_values(sm.availablemasks.flatsoil)
+        200.0
+        >>> sm.average_values('deepsoil')
+        400.0
+
+        Both variants can be combined:
+
+        >>> sm.average_values(sm.availablemasks.deepsoil, 'flatsoil')
+        300.0
+
+        If the given masks are not contained by the general mask of
+        the variable, an error is raised:
+
+        >>> sm.average_values('flatsoil', 'water')
         Traceback (most recent call last):
         ...
-        RuntimeError: While trying to calculate the mean value of \
-variable `soilmoisture` based on weighting parameter `area`, the \
-following error occured: The verification matrices of parameters \
-`soilmoisture` and `area` are inconsistent.
+        ValueError: While trying to calculate the mean value of variable \
+`soilmoisture`, the following error occured: Based on the arguments \
+`('flatsoil', 'water')` and `{}` the mask `CustomMask([ True, False,  True])` \
+has been determined, which is not a submask of `Soil([ True,  True, False])`.
 
-        This error message tells us, that we have to adapt the
-        verification mask of the `Area` object (and to make the
-        result reasonable, also its `values` attribute.  Now the
-        calculated mean valuereflects the area and the soil moisture
-        of the first to hydrological response units only:
+        Applying masks with own options is also supported.  The behaviour
+        of the following mask can be changed via argument `complete`:
 
-        >>> Area.mask = numpy.array([True, True, False])
-        >>> Area.values = numpy.array([0.25, 0.75, numpy.nan])
-        >>> soilmoisture.meanvalue
-        350.0
+        >>> class AllOrNothing(DefaultMask):
+        ...     @classmethod
+        ...     def new(cls, variable, complete):
+        ...         if complete:
+        ...             bools = [True, True, True]
+        ...         else:
+        ...             bools = [False, False, False]
+        ...         return cls.array2mask(bools)
+        >>> class Masks(Masks):
+        ...     CLASSES = (FlatSoil,
+        ...                DeepSoil,
+        ...                Water,
+        ...                AllOrNothing)
+        >>> SoilMoisture.availablemasks = Masks(None)
 
-        For verification mask containing |False| only, |numpy.nan| is
-        returned:
+        Again, one can apply the mask class directly (but note that one
+        has to pass the variable relevant variable as the first argument.):
 
-        >>> SoilMoisture.mask[:] = False
-        >>> Area.mask[:] = False
-        >>> soilmoisture.meanvalue
+        >>> sm.average_values(
+        ...     sm.availablemasks.allornothing(sm, complete=True))
+        Traceback (most recent call last):
+        ...
+        ValueError: While trying to...
+
+        Alternatively, one can pass the mask name as a keyword and pack
+        the mask's options into an |dict| object:
+
+        >>> sm.average_values(allornothing={'complete': False})
         nan
+
+        All variants explained above can be combined:
+
+        >>> sm.average_values(
+        ...     'deepsoil', flatsoil={}, allornothing={'complete': False})
+        300.0
         """
-        if not self.NDIM:
-            return self.value
         try:
-            weights = self.refweights
-        except BaseException:
-            objecttools.augment_excmessage(
-                'While trying to calculate the mean value of variable %s '
-                % objecttools.devicephrase(self))
-        try:
-            idxs_w = weights.mask
-            idxs_v = self.mask
-            if any(idxs_w != idxs_v):
-                raise RuntimeError(
-                    'The verification matrices of parameters '
-                    '`%s` and `%s` are inconsistent.'
-                    % (self.name, weights.name))
-            if any(idxs_w):
-                return (
-                    numpy.sum(weights.values[idxs_w]*self.values[idxs_v]) /
-                    numpy.sum(weights.values[idxs_w]))
+            if not self.NDIM:
+                return self.value
+            mask = self.get_submask(*args, **kwargs)
+            if numpy.any(mask):
+                weights = self.refweights[mask]
+                return numpy.sum(weights*self[mask])/numpy.sum(weights)
             return numpy.nan
         except BaseException:
             objecttools.augment_excmessage(
-                'While trying to calculate the mean value of variable %s '
-                'based on weighting parameter `%s`'
-                % (objecttools.devicephrase(self), weights.name))
+                'While trying to calculate the mean value of variable %s'
+                % objecttools.devicephrase(self))
+
+    @property
+    def availablemasks(self):
+        """|Masks| object provided by the corresponding |Model| object."""
+        return self.subvars.vars.model.masks
+
+    def get_submask(self, *args, **kwargs):
+        """Get a submask of |Variable.mask| based on the given arguments.
+
+        See the documentation on method |Variable.average_values| for
+        further information.
+        """
+        if args or kwargs:
+            masks = self.availablemasks
+            mask = masktools.CustomMask(numpy.full(self.shape, False))
+            for arg in args:
+                mask = mask + self._prepare_mask(arg, masks)
+            for key, value in kwargs.items():
+                mask = mask + self._prepare_mask(key, masks, **value)
+            if mask not in self.mask:
+                raise ValueError(
+                    'Based on the arguments `%s` and `%s` the mask `%s` '
+                    'has been determined, which is not a submask of `%s`.'
+                    % (args, kwargs, repr(mask), repr(self.mask)))
+        else:
+            mask = self.mask
+        return mask
+
+    def _prepare_mask(self, mask, masks, **kwargs):
+        mask = masks[mask]
+        if inspect.isclass(mask):
+            return mask(self, **kwargs)
+        return mask
 
     def __deepcopy__(self, memo):
         new = type(self)()

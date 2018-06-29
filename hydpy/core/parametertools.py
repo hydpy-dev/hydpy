@@ -120,7 +120,7 @@ class Constants(dict):
 class Parameters(object):
     """Base class for handling all parameters of a specific model."""
 
-    _names_subpars = ('control', 'derived', 'solver')
+    _NAMES_SUBPARS = ('control', 'derived', 'solver')
 
     def __init__(self, kwargs):
         self.model = kwargs.get('model')
@@ -200,7 +200,7 @@ class Parameters(object):
                 yield subpars
 
     def __iter__(self):
-        for name in self._names_subpars:
+        for name in self._NAMES_SUBPARS:
             subpars = getattr(self, name)
             if subpars is not None:
                 yield subpars

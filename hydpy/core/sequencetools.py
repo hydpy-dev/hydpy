@@ -24,7 +24,7 @@ from hydpy.cythons.autogen import pointerutils
 class Sequences(object):
     """Handles all sequences of a specific model."""
 
-    _names_subseqs = ('inlets', 'receivers', 'inputs', 'fluxes', 'states',
+    _NAMES_SUBSEQS = ('inlets', 'receivers', 'inputs', 'fluxes', 'states',
                       'logs', 'aides', 'outlets', 'senders')
 
     def __init__(self, **kwargs):
@@ -103,7 +103,7 @@ class Sequences(object):
                 subseqs.reset()
 
     def __iter__(self):
-        for name in self._names_subseqs:
+        for name in self._NAMES_SUBSEQS:
             subseqs = getattr(self, name, None)
             if subseqs is not None:
                 yield subseqs

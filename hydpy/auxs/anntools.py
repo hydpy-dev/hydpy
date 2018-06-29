@@ -1540,7 +1540,7 @@ been given, but a value of type `ANN` is required.
             if self.anns:
                 self.__sann = annutils.SeasonalANN(self.anns)
                 setattr(self.fastaccess, self.name, self._sann)
-                self._setshape((None, self._sann.nmb_anns))
+                self._set_shape((None, self._sann.nmb_anns))
                 if self._sann.nmb_anns > 1:
                     self._interp()
                 else:
@@ -1647,10 +1647,10 @@ neural network `seasonalann` of element `?` none has been defined so far.
             ratios[tdx, idx_1] = (xnew-x_0)/(x_1-x_0)
             ratios[tdx, idx_0] = 1.-ratios[tdx, idx_1]
 
-    def _getshape(self):
+    def _get_shape(self):
         return tuple(int(sub) for sub in self.ratios.shape)
 
-    def _setshape(self, shape):
+    def _set_shape(self, shape):
         try:
             shape = (int(shape),)
         except TypeError:
@@ -1662,7 +1662,7 @@ neural network `seasonalann` of element `?` none has been defined so far.
             shp, dtype=float)
 
     shape = property(
-        _getshape,
+        _get_shape,
         doc='The shape of array |anntools.SeasonalANN.ratios|.')
 
     @property

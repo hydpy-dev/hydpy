@@ -25,10 +25,10 @@ class WET0(sequencetools.LogSequence):
     """
     NDIM, NUMERIC = 2, False
 
-    def _setshape(self, shape):
-        sequencetools.LogSequence._setshape(self, (1, shape))
+    def _set_shape(self, shape):
+        sequencetools.LogSequence._set_shape(self, (1, shape))
 
-    shape = property(sequencetools.LogSequence._getshape, _setshape)
+    shape = property(sequencetools.LogSequence._get_shape, _set_shape)
 
 
 class LogSequences(sequencetools.LogSequences):

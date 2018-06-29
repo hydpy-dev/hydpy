@@ -375,6 +375,11 @@ class Sequence(variabletools.Variable):
         self.diskflag = False
         self.ramflag = False
 
+    @property
+    def subvars(self):
+        """Alias for `subseqs`."""
+        return self.subseqs
+
     def connect(self, subseqs):
         self.subseqs = subseqs
         self.fastaccess = subseqs.fastaccess

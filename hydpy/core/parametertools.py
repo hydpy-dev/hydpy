@@ -617,6 +617,11 @@ class Parameter(variabletools.Variable):
         return subself.values
 
     @property
+    def subvars(self):
+        """Alias for `subpars`."""
+        return self.subpars
+
+    @property
     def initvalue(self):
         """Actual initial value of the given parameter.
 

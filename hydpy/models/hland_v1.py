@@ -833,6 +833,7 @@ from hydpy.models.hland import hland_fluxes
 from hydpy.models.hland import hland_states
 from hydpy.models.hland import hland_logs
 from hydpy.models.hland import hland_outlets
+from hydpy.models.hland.hland_masks import Masks
 from hydpy.models.hland.hland_constants import *
 
 

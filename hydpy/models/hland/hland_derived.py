@@ -61,43 +61,55 @@ class RelLandArea(parametertools.SingleParameter):
         self(numpy.sum(temp)/con.area)
 
 
-class RelZoneArea(hland_parameters.MultiParameter,
-                  hland_parameters.RelZoneAreaMixin):
-    """Relative zone area [-]."""
+class RelZoneArea(hland_parameters.ParameterComplete,
+                  parametertools.RelSubweightsMixin):
+    """Relative zone area of all zone types [-].
+
+    >>> from hydpy.models.hland import *
+    >>> parameterstep('1d')
+    >>> nmbzones(4)
+    >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
+    >>> zonearea(10.0, 40.0, 20.0, 30.0)
+    >>> derived.relzonearea.update()
+    >>> derived.relzonearea
+    relzonearea(field=0.1, forest=0.4, glacier=0.2, ilake=0.3)
+    """
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., 1.)
 
 
-class RelSoilZoneArea(hland_parameters.MultiParameterSoil,
-                      hland_parameters.RelZoneAreaMixin):
-    """Relative zone area of all |FIELD| and |FOREST| zones [-]."""
+class RelSoilZoneArea(hland_parameters.ParameterSoil,
+                      parametertools.RelSubweightsMixin):
+    """Relative zone area of all |FIELD| and |FOREST| zones [-].
+
+    >>> from hydpy.models.hland import *
+    >>> parameterstep('1d')
+    >>> nmbzones(4)
+    >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
+    >>> zonearea(10.0, 40.0, 20.0, 30.0)
+    >>> derived.relsoilzonearea.update()
+    >>> derived.relsoilzonearea
+    relsoilzonearea(field=0.2, forest=0.8)
+    """
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., 1.)
 
 
-class RelLandZoneArea(hland_parameters.MultiParameterLand,
-                      hland_parameters.RelZoneAreaMixin):
-    """Relative zone area of all |FIELD|, |FOREST|, and |GLACIER| zones [-]."""
+class RelLandZoneArea(hland_parameters.ParameterLand,
+                      parametertools.RelSubweightsMixin):
+    """Relative zone area of all |FIELD|, |FOREST|, and |GLACIER| zones [-].
+
+    >>> from hydpy.models.hland import *
+    >>> parameterstep('1d')
+    >>> nmbzones(4)
+    >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
+    >>> zonearea(10.0, 40.0, 20.0, 30.0)
+    >>> derived.rellandzonearea.update()
+    >>> derived.rellandzonearea
+    rellandzonearea(field=0.142857, forest=0.571429, glacier=0.285714)
+    """
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., 1.)
 
 
-class RelLakeZoneArea(hland_parameters.MultiParameterLake,
-                      hland_parameters.RelZoneAreaMixin):
-    """Relative zone area of all |ILAKE| zones [-]."""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., 1.)
-
-
-class RelGlacierZoneArea(hland_parameters.MultiParameterGlacier,
-                         hland_parameters.RelZoneAreaMixin):
-    """Relative zone area of all |GLACIER| zones [-]."""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., 1.)
-
-
-class RelNoGlacierZoneArea(hland_parameters.MultiParameterNoGlacier,
-                           hland_parameters.RelZoneAreaMixin):
-    """Relative zone area of all |FIELD|, |FOREST|, and |GLACIER| zones [-]."""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., 1.)
-
-
-class TTM(hland_parameters.MultiParameterLand):
+class TTM(hland_parameters.ParameterLand):
     """Threshold temperature for snow melting and refreezing [°C]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
@@ -285,9 +297,6 @@ class QFactor(parametertools.SingleParameter):
 
 class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of HydPy-H-Land, indirectly defined by the user."""
-                   RelLakeZoneArea,
-                   RelGlacierZoneArea,
-                   RelNoGlacierZoneArea,
     CLASSES = (RelZoneArea,
                RelSoilArea,
                RelSoilZoneArea,

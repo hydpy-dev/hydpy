@@ -7,14 +7,17 @@
 from __future__ import division, print_function
 # ...from site-packages
 import numpy
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.models.hland import hland_masks
+from hydpy.models.hland import hland_sequences
 from hydpy.models.hland.hland_constants import ILAKE
 
 
-class Ic(sequencetools.StateSequence):
+class Ic(hland_sequences.State1DSequence):
     """Interception storage [mm]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
+    mask = hland_masks.Soil()
 
     def trim(self, lower=None, upper=None):
         """Trim upper values in accordance with :math:`IC \\leq ICMAX`.
@@ -22,20 +25,21 @@ class Ic(sequencetools.StateSequence):
         >>> from hydpy.models.hland import *
         >>> parameterstep('1d')
         >>> nmbzones(5)
-        >>> icmax(2.)
-        >>> states.ic(-1.,0., 1., 2., 3.)
+        >>> icmax(2.0)
+        >>> states.ic(-1.0, 0.0, 1.0, 2.0, 3.0)
         >>> states.ic
         ic(0.0, 0.0, 1.0, 2.0, 2.0)
         """
         if upper is None:
             control = self.subseqs.seqs.model.parameters.control
             upper = control.icmax
-        sequencetools.StateSequence.trim(self, lower, upper)
+        hland_sequences.State1DSequence.trim(self, lower, upper)
 
 
-class SP(sequencetools.StateSequence):
+class SP(hland_sequences.State1DSequence):
     """Frozen water stored in the snow layer [mm]."""
     NDIM, NUMERIC, SPAN = 1, False, (None, None)
+    mask = hland_masks.Land()
 
     def trim(self, lower=None, upper=None):
         """Trim values in accordance with :math:`WC \\leq WHC \\cdot SP`.
@@ -43,8 +47,8 @@ class SP(sequencetools.StateSequence):
         >>> from hydpy.models.hland import *
         >>> parameterstep('1d')
         >>> nmbzones(7)
-        >>> whc(.1)
-        >>> states.wc.values = -1., 0., 1., -1., 0., .5, 1.
+        >>> whc(0.1)
+        >>> states.wc.values = -1.0, 0.0, 1.0, -1.0, 0.0, 0.5, 1.0
         >>> states.sp(-1., 0., 0., 5., 5., 5., 5.)
         >>> states.sp
         sp(0.0, 0.0, 10.0, 5.0, 5.0, 5.0, 10.0)
@@ -56,12 +60,13 @@ class SP(sequencetools.StateSequence):
                 lower = numpy.clip(wc/whc, 0., numpy.inf)
             else:
                 lower = 0.
-        sequencetools.StateSequence.trim(self, lower, upper)
+        hland_sequences.State1DSequence.trim(self, lower, upper)
 
 
-class WC(sequencetools.StateSequence):
+class WC(hland_sequences.State1DSequence):
     """Liquid water content of the snow layer [mm]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
+    mask = hland_masks.Land()
 
     def trim(self, lower=None, upper=None):
         """Trim values in accordance with :math:`WC \\leq WHC \\cdot SP`.
@@ -69,9 +74,9 @@ class WC(sequencetools.StateSequence):
         >>> from hydpy.models.hland import *
         >>> parameterstep('1d')
         >>> nmbzones(7)
-        >>> whc(.1)
-        >>> states.sp = 0., 0., 0., 5., 5., 5., 5.
-        >>> states.wc(-1., 0., 1., -1., 0., .5, 1.)
+        >>> whc(0.1)
+        >>> states.sp = 0.0, 0.0, 0.0, 5.0, 5.0, 5.0, 5.0
+        >>> states.wc(-1.0, 0.0, 1.0, -1.0, 0.0, 0.5, 1.0)
         >>> states.wc
         wc(0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5)
         """
@@ -79,12 +84,13 @@ class WC(sequencetools.StateSequence):
         sp = self.subseqs.sp
         if (upper is None) and (sp.values is not None):
             upper = whc*sp
-        sequencetools.StateSequence.trim(self, lower, upper)
+        hland_sequences.State1DSequence.trim(self, lower, upper)
 
 
-class SM(sequencetools.StateSequence):
+class SM(hland_sequences.State1DSequence):
     """Soil moisture [mm]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
+    mask = hland_masks.Soil()
 
     def trim(self, lower=None, upper=None):
         """Trim values in accordance with :math:`SM \\leq FC`.
@@ -92,14 +98,14 @@ class SM(sequencetools.StateSequence):
         >>> from hydpy.models.hland import *
         >>> parameterstep('1d')
         >>> nmbzones(5)
-        >>> fc(200.)
-        >>> states.sm(-100.,0., 100., 200., 300.)
+        >>> fc(200.0)
+        >>> states.sm(-100.0, 0.0, 100.0, 200.0, 300.0)
         >>> states.sm
         sm(0.0, 0.0, 100.0, 200.0, 200.0)
         """
         if upper is None:
             upper = self.subseqs.seqs.model.parameters.control.fc
-        sequencetools.StateSequence.trim(self, lower, upper)
+        hland_sequences.State1DSequence.trim(self, lower, upper)
 
 
 class UZ(sequencetools.StateSequence):
@@ -119,14 +125,14 @@ class LZ(sequencetools.StateSequence):
         >>> parameterstep('1d')
         >>> nmbzones(2)
         >>> zonetype(FIELD, ILAKE)
-        >>> states.lz(-1.)
+        >>> states.lz(-1.0)
         >>> states.lz
         lz(-1.0)
         >>> zonetype(FIELD, FOREST)
         >>> states.lz(-1.0)
         >>> states.lz
         lz(0.0)
-        >>> states.lz(1.)
+        >>> states.lz(1.0)
         >>> states.lz
         lz(1.0)
         """

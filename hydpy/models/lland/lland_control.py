@@ -61,7 +61,7 @@ class NHRU(parametertools.SingleParameter):
                     seq.shape = self.value
 
 
-class FHRU(lland_parameters.MultiParameter):
+class FHRU(lland_parameters.ParameterComplete):
     """Flächenanteile der Hydrotope (area percentages of the respective
     HRUs) [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., 1.)
@@ -93,40 +93,40 @@ class Lnk(parametertools.NameParameter):
     CONSTANTS = lland_constants.CONSTANTS
 
 
-class HNN(lland_parameters.MultiParameter):
+class HNN(lland_parameters.ParameterComplete):
     """Höhe über Normal-Null (height above sea level) [m]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
 
-class KG(lland_parameters.MultiParameter):
+class KG(lland_parameters.ParameterComplete):
     """Niederschlagskorrekturfaktor (adjustment factor for precipitation)
     [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
     INIT = 1.
 
 
-class KT(lland_parameters.MultiParameter):
+class KT(lland_parameters.ParameterComplete):
     """Temperaturkorrektursummand (adjustment summand for air temperature)
     [°C]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
     INIT = 0.
 
 
-class KE(lland_parameters.MultiParameter):
+class KE(lland_parameters.ParameterComplete):
     """Grasreferenzverdunstungskorrekturfaktor (adjustment factor for
     reference evapotranspiration) [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
     INIT = 1.
 
 
-class KF(lland_parameters.MultiParameter):
+class KF(lland_parameters.ParameterComplete):
     """Küstenfaktor ("coast factor" of Turc-Wendling's evaporation equation
     [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (.6, 1.)
     INIT = 1.
 
 
-class WfET0(lland_parameters.MultiParameter):
+class WfET0(lland_parameters.ParameterComplete):
     """Zeitlicher Wichtungsfaktor der Grasreferenzverdunsung (temporal
     weighting factor for reference evapotranspiration)."""
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0., 1.)
@@ -152,35 +152,35 @@ class LAI(lland_parameters.LanduseMonthParameter):
     INIT = 5.
 
 
-class TRefT(lland_parameters.MultiParameterLand):
+class TRefT(lland_parameters.ParameterLand):
     """Lufttemperaturgrenzwert des grundlegenden Grad-Tag-Verfahrens
     (air temperature threshold of the degree-day method) [°C]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
     INIT = 0.
 
 
-class TRefN(lland_parameters.MultiParameterLand):
+class TRefN(lland_parameters.ParameterLand):
     """Niederschlagstemperaturgrenzwert des erweiterten Grad-Tag-Verfahrens
     (precipitation temperature threshold of the degree-day method) [°C]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
     INIT = 0.
 
 
-class TGr(lland_parameters.MultiParameterLand):
+class TGr(lland_parameters.ParameterLand):
     """Temperaturgrenzwert flüssiger/fester Niederschlag (threshold
     temperature liquid/frozen precipitation) [°C]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
     INIT = 0.
 
 
-class TSp(lland_parameters.MultiParameterLand):
+class TSp(lland_parameters.ParameterLand):
     """Temperaturspanne flüssiger/fester Niederschlag (temperature range
     with mixed precipitation) [°C]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
     INIT = 0.
 
 
-class GTF(lland_parameters.MultiParameterLand):
+class GTF(lland_parameters.ParameterLand):
     """Grad-Tag-Faktor (factor of the degree-day method) [mm/°C/T]."""
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
     INIT = 3.
@@ -200,7 +200,7 @@ class CPWasser(parametertools.SingleParameter):
     INIT = 4.1868
 
 
-class PWMax(lland_parameters.MultiParameterLand):
+class PWMax(lland_parameters.ParameterLand):
     """Maximalverhältnis Gesamt- zu Trockenschnee (maximum ratio of the
     total and the frozen water equivalent stored in the snow cover) [-].
 
@@ -272,7 +272,7 @@ nor a keyword argument is given.
         rhodkrit = float(kwargs.pop('rhodkrit', numpy.nan))
         missing = int(numpy.isnan(rhot0)) + int(numpy.isnan(rhodkrit))
         try:
-            lland_parameters.MultiParameterLand.__call__(self, *args, **kwargs)
+            lland_parameters.ParameterLand.__call__(self, *args, **kwargs)
             return
         except NotImplementedError:
             pass
@@ -300,13 +300,13 @@ class GrasRef_R(parametertools.SingleParameter):
     INIT = 5.
 
 
-class NFk(lland_parameters.MultiParameterSoil):
+class NFk(lland_parameters.ParameterSoil):
     """Nutzbare Feldkapazität (usable field capacity) [mm]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
     INIT = 100.
 
 
-class RelWZ(lland_parameters.MultiParameterSoil):
+class RelWZ(lland_parameters.ParameterSoil):
     """Relative Mindestbodenfeuchte für die Interflowentstehung (threshold
        value of relative soil moisture for interflow generation) [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, 1.)
@@ -318,18 +318,19 @@ class RelWZ(lland_parameters.MultiParameterSoil):
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> nhru(3)
-        >>> relwb.values = .5
-        >>> relwz(0.2, .5, .8)
+        >>> lnk(ACKER)
+        >>> relwb.values = 0.5
+        >>> relwz(0.2, 0.5, 0.8)
         >>> relwz
         relwz(0.5, 0.5, 0.8)
         """
         relwb = self.subpars.relwb.value
         if (lower is None) and (relwb is not None):
             lower = relwb
-        lland_parameters.MultiParameterSoil.trim(self, lower, upper)
+        lland_parameters.ParameterSoil.trim(self, lower, upper)
 
 
-class RelWB(lland_parameters.MultiParameterSoil):
+class RelWB(lland_parameters.ParameterSoil):
     """Relative Mindestbodenfeuchte für die Basisabflussentstehung (threshold
        value of relative soil moisture for base flow generation) [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
@@ -341,39 +342,40 @@ class RelWB(lland_parameters.MultiParameterSoil):
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> nhru(3)
-        >>> relwz.values = .5
-        >>> relwb(0.2, .5, .8)
+        >>> lnk(ACKER)
+        >>> relwz.values = 0.5
+        >>> relwb(0.2, 0.5, 0.8)
         >>> relwb
         relwb(0.2, 0.5, 0.5)
         """
         relwz = self.subpars.relwz.value
         if (upper is None) and (relwz is not None):
             upper = relwz
-        lland_parameters.MultiParameterSoil.trim(self, lower, upper)
+        lland_parameters.ParameterSoil.trim(self, lower, upper)
 
 
-class Beta(lland_parameters.MultiParameterSoil):
+class Beta(lland_parameters.ParameterSoil):
     """Drainageindex des tiefen Bodenspeichers (storage coefficient for
     releasing base flow from the lower soil compartment) [1/T]."""
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
     INIT = .01
 
 
-class FBeta(lland_parameters.MultiParameterSoil):
+class FBeta(lland_parameters.ParameterSoil):
     """Faktor zur Erhöhung der Perkolation im Grobporenbereich (factor for
     increasing percolation under wet conditions) [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (1., None)
     INIT = 1.
 
 
-class DMin(lland_parameters.MultiParameterSoil):
+class DMin(lland_parameters.ParameterSoil):
     """Drainageindex des mittleren Bodenspeichers (flux rate for
     releasing interflow from the middle soil compartment) [mm/T].
 
-    In addition to the |MultiParameterSoil| call method,
-    it is possible to set the value of parameter |DMin| in accordance
-    to the keyword argument `r_dmin` due to compatibility reasons with the
-    original LARSIM implemetation.
+    In addition to the |ParameterSoil| `__call__` method, it is
+    possible to set the value of parameter |DMin| in accordance
+    to the keyword argument `r_dmin` due to compatibility reasons
+    with the original LARSIM implemetation.
 
     Basic Equation:
         :math:`Dmin = 0.024192 \\cdot r_dmin`
@@ -385,7 +387,7 @@ class DMin(lland_parameters.MultiParameterSoil):
         >>> simulationstep('12h')
         >>> nhru(1)
         >>> lnk(ACKER)
-        >>> dmax(10.) # to prevent trimming of dmin, see below
+        >>> dmax(10.0) # to prevent trimming of dmin, see below
         >>> dmin(r_dmin=10.0)
         >>> dmin
         dmin(0.24192)
@@ -413,7 +415,7 @@ could not be set based on the given keyword arguments.
         within parameter control files.
         """
         try:
-            lland_parameters.MultiParameterSoil.__call__(self, *args, **kwargs)
+            lland_parameters.ParameterSoil.__call__(self, *args, **kwargs)
         except NotImplementedError:
             args = kwargs.get('r_dmin')
             if args is not None:
@@ -429,24 +431,25 @@ could not be set based on the given keyword arguments.
         >>> parameterstep('1d')
         >>> simulationstep('12h')
         >>> nhru(5)
-        >>> dmax.values = 2.
-        >>> dmin(-2., 0., 2., 4., 6.)
+        >>> lnk(ACKER)
+        >>> dmax.values = 2.0
+        >>> dmin(-2.0, 0.0, 2.0, 4.0, 6.0)
         >>> dmin
         dmin(0.0, 0.0, 2.0, 4.0, 4.0)
         """
         if upper is None:
             upper = self.subpars.dmax
-        lland_parameters.MultiParameterSoil.trim(self, lower, upper)
+        lland_parameters.ParameterSoil.trim(self, lower, upper)
 
 
-class DMax(lland_parameters.MultiParameterSoil):
+class DMax(lland_parameters.ParameterSoil):
     """Drainageindex des oberen Bodenspeichers (additional flux rate for
     releasing interflow from the upper soil compartment) [mm/T].
 
-    In addition to the |MultiParameterSoil| call method,
-    it is possible to set the value of parameter |DMax| in accordance
-    to the keyword argument `r_dmax` due to compatibility reasons with the
-    original LARSIM implemetation.
+    In addition to the |ParameterSoil| `__call__` method, it is
+    possible to set the value of parameter |DMax| in accordance
+    to the keyword argument `r_dmax` due to compatibility reasons
+    with the original LARSIM implemetation.
 
     Basic Equation:
         :math:`Dmax = 2.4192 \\cdot r_dmax`
@@ -458,7 +461,7 @@ class DMax(lland_parameters.MultiParameterSoil):
         >>> simulationstep('12h')
         >>> nhru(1)
         >>> lnk(ACKER)
-        >>> dmin(0.) # to prevent trimming of dmax, see below
+        >>> dmin(0.0) # to prevent trimming of dmax, see below
         >>> dmax(r_dmax=10.0)
         >>> dmax
         dmax(24.192)
@@ -486,7 +489,7 @@ could not be set based on the given keyword arguments.
         within parameter control files.
         """
         try:
-            lland_parameters.MultiParameterSoil.__call__(self, *args, **kwargs)
+            lland_parameters.ParameterSoil.__call__(self, *args, **kwargs)
         except NotImplementedError:
             args = kwargs.get('r_dmax')
             if args is not None:
@@ -502,17 +505,18 @@ could not be set based on the given keyword arguments.
         >>> parameterstep('1d')
         >>> simulationstep('12h')
         >>> nhru(3)
-        >>> dmin.values = 2.
-        >>> dmax(2., 4., 6.)
+        >>> lnk(ACKER)
+        >>> dmin.values = 2.0
+        >>> dmax(2.0, 4.0, 6.0)
         >>> dmax
         dmax(4.0, 4.0, 6.0)
         """
         if lower is None:
             lower = self.subpars.dmin
-        lland_parameters.MultiParameterSoil.trim(self, lower, upper)
+        lland_parameters.ParameterSoil.trim(self, lower, upper)
 
 
-class BSf(lland_parameters.MultiParameterSoil):
+class BSf(lland_parameters.ParameterSoil):
     """Bodenfeuchte-Sättigungsfläche-Parameter (shape parameter for the
     relation between the avarage soil moisture and the relative saturated
     area of a subbasin) [-]."""
@@ -663,14 +667,14 @@ class EQB(parametertools.SingleParameter):
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
-        >>> eqi1.value = 2.
-        >>> eqb(1.)
+        >>> eqi1.value = 2.0
+        >>> eqb(1.0)
         >>> eqb
         eqb(2.0)
-        >>> eqb(2.)
+        >>> eqb(2.0)
         >>> eqb
         eqb(2.0)
-        >>> eqb(3.)
+        >>> eqb(3.0)
         >>> eqb
         eqb(3.0)
         """
@@ -692,21 +696,21 @@ class EQI1(parametertools.SingleParameter):
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
-        >>> eqb.value = 3.
-        >>> eqi2.value = 1.
-        >>> eqi1(0.)
+        >>> eqb.value = 3.0
+        >>> eqi2.value = 1.0
+        >>> eqi1(0.0)
         >>> eqi1
         eqi1(1.0)
-        >>> eqi1(1.)
+        >>> eqi1(1.0)
         >>> eqi1
         eqi1(1.0)
-        >>> eqi1(2.)
+        >>> eqi1(2.0)
         >>> eqi1
         eqi1(2.0)
-        >>> eqi1(3.)
+        >>> eqi1(3.0)
         >>> eqi1
         eqi1(3.0)
-        >>> eqi1(4.)
+        >>> eqi1(4.0)
         >>> eqi1
         eqi1(3.0)
         """
@@ -730,21 +734,21 @@ class EQI2(parametertools.SingleParameter):
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
-        >>> eqi1.value = 3.
-        >>> eqd1.value = 1.
-        >>> eqi2(0.)
+        >>> eqi1.value = 3.0
+        >>> eqd1.value = 1.0
+        >>> eqi2(0.0)
         >>> eqi2
         eqi2(1.0)
-        >>> eqi2(1.)
+        >>> eqi2(1.0)
         >>> eqi2
         eqi2(1.0)
-        >>> eqi2(2.)
+        >>> eqi2(2.0)
         >>> eqi2
         eqi2(2.0)
-        >>> eqi2(3.)
+        >>> eqi2(3.0)
         >>> eqi2
         eqi2(3.0)
-        >>> eqi2(4.)
+        >>> eqi2(4.0)
         >>> eqi2
         eqi2(3.0)
         """
@@ -768,21 +772,21 @@ class EQD1(parametertools.SingleParameter):
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
-        >>> eqi2.value = 3.
-        >>> eqd2.value = 1.
-        >>> eqd1(0.)
+        >>> eqi2.value = 3.0
+        >>> eqd2.value = 1.0
+        >>> eqd1(0.0)
         >>> eqd1
         eqd1(1.0)
-        >>> eqd1(1.)
+        >>> eqd1(1.0)
         >>> eqd1
         eqd1(1.0)
-        >>> eqd1(2.)
+        >>> eqd1(2.0)
         >>> eqd1
         eqd1(2.0)
-        >>> eqd1(3.)
+        >>> eqd1(3.0)
         >>> eqd1
         eqd1(3.0)
-        >>> eqd1(4.)
+        >>> eqd1(4.0)
         >>> eqd1
         eqd1(3.0)
         """
@@ -806,14 +810,14 @@ class EQD2(parametertools.SingleParameter):
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
-        >>> eqd1.value = 3.
-        >>> eqd2(2.)
+        >>> eqd1.value = 3.0
+        >>> eqd2(2.0)
         >>> eqd2
         eqd2(2.0)
-        >>> eqd2(3.)
+        >>> eqd2(3.0)
         >>> eqd2
         eqd2(3.0)
-        >>> eqd2(4.)
+        >>> eqd2(4.0)
         >>> eqd2
         eqd2(3.0)
         """

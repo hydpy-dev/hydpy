@@ -269,7 +269,8 @@ always write something like:
 
     >>> from hydpy.models import hland
     >>> model = hland.Model()
-    >>> model.parameters = hland.Parameters({'model':model})
+    >>> from hydpy.core import parametertools
+    >>> model.parameters = parametertools.Parameters({'model':model})
     >>> model.parameters.control = hland.ControlParameters(model.parameters.control)
     >>> model.parameters.control.nmbzones = 2
     >>> model.parameters.control.nmbzones

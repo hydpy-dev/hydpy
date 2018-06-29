@@ -77,12 +77,12 @@ class ZoneType(parametertools.NameParameter):
     CONSTANTS = hland_constants.CONSTANTS
 
 
-class ZoneArea(hland_parameters.MultiParameter):
+class ZoneArea(hland_parameters.ParameterComplete):
     """Zone area [km²]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 
-class ZoneZ(hland_parameters.MultiParameter):
+class ZoneZ(hland_parameters.ParameterComplete):
     """Zone elevation [100m]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
@@ -102,117 +102,117 @@ class ZRelE(parametertools.SingleParameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
 
-class PCorr(hland_parameters.MultiParameter):
+class PCorr(hland_parameters.ParameterComplete):
     """General precipitation correction factor [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 
-class PCAlt(hland_parameters.MultiParameter):
+class PCAlt(hland_parameters.ParameterComplete):
     """Elevation correction factor for precipitation [-1/100m]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
 
-class RfCF(hland_parameters.MultiParameter):
+class RfCF(hland_parameters.ParameterComplete):
     """Rainfall correction factor [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 
-class SfCF(hland_parameters.MultiParameter):
+class SfCF(hland_parameters.ParameterComplete):
     """Snowfall correction factor [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 
-class TCAlt(hland_parameters.MultiParameter):
+class TCAlt(hland_parameters.ParameterComplete):
     """Elevation correction factor for temperature [-1°C/100m]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
 
-class ECorr(hland_parameters.MultiParameterNoGlacier):
+class ECorr(hland_parameters.ParameterNoGlacier):
     """General evaporation correction factor [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 
-class ECAlt(hland_parameters.MultiParameterNoGlacier):
+class ECAlt(hland_parameters.ParameterNoGlacier):
     """Elevation correction factor for evaporation [-1/100m]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
 
-class EPF(hland_parameters.MultiParameterNoGlacier):
+class EPF(hland_parameters.ParameterNoGlacier):
     """Decrease in potential evaporation due to precipitation [T/mm]."""
     NDIM, TYPE, TIME, SPAN = 1, float, False, (0., None)
 
 
-class ETF(hland_parameters.MultiParameterNoGlacier):
+class ETF(hland_parameters.ParameterNoGlacier):
     """Temperature factor for evaporation [1/°C]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
 
-class ERed(hland_parameters.MultiParameterSoil):
+class ERed(hland_parameters.ParameterSoil):
     """Factor for restricting actual to potential evaporation [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., 1.)
 
 
-class TTIce(hland_parameters.MultiParameterLake):
+class TTIce(hland_parameters.ParameterLake):
     """Temperature threshold for lake evaporation [°C]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
 
-class IcMax(hland_parameters.MultiParameterSoil):
+class IcMax(hland_parameters.ParameterSoil):
     """Maximum interception storage [mm]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 
-class TT(hland_parameters.MultiParameter):
+class TT(hland_parameters.ParameterComplete):
     """Temperature threshold for snow/rain [°C]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
 
-class TTInt(hland_parameters.MultiParameter):
+class TTInt(hland_parameters.ParameterComplete):
     """Temperature interval with a mixture of snow and rain [°C]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 
-class DTTM(hland_parameters.MultiParameterLand):
+class DTTM(hland_parameters.ParameterLand):
     """Difference between |TTM| and |TT| [°C]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
 
-class CFMax(hland_parameters.MultiParameterLand):
+class CFMax(hland_parameters.ParameterLand):
     """Degree day factor for snow (on glaciers or not) [mm/°C/T]."""
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
 
 
-class GMelt(hland_parameters.MultiParameterGlacier):
+class GMelt(hland_parameters.ParameterGlacier):
     """Degree day factor for glacial ice [mm/°C/T]."""
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
 
 
-class CFR(hland_parameters.MultiParameterLand):
+class CFR(hland_parameters.ParameterLand):
     """Refreezing factor for water stored within the snow layer [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 
-class WHC(hland_parameters.MultiParameterLand):
+class WHC(hland_parameters.ParameterLand):
     """Relative water holding capacity of the snow layer [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 
-class FC(hland_parameters.MultiParameterSoil):
+class FC(hland_parameters.ParameterSoil):
     """Maximum soil moisture content (field capacity) [mm]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 
-class LP(hland_parameters.MultiParameterSoil):
+class LP(hland_parameters.ParameterSoil):
     """Relative limit for potential evaporation [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., 1.)
 
 
-class Beta(hland_parameters.MultiParameterSoil):
+class Beta(hland_parameters.ParameterSoil):
     """Nonlinearity parameter of the soil routine [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 
-class CFlux(hland_parameters.MultiParameterSoil):
+class CFlux(hland_parameters.ParameterSoil):
     """Capacity (maximum) of the capillary return flux [mm/T]."""
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
 

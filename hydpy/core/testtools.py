@@ -118,57 +118,57 @@ class Tester(object):
         """
         opt = pub.options
         par = parametertools.Parameter
-        with opt.usedefaultvalues(False), \
-                opt.usedefaultvalues(False), \
-                opt.printprogress(False), \
-                opt.printincolor(False), \
-                opt.warnsimulationstep(False), \
-                opt.reprcomments(False), \
-                opt.ellipsis(0), \
-                opt.reprdigits(6), \
-                opt.warntrim(False), \
-                par.parameterstep.delete(), \
-                par.simulationstep.delete():
-            timegrids = pub.timegrids
-            pub.timegrids = None
-            nodes = devicetools.Node._registry.copy()
-            elements = devicetools.Element._registry.copy()
-            devicetools.Node.clear_registry()
-            devicetools.Element.clear_registry()
-            plotting_options = IntegrationTest.plotting_options
-            IntegrationTest.plotting_options = PlottingOptions()
-            try:
-                color = 34 if pub.options.usecython else 36
-                with printtools.PrintStyle(color=color, font=4):
-                    print(
-                        'Test %s %s in %sython mode.'
-                        % ('package' if self.ispackage else 'module',
-                           self.package if self.ispackage else
-                           self.modulenames[0],
-                           'C' if pub.options.usecython else 'P'))
-                with printtools.PrintStyle(color=color, font=2):
-                    for name in self.modulenames:
-                        print('    * %s:' % name, )
-                        with StdOutErr(indent=8):
-                            modulename = '.'.join((self.package, name))
-                            module = importlib.import_module(modulename)
-                            solve_exception_doctest_issue(module)
-                            with warnings.catch_warnings():
-                                warnings.filterwarnings(
-                                    'error', module=modulename)
-                                warnings.filterwarnings(
-                                    'ignore', category=ImportWarning)
-                                doctest.testmod(
-                                    module, extraglobs={'testing': True},
-                                    optionflags=doctest.ELLIPSIS)
-            finally:
-                pub.timegrids = timegrids
-                devicetools.Node.clear_registry()
-                devicetools.Element.clear_registry()
-                devicetools.Node._registry = nodes
-                devicetools.Element._registry = elements
-                IntegrationTest.plotting_options = plotting_options
-                hydpy.dummies.clear()
+        color = 34 if pub.options.usecython else 36
+        with printtools.PrintStyle(color=color, font=4):
+            print(
+                'Test %s %s in %sython mode.'
+                % ('package' if self.ispackage else 'module',
+                   self.package if self.ispackage else
+                   self.modulenames[0],
+                   'C' if pub.options.usecython else 'P'))
+        with printtools.PrintStyle(color=color, font=2):
+            for name in self.modulenames:
+                print('    * %s:' % name, )
+                with StdOutErr(indent=8), \
+                        opt.usedefaultvalues(False), \
+                        opt.usedefaultvalues(False), \
+                        opt.printprogress(False), \
+                        opt.printincolor(False), \
+                        opt.warnsimulationstep(False), \
+                        opt.reprcomments(False), \
+                        opt.ellipsis(0), \
+                        opt.reprdigits(6), \
+                        opt.warntrim(False), \
+                        par.parameterstep.delete(), \
+                        par.simulationstep.delete():
+                    timegrids = pub.timegrids
+                    pub.timegrids = None
+                    nodes = devicetools.Node._registry.copy()
+                    elements = devicetools.Element._registry.copy()
+                    devicetools.Node.clear_registry()
+                    devicetools.Element.clear_registry()
+                    plotting_options = IntegrationTest.plotting_options
+                    IntegrationTest.plotting_options = PlottingOptions()
+                    try:
+                        modulename = '.'.join((self.package, name))
+                        module = importlib.import_module(modulename)
+                        solve_exception_doctest_issue(module)
+                        with warnings.catch_warnings():
+                            warnings.filterwarnings(
+                                'error', module=modulename)
+                            warnings.filterwarnings(
+                                'ignore', category=ImportWarning)
+                            doctest.testmod(
+                                module, extraglobs={'testing': True},
+                                optionflags=doctest.ELLIPSIS)
+                    finally:
+                        pub.timegrids = timegrids
+                        devicetools.Node.clear_registry()
+                        devicetools.Element.clear_registry()
+                        devicetools.Node._registry = nodes
+                        devicetools.Element._registry = elements
+                        IntegrationTest.plotting_options = plotting_options
+                        hydpy.dummies.clear()
 
 
 class Array(object):

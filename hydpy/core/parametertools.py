@@ -1050,7 +1050,7 @@ is no compression method implemented, working for its actual values.
         elif self.length == 0:
             return ['']
         else:
-            unique = numpy.unique(self.values[self.mask])
+            unique = numpy.unique(self[self.mask])
         if sum(numpy.isnan(unique)) == len(unique.flatten()):
             unique = numpy.array([numpy.nan])
         else:
@@ -1129,23 +1129,23 @@ class ZipParameter(MultiParameter):
             Parameter.__call__(self, *args, **kwargs)
         except NotImplementedError as exc:
             if kwargs:
-                refvalues = self.refindices.values
+                refvalues = self.mask.refindices.values
                 if min(refvalues) < 1:
                     raise RuntimeError(
                         'Parameter %s does not seem to be prepared properly '
                         'for %s.  Hence, setting values for parameter %s '
                         'via keyword arguments is not possible.'
-                        % (self.refindices.name,
+                        % (self.mask.refindices.name,
                            objecttools.elementphrase(self),
                            self.name))
                 self.values = numpy.nan
                 if 'default' in kwargs:
-                    self.values[self.mask] = kwargs.pop('default')
+                    self[self.mask] = kwargs.pop('default')
                 for (key, value) in kwargs.items():
                     sel = self.MODEL_CONSTANTS.get(key.upper())
                     if sel is None:
                         raise exc
-                    elif sel in self.RELEVANT_VALUES:
+                    elif sel in self.mask.RELEVANT_VALUES:
                         self.values[refvalues == sel] = value
                 self.values = self.apply_timefactor(self.values)
                 self.trim()
@@ -1182,9 +1182,9 @@ class ZipParameter(MultiParameter):
                 raise NotImplementedError(
                     'Parameter %s is not defined poperly, which '
                     'circumvents finding a suitable compressed.')
-            refvalues = self.refindices.values
+            refvalues = self.mask.refindices.values
             for (key, value) in self.MODEL_CONSTANTS.items():
-                if value in self.RELEVANT_VALUES:
+                if value in self.mask.RELEVANT_VALUES:
                     unique = numpy.unique(self.values[refvalues == value])
                     unique = self.revert_timefactor(unique)
                     if len(unique) == 1:
@@ -1197,29 +1197,6 @@ class ZipParameter(MultiParameter):
             for dummy in range(self.NDIM):
                 result = [result]
             return result
-
-    @property
-    def refindices(self):
-        """Reference to the associated |MultiParameter| object providing
-        the actual constant values.
-
-        Needs to be overwritten by subclasses:
-
-        >>> from hydpy.core.parametertools import ZipParameter
-        >>> class Test(ZipParameter):
-        ...     pass
-        >>> Test().refindices
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: Property `refindices` of class \
-`ZipParameter` must be overwritten by subclasses, which is not \
-the case for class `Test`.
-        """
-        raise NotImplementedError(
-            'Property `refindices` of class `ZipParameter` '
-            'must be overwritten by subclasses, which is not '
-            'the case for class `%s`.'
-            % objecttools.classname(self))
 
 
 class SeasonalParameter(MultiParameter):
@@ -1825,29 +1802,23 @@ following error occured: index 1 is out of bounds for axis 0 with size 1
                 list(self.COLNAMES) + list(self._ROWCOLMAPPINGS.keys()))
 
 
-class RelSubvaluesMixin(object):
-    """Mixin class for derived parameters reflecting the absolute values
-    of control parameters in multiple relative terms.
+class RelSubweightsMixin(object):
+    """Mixin class for derived parameters reflecting not masked absolute
+    values of the referenced weighting parameter in relative terms.
 
     |RelSubvaluesMixin| is supposed to be combined with parameters
-    implementing property `refindices` like class |ZipParameter|.
-    The resulting class also has to define property
-    |RelSubvaluesMixin.refabsolutes|. The documentation on class
-    |hland_parameters.RelZoneArea| of base model |hland| gives some
-    examples.
+    implementing property `refweights`.
+
+    The documentation on base model |hland| provides some example
+    implementations like class |hland_derived.RelSoilZoneArea|.
     """
 
-    @property
-    def refabsolutes(self):
-        """Reference to a control |MultiParameter| object handling the
-        absolute values needed to calculate the relative values."""
-        raise NotImplementedError
-
     def update(self):
-        """Update the values of the object of the derived class."""
-        temp = self.refabsolutes.values.copy()
-        temp[~self.mask] = numpy.nan
-        self(temp/numpy.nansum(temp))
+        """Update subclass of |RelSubweightsMixin| based on `refweights`."""
+        mask = self.mask
+        weights = self.refweights[mask]
+        self[~mask] = numpy.nan
+        self[mask] = weights/numpy.sum(weights)
 
 
 class LeftRightParameter(MultiParameter):

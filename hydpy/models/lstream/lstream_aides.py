@@ -39,4 +39,9 @@ class QTest(sequencetools.AideSequence):
 
 class AideSequences(sequencetools.AideSequences):
     """Aide sequences of HydPy-L-Stream."""
-    _SEQCLASSES = (Temp, HMin, HMax, QMin, QMax, QTest)
+    CLASSES = (Temp,
+               HMin,
+               HMax,
+               QMin,
+               QMax,
+               QTest)

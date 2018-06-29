@@ -14,4 +14,4 @@ class Q(sequencetools.FluxSequence):
 
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of the Test model."""
-    _SEQCLASSES = (Q,)
+    CLASSES = (Q,)

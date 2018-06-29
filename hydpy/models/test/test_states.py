@@ -14,4 +14,4 @@ class S(sequencetools.StateSequence):
 
 class StateSequences(sequencetools.StateSequences):
     """State sequences of the Test model."""
-    _SEQCLASSES = (S,)
+    CLASSES = (S,)

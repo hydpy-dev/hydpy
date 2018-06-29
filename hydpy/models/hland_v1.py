@@ -869,118 +869,118 @@ class Model(modeltools.Model):
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of hland_v1, directly defined by the user."""
-    _PARCLASSES = (hland_control.Area,
-                   hland_control.NmbZones,
-                   hland_control.ZoneType,
-                   hland_control.ZoneArea,
-                   hland_control.ZoneZ,
-                   hland_control.ZRelP,
-                   hland_control.ZRelT,
-                   hland_control.ZRelE,
-                   hland_control.PCorr,
-                   hland_control.PCAlt,
-                   hland_control.RfCF,
-                   hland_control.SfCF,
-                   hland_control.TCAlt,
-                   hland_control.ECorr,
-                   hland_control.ECAlt,
-                   hland_control.EPF,
-                   hland_control.ETF,
-                   hland_control.ERed,
-                   hland_control.TTIce,
-                   hland_control.IcMax,
-                   hland_control.TT,
-                   hland_control.TTInt,
-                   hland_control.DTTM,
-                   hland_control.CFMax,
-                   hland_control.GMelt,
-                   hland_control.CFR,
-                   hland_control.WHC,
-                   hland_control.FC,
-                   hland_control.LP,
-                   hland_control.Beta,
-                   hland_control.PercMax,
-                   hland_control.CFlux,
-                   hland_control.RespArea,
-                   hland_control.RecStep,
-                   hland_control.Alpha,
-                   hland_control.K,
-                   hland_control.K4,
-                   hland_control.Gamma,
-                   hland_control.MaxBaz,
-                   hland_control.Abstr)
+    CLASSES = (hland_control.Area,
+               hland_control.NmbZones,
+               hland_control.ZoneType,
+               hland_control.ZoneArea,
+               hland_control.ZoneZ,
+               hland_control.ZRelP,
+               hland_control.ZRelT,
+               hland_control.ZRelE,
+               hland_control.PCorr,
+               hland_control.PCAlt,
+               hland_control.RfCF,
+               hland_control.SfCF,
+               hland_control.TCAlt,
+               hland_control.ECorr,
+               hland_control.ECAlt,
+               hland_control.EPF,
+               hland_control.ETF,
+               hland_control.ERed,
+               hland_control.TTIce,
+               hland_control.IcMax,
+               hland_control.TT,
+               hland_control.TTInt,
+               hland_control.DTTM,
+               hland_control.CFMax,
+               hland_control.GMelt,
+               hland_control.CFR,
+               hland_control.WHC,
+               hland_control.FC,
+               hland_control.LP,
+               hland_control.Beta,
+               hland_control.PercMax,
+               hland_control.CFlux,
+               hland_control.RespArea,
+               hland_control.RecStep,
+               hland_control.Alpha,
+               hland_control.K,
+               hland_control.K4,
+               hland_control.Gamma,
+               hland_control.MaxBaz,
+               hland_control.Abstr)
 
 
 class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of hland_v1, indirectly defined by the user."""
-    _PARCLASSES = (hland_derived.RelZoneArea,
-                   hland_derived.RelSoilArea,
-                   hland_derived.RelSoilZoneArea,
-                   hland_derived.RelLandZoneArea,
-                   hland_derived.RelLandArea,
-                   hland_derived.TTM,
-                   hland_derived.DT,
-                   hland_derived.UH,
-                   hland_derived.QFactor)
+    CLASSES = (hland_derived.RelZoneArea,
+               hland_derived.RelSoilArea,
+               hland_derived.RelSoilZoneArea,
+               hland_derived.RelLandZoneArea,
+               hland_derived.RelLandArea,
+               hland_derived.TTM,
+               hland_derived.DT,
+               hland_derived.UH,
+               hland_derived.QFactor)
 
 
 class InputSequences(sequencetools.InputSequences):
     """Input sequences of hland_v1."""
-    _SEQCLASSES = (hland_inputs.P,
-                   hland_inputs.T,
-                   hland_inputs.TN,
-                   hland_inputs.EPN)
+    CLASSES = (hland_inputs.P,
+               hland_inputs.T,
+               hland_inputs.TN,
+               hland_inputs.EPN)
 
 
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of hland_v1."""
-    _SEQCLASSES = (hland_fluxes.TMean,
-                   hland_fluxes.TC,
-                   hland_fluxes.FracRain,
-                   hland_fluxes.RfC,
-                   hland_fluxes.SfC,
-                   hland_fluxes.PC,
-                   hland_fluxes.EP,
-                   hland_fluxes.EPC,
-                   hland_fluxes.EI,
-                   hland_fluxes.TF,
-                   hland_fluxes.GlMelt,
-                   hland_fluxes.Melt,
-                   hland_fluxes.Refr,
-                   hland_fluxes.In_,
-                   hland_fluxes.R,
-                   hland_fluxes.EA,
-                   hland_fluxes.CFPot,
-                   hland_fluxes.CF,
-                   hland_fluxes.Perc,
-                   hland_fluxes.ContriArea,
-                   hland_fluxes.InUZ,
-                   hland_fluxes.Q0,
-                   hland_fluxes.EL,
-                   hland_fluxes.Q1,
-                   hland_fluxes.InUH,
-                   hland_fluxes.OutUH,
-                   hland_fluxes.QT)
+    CLASSES = (hland_fluxes.TMean,
+               hland_fluxes.TC,
+               hland_fluxes.FracRain,
+               hland_fluxes.RfC,
+               hland_fluxes.SfC,
+               hland_fluxes.PC,
+               hland_fluxes.EP,
+               hland_fluxes.EPC,
+               hland_fluxes.EI,
+               hland_fluxes.TF,
+               hland_fluxes.GlMelt,
+               hland_fluxes.Melt,
+               hland_fluxes.Refr,
+               hland_fluxes.In_,
+               hland_fluxes.R,
+               hland_fluxes.EA,
+               hland_fluxes.CFPot,
+               hland_fluxes.CF,
+               hland_fluxes.Perc,
+               hland_fluxes.ContriArea,
+               hland_fluxes.InUZ,
+               hland_fluxes.Q0,
+               hland_fluxes.EL,
+               hland_fluxes.Q1,
+               hland_fluxes.InUH,
+               hland_fluxes.OutUH,
+               hland_fluxes.QT)
 
 
 class StateSequences(sequencetools.StateSequences):
     """State sequences of hland_v1."""
-    _SEQCLASSES = (hland_states.Ic,
-                   hland_states.SP,
-                   hland_states.WC,
-                   hland_states.SM,
-                   hland_states.UZ,
-                   hland_states.LZ)
+    CLASSES = (hland_states.Ic,
+               hland_states.SP,
+               hland_states.WC,
+               hland_states.SM,
+               hland_states.UZ,
+               hland_states.LZ)
 
 
 class LogSequences(sequencetools.AideSequences):
     """Aide sequences of hland_v1."""
-    _SEQCLASSES = (hland_logs.QUH,)
+    CLASSES = (hland_logs.QUH,)
 
 
 class OutletSequences(sequencetools.LinkSequences):
     """Downstream link sequences of hland_v1."""
-    _SEQCLASSES = (hland_outlets.Q,)
+    CLASSES = (hland_outlets.Q,)
 
 
 autodoc_applicationmodel()

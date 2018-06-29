@@ -19,4 +19,5 @@ class QA(sequencetools.StateSequence):
 
 class StateSequences(sequencetools.StateSequences):
     """State sequences of HydPy-L-Stream."""
-    _SEQCLASSES = (QZ, QA)
+    CLASSES = (QZ,
+               QA)

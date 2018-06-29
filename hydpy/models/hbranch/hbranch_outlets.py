@@ -14,4 +14,4 @@ class Branched(sequencetools.LinkSequence):
 
 class OutletSequences(sequencetools.LinkSequences):
     """Downstream link sequences of the hbranch model."""
-    _SEQCLASSES = (Branched,)
+    CLASSES = (Branched,)

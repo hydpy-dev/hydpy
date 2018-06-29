@@ -105,4 +105,7 @@ class VQ(parametertools.SeasonalParameter):
 
 class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of HydPy-L-Lake, indirectly defined by the user."""
-    _PARCLASSES = (TOY, Seconds, NmbSubsteps, VQ)
+    CLASSES = (TOY,
+               Seconds,
+               NmbSubsteps,
+               VQ)

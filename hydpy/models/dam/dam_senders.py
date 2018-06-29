@@ -31,7 +31,7 @@ class R(sequencetools.LinkSequence):
 
 class SenderSequences(sequencetools.LinkSequences):
     """Information link sequences of the dam model."""
-    _SEQCLASSES = (Q,
-                   D,
-                   S,
-                   R)
+    CLASSES = (Q,
+               D,
+               S,
+               R)

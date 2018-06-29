@@ -33,4 +33,4 @@ class QUH(sequencetools.LogSequence):
 
 class LogSequences(sequencetools.LogSequences):
     """Log sequences of the hland model."""
-    _SEQCLASSES = (QUH,)
+    CLASSES = (QUH,)

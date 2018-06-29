@@ -31,4 +31,5 @@ class Outputs(sequencetools.FluxSequence):
 
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of the hbranch model."""
-    _SEQCLASSES = (Input, Outputs)
+    CLASSES = (Input,
+               Outputs)

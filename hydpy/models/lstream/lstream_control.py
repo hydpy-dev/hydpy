@@ -93,5 +93,18 @@ class HTol(parametertools.SingleParameter):
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters HydPy-L-Stream, directly defined by the user."""
-    _PARCLASSES = (Laen, Gef, HM, BM, BV, BBV, BNM, BNV, BNVR,
-                   SKM, SKV, EKM, EKV, QTol, HTol)
+    CLASSES = (Laen,
+               Gef,
+               HM,
+               BM,
+               BV,
+               BBV,
+               BNM,
+               BNV,
+               BNVR,
+               SKM,
+               SKV,
+               EKM,
+               EKV,
+               QTol,
+               HTol)

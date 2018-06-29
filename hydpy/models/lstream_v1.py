@@ -221,74 +221,74 @@ class Model(modeltools.Model):
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of lstream_v1, directly defined by the user."""
-    _PARCLASSES = (lstream_control.Laen,
-                   lstream_control.Gef,
-                   lstream_control.HM,
-                   lstream_control.BM,
-                   lstream_control.BV,
-                   lstream_control.BBV,
-                   lstream_control.BNM,
-                   lstream_control.BNV,
-                   lstream_control.BNVR,
-                   lstream_control.SKM,
-                   lstream_control.SKV,
-                   lstream_control.EKM,
-                   lstream_control.EKV,
-                   lstream_control.QTol,
-                   lstream_control.HTol)
+    CLASSES = (lstream_control.Laen,
+               lstream_control.Gef,
+               lstream_control.HM,
+               lstream_control.BM,
+               lstream_control.BV,
+               lstream_control.BBV,
+               lstream_control.BNM,
+               lstream_control.BNV,
+               lstream_control.BNVR,
+               lstream_control.SKM,
+               lstream_control.SKV,
+               lstream_control.EKM,
+               lstream_control.EKV,
+               lstream_control.QTol,
+               lstream_control.HTol)
 
 
 class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of lstream_v1, indirectly defined by the user.
     """
-    _PARCLASSES = (lstream_derived.HV,
-                   lstream_derived.QM,
-                   lstream_derived.QV,
-                   lstream_derived.Sek)
+    CLASSES = (lstream_derived.HV,
+               lstream_derived.QM,
+               lstream_derived.QV,
+               lstream_derived.Sek)
 
 
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of LARSIM-ME."""
-    _SEQCLASSES = (lstream_fluxes.QRef,
-                   lstream_fluxes.H,
-                   lstream_fluxes.AM,
-                   lstream_fluxes.AV,
-                   lstream_fluxes.AVR,
-                   lstream_fluxes.AG,
-                   lstream_fluxes.UM,
-                   lstream_fluxes.UV,
-                   lstream_fluxes.UVR,
-                   lstream_fluxes.QM,
-                   lstream_fluxes.QV,
-                   lstream_fluxes.QVR,
-                   lstream_fluxes.QG,
-                   lstream_fluxes.RK)
+    CLASSES = (lstream_fluxes.QRef,
+               lstream_fluxes.H,
+               lstream_fluxes.AM,
+               lstream_fluxes.AV,
+               lstream_fluxes.AVR,
+               lstream_fluxes.AG,
+               lstream_fluxes.UM,
+               lstream_fluxes.UV,
+               lstream_fluxes.UVR,
+               lstream_fluxes.QM,
+               lstream_fluxes.QV,
+               lstream_fluxes.QVR,
+               lstream_fluxes.QG,
+               lstream_fluxes.RK)
 
 
 class StateSequences(sequencetools.StateSequences):
     """State sequences of lstream_v1."""
-    _SEQCLASSES = (lstream_states.QZ,
-                   lstream_states.QA)
+    CLASSES = (lstream_states.QZ,
+               lstream_states.QA)
 
 
 class AideSequences(sequencetools.AideSequences):
     """Aide sequences of lstream_v1."""
-    _SEQCLASSES = (lstream_aides.Temp,
-                   lstream_aides.HMin,
-                   lstream_aides.HMax,
-                   lstream_aides.QMin,
-                   lstream_aides.QMax,
-                   lstream_aides.QTest)
+    CLASSES = (lstream_aides.Temp,
+               lstream_aides.HMin,
+               lstream_aides.HMax,
+               lstream_aides.QMin,
+               lstream_aides.QMax,
+               lstream_aides.QTest)
 
 
 class InletSequences(sequencetools.LinkSequences):
     """Upstream link sequences of lstream_v1."""
-    _SEQCLASSES = (lstream_inlets.Q,)
+    CLASSES = (lstream_inlets.Q,)
 
 
 class OutletSequences(sequencetools.LinkSequences):
     """Downstream link sequences of lstream_v1."""
-    _SEQCLASSES = (lstream_outlets.Q,)
+    CLASSES = (lstream_outlets.Q,)
 
 
 autodoc_applicationmodel()

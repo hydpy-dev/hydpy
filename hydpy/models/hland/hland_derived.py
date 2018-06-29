@@ -285,15 +285,15 @@ class QFactor(parametertools.SingleParameter):
 
 class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of HydPy-H-Land, indirectly defined by the user."""
-    _PARCLASSES = (RelZoneArea,
-                   RelSoilArea,
-                   RelSoilZoneArea,
-                   RelLandZoneArea,
                    RelLakeZoneArea,
                    RelGlacierZoneArea,
                    RelNoGlacierZoneArea,
-                   RelLandArea,
-                   TTM,
-                   DT,
-                   UH,
-                   QFactor)
+    CLASSES = (RelZoneArea,
+               RelSoilArea,
+               RelSoilZoneArea,
+               RelLandZoneArea,
+               RelLandArea,
+               TTM,
+               DT,
+               UH,
+               QFactor)

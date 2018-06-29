@@ -192,10 +192,10 @@ class MA_Coefs(parametertools.MultiParameter):
 
 class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of arma, indirectly defined by the user."""
-    _PARCLASSES = (Nmb,
-                   MaxQ,
-                   DiffQ,
-                   AR_Order,
-                   MA_Order,
-                   AR_Coefs,
-                   MA_Coefs)
+    CLASSES = (Nmb,
+               MaxQ,
+               DiffQ,
+               AR_Order,
+               MA_Order,
+               AR_Coefs,
+               MA_Coefs)

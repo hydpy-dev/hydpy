@@ -307,51 +307,51 @@ class Model(modeltools.Model):
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of llake_v1, directly defined by the user."""
-    _PARCLASSES = (llake_control.N,
-                   llake_control.W,
-                   llake_control.V,
-                   llake_control.Q,
-                   llake_control.MaxDT,
-                   llake_control.MaxDW,
-                   llake_control.Verzw)
+    CLASSES = (llake_control.N,
+               llake_control.W,
+               llake_control.V,
+               llake_control.Q,
+               llake_control.MaxDT,
+               llake_control.MaxDW,
+               llake_control.Verzw)
 
 
 class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of llake_v1, indirectly defined by the user.
     """
-    _PARCLASSES = (llake_derived.TOY,
-                   llake_derived.Seconds,
-                   llake_derived.NmbSubsteps,
-                   llake_derived.VQ)
+    CLASSES = (llake_derived.TOY,
+               llake_derived.Seconds,
+               llake_derived.NmbSubsteps,
+               llake_derived.VQ)
 
 
 class StateSequences(sequencetools.StateSequences):
     """State sequences of llake_v1."""
-    _SEQCLASSES = (llake_states.V,
-                   llake_states.W)
+    CLASSES = (llake_states.V,
+               llake_states.W)
 
 
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of llake_v1."""
-    _SEQCLASSES = (llake_fluxes.QZ,
-                   llake_fluxes.QA)
+    CLASSES = (llake_fluxes.QZ,
+               llake_fluxes.QA)
 
 
 class AideSequences(sequencetools.AideSequences):
     """Aide sequences of llake_v1."""
-    _SEQCLASSES = (llake_aides.QA,
-                   llake_aides.VQ,
-                   llake_aides.V,)
+    CLASSES = (llake_aides.QA,
+               llake_aides.VQ,
+               llake_aides.V,)
 
 
 class InletSequences(sequencetools.LinkSequences):
     """Upstream link sequences of llake_v1."""
-    _SEQCLASSES = (llake_inlets.Q,)
+    CLASSES = (llake_inlets.Q,)
 
 
 class OutletSequences(sequencetools.LinkSequences):
     """Downstream link sequences of llake_v1."""
-    _SEQCLASSES = (llake_outlets.Q,)
+    CLASSES = (llake_outlets.Q,)
 
 
 autodoc_applicationmodel()

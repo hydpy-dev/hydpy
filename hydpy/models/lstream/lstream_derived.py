@@ -117,4 +117,7 @@ class Sek(parametertools.SingleParameter):
 
 class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of HydPy-L-Stream, indirectly defined by the user."""
-    _PARCLASSES = (HV, QM, QV, Sek)
+    CLASSES = (HV,
+               QM,
+               QV,
+               Sek)

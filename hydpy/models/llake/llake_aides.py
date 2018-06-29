@@ -24,4 +24,6 @@ class V(sequencetools.AideSequence):
 
 class AideSequences(sequencetools.AideSequences):
     """Aide sequences of HydPy-L-Lake."""
-    _SEQCLASSES = (QA, VQ, V)
+    CLASSES = (QA,
+               VQ,
+               V)

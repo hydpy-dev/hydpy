@@ -27,4 +27,5 @@ class RelDTMin(parametertools.SolverParameter):
 
 class SolverParameters(parametertools.SubParameters):
     """Solver parameters of the Test model."""
-    _PARCLASSES = (AbsErrorMax, RelDTMin)
+    CLASSES = (AbsErrorMax,
+               RelDTMin)

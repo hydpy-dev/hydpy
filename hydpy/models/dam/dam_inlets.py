@@ -26,6 +26,6 @@ class R(sequencetools.LinkSequence):   # pylint: disable=invalid-name
 
 class InletSequences(sequencetools.LinkSequences):
     """Upstream link sequences of the dam model."""
-    _SEQCLASSES = (Q,
-                   S,
-                   R)
+    CLASSES = (Q,
+               S,
+               R)

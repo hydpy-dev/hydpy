@@ -84,5 +84,17 @@ class RK(sequencetools.FluxSequence):
 
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of HydPy-L-Stream."""
-    _SEQCLASSES = (QRef, H, AM, AV, AVR, AG, UM, UV, UVR,
-                   QM, QV, QVR, QG, RK)
+    CLASSES = (QRef,
+               H,
+               AM,
+               AV,
+               AVR,
+               AG,
+               UM,
+               UV,
+               UVR,
+               QM,
+               QV,
+               QVR,
+               QG,
+               RK)

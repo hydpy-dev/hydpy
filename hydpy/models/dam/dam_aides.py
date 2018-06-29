@@ -16,4 +16,4 @@ class WaterLevel(sequencetools.AideSequence):
 
 class AideSequences(sequencetools.AideSequences):
     """State sequences of the dam model."""
-    _SEQCLASSES = (WaterLevel,)
+    CLASSES = (WaterLevel,)

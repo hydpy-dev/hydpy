@@ -69,7 +69,7 @@ class LoggedAllowedRemoteRelieve(ShapeOne):
 
 class LogSequences(sequencetools.LogSequences):
     """Log sequences of the dam model."""
-    _SEQCLASSES = (LoggedTotalRemoteDischarge,
-                   LoggedOutflow,
-                   LoggedRequiredRemoteRelease,
-                   LoggedAllowedRemoteRelieve)
+    CLASSES = (LoggedTotalRemoteDischarge,
+               LoggedOutflow,
+               LoggedRequiredRemoteRelease,
+               LoggedAllowedRemoteRelieve)

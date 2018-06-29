@@ -19,4 +19,5 @@ class W(sequencetools.StateSequence):
 
 class StateSequences(sequencetools.StateSequences):
     """State sequences of HydPy-L-Lake."""
-    _SEQCLASSES = (V, W)
+    CLASSES = (V,
+               W)

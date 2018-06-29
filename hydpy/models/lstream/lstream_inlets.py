@@ -14,4 +14,4 @@ class Q(sequencetools.LinkSequence):
 
 class InletSequences(sequencetools.LinkSequences):
     """Upstream link sequences of HydPy-L-Stream."""
-    _SEQCLASSES = (Q,)
+    CLASSES = (Q,)

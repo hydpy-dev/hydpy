@@ -31,7 +31,7 @@ class PET(sequencetools.InputSequence):
 
 class InputSequences(sequencetools.InputSequences):
     """Input sequences of the HydPy-L-Land model."""
-    _SEQCLASSES = (Nied,
-                   TemL,
-                   Glob,
-                   PET)
+    CLASSES = (Nied,
+               TemL,
+               Glob,
+               PET)

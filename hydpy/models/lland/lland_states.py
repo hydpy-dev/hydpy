@@ -159,17 +159,17 @@ class QBGA(sequencetools.StateSequence):
 
 class StateSequences(sequencetools.StateSequences):
     """State sequences of the HydPy-L-Land model."""
-    _SEQCLASSES = (Inzp,
-                   WATS,
-                   WAeS,
-                   BoWa,
-                   QDGZ1,
-                   QDGZ2,
-                   QIGZ1,
-                   QIGZ2,
-                   QBGZ,
-                   QDGA1,
-                   QDGA2,
-                   QIGA1,
-                   QIGA2,
-                   QBGA)
+    CLASSES = (Inzp,
+               WATS,
+               WAeS,
+               BoWa,
+               QDGZ1,
+               QDGZ2,
+               QIGZ1,
+               QIGZ2,
+               QBGZ,
+               QDGA1,
+               QDGA2,
+               QIGA1,
+               QIGA2,
+               QBGA)

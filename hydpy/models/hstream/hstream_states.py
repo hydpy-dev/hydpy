@@ -28,4 +28,4 @@ class QJoints(sequencetools.StateSequence):
 
 class StateSequences(sequencetools.StateSequences):
     """State sequences of the hstream model."""
-    _SEQCLASSES = (QJoints,)
+    CLASSES = (QJoints,)

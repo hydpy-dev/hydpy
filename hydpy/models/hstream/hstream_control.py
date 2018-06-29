@@ -19,4 +19,5 @@ class Damp(parametertools.SingleParameter):
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of hstream, directly defined by the user."""
-    _PARCLASSES = (Lag, Damp)
+    CLASSES = (Lag,
+               Damp)

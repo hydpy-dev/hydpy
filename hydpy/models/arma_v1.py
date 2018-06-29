@@ -358,44 +358,44 @@ class Model(modeltools.Model):
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of arma_v1, directly defined by the user."""
-    _PARCLASSES = (arma_control.Responses,)
+    CLASSES = (arma_control.Responses,)
 
 
 class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of arma_v1, indirectly defined by the user."""
-    _PARCLASSES = (arma_derived.Nmb,
-                   arma_derived.MaxQ,
-                   arma_derived.DiffQ,
-                   arma_derived.AR_Order,
-                   arma_derived.MA_Order,
-                   arma_derived.AR_Coefs,
-                   arma_derived.MA_Coefs)
+    CLASSES = (arma_derived.Nmb,
+               arma_derived.MaxQ,
+               arma_derived.DiffQ,
+               arma_derived.AR_Order,
+               arma_derived.MA_Order,
+               arma_derived.AR_Coefs,
+               arma_derived.MA_Coefs)
 
 
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of arma_v1"""
-    _SEQCLASSES = (arma_fluxes.QIn,
-                   arma_fluxes.QPIn,
-                   arma_fluxes.QMA,
-                   arma_fluxes.QAR,
-                   arma_fluxes.QPOut,
-                   arma_fluxes.QOut)
+    CLASSES = (arma_fluxes.QIn,
+               arma_fluxes.QPIn,
+               arma_fluxes.QMA,
+               arma_fluxes.QAR,
+               arma_fluxes.QPOut,
+               arma_fluxes.QOut)
 
 
 class LogSequences(sequencetools.LogSequences):
     """Log sequences of arma_v1."""
-    _SEQCLASSES = (arma_logs.LogIn,
-                   arma_logs.LogOut)
+    CLASSES = (arma_logs.LogIn,
+               arma_logs.LogOut)
 
 
 class InletSequences(sequencetools.LinkSequences):
     """Upstream link sequences of arma_v1."""
-    _SEQCLASSES = (arma_inlets.Q,)
+    CLASSES = (arma_inlets.Q,)
 
 
 class OutletSequences(sequencetools.LinkSequences):
     """Downstream link sequences of arma_v1."""
-    _SEQCLASSES = (arma_outlets.Q,)
+    CLASSES = (arma_outlets.Q,)
 
 
 autodoc_applicationmodel()

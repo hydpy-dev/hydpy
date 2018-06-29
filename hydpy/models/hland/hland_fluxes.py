@@ -146,6 +146,30 @@ class QT(sequencetools.FluxSequence):
 
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of the HydPy-H-Land model."""
-    _SEQCLASSES = (TMean, TC, FracRain, RfC, SfC, PC, EP, EPC, EI, TF,
-                   GlMelt, Melt, Refr, In_, R, EA, CFPot, CF, Perc,
-                   ContriArea, InUZ, Q0, EL, Q1, InUH, OutUH, QT)
+    CLASSES = (TMean,
+               TC,
+               FracRain,
+               RfC,
+               SfC,
+               PC,
+               EP,
+               EPC,
+               EI,
+               TF,
+               GlMelt,
+               Melt,
+               Refr,
+               In_,
+               R,
+               EA,
+               CFPot,
+               CF,
+               Perc,
+               ContriArea,
+               InUZ,
+               Q0,
+               EL,
+               Q1,
+               InUH,
+               OutUH,
+               QT)

@@ -1159,123 +1159,123 @@ class Model(modeltools.Model):
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of lland_v2, directly defined by the user."""
-    _PARCLASSES = (lland_control.FT,
-                   lland_control.NHRU,
-                   lland_control.Lnk,
-                   lland_control.FHRU,
-                   lland_control.KG,
-                   lland_control.KT,
-                   lland_control.KE,
-                   lland_control.WfET0,
-                   lland_control.FLn,
-                   lland_control.HInz,
-                   lland_control.LAI,
-                   lland_control.TRefT,
-                   lland_control.TRefN,
-                   lland_control.TGr,
-                   lland_control.TSp,
-                   lland_control.GTF,
-                   lland_control.RSchmelz,
-                   lland_control.CPWasser,
-                   lland_control.PWMax,
-                   lland_control.GrasRef_R,
-                   lland_control.NFk,
-                   lland_control.RelWZ,
-                   lland_control.RelWB,
-                   lland_control.Beta,
-                   lland_control.FBeta,
-                   lland_control.DMax,
-                   lland_control.DMin,
-                   lland_control.BSf,
-                   lland_control.A1,
-                   lland_control.A2,
-                   lland_control.TInd,
-                   lland_control.EQB,
-                   lland_control.EQI1,
-                   lland_control.EQI2,
-                   lland_control.EQD1,
-                   lland_control.EQD2,
-                   lland_control.NegQ)
+    CLASSES = (lland_control.FT,
+               lland_control.NHRU,
+               lland_control.Lnk,
+               lland_control.FHRU,
+               lland_control.KG,
+               lland_control.KT,
+               lland_control.KE,
+               lland_control.WfET0,
+               lland_control.FLn,
+               lland_control.HInz,
+               lland_control.LAI,
+               lland_control.TRefT,
+               lland_control.TRefN,
+               lland_control.TGr,
+               lland_control.TSp,
+               lland_control.GTF,
+               lland_control.RSchmelz,
+               lland_control.CPWasser,
+               lland_control.PWMax,
+               lland_control.GrasRef_R,
+               lland_control.NFk,
+               lland_control.RelWZ,
+               lland_control.RelWB,
+               lland_control.Beta,
+               lland_control.FBeta,
+               lland_control.DMax,
+               lland_control.DMin,
+               lland_control.BSf,
+               lland_control.A1,
+               lland_control.A2,
+               lland_control.TInd,
+               lland_control.EQB,
+               lland_control.EQI1,
+               lland_control.EQI2,
+               lland_control.EQD1,
+               lland_control.EQD2,
+               lland_control.NegQ)
 
 
 class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of lland_v2, indirectly defined by the user."""
-    _PARCLASSES = (lland_derived.MOY,
-                   lland_derived.KInz,
-                   lland_derived.WB,
-                   lland_derived.WZ,
-                   lland_derived.KB,
-                   lland_derived.KI1,
-                   lland_derived.KI2,
-                   lland_derived.KD1,
-                   lland_derived.KD2,
-                   lland_derived.QFactor)
+    CLASSES = (lland_derived.MOY,
+               lland_derived.KInz,
+               lland_derived.WB,
+               lland_derived.WZ,
+               lland_derived.KB,
+               lland_derived.KI1,
+               lland_derived.KI2,
+               lland_derived.KD1,
+               lland_derived.KD2,
+               lland_derived.QFactor)
 
 
 class InputSequences(sequencetools.InputSequences):
     """Input sequences of lland_v2."""
-    _SEQCLASSES = (lland_inputs.Nied,
-                   lland_inputs.TemL,
-                   lland_inputs.PET)
+    CLASSES = (lland_inputs.Nied,
+               lland_inputs.TemL,
+               lland_inputs.PET)
 
 
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of lland_v2."""
-    _SEQCLASSES = (lland_fluxes.NKor,
-                   lland_fluxes.TKor,
-                   lland_fluxes.ET0,
-                   lland_fluxes.EvPo,
-                   lland_fluxes.NBes,
-                   lland_fluxes.SBes,
-                   lland_fluxes.EvI,
-                   lland_fluxes.EvB,
-                   lland_fluxes.WGTF,
-                   lland_fluxes.Schm,
-                   lland_fluxes.WaDa,
-                   lland_fluxes.QDB,
-                   lland_fluxes.QIB1,
-                   lland_fluxes.QIB2,
-                   lland_fluxes.QBB,
-                   lland_fluxes.QDGZ,
-                   lland_fluxes.Q)
+    CLASSES = (lland_fluxes.NKor,
+               lland_fluxes.TKor,
+               lland_fluxes.ET0,
+               lland_fluxes.EvPo,
+               lland_fluxes.NBes,
+               lland_fluxes.SBes,
+               lland_fluxes.EvI,
+               lland_fluxes.EvB,
+               lland_fluxes.WGTF,
+               lland_fluxes.Schm,
+               lland_fluxes.WaDa,
+               lland_fluxes.QDB,
+               lland_fluxes.QIB1,
+               lland_fluxes.QIB2,
+               lland_fluxes.QBB,
+               lland_fluxes.QDGZ,
+               lland_fluxes.Q)
 
 
 class StateSequences(sequencetools.StateSequences):
     """State sequences of lland_v2."""
-    _SEQCLASSES = (lland_states.Inzp,
-                   lland_states.WATS,
-                   lland_states.WAeS,
-                   lland_states.BoWa,
-                   lland_states.QDGZ1,
-                   lland_states.QDGZ2,
-                   lland_states.QIGZ1,
-                   lland_states.QIGZ2,
-                   lland_states.QBGZ,
-                   lland_states.QDGA1,
-                   lland_states.QDGA2,
-                   lland_states.QIGA1,
-                   lland_states.QIGA2,
-                   lland_states.QBGA)
+    CLASSES = (lland_states.Inzp,
+               lland_states.WATS,
+               lland_states.WAeS,
+               lland_states.BoWa,
+               lland_states.QDGZ1,
+               lland_states.QDGZ2,
+               lland_states.QIGZ1,
+               lland_states.QIGZ2,
+               lland_states.QBGZ,
+               lland_states.QDGA1,
+               lland_states.QDGA2,
+               lland_states.QIGA1,
+               lland_states.QIGA2,
+               lland_states.QBGA)
 
 
 class LogSequences(sequencetools.LogSequences):
     """Log sequences of lland_v2."""
-    _SEQCLASSES = (lland_logs.WET0,)
+    CLASSES = (lland_logs.WET0,)
 
 
 class AideSequences(sequencetools.AideSequences):
     """Aide sequences of lland_v2."""
-    _SEQCLASSES = (lland_aides.SfA,
-                   lland_aides.Exz,
-                   lland_aides.BVl,
-                   lland_aides.MVl,
-                   lland_aides.RVl,
-                   lland_aides.EPW)
+    CLASSES = (lland_aides.SfA,
+               lland_aides.Exz,
+               lland_aides.BVl,
+               lland_aides.MVl,
+               lland_aides.RVl,
+               lland_aides.EPW)
 
 
 class OutletSequences(sequencetools.LinkSequences):
     """Downstream link sequences of lland_v2."""
-    _SEQCLASSES = (lland_outlets.Q,)
+    CLASSES = (lland_outlets.Q,)
 
 
 autodoc_applicationmodel()

@@ -322,13 +322,13 @@ class HighestRemoteSmoothPar(parametertools.SingleParameter):
 
 class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of the dam model."""
-    _PARCLASSES = (TOY,
-                   Seconds,
-                   RemoteDischargeSmoothPar,
-                   NearDischargeMinimumSmoothPar1,
-                   NearDischargeMinimumSmoothPar2,
-                   WaterLevelMinimumSmoothPar,
-                   WaterLevelMinimumRemoteSmoothPar,
-                   WaterLevelRelieveSmoothPar,
-                   WaterLevelSupplySmoothPar,
-                   HighestRemoteSmoothPar)
+    CLASSES = (TOY,
+               Seconds,
+               RemoteDischargeSmoothPar,
+               NearDischargeMinimumSmoothPar1,
+               NearDischargeMinimumSmoothPar2,
+               WaterLevelMinimumSmoothPar,
+               WaterLevelMinimumRemoteSmoothPar,
+               WaterLevelRelieveSmoothPar,
+               WaterLevelSupplySmoothPar,
+               HighestRemoteSmoothPar)

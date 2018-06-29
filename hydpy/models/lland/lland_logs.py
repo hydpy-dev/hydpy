@@ -33,4 +33,4 @@ class WET0(sequencetools.LogSequence):
 
 class LogSequences(sequencetools.LogSequences):
     """Log sequences of the HydPy-L-Land model."""
-    _SEQCLASSES = (WET0,)
+    CLASSES = (WET0,)

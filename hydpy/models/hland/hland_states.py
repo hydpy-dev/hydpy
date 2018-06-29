@@ -139,4 +139,9 @@ class LZ(sequencetools.StateSequence):
 
 class StateSequences(sequencetools.StateSequences):
     """State sequences of the HydPy-H-Land model."""
-    _SEQCLASSES = (Ic, SP, WC, SM, UZ, LZ)
+    CLASSES = (Ic,
+               SP,
+               WC,
+               SM,
+               UZ,
+               LZ)

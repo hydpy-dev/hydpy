@@ -19,4 +19,5 @@ class QA(sequencetools.FluxSequence):
 
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of HydPy-L-Lake."""
-    _SEQCLASSES = (QZ, QA)
+    CLASSES = (QZ,
+               QA)

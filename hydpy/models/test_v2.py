@@ -32,23 +32,23 @@ class Model(modeltools.ModelELS):
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of Test model, Version 2."""
-    _PARCLASSES = (test_control.K,)
+    CLASSES = (test_control.K,)
 
 
 class SolverParameters(parametertools.SubParameters):
     """Solver parameters of the Test model,."""
-    _PARCLASSES = (test_solver.AbsErrorMax,
-                   test_solver.RelDTMin)
+    CLASSES = (test_solver.AbsErrorMax,
+               test_solver.RelDTMin)
 
 
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of Test model, Version 2."""
-    _SEQCLASSES = (test_fluxes.Q,)
+    CLASSES = (test_fluxes.Q,)
 
 
 class StateSequences(sequencetools.StateSequences):
     """State sequences of Test model, Version 2."""
-    _SEQCLASSES = (test_states.S,)
+    CLASSES = (test_states.S,)
 
 
 autodoc_applicationmodel()

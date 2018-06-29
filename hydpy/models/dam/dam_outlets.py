@@ -26,6 +26,6 @@ class R(sequencetools.LinkSequence):
 
 class OutletSequences(sequencetools.LinkSequences):
     """Downstream link sequences of the dam model."""
-    _SEQCLASSES = (Q,
-                   S,
-                   R)
+    CLASSES = (Q,
+               S,
+               R)

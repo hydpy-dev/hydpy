@@ -31,4 +31,7 @@ class EPN(sequencetools.InputSequence):
 
 class InputSequences(sequencetools.InputSequences):
     """Input sequences of the hland model."""
-    _SEQCLASSES = (P, T, TN, EPN)
+    CLASSES = (P,
+               T,
+               TN,
+               EPN)

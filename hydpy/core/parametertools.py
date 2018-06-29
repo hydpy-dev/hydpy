@@ -141,7 +141,7 @@ class Parameters(object):
     def update(self):
         """Call the update methods of all derived and solver parameters."""
         for subpars in self.secondary_subpars:
-            for par in subpars._PARCLASSES:
+            for par in subpars.CLASSES:
                 name = objecttools.instancename(par)
                 try:
                     subpars.__dict__[name].update()

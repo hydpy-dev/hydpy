@@ -17,4 +17,4 @@ class Q(sequencetools.LinkSequence):
 
 class OutletSequences(sequencetools.LinkSequences):
     """Downstream link sequences of the HydPy-L-Land model."""
-    _SEQCLASSES = (Q,)
+    CLASSES = (Q,)

@@ -378,4 +378,4 @@ class Responses(parametertools.Parameter):
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of arma, directly defined by the user."""
-    _PARCLASSES = (Responses,)
+    CLASSES = (Responses,)

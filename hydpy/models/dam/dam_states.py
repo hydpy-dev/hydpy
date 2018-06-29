@@ -16,4 +16,4 @@ class WaterVolume(sequencetools.StateSequence):
 
 class StateSequences(sequencetools.StateSequences):
     """State sequences of the dam model."""
-    _SEQCLASSES = (WaterVolume,)
+    CLASSES = (WaterVolume,)

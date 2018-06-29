@@ -19,4 +19,4 @@ class K(parametertools.SingleParameter):
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of the Test model, directly defined by the user."""
-    _PARCLASSES = (K,)
+    CLASSES = (K,)

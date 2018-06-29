@@ -39,9 +39,9 @@ class QOut(sequencetools.FluxSequence):
 
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of the ARMA model."""
-    _SEQCLASSES = (QIn,
-                   QPIn,
-                   QMA,
-                   QAR,
-                   QPOut,
-                   QOut)
+    CLASSES = (QIn,
+               QPIn,
+               QMA,
+               QAR,
+               QPOut,
+               QOut)

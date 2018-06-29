@@ -29,4 +29,7 @@ class C3(parametertools.SingleParameter):
 
 class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of hstream, indirectly defined by the user."""
-    _PARCLASSES = (NmbSegments, C1, C2, C3)
+    CLASSES = (NmbSegments,
+               C1,
+               C2,
+               C3)

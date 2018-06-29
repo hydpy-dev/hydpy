@@ -27,4 +27,5 @@ class NmbPoints(parametertools.SingleParameter):
 
 class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of hbranch, indirectly defined by the user."""
-    _PARCLASSES = (NmbBranches, NmbPoints)
+    CLASSES = (NmbBranches,
+               NmbPoints)

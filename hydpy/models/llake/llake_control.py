@@ -168,4 +168,10 @@ class Verzw(parametertools.SeasonalParameter):
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of HydPy-L-Lake, directly defined by the user."""
-    _PARCLASSES = (N, W, V, Q, MaxDT, MaxDW, Verzw)
+    CLASSES = (N,
+               W,
+               V,
+               Q,
+               MaxDT,
+               MaxDW,
+               Verzw)

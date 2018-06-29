@@ -26,30 +26,30 @@ class Model(hbranch_model.Model):
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of hbranch_v1, directly defined by the user."""
-    _PARCLASSES = (hbranch_control.XPoints,
-                   hbranch_control.YPoints)
+    CLASSES = (hbranch_control.XPoints,
+               hbranch_control.YPoints)
 
 
 class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of hbranch_v1, indirectly defined by the user."""
-    _PARCLASSES = (hbranch_derived.NmbBranches,
-                   hbranch_derived.NmbPoints)
+    CLASSES = (hbranch_derived.NmbBranches,
+               hbranch_derived.NmbPoints)
 
 
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of hbranch_v1."""
-    _SEQCLASSES = (hbranch_fluxes.Input,
-                   hbranch_fluxes.Outputs)
+    CLASSES = (hbranch_fluxes.Input,
+               hbranch_fluxes.Outputs)
 
 
 class InletSequences(sequencetools.LinkSequences):
     """Upstream link sequences of hbranch_v1."""
-    _SEQCLASSES = (hbranch_inlets.Total,)
+    CLASSES = (hbranch_inlets.Total,)
 
 
 class OutletSequences(sequencetools.LinkSequences):
     """Downstream link sequences of hbranch_v1."""
-    _SEQCLASSES = (hbranch_outlets.Branched,)
+    CLASSES = (hbranch_outlets.Branched,)
 
 
 autodoc_applicationmodel()

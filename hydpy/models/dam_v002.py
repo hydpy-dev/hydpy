@@ -298,70 +298,70 @@ class Model(modeltools.ModelELS):
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of HydPy-Dam, Version 2."""
-    _PARCLASSES = (dam_control.CatchmentArea,
-                   dam_control.NearDischargeMinimumThreshold,
-                   dam_control.NearDischargeMinimumTolerance,
-                   dam_control.RestrictTargetedRelease,
-                   dam_control.WaterLevelMinimumThreshold,
-                   dam_control.WaterLevelMinimumTolerance,
-                   dam_control.WaterVolume2WaterLevel,
-                   dam_control.WaterLevel2FloodDischarge)
+    CLASSES = (dam_control.CatchmentArea,
+               dam_control.NearDischargeMinimumThreshold,
+               dam_control.NearDischargeMinimumTolerance,
+               dam_control.RestrictTargetedRelease,
+               dam_control.WaterLevelMinimumThreshold,
+               dam_control.WaterLevelMinimumTolerance,
+               dam_control.WaterVolume2WaterLevel,
+               dam_control.WaterLevel2FloodDischarge)
 
 
 class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of HydPy-Dam, Version 2."""
-    _PARCLASSES = (dam_derived.TOY,
-                   dam_derived.Seconds,
-                   dam_derived.NearDischargeMinimumSmoothPar1,
-                   dam_derived.NearDischargeMinimumSmoothPar2,
-                   dam_derived.WaterLevelMinimumSmoothPar)
+    CLASSES = (dam_derived.TOY,
+               dam_derived.Seconds,
+               dam_derived.NearDischargeMinimumSmoothPar1,
+               dam_derived.NearDischargeMinimumSmoothPar2,
+               dam_derived.WaterLevelMinimumSmoothPar)
 
 
 class SolverParameters(parametertools.SubParameters):
     """Solver parameters of HydPy-Dam, Version 2."""
-    _PARCLASSES = (dam_solver.AbsErrorMax,
-                   dam_solver.RelDTMin)
+    CLASSES = (dam_solver.AbsErrorMax,
+               dam_solver.RelDTMin)
 
 
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of HydPy-Dam, Version 2."""
-    _SEQCLASSES = (dam_fluxes.Inflow,
-                   dam_fluxes.RequiredRemoteRelease,
-                   dam_fluxes.RequiredRelease,
-                   dam_fluxes.TargetedRelease,
-                   dam_fluxes.ActualRelease,
-                   dam_fluxes.FloodDischarge,
-                   dam_fluxes.Outflow)
+    CLASSES = (dam_fluxes.Inflow,
+               dam_fluxes.RequiredRemoteRelease,
+               dam_fluxes.RequiredRelease,
+               dam_fluxes.TargetedRelease,
+               dam_fluxes.ActualRelease,
+               dam_fluxes.FloodDischarge,
+               dam_fluxes.Outflow)
 
 
 class StateSequences(sequencetools.StateSequences):
     """State sequences of HydPy-Dam, Version 2."""
-    _SEQCLASSES = (dam_states.WaterVolume,)
+    CLASSES = (dam_states.WaterVolume,)
 
 
 class LogSequences(sequencetools.LogSequences):
     """Log sequences of HydPy-Dam, Version 2."""
-    _SEQCLASSES = (dam_logs.LoggedRequiredRemoteRelease,)
+    CLASSES = (dam_logs.LoggedRequiredRemoteRelease,)
 
 
 class AideSequences(sequencetools.AideSequences):
     """State sequences of HydPy-Dam, Version 2."""
-    _SEQCLASSES = (dam_aides.WaterLevel,)
+    CLASSES = (dam_aides.WaterLevel,)
 
 
 class InletSequences(sequencetools.LinkSequences):
     """Upstream link sequences of HydPy-Dam, Version 2."""
-    _SEQCLASSES = (dam_inlets.Q,)
+    CLASSES = (dam_inlets.Q,)
 
 
 class OutletSequences(sequencetools.LinkSequences):
     """Downstream link sequences of HydPy-Dam, Version 2."""
-    _SEQCLASSES = (dam_outlets.Q,)
+    CLASSES = (dam_outlets.Q,)
 
 
 class ReceiverSequences(sequencetools.LinkSequences):
     """Information link sequences of HydPy-Dam, Version 2."""
-    _SEQCLASSES = (dam_receivers.D,)
+    CLASSES = (dam_receivers.D,)
 
 
 autodoc_applicationmodel()

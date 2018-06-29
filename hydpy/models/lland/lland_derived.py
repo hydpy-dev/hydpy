@@ -223,13 +223,13 @@ class QFactor(parametertools.SingleParameter):
 
 class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of HydPy-H-Land, indirectly defined by the user."""
-    _PARCLASSES = (MOY,
-                   KInz,
-                   WB,
-                   WZ,
-                   KB,
-                   KI1,
-                   KI2,
-                   KD1,
-                   KD2,
-                   QFactor)
+    CLASSES = (MOY,
+               KInz,
+               WB,
+               WZ,
+               KB,
+               KI1,
+               KI2,
+               KD1,
+               KD2,
+               QFactor)

@@ -14,4 +14,4 @@ class Total(sequencetools.LinkSequence):
 
 class InletSequences(sequencetools.LinkSequences):
     """Upstream link sequences of the hbranch model."""
-    _SEQCLASSES = (Total,)
+    CLASSES = (Total,)

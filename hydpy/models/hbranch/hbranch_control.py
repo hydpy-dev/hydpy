@@ -106,4 +106,5 @@ class ControlParameters(parametertools.SubParameters):
     and |YPoints| must be identical.  First define the values of parameter
     |XPoints|, then the values  of parameter |YPoints|.
     """
-    _PARCLASSES = (XPoints, YPoints)
+    CLASSES = (XPoints,
+               YPoints)

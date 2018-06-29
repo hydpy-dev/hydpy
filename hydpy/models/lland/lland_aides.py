@@ -44,9 +44,9 @@ class EPW(sequencetools.AideSequence):
 
 class AideSequences(sequencetools.AideSequences):
     """Aide sequences of the HydPy-L-Land model."""
-    _SEQCLASSES = (SfA,
-                   Exz,
-                   BVl,
-                   MVl,
-                   RVl,
-                   EPW)
+    CLASSES = (SfA,
+               Exz,
+               BVl,
+               MVl,
+               RVl,
+               EPW)

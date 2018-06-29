@@ -237,7 +237,7 @@ class SubSequences(variabletools.SubVariables):
 
 
 class IOSequences(SubSequences):
-    _SEQCLASSES = ()
+    CLASSES = ()
 
     def open_files(self, idx=0):
         self.fastaccess.open_files(idx)
@@ -275,7 +275,7 @@ abctools.IOSequencesABC.register(IOSequences)
 
 class InputSequences(IOSequences):
     """Base class for handling input sequences."""
-    _SEQCLASSES = ()
+    CLASSES = ()
 
     def load_data(self, idx):
         self.fastaccess.load_data(idx)
@@ -286,7 +286,7 @@ abctools.InputSequencesABC.register(InputSequences)
 
 class FluxSequences(IOSequences):
     """Base class for handling flux sequences."""
-    _SEQCLASSES = ()
+    CLASSES = ()
 
     @classmethod
     def getname(cls):
@@ -312,7 +312,7 @@ abctools.OutputSequencesABC.register(FluxSequences)
 
 class StateSequences(IOSequences):
     """Base class for handling state sequences."""
-    _SEQCLASSES = ()
+    CLASSES = ()
 
     def _initfastaccess(self, cls_fastaccess, cymodel):
         IOSequences._initfastaccess(self, cls_fastaccess, cymodel)
@@ -344,7 +344,7 @@ abctools.OutputSequencesABC.register(StateSequences)
 
 class LogSequences(SubSequences):
     """Base class for handling log sequences."""
-    _SEQCLASSES = ()
+    CLASSES = ()
 
     def reset(self):
         for seq in self:
@@ -353,12 +353,12 @@ class LogSequences(SubSequences):
 
 class AideSequences(SubSequences):
     """Base class for handling aide sequences."""
-    _SEQCLASSES = ()
+    CLASSES = ()
 
 
 class LinkSequences(SubSequences):
     """Base class for handling link sequences."""
-    _SEQCLASSES = ()
+    CLASSES = ()
 
 
 class Sequence(variabletools.Variable):
@@ -1795,7 +1795,8 @@ class Obs(NodeSequence):
 
 class NodeSequences(IOSequences):
     """Base class for handling node sequences."""
-    _SEQCLASSES = (Sim, Obs)
+    CLASSES = (Sim,
+               Obs)
 
     def __init__(self, seqs, cls_fastaccess=None):
         IOSequences.__init__(self, seqs, cls_fastaccess)

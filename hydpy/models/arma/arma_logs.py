@@ -21,5 +21,5 @@ class LogOut(sequencetools.LogSequence):
 
 class LogSequences(sequencetools.LogSequences):
     """Log sequences of the ARMA model."""
-    _SEQCLASSES = (LogIn,
-                   LogOut)
+    CLASSES = (LogIn,
+               LogOut)

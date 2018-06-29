@@ -288,8 +288,9 @@ class FluxSequences(IOSequences):
     """Base class for handling flux sequences."""
     CLASSES = ()
 
-    @classmethod
-    def getname(cls):
+    @property
+    def name(self):
+        """`fluxes`"""
         return 'fluxes'
 
     def save_data(self, idx):
@@ -314,8 +315,8 @@ class StateSequences(IOSequences):
     """Base class for handling state sequences."""
     CLASSES = ()
 
-    def _initfastaccess(self, cls_fastaccess, cymodel):
-        IOSequences._initfastaccess(self, cls_fastaccess, cymodel)
+    def _init_fastaccess(self, cls_fastaccess, cymodel):
+        IOSequences._init_fastaccess(self, cls_fastaccess, cymodel)
         self.fastaccess_new = self.fastaccess
         if cls_fastaccess is None:
             self.fastaccess_old = FastAccess()
@@ -412,7 +413,7 @@ class Sequence(variabletools.Variable):
         value = None if self.NDIM else self.initvalue
         setattr(self.fastaccess, self.name, value)
 
-    def _getvalue(self):
+    def _get_value(self):
         """The actual time series value(s) handled by the respective
         |Sequence| instance.  For consistency, `value` and `values`
         can always be used interchangeably.
@@ -427,7 +428,7 @@ class Sequence(variabletools.Variable):
                 value = numpy.asarray(value)
             return value
 
-    def _setvalue(self, value):
+    def _set_value(self, value):
         if self.NDIM == 0:
             try:
                 temp = value[0]
@@ -462,10 +463,9 @@ class Sequence(variabletools.Variable):
                        value, self.shape))
         setattr(self.fastaccess, self.name, value)
 
-    value = property(_getvalue, _setvalue)
-    values = property(_getvalue, _setvalue)
+    value = property(_get_value, _set_value)
 
-    def _getshape(self):
+    def _get_shape(self):
         """A tuple containing the lengths in all dimensions of the sequence
         values at a specific time point.  Note that setting a new shape
         results in a loss of the actual values of the respective sequence.
@@ -483,7 +483,7 @@ class Sequence(variabletools.Variable):
         else:
             return ()
 
-    def _setshape(self, shape):
+    def _set_shape(self, shape):
         if self.NDIM:
             try:
                 array = numpy.full(shape, self.initvalue, dtype=float)
@@ -508,7 +508,7 @@ class Sequence(variabletools.Variable):
             else:
                 self.value = 0.
 
-    shape = property(_getshape, _setshape)
+    shape = property(_get_shape, _set_shape)
 
     def __repr__(self):
         islong = self.length > 255
@@ -564,7 +564,7 @@ class IOSequence(Sequence):
 
     use_ext = property(_get_use_ext, _set_use_ext)
 
-    def _getfiletype_ext(self):
+    def _get_filetype_ext(self):
         """Ending of the external data file.
 
         Normally, each sequence queries its current "external" file type
@@ -630,16 +630,16 @@ prepare `pub.sequencemanager` correctly.
                     'or prepare `pub.sequencemanager` correctly.'
                     % objecttools.devicephrase(self))
 
-    def _setfiletype_ext(self, name):
+    def _set_filetype_ext(self, name):
         self._filetype_ext = name
 
-    def _delfiletype_ext(self):
+    def _del_filetype_ext(self):
         self._filetype_ext = None
 
     filetype_ext = property(
-        _getfiletype_ext, _setfiletype_ext, _delfiletype_ext)
+        _get_filetype_ext, _set_filetype_ext, _del_filetype_ext)
 
-    def _getfilename_ext(self):
+    def _get_filename_ext(self):
         """Complete filename of the external data file.
 
         The "external" filename consists of |IOSequence.rawfilename| and
@@ -658,16 +658,16 @@ prepare `pub.sequencemanager` correctly.
             return self._filename_ext
         return '.'.join((self.rawfilename, self.filetype_ext))
 
-    def _setfilename_ext(self, name):
+    def _set_filename_ext(self, name):
         self._filename_ext = name
 
-    def _delfilename_ext(self):
+    def _del_filename_ext(self):
         self._filename_ext = None
 
     filename_ext = property(
-        _getfilename_ext, _setfilename_ext, _delfilename_ext)
+        _get_filename_ext, _set_filename_ext, _del_filename_ext)
 
-    def _getfilename_int(self):
+    def _get_fileename_int(self):
         """Complete filename of the internal data file.
 
         The "internal" filename consists of |IOSequence.rawfilename|
@@ -683,9 +683,9 @@ prepare `pub.sequencemanager` correctly.
         """
         return self.rawfilename + '.bin'
 
-    filename_int = property(_getfilename_int)
+    filename_int = property(_get_fileename_int)
 
-    def _getdirpath_ext(self):
+    def _get_dirpath_ext(self):
         """Absolute path of the directory of the external data file.
 
         Normally, each sequence queries its current "external" directory
@@ -762,16 +762,16 @@ or prepare `pub.sequencemanager` correctly.
                     'manually or prepare `pub.sequencemanager` correctly.'
                     % objecttools.devicephrase(self))
 
-    def _setdirpath_ext(self, name):
+    def _set_dirpath_ext(self, name):
         self._dirpath_ext = name
 
-    def _deldirpath_ext(self):
+    def _del_dirpath_ext(self):
         self._dirpath_ext = None
 
     dirpath_ext = property(
-        _getdirpath_ext, _setdirpath_ext, _deldirpath_ext)
+        _get_dirpath_ext, _set_dirpath_ext, _del_dirpath_ext)
 
-    def _getdirpath_int(self):
+    def _get_dirpath_int(self):
         """Absolute path of the directory of the internal data file.
 
         Normally, each sequence queries its current "internal" directory
@@ -835,15 +835,15 @@ or prepare `pub.sequencemanager` correctly.
                     'manually or prepare `pub.sequencemanager` correctly.'
                     % objecttools.devicephrase(self))
 
-    def _setdirpath_int(self, name):
+    def _set_dirpath_int(self, name):
         self._dirpath_int = name
 
-    def _deldirpath_int(self):
+    def _del_dirpath_int(self):
         self._dirpath_int = None
     dirpath_int = property(
-        _getdirpath_int, _setdirpath_int, _deldirpath_int)
+        _get_dirpath_int, _set_dirpath_int, _del_dirpath_int)
 
-    def _getfilepath_ext(self):
+    def _get_filepath_ext(self):
         """Absolute path to the external data file.
 
         The path pointing to the "external" file consists of
@@ -862,16 +862,16 @@ or prepare `pub.sequencemanager` correctly.
             return self._filepath_ext
         return os.path.join(self.dirpath_ext, self.filename_ext)
 
-    def _setfilepath_ext(self, name):
+    def _set_filepath_ext(self, name):
         self._filepath_ext = name
 
-    def _delfilepath_ext(self):
+    def _del_filepath_ext(self):
         self._filepath_ext = None
 
     filepath_ext = property(
-        _getfilepath_ext, _setfilepath_ext, _delfilepath_ext)
+        _get_filepath_ext, _set_filepath_ext, _del_filepath_ext)
 
-    def _getfilepath_int(self):
+    def _get_fileepath_int(self):
         """Absolute path to the internal data file.
 
         The path pointing to the "internal" file consists of
@@ -891,14 +891,14 @@ or prepare `pub.sequencemanager` correctly.
             return self._filepath_int
         return os.path.join(self.dirpath_int, self.filename_int)
 
-    def _setfilepath_int(self, name):
+    def _set_filepath_int(self, name):
         self._filepath_int = name
 
-    def _delfilepath_int(self):
+    def _del_filepath_int(self):
         self._filepath_int = None
 
     filepath_int = property(
-        _getfilepath_int, _setfilepath_int, _delfilepath_int)
+        _get_fileepath_int, _set_filepath_int, _del_filepath_int)
 
     def update_fastaccess(self):
         if self.diskflag:
@@ -913,7 +913,7 @@ or prepare `pub.sequencemanager` correctly.
                     self.shape[idx])
         setattr(self.fastaccess, '_%s_length' % self.name, length)
 
-    def _getdiskflag(self):
+    def _get_diskflag(self):
         diskflag = getattr(
             self.fastaccess, '_%s_diskflag' % self.name, None)
         if diskflag is not None:
@@ -923,12 +923,12 @@ or prepare `pub.sequencemanager` correctly.
                 'The `diskflag` of sequence `%s` has not been set yet.'
                 % objecttools.devicephrase(self))
 
-    def _setdiskflag(self, value):
+    def _set_diskflag(self, value):
         setattr(self.fastaccess, '_%s_diskflag' % self.name, bool(value))
 
-    diskflag = property(_getdiskflag, _setdiskflag)
+    diskflag = property(_get_diskflag, _set_diskflag)
 
-    def _getramflag(self):
+    def _get_ramflag(self):
         ramflag = getattr(self.fastaccess, '_%s_ramflag' % self.name, None)
         if ramflag is not None:
             return ramflag
@@ -937,17 +937,16 @@ or prepare `pub.sequencemanager` correctly.
                 'The `ramflag` of sequence `%s` has not been set yet.'
                 % objecttools.devicephrase(self))
 
-    def _setramflag(self, value):
+    def _set_ramflag(self, value):
         setattr(self.fastaccess, '_%s_ramflag' % self.name, bool(value))
 
-    ramflag = property(_getramflag, _setramflag)
+    ramflag = property(_get_ramflag, _set_ramflag)
 
-    def _getmemoryflag(self):
+    @property
+    def memoryflag(self):
         return self.ramflag or self.diskflag
 
-    memoryflag = property(_getmemoryflag)
-
-    def _getarray(self):
+    def _get_array(self):
         array = getattr(self.fastaccess, '_%s_array' % self.name, None)
         if array is not None:
             return numpy.asarray(array)
@@ -956,7 +955,7 @@ or prepare `pub.sequencemanager` correctly.
                 'The `ram array` of sequence `%s` has not been set yet.'
                 % objecttools.devicephrase(self))
 
-    def _setarray(self, values):
+    def _set_array(self, values):
         values = numpy.array(values, dtype=float)
         setattr(self.fastaccess, '_%s_array' % self.name, values)
 
@@ -983,37 +982,38 @@ or prepare `pub.sequencemanager` correctly.
         numericshape.extend(self.shape)
         return tuple(numericshape)
 
-    def _getseries(self):
+    def _get_series(self):
+        """Internal time series data within an |numpy.ndarray|."""
         if self.diskflag:
             return self._load_int()
         elif self.ramflag:
-            return self._getarray()
+            return self._get_array()
         else:
             raise RuntimeError(
                 'Sequence %s is not requested to make any '
                 'internal data available to the user.'
                 % objecttools.devicephrase(self))
 
-    def _setseries(self, values):
+    def _set_series(self, values):
         series = self.series
         series[:] = values
         if self.diskflag:
             self._save_int(series)
         elif self.ramflag:
-            self._setarray(series)
+            self._set_array(series)
         else:
             raise RuntimeError(
                 'Sequence `%s` is not requested to make any '
                 'internal data available to the user.'
                 % objecttools.devicephrase(self))
 
-    def _delseries(self):
+    def _del_series(self):
         if self.diskflag:
             os.remove(self.filepath_int)
         elif self.ramflag:
             setattr(self.fastaccess, '_%s_array' % self.name, None)
 
-    series = property(_getseries, _setseries, _delseries)
+    series = property(_get_series, _set_series, _del_series)
 
     def load_ext(self):
         """Write the internal data into an external data file."""
@@ -1166,7 +1166,7 @@ or prepare `pub.sequencemanager` correctly.
         if self.diskflag:
             self._save_int(values)
         elif self.ramflag:
-            self._setarray(values)
+            self._set_array(values)
         else:
             raise RuntimeError(
                 'Sequence %s is not requested to make any '
@@ -1212,7 +1212,7 @@ or prepare `pub.sequencemanager` correctly.
         values = self.series
         self.deactivate_disk()
         self.ramflag = True
-        self._setarray(values)
+        self._set_array(values)
         self.update_fastaccess()
 
     def ram2disk(self):
@@ -1223,13 +1223,13 @@ or prepare `pub.sequencemanager` correctly.
         self._save_int(values)
         self.update_fastaccess()
 
-    def _setshape(self, shape):
-        Sequence._setshape(self, shape)
+    def _set_shape(self, shape):
+        Sequence._set_shape(self, shape)
         self.update_fastaccess()
 
-    shape = property(Sequence._getshape, _setshape)
+    shape = property(Sequence._get_shape, _set_shape)
 
-    def _getrawfilename(self):
+    def _get_rawfilename(self):
         """Filename without ending for external and internal date files."""
         if self._rawfilename:
             return self._rawfilename
@@ -1243,13 +1243,14 @@ or prepare `pub.sequencemanager` correctly.
                     'into a device object.'
                     % self.name)
 
-    def _setrawfilename(self, name):
+    def _set_rawfilename(self, name):
         self._rawfilename = str(name)
 
-    def _delrawfilename(self):
+    def _del_rawfilename(self):
         self._rawfilename = None
 
-    rawfilename = property(_getrawfilename, _setrawfilename, _delrawfilename)
+    rawfilename = property(
+        _get_rawfilename, _set_rawfilename, _del_rawfilename)
 
     @property
     def would_overwrite_file(self):
@@ -1368,15 +1369,15 @@ class FluxSequence(ModelIOSequence):
             value = None if self.NDIM else 0.
             self._connect_subattr('sum', value)
 
-    def _setshape(self, shape):
-        ModelIOSequence._setshape(self, shape)
+    def _set_shape(self, shape):
+        ModelIOSequence._set_shape(self, shape)
         if self.NDIM and self.NUMERIC:
             self._connect_subattr('points', numpy.zeros(self.numericshape))
             self._connect_subattr('integrals', numpy.zeros(self.numericshape))
             self._connect_subattr('results', numpy.zeros(self.numericshape))
             self._connect_subattr('sum', numpy.zeros(self.shape))
 
-    shape = property(ModelIOSequence._getshape, _setshape)
+    shape = property(ModelIOSequence._get_shape, _set_shape)
 
 
 abctools.FluxSequenceABC.register(FluxSequence)
@@ -1389,23 +1390,23 @@ class LeftRightSequence(ModelIOSequence):
         setattr(self.fastaccess, self.name,
                 numpy.full(2, self.initvalue, dtype=float))
 
-    def _getleft(self):
+    def _get_left(self):
         """The "left" value of the actual parameter."""
         return self.values[0]
 
-    def _setleft(self, value):
+    def _set_left(self, value):
         self.values[0] = value
 
-    left = property(_getleft, _setleft)
+    left = property(_get_left, _set_left)
 
-    def _getright(self):
+    def _get_right(self):
         """The "right" value of the actual parameter."""
         return self.values[1]
 
-    def _setright(self, value):
+    def _set_right(self, value):
         self.values[1] = value
 
-    right = property(_getright, _setright)
+    right = property(_get_right, _set_right)
 
 
 class ConditionSequence(object):
@@ -1465,8 +1466,8 @@ class StateSequence(ModelIOSequence, ConditionSequence):
             self._connect_subattr('points', value)
             self._connect_subattr('results', copy.copy(value))
 
-    def _setshape(self, shape):
-        ModelIOSequence._setshape(self, shape)
+    def _set_shape(self, shape):
+        ModelIOSequence._set_shape(self, shape)
         if self.NDIM:
             setattr(self.fastaccess_old, self.name, self.new.copy())
             if self.NUMERIC:
@@ -1475,7 +1476,7 @@ class StateSequence(ModelIOSequence, ConditionSequence):
                 self._connect_subattr('results',
                                       numpy.zeros(self.numericshape))
 
-    shape = property(ModelIOSequence._getshape, _setshape)
+    shape = property(ModelIOSequence._get_shape, _set_shape)
 
     new = Sequence.values
     """Complete access to the state value(s), which will be used in the
@@ -1484,7 +1485,7 @@ class StateSequence(ModelIOSequence, ConditionSequence):
     condition(s) of a single |StateSequence| object.
     """
 
-    def _getold(self):
+    def _get_old(self):
         """Assess to the state value(s) at beginning of the time step, which
         has been processed most recently.  When using :ref:`HydPy` in the
         normal manner.  But it can be helpful for demonstration and debugging
@@ -1501,7 +1502,7 @@ class StateSequence(ModelIOSequence, ConditionSequence):
                 value = numpy.asarray(value)
             return value
 
-    def _setold(self, value):
+    def _set_old(self, value):
         if self.NDIM == 0:
             try:
                 temp = value[0]
@@ -1534,7 +1535,7 @@ class StateSequence(ModelIOSequence, ConditionSequence):
                     % (value, self.shape))
         setattr(self.fastaccess_old, self.name, value)
 
-    old = property(_getold, _setold)
+    old = property(_get_old, _set_old)
 
     def new2old(self):
         if self.NDIM:
@@ -1605,21 +1606,20 @@ class LinkSequence(Sequence):
         except AttributeError:
             pass
 
-    def _getvalue(self):
+    def _get_value(self):
         raise AttributeError(
             'To retrieve a pointer is very likely to result in bugs '
             'and is thus not supported at the moment.')
 
-    def _setvalue(self, value):
+    def _set_value(self, value):
         """Could be implemented, but is not important at the moment..."""
         raise AttributeError(
             'To change a pointer is very likely to result in bugs '
             'and is thus not supported at the moment.')
 
-    value = property(_getvalue, _setvalue)
-    values = value
+    value = property(_get_value, _set_value)
 
-    def _getshape(self):
+    def _get_shape(self):
         if self.NDIM == 0:
             return ()
         elif self.NDIM == 1:
@@ -1632,7 +1632,7 @@ class LinkSequence(Sequence):
             'is not supported so far.'
             % self.NDIM)
 
-    def _setshape(self, shape):
+    def _set_shape(self, shape):
         if self.NDIM == 1:
             try:
                 getattr(self.fastaccess, self.name).shape = shape
@@ -1646,7 +1646,7 @@ class LinkSequence(Sequence):
                 'is not supported so far.'
                 % self.NDIM)
 
-    shape = property(_getshape, _setshape)
+    shape = property(_get_shape, _set_shape)
 
 
 abctools.LinkSequenceABC.register(LinkSequence)
@@ -1680,7 +1680,7 @@ class NodeSequence(IOSequence):
     def _initvalues(self):
         setattr(self.fastaccess, self.name, pointerutils.Double(0.))
 
-    def _getvalues(self):
+    def _get_value(self):
         """Actual value(s) handled by the sequence.  For consistency,
         `value` and `values` can always be used interchangeably."""
         try:
@@ -1691,11 +1691,10 @@ class NodeSequence(IOSequence):
             elif self.NDIM == 1:
                 return self.fastaccess.getpointer1d(self.name)
 
-    def _setvalues(self, values):
+    def _set_value(self, values):
         getattr(self.fastaccess, self.name)[0] = values
 
-    values = property(_getvalues, _setvalues)
-    value = values
+    value = property(_get_value, _set_value)
 
 
 abctools.NodeSequenceABC.register(NodeSequence)

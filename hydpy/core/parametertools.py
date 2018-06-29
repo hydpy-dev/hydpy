@@ -806,19 +806,19 @@ class SingleParameter(Parameter):
         setattr(self.fastaccess, self.name, self.initvalue)
 
     @staticmethod
-    def _getshape():
+    def _get_shape():
         """An empty tuple.  (Only intended for increasing consistent usability
         of |SingleParameter| and |MultiParameter| instances.)
         """
         return ()
 
-    def _setshape(self, shape):
+    def _set_shape(self, shape):
         raise RuntimeError(
             'The shape information of `SingleParameters` '
             'as `%s` cannot be changed.'
             % objecttools.elementphrase(self))
 
-    shape = property(_getshape, _setshape)
+    shape = property(_get_shape, _set_shape)
 
     def _get_value(self):
         """The actual parameter value handled by the respective
@@ -848,7 +848,6 @@ class SingleParameter(Parameter):
         setattr(self.fastaccess, self.name, value)
 
     value = property(_get_value, _set_value)
-    values = value
 
     def __len__(self):
         """Returns 1.  (This method is only intended for increasing consistent
@@ -874,7 +873,7 @@ class MultiParameter(Parameter):
         self.fastaccess = subpars.fastaccess
         setattr(self.fastaccess, self.name, None)
 
-    def _getshape(self):
+    def _get_shape(self):
         """A tuple containing the lengths in all dimensions of the parameter
         values.  Note that setting a new shape results in a loss of all values
         of the respective parameter.
@@ -888,7 +887,7 @@ class MultiParameter(Parameter):
                 'be retrieved after it has been defined.'
                 % objecttools.elementphrase(self))
 
-    def _setshape(self, shape):
+    def _set_shape(self, shape):
         try:
             array = numpy.full(shape, self.initvalue, dtype=self.TYPE)
         except BaseException:
@@ -903,7 +902,7 @@ class MultiParameter(Parameter):
                 'given shape indicates %d dimensions.'
                 % (objecttools.elementphrase(self), self.NDIM, array.ndim))
 
-    shape = property(_getshape, _setshape)
+    shape = property(_get_shape, _set_shape)
 
     def _get_value(self):
         """The actual parameter value(s) handled by the respective
@@ -930,7 +929,6 @@ class MultiParameter(Parameter):
         setattr(self.fastaccess, self.name, value)
 
     value = property(_get_value, _set_value)
-    values = value
 
     def __len__(self):
         """Returns the number of values handled by the |MultiParameter|
@@ -1154,12 +1152,12 @@ class ZipParameter(MultiParameter):
             else:
                 raise exc
 
-    def _getshape(self):
+    def _get_shape(self):
         """Return a tuple containing the lengths in all dimensions of the
         parameter values.
         """
         try:
-            return MultiParameter._getshape(self)
+            return MultiParameter._get_shape(self)
         except RuntimeError:
             raise RuntimeError(
                 'Shape information for parameter `%s` can only be '
@@ -1169,20 +1167,7 @@ class ZipParameter(MultiParameter):
                 'each parameter control file.'
                 % (self.name, self.shapeparameter.name))
 
-    shape = property(_getshape, MultiParameter._setshape)
-
-    @property
-    def mask(self):
-        """A |numpy.ndarray| of the same shape as the value array handled
-        by the respective |ZipParameter| object.  |True| entries indicate
-        that certain parameter values are required, which depends on the
-        tuple |ZipParameter.RELEVANT_VALUES| of the respective subclass.
-        """
-        mask = numpy.full(self.shape, False, dtype=bool)
-        refvalues = self.refindices.values
-        for reqvalue in self.RELEVANT_VALUES:
-            mask[refvalues == reqvalue] = True
-        return mask
+    shape = property(_get_shape, MultiParameter._set_shape)
 
     def compress_repr(self):
         """Return a compressed parameter value string, which is (in
@@ -1513,7 +1498,7 @@ into shape (3)
             x_1, y_1 = xys[0]
         return y_0+(y_1-y_0)/(x_1-x_0)*(xnew-x_0)
 
-    def _setshape(self, shape):
+    def _set_shape(self, shape):
         try:
             shape = (int(shape),)
         except TypeError:
@@ -1529,9 +1514,9 @@ into shape (3)
                 % (self.name, objecttools.devicename(self)))
         shape[0] = timetools.Period('366d')/self.simulationstep
         shape[0] = int(numpy.ceil(round(shape[0], 10)))
-        MultiParameter._setshape(self, shape)
+        MultiParameter._set_shape(self, shape)
 
-    shape = property(MultiParameter._getshape, _setshape)
+    shape = property(MultiParameter._get_shape, _set_shape)
 
     def __iter__(self):
         for toy in sorted(self._toy2values.keys()):

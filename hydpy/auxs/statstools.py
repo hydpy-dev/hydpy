@@ -40,7 +40,7 @@ def prepare_arrays(sim=None, obs=None, node=None, skip_nan=False):
     >>> node.prepare_simseries()
     >>> node.sequences.sim.series = 1.0, nan, nan, nan, 2.0, 3.0
     >>> node.sequences.obs.ramflag = True
-    >>> node.sequences.obs._setarray([4.0, 5.0, nan, nan, nan, 6.0])
+    >>> node.sequences.obs._set_array([4.0, 5.0, nan, nan, nan, 6.0])
 
     Now we can pass the node object to function |prepare_arrays| and
     get the (unmodified) time series data:
@@ -640,11 +640,11 @@ def evaluationtable(nodes, criteria, nodenames=None,
     ...     node.prepare_simseries()
     ...     node.sequences.sim.series = 1.0, 2.0, 3.0
     ...     node.sequences.obs.ramflag = True
-    ...     node.sequences.obs._setarray([4.0, 5.0, 6.0])
+    ...     node.sequences.obs._set_array([4.0, 5.0, 6.0])
     >>> nodes[0].sequences.sim.series = 1.0, 2.0, 3.0
-    >>> nodes[0].sequences.obs._setarray([4.0, 5.0, 6.0])
+    >>> nodes[0].sequences.obs._set_array([4.0, 5.0, 6.0])
     >>> nodes[1].sequences.sim.series = 1.0, 2.0, 3.0
-    >>> nodes[1].sequences.obs._setarray([3.0, nan, 1.0])
+    >>> nodes[1].sequences.obs._set_array([3.0, nan, 1.0])
 
     Selecting functions |corr| and |bias_abs| as evaluation criteria,
     function |evaluationtable| returns the following table (which is

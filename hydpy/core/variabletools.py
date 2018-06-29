@@ -303,11 +303,14 @@ error occured: operands could not be broadcast together with shapes (2,) (3,)
         defined by the subclasses of |Variable|."""
         raise NotImplementedError
 
-    @property
-    def values(self):
-        """Actual value or |numpy.ndarray| of the actual values, to be
-        defined by the subclasses of |Variable|."""
-        raise NotImplementedError
+    def _get_values(self):
+        """Alias for |Variable.value|."""
+        return self.value
+
+    def _set_values(self, values):
+        self.value = values
+
+    values = property(_get_values, _set_values)
 
     @property
     def shape(self):

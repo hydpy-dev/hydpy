@@ -470,7 +470,7 @@ class IntegrationTest(Test):
                 node.deploymode = 'oldsim'
             sim = node.sequences.sim
             sim.ramflag = True
-            sim._setarray(numpy.zeros(len(pub.timegrids.init), dtype=float))
+            sim._set_array(numpy.zeros(len(pub.timegrids.init), dtype=float))
 
     def prepare_input_model_sequences(self):
         """Configure the input sequences of the model in a manner that allows
@@ -478,7 +478,7 @@ class IntegrationTest(Test):
         subseqs = getattr(self.element.model.sequences, 'inputs', ())
         for seq in subseqs:
             seq.ramflag = True
-            seq._setarray(numpy.zeros(len(pub.timegrids.init), dtype=float))
+            seq._set_array(numpy.zeros(len(pub.timegrids.init), dtype=float))
 
     def extract_print_sequences(self):
         """Return a list of all input, flux and state sequences of the model

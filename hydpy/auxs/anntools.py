@@ -363,7 +363,7 @@ is not usable so far.
         Traceback (most recent call last):
         ...
         ValueError: While trying to set the input weights of the artificial \
-neural network `ann` of element `?`, the following error occured: could not \
+neural network `ann` of element `?`, the following error occurred: could not \
 broadcast input array from shape (3,3) into shape (2,3)
         """
         return numpy.asarray(self._cann.weights_input)
@@ -463,7 +463,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         Traceback (most recent call last):
         ...
         ValueError: While trying to set the output weights of the artificial \
-neural network `ann` of element `?`, the following error occured: could not \
+neural network `ann` of element `?`, the following error occurred: could not \
 broadcast input array from shape (3,3) into shape (3,2)
         """
         return numpy.asarray(self._cann.weights_output)
@@ -583,7 +583,7 @@ broadcast input array from shape (3,3) into shape (3,2)
         Traceback (most recent call last):
         ...
         ValueError: While trying to set the hidden weights of the artificial \
-neural network `ann` of element `?`, the following error occured: could not \
+neural network `ann` of element `?`, the following error occurred: could not \
 broadcast input array from shape (3,2) into shape (2,3,3)
         """
         return numpy.asarray(self._cann.weights_hidden)
@@ -690,7 +690,7 @@ broadcast input array from shape (3,2) into shape (2,3,3)
         Traceback (most recent call last):
         ...
         ValueError: While trying to set the neuron related intercepts of the \
-artificial neural network `ann` of element `?`, the following error occured: \
+artificial neural network `ann` of element `?`, the following error occurred: \
 could not broadcast input array from shape (2) into shape (2,3)
 
         The number of input intercepts is available as a property:
@@ -780,7 +780,7 @@ could not broadcast input array from shape (2) into shape (2,3)
         ...
         ValueError: While trying to set the output node related intercepts \
 of the artificial neural network `ann` of element `?`, the following error \
-occured: could not broadcast input array from shape (2) into shape (3)
+occurred: could not broadcast input array from shape (2) into shape (3)
         """
         return numpy.asarray(self._cann.intercepts_output)
 
@@ -869,7 +869,7 @@ occured: could not broadcast input array from shape (2) into shape (3)
         Traceback (most recent call last):
         ...
         ValueError: While trying to set the inputs of the artificial neural \
-network `ann` of element `?`, the following error occured: could not \
+network `ann` of element `?`, the following error occurred: could not \
 broadcast input array from shape (2) into shape (3)
         """
         return numpy.asarray(self._cann.inputs)
@@ -1297,9 +1297,9 @@ of element `?` has not been properly prepared so far.
     Traceback (most recent call last):
     ...
     ValueError: While trying to add a season specific neural network to \
-parameter `seasonalann` of element `?`, the following error occured: \
+parameter `seasonalann` of element `?`, the following error occurred: \
 While trying to retrieve the month for TOY (time of year) object based \
-on the string `_13_1_12`, the following error occured: \
+on the string `_13_1_12`, the following error occurred: \
 The value of property `month` of TOY (time of year) objects must lie \
 within the range `(1, 12)`, but the given value is `13`.
 
@@ -1385,7 +1385,7 @@ year `toy_3_1_12_0_0` requires `1` input and `1` output values.
     ...
     RuntimeError: While trying to assign a new neural network to the \
 seasonal neural network collection `seasonalann` of element `?` based \
-on name `toy_7_1_12`, the following error occured: \
+on name `toy_7_1_12`, the following error occurred: \
 The number of input and output values of all neural networks contained \
 by a seasonal neural network collection must be identical and be known \
 by the containing object.  But the seasonal neural network collection \
@@ -1414,7 +1414,7 @@ requires `2` input and `1` output values.
     ...
     AttributeError: While trying to look up for a neural network handled \
 by the seasonal neural network collection `seasonalann` of element `?` \
-based on name `toy_1_1_12`, the following error occured: No neural network \
+based on name `toy_1_1_12`, the following error occurred: No neural network \
 is registered under a TOY object named `toy_1_1_12_0_0`.
 
     >>> del seasonalann.toy_1_1_12
@@ -1422,7 +1422,7 @@ is registered under a TOY object named `toy_1_1_12_0_0`.
     ...
     AttributeError: While trying to remove a new neural network from the \
 seasonal neural network collection `seasonalann` of element `?` based on \
-name `toy_1_1_12`, the following error occured: No neural network is \
+name `toy_1_1_12`, the following error occurred: No neural network is \
 registered under a TOY object named `toy_1_1_12_0_0`.
 
     >>> seasonalann.toy_1_1_12 = 1
@@ -1430,7 +1430,7 @@ registered under a TOY object named `toy_1_1_12_0_0`.
     ...
     TypeError: While trying to assign a new neural network to the seasonal \
 neural network collection `seasonalann` of element `?` based on name \
-`toy_1_1_12`, the following error occured: Value `1` of type `int` has \
+`toy_1_1_12`, the following error occurred: Value `1` of type `int` has \
 been given, but a value of type `ANN` is required.
 
     Setting and deleting "normal" attributes is supported:

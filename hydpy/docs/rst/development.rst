@@ -670,7 +670,7 @@ Now do the same for the second test method:
     >>> _ = tester.run(result)
 
 The test result object tells us that two tests have been executed, that
-no (unexpected) error occured, and that one test failed:
+no (unexpected) error occurred, and that one test failed:
 
     >>> result
     <unittest.result.TestResult run=2 errors=0 failures=1>

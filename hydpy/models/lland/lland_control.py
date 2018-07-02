@@ -405,7 +405,7 @@ class DMin(lland_parameters.ParameterSoil):
         ...
         NotImplementedError: While trying to set the values of parameter \
 `dmin` of element `?` based on keyword arguments, the following error \
-occured: Key `rdmin` is not an available model constant.
+occurred: Key `rdmin` is not an available model constant.
 
     """
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
@@ -480,7 +480,7 @@ class DMax(lland_parameters.ParameterSoil):
         ...
         NotImplementedError: While trying to set the values of parameter \
 `dmax` of element `?` based on keyword arguments, the following error \
-occured: Key `rdmax` is not an available model constant.
+occurred: Key `rdmax` is not an available model constant.
     """
     NDIM, TYPE, TIME, SPAN = 1, float, True, (None, None)
     INIT = 1.

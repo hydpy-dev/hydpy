@@ -102,7 +102,7 @@ class Responses(parametertools.Parameter):
     >>> responses.th_10 = ()
     Traceback (most recent call last):
     ...
-    IndexError: While trying to set a new threshold (th_10) coefficient pair for parameter `responses` of element `?`, the following error occured: tuple index out of range
+    IndexError: While trying to set a new threshold (th_10) coefficient pair for parameter `responses` of element `?`, the following error occurred: tuple index out of range
 
     Except for the mentioned conversion to floating point values, there are
     no plausibility checks performed.  You have to use other tools to gain

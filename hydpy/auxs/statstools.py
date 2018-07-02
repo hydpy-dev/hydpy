@@ -559,7 +559,7 @@ def calc_mean_time(timepoints, weights):
     Traceback (most recent call last):
     ...
     ValueError: While trying to calculate the weighted mean time, \
-the following error occured: For the following objects, at least \
+the following error occurred: For the following objects, at least \
 one value is negative: weights.
     """
     timepoints = numpy.array(timepoints)
@@ -608,7 +608,7 @@ def calc_mean_time_deviation(timepoints, weights, mean_time=None):
     Traceback (most recent call last):
     ...
     ValueError: While trying to calculate the weighted time deviation \
-from mean time, the following error occured: For the following objects, \
+from mean time, the following error occurred: For the following objects, \
 at least one value is negative: weights.
     """
     timepoints = numpy.array(timepoints)
@@ -675,7 +675,7 @@ def evaluationtable(nodes, criteria, nodenames=None,
     Traceback (most recent call last):
     ...
     ValueError: While trying to evaluate the simulation results of some \
-node objects, the following error occured: 2 node objects are given \
+node objects, the following error occurred: 2 node objects are given \
 which does not match with number of given alternative names beeing 1.
 
     >>> evaluationtable(nodes, (corr, bias_abs),
@@ -683,7 +683,7 @@ which does not match with number of given alternative names beeing 1.
     Traceback (most recent call last):
     ...
     ValueError: While trying to evaluate the simulation results of some \
-node objects, the following error occured: 2 criteria functions are given \
+node objects, the following error occurred: 2 criteria functions are given \
 which does not match with number of given alternative names beeing 1.
     """
     if nodenames:

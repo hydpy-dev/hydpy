@@ -158,7 +158,7 @@ defined by the MA coefficients 1.0, 1.0, 1.0.
     ...
     UserWarning: During the determination of the MA coefficients \
 corresponding to the instantaneous unit hydrograph ... a numerical \
-integration problem occured.  \
+integration problem occurred.  \
 Please check the calculated coefficients: 0.0, 0.0, 0.0, 0.0, 0.75, 0.25.
     >>> ma
     MA(coefs=(0.0, 0.0, 0.0, 0.0, 0.75, 0.25))
@@ -218,7 +218,7 @@ Please check the calculated coefficients: 0.0, 0.0, 0.0, 0.0, 0.75, 0.25.
                 warnings.warn(
                     'During the determination of the MA coefficients '
                     'corresponding to the instantaneous unit hydrograph '
-                    '`%s` a numerical integration problem occured.  '
+                    '`%s` a numerical integration problem occurred.  '
                     'Please check the calculated coefficients: %s.'
                     % (repr(self.iuh), objecttools.repr_values(coefs)))
                 break   # pragma: no cover

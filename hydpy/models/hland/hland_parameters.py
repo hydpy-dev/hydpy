@@ -54,7 +54,7 @@ in each parameter control file.
     Traceback (most recent call last):
     ...
     RuntimeError: While trying to set the values of parameter `pcorr` \
-of element `?` based on keyword arguments, the following error occured: \
+of element `?` based on keyword arguments, the following error occurred: \
 The mask of parameter `pcorr` of element `?` cannot be determined, as \
 long as parameter `zonetype` is not prepared properly.
 
@@ -95,7 +95,7 @@ long as parameter `zonetype` is not prepared properly.
     ...
     NotImplementedError: While trying to set the values of parameter \
 `pcorr` of element `?` based on keyword arguments, the following error \
-occured: Key `wood` is not an available model constant.
+occurred: Key `wood` is not an available model constant.
 
     The way positional arguments are understood remains unaffected:
 

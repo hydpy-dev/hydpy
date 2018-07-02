@@ -79,8 +79,8 @@ class Auxfiler(object):
     Traceback (most recent call last):
     ...
     ModuleNotFoundError: While trying to add one ore more models to the \
-actual auxiliary file handler, the following error occured: \
-While trying to import a model named `asdf`, the following error occured: \
+actual auxiliary file handler, the following error occurred: \
+While trying to import a model named `asdf`, the following error occurred: \
 No module named `hydpy.models.asdf`.
 
     .. testsetup::
@@ -132,7 +132,7 @@ attributes.  Use the `-=` operator to remove registered models instead.
     Traceback (most recent call last):
     ...
     ValueError: While trying to extend the range of variables handled \
-by the actual Variable2AuxFile object, the following error occured: \
+by the actual Variable2AuxFile object, the following error occurred: \
 Filename `file1` is already allocated to another `Variable2Auxfile` object.
     >>> aux.lland_v2.file2 = model.parameters.control.eqd2
 
@@ -143,7 +143,7 @@ Filename `file1` is already allocated to another `Variable2Auxfile` object.
     Traceback (most recent call last):
     ...
     TypeError: While trying to extend the range of variables handled \
-by the actual Variable2AuxFile object, the following error occured: \
+by the actual Variable2AuxFile object, the following error occurred: \
 Variable type `EQD1` is not handled by model `lstream_v1`.
     >>> aux.lland_v2.file2 = model.parameters.control.eqd1
 
@@ -373,7 +373,7 @@ class Variable2Auxfile(object):
     Traceback (most recent call last):
     ...
     ValueError: While trying to extend the range of variables handled by the \
-actual Variable2AuxFile object, the following error occured: You tried to \
+actual Variable2AuxFile object, the following error occurred: You tried to \
 allocate variable `eqb(5000.0)` to filename `file2`, but an equal `EQB` \
 object has already been allocated to filename `file1`.
     >>> v2af.file2
@@ -533,7 +533,7 @@ object has already been allocated to filename `file1`.
         Traceback (most recent call last):
         ...
         ValueError: While trying to remove the given object `test` of type \
-`str` from the actual Variable2AuxFile object, the following error occured:  \
+`str` from the actual Variable2AuxFile object, the following error occurred:  \
 `'test'` is neither a registered filename nor a registered variable.
         """
         for value in objecttools.extract(values, (str, abctools.VariableABC)):

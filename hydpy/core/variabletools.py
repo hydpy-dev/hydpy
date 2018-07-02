@@ -216,7 +216,7 @@ class Variable(object):
     Traceback (most recent call last):
     ...
     IndexError: While trying to access the value(s) of variable `variable` \
-with key `1`, the following error occured: The only allowed keys for \
+with key `1`, the following error occurred: The only allowed keys for \
 0-dimensional variables are `0` and `:`.
 
 
@@ -240,7 +240,7 @@ with key `1`, the following error occured: The only allowed keys for \
     Traceback (most recent call last):
     ...
     ValueError: While trying to set the value(s) of variable `variable` \
-with key `slice(None, None, None)`, the following error occured: \
+with key `slice(None, None, None)`, the following error occurred: \
 could not convert string to float: 'test'
 
     Note that comparisons on |Variable| objects containg multiple
@@ -273,7 +273,7 @@ could not convert string to float: 'test'
     ...
     ValueError: While trying to compare variable `variable(1.0, 3.0)` of \
 element `?` with object `[1.0, 2.0, 3.0]` of type `list`, the following \
-error occured: operands could not be broadcast together with shapes (2,) (3,)
+error occurred: operands could not be broadcast together with shapes (2,) (3,)
 
     >>> Variable.NDIM = 0
     >>> Variable.value = 1.0
@@ -468,7 +468,7 @@ has not been set yet.
         Traceback (most recent call last):
         ...
         NotImplementedError: While trying to calculate the mean value \
-of variable `soilmoisture`, the following error occured: Variable \
+of variable `soilmoisture`, the following error occurred: Variable \
 `soilmoisture` does not define any weighting coefficients.
 
         So model developers have to define another (in this case
@@ -551,7 +551,7 @@ of variable `soilmoisture`, the following error occured: Variable \
         Traceback (most recent call last):
         ...
         ValueError: While trying to calculate the mean value of variable \
-`soilmoisture`, the following error occured: Based on the arguments \
+`soilmoisture`, the following error occurred: Based on the arguments \
 `('flatsoil', 'water')` and `{}` the mask `CustomMask([ True, False,  True])` \
 has been determined, which is not a submask of `Soil([ True,  True, False])`.
 

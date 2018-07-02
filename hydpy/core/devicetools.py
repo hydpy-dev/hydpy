@@ -91,8 +91,8 @@ class Keywords(set):
         Traceback (most recent call last):
         ...
         ValueError: While trying to add the keyword `test 2` to device `?`, \
-the following error occured: The given name string `test 2` does not define a \
-valid variable identifier.  ...
+the following error occurred: The given name string `test 2` does not \
+define a valid variable identifier.  ...
 
         Note that the first string (`test_1`) is not added, as the second
         one (`test 2`) is invalid:
@@ -120,8 +120,8 @@ valid variable identifier.  ...
         Traceback (most recent call last):
         ...
         ValueError: While trying to add the keyword `1_test` to device `?`, \
-the following error occured: The given name string `1_test` does not define a \
-valid variable identifier.  ...
+the following error occurred: The given name string `1_test` does not \
+define a valid variable identifier.  ...
 
         >>> keywords
         Keywords(["first_keyword", "keyboard", "keyword_3", "keyword_4",
@@ -240,8 +240,8 @@ class Device(object):
         Traceback (most recent call last):
         ...
         ValueError: While trying to initialize a `Node` object with value \
-`n 3` of type `str`, the following error occured: The given name string `n 3` \
-does not define a valid variable identifier.  ...
+`n 3` of type `str`, the following error occurred: The given name string \
+`n 3` does not define a valid variable identifier.  ...
 
         When you change the name of a |Node| and |Element| object (only
         do this for a good reason), the corresponding key of all related
@@ -1073,7 +1073,7 @@ index 0 requested, but not prepared yet via `set_pointer`.
         Traceback (most recent call last):
         ...
         AttributeError: While trying to build the connections of the model \
-handled by element `empty`, the following error occured: No model has been \
+handled by element `empty`, the following error occurred: No model has been \
 assigned to the element so far.
         """
         if model is not None:

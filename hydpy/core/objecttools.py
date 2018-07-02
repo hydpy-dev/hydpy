@@ -298,7 +298,7 @@ def augment_excmessage(prefix=None, suffix=None):
 
     You can prefix and/or suffix text.  If you prefix something (which happens
     much more often in the HydPy framework), the sub-clause ', the following
-    error occured:' is automatically included:
+    error occurred:' is automatically included:
 
     >>> from hydpy.core import objecttools
     >>> import textwrap
@@ -312,7 +312,7 @@ def augment_excmessage(prefix=None, suffix=None):
     ...     except TypeError as exc:
     ...         for line in textwrap.wrap(exc.args[0], width=76):
     ...             print(line)
-    While showing how prefixing works, the following error occured: unsupported
+    While showing how prefixing works, the following error occurred: unsupported
     operand type(s) for +: 'int' and 'str' (This is a final remark.)
 
     Note that the ancillary purpose of function |augment_excmessage| is
@@ -320,7 +320,7 @@ def augment_excmessage(prefix=None, suffix=None):
     """
     exception, message, traceback_ = sys.exc_info()
     if prefix is not None:
-        message = ('%s, the following error occured: %s'
+        message = ('%s, the following error occurred: %s'
                    % (prefix, message))
     if suffix is not None:
         message = ' '.join((message, suffix))
@@ -354,7 +354,7 @@ def excmessage_decorator(description):
     Traceback (most recent call last):
     ...
     TypeError: While trying to add `x` and `y`, the following error \
-occured: unsupported operand type(s) for +: 'int' and 'list'
+occurred: unsupported operand type(s) for +: 'int' and 'list'
 
     ...but can be achieved with much less code using |excmessage_decorator|:
 
@@ -370,7 +370,7 @@ occured: unsupported operand type(s) for +: 'int' and 'list'
     Traceback (most recent call last):
     ...
     TypeError: While trying to add `x` and `y`, the following error \
-occured: unsupported operand type(s) for +: 'int' and 'list'
+occurred: unsupported operand type(s) for +: 'int' and 'list'
 
     Additionally, exception messages related to wrong function calls
     are now also augmented (the end of the message depends on the
@@ -380,7 +380,7 @@ occured: unsupported operand type(s) for +: 'int' and 'list'
     Traceback (most recent call last):
     ...
     TypeError: While trying to add `x` and `y`, the following error \
-occured: add() ...
+occurred: add() ...
 
     It is made sure that no information of the decorated function is lost:
 

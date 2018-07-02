@@ -649,7 +649,7 @@ class SequenceManager(FileManager):
     Traceback (most recent call last):
     ...
     NameError: While trying to load the external data of sequence \
-`iosequence`, the following error occured: name 'timegrid' is not defined
+`iosequence`, the following error occurred: name 'timegrid' is not defined
 
     Another option is to store data using |numpy| binary files, which
     is a good option for saving computation times, but a bad option for
@@ -689,7 +689,7 @@ class SequenceManager(FileManager):
     Traceback (most recent call last):
     ...
     RuntimeError: While trying to save the external data of sequence \
-`iosequence`, the following error occured: Sequence `iosequence` is not \
+`iosequence`, the following error occurred: Sequence `iosequence` is not \
 requested to make any internal data available to the user.
 
     The third option to store data in netCDF files, which is explained

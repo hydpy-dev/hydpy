@@ -405,7 +405,7 @@ class Parameterstep(_Stepsize):
     Traceback (most recent call last):
     ...
     ValueError: While trying to (re)define the general parameterstep size \
-with value `0d` of type `str`, the following error occured: The smallest \
+with value `0d` of type `str`, the following error occurred: The smallest \
 step size allowed is one second.
 
     After deleting the parameter step size, an empty period object is returned:
@@ -1240,8 +1240,8 @@ class SeasonalParameter(MultiParameter):
     ...
     ValueError: While trying to define the seasonal parameter value \
 `seasonalparameter` of element `?` for time of year `_a`, the following \
-error occured: While trying to retrieve the month for TOY (time of year) \
-object based on the string `_a`, the following error occured: \
+error occurred: While trying to retrieve the month for TOY (time of year) \
+object based on the string `_a`, the following error occurred: \
 For TOY (time of year) objects, all properties must be of type `int`, \
 but the value `a` of type `str` given for property `month` cannot be \
 converted to `int`.
@@ -1279,7 +1279,7 @@ converted to `int`.
     ...
     TypeError: While trying to add a new or change an existing toy-value \
 pair for the seasonal parameter `seasonalparameter` of element `?`, the \
-following error occured: float() argument must be a string or a number...
+following error occurred: float() argument must be a string or a number...
     >>> seasonalparameter = SeasonalParameter()
     >>> seasonalparameter.NDIM = 2
     >>> seasonalparameter.shape = (None, 3)
@@ -1288,7 +1288,7 @@ following error occured: float() argument must be a string or a number...
     ...
     ValueError: While trying to add a new or change an existing toy-value \
 pair for the seasonal parameter `seasonalparameter` of element `?`, the \
-following error occured: could not broadcast input array from shape (2) \
+following error occurred: could not broadcast input array from shape (2) \
 into shape (3)
     >>> seasonalparameter.toy_1_1_0_0_0 = [1., 2., 3.]
     >>> seasonalparameter
@@ -1669,13 +1669,13 @@ as a keyword, but the following keyword is not: `south`.
     ...
     ValueError: While trying to assign new values to parameter `iswarm` of \
 element `?` via the row related attribute `north`, the following error \
-occured: cannot copy sequence with size 3 to array axis with dimension 2
+occurred: cannot copy sequence with size 3 to array axis with dimension 2
     >>> iswarm.apr2sep = True, True, True
     Traceback (most recent call last):
     ...
     ValueError: While trying to assign new values to parameter `iswarm` of \
 element `?` via the column related attribute `apr2sep`, the following error \
-occured: cannot copy sequence with size 3 to array axis with dimension 2
+occurred: cannot copy sequence with size 3 to array axis with dimension 2
 
     >>> iswarm.shape = (1, 1)
     >>> iswarm.south_apr2sep = False
@@ -1683,7 +1683,7 @@ occured: cannot copy sequence with size 3 to array axis with dimension 2
     ...
     IndexError: While trying to assign new values to parameter `iswarm` of \
 element `?` via the row and column related attribute `south_apr2sep`, the \
-following error occured: index 1 is out of bounds for axis 0 with size 1
+following error occurred: index 1 is out of bounds for axis 0 with size 1
     >>> iswarm.shape = (2, 2)
 
     Of course, one can define the parameter values in the common manner, e.g.:

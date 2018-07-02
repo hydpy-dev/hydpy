@@ -257,18 +257,18 @@ class nor a Mask instance.
     Traceback (most recent call last):
     ...
     RuntimeError: While trying to retrieve a mask based on key \
-`CustomMask([])`, the following error occured: The key does not \
+`CustomMask([])`, the following error occurred: The key does not \
 define an available mask.
     >>> masks['test']
     Traceback (most recent call last):
     ...
     RuntimeError: While trying to retrieve a mask based on key `'test'`, \
-the following error occured: The key does not define an available mask.
+the following error occurred: The key does not define an available mask.
     >>> masks[1]
     Traceback (most recent call last):
     ...
     TypeError: While trying to retrieve a mask based on key `1`, the \
-following error occured: The given key is neither a `string` a `mask` type.
+following error occurred: The given key is neither a `string` a `mask` type.
     """
     CLASSES = ()
 

@@ -143,14 +143,14 @@ class Date(object):
     Traceback (most recent call last):
     ...
     ValueError: While trying to apply the time zone offset from string \
-`1997-11-01 +0000001`, the following error occured: wrong number of \
+`1997-11-01 +0000001`, the following error occurred: wrong number of \
 offset characters
 
     >>> Date('1997-11-01 +0X:00')
     Traceback (most recent call last):
     ...
     ValueError: While trying to apply the time zone offset from string \
-`1997-11-01 +0X:00`, the following error occured: invalid \
+`1997-11-01 +0X:00`, the following error occurred: invalid \
 literal for int() with base 10: '0X'
     """
 
@@ -1428,7 +1428,7 @@ given step size 1d.
         Traceback (most recent call last):
         ...
         ValueError: While trying to prefix timegrid information to the given \
-array, the following error occured: setting an array element with a sequence.
+array, the following error occurred: setting an array element with a sequence.
 
         If the given array does not fit to the defined timegrid, a special
         error message is returned:

@@ -26,6 +26,7 @@ from hydpy import core
 from hydpy import cythons
 from hydpy import docs
 from hydpy import models
+from hydpy.core import masktools
 from hydpy.core import modeltools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
@@ -81,9 +82,10 @@ for subpackage in (auxs, core, cythons, models):
                 '%s.%s' % (subpackage.__name__, filename.split('.')[0]))
             for member in getattr(module, '__dict__', {}).values():
                 if (inspect.isclass(member) and
-                        issubclass(member, (parametertools.SubParameters,
+                        issubclass(member, (modeltools.Model,
+                                            parametertools.SubParameters,
                                             sequencetools.SubSequences,
-                                            modeltools.Model))):
+                                            masktools.Masks))):
                     sources.append(member.__doc__ if member.__doc__ else '')
             source = '\n'.join(sources)
         if is_package:

@@ -51,8 +51,11 @@ _SEQ_SPEC2CAPT = collections.OrderedDict((('sequences', 'Sequence tools'),
                                           ('senders', 'Sender sequences'),
                                           ('aides', 'Aide sequences')))
 
+_AUX_SPEC2CAPT = collections.OrderedDict((('masks', 'Masks'),))
+
 _all_spec2capt = _PAR_SPEC2CAPT.copy()   # pylint: disable=invalid-name
 _all_spec2capt.update(_SEQ_SPEC2CAPT)
+_all_spec2capt.update(_AUX_SPEC2CAPT)
 
 
 @wrapt.decorator
@@ -82,7 +85,7 @@ def _add_lines(specification, module):
     documentation structure.
     """
     caption = _all_spec2capt.get(specification, 'dummy')
-    if caption.split()[-1] in ('parameters', 'sequences'):
+    if caption.split()[-1] in ('parameters', 'sequences', 'Masks'):
         exists_collectionclass = True
         name_collectionclass = caption.title().replace(' ', '')
     else:
@@ -145,10 +148,11 @@ def autodoc_basemodel():
         lines += _add_title('Model features', '-')
         lines += _add_lines(specification, module)
         substituter.add_module(module)
-    for (spec2capt, title) in zip((_PAR_SPEC2CAPT, _SEQ_SPEC2CAPT),
-                                  ('Parameter features', 'Sequence features')):
-        new_lines = _add_title(title, '-')
+    for (title, spec2capt) in (('Parameter features', _PAR_SPEC2CAPT),
+                               ('Sequence features', _SEQ_SPEC2CAPT),
+                               ('Auxiliary features', _AUX_SPEC2CAPT)):
         found_module = False
+        new_lines = _add_title(title, '-')
         for (specification, caption) in spec2capt.items():
             modulename = basemodulename+'_'+specification
             module = modules.get(modulename)

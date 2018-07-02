@@ -63,6 +63,7 @@ hydpy.substituter.update_slaves()
 # contain commands to trigger the autodoc mechanism of Sphinx as well as
 # the substitution replacement commands relevant for the respective module
 # or package.
+path2source = {}
 for subpackage in (auxs, core, cythons, models):
     filenames = os.listdir(subpackage.__path__[0])
     substituter = hydpy.substituter
@@ -117,6 +118,7 @@ for subpackage in (auxs, core, cythons, models):
             lines.append('')
             path = os.path.join(AUTOPATH, filename+'.rst')
             with open(path, 'w', encoding="utf-8") as file_:
+                path2source[path] = source
                 file_.write(substituter.get_commands(source))
                 file_.write('\n')
                 file_.write('\n'.join(lines))
@@ -127,13 +129,15 @@ for subpackage in (figs, sphinx, rst):
     for filename in os.listdir(subpackage.__path__[0]):
         path_in = os.path.join(subpackage.__path__[0], filename)
         path_out = os.path.join(AUTOPATH, filename)
-        if filename not in ('__init__.py', '__pycache__'):
+        if os.path.isfile(path_in) and (filename != '__init__.py'):
             if subpackage is rst:
                 with open(path_in, encoding="utf-8") as file_:
                     orig = file_.read()
                 with open(path_out, 'w', encoding="utf-8") as file_:
-                    file_.write(hydpy.substituter.get_commands(orig))
+                    source = path2source.get(path_out, '')
+                    source = '\n'.join([source, orig])
+                    file_.write(hydpy.substituter.get_commands(source))
                     file_.write('\n')
                     file_.write(orig)
-            else:
+            elif filename != 'build':
                 shutil.copy(path_in, path_out)

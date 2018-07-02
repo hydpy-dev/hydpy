@@ -219,7 +219,7 @@ class ParameterLake(ParameterComplete):
     >>> round_(ttice.average_values())
     9.0
     """
-    mask = hland_masks.Ilake()
+    mask = hland_masks.ILake()
 
 
 class ParameterGlacier(ParameterComplete):

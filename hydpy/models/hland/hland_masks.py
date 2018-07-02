@@ -37,10 +37,34 @@ class Soil(Complete):
     RELEVANT_VALUES = (FIELD, FOREST)
 
 
+class Field(Complete):
+    """Mask for zone type |FIELD|."""
+    RELEVANT_VALUES = (FIELD,)
+
+
+class Forest(Complete):
+    """Mask for zone type |FOREST|."""
+    RELEVANT_VALUES = (FOREST,)
+
+
+class ILake(Complete):
+    """Mask for zone type |ILAKE|."""
+    RELEVANT_VALUES = (ILAKE,)
+
+
+class Glacier(Complete):
+    """Mask for zone type |GLACIER|."""
+    RELEVANT_VALUES = (GLACIER,)
+
+
 class Masks(masktools.Masks):
     """Masks of base model |hland|."""
     BASE2CONSTANTS = {Complete: hland_constants.CONSTANTS}
     CLASSES = (Complete,
                Land,
                NoGlacier,
-               Soil)
+               Soil,
+               Field,
+               Forest,
+               ILake,
+               Glacier)

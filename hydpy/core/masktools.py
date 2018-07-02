@@ -207,43 +207,7 @@ must be overridden, which is not the case for class `IndexMask`.
         return self.get_refindices(self.variable)
 
 
-class MetaMaskType(metatools.MetaSubgroupType):
-    """Type for generating |Masks| classes.
-
-    Besides the autodoc features of base type |MetaSubgroupType|,
-    |MetaMaskType| automatically generates one |Mask| subclass
-    specific for each |Constant| given in the class tuple
-    `BASE2CONSTANTS`.  Each new mask class is made available
-    in the module defining the respective |Masks| subclass.
-
-    See class |hland_masks.Masks| of base model |hland| as an example.
-    """
-
-    def __new__(mcs, name, parents, dict_):
-        base2constants = dict_.get('BASE2CONSTANTS')
-        classes = dict_.get('CLASSES')
-        if base2constants and classes:
-            namespace = inspect.currentframe().f_back.f_locals
-            classes = list(classes)
-            for base, constants in base2constants.items():
-                for const_name, value in constants.items():
-                    cls_name = const_name.capitalize()
-                    cls = type(
-                        cls_name,
-                        (base,),
-                        {'RELEVANT_VALUES': (value,),
-                         '__doc__': 'Mask for constant |%s|.' % const_name})
-                    namespace[cls_name] = cls
-                    classes.append(cls)
-                dict_['CLASSES'] = tuple(classes)
-        return metatools.MetaSubgroupType.__new__(mcs, name, parents, dict_)
-
-
-MetaMaskClass = MetaMaskType(
-    'MetaMaskClass', (), {'CLASSES': ()})
-
-
-class Masks(MetaMaskClass):
+class Masks(metatools.MetaSubgroupClass):
     """Base class for handling groups of masks.
 
     Attributes:

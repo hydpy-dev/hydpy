@@ -53,21 +53,16 @@ in each parameter control file.
     >>> pcorr(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
     Traceback (most recent call last):
     ...
-    RuntimeError: Parameter zonetype does not seem to be prepared \
-properly for `pcorr` of element `?`.  Hence, setting values for parameter \
-pcorr via keyword arguments is not possible.
+    RuntimeError: While trying to set the values of parameter `pcorr` \
+of element `?` based on keyword arguments, the following error occured: \
+The mask of parameter `pcorr` of element `?` cannot be determined, as \
+long as parameter `zonetype` is not prepared properly.
 
     But, of course only after the reference parameter |ZoneType| has been
     properly prepared completely:
 
-    >>> zonetype(-999999)
-    >>> pcorr(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
-    Traceback (most recent call last):
-    ...
-    RuntimeError: Parameter zonetype does not seem to be prepared \
-properly for `pcorr` of element `?`.  Hence, setting values for parameter \
-pcorr via keyword arguments is not possible.
-
+    >>> zonetype
+    zonetype(-999999)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, FIELD)
     >>> pcorr(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
     >>> pcorr
@@ -91,6 +86,16 @@ pcorr via keyword arguments is not possible.
     pcorr(field=2.0, forest=1.0, glacier=nan, ilake=nan)
     >>> pcorr.values
     array([  2.,   1.,  nan,  nan,   2.])
+
+    Using wrong keyword arguments (that do not correspond to constants
+    defined in module |hland_constants|) result in the following error:
+
+    >>> pcorr(field=2.0, wood=1.0, glacier=4.0, ilake=3.0)
+    Traceback (most recent call last):
+    ...
+    NotImplementedError: While trying to set the values of parameter \
+`pcorr` of element `?` based on keyword arguments, the following error \
+occured: Key `wood` is not an available model constant.
 
     The way positional arguments are understood remains unaffected:
 

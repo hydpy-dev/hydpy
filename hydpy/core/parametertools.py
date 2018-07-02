@@ -557,19 +557,20 @@ class Parameter(variabletools.Variable):
         within parameter control files.
         """
         if args and kwargs:
-            raise ValueError('For parameter %s of element %s both positional '
-                             'and keyword arguments are given, which is '
-                             'ambiguous.'
-                             % (self.name, objecttools.devicename(self)))
+            raise ValueError(
+                'For parameter %s of element %s both positional and '
+                'keyword arguments are given, which is ambiguous.'
+                % (self.name, objecttools.devicename(self)))
         elif not args and not kwargs:
-            raise ValueError('For parameter %s of element %s neither a '
-                             'positional nor a keyword argument is given.'
-                             % (self.name, objecttools.devicename(self)))
+            raise ValueError(
+                'For parameter %s of element %s neither a '
+                'positional nor a keyword argument is given.'
+                % (self.name, objecttools.devicename(self)))
         elif 'pyfile' in kwargs:
             warnings.warn(exceptiontools.HydPyDeprecationWarning(
-                'The keyword name to define a parameter value in an auxiliary '
-                'control file is now `auxfile`.  The old keyword name '
-                '`pyfile` will be banned in the future.'))
+                'The keyword name to define a parameter value in an '
+                'auxiliary control file is now `auxfile`.  The old '
+                'keyword name `pyfile` will be banned in the future.'))
             values = self._get_values_from_auxiliaryfile(kwargs['pyfile'])
             self.values = self.apply_timefactor(values)
             del kwargs['pyfile']
@@ -580,11 +581,10 @@ class Parameter(variabletools.Variable):
         elif args:
             self.values = self.apply_timefactor(numpy.array(args))
         else:
-            raise NotImplementedError('The value(s) of parameter %s of '
-                                      'element %s could not be set based on '
-                                      'the given keyword arguments.'
-                                      % (self.name,
-                                         objecttools.devicename(self)))
+            raise NotImplementedError(
+                'The value(s) of parameter %s of element %s could '
+                'not be set based on the given keyword arguments.'
+                % (self.name, objecttools.devicename(self)))
         self.trim()
 
     def _get_values_from_auxiliaryfile(self, pyfile):
@@ -604,16 +604,18 @@ class Parameter(variabletools.Variable):
             except KeyError:
                 frame = frame.f_back
         else:
-            raise RuntimeError('Something has gone wrong when trying to '
-                               'read parameter `%s` from file `%s`.'
-                               % (self.name, pyfile))
+            raise RuntimeError(
+                'Something has gone wrong when trying to '
+                'read parameter `%s` from file `%s`.'
+                % (self.name, pyfile))
         filetools.ControlManager.read2dict(pyfile, subnamespace)
         try:
             subself = subnamespace[self.name]
         except KeyError:
-            raise RuntimeError('Something has gone wrong when trying to '
-                               'read parameter `%s` from file `%s`.'
-                               % (self.name, pyfile))
+            raise RuntimeError(
+                'Something has gone wrong when trying to '
+                'read parameter `%s` from file `%s`.'
+                % (self.name, pyfile))
         return subself.values
 
     @property
@@ -1121,7 +1123,7 @@ class ZipParameter(MultiParameter):
 
     The implementation and functioning of subclasses of |ZipParameter|
     is best illustrated by an example: see the documentation of the class
-    |hland_parameters.MultiParameter| of base model |hland|.
+    |hland_parameters.ParameterComplete| of base model |hland|.
     """
     RELEVANT_VALUES = ()
     MODEL_CONSTANTS = {}
@@ -1131,31 +1133,32 @@ class ZipParameter(MultiParameter):
         within parameter control files.
         """
         try:
-            Parameter.__call__(self, *args, **kwargs)
-        except NotImplementedError as exc:
-            if kwargs:
-                refvalues = self.mask.refindices.values
-                if min(refvalues) < 1:
-                    raise RuntimeError(
-                        'Parameter %s does not seem to be prepared properly '
-                        'for %s.  Hence, setting values for parameter %s '
-                        'via keyword arguments is not possible.'
-                        % (self.mask.refindices.name,
-                           objecttools.elementphrase(self),
-                           self.name))
-                self.values = numpy.nan
-                if 'default' in kwargs:
-                    self[self.mask] = kwargs.pop('default')
-                for (key, value) in kwargs.items():
-                    sel = self.MODEL_CONSTANTS.get(key.upper())
-                    if sel is None:
-                        raise exc
-                    elif sel in self.mask.RELEVANT_VALUES:
-                        self.values[refvalues == sel] = value
-                self.values = self.apply_timefactor(self.values)
-                self.trim()
-            else:
-                raise exc
+            MultiParameter.__call__(self, *args, **kwargs)
+        except NotImplementedError:
+            try:
+                self._own_call(kwargs)
+            except BaseException:
+                objecttools.augment_excmessage(
+                    'While trying to set the values of parameter %s '
+                    'based on keyword arguments'
+                    % objecttools.elementphrase(self))
+
+    def _own_call(self, kwargs):
+        mask = self.mask
+        self.values = numpy.nan
+        if 'default' in kwargs:
+            self[mask] = kwargs.pop('default')
+        refindices = mask.refindices.values
+        for (key, value) in kwargs.items():
+            sel = self.MODEL_CONSTANTS.get(key.upper())
+            if sel is None:
+                raise NotImplementedError(
+                    'Key `%s` is not an available model constant.'
+                    % key)
+            elif sel in mask.RELEVANT_VALUES:
+                self.values[refindices == sel] = value
+        self.values = self.apply_timefactor(self.values)
+        self.trim()
 
     def _get_shape(self):
         """Return a tuple containing the lengths in all dimensions of the
@@ -1183,14 +1186,11 @@ class ZipParameter(MultiParameter):
             return MultiParameter.compress_repr(self)
         except NotImplementedError as exc:
             results = []
-            if min(refvalues) < 1:
-                raise NotImplementedError(
-                    'Parameter %s is not defined poperly, which '
-                    'circumvents finding a suitable compressed.')
-            refvalues = self.mask.refindices.values
+            mask = self.mask
+            refindices = mask.refindices.values
             for (key, value) in self.MODEL_CONSTANTS.items():
-                if value in self.mask.RELEVANT_VALUES:
-                    unique = numpy.unique(self.values[refvalues == value])
+                if value in mask.RELEVANT_VALUES:
+                    unique = numpy.unique(self.values[refindices == value])
                     unique = self.revert_timefactor(unique)
                     if len(unique) == 1:
                         results.append('%s=%s'

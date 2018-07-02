@@ -8,11 +8,8 @@ from __future__ import division, print_function
 # ...HydPy specific
 from hydpy import pub
 from hydpy.core import parametertools
-# ...from site-packages
-import numpy
 # ...model specific
 from hydpy.models.lland import lland_parameters
-from hydpy.models.lland.lland_constants import WASSER, FLUSS, SEE
 
 
 class MOY(parametertools.IndexParameter):

@@ -1032,6 +1032,7 @@ Integration tests:
 from __future__ import division, print_function
 # ...from HydPy
 from hydpy.core.modelimports import *
+from hydpy.core import masktools
 from hydpy.core import modeltools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
@@ -1044,12 +1045,12 @@ from hydpy.models.lland import lland_fluxes
 from hydpy.models.lland import lland_states
 from hydpy.models.lland import lland_aides
 from hydpy.models.lland import lland_outlets
-from hydpy.models.lland.lland_masks import Masks
+from hydpy.models.lland import lland_masks
 from hydpy.models.lland.lland_constants import *
 
 
 class Model(modeltools.Model):
-    """LARSIM-Land version of HydPy-L-Land (lland_v1)."""
+    """LARSIM-Land version of HydPy-L-Land (|lland_v1|)."""
     _RUN_METHODS = (lland_model.calc_nkor_v1,
                     lland_model.calc_tkor_v1,
                     lland_model.calc_et0_v1,
@@ -1081,7 +1082,7 @@ class Model(modeltools.Model):
 
 
 class ControlParameters(parametertools.SubParameters):
-    """Control parameters of lland_v1, directly defined by the user."""
+    """Control parameters of |lland_v1|, directly defined by the user."""
     CLASSES = (lland_control.FT,
                lland_control.NHRU,
                lland_control.Lnk,
@@ -1123,7 +1124,7 @@ class ControlParameters(parametertools.SubParameters):
 
 
 class DerivedParameters(parametertools.SubParameters):
-    """Derived parameters of lland_v1, indirectly defined by the user."""
+    """Derived parameters of |lland_v1|, indirectly defined by the user."""
     CLASSES = (lland_derived.MOY,
                lland_derived.AbsFHRU,
                lland_derived.KInz,
@@ -1138,14 +1139,14 @@ class DerivedParameters(parametertools.SubParameters):
 
 
 class InputSequences(sequencetools.InputSequences):
-    """Input sequences of lland_v1."""
+    """Input sequences of |lland_v1|."""
     CLASSES = (lland_inputs.Nied,
                lland_inputs.TemL,
                lland_inputs.Glob)
 
 
 class FluxSequences(sequencetools.FluxSequences):
-    """Flux sequences of lland_v1."""
+    """Flux sequences of |lland_v1|."""
     CLASSES = (lland_fluxes.NKor,
                lland_fluxes.TKor,
                lland_fluxes.ET0,
@@ -1166,7 +1167,7 @@ class FluxSequences(sequencetools.FluxSequences):
 
 
 class StateSequences(sequencetools.StateSequences):
-    """State sequences of lland_v1."""
+    """State sequences of |lland_v1|."""
     CLASSES = (lland_states.Inzp,
                lland_states.WATS,
                lland_states.WAeS,
@@ -1184,7 +1185,7 @@ class StateSequences(sequencetools.StateSequences):
 
 
 class AideSequences(sequencetools.AideSequences):
-    """Aide sequences of lland_v1."""
+    """Aide sequences of |lland_v1|."""
     CLASSES = (lland_aides.SfA,
                lland_aides.Exz,
                lland_aides.BVl,
@@ -1194,8 +1195,13 @@ class AideSequences(sequencetools.AideSequences):
 
 
 class OutletSequences(sequencetools.LinkSequences):
-    """Downstream link sequences of lland_v1."""
+    """Downstream link sequences of |lland_v1|."""
     CLASSES = (lland_outlets.Q,)
+
+
+class Masks(masktools.Masks):
+    """Masks applicable to |lland_v1|."""
+    CLASSES = lland_masks.Masks.CLASSES
 
 
 autodoc_applicationmodel()

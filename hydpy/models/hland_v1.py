@@ -821,6 +821,7 @@ Integration tests:
 from __future__ import division, print_function
 # ...from HydPy
 from hydpy.core.modelimports import *
+from hydpy.core import masktools
 from hydpy.core import modeltools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
@@ -833,12 +834,12 @@ from hydpy.models.hland import hland_fluxes
 from hydpy.models.hland import hland_states
 from hydpy.models.hland import hland_logs
 from hydpy.models.hland import hland_outlets
-from hydpy.models.hland.hland_masks import Masks
+from hydpy.models.hland import hland_masks
 from hydpy.models.hland.hland_constants import *
 
 
 class Model(modeltools.Model):
-    """HBV96 version of HydPy-H-Land (hland_v1)."""
+    """HBV96 version of HydPy-H-Land (|hland_v1|)."""
     _RUN_METHODS = (hland_model.calc_tc_v1,
                     hland_model.calc_tmean_v1,
                     hland_model.calc_fracrain_v1,
@@ -869,7 +870,7 @@ class Model(modeltools.Model):
 
 
 class ControlParameters(parametertools.SubParameters):
-    """Control parameters of hland_v1, directly defined by the user."""
+    """Control parameters of |hland_v1|, directly defined by the user."""
     CLASSES = (hland_control.Area,
                hland_control.NmbZones,
                hland_control.ZoneType,
@@ -913,7 +914,7 @@ class ControlParameters(parametertools.SubParameters):
 
 
 class DerivedParameters(parametertools.SubParameters):
-    """Derived parameters of hland_v1, indirectly defined by the user."""
+    """Derived parameters of |hland_v1|, indirectly defined by the user."""
     CLASSES = (hland_derived.RelZoneArea,
                hland_derived.RelSoilArea,
                hland_derived.RelSoilZoneArea,
@@ -926,7 +927,7 @@ class DerivedParameters(parametertools.SubParameters):
 
 
 class InputSequences(sequencetools.InputSequences):
-    """Input sequences of hland_v1."""
+    """Input sequences of |hland_v1|."""
     CLASSES = (hland_inputs.P,
                hland_inputs.T,
                hland_inputs.TN,
@@ -934,7 +935,7 @@ class InputSequences(sequencetools.InputSequences):
 
 
 class FluxSequences(sequencetools.FluxSequences):
-    """Flux sequences of hland_v1."""
+    """Flux sequences of |hland_v1|."""
     CLASSES = (hland_fluxes.TMean,
                hland_fluxes.TC,
                hland_fluxes.FracRain,
@@ -965,7 +966,7 @@ class FluxSequences(sequencetools.FluxSequences):
 
 
 class StateSequences(sequencetools.StateSequences):
-    """State sequences of hland_v1."""
+    """State sequences of |hland_v1|."""
     CLASSES = (hland_states.Ic,
                hland_states.SP,
                hland_states.WC,
@@ -975,13 +976,18 @@ class StateSequences(sequencetools.StateSequences):
 
 
 class LogSequences(sequencetools.AideSequences):
-    """Aide sequences of hland_v1."""
+    """Aide sequences of |hland_v1|."""
     CLASSES = (hland_logs.QUH,)
 
 
 class OutletSequences(sequencetools.LinkSequences):
-    """Downstream link sequences of hland_v1."""
+    """Downstream link sequences of |hland_v1|."""
     CLASSES = (hland_outlets.Q,)
+
+
+class Masks(masktools.Masks):
+    """Masks applicable to |hland_v1|."""
+    CLASSES = hland_masks.Masks.CLASSES
 
 
 autodoc_applicationmodel()

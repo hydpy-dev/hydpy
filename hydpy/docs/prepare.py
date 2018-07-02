@@ -55,6 +55,7 @@ for filename in os.listdir(models.__path__[0]):
         importlib.import_module(
             '%s.%s'
             % (models.__name__, filename))
+hydpy.substituter.update_slaves()
 
 # Write one rst file for each module (including the ones defining application
 # models) and each base model defining a base model.  Each rst file should

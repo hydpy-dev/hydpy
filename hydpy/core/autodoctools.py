@@ -195,7 +195,9 @@ class Substituter(object):
 
     def __init__(self, master=None):
         self.master = master
+        self.slaves = []
         if master:
+            master.slaves.append(self)
             self._short2long = copy.deepcopy(master._short2long)
             self._medium2long = copy.deepcopy(master._medium2long)
             self._blacklist = copy.deepcopy(master._blacklist)
@@ -206,7 +208,7 @@ class Substituter(object):
 
     @staticmethod
     def consider_member(name_member, member, module):
-        """Return |True| if the given member should be add to the
+        """Return |True| if the given member should be added to the
         substitutions. If not return |False|.
 
         Some examples based on the site-package |numpy|:
@@ -510,8 +512,8 @@ class Substituter(object):
     def update_masters(self):
         """Update all `master` |Substituter| objects.
 
-        If a |Substituter| objects is passed to the constructor of another
-        |Substituter| object, it becomes its `master`:
+        If a |Substituter| object is passed to the constructor of another
+        |Substituter| object, they become `master` and `slave`:
 
         >>> from hydpy.core.autodoctools import Substituter
         >>> sub1 = Substituter()
@@ -521,14 +523,15 @@ class Substituter(object):
         >>> sub3 = Substituter(sub2)
         >>> sub3.master.master is sub1
         True
+        >>> sub2 in sub1.slaves
+        True
 
         During initialization, all mappings handled by the master object
-        are passed to its slave:
+        are passed to its new slave:
 
         >>> sub3.find('Node|')
         |Node| :class:`~hydpy.core.devicetools.Node`
         |devicetools.Node| :class:`~hydpy.core.devicetools.Node`
-
 
         Updating a slave, does not affect its master directly:
 
@@ -540,7 +543,7 @@ class Substituter(object):
         >>> sub2.find('HydPy|')
 
         Through calling |Substituter.update_masters|, the `medium2long`
-        mappings are passed the slave to its master:
+        mappings are passed from the slave to its master:
 
         >>> sub3.update_masters()
         >>> sub2.find('HydPy|')
@@ -550,10 +553,38 @@ class Substituter(object):
 
         >>> sub1.find('HydPy|')
         |hydpytools.HydPy| :class:`~hydpy.core.hydpytools.HydPy`
+
+        In reverse, subsequent updates of master objects to not affect
+        their slaves directly:
+
+        >>> from hydpy.core import masktools
+        >>> sub1.add_module(masktools)
+        >>> sub1.find('Masks|')
+        |Masks| :class:`~hydpy.core.masktools.Masks`
+        |masktools.Masks| :class:`~hydpy.core.masktools.Masks`
+        >>> sub2.find('Masks|')
+
+        Through calling |Substituter.update_slaves|, the `medium2long`
+        mappings are passed the master to all of its slaves:
+
+        >>> sub1.update_slaves()
+        >>> sub2.find('Masks|')
+        |masktools.Masks| :class:`~hydpy.core.masktools.Masks`
+        >>> sub3.find('Masks|')
+        |masktools.Masks| :class:`~hydpy.core.masktools.Masks`
         """
         if self.master is not None:
             self.master._medium2long.update(self._medium2long)
             self.master.update_masters()
+
+    def update_slaves(self):
+        """Update all `slave` |Substituter| objects.
+
+        See method |Substituter.update_masters| for further information.
+        """
+        for slave in self.slaves:
+            slave._medium2long.update(self._medium2long)
+            slave.update_slaves()
 
     def get_commands(self, source=None):
         """Return a string containing multiple `reStructuredText`

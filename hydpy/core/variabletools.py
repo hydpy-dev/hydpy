@@ -442,11 +442,11 @@ has not been set yet.
             % objecttools.devicephrase(self))
 
     def average_values(self, *args, **kwargs):
-        """Mean value.
+        """Average the actual values of the |Variable| object.
 
         For 0-dimensional |Variable| objects, the result of
         |Variable.average_values| equals |Variable.value|.  The
-        following example showns this for the sloppily defined class
+        following example shows this for the sloppily defined class
         `SoilMoisture`:
 
         >>> from hydpy.core.variabletools import Variable
@@ -532,7 +532,7 @@ of variable `soilmoisture`, the following error occured: Variable \
         ...                Water)
         >>> SoilMoisture.availablemasks = Masks(None)
 
-        One can pass either the mask classes themselves, or their names:
+        One can pass either the mask classes themselves or their names:
 
         >>> sm.average_values(sm.availablemasks.flatsoil)
         200.0
@@ -544,8 +544,8 @@ of variable `soilmoisture`, the following error occured: Variable \
         >>> sm.average_values(sm.availablemasks.deepsoil, 'flatsoil')
         300.0
 
-        If the given masks are not contained by the general mask of
-        the variable, an error is raised:
+        If the general mask of the variable does not contain the given
+        masks, an error is raised:
 
         >>> sm.average_values('flatsoil', 'water')
         Traceback (most recent call last):
@@ -555,8 +555,8 @@ of variable `soilmoisture`, the following error occured: Variable \
 `('flatsoil', 'water')` and `{}` the mask `CustomMask([ True, False,  True])` \
 has been determined, which is not a submask of `Soil([ True,  True, False])`.
 
-        Applying masks with own options is also supported.  The behaviour
-        of the following mask can be changed via argument `complete`:
+        Applying masks with own options is also supported.  One can change
+        the behaviour of the following mask via the argument `complete`:
 
         >>> class AllOrNothing(DefaultMask):
         ...     @classmethod

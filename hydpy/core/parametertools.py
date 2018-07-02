@@ -997,8 +997,8 @@ is no compression method implemented, working for its actual values.
         >>> test
         test(1.0, 2.0, 3.0, 3.0)
 
-        If some values are not required, this must be indicated by
-        |Variable.mask|:
+        If some values are not required, this must be indicated by the
+        `mask` descriptor:
 
         >>> import numpy
         >>> test(3.0, 3.0, 3.0, numpy.nan)
@@ -1116,10 +1116,8 @@ class ZipParameter(MultiParameter):
     """Base class for model parameters handling multiple values that
     offers additional keyword zipping fuctionality.
 
-    When inheriting an actual parameter class from |ZipParameter| one
-    needs to define suitable class constants |ZipParameter.RELEVANT_VALUES|
-    (a |tuple|) and |ZipParameter.MODEL_CONSTANTS| (a |dict|).
-    Additionally, property |ZipParameter.refindices| must be overwritten.
+    When subclassing from |ZipParameter| one  needs to select a suitable
+    mask, which is typically derived from |IndexMask|.
 
     The implementation and functioning of subclasses of |ZipParameter|
     is best illustrated by an example: see the documentation of the class
@@ -1811,7 +1809,7 @@ class RelSubweightsMixin(object):
     """Mixin class for derived parameters reflecting not masked absolute
     values of the referenced weighting parameter in relative terms.
 
-    |RelSubvaluesMixin| is supposed to be combined with parameters
+    |RelSubweightsMixin| is supposed to be combined with parameters
     implementing property `refweights`.
 
     The documentation on base model |hland| provides some example

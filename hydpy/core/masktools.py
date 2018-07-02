@@ -223,7 +223,7 @@ class Masks(metatools.MetaSubgroupClass):
     ...                DefaultMask)
     >>> masks = Masks(None)
 
-    The contained |Mask| classes are available via attribute access in
+    The contained mask classes are available via attribute access in
     lower case letters:
 
     >>> masks
@@ -244,8 +244,8 @@ class Masks(metatools.MetaSubgroupClass):
     TypeError: The given value `mask` of type `str` is neither a Mask \
 class nor a Mask instance.
 
-    Using item access, strings (in whatever case), |Mask| classes, and
-    |Mask| objects are accepted:
+    Using item access, strings (in whatever case), mask classes, and
+    mask objects are accepted:
 
     >>> masks['IndexMask'] is IndexMask
     True

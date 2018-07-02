@@ -79,7 +79,7 @@ long as parameter `zonetype` is not prepared properly.
     >>> pcorr.values
     array([ 2.,  1.,  9.,  9.,  2.])
 
-    If no default value is given, numpys |nan| is applied:
+    If no default value is given, numpys |numpy.nan| is applied:
 
     >>> pcorr(field=2.0, forest=1.0)
     >>> pcorr

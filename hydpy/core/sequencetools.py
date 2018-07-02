@@ -1486,7 +1486,7 @@ class StateSequence(ModelIOSequence, ConditionSequence):
     new = Sequence.values
     """Complete access to the state value(s), which will be used in the
     next calculation steps.  Note that |StateSequence.new| is a synonym
-    of |Sequence.values|.  Use this property to modify the initial
+    of |Variable.value|.  Use this property to modify the initial
     condition(s) of a single |StateSequence| object.
     """
 

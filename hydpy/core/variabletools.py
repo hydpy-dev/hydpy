@@ -375,9 +375,8 @@ error occured: operands could not be broadcast together with shapes (2,) (3,)
 
     def verify(self):
         """Raises a |RuntimeError| if at least one of the required values
-        of a |Variable| object is |None| or |numpy.nan|. Property
-        |Variable.mask| defines, which values are considered to be
-        necessary.
+        of a |Variable| object is |None| or |numpy.nan|. Descripter
+        `mask` defines, which values are considered to be necessary.
 
         Example on a 0-dimensional |Variable|:
 
@@ -488,13 +487,13 @@ of variable `soilmoisture`, the following error occured: Variable \
 
         In the examples above are all single entries of `values` relevant,
         which is the default case.  But subclasses of |Variable| can
-        define an alternative |Variable.mask|, allowing to make some
-        entries irrelevant. Assume for example, that our `SoilMoisture`
-        object contains three single values, because each one is
-        associated with a specific hydrological response unit (hru).  To
-        indicate that soil moisture is not defined for the third unit,
-        (maybe because it is a water area), we set the third entry of
-        the verification mask to |False|:
+        define an alternative mask, allowing to make some entries
+        irrelevant. Assume for example, that our `SoilMoisture` object
+        contains three single values, because each one is associated with
+        a specific hydrological response unit (hru).  To indicate that
+        soil moisture is not defined for the third unit, (maybe because
+        it is a water area), we set the third entry of the verification
+        mask to |False|:
 
         >>> from hydpy.core.masktools import DefaultMask
         >>> class Soil(DefaultMask):
@@ -614,7 +613,8 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         return self.subvars.vars.model.masks
 
     def get_submask(self, *args, **kwargs):
-        """Get a submask of |Variable.mask| based on the given arguments.
+        """Get a submask of the mask handled by the actual |Variable| object
+        based on the given arguments.
 
         See the documentation on method |Variable.average_values| for
         further information.

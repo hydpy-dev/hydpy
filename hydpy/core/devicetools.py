@@ -1006,10 +1006,10 @@ defined as a receiver, node which is not allowed.
         >>> from hydpy import pub
         >>> pub.options.usecython = False
 
-        If a model is passed, proper connections with this model are build
-        We use the "HBV branch model" |hbranch| as an  example, which
-        branches a single input value (from to node `inp`) to multiple
-        outputs (nodes `out1` and `out2`):
+        If a model is passed, proper connections with this model are build.
+        We use the |hbranch| base model as an  example, which branches a
+        single input value (from to node `inp`) to multiple outputs (nodes
+        `out1` and `out2`):
 
         >>> from hydpy import Element, Node
         >>> element = Element('a_branch',

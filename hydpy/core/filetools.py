@@ -18,6 +18,7 @@ from hydpy.core import exceptiontools
 from hydpy.core import netcdftools
 from hydpy.core import objecttools
 from hydpy.core import selectiontools
+from hydpy.core import sequencetools
 from hydpy.core import timetools
 
 
@@ -569,14 +570,14 @@ class SequenceManager(FileManager):
     project, stored in module |pub|.  This object is responsible for the
     actual I/O tasks related to |IOSequence| objects.
 
-    In complete HydPy project, the |SequenceManager| object is often not
-    used directly by the user, except if one wishes to load data from or
-    store data to directories that differ from the default settings.
+    Working with a complete HydPy project, one often does not use the
+    |SequenceManager|  directly, except one wishes to load data from
+    or store data to directories that differ from the default settings.
     In the following examples, we partially set up a project manually,
-    and show the basic features of class |SequenceManager|.
+    and show the essential features of class |SequenceManager|.
 
-    Firstly, we define project called `test_project`, set a short time
-    period and prepare a |SequenceManager| object:
+    Firstly, we define project called `test_project`, set a short
+    initialisation period and prepare a |SequenceManager| object:
 
     >>> from hydpy import pub, Timegrids, Timegrid
     >>> pub.projectname = 'test_project'
@@ -587,57 +588,67 @@ class SequenceManager(FileManager):
     >>> pub.sequencemanager = SequenceManager()
 
     Allowing the |SequenceManager| object to create missing directories
-    is not default, but more convenient for the following examples:
+    is not the default, but more convenient for the following examples:
 
     >>> pub.sequencemanager.createdirs = True
 
-    Secondly, we prepare an 0-dimensional |IOSequence| object called
+    Secondly, we prepare a 0-dimensional |IOSequence| object called
     `test_sequence` and assign a small time series to it:
 
     >>> from hydpy.core.sequencetools import IOSequence
-    >>> seq = IOSequence()
-    >>> seq.NDIM = 0
-    >>> seq.rawfilename = 'test_sequence'
-    >>> seq.activate_ram()
-    >>> seq.series = 1.0, 2.0, 3.0, 4.0
+    >>> class Seq0(IOSequence):
+    ...     NDIM = 0
+    ...     rawfilename = 'test_sequence'
+    >>> seq0 = Seq0()
+    >>> seq0.activate_ram()
+    >>> seq0.series = 1.0, 2.0, 3.0, 4.0
 
     Now we can store this time series in an ASCII file:
 
-    >>> seq.filetype_ext = 'asc'
+    >>> seq0.filetype_ext = 'asc'
     >>> from hydpy import TestIO
     >>> with TestIO():
-    ...     pub.sequencemanager.save_file(seq)
+    ...     pub.sequencemanager.save_file(seq0)
 
-    To check that this was actually successful, be can load the file
-    content from the standard output directory and print it:
+    To check that this was successful, we can load the file content from
+    the standard output directory and print it:
 
     >>> import os
-    >>> path = os.path.join(
-    ...     'test_project', 'sequences', 'output', 'test_sequence.asc')
-    >>> with TestIO():
-    ...     with open(path) as file_:
-    ...         print(file_.read().strip())
+    >>> from hydpy import round_
+    >>> def print_file(filename):
+    ...     path = os.path.join(
+    ...         'test_project', 'sequences', 'output', filename)
+    ...     with TestIO():
+    ...         with open(path) as file_:
+    ...             lines = file_.readlines()
+    ...     print(''.join(lines[:3]), end='')
+    ...     for line in lines[3:]:
+    ...         round_([float(x) for x in line.split()])
+    >>> print_file('test_sequence.asc')
     Timegrid('2000-01-01 00:00:00+01:00',
              '2000-01-05 00:00:00+01:00',
              '1d')
-    1.000000000000000000e+00
-    2.000000000000000000e+00
-    3.000000000000000000e+00
-    4.000000000000000000e+00
+    1.0
+    2.0
+    3.0
+    4.0
 
     To show that reloading the data works, we first set the values of
     the internal time series of the |IOSequence| object to zero:
 
-    >>> seq.series = 0.
-    >>> seq.series
+    >>> seq0.series = 0.
+    >>> seq0.series
     array([ 0.,  0.,  0.,  0.])
     >>> with TestIO():
-    ...     pub.sequencemanager.load_file(seq)
-    >>> seq.series
+    ...     pub.sequencemanager.load_file(seq0)
+    >>> seq0.series
     array([ 1.,  2.,  3.,  4.])
 
-    Badly formated ASCII files should result in clear error messages:
+    Wrongly formatted ASCII files should result in understandable error
+    messages:
 
+    >>> path = os.path.join(
+    ...     'test_project', 'sequences', 'output', 'test_sequence.asc')
     >>> with TestIO():
     ...     with open(path) as file_:
     ...         right = file_.read()
@@ -645,21 +656,92 @@ class SequenceManager(FileManager):
     ...     with open(path, 'w') as file_:
     ...         _ = file_.write(wrong)
     >>> with TestIO(clear_all=True):
-    ...     pub.sequencemanager.load_file(seq)
+    ...     pub.sequencemanager.load_file(seq0)
     Traceback (most recent call last):
     ...
     NameError: While trying to load the external data of sequence \
-`iosequence`, the following error occurred: name 'timegrid' is not defined
+`seq0`, the following error occurred: name 'timegrid' is not defined
+
+    Alternatively, one can call method |IOSequence.save_ext| of the
+    respective |IOSequence| object, which itself calls
+    |SequenceManager.save_file|.  We show this for a 1-dimensional
+    sequence:
+
+    >>> class Seq1(IOSequence):
+    ...     NDIM = 1
+    ...     rawfilename = 'test_sequence'
+    >>> seq1 = Seq1()
+    >>> seq1.shape = (3,)
+    >>> seq1.filetype_ext = 'asc'
+    >>> seq1.activate_ram()
+    >>> seq1.series = [[1.0, 2.0, 3.0],
+    ...               [2.0, 3.0, 4.0],
+    ...               [3.0, 4.0, 5.0],
+    ...               [4.0, 5.0, 6.0]]
+    >>> with TestIO():
+    ...     seq1.save_ext()
+    >>> print_file('test_sequence.asc')
+    Timegrid('2000-01-01 00:00:00+01:00',
+             '2000-01-05 00:00:00+01:00',
+             '1d')
+    1.0, 2.0, 3.0
+    2.0, 3.0, 4.0
+    3.0, 4.0, 5.0
+    4.0, 5.0, 6.0
+
+    If a sequence comes with a weighting parameter referenced by
+    |property| |Variable.refweights|, one can save the averaged time
+    series by using function |IOSequence.save_mean|:
+
+    >>> from hydpy import numpy
+    >>> from hydpy.core.parametertools import MultiParameter
+    >>> class Weights(MultiParameter):
+    ...     NDIM = 1
+    ...     value = numpy.array([1.0, 1.0, 1.0])
+    >>> Seq1.refweights = Weights()
+    >>> with TestIO():
+    ...     seq1.save_mean()
+    >>> print_file('test_sequence.asc')
+    Timegrid('2000-01-01 00:00:00+01:00',
+             '2000-01-05 00:00:00+01:00',
+             '1d')
+    2.0
+    3.0
+    4.0
+    5.0
+
+    Method |IOSequence.save_mean| is strongly related with method
+    |IOSequence.average_series|, meaning one can pass the same arguments.
+    One example:
+
+    >>> from hydpy.core.masktools import DefaultMask, Masks
+    >>> class TestMask(DefaultMask):
+    ...     @classmethod
+    ...     def new(cls, variable, **kwargs):
+    ...         return cls.array2mask([True, True, False])
+    >>> class Masks(Masks):
+    ...     CLASSES = (TestMask,)
+    >>> Seq1.availablemasks = Masks(None)
+    >>> with TestIO():
+    ...     seq1.save_mean('testmask')
+    >>> print_file('test_sequence.asc')
+    Timegrid('2000-01-01 00:00:00+01:00',
+             '2000-01-05 00:00:00+01:00',
+             '1d')
+    1.5
+    2.5
+    3.5
+    4.5
 
     Another option is to store data using |numpy| binary files, which
     is a good option for saving computation times, but a bad option for
-    sharing data with collegues:
+    sharing data with colleagues:
 
-    >>> seq.filetype_ext = 'npy'
+    >>> seq0.filetype_ext = 'npy'
     >>> with TestIO():
-    ...     pub.sequencemanager.save_file(seq)
+    ...     pub.sequencemanager.save_file(seq0)
 
-    The data time period information is stored without time zone information
+    The time information (without time zone information) is available
     within the first thirteen entries:
 
     >>> path = os.path.join(
@@ -672,25 +754,34 @@ class SequenceManager(FileManager):
 
     Reloading the data works as expected:
 
-    >>> seq.series = 0.
-    >>> seq.series
+    >>> seq0.series = 0.
+    >>> seq0.series
     array([ 0.,  0.,  0.,  0.])
     >>> with TestIO():
-    ...     pub.sequencemanager.load_file(seq)
-    >>> seq.series
+    ...     pub.sequencemanager.load_file(seq0)
+    >>> seq0.series
     array([ 1.,  2.,  3.,  4.])
 
-    In the ASCII example, an example error messages for loading data
-    was shown.  Here is an example for saving data:
+    Using the ASCII format, we showed error messages related to loading
+    data above. Here we show an error related to saving data:
 
-    >>> seq.deactivate_ram()
+    >>> seq0.deactivate_ram()
     >>> with TestIO(clear_all=True):
-    ...     pub.sequencemanager.save_file(seq)
+    ...     pub.sequencemanager.save_file(seq0)
     Traceback (most recent call last):
     ...
-    RuntimeError: While trying to save the external data of sequence \
-`iosequence`, the following error occurred: Sequence `iosequence` is not \
-requested to make any internal data available to the user.
+    RuntimeError: Sequence `seq0` is not requested to make any internal \
+data available to the user.
+
+    Of course, one can also write mean values into |numpy| binary files:
+
+    >>> seq1.filetype_ext = 'npy'
+    >>> with TestIO():
+    ...     seq1.save_mean(seq1.availablemasks.testmask)
+    >>> with TestIO():
+    ...     print_values(numpy.load(path))
+    2000.0, 1.0, 1.0, 0.0, 0.0, 0.0, 2000.0, 1.0, 5.0, 0.0, 0.0, 0.0,
+    86400.0, 1.5, 2.5, 3.5, 4.5
 
     The third option to store data in netCDF files, which is explained
     separately in the documentation on class |NetCDFInterface|.
@@ -759,34 +850,34 @@ requested to make any internal data available to the user.
         return timegrid_data, values
 
     def _load_nc(self, sequence):
-        try:
-            self.netcdf_reader.log(sequence)
-        except AttributeError:
-            raise RuntimeError(
-                'to do')
+        self.netcdf_reader.log(sequence)
 
-    def save_file(self, sequence):
+    def save_file(self, sequence, array=None):
         """Write the date stored in |IOSequence.series| of the given
         |IOSequence| into an "external" data file. """
+        if array is None:
+            array = sequencetools.InfoArray(
+                sequence.series,
+                info={'type': 'unmodified'})
         try:
             if sequence.filetype_ext == 'npy':
-                self._save_npy(sequence)
+                self._save_npy(sequence, array)
             elif sequence.filetype_ext == 'asc':
-                self._save_asc(sequence)
+                self._save_asc(sequence, array)
             elif sequence.filetype_ext == 'nc':
-                self._save_nc(sequence)
+                self._save_nc(sequence, array)
         except BaseException:
             objecttools.augment_excmessage(
                 'While trying to save the external data of sequence %s'
                 % objecttools.devicephrase(sequence))
 
     @staticmethod
-    def _save_npy(sequence):
-        series = pub.timegrids.init.array2series(sequence.series)
-        numpy.save(sequence.filepath_ext, series)
+    def _save_npy(sequence, array):
+        numpy.save(sequence.filepath_ext,
+                   pub.timegrids.init.array2series(array))
 
     @staticmethod
-    def _save_asc(sequence):
+    def _save_asc(sequence, array):
         with open(sequence.filepath_ext, 'w') as file_:
             file_.write(
                 pub.timegrids.init.assignrepr(
@@ -794,14 +885,10 @@ requested to make any internal data available to the user.
                     style='iso2',
                     utcoffset=pub.options.utcoffset) + '\n')
         with open(sequence.filepath_ext, 'ab') as file_:
-            numpy.savetxt(file_, sequence.series, delimiter='\t')
+            numpy.savetxt(file_, array, delimiter='\t')
 
-    def _save_nc(self, sequence):
-        try:
-            self.netcdf_writer.log(sequence)
-        except AttributeError:
-            raise RuntimeError(
-                'to do')
+    def _save_nc(self, sequence, array):
+        self.netcdf_writer.log(sequence, array)
 
     @property
     def netcdf_reader(self):

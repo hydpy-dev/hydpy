@@ -38,13 +38,13 @@ class NetCDFInterface(object):
          The reading or writing processes of all |IOSequence| objects with
          property |IOSequence.filetype_ext| set to `nc` are essentially
          performed by the prepared |NetCDFInterface| object.
-      3. Finalizes reading or writing by calling either method
+      3. Finalize reading or writing by calling either method
          |SequenceManager.close_netcdf_reader| or method
          |SequenceManager.close_netcdf_writer|.
 
     Step 2 is actually a logging process only, telling the |NetCDFInterface|
     object which data needs to be read or written.  The actual reading from
-    or writing of NetCDF files is triggered by step 3.
+    or writing to NetCDF files is triggered by step 3.
 
     During step 2, the |NetCDFInterface| object is accessible, allowing
     to inspect is current state or to modify its behaviour.
@@ -77,9 +77,16 @@ class NetCDFInterface(object):
     >>> e2.connect(prepare_model(lland_v1))
     >>> e3.connect(prepare_model(lland_v2))
 
+    >>> from hydpy.models.lland import ACKER, LAUBW, VERS
     >>> e1.model.parameters.control.nhru(1)
+    >>> e1.model.parameters.control.lnk(ACKER)
+    >>> e1.model.parameters.derived.absfhru(10.0)
     >>> e2.model.parameters.control.nhru(2)
+    >>> e2.model.parameters.control.lnk(ACKER, LAUBW)
+    >>> e2.model.parameters.derived.absfhru(10.0)
     >>> e3.model.parameters.control.nhru(3)
+    >>> e3.model.parameters.control.lnk(ACKER, LAUBW, VERS)
+    >>> e3.model.parameters.derived.absfhru(10.0)
     >>> es.prepare_fluxseries()
     >>> es.prepare_stateseries()
 
@@ -99,26 +106,44 @@ class NetCDFInterface(object):
     >>> ns.save_allseries()
 
     >>> nc = pub.sequencemanager.netcdf_writer
-    >>> nc.lland_v1.nkor_fluxes.devicenames
+    >>> nc.lland_v1.flux_nkor.devicenames
     ('e1', 'e2')
-    >>> nc.lland_v1.nkor_fluxes.array[0]
+    >>> nc.lland_v1.flux_nkor.array[0]
     array([[   0., -999.],
            [   1., -999.],
            [   2., -999.],
            [   3., -999.]])
-    >>> nc.lland_v1.nkor_fluxes.array[1]
+    >>> nc.lland_v1.flux_nkor.array[1]
     array([[  4.,   5.],
            [  6.,   7.],
            [  8.,   9.],
            [ 10.,  11.]])
 
-    >>> nc.lland_v2.bowa_states.devicenames
+    >>> nc.lland_v2.state_bowa.devicenames
     ('e3',)
-    >>> nc.lland_v2.bowa_states.array[0]
+    >>> nc.lland_v2.state_bowa.array[0]
     array([[ 12.,  13.,  14.],
            [ 15.,  16.,  17.],
            [ 18.,  19.,  20.],
            [ 21.,  22.,  23.]])
+
+
+    >>> e1.model.sequences.fluxes.nkor.save_mean()
+    >>> e2.model.sequences.fluxes.nkor.save_mean()
+    >>> e3.model.sequences.states.bowa.save_mean()
+
+    >>> nc.lland_v1.flux_nkor_mean.array
+    array([[  0. ,   1. ,   2. ,   3. ],
+           [  4.5,   6.5,   8.5,  10.5]])
+
+    >>> nc.lland_v2.state_bowa_mean.array
+    array([[ 12.5,  15.5,  18.5,  21.5]])
+
+    >>> e3.model.sequences.states.bowa.save_mean('acker')
+    >>> nc.lland_v2.state_bowa_mean.array
+    array([[ 12.,  15.,  18.,  21.]])
+
+
 
     >>> from hydpy import TestIO
     >>> with TestIO():
@@ -135,13 +160,13 @@ class NetCDFInterface(object):
     ...     print(''.join(char.decode('utf-8') for char in chars))
     e1
     e2
-    >>> numpy.array(v1['nkor_fluxes'][:][0])
+    >>> numpy.array(v1['flux_nkor'][:][0])
     array([[   0., -999.],
            [   1., -999.],
            [   2., -999.],
            [   3., -999.]])
 
-    >>> numpy.array(v1['nkor_fluxes'][:][1])
+    >>> numpy.array(v1['flux_nkor'][:][1])
     array([[  4.,   5.],
            [  6.,   7.],
            [  8.,   9.],
@@ -150,12 +175,18 @@ class NetCDFInterface(object):
     >>> for chars in v2['devices'][:]:
     ...     print(''.join(char.decode('utf-8') for char in chars))
     e3
-    >>> numpy.array(v2['bowa_states'][:][0])
+    >>> numpy.array(v2['state_bowa'][:][0])
     array([[ 12.,  13.,  14.],
            [ 15.,  16.,  17.],
            [ 18.,  19.,  20.],
            [ 21.,  22.,  23.]])
 
+    >>> numpy.array(v1['flux_nkor_mean'][:])
+    array([[  0. ,   1. ,   2. ,   3. ],
+           [  4.5,   6.5,   8.5,  10.5]])
+
+    >>> numpy.array(v2['state_bowa_mean'][:])
+    array([[ 12.,  15.,  18.,  21.]])
 
     >>> e1.model.sequences.fluxes.nkor.series = 0.0
     >>> e2.model.sequences.fluxes.nkor.series = 0.0
@@ -210,7 +241,7 @@ class NetCDFInterface(object):
     def __init__(self):
         self._slaves = collections.OrderedDict()
 
-    def log(self, sequence):
+    def log(self, sequence, array=None):
         if isinstance(sequence, abctools.ModelIOSequenceABC):
             descr = sequence.descr_model
         else:
@@ -220,7 +251,7 @@ class NetCDFInterface(object):
         else:
             slave = NetCDFFile(name=descr)
             self._slaves[descr] = slave
-        slave.log(sequence)
+        slave.log(sequence, array)
 
     def read(self):
         for slave in self._slaves.values():
@@ -261,14 +292,21 @@ class NetCDFFile(object):
         self.name = name
         self._slaves = collections.OrderedDict()
 
-    def log(self, sequence):
+    def log(self, sequence, array=None):
+        aggregated = ((array is not None) and
+                      (array.info['type'] != 'unmodified'))
         descr = sequence.descr_sequence
+        if aggregated:
+            descr = '_'.join([descr, array.info['type']])
         if descr in self._slaves:
             slave = self._slaves[descr]
         else:
-            slave = NetCDFVariable(name=descr)
+            if aggregated:
+                slave = NetCDFVariableAgg(name=descr)
+            else:
+                slave = NetCDFVariable(name=descr)
             self._slaves[descr] = slave
-        slave.log(sequence)
+        slave.log(sequence, array)
 
     @property
     def filepath_read(self):
@@ -407,6 +445,9 @@ class NetCDFVariable(object):
     >>> nc._slaves = OrderedDict(
     ...     [('zeros', Zeros()),
     ...      ('ones', Ones())])
+    >>> nc._arrays = OrderedDict(
+    ...     [('zeros', numpy.zeros((4,2))),
+    ...      ('ones', numpy.ones((4,3)))])
     >>> from hydpy import dummies
     >>> dummies.nc = nc
     """
@@ -414,9 +455,12 @@ class NetCDFVariable(object):
     def __init__(self, name):
         self.name = name
         self._slaves = collections.OrderedDict()
+        self._arrays = collections.OrderedDict()
 
-    def log(self, sequence):
-        self._slaves[sequence.descr_device] = sequence
+    def log(self, sequence, array):
+        descr_device = sequence.descr_device
+        self._slaves[descr_device] = sequence
+        self._arrays[descr_device] = array
 
     def read(self, rootgroup, timegrid_data, devicename2index):
         array = rootgroup[self.name][:]
@@ -462,8 +506,9 @@ class NetCDFVariable(object):
                 [   1.,    1.,    1.]]])
         """
         array = numpy.full(self.shape, -999., dtype=float)
-        for idx, sequence in enumerate(self._slaves.values()):
-            array[self._get_slices(idx, sequence)] = sequence.series
+        for idx, (descr, subarray) in enumerate(self._arrays.items()):
+            sequence = self._slaves[descr]
+            array[self._get_slices(idx, sequence)] = subarray
         return array
 
     @staticmethod
@@ -510,6 +555,64 @@ class NetCDFVariable(object):
             for jdx, char in enumerate(name):
                 chars[idx, jdx] = char.encode('utf-8')
         return chars
+
+
+class NetCDFVariableAgg(NetCDFVariable):
+    """
+    >>> from hydpy.core.netcdftools import NetCDFVariableAgg
+    >>> nc = NetCDFVariableAgg('temperature')
+    >>> from hydpy.core.sequencetools import IOSequence
+    >>> import numpy
+    >>> class Zeros(object):
+    ...     name = 'zeros'
+    ...     series = numpy.zeros((4,2))
+    ...     shape = (2,)
+    >>> class Ones(object):
+    ...     name = 'ones'
+    ...     series = numpy.ones((4,3))
+    ...     shape = (3,)
+    >>> from collections import OrderedDict
+    >>> nc._slaves = OrderedDict(
+    ...     [('zeros', Zeros()),
+    ...      ('ones', Ones())])
+    >>> nc._arrays = OrderedDict(
+    ...     [('zeros', numpy.zeros(4)),
+    ...      ('ones', numpy.ones(4))])
+    >>> from hydpy import dummies
+    >>> dummies.nc = nc
+    """
+
+    @property
+    def array(self):
+        """
+        >>> from hydpy import dummies
+        >>> dummies.nc.array
+        array([[ 0.,  0.,  0.,  0.],
+               [ 1.,  1.,  1.,  1.]])
+        """
+        array = numpy.full(self.shape, -999., dtype=float)
+        for idx, subarray in enumerate(self._arrays.values()):
+            array[idx] = subarray
+        return array
+
+    @property
+    def shape(self):
+        """
+        >>> from hydpy import dummies
+        >>> dummies.nc.shape
+        (2, 4)
+        """
+        return (len(self._slaves),
+                len(tuple(self._slaves.values())[0].series))
+
+    @property
+    def dimensions(self):
+        """
+        >>> from hydpy import dummies
+        >>> dummies.nc.dimensions
+        ('nmb_devices', 'nmb_timepoints')
+        """
+        return ('nmb_devices', 'nmb_timepoints')
 
 
 autodoctools.autodoc_module()

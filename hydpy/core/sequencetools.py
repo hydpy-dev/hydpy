@@ -21,6 +21,34 @@ from hydpy.core import variabletools
 from hydpy.cythons.autogen import pointerutils
 
 
+class InfoArray(numpy.ndarray):
+    """|numpy| |numpy.ndarray| subclass that stores and tries to keep
+    an additional `info` attribute.
+
+    >>> from hydpy.core.sequencetools import InfoArray
+    >>> array = InfoArray([1.0, 2.0], info='this array is short')
+    >>> array
+    InfoArray([ 1.,  2.])
+    >>> array.info
+    'this array is short'
+    >>> subarray = array[:1]
+    >>> subarray
+    InfoArray([ 1.])
+    >>> subarray.info
+    'this array is short'
+    """
+
+    def __new__(cls, array, info=None):
+        obj = numpy.asarray(array).view(cls)
+        obj.info = info
+        return obj
+
+    def __array_finalize__(self, obj):
+        if obj is None:
+            return
+        self.info = getattr(obj, 'info', None)
+
+
 class Sequences(object):
     """Handles all sequences of a specific model."""
 

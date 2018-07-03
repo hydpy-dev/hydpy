@@ -241,7 +241,7 @@ with key `1`, the following error occurred: The only allowed keys for \
     ...
     ValueError: While trying to set the value(s) of variable `variable` \
 with key `slice(None, None, None)`, the following error occurred: \
-could not convert string to float: 'test'
+could not convert string to float: ...
 
     Note that comparisons on |Variable| objects containg multiple
     values return a single boolean only:
@@ -285,9 +285,7 @@ error occurred: operands could not be broadcast together with shapes (2,) (3,)
     .. testsetup::
 
         >>> from hydpy import pub
-        >>> if pub.pyversion == 2:
-        ...    assert variable < 'text'
-        ... else:
+        >>> if pub.pyversion > 2:
         ...     try:
         ...         variable < 'text'
         ...     except TypeError:

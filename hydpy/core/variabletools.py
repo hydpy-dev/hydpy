@@ -314,11 +314,49 @@ error occurred: operands could not be broadcast together with shapes (2,) (3,)
 
     values = property(_get_values, _set_values)
 
-    @property
-    def shape(self):
-        """Shape information as |tuple| of |int| values, to be defined
-        by the subclasses of |Variable|."""
-        raise NotImplementedError
+    def _get_shape(self):
+        """A tuple containing the lengths in all dimensions of the sequence
+        values at a specific time point.  Note that setting a new shape
+        results in a loss of the actual values of the respective sequence.
+        For 0-dimensional sequences an empty tuple is returned.
+        """
+        if self.NDIM:
+            try:
+                return tuple(int(x) for x in self.value.shape)
+            except AttributeError:
+                raise RuntimeError(
+                    'Shape information for variable %s can only be '
+                    'retrieved after it has been defined.'
+                    % objecttools.devicephrase(self))
+        else:
+            return ()
+
+    def _set_shape(self, shape):
+        if self.NDIM:
+            try:
+                array = numpy.full(shape, self.initvalue, dtype=self.TYPE)
+            except BaseException:
+                objecttools.augment_excmessage(
+                    'While trying create a new numpy ndarray` for variable %s'
+                    % objecttools.devicephrase(self))
+            if array.ndim == self.NDIM:
+                setattr(self.fastaccess, self.name, array)
+            else:
+                raise ValueError(
+                    'Variable %s is %d-dimensional, but the given '
+                    'shape indicates %d dimensions.'
+                    % (objecttools.devicephrase(self),
+                       self.NDIM, array.ndim))
+        else:
+            if shape:
+                raise ValueError(
+                    'The shape information of 0-dimensional variables '
+                    'as %s can only be `()`, but `%s` is given.'
+                    % (objecttools.devicephrase(self), shape))
+            #else:
+            #    self.value = self.initvalue
+
+    shape = property(_get_shape, _set_shape)
 
     NOT_DEEPCOPYABLE_MEMBERS = ()
 

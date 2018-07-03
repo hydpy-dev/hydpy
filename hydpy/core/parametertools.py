@@ -812,21 +812,6 @@ class SingleParameter(Parameter):
         self.fastaccess = subpars.fastaccess
         setattr(self.fastaccess, self.name, self.initvalue)
 
-    @staticmethod
-    def _get_shape():
-        """An empty tuple.  (Only intended for increasing consistent usability
-        of |SingleParameter| and |MultiParameter| instances.)
-        """
-        return ()
-
-    def _set_shape(self, shape):
-        raise RuntimeError(
-            'The shape information of `SingleParameters` '
-            'as `%s` cannot be changed.'
-            % objecttools.elementphrase(self))
-
-    shape = property(_get_shape, _set_shape)
-
     def _get_value(self):
         """The actual parameter value handled by the respective
         |SingleParameter| instance.
@@ -879,37 +864,6 @@ class MultiParameter(Parameter):
         self.subpars = subpars
         self.fastaccess = subpars.fastaccess
         setattr(self.fastaccess, self.name, None)
-
-    def _get_shape(self):
-        """A tuple containing the lengths in all dimensions of the parameter
-        values.  Note that setting a new shape results in a loss of all values
-        of the respective parameter.
-        """
-        try:
-            shape = getattr(self.fastaccess, self.name).shape
-            return tuple(int(x) for x in shape)
-        except AttributeError:
-            raise RuntimeError(
-                'Shape information for parameter `%s` can only '
-                'be retrieved after it has been defined.'
-                % objecttools.elementphrase(self))
-
-    def _set_shape(self, shape):
-        try:
-            array = numpy.full(shape, self.initvalue, dtype=self.TYPE)
-        except BaseException:
-            objecttools.augment_excmessage(
-                'While trying create a new numpy ndarray` for parameter `%s`'
-                % objecttools.elementphrase(self))
-        if array.ndim == self.NDIM:
-            setattr(self.fastaccess, self.name, array)
-        else:
-            raise ValueError(
-                'Parameter `%s` is %d-dimensional but the '
-                'given shape indicates %d dimensions.'
-                % (objecttools.elementphrase(self), self.NDIM, array.ndim))
-
-    shape = property(_get_shape, _set_shape)
 
     def _get_value(self):
         """The actual parameter value(s) handled by the respective

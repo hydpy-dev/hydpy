@@ -393,7 +393,7 @@ class LinkSequences(SubSequences):
 class Sequence(variabletools.Variable):
     """Base class for defining different kinds of sequences."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM, NUMERIC, TYPE = 0, False, float
 
     NOT_DEEPCOPYABLE_MEMBERS = ('subseqs', 'fastaccess')
 
@@ -497,51 +497,6 @@ class Sequence(variabletools.Variable):
         setattr(self.fastaccess, self.name, value)
 
     value = property(_get_value, _set_value)
-
-    def _get_shape(self):
-        """A tuple containing the lengths in all dimensions of the sequence
-        values at a specific time point.  Note that setting a new shape
-        results in a loss of the actual values of the respective sequence.
-        For 0-dimensional sequences an empty tuple is returned.
-        """
-        if self.NDIM:
-            try:
-                shape = self.values.shape
-                return tuple(int(x) for x in shape)
-            except AttributeError:
-                raise RuntimeError(
-                    'Shape information for %s can only be retrieved '
-                    'after it has been defined.'
-                    % objecttools.devicephrase(self))
-        else:
-            return ()
-
-    def _set_shape(self, shape):
-        if self.NDIM:
-            try:
-                array = numpy.full(shape, self.initvalue, dtype=float)
-            except BaseException:
-                objecttools.augment_excmessage(
-                    'While trying create a new numpy ndarray` for sequence %s'
-                    % objecttools.devicephrase(self))
-            if array.ndim == self.NDIM:
-                setattr(self.fastaccess, self.name, array)
-            else:
-                raise ValueError(
-                    'Sequence %s is %d-dimensional, but the given '
-                    'shape indicates %d dimensions.'
-                    % (objecttools.devicephrase(self),
-                       self.NDIM, array.ndim))
-        else:
-            if shape:
-                raise ValueError(
-                    'The shape information of 0-dimensional sequences '
-                    'as %s can only be `()`, but `%s` is given.'
-                    % (objecttools.devicephrase(self), shape))
-            else:
-                self.value = 0.
-
-    shape = property(_get_shape, _set_shape)
 
     def __repr__(self):
         islong = self.length > 255

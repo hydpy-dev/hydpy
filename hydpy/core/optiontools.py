@@ -108,46 +108,41 @@ class Options(object):
     """
 
     checkseries = _Option(True, None)
-    """True/False flag indicating whether an error shall be raised
-    when e.g. an incomplete input time series, not spanning the whole
-    initialization time period, is loaded."""
+    """True/False flag for raising an error when trying to load an input
+    time series not spanning the whole initialisation period."""
 
     dirverbose = _Option(False, None)
-    """True/False flag indicationg whether the listboxes for the member
-    selection of the classes of the HydPy framework should be complete
-    (True) or restrictive (False).  The latter is more viewable and hence
-    the default."""
+    """A True/False flag for letting the autocompletion textbox include
+    all members of an object or only the most relevant ones.  So far, this
+    option affects the behaviour of a few implemented classes only."""
 
     ellipsis = _Option(-999, -999)
-    """Ellipsis points are used to shorten the string representations
-    of iterable HydPy objects containing many entries.  Set a value
-    to define the maximum number of entries before and behind ellipsis
-    points.  Set it to zero, if no ellipsis points should be drawn at
-    all.  Set it to -999 (the default value) to rely on the default
-    values of the respective iterables."""
+    """Ellipsis points are used to shorten the string representations of
+    iterable HydPy objects containing many entries.  Set a value to define
+    the maximum number of entries before and behind ellipsis points.  Set
+    it to zero to avoid any ellipsis points.  Set it to -999 to rely on
+    the default values of the respective iterable objects."""
     ellipsis.type_ = int
 
     fastcython = _Option(True, None)
-    """True/False flag indicating whether Cythonization shall be
-    configured in a fast but unsafe (True) or in a slow but safe (False)
-    mode.  The fast mode is the default.  Setting this flag to False
-    can be helpful when the implementation of new models or other
-    Cython related features introduces errors that do not result in
-    informative error messages."""
+    """A True/False flag which indicates whether cythonizing should result
+    in faster but more fragile models or slower but more robust models.
+    Setting this flag to False can be helpful when the implementation of
+    new models or other Cython related features introduces errors that do
+    not result in informative error messages."""
 
     printprogress = _Option(True, None)
-    """True/False flag indicating whether information about the progress
-    of certain processes shall be printed to the standard output or not.
-    The default is `True`."""
+    """A True/False flag for printing information about the progress of
+    some processes to the standard output."""
 
     printincolor = _Option(True, None)
-    """True/False flag indicating whether information shall be printed
-    in color eventually or not. The default is `True`."""
+    """A True/False flag for printing progress information in colour
+    eventually."""
 
     reprcomments = _Option(False, None)
-    """True/False flag indicationg whether comments shall be included
-    in string representations of some classes of the HydPy framework or
-    not.  The default is `False`."""
+    """A True/False flag for including comments into string representations.
+    So far, this option affects the behaviour of a few implemented classes,
+    only."""
 
     reprdigits = _Option(-999, -999)
     """Required precision of string representations of floating point
@@ -155,49 +150,42 @@ class Options(object):
     by the string representation (see function |repr_|)."""
 
     skipdoctests = _Option(False, None)
-    """True/False flag indicating whether documetation tests shall be
-    performed under certain situations.  Applying tests increases
-    reliabilty and is thus the default."""
+    """A True/False flag for skipping the automatic execution of
+    documentation tests. """
 
     usecython = _Option(True, None)
-    """True/False flag indicating whether Cython models (True) or pure
-    Python models (False) shall be applied if possible.  Using Cython
-    models is more time efficient and thus the default."""
+    """TA True/False flag for applying cythonized models if possible,
+    which are much faster than pure Python models. """
 
     usedefaultvalues = _Option(False, None)
-    """True/False flag indicating whether parameters values shall be
-    initialized with standard values or not."""
+    """A True/False flag for initialising parameters with standard values."""
 
     utcoffset = _Option(60, None)
     """Offset of your local time from UTC in minutes.  Defaults to 60,
     which corresponds to UTC+01:00."""
 
     warnmissingcontrolfile = _Option(False, None)
-    """True/False flag indicating whether only a warning shall be raised
-    when a required control file is missing, or an exception."""
+    """A True/False flag for only raising a warning instead of an exception
+    when a necessary control file is missing."""
 
     warnmissingobsfile = _Option(True, None)
-    """True/False flag indicating whether a warning shall be raised
-    when a requested observation sequence demanded by a node instance
-    is missing."""
+    """A True/False flag for raising a warning when a requested observation
+    sequence demanded by a node instance is missing."""
 
     warnmissingsimfile = _Option(True, None)
-    """True/False flag indicating whether a warning shall be raised
-    when a requested simulation sequence demanded by a node instance
-    is missing."""
+    """A True/False flag for raising a warning when a requested simulation
+    sequence demanded by a node instance is missing."""
 
     warnsimulationstep = _Option(True, None)
-    """True/False flag indicating whether a warning shall be raised
-    when function |simulationstep| called for the first time."""
+    """A True/False flag for raising a warning when function |simulationstep|
+    called for the first time directly by the user."""
 
     warntrim = _Option(True, None)
-    """True/False flag indicating whether a warning shall be raised
-    whenever certain values needed to be trimmed due to violating
-    certain boundaries. Such warnings increase safety and are thus
-    the default is `True`.  However, to cope with the limited precision
-    of floating point numbers only those violations beyond a small
-    tolerance value are reported (see function |trim|).  Warnings
-    with identical information are reported only once."""
+    """A True/False flag for raising a warning when a |Variable| object
+    trims its value(s) in order no not violate certain boundaries.
+    To cope with the limited precision of floating point numbers only
+    those violations beyond a small tolerance value are reported
+    (see function |trim|). """
 
 
 @autodoctools.make_autodoc_optional

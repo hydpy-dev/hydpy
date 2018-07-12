@@ -891,13 +891,6 @@ class MultiParameter(Parameter):
 
     value = property(_get_value, _set_value)
 
-    def __len__(self):
-        """Returns the number of values handled by the |MultiParameter|
-        instance.  It is required, that the `shape` has been set beforehand,
-        which specifies the length in each dimension.
-        """
-        return numpy.cumprod(self.shape)[-1]
-
     def compress_repr(self):
         """Return a compressed parameter value string, which is (in
         accordance with |MultiParameter.NDIM|) contained in a nested |list|.
@@ -1008,7 +1001,7 @@ is no compression method implemented, working for its actual values.
         """
         if self.value is None:
             unique = numpy.array([self.TYPE2INITVALUE.get(self.TYPE)])
-        elif self.length == 0:
+        elif not len(self):
             return ['']
         else:
             unique = numpy.unique(self[self.mask])
@@ -1031,7 +1024,7 @@ is no compression method implemented, working for its actual values.
         try:
             values = self.compress_repr()
         except NotImplementedError:
-            islong = self.length > 255
+            islong = len(self) > 255
             values = self.revert_timefactor(self.values)
         except BaseException:
             objecttools.augment_excmessage(

@@ -499,7 +499,7 @@ class Sequence(variabletools.Variable):
     value = property(_get_value, _set_value)
 
     def __repr__(self):
-        islong = self.length > 255
+        islong = len(self) > 255
         return variabletools.Variable.to_repr(self, self.values, islong)
 
     def __dir__(self):

@@ -291,6 +291,18 @@ error occurred: operands could not be broadcast together with shapes (2,) (3,)
         ...     except TypeError:
         ...         pass
 
+    The |len| operator always returns the total number of values handles
+    by the variable according to the current shape:
+
+    >>> Variable.shape = ()
+    >>> len(Variable())
+    1
+    >>> Variable.shape = (5,)
+    >>> len(Variable())
+    5
+    >>> Variable.shape = (2, 1, 4)
+    >>> len(variable)
+    8
     """
     # Subclasses need to define...
     NDIM = None    # ... e.g. as class attribute (int)
@@ -374,40 +386,6 @@ error occurred: operands could not be broadcast together with shapes (2,) (3,)
                objecttools.classname(other), other))
 
     name = property(objecttools.name)
-
-    @property
-    def length(self):
-        """Total number of all entries of the sequence.
-
-        For 0-dimensional sequences, `length` is always one:
-
-        >>> from hydpy.core.objecttools import copy_class
-        >>> from hydpy.core.variabletools import Variable
-        >>> Variable = copy_class(Variable)
-        >>> variable = Variable()
-        >>> Variable.NDIM = 0
-        >>> variable.length
-        1
-
-        For 1-dimensional sequences, it is the vector length:
-
-        >>> Variable.NDIM = 1
-        >>> Variable.shape = (5,)
-        >>> variable.length
-        5
-
-        For higher dimensional sequences, the lenghts of the different axes
-        of the matrix are multiplied:
-
-        >>> Variable.NDIM = 3
-        >>> Variable.shape = (2, 1, 4)
-        >>> variable.length
-        8
-        """
-        length = 1
-        for idx in range(self.NDIM):
-            length *= self.shape[idx]
-        return length
 
     def verify(self):
         """Raises a |RuntimeError| if at least one of the required values
@@ -718,6 +696,12 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             raise IndexError(
                 'The only allowed keys for 0-dimensional variables '
                 'are `0` and `:`.')
+
+    def __len__(self):
+        try:
+            return numpy.cumprod(self.shape)[-1]
+        except IndexError:
+            return 1
 
     def __add__(self, other):
         try:

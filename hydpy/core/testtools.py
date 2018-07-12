@@ -235,7 +235,7 @@ class Test(object):
         """Number of columns of the table."""
         nmb = 1
         for parseq in self.parseqs:
-            nmb += max(parseq.length, 1)
+            nmb += max(len(parseq), 1)
         return nmb
 
     @property
@@ -243,7 +243,7 @@ class Test(object):
         """All raw strings for the tables header."""
         strings = [self.HEADER_OF_FIRST_COL]
         for parseq in self.parseqs:
-            for dummy in range(parseq.length-1):
+            for dummy in range(len(parseq)-1):
                 strings.append('')
             if ((parseq.name == 'sim') and
                     isinstance(parseq, abctools.SequenceABC)):
@@ -302,7 +302,7 @@ class Test(object):
         seps = ['| ']
         for parseq in self.parseqs:
             seps.append(' | ')
-            for dummy in range(parseq.length-1):
+            for dummy in range(len(parseq)-1):
                 seps.append('  ')
         seps.append(' |')
         return seps

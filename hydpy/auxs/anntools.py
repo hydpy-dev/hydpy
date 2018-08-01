@@ -24,7 +24,7 @@ from hydpy.core import timetools
 from hydpy.cythons import annutils   # pylint: disable=no-name-in-module
 
 
-class ANN(object):
+class ANN(abctools.ANNABC):
     """Multi-layer feed forward artificial neural network.
 
     The applied activation function is the logistic function:
@@ -1042,10 +1042,6 @@ parameter `ann` of element `?` has not been defined so far.
         pyplot.plot(xs_, ys_, **kwargs)
 
 
-abctools.ParameterABC.register(ANN)
-abctools.ANNABC.register(ANN)
-
-
 def ann(**kwargs):
     """Return a new stand alone |anntools.ANN| object with the given parameter
     values.
@@ -1093,7 +1089,7 @@ def ann(**kwargs):
     return new_ann
 
 
-class SeasonalANN(object):
+class SeasonalANN(abctools.SeasonalANNABC):
     """Handles relationships described by artificial neural networks that
     vary within an anual cycle.
 
@@ -1827,10 +1823,6 @@ neural network `seasonalann` of element `?` none has been defined so far.
         toy_1_1_0_0_0, toys, verify
         """
         return objecttools.dir_(self) + [str(toy) for toy in self.toys]
-
-
-abctools.ParameterABC.register(SeasonalANN)
-abctools.SeasonalANNABC.register(SeasonalANN)
 
 
 autodoctools.autodoc_module()

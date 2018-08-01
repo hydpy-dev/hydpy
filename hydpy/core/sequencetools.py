@@ -264,7 +264,7 @@ class SubSequences(variabletools.SubVariables):
         return objecttools.instancename(self)[:-8]
 
 
-class IOSequences(SubSequences):
+class IOSequences(SubSequences, abctools.IOSequencesABC):
     CLASSES = ()
 
     def open_files(self, idx=0):
@@ -298,10 +298,7 @@ class IOSequences(SubSequences):
             seq.disk2ram()
 
 
-abctools.IOSequencesABC.register(IOSequences)
-
-
-class InputSequences(IOSequences):
+class InputSequences(IOSequences, abctools.InputSequencesABC):
     """Base class for handling input sequences."""
     CLASSES = ()
 
@@ -309,10 +306,7 @@ class InputSequences(IOSequences):
         self.fastaccess.load_data(idx)
 
 
-abctools.InputSequencesABC.register(InputSequences)
-
-
-class FluxSequences(IOSequences):
+class FluxSequences(IOSequences, abctools.OutputSequencesABC):
     """Base class for handling flux sequences."""
     CLASSES = ()
 
@@ -336,10 +330,7 @@ class FluxSequences(IOSequences):
                 yield flux
 
 
-abctools.OutputSequencesABC.register(FluxSequences)
-
-
-class StateSequences(IOSequences):
+class StateSequences(IOSequences, abctools.OutputSequencesABC):
     """Base class for handling state sequences."""
     CLASSES = ()
 
@@ -368,9 +359,6 @@ class StateSequences(IOSequences):
             seq.reset()
 
 
-abctools.OutputSequencesABC.register(StateSequences)
-
-
 class LogSequences(SubSequences):
     """Base class for handling log sequences."""
     CLASSES = ()
@@ -390,7 +378,7 @@ class LinkSequences(SubSequences):
     CLASSES = ()
 
 
-class Sequence(variabletools.Variable):
+class Sequence(variabletools.Variable, abctools.SequenceABC):
     """Base class for defining different kinds of sequences."""
 
     NDIM, NUMERIC, TYPE = 0, False, float
@@ -506,10 +494,7 @@ class Sequence(variabletools.Variable):
         return objecttools.dir_(self)
 
 
-abctools.SequenceABC.register(Sequence)
-
-
-class IOSequence(Sequence):
+class IOSequence(Sequence, abctools.IOSequenceABC):
     """Base class for sequences with input/output functionalities."""
 
     def __init__(self):
@@ -1372,10 +1357,7 @@ or prepare `pub.sequencemanager` correctly.
                 % objecttools.devicephrase(self))
 
 
-abctools.IOSequenceABC.register(IOSequence)
-
-
-class ModelIOSequence(IOSequence):
+class ModelIOSequence(IOSequence, abctools.ModelIOSequenceABC):
     """Base class for sequences to be handled by |Model| objects."""
 
     @property
@@ -1424,17 +1406,11 @@ class ModelIOSequence(IOSequence):
         return self.subseqs.seqs.model.element.name
 
 
-abctools.ModelIOSequenceABC.register(IOSequence)
-
-
-class InputSequence(ModelIOSequence):
+class InputSequence(ModelIOSequence, abctools.InputSequenceABC):
     """Base class for input sequences of |Model| objects."""
 
 
-abctools.InputSequenceABC.register(InputSequence)
-
-
-class FluxSequence(ModelIOSequence):
+class FluxSequence(ModelIOSequence, abctools.FluxSequenceABC):
     """Base class for flux sequences of |Model| objects."""
 
     def _initvalues(self):
@@ -1456,9 +1432,6 @@ class FluxSequence(ModelIOSequence):
             self._connect_subattr('sum', numpy.zeros(self.shape))
 
     shape = property(ModelIOSequence._get_shape, _set_shape)
-
-
-abctools.FluxSequenceABC.register(FluxSequence)
 
 
 class LeftRightSequence(ModelIOSequence):
@@ -1510,7 +1483,7 @@ class ConditionSequence(object):
             self(*self._oldargs)
 
 
-class StateSequence(ModelIOSequence, ConditionSequence):
+class StateSequence(ModelIOSequence, ConditionSequence, abctools.StateSequenceABC):
     """Base class for state sequences of |Model| objects."""
 
     NOT_DEEPCOPYABLE_MEMBERS = ('subseqs', 'fastaccess_old', 'fastaccess_new')
@@ -1622,10 +1595,7 @@ class StateSequence(ModelIOSequence, ConditionSequence):
             self.old = self.new
 
 
-abctools.StateSequenceABC.register(StateSequence)
-
-
-class LogSequence(Sequence, ConditionSequence):
+class LogSequence(Sequence, ConditionSequence, abctools.LogSequenceABC):
     """Base class for logging sequences of |Model| objects."""
 
     def __init__(self):
@@ -1638,10 +1608,7 @@ class LogSequence(Sequence, ConditionSequence):
         self._oldargs = copy.deepcopy(args)
 
 
-abctools.LogSequenceABC.register(LogSequence)
-
-
-class AideSequence(Sequence):
+class AideSequence(Sequence, abctools.AideSequenceABC):
     """Base class for aide sequences of |Model| objects.
 
     Aide sequences are thought for storing data that is of importance
@@ -1651,10 +1618,7 @@ class AideSequence(Sequence):
     pass
 
 
-abctools.AideSequenceABC.register(AideSequence)
-
-
-class LinkSequence(Sequence):
+class LinkSequence(Sequence, abctools.LinkSequenceABC):
     """Base class for link sequences of |Model| objects.
 
     Link sequences point (based on module |pointerutils| to data
@@ -1727,10 +1691,7 @@ class LinkSequence(Sequence):
     shape = property(_get_shape, _set_shape)
 
 
-abctools.LinkSequenceABC.register(LinkSequence)
-
-
-class NodeSequence(IOSequence):
+class NodeSequence(IOSequence, abctools.NodeSequenceABC):
     """Base class for all sequences to be handled by |Node| objects."""
 
     @property
@@ -1773,9 +1734,6 @@ class NodeSequence(IOSequence):
         getattr(self.fastaccess, self.name)[0] = values
 
     value = property(_get_value, _set_value)
-
-
-abctools.NodeSequenceABC.register(NodeSequence)
 
 
 class Sim(NodeSequence):

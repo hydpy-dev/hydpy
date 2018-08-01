@@ -30,14 +30,13 @@ from hydpy.core import autodoctools
 from hydpy.core import devicetools
 from hydpy.core import exceptiontools
 from hydpy.core import hydpytools
-from hydpy.core import metatools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import printtools
 from hydpy.core import selectiontools
 from hydpy.core import timetools
+from hydpy.core import texttools
 from hydpy.tests import iotesting
-
 
 if pub.pyversion == 2:
     abstractstaticmethod = abc.abstractmethod
@@ -342,7 +341,7 @@ class Test(object):
             parseqs = self.parseqs
         units = set()
         for parseq in parseqs:
-            desc = metatools.description(parseq)
+            desc = texttools.description(parseq)
             if '[' in desc:
                 unit = desc.split('[')[-1].split(']')[0]
                 units.add(unit)

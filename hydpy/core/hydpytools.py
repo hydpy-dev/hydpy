@@ -15,7 +15,7 @@ from hydpy.core import printtools
 from hydpy.core import selectiontools
 
 
-class HydPy(object):
+class HydPy(abctools.HydPyABC):
     """Main class for managing HydPy projects."""
 
     # A counter for the number of HydPy instances.

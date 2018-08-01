@@ -11,7 +11,6 @@ import numpy
 from hydpy import pub
 from hydpy.core import abctools
 from hydpy.core import autodoctools
-from hydpy.core import metatools
 from hydpy.core import objecttools
 
 
@@ -26,7 +25,7 @@ class _MaskDescriptor(object):
         return self.cls_mask(obj)
 
 
-class _BaseMask(numpy.ndarray):
+class _BaseMask(numpy.ndarray, abctools.MaskABC):
 
     def __new__(cls, array=None, **kwargs):
         return cls.array2mask(array)
@@ -47,9 +46,6 @@ class _BaseMask(numpy.ndarray):
 
     def __repr__(self):
         return numpy.ndarray.__repr__(self).replace(', dtype=bool', '')
-
-
-abctools.MaskABC.register(_BaseMask)
 
 
 class CustomMask(_BaseMask):
@@ -207,7 +203,7 @@ must be overridden, which is not the case for class `IndexMask`.
         return self.get_refindices(self.variable)
 
 
-class Masks(metatools.MetaSubgroupClass):
+class Masks(abctools.SubgroupABC):
     """Base class for handling groups of masks.
 
     Attributes:

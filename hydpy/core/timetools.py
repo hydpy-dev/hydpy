@@ -29,7 +29,7 @@ from hydpy.core import objecttools
 time.strptime('1999', '%Y')
 
 
-class Date(object):
+class Date(abctools.DateABC):
     """Handles a single date.
 
     Classes |Date| is build on top of the Python module |datetime|.
@@ -725,10 +725,7 @@ literal for int() with base 10: '0X'
         return objecttools.dir_(self)
 
 
-abctools.DateABC.register(Date)
-
-
-class Period(object):
+class Period(abctools.PeriodABC):
     """Handles the length of a single time period.
 
     Class |Period| is build on top of the Python module |datetime|.
@@ -1097,10 +1094,7 @@ whole numbers only, but for object `Period('1d')` value `2.5` was given.
         return objecttools.dir_(self)
 
 
-abctools.PeriodABC.register(Period)
-
-
-class Timegrid(object):
+class Timegrid(abctools.TimegridABC):
     """Handle a time period defined by to dates and a step size in between.
 
     In hydrological modelling, input (and output) data are usually only
@@ -1570,10 +1564,7 @@ timegrid object is `4` and the length of the array object is `2`.
         return objecttools.dir_(self)
 
 
-abctools.TimegridABC.register(Timegrid)
-
-
-class Timegrids(object):
+class Timegrids(abctools.TimegridsABC):
     """Handles all |Timegrid| instances of a HydPy project.
 
     The HydPy framework distinguishes three `time frames`, one associated
@@ -1789,10 +1780,7 @@ on the initialization time grid.
         return objecttools.dir_(self)
 
 
-abctools.TimegridsABC.register(Timegrids)
-
-
-class TOY(object):
+class TOY(abctools.TOYABC):
     """Time of year handler.
 
     |TOY| objects are used to define certain things that are true for a
@@ -2101,9 +2089,6 @@ set to `2`, but the given value is `29`.
                                       in self._PROPERTIES.keys())
 
     __dir__ = objecttools.dir_
-
-
-abctools.TOYABC.register(TOY)
 
 
 autodoctools.autodoc_module()

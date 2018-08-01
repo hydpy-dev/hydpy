@@ -6,10 +6,11 @@
 # ...from standard library
 from __future__ import division, print_function
 # ...from Hydpy
+from hydpy.core import abctools
 from hydpy.core import autodoctools
 
 
-class Connections(object):
+class Connections(abctools.ConnectionABC):
     """Connection between |Node| and |Element| instances.
     """
 

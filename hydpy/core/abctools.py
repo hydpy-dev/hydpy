@@ -86,7 +86,7 @@ class NodesABC(_ABC):
     """Abstract base class for registering custom |Nodes| classes."""
 
 
-class ConnectionABC(_ABC):
+class ConnectionsABC(_ABC):
     """Abstract base class for registering custom |Connection| classes."""
 
 

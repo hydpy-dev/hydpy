@@ -10,7 +10,7 @@ from hydpy.core import abctools
 from hydpy.core import autodoctools
 
 
-class Connections(abctools.ConnectionABC):
+class Connections(abctools.ConnectionsABC):
     """Connection between |Node| and |Element| instances.
     """
 

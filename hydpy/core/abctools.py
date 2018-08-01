@@ -296,7 +296,14 @@ else:
 class ModelABC(_ModelABC):
 
     """Abstract base class for registering custom |Model| classes."""
-    pass
+
+    @abc.abstractmethod
+    def connect(self):
+        ...
+
+    @abc.abstractmethod
+    def doit(self, idx):
+        ...
 
 
 autodoctools.autodoc_module()

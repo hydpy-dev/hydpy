@@ -992,4 +992,37 @@ class TestIO(object):
             pass
 
 
+def make_abc_testable(abstract: type) -> type:
+    """Return a concrete version of the given abstract base class for
+    testing purposes.
+
+    Abstract base classes cannot be (and, at least in production code,
+    should not be) instantiated:
+
+    >>> from hydpy.core.abctools import HydPyABC
+    >>> hp = HydPyABC()
+    Traceback (most recent call last):
+    ...
+    TypeError: Can't instantiate abstract class HydPyABC with \
+abstract methods elements
+
+    However, it is convenient to do so for testing (partly) abstract
+    base classes in doctests.  The derived class returned by function
+    |make_abc_testable| is identical with the original one, except that
+    its protection against initialization is disabled:
+
+    >>> from hydpy import make_abc_testable, classname
+    >>> hp = make_abc_testable(HydPyABC)()
+
+    To avoid confusion, |make_abc_testable| suffixes an underscore the
+    original classname:
+
+    >>> classname(hp)
+    'HydPyABC_'
+    """
+    concrete = type(abstract.__name__ + '_', (abstract,), {})
+    concrete.__abstractmethods__ = frozenset()
+    return concrete
+
+
 autodoctools.autodoc_module()

@@ -46,6 +46,7 @@ from hydpy.core.exceptiontools import HydPyDeprecationWarning
 from hydpy.core.hydpytools import HydPy
 from hydpy.core.importtools import prepare_model
 from hydpy.core.importtools import reverse_model_wildcard_import
+from hydpy.core.objecttools import classname
 from hydpy.core.objecttools import print_values
 from hydpy.core.objecttools import round_
 from hydpy.core.objecttools import repr_
@@ -127,6 +128,7 @@ __all__ = ['builtins',
            'prepare_model',
            'reverse_model_wildcard_import',
            'print_values',
+           'classname',
            'repr_',
            'round_',
            'Selection',

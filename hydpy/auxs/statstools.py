@@ -146,7 +146,6 @@ def nse(sim=None, obs=None, node=None, skip_nan=False):
     as the average observed value (regarding the the mean square
     error), the NSE value is zero:
 
-    >>> from hydpy import round_
     >>> from hydpy import nse
     >>> nse(sim=[2.0, 2.0, 2.0], obs=[1.0, 2.0, 3.0])
     0.0
@@ -631,7 +630,7 @@ def evaluationtable(nodes, criteria, nodenames=None,
     First, we define two nodes with different simulation and observation
     data (see function |prepare_arrays| for some explanations):
 
-    >>> from hydpy import pub, Timegrid, Timegrids, Node, round_, nan
+    >>> from hydpy import pub, Timegrid, Timegrids, Node, nan
     >>> pub.timegrids = Timegrids(Timegrid('01.01.2000',
     ...                                    '04.01.2000',
     ...                                    '1d'))

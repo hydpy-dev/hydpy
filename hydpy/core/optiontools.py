@@ -11,6 +11,12 @@ from hydpy.core import autodoctools
 
 class _Context(object):
 
+    _TYPE = None
+
+    def __new__(cls, *args, option, **kwargs):
+        args = [cls, option.value] + list(args)
+        return cls._TYPE.__new__(*args, **kwargs)
+
     def __init__(self, option):
         self.option = option
         self.old_value = option.value
@@ -29,20 +35,17 @@ class _Context(object):
 
 class _IntContext(_Context, int):
 
-    def __new__(cls, option):
-        return int.__new__(cls, option.value)
+    _TYPE = int
 
 
 class _FloatContext(_Context, float):
 
-    def __new__(cls, option):
-        return float.__new__(cls, option.value)
+    _TYPE = float
 
 
 class _StrContext(_Context, str):
 
-    def __new__(cls, option):
-        return str.__new__(cls, option.value)
+    _TYPE = str
 
 
 class _Option(object):
@@ -60,7 +63,7 @@ class _Option(object):
         self.context = self.TYPE2CONTEXT
 
     def __get__(self, options, type_=None):
-        context = self.TYPE2CONTEXT[self.type_](self)
+        context = self.TYPE2CONTEXT[self.type_](option=self)
         context.__doc__ = self.__doc__
         context.default = self.default
         context.nothing = self.nothing

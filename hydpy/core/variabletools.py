@@ -451,7 +451,7 @@ has not been set yet.
         coefficients (e.g. fractional areas) for applying
         |Variable.average_values|.  Must be overwritten by subclasses,
         when required."""
-        raise NotImplementedError(
+        raise AttributeError(
             'Variable %s does not define any weighting coefficients.'
             % objecttools.devicephrase(self))
 
@@ -481,7 +481,7 @@ has not been set yet.
         >>> sm.average_values()
         Traceback (most recent call last):
         ...
-        NotImplementedError: While trying to calculate the mean value \
+        AttributeError: While trying to calculate the mean value \
 of variable `soilmoisture`, the following error occurred: Variable \
 `soilmoisture` does not define any weighting coefficients.
 

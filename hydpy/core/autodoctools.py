@@ -59,7 +59,7 @@ _all_spec2capt.update(_AUX_SPEC2CAPT)
 
 
 @wrapt.decorator
-def make_autodoc_optional(wrapped, instance, args, kwargs):
+def make_autodoc_optional(wrapped, instance=None, args=None, kwargs=None):
     """Decorate function related to automatic documentation refinement,
     so that they will be applied only when requested (when `use_autodoc`
     of module |config| is `True`) or when possible (when `HydPy` is not

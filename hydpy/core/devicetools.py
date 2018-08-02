@@ -907,7 +907,7 @@ defined as a receiver, node which is not allowed.
 
     def __init__(self, name, inlets=None, outlets=None,
                  receivers=None, senders=None, keywords=None):
-        """Add the given |Node| objects via the corresponding |Connection|
+        """Add the given |Node| objects via the corresponding |Connections|
         objects."""
         if inlets is not None:
             for inlet in Nodes(inlets):

@@ -87,7 +87,7 @@ class NodesABC(_ABC):
 
 
 class ConnectionsABC(_ABC):
-    """Abstract base class for registering custom |Connection| classes."""
+    """Abstract base class for registering custom |Connections| classes."""
 
 
 class VariableABC(_ABC):
@@ -138,7 +138,7 @@ else:
 
 
 class SubgroupABC(_SubgroupABC):
-    """Abstract base class for registering custom |Subgroup| classes."""
+    """Abstract base class for registering custom `Subgroup` classes."""
 
 
 class IOSequencesABC(SubgroupABC):

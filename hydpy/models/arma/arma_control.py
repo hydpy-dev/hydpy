@@ -195,12 +195,12 @@ class Responses(parametertools.Parameter):
     """
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         with objecttools.ResetAttrFuncs(self):
             self.subpars = None
             self.fastaccess = None
             self._coefs = {}
-        parametertools.Parameter.__init__(self, *args, **kwargs)
+        parametertools.Parameter.__init__(self)
 
     def connect(self, subpars):
         self.__dict__['subpars'] = subpars
@@ -304,7 +304,7 @@ class Responses(parametertools.Parameter):
     def _key2float(key):
         return float(key[3:].replace('_', '.'))
 
-    def _getorders(self, index):
+    def _get_orders(self, index):
         orders = []
         for _, coefs in self:
             orders.append(len(coefs[index]))
@@ -313,15 +313,15 @@ class Responses(parametertools.Parameter):
     @property
     def ar_orders(self):
         """Number of AR coefficients of the different response functions."""
-        return self._getorders(0)
+        return self._get_orders(0)
 
     @property
     def ma_orders(self):
         """Number of MA coefficients of the different response functions."""
-        return self._getorders(1)
+        return self._get_orders(1)
 
-    def _getcoefs(self, index):
-        orders = self._getorders(index)
+    def _get_coefs(self, index):
+        orders = self._get_orders(index)
         max_orders = max(orders) if len(orders) else 0
         coefs = numpy.full((len(self), max_orders), numpy.nan)
         for idx, (order, (_, coef)) in enumerate(zip(orders, self)):
@@ -336,7 +336,7 @@ class Responses(parametertools.Parameter):
         threshold value, the last row contains the AR coefficients related to
         the highest threshold value.  The number of columns depend on the
         highest number of AR coefficients among all response functions."""
-        return self._getcoefs(0)
+        return self._get_coefs(0)
 
     @property
     def ma_coefs(self):
@@ -346,7 +346,7 @@ class Responses(parametertools.Parameter):
         threshold value, the last row contains the AR coefficients related to
         the highest threshold value.  The number of columns depend on the
         highest number of MA coefficients among all response functions."""
-        return self._getcoefs(1)
+        return self._get_coefs(1)
 
     def __len__(self):
         return len(self._coefs)

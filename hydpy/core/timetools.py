@@ -1455,7 +1455,7 @@ timegrid object is `4` and the length of the array object is `2`.
         for dummy in range(1, series.ndim):
             slices.append(slice(0, 1))
             subshape.append(1)
-        series[slices] = self.to_array().reshape(subshape)
+        series[tuple(slices)] = self.to_array().reshape(subshape)
         series[13:] = array
         return series
 

@@ -516,7 +516,7 @@ class NetCDFVariable(object):
         slices = [idx, slice(None)]
         for length in sequence.shape:
             slices.append(slice(0, length))
-        return slices
+        return tuple(slices)
 
     @property
     def dimensions(self):

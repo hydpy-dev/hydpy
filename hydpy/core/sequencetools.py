@@ -495,7 +495,15 @@ class Sequence(variabletools.Variable, abctools.SequenceABC):
 
 
 class IOSequence(Sequence, abctools.IOSequenceABC):
-    """Base class for sequences with input/output functionalities."""
+    """Base class for sequences with input/output functionalities.
+
+    |IOSequence| is partly abstract, which is why we feign it to be
+    concrete for simplifying testing its different methods:
+
+    >>> from hydpy.core.sequencetools import IOSequence
+    >>> from hydpy import dummies, make_abc_testable
+    >>> dummies.IOSequence_ = make_abc_testable(IOSequence)
+    """
 
     def __init__(self):
         Sequence.__init__(self)
@@ -518,8 +526,8 @@ class IOSequence(Sequence, abctools.IOSequenceABC):
 
         Note that passing |None| values changes nothing:
 
-        >>> from hydpy.core.sequencetools import IOSequence
-        >>> seq = IOSequence()
+        >>> from hydpy import dummies
+        >>> seq = dummies.IOSequence_()
         >>> seq.use_ext
         False
         >>> seq.use_ext = None
@@ -620,8 +628,8 @@ prepare `pub.sequencemanager` correctly.
         attribute `rawfilename` to the initialized sequence object in the
         following example:
 
-        >>> from hydpy.core import sequencetools as st
-        >>> seq = st.IOSequence()
+        >>> from hydpy import dummies
+        >>> seq = dummies.IOSequence_()
         >>> seq.rawfilename = 'test'
         >>> seq.filetype_ext = 'npy'
         >>> seq.filename_ext
@@ -648,8 +656,8 @@ prepare `pub.sequencemanager` correctly.
         the attribute `rawfilename` to the initialized sequence object
         in the following example:
 
-        >>> from hydpy.core.sequencetools import IOSequence
-        >>> seq = IOSequence()
+        >>> from hydpy import dummies
+        >>> seq = dummies.IOSequence_()
         >>> seq.rawfilename = 'test'
         >>> seq.filename_int
         'test.bin'
@@ -823,8 +831,8 @@ or prepare `pub.sequencemanager` correctly.
         |IOSequence.dirpath_ext| and |IOSequence.filename_ext|.  For
         simplicity, we define both manually in the following example:
 
-        >>> from hydpy.core.sequencetools import IOSequence
-        >>> seq = IOSequence()
+        >>> from hydpy import dummies
+        >>> seq = dummies.IOSequence_()
         >>> seq.dirpath_ext = 'path'
         >>> seq.filename_ext = 'file.npy'
         >>> from hydpy import repr_
@@ -852,8 +860,8 @@ or prepare `pub.sequencemanager` correctly.
         itself is defined by `rawfilename`.  For simplicity, we define
         both manually in the following example:
 
-        >>> from hydpy.core.sequencetools import IOSequence
-        >>> seq = IOSequence()
+        >>> from hydpy import dummies
+        >>> seq = dummies.IOSequence_()
         >>> seq.dirpath_int = 'path'
         >>> seq.rawfilename = 'file'
         >>> from hydpy import repr_
@@ -1243,8 +1251,8 @@ or prepare `pub.sequencemanager` correctly.
         |IOSequence| object only, |IOSequence.filepath_ext| returns
         |True| in case a file already exists and otherwise |False|:
 
-        >>> from hydpy.core.sequencetools import IOSequence
-        >>> seq = IOSequence()
+        >>> from hydpy import dummies
+        >>> seq = dummies.IOSequence_()
         >>> seq.dirpath_ext = '.'
         >>> seq.rawfilename = 'file'
         >>> seq.filetype_ext = 'npy'
@@ -1294,11 +1302,12 @@ or prepare `pub.sequencemanager` correctly.
         |IOSequence| objects the result of |IOSequence.average_series|
         equals |IOSequence.series| itself:
 
-        >>> from hydpy.core.sequencetools import IOSequence
+        >>> from hydpy import dummies
         >>> import numpy
-        >>> class SoilMoisture(IOSequence):
+        >>> class SoilMoisture(dummies.IOSequence_):
         ...     NDIM = 0
-        >>> sm = SoilMoisture()
+        >>> from hydpy import make_abc_testable
+        >>> sm = make_abc_testable(SoilMoisture)()
         >>> sm.activate_ram()
         >>> sm.series = numpy.array([190.0, 200.0, 210.0])
         >>> sm.average_series()

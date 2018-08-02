@@ -595,8 +595,8 @@ class SequenceManager(FileManager):
     Secondly, we prepare a 0-dimensional |IOSequence| object called
     `test_sequence` and assign a small time series to it:
 
-    >>> from hydpy.core.sequencetools import IOSequence
-    >>> class Seq0(IOSequence):
+    >>> from hydpy.core.sequencetools import ModelIOSequence
+    >>> class Seq0(ModelIOSequence):
     ...     NDIM = 0
     ...     rawfilename = 'test_sequence'
     >>> seq0 = Seq0()
@@ -667,7 +667,7 @@ class SequenceManager(FileManager):
     |SequenceManager.save_file|.  We show this for a 1-dimensional
     sequence:
 
-    >>> class Seq1(IOSequence):
+    >>> class Seq1(ModelIOSequence):
     ...     NDIM = 1
     ...     rawfilename = 'test_sequence'
     >>> seq1 = Seq1()

@@ -1787,7 +1787,7 @@ neural network `seasonalann` of element `?` none has been defined so far.
             object.__delattr__(self, name)
 
     def __iter__(self) -> Iterable[Tuple[timetools.TOY, ANN]]:
-        return (toy, ann_ for toy, ann_ in sorted(self._toy2ann.items()))
+        return ((toy, ann_) for (toy, ann_) in sorted(self._toy2ann.items()))
 
     def __repr__(self):
         if not self:

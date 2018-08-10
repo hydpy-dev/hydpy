@@ -33,7 +33,7 @@ class WATS(lland_sequences.State1DSequence):
     """Wasseräquivalent Trockenschnee (frozen water equivalent of the snow
     cover) [mm]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
-    mask = lland_masks.Land
+    mask = lland_masks.Land()
 
     def trim(self, lower=None, upper=None):
         """Trim values in accordance with :math:`WAeS \\leq PWMax \\cdot WATS`,

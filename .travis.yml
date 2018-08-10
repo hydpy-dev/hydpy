@@ -2,11 +2,9 @@ language: python
 os:
   - linux
 python:
-  - "2.7"
   - "3.5"
-  - "3.5-dev"
   - "3.6"
-  - "3.6-dev"
+  - "3.7"
 # command to install dependencies
 install:
   - pip install --upgrade pip setuptools wheel
@@ -31,6 +29,9 @@ script:
   - if [ $TRAVIS_PYTHON_VERSION == "3.6" ] ; then python hydpy/docs/prepare.py; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.6" ] ; then travis-sphinx build --source=hydpy/docs/auto; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.6" ] ; then python hydpy/docs/modify_html.py; fi
+matrix:
+  allow_failures:
+    python: "3.7"
 env:
   global:
     secure: KkDNiyCWcOtSMHzwmR7WuUM9Z08sigox9fgiRaWtdDTNHGHbNRXCf6Rzr32QlThqu9SwwPd5VnEJkontzrG9uTL2rlEzCKJHp4Ncq0lmCBhOJEM7favpIGwjnWQt4kZZ+G/sy9rfV6rshiOMN2rHRkt1gYzRmHTPCEQQ5eVIb7/YnFO+Gc77FGgkqWJXTfYczUMHNL5F3pfdSUbnnsDoqq3dxZ+NtdY6R87+IOT9fclrsL8zcodJC8N2oyGeTfhRcrZESneVcR/NEx6KhVC8A9/8bWK7kc8cYB6ieLo31uU+Ht7UvDzXmXfZrA8FoRbiDaJ3ktW9RQ7BR0GKGyQm/y/bLUrR7Yo2AXLPrF1DvBt8DYvcnMkJ1sNOrJI+oOpfi7AfdxVJnGbWa8w4D5B6EJSCvQwOj1REXgOf8+VrOKUqZMxPCCDDOhKPSx3/9ng7NAT+yRk7pLqKVtJEEszYs2/wK8hask4JMaz9H06b+Dy5nHnr4RQffXPPwAArSZZdu9IC3/38Lqnk+HhUWZLbKnBMd8UdRbDdZ5aFAkK7ZLseiDaAzCE31FscQbNmwpUPgfxgz/ApWZSV/WHlVZvaNBPkK0DTk5b9iW3WeLOC+qXGYzBKTUHIFQbCKEh40P0pTeDlp0sK3bWnT0VPEXJhk0jEN60RrlB9lwLdSzJg4Gs=

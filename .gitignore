@@ -25,3 +25,5 @@ HydPy.egg-info/*
 MANIFEST
 test.py
 .spyproject/
+.mypy_cache/*
+.idea/*

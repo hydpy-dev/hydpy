@@ -1819,9 +1819,9 @@ class NodeSequence(IOSequence, abctools.NodeSequenceABC):
 
         >>> from hydpy import Node
         >>> Node('test_node_1', 'T').sequences.sim.descr_sequence
-        'sim_T'
+        'sim_t'
         """
-        return '%s_%s' % (self.name, self.subseqs.node.variable)
+        return '%s_%s' % (self.name, self.subseqs.node.variable.lower())
 
     @property
     def descr_device(self):

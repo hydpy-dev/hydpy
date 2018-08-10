@@ -9,7 +9,7 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     >>> from hydpy.tests.examples import prepare_io_example_1
     >>> nodes, elements = prepare_io_example_1()
 
-    (1) Prepares a short initialization time period of five days:
+    (1) Prepares a short initialisation period of five days:
 
     >>> from hydpy import pub
     >>> pub.timegrids
@@ -17,7 +17,7 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
                        '05.01.2000 00:00:00',
                        '1d'))
 
-    (2) Prepares a plain `iotesting` directory structure:
+    (2) Prepares a plain IO testing directory structure:
 
     >>> pub.sequencemanager.inputpath
     'inputpath'
@@ -34,7 +34,7 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
 
                        '1d'))
 
-    (3) Return three |Element| objects handling either application model
+    (3) Returns three |Element| objects handling either application model
     |lland_v1| or |land_v2|, and two |Node| objects handling variables
     `Q` and `T`:
 
@@ -48,10 +48,10 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     node1 Q
     node2 T
 
-    (4) Prepare the time series data of input sequence |lland_inputs.Nied|,
-    flux sequence |lland_fluxes.NKor|, and state sequence |lland_states.BoWa|
-    for each model instance, and |Sim| for eac node instance (all values
-    are different), e.g.:
+    (4) Prepares the time series data of the input sequence
+    |lland_inputs.Nied|, flux sequence |lland_fluxes.NKor|, and state
+    sequence |lland_states.BoWa| for each model instance, and |Sim| for
+    each node instance (all values are different), e.g.:
 
     >>> nied1 = elements.element1.model.sequences.inputs.nied
     >>> nied1.series

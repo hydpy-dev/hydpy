@@ -1416,6 +1416,64 @@ or prepare `pub.sequencemanager` correctly.
                 'the internal time series of sequence %s'
                 % objecttools.devicephrase(self))
 
+    def aggregate_series(self, *args, **kwargs) -> InfoArray:
+        """Aggregates time series data based on the actual
+        |IOSequence.aggregationmode_ext| attribute.
+
+        We prepare some nodes and elements with the help of
+        method |netcdf_example| and select a 1-dimensional
+        flux sequence of type |lland_fluxes.NKor| as an example:
+
+        >>> from hydpy.tests.examples import netcdf_example
+        >>> nodes, elements = netcdf_example()
+        >>> seq = elements.element3.model.sequences.fluxes.nkor
+
+        If no |IOSequence.aggregationmode_ext| is `none`, the
+        original time series values are returned:
+
+        >>> seq.aggregationmode_ext
+        'none'
+        >>> seq.aggregate_series()
+        InfoArray([[ 24.,  25.,  26.],
+                   [ 27.,  28.,  29.],
+                   [ 30.,  31.,  32.],
+                   [ 33.,  34.,  35.]])
+
+        If no |IOSequence.aggregationmode_ext| is `mean`, function
+        |IOSequence.aggregate_series| is called:
+
+        >>> seq.aggregationmode_ext = 'mean'
+        >>> seq.aggregate_series()
+        InfoArray([ 25.,  28.,  31.,  34.])
+
+        In case the state of the sequence is invalid:
+
+        >>> seq.__dict__['_aggregationmode_ext'] = 'nonexistent'
+        >>> seq.aggregate_series()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Unknown aggregation mode `nonexistent` for \
+sequence `nkor` of element `element3`.
+
+        The following technical test confirms that all potential
+        positional and keyword arguments are passed properly:
+        >>> seq.aggregationmode_ext = 'mean'
+
+        >>> from unittest import mock
+        >>> seq.average_series = mock.MagicMock()
+        >>> _ = seq.aggregate_series(1, x=2)
+        >>> seq.average_series.assert_called_with(1, x=2)
+        """
+        mode = self.aggregationmode_ext
+        if mode == 'none':
+            return self.series
+        elif mode == 'mean':
+            return self.average_series(*args, **kwargs)
+        else:
+            raise RuntimeError(
+                'Unknown aggregation mode `%s` for sequence %s.'
+                % (mode, objecttools.devicephrase(self)))
+
 
 class ModelIOSequence(IOSequence, abctools.ModelIOSequenceABC):
     """Base class for sequences to be handled by |Model| objects."""

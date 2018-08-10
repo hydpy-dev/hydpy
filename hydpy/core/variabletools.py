@@ -277,19 +277,10 @@ error occurred: operands could not be broadcast together with shapes (2,) (3,)
 
     >>> Variable.NDIM = 0
     >>> Variable.value = 1.0
-    >>> variable < 'text'   # doctest: +SKIP
+    >>> variable < 'text'
     Traceback (most recent call last):
     ...
     TypeError: '<' not supported between instances of 'Variable' and 'str'
-
-    .. testsetup::
-
-        >>> from hydpy import pub
-        >>> if pub.pyversion > 2:
-        ...     try:
-        ...         variable < 'text'
-        ...     except TypeError:
-        ...         pass
 
     The |len| operator always returns the total number of values handles
     by the variable according to the current shape:

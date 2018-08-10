@@ -39,12 +39,6 @@ from hydpy.core import timetools
 from hydpy.tests import iotesting
 
 
-if pub.pyversion == 2:
-    abstractstaticmethod = abc.abstractmethod
-else:
-    abstractstaticmethod = abc.abstractstaticmethod
-
-
 class StdOutErr(object):
 
     def __init__(self, indent=0):
@@ -210,12 +204,14 @@ class Test(object):
     """Stores arrays for setting the same values of parameters and/or
     sequences before each new experiment."""
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def raw_first_col_strings(self):
         """To be implemented by the subclasses of |Test|."""
         return NotImplementedError
 
-    @abstractstaticmethod
+    @staticmethod
+    @abc.abstractmethod
     def get_output_array(parseq):
         # pylint: disable=unused-argument
         """To be implemented by the subclasses of |Test|."""
@@ -854,20 +850,19 @@ class Open(object):
 def solve_exception_doctest_issue(module):
     """Insert the string `hydpy.core.exceptiontools.` into the
     docstrings of the given module related to exceptions defined
-    in module |exceptiontools| (not relevant for Python 2)."""
-    if pub.pyversion > 2:
-        _replace(module)
-        try:
-            for member in vars(module).values():
-                _replace(member)
-                try:
-                    for submember in vars(member).values():
-                        submember = getattr(submember, '__func__', submember)
-                        _replace(submember)
-                except (TypeError, KeyError):
-                    pass
-        except TypeError:
-            pass
+    in module |exceptiontools|."""
+    _replace(module)
+    try:
+        for member in vars(module).values():
+            _replace(member)
+            try:
+                for submember in vars(member).values():
+                    submember = getattr(submember, '__func__', submember)
+                    _replace(submember)
+            except (TypeError, KeyError):
+                pass
+    except TypeError:
+        pass
 
 
 def _replace(obj):

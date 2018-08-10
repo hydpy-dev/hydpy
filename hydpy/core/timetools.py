@@ -840,23 +840,6 @@ However, for the given `timedelta` object, it is`857142` instead.
     Date('1997-11-01 00:05:00')
     >>> period != '12h'
     True
-
-    There is a difference regarding multiplication between Python 2 and 3.
-    In both cases, it is allowed to multiply integer floating points values.
-    However, multiplying with non-integer floating point values is not
-    supported under Python 2:
-
-    >>> from hydpy import pub
-    >>> pyversion = pub.pyversion
-    >>> pub.pyversion = 2
-    >>> 2.0 * Period('1d')
-    Period('2d')
-    >>> 2.5 * Period('1d')
-    Traceback (most recent call last):
-    ...
-    ValueError: Using Python 2.7, period objects can be multiplied with \
-whole numbers only, but for object `Period('1d')` value `2.5` was given.
-    >>> pub.pyversion = pyversion
     """
     def __init__(self, period=None):
         self._timedelta = None
@@ -1023,26 +1006,14 @@ whole numbers only, but for object `Period('1d')` value `2.5` was given.
         self.timedelta -= Period(other).timedelta
         return self
 
-    def _check_multiplier(self, value):
-        if pub.pyversion == 2:
-            integer, rest = divmod(value, 1.)
-            if rest:
-                raise ValueError(
-                    'Using Python 2.7, period objects can be multiplied '
-                    'with whole numbers only, but for object `%s` value '
-                    '`%s` was given.'
-                    % (repr(self), value))
-            return int(integer)
-        return value
-
     def __mul__(self, value):
-        return Period(self.timedelta * self._check_multiplier(value))
+        return Period(self.timedelta * value)
 
     def __rmul__(self, value):
-        return self * self._check_multiplier(value)
+        return self * value
 
     def __imul__(self, value):
-        self.timedelta *= self._check_multiplier(value)
+        self.timedelta *= value
         return self
 
     def __truediv__(self, other):

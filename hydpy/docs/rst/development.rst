@@ -192,43 +192,7 @@ through reading more advanced literature like this
 
 Python Version
 ..............
-The `End Of Life for Python 2.7` is scheduled for 2020. Nevertheless,
-still many scientists are using it.  This is why HydPy is continuously
-tested both on Python 2 and Python 3. For the time being future HydPy
-versions should be applicable on both Python versions.
-
-Always insert
-
-    >>> from __future__ import division, print_function
-
-at the top of a new module.  This introduces the new (integer) division
-and print statement of Python 3 into Python 2 (when using Python 3, this
-import statement is automatically skipped).
-
-Whenever there are two multiple options to achieve something, prefer
-one that fits best with Python 3.  For example, always use |range|.
-While under Python 2 often `xrange` would be preferable regarding time
-and memory efficiency, just using |range| leads to a clean syntax
-and is future-proof.  (Have a look at the `Python 2-3 cheat sheet`_
-whenever in compatibility trouble.)
-
-Sometimes incompatibilities of Python 2 and Python 3 require that specific
-HydPy functionalities must be coded twice.  Use `pyversion` in these cases:
-
-    >>> import sys
-    >>> traceback_ = sys.exc_info()[2]
-    >>> from hydpy import pub
-    >>> if pub.pyversion == 2:
-    ...     exec("raise SystemError, 'just a test', traceback_")
-    ... else:
-    ...     raise SystemError('just a test').with_traceback(traceback_)
-    Traceback (most recent call last):
-    ...
-    SystemError: just a test
-
-(The example above is already taken into account by function
-|augment_excmessage|.)
-
+ToDo
 
 site-packages
 .............

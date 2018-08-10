@@ -14,7 +14,6 @@ conditionmanager = None
 sequencemanager = None
 timegrids = None
 
-pyversion = int(_sys.version[0])
 _printprogress_indentation = -4
 
 _is_hydpy_bundled = getattr(_sys, 'frozen', False)

@@ -324,10 +324,7 @@ def augment_excmessage(prefix=None, suffix=None):
                    % (prefix, message))
     if suffix is not None:
         message = ' '.join((message, suffix))
-    if pub.pyversion < 3:
-        exec('raise exception, message, traceback_')
-    else:
-        raise exception(message).with_traceback(traceback_)
+    raise exception(message).with_traceback(traceback_)
 
 
 def excmessage_decorator(description):

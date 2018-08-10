@@ -1436,11 +1436,11 @@ or prepare `pub.sequencemanager` correctly.
         |IOSequence.aggregationmode_ext| attribute.
 
         We prepare some nodes and elements with the help of
-        method |netcdf_example| and select a 1-dimensional
+        method |prepare_io_example_1| and select a 1-dimensional
         flux sequence of type |lland_fluxes.NKor| as an example:
 
-        >>> from hydpy.tests.examples import netcdf_example
-        >>> nodes, elements = netcdf_example()
+        >>> from hydpy.tests.examples import prepare_io_example_1
+        >>> nodes, elements = prepare_io_example_1()
         >>> seq = elements.element3.model.sequences.fluxes.nkor
 
         If no |IOSequence.aggregationmode_ext| is `none`, the

@@ -563,6 +563,40 @@ class _DescriptorPath(_Descriptor):
         self.del_value(obj)
 
 
+class _DescriptorAggregate(_Descriptor):
+
+    AVAILABLE_MODES = ('none', 'mean')
+
+    def __init__(self, aggragation_mode, sequence_type):
+        _Descriptor.__init__(self, None)
+        self.aggragation_mode = aggragation_mode
+        self.sequence_type = sequence_type
+        self.__doc__ = (
+            'Mode of aggregation for writing %s time series data to files.'
+            % sequence_type)
+
+    def __get__(self, obj, type_=None):
+        if obj is None:
+            return self
+        value = self.get_value(obj)
+        if value is None:
+            return self.aggragation_mode
+        return value
+
+    def __set__(self, obj, aggregation_mode):
+        mode = str(aggregation_mode)
+        if mode in self.AVAILABLE_MODES:
+            self.set_value(obj, mode)
+        else:
+            raise ValueError(
+                'The given mode `%s`for aggregating time series is not '
+                'available.  Select one of the following modes: %s.'
+                % (mode, self.AVAILABLE_MODES))
+
+    def __delete__(self, obj):
+        self.del_value(obj)
+
+
 class SequenceManager(FileManager):
     """Manager for sequence files.
 
@@ -810,6 +844,10 @@ data available to the user.
     outputpath = _DescriptorPath('outputdir', 'output')
     nodepath = _DescriptorPath('nodedir', 'node')
     temppath = _DescriptorPath('tempdir', 'temporary')
+    inputaggregation = _DescriptorAggregate('none', 'input')
+    outputaggregation = _DescriptorAggregate('none', 'output')
+    nodeaggregation = _DescriptorAggregate('none', 'node')
+
 
     def __init__(self):
         FileManager.__init__(self)
@@ -843,22 +881,20 @@ data available to the user.
     @staticmethod
     def _load_asc(sequence):
         with open(sequence.filepath_ext) as file_:
-            header = '\n'.join([file_.readline() for idx in range(3)])
+            header = '\n'.join([file_.readline() for _ in range(3)])
         timegrid_data = eval(header, {}, {'Timegrid': timetools.Timegrid})
         values = numpy.loadtxt(
             sequence.filepath_ext, skiprows=3, ndmin=sequence.NDIM+1)
         return timegrid_data, values
 
     def _load_nc(self, sequence):
-        self.netcdf_reader.log(sequence)
+        self.netcdf_reader.log(sequence, None)
 
     def save_file(self, sequence, array=None):
         """Write the date stored in |IOSequence.series| of the given
         |IOSequence| into an "external" data file. """
         if array is None:
-            array = sequencetools.InfoArray(
-                sequence.series,
-                info={'type': 'unmodified'})
+            array = sequence.aggregate_series()
         try:
             if sequence.filetype_ext == 'npy':
                 self._save_npy(sequence, array)
@@ -922,9 +958,10 @@ no NetCDF reader object.
             'The sequence file manager does currently handle '
             'no NetCDF reader object.')
 
-    def open_netcdf_reader(self):
+    def open_netcdf_reader(self, flatten=False, isolate=False):
         """Prepare a new |NetCDFInterface| object for reading data."""
-        self._netcdf_reader = netcdftools.NetCDFInterface()
+        self._netcdf_reader = netcdftools.NetCDFInterface(
+            flatten=flatten, isolate=isolate)
 
     def close_netcdf_reader(self):
         """Read data with a prepared |NetCDFInterface| object and remove it."""
@@ -963,9 +1000,10 @@ no NetCDF writer object.
             'The sequence file manager does currently handle '
             'no NetCDF writer object.')
 
-    def open_netcdf_writer(self):
+    def open_netcdf_writer(self, flatten=False, isolate=False):
         """Prepare a new |NetCDFInterface| object for writing data."""
-        self._netcdf_writer = netcdftools.NetCDFInterface()
+        self._netcdf_writer = netcdftools.NetCDFInterface(
+            flatten=flatten, isolate=isolate)
 
     def close_netcdf_writer(self):
         """Write data with a prepared |NetCDFInterface| object and remove it.

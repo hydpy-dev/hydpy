@@ -1342,15 +1342,15 @@ NetCDF: String match to name in use
 
         >>> from hydpy.core.netcdftools import NetCDFVariableDeep
         >>> NetCDFVariableDeep.get_slices(2, [3])
-        [2, slice(None, None, None), slice(0, 3, None)]
+        (2, slice(None, None, None), slice(0, 3, None))
 
         >>> NetCDFVariableDeep.get_slices(4, (1, 2))
-        [4, slice(None, None, None), slice(0, 1, None), slice(0, 2, None)]
+        (4, slice(None, None, None), slice(0, 1, None), slice(0, 2, None))
         """
         slices = [idx, slice(None)]
         for length in shape:
             slices.append(slice(0, length))
-        return slices
+        return tuple(slices)
 
     @property
     def shape(self) -> Tuple[int, ...]:
@@ -1733,7 +1733,7 @@ class NetCDFVariableFlat(NonDeepMixin, NetCDFVariableBase):
         for seq, subarray in zip(self.sequences.values(),
                                  self.arrays.values()):
             for prod in self._product(seq.shape):
-                array[idx0] = subarray[idxs + list(prod)]
+                array[idx0] = subarray[tuple(idxs + list(prod))]
                 idx0 += 1
         return array
 
@@ -1817,7 +1817,7 @@ class NetCDFVariableFlat(NonDeepMixin, NetCDFVariableBase):
                 for prod in self._product(seq.shape):
                     station = temp + '_'.join(str(idx) for idx in prod)
                     idx0 = subdev2index.get_index(station)
-                    subarray[idxs + list(prod)] = array[idx0]
+                    subarray[tuple(idxs+list(prod))] = array[idx0]
             else:
                 subarray[:] = array[subdev2index.get_index(devicename)]
             seq.series = seq.adjust_series(timegrid_data, subarray)

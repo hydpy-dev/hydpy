@@ -1674,7 +1674,8 @@ which is in conflict with using their names as identifiers.
         >>> from hydpy.core.objecttools import assignrepr_values
         >>> print(assignrepr_values(dir(dummies.nodes), '', 70))
         add_device, assignrepr, close_files, copy, devices, group_1, group_2,
-        group_a, group_b, keywords, na, names, nb, nc, nd, ne, open_files,
+        group_a, group_b, keywords, load_allseries, load_obsseries,
+        load_simseries, na, names, nb, nc, nd, ne, open_files,
         prepare_allseries, prepare_obsseries, prepare_simseries,
         remove_device, return_always_iterables, save_allseries,
         save_obsseries, save_simseries
@@ -1715,14 +1716,14 @@ class Nodes(Devices, abctools.NodesABC):
         self.save_obsseries()
 
     @printtools.print_progress
-    def save_simseries(self, ramflag=True):
+    def save_simseries(self):
         """Call method |IOSequence.save_ext| of all  "memory flag activated"
         |NodeSequence| objects storing simulated  values handled (indirectly)
         by each |Node| object."""
         self._save_nodeseries('sim', pub.sequencemanager.simoverwrite)
 
     @printtools.print_progress
-    def save_obsseries(self, ramflag=True):
+    def save_obsseries(self):
         """Call method |IOSequence.save_ext| of all "memory flag activated"
         |NodeSequence| objects storing observed values handled (indirectly)
         by each |Node| object."""
@@ -1741,11 +1742,39 @@ class Nodes(Devices, abctools.NodesABC):
                         'existing file `%s`.'
                         % seq.filepath_ext)
 
+    @printtools.print_progress
+    def load_allseries(self):
+        """Call methods |Nodes.load_simseries| and |Nodes.load_obsseries|."""
+        self.load_simseries()
+        self.load_obsseries()
+
+    @printtools.print_progress
+    def load_simseries(self):
+        """Call method |IOSequence.load_ext| of all  "memory flag activated"
+        |NodeSequence| objects storing simulated  values handled (indirectly)
+        by each |Node| object."""
+        self._load_nodeseries('sim')
+
+    @printtools.print_progress
+    def load_obsseries(self):
+        """Call method |IOSequence.load_ext| of all "memory flag activated"
+        |NodeSequence| objects storing observed values handled (indirectly)
+        by each |Node| object."""
+        self._load_nodeseries('obs')
+
+    def _load_nodeseries(self, seqname):
+        for node in printtools.progressbar(self):
+            getattr(node.sequences, seqname).load_ext()
+
 
 class Elements(Devices, abctools.ElementsABC):
     """A container for handling |Element| objects."""
 
     _contentclass = Element
+
+    @classmethod
+    def __new__(cls, *values) -> 'abctools.ElementsABC':
+        return Devices.__new__(cls)
 
     @printtools.print_progress
     def init_models(self):
@@ -1930,6 +1959,42 @@ class Elements(Devices, abctools.ElementsABC):
                             'it is not allowed to overwrite the already '
                             'existing file `%s`.'
                             % seq.filepath_ext)
+
+    @printtools.print_progress
+    def load_allseries(self):
+        """Call methods |Elements.load_inputseries|,
+        |Elements.load_fluxseries|, and |Elements.load_stateseries|."""
+        self.load_inputseries()
+        self.load_fluxseries()
+        self.load_stateseries()
+
+    @printtools.print_progress
+    def load_inputseries(self):
+        """Call method |IOSequence.load_ext| of all "memory flag activated"
+        |InputSequence| objects handled (indirectly) by each |Element|
+        object."""
+        self._load_modelseries('inputs')
+
+    @printtools.print_progress
+    def load_fluxseries(self):
+        """Call method |IOSequence.load_ext| of all "memory flag activated"
+        |FluxSequence| objects handled (indirectly) by each |Element|
+        object."""
+        self._load_modelseries('fluxes')
+
+    @printtools.print_progress
+    def load_stateseries(self):
+        """Call method |IOSequence.load_ext| of all "memory flag activated"
+        |StateSequence| objects handled (indirectly) by each |Element|
+        object."""
+        self._load_modelseries('states')
+
+    def _load_modelseries(self, name_subseqs):
+        for element in printtools.progressbar(self):
+            sequences = element.model.sequences
+            subseqs = getattr(sequences, name_subseqs, ())
+            for seq in subseqs:
+                seq.load_ext()
 
 
 autodoctools.autodoc_module()

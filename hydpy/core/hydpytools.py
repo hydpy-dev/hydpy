@@ -34,8 +34,8 @@ class HydPy(abctools.HydPyABC):
                           'in what manner HydPy is relying on some global '
                           'information stored in module `pub`.'
                           % HydPy.nmb_instances)
-        self.nodes = None
-        self.elements = None
+        self._nodes = None
+        self._elements = None
         self.deviceorder = None
         # Store public information in a separate module.
         if projectname is not None:
@@ -44,6 +44,41 @@ class HydPy(abctools.HydPyABC):
             pub.controlmanager = filetools.ControlManager()
             pub.sequencemanager = filetools.SequenceManager()
             pub.conditionmanager = filetools.ConditionManager()
+
+    @property
+    def nodes(self) -> devicetools.Nodes:
+        nodes = self._nodes
+        if nodes is None:
+            raise RuntimeError(
+                'The actual HydPy instance does not handle any '
+                'nodes at the moment.')
+        return self._nodes
+
+    @nodes.setter
+    def nodes(self, values):
+        self._nodes = devicetools.Nodes(values)
+
+    @nodes.deleter
+    def nodes(self):
+        self._nodes = None
+
+    @property
+    def elements(self) -> devicetools.Elements:
+        elements = self._elements
+        if elements is None:
+            raise RuntimeError(
+                'The actual HydPy instance does not handle any '
+                'elements at the moment.')
+        return self._elements
+
+    @elements.setter
+    def elements(self, values):
+        self._elements = devicetools.Elements(values)
+
+    @elements.deleter
+    def elements(self):
+        self._elements = None
+
 
     @printtools.print_progress
     def prepare_network(self):
@@ -325,6 +360,41 @@ class HydPy(abctools.HydPyABC):
         """Call method |Nodes.save_obsseries| of the |Nodes| object currently
         handled by the |HydPy| object."""
         self.nodes.save_obsseries()
+
+    def load_modelseries(self):
+        """Call method |Elements.load_allseries| of the |Elements| object
+        currently handled by the |HydPy| object."""
+        self.elements.load_allseries()
+
+    def load_inputseries(self):
+        """Call method |Elements.loat_inputseries| of the |Elements| object
+        currently handled by the |HydPy| object."""
+        self.elements.load_inputseries()
+
+    def load_fluxseries(self):
+        """Call method |Elements.load_fluxseries| of the |Elements| object
+        currently handled by the |HydPy| object."""
+        self.elements.save_loadseries()
+
+    def load_stateseries(self):
+        """Call method |Elements.load_stateseries| of the |Elements| object
+        currently handled by the |HydPy| object."""
+        self.elements.load_stateseries()
+
+    def load_nodeseries(self):
+        """Call method |Nodes.load_allseries| of the |Nodes| object currently
+        handled by the |HydPy| object."""
+        self.nodes.load_allseries()
+
+    def load_simseries(self):
+        """Call method |Nodes.load_simseries| of the |Nodes| object currently
+        handled by the |HydPy| object."""
+        self.nodes.load_simseries()
+
+    def load_obsseries(self):
+        """Call method |Nodes.load_obsseries| of the |Nodes| object currently
+        handled by the |HydPy| object."""
+        self.nodes.load_obsseries()
 
 
 autodoctools.autodoc_module()

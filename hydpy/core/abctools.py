@@ -20,17 +20,85 @@ import abc
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import autodoctools
-from hydpy.core import texttools
 
 
-if pub.pyversion > 2:
-    _ABC = abc.ABC
-else:
-    class _ABC(object):
-        __metaclass__ = abc.ABCMeta
+class DocABC(object, metaclass=abc.ABCMeta):
+    """ABC base class automatically documenting is registered subclasses."""
+
+    _registry_empty = True
+
+    @classmethod
+    def register(cls, subclass):
+        """Add information to the documentation of the given abstract base
+        class and register the subclass afterwards.
+
+        Subclass the new abstract base class `NewABC` and define some new
+        concrete classes (`New1`, `New2`, `New3`) which do not inherit
+        from `NewABC`:
+
+        >>> from hydpy.core.abctools import DocABC
+        >>> class NewABC(DocABC):
+        ...    "A new base class."
+        >>> class New1(object):
+        ...     "First new class"
+        >>> class New2(object):
+        ...     "Second new class"
+        >>> class New3(object):
+        ...     "Third new class"
+
+        The docstring `NewABC` is still the same as defined above:
+
+        >>> print(NewABC.__doc__)
+        A new base class.
+
+        Now we register the concrete classes `New1` and `New2`:
+
+        >>> NewABC.register(New2)
+        >>> NewABC.register(New1)
+        >>> NewABC.register(New2)
+
+        Now the docstring of `NewABC` includes the information about
+        the concrete classes already registered:
+
+        >>> print(NewABC.__doc__)
+        A new base class.
+        <BLANKLINE>
+        At the moment, the following classes are registered:
+             * :class:`~hydpy.core.abctools.New2`
+             * :class:`~hydpy.core.abctools.New1`
+
+        Note that the docstring order is the registration order.
+        Also note that the "accidental reregistration" of class
+        `New2` does not modify the docstring.
+
+        Now the concrete classes `New1` and `New2` are handled as
+        if they were actual subclasses of `NewABC`, but class `New3`
+        -- which had not been registered -- is not:
+
+        >>> issubclass(New1, NewABC)
+        True
+        >>> isinstance(New1(), NewABC)
+        True
+        >>> issubclass(New2, NewABC)
+        True
+        >>> isinstance(New2(), NewABC)
+        True
+        >>> issubclass(New3, NewABC)
+        False
+        >>> isinstance(New3(), NewABC)
+        False
+        """
+        if cls._registry_empty:
+            cls._registry_empty = False
+            cls.__doc__ += \
+                '\n\nAt the moment, the following classes are registered:'
+        if not issubclass(subclass, cls):
+            cls.__doc__ += ('\n     * :class:`~%s`'
+                            % str(subclass).split("'")[1])
+            abc.ABCMeta.register(cls, subclass)
 
 
-class IterableNonStringABC(_ABC):
+class IterableNonStringABC(object, metaclass=abc.ABCMeta):
     """Abstract base class for checking if an object is iterable but not a
     string."""
 
@@ -43,8 +111,9 @@ class IterableNonStringABC(_ABC):
         return NotImplemented
 
 
-class StringABC(_ABC):
+class StringABC(DocABC):
     """Abstract base class for registering string classes."""
+    pass
 
 
 if pub.pyversion == 2:
@@ -54,120 +123,94 @@ else:
     StringABC.register(str)
 
 
-class HydPyABC(_ABC):
-    """Abstract base class for registering custom |HydPy| classes."""
-
-
-class KeywordsABC(_ABC):
-    """Abstract base class for registering custom |Keywords| classes."""
-
-
-class DeviceABC(_ABC):
-    """Abstract base class for registering custom |Device| classes."""
-
-
-class ElementABC(_ABC):
+class ElementABC(DocABC):
     """Abstract base class for registering custom |Element| classes."""
+    pass
 
 
-class NodeABC(_ABC):
+class NodeABC(DocABC):
     """Abstract base class for registering custom |Node| classes."""
+    pass
 
 
-class DevicesABC(_ABC):
+class DevicesABC(DocABC):
     """Abstract base class for registering custom |Devices| classes."""
 
 
-class ElementsABC(_ABC):
+class ElementsABC(DocABC):
     """Abstract base class for registering custom |Elements| classes."""
 
 
-class NodesABC(_ABC):
+class NodesABC(DocABC):
     """Abstract base class for registering custom |Nodes| classes."""
 
 
-class ConnectionsABC(_ABC):
+class ConnectionsABC(DocABC):
     """Abstract base class for registering custom |Connections| classes."""
 
 
-class VariableABC(_ABC):
-    """Abstract base class for registering custom |Variable| classes."""
+class VariableABC(DocABC):
+    """Abstract base class for registering custom |Variable| classes.
+
+    Usually, new classes should either be registered as a parameter
+    or a sequence.  Afterwards, they are automatically handled as
+    |Variable| subclasses:
+
+    >>> from hydpy.core.abctools import VariableABC, ParameterABC
+    >>> class New(object):
+    ...     pass
+    >>> issubclass(New, VariableABC)
+    False
+    >>> ParameterABC.register(New)
+    >>> issubclass(New, VariableABC)
+    True
+    """
 
 
 class ParameterABC(VariableABC):
     """Abstract base class for registering custom |Parameter| classes."""
 
 
-class ANNABC(ParameterABC):
+class ANNABC(DocABC):
     """Abstract base class for registering custom |anntools.ANN| classes."""
 
 
-class SeasonalANNABC(ParameterABC):
+class SeasonalANNABC(DocABC):
     """Abstract base class for registering custom |anntools.SeasonalANN|
     classes."""
 
 
-class _SubgroupABCMeta(abc.ABCMeta):
-    """Type for generating subclasses of |SubParameters|, |SubSequences|,
-    and |Masks|.
-
-    See class |SubParameters| for the effects of applying |MetaSubgroupType|.
-    """
-    def __new__(mcs, name, parents, dict_):
-        classes = dict_.get('CLASSES')
-        if classes:
-            lst = ['\n\n\n    The following classes are selected:']
-            for cls in classes:
-                lst.append('      * :class:`~%s` %s'
-                           % ('.'.join((cls.__module__,
-                                        cls.__name__)),
-                              texttools.description(cls)))
-            doc = dict_.get('__doc__', None)
-            if doc is None:
-                doc = ''
-            dict_['__doc__'] = doc + '\n'.join(l for l in lst)
-        return abc.ABCMeta.__new__(mcs, name, parents, dict_)
-
-
-if pub.pyversion > 2:
-    class _SubgroupABC(metaclass=_SubgroupABCMeta):
-        pass
-else:
-    class _SubgroupABC(object):
-        __metaclass__ = _SubgroupABCMeta
-
-
-class SubgroupABC(_SubgroupABC):
-    """Abstract base class for registering custom `Subgroup` classes."""
-
-
-class IOSequencesABC(SubgroupABC):
+class IOSequencesABC(DocABC):
     """Abstract base class for registering custom |IOSequences| classes."""
 
 
-class InputSequencesABC(IOSequencesABC):
+class InputSequencesABC(DocABC):
     """Abstract base class for registering custom |InputSequences| classes."""
 
 
-class OutputSequencesABC(_ABC):
+class OutputSequencesABC(DocABC):
     """Abstract base class for registering custom "OutputSequences" classes
     like |FluxSequences|."""
 
 
 class SequenceABC(VariableABC):
     """Abstract base class for registering custom |Sequence| classes."""
+    pass
 
 
 class IOSequenceABC(SequenceABC):
     """Abstract base class for registering custom |IOSequence| classes."""
+    pass
 
 
 class ModelIOSequenceABC(IOSequenceABC):
     """Abstract base class for registering custom |ModelIOSequence| classes."""
+    pass
 
 
 class InputSequenceABC(ModelIOSequenceABC):
     """Abstract base class for registering custom |InputSequence| classes."""
+    pass
 
 
 class FluxSequenceABC(ModelIOSequenceABC):
@@ -178,123 +221,65 @@ class FluxSequenceABC(ModelIOSequenceABC):
 class ConditionSequenceABC(ModelIOSequenceABC):
     """Abstract base class for registering custom |ConditionSequence| classes.
     """
+    pass
 
 
 class StateSequenceABC(ConditionSequenceABC):
     """Abstract base class for registering custom |StateSequence| classes."""
+    pass
 
 
 class LogSequenceABC(ConditionSequenceABC):
     """Abstract base class for registering custom |LogSequence| classes."""
+    pass
 
 
 class AideSequenceABC(SequenceABC):
     """Abstract base class for registering custom |AideSequence| classes."""
+    pass
 
 
 class LinkSequenceABC(SequenceABC):
     """Abstract base class for registering custom |LinkSequence| classes."""
-
-
-class NodeSequencesABC(IOSequencesABC):
-    """Abstract base class for registering custom |NodeSequences| classes."""
+    pass
 
 
 class NodeSequenceABC(IOSequenceABC):
     """Abstract base class for registering custom |NodeSequence| classes."""
+    pass
 
 
-class MaskABC(_ABC):
+class MaskABC(DocABC):
     """Abstract base class for registering custom `Mask` classes."""
+    pass
 
 
-class DateABC(_ABC):
+class DateABC(DocABC):
     """Abstract base class for registering custom |Date| classes."""
+    pass
 
 
-class PeriodABC(_ABC):
+class PeriodABC(DocABC):
     """Abstract base class for registering custom |Period| classes."""
+    pass
 
 
-class TimegridABC(_ABC):
+class TimegridABC(DocABC):
     """Abstract base class for registering custom |Timegrid| classes."""
+    pass
 
 
-class TimegridsABC(_ABC):
+class TimegridsABC(DocABC):
     """Abstract base class for registering custom |Timegrids| classes."""
+    pass
 
 
-class TOYABC(_ABC):
+class TOYABC(DocABC):
     """Abstract base class for registering custom |TOY| classes."""
+    pass
 
 
-class _ModelABCMeta(abc.ABCMeta):
-
-    def __new__(mcs, cls_name, cls_parents, dict_):
-        _METHOD_GROUPS = ('_RUN_METHODS', '_ADD_METHODS',
-                          '_INLET_METHODS', '_OUTLET_METHODS',
-                          '_RECEIVER_METHODS', '_SENDER_METHODS',
-                          '_PART_ODE_METHODS', '_FULL_ODE_METHODS')
-        dict_['_METHOD_GROUPS'] = _METHOD_GROUPS
-        for method_name in _METHOD_GROUPS:
-            methods = dict_.get(method_name, ())
-            if methods:
-                if method_name == '_RUN_METHODS':
-                    lst = ['\n\n\n    The following "run methods" are called '
-                           'each simulation step run in the given sequence:']
-                elif method_name == '_ADD_METHODS':
-                    lst = ['\n\n\n    The following "additional methods" are '
-                           'called by at least one "run method":']
-                elif method_name == '_INLET_METHODS':
-                    lst = ['\n\n\n    The following "inlet update methods" '
-                           'are called in the given sequence immediately  '
-                           'before solving the differential equations '
-                           'of the respective model:']
-                elif method_name == '_OUTLET_METHODS':
-                    lst = ['\n\n\n    The following "outlet update methods" '
-                           'are called in the given sequence immediately  '
-                           'after solving the differential equations '
-                           'of the respective model:']
-                elif method_name == '_RECEIVER_METHODS':
-                    lst = ['\n\n\n    The following "receiver update methods" '
-                           'are called in the given sequence before solving '
-                           'the differential equations of any model:']
-                elif method_name == '_SENDER_METHODS':
-                    lst = ['\n\n\n    The following "sender update methods" '
-                           'are called in the given sequence after solving '
-                           'the differential equations of all models:']
-                elif method_name == '_PART_ODE_METHODS':
-                    lst = ['\n\n\n    The following methods define the '
-                           'relevant components of a system of ODE '
-                           'equations (e.g. direct runoff):']
-                elif method_name == '_FULL_ODE_METHODS':
-                    lst = ['\n\n\n    The following methods define the '
-                           'complete equations of an ODE system '
-                           '(e.g. change in storage of `fast water` due to '
-                           ' effective precipitation and direct runoff):']
-                else:
-                    lst = []
-                for method in methods:
-                    lst.append('      * :func:`~%s` %s'
-                               % ('.'.join((method.__module__,
-                                            method.__name__)),
-                                  texttools.description(method)))
-                doc = dict_.get('__doc__', 'Undocumented model.')
-                dict_['__doc__'] = doc + '\n'.join(l for l in lst)
-
-        return abc.ABCMeta.__new__(mcs, cls_name, cls_parents, dict_)
-
-
-if pub.pyversion > 2:
-    class _ModelABC(metaclass=_ModelABCMeta):
-        pass
-else:
-    class _ModelABC(object):
-        __metaclass__ = _ModelABCMeta
-
-
-class ModelABC(_ModelABC):
-
+class ModelABC(DocABC):
     """Abstract base class for registering custom |Model| classes."""
 
     @abc.abstractmethod

@@ -30,13 +30,14 @@ from hydpy.core import autodoctools
 from hydpy.core import devicetools
 from hydpy.core import exceptiontools
 from hydpy.core import hydpytools
+from hydpy.core import metatools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import printtools
 from hydpy.core import selectiontools
 from hydpy.core import timetools
-from hydpy.core import texttools
 from hydpy.tests import iotesting
+
 
 if pub.pyversion == 2:
     abstractstaticmethod = abc.abstractmethod
@@ -341,7 +342,7 @@ class Test(object):
             parseqs = self.parseqs
         units = set()
         for parseq in parseqs:
-            desc = texttools.description(parseq)
+            desc = metatools.description(parseq)
             if '[' in desc:
                 unit = desc.split('[')[-1].split(']')[0]
                 units.add(unit)
@@ -999,12 +1000,12 @@ def make_abc_testable(abstract: type) -> type:
     Abstract base classes cannot be (and, at least in production code,
     should not be) instantiated:
 
-    >>> from hydpy.core.abctools import HydPyABC
-    >>> hp = HydPyABC()
+    >>> from hydpy.core.netcdftools import NetCDFVariableBase
+    >>> ncvar = NetCDFVariableBase()(False, False)
     Traceback (most recent call last):
     ...
-    TypeError: Can't instantiate abstract class HydPyABC with \
-abstract methods elements
+    TypeError: Can't instantiate abstract class NetCDFVariableBase with \
+abstract methods array, dimensions, read, subdevicenames, write
 
     However, it is convenient to do so for testing (partly) abstract
     base classes in doctests.  The derived class returned by function
@@ -1012,13 +1013,13 @@ abstract methods elements
     its protection against initialization is disabled:
 
     >>> from hydpy import make_abc_testable, classname
-    >>> hp = make_abc_testable(HydPyABC)()
+    >>> ncvar = make_abc_testable(NetCDFVariableBase)(False, False)
 
     To avoid confusion, |make_abc_testable| suffixes an underscore the
     original classname:
 
-    >>> classname(hp)
-    'HydPyABC_'
+    >>> classname(ncvar)
+    'NetCDFVariableBase_'
     """
     concrete = type(abstract.__name__ + '_', (abstract,), {})
     concrete.__abstractmethods__ = frozenset()

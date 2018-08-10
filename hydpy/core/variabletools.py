@@ -18,8 +18,8 @@ from hydpy import pub
 from hydpy.core import abctools
 from hydpy.core import autodoctools
 from hydpy.core import masktools
+from hydpy.core import metatools
 from hydpy.core import objecttools
-from hydpy.core import texttools
 
 
 _INT_NAN = -999999
@@ -180,7 +180,7 @@ def _compare_variables_function_generator(
     return comparison_function
 
 
-class Variable(abctools.VariableABC):
+class Variable(object):
     """Base class for |Parameter| and |Sequence|.
 
     This base class implements special methods for arithmetic calculations,
@@ -887,7 +887,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         """
         if pub.options.reprcomments:
             return ['# %s' % line for line in
-                    textwrap.wrap(texttools.description(self), 78)]
+                    textwrap.wrap(metatools.description(self), 78)]
         return []
 
     def to_repr(self, values, islong):
@@ -915,7 +915,10 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         return self.to_repr(self.value, False)
 
 
-class SubVariables(abctools.SubgroupABC):
+abctools.VariableABC.register(Variable)
+
+
+class SubVariables(metatools.MetaSubgroupClass):
     """Base class for |SubParameters| and |SubSequences|.
 
     See class |SubParameters| for further information.

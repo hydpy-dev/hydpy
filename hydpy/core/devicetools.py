@@ -25,7 +25,7 @@ from hydpy.core import sequencetools
 from hydpy.cythons import pointerutils
 
 
-class Keywords(set, abctools.KeywordsABC):
+class Keywords(set):
     """Set of keyword arguments used to describe and search for element and
     node objects.
 
@@ -145,7 +145,7 @@ define a valid variable identifier.  ...
     __dir__ = objecttools.dir_
 
 
-class Device(abctools.DeviceABC):
+class Device(object):
     """Base class for class |Element| and class |Node|.
 
     For framework programmers it is important to know, that all created
@@ -369,7 +369,7 @@ class Device(abctools.DeviceABC):
     __dir__ = objecttools.dir_
 
 
-class Node(Device, abctools.NodeABC):
+class Node(Device):
     """Handles the data flow between |Element| objects.
 
     When initializing |Node| objects, values for the optional `variable`
@@ -784,7 +784,10 @@ the given group name `test`.
         return '\n'.join(lines)
 
 
-class Element(Device, abctools.ElementABC):
+abctools.NodeABC.register(Node)
+
+
+class Element(Device):
     """Handles a |Model| and connects it to other models via |Node| objects.
 
     You are allowed to pass keywords to the constructor of class |Element|,
@@ -1217,7 +1220,10 @@ assigned to the element so far.
         return self.assignrepr('')
 
 
-class Devices(abctools.DevicesABC):
+abctools.ElementABC.register(Element)
+
+
+class Devices(object):
     """Base class for class |Elements| and class |Nodes|.
 
     There are only small differences between class |Elements| and class
@@ -1683,7 +1689,7 @@ which is in conflict with using their names as identifiers.
         return objecttools.dir_(self) + list(self.names) + list(self.keywords)
 
 
-class Nodes(Devices, abctools.NodesABC):
+class Nodes(Devices):
     """A container for handling |Node| objects."""
 
     _contentclass = Node
@@ -1767,7 +1773,7 @@ class Nodes(Devices, abctools.NodesABC):
             getattr(node.sequences, seqname).load_ext()
 
 
-class Elements(Devices, abctools.ElementsABC):
+class Elements(Devices):
     """A container for handling |Element| objects."""
 
     _contentclass = Element

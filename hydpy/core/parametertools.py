@@ -5,7 +5,6 @@ hydrological models.
 # import...
 # ...standard
 from __future__ import division, print_function
-import abc
 import inspect
 import time
 import warnings
@@ -246,6 +245,17 @@ class SubParameters(variabletools.SubVariables):
     >>> control
     par2(nan)
     par1(nan)
+
+    If one forgets to define a `CLASSES` tuple (and maybe tries to add
+    parameters in the constructor of the subclass of |SubParameters|,
+    the following error is raised:
+
+    >>> class ControlParameters(SubParameters):
+    ...     pass
+    Traceback (most recent call last):
+    ...
+    NotImplementedError: For class `ControlParameters`, the required \
+tuple `CLASSES` is not defined.
 
     The docstring is extended with the selected parameter classes
     automatically:
@@ -527,7 +537,7 @@ been defined.
         return period
 
 
-class Parameter(variabletools.Variable, abctools.ParameterABC):
+class Parameter(variabletools.Variable):
     """Base class for |SingleParameter| and |MultiParameter|."""
 
     NOT_DEEPCOPYABLE_MEMBERS = ('subpars', 'fastaccess')
@@ -788,6 +798,9 @@ available.
 
     def __dir__(self):
         return objecttools.dir_(self)
+
+
+abctools.ParameterABC.register(Parameter)
 
 
 class SingleParameter(Parameter):
@@ -1511,7 +1524,7 @@ into shape (3)
         return objecttools.dir_(self) + [str(toy) for (toy, dummy) in self]
 
 
-class KeywordParameter2DType(abc.ABCMeta):
+class KeywordParameter2DType(type):
     """Add the construction of `_ROWCOLMAPPING` to :class:`type`."""
 
     def __new__(cls, name, parents, dict_):
@@ -1522,7 +1535,7 @@ class KeywordParameter2DType(abc.ABCMeta):
             for (jdx, colname) in enumerate(colnames):
                 rowcolmappings['_'.join((rowname, colname))] = (idx, jdx)
         dict_['_ROWCOLMAPPINGS'] = rowcolmappings
-        return abc.ABCMeta.__new__(cls, name, parents, dict_)
+        return type.__new__(cls, name, parents, dict_)
 
 
 KeywordParameter2DMetaclass = KeywordParameter2DType(

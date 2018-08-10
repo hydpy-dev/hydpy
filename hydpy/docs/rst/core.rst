@@ -71,6 +71,7 @@ standardize writing :ref:`HydPy` code.
    importtools
    indextools
    masktools
+   metatools
    modelimports
    modeltools
    netcdftools
@@ -81,6 +82,5 @@ standardize writing :ref:`HydPy` code.
    selectiontools
    sequencetools
    testtools
-   texttools
    timetools
    variabletools

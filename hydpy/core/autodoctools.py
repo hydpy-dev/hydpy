@@ -29,7 +29,7 @@ from hydpy import auxs
 from hydpy import core
 from hydpy import cythons
 from hydpy import models
-from hydpy.core import texttools
+from hydpy.core import metatools
 from hydpy.cythons.autogen import annutils
 from hydpy.cythons.autogen import pointerutils
 from hydpy.cythons.autogen import smoothutils
@@ -718,7 +718,7 @@ def autodoc_module():
         else:
             type_ = 'obj'
         lines.append('      * :%s:`~%s` %s'
-                     % (type_, name, texttools.description(member)))
+                     % (type_, name, metatools.description(member)))
     module.__doc__ = doc + '\n\n' + '\n'.join(lines) + '\n\n' + 80*'_'
 
 

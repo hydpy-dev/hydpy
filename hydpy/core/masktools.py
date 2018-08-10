@@ -312,7 +312,7 @@ following error occurred: The given key is neither a `string` a `mask` type.
                     return key
                 raise RuntimeError(
                     'The key does not define an available mask.')
-            if isinstance(key, abctools.StringABC):
+            if isinstance(key, str):
                 try:
                     return getattr(self, key.lower())
                 except AttributeError:

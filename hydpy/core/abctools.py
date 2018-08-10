@@ -106,21 +106,9 @@ class IterableNonStringABC(object, metaclass=abc.ABCMeta):
     def __subclasshook__(cls, subclass):
         if cls is IterableNonStringABC:
             return (hasattr(subclass, '__iter__') and
-                    not (isinstance(subclass, StringABC) or
-                         issubclass(subclass, StringABC)))
+                    not (isinstance(subclass, str) or
+                         issubclass(subclass, str)))
         return NotImplemented
-
-
-class StringABC(DocABC):
-    """Abstract base class for registering string classes."""
-    pass
-
-
-if pub.pyversion == 2:
-    # pylint: disable=undefined-variable
-    StringABC.register(basestring)   # pragma: no cover
-else:
-    StringABC.register(str)
 
 
 class ElementABC(DocABC):

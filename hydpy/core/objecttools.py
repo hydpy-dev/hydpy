@@ -663,7 +663,7 @@ class _Repr(object):
 
     def __call__(self, value):
         decimals = pub.options.reprdigits
-        if isinstance(value, abctools.StringABC):
+        if isinstance(value, str):
             string = value.replace('\\', '/')
             if self._preserve_strings:
                 return '"%s"' % string

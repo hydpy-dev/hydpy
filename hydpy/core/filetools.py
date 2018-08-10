@@ -684,11 +684,11 @@ class SequenceManager(FileManager):
 
     >>> seq0.series = 0.
     >>> seq0.series
-    array([ 0.,  0.,  0.,  0.])
+    InfoArray([ 0.,  0.,  0.,  0.])
     >>> with TestIO():
     ...     pub.sequencemanager.load_file(seq0)
     >>> seq0.series
-    array([ 1.,  2.,  3.,  4.])
+    InfoArray([ 1.,  2.,  3.,  4.])
 
     Wrongly formatted ASCII files should result in understandable error
     messages:
@@ -802,11 +802,11 @@ class SequenceManager(FileManager):
 
     >>> seq0.series = 0.
     >>> seq0.series
-    array([ 0.,  0.,  0.,  0.])
+    InfoArray([ 0.,  0.,  0.,  0.])
     >>> with TestIO():
     ...     pub.sequencemanager.load_file(seq0)
     >>> seq0.series
-    array([ 1.,  2.,  3.,  4.])
+    InfoArray([ 1.,  2.,  3.,  4.])
 
     Using the ASCII format, we showed error messages related to loading
     data above. Here we show an error related to saving data:

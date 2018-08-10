@@ -963,19 +963,22 @@ or prepare `pub.sequencemanager` correctly.
         numericshape.extend(self.shape)
         return tuple(numericshape)
 
-    def _get_series(self):
+    @property
+    def series(self) -> InfoArray:
         """Internal time series data within an |numpy.ndarray|."""
         if self.diskflag:
-            return self._load_int()
+            array = self._load_int()
         elif self.ramflag:
-            return self._get_array()
+            array = self._get_array()
         else:
             raise RuntimeError(
                 'Sequence %s is not requested to make any '
                 'internal data available to the user.'
                 % objecttools.devicephrase(self))
+        return InfoArray(array, info={'type': 'unmodified'})
 
-    def _set_series(self, values):
+    @series.setter
+    def series(self, values):
         series = self.series
         series[:] = values
         if self.diskflag:
@@ -988,13 +991,12 @@ or prepare `pub.sequencemanager` correctly.
                 'internal data available to the user.'
                 % objecttools.devicephrase(self))
 
-    def _del_series(self):
+    @series.deleter
+    def series(self):
         if self.diskflag:
             os.remove(self.filepath_int)
         elif self.ramflag:
             setattr(self.fastaccess, '_%s_array' % self.name, None)
-
-    series = property(_get_series, _set_series, _del_series)
 
     def load_ext(self):
         """Write the internal data into an external data file."""
@@ -1283,7 +1285,7 @@ or prepare `pub.sequencemanager` correctly.
             return True
         return False
 
-    def average_series(self, *args, **kwargs):
+    def average_series(self, *args, **kwargs) -> InfoArray:
         """Average the actual time series of the |Variable| object for all
         time points.
 
@@ -1311,7 +1313,7 @@ or prepare `pub.sequencemanager` correctly.
         >>> sm.activate_ram()
         >>> sm.series = numpy.array([190.0, 200.0, 210.0])
         >>> sm.average_series()
-        array([ 190.,  200.,  210.])
+        InfoArray([ 190.,  200.,  210.])
 
         For |IOSequence| objects with an increased dimensionality, a
         weighting parameter is required, again:
@@ -1331,7 +1333,7 @@ or prepare `pub.sequencemanager` correctly.
         >>> area = Area()
         >>> SoilMoisture.refweights = property(lambda self: area)
         >>> sm.average_series()
-        array([ 390.,  400.,  410.])
+        InfoArray([ 390.,  400.,  410.])
 
         The documentation on method |Variable.average_values| provides
         many examples on how to use different masks in different ways.
@@ -1346,19 +1348,22 @@ or prepare `pub.sequencemanager` correctly.
         ...         return cls.array2mask([True, True, False])
         >>> SoilMoisture.mask = Soil()
         >>> sm.average_series()
-        array([ 290.,  300.,  310.])
+        InfoArray([ 290.,  300.,  310.])
         """
         try:
             if not self.NDIM:
-                return self.series
-            mask = self.get_submask(*args, **kwargs)
-            if numpy.any(mask):
-                weights = self.refweights[mask]
-                weights /= numpy.sum(weights)
-                series = self.series[:, mask]
-                axes = tuple(range(1, self.NDIM+1))
-                return numpy.sum(weights*series, axis=axes)
-            return numpy.nan
+                array = self.series
+            else:
+                mask = self.get_submask(*args, **kwargs)
+                if numpy.any(mask):
+                    weights = self.refweights[mask]
+                    weights /= numpy.sum(weights)
+                    series = self.series[:, mask]
+                    axes = tuple(range(1, self.NDIM+1))
+                    array = numpy.sum(weights*series, axis=axes)
+                else:
+                    return numpy.nan
+            return InfoArray(array, info={'type': 'mean'})
         except BaseException:
             objecttools.augment_excmessage(
                 'While trying to calculate the mean value of '

@@ -514,6 +514,7 @@ class IOSequence(Sequence, abctools.IOSequenceABC):
         self._dirpath_int = None
         self._filepath_ext = None
         self._filepath_int = None
+        self._aggregationmode_ext = None
         self._use_ext = False
 
     def _get_use_ext(self):
@@ -880,6 +881,51 @@ or prepare `pub.sequencemanager` correctly.
 
     filepath_int = property(
         _get_fileepath_int, _set_filepath_int, _del_filepath_int)
+
+    @property
+    def aggregationmode_ext(self):
+        """Type of aggregation performed when storing the writing the
+         time series data to an external data file.
+
+        If no special mode is given to the |IOSequence| object, the
+        corresponding mode of the |SequenceManager| object stored in
+        module |pub| is taken:
+
+        >>> from hydpy import pub
+        >>> from hydpy.core.filetools import SequenceManager
+        >>> pub.sequencemanager = SequenceManager()
+        >>> from hydpy.core.sequencetools import InputSequence
+        >>> seq = InputSequence()
+        >>> seq.aggregationmode_ext
+        'none'
+        >>> pub.sequencemanager.inputaggregation = 'mean'
+
+        >>> seq.aggregationmode_ext
+        'mean'
+        >>> seq.aggregationmode_ext = 'none'
+        >>> seq.aggregationmode_ext
+        'none'
+        >>> del seq.aggregationmode_ext
+        >>> seq.aggregationmode_ext
+        'mean'
+
+        # ToDo
+        """
+        if self._aggregationmode_ext:
+            return self._aggregationmode_ext
+        if isinstance(self, abctools.InputSequenceABC):
+            return pub.sequencemanager.inputaggregation
+        if isinstance(self, abctools.NodeSequenceABC):
+            return pub.sequencemanager.nodeaggregation
+        return pub.sequencemanager.outputaggregation
+
+    @aggregationmode_ext.setter
+    def aggregationmode_ext(self, name):
+        self._aggregationmode_ext = name
+
+    @aggregationmode_ext.deleter
+    def aggregationmode_ext(self):
+        self._aggregationmode_ext = None
 
     def update_fastaccess(self):
         if self.diskflag:

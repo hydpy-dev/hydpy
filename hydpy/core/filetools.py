@@ -18,7 +18,6 @@ from hydpy.core import exceptiontools
 from hydpy.core import netcdftools
 from hydpy.core import objecttools
 from hydpy.core import selectiontools
-from hydpy.core import sequencetools
 from hydpy.core import timetools
 
 
@@ -597,6 +596,19 @@ class _DescriptorAggregate(_Descriptor):
         self.del_value(obj)
 
 
+class _GeneralDescriptor(object):
+
+    def __init__(self, *specific_descriptors):
+        self.specific_descriptors = specific_descriptors
+
+    def __set__(self, obj, value):
+        for descr in self.specific_descriptors:
+            descr.__set__(obj, value)
+
+    def __delete__(self, obj):
+        for descr in self.specific_descriptors:
+            descr.__delete__(obj)
+
 class SequenceManager(FileManager):
     """Manager for sequence files.
 
@@ -828,25 +840,46 @@ data available to the user.
     outputdir = _DescriptorDir('output', 'output')
     nodedir = _DescriptorDir('node', 'node')
     tempdir = _DescriptorDir('temp', 'temporary')
+    generaldir = _GeneralDescriptor(inputdir,
+                                    outputdir,
+                                    nodedir,
+                                    tempdir)
 
     inputfiletype = _DescriptorType('npy', 'input')
     outputfiletype = _DescriptorType('npy', 'output')
     nodefiletype = _DescriptorType('npy', 'node')
     tempfiletype = _DescriptorType('npy', 'temporary')
+    generalfiletype = _GeneralDescriptor(inputfiletype,
+                                         outputfiletype,
+                                         nodefiletype,
+                                         tempfiletype)
 
     inputoverwrite = _DescriptorOverwrite(False, 'input')
     outputoverwrite = _DescriptorOverwrite(False, 'output')
     simoverwrite = _DescriptorOverwrite(False, 'sim node')
     obsoverwrite = _DescriptorOverwrite(False, 'obs node')
     tempoverwrite = _DescriptorOverwrite(False, 'temporary')
+    generaloverwrite = _GeneralDescriptor(inputoverwrite,
+                                          outputoverwrite,
+                                          simoverwrite,
+                                          obsoverwrite,
+                                          tempoverwrite)
 
     inputpath = _DescriptorPath('inputdir', 'input')
     outputpath = _DescriptorPath('outputdir', 'output')
     nodepath = _DescriptorPath('nodedir', 'node')
     temppath = _DescriptorPath('tempdir', 'temporary')
+    generalpath = _GeneralDescriptor(inputpath,
+                                     outputpath,
+                                     nodepath,
+                                     temppath)
+
     inputaggregation = _DescriptorAggregate('none', 'input')
     outputaggregation = _DescriptorAggregate('none', 'output')
     nodeaggregation = _DescriptorAggregate('none', 'node')
+    generalaggregation = _GeneralDescriptor(inputaggregation,
+                                            outputaggregation,
+                                            nodeaggregation)
 
 
     def __init__(self):

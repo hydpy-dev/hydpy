@@ -48,13 +48,12 @@ cannot be changed, but this was attempted for element `?`.
         setattr(self.fastaccess, self.name,
                 numpy.full(1, numpy.nan, dtype=float))
 
-    def _set_shape(self, shape):
+    @sequencetools.LogSequence.shape.setter
+    def shape(self, shape):
         raise AttributeError(
             'The shape of parameter `%s` cannot be '
             'changed, but this was attempted for element `%s`.'
             % (self.name, objecttools.devicename(self)))
-
-    shape = property(sequencetools.LogSequence._get_shape, _set_shape)
 
 
 class LoggedRequiredRemoteRelease(ShapeOne):

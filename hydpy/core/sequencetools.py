@@ -1276,11 +1276,10 @@ or prepare `pub.sequencemanager` correctly.
         self._save_int(values)
         self.update_fastaccess()
 
-    def _set_shape(self, shape):
-        Sequence._set_shape(self, shape)
+    @Sequence.shape.setter
+    def shape(self, shape):
+        Sequence.shape.fset(self, shape)
         self.update_fastaccess()
-
-    shape = property(Sequence._get_shape, _set_shape)
 
     def _get_rawfilename(self):
         """Filename without ending for external and internal date files."""
@@ -1565,15 +1564,14 @@ class FluxSequence(ModelIOSequence):
             value = None if self.NDIM else 0.
             self._connect_subattr('sum', value)
 
-    def _set_shape(self, shape):
-        ModelIOSequence._set_shape(self, shape)
+    @ModelIOSequence.shape.setter
+    def shape(self, shape):
+        ModelIOSequence.shape.fset(self, shape)
         if self.NDIM and self.NUMERIC:
             self._connect_subattr('points', numpy.zeros(self.numericshape))
             self._connect_subattr('integrals', numpy.zeros(self.numericshape))
             self._connect_subattr('results', numpy.zeros(self.numericshape))
             self._connect_subattr('sum', numpy.zeros(self.shape))
-
-    shape = property(ModelIOSequence._get_shape, _set_shape)
 
 
 abctools.FluxSequenceABC.register(FluxSequence)
@@ -1662,8 +1660,9 @@ class StateSequence(ModelIOSequence, ConditionSequence):
             self._connect_subattr('points', value)
             self._connect_subattr('results', copy.copy(value))
 
-    def _set_shape(self, shape):
-        ModelIOSequence._set_shape(self, shape)
+    @ModelIOSequence.shape.setter
+    def shape(self, shape):
+        ModelIOSequence.shape.fset(self, shape)
         if self.NDIM:
             setattr(self.fastaccess_old, self.name, self.new.copy())
             if self.NUMERIC:
@@ -1671,8 +1670,6 @@ class StateSequence(ModelIOSequence, ConditionSequence):
                                       numpy.zeros(self.numericshape))
                 self._connect_subattr('results',
                                       numpy.zeros(self.numericshape))
-
-    shape = property(ModelIOSequence._get_shape, _set_shape)
 
     new = Sequence.values
     """Complete access to the state value(s), which will be used in the
@@ -1815,20 +1812,22 @@ class LinkSequence(Sequence):
 
     value = property(_get_value, _set_value)
 
-    def _get_shape(self):
+    @property
+    def shape(self) -> Tuple[int, ...]:
         if self.NDIM == 0:
             return ()
         elif self.NDIM == 1:
             try:
                 return getattr(self.fastaccess, self.name).shape
             except AttributeError:
-                return (getattr(self.fastaccess, '_%s_length_0' % self.name),)
+                return getattr(self.fastaccess, '_%s_length_0' % self.name),
         raise NotImplementedError(
             'Getting the shape of a %d dimensional link sequence '
             'is not supported so far.'
             % self.NDIM)
 
-    def _set_shape(self, shape):
+    @shape.setter
+    def shape(self, shape):
         if self.NDIM == 1:
             try:
                 getattr(self.fastaccess, self.name).shape = shape
@@ -1841,9 +1840,6 @@ class LinkSequence(Sequence):
                 'Setting the shape of a %d dimensional link sequence '
                 'is not supported so far.'
                 % self.NDIM)
-
-    shape = property(_get_shape, _set_shape)
-
 
 abctools.LinkSequenceABC.register(LinkSequence)
 

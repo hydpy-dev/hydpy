@@ -1648,10 +1648,13 @@ neural network `seasonalann` of element `?` none has been defined so far.
             ratios[tdx, idx_1] = (xnew-x_0)/(x_1-x_0)
             ratios[tdx, idx_0] = 1.-ratios[tdx, idx_1]
 
-    def _get_shape(self) -> Tuple[int, ...]:
+    @property
+    def shape(self) -> Tuple[int, ...]:
+        """The shape of array |anntools.SeasonalANN.ratios|."""
         return tuple(int(sub) for sub in self.ratios.shape)
 
     def _set_shape(self, shape):
+        """Private on purpose."""
         try:
             shape = (int(shape),)
         except TypeError:
@@ -1661,10 +1664,6 @@ neural network `seasonalann` of element `?` none has been defined so far.
         shp[0] = int(numpy.ceil(round(shp[0], 10)))
         getattr(self.fastaccess, self.name).ratios = numpy.zeros(
             shp, dtype=float)
-
-    shape = property(
-        _get_shape,
-        doc='The shape of array |anntools.SeasonalANN.ratios|.')
 
     @property
     def toys(self) -> Tuple[timetools.TOY]:

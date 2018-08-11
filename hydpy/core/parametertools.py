@@ -1105,12 +1105,13 @@ class ZipParameter(MultiParameter):
         self.values = self.apply_timefactor(self.values)
         self.trim()
 
-    def _get_shape(self):
+    @MultiParameter.shape.getter
+    def shape(self):
         """Return a tuple containing the lengths in all dimensions of the
         parameter values.
         """
         try:
-            return MultiParameter._get_shape(self)
+            return MultiParameter.shape.fget(self)
         except RuntimeError:
             raise RuntimeError(
                 'Shape information for parameter `%s` can only be '
@@ -1119,8 +1120,6 @@ class ZipParameter(MultiParameter):
                 'by defining the value of parameter `%s` first in '
                 'each parameter control file.'
                 % (self.name, self.shapeparameter.name))
-
-    shape = property(_get_shape, MultiParameter._set_shape)
 
     def compress_repr(self):
         """Return a compressed parameter value string, which is (in
@@ -1425,7 +1424,8 @@ into shape (3)
             x_1, y_1 = xys[0]
         return y_0+(y_1-y_0)/(x_1-x_0)*(xnew-x_0)
 
-    def _set_shape(self, shape):
+    @MultiParameter.shape.setter
+    def shape(self, shape):
         try:
             shape = (int(shape),)
         except TypeError:
@@ -1441,9 +1441,7 @@ into shape (3)
                 % (self.name, objecttools.devicename(self)))
         shape[0] = timetools.Period('366d')/self.simulationstep
         shape[0] = int(numpy.ceil(round(shape[0], 10)))
-        MultiParameter._set_shape(self, shape)
-
-    shape = property(MultiParameter._get_shape, _set_shape)
+        MultiParameter.shape.fset(self, shape)
 
     def __iter__(self):
         for toy in sorted(self._toy2values.keys()):

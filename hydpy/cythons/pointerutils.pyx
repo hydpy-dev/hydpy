@@ -419,13 +419,15 @@ cdef class PPDouble(object):
     def __dealloc__(self):
         PyMem_Free(self.pp_value)
 
-    def _get_shape(self):
+    @property
+    def shape(self):
         return (self.length, )
-    def _set_shape(self, int length):
+
+    @shape.setter
+    def shape(self, int length):
         if self.length != 0:
             raise RuntimeError('The shape of `PPDouble` of instances must not '
                                'be changed.')
         self.length = length
         self.ready = numpy.full(length, False, dtype=bool)
         self.pp_value = <double**> PyMem_Malloc(length * sizeof(double*))
-    shape = property(_get_shape, _set_shape)

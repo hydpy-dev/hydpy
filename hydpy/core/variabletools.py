@@ -317,7 +317,8 @@ error occurred: operands could not be broadcast together with shapes (2,) (3,)
 
     values = property(_get_values, _set_values)
 
-    def _get_shape(self):
+    @property
+    def shape(self):
         """A tuple containing the lengths in all dimensions of the sequence
         values at a specific time point.  Note that setting a new shape
         results in a loss of the actual values of the respective sequence.
@@ -334,7 +335,8 @@ error occurred: operands could not be broadcast together with shapes (2,) (3,)
         else:
             return ()
 
-    def _set_shape(self, shape):
+    @shape.setter
+    def shape(self, shape):
         if self.NDIM:
             try:
                 array = numpy.full(shape, self.initvalue, dtype=self.TYPE)
@@ -359,7 +361,6 @@ error occurred: operands could not be broadcast together with shapes (2,) (3,)
             #else:
             #    self.value = self.initvalue
 
-    shape = property(_get_shape, _set_shape)
 
     NOT_DEEPCOPYABLE_MEMBERS = ()
 

@@ -25,11 +25,9 @@ class WET0(sequencetools.LogSequence):
     """
     NDIM, NUMERIC = 2, False
 
-    def _set_shape(self, shape):
-        sequencetools.LogSequence._set_shape(self, (1, shape))
-
-    shape = property(sequencetools.LogSequence._get_shape, _set_shape)
-
+    @sequencetools.LogSequence.shape.setter
+    def shape(self, shape):
+        sequencetools.LogSequence.shape.fset(self, (1, shape))
 
 class LogSequences(sequencetools.LogSequences):
     """Log sequences of the HydPy-L-Land model."""

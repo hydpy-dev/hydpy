@@ -446,7 +446,8 @@ class Sequence(variabletools.Variable):
         value = None if self.NDIM else self.initvalue
         setattr(self.fastaccess, self.name, value)
 
-    def _get_value(self):
+    @property
+    def value(self):
         """The actual time series value(s) handled by the respective
         |Sequence| instance.  For consistency, `value` and `values`
         can always be used interchangeably.
@@ -461,7 +462,8 @@ class Sequence(variabletools.Variable):
                 value = numpy.asarray(value)
             return value
 
-    def _set_value(self, value):
+    @value.setter
+    def value(self, value):
         if self.NDIM == 0:
             try:
                 temp = value[0]
@@ -495,8 +497,6 @@ class Sequence(variabletools.Variable):
                     % (objecttools.devicephrase(self),
                        value, self.shape))
         setattr(self.fastaccess, self.name, value)
-
-    value = property(_get_value, _set_value)
 
     def __repr__(self):
         islong = len(self) > 255
@@ -1799,18 +1799,18 @@ class LinkSequence(Sequence):
         except AttributeError:
             pass
 
-    def _get_value(self):
+    @property
+    def value(self):
         raise AttributeError(
             'To retrieve a pointer is very likely to result in bugs '
             'and is thus not supported at the moment.')
 
-    def _set_value(self, value):
+    @value.setter
+    def value(self, value):
         """Could be implemented, but is not important at the moment..."""
         raise AttributeError(
             'To change a pointer is very likely to result in bugs '
             'and is thus not supported at the moment.')
-
-    value = property(_get_value, _set_value)
 
     @property
     def shape(self) -> Tuple[int, ...]:
@@ -1872,7 +1872,8 @@ class NodeSequence(IOSequence):
     def _initvalues(self):
         setattr(self.fastaccess, self.name, pointerutils.Double(0.))
 
-    def _get_value(self):
+    @property
+    def value(self):
         """Actual value(s) handled by the sequence.  For consistency,
         `value` and `values` can always be used interchangeably."""
         try:
@@ -1883,10 +1884,9 @@ class NodeSequence(IOSequence):
             elif self.NDIM == 1:
                 return self.fastaccess.getpointer1d(self.name)
 
-    def _set_value(self, values):
+    @value.setter
+    def value(self, values):
         getattr(self.fastaccess, self.name)[0] = values
-
-    value = property(_get_value, _set_value)
 
 
 abctools.NodeSequenceABC.register(NodeSequence)

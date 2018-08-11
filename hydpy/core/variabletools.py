@@ -308,14 +308,14 @@ error occurred: operands could not be broadcast together with shapes (2,) (3,)
         defined by the subclasses of |Variable|."""
         raise NotImplementedError
 
-    def _get_values(self):
+    @property
+    def values(self):
         """Alias for |Variable.value|."""
         return self.value
 
-    def _set_values(self, values):
+    @values.setter
+    def values(self, values):
         self.value = values
-
-    values = property(_get_values, _set_values)
 
     @property
     def shape(self):

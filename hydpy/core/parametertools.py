@@ -812,13 +812,15 @@ class SingleParameter(Parameter):
         self.fastaccess = subpars.fastaccess
         setattr(self.fastaccess, self.name, self.initvalue)
 
-    def _get_value(self):
+    @property
+    def value(self):
         """The actual parameter value handled by the respective
         |SingleParameter| instance.
         """
         return getattr(self.fastaccess, self.name, numpy.nan)
 
-    def _set_value(self, value):
+    @value.setter
+    def value(self, value):
         try:
             temp = value[0]
             if len(value) > 1:
@@ -838,8 +840,6 @@ class SingleParameter(Parameter):
                 % (objecttools.elementphrase(self), value,
                    objecttools.classname(self.TYPE)))
         setattr(self.fastaccess, self.name, value)
-
-    value = property(_get_value, _set_value)
 
     def __len__(self):
         """Returns 1.  (This method is only intended for increasing consistent
@@ -865,7 +865,8 @@ class MultiParameter(Parameter):
         self.fastaccess = subpars.fastaccess
         setattr(self.fastaccess, self.name, None)
 
-    def _get_value(self):
+    @property
+    def value(self):
         """The actual parameter value(s) handled by the respective
         |Parameter| instance.  For consistency, `value` and `values`
         can always be used interchangeably.
@@ -875,21 +876,23 @@ class MultiParameter(Parameter):
             return value
         return numpy.asarray(value)
 
-    def _set_value(self, value):
+    @value.setter
+    def value(self, value):
         try:
-            value = value.value
-        except AttributeError:
-            pass
-        try:
-            value = numpy.full(self.shape, value, dtype=self.TYPE)
-        except ValueError:
-            raise ValueError(
-                'The values `%s` cannot be converted to a numpy ndarray '
-                'with shape %s containing entries of type %s.'
-                % (value, self.shape, objecttools.classname(self.TYPE)))
-        setattr(self.fastaccess, self.name, value)
-
-    value = property(_get_value, _set_value)
+            if hasattr(value, 'value'):
+                value = value.value
+            try:
+                value = numpy.full(self.shape, value, dtype=self.TYPE)
+            except BaseException:
+                objecttools.augment_excmessage(
+                    'While trying to convert the value (s) `%s` to a numpy '
+                    'ndarray with shape `%s` and type `%s`'
+                    % (value, self.shape, objecttools.classname(self.TYPE)))
+            setattr(self.fastaccess, self.name, value)
+        except BaseException:
+            objecttools.augment_excmessage(
+                'While trying to set the value(s) of parameter %s'
+                % objecttools.elementphrase(self))
 
     def compress_repr(self):
         """Return a compressed parameter value string, which is (in

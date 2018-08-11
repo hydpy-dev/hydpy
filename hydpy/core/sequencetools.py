@@ -1813,7 +1813,7 @@ class LinkSequence(Sequence):
             'and is thus not supported at the moment.')
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self):
         if self.NDIM == 0:
             return ()
         elif self.NDIM == 1:

@@ -1206,5 +1206,5 @@ autodoc_applicationmodel()
 
 # pylint: disable=invalid-name
 tester = Tester()
-#cythonizer = Cythonizer()
-#cythonizer.complete()
+cythonizer = Cythonizer()
+cythonizer.complete()

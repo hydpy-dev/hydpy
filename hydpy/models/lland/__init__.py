@@ -25,5 +25,5 @@ from hydpy.models.lland.lland_model import Model
 
 autodoc_basemodel()
 tester = Tester()
-#cythonizer = Cythonizer()
-#cythonizer.complete()
+cythonizer = Cythonizer()
+cythonizer.complete()

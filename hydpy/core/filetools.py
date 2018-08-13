@@ -4,7 +4,6 @@ HydPy projects as well as loading data from and storing data to files.
 """
 # import...
 # ...from standard library
-from __future__ import division, print_function
 import os
 import runpy
 import weakref

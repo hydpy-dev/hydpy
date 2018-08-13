@@ -4,12 +4,10 @@
 
 
 # imports...
-# ...standard library
-from __future__ import division, print_function
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.cythons import modelutils
-# ...model specifc
+# ...from lland
 from hydpy.models.lland.lland_constants import WASSER, FLUSS, SEE, VERS
 
 

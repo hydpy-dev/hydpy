@@ -3,12 +3,11 @@
 # pylint: enable=missing-docstring
 
 # import...
-# ...from standard library
-from __future__ import division, print_function
 # ...from site-packages
 import numpy
 # ...from HydPy
 from hydpy.core import sequencetools
+# ...from lland
 from hydpy.models.lland import lland_masks
 from hydpy.models.lland import lland_sequences
 

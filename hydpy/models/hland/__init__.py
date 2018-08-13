@@ -7,9 +7,7 @@ routines related to interception, snow, soil moisture, upper
 groundwater, lower groundwater (including lakes), and runoff
 concentration.
 """
-# import...
-# ...from standard library
-from __future__ import division, print_function
+# import..
 # ...from HydPy
 from hydpy.core.modelimports import *
 # ...from hland

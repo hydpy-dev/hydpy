@@ -1,6 +1,11 @@
-from typing import Tuple
-from hydpy.core import devicetools
+# -*- coding: utf-8 -*-
 """This module implements functions that prepare test setups."""
+# import...
+# ...from standard library
+from typing import Tuple
+# ...from HydPy
+from hydpy.core import autodoctools
+from hydpy.core import devicetools
 
 
 def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
@@ -147,3 +152,6 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
         value1 = init_values(node.sequences.sim, value1)
 
     return nodes, elements
+
+
+autodoctools.autodoc_module()

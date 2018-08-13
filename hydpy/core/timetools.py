@@ -6,7 +6,6 @@ cf-conventions-1.7/cf-conventions.html#time-coordinate
 """
 # import...
 # ...from standard library
-from __future__ import division, print_function
 import calendar
 import collections
 import copy

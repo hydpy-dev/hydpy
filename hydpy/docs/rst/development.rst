@@ -212,12 +212,11 @@ As recommended in `PEP 8`_, clarify the sources of your imports.
 Always use the following pattern at the top of a new module
 (with some example packages):
 
-    >>> # import from...
-    >>> # ...the Python Standard Library
-    >>> from __future__ import division, print_function
+    >>> # import...
+    >>> # ...from standard library
     >>> import os
     >>> import sys
-    >>> # ...site-packages
+    >>> # ...from site-packages
     >>> import numpy
     >>> # ...from HydPy
     >>> from hydpy.core import sequencetools

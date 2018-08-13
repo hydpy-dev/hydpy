@@ -156,7 +156,6 @@ Note:
 
 # import...
 # ...from standard library
-from __future__ import division, print_function
 import numbers
 import cython
 # ...from site-packages

@@ -26,8 +26,6 @@ in the Cython extension module |smoothutils|.
 """
 
 # import...
-# ...from standard library
-from __future__ import division, print_function
 # ...from site-packages
 import numpy
 from scipy import optimize

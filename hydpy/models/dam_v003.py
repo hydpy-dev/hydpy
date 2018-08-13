@@ -292,7 +292,6 @@ Integration examples:
 
 # import...
 # ...from standard library
-from __future__ import division, print_function
 from hydpy.core import modeltools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools

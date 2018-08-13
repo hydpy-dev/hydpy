@@ -3,8 +3,6 @@
 all doctests defined in the different modules and documentation files.
 """
 
-
-from __future__ import division, print_function
 import os
 import sys
 import importlib

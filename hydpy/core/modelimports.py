@@ -16,13 +16,11 @@ Thereafter, the following objects are available:
 
 """
 # import...
-# ...from standard library
-from __future__ import division, print_function
-# ...third party
+# ...from site-packages
 import numpy
 from numpy import nan
 from numpy import inf
-# ...HydPy specific
+# ...from HydPy
 # Load the required `magic` functions into the local namespace.
 from hydpy.core.importtools import parameterstep
 from hydpy.core.importtools import simulationstep
@@ -32,9 +30,7 @@ from hydpy.core.autodoctools import autodoc_applicationmodel
 from hydpy.core.testtools import Tester
 from hydpy.cythons.modelutils import Cythonizer
 
-__all__ = ['division',
-           'print_function',
-           'numpy',
+__all__ = ['numpy',
            'nan',
            'inf',
            'parameterstep',

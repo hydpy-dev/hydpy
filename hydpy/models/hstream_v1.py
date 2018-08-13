@@ -2,8 +2,6 @@
 # pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
 
 # import...
-# ...from standard library
-from __future__ import division, print_function
 # ...from HydPy
 from hydpy.core.modelimports import *
 from hydpy.core import modeltools

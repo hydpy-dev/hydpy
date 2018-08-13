@@ -13,7 +13,6 @@ the actual calculations are defined in the Cython extension module
 
 # import...
 # ...from standard library
-from __future__ import division, print_function
 from typing import Dict, Iterable, Tuple
 # ...from site-packages
 import numpy

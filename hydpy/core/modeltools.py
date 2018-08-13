@@ -3,7 +3,6 @@
 """
 # import...
 # ...from standard library
-from __future__ import division, print_function
 import os
 import types
 # ...from site-packages

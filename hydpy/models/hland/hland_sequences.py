@@ -3,8 +3,6 @@
 # pylint: enable=missing-docstring
 
 # import...
-# ...standard library
-from __future__ import division, print_function
 # ...from HydPy
 from hydpy.core import sequencetools
 from hydpy.models.hland import hland_masks

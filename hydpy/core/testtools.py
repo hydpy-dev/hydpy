@@ -2,7 +2,6 @@
 """This module implements tools for making doctests more legible."""
 # import...
 # ...from standard library
-from __future__ import division, print_function
 import abc
 import sys
 from hydpy import builtins

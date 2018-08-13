@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
-# ...from standard library
-from __future__ import division, print_function
-# ...HydPy specific
+# import...
+# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.cythons import modelutils
 

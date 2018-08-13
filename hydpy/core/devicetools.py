@@ -5,7 +5,6 @@ structure HydPy projects.
 """
 # import...
 # ...from standard library
-from __future__ import division, print_function
 import copy
 import os
 import struct

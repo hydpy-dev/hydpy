@@ -2,7 +2,6 @@
 
 # import...
 # ...from standard library
-from __future__ import division, print_function
 import unittest
 # ...from HydPy
 from hydpy.cythons import pointerutils

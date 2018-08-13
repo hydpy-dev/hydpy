@@ -2,8 +2,7 @@
 """This module implements classes that help to manage global HydPy options."""
 
 # import...
-# ...from the Python standard library
-from __future__ import division, print_function
+# ...from standard library
 import inspect
 # ...from HydPy
 from hydpy.core import autodoctools

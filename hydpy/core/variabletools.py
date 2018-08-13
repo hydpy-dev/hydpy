@@ -7,7 +7,6 @@ in modules |parametertools| and |sequencetools| respectively.
 """
 # import...
 # ...from standard library
-from __future__ import division, print_function
 import copy
 import inspect
 import textwrap

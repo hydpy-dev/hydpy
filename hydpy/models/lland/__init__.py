@@ -7,8 +7,6 @@ the simulation of water stored on plants, in the snow layer and in the
 soil, as well as runoff concentration.
 """
 # import...
-# ...from standard library
-from __future__ import division, print_function
 # ...from HydPy
 from hydpy.core.modelimports import *
 # ...from lland
@@ -27,5 +25,5 @@ from hydpy.models.lland.lland_model import Model
 
 autodoc_basemodel()
 tester = Tester()
-cythonizer = Cythonizer()
-cythonizer.complete()
+#cythonizer = Cythonizer()
+#cythonizer.complete()

@@ -3,17 +3,15 @@
 # pylint: enable=missing-docstring
 
 # import...
-# ...from standard library
-from __future__ import division, print_function
 import warnings
 # ...from site-packages
 import numpy
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core import abctools
 from hydpy.core import parametertools
 from hydpy.core import objecttools
 from hydpy.core import timetools
-# ...model specific
+# ...from lland
 from hydpy.models.lland import lland_constants
 from hydpy.models.lland import lland_parameters
 

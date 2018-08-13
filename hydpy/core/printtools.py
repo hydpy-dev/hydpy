@@ -2,8 +2,7 @@
 """This module implements features for printing additional information and
 for modifying how information is printed."""
 # import...
-# ...from the Python standard library
-from __future__ import division, print_function
+# ...from standard library
 import os
 import sys
 import tempfile

@@ -9,9 +9,7 @@ left.  The loss rate |Q| and the initial storage content |S| can be set as
 required.
 """
 # imports...
-# ...standard library
-from __future__ import division, print_function
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core.modelimports import *
 from hydpy.core import modeltools
 from hydpy.core import parametertools

@@ -1105,8 +1105,6 @@ Integration tests:
         ></iframe>
 """
 # import...
-# ...from standard library
-from __future__ import division, print_function
 # ...from HydPy
 from hydpy.core.modelimports import *
 from hydpy.core import masktools
@@ -1290,5 +1288,5 @@ autodoc_applicationmodel()
 
 # pylint: disable=invalid-name
 tester = Tester()
-cythonizer = Cythonizer()
-cythonizer.complete()
+#cythonizer = Cythonizer()
+#cythonizer.complete()

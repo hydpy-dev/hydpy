@@ -3,14 +3,13 @@
 hydrological models.
 """
 # import...
-# ...standard
-from __future__ import division, print_function
+# ...from standard library
 import inspect
 import time
 import warnings
-# ...third party
+# ...from site-packages
 import numpy
-# ...HydPy specific
+# ...from HydPy
 from hydpy import pub
 from hydpy.core import abctools
 from hydpy.core import autodoctools

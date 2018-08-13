@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # import...
-# ...from standard library
-from __future__ import division, print_function
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core import parametertools
 from hydpy.core import timetools
 from hydpy.core import objecttools

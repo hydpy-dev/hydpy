@@ -2,8 +2,6 @@
 """This module provides features for preparing HydPy networks based on
 different data."""
 # import...
-# ...from standard library
-from __future__ import division, print_function
 # ...from HydPy
 from hydpy.core import objecttools
 from hydpy.core import devicetools

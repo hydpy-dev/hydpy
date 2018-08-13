@@ -3,11 +3,9 @@
 # pylint: enable=missing-docstring
 
 # import...
-# ...standard library
-from __future__ import division, print_function
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core import masktools
-# ...model specific
+# ...from lland
 from hydpy.models.lland import lland_constants
 from hydpy.models.lland.lland_constants import (
     SIED_D, SIED_L, VERS, ACKER, WEINB, OBSTB, BODEN, GLETS, GRUE_I, FEUCHT,

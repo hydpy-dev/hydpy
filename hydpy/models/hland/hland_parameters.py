@@ -3,11 +3,9 @@
 # pylint: enable=missing-docstring
 
 # import...
-# ...standard library
-from __future__ import division, print_function
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core import parametertools
-# ...model specific
+# ...from hland
 from hydpy.models.hland import hland_constants
 from hydpy.models.hland import hland_masks
 

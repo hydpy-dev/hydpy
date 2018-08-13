@@ -2,7 +2,6 @@
 """This module implements tools to determine time related indices."""
 # import...
 # ...from standard library
-from __future__ import division, print_function
 import copy
 # ...from site-packages
 import numpy

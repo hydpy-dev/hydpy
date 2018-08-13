@@ -3,8 +3,6 @@
 # pylint: enable=missing-docstring
 
 # import...
-# ...from standard library
-from __future__ import division, print_function
 # ...from site-packages
 import numpy
 # ...from HydPy

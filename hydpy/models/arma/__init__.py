@@ -6,8 +6,6 @@ The HydPy-A base model provides features to implement flood routing models
 based on autoregressive (AR) and moving-average (MA) methods.
 """
 # import...
-# ...from standard library
-from __future__ import division, print_function
 # ...from HydPy
 from hydpy.core.modelimports import *
 # ...from arma

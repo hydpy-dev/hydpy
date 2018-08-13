@@ -3,13 +3,11 @@
 # pylint: enable=missing-docstring
 
 # import...
-# ...from standard library
-from __future__ import division, print_function
 # ...from site-packages
 import numpy
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core import parametertools
-# ...model specific
+# ...from hland
 from hydpy.models.hland import hland_parameters
 from hydpy.models.hland.hland_constants import ILAKE, GLACIER
 

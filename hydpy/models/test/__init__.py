@@ -5,8 +5,6 @@ that allow for testing or demonstrating specific features of the HydPy
 framework.
 """
 # import...
-# ...from standard library
-from __future__ import division, print_function
 # ...from HydPy
 from hydpy.core.modelimports import *
 # ...from test

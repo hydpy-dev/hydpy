@@ -3,9 +3,7 @@
 # pylint: enable=missing-docstring
 
 # imports...
-# ...standard library
-from __future__ import division, print_function
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.cythons import smoothutils
 

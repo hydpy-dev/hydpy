@@ -325,13 +325,11 @@ Integration examples:
 """
 
 # import...
-# ...from standard library
-from __future__ import division, print_function
+# ...from HydPy
+from hydpy.core.modelimports import *
 from hydpy.core import modeltools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
-# ...from HydPy
-from hydpy.core.modelimports import *
 # ...from arma
 from hydpy.models.arma import arma_model
 from hydpy.models.arma import arma_control

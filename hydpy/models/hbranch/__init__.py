@@ -8,8 +8,6 @@ individually by linear interpolation (or extrapolation) in accordance
 with tabulated supporting points.
 """
 # import...
-# ...from standard library
-from __future__ import division, print_function
 # ...from HydPy
 from hydpy.core.modelimports import *
 # ...from hbranch

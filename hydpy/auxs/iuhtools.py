@@ -9,7 +9,6 @@ iuh, see the examples or the source code of class
 """
 # import...
 # ...from standard library
-from __future__ import division, print_function
 import itertools
 # ...from site-packages
 import numpy

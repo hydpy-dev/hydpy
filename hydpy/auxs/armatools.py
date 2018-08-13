@@ -3,7 +3,6 @@
 related to Autoregressive-Moving Average (ARMA) models."""
 # import...
 # ...from standard library
-from __future__ import division, print_function
 import itertools
 import warnings
 # ...from site-packages

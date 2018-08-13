@@ -5,8 +5,6 @@ performing lake and dam retention processes as implemented in
 LARSIM.
 """
 # import...
-# ...from standard library
-from __future__ import division, print_function
 # ...from HydPy
 from hydpy.core.modelimports import *
 # ...from llake

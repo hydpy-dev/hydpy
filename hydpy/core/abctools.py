@@ -15,7 +15,6 @@ should be handled as if they were.  See class |anntools.ANN| as an example.
 """
 # import...
 # ...from standard library
-from __future__ import division, print_function
 import abc
 # ...from HydPy
 from hydpy import pub

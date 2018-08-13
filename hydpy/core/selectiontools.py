@@ -4,7 +4,6 @@ HydPy projects.
 """
 # import...
 # ...from standard library
-from __future__ import division, print_function
 import os
 # ...from HydPy
 from hydpy import pub

@@ -5,8 +5,7 @@ The implemented tools are primarily designed hiding model initialization
 routines from model users and for allowing writing readable doctests.
 """
 # import...
-# ...from the Python standard library
-from __future__ import division, print_function
+# ...from standard library
 import os
 import inspect
 import warnings

@@ -4,7 +4,6 @@ of the different objects defined by the HydPy framework.
 """
 # import...
 # ...from standard library
-from __future__ import division, print_function
 import copy
 import inspect
 import numbers

@@ -5,8 +5,6 @@ The HydPy-D base model provides features to implement water barriers like
 dams, weirs, lakes, or polders.
 """
 # import...
-# ...from standard library
-from __future__ import division, print_function
 # ...from HydPy
 from hydpy.core.modelimports import *
 from hydpy.auxs.anntools import ann

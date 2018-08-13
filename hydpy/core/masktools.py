@@ -3,7 +3,6 @@
 |Parameter| or |Sequence| arrays are relevant and which are not."""
 # import...
 # ...from standard library
-from __future__ import division, print_function
 import inspect
 # ...from site-packages
 import numpy

@@ -4,9 +4,7 @@
 
 
 # import...
-# ...from standard library
-from __future__ import division, print_function
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core import sequencetools
 
 

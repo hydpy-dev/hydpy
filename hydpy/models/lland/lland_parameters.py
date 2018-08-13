@@ -4,11 +4,9 @@
 
 
 # import...
-# ...standard library
-from __future__ import division, print_function
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core import parametertools
-# ...model specific
+# ...from lland
 from hydpy.models.lland import lland_constants
 from hydpy.models.lland import lland_masks
 

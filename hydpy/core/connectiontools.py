@@ -3,8 +3,6 @@
 |Element| instances.
 """
 # import...
-# ...from standard library
-from __future__ import division, print_function
 # ...from Hydpy
 from hydpy.core import autodoctools
 

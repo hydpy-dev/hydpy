@@ -549,24 +549,24 @@ literal for int() with base 10: '0X'
 
         The reference mont reference |Date.refmonth| defaults to November:
 
-        >>> oct = Date('1996.10.01')
-        >>> nov = Date('1996.11.01')
-        >>> oct.wateryear
+        >>> october = Date('1996.10.01')
+        >>> november = Date('1996.11.01')
+        >>> october.wateryear
         1996
-        >>> nov.wateryear
+        >>> november.wateryear
         1997
 
         Note that changing |Date.refmonth| affects all |Date| objects:
 
-        >>> oct.refmonth = 10
-        >>> oct.wateryear
+        >>> october.refmonth = 10
+        >>> october.wateryear
         1997
-        >>> nov.wateryear
+        >>> november.wateryear
         1997
-        >>> oct.refmonth = 'November'
-        >>> oct.wateryear
+        >>> october.refmonth = 'November'
+        >>> october.wateryear
         1996
-        >>> nov.wateryear
+        >>> november.wateryear
         1997
         """
         if self.month < self._firstmonth_wateryear:
@@ -753,13 +753,17 @@ class Period(object):
     by a single character defining the unit:
 
     >>> # 30 seconds:
-    >>> period = Period('30s')
+    >>> Period('30s')
+    Period('30s')
     >>> # 5 minutes:
-    >>> period = Period('5m')
+    >>> Period('5m')
+    Period('5m')
     >>> # 6 hours:
-    >>> period = Period('6h')
+    >>> Period('6h')
+    Period('6h')
     >>> # 1 day:
-    >>> period = Period('1d')
+    >>> Period('1d')
+    Period('1d')
 
     In case you need an "empty" period object, just pass nothing or |None|:
 
@@ -772,6 +776,7 @@ class Period(object):
     expression:
 
     >>> # Print using the unit leading to the smallest integer value:
+    >>> period = Period('1d')
     >>> print(period)
     1d
     >>> # Alternatively, the values of all time units are directly

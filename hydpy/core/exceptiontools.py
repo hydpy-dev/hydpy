@@ -103,6 +103,7 @@ def _objectname(self):
 
 
 def protected_property(propname, fget, fset=None, fdel=None):
+    # ToDo: Convert into a class to allow for the @setter and @deleter syntax.
     """Return a |property| which prevents getting an attribute
     before setting it.
 
@@ -224,7 +225,7 @@ prepared so far.
     """
     # pylint: disable=no-value-for-parameter, unused-argument, protected-access
     @wrapt.decorator
-    def wrap_fget(wrapped, instance, args, kwargs):
+    def wrap_fget(wrapped, _, args, kwargs):
         """Wrap the get function."""
         self = args[0]
         if getattr(self._isready, propname):
@@ -235,7 +236,7 @@ prepared so far.
                 % (propname, objecttools.devicephrase(self)))
 
     @wrapt.decorator
-    def wrap_fset(wrapped, instance, args, kwargs):
+    def wrap_fset(wrapped, _, args, kwargs):
         """Wrap the set function."""
         if wrapped:
             wrapped(*args, **kwargs)
@@ -245,7 +246,7 @@ prepared so far.
                 'cannot set attribute')
 
     @wrapt.decorator
-    def wrap_fdel(wrapped, instance, args, kwargs):
+    def wrap_fdel(wrapped, _, args, kwargs):
         """Wrap the del function."""
         if wrapped:
             wrapped(*args, **kwargs)
@@ -269,7 +270,7 @@ def dependent_property(propname, fget, fset=None, fdel=None):
     but not mandatory, `y` itself would be implemented as a
     |protected_property|, which is left out for reasons of brevity):
 
-    >>> from hydpy.core.exceptiontools import IsReady, protected_property
+    >>> from hydpy.core.exceptiontools import IsReady
     >>> from hydpy.core.exceptiontools import dependent_property
     >>> class Test(object):
     ...
@@ -320,7 +321,7 @@ def dependent_property(propname, fget, fset=None, fdel=None):
     """
     # pylint: disable=no-value-for-parameter, unused-argument
     @wrapt.decorator
-    def wrapper(wrapped, instance, args, kwargs):
+    def wrapper(wrapped, _, args, kwargs):
         """Wrap the get, set, or del method."""
         self = args[0]
         if not wrapped:

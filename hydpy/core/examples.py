@@ -11,7 +11,7 @@ from hydpy.core import devicetools
 def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     """Prepare an IO example configuration.
 
-    >>> from hydpy.tests.examples import prepare_io_example_1
+    >>> from hydpy.core.examples import prepare_io_example_1
     >>> nodes, elements = prepare_io_example_1()
 
     (1) Prepares a short initialisation period of five days:
@@ -37,10 +37,8 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     ...            if not filename.startswith('_')])
     ['inputpath', 'nodepath', 'outputpath']
 
-                       '1d'))
-
     (3) Returns three |Element| objects handling either application model
-    |lland_v1| or |land_v2|, and two |Node| objects handling variables
+    |lland_v1| or |lland_v2|, and two |Node| objects handling variables
     `Q` and `T`:
 
     >>> for element in elements:

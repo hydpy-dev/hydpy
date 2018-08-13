@@ -173,19 +173,20 @@ Please check the calculated coefficients: 0.0, 0.0, 0.0, 0.0, 0.75, 0.25.
         if coefs is not None:
             self.coefs = coefs
 
-    def _get_coefs(self):
+    @property
+    def coefs(self):
         """|numpy.ndarray| containing all MA coefficents."""
         if self._coefs is None:
             self.update_coefs()
         return self._coefs
 
-    def _set_coefs(self, values):
+    @coefs.setter
+    def coefs(self, values):
         self._coefs = numpy.array(values, ndmin=1, dtype=float)
 
-    def _del_coefs(self):
+    @coefs.deleter
+    def coefs(self):
         self._coefs = None
-
-    coefs = property(_get_coefs, _set_coefs, _del_coefs)
 
     @property
     def order(self):
@@ -485,33 +486,35 @@ coefficients.
         |ARMA.update_coefs|."""
         return self._rel_rmse
 
-    def _get_ar_coefs(self):
+    @property
+    def ar_coefs(self):
         """The AR coefficients of the AR model."""
         if self._ar_coefs is None:
             self.update_ar_coefs()
         return self._ar_coefs
 
-    def _set_ar_coefs(self, values):
+    @ar_coefs.setter
+    def ar_coefs(self, values):
         self._ar_coefs = numpy.array(values, ndmin=1, dtype=float)
 
-    def _del_ar_coefs(self):
+    @ar_coefs.deleter
+    def ar_coefs(self):
         self._ar_coefs = None
 
-    ar_coefs = property(_get_ar_coefs, _set_ar_coefs, _del_ar_coefs)
-
-    def _get_ma_coefs(self):
+    @property
+    def ma_coefs(self):
         """The MA coefficients of the ARMA model."""
         if self._ma_coefs is None:
             self.update_ma_coefs()
         return self._ma_coefs
 
-    def _set_ma_coefs(self, values):
+    @ma_coefs.setter
+    def ma_coefs(self, values):
         self._ma_coefs = numpy.array(values, ndmin=1, dtype=float)
 
-    def _del_ma_coefs(self):
+    @ma_coefs.deleter
+    def ma_coefs(self):
         self._ma_coefs = None
-
-    ma_coefs = property(_get_ma_coefs, _set_ma_coefs, _del_ma_coefs)
 
     @property
     def coefs(self):

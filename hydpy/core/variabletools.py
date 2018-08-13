@@ -153,12 +153,7 @@ def _compare_variables_function_generator(
     """
     def comparison_function(self, other):
         """Wrapper for comparison functions for class |Variable|."""
-        try:
-            method = getattr(self.value, method_string)
-        except AttributeError:
-            # in Python 2.7, `int` (but not `float`) defines
-            # `__cmp__` instead of rich comparisons
-            method = getattr(float(self.value), method_string)
+        method = getattr(self.value, method_string)
         try:
             if isinstance(other, abctools.VariableABC):
                 result = method(other.value)

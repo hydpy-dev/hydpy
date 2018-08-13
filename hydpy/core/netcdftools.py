@@ -2,39 +2,54 @@
 """This module extends the features of module |filetools| for loading data
 from and storing data to netCDF4 files, consistent with the `NetCDF Climate
 and Forecast (CF) Metadata Conventions <http://cfconventions.org/Data/
-cf-conventions/cf-conventions-1.7/cf-conventions.html>`_
+cf-conventions/cf-conventions-1.7/cf-conventions.html>`_.
 
-Usually, the features implemented in this module are only indirectly.
-through applying class |SequenceManager| in three steps:
+.. _`netCDF4`: http://unidata.github.io/netcdf4-python/
+.. _`h5netcdf`: https://github.com/shoyer/h5netcdf
+
+.. note::
+
+   For working with NetCDF files, :ref:`HydPy` requires either the
+   `netCDF4`_ or the `h5netcdf`_ package.  Both are Python interfaces
+   to the NetCDF C library.  You are free to decide which one to
+   install (`netCDF4`_ is more standard, while `h5netcdf`_ is more
+   lightweight).  If both libraries are available, :ref:`HydPy` works
+   with `netCDF4`_ by default.
+
+
+Usually, the features implemented in this module are applied only
+indirectly in three steps:
 
   1. Call either method |SequenceManager.open_netcdf_reader| or method
-     |SequenceManager.open_netcdf_writer| to prepare a |NetCDFInterface|
-     object for reading or writing.
+     |SequenceManager.open_netcdf_writer| of the |SequenceManager| object
+     available in module |pub| to prepare a |NetCDFInterface| object
+     for reading or writing.
   2. Call either the usual reading or writing methods of other HydPy
-     classes (e.g. method |HydPy.prepare_inputseries| of class |HydPy|
+     classes (e.g. method |HydPy.load_fluxseries| of class |HydPy|
      or method |Elements.save_stateseries| of class |Elements|).
-     The reading or writing processes of all |IOSequence| objects with
-     property |IOSequence.filetype_ext| set to `nc` are essentially
-     performed by the prepared |NetCDFInterface| object.
+     The prepared |NetCDFInterface| object collects all read or write
+     requests of those sequences that are supposed to be read from or
+     written to NetCDF files.
   3. Finalize reading or writing by calling either method
      |SequenceManager.close_netcdf_reader| or method
      |SequenceManager.close_netcdf_writer|.
 
-Step 2 is actually a logging process only, telling the |NetCDFInterface|
-object which data needs to be read or written.  The actual reading from
-or writing to NetCDF files is triggered by step 3.
+Step 2 is a logging process only, telling the |NetCDFInterface| object
+which data needs to be read or written.  The actual reading from or
+writing to NetCDF files is triggered by step 3.
 
-During step 2, the |NetCDFInterface| object is accessible, allowing
-to inspect is current state or to modify its behaviour.
+During step 2, the |NetCDFInterface| object, as well as its subobjects,
+are accessible, allowing to inspect their current state or to modify
+their behaviour.
 
 The following real code examples show how to perform these three steps
-both for reading and writing data.  They are based on the example
-configuration defined by function |prepare_io_example_1|:
+both for reading and writing data, based on the example configuration
+defined by function |prepare_io_example_1|:
 
->>> from hydpy.tests.examples import prepare_io_example_1
+>>> from hydpy.core.examples import prepare_io_example_1
 >>> nodes, elements = prepare_io_example_1()
 
-(1) We prepare a |NetCDFInterface| class for reading data by
+(1) We prepare a |NetCDFInterface| object for reading data by
 calling method |SequenceManager.open_netcdf_writer|:
 
 >>> from hydpy import pub
@@ -42,10 +57,11 @@ calling method |SequenceManager.open_netcdf_writer|:
 
 (2) We tell the |SequenceManager| to write all time series
 data into NetCDF files:
+
 >>> pub.sequencemanager.generalfiletype = 'nc'
 
-(3) We store all time series handles by the |Node| and |Element|
-objects of the example data set by calling |Nodes.save_allseries| of
+(3) We store all the time series handled by the |Node| and |Element|
+objects of the example dataset by calling |Nodes.save_allseries| of
 class |Nodes| and |Elements.save_allseries| of class |Elements|:
 
 >>> nodes.save_allseries()
@@ -69,10 +85,9 @@ elements `element1` and `element2`):
 
 (6) We tell the |SequenceManager| object to read all files from and
 write all files to the IO testing directory directly (In real cases
-you would just write the last command.  Writing this and the following
-IO related commands in an "with |TestIO|:" block just makes sure we
-are working in the IO testing directory instead of our current working
-directory):
+you would only write the last command.  Writing the IO related commands
+in a "with |TestIO|:" block makes sure we are polluting the IO
+testing directory instead of our current working directory):
 
 >>> from hydpy import TestIO
 >>> with TestIO():
@@ -90,15 +105,15 @@ Traceback (most recent call last):
 RuntimeError: The sequence file manager does currently handle no NetCDF \
 writer object.
 
-(8) We set the time series values of two test sequences to zero.
-This serves the purpose to demonstrate that reading the data back in
+(8) We set the time series values of two test sequences to zero,
+which serves the purpose to demonstrate that reading the data back in
 actually works:
 
 >>> nodes.node2.sequences.sim.series = 0.0
 >>> elements.element2.model.sequences.fluxes.nkor.series = 0.0
 
-(9) We speed up the process and prepare a |NetCDFInterface| object
-for reading data, log all |NodeSequence| and |ModelSequence| objects,
+(9) We move up a gear and and prepare a |NetCDFInterface| object for
+reading data, log all |NodeSequence| and |ModelIOSequence| objects,
 and read their time series data from the created NetCDF file:
 
 >>> pub.sequencemanager.open_netcdf_reader()
@@ -107,8 +122,7 @@ and read their time series data from the created NetCDF file:
 >>> with TestIO():
 ...     pub.sequencemanager.close_netcdf_reader()
 
-(10) We check if the data is available via the test sequences again,
-and if the |NetCDFInterface| object has been closed:
+(10) We check if the data is available via the test sequences again:
 
 >>> nodes.node2.sequences.sim.series
 InfoArray([ 64.,  65.,  66.,  67.])
@@ -123,12 +137,12 @@ Traceback (most recent call last):
 RuntimeError: The sequence file manager does currently handle no \
 NetCDF reader object.
 
-(11) The process of spatial averaging cannot be inverted.  Hence
-reading averaged (or somehow else aggregated) time series is left
-for preprocessing tools.  To show that writing the averaged series
-actually worked, we open access the both relevant NetCDF files
-more directly (note that averaging 1-dimensional time series as
-those of node sequence |Sim| is allowed for the sake of consistency):
+(11) The process of spatial aggregation  cannot be inverted.  Hence
+reading averaged time series is left for postprocessing tools.
+To show that writing the averaged series in fact worked, we access
+both relevant NetCDF files more directly using the underlying NetCDF4
+library (note that averaging 1-dimensional time series as those of
+node sequence |Sim| is allowed for the sake of consistency):
 
 >>> from hydpy import netcdf4
 >>> from numpy import array
@@ -149,16 +163,17 @@ in module |netcdftools|, but also in the documentation on class
 module |sequencetools|.
 
 The examples above give little insight in the resulting/required
-structure of NetCDF files.  One should at least be aware of the
-optional arguments `flatten` and `isolate`.  If `flatten` is |True|,
-multidimensional time series are handles as a larger number of
-1-dimensional time series.  If `isolate` is |True|, all |IOSequence|
-of a certain subclass are handled within a separate NetCDF file.
-When reading a NetCDF file one has to choose the same options with
+structure of NetCDF files. One should at least be aware of the
+optional arguments `flatten` and `isolate`. When "flattening" data,
+multidimensional time series are handled as a larger number of
+1-dimensional time series. When "isolating" data, all |IOSequence|
+objects of a specific subclass belong to one single NetCDF file.
+When reading a NetCDF file, one has to choose the same options with
 which the file has been written.
 
-The following technical test just shows that the arguments are
-passed properly to the constructor of |NetCDFInterface|:
+The following test shows that both |SequenceManager.open_netcdf_writer|
+and |SequenceManager.open_netcdf_reader| pass the mentioned arguments
+correctly to the constructor of |NetCDFInterface|:
 
 >>> from unittest.mock import patch
 >>> with patch('hydpy.core.netcdftools.NetCDFInterface') as mock:
@@ -167,11 +182,16 @@ passed properly to the constructor of |NetCDFInterface|:
 ...     pub.sequencemanager.open_netcdf_reader(flatten=True, isolate=False)
 ...     mock.assert_called_with(flatten=True, isolate=False)
 
-ToDo: Add meta data when writing NetCDF files.
+ToDo:
 
-ToDo: Try to determine `flatten` and `isolate` automatically when reading files?
-
-ToDo: Store subperiods of the actual initialization time period.
+ * Add metadata when writing NetCDF files.
+ * Try to determine to `flatten` and `isolate` automatically when reading?
+ * Store subperiods of the actual initialization initialisation period.
+ * Write data corresponding to the time of logging or of calling `close`?
+ * Allow for changing file names.
+ * Allow for changing variable names?
+ * Append data?
+ * Check (and fix) for 2d sequences?
 """
 # import...
 # ...from standard library
@@ -196,26 +216,24 @@ dimmapping = {
     'nmb_timepoints': 'time',
     'nmb_subdevices': 'stations',
     'nmb_characters': 'char_leng_name'}
-"""Mapping between the names of dimensions in HydPy terms and in NetCDF
-terms.
+"""Maps dimension name terms from HydPy terms NetCDF.
 
 You can change this mapping if it does not suit your requirements.  For
-example change the value of the key `nmb_subdevices`, if you prefer to
-call this dimension `place` instead of `stations` within NetCDF files:
+example, change the value of the keyword "nmb_subdevices", if you prefer to
+call this dimension "location" instead of "stations" within NetCDF files:
 
 >>> from hydpy.core.netcdftools import dimmapping
->>> dimmapping['nmb_subdevices'] = 'place'
+>>> dimmapping['nmb_subdevices'] = 'location'
 """
 
 varmapping = {
     'timepoints': 'time',
     'subdevices': 'station_names'}
-"""Mapping between the names of variables in HydPy terms and in NetCDF
-terms.
+"""Maps variable name terms from HydPy terms NetCDF.
 
-You can change this mapping if it does not suit your requirements.  For
-example change the value of the key `timepoints`, if you prefer to
-call this dimension `period` instead of `time` within NetCDF files:
+You can change this mapping if it does not suit your requirements.  For 
+example, change the value of the keyword "timepoints", if you prefer to 
+call this variable "period" instead of "time" within NetCDF files:
 
 >>> from hydpy.core.netcdftools import varmapping
 >>> varmapping['timepoints'] = 'period'
@@ -286,7 +304,7 @@ def create_dimension(ncfile, name, length) -> None:
     NetCDF file.
 
     Essentially, |create_dimension| just calls the equally named method
-    of the NetCDF library...
+    of the NetCDF library, but adds information to possible error messages:
 
     >>> from hydpy import netcdf4, TestIO
     >>> with TestIO():
@@ -295,8 +313,6 @@ def create_dimension(ncfile, name, length) -> None:
     >>> create_dimension(ncfile, 'dim1', 5)
     >>> ncfile.dimensions['dim1'].size
     5
-
-    ...but adds information to possible error messages:
 
     >>> create_dimension(ncfile, 'dim1', 5)
     Traceback (most recent call last):
@@ -321,7 +337,7 @@ def create_variable(ncfile, name, datatype, dimensions) -> None:
     to the given NetCDF file.
 
     Essentially, |create_variable| just calls the equally named method
-    of the NetCDF library but adds information to possible error messages:
+    of the NetCDF library, but adds information to possible error messages:
 
     >>> from hydpy import netcdf4, TestIO
     >>> with TestIO():
@@ -354,7 +370,11 @@ occurred: cannot find dimension dim1 in this group or parent groups
 
 
 def query_variable(ncfile, name) -> netcdf4.Variable:
-    """
+    """Return the variable with the given name from the given NetCDF file.
+
+    Essentially, |query_variable| just performs a key assess via the
+    used NetCDF library, but adds information to possible error messages:
+
     >>> from hydpy.core.netcdftools import query_variable
     >>> from hydpy import netcdf4, TestIO
     >>> with TestIO():
@@ -386,10 +406,10 @@ class NetCDFInterface(object):
     The core task of class |NetCDFInterface| is to distribute different
     |IOSequence| objects on different instances of class |NetCDFFile|.
 
-   (1) We prepare an |SequenceManager| object and some devices handling
-   different sequences by applying function |prepare_io_example_1|:
+    (1) We prepare a |SequenceManager| object and some devices handling
+    different sequences by applying function |prepare_io_example_1|:
 
-    >>> from hydpy.tests.examples import prepare_io_example_1
+    >>> from hydpy.core.examples import prepare_io_example_1
     >>> nodes, elements = prepare_io_example_1()
 
     (2) We collect all sequences to be used in the following examples:
@@ -402,10 +422,11 @@ class NetCDFInterface(object):
     ...     sequences.append(element.model.sequences.fluxes.nkor)
 
     (3) We prepare a |NetCDFInterface| object and log all test
-    sequences.  Due to setting `flatten` to |False|, three
-    |NetCDFFile| objects are prepared for the sequences handled by
-    |Node| objects, or the application models |lland_v1| and
-    |lland_v2| respectively:
+    sequences.  Due to setting `flatten` to |False|, |NetCDFInterface|
+    initialises one |NetCDFFile| object for handling the |NodeSequence|
+    objects and two |NetCDFFile| objects for handling the
+    |ModelIOSequence| objects of application models |lland_v1| and
+    |lland_v2|, respectively:
 
     >>> from hydpy.core.netcdftools import NetCDFInterface
     >>> interface = NetCDFInterface(flatten=False, isolate=False)
@@ -424,8 +445,8 @@ class NetCDFInterface(object):
     ...     pub.sequencemanager.generalpath = ''
     ...     interface.write()
 
-    (5) We define a shorter initialization time period and re-activate
-    the time series of the test sequences:
+    (5) We define a shorter initialisation period and re-activate the
+    time series of the test sequences:
 
     >>> from hydpy import pub, Timegrid, Timegrids
     >>> pub.timegrids = Timegrids(Timegrid('02.01.2000',
@@ -434,7 +455,7 @@ class NetCDFInterface(object):
     >>> for sequence in sequences:
     ...     sequence.activate_ram()
 
-    (6) We again initialize class |NetCDFInterface|, log all
+    (6) We again initialise class |NetCDFInterface|, log all
     test sequences, and read the test data of the defined subperiod:
 
     >>> from hydpy.core.netcdftools import NetCDFInterface
@@ -452,9 +473,11 @@ class NetCDFInterface(object):
 
     (7) We repeat the above steps, except that we set both
     `flatten` and `isolate` to |True|.  The relevant difference is
-    that each NetCDF variable is now stored in a separate file:
+    that |NetCDFInterface| now initialises a new |NetCDFFile| object
+    for each sequence type, resulting in a larger number separate
+    NetCDF files containing only one NetCDF variable:
 
-    >>> from hydpy.tests.examples import prepare_io_example_1
+    >>> from hydpy.core.examples import prepare_io_example_1
     >>> nodes, elements = prepare_io_example_1()
 
     >>> sequences = []
@@ -589,18 +612,18 @@ class NetCDFFile(object):
 
     The core task of class |NetCDFFile| is to distribute different
     |IOSequence| objects on different instances of |NetCDFVariableBase|
-    subclasses.  This is explained in detail in the documentation of
-    method |NetCDFFile.log|.  Here we focus on how a |NetCDFFile| objects
+    subclasses.  The documentation on the method |NetCDFFile.log|
+    explains this in detail.  Here we focus on how a |NetCDFFile| object
     triggers the reading and writing functionalities of its subobjects.
 
-    (1) we prepare an |SequenceManager| object and some devices handling
+    (1) We prepare a |SequenceManager| object and some devices handling
     different sequences by applying function |prepare_io_example_1|:
 
-    >>> from hydpy.tests.examples import prepare_io_example_1
+    >>> from hydpy.core.examples import prepare_io_example_1
     >>> nodes, (element1, element2, element3) = prepare_io_example_1()
 
-    (2) We define two shortcuts for the sequences actually used
-    in the following examples:
+    (2) We define two shortcuts for the sequences used in the following
+    examples:
 
     >>> nied = element1.model.sequences.inputs.nied
     >>> nkor = element1.model.sequences.fluxes.nkor
@@ -623,8 +646,8 @@ class NetCDFFile(object):
 
     (5) We set the time series values of the test sequence to zero,
     log the sequence to a new |NetCDFFile| instance, read the data
-    from the NetCDF file, and check that is actually passed to the
-    sequence object:
+    from the NetCDF file, and check that test sequence `nied`
+    in fact contains the read data:
 
     >>> nied.series = 0.0
     >>> ncfile = NetCDFFile('model', flatten=True, isolate=False)
@@ -635,7 +658,7 @@ class NetCDFFile(object):
     >>> nied.series
     InfoArray([ 0.,  1.,  2.,  3.])
 
-    (6) We show that IO errors should result in readable error messages:
+    (6) We show that IO errors should result in clear error messages:
 
     >>> ncfile.log(nkor, nkor.series)
     >>> with TestIO():
@@ -662,14 +685,14 @@ contain variable `flux_nkor`.
         When reading data, this argument is ignored. Simply pass |None|.
 
         (1) We prepare some devices handling some sequences by applying
-        function |prepare_io_example_1|.  We will limit out attention to
-        the returned elements, which handle the more diverse sequences:
+        function |prepare_io_example_1|.  We limit our attention to the
+        returned elements, which handle the more diverse sequences:
 
-        >>> from hydpy.tests.examples import prepare_io_example_1
+        >>> from hydpy.core.examples import prepare_io_example_1
         >>> nodes, (element1, element2, element3) = prepare_io_example_1()
 
-        (2) We define some shortcuts for the sequences actually used
-        in the following examples:
+        (2) We define some shortcuts for the sequences used in the
+        following examples:
 
         >>> nied1 = element1.model.sequences.inputs.nied
         >>> nied2 = element2.model.sequences.inputs.nied
@@ -693,24 +716,24 @@ contain variable `flux_nkor`.
         ...         print(name, classname(variable), variable.subdevicenames)
 
         (4) We prepare a |NetCDFFile| object with both options
-        `flatten` and `isolate` beeing disabled:
+        `flatten` and `isolate` being disabled:
 
         >>> from hydpy.core.netcdftools import NetCDFFile
         >>> ncfile = NetCDFFile('model', flatten=False, isolate=False)
 
-        (5) we logging all test sequences results in two
-        |NetCDFVariableDeep| and one |NetCDFVariableAgg| objects.
-        To keep both objects related to |lland_fluxes.NKor|
-        distinguishable, the name `flux_nkor_mean` includes an
-        information about the kind of aggregation performed:
+        (5) We log all test sequences results in two |NetCDFVariableDeep|
+        and one |NetCDFVariableAgg| objects.  To keep both NetCDF variables
+        related to |lland_fluxes.NKor| distinguishable, the name
+        `flux_nkor_mean` includes information about the kind of aggregation
+        performed:
 
         >>> test(ncfile)
         input_nied NetCDFVariableDeep ('element1', 'element2')
         flux_nkor NetCDFVariableDeep ('element2',)
         flux_nkor_mean NetCDFVariableAgg ('element2', 'element3')
 
-        (6) Wo confirm that all information required by the
-        |NetCDFVariableBase| objects has been passed:
+        (6) We confirm that the |NetCDFVariableBase| objects received
+        the required information:
 
         >>> ncfile.flux_nkor.element2.sequence.descr_device
         'element2'
@@ -724,12 +747,11 @@ contain variable `flux_nkor`.
         >>> ncfile.flux_nkor_mean.element2.array
         InfoArray([ 16.5,  18.5,  20.5,  22.5])
 
-        (7) We again prepare a |NetCDFFile| object, but now with
-        both options `flatten` and `isolate` beeing enabled.
-        Logging test sequences with their original time series data
-        does now trigger the initialization of class
-        |NetCDFVariableFlat|.  Logging sequences with aggregated
-        data remains unaffected:
+        (7) We again prepare a |NetCDFFile| object, but now with both
+        options `flatten` and `isolate` being enabled.  To log test
+        sequences with their original time series data does now trigger
+        the initialisation of class |NetCDFVariableFlat|.  When passing
+        aggregated data, nothing changes:
 
         >>> ncfile = NetCDFFile('model', flatten=True, isolate=True)
         >>> test(ncfile)
@@ -778,15 +800,15 @@ contain variable `flux_nkor`.
 
     @property
     def filepath_read(self) -> str:
-        """File path for reading data from the corresponding NetCDF file.
+        """The file path for reading data from the corresponding NetCDF file.
 
         (1) We prepare an |SequenceManager| object by applying
         function |prepare_io_example_1|:
 
-        >>> from hydpy.tests.examples import prepare_io_example_1
+        >>> from hydpy.core.examples import prepare_io_example_1
         >>> _ = prepare_io_example_1()
 
-        (2) We initialize class |NetCDFFile| with (nearly) random
+        (2) We initialise class |NetCDFFile| with (nearly) random
         arguments.  The resulting path for reading data is:
 
         >>> from hydpy.core.netcdftools import NetCDFFile
@@ -796,7 +818,7 @@ contain variable `flux_nkor`.
         'inputpath/some_model.nc'
 
         (3) We repeat the second step with another name argument.
-        The occurence of substring `node` changes the base directory:
+        The occurrence of substring `node` changes the base directory:
 
         >>> ncfile = NetCDFFile('some_node_q', flatten=None, isolate=None)
         >>> repr_(ncfile.filepath_read)
@@ -806,15 +828,15 @@ contain variable `flux_nkor`.
 
     @property
     def filepath_write(self) -> str:
-        """File path for writing data to the corresponding NetCDF file.
+        """The file path for writing data to the corresponding NetCDF file.
 
         (1) We prepare an |SequenceManager| object by applying
         function |prepare_io_example_1|:
 
-        >>> from hydpy.tests.examples import prepare_io_example_1
+        >>> from hydpy.core.examples import prepare_io_example_1
         >>> _ = prepare_io_example_1()
 
-        (2) We initialize class |NetCDFFile| with (nearly) random
+        (2) We initialise class |NetCDFFile| with (nearly) random
         arguments.  The resulting path for writing data is:
 
         >>> from hydpy.core.netcdftools import NetCDFFile
@@ -824,7 +846,7 @@ contain variable `flux_nkor`.
         'outputpath/some_model.nc'
 
         (3) We repeat the second step with another name argument.
-        The occurence of substring `node` changes the base directory:
+        The occurrence of substring `node` changes the base directory:
 
         >>> ncfile = NetCDFFile('some_node_q', flatten=None, isolate=None)
         >>> repr_(ncfile.filepath_write)
@@ -865,7 +887,7 @@ contain variable `flux_nkor`.
 
     def write(self, timeunit, timepoints) -> None:
         """Open a new NetCDF file temporarily and call method
-        |NetCDFVariableDeep.write| of all handled |NetCDFVariableBase|
+        |NetCDFVariableBase.write| of all handled |NetCDFVariableBase|
         objects."""
         with netcdf4.Dataset(self.filepath_write, "w") as ncfile:
             self._insert_timepoints(ncfile, timepoints, timeunit)
@@ -904,8 +926,8 @@ contain variable `flux_nkor`.
         return objecttools.dir_(self) + list(self.variablenames)
 
 
-NetCDFVariableInfo = collections.namedtuple(
-    'NetCDFVariableInfo', ['sequence', 'array'])
+_NetCDFVariableInfo = collections.namedtuple(
+    '_NetCDFVariableInfo', ['sequence', 'array'])
 
 
 class Subdevice2Index(object):
@@ -931,12 +953,8 @@ class Subdevice2Index(object):
 
 
 class NetCDFVariableBase(abc.ABC):
-    """
-
-    >>> from hydpy.core.netcdftools import NetCDFVariableBase
-    >>> from hydpy import make_abc_testable, dummies
-    >>> dummies.NetCDFVariableBase_ = make_abc_testable(NetCDFVariableBase)
-    """
+    """Base class for |NetCDFVariableDeep|, |NetCDFVariableAgg|, and
+    |NetCDFVariableFlat|."""
     def __init__(self, name, isolate):
         self.name = name
         self._isolate = isolate
@@ -951,7 +969,7 @@ class NetCDFVariableBase(abc.ABC):
 
         The optional `array` argument allows for passing alternative data
         in an |InfoArray| object replacing the series of the |IOSequence|
-        object. This is usefull for writing modified (e.g. spatially
+        object, which is useful for writing modified (e.g. spatially
         averaged) time series.
         """
         descr_device = sequence.descr_device
@@ -961,65 +979,87 @@ class NetCDFVariableBase(abc.ABC):
     @property
     @abc.abstractmethod
     def subdevicenames(self) -> Tuple[str, ...]:
-        """A |tuple| containing the station names."""
+        """A |tuple| containing the (sub)device names."""
         ...
 
     @property
     @abc.abstractmethod
     def dimensions(self) -> Tuple[str, ...]:
+        """A |tuple| containing the dimension names."""
         ...
 
     @property
     @abc.abstractmethod
     def array(self) -> numpy.ndarray:
+        """A |numpy.ndarray| containing the values of all logged sequences."""
         ...
 
     @property
     def prefix(self) -> str:
-        """
+        """A prefix for names of dimensions and associated variables.
 
-        >>> from hydpy import dummies
-        >>> dummies.NetCDFVariableBase_('name', isolate=False).prefix
-        'name_'
-        >>> dummies.NetCDFVariableBase_('name', isolate=True).prefix
+        For "isolated" variables, no prefix is required:
+
+        >>> from hydpy.core.netcdftools import NetCDFVariableBase
+        >>> from hydpy import make_abc_testable
+        >>> NetCDFVariableBase_ = make_abc_testable(NetCDFVariableBase)
+        >>> NetCDFVariableBase_('name', isolate=True).prefix
         ''
+
+        When storing different types of sequences in the same NetCDF
+        file, there is a risk of name conflicts.  We solve this by
+        using the variables name as a prefix:
+
+        >>> NetCDFVariableBase_('name', isolate=False).prefix
+        'name_'
         """
         return '' if self._isolate else '%s_' % self.name
 
     def insert_subdevices(self, ncfile) -> None:
-        """
+        """Insert a variable of the names of the (sub)devices of the logged
+        sequences into the given NetCDF file
 
-        >>> from hydpy.core.netcdftools import NetCDFVariableBase
+        (1) We prepare a |NetCDFVariableBase| subclass with fixed
+        (sub)device names:
+
+        >>> from hydpy.core.netcdftools import NetCDFVariableBase, chars2str
         >>> from hydpy import make_abc_testable, netcdf4, TestIO
         >>> Var = make_abc_testable(NetCDFVariableBase)
+        >>> Var.subdevicenames = 'element1', 'element_2'
 
-        >>> Var.subdevicenames = 'element1', 'element2'
+        (2) Without isolating variables,
+        |NetCDFVariableBase.insert_subdevices| prefixes the name of the
+        |NetCDFVariableBase| object to the name of the inserted variable
+        and its dimensions.  The first dimension corresponds to the
+        number of (sub)devices, the second dimension to the number of
+        characters of the longest (sub)device name:
+
         >>> var1 = Var('var1', isolate=False)
-        >>> var1.subdevicenames = 'element1', 'element2'
-        >>> with TestIO(clear_all=True):
+        >>> with TestIO():
         ...     file1 = netcdf4.Dataset('model1.nc', 'w')
-
         >>> var1.insert_subdevices(file1)
+        >>> file1['var1_station_names'].dimensions
+        ('var1_stations', 'var1_char_leng_name')
+        >>> file1['var1_station_names'].shape
+        (2, 9)
+        >>> chars2str(file1['var1_station_names'][:])
+        ['element1', 'element_2']
+        >>> file1.close()
 
-        >>> for dimension in file1.dimensions.values():
-        ...     print(dimension.name, dimension.size)
-        var1_stations 2
-        var1_char_leng_name 8
-
-        >>> for variable in file1.variables.values():
-        ...     print(variable.name, variable.dimensions, variable.shape)
-        var1_station_names ('var1_stations', 'var1_char_leng_name') (2, 8)
-
+        (3) When isolating variables, we omit the prefix:
 
         >>> var2 = Var('var2', isolate=True)
-        >>> var2.subdevicenames = 'element1', 'element2'
-        >>> with TestIO(clear_all=True):
+        >>> with TestIO():
         ...     file2 = netcdf4.Dataset('model2.nc', 'w')
         >>> var2.insert_subdevices(file2)
-        >>> for variable in file2.variables.values():
-        ...     print(variable.name, variable.dimensions, variable.shape)
-        station_names ('stations', 'char_leng_name') (2, 8)
-
+        >>> file2['station_names'].dimensions
+        ('stations', 'char_leng_name')
+        >>> file2['station_names'].shape
+        (2, 9)
+        >>> chars2str(file2['station_names'][:])
+        ['element1', 'element_2']
+        >>> file2.close()
+        >>> TestIO.clear()
         """
         prefix = self.prefix
         nmb_subdevices = '%s%s' % (prefix, dimmapping['nmb_subdevices'])
@@ -1033,31 +1073,38 @@ class NetCDFVariableBase(abc.ABC):
         ncfile[subdevices][:, :] = statchars
 
     def query_subdevices(self, ncfile) -> List[str]:
-        """
+        """Query the names of the (sub)devices of the logged sequences
+        from the given NetCDF file
+
+        (1) We apply function |NetCDFVariableBase.query_subdevices| on
+        an empty NetCDF file.  The error message shows that the method
+        tries to query the (sub)device names both under the assumptions
+        that variables have been isolated or not:
+
         >>> from hydpy.core.netcdftools import NetCDFVariableBase
         >>> from hydpy import make_abc_testable, netcdf4, TestIO
-
         >>> with TestIO():
-        ...     file_ = netcdf4.Dataset('model.nc', 'w')
-
-        >>> var = make_abc_testable(NetCDFVariableBase)(
-        ...     'flux_prec', isolate=False)
-        >>> var.query_subdevices(file_)
+        ...     ncfile = netcdf4.Dataset('model.nc', 'w')
+        >>> Var = make_abc_testable(NetCDFVariableBase)
+        >>> Var.subdevicenames = 'element1', 'element_2'
+        >>> var = Var('flux_prec', isolate=False)
+        >>> var.query_subdevices(ncfile)
         Traceback (most recent call last):
         ...
         OSError: NetCDF file `model.nc` does neither contain a variable \
 named `flux_prec_station_names` nor `station_names` for defining the \
 coordinate locations of variable `flux_prec`.
 
-        >>> from hydpy.core import netcdftools as nct
-        >>> nct.create_dimension(file_, 'stations', 2)
-        >>> nct.create_dimension(file_, 'char_leng_name', 8)
-        >>> nct.create_variable(file_,
-        ...     'station_names', 'S1', ('stations', 'char_leng_name'))
-        >>> file_['station_names'][:] = nct.str2chars(
-        ...     ['element1', 'element2'])
+        (2) After inserting the (sub)device name, they can be queried
+        and returned:
 
-        >>> file_.close()
+        >>> var.insert_subdevices(ncfile)
+        >>> Var('flux_prec', isolate=False).query_subdevices(ncfile)
+        ['element1', 'element_2']
+        >>> Var('flux_prec', isolate=True).query_subdevices(ncfile)
+        ['element1', 'element_2']
+
+        >>> ncfile.close()
         >>> TestIO.clear()
         """
         tests = ['%s%s' % (prefix, varmapping['subdevices'])
@@ -1080,40 +1127,43 @@ coordinate locations of variable `flux_prec`.
         """Return a |Subdevice2Index| that maps the (sub)device names to
         their position within the given NetCDF file.
 
-        >>> from hydpy.core.netcdftools import NetCDFVariableBase
+        Method |NetCDFVariableBase.query_subdevice2index| is based on
+        |NetCDFVariableBase.query_subdevices|.  The returned
+        |Subdevice2Index| object remembers the NetCDF file the
+        (sub)device names stem from, allowing for clear error messages:
+
+        >>> from hydpy.core.netcdftools import NetCDFVariableBase, str2chars
         >>> from hydpy import make_abc_testable, netcdf4, TestIO
         >>> with TestIO():
-        ...     file_ = netcdf4.Dataset('model.nc', 'w')
-        >>> from hydpy.core import netcdftools as nct
-        >>> nct.create_dimension(file_, 'stations', 4)
-        >>> nct.create_dimension(file_, 'char_leng_name', 10)
-        >>> nct.create_variable(file_,
-        ...     'station_names', 'S1', ('stations', 'char_leng_name'))
-        >>> file_['station_names'][:] = nct.str2chars(
-        ...     ['element3', 'element1', 'element1_1', 'element2'])
-
-        >>> var = make_abc_testable(NetCDFVariableBase)(
-        ...     'flux_prec', isolate=False)
-
-        >>> var.query_subdevice2index(file_).get_index('element1_1')
+        ...     ncfile = netcdf4.Dataset('model.nc', 'w')
+        >>> Var = make_abc_testable(NetCDFVariableBase)
+        >>> Var.subdevicenames = [
+        ...     'element3', 'element1', 'element1_1', 'element2']
+        >>> var = Var('flux_prec', isolate=True)
+        >>> var.insert_subdevices(ncfile)
+        >>> subdevice2index = var.query_subdevice2index(ncfile)
+        >>> subdevice2index.get_index('element1_1')
         2
-        >>> var.query_subdevice2index(file_).get_index('element3')
+        >>> subdevice2index.get_index('element3')
         0
-        >>> var.query_subdevice2index(file_).get_index('element5')
+        >>> subdevice2index.get_index('element5')
         Traceback (most recent call last):
         ...
         OSError: No data for sequence `flux_prec` and (sub)device \
 `element5` in NetCDF file `model.nc` available.
 
-        >>> file_['station_names'][:] = nct.str2chars(
+        Additionally, |NetCDFVariableBase.query_subdevice2index|
+        checks for duplicates:
+
+        >>> ncfile['station_names'][:] = str2chars(
         ...     ['element3', 'element1', 'element1_1', 'element1'])
-        >>> var.query_subdevice2index(file_)
+        >>> var.query_subdevice2index(ncfile)
         Traceback (most recent call last):
         ...
         OSError: The NetCDF file `model.nc` contains duplicate (sub)device \
 names for variable `flux_prec` (the first found duplicate is `element1`).
 
-        >>> file_.close()
+        >>> ncfile.close()
         >>> TestIO.clear()
         """
         subdevices = self.query_subdevices(ncfile)
@@ -1134,15 +1184,17 @@ names for variable `flux_prec` (the first found duplicate is `element1`).
 
     @abc.abstractmethod
     def read(self, ncfile, timegrid_data) -> None:
+        """Read the data from the given NetCDF file."""
         ...
 
     @abc.abstractmethod
     def write(self, ncfile) -> None:
+        """Write the data to the given NetCDF file."""
         ...
 
     def __getattr__(self, name):
         try:
-            return NetCDFVariableInfo(self.sequences[name], self.arrays[name])
+            return _NetCDFVariableInfo(self.sequences[name], self.arrays[name])
         except KeyError:
             raise AttributeError(
                 'The NetCDFVariable object `%s` does neither handle a '
@@ -1154,7 +1206,7 @@ names for variable `flux_prec` (the first found duplicate is `element1`).
         return objecttools.dir_(self) + list(self.sequences.keys())
 
 
-class NonFlatMixin(object):
+class DeepAndAggMixin(object):
     """Mixin class for |NetCDFVariableDeep| and |NetCDFVariableAgg|"""
 
     @property
@@ -1179,18 +1231,18 @@ class NonFlatMixin(object):
         ncfile[self.name][:] = array
 
 
-class NonDeepMixin(object):
-    """"Mixin class for | NetCDFVariableFlat| and | NetCDFVariableAgg|."""
+class AggAndFlatMixin(object):
+    """Mixin class for |NetCDFVariableAgg| and |NetCDFVariableFlat|."""
 
     @property
     def dimensions(self) -> Tuple[str, ...]:
         """The dimension names of the NetCDF variable.
 
-        Usually, the first dimension names related to place is
-        prefixed with |IOSequence.descr_sequence|, which allows
-        to store different sequences in one NetCDF file:
+        Usually, the string defined by property |IOSequence.descr_sequence|
+        prefixes the first dimension name related to the location, which
+        allows storing different sequences types in one NetCDF file:
 
-        >>> from hydpy.tests.examples import prepare_io_example_1
+        >>> from hydpy.core.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableAgg
         >>> ncvar = NetCDFVariableAgg('flux_nkor', isolate=False)
@@ -1211,21 +1263,21 @@ class NonDeepMixin(object):
         return nmb_subdevices, dimmapping['nmb_timepoints']
 
 
-class NetCDFVariableDeep(NonFlatMixin, NetCDFVariableBase):
+class NetCDFVariableDeep(DeepAndAggMixin, NetCDFVariableBase):
     """Relates some objects of a specific |IOSequence| subclass with
     a single NetCDF variable without modifying dimensionality.
 
     Suitable both for reading and writing time series of sequences of
-    arbitrary dimensionality.  Performs no flattening.
+    arbitrary dimensionality; performs no flattening.
 
     (1) We prepare some devices handling some sequences by applying
-    function |prepare_io_example_1|.  We will limit out attention to the
+    function |prepare_io_example_1|.  We limit our attention to the
     returned elements, which handle the more diverse sequences:
 
-    >>> from hydpy.tests.examples import prepare_io_example_1
+    >>> from hydpy.core.examples import prepare_io_example_1
     >>> nodes, (element1, element2, element3) = prepare_io_example_1()
 
-    (2) We define two |NetCDFVariableMulti| instances and log the
+    (2) We define two |NetCDFVariableDeep| instances and log the
     |lland_inputs.Nied| and |lland_fluxes.NKor| sequences of the first
     two elements:
 
@@ -1239,8 +1291,8 @@ class NetCDFVariableDeep(NonFlatMixin, NetCDFVariableBase):
 
     (3) We prepare a (nearly) empty NetCDF file. "Nearly", because
     all sequences have to be related to the same period, which is why
-    time information is usually defined by a central instance of class
-    |NetCDFFile|):
+    usually a central instance of class |NetCDFFile| prepares and
+    passes time information:
 
     >>> from hydpy import TestIO, netcdf4
     >>> with TestIO():
@@ -1255,7 +1307,7 @@ class NetCDFVariableDeep(NonFlatMixin, NetCDFVariableBase):
     >>> ncfile.close()
 
     (5) We set all values of the series of both selected sequences
-    to -777 and check that they are actually different from the original
+    to -777 and check that they are in fact different from the original
     values available via attribute `testarray`:
 
     >>> seq1 = element1.model.sequences.inputs.nied
@@ -1267,7 +1319,7 @@ class NetCDFVariableDeep(NonFlatMixin, NetCDFVariableBase):
     False
     False
 
-    (6) We again prepare two |NetCDFVariableMulti| instances and
+    (6) We again prepare two |NetCDFVariableDeep| instances and
     log the same sequences as above, open the existing NetCDF file
     for reading, read its data, and confirm that this data has been
     passed to both test sequences properly:
@@ -1288,7 +1340,7 @@ class NetCDFVariableDeep(NonFlatMixin, NetCDFVariableBase):
     True
 
     (6) We confirm that trying to read data that has not been stored
-    properly, results in error messages like the following one:
+    properly results in error messages like the following one:
 
     >>> nied1.log(element3.model.sequences.inputs.nied, None)
     >>> nied1.read(ncfile, pub.timegrids.init)
@@ -1299,12 +1351,13 @@ in NetCDF file `model.nc` available.
 
     >>> ncfile.close()
 
-    (7) We repeat the first few steps, but pass |True| to the
-    constructor of |NetCDFVariableMulti|.  This is done when one
-    definitely wants to store only one sequence per NetCDF file.
-    Nevertheless, we try to store two sequences within the same
-    NetCDF file.  This works for the first sequence (|lland_inputs.Nied|),
-    but not for the second one (|lland_fluxes.Nied|):
+    (7) We repeat the first few steps, but pass True to the constructor
+    of |NetCDFVariableDeep| to indicate that we want to write each type
+    of sequence into a separate NetCDF file.  Nevertheless, we try to
+    store two different types of sequences into the same NetCDF file,
+    which works for the first sequence (|lland_inputs.Nied|) but not
+    for the second one (|lland_fluxes.NKor|):
+
 
     >>> var_nied = NetCDFVariableDeep('input_nied', isolate=True)
     >>> var_nkor = NetCDFVariableDeep('flux_nkor', isolate=True)
@@ -1334,15 +1387,14 @@ NetCDF: String match to name in use
     """
 
     @staticmethod
-    def get_slices(idx, shape) -> List[IntOrSlice]:
-        """Return a |tuple| of one |int| and some |slice| objects that
-        completely accesses all values within |NetCDFVariableMulti.array|
-        based on the given primary index and shape of a sequence.
+    def get_slices(idx, shape) -> Tuple[IntOrSlice, ...]:
+        """Return a |tuple| of one |int| and some |slice| objects to
+        accesses all values of a certain device within
+        |NetCDFVariableDeep.array|.
 
         >>> from hydpy.core.netcdftools import NetCDFVariableDeep
         >>> NetCDFVariableDeep.get_slices(2, [3])
         (2, slice(None, None, None), slice(0, 3, None))
-
         >>> NetCDFVariableDeep.get_slices(4, (1, 2))
         (4, slice(None, None, None), slice(0, 1, None), slice(0, 2, None))
         """
@@ -1353,13 +1405,13 @@ NetCDF: String match to name in use
 
     @property
     def shape(self) -> Tuple[int, ...]:
-        """Required shape of |NetCDFVariableMulti.array|.
+        """Required shape of |NetCDFVariableDeep.array|.
 
         The first axis corresponds to the number of devices, the
-        second one two the number of timesteps.  We show this
+        second one to the number of timesteps.  We show this
         for the 0-dimensional input sequence |lland_inputs.Nied|:
 
-        >>> from hydpy.tests.examples import prepare_io_example_1
+        >>> from hydpy.core.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableDeep
         >>> ncvar = NetCDFVariableDeep('input_nied', isolate=False)
@@ -1369,7 +1421,7 @@ NetCDF: String match to name in use
         (3, 4)
 
         For higher dimensional sequences, each new entry corresponds
-        to he maximum number of fields the respective sequences require.
+        to the maximum number of fields the respective sequences require.
         In the next example, we select the 1-dimensional sequence
         |lland_fluxes.NKor|.  The maximum number 3 (last value of the
         returned |tuple|) is due to the third element defining three
@@ -1390,14 +1442,14 @@ NetCDF: String match to name in use
     @property
     def array(self) -> numpy.ndarray:
         """The series data of all logged |IOSequence| objects contained
-        in one single |numpy.ndarray| object.
+        in one single |numpy.ndarray|.
 
-        The documentation on |NetCDFVariableMulti.shape| explaines
-        how |NetCDFVariableMulti.array| is structured.  The first
-        examples confirms that the first axis corresponds to place,
-        while the second one corresponds to time:
+        The documentation on |NetCDFVariableDeep.shape| explains
+        how |NetCDFVariableDeep.array| is structured.  The first
+        example confirms that the first axis definces the location,
+        while the second one defines time:
 
-        >>> from hydpy.tests.examples import prepare_io_example_1
+        >>> from hydpy.core.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableDeep
         >>> ncvar = NetCDFVariableDeep('input_nied', isolate=False)
@@ -1409,9 +1461,9 @@ NetCDF: String match to name in use
                [  4.,   5.,   6.,   7.],
                [  8.,   9.,  10.,  11.]])
 
-        For higher dimensional sequences, |NetCDFVariableMulti.array|
-        can contain missing values.  This is the case for its fields
-        related to the second example element, which defines only
+        For higher dimensional sequences, |NetCDFVariableDeep.array|
+        can contain missing values.  Such missing values show up for
+        some fiels of the second example element, which defines only
         two hydrological response units instead of three:
 
         >>> ncvar = NetCDFVariableDeep('flux_nkor', isolate=False)
@@ -1434,11 +1486,11 @@ NetCDF: String match to name in use
     def dimensions(self) -> Tuple[str, ...]:
         """The dimension names of the NetCDF variable.
 
-        Usually, all dimension names except the one related to
-        time are prefixed with |IOSequence.descr_sequence|, which
-        allows to store different sequences in one NetCDF file:
+        Usually, the string defined by property |IOSequence.descr_sequence|
+        prefixes all dimension names except the second one related to time,
+        which allows storing different sequences in one NetCDF file:
 
-        >>> from hydpy.tests.examples import prepare_io_example_1
+        >>> from hydpy.core.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableDeep
         >>> ncvar = NetCDFVariableDeep('flux_nkor', isolate=False)
@@ -1446,8 +1498,8 @@ NetCDF: String match to name in use
         >>> ncvar.dimensions
         ('flux_nkor_stations', 'time', 'flux_nkor_axis3')
 
-        But when isolating variables into separate NetCDF files, the
-        variable specific suffix is omitted:
+        However, when isolating variables into separate NetCDF files, the
+        sequence-specific suffix is omitted:
 
         >>> ncvar = NetCDFVariableDeep('flux_nkor', isolate=True)
         >>> ncvar.log(elements.element1.model.sequences.fluxes.nkor, None)
@@ -1478,20 +1530,20 @@ NetCDF: String match to name in use
                 timegrid_data, values)
 
 
-class NetCDFVariableAgg(NonFlatMixin, NonDeepMixin, NetCDFVariableBase):
+class NetCDFVariableAgg(DeepAndAggMixin, AggAndFlatMixin, NetCDFVariableBase):
     """Relates some objects of a specific |IOSequence| subclass with
     a single NetCDF variable when aggregation of data is required.
 
-    Suitable for writing time series data only.  Performs no flattening.
+    Suitable for writing time series data only; performs no flattening.
 
     Essentially, class |NetCDFVariableAgg| is very similar to class
     |NetCDFVariableDeep| but a little bit simpler, as it handles
     arrays with fixed dimensionality and provides no functionality
     for reading data from NetCDF files.  Hence, the following examples
-    are a selection of the examples of the documentation on class
-    |NetCDFVariableDeep|, which can be read for further information:
+    are a selection of the of the more thoroughly explained examples
+    of the documentation on class |NetCDFVariableDeep|:
 
-    >>> from hydpy.tests.examples import prepare_io_example_1
+    >>> from hydpy.core.examples import prepare_io_example_1
     >>> nodes, (element1, element2, element3) = prepare_io_example_1()
     >>> from hydpy.core.netcdftools import NetCDFVariableAgg
     >>> var_nied = NetCDFVariableAgg('input_nied_mean', isolate=False)
@@ -1511,7 +1563,7 @@ class NetCDFVariableAgg(NonFlatMixin, NonDeepMixin, NetCDFVariableBase):
     >>> ncfile.close()
 
     As |NetCDFVariableAgg| provides no reading functionality, we
-    show that the aggregated values are stored properly by using
+    show that the aggregated values are readily available by using
     the external NetCDF4 library directly:
 
     >>> with TestIO():
@@ -1531,10 +1583,10 @@ class NetCDFVariableAgg(NonFlatMixin, NonDeepMixin, NetCDFVariableBase):
         """Required shape of |NetCDFVariableAgg.array|.
 
         The first axis corresponds to the number of devices, the
-        second one two the number of timesteps.  We show this
-        for the 1-dimensional input sequence |lland_inputs.NKor|:
+        second one to the number of timesteps.  We show this
+        for the 1-dimensional input sequence |lland_fluxes.NKor|:
 
-        >>> from hydpy.tests.examples import prepare_io_example_1
+        >>> from hydpy.core.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableAgg
         >>> ncvar = NetCDFVariableAgg('flux_nkor', isolate=False)
@@ -1551,12 +1603,12 @@ class NetCDFVariableAgg(NonFlatMixin, NonDeepMixin, NetCDFVariableBase):
         """The aggregated data of all logged |IOSequence| objects contained
         in one single |numpy.ndarray| object.
 
-        The documentation on |NetCDFVariableAgg.shape| explaines
-        how |NetCDFVariableAgg.array| is structured.  This first
-        examples confirms, that first axis corresponds to place,
-        while the second one corresponds time:
+        The documentation on |NetCDFVariableAgg.shape| explains
+        how |NetCDFVariableAgg.array| is structured.  This first example
+        confirms the first axis corresponds to the location, while the
+        second one corresponds to time:
 
-       >>> from hydpy.tests.examples import prepare_io_example_1
+       >>> from hydpy.core.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableAgg
         >>> ncvar = NetCDFVariableAgg('flux_nkor', isolate=False)
@@ -1574,10 +1626,11 @@ class NetCDFVariableAgg(NonFlatMixin, NonDeepMixin, NetCDFVariableBase):
         return array
 
     def read(self, ncfile, timegrid_data) -> None:
-        """Raises a |RuntimeError| in any case.
+        """Raise a |RuntimeError| in any case.
 
-        This method just raises the following exception, in order to tell
-        users why implementing a real reading functionality is not possible:
+        This method always raises the following exception, to tell
+        users why implementing a real reading functionality is not
+        possible:
 
         >>> from hydpy.core.netcdftools import NetCDFVariableAgg
         >>> NetCDFVariableAgg('flux_nkor', isolate=False).read(None, None)
@@ -1592,7 +1645,7 @@ class NetCDFVariableAgg(NonFlatMixin, NonDeepMixin, NetCDFVariableBase):
             % self.name)
 
 
-class NetCDFVariableFlat(NonDeepMixin, NetCDFVariableBase):
+class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
     """Relates some objects of a specific |IOSequence| subclass with
     a single NetCDF variable when flattening of data is required.
 
@@ -1601,12 +1654,12 @@ class NetCDFVariableFlat(NonDeepMixin, NetCDFVariableBase):
 
     The following examples on the usage of class |NetCDFVariableFlat|
     are identical to the ones on the usage of class |NetCDFVariableDeep|.
-    We repeat the examples for testing purposes, but refrain from repeating
-    the explanations. The relevant difference on how the data is actually
-    structered within NetCDF files should become clear when comparing
-    the documenation on the different members of both classes.
+    We repeat the examples for testing purposes but refrain from repeating
+    the explanations. The relevant difference  in the NetCDF file
+    structure should become clear when comparing the documentation on
+    the different members of both classes.
 
-    >>> from hydpy.tests.examples import prepare_io_example_1
+    >>> from hydpy.core.examples import prepare_io_example_1
     >>> nodes, (element1, element2, element3) = prepare_io_example_1()
 
     (2) We define two |NetCDFVariableFlat| instances and log the
@@ -1665,7 +1718,7 @@ class NetCDFVariableFlat(NonDeepMixin, NetCDFVariableBase):
         first axis corresponds to the number of devices, and the
         second one two the number of timesteps:
 
-        >>> from hydpy.tests.examples import prepare_io_example_1
+        >>> from hydpy.core.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableFlat
         >>> ncvar = NetCDFVariableFlat('input_nied', isolate=False)
@@ -1694,12 +1747,12 @@ class NetCDFVariableFlat(NonDeepMixin, NetCDFVariableBase):
         """The series data of all logged |IOSequence| objects contained in
         one single |numpy.ndarray| object.
 
-        The documentation on |NetCDFVariableAgg.shape| explaines
-        how |NetCDFVariableAgg.array| is structured.  The first
-        examples confirms that the first axis corresponds to place,
+        The documentation on |NetCDFVariableAgg.shape| explains how
+        |NetCDFVariableAgg.array| is structured.  The first example
+        confirms that the first axis corresponds to the location,
         while the second one corresponds to time:
 
-        >>> from hydpy.tests.examples import prepare_io_example_1
+        >>> from hydpy.core.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableFlat
         >>> ncvar = NetCDFVariableFlat('input_nied', isolate=False)
@@ -1741,11 +1794,11 @@ class NetCDFVariableFlat(NonDeepMixin, NetCDFVariableBase):
         """A |tuple| containing the (sub)device names.
 
         Property |NetCDFVariableFlat.subdevicenames| clarifies which
-        time series is stored in which row of|NetCDFVariableFlat.array|.
-        The first examples confirms that for 0-dimensional series like
-        |lland_inputs.Nied|, the plain device names are returned:
+        row of |NetCDFVariableAgg.array| contains which time series.
+        For 0-dimensional series like |lland_inputs.Nied|, the plain
+        device names are returned
 
-        >>> from hydpy.tests.examples import prepare_io_example_1
+        >>> from hydpy.core.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableFlat
         >>> ncvar = NetCDFVariableFlat('input_nied', isolate=False)
@@ -1755,11 +1808,11 @@ class NetCDFVariableFlat(NonDeepMixin, NetCDFVariableBase):
         >>> ncvar.subdevicenames
         ('element1', 'element2', 'element3')
 
-        For higher dimensional sequences like |lland_fluxes.NKor|
-        an additional suffix in the individual name defines the
-        index of the respective subdevice.  For example, the time
-        series of the first hydrological response unit of the second
-        element is stored in the third row:
+        For higher dimensional sequences like |lland_fluxes.NKor|, an
+        additional suffix defines the index of the respective subdevice.
+        For example contains the third row of |NetCDFVariableAgg.array|
+        the time series of the first hydrological response unit of the
+        second element:
 
         >>> ncvar = NetCDFVariableFlat('flux_nkor', isolate=False)
         >>> for element in elements:

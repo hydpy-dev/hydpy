@@ -1437,7 +1437,7 @@ or prepare `pub.sequencemanager` correctly.
         method |prepare_io_example_1| and select a 1-dimensional
         flux sequence of type |lland_fluxes.NKor| as an example:
 
-        >>> from hydpy.tests.examples import prepare_io_example_1
+        >>> from hydpy.core.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> seq = elements.element3.model.sequences.fluxes.nkor
 
@@ -1486,6 +1486,13 @@ sequence `nkor` of element `element3`.
             raise RuntimeError(
                 'Unknown aggregation mode `%s` for sequence %s.'
                 % (mode, objecttools.devicephrase(self)))
+
+
+    @property
+    def descr_sequence(self):
+        """Description of the |IOSequence| object itself and the
+        |SubSequences| group it belongs to."""
+        raise NotImplementedError()
 
 
 abctools.IOSequenceABC.register(IOSequence)

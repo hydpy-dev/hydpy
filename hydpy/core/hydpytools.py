@@ -366,7 +366,7 @@ class HydPy(object):
         self.elements.load_allseries()
 
     def load_inputseries(self):
-        """Call method |Elements.loat_inputseries| of the |Elements| object
+        """Call method |Elements.load_inputseries| of the |Elements| object
         currently handled by the |HydPy| object."""
         self.elements.load_inputseries()
 

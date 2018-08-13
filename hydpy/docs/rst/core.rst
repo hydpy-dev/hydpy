@@ -65,6 +65,7 @@ standardize writing :ref:`HydPy` code.
    connectiontools
    devicetools
    dummytools
+   examples
    exceptiontools
    filetools
    hydpytools

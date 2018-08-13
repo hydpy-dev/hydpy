@@ -33,8 +33,8 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     >>> import os
     >>> from hydpy import TestIO
     >>> with TestIO():
-    ...     print([filename for filename in os.listdir('.')
-    ...            if not filename.startswith('_')])
+    ...     print(sorted(filename for filename in os.listdir('.')
+    ...                  if not filename.startswith('_')))
     ['inputpath', 'nodepath', 'outputpath']
 
     (3) Returns three |Element| objects handling either application model

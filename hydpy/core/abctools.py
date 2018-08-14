@@ -15,9 +15,12 @@ should be handled as if they were.  See class |anntools.ANN| as an example.
 """
 # import...
 # ...from standard library
+from typing import Any, Union
 import abc
+import datetime
+# ...from site-packages
+import numpy
 # ...from HydPy
-from hydpy import pub
 from hydpy.core import autodoctools
 
 
@@ -152,6 +155,10 @@ class VariableABC(DocABC):
     >>> issubclass(New, VariableABC)
     True
     """
+    value: Union[float, int, numpy.ndarray]
+    values: Union[float, int, numpy.ndarray]
+    initvalue: Union[float, int]
+    fastaccess: Any
 
 
 class ParameterABC(VariableABC):
@@ -245,6 +252,8 @@ class DateABC(DocABC):
     """Abstract base class for registering custom |Date| classes."""
     pass
 
+    datetime: datetime.datetime
+
 
 class PeriodABC(DocABC):
     """Abstract base class for registering custom |Period| classes."""
@@ -254,6 +263,9 @@ class PeriodABC(DocABC):
 class TimegridABC(DocABC):
     """Abstract base class for registering custom |Timegrid| classes."""
     pass
+    firstdate: DateABC
+    lastdate: DateABC
+    stepsize: PeriodABC
 
 
 class TimegridsABC(DocABC):
@@ -264,6 +276,11 @@ class TimegridsABC(DocABC):
 class TOYABC(DocABC):
     """Abstract base class for registering custom |TOY| classes."""
     pass
+    month: int
+    day: int
+    hour: int
+    minute: int
+    second: int
 
 
 class ModelABC(DocABC):

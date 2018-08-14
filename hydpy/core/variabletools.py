@@ -7,6 +7,8 @@ in modules |parametertools| and |sequencetools| respectively.
 """
 # import...
 # ...from standard library
+from typing import Any, ClassVar, Tuple, TypeVar, Union
+import abc
 import copy
 import inspect
 import textwrap
@@ -20,6 +22,8 @@ from hydpy.core import masktools
 from hydpy.core import metatools
 from hydpy.core import objecttools
 
+
+Number = TypeVar('Number', int, float)
 
 _INT_NAN = -999999
 """Surrogate for `nan`, which is available for floating point values
@@ -120,7 +124,7 @@ def _trim_int_0d(self, lower, upper):
             % (self.value, self.name, objecttools.devicename(self)))
 
 
-def _trim_int_nd(self, lower, upper):
+def _trim_int_nd(self, lower, upper) -> None:
     if lower is None:
         lower = _INT_NAN
     lower = numpy.full(self.shape, lower, dtype=int)
@@ -136,14 +140,14 @@ def _trim_int_nd(self, lower, upper):
     self[idxs] = _INT_NAN
 
 
-def tolerance(values):
+def tolerance(values) -> float:
     """Return some sort of "numerical accuracy" to be expected for the
     given floating point value (see method |trim|)."""
     return abs(values*1e-15)
 
 
 def _compare_variables_function_generator(
-        method_string, aggregation_func):
+        method_string, aggregation_func):   # ToDo: typing
     """Return a function that can be used as a comparison method of class
     |Variable|.
 
@@ -174,7 +178,7 @@ def _compare_variables_function_generator(
     return comparison_function
 
 
-class Variable(object):
+class Variable(object):   # ToDo: use ABCMeta
     """Base class for |Parameter| and |Sequence|.
 
     This base class implements special methods for arithmetic calculations,
@@ -235,7 +239,8 @@ with key `1`, the following error occurred: The only allowed keys for \
     ...
     ValueError: While trying to set the value(s) of variable `variable` \
 with key `slice(None, None, None)`, the following error occurred: \
-could not convert string to float: ...
+could not convert string to float: 'test'
+
 
     Note that comparisons on |Variable| objects containg multiple
     values return a single boolean only:
@@ -290,20 +295,30 @@ error occurred: operands could not be broadcast together with shapes (2,) (3,)
     8
     """
     # Subclasses need to define...
-    NDIM = None    # ... e.g. as class attribute (int)
+    NDIM: ClassVar[int]
+    TYPE: ClassVar[type]
     # ...and optionally...
-    INIT = None
+    INIT: ClassVar[Number]
+
+    initvalue: Union[float, int]
+    fastaccess: Any
+    subvars: 'SubVariables'
 
     mask = masktools.DefaultMask()
 
     @property
-    def value(self):
+    @abc.abstractmethod
+    def value(self) -> Union[float, int, numpy.ndarray]:
         """Actual value or |numpy.ndarray| of the actual values, to be
         defined by the subclasses of |Variable|."""
-        raise NotImplementedError
+
+    @value.setter
+    @abc.abstractmethod
+    def value(self, value):
+        ...
 
     @property
-    def values(self):
+    def values(self) -> Union[float, int, numpy.ndarray]:
         """Alias for |Variable.value|."""
         return self.value
 
@@ -312,7 +327,7 @@ error occurred: operands could not be broadcast together with shapes (2,) (3,)
         self.value = values
 
     @property
-    def shape(self):
+    def shape(self) -> Tuple[int, ...]:
         """A tuple containing the lengths in all dimensions of the sequence
         values at a specific time point.  Note that setting a new shape
         results in a loss of the actual values of the respective sequence.
@@ -332,6 +347,7 @@ error occurred: operands could not be broadcast together with shapes (2,) (3,)
     @shape.setter
     def shape(self, shape):
         if self.NDIM:
+            array: numpy.ndarray
             try:
                 array = numpy.full(shape, self.initvalue, dtype=self.TYPE)
             except BaseException:
@@ -352,9 +368,8 @@ error occurred: operands could not be broadcast together with shapes (2,) (3,)
                     'The shape information of 0-dimensional variables '
                     'as %s can only be `()`, but `%s` is given.'
                     % (objecttools.devicephrase(self), shape))
-            #else:
-            #    self.value = self.initvalue
-
+            # else:  ToDo
+            #     self.value = self.initvalue
 
     NOT_DEEPCOPYABLE_MEMBERS = ()
 
@@ -419,7 +434,7 @@ has not been set yet.
         >>> Variable.mask[1, 1] = False
         >>> variable.verify()
         """
-        nmbnan = numpy.sum(numpy.isnan(
+        nmbnan: int = numpy.sum(numpy.isnan(
             numpy.array(self.value)[self.mask]))
         if nmbnan:
             if nmbnan == 1:
@@ -453,6 +468,8 @@ has not been set yet.
         >>> class SoilMoisture(Variable):
         ...     NDIM = 0
         ...     value = 200.0
+        ...     refweigths = None
+        ...     availablemasks = None
         >>> sm = SoilMoisture()
         >>> sm.average_values()
         200.0
@@ -513,7 +530,6 @@ of variable `soilmoisture`, the following error occurred: Variable \
         (only the second hru), and one mask for water areas (only the
         third hru):
 
-        >>> from hydpy.core.masktools import Masks
         >>> class FlatSoil(DefaultMask):
         ...     @classmethod
         ...     def new(cls, variable, **kwargs):
@@ -526,7 +542,8 @@ of variable `soilmoisture`, the following error occurred: Variable \
         ...     @classmethod
         ...     def new(cls, variable, **kwargs):
         ...         return cls.array2mask([False, False, True])
-        >>> class Masks(Masks):
+        >>> from hydpy.core import masktools
+        >>> class Masks(masktools.Masks):
         ...     CLASSES = (FlatSoil,
         ...                DeepSoil,
         ...                Water)
@@ -933,7 +950,7 @@ class SubVariables(metatools.MetaSubgroupClass):
         try:
             attr = getattr(self, name)
         except AttributeError:
-            object.__setattr__(self, name, value)
+            super().__setattr__(name, value)
             if isinstance(value, self.VARTYPE):
                 value.connect(self)
         else:

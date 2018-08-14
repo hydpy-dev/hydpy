@@ -9,6 +9,7 @@ iuh, see the examples or the source code of class
 """
 # import...
 # ...from standard library
+import abc
 import itertools
 # ...from site-packages
 import numpy
@@ -116,7 +117,8 @@ class IUH(_MetaIUH):
 
     >>> from hydpy.auxs.iuhtools import IUH
     >>> class Test(IUH):
-    ...     pass
+    ...     __call__ = None
+    ...     calc_secondary_parameters = None
     >>> Test()
     Test()
     """
@@ -138,9 +140,9 @@ class IUH(_MetaIUH):
         if kwargs:
             self.set_primary_parameters(**kwargs)
 
-    def __call__(self):
+    @abc.abstractmethod
+    def __call__(self, t) -> numpy.ndarray:
         """Must be implemented by the concrete |IUH| subclass."""
-        raise NotImplementedError
 
     def set_primary_parameters(self, **kwargs):
         """Set all primary parameters at once."""
@@ -169,9 +171,9 @@ class IUH(_MetaIUH):
                 return False
         return True
 
+    @abc.abstractmethod
     def calc_secondary_parameters(self):
         """Must be implemented by the concrete |IUH| subclass."""
-        raise NotImplementedError
 
     def update(self):
         """Delete the coefficients of the pure MA model and also all MA and
@@ -292,7 +294,6 @@ class TranslationDiffusionEquation(IUH):
     following), the returned result should be workable for integration
     algorithms:
 
-    >>> import numpy
     >>> round_(tde([0.0, 5.0, 10.0, 15.0, 20.0]))
     0.0, 0.040559, 0.115165, 0.031303, 0.00507
 
@@ -402,7 +403,7 @@ the following keywords were given: d, u.
         self.a = self.x/(2.*self.d**.5)
         self.b = self.u/(2.*self.d**.5)
 
-    def __call__(self, t):
+    def __call__(self, t) -> numpy.ndarray:
         t = numpy.array(t)
         t = numpy.clip(t, 1e-10, numpy.inf)
         return self.a/(t*(numpy.pi*t)**.5)*numpy.exp(-t*(self.a/t-self.b)**2)
@@ -447,7 +448,7 @@ class LinearStorageCascade(IUH):
         """Determine the value of the secondary parameter `c`."""
         self.c = 1./(self.k*special.gamma(self.n))
 
-    def __call__(self, t):
+    def __call__(self, t) -> numpy.ndarray:
         return self.c*(t/self.k)**(self.n-1)*numpy.exp(-t/self.k)
 
     @property

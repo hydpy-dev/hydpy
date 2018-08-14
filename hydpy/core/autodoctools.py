@@ -4,6 +4,7 @@ standardisation of the online documentation generated with Sphinx.
 """
 # import...
 # ...from standard library
+import builtins
 import collections
 import copy
 import datetime
@@ -21,7 +22,6 @@ import numpy
 import wrapt
 # ...from HydPy
 import hydpy
-from hydpy import builtins
 from hydpy import pub
 from hydpy import config
 from hydpy import auxs
@@ -398,7 +398,7 @@ class Substituter(object):
         the `short2long` mapping is supported (note also, that the
         module name `builtins` is removed from string `long`):
 
-        >>> from hydpy import builtins
+        >>> import builtins
         >>> substituter.add_substitution(
         ...     'str', 'blt.str', ':func:`~builtins.str`', builtins)
         >>> print(substituter.get_commands())

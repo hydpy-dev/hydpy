@@ -3,8 +3,7 @@
 # import...
 # ...from standard library
 import abc
-import sys
-from hydpy import builtins
+import builtins
 import datetime
 import doctest
 import importlib
@@ -12,6 +11,7 @@ import inspect
 import itertools
 import os
 import shutil
+import sys
 import warnings
 # ...from site-packages
 # the following import are actually performed below due to performance issues:

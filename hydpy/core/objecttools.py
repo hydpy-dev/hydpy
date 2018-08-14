@@ -4,6 +4,7 @@ of the different objects defined by the HydPy framework.
 """
 # import...
 # ...from standard library
+import builtins
 import copy
 import inspect
 import numbers
@@ -280,7 +281,7 @@ Python built-ins like `for`...)
     string = str(string)
     try:
         exec('%s = None' % string)
-        if string in dir(__builtins__):
+        if string in dir(builtins):
             raise SyntaxError()
     except SyntaxError:
         raise ValueError(

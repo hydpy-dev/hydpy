@@ -9,10 +9,6 @@ hydrological models.
 # ...from standard library
 import sys
 import warnings
-try:
-    import builtins
-except ImportError:
-    import __builtin__ as builtins
 # ...from site-packages
 from hydpy.core.exceptiontools import OptionalImport
 warnings.filterwarnings('ignore')
@@ -114,8 +110,7 @@ except TypeError:
 substituter = prepare_mainsubstituter()
 
 
-__all__ = ['builtins',
-           'netcdf4',
+__all__ = ['netcdf4',
            'pandas',
            'pyplot',
            'pub',

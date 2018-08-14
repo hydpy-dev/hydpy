@@ -111,11 +111,11 @@ except AttributeError:
 
 # The usual setup definitions.
 setup(name='HydPy',
-      version='2.1-dev',
+      version='3.0-dev',
       description='A framework for the development and application of '
                   'hydrological models.',
       author='Christoph Tyralla',
-      author_email='Christoph.Tyralla@rub.de',
+      author_email='c.tyralla@bjoernsen.de',
       url='https://github.com/tyralla/hydpy',
       license='LGPL-3.0',
       classifiers=[
@@ -126,11 +126,6 @@ setup(name='HydPy',
           'Operating System :: POSIX :: Linux',
           'Operating System :: Microsoft :: Windows',
           'Operating System :: Microsoft :: Windows :: Windows 7',
-          'Programming Language :: Python :: 2',
-          'Programming Language :: Python :: 2.7',
-          'Programming Language :: Python :: 3',
-          'Programming Language :: Python :: 3.4',
-          'Programming Language :: Python :: 3.5',
           'Programming Language :: Python :: 3.6',
           'Programming Language :: Python :: Implementation :: CPython',
           'Topic :: Scientific/Engineering'
@@ -140,9 +135,7 @@ setup(name='HydPy',
       cmdclass={'build_ext': build_ext},
       ext_modules=Cython.Build.cythonize(ext_modules),
       include_dirs=[numpy.get_include()],
-      include_package_data=True,
-      install_requires=['Cython', 'numpy', 'scipy', 'matplotlib',
-                        'bokeh', 'coverage'])
+      include_package_data=True)
 
 if install:
     # Priorise site-packages (on Debian-based Linux distributions as Ubuntu

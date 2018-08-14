@@ -320,11 +320,14 @@ class ARMA(object):
                    0.07637, 0.041095, 0.01581, 0.004132, 0.000663,
                    0.00005))
 
-    To verify that the ARMA model approximates the MA model with sufficient
-    accuracy, one can check the central moments of their responses to a
-    standard delta time impulse:
+    To verify that the ARMA model approximates the MA model with
+    sufficient accuracy, one can query the achieved relative rmse
+    value (|ARMA.rel_rmse|) or check the central moments of their
+    responses to the standard delta time impulse:
 
     >>> from hydpy import round_
+    >>> round_(arma.rel_rmse)
+    0.0
     >>> round_(ma.moments)
     4.110496, 1.926798
     >>> round_(arma.moments)

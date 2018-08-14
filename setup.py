@@ -188,6 +188,13 @@ if install:
             path_out = prep(hydpy.docs.figs.__path__[0], filename)
             source2target(path_in, path_out)
 
+    # Make the ".coveragerc" file available.
+    print_('\nCopy coverage configuration file:')
+    import hydpy.tests
+    path_in = prep('hydpy', 'tests', '.coveragerc')
+    path_out = prep(hydpy.tests.__path__[0], '.coveragerc')
+    source2target(path_in, path_out)
+
     # Make all kinds of configuration data available.
     print_('\nCopy configuration files:')
     import hydpy.conf
@@ -200,13 +207,11 @@ if install:
 
     # Execute all tests.
     oldpath = os.path.abspath('.')
-    import hydpy.tests
     path = os.path.abspath(hydpy.tests.__path__[0])
     print_('\nChange cwd for testing:\n\t%s' % path)
     os.chdir(path)
-    exitcode = int(os.system('coverage run -m --branch '
-                             '--source hydpy --omit=test_everything.py '
-                             'test_everything'))
+    exitcode = int(os.system(
+        'coverage run test_everything.py rcfile=.coveragerc '))
     if exitcode:
         print_('Use this HydPy version with caution on your system.  At '
                'least one verification test failed.  You should see in the '

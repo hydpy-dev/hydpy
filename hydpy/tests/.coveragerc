@@ -1,0 +1,7 @@
+
+[run]
+source = hydpy
+omit =
+    */hydpy/tests/*
+    */hydpy/docs/*
+

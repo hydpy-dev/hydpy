@@ -1024,19 +1024,16 @@ nor does it define a member named `element2`.
     @abc.abstractmethod
     def subdevicenames(self) -> Tuple[str, ...]:
         """A |tuple| containing the (sub)device names."""
-        ...
 
     @property
     @abc.abstractmethod
     def dimensions(self) -> Tuple[str, ...]:
         """A |tuple| containing the dimension names."""
-        ...
 
     @property
     @abc.abstractmethod
     def array(self) -> numpy.ndarray:
         """A |numpy.ndarray| containing the values of all logged sequences."""
-        ...
 
     @property
     def prefix(self) -> str:
@@ -1229,12 +1226,10 @@ names for variable `flux_prec` (the first found duplicate is `element1`).
     @abc.abstractmethod
     def read(self, ncfile, timegrid_data) -> None:
         """Read the data from the given NetCDF file."""
-        ...
 
     @abc.abstractmethod
     def write(self, ncfile) -> None:
         """Write the data to the given NetCDF file."""
-        ...
 
     def __getattr__(self, name):
         try:

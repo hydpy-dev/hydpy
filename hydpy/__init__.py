@@ -90,7 +90,7 @@ dummies = dummytools.Dummies()   # pylint: disable=invalid-name
 def customwarn(message, category, filename, lineno, file=None, line=None):
     """Redirect warnings to `stdout`."""
     sys.stdout.write(warnings.formatwarning(
-        message, category, filename, lineno))
+        message, category, filename, lineno))   # pragma: no cover
 
 
 warnings.showwarning = customwarn
@@ -104,7 +104,7 @@ warnings.filterwarnings('error', category=integrate.IntegrationWarning)
 try:
     # pylint: disable=unexpected-keyword-arg
     numpy.set_printoptions(legacy='1.13')
-except TypeError:
+except TypeError:   # pragma: no cover
     pass
 
 substituter = prepare_mainsubstituter()

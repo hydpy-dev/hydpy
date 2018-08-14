@@ -426,7 +426,7 @@ class NetCDFInterface(object):
     initialises one |NetCDFFile| object for handling the |NodeSequence|
     objects and two |NetCDFFile| objects for handling the
     |ModelIOSequence| objects of application models |lland_v1| and
-    |lland_v2|, respectively:
+    |lland_v2|, respectively.  You can query them via attribute access:
 
     >>> from hydpy.core.netcdftools import NetCDFInterface
     >>> interface = NetCDFInterface(flatten=False, isolate=False)
@@ -437,6 +437,14 @@ class NetCDFInterface(object):
     ['node', 'lland_v1', 'lland_v2']
     >>> interface.lland_v1.variablenames
     ('input_nied', 'input_nied_mean', 'flux_nkor', 'flux_nkor_mean')
+    >>> 'lland_v2' in dir(interface)
+    True
+    >>> interface.lland_v3
+    Traceback (most recent call last):
+    ...
+    AttributeError: The current NetCDFInterface object does neither \
+handle a NetCDFFile object named `lland_v3` nor does it define \
+a member named `lland_v3`.
 
     (4) We store all NetCDF files directly into the testing directory:
 
@@ -587,7 +595,7 @@ class NetCDFInterface(object):
 
     @property
     def filenames(self) -> Tuple[str, ...]:
-        """Tuple of names of all handled |NetCDFFile| objects."""
+        """A |tuple| of names of all handled |NetCDFFile| objects."""
         return tuple(self.files.keys())
 
     def __getattr__(self, name):
@@ -658,7 +666,8 @@ class NetCDFFile(object):
     >>> nied.series
     InfoArray([ 0.,  1.,  2.,  3.])
 
-    (6) We show that IO errors should result in clear error messages:
+    (6) We show that IO errors and trying to access variables we have not
+    logged so far should result in clear error messages:
 
     >>> ncfile.log(nkor, nkor.series)
     >>> with TestIO():
@@ -668,6 +677,19 @@ class NetCDFFile(object):
     OSError: While trying to read data from NetCDF file `model.nc`, \
 the following error occurred: NetCDF file `model.nc` does not \
 contain variable `flux_nkor`.
+
+    >>> 'flux_nkor' in dir(ncfile)
+    True
+    >>> ncfile.flux_nkor.name
+    'flux_nkor'
+    >>> 'state_bowa' in dir(ncfile)
+    False
+    >>> ncfile.state_bowa
+    Traceback (most recent call last):
+    ...
+    AttributeError: The NetCDFFile object `model` does neither handle \
+a NetCDF variable named `state_bowa` nor does it define a member \
+named `state_bowa`.
     """
 
     def __init__(self, name: str, flatten, isolate):
@@ -914,9 +936,8 @@ contain variable `flux_nkor`.
             return self.variables[name]
         except KeyError:
             raise AttributeError(
-                'The NetCDFFile object `%s` does neither handle a '
-                'NetCDFVariableDeep object named `%s` nor does it define a '
-                'member named `%s`.'
+                'The NetCDFFile object `%s` does neither handle a NetCDF '
+                'variable named `%s` nor does it define a member named `%s`.'
                 % (self.name, name, name))
 
     __copy__ = objecttools.copy_
@@ -971,6 +992,29 @@ class NetCDFVariableBase(abc.ABC):
         in an |InfoArray| object replacing the series of the |IOSequence|
         object, which is useful for writing modified (e.g. spatially
         averaged) time series.
+
+        Logged time series data is available via attribute access:
+
+        >>> from hydpy.core.netcdftools import NetCDFVariableBase
+        >>> from hydpy import make_abc_testable
+        >>> Var = make_abc_testable(NetCDFVariableBase)
+        >>> var = Var('flux_nkor', isolate=True)
+        >>> from hydpy.core.examples import prepare_io_example_1
+        >>> nodes, elements = prepare_io_example_1()
+        >>> nkor = elements.element1.model.sequences.fluxes.nkor
+        >>> var.log(nkor, nkor.series)
+        >>> 'element1' in dir(var)
+        True
+        >>> var.element1.sequence is nkor
+        True
+        >>> 'element2' in dir(var)
+        False
+        >>> var.element2
+        Traceback (most recent call last):
+        ...
+        AttributeError: The NetCDFVariable object `flux_nkor` does \
+neither handle time series data under the (sub)device name `element2` \
+nor does it define a member named `element2`.
         """
         descr_device = sequence.descr_device
         self.sequences[descr_device] = sequence
@@ -998,7 +1042,7 @@ class NetCDFVariableBase(abc.ABC):
     def prefix(self) -> str:
         """A prefix for names of dimensions and associated variables.
 
-        For "isolated" variables, no prefix is required:
+        "Isolated" variables do not require a prefix:
 
         >>> from hydpy.core.netcdftools import NetCDFVariableBase
         >>> from hydpy import make_abc_testable
@@ -1197,9 +1241,9 @@ names for variable `flux_prec` (the first found duplicate is `element1`).
             return _NetCDFVariableInfo(self.sequences[name], self.arrays[name])
         except KeyError:
             raise AttributeError(
-                'The NetCDFVariable object `%s` does neither handle a '
-                'IOSequence object named `%s` nor does it define a '
-                'member named `%s`.'
+                'The NetCDFVariable object `%s` does neither handle '
+                'time series data under the (sub)device name `%s` '
+                'nor does it define a member named `%s`.'
                 % (self.name, name, name))
 
     def __dir__(self):

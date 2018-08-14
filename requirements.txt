@@ -1,4 +1,6 @@
 hydpy
 Cython
-numpy
 matplotlib
+numpy
+scipy
+wrapt

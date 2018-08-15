@@ -541,7 +541,7 @@ class Parameter(variabletools.Variable):
 
     NOT_DEEPCOPYABLE_MEMBERS = ('subpars', 'fastaccess')
     TYPE2INITVALUE = {float: numpy.nan,
-                      int: variabletools._INT_NAN,
+                      int: variabletools.INT_NAN,
                       bool: False}
 
     parameterstep = Parameterstep()

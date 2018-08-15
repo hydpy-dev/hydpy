@@ -25,7 +25,7 @@ from hydpy.core import objecttools
 
 Number = TypeVar('Number', int, float)
 
-_INT_NAN = -999999
+INT_NAN = -999999
 """Surrogate for `nan`, which is available for floating point values
 but not for integer values."""
 
@@ -115,10 +115,10 @@ def _trim_float_nd(self, lower, upper):
 
 def _trim_int_0d(self, lower, upper):
     if lower is None:
-        lower = _INT_NAN
+        lower = INT_NAN
     if upper is None:
-        upper = -_INT_NAN
-    if (self != _INT_NAN) and ((self < lower) or (self > upper)):
+        upper = -INT_NAN
+    if (self != INT_NAN) and ((self < lower) or (self > upper)):
         raise ValueError(
             'The value `%d` of parameter `%s` of element `%s` is not valid.  '
             % (self.value, self.name, objecttools.devicename(self)))
@@ -126,18 +126,18 @@ def _trim_int_0d(self, lower, upper):
 
 def _trim_int_nd(self, lower, upper) -> None:
     if lower is None:
-        lower = _INT_NAN
+        lower = INT_NAN
     lower = numpy.full(self.shape, lower, dtype=int)
     if upper is None:
-        upper = -_INT_NAN
+        upper = -INT_NAN
     upper = numpy.full(self.shape, upper, dtype=int)
-    idxs = numpy.where(self.values == _INT_NAN)
+    idxs = numpy.where(self.values == INT_NAN)
     self[idxs] = lower[idxs]
     if numpy.any(self.values < lower) or numpy.any(self.values > upper):
         raise ValueError(
             'At least one value of parameter `%s` of element `%s` is not '
             'valid.' % (self.name, objecttools.devicename(self)))
-    self[idxs] = _INT_NAN
+    self[idxs] = INT_NAN
 
 
 def tolerance(values) -> float:

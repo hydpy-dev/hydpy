@@ -6,9 +6,6 @@ A note for developers: some of the implemented features are to be applied
 during model simulations are in some other way performance-critical.  Hence,
 the actual calculations are defined in the Cython extension module
 |annutils|.
-
->>> from hydpy import pub
->>> pub.options.reprdigits = 6
 """
 
 # import...
@@ -52,6 +49,7 @@ class ANN(object):
     >>> ann(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
     ...     weights_input=4.0, weights_output=3.0,
     ...     intercepts_hidden=-16.0, intercepts_output=-1.0)
+
 
     The following loop subsequently sets the values 0 to 8 as input values,
     performs the calculateion, and prints out the final output.  As to be
@@ -184,12 +182,6 @@ class ANN(object):
     array([[ 1.,  1.],
            [ 0.,  0.]])
 
-    The last defined configuration is used in some examples of the
-    documentation of the members of class |anntools.ANN|:
-
-    >>> from hydpy import dummies
-    >>> dummies.ann = ann
-
     Note that Python class |anntools.ANN| handles a corresponding
     Cython extension class defined in |annutils|, which does not
     protect itself against segmentation faults. But class
@@ -200,8 +192,9 @@ class ANN(object):
     >>> ANN().nmb_layers
     Traceback (most recent call last):
     ...
-    AttributeNotReady: Attribute `nmb_layers` of object `ann` \
-is not usable so far.
+    hydpy.core.exceptiontools.AttributeNotReady: Attribute `nmb_layers` \
+of object `ann` is not usable so far.  At least, you have to prepare \
+attribute `nmb_inputs` first.
     """
     NDIM = 0
     TYPE = 'annutils.ANN'
@@ -214,10 +207,8 @@ is not usable so far.
     def __init__(self):
         self.subpars = None
         self.fastaccess = objecttools.FastAccess()
-        self._isready = exceptiontools.IsReady(
-            false=('nmb_inputs', 'nmb_outputs', 'nmb_neurons'))
         self._cann = annutils.ANN()
-        self._max_nmb_neurons = None
+        self.__max_nmb_neurons = None
 
     def connect(self, subpars) -> None:
         """Connect the actual |anntools.ANN| object with the given
@@ -243,8 +234,8 @@ is not usable so far.
         del self.outputs
         del self.neurons
 
-    def _update_shapes(self) -> None:
-        if self._isready:
+    def __update_shapes(self) -> None:
+        if self.__protectedproperties.allready(self):
             del self.weights_input
             del self.weights_hidden
             del self.weights_output
@@ -254,69 +245,100 @@ is not usable so far.
             del self.outputs
             del self.neurons
 
-    def _get_nmb_inputs(self) -> int:
+    nmb_inputs = exceptiontools.ProtectedProperty(
+        name='nmb_inputs')
+
+    @nmb_inputs.getter
+    def nmb_inputs(self) -> int:
         """Number of input nodes.
 
-        >>> from hydpy import dummies
-        >>> dummies.ann.nmb_inputs
+        >>> from hydpy import ANN
+        >>> ann = ANN()
+        >>> ann(nmb_inputs=2, nmb_neurons=(2, 1), nmb_outputs=3)
+        >>> ann.nmb_inputs
         2
+        >>> ann.nmb_inputs = 3
+        >>> ann.nmb_inputs
+        3
         """
         return self._cann.nmb_inputs
 
-    def _set_nmb_inputs(self, value):
+    @nmb_inputs.setter
+    def nmb_inputs(self, value):
         self._cann.nmb_inputs = int(value)
-        self._update_shapes()
+        self.__update_shapes()
 
-    nmb_inputs = exceptiontools.protected_property(
-        'nmb_inputs', _get_nmb_inputs, _set_nmb_inputs)
+    nmb_outputs = exceptiontools.ProtectedProperty(
+        name='nmb_outputs')
 
-    def _get_nmb_outputs(self) -> int:
+    @nmb_outputs.getter
+    def nmb_outputs(self) -> int:
         """Number of output nodes.
 
-        >>> from hydpy import dummies
-        >>> dummies.ann.nmb_outputs
-        1
+        >>> from hydpy import ANN
+        >>> ann = ANN()
+        >>> ann(nmb_inputs=2, nmb_neurons=(2, 1), nmb_outputs=3)
+        >>> ann.nmb_outputs
+        3
+        >>> ann.nmb_outputs = 2
+        >>> ann.nmb_outputs
+        2
         """
         return self._cann.nmb_outputs
 
-    def _set_nmb_outputs(self, value):
+    @nmb_outputs.setter
+    def nmb_outputs(self, value):
         self._cann.nmb_outputs = int(value)
-        self._update_shapes()
+        self.__update_shapes()
 
-    nmb_outputs = exceptiontools.protected_property(
-        'nmb_outputs', _get_nmb_outputs, _set_nmb_outputs)
+    nmb_neurons = exceptiontools.ProtectedProperty(
+        name='nmb_neurons')
 
-    def _get_nmb_layers(self) -> int:
+    @nmb_neurons.getter
+    def nmb_neurons(self) -> Tuple[int, int]:
+        """Number of neurons of the hidden layers.
+
+        >>> from hydpy import ANN
+        >>> ann = ANN()
+        >>> ann(nmb_inputs=2, nmb_neurons=(2, 1), nmb_outputs=3)
+        >>> ann.nmb_neurons
+        (2, 1)
+        >>> ann.nmb_neurons = (3,)
+        >>> ann.nmb_neurons
+        (3,)
+        """
+        return tuple(numpy.asarray(self._cann.nmb_neurons))
+
+    @nmb_neurons.setter
+    def nmb_neurons(self, value):
+        self._cann.nmb_neurons = numpy.array(value, dtype=int, ndmin=1)
+        self._cann.nmb_layers = len(value)
+        self.__max_nmb_neurons = max(value)
+        self.__update_shapes()
+
+    __protectedproperties = exceptiontools.ProtectedProperties(
+        nmb_inputs, nmb_outputs, nmb_neurons)
+
+    nmb_layers = exceptiontools.DependentProperty(
+        name='nmb_layers', protected=__protectedproperties)
+
+    @nmb_layers.getter
+    def nmb_layers(self) -> int:
         """Number of hidden layers.
 
-        >>> from hydpy import dummies
-        >>> dummies.ann.nmb_layers
+        >>> from hydpy import ANN
+        >>> ann = ANN()
+        >>> ann(nmb_inputs=2, nmb_neurons=(2, 1), nmb_outputs=3)
+        >>> ann.nmb_layers
         2
         """
         return self._cann.nmb_layers
 
-    nmb_layers = exceptiontools.dependent_property(
-        'nmb_layers', _get_nmb_layers)
+    weights_input = exceptiontools.DependentProperty(
+        name='weights_input', protected=__protectedproperties)
 
-    def _get_nmb_neurons(self) -> Tuple[int, int]:
-        """Number of neurons of the hidden layers.
-
-        >>> from hydpy import dummies
-        >>> dummies.ann.nmb_neurons
-        (2, 1)
-        """
-        return tuple(numpy.asarray(self._cann.nmb_neurons))
-
-    def _set_nmb_neurons(self, value):
-        self._cann.nmb_neurons = numpy.array(value, dtype=int, ndmin=1)
-        self._cann.nmb_layers = len(value)
-        self._max_nmb_neurons = max(value)
-        self._update_shapes()
-
-    nmb_neurons = exceptiontools.protected_property(
-        'nmb_neurons', _get_nmb_neurons, _set_nmb_neurons)
-
-    def _get_weights_input(self) -> numpy.array:
+    @weights_input.getter
+    def weights_input(self) -> numpy.array:
         """Weights between all input nodes and neurons of the first hidden
         layer.
 
@@ -371,33 +393,33 @@ broadcast input array from shape (3,3) into shape (2,3)
         """
         return numpy.asarray(self._cann.weights_input)
 
-    def _set_weights_input(self, values):
+    @weights_input.setter
+    def weights_input(self, values):
         if values is None:
-            self._del_weights_input()
+            del self.weights_input
         else:
             try:
-                self._cann.weights_input = numpy.full(self.shape_weights_input,
-                                                      values, dtype=float)
+                self._cann.weights_input = numpy.full(
+                    self.shape_weights_input, values, dtype=float)
             except BaseException:
                 objecttools.augment_excmessage(
                     'While trying to set the input weights of the artificial '
                     'neural network `%s` of element `%s`'
                     % (self.name, objecttools.devicename(self)))
 
-    def _del_weights_input(self):
+    @weights_input.deleter
+    def weights_input(self):
         self._cann.weights_input = numpy.zeros(self.shape_weights_input)
-
-    weights_input = exceptiontools.dependent_property(
-        'weights_input', _get_weights_input,
-        _set_weights_input, _del_weights_input)
 
     @property
     def shape_weights_input(self) -> Tuple[int, int]:
         """Shape of the array containing the input weights.
 
-        >>> from hydpy import dummies
-        >>> dummies.ann.shape_weights_input
-        (2, 2)
+        >>> from hydpy import ANN
+        >>> ann = ANN()
+        >>> ann(nmb_inputs=3, nmb_neurons=(2, 1), nmb_outputs=1)
+        >>> ann.shape_weights_input
+        (3, 2)
         """
         return self.nmb_inputs, self.nmb_neurons[0]
 
@@ -405,13 +427,19 @@ broadcast input array from shape (3,3) into shape (2,3)
     def nmb_weights_input(self) -> int:
         """Number of input weights.
 
-        >>> from hydpy import dummies
-        >>> dummies.ann.nmb_weights_input
-        4
+        >>> from hydpy import ANN
+        >>> ann = ANN()
+        >>> ann(nmb_inputs=3, nmb_neurons=(2, 1), nmb_outputs=1)
+        >>> ann.nmb_weights_input
+        6
         """
         return self.nmb_neurons[0]*self.nmb_inputs
 
-    def _get_weights_output(self) -> numpy.ndarray:
+    weights_output = exceptiontools.DependentProperty(
+        name='weights_output', protected=__protectedproperties)
+
+    @weights_output.getter
+    def weights_output(self) -> numpy.ndarray:
         """Weights between all neurons of the last hidden layer and the output
         nodes.
 
@@ -471,9 +499,10 @@ broadcast input array from shape (3,3) into shape (3,2)
         """
         return numpy.asarray(self._cann.weights_output)
 
-    def _set_weights_output(self, values):
+    @weights_output.setter
+    def weights_output(self, values):
         if values is None:
-            self._del_weights_output()
+            del self.weights_output
         else:
             try:
                 self._cann.weights_output = numpy.full(
@@ -484,20 +513,19 @@ broadcast input array from shape (3,3) into shape (3,2)
                     'neural network `%s` of element `%s`'
                     % (self.name, objecttools.devicename(self)))
 
-    def _del_weights_output(self):
+    @weights_output.deleter
+    def weights_output(self):
         self._cann.weights_output = numpy.zeros(self.shape_weights_output)
-
-    weights_output = exceptiontools.dependent_property(
-        'weights_output', _get_weights_output,
-        _set_weights_output, _del_weights_output)
 
     @property
     def shape_weights_output(self) -> Tuple[int, int]:
         """Shape of the array containing the output weights.
 
-        >>> from hydpy import dummies
-        >>> dummies.ann.shape_weights_output
-        (1, 1)
+        >>> from hydpy import ANN
+        >>> ann = ANN()
+        >>> ann(nmb_inputs=2, nmb_neurons=(2, 1), nmb_outputs=3)
+        >>> ann.shape_weights_output
+        (1, 3)
         """
         return self.nmb_neurons[-1], self.nmb_outputs
 
@@ -505,13 +533,19 @@ broadcast input array from shape (3,3) into shape (3,2)
     def nmb_weights_output(self) -> int:
         """Number of output weights.
 
-        >>> from hydpy import dummies
-        >>> dummies.ann.nmb_weights_output
-        1
+        >>> from hydpy import ANN
+        >>> ann = ANN()
+        >>> ann(nmb_inputs=2, nmb_neurons=(2, 4), nmb_outputs=3)
+        >>> ann.nmb_weights_output
+        12
         """
         return self.nmb_neurons[-1]*self.nmb_outputs
 
-    def _get_weights_hidden(self) -> numpy.ndarray:
+    weights_hidden = exceptiontools.DependentProperty(
+        name='weights_hidden', protected=__protectedproperties)
+
+    @weights_hidden.getter
+    def weights_hidden(self) -> numpy.ndarray:
         """Weights between between the neurons of the different hidden layers.
 
         The layers are varied on the first axis, the neurons of the respective
@@ -591,9 +625,10 @@ broadcast input array from shape (3,2) into shape (2,3,3)
         """
         return numpy.asarray(self._cann.weights_hidden)
 
-    def _set_weights_hidden(self, values):
+    @weights_hidden.setter
+    def weights_hidden(self, values):
         if values is None:
-            self._del_weights_hidden()
+            del self.weights_hidden
         else:
             try:
                 self._cann.weights_hidden = numpy.full(
@@ -604,7 +639,8 @@ broadcast input array from shape (3,2) into shape (2,3,3)
                     'neural network `%s` of element `%s`'
                     % (self.name, objecttools.devicename(self)))
 
-    def _del_weights_hidden(self):
+    @weights_hidden.deleter
+    def weights_hidden(self):
         self._cann.weights_hidden = numpy.full(self.shape_weights_hidden,
                                                numpy.nan)
         for idx_layer in range(self.nmb_layers-1):
@@ -614,38 +650,45 @@ broadcast input array from shape (3,2) into shape (2,3,3)
                                               idx_neuron1,
                                               idx_neuron2] = 0.
 
-    weights_hidden = exceptiontools.dependent_property(
-        'weights_hidden', _get_weights_hidden,
-        _set_weights_hidden, _del_weights_hidden)
-
     @property
     def shape_weights_hidden(self) -> Tuple[int, int, int]:
         """Shape of the array containing the activation of the hidden neurons.
 
-        >>> from hydpy import dummies
-        >>> dummies.ann.shape_weights_hidden
-        (1, 2, 2)
+        >>> from hydpy import ANN
+        >>> ann = ANN()
+        >>> ann(nmb_inputs=6, nmb_neurons=(4,), nmb_outputs=6)
+        >>> ann.shape_weights_hidden
+        (0, 0, 0)
+        >>> ann(nmb_inputs=6, nmb_neurons=(4, 3, 2), nmb_outputs=6)
+        >>> ann.shape_weights_hidden
+        (2, 4, 4)
         """
         if self.nmb_layers > 1:
             return (self.nmb_layers-1,
-                    self._max_nmb_neurons,
-                    self._max_nmb_neurons)
+                    self.__max_nmb_neurons,
+                    self.__max_nmb_neurons)
         return 0, 0, 0
 
     @property
     def nmb_weights_hidden(self) -> int:
         """Number of hidden weights.
 
-        >>> from hydpy import dummies
-        >>> dummies.ann.nmb_weights_hidden
-        2
+        >>> from hydpy import ANN
+        >>> ann = ANN()
+        >>> ann(nmb_inputs=2, nmb_neurons=(4, 3, 2), nmb_outputs=3)
+        >>> ann.nmb_weights_hidden
+        18
         """
         nmb = 0
         for idx_layer in range(self.nmb_layers-1):
             nmb += self.nmb_neurons[idx_layer] * self.nmb_neurons[idx_layer+1]
         return nmb
 
-    def _get_intercepts_hidden(self) -> numpy.ndarray:
+    intercepts_hidden = exceptiontools.DependentProperty(
+        name='intercepts_hidden', protected=__protectedproperties)
+
+    @intercepts_hidden.getter
+    def intercepts_hidden(self) -> numpy.ndarray:
         """Intercepts of all neurons of the hidden layers.
 
         All intercepts are handled in a 1-dimensional array:
@@ -702,9 +745,10 @@ could not broadcast input array from shape (2) into shape (2,3)
         """
         return numpy.asarray(self._cann.intercepts_hidden)
 
-    def _set_intercepts_hidden(self, values):
+    @intercepts_hidden.setter
+    def intercepts_hidden(self, values):
         if values is None:
-            self._del_intercepts_hidden()
+            del self.intercepts_hidden
         else:
             try:
                 self._cann.intercepts_hidden = numpy.full(
@@ -715,7 +759,8 @@ could not broadcast input array from shape (2) into shape (2,3)
                     'the artificial neural network `%s` of element `%s`'
                     % (self.name, objecttools.devicename(self)))
 
-    def _del_intercepts_hidden(self):
+    @intercepts_hidden.deleter
+    def intercepts_hidden(self):
         self._cann.intercepts_hidden = numpy.full(
             self.shape_intercepts_hidden,
             numpy.nan)
@@ -723,22 +768,22 @@ could not broadcast input array from shape (2) into shape (2,3)
             for idx_neuron in range(self.nmb_neurons[idx_layer]):
                 self._cann.intercepts_hidden[idx_layer, idx_neuron] = 0.
 
-    intercepts_hidden = exceptiontools.dependent_property(
-        'intercepts_hidden', _get_intercepts_hidden,
-        _set_intercepts_hidden, _del_intercepts_hidden)
-
     @property
     def shape_intercepts_hidden(self) -> Tuple[int, int]:
         """Shape if the array containing the intercepts of neurons of
         the hidden layers."""
-        return self.nmb_layers, self._max_nmb_neurons
+        return self.nmb_layers, self.__max_nmb_neurons
 
     @property
     def nmb_intercepts_hidden(self) -> int:
         """Number of input intercepts."""
         return sum(self.nmb_neurons)
 
-    def _get_intercepts_output(self) -> numpy.ndarray:
+    intercepts_output = exceptiontools.DependentProperty(
+        name='intercepts_output', protected=__protectedproperties)
+
+    @intercepts_output.getter
+    def intercepts_output(self) -> numpy.ndarray:
         """Intercepts of all output nodes.
 
         All intercepts are handled in a 1-dimensional array:
@@ -785,9 +830,10 @@ occurred: could not broadcast input array from shape (2) into shape (3)
         """
         return numpy.asarray(self._cann.intercepts_output)
 
-    def _set_intercepts_output(self, values):
+    @intercepts_output.setter
+    def intercepts_output(self, values):
         if values is None:
-            self._del_intercepts_output()
+            del self.intercepts_output
         else:
             try:
                 self._cann.intercepts_output = numpy.full(
@@ -798,22 +844,21 @@ occurred: could not broadcast input array from shape (2) into shape (3)
                     'of the artificial neural network `%s` of element `%s`'
                     % (self.name, objecttools.devicename(self)))
 
-    def _del_intercepts_output(self):
+    @intercepts_output.deleter
+    def intercepts_output(self):
         self._cann.intercepts_output = numpy.zeros(
             self.shape_intercepts_output)
-
-    intercepts_output = exceptiontools.dependent_property(
-        'intercepts_output', _get_intercepts_output,
-        _set_intercepts_output, _del_intercepts_output)
 
     @property
     def shape_intercepts_output(self) -> Tuple[int]:
         """Shape if the array containing the intercepts of neurons of
         the hidden layers.
 
-        >>> from hydpy import dummies
-        >>> dummies.ann.shape_intercepts_output
-        (1,)
+        >>> from hydpy import ANN
+        >>> ann = ANN()
+        >>> ann(nmb_inputs=2, nmb_neurons=(2, 1), nmb_outputs=3)
+        >>> ann.shape_intercepts_output
+        (3,)
         """
         return self.nmb_outputs,
 
@@ -821,13 +866,19 @@ occurred: could not broadcast input array from shape (2) into shape (3)
     def nmb_intercepts_output(self) -> int:
         """Number of output intercepts.
 
-        >>> from hydpy import dummies
-        >>> dummies.ann.nmb_intercepts_output
-        1
+        >>> from hydpy import ANN
+        >>> ann = ANN()
+        >>> ann(nmb_inputs=2, nmb_neurons=(2, 1), nmb_outputs=3)
+        >>> ann.nmb_intercepts_output
+        3
         """
         return self.nmb_outputs
 
-    def _get_inputs(self) -> numpy.ndarray:
+    inputs = exceptiontools.DependentProperty(
+        name='inputs', protected=__protectedproperties)
+
+    @inputs.getter
+    def inputs(self) -> numpy.ndarray:
         """Values of the input nodes.
 
         All input values are handled in a 1-dimensional array:
@@ -874,7 +925,8 @@ broadcast input array from shape (2) into shape (3)
         """
         return numpy.asarray(self._cann.inputs)
 
-    def _set_inputs(self, values):
+    @inputs.setter
+    def inputs(self, values):
         try:
             self._cann.inputs = numpy.full(self.nmb_inputs,
                                            values, dtype=float)
@@ -884,13 +936,15 @@ broadcast input array from shape (2) into shape (3)
                 'neural network `%s` of element `%s`'
                 % (self.name, objecttools.devicename(self)))
 
-    def _del_inputs(self):
+    @inputs.deleter
+    def inputs(self):
         self._cann.inputs = numpy.zeros(self.nmb_inputs)
 
-    inputs = exceptiontools.dependent_property(
-        'inputs', _get_inputs, _set_inputs, _del_inputs)
+    outputs = exceptiontools.DependentProperty(
+        name='outputs', protected=__protectedproperties)
 
-    def _get_outputs(self) -> numpy.ndarray:
+    @outputs.getter
+    def outputs(self) -> numpy.ndarray:
         """Values of the output nodes.
 
         All output values are handled in a 1-dimensional array:
@@ -911,28 +965,33 @@ cannot be used this way.
         """
         return numpy.asarray(self._cann.outputs)
 
-    def _del_outputs(self):
+    @outputs.deleter
+    def outputs(self):
         self._cann.outputs = numpy.zeros(self.nmb_outputs)
 
-    outputs = exceptiontools.dependent_property(
-        'outputs', _get_outputs, fdel=_del_outputs)
+    neurons = exceptiontools.DependentProperty(
+        name='neurons', protected=__protectedproperties)
 
-    def _get_neurons(self) -> numpy.ndarray:
+    @neurons.getter
+    def neurons(self) -> numpy.ndarray:
         """The activation of the neurons of the hidden layers.
 
-        >>> from hydpy import dummies
-        >>> dummies.ann.neurons
-        array([[ 1.,  1.],
-               [ 0.,  0.]])
+        >>> from hydpy import ANN
+        >>> ann = ANN()
+        >>> ann(nmb_inputs=6, nmb_neurons=(3,), nmb_outputs=6)
+        >>> ann.neurons
+        array([[ 0.,  0.,  0.]])
+            >>> ann(nmb_inputs=6, nmb_neurons=(3, 2), nmb_outputs=6)
+        >>> ann.neurons
+        array([[ 0.,  0.,  0.],
+               [ 0.,  0.,  0.]])
         """
         return numpy.array(self._cann.neurons)
 
-    def _del_neurons(self):
+    @neurons.deleter
+    def neurons(self):
         nmb_neurons = numpy.asarray(self._cann.nmb_neurons)
         self._cann.neurons = numpy.zeros((self.nmb_layers, max(nmb_neurons)))
-
-    neurons = exceptiontools.dependent_property(
-        'neurons', _get_neurons, fdel=_del_neurons)
 
     def process_actual_input(self) -> None:
         """Calculates the network output values based on the input values
@@ -946,9 +1005,11 @@ cannot be used this way.
     def nmb_weights(self) -> int:
         """Number of all input, inner, and output weights.
 
-        >>> from hydpy import dummies
-        >>> dummies.ann.nmb_weights
-        7
+        >>> from hydpy import ANN
+        >>> ann = ANN()
+        >>> ann(nmb_inputs=1, nmb_neurons=(2, 3), nmb_outputs=4)
+        >>> ann.nmb_weights
+        20
         """
         return (self.nmb_weights_input +
                 self.nmb_weights_hidden +
@@ -958,9 +1019,11 @@ cannot be used this way.
     def nmb_intercepts(self) -> int:
         """Number of all inner and output intercepts.
 
-        >>> from hydpy import dummies
-        >>> dummies.ann.nmb_intercepts
-        4
+        >>> from hydpy import ANN
+        >>> ann = ANN()
+        >>> ann(nmb_inputs=1, nmb_neurons=(2, 3), nmb_outputs=4)
+        >>> ann.nmb_intercepts
+        9
         """
         return self.nmb_intercepts_hidden + self.nmb_intercepts_output
 
@@ -968,19 +1031,17 @@ cannot be used this way.
     def nmb_parameters(self) -> int:
         """Sum of |anntools.ANN.nmb_weights| and |anntools.ANN.nmb_intercepts|.
 
-        >>> from hydpy import dummies
-        >>> dummies.ann.nmb_parameters
-        11
+        >>> from hydpy import ANN
+        >>> ann = ANN()
+        >>> ann(nmb_inputs=1, nmb_neurons=(2, 3), nmb_outputs=4)
+        >>> ann.nmb_parameters
+        29
         """
         return self.nmb_weights + self.nmb_intercepts
 
     def verify(self) -> None:
         """Raise a |RuntimeError| if the network's shape is not defined
         completely.
-
-
-        >>> from hydpy import dummies
-        >>> dummies.ann.verify()
 
         >>> from hydpy import ANN
         >>> ANN().verify()
@@ -989,7 +1050,7 @@ cannot be used this way.
         RuntimeError: The shape of the the artificial neural network \
 parameter `ann` of element `?` has not been defined so far.
         """
-        if not self._isready:
+        if not self.__protectedproperties.allready(self):
             raise RuntimeError(
                 'The shape of the the artificial neural network '
                 'parameter %s has not been defined so far.'
@@ -1665,12 +1726,12 @@ neural network `seasonalann` of element `?` none has been defined so far.
             shp, dtype=float)
 
     @property
-    def toys(self) -> Tuple[timetools.TOY]:
+    def toys(self) -> Tuple[timetools.TOY, ...]:
         """A sorted |tuple| of all contained |TOY| objects."""
         return tuple(toy for (toy, _) in self)
 
     @property
-    def anns(self) -> Tuple[ANN]:
+    def anns(self) -> Tuple[ANN, ...]:
         """A sorted |tuple| of all contained |anntools.ANN| objects."""
         return tuple(ann_ for (_, ann_) in self)
 

@@ -71,8 +71,6 @@ class FileManager(object):
 
     def __init__(self):
         self.check_exists = True
-        self.__dict__['_isready'] = (
-            exceptiontools.IsReady(false=['projectdir']))
         self._projectdir = None
         if pub.projectname:
             self.projectdir = pub.projectname
@@ -81,17 +79,19 @@ class FileManager(object):
         self.createdirs = False
         self.deletedirs = False
 
-    def _get_projectdir(self):
+    projectdir = exceptiontools.ProtectedProperty(name='projectdir')
+
+    @projectdir.getter
+    def projectdir(self):
         return self._projectdir
 
-    def _set_projectdir(self, name):
+    @projectdir.setter
+    def projectdir(self, name):
         self._projectdir = name
 
-    def _del_projectdir(self):
+    @projectdir.deleter
+    def projectdir(self):
         self._projectdir = None
-
-    projectdir = exceptiontools.protected_property(
-        'projectdir', _get_projectdir, _set_projectdir, _del_projectdir)
 
     @property
     def basepath(self):
@@ -110,7 +110,8 @@ class FileManager(object):
                     directories.add(directory)
         return directories
 
-    def _get_currentdir(self):
+    @property
+    def currentdir(self):
         """Current directory containing the network files."""
         directories = self.availabledirs
         if self._currentdir:
@@ -148,7 +149,8 @@ class FileManager(object):
                 return directory
             return None
 
-    def _set_currentdir(self, directory):
+    @currentdir.setter
+    def currentdir(self, directory):
         path = os.path.join(self.basepath, directory)
         if not os.path.exists(path):
             if self.createdirs:
@@ -160,14 +162,13 @@ class FileManager(object):
                     % (self.basepath, directory))
         self._currentdir = str(directory)
 
-    def _del_currentdir(self):
+    @currentdir.deleter
+    def currentdir(self):
         if self.deletedirs:
             path = os.path.join(self.basepath, self.currentdir)
             if os.path.exists(path):
                 os.removedirs(path)
         self._currentdir = None
-
-    currentdir = property(_get_currentdir, _set_currentdir, _del_currentdir)
 
     @property
     def currentpath(self):
@@ -608,6 +609,7 @@ class _GeneralDescriptor(object):
         for descr in self.specific_descriptors:
             descr.__delete__(obj)
 
+
 class SequenceManager(FileManager):
     """Manager for sequence files.
 
@@ -759,12 +761,12 @@ class SequenceManager(FileManager):
     |IOSequence.average_series|, meaning one can pass the same arguments.
     One example:
 
-    >>> from hydpy.core.masktools import DefaultMask, Masks
-    >>> class TestMask(DefaultMask):
+    >>> from hydpy.core import masktools
+    >>> class TestMask(masktools.DefaultMask):
     ...     @classmethod
     ...     def new(cls, variable, **kwargs):
     ...         return cls.array2mask([True, True, False])
-    >>> class Masks(Masks):
+    >>> class Masks(masktools.Masks):
     ...     CLASSES = (TestMask,)
     >>> Seq1.availablemasks = Masks(None)
     >>> with TestIO():
@@ -879,7 +881,6 @@ data available to the user.
     generalaggregation = _GeneralDescriptor(inputaggregation,
                                             outputaggregation,
                                             nodeaggregation)
-
 
     def __init__(self):
         FileManager.__init__(self)

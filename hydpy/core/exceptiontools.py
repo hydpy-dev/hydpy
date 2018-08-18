@@ -3,8 +3,11 @@
 
 # import...
 # ...from standard library
+from typing import Callable
 import weakref
 # ...from HydPy
+from abc import abstractmethod, ABCMeta
+
 from hydpy import pub
 from hydpy.core import autodoctools
 from hydpy.core import objecttools
@@ -19,8 +22,68 @@ class AttributeNotReady(AttributeError):
     """The attribute is principally defined, but must be prepared first."""
 
 
-class ProtectedProperty(property):
-    """|property| subclass which prevents getting an attribute
+class BaseProperty(object, metaclass=ABCMeta):
+
+    name: str
+    fget: Callable
+    fset: Callable
+    fdel: Callable
+
+    def __get__(self, obj, objtype=None):
+        if obj is None:
+            return self
+        if self.fget is None:
+            raise AttributeError(
+                'Attribute `%s` of object %s is not gettable.'
+                % (self.name, objecttools.devicephrase(obj)))
+        return self.call_fget(obj)
+
+    def __set__(self, obj, value):
+        if self.fset is None:
+            raise AttributeError(
+                'Attribute `%s` of object %s is not settable.'
+                % (self.name, objecttools.devicephrase(obj)))
+        self.call_fset(obj, value)
+
+    def __delete__(self, obj):
+        if self.fdel is None:
+            raise AttributeError(
+                'Attribute `%s` of object %s is not deleteable.'
+                % (self.name, objecttools.devicephrase(obj)))
+        self.call_fdel(obj)
+
+    @abstractmethod
+    def call_fget(self, obj):
+        """ToDo"""
+
+    @abstractmethod
+    def call_fset(self, obj, value):
+        """ToDo"""
+
+    @abstractmethod
+    def call_fdel(self, obj):
+        """ToDo"""
+
+    def getter(self, fget):
+        """Add the given getter function and its docstring to the
+         property and return it."""
+        self.fget = fget
+        self.__doc__ = fget.__doc__
+        return self
+
+    def setter(self, fset):
+        """Add the given setter function to the property and return it."""
+        self.fset = fset
+        return self
+
+    def deleter(self, fdel):
+        """Add the given deleter function to the property and return it."""
+        self.fdel = fdel
+        return self
+
+
+class ProtectedProperty(BaseProperty):
+    """|property| like class which prevents getting an attribute
     before setting it.
 
     Under some circumstances, an attribute value needs to be prepared
@@ -94,62 +157,29 @@ class ProtectedProperty(property):
     ...
     hydpy.core.exceptiontools.AttributeNotReady: Attribute `x` of object \
 `name_object` of element `name_element` has not been prepared so far.
-
-    Note that allowing for deep copying requires a specialized
-    `__deepcopy__` method, which calls method |ProtectedProperty.copy|:
-
-    >>> import copy
-    >>> class Copyable(Test):
-    ...
-    ...     def __deepcopy__(self, memodict):
-    ...         new = type(self)()
-    ...         new.__dict__ = copy.deepcopy(self.__dict__, memodict)
-    ...         Test.__dict__['x'].copy(self, new)
-    ...         return new
     """
 
-    def __init__(self, fget=None, fset=None, fdel=None, doc=None, name='?'):
+    def __init__(self, name):
         self.name = name
+        self.fget = None
+        self.fset = None
+        self.fdel = None
         self.__obj2ready = weakref.WeakKeyDictionary()
-        super().__init__(fget, fset, fdel, doc)
 
-    def __get__(self, obj, objtype=None):
-        if obj is None:
-            return self
+    def call_fget(self, obj):
         if self.isready(obj):
-            return super().__get__(obj, objtype)
+            return self.fget(obj)
         raise AttributeNotReady(
             'Attribute `%s` of object %s has not been prepared so far.'
             % (self.name, objecttools.devicephrase(obj)))
 
-    def __set__(self, obj, value):
-        super().__set__(obj, value)
+    def call_fset(self, obj, value):
+        self.fset(obj, value)
         self.__obj2ready[obj] = True
 
-    def __delete__(self, obj):
+    def call_fdel(self, obj):
         self.__obj2ready[obj] = False
-        super().__delete__(obj)
-
-    def getter(self, fget) -> 'ProtectedProperty':
-        """Change the getter on a protected property."""
-        new = type(self)(
-            fget=fget, fset=self.fset, fdel=self.fdel, name=self.name)
-        new.__doc__ = fget.__doc__
-        return new
-
-    def setter(self, fset) -> 'ProtectedProperty':
-        """Change the setter on a protected property."""
-        new = type(self)(
-            fget=self.fget, fset=fset, fdel=self.fdel, name=self.name)
-        new.__doc__ = self.__doc__
-        return new
-
-    def deleter(self, fdel) -> 'ProtectedProperty':
-        """Change the deleter on a protected property."""
-        new = type(self)(
-            fget=self.fget, fset=self.fset, fdel=fdel, name=self.name)
-        new.__doc__ = self.__doc__
-        return new
+        self.fdel(obj)
 
     def isready(self, obj) -> bool:
         """Return |True| or |False| to indicate if the protected
@@ -157,7 +187,7 @@ class ProtectedProperty(property):
         unknow, |ProtectedProperty| returns |False|."""
         return self.__obj2ready.get(obj, False)
 
-    def copy(self, old_obj, new_obj):
+    def copy(self, old_obj, new_obj):   # ToDo remove?
         """Assume the same readiness of the old object than for tne
         new object.  If the old object is unknown, assume the new one
         is not ready."""
@@ -166,6 +196,10 @@ class ProtectedProperty(property):
 
 class ProtectedProperties(object):
     """Iterable for |ProtectedProperty| objects.
+
+    You can combine an arbitrary number of |ProtectedProperty| objects
+    with a |ProtectedProperties| objects.  Its |ProtectedProperties.allready|
+    allows to check if the status of all properties at ones:
 
     >>> from hydpy.core import exceptiontools as exct
     >>> class Test(object):
@@ -214,12 +248,12 @@ class ProtectedProperties(object):
         return self.__properties.__iter__()
 
 
-class DependentProperty(property):
-    """|property| subclass which prevents accessing a dependent attribute
-    before other attributes have been prepared.
+class DependentProperty(BaseProperty):
+    """|property| like class which prevents accessing a dependent
+    attribute before other attributes have been prepared.
 
     The following explanations suppose first reading the documentation
-    on function |ProtectedProperty|.  The following example builds on
+    on function |ProtectedProperty|.  The following e^xample builds on
     the one on class |ProtectedProperty|, but adds the dependent property,
     which requires the protected property `x` to be properly prepared:
 
@@ -241,7 +275,9 @@ class DependentProperty(property):
     ...     def x(self):
     ...         self._x = None
     ...
-    ...     y = exct.DependentProperty(name='y', protected=(x,))
+    ...     y = exct.DependentProperty(
+    ...         name='y', protected=(x,))
+    ...
     ...     @y.getter
     ...     def y(self):
     ...         return self._y
@@ -275,7 +311,7 @@ attribute `x` first.
 object `test` is not usable so far.  At least, you have to prepare \
 attribute `x` first.
 
-    However, after assigning a vlaue to `y`, `x` behaves like a
+    However, after assigning a value to `x`, `y` behaves like a
     "normal" property:
 
     >>> test.x = 'anything'
@@ -286,58 +322,32 @@ attribute `x` first.
     >>> test.y
     """
 
-    def __init__(self, fget=None, fset=None, fdel=None, doc=None,
-                 name='?', protected=()):
+    def __init__(self, name, protected):
         self.name = name
-        self.__protected = protected
-        super().__init__(fget, fset, fdel, doc)
+        self.protected = protected
+        self.fget = None
+        self.fset = None
+        self.fdel = None
 
     def __check(self, obj):
-        for req in self.__protected:
+        for req in self.protected:
             if not req.isready(obj):
                 raise AttributeNotReady(
                     'Attribute `%s` of object %s is not usable so far.  '
                     'At least, you have to prepare attribute `%s` first.'
-                    % (self.name, objecttools.devicephrase(obj),
-                       req.name))
+                    % (self.name, objecttools.devicephrase(obj), req.name))
 
-    def __get__(self, obj, objtype=None):
-        if obj is None:
-            return self
+    def call_fget(self, obj):
         self.__check(obj)
-        return super().__get__(obj, objtype)
+        return self.fget(obj)
 
-    def __set__(self, obj, value):
+    def call_fset(self, obj, value):
         self.__check(obj)
-        return super().__set__(obj, value)
+        self.fset(obj, value)
 
-    def __delete__(self, obj):
+    def call_fdel(self, obj):
         self.__check(obj)
-        return super().__delete__(obj)
-
-    def getter(self, fget):
-        """Change the getter on a dependent property."""
-        new = type(self)(
-            fget=fget, fset=self.fset, fdel=self.fdel,
-            name=self.name, protected=self.__protected)
-        new.__doc__ = fget.__doc__
-        return new
-
-    def setter(self, fset):
-        """Change the setter on a dependent property."""
-        new = type(self)(
-            fget=self.fget, fset=fset, fdel=self.fdel,
-            name=self.name, protected=self.__protected)
-        new.__doc__ = self.__doc__
-        return new
-
-    def deleter(self, fdel):
-        """Change the deleter on a dependent property."""
-        new = type(self)(
-            fget=self.fget, fset=self.fset, fdel=fdel,
-            name=self.name, protected=self.__protected)
-        new.__doc__ = self.__doc__
-        return new
+        self.fdel(obj)
 
 
 class OptionalModuleNotAvailable(ImportError):

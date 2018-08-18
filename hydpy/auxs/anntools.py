@@ -11,6 +11,7 @@ the actual calculations are defined in the Cython extension module
 # import...
 # ...from standard library
 from typing import Dict, Iterable, Tuple
+import weakref
 # ...from site-packages
 import numpy
 from hydpy import pyplot
@@ -22,6 +23,54 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import timetools
 from hydpy.cythons import annutils   # pylint: disable=no-name-in-module
+
+
+class _ANNArrayProperty(exceptiontools.DependentProperty):
+
+    __obj2cann = weakref.WeakKeyDictionary()
+
+    def __init__(self, name, protected, doc):
+        super().__init__(name=name, protected=protected)
+        self.__doc__ = doc
+        self.fget = self.__fget
+        self.fset = self.__fset
+        self.fdel = self.__fdel
+
+    @classmethod
+    def add_cann(cls, obj, cann):
+        cls.__obj2cann[obj] = cann
+
+    @property
+    def __shape(self):
+        return 'shape_%s' % self.name
+
+    def __get_array(self, obj):
+        cann = self.__obj2cann[obj]
+        return numpy.asarray(getattr(cann, self.name))
+
+    def __fget(self, obj):
+        return self.__get_array(obj)
+
+    def __fset(self, obj, value):
+        if value is None:
+            self.fdel(obj)
+        else:
+            try:
+                cann = self.__obj2cann[obj]
+                shape = getattr(obj, self.__shape)
+                array = numpy.full(shape, value, dtype=float)
+                setattr(cann, self.name, array)
+            except BaseException:
+                descr = ' '.join(reversed(self.name.split('_')))
+                objecttools.augment_excmessage(
+                    'While trying to set the %s of the '
+                    'artificial neural network %s'
+                    % (descr, objecttools.elementphrase(obj)))
+
+    def __fdel(self, obj):
+        cann = self.__obj2cann[obj]
+        array = numpy.zeros(getattr(obj, self.__shape))
+        setattr(cann, self.name, array)
 
 
 class ANN(object):

@@ -210,7 +210,7 @@ class Substituter(object):
             self._blacklist = set()
 
     @staticmethod
-    def consider_member(name_member, member, module):
+    def consider_member(name_member, member, module, class_=None):
         """Return |True| if the given member should be added to the
         substitutions. If not return |False|.
 
@@ -260,6 +260,15 @@ class Substituter(object):
         >>> Substituter.consider_member(
         ...     'Node', hydpy.Node, hydpy)
         False
+
+        For descriptor instances (with method `__get__`) beeing members
+        of classes should be added:
+
+        >>> from hydpy.auxs import anntools
+        >>> Substituter.consider_member(
+        ...     'shape_neurons', anntools.ANN.shape_neurons,
+        ...     anntools, anntools.ANN)
+        True
         """
         if name_member.startswith('_'):
             return False
@@ -269,9 +278,11 @@ class Substituter(object):
         if not real_module:
             return True
         if real_module != module.__name__:
+            if class_ and hasattr(member, '__get__'):
+                return True
             if 'hydpy' in real_module:
                 return False
-            elif module.__name__ not in real_module:
+            if module.__name__ not in real_module:
                 return False
         return True
 
@@ -486,7 +497,7 @@ class Substituter(object):
                 if inspect.isclass(member):
                     for name_submember, submember in vars(member).items():
                         if self.consider_member(
-                                name_submember, submember, module):
+                                name_submember, submember, module, member):
                             role = self.get_role(submember, cython)
                             short = ('|%s.%s|'
                                      % (name_member,

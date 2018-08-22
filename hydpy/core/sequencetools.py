@@ -1009,8 +1009,7 @@ or prepare `pub.sequencemanager` correctly.
 
     @series.setter
     def series(self, values):
-        series = self.series
-        series[:] = values
+        series = numpy.full(self.seriesshape, values, dtype=float)
         if self.diskflag:
             self._save_int(series)
         elif self.ramflag:
@@ -1029,7 +1028,7 @@ or prepare `pub.sequencemanager` correctly.
             setattr(self.fastaccess, '_%s_array' % self.name, None)
 
     def load_ext(self):
-        """Write the internal data into an external data file."""
+        """Write the internal data into an external data file ToDo."""
         try:
             sequencemanager = pub.sequencemanager
         except AttributeError:

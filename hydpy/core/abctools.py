@@ -197,22 +197,22 @@ class IOSequenceABC(SequenceABC):
     pass
 
 
-class ModelIOSequenceABC(IOSequenceABC):
-    """Abstract base class for registering custom |ModelIOSequence| classes."""
+class ModelSequenceABC(IOSequenceABC):
+    """Abstract base class for registering custom |ModelSequence| classes."""
     pass
 
 
-class InputSequenceABC(ModelIOSequenceABC):
+class InputSequenceABC(ModelSequenceABC):
     """Abstract base class for registering custom |InputSequence| classes."""
     pass
 
 
-class FluxSequenceABC(ModelIOSequenceABC):
+class FluxSequenceABC(ModelSequenceABC):
     """Abstract base class for registering custom |FluxSequence| classes."""
     pass
 
 
-class ConditionSequenceABC(ModelIOSequenceABC):
+class ConditionSequenceABC(ModelSequenceABC):
     """Abstract base class for registering custom |ConditionSequence| classes.
     """
     pass

@@ -1498,12 +1498,12 @@ sequence `nkor` of element `element3`.
 abctools.IOSequenceABC.register(IOSequence)
 
 
-class ModelIOSequence(IOSequence):
+class ModelSequence(IOSequence):
     """Base class for sequences to be handled by |Model| objects."""
 
     @property
     def descr_sequence(self):
-        """Description of the |ModelIOSequence| object itself and the
+        """Description of the |ModelSequence| object itself and the
         |SubSequences| group it belongs to.
 
         >>> from hydpy import prepare_model
@@ -1518,7 +1518,7 @@ class ModelIOSequence(IOSequence):
 
     @property
     def descr_model(self):
-        """Description of the |Model| the |ModelIOSequence| object belongs to.
+        """Description of the |Model| the |ModelSequence| object belongs to.
 
         >>> from hydpy import prepare_model
         >>> from hydpy.models import test, test_v1
@@ -1533,7 +1533,7 @@ class ModelIOSequence(IOSequence):
 
     @property
     def descr_device(self):
-        """Description of the |Element| object the |ModelIOSequence| object
+        """Description of the |Element| object the |ModelSequence| object
         belongs to.
 
         >>> from hydpy import prepare_model, Element
@@ -1547,21 +1547,21 @@ class ModelIOSequence(IOSequence):
         return self.subseqs.seqs.model.element.name
 
 
-abctools.ModelIOSequenceABC.register(IOSequence)
+abctools.ModelSequenceABC.register(IOSequence)
 
 
-class InputSequence(ModelIOSequence):
+class InputSequence(ModelSequence):
     """Base class for input sequences of |Model| objects."""
 
 
 abctools.InputSequenceABC.register(InputSequence)
 
 
-class FluxSequence(ModelIOSequence):
+class FluxSequence(ModelSequence):
     """Base class for flux sequences of |Model| objects."""
 
     def _initvalues(self):
-        ModelIOSequence._initvalues(self)
+        ModelSequence._initvalues(self)
         if self.NUMERIC:
             value = None if self.NDIM else numpy.zeros(self.numericshape)
             self._connect_subattr('points', value)
@@ -1570,9 +1570,9 @@ class FluxSequence(ModelIOSequence):
             value = None if self.NDIM else 0.
             self._connect_subattr('sum', value)
 
-    @ModelIOSequence.shape.setter
+    @ModelSequence.shape.setter
     def shape(self, shape):
-        ModelIOSequence.shape.fset(self, shape)
+        ModelSequence.shape.fset(self, shape)
         if self.NDIM and self.NUMERIC:
             self._connect_subattr('points', numpy.zeros(self.numericshape))
             self._connect_subattr('integrals', numpy.zeros(self.numericshape))
@@ -1583,7 +1583,7 @@ class FluxSequence(ModelIOSequence):
 abctools.FluxSequenceABC.register(FluxSequence)
 
 
-class LeftRightSequence(ModelIOSequence):
+class LeftRightSequence(ModelSequence):
     NDIM = 1
 
     def _initvalues(self):
@@ -1632,13 +1632,13 @@ class ConditionSequence(object):
             self(*self._oldargs)
 
 
-class StateSequence(ModelIOSequence, ConditionSequence):
+class StateSequence(ModelSequence, ConditionSequence):
     """Base class for state sequences of |Model| objects."""
 
     NOT_DEEPCOPYABLE_MEMBERS = ('subseqs', 'fastaccess_old', 'fastaccess_new')
 
     def __init__(self):
-        ModelIOSequence.__init__(self)
+        ModelSequence.__init__(self)
         self.fastaccess_old = None
         self.fastaccess_new = None
         self._oldargs = None
@@ -1651,7 +1651,7 @@ class StateSequence(ModelIOSequence, ConditionSequence):
         self.new2old()
 
     def connect(self, subseqs):
-        ModelIOSequence.connect(self, subseqs)
+        ModelSequence.connect(self, subseqs)
         self.fastaccess_old = subseqs.fastaccess_old
         self.fastaccess_new = subseqs.fastaccess_new
         if self.NDIM:
@@ -1660,15 +1660,15 @@ class StateSequence(ModelIOSequence, ConditionSequence):
             setattr(self.fastaccess_old, self.name, 0.)
 
     def _initvalues(self):
-        ModelIOSequence._initvalues(self)
+        ModelSequence._initvalues(self)
         if self.NUMERIC:
             value = None if self.NDIM else numpy.zeros(self.numericshape)
             self._connect_subattr('points', value)
             self._connect_subattr('results', copy.copy(value))
 
-    @ModelIOSequence.shape.setter
+    @ModelSequence.shape.setter
     def shape(self, shape):
-        ModelIOSequence.shape.fset(self, shape)
+        ModelSequence.shape.fset(self, shape)
         if self.NDIM:
             setattr(self.fastaccess_old, self.name, self.new.copy())
             if self.NUMERIC:

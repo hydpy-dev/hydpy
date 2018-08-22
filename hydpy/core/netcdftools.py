@@ -113,7 +113,7 @@ actually works:
 >>> elements.element2.model.sequences.fluxes.nkor.series = 0.0
 
 (9) We move up a gear and and prepare a |NetCDFInterface| object for
-reading data, log all |NodeSequence| and |ModelIOSequence| objects,
+reading data, log all |NodeSequence| and |ModelSequence| objects,
 and read their time series data from the created NetCDF file:
 
 >>> pub.sequencemanager.open_netcdf_reader()
@@ -425,7 +425,7 @@ class NetCDFInterface(object):
     sequences.  Due to setting `flatten` to |False|, |NetCDFInterface|
     initialises one |NetCDFFile| object for handling the |NodeSequence|
     objects and two |NetCDFFile| objects for handling the
-    |ModelIOSequence| objects of application models |lland_v1| and
+    |ModelSequence| objects of application models |lland_v1| and
     |lland_v2|, respectively.  You can query them via attribute access:
 
     >>> from hydpy.core.netcdftools import NetCDFInterface
@@ -560,7 +560,7 @@ a member named `lland_v3`.
         """Prepare a |NetCDFFile| object suitable for the given |IOSequence|
         object, when necessary, and pass the given arguments to its
         |NetCDFFile.log| method."""
-        if isinstance(sequence, sequencetools.ModelIOSequence):
+        if isinstance(sequence, sequencetools.ModelSequence):
             descr = sequence.descr_model
         else:
             descr = 'node'

@@ -545,15 +545,9 @@ Keep in mind, that `name` is the unique identifier of node objects.
         return self._deploymode
 
     def _set_deploymode(self, value):
-        if value == 'newsim':
-            self.sequences.sim.use_ext = False
-        elif value == 'obs':
-            self.sequences.sim.use_ext = False
-            self.sequences.obs.use_ext = True
-        elif value == 'oldsim':
-            self.sequences.sim.use_ext = True
+        if value == 'oldsim':
             self._blackhole = pointerutils.Double(0.)
-        else:
+        elif value not in ('newsim', 'obs'):
             raise ValueError(
                 'When trying to set the routing mode of node %s, the value '
                 '`%s` was given, but only the following values are allowed: '
@@ -660,7 +654,7 @@ the given group name `test`.
             raw = fastaccess._obs_file.read(8)
             fastaccess.obs[0] = struct.unpack('d', raw)
 
-    def prepare_allseries(self, ramflag=True, use_ext=None):
+    def prepare_allseries(self, ramflag=True):
         """Prepare the series objects of both the |Sim| and the |Obs| sequence.
 
         Call this method before a simulation run, if you need access to the
@@ -671,26 +665,25 @@ the given group name `test`.
         option.  If your RAM is limited, pass |False| to function
         argument `ramflag` to store the series on disk.
         """
-        self.prepare_simseries(ramflag, use_ext)
-        self.prepare_obsseries(ramflag, use_ext)
+        self.prepare_simseries(ramflag)
+        self.prepare_obsseries(ramflag)
 
-    def prepare_simseries(self, ramflag=True, use_ext=None):
+    def prepare_simseries(self, ramflag=True):
         """Prepare the series object of the `sim` sequence.
 
         See method |Node.prepare_allseries| for further information.
         """
-        self._prepare_nodeseries('sim', ramflag, use_ext)
+        self._prepare_nodeseries('sim', ramflag)
 
-    def prepare_obsseries(self, ramflag=True, use_ext=None):
+    def prepare_obsseries(self, ramflag=True):
         """Prepare the series object of the `obs` sequence.
 
         See method |Node.prepare_allseries| for further information.
         """
-        self._prepare_nodeseries('obs', ramflag, use_ext)
+        self._prepare_nodeseries('obs', ramflag)
 
-    def _prepare_nodeseries(self, seqname, ramflag, use_ext):
+    def _prepare_nodeseries(self, seqname, ramflag):
         seq = getattr(self.sequences, seqname)
-        seq.use_ext = use_ext
         if ramflag:
             seq.activate_ram()
         else:
@@ -1100,7 +1093,7 @@ assigned to the element so far.
         handled (indirectly) by the actual |Element| object."""
         self.model.sequences.close_files()
 
-    def prepare_allseries(self, ramflag=True, use_ext=None):
+    def prepare_allseries(self, ramflag=True):
         """Prepare the series objects of all `input`, `flux` and `state`
         sequences of the model handled by this element.
 
@@ -1112,40 +1105,39 @@ assigned to the element so far.
         option.  If your RAM is limited, pass the `False` for function
         argument `ramflag` to store the series on disk.
         """
-        self.prepare_inputseries(ramflag, use_ext)
-        self.prepare_fluxseries(ramflag, use_ext)
-        self.prepare_stateseries(ramflag, use_ext)
+        self.prepare_inputseries(ramflag)
+        self.prepare_fluxseries(ramflag)
+        self.prepare_stateseries(ramflag)
 
-    def prepare_inputseries(self, ramflag=True, use_ext=None):
+    def prepare_inputseries(self, ramflag=True):
         """Prepare the series objects of the `input` sequences of the model
         handled by this element.
 
         See method |Element.prepare_allseries| for further information.
         """
-        self._prepare_series('inputs', ramflag, use_ext)
+        self._prepare_series('inputs', ramflag)
 
-    def prepare_fluxseries(self, ramflag=True, use_ext=None):
+    def prepare_fluxseries(self, ramflag=True):
         """Prepare the series objects of the `flux` sequences of the model
         handled by this element.
 
         See method |Element.prepare_allseries| for further information.
         """
-        self._prepare_series('fluxes', ramflag, use_ext)
+        self._prepare_series('fluxes', ramflag)
 
-    def prepare_stateseries(self, ramflag=True, use_ext=None):
+    def prepare_stateseries(self, ramflag=True):
         """Prepare the series objects of the `state` sequences of the model
         handled by this element.
 
         See method |Element.prepare_allseries| for further information.
         """
-        self._prepare_series('states', ramflag, use_ext)
+        self._prepare_series('states', ramflag)
 
-    def _prepare_series(self, name_subseqs, ramflag, use_ext):
+    def _prepare_series(self, name_subseqs, ramflag):
         sequences = self.model.sequences
         subseqs = getattr(sequences, name_subseqs, ())
         for seq in subseqs:
-            seq.use_ext = use_ext
-            if ramflag:
+            if ramflag:   # FixMe: wrong indentation?
                 subseqs.activate_ram()
             else:
                 subseqs.activate_disk()
@@ -1694,25 +1686,25 @@ class Nodes(Devices):
     _contentclass = Node
 
     @printtools.print_progress
-    def prepare_allseries(self, ramflag=True, use_ext=None):
+    def prepare_allseries(self, ramflag=True):
         """Call methods |Node.prepare_simseries| and |
         Node.prepare_obsseries|."""
-        self.prepare_simseries(ramflag, use_ext)
-        self.prepare_obsseries(ramflag, use_ext)
+        self.prepare_simseries(ramflag)
+        self.prepare_obsseries(ramflag)
 
     @printtools.print_progress
-    def prepare_simseries(self, ramflag=True, use_ext=None):
+    def prepare_simseries(self, ramflag=True):
         """Call method |Node.prepare_simseries| of each handled
         |Node| object."""
         for node in printtools.progressbar(self):
-            node.prepare_simseries(ramflag, use_ext)
+            node.prepare_simseries(ramflag)
 
     @printtools.print_progress
-    def prepare_obsseries(self, ramflag=True, use_ext=None):
+    def prepare_obsseries(self, ramflag=True):
         """Call method |Node.prepare_obsseries| of each handled
         |Node| object."""
         for node in printtools.progressbar(self):
-            node.prepare_obsseries(ramflag, use_ext)
+            node.prepare_obsseries(ramflag)
 
     @printtools.print_progress
     def save_allseries(self):
@@ -1894,32 +1886,32 @@ class Elements(Devices):
             element.model.sequences.reset()
 
     @printtools.print_progress
-    def prepare_allseries(self, ramflag=True, use_ext=None):
+    def prepare_allseries(self, ramflag=True):
         """Call method |Element.prepare_allseries| of each handled
         |Element| object."""
         for element in printtools.progressbar(self):
-            element.prepare_allseries(ramflag, use_ext)
+            element.prepare_allseries(ramflag)
 
     @printtools.print_progress
-    def prepare_inputseries(self, ramflag=True, use_ext=None):
+    def prepare_inputseries(self, ramflag=True):
         """Call method |Element.prepare_inputseries| of each handled
         |Element| object."""
         for element in printtools.progressbar(self):
-            element.prepare_inputseries(ramflag, use_ext)
+            element.prepare_inputseries(ramflag)
 
     @printtools.print_progress
-    def prepare_fluxseries(self, ramflag=True, use_ext=None):
+    def prepare_fluxseries(self, ramflag=True):
         """Call method |Element.prepare_fluxseries| of each handled
         |Element| object."""
         for element in printtools.progressbar(self):
-            element.prepare_fluxseries(ramflag, use_ext)
+            element.prepare_fluxseries(ramflag)
 
     @printtools.print_progress
-    def prepare_stateseries(self, ramflag=True, use_ext=None):
+    def prepare_stateseries(self, ramflag=True):
         """Call method |Element.prepare_stateseries| of each handled
         |Element| object."""
         for element in printtools.progressbar(self):
-            element.prepare_stateseries(ramflag, use_ext)
+            element.prepare_stateseries(ramflag)
 
     @printtools.print_progress
     def save_allseries(self):

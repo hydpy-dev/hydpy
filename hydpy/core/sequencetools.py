@@ -529,36 +529,6 @@ class IOSequence(Sequence):
         self._filepath_ext = None
         self._filepath_int = None
         self._aggregationmode_ext = None
-        self._use_ext = False
-
-    def _get_use_ext(self):
-        """|True|/|False| flag whether "external" data should be loaded
-        from file when preparing a |IOSequence.series| or if an
-        initialization with zero values is prefered.
-
-        Defaults to |False| for class |IOSequence|, but to |True| for
-        classes |InputSequence| and |Obs|.
-
-        Note that passing |None| values changes nothing:
-
-        >>> from hydpy import dummies
-        >>> seq = dummies.IOSequence_()
-        >>> seq.use_ext
-        False
-        >>> seq.use_ext = None
-        >>> seq.use_ext
-        False
-        >>> seq.use_ext = True
-        >>> seq.use_ext
-        True
-        """
-        return self._use_ext
-
-    def _set_use_ext(self, value):
-        if value is not None:
-            self._use_ext = bool(value)
-
-    use_ext = property(_get_use_ext, _set_use_ext)
 
     def _get_filetype_ext(self):
         """Ending of the external data file.
@@ -1241,10 +1211,7 @@ or prepare `pub.sequencemanager` correctly.
         self._activate()
 
     def _activate(self):
-        if self.use_ext:
-            self.load_ext()
-        else:
-            self.zero_int()
+        self.zero_int()
         self.update_fastaccess()
 
     def deactivate_disk(self):
@@ -1847,6 +1814,7 @@ class LinkSequence(Sequence):
                 'is not supported so far.'
                 % self.NDIM)
 
+
 abctools.LinkSequenceABC.register(LinkSequence)
 
 
@@ -1932,10 +1900,6 @@ class Sim(NodeSequence):
 class Obs(NodeSequence):
     """Base class for observation sequences of |Node| objects."""
     NDIM, NUMERIC = 0, False
-
-    def __init__(self):
-        NodeSequence.__init__(self)
-        self.use_ext = True
 
     def activate_disk(self):
         try:

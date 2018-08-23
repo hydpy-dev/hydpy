@@ -6,10 +6,6 @@ A note for developers: some of the implemented features are to be applied
 during model simulations are in some other way performance-critical.  Hence,
 the actual calculations are defined in the Cython extension module
 |annutils|.
-
->>> from hydpy import pub
->>> pub.options.reprdigits = 6
-
 """
 
 # import...
@@ -841,6 +837,9 @@ parameter `ann` of element `?` has not been defined so far.
             self.process_actual_input()
             ys_[idx] = self.outputs[idx_output]
         pyplot.plot(xs_, ys_, **kwargs)
+
+
+__test__ = {'ANN.weights_input': ANN.weights_input.__doc__}
 
 
 abctools.ParameterABC.register(ANN)

@@ -15,6 +15,7 @@ import io
 import os
 import pkgutil
 import sys
+import time
 import types
 import unittest
 # ...from site-packages
@@ -663,7 +664,7 @@ def prepare_mainsubstituter():
     file of :ref:`HydPy`."""
     substituter = Substituter()
     for module in (builtins, numpy, datetime, unittest, doctest, inspect, io,
-                   os, sys):
+                   os, sys, time):
         substituter.add_module(module)
     for subpackage in (auxs, core, cythons):
         for dummy, name, dummy in pkgutil.walk_packages(subpackage.__path__):

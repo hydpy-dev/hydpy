@@ -830,9 +830,6 @@ parameter `ann` of element `?` has not been defined so far.
         pyplot.plot(xs_, ys_, **kwargs)
 
 
-__test__ = {'ANN.weights_input': ANN.weights_input.__doc__}
-
-
 abctools.ParameterABC.register(ANN)
 abctools.ANNABC.register(ANN)
 
@@ -1621,5 +1618,5 @@ neural network `seasonalann` of element `?` none has been defined so far.
 abctools.ParameterABC.register(SeasonalANN)
 abctools.SeasonalANNABC.register(SeasonalANN)
 
-
-autodoctools.autodoc_module()
+__test__ = dict()
+autodoctools.autodoc_module(__test__)

@@ -699,7 +699,7 @@ def _number_of_line(member_tuple):
 
 
 @make_autodoc_optional
-def autodoc_module():
+def autodoc_module(__test__=None):
     """Add a short summary of all implemented members to a modules docstring.
 
     Just write `autodoctools.autodoc_module()` at the very bottom of the
@@ -726,6 +726,11 @@ def autodoc_module():
             type_ = 'func'
         elif inspect.isclass(member):
             type_ = 'class'
+            if __test__ is not None:
+                for subname, submember in vars(member).items():
+                    if 'Property' in str(type(submember)):
+                        # ToDo: use isinstance instead?
+                        __test__[f'{name}.{subname}'] = submember.__doc__
         else:
             type_ = 'obj'
         lines.append('      * :%s:`~%s` %s'

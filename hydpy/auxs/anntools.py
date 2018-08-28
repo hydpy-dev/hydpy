@@ -18,14 +18,14 @@ from hydpy import pyplot
 # ...from HydPy
 from hydpy.core import abctools
 from hydpy.core import autodoctools
-from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
+from hydpy.core import propertytools
 from hydpy.core import timetools
 from hydpy.cythons import annutils   # pylint: disable=no-name-in-module
 
 
-class _ANNArrayProperty(exceptiontools.DependentProperty):
+class _ANNArrayProperty(propertytools.DependentProperty):
 
     __obj2cann = weakref.WeakKeyDictionary()
 
@@ -295,10 +295,7 @@ attribute `nmb_inputs` first.
             del self.outputs
             del self.neurons
 
-    nmb_inputs = exceptiontools.ProtectedProperty(
-        name='nmb_inputs')
-
-    @nmb_inputs.getter
+    @propertytools.ProtectedProperty
     def nmb_inputs(self) -> int:
         """Number of input nodes.
 
@@ -322,10 +319,7 @@ attribute `nmb_inputs` first.
     def nmb_inputs(self) -> None:
         pass
 
-    nmb_outputs = exceptiontools.ProtectedProperty(
-        name='nmb_outputs')
-
-    @nmb_outputs.getter
+    @propertytools.ProtectedProperty
     def nmb_outputs(self) -> int:
         """Number of output nodes.
 
@@ -349,10 +343,7 @@ attribute `nmb_inputs` first.
     def nmb_outputs(self) -> None:
         pass
 
-    nmb_neurons = exceptiontools.ProtectedProperty(
-        name='nmb_neurons')
-
-    @nmb_neurons.getter
+    @propertytools.ProtectedProperty
     def nmb_neurons(self) -> Tuple[int, ...]:
         """Number of neurons of the hidden layers.
 
@@ -378,7 +369,7 @@ attribute `nmb_inputs` first.
     def nmb_neurons(self) -> None:
         pass
 
-    __protectedproperties = exceptiontools.ProtectedProperties(
+    __protectedproperties = propertytools.ProtectedProperties(
         nmb_inputs, nmb_outputs, nmb_neurons)
 
     @property
@@ -685,7 +676,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         and |anntools.ANN.weights_input| for further information.
         """)
 
-    nmb_layers = exceptiontools.DependentProperty(
+    nmb_layers = propertytools.DependentProperty(
         name='nmb_layers', protected=__protectedproperties)
 
     @nmb_layers.getter
@@ -700,7 +691,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         """
         return self._cann.nmb_layers
 
-    shape_neurons = exceptiontools.DependentProperty(
+    shape_neurons = propertytools.DependentProperty(
         name='shape_neurons', protected=__protectedproperties)
 
     @shape_neurons.getter

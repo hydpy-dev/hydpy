@@ -13,9 +13,9 @@ import numpy
 from hydpy import pub
 from hydpy.core import autodoctools
 from hydpy.core import devicetools
-from hydpy.core import exceptiontools
 from hydpy.core import netcdftools
 from hydpy.core import objecttools
+from hydpy.core import propertytools
 from hydpy.core import selectiontools
 from hydpy.core import timetools
 
@@ -79,9 +79,7 @@ class FileManager(object):
         self.createdirs = False
         self.deletedirs = False
 
-    projectdir = exceptiontools.ProtectedProperty(name='projectdir')
-
-    @projectdir.getter
+    @propertytools.ProtectedProperty
     def projectdir(self):
         return self._projectdir
 

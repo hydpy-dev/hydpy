@@ -380,7 +380,7 @@ class DefaultProperty(_BaseProperty):
     >>> test.y
     2.0
 
-    After setting custom values successfully, default properties return them::
+    After setting custom values successfully, default properties return them:
 
     >>> test.x = 3
     >>> test.y = 'five'

@@ -20,9 +20,10 @@ class QJoints(sequencetools.StateSequence):
         except BaseException:
             message = sys.exc_info()[1]
             sequencetools.StateSequence.__call__(self, numpy.mean(args))
-            warnings.warn('Note that, due to the following problem, the'
-                          'affected HydPy-H-Stream model could be initialised '
-                          'with an averaged value only: %s' % message)
+            warnings.warn(
+                f'Note that, due to the following problem, the '
+                f'affected HydPy-H-Stream model could be initialised '
+                f'with an averaged value only: {message}')
 
 
 class StateSequences(sequencetools.StateSequences):

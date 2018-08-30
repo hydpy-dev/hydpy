@@ -24,3 +24,4 @@ what purpose it could serve.
    smoothtools
    statstools
    validtools
+   xmltools

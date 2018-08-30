@@ -378,8 +378,8 @@ class ConditionManager(FileManager):
                 filename += '.py'
             try:
                 self._defaultdir = (
-                    'init_' + pub.timegrids.sim.firstdate.string('os'))
-            except AttributeError:
+                    'init_' + pub.timegrids.sim.firstdate.to_string('os'))
+            except KeyError:
                 pass
             filepath = os.path.join(self.currentpath, filename)
             with open(filepath) as file_:
@@ -405,7 +405,7 @@ class ConditionManager(FileManager):
                 filename += '.py'
             try:
                 self._defaultdir = (
-                    'init_' + pub.timegrids.sim.lastdate.string('os'))
+                    'init_' + pub.timegrids.sim.lastdate.to_string('os'))
             except AttributeError:
                 pass
             path = os.path.join(self.currentpath, filename)

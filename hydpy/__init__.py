@@ -79,6 +79,7 @@ from hydpy.auxs.statstools import hsepd_pdf
 from hydpy.auxs.statstools import nse
 from hydpy.auxs.statstools import prepare_arrays
 from hydpy.auxs.statstools import std_ratio
+from hydpy.auxs.xmltools import XMLInterface
 
 
 pub.options = optiontools.Options()
@@ -160,4 +161,5 @@ __all__ = ['netcdf4',
            'hsepd_pdf',
            'nse',
            'prepare_arrays',
-           'std_ratio']
+           'std_ratio',
+           'XMLInterface']

@@ -4,11 +4,11 @@
 >>> from hydpy.core.examples import prepare_full_example_1
 >>> prepare_full_example_1()
 
->>> from hydpy import HydPy, pub, Timegrid, Timegrids, TestIO
+>>> from hydpy import HydPy, pub, Timegrid, Timegrids, TestIO, XMLInterface
 >>> hp = HydPy('LahnHBV')
->>> pub.timegrids = Timegrids(Timegrid('1996-01-01 00:00:00',
-...                                    '1996-01-06 00:00:00',
-...                                    '1d'))
+>>> with TestIO():
+...     xml = XMLInterface()
+>>> pub.timegrids = xml.timegrids
 >>> pub.sequencemanager.generalfiletype = 'nc'
 
 >>> pub.options.printprogress = False   # ToDo
@@ -49,7 +49,40 @@ True
 """
 # import...
 # ...from standard library
-import xml.etree.ElementTree as elementtree
+import os
+from xml.etree import ElementTree
 # ...from HydPy
+from hydpy import pub
+from hydpy.core import timetools
+
+namespace = \
+    '{https://github.com/tyralla/hydpy/tree/master/hydpy/conf/HydPy2FEWS.xsd}'
+
+class XMLInterface(object):
+
+    def __init__(self, filepath=None):
+        if filepath is None:
+            filepath = os.path.join(pub.projectname, 'config.xml')
+        self.root = ElementTree.parse(filepath).getroot()
+
+    def find(self, name):
+        return self.root.find(f'{namespace}{name}')
+
+    @property
+    def timegrids(self):
+        """The |Timegrids| object defined in the actual xml file.
+
+        >>> from hydpy.auxs.xmltools import XMLInterface
+        >>> from hydpy import data
+        >>> xml = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
+        >>> xml.timegrids
+        Timegrids(Timegrid('1996-01-01T00:00:00',
+                           '1996-01-06T00:00:00',
+                           '1d'))
+        """
+        timegrid_xml = (self.find('timegrid'))
+        timegrid = timetools.Timegrid(
+            *(timegrid_xml[idx].text for idx in range(3)))
+        return timetools.Timegrids(timegrid)
 
 

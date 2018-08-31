@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
-
+"""Note that module type |Pub| adds functionality to this module."""
 # import from...
 # ...the standard library
 import sys as _sys
+# ...from HydPy
+import hydpy
 
-projectname = None
-
-options = None
-indexer = None
-networkmanager = None
-controlmanager = None
-conditionmanager = None
-sequencemanager = None
-timegrids = None
+projectname: str
+options: 'hydpy.core.optionstools.Options'
+indexer: 'hydpy.core.indextools.Indexer'
+networkmanager: 'hydpy.core.filetools.NetworkManager'
+controlmanager: 'hydpy.core.filetools.ControlManager'
+conditionmanager: 'hydpy.core.filetools.ConditionManager'
+sequencemanager: 'hydpy.core.filetools.SequenceManager'
+timegrids: 'hydpy.core.timetools.Timegrids'
 
 _is_hydpy_bundled = getattr(_sys, 'frozen', False)
 """This parameter is set `True` within HydPy executables only.

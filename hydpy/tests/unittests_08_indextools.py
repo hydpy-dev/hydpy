@@ -16,7 +16,7 @@ class Test01MonthOfYear(unittest.TestCase):
         self.indexer = indextools.Indexer()
 
     def tearDown(self):
-        pub.timegrids = None
+        del pub.timegrids
 
     def test_01_manual_mode(self):
         with self.assertRaises(BaseException):
@@ -57,7 +57,7 @@ class Test02DayOfYear(unittest.TestCase):
         self.indexer = indextools.Indexer()
 
     def tearDown(self):
-        pub.timegrids = None
+        del pub.timegrids
 
     def test_01_manual_mode(self):
         with self.assertRaises(BaseException):
@@ -105,7 +105,7 @@ class Test03TimeOfYear(unittest.TestCase):
         self.indexer = indextools.Indexer()
 
     def tearDown(self):
-        pub.timegrids = None
+        del pub.timegrids
 
     def test_01_manual_mode(self):
         with self.assertRaises(BaseException):

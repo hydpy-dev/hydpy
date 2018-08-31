@@ -150,7 +150,7 @@ class Sequences(object):
     def hasconditions(self):
         """True or False, whether the |Sequences| object "handles conditions"
         or not (at least one |StateSequence| or |LogSequence| object)."""
-        for dummy in self.conditions:
+        for _ in self.conditions:
             return True
         return False
 
@@ -553,12 +553,11 @@ class _IOProperty(propertytools.DefaultProperty):
     def __fget(self, obj):
         try:
             manager = pub.sequencemanager
-        except AttributeError:
+        except RuntimeError:
             raise RuntimeError(
-                'For sequence %s the type of the external data '
-                'file cannot be determined.  Either set it manually '
-                'or prepare `pub.sequencemanager` correctly.'
-                % objecttools.devicephrase(obj))
+                f'For sequence {objecttools.devicephrase(obj)} attribute '
+                f'{self.name} cannot be determined.  Either set it manually '
+                'or prepare `pub.sequencemanager` correctly.')
         return getattr(manager, self.__attr_manager)
 
 
@@ -630,9 +629,9 @@ class IOSequence(Sequence):
     >>> seq.filetype_ext
     Traceback (most recent call last):
     ...
-    RuntimeError: For sequence `inputsequence` the type of the \
-external data file cannot be determined.  Either set it manually or \
-prepare `pub.sequencemanager` correctly.
+    RuntimeError: For sequence `inputsequence` attribute filetype_ext \
+cannot be determined.  Either set it manually or prepare \
+`pub.sequencemanager` correctly.
 
 
     |IOSequence| is partly abstract, which is why we feign it to be
@@ -759,12 +758,12 @@ or prepare `pub.sequencemanager` correctly.
         """
         try:
             return pub.sequencemanager.tempdirpath
-        except AttributeError:
+        except RuntimeError:
             raise RuntimeError(
-                'For sequence %s the directory of the internal '
-                'data file cannot be determined.  Either set it '
-                'manually or prepare `pub.sequencemanager` correctly.'
-                % objecttools.devicephrase(self))
+                f'For sequence {objecttools.devicephrase(self)} '
+                f'the directory of the internal data file cannot '
+                f'be determined.  Either set it manually or prepare '
+                f'`pub.sequencemanager` correctly.')
 
     @propertytools.DefaultProperty
     def filepath_ext(self):

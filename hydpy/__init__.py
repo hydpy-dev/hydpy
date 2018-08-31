@@ -28,6 +28,8 @@ pyplot = OptionalImport(
 warnings.resetwarnings()
 # ...from HydPy
 from hydpy import pub
+from hydpy.core import pubtools
+pub.__class__ = pubtools.Pub
 from hydpy.core import dummytools
 from hydpy.core import indextools
 from hydpy.core import optiontools

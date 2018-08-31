@@ -72,8 +72,10 @@ class FileManager(object):
     def __init__(self):
         self.check_exists = True
         self._projectdir = None
-        if pub.projectname:
+        try:
             self.projectdir = pub.projectname
+        except RuntimeError:
+            pass
         self._currentdir = None
         self._defaultdir = None
         self.createdirs = False

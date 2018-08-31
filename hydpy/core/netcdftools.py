@@ -877,7 +877,6 @@ named `state_bowa`.
         return self._filepath(read=False)
 
     def _filepath(self, read) -> str:
-        # FixMe: pub must become an object!!!
         if 'node' in self.name:
             path = pub.sequencemanager.nodepath
         else:
@@ -936,9 +935,9 @@ named `state_bowa`.
             return self.variables[name]
         except KeyError:
             raise AttributeError(
-                'The NetCDFFile object `%s` does neither handle a NetCDF '
-                'variable named `%s` nor does it define a member named `%s`.'
-                % (self.name, name, name))
+                f'The NetCDFFile object `{self.name}` does '
+                f'neither handle a NetCDF variable named `{name}` '
+                f'nor does it define a member named `{name}`.')
 
     __copy__ = objecttools.copy_
     __deepcopy__ = objecttools.deepcopy_

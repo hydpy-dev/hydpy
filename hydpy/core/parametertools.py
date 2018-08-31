@@ -461,7 +461,7 @@ class Simulationstep(_Stepsize):
     .. testsetup::
 
        >>> from hydpy import pub
-       >>> pub.timegrids = None
+       >>> del pub.timegrids
        >>> from hydpy.core.parametertools import Parameter
        >>> Parameter.simulationstep.delete()
        Period()
@@ -531,7 +531,7 @@ been defined.
         period = _Period(self)
         try:
             period.timedelta = pub.timegrids.stepsize
-        except AttributeError:
+        except RuntimeError:
             pass
         return period
 
@@ -722,7 +722,7 @@ available.
         """
         try:
             parfactor = pub.timegrids.parfactor
-        except AttributeError:
+        except RuntimeError:
             if not self.simulationstep:
                 raise RuntimeError(
                     'The calculation of the effective value of parameter '

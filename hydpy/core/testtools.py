@@ -134,8 +134,8 @@ class Tester(object):
                         opt.warntrim(False), \
                         par.parameterstep.delete(), \
                         par.simulationstep.delete():
-                    timegrids = pub.timegrids
-                    pub.timegrids = None
+                    timegrids = pub.get('timegrids')
+                    del pub.timegrids
                     nodes = devicetools.Node._registry.copy()
                     elements = devicetools.Element._registry.copy()
                     devicetools.Node.clear_registry()

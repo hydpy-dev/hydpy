@@ -157,6 +157,8 @@ def _compare_variables_function_generator(
     """
     def comparison_function(self, other):
         """Wrapper for comparison functions for class |Variable|."""
+        if self is other:
+            return method_string in ('__eq__', '__le__', '__ge__')
         method = getattr(self.value, method_string)
         try:
             if isinstance(other, abctools.VariableABC):

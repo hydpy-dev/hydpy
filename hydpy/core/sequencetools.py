@@ -952,12 +952,13 @@ or prepare `pub.sequencemanager` correctly.
         setattr(self.fastaccess, '_%s_ramflag' % self.name, bool(value))
 
     ramflag = property(_get_ramflag, _set_ramflag)
+        self.__set_array(values)
 
     @property
     def memoryflag(self):
         return self.ramflag or self.diskflag
 
-    def _get_array(self):
+    def __get_array(self):
         array = getattr(self.fastaccess, '_%s_array' % self.name, None)
         if array is not None:
             return numpy.asarray(array)
@@ -966,7 +967,7 @@ or prepare `pub.sequencemanager` correctly.
                 'The `ram array` of sequence `%s` has not been set yet.'
                 % objecttools.devicephrase(self))
 
-    def _set_array(self, values):
+    def __set_array(self, values):
         values = numpy.array(values, dtype=float)
         setattr(self.fastaccess, '_%s_array' % self.name, values)
 
@@ -999,7 +1000,7 @@ or prepare `pub.sequencemanager` correctly.
         if self.diskflag:
             array = self._load_int()
         elif self.ramflag:
-            array = self._get_array()
+            array = self.__get_array()
         else:
             raise RuntimeError(
                 'Sequence %s is not requested to make any '
@@ -1013,7 +1014,7 @@ or prepare `pub.sequencemanager` correctly.
         if self.diskflag:
             self._save_int(series)
         elif self.ramflag:
-            self._set_array(series)
+            self.__set_array(series)
         else:
             raise RuntimeError(
                 'Sequence `%s` is not requested to make any '
@@ -1187,7 +1188,7 @@ or prepare `pub.sequencemanager` correctly.
         if self.diskflag:
             self._save_int(values)
         elif self.ramflag:
-            self._set_array(values)
+            self.__set_array(values)
         else:
             raise RuntimeError(
                 'Sequence %s is not requested to make any '
@@ -1230,7 +1231,6 @@ or prepare `pub.sequencemanager` correctly.
         values = self.series
         self.deactivate_disk()
         self.ramflag = True
-        self._set_array(values)
         self.update_fastaccess()
 
     def ram2disk(self):

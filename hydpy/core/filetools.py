@@ -67,7 +67,7 @@ class FileManager(object):
     """Base class for the more specific file managers implemented in
     module |filetools|."""
 
-    _BASEDIR = 'must_be_overwritten'
+    _BASEDIR: str
 
     def __init__(self):
         self.check_exists = True
@@ -640,8 +640,8 @@ class SequenceManager(FileManager):
     Secondly, we prepare a 0-dimensional |IOSequence| object called
     `test_sequence` and assign a small time series to it:
 
-    >>> from hydpy.core.sequencetools import ModelSequence
-    >>> class Seq0(ModelSequence):
+    >>> from hydpy.core.sequencetools import FluxSequence
+    >>> class Seq0(FluxSequence):
     ...     NDIM = 0
     ...     rawfilename = 'test_sequence'
     >>> seq0 = Seq0()
@@ -712,7 +712,7 @@ class SequenceManager(FileManager):
     |SequenceManager.save_file|.  We show this for a 1-dimensional
     sequence:
 
-    >>> class Seq1(ModelSequence):
+    >>> class Seq1(FluxSequence):
     ...     NDIM = 1
     ...     rawfilename = 'test_sequence'
     >>> seq1 = Seq1()
@@ -836,48 +836,58 @@ data available to the user.
     _BASEDIR = 'sequences'
 
     inputdir = _DescriptorDir('input', 'input')
-    outputdir = _DescriptorDir('output', 'output')
+    fluxdir = _DescriptorDir('output', 'flux')
+    statedir = _DescriptorDir('output', 'state')
     nodedir = _DescriptorDir('node', 'node')
     tempdir = _DescriptorDir('temp', 'temporary')
     generaldir = _GeneralDescriptor(inputdir,
-                                    outputdir,
+                                    fluxdir,
+                                    statedir,
                                     nodedir,
                                     tempdir)
 
     inputfiletype = _DescriptorType('npy', 'input')
-    outputfiletype = _DescriptorType('npy', 'output')
+    fluxfiletype = _DescriptorType('npy', 'flux')
+    statefiletype = _DescriptorType('npy', 'state')
     nodefiletype = _DescriptorType('npy', 'node')
     tempfiletype = _DescriptorType('npy', 'temporary')
     generalfiletype = _GeneralDescriptor(inputfiletype,
-                                         outputfiletype,
+                                         fluxfiletype,
+                                         statefiletype,
                                          nodefiletype,
                                          tempfiletype)
 
     inputoverwrite = _DescriptorOverwrite(False, 'input')
-    outputoverwrite = _DescriptorOverwrite(False, 'output')
+    fluxoverwrite = _DescriptorOverwrite(False, 'flux')
+    stateoverwrite = _DescriptorOverwrite(False, 'state')
     simoverwrite = _DescriptorOverwrite(False, 'sim node')
     obsoverwrite = _DescriptorOverwrite(False, 'obs node')
     tempoverwrite = _DescriptorOverwrite(False, 'temporary')
     generaloverwrite = _GeneralDescriptor(inputoverwrite,
-                                          outputoverwrite,
+                                          fluxoverwrite,
+                                          stateoverwrite,
                                           simoverwrite,
                                           obsoverwrite,
                                           tempoverwrite)
 
-    inputpath = _DescriptorPath('inputdir', 'input')
-    outputpath = _DescriptorPath('outputdir', 'output')
-    nodepath = _DescriptorPath('nodedir', 'node')
-    temppath = _DescriptorPath('tempdir', 'temporary')
-    generalpath = _GeneralDescriptor(inputpath,
-                                     outputpath,
-                                     nodepath,
-                                     temppath)
+    inputdirpath = _DescriptorPath('inputdir', 'input')
+    fluxdirpath = _DescriptorPath('fluxdir', 'flux')
+    statedirpath = _DescriptorPath('statedir', 'state')
+    nodedirpath = _DescriptorPath('nodedir', 'node')
+    tempdirpath = _DescriptorPath('tempdir', 'temporary')
+    generaldirpath = _GeneralDescriptor(inputdirpath,
+                                        fluxdirpath,
+                                        statedirpath,
+                                        nodedirpath,
+                                        tempdirpath)
 
     inputaggregation = _DescriptorAggregate('none', 'input')
-    outputaggregation = _DescriptorAggregate('none', 'output')
+    fluxaggregation = _DescriptorAggregate('none', 'flux')
+    stateaggregation = _DescriptorAggregate('none', 'state')
     nodeaggregation = _DescriptorAggregate('none', 'node')
     generalaggregation = _GeneralDescriptor(inputaggregation,
-                                            outputaggregation,
+                                            fluxaggregation,
+                                            stateaggregation,
                                             nodeaggregation)
 
     def __init__(self):
@@ -921,7 +931,7 @@ data available to the user.
     def _load_nc(self, sequence):
         self.netcdf_reader.log(sequence, None)
 
-    def save_file(self, sequence, array=None):
+    def save_file(self, sequence, array=None):   # ToDo: use overwrite flag?
         """Write the date stored in |IOSequence.series| of the given
         |IOSequence| into an "external" data file. """
         if array is None:

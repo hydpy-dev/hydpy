@@ -269,7 +269,7 @@ is not allowed to assign an unknown string to the `outputfiletype` of a
 
     >>> from hydpy.core.filetools import SequenceManager
     >>> sm = SequenceManager()
-    >>> sm.outputfiletype = 'test'
+    >>> sm.fluxfiletype = 'test'
     Traceback (most recent call last):
       ...
     ValueError: The given sequence file type `test` is not implemented.  Please choose one of the following file types: npy, asc, and nc.

@@ -4,10 +4,11 @@ of hydrological models.
 """
 # import...
 # ...from standard library
-import os
-import sys
+from typing import ClassVar
 import copy
+import os
 import struct
+import sys
 import warnings
 # ...from site-packages
 import numpy
@@ -16,6 +17,7 @@ from hydpy import pub
 from hydpy.core import abctools
 from hydpy.core import autodoctools
 from hydpy.core import objecttools
+from hydpy.core import propertytools
 from hydpy.core import variabletools
 from hydpy.cythons.autogen import pointerutils
 
@@ -508,8 +510,130 @@ class Sequence(variabletools.Variable):
 abctools.SequenceABC.register(Sequence)
 
 
+class _IOProperty(propertytools.DefaultProperty):
+
+    DOCSTRING: ClassVar[str]
+
+    def __init__(self):
+        super().__init__(fget=self.__fget)
+
+    def __set_name__(self, objtype, name):
+        super().__set_name__(objtype, name)
+        attr_seq = self.name
+        cls = objecttools.classname(self.objtype)
+        attr_man = f'{cls.lower()[:-8]}{self.name.split("_")[0]}'
+        self.__attr_manager = attr_man
+        self.__doc__ = f"""
+            {self.DOCSTRING}
+
+        Attribute {attr_seq} is connected with attribute {attr_man} of 
+        class |SequenceManager|, as shown by the following technical 
+        example (see the documentation on class |IOSequence| for some 
+        explanations on the usage of this and similar properties of 
+        |IOSequence| subclasses):
+
+        >>> from hydpy.core.filetools import SequenceManager
+        >>> temp = SequenceManager.{attr_man}
+        >>> SequenceManager.{attr_man} = 'global'
+        >>> from hydpy import pub
+        >>> pub.sequencemanager = SequenceManager()
+        >>> from hydpy.core.sequencetools import {cls}
+        >>> sequence = {cls}()
+        >>> sequence.{attr_seq}
+        'global'
+        >>> sequence.{attr_seq} = 'local'
+        >>> sequence.{attr_seq}
+        'local'
+        >>> del sequence.{attr_seq}
+        >>> sequence.{attr_seq}
+        'global'
+        >>> SequenceManager.{attr_man} = temp
+        """
+
+    def __fget(self, obj):
+        try:
+            manager = pub.sequencemanager
+        except AttributeError:
+            raise RuntimeError(
+                'For sequence %s the type of the external data '
+                'file cannot be determined.  Either set it manually '
+                'or prepare `pub.sequencemanager` correctly.'
+                % objecttools.devicephrase(obj))
+        return getattr(manager, self.__attr_manager)
+
+
+class _FileType(_IOProperty):
+
+    DOCSTRING = 'Ending of the external data file.'
+
+
+class _DirPathProperty(_IOProperty):
+
+    DOCSTRING = 'Absolute path of the directory of the external data file.'
+
+
+class _AggregationProperty(_IOProperty):
+
+    DOCSTRING = ('Type of aggregation performed when writing the '
+                 'time series data to an external data file.')
+
+
+class _OverwriteProperty(_IOProperty):
+
+    DOCSTRING = ('True/False flag indicating if overwriting an existing '
+                 'data file is allowed or not.')
+
+
 class IOSequence(Sequence):
     """Base class for sequences with input/output functionalities.
+
+    Normally, each sequence queries its current "external" file type
+    from the |SequenceManager| object stored in module |pub|:
+
+    >>> from hydpy import pub
+    >>> from hydpy.core.filetools import SequenceManager
+    >>> pub.sequencemanager = SequenceManager()
+
+    Depending if the actual sequence is logged as an |InputSequenceABC|,
+    an |NodeSequenceABC|, or not, either
+    |SequenceManager.inputfiletype|, |SequenceManager.nodefiletype|,
+    or |SequenceManager.outputfiletype| are queried:
+
+    >>> pub.sequencemanager.inputfiletype = 'npy'
+    >>> pub.sequencemanager.fluxfiletype = 'asc'
+    >>> pub.sequencemanager.nodefiletype = 'nc'
+    >>> from hydpy.core import sequencetools as st
+    >>> st.InputSequence().filetype_ext
+    'npy'
+    >>> st.FluxSequence().filetype_ext
+    'asc'
+    >>> st.NodeSequence().filetype_ext
+    'nc'
+
+    Alternatively, you can specify |IOSequence.filetype_ext| for each
+    sequence object individually:
+
+    >>> seq = st.InputSequence()
+    >>> seq.filetype_ext
+    'npy'
+    >>> seq.filetype_ext = 'nc'
+    >>> seq.filetype_ext
+    'nc'
+    >>> del seq.filetype_ext
+    >>> seq.filetype_ext
+    'npy'
+
+    If neither an individual definition nor |SequenceManager| is
+    available, the following error is raised:
+
+    >>> del pub.sequencemanager
+    >>> seq.filetype_ext
+    Traceback (most recent call last):
+    ...
+    RuntimeError: For sequence `inputsequence` the type of the \
+external data file cannot be determined.  Either set it manually or \
+prepare `pub.sequencemanager` correctly.
+
 
     |IOSequence| is partly abstract, which is why we feign it to be
     concrete for simplifying testing its different methods:
@@ -519,93 +643,34 @@ class IOSequence(Sequence):
     >>> dummies.IOSequence_ = make_abc_testable(IOSequence)
     """
 
-    def __init__(self):
-        Sequence.__init__(self)
-        self._rawfilename = None
-        self._filetype_ext = None
-        self._filename_ext = None
-        self._dirpath_ext = None
-        self._dirpath_int = None
-        self._filepath_ext = None
-        self._filepath_int = None
-        self._aggregationmode_ext = None
+    filetype_ext: str
+    dirpath_ext: str
+    aggregation_ext: str
+    descr_device: str
 
-    def _get_filetype_ext(self):
-        """Ending of the external data file.
+    @propertytools.DefaultProperty
+    def rawfilename(self):
+        """|DefaultProperty| handling the filename without ending for
+        external and internal date files.
 
-        Normally, each sequence queries its current "external" file type
-        from the |SequenceManager| object stored in module |pub|:
-
-        >>> from hydpy import pub
-        >>> from hydpy.core.filetools import SequenceManager
-        >>> pub.sequencemanager = SequenceManager()
-
-        Depending if the actual sequence is logged as an |InputSequenceABC|,
-        an |NodeSequenceABC|, or not, either
-        |SequenceManager.inputfiletype|, |SequenceManager.nodefiletype|,
-        or |SequenceManager.outputfiletype| are queried:
-
-        >>> pub.sequencemanager.inputfiletype = 'npy'
-        >>> pub.sequencemanager.outputfiletype = 'asc'
-        >>> pub.sequencemanager.nodefiletype = 'nc'
-        >>> from hydpy.core import sequencetools as st
-        >>> st.InputSequence().filetype_ext
-        'npy'
-        >>> st.FluxSequence().filetype_ext
-        'asc'
-        >>> st.NodeSequence().filetype_ext
-        'nc'
-
-        Alternatively, you can specify |IOSequence.filetype_ext| for each
-        sequence object individually:
-
-        >>> seq = st.InputSequence()
-        >>> seq.filetype_ext
-        'npy'
-        >>> seq.filetype_ext = 'nc'
-        >>> seq.filetype_ext
-        'nc'
-        >>> del seq.filetype_ext
-        >>> seq.filetype_ext
-        'npy'
-
-        If neither an individual definition nor |SequenceManager| is
-        available, the following error is raised:
-
-        >>> del pub.sequencemanager
-        >>> seq.filetype_ext
-        Traceback (most recent call last):
-        ...
-        RuntimeError: For sequence `inputsequence` the type of the \
-external data file cannot be determined.  Either set it manually or \
-prepare `pub.sequencemanager` correctly.
+        >>> from hydpy.core.sequencetools import IOSequence
+        >>> class Test(IOSequence):
+        ...     descr_device = 'node1'
+        ...     descr_sequence = 'subgroup_test'
+        >>> Test().rawfilename
+        'node1_subgroup_test'
         """
-        if self._filetype_ext:
-            return self._filetype_ext
-        else:
-            try:
-                if isinstance(self, abctools.InputSequenceABC):
-                    return pub.sequencemanager.inputfiletype
-                elif isinstance(self, abctools.NodeSequenceABC):
-                    return pub.sequencemanager.nodefiletype
-                return pub.sequencemanager.outputfiletype
-            except AttributeError:
-                raise RuntimeError(
-                    'For sequence %s the type of the external data '
-                    'file cannot be determined.  Either set it manually '
-                    'or prepare `pub.sequencemanager` correctly.'
-                    % objecttools.devicephrase(self))
+        try:
+            return f'{self.descr_device}_{self.descr_sequence}'
+        except AttributeError:
+            raise RuntimeError(
+                'For sequence `%s` the raw filename cannot determined.  '
+                'Either set it manually or embed the sequence object '
+                'into a device object.'
+                % self.name)
 
-    def _set_filetype_ext(self, name):
-        self._filetype_ext = name
-
-    def _del_filetype_ext(self):
-        self._filetype_ext = None
-
-    filetype_ext = property(
-        _get_filetype_ext, _set_filetype_ext, _del_filetype_ext)
-
-    def _get_filename_ext(self):
+    @propertytools.DefaultProperty
+    def filename_ext(self):
         """Complete filename of the external data file.
 
         The "external" filename consists of |IOSequence.rawfilename| and
@@ -613,27 +678,17 @@ prepare `pub.sequencemanager` correctly.
         attribute `rawfilename` to the initialized sequence object in the
         following example:
 
-        >>> from hydpy import dummies
-        >>> seq = dummies.IOSequence_()
+        >>> from hydpy.core.sequencetools import IOSequence
+        >>> seq = IOSequence()
         >>> seq.rawfilename = 'test'
-        >>> seq.filetype_ext = 'npy'
+        >>> seq.filetype_ext = 'nc'
         >>> seq.filename_ext
-        'test.npy'
+        'test.nc'
         """
-        if self._filename_ext:
-            return self._filename_ext
         return '.'.join((self.rawfilename, self.filetype_ext))
 
-    def _set_filename_ext(self, name):
-        self._filename_ext = name
-
-    def _del_filename_ext(self):
-        self._filename_ext = None
-
-    filename_ext = property(
-        _get_filename_ext, _set_filename_ext, _del_filename_ext)
-
-    def _get_fileename_int(self):
+    @property
+    def filename_int(self):
         """Complete filename of the internal data file.
 
         The "internal" filename consists of |IOSequence.rawfilename|
@@ -641,103 +696,16 @@ prepare `pub.sequencemanager` correctly.
         the attribute `rawfilename` to the initialized sequence object
         in the following example:
 
-        >>> from hydpy import dummies
-        >>> seq = dummies.IOSequence_()
+        >>> from hydpy.core.sequencetools import IOSequence
+        >>> seq = IOSequence()
         >>> seq.rawfilename = 'test'
         >>> seq.filename_int
         'test.bin'
         """
         return self.rawfilename + '.bin'
 
-    filename_int = property(_get_fileename_int)
-
-    def _get_dirpath_ext(self):
-        """Absolute path of the directory of the external data file.
-
-        Normally, each sequence queries its current "external" directory
-        path from the |SequenceManager| object stored in module |pub|:
-
-        >>> from hydpy import pub
-        >>> from hydpy.core.filetools import SequenceManager
-        >>> pub.sequencemanager = SequenceManager()
-
-        We overwrite |FileManager.basepath| and disable checking the
-        existence of given paths in order to simplify the following
-        examples:
-
-        >>> basepath = SequenceManager.basepath
-        >>> SequenceManager.basepath = 'test'
-        >>> pub.sequencemanager.check_exists = False
-
-        Depending if the actual sequence is logged as an |InputSequenceABC|,
-        a |NodeSequenceABC|, or not, either |SequenceManager.inputpath|,
-        |SequenceManager.nodepath|, or |SequenceManager.outputpath| are
-        queried:
-
-        >>> from hydpy.core import sequencetools as st
-        >>> from hydpy import repr_
-        >>> repr_(st.InputSequence().dirpath_ext)
-        'test/input'
-        >>> repr_(st.FluxSequence().dirpath_ext)
-        'test/output'
-        >>> repr_(st.NodeSequence().dirpath_ext)
-        'test/node'
-
-        Alternatively, you can specify |IOSequence.dirpath_ext| for each
-        sequence object individually:
-
-        >>> seq = st.InputSequence()
-        >>> from hydpy import repr_
-        >>> repr_(seq.dirpath_ext)
-        'test/input'
-        >>> seq.dirpath_ext = 'path'
-        >>> repr_(seq.dirpath_ext)
-        'path'
-        >>> del seq.dirpath_ext
-        >>> repr_(seq.dirpath_ext)
-        'test/input'
-
-        If neither an individual definition nor |SequenceManager| is
-        available, the following error is raised:
-
-        >>> del pub.sequencemanager
-        >>> seq.dirpath_ext
-        Traceback (most recent call last):
-        ...
-        RuntimeError: For sequence `inputsequence` the directory of \
-the external data file cannot be determined.  Either set it manually \
-or prepare `pub.sequencemanager` correctly.
-
-        Remove the `basepath` mock:
-
-        >>> SequenceManager.basepath = basepath
-        """
-        if self._dirpath_ext:
-            return self._dirpath_ext
-        else:
-            try:
-                if isinstance(self, InputSequence):
-                    return pub.sequencemanager.inputpath
-                elif isinstance(self, NodeSequence):
-                    return pub.sequencemanager.nodepath
-                return pub.sequencemanager.outputpath
-            except AttributeError:
-                raise RuntimeError(
-                    'For sequence %s the directory of the external '
-                    'data file cannot be determined.  Either set it '
-                    'manually or prepare `pub.sequencemanager` correctly.'
-                    % objecttools.devicephrase(self))
-
-    def _set_dirpath_ext(self, name):
-        self._dirpath_ext = name
-
-    def _del_dirpath_ext(self):
-        self._dirpath_ext = None
-
-    dirpath_ext = property(
-        _get_dirpath_ext, _set_dirpath_ext, _del_dirpath_ext)
-
-    def _get_dirpath_int(self):
+    @propertytools.DefaultProperty
+    def dirpath_int(self):
         """Absolute path of the directory of the internal data file.
 
         Normally, each sequence queries its current "internal" directory
@@ -755,7 +723,7 @@ or prepare `pub.sequencemanager` correctly.
         >>> SequenceManager.basepath = 'test'
         >>> pub.sequencemanager.check_exists = False
 
-        Generally, |SequenceManager.temppath| is queried:
+        Generally, |SequenceManager.tempdirpath| is queried:
 
         >>> import os
         >>> from hydpy.core import sequencetools as st
@@ -789,55 +757,35 @@ or prepare `pub.sequencemanager` correctly.
 
         >>> SequenceManager.basepath = basepath
         """
-        if self._dirpath_int:
-            return self._dirpath_int
-        else:
-            try:
-                return pub.sequencemanager.temppath
-            except AttributeError:
-                raise RuntimeError(
-                    'For sequence %s the directory of the internal '
-                    'data file cannot be determined.  Either set it '
-                    'manually or prepare `pub.sequencemanager` correctly.'
-                    % objecttools.devicephrase(self))
+        try:
+            return pub.sequencemanager.tempdirpath
+        except AttributeError:
+            raise RuntimeError(
+                'For sequence %s the directory of the internal '
+                'data file cannot be determined.  Either set it '
+                'manually or prepare `pub.sequencemanager` correctly.'
+                % objecttools.devicephrase(self))
 
-    def _set_dirpath_int(self, name):
-        self._dirpath_int = name
-
-    def _del_dirpath_int(self):
-        self._dirpath_int = None
-    dirpath_int = property(
-        _get_dirpath_int, _set_dirpath_int, _del_dirpath_int)
-
-    def _get_filepath_ext(self):
+    @propertytools.DefaultProperty
+    def filepath_ext(self):
         """Absolute path to the external data file.
 
         The path pointing to the "external" file consists of
         |IOSequence.dirpath_ext| and |IOSequence.filename_ext|.  For
         simplicity, we define both manually in the following example:
 
-        >>> from hydpy import dummies
-        >>> seq = dummies.IOSequence_()
+        >>> from hydpy.core.sequencetools import IOSequence
+        >>> seq = IOSequence()
         >>> seq.dirpath_ext = 'path'
         >>> seq.filename_ext = 'file.npy'
         >>> from hydpy import repr_
         >>> repr_(seq.filepath_ext)
         'path/file.npy'
         """
-        if self._filepath_ext:
-            return self._filepath_ext
         return os.path.join(self.dirpath_ext, self.filename_ext)
 
-    def _set_filepath_ext(self, name):
-        self._filepath_ext = name
-
-    def _del_filepath_ext(self):
-        self._filepath_ext = None
-
-    filepath_ext = property(
-        _get_filepath_ext, _set_filepath_ext, _del_filepath_ext)
-
-    def _get_fileepath_int(self):
+    @propertytools.DefaultProperty
+    def filepath_int(self):
         """Absolute path to the internal data file.
 
         The path pointing to the "internal" file consists of
@@ -845,71 +793,15 @@ or prepare `pub.sequencemanager` correctly.
         itself is defined by `rawfilename`.  For simplicity, we define
         both manually in the following example:
 
-        >>> from hydpy import dummies
-        >>> seq = dummies.IOSequence_()
+        >>> from hydpy.core.sequencetools import IOSequence
+        >>> seq = IOSequence()
         >>> seq.dirpath_int = 'path'
         >>> seq.rawfilename = 'file'
         >>> from hydpy import repr_
         >>> repr_(seq.filepath_int)
         'path/file.bin'
         """
-        if self._filepath_int:
-            return self._filepath_int
         return os.path.join(self.dirpath_int, self.filename_int)
-
-    def _set_filepath_int(self, name):
-        self._filepath_int = name
-
-    def _del_filepath_int(self):
-        self._filepath_int = None
-
-    filepath_int = property(
-        _get_fileepath_int, _set_filepath_int, _del_filepath_int)
-
-    @property
-    def aggregationmode_ext(self):
-        """Type of aggregation performed when storing the writing the
-         time series data to an external data file.
-
-        If no special mode is given to the |IOSequence| object, the
-        corresponding mode of the |SequenceManager| object stored in
-        module |pub| is taken:
-
-        >>> from hydpy import pub
-        >>> from hydpy.core.filetools import SequenceManager
-        >>> pub.sequencemanager = SequenceManager()
-        >>> from hydpy.core.sequencetools import InputSequence
-        >>> seq = InputSequence()
-        >>> seq.aggregationmode_ext
-        'none'
-        >>> pub.sequencemanager.inputaggregation = 'mean'
-
-        >>> seq.aggregationmode_ext
-        'mean'
-        >>> seq.aggregationmode_ext = 'none'
-        >>> seq.aggregationmode_ext
-        'none'
-        >>> del seq.aggregationmode_ext
-        >>> seq.aggregationmode_ext
-        'mean'
-
-        # ToDo
-        """
-        if self._aggregationmode_ext:
-            return self._aggregationmode_ext
-        if isinstance(self, abctools.InputSequenceABC):
-            return pub.sequencemanager.inputaggregation
-        if isinstance(self, abctools.NodeSequenceABC):
-            return pub.sequencemanager.nodeaggregation
-        return pub.sequencemanager.outputaggregation
-
-    @aggregationmode_ext.setter
-    def aggregationmode_ext(self, name):
-        self._aggregationmode_ext = name
-
-    @aggregationmode_ext.deleter
-    def aggregationmode_ext(self):
-        self._aggregationmode_ext = None
 
     def update_fastaccess(self):
         if self.diskflag:
@@ -924,7 +816,8 @@ or prepare `pub.sequencemanager` correctly.
                     self.shape[idx])
         setattr(self.fastaccess, '_%s_length' % self.name, length)
 
-    def _get_diskflag(self):
+    @property
+    def diskflag(self):
         diskflag = getattr(
             self.fastaccess, '_%s_diskflag' % self.name, None)
         if diskflag is not None:
@@ -934,12 +827,12 @@ or prepare `pub.sequencemanager` correctly.
                 'The `diskflag` of sequence `%s` has not been set yet.'
                 % objecttools.devicephrase(self))
 
-    def _set_diskflag(self, value):
+    @diskflag.setter
+    def diskflag(self, value):
         setattr(self.fastaccess, '_%s_diskflag' % self.name, bool(value))
 
-    diskflag = property(_get_diskflag, _set_diskflag)
-
-    def _get_ramflag(self):
+    @property
+    def ramflag(self):
         ramflag = getattr(self.fastaccess, '_%s_ramflag' % self.name, None)
         if ramflag is not None:
             return ramflag
@@ -948,11 +841,53 @@ or prepare `pub.sequencemanager` correctly.
                 'The `ramflag` of sequence `%s` has not been set yet.'
                 % objecttools.devicephrase(self))
 
-    def _set_ramflag(self, value):
+    @ramflag.setter
+    def ramflag(self, value):
         setattr(self.fastaccess, '_%s_ramflag' % self.name, bool(value))
 
-    ramflag = property(_get_ramflag, _set_ramflag)
+    def activate_disk(self):
+        """Demand reading/writing internal data from/to hard disk."""
+        self.deactivate_ram()
+        self.diskflag = True
+        self._activate()
+
+    def activate_ram(self):
+        """Demand reading/writing internal data from/to hard disk."""
+        self.deactivate_disk()
+        self.ramflag = True
+        self._activate()
+
+    def _activate(self):
+        self.zero_int()
+        self.update_fastaccess()
+
+    def deactivate_disk(self):
+        """Prevent from reading/writing internal data from/to hard disk."""
+        if self.diskflag:
+            del self.series
+            self.diskflag = False
+
+    def deactivate_ram(self):
+        """Prevent from reading/writing internal data from/to hard disk."""
+        if self.ramflag:
+            del self.series
+            self.ramflag = False
+
+    def disk2ram(self):
+        """Move internal data from disk to RAM."""
+        values = self.series
+        self.deactivate_disk()
+        self.ramflag = True
         self.__set_array(values)
+        self.update_fastaccess()
+
+    def ram2disk(self):
+        """Move internal data from RAM to disk."""
+        values = self.series
+        self.deactivate_ram()
+        self.diskflag = True
+        self._save_int(values)
+        self.update_fastaccess()
 
     @property
     def memoryflag(self):
@@ -970,6 +905,11 @@ or prepare `pub.sequencemanager` correctly.
     def __set_array(self, values):
         values = numpy.array(values, dtype=float)
         setattr(self.fastaccess, '_%s_array' % self.name, values)
+
+    @Sequence.shape.setter
+    def shape(self, shape):
+        Sequence.shape.fset(self, shape)
+        self.update_fastaccess()
 
     @property
     def seriesshape(self):
@@ -1029,7 +969,7 @@ or prepare `pub.sequencemanager` correctly.
             setattr(self.fastaccess, '_%s_array' % self.name, None)
 
     def load_ext(self):
-        """Write the internal data into an external data file ToDo."""
+        """Read the internal data from an external data file."""
         try:
             sequencemanager = pub.sequencemanager
         except AttributeError:
@@ -1039,7 +979,7 @@ or prepare `pub.sequencemanager` correctly.
                 % objecttools.devicephrase(self))
         sequencemanager.load_file(self)
 
-    def adjust_series(self, timegrid_data, values):
+    def adjust_series(self, timegrid_data, values):   # ToDo: Docstring
         if self.shape != values.shape[1:]:
             raise RuntimeError(
                 'The shape of sequence %s is `%s`, but according to '
@@ -1167,7 +1107,7 @@ or prepare `pub.sequencemanager` correctly.
                 % objecttools.devicephrase(self))
         sequencemanager.save_file(self)
 
-    def save_mean(self, *args, **kwargs):
+    def save_mean(self, *args, **kwargs):   # ToDo: Docstring
         array = InfoArray(
             self.average_series(*args, **kwargs),
             info={'type': 'mean',
@@ -1197,77 +1137,6 @@ or prepare `pub.sequencemanager` correctly.
 
     def _save_int(self, values):
         values.tofile(self.filepath_int)
-
-    def activate_disk(self):
-        """Demand reading/writing internal data from/to hard disk."""
-        self.deactivate_ram()
-        self.diskflag = True
-        self._activate()
-
-    def activate_ram(self):
-        """Demand reading/writing internal data from/to hard disk."""
-        self.deactivate_disk()
-        self.ramflag = True
-        self._activate()
-
-    def _activate(self):
-        self.zero_int()
-        self.update_fastaccess()
-
-    def deactivate_disk(self):
-        """Prevent from reading/writing internal data from/to hard disk."""
-        if self.diskflag:
-            del self.series
-            self.diskflag = False
-
-    def deactivate_ram(self):
-        """Prevent from reading/writing internal data from/to hard disk."""
-        if self.ramflag:
-            del self.series
-            self.ramflag = False
-
-    def disk2ram(self):
-        """Move internal data from disk to RAM."""
-        values = self.series
-        self.deactivate_disk()
-        self.ramflag = True
-        self.update_fastaccess()
-
-    def ram2disk(self):
-        """Move internal data from RAM to disk."""
-        values = self.series
-        self.deactivate_ram()
-        self.diskflag = True
-        self._save_int(values)
-        self.update_fastaccess()
-
-    @Sequence.shape.setter
-    def shape(self, shape):
-        Sequence.shape.fset(self, shape)
-        self.update_fastaccess()
-
-    def _get_rawfilename(self):
-        """Filename without ending for external and internal date files."""
-        if self._rawfilename:
-            return self._rawfilename
-        else:
-            try:
-                return '%s_%s' % (self.descr_device, self.descr_sequence)
-            except AttributeError:
-                raise RuntimeError(
-                    'For sequence `%s` the raw filename cannot determined.  '
-                    'Either set it manually or embed the sequence object '
-                    'into a device object.'
-                    % self.name)
-
-    def _set_rawfilename(self, name):
-        self._rawfilename = str(name)
-
-    def _del_rawfilename(self):
-        self._rawfilename = None
-
-    rawfilename = property(
-        _get_rawfilename, _set_rawfilename, _del_rawfilename)
 
     @property
     def would_overwrite_file(self):
@@ -1397,7 +1266,7 @@ or prepare `pub.sequencemanager` correctly.
 
     def aggregate_series(self, *args, **kwargs) -> InfoArray:
         """Aggregates time series data based on the actual
-        |IOSequence.aggregationmode_ext| attribute.
+        |IOSequence.aggregation_ext| attribute.
 
         We prepare some nodes and elements with the help of
         method |prepare_io_example_1| and select a 1-dimensional
@@ -1407,10 +1276,10 @@ or prepare `pub.sequencemanager` correctly.
         >>> nodes, elements = prepare_io_example_1()
         >>> seq = elements.element3.model.sequences.fluxes.nkor
 
-        If no |IOSequence.aggregationmode_ext| is `none`, the
+        If no |IOSequence.aggregation_ext| is `none`, the
         original time series values are returned:
 
-        >>> seq.aggregationmode_ext
+        >>> seq.aggregation_ext
         'none'
         >>> seq.aggregate_series()
         InfoArray([[ 24.,  25.,  26.],
@@ -1418,16 +1287,16 @@ or prepare `pub.sequencemanager` correctly.
                    [ 30.,  31.,  32.],
                    [ 33.,  34.,  35.]])
 
-        If no |IOSequence.aggregationmode_ext| is `mean`, function
+        If no |IOSequence.aggregation_ext| is `mean`, function
         |IOSequence.aggregate_series| is called:
 
-        >>> seq.aggregationmode_ext = 'mean'
+        >>> seq.aggregation_ext = 'mean'
         >>> seq.aggregate_series()
         InfoArray([ 25.,  28.,  31.,  34.])
 
         In case the state of the sequence is invalid:
 
-        >>> seq.__dict__['_aggregationmode_ext'] = 'nonexistent'
+        >>> seq.aggregation_ext = 'nonexistent'
         >>> seq.aggregate_series()
         Traceback (most recent call last):
         ...
@@ -1436,14 +1305,14 @@ sequence `nkor` of element `element3`.
 
         The following technical test confirms that all potential
         positional and keyword arguments are passed properly:
-        >>> seq.aggregationmode_ext = 'mean'
+        >>> seq.aggregation_ext = 'mean'
 
         >>> from unittest import mock
         >>> seq.average_series = mock.MagicMock()
         >>> _ = seq.aggregate_series(1, x=2)
         >>> seq.average_series.assert_called_with(1, x=2)
         """
-        mode = self.aggregationmode_ext
+        mode = self.aggregation_ext
         if mode == 'none':
             return self.series
         elif mode == 'mean':
@@ -1452,7 +1321,6 @@ sequence `nkor` of element `element3`.
             raise RuntimeError(
                 'Unknown aggregation mode `%s` for sequence %s.'
                 % (mode, objecttools.devicephrase(self)))
-
 
     @property
     def descr_sequence(self):
@@ -1519,12 +1387,28 @@ abctools.ModelSequenceABC.register(IOSequence)
 class InputSequence(ModelSequence):
     """Base class for input sequences of |Model| objects."""
 
+    filetype_ext = _FileType()
+
+    dirpath_ext = _DirPathProperty()
+
+    aggregation_ext = _AggregationProperty()
+
+    overwrite_ext = _OverwriteProperty()
+
 
 abctools.InputSequenceABC.register(InputSequence)
 
 
 class FluxSequence(ModelSequence):
     """Base class for flux sequences of |Model| objects."""
+
+    filetype_ext = _FileType()
+
+    dirpath_ext = _DirPathProperty()
+
+    aggregation_ext = _AggregationProperty()
+
+    overwrite_ext = _OverwriteProperty()
 
     def _initvalues(self):
         ModelSequence._initvalues(self)
@@ -1603,6 +1487,14 @@ class StateSequence(ModelSequence, ConditionSequence):
 
     NOT_DEEPCOPYABLE_MEMBERS = ('subseqs', 'fastaccess_old', 'fastaccess_new')
 
+    filetype_ext = _FileType()
+
+    dirpath_ext = _DirPathProperty()
+
+    aggregation_ext = _AggregationProperty()
+
+    overwrite_ext = _OverwriteProperty()
+
     def __init__(self):
         ModelSequence.__init__(self)
         self.fastaccess_old = None
@@ -1673,9 +1565,8 @@ class StateSequence(ModelSequence, ConditionSequence):
                 temp = value[0]
                 if len(value) > 1:
                     raise ValueError(
-                        '%d values are assigned to the scalar '
-                        'sequence `%s`, which is ambiguous.'
-                        % (len(value)), self.name)
+                        f'{len(value)} values are assigned to the scalar '
+                        f'sequence `{self.name}`, which is ambiguous.')
                 value = temp
             except (TypeError, IndexError):
                 pass
@@ -1819,6 +1710,14 @@ abctools.LinkSequenceABC.register(LinkSequence)
 
 class NodeSequence(IOSequence):
     """Base class for all sequences to be handled by |Node| objects."""
+
+    filetype_ext = _FileType()
+
+    dirpath_ext = _DirPathProperty()
+
+    aggregation_ext = _AggregationProperty()
+
+    overwrite_ext = _OverwriteProperty()
 
     @property
     def descr_sequence(self):
@@ -2021,7 +1920,7 @@ class FastAccess(object):
             elif ramflag:
                 array = getattr(self, '_%s_array' % name)
                 values = array[idx]
-            if (diskflag or ramflag):
+            if diskflag or ramflag:
                 if ndim == 0:
                     setattr(self, name, values)
                 else:
@@ -2058,4 +1957,5 @@ class FastAccess(object):
                 yield key
 
 
-autodoctools.autodoc_module()
+__test__ = dict()
+autodoctools.autodoc_module(__test__)

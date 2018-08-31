@@ -1138,47 +1138,6 @@ or prepare `pub.sequencemanager` correctly.
     def _save_int(self, values):
         values.tofile(self.filepath_int)
 
-    @property
-    def would_overwrite_file(self):
-        """|True|/|False| flag, whether an existing file would be
-        overwritten when storing a new file under |IOSequence.filepath_ext|.
-
-        For plain files, containing the time series data of one
-        |IOSequence| object only, |IOSequence.filepath_ext| returns
-        |True| in case a file already exists and otherwise |False|:
-
-        >>> from hydpy import dummies
-        >>> seq = dummies.IOSequence_()
-        >>> seq.dirpath_ext = '.'
-        >>> seq.rawfilename = 'file'
-        >>> seq.filetype_ext = 'npy'
-
-        >>> from hydpy.core.testtools import TestIO
-        >>> with TestIO():
-        ...     print(seq.would_overwrite_file)
-        ...     open('file.npy', 'w').close()
-        ...     print(seq.would_overwrite_file)
-        False
-        True
-
-        For complex files, containing the time series data of
-        multiple |IOSequence| objects, |IOSequence.filepath_ext|
-        always returns |False|:
-
-        >>> seq.filetype_ext = 'nc'
-        >>> with TestIO(clear_all=True):
-        ...     print(seq.would_overwrite_file)
-        ...     open('file.nc', 'w').close()
-        ...     print(seq.would_overwrite_file)
-        False
-        False
-        """
-        if self.filetype_ext == 'nc':
-            return False
-        elif os.path.exists(self.filepath_ext):
-            return True
-        return False
-
     def average_series(self, *args, **kwargs) -> InfoArray:
         """Average the actual time series of the |Variable| object for all
         time points.

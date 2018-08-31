@@ -67,13 +67,15 @@ class FileManager(object):
     """Base class for the more specific file managers implemented in
     module |filetools|."""
 
-    _BASEDIR = 'must_be_overwritten'
+    _BASEDIR: str
 
     def __init__(self):
         self.check_exists = True
         self._projectdir = None
-        if pub.projectname:
+        try:
             self.projectdir = pub.projectname
+        except RuntimeError:
+            pass
         self._currentdir = None
         self._defaultdir = None
         self.createdirs = False
@@ -618,215 +620,203 @@ class SequenceManager(FileManager):
     Working with a complete HydPy project, one often does not use the
     |SequenceManager|  directly, except one wishes to load data from
     or store data to directories that differ from the default settings.
-    In the following examples, we partially set up a project manually,
-    and show the essential features of class |SequenceManager|.
+    In the following examples, show the essential features of class
+    |SequenceManager| based on the example project configuratio defined
+    by function |prepare_io_example_1|:
 
-    Firstly, we define project called `test_project`, set a short
-    initialisation period and prepare a |SequenceManager| object:
+    (1) We prepare the project and select one 0-dimensional sequence of type
+    |Sim| and one 1-dimensional sequence of type |lland_fluxes.NKor| for the
+    following examples:
 
-    >>> from hydpy import pub, Timegrids, Timegrid
-    >>> pub.projectname = 'test_project'
-    >>> pub.timegrids = Timegrids(Timegrid('01.01.2000',
-    ...                                    '05.01.2000',
-    ...                                    '1d'))
-    >>> from hydpy.core.filetools import SequenceManager
-    >>> pub.sequencemanager = SequenceManager()
+    >>> from hydpy.core.examples import prepare_io_example_1
+    >>> nodes, elements = prepare_io_example_1()
+    >>> sim = nodes.node2.sequences.sim
+    >>> nkor = elements.element2.model.sequences.fluxes.nkor
 
-    Allowing the |SequenceManager| object to create missing directories
-    is not the default, but more convenient for the following examples:
+    (2) We store the time series data of both sequences in ASCII files
+    (Methods |SequenceManager.save_file| and |IOSequence.save_ext| are
+    interchangeable here.  The last one is only a convenience function
+    for the first one):
 
-    >>> pub.sequencemanager.createdirs = True
-
-    Secondly, we prepare a 0-dimensional |IOSequence| object called
-    `test_sequence` and assign a small time series to it:
-
-    >>> from hydpy.core.sequencetools import ModelSequence
-    >>> class Seq0(ModelSequence):
-    ...     NDIM = 0
-    ...     rawfilename = 'test_sequence'
-    >>> seq0 = Seq0()
-    >>> seq0.activate_ram()
-    >>> seq0.series = 1.0, 2.0, 3.0, 4.0
-
-    Now we can store this time series in an ASCII file:
-
-    >>> seq0.filetype_ext = 'asc'
+    >>> from hydpy import pub
+    >>> pub.sequencemanager.generalfiletype = 'asc'
     >>> from hydpy import TestIO
     >>> with TestIO():
-    ...     pub.sequencemanager.save_file(seq0)
+    ...     pub.sequencemanager.save_file(sim)
+    ...     nkor.save_ext()
 
-    To check that this was successful, we can load the file content from
-    the standard output directory and print it:
+    (3) To check that this was successful, we can load the file content from
+    the output directory defined by |prepare_io_example_1| and print it:
 
     >>> import os
     >>> from hydpy import round_
-    >>> def print_file(filename):
-    ...     path = os.path.join(
-    ...         'test_project', 'sequences', 'output', filename)
+    >>> def print_file(path, filename):
+    ...     path = os.path.join(path, filename)
     ...     with TestIO():
     ...         with open(path) as file_:
     ...             lines = file_.readlines()
     ...     print(''.join(lines[:3]), end='')
     ...     for line in lines[3:]:
     ...         round_([float(x) for x in line.split()])
-    >>> print_file('test_sequence.asc')
+    >>> print_file('nodepath', 'node2_sim_t.asc')
     Timegrid('2000-01-01 00:00:00+01:00',
              '2000-01-05 00:00:00+01:00',
              '1d')
-    1.0
-    2.0
-    3.0
-    4.0
+    64.0
+    65.0
+    66.0
+    67.0
+    >>> print_file('outputpath', 'element2_flux_nkor.asc')
+    Timegrid('2000-01-01 00:00:00+01:00',
+             '2000-01-05 00:00:00+01:00',
+             '1d')
+    16.0, 17.0
+    18.0, 19.0
+    20.0, 21.0
+    22.0, 23.0
 
-    To show that reloading the data works, we first set the values of
-    the internal time series of the |IOSequence| object to zero:
+    (4) To show that reloading the data works, we set the values of the
+    time series of both objects to zero and recover the original values
+    afterwards:
 
-    >>> seq0.series = 0.
-    >>> seq0.series
+    >>> sim.series = 0.0
+    >>> sim.series
     InfoArray([ 0.,  0.,  0.,  0.])
+    >>> nkor.series = 0.0
+    >>> nkor.series
+    InfoArray([[ 0.,  0.],
+               [ 0.,  0.],
+               [ 0.,  0.],
+               [ 0.,  0.]])
     >>> with TestIO():
-    ...     pub.sequencemanager.load_file(seq0)
-    >>> seq0.series
-    InfoArray([ 1.,  2.,  3.,  4.])
+    ...     pub.sequencemanager.load_file(sim)
+    ...     nkor.load_ext()
+    >>> sim.series
+    InfoArray([ 64.,  65.,  66.,  67.])
+    >>> nkor.series
+    InfoArray([[ 16.,  17.],
+               [ 18.,  19.],
+               [ 20.,  21.],
+               [ 22.,  23.]])
 
-    Wrongly formatted ASCII files should result in understandable error
+    (5) Wrongly formatted ASCII files should result in understandable error
     messages:
 
-    >>> path = os.path.join(
-    ...     'test_project', 'sequences', 'output', 'test_sequence.asc')
+    >>> path = os.path.join('nodepath', 'node2_sim_t.asc')
     >>> with TestIO():
     ...     with open(path) as file_:
     ...         right = file_.read()
     ...     wrong = right.replace('Timegrid', 'timegrid')
     ...     with open(path, 'w') as file_:
     ...         _ = file_.write(wrong)
-    >>> with TestIO(clear_all=True):
-    ...     pub.sequencemanager.load_file(seq0)
+    >>> with TestIO():
+    ...     pub.sequencemanager.load_file(sim)
     Traceback (most recent call last):
     ...
-    NameError: While trying to load the external data of sequence \
-`seq0`, the following error occurred: name 'timegrid' is not defined
+    NameError: While trying to load the external data of sequence `sim` of \
+node `node2`, the following error occurred: name 'timegrid' is not defined
 
-    Alternatively, one can call method |IOSequence.save_ext| of the
-    respective |IOSequence| object, which itself calls
-    |SequenceManager.save_file|.  We show this for a 1-dimensional
-    sequence:
+    (6) By default, overwriting existing time series files is disabled:
 
-    >>> class Seq1(ModelSequence):
-    ...     NDIM = 1
-    ...     rawfilename = 'test_sequence'
-    >>> seq1 = Seq1()
-    >>> seq1.shape = (3,)
-    >>> seq1.filetype_ext = 'asc'
-    >>> seq1.activate_ram()
-    >>> seq1.series = [[1.0, 2.0, 3.0],
-    ...               [2.0, 3.0, 4.0],
-    ...               [3.0, 4.0, 5.0],
-    ...               [4.0, 5.0, 6.0]]
     >>> with TestIO():
-    ...     seq1.save_ext()
-    >>> print_file('test_sequence.asc')
-    Timegrid('2000-01-01 00:00:00+01:00',
-             '2000-01-05 00:00:00+01:00',
-             '1d')
-    1.0, 2.0, 3.0
-    2.0, 3.0, 4.0
-    3.0, 4.0, 5.0
-    4.0, 5.0, 6.0
+    ...     sim.save_ext()
+    Traceback (most recent call last):
+    ...
+    OSError: While trying to save the external data of sequence `sim` of \
+node `node2`, the following error occurred: Sequence `sim` of node `node2` \
+is not allowed to overwrite the existing file `...`.
+    >>> pub.sequencemanager.generaloverwrite = True
+    >>> with TestIO():
+    ...     sim.save_ext()
 
-    If a sequence comes with a weighting parameter referenced by
+    (7) When a sequence comes with a weighting parameter referenced by
     |property| |Variable.refweights|, one can save the averaged time
     series by using function |IOSequence.save_mean|:
 
-    >>> from hydpy import numpy
-    >>> from hydpy.core.parametertools import MultiParameter
-    >>> class Weights(MultiParameter):
-    ...     NDIM = 1
-    ...     value = numpy.array([1.0, 1.0, 1.0])
-    >>> Seq1.refweights = Weights()
     >>> with TestIO():
-    ...     seq1.save_mean()
-    >>> print_file('test_sequence.asc')
+    ...     nkor.save_mean()
+    >>> print_file('outputpath', 'element2_flux_nkor_mean.asc')
     Timegrid('2000-01-01 00:00:00+01:00',
              '2000-01-05 00:00:00+01:00',
              '1d')
-    2.0
-    3.0
-    4.0
-    5.0
+    16.5
+    18.5
+    20.5
+    22.5
 
-    Method |IOSequence.save_mean| is strongly related with method
+    (8) Method |IOSequence.save_mean| is strongly related with method
     |IOSequence.average_series|, meaning one can pass the same arguments.
-    One example:
+    We show this by changing the land use classes of `element2` (parameter
+    |lland_control.Lnk|) to field (|lland_constants.ACKER|) and water
+    (|lland_constants.WASSER|), and averaging the values of sequence
+    |lland_fluxes.NKor| for the single area of type field only:
 
-    >>> from hydpy.core import masktools
-    >>> class TestMask(masktools.DefaultMask):
-    ...     @classmethod
-    ...     def new(cls, variable, **kwargs):
-    ...         return cls.array2mask([True, True, False])
-    >>> class Masks(masktools.Masks):
-    ...     CLASSES = (TestMask,)
-    >>> Seq1.availablemasks = Masks(None)
+    >>> from hydpy.models.lland_v1 import ACKER, WASSER
+    >>> nkor.subseqs.seqs.model.parameters.control.lnk = ACKER, WASSER
     >>> with TestIO():
-    ...     seq1.save_mean('testmask')
-    >>> print_file('test_sequence.asc')
+    ...     nkor.save_mean('acker')
+    >>> print_file('outputpath', 'element2_flux_nkor_mean.asc')
     Timegrid('2000-01-01 00:00:00+01:00',
              '2000-01-05 00:00:00+01:00',
              '1d')
-    1.5
-    2.5
-    3.5
-    4.5
+    16.0
+    18.0
+    20.0
+    22.0
 
-    Another option is to store data using |numpy| binary files, which
+    (9) Another option is to store data using |numpy| binary files, which
     is a good option for saving computation times, but a bad option for
     sharing data with colleagues:
 
-    >>> seq0.filetype_ext = 'npy'
+    >>> pub.sequencemanager.generalfiletype = 'npy'
     >>> with TestIO():
-    ...     pub.sequencemanager.save_file(seq0)
+    ...     sim.save_ext()
+    ...     nkor.save_ext()
 
-    The time information (without time zone information) is available
+    (10) The time information (without time zone information) is available
     within the first thirteen entries:
 
-    >>> path = os.path.join(
-    ...     'test_project', 'sequences', 'output', 'test_sequence.npy')
+    >>> path = os.path.join('nodepath', 'node2_sim_t.npy')
     >>> from hydpy import numpy, print_values
     >>> with TestIO():
     ...     print_values(numpy.load(path))
     2000.0, 1.0, 1.0, 0.0, 0.0, 0.0, 2000.0, 1.0, 5.0, 0.0, 0.0, 0.0,
-    86400.0, 1.0, 2.0, 3.0, 4.0
+    86400.0, 64.0, 65.0, 66.0, 67.0
 
-    Reloading the data works as expected:
+    (11) Reloading the data works as expected:
 
-    >>> seq0.series = 0.
-    >>> seq0.series
-    InfoArray([ 0.,  0.,  0.,  0.])
+    >>> sim.series = 0.0
+    >>> nkor.series = 0.0
     >>> with TestIO():
-    ...     pub.sequencemanager.load_file(seq0)
-    >>> seq0.series
-    InfoArray([ 1.,  2.,  3.,  4.])
+    ...     sim.load_ext()
+    ...     nkor.load_ext()
+    >>> sim.series
+    InfoArray([ 64.,  65.,  66.,  67.])
+    >>> nkor.series
+    InfoArray([[ 16.,  17.],
+               [ 18.,  19.],
+               [ 20.,  21.],
+               [ 22.,  23.]])
 
-    Using the ASCII format, we showed error messages related to loading
-    data above. Here we show an error related to saving data:
+    (12) Writing mean vlues into |numpy| binary files is also supported:
 
-    >>> seq0.deactivate_ram()
+    >>> import numpy
+    >>> with TestIO():
+    ...     nkor.save_mean('wasser')
+    ...     numpy.load(os.path.join('outputpath',
+    ...                             'element2_flux_nkor_mean.npy'))[-4:]
+    array([ 17.,  19.,  21.,  23.])
+
+    (13) Generally, trying to load data for "not activated" sequences
+    results in the following error message:
+
+    >>> nkor.deactivate_ram()
     >>> with TestIO(clear_all=True):
-    ...     pub.sequencemanager.save_file(seq0)
+    ...     pub.sequencemanager.save_file(nkor)
     Traceback (most recent call last):
     ...
-    RuntimeError: Sequence `seq0` is not requested to make any internal \
-data available to the user.
-
-    Of course, one can also write mean values into |numpy| binary files:
-
-    >>> seq1.filetype_ext = 'npy'
-    >>> with TestIO():
-    ...     seq1.save_mean(seq1.availablemasks.testmask)
-    >>> with TestIO():
-    ...     print_values(numpy.load(path))
-    2000.0, 1.0, 1.0, 0.0, 0.0, 0.0, 2000.0, 1.0, 5.0, 0.0, 0.0, 0.0,
-    86400.0, 1.5, 2.5, 3.5, 4.5
+    RuntimeError: Sequence `nkor` of element `element2` is not requested \
+to make any internal data available to the user.
 
     The third option to store data in netCDF files, which is explained
     separately in the documentation on class |NetCDFInterface|.
@@ -836,48 +826,56 @@ data available to the user.
     _BASEDIR = 'sequences'
 
     inputdir = _DescriptorDir('input', 'input')
-    outputdir = _DescriptorDir('output', 'output')
+    fluxdir = _DescriptorDir('output', 'flux')
+    statedir = _DescriptorDir('output', 'state')
     nodedir = _DescriptorDir('node', 'node')
     tempdir = _DescriptorDir('temp', 'temporary')
     generaldir = _GeneralDescriptor(inputdir,
-                                    outputdir,
+                                    fluxdir,
+                                    statedir,
                                     nodedir,
                                     tempdir)
 
     inputfiletype = _DescriptorType('npy', 'input')
-    outputfiletype = _DescriptorType('npy', 'output')
+    fluxfiletype = _DescriptorType('npy', 'flux')
+    statefiletype = _DescriptorType('npy', 'state')
     nodefiletype = _DescriptorType('npy', 'node')
     tempfiletype = _DescriptorType('npy', 'temporary')
     generalfiletype = _GeneralDescriptor(inputfiletype,
-                                         outputfiletype,
+                                         fluxfiletype,
+                                         statefiletype,
                                          nodefiletype,
                                          tempfiletype)
 
     inputoverwrite = _DescriptorOverwrite(False, 'input')
-    outputoverwrite = _DescriptorOverwrite(False, 'output')
-    simoverwrite = _DescriptorOverwrite(False, 'sim node')
-    obsoverwrite = _DescriptorOverwrite(False, 'obs node')
+    fluxoverwrite = _DescriptorOverwrite(False, 'flux')
+    stateoverwrite = _DescriptorOverwrite(False, 'state')
+    nodeoverwrite = _DescriptorOverwrite(False, 'node')
     tempoverwrite = _DescriptorOverwrite(False, 'temporary')
     generaloverwrite = _GeneralDescriptor(inputoverwrite,
-                                          outputoverwrite,
-                                          simoverwrite,
-                                          obsoverwrite,
+                                          fluxoverwrite,
+                                          stateoverwrite,
+                                          nodeoverwrite,
                                           tempoverwrite)
 
-    inputpath = _DescriptorPath('inputdir', 'input')
-    outputpath = _DescriptorPath('outputdir', 'output')
-    nodepath = _DescriptorPath('nodedir', 'node')
-    temppath = _DescriptorPath('tempdir', 'temporary')
-    generalpath = _GeneralDescriptor(inputpath,
-                                     outputpath,
-                                     nodepath,
-                                     temppath)
+    inputdirpath = _DescriptorPath('inputdir', 'input')
+    fluxdirpath = _DescriptorPath('fluxdir', 'flux')
+    statedirpath = _DescriptorPath('statedir', 'state')
+    nodedirpath = _DescriptorPath('nodedir', 'node')
+    tempdirpath = _DescriptorPath('tempdir', 'temporary')
+    generaldirpath = _GeneralDescriptor(inputdirpath,
+                                        fluxdirpath,
+                                        statedirpath,
+                                        nodedirpath,
+                                        tempdirpath)
 
     inputaggregation = _DescriptorAggregate('none', 'input')
-    outputaggregation = _DescriptorAggregate('none', 'output')
+    fluxaggregation = _DescriptorAggregate('none', 'flux')
+    stateaggregation = _DescriptorAggregate('none', 'state')
     nodeaggregation = _DescriptorAggregate('none', 'node')
     generalaggregation = _GeneralDescriptor(inputaggregation,
-                                            outputaggregation,
+                                            fluxaggregation,
+                                            stateaggregation,
                                             nodeaggregation)
 
     def __init__(self):
@@ -927,31 +925,41 @@ data available to the user.
         if array is None:
             array = sequence.aggregate_series()
         try:
-            if sequence.filetype_ext == 'npy':
-                self._save_npy(sequence, array)
-            elif sequence.filetype_ext == 'asc':
-                self._save_asc(sequence, array)
-            elif sequence.filetype_ext == 'nc':
+            if sequence.filetype_ext == 'nc':
                 self._save_nc(sequence, array)
+            else:
+                filepath = sequence.filepath_ext
+                if ((array is not None) and
+                        (array.info['type'] != 'unmodified')):
+                    filepath = (f'{filepath[:-4]}_{array.info["type"]}'
+                                f'{filepath[-4:]}')
+                if not sequence.overwrite_ext and os.path.exists(filepath):
+                    raise OSError(
+                        f'Sequence {objecttools.devicephrase(sequence)} '
+                        f'is not allowed to overwrite the existing file '
+                        f'`{sequence.filepath_ext}`.')
+                if sequence.filetype_ext == 'npy':
+                    self._save_npy(array, filepath)
+                elif sequence.filetype_ext == 'asc':
+                    self._save_asc(array, filepath)
         except BaseException:
             objecttools.augment_excmessage(
                 'While trying to save the external data of sequence %s'
                 % objecttools.devicephrase(sequence))
 
     @staticmethod
-    def _save_npy(sequence, array):
-        numpy.save(sequence.filepath_ext,
-                   pub.timegrids.init.array2series(array))
+    def _save_npy(array, filepath):
+        numpy.save(filepath, pub.timegrids.init.array2series(array))
 
     @staticmethod
-    def _save_asc(sequence, array):
-        with open(sequence.filepath_ext, 'w') as file_:
+    def _save_asc(array, filepath):
+        with open(filepath, 'w') as file_:
             file_.write(
                 pub.timegrids.init.assignrepr(
                     prefix='',
                     style='iso2',
                     utcoffset=pub.options.utcoffset) + '\n')
-        with open(sequence.filepath_ext, 'ab') as file_:
+        with open(filepath, 'ab') as file_:
             numpy.savetxt(file_, array, delimiter='\t')
 
     def _save_nc(self, sequence, array):

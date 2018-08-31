@@ -29,11 +29,13 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
 
     (2) Prepares a plain IO testing directory structure:
 
-    >>> pub.sequencemanager.inputpath
+    >>> pub.sequencemanager.inputdirpath
     'inputpath'
-    >>> pub.sequencemanager.outputpath
+    >>> pub.sequencemanager.fluxdirpath
     'outputpath'
-    >>> pub.sequencemanager.nodepath
+    >>> pub.sequencemanager.statedirpath
+    'outputpath'
+    >>> pub.sequencemanager.nodedirpath
     'nodepath'
     >>> import os
     >>> from hydpy import TestIO
@@ -99,9 +101,10 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     pub.sequencemanager = SequenceManager()
     pub.sequencemanager.createdirs = True
     with TestIO():
-        pub.sequencemanager.inputpath = 'inputpath'
-        pub.sequencemanager.outputpath = 'outputpath'
-        pub.sequencemanager.nodepath = 'nodepath'
+        pub.sequencemanager.inputdirpath = 'inputpath'
+        pub.sequencemanager.fluxdirpath = 'outputpath'
+        pub.sequencemanager.statedirpath = 'outputpath'
+        pub.sequencemanager.nodedirpath = 'nodepath'
 
     from hydpy import Timegrid, Timegrids
     pub.timegrids = Timegrids(Timegrid('01.01.2000',

@@ -1,4 +1,5 @@
 hydpy
+bokeh
 Cython
 matplotlib
 numpy

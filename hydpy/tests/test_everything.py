@@ -140,7 +140,7 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                         opt.warntrim(False), \
                         Par.parameterstep.delete(), \
                         Par.simulationstep.delete():
-                    pub.timegrids = None
+                    del pub.timegrids
                     devicetools.Node.clear_registry()
                     devicetools.Element.clear_registry()
                     testtools.IntegrationTest.plotting_options = \

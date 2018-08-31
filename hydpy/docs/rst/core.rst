@@ -81,6 +81,7 @@ standardize writing :ref:`HydPy` code.
    parametertools
    printtools
    propertytools
+   pubtools
    selectiontools
    sequencetools
    testtools

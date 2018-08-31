@@ -134,8 +134,8 @@ class Tester(object):
                         opt.warntrim(False), \
                         par.parameterstep.delete(), \
                         par.simulationstep.delete():
-                    timegrids = pub.timegrids
-                    pub.timegrids = None
+                    timegrids = pub.get('timegrids')
+                    del pub.timegrids
                     nodes = devicetools.Node._registry.copy()
                     elements = devicetools.Element._registry.copy()
                     devicetools.Node.clear_registry()
@@ -417,8 +417,7 @@ class IntegrationTest(Test):
     @property
     def raw_first_col_strings(self):
         """The raw date strings of the first column, except the header."""
-        return tuple(datetime.strftime(self.dateformat)
-                     for datetime in self._datetimes)
+        return tuple(_.strftime(self.dateformat) for _ in self._datetimes)
 
     def _getdateformat(self):
         """Format string for printing dates in the first column of the table.
@@ -465,7 +464,7 @@ class IntegrationTest(Test):
                 node.deploymode = 'oldsim'
             sim = node.sequences.sim
             sim.ramflag = True
-            sim._set_array(numpy.zeros(len(pub.timegrids.init), dtype=float))
+            sim.zero_int()
 
     def prepare_input_model_sequences(self):
         """Configure the input sequences of the model in a manner that allows
@@ -473,7 +472,7 @@ class IntegrationTest(Test):
         subseqs = getattr(self.element.model.sequences, 'inputs', ())
         for seq in subseqs:
             seq.ramflag = True
-            seq._set_array(numpy.zeros(len(pub.timegrids.init), dtype=float))
+            seq.zero_int()
 
     def extract_print_sequences(self):
         """Return a list of all input, flux and state sequences of the model
@@ -732,9 +731,9 @@ class UnitTest(Test):
         else:
             model = type(self.model)
             for group_name in model._METHOD_GROUPS:
-                for function in getattr(model, group_name, ()):
-                    if function.__name__ == self.method.__name__:
-                        return function.__doc__
+                for function_ in getattr(model, group_name, ()):
+                    if function_.__name__ == self.method.__name__:
+                        return function_.__doc__
 
     def extract_print_parameters_and_sequences(self):
         """Return a list of all parameter and sequences of the model.
@@ -995,7 +994,7 @@ def make_abc_testable(abstract: type) -> type:
     should not be) instantiated:
 
     >>> from hydpy.core.netcdftools import NetCDFVariableBase
-    >>> ncvar = NetCDFVariableBase()(False, False)
+    >>> ncvar = NetCDFVariableBase()
     Traceback (most recent call last):
     ...
     TypeError: Can't instantiate abstract class NetCDFVariableBase with \

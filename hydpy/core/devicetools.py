@@ -1717,27 +1717,20 @@ class Nodes(Devices):
         """Call method |IOSequence.save_ext| of all  "memory flag activated"
         |NodeSequence| objects storing simulated  values handled (indirectly)
         by each |Node| object."""
-        self._save_nodeseries('sim', pub.sequencemanager.simoverwrite)
+        self._save_nodeseries('sim')
 
     @printtools.print_progress
     def save_obsseries(self):
         """Call method |IOSequence.save_ext| of all "memory flag activated"
         |NodeSequence| objects storing observed values handled (indirectly)
         by each |Node| object."""
-        self._save_nodeseries('obs', pub.sequencemanager.obsoverwrite)
+        self._save_nodeseries('obs')
 
-    def _save_nodeseries(self, seqname, overwrite):
+    def _save_nodeseries(self, seqname):
         for node in printtools.progressbar(self):
             seq = getattr(node.sequences, seqname)
             if seq.memoryflag:
-                if overwrite or not os.path.exists(seq.filepath_ext):
-                    seq.save_ext()
-                else:
-                    warnings.warn(
-                        'Due to the argument `overwrite` being `False` '
-                        'it is not allowed to overwrite the already '
-                        'existing file `%s`.'
-                        % seq.filepath_ext)
+                seq.save_ext()
 
     @printtools.print_progress
     def load_allseries(self):
@@ -1926,36 +1919,29 @@ class Elements(Devices):
         """Call method |IOSequence.save_ext| of all "memory flag activated"
         |InputSequence| objects handled (indirectly) by each |Element|
         object."""
-        self._save_modelseries('inputs', pub.sequencemanager.inputoverwrite)
+        self._save_modelseries('inputs')
 
     @printtools.print_progress
     def save_fluxseries(self):
         """Call method |IOSequence.save_ext| of all "memory flag activated"
         |FluxSequence| objects handled (indirectly) by each |Element|
         object."""
-        self._save_modelseries('fluxes', pub.sequencemanager.outputoverwrite)
+        self._save_modelseries('fluxes')
 
     @printtools.print_progress
     def save_stateseries(self):
         """Call method |IOSequence.save_ext| of all "memory flag activated"
         |StateSequence| objects handled (indirectly) by each |Element|
         object."""
-        self._save_modelseries('states', pub.sequencemanager.outputoverwrite)
+        self._save_modelseries('states')
 
-    def _save_modelseries(self, name_subseqs, overwrite):
+    def _save_modelseries(self, name_subseqs):
         for element in printtools.progressbar(self):
             sequences = element.model.sequences
             subseqs = getattr(sequences, name_subseqs, ())
             for seq in subseqs:
                 if seq.memoryflag:
-                    if overwrite or not seq.would_overwrite_file:
-                        seq.save_ext()
-                    else:
-                        warnings.warn(
-                            'Due to the argument `overwrite` being `False` '
-                            'it is not allowed to overwrite the already '
-                            'existing file `%s`.'
-                            % seq.filepath_ext)
+                    seq.save_ext()
 
     @printtools.print_progress
     def load_allseries(self):

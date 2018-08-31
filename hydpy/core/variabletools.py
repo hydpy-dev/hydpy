@@ -157,6 +157,8 @@ def _compare_variables_function_generator(
     """
     def comparison_function(self, other):
         """Wrapper for comparison functions for class |Variable|."""
+        if self is other:
+            return method_string in ('__eq__', '__le__', '__ge__')
         method = getattr(self.value, method_string)
         try:
             if isinstance(other, abctools.VariableABC):
@@ -882,6 +884,9 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 
     def __round__(self, ndigits=0):
         return numpy.round(self.value, ndigits)
+
+    def __hash__(self):
+        return id(self)
 
     def commentrepr(self):
         """Returns a list with comments, e.g. for making string

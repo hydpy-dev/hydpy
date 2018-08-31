@@ -27,28 +27,29 @@ class Indexer(object):
         self._timeofyear = None
         self._timeofyear_hash = hash(None)
 
-    def _getmonthofyear(self):
+    @property
+    def monthofyear(self):
         """Month of the year index (January = 0...)."""
-        from hydpy.pub import timegrids
+        hash_timegrids = hash(pub.get('timegrids'))
         if ((self._monthofyear is None) or
-                (hash(timegrids) != self._monthofyear_hash)):
+                (hash_timegrids != self._monthofyear_hash)):
             def monthofyear(date):
                 return date.month-1
             self._monthofyear = self._calcidxs(monthofyear)
-            self._monthofyear_hash = hash(timegrids)
+            self._monthofyear_hash = hash_timegrids
         return self._monthofyear
 
-    def _setmonthofyear(self, values):
-        from hydpy.pub import timegrids
+    @monthofyear.setter
+    def monthofyear(self, values):
         self._monthofyear = self._convertandtest(values, 'monthofyear')
-        self._monthofyear_hash = hash(timegrids)
+        self._monthofyear_hash = hash(pub.get('timegrids'))
 
-    def _delmonthofyear(self):
+    @monthofyear.deleter
+    def monthofyear(self):
         self._monthofyear = None
 
-    monthofyear = property(_getmonthofyear, _setmonthofyear, _delmonthofyear)
-
-    def _getdayofyear(self):
+    @property
+    def dayofyear(self):
         """Day of the year index (the first of January = 0...).
 
         For reasons of consistency between leap years and non-leap years,
@@ -70,7 +71,7 @@ class Indexer(object):
         array([57, 58, 60, 61])
         """
         if ((self._dayofyear is None) or
-                (hash(pub.timegrids) != self._dayofyear_hash)):
+                (hash(pub.get('timegrids')) != self._dayofyear_hash)):
             def dayofyear(date):
                 return (date.dayofyear-1 +
                         ((date.month > 2) and (not date.leapyear)))
@@ -78,16 +79,17 @@ class Indexer(object):
             self._dayofyear_hash = hash(pub.timegrids)
         return self._dayofyear
 
-    def _setdayofyear(self, values):
+    @dayofyear.setter
+    def dayofyear(self, values):
         self._dayofyear = self._convertandtest(values, 'dayofyear')
-        self._dayofyear_hash = hash(pub.timegrids)
+        self._dayofyear_hash = hash(pub.get('timegrids'))
 
-    def _deldayofyear(self):
+    @dayofyear.deleter
+    def dayofyear(self):
         self._dayofyear = None
 
-    dayofyear = property(_getdayofyear, _setdayofyear, _deldayofyear)
-
-    def _gettimeofyear(self):
+    @property
+    def timeofyear(self):
         """Time of the year index (first simulation step of each year = 0...).
 
         The property |Indexer.timeofyear| is best explained through
@@ -133,13 +135,14 @@ class Indexer(object):
         leap year.
         """
         if ((self._timeofyear is None) or
-                (hash(pub.timegrids) != self._timeofyear_hash)):
-            if pub.timegrids is None:
+                (hash(pub.get('timegrids')) != self._timeofyear_hash)):
+            timegrids = pub.get('timegrids')
+            if timegrids is None:
                 refgrid = None
             else:
                 refgrid = timetools.Timegrid(timetools.Date('2000.01.01'),
                                              timetools.Date('2001.01.01'),
-                                             pub.timegrids.stepsize)
+                                             timegrids.stepsize)
 
             def timeofyear(date):
                 date = copy.deepcopy(date)
@@ -147,17 +150,17 @@ class Indexer(object):
                 return refgrid[date]
 
             self._timeofyear = self._calcidxs(timeofyear)
-            self._timeofyear_hash = hash(pub.timegrids)
+            self._timeofyear_hash = hash(pub.get('timegrids'))
         return self._timeofyear
 
-    def _settimeofyear(self, values):
+    @timeofyear.setter
+    def timeofyear(self, values):
         self._timeofyear = self._convertandtest(values, 'timeofyear')
-        self._timeofyear_hash = hash(pub.timegrids)
+        self._timeofyear_hash = hash(pub.get('timegrids'))
 
-    def _deltimeofyear(self):
+    @timeofyear.deleter
+    def timeofyear(self):
         self._timeofyear = None
-
-    timeofyear = property(_gettimeofyear, _settimeofyear, _deltimeofyear)
 
     def _convertandtest(self, values, name):
         """Try to convert the given values to a |numpy| |numpy.ndarray| and
@@ -177,8 +180,9 @@ class Indexer(object):
                 '1-dimensional.  However, the given value has interpreted '
                 'as a %d-dimensional object.'
                 % (name, array.ndim))
-        if pub.timegrids is not None:
-            if len(array) != len(pub.timegrids.init):
+        timegrids = pub.get('timegrids')
+        if timegrids is not None:
+            if len(array) != len(timegrids.init):
                 raise ValueError(
                     'The %s` index array of an Indexer object must have a '
                     'number of entries fitting to the initialization time '
@@ -186,7 +190,7 @@ class Indexer(object):
                     'interpreted to be of length %d and the length of the '
                     'Timegrid object representing the actual initialization '
                     'time period is %d.'
-                    % (name, len(array), len(pub.timegrids.init)))
+                    % (name, len(array), len(timegrids.init)))
         return array
 
     def _calcidxs(self, func):
@@ -194,7 +198,7 @@ class Indexer(object):
         and the |Timegrids| object handled by module |pub|.  Raise a
         |RuntimeError| if the latter is not available.
         """
-        if pub.timegrids is None:
+        if pub.get('timegrids') is None:
             raise RuntimeError(
                 'An Indexer object has been asked for an %s array.  Such an '
                 'array has neither been determined yet nor can it be '

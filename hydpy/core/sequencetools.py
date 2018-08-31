@@ -586,6 +586,13 @@ class _OverwriteProperty(_IOProperty):
 class IOSequence(Sequence):
     """Base class for sequences with input/output functionalities.
 
+    The |IOSequence| subclasses |InputSequence|, |FluxSequence|,
+    |StateSequence|, and |NodeSequence| all implement similar
+    special properties, which configure the processes of reading
+    and writing time series files.  In the following, property
+    `filetype_ext` is taken as an example to explain how to
+    handle them:
+
     Normally, each sequence queries its current "external" file type
     from the |SequenceManager| object stored in module |pub|:
 
@@ -593,10 +600,11 @@ class IOSequence(Sequence):
     >>> from hydpy.core.filetools import SequenceManager
     >>> pub.sequencemanager = SequenceManager()
 
-    Depending if the actual sequence is logged as an |InputSequenceABC|,
-    an |NodeSequenceABC|, or not, either
-    |SequenceManager.inputfiletype|, |SequenceManager.nodefiletype|,
-    or |SequenceManager.outputfiletype| are queried:
+    Depending if the actual sequence derived from |InputSequence|,
+    |FluxSequence|,  |StateSequence|, or |NodeSequence|, either
+    |SequenceManager.inputfiletype|, |SequenceManager.fluxfiletype|,
+    |SequenceManager.statefiletype|, or |SequenceManager.nodefiletype|
+    are queried:
 
     >>> pub.sequencemanager.inputfiletype = 'npy'
     >>> pub.sequencemanager.fluxfiletype = 'asc'
@@ -609,8 +617,8 @@ class IOSequence(Sequence):
     >>> st.NodeSequence().filetype_ext
     'nc'
 
-    Alternatively, you can specify |IOSequence.filetype_ext| for each
-    sequence object individually:
+    Alternatively, you can specify `filetype_ext` for each sequence
+    object individually:
 
     >>> seq = st.InputSequence()
     >>> seq.filetype_ext
@@ -632,14 +640,6 @@ class IOSequence(Sequence):
     RuntimeError: For sequence `inputsequence` attribute filetype_ext \
 cannot be determined.  Either set it manually or prepare \
 `pub.sequencemanager` correctly.
-
-
-    |IOSequence| is partly abstract, which is why we feign it to be
-    concrete for simplifying testing its different methods:
-
-    >>> from hydpy.core.sequencetools import IOSequence
-    >>> from hydpy import dummies, make_abc_testable
-    >>> dummies.IOSequence_ = make_abc_testable(IOSequence)
     """
 
     filetype_ext: str
@@ -673,7 +673,7 @@ cannot be determined.  Either set it manually or prepare \
         """Complete filename of the external data file.
 
         The "external" filename consists of |IOSequence.rawfilename| and
-        of |IOSequence.filetype_ext|.  For simplicity, we define add the
+        of |FluxSequence.filetype_ext|.  For simplicity, we define add the
         attribute `rawfilename` to the initialized sequence object in the
         following example:
 
@@ -770,7 +770,7 @@ or prepare `pub.sequencemanager` correctly.
         """Absolute path to the external data file.
 
         The path pointing to the "external" file consists of
-        |IOSequence.dirpath_ext| and |IOSequence.filename_ext|.  For
+        |FluxSequence.dirpath_ext| and |IOSequence.filename_ext|.  For
         simplicity, we define both manually in the following example:
 
         >>> from hydpy.core.sequencetools import IOSequence
@@ -1156,13 +1156,12 @@ or prepare `pub.sequencemanager` correctly.
         |IOSequence| objects the result of |IOSequence.average_series|
         equals |IOSequence.series| itself:
 
-        >>> from hydpy import dummies
-        >>> import numpy
-        >>> class SoilMoisture(dummies.IOSequence_):
+        >>> from hydpy.core.sequencetools import IOSequence
+        >>> class SoilMoisture(IOSequence):
         ...     NDIM = 0
-        >>> from hydpy import make_abc_testable
-        >>> sm = make_abc_testable(SoilMoisture)()
+        >>> sm = SoilMoisture()
         >>> sm.activate_ram()
+        >>> import numpy
         >>> sm.series = numpy.array([190.0, 200.0, 210.0])
         >>> sm.average_series()
         InfoArray([ 190.,  200.,  210.])
@@ -1224,7 +1223,8 @@ or prepare `pub.sequencemanager` correctly.
 
     def aggregate_series(self, *args, **kwargs) -> InfoArray:
         """Aggregates time series data based on the actual
-        |IOSequence.aggregation_ext| attribute.
+        |FluxSequence.aggregation_ext| attribute of |IOSequence|
+        subclasses.
 
         We prepare some nodes and elements with the help of
         method |prepare_io_example_1| and select a 1-dimensional
@@ -1234,7 +1234,7 @@ or prepare `pub.sequencemanager` correctly.
         >>> nodes, elements = prepare_io_example_1()
         >>> seq = elements.element3.model.sequences.fluxes.nkor
 
-        If no |IOSequence.aggregation_ext| is `none`, the
+        If no |FluxSequence.aggregation_ext| is `none`, the
         original time series values are returned:
 
         >>> seq.aggregation_ext
@@ -1245,7 +1245,7 @@ or prepare `pub.sequencemanager` correctly.
                    [ 30.,  31.,  32.],
                    [ 33.,  34.,  35.]])
 
-        If no |IOSequence.aggregation_ext| is `mean`, function
+        If no |FluxSequence.aggregation_ext| is `mean`, function
         |IOSequence.aggregate_series| is called:
 
         >>> seq.aggregation_ext = 'mean'

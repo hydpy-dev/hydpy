@@ -178,6 +178,22 @@ if install:
             path_out = prep(hydpy.docs.rst.__path__[0], filename)
             source2target(path_in, path_out)
 
+    # Make all additional data files available.
+    print_('\nCopy data files:')
+    import hydpy.data
+    dir_input = os.path.join('hydpy', 'data')
+    dir_output = hydpy.data.__path__[0]
+    for subdir_input, dirs, files in os.walk(dir_input):
+        subdir_output = subdir_input.replace(dir_input, dir_output, 1)
+        if not os.path.exists(subdir_output):
+            os.makedirs(subdir_output)
+        for file_ in files:
+            filepath_input = os.path.join(subdir_input, file_)
+            filepath_output = os.path.join(subdir_output, file_)
+            if os.path.exists(filepath_output):
+                os.remove(filepath_output)
+            shutil.copy(filepath_input, subdir_output)
+
     # Make all additional figures available.
     print_('\nCopy figures:')
     import hydpy.docs.figs

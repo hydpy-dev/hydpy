@@ -883,6 +883,9 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
     def __round__(self, ndigits=0):
         return numpy.round(self.value, ndigits)
 
+    def __hash__(self):
+        return id(self)
+
     def commentrepr(self):
         """Returns a list with comments, e.g. for making string
         representations more informative.  When `pub.options.reprcomments`

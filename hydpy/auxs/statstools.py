@@ -25,10 +25,8 @@ def prepare_arrays(sim=None, obs=None, node=None, skip_nan=False):
     objects.  To set up an example for this, we define a initialization
     time period and prepare a |Node| object:
 
-    >>> from hydpy import pub, Timegrid, Timegrids, Node, round_, nan
-    >>> pub.timegrids = Timegrids(Timegrid('01.01.2000',
-    ...                                    '07.01.2000',
-    ...                                    '1d'))
+    >>> from hydpy import pub, Node, round_, nan
+    >>> pub.timegrids = '01.01.2000', '07.01.2000', '1d'
     >>> node = Node('test')
 
     Next, we assign values the `simulation` and the `observation` sequences
@@ -628,10 +626,8 @@ def evaluationtable(nodes, criteria, nodenames=None,
     First, we define two nodes with different simulation and observation
     data (see function |prepare_arrays| for some explanations):
 
-    >>> from hydpy import pub, Timegrid, Timegrids, Node, nan
-    >>> pub.timegrids = Timegrids(Timegrid('01.01.2000',
-    ...                                    '04.01.2000',
-    ...                                    '1d'))
+    >>> from hydpy import pub, Node, nan
+    >>> pub.timegrids = '01.01.2000', '04.01.2000', '1d'
     >>> nodes = Node('test1'), Node('test2')
     >>> for node in nodes:
     ...     node.prepare_simseries()

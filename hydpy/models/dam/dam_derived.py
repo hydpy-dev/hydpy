@@ -34,10 +34,7 @@ class RemoteDischargeSmoothPar(parametertools.MultiParameter):
     |smoothtools|:
 
     >>> from hydpy import pub
-    >>> from hydpy import Timegrids, Timegrid
-    >>> pub.timegrids = Timegrids(Timegrid('2000.01.01',
-    ...                                    '2000.01.03',
-    ...                                    '1d'))
+    >>> pub.timegrids = '2000.01.01', '2000.01.03', '1d'
     >>> from hydpy.models.dam import *
     >>> parameterstep()
     >>> remotedischargesafety(0.0)
@@ -67,10 +64,7 @@ class NearDischargeMinimumSmoothPar1(parametertools.MultiParameter):
     |smoothtools|:
 
     >>> from hydpy import pub
-    >>> from hydpy import Timegrids, Timegrid
-    >>> pub.timegrids = Timegrids(Timegrid('2000.01.01',
-    ...                                    '2000.01.03',
-    ...                                    '1d'))
+    >>> pub.timegrids = '2000.01.01', '2000.01.03', '1d'
     >>> from hydpy.models.dam import *
     >>> parameterstep()
     >>> neardischargeminimumtolerance(0.0)
@@ -102,10 +96,7 @@ class NearDischargeMinimumSmoothPar2(parametertools.MultiParameter):
     |smoothtools|:
 
     >>> from hydpy import pub
-    >>> from hydpy import Timegrids, Timegrid
-    >>> pub.timegrids = Timegrids(Timegrid('2000.01.01',
-    ...                                    '2000.01.03',
-    ...                                    '1d'))
+    >>> pub.timegrids = '2000.01.01', '2000.01.03', '1d'
     >>> from hydpy.models.dam import *
     >>> parameterstep()
     >>> neardischargeminimumtolerance(0.0)
@@ -191,10 +182,7 @@ class WaterLevelRelieveSmoothPar(parametertools.MultiParameter):
     |smoothtools|:
 
     >>> from hydpy import pub
-    >>> from hydpy import Timegrids, Timegrid
-    >>> pub.timegrids = Timegrids(Timegrid('2000.01.01',
-    ...                                    '2000.01.03',
-    ...                                    '1d'))
+    >>> pub.timegrids = '2000.01.01', '2000.01.03', '1d'
     >>> from hydpy.models.dam import *
     >>> parameterstep()
     >>> waterlevelrelievetolerance(0.0)
@@ -226,10 +214,7 @@ class WaterLevelSupplySmoothPar(parametertools.MultiParameter):
     |smoothtools|:
 
     >>> from hydpy import pub
-    >>> from hydpy import Timegrids, Timegrid
-    >>> pub.timegrids = Timegrids(Timegrid('2000.01.01',
-    ...                                    '2000.01.03',
-    ...                                    '1d'))
+    >>> pub.timegrids = '2000.01.01', '2000.01.03', '1d'
     >>> from hydpy.models.dam import *
     >>> parameterstep()
     >>> waterlevelsupplytolerance(0.0)

@@ -40,10 +40,8 @@ Integration examples:
 
     The following examples are performed over a period of 20 days:
 
-    >>> from hydpy import pub, Timegrid, Timegrids
-    >>> pub.timegrids = Timegrids(Timegrid('01.01.2000',
-    ...                                    '21.01.2000',
-    ...                                    '1d'))
+    >>> from hydpy import pub
+    >>> pub.timegrids = '01.01.2000', '21.01.2000', '1d'
 
     The first examples are supposed to demonstrate how drought events at a
     cross section far downstream are reduced by the corresponding methods of

@@ -57,16 +57,11 @@ class Indexer(object):
         29th of February.  Hence, it is missing in non-leap years:
 
         >>> from hydpy import pub
-        >>> from hydpy import Timegrids, Timegrid
         >>> from hydpy.core.indextools import Indexer
-        >>> pub.timegrids = Timegrids(Timegrid('27.02.2004',
-        ...                                    '3.03.2004',
-        ...                                    '1d'))
+        >>> pub.timegrids = '27.02.2004', '3.03.2004', '1d'
         >>> Indexer().dayofyear
         array([57, 58, 59, 60, 61])
-        >>> pub.timegrids = Timegrids(Timegrid('27.02.2005',
-        ...                                    '3.03.2005',
-        ...                                    '1d'))
+        >>> pub.timegrids = '27.02.2005', '3.03.2005', '1d'
         >>> Indexer().dayofyear
         array([57, 58, 60, 61])
         """
@@ -101,9 +96,7 @@ class Indexer(object):
         >>> from hydpy import pub
         >>> from hydpy import Timegrids, Timegrid
         >>> from hydpy.core.indextools import Indexer
-        >>> pub.timegrids = Timegrids(Timegrid('27.02.2005',
-        ...                                    '3.03.2005',
-        ...                                    '1d'))
+        >>> pub.timegrids = '27.02.2005', '3.03.2005', '1d'
 
         Due to the simulation stepsize being one day, the index arrays
         calculated by both properties are identical:
@@ -115,9 +108,7 @@ class Indexer(object):
 
         In the next example the step size is halved:
 
-        >>> pub.timegrids = Timegrids(Timegrid('27.02.2005',
-        ...                                    '3.03.2005',
-        ...                                    '12h'))
+        >>> pub.timegrids = '27.02.2005', '3.03.2005', '12h'
 
         Now the there a generally two subsequent simulation steps associated
         with the same day:

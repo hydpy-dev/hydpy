@@ -27,10 +27,8 @@
     nodes handle the variable `R`, while nodes `required_suppy` and
     `actual_supply` still handle variable `S`:
 
-    >>> from hydpy import pub, Timegrid, Timegrids, Node, Element
-    >>> pub.timegrids = Timegrids(Timegrid('01.01.2000',
-    ...                                    '21.01.2000',
-    ...                                    '1d'))
+    >>> from hydpy import pub, Node, Element
+    >>> pub.timegrids = '01.01.2000', '21.01.2000', '1d'
     >>> inflow = Node('inflow', variable='Q')
     >>> required_supply = Node('required_supply', variable='S')
     >>> allowed_relieve = Node('allowed_relieve', variable='R')

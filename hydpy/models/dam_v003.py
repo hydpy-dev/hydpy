@@ -28,10 +28,8 @@ Integration examples:
     drinking water supply treatment plant).  The node `demand` defines
     the amount of water required by the plant:
 
-    >>> from hydpy import pub, Timegrid, Timegrids, Node, Element
-    >>> pub.timegrids = Timegrids(Timegrid('01.01.2000',
-    ...                                    '21.01.2000',
-    ...                                    '1d'))
+    >>> from hydpy import pub, Node, Element
+    >>> pub.timegrids = '01.01.2000', '21.01.2000', '1d'
     >>> inflow = Node('inflow', variable='Q')
     >>> release = Node('release', variable='Q')
     >>> supply = Node('supply', variable='S')

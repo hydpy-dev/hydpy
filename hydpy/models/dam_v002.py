@@ -28,10 +28,8 @@ Integration examples:
     The general time- and space-related set up is identical, except that
     no other models need to bee included to construct meaningful examples:
 
-    >>> from hydpy import pub, Timegrid, Timegrids
-    >>> pub.timegrids = Timegrids(Timegrid('01.01.2000',
-    ...                                    '21.01.2000',
-    ...                                    '1d'))
+    >>> from hydpy import pub
+    >>> pub.timegrids = '01.01.2000', '21.01.2000',  '1d'
     >>> from hydpy import Node
     >>> input_ = Node('input_')
     >>> output = Node('output')

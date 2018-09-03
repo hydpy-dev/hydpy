@@ -43,10 +43,8 @@ Integration examples:
 
     The following tests are performed over a period of 20 hours:
 
-    >>> from hydpy import pub, Timegrid, Timegrids, Nodes, Element
-    >>> pub.timegrids = Timegrids(Timegrid('01.01.2000 00:00',
-    ...                                    '01.01.2000 20:00',
-    ...                                    '1h'))
+    >>> from hydpy import pub, Nodes, Element
+    >>> pub.timegrids = '01.01.2000 00:00',  '01.01.2000 20:00', '1h'
 
     Import the model and define the time settings:
 

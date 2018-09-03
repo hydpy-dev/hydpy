@@ -18,8 +18,8 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
 
     >>> from hydpy import pub
     >>> pub.timegrids
-    Timegrids(Timegrid('01.01.2000 00:00:00',
-                       '05.01.2000 00:00:00',
+    Timegrids(Timegrid('2000-01-01 00:00:00',
+                       '2000-01-05 00:00:00',
                        '1d'))
 
     (2) Prepares a plain IO testing directory structure:
@@ -101,10 +101,7 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
         pub.sequencemanager.statedirpath = 'outputpath'
         pub.sequencemanager.nodedirpath = 'nodepath'
 
-    from hydpy import Timegrid, Timegrids
-    pub.timegrids = Timegrids(Timegrid('01.01.2000',
-                                       '05.01.2000',
-                                       '1d'))
+    pub.timegrids = '2000-01-01', '2000-01-05', '1d'
 
     from hydpy import Node, Nodes, Element, Elements, prepare_model
     node1 = Node('node1')

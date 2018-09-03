@@ -36,10 +36,8 @@ Integration examples:
 
     The time settings are identical:
 
-    >>> from hydpy import pub, Timegrid, Timegrids
-    >>> pub.timegrids = Timegrids(Timegrid('01.01.2000',
-    ...                                    '21.01.2000',
-    ...                                    '1d'))
+    >>> from hydpy import pub
+    >>> pub.timegrids = '01.01.2000', '21.01.2000',  '1d'
 
     Due to the high complexity of |dam_v005| and due to the test setting
     of |dam_v001| involving another type of model (|arma_v1|), lots of

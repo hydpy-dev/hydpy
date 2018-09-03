@@ -1023,10 +1023,8 @@ or prepare `pub.sequencemanager` correctly.
         Assume the initialization time period of a HydPy project spans
         five day:
 
-        >>> from hydpy import pub, Timegrids, Timegrid
-        >>> pub.timegrids = Timegrids(Timegrid('2000.01.10',
-        ...                                    '2000.01.15',
-        ...                                    '1d'))
+        >>> from hydpy import pub
+        >>> pub.timegrids = '2000.01.10', '2000.01.15', '1d'
 
         Prepare a node series object for observational data:
 
@@ -1045,6 +1043,7 @@ or prepare `pub.sequencemanager` correctly.
         The following calls to the test function shows the arrays
         returned for different kinds misalignments:
 
+        >>> from hydpy import Timegrid
         >>> test(Timegrid('2000.01.05', '2000.01.20', '1d'))
         array([ 1.,  1.,  1.,  1.,  1.])
         >>> test(Timegrid('2000.01.12', '2000.01.15', '1d'))
@@ -1146,11 +1145,8 @@ or prepare `pub.sequencemanager` correctly.
         borrow some examples. However, firstly, we have to prepare a
         |Timegrids| object to define the |IOSequence.series| length:
 
-        >>> from hydpy import pub, Timegrid, Timegrids
-        >>> pub.timegrids = Timegrids(Timegrid(
-        ...     '2000-01-01',
-        ...     '2000-01-04',
-        ...     '1d'))
+        >>> from hydpy import pub
+        >>> pub.timegrids = '2000-01-01', '2000-01-04', '1d'
 
         As shown for method |Variable.average_values|, for 0-dimensional
         |IOSequence| objects the result of |IOSequence.average_series|

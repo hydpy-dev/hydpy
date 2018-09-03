@@ -36,10 +36,8 @@ Integration tests:
     that are unrealistically high, but allows for inspecting the effect of
     evaporative soil moisture depletion within this short simulation period):
 
-    >>> from hydpy import pub, Timegrid, Timegrids
-    >>> pub.timegrids = Timegrids(Timegrid('01.01.2000',
-    ...                                    '05.01.2000',
-    ...                                    '1h'))
+    >>> from hydpy import pub
+    >>> pub.timegrids = '01.01.2000', '05.01.2000', '1h'
 
     Prepare the model instance and build the connections to element `land`
     and node `outlet`:

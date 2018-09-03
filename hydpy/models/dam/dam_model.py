@@ -213,10 +213,7 @@ def calc_allowedremoterelieve_v2(self):
         time period of only two days:
 
         >>> from hydpy import pub
-        >>> from hydpy import Timegrids, Timegrid
-        >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
-        ...                                    '2001.04.03',
-        ...                                    '1d'))
+        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
 
         Now we prepare the dam model and define two different control
         schemes for the hydrological summer (April to October) and
@@ -330,10 +327,7 @@ def calc_requiredremotesupply_v1(self):
         information):
 
         >>> from hydpy import pub
-        >>> from hydpy import Timegrids, Timegrid
-        >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
-        ...                                    '2001.04.03',
-        ...                                    '1d'))
+        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
         >>> from hydpy.models.dam import *
         >>> parameterstep()
         >>> highestremotesupply(_11_1_12=1.0, _03_31_12=1.0,
@@ -473,10 +467,7 @@ def calc_remotedemand_v1(self):
         throughout the year actually works:
 
         >>> from hydpy import pub
-        >>> from hydpy import Timegrids, Timegrid
-        >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
-        ...                                    '2001.04.03',
-        ...                                    '1d'))
+        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
 
         Prepare the dam model:
 
@@ -558,10 +549,7 @@ def calc_remotefailure_v1(self):
         we have to define a simulation period first:
 
         >>> from hydpy import pub
-        >>> from hydpy import Timegrids, Timegrid
-        >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
-        ...                                    '2001.04.03',
-        ...                                    '1d'))
+        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
 
         Now we prepare a dam model with log sequences memorizing three values:
 
@@ -637,10 +625,7 @@ def calc_requiredremoterelease_v1(self):
         As in the examples above, define a short simulation time period first:
 
         >>> from hydpy import pub
-        >>> from hydpy import Timegrids, Timegrid
-        >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
-        ...                                    '2001.04.03',
-        ...                                    '1d'))
+        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
 
         Prepare the dam model:
 
@@ -803,10 +788,7 @@ def calc_requiredrelease_v1(self):
         As in the examples above, define a short simulation time period first:
 
         >>> from hydpy import pub
-        >>> from hydpy import Timegrids, Timegrid
-        >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
-        ...                                    '2001.04.03',
-        ...                                    '1d'))
+        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
 
         Prepare the dam model:
 
@@ -913,10 +895,7 @@ def calc_requiredrelease_v2(self):
         As in the examples above, define a short simulation time period first:
 
         >>> from hydpy import pub
-        >>> from hydpy import Timegrids, Timegrid
-        >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
-        ...                                    '2001.04.03',
-        ...                                    '1d'))
+        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
 
         Prepare the dam model:
 
@@ -1224,10 +1203,7 @@ def calc_targetedrelease_v1(self):
         As in the examples above, define a short simulation time period first:
 
         >>> from hydpy import pub
-        >>> from hydpy import Timegrids, Timegrid
-        >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
-        ...                                    '2001.04.03',
-        ...                                    '1d'))
+        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
 
         Prepare the dam model:
 
@@ -2042,10 +2018,7 @@ def calc_flooddischarge_v1(self):
         three days:
 
         >>> from hydpy import pub
-        >>> from hydpy import Timegrids, Timegrid
-        >>> pub.timegrids = Timegrids(Timegrid('2001.01.01',
-        ...                                    '2001.01.04',
-        ...                                    '1d'))
+        >>> pub.timegrids = '2001.01.01', '2001.01.04', '1d'
 
         Now we prepare a dam model and define two different relationships
         between water level and flood discharge.  The first relatively

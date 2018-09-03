@@ -19,10 +19,7 @@ class MOY(parametertools.IndexParameter):
         |Indexer| object stored in module |pub|.
 
         >>> from hydpy import pub
-        >>> from hydpy import Timegrids, Timegrid
-        >>> pub.timegrids = Timegrids(Timegrid('27.02.2004',
-        ...                                    '3.03.2004',
-        ...                                    '1d'))
+        >>> pub.timegrids = '27.02.2004', '3.03.2004', '1d'
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> derived.moy.update()

@@ -61,10 +61,8 @@ Integration test:
 
     The following calculations are performed over a period of 20 hours:
 
-    >>> from hydpy import pub, Timegrid, Timegrids, Nodes, Element
-    >>> pub.timegrids = Timegrids(Timegrid('01.01.2000 00:00',
-    ...                                    '01.01.2000 20:00',
-    ...                                    '1h'))
+    >>> from hydpy import pub, Nodes, Element
+    >>> pub.timegrids = '01.01.2000 00:00', '01.01.2000 20:00', '1h'
 
     Import the model and define the time step size the parameter values
     given below should be related to:

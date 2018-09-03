@@ -45,10 +45,8 @@ Integration tests:
     All integration tests are performed over a period of five days with
     a simulation step of one hour:
 
-    >>> from hydpy import pub, Timegrid, Timegrids
-    >>> pub.timegrids = Timegrids(Timegrid('01.01.2000',
-    ...                                    '05.01.2000',
-    ...                                    '1h'))
+    >>> from hydpy import pub
+    >>> pub.timegrids = '01.01.2000', '05.01.2000', '1h'
 
     Prepare the model instance and build the connections to element `land`
     and node `outlet`:

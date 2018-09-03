@@ -27,10 +27,8 @@ Integration examples:
 
     The following calculations are performed over a period of 20 days:
 
-    >>> from hydpy import pub, Timegrid, Timegrids, Nodes, Element
-    >>> pub.timegrids = Timegrids(Timegrid('01.01.2000',
-    ...                                    '21.01.2000',
-    ...                                    '1d'))
+    >>> from hydpy import pub, Nodes, Element
+    >>> pub.timegrids = '01.01.2000', '21.01.2000', '1d'
 
     Import the model and define the time settings:
 

@@ -224,10 +224,8 @@ def calc_evpo_v1(self):
         (the actual land use).  Firstly, let us define a initialization
         time period spanning the transition from June to July:
 
-        >>> from hydpy import pub, Timegrid, Timegrids
-        >>> pub.timegrids = Timegrids(Timegrid('30.06.2000',
-        ...                                    '02.07.2000',
-        ...                                    '1d'))
+        >>> from hydpy import pub
+        >>> pub.timegrids = '30.06.2000', '02.07.2000', '1d'
 
         Secondly, assume that the considered subbasin is differenciated in
         two HRUs, one of primarily consisting of arable land and the other
@@ -270,7 +268,7 @@ def calc_evpo_v1(self):
 
         Reset module |pub| to not interfere the following examples:
 
-        >>> pub.timegrids = None
+        >>> del pub.timegrids
     """
     con = self.parameters.control.fastaccess
     der = self.parameters.derived.fastaccess

@@ -482,10 +482,8 @@ a member named `lland_v3`.
     (5) We define a shorter initialisation period and re-activate the
     time series of the test sequences:
 
-    >>> from hydpy import pub, Timegrid, Timegrids
-    >>> pub.timegrids = Timegrids(Timegrid('02.01.2000',
-    ...                                    '04.01.2000',
-    ...                                    '1d'))
+    >>> from hydpy import pub
+    >>> pub.timegrids = '02.01.2000', '04.01.2000', '1d'
     >>> for sequence in sequences:
     ...     sequence.activate_ram()
 
@@ -547,10 +545,8 @@ a member named `lland_v3`.
     ...     pub.sequencemanager.outputpath = ''
     ...     interface.write()
 
-    >>> from hydpy import pub, Timegrid, Timegrids
-    >>> pub.timegrids = Timegrids(Timegrid('02.01.2000',
-    ...                                    '04.01.2000',
-    ...                                    '1d'))
+    >>> from hydpy import pub
+    >>> pub.timegrids = '02.01.2000', '04.01.2000', '1d'
     >>> for sequence in sequences:
     ...     sequence.activate_ram()
 

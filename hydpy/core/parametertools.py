@@ -56,9 +56,7 @@ def header_controlfile(model, parameterstep=None, simulationstep=None):
     >>> parameterstep('1d')
     >>> from hydpy import pub
     >>> from hydpy import Timegrids, Timegrid
-    >>> pub.timegrids = Timegrids(Timegrid('2000.01.01',
-    ...                                    '2001.01.01',
-    ...                                    '1h'))
+    >>> pub.timegrids = '2000.01.01', '2001.01.01', '1h'
     >>> print(header_controlfile(model=model))
     # -*- coding: utf-8 -*-
     <BLANKLINE>
@@ -502,10 +500,7 @@ been defined.
     within the |pub| module, predefined surrogate values are ignored:
 
     >>> from hydpy import pub
-    >>> from hydpy import Timegrids, Timegrid
-    >>> pub.timegrids = Timegrids(Timegrid('2000.01.01',
-    ...                                    '2001.01.01',
-    ...                                    '2h'))
+    >>> pub.timegrids = '2000.01.01', '2001.01.01', '2h'
     >>> parameter.simulationstep
     Period('2h')
 

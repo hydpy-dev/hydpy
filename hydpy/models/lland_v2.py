@@ -25,10 +25,8 @@ Integration tests:
 
     The following general setup is identical with the one of |lland_v1|:
 
-    >>> from hydpy import pub, Timegrid, Timegrids
-    >>> pub.timegrids = Timegrids(Timegrid('01.01.2000',
-    ...                                    '05.01.2000',
-    ...                                    '1h'))
+    >>> from hydpy import pub
+    >>> pub.timegrids = '01.01.2000', '05.01.2000', '1h'
     >>> from hydpy.models.lland_v2 import *
     >>> parameterstep('1h')
     >>> from hydpy import Node, Element

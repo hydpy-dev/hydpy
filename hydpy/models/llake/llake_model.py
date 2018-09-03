@@ -134,10 +134,7 @@ def interp_qa_v1(self):
         the required model object:
 
         >>> from hydpy import pub
-        >>> from hydpy import Timegrids, Timegrid
-        >>> pub.timegrids = Timegrids(Timegrid('2000.01.01',
-        ...                                    '2000.01.04',
-        ...                                    '12h'))
+        >>> pub.timegrids = '2000.01.01','2000.01.04', '12h'
         >>> from hydpy.models.llake import *
         >>> parameterstep()
 
@@ -453,10 +450,7 @@ def corr_dw_v1(self):
         the required model object:
 
         >>> from hydpy import pub
-        >>> from hydpy import Timegrids, Timegrid
-        >>> pub.timegrids = Timegrids(Timegrid('2000.01.01',
-        ...                                    '2000.01.04',
-        ...                                    '12h'))
+        >>> pub.timegrids = '2000.01.01', '2000.01.04', '12h'
         >>> from hydpy.models.llake import *
         >>> parameterstep('1d')
         >>> derived.toy.update()
@@ -586,10 +580,7 @@ def modify_qa_v1(self):
         the required model object:
 
         >>> from hydpy import pub
-        >>> from hydpy import Timegrids, Timegrid
-        >>> pub.timegrids = Timegrids(Timegrid('2000.01.01',
-        ...                                    '2000.01.04',
-        ...                                    '12h'))
+        >>> pub.timegrids = '2000.01.01', '2000.01.04', '12h'
         >>> from hydpy.models.llake import *
         >>> parameterstep('1d')
         >>> derived.toy.update()

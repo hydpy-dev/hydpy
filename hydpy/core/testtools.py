@@ -155,7 +155,8 @@ class Tester(object):
                                 module, extraglobs={'testing': True},
                                 optionflags=doctest.ELLIPSIS)
                     finally:
-                        pub.timegrids = timegrids
+                        if timegrids is not None:
+                            pub.timegrids = timegrids
                         devicetools.Node.clear_registry()
                         devicetools.Element.clear_registry()
                         devicetools.Node._registry = nodes

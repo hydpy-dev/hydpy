@@ -125,11 +125,11 @@ class MaxDT(parametertools.SingleParameter):
         >>> maxdt(60.)
         Traceback (most recent call last):
         ...
-        TypeError: While trying the set the value of parameter `maxdt` of \
-the lake model handled by element `?`, the following error occurred: \
-The supplied argument must be either an instance of `datetime.timedelta` \
-or `str`.  The given arguments type is float. (An example: set `max dt` to \
-3600 seconds by writing `maxdt("1h"))
+        TypeError: While trying the set the value of parameter `maxdt` \
+of the lake model handled by element `?`, the following error occurred: \
+The supplied argument must be either an instance  of `datetime.timedelta` \
+or `str`.  The given arguments type is float. (An example: set `max dt` \
+to 3600 seconds by writing `maxdt("1h"))
     """
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 

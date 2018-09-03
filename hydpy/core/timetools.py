@@ -1589,9 +1589,14 @@ class Timegrids(object):
                        '1d'))
 
     For convenience, one can pass the required strings directly to the
-    constructor:
+    constructor, and also an already existing |Timegrids| object:
 
-    >>> Timegrids('2000-11-11', '2003-11-11', '1d')
+    >>> timegrid = Timegrids('2000-11-11', '2003-11-11', '1d')
+    >>> timegrid
+    Timegrids(Timegrid('2000-11-11 00:00:00',
+                       '2003-11-11 00:00:00',
+                       '1d'))
+    >>> Timegrids(timegrid)
     Timegrids(Timegrid('2000-11-11 00:00:00',
                        '2003-11-11 00:00:00',
                        '1d'))
@@ -1603,7 +1608,8 @@ class Timegrids(object):
     ...
     ValueError: While trying to define a new Timegrids object based on \
 arguments ``, the following error occurred: Wrong number of arguments. \
-Either pass one or two `Timegrid` objects, or three strings.
+Either pass one `Timegrids` object, one or two `Timegrid` objects, \
+or three strings.
 
     For simulations covering only a part of the initialisation period,
     two Timegrid instances must be given:
@@ -1691,20 +1697,24 @@ on the initialization time grid.
             if (len(args) == 0) or (len(args) > 3):
                 raise ValueError(
                     'Wrong number of arguments.')
-            if len(args) == 3:
-                args = [Timegrid(*args)]
-            self.init = Timegrid(args[0])
-            try:
-                self.sim = Timegrid(args[1])
-            except IndexError:
-                self.sim = copy.deepcopy(self.init)
+            if (len(args) == 1) and isinstance(args[0], type(self)):
+                self.init = args[0].init
+                self.sim = args[0].sim
+            else:
+                if len(args) == 3:
+                    args = [Timegrid(*args)]
+                self.init = Timegrid(args[0])
+                try:
+                    self.sim = Timegrid(args[1])
+                except IndexError:
+                    self.sim = copy.deepcopy(self.init)
             self.verify()
         except BaseException:
             objecttools.augment_excmessage(
                 f'While trying to define a new Timegrids object based on '
                 f'arguments `{objecttools.enumeration(args)}`',
-                f'Either pass one or two `Timegrid` objects, or three '
-                f'strings.')
+                f'Either pass one `Timegrids` object, one or two `Timegrid` '
+                f'objects, or three strings.')
 
     def _get_stepsize(self):
         """Stepsize of all handled |Timegrid| objects."""
@@ -1764,10 +1774,6 @@ on the initialization time grid.
               thereof): Time interval, to which the parameter values refer.
         """
         return self.stepsize / Period(stepsize)
-
-    def __iter__(self):
-        for (name, timegrid) in dict(self).items():
-            yield (name, timegrid)
 
     def __str__(self):
         return 'All timegrids of the actual HydPy project.'

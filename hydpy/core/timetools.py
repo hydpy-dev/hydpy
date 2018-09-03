@@ -1086,12 +1086,27 @@ class Timegrid(object):
     Timegrid('1996-11-01 00:00:00',
              '1997-11-01 00:00:00',
              '1d')
-    >>> # ...or pass their initialization arguments:
+    >>> # ...or pass their initialization arguments...
     >>> timegrid_sim = Timegrid('1996-11-01', '1997-11-01', '1d')
     >>> timegrid_sim
     Timegrid('1996-11-01 00:00:00',
              '1997-11-01 00:00:00',
              '1d')
+    >>> # or predefined timegrid object:
+    >>> Timegrid(timegrid_sim)
+    Timegrid('1996-11-01 00:00:00',
+             '1997-11-01 00:00:00',
+             '1d')
+
+    For wrong arguments errors like the following are raised:
+
+    >>> Timegrid(firstdate, lastdate)
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to prepare a Trimegrid object based on the \
+arguments `1996-11-01 00:00:00 and 1997-11-01 00:00:00 , the following \
+error occurred: Wrong number of arguments. Either pass one preprepared \
+Timegrid object or three objects interpretable as dates and periods.
 
     |Timegrid| provides functionalities to ease and secure the handling
     of dates in HydPy. Here some examples:
@@ -1184,11 +1199,24 @@ given step size 1d.
     _lastdate = None
     _stepsize = None
 
-    def __init__(self, firstdate, lastdate, stepsize):
-        self.firstdate = firstdate
-        self.lastdate = lastdate
-        self.stepsize = stepsize
-        self.verify()
+    def __init__(self, *args):
+        try:
+            if len(args) == 1:
+                self.firstdate = args[0].firstdate
+                self.lastdate = args[0].lastdate
+                self.stepsize = args[0].stepsize
+            elif len(args) == 3:
+                self.firstdate, self.lastdate, self.stepsize = args
+            else:
+                raise ValueError(
+                    'Wrong number of arguments.')
+            self.verify()
+        except BaseException:
+            objecttools.augment_excmessage(
+                f'While trying to prepare a Trimegrid object based '
+                f'on the arguments `{objecttools.enumeration(args)} ',
+                f'Either pass one preprepared Timegrid object or three '
+                f'objects interpretable as dates and periods.')
 
     @property
     def firstdate(self):
@@ -1220,9 +1248,9 @@ given step size 1d.
         information stored in the first 13 rows of a |numpy.ndarray| object.
         """
         try:
-            return cls(firstdate=Date.from_array(array[:6]),
-                       lastdate=Date.from_array(array[6:12]),
-                       stepsize=Period.fromseconds(array[12]))
+            return cls(Date.from_array(array[:6]),
+                       Date.from_array(array[6:12]),
+                       Period.fromseconds(array[12]))
         except IndexError:
             raise IndexError(
                 f'To define a Timegrid instance via an array, 13 '
@@ -1639,8 +1667,8 @@ simulation period (2000-11-10 00:00:00).
 
     >>> # Both timegrids are checked to have the same step size:
     >>> timegrids.sim = Timegrid('2001-11-11',
-    ...                              '2002-11-11',
-    ...                              '1d')
+    ...                          '2002-11-11',
+    ...                          '1d')
     >>> timegrids.verify()
     Traceback (most recent call last):
     ...

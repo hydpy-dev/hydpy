@@ -43,11 +43,25 @@ class Pub(types.ModuleType):
     RuntimeError: Attribute timegrids of module `pub` \
 is not defined at the moment.
 
-    After setting an attribute value, it is accessible:
+    After setting an attribute value successfully, it is accessible (we
+    select the `timegrids` attribute here, as its setter supplies a little
+    magic to make defining new |Timegrids| objects more convenient:
 
-    >>> pub.timegrids = 'test'
+    >>> pub.timegrids = None
+    Traceback (most recent call last):
+    ...
+    AttributeError: While trying to define a new Timegrids object based on \
+arguments `None`, the following error occurred: While trying to prepare a \
+Trimegrid object based on the arguments `None , the following error occurred: \
+'NoneType' object has no attribute 'firstdate' Either pass one preprepared \
+Timegrid object or three objects interpretable as dates and periods. \
+Either pass one or two `Timegrid` objects, or three strings.
+
+    >>> pub.timegrids = '2000-01-01', '2001-01-01', '1d'
     >>> pub.timegrids
-    'test'
+    Timegrids(Timegrid('2000-01-01 00:00:00',
+                       '2001-01-01 00:00:00',
+                       '1d'))
 
     After deleting, the attribute is not accessible anymore:
 
@@ -73,6 +87,13 @@ is not defined at the moment.
     sequencemanager: filetools.SequenceManager = _PubProperty()
 
     timegrids: timetools.Timegrids = _PubProperty()
+
+    @timegrids.setter
+    def timegrids(self, args):
+        try:
+            return timetools.Timegrids(*args)
+        except TypeError:
+            return timetools.Timegrids(args)
 
     def get(self, name, default=None):
         """Return |None| or the given default value, if the attribute

@@ -131,9 +131,25 @@ class XMLOutput(object):
     def __init__(self, root):
         self.root: ElementTree.Element = root
 
+    def find(self, name):
+        """Apply function |find| for the root of |XMLOutput|."""
+        return find(self.root, name)
+
     @property
     def info(self) -> str:
         """Info attribute of the xml output element."""
         return self.root.attrib['info']
+
+    @property
+    def sequences(self) -> List[str]:
+        """List of handled xml sequence names.
+
+        >>> from hydpy.auxs.xmltools import XMLInterface
+        >>> from hydpy import data
+        >>> xml = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
+        >>> xml.outputs[0].sequences
+        ['hland_v1.inputs.p', 'hland_v1.fluxes.pc']
+        """
+        return [strip(_.tag) for _ in self.find('sequences')]
 
 

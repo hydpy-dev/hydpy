@@ -70,6 +70,15 @@ def find(root, name):
     """
     return root.find(f'{namespace}{name}')
 
+def strip(name):
+    """Remove the xml namespace from the given string and return it.
+
+    >>> from hydpy.auxs.xmltools import strip
+    >>> strip('{https://github.com/HydPy2FEWS.xsd}something')
+    'something'
+    """
+    return name.split('}')[-1]
+
 
 class XMLInterface(object):
 

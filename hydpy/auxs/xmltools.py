@@ -4,7 +4,7 @@
 >>> from hydpy.core.examples import prepare_full_example_1
 >>> prepare_full_example_1()
 
->>> from hydpy import HydPy, pub, Timegrid, Timegrids, TestIO, XMLInterface
+>>> from hydpy import HydPy, pub, TestIO, XMLInterface
 >>> hp = HydPy('LahnHBV')
 >>> with TestIO():
 ...     xml = XMLInterface()
@@ -23,13 +23,13 @@
 ...     pub.sequencemanager.open_netcdf_reader(isolate=True)
 ...     hp.load_inputseries()
 ...     pub.sequencemanager.close_netcdf_reader()
-...     hp.prepare_simseries()
-...     hp.prepare_stateseries()
-...     hp.doit()
-...     pub.sequencemanager.open_netcdf_writer(isolate=True, flatten=True)
-...     hp.save_simseries()
-...     hp.save_stateseries()
-...     pub.sequencemanager.close_netcdf_writer()
+
+>>> xml.prepare_series()
+
+>>> hp.doit()
+
+>>> with TestIO():
+...     xml.save_series()
 
 >>> from hydpy.core.netcdftools import netcdf4, chars2str, query_variable
 >>> with TestIO():

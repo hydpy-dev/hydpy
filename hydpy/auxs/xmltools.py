@@ -60,6 +60,17 @@ namespace = \
     '{https://github.com/tyralla/hydpy/tree/master/hydpy/conf/HydPy2FEWS.xsd}'
 
 
+def find(root, name):
+    """Find the given name for the given xml root assuming the following
+    namespace.
+
+    >>> from hydpy.auxs import xmltools
+    >>> xmltools.namespace
+    '{https://github.com/tyralla/hydpy/tree/master/hydpy/conf/HydPy2FEWS.xsd}'
+    """
+    return root.find(f'{namespace}{name}')
+
+
 class XMLInterface(object):
 
     def __init__(self, filepath=None):
@@ -68,7 +79,8 @@ class XMLInterface(object):
         self.root = ElementTree.parse(filepath).getroot()
 
     def find(self, name):
-        return self.root.find(f'{namespace}{name}')
+        """Apply function |find| for the root of |XMLInterface|."""
+        return find(self.root, name)
 
     @property
     def timegrids(self):

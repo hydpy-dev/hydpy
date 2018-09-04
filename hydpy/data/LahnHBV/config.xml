@@ -3,9 +3,32 @@
         xmlns="https://github.com/tyralla/hydpy/tree/master/hydpy/conf/HydPy2FEWS.xsd"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="https://github.com/tyralla/hydpy/tree/master/hydpy/conf/HydPy2FEWS.xsd HydPy2FEWS.xsd">
+
     <timegrid>
         <firstdate>1996-01-01T00:00:00</firstdate>
         <lastdate>1996-01-06T00:00:00</lastdate>
         <stepsize>1d</stepsize>
     </timegrid>
+
+    <outputs>
+        <output>
+            <sequences>
+                <hland_v1.inputs.p/>
+                <hland_v1.states.sm/>
+            </sequences>
+        </output>
+        <output>
+            <selections>
+                ToDo
+            </selections>
+            <devices>
+                ToDo
+            </devices>
+            <sequences>
+                <hland_v1.fluxes.pc/>
+            </sequences>
+        </output>
+    </outputs>
+
+
 </config>

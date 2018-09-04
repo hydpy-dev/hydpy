@@ -60,17 +60,20 @@ namespace = \
     '{https://github.com/tyralla/hydpy/tree/master/hydpy/conf/HydPy2FEWS.xsd}'
 
 
-def find(root, name):
-    """Find the given name for the given xml root assuming the following
-    namespace.
+def find(root, name) -> ElementTree.Element:
+    """Return the first xml element with the given name found in the given
+    xml root.
 
-    >>> from hydpy.auxs import xmltools
-    >>> xmltools.namespace
-    '{https://github.com/tyralla/hydpy/tree/master/hydpy/conf/HydPy2FEWS.xsd}'
+    >>> from hydpy.auxs.xmltools import XMLInterface
+    >>> from hydpy import data
+    >>> xml = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
+    >>> find(xml.root, 'timegrid').tag.endswith('timegrid')
+    True
     """
     return root.find(f'{namespace}{name}')
 
-def strip(name):
+
+def strip(name) -> str:
     """Remove the xml namespace from the given string and return it.
 
     >>> from hydpy.auxs.xmltools import strip
@@ -129,7 +132,7 @@ class XMLOutput(object):
         self.root: ElementTree.Element = root
 
     @property
-    def info(self):
+    def info(self) -> str:
         """Info attribute of the xml output element."""
         return self.root.attrib['info']
 

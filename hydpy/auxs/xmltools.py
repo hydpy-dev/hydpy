@@ -107,8 +107,21 @@ class XMLInterface(object):
         >>> from hydpy import data
         >>> xml = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
         >>> for output in xml.outputs:
-        ...     print(output.attrib['info'])
+        ...     print(output.info)
         precipitation
         soilmoisture
         """
-        return [_ for _ in self.find('outputs')]
+        return [XMLOutput(_) for _ in self.find('outputs')]
+
+
+class XMLOutput(object):
+
+    def __init__(self, root):
+        self.root: ElementTree.Element = root
+
+    @property
+    def info(self):
+        """Info attribute of the xml output element."""
+        return self.root.attrib['info']
+
+

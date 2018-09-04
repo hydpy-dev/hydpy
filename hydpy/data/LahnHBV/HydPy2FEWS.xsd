@@ -48,6 +48,7 @@
                          minOccurs="0"/>
                 <element ref="fews:sequences"/>
             </sequence>
+            <attribute name="info" type="string"/>
         </complexType>
     </element>
 

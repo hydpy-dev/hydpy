@@ -11,13 +11,13 @@
     </timegrid>
 
     <outputs>
-        <output>
+        <output info="precipitation">
             <sequences>
                 <hland_v1.inputs.p/>
-                <hland_v1.states.sm/>
+                <hland_v1.fluxes.pc/>
             </sequences>
         </output>
-        <output>
+        <output info="soilmoisture">
             <selections>
                 ToDo
             </selections>
@@ -25,7 +25,7 @@
                 ToDo
             </devices>
             <sequences>
-                <hland_v1.fluxes.pc/>
+                <hland_v1.states.sm/>
             </sequences>
         </output>
     </outputs>

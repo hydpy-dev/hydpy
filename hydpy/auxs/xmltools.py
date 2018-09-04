@@ -49,6 +49,7 @@ True
 """
 # import...
 # ...from standard library
+from typing import List
 import os
 from xml.etree import ElementTree
 # ...from HydPy
@@ -57,6 +58,7 @@ from hydpy.core import timetools
 
 namespace = \
     '{https://github.com/tyralla/hydpy/tree/master/hydpy/conf/HydPy2FEWS.xsd}'
+
 
 class XMLInterface(object):
 
@@ -80,9 +82,21 @@ class XMLInterface(object):
                            '1996-01-06T00:00:00',
                            '1d'))
         """
-        timegrid_xml = (self.find('timegrid'))
+        timegrid_xml = self.find('timegrid')
         timegrid = timetools.Timegrid(
             *(timegrid_xml[idx].text for idx in range(3)))
         return timetools.Timegrids(timegrid)
 
+    @property
+    def outputs(self) -> List[ElementTree.Element]:
+        """Return the output elements defined in the actual xml file.
 
+        >>> from hydpy.auxs.xmltools import XMLInterface
+        >>> from hydpy import data
+        >>> xml = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
+        >>> for output in xml.outputs:
+        ...     print(output.attrib['info'])
+        precipitation
+        soilmoisture
+        """
+        return [_ for _ in self.find('outputs')]

@@ -9,6 +9,7 @@ from hydpy.core import filetools
 from hydpy.core import indextools
 from hydpy.core import optiontools
 from hydpy.core import propertytools
+from hydpy.core import selectiontools
 from hydpy.core import timetools
 
 
@@ -73,6 +74,8 @@ is not defined at the moment.
     sequencemanager: filetools.SequenceManager = _PubProperty()
 
     timegrids: timetools.Timegrids = _PubProperty()
+
+    selections: selectiontools.Selections = _PubProperty()
 
     def get(self, name, default=None):
         """Return |None| or the given default value, if the attribute

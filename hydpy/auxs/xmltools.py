@@ -126,6 +126,12 @@ class XMLInterface(object):
         """
         return [XMLOutput(_) for _ in self.find('outputs')]
 
+    def prepare_series(self):
+        """"""
+        memory = {}
+        for output in self.outputs:
+            output.prepare_series(memory)
+
 
 class XMLOutput(object):
 
@@ -177,4 +183,53 @@ class XMLOutput(object):
             model2subseqs[model][subseqs].append(seqname)
         return model2subseqs
 
+    @property
+    def elements(self):
+        """Return the selected elements.
 
+        ToDo: add an actual  selection mechanism
+
+        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+
+        >>> from hydpy import HydPy, TestIO, XMLInterface
+        >>> hp = HydPy('LahnHBV')
+        >>> with TestIO():
+        ...     hp.prepare_network()
+        ...     xml = XMLInterface()
+        >>> xml.outputs[0].elements
+        Elements("land_dill", "land_lahn_1", ...,"stream_lahn_1_lahn_2",
+                 "stream_lahn_2_lahn_3")
+        """
+        return pub.selections.complete.elements
+
+
+    def prepare_series(self, memory):
+        """ToDo
+
+        ToDo: add an actual selection mechanism
+        ToDo: use "memory"
+
+        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+
+        >>> from hydpy import HydPy, TestIO, XMLInterface
+        >>> hp = HydPy('LahnHBV')
+        >>> with TestIO():
+        ...     hp.prepare_network()
+        ...     hp.init_models()
+        ...     xml = XMLInterface()
+        >>> pub.timegrids = xml.timegrids
+        >>> hp.elements.land_dill.model.sequences.fluxes.pc.ramflag
+        False
+        >>> xml.prepare_series()
+        >>> hp.elements.land_dill.model.sequences.fluxes.pc.ramflag
+        True
+        """
+        m2s2s = self.model2subseqs2seq
+        for element in self.elements:
+            model = element.model
+            for name_subseqs, seqnames in m2s2s.get(model.name, {}).items():
+                subseqs = getattr(model.sequences, name_subseqs)
+                for seqname in seqnames:
+                    getattr(subseqs, seqname).activate_ram()

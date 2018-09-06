@@ -15,6 +15,7 @@
             <sequences>
                 <hland_v1.inputs.p/>
                 <hland_v1.fluxes.pc/>
+                <hland_v1.fluxes.tf/>
             </sequences>
         </output>
         <output info="soilmoisture">

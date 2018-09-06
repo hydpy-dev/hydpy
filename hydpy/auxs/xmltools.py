@@ -49,7 +49,8 @@ True
 """
 # import...
 # ...from standard library
-from typing import List
+from typing import Dict, List
+import collections
 import os
 from xml.etree import ElementTree
 # ...from HydPy
@@ -151,5 +152,29 @@ class XMLOutput(object):
         ['hland_v1.inputs.p', 'hland_v1.fluxes.pc']
         """
         return [strip(_.tag) for _ in self.find('sequences')]
+
+    @property
+    def model2subseqs2seq(self) -> Dict[str, Dict[str, List[str]]]:
+        """A nested |collections.defaultdict| containing the information
+        provided by |property| |XMLOutput.sequences|.
+
+        ToDo: test different model types
+
+        >>> from hydpy.auxs.xmltools import XMLInterface
+        >>> from hydpy import data
+        >>> xml = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
+        >>> result = xml.outputs[0].model2subseqs2seq
+        >>> for model, subseqs2seq in sorted(result.items()):
+        ...     for subseqs, seq in sorted(subseqs2seq.items()):
+        ...         print(model, subseqs, seq)
+        hland_v1 fluxes ['pc', 'tf']
+        hland_v1 inputs ['p']
+        """
+        model2subseqs = collections.defaultdict(
+            lambda: collections.defaultdict(list))
+        for sequence in self.sequences:
+            model, subseqs, seqname = sequence.split('.')
+            model2subseqs[model][subseqs].append(seqname)
+        return model2subseqs
 
 

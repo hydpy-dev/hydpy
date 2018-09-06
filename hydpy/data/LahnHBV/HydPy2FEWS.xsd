@@ -86,11 +86,14 @@
              type="fews:SequenceType">
     </element>
 
-    <element name="hland_v1.states.sm"
+    <element name="hland_v1.fluxes.tf"
              substitutionGroup="fews:_Sequence"
              type="fews:SequenceType">
     </element>
 
-
+    <element name="hland_v1.states.sm"
+             substitutionGroup="fews:_Sequence"
+             type="fews:SequenceType">
+    </element>
 
 </schema>

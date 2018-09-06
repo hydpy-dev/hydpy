@@ -7,6 +7,7 @@ routines from model users and for allowing writing readable doctests.
 # import...
 # ...from standard library
 import os
+import importlib
 import inspect
 import warnings
 # ...from HydPy
@@ -177,6 +178,11 @@ def prepare_model(module, timestep=None):
     """
     if timestep is not None:
         parametertools.Parameter.parameterstep(timetools.Period(timestep))
+    try:
+        model = module.Model()
+    except AttributeError:
+        module = importlib.import_module(f'hydpy.models.{module}')
+        model = module.Model()
     model = module.Model()
     if pub.options.usecython and hasattr(module, 'cythonizer'):
         cymodule = module.cythonizer.cymodule

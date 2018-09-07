@@ -120,6 +120,28 @@ class XMLInterface(object):
         return timetools.Timegrids(timegrid)
 
     @property
+    def filetypes(self) -> Dict[str, str]:
+        """A dictionary mapping sequence subgroup names to file types as
+        defined in the actual xml file.
+
+        ToDo: finish test (successful try block)
+
+        >>> from hydpy.auxs.xmltools import XMLInterface
+        >>> from hydpy import data
+        >>> xml = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
+        >>> xml.filetypes
+        OrderedDict([('inputs', 'npy'), ('fluxes', 'npy'), ('states', 'npy')])
+        """
+        root = self.find('filetype')
+        filetypes = collections.OrderedDict()
+        for subseqs in ('inputs', 'fluxes', 'states'):
+            try:
+                filetypes[subseqs] = find(root, subseqs).text
+            except AttributeError:
+                filetypes[subseqs] = find(root, 'general').text
+        return filetypes
+
+    @property
     def outputs(self) -> List['XMLOutput']:
         """Return the output elements defined in the actual xml file.
 
@@ -141,8 +163,9 @@ class XMLInterface(object):
             output.prepare_series(memory)
 
     def save_series(self):
+        filetypes = self.filetypes
         for output in self.outputs:
-            output.save_series()
+            output.save_series(filetypes=filetypes)
 
 
 class XMLOutput(object):
@@ -159,7 +182,7 @@ class XMLOutput(object):
         """Info attribute of the xml output element."""
         return self.root.attrib['info']
 
-    def get_filetype(self, subseqs, default):
+    def get_filetype(self, subseqs, defaults):
         """Return the filetype for the given sequence subgroup name defined
         in the actual xml output element when possible; otherwise return the
         given default value.
@@ -173,11 +196,11 @@ class XMLOutput(object):
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
         >>> xml = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
-        >>> xml.outputs[0].get_filetype('inputs', 'npy')
+        >>> xml.outputs[0].get_filetype('inputs', {'inputs': 'npy'})
         'asc'
-        >>> xml.outputs[1].get_filetype('inputs', 'npy')
+        >>> xml.outputs[1].get_filetype('inputs', {'inputs': 'npy'})
         'nc'
-        >>> xml.outputs[2].get_filetype('inputs', 'npy')
+        >>> xml.outputs[2].get_filetype('inputs', {'inputs': 'npy'})
         'npy'
         """
         root = self.find('filetype')
@@ -187,7 +210,7 @@ class XMLOutput(object):
                 element = find(root, 'general')
             if element is not None:
                 return element.text
-        return default
+        return defaults[subseqs]
 
     @property
     def sequences(self) -> List[str]:
@@ -303,9 +326,12 @@ class XMLOutput(object):
         ...         'LahnHBV/sequences/output/land_dill_flux_pc.npy')[13+2, 3]
         9.0
         """
-        pub.sequencemanager.inputfiletype = self.get_filetype('inputs', 'npy')
-        pub.sequencemanager.fluxfiletype = self.get_filetype('fluxes', 'npy')
-        pub.sequencemanager.statefiletype = self.get_filetype('states', 'npy')
+        pub.sequencemanager.inputfiletype = self.get_filetype(
+            'inputs', filetypes)
+        pub.sequencemanager.fluxfiletype = self.get_filetype(
+            'fluxes', filetypes)
+        pub.sequencemanager.statefiletype = self.get_filetype(
+            'states', filetypes)
         pub.sequencemanager.open_netcdf_writer(flatten=True, isolate=True)
         for sequence in self._iterate_sequences():
             sequence.save_ext()

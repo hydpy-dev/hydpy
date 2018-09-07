@@ -54,12 +54,13 @@ True
 """
 # import...
 # ...from standard library
-from typing import Dict, List
+from typing import Dict, Iterator, List
 import collections
 import os
 from xml.etree import ElementTree
 # ...from HydPy
 from hydpy import pub
+from hydpy.core import sequencetools
 from hydpy.core import timetools
 
 namespace = \
@@ -118,7 +119,7 @@ class XMLInterface(object):
         return timetools.Timegrids(timegrid)
 
     @property
-    def outputs(self) -> List[ElementTree.Element]:
+    def outputs(self) -> List['XMLOutput']:
         """Return the output elements defined in the actual xml file.
 
         >>> from hydpy.auxs.xmltools import XMLInterface
@@ -136,6 +137,10 @@ class XMLInterface(object):
         memory = {}
         for output in self.outputs:
             output.prepare_series(memory)
+
+    def save_series(self):
+        for output in self.outputs:
+            output.save_series()
 
 
 class XMLOutput(object):
@@ -208,8 +213,16 @@ class XMLOutput(object):
         """
         return pub.selections.complete.elements
 
+    def _iterate_sequences(self) -> Iterator[sequencetools.IOSequence]:
+        m2s2s = self.model2subs2seqs
+        for element in self.elements:
+            model = element.model
+            for subseqs_name, seq_names in m2s2s.get(model.name, {}).items():
+                subseqs = getattr(model.sequences, subseqs_name)
+                for seq_name in seq_names:
+                    yield getattr(subseqs, seq_name)
 
-    def prepare_series(self, memory):
+    def prepare_series(self, memory) -> None:
         """ToDo
 
         ToDo: use "memory"
@@ -230,10 +243,35 @@ class XMLOutput(object):
         >>> hp.elements.land_dill.model.sequences.fluxes.pc.ramflag
         True
         """
-        m2s2s = self.model2subs2seqs
-        for element in self.elements:
-            model = element.model
-            for subseqs_name, seq_names in m2s2s.get(model.name, {}).items():
-                subseqs = getattr(model.sequences, subseqs_name)
-                for seq_name in seq_names:
-                    getattr(subseqs, seq_name).activate_ram()
+        for sequence in self._iterate_sequences():
+            sequence.activate_ram()
+
+    def save_series(self) -> None:
+        """ToDo
+
+        ToDo: allow for configurations
+
+        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+
+        >>> from hydpy import HydPy, TestIO, XMLInterface
+        >>> hp = HydPy('LahnHBV')
+        >>> with TestIO():
+        ...     hp.prepare_network()
+        ...     hp.init_models()
+        ...     xml = XMLInterface()
+        >>> pub.timegrids = xml.timegrids
+        >>> xml.prepare_series()
+        >>> hp.elements.land_dill.model.sequences.fluxes.pc.series[2, 3] = 9.0
+        >>> with TestIO():
+        ...     xml.save_series()
+        >>> import numpy
+        >>> with TestIO():
+        ...     numpy.load(
+        ...         'LahnHBV/sequences/output/land_dill_flux_pc.npy')[13+2, 3]
+        9.0
+        """
+        pub.sequencemanager.open_netcdf_writer()
+        for sequence in self._iterate_sequences():
+            sequence.save_ext()
+        pub.sequencemanager.close_netcdf_writer()

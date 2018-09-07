@@ -12,6 +12,10 @@
 
     <outputs>
         <output info="precipitation">
+            <filetype>
+                <inputs>asc</inputs>
+                <fluxes>npy</fluxes>
+            </filetype>
             <sequences>
                 <hland_v1.inputs.p/>
                 <hland_v1.fluxes.pc/>
@@ -19,6 +23,9 @@
             </sequences>
         </output>
         <output info="soilmoisture">
+            <filetype>
+                <general>nc</general>
+            </filetype>
             <selections>
                 ToDo
             </selections>
@@ -26,6 +33,12 @@
                 ToDo
             </devices>
             <sequences>
+                <hland_v1.states.sm/>
+            </sequences>
+        </output>
+        <output info="averaged">
+            <sequences>
+                <hland_v1.inputs.p/>
                 <hland_v1.states.sm/>
             </sequences>
         </output>

@@ -51,6 +51,7 @@ True
 >>> all(query_variable(ncfile, 'state_sm')[2] == hp.elements.land_dill.model.sequences.states.sm.series[:, 2])
 True
 
+>>> ncfile.close()
 """
 # import...
 # ...from standard library
@@ -129,6 +130,7 @@ class XMLInterface(object):
         ...     print(output.info)
         precipitation
         soilmoisture
+        averaged
         """
         return [XMLOutput(_) for _ in self.find('outputs')]
 
@@ -156,6 +158,36 @@ class XMLOutput(object):
     def info(self) -> str:
         """Info attribute of the xml output element."""
         return self.root.attrib['info']
+
+    def get_filetype(self, subseqs, default):
+        """Return the filetype for the given sequence subgroup name defined
+        in the actual xml output element when possible; otherwise return the
+        given default value.
+
+        Compare the following results with `config.xml` to see that the
+        first output element defines the input file type specifically,
+        that the second output element defines a general file type, and
+        that the third output element does not define any file type:
+
+
+        >>> from hydpy.auxs.xmltools import XMLInterface
+        >>> from hydpy import data
+        >>> xml = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
+        >>> xml.outputs[0].get_filetype('inputs', 'npy')
+        'asc'
+        >>> xml.outputs[1].get_filetype('inputs', 'npy')
+        'nc'
+        >>> xml.outputs[2].get_filetype('inputs', 'npy')
+        'npy'
+        """
+        root = self.find('filetype')
+        if root is not None:
+            element = find(root, subseqs)
+            if element is None:
+                element = find(root, 'general')
+            if element is not None:
+                return element.text
+        return default
 
     @property
     def sequences(self) -> List[str]:
@@ -246,10 +278,10 @@ class XMLOutput(object):
         for sequence in self._iterate_sequences():
             sequence.activate_ram()
 
-    def save_series(self) -> None:
+    def save_series(self, filetypes) -> None:
         """ToDo
 
-        ToDo: allow for configurations
+        ToDo: extend configurations
 
         >>> from hydpy.core.examples import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -271,7 +303,10 @@ class XMLOutput(object):
         ...         'LahnHBV/sequences/output/land_dill_flux_pc.npy')[13+2, 3]
         9.0
         """
-        pub.sequencemanager.open_netcdf_writer()
+        pub.sequencemanager.inputfiletype = self.get_filetype('inputs', 'npy')
+        pub.sequencemanager.fluxfiletype = self.get_filetype('fluxes', 'npy')
+        pub.sequencemanager.statefiletype = self.get_filetype('states', 'npy')
+        pub.sequencemanager.open_netcdf_writer(flatten=True, isolate=True)
         for sequence in self._iterate_sequences():
             sequence.save_ext()
         pub.sequencemanager.close_netcdf_writer()

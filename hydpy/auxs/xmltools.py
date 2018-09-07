@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 """
 
+>>> from hydpy import pub
+>>> pub.options.printprogress = False
+>>> import warnings
+>>> warnings.filterwarnings('ignore')
+
 >>> from hydpy.core.examples import prepare_full_example_1
 >>> prepare_full_example_1()
 
@@ -155,12 +160,12 @@ class XMLOutput(object):
         >>> from hydpy import data
         >>> xml = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
         >>> xml.outputs[0].sequences
-        ['hland_v1.inputs.p', 'hland_v1.fluxes.pc']
+        ['hland_v1.inputs.p', 'hland_v1.fluxes.pc', 'hland_v1.fluxes.tf']
         """
         return [strip(_.tag) for _ in self.find('sequences')]
 
     @property
-    def model2subseqs2seq(self) -> Dict[str, Dict[str, List[str]]]:
+    def model2subs2seqs(self) -> Dict[str, Dict[str, List[str]]]:
         """A nested |collections.defaultdict| containing the information
         provided by |property| |XMLOutput.sequences|.
 
@@ -169,19 +174,19 @@ class XMLOutput(object):
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
         >>> xml = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
-        >>> result = xml.outputs[0].model2subseqs2seq
-        >>> for model, subseqs2seq in sorted(result.items()):
-        ...     for subseqs, seq in sorted(subseqs2seq.items()):
-        ...         print(model, subseqs, seq)
+        >>> model2subs2seqs = xml.outputs[0].model2subs2seqs
+        >>> for model, subs2seqs in sorted(model2subs2seqs.items()):
+        ...     for subs, seq in sorted(subs2seqs.items()):
+        ...         print(model, subs, seq)
         hland_v1 fluxes ['pc', 'tf']
         hland_v1 inputs ['p']
         """
-        model2subseqs = collections.defaultdict(
+        model2subs2seqs = collections.defaultdict(
             lambda: collections.defaultdict(list))
         for sequence in self.sequences:
             model, subseqs, seqname = sequence.split('.')
-            model2subseqs[model][subseqs].append(seqname)
-        return model2subseqs
+            model2subs2seqs[model][subseqs].append(seqname)
+        return model2subs2seqs
 
     @property
     def elements(self):
@@ -207,7 +212,6 @@ class XMLOutput(object):
     def prepare_series(self, memory):
         """ToDo
 
-        ToDo: add an actual selection mechanism
         ToDo: use "memory"
 
         >>> from hydpy.core.examples import prepare_full_example_1
@@ -226,10 +230,10 @@ class XMLOutput(object):
         >>> hp.elements.land_dill.model.sequences.fluxes.pc.ramflag
         True
         """
-        m2s2s = self.model2subseqs2seq
+        m2s2s = self.model2subs2seqs
         for element in self.elements:
             model = element.model
-            for name_subseqs, seqnames in m2s2s.get(model.name, {}).items():
-                subseqs = getattr(model.sequences, name_subseqs)
-                for seqname in seqnames:
-                    getattr(subseqs, seqname).activate_ram()
+            for subseqs_name, seq_names in m2s2s.get(model.name, {}).items():
+                subseqs = getattr(model.sequences, subseqs_name)
+                for seq_name in seq_names:
+                    getattr(subseqs, seq_name).activate_ram()

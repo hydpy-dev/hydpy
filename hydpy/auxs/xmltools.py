@@ -164,6 +164,7 @@ class XMLInterface(object):
         >>> from hydpy import data
         >>> xml = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
         >>> from unittest import mock
+        >>> prepare_series = XMLOutput.prepare_series
         >>> XMLOutput.prepare_series = mock.MagicMock()
         >>> xml.prepare_series()
         >>> args = XMLOutput.prepare_series.call_args_list
@@ -173,7 +174,7 @@ class XMLInterface(object):
         set()
         >>> args[0][0][0] is args[-1][0][0]
         True
-        >>> del XMLInterface.prepare_series
+        >>> XMLOutput.prepare_series = prepare_series
         """
         memory = set()
         for output in self.outputs:

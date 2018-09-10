@@ -42,7 +42,10 @@
         </output>
         <output info="averaged">
             <sequences>
-                <hland_v1.inputs.p/>
+                <nodes.sim/>
+                <nodes.obs/>
+                <hland_v1.fluxes.pc/>
+                <hland_v1.fluxes.tf/>
                 <hland_v1.states.sm/>
             </sequences>
         </output>

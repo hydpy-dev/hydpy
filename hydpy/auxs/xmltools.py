@@ -14,11 +14,9 @@
 >>> with TestIO():
 ...     xml = XMLInterface()
 >>> pub.timegrids = xml.timegrids
->>> pub.sequencemanager.generalfiletype = 'nc'
 
->>> pub.options.printprogress = False   # ToDo
->>> import warnings   # ToDo
->>> warnings.filterwarnings('ignore', 'Note that,')   # ToDo
+>>> pub.sequencemanager.inputfiletype = 'nc'   # ToDo: remove
+>>> pub.sequencemanager.fluxoverwrite = True   # ToDo: remove
 
 >>> with TestIO():
 ...     hp.prepare_network()
@@ -36,14 +34,13 @@
 >>> with TestIO():
 ...     xml.save_series()
 
->>> from hydpy.core.netcdftools import netcdf4, chars2str, query_variable
+>>> import numpy
 >>> with TestIO():
-...     ncfile = netcdf4.Dataset('LahnHBV/sequences/node/node_sim_q.nc')
->>> chars2str(query_variable(ncfile, 'station_names'))
-['dill', 'lahn_1', 'lahn_2', 'lahn_3']
->>> all(query_variable(ncfile, 'sim_q')[1] == hp.nodes.lahn_1.sequences.sim.series)
+...     array = numpy.load('LahnHBV/sequences/node/lahn_1_sim_q.npy')
+>>> all(array[13:] == hp.nodes.lahn_1.sequences.sim.series)
 True
 
+>>> from hydpy.core.netcdftools import netcdf4, chars2str, query_variable
 >>> with TestIO():
 ...     ncfile = netcdf4.Dataset('LahnHBV/sequences/output/hland_v1_state_sm.nc')
 >>> chars2str(query_variable(ncfile, 'station_names'))[:3]
@@ -52,15 +49,18 @@ True
 True
 
 >>> ncfile.close()
+>>> TestIO.clear()
 """
 # import...
 # ...from standard library
 from typing import Dict, Iterator, List
 import collections
+import itertools
 import os
 from xml.etree import ElementTree
 # ...from HydPy
 from hydpy import pub
+from hydpy.core import devicetools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
 
@@ -226,30 +226,55 @@ class XMLOutput(object):
 
     @property
     def model2subs2seqs(self) -> Dict[str, Dict[str, List[str]]]:
-        """A nested |collections.defaultdict| containing the information
-        provided by |property| |XMLOutput.sequences|.
+        """A nested |collections.defaultdict| containing the model specific
+        information provided by |property| |XMLOutput.sequences|.
 
         ToDo: test different model types
 
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
         >>> xml = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
-        >>> model2subs2seqs = xml.outputs[0].model2subs2seqs
+        >>> model2subs2seqs = xml.outputs[2].model2subs2seqs
         >>> for model, subs2seqs in sorted(model2subs2seqs.items()):
         ...     for subs, seq in sorted(subs2seqs.items()):
         ...         print(model, subs, seq)
         hland_v1 fluxes ['pc', 'tf']
-        hland_v1 inputs ['p']
+        hland_v1 states ['sm']
         """
         model2subs2seqs = collections.defaultdict(
             lambda: collections.defaultdict(list))
         for sequence in self.sequences:
-            model, subseqs, seqname = sequence.split('.')
+            try:
+                model, subseqs, seqname = sequence.split('.')
+            except ValueError:
+                continue
             model2subs2seqs[model][subseqs].append(seqname)
         return model2subs2seqs
 
     @property
-    def elements(self):
+    def subs2seqs(self) -> Dict[str, Dict[str, List[str]]]:
+        """A nested |collections.defaultdict| containing the node specific
+        information provided by |property| |XMLOutput.sequences|.
+
+        >>> from hydpy.auxs.xmltools import XMLInterface
+        >>> from hydpy import data
+        >>> xml = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
+        >>> subs2seqs = xml.outputs[2].subs2seqs
+        >>> for subs, seq in sorted(subs2seqs.items()):
+        ...     print(subs, seq)
+        nodes ['sim', 'obs']
+        """
+        subs2seqs = collections.defaultdict(list)
+        for sequence in self.sequences:
+            try:
+                subseqs, seqname = sequence.split('.')
+            except ValueError:
+                continue
+            subs2seqs[subseqs].append(seqname)
+        return subs2seqs
+
+    @property
+    def elements(self) -> devicetools.Elements:
         """Return the selected elements.
 
         ToDo: add an actual  selection mechanism
@@ -268,7 +293,30 @@ class XMLOutput(object):
         """
         return pub.selections.complete.elements
 
+    @property
+    def nodes(self) -> devicetools.Nodes:
+        """Return the selected nodes.
+
+        ToDo: add an actual  selection mechanism
+
+        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+
+        >>> from hydpy import HydPy, TestIO, XMLInterface
+        >>> hp = HydPy('LahnHBV')
+        >>> with TestIO():
+        ...     hp.prepare_network()
+        ...     xml = XMLInterface()
+        >>> xml.outputs[2].nodes
+        Nodes("dill", "lahn_1", "lahn_2", "lahn_3")
+        """
+        return pub.selections.complete.nodes
+
     def _iterate_sequences(self) -> Iterator[sequencetools.IOSequence]:
+        return itertools.chain(
+            self._iterate_model_sequences(), self._iterate_node_sequences())
+
+    def _iterate_model_sequences(self) -> Iterator[sequencetools.IOSequence]:
         m2s2s = self.model2subs2seqs
         for element in self.elements:
             model = element.model
@@ -276,6 +324,13 @@ class XMLOutput(object):
                 subseqs = getattr(model.sequences, subseqs_name)
                 for seq_name in seq_names:
                     yield getattr(subseqs, seq_name)
+
+    def _iterate_node_sequences(self) -> Iterator[sequencetools.IOSequence]:
+        s2s = self.subs2seqs
+        for node in self.nodes:
+            for subseqs_name, seq_names in s2s.items():
+                for seq_name in seq_names:
+                    yield getattr(node.sequences, seq_name)
 
     def prepare_series(self, memory) -> None:
         """ToDo
@@ -309,8 +364,9 @@ class XMLOutput(object):
         >>> from hydpy.core.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
-        >>> from hydpy import HydPy, TestIO, XMLInterface
+        >>> from hydpy import HydPy, TestIO, XMLInterface, pub
         >>> hp = HydPy('LahnHBV')
+        >>> pub.sequencemanager.fluxoverwrite = True   # ToDo: remove
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     hp.init_models()
@@ -318,13 +374,17 @@ class XMLOutput(object):
         >>> pub.timegrids = xml.timegrids
         >>> xml.prepare_series()
         >>> hp.elements.land_dill.model.sequences.fluxes.pc.series[2, 3] = 9.0
+        >>> hp.nodes.lahn_2.sequences.sim.series[4] = 7.0
         >>> with TestIO():
         ...     xml.save_series()
         >>> import numpy
         >>> with TestIO():
         ...     numpy.load(
         ...         'LahnHBV/sequences/output/land_dill_flux_pc.npy')[13+2, 3]
+        ...     numpy.load(
+        ...         'LahnHBV/sequences/node/lahn_2_sim_q.npy')[13+4]
         9.0
+        7.0
         """
         pub.sequencemanager.inputfiletype = self.get_filetype(
             'inputs', filetypes)

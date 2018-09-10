@@ -81,6 +81,9 @@
                     <element name="states"
                              minOccurs="0"
                              type="fews:_filetype"/>
+                    <element name="nodes"
+                             minOccurs="0"
+                             type="fews:_filetype"/>
                 </sequence>
             </choice>
         </complexType>
@@ -98,15 +101,23 @@
         <complexType>
             <sequence>
                 <element ref="fews:_Sequence"
-                         maxOccurs="unbounded" />
+                         maxOccurs="unbounded"/>
             </sequence>
         </complexType>
     </element>
 
-    <element name="_Sequence" type="fews:SequenceType" abstract="true">
+    <element name="_Sequence" type="fews:SequenceType" abstract="true"/>
+    <complexType name="SequenceType"/>
+
+    <element name="nodes.obs"
+             substitutionGroup="fews:_Sequence"
+             type="fews:SequenceType">
     </element>
-    <complexType name="SequenceType">
-    </complexType>
+
+    <element name="nodes.sim"
+             substitutionGroup="fews:_Sequence"
+             type="fews:SequenceType">
+    </element>
 
     <element name="hland_v1.inputs.p"
              substitutionGroup="fews:_Sequence"

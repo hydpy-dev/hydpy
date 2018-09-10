@@ -157,8 +157,25 @@ class XMLInterface(object):
         return [XMLOutput(_) for _ in self.find('outputs')]
 
     def prepare_series(self):
-        """"""
-        memory = {}
+        """Call |XMLOutput.prepare_series| of all |XMLOuput| objects with
+        the same memory |set| object.
+
+        >>> from hydpy.auxs.xmltools import XMLInterface, XMLOutput
+        >>> from hydpy import data
+        >>> xml = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
+        >>> from unittest import mock
+        >>> XMLOutput.prepare_series = mock.MagicMock()
+        >>> xml.prepare_series()
+        >>> args = XMLOutput.prepare_series.call_args_list
+        >>> len(args) == len(xml.outputs)
+        True
+        >>> args[0][0][0]
+        set()
+        >>> args[0][0][0] is args[-1][0][0]
+        True
+        >>> del XMLInterface.prepare_series
+        """
+        memory = set()
         for output in self.outputs:
             output.prepare_series(memory)
 
@@ -252,7 +269,7 @@ class XMLOutput(object):
         return model2subs2seqs
 
     @property
-    def subs2seqs(self) -> Dict[str, Dict[str, List[str]]]:
+    def subs2seqs(self) -> Dict[str, List[str]]:
         """A nested |collections.defaultdict| containing the node specific
         information provided by |property| |XMLOutput.sequences|.
 
@@ -333,9 +350,11 @@ class XMLOutput(object):
                     yield getattr(node.sequences, seq_name)
 
     def prepare_series(self, memory) -> None:
-        """ToDo
+        """Call |IOSequence.activate_ram| of all sequences selected by
+        the given output element of the actual xml file.
 
-        ToDo: use "memory"
+        Use the memory argument to pass in sequences within a |set| that
+        are prepared already; newly prepared sequences will be added.
 
         >>> from hydpy.core.examples import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -347,14 +366,28 @@ class XMLOutput(object):
         ...     hp.init_models()
         ...     xml = XMLInterface()
         >>> pub.timegrids = xml.timegrids
-        >>> hp.elements.land_dill.model.sequences.fluxes.pc.ramflag
+
+        >>> memory = set()
+        >>> pc = hp.elements.land_dill.model.sequences.fluxes.pc
+        >>> pc.ramflag
         False
-        >>> xml.prepare_series()
-        >>> hp.elements.land_dill.model.sequences.fluxes.pc.ramflag
+        >>> xml.outputs[0].prepare_series(memory)
+        >>> pc in memory
         True
+        >>> pc.ramflag
+        True
+
+        >>> pc.deactivate_ram()
+        >>> pc.ramflag
+        False
+        >>> xml.outputs[0].prepare_series(memory)
+        >>> pc.ramflag
+        False
         """
         for sequence in self._iterate_sequences():
-            sequence.activate_ram()
+            if sequence not in memory:
+                memory.add(sequence)
+                sequence.activate_ram()
 
     def save_series(self, filetypes) -> None:
         """ToDo

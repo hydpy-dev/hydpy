@@ -181,6 +181,9 @@ def prepare_full_example_1() -> None:
     shutil.copytree(
         os.path.join(data.__path__[0], 'LahnHBV'),
         os.path.join(iotesting.__path__[0], 'LahnHBV'))
+    seqpath = os.path.join(iotesting.__path__[0], 'LahnHBV', 'sequences')
+    for folder in ('output', 'node', 'temp'):
+        os.makedirs(os.path.join(seqpath, folder))
 
 
 autodoctools.autodoc_module()

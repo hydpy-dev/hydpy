@@ -185,7 +185,8 @@ def elementphrase(self):
     """Return the phrase used in exception messages to indicate
     which |Element| is affected.
 
-    >>> from hydpy.core.modeltools import Model
+    >>> class Model(object):
+    ...     pass
     >>> model = Model()
     >>> from hydpy.core.objecttools import elementphrase
     >>> elementphrase(model)
@@ -196,8 +197,7 @@ def elementphrase(self):
     '`test` of element `?`'
 
     >>> from hydpy import Element
-    >>> e1 = Element('e1')
-    >>> e1.connect(model)
+    >>> model.element = Element('e1')
     >>> elementphrase(model)
     '`test` of element `e1`'
     """
@@ -231,16 +231,15 @@ def devicephrase(self):
     indicate which |Element| or which |Node| is affected.
     If not possible, return just the name of the given object.
 
-    >>> from hydpy.core.modeltools import Model
+    >>> class Model(object):
+    ...     name = 'test'
     >>> model = Model()
-    >>> model.name = 'test'
     >>> from hydpy.core.objecttools import devicephrase
     >>> devicephrase(model)
     '`test`'
 
     >>> from hydpy import Element
-    >>> e1 = Element('e1')
-    >>> e1.connect(model)
+    >>> model.element = Element('e1')
     >>> devicephrase(model)
     '`test` of element `e1`'
 
@@ -547,9 +546,9 @@ def copy_class(cls):
     >>> x.bit_length()
     2
     >>> from hydpy.core.objecttools import copy_class
-    >>> int = copy_class(int)
-    >>> int.bit_length = lambda self: 'test'
-    >>> int(3).bit_length()
+    >>> int_ = copy_class(int)
+    >>> int_.bit_length = lambda self: 'test'
+    >>> int_(3).bit_length()
     'test'
     """
     return type(cls.__name__, (cls,), {})
@@ -803,11 +802,11 @@ def assignrepr_values(values, prefix, width=None, _fakeend=0):
          6, 7, 8, 9, 10,
          11, 12)
     """
-    ellipsis = pub.options.ellipsis
-    if (ellipsis > 0) and (len(values) > 2*ellipsis):
-        string = (repr_values(values[:ellipsis]) +
+    ellipsis_ = pub.options.ellipsis
+    if (ellipsis_ > 0) and (len(values) > 2*ellipsis_):
+        string = (repr_values(values[:ellipsis_]) +
                   ', ...,' +
-                  repr_values(values[-ellipsis:]))
+                  repr_values(values[-ellipsis_:]))
     else:
         string = repr_values(values)
     blanks = ' '*len(prefix)

@@ -14,6 +14,20 @@
         <general>npy</general>
     </filetype>
 
+    <inputs>
+        <input info="all input data">
+            <filetype>
+                <inputs>nc</inputs>
+            </filetype>
+            <sequences>
+                <hland_v1.inputs.p/>
+                <hland_v1.inputs.t/>
+                <hland_v1.inputs.tn/>
+                <hland_v1.inputs.epn/>
+            </sequences>
+        </input>
+    </inputs>
+
     <outputs>
         <output info="precipitation">
             <filetype>

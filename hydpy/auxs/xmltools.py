@@ -3,6 +3,7 @@
 
 >>> from hydpy import pub
 >>> pub.options.printprogress = False
+>>> pub.options.reprdigits = 6
 >>> import warnings
 >>> warnings.filterwarnings('ignore')
 
@@ -15,19 +16,16 @@
 ...     xml = XMLInterface()
 >>> pub.timegrids = xml.timegrids
 
->>> pub.sequencemanager.inputfiletype = 'nc'   # ToDo: remove
 >>> pub.sequencemanager.fluxoverwrite = True   # ToDo: remove
 
 >>> with TestIO():
 ...     hp.prepare_network()
 ...     hp.init_models()
 ...     hp.load_conditions()
-...     hp.prepare_inputseries()
-...     pub.sequencemanager.open_netcdf_reader(isolate=True)
-...     hp.load_inputseries()
-...     pub.sequencemanager.close_netcdf_reader()
 
 >>> xml.prepare_series()
+>>> with TestIO():
+...     xml.load_series()
 
 >>> hp.doit()
 
@@ -42,10 +40,12 @@ True
 
 >>> from hydpy.core.netcdftools import netcdf4, chars2str, query_variable
 >>> with TestIO():
-...     ncfile = netcdf4.Dataset('LahnHBV/sequences/output/hland_v1_state_sm.nc')
+...     ncfile = netcdf4.Dataset(
+...         'LahnHBV/sequences/output/hland_v1_state_sm.nc')
 >>> chars2str(query_variable(ncfile, 'station_names'))[:3]
 ['land_dill_0', 'land_dill_1', 'land_dill_2']
->>> all(query_variable(ncfile, 'state_sm')[2] == hp.elements.land_dill.model.sequences.states.sm.series[:, 2])
+>>> query_variable(ncfile, 'state_sm')[2, 3] == \
+hp.elements.land_dill.model.sequences.states.sm.series[3, 2]
 True
 
 >>> ncfile.close()
@@ -130,16 +130,30 @@ class XMLInterface(object):
         >>> from hydpy import data
         >>> xml = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
         >>> xml.filetypes
-        OrderedDict([('inputs', 'npy'), ('fluxes', 'npy'), ('states', 'npy')])
+        OrderedDict([('inputs', 'npy'), ('fluxes', 'npy'), \
+('states', 'npy'), ('nodes', 'npy')])
         """
         root = self.find('filetype')
         filetypes = collections.OrderedDict()
-        for subseqs in ('inputs', 'fluxes', 'states'):
+        for subseqs in ('inputs', 'fluxes', 'states', 'nodes'):
             try:
                 filetypes[subseqs] = find(root, subseqs).text
             except AttributeError:
                 filetypes[subseqs] = find(root, 'general').text
         return filetypes
+
+    @property
+    def inputs(self) -> List['XMLOutput']:
+        """Return the input elements defined in the actual xml file.
+
+        >>> from hydpy.auxs.xmltools import XMLInterface
+        >>> from hydpy import data
+        >>> xml = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
+        >>> for input_ in xml.inputs:
+        ...     print(input_.info)
+        all input data
+        """
+        return [XMLOutput(_) for _ in self.find('inputs')]
 
     @property
     def outputs(self) -> List['XMLOutput']:
@@ -158,7 +172,7 @@ class XMLInterface(object):
 
     def prepare_series(self):
         """Call |XMLOutput.prepare_series| of all |XMLOuput| objects with
-        the same memory |set| object.
+        the same memory |set| object.   ToDo: input
 
         >>> from hydpy.auxs.xmltools import XMLInterface, XMLOutput
         >>> from hydpy import data
@@ -168,7 +182,7 @@ class XMLInterface(object):
         >>> XMLOutput.prepare_series = mock.MagicMock()
         >>> xml.prepare_series()
         >>> args = XMLOutput.prepare_series.call_args_list
-        >>> len(args) == len(xml.outputs)
+        >>> len(args) == len(xml.inputs) + len(xml.outputs)
         True
         >>> args[0][0][0]
         set()
@@ -177,8 +191,13 @@ class XMLInterface(object):
         >>> XMLOutput.prepare_series = prepare_series
         """
         memory = set()
-        for output in self.outputs:
+        for output in itertools.chain(self.inputs, self.outputs):
             output.prepare_series(memory)
+
+    def load_series(self):
+        filetypes = self.filetypes
+        for input_ in self.inputs:
+            input_.load_series(filetypes=filetypes)
 
     def save_series(self):
         filetypes = self.filetypes
@@ -390,6 +409,41 @@ class XMLOutput(object):
                 memory.add(sequence)
                 sequence.activate_ram()
 
+    def load_series(self, filetypes) -> None:
+        """ToDo
+
+        ToDo: extend configurations
+
+        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+
+        >>> from hydpy import HydPy, TestIO, XMLInterface, pub
+        >>> hp = HydPy('LahnHBV')
+        >>> with TestIO():
+        ...     hp.prepare_network()
+        ...     hp.init_models()
+        ...     xml = XMLInterface()
+        ...     pub.timegrids = xml.timegrids
+        ...     xml.prepare_series()
+        ...     xml.load_series()
+        >>> from hydpy import print_values
+        >>> print_values(
+        ...     hp.elements.land_dill.model.sequences.inputs.t.series[:3])
+        -0.298846, -0.811539, -2.493848
+        """
+        pub.sequencemanager.inputfiletype = self.get_filetype(
+            'inputs', filetypes)
+        pub.sequencemanager.fluxfiletype = self.get_filetype(
+            'fluxes', filetypes)
+        pub.sequencemanager.statefiletype = self.get_filetype(
+            'states', filetypes)
+        pub.sequencemanager.nodefiletype = self.get_filetype(
+            'nodes', filetypes)
+        pub.sequencemanager.open_netcdf_reader(flatten=True, isolate=True)
+        for sequence in self._iterate_sequences():
+            sequence.load_ext()
+        pub.sequencemanager.close_netcdf_reader()
+
     def save_series(self, filetypes) -> None:
         """ToDo
 
@@ -426,6 +480,8 @@ class XMLOutput(object):
             'fluxes', filetypes)
         pub.sequencemanager.statefiletype = self.get_filetype(
             'states', filetypes)
+        pub.sequencemanager.nodefiletype = self.get_filetype(
+            'nodes', filetypes)
         pub.sequencemanager.open_netcdf_writer(flatten=True, isolate=True)
         for sequence in self._iterate_sequences():
             sequence.save_ext()

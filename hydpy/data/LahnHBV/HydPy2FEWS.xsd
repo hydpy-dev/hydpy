@@ -9,6 +9,7 @@
             <sequence>
                 <element ref="fews:timegrid"/>
                 <element ref="fews:filetype"/>
+                <element ref="fews:inputs"/>
                 <element ref="fews:outputs"/>
             </sequence>
         </complexType>
@@ -30,6 +31,15 @@
         </complexType>
     </element>
 
+    <element name="inputs">
+        <complexType>
+            <sequence>
+                <element ref="fews:input"
+                         maxOccurs="unbounded"/>
+            </sequence>
+        </complexType>
+    </element>
+
     <element name="outputs">
         <complexType>
             <sequence>
@@ -37,6 +47,21 @@
                          minOccurs="0"
                          maxOccurs="unbounded" />
             </sequence>
+        </complexType>
+    </element>
+
+    <element name="input">
+        <complexType>
+            <sequence>
+                <element ref="fews:filetype"
+                         minOccurs="0"/>
+                <element ref="fews:selections"
+                         minOccurs="0"/>
+                <element ref="fews:devices"
+                         minOccurs="0"/>
+                <element ref="fews:sequences"/>
+            </sequence>
+            <attribute name="info" type="string"/>
         </complexType>
     </element>
 
@@ -120,6 +145,21 @@
     </element>
 
     <element name="hland_v1.inputs.p"
+             substitutionGroup="fews:_Sequence"
+             type="fews:SequenceType">
+    </element>
+
+    <element name="hland_v1.inputs.t"
+             substitutionGroup="fews:_Sequence"
+             type="fews:SequenceType">
+    </element>
+
+        <element name="hland_v1.inputs.tn"
+             substitutionGroup="fews:_Sequence"
+             type="fews:SequenceType">
+    </element>
+
+    <element name="hland_v1.inputs.epn"
              substitutionGroup="fews:_Sequence"
              type="fews:SequenceType">
     </element>

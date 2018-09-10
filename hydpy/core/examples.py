@@ -166,7 +166,7 @@ def prepare_full_example_1() -> None:
     >>> from hydpy import TestIO
     >>> import os
     >>> with TestIO():
-    ...     os.listdir('.')
+    ...     sorted(os.listdir('.'))
     ['LahnHBV', '__init__.py']
 
     ToDo: Improve, test, and explain this example data set.

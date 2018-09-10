@@ -166,8 +166,14 @@ def prepare_full_example_1() -> None:
     >>> from hydpy import TestIO
     >>> import os
     >>> with TestIO():
-    ...     sorted(os.listdir('.'))
-    ['LahnHBV', '__init__.py']
+    ...     print('root:', *sorted(os.listdir('.')))
+    ...     for folder in ('control', 'conditions', 'sequences'):
+    ...         print(f'LahnHBV/{folder}:',
+    ...               *sorted(os.listdir(f'LahnHBV/{folder}')))
+    root: LahnHBV __init__.py
+    LahnHBV/control: default
+    LahnHBV/conditions: init_1996_01_01_00_00_00
+    LahnHBV/sequences: input node output temp
 
     ToDo: Improve, test, and explain this example data set.
     """

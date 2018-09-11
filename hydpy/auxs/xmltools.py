@@ -438,6 +438,19 @@ class XMLSequence(object):
                 memory.add(sequence)
                 sequence.activate_ram()
 
+    def _apply_function_on_sequences(self, func, filetypes) -> None:
+        pub.sequencemanager.inputfiletype = self.get_filetype(
+            'inputs', filetypes)
+        pub.sequencemanager.fluxfiletype = self.get_filetype(
+            'fluxes', filetypes)
+        pub.sequencemanager.statefiletype = self.get_filetype(
+            'states', filetypes)
+        pub.sequencemanager.nodefiletype = self.get_filetype(
+            'nodes', filetypes)
+        for sequence in self._iterate_sequences():
+            func(sequence)
+
+
     def load_series(self, filetypes) -> None:
         """ToDo
 
@@ -461,17 +474,9 @@ class XMLSequence(object):
         ...     hp.elements.land_dill.model.sequences.inputs.t.series[:3])
         -0.298846, -0.811539, -2.493848
         """
-        pub.sequencemanager.inputfiletype = self.get_filetype(
-            'inputs', filetypes)
-        pub.sequencemanager.fluxfiletype = self.get_filetype(
-            'fluxes', filetypes)
-        pub.sequencemanager.statefiletype = self.get_filetype(
-            'states', filetypes)
-        pub.sequencemanager.nodefiletype = self.get_filetype(
-            'nodes', filetypes)
         pub.sequencemanager.open_netcdf_reader(flatten=True, isolate=True)
-        for sequence in self._iterate_sequences():
-            sequence.load_ext()
+        self._apply_function_on_sequences(
+            sequencetools.IOSequence.load_ext, filetypes)
         pub.sequencemanager.close_netcdf_reader()
 
     def save_series(self, filetypes) -> None:
@@ -505,15 +510,7 @@ class XMLSequence(object):
         9.0
         7.0
         """
-        pub.sequencemanager.inputfiletype = self.get_filetype(
-            'inputs', filetypes)
-        pub.sequencemanager.fluxfiletype = self.get_filetype(
-            'fluxes', filetypes)
-        pub.sequencemanager.statefiletype = self.get_filetype(
-            'states', filetypes)
-        pub.sequencemanager.nodefiletype = self.get_filetype(
-            'nodes', filetypes)
         pub.sequencemanager.open_netcdf_writer(flatten=True, isolate=True)
-        for sequence in self._iterate_sequences():
-            sequence.save_ext()
+        self._apply_function_on_sequences(
+            sequencetools.IOSequence.save_ext, filetypes)
         pub.sequencemanager.close_netcdf_writer()

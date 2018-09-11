@@ -394,7 +394,7 @@ class XMLSequence(object):
     @property
     def model2subs2seqs(self) -> Dict[str, Dict[str, List[str]]]:
         """A nested |collections.defaultdict| containing the model specific
-        information provided by |property| |XMLSequence.sequences|.
+        information provided by |property| |XMLSequence.series|.
 
         ToDo: test different model types
 
@@ -422,7 +422,7 @@ class XMLSequence(object):
     @property
     def subs2seqs(self) -> Dict[str, List[str]]:
         """A nested |collections.defaultdict| containing the node specific
-        information provided by |property| |XMLSequence.sequences|.
+        information provided by |property| |XMLSequence.series|.
 
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data

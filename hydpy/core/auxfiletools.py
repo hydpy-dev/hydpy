@@ -252,8 +252,9 @@ Variable type `EQD1` is not handled by model `lstream_v1`.
         >>> from hydpy import pub
         >>> pub.projectname = 'test'
         >>> from hydpy.core.filetools import ControlManager
-        >>> ControlManager.currentpath = 'test_directory'
-        >>> pub.controlmanager = ControlManager()
+        >>> class Test(ControlManager):
+        ...     currentpath = 'test_directory'
+        >>> pub.controlmanager = Test()
 
         Normally, the control files would be written to disk, of course.
         But to show (and test) the results in the following doctest,

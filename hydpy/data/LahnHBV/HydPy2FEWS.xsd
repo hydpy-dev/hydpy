@@ -8,9 +8,7 @@
         <complexType>
             <sequence>
                 <element ref="fews:timegrid"/>
-                <element ref="fews:filetype"/>
-                <element ref="fews:inputs"/>
-                <element ref="fews:outputs"/>
+                <element ref="fews:sequences"/>
             </sequence>
         </complexType>
     </element>
@@ -31,21 +29,27 @@
         </complexType>
     </element>
 
-    <element name="inputs">
+    <element name="sequences">
         <complexType>
             <sequence>
-                <element ref="fews:input"
-                         maxOccurs="unbounded"/>
-            </sequence>
-        </complexType>
-    </element>
-
-    <element name="outputs">
-        <complexType>
-            <sequence>
-                <element ref="fews:output"
-                         minOccurs="0"
-                         maxOccurs="unbounded" />
+                <element ref="fews:filetype"/>
+                <element name="inputs">
+                    <complexType>
+                        <sequence>
+                            <element ref="fews:input"
+                                     maxOccurs="unbounded"/>
+                        </sequence>
+                    </complexType>
+                </element>
+                <element name="outputs">
+                    <complexType>
+                        <sequence>
+                            <element ref="fews:output"
+                                     minOccurs="0"
+                                     maxOccurs="unbounded" />
+                        </sequence>
+                    </complexType>
+                </element>
             </sequence>
         </complexType>
     </element>
@@ -59,7 +63,7 @@
                          minOccurs="0"/>
                 <element ref="fews:devices"
                          minOccurs="0"/>
-                <element ref="fews:sequences"/>
+                <element ref="fews:series"/>
             </sequence>
             <attribute name="info" type="string"/>
         </complexType>
@@ -74,7 +78,7 @@
                          minOccurs="0"/>
                 <element ref="fews:devices"
                          minOccurs="0"/>
-                <element ref="fews:sequences"/>
+                <element ref="fews:series"/>
             </sequence>
             <attribute name="info" type="string"/>
         </complexType>
@@ -122,7 +126,7 @@
         </restriction>
     </simpleType>
 
-    <element name="sequences">
+    <element name="series">
         <complexType>
             <sequence>
                 <element ref="fews:_Sequence"

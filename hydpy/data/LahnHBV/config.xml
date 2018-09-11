@@ -10,60 +10,67 @@
         <stepsize>1d</stepsize>
     </timegrid>
 
-    <filetype>
-        <general>npy</general>
-    </filetype>
+    <sequences>
 
-    <inputs>
-        <input info="all input data">
-            <filetype>
-                <inputs>nc</inputs>
-            </filetype>
-            <sequences>
-                <hland_v1.inputs.p/>
-                <hland_v1.inputs.t/>
-                <hland_v1.inputs.tn/>
-                <hland_v1.inputs.epn/>
-            </sequences>
-        </input>
-    </inputs>
+        <filetype>
+            <general>npy</general>
+        </filetype>
 
-    <outputs>
-        <output info="precipitation">
-            <filetype>
-                <inputs>asc</inputs>
-                <fluxes>npy</fluxes>
-            </filetype>
-            <sequences>
-                <hland_v1.inputs.p/>
-                <hland_v1.fluxes.pc/>
-                <hland_v1.fluxes.tf/>
-            </sequences>
-        </output>
-        <output info="soilmoisture">
-            <filetype>
-                <general>nc</general>
-            </filetype>
-            <selections>
-                ToDo
-            </selections>
-            <devices>
-                ToDo
-            </devices>
-            <sequences>
-                <hland_v1.states.sm/>
-            </sequences>
-        </output>
-        <output info="averaged">
-            <sequences>
-                <nodes.sim/>
-                <nodes.obs/>
-                <hland_v1.fluxes.pc/>
-                <hland_v1.fluxes.tf/>
-                <hland_v1.states.sm/>
-            </sequences>
-        </output>
-    </outputs>
+        <inputs>
+            <input info="all input data">
+                <filetype>
+                    <inputs>nc</inputs>
+                </filetype>
+                <series>
+                    <hland_v1.inputs.p/>
+                    <hland_v1.inputs.t/>
+                    <hland_v1.inputs.tn/>
+                    <hland_v1.inputs.epn/>
+                </series>
+            </input>
+        </inputs>
 
+        <outputs>
+
+            <output info="precipitation">
+                <filetype>
+                    <inputs>asc</inputs>
+                    <fluxes>npy</fluxes>
+                </filetype>
+                <series>
+                    <hland_v1.inputs.p/>
+                    <hland_v1.fluxes.pc/>
+                    <hland_v1.fluxes.tf/>
+                </series>
+            </output>
+
+            <output info="soilmoisture">
+                <filetype>
+                    <general>nc</general>
+                </filetype>
+                <selections>
+                    ToDo
+                </selections>
+                <devices>
+                    ToDo
+                </devices>
+                <series>
+                    <hland_v1.states.sm/>
+                </series>
+            </output>
+
+            <output info="averaged">
+                <series>
+                    <nodes.sim/>
+                    <nodes.obs/>
+                    <hland_v1.fluxes.pc/>
+                    <hland_v1.fluxes.tf/>
+                    <hland_v1.states.sm/>
+                </series>
+            </output>
+
+        </outputs>
+
+    </sequences>
 
 </config>

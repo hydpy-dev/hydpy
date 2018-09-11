@@ -89,9 +89,16 @@ def _query_selections(xmlelement):
     text = xmlelement.text
     if text is None:
         return selectiontools.Selections()
-    return selectiontools.Selections(
-        *(pub.selections[_] for _ in text.split())) # ToDo: wrong name
-
+    selections = []
+    try:
+        for name in text.split():
+            selections.append(pub.selections[name])
+    except KeyError:
+        raise NameError(
+            f'The xml configuration file tries to defines a selection '
+            f'using the text `{name}`, but the actual project does not '
+            f' handle such a `Selection` object.')
+    return selectiontools.Selections(*selections)
 
 def _query_devices(xmlelement):
     selection = selectiontools.Selection('temporary_result_of_xml_parsing')
@@ -176,6 +183,14 @@ class XMLInterface(object):
         Selection("headwaters",
                   elements=("land_dill", "land_lahn_1"),
                   nodes=("dill", "lahn_1"))
+        >>> interface.find('selections').text = 'head_waters'
+        >>> interface.selections
+        Traceback (most recent call last):
+        ...
+        NameError: The xml configuration file tries to defines a selection \
+using the text `head_waters`, but the actual project does not  handle such \
+a `Selection` object.
+
         """
         return _query_selections(self.find('selections'))
 

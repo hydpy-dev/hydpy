@@ -8,6 +8,7 @@
         <complexType>
             <sequence>
                 <element ref="fews:timegrid"/>
+                <element ref="fews:selections"/>
                 <element ref="fews:sequences"/>
             </sequence>
         </complexType>
@@ -57,6 +58,8 @@
     <element name="input">
         <complexType>
             <sequence>
+                <element ref="fews:selections"
+                         minOccurs="0"/>
                 <element ref="fews:filetype"
                          minOccurs="0"/>
                 <element ref="fews:selections"
@@ -72,6 +75,8 @@
     <element name="output">
         <complexType>
             <sequence>
+                <element ref="fews:selections"
+                         minOccurs="0"/>
                 <element ref="fews:filetype"
                          minOccurs="0"/>
                 <element ref="fews:selections"

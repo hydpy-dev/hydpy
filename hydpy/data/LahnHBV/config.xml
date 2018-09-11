@@ -10,6 +10,13 @@
         <stepsize>1d</stepsize>
     </timegrid>
 
+    <selections>
+        headwaters
+        streams
+    </selections>
+
+    <devices/>
+
     <sequences>
 
         <filetype>
@@ -18,6 +25,10 @@
 
         <inputs>
             <input info="all input data">
+                <selections>
+                    headwaters
+                    nonheadwaters
+                </selections>
                 <filetype>
                     <inputs>nc</inputs>
                 </filetype>
@@ -33,6 +44,9 @@
         <outputs>
 
             <output info="precipitation">
+                <selections>
+                    headwaters
+                </selections>
                 <filetype>
                     <inputs>asc</inputs>
                     <fluxes>npy</fluxes>
@@ -45,6 +59,9 @@
             </output>
 
             <output info="soilmoisture">
+                <selections>
+                    complete
+                </selections>
                 <filetype>
                     <general>nc</general>
                 </filetype>

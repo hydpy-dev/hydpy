@@ -16,7 +16,7 @@
 ...     interface = XMLInterface()
 >>> pub.timegrids = interface.timegrids
 
->>> pub.sequencemanager.fluxoverwrite = True   # ToDo: remove
+>>> pub.sequencemanager.generaloverwrite = True   # ToDo: remove
 
 >>> with TestIO():
 ...     hp.prepare_network()
@@ -63,6 +63,7 @@ from xml.etree import ElementTree
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import devicetools
+from hydpy.core import selectiontools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
 
@@ -81,6 +82,11 @@ def find(root, name) -> ElementTree.Element:
     True
     """
     return root.find(f'{namespace}{name}')
+
+
+def _find_selections(xmlobj):
+    return selectiontools.Selections(
+        *(pub.selections[_] for _ in xmlobj.find('selections').text.split()))
 
 
 def strip(name) -> str:
@@ -122,6 +128,32 @@ class XMLInterface(object):
         return timetools.Timegrids(timegrid)
 
     @property
+    def selections(self):
+        """The |Selections| object defined on the main level of the actual
+        xml file.
+
+        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+
+        >>> from hydpy import HydPy, TestIO, XMLInterface
+        >>> hp = HydPy('LahnHBV')
+        >>> with TestIO():
+        ...     hp.prepare_network()
+        ...     hp.init_models()
+        ...     interface = XMLInterface()
+        >>> selections = interface.selections
+        >>> for selection in selections:
+        ...     print(selection.name)
+        headwaters
+        streams
+        >>> selections.headwaters
+        Selection("headwaters",
+                  elements=("land_dill", "land_lahn_1"),
+                  nodes=("dill", "lahn_1"))
+        """
+        return _find_selections(self)
+
+    @property
     def sequences(self):
         """The `sequences` element defined in the actual xml file.
 
@@ -131,12 +163,13 @@ class XMLInterface(object):
         >>> strip(interface.sequences.root.tag)
         'sequences'
         """
-        return XMLSequences(self.find('sequences'))
+        return XMLSequences(self, self.find('sequences'))
 
 
 class XMLSequences(object):
 
-    def __init__(self, root):
+    def __init__(self, master, root):
+        self.master: XMLInterface = master
         self.root: ElementTree.Element = root
 
     def find(self, name):
@@ -177,7 +210,7 @@ class XMLSequences(object):
         ...     print(input_.info)
         all input data
         """
-        return [XMLSequence(_) for _ in self.find('inputs')]
+        return [XMLSequence(self, _) for _ in self.find('inputs')]
 
     @property
     def outputs(self) -> List['XMLSequence']:
@@ -192,7 +225,7 @@ class XMLSequences(object):
         soilmoisture
         averaged
         """
-        return [XMLSequence(_) for _ in self.find('outputs')]
+        return [XMLSequence(self, _) for _ in self.find('outputs')]
 
     def prepare_series(self):
         """Call |XMLSequence.prepare_series| of all |XMLSequence| objects with
@@ -235,7 +268,8 @@ class XMLSequences(object):
 
 class XMLSequence(object):
 
-    def __init__(self, root):
+    def __init__(self, master, root):
+        self.master: XMLSequences = master
         self.root: ElementTree.Element = root
 
     def find(self, name):
@@ -342,6 +376,36 @@ class XMLSequence(object):
         return subs2seqs
 
     @property
+    def selections(self):
+        """The |Selections| object defined for the respective input or output
+        sequence element of the actual xml file.
+
+        If the input or output element does not define its own selections,
+        |XMLInterface.selections| of |XMLInterface| is used.
+
+        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+
+        >>> from hydpy import HydPy, TestIO, XMLInterface
+        >>> hp = HydPy('LahnHBV')
+        >>> with TestIO():
+        ...     hp.prepare_network()
+        ...     hp.init_models()
+        ...     interface = XMLInterface()
+        >>> sequences = interface.sequences
+        >>> for seq in (sequences.inputs + sequences.outputs):
+        ...     print(seq.info, seq.selections.names)
+        all input data ('headwaters', 'nonheadwaters')
+        precipitation ('headwaters',)
+        soilmoisture ('complete',)
+        averaged ('headwaters', 'streams')
+        """
+        element = self.find('selections')
+        if element is None:
+            return self.master.master.selections
+        return _find_selections(self)
+
+    @property
     def elements(self) -> devicetools.Elements:
         """Return the selected elements.
 
@@ -355,11 +419,14 @@ class XMLSequence(object):
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     interface = XMLInterface()
-        >>> interface.sequences.outputs[0].elements
-        Elements("land_dill", "land_lahn_1", ...,"stream_lahn_1_lahn_2",
-                 "stream_lahn_2_lahn_3")
+        >>> for element in interface.sequences.outputs[0].elements:
+        ...     print(element.name)
+        land_dill
+        land_lahn_1
         """
-        return pub.selections.complete.elements
+        for selection in self.selections:
+            for element in selection.elements:
+                yield element
 
     @property
     def nodes(self) -> devicetools.Nodes:
@@ -375,10 +442,14 @@ class XMLSequence(object):
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     interface = XMLInterface()
-        >>> interface.sequences.outputs[2].nodes
-        Nodes("dill", "lahn_1", "lahn_2", "lahn_3")
+        >>> for node in interface.sequences.outputs[0].nodes:
+        ...     print(node.name)
+        dill
+        lahn_1
         """
-        return pub.selections.complete.nodes
+        for selection in self.selections:
+            for node in selection.nodes:
+                yield node
 
     def _iterate_sequences(self) -> Iterator[sequencetools.IOSequence]:
         return itertools.chain(
@@ -453,7 +524,6 @@ class XMLSequence(object):
         for sequence in self._iterate_sequences():
             func(sequence)
 
-
     def load_series(self, filetypes) -> None:
         """ToDo
 
@@ -492,7 +562,7 @@ class XMLSequence(object):
 
         >>> from hydpy import HydPy, TestIO, XMLInterface, pub
         >>> hp = HydPy('LahnHBV')
-        >>> pub.sequencemanager.fluxoverwrite = True   # ToDo: remove
+        >>> pub.sequencemanager.generaloverwrite = True   # ToDo: remove
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     hp.init_models()
@@ -506,10 +576,13 @@ class XMLSequence(object):
         ...     sequences.save_series()
         >>> import numpy
         >>> with TestIO():
+        ...     os.path.exists(
+        ...         'LahnHBV/sequences/output/land_lahn_2_flux_pc.npy')
         ...     numpy.load(
         ...         'LahnHBV/sequences/output/land_dill_flux_pc.npy')[13+2, 3]
         ...     numpy.load(
         ...         'LahnHBV/sequences/node/lahn_2_sim_q.npy')[13+4]
+        False
         9.0
         7.0
         """

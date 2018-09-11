@@ -219,15 +219,18 @@ class XMLSequences(object):
         for output in itertools.chain(self.inputs, self.outputs):
             output.prepare_series(memory)
 
-    def load_series(self):
+    def _apply_function_on_xmlsequence(self, xmlsequences, func):
         filetypes = self.filetypes
-        for input_ in self.inputs:
-            input_.load_series(filetypes=filetypes)
+        for xmlsequence in xmlsequences:
+            func(xmlsequence, filetypes=filetypes)
+
+    def load_series(self):
+        self._apply_function_on_xmlsequence(
+            self.inputs, XMLSequence.load_series)
 
     def save_series(self):
-        filetypes = self.filetypes
-        for output in self.outputs:
-            output.save_series(filetypes=filetypes)
+        self._apply_function_on_xmlsequence(
+            self.outputs, XMLSequence.save_series)
 
 
 class XMLSequence(object):

@@ -100,6 +100,7 @@ def _query_selections(xmlelement):
             f' handle such a `Selection` object.')
     return selectiontools.Selections(*selections)
 
+
 def _query_devices(xmlelement):
     selection = selectiontools.Selection('temporary_result_of_xml_parsing')
     text = xmlelement.text
@@ -382,13 +383,13 @@ class XMLSequence(object):
         return defaults[subseqs]
 
     @property
-    def sequences(self) -> List[str]:
+    def series(self) -> List[str]:
         """List of handled xml sequence names.
 
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
         >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
-        >>> interface.sequences.outputs[0].sequences
+        >>> interface.sequences.outputs[0].series
         ['hland_v1.inputs.p', 'hland_v1.fluxes.pc', 'hland_v1.fluxes.tf']
         """
         return [strip(_.tag) for _ in self.find('series')]
@@ -413,7 +414,7 @@ class XMLSequence(object):
         """
         model2subs2seqs = collections.defaultdict(
             lambda: collections.defaultdict(list))
-        for sequence in self.sequences:
+        for sequence in self.series:
             try:
                 model, subseqs, seqname = sequence.split('.')
             except ValueError:
@@ -436,7 +437,7 @@ class XMLSequence(object):
         nodes ['sim', 'obs']
         """
         subs2seqs = collections.defaultdict(list)
-        for sequence in self.sequences:
+        for sequence in self.series:
             try:
                 subseqs, seqname = sequence.split('.')
             except ValueError:
@@ -513,7 +514,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
                 yield device
 
     @property
-    def elements(self) -> devicetools.Elements:
+    def elements(self) -> Iterator[devicetools.Element]:
         """Return the selected elements.
 
         ToDo: add an actual  selection mechanism
@@ -535,7 +536,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         return self._get_devices('elements')
 
     @property
-    def nodes(self) -> devicetools.Nodes:
+    def nodes(self) -> Iterator[devicetools.Node]:
         """Return the selected nodes.
 
         ToDo: add an actual  selection mechanism

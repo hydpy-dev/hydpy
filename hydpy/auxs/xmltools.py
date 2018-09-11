@@ -167,7 +167,7 @@ class XMLSequences(object):
         return filetypes
 
     @property
-    def inputs(self) -> List['XMLOutput']:
+    def inputs(self) -> List['XMLSequence']:
         """Return the input elements defined in the actual xml file.
 
         >>> from hydpy.auxs.xmltools import XMLInterface
@@ -177,10 +177,10 @@ class XMLSequences(object):
         ...     print(input_.info)
         all input data
         """
-        return [XMLOutput(_) for _ in self.find('inputs')]
+        return [XMLSequence(_) for _ in self.find('inputs')]
 
     @property
-    def outputs(self) -> List['XMLOutput']:
+    def outputs(self) -> List['XMLSequence']:
         """Return the output elements defined in the actual xml file.
 
         >>> from hydpy.auxs.xmltools import XMLInterface
@@ -192,28 +192,28 @@ class XMLSequences(object):
         soilmoisture
         averaged
         """
-        return [XMLOutput(_) for _ in self.find('outputs')]
+        return [XMLSequence(_) for _ in self.find('outputs')]
 
     def prepare_series(self):
-        """Call |XMLOutput.prepare_series| of all |XMLOuput| objects with
-        the same memory |set| object.   ToDo: input
+        """Call |XMLSequence.prepare_series| of all |XMLSequence| objects with
+        the same memory |set| object.
 
-        >>> from hydpy.auxs.xmltools import XMLInterface, XMLOutput
+        >>> from hydpy.auxs.xmltools import XMLInterface, XMLSequence
         >>> from hydpy import data
         >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
         >>> sequences = interface.sequences
         >>> from unittest import mock
-        >>> prepare_series = XMLOutput.prepare_series
-        >>> XMLOutput.prepare_series = mock.MagicMock()
+        >>> prepare_series = XMLSequence.prepare_series
+        >>> XMLSequence.prepare_series = mock.MagicMock()
         >>> sequences.prepare_series()
-        >>> args = XMLOutput.prepare_series.call_args_list
+        >>> args = XMLSequence.prepare_series.call_args_list
         >>> len(args) == len(sequences.inputs) + len(sequences.outputs)
         True
         >>> args[0][0][0]
         set()
         >>> args[0][0][0] is args[-1][0][0]
         True
-        >>> XMLOutput.prepare_series = prepare_series
+        >>> XMLSequence.prepare_series = prepare_series
         """
         memory = set()
         for output in itertools.chain(self.inputs, self.outputs):
@@ -230,13 +230,13 @@ class XMLSequences(object):
             output.save_series(filetypes=filetypes)
 
 
-class XMLOutput(object):
+class XMLSequence(object):
 
     def __init__(self, root):
         self.root: ElementTree.Element = root
 
     def find(self, name):
-        """Apply function |find| for the root of |XMLOutput|."""
+        """Apply function |find| for the root of |XMLSequence|."""
         return find(self.root, name)
 
     @property
@@ -290,7 +290,7 @@ class XMLOutput(object):
     @property
     def model2subs2seqs(self) -> Dict[str, Dict[str, List[str]]]:
         """A nested |collections.defaultdict| containing the model specific
-        information provided by |property| |XMLOutput.sequences|.
+        information provided by |property| |XMLSequence.sequences|.
 
         ToDo: test different model types
 
@@ -318,7 +318,7 @@ class XMLOutput(object):
     @property
     def subs2seqs(self) -> Dict[str, List[str]]:
         """A nested |collections.defaultdict| containing the node specific
-        information provided by |property| |XMLOutput.sequences|.
+        information provided by |property| |XMLSequence.sequences|.
 
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data

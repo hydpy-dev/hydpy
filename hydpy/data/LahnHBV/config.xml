@@ -15,7 +15,11 @@
         streams
     </selections>
 
-    <devices/>
+    <devices>
+        land_dill
+        land_lahn_1
+        dill
+    </devices>
 
     <sequences>
 
@@ -25,10 +29,10 @@
 
         <inputs>
             <input info="all input data">
-                <selections>
-                    headwaters
-                    nonheadwaters
-                </selections>
+                <selections/>
+                <devices>
+                    catchment
+                </devices>
                 <filetype>
                     <inputs>nc</inputs>
                 </filetype>
@@ -47,6 +51,9 @@
                 <selections>
                     headwaters
                 </selections>
+                <devices>
+                    land_lahn_2
+                </devices>
                 <filetype>
                     <inputs>asc</inputs>
                     <fluxes>npy</fluxes>
@@ -65,18 +72,13 @@
                 <filetype>
                     <general>nc</general>
                 </filetype>
-                <selections>
-                    ToDo
-                </selections>
-                <devices>
-                    ToDo
-                </devices>
                 <series>
                     <hland_v1.states.sm/>
                 </series>
             </output>
 
             <output info="averaged">
+                <devices/>
                 <series>
                     <nodes.sim/>
                     <nodes.obs/>

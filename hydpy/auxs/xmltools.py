@@ -57,6 +57,7 @@ True
 # ...from standard library
 from typing import Dict, Iterator, List
 import collections
+import copy
 import itertools
 import os
 from xml.etree import ElementTree
@@ -87,6 +88,29 @@ def find(root, name) -> ElementTree.Element:
 def _find_selections(xmlobj):
     return selectiontools.Selections(
         *(pub.selections[_] for _ in xmlobj.find('selections').text.split()))
+
+
+def _query_devices(xmlelement):
+    selection = selectiontools.Selection('temporary_result_of_xml_parsing')
+    text = xmlelement.text
+    if text is None:
+        return selection
+    elements = pub.selections.complete.elements
+    nodes = pub.selections.complete.nodes
+    for name in text.split():
+        try:
+            selection.elements += getattr(elements, name)
+            continue
+        except AttributeError:
+            try:
+                selection.nodes += getattr(nodes, name)
+            except AttributeError:
+                raise NameError(
+                    f'The xml configuration file tries to defines additional '
+                    f'devices using the text `{name}`, but the complete '
+                    f'selection of the actual project does neither handle a '
+                    f'`Node` or `Element` object with such a name or keyword.')
+    return selection
 
 
 def strip(name) -> str:
@@ -152,6 +176,34 @@ class XMLInterface(object):
                   nodes=("dill", "lahn_1"))
         """
         return _find_selections(self)
+
+    @property
+    def devices(self) -> selectiontools.Selection:
+        """The additional devices defined on the main level of the actual
+        xml file collected by a |Selection| object.
+
+        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+
+        >>> from hydpy import HydPy, TestIO, XMLInterface
+        >>> hp = HydPy('LahnHBV')
+        >>> with TestIO():
+        ...     hp.prepare_network()
+        ...     interface = XMLInterface()
+        >>> interface.devices
+        Selection("temporary_result_of_xml_parsing",
+                  elements=("land_dill", "land_lahn_1"),
+                  nodes="dill")
+        >>> interface.find('devices').text = 'land_lahn1'
+        >>> interface.devices
+        Traceback (most recent call last):
+        ...
+        NameError: The xml configuration file tries to defines additional \
+devices using the text `land_lahn1`, but the complete selection of the \
+actual project does neither handle a `Node` or `Element` object with such \
+a name or keyword.
+        """
+        return _query_devices(self.find('devices'))
 
     @property
     def sequences(self):
@@ -395,7 +447,7 @@ class XMLSequence(object):
         >>> sequences = interface.sequences
         >>> for seq in (sequences.inputs + sequences.outputs):
         ...     print(seq.info, seq.selections.names)
-        all input data ('headwaters', 'nonheadwaters')
+        all input data ()
         precipitation ('headwaters',)
         soilmoisture ('complete',)
         averaged ('headwaters', 'streams')
@@ -403,7 +455,45 @@ class XMLSequence(object):
         element = self.find('selections')
         if element is None:
             return self.master.master.selections
-        return _find_selections(self)
+        return _query_selections(element)
+
+    @property
+    def devices(self) -> selectiontools.Selection:
+        """The additional devices defined for the respective input or output
+        sequence element of the actual xml file collected by a |Selection|
+        object.
+
+        If the input or output element does not define its own additional
+        devices, |XMLInterface.devices| of |XMLInterface| is used.
+
+        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+
+        >>> from hydpy import HydPy, TestIO, XMLInterface
+        >>> hp = HydPy('LahnHBV')
+        >>> with TestIO():
+        ...     hp.prepare_network()
+        ...     interface = XMLInterface()
+        >>> sequences = interface.sequences
+        >>> for seq in (sequences.inputs + sequences.outputs):
+        ...     print(seq.info, seq.devices.nodes, seq.devices.elements)
+        all input data Nodes() \
+Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
+        precipitation Nodes() Elements("land_lahn_2")
+        soilmoisture Nodes("dill") Elements("land_dill", "land_lahn_1")
+        averaged Nodes() Elements()
+        """
+        devices = self.find('devices')
+        if devices is None:
+            return self.master.master.devices
+        return _query_devices(devices)
+
+    def _get_devices(self, attr):
+        selections = copy.copy(self.selections)
+        selections += self.devices
+        for selection in selections:
+            for device in getattr(selection, attr):
+                yield device
 
     @property
     def elements(self) -> devicetools.Elements:
@@ -423,10 +513,9 @@ class XMLSequence(object):
         ...     print(element.name)
         land_dill
         land_lahn_1
+        land_lahn_2
         """
-        for selection in self.selections:
-            for element in selection.elements:
-                yield element
+        return self._get_devices('elements')
 
     @property
     def nodes(self) -> devicetools.Nodes:
@@ -447,9 +536,7 @@ class XMLSequence(object):
         dill
         lahn_1
         """
-        for selection in self.selections:
-            for node in selection.nodes:
-                yield node
+        return self._get_devices('nodes')
 
     def _iterate_sequences(self) -> Iterator[sequencetools.IOSequence]:
         return itertools.chain(
@@ -578,10 +665,13 @@ class XMLSequence(object):
         >>> with TestIO():
         ...     os.path.exists(
         ...         'LahnHBV/sequences/output/land_lahn_2_flux_pc.npy')
+        ...     os.path.exists(
+        ...         'LahnHBV/sequences/output/land_lahn_3_flux_pc.npy')
         ...     numpy.load(
         ...         'LahnHBV/sequences/output/land_dill_flux_pc.npy')[13+2, 3]
         ...     numpy.load(
         ...         'LahnHBV/sequences/node/lahn_2_sim_q.npy')[13+4]
+        True
         False
         9.0
         7.0

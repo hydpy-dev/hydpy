@@ -36,6 +36,7 @@
             <sequence>
                 <element ref="fews:filetype"/>
                 <element ref="fews:overwrite"/>
+                <element ref="fews:dirpath"/>
                 <element ref="fews:aggregation"/>
                 <element name="inputs">
                     <complexType>
@@ -67,6 +68,8 @@
                          minOccurs="0"/>
                 <element ref="fews:filetype"
                          minOccurs="0"/>
+                <element ref="fews:dirpath"
+                         minOccurs="0"/>
                 <element ref="fews:selections"
                          minOccurs="0"/>
                 <element ref="fews:devices"
@@ -87,6 +90,8 @@
                 <element ref="fews:filetype"
                          minOccurs="0"/>
                 <element ref="fews:overwrite"
+                         minOccurs="0"/>
+                <element ref="fews:dirpath"
                          minOccurs="0"/>
                 <element ref="fews:aggregation"
                          minOccurs="0"/>
@@ -172,6 +177,30 @@
             <enumeration value="false"/>
         </restriction>
     </simpleType>
+
+        <element name="dirpath">
+        <complexType>
+            <choice>
+                <element name="general"
+                         minOccurs="0"
+                         type="string"/>
+                <sequence>
+                    <element name="inputs"
+                             minOccurs="0"
+                             type="string"/>
+                    <element name="fluxes"
+                             minOccurs="0"
+                             type="string"/>
+                    <element name="states"
+                             minOccurs="0"
+                             type="string"/>
+                    <element name="nodes"
+                             minOccurs="0"
+                             type="string"/>
+                </sequence>
+            </choice>
+        </complexType>
+    </element>
 
     <element name="aggregation">
         <complexType>

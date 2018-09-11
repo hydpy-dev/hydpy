@@ -31,6 +31,13 @@
             <general>true</general>
         </overwrite>
 
+        <dirpath>
+            <inputs>LahnHBV/sequences/input</inputs>
+            <fluxes>LahnHBV/sequences/output</fluxes>
+            <states>LahnHBV/sequences/output</states>
+            <nodes>LahnHBV/sequences/node</nodes>
+        </dirpath>
+
         <aggregation>
             <general>none</general>
         </aggregation>
@@ -90,6 +97,9 @@
 
             <output info="averaged">
                 <devices/>
+                <dirpath>
+                    <nodes>LahnHBV/sequences/output</nodes>
+                </dirpath>
                 <aggregation>
                     <general>mean</general>
                 </aggregation>

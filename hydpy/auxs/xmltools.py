@@ -34,7 +34,7 @@
 
 >>> import numpy
 >>> with TestIO():
-...     array = numpy.load('LahnHBV/sequences/node/lahn_1_sim_q_mean.npy')
+...     array = numpy.load('LahnHBV/sequences/output/lahn_1_sim_q_mean.npy')
 >>> all(array[13:] == hp.nodes.lahn_1.sequences.sim.series)
 True
 
@@ -343,29 +343,36 @@ class XMLSequence(object):
         ...     hp.prepare_network()
         ...     interface = XMLInterface()
         >>> sequences = interface.sequences
-        >>> sequences.outputs[0].prepare_sequencemanager()
+        >>> with TestIO():
+        ...     sequences.outputs[0].prepare_sequencemanager()
         >>> pub.sequencemanager.inputfiletype
         'asc'
         >>> pub.sequencemanager.fluxfiletype
         'npy'
         >>> pub.sequencemanager.fluxaggregation
         'none'
-        >>> sequences.outputs[1].prepare_sequencemanager()
+        >>> with TestIO():
+        ...     sequences.outputs[1].prepare_sequencemanager()
         >>> pub.sequencemanager.statefiletype
         'nc'
         >>> pub.sequencemanager.stateoverwrite
         False
-        >>> sequences.outputs[2].prepare_sequencemanager()
+        >>> with TestIO():
+        ...     sequences.outputs[2].prepare_sequencemanager()
         >>> pub.sequencemanager.statefiletype
         'npy'
         >>> pub.sequencemanager.fluxaggregation
         'mean'
         >>> pub.sequencemanager.inputoverwrite
         True
+        >>> pub.sequencemanager.inputdirpath
+        'LahnHBV/sequences/input'
         """
-        for config, convert in zip(
-                ('filetype', 'aggregation', 'overwrite'),
-                (lambda x: x, lambda x: x, lambda x: x.lower() == 'true')):
+        for config, convert in (
+                ('filetype', lambda x: x),
+                ('aggregation', lambda x: x),
+                ('overwrite', lambda x: x.lower() == 'true'),
+                ('dirpath', lambda x: x)):
             xml_special = self.find(config)
             xml_general = self.master.find(config)
             for name_manager, name_xml in zip(
@@ -682,7 +689,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         ...     numpy.load(
         ...         'LahnHBV/sequences/output/land_dill_flux_pc.npy')[13+2, 3]
         ...     numpy.load(
-        ...         'LahnHBV/sequences/node/lahn_2_sim_q_mean.npy')[13+4]
+        ...         'LahnHBV/sequences/output/lahn_2_sim_q_mean.npy')[13+4]
         True
         False
         9.0

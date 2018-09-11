@@ -85,9 +85,12 @@ def find(root, name) -> ElementTree.Element:
     return root.find(f'{namespace}{name}')
 
 
-def _find_selections(xmlobj):
+def _query_selections(xmlelement):
+    text = xmlelement.text
+    if text is None:
+        return selectiontools.Selections()
     return selectiontools.Selections(
-        *(pub.selections[_] for _ in xmlobj.find('selections').text.split()))
+        *(pub.selections[_] for _ in text.split())) # ToDo: wrong name
 
 
 def _query_devices(xmlelement):
@@ -163,7 +166,6 @@ class XMLInterface(object):
         >>> hp = HydPy('LahnHBV')
         >>> with TestIO():
         ...     hp.prepare_network()
-        ...     hp.init_models()
         ...     interface = XMLInterface()
         >>> selections = interface.selections
         >>> for selection in selections:
@@ -175,7 +177,7 @@ class XMLInterface(object):
                   elements=("land_dill", "land_lahn_1"),
                   nodes=("dill", "lahn_1"))
         """
-        return _find_selections(self)
+        return _query_selections(self.find('selections'))
 
     @property
     def devices(self) -> selectiontools.Selection:

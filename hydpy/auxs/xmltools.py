@@ -16,8 +16,6 @@
 ...     interface = XMLInterface()
 >>> pub.timegrids = interface.timegrids
 
->>> pub.sequencemanager.generaloverwrite = True   # ToDo: remove
-
 >>> with TestIO():
 ...     hp.prepare_network()
 ...     hp.init_models()
@@ -341,7 +339,6 @@ class XMLSequence(object):
 
         >>> from hydpy import HydPy, TestIO, XMLInterface, pub
         >>> hp = HydPy('LahnHBV')
-        >>> pub.sequencemanager.generaloverwrite = True   # ToDo: remove
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     interface = XMLInterface()
@@ -356,13 +353,19 @@ class XMLSequence(object):
         >>> sequences.outputs[1].prepare_sequencemanager()
         >>> pub.sequencemanager.statefiletype
         'nc'
+        >>> pub.sequencemanager.stateoverwrite
+        False
         >>> sequences.outputs[2].prepare_sequencemanager()
         >>> pub.sequencemanager.statefiletype
         'npy'
         >>> pub.sequencemanager.fluxaggregation
         'mean'
+        >>> pub.sequencemanager.inputoverwrite
+        True
         """
-        for config in ('filetype', 'aggregation'):
+        for config, convert in zip(
+                ('filetype', 'aggregation', 'overwrite'),
+                (lambda x: x, lambda x: x, lambda x: x.lower() == 'true')):
             xml_special = self.find(config)
             xml_general = self.master.find(config)
             for name_manager, name_xml in zip(
@@ -377,7 +380,9 @@ class XMLSequence(object):
                     except AttributeError:
                         continue
                     break
-                setattr(pub.sequencemanager, f'{name_manager}{config}', value)
+                setattr(pub.sequencemanager,
+                        f'{name_manager}{config}',
+                        convert(value))
 
     @property
     def series(self) -> List[str]:
@@ -657,7 +662,6 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
 
         >>> from hydpy import HydPy, TestIO, XMLInterface, pub
         >>> hp = HydPy('LahnHBV')
-        >>> pub.sequencemanager.generaloverwrite = True   # ToDo: remove
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     hp.init_models()

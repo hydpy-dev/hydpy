@@ -27,6 +27,10 @@
             <general>npy</general>
         </filetype>
 
+        <overwrite>
+            <general>true</general>
+        </overwrite>
+
         <aggregation>
             <general>none</general>
         </aggregation>
@@ -76,6 +80,9 @@
                 <filetype>
                     <general>nc</general>
                 </filetype>
+                <overwrite>
+                    <states>false</states>
+                </overwrite>
                 <series>
                     <hland_v1.states.sm/>
                 </series>

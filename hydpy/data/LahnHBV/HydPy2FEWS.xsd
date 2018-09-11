@@ -35,6 +35,7 @@
         <complexType>
             <sequence>
                 <element ref="fews:filetype"/>
+                <element ref="fews:overwrite"/>
                 <element ref="fews:aggregation"/>
                 <element name="inputs">
                     <complexType>
@@ -84,6 +85,8 @@
                 <element ref="fews:devices"
                          minOccurs="0"/>
                 <element ref="fews:filetype"
+                         minOccurs="0"/>
+                <element ref="fews:overwrite"
                          minOccurs="0"/>
                 <element ref="fews:aggregation"
                          minOccurs="0"/>
@@ -136,6 +139,37 @@
             <enumeration value="asc"/>
             <enumeration value="npy"/>
             <enumeration value="nc"/>
+        </restriction>
+    </simpleType>
+
+    <element name="overwrite">
+        <complexType>
+            <choice>
+                <element name="general"
+                         minOccurs="0"
+                         type="fews:_overwrite"/>
+                <sequence>
+                    <element name="inputs"
+                             minOccurs="0"
+                             type="fews:_overwrite"/>
+                    <element name="fluxes"
+                             minOccurs="0"
+                             type="fews:_overwrite"/>
+                    <element name="states"
+                             minOccurs="0"
+                             type="fews:_overwrite"/>
+                    <element name="nodes"
+                             minOccurs="0"
+                             type="fews:_overwrite"/>
+                </sequence>
+            </choice>
+        </complexType>
+    </element>
+
+    <simpleType name="_overwrite">
+        <restriction base="string">
+            <enumeration value="true"/>
+            <enumeration value="false"/>
         </restriction>
     </simpleType>
 

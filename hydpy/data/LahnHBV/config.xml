@@ -27,6 +27,10 @@
             <general>npy</general>
         </filetype>
 
+        <aggregation>
+            <general>none</general>
+        </aggregation>
+
         <inputs>
             <input info="all input data">
                 <selections/>
@@ -79,6 +83,9 @@
 
             <output info="averaged">
                 <devices/>
+                <aggregation>
+                    <general>mean</general>
+                </aggregation>
                 <series>
                     <nodes.sim/>
                     <nodes.obs/>

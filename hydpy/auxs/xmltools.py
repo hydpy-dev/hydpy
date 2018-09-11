@@ -36,7 +36,7 @@
 
 >>> import numpy
 >>> with TestIO():
-...     array = numpy.load('LahnHBV/sequences/node/lahn_1_sim_q.npy')
+...     array = numpy.load('LahnHBV/sequences/node/lahn_1_sim_q_mean.npy')
 >>> all(array[13:] == hp.nodes.lahn_1.sequences.sim.series)
 True
 
@@ -247,29 +247,6 @@ class XMLSequences(object):
         return find(self.root, name)
 
     @property
-    def filetypes(self) -> Dict[str, str]:
-        """A dictionary mapping sequence subgroup names to file types as
-        defined in the actual xml file.
-
-        ToDo: finish test (successful try block)
-
-        >>> from hydpy.auxs.xmltools import XMLInterface
-        >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
-        >>> interface.sequences.filetypes
-        OrderedDict([('inputs', 'npy'), ('fluxes', 'npy'), \
-('states', 'npy'), ('nodes', 'npy')])
-        """
-        root = self.find('filetype')
-        filetypes = collections.OrderedDict()
-        for subseqs in ('inputs', 'fluxes', 'states', 'nodes'):
-            try:
-                filetypes[subseqs] = find(root, subseqs).text
-            except AttributeError:
-                filetypes[subseqs] = find(root, 'general').text
-        return filetypes
-
-    @property
     def inputs(self) -> List['XMLSequence']:
         """Return the input elements defined in the actual xml file.
 
@@ -322,18 +299,13 @@ class XMLSequences(object):
         for output in itertools.chain(self.inputs, self.outputs):
             output.prepare_series(memory)
 
-    def _apply_function_on_xmlsequence(self, xmlsequences, func):
-        filetypes = self.filetypes
-        for xmlsequence in xmlsequences:
-            func(xmlsequence, filetypes=filetypes)
-
     def load_series(self):
-        self._apply_function_on_xmlsequence(
-            self.inputs, XMLSequence.load_series)
+        for input_ in self.inputs:
+            input_.load_series()
 
     def save_series(self):
-        self._apply_function_on_xmlsequence(
-            self.outputs, XMLSequence.save_series)
+        for output in self.outputs:
+            output.save_series()
 
 
 class XMLSequence(object):
@@ -351,36 +323,61 @@ class XMLSequence(object):
         """Info attribute of the xml output element."""
         return self.root.attrib['info']
 
-    def get_filetype(self, subseqs, defaults):
-        """Return the filetype for the given sequence subgroup name defined
-        in the actual xml output element when possible; otherwise return the
-        given default value.
+    def prepare_sequencemanager(self):
+        """Configure the |SequenceManager| object available in module |pub|
+        in accordance with the definitions of the actual xml input or output
+        element when available; if not use those of the xml sequences element.
 
         Compare the following results with `config.xml` to see that the
         first output element defines the input file type specifically,
         that the second output element defines a general file type, and
-        that the third output element does not define any file type:
+        that the third output element does not define any file type (the
+        principle mechanism is the same for other options, e.g. the
+        aggregation mode):
 
 
-        >>> from hydpy.auxs.xmltools import XMLInterface
-        >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
+        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+
+        >>> from hydpy import HydPy, TestIO, XMLInterface, pub
+        >>> hp = HydPy('LahnHBV')
+        >>> pub.sequencemanager.generaloverwrite = True   # ToDo: remove
+        >>> with TestIO():
+        ...     hp.prepare_network()
+        ...     interface = XMLInterface()
         >>> sequences = interface.sequences
-        >>> sequences.outputs[0].get_filetype('inputs', {'inputs': 'npy'})
+        >>> sequences.outputs[0].prepare_sequencemanager()
+        >>> pub.sequencemanager.inputfiletype
         'asc'
-        >>> sequences.outputs[1].get_filetype('inputs', {'inputs': 'npy'})
-        'nc'
-        >>> sequences.outputs[2].get_filetype('inputs', {'inputs': 'npy'})
+        >>> pub.sequencemanager.fluxfiletype
         'npy'
+        >>> pub.sequencemanager.fluxaggregation
+        'none'
+        >>> sequences.outputs[1].prepare_sequencemanager()
+        >>> pub.sequencemanager.statefiletype
+        'nc'
+        >>> sequences.outputs[2].prepare_sequencemanager()
+        >>> pub.sequencemanager.statefiletype
+        'npy'
+        >>> pub.sequencemanager.fluxaggregation
+        'mean'
         """
-        root = self.find('filetype')
-        if root is not None:
-            element = find(root, subseqs)
-            if element is None:
-                element = find(root, 'general')
-            if element is not None:
-                return element.text
-        return defaults[subseqs]
+        for config in ('filetype', 'aggregation'):
+            xml_special = self.find(config)
+            xml_general = self.master.find(config)
+            for name_manager, name_xml in zip(
+                    ('input', 'flux', 'state', 'node'),
+                    ('inputs', 'fluxes', 'states', 'nodes')):
+                value = None
+                for xml, attr_xml in zip(
+                        (xml_special, xml_special, xml_general, xml_general),
+                        (name_xml, 'general', name_xml, 'general')):
+                    try:
+                        value = find(xml, attr_xml).text
+                    except AttributeError:
+                        continue
+                    break
+                setattr(pub.sequencemanager, f'{name_manager}{config}', value)
 
     @property
     def series(self) -> List[str]:
@@ -617,19 +614,12 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
                 memory.add(sequence)
                 sequence.activate_ram()
 
-    def _apply_function_on_sequences(self, func, filetypes) -> None:
-        pub.sequencemanager.inputfiletype = self.get_filetype(
-            'inputs', filetypes)
-        pub.sequencemanager.fluxfiletype = self.get_filetype(
-            'fluxes', filetypes)
-        pub.sequencemanager.statefiletype = self.get_filetype(
-            'states', filetypes)
-        pub.sequencemanager.nodefiletype = self.get_filetype(
-            'nodes', filetypes)
+    def _apply_function_on_sequences(self, func) -> None:
+        self.prepare_sequencemanager()
         for sequence in self._iterate_sequences():
             func(sequence)
 
-    def load_series(self, filetypes) -> None:
+    def load_series(self) -> None:
         """ToDo
 
         ToDo: extend configurations
@@ -654,10 +644,10 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         """
         pub.sequencemanager.open_netcdf_reader(flatten=True, isolate=True)
         self._apply_function_on_sequences(
-            sequencetools.IOSequence.load_ext, filetypes)
+            sequencetools.IOSequence.load_ext)
         pub.sequencemanager.close_netcdf_reader()
 
-    def save_series(self, filetypes) -> None:
+    def save_series(self) -> None:
         """ToDo
 
         ToDo: extend configurations
@@ -688,7 +678,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         ...     numpy.load(
         ...         'LahnHBV/sequences/output/land_dill_flux_pc.npy')[13+2, 3]
         ...     numpy.load(
-        ...         'LahnHBV/sequences/node/lahn_2_sim_q.npy')[13+4]
+        ...         'LahnHBV/sequences/node/lahn_2_sim_q_mean.npy')[13+4]
         True
         False
         9.0
@@ -696,5 +686,5 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         """
         pub.sequencemanager.open_netcdf_writer(flatten=True, isolate=True)
         self._apply_function_on_sequences(
-            sequencetools.IOSequence.save_ext, filetypes)
+            sequencetools.IOSequence.save_ext)
         pub.sequencemanager.close_netcdf_writer()

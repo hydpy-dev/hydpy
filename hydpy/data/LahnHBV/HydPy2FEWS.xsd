@@ -35,6 +35,7 @@
         <complexType>
             <sequence>
                 <element ref="fews:filetype"/>
+                <element ref="fews:aggregation"/>
                 <element name="inputs">
                     <complexType>
                         <sequence>
@@ -83,6 +84,8 @@
                 <element ref="fews:devices"
                          minOccurs="0"/>
                 <element ref="fews:filetype"
+                         minOccurs="0"/>
+                <element ref="fews:aggregation"
                          minOccurs="0"/>
                 <element ref="fews:selections"
                          minOccurs="0"/>
@@ -133,6 +136,37 @@
             <enumeration value="asc"/>
             <enumeration value="npy"/>
             <enumeration value="nc"/>
+        </restriction>
+    </simpleType>
+
+    <element name="aggregation">
+        <complexType>
+            <choice>
+                <element name="general"
+                         minOccurs="0"
+                         type="fews:_aggregation"/>
+                <sequence>
+                    <element name="inputs"
+                             minOccurs="0"
+                             type="fews:_aggregation"/>
+                    <element name="fluxes"
+                             minOccurs="0"
+                             type="fews:_aggregation"/>
+                    <element name="states"
+                             minOccurs="0"
+                             type="fews:_aggregation"/>
+                    <element name="nodes"
+                             minOccurs="0"
+                             type="fews:_aggregation"/>
+                </sequence>
+            </choice>
+        </complexType>
+    </element>
+
+    <simpleType name="_aggregation">
+        <restriction base="string">
+            <enumeration value="none"/>
+            <enumeration value="mean"/>
         </restriction>
     </simpleType>
 

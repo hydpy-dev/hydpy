@@ -506,7 +506,7 @@ class XMLSequence(object):
         ...     print(seq.info, seq.devices.nodes, seq.devices.elements)
         all input data Nodes() \
 Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
-        precipitation Nodes() Elements("land_lahn_2")
+        precipitation Nodes() Elements("land_lahn_1", "land_lahn_2")
         soilmoisture Nodes("dill") Elements("land_dill", "land_lahn_1")
         averaged Nodes() Elements()
         """
@@ -518,9 +518,12 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
     def _get_devices(self, attr):
         selections = copy.copy(self.selections)
         selections += self.devices
+        devices = set()
         for selection in selections:
             for device in getattr(selection, attr):
-                yield device
+                if device not in devices:
+                    devices.add(device)
+                    yield device
 
     @property
     def elements(self) -> Iterator[devicetools.Element]:

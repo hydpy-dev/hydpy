@@ -167,13 +167,13 @@ def prepare_full_example_1() -> None:
     >>> import os
     >>> with TestIO():
     ...     print('root:', *sorted(os.listdir('.')))
-    ...     for folder in ('control', 'conditions', 'sequences'):
+    ...     for folder in ('control', 'conditions', 'series'):
     ...         print(f'LahnHBV/{folder}:',
     ...               *sorted(os.listdir(f'LahnHBV/{folder}')))
     root: LahnHBV __init__.py
     LahnHBV/control: default
     LahnHBV/conditions: init_1996_01_01_00_00_00
-    LahnHBV/sequences: input node output temp
+    LahnHBV/series: input node output temp
 
     ToDo: Improve, test, and explain this example data set.
     """
@@ -181,7 +181,7 @@ def prepare_full_example_1() -> None:
     shutil.copytree(
         os.path.join(data.__path__[0], 'LahnHBV'),
         os.path.join(iotesting.__path__[0], 'LahnHBV'))
-    seqpath = os.path.join(iotesting.__path__[0], 'LahnHBV', 'sequences')
+    seqpath = os.path.join(iotesting.__path__[0], 'LahnHBV', 'series')
     for folder in ('output', 'node', 'temp'):
         os.makedirs(os.path.join(seqpath, folder))
 

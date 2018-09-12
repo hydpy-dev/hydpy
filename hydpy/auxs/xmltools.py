@@ -35,14 +35,14 @@
 
 >>> import numpy
 >>> with TestIO():
-...     array = numpy.load('LahnHBV/sequences/output/lahn_1_sim_q_mean.npy')
+...     array = numpy.load('LahnHBV/series/output/lahn_1_sim_q_mean.npy')
 >>> all(array[13:] == hp.nodes.lahn_1.sequences.sim.series)
 True
 
 >>> from hydpy.core.netcdftools import netcdf4, chars2str, query_variable
 >>> with TestIO():
 ...     ncfile = netcdf4.Dataset(
-...         'LahnHBV/sequences/output/hland_v1_state_sm.nc')
+...         'LahnHBV/series/output/hland_v1_state_sm.nc')
 >>> chars2str(query_variable(ncfile, 'station_names'))[:3]
 ['land_dill_0', 'land_dill_1', 'land_dill_2']
 >>> query_variable(ncfile, 'state_sm')[2, 3] == \
@@ -412,7 +412,7 @@ class XMLSequence(object):
         >>> pub.sequencemanager.inputoverwrite
         True
         >>> pub.sequencemanager.inputdirpath
-        'LahnHBV/sequences/input'
+        'LahnHBV/series/input'
         """
         for config, convert in (
                 ('filetype', lambda x: x),
@@ -660,11 +660,6 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
                 memory.add(sequence)
                 sequence.activate_ram()
 
-    def _apply_function_on_sequences(self, func) -> None:
-        self.prepare_sequencemanager()
-        for sequence in self._iterate_sequences():
-            func(sequence)
-
     def load_series(self) -> None:
         """ToDo
 
@@ -690,8 +685,9 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         pub.sequencemanager.open_netcdf_reader(
             flatten=pub.options.flattennetcdf,
             isolate=pub.options.isolatenetcdf)
-        self._apply_function_on_sequences(
-            sequencetools.IOSequence.load_ext)
+        self.prepare_sequencemanager()
+        for sequence in self._iterate_sequences():
+            sequence.load_ext()
         pub.sequencemanager.close_netcdf_reader()
 
     def save_series(self) -> None:
@@ -706,7 +702,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         ...     hp.prepare_network()
         ...     hp.init_models()
         ...     interface = XMLInterface()
-        >>> interface.update_options()
+        ...     interface.update_options()
         >>> pub.timegrids = interface.timegrids
         >>> series_io = interface.series_io
         >>> series_io.prepare_series()
@@ -717,13 +713,13 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         >>> import numpy
         >>> with TestIO():
         ...     os.path.exists(
-        ...         'LahnHBV/sequences/output/land_lahn_2_flux_pc.npy')
+        ...         'LahnHBV/series/output/land_lahn_2_flux_pc.npy')
         ...     os.path.exists(
-        ...         'LahnHBV/sequences/output/land_lahn_3_flux_pc.npy')
+        ...         'LahnHBV/series/output/land_lahn_3_flux_pc.npy')
         ...     numpy.load(
-        ...         'LahnHBV/sequences/output/land_dill_flux_pc.npy')[13+2, 3]
+        ...         'LahnHBV/series/output/land_dill_flux_pc.npy')[13+2, 3]
         ...     numpy.load(
-        ...         'LahnHBV/sequences/output/lahn_2_sim_q_mean.npy')[13+4]
+        ...         'LahnHBV/series/output/lahn_2_sim_q_mean.npy')[13+4]
         True
         False
         9.0
@@ -732,6 +728,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         pub.sequencemanager.open_netcdf_writer(
             flatten=pub.options.flattennetcdf,
             isolate=pub.options.isolatenetcdf)
-        self._apply_function_on_sequences(
-            sequencetools.IOSequence.save_ext)
+        self.prepare_sequencemanager()
+        for sequence in self._iterate_sequences():
+            sequence.save_ext()
         pub.sequencemanager.close_netcdf_writer()

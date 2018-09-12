@@ -56,7 +56,7 @@
             <general>none</general>
         </aggregation>
 
-        <inputs>
+        <readers>
             <input info="all input data">
                 <selections/>
                 <devices>
@@ -76,7 +76,7 @@
                     <inputs>nc</inputs>
                 </filetype>
             </input>
-        </inputs>
+        </readers>
 
         <outputs>
 

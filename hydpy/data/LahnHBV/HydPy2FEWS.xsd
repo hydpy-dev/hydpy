@@ -92,7 +92,7 @@
                 <element ref="fews:overwrite"/>
                 <element ref="fews:dirpath"/>
                 <element ref="fews:aggregation"/>
-                <element name="inputs">
+                <element name="readers">
                     <complexType>
                         <sequence>
                             <element ref="fews:input"

@@ -291,17 +291,17 @@ class XMLSequences(object):
         return find(self.root, name)
 
     @property
-    def inputs(self) -> List['XMLSequence']:
-        """Return the input elements defined in the actual xml file.
+    def readers(self) -> List['XMLSequence']:
+        """Return the reader elements defined in the actual xml file.
 
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
         >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
-        >>> for input_ in interface.series_io.inputs:
-        ...     print(input_.info)
+        >>> for reader in interface.series_io.readers:
+        ...     print(reader.info)
         all input data
         """
-        return [XMLSequence(self, _) for _ in self.find('inputs')]
+        return [XMLSequence(self, _) for _ in self.find('readers')]
 
     @property
     def outputs(self) -> List['XMLSequence']:
@@ -331,7 +331,7 @@ class XMLSequences(object):
         >>> XMLSequence.prepare_series = mock.MagicMock()
         >>> series_io.prepare_series()
         >>> args = XMLSequence.prepare_series.call_args_list
-        >>> len(args) == len(series_io.inputs) + len(series_io.outputs)
+        >>> len(args) == len(series_io.readers) + len(series_io.outputs)
         True
         >>> args[0][0][0]
         set()
@@ -340,11 +340,11 @@ class XMLSequences(object):
         >>> XMLSequence.prepare_series = prepare_series
         """
         memory = set()
-        for output in itertools.chain(self.inputs, self.outputs):
+        for output in itertools.chain(self.readers, self.outputs):
             output.prepare_series(memory)
 
     def load_series(self):
-        for input_ in self.inputs:
+        for input_ in self.readers:
             input_.load_series()
 
     def save_series(self):
@@ -507,7 +507,7 @@ class XMLSequence(object):
         ...     hp.init_models()
         ...     interface = XMLInterface()
         >>> series_io = interface.series_io
-        >>> for seq in (series_io.inputs + series_io.outputs):
+        >>> for seq in (series_io.readers + series_io.outputs):
         ...     print(seq.info, seq.selections.names)
         all input data ()
         precipitation ('headwaters',)
@@ -537,7 +537,7 @@ class XMLSequence(object):
         ...     hp.prepare_network()
         ...     interface = XMLInterface()
         >>> series_io = interface.series_io
-        >>> for seq in (series_io.inputs + series_io.outputs):
+        >>> for seq in (series_io.readers + series_io.outputs):
         ...     print(seq.info, seq.devices.nodes, seq.devices.elements)
         all input data Nodes() \
 Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")

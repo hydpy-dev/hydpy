@@ -823,7 +823,7 @@ to make any internal data available to the user.
     """
 
     SUPPORTED_MODES = ('npy', 'asc', 'nc')
-    _BASEDIR = 'sequences'
+    _BASEDIR = 'series'
 
     inputdir = _DescriptorDir('input', 'input')
     fluxdir = _DescriptorDir('output', 'flux')

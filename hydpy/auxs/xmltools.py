@@ -457,7 +457,7 @@ class XMLSequence(object):
         """
         model2subs2seqs = collections.defaultdict(
             lambda: collections.defaultdict(list))
-        for model in self.find('series'):
+        for model in self.find('sequences'):
             model_name = strip(model.tag)
             if model_name == 'nodes':
                 continue
@@ -483,7 +483,7 @@ class XMLSequence(object):
         node ['sim', 'obs']
         """
         subs2seqs = collections.defaultdict(list)
-        nodes = find(self.find('series'), 'node')
+        nodes = find(self.find('sequences'), 'node')
         if nodes is not None:
             for seq in nodes:
                 subs2seqs['node'].append(strip(seq.tag))

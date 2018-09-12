@@ -120,7 +120,7 @@
                          minOccurs="0"/>
                 <element ref="fews:devices"
                          minOccurs="0"/>
-                <element ref="fews:series"/>
+                <element ref="fews:sequences"/>
                 <element ref="fews:filetype"
                          minOccurs="0"/>
                 <element ref="fews:dirpath"
@@ -141,7 +141,7 @@
                          minOccurs="0"/>
                 <element ref="fews:devices"
                          minOccurs="0"/>
-                <element ref="fews:series"/>
+                <element ref="fews:sequences"/>
                 <element ref="fews:filetype"
                          minOccurs="0"/>
                 <element ref="fews:overwrite"
@@ -267,7 +267,7 @@
         </restriction>
     </simpleType>
 
-    <element name="series">
+    <element name="sequences">
         <complexType>
             <sequence>
                 <element ref="fews:sequenceGroup"

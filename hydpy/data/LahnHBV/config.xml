@@ -62,7 +62,7 @@
                 <devices>
                     catchment
                 </devices>
-                <series>
+                <sequences>
                     <hland_v1>
                         <inputs>
                             <p/>
@@ -71,7 +71,7 @@
                             <epn/>
                         </inputs>
                     </hland_v1>
-                </series>
+                </sequences>
                 <filetype>
                     <inputs>nc</inputs>
                 </filetype>
@@ -88,7 +88,7 @@
                     land_lahn_1
                     land_lahn_2
                 </devices>
-                <series>
+                <sequences>
                     <hland_v1>
                         <inputs>
                             <p/>
@@ -98,7 +98,7 @@
                             <tf/>
                         </fluxes>
                     </hland_v1>
-                </series>
+                </sequences>
                 <filetype>
                     <inputs>asc</inputs>
                     <fluxes>npy</fluxes>
@@ -109,13 +109,13 @@
                 <selections>
                     complete
                 </selections>
-                <series>
+                <sequences>
                     <hland_v1>
                         <states>
                             <sm/>
                         </states>
                     </hland_v1>
-                </series>
+                </sequences>
                 <filetype>
                     <general>nc</general>
                 </filetype>
@@ -126,7 +126,7 @@
 
             <output info="averaged">
                 <devices/>
-                <series>
+                <sequences>
                     <node>
                         <sim/>
                         <obs/>
@@ -140,7 +140,7 @@
                             <sm/>
                         </states>
                     </hland_v1>
-                </series>
+                </sequences>
                 <dirpath>
                     <nodes>LahnHBV/sequences/output</nodes>
                 </dirpath>

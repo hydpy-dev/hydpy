@@ -4,6 +4,7 @@
 # import...
 # ...from standard library
 import inspect
+import itertools
 # ...from HydPy
 from hydpy.core import autodoctools
 
@@ -188,6 +189,16 @@ class Options(object):
     To cope with the limited precision of floating point numbers only
     those violations beyond a small tolerance value are reported
     (see function |trim|). """
+
+    def __repr__(self):
+        type_ = type(self)
+        lines = ['Options(']
+        for option in itertools.chain(vars(type_).keys(), vars(self).keys()):
+            if not option.startswith('_'):
+                value = getattr(self, option)
+                lines.append(f'    {option} -> {value}')
+        lines.append(')')
+        return '\n'.join(lines)
 
 
 @autodoctools.make_autodoc_optional

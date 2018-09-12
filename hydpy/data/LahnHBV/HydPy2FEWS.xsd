@@ -120,6 +120,7 @@
                          minOccurs="0"/>
                 <element ref="fews:devices"
                          minOccurs="0"/>
+                <element ref="fews:series"/>
                 <element ref="fews:filetype"
                          minOccurs="0"/>
                 <element ref="fews:dirpath"
@@ -128,7 +129,6 @@
                          minOccurs="0"/>
                 <element ref="fews:devices"
                          minOccurs="0"/>
-                <element ref="fews:series"/>
             </sequence>
             <attribute name="info" type="string"/>
         </complexType>
@@ -141,6 +141,7 @@
                          minOccurs="0"/>
                 <element ref="fews:devices"
                          minOccurs="0"/>
+                <element ref="fews:series"/>
                 <element ref="fews:filetype"
                          minOccurs="0"/>
                 <element ref="fews:overwrite"
@@ -149,11 +150,6 @@
                          minOccurs="0"/>
                 <element ref="fews:aggregation"
                          minOccurs="0"/>
-                <element ref="fews:selections"
-                         minOccurs="0"/>
-                <element ref="fews:devices"
-                         minOccurs="0"/>
-                <element ref="fews:series"/>
             </sequence>
             <attribute name="info" type="string"/>
         </complexType>

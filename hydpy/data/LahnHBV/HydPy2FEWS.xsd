@@ -22,7 +22,7 @@
                 <element ref="fews:timegrid"/>
                 <element ref="fews:selections"/>
                 <element ref="fews:devices"/>
-                <element ref="fews:sequences"/>
+                <element ref="fews:series_io"/>
             </sequence>
         </complexType>
     </element>
@@ -85,7 +85,7 @@
     <element name="devices"
              type="fews:list_of_strings"/>
 
-    <element name="sequences">
+    <element name="series_io">
         <complexType>
             <sequence>
                 <element ref="fews:filetype"/>

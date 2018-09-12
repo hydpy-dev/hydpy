@@ -35,7 +35,7 @@
         dill
     </devices>
 
-    <sequences>
+    <series_io>
 
         <filetype>
             <general>npy</general>
@@ -151,6 +151,6 @@
 
         </outputs>
 
-    </sequences>
+    </series_io>
 
 </config>

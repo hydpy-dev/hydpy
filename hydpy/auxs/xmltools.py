@@ -22,16 +22,16 @@
 ...     hp.init_models()
 ...     hp.load_conditions()
 
->>> sequences = interface.sequences
+>>> series_io = interface.series_io
 
->>> sequences.prepare_series()
+>>> series_io.prepare_series()
 >>> with TestIO():
-...     sequences.load_series()
+...     series_io.load_series()
 
 >>> hp.doit()
 
 >>> with TestIO():
-...     sequences.save_series()
+...     series_io.save_series()
 
 >>> import numpy
 >>> with TestIO():
@@ -268,16 +268,16 @@ a name or keyword.
         return _query_devices(self.find('devices'))
 
     @property
-    def sequences(self):
-        """The `sequences` element defined in the actual xml file.
+    def series_io(self):
+        """The `serios_io` element defined in the actual xml file.
 
         >>> from hydpy.auxs.xmltools import XMLInterface, strip
         >>> from hydpy import data
         >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
-        >>> strip(interface.sequences.root.tag)
-        'sequences'
+        >>> strip(interface.series_io.root.tag)
+        'series_io'
         """
-        return XMLSequences(self, self.find('sequences'))
+        return XMLSequences(self, self.find('series_io'))
 
 
 class XMLSequences(object):
@@ -297,7 +297,7 @@ class XMLSequences(object):
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
         >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
-        >>> for input_ in interface.sequences.inputs:
+        >>> for input_ in interface.series_io.inputs:
         ...     print(input_.info)
         all input data
         """
@@ -310,7 +310,7 @@ class XMLSequences(object):
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
         >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
-        >>> for output in interface.sequences.outputs:
+        >>> for output in interface.series_io.outputs:
         ...     print(output.info)
         precipitation
         soilmoisture
@@ -325,13 +325,13 @@ class XMLSequences(object):
         >>> from hydpy.auxs.xmltools import XMLInterface, XMLSequence
         >>> from hydpy import data
         >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
-        >>> sequences = interface.sequences
+        >>> series_io = interface.series_io
         >>> from unittest import mock
         >>> prepare_series = XMLSequence.prepare_series
         >>> XMLSequence.prepare_series = mock.MagicMock()
-        >>> sequences.prepare_series()
+        >>> series_io.prepare_series()
         >>> args = XMLSequence.prepare_series.call_args_list
-        >>> len(args) == len(sequences.inputs) + len(sequences.outputs)
+        >>> len(args) == len(series_io.inputs) + len(series_io.outputs)
         True
         >>> args[0][0][0]
         set()
@@ -388,9 +388,9 @@ class XMLSequence(object):
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     interface = XMLInterface()
-        >>> sequences = interface.sequences
+        >>> series_io = interface.series_io
         >>> with TestIO():
-        ...     sequences.outputs[0].prepare_sequencemanager()
+        ...     series_io.outputs[0].prepare_sequencemanager()
         >>> pub.sequencemanager.inputfiletype
         'asc'
         >>> pub.sequencemanager.fluxfiletype
@@ -398,13 +398,13 @@ class XMLSequence(object):
         >>> pub.sequencemanager.fluxaggregation
         'none'
         >>> with TestIO():
-        ...     sequences.outputs[1].prepare_sequencemanager()
+        ...     series_io.outputs[1].prepare_sequencemanager()
         >>> pub.sequencemanager.statefiletype
         'nc'
         >>> pub.sequencemanager.stateoverwrite
         False
         >>> with TestIO():
-        ...     sequences.outputs[2].prepare_sequencemanager()
+        ...     series_io.outputs[2].prepare_sequencemanager()
         >>> pub.sequencemanager.statefiletype
         'npy'
         >>> pub.sequencemanager.fluxaggregation
@@ -447,8 +447,8 @@ class XMLSequence(object):
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
         >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
-        >>> sequences = interface.sequences
-        >>> model2subs2seqs = sequences.outputs[2].model2subs2seqs
+        >>> series_io = interface.series_io
+        >>> model2subs2seqs = series_io.outputs[2].model2subs2seqs
         >>> for model, subs2seqs in sorted(model2subs2seqs.items()):
         ...     for subs, seq in sorted(subs2seqs.items()):
         ...         print(model, subs, seq)
@@ -476,8 +476,8 @@ class XMLSequence(object):
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
         >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
-        >>> sequences = interface.sequences
-        >>> subs2seqs = sequences.outputs[2].subs2seqs
+        >>> series_io = interface.series_io
+        >>> subs2seqs = series_io.outputs[2].subs2seqs
         >>> for subs, seq in sorted(subs2seqs.items()):
         ...     print(subs, seq)
         node ['sim', 'obs']
@@ -506,8 +506,8 @@ class XMLSequence(object):
         ...     hp.prepare_network()
         ...     hp.init_models()
         ...     interface = XMLInterface()
-        >>> sequences = interface.sequences
-        >>> for seq in (sequences.inputs + sequences.outputs):
+        >>> series_io = interface.series_io
+        >>> for seq in (series_io.inputs + series_io.outputs):
         ...     print(seq.info, seq.selections.names)
         all input data ()
         precipitation ('headwaters',)
@@ -536,8 +536,8 @@ class XMLSequence(object):
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     interface = XMLInterface()
-        >>> sequences = interface.sequences
-        >>> for seq in (sequences.inputs + sequences.outputs):
+        >>> series_io = interface.series_io
+        >>> for seq in (series_io.inputs + series_io.outputs):
         ...     print(seq.info, seq.devices.nodes, seq.devices.elements)
         all input data Nodes() \
 Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
@@ -572,7 +572,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     interface = XMLInterface()
-        >>> for element in interface.sequences.outputs[0].elements:
+        >>> for element in interface.series_io.outputs[0].elements:
         ...     print(element.name)
         land_dill
         land_lahn_1
@@ -592,7 +592,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     interface = XMLInterface()
-        >>> for node in interface.sequences.outputs[0].nodes:
+        >>> for node in interface.series_io.outputs[0].nodes:
         ...     print(node.name)
         dill
         lahn_1
@@ -636,13 +636,13 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         ...     hp.init_models()
         ...     interface = XMLInterface()
         >>> pub.timegrids = interface.timegrids
-        >>> sequences = interface.sequences
+        >>> series_io = interface.series_io
 
         >>> memory = set()
         >>> pc = hp.elements.land_dill.model.sequences.fluxes.pc
         >>> pc.ramflag
         False
-        >>> sequences.outputs[0].prepare_series(memory)
+        >>> series_io.outputs[0].prepare_series(memory)
         >>> pc in memory
         True
         >>> pc.ramflag
@@ -651,7 +651,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         >>> pc.deactivate_ram()
         >>> pc.ramflag
         False
-        >>> sequences.outputs[0].prepare_series(memory)
+        >>> series_io.outputs[0].prepare_series(memory)
         >>> pc.ramflag
         False
         """
@@ -679,9 +679,9 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         ...     interface = XMLInterface()
         ...     interface.update_options()
         ...     pub.timegrids = interface.timegrids
-        ...     sequences = interface.sequences
-        ...     sequences.prepare_series()
-        ...     sequences.load_series()
+        ...     series_io = interface.series_io
+        ...     series_io.prepare_series()
+        ...     series_io.load_series()
         >>> from hydpy import print_values
         >>> print_values(
         ...     hp.elements.land_dill.model.sequences.inputs.t.series[:3])
@@ -708,12 +708,12 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         ...     interface = XMLInterface()
         >>> interface.update_options()
         >>> pub.timegrids = interface.timegrids
-        >>> sequences = interface.sequences
-        >>> sequences.prepare_series()
+        >>> series_io = interface.series_io
+        >>> series_io.prepare_series()
         >>> hp.elements.land_dill.model.sequences.fluxes.pc.series[2, 3] = 9.0
         >>> hp.nodes.lahn_2.sequences.sim.series[4] = 7.0
         >>> with TestIO():
-        ...     sequences.save_series()
+        ...     series_io.save_series()
         >>> import numpy
         >>> with TestIO():
         ...     os.path.exists(

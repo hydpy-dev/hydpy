@@ -270,49 +270,78 @@
     <element name="series">
         <complexType>
             <sequence>
-                <element ref="fews:_Sequence"
+                <element ref="fews:sequenceGroup"
                          maxOccurs="unbounded"/>
             </sequence>
         </complexType>
     </element>
 
-    <element name="_Sequence" type="fews:SequenceType" abstract="true"/>
-    <complexType name="SequenceType"/>
+    <element name="sequenceGroup"
+             type="fews:sequenceGroupType"
+             abstract="true"/>
+    <complexType name="sequenceGroupType"/>
 
-    <element name="nodes.obs"
-             substitutionGroup="fews:_Sequence"
-             type="fews:SequenceType"/>
+    <element name="node"
+             substitutionGroup="fews:sequenceGroup"
+             type="fews:nodeType"/>
+    <complexType name="nodeType">
+        <complexContent>
+            <extension base="fews:sequenceGroupType">
+                <sequence>
+                    <element name="sim"
+                             minOccurs="0"/>
+                    <element name="obs"
+                             minOccurs="0"/>
+                </sequence>
+            </extension>
+        </complexContent>
+    </complexType>
 
-    <element name="nodes.sim"
-             substitutionGroup="fews:_Sequence"
-             type="fews:SequenceType"/>
-
-    <element name="hland_v1.inputs.p"
-             substitutionGroup="fews:_Sequence"
-             type="fews:SequenceType"/>
-
-    <element name="hland_v1.inputs.t"
-             substitutionGroup="fews:_Sequence"
-             type="fews:SequenceType"/>
-
-        <element name="hland_v1.inputs.tn"
-             substitutionGroup="fews:_Sequence"
-             type="fews:SequenceType"/>
-
-    <element name="hland_v1.inputs.epn"
-             substitutionGroup="fews:_Sequence"
-             type="fews:SequenceType"/>
-
-    <element name="hland_v1.fluxes.pc"
-             substitutionGroup="fews:_Sequence"
-             type="fews:SequenceType"/>
-
-    <element name="hland_v1.fluxes.tf"
-             substitutionGroup="fews:_Sequence"
-             type="fews:SequenceType"/>
-
-    <element name="hland_v1.states.sm"
-             substitutionGroup="fews:_Sequence"
-             type="fews:SequenceType"/>
+    <element name="hland_v1"
+             substitutionGroup="fews:sequenceGroup"
+             type="fews:hland_v1Type"/>
+    <complexType name="hland_v1Type">
+        <complexContent>
+            <extension base="fews:sequenceGroupType">
+                <sequence>
+                    <element name="inputs"
+                             minOccurs="0">
+                        <complexType>
+                            <sequence>
+                                <element name="p"
+                                         minOccurs="0"/>
+                                <element name="t"
+                                         minOccurs="0"/>
+                                <element name="tn"
+                                         minOccurs="0"/>
+                                <element name="epn"
+                                         minOccurs="0"/>
+                            </sequence>
+                        </complexType>
+                    </element>
+                    <element name="fluxes"
+                             minOccurs="0">
+                        <complexType>
+                            <sequence>
+                                <element name="pc"
+                                         minOccurs="0"/>
+                                <element name="tf"
+                                         minOccurs="0"/>
+                            </sequence>
+                        </complexType>
+                    </element>
+                    <element name="states"
+                             minOccurs="0">
+                        <complexType>
+                            <sequence>
+                                <element name="sm"
+                                         minOccurs="0"/>
+                            </sequence>
+                        </complexType>
+                    </element>
+                </sequence>
+            </extension>
+        </complexContent>
+    </complexType>
 
 </schema>

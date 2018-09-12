@@ -438,18 +438,6 @@ class XMLSequence(object):
                         convert(value))
 
     @property
-    def series(self) -> List[str]:
-        """List of handled xml sequence names.
-
-        >>> from hydpy.auxs.xmltools import XMLInterface
-        >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
-        >>> interface.sequences.outputs[0].series
-        ['hland_v1.inputs.p', 'hland_v1.fluxes.pc', 'hland_v1.fluxes.tf']
-        """
-        return [strip(_.tag) for _ in self.find('series')]
-
-    @property
     def model2subs2seqs(self) -> Dict[str, Dict[str, List[str]]]:
         """A nested |collections.defaultdict| containing the model specific
         information provided by |property| |XMLSequence.series|.
@@ -469,12 +457,15 @@ class XMLSequence(object):
         """
         model2subs2seqs = collections.defaultdict(
             lambda: collections.defaultdict(list))
-        for sequence in self.series:
-            try:
-                model, subseqs, seqname = sequence.split('.')
-            except ValueError:
+        for model in self.find('series'):
+            model_name = strip(model.tag)
+            if model_name == 'nodes':
                 continue
-            model2subs2seqs[model][subseqs].append(seqname)
+            for group in model:
+                group_name = strip(group.tag)
+                for sequence in group:
+                    seq_name = strip(sequence.tag)
+                    model2subs2seqs[model_name][group_name].append(seq_name)
         return model2subs2seqs
 
     @property
@@ -489,15 +480,13 @@ class XMLSequence(object):
         >>> subs2seqs = sequences.outputs[2].subs2seqs
         >>> for subs, seq in sorted(subs2seqs.items()):
         ...     print(subs, seq)
-        nodes ['sim', 'obs']
+        node ['sim', 'obs']
         """
         subs2seqs = collections.defaultdict(list)
-        for sequence in self.series:
-            try:
-                subseqs, seqname = sequence.split('.')
-            except ValueError:
-                continue
-            subs2seqs[subseqs].append(seqname)
+        nodes = find(self.find('series'), 'node')
+        if nodes is not None:
+            for seq in nodes:
+                subs2seqs['node'].append(strip(seq.tag))
         return subs2seqs
 
     @property

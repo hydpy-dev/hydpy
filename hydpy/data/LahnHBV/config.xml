@@ -63,10 +63,14 @@
                     catchment
                 </devices>
                 <series>
-                    <hland_v1.inputs.p/>
-                    <hland_v1.inputs.t/>
-                    <hland_v1.inputs.tn/>
-                    <hland_v1.inputs.epn/>
+                    <hland_v1>
+                        <inputs>
+                            <p/>
+                            <t/>
+                            <tn/>
+                            <epn/>
+                        </inputs>
+                    </hland_v1>
                 </series>
                 <filetype>
                     <inputs>nc</inputs>
@@ -85,9 +89,15 @@
                     land_lahn_2
                 </devices>
                 <series>
-                    <hland_v1.inputs.p/>
-                    <hland_v1.fluxes.pc/>
-                    <hland_v1.fluxes.tf/>
+                    <hland_v1>
+                        <inputs>
+                            <p/>
+                        </inputs>
+                        <fluxes>
+                            <pc/>
+                            <tf/>
+                        </fluxes>
+                    </hland_v1>
                 </series>
                 <filetype>
                     <inputs>asc</inputs>
@@ -100,7 +110,11 @@
                     complete
                 </selections>
                 <series>
-                    <hland_v1.states.sm/>
+                    <hland_v1>
+                        <states>
+                            <sm/>
+                        </states>
+                    </hland_v1>
                 </series>
                 <filetype>
                     <general>nc</general>
@@ -113,11 +127,19 @@
             <output info="averaged">
                 <devices/>
                 <series>
-                    <nodes.sim/>
-                    <nodes.obs/>
-                    <hland_v1.fluxes.pc/>
-                    <hland_v1.fluxes.tf/>
-                    <hland_v1.states.sm/>
+                    <node>
+                        <sim/>
+                        <obs/>
+                    </node>
+                    <hland_v1>
+                        <fluxes>
+                            <pc/>
+                            <tf/>
+                        </fluxes>
+                        <states>
+                            <sm/>
+                        </states>
+                    </hland_v1>
                 </series>
                 <dirpath>
                     <nodes>LahnHBV/sequences/output</nodes>

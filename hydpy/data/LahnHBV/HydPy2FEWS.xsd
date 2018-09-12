@@ -11,6 +11,10 @@
         </restriction>
     </simpleType>
 
+    <simpleType name="list_of_strings">
+      <list itemType="string"/>
+    </simpleType>
+
     <element name="config">
         <complexType>
             <sequence>
@@ -25,20 +29,8 @@
 
     <simpleType name="_reprdigits">
         <restriction base="integer">
-            <enumeration value="-999"/>
-            <enumeration value="0"/>
-            <enumeration value="1"/>
-            <enumeration value="2"/>
-            <enumeration value="3"/>
-            <enumeration value="4"/>
-            <enumeration value="5"/>
-            <enumeration value="6"/>
-            <enumeration value="7"/>
-            <enumeration value="8"/>
-            <enumeration value="9"/>
-            <enumeration value="10"/>
-            <enumeration value="11"/>
-            <enumeration value="12"/>
+            <minInclusive value="-1"/>
+            <maxInclusive value="12"/>
         </restriction>
     </simpleType>
 
@@ -86,6 +78,12 @@
             </sequence>
         </complexType>
     </element>
+
+    <element name="selections"
+             type="fews:list_of_strings"/>
+
+    <element name="devices"
+             type="fews:list_of_strings"/>
 
     <element name="sequences">
         <complexType>
@@ -161,16 +159,6 @@
         </complexType>
     </element>
 
-    <element name="selections"
-             type="fews:list_of_strings"/>
-
-    <element name="devices"
-             type="fews:list_of_strings"/>
-
-    <simpleType name="list_of_strings">
-      <list itemType="string"/>
-    </simpleType>
-
     <element name="filetype">
         <complexType>
             <choice>
@@ -233,20 +221,20 @@
             <choice>
                 <element name="general"
                          minOccurs="0"
-                         type="string"/>
+                         type="anyURI"/>
                 <sequence>
                     <element name="inputs"
                              minOccurs="0"
-                             type="string"/>
+                             type="anyURI"/>
                     <element name="fluxes"
                              minOccurs="0"
-                             type="string"/>
+                             type="anyURI"/>
                     <element name="states"
                              minOccurs="0"
-                             type="string"/>
+                             type="anyURI"/>
                     <element name="nodes"
                              minOccurs="0"
-                             type="string"/>
+                             type="anyURI"/>
                 </sequence>
             </choice>
         </complexType>
@@ -297,47 +285,38 @@
 
     <element name="nodes.obs"
              substitutionGroup="fews:_Sequence"
-             type="fews:SequenceType">
-    </element>
+             type="fews:SequenceType"/>
 
     <element name="nodes.sim"
              substitutionGroup="fews:_Sequence"
-             type="fews:SequenceType">
-    </element>
+             type="fews:SequenceType"/>
 
     <element name="hland_v1.inputs.p"
              substitutionGroup="fews:_Sequence"
-             type="fews:SequenceType">
-    </element>
+             type="fews:SequenceType"/>
 
     <element name="hland_v1.inputs.t"
              substitutionGroup="fews:_Sequence"
-             type="fews:SequenceType">
-    </element>
+             type="fews:SequenceType"/>
 
         <element name="hland_v1.inputs.tn"
              substitutionGroup="fews:_Sequence"
-             type="fews:SequenceType">
-    </element>
+             type="fews:SequenceType"/>
 
     <element name="hland_v1.inputs.epn"
              substitutionGroup="fews:_Sequence"
-             type="fews:SequenceType">
-    </element>
+             type="fews:SequenceType"/>
 
     <element name="hland_v1.fluxes.pc"
              substitutionGroup="fews:_Sequence"
-             type="fews:SequenceType">
-    </element>
+             type="fews:SequenceType"/>
 
     <element name="hland_v1.fluxes.tf"
              substitutionGroup="fews:_Sequence"
-             type="fews:SequenceType">
-    </element>
+             type="fews:SequenceType"/>
 
     <element name="hland_v1.states.sm"
              substitutionGroup="fews:_Sequence"
-             type="fews:SequenceType">
-    </element>
+             type="fews:SequenceType"/>
 
 </schema>

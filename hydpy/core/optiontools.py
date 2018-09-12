@@ -147,7 +147,7 @@ class Options(object):
     So far, this option affects the behaviour of a few implemented classes,
     only."""
 
-    reprdigits = _Option(-999, -999)
+    reprdigits = _Option(-1, -1)
     """Required precision of string representations of floating point
     numbers, defined as the minimum number of digits to be reproduced
     by the string representation (see function |repr_|)."""

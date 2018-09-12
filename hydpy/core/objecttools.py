@@ -600,11 +600,12 @@ class _Repr(object):
     directory/file
 
     When value is a float, the result depends on how the option
-    |Options.reprdigits| is set. If it is to -999, |repr| defines the
-    number of digits in the usual, system dependent manner:
+    |Options.reprdigits| is set.  Without defining a special value,
+    |repr| defines the number of digits in the usual, system dependent
+    manner:
 
     >>> from hydpy.pub import options
-    >>> options.reprdigits = -999
+    >>> del options.reprdigits
     >>> repr(1./3.) == repr_(1./3.)
     True
 

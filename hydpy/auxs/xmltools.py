@@ -152,7 +152,7 @@ class XMLInterface(object):
         >>> from hydpy import data
         >>> xml = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
         >>> pub.options.printprogress = True
-        >>> pub.options.reprdigits = -999
+        >>> pub.options.reprdigits = -1
         >>> pub.options.utcoffset = -60
         >>> xml.update_options()
         >>> pub.options

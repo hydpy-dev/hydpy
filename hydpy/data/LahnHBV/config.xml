@@ -57,7 +57,7 @@
         </aggregation>
 
         <readers>
-            <input info="all input data">
+            <reader info="all input data">
                 <selections/>
                 <devices>
                     catchment
@@ -75,12 +75,12 @@
                 <filetype>
                     <inputs>nc</inputs>
                 </filetype>
-            </input>
+            </reader>
         </readers>
 
         <writers>
 
-            <output info="precipitation">
+            <writer info="precipitation">
                 <selections>
                     headwaters
                 </selections>
@@ -103,9 +103,9 @@
                     <inputs>asc</inputs>
                     <fluxes>npy</fluxes>
                 </filetype>
-            </output>
+            </writer>
 
-            <output info="soilmoisture">
+            <writer info="soilmoisture">
                 <selections>
                     complete
                 </selections>
@@ -122,9 +122,9 @@
                 <overwrite>
                     <states>false</states>
                 </overwrite>
-            </output>
+            </writer>
 
-            <output info="averaged">
+            <writer info="averaged">
                 <devices/>
                 <sequences>
                     <node>
@@ -147,7 +147,7 @@
                 <aggregation>
                     <general>mean</general>
                 </aggregation>
-            </output>
+            </writer>
 
         </writers>
 

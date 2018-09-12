@@ -4,6 +4,11 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="https://github.com/tyralla/hydpy/tree/master/hydpy/conf/HydPy2FEWS.xsd HydPy2FEWS.xsd">
 
+    <options>
+        <flattennetcdf>true</flattennetcdf>
+        <isolatenetcdf>true</isolatenetcdf>
+    </options>
+
     <timegrid>
         <firstdate>1996-01-01T00:00:00</firstdate>
         <lastdate>1996-01-06T00:00:00</lastdate>

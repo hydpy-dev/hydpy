@@ -14,10 +14,22 @@
     <element name="config">
         <complexType>
             <sequence>
+                <element ref="fews:options"/>
                 <element ref="fews:timegrid"/>
                 <element ref="fews:selections"/>
                 <element ref="fews:devices"/>
                 <element ref="fews:sequences"/>
+            </sequence>
+        </complexType>
+    </element>
+
+    <element name="options">
+        <complexType>
+            <sequence>
+                <element name="flattennetcdf"
+                         type="fews:bool"/>
+                <element name="isolatenetcdf"
+                         type="fews:bool"/>
             </sequence>
         </complexType>
     </element>

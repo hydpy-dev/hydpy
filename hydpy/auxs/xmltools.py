@@ -14,6 +14,7 @@
 >>> hp = HydPy('LahnHBV')
 >>> with TestIO():
 ...     interface = XMLInterface()
+>>> interface.update_options()
 >>> pub.timegrids = interface.timegrids
 
 >>> with TestIO():
@@ -142,6 +143,43 @@ class XMLInterface(object):
     def find(self, name):
         """Apply function |find| for the root of |XMLInterface|."""
         return find(self.root, name)
+
+    def update_options(self):
+        """Update the |Options| object available in module |pub| with the
+        values defined in the `options` xml element.
+
+        >>> from hydpy.auxs.xmltools import XMLInterface, pub
+        >>> from hydpy import data
+        >>> xml = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
+        >>> xml.update_options()
+        >>> pub.options
+        Options(
+            checkseries -> 1
+            dirverbose -> 0
+            ellipsis -> -999
+            fastcython -> 1
+            printprogress -> 1
+            printincolor -> 1
+            reprcomments -> 0
+            reprdigits -> -999
+            skipdoctests -> 0
+            usecython -> 1
+            usedefaultvalues -> 0
+            utcoffset -> 60
+            warnmissingcontrolfile -> 0
+            warnmissingobsfile -> 1
+            warnmissingsimfile -> 1
+            warnsimulationstep -> 1
+            warntrim -> 1
+            flattennetcdf -> True
+            isolatenetcdf -> True
+        )
+        """
+        element = self.find('options')
+        options = pub.options
+        for option in ('flattennetcdf', 'isolatenetcdf'):
+            value = find(element, option).text == 'true'
+            setattr(options, option, value)
 
     @property
     def timegrids(self):
@@ -529,8 +567,6 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
     def elements(self) -> Iterator[devicetools.Element]:
         """Return the selected elements.
 
-        ToDo: add an actual  selection mechanism
-
         >>> from hydpy.core.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
@@ -550,8 +586,6 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
     @property
     def nodes(self) -> Iterator[devicetools.Node]:
         """Return the selected nodes.
-
-        ToDo: add an actual  selection mechanism
 
         >>> from hydpy.core.examples import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -637,8 +671,6 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
     def load_series(self) -> None:
         """ToDo
 
-        ToDo: extend configurations
-
         >>> from hydpy.core.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
@@ -648,6 +680,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         ...     hp.prepare_network()
         ...     hp.init_models()
         ...     interface = XMLInterface()
+        ...     interface.update_options()
         ...     pub.timegrids = interface.timegrids
         ...     sequences = interface.sequences
         ...     sequences.prepare_series()
@@ -657,15 +690,15 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         ...     hp.elements.land_dill.model.sequences.inputs.t.series[:3])
         -0.298846, -0.811539, -2.493848
         """
-        pub.sequencemanager.open_netcdf_reader(flatten=True, isolate=True)
+        pub.sequencemanager.open_netcdf_reader(
+            flatten=pub.options.flattennetcdf,
+            isolate=pub.options.isolatenetcdf)
         self._apply_function_on_sequences(
             sequencetools.IOSequence.load_ext)
         pub.sequencemanager.close_netcdf_reader()
 
     def save_series(self) -> None:
         """ToDo
-
-        ToDo: extend configurations
 
         >>> from hydpy.core.examples import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -676,6 +709,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         ...     hp.prepare_network()
         ...     hp.init_models()
         ...     interface = XMLInterface()
+        >>> interface.update_options()
         >>> pub.timegrids = interface.timegrids
         >>> sequences = interface.sequences
         >>> sequences.prepare_series()
@@ -698,7 +732,9 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         9.0
         7.0
         """
-        pub.sequencemanager.open_netcdf_writer(flatten=True, isolate=True)
+        pub.sequencemanager.open_netcdf_writer(
+            flatten=pub.options.flattennetcdf,
+            isolate=pub.options.isolatenetcdf)
         self._apply_function_on_sequences(
             sequencetools.IOSequence.save_ext)
         pub.sequencemanager.close_netcdf_writer()

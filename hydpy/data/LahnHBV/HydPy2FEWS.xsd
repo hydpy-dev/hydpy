@@ -100,7 +100,7 @@
                         </sequence>
                     </complexType>
                 </element>
-                <element name="outputs">
+                <element name="writers">
                     <complexType>
                         <sequence>
                             <element ref="fews:output"

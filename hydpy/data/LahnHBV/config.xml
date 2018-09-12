@@ -78,7 +78,7 @@
             </input>
         </readers>
 
-        <outputs>
+        <writers>
 
             <output info="precipitation">
                 <selections>
@@ -149,7 +149,7 @@
                 </aggregation>
             </output>
 
-        </outputs>
+        </writers>
 
     </series_io>
 

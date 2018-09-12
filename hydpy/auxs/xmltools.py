@@ -304,19 +304,19 @@ class XMLSequences(object):
         return [XMLSequence(self, _) for _ in self.find('readers')]
 
     @property
-    def outputs(self) -> List['XMLSequence']:
+    def writers(self) -> List['XMLSequence']:
         """Return the output elements defined in the actual xml file.
 
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
         >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
-        >>> for output in interface.series_io.outputs:
-        ...     print(output.info)
+        >>> for writer in interface.series_io.writers:
+        ...     print(writer.info)
         precipitation
         soilmoisture
         averaged
         """
-        return [XMLSequence(self, _) for _ in self.find('outputs')]
+        return [XMLSequence(self, _) for _ in self.find('writers')]
 
     def prepare_series(self):
         """Call |XMLSequence.prepare_series| of all |XMLSequence| objects with
@@ -331,7 +331,7 @@ class XMLSequences(object):
         >>> XMLSequence.prepare_series = mock.MagicMock()
         >>> series_io.prepare_series()
         >>> args = XMLSequence.prepare_series.call_args_list
-        >>> len(args) == len(series_io.readers) + len(series_io.outputs)
+        >>> len(args) == len(series_io.readers) + len(series_io.writers)
         True
         >>> args[0][0][0]
         set()
@@ -340,7 +340,7 @@ class XMLSequences(object):
         >>> XMLSequence.prepare_series = prepare_series
         """
         memory = set()
-        for output in itertools.chain(self.readers, self.outputs):
+        for output in itertools.chain(self.readers, self.writers):
             output.prepare_series(memory)
 
     def load_series(self):
@@ -348,8 +348,8 @@ class XMLSequences(object):
             input_.load_series()
 
     def save_series(self):
-        for output in self.outputs:
-            output.save_series()
+        for writer in self.writers:
+            writer.save_series()
 
 
 class XMLSequence(object):
@@ -390,7 +390,7 @@ class XMLSequence(object):
         ...     interface = XMLInterface()
         >>> series_io = interface.series_io
         >>> with TestIO():
-        ...     series_io.outputs[0].prepare_sequencemanager()
+        ...     series_io.writers[0].prepare_sequencemanager()
         >>> pub.sequencemanager.inputfiletype
         'asc'
         >>> pub.sequencemanager.fluxfiletype
@@ -398,13 +398,13 @@ class XMLSequence(object):
         >>> pub.sequencemanager.fluxaggregation
         'none'
         >>> with TestIO():
-        ...     series_io.outputs[1].prepare_sequencemanager()
+        ...     series_io.writers[1].prepare_sequencemanager()
         >>> pub.sequencemanager.statefiletype
         'nc'
         >>> pub.sequencemanager.stateoverwrite
         False
         >>> with TestIO():
-        ...     series_io.outputs[2].prepare_sequencemanager()
+        ...     series_io.writers[2].prepare_sequencemanager()
         >>> pub.sequencemanager.statefiletype
         'npy'
         >>> pub.sequencemanager.fluxaggregation
@@ -448,7 +448,7 @@ class XMLSequence(object):
         >>> from hydpy import data
         >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
         >>> series_io = interface.series_io
-        >>> model2subs2seqs = series_io.outputs[2].model2subs2seqs
+        >>> model2subs2seqs = series_io.writers[2].model2subs2seqs
         >>> for model, subs2seqs in sorted(model2subs2seqs.items()):
         ...     for subs, seq in sorted(subs2seqs.items()):
         ...         print(model, subs, seq)
@@ -477,7 +477,7 @@ class XMLSequence(object):
         >>> from hydpy import data
         >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
         >>> series_io = interface.series_io
-        >>> subs2seqs = series_io.outputs[2].subs2seqs
+        >>> subs2seqs = series_io.writers[2].subs2seqs
         >>> for subs, seq in sorted(subs2seqs.items()):
         ...     print(subs, seq)
         node ['sim', 'obs']
@@ -507,7 +507,7 @@ class XMLSequence(object):
         ...     hp.init_models()
         ...     interface = XMLInterface()
         >>> series_io = interface.series_io
-        >>> for seq in (series_io.readers + series_io.outputs):
+        >>> for seq in (series_io.readers + series_io.writers):
         ...     print(seq.info, seq.selections.names)
         all input data ()
         precipitation ('headwaters',)
@@ -537,7 +537,7 @@ class XMLSequence(object):
         ...     hp.prepare_network()
         ...     interface = XMLInterface()
         >>> series_io = interface.series_io
-        >>> for seq in (series_io.readers + series_io.outputs):
+        >>> for seq in (series_io.readers + series_io.writers):
         ...     print(seq.info, seq.devices.nodes, seq.devices.elements)
         all input data Nodes() \
 Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
@@ -572,7 +572,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     interface = XMLInterface()
-        >>> for element in interface.series_io.outputs[0].elements:
+        >>> for element in interface.series_io.writers[0].elements:
         ...     print(element.name)
         land_dill
         land_lahn_1
@@ -592,7 +592,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     interface = XMLInterface()
-        >>> for node in interface.series_io.outputs[0].nodes:
+        >>> for node in interface.series_io.writers[0].nodes:
         ...     print(node.name)
         dill
         lahn_1
@@ -642,7 +642,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         >>> pc = hp.elements.land_dill.model.sequences.fluxes.pc
         >>> pc.ramflag
         False
-        >>> series_io.outputs[0].prepare_series(memory)
+        >>> series_io.writers[0].prepare_series(memory)
         >>> pc in memory
         True
         >>> pc.ramflag
@@ -651,7 +651,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         >>> pc.deactivate_ram()
         >>> pc.ramflag
         False
-        >>> series_io.outputs[0].prepare_series(memory)
+        >>> series_io.writers[0].prepare_series(memory)
         >>> pc.ramflag
         False
         """

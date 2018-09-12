@@ -154,12 +154,14 @@ class XMLInterface(object):
         >>> pub.options.printprogress = True
         >>> pub.options.reprdigits = -1
         >>> pub.options.utcoffset = -60
+        >>> pub.options.ellipsis = 0
+        >>> pub.options.warnsimulationstep = 0
         >>> xml.update_options()
         >>> pub.options
         Options(
             checkseries -> 1
             dirverbose -> 0
-            ellipsis -> -999
+            ellipsis -> 0
             fastcython -> 1
             printprogress -> 0
             printincolor -> 1
@@ -172,7 +174,7 @@ class XMLInterface(object):
             warnmissingcontrolfile -> 0
             warnmissingobsfile -> 1
             warnmissingsimfile -> 1
-            warnsimulationstep -> 1
+            warnsimulationstep -> 0
             warntrim -> 1
             flattennetcdf -> True
             isolatenetcdf -> True

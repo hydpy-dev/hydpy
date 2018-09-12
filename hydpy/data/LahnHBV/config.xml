@@ -5,6 +5,15 @@
         xsi:schemaLocation="https://github.com/tyralla/hydpy/tree/master/hydpy/conf/HydPy2FEWS.xsd HydPy2FEWS.xsd">
 
     <options>
+        <printprogress>false</printprogress>
+        <printincolor>true</printincolor>
+        <reprdigits>6</reprdigits>
+        <usecython>true</usecython>
+        <usedefaultvalues>false</usedefaultvalues>
+        <utcoffset>60</utcoffset>
+        <warnmissingobsfile>true</warnmissingobsfile>
+        <warnmissingsimfile>true</warnmissingsimfile>
+        <warntrim>true</warntrim>
         <flattennetcdf>true</flattennetcdf>
         <isolatenetcdf>true</isolatenetcdf>
     </options>

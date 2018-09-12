@@ -23,9 +23,46 @@
         </complexType>
     </element>
 
+    <simpleType name="_reprdigits">
+        <restriction base="integer">
+            <enumeration value="-999"/>
+            <enumeration value="0"/>
+            <enumeration value="1"/>
+            <enumeration value="2"/>
+            <enumeration value="3"/>
+            <enumeration value="4"/>
+            <enumeration value="5"/>
+            <enumeration value="6"/>
+            <enumeration value="7"/>
+            <enumeration value="8"/>
+            <enumeration value="9"/>
+            <enumeration value="10"/>
+            <enumeration value="11"/>
+            <enumeration value="12"/>
+        </restriction>
+    </simpleType>
+
     <element name="options">
         <complexType>
             <sequence>
+                <element name="printprogress"
+                         type="fews:bool"/>
+                <element name="printincolor"
+                         type="fews:bool"/>
+                <element name="reprdigits"
+                         type="fews:_reprdigits"/>
+                <element name="usecython"
+                         type="fews:bool"/>
+                <element name="usedefaultvalues"
+                         type="fews:bool"/>
+                <element name="utcoffset"
+                         type="integer"/>
+                <element name="warnmissingobsfile"
+                         type="fews:bool"/>
+                <element name="warnmissingsimfile"
+                         type="fews:bool"/>
+                <element name="warntrim"
+                         type="fews:bool"/>
                 <element name="flattennetcdf"
                          type="fews:bool"/>
                 <element name="isolatenetcdf"

@@ -151,6 +151,9 @@ class XMLInterface(object):
         >>> from hydpy.auxs.xmltools import XMLInterface, pub
         >>> from hydpy import data
         >>> xml = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
+        >>> pub.options.printprogress = True
+        >>> pub.options.reprdigits = -999
+        >>> pub.options.utcoffset = -60
         >>> xml.update_options()
         >>> pub.options
         Options(
@@ -158,10 +161,10 @@ class XMLInterface(object):
             dirverbose -> 0
             ellipsis -> -999
             fastcython -> 1
-            printprogress -> 1
+            printprogress -> 0
             printincolor -> 1
             reprcomments -> 0
-            reprdigits -> -999
+            reprdigits -> 6
             skipdoctests -> 0
             usecython -> 1
             usedefaultvalues -> 0
@@ -174,12 +177,15 @@ class XMLInterface(object):
             flattennetcdf -> True
             isolatenetcdf -> True
         )
+        >>> pub.options.printprogress = False
+        >>> pub.options.reprdigits = 6
         """
-        element = self.find('options')
         options = pub.options
-        for option in ('flattennetcdf', 'isolatenetcdf'):
-            value = find(element, option).text == 'true'
-            setattr(options, option, value)
+        for option in self.find('options'):
+            value = option.text
+            if value in ('true', 'false'):
+                value = value == 'true'
+            setattr(options, strip(option.tag), value)
 
     @property
     def timegrids(self):

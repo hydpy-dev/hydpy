@@ -4,6 +4,13 @@
         xmlns:fews="https://github.com/tyralla/hydpy/tree/master/hydpy/conf/HydPy2FEWS.xsd"
         elementFormDefault="qualified">
 
+    <simpleType name="bool">
+        <restriction base="string">
+            <enumeration value="true"/>
+            <enumeration value="false"/>
+        </restriction>
+    </simpleType>
+
     <element name="config">
         <complexType>
             <sequence>
@@ -152,33 +159,27 @@
             <choice>
                 <element name="general"
                          minOccurs="0"
-                         type="fews:_overwrite"/>
+                         type="fews:bool"/>
                 <sequence>
                     <element name="inputs"
                              minOccurs="0"
-                             type="fews:_overwrite"/>
+                             type="fews:bool"/>
                     <element name="fluxes"
                              minOccurs="0"
-                             type="fews:_overwrite"/>
+                             type="fews:bool"/>
                     <element name="states"
                              minOccurs="0"
-                             type="fews:_overwrite"/>
+                             type="fews:bool"/>
                     <element name="nodes"
                              minOccurs="0"
-                             type="fews:_overwrite"/>
+                             type="fews:bool"/>
                 </sequence>
             </choice>
         </complexType>
     </element>
 
-    <simpleType name="_overwrite">
-        <restriction base="string">
-            <enumeration value="true"/>
-            <enumeration value="false"/>
-        </restriction>
-    </simpleType>
 
-        <element name="dirpath">
+    <element name="dirpath">
         <complexType>
             <choice>
                 <element name="general"

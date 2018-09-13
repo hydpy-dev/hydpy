@@ -227,6 +227,7 @@ class XMLInterface(object):
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     interface = XMLInterface()
+        >>> interface.find('selections').text = 'headwaters streams'
         >>> selections = interface.selections
         >>> for selection in selections:
         ...     print(selection.name)
@@ -559,7 +560,7 @@ class XMLSequence(object):
         all input data ()
         precipitation ('headwaters',)
         soilmoisture ('complete',)
-        averaged ('headwaters', 'streams')
+        averaged ('complete',)
         """
         element = self.find('selections')
         if element is None:

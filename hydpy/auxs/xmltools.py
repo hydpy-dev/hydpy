@@ -277,6 +277,37 @@ a name or keyword.
         return _query_devices(self.find('devices'))
 
     @property
+    def elements(self):
+        """Yield all |Element| objects returned by |XMLInterface.selections|
+        and |XMLInterface.devices| without duplicates.
+
+        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+
+        >>> from hydpy import HydPy, TestIO, XMLInterface
+        >>> hp = HydPy('LahnHBV')
+        >>> with TestIO():
+        ...     hp.prepare_network()
+        ...     interface = XMLInterface()
+        >>> interface.find('selections').text = 'headwaters streams'
+        >>> for element in interface.elements:
+        ...      print(element.name)
+        land_dill
+        land_lahn_1
+        stream_dill_lahn_2
+        stream_lahn_1_lahn_2
+        stream_lahn_2_lahn_3
+        """
+        selections = copy.copy(self.selections)
+        selections += self.devices
+        elements = set()
+        for selection in selections:
+            for element in selection.elements:
+                if element not in elements:
+                    elements.add(element)
+                    yield element
+
+    @property
     def conditions_io(self):
         """The `serios_io` element defined in the actual xml file.
 
@@ -311,20 +342,29 @@ class XMLConditions(object):
         """Apply function |find| for the root of |XMLConditions|."""
         return find(self.root, name)
 
-    @property
-    def elements(self):
-        selections = copy.copy(self.master.selections)
-        selections += self.master.devices
-        elements = set()
-        for selection in selections:
-            for element in selection.elements:
-                if element not in elements:
-                    elements.add(element)
-                    yield element
-
     def load_conditions(self):
+        """Load the condition files of the |Model| objects of all |Element|
+        objects returened by |XMLInterface.elements|:
+
+        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+
+        >>> from hydpy import HydPy, TestIO, XMLInterface, pub
+        >>> hp = HydPy('LahnHBV')
+        >>> with TestIO():
+        ...     hp.prepare_network()
+        ...     hp.init_models()
+        ...     interface = XMLInterface()
+        ...     pub.timegrids = interface.timegrids   # ToDo:  should not be necessary here
+        ...     interface.find('selections').text = 'headwaters'
+        ...     interface.conditions_io.load_conditions()
+        >>> hp.elements.land_lahn_1.model.sequences.states.lz
+        lz(8.18711)
+        >>> hp.elements.land_lahn_2.model.sequences.states.lz
+        lz(nan)
+        """
         pub.conditionmanager.currentdir = strip(self.find('inputdir').text)
-        for element in self.elements:
+        for element in self.master.elements:
             element.model.sequences.load_conditions()
 
 

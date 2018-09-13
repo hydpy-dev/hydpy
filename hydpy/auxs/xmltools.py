@@ -374,7 +374,7 @@ a name or keyword.
         >>> strip(interface.series_io.root.tag)
         'series_io'
         """
-        return XMLSequences(self, self.find('series_io'))
+        return XMLSeries(self, self.find('series_io'))
 
 
 class XMLConditions(XMLBase):
@@ -439,14 +439,14 @@ class XMLConditions(XMLBase):
             element.model.sequences.save_conditions()
 
 
-class XMLSequences(XMLBase):   # ToDo: rename XMLSeries
+class XMLSeries(XMLBase):
 
     def __init__(self, master, root):
         self.master: XMLInterface = master
         self.root: ElementTree.Element = root
 
     @property
-    def readers(self) -> List['XMLSequence']:
+    def readers(self) -> List['XMLSubseries']:
         """Return the reader elements defined in the actual xml file.
 
         >>> from hydpy.auxs.xmltools import XMLInterface
@@ -456,10 +456,10 @@ class XMLSequences(XMLBase):   # ToDo: rename XMLSeries
         ...     print(reader.info)
         all input data
         """
-        return [XMLSequence(self, _) for _ in self.find('readers')]
+        return [XMLSubseries(self, _) for _ in self.find('readers')]
 
     @property
-    def writers(self) -> List['XMLSequence']:
+    def writers(self) -> List['XMLSubseries']:
         """Return the output elements defined in the actual xml file.
 
         >>> from hydpy.auxs.xmltools import XMLInterface
@@ -471,28 +471,28 @@ class XMLSequences(XMLBase):   # ToDo: rename XMLSeries
         soilmoisture
         averaged
         """
-        return [XMLSequence(self, _) for _ in self.find('writers')]
+        return [XMLSubseries(self, _) for _ in self.find('writers')]
 
     def prepare_series(self):
-        """Call |XMLSequence.prepare_series| of all |XMLSequence| objects with
-        the same memory |set| object.
+        """Call |XMLSubseries.prepare_series| of all |XMLSubseries|
+        objects with the same memory |set| object.
 
-        >>> from hydpy.auxs.xmltools import XMLInterface, XMLSequence
+        >>> from hydpy.auxs.xmltools import XMLInterface, XMLSubseries
         >>> from hydpy import data
         >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
         >>> series_io = interface.series_io
         >>> from unittest import mock
-        >>> prepare_series = XMLSequence.prepare_series
-        >>> XMLSequence.prepare_series = mock.MagicMock()
+        >>> prepare_series = XMLSubseries.prepare_series
+        >>> XMLSubseries.prepare_series = mock.MagicMock()
         >>> series_io.prepare_series()
-        >>> args = XMLSequence.prepare_series.call_args_list
+        >>> args = XMLSubseries.prepare_series.call_args_list
         >>> len(args) == len(series_io.readers) + len(series_io.writers)
         True
         >>> args[0][0][0]
         set()
         >>> args[0][0][0] is args[-1][0][0]
         True
-        >>> XMLSequence.prepare_series = prepare_series
+        >>> XMLSubseries.prepare_series = prepare_series
         """
         memory = set()
         for output in itertools.chain(self.readers, self.writers):
@@ -507,10 +507,10 @@ class XMLSequences(XMLBase):   # ToDo: rename XMLSeries
             writer.save_series()
 
 
-class XMLSequence(XMLBase):
+class XMLSubseries(XMLBase):
 
     def __init__(self, master, root):
-        self.master: XMLSequences = master
+        self.master: XMLSeries = master
         self.root: ElementTree.Element = root
 
     @property
@@ -591,7 +591,7 @@ class XMLSequence(XMLBase):
     @property
     def model2subs2seqs(self) -> Dict[str, Dict[str, List[str]]]:
         """A nested |collections.defaultdict| containing the model specific
-        information provided by |property| |XMLSequence.series|.
+        information provided by |property| |XMLSubseries.series|.
 
         ToDo: test different model types
 
@@ -622,7 +622,7 @@ class XMLSequence(XMLBase):
     @property
     def subs2seqs(self) -> Dict[str, List[str]]:
         """A nested |collections.defaultdict| containing the node specific
-        information provided by |property| |XMLSequence.series|.
+        information provided by |property| |XMLSubseries.series|.
 
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data

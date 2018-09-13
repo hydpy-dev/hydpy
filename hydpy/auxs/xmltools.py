@@ -26,8 +26,11 @@
 
 >>> with TestIO():
 ...     conditions_io.load_conditions()
-
->>> hp.elements.land_dill.model.sequences.states
+...     with open('LahnHBV/conditions/init_1996_01_01/land_dill.py') as file_:
+...         print(file_.readlines()[14].strip())
+uz(7.25228)
+>>> hp.elements.land_dill.model.sequences.states.uz
+uz(7.25228)
 
 >>> series_io = interface.series_io
 
@@ -37,6 +40,15 @@
 
 >>> hp.doit()
 
+>>> pub.conditionmanager.createdirs = True
+
+>>> with TestIO():
+...     conditions_io.save_conditions()
+...     with open('LahnHBV/conditions/init_1996_01_06/land_dill.py') as file_:
+...         print(file_.readlines()[11].strip())
+uz(1.667827)
+>>> hp.elements.land_dill.model.sequences.states.uz
+uz(1.667827)
 
 >>> with TestIO():
 ...     series_io.save_series()
@@ -344,7 +356,7 @@ class XMLConditions(object):
 
     def load_conditions(self):
         """Load the condition files of the |Model| objects of all |Element|
-        objects returened by |XMLInterface.elements|:
+        objects returned by |XMLInterface.elements|:
 
         >>> from hydpy.core.examples import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -366,6 +378,36 @@ class XMLConditions(object):
         pub.conditionmanager.currentdir = strip(self.find('inputdir').text)
         for element in self.master.elements:
             element.model.sequences.load_conditions()
+
+    def save_conditions(self):
+        """Save the condition files of the |Model| objects of all |Element|
+        objects returned by |XMLInterface.elements|:
+
+        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+
+        >>> import os
+        >>> from hydpy import HydPy, TestIO, XMLInterface, pub
+        >>> hp = HydPy('LahnHBV')
+        >>> with TestIO():
+        ...     hp.prepare_network()
+        ...     hp.init_models()
+        ...     hp.elements.land_dill.model.sequences.states.lz = 999.0
+        ...     interface = XMLInterface()
+        ...     pub.timegrids = interface.timegrids   # ToDo:  should not be necessary here
+        ...     interface.find('selections').text = 'headwaters'
+        ...     pub.conditionmanager.createdirs = True
+        ...     interface.conditions_io.save_conditions()
+        ...     dirpath = 'LahnHBV/conditions/init_1996_01_06'
+        ...     with open(os.path.join(dirpath, 'land_dill.py')) as file_:
+        ...         print(file_.readlines()[11].strip())
+        ...     os.path.exists(os.path.join(dirpath, 'land_lahn_2.py'))
+        lz(999.0)
+        False
+        """
+        pub.conditionmanager.currentdir = strip(self.find('outputdir').text)
+        for element in self.master.elements:
+            element.model.sequences.save_conditions()
 
 
 class XMLSequences(object):   # ToDo: rename XMLSeries

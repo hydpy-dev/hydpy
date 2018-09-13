@@ -19,6 +19,7 @@
 
 >>> with TestIO():
 ...     hp.prepare_network()
+...     hp.update_devices(interface.fullselection)
 ...     hp.init_models()
 
 
@@ -324,6 +325,32 @@ a name or keyword.
                 if element not in elements:
                     elements.add(element)
                     yield element
+
+    @property
+    def fullselection(self):
+        """A |Selection| object containing all |Element| and |Node| objects
+        defined by |XMLInterface.selections| and |XMLInterface.devices|.
+
+        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+
+        >>> from hydpy import HydPy, TestIO, XMLInterface
+        >>> hp = HydPy('LahnHBV')
+        >>> with TestIO():
+        ...     hp.prepare_network()
+        ...     interface = XMLInterface()
+        >>> interface.find('selections').text = 'nonheadwaters'
+        >>> interface.fullselection
+        Selection("fullselection",
+                  elements=("land_dill", "land_lahn_1", "land_lahn_2",
+                            "land_lahn_3"),
+                  nodes=("dill", "lahn_2", "lahn_3"))
+        """
+        fullselection = selectiontools.Selection('fullselection')
+        for selection in self.selections:
+            fullselection += selection
+        fullselection += self.devices
+        return fullselection
 
     @property
     def conditions_io(self):

@@ -153,16 +153,22 @@ def strip(name) -> str:
     return name.split('}')[-1]
 
 
-class XMLInterface(object):
+class XMLBase(object):
+
+    root: ElementTree.Element
+
+    def find(self, name):
+        """Apply function |find| for the root of the object of the |XMLBase|
+        subclass."""
+        return find(self.root, name)
+
+
+class XMLInterface(XMLBase):
 
     def __init__(self, filepath=None):
         if filepath is None:
             filepath = os.path.join(pub.projectname, 'config.xml')
         self.root = ElementTree.parse(filepath).getroot()
-
-    def find(self, name):
-        """Apply function |find| for the root of |XMLInterface|."""
-        return find(self.root, name)
 
     def update_options(self):
         """Update the |Options| object available in module |pub| with the
@@ -344,15 +350,11 @@ a name or keyword.
         return XMLSequences(self, self.find('series_io'))
 
 
-class XMLConditions(object):
+class XMLConditions(XMLBase):
 
     def __init__(self, master, root):
         self.master: XMLInterface = master
         self.root: ElementTree.Element = root
-
-    def find(self, name):
-        """Apply function |find| for the root of |XMLConditions|."""
-        return find(self.root, name)
 
     def load_conditions(self):
         """Load the condition files of the |Model| objects of all |Element|
@@ -410,15 +412,11 @@ class XMLConditions(object):
             element.model.sequences.save_conditions()
 
 
-class XMLSequences(object):   # ToDo: rename XMLSeries
+class XMLSequences(XMLBase):   # ToDo: rename XMLSeries
 
     def __init__(self, master, root):
         self.master: XMLInterface = master
         self.root: ElementTree.Element = root
-
-    def find(self, name):
-        """Apply function |find| for the root of |XMLSequences|."""
-        return find(self.root, name)
 
     @property
     def readers(self) -> List['XMLSequence']:
@@ -482,15 +480,11 @@ class XMLSequences(object):   # ToDo: rename XMLSeries
             writer.save_series()
 
 
-class XMLSequence(object):
+class XMLSequence(XMLBase):
 
     def __init__(self, master, root):
         self.master: XMLSequences = master
         self.root: ElementTree.Element = root
-
-    def find(self, name):
-        """Apply function |find| for the root of |XMLSequence|."""
-        return find(self.root, name)
 
     @property
     def info(self) -> str:

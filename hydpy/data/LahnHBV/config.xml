@@ -35,6 +35,11 @@
         dill
     </devices>
 
+    <conditions_io>
+        <inputdir>init_1996_01_01</inputdir>
+        <outputdir>init_1996_01_06</outputdir>
+    </conditions_io>
+    
     <series_io>
 
         <filetype>

@@ -20,7 +20,14 @@
 >>> with TestIO():
 ...     hp.prepare_network()
 ...     hp.init_models()
-...     hp.load_conditions()
+
+
+>>> conditions_io = interface.conditions_io
+
+>>> with TestIO():
+...     conditions_io.load_conditions()
+
+>>> hp.elements.land_dill.model.sequences.states
 
 >>> series_io = interface.series_io
 
@@ -29,6 +36,7 @@
 ...     series_io.load_series()
 
 >>> hp.doit()
+
 
 >>> with TestIO():
 ...     series_io.save_series()
@@ -268,6 +276,18 @@ a name or keyword.
         return _query_devices(self.find('devices'))
 
     @property
+    def conditions_io(self):
+        """The `serios_io` element defined in the actual xml file.
+
+        >>> from hydpy.auxs.xmltools import XMLInterface, strip
+        >>> from hydpy import data
+        >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
+        >>> strip(interface.series_io.root.tag)
+        'series_io'
+        """
+        return XMLConditions(self, self.find('conditions_io'))
+
+    @property
     def series_io(self):
         """The `serios_io` element defined in the actual xml file.
 
@@ -280,14 +300,41 @@ a name or keyword.
         return XMLSequences(self, self.find('series_io'))
 
 
-class XMLSequences(object):
+class XMLConditions(object):
 
     def __init__(self, master, root):
         self.master: XMLInterface = master
         self.root: ElementTree.Element = root
 
     def find(self, name):
-        """Apply function |find| for the root of |XMLInterface|."""
+        """Apply function |find| for the root of |XMLConditions|."""
+        return find(self.root, name)
+
+    @property
+    def elements(self):
+        selections = copy.copy(self.master.selections)
+        selections += self.master.devices
+        elements = set()
+        for selection in selections:
+            for element in selection.elements:
+                if element not in elements:
+                    elements.add(element)
+                    yield element
+
+    def load_conditions(self):
+        pub.conditionmanager.currentdir = strip(self.find('inputdir').text)
+        for element in self.elements:
+            element.model.sequences.load_conditions()
+
+
+class XMLSequences(object):   # ToDo: rename XMLSeries
+
+    def __init__(self, master, root):
+        self.master: XMLInterface = master
+        self.root: ElementTree.Element = root
+
+    def find(self, name):
+        """Apply function |find| for the root of |XMLSequences|."""
         return find(self.root, name)
 
     @property

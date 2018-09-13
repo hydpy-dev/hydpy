@@ -22,6 +22,7 @@
                 <element ref="fews:timegrid"/>
                 <element ref="fews:selections"/>
                 <element ref="fews:devices"/>
+                <element ref="fews:conditions_io"/>
                 <element ref="fews:series_io"/>
             </sequence>
         </complexType>
@@ -84,6 +85,17 @@
 
     <element name="devices"
              type="fews:list_of_strings"/>
+
+    <element name="conditions_io">
+        <complexType>
+            <sequence>
+                <element name="inputdir"
+                         type="anyURI"/>
+                <element name="outputdir"
+                         type="anyURI"/>
+            </sequence>
+        </complexType>
+    </element>
 
     <element name="series_io">
         <complexType>

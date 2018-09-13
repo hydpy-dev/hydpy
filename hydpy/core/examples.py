@@ -172,7 +172,7 @@ def prepare_full_example_1() -> None:
     ...               *sorted(os.listdir(f'LahnHBV/{folder}')))
     root: LahnHBV __init__.py
     LahnHBV/control: default
-    LahnHBV/conditions: init_1996_01_01_00_00_00
+    LahnHBV/conditions: init_1996_01_01
     LahnHBV/series: input node output temp
 
     ToDo: Improve, test, and explain this example data set.

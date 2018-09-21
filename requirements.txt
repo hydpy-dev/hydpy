@@ -1,6 +1,7 @@
 hydpy
 bokeh
 Cython
+lxml
 matplotlib
 numpy
 scipy

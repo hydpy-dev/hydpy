@@ -85,6 +85,7 @@ import copy
 import itertools
 import os
 from xml.etree import ElementTree
+from lxml import etree
 # ...from HydPy
 from hydpy import pub
 from hydpy import conf
@@ -174,7 +175,42 @@ class XMLInterface(XMLBase):
     def __init__(self, filepath=None):
         if filepath is None:
             filepath = os.path.join(pub.projectname, 'config.xml')
+        self.filepath = filepath
         self.root = ElementTree.parse(filepath).getroot()
+
+    def validate_xml(self) -> None:
+        """Raise an error if the actual xml does not agree with the xml
+        schema file `HydPy2FEWS.xsd`.
+
+        >>> from hydpy.auxs.xmltools import XMLInterface
+        >>> from hydpy import data
+        >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
+        >>> with open(interface.filepath) as xml:
+        ...     text = xml.read()
+        >>> with open(interface.filepath, 'w') as xml:
+        ...     _ = xml.write(text.replace('1996-01-01', '1996-01-32'))
+        >>> interface.validate_xml()
+        Traceback (most recent call last):
+        ...
+        lxml.etree.XMLSyntaxError: While trying to parse xml file \
+`C:\HydPy\HydPy\hydpy\data\LahnHBV\config.xml` the following error occurred: \
+Element '{https://github.com/tyralla/hydpy/tree/master/hydpy/conf/\
+HydPy2FEWS.xsd}firstdate': '1996-01-32T00:00:00' is not a valid value \
+of the atomic type 'xs:dateTime'.
+
+        >>> with open(interface.filepath, 'w') as xml:
+        ...     _ = xml.write(text)
+        >>> interface.validate_xml()
+        """
+        schema = etree.XMLSchema(
+            file=os.path.join(conf.__path__[0], 'HydPy2FEWS.xsd'))
+        parser = etree.XMLParser(schema=schema)
+        try:
+            etree.parse(source=self.filepath, parser=parser)
+        except BaseException as exc:
+            exc.msg = (f'While trying to parse xml file `{self.filepath}` '
+                       f'the following error occurred: {exc.msg}')
+            raise exc
 
     def update_options(self):
         """Update the |Options| object available in module |pub| with the
@@ -182,13 +218,13 @@ class XMLInterface(XMLBase):
 
         >>> from hydpy.auxs.xmltools import XMLInterface, pub
         >>> from hydpy import data
-        >>> xml = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
+        >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
         >>> pub.options.printprogress = True
         >>> pub.options.reprdigits = -1
         >>> pub.options.utcoffset = -60
         >>> pub.options.ellipsis = 0
         >>> pub.options.warnsimulationstep = 0
-        >>> xml.update_options()
+        >>> interface.update_options()
         >>> pub.options
         Options(
             checkseries -> 1

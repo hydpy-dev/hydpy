@@ -7,6 +7,10 @@
 >>> import warnings
 >>> warnings.filterwarnings('ignore')
 
+>>> from hydpy.auxs.xmltools import XSDWriter
+>>> XSDWriter().write_xsd()
+
+
 >>> from hydpy.core.examples import prepare_full_example_1
 >>> prepare_full_example_1()
 
@@ -83,6 +87,7 @@ import os
 from xml.etree import ElementTree
 # ...from HydPy
 from hydpy import pub
+from hydpy import conf
 from hydpy.core import devicetools
 from hydpy.core import selectiontools
 from hydpy.core import sequencetools
@@ -883,3 +888,18 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         for sequence in self._iterate_sequences():
             sequence.save_ext()
         pub.sequencemanager.close_netcdf_writer()
+
+
+class XSDWriter(object):
+
+    def __init__(self):
+        dirpath = conf.__path__[0]
+        basename = 'HydPy2FEWS'
+        self.filepath_source = os.path.join(dirpath, basename + '.xsdt')
+        self.filepath_target = os.path.join(dirpath, basename + '.xsd')
+
+    def write_xsd(self):
+        with open(self.filepath_source) as file_:
+            template = file_.read()
+        with open(self.filepath_target, 'w') as file_:
+            file_.write(template)

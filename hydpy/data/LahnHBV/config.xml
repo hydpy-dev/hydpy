@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<config
-        xmlns="https://github.com/tyralla/hydpy/tree/master/hydpy/conf/HydPy2FEWS.xsd"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="https://github.com/tyralla/hydpy/tree/master/hydpy/conf/HydPy2FEWS.xsd HydPy2FEWS.xsd">
+<config xmlns="https://github.com/tyralla/hydpy/tree/master/hydpy/conf/HydPy2FEWS.xsd">
 
     <options>
         <printprogress>false</printprogress>

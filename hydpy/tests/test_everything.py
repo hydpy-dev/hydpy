@@ -37,6 +37,10 @@ for name in [fn.split('.')[0] for fn in os.listdir(hydpy.models.__path__[0])]:
         importlib.import_module('hydpy.models.'+name)
 pub.options.skipdoctests = False
 
+# Write the required configuration files to be generated dynamically.
+from hydpy.auxs.xmltools import XSDWriter
+XSDWriter().write_xsd()
+
 # 1. Perform all "classical" unit tests.
 
 import hydpy.tests

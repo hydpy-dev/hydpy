@@ -926,19 +926,17 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
 
 
 class XSDWriter(object):
-    """Single purpose class for writing the xml schema file `HydPy2FEWS.xsd`,
-    which allows to validate that a xml configuration file is readable by
-    class |XMLInterface|.
+    """Pure |classmethod| class for writing the actual xml schema file
+    `HydPy2FEWS.xsd`, which allows to validate that a xml configuration
+    file is readable by class |XMLInterface|.
 
     Unless you are interested in enhancing HydPy's xml functionalities,
     you should, if any, be interested in method |XSDWriter.write_xsd| only.
     """
 
-    def __init__(self):
-        dirpath = conf.__path__[0]
-        basename = 'HydPy2FEWS'
-        self.filepath_source: str = os.path.join(dirpath, basename + '.xsdt')
-        self.filepath_target: str = os.path.join(dirpath, basename + '.xsd')
+    filepath_source: str = os.path.join(
+        conf.__path__[0], 'HydPy2FEWS' + '.xsdt')
+    filepath_target: str = filepath_source[:-1]
 
     def write_xsd(self) -> None:
         """Write the complete schema file based on template `HydPy2FEWS.xsdt`,
@@ -955,8 +953,8 @@ class XSDWriter(object):
         >>> xmlpath = data.get_path('LahnHBV', 'config.xml')
 
         >>> import os
-        >>> if os.path.exists(XSDWriter().filepath_target):
-        ...     os.remove(XSDWriter().filepath_target)
+        >>> if os.path.exists(XSDWriter.filepath_target):
+        ...     os.remove(XSDWriter.filepath_target)
 
         >>> XMLInterface(xmlpath).validate_xml()
         Traceback (most recent call last):
@@ -964,23 +962,23 @@ class XSDWriter(object):
         lxml.etree.XMLSchemaParseError: \
 Failed to locate the main schema resource at '...HydPy2FEWS.xsd'.
 
-        >>> XSDWriter().write_xsd()
+        >>> XSDWriter.write_xsd()
         >>> XMLInterface(xmlpath).validate_xml()
         """
         with open(self.filepath_source) as file_:
             template = file_.read()
         template = template.replace(
-            '<!--include model sequence groups-->', self.insertion)
+            '<!--include model sequence groups-->', self.get_insertion())
         with open(self.filepath_target, 'w') as file_:
             file_.write(template)
 
-    @property
-    def insertion(self) -> str:
-        """The complete string to be inserted into the string of the
+    @classmethod
+    def get_insertion(cls) -> str:
+        """Return the complete string to be inserted into the string of the
         template file.
 
         >>> from hydpy.auxs.xmltools import XSDWriter
-        >>> print(XSDWriter().insertion)
+        >>> print(XSDWriter.get_insertion)
              <element name="arma_v1"
                       substitutionGroup="fews:sequenceGroup"
                       type="fews:arma_v1Type"/>
@@ -1021,7 +1019,7 @@ Failed to locate the main schema resource at '...HydPy2FEWS.xsd'.
                 f'{blanks}        <extension base="fews:sequenceGroupType">',
                 f'{blanks}            <sequence>'])
             model = importtools.prepare_model(name)
-            subs.append(self.get_modelinsertion(model, indent + 4))
+            subs.append(cls.get_modelinsertion(model, indent + 4))
             subs.extend([
                 f'{blanks}            </sequence>',
                 f'{blanks}        </extension>',
@@ -1031,13 +1029,14 @@ Failed to locate the main schema resource at '...HydPy2FEWS.xsd'.
             ])
         return '\n'.join(subs)
 
-    def get_modelinsertion(self, model, indent) -> str:
+    @classmethod
+    def get_modelinsertion(cls, model, indent) -> str:
         """Return the insertion string required for the given application model.
 
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> from hydpy import prepare_model
         >>> model = prepare_model('hland_v1')
-        >>> print(XSDWriter().get_modelinsertion(model, 1))
+        >>> print(XSDWriter.get_modelinsertion(model, 1))
             <element name="inputs"
                      minOccurs="0">
                 <complexType>
@@ -1061,17 +1060,18 @@ Failed to locate the main schema resource at '...HydPy2FEWS.xsd'.
             subsequences = getattr(model.sequences, name, None)
             if subsequences:
                 texts.append(
-                    self.get_subsequencesinsertion(subsequences, indent))
+                    cls.get_subsequencesinsertion(subsequences, indent))
         return '\n'.join(texts)
 
-    def get_subsequencesinsertion(self, subsequences, indent) -> str:
+    @classmethod
+    def get_subsequencesinsertion(cls, subsequences, indent) -> str:
         """Return the insertion string required for the given group of
         sequences.
 
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> from hydpy import prepare_model
         >>> model = prepare_model('hland_v1')
-        >>> print(XSDWriter().get_subsequencesinsertion(
+        >>> print(XSDWriter.get_subsequencesinsertion(
         ...     model.sequences.fluxes, 1))
             <element name="fluxes"
                      minOccurs="0">
@@ -1098,7 +1098,7 @@ Failed to locate the main schema resource at '...HydPy2FEWS.xsd'.
                  f'{blanks}    <complexType>',
                  f'{blanks}        <sequence>']
         for sequence in subsequences:
-            lines.append(self.get_sequenceinsertion(sequence, indent + 3))
+            lines.append(cls.get_sequenceinsertion(sequence, indent + 3))
         lines.extend([f'{blanks}        </sequence>',
                       f'{blanks}    </complexType>',
                       f'{blanks}</element>'])

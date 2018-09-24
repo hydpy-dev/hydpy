@@ -141,6 +141,11 @@
                             <sm/>
                         </states>
                     </hland_v1>
+                    <hstream_v1>
+                        <states>
+                            <qjoints/>
+                        </states>
+                    </hstream_v1>
                 </sequences>
                 <dirpath>
                     <nodes>LahnHBV/series/output</nodes>

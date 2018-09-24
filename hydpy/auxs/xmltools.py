@@ -633,8 +633,6 @@ class XMLSubseries(XMLBase):
         """A nested |collections.defaultdict| containing the model specific
         information provided by |property| |XMLSubseries.series|.
 
-        ToDo: test different model types
-
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
         >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
@@ -645,6 +643,7 @@ class XMLSubseries(XMLBase):
         ...         print(model, subs, seq)
         hland_v1 fluxes ['pc', 'tf']
         hland_v1 states ['sm']
+        hstream_v1 states ['qjoints']
         """
         model2subs2seqs = collections.defaultdict(
             lambda: collections.defaultdict(list))

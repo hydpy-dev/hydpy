@@ -979,7 +979,7 @@ Failed to locate the main schema resource at '...HydPy2FEWS.xsd'.
         template file.
 
         >>> from hydpy.auxs.xmltools import XSDWriter
-        >>> print(XSDWriter.get_insertion)
+        >>> print(XSDWriter.get_insertion())
              <element name="arma_v1"
                       substitutionGroup="fews:sequenceGroup"
                       type="fews:arma_v1Type"/>

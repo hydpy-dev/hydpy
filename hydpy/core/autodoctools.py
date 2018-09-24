@@ -621,8 +621,8 @@ class Substituter(object):
         >>> print(substituter.get_commands())
         .. |Options.checkseries| replace:: \
 :const:`~hydpy.core.optiontools.Options.checkseries`
-        .. |Options.dirverbose| replace:: \
-:const:`~hydpy.core.optiontools.Options.dirverbose`
+        .. |Options.compileautomatically| replace:: \
+:const:`~hydpy.core.optiontools.Options.compileautomatically`
         ...
         .. |optiontools.Options.warntrim| replace:: \
 :const:`~hydpy.core.optiontools.Options.warntrim`

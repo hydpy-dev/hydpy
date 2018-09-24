@@ -938,7 +938,8 @@ class XSDWriter(object):
         conf.__path__[0], 'HydPy2FEWS' + '.xsdt')
     filepath_target: str = filepath_source[:-1]
 
-    def write_xsd(self) -> None:
+    @classmethod
+    def write_xsd(cls) -> None:
         """Write the complete schema file based on template `HydPy2FEWS.xsdt`,
         including the input, flux, and state sequences of all application
         models available at the moment.
@@ -965,11 +966,11 @@ Failed to locate the main schema resource at '...HydPy2FEWS.xsd'.
         >>> XSDWriter.write_xsd()
         >>> XMLInterface(xmlpath).validate_xml()
         """
-        with open(self.filepath_source) as file_:
+        with open(cls.filepath_source) as file_:
             template = file_.read()
         template = template.replace(
-            '<!--include model sequence groups-->', self.get_insertion())
-        with open(self.filepath_target, 'w') as file_:
+            '<!--include model sequence groups-->', cls.get_insertion())
+        with open(cls.filepath_target, 'w') as file_:
             file_.write(template)
 
     @classmethod

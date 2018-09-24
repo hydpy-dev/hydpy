@@ -926,6 +926,13 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
 
 
 class XSDWriter(object):
+    """Single purpose class for writing the xml schema file `HydPy2FEWS.xsd`,
+    which allows to validate that a xml configuration file is readable by
+    class |XMLInterface|.
+
+    Unless you are interested in enhancing HydPy's xml functionalities,
+    you should, if any, be interested in method |XSDWriter.write_xsd| only.
+    """
 
     def __init__(self):
         dirpath = conf.__path__[0]
@@ -934,28 +941,46 @@ class XSDWriter(object):
         self.filepath_target = os.path.join(dirpath, basename + '.xsd')
 
     def write_xsd(self):
-        """
-        >>> from hydpy.auxs.xmltools import XSDWriter, XMLInterface
-        >>> XSDWriter().write_xsd()
+        """Write the complete schema file based on template `HydPy2FEWS.xsdt`,
+        including the input, flux, and state sequences of all application
+        models available at the moment.
 
+        The following example shows that after writing a new schema file,
+        method |XMLInterface.validate_xml| does not raise an error when
+        applied on the xml configuration file of the `LahnHBV` example
+        project:
+
+        >>> from hydpy.auxs.xmltools import XSDWriter, XMLInterface
         >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
-        >>> interface.validate_xml()
+        >>> xmlpath = data.get_path('LahnHBV', 'config.xml')
+
+        >>> import os
+        >>> if os.path.exists(XSDWriter().filepath_target):
+        ...     os.remove(XSDWriter().filepath_target)
+
+        >>> XMLInterface(xmlpath).validate_xml()
+        Traceback (most recent call last):
+        ...
+        lxml.etree.XMLSchemaParseError: \
+Failed to locate the main schema resource at '...HydPy2FEWS.xsd'.
+
+        >>> XSDWriter().write_xsd()
+        >>> XMLInterface(xmlpath).validate_xml()
         """
         with open(self.filepath_source) as file_:
             template = file_.read()
         template = template.replace(
-            '<!--include model sequence groups-->', self.substitutions)
+            '<!--include model sequence groups-->', self.insertion)
         with open(self.filepath_target, 'w') as file_:
             file_.write(template)
 
     @property
-    def substitutions(self):
-        """
-        >>> from hydpy.auxs.xmltools import XSDWriter
+    def insertion(self):
+        """The complete string to be inserted into the string of the
+        template file.
 
-        ToDo
-        >>> print(XSDWriter().substitutions) # doctest:+ELLIPSIS
+        >>> from hydpy.auxs.xmltools import XSDWriter
+        >>> print(XSDWriter().insertion)
              <element name="arma_v1"
                       substitutionGroup="fews:sequenceGroup"
                       type="fews:arma_v1Type"/>
@@ -996,7 +1021,7 @@ class XSDWriter(object):
                 f'{blanks}        <extension base="fews:sequenceGroupType">',
                 f'{blanks}            <sequence>'])
             model = importtools.prepare_model(name)
-            subs.append(self.get_substitutions(model, indent+4))
+            subs.append(self.get_modelinsertion(model, indent + 4))
             subs.extend([
                 f'{blanks}            </sequence>',
                 f'{blanks}        </extension>',
@@ -1006,16 +1031,13 @@ class XSDWriter(object):
             ])
         return '\n'.join(subs)
 
+    def get_modelinsertion(self, model, indent):
+        """Return the insertion string required for the given application model.
 
-
-    def get_substitutions(self, model, indent):
-        """
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> from hydpy import prepare_model
         >>> model = prepare_model('hland_v1')
-
-        ToDo
-        >>> print(XSDWriter().get_substitutions(model, 1)) # doctest:+ELLIPSIS
+        >>> print(XSDWriter().get_modelinsertion(model, 1))
             <element name="inputs"
                      minOccurs="0">
                 <complexType>
@@ -1038,20 +1060,19 @@ class XSDWriter(object):
         for name in ('inputs', 'fluxes', 'states'):
             subsequences = getattr(model.sequences, name, None)
             if subsequences:
-                texts.append(self.substitute_subsequences(subsequences, indent))
+                texts.append(
+                    self.get_subsequencesinsertion(subsequences, indent))
         return '\n'.join(texts)
 
-
-    def substitute_subsequences(self, subsequences, indent):
-        """
+    def get_subsequencesinsertion(self, subsequences, indent):
+        """Return the insertion string required for the given group of
+        sequences.
 
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> from hydpy import prepare_model
         >>> model = prepare_model('hland_v1')
-
-        ToDo
-        >>> print(XSDWriter().substitute_subsequences(
-        ...     model.sequences.fluxes, 1)) # doctest:+ELLIPSIS
+        >>> print(XSDWriter().get_subsequencesinsertion(
+        ...     model.sequences.fluxes, 1))
             <element name="fluxes"
                      minOccurs="0">
                 <complexType>
@@ -1077,21 +1098,20 @@ class XSDWriter(object):
                  f'{blanks}    <complexType>',
                  f'{blanks}        <sequence>']
         for sequence in subsequences:
-            lines.append(self.substitute_sequence(sequence, indent+3))
+            lines.append(self.get_sequenceinsertion(sequence, indent + 3))
         lines.extend([f'{blanks}        </sequence>',
                       f'{blanks}    </complexType>',
                       f'{blanks}</element>'])
         return '\n'.join(lines)
 
-
     @staticmethod
-    def substitute_sequence(sequence, indent):
-        """
+    def get_sequenceinsertion(sequence, indent):
+        """Return the insertion string required for the given sequence.
 
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> from hydpy import prepare_model
         >>> model = prepare_model('hland_v1')
-        >>> print(XSDWriter.substitute_sequence(model.sequences.fluxes.pc, 1))
+        >>> print(XSDWriter.get_sequenceinsertion(model.sequences.fluxes.pc, 1))
             <element
                 name="pc"
                 minOccurs="0"/>

@@ -4,10 +4,12 @@
 # import...
 # ...from HydPy
 from hydpy.core.modelimports import *
+from hydpy.core import masktools
 from hydpy.core import modeltools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
 # ...from hstream
+from hydpy.models.hstream import hstream_masks
 from hydpy.models.hstream import hstream_model
 from hydpy.models.hstream import hstream_control
 from hydpy.models.hstream import hstream_derived
@@ -51,6 +53,11 @@ class InletSequences(sequencetools.LinkSequences):
 class OutletSequences(sequencetools.LinkSequences):
     """Downstream link sequences of hstream_v1."""
     CLASSES = (hstream_outlets.Q,)
+
+
+class Masks(masktools.Masks):
+    """Masks applicable to |hland_v1|."""
+    CLASSES = hstream_masks.Masks.CLASSES
 
 
 autodoc_applicationmodel()

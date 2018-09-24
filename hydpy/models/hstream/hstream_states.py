@@ -25,6 +25,19 @@ class QJoints(sequencetools.StateSequence):
                 f'affected HydPy-H-Stream model could be initialised '
                 f'with an averaged value only: {message}')
 
+    @property
+    def refweights(self):
+        """A |numpy| |numpy.ndarray| with equal weights for all segment
+        junctions..
+
+        >>> from hydpy.models.hstream import *
+        >>> parameterstep('1d')
+        >>> states.qjoints.shape = 5
+        >>> states.qjoints.refweights
+        array([ 0.2,  0.2,  0.2,  0.2,  0.2])
+        """
+        return numpy.full(self.shape, 1./self.shape[0], dtype=float)
+
 
 class StateSequences(sequencetools.StateSequences):
     """State sequences of the hstream model."""

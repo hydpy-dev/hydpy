@@ -192,7 +192,7 @@ class XMLInterface(XMLBase):
         Traceback (most recent call last):
         ...
         lxml.etree.XMLSyntaxError: While trying to parse xml file \
-...config.xml` the following error occurred: Element 'https://github.com/\
+...config.xml` the following error occurred: Element '{https://github.com/\
 tyralla/hydpy/tree/master/hydpy/conf/HydPy2FEWS.xsd}firstdate': \
 '1996-01-32T00:00:00' is not a valid value of the atomic type 'xs:dateTime'.
 
@@ -226,6 +226,7 @@ tyralla/hydpy/tree/master/hydpy/conf/HydPy2FEWS.xsd}firstdate': \
         >>> pub.options
         Options(
             checkseries -> 1
+            compileautomatically -> 1
             dirverbose -> 0
             ellipsis -> 0
             fastcython -> 1

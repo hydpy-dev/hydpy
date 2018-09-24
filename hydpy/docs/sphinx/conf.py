@@ -36,7 +36,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinxcontrib.fulltoc']
 
 autoclass_content = 'class'
-autodoc_default_options = ['undoc-members']
+autodoc_default_options = {'undoc-members': None}
 autodoc_member_order = 'bysource'
 
 # Napoleon settings

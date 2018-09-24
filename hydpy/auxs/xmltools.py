@@ -7,9 +7,6 @@
 >>> import warnings
 >>> warnings.filterwarnings('ignore')
 
->>> from hydpy.auxs.xmltools import XSDWriter
->>> XSDWriter().write_xsd()
-
 
 >>> from hydpy.core.examples import prepare_full_example_1
 >>> prepare_full_example_1()
@@ -87,9 +84,11 @@ import os
 from xml.etree import ElementTree
 from lxml import etree
 # ...from HydPy
-from hydpy import pub
 from hydpy import conf
+from hydpy import models
+from hydpy import pub
 from hydpy.core import devicetools
+from hydpy.core import importtools
 from hydpy.core import selectiontools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
@@ -193,10 +192,9 @@ class XMLInterface(XMLBase):
         Traceback (most recent call last):
         ...
         lxml.etree.XMLSyntaxError: While trying to parse xml file \
-`C:\HydPy\HydPy\hydpy\data\LahnHBV\config.xml` the following error occurred: \
-Element '{https://github.com/tyralla/hydpy/tree/master/hydpy/conf/\
-HydPy2FEWS.xsd}firstdate': '1996-01-32T00:00:00' is not a valid value \
-of the atomic type 'xs:dateTime'.
+...config.xml` the following error occurred: Element 'https://github.com/\
+tyralla/hydpy/tree/master/hydpy/conf/HydPy2FEWS.xsd}firstdate': \
+'1996-01-32T00:00:00' is not a valid value of the atomic type 'xs:dateTime'.
 
         >>> with open(interface.filepath, 'w') as xml:
         ...     _ = xml.write(text)
@@ -935,7 +933,169 @@ class XSDWriter(object):
         self.filepath_target = os.path.join(dirpath, basename + '.xsd')
 
     def write_xsd(self):
+        """
+        >>> from hydpy.auxs.xmltools import XSDWriter, XMLInterface
+        >>> XSDWriter().write_xsd()
+
+        >>> from hydpy import data
+        >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
+        >>> interface.validate_xml()
+        """
         with open(self.filepath_source) as file_:
             template = file_.read()
+        template = template.replace(
+            '<!--include model sequence groups-->', self.substitutions)
         with open(self.filepath_target, 'w') as file_:
             file_.write(template)
+
+    @property
+    def substitutions(self):
+        """
+        >>> from hydpy.auxs.xmltools import XSDWriter
+
+        ToDo
+        >>> print(XSDWriter().substitutions) # doctest:+ELLIPSIS
+             <element name="arma_v1"
+                      substitutionGroup="fews:sequenceGroup"
+                      type="fews:arma_v1Type"/>
+        <BLANKLINE>
+             <complexType name="arma_v1Type">
+                 <complexContent>
+                     <extension base="fews:sequenceGroupType">
+                         <sequence>
+                            <element name="fluxes"
+                                     minOccurs="0">
+                                <complexType>
+                                    <sequence>
+                                        <element
+                                            name="qin"
+                                            minOccurs="0"/>
+        ...
+                                </complexType>
+                            </element>
+                         </sequence>
+                     </extension>
+                 </complexContent>
+             </complexType>
+        <BLANKLINE>
+        """
+        indent = 1
+        blanks = ' ' * (indent+4)
+        subs = []
+        for name in (
+                fn.split('.')[0] for fn in os.listdir(models.__path__[0])
+                if (fn.endswith('.py') and (fn != '__init__.py'))):
+            subs.extend([
+                f'{blanks}<element name="{name}"',
+                f'{blanks}         substitutionGroup="fews:sequenceGroup"',
+                f'{blanks}         type="fews:{name}Type"/>',
+                f'',
+                f'{blanks}<complexType name="{name}Type">',
+                f'{blanks}    <complexContent>',
+                f'{blanks}        <extension base="fews:sequenceGroupType">',
+                f'{blanks}            <sequence>'])
+            model = importtools.prepare_model(name)
+            subs.append(self.get_substitutions(model, indent+4))
+            subs.extend([
+                f'{blanks}            </sequence>',
+                f'{blanks}        </extension>',
+                f'{blanks}    </complexContent>',
+                f'{blanks}</complexType>',
+                f''
+            ])
+        return '\n'.join(subs)
+
+
+
+    def get_substitutions(self, model, indent):
+        """
+        >>> from hydpy.auxs.xmltools import XSDWriter
+        >>> from hydpy import prepare_model
+        >>> model = prepare_model('hland_v1')
+
+        ToDo
+        >>> print(XSDWriter().get_substitutions(model, 1)) # doctest:+ELLIPSIS
+            <element name="inputs"
+                     minOccurs="0">
+                <complexType>
+                    <sequence>
+                        <element
+                            name="p"
+                            minOccurs="0"/>
+        ...
+            </element>
+            <element name="fluxes"
+                     minOccurs="0">
+        ...
+            </element>
+            <element name="states"
+                     minOccurs="0">
+        ...
+            </element>
+        """
+        texts = []
+        for name in ('inputs', 'fluxes', 'states'):
+            subsequences = getattr(model.sequences, name, None)
+            if subsequences:
+                texts.append(self.substitute_subsequences(subsequences, indent))
+        return '\n'.join(texts)
+
+
+    def substitute_subsequences(self, subsequences, indent):
+        """
+
+        >>> from hydpy.auxs.xmltools import XSDWriter
+        >>> from hydpy import prepare_model
+        >>> model = prepare_model('hland_v1')
+
+        ToDo
+        >>> print(XSDWriter().substitute_subsequences(
+        ...     model.sequences.fluxes, 1)) # doctest:+ELLIPSIS
+            <element name="fluxes"
+                     minOccurs="0">
+                <complexType>
+                    <sequence>
+                        <element
+                            name="tmean"
+                            minOccurs="0"/>
+                        <element
+                            name="tc"
+                            minOccurs="0"/>
+        ...
+                        <element
+                            name="qt"
+                            minOccurs="0"/>
+                    </sequence>
+                </complexType>
+            </element>
+
+        """
+        blanks = ' ' * (indent*4)
+        lines = [f'{blanks}<element name="{subsequences.name}"',
+                 f'{blanks}         minOccurs="0">',
+                 f'{blanks}    <complexType>',
+                 f'{blanks}        <sequence>']
+        for sequence in subsequences:
+            lines.append(self.substitute_sequence(sequence, indent+3))
+        lines.extend([f'{blanks}        </sequence>',
+                      f'{blanks}    </complexType>',
+                      f'{blanks}</element>'])
+        return '\n'.join(lines)
+
+
+    @staticmethod
+    def substitute_sequence(sequence, indent):
+        """
+
+        >>> from hydpy.auxs.xmltools import XSDWriter
+        >>> from hydpy import prepare_model
+        >>> model = prepare_model('hland_v1')
+        >>> print(XSDWriter.substitute_sequence(model.sequences.fluxes.pc, 1))
+            <element
+                name="pc"
+                minOccurs="0"/>
+        """
+        blanks = ' ' * (indent*4)
+        return (f'{blanks}<element\n'
+                f'{blanks}    name="{sequence.name}"\n'
+                f'{blanks}    minOccurs="0"/>')

@@ -11,12 +11,12 @@
 >>> from hydpy.core.examples import prepare_full_example_1
 >>> prepare_full_example_1()
 
->>> from hydpy import HydPy, pub, TestIO, XMLInterface
+>>> from hydpy import HydPy, TestIO, XMLInterface
 >>> hp = HydPy('LahnHBV')
 >>> with TestIO():
 ...     interface = XMLInterface()
 >>> interface.update_options()
->>> pub.timegrids = interface.timegrids
+>>> interface.update_timegrids()
 
 >>> with TestIO():
 ...     hp.prepare_network()
@@ -256,14 +256,14 @@ tyralla/hydpy/tree/master/hydpy/conf/HydPy2FEWS.xsd}firstdate': \
                 value = value == 'true'
             setattr(options, strip(option.tag), value)
 
-    @property
-    def timegrids(self):
+    def update_timegrids(self):
         """The |Timegrids| object defined in the actual xml file.
 
         >>> from hydpy.auxs.xmltools import XMLInterface
-        >>> from hydpy import data
+        >>> from hydpy import data, pub
         >>> xml = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
-        >>> xml.timegrids
+        >>> xml.update_timegrids()
+        >>> pub.timegrids
         Timegrids(Timegrid('1996-01-01T00:00:00',
                            '1996-01-06T00:00:00',
                            '1d'))
@@ -271,7 +271,7 @@ tyralla/hydpy/tree/master/hydpy/conf/HydPy2FEWS.xsd}firstdate': \
         timegrid_xml = self.find('timegrid')
         timegrid = timetools.Timegrid(
             *(timegrid_xml[idx].text for idx in range(3)))
-        return timetools.Timegrids(timegrid)
+        pub.timegrids = timetools.Timegrids(timegrid)
 
     @property
     def selections(self):
@@ -430,13 +430,13 @@ class XMLConditions(XMLBase):
         >>> from hydpy.core.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
-        >>> from hydpy import HydPy, TestIO, XMLInterface, pub
+        >>> from hydpy import HydPy, TestIO, XMLInterface
         >>> hp = HydPy('LahnHBV')
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     hp.init_models()
         ...     interface = XMLInterface()
-        ...     pub.timegrids = interface.timegrids   # ToDo:  should not be necessary here
+        ...     interface.update_timegrids()
         ...     interface.find('selections').text = 'headwaters'
         ...     interface.conditions_io.load_conditions()
         >>> hp.elements.land_lahn_1.model.sequences.states.lz
@@ -463,7 +463,7 @@ class XMLConditions(XMLBase):
         ...     hp.init_models()
         ...     hp.elements.land_dill.model.sequences.states.lz = 999.0
         ...     interface = XMLInterface()
-        ...     pub.timegrids = interface.timegrids   # ToDo:  should not be necessary here
+        ...     interface.update_timegrids()
         ...     interface.find('selections').text = 'headwaters'
         ...     pub.conditionmanager.createdirs = True
         ...     interface.conditions_io.save_conditions()
@@ -826,7 +826,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         ...     hp.prepare_network()
         ...     hp.init_models()
         ...     interface = XMLInterface()
-        >>> pub.timegrids = interface.timegrids
+        >>> interface.update_timegrids()
         >>> series_io = interface.series_io
 
         >>> memory = set()
@@ -857,14 +857,14 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         >>> from hydpy.core.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
-        >>> from hydpy import HydPy, TestIO, XMLInterface, pub
+        >>> from hydpy import HydPy, TestIO, XMLInterface
         >>> hp = HydPy('LahnHBV')
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     hp.init_models()
         ...     interface = XMLInterface()
         ...     interface.update_options()
-        ...     pub.timegrids = interface.timegrids
+        ...     interface.update_timegrids()
         ...     series_io = interface.series_io
         ...     series_io.prepare_series()
         ...     series_io.load_series()
@@ -887,14 +887,14 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         >>> from hydpy.core.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
-        >>> from hydpy import HydPy, TestIO, XMLInterface, pub
+        >>> from hydpy import HydPy, TestIO, XMLInterface
         >>> hp = HydPy('LahnHBV')
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     hp.init_models()
         ...     interface = XMLInterface()
         ...     interface.update_options()
-        >>> pub.timegrids = interface.timegrids
+        >>> interface.update_timegrids()
         >>> series_io = interface.series_io
         >>> series_io.prepare_series()
         >>> hp.elements.land_dill.model.sequences.fluxes.pc.series[2, 3] = 9.0

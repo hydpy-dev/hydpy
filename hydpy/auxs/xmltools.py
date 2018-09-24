@@ -937,10 +937,10 @@ class XSDWriter(object):
     def __init__(self):
         dirpath = conf.__path__[0]
         basename = 'HydPy2FEWS'
-        self.filepath_source = os.path.join(dirpath, basename + '.xsdt')
-        self.filepath_target = os.path.join(dirpath, basename + '.xsd')
+        self.filepath_source: str = os.path.join(dirpath, basename + '.xsdt')
+        self.filepath_target: str = os.path.join(dirpath, basename + '.xsd')
 
-    def write_xsd(self):
+    def write_xsd(self) -> None:
         """Write the complete schema file based on template `HydPy2FEWS.xsdt`,
         including the input, flux, and state sequences of all application
         models available at the moment.
@@ -975,7 +975,7 @@ Failed to locate the main schema resource at '...HydPy2FEWS.xsd'.
             file_.write(template)
 
     @property
-    def insertion(self):
+    def insertion(self) -> str:
         """The complete string to be inserted into the string of the
         template file.
 
@@ -1031,7 +1031,7 @@ Failed to locate the main schema resource at '...HydPy2FEWS.xsd'.
             ])
         return '\n'.join(subs)
 
-    def get_modelinsertion(self, model, indent):
+    def get_modelinsertion(self, model, indent) -> str:
         """Return the insertion string required for the given application model.
 
         >>> from hydpy.auxs.xmltools import XSDWriter
@@ -1064,7 +1064,7 @@ Failed to locate the main schema resource at '...HydPy2FEWS.xsd'.
                     self.get_subsequencesinsertion(subsequences, indent))
         return '\n'.join(texts)
 
-    def get_subsequencesinsertion(self, subsequences, indent):
+    def get_subsequencesinsertion(self, subsequences, indent) -> str:
         """Return the insertion string required for the given group of
         sequences.
 
@@ -1105,7 +1105,7 @@ Failed to locate the main schema resource at '...HydPy2FEWS.xsd'.
         return '\n'.join(lines)
 
     @staticmethod
-    def get_sequenceinsertion(sequence, indent):
+    def get_sequenceinsertion(sequence, indent) -> str:
         """Return the insertion string required for the given sequence.
 
         >>> from hydpy.auxs.xmltools import XSDWriter

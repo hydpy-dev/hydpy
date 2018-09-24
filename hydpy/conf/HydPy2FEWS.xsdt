@@ -222,7 +222,6 @@
         </complexType>
     </element>
 
-
     <element name="dirpath">
         <complexType>
             <choice>
@@ -290,11 +289,13 @@
     <element name="sequenceGroup"
              type="fews:sequenceGroupType"
              abstract="true"/>
+
     <complexType name="sequenceGroupType"/>
 
     <element name="node"
              substitutionGroup="fews:sequenceGroup"
              type="fews:nodeType"/>
+
     <complexType name="nodeType">
         <complexContent>
             <extension base="fews:sequenceGroupType">
@@ -308,6 +309,5 @@
         </complexContent>
     </complexType>
 
-    <!--include model sequence groups-->
-
+<!--include model sequence groups-->
 </schema>

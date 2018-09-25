@@ -825,7 +825,7 @@ to make any internal data available to the user.
     SUPPORTED_MODES = ('npy', 'asc', 'nc')
     _BASEDIR = 'series'
 
-    inputdir = _DescriptorDir('input', 'input')
+    inputdir = _DescriptorDir('input', 'input')   # ToDo: can be removed?
     fluxdir = _DescriptorDir('output', 'flux')
     statedir = _DescriptorDir('output', 'state')
     nodedir = _DescriptorDir('node', 'node')

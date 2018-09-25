@@ -23,8 +23,10 @@ CRITICAL:root:Failed
 >>> import logging
 >>> xmltools.execute_workflow = lambda argv: logging.info('just a test')
 >>> import runpy
+>>> import hydpy
 >>> with TestIO(clear_own=True):
-...     _ = runpy.run_path(r'C:\HydPy\HydPy\hydpy\scripts\HydPy2FEWS.py')
+...     _ = runpy.run_path(
+...         os.path.join(hydpy.__path__[0], 'scripts', 'HydPy2FEWS.py'))
 ...     with open('HydPy2FEWS.log') as file_:
 ...         print(file_.read())
 INFO:root:just a test

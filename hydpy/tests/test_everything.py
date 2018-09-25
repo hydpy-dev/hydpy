@@ -14,19 +14,20 @@ import matplotlib
 
 class FilterFilenames(object):
 
-    def __init__(self, string):
-        try:
-            self.selection = [_.strip() for _ in string.split(',')]
-        except IndexError:
-            self.selection = None
+    def __init__(self, argv):
+        self.selection = []
+        for arg in argv:
+            if arg.startswith('select='):
+                self.selection.extend(_ for _ in arg[7:].split(','))
 
     def __call__(self, names) -> list:
-        if self.selection is None:
-            return list(names)
-        return [_ for _ in names if (_ in self.selection)]
+        if self.selection:
+            return [_ for _ in names if (_ in self.selection)]
+        return list(names)
 
 
-filter_filenames = FilterFilenames(sys.argv[1])
+
+filter_filenames = FilterFilenames(sys.argv)
 
 
 exitcode = int(os.system('python test_pyplot_backend.py'))
@@ -41,9 +42,10 @@ if standard_backend_missing:
 # Priorise site-packages (on Debian-based Linux distributions as Ubuntu
 # also dist-packages) in the import order to make sure, the following
 # imports refer to the newly build hydpy package on the respective computer.
-paths = [path for path in sys.path if path.endswith('-packages')]
-for path in paths:
-    sys.path.insert(0, path)
+# paths = [path for path in sys.path if path.endswith('-packages')]
+# for path in paths:
+#     sys.path.insert(0, path)
+sys.path.insert(0, r'C:\HydPy\HydPy')
 
 # Import all hydrological models to trigger the automatic cythonization
 # mechanism of HydPy.
@@ -114,6 +116,8 @@ allfaileddoctests = ({}, {})
 iterable = zip(('Python', 'Cython'), alldoctests,
                allsuccessfuldoctests, allfaileddoctests)
 for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
+    if mode == 'Cython':
+        continue
     pub.options.usecython = mode == 'Cython'
     for dirpath, dirnames, filenames_ in os.walk(hydpy.__path__[0]):
         if (('__init__.py' not in filenames_) or

@@ -1,11 +1,18 @@
 #!python
 
-import logging
 import sys
+import textwrap
 
-logging.basicConfig(filename='HydPy2FEWS.log', level=logging.INFO)
+logfilename = 'HydPy2FEWS.log'
+with open(logfilename, 'w'):
+    pass
+
 try:
     from hydpy.auxs.xmltools import execute_workflow
     execute_workflow(argv=sys.argv)
 except BaseException as exc:
-    logging.critical('Failed')
+    with open(logfilename, 'a') as file_:
+        message = '\n'.join(textwrap.wrap(str(exc)))
+        file_.write(
+            f'Executing the workflow script resulted in '
+            f'the following error:\n{message}\n')

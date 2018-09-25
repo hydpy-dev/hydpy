@@ -103,11 +103,13 @@ from hydpy import conf
 from hydpy import models
 from hydpy import pub
 from hydpy.core import devicetools
+from hydpy.core import hydpytools
 from hydpy.core import importtools
 from hydpy.core import selectiontools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
 
+namelogfile = 'HydPy2FEWS.log'
 namespace = \
     '{https://github.com/tyralla/hydpy/tree/master/hydpy/conf/HydPy2FEWS.xsd}'
 
@@ -196,6 +198,7 @@ def execute_workflow(argv):
     hp.init_models()
 
     conditions_io = interface.conditions_io
+    conditions_io.load_conditions()
 
     series_io = interface.series_io
 

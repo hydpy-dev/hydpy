@@ -2,7 +2,7 @@
 [run]
 source =
     hydpy
-    hydpy/scripts
+    */hydpy/scripts/*
 omit =
     */hydpy/tests/*
     */hydpy/docs/*

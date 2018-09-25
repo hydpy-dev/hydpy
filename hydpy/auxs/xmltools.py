@@ -17,6 +17,13 @@
 CRITICAL:root:Failed
 <BLANKLINE>
 
+>>> with TestIO(clear_own=True):
+...     _ = subprocess.call(['HydPy2FEWS.py', 'LahnHBV'], shell=True)
+...     with open('HydPy2FEWS.log') as file_:
+...         print(file_.read())
+INFO:root:Start xml workflow of project `LahnHBV`.
+CRITICAL:root:Failed
+<BLANKLINE>
 
 >>> from hydpy.auxs import xmltools
 >>> execute_workflow = xmltools.execute_workflow
@@ -38,68 +45,48 @@ INFO:root:just a test
 >>> from hydpy.core.examples import prepare_full_example_1
 >>> prepare_full_example_1()
 
->>> from hydpy import HydPy, TestIO, XMLInterface
->>> hp = HydPy('LahnHBV')
 >>> with TestIO():
-...     interface = XMLInterface()
->>> interface.update_options()
->>> interface.update_timegrids()
-
->>> with TestIO():
-...     hp.prepare_network()
-...     hp.update_devices(interface.fullselection)
-...     hp.init_models()
-
-
->>> conditions_io = interface.conditions_io
+...     _ = subprocess.call(['HydPy2FEWS.py', 'LahnHBV'], shell=True)
+...     with open('HydPy2FEWS.log') as file_:
+...         print(file_.read())
+INFO:root:Start xml workflow of project `LahnHBV`.
+INFO:root:Read global options.
+INFO:root:Read time information.
+INFO:root:Read time information.
+<BLANKLINE>
 
 >>> with TestIO():
-...     conditions_io.load_conditions()
 ...     with open('LahnHBV/conditions/init_1996_01_01/land_dill.py') as file_:
-...         print(file_.readlines()[14].strip())
-uz(7.25228)
->>> hp.elements.land_dill.model.sequences.states.uz
-uz(7.25228)
-
->>> series_io = interface.series_io
-
->>> series_io.prepare_series()
->>> with TestIO():
-...     series_io.load_series()
-
->>> hp.doit()
-
->>> pub.conditionmanager.createdirs = True
+...         print(''.join(file_.readlines()[10:12]))
+sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
+   222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
+<BLANKLINE>
 
 >>> with TestIO():
-...     conditions_io.save_conditions()
 ...     with open('LahnHBV/conditions/init_1996_01_06/land_dill.py') as file_:
-...         print(file_.readlines()[11].strip())
-uz(1.667827)
->>> hp.elements.land_dill.model.sequences.states.uz
-uz(1.667827)
-
->>> with TestIO():
-...     series_io.save_series()
+...         print(''.join(file_.readlines()[9:11]))
+sm(183.873078, 179.955801, 198.446011, 195.222634, 210.598689, 208.064445,
+   220.611126, 218.630245, 228.741883, 227.152989, 235.308805, 234.042313)
+<BLANKLINE>
 
 >>> import numpy
->>> with TestIO():
-...     array = numpy.load('LahnHBV/series/output/lahn_1_sim_q_mean.npy')
->>> all(array[13:] == hp.nodes.lahn_1.sequences.sim.series)
-True
 
+>>> from hydpy import print_values
 >>> from hydpy.core.netcdftools import netcdf4, chars2str, query_variable
 >>> with TestIO():
-...     ncfile = netcdf4.Dataset(
-...         'LahnHBV/series/output/hland_v1_state_sm.nc')
+...     ncfile = netcdf4.Dataset('LahnHBV/series/output/hland_v1_state_sm.nc')
+
 >>> chars2str(query_variable(ncfile, 'station_names'))[:3]
 ['land_dill_0', 'land_dill_1', 'land_dill_2']
->>> query_variable(ncfile, 'state_sm')[2, 3] == \
-hp.elements.land_dill.model.sequences.states.sm.series[3, 2]
-True
+
+>>> print_values(query_variable(ncfile, 'state_sm')[0, :])
+184.926173, 184.603966, 184.386666, 184.098541, 183.873078
 
 >>> ncfile.close()
->>> TestIO.clear()
+
+>>> with TestIO(clear_all=True):
+...     print(numpy.load('LahnHBV/series/output/lahn_1_sim_q_mean.npy')[13:])
+[ 9.62129571  8.50306877  7.7749272   7.34503009  7.15878986]
 """
 # import...
 # ...from standard library

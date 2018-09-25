@@ -169,7 +169,37 @@ def strip(name) -> str:
 
 
 def execute_workflow(argv):
-    pass
+    try:
+        scriptname = argv[0]
+        projectname = argv[1]
+    except IndexError:
+        raise ValueError(
+            'script and project required')
+
+    hp = hydpytools.HydPy(projectname)
+
+    interface = XMLInterface()
+    interface.update_options()
+    interface.update_timegrids()
+
+    hp.prepare_network()
+    hp.update_devices(interface.fullselection)
+    hp.init_models()
+
+    conditions_io = interface.conditions_io
+
+    series_io = interface.series_io
+
+    series_io.prepare_series()
+    series_io.load_series()
+
+    hp.doit()
+
+    pub.conditionmanager.createdirs = True
+
+    conditions_io.save_conditions()
+
+    series_io.save_series()
 
 
 class XMLBase(object):

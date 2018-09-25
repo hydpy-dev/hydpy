@@ -14,21 +14,22 @@
 ...     _ = subprocess.call(['HydPy2FEWS.py'], shell=True)
 ...     with open('HydPy2FEWS.log') as file_:
 ...         print(file_.read())
-CRITICAL:root:Failed
+Executing the workflow script resulted in the following error:
+script and project required
 <BLANKLINE>
 
 >>> with TestIO(clear_own=True):
 ...     _ = subprocess.call(['HydPy2FEWS.py', 'LahnHBV'], shell=True)
 ...     with open('HydPy2FEWS.log') as file_:
 ...         print(file_.read())
-INFO:root:Start xml workflow of project `LahnHBV`.
-CRITICAL:root:Failed
+Executing the workflow script resulted in the following error:
+[Errno 2] No such file or directory: 'LahnHBV...config.xml'
 <BLANKLINE>
 
 >>> from hydpy.auxs import xmltools
 >>> execute_workflow = xmltools.execute_workflow
 >>> import logging
->>> xmltools.execute_workflow = lambda argv: logging.info('just a test')
+>>> xmltools.execute_workflow = lambda argv: open('HydPy2FEWS.log', 'a').write('just a test')
 >>> import runpy
 >>> import hydpy
 >>> with TestIO(clear_own=True):
@@ -36,8 +37,8 @@ CRITICAL:root:Failed
 ...         os.path.join(hydpy.__path__[0], 'scripts', 'HydPy2FEWS.py'))
 ...     with open('HydPy2FEWS.log') as file_:
 ...         print(file_.read())
-INFO:root:just a test
-<BLANKLINE>
+just a test
+
 
 >>> xmltools.execute_workflow = execute_workflow
 >>> logging.shutdown()
@@ -49,10 +50,6 @@ INFO:root:just a test
 ...     _ = subprocess.call(['HydPy2FEWS.py', 'LahnHBV'], shell=True)
 ...     with open('HydPy2FEWS.log') as file_:
 ...         print(file_.read())
-INFO:root:Start xml workflow of project `LahnHBV`.
-INFO:root:Read global options.
-INFO:root:Read time information.
-INFO:root:Read time information.
 <BLANKLINE>
 
 >>> with TestIO():
@@ -94,7 +91,6 @@ from typing import Dict, Iterator, List
 import collections
 import copy
 import itertools
-import logging
 import os
 from xml.etree import ElementTree
 from lxml import etree
@@ -184,13 +180,10 @@ def execute_workflow(argv):
         raise ValueError(
             'script and project required')
 
-    logging.info(f'Start xml workflow of project `{projectname}`.')
     hp = hydpytools.HydPy(projectname)
 
     interface = XMLInterface()
-    logging.info('Read global options.')
     interface.update_options()
-    logging.info('Read time information.')
     interface.update_timegrids()
 
     hp.prepare_network()

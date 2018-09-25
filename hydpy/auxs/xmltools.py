@@ -18,7 +18,8 @@ https://bitbucket.org/vinay.sajip/pylauncher/downloads/
 ...     _ = subprocess.call(['HydPy2FEWS.py'], shell=True)
 ...     with open('HydPy2FEWS.log') as file_:
 ...         print(file_.read())
-Executing the workflow script resulted in the following error:
+Executing the workflow script with arguments `...HydPy2FEWS.py` resulted \
+in the following error:
 To apply script HydPy2FEWS.py, you have to pass a single additional
 argument defining the relevant HydPy project available in your current
 working directory (e.g. go to a directory containing folder "LahnHBV"
@@ -29,7 +30,8 @@ and then type "HydPy2FEWS.py LahnHBV" into your console).
 ...     _ = subprocess.call(['HydPy2FEWS.py', 'LahnHBV'], shell=True)
 ...     with open('HydPy2FEWS.log') as file_:
 ...         print(file_.read())
-Executing the workflow script resulted in the following error:
+Executing the workflow script with arguments `...HydPy2FEWS.py, LahnHBV` \
+resulted in the following error:
 [Errno 2] No such file or directory: 'LahnHBV...config.xml'
 <BLANKLINE>
 

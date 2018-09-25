@@ -12,7 +12,8 @@ try:
     execute_workflow(argv=sys.argv)
 except BaseException as exc:
     with open(logfilename, 'a') as file_:
+        arguments = ', '.join(sys.argv)
         message = '\n'.join(textwrap.wrap(str(exc)))
         file_.write(
-            f'Executing the workflow script resulted in '
-            f'the following error:\n{message}\n')
+            f'Executing the workflow script with arguments `{arguments}` '
+            f'resulted in the following error:\n{message}\n')

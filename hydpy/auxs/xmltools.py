@@ -7,6 +7,15 @@
 >>> import warnings
 >>> warnings.filterwarnings('ignore')
 
+>>> import subprocess
+>>> from hydpy import TestIO
+>>> TestIO.clear()
+>>> with TestIO(clear_own=True):
+...     _ = subprocess.call(['HydPy2FEWS.py'], shell=True)
+...     with open('HydPy2FEWS.log') as file_:
+...         print(file_.read())
+CRITICAL:root:Failed
+<BLANKLINE>
 
 >>> from hydpy.core.examples import prepare_full_example_1
 >>> prepare_full_example_1()
@@ -157,6 +166,10 @@ def strip(name) -> str:
     'something'
     """
     return name.split('}')[-1]
+
+
+def execute_workflow(argv):
+    pass
 
 
 class XMLBase(object):

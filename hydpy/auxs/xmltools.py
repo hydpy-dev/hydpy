@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 """
+https://docs.python.org/3/using/windows.html#launcher
+
+https://bitbucket.org/vinay.sajip/pylauncher/downloads/
+
 
 >>> from hydpy import pub
 >>> pub.options.printprogress = False
@@ -15,7 +19,10 @@
 ...     with open('HydPy2FEWS.log') as file_:
 ...         print(file_.read())
 Executing the workflow script resulted in the following error:
-script and project required
+To apply script HydPy2FEWS.py, you have to pass a single additional
+argument defining the relevant HydPy project available in your current
+working directory (e.g. go to a directory containing folder "LahnHBV"
+and then type "HydPy2FEWS.py LahnHBV" into your console).
 <BLANKLINE>
 
 >>> with TestIO(clear_own=True):
@@ -93,6 +100,7 @@ import copy
 import itertools
 import os
 from xml.etree import ElementTree
+# ...from site-packages
 from lxml import etree
 # ...from HydPy
 from hydpy import conf
@@ -105,6 +113,7 @@ from hydpy.core import selectiontools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
 
+scriptname = 'HydPy2FEWS.py'
 namelogfile = 'HydPy2FEWS.log'
 namespace = \
     '{https://github.com/tyralla/hydpy/tree/master/hydpy/conf/HydPy2FEWS.xsd}'
@@ -173,14 +182,16 @@ def strip(name) -> str:
 
 
 def execute_workflow(argv):
-    try:
-        scriptname = argv[0]
-        projectname = argv[1]
-    except IndexError:
-        raise ValueError(
-            'script and project required')
 
-    hp = hydpytools.HydPy(projectname)
+    if (len(argv) != 2) or (not os.path.exists(argv[1])):
+        raise ValueError(
+            f'To apply script {scriptname}, you have to pass a single '
+            f'additional argument defining the relevant HydPy project '
+            f'available in your current working directory (e.g. go to '
+            f'a directory containing folder "LahnHBV" and then type '
+            f'"{scriptname} LahnHBV" into your console).')
+
+    hp = hydpytools.HydPy(argv[1])
 
     interface = XMLInterface()
     interface.update_options()
@@ -274,7 +285,7 @@ tyralla/hydpy/tree/master/hydpy/conf/HydPy2FEWS.xsd}firstdate': \
         >>> pub.options
         Options(
             checkseries -> 1
-            compileautomatically -> 1
+            compileautomatically -> 0
             dirverbose -> 0
             ellipsis -> 0
             fastcython -> 1

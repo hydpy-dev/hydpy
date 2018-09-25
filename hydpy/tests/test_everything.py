@@ -11,6 +11,24 @@ import doctest
 import warnings
 import matplotlib
 
+
+class FilterFilenames(object):
+
+    def __init__(self, string):
+        try:
+            self.selection = [_.strip() for _ in string.split(',')]
+        except IndexError:
+            self.selection = None
+
+    def __call__(self, names) -> list:
+        if self.selection is None:
+            return list(names)
+        return [_ for _ in names if (_ in self.selection)]
+
+
+filter_filenames = FilterFilenames(sys.argv[1])
+
+
 exitcode = int(os.system('python test_pyplot_backend.py'))
 standard_backend_missing = exitcode in (1, 256)
 if standard_backend_missing:
@@ -44,7 +62,7 @@ XSDWriter().write_xsd()
 # 1. Perform all "classical" unit tests.
 
 import hydpy.tests
-filenames = os.listdir(hydpy.tests.__path__[0])
+filenames = filter_filenames(os.listdir(hydpy.tests.__path__[0]))
 unittests = {fn.split('.')[0]: None for fn in filenames if
              (fn.startswith('unittest') and fn.endswith('.py'))}
 for name in unittests.keys():
@@ -103,6 +121,7 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                 dirpath.endswith('__pycache__') or
                 dirpath.endswith('build')):
             continue
+        filenames_ = filter_filenames(filenames_)
         packagename = dirpath.replace(os.sep, '.')+'.'
         packagename = packagename[packagename.find('hydpy.'):]
         level = packagename.count('.')-1

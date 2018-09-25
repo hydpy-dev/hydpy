@@ -183,7 +183,7 @@ def strip(name) -> str:
 
 def execute_workflow(argv):
 
-    if (len(argv) != 2) or (not os.path.exists(argv[1])):
+    if len(argv) != 2:
         raise ValueError(
             f'To apply script {scriptname}, you have to pass a single '
             f'additional argument defining the relevant HydPy project '
@@ -285,7 +285,7 @@ tyralla/hydpy/tree/master/hydpy/conf/HydPy2FEWS.xsd}firstdate': \
         >>> pub.options
         Options(
             checkseries -> 1
-            compileautomatically -> 0
+            compileautomatically -> 1
             dirverbose -> 0
             ellipsis -> 0
             fastcython -> 1

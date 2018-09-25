@@ -15,7 +15,7 @@ https://bitbucket.org/vinay.sajip/pylauncher/downloads/
 >>> from hydpy import TestIO
 >>> TestIO.clear()
 >>> with TestIO(clear_own=True):
-...     _ = subprocess.call(['HydPy2FEWS.py'], shell=True)
+...     _ = subprocess.call('HydPy2FEWS.py', shell=True)
 ...     with open('HydPy2FEWS.log') as file_:
 ...         print(file_.read())
 Executing the workflow script with arguments `...HydPy2FEWS.py` resulted \
@@ -27,7 +27,7 @@ and then type "HydPy2FEWS.py LahnHBV" into your console).
 <BLANKLINE>
 
 >>> with TestIO(clear_own=True):
-...     _ = subprocess.call(['HydPy2FEWS.py', 'LahnHBV'], shell=True)
+...     _ = subprocess.call('HydPy2FEWS.py LahnHBV', shell=True)
 ...     with open('HydPy2FEWS.log') as file_:
 ...         print(file_.read())
 Executing the workflow script with arguments `...HydPy2FEWS.py, LahnHBV` \
@@ -56,7 +56,7 @@ just a test
 >>> prepare_full_example_1()
 
 >>> with TestIO():
-...     _ = subprocess.call(['HydPy2FEWS.py', 'LahnHBV'], shell=True)
+...     _ = subprocess.call('HydPy2FEWS.py LahnHBV', shell=True)
 ...     with open('HydPy2FEWS.log') as file_:
 ...         print(file_.read())
 <BLANKLINE>

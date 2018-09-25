@@ -94,6 +94,7 @@ from typing import Dict, Iterator, List
 import collections
 import copy
 import itertools
+import logging
 import os
 from xml.etree import ElementTree
 from lxml import etree
@@ -181,10 +182,13 @@ def execute_workflow(argv):
         raise ValueError(
             'script and project required')
 
+    logging.info(f'Start xml workflow of project `{projectname}`.')
     hp = hydpytools.HydPy(projectname)
 
     interface = XMLInterface()
+    logging.info('Read global options.')
     interface.update_options()
+    logging.info('Read time information.')
     interface.update_timegrids()
 
     hp.prepare_network()

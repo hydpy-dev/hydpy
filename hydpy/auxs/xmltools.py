@@ -35,23 +35,6 @@ resulted in the following error:
 [Errno 2] No such file or directory: 'LahnHBV...config.xml'
 <BLANKLINE>
 
->>> from hydpy.auxs import xmltools
->>> execute_workflow = xmltools.execute_workflow
->>> import logging
->>> xmltools.execute_workflow = lambda argv: open('HydPy2FEWS.log', 'a').write('just a test')
->>> import runpy
->>> import hydpy
->>> with TestIO(clear_own=True):
-...     _ = runpy.run_path(
-...         os.path.join(hydpy.__path__[0], 'scripts', 'HydPy2FEWS.py'))
-...     with open('HydPy2FEWS.log') as file_:
-...         print(file_.read())
-just a test
-
-
->>> xmltools.execute_workflow = execute_workflow
->>> logging.shutdown()
-
 >>> from hydpy.core.examples import prepare_full_example_1
 >>> prepare_full_example_1()
 

@@ -17,22 +17,7 @@ from hydpy.core import selectiontools
 class HydPy(object):
     """Main class for managing HydPy projects."""
 
-    # A counter for the number of HydPy instances.
-    nmb_instances = 0
-
     def __init__(self, projectname=None):
-
-        # Increment and check number of HydPy instances.
-        HydPy.nmb_instances += 1
-        if HydPy.nmb_instances > 1:
-            warnings.warn('Currently %d instances of HydPy are initialized '
-                          'within the same process.  It is strongly '
-                          'recommended to initialize only one instance at a '
-                          'time.  Consider deleting all instances and '
-                          'initializing a new one, unless you are fully aware '
-                          'in what manner HydPy is relying on some global '
-                          'information stored in module `pub`.'
-                          % HydPy.nmb_instances)
         self._nodes = None
         self._elements = None
         self.deviceorder = None

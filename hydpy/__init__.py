@@ -34,6 +34,8 @@ from hydpy.core import dummytools
 from hydpy.core import indextools
 from hydpy.core import optiontools
 from hydpy.cythons import configutils
+from hydpy.conf.hyd import execute_scriptfunction
+from hydpy.conf.hyd import print_latest_logfile
 from hydpy.core.autodoctools import prepare_mainsubstituter
 from hydpy.core.auxfiletools import Auxfiler
 from hydpy.core.devicetools import Element
@@ -117,6 +119,8 @@ __all__ = ['netcdf4',
            'pandas',
            'pyplot',
            'pub',
+           'execute_scriptfunction',
+           'print_latest_logfile',
            'Auxfiler',
            'Element',
            'Elements',

@@ -2,6 +2,7 @@
 """This module provides features for handling public (global) project data."""
 # import...
 # ...from standard library
+from typing import Dict, Callable
 import types
 # ...from HydPy
 from hydpy.core import autodoctools
@@ -76,6 +77,8 @@ is not defined at the moment.
     timegrids: timetools.Timegrids = _PubProperty()
 
     selections: selectiontools.Selections = _PubProperty()
+
+    scriptfunctions: Dict[str, Callable]
 
     def get(self, name, default=None):
         """Return |None| or the given default value, if the attribute

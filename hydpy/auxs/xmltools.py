@@ -1,47 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-https://docs.python.org/3/using/windows.html#launcher
 
-https://bitbucket.org/vinay.sajip/pylauncher/downloads/
-
-
->>> from hydpy import pub
+>>> from hydpy import pub, TestIO, print_latest_logfile
 >>> pub.options.printprogress = False
 >>> pub.options.reprdigits = 6
 >>> import warnings
 >>> warnings.filterwarnings('ignore')
 
->>> import subprocess
->>> from hydpy import TestIO
->>> TestIO.clear()
->>> with TestIO(clear_own=True):
-...     _ = subprocess.call('HydPy2FEWS.py', shell=True)
-...     with open('HydPy2FEWS.log') as file_:
-...         print(file_.read())
-Executing the workflow script with arguments `...HydPy2FEWS.py` resulted \
-in the following error:
-To apply script HydPy2FEWS.py, you have to pass a single additional
-argument defining the relevant HydPy project available in your current
-working directory (e.g. go to a directory containing folder "LahnHBV"
-and then type "HydPy2FEWS.py LahnHBV" into your console).
-<BLANKLINE>
-
->>> with TestIO(clear_own=True):
-...     _ = subprocess.call('HydPy2FEWS.py LahnHBV', shell=True)
-...     with open('HydPy2FEWS.log') as file_:
-...         print(file_.read())
-Executing the workflow script with arguments `...HydPy2FEWS.py, LahnHBV` \
-resulted in the following error:
-[Errno 2] No such file or directory: 'LahnHBV...config.xml'
-<BLANKLINE>
-
 >>> from hydpy.core.examples import prepare_full_example_1
 >>> prepare_full_example_1()
 
+>>> import subprocess
 >>> with TestIO():
-...     _ = subprocess.call('HydPy2FEWS.py LahnHBV', shell=True)
-...     with open('HydPy2FEWS.log') as file_:
-...         print(file_.read())
+...     _ = subprocess.call('hyd.py exec_xml LahnHBV', shell=True)
+...     print_latest_logfile()
 <BLANKLINE>
 
 >>> with TestIO():
@@ -98,8 +70,7 @@ from hydpy.core import selectiontools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
 
-scriptname = 'HydPy2FEWS.py'
-namelogfile = 'HydPy2FEWS.log'
+
 namespace = \
     '{https://github.com/tyralla/hydpy/tree/master/hydpy/conf/HydPy2FEWS.xsd}'
 
@@ -166,17 +137,9 @@ def strip(name) -> str:
     return name.split('}')[-1]
 
 
-def execute_workflow(argv):
+def exec_xml(projectname):
 
-    if len(argv) != 2:
-        raise ValueError(
-            f'To apply script {scriptname}, you have to pass a single '
-            f'additional argument defining the relevant HydPy project '
-            f'available in your current working directory (e.g. go to '
-            f'a directory containing folder "LahnHBV" and then type '
-            f'"{scriptname} LahnHBV" into your console).')
-
-    hp = hydpytools.HydPy(argv[1])
+    hp = hydpytools.HydPy(projectname)
 
     interface = XMLInterface()
     interface.update_options()
@@ -201,6 +164,7 @@ def execute_workflow(argv):
     conditions_io.save_conditions()
 
     series_io.save_series()
+pub.scriptfunctions['exec_xml'] = exec_xml
 
 
 class XMLBase(object):

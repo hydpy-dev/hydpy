@@ -72,14 +72,6 @@ for name in os.listdir(os.path.join('hydpy', 'cythons')):
 for ext_name in ext_names:
     print_(f'\t{ext_name}')
 
-print_('\nCollect scripts:`')
-scriptpath = os.path.join('hydpy', 'scripts')
-script_filepaths = [os.path.join(scriptpath, name)
-                    for name in os.listdir(scriptpath)
-                    if (name.endswith('.py') and (name != '__init__.py'))]
-for script_filepath in script_filepaths:
-    print_(f'\t{script_filepath}')
-
 print_('\nCopy (and eventually modify) extension modules:')
 # Copy the source code of these extension modules from package `cythons` to
 # subpackage `autogen`.  Modify the source code where necessary.
@@ -143,7 +135,7 @@ setup(name='HydPy',
       cmdclass={'build_ext': build_ext},
       ext_modules=Cython.Build.cythonize(ext_modules),
       include_dirs=[numpy.get_include()],
-      scripts=script_filepaths,
+      scripts=[os.path.join('hydpy', 'conf', 'hyd.py')],
       include_package_data=True)
 
 if install:

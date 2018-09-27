@@ -135,7 +135,7 @@ setup(name='HydPy',
       cmdclass={'build_ext': build_ext},
       ext_modules=Cython.Build.cythonize(ext_modules),
       include_dirs=[numpy.get_include()],
-      scripts=[os.path.join('hydpy', 'conf', 'hyd.py')],
+      scripts=[os.path.join('hydpy', 'exe', 'hyd.py')],
       include_package_data=True)
 
 if install:

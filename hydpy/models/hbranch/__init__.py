@@ -9,7 +9,7 @@ with tabulated supporting points.
 """
 # import...
 # ...from HydPy
-from hydpy.core.modelimports import *
+from hydpy.exe.modelimports import *
 # ...from hbranch
 from hydpy.models.hbranch.hbranch_control import ControlParameters
 from hydpy.models.hbranch.hbranch_derived import DerivedParameters

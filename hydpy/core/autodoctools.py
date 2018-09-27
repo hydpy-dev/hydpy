@@ -29,6 +29,7 @@ from hydpy import config
 from hydpy import auxs
 from hydpy import core
 from hydpy import cythons
+from hydpy import exe
 from hydpy import models
 from hydpy.core import metatools
 from hydpy.cythons.autogen import annutils
@@ -667,7 +668,7 @@ def prepare_mainsubstituter():
     for module in (builtins, numpy, datetime, unittest, doctest, inspect, io,
                    os, sys, time, collections, itertools):
         substituter.add_module(module)
-    for subpackage in (auxs, core, cythons):
+    for subpackage in (auxs, core, cythons, exe):
         for dummy, name, dummy in pkgutil.walk_packages(subpackage.__path__):
             full_name = subpackage.__name__ + '.' + name
             substituter.add_module(importlib.import_module(full_name))

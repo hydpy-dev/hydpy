@@ -6,8 +6,8 @@ dams, weirs, lakes, or polders.
 """
 # import...
 # ...from HydPy
-from hydpy.core.modelimports import *
 from hydpy.auxs.anntools import ann
+from hydpy.exe.modelimports import *
 # ...from dam
 from hydpy.models.dam.dam_control import ControlParameters
 from hydpy.models.dam.dam_derived import DerivedParameters

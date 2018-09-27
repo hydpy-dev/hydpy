@@ -34,8 +34,6 @@ from hydpy.core import dummytools
 from hydpy.core import indextools
 from hydpy.core import optiontools
 from hydpy.cythons import configutils
-from hydpy.conf.hyd import execute_scriptfunction
-from hydpy.conf.hyd import print_latest_logfile
 from hydpy.core.autodoctools import prepare_mainsubstituter
 from hydpy.core.auxfiletools import Auxfiler
 from hydpy.core.devicetools import Element
@@ -84,6 +82,8 @@ from hydpy.auxs.statstools import nse
 from hydpy.auxs.statstools import prepare_arrays
 from hydpy.auxs.statstools import std_ratio
 from hydpy.auxs.xmltools import XMLInterface
+from hydpy.exe.hyd import execute_scriptfunction
+from hydpy.exe.hyd import print_latest_logfile
 
 
 pub.options = optiontools.Options()
@@ -119,8 +119,6 @@ __all__ = ['netcdf4',
            'pandas',
            'pyplot',
            'pub',
-           'execute_scriptfunction',
-           'print_latest_logfile',
            'Auxfiler',
            'Element',
            'Elements',
@@ -168,4 +166,6 @@ __all__ = ['netcdf4',
            'nse',
            'prepare_arrays',
            'std_ratio',
-           'XMLInterface']
+           'XMLInterface',
+           'execute_scriptfunction',
+           'print_latest_logfile']

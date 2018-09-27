@@ -57,5 +57,6 @@ detailed examples of the documentation on module |timetools|.
    :hidden:
 
    core
+   execution
    cythons
    auxiliaries

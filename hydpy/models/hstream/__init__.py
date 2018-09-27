@@ -6,7 +6,7 @@ routing problem.
 """
 # import...
 # ...from HydPy
-from hydpy.core.modelimports import *
+from hydpy.exe.modelimports import *
 # ...from hstream
 from hydpy.models.hstream.hstream_parameters import Parameters
 from hydpy.models.hstream.hstream_control import ControlParameters

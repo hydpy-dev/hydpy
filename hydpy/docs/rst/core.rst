@@ -1,8 +1,8 @@
 
 .. _core:
 
-Core Modules
-============
+Core Tools
+==========
 
 The core subpackage of :ref:`HydPy` essentially defines how models can
 and should be programmed, documented and applied.  As can be seen in
@@ -73,7 +73,6 @@ standardize writing :ref:`HydPy` code.
    indextools
    masktools
    metatools
-   modelimports
    modeltools
    netcdftools
    objecttools

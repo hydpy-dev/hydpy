@@ -14,7 +14,7 @@ working directory, containing the current date in its name.  The following
 example shows this by using class |TestIO|, to write the log file into
 the `iotesting` folder:
 
->>> import os, subprocess, sys
+>>> import subprocess, sys
 >>> from hydpy import TestIO, execute_scriptfunction, print_latest_logfile
 >>> TestIO.clear()
 >>> with TestIO(clear_own=True):

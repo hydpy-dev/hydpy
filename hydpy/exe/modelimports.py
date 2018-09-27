@@ -4,7 +4,7 @@
 Module |modelimports| is supposed to shorten the import section
 of base and application models implemented.  Just write:
 
->>> from hydpy.core.modelimports import *
+>>> from hydpy.exe.modelimports import *
 
 Thereafter, the following objects are available:
  * module |numpy|

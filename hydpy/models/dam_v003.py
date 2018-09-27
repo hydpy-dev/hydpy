@@ -296,8 +296,8 @@ from hydpy.core import modeltools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
 # ...from HydPy
-from hydpy.core.modelimports import *
 from hydpy.auxs.anntools import ann
+from hydpy.exe.modelimports import *
 # ...from dam
 from hydpy.models.dam import dam_model
 from hydpy.models.dam import dam_control

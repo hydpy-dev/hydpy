@@ -1,8 +1,8 @@
 
 .. _cythons:
 
-Cythons Modules
-===============
+Cythons Tools
+=============
 
 The modules of subpackage `cythons` should be of interest for framework
 developers (and eventually some model developers) only.

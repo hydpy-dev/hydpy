@@ -1138,7 +1138,7 @@ Integration examples:
 """
 # import...
 # ...from HydPy
-from hydpy.core.modelimports import *
+from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools

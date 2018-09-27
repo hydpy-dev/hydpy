@@ -1,8 +1,8 @@
 
 .. _auxiliaries:
 
-Auxiliary Modules
-=================
+Auxiliary Tools
+===============
 
 
 The `auxs` subpackage provides features that are not essential for the

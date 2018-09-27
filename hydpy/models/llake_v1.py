@@ -278,7 +278,7 @@ from hydpy.core import modeltools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
 # ...from HydPy
-from hydpy.core.modelimports import *
+from hydpy.exe.modelimports import *
 # ...from llake
 from hydpy.models.llake import llake_model
 from hydpy.models.llake import llake_control

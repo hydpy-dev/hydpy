@@ -1,18 +1,18 @@
 #!python3
-"""Script for executing HydPy workflows.
+"""The script for executing HydPy workflows.
 
 .. _`Python Launcher for Windows`: \
 https://docs.python.org/3/using/windows.html#launcher
 
 .. _`here`: https://bitbucket.org/vinay.sajip/pylauncher/downloads//
 
-This script is thought to be called from a command line prompt.  After
-successful installation of HydPy, you should be able to invoke it from a
-nywhere on your computer.  You can test this by just typing `hyd.py` into
-your command line prompt.  Then you should find a HydPy log file within
+This script is thought to be called from a command line.  After
+successful installation of HydPy, you should be able to invoke it from
+anywhere on your computer.  You can test this by just typing `hyd.py` into
+your command line.  Then you should find a HydPy log file within
 your current working directory, containing the current date in its name.
 The following example shows this by using class |TestIO|, to write the
-log file into the `iotesting` folder:
+log file into the "iotesting" folder:
 
 >>> import subprocess
 >>> from hydpy import TestIO, print_latest_logfile
@@ -37,7 +37,7 @@ installed.  The Python standard distribution contains this launcher, but
 other distributions like Anaconda do not.  You can find the suitable
 installer `here`_.
 
-For convenience, we wrap the three required code lines test function `execute`:
+For convenience, we wrap the three required code lines test function "execute":
 
 >>> def execute(command):
 ...     with TestIO():
@@ -154,7 +154,7 @@ pub.scriptfunctions['exec_commands'] = exec_commands
 
 
 def print_latest_logfile(dirpath='.'):
-    """Print the latest logfile in the current or the given working directory.
+    """Print the latest log file in the current or the given working directory.
 
     See the main documentation on module |hyd| for more information.
     """
@@ -173,7 +173,7 @@ def print_latest_logfile(dirpath='.'):
 def execute_scriptfunction():
     """Execute a HydPy script function.
 
-    Function |exectue_scriptfunction| is indirectly applied in the
+    Function |execute_scriptfunction| is indirectly applied in the
     examples of the main documentation on module |hyd|.
     """
     logfilename = time.strftime('hydpy_%Y-%m-%d_%H-%M-%S.log')

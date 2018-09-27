@@ -26,6 +26,7 @@ pyplot = OptionalImport(
     'matplotlib.pyplot',
     ['from matplotlib import pyplot'])
 warnings.resetwarnings()
+warnings.filterwarnings('ignore', category=ImportWarning) # Due to a Cython problem.
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import pubtools
@@ -101,7 +102,6 @@ def customwarn(message, category, filename, lineno, file=None, line=None):
 warnings.showwarning = customwarn
 warnings.filterwarnings('always', category=HydPyDeprecationWarning)
 warnings.filterwarnings('ignore', r'All-NaN (slice|axis) encountered')
-warnings.filterwarnings('ignore', category=ImportWarning) # Due to a Cython problem.
 warnings.filterwarnings('error', category=integrate.IntegrationWarning)
 
 # Numpy introduced new string representations in version 1.14 affecting

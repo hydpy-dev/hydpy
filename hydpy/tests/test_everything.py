@@ -41,10 +41,9 @@ if standard_backend_missing:
 # Priorise site-packages (on Debian-based Linux distributions as Ubuntu
 # also dist-packages) in the import order to make sure, the following
 # imports refer to the newly build hydpy package on the respective computer.
-# paths = [path for path in sys.path if path.endswith('-packages')]
-# for path in paths:
-#     sys.path.insert(0, path)
-sys.path.insert(0, r'C:\HydPy\HydPy')
+paths = [path for path in sys.path if path.endswith('-packages')]
+for path in paths:
+    sys.path.insert(0, path)
 
 # Import all hydrological models to trigger the automatic cythonization
 # mechanism of HydPy.

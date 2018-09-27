@@ -26,7 +26,6 @@ class FilterFilenames(object):
         return list(names)
 
 
-
 filter_filenames = FilterFilenames(sys.argv)
 
 

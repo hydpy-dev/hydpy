@@ -70,7 +70,7 @@ the suffix `_mean`:
 >>> with TestIO(clear_all=True):
 ...     print_values((numpy.load(
 ...         'LahnHBV/series/output/lahn_1_sim_q_mean.npy')[13:]))
-9.621296, 8.503069, 7.774927, 7.34503, 7.15879]
+9.621296, 8.503069, 7.774927, 7.34503, 7.15879
 """
 # import...
 # ...from standard library
@@ -95,7 +95,7 @@ from hydpy.core import timetools
 
 
 namespace = \
-    '{https://github.com/tyralla/hydpy/tree/master/hydpy/conf/HydPy2FEWS.xsd}'
+    '{https://github.com/tyralla/hydpy/tree/master/hydpy/conf/config.xsd}'
 
 
 def find(root, name) -> ElementTree.Element:
@@ -154,7 +154,7 @@ def strip(name) -> str:
     """Remove the xml namespace from the given string and return it.
 
     >>> from hydpy.auxs.xmltools import strip
-    >>> strip('{https://github.com/HydPy2FEWS.xsd}something')
+    >>> strip('{https://github.com/something.xsd}something')
     'something'
     """
     return name.split('}')[-1]
@@ -996,7 +996,7 @@ class XSDWriter(object):
     """
 
     filepath_source: str = os.path.join(
-        conf.__path__[0], 'HydPy2FEWS' + '.xsdt')
+        conf.__path__[0], 'config' + '.xsdt')
     filepath_target: str = filepath_source[:-1]
 
     @classmethod

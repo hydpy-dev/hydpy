@@ -60,3 +60,4 @@ detailed examples of the documentation on module |timetools|.
    execution
    cythons
    auxiliaries
+   configuration

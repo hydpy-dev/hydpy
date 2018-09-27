@@ -3,27 +3,27 @@
 XML configuration files.
 
 At the heart of module |xmltools| lies function |exec_xml|, which is
-thought be be applied via a command line prompt (see the documentation
+thought to be applied via a command line (see the documentation
 on script |hyd| for further information).  |exec_xml| expects that
 the HydPy project you want to work with is available in your current
-working directory and contains a XML configuration file called `config.xml`
+working directory and contains an XML configuration file called `config.xml`
 (as in the example project folder `LahnHBV`).  This configuration file
 must agree with the XML schema file `config.xsd`, which is available
 in the :ref:`configuration` subpackage.  In case you did implement new
-or changed existing models, you have to update this schema file, which is
-performed automatically when invoking HydPy's setup mechanism (see
-the documentation on class |XSDWriter|.
+or changed existing models, you have to update this schema file.  HydPy
+does this automatically through its setup mechanism (see the documentation
+on class |XSDWriter|).
 
-To show how to apply |exec_xml| via a command line prompt, we first
+To show how to apply |exec_xml| via a command line, we first
 copy the `LahnHBV` project into the `iotesting` folder via calling
 function |prepare_full_example_1|:
 
 >>> from hydpy.core.examples import prepare_full_example_1
 >>> prepare_full_example_1()
 
-To simulate using the command line promt, we pass the required text to
+To simulate using the command line, we pass the required text to
 function |subprocess.call| of module |subprocess|.  Printing the content
-of the resulting logfile confirms that actually something happened:
+of the resulting log file confirms that something happened:
 
 >>> from hydpy import TestIO, print_latest_logfile
 >>> import subprocess
@@ -46,7 +46,7 @@ Write the desired time series files (...).
 
 As defined by the XML configuration file, the simulation started on the
 first and ended at the sixths January 1996.  The following example shows
-the read initial conditition and the written final conditions of
+the read initial conditions and the written final conditions of
 sequence |hland_states.SM| for the 12 hydrological response units of the
 subcatchment `land_dill`:
 
@@ -113,8 +113,8 @@ namespace = \
 
 
 def find(root, name) -> ElementTree.Element:
-    """Return the first xml element with the given name found in the given
-    xml root.
+    """Return the first XML element with the given name found in the given
+    XML root.
 
     >>> from hydpy.auxs.xmltools import XMLInterface
     >>> from hydpy import data
@@ -135,7 +135,7 @@ def _query_selections(xmlelement) -> selectiontools.Selections:
             selections.append(pub.selections[name])
     except KeyError:
         raise NameError(
-            f'The xml configuration file tries to defines a selection '
+            f'The XML configuration file tries to defines a selection '
             f'using the text `{name}`, but the actual project does not '
             f' handle such a `Selection` object.')
     return selectiontools.Selections(*selections)
@@ -157,7 +157,7 @@ def _query_devices(xmlelement) -> selectiontools.Selection:
                 selection.nodes += getattr(nodes, name)
             except AttributeError:
                 raise NameError(
-                    f'The xml configuration file tries to defines additional '
+                    f'The XML configuration file tries to defines additional '
                     f'devices using the text `{name}`, but the complete '
                     f'selection of the actual project does neither handle a '
                     f'`Node` or `Element` object with such a name or keyword.')
@@ -165,7 +165,7 @@ def _query_devices(xmlelement) -> selectiontools.Selection:
 
 
 def strip(name) -> str:
-    """Remove the xml namespace from the given string and return it.
+    """Remove the XML namespace from the given string and return it.
 
     >>> from hydpy.auxs.xmltools import strip
     >>> strip('{https://github.com/something.xsd}something')
@@ -239,8 +239,8 @@ class XMLBase(object):
 
 
 class XMLInterface(XMLBase):
-    """A interface to the XML configuration files that are valid with
-    regard to schema file `config.xsd`."""
+    """An interface to the XML configuration files that are valid concerning
+     schema file `config.xsd`."""
 
     def __init__(self, filepath=None):
         if filepath is None:
@@ -250,11 +250,11 @@ class XMLInterface(XMLBase):
             self.root = ElementTree.parse(filepath).getroot()
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to read parse the xml configuration file '
+                f'While trying to read parse the XML configuration file '
                 f'{os.path.abspath(filepath)}')
 
     def validate_xml(self) -> None:
-        """Raise an error if the actual xml does not agree with the xml
+        """Raise an error if the actual XML does not agree with the XML
         schema file `config.xsd`.
 
         # ToDo: should it become a script function???
@@ -269,7 +269,7 @@ class XMLInterface(XMLBase):
         >>> interface.validate_xml()
         Traceback (most recent call last):
         ...
-        lxml.etree.XMLSyntaxError: While trying to parse xml file \
+        lxml.etree.XMLSyntaxError: While trying to parse XML file \
 ...config.xml` the following error occurred: Element '{https://github.com/\
 tyralla/hydpy/tree/master/hydpy/conf/config.xsd}firstdate': \
 '1996-01-32T00:00:00' is not a valid value of the atomic type 'xs:dateTime'.
@@ -284,13 +284,13 @@ tyralla/hydpy/tree/master/hydpy/conf/config.xsd}firstdate': \
         try:
             etree.parse(source=self.filepath, parser=parser)
         except BaseException as exc:
-            exc.msg = (f'While trying to parse xml file `{self.filepath}` '
+            exc.msg = (f'While trying to parse XML file `{self.filepath}` '
                        f'the following error occurred: {exc.msg}')
             raise exc
 
     def update_options(self) -> None:
         """Update the |Options| object available in module |pub| with the
-        values defined in the `options` xml element.
+        values defined in the `options` XML element.
 
         >>> from hydpy.auxs.xmltools import XMLInterface, pub
         >>> from hydpy import data
@@ -339,7 +339,7 @@ tyralla/hydpy/tree/master/hydpy/conf/config.xsd}firstdate': \
 
     def update_timegrids(self) -> None:
         """Update the |Timegrids| object available in module |pub| with the
-        values defined in the `timegrid` xml element.
+        values defined in the `timegrid` XML element.
 
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data, pub
@@ -358,7 +358,7 @@ tyralla/hydpy/tree/master/hydpy/conf/config.xsd}firstdate': \
     @property
     def selections(self) -> selectiontools.Selections:
         """The |Selections| object defined on the main level of the actual
-        xml file.
+        XML file.
 
         >>> from hydpy.core.examples import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -382,7 +382,7 @@ tyralla/hydpy/tree/master/hydpy/conf/config.xsd}firstdate': \
         >>> interface.selections
         Traceback (most recent call last):
         ...
-        NameError: The xml configuration file tries to defines a selection \
+        NameError: The XML configuration file tries to defines a selection \
 using the text `head_waters`, but the actual project does not  handle such \
 a `Selection` object.
         """
@@ -391,7 +391,7 @@ a `Selection` object.
     @property
     def devices(self) -> selectiontools.Selection:
         """The additional devices defined on the main level of the actual
-        xml file collected by a |Selection| object.
+        XML file collected by a |Selection| object.
 
         >>> from hydpy.core.examples import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -409,7 +409,7 @@ a `Selection` object.
         >>> interface.devices
         Traceback (most recent call last):
         ...
-        NameError: The xml configuration file tries to defines additional \
+        NameError: The XML configuration file tries to defines additional \
 devices using the text `land_lahn1`, but the complete selection of the \
 actual project does neither handle a `Node` or `Element` object with such \
 a name or keyword.
@@ -475,7 +475,7 @@ a name or keyword.
 
     @property
     def conditions_io(self) -> 'XMLConditions':
-        """The `condition_io` element defined in the actual xml file.
+        """The `condition_io` element defined in the actual XML file.
 
         >>> from hydpy.auxs.xmltools import XMLInterface, strip
         >>> from hydpy import data
@@ -487,7 +487,7 @@ a name or keyword.
 
     @property
     def series_io(self) -> 'XMLSeries':
-        """The `series_io` element defined in the actual xml file.
+        """The `series_io` element defined in the actual XML file.
 
         >>> from hydpy.auxs.xmltools import XMLInterface, strip
         >>> from hydpy import data
@@ -573,7 +573,7 @@ class XMLSeries(XMLBase):
 
     @property
     def readers(self) -> List['XMLSubseries']:
-        """Return the reader elements defined in the actual xml file.
+        """The reader XML elements defined in the actual XML file.
 
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
@@ -586,7 +586,7 @@ class XMLSeries(XMLBase):
 
     @property
     def writers(self) -> List['XMLSubseries']:
-        """Return the writer elements defined in the actual xml file.
+        """The writer XML elements defined in the actual XML file.
 
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
@@ -647,14 +647,14 @@ class XMLSubseries(XMLBase):
 
     @property
     def info(self) -> str:
-        """Info attribute of the actual xml `reader` or `writer` element."""
+        """Info attribute of the actual XML `reader` or `writer` element."""
         return self.root.attrib['info']
 
     def prepare_sequencemanager(self) -> None:
         """Configure the |SequenceManager| object available in module
-        |pub| in accordance with the definitions of the actual xml
-        `reader` or `writer` element when available; if not use those
-        of the xml `series_io` element.
+        |pub| following the definitions of the actual XML `reader` or
+        `writer` element when available; if not use those of the XML
+        `series_io` element.
 
         Compare the following results with `config.xml` to see that the
         first `writer` element defines the input file type specifically,
@@ -723,7 +723,7 @@ class XMLSubseries(XMLBase):
     @property
     def model2subs2seqs(self) -> Dict[str, Dict[str, List[str]]]:
         """A nested |collections.defaultdict| containing the model specific
-        information provided by the xml `sequences` element.
+        information provided by the XML `sequences` element.
 
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
@@ -752,8 +752,8 @@ class XMLSubseries(XMLBase):
 
     @property
     def subs2seqs(self) -> Dict[str, List[str]]:
-        """A |collections.defaultdict| containing the node specific
-        information provided by xml `sequences` element.
+        """A |collections.defaultdict| containing the node-specific
+        information provided by XML `sequences` element.
 
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
@@ -774,11 +774,11 @@ class XMLSubseries(XMLBase):
     @property
     def selections(self) -> selectiontools.Selections:
         """The |Selections| object defined for the respective `reader`
-        or `writer` element of the actual xml file.
+        or `writer` element of the actual XML file.
 
-        If the `reader` or `writer` element does not define its own
-        selections, |XMLInterface.selections| of |XMLInterface| is
-        used instead.
+        If the `reader` or `writer` element does not define a special
+        selections element, the general |XMLInterface.selections| element
+        of |XMLInterface| is used.
 
         >>> from hydpy.core.examples import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -807,9 +807,8 @@ class XMLSubseries(XMLBase):
         """The additional devices defined for the respective `reader`
         or `writer` element contained within a |Selection| object.
 
-        If the `reader` or `writer` element does not define its own
-        additional devices, |XMLInterface.devices| of |XMLInterface| is
-        used instead.
+        If the `reader` or `writer` element does not define its own additional
+        devices, |XMLInterface.devices| of |XMLInterface| is used.
 
         >>> from hydpy.core.examples import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -906,12 +905,12 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
                 for seq_name in seq_names:
                     yield getattr(node.sequences, seq_name)
 
-    def prepare_series(self, memory) -> None:
+    def prepare_series(self, memory: set) -> None:
         """Call |IOSequence.activate_ram| of all sequences selected by
-        the given output element of the actual xml file.
+        the given output element of the actual XML file.
 
-        Use the memory argument to pass in sequences within a |set| that
-        are prepared already; newly prepared sequences will be added.
+        Use the memory argument to pass in already prepared sequences;
+        newly prepared sequences will be added.
 
         >>> from hydpy.core.examples import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -948,7 +947,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
                 sequence.activate_ram()
 
     def load_series(self) -> None:
-        """Load time series data as defined by the actual xml `reader`
+        """Load time series data as defined by the actual XML `reader`
         element.
 
         >>> from hydpy.core.examples import prepare_full_example_1
@@ -979,7 +978,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         pub.sequencemanager.close_netcdf_reader()
 
     def save_series(self) -> None:
-        """Save time series data as defined by the actual xml `writer`
+        """Save time series data as defined by the actual XML `writer`
         element.
 
         >>> from hydpy.core.examples import prepare_full_example_1
@@ -1024,11 +1023,11 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
 
 
 class XSDWriter(object):
-    """Pure |classmethod| class for writing the actual xml schema file
-    `config.xsd`, which allows to validate that a xml configuration
-    file is readable by class |XMLInterface|.
+    """Pure |classmethod| class for writing the actual XML schema file
+    `config.xsd`, which makes sure that an XML configuration file is
+    readable by class |XMLInterface|.
 
-    Unless you are interested in enhancing HydPy's xml functionalities,
+    Unless you are interested in enhancing HydPy's XML functionalities,
     you should, if any, be interested in method |XSDWriter.write_xsd| only.
     """
 
@@ -1038,13 +1037,13 @@ class XSDWriter(object):
 
     @classmethod
     def write_xsd(cls) -> None:
-        """Write the complete schema file based on template `config.xsdt`,
-        including the input, flux, and state sequences of all application
-        models available at the moment.
+        """Write the complete schema file based on the template file
+        `config.xsdt`, including the input, flux, and state sequences
+        of all application models available at the moment.
 
         The following example shows that after writing a new schema file,
         method |XMLInterface.validate_xml| does not raise an error when
-        applied on the xml configuration file of the `LahnHBV` example
+        applied on the XML configuration file of the `LahnHBV` example
         project:
 
         >>> from hydpy.auxs.xmltools import XSDWriter, XMLInterface

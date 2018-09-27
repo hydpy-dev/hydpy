@@ -30,6 +30,18 @@ of the resulting logfile confirms that actually something happened:
 >>> with TestIO():
 ...     _ = subprocess.call('hyd.py exec_xml LahnHBV', shell=True)
 ...     print_latest_logfile()
+Start HydPy project `LahnHBV` (...).
+Read configuration file `conf.xml` (...).
+Interpret the defined options (...).
+Interpret the defined period (...).
+Read all network files (...).
+Activate the selected network (...).
+Read the required control files (...).
+Read the required condition files (...).
+Read the required time series files (...).
+Perform the simulation run (...).
+Write the desired condition files (...).
+Write the desired time series files (...).
 <BLANKLINE>
 
 As defined by the XML configuration file, the simulation started on the
@@ -74,11 +86,12 @@ the suffix `_mean`:
 """
 # import...
 # ...from standard library
-from typing import Dict, Iterator, List
+from typing import Dict, IO, Iterator, List, Union
 import collections
 import copy
 import itertools
 import os
+import time
 from xml.etree import ElementTree
 # ...from site-packages
 from lxml import etree
@@ -89,6 +102,7 @@ from hydpy import pub
 from hydpy.core import devicetools
 from hydpy.core import hydpytools
 from hydpy.core import importtools
+from hydpy.core import objecttools
 from hydpy.core import selectiontools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
@@ -111,7 +125,7 @@ def find(root, name) -> ElementTree.Element:
     return root.find(f'{namespace}{name}')
 
 
-def _query_selections(xmlelement):
+def _query_selections(xmlelement) -> selectiontools.Selections:
     text = xmlelement.text
     if text is None:
         return selectiontools.Selections()
@@ -127,7 +141,7 @@ def _query_selections(xmlelement):
     return selectiontools.Selections(*selections)
 
 
-def _query_devices(xmlelement):
+def _query_devices(xmlelement) -> selectiontools.Selection:
     selection = selectiontools.Selection('temporary_result_of_xml_parsing')
     text = xmlelement.text
     if text is None:
@@ -160,33 +174,48 @@ def strip(name) -> str:
     return name.split('}')[-1]
 
 
-def exec_xml(projectname):
+def exec_xml(projectname: str, *, logfile: IO):
+    """Perform a HydPy workflow in agreement with the configuration file
+    `conf.xml` available in the directory of the given project.
+    """
 
+    def write(text):
+        """Write the given text eventually."""
+        logfile.flush()
+        timestring = time.strftime('%Y-%m-%d %H:%M:%S')
+        logfile.write(f'{text} ({timestring}).\n')
+        logfile.flush()
+
+    pub.options.printprogress = False
+    write(f'Start HydPy project `{projectname}`')
     hp = hydpytools.HydPy(projectname)
-
+    write('Read configuration file `conf.xml`')
     interface = XMLInterface()
+    write('Interpret the defined options')
     interface.update_options()
+    pub.options.printprogress = False
+    write('Interpret the defined period')
     interface.update_timegrids()
-
+    write('Read all network files')
     hp.prepare_network()
+    write('Activate the selected network')
     hp.update_devices(interface.fullselection)
+    write('Read the required control files')
     hp.init_models()
-
-    conditions_io = interface.conditions_io
-    conditions_io.load_conditions()
-
-    series_io = interface.series_io
-
-    series_io.prepare_series()
-    series_io.load_series()
-
+    write('Read the required condition files')
+    interface.conditions_io.load_conditions()
+    write('Read the required time series files')
+    interface.series_io.prepare_series()
+    interface.series_io.load_series()
+    write('Perform the simulation run')
     hp.doit()
-
+    write('Write the desired condition files')
     pub.conditionmanager.createdirs = True
+    interface.conditions_io.save_conditions()
+    write('Write the desired time series files')
+    interface.series_io.save_series()
 
-    conditions_io.save_conditions()
 
-    series_io.save_series()
 pub.scriptfunctions['exec_xml'] = exec_xml
 
 
@@ -196,14 +225,14 @@ class XMLBase(object):
 
     root: ElementTree.Element
 
-    def find(self, name):
+    def find(self, name) -> ElementTree.Element:
         """Apply function |find| for the root of the object of the |XMLBase|
         subclass.
 
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
-        >>> înterface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
-        >>> înterface.find('timegrid').tag.endswith('timegrid')
+        >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
+        >>> interface.find('timegrid').tag.endswith('timegrid')
         True
         """
         return find(self.root, name)
@@ -217,7 +246,12 @@ class XMLInterface(XMLBase):
         if filepath is None:
             filepath = os.path.join(pub.projectname, 'config.xml')
         self.filepath = filepath
-        self.root = ElementTree.parse(filepath).getroot()
+        try:
+            self.root = ElementTree.parse(filepath).getroot()
+        except BaseException:
+            objecttools.augment_excmessage(
+                f'While trying to read parse the xml configuration file '
+                f'{os.path.abspath(filepath)}')
 
     def validate_xml(self) -> None:
         """Raise an error if the actual xml does not agree with the xml
@@ -254,7 +288,7 @@ tyralla/hydpy/tree/master/hydpy/conf/config.xsd}firstdate': \
                        f'the following error occurred: {exc.msg}')
             raise exc
 
-    def update_options(self):
+    def update_options(self) -> None:
         """Update the |Options| object available in module |pub| with the
         values defined in the `options` xml element.
 
@@ -262,6 +296,7 @@ tyralla/hydpy/tree/master/hydpy/conf/config.xsd}firstdate': \
         >>> from hydpy import data
         >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
         >>> pub.options.printprogress = True
+        >>> pub.options.printincolor = True
         >>> pub.options.reprdigits = -1
         >>> pub.options.utcoffset = -60
         >>> pub.options.ellipsis = 0
@@ -275,7 +310,7 @@ tyralla/hydpy/tree/master/hydpy/conf/config.xsd}firstdate': \
             ellipsis -> 0
             fastcython -> 1
             printprogress -> 0
-            printincolor -> 1
+            printincolor -> 0
             reprcomments -> 0
             reprdigits -> 6
             skipdoctests -> 0
@@ -299,8 +334,10 @@ tyralla/hydpy/tree/master/hydpy/conf/config.xsd}firstdate': \
             if value in ('true', 'false'):
                 value = value == 'true'
             setattr(options, strip(option.tag), value)
+        options.printprogress = False
+        options.printincolor = False
 
-    def update_timegrids(self):
+    def update_timegrids(self) -> None:
         """Update the |Timegrids| object available in module |pub| with the
         values defined in the `timegrid` xml element.
 
@@ -319,7 +356,7 @@ tyralla/hydpy/tree/master/hydpy/conf/config.xsd}firstdate': \
         pub.timegrids = timetools.Timegrids(timegrid)
 
     @property
-    def selections(self):
+    def selections(self) -> selectiontools.Selections:
         """The |Selections| object defined on the main level of the actual
         xml file.
 
@@ -380,7 +417,7 @@ a name or keyword.
         return _query_devices(self.find('devices'))
 
     @property
-    def elements(self):
+    def elements(self) -> Iterator[devicetools.Element]:
         """Yield all |Element| objects returned by |XMLInterface.selections|
         and |XMLInterface.devices| without duplicates.
 
@@ -411,7 +448,7 @@ a name or keyword.
                     yield element
 
     @property
-    def fullselection(self):
+    def fullselection(self) -> selectiontools.Selection:
         """A |Selection| object containing all |Element| and |Node| objects
         defined by |XMLInterface.selections| and |XMLInterface.devices|.
 
@@ -437,7 +474,7 @@ a name or keyword.
         return fullselection
 
     @property
-    def conditions_io(self):
+    def conditions_io(self) -> 'XMLConditions':
         """The `condition_io` element defined in the actual xml file.
 
         >>> from hydpy.auxs.xmltools import XMLInterface, strip
@@ -449,7 +486,7 @@ a name or keyword.
         return XMLConditions(self, self.find('conditions_io'))
 
     @property
-    def series_io(self):
+    def series_io(self) -> 'XMLSeries':
         """The `series_io` element defined in the actual xml file.
 
         >>> from hydpy.auxs.xmltools import XMLInterface, strip
@@ -469,7 +506,7 @@ class XMLConditions(XMLBase):
         self.master: XMLInterface = master
         self.root: ElementTree.Element = root
 
-    def load_conditions(self):
+    def load_conditions(self) -> None:
         """Load the condition files of the |Model| objects of all |Element|
         objects returned by |XMLInterface.elements|:
 
@@ -494,7 +531,7 @@ class XMLConditions(XMLBase):
         for element in self.master.elements:
             element.model.sequences.load_conditions()
 
-    def save_conditions(self):
+    def save_conditions(self) -> None:
         """Save the condition files of the |Model| objects of all |Element|
         objects returned by |XMLInterface.elements|:
 
@@ -562,7 +599,7 @@ class XMLSeries(XMLBase):
         """
         return [XMLSubseries(self, _) for _ in self.find('writers')]
 
-    def prepare_series(self):
+    def prepare_series(self) -> None:
         """Call |XMLSubseries.prepare_series| of all |XMLSubseries|
         objects with the same memory |set| object.
 
@@ -587,13 +624,13 @@ class XMLSeries(XMLBase):
         for output in itertools.chain(self.readers, self.writers):
             output.prepare_series(memory)
 
-    def load_series(self):
+    def load_series(self) -> None:
         """Call |XMLSubseries.load_series| of all |XMLSubseries| objects
         handles as "readers"."""
         for input_ in self.readers:
             input_.load_series()
 
-    def save_series(self):
+    def save_series(self) -> None:
         """Call |XMLSubseries.load_series| of all |XMLSubseries| objects
         handles as "writers"."""
         for writer in self.writers:
@@ -735,7 +772,7 @@ class XMLSubseries(XMLBase):
         return subs2seqs
 
     @property
-    def selections(self):
+    def selections(self) -> selectiontools.Selections:
         """The |Selections| object defined for the respective `reader`
         or `writer` element of the actual xml file.
 
@@ -796,7 +833,9 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
             return self.master.master.devices
         return _query_devices(devices)
 
-    def _get_devices(self, attr):
+    def _get_devices(self, attr) \
+            -> Union[Iterator[devicetools.Node],
+                     Iterator[devicetools.Element]]:
         selections = copy.copy(self.selections)
         selections += self.devices
         devices = set()
@@ -942,8 +981,6 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
     def save_series(self) -> None:
         """Save time series data as defined by the actual xml `writer`
         element.
-
-        ToDo: Do not write empty NetCDF files when other formats are used?!?!
 
         >>> from hydpy.core.examples import prepare_full_example_1
         >>> prepare_full_example_1()

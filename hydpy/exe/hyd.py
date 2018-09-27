@@ -62,8 +62,8 @@ The first additional argument must be an available "script function":
 >>> execute('hyd.py wrong_argument')
 Invoking hyd.py with arguments `hyd.py, wrong_argument` resulted in the \
 following error:
-There is no `wrong_argument` function callable by `hyd.py`.  Choose
-one of the following instead: exec_xml
+There is no `wrong_argument` function callable by `hyd.py`.  \
+Choose one of the following instead: exec_xml
 <BLANKLINE>
 
 Further argument requirements depend on the selected "script function":
@@ -71,23 +71,26 @@ Further argument requirements depend on the selected "script function":
 >>> execute('hyd.py exec_xml')
 Invoking hyd.py with arguments `hyd.py, exec_xml` resulted in the \
 following error:
-Function `exec_xml` requires `1` arguments (projectname), but `0` are
-given.
+Function `exec_xml` requires `1` arguments (projectname), but `0` are given.
 <BLANKLINE>
 >>> execute('hyd.py exec_xml first_name second_name')
 Invoking hyd.py with arguments `hyd.py, exec_xml, first_name, \
 second_name` resulted in the following error:
-Function `exec_xml` requires `1` arguments (projectname), but `2` are
-given (first_name and second_name).
+Function `exec_xml` requires `1` arguments (projectname), but `2` are given \
+(first_name and second_name).
 <BLANKLINE>
 
 Error messages raised by the "script function" itself also find their
 way into the log file:
 
 >>> execute('hyd.py exec_xml LahnHBV')
+Start HydPy project `LahnHBV` (...).
+Read configuration file `conf.xml` (...).
 Invoking hyd.py with arguments `hyd.py, exec_xml, LahnHBV` resulted \
 in the following error:
-[Errno 2] No such file or directory: 'LahnHBV...config.xml'
+While trying to read parse the xml configuration file ...config.xml, \
+the following error occurred: [Errno 2] No such file or directory: \
+'LahnHBV...config.xml'
 <BLANKLINE>
 
 See the documentation on module |xmltools| for an actually successful
@@ -98,7 +101,6 @@ invokation of `exec_xml`.
 import inspect
 import os
 import sys
-import textwrap
 import time
 # ...from hydpy
 from hydpy import pub
@@ -119,8 +121,8 @@ def print_latest_logfile(dirpath='.'):
         raise FileNotFoundError(
             f'Cannot find a HydPy log file in directory '
             f'{os.path.abspath(dirpath)}.')
-    with open(sorted(filenames)[-1]) as file_:
-        print(file_.read())
+    with open(sorted(filenames)[-1]) as logfile:
+        print(logfile.read())
 
 
 def execute_scriptfunction():
@@ -164,14 +166,14 @@ def execute_scriptfunction():
                 f'Function `{funcname}` requires `{nmb_args_required:d}` '
                 f'arguments{enum_args_required}, but `{nmb_args_given:d}` '
                 f'are given{enum_args_given}.')
-        func(*sys.argv[2:])
+        with open(logfilename, 'a') as logfile:
+            func(*sys.argv[2:], logfile=logfile)
     except BaseException as exc:
-        with open(logfilename, 'a') as file_:
+        with open(logfilename, 'a') as logfile:
             arguments = ', '.join(sys.argv)
-            message = '\n'.join(textwrap.wrap(str(exc)))
-            file_.write(
+            logfile.write(
                 f'Invoking hyd.py with arguments `{arguments}` '
-                f'resulted in the following error:\n{message}\n')
+                f'resulted in the following error:\n{str(exc)}\n')
 
 
 if __name__ == '__main__':   # pragma: no cover

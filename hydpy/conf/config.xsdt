@@ -31,10 +31,6 @@
     <element name="options">
         <complexType>
             <sequence>
-                <element name="printprogress"
-                         type="fews:bool"/>
-                <element name="printincolor"
-                         type="fews:bool"/>
                 <element name="reprdigits">
                     <simpleType>
                         <restriction base="integer">

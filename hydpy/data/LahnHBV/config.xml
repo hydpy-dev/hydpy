@@ -2,8 +2,6 @@
 <config xmlns="https://github.com/tyralla/hydpy/tree/master/hydpy/conf/config.xsd">
 
     <options>
-        <printprogress>false</printprogress>
-        <printincolor>true</printincolor>
         <reprdigits>6</reprdigits>
         <usecython>true</usecython>
         <usedefaultvalues>false</usedefaultvalues>

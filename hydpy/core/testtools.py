@@ -86,6 +86,8 @@ class Tester(object):
         frame = inspect.currentframe().f_back
         self.filepath = frame.f_code.co_filename
         self.package = frame.f_locals['__package__']
+        if not self.package:
+            self.package = 'hydpy.models'
         self.ispackage = os.path.split(self.filepath)[-1] == '__init__.py'
 
     @property

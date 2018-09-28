@@ -120,10 +120,10 @@ example using the "script function" |exec_xml|.
 # import...
 # ...from standard library
 from typing import IO
+import datetime
 import inspect
 import os
 import sys
-import time
 # ...from hydpy
 from hydpy import pub
 from hydpy.core import autodoctools
@@ -176,7 +176,8 @@ def execute_scriptfunction():
     Function |execute_scriptfunction| is indirectly applied in the
     examples of the main documentation on module |hyd|.
     """
-    logfilename = time.strftime('hydpy_%Y-%m-%d_%H-%M-%S.log')
+    logfilename = datetime.datetime.now().strftime(
+        'hydpy_%Y-%m-%d_%H-%M-%S.%f.log')
     with open(logfilename, 'w'):
         pass
 

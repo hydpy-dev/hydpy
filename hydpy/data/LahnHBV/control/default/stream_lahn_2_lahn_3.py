@@ -5,5 +5,5 @@ from hydpy.models.hstream_v1 import *
 simulationstep("1h")
 parameterstep("1d")
 
-lag(0.41700000000000004)
+lag(0.417)
 damp(0.0)

@@ -25,9 +25,8 @@ FileNotFoundError: Cannot find a HydPy log file in directory ...iotesting.
 >>> with TestIO():
 ...     _ = subprocess.run(
 ...         'hyd.py',
-...         'hyd.py',
 ...         stdout=subprocess.PIPE,
-...         sterr=subprocess.PIPE,
+...         stderr=subprocess.PIPE,
 ...         shell=True)
 ...     print_latest_logfile()
 Invoking hyd.py with arguments `...hyd.py` resulted in the following error:
@@ -109,7 +108,7 @@ The same is true for warning messages:
 Start to execute the commands ['import_warnings', \
 "warnings.warn('it_stumbles')"] for testing purposes...
 ...UserWarning: it stumbles
-  #!python3
+  #...
 <BLANKLINE>
 
 Each "script function" is allowed to write additional information

@@ -282,7 +282,8 @@ def controlcheck(controldir='default', projectdir=None, controlfile=None):
     ...         stderr=subprocess.PIPE,
     ...         universal_newlines=True,
     ...         shell=True)
-    >>> '`simulationstep` is intended for testing' in result.stdout
+    >>> (('`simulationstep` is intended for testing' in result.stdout) or
+    ...      ('`simulationstep` is intended for testing' in result.stderr))
     True
 
     With a little trick, we can fake to be "inside" condition file

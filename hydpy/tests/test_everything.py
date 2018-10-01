@@ -114,8 +114,6 @@ allfaileddoctests = ({}, {})
 iterable = zip(('Python', 'Cython'), alldoctests,
                allsuccessfuldoctests, allfaileddoctests)
 for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
-    if mode == 'Cython':
-        continue
     pub.options.usecython = mode == 'Cython'
     for dirpath, dirnames, filenames_ in os.walk(hydpy.__path__[0]):
         if (('__init__.py' not in filenames_) or

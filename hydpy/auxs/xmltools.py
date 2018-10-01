@@ -1104,9 +1104,10 @@ Failed to locate the main schema resource at '...config.xsd'.
         indent = 1
         blanks = ' ' * (indent+4)
         subs = []
-        for name in (
-                fn.split('.')[0] for fn in os.listdir(models.__path__[0])
-                if (fn.endswith('.py') and (fn != '__init__.py'))):
+        filenames = (
+            fn.split('.')[0] for fn in os.listdir(models.__path__[0])
+            if (fn.endswith('.py') and (fn != '__init__.py')))
+        for name in sorted(filenames):
             subs.extend([
                 f'{blanks}<element name="{name}"',
                 f'{blanks}         substitutionGroup="fews:sequenceGroup"',

@@ -265,8 +265,11 @@ def controlcheck(controldir='default', projectdir=None, controlfile=None):
     as `land_dill.py` of the example project `LahnHBV`.  It is called
     `controlcheck` due to its implicite feature to check upon the execution
     of the condition file if eventual specifications within both files
-    disagree.  The following test verifies that this actually works
-    within a new Python process:
+    disagree.  The following test, where we write a number of soil moisture
+    values (|hland_states.SM|) into condition file `land_dill.py` which
+    does not agree with the number of hydrological response units
+    (|hland_control.NmbZones|) defined in control file `land_dill.py`,
+    verifies that this actually works within a new Python process:
 
     >>> from hydpy.core.examples import prepare_full_example_1
     >>> prepare_full_example_1()
@@ -276,15 +279,21 @@ def controlcheck(controldir='default', projectdir=None, controlfile=None):
     >>> cwd = os.path.join('LahnHBV', 'conditions', 'init_1996_01_01')
     >>> with TestIO():
     ...     os.chdir(cwd)
+    ...     with open('land_dill.py') as file_:
+    ...         lines = file_.readlines()
+    ...     lines[10:12] = 'sm(185.13164, 181.18755)', ''
+    ...     with open('land_dill.py', 'w') as file_:
+    ...         _ = file_.write('\\n'.join(lines))
     ...     result = subprocess.run(
     ...         'python land_dill.py',
     ...         stdout=subprocess.PIPE,
     ...         stderr=subprocess.PIPE,
     ...         universal_newlines=True,
     ...         shell=True)
-    >>> (('`simulationstep` is intended for testing' in result.stdout) or
-    ...      ('`simulationstep` is intended for testing' in result.stderr))
-    True
+    >>> print(result.stderr.split('ValueError:')[-1].strip())
+    For sequence `sm` setting new values failed.  \
+The values `(185.13164, 181.18755)` cannot be converted \
+to a numpy ndarray with shape (12,) containing entries of type float.
 
     With a little trick, we can fake to be "inside" condition file
     `land_dill.py`.  Calling |controlcheck| then e.g. prepares the shape

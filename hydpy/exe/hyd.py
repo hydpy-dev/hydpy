@@ -80,11 +80,14 @@ Function `exec_commands` requires `1` arguments (commands), but `2` are given \
 <BLANKLINE>
 
 Error messages raised by the "script function" itself also find their
-way into the log file:
+way into the log file (on Linux, we have to escape the characters "(",
+")", ";", and "'" in the following):
 
->>> execute("hyd.py "
-...         "exec_commands "
-...         "raise_RuntimeError('it_fails')")
+>>> import platform
+>>> esc = '' if 'windows' in platform.platform().lower() else '\\\\'
+>>> execute(f"hyd.py "
+...         f"exec_commands "
+...         f"raise_RuntimeError{esc}({esc}'it_fails{esc}'{esc})")
 Start to execute the commands ["raise_RuntimeError('it_fails')"] for \
 testing purposes.
 Invoking hyd.py with arguments `...hyd.py, exec_commands, \
@@ -94,10 +97,10 @@ it fails
 
 The same is true for warning messages:
 
->>> execute("hyd.py "
-...         "exec_commands "
-...         "import_warnings;"
-...         "warnings.warn('it_stumbles')")
+>>> execute(f"hyd.py "
+...         f"exec_commands "
+...         f"import_warnings{esc};"
+...         f"warnings.warn{esc}({esc}'it_stumbles{esc}'{esc})")
 Start to execute the commands ['import_warnings', \
 "warnings.warn('it_stumbles')"] for testing purposes...
 ...UserWarning: it stumbles
@@ -107,9 +110,9 @@ Start to execute the commands ['import_warnings', \
 Each "script function" is allowed to write additional information
 into the logging file:
 
->>> execute("hyd.py "
-...         "exec_commands "
-...         "logfile.write('it_works')")
+>>> execute(f"hyd.py "
+...         f"exec_commands "
+...         f"logfile.write{esc}({esc}'it_works{esc}'{esc})")
 Start to execute the commands ["logfile.write('it_works')"] \
 for testing purposes.
 it works

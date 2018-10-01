@@ -2,7 +2,7 @@
 # pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
 """ToDo
 
->>> from hydpy.models.hstream import *
+>>> from hydpy.models.hstream_v1 import *
 
 """
 # import...

@@ -23,7 +23,12 @@ Traceback (most recent call last):
 ...
 FileNotFoundError: Cannot find a HydPy log file in directory ...iotesting.
 >>> with TestIO():
-...     _ = subprocess.call('hyd.py', shell=True)
+...     _ = subprocess.run(
+...         'hyd.py',
+...         'hyd.py',
+...         stdout=subprocess.PIPE,
+...         sterr=subprocess.PIPE,
+...         shell=True)
 ...     print_latest_logfile()
 Invoking hyd.py with arguments `...hyd.py` resulted in the following error:
 The first argument defining the function to be called is missing.
@@ -41,7 +46,7 @@ For convenience, we wrap the three required code lines test function "execute":
 
 >>> def execute(command):
 ...     with TestIO():
-...         _ = subprocess.call(command, shell=True)
+...         _ = subprocess.run(command, shell=True)
 ...         print_latest_logfile()
 
 Without any further arguments, `hyd.py` does not know which function to call:

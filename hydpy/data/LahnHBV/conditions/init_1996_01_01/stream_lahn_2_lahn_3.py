@@ -2,6 +2,6 @@
 
 from hydpy.models.hstream_v1 import *
 
-controlcheck(projectdir="lahnHBV", controldir="default")
+controlcheck(projectdir="LahnHBV", controldir="default")
 
 qjoints(35.0)

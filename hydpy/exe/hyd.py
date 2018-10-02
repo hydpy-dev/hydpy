@@ -77,7 +77,7 @@ Function `exec_commands` requires `1` arguments (commands), but `0` are given.
 ...         "exec_commands "
 ...         "first_name "
 ...         "second_name")
-Invoking hyd.py with arguments ...hyd.py, exec_commands, first_name, \
+Invoking hyd.py with arguments `...hyd.py, exec_commands, first_name, \
 second_name` resulted in the following error:
 Function `exec_commands` requires `1` arguments (commands), but `2` are given \
 (first_name and second_name).
@@ -206,7 +206,77 @@ def execute_scriptfunction():
     """Execute a HydPy script function.
 
     Function |execute_scriptfunction| is indirectly applied in the
-    examples of the main documentation on module |hyd|.
+    examples of the main documentation on module |hyd|.  We repeat
+    these examples here for measuring code coverage:
+
+
+    >>> import sys
+    >>> from hydpy import TestIO
+    >>> from hydpy.exe.hyd import execute_scriptfunction
+    >>> def execute(commands):
+    ...     sys.argv = commands.split()
+    ...     with TestIO():
+    ...         execute_scriptfunction()
+    ...         print_latest_logfile()
+
+    >>> execute("hyd.py")
+    Invoking hyd.py with arguments `...hyd.py` resulted in the following error:
+    The first argument defining the function to be called is missing.
+    <BLANKLINE>
+
+    >>> execute("hyd.py "
+    ...         "wrong_argument")
+    Invoking hyd.py with arguments `...hyd.py, wrong_argument` resulted \
+in the following error:
+    There is no `wrong_argument` function callable by `hyd.py`.  \
+Choose one of the following instead: exec_xml and exec_commands
+    <BLANKLINE>
+
+    >>> execute("hyd.py "
+    ...         "exec_commands")
+    Invoking hyd.py with arguments `...hyd.py, exec_commands` resulted \
+in the following error:
+    Function `exec_commands` requires `1` arguments (commands), \
+but `0` are given.
+    <BLANKLINE>
+    >>> execute("hyd.py "
+    ...         "exec_commands "
+    ...         "first_name "
+    ...         "second_name")
+    Invoking hyd.py with arguments `...hyd.py, exec_commands, first_name, \
+second_name` resulted in the following error:
+    Function `exec_commands` requires `1` arguments (commands), \
+but `2` are given (first_name and second_name).
+    <BLANKLINE>
+
+    >>> execute(f"hyd.py "
+    ...         f"exec_commands "
+    ...         f"raise_RuntimeError('it_fails')")
+    Start to execute the commands ["raise_RuntimeError('it_fails')"] for \
+testing purposes.
+    Invoking hyd.py with arguments `...hyd.py, exec_commands, \
+raise_RuntimeError('it_fails')` resulted in the following error:
+    it fails
+    <BLANKLINE>
+
+    >>> import warnings
+    >>> warnings.filterwarnings('always', 'it stumbles')
+    >>> execute(f"hyd.py "
+    ...         f"exec_commands "
+    ...         f"import_warnings;"
+    ...         f"warnings.warn('it_stumbles')")
+    Start to execute the commands ['import_warnings', \
+"warnings.warn('it_stumbles')"] for testing purposes...
+    ...UserWarning: it stumbles
+      #...
+    <BLANKLINE>
+
+    >>> execute(f"hyd.py "
+    ...         f"exec_commands "
+    ...         f"logfile.write('it_works')")
+    Start to execute the commands ["logfile.write('it_works')"] \
+for testing purposes.
+    it works
     """
     logfilepath = prepare_logfile()
     try:

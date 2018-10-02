@@ -7,6 +7,7 @@ routines from model users and for allowing writing readable doctests.
 # import...
 # ...from standard library
 import os
+import importlib
 import inspect
 import warnings
 # ...from HydPy
@@ -177,6 +178,11 @@ def prepare_model(module, timestep=None):
     """
     if timestep is not None:
         parametertools.Parameter.parameterstep(timetools.Period(timestep))
+    try:
+        model = module.Model()
+    except AttributeError:
+        module = importlib.import_module(f'hydpy.models.{module}')
+        model = module.Model()
     model = module.Model()
     if pub.options.usecython and hasattr(module, 'cythonizer'):
         cymodule = module.cythonizer.cymodule
@@ -214,8 +220,7 @@ def prepare_model(module, timestep=None):
 
 
 def simulationstep(timestep):
-    """
-    Define a simulation time step size for testing purposes within a
+    """ Define a simulation time step size for testing purposes within a
     parameter control file.
 
     Using |simulationstep| only affects the values of time dependent
@@ -223,33 +228,123 @@ def simulationstep(timestep):
     no influence on usual hydpy simulations at all.  Use it just to check
     your parameter control files.  Write it in a line immediately behind
     the one calling |parameterstep|.
+
+    To clarify its purpose, executing raises a warning, when executing
+    it from within a control file:
+
+    >>> from hydpy import pub
+    >>> with pub.options.warnsimulationstep(True):
+    ...     from hydpy.models.hland_v1 import *
+    ...     parameterstep('1d')
+    ...     simulationstep('1h')
+    Traceback (most recent call last):
+    ...
+    UserWarning: Note that the applied function `simulationstep` is intended \
+for testing purposes only.  When doing a HydPy simulation, parameter values \
+are initialised based on the actual simulation time step as defined under \
+`pub.timegrids.stepsize` and the value given to `simulationstep` is ignored.
+    >>> k4.simulationstep
+    Period('1h')
     """
     if pub.options.warnsimulationstep:
         warnings.warn(
-            'Note that the applied function `simulationstep` is inteded for '
-            'testing purposes only.  When doing a hydpy simulation, parameter '
-            'values are initialized based on the actual simulation time step '
+            'Note that the applied function `simulationstep` is intended for '
+            'testing purposes only.  When doing a HydPy simulation, parameter '
+            'values are initialised based on the actual simulation time step '
             'as defined under `pub.timegrids.stepsize` and the value given '
             'to `simulationstep` is ignored.')
     parametertools.Parameter.simulationstep(timetools.Period(timestep))
 
 
 def controlcheck(controldir='default', projectdir=None, controlfile=None):
+    """Define the corresponding control file within a condition file.
+
+    Function |controlcheck| serves similar purposes as function
+    |parameterstep|.  It is the reason why one can interactively
+    access the state and/or the log sequences within condition files
+    as `land_dill.py` of the example project `LahnHBV`.  It is called
+    `controlcheck` due to its implicite feature to check upon the execution
+    of the condition file if eventual specifications within both files
+    disagree.  The following test, where we write a number of soil moisture
+    values (|hland_states.SM|) into condition file `land_dill.py` which
+    does not agree with the number of hydrological response units
+    (|hland_control.NmbZones|) defined in control file `land_dill.py`,
+    verifies that this actually works within a new Python process:
+
+    >>> from hydpy.core.examples import prepare_full_example_1
+    >>> prepare_full_example_1()
+
+    >>> import os, subprocess
+    >>> from hydpy import TestIO
+    >>> cwd = os.path.join('LahnHBV', 'conditions', 'init_1996_01_01')
+    >>> with TestIO():
+    ...     os.chdir(cwd)
+    ...     with open('land_dill.py') as file_:
+    ...         lines = file_.readlines()
+    ...     lines[10:12] = 'sm(185.13164, 181.18755)', ''
+    ...     with open('land_dill.py', 'w') as file_:
+    ...         _ = file_.write('\\n'.join(lines))
+    ...     result = subprocess.run(
+    ...         'python land_dill.py',
+    ...         stdout=subprocess.PIPE,
+    ...         stderr=subprocess.PIPE,
+    ...         universal_newlines=True,
+    ...         shell=True)
+    >>> print(result.stderr.split('ValueError:')[-1].strip())
+    For sequence `sm` setting new values failed.  \
+The values `(185.13164, 181.18755)` cannot be converted \
+to a numpy ndarray with shape (12,) containing entries of type float.
+
+    With a little trick, we can fake to be "inside" condition file
+    `land_dill.py`.  Calling |controlcheck| then e.g. prepares the shape
+    of sequence |hland_states.Ic| as specified by the value of parameter
+    |hland_control.NmbZones| given in the corresponding control file:
+
+    >>> from hydpy.models.hland_v1 import *
+    >>> __file__ = 'land_dill.py'   # ToDo: undo?
+    >>> with TestIO():
+    ...     os.chdir(cwd)
+    ...     controlcheck()
+    >>> ic.shape
+    (12,)
+
+    In the above example, the standard names for the project directory
+    (the one containing the executed condition file) and the control
+    directory (`default`) are used.  The following example shows how
+    to change them:
+
+    >>> del model
+    >>> with TestIO():
+    ...     os.chdir(cwd)
+    ...     controlcheck(projectdir='somewhere', controldir='nowhere')
+    Traceback (most recent call last):
+    ...
+    FileNotFoundError: While trying to load the control file \
+`...hydpy...tests...iotesting...control...nowhere...land_dill.py`, the \
+following error occurred: [Errno 2] No such file or directory: '...land_dill.py'
+
+    Note that the functionalities of function |controlcheck| are disabled
+    when there is already a `model` variable in the namespace, which is
+    the case when a condition file is executed within the context of a
+    complete HydPy project.
+    """
     namespace = inspect.currentframe().f_back.f_locals
     model = namespace.get('model')
     if model is None:
         if not controlfile:
             controlfile = os.path.split(namespace['__file__'])[-1]
-        os.chdir('..')
-        os.chdir('..')
-        controlmanager = filetools.ControlManager()
-        if projectdir:
-            controlmanager.projectdir = projectdir
-        else:
-            controlmanager.projectdir = os.path.split(os.getcwd())[-1]
-        controlmanager.currentdir = controldir
-        os.chdir('..')
-        model = controlmanager.load_file(filename=controlfile)['model']
+        if projectdir is None:
+            projectdir = (
+                os.path.split(
+                    os.path.split(
+                        os.path.split(os.getcwd())[0])[0])[-1])
+        dirpath = os.path.abspath(os.path.join(
+            '..', '..', '..', projectdir, 'control', controldir))
+
+        class CM(filetools.ControlManager):
+            currentpath = dirpath
+
+        model = CM().load_file(filename=controlfile)['model']
         model.parameters.update()
         namespace['model'] = model
         for name in ('states', 'logs'):

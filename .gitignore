@@ -12,6 +12,8 @@ hydpy/cythons/autogen/*.c
 hydpy/cythons/autogen/*.h
 hydpy/docs/html/*.html
 hydpy/docs/auto
+hydpy/tests/iotesting/*
+!hydpy/test/iotesting/__init__.py
 build
 _build
 dist

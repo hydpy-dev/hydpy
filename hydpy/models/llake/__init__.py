@@ -6,7 +6,7 @@ LARSIM.
 """
 # import...
 # ...from HydPy
-from hydpy.core.modelimports import *
+from hydpy.exe.modelimports import *
 # ...from llake
 from hydpy.models.llake.llake_control import ControlParameters
 from hydpy.models.llake.llake_derived import DerivedParameters

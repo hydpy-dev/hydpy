@@ -11,9 +11,11 @@ import datetime
 import doctest
 import importlib
 import inspect
+import itertools
 import io
 import os
 import pkgutil
+import subprocess
 import sys
 import time
 import types
@@ -28,6 +30,7 @@ from hydpy import config
 from hydpy import auxs
 from hydpy import core
 from hydpy import cythons
+from hydpy import exe
 from hydpy import models
 from hydpy.core import metatools
 from hydpy.cythons.autogen import annutils
@@ -620,8 +623,8 @@ class Substituter(object):
         >>> print(substituter.get_commands())
         .. |Options.checkseries| replace:: \
 :const:`~hydpy.core.optiontools.Options.checkseries`
-        .. |Options.dirverbose| replace:: \
-:const:`~hydpy.core.optiontools.Options.dirverbose`
+        .. |Options.compileautomatically| replace:: \
+:const:`~hydpy.core.optiontools.Options.compileautomatically`
         ...
         .. |optiontools.Options.warntrim| replace:: \
 :const:`~hydpy.core.optiontools.Options.warntrim`
@@ -664,9 +667,9 @@ def prepare_mainsubstituter():
     file of :ref:`HydPy`."""
     substituter = Substituter()
     for module in (builtins, numpy, datetime, unittest, doctest, inspect, io,
-                   os, sys, time):
+                   os, sys, time, collections, itertools, subprocess):
         substituter.add_module(module)
-    for subpackage in (auxs, core, cythons):
+    for subpackage in (auxs, core, cythons, exe):
         for dummy, name, dummy in pkgutil.walk_packages(subpackage.__path__):
             full_name = subpackage.__name__ + '.' + name
             substituter.add_module(importlib.import_module(full_name))

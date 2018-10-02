@@ -2,6 +2,7 @@
 """This module provides features for handling public (global) project data."""
 # import...
 # ...from standard library
+from typing import Dict, Callable
 import types
 # ...from HydPy
 from hydpy.core import autodoctools
@@ -9,6 +10,7 @@ from hydpy.core import filetools
 from hydpy.core import indextools
 from hydpy.core import optiontools
 from hydpy.core import propertytools
+from hydpy.core import selectiontools
 from hydpy.core import timetools
 
 
@@ -89,6 +91,10 @@ is not defined at the moment.
     sequencemanager: filetools.SequenceManager = _PubProperty()
 
     timegrids: timetools.Timegrids = _PubProperty()
+
+    selections: selectiontools.Selections = _PubProperty()
+
+    scriptfunctions: Dict[str, Callable]
 
     @timegrids.setter
     def timegrids(self, args):

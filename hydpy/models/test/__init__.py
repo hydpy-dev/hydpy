@@ -6,7 +6,7 @@ framework.
 """
 # import...
 # ...from HydPy
-from hydpy.core.modelimports import *
+from hydpy.exe.modelimports import *
 # ...from test
 from hydpy.models.test.test_control import ControlParameters
 from hydpy.models.test.test_solver import SolverParameters

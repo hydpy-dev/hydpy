@@ -6,5 +6,5 @@
 modelimports
 ============
 
-.. automodule:: hydpy.core.modelimports
+.. automodule:: hydpy.exe.modelimports
     :show-inheritance:

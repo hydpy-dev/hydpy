@@ -164,28 +164,36 @@ literal for int() with base 10: '0X'
     def __init__(self, date):
         self.datetime = None
         self._style = None
-        if isinstance(date, abctools.DateABC):
-            self.datetime = date.datetime
+        datetime_ = getattr(date, 'datetime', None)
+        if datetime_ is not None:
+            self.datetime = datetime_
+            self.style = getattr(date, 'style', None)
             return
-        if isinstance(date, datetime.datetime):
-            if date.microsecond:
+        microsecond = getattr(date, 'microsecond', None)
+        if microsecond is not None:
+            if microsecond != 0:
                 raise ValueError(
-                    'For `Date` instances, the microsecond must be `0`.  '
-                    'For the given `datetime` object, it is `%d` instead.'
-                    % date.microsecond)
+                    f'For `Date` instances, the microsecond must be `0`.  '
+                    f'For the given `datetime` object, it is '
+                    f'`{microsecond:d}` instead.')
             date = date.isoformat().replace('T', ' ')
-        if isinstance(date, str):
-            self._init_from_string(date)
-            return
-        if isinstance(date, abctools.TOYABC):
+        try:
             self.datetime = datetime.datetime(
                 2000, date.month, date.day,
                 date.hour, date.minute, date.second)
             return
-        raise TypeError(
-            f'The supplied argument must be either an instance of '
-            f'`datetime.datetime` or of `str`.  The given arguments '
-            f'type is {type(date)}.')
+        except AttributeError:
+            pass
+        try:
+            self._init_from_string(date)
+            return
+        except BaseException as exc:
+            if isinstance(date, str):
+                raise exc
+            raise TypeError(
+                f'The supplied argument must be either an instance of '
+                f'`Date`, `datetime.datetime`, `TOY` or `str`.  The given '
+                f'arguments type is {objecttools.classname(date)}.')
 
     def _init_from_string(self, string):
         substring, offset = self._extract_offset(string)
@@ -1276,15 +1284,15 @@ given step size 1d.
         The following examples identical with the ones of
         |Timegrid.to_timepoints| but reversed.
 
-        The at least two given time points must be increasing and
+        At least two given time points must be increasing and
         equidistant.  By default, they are assumed in hours since
         the given reference date:
 
         >>> from hydpy import Timegrid
         >>> Timegrid.from_timepoints(
-        ...     [0.0, 6.0, 12.0, 18.0], '2000.01.01')
-        Timegrid('2000-01-01 00:00:00',
-                 '2000-01-02 00:00:00',
+        ...     [0.0, 6.0, 12.0, 18.0], '01.01.2000')
+        Timegrid('01.01.2000 00:00:00',
+                 '02.01.2000 00:00:00',
                  '6h')
         >>> Timegrid.from_timepoints(
         ...     [24.0, 30.0, 36.0, 42.0], '1999-12-31')
@@ -1296,12 +1304,12 @@ given step size 1d.
         (only the first character counts):
 
         >>> Timegrid.from_timepoints(
-        ...     [0.0, 0.25, 0.5, 0.75], '2000.01.01', unit='d')
-        Timegrid('2000-01-01 00:00:00',
-                 '2000-01-02 00:00:00',
+        ...     [0.0, 0.25, 0.5, 0.75], '01.01.2000', unit='d')
+        Timegrid('01.01.2000 00:00:00',
+                 '02.01.2000 00:00:00',
                  '6h')
         >>> Timegrid.from_timepoints(
-        ...     [1.0, 1.25, 1.5, 1.75], '1999.12.31', unit='day')
+        ...     [1.0, 1.25, 1.5, 1.75], '1999-12-31', unit='day')
         Timegrid('2000-01-01 00:00:00',
                  '2000-01-02 00:00:00',
                  '6h')
@@ -1952,8 +1960,8 @@ set to `2`, but the given value is `29`.
                                            ('hour', (0, 23)),
                                            ('minute', (0, 59)),
                                            ('second', (0, 59))))
-    _STARTDATE = Date('01.01.2000')
-    _ENDDATE = Date('01.01.2001')
+    _STARTDATE = Date('2000-01-01')
+    _ENDDATE = Date('2001-01-01')
 
     def __init__(self, value=''):
         with objecttools.ResetAttrFuncs(self):

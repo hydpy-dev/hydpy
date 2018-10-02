@@ -9,7 +9,7 @@ concentration.
 """
 # import..
 # ...from HydPy
-from hydpy.core.modelimports import *
+from hydpy.exe.modelimports import *
 # ...from hland
 from hydpy.models.hland.hland_constants import FIELD, FOREST, GLACIER, ILAKE
 from hydpy.models.hland.hland_control import ControlParameters

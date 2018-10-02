@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema targetNamespace="https://github.com/tyralla/hydpy/tree/master/hydpy/conf/config.xsd"
+        xmlns="http://www.w3.org/2001/XMLSchema"
+        xmlns:fews="https://github.com/tyralla/hydpy/tree/master/hydpy/conf/config.xsd"
+        elementFormDefault="qualified">
+
+    <simpleType name="bool">
+        <restriction base="string">
+            <enumeration value="true"/>
+            <enumeration value="false"/>
+        </restriction>
+    </simpleType>
+
+    <simpleType name="listOfStrings">
+      <list itemType="string"/>
+    </simpleType>
+
+    <element name="config">
+        <complexType>
+            <sequence>
+                <element ref="fews:options"/>
+                <element ref="fews:timegrid"/>
+                <element ref="fews:selections"/>
+                <element ref="fews:devices"/>
+                <element ref="fews:conditions_io"/>
+                <element ref="fews:series_io"/>
+            </sequence>
+        </complexType>
+    </element>
+
+    <element name="options">
+        <complexType>
+            <sequence>
+                <element name="reprdigits">
+                    <simpleType>
+                        <restriction base="integer">
+                            <minInclusive value="-1"/>
+                            <maxInclusive value="12"/>
+                        </restriction>
+                    </simpleType>
+                </element>
+                <element name="usecython"
+                         type="fews:bool"/>
+                <element name="usedefaultvalues"
+                         type="fews:bool"/>
+                <element name="utcoffset"
+                         type="integer"/>
+                <element name="warnmissingobsfile"
+                         type="fews:bool"/>
+                <element name="warnmissingsimfile"
+                         type="fews:bool"/>
+                <element name="warntrim"
+                         type="fews:bool"/>
+                <element name="flattennetcdf"
+                         type="fews:bool"/>
+                <element name="isolatenetcdf"
+                         type="fews:bool"/>
+            </sequence>
+        </complexType>
+    </element>
+
+    <element name="timegrid">
+        <complexType>
+            <sequence>
+                <element name="firstdate" type="dateTime"/>
+                <element name="lastdate" type="dateTime"/>
+                <element name="stepsize">
+                    <simpleType>
+                        <restriction base="string">
+                            <pattern value="[0-9]+[smhd]"/>
+                        </restriction>
+                    </simpleType>
+                </element>
+            </sequence>
+        </complexType>
+    </element>
+
+    <element name="selections"
+             type="fews:listOfStrings"/>
+
+    <element name="devices"
+             type="fews:listOfStrings"/>
+
+    <element name="conditions_io">
+        <complexType>
+            <sequence>
+                <element name="inputdir"
+                         type="anyURI"/>
+                <element name="outputdir"
+                         type="anyURI"/>
+            </sequence>
+        </complexType>
+    </element>
+
+    <element name="series_io">
+        <complexType>
+            <sequence>
+                <element ref="fews:filetype"/>
+                <element ref="fews:overwrite"/>
+                <element ref="fews:dirpath"/>
+                <element ref="fews:aggregation"/>
+                <element name="readers">
+                    <complexType>
+                        <sequence>
+                            <element ref="fews:reader"
+                                     maxOccurs="unbounded"/>
+                        </sequence>
+                    </complexType>
+                </element>
+                <element name="writers">
+                    <complexType>
+                        <sequence>
+                            <element ref="fews:writer"
+                                     minOccurs="0"
+                                     maxOccurs="unbounded" />
+                        </sequence>
+                    </complexType>
+                </element>
+            </sequence>
+        </complexType>
+    </element>
+
+    <element name="reader">
+        <complexType>
+            <sequence>
+                <element ref="fews:selections"
+                         minOccurs="0"/>
+                <element ref="fews:devices"
+                         minOccurs="0"/>
+                <element ref="fews:sequences"/>
+                <element ref="fews:filetype"
+                         minOccurs="0"/>
+                <element ref="fews:dirpath"
+                         minOccurs="0"/>
+                <element ref="fews:selections"
+                         minOccurs="0"/>
+                <element ref="fews:devices"
+                         minOccurs="0"/>
+            </sequence>
+            <attribute name="info" type="string"/>
+        </complexType>
+    </element>
+
+    <element name="writer">
+        <complexType>
+            <sequence>
+                <element ref="fews:selections"
+                         minOccurs="0"/>
+                <element ref="fews:devices"
+                         minOccurs="0"/>
+                <element ref="fews:sequences"/>
+                <element ref="fews:filetype"
+                         minOccurs="0"/>
+                <element ref="fews:overwrite"
+                         minOccurs="0"/>
+                <element ref="fews:dirpath"
+                         minOccurs="0"/>
+                <element ref="fews:aggregation"
+                         minOccurs="0"/>
+            </sequence>
+            <attribute name="info" type="string"/>
+        </complexType>
+    </element>
+
+    <element name="filetype">
+        <complexType>
+            <choice>
+                <element name="general"
+                         minOccurs="0"
+                         type="fews:_filetype"/>
+                <sequence>
+                    <element name="inputs"
+                             minOccurs="0"
+                             type="fews:_filetype"/>
+                    <element name="fluxes"
+                             minOccurs="0"
+                             type="fews:_filetype"/>
+                    <element name="states"
+                             minOccurs="0"
+                             type="fews:_filetype"/>
+                    <element name="nodes"
+                             minOccurs="0"
+                             type="fews:_filetype"/>
+                </sequence>
+            </choice>
+        </complexType>
+    </element>
+
+    <simpleType name="_filetype">
+        <restriction base="string">
+            <enumeration value="asc"/>
+            <enumeration value="npy"/>
+            <enumeration value="nc"/>
+        </restriction>
+    </simpleType>
+
+    <element name="overwrite">
+        <complexType>
+            <choice>
+                <element name="general"
+                         minOccurs="0"
+                         type="fews:bool"/>
+                <sequence>
+                    <element name="inputs"
+                             minOccurs="0"
+                             type="fews:bool"/>
+                    <element name="fluxes"
+                             minOccurs="0"
+                             type="fews:bool"/>
+                    <element name="states"
+                             minOccurs="0"
+                             type="fews:bool"/>
+                    <element name="nodes"
+                             minOccurs="0"
+                             type="fews:bool"/>
+                </sequence>
+            </choice>
+        </complexType>
+    </element>
+
+    <element name="dirpath">
+        <complexType>
+            <choice>
+                <element name="general"
+                         minOccurs="0"
+                         type="anyURI"/>
+                <sequence>
+                    <element name="inputs"
+                             minOccurs="0"
+                             type="anyURI"/>
+                    <element name="fluxes"
+                             minOccurs="0"
+                             type="anyURI"/>
+                    <element name="states"
+                             minOccurs="0"
+                             type="anyURI"/>
+                    <element name="nodes"
+                             minOccurs="0"
+                             type="anyURI"/>
+                </sequence>
+            </choice>
+        </complexType>
+    </element>
+
+    <element name="aggregation">
+        <complexType>
+            <choice>
+                <element name="general"
+                         minOccurs="0"
+                         type="fews:_aggregation"/>
+                <sequence>
+                    <element name="inputs"
+                             minOccurs="0"
+                             type="fews:_aggregation"/>
+                    <element name="fluxes"
+                             minOccurs="0"
+                             type="fews:_aggregation"/>
+                    <element name="states"
+                             minOccurs="0"
+                             type="fews:_aggregation"/>
+                    <element name="nodes"
+                             minOccurs="0"
+                             type="fews:_aggregation"/>
+                </sequence>
+            </choice>
+        </complexType>
+    </element>
+
+    <simpleType name="_aggregation">
+        <restriction base="string">
+            <enumeration value="none"/>
+            <enumeration value="mean"/>
+        </restriction>
+    </simpleType>
+
+    <element name="sequences">
+        <complexType>
+            <sequence>
+                <element ref="fews:sequenceGroup"
+                         maxOccurs="unbounded"/>
+            </sequence>
+        </complexType>
+    </element>
+
+    <element name="sequenceGroup"
+             type="fews:sequenceGroupType"
+             abstract="true"/>
+
+    <complexType name="sequenceGroupType"/>
+
+    <element name="node"
+             substitutionGroup="fews:sequenceGroup"
+             type="fews:nodeType"/>
+
+    <complexType name="nodeType">
+        <complexContent>
+            <extension base="fews:sequenceGroupType">
+                <sequence>
+                    <element name="sim"
+                             minOccurs="0"/>
+                    <element name="obs"
+                             minOccurs="0"/>
+                </sequence>
+            </extension>
+        </complexContent>
+    </complexType>
+
+<!--include model sequence groups-->
+</schema>

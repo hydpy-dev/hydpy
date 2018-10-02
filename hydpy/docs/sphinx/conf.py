@@ -33,11 +33,10 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.inheritance_diagram',
               'sphinx.ext.mathjax',
               'sphinx.ext.doctest',
-              'sphinxcontrib.fulltoc',
-              'sphinxprettysearchresults']
+              'sphinxcontrib.fulltoc']
 
 autoclass_content = 'class'
-autodoc_default_flags = ['undoc-members']
+autodoc_default_options = {'undoc-members': None}
 autodoc_member_order = 'bysource'
 
 # Napoleon settings

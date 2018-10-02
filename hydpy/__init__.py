@@ -26,6 +26,7 @@ pyplot = OptionalImport(
     'matplotlib.pyplot',
     ['from matplotlib import pyplot'])
 warnings.resetwarnings()
+warnings.filterwarnings('ignore', category=ImportWarning) # Due to a Cython problem.
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import pubtools
@@ -81,6 +82,9 @@ from hydpy.auxs.statstools import hsepd_pdf
 from hydpy.auxs.statstools import nse
 from hydpy.auxs.statstools import prepare_arrays
 from hydpy.auxs.statstools import std_ratio
+from hydpy.auxs.xmltools import XMLInterface
+from hydpy.exe.hyd import execute_scriptfunction
+from hydpy.exe.hyd import print_latest_logfile
 
 
 pub.options = optiontools.Options()
@@ -98,7 +102,6 @@ def customwarn(message, category, filename, lineno, file=None, line=None):
 warnings.showwarning = customwarn
 warnings.filterwarnings('always', category=HydPyDeprecationWarning)
 warnings.filterwarnings('ignore', r'All-NaN (slice|axis) encountered')
-warnings.filterwarnings('ignore', category=ImportWarning) # Due to a Cython problem.
 warnings.filterwarnings('error', category=integrate.IntegrationWarning)
 
 # Numpy introduced new string representations in version 1.14 affecting
@@ -162,4 +165,7 @@ __all__ = ['netcdf4',
            'hsepd_pdf',
            'nse',
            'prepare_arrays',
-           'std_ratio']
+           'std_ratio',
+           'XMLInterface',
+           'execute_scriptfunction',
+           'print_latest_logfile']

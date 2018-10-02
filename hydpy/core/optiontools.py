@@ -4,6 +4,7 @@
 # import...
 # ...from standard library
 import inspect
+import itertools
 # ...from HydPy
 from hydpy.core import autodoctools
 
@@ -113,6 +114,11 @@ class Options(object):
     """True/False flag for raising an error when trying to load an input
     time series not spanning the whole initialisation period."""
 
+    compileautomatically = _Option(True, None)
+    """A True/False for enabling/disabling the automatic conversion of 
+    pure Python models to computationally more efficient Cython models 
+    whenever a existing Cython model may be outdated."""
+    
     dirverbose = _Option(False, None)
     """A True/False flag for letting the autocompletion textbox include
     all members of an object or only the most relevant ones.  So far, this
@@ -146,7 +152,7 @@ class Options(object):
     So far, this option affects the behaviour of a few implemented classes,
     only."""
 
-    reprdigits = _Option(-999, -999)
+    reprdigits = _Option(-1, -1)
     """Required precision of string representations of floating point
     numbers, defined as the minimum number of digits to be reproduced
     by the string representation (see function |repr_|)."""
@@ -188,6 +194,16 @@ class Options(object):
     To cope with the limited precision of floating point numbers only
     those violations beyond a small tolerance value are reported
     (see function |trim|). """
+
+    def __repr__(self):
+        type_ = type(self)
+        lines = ['Options(']
+        for option in itertools.chain(vars(type_).keys(), vars(self).keys()):
+            if not option.startswith('_'):
+                value = getattr(self, option)
+                lines.append(f'    {option} -> {value}')
+        lines.append(')')
+        return '\n'.join(lines)
 
 
 @autodoctools.make_autodoc_optional

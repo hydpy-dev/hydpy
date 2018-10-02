@@ -70,7 +70,7 @@ for name in os.listdir(os.path.join('hydpy', 'cythons')):
     if name.split('.')[-1] == 'pyx':
         ext_names.append(name.split('.')[0])
 for ext_name in ext_names:
-    print_('\t' + ext_name)
+    print_(f'\t{ext_name}')
 
 print_('\nCopy (and eventually modify) extension modules:')
 # Copy the source code of these extension modules from package `cythons` to
@@ -135,6 +135,7 @@ setup(name='HydPy',
       cmdclass={'build_ext': build_ext},
       ext_modules=Cython.Build.cythonize(ext_modules),
       include_dirs=[numpy.get_include()],
+      scripts=[os.path.join('hydpy', 'exe', 'hyd.py')],
       include_package_data=True)
 
 if install:
@@ -177,6 +178,22 @@ if install:
             path_in = prep('hydpy', 'docs', 'rst', filename)
             path_out = prep(hydpy.docs.rst.__path__[0], filename)
             source2target(path_in, path_out)
+
+    # Make all additional data files available.
+    print_('\nCopy data files:')
+    import hydpy.data
+    dir_input = os.path.join('hydpy', 'data')
+    dir_output = hydpy.data.__path__[0]
+    for subdir_input, dirs, files in os.walk(dir_input):
+        subdir_output = subdir_input.replace(dir_input, dir_output, 1)
+        if not os.path.exists(subdir_output):
+            os.makedirs(subdir_output)
+        for file_ in files:
+            filepath_input = os.path.join(subdir_input, file_)
+            filepath_output = os.path.join(subdir_output, file_)
+            if os.path.exists(filepath_output):
+                os.remove(filepath_output)
+            shutil.copy(filepath_input, subdir_output)
 
     # Make all additional figures available.
     print_('\nCopy figures:')

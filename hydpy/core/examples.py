@@ -3,9 +3,14 @@
 # import...
 # ...from standard library
 from typing import Tuple
+import os
+import shutil
 # ...from HydPy
+from hydpy import data
 from hydpy.core import autodoctools
 from hydpy.core import devicetools
+from hydpy.core import testtools
+from hydpy.tests import iotesting
 
 
 def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
@@ -130,14 +135,12 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
         elements.prepare_fluxseries()
         elements.prepare_stateseries()
 
-
-    def init_values(seq, value1):
-        value2_ = value1 + len(seq.series.flatten())
-        values_ = numpy.arange(value1, value2_, dtype=float)
+    def init_values(seq, value1_):
+        value2_ = value1_ + len(seq.series.flatten())
+        values_ = numpy.arange(value1_, value2_, dtype=float)
         seq.testarray = values_.reshape(seq.seriesshape)
         seq.series = seq.testarray.copy()
         return value2_
-
 
     import numpy
     value1 = 0
@@ -150,6 +153,34 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
         value1 = init_values(node.sequences.sim, value1)
 
     return nodes, elements
+
+
+def prepare_full_example_1() -> None:
+    """Prepare the complete `LahnHBV` project for testing.
+
+    >>> from hydpy.core.examples import prepare_full_example_1
+    >>> prepare_full_example_1()
+    >>> from hydpy import TestIO
+    >>> import os
+    >>> with TestIO():
+    ...     print('root:', *sorted(os.listdir('.')))
+    ...     for folder in ('control', 'conditions', 'series'):
+    ...         print(f'LahnHBV/{folder}:',
+    ...               *sorted(os.listdir(f'LahnHBV/{folder}')))
+    root: LahnHBV __init__.py
+    LahnHBV/control: default
+    LahnHBV/conditions: init_1996_01_01
+    LahnHBV/series: input node output temp
+
+    ToDo: Improve, test, and explain this example data set.
+    """
+    testtools.TestIO.clear()
+    shutil.copytree(
+        os.path.join(data.__path__[0], 'LahnHBV'),
+        os.path.join(iotesting.__path__[0], 'LahnHBV'))
+    seqpath = os.path.join(iotesting.__path__[0], 'LahnHBV', 'series')
+    for folder in ('output', 'node', 'temp'):
+        os.makedirs(os.path.join(seqpath, folder))
 
 
 autodoctools.autodoc_module()

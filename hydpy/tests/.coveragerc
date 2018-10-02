@@ -1,6 +1,7 @@
 
 [run]
-source = hydpy
+source =
+    hydpy
 omit =
     */hydpy/tests/*
     */hydpy/docs/*

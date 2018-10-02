@@ -3,30 +3,57 @@
 # pylint: enable=missing-docstring
 
 # import...
-import sys
 import warnings
 # ...from site-packages
 import numpy
 # ...from HydPy
+from hydpy.core import objecttools
 from hydpy.core import sequencetools
 
 
 class QUH(sequencetools.LogSequence):
-    """Whole outflow delayed by means of the unit hydrograph [mm]."""
+    """Whole outflow delayed by means of the unit hydrograph [mm].
+
+    The last value is always set to zero to avoid biased results:
+
+    >>> from hydpy.models.hland import *
+    >>> parameterstep('1h')
+    >>> simulationstep('1h')
+    >>> maxbaz(3.0)
+    >>> derived.uh.update()
+    >>> logs.quh(1.0, 2.0, 1.0)
+    >>> logs.quh
+    quh(1.0, 2.0, 0.0)
+
+    When a wrong number of input values is given, |QUH| distributes
+    their sum equally and emits the following warning:
+
+    >>> logs.quh(1.0, 2.0, 3.0, 0.0)
+    Traceback (most recent call last):
+    ...
+    UserWarning: Due to the following problem, log sequence `quh` of \
+element `?` handling model `hland` could be initialised with a averaged \
+value only: For sequence `quh` setting new values failed.  The values \
+`(1.0, 2.0, 3.0, 0.0)` cannot be converted to a numpy ndarray with shape \
+(3,) containing entries of type float.
+    >>> logs.quh
+    quh(3.0, 3.0, 0.0)
+    """
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
     def __call__(self, *args):
         try:
             sequencetools.LogSequence.__call__(self, *args)
-        except BaseException:
-            message = sys.exc_info()[1]
-            sequencetools.LogSequence.__call__(self, numpy.sum(args))
-            warnings.warn('Note that, due to the following problem, the '
-                          'unit-hydrograph of the affected HydPy-H-Land '
-                          'model could be initialised with an summed '
-                          'value only: %s' % message)
-        # The last value must be zero, otherwise all results were biased:
-        self.values[-1] = 0.
+            self.values[-1] = 0.
+        except BaseException as exc:
+            sequencetools.LogSequence.__call__(
+                self, numpy.sum(args)/(self.shape[0]-1))
+            self.values[-1] = 0.
+            warnings.warn(
+                f'Due to the following problem, log sequence '
+                f'{objecttools.elementphrase(self)} handling model '
+                f'`{self.subseqs.seqs.model}` could be initialised '
+                f'with a averaged value only: {exc}')
 
 
 class LogSequences(sequencetools.LogSequences):

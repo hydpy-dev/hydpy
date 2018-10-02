@@ -6,7 +6,7 @@ as implemented in LARSIM.
 """
 # import...
 # ...from HydPy
-from hydpy.core.modelimports import *
+from hydpy.exe.modelimports import *
 # ...from lstream
 from hydpy.models.lstream.lstream_control import ControlParameters
 from hydpy.models.lstream.lstream_derived import DerivedParameters

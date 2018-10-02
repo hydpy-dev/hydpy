@@ -1763,7 +1763,7 @@ class Elements(Devices):
     _contentclass = Element
 
     @classmethod
-    def __new__(cls, *values) -> 'abctools.ElementsABC':
+    def __new__(cls, *values) -> 'Elements':
         return Devices.__new__(cls)
 
     @printtools.print_progress

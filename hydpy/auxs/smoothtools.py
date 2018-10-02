@@ -30,7 +30,7 @@ in the Cython extension module |smoothutils|.
 import numpy
 from scipy import optimize
 # ...from HydPy
-from hydpy.cythons.autogen import smoothutils
+from hydpy.cythons import smoothutils
 from hydpy.core import autodoctools
 
 

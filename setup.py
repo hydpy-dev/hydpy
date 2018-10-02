@@ -157,13 +157,13 @@ if install:
 
     # Make all extension definition files available, which are required for
     # cythonizing hydrological models.
-    print_('\nCopy extension modules:')
+    print_('\nCopy extension modules and their stub files:')
     import hydpy.cythons
     for ext_name in ext_names:
-        for suffix in ('pyx', 'pxd'):
+        for suffix in ('pyx', 'pxd', 'pyi'):
             filename = '%s.%s' % (ext_name, suffix)
             path_in = prep('hydpy', 'cythons', filename)
-            path_out = prep(hydpy.cythons.autogen.__path__[0], filename)
+            path_out = prep(hydpy.cythons.__path__[0], filename)
             source2target(path_in, path_out, True)
             path_in = prep('hydpy', 'cythons', 'autogen', filename)
             path_out = prep(hydpy.cythons.autogen.__path__[0], filename)

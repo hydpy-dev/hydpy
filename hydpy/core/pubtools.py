@@ -96,7 +96,7 @@ is not defined at the moment.
 
     scriptfunctions: Dict[str, Callable]
 
-    @timegrids.setter
+    @timegrids.setter_
     def timegrids(self, args):
         try:
             return timetools.Timegrids(*args)

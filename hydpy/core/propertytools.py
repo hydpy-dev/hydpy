@@ -4,7 +4,7 @@ additional behaviour."""
 
 # import...
 # ...from standard-library
-from typing import Any, Callable
+from typing import *
 import abc
 import weakref
 # ...from HydPy
@@ -19,11 +19,11 @@ class _BaseProperty(object, metaclass=abc.ABCMeta):
     fset: Callable
     fdel: Callable
 
-    def __set_name__(self, objtype, name):
+    def __set_name__(self, objtype, name) -> None:
         self.objtype: Any = objtype
         self.name: str = name
 
-    def __get__(self, obj, objtype=None):
+    def __get__(self, obj, objtype=None) -> Any:
         if obj is None:
             return self
         if self.fget is None:
@@ -32,14 +32,14 @@ class _BaseProperty(object, metaclass=abc.ABCMeta):
                 % (self.name, objecttools.devicephrase(obj)))
         return self.call_fget(obj)
 
-    def __set__(self, obj, value):
+    def __set__(self, obj, value) -> None:
         if self.fset is None:
             raise AttributeError(
                 'Attribute `%s` of object %s is not settable.'
                 % (self.name, objecttools.devicephrase(obj)))
         self.call_fset(obj, value)
 
-    def __delete__(self, obj):
+    def __delete__(self, obj) -> None:
         if self.fdel is None:
             raise AttributeError(
                 'Attribute `%s` of object %s is not deleteable.'
@@ -47,30 +47,30 @@ class _BaseProperty(object, metaclass=abc.ABCMeta):
         self.call_fdel(obj)
 
     @abc.abstractmethod
-    def call_fget(self, obj):
+    def call_fget(self, obj) -> Any:
         """ToDo"""
 
     @abc.abstractmethod
-    def call_fset(self, obj, value):
+    def call_fset(self, obj, value) -> None:
         """ToDo"""
 
     @abc.abstractmethod
-    def call_fdel(self, obj):
+    def call_fdel(self, obj) -> None:
         """ToDo"""
 
-    def getter(self, fget):
+    def getter_(self, fget) -> '_BaseProperty':
         """Add the given getter function and its docstring to the
          property and return it."""
         self.fget = fget
         self.__doc__ = fget.__doc__
         return self
 
-    def setter(self, fset):
+    def setter_(self, fset) -> '_BaseProperty':
         """Add the given setter function to the property and return it."""
         self.fset = fset
         return self
 
-    def deleter(self, fdel):
+    def deleter_(self, fdel) -> '_BaseProperty':
         """Add the given deleter function to the property and return it."""
         self.fdel = fdel
         return self
@@ -102,10 +102,10 @@ class ProtectedProperty(_BaseProperty):
     ...     def x(self):
     ...         "Test"
     ...         return self._x
-    ...     @x.setter
+    ...     @x.setter_
     ...     def x(self, value):
     ...         self._x = value
-    ...     @x.deleter
+    ...     @x.deleter_
     ...     def x(self):
     ...         self._x = None
 
@@ -159,18 +159,18 @@ class ProtectedProperty(_BaseProperty):
         self.fdel = None
         self.__obj2ready = weakref.WeakKeyDictionary()
 
-    def call_fget(self, obj):
+    def call_fget(self, obj) -> Any:
         if self.isready(obj):
             return self.fget(obj)
         raise exceptiontools.AttributeNotReady(
             'Attribute `%s` of object %s has not been prepared so far.'
             % (self.name, objecttools.devicephrase(obj)))
 
-    def call_fset(self, obj, value):
+    def call_fset(self, obj, value) -> None:
         self.fset(obj, value)
         self.__obj2ready[obj] = True
 
-    def call_fdel(self, obj):
+    def call_fdel(self, obj) -> None:
         self.__obj2ready[obj] = False
         self.fdel(obj)
 
@@ -180,7 +180,7 @@ class ProtectedProperty(_BaseProperty):
         unknow, |ProtectedProperty| returns |False|."""
         return self.__obj2ready.get(obj, False)
 
-    def copy(self, old_obj, new_obj):   # ToDo remove?
+    def copy(self, old_obj, new_obj) -> None:   # ToDo remove?
         """Assume the same readiness of the old object than for tne
         new object.  If the old object is unknown, assume the new one
         is not ready."""
@@ -200,14 +200,14 @@ class ProtectedProperties(object):
     ...     @pt.ProtectedProperty
     ...     def x(self):
     ...         return 'this is x'
-    ...     @x.setter
+    ...     @x.setter_
     ...     def x(self, value):
     ...         pass
     ...
     ...     @pt.ProtectedProperty
     ...     def z(self):
     ...         return 'this is z'
-    ...     @z.setter
+    ...     @z.setter_
     ...     def z(self, value):
     ...         pass
     ...
@@ -224,7 +224,7 @@ class ProtectedProperties(object):
     True
     """
 
-    def __init__(self, *properties):
+    def __init__(self, *properties: ProtectedProperty):
         self.__properties = properties
 
     def allready(self, obj) -> bool:
@@ -258,23 +258,23 @@ class DependentProperty(_BaseProperty):
     ...     @pt.ProtectedProperty
     ...     def x(self):
     ...         return self._x
-    ...     @x.setter
+    ...     @x.setter_
     ...     def x(self, value):
     ...         self._x = value
-    ...     @x.deleter
+    ...     @x.deleter_
     ...     def x(self):
     ...         self._x = None
     ...
     ...     y = pt.DependentProperty(
     ...         name='y', protected=(x,))
     ...
-    ...     @y.getter
+    ...     @y.getter_
     ...     def y(self):
     ...         return self._y
-    ...     @y.setter
+    ...     @y.setter_
     ...     def y(self, value):
     ...         self._y = value
-    ...     @y.deleter
+    ...     @y.deleter_
     ...     def y(self):
     ...         self._y = None
 
@@ -319,7 +319,7 @@ attribute `x` first.
         self.fset = None
         self.fdel = None
 
-    def __check(self, obj):
+    def __check(self, obj) -> None:
         for req in self.protected:
             if not req.isready(obj):
                 raise exceptiontools.AttributeNotReady(
@@ -327,15 +327,15 @@ attribute `x` first.
                     'At least, you have to prepare attribute `%s` first.'
                     % (self.name, objecttools.devicephrase(obj), req.name))
 
-    def call_fget(self, obj):
+    def call_fget(self, obj) -> Any:
         self.__check(obj)
         return self.fget(obj)
 
-    def call_fset(self, obj, value):
+    def call_fset(self, obj, value) -> None:
         self.__check(obj)
         self.fset(obj, value)
 
-    def call_fdel(self, obj):
+    def call_fdel(self, obj) -> None:
         self.__check(obj)
         self.fdel(obj)
 
@@ -363,10 +363,10 @@ class DefaultProperty(_BaseProperty):
     ...     def y(self):
     ...         "Default property y."
     ...         return 2.0
-    ...     @y.setter
+    ...     @y.setter_
     ...     def y(self, value):
     ...         return float(value)
-    ...     @y.deleter
+    ...     @y.deleter_
     ...     def y(self):
     ...         if self.y == 4.0:
     ...             raise RuntimeError
@@ -434,7 +434,7 @@ class DefaultProperty(_BaseProperty):
         self.fdel = self._fdel
         self.__doc__ = fget.__doc__
 
-    def call_fget(self, obj):
+    def call_fget(self, obj) -> Any:
         """Return the predefined custom value when available, otherwise,
         the value defined by the getter function."""
         custom = self.__obj2custom.get(obj)
@@ -442,11 +442,11 @@ class DefaultProperty(_BaseProperty):
             return self.fget(obj)
         return custom
 
-    def call_fset(self, obj, value):
+    def call_fset(self, obj, value) -> None:
         """Store the given custom value and call the setter function."""
         self.__obj2custom[obj] = self.fset(obj, value)
 
-    def call_fdel(self, obj):
+    def call_fdel(self, obj) -> None:
         """Remove the predefined custom value and call the delete function."""
         self.fdel(obj)
         try:
@@ -454,11 +454,11 @@ class DefaultProperty(_BaseProperty):
         except KeyError:
             pass
 
-    def _fset(self, obj, value):
+    def _fset(self, obj, value) -> Any:
         """Just return the given value."""
         return value
 
-    def _fdel(self, obj):
+    def _fdel(self, obj) -> None:
         """Do nothing."""
 
 

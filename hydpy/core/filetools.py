@@ -85,11 +85,11 @@ class FileManager(object):
     def projectdir(self):
         return self._projectdir
 
-    @projectdir.setter
+    @projectdir.setter_
     def projectdir(self, name):
         self._projectdir = name
 
-    @projectdir.deleter
+    @projectdir.deleter_
     def projectdir(self):
         self._projectdir = None
 

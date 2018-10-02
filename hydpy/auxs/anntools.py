@@ -310,12 +310,12 @@ attribute `nmb_inputs` first.
         """
         return self._cann.nmb_inputs
 
-    @nmb_inputs.setter
+    @nmb_inputs.setter_
     def nmb_inputs(self, value) -> None:
         self._cann.nmb_inputs = int(value)
         self.__update_shapes()
 
-    @nmb_inputs.deleter
+    @nmb_inputs.deleter_
     def nmb_inputs(self) -> None:
         pass
 
@@ -334,12 +334,12 @@ attribute `nmb_inputs` first.
         """
         return self._cann.nmb_outputs
 
-    @nmb_outputs.setter
+    @nmb_outputs.setter_
     def nmb_outputs(self, value) -> None:
         self._cann.nmb_outputs = int(value)
         self.__update_shapes()
 
-    @nmb_outputs.deleter
+    @nmb_outputs.deleter_
     def nmb_outputs(self) -> None:
         pass
 
@@ -358,14 +358,14 @@ attribute `nmb_inputs` first.
         """
         return tuple(numpy.asarray(self._cann.nmb_neurons))
 
-    @nmb_neurons.setter
+    @nmb_neurons.setter_
     def nmb_neurons(self, value) -> None:
         self._cann.nmb_neurons = numpy.array(value, dtype=int, ndmin=1)
         self._cann.nmb_layers = len(value)
         self.__max_nmb_neurons = max(value)
         self.__update_shapes()
 
-    @nmb_neurons.deleter
+    @nmb_neurons.deleter_
     def nmb_neurons(self) -> None:
         pass
 
@@ -679,7 +679,7 @@ broadcast input array from shape (3,3) into shape (2,3)
     nmb_layers = propertytools.DependentProperty(
         name='nmb_layers', protected=__protectedproperties)
 
-    @nmb_layers.getter
+    @nmb_layers.getter_
     def nmb_layers(self) -> int:
         """Number of hidden layers.
 
@@ -694,7 +694,7 @@ broadcast input array from shape (3,3) into shape (2,3)
     shape_neurons = propertytools.DependentProperty(
         name='shape_neurons', protected=__protectedproperties)
 
-    @shape_neurons.getter
+    @shape_neurons.getter_
     def shape_neurons(self) -> Tuple[int, int]:
         """Shape of the array containing the activities of the neurons
         of the hidden layers.

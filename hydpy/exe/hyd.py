@@ -177,17 +177,42 @@ def print_latest_logfile(dirpath='.'):
         print(logfile.read())
 
 
+def prepare_logfile():
+    """Prepare an empty log file and return its absolute path with a
+    filename containing the actual date and time.
+
+    >>> import datetime
+    >>> _datetime = datetime.datetime
+    >>> class DateTime(_datetime):
+    ...     @classmethod
+    ...     def now(cls, tz=None):
+    ...         return cls.fromtimestamp(946681200.0, tz)
+    >>> datetime.datetime = DateTime
+    >>> from hydpy.exe.hyd import prepare_logfile
+    >>> from hydpy import TestIO
+    >>> with TestIO():
+    ...     filepath = prepare_logfile()
+    >>> import os
+    >>> os.path.exists(filepath)
+    True
+    >>> filepath
+    'hydpy...tests...iotesting...hydpy_2000-01-01_00-00-00.000000'
+    >>> datetime.datetime = _datetime
+    """
+    filename = datetime.datetime.now().strftime(
+        'hydpy_%Y-%m-%d_%H-%M-%S.%f.log')
+    with open(filename, 'w'):
+        pass
+    return os.path.abspath(filename)
+
+
 def execute_scriptfunction():
     """Execute a HydPy script function.
 
     Function |execute_scriptfunction| is indirectly applied in the
     examples of the main documentation on module |hyd|.
     """
-    logfilename = datetime.datetime.now().strftime(
-        'hydpy_%Y-%m-%d_%H-%M-%S.%f.log')
-    with open(logfilename, 'w'):
-        pass
-
+    logfilepath = prepare_logfile()
     try:
         try:
             funcname = sys.argv[1]
@@ -222,13 +247,13 @@ def execute_scriptfunction():
                 f'are given{enum_args_given}.')
         stdout = sys.stdout
         try:
-            with open(logfilename, 'a') as logfile:
+            with open(logfilepath, 'a') as logfile:
                 sys.stdout = logfile
                 func(*sys.argv[2:], logfile=logfile)
         finally:
             sys.stdout = stdout
     except BaseException as exc:
-        with open(logfilename, 'a') as logfile:
+        with open(logfilepath, 'a') as logfile:
             arguments = ', '.join(sys.argv)
             logfile.write(
                 f'Invoking hyd.py with arguments `{arguments}` '

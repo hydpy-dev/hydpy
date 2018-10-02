@@ -166,29 +166,35 @@ literal for int() with base 10: '0X'
     def __init__(self, date):
         self.datetime = None
         self._style = None
-        if isinstance(date, abctools.DateABC):
-            self.datetime = date.datetime
+        datetime_ = getattr(date, 'datetime', None)
+        if datetime_ is not None:
+            self.datetime = datetime_
             return
-        if isinstance(date, datetime.datetime):
-            if date.microsecond:
+        microsecond = getattr(date, 'microsecond', None)
+        if microsecond is not None:
+            if microsecond != 0:
                 raise ValueError(
-                    'For `Date` instances, the microsecond must be `0`.  '
-                    'For the given `datetime` object, it is `%d` instead.'
-                    % date.microsecond)
+                    f'For `Date` instances, the microsecond must be `0`.  '
+                    f'For the given `datetime` object, it is '
+                    f'`{microsecond:d}` instead.')
             date = date.isoformat().replace('T', ' ')
-        if isinstance(date, str):
-            self._init_from_string(date)
-            return
-        if isinstance(date, abctools.TOYABC):
+        try:
             self.datetime = datetime.datetime(
                 2000, date.month, date.day,
                 date.hour, date.minute, date.second)
             return
-        raise TypeError(
-            'The supplied argument must be either an instance of '
-            '`datetime.datetime` or of `str`.  The given arguments '
-            'type is %s.'
-            % type(date))
+        except AttributeError:
+            pass
+        try:
+            self._init_from_string(date)
+            return
+        except BaseException as exc:
+            if isinstance(date, str):
+                raise exc
+            raise TypeError(
+                f'The supplied argument must be either an instance of '
+                f'`Date`, `datetime.datetime`, `TOY` or `str`.  The given '
+                f'arguments type is {objecttools.classname(date)}.')
 
     def _init_from_string(self, string):
         substring, offset = self._extract_offset(string)

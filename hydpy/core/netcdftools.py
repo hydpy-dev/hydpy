@@ -98,6 +98,8 @@ goes hand in hand with storing them in separate NetCDF files, of
 course.  In such cases, you have to include the folder into the
 attribute name:
 
+>>> writer.foldernames
+('example',)
 >>> writer.example_lland_v1.flux_nkor.subdevicenames
 ('element1', 'element2')
 

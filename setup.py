@@ -32,7 +32,7 @@ def prep(*folders):
 
 
 def source2target(source, target, do_copy=True):
-    print_('  %s\n    --> %s' % (source, target))
+    print_(f'  {source}\n    --> {target}')
     if do_copy:
         shutil.copy(source, target)
 
@@ -78,7 +78,7 @@ print_('\nCopy (and eventually modify) extension modules:')
 ext_modules = []
 for ext_name in ext_names:
     for suffix in ('pyx', 'pxd'):
-        filename = '%s.%s' % (ext_name, suffix)
+        filename = f'{ext_name}.{suffix}'
         path_in = prep('hydpy', 'cythons', filename)
         path_out = prep('hydpy', 'cythons', 'autogen', filename)
         source2target(path_in, path_out, False)
@@ -97,8 +97,8 @@ for ext_name in ext_names:
 
 print_('\nPrepare extension modules:`')
 for ext_name in ext_names:
-    path = prep('hydpy', 'cythons', 'autogen', '%s.pyx' % ext_name)
-    name = 'hydpy.cythons.autogen.%s' % ext_name
+    path = prep('hydpy', 'cythons', 'autogen', f'{ext_name}.pyx')
+    name = f'hydpy.cythons.autogen.{ext_name}'
     source2target(path, name, False)
     ext_modules.append(Extension(name, [path], extra_compile_args=['-O2']))
 print_()
@@ -156,18 +156,24 @@ if install:
     hydpy.pub.options.fastcython = not debug_cython
 
     # Make all extension definition files available, which are required for
-    # cythonizing hydrological models.
-    print_('\nCopy extension modules and their stub files:')
+    # cythonizing hydrological models, as well as their stub files.
+    print_('\nCopy extension modules:')
     import hydpy.cythons
     for ext_name in ext_names:
-        for suffix in ('pyx', 'pxd', 'pyi'):
-            filename = '%s.%s' % (ext_name, suffix)
-            path_in = prep('hydpy', 'cythons', filename)
-            path_out = prep(hydpy.cythons.__path__[0], filename)
-            source2target(path_in, path_out, True)
+        for suffix in ('pyx', 'pxd'):
+            filename = f'{ext_name}.{suffix}'
             path_in = prep('hydpy', 'cythons', 'autogen', filename)
             path_out = prep(hydpy.cythons.autogen.__path__[0], filename)
             source2target(path_in, path_out, True)
+    print_('\nCopy extension stub files:')
+    for ext_name in ext_names:
+        filename = f'{ext_name}.pyi'
+        path_in = prep('hydpy', 'cythons', filename)
+        path_out = prep(hydpy.cythons.__path__[0], filename)
+        source2target(path_in, path_out, True)
+        path_in = prep('hydpy', 'cythons', 'autogen', filename)
+        path_out = prep(hydpy.cythons.autogen.__path__[0], filename)
+        source2target(path_in, path_out, True)
 
     # Make all restructured text documentation files available.
     print_('\nCopy documentation files:')
@@ -225,16 +231,16 @@ if install:
     # Execute all tests.
     oldpath = os.path.abspath('.')
     path = os.path.abspath(hydpy.tests.__path__[0])
-    print_('\nChange cwd for testing:\n\t%s' % path)
+    print_(f'\nChange cwd for testing:\n\t{path}')
     os.chdir(path)
     exitcode = int(os.system(
         'coverage run test_everything.py rcfile=.coveragerc '))
     if exitcode:
-        print_('Use this HydPy version with caution on your system.  At '
-               'least one verification test failed.  You should see in the '
-               'information given above, whether essential features of '
-               'HydPy are broken or perhaps only some typing errors in '
-               'documentation were detected.  (exit code: %d)\n' % exitcode)
+        print_(f'Use this HydPy version with caution on your system.  At '
+               f'least one verification test failed.  You should see in the '
+               f'information given above, whether essential features of '
+               f'HydPy are broken or perhaps only some typing errors in '
+               f'documentation were detected.  (exit code: {exitcode:d})\n')
         sys.exit(1)
 
     # Copy all extension files (pyx) and all compiled Cython files (pyd or so)

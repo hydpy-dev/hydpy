@@ -89,9 +89,9 @@ the suffix `_mean`:
 from typing import Dict, IO, Iterator, List, Union
 import collections
 import copy
+import datetime
 import itertools
 import os
-import time
 from xml.etree import ElementTree
 # ...from site-packages
 from lxml import etree
@@ -180,32 +180,38 @@ def exec_xml(projectname: str, *, logfile: IO):
 
     Function |exec_xml| is a "script function" and is normally used as
     explained in the main documentation on module |xmltools|.  The
-    following doctests only ensure that calling |exec_xml| directly gives
-    the same results as calling it by the command line.
+    following doctests ensure that calling |exec_xml| directly gives
+    the same results as calling it by the command line and that
+    the log dates are written correctly:
 
-    >>> from hydpy import pub, TestIO, print_values
+    >>> from hydpy import pub, TestIO, print_latest_logfile, print_values
     >>> pub.scriptfunctions['exec_xml'].__name__
     'exec_xml'
     >>> pub.scriptfunctions['exec_xml'].__module__
-    'xmltools'
+    'hydpy.auxs.xmltools'
     >>> from hydpy.core.examples import prepare_full_example_1
     >>> prepare_full_example_1()
     >>> from hydpy.auxs.xmltools import exec_xml
     >>> from hydpy.exe.hyd import prepare_logfile
+    >>> from hydpy.core.testtools import mock_datetime_now
+    >>> from datetime import datetime
     >>> import numpy
     >>> with TestIO():
-    ...     logfilepath = prepare_logfile()
-    ...     with open(logfilepath, 'a') as logfile:
-    ...         exec_xml('LahnHBV', logfile=logfile)
+    ...     with mock_datetime_now(datetime(2000, 1, 1, 12, 30, 0, 123456)):
+    ...         logfilepath = prepare_logfile()
+    ...         with open(logfilepath, 'a') as logfile:
+    ...             exec_xml('LahnHBV', logfile=logfile)
     ...     print_values((numpy.load(
     ...         'LahnHBV/series/output/lahn_1_sim_q_mean.npy')[13:]))
+    ...     print_latest_logfile()
     9.621296, 8.503069, 7.774927, 7.34503, 7.15879
+    Start HydPy project `LahnHBV` (2000-01-01 12:30:00.123456).
+    ...
     """
-
     def write(text):
         """Write the given text eventually."""
         logfile.flush()
-        timestring = time.strftime('%Y-%m-%d %H:%M:%S')
+        timestring = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
         logfile.write(f'{text} ({timestring}).\n')
         logfile.flush()
 
@@ -267,8 +273,8 @@ class XMLInterface(XMLBase):
 
     >>> from hydpy.auxs.xmltools import XMLInterface
     >>> from hydpy import data
-    >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
-    >>> interface = XMLInterface('wrongfilepath.xml')
+    >>> _ = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
+    >>> XMLInterface('wrongfilepath.xml')
     Traceback (most recent call last):
     ...
     FileNotFoundError: While trying to read parse the XML configuration \

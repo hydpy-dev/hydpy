@@ -181,26 +181,22 @@ def prepare_logfile():
     """Prepare an empty log file and return its absolute path with a
     filename containing the actual date and time.
 
-    >>> import datetime
-    >>> _datetime = datetime.datetime
-    >>> class DateTime(_datetime):
-    ...     @classmethod
-    ...     def now(cls, tz=None):
-    ...         return cls.fromtimestamp(946681200.0, tz)
-    >>> datetime.datetime = DateTime
+
     >>> from hydpy.exe.hyd import prepare_logfile
     >>> from hydpy import TestIO
+    >>> from hydpy.core.testtools import mock_datetime_now
+    >>> from datetime import datetime
     >>> with TestIO():
-    ...     filepath = prepare_logfile()
+    ...     with mock_datetime_now(datetime(2000, 1, 1, 12, 30, 0)):
+    ...         filepath = prepare_logfile()
     >>> import os
     >>> os.path.exists(filepath)
     True
     >>> filepath
-    'hydpy...tests...iotesting...hydpy_2000-01-01_00-00-00.000000'
-    >>> datetime.datetime = _datetime
+    '...hydpy...tests...iotesting...hydpy_2000-01-01_12-30-00.log'
     """
     filename = datetime.datetime.now().strftime(
-        'hydpy_%Y-%m-%d_%H-%M-%S.%f.log')
+        'hydpy_%Y-%m-%d_%H-%M-%S.log')
     with open(filename, 'w'):
         pass
     return os.path.abspath(filename)

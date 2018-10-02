@@ -28,7 +28,7 @@ of the resulting log file confirms that something happened:
 >>> from hydpy import TestIO, print_latest_logfile
 >>> import subprocess
 >>> with TestIO():
-...     _ = subprocess.call('hyd.py exec_xml LahnHBV', shell=True)
+...     _ = subprocess.run('hyd.py exec_xml LahnHBV', shell=True)
 ...     print_latest_logfile()
 Start HydPy project `LahnHBV` (...).
 Read configuration file `conf.xml` (...).
@@ -177,6 +177,29 @@ def strip(name) -> str:
 def exec_xml(projectname: str, *, logfile: IO):
     """Perform a HydPy workflow in agreement with the configuration file
     `conf.xml` available in the directory of the given project.
+
+    Function |exec_xml| is a "script function" and is normally used as
+    explained in the main documentation on module |xmltools|.  The
+    following doctests only ensure that calling |exec_xml| directly gives
+    the same results as calling it by the command line.
+
+    >>> from hydpy import pub, TestIO, print_values
+    >>> pub.scriptfunctions['exec_xml'].__name__
+    'exec_xml'
+    >>> pub.scriptfunctions['exec_xml'].__module__
+    'xmltools'
+    >>> from hydpy.core.examples import prepare_full_example_1
+    >>> prepare_full_example_1()
+    >>> from hydpy.auxs.xmltools import exec_xml
+    >>> from hydpy.exe.hyd import prepare_logfile
+    >>> import numpy
+    >>> with TestIO():
+    ...     logfilepath = prepare_logfile()
+    ...     with open(logfilepath, 'a') as logfile:
+    ...         exec_xml('LahnHBV', logfile=logfile)
+    ...     print_values((numpy.load(
+    ...         'LahnHBV/series/output/lahn_1_sim_q_mean.npy')[13:]))
+    9.621296, 8.503069, 7.774927, 7.34503, 7.15879
     """
 
     def write(text):
@@ -240,7 +263,18 @@ class XMLBase(object):
 
 class XMLInterface(XMLBase):
     """An interface to the XML configuration files that are valid concerning
-     schema file `config.xsd`."""
+     schema file `config.xsd`.
+
+    >>> from hydpy.auxs.xmltools import XMLInterface
+    >>> from hydpy import data
+    >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
+    >>> interface = XMLInterface('wrongfilepath.xml')
+    Traceback (most recent call last):
+    ...
+    FileNotFoundError: While trying to read parse the XML configuration \
+file ...wrongfilepath.xml, the following error occurred: \
+[Errno 2] No such file or directory: 'wrongfilepath.xml'
+     """
 
     def __init__(self, filepath=None):
         if filepath is None:
@@ -257,7 +291,7 @@ class XMLInterface(XMLBase):
         """Raise an error if the actual XML does not agree with the XML
         schema file `config.xsd`.
 
-        # ToDo: should it become a script function???
+        # ToDo: should it be accompanied by a script function?
 
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
@@ -741,7 +775,7 @@ class XMLSubseries(XMLBase):
             lambda: collections.defaultdict(list))
         for model in self.find('sequences'):
             model_name = strip(model.tag)
-            if model_name == 'nodes':
+            if model_name == 'node':
                 continue
             for group in model:
                 group_name = strip(group.tag)

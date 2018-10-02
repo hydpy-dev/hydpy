@@ -4,6 +4,7 @@
 # ...from standard library
 import abc
 import builtins
+import contextlib
 import datetime
 import doctest
 import importlib
@@ -1019,6 +1020,58 @@ abstract methods array, dimensions, read, subdevicenames, write
     concrete = type(abstract.__name__ + '_', (abstract,), {})
     concrete.__abstractmethods__ = frozenset()
     return concrete
+
+
+@contextlib.contextmanager
+def mock_datetime_now(testdatetime):
+    """Let class method |datetime.datetime.now| of class |datetime.datetime|
+    of module |datetime| return the given date for testing purposes within
+    a "with block".
+
+    >>> import datetime
+    >>> testdate = datetime.datetime(2000, 10, 1, 12, 30, 0, 999)
+    >>> testdate == datetime.datetime.now()
+    False
+    >>> from hydpy import classname
+    >>> classname(datetime.datetime)
+    'datetime'
+    >>> from hydpy.core.testtools import mock_datetime_now
+    >>> with mock_datetime_now(testdate):
+    ...     testdate == datetime.datetime.now()
+    ...     classname(datetime.datetime)
+    True
+    '_DateTime'
+    >>> testdate == datetime.datetime.now()
+    False
+    >>> classname(datetime.datetime)
+    'datetime'
+
+    A test to see that mocking |datetime.datetime| does not interfere
+    with initialising |Date| objects and that exceptions are property
+    handled:
+
+    >>> from hydpy import Date
+    >>> with mock_datetime_now(testdate):
+    ...     Date(testdate)
+    Traceback (most recent call last):
+    ...
+    ValueError: For `Date` instances, the microsecond must be `0`.  \
+For the given `datetime` object, it is `999` instead.
+    >>> classname(datetime.datetime)
+    'datetime'
+    """
+    _datetime = datetime.datetime
+
+    class _DateTime(datetime.datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return testdatetime
+
+    try:
+        datetime.datetime = _DateTime
+        yield
+    finally:
+        datetime.datetime = _datetime
 
 
 autodoctools.autodoc_module()

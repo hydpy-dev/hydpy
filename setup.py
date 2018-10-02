@@ -14,9 +14,9 @@ import numpy
 
 
 install = 'install' in sys.argv
-coverage_report = 'coverage_report' in sys.argv
-if coverage_report:
-    sys.argv.remove('coverage_report')
+report_coverage = 'report_coverage' in sys.argv
+if report_coverage:
+    sys.argv.remove('report_coverage')
 debug_cython = 'debug_cython' in sys.argv
 if debug_cython:
     sys.argv.remove('debug_cython')
@@ -171,9 +171,6 @@ if install:
         path_in = prep('hydpy', 'cythons', filename)
         path_out = prep(hydpy.cythons.__path__[0], filename)
         source2target(path_in, path_out, True)
-        path_in = prep('hydpy', 'cythons', 'autogen', filename)
-        path_out = prep(hydpy.cythons.autogen.__path__[0], filename)
-        source2target(path_in, path_out, True)
 
     # Make all restructured text documentation files available.
     print_('\nCopy documentation files:')
@@ -233,8 +230,12 @@ if install:
     path = os.path.abspath(hydpy.tests.__path__[0])
     print_(f'\nChange cwd for testing:\n\t{path}')
     os.chdir(path)
-    exitcode = int(os.system(
-        'coverage run test_everything.py rcfile=.coveragerc '))
+    if report_coverage:
+        exitcode = int(os.system(
+            'coverage run test_everything.py rcfile=.coveragerc'))
+    else:
+        exitcode = int(os.system(
+            'python test_everything.py'))
     if exitcode:
         print_(f'Use this HydPy version with caution on your system.  At '
                f'least one verification test failed.  You should see in the '
@@ -270,7 +271,7 @@ if install:
             source2target(path_in, path_out)
 
     # Prepare coverage report and prepare it for sphinx.
-    if coverage_report:
+    if report_coverage:
         print_('\nPrepare coverage html file:')
         os.system('coverage report -m --skip-covered')
         os.system('coverage xml')

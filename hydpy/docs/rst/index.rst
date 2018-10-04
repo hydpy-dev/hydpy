@@ -5,7 +5,7 @@
 .. _`Björnsen Consulting Engineers`: https://www.bjoernsen.de/index.php?id=bjoernsen&L=2
 .. _`GitHub repository`: https://github.com/tyralla/hydpy
 .. _`GNU Lesser General Public License 3`: https://www.gnu.org/licenses/lgpl-3.0.en.html
-.. _`documentation tests`: https://docs.python.org/3.6/library/doctest.html
+.. _`documentation test`: https://docs.python.org/3.6/library/doctest.html
 .. _`Travis CI`: https://travis-ci.org/tyralla/hydpy/branches
 .. _`example 13`: https://tyralla.github.io/hydpy/dam_v001.html#dam-v001-ex13
 .. _Bokeh: https://bokeh.pydata.org/en/latest/
@@ -18,7 +18,7 @@ HydPy
 =====
 
 :ref:`HydPy` is an interactive framework for developing and applying
-different types of hydrological models.  It was originally developed
+different types of hydrological models, originally developed
 at the `Ruhr-University Bochum`_ for specific research purposes.
 Later it was extended on behalf of the `German Federal Institute of
 Hydrology`_ to be applicable in practical applications like runoff
@@ -26,13 +26,12 @@ forecasting in large river basins.  Now it is being maintained by
 `Björnsen Consulting Engineers`_.
 
 :ref:`HydPy` is intended to be a modern open source software, based
-on the programming language `Python`_, commonly used in
-many scientific fields.  Through using different well-established
-`Python`_ libraries and design principles, we target high quality and
-transparency standards.  In order to avoid writing model cores (like
-|lland_v1|) in a more native programming language, :ref:`HydPy` includes
-a `Cython`_ based mechanism to automatically translate Python code to C
-code and to compile it.
+on the programming language `Python`_, commonly used in many scientific
+fields.  Through using different well-established `Python`_ libraries
+and design principles, we target high quality and transparency standards.
+To avoid writing model cores (like |lland_v1|) in a more native
+programming language, :ref:`HydPy` includes a `Cython`_ based mechanism
+to automatically translate Python code to C code and to compile it.
 
 :ref:`HydPy` has no graphical user interface. Instead, it is thought to
 be applied by executing Python scripts.  These scripts help to increase
@@ -48,18 +47,17 @@ We host :ref:`HydPy` in a `GitHub repository`_ and everyone
 is allowed to download, modify, and use it.  However, when passing the
 (possibly modified) code to third parties, one has to be aware that
 the selected `GNU Lesser General Public License 3`_ cannot be changed
-to a "less open source" license.  This means that if you, for example,
-implement your own model in :ref:`HydPy`, you can be sure that all
-possible further developments of your model code are still open
-source and the mentioned third parties are allowed to pass this
-modified source code to you.
+to a "less open source" license.  If you, for example, implement a new
+model into :ref:`HydPy`, you can be sure that all possible further
+developments of your model code are still open source and the mentioned
+third parties are allowed to pass this modified source code to you.
 
 :ref:`HydPy` offers many functionalities to make the implemented
 models as transparent and reliable as possible.  For this reason,
 the online documentation is automatically updated for each new
-:ref:`HydPy` version and includes  a `documentation tests` mechanism
-ensuring that :ref:`HydPy` is working properly and that the
-documentation is actually up-to-date.
+:ref:`HydPy` version and includes different `documentation test`_
+mechanism ensuring that :ref:`HydPy` is working as expected and
+that the documentation is up-to-date with it.
 
 See for example the documentation of the (very simple) method
 |lland_model.calc_nkor_v1|.  The text describes what the method does

@@ -1,6 +1,6 @@
 
 .. _Anaconda: https://www.anaconda.com/what-is-anaconda/
-.. _coverage: https://coverage.readthedocs.io/en/coverage-4.5.1/
+.. _bokeh: https://bokeh.pydata.org/en/latest/
 .. _conda: https://conda.io/docs/
 .. _Python Package Index: https://pypi.python.org/pypi
 .. _pip: https://pip.pypa.io/en/stable/
@@ -18,29 +18,23 @@ Installation Instructions
 Selecting a Python distribution
 --------------------------------
 
-Using :ref:`HydPy` requires installing Python first.  If you are new to
+Using :ref:`HydPy` requires installing Python 3.6 first.  If you are new to
 Python, we recommend installing a convenient Python distribution like
 `Anaconda`_, already containing many scientific and mathematical tools.
 Eventually, you might need to install additional libraries.  For
 example, if you do not use pre-compiled binaries (see the next section),
-you might have to install the `coverage`_ site-package manually. With
+you might have to install the `bokeh`_ site-package manually. With
 Anaconda on your system, type in your command line interface::
 
-    conda install coverage
+    conda install bokeh
 
 The `conda`_ installer is very convenient but does not support all packages
 available through the `Python Package Index`_.  If conda does nor support
 the required package (or if conda is not on your system), you can
 use `pip`_, which is in most cases as convenient as conda::
 
-    pip install coverage
+    pip install bokeh
 
-We recommend working with Python 3.6, which is currently
-the latest stable version of Python.  Nevertheless, HydPy also supports
-Python 2.7, 3.4, and 3.5. Note that Python 2.7 is quite old and
-will possibly be not further developed much longer.  The only reason
-we still support it is to allow users to combine :ref:`HydPy` with
-older Python packages.
 
 Selecting a HydPy version
 -------------------------
@@ -64,13 +58,13 @@ number available, meaning you should prefer using "X.Y.1" over "X.Y.0".
 
 Each release is available in different compressed archives,
 corresponding to different environments.  Currently, we distribute
-pre-compiled binaries for Python 2.7 and Python 3.6 on 64-bit Windows
-only.  These are most easy to use.  Download and unpack them in
-your site-packages directory.  The site-packages directory is the place
-to store additional Python libraries.  Usually, each installed
-Python distribution contains a "Lib" folder, which again contains the
-"site-packages" folder.  So, finally, the resulting pathname should be
-something like "C:\\Python36\\Lib\\site-packages\\hydpy".
+pre-compiled binaries for 64-bit Windows only.  These are most easy
+to use.  Download and unpack them in your site-packages directory.
+The site-packages directory is the place to store additional Python
+libraries.  Usually, each installed Python distribution contains a
+"Lib" folder, which again contains the "site-packages" folder.  So,
+finally, the resulting pathname should be something like
+"C:\\Python36\\Lib\\site-packages\\hydpy".
 
 For all other operating systems and Python versions, you have to build
 binaries yourself.  Principally, this should be simple, but Windows users

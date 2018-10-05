@@ -3,8 +3,8 @@
 # ...from standard library:
 from __future__ import division, print_function
 import os
-import sys
 import shutil
+import sys
 from distutils.core import setup
 from distutils.extension import Extension
 # ...from site-packages:
@@ -13,6 +13,7 @@ import Cython.Distutils
 import numpy
 
 install = 'install' in sys.argv
+bdist = 'bdist' in sys.argv
 bdist_wininst = 'bdist_wininst' in sys.argv
 report_coverage = 'report_coverage' in sys.argv
 if report_coverage:
@@ -48,11 +49,13 @@ for name in os.listdir('hydpy'):
     if not (name.startswith('_') or
             os.path.isfile(os.path.join('hydpy', name))):
         packages.append('.'.join(('hydpy', name)))
+packages.append('hydpy.conf')
 packages.append('hydpy.cythons.autogen')
 packages.append('hydpy.docs.figs')
 packages.append('hydpy.docs.html')
 packages.append('hydpy.docs.rst')
 packages.append('hydpy.docs.sphinx')
+packages.append('hydpy.exe')
 packages.append('hydpy.tests.iotesting')
 # Additionally, select all base model packages.
 for name in os.listdir(os.path.join('hydpy', 'models')):
@@ -66,46 +69,7 @@ for dir_, _, _ in os.walk(os.path.join('hydpy', 'data')):
     if not dir_.startswith('_'):
         packages.append('.'.join(dir_.split(os.path.sep)))
 
-print_('\nCollect extension modules:`')
-# Select the required extension modules, except those directly related
-# to the hydrological models.
-ext_names = []
-for name in os.listdir(os.path.join('hydpy', 'cythons')):
-    if name.split('.')[-1] == 'pyx':
-        ext_names.append(name.split('.')[0])
-for ext_name in ext_names:
-    print_(f'\t{ext_name}')
-
-print_('\nCopy (and eventually modify) extension modules:')
-# Copy the source code of these extension modules from package `cythons` to
-# subpackage `autogen`.  Modify the source code where necessary.
-for ext_name in ext_names:
-    for suffix in ('pyx', 'pxd'):
-        filename = f'{ext_name}.{suffix}'
-        path_in = prep('hydpy', 'cythons', filename)
-        path_out = prep('hydpy', 'cythons', 'autogen', filename)
-        source2target(path_in, path_out, False)
-        text = open(path_in).read()
-        text = text.replace(' int ', ' '+int_+' ')
-        text = text.replace(' int[', ' '+int_+'[')
-        if debug_cython:
-            text = text.replace('nogil', '')
-            text = text.replace('boundscheck=False',
-                                'boundscheck=True')
-            text = text.replace('wraparound=False',
-                                'wraparound=True')
-            text = text.replace('initializedcheck=False',
-                                'initializedcheck=True')
-        open(path_out, 'w').write(text)
-
-print_('\nPrepare extension modules:')
-ext_modules = []
-for ext_name in ext_names:
-    path = prep('hydpy', 'cythons', 'autogen', f'{ext_name}.pyx')
-    name = f'hydpy.cythons.autogen.{ext_name}'
-    source2target(path, name, False)
-    ext_modules.append(Extension(name, [path], extra_compile_args=['-O2']))
-
+# Add package data.
 package_data = {
     'hydpy.conf': ['*.npy', '*.xsd', '*.xsdt'],
     'hydpy.cythons': ['*.pyi'],
@@ -117,8 +81,51 @@ for package in packages:
     if package.startswith('hydpy.data'):
         package_data[package] = ['*.*']
 
-if bdist_wininst:
+# Add existing compiled extensions for binary arguments and prepare
+# compiling extensions otherwise.
+ext_modules = []
+if bdist or bdist_wininst:
     package_data['hydpy.cythons.autogen'] = ['*.pyx', '*.pxd', '*.pyd']
+else:
+    package_data['hydpy.cythons.autogen'] = ['*.pyx', '*.pxd']
+    print_('\nCollect extension modules:`')
+    # Select the required extension modules, except those directly related
+    # to the hydrological models.
+    ext_names = []
+    for name in os.listdir(os.path.join('hydpy', 'cythons')):
+        if name.split('.')[-1] == 'pyx':
+            ext_names.append(name.split('.')[0])
+    for ext_name in ext_names:
+        print_(f'\t{ext_name}')
+
+    print_('\nCopy (and eventually modify) extension modules:')
+    # Copy the source code of these extension modules from package `cythons` to
+    # subpackage `autogen`.  Modify the source code where necessary.
+    for ext_name in ext_names:
+        for suffix in ('pyx', 'pxd'):
+            filename = f'{ext_name}.{suffix}'
+            path_in = prep('hydpy', 'cythons', filename)
+            path_out = prep('hydpy', 'cythons', 'autogen', filename)
+            source2target(path_in, path_out, False)
+            text = open(path_in).read()
+            text = text.replace(' int ', ' '+int_+' ')
+            text = text.replace(' int[', ' '+int_+'[')
+            if debug_cython:
+                text = text.replace('nogil', '')
+                text = text.replace('boundscheck=False',
+                                    'boundscheck=True')
+                text = text.replace('wraparound=False',
+                                    'wraparound=True')
+                text = text.replace('initializedcheck=False',
+                                    'initializedcheck=True')
+            open(path_out, 'w').write(text)
+
+    print_('\nPrepare extension modules:')
+    for ext_name in ext_names:
+        path = prep('hydpy', 'cythons', 'autogen', f'{ext_name}.pyx')
+        name = f'hydpy.cythons.autogen.{ext_name}'
+        source2target(path, name, False)
+        ext_modules.append(Extension(name, [path], extra_compile_args=['-O2']))
 
 print_()
 

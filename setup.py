@@ -3,6 +3,7 @@
 # ...from standard library:
 from __future__ import division, print_function
 import os
+# import setuptools   # must only be imported for argument `bdist_wheel`
 import shutil
 import sys
 from distutils.core import setup
@@ -13,7 +14,7 @@ import Cython.Distutils
 import numpy
 
 install = 'install' in sys.argv
-bdist = 'bdist' in sys.argv
+bdist_wheel = 'bdist_wheel' in sys.argv
 bdist_wininst = 'bdist_wininst' in sys.argv
 report_coverage = 'report_coverage' in sys.argv
 if report_coverage:
@@ -84,7 +85,7 @@ for package in packages:
 # Add existing compiled extensions for binary arguments and prepare
 # compiling extensions otherwise.
 ext_modules = []
-if bdist or bdist_wininst:
+if bdist_wheel or bdist_wininst:
     package_data['hydpy.cythons.autogen'] = ['*.pyx', '*.pxd', '*.pyd']
 else:
     package_data['hydpy.cythons.autogen'] = ['*.pyx', '*.pxd']
@@ -249,4 +250,4 @@ if install:
         path_out = prep(oldpath, 'hydpy', 'docs', 'html', 'coverage.html')
         source2target(path_in, path_out)
 
-    print('\nNo problems encountered during testing!\n')
+    print_('\nNo problems encountered during testing!\n')

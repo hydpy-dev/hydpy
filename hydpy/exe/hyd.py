@@ -4,7 +4,7 @@
 .. _`Python Launcher for Windows`: \
 https://docs.python.org/3/using/windows.html#launcher
 
-.. _`here`: https://bitbucket.org/vinay.sajip/pylauncher/downloads//
+.. _`here`: https://bitbucket.org/vinay.sajip/pylauncher/downloads
 
 This script is thought to be called from a command line.  After
 successful installation of HydPy, you should be able to invoke it from

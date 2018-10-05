@@ -168,9 +168,14 @@ class Cythonizer(object):
         return importlib.import_module('hydpy.cythons.autogen.'+self.cyname)
 
     @property
-    def cyfilepath(self):
+    def pyxfilepath(self):
         """Absolute path of the compiled module."""
-        return os.path.join(self.cydirpath, self.cyname+'.pyx')
+        return os.path.join(self.cydirpath, f'{self.cyname}.pyx')
+
+    @property
+    def dllfilepath(self):
+        """Absolute path of the compiled module."""
+        return os.path.join(self.cydirpath, f'{self.cyname}{dllextension}')
 
     @property
     def buildpath(self):
@@ -190,7 +195,7 @@ class Cythonizer(object):
         else:
             model.sequences = sequencetools.Sequences(model=model,
                                                       **vars(self))
-        return PyxWriter(self, model, self.cyfilepath)
+        return PyxWriter(self, model, self.pyxfilepath)
 
     @property
     def pysourcefiles(self):
@@ -213,12 +218,12 @@ class Cythonizer(object):
     @property
     def outdated(self):
         """True if at least one of the |Cythonizer.pysourcefiles| is
-        newer than the compiled file under |Cythonizer.cyfilepath|,
+        newer than the compiled file under |Cythonizer.pyxfilepath|,
         otherwise False.
         """
-        if not os.path.exists(self.cyfilepath):
+        if not os.path.exists(self.dllfilepath):
             return True
-        cydate = os.stat(self.cyfilepath).st_mtime
+        cydate = os.stat(self.dllfilepath).st_mtime
         for pysourcefile in self.pysourcefiles:
             pydate = os.stat(pysourcefile).st_mtime
             if pydate > cydate:
@@ -233,7 +238,7 @@ class Cythonizer(object):
         exc_modules = [
                 distutils.extension.Extension(
                         'hydpy.cythons.autogen.'+self.cyname,
-                        [self.cyfilepath], extra_compile_args=['-O2'])]
+                        [self.pyxfilepath], extra_compile_args=['-O2'])]
         distutils.core.setup(ext_modules=Build.cythonize(exc_modules),
                              include_dirs=[numpy.get_include()])
         sys.argv = argv

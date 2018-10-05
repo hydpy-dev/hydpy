@@ -220,6 +220,16 @@ if install:
             path_out = prep(path_html, filename)
             source2target(path_in, path_out)
 
+    # Copy the (possibly new) configuration files into the original subpackage.
+    print_('\nCopy configuration data backwards:')
+    path_conf = os.path.join(oldpath, 'hydpy', 'conf')
+    import hydpy.docs.html
+    for filename in os.listdir(hydpy.conf.__path__[0]):
+        if not filename.startswith('_'):
+            path_in = prep(hydpy.conf.__path__[0], filename)
+            path_out = prep(path_conf, filename)
+            source2target(path_in, path_out)
+
     # Prepare coverage report and prepare it for sphinx.
     if report_coverage:
         print_('\nPrepare coverage html file:')

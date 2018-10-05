@@ -12,8 +12,8 @@ import Cython.Build
 import Cython.Distutils
 import numpy
 
-
 install = 'install' in sys.argv
+bdist_wininst = 'bdist_wininst' in sys.argv
 report_coverage = 'report_coverage' in sys.argv
 if report_coverage:
     sys.argv.remove('report_coverage')
@@ -61,6 +61,10 @@ for name in os.listdir(os.path.join('hydpy', 'models')):
         packages.append('.'.join(('hydpy', 'models', name)))
 for package in packages:
     print_('\t' + package)
+# Select all data folders.
+for dir_, _, _ in os.walk(os.path.join('hydpy', 'data')):
+    if not dir_.startswith('_'):
+        packages.append('.'.join(dir_.split(os.path.sep)))
 
 print_('\nCollect extension modules:`')
 # Select the required extension modules, except those directly related
@@ -75,7 +79,6 @@ for ext_name in ext_names:
 print_('\nCopy (and eventually modify) extension modules:')
 # Copy the source code of these extension modules from package `cythons` to
 # subpackage `autogen`.  Modify the source code where necessary.
-ext_modules = []
 for ext_name in ext_names:
     for suffix in ('pyx', 'pxd'):
         filename = f'{ext_name}.{suffix}'
@@ -95,12 +98,28 @@ for ext_name in ext_names:
                                 'initializedcheck=True')
         open(path_out, 'w').write(text)
 
-print_('\nPrepare extension modules:`')
+print_('\nPrepare extension modules:')
+ext_modules = []
 for ext_name in ext_names:
     path = prep('hydpy', 'cythons', 'autogen', f'{ext_name}.pyx')
     name = f'hydpy.cythons.autogen.{ext_name}'
     source2target(path, name, False)
     ext_modules.append(Extension(name, [path], extra_compile_args=['-O2']))
+
+package_data = {
+    'hydpy.conf': ['*.npy', '*.xsd', '*.xsdt'],
+    'hydpy.cythons': ['*.pyi'],
+    'hydpy.docs.figs': ['*.png'],
+    'hydpy.docs.rst': ['*.rst'],
+    'hydpy.tests': ['.coveragerc']
+}
+for package in packages:
+    if package.startswith('hydpy.data'):
+        package_data[package] = ['*.*']
+
+if bdist_wininst:
+    package_data['hydpy.cythons.autogen'] = ['*.pyx', '*.pxd', '*.pyd']
+
 print_()
 
 # There seem to be different places where the `build_ext` module can be found:
@@ -136,6 +155,7 @@ setup(name='HydPy',
       ext_modules=Cython.Build.cythonize(ext_modules),
       include_dirs=[numpy.get_include()],
       scripts=[os.path.join('hydpy', 'exe', 'hyd.py')],
+      package_data=package_data,
       include_package_data=True)
 
 if install:
@@ -154,76 +174,6 @@ if install:
     # cythonization of the hydrological models.
     import hydpy.pub
     hydpy.pub.options.fastcython = not debug_cython
-
-    # Make all extension definition files available, which are required for
-    # cythonizing hydrological models, as well as their stub files.
-    print_('\nCopy extension modules:')
-    import hydpy.cythons
-    for ext_name in ext_names:
-        for suffix in ('pyx', 'pxd'):
-            filename = f'{ext_name}.{suffix}'
-            path_in = prep('hydpy', 'cythons', 'autogen', filename)
-            path_out = prep(hydpy.cythons.autogen.__path__[0], filename)
-            source2target(path_in, path_out, True)
-    print_('\nCopy extension stub files:')
-    for ext_name in ext_names:
-        filename = f'{ext_name}.pyi'
-        path_in = prep('hydpy', 'cythons', filename)
-        path_out = prep(hydpy.cythons.__path__[0], filename)
-        source2target(path_in, path_out, True)
-
-    # Make all restructured text documentation files available.
-    print_('\nCopy documentation files:')
-    import hydpy.docs.rst
-    for filename in os.listdir(os.path.join('hydpy', 'docs', 'rst')):
-        if ((not (filename.endswith('.py') or filename.endswith('.pyc'))) and
-                (not filename.startswith('_'))):
-            path_in = prep('hydpy', 'docs', 'rst', filename)
-            path_out = prep(hydpy.docs.rst.__path__[0], filename)
-            source2target(path_in, path_out)
-
-    # Make all additional data files available.
-    print_('\nCopy data files:')
-    import hydpy.data
-    dir_input = os.path.join('hydpy', 'data')
-    dir_output = hydpy.data.__path__[0]
-    for subdir_input, dirs, files in os.walk(dir_input):
-        subdir_output = subdir_input.replace(dir_input, dir_output, 1)
-        if not os.path.exists(subdir_output):
-            os.makedirs(subdir_output)
-        for file_ in files:
-            filepath_input = os.path.join(subdir_input, file_)
-            filepath_output = os.path.join(subdir_output, file_)
-            if os.path.exists(filepath_output):
-                os.remove(filepath_output)
-            shutil.copy(filepath_input, subdir_output)
-
-    # Make all additional figures available.
-    print_('\nCopy figures:')
-    import hydpy.docs.figs
-    for filename in os.listdir(os.path.join('hydpy', 'docs', 'figs')):
-        if ((not (filename.endswith('.py') or filename.endswith('.pyc'))) and
-                (not filename.startswith('_'))):
-            path_in = prep('hydpy', 'docs', 'figs', filename)
-            path_out = prep(hydpy.docs.figs.__path__[0], filename)
-            source2target(path_in, path_out)
-
-    # Make the ".coveragerc" file available.
-    print_('\nCopy coverage configuration file:')
-    import hydpy.tests
-    path_in = prep('hydpy', 'tests', '.coveragerc')
-    path_out = prep(hydpy.tests.__path__[0], '.coveragerc')
-    source2target(path_in, path_out)
-
-    # Make all kinds of configuration data available.
-    print_('\nCopy configuration files:')
-    import hydpy.conf
-    for filename in os.listdir(os.path.join('hydpy', 'conf')):
-        if ((not (filename.endswith('.py') or filename.endswith('.pyc'))) and
-                os.path.isfile(os.path.join('hydpy', 'conf', filename))):
-            path_in = prep('hydpy', 'conf', filename)
-            path_out = prep(hydpy.conf.__path__[0], filename)
-            source2target(path_in, path_out)
 
     # Execute all tests.
     oldpath = os.path.abspath('.')

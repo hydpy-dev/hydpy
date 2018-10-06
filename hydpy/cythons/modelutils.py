@@ -27,6 +27,7 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import printtools
 from hydpy.core import sequencetools
+from hydpy.core import testtools
 
 
 if platform.system().lower() == 'windows':
@@ -108,8 +109,8 @@ def decorate_method(wrapped):
 
 
 class Cythonizer(object):
-    """Handles the writing, compiling and initialization of cython models.
-    """
+    """Handles the writing, compiling and initialization of cython models."""
+    tester: testtools.Tester
 
     def __init__(self):
         frame = inspect.currentframe().f_back

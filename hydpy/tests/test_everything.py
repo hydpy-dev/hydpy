@@ -16,9 +16,9 @@ class FilterFilenames(object):
 
     def __init__(self, argv):
         self.selection = []
-        for arg in argv:
-            if arg.startswith('select='):
-                self.selection.extend(_ for _ in arg[7:].split(','))
+        for arg_ in argv:
+            if arg_.startswith('select='):
+                self.selection.extend(_ for _ in arg_[7:].split(','))
 
     def __call__(self, names) -> list:
         if self.selection:
@@ -27,7 +27,10 @@ class FilterFilenames(object):
 
 
 filter_filenames = FilterFilenames(sys.argv)
-
+testpath = None
+for arg in sys.argv:
+    if arg.startswith('test_path='):
+        testpath = arg.split('=')[-1]
 
 exitcode = int(os.system('python test_pyplot_backend.py'))
 standard_backend_missing = exitcode in (1, 256)
@@ -41,9 +44,12 @@ if standard_backend_missing:
 # Priorise site-packages (on Debian-based Linux distributions as Ubuntu
 # also dist-packages) in the import order to make sure, the following
 # imports refer to the newly build hydpy package on the respective computer.
-paths = [path for path in sys.path if path.endswith('-packages')]
-for path in paths:
-    sys.path.insert(0, path)
+if testpath is None:
+    paths = [path for path in sys.path if path.endswith('-packages')]
+    for path in paths:
+        sys.path.insert(0, path)
+else:
+    sys.path.insert(0, testpath)
 
 # Import all hydrological models to trigger the automatic cythonization
 # mechanism of HydPy.

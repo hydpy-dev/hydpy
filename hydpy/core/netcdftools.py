@@ -321,15 +321,16 @@ def create_dimension(ncfile, name, length) -> None:
     ...     ncfile = netcdf4.Dataset('test.nc', 'w')
     >>> from hydpy.core.netcdftools import create_dimension
     >>> create_dimension(ncfile, 'dim1', 5)
-    >>> ncfile.dimensions['dim1'].size
+    >>> dim = ncfile.dimensions['dim1']
+    >>> dim.size if hasattr(dim, 'size') else dim
     5
 
-    >>> create_dimension(ncfile, 'dim1', 5)
-    Traceback (most recent call last):
-    ...
-    RuntimeError: While trying to add dimension `dim1` with length `5` \
-to the NetCDF file `test.nc`, the following error occurred: \
-NetCDF: String match to name in use
+    >>> try:
+    ...     create_dimension(ncfile, 'dim1', 5)
+    ... except BaseException as exc:
+    ...     print(exc)
+    While trying to add dimension `dim1` with length `5` \
+to the NetCDF file `test.nc`, the following error occurred: ...
 
     >>> ncfile.close()
     """
@@ -339,7 +340,7 @@ NetCDF: String match to name in use
         objecttools.augment_excmessage(
             'While trying to add dimension `%s` with length `%d` '
             'to the NetCDF file `%s`'
-            % (name, length, ncfile.filepath()))
+            % (name, length, get_filepath(ncfile)))
 
 
 def create_variable(ncfile, name, datatype, dimensions) -> None:
@@ -353,12 +354,13 @@ def create_variable(ncfile, name, datatype, dimensions) -> None:
     >>> with TestIO():
     ...     ncfile = netcdf4.Dataset('test.nc', 'w')
     >>> from hydpy.core.netcdftools import create_variable
-    >>> create_variable(ncfile, 'var1', 'f8', ('dim1',))
-    Traceback (most recent call last):
-    ...
-    ValueError: While trying to add variable `var1` with datatype `f8` and \
+    >>> try:
+    ...     create_variable(ncfile, 'var1', 'f8', ('dim1',))
+    ... except BaseException as exc:
+    ...     print(str(exc).strip('"'))
+    While trying to add variable `var1` with datatype `f8` and \
 dimensions `('dim1',)` to the NetCDF file `test.nc`, the following error \
-occurred: cannot find dimension dim1 in this group or parent groups
+occurred: ...
 
     >>> from hydpy.core.netcdftools import create_dimension
     >>> create_dimension(ncfile, 'dim1', 5)
@@ -377,7 +379,7 @@ occurred: cannot find dimension dim1 in this group or parent groups
         objecttools.augment_excmessage(
             'While trying to add variable `%s` with datatype `%s` '
             'and dimensions `%s` to the NetCDF file `%s`'
-            % (name, datatype, dimensions, ncfile.filepath()))
+            % (name, datatype, dimensions, get_filepath(ncfile)))
 
 
 def query_variable(ncfile, name) -> netcdf4.Variable:
@@ -404,10 +406,23 @@ def query_variable(ncfile, name) -> netcdf4.Variable:
     """
     try:
         return ncfile[name]
-    except IndexError:
+    except (IndexError, KeyError):
         raise OSError(
             'NetCDF file `%s` does not contain variable `%s`.'
-            % (ncfile.filepath(), name))
+            % (get_filepath(ncfile), name))
+
+
+def get_filepath(ncfile) -> str:
+    """Return the filepath of the given NetCDF file.
+
+    >>> from hydpy import TestIO, netcdf4
+    >>> from hydpy.core.netcdftools import get_filepath
+    >>> with TestIO():
+    ...     with netcdf4.Dataset('test.nc', 'w') as ncfile:
+    ...         get_filepath(ncfile)
+    'test.nc'
+    """
+    return ncfile.filepath() if hasattr(ncfile, 'filepath') else ncfile.filename
 
 
 class NetCDFInterface(object):
@@ -1148,14 +1163,14 @@ coordinate locations of variable `flux_prec`.
             try:
                 chars = ncfile[subdevices][:]
                 break
-            except IndexError:
+            except (IndexError, KeyError):
                 pass
         else:
             raise IOError(
                 'NetCDF file `%s` does neither contain a variable '
                 'named `%s` nor `%s` for defining the coordinate '
                 'locations of variable `%s`.'
-                % (ncfile.filepath(), tests[0], tests[1], self.name))
+                % (get_filepath(ncfile), tests[0], tests[1], self.name))
         return chars2str(chars)
 
     def query_subdevice2index(self, ncfile) -> Subdevice2Index:
@@ -1203,7 +1218,7 @@ names for variable `flux_prec` (the first found duplicate is `element1`).
         subdevices = self.query_subdevices(ncfile)
         self._test_duplicate_exists(ncfile, subdevices)
         subdev2index = {subdev: idx for (idx, subdev) in enumerate(subdevices)}
-        return Subdevice2Index(subdev2index, self.name, ncfile.filepath())
+        return Subdevice2Index(subdev2index, self.name, get_filepath(ncfile))
 
     def _test_duplicate_exists(self, ncfile, subdevices) -> None:
         if len(subdevices) != len(set(subdevices)):
@@ -1214,7 +1229,7 @@ names for variable `flux_prec` (the first found duplicate is `element1`).
                             'The NetCDF file `%s` contains duplicate '
                             '(sub)device names for variable `%s` (the '
                             'first found duplicate is `%s`).'
-                            % (ncfile.filepath(), self.name, name1))
+                            % (get_filepath(ncfile), self.name, name1))
 
     @abc.abstractmethod
     def read(self, ncfile, timegrid_data) -> None:
@@ -1401,12 +1416,12 @@ in NetCDF file `model.nc` available.
     ...     ncfile = netcdf4.Dataset('model.nc', 'w')
     >>> create_dimension(ncfile, 'time', 4)
     >>> var_nied.write(ncfile)
-    >>> var_nkor.write(ncfile)
-    Traceback (most recent call last):
-    ...
-    RuntimeError: While trying to add dimension `stations` with length `2` \
-to the NetCDF file `model.nc`, the following error occurred: \
-NetCDF: String match to name in use
+    >>> try:
+    ...     var_nkor.write(ncfile)
+    ... except BaseException as exc:
+    ...     print(exc)
+    While trying to add dimension `stations` with length `2` \
+to the NetCDF file `model.nc`, the following error occurred: ...
     >>> ncfile.close()
     >>> from hydpy import TestIO, netcdf4
     >>> with TestIO():

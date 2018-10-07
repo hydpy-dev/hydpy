@@ -344,11 +344,12 @@ tyralla/hydpy/tree/master/hydpy/conf/config.xsd}firstdate': \
         >>> interface.update_options()
         >>> pub.options
         Options(
+            autocompile -> 1
             checkseries -> 1
-            compileautomatically -> 1
             dirverbose -> 0
             ellipsis -> 0
             fastcython -> 1
+            forcecompiling -> 0
             printprogress -> 0
             printincolor -> 0
             reprcomments -> 0

@@ -19,6 +19,7 @@ import functools
 # ...third party modules
 import numpy
 # ...from HydPy
+import hydpy
 from hydpy import pub
 from hydpy import cythons
 from hydpy.core import abctools
@@ -119,7 +120,7 @@ class Cythonizer(object):
             setattr(self, key, value)
 
     def complete(self):
-        if (pub.options.compileautomatically and self.outdated and
+        if (pub.options.autocompile and self.outdated and
                 not pub._is_hydpy_bundled):
             usecython = pub.options.usecython
             try:
@@ -222,6 +223,10 @@ class Cythonizer(object):
         newer than the compiled file under |Cythonizer.pyxfilepath|,
         otherwise False.
         """
+        if pub.options.forcecompiling:
+            return True
+        if os.path.split(hydpy.__path__[0])[-2].endswith('-packages'):
+            return False
         if not os.path.exists(self.dllfilepath):
             return True
         cydate = os.stat(self.dllfilepath).st_mtime

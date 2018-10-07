@@ -621,10 +621,10 @@ class Substituter(object):
         are shown):
 
         >>> print(substituter.get_commands())
+        .. |Options.autocompile| replace:: \
+:const:`~hydpy.core.optiontools.Options.autocompile`
         .. |Options.checkseries| replace:: \
 :const:`~hydpy.core.optiontools.Options.checkseries`
-        .. |Options.compileautomatically| replace:: \
-:const:`~hydpy.core.optiontools.Options.compileautomatically`
         ...
         .. |optiontools.Options.warntrim| replace:: \
 :const:`~hydpy.core.optiontools.Options.warntrim`

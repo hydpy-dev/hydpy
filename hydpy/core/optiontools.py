@@ -110,14 +110,14 @@ class Options(object):
     0
     """
 
+    autocompile = _Option(True, None)
+    """A True/False flag for enabling/disabling the automatic conversion of 
+    pure Python models to computationally more efficient Cython models 
+    whenever a existing Cython model may be outdated."""
+
     checkseries = _Option(True, None)
     """True/False flag for raising an error when trying to load an input
     time series not spanning the whole initialisation period."""
-
-    compileautomatically = _Option(True, None)
-    """A True/False for enabling/disabling the automatic conversion of 
-    pure Python models to computationally more efficient Cython models 
-    whenever a existing Cython model may be outdated."""
     
     dirverbose = _Option(False, None)
     """A True/False flag for letting the autocompletion textbox include
@@ -138,6 +138,10 @@ class Options(object):
     Setting this flag to False can be helpful when the implementation of
     new models or other Cython related features introduces errors that do
     not result in informative error messages."""
+
+    forcecompiling = _Option(False, None)
+    """A True/False flag for enabling that each cythonizable model is
+    cythonized when imported."""
 
     printprogress = _Option(True, None)
     """A True/False flag for printing information about the progress of

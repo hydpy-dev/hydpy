@@ -102,6 +102,7 @@ def customwarn(message, category, filename, lineno, file=None, line=None):
 warnings.showwarning = customwarn
 warnings.filterwarnings('always', category=HydPyDeprecationWarning)
 warnings.filterwarnings('ignore', r'All-NaN (slice|axis) encountered')
+warnings.filterwarnings('ignore', r'Using or importing the ABCs from')
 warnings.filterwarnings('error', category=integrate.IntegrationWarning)
 
 # Numpy introduced new string representations in version 1.14 affecting

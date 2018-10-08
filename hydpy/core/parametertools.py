@@ -33,8 +33,8 @@ def header_controlfile(model, parameterstep=None, simulationstep=None):
     The first example shows that, if you pass the model argument as a
     string, you have to take care that this string make sense:
 
-    >>> from hydpy.core.parametertools import header_controlfile
-    >>> from hydpy import Period
+    >>> from hydpy.core.parametertools import header_controlfile, Parameter
+    >>> from hydpy import Period, prepare_model, pub, Timegrids, Timegrid
     >>> print(header_controlfile(model='no model class',
     ...                          parameterstep='-1h',
     ...                          simulationstep=Period('1h')))
@@ -52,10 +52,8 @@ def header_controlfile(model, parameterstep=None, simulationstep=None):
     gain the parameter and simulation step sizes from the global
     |Timegrids| object contained in module |pub| when necessary:
 
-    >>> from hydpy.models.lland_v1 import *
-    >>> parameterstep('1d')
-    >>> from hydpy import pub
-    >>> from hydpy import Timegrids, Timegrid
+    >>> model = prepare_model('lland_v1')
+    >>> _ = Parameter.parameterstep('1d')
     >>> pub.timegrids = '2000.01.01', '2001.01.01', '1h'
     >>> print(header_controlfile(model=model))
     # -*- coding: utf-8 -*-

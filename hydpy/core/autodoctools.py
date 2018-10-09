@@ -116,6 +116,15 @@ def _add_lines(specification, module):
     return lines
 
 
+def _get_frame_of_calling_module():
+    frame = inspect.currentframe()
+    while True:
+        nextframe = frame.f_back
+        if inspect.getmodule(nextframe) is None:
+            return frame
+        frame = nextframe
+        frame = nextframe
+
 @make_autodoc_optional
 def autodoc_basemodel():
     """Add an exhaustive docstring to the `__init__` module of a basemodel.
@@ -134,7 +143,7 @@ def autodoc_basemodel():
     modules of the basemodel are named in the standard way, e.g. `lland_model`,
     `lland_control`, `lland_inputs`.
     """
-    namespace = inspect.currentframe().f_back.f_back.f_locals
+    namespace = _get_frame_of_calling_module().f_locals
     doc = namespace.get('__doc__')
     if doc is None:
         doc = ''
@@ -183,10 +192,7 @@ def autodoc_applicationmodel():
     |autodoc_basemodel|, that both the application model and its
     base model are defined in the conventional way.
     """
-    namespace = inspect.currentframe().f_back.f_back.f_locals
-    doc = namespace.get('__doc__')
-    if doc is None:
-        doc = ''
+    namespace = _get_frame_of_calling_module().f_locals
     name_applicationmodel = namespace['__name__']
     module_applicationmodel = importlib.import_module(name_applicationmodel)
     name_basemodel = name_applicationmodel.split('_')[0]
@@ -712,7 +718,7 @@ def autodoc_module(__test__=None):
     modules defining models.  For base models, see function
     |autodoc_basemodel| instead.
     """
-    module = inspect.getmodule(inspect.currentframe().f_back.f_back)
+    module = inspect.getmodule(_get_frame_of_calling_module())
     doc = module.__doc__
     if doc is None:
         doc = ''

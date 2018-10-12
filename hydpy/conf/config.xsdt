@@ -61,17 +61,21 @@
 
     <element name="timegrid">
         <complexType>
-            <sequence>
-                <element name="firstdate" type="dateTime"/>
-                <element name="lastdate" type="dateTime"/>
-                <element name="stepsize">
-                    <simpleType>
-                        <restriction base="string">
-                            <pattern value="[0-9]+[smhd]"/>
-                        </restriction>
-                    </simpleType>
-                </element>
-            </sequence>
+            <choice>
+                <sequence>
+                    <element name="firstdate" type="dateTime"/>
+                    <element name="lastdate" type="dateTime"/>
+                    <element name="stepsize">
+                        <simpleType>
+                            <restriction base="string">
+                                <pattern value="[0-9]+[smhd]"/>
+                            </restriction>
+                        </simpleType>
+                    </element>
+                </sequence>
+                <element name="seriesfile"
+                         type="anyURI"/>
+            </choice>
         </complexType>
     </element>
 

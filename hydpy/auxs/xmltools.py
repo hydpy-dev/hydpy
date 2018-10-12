@@ -98,10 +98,12 @@ from lxml import etree
 # ...from HydPy
 from hydpy import conf
 from hydpy import models
+from hydpy import netcdf4
 from hydpy import pub
 from hydpy.core import devicetools
 from hydpy.core import hydpytools
 from hydpy.core import importtools
+from hydpy.core import netcdftools
 from hydpy.core import objecttools
 from hydpy.core import selectiontools
 from hydpy.core import sequencetools
@@ -382,19 +384,56 @@ tyralla/hydpy/tree/master/hydpy/conf/config.xsd}firstdate': \
         """Update the |Timegrids| object available in module |pub| with the
         values defined in the `timegrid` XML element.
 
+        Usually, one would prefer to define `firstdate`, `lastdate`, and
+        `stepsize` elements as in the XML configuration file of the
+        `LahnHBV` example project:
+
+        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+        >>> from hydpy import HydPy, pub, TestIO
         >>> from hydpy.auxs.xmltools import XMLInterface
-        >>> from hydpy import data, pub
-        >>> xml = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
-        >>> xml.update_timegrids()
+
+        >>> hp = HydPy('LahnHBV')
+        >>> with TestIO():
+        ...     hp.prepare_network()
+        ...     XMLInterface().update_timegrids()
         >>> pub.timegrids
         Timegrids(Timegrid('1996-01-01T00:00:00',
                            '1996-01-06T00:00:00',
                            '1d'))
+
+        Alternatively, one can provide the file path to a `seriesfile`,
+        which must be a valid NetCDF file.  The |XMLInterface| object
+        then interprets the file's time information:
+
+        >>> name = 'LahnHBV/series/input/hland_v1_input_p.nc'
+        >>> with TestIO():
+        ...     with open('LahnHBV/config.xml') as file_:
+        ...         lines = file_.readlines()
+        ...     for idx, line in enumerate(lines):
+        ...         if '<timegrid>' in line:
+        ...             break
+        ...     with open('LahnHBV/config.xml', 'w') as file_:
+        ...         _ = file_.write(''.join(lines[:idx+1]))
+        ...         _ = file_.write(
+        ...             f'        <seriesfile>{name}</seriesfile>\\n')
+        ...         _ = file_.write(''.join(lines[idx+4:]))
+        ...     XMLInterface().update_timegrids()
+        >>> pub.timegrids
+        Timegrids(Timegrid('1996-01-01 00:00:00',
+                           '2007-01-01 00:00:00',
+                           '1d'))
         """
         timegrid_xml = self.find('timegrid')
-        timegrid = timetools.Timegrid(
-            *(timegrid_xml[idx].text for idx in range(3)))
-        pub.timegrids = timetools.Timegrids(timegrid)
+        try:
+            timegrid = timetools.Timegrid(
+                *(timegrid_xml[idx].text for idx in range(3)))
+            pub.timegrids = timetools.Timegrids(timegrid)
+        except IndexError:
+            seriesfile = find(timegrid_xml, 'seriesfile').text
+            with netcdf4.Dataset(seriesfile) as ncfile:
+                pub.timegrids = timetools.Timegrids(
+                    netcdftools.query_timegrid(ncfile))
 
     @property
     def selections(self) -> selectiontools.Selections:

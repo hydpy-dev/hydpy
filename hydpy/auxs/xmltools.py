@@ -70,7 +70,7 @@ The intermediate soil moisture values are stored in a NetCDF file called
 >>> from hydpy.core.netcdftools import netcdf4, chars2str, query_variable
 >>> with TestIO():
 ...     ncfile = netcdf4.Dataset('LahnHBV/series/output/hland_v1_state_sm.nc')
-...     chars2str(query_variable(ncfile, 'station_names'))[:3]
+...     chars2str(query_variable(ncfile, 'station_id'))[:3]
 ...     print_values(query_variable(ncfile, 'state_sm')[0, :])
 ['land_dill_0', 'land_dill_1', 'land_dill_2']
 184.926173, 184.603966, 184.386666, 184.098541, 183.873078

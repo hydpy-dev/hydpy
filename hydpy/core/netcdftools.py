@@ -238,7 +238,7 @@ call this dimension "location" instead of "stations" within NetCDF files:
 
 varmapping = {
     'timepoints': 'time',
-    'subdevices': 'station_names'}
+    'subdevices': 'station_id'}
 """Maps variable name terms from HydPy terms NetCDF.
 
 You can change this mapping if it does not suit your requirements.  For 
@@ -1090,11 +1090,11 @@ nor does it define a member named `element2`.
         >>> with TestIO():
         ...     file1 = netcdf4.Dataset('model1.nc', 'w')
         >>> var1.insert_subdevices(file1)
-        >>> file1['var1_station_names'].dimensions
+        >>> file1['var1_station_id'].dimensions
         ('var1_stations', 'var1_char_leng_name')
-        >>> file1['var1_station_names'].shape
+        >>> file1['var1_station_id'].shape
         (2, 9)
-        >>> chars2str(file1['var1_station_names'][:])
+        >>> chars2str(file1['var1_station_id'][:])
         ['element1', 'element_2']
         >>> file1.close()
 
@@ -1104,11 +1104,11 @@ nor does it define a member named `element2`.
         >>> with TestIO():
         ...     file2 = netcdf4.Dataset('model2.nc', 'w')
         >>> var2.insert_subdevices(file2)
-        >>> file2['station_names'].dimensions
+        >>> file2['station_id'].dimensions
         ('stations', 'char_leng_name')
-        >>> file2['station_names'].shape
+        >>> file2['station_id'].shape
         (2, 9)
-        >>> chars2str(file2['station_names'][:])
+        >>> chars2str(file2['station_id'][:])
         ['element1', 'element_2']
         >>> file2.close()
         """
@@ -1143,7 +1143,7 @@ nor does it define a member named `element2`.
         Traceback (most recent call last):
         ...
         OSError: NetCDF file `model.nc` does neither contain a variable \
-named `flux_prec_station_names` nor `station_names` for defining the \
+named `flux_prec_station_id` nor `station_id` for defining the \
 coordinate locations of variable `flux_prec`.
 
         (2) After inserting the (sub)device name, they can be queried
@@ -1205,7 +1205,7 @@ coordinate locations of variable `flux_prec`.
         Additionally, |NetCDFVariableBase.query_subdevice2index|
         checks for duplicates:
 
-        >>> ncfile['station_names'][:] = str2chars(
+        >>> ncfile['station_id'][:] = str2chars(
         ...     ['element3', 'element1', 'element1_1', 'element1'])
         >>> var.query_subdevice2index(ncfile)
         Traceback (most recent call last):

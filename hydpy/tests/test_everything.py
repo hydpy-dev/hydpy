@@ -76,10 +76,11 @@ filenames = filter_filenames(os.listdir(hydpy.tests.__path__[0]))
 unittests = {fn.split('.')[0]: None for fn in filenames if
              (fn.startswith('unittest') and fn.endswith('.py'))}
 for name in unittests.keys():
-    module = importlib.import_module('hydpy.tests.'+name)
-    runner = unittest.TextTestRunner(stream=open(os.devnull, 'w'))
+    module = importlib.import_module('hydpy.tests.' + name)
     suite = unittest.TestLoader().loadTestsFromModule(module)
-    unittests[name] = runner.run(suite)
+    with open(os.devnull, 'w') as file_:
+        runner = unittest.TextTestRunner(stream=file_)
+        unittests[name] = runner.run(suite)
     unittests[name].nmbproblems = (len(unittests[name].errors) +
                                    len(unittests[name].failures))
 
@@ -145,7 +146,6 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
             if not name.endswith('.rst'):
                 module = importlib.import_module(name)
                 testtools.solve_exception_doctest_issue(module)
-            runner = unittest.TextTestRunner(stream=open(os.devnull, 'w'))
             suite = unittest.TestSuite()
             try:
                 if name.endswith('.rst'):
@@ -158,7 +158,7 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                                              optionflags=doctest.ELLIPSIS))
             except ValueError as exc:
                 if exc.args[-1] != 'has no docstrings':
-                    raise(exc)
+                    raise exc
             else:
                 opt = pub.options
                 Par = parametertools.Parameter
@@ -180,7 +180,8 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                         testtools.PlottingOptions()
                     if name.endswith('.rst'):
                         name = name[name.find('hydpy'+os.sep):]
-                    with warnings.catch_warnings():
+                    with warnings.catch_warnings(), \
+                            open(os.devnull, 'w') as file_:
                         warnings.filterwarnings(
                             'error', module='hydpy')
                         warnings.filterwarnings(
@@ -190,10 +191,13 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                         warnings.filterwarnings(
                             'ignore', message="numpy.ufunc size changed")
                         warnings.filterwarnings(
-                            'ignore', message='the imp module is deprecated')
+                            'ignore',
+                            message='the imp module is deprecated')
+                        runner = unittest.TextTestRunner(stream=file_)
                         doctests[name] = runner.run(suite)
-                    doctests[name].nmbproblems = (len(doctests[name].errors) +
-                                                  len(doctests[name].failures))
+                    doctests[name].nmbproblems = (
+                            len(doctests[name].errors) +
+                            len(doctests[name].failures))
                     hydpy.dummies.clear()
     successfuldoctests.update({name: runner for (name, runner)
                               in doctests.items() if not runner.nmbproblems})

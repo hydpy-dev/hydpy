@@ -63,10 +63,25 @@ _all_spec2capt.update(_AUX_SPEC2CAPT)
 
 @wrapt.decorator
 def make_autodoc_optional(wrapped, instance=None, args=None, kwargs=None):
-    """Decorate function related to automatic documentation refinement,
+    """Decorate functions related to automatic documentation refinement,
     so that they will be applied only when requested (when `use_autodoc`
-    of module |config| is `True`) or when possible (when `HydPy` is not
-    frozen/bundled)."""
+    of module |config| is `True`) and when possible (when `HydPy` is not
+    frozen/bundled).
+
+    >>> from hydpy.core.autodoctools import make_autodoc_optional
+    >>> @make_autodoc_optional
+    ... def test(x):
+    ...     return x
+    >>> from hydpy import config, pub
+    >>> config.use_autodoc = False
+    >>> test(1)
+    >>> config.use_autodoc = True
+    >>> pub._is_hydpy_bundled = True
+    >>> test(1)
+    >>> pub._is_hydpy_bundled = False
+    >>> test(1)
+    1
+    """
     if config.use_autodoc and not pub._is_hydpy_bundled:
         return wrapped(*args, **kwargs)
     return None
@@ -144,9 +159,7 @@ def autodoc_basemodel():
     `lland_control`, `lland_inputs`.
     """
     namespace = _get_frame_of_calling_module().f_locals
-    doc = namespace.get('__doc__')
-    if doc is None:
-        doc = ''
+    doc = namespace.get('__doc__', '')
     basemodulename = namespace['__name__'].split('.')[-1]
     modules = {key: value for key, value in namespace.items()
                if (isinstance(value, types.ModuleType) and
@@ -719,9 +732,7 @@ def autodoc_module(__test__=None):
     |autodoc_basemodel| instead.
     """
     module = inspect.getmodule(_get_frame_of_calling_module())
-    doc = module.__doc__
-    if doc is None:
-        doc = ''
+    doc = getattr(module, '__doc__', '')
     lines = ['\n\nModule :mod:`~%s` implements the following members:\n'
              % module.__name__]
     members = []

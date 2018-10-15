@@ -116,7 +116,8 @@ except TypeError:   # pragma: no cover
 substituter = prepare_mainsubstituter()
 
 
-__all__ = ['netcdf4',
+__all__ = ['config',
+           'netcdf4',
            'pandas',
            'pyplot',
            'pub',

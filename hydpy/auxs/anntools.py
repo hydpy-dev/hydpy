@@ -331,6 +331,12 @@ attribute `nmb_inputs` first.
         >>> ann.nmb_outputs = 2
         >>> ann.nmb_outputs
         2
+        >>> del ann.nmb_outputs
+        >>> ann.nmb_outputs
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: Attribute `nmb_outputs` \
+of object `ann` has not been prepared so far.
         """
         return self._cann.nmb_outputs
 
@@ -355,6 +361,12 @@ attribute `nmb_inputs` first.
         >>> ann.nmb_neurons = (3,)
         >>> ann.nmb_neurons
         (3,)
+        >>> del ann.nmb_neurons
+        >>> ann.nmb_neurons
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: Attribute `nmb_neurons` \
+of object `ann` has not been prepared so far.
         """
         return tuple(numpy.asarray(self._cann.nmb_neurons))
 
@@ -939,6 +951,15 @@ class SeasonalANN(object):
                                    intercepts_hidden=[[-16.0]],
                                    intercepts_output=[-1.0]))
 
+    One can easily plot the resulting graphs of all networks:
+
+    >>> seasonalann.plot(0.0, 8.0)
+
+    .. testsetup::
+
+        >>> from matplotlib import pyplot
+        >>> pyplot.close()
+
     The property |anntools.SeasonalANN.shape| does reflect the number of
     required weighting ratios for each time of year (in this example:
     366 days per year) and each neural network (in this example: three):
@@ -954,7 +975,7 @@ class SeasonalANN(object):
     ...
     AttributeError: can't set attribute
 
-    The following interactive shows how the |anntools.SeasonalANN.ratios|
+    The following interactive plot shows how the |anntools.SeasonalANN.ratios|
     used for weighting are calculated:
 
     .. testsetup::

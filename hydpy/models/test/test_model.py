@@ -60,7 +60,7 @@ def calc_q_v2(self):
       {0 \\ | \\ S \\leq 0}
       }`
 
-    Example:
+    Examples:
 
        >>> from hydpy.models.test import *
        >>> parameterstep()
@@ -69,6 +69,10 @@ def calc_q_v2(self):
        >>> model.calc_q_v2()
        >>> fluxes.q
        q(0.5)
+       >>> states.s = -1.0
+       >>> model.calc_q_v2()
+       >>> fluxes.q
+       q(0.0)
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess

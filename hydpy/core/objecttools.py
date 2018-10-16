@@ -38,6 +38,14 @@ def dir_(self):
     >>> options.dirverbose = False
     >>> print(dir_(Test())) # Short list with one single entry...
     ['only_public_attribute']
+
+    If none of those does exists, |dir_| returns a list with a single string
+    containing a single empty space (which seems to work better for most
+    IDEs than returning an emtpy list):
+
+    >>> del Test.only_public_attribute
+    >>> print(dir_(Test()))
+    [' ']
     """
     names = set()
     for thing in list(inspect.getmro(type(self))) + [self]:
@@ -272,10 +280,10 @@ Python built-ins like `for`...)
 
     Also, names of Python built ins are not allowed:
 
-    >>> valid_variable_identifier('while')
+    >>> valid_variable_identifier('print')
     Traceback (most recent call last):
     ...
-    ValueError: The given name string `while` does not define...
+    ValueError: The given name string `print` does not define...
     """
     string = str(string)
     try:
@@ -986,10 +994,10 @@ def _assignrepr_bracketed2(assignrepr_bracketed1, values, prefix, width=None):
             lines.append(assignrepr_bracketed1(subvalues, prefix, width))
         else:
             lines.append(assignrepr_bracketed1(subvalues, blanks, width))
-        if (len(subvalues) == 1) and (lines[-1] == ')'):
-            lines[-1] = lines[-1].replace(')', ',)')
         lines[-1] += ','
-    lines[-1] = lines[-1][:-1] + brackets[1]
+    if (len(values) > 1) or (brackets != '()'):
+        lines[-1] = lines[-1][:-1]
+    lines[-1] += brackets[1]
     return '\n'.join(lines)
 
 
@@ -1019,7 +1027,7 @@ def assignrepr_tuple2(values, prefix, width=None):
     those which possess only one entry:
 
     >>> print(assignrepr_tuple2([[]], 'test = '))
-    test = (())
+    test = ((),)
     >>> print(assignrepr_tuple2([[], [1]], 'test = '))
     test = ((),
             (1,))
@@ -1077,12 +1085,10 @@ def _assignrepr_bracketed3(assignrepr_bracketed1, values, prefix, width=None):
             lines.append(
                 _assignrepr_bracketed2(
                     assignrepr_bracketed1, subvalues, blanks, width))
-        if (len(subvalues) <= 1) and (lines[-1][-1] == ')'):
-            lines[-1] = lines[-1][:-1] + ',)'
         lines[-1] += ','
-    lines[-1] = lines[-1][:-1] + brackets[1]
-    if (len(values) <= 1) and (lines[-1][-1] == ')'):
-        lines[-1] = lines[-1][:-1] + ',)'
+    if (len(values) > 1) or (brackets != '()'):
+        lines[-1] = lines[-1][:-1]
+    lines[-1] += brackets[1]
     return '\n'.join(lines)
 
 

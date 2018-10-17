@@ -23,9 +23,9 @@ def calc_qref_v1(self):
 
         >>> from hydpy.models.lstream import *
         >>> parameterstep()
-        >>> states.qz.new = 3.
-        >>> states.qz.old = 2.
-        >>> states.qa.old = 1.
+        >>> states.qz.new = 3.0
+        >>> states.qz.old = 2.0
+        >>> states.qa.old = 1.0
         >>> model.calc_qref_v1()
         >>> fluxes.qref
         qref(2.0)
@@ -59,10 +59,10 @@ def calc_rk_v1(self):
 
         >>> from hydpy.models.lstream import *
         >>> parameterstep()
-        >>> laen(25.)
+        >>> laen(25.0)
         >>> derived.sek(24*60*60)
-        >>> fluxes.ag = 10.
-        >>> fluxes.qref = 1.
+        >>> fluxes.ag = 10.0
+        >>> fluxes.qref = 1.0
         >>> model.calc_rk_v1()
         >>> fluxes.rk
         rk(2.893519)
@@ -70,14 +70,14 @@ def calc_rk_v1(self):
         Second, for negative values or zero values of |AG| or |QRef|,
         the value of |RK| is set to zero:
 
-        >>> fluxes.ag = 0.
-        >>> fluxes.qref = 1.
+        >>> fluxes.ag = 0.0
+        >>> fluxes.qref = 1.0
         >>> model.calc_rk_v1()
         >>> fluxes.rk
         rk(0.0)
 
-        >>> fluxes.ag = 0.
-        >>> fluxes.qref = 1.
+        >>> fluxes.ag = 0.0
+        >>> fluxes.qref = 1.0
         >>> model.calc_rk_v1()
         >>> fluxes.rk
         rk(0.0)
@@ -122,14 +122,14 @@ def calc_am_um_v1(self):
 
         >>> from hydpy.models.lstream import *
         >>> parameterstep()
-        >>> bm(2.)
-        >>> bnm(4.)
-        >>> hm(1.)
+        >>> bm(2.0)
+        >>> bnm(4.0)
+        >>> hm(1.0)
 
         The first example deals with normal flow conditions, where water
         flows within the main channel completely (|H| < |HM|):
 
-        >>> fluxes.h = .5
+        >>> fluxes.h = 0.5
         >>> model.calc_am_um_v1()
         >>> fluxes.am
         am(2.0)
@@ -149,7 +149,7 @@ def calc_am_um_v1(self):
         The third example checks the special case of a main channel with zero
         height:
 
-        >>> hm(0.)
+        >>> hm(0.0)
         >>> model.calc_am_um_v1()
         >>> fluxes.am
         am(3.0)
@@ -159,8 +159,8 @@ def calc_am_um_v1(self):
         The fourth example checks the special case of the actual water stage
         not being larger than zero (empty channel):
 
-        >>> fluxes.h = 0.
-        >>> hm(1.)
+        >>> fluxes.h = 0.0
+        >>> hm(1.0)
         >>> model.calc_am_um_v1()
         >>> fluxes.am
         am(0.0)
@@ -202,11 +202,11 @@ def calc_qm_v1(self):
 
         >>> from hydpy.models.lstream import *
         >>> parameterstep()
-        >>> ekm(2.)
-        >>> skm(50.)
-        >>> gef(.01)
-        >>> fluxes.am = 3.
-        >>> fluxes.um = 7.
+        >>> ekm(2.0)
+        >>> skm(50.0)
+        >>> gef(0.01)
+        >>> fluxes.am = 3.0
+        >>> fluxes.um = 7.0
         >>> model.calc_qm_v1()
         >>> fluxes.qm
         qm(17.053102)
@@ -214,14 +214,14 @@ def calc_qm_v1(self):
         For zero or negative values of the flown through surface or
         the wetted perimeter:
 
-        >>> fluxes.am = -1.
-        >>> fluxes.um = 7.
+        >>> fluxes.am = -1.0
+        >>> fluxes.um = 7.0
         >>> model.calc_qm_v1()
         >>> fluxes.qm
         qm(0.0)
 
-        >>> fluxes.am = 3.
-        >>> fluxes.um = 0.
+        >>> fluxes.am = 3.0
+        >>> fluxes.um = 0.0
         >>> model.calc_qm_v1()
         >>> fluxes.qm
         qm(0.0)
@@ -270,15 +270,15 @@ def calc_av_uv_v1(self):
 
         >>> from hydpy.models.lstream import *
         >>> parameterstep()
-        >>> hm(1.)
-        >>> bv(2.)
-        >>> bnv(4.)
-        >>> derived.hv(1.)
+        >>> hm(1.0)
+        >>> bv(2.0)
+        >>> bnv(4.0)
+        >>> derived.hv(1.0)
 
         The first example deals with normal flow conditions, where water flows
         within the main channel completely (|H| < |HM|):
 
-        >>> fluxes.h = .5
+        >>> fluxes.h = 0.5
         >>> model.calc_av_uv_v1()
         >>> fluxes.av
         av(0.0, 0.0)
@@ -310,8 +310,8 @@ def calc_av_uv_v1(self):
         The forth example assures that zero widths or hights of the forelands
         are handled properly:
 
-        >>> bv.left = 0.
-        >>> derived.hv.right = 0.
+        >>> bv.left = 0.0
+        >>> derived.hv.right = 0.0
         >>> model.calc_av_uv_v1()
         >>> fluxes.av
         av(4.0, 3.0)
@@ -357,11 +357,11 @@ def calc_qv_v1(self):
 
         >>> from hydpy.models.lstream import *
         >>> parameterstep()
-        >>> ekv(2.)
-        >>> skv(50.)
-        >>> gef(.01)
-        >>> fluxes.av = 3.
-        >>> fluxes.uv = 7.
+        >>> ekv(2.0)
+        >>> skv(50.0)
+        >>> gef(0.01)
+        >>> fluxes.av = 3.0
+        >>> fluxes.uv = 7.0
         >>> model.calc_qv_v1()
         >>> fluxes.qv
         qv(17.053102, 17.053102)
@@ -369,8 +369,8 @@ def calc_qv_v1(self):
         For zero or negative values of the flown through surface or
         the wetted perimeter:
 
-        >>> fluxes.av = -1., 3.
-        >>> fluxes.uv = 7., 0.
+        >>> fluxes.av = -1.0, 3.0
+        >>> fluxes.uv = 7.0, 0.0
         >>> model.calc_qv_v1()
         >>> fluxes.qv
         qv(0.0, 0.0)
@@ -425,9 +425,9 @@ def calc_avr_uvr_v1(self):
 
         >>> from hydpy.models.lstream import *
         >>> parameterstep()
-        >>> hm(1.)
-        >>> bnvr(4.)
-        >>> derived.hv(1.)
+        >>> hm(1.0)
+        >>> bnvr(4.0)
+        >>> derived.hv(1.0)
 
         The first example deals with moderate high flow conditions, where
         water flows over the forelands, but not over their outer embankments
@@ -485,11 +485,11 @@ def calc_qvr_v1(self):
 
         >>> from hydpy.models.lstream import *
         >>> parameterstep()
-        >>> ekv(2.)
-        >>> skv(50.)
-        >>> gef(.01)
-        >>> fluxes.avr = 3.
-        >>> fluxes.uvr = 7.
+        >>> ekv(2.0)
+        >>> skv(50.0)
+        >>> gef(0.01)
+        >>> fluxes.avr = 3.0
+        >>> fluxes.uvr = 7.0
         >>> model.calc_qvr_v1()
         >>> fluxes.qvr
         qvr(17.053102, 17.053102)
@@ -497,8 +497,8 @@ def calc_qvr_v1(self):
         For zero or negative values of the flown through surface or
         the wetted perimeter:
 
-        >>> fluxes.avr = -1., 3.
-        >>> fluxes.uvr = 7., 0.
+        >>> fluxes.avr = -1.0, 3.0
+        >>> fluxes.uvr = 7.0, 0.0
         >>> model.calc_qvr_v1()
         >>> fluxes.qvr
         qvr(0.0, 0.0)
@@ -528,9 +528,9 @@ def calc_ag_v1(self):
 
         >>> from hydpy.models.lstream import *
         >>> parameterstep()
-        >>> fluxes.am = 1.
-        >>> fluxes.av= 2., 3.
-        >>> fluxes.avr = 4., 5.
+        >>> fluxes.am = 1.0
+        >>> fluxes.av= 2.0, 3.0
+        >>> fluxes.avr = 4.0, 5.0
         >>> model.calc_ag_v1()
         >>> fluxes.ag
         ag(15.0)
@@ -637,7 +637,7 @@ def calc_h_v1(self):
     Required flux sequence:
       |QRef|
 
-    Calculated aide sequences:
+    Modified aide sequences:
       |HMin|
       |HMax|
       |QMin|
@@ -672,21 +672,22 @@ def calc_h_v1(self):
 
         Define the geometry and roughness values for the first test channel:
 
-        >>> bm(2.)
-        >>> bnm(4.)
-        >>> hm(1.)
-        >>> bv(.5, 10.)
-        >>> bbv(1., 2.)
-        >>> bnv(1., 8.)
-        >>> bnvr(20.)
-        >>> ekm(1.)
-        >>> skm(20.)
-        >>> ekv(1.)
-        >>> skv(60., 80.)
-        >>> gef(.01)
+        >>> bm(2.0)
+        >>> bnm(4.0)
+        >>> hm(1.0)
+        >>> bv(0.5, 10.0)
+        >>> bbv(1.0, 2.0)
+        >>> bnv(1.0, 8.0)
+        >>> bnvr(20.0)
+        >>> ekm(1.0)
+        >>> skm(20.0)
+        >>> ekv(1.0)
+        >>> skv(60.0, 80.0)
+        >>> gef(0.01)
 
-        Set the error tolerances of the iteration small enough, not to
-        compromise the shown first six decimal places of the following results:
+        Set the error tolerances of the iteration small enough to not
+        compromise the shown first six decimal places of the following
+        results:
 
         >>> qtol(1e-10)
         >>> htol(1e-10)
@@ -718,7 +719,7 @@ def calc_h_v1(self):
         The related water stages are the ones (directly or indirectly)
         defined above:
 
-        >>> test(0.)
+        >>> test(0.0)
         h(0.0)
         qg(0.0)
         >>> test(derived.qm)
@@ -735,23 +736,23 @@ def calc_h_v1(self):
         channel, the main channel along with the right foreland, and the
         main channel along with both forelands respectively:
 
-        >>> test(6.)
+        >>> test(6.0)
         h(0.859452)
         qg(6.0)
-        >>> test(10.)
+        >>> test(10.0)
         h(1.047546)
         qg(10.0)
-        >>> test(100)
+        >>> test(100.0)
         h(1.77455)
         qg(100.0)
 
         Finally, test two extreme water stages, inundating both outer
         foreland embankments:
 
-        >>> test(200.)
+        >>> test(200.0)
         h(2.152893)
         qg(200.0)
-        >>> test(2000.)
+        >>> test(2000.0)
         h(4.240063)
         qg(2000.0)
 
@@ -767,47 +768,55 @@ def calc_h_v1(self):
         ...     derived.qm.update()
         ...     derived.qv.update()
         ...     qm, qv = derived.qm, derived.qv
-        ...     for qref in [0., qm, qv.left, qv.right,
-        ...                  2./3.*qm+1./3.*min(qv),
-        ...                  2./3.*min(qv)+1./3.*max(qv),
-        ...                  3.*max(qv), 30.*max(qv)]:
+        ...     for qref in [0.0, qm, qv.left, qv.right,
+        ...                  2.0/3.0*qm+1.0/3.0*min(qv),
+        ...                  2.0/3.0*min(qv)+1.0/3.0*max(qv),
+        ...                  3.0*max(qv), 30.0*max(qv)]:
         ...         fluxes.qref = qref
         ...         model.calc_hmin_qmin_hmax_qmax()
         ...         model.calc_h()
-        ...         if abs(round(fluxes.qg-qref) > 0.):
+        ...         if abs(round(fluxes.qg-qref) > 0.0):
         ...             print('Error!', 'qref:', qref, 'qg:', fluxes.qg)
 
         Check for a triangle main channel:
 
-        >>> bm(0.)
+        >>> bm(0.0)
         >>> test()
-        >>> bm(2.)
+        >>> bm(2.0)
 
         Check for a completely flat main channel:
 
-        >>> hm(0.)
+        >>> hm(0.0)
         >>> test()
-        >>> hm(1.)
+
+        Repeat the last example but with a decreased value of |QTol|
+        allowing to trigger another stopping mechanisms if the
+        iteration algorithm:
+
+        >>> qtol(0.0)
+        >>> test()
+        >>> hm(1.0)
+        >>> qtol(1e-10)
 
         Check for a nonexistend main channel:
 
-        >>> bm(0.)
-        >>> bnm(0.)
+        >>> bm(0.0)
+        >>> bnm(0.0)
         >>> test()
-        >>> bm(2.)
-        >>> bnm(4.)
+        >>> bm(2.0)
+        >>> bnm(4.0)
 
         Check for a nonexistend forelands:
 
-        >>> bv(0.)
-        >>> bbv(0.)
+        >>> bv(0.0)
+        >>> bbv(0.0)
         >>> test()
-        >>> bv(.5, 10.)
-        >>> bbv(1., 2.)
+        >>> bv(0.5, 10.0)
+        >>> bbv(1., 2.0)
 
         Check for nonexistend outer foreland embankments:
 
-        >>> bnvr(0.)
+        >>> bnvr(0.0)
         >>> test()
 
         To take the last test as an illustrative example, one can see that
@@ -887,23 +896,23 @@ def calc_qa_v1(self):
         >>> from hydpy.models.lstream import *
         >>> parameterstep()
         >>> fluxes.rk(0.1)
-        >>> states.qz.old = 2.
-        >>> states.qz.new = 4.
-        >>> states.qa.old = 3.
+        >>> states.qz.old = 2.0
+        >>> states.qz.new = 4.0
+        >>> states.qa.old = 3.0
         >>> model.calc_qa_v1()
         >>> states.qa
         qa(3.800054)
 
         First extreme test case (zero division is circumvented):
 
-        >>> fluxes.rk(0.)
+        >>> fluxes.rk(0.0)
         >>> model.calc_qa_v1()
         >>> states.qa
         qa(4.0)
 
         Second extreme test case (numerical overflow is circumvented):
 
-        >>> fluxes.rk(1e200)
+        >>> fluxes.rk(1e201)
         >>> model.calc_qa_v1()
         >>> states.qa
         qa(5.0)

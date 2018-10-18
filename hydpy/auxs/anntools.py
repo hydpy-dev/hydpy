@@ -29,8 +29,8 @@ class _ANNArrayProperty(propertytools.DependentProperty):
 
     __obj2cann = weakref.WeakKeyDictionary()
 
-    def __init__(self, name, protected, doc):
-        super().__init__(name=name, protected=protected)
+    def __init__(self, protected, doc):
+        super().__init__(protected=protected)
         self.__doc__ = doc
         self.fget = self.__fget
         self.fset = self.__fset
@@ -412,7 +412,6 @@ of object `ann` has not been prepared so far.
         return self.nmb_inputs, self.nmb_neurons[0]
 
     weights_input = _ANNArrayProperty(
-        name='weights_input',
         protected=__protectedproperties,
         doc="""Weights between all input nodes and neurons of the first 
         hidden layer.
@@ -511,7 +510,6 @@ broadcast input array from shape (3,3) into shape (2,3)
         return self.nmb_neurons[-1]*self.nmb_outputs
 
     weights_output = _ANNArrayProperty(
-        name='weights_output',
         protected=__protectedproperties,
         doc="""Weights between all neurons of the last hidden layer and the 
         output nodes.
@@ -564,7 +562,6 @@ broadcast input array from shape (3,3) into shape (2,3)
         return nmb
 
     weights_hidden = _ANNArrayProperty(
-        name='weights_hidden',
         protected=__protectedproperties,
         doc="""Weights between between the neurons of the different 
         hidden layers.
@@ -596,7 +593,6 @@ broadcast input array from shape (3,3) into shape (2,3)
         return sum(self.nmb_neurons)
 
     intercepts_hidden = _ANNArrayProperty(
-        name='intercepts_hidden',
         protected=__protectedproperties,
         doc="""Intercepts of all neurons of the hidden layers.
 
@@ -633,7 +629,6 @@ broadcast input array from shape (3,3) into shape (2,3)
         return self.nmb_outputs
 
     intercepts_output = _ANNArrayProperty(
-        name='intercepts_output',
         protected=__protectedproperties,
         doc="""Intercepts of all output nodes.
 
@@ -657,7 +652,6 @@ broadcast input array from shape (3,3) into shape (2,3)
         return self.nmb_inputs,
 
     inputs = _ANNArrayProperty(
-        name='inputs',
         protected=__protectedproperties,
         doc="""Values of the input nodes.
 
@@ -680,7 +674,6 @@ broadcast input array from shape (3,3) into shape (2,3)
         return self.nmb_outputs,
 
     outputs = _ANNArrayProperty(
-        name='outputs',
         protected=__protectedproperties,
         doc="""Values of the output nodes.
 
@@ -689,7 +682,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         """)
 
     nmb_layers = propertytools.DependentProperty(
-        name='nmb_layers', protected=__protectedproperties)
+        protected=__protectedproperties)
 
     @nmb_layers.getter_
     def nmb_layers(self) -> int:
@@ -704,7 +697,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         return self._cann.nmb_layers
 
     shape_neurons = propertytools.DependentProperty(
-        name='shape_neurons', protected=__protectedproperties)
+        protected=__protectedproperties)
 
     @shape_neurons.getter_
     def shape_neurons(self) -> Tuple[int, int]:
@@ -724,7 +717,6 @@ broadcast input array from shape (3,3) into shape (2,3)
         return self.nmb_layers, self.__max_nmb_neurons
 
     neurons = _ANNArrayProperty(
-        name='neurons',
         protected=__protectedproperties,
         doc="""The activation of the neurons of the hidden layers.
 

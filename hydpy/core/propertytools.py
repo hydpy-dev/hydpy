@@ -316,7 +316,7 @@ class DependentProperty(BaseProperty):
     attribute before other attributes have been prepared.
 
     The following explanations suppose first reading the documentation
-    on function |ProtectedProperty|.  The following e^xample builds on
+    on function |ProtectedProperty|.  The following example builds on
     the one on class |ProtectedProperty|, but adds the dependent property,
     which requires the protected property `x` to be properly prepared:
 
@@ -337,8 +337,7 @@ class DependentProperty(BaseProperty):
     ...     def x(self):
     ...         self._x = None
     ...
-    ...     y = pt.DependentProperty(
-    ...         name='y', protected=(x,))
+    ...     y = pt.DependentProperty(protected=(x,))
     ...
     ...     @y.getter_
     ...     def y(self):
@@ -384,8 +383,7 @@ attribute `x` first.
     >>> test.y
     """
 
-    def __init__(self, name, protected):
-        self.name = name
+    def __init__(self, protected):
         self.protected = protected
         self.fget = None
         self.fset = None

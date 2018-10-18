@@ -13,7 +13,86 @@ from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 
 
-class _BaseProperty(object, metaclass=abc.ABCMeta):
+class BaseProperty(object, metaclass=abc.ABCMeta):
+    """Abstract base class for deriving classes similar to |property|.
+
+    |BaseProperty| provides the abstract methods |BaseProperty.call_fget|,
+    |BaseProperty.call_fset|, and |BaseProperty.call_fdel|, which allow
+    to add custom functionalities (e.g. caching) besides the standard
+    functionalities of properties:
+
+    >>> from hydpy.core.propertytools import BaseProperty
+    >>> BaseProperty()
+    Traceback (most recent call last):
+    ...
+    TypeError: Can't instantiate abstract class BaseProperty with abstract \
+methods call_fdel, call_fget, call_fset
+
+    The following concrete class mimics the behaviour of class |property|:
+
+    >>> class ConcreteProperty(BaseProperty):
+    ...
+    ...     def __init__(self, fget=None):
+    ...         self.fget = fget
+    ...         self.__doc__ = fget.__doc__
+    ...         self.fset = None
+    ...         self.fdel = None
+    ...
+    ...     def call_fget(self, obj):
+    ...         return self.fget(obj)
+    ...     def call_fset(self, obj, value):
+    ...         self.fset(obj, value)
+    ...     def call_fdel(self, obj):
+    ...         self.fdel(obj)
+
+    The following owner class implements its attribute `x` by defining
+    all three "property methods" (`getter_`/`fget`, `setter_`/`fset`,
+    `deleter_`/`fdel`), but its attribute `y` by defining none of them:
+
+    >>> class Owner(object):
+    ...
+    ...     def __init__(self):
+    ...         self._x = None
+    ...         self._y = None
+    ...
+    ...     @ConcreteProperty
+    ...     def x(self):
+    ...         return self._x
+    ...     @x.setter_
+    ...     def x(self, value):
+    ...         self._x = value
+    ...     @x.deleter_
+    ...     def x(self):
+    ...         self._x = None
+    ...
+    ...     y = ConcreteProperty()
+
+    After initialising an owner object, you can use its attribute `x`
+    as expected:
+
+    >>> owner = Owner()
+    >>> owner.x
+    >>> owner.x = 2
+    >>> owner.x
+    2
+    >>> del owner.x
+    >>> owner.x
+
+    Invoking attribute `y` results in the following error messages:
+
+    >>> owner.y
+    Traceback (most recent call last):
+    ...
+    AttributeError: Attribute `y` of object `owner` is not gettable.
+    >>> owner.y = 1
+    Traceback (most recent call last):
+    ...
+    AttributeError: Attribute `y` of object `owner` is not settable.
+    >>> del owner.y
+    Traceback (most recent call last):
+    ...
+    AttributeError: Attribute `y` of object `owner` is not deleteable.
+    """
 
     fget: Callable
     fset: Callable
@@ -48,35 +127,35 @@ class _BaseProperty(object, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def call_fget(self, obj) -> Any:
-        """ToDo"""
+        """Method for implementing special getter functionalities."""
 
     @abc.abstractmethod
     def call_fset(self, obj, value) -> None:
-        """ToDo"""
+        """Method for implementing special setter functionalities."""
 
     @abc.abstractmethod
     def call_fdel(self, obj) -> None:
-        """ToDo"""
+        """Method for implementing special deleter functionalities."""
 
-    def getter_(self, fget) -> '_BaseProperty':
+    def getter_(self, fget) -> 'BaseProperty':
         """Add the given getter function and its docstring to the
          property and return it."""
         self.fget = fget
         self.__doc__ = fget.__doc__
         return self
 
-    def setter_(self, fset) -> '_BaseProperty':
+    def setter_(self, fset) -> 'BaseProperty':
         """Add the given setter function to the property and return it."""
         self.fset = fset
         return self
 
-    def deleter_(self, fdel) -> '_BaseProperty':
+    def deleter_(self, fdel) -> 'BaseProperty':
         """Add the given deleter function to the property and return it."""
         self.fdel = fdel
         return self
 
 
-class ProtectedProperty(_BaseProperty):
+class ProtectedProperty(BaseProperty):
     """|property| like class which prevents getting an attribute
     before setting it.
 
@@ -239,7 +318,7 @@ class ProtectedProperties(object):
         return self.__properties.__iter__()
 
 
-class DependentProperty(_BaseProperty):
+class DependentProperty(BaseProperty):
     """|property| like class which prevents accessing a dependent
     attribute before other attributes have been prepared.
 
@@ -340,7 +419,7 @@ attribute `x` first.
         self.fdel(obj)
 
 
-class DefaultProperty(_BaseProperty):
+class DefaultProperty(BaseProperty):
     """|property| like class which uses the getter function to return
     a default value unless a custom value is available.
 

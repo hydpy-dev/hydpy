@@ -425,10 +425,8 @@ class DefaultProperty(BaseProperty):
 
     The following example includes two default properties.  Default
     property `x` implements only the required default getter
-    function.  Default property `y` additionally implements a setter
-    and a delete function with value checks.  Note that the test class
-    does not need to define any (private) attributes to store
-    potential custom values:
+    function, default property `y` additionally implements a setter
+    and a delete function with value checks:
 
     >>> from hydpy.core.propertytools import DefaultProperty
     >>> class Test(object):
@@ -496,7 +494,6 @@ class DefaultProperty(BaseProperty):
     >>> del test.x
     >>> del test.y
 
-
     The documentation strings of the getter functions serve as documentation
     strings of the respective default properties:
 
@@ -507,7 +504,6 @@ class DefaultProperty(BaseProperty):
     """
 
     def __init__(self, fget):
-        self.__obj2custom = weakref.WeakKeyDictionary()
         self.fget = fget
         self.fset = self._fset
         self.fdel = self._fdel
@@ -516,20 +512,20 @@ class DefaultProperty(BaseProperty):
     def call_fget(self, obj) -> Any:
         """Return the predefined custom value when available, otherwise,
         the value defined by the getter function."""
-        custom = self.__obj2custom.get(obj)
+        custom = vars(obj).get(self.name)
         if custom is None:
             return self.fget(obj)
         return custom
 
     def call_fset(self, obj, value) -> None:
         """Store the given custom value and call the setter function."""
-        self.__obj2custom[obj] = self.fset(obj, value)
+        vars(obj)[self.name] = self.fset(obj, value)
 
     def call_fdel(self, obj) -> None:
         """Remove the predefined custom value and call the delete function."""
         self.fdel(obj)
         try:
-            del self.__obj2custom[obj]
+            del vars(obj)[self.name]
         except KeyError:
             pass
 

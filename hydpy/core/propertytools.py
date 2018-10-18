@@ -236,7 +236,6 @@ class ProtectedProperty(BaseProperty):
         self.__doc__ = fget.__doc__
         self.fset = None
         self.fdel = None
-        self.__obj2ready = weakref.WeakKeyDictionary()
 
     def call_fget(self, obj) -> Any:
         if self.isready(obj):
@@ -247,23 +246,17 @@ class ProtectedProperty(BaseProperty):
 
     def call_fset(self, obj, value) -> None:
         self.fset(obj, value)
-        self.__obj2ready[obj] = True
+        vars(obj)[self.name] = True
 
     def call_fdel(self, obj) -> None:
-        self.__obj2ready[obj] = False
+        vars(obj)[self.name] = False
         self.fdel(obj)
 
     def isready(self, obj) -> bool:
         """Return |True| or |False| to indicate if the protected
         property is ready for the given object.  If the object is
         unknow, |ProtectedProperty| returns |False|."""
-        return self.__obj2ready.get(obj, False)
-
-    def copy(self, old_obj, new_obj) -> None:   # ToDo remove?
-        """Assume the same readiness of the old object than for tne
-        new object.  If the old object is unknown, assume the new one
-        is not ready."""
-        self.__obj2ready[new_obj] = self.__obj2ready.get(old_obj, False)
+        return vars(obj).get(self.name, False)
 
 
 class ProtectedProperties(object):

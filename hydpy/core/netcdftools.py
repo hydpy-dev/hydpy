@@ -328,7 +328,7 @@ def create_dimension(ncfile, name, length) -> None:
     >>> try:
     ...     create_dimension(ncfile, 'dim1', 5)
     ... except BaseException as exc:
-    ...     print(exc)
+    ...     print(exc)    # doctest: +ELLIPSIS
     While trying to add dimension `dim1` with length `5` \
 to the NetCDF file `test.nc`, the following error occurred: ...
 
@@ -357,7 +357,7 @@ def create_variable(ncfile, name, datatype, dimensions) -> None:
     >>> try:
     ...     create_variable(ncfile, 'var1', 'f8', ('dim1',))
     ... except BaseException as exc:
-    ...     print(str(exc).strip('"'))
+    ...     print(str(exc).strip('"'))    # doctest: +ELLIPSIS
     While trying to add variable `var1` with datatype `f8` and \
 dimensions `('dim1',)` to the NetCDF file `test.nc`, the following error \
 occurred: ...
@@ -1437,7 +1437,7 @@ in NetCDF file `model.nc` available.
     >>> try:
     ...     var_nkor.write(ncfile)
     ... except BaseException as exc:
-    ...     print(exc)
+    ...     print(exc)   # doctest: +ELLIPSIS
     While trying to add dimension `stations` with length `2` \
 to the NetCDF file `model.nc`, the following error occurred: ...
     >>> ncfile.close()

@@ -1338,10 +1338,21 @@ class AggAndFlatMixin(object):
         >>> ncvar.log(elements.element1.model.sequences.fluxes.nkor, None)
         >>> ncvar.dimensions
         ('stations', 'time')
+
+        When using the first axis as the "timeaxis", the order of the
+        dimension names turns:
+
+        >>> ncvar = NetCDFVariableAgg('flux_nkor', isolate=True, timeaxis=0)
+        >>> ncvar.log(elements.element1.model.sequences.fluxes.nkor, None)
+        >>> ncvar.dimensions
+        ('time', 'stations')
         """
         self: NetCDFVariableBase
+        nmb_timepoints = dimmapping['nmb_timepoints']
         nmb_subdevices = '%s%s' % (self.prefix, dimmapping['nmb_subdevices'])
-        return nmb_subdevices, dimmapping['nmb_timepoints']
+        if self._timeaxis:
+            return nmb_subdevices, nmb_timepoints
+        return nmb_timepoints, nmb_subdevices
 
 
 class NetCDFVariableDeep(DeepAndAggMixin, NetCDFVariableBase):

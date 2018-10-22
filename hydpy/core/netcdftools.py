@@ -187,10 +187,12 @@ correctly to the constructor of |NetCDFInterface|:
 
 >>> from unittest.mock import patch
 >>> with patch('hydpy.core.netcdftools.NetCDFInterface') as mock:
-...     pub.sequencemanager.open_netcdf_writer(flatten=True, isolate=False)
-...     mock.assert_called_with(flatten=True, isolate=False)
-...     pub.sequencemanager.open_netcdf_reader(flatten=True, isolate=False)
-...     mock.assert_called_with(flatten=True, isolate=False)
+...     pub.sequencemanager.open_netcdf_writer(
+...         flatten=True, isolate=False, timeaxis=0)
+...     mock.assert_called_with(flatten=True, isolate=False, timeaxis=0)
+...     pub.sequencemanager.open_netcdf_reader(
+...         flatten=True, isolate=False, timeaxis=0)
+...     mock.assert_called_with(flatten=True, isolate=False, timeaxis=0)
 
 ToDo:
 
@@ -485,7 +487,7 @@ class NetCDFInterface(object):
     related to |lland_v2|:
 
     >>> from hydpy.core.netcdftools import NetCDFInterface
-    >>> interface = NetCDFInterface(flatten=False, isolate=False)
+    >>> interface = NetCDFInterface(flatten=False, isolate=False, timeaxis=1)
     >>> for sequence in sequences:
     ...     interface.log(sequence, sequence.series)
     ...     interface.log(sequence, sequence.average_series())
@@ -531,7 +533,7 @@ a member named `lland_v3`.
     test sequences, and read the test data of the defined subperiod:
 
     >>> from hydpy.core.netcdftools import NetCDFInterface
-    >>> interface = NetCDFInterface(flatten=False, isolate=False)
+    >>> interface = NetCDFInterface(flatten=False, isolate=False, timeaxis=1)
     >>> for sequence in sequences:
     ...     interface.log(sequence, None)
 
@@ -559,7 +561,7 @@ a member named `lland_v3`.
     ...     sequences.append(element.model.sequences.inputs.nied)
     ...     sequences.append(element.model.sequences.fluxes.nkor)
 
-    >>> interface = NetCDFInterface(flatten=True, isolate=True)
+    >>> interface = NetCDFInterface(flatten=True, isolate=True, timeaxis=1)
     >>> for sequence in sequences:
     ...     interface.log(sequence, sequence.series)
     ...     interface.log(sequence, sequence.average_series())
@@ -590,7 +592,7 @@ a member named `lland_v3`.
     >>> for sequence in sequences:
     ...     sequence.activate_ram()
 
-    >>> interface = NetCDFInterface(flatten=True, isolate=True)
+    >>> interface = NetCDFInterface(flatten=True, isolate=True, timeaxis=1)
     >>> for sequence in sequences:
     ...     interface.log(sequence, None)
     >>> with TestIO():
@@ -606,15 +608,19 @@ a member named `lland_v3`.
 
     >>> from unittest.mock import patch
     >>> with patch('hydpy.core.netcdftools.NetCDFFile') as mock:
-    ...     interface = NetCDFInterface(flatten=True, isolate=False)
+    ...     interface = NetCDFInterface(
+    ...         flatten=True, isolate=False, timeaxis=0)
     ...     interface.log(sequences[0], sequences[0].series)
     ...     mock.assert_called_once_with(
-    ...         name='node', flatten=True, isolate=False, dirpath='nodepath')
+    ...         name='node',
+    ...         flatten=True, isolate=False, timeaxis=0,
+    ...         dirpath='nodepath')
     """
 
-    def __init__(self, flatten, isolate):
+    def __init__(self, flatten, isolate, timeaxis):
         self._flatten = flatten
         self._isolate = isolate
+        self._timeaxis = timeaxis
         self.folders: 'Dict[str, Dict[str, NetCDFFile]]' = \
             collections.OrderedDict()
 
@@ -641,8 +647,11 @@ a member named `lland_v3`.
             file_ = files[descr]
         except KeyError:
             file_ = NetCDFFile(
-                name=descr, flatten=self._flatten,
-                isolate=self._isolate, dirpath=dirpath)
+                name=descr,
+                flatten=self._flatten,
+                isolate=self._isolate,
+                timeaxis=self._timeaxis,
+                dirpath=dirpath)
             files[descr] = file_
         file_.log(sequence, infoarray)
 
@@ -737,7 +746,8 @@ class NetCDFFile(object):
     sequence:
 
     >>> from hydpy.core.netcdftools import NetCDFFile
-    >>> ncfile = NetCDFFile('model', flatten=False, isolate=False, dirpath='')
+    >>> ncfile = NetCDFFile(
+    ...     'model', flatten=False, isolate=False, timeaxis=1, dirpath='')
     >>> ncfile.log(nied, nied.series)
 
     (4) We store the NetCDF file directly into the testing directory:
@@ -754,7 +764,8 @@ class NetCDFFile(object):
     in fact contains the read data:
 
     >>> nied.series = 0.0
-    >>> ncfile = NetCDFFile('model', flatten=True, isolate=False, dirpath='')
+    >>> ncfile = NetCDFFile(
+    ...     'model', flatten=True, isolate=False, timeaxis=1, dirpath='')
     >>> ncfile.log(nied, nied.series)
     >>> with TestIO():
     ...     ncfile.read()
@@ -787,10 +798,11 @@ a NetCDF variable named `state_bowa` nor does it define a member \
 named `state_bowa`.
     """
 
-    def __init__(self, name: str, flatten, isolate, dirpath):
+    def __init__(self, name: str, flatten, isolate, timeaxis, dirpath):
         self.name = name
         self._flatten = flatten
         self._isolate = isolate
+        self._timeaxis = timeaxis
         self._dirpath = dirpath
         self.variables: 'Dict[str, NetCDFVariableBase]' = \
             collections.OrderedDict()
@@ -838,7 +850,7 @@ named `state_bowa`.
 
         >>> from hydpy.core.netcdftools import NetCDFFile
         >>> ncfile = NetCDFFile(
-        ...     'model', flatten=False, isolate=False, dirpath='')
+        ...     'model', flatten=False, isolate=False, timeaxis=1, dirpath='')
 
         (5) We log all test sequences results in two |NetCDFVariableDeep|
         and one |NetCDFVariableAgg| objects.  To keep both NetCDF variables
@@ -873,7 +885,7 @@ named `state_bowa`.
         aggregated data, nothing changes:
 
         >>> ncfile = NetCDFFile(
-        ...     'model', flatten=True, isolate=True, dirpath='')
+        ...     'model', flatten=True, isolate=True, timeaxis=1, dirpath='')
         >>> test(ncfile)
         input_nied NetCDFVariableFlat ('element1', 'element2')
         flux_nkor NetCDFVariableFlat ('element2_0', 'element2_1')
@@ -896,10 +908,11 @@ named `state_bowa`.
         >>> from unittest.mock import patch
         >>> with patch('hydpy.core.netcdftools.NetCDFVariableFlat') as mock:
         ...     ncfile = NetCDFFile(
-        ...         'model', flatten=True, isolate=False, dirpath='')
+        ...         'model', flatten=True, isolate=False, timeaxis=0,
+        ...         dirpath='')
         ...     ncfile.log(nied1, nied1.series)
         ...     mock.assert_called_once_with(
-        ...         name='input_nied', isolate=False)
+        ...         name='input_nied', timeaxis=0, isolate=False)
         """
         aggregated = ((infoarray is not None) and
                       (infoarray.info['type'] != 'unmodified'))
@@ -915,7 +928,9 @@ named `state_bowa`.
                 cls = NetCDFVariableFlat
             else:
                 cls = NetCDFVariableDeep
-            var_ = cls(name=descr, isolate=self._isolate)
+            var_ = cls(name=descr,
+                       isolate=self._isolate,
+                       timeaxis=self._timeaxis)
             self.variables[descr] = var_
         var_.log(sequence, infoarray)
 
@@ -1005,9 +1020,10 @@ class Subdevice2Index(object):
 class NetCDFVariableBase(abc.ABC):
     """Base class for |NetCDFVariableDeep|, |NetCDFVariableAgg|, and
     |NetCDFVariableFlat|."""
-    def __init__(self, name, isolate):
+    def __init__(self, name, isolate, timeaxis):
         self.name = name
         self._isolate = isolate
+        self._timeaxis = timeaxis
         self.sequences: Dict[str, sequencetools.IOSequence] = \
             collections.OrderedDict()
         self.arrays: Dict[str, sequencetools.InfoArray] = \
@@ -1027,7 +1043,7 @@ class NetCDFVariableBase(abc.ABC):
         >>> from hydpy.core.netcdftools import NetCDFVariableBase
         >>> from hydpy import make_abc_testable
         >>> Var = make_abc_testable(NetCDFVariableBase)
-        >>> var = Var('flux_nkor', isolate=True)
+        >>> var = Var('flux_nkor', isolate=True, timeaxis=1)
         >>> from hydpy.core.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> nkor = elements.element1.model.sequences.fluxes.nkor
@@ -1073,14 +1089,14 @@ nor does it define a member named `element2`.
         >>> from hydpy.core.netcdftools import NetCDFVariableBase
         >>> from hydpy import make_abc_testable
         >>> NetCDFVariableBase_ = make_abc_testable(NetCDFVariableBase)
-        >>> NetCDFVariableBase_('name', isolate=True).prefix
+        >>> NetCDFVariableBase_('name', isolate=True, timeaxis=1).prefix
         ''
 
         When storing different types of sequences in the same NetCDF
         file, there is a risk of name conflicts.  We solve this by
         using the variables name as a prefix:
 
-        >>> NetCDFVariableBase_('name', isolate=False).prefix
+        >>> NetCDFVariableBase_('name', isolate=False, timeaxis=1).prefix
         'name_'
         """
         return '' if self._isolate else '%s_' % self.name
@@ -1104,7 +1120,7 @@ nor does it define a member named `element2`.
         number of (sub)devices, the second dimension to the number of
         characters of the longest (sub)device name:
 
-        >>> var1 = Var('var1', isolate=False)
+        >>> var1 = Var('var1', isolate=False, timeaxis=1)
         >>> with TestIO():
         ...     file1 = netcdf4.Dataset('model1.nc', 'w')
         >>> var1.insert_subdevices(file1)
@@ -1118,7 +1134,7 @@ nor does it define a member named `element2`.
 
         (3) When isolating variables, we omit the prefix:
 
-        >>> var2 = Var('var2', isolate=True)
+        >>> var2 = Var('var2', isolate=True, timeaxis=1)
         >>> with TestIO():
         ...     file2 = netcdf4.Dataset('model2.nc', 'w')
         >>> var2.insert_subdevices(file2)
@@ -1156,7 +1172,7 @@ nor does it define a member named `element2`.
         ...     ncfile = netcdf4.Dataset('model.nc', 'w')
         >>> Var = make_abc_testable(NetCDFVariableBase)
         >>> Var.subdevicenames = 'element1', 'element_2'
-        >>> var = Var('flux_prec', isolate=False)
+        >>> var = Var('flux_prec', isolate=False, timeaxis=1)
         >>> var.query_subdevices(ncfile)
         Traceback (most recent call last):
         ...
@@ -1168,9 +1184,9 @@ coordinate locations of variable `flux_prec`.
         and returned:
 
         >>> var.insert_subdevices(ncfile)
-        >>> Var('flux_prec', isolate=False).query_subdevices(ncfile)
+        >>> Var('flux_prec', isolate=False, timeaxis=1).query_subdevices(ncfile)
         ['element1', 'element_2']
-        >>> Var('flux_prec', isolate=True).query_subdevices(ncfile)
+        >>> Var('flux_prec', isolate=True, timeaxis=1).query_subdevices(ncfile)
         ['element1', 'element_2']
 
         >>> ncfile.close()
@@ -1207,7 +1223,7 @@ coordinate locations of variable `flux_prec`.
         >>> Var = make_abc_testable(NetCDFVariableBase)
         >>> Var.subdevicenames = [
         ...     'element3', 'element1', 'element1_1', 'element2']
-        >>> var = Var('flux_prec', isolate=True)
+        >>> var = Var('flux_prec', isolate=True, timeaxis=1)
         >>> var.insert_subdevices(ncfile)
         >>> subdevice2index = var.query_subdevice2index(ncfile)
         >>> subdevice2index.get_index('element1_1')
@@ -1310,7 +1326,7 @@ class AggAndFlatMixin(object):
         >>> from hydpy.core.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableAgg
-        >>> ncvar = NetCDFVariableAgg('flux_nkor', isolate=False)
+        >>> ncvar = NetCDFVariableAgg('flux_nkor', isolate=False, timeaxis=1)
         >>> ncvar.log(elements.element1.model.sequences.fluxes.nkor, None)
         >>> ncvar.dimensions
         ('flux_nkor_stations', 'time')
@@ -1318,7 +1334,7 @@ class AggAndFlatMixin(object):
         But when isolating variables into separate NetCDF files, the
         variable specific suffix is omitted:
 
-        >>> ncvar = NetCDFVariableAgg('flux_nkor', isolate=True)
+        >>> ncvar = NetCDFVariableAgg('flux_nkor', isolate=True, timeaxis=1)
         >>> ncvar.log(elements.element1.model.sequences.fluxes.nkor, None)
         >>> ncvar.dimensions
         ('stations', 'time')
@@ -1347,8 +1363,8 @@ class NetCDFVariableDeep(DeepAndAggMixin, NetCDFVariableBase):
     two elements:
 
     >>> from hydpy.core.netcdftools import NetCDFVariableDeep
-    >>> var_nied = NetCDFVariableDeep('input_nied', isolate=False)
-    >>> var_nkor = NetCDFVariableDeep('flux_nkor', isolate=False)
+    >>> var_nied = NetCDFVariableDeep('input_nied', isolate=False, timeaxis=1)
+    >>> var_nkor = NetCDFVariableDeep('flux_nkor', isolate=False, timeaxis=1)
     >>> for element in (element1, element2):
     ...     seqs = element.model.sequences
     ...     var_nied.log(seqs.inputs.nied, seqs.inputs.nied.series)
@@ -1389,8 +1405,8 @@ class NetCDFVariableDeep(DeepAndAggMixin, NetCDFVariableBase):
     for reading, read its data, and confirm that this data has been
     passed to both test sequences properly:
 
-    >>> nied1 = NetCDFVariableDeep('input_nied', isolate=False)
-    >>> nkor1 = NetCDFVariableDeep('flux_nkor', isolate=False)
+    >>> nied1 = NetCDFVariableDeep('input_nied', isolate=False, timeaxis=1)
+    >>> nkor1 = NetCDFVariableDeep('flux_nkor', isolate=False, timeaxis=1)
     >>> for element in (element1, element2):
     ...     sequences = element.model.sequences
     ...     nied1.log(sequences.inputs.nied, None)
@@ -1424,8 +1440,8 @@ in NetCDF file `model.nc` available.
     for the second one (|lland_fluxes.NKor|):
 
 
-    >>> var_nied = NetCDFVariableDeep('input_nied', isolate=True)
-    >>> var_nkor = NetCDFVariableDeep('flux_nkor', isolate=True)
+    >>> var_nied = NetCDFVariableDeep('input_nied', isolate=True, timeaxis=1)
+    >>> var_nkor = NetCDFVariableDeep('flux_nkor', isolate=True, timeaxis=1)
     >>> for element in (element1, element2):
     ...     seqs = element.model.sequences
     ...     var_nied.log(seqs.inputs.nied, seqs.inputs.nied.series)
@@ -1479,7 +1495,7 @@ to the NetCDF file `model.nc`, the following error occurred: ...
         >>> from hydpy.core.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableDeep
-        >>> ncvar = NetCDFVariableDeep('input_nied', isolate=False)
+        >>> ncvar = NetCDFVariableDeep('input_nied', isolate=False, timeaxis=1)
         >>> for element in elements:
         ...     ncvar.log(element.model.sequences.inputs.nied, None)
         >>> ncvar.shape
@@ -1492,7 +1508,7 @@ to the NetCDF file `model.nc`, the following error occurred: ...
         returned |tuple|) is due to the third element defining three
         hydrological response units:
 
-        >>> ncvar = NetCDFVariableDeep('flux_nkor', isolate=False)
+        >>> ncvar = NetCDFVariableDeep('flux_nkor', isolate=False, timeaxis=1)
         >>> for element in elements:
         ...     ncvar.log(element.model.sequences.fluxes.nkor, None)
         >>> ncvar.shape
@@ -1517,7 +1533,7 @@ to the NetCDF file `model.nc`, the following error occurred: ...
         >>> from hydpy.core.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableDeep
-        >>> ncvar = NetCDFVariableDeep('input_nied', isolate=False)
+        >>> ncvar = NetCDFVariableDeep('input_nied', isolate=False, timeaxis=1)
         >>> for element in elements:
         ...     nied1 = element.model.sequences.inputs.nied
         ...     ncvar.log(nied1, nied1.series)
@@ -1531,7 +1547,7 @@ to the NetCDF file `model.nc`, the following error occurred: ...
         some fiels of the second example element, which defines only
         two hydrological response units instead of three:
 
-        >>> ncvar = NetCDFVariableDeep('flux_nkor', isolate=False)
+        >>> ncvar = NetCDFVariableDeep('flux_nkor', isolate=False, timeaxis=1)
         >>> for element in elements:
         ...     nkor1 = element.model.sequences.fluxes.nkor
         ...     ncvar.log(nkor1, nkor1.series)
@@ -1558,7 +1574,7 @@ to the NetCDF file `model.nc`, the following error occurred: ...
         >>> from hydpy.core.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableDeep
-        >>> ncvar = NetCDFVariableDeep('flux_nkor', isolate=False)
+        >>> ncvar = NetCDFVariableDeep('flux_nkor', isolate=False, timeaxis=1)
         >>> ncvar.log(elements.element1.model.sequences.fluxes.nkor, None)
         >>> ncvar.dimensions
         ('flux_nkor_stations', 'time', 'flux_nkor_axis3')
@@ -1566,7 +1582,7 @@ to the NetCDF file `model.nc`, the following error occurred: ...
         However, when isolating variables into separate NetCDF files, the
         sequence-specific suffix is omitted:
 
-        >>> ncvar = NetCDFVariableDeep('flux_nkor', isolate=True)
+        >>> ncvar = NetCDFVariableDeep('flux_nkor', isolate=True, timeaxis=1)
         >>> ncvar.log(elements.element1.model.sequences.fluxes.nkor, None)
         >>> ncvar.dimensions
         ('stations', 'time', 'axis3')
@@ -1611,8 +1627,10 @@ class NetCDFVariableAgg(DeepAndAggMixin, AggAndFlatMixin, NetCDFVariableBase):
     >>> from hydpy.core.examples import prepare_io_example_1
     >>> nodes, (element1, element2, element3) = prepare_io_example_1()
     >>> from hydpy.core.netcdftools import NetCDFVariableAgg
-    >>> var_nied = NetCDFVariableAgg('input_nied_mean', isolate=False)
-    >>> var_nkor = NetCDFVariableAgg('flux_nkor_mean', isolate=False)
+    >>> var_nied = NetCDFVariableAgg(
+    ...     'input_nied_mean', isolate=False, timeaxis=1)
+    >>> var_nkor = NetCDFVariableAgg(
+    ...     'flux_nkor_mean', isolate=False, timeaxis=1)
     >>> for element in (element1, element2):
     ...     nied1 = element.model.sequences.inputs.nied
     ...     var_nied.log(nied1, nied1.average_series())
@@ -1656,7 +1674,7 @@ class NetCDFVariableAgg(DeepAndAggMixin, AggAndFlatMixin, NetCDFVariableBase):
         >>> from hydpy.core.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableAgg
-        >>> ncvar = NetCDFVariableAgg('flux_nkor', isolate=False)
+        >>> ncvar = NetCDFVariableAgg('flux_nkor', isolate=False, timeaxis=1)
         >>> for element in elements:
         ...     ncvar.log(element.model.sequences.fluxes.nkor, None)
         >>> ncvar.shape
@@ -1678,7 +1696,7 @@ class NetCDFVariableAgg(DeepAndAggMixin, AggAndFlatMixin, NetCDFVariableBase):
        >>> from hydpy.core.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableAgg
-        >>> ncvar = NetCDFVariableAgg('flux_nkor', isolate=False)
+        >>> ncvar = NetCDFVariableAgg('flux_nkor', isolate=False, timeaxis=1)
         >>> for element in elements:
         ...     nkor1 = element.model.sequences.fluxes.nkor
         ...     ncvar.log(nkor1, nkor1.average_series())
@@ -1700,7 +1718,8 @@ class NetCDFVariableAgg(DeepAndAggMixin, AggAndFlatMixin, NetCDFVariableBase):
         possible:
 
         >>> from hydpy.core.netcdftools import NetCDFVariableAgg
-        >>> NetCDFVariableAgg('flux_nkor', isolate=False).read(None, None)
+        >>> var_ = NetCDFVariableAgg('flux_nkor', isolate=False, timeaxis=1)
+        >>> var_.read(None, None)
         Traceback (most recent call last):
         ...
         RuntimeError: The process of aggregating values (of sequence \
@@ -1734,8 +1753,8 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
     two elements:
 
     >>> from hydpy.core.netcdftools import NetCDFVariableFlat
-    >>> var_nied = NetCDFVariableFlat('input_nied', isolate=False)
-    >>> var_nkor = NetCDFVariableFlat('flux_nkor', isolate=False)
+    >>> var_nied = NetCDFVariableFlat('input_nied', isolate=False, timeaxis=1)
+    >>> var_nkor = NetCDFVariableFlat('flux_nkor', isolate=False, timeaxis=1)
     >>> for element in (element1, element2):
     ...     seqs = element.model.sequences
     ...     var_nied.log(seqs.inputs.nied, seqs.inputs.nied.series)
@@ -1761,8 +1780,8 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
     False
     False
 
-    >>> nied1 = NetCDFVariableFlat('input_nied', isolate=False)
-    >>> nkor1 = NetCDFVariableFlat('flux_nkor', isolate=False)
+    >>> nied1 = NetCDFVariableFlat('input_nied', isolate=False, timeaxis=1)
+    >>> nkor1 = NetCDFVariableFlat('flux_nkor', isolate=False, timeaxis=1)
     >>> for element in (element1, element2):
     ...     sequences = element.model.sequences
     ...     nied1.log(sequences.inputs.nied, None)
@@ -1790,7 +1809,7 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
         >>> from hydpy.core.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableFlat
-        >>> ncvar = NetCDFVariableFlat('input_nied', isolate=False)
+        >>> ncvar = NetCDFVariableFlat('input_nied', isolate=False, timeaxis=1)
         >>> for element in elements:
         ...     ncvar.log(element.model.sequences.inputs.nied, None)
         >>> ncvar.shape
@@ -1802,7 +1821,7 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
         is logged for three elements with one, two, and three response
         units respectively, making up a sum of six subdevices:
 
-        >>> ncvar = NetCDFVariableFlat('flux_nkor', isolate=False)
+        >>> ncvar = NetCDFVariableFlat('flux_nkor', isolate=False, timeaxis=1)
         >>> for element in elements:
         ...     ncvar.log(element.model.sequences.fluxes.nkor, None)
         >>> ncvar.shape
@@ -1824,7 +1843,7 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
         >>> from hydpy.core.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableFlat
-        >>> ncvar = NetCDFVariableFlat('input_nied', isolate=False)
+        >>> ncvar = NetCDFVariableFlat('input_nied', isolate=False, timeaxis=1)
         >>> for element in elements:
         ...     nied1 = element.model.sequences.inputs.nied
         ...     ncvar.log(nied1, nied1.series)
@@ -1840,7 +1859,7 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
         individual time series of the second element are stored
         in row two and three:
 
-        >>> ncvar = NetCDFVariableFlat('flux_nkor', isolate=False)
+        >>> ncvar = NetCDFVariableFlat('flux_nkor', isolate=False, timeaxis=1)
         >>> for element in elements:
         ...     nkor1 = element.model.sequences.fluxes.nkor
         ...     ncvar.log(nkor1, nkor1.series)
@@ -1870,7 +1889,7 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
         >>> from hydpy.core.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableFlat
-        >>> ncvar = NetCDFVariableFlat('input_nied', isolate=False)
+        >>> ncvar = NetCDFVariableFlat('input_nied', isolate=False, timeaxis=1)
         >>> for element in elements:
         ...     nied1 = element.model.sequences.inputs.nied
         ...     ncvar.log(nied1, nied1.series)
@@ -1883,7 +1902,7 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
         the time series of the first hydrological response unit of the
         second element:
 
-        >>> ncvar = NetCDFVariableFlat('flux_nkor', isolate=False)
+        >>> ncvar = NetCDFVariableFlat('flux_nkor', isolate=False, timeaxis=1)
         >>> for element in elements:
         ...     nkor1 = element.model.sequences.fluxes.nkor
         ...     ncvar.log(nkor1, nkor1.series)

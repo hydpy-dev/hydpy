@@ -20,7 +20,50 @@ from hydpy.core import selectiontools
 from hydpy.core import timetools
 
 
-class _Directories(object):
+class Folder2Path(object):
+    """Map folder names to their path names.
+
+    >>> from hydpy.core.filetools import Folder2Path
+    >>> f2p = Folder2Path('dir1', 'dir2', dir3='dir3', dir4='path4')
+    >>> f2p
+    Folder2Path(dir1,
+                dir2,
+                dir3,
+                dir4=path4)
+
+    >>> f2p.add('dir5')
+    >>> f2p.add('dir6', 'path6')
+    >>> f2p
+    Folder2Path(dir1,
+                dir2,
+                dir3,
+                dir5,
+                dir4=path4,
+                dir6=path6)
+
+    >>> 'dir1' in dir(f2p)
+    True
+    >>> f2p.dir1
+    'dir1'
+    >>> f2p.dir4
+    'path4'
+
+    >>> for dir_, path in f2p:
+    ...     print(dir_, path)
+    dir1 dir1
+    dir2 dir2
+    dir3 dir3
+    dir4 path4
+    dir5 dir5
+    dir6 path6
+
+    >>> len(f2p)
+    6
+    >>> bool(f2p)
+    True
+    >>> bool(Folder2Path())
+    False
+    """
 
     def __init__(self, *args, **kwargs):
         for arg in args:
@@ -36,11 +79,8 @@ class _Directories(object):
         setattr(self, directory, path)
 
     def __iter__(self):
-        for (key, value) in vars(self).items():
-            yield (key, value)
-
-    def __getitem__(self, key):
-        return sorted(vars(self).values())[key]
+        for key, value in sorted(vars(self).items()):
+            yield key, value
 
     def __len__(self):
         return len(vars(self))
@@ -52,12 +92,12 @@ class _Directories(object):
                 if key == value:
                     args.append(key)
                 else:
-                    kwargs.append('%s=%s' % (key, value))
-            lines = ['             %s,' % arg for arg in args+kwargs]
-            lines[0] = '_Directories(' + lines[0][11:]
+                    kwargs.append(f'{key}={value}')
+            lines = [f'            {arg},' for arg in args+kwargs]
+            lines[0] = 'Folder2Path(' + lines[0][12:]
             lines[-1] = lines[-1][:-1] + ')'
             return '\n'.join(lines)
-        return '_Directories()'
+        return 'Folder2Path()'
 
     def __dir__(self):
         return objecttools.dir_(self)
@@ -102,7 +142,7 @@ class FileManager(object):
     @property
     def availabledirs(self):
         """Available directories containing the respective files."""
-        directories = _Directories()
+        directories = Folder2Path()
         for directory in os.listdir(self.basepath):
             if not directory.startswith('_'):
                 path = os.path.join(self.basepath, directory)

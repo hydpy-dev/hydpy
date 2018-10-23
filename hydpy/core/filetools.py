@@ -139,6 +139,36 @@ class FileManager(object):
 
     @propertytools.ProtectedProperty
     def projectdir(self):
+        """ToDo
+
+        >>> from hydpy.core.filetools import FileManager
+        >>> from hydpy import pub
+        >>> pub.projectname = 'project_A'
+        >>> filemanager = FileManager()
+        >>> filemanager.projectdir
+        'project_A'
+
+        ToDo
+
+        >>> del filemanager.projectdir
+        >>> filemanager.projectdir
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: Attribute `projectdir` \
+of object `filemanager` has not been prepared so far.
+        >>> filemanager.projectdir = 'project_B'
+        >>> filemanager.projectdir
+        'project_B'
+
+        ToDo
+
+        >>> del pub.projectname
+        >>> FileManager().projectdir
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: Attribute `projectdir` \
+of object `filemanager` has not been prepared so far.
+        """
         return self._projectdir
 
     @projectdir.setter_

@@ -1000,7 +1000,9 @@ no NetCDF reader object.
     def open_netcdf_reader(self, flatten=False, isolate=False, timeaxis=1):
         """Prepare a new |NetCDFInterface| object for reading data."""
         self._netcdf_reader = netcdftools.NetCDFInterface(
-            flatten=flatten, isolate=isolate, timeaxis=timeaxis)
+            flatten=bool(flatten),
+            isolate=bool(isolate),
+            timeaxis=int(timeaxis))
 
     def close_netcdf_reader(self):
         """Read data with a prepared |NetCDFInterface| object and remove it."""
@@ -1042,7 +1044,9 @@ no NetCDF writer object.
     def open_netcdf_writer(self, flatten=False, isolate=False, timeaxis=1):
         """Prepare a new |NetCDFInterface| object for writing data."""
         self._netcdf_writer = netcdftools.NetCDFInterface(
-            flatten=flatten, isolate=isolate, timeaxis=timeaxis)
+            flatten=bool(flatten),
+            isolate=bool(isolate),
+            timeaxis=int(timeaxis))
 
     def close_netcdf_writer(self):
         """Write data with a prepared |NetCDFInterface| object and remove it.

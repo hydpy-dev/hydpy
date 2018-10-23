@@ -1023,12 +1023,35 @@ class Subdevice2Index(object):
 
 class NetCDFVariableBase(abc.ABC):
     """Base class for |NetCDFVariableDeep|, |NetCDFVariableAgg|, and
-    |NetCDFVariableFlat|."""
+    |NetCDFVariableFlat|.
+
+    The initialisation of |NetCDFVariableBase| subclasses requires the
+    arguments `name`, `isolate`, and `timeaxis`. Only the last one is
+    checked to be valid:
+
+    >>> from hydpy.core.netcdftools import NetCDFVariableBase
+    >>> from hydpy import make_abc_testable
+    >>> NCVar = make_abc_testable(NetCDFVariableBase)
+    >>> ncvar = NCVar('flux_nkor', isolate=True, timeaxis=2)
+    Traceback (most recent call last):
+    ...
+    ValueError: The argument `timeaxis` must be either `0` (the first axis \
+handles time) or `1` (the second axis handles time), but for variable \
+`flux_nkor` of class NetCDFVariableBase_ the value `2` is given.
+    """
 
     def __init__(self, name, isolate, timeaxis):
-        self.name = name
-        self._isolate = isolate
-        self._timeaxis = timeaxis
+        self.name: str = name
+        self._isolate: bool = isolate
+        _timeaxis = int(timeaxis)
+        if _timeaxis not in (0, 1):
+            raise ValueError(
+                f'The argument `timeaxis` must be either `0` '
+                f'(the first axis handles time) or `1` (the '
+                f'second axis handles time), but for variable '
+                f'`{name}` of class {objecttools.classname(self)} ' 
+                f'the value `{timeaxis}` is given.')
+        self._timeaxis: int = _timeaxis
         self.sequences: Dict[str, sequencetools.IOSequence] = \
             collections.OrderedDict()
         self.arrays: Dict[str, sequencetools.InfoArray] = \
@@ -1047,19 +1070,19 @@ class NetCDFVariableBase(abc.ABC):
 
         >>> from hydpy.core.netcdftools import NetCDFVariableBase
         >>> from hydpy import make_abc_testable
-        >>> Var = make_abc_testable(NetCDFVariableBase)
-        >>> var = Var('flux_nkor', isolate=True, timeaxis=1)
+        >>> NCVar = make_abc_testable(NetCDFVariableBase)
+        >>> ncvar = NCVar('flux_nkor', isolate=True, timeaxis=1)
         >>> from hydpy.core.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> nkor = elements.element1.model.sequences.fluxes.nkor
-        >>> var.log(nkor, nkor.series)
-        >>> 'element1' in dir(var)
+        >>> ncvar.log(nkor, nkor.series)
+        >>> 'element1' in dir(ncvar)
         True
-        >>> var.element1.sequence is nkor
+        >>> ncvar.element1.sequence is nkor
         True
-        >>> 'element2' in dir(var)
+        >>> 'element2' in dir(ncvar)
         False
-        >>> var.element2
+        >>> ncvar.element2
         Traceback (most recent call last):
         ...
         AttributeError: The NetCDFVariable object `flux_nkor` does \
@@ -1274,8 +1297,10 @@ names for variable `flux_prec` (the first found duplicate is `element1`).
         """Return a |tuple| containing the given `timeentry` and `placeentry`
         sorted in agreement with the currently selected `timeaxis`.
 
-        >>> from hydpy.core.netcdftools import NetCDFVariableDeep
-        >>> ncvar = NetCDFVariableDeep('test', isolate=False, timeaxis=1)
+        >>> from hydpy.core.netcdftools import NetCDFVariableBase
+        >>> from hydpy import make_abc_testable
+        >>> NCVar = make_abc_testable(NetCDFVariableBase)
+        >>> ncvar = NCVar('flux_nkor', isolate=True, timeaxis=1)
         >>> ncvar.sort_timeplaceentries('time', 'place')
         ('place', 'time')
         >>> ncvar = NetCDFVariableDeep('test', isolate=False, timeaxis=0)
@@ -1291,8 +1316,10 @@ names for variable `flux_prec` (the first found duplicate is `element1`).
         """Return a |tuple| for indexing a complete time series of a certain
         location available in |NetCDFVariableBase.array|.
 
-        >>> from hydpy.core.netcdftools import NetCDFVariableDeep
-        >>> ncvar = NetCDFVariableDeep('test', isolate=False, timeaxis=1)
+        >>> from hydpy.core.netcdftools import NetCDFVariableBase
+        >>> from hydpy import make_abc_testable
+        >>> NCVar = make_abc_testable(NetCDFVariableBase)
+        >>> ncvar = NCVar('flux_nkor', isolate=True, timeaxis=1)
         >>> ncvar.get_timeplaceslice(2)
         (2, slice(None, None, None))
         >>> ncvar = NetCDFVariableDeep('test', isolate=False, timeaxis=0)

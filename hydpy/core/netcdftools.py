@@ -11,11 +11,12 @@ cf-conventions/cf-conventions-1.7/cf-conventions.html>`_.
 .. note::
 
    For working with NetCDF files, :ref:`HydPy` requires either the
-   `netCDF4`_ or the `h5netcdf`_ package.  Both are Python interfaces
-   to the NetCDF C library.  You are free to decide which one to
-   install (`netCDF4`_ is more standard, while `h5netcdf`_ is more
-   lightweight).  If both libraries are available, :ref:`HydPy` works
-   with `netCDF4`_ by default.
+   `netCDF4`_ or the `h5netcdf`_ package.  `netCDF4`_ is more standard,
+   while `h5netcdf`_ is more lightweight.  Both are Python interfaces
+   to the NetCDF C library.  Principally, you are free to decide which
+   one to install.  However, using `netCDF4`_ seems to be more reliable
+   at the moment, which is why we recommend it for now.  If both libraries
+   are available, :ref:`HydPy` works with `netCDF4`_ by default.
 
 
 Usually, the features implemented in this module are applied only
@@ -75,7 +76,7 @@ class |Nodes| and |Elements.save_allseries| of class |Elements|:
 >>> elements.save_allseries()
 
 (4) We again log all sequences, but this time after telling the
-|SequenceManager| that all time series shall be spatially averaged:
+|SequenceManager| to average each time series spatially:
 
 >>> pub.sequencemanager.generalaggregation = 'mean'
 >>> nodes.save_allseries()
@@ -103,9 +104,9 @@ attribute name:
 >>> writer.example_lland_v1.flux_nkor.subdevicenames
 ('element1', 'element2')
 
-(7) We close the |NetCDFInterface| object.  This is the moment
-where the writing process actually happens.  After that, the
-interface object is not available anymore:
+(7) We close the |NetCDFInterface| object, which is the moment
+where the writing process happens.  After that, the interface object
+is not available anymore:
 
 >>> with TestIO():
 ...     pub.sequencemanager.close_netcdf_writer()
@@ -149,7 +150,7 @@ NetCDF reader object.
 
 (11) The process of spatial aggregation  cannot be inverted.  Hence
 reading averaged time series is left for postprocessing tools.
-To show that writing the averaged series in fact worked, we access
+To show that writing the averaged series worked, we access
 both relevant NetCDF files more directly using the underlying NetCDF4
 library (note that averaging 1-dimensional time series as those of
 node sequence |Sim| is allowed for the sake of consistency):
@@ -172,14 +173,17 @@ in module |netcdftools|, but also in the documentation on class
 |SequenceManager| of module |filetools| and class |IOSequence| of
 module |sequencetools|.
 
-The examples above give little insight in the resulting/required
+The examples above give little insight into the resulting/required
 structure of NetCDF files. One should at least be aware of the
-optional arguments `flatten` and `isolate`. When "flattening" data,
-multidimensional time series are handled as a larger number of
-1-dimensional time series. When "isolating" data, all |IOSequence|
-objects of a specific subclass belong to one single NetCDF file.
-When reading a NetCDF file, one has to choose the same options with
-which the file has been written.
+optional arguments `flatten`, `isolate`, and `timeaxis`. When
+"flattening" data, multidimensional time series are handled as a
+larger number of 1-dimensional time series. When "isolating" data,
+all |IOSequence| objects of a specific subclass belong to one single
+NetCDF file.  When selecting the first axis as the time axis (by
+setting `timeaxis` to zero), we increase the speed of "spatial access",
+but decrease the speed of "time series access", which is the focus
+of the default configuration (where `timeaxis` is one). When reading
+a NetCDF file, one has to choose the same options used for writing.
 
 The following test shows that both |SequenceManager.open_netcdf_writer|
 and |SequenceManager.open_netcdf_reader| pass the mentioned arguments
@@ -197,7 +201,7 @@ correctly to the constructor of |NetCDFInterface|:
 ToDo:
 
  * Add metadata when writing NetCDF files.
- * Try to determine to `flatten` and `isolate` automatically when reading?
+ * Try to determine to `flatten`, `isolate`, and `timeaxis` automatically?
  * Store subperiods of the actual initialization initialisation period.
  * Write data corresponding to the time of logging or of calling `close`?
  * Allow for changing file names.
@@ -603,8 +607,8 @@ a member named `lland_v3`.
     InfoArray([[ 18.,  19.],
                [ 20.,  21.]])
 
-    (8) We technically confirm that the `isolate` argument is passed
-    to the constructor of class |NetCDFFile| correctly:
+    (8) We technically confirm that the `isolate` and `timeaxis` arguments
+    are passed to the constructor of class |NetCDFFile| correctly:
 
     >>> from unittest.mock import patch
     >>> with patch('hydpy.core.netcdftools.NetCDFFile') as mock:
@@ -1020,6 +1024,7 @@ class Subdevice2Index(object):
 class NetCDFVariableBase(abc.ABC):
     """Base class for |NetCDFVariableDeep|, |NetCDFVariableAgg|, and
     |NetCDFVariableFlat|."""
+
     def __init__(self, name, isolate, timeaxis):
         self.name = name
         self._isolate = isolate
@@ -1379,11 +1384,9 @@ class AggAndFlatMixin(object):
         ('time', 'stations')
         """
         self: NetCDFVariableBase
-        nmb_timepoints = dimmapping['nmb_timepoints']
-        nmb_subdevices = '%s%s' % (self.prefix, dimmapping['nmb_subdevices'])
-        if self._timeaxis:
-            return nmb_subdevices, nmb_timepoints
-        return nmb_timepoints, nmb_subdevices
+        return self.sort_timeplaceentries(
+            dimmapping['nmb_timepoints'],
+            '%s%s' % (self.prefix, dimmapping['nmb_subdevices']))
 
 
 class NetCDFVariableDeep(DeepAndAggMixin, NetCDFVariableBase):
@@ -1400,13 +1403,13 @@ class NetCDFVariableDeep(DeepAndAggMixin, NetCDFVariableBase):
     >>> from hydpy.core.examples import prepare_io_example_1
     >>> nodes, (element1, element2, element3) = prepare_io_example_1()
 
-    (2) We define two |NetCDFVariableDeep| instances and log the
-    |lland_inputs.Nied| and |lland_fluxes.NKor| sequences of the first
-    two elements:
+    (2) We define two |NetCDFVariableDeep| instances with different
+    |NetCDFVariableDeep.array| structures and log the |lland_inputs.Nied|
+    and |lland_fluxes.NKor| sequences of the first two elements:
 
     >>> from hydpy.core.netcdftools import NetCDFVariableDeep
     >>> var_nied = NetCDFVariableDeep('input_nied', isolate=False, timeaxis=1)
-    >>> var_nkor = NetCDFVariableDeep('flux_nkor', isolate=False, timeaxis=1)
+    >>> var_nkor = NetCDFVariableDeep('flux_nkor', isolate=False, timeaxis=0)
     >>> for element in (element1, element2):
     ...     seqs = element.model.sequences
     ...     var_nied.log(seqs.inputs.nied, seqs.inputs.nied.series)
@@ -1448,7 +1451,7 @@ class NetCDFVariableDeep(DeepAndAggMixin, NetCDFVariableBase):
     passed to both test sequences properly:
 
     >>> nied1 = NetCDFVariableDeep('input_nied', isolate=False, timeaxis=1)
-    >>> nkor1 = NetCDFVariableDeep('flux_nkor', isolate=False, timeaxis=1)
+    >>> nkor1 = NetCDFVariableDeep('flux_nkor', isolate=False, timeaxis=0)
     >>> for element in (element1, element2):
     ...     sequences = element.model.sequences
     ...     nied1.log(sequences.inputs.nied, None)
@@ -1483,7 +1486,7 @@ in NetCDF file `model.nc` available.
 
 
     >>> var_nied = NetCDFVariableDeep('input_nied', isolate=True, timeaxis=1)
-    >>> var_nkor = NetCDFVariableDeep('flux_nkor', isolate=True, timeaxis=1)
+    >>> var_nkor = NetCDFVariableDeep('flux_nkor', isolate=True, timeaxis=0)
     >>> for element in (element1, element2):
     ...     seqs = element.model.sequences
     ...     var_nied.log(seqs.inputs.nied, seqs.inputs.nied.series)
@@ -1509,19 +1512,22 @@ to the NetCDF file `model.nc`, the following error occurred: ...
     >>> ncfile.close()
     """
 
-    @staticmethod
-    def get_slices(idx, shape) -> Tuple[IntOrSlice, ...]:
+    def get_slices(self, idx, shape) -> Tuple[IntOrSlice, ...]:
         """Return a |tuple| of one |int| and some |slice| objects to
         accesses all values of a certain device within
         |NetCDFVariableDeep.array|.
 
         >>> from hydpy.core.netcdftools import NetCDFVariableDeep
-        >>> NetCDFVariableDeep.get_slices(2, [3])
+        >>> ncvar = NetCDFVariableDeep('test', isolate=False, timeaxis=1)
+        >>> ncvar.get_slices(2, [3])
         (2, slice(None, None, None), slice(0, 3, None))
-        >>> NetCDFVariableDeep.get_slices(4, (1, 2))
+        >>> ncvar.get_slices(4, (1, 2))
         (4, slice(None, None, None), slice(0, 1, None), slice(0, 2, None))
+        >>> ncvar = NetCDFVariableDeep('test', isolate=False, timeaxis=0)
+        >>> ncvar.get_slices(4, (1, 2))
+        (slice(None, None, None), 4, slice(0, 1, None), slice(0, 2, None))
         """
-        slices = [idx, slice(None)]
+        slices = list(self.get_timeplaceslice(idx))
         for length in shape:
             slices.append(slice(0, length))
         return tuple(slices)
@@ -1530,9 +1536,9 @@ to the NetCDF file `model.nc`, the following error occurred: ...
     def shape(self) -> Tuple[int, ...]:
         """Required shape of |NetCDFVariableDeep.array|.
 
-        The first axis corresponds to the number of devices, the
-        second one to the number of timesteps.  We show this
-        for the 0-dimensional input sequence |lland_inputs.Nied|:
+        For the default configuration, the first axis corresponds to the
+        number of devices, and the second one to the number of timesteps.
+        We show this for the 0-dimensional input sequence |lland_inputs.Nied|:
 
         >>> from hydpy.core.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
@@ -1555,22 +1561,33 @@ to the NetCDF file `model.nc`, the following error occurred: ...
         ...     ncvar.log(element.model.sequences.fluxes.nkor, None)
         >>> ncvar.shape
         (3, 4, 3)
+
+        When using the first axis for time (`timeaxis=0`) the order of the
+        first two |tuple| entries turns:
+
+        >>> ncvar = NetCDFVariableDeep('flux_nkor', isolate=False, timeaxis=0)
+        >>> for element in elements:
+        ...     ncvar.log(element.model.sequences.fluxes.nkor, None)
+        >>> ncvar.shape
+        (4, 3, 3)
         """
-        maxshape = collections.deque()
+        nmb_place = len(self.sequences)
+        nmb_time = len(pub.timegrids.init)
+        nmb_others = collections.deque()
         for sequence in self.sequences.values():
-            maxshape.append(sequence.seriesshape)
-        shape = [len(self.sequences)] + list(numpy.max(maxshape, axis=0))
-        return tuple(shape)
+            nmb_others.append(sequence.shape)
+        nmb_others_max = tuple(numpy.max(nmb_others, axis=0))
+        return self.sort_timeplaceentries(nmb_time, nmb_place) + nmb_others_max
 
     @property
     def array(self) -> numpy.ndarray:
         """The series data of all logged |IOSequence| objects contained
         in one single |numpy.ndarray|.
 
-        The documentation on |NetCDFVariableDeep.shape| explains
-        how |NetCDFVariableDeep.array| is structured.  The first
-        example confirms that the first axis definces the location,
-        while the second one defines time:
+        The documentation on |NetCDFVariableDeep.shape| explains how
+        |NetCDFVariableDeep.array| is structured.  The first example
+        confirms that, for the default configuration, the first axis
+        definces the location, while the second one defines time:
 
         >>> from hydpy.core.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
@@ -1594,6 +1611,19 @@ to the NetCDF file `model.nc`, the following error occurred: ...
         ...     nkor1 = element.model.sequences.fluxes.nkor
         ...     ncvar.log(nkor1, nkor1.series)
         >>> ncvar.array[1]
+        array([[  16.,   17., -999.],
+               [  18.,   19., -999.],
+               [  20.,   21., -999.],
+               [  22.,   23., -999.]])
+
+        When using the first axis for time (`timeaxis=0`) the same data
+        can be accessed with slightly different indexing:
+
+        >>> ncvar = NetCDFVariableDeep('flux_nkor', isolate=False, timeaxis=0)
+        >>> for element in elements:
+        ...     nkor1 = element.model.sequences.fluxes.nkor
+        ...     ncvar.log(nkor1, nkor1.series)
+        >>> ncvar.array[:, 1]
         array([[  16.,   17., -999.],
                [  18.,   19., -999.],
                [  20.,   21., -999.],
@@ -1628,9 +1658,19 @@ to the NetCDF file `model.nc`, the following error occurred: ...
         >>> ncvar.log(elements.element1.model.sequences.fluxes.nkor, None)
         >>> ncvar.dimensions
         ('stations', 'time', 'axis3')
+
+        When using the first axis as the "timeaxis", the order of the
+        first two dimension names turns:
+
+        >>> ncvar = NetCDFVariableDeep('flux_nkor', isolate=True, timeaxis=0)
+        >>> ncvar.log(elements.element1.model.sequences.fluxes.nkor, None)
+        >>> ncvar.dimensions
+        ('time', 'stations', 'axis3')
         """
-        dimensions = ['%s%s' % (self.prefix, dimmapping['nmb_subdevices']),
-                      dimmapping['nmb_timepoints']]
+        nmb_timepoints = dimmapping['nmb_timepoints']
+        nmb_subdevices = '%s%s' % (self.prefix, dimmapping['nmb_subdevices'])
+        dimensions = list(self.sort_timeplaceentries(
+            nmb_timepoints, nmb_subdevices))
         for idx in range(list(self.sequences.values())[0].NDIM):
             dimensions.append('%saxis%d' % (self.prefix, idx + 3))
         return tuple(dimensions)
@@ -1672,7 +1712,7 @@ class NetCDFVariableAgg(DeepAndAggMixin, AggAndFlatMixin, NetCDFVariableBase):
     >>> var_nied = NetCDFVariableAgg(
     ...     'input_nied_mean', isolate=False, timeaxis=1)
     >>> var_nkor = NetCDFVariableAgg(
-    ...     'flux_nkor_mean', isolate=False, timeaxis=1)
+    ...     'flux_nkor_mean', isolate=False, timeaxis=0)
     >>> for element in (element1, element2):
     ...     nied1 = element.model.sequences.inputs.nied
     ...     var_nied.log(nied1, nied1.average_series())
@@ -1689,7 +1729,10 @@ class NetCDFVariableAgg(DeepAndAggMixin, AggAndFlatMixin, NetCDFVariableBase):
 
     As |NetCDFVariableAgg| provides no reading functionality, we
     show that the aggregated values are readily available by using
-    the external NetCDF4 library directly:
+    the external NetCDF4 library directly.  Note the different shapes
+    due to using the second axis for time (`timeaxis=1`, default) and
+    using the first axis for time (`timeaxis=0`) for |lland_inputs.Nied|
+    and |lland_fluxes.NKor|, respectively:
 
     >>> with TestIO():
     ...     ncfile = netcdf4.Dataset('model.nc', 'r')
@@ -1699,8 +1742,10 @@ class NetCDFVariableAgg(DeepAndAggMixin, AggAndFlatMixin, NetCDFVariableBase):
            [ 4.,  5.,  6.,  7.]])
 
     >>> numpy.array(ncfile['flux_nkor_mean'][:])
-    array([[ 12. ,  13. ,  14. ,  15. ],
-           [ 16.5,  18.5,  20.5,  22.5]])
+    array([[ 12. ,  16.5],
+           [ 13. ,  18.5],
+           [ 14. ,  20.5],
+           [ 15. ,  22.5]])
 
     >>> ncfile.close()
     """
@@ -1709,9 +1754,9 @@ class NetCDFVariableAgg(DeepAndAggMixin, AggAndFlatMixin, NetCDFVariableBase):
     def shape(self) -> Tuple[int, int]:
         """Required shape of |NetCDFVariableAgg.array|.
 
-        The first axis corresponds to the number of devices, the
-        second one to the number of timesteps.  We show this
-        for the 1-dimensional input sequence |lland_fluxes.NKor|:
+        For the default configuration, the first axis corresponds to the
+        number of devices, and the second one to the number of timesteps.
+        We show this for the 1-dimensional input sequence |lland_fluxes.NKor|:
 
         >>> from hydpy.core.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
@@ -1721,21 +1766,31 @@ class NetCDFVariableAgg(DeepAndAggMixin, AggAndFlatMixin, NetCDFVariableBase):
         ...     ncvar.log(element.model.sequences.fluxes.nkor, None)
         >>> ncvar.shape
         (3, 4)
+
+        When using the first axis as the "timeaxis", the order of |tuple|
+        entries turns:
+
+        >>> ncvar = NetCDFVariableAgg('flux_nkor', isolate=False, timeaxis=0)
+        >>> for element in elements:
+        ...     ncvar.log(element.model.sequences.fluxes.nkor, None)
+        >>> ncvar.shape
+        (4, 3)
         """
-        return (len(self.sequences),
-                len(tuple(self.sequences.values())[0].series))
+        return self.sort_timeplaceentries(
+            len(pub.timegrids.init), len(self.sequences))
 
     @property
     def array(self) -> numpy.ndarray:
         """The aggregated data of all logged |IOSequence| objects contained
         in one single |numpy.ndarray| object.
 
-        The documentation on |NetCDFVariableAgg.shape| explains
-        how |NetCDFVariableAgg.array| is structured.  This first example
-        confirms the first axis corresponds to the location, while the
-        second one corresponds to time:
+        The documentation on |NetCDFVariableAgg.shape| explains how
+         |NetCDFVariableAgg.array| is structured.  This first example
+        confirms that, under default configuration (`timeaxis=1`),
+        the first axis corresponds to the location, while the second
+        one corresponds to time:
 
-       >>> from hydpy.core.examples import prepare_io_example_1
+        >>> from hydpy.core.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableAgg
         >>> ncvar = NetCDFVariableAgg('flux_nkor', isolate=False, timeaxis=1)
@@ -1746,10 +1801,23 @@ class NetCDFVariableAgg(DeepAndAggMixin, AggAndFlatMixin, NetCDFVariableBase):
         array([[ 12. ,  13. ,  14. ,  15. ],
                [ 16.5,  18.5,  20.5,  22.5],
                [ 25. ,  28. ,  31. ,  34. ]])
+
+        When using the first axis as the "timeaxis", the resulting
+        |NetCDFVariableAgg.array| is the transposed:
+
+        >>> ncvar = NetCDFVariableAgg('flux_nkor', isolate=False, timeaxis=0)
+        >>> for element in elements:
+        ...     nkor1 = element.model.sequences.fluxes.nkor
+        ...     ncvar.log(nkor1, nkor1.average_series())
+        >>> ncvar.array
+        array([[ 12. ,  16.5,  25. ],
+               [ 13. ,  18.5,  28. ],
+               [ 14. ,  20.5,  31. ],
+               [ 15. ,  22.5,  34. ]])
         """
         array = numpy.full(self.shape, fillvalue, dtype=float)
         for idx, subarray in enumerate(self.arrays.values()):
-            array[idx] = subarray
+            array[self.get_timeplaceslice(idx)] = subarray
         return array
 
     def read(self, ncfile, timegrid_data) -> None:
@@ -1783,20 +1851,16 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
     The following examples on the usage of class |NetCDFVariableFlat|
     are identical to the ones on the usage of class |NetCDFVariableDeep|.
     We repeat the examples for testing purposes but refrain from repeating
-    the explanations. The relevant difference  in the NetCDF file
+    the explanations. The relevant difference in the NetCDF file
     structure should become clear when comparing the documentation on
     the different members of both classes.
 
     >>> from hydpy.core.examples import prepare_io_example_1
     >>> nodes, (element1, element2, element3) = prepare_io_example_1()
 
-    (2) We define two |NetCDFVariableFlat| instances and log the
-    |lland_inputs.Nied| and |lland_fluxes.NKor| sequences of the first
-    two elements:
-
     >>> from hydpy.core.netcdftools import NetCDFVariableFlat
     >>> var_nied = NetCDFVariableFlat('input_nied', isolate=False, timeaxis=1)
-    >>> var_nkor = NetCDFVariableFlat('flux_nkor', isolate=False, timeaxis=1)
+    >>> var_nkor = NetCDFVariableFlat('flux_nkor', isolate=False, timeaxis=0)
     >>> for element in (element1, element2):
     ...     seqs = element.model.sequences
     ...     var_nied.log(seqs.inputs.nied, seqs.inputs.nied.series)
@@ -1823,7 +1887,7 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
     False
 
     >>> nied1 = NetCDFVariableFlat('input_nied', isolate=False, timeaxis=1)
-    >>> nkor1 = NetCDFVariableFlat('flux_nkor', isolate=False, timeaxis=1)
+    >>> nkor1 = NetCDFVariableFlat('flux_nkor', isolate=False, timeaxis=0)
     >>> for element in (element1, element2):
     ...     sequences = element.model.sequences
     ...     nied1.log(sequences.inputs.nied, None)
@@ -1836,7 +1900,6 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
     ...     print(numpy.all(seq.series == seq.testarray))
     True
     True
-
     >>> ncfile.close()
     """
 
@@ -1844,9 +1907,10 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
     def shape(self) -> Tuple[int, int]:
         """Required shape of |NetCDFVariableFlat.array|.
 
-        For 0-dimensional sequences like |lland_inputs.Nied|, the
-        first axis corresponds to the number of devices, and the
-        second one two the number of timesteps:
+        For 0-dimensional sequences like |lland_inputs.Nied| and for the
+        default configuration (`timeaxis=1`), the first axis corresponds
+        to the number of devices, and the second one two the number of
+        timesteps:
 
         >>> from hydpy.core.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
@@ -1868,9 +1932,19 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
         ...     ncvar.log(element.model.sequences.fluxes.nkor, None)
         >>> ncvar.shape
         (6, 4)
+
+        When using the first axis as the "timeaxis", the order of |tuple|
+        entries turns:
+
+        >>> ncvar = NetCDFVariableFlat('flux_nkor', isolate=False, timeaxis=0)
+        >>> for element in elements:
+        ...     ncvar.log(element.model.sequences.fluxes.nkor, None)
+        >>> ncvar.shape
+        (4, 6)
         """
-        return (sum(len(seq) for seq in self.sequences.values()),
-                len(pub.timegrids.init))
+        return self.sort_timeplaceentries(
+            len(pub.timegrids.init),
+            sum(len(seq) for seq in self.sequences.values()))
 
     @property
     def array(self) -> numpy.ndarray:
@@ -1879,8 +1953,9 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
 
         The documentation on |NetCDFVariableAgg.shape| explains how
         |NetCDFVariableAgg.array| is structured.  The first example
-        confirms that the first axis corresponds to the location,
-        while the second one corresponds to time:
+        confirms that, under default configuration (`timeaxis=1`), the
+        first axis corresponds to the location, while the second one
+        corresponds to time:
 
         >>> from hydpy.core.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
@@ -1908,6 +1983,19 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
         >>> ncvar.array[1:3]
         array([[ 16.,  18.,  20.,  22.],
                [ 17.,  19.,  21.,  23.]])
+
+        When using the first axis as the "timeaxis", the individual time
+        series of the second element are stored in column two and three:
+
+        >>> ncvar = NetCDFVariableFlat('flux_nkor', isolate=False, timeaxis=0)
+        >>> for element in elements:
+        ...     nkor1 = element.model.sequences.fluxes.nkor
+        ...     ncvar.log(nkor1, nkor1.series)
+        >>> ncvar.array[:, 1:3]
+        array([[ 16.,  17.],
+               [ 18.,  19.],
+               [ 20.,  21.],
+               [ 22.,  23.]])
         """
         array = numpy.full(self.shape, fillvalue, dtype=float)
         idx0 = 0
@@ -1915,7 +2003,8 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
         for seq, subarray in zip(self.sequences.values(),
                                  self.arrays.values()):
             for prod in self._product(seq.shape):
-                array[idx0] = subarray[tuple(idxs + list(prod))]
+                subsubarray = subarray[tuple(idxs + list(prod))]
+                array[self.get_timeplaceslice(idx0)] = subsubarray
                 idx0 += 1
         return array
 
@@ -1989,19 +2078,23 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
         for some examples.
         """
         array = query_variable(ncfile, self.name)[:]
-        idxs: List[Any] = [slice(None)]
+        idxs: Tuple[Any] = (slice(None),)
         subdev2index = self.query_subdevice2index(ncfile)
         for devicename, seq in self.sequences.items():
-            subshape = [array.shape[1]] + list(seq.shape)
-            subarray = numpy.empty(subshape)
             if seq.NDIM:
+                if self._timeaxis:
+                    subshape = (array.shape[1],) + seq.shape
+                else:
+                    subshape = (array.shape[0],) + seq.shape
+                subarray = numpy.empty(subshape)
                 temp = devicename + '_'
                 for prod in self._product(seq.shape):
                     station = temp + '_'.join(str(idx) for idx in prod)
                     idx0 = subdev2index.get_index(station)
-                    subarray[tuple(idxs+list(prod))] = array[idx0]
+                    subarray[idxs+prod] = array[self.get_timeplaceslice(idx0)]
             else:
-                subarray[:] = array[subdev2index.get_index(devicename)]
+                idx = subdev2index.get_index(devicename)
+                subarray = array[self.get_timeplaceslice(idx)]
             seq.series = seq.adjust_series(timegrid_data, subarray)
 
     def write(self, ncfile) -> None:

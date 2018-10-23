@@ -181,7 +181,17 @@ of object `filemanager` has not been prepared so far.
 
     @property
     def basepath(self):
-        """Absolute path pointing to the actual directories."""
+        """Absolute path pointing to the actual directories.
+
+        >>> from hydpy.core.filetools import FileManager
+        >>> filemanager = FileManager()
+        >>> filemanager._BASEDIR = 'basename'
+        >>> filemanager.projectdir = 'projectname'
+        >>> from hydpy import repr_, TestIO
+        >>> with TestIO():
+        ...     repr_(filemanager.basepath)   # doctest: +ELLIPSIS
+        '...HydPy/hydpy/tests/iotesting/projectname/basename'
+        """
         return os.path.abspath(
             os.path.join(self.projectdir, self._BASEDIR))
 

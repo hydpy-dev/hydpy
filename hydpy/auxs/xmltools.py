@@ -367,6 +367,7 @@ tyralla/hydpy/tree/master/hydpy/conf/config.xsd}firstdate': \
             warntrim -> 1
             flattennetcdf -> True
             isolatenetcdf -> True
+            timeaxisnetcdf -> 0
         )
         >>> pub.options.printprogress = False
         >>> pub.options.reprdigits = 6
@@ -1051,7 +1052,8 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         """
         pub.sequencemanager.open_netcdf_reader(
             flatten=pub.options.flattennetcdf,
-            isolate=pub.options.isolatenetcdf)
+            isolate=pub.options.isolatenetcdf,
+            timeaxis=pub.options.timeaxisnetcdf)
         self.prepare_sequencemanager()
         for sequence in self._iterate_sequences():
             sequence.load_ext()

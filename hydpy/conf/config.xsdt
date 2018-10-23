@@ -55,6 +55,14 @@
                          type="fews:bool"/>
                 <element name="isolatenetcdf"
                          type="fews:bool"/>
+                <element name="timeaxisnetcdf">
+                    <simpleType>
+                        <restriction base="integer">
+                            <minInclusive value="0"/>
+                            <maxInclusive value="1"/>
+                        </restriction>
+                    </simpleType>
+                </element>
             </sequence>
         </complexType>
     </element>

@@ -11,6 +11,7 @@
         <warntrim>true</warntrim>
         <flattennetcdf>true</flattennetcdf>
         <isolatenetcdf>true</isolatenetcdf>
+        <timeaxisnetcdf>0</timeaxisnetcdf>
     </options>
 
     <timegrid>

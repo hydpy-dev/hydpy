@@ -33,9 +33,9 @@ Invoking hyd.py with arguments `...hyd.py` resulted in the following error:
 The first argument defining the function to be called is missing.
 <BLANKLINE>
 
-If this test example does not work on your machine, you should first make
-sure there is a `hyd.py` file in the `Scripts` folder of your Python
-distribution, and that a system variable is pointing to this folder.
+If this test example does not work on your machine, you should first make sure
+there is a `hyd.py` file in the `Scripts` folder of your Python distribution,
+and that the environment variable `Path` is pointing to this folder.
 Windows users should also make sure to have the `Python Launcher for Windows`_
 installed.  The Python standard distribution contains this launcher, but
 other distributions like Anaconda do not.  You can find the suitable

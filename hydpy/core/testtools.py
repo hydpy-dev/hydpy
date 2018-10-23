@@ -1010,7 +1010,7 @@ abstract methods array, dimensions, read, subdevicenames, write
     its protection against initialization is disabled:
 
     >>> from hydpy import make_abc_testable, classname
-    >>> ncvar = make_abc_testable(NetCDFVariableBase)(False, False)
+    >>> ncvar = make_abc_testable(NetCDFVariableBase)(False, False, 1)
 
     To avoid confusion, |make_abc_testable| suffixes an underscore the
     original classname:

@@ -207,7 +207,7 @@ ToDo:
 """
 # import...
 # ...from standard library
-from typing import Any, Iterator, Dict, List, Tuple, TypeVar
+from typing import Any, Iterator, Dict, List, Tuple, TypeVar, Union
 import abc
 import collections
 import itertools
@@ -1264,6 +1264,37 @@ names for variable `flux_prec` (the first found duplicate is `element1`).
                             '(sub)device names for variable `%s` (the '
                             'first found duplicate is `%s`).'
                             % (get_filepath(ncfile), self.name, name1))
+
+    def sort_timeplaceentries(self, timeentry, placeentry) -> Tuple[Any, Any]:
+        """Return a |tuple| containing the given `timeentry` and `placeentry`
+        sorted in agreement with the currently selected `timeaxis`.
+
+        >>> from hydpy.core.netcdftools import NetCDFVariableDeep
+        >>> ncvar = NetCDFVariableDeep('test', isolate=False, timeaxis=1)
+        >>> ncvar.sort_timeplaceentries('time', 'place')
+        ('place', 'time')
+        >>> ncvar = NetCDFVariableDeep('test', isolate=False, timeaxis=0)
+        >>> ncvar.sort_timeplaceentries('time', 'place')
+        ('time', 'place')
+        """
+        if self._timeaxis:
+            return placeentry, timeentry
+        return timeentry, placeentry
+
+    def get_timeplaceslice(self, placeindex) -> \
+            Union[Tuple[slice, int], Tuple[int, slice]]:
+        """Return a |tuple| for indexing a complete time series of a certain
+        location available in |NetCDFVariableBase.array|.
+
+        >>> from hydpy.core.netcdftools import NetCDFVariableDeep
+        >>> ncvar = NetCDFVariableDeep('test', isolate=False, timeaxis=1)
+        >>> ncvar.get_timeplaceslice(2)
+        (2, slice(None, None, None))
+        >>> ncvar = NetCDFVariableDeep('test', isolate=False, timeaxis=0)
+        >>> ncvar.get_timeplaceslice(2)
+        (slice(None, None, None), 2)
+        """
+        return self.sort_timeplaceentries(slice(None), int(placeindex))
 
     @abc.abstractmethod
     def read(self, ncfile, timegrid_data) -> None:

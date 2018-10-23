@@ -24,6 +24,8 @@ class Folder2Path(object):
     """Map folder names to their path names.
 
     >>> from hydpy.core.filetools import Folder2Path
+    >>> Folder2Path()
+    Folder2Path()
     >>> f2p = Folder2Path('dir1', 'dir2', dir3='dir3', dir4='path4')
     >>> f2p
     Folder2Path(dir1,
@@ -57,6 +59,12 @@ class Folder2Path(object):
     dir5 dir5
     dir6 path6
 
+    >>> f2p.folders
+    ('dir1', 'dir2', 'dir3', 'dir4', 'dir5', 'dir6')
+
+    >>> f2p.paths
+    ('dir1', 'dir2', 'dir3', 'path4', 'dir5', 'path6')
+
     >>> len(f2p)
     6
     >>> bool(f2p)
@@ -77,6 +85,14 @@ class Folder2Path(object):
         if path is None:
             path = directory
         setattr(self, directory, path)
+
+    @property
+    def folders(self):
+        return tuple(folder for folder, path in self)
+
+    @property
+    def paths(self):
+        return tuple(path for folder, path in self)
 
     def __iter__(self):
         for key, value in sorted(vars(self).items()):

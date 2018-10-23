@@ -197,7 +197,25 @@ of object `filemanager` has not been prepared so far.
 
     @property
     def availabledirs(self):
-        """Available directories containing the respective files."""
+        """Available directories containing the respective files.
+
+        ToDo
+
+        >>> from hydpy.core.filetools import FileManager
+        >>> filemanager = FileManager()
+        >>> filemanager._BASEDIR = 'basename'
+        >>> filemanager.projectdir = 'projectname'
+        >>> import os
+        >>> from hydpy import repr_, TestIO
+        >>> TestIO.clear()
+        >>> with TestIO():
+        ...     os.makedirs('projectname/basename/folder1')
+        ...     os.makedirs('projectname/basename/folder2')
+        ...     os.makedirs('projectname/basename/_folder3')
+        ...     filemanager.availabledirs
+        Folder2Path(folder1,
+                    folder2)
+        """
         directories = Folder2Path()
         for directory in os.listdir(self.basepath):
             if not directory.startswith('_'):

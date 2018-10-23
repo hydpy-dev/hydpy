@@ -227,6 +227,9 @@ class FileManager(object):
         path = self.currentpath
         return tuple(os.path.join(path, name) for name in self.filenames)
 
+    def __dir__(self):
+        return objecttools.dir_(self)
+
 
 class NetworkManager(FileManager):
     """Manager for network files."""
@@ -307,9 +310,6 @@ class NetworkManager(FileManager):
             objecttools.augment_excmessage(
                 'While trying to remove the network files of selections `%s`'
                 % selections)
-
-    def __dir__(self):
-        return objecttools.dir_(self)
 
 
 class ControlManager(FileManager):
@@ -1093,9 +1093,6 @@ no NetCDF writer object.
         """
         self._netcdf_writer.write()
         self._netcdf_writer = None
-
-    def __dir__(self):
-        return objecttools.dir_(self)
 
 
 autodoctools.autodoc_module()

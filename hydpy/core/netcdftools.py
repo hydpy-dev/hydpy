@@ -1812,7 +1812,7 @@ class NetCDFVariableAgg(DeepAndAggMixin, AggAndFlatMixin, NetCDFVariableBase):
         in one single |numpy.ndarray| object.
 
         The documentation on |NetCDFVariableAgg.shape| explains how
-         |NetCDFVariableAgg.array| is structured.  This first example
+        |NetCDFVariableAgg.array| is structured.  This first example
         confirms that, under default configuration (`timeaxis=1`),
         the first axis corresponds to the location, while the second
         one corresponds to time:

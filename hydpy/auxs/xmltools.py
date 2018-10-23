@@ -29,7 +29,7 @@ of the resulting log file confirms that something happened:
 >>> import subprocess
 >>> with TestIO():
 ...     _ = subprocess.run('hyd.py exec_xml LahnHBV', shell=True)
-...     print_latest_logfile()
+...     print_latest_logfile()    # doctest: +ELLIPSIS
 Start HydPy project `LahnHBV` (...).
 Read configuration file `conf.xml` (...).
 Interpret the defined options (...).
@@ -198,7 +198,7 @@ def exec_xml(projectname: str, *, logfile: IO):
     >>> from hydpy.core.testtools import mock_datetime_now
     >>> from datetime import datetime
     >>> import numpy
-    >>> with TestIO():
+    >>> with TestIO():    # doctest: +ELLIPSIS
     ...     with mock_datetime_now(datetime(2000, 1, 1, 12, 30, 0, 123456)):
     ...         logfilepath = prepare_logfile()
     ...         with open(logfilepath, 'a') as logfile:
@@ -276,7 +276,7 @@ class XMLInterface(XMLBase):
     >>> from hydpy.auxs.xmltools import XMLInterface
     >>> from hydpy import data
     >>> _ = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
-    >>> XMLInterface('wrongfilepath.xml')
+    >>> XMLInterface('wrongfilepath.xml')    # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
     FileNotFoundError: While trying to read parse the XML configuration \
@@ -308,7 +308,7 @@ file ...wrongfilepath.xml, the following error occurred: \
         ...     text = xml.read()
         >>> with open(interface.filepath, 'w') as xml:
         ...     _ = xml.write(text.replace('1996-01-01', '1996-01-32'))
-        >>> interface.validate_xml()
+        >>> interface.validate_xml()    # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         lxml.etree.XMLSyntaxError: While trying to parse XML file \
@@ -1134,7 +1134,7 @@ class XSDWriter(object):
         >>> if os.path.exists(XSDWriter.filepath_target):
         ...     os.remove(XSDWriter.filepath_target)
 
-        >>> XMLInterface(xmlpath).validate_xml()
+        >>> XMLInterface(xmlpath).validate_xml()    # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         lxml.etree.XMLSchemaParseError: \
@@ -1156,7 +1156,7 @@ Failed to locate the main schema resource at '...config.xsd'.
         template file.
 
         >>> from hydpy.auxs.xmltools import XSDWriter
-        >>> print(XSDWriter.get_insertion())
+        >>> print(XSDWriter.get_insertion())    # doctest: +ELLIPSIS
              <element name="arma_v1"
                       substitutionGroup="fews:sequenceGroup"
                       type="fews:arma_v1Type"/>
@@ -1215,7 +1215,7 @@ Failed to locate the main schema resource at '...config.xsd'.
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> from hydpy import prepare_model
         >>> model = prepare_model('hland_v1')
-        >>> print(XSDWriter.get_modelinsertion(model, 1))
+        >>> print(XSDWriter.get_modelinsertion(model, 1))   # doctest: +ELLIPSIS
             <element name="inputs"
                      minOccurs="0">
                 <complexType>
@@ -1251,7 +1251,7 @@ Failed to locate the main schema resource at '...config.xsd'.
         >>> from hydpy import prepare_model
         >>> model = prepare_model('hland_v1')
         >>> print(XSDWriter.get_subsequencesinsertion(
-        ...     model.sequences.fluxes, 1))
+        ...     model.sequences.fluxes, 1))    # doctest: +ELLIPSIS
             <element name="fluxes"
                      minOccurs="0">
                 <complexType>

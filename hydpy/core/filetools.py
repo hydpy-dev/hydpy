@@ -33,6 +33,8 @@ class Folder2Path(object):
                 dir2,
                 dir3,
                 dir4=path4)
+    >>> print(f2p)
+    Folder2Path(dir1, dir2, dir3, dir4=path4)
 
     >>> f2p.add('dir5')
     >>> f2p.add('dir6', 'path6')
@@ -102,6 +104,9 @@ class Folder2Path(object):
     def __len__(self):
         return len(vars(self))
 
+    def __str__(self):
+        return ' '.join(repr(self).split())
+
     def __repr__(self):
         if self:
             args, kwargs = [], []
@@ -109,7 +114,7 @@ class Folder2Path(object):
                 if key == value:
                     args.append(key)
                 else:
-                    kwargs.append(f'{key}={value}')
+                    kwargs.append(f'{key}={objecttools.repr_(value)}')
             lines = [f'            {arg},' for arg in args+kwargs]
             lines[0] = 'Folder2Path(' + lines[0][12:]
             lines[-1] = lines[-1][:-1] + ')'

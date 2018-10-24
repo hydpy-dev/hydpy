@@ -99,7 +99,6 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     TestIO.clear()
     from hydpy.core.filetools import SequenceManager
     pub.sequencemanager = SequenceManager()
-    pub.sequencemanager.createdirs = True
     with TestIO():
         pub.sequencemanager.inputdirpath = 'inputpath'
         pub.sequencemanager.fluxdirpath = 'outputpath'

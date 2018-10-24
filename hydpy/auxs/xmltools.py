@@ -241,7 +241,6 @@ def exec_xml(projectname: str, *, logfile: IO):
     write('Perform the simulation run')
     hp.doit()
     write('Write the desired condition files')
-    pub.conditionmanager.createdirs = True
     interface.conditions_io.save_conditions()
     write('Write the desired time series files')
     interface.series_io.save_series()
@@ -629,7 +628,6 @@ class XMLConditions(XMLBase):
         ...     interface = XMLInterface()
         ...     interface.update_timegrids()
         ...     interface.find('selections').text = 'headwaters'
-        ...     pub.conditionmanager.createdirs = True
         ...     interface.conditions_io.save_conditions()
         ...     dirpath = 'LahnHBV/conditions/init_1996_01_06'
         ...     with open(os.path.join(dirpath, 'land_dill.py')) as file_:

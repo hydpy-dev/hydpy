@@ -6,6 +6,7 @@ HydPy projects as well as loading data from and storing data to files.
 # ...from standard library
 import os
 import runpy
+import shutil
 import weakref
 # ...from site-packages
 import numpy
@@ -120,13 +121,12 @@ class Folder2Path(object):
 
 
 class FileManager(object):
-    """Base class for the more specific file managers implemented in
-    module |filetools|."""
+    """Base class for |NetworkManager|, |ControlManager|, |ConditionManager|,
+    and |SequenceManager|."""
 
     _BASEDIR: str
 
     def __init__(self):
-        self.check_exists = True
         self._projectdir = None
         try:
             self.projectdir = pub.projectname
@@ -134,8 +134,6 @@ class FileManager(object):
             pass
         self._currentdir = None
         self._defaultdir = None
-        self.createdirs = False
-        self.deletedirs = False
 
     @propertytools.ProtectedProperty
     def projectdir(self):
@@ -190,7 +188,7 @@ of object `filemanager` has not been prepared so far.
         >>> from hydpy import repr_, TestIO
         >>> with TestIO():
         ...     repr_(filemanager.basepath)   # doctest: +ELLIPSIS
-        '...HydPy/hydpy/tests/iotesting/projectname/basename'
+        '...hydpy/tests/iotesting/projectname/basename'
         """
         return os.path.abspath(
             os.path.join(self.projectdir, self._BASEDIR))
@@ -226,62 +224,163 @@ of object `filemanager` has not been prepared so far.
 
     @property
     def currentdir(self):
-        """Current directory containing the network files."""
-        directories = self.availabledirs
-        if self._currentdir:
-            directory = self._make_and_get_currentdir(
-                directories, self._currentdir)
-            if directory:
-                return directory
-            else:
-                raise IOError(
-                    'The base path `%s` does not contain the currently '
-                    'set directory `%s` and creating a new directory is '
-                    'currently disabled.'
-                    % (self.basepath, self._currentdir))
-        if self._defaultdir:
-            directory = self._make_and_get_currentdir(
-                directories, self._defaultdir)
-        else:
-            directory = None
-        if directory:
-            return directory
-        else:
-            raise IOError(
-                'The base path `%s` does not contain the default directory '
-                '`%s`.  Please specify he current directory to be worked '
-                'with manually.'
-                % (self.basepath, self._defaultdir))
+        """Current directory containing the relevant files.
 
-    def _make_and_get_currentdir(self, directories, directory):
-        try:
-            return getattr(directories, directory)
-        except AttributeError:
-            if self.createdirs:
-                path = os.path.join(self.basepath, directory)
-                os.makedirs(path)
-                return directory
-            return None
+        Prepare things... ToDo
+
+        >>> from hydpy.core.filetools import FileManager
+        >>> filemanager = FileManager()
+        >>> filemanager._BASEDIR = 'basename'
+        >>> filemanager.projectdir = 'projectname'
+        >>> import os
+        >>> from hydpy import repr_, TestIO
+        >>> TestIO.clear()
+        >>> with TestIO():
+        ...     os.makedirs('projectname/basename')
+
+        Current dir of an empty folder: ToDo
+
+        >>> with TestIO():
+        ...     filemanager.currentdir   # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The current working directory of the FileManager object \
+has not been defined manually and cannot be determined automatically: \
+`...hydpy/tests/iotesting/projectname/basename` does not contain \
+any available directories.
+
+        One folder only works:
+
+        >>> with TestIO():
+        ...     os.mkdir('projectname/basename/dir1')
+        ...     filemanager.currentdir
+        'dir1'
+
+        Memory!!!
+
+        >>> with TestIO():
+        ...     os.mkdir('projectname/basename/dir2')
+        ...     filemanager.currentdir
+        'dir1'
+
+        Forget the the current dir first:
+
+        >>> with TestIO():
+        ...     filemanager.currentdir = None
+        ...     filemanager.currentdir   # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The current working directory of the FileManager object \
+has not been defined manually and cannot be determined automatically: \
+`...hydpy/tests/iotesting/projectname/basename` does contain multiple \
+available directories (dir1 and dir2).
+
+
+
+        >>> with TestIO():
+        ...     os.rmdir('projectname/basename/dir1')
+        ...     filemanager.currentdir
+        'dir2'
+
+        >>> filemanager._defaultdir = 'dir3'
+        >>> with TestIO():
+        ...     del filemanager.currentdir
+        ...     filemanager.currentdir   # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The current working directory of the FileManager object \
+has not been defined manually and cannot be determined automatically: \
+`...hydpy/tests/iotesting/projectname/basename` does not contain \
+any available directories.
+
+        >>> with TestIO():
+        ...     os.mkdir('projectname/basename/dir1')
+        ...     os.mkdir('projectname/basename/dir2')
+        ...     del filemanager.currentdir
+        ...     filemanager.currentdir   # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The current working directory of the FileManager object \
+has not been defined manually and cannot be determined automatically: The \
+default directory (dir3) is not among the available directories (dir1 and dir2).
+
+        >>> with TestIO():
+        ...     os.mkdir('projectname/basename/dir3')
+        ...     filemanager.currentdir
+        'dir3'
+
+
+        >>> with TestIO():
+        ...     filemanager.currentdir = 'dir4'
+        ...     filemanager.currentdir
+        'dir4'
+
+        >>> with TestIO():
+        ...     sorted(os.listdir('projectname/basename'))
+        ['dir1', 'dir2', 'dir3', 'dir4']
+
+        >>> with TestIO():
+        ...     file_ = open('projectname/basename/dir4/file.txt', 'w')
+        ...     del filemanager.currentdir   # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        PermissionError: While trying to delete the current working directory \
+`...hydpy/tests/iotesting/projectname/basename/dir4` of the FileManager \
+object, the following error occurred: ...
+
+        >>> with TestIO():
+        ...     file_.close()
+        ...     del filemanager.currentdir   # doctest: +ELLIPSIS
+        ...     sorted(os.listdir('projectname/basename'))
+        ['dir1', 'dir2', 'dir3']
+        """
+        if self._currentdir is None:
+            directories = self.availabledirs.folders
+            if len(directories) == 1:
+                self._currentdir = directories[0]
+            elif self._defaultdir in directories:
+                self._currentdir = self._defaultdir
+            else:
+                prefix = (f'The current working directory of the '
+                          f'{objecttools.classname(self)} object '
+                          f'has not been defined manually and cannot '
+                          f'be determined automatically:')
+                if not directories:
+                    raise RuntimeError(
+                        f'{prefix} `{objecttools.repr_(self.basepath)}` '
+                        f'does not contain any available directories.')
+                if self._defaultdir is None:
+                    raise RuntimeError(
+                        f'{prefix} `{objecttools.repr_(self.basepath)}` '
+                        f'does contain multiple available directories '
+                        f'({objecttools.enumeration(directories)}).')
+                raise RuntimeError(
+                    f'{prefix} The default directory ({self._defaultdir}) '
+                    f'is not among the available directories '
+                    f'({objecttools.enumeration(directories)}).')
+        return self._currentdir
 
     @currentdir.setter
     def currentdir(self, directory):
-        path = os.path.join(self.basepath, directory)
-        if not os.path.exists(path):
-            if self.createdirs:
+        if directory is None:
+            self._currentdir = None
+        else:
+            path = os.path.join(self.basepath, directory)
+            if not os.path.exists(path):
                 os.makedirs(path)
-            elif self.check_exists:
-                raise IOError(
-                    'The base path `%s` does not contain directory `%s` '
-                    'and creating a new directory is currently disabled.'
-                    % (self.basepath, directory))
-        self._currentdir = str(directory)
+            self._currentdir = str(directory)
 
     @currentdir.deleter
     def currentdir(self):
-        if self.deletedirs:
-            path = os.path.join(self.basepath, self.currentdir)
-            if os.path.exists(path):
-                os.removedirs(path)
+        path = os.path.join(self.basepath, self.currentdir)
+        if os.path.exists(path):
+            try:
+                shutil.rmtree(path)
+            except OSError:
+                objecttools.augment_excmessage(
+                    f'While trying to delete the current working '
+                    f'directory `{objecttools.repr_(path)}` of the '
+                    f'{objecttools.classname(self)} object')
         self._currentdir = None
 
     @property
@@ -293,7 +392,7 @@ of object `filemanager` has not been prepared so far.
     def filenames(self):
         """Tuple of names of the respective files of the current directory."""
         return tuple(fn for fn in os.listdir(self.currentpath)
-                     if (fn.endswith('.py') and not fn.startswith('_')))
+                     if not fn.startswith('_'))
 
     @property
     def filepaths(self):
@@ -660,17 +759,9 @@ class _DescriptorPath(_Descriptor):
     def __set__(self, obj, path):
         path = str(path)
         abspath = os.path.abspath(path)
-        if os.path.exists(abspath):
-            self.set_value(obj, path)
-        elif obj.createdirs:
+        if not os.path.exists(abspath):
             os.makedirs(abspath)
-            self.set_value(obj, path)
-        elif obj.check_exists:
-            raise IOError(
-                'The %s sequence path `%s` does not exist.'
-                % (self.sequence_type, abspath))
-        else:
-            self.set_value(obj, path)
+        self.set_value(obj, path)
 
     def __delete__(self, obj):
         self.del_value(obj)
@@ -833,7 +924,7 @@ node `node2`, the following error occurred: name 'timegrid' is not defined
     (6) By default, overwriting existing time series files is disabled:
 
     >>> with TestIO():
-    ...     sim.save_ext()
+    ...     sim.save_ext()   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
     OSError: While trying to save the external data of sequence `sim` of \

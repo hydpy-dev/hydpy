@@ -710,25 +710,26 @@ cannot be determined.  Either set it manually or prepare \
         Normally, each sequence queries its current "internal" directory
         path from the |SequenceManager| object stored in module |pub|:
 
-        >>> from hydpy import pub
+        >>> from hydpy import pub, repr_, TestIO
         >>> from hydpy.core.filetools import SequenceManager
         >>> pub.sequencemanager = SequenceManager()
 
-        We overwrite |FileManager.basepath| and disable checking the
-        existence of given paths in order to simplify the following
-        examples:
+        We overwrite |FileManager.basepath| and prepare a folder in teh
+        `iotesting` directory to simplify the following examples:
 
         >>> basepath = SequenceManager.basepath
         >>> SequenceManager.basepath = 'test'
-        >>> pub.sequencemanager.check_exists = False
+        >>> TestIO.clear()
+        >>> import os
+        >>> with TestIO():
+        ...     os.makedirs('test/temp')
 
         Generally, |SequenceManager.tempdirpath| is queried:
 
-        >>> import os
         >>> from hydpy.core import sequencetools as st
         >>> seq = st.InputSequence()
-        >>> from hydpy import repr_
-        >>> repr_(seq.dirpath_int)
+        >>> with TestIO():
+        ...     repr_(seq.dirpath_int)
         'test/temp'
 
         Alternatively, you can specify |IOSequence.dirpath_int| for each
@@ -738,7 +739,8 @@ cannot be determined.  Either set it manually or prepare \
         >>> os.path.split(seq.dirpath_int)
         ('', 'path')
         >>> del seq.dirpath_int
-        >>> os.path.split(seq.dirpath_int)
+        >>> with TestIO():
+        ...     os.path.split(seq.dirpath_int)
         ('test', 'temp')
 
         If neither an individual definition nor |SequenceManager| is

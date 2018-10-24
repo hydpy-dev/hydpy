@@ -329,17 +329,18 @@ default directory (dir3) is not among the available directories (dir1 and dir2).
         ...     sorted(os.listdir('projectname/basename'))
         ['dir1', 'dir2', 'dir3', 'dir4']
 
-        >>> with TestIO():
-        ...     file_ = open('projectname/basename/dir4/file.txt', 'w')
-        ...     del filemanager.currentdir   # doctest: +ELLIPSIS
+        >>> import shutil
+        >>> from unittest.mock import patch
+        >>> with patch.object(shutil, 'rmtree', side_effect=AttributeError):
+        ...     with TestIO():
+        ...         del filemanager.currentdir   # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        PermissionError: While trying to delete the current working directory \
+        AttributeError: While trying to delete the current working directory \
 `...hydpy/tests/iotesting/projectname/basename/dir4` of the FileManager \
 object, the following error occurred: ...
 
         >>> with TestIO():
-        ...     file_.close()
         ...     del filemanager.currentdir   # doctest: +ELLIPSIS
         ...     sorted(os.listdir('projectname/basename'))
         ['dir1', 'dir2', 'dir3']
@@ -394,7 +395,7 @@ object, the following error occurred: ...
         if os.path.exists(path):
             try:
                 shutil.rmtree(path)
-            except OSError:
+            except BaseException:
                 objecttools.augment_excmessage(
                     f'While trying to delete the current working '
                     f'directory `{objecttools.repr_(path)}` of the '

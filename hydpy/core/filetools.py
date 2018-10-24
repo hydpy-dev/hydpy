@@ -214,17 +214,22 @@ of object `filemanager` has not been prepared so far.
         >>> with TestIO():
         ...     os.makedirs('projectname/basename/folder1')
         ...     os.makedirs('projectname/basename/folder2')
-        ...     os.makedirs('projectname/basename/_folder3')
-        ...     filemanager.availabledirs
-        Folder2Path(folder1,
-                    folder2)
+        ...     open('projectname/basename/folder3.zip', 'w').close()
+        ...     os.makedirs('projectname/basename/_folder4')
+        ...     open('projectname/basename/folder5.tar', 'w').close()
+        ...     filemanager.availabledirs   # doctest: +ELLIPSIS
+        Folder2Path(folder1=.../projectname/basename/folder1,
+                    folder2=.../projectname/basename/folder2,
+                    folder3=.../projectname/basename/folder3.zip)
         """
         directories = Folder2Path()
         for directory in os.listdir(self.basepath):
             if not directory.startswith('_'):
                 path = os.path.join(self.basepath, directory)
                 if os.path.isdir(path):
-                    directories.add(directory)
+                    directories.add(directory, path)
+                elif directory.endswith('.zip'):
+                    directories.add(directory[:-4], path)
         return directories
 
     @property
@@ -342,9 +347,9 @@ object, the following error occurred: ...
         if self._currentdir is None:
             directories = self.availabledirs.folders
             if len(directories) == 1:
-                self._currentdir = directories[0]
+                self.currentdir = directories[0]
             elif self._defaultdir in directories:
-                self._currentdir = self._defaultdir
+                self.currentdir = self._defaultdir
             else:
                 prefix = (f'The current working directory of the '
                           f'{objecttools.classname(self)} object '
@@ -370,9 +375,17 @@ object, the following error occurred: ...
         if directory is None:
             self._currentdir = None
         else:
-            path = os.path.join(self.basepath, directory)
-            if not os.path.exists(path):
-                os.makedirs(path)
+            dirpath = os.path.join(self.basepath, directory)
+            zippath = f'{dirpath}.zip'
+            if os.path.exists(zippath):
+                shutil.unpack_archive(
+                    filename=zippath,
+                    extract_dir=self.basepath,
+                    format='zip',
+                )
+                os.remove(zippath)
+            elif not os.path.exists(dirpath):
+                os.makedirs(dirpath)
             self._currentdir = str(directory)
 
     @currentdir.deleter
@@ -404,6 +417,58 @@ object, the following error occurred: ...
         """Tuple of paths of the respective files of the current directory."""
         path = self.currentpath
         return tuple(os.path.join(path, name) for name in self.filenames)
+
+    def zip_currentdir(self):
+        """ToDo
+
+        >>> from hydpy.core.filetools import FileManager
+        >>> filemanager = FileManager()
+        >>> filemanager._BASEDIR = 'basename'
+        >>> filemanager.projectdir = 'projectname'
+        >>> import os
+        >>> from hydpy import repr_, TestIO
+        >>> TestIO.clear()
+        >>> with TestIO():
+        ...     os.makedirs('projectname/basename')
+        ...     filemanager.currentdir = 'folder'
+        ...     with open('projectname/basename/folder/file1.txt', 'w') as file_:
+        ...         _ = file_.write('test1')
+        ...     with open('projectname/basename/folder/file2.txt', 'w') as file_:
+        ...         _ = file_.write('test2')
+        ...     sorted(os.listdir('projectname/basename'))
+        ...     filemanager.availabledirs.folders
+        ...     filemanager.filenames
+        ['folder']
+        ('folder',)
+        ('file1.txt', 'file2.txt')
+
+        >>> with TestIO():
+        ...     filemanager.zip_currentdir()
+        ...     sorted(os.listdir('projectname/basename'))
+        ...     filemanager.availabledirs.folders
+        ['folder.zip']
+        ('folder',)
+
+        >>> with TestIO():
+        ...     filemanager.currentdir
+        ...     sorted(os.listdir('projectname/basename'))
+        ...     filemanager.availabledirs.folders
+        ...     filemanager.filenames
+        ...     with open('projectname/basename/folder/file1.txt') as file_:
+        ...         file_.read()
+        'folder'
+        ['folder']
+        ('folder',)
+        ('file1.txt', 'file2.txt')
+        'test1'
+        """
+        shutil.make_archive(
+            base_name=self.currentpath,
+            format='zip',
+            root_dir=self.basepath,
+            base_dir=self.currentdir,
+        )
+        del self.currentdir
 
     def __dir__(self):
         return objecttools.dir_(self)

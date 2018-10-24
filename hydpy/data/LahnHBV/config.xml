@@ -33,6 +33,7 @@
     <conditions_io>
         <inputdir>init_1996_01_01</inputdir>
         <outputdir>init_1996_01_06</outputdir>
+        <zip>false</zip>
     </conditions_io>
     
     <series_io>
@@ -55,6 +56,8 @@
         <aggregation>
             <general>none</general>
         </aggregation>
+
+        <zip>false</zip>
 
         <readers>
             <reader info="all input data">

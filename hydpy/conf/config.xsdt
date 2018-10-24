@@ -100,6 +100,8 @@
                          type="anyURI"/>
                 <element name="outputdir"
                          type="anyURI"/>
+                <element name="zip"
+                         type="fews:bool"/>
             </sequence>
         </complexType>
     </element>
@@ -111,6 +113,8 @@
                 <element ref="fews:overwrite"/>
                 <element ref="fews:dirpath"/>
                 <element ref="fews:aggregation"/>
+                <element name="zip"
+                         type="fews:bool"/>
                 <element name="readers">
                     <complexType>
                         <sequence>

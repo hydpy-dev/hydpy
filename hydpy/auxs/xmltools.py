@@ -639,6 +639,8 @@ class XMLConditions(XMLBase):
         pub.conditionmanager.currentdir = strip(self.find('outputdir').text)
         for element in self.master.elements:
             element.model.sequences.save_conditions()
+        if strip(self.find('zip').text) == 'true':
+            pub.conditionmanager.zip_currentdir()   # ToDo: test it
 
 
 class XMLSeries(XMLBase):

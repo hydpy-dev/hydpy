@@ -410,8 +410,9 @@ object, the following error occurred: ...
     @property
     def filenames(self):
         """Tuple of names of the respective files of the current directory."""
-        return tuple(fn for fn in os.listdir(self.currentpath)
-                     if not fn.startswith('_'))
+        return tuple(sorted(
+            fn for fn in os.listdir(self.currentpath)
+            if not fn.startswith('_')))
 
     @property
     def filepaths(self):

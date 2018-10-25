@@ -311,27 +311,50 @@ def augment_excmessage(prefix=None, suffix=None):
     >>> import textwrap
     >>> try:
     ...     1 + '1'
-    ... except TypeError:
-    ...     try:
-    ...         prefix = 'While showing how prefixing works'
-    ...         suffix = '(This is a final remark.)'
-    ...         objecttools.augment_excmessage(prefix, suffix)
-    ...     except TypeError as exc:
-    ...         for line in textwrap.wrap(exc.args[0], width=76):
-    ...             print(line)
-    While showing how prefixing works, the following error occurred: unsupported
-    operand type(s) for +: 'int' and 'str' (This is a final remark.)
+    ... except BaseException:
+    ...     prefix = 'While showing how prefixing works'
+    ...     suffix = '(This is a final remark.)'
+    ...     objecttools.augment_excmessage(prefix, suffix)
+    Traceback (most recent call last):
+    ...
+    TypeError: While showing how prefixing works, the following error \
+occurred: unsupported operand type(s) for +: 'int' and 'str' \
+(This is a final remark.)
 
-    Note that the ancillary purpose of function |augment_excmessage| is
-    to make re-raising exceptions compatible with both Python 2 and 3.
+    Some exceptions derived by site-packages do not support exception
+    chaining due to requiring multiple initialisation arguments.
+    In such cases, |augment_excmessage| generates an exception with the
+    same name on the fly and raises it afterwards, which is pointed out
+    by the exception name mentioning to the "objecttools" module:
+
+    >>> class WrongError(BaseException):
+    ...     def __init__(self, arg1, arg2):
+    ...         pass
+    >>> try:
+    ...     raise WrongError('info 1', 'info 2')
+    ... except BaseException:
+    ...     objecttools.augment_excmessage(
+    ...         'While showing how prefixing works')
+    Traceback (most recent call last):
+    ...
+    hydpy.core.objecttools.objecttools.WrongError: While showing how \
+prefixing works, the following error occurred: ('info 1', 'info 2')
+
     """
-    exception, message, traceback_ = sys.exc_info()
+    exc_old = sys.exc_info()[1]
+    message = str(exc_old)
     if prefix is not None:
-        message = ('%s, the following error occurred: %s'
-                   % (prefix, message))
+        message = f'{prefix}, the following error occurred: {message}'
     if suffix is not None:
-        message = ' '.join((message, suffix))
-    raise exception(message).with_traceback(traceback_)
+        message = f'{message} {suffix}'
+    try:
+        exc_new = type(exc_old)(message)
+    except BaseException:
+        exc_name = str(type(exc_old)).split("'")[1]
+        exc_type = type(exc_name, (BaseException,), {})
+        exc_type.__module = exc_old.__module__
+        raise exc_type(message) from exc_old
+    raise exc_new from exc_old
 
 
 def excmessage_decorator(description):

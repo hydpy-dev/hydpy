@@ -337,9 +337,8 @@ occurred: unsupported operand type(s) for +: 'int' and 'str' \
     ...         'While showing how prefixing works')
     Traceback (most recent call last):
     ...
-    hydpy.core.objecttools.objecttools.WrongError: While showing how \
-prefixing works, the following error occurred: ('info 1', 'info 2')
-
+    hydpy.core.objecttools.hydpy.core.objecttools.WrongError: While showing \
+how prefixing works, the following error occurred: ('info 1', 'info 2')
     """
     exc_old = sys.exc_info()[1]
     message = str(exc_old)

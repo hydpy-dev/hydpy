@@ -310,10 +310,10 @@ file ...wrongfilepath.xml, the following error occurred: \
         >>> interface.validate_xml()    # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        lxml.etree.XMLSyntaxError: While trying to parse XML file \
-...config.xml` the following error occurred: Element '{https://github.com/\
-tyralla/hydpy/tree/master/hydpy/conf/config.xsd}firstdate': \
-'1996-01-32T00:00:00' is not a valid value of the atomic type 'xs:dateTime'.
+        hydpy.core.objecttools.lxml.etree.XMLSyntaxError: While trying to \
+parse XML file `...config.xml`, the following error occurred: Element \
+'{...config.xsd}firstdate': '1996-01-32T00:00:00' is not a valid value \
+of the atomic type 'xs:dateTime'. (<string>, line 0)
 
         >>> with open(interface.filepath, 'w') as xml:
         ...     _ = xml.write(text)
@@ -324,10 +324,9 @@ tyralla/hydpy/tree/master/hydpy/conf/config.xsd}firstdate': \
         parser = etree.XMLParser(schema=schema)
         try:
             etree.parse(source=self.filepath, parser=parser)
-        except BaseException as exc:
-            exc.msg = (f'While trying to parse XML file `{self.filepath}` '
-                       f'the following error occurred: {exc.msg}')
-            raise exc
+        except Exception:
+            objecttools.augment_excmessage(
+                f'While trying to parse XML file `{self.filepath}`')
 
     def update_options(self) -> None:
         """Update the |Options| object available in module |pub| with the

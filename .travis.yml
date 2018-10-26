@@ -22,9 +22,9 @@ install:
   - pip install matplotlib
   - pip install bokeh
   - pip install coverage
+  - pip install lxml
   - pip install pandas
   - pip install wrapt
-  - pip install lxml
   - if [ $TRAVIS_PYTHON_VERSION == "3.6" ] ; then pip install pycobertura; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.6" ] ; then pip install sphinx; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.6" ] ; then pip install travis-sphinx; fi

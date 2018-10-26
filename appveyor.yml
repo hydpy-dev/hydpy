@@ -1,0 +1,46 @@
+
+version: '3.0.dev4.{build}'
+
+environment:
+  matrix:
+    - PYTHON: "C:\\Miniconda3-x64\\envs\\myenv"
+      PYTHON_VERSION: "3.6"
+      PYTHON_ARCH: "64"
+    - PYTHON: "C:\\Miniconda3-x64\\envs\\myenv"
+      PYTHON_VERSION: "3.7"
+      PYTHON_ARCH: "64"
+
+install:
+  - "SET PATH=C:\\Miniconda3-x64;C:\\Miniconda3-x64\\Scripts;%PATH%"
+  - "conda create -n myenv python=%PYTHON_VERSION% --yes"
+  - "activate myenv"
+  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+  - "python --version"
+  - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
+  - "conda install Cython --yes"
+  - "conda install numpy --yes"
+  - "conda install scipy --yes"
+  - "conda install matplotlib --yes"
+  - "conda install bokeh --yes"
+  - "conda install lxml --yes"
+  - "conda install pandas --yes"
+  - "conda install setuptools --yes"
+  - "conda install wheel --yes"
+  - "conda install wrapt --yes"
+  - "conda install netcdf4 --yes"
+  - "conda uninstall netcdf4 --yes"
+  - "python -m pip install --upgrade pip"
+  - "python -m pip install netcdf4"
+
+build: off
+
+before_test:
+  - "python setup.py install"
+  - "python make_and_install_dists.py"
+  - "conda uninstall Cython --yes"
+
+test_script:
+  - "python hydpy/tests/test_everything.py forcecompiling=False"
+
+artifacts:
+  - path: dist\*

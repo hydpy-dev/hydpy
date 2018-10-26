@@ -4,5 +4,6 @@ Cython
 lxml
 matplotlib
 numpy
+pandas
 scipy
 wrapt

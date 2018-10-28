@@ -149,12 +149,21 @@ def exec_commands(commands, *, logfile: IO) -> None:
     >>> exec_commands("x_=_1+1;print(x)", logfile=sys.stdout)
     Start to execute the commands ['x_=_1+1', 'print(x)'] for testing purposes.
     2
+
+    Double underscores are interpreted as a single underscore:
+
+    >>> exec_commands("x_=_1;print(x.____class____)", logfile=sys.stdout)
+    Start to execute the commands ['x_=_1', 'print(x.____class____)'] for testing purposes.
+    <class 'int'>
     """
     cmdlist = commands.split(';')
     logfile.write(
         f'Start to execute the commands {cmdlist} for testing purposes.\n')
     for command in cmdlist:
-        exec(command.replace('_', ' '))
+        command = command.replace('__', 'temptemptemp')
+        command = command.replace('_', ' ')
+        command = command.replace('temptemptemp', '_')
+        exec(command)
 
 
 pub.scriptfunctions['exec_commands'] = exec_commands

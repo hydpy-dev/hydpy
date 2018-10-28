@@ -4,9 +4,12 @@
 # ...from standard library:
 from __future__ import division, print_function
 import os
-
 import shutil
 import sys
+# ...from site-packages:
+import Cython.Build
+import Cython.Distutils
+import numpy
 
 install = 'install' in sys.argv
 bdist_wheel = 'bdist_wheel' in sys.argv
@@ -17,16 +20,12 @@ if report_coverage:
 debug_cython = 'debug_cython' in sys.argv
 if debug_cython:
     sys.argv.remove('debug_cython')
-if bdist_wheel:
-    import setuptools
 
-from distutils.core import setup
-from distutils.extension import Extension
-# ...from site-packages:
-import Cython.Build
-import Cython.Distutils
-import numpy
-
+if install:
+    from distutils.core import setup
+    from distutils.extension import Extension
+else:
+    from setuptools import setup, Extension
 
 def print_(*args, **kwargs):
     print(*args, **kwargs)

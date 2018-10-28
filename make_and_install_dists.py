@@ -16,7 +16,7 @@ try:
             except BaseException:
                 shutil.rmtree(path)
 
-    for dist in ['sdist', 'bdist_wheel', 'bdist_wininst']:
+    for dist in ['sdist', 'bdist_wheel', 'bdist_wininst', 'bdist_msi']:
         subprocess.run(['python', 'setup.py', dist])
 
     pyversion = f'cp{sys.version_info.major}{sys.version_info.minor}'

@@ -141,7 +141,7 @@ except AttributeError:
 
 # The usual setup definitions.
 setup(name='HydPy',
-      version='3.0.dev4',
+      version='3.0.a0',
       description='A framework for the development and application of '
                   'hydrological models.',
       author='Christoph Tyralla',
@@ -169,6 +169,7 @@ setup(name='HydPy',
       scripts=[os.path.join('hydpy', 'exe', 'hyd.py')],
       package_data=package_data,
       include_package_data=True,
+      python_requires='>=3.6',
       install_requires=[
           'numpy',
           'scipy',

@@ -1,5 +1,5 @@
 
-version: '3.0.dev4.{build}'
+version: '3.0.a0.{build}'
 
 environment:
   matrix:

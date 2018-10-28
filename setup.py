@@ -168,7 +168,17 @@ setup(name='HydPy',
       include_dirs=[numpy.get_include()],
       scripts=[os.path.join('hydpy', 'exe', 'hyd.py')],
       package_data=package_data,
-      include_package_data=True)
+      include_package_data=True,
+      install_requires=[
+          'numpy',
+          'scipy',
+          'matplotlib',
+          'lxml',
+          'pandas',
+          'wrapt',
+          'netcdf4'
+      ],
+      )
 
 if install:
     # Priorise site-packages (on Debian-based Linux distributions as Ubuntu

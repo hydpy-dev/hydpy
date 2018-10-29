@@ -278,9 +278,9 @@ class XMLInterface(XMLBase):
     >>> XMLInterface('wrongfilepath.xml')    # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
-    FileNotFoundError: While trying to read parse the XML configuration \
+    FileNotFoundError: While trying to parse the XML configuration \
 file ...wrongfilepath.xml, the following error occurred: \
-[Errno 2] No such file or directory: 'wrongfilepath.xml'
+[Errno 2] No such file or directory: '...wrongfilepath.xml'
      """
 
     def __init__(self, filepath=None):
@@ -291,7 +291,7 @@ file ...wrongfilepath.xml, the following error occurred: \
             self.root = ElementTree.parse(self.filepath).getroot()
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to read parse the XML configuration file '
+                f'While trying to parse the XML configuration file '
                 f'{filepath}')
 
     def validate_xml(self) -> None:

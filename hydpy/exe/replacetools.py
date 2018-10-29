@@ -2,9 +2,8 @@
 """This module implements tools for file related string substitutions."""
 
 # import...
-# ...from standard library
-
 # ...from HydPy
+from hydpy.core import autodoctools
 from hydpy.core import objecttools
 
 
@@ -140,3 +139,6 @@ for marker `e4`.
             f'`{objecttools.enumeration(sorted(set(markers)))}` of the '
             f'XML template file `{templatename}` with the available '
             f'keywords `{objecttools.enumeration(sorted(keywords))}`')
+
+
+autodoctools.autodoc_module()

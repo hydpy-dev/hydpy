@@ -14,6 +14,9 @@ import numpy
 install = 'install' in sys.argv
 bdist_wheel = 'bdist_wheel' in sys.argv
 bdist_wininst = 'bdist_wininst' in sys.argv
+bdist_msi = 'bdist_msi' in sys.argv
+bdist_egg = 'bdist_egg' in sys.argv
+bdist = bdist_wheel or bdist_wininst or bdist_msi or bdist_egg
 report_coverage = 'report_coverage' in sys.argv
 if report_coverage:
     sys.argv.remove('report_coverage')
@@ -88,7 +91,7 @@ for package in packages:
 # Add existing compiled extensions for binary arguments and prepare
 # compiling extensions otherwise.
 ext_modules = []
-if bdist_wheel or bdist_wininst:
+if bdist:
     package_data['hydpy.cythons.autogen'] = ['*.pyx', '*.pxd', '*.pyd']
 else:
     package_data['hydpy.cythons.autogen'] = ['*.pyx', '*.pxd']
@@ -141,7 +144,7 @@ except AttributeError:
 
 # The usual setup definitions.
 setup(name='HydPy',
-      version='3.0.a0',
+      version='3.0a0',
       description='A framework for the development and application of '
                   'hydrological models.',
       author='Christoph Tyralla',

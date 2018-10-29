@@ -286,13 +286,13 @@ file ...wrongfilepath.xml, the following error occurred: \
     def __init__(self, filepath=None):
         if filepath is None:
             filepath = os.path.join(pub.projectname, 'config.xml')
-        self.filepath = filepath
+        self.filepath = os.path.abspath(filepath)
         try:
-            self.root = ElementTree.parse(filepath).getroot()
+            self.root = ElementTree.parse(self.filepath).getroot()
         except BaseException:
             objecttools.augment_excmessage(
                 f'While trying to read parse the XML configuration file '
-                f'{os.path.abspath(filepath)}')
+                f'{filepath}')
 
     def validate_xml(self) -> None:
         """Raise an error if the actual XML does not agree with the XML
@@ -300,13 +300,15 @@ file ...wrongfilepath.xml, the following error occurred: \
 
         # ToDo: should it be accompanied by a script function?
 
+        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+        >>> from hydpy import TestIO, xml_replace
         >>> from hydpy.auxs.xmltools import XMLInterface
-        >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
-        >>> with open(interface.filepath) as xml:
-        ...     text = xml.read()
-        >>> with open(interface.filepath, 'w') as xml:
-        ...     _ = xml.write(text.replace('1996-01-01', '1996-01-32'))
+        >>> import os
+        >>> with TestIO():
+        ...     xml_replace('LahnHBV/config',
+        ...                 firstdate='1996-01-32T00:00:00')
+        ...     interface = XMLInterface('LahnHBV/config.xml')
         >>> interface.validate_xml()    # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
@@ -314,10 +316,6 @@ file ...wrongfilepath.xml, the following error occurred: \
 parse XML file `...config.xml`, the following error occurred: Element \
 '{...config.xsd}firstdate': '1996-01-32T00:00:00' is not a valid value \
 of the atomic type 'xs:dateTime'. (<string>, line 0)
-
-        >>> with open(interface.filepath, 'w') as xml:
-        ...     _ = xml.write(text)
-        >>> interface.validate_xml()
         """
         schema = etree.XMLSchema(
             file=os.path.join(conf.__path__[0], 'config.xsd'))

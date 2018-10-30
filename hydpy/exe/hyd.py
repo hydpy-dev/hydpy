@@ -71,7 +71,8 @@ Further argument requirements depend on the selected "script function":
 ...         "exec_commands")    # doctest: +ELLIPSIS
 Invoking hyd.py with arguments `...hyd.py, exec_commands` resulted in the \
 following error:
-Function `exec_commands` requires `1` arguments (commands), but `0` are given.
+Function `exec_commands` requires `1` positional arguments (commands), \
+but `0` are given.
 <BLANKLINE>
 >>> execute("hyd.py "
 ...         "exec_commands "
@@ -79,8 +80,21 @@ Function `exec_commands` requires `1` arguments (commands), but `0` are given.
 ...         "second_name")    # doctest: +ELLIPSIS
 Invoking hyd.py with arguments `...hyd.py, exec_commands, first_name, \
 second_name` resulted in the following error:
-Function `exec_commands` requires `1` arguments (commands), but `2` are given \
+Function `exec_commands` requires `1` positional arguments (commands), \
+but `2` are given \
 (first_name and second_name).
+<BLANKLINE>
+
+Optional keyword arguments are supported:
+
+>>> execute("hyd.py "
+...         "exec_commands "
+...         "z=x+y;"
+...         "print(z) "
+...         "x='2' "
+...         "y='=1+1'")
+Start to execute the commands ['z=x+y', 'print(z)'] for testing purposes.
+2=1+1
 <BLANKLINE>
 
 Error messages raised by the "script function" itself also find their
@@ -137,7 +151,7 @@ from hydpy.core import autodoctools
 from hydpy.core import objecttools
 
 
-def exec_commands(commands, *, logfile: IO) -> None:
+def exec_commands(commands, *, logfile: IO, **parameters) -> None:
     """Execute the given Python.
 
     Function |exec_commands| is thought for testing purposes only (see
@@ -156,10 +170,18 @@ def exec_commands(commands, *, logfile: IO) -> None:
     Start to execute the commands ['x_=_1', 'print(x.____class____)'] \
 for testing purposes.
     <class 'int'>
+
+    Additional keyword arguments are evaluated before command execution:
+
+    >>> exec_commands("e=x==y;print(e)", x=1, y=2, logfile=sys.stdout)
+    Start to execute the commands ['e=x==y', 'print(e)'] for testing purposes.
+    False
     """
     cmdlist = commands.split(';')
     logfile.write(
         f'Start to execute the commands {cmdlist} for testing purposes.\n')
+    for par, value in parameters.items():
+        exec(f'{par} = {value}')
     for command in cmdlist:
         command = command.replace('__', 'temptemptemp')
         command = command.replace('_', ' ')
@@ -259,6 +281,16 @@ second_name` resulted in the following error:
 but `2` are given (first_name and second_name).
     <BLANKLINE>
 
+    >>> execute("hyd.py "
+    ...         "exec_commands "
+    ...         "z=x+y;"
+    ...         "print(z) "
+    ...         "x='2' "
+    ...         "y='=1+1'")
+    Start to execute the commands ['z=x+y', 'print(z)'] for testing purposes.
+    2=1+1
+    <BLANKLINE>
+
     >>> execute(f"hyd.py "
     ...         f"exec_commands "
     ...         f"raise_RuntimeError('it_fails')")    # doctest: +ELLIPSIS
@@ -295,8 +327,7 @@ for testing purposes.
         except IndexError:
             raise ValueError(
                 'The first argument defining the function '
-                'to be called is missing.'
-            )
+                'to be called is missing.')
         try:
             func = pub.scriptfunctions[funcname]
         except KeyError:
@@ -304,10 +335,20 @@ for testing purposes.
                 f'There is no `{funcname}` function callable by `hyd.py`.  '
                 f'Choose one of the following instead: '
                 f'{objecttools.enumeration(pub.scriptfunctions.keys())}')
-        args_given = sys.argv[2:]
-        nmb_args_given = len(args_given)
         args_required = inspect.getfullargspec(func).args
         nmb_args_required = len(args_required)
+        args_given = []
+        kwargs_given = {}
+        for idx, arg in enumerate(sys.argv[2:]):
+            if idx < nmb_args_required:
+                args_given.append(arg)
+            else:
+                try:
+                    key, value = parse_argument(arg)
+                    kwargs_given[key] = value
+                except ValueError:
+                    args_given.append(arg)
+        nmb_args_given = len(args_given)
         if nmb_args_given != nmb_args_required:
             enum_args_given = ''
             if nmb_args_given:
@@ -319,13 +360,13 @@ for testing purposes.
                     f' ({objecttools.enumeration(args_required)})')
             raise ValueError(
                 f'Function `{funcname}` requires `{nmb_args_required:d}` '
-                f'arguments{enum_args_required}, but `{nmb_args_given:d}` '
-                f'are given{enum_args_given}.')
+                f'positional arguments{enum_args_required}, but '
+                f'`{nmb_args_given:d}` are given{enum_args_given}.')
         stdout = sys.stdout
         try:
             with open(logfilepath, 'a') as logfile:
                 sys.stdout = logfile
-                func(*sys.argv[2:], logfile=logfile)
+                func(*args_given, **kwargs_given, logfile=logfile)
         finally:
             sys.stdout = stdout
     except BaseException as exc:

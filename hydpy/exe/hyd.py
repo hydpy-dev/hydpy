@@ -62,7 +62,7 @@ The first additional argument must be an available "script function":
 Invoking hyd.py with arguments `...hyd.py, wrong_argument` resulted in the \
 following error:
 There is no `wrong_argument` function callable by `hyd.py`.  \
-Choose one of the following instead: exec_xml and exec_commands
+Choose one of the following instead: exec_xml, exec_commands, and xml_replace
 <BLANKLINE>
 
 Further argument requirements depend on the selected "script function":

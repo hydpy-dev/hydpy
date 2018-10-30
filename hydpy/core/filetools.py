@@ -24,49 +24,71 @@ from hydpy.core import timetools
 class Folder2Path(object):
     """Map folder names to their path names.
 
+    You can both pass positional arguments and keyword arguments when
+    initialising |Folder2Path|.  For positional arguments, the folder
+    and its path are assumed to be identical.  For keyword arguments,
+    the keyword corresponds to the folder name and its value to the
+    path name:
+
     >>> from hydpy.core.filetools import Folder2Path
     >>> Folder2Path()
     Folder2Path()
-    >>> f2p = Folder2Path('dir1', 'dir2', dir3='dir3', dir4='path4')
+    >>> f2p = Folder2Path(
+    ...     'folder1', 'folder2', folder3='folder3', folder4='path4')
     >>> f2p
-    Folder2Path(dir1,
-                dir2,
-                dir3,
-                dir4=path4)
+    Folder2Path(folder1,
+                folder2,
+                folder3,
+                folder4=path4)
     >>> print(f2p)
-    Folder2Path(dir1, dir2, dir3, dir4=path4)
+    Folder2Path(folder1, folder2, folder3, folder4=path4)
 
-    >>> f2p.add('dir5')
-    >>> f2p.add('dir6', 'path6')
+    Adding folders after initialisation is supported:
+
+    >>> f2p.add('folder5')
+    >>> f2p.add('folder6', 'path6')
     >>> f2p
-    Folder2Path(dir1,
-                dir2,
-                dir3,
-                dir5,
-                dir4=path4,
-                dir6=path6)
+    Folder2Path(folder1,
+                folder2,
+                folder3,
+                folder5,
+                folder4=path4,
+                folder6=path6)
 
-    >>> 'dir1' in dir(f2p)
-    True
-    >>> f2p.dir1
-    'dir1'
-    >>> f2p.dir4
-    'path4'
+    Folder names are required to be valid Python identifiers:
 
-    >>> for dir_, path in f2p:
-    ...     print(dir_, path)
-    dir1 dir1
-    dir2 dir2
-    dir3 dir3
-    dir4 path4
-    dir5 dir5
-    dir6 path6
+    >>> f2p.add('folder 7')
+    Traceback (most recent call last):
+    ...
+    ValueError: The given name string `folder 7` does not define a valid \
+variable identifier.  Valid identifiers do not contain characters like `-` \
+or empty spaces, do not start with numbers, cannot be mistaken with Python \
+built-ins like `for`...)
+
+    You can query the folder and attribute names:
 
     >>> f2p.folders
-    ('dir1', 'dir2', 'dir3', 'dir4', 'dir5', 'dir6')
-
+    ('folder1', 'folder2', 'folder3', 'folder4', 'folder5', 'folder6')
     >>> f2p.paths
-    ('dir1', 'dir2', 'dir3', 'path4', 'dir5', 'path6')
+    ('folder1', 'folder2', 'folder3', 'path4', 'folder5', 'path6')
+
+    Attribute access and iteration are also supported:
+
+    >>> 'folder1' in dir(f2p)
+    True
+    >>> f2p.folder1
+    'folder1'
+    >>> f2p.folder4
+    'path4'
+
+    >>> for folder, path in f2p:
+    ...     print(folder, path)
+    folder1 folder1
+    folder2 folder2
+    folder3 folder3
+    folder4 path4
+    folder5 folder5
+    folder6 path6
 
     >>> len(f2p)
     6
@@ -127,7 +149,14 @@ class Folder2Path(object):
 
 class FileManager(object):
     """Base class for |NetworkManager|, |ControlManager|, |ConditionManager|,
-    and |SequenceManager|."""
+    and |SequenceManager|.
+
+    |FileManager| defines the general folder structure for storing
+    network, control, condition, and time series files.  Generally,
+    it is `projectdir/BASEDIR/currentdir/`; concretely, taking
+    the (default) network working directory of example project
+    `LahnHBV` as an example, it is `LahnHBV/network/default`.
+    """
 
     _BASEDIR: str
 
@@ -142,7 +171,13 @@ class FileManager(object):
 
     @propertytools.ProtectedProperty
     def projectdir(self):
-        """ToDo
+        """The name of the main folder of a project.
+
+        For the `LahnHBV` example project, |FileManager.projectdir| is
+        (not surprisingly) `LahnHBV`, and is queried from the |pub| module.
+        However, you can define or change |FileManager.projectdir|
+        interactively, which can be usefull for more complex tasks like
+        copying (parts of) projects:
 
         >>> from hydpy.core.filetools import FileManager
         >>> from hydpy import pub
@@ -150,8 +185,6 @@ class FileManager(object):
         >>> filemanager = FileManager()
         >>> filemanager.projectdir
         'project_A'
-
-        ToDo
 
         >>> del filemanager.projectdir
         >>> filemanager.projectdir
@@ -162,8 +195,6 @@ of object `filemanager` has not been prepared so far.
         >>> filemanager.projectdir = 'project_B'
         >>> filemanager.projectdir
         'project_B'
-
-        ToDo
 
         >>> del pub.projectname
         >>> FileManager().projectdir
@@ -184,7 +215,7 @@ of object `filemanager` has not been prepared so far.
 
     @property
     def basepath(self):
-        """Absolute path pointing to the actual directories.
+        """Absolute path pointing to the available working directories.
 
         >>> from hydpy.core.filetools import FileManager
         >>> filemanager = FileManager()
@@ -200,7 +231,7 @@ of object `filemanager` has not been prepared so far.
 
     @property
     def availabledirs(self):
-        """Available directories containing the respective files.
+        """Available working directories.
 
         ToDo
 

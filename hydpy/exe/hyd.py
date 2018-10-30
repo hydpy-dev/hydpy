@@ -18,7 +18,7 @@ log file into the "iotesting" folder:
 >>> from hydpy import TestIO, print_latest_logfile
 >>> TestIO.clear()
 >>> with TestIO():
-...     print_latest_logfile()
+...     print_latest_logfile()    # doctest: +ELLIPSIS
 Traceback (most recent call last):
 ...
 FileNotFoundError: Cannot find a HydPy log file in directory ...iotesting.
@@ -28,7 +28,7 @@ FileNotFoundError: Cannot find a HydPy log file in directory ...iotesting.
 ...         stdout=subprocess.PIPE,
 ...         stderr=subprocess.PIPE,
 ...         shell=True)
-...     print_latest_logfile()
+...     print_latest_logfile()    # doctest: +ELLIPSIS
 Invoking hyd.py with arguments `...hyd.py` resulted in the following error:
 The first argument defining the function to be called is missing.
 <BLANKLINE>
@@ -50,7 +50,7 @@ For convenience, we wrap the three required code lines test function "execute":
 
 Without any further arguments, `hyd.py` does not know which function to call:
 
->>> execute("hyd.py")
+>>> execute("hyd.py")    # doctest: +ELLIPSIS
 Invoking hyd.py with arguments `...hyd.py` resulted in the following error:
 The first argument defining the function to be called is missing.
 <BLANKLINE>
@@ -58,7 +58,7 @@ The first argument defining the function to be called is missing.
 The first additional argument must be an available "script function":
 
 >>> execute("hyd.py "
-...         "wrong_argument")
+...         "wrong_argument")    # doctest: +ELLIPSIS
 Invoking hyd.py with arguments `...hyd.py, wrong_argument` resulted in the \
 following error:
 There is no `wrong_argument` function callable by `hyd.py`.  \
@@ -68,7 +68,7 @@ Choose one of the following instead: exec_xml and exec_commands
 Further argument requirements depend on the selected "script function":
 
 >>> execute("hyd.py "
-...         "exec_commands")
+...         "exec_commands")    # doctest: +ELLIPSIS
 Invoking hyd.py with arguments `...hyd.py, exec_commands` resulted in the \
 following error:
 Function `exec_commands` requires `1` arguments (commands), but `0` are given.
@@ -76,7 +76,7 @@ Function `exec_commands` requires `1` arguments (commands), but `0` are given.
 >>> execute("hyd.py "
 ...         "exec_commands "
 ...         "first_name "
-...         "second_name")
+...         "second_name")    # doctest: +ELLIPSIS
 Invoking hyd.py with arguments `...hyd.py, exec_commands, first_name, \
 second_name` resulted in the following error:
 Function `exec_commands` requires `1` arguments (commands), but `2` are given \
@@ -89,7 +89,7 @@ way into the log file (on Linux, we have to escape the characters "(",
 
 >>> import platform
 >>> esc = '' if 'windows' in platform.platform().lower() else '\\\\'
->>> execute(f"hyd.py "
+>>> execute(f"hyd.py "    # doctest: +ELLIPSIS
 ...         f"exec_commands "
 ...         f"raise_RuntimeError{esc}({esc}'it_fails{esc}'{esc})")
 Start to execute the commands ["raise_RuntimeError('it_fails')"] for \
@@ -101,7 +101,7 @@ it fails
 
 The same is true for warning messages:
 
->>> execute(f"hyd.py "
+>>> execute(f"hyd.py "    # doctest: +ELLIPSIS
 ...         f"exec_commands "
 ...         f"import_warnings{esc};"
 ...         f"warnings.warn{esc}({esc}'it_stumbles{esc}'{esc})")
@@ -114,7 +114,7 @@ Start to execute the commands ['import_warnings', \
 Each "script function" is allowed to write additional information
 into the logging file:
 
->>> execute(f"hyd.py "
+>>> execute(f"hyd.py "    # doctest: +ELLIPSIS
 ...         f"exec_commands "
 ...         f"logfile.write{esc}({esc}'it_works{esc}'{esc})")
 Start to execute the commands ["logfile.write('it_works')"] \
@@ -153,7 +153,8 @@ def exec_commands(commands, *, logfile: IO) -> None:
     Double underscores are interpreted as a single underscore:
 
     >>> exec_commands("x_=_1;print(x.____class____)", logfile=sys.stdout)
-    Start to execute the commands ['x_=_1', 'print(x.____class____)'] for testing purposes.
+    Start to execute the commands ['x_=_1', 'print(x.____class____)'] \
+for testing purposes.
     <class 'int'>
     """
     cmdlist = commands.split(';')
@@ -201,7 +202,7 @@ def prepare_logfile():
     >>> import os
     >>> os.path.exists(filepath)
     True
-    >>> filepath
+    >>> filepath    # doctest: +ELLIPSIS
     '...hydpy...tests...iotesting...hydpy_2000-01-01_12-30-00.log'
     """
     filename = datetime.datetime.now().strftime(
@@ -228,39 +229,39 @@ def execute_scriptfunction():
     ...         execute_scriptfunction()
     ...         print_latest_logfile()
 
-    >>> execute("hyd.py")
+    >>> execute("hyd.py")    # doctest: +ELLIPSIS
     Invoking hyd.py with arguments `...hyd.py` resulted in the following error:
     The first argument defining the function to be called is missing.
     <BLANKLINE>
 
     >>> execute("hyd.py "
-    ...         "wrong_argument")
+    ...         "wrong_argument")    # doctest: +ELLIPSIS
     Invoking hyd.py with arguments `...hyd.py, wrong_argument` resulted \
 in the following error:
     There is no `wrong_argument` function callable by `hyd.py`.  \
-Choose one of the following instead: exec_xml and exec_commands
+Choose one of the following instead: exec_xml, exec_commands, and xml_replace
     <BLANKLINE>
 
     >>> execute("hyd.py "
-    ...         "exec_commands")
+    ...         "exec_commands")    # doctest: +ELLIPSIS
     Invoking hyd.py with arguments `...hyd.py, exec_commands` resulted \
 in the following error:
-    Function `exec_commands` requires `1` arguments (commands), \
+    Function `exec_commands` requires `1` positional arguments (commands), \
 but `0` are given.
     <BLANKLINE>
     >>> execute("hyd.py "
     ...         "exec_commands "
     ...         "first_name "
-    ...         "second_name")
+    ...         "second_name")    # doctest: +ELLIPSIS
     Invoking hyd.py with arguments `...hyd.py, exec_commands, first_name, \
 second_name` resulted in the following error:
-    Function `exec_commands` requires `1` arguments (commands), \
+    Function `exec_commands` requires `1` positional arguments (commands), \
 but `2` are given (first_name and second_name).
     <BLANKLINE>
 
     >>> execute(f"hyd.py "
     ...         f"exec_commands "
-    ...         f"raise_RuntimeError('it_fails')")
+    ...         f"raise_RuntimeError('it_fails')")    # doctest: +ELLIPSIS
     Start to execute the commands ["raise_RuntimeError('it_fails')"] for \
 testing purposes.
     Invoking hyd.py with arguments `...hyd.py, exec_commands, \
@@ -273,7 +274,7 @@ raise_RuntimeError('it_fails')` resulted in the following error:
     >>> execute(f"hyd.py "
     ...         f"exec_commands "
     ...         f"import_warnings;"
-    ...         f"warnings.warn('it_stumbles')")
+    ...         f"warnings.warn('it_stumbles')")    # doctest: +ELLIPSIS
     Start to execute the commands ['import_warnings', \
 "warnings.warn('it_stumbles')"] for testing purposes...
     ...UserWarning: it stumbles
@@ -282,7 +283,7 @@ raise_RuntimeError('it_fails')` resulted in the following error:
 
     >>> execute(f"hyd.py "
     ...         f"exec_commands "
-    ...         f"logfile.write('it_works')")
+    ...         f"logfile.write('it_works')")    # doctest: +ELLIPSIS
     Start to execute the commands ["logfile.write('it_works')"] \
 for testing purposes.
     it works

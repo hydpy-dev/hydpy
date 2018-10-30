@@ -85,24 +85,24 @@ but `2` are given \
 (first_name and second_name).
 <BLANKLINE>
 
-Optional keyword arguments are supported:
+Optional keyword arguments are supported: (on Linux, we have to escape
+the characters "(", ")", ";", and "'" in the following)
 
->>> execute("hyd.py "
-...         "exec_commands "
-...         "z=x+y;"
-...         "print(z) "
-...         "x='2' "
-...         "y='=1+1'")
+>>> import platform
+>>> esc = '' if 'windows' in platform.platform().lower() else '\\\\'
+>>> execute(f"hyd.py "
+...         f"exec_commands "
+...         f"z=x+y{esc};"
+...         f"print{esc}(z{esc}) "
+...         f"x={esc}'2{esc}' "
+...         f"y={esc}'=1+1{esc}'")
 Start to execute the commands ['z=x+y', 'print(z)'] for testing purposes.
 2=1+1
 <BLANKLINE>
 
 Error messages raised by the "script function" itself also find their
-way into the log file (on Linux, we have to escape the characters "(",
-")", ";", and "'" in the following):
+way into the log file:
 
->>> import platform
->>> esc = '' if 'windows' in platform.platform().lower() else '\\\\'
 >>> execute(f"hyd.py "    # doctest: +ELLIPSIS
 ...         f"exec_commands "
 ...         f"raise_RuntimeError{esc}({esc}'it_fails{esc}'{esc})")

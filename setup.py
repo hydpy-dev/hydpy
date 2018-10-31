@@ -142,23 +142,27 @@ try:
 except AttributeError:
     build_ext = Cython.Distutils.build_ext
 
+with open("README.rst", "r") as readmefile:
+    long_description = readmefile.read()
+
 # The usual setup definitions.
 setup(name='HydPy',
-      version='3.0a1',
+      version='3.0a2',
       description='A framework for the development and application of '
                   'hydrological models.',
+      long_description=long_description,
       author='Christoph Tyralla',
       author_email='c.tyralla@bjoernsen.de',
       url='https://github.com/tyralla/hydpy',
       license='LGPL-3.0',
       classifiers=[
           'Intended Audience :: Education',
+          'Intended Audience :: End Users/Desktop',
           'Intended Audience :: Science/Research',
           ('License :: OSI Approved :: '
            'GNU Lesser General Public License v3 (LGPLv3)'),
           'Operating System :: POSIX :: Linux',
           'Operating System :: Microsoft :: Windows',
-          'Operating System :: Microsoft :: Windows :: Windows 7',
           'Programming Language :: Python :: 3.6',
           'Programming Language :: Python :: 3.7',
           'Programming Language :: Python :: Implementation :: CPython',

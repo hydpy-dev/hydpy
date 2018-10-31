@@ -3,7 +3,10 @@ bokeh
 Cython
 lxml
 matplotlib
+netcdf4
 numpy
 pandas
+setuptools
 scipy
+wheel
 wrapt

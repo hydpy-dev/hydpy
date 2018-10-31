@@ -94,7 +94,7 @@ import itertools
 import os
 from xml.etree import ElementTree
 # ...from site-packages
-from lxml import etree
+from hydpy import etree
 # ...from HydPy
 from hydpy import conf
 from hydpy import models

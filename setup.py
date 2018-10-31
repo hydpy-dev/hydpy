@@ -180,11 +180,7 @@ setup(name='HydPy',
       install_requires=[
           'numpy',
           'scipy',
-          'matplotlib',
-          'lxml',
-          'pandas',
           'wrapt',
-          'netcdf4'
       ],
       )
 

@@ -15,6 +15,9 @@ warnings.filterwarnings('ignore')
 import numpy
 from numpy import nan
 from scipy import integrate
+etree = OptionalImport(
+    'etree',
+    ['from lxml import etree'])
 netcdf4 = OptionalImport(
     'netcdf4',
     ['import netCDF4', 'import h5netcdf.legacyapi'],
@@ -26,7 +29,8 @@ pyplot = OptionalImport(
     'matplotlib.pyplot',
     ['from matplotlib import pyplot'])
 warnings.resetwarnings()
-warnings.filterwarnings('ignore', category=ImportWarning) # Due to a Cython problem.
+# Due to a Cython problem:
+warnings.filterwarnings('ignore', category=ImportWarning)
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import pubtools
@@ -118,6 +122,7 @@ substituter = prepare_mainsubstituter()
 
 
 __all__ = ['config',
+           'etree',
            'netcdf4',
            'pandas',
            'pyplot',

@@ -4,8 +4,8 @@
 .. _conda: https://conda.io/docs/
 .. _Python Package Index: https://pypi.python.org/pypi
 .. _pip: https://pip.pypa.io/en/stable/
-.. _releases: https://github.com/tyralla/hydpy/releases
-.. _issue: https://github.com/tyralla/hydpy/issues
+.. _releases: https://github.com/hydpy-dev/hydpy/releases
+.. _issue: https://github.com/hydpy-dev/hydpy/issues
 .. _GNU Compiler Collection: https://gcc.gnu.org/
 .. _Windows Compilers page: https://wiki.python.org/moin/WindowsCompilers
 

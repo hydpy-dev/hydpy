@@ -1,6 +1,6 @@
 .. _GitHub: https://github.com
-.. _GitHub repository: https://github.com/tyralla/hydpy
-.. _online documentation: https://tyralla.github.io/hydpy/
+.. _GitHub repository: https://github.com/hydpy-dev/hydpy
+.. _online documentation: https://hydpy-dev.github.io/hydpy/
 .. _hydpy package: https://pypi.python.org/pypi
 .. _Python Package Index: https://pypi.python.org/pypi
 .. _Python tutorials: https://www.python.org/about/gettingstarted/
@@ -21,11 +21,11 @@
 .. _mock object library: https://docs.python.org/3/library/unittest.mock.html
 .. _reStructuredText: http://docutils.sourceforge.net/rst.html
 .. _Travis CI: https://travis-ci.com/
-.. _Travis CI project: https://travis-ci.org/tyralla/hydpy
+.. _Travis CI project: https://travis-ci.org/hydpy-dev/hydpy
 .. _test future Python: https://snarky.ca/how-to-use-your-project-travis-to-help-test-python-itself/
 .. _Sphinx: http://www.sphinx-doc.org/en/stable/
-.. _master branch: https://github.com/tyralla/hydpy/tree/master
-.. _gh-pages branch: https://github.com/tyralla/hydpy/tree/gh-pages
+.. _master branch: https://github.com/hydpy-dev/hydpy/tree/master
+.. _gh-pages branch: https://github.com/hydpy-dev/hydpy/tree/gh-pages
 .. _travis-sphinx: https://github.com/Syntaf/travis-sphinx
 .. _Coverage.py: https://coverage.readthedocs.io/en/coverage-4.3.4/
 .. _development:

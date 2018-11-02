@@ -151,9 +151,9 @@ setup(name='HydPy',
       description='A framework for the development and application of '
                   'hydrological models.',
       long_description=long_description,
-      author='Christoph Tyralla',
+      author='HydPy Developers',
       author_email='c.tyralla@bjoernsen.de',
-      url='https://github.com/tyralla/hydpy',
+      url='https://github.com/hydpy-dev/hydpy',
       license='LGPL-3.0',
       classifiers=[
           'Intended Audience :: Education',

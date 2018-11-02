@@ -111,7 +111,7 @@ from hydpy.core import timetools
 
 
 namespace = \
-    '{https://github.com/tyralla/hydpy/tree/master/hydpy/conf/config.xsd}'
+    '{https://github.com/hydpy-dev/hydpy/tree/master/hydpy/conf/config.xsd}'
 
 
 def find(root, name) -> ElementTree.Element:

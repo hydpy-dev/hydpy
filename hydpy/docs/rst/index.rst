@@ -3,13 +3,13 @@
 .. _`Ruhr-University Bochum`: http://www.hydrology.ruhr-uni-bochum.de/index.html.en
 .. _`German Federal Institute of Hydrology`: http://www.bafg.de/EN/Home/homepage_en_node.html;jsessionid=E48E3BA5184A678BB2D23AD16AD5FC09.live21304
 .. _`Björnsen Consulting Engineers`: https://www.bjoernsen.de/index.php?id=bjoernsen&L=2
-.. _`GitHub repository`: https://github.com/tyralla/hydpy
+.. _`GitHub repository`: https://github.com/hydpy-dev/hydpy
 .. _`GNU Lesser General Public License 3`: https://www.gnu.org/licenses/lgpl-3.0.en.html
 .. _`documentation test`: https://docs.python.org/3.6/library/doctest.html
-.. _`Travis CI`: https://travis-ci.org/tyralla/hydpy/branches
-.. _`example 13`: https://tyralla.github.io/hydpy/dam_v001.html#dam-v001-ex13
+.. _`Travis CI`: https://travis-ci.org/hydpy-dev/hydpy/branches
+.. _`example 13`: https://hydpy-dev.github.io/hydpy/dam_v001.html#dam-v001-ex13
 .. _Bokeh: https://bokeh.pydata.org/en/latest/
-.. _`GitHub issue`: https://github.com/tyralla/hydpy/issues
+.. _`GitHub issue`: https://github.com/hydpy-dev/hydpy/issues
 .. _`Pull Request`: https://github.com/pulls
 
 .. _HydPy:

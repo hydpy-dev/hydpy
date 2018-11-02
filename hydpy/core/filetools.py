@@ -276,7 +276,7 @@ of object `filemanager` has not been prepared so far.
         To show most of the functionality of |property|
         |FileManager.currentdir| (unpacking zip files on the fly is
         explained in the documentation on function
-        (|FileManager.zip_currentdir}), we first prepare a |FileManager|
+        (|FileManager.zip_currentdir|), we first prepare a |FileManager|
         object corresponding to the |FileManager.basepath|
         `projectname/basename`:
 
@@ -627,7 +627,7 @@ class NetworkManager(FileManager):
     two or more files can define the same objects (in a consistent manner
     only, of course).  The primary purpose of class |NetworkManager| is
     to execute each network file individually and pass its content to
-    a separate |Selection|m which is the done by method
+    a separate |Selection| which is the done by method
     |NetworkManager.load_files|:
 
     >>> networkmanager = NetworkManager()

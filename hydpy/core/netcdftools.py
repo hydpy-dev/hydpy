@@ -197,17 +197,6 @@ correctly to the constructor of |NetCDFInterface|:
 ...     pub.sequencemanager.open_netcdf_reader(
 ...         flatten=True, isolate=False, timeaxis=0)
 ...     mock.assert_called_with(flatten=True, isolate=False, timeaxis=0)
-
-ToDo:
-
- * Add metadata when writing NetCDF files.
- * Try to determine to `flatten`, `isolate`, and `timeaxis` automatically?
- * Store subperiods of the actual initialization initialisation period.
- * Write data corresponding to the time of logging or of calling `close`?
- * Allow for changing file names.
- * Allow for changing variable names?
- * Append data?
- * Check (and fix) for 2d sequences?
 """
 # import...
 # ...from standard library
@@ -381,6 +370,7 @@ occurred: ...
     try:
         ncfile.createVariable(
             name, datatype, dimensions=dimensions, fill_value=default)
+        ncfile[name].long_name = name
     except BaseException:
         objecttools.augment_excmessage(
             'While trying to add variable `%s` with datatype `%s` '
@@ -960,6 +950,7 @@ named `state_bowa`.
         |NetCDFVariableBase.write| of all handled |NetCDFVariableBase|
         objects."""
         with netcdf4.Dataset(self.filepath, "w") as ncfile:
+            ncfile.Conventions = 'CF-1.6'
             self._insert_timepoints(ncfile, timepoints, timeunit)
             for variable in self.variables.values():
                 variable.write(ncfile)
@@ -973,6 +964,9 @@ named `state_bowa`.
         var_ = ncfile[var_name]
         var_[:] = timepoints
         var_.units = timeunit
+        var_.standard_name = var_name
+        var_.calendar = 'standard'
+        var_.delncattr('_FillValue')
 
     @property
     def variablenames(self) -> Tuple[str, ...]:

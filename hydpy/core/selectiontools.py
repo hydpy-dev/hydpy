@@ -126,6 +126,17 @@ class Selections(object):
                 pass
         return self
 
+    def __eq__(self, other):
+        try:
+            if self.names != other.names:
+                return False
+            for selection in self:
+                if selection != getattr(other, selection.name):
+                    return False
+        except BaseException:
+            return False
+        return True
+
     def __repr__(self):
         return self.assignrepr('')
 

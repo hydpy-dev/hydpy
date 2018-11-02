@@ -648,9 +648,9 @@ class NetworkManager(FileManager):
               elements=("land_dill", "land_lahn_1"),
               nodes=("dill", "lahn_1"))
     >>> selections.complete
-    Selection("complete"
-              elements=("land_dill", "land_lahn_1", "land_lahn_2"
-                        "land_lahn_3", "stream_dill_lahn_2"
+    Selection("complete",
+              elements=("land_dill", "land_lahn_1", "land_lahn_2",
+                        "land_lahn_3", "stream_dill_lahn_2",
                         "stream_lahn_1_lahn_2", "stream_lahn_2_lahn_3")
               nodes=("dill", "lahn_1", "lahn_2", "lahn_3"))
 

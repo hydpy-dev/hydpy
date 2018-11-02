@@ -8,6 +8,7 @@ import os
 import runpy
 import shutil
 import weakref
+from typing import List
 # ...from site-packages
 import numpy
 # ...from HydPy
@@ -68,9 +69,9 @@ built-ins like `for`...)
     You can query the folder and attribute names:
 
     >>> f2p.folders
-    ('folder1', 'folder2', 'folder3', 'folder4', 'folder5', 'folder6')
+    ['folder1', 'folder2', 'folder3', 'folder4', 'folder5', 'folder6']
     >>> f2p.paths
-    ('folder1', 'folder2', 'folder3', 'path4', 'folder5', 'path6')
+    ['folder1', 'folder2', 'folder3', 'path4', 'folder5', 'path6']
 
     Attribute access and iteration are also supported:
 
@@ -104,7 +105,7 @@ built-ins like `for`...)
         for (key, value) in kwargs.items():
             self.add(key, value)
 
-    def add(self, directory, path=None):
+    def add(self, directory, path=None) -> None:
         """Add a directory and optionally its path."""
         objecttools.valid_variable_identifier(directory)
         if path is None:
@@ -112,12 +113,12 @@ built-ins like `for`...)
         setattr(self, directory, path)
 
     @property
-    def folders(self):
-        return tuple(folder for folder, path in self)
+    def folders(self) -> List[str]:
+        return [folder for folder, path in self]
 
     @property
-    def paths(self):
-        return tuple(path for folder, path in self)
+    def paths(self) -> List[str]:
+        return [path for folder, path in self]
 
     def __iter__(self):
         for key, value in sorted(vars(self).items()):
@@ -158,7 +159,8 @@ class FileManager(object):
     `LahnHBV` as an example, it is `LahnHBV/network/default`.
     """
 
-    _BASEDIR: str
+    BASEDIR: str
+    DEFAULTDIR = None
 
     def __init__(self):
         self._projectdir = None
@@ -167,10 +169,9 @@ class FileManager(object):
         except RuntimeError:
             pass
         self._currentdir = None
-        self._defaultdir = None
 
     @propertytools.ProtectedProperty
-    def projectdir(self):
+    def projectdir(self) -> str:
         """The name of the main folder of a project.
 
         For the `LahnHBV` example project, |FileManager.projectdir| is
@@ -214,12 +215,12 @@ of object `filemanager` has not been prepared so far.
         self._projectdir = None
 
     @property
-    def basepath(self):
+    def basepath(self) -> str:
         """Absolute path pointing to the available working directories.
 
         >>> from hydpy.core.filetools import FileManager
         >>> filemanager = FileManager()
-        >>> filemanager._BASEDIR = 'basename'
+        >>> filemanager.BASEDIR = 'basename'
         >>> filemanager.projectdir = 'projectname'
         >>> from hydpy import repr_, TestIO
         >>> with TestIO():
@@ -227,17 +228,22 @@ of object `filemanager` has not been prepared so far.
         '...hydpy/tests/iotesting/projectname/basename'
         """
         return os.path.abspath(
-            os.path.join(self.projectdir, self._BASEDIR))
+            os.path.join(self.projectdir, self.BASEDIR))
 
     @property
-    def availabledirs(self):
-        """Available working directories.
+    def availabledirs(self) -> Folder2Path:
+        """Names and paths of the available working directories.
 
-        ToDo
+        Available working directories are those beeing stored in the
+        base directory of the respective |FileManager| subclass.
+        Folders with names starting with an underscore are ignored
+        (use this for directories handling additional data files,
+        if you like).  Zipped directories, which can be unpacked
+        on the fly, do also count as available directories:
 
         >>> from hydpy.core.filetools import FileManager
         >>> filemanager = FileManager()
-        >>> filemanager._BASEDIR = 'basename'
+        >>> filemanager.BASEDIR = 'basename'
         >>> filemanager.projectdir = 'projectname'
         >>> import os
         >>> from hydpy import repr_, TestIO
@@ -264,22 +270,30 @@ of object `filemanager` has not been prepared so far.
         return directories
 
     @property
-    def currentdir(self):
-        """Current directory containing the relevant files.
+    def currentdir(self) -> str:
+        """Name of the current working directory containing the relevant files.
 
-        Prepare things... ToDo
+        To show most of the functionality of |property|
+        |FileManager.currentdir| (unpacking zip files on the fly is
+        explained in the documentation on function
+        (|FileManager.zip_currentdir}), we first prepare a |FileManager|
+        object corresponding to the |FileManager.basepath|
+        `projectname/basename`:
 
         >>> from hydpy.core.filetools import FileManager
         >>> filemanager = FileManager()
-        >>> filemanager._BASEDIR = 'basename'
+        >>> filemanager.BASEDIR = 'basename'
         >>> filemanager.projectdir = 'projectname'
         >>> import os
         >>> from hydpy import repr_, TestIO
         >>> TestIO.clear()
         >>> with TestIO():
         ...     os.makedirs('projectname/basename')
+        ...     repr_(filemanager.basepath)    # doctest: +ELLIPSIS
+        '...hydpy/tests/iotesting/projectname/basename'
 
-        Current dir of an empty folder: ToDo
+        At first, the base directory is empty and asking for the
+        current working directory results in the following error:
 
         >>> with TestIO():
         ...     filemanager.currentdir   # doctest: +ELLIPSIS
@@ -287,24 +301,29 @@ of object `filemanager` has not been prepared so far.
         ...
         RuntimeError: The current working directory of the FileManager object \
 has not been defined manually and cannot be determined automatically: \
-`...hydpy/tests/iotesting/projectname/basename` does not contain \
-any available directories.
+`.../projectname/basename` does not contain any available directories.
 
-        One folder only works:
+        If only one directory exists, it is considered as the current
+        working directory automatically:
 
         >>> with TestIO():
         ...     os.mkdir('projectname/basename/dir1')
         ...     filemanager.currentdir
         'dir1'
 
-        Memory!!!
+        |property| |FileManager.currentdir| memorises the name of the
+        current working directory, even if another directory is later
+        added to the base path:
 
         >>> with TestIO():
         ...     os.mkdir('projectname/basename/dir2')
         ...     filemanager.currentdir
         'dir1'
 
-        Forget the the current dir first:
+        Set the value of |FileManager.currentdir| to |None| to let it
+        forget the memorised directory.  After that, asking for the
+        current working directory now results in another error, as
+        it is not clear which directory to select:
 
         >>> with TestIO():
         ...     filemanager.currentdir = None
@@ -313,30 +332,32 @@ any available directories.
         ...
         RuntimeError: The current working directory of the FileManager object \
 has not been defined manually and cannot be determined automatically: \
-`...hydpy/tests/iotesting/projectname/basename` does contain multiple \
-available directories (dir1 and dir2).
+`....../projectname/basename` does contain multiple available directories \
+(dir1 and dir2).
 
-
+        Setting |FileManager.currentdir| manually solves the problem:
 
         >>> with TestIO():
-        ...     os.rmdir('projectname/basename/dir1')
+        ...     filemanager.currentdir = 'dir1'
         ...     filemanager.currentdir
-        'dir2'
+        'dir1'
 
-        >>> filemanager._defaultdir = 'dir3'
+        Remove the current working directory `dir1` with the `del` statement:
+
         >>> with TestIO():
         ...     del filemanager.currentdir
-        ...     filemanager.currentdir   # doctest: +ELLIPSIS
-        Traceback (most recent call last):
-        ...
-        RuntimeError: The current working directory of the FileManager object \
-has not been defined manually and cannot be determined automatically: \
-`...hydpy/tests/iotesting/projectname/basename` does not contain \
-any available directories.
+        ...     os.path.exists('projectname/basename/dir1')
+        False
+
+        |FileManager| subclasses can define a default directory name.
+        When many directories exist and none is selected manually, the
+        default directory is selected automatically.  The following
+        example shows an error message due to multiple directories
+        without any having the default name:
 
         >>> with TestIO():
         ...     os.mkdir('projectname/basename/dir1')
-        ...     os.mkdir('projectname/basename/dir2')
+        ...     filemanager.DEFAULTDIR = 'dir3'
         ...     del filemanager.currentdir
         ...     filemanager.currentdir   # doctest: +ELLIPSIS
         Traceback (most recent call last):
@@ -345,20 +366,26 @@ any available directories.
 has not been defined manually and cannot be determined automatically: The \
 default directory (dir3) is not among the available directories (dir1 and dir2).
 
+        We can fix this by adding the required default directory manually:
+
         >>> with TestIO():
         ...     os.mkdir('projectname/basename/dir3')
         ...     filemanager.currentdir
         'dir3'
 
+        Setting the |FileManager.currentdir| to `dir4` not only overwrites
+        the default name, but also creates the required folder:
 
         >>> with TestIO():
         ...     filemanager.currentdir = 'dir4'
         ...     filemanager.currentdir
         'dir4'
-
         >>> with TestIO():
         ...     sorted(os.listdir('projectname/basename'))
         ['dir1', 'dir2', 'dir3', 'dir4']
+
+        Failed attempts in removing directories result in error messages
+        like the following one:
 
         >>> import shutil
         >>> from unittest.mock import patch
@@ -368,20 +395,25 @@ default directory (dir3) is not among the available directories (dir1 and dir2).
         Traceback (most recent call last):
         ...
         AttributeError: While trying to delete the current working directory \
-`...hydpy/tests/iotesting/projectname/basename/dir4` of the FileManager \
-object, the following error occurred: ...
+`.../projectname/basename/dir4` of the FileManager object, the following \
+error occurred: ...
+
+        Then, the current working directory still exists and is remembered
+        by |FileManager.currentdir|:
 
         >>> with TestIO():
-        ...     del filemanager.currentdir   # doctest: +ELLIPSIS
+        ...     filemanager.currentdir
+        'dir4'
+        >>> with TestIO():
         ...     sorted(os.listdir('projectname/basename'))
-        ['dir1', 'dir2', 'dir3']
+        ['dir1', 'dir2', 'dir3', 'dir4']
         """
         if self._currentdir is None:
             directories = self.availabledirs.folders
             if len(directories) == 1:
                 self.currentdir = directories[0]
-            elif self._defaultdir in directories:
-                self.currentdir = self._defaultdir
+            elif self.DEFAULTDIR in directories:
+                self.currentdir = self.DEFAULTDIR
             else:
                 prefix = (f'The current working directory of the '
                           f'{objecttools.classname(self)} object '
@@ -391,13 +423,13 @@ object, the following error occurred: ...
                     raise RuntimeError(
                         f'{prefix} `{objecttools.repr_(self.basepath)}` '
                         f'does not contain any available directories.')
-                if self._defaultdir is None:
+                if self.DEFAULTDIR is None:
                     raise RuntimeError(
                         f'{prefix} `{objecttools.repr_(self.basepath)}` '
                         f'does contain multiple available directories '
                         f'({objecttools.enumeration(directories)}).')
                 raise RuntimeError(
-                    f'{prefix} The default directory ({self._defaultdir}) '
+                    f'{prefix} The default directory ({self.DEFAULTDIR}) '
                     f'is not among the available directories '
                     f'({objecttools.enumeration(directories)}).')
         return self._currentdir
@@ -434,66 +466,127 @@ object, the following error occurred: ...
         self._currentdir = None
 
     @property
-    def currentpath(self):
-        """Complete path of the directory containing the respective files."""
-        return os.path.join(self.basepath, self.currentdir)
-
-    @property
-    def filenames(self):
-        """Tuple of names of the respective files of the current directory."""
-        return tuple(sorted(
-            fn for fn in os.listdir(self.currentpath)
-            if not fn.startswith('_')))
-
-    @property
-    def filepaths(self):
-        """Tuple of paths of the respective files of the current directory."""
-        path = self.currentpath
-        return tuple(os.path.join(path, name) for name in self.filenames)
-
-    def zip_currentdir(self):
-        """ToDo
+    def currentpath(self) -> str:
+        """Absolute path of the current working directory.
 
         >>> from hydpy.core.filetools import FileManager
         >>> filemanager = FileManager()
-        >>> filemanager._BASEDIR = 'basename'
+        >>> filemanager.BASEDIR = 'basename'
+        >>> filemanager.projectdir = 'projectname'
+        >>> from hydpy import repr_, TestIO
+        >>> with TestIO():
+        ...     filemanager.currentdir = 'testdir'
+        ...     repr_(filemanager.currentpath)    # doctest: +ELLIPSIS
+        '...hydpy/tests/iotesting/projectname/basename/testdir'
+        """
+        return os.path.join(self.basepath, self.currentdir)
+
+    @property
+    def filenames(self) -> List[str]:
+        """Names of the files contained in the the current working directory.
+
+        Files names starting with underscores are ignored:
+
+        >>> from hydpy.core.filetools import FileManager
+        >>> filemanager = FileManager()
+        >>> filemanager.BASEDIR = 'basename'
+        >>> filemanager.projectdir = 'projectname'
+        >>> from hydpy import TestIO
+        >>> with TestIO():
+        ...     filemanager.currentdir = 'testdir'
+        ...     open('projectname/basename/testdir/file1.txt', 'w').close()
+        ...     open('projectname/basename/testdir/file2.npy', 'w').close()
+        ...     open('projectname/basename/testdir/_file1.nc', 'w').close()
+        ...     filemanager.filenames
+        ['file1.txt', 'file2.npy']
+        """
+        return sorted(
+            fn for fn in os.listdir(self.currentpath)
+            if not fn.startswith('_'))
+
+    @property
+    def filepaths(self) -> List[str]:
+        """Absolute path names of the files contained in the current
+        working directory.
+
+        Files names starting with underscores are ignored:
+
+        >>> from hydpy.core.filetools import FileManager
+        >>> filemanager = FileManager()
+        >>> filemanager.BASEDIR = 'basename'
+        >>> filemanager.projectdir = 'projectname'
+        >>> from hydpy import repr_, TestIO
+        >>> with TestIO():
+        ...     filemanager.currentdir = 'testdir'
+        ...     open('projectname/basename/testdir/file1.txt', 'w').close()
+        ...     open('projectname/basename/testdir/file2.npy', 'w').close()
+        ...     open('projectname/basename/testdir/_file1.nc', 'w').close()
+        ...     for filepath in filemanager.filepaths:
+        ...         repr_(filepath)    # doctest: +ELLIPSIS
+        '...hydpy/tests/iotesting/projectname/basename/testdir/file1.txt'
+        '...hydpy/tests/iotesting/projectname/basename/testdir/file2.npy'
+        """
+        path = self.currentpath
+        return [os.path.join(path, name) for name in self.filenames]
+
+    def zip_currentdir(self) -> None:
+        """Pack the current working directory in a `zip` file.
+
+        |FileManager| subclasses allow for manual packing and automatic
+        unpacking of working directories.  The only supported format is `zip`.
+        To avoid possible inconsistencies, origin directories and zip
+        files are removed after packing or unpacking, respectively.
+
+        As an example scenario, we prepare a |FileManager| object with
+        the current working directory `folder` containing the files
+        `test1.txt` and `text2.txt`:
+
+        >>> from hydpy.core.filetools import FileManager
+        >>> filemanager = FileManager()
+        >>> filemanager.BASEDIR = 'basename'
         >>> filemanager.projectdir = 'projectname'
         >>> import os
         >>> from hydpy import repr_, TestIO
         >>> TestIO.clear()
+        >>> basepath = 'projectname/basename'
         >>> with TestIO():
-        ...     os.makedirs('projectname/basename')
+        ...     os.makedirs(basepath)
         ...     filemanager.currentdir = 'folder'
-        ...     with open('projectname/basename/folder/file1.txt', 'w') as file_:
-        ...         _ = file_.write('test1')
-        ...     with open('projectname/basename/folder/file2.txt', 'w') as file_:
-        ...         _ = file_.write('test2')
-        ...     sorted(os.listdir('projectname/basename'))
-        ...     filemanager.availabledirs.folders
+        ...     open(f'{basepath}/folder/file1.txt', 'w').close()
+        ...     open(f'{basepath}/folder/file2.txt', 'w').close()
         ...     filemanager.filenames
+        ['file1.txt', 'file2.txt']
+
+        The directories existing under the base path are identical
+        with the ones returned by property |FileManager.availabledirs|:
+
+        >>> with TestIO():
+        ...     sorted(os.listdir(basepath))
+        ...     filemanager.availabledirs    # doctest: +ELLIPSIS
         ['folder']
-        ('folder',)
-        ('file1.txt', 'file2.txt')
+        Folder2Path(folder=.../projectname/basename/folder)
+
+        After packing the current working directory manually, it is
+        still counted as a available directory:
 
         >>> with TestIO():
         ...     filemanager.zip_currentdir()
-        ...     sorted(os.listdir('projectname/basename'))
-        ...     filemanager.availabledirs.folders
+        ...     sorted(os.listdir(basepath))
+        ...     filemanager.availabledirs    # doctest: +ELLIPSIS
         ['folder.zip']
-        ('folder',)
+        Folder2Path(folder=.../projectname/basename/folder.zip)
+
+        The zip file is unpacked again, as soon as `folder` becomes
+        the current working directory:
 
         >>> with TestIO():
-        ...     filemanager.currentdir
-        ...     sorted(os.listdir('projectname/basename'))
-        ...     filemanager.availabledirs.folders
-        ...     filemanager.filenames
-        ...     with open('projectname/basename/folder/file1.txt') as file_:
-        ...         file_.read()
-        'folder'
+        ...     filemanager.currentdir = 'folder'
+        ...     sorted(os.listdir(basepath))
+        ...     filemanager.availabledirs
+        ...     filemanager.filenames    # doctest: +ELLIPSIS
         ['folder']
-        ('folder',)
-        ('file1.txt', 'file2.txt')
-        'test1'
+        Folder2Path(folder=.../projectname/basename/folder)
+        ['file1.txt', 'file2.txt']
         """
         shutil.make_archive(
             base_name=self.currentpath,
@@ -508,19 +601,129 @@ object, the following error occurred: ...
 
 
 class NetworkManager(FileManager):
-    """Manager for network files."""
+    """Manager for network files.
 
-    _BASEDIR = 'network'
+    The base and default folder names of class |NetworkManager| are:
 
-    def __init__(self):
-        FileManager.__init__(self)
-        self._defaultdir = 'default'
+    >>> from hydpy.core.filetools import NetworkManager
+    >>> NetworkManager.BASEDIR
+    'network'
+    >>> NetworkManager.DEFAULTDIR
+    'default'
 
-    def load_files(self):
-        """Load nodes and elements from all network files and return them in
-        a |Selections| instance.  Each single network file defines a separate
-        |Selection| instance.  Additionally, all |Element| and |Node| objects
-        are bundled in a selection named `complete`.
+    The general handling of (the folder structure) of class |NetworkManager|
+    is explained by the documentation on its parent class |FileManager|.
+    The following examples deal with reading, writing, and removing
+    network files.  For this purpose, we prepare example project `LahnHBV`
+    in the `iotesting` directory by calling function |prepare_full_example_1|:
+
+    >>> from hydpy.core.examples import prepare_full_example_1
+    >>> prepare_full_example_1()
+
+    The complete network structure of an `HydPy` project is defined by
+    an arbitrary number of "network files".  These are valid Python
+    files which define certain |Node| and |Element| objects as well as
+    their connections.  Network files are allowed to overlap, meaning
+    two or more files can define the same objects (in a consistent manner
+    only, of course).  The primary purpose of class |NetworkManager| is
+    to execute each network file individually and pass its content to
+    a separate |Selection|m which is the done by method
+    |NetworkManager.load_files|:
+
+    >>> networkmanager = NetworkManager()
+    >>> from hydpy import TestIO
+    >>> with TestIO():
+    ...     networkmanager.projectdir = 'LahnHBV'
+    ...     selections = networkmanager.load_files()
+
+    File names are taken as selection names (without file endings).
+    Additionally, |NetworkManager.load_files| creates a "complete"
+    selection including all |Node| and |Element| objects of the file
+    specific selections:
+
+    >>> selections
+    Selections("headwaters", "nonheadwaters", "streams", "complete")
+    >>> selections.headwaters
+    Selection("headwaters",
+              elements=("land_dill", "land_lahn_1"),
+              nodes=("dill", "lahn_1"))
+    >>> selections.complete
+    Selection("complete"
+              elements=("land_dill", "land_lahn_1", "land_lahn_2"
+                        "land_lahn_3", "stream_dill_lahn_2"
+                        "stream_lahn_1_lahn_2", "stream_lahn_2_lahn_3")
+              nodes=("dill", "lahn_1", "lahn_2", "lahn_3"))
+
+    Method ... ToDo
+
+    >>> import os
+    >>> with TestIO():
+    ...     networkmanager.currentdir = 'testdir'
+    ...     networkmanager.save_files(selections)
+    ...     sorted(os.listdir('LahnHBV/network/testdir'))
+    ['headwaters.py', 'nonheadwaters.py', 'streams.py']
+
+    >>> with TestIO():
+    ...     selections == networkmanager.load_files()
+    True
+
+    >>> selections -= selections.streams
+    >>> with TestIO():
+    ...     networkmanager.delete_files(selections)
+    ...     sorted(os.listdir('LahnHBV/network/testdir'))
+    ['streams.py']
+
+    >>> with TestIO():
+    ...     networkmanager.delete_files(['headwaters'])   # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    FileNotFoundError: While trying to remove the network files of selections \
+`['headwaters']`, the following error occurred: ...
+
+    >>> with TestIO():
+    ...     with open('LahnHBV/network/testdir/streams.py', 'w') as wrongfile:
+    ...         _ = wrongfile.write('x = y')
+    ...     networkmanager.load_files()   # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    NameError: While trying to load the network file `...streams.py`, the \
+following error occurred: name 'y' is not defined
+
+    >>> with TestIO():
+    ...     with open('LahnHBV/network/testdir/streams.py', 'w') as wrongfile:
+    ...         _ = wrongfile.write('from hydpy import Node')
+    ...     networkmanager.load_files()   # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    RuntimeError: The class Element cannot be loaded from the network file \
+`...streams.py`.
+
+    >>> with TestIO():
+    ...     with open('LahnHBV/network/testdir/streams.py', 'w') as wrongfile:
+    ...         _ = wrongfile.write('from hydpy import Element')
+    ...     networkmanager.load_files()   # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    RuntimeError: The class Node cannot be loaded from the network file \
+`...streams.py`.
+
+    >>> import shutil
+    >>> with TestIO():
+    ...     shutil.rmtree('LahnHBV/network/testdir')
+    ...     networkmanager.save_files(selections)   # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    FileNotFoundError: While trying to save selections \
+`Selections("headwaters", "nonheadwaters", "complete")` into network files, \
+the following error occurred: ...
+    """
+
+    BASEDIR = 'network'
+    DEFAULTDIR = 'default'
+
+    def load_files(self) -> selectiontools.Selections:
+        """Read all network files of the current working directory, structure
+        their contents in a |selectiontools.Selections| object, and return it.
         """
         selections = selectiontools.Selections()
         for (filename, path) in zip(self.filenames, self.filepaths):
@@ -531,30 +734,25 @@ class NetworkManager(FileManager):
                 info = runpy.run_path(path)
             except BaseException:
                 objecttools.augment_excmessage(
-                    'While trying to load the network file `%s`'
-                    % path)
+                    f'While trying to load the network file `{path}`')
             try:
                 selections += selectiontools.Selection(
                     filename.split('.')[0],
                     info['Node'].gather_new_nodes(),
                     info['Element'].gather_new_elements())
             except KeyError as exc:
-                raise KeyError(
-                    'The class `%s` cannot be loaded from the network '
-                    'file `%s`.  Please refer to the HydPy documentation '
-                    'on how to prepare network files properly.'
-                    % (exc.args[0], filename))
+                raise RuntimeError(
+                    f'The class {exc.args[0]} cannot be loaded from the '
+                    f'network file `{path}`.')
         selections += selectiontools.Selection(
             'complete',
             info['Node'].registered_nodes(),
             info['Element'].registered_elements())
         return selections
 
-    def save_files(self, selections):
-        """Save the nodes and elements from each |Selection| object contained
-        within the given |Selections| instance to a separate network file of
-        the same name.
-        """
+    def save_files(self, selections) -> None:
+        """Save the |Selection| objects contained in the given |Selections|
+        instance to separate network files."""
         try:
             currentpath = self.currentpath
             selections = selectiontools.Selections(selections)
@@ -568,10 +766,9 @@ class NetworkManager(FileManager):
                 'While trying to save selections `%s` into network files'
                 % selections)
 
-    def delete_files(self, selections):
-        """Delete network files.  One or more filenames and/or |Selection|
-        instances can serve as function arguments.
-        """
+    def delete_files(self, selections) -> None:
+        """Delete the network files corresponding to the given selections
+        (e.g. a |list| of |str| objects or a |Selections| object)."""
         try:
             currentpath = self.currentpath
             for selection in selections:
@@ -584,8 +781,8 @@ class NetworkManager(FileManager):
                 os.remove(path)
         except BaseException:
             objecttools.augment_excmessage(
-                'While trying to remove the network files of selections `%s`'
-                % selections)
+                f'While trying to remove the network files of '
+                f'selections `{selections}`')
 
 
 class ControlManager(FileManager):
@@ -595,11 +792,8 @@ class ControlManager(FileManager):
     # the same auxiliary control parameter file from disk multiple times.
     _registry = {}
     _workingpath = '.'
-    _BASEDIR = 'control'
-
-    def __init__(self):
-        FileManager.__init__(self)
-        self._defaultdir = 'default'
+    BASEDIR = 'control'
+    DEFAULTDIR = 'default'
 
     def load_file(self, element=None, filename=None, clear_registry=True):
         """Return the namespace of the given file (and eventually of its
@@ -677,11 +871,8 @@ class ControlManager(FileManager):
 class ConditionManager(FileManager):
     """Manager for condition files."""
 
-    _BASEDIR = 'conditions'
-
-    def __init__(self):
-        FileManager.__init__(self)
-        self._defaultdir = None
+    BASEDIR = 'conditions'
+    DEFAULTDIR = None
 
     def load_file(self, filename):
         """Read and return the content of the given file.
@@ -690,12 +881,12 @@ class ConditionManager(FileManager):
         name is constructed with the actual simulation start date.  If
         such an directory does not exist, it is created immediately.
         """
-        _defaultdir = self._defaultdir
+        _defaultdir = self.DEFAULTDIR
         try:
             if not filename.endswith('.py'):
                 filename += '.py'
             try:
-                self._defaultdir = (
+                self.DEFAULTDIR = (
                     'init_' + pub.timegrids.sim.firstdate.to_string('os'))
             except KeyError:
                 pass
@@ -707,7 +898,7 @@ class ConditionManager(FileManager):
                 'While trying to read the conditions file `%s`'
                 % filename)
         finally:
-            self._defaultdir = _defaultdir
+            self.DEFAULTDIR = _defaultdir
 
     def save_file(self, filename, text):
         """Save the given text under the given condition filename and the
@@ -717,12 +908,12 @@ class ConditionManager(FileManager):
         name is constructed with the actual simulation end date.  If
         such an directory does not exist, it is created immediately.
         """
-        _defaultdir = self._defaultdir
+        _defaultdir = self.DEFAULTDIR
         try:
             if not filename.endswith('.py'):
                 filename += '.py'
             try:
-                self._defaultdir = (
+                self.DEFAULTDIR = (
                     'init_' + pub.timegrids.sim.lastdate.to_string('os'))
             except AttributeError:
                 pass
@@ -734,7 +925,7 @@ class ConditionManager(FileManager):
                 'While trying to write the conditions file `%s`'
                 % filename)
         finally:
-            self._defaultdir = _defaultdir
+            self.DEFAULTDIR = _defaultdir
 
 
 class _Descriptor(object):
@@ -1131,7 +1322,8 @@ to make any internal data available to the user.
     """
 
     SUPPORTED_MODES = ('npy', 'asc', 'nc')
-    _BASEDIR = 'series'
+    BASEDIR = 'series'
+    DEFAULTDIR = None
 
     inputdir = _DescriptorDir('input', 'input')   # ToDo: can be removed?
     fluxdir = _DescriptorDir('output', 'flux')
@@ -1188,7 +1380,6 @@ to make any internal data available to the user.
 
     def __init__(self):
         FileManager.__init__(self)
-        self._defaultdir = None
         self._netcdf_reader = None
         self._netcdf_writer = None
 

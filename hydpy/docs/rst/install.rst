@@ -1,4 +1,7 @@
 
+.. _Python 3.6 or 3.7: https://www.python.org/downloads/
+.. _numpy: http://www.numpy.org/
+.. _netcdf4: http://unidata.github.io/netcdf4-python/
 .. _Anaconda: https://www.anaconda.com/what-is-anaconda/
 .. _bokeh: https://bokeh.pydata.org/en/latest/
 .. _conda: https://conda.io/docs/
@@ -15,12 +18,28 @@
 Installation Instructions
 =========================
 
+.. note::
+
+   The following explanations are becoming a little out-of-date at
+   the moment, especially for end users working on 64 bit Windows.
+   Starting with version 3.0a (the stable 3.0 release will follow
+   soon) :ref:`HydPy` is available on the `Python Package Index`_.
+   That means, with `Python 3.6 or 3.7`_ on your computer and having
+   access to the Internet, you only have to type::
+
+      pip install hydpy
+
+   into your command line tool to install the latest version of
+   :ref:`HydPy` on your computer.  Necessary site-packages like
+   `numpy`_ will be installed on-the-fly.  Optional site-packages
+   like `netcdf4`_ must be installed manually, as described below.
+
 Selecting a Python distribution
 --------------------------------
 
-Using :ref:`HydPy` requires installing Python 3.6 first.  If you are new to
-Python, we recommend installing a convenient Python distribution like
-`Anaconda`_, already containing many scientific and mathematical tools.
+Using :ref:`HydPy` requires installing `Python 3.6 or 3.7`_ first.  If you
+are new to Python, we recommend installing a convenient Python distribution
+like `Anaconda`_, already containing many scientific and mathematical tools.
 Eventually, you might need to install additional libraries.  For
 example, if you do not use pre-compiled binaries (see the next section),
 you might have to install the `bokeh`_ site-package manually. With

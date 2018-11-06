@@ -3,9 +3,11 @@
 .. _numpy: http://www.numpy.org/
 .. _netcdf4: http://unidata.github.io/netcdf4-python/
 .. _Anaconda: https://www.anaconda.com/what-is-anaconda/
+.. _Miniconda: https://conda.io/miniconda.html
+.. _Spyder: https://www.spyder-ide.org/
 .. _bokeh: https://bokeh.pydata.org/en/latest/
 .. _conda: https://conda.io/docs/
-.. _Python Package Index: https://pypi.python.org/pypi
+.. _Python Package Index: https://pypi.org/project/HydPy/
 .. _pip: https://pip.pypa.io/en/stable/
 .. _releases: https://github.com/hydpy-dev/hydpy/releases
 .. _issue: https://github.com/hydpy-dev/hydpy/issues
@@ -18,45 +20,39 @@
 Installation Instructions
 =========================
 
-.. note::
+Starting with version 3.0 :ref:`HydPy` is available on the
+`Python Package Index`_.  That means, with `Python 3.6 or 3.7`_
+on your computer and having access to the Internet, you only have
+to type::
 
-   The following explanations are becoming a little out-of-date at
-   the moment, especially for end users working on 64 bit Windows.
-   Starting with version 3.0a (the stable 3.0 release will follow
-   soon) :ref:`HydPy` is available on the `Python Package Index`_.
-   That means, with `Python 3.6 or 3.7`_ on your computer and having
-   access to the Internet, you only have to type::
+  pip install hydpy
 
-      pip install hydpy
+into your command line tool to install the latest version of
+:ref:`HydPy` on your computer.  `pip` then installs necessary
+site-packages like `numpy`_ on-the-fly.  Optional site-packages
+like `netcdf4`_ must be installed manually, as described below.
 
-   into your command line tool to install the latest version of
-   :ref:`HydPy` on your computer.  Necessary site-packages like
-   `numpy`_ will be installed on-the-fly.  Optional site-packages
-   like `netcdf4`_ must be installed manually, as described below.
+For 64 bit Windows, the `Python Package Index`_ provides so-called
+"wheels", which include precompiled binaries and simplify
+installing a lot. On Linux systems, you have to install "from
+source" at the moment, as explained below.
 
 Selecting a Python distribution
 --------------------------------
 
 Using :ref:`HydPy` requires installing `Python 3.6 or 3.7`_ first.  If you
 are new to Python, we recommend installing a convenient Python distribution
-like `Anaconda`_, already containing many scientific and mathematical tools.
-Eventually, you might need to install additional libraries.  For
-example, if you do not use pre-compiled binaries (see the next section),
-you might have to install the `bokeh`_ site-package manually. With
-Anaconda on your system, type in your command line interface::
+like `Anaconda`_, already containing many scientific and mathematical tools
+as well as the integrated development environment `Spyder`_.  A more
+lightweight alternative would be to install `Miniconda`_ and use it
+to install only the required libraries afterwards.  For example, if you want
+to enable :ref:`HydPy` to read and write NetCDF files, you need to install
+the `netcdf4`_ library::
 
-    conda install bokeh
+   conda install netcdf4
 
-The `conda`_ installer is very convenient but does not support all packages
-available through the `Python Package Index`_.  If conda does nor support
-the required package (or if conda is not on your system), you can
-use `pip`_, which is in most cases as convenient as conda::
-
-    pip install bokeh
-
-
-Selecting a HydPy version
--------------------------
+Selecting a HydPy distribution
+------------------------------
 
 If you want to contribute to the development of  :ref:`HydPy` or implement
 own models, please see the :ref:`development` section.  If you want to
@@ -77,14 +73,7 @@ number available, meaning you should prefer using "X.Y.1" over "X.Y.0".
 
 Each release is available in different compressed archives,
 corresponding to different environments.  Currently, we distribute
-pre-compiled binaries for 64-bit Windows only.  These are most easy
-to use.  Download and unpack them in your site-packages directory.
-The site-packages directory is the place to store additional Python
-libraries.  Usually, each installed Python distribution contains a
-"Lib" folder, which again contains the "site-packages" folder.  So,
-finally, the resulting pathname should be something like
-"C:\\Python36\\Lib\\site-packages\\hydpy".
-
+pre-compiled binaries for 64-bit Windows only (see above).
 For all other operating systems and Python versions, you have to build
 binaries yourself.  Principally, this should be simple, but Windows users
 might need to install the suitable compiler first (see below).  Download

@@ -56,8 +56,3 @@ the `online documentation`_ is automatically updated for each new
 *HydPy* version and includes different `documentation test`_ mechanisms
 ensuring that *HydPy* is working as expected and that the complete
 documentation is up-to-date with it.
-
-When downloading the latest `HydPy release`_, you should have a
-look at the `installation instructions`_.  We will soon release
-*HydPy 3.0*, including new features like `FEWS`_-compatible
-`NetCDF-CF`_ and XML support.

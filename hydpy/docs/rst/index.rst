@@ -7,6 +7,7 @@
 .. _`GNU Lesser General Public License 3`: https://www.gnu.org/licenses/lgpl-3.0.en.html
 .. _`documentation test`: https://docs.python.org/3.6/library/doctest.html
 .. _`Travis CI`: https://travis-ci.org/hydpy-dev/hydpy/branches
+.. _`AppVeyor`: https://ci.appveyor.com/project/tyralla/hydpy/history
 .. _`example 13`: https://hydpy-dev.github.io/hydpy/dam_v001.html#dam-v001-ex13
 .. _Bokeh: https://bokeh.pydata.org/en/latest/
 .. _`GitHub issue`: https://github.com/hydpy-dev/hydpy/issues
@@ -69,8 +70,8 @@ example calculation shown in the green box.  This example is actual
 used and how different input values (for variables |lland_inputs.Nied|
 and |lland_control.KG|) result in different output values (for variable
 |lland_fluxes.NKor|).  Each time a new :ref:`HydPy` version is pushed
-into the `GitHub repository`_, automatic test routines on `Travis CI`_
-are trigged.  The new :ref:`HydPy` version is rejected, if the
+into the `GitHub repository`_, automatic test routines on `Travis CI`_ and
+`AppVeyor`_  are trigged.  The new :ref:`HydPy` version is rejected, if the
 actual |lland_model.calc_nkor_v1| method does not result in the exact
 same output values as given in the last line of the example.
 

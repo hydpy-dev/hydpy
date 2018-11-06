@@ -51,4 +51,4 @@ deploy_script:
   - "echo [pypi] > %USERPROFILE%\\.pypirc"
   - "echo username: tyralla >> %USERPROFILE%\\.pypirc"
   - "echo password: %PYPIPA% >> %USERPROFILE%\\.pypirc"
-  - ps: if ($env:APPVEYOR_REPO_TAG -eq "false") { Invoke-Expression "twine upload --skip-existing dist/*"} else { write-output "No tag, no deploy"}
+  - ps: if ($env:APPVEYOR_REPO_TAG -eq "true") { Invoke-Expression "twine upload --skip-existing dist/*"} else { write-output "No tag, no deploy"}

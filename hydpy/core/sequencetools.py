@@ -1500,7 +1500,7 @@ class StateSequence(ModelSequence, ConditionSequence):
 
     def _get_old(self):
         """Assess to the state value(s) at beginning of the time step, which
-        has been processed most recently.  When using :ref:`HydPy` in the
+        has been processed most recently.  When using *HydPy* in the
         normal manner.  But it can be helpful for demonstration and debugging
         purposes.
         """
@@ -1807,7 +1807,7 @@ class FastAccess(object):
     subgroup and supports the handling of internal data series during
     simulations.
 
-    The following details are of relevance for :ref:`HydPy` developers only.
+    The following details are of relevance for *HydPy* developers only.
 
     |sequencetools.FastAccess| is applied in Python mode only.  In Cython
     mode, specialized and more efficient cdef classes replace it.  For

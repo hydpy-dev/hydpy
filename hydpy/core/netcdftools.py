@@ -10,13 +10,13 @@ cf-conventions/cf-conventions-1.7/cf-conventions.html>`_.
 
 .. note::
 
-   For working with NetCDF files, :ref:`HydPy` requires either the
+   For working with NetCDF files, *HydPy* requires either the
    `netCDF4`_ or the `h5netcdf`_ package.  `netCDF4`_ is more standard,
    while `h5netcdf`_ is more lightweight.  Both are Python interfaces
    to the NetCDF C library.  Principally, you are free to decide which
    one to install.  However, using `netCDF4`_ seems to be more reliable
    at the moment, which is why we recommend it for now.  If both libraries
-   are available, :ref:`HydPy` works with `netCDF4`_ by default.
+   are available, *HydPy* works with `netCDF4`_ by default.
 
 
 Usually, the features implemented in this module are applied only

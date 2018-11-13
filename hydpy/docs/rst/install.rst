@@ -20,7 +20,7 @@
 Installation Instructions
 =========================
 
-Starting with version 3.0 :ref:`HydPy` is available on the
+Starting with version 3.0 *HydPy* is available on the
 `Python Package Index`_.  That means, with `Python 3.6 or 3.7`_
 on your computer and having access to the Internet, you only have
 to type::
@@ -28,7 +28,7 @@ to type::
   pip install hydpy
 
 into your command line tool to install the latest version of
-:ref:`HydPy` on your computer.  `pip` then installs necessary
+*HydPy* on your computer.  `pip` then installs necessary
 site-packages like `numpy`_ on-the-fly.  Optional site-packages
 like `netcdf4`_ must be installed manually, as described below.
 
@@ -40,13 +40,13 @@ source" at the moment, as explained below.
 Selecting a Python distribution
 --------------------------------
 
-Using :ref:`HydPy` requires installing `Python 3.6 or 3.7`_ first.  If you
+Using *HydPy* requires installing `Python 3.6 or 3.7`_ first.  If you
 are new to Python, we recommend installing a convenient Python distribution
 like `Anaconda`_, already containing many scientific and mathematical tools
 as well as the integrated development environment `Spyder`_.  A more
 lightweight alternative would be to install `Miniconda`_ and use it
 to install only the required libraries afterwards.  For example, if you want
-to enable :ref:`HydPy` to read and write NetCDF files, you need to install
+to enable *HydPy* to read and write NetCDF files, you need to install
 the `netcdf4`_ library::
 
    conda install netcdf4
@@ -54,15 +54,15 @@ the `netcdf4`_ library::
 Selecting a HydPy distribution
 ------------------------------
 
-If you want to contribute to the development of  :ref:`HydPy` or implement
+If you want to contribute to the development of  *HydPy* or implement
 own models, please see the :ref:`development` section.  If you want to
-apply :ref:`HydPy` only, you should start with a stable version available
+apply *HydPy* only, you should start with a stable version available
 under `releases`_.
 
-Probably, you are interested in using the latest version of :ref:`HydPy`,
+Probably, you are interested in using the latest version of *HydPy*,
 which is the one with the highest version number.  HydPy's version numbers
 consist of three separate numbers. In "X.Y.Z.", "X" is the major number.
-There can be important differences between :ref:`HydPy` versions with
+There can be important differences between *HydPy* versions with
 different major numbers, possibly resulting in some incompatibility issues
 with interfacing systems.  "Y" is the minor revision number, indicating
 some improvements, but no potentially problematic changes, e.g. the
@@ -85,7 +85,7 @@ Then write::
 
 This command starts copying all available files to your site-packages folder
 and generating the necessary system dependent binary files.  Additionally,
-the testing system of :ref:`HydPy` is triggered. If everything works well,
+the testing system of *HydPy* is triggered. If everything works well,
 you finally get the message::
 
     test_everything.py resulted in 0 failing unit test suites,
@@ -103,7 +103,7 @@ Selecting a C Compiler
 
 You only need to care about selecting a C compiler, if no pre-compiled
 binaries are available for your system or if you want to implement
-new models into the :ref:`HydPy` framework.  Also, Linux users should
+new models into the *HydPy* framework.  Also, Linux users should
 have no trouble, as the `GNU Compiler Collection`_ is ready for
 use on standard Linux distributions.  Unfortunately, Windows does not
 include compilers by default.  Search `Windows Compilers page`_ on how

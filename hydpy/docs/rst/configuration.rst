@@ -6,7 +6,7 @@ Configuration Tools
 
 
 The `conf` subpackage provides some hard coded files that configure some
-aspects of :ref:`HydPy`.
+aspects of *HydPy*.
 
 The binary |numpy| file `a_coefficients_explicit_lobatto_sequence.npy`
 provides the Runge-Kutta coefficients required by models subclassed from

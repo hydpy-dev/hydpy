@@ -19,12 +19,12 @@ similar to the Python modules of other packages (see for example
 The respective Cython extension file then implements the performance
 critical part of the the required functionality.
 
-The required dll files are automatically generated when :ref:`HydPy`
+The required dll files are automatically generated when *HydPy*
 is installed and stored in the `cythons` subpackage `autogen`.  The
 dll files of the different hydrological models are also stored in
 `autogen`.  But they are automatically updated each time class
 |Cythonizer| of module |modelutils| detects a change in the code base
-of the model or of :ref:`HydPy` that could affect the models
+of the model or of *HydPy* that could affect the models
 functionality.
 
 Note that it is always harder to maintain Cython code than it is to

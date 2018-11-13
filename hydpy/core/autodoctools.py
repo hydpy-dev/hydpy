@@ -277,7 +277,7 @@ class Substituter(object):
         ...     'clip', numpy.clip, numpy)
         True
 
-        ...but not members defined in :ref:`HydPy` submodules:
+        ...but not members defined in *HydPy* submodules:
 
         >>> import hydpy
         >>> Substituter.consider_member(
@@ -416,7 +416,7 @@ class Substituter(object):
 
         In order to reduce the risk of name conflicts, only the
         `medium2long` mapping is supported for modules not part of the
-        :ref:`HydPy` package:
+        *HydPy* package:
 
         >>> module3 = types.ModuleType('module3')
         >>> substituter.add_substitution(
@@ -683,7 +683,7 @@ class Substituter(object):
 @make_autodoc_optional
 def prepare_mainsubstituter():
     """Prepare and return a |Substituter| object for the main `__init__`
-    file of :ref:`HydPy`."""
+    file of *HydPy*."""
     substituter = Substituter()
     for module in (builtins, numpy, datetime, unittest, doctest, inspect, io,
                    os, sys, time, collections, itertools, subprocess):

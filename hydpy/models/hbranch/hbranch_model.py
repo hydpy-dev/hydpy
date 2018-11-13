@@ -148,7 +148,7 @@ class Model(modeltools.Model):
         >>> ypoints(n1a=[0.0, 1.0], n1b=[0.0, 2.0])
 
         After doing some preparations which are normally handled by
-        :ref:`HydPy` automatically ...
+        *HydPy* automatically ...
 
         >>> model.element = e1
         >>> model.parameters.update()

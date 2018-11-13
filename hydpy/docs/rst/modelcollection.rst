@@ -6,7 +6,7 @@
 Model Collection
 ================
 
-In :ref:`HydPy`, many models are divided into groups (e.g. :ref:`HydPy-L`)
+In *HydPy*, many models are divided into groups (e.g. :ref:`HydPy-L`)
 and subgroups (e.g. `HydPy-L-Land`).
 
 The existence of the groups is primarily due to historical reasons.

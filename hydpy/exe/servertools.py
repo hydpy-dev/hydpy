@@ -23,7 +23,19 @@ land_lahn_1: [ 2.  2.  3.  3.  4.  4.  5.  5.  6.  6.  7.  7.  8.]
 land_lahn_2: [ 2.  2.  3.  3.  4.  4.  5.  5.  6.  6.]
 land_lahn_3: [ 2.  2.  3.  3.  4.  4.  5.  5.  6.  6.  7.  7.  8.  9.]
 
+
+>>> _ = request.urlopen('http://localhost/zonez', data=b'1.0')
+
+>>> bytestring = request.urlopen('http://localhost/zonez').read()
+>>> print(str(bytestring, encoding='utf-8'))
+land_dill: [ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.]
+land_lahn_1: [ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.]
+land_lahn_2: [ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.]
+land_lahn_3: [ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.]
+
+
 >>> _ = request.urlopen('http://localhost/close_server')
+>>> process.kill()
 >>> _ = process.communicate()
 
 
@@ -54,6 +66,19 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             if par is not None:
                 results.append(f'{element.name}: {par}')
         self.wfile.write(bytes('\n'.join(results), encoding='utf-8'))
+
+    def do_POST(self):
+        content_length = int(self.headers['Content-Length'])
+        post_data = self.rfile.read(content_length)
+        value = float(post_data)
+        name = self.path[1:]
+        for element in self.server.hp.elements:
+            par = getattr(element.model.parameters.control, name, None)
+            if par is not None:
+                par(value)
+        self._set_headers()
+        self.wfile.write(
+            bytes(f'POST request for {self.path}', encoding='utf-8'))
 
 
 class HydPyHTTPServer(http.server.HTTPServer):

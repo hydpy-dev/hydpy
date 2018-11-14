@@ -12,7 +12,8 @@
 .. _FEWS: https://www.deltares.nl/en/software/flood-forecasting-system-delft-fews-2
 .. _`NetCDF-CF`: http://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/cf-conventions.html
 
-<img src="https://github.com/hydpy-dev/hydpy/blob/master/hydpy/docs/figs/HydPy_Logo.png" alt="HydPy logo" width="300px"/>
+.. figure:: hydpy/docs/figs/HydPy_Logo.png
+    :alt: HydPy logo
 
 A Python framework for the development and application of hydrological models
 _____________________________________________________________________________

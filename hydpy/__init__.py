@@ -90,6 +90,7 @@ from hydpy.auxs.xmltools import XMLInterface
 from hydpy.exe.hyd import execute_scriptfunction
 from hydpy.exe.hyd import print_latest_logfile
 from hydpy.exe.replacetools import xml_replace
+from hydpy.exe.servertools import start_server
 
 
 pub.options = optiontools.Options()
@@ -177,4 +178,5 @@ __all__ = ['config',
            'XMLInterface',
            'execute_scriptfunction',
            'print_latest_logfile',
-           'xml_replace']
+           'xml_replace',
+           'start_server']

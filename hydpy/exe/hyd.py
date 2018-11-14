@@ -62,7 +62,8 @@ The first additional argument must be an available "script function":
 Invoking hyd.py with arguments `...hyd.py, wrong_argument` resulted in the \
 following error:
 There is no `wrong_argument` function callable by `hyd.py`.  \
-Choose one of the following instead: exec_xml, exec_commands, and xml_replace
+Choose one of the following instead: exec_commands, exec_xml, start_server, \
+and xml_replace.
 <BLANKLINE>
 
 Further argument requirements depend on the selected "script function":
@@ -261,7 +262,8 @@ def execute_scriptfunction():
     Invoking hyd.py with arguments `...hyd.py, wrong_argument` resulted \
 in the following error:
     There is no `wrong_argument` function callable by `hyd.py`.  \
-Choose one of the following instead: exec_xml, exec_commands, and xml_replace
+Choose one of the following instead: exec_commands, exec_xml, start_server, \
+and xml_replace.
     <BLANKLINE>
 
     >>> execute("hyd.py "
@@ -331,10 +333,11 @@ for testing purposes.
         try:
             func = pub.scriptfunctions[funcname]
         except KeyError:
+            available_funcs = objecttools.enumeration(
+                sorted(pub.scriptfunctions.keys()))
             raise ValueError(
                 f'There is no `{funcname}` function callable by `hyd.py`.  '
-                f'Choose one of the following instead: '
-                f'{objecttools.enumeration(pub.scriptfunctions.keys())}')
+                f'Choose one of the following instead: {available_funcs}.')
         args_required = inspect.getfullargspec(func).args
         nmb_args_required = len(args_required)
         args_given = []

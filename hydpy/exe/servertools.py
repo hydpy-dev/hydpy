@@ -7,14 +7,15 @@
 >>> from hydpy import TestIO, print_latest_logfile
 >>> import subprocess, time
 >>> with TestIO():
-...     process = subprocess.Popen('hyd.py start_server LahnHBV', shell=True)
+...     process = subprocess.Popen(
+...         'hyd.py start_server 8080 LahnHBV', shell=True)
 
 >>> from urllib import request
 >>> with TestIO():
 ...     print_latest_logfile(wait=10.0)
 <BLANKLINE>
 
->>> bytestring = request.urlopen('http://localhost/zonez').read()
+>>> bytestring = request.urlopen('http://localhost:8080/zonez').read()
 >>> print(str(bytestring, encoding='utf-8'))
 land_dill: [ 2.  2.  3.  3.  4.  4.  5.  5.  6.  6.  7.  7.]
 land_lahn_1: [ 2.  2.  3.  3.  4.  4.  5.  5.  6.  6.  7.  7.  8.]
@@ -22,9 +23,9 @@ land_lahn_2: [ 2.  2.  3.  3.  4.  4.  5.  5.  6.  6.]
 land_lahn_3: [ 2.  2.  3.  3.  4.  4.  5.  5.  6.  6.  7.  7.  8.  9.]
 
 
->>> _ = request.urlopen('http://localhost/zonez', data=b'1.0')
+>>> _ = request.urlopen('http://localhost:8080/zonez', data=b'1.0')
 
->>> bytestring = request.urlopen('http://localhost/zonez').read()
+>>> bytestring = request.urlopen('http://localhost:8080/zonez').read()
 >>> print(str(bytestring, encoding='utf-8'))
 land_dill: [ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.]
 land_lahn_1: [ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.]
@@ -32,7 +33,7 @@ land_lahn_2: [ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.]
 land_lahn_3: [ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.]
 
 
->>> _ = request.urlopen('http://localhost/close_server')
+>>> _ = request.urlopen('http://localhost:8080/close_server')
 >>> process.kill()
 >>> _ = process.communicate()
 
@@ -103,8 +104,8 @@ class HydPyHTTPServer(http.server.HTTPServer):
         hp.load_conditions()
 
 
-def start_server(projectname, *, logfile=None) -> None:
-    server = HydPyHTTPServer(('', 80), HydPyHTTPRequestHandler)
+def start_server(socket, projectname, *, logfile=None) -> None:
+    server = HydPyHTTPServer(('', int(socket)), HydPyHTTPRequestHandler)
     server.prepare_hydpy(projectname)
     server.serve_forever()
 

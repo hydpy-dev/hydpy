@@ -148,6 +148,7 @@ import datetime
 import inspect
 import os
 import sys
+import time
 import traceback
 # ...from hydpy
 from hydpy import pub
@@ -196,15 +197,28 @@ for testing purposes.
 pub.scriptfunctions['exec_commands'] = exec_commands
 
 
-def print_latest_logfile(dirpath='.'):
+def print_latest_logfile(dirpath='.', wait=0.0) -> None:
     """Print the latest log file in the current or the given working directory.
+
+    When processes are executed in parallel, |print_latest_logfile| may
+    be called before any log file exists.  Then pass an appropriate
+    number of seconds to the argument `wait`.  |print_latest_logfile| then
+    prints the contents of the latest log file, as soon as it finds one.
 
     See the main documentation on module |hyd| for more information.
     """
+    now = time.perf_counter()
+    wait += now
     filenames = []
-    for filename in os.listdir(dirpath):
-        if filename.startswith('hydpy_') and filename.endswith('.log'):
-            filenames.append(filename)
+    while now <= wait:
+        for filename in os.listdir(dirpath):
+            if filename.startswith('hydpy_') and filename.endswith('.log'):
+                filenames.append(filename)
+        if filenames:
+            break
+        else:
+            time.sleep(0.1)
+            now = time.perf_counter()
     if not filenames:
         raise FileNotFoundError(
             f'Cannot find a HydPy log file in directory '

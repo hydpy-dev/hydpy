@@ -4,20 +4,18 @@
 >>> from hydpy.core.examples import prepare_full_example_1
 >>> prepare_full_example_1()
 
->>> from hydpy import TestIO
+>>> from hydpy import TestIO, print_latest_logfile
 >>> import subprocess, time
 >>> with TestIO():
 ...     process = subprocess.Popen('hyd.py start_server LahnHBV', shell=True)
 
 >>> from urllib import request
->>> t0 = time.perf_counter()
->>> while time.perf_counter()-t0 < 10.0:
-...     try:
-...         bytestring = request.urlopen('http://localhost/zonez').read()
-...         print(str(bytestring, encoding='utf-8'))
-...         break
-...     except BaseException:
-...         time.sleep(0.1)
+>>> with TestIO():
+...     print_latest_logfile(wait=10.0)
+<BLANKLINE>
+
+>>> bytestring = request.urlopen('http://localhost/zonez').read()
+>>> print(str(bytestring, encoding='utf-8'))
 land_dill: [ 2.  2.  3.  3.  4.  4.  5.  5.  6.  6.  7.  7.]
 land_lahn_1: [ 2.  2.  3.  3.  4.  4.  5.  5.  6.  6.  7.  7.  8.]
 land_lahn_2: [ 2.  2.  3.  3.  4.  4.  5.  5.  6.  6.]
@@ -43,6 +41,7 @@ land_lahn_3: [ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.]
 # import...
 # ...from standard library
 import http.server
+import threading
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import hydpytools
@@ -59,7 +58,10 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
         self._set_headers()
         name = self.path[1:]
         if name == 'close_server':
-            self.server.server_close()
+            self.wfile.write(b'shutting down server')
+            shutter = threading.Thread(target=self.server.shutdown)
+            shutter.deamon = True
+            shutter.start()
         results = []
         for element in self.server.hp.elements:
             par = getattr(element.model.parameters.control, name, None)
@@ -88,6 +90,7 @@ class HydPyHTTPServer(http.server.HTTPServer):
     def prepare_hydpy(self, projectname):
         self.hp = hydpytools.HydPy(projectname)
         hp = self.hp
+        pub.options.printprogress = False
         pub.timegrids = '1996-01-01', '1996-01-06', '1d'
         pub.sequencemanager.generalfiletype = 'nc'
         hp.prepare_network()

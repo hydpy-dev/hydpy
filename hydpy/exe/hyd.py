@@ -32,6 +32,8 @@ FileNotFoundError: Cannot find a HydPy log file in directory ...iotesting.
 Invoking hyd.py with arguments `...hyd.py` resulted in the following error:
 The first argument defining the function to be called is missing.
 <BLANKLINE>
+See the following stack traceback for debugging:
+...
 
 If this test example does not work on your machine, you should first make sure
 there is a `hyd.py` file in the `Scripts` folder of your Python distribution,
@@ -53,7 +55,7 @@ Without any further arguments, `hyd.py` does not know which function to call:
 >>> execute("hyd.py")    # doctest: +ELLIPSIS
 Invoking hyd.py with arguments `...hyd.py` resulted in the following error:
 The first argument defining the function to be called is missing.
-<BLANKLINE>
+...
 
 The first additional argument must be an available "script function":
 
@@ -63,7 +65,7 @@ Invoking hyd.py with arguments `...hyd.py, wrong_argument` resulted in the \
 following error:
 There is no `wrong_argument` function callable by `hyd.py`.  \
 Choose one of the following instead: exec_xml, exec_commands, and xml_replace
-<BLANKLINE>
+...
 
 Further argument requirements depend on the selected "script function":
 
@@ -73,7 +75,7 @@ Invoking hyd.py with arguments `...hyd.py, exec_commands` resulted in the \
 following error:
 Function `exec_commands` requires `1` positional arguments (commands), \
 but `0` are given.
-<BLANKLINE>
+...
 >>> execute("hyd.py "
 ...         "exec_commands "
 ...         "first_name "
@@ -83,7 +85,7 @@ second_name` resulted in the following error:
 Function `exec_commands` requires `1` positional arguments (commands), \
 but `2` are given \
 (first_name and second_name).
-<BLANKLINE>
+...
 
 Optional keyword arguments are supported: (on Linux, we have to escape
 the characters "(", ")", ";", and "'" in the following)
@@ -111,7 +113,7 @@ testing purposes.
 Invoking hyd.py with arguments `...hyd.py, exec_commands, \
 raise_RuntimeError('it_fails')` resulted in the following error:
 it fails
-<BLANKLINE>
+...
 
 The same is true for warning messages:
 
@@ -145,6 +147,7 @@ import datetime
 import inspect
 import os
 import sys
+import traceback
 # ...from hydpy
 from hydpy import pub
 from hydpy.core import autodoctools
@@ -255,6 +258,8 @@ def execute_scriptfunction():
     Invoking hyd.py with arguments `...hyd.py` resulted in the following error:
     The first argument defining the function to be called is missing.
     <BLANKLINE>
+    See the following stack traceback for debugging:
+    ...
 
     >>> execute("hyd.py "
     ...         "wrong_argument")    # doctest: +ELLIPSIS
@@ -262,7 +267,7 @@ def execute_scriptfunction():
 in the following error:
     There is no `wrong_argument` function callable by `hyd.py`.  \
 Choose one of the following instead: exec_xml, exec_commands, and xml_replace
-    <BLANKLINE>
+    ...
 
     >>> execute("hyd.py "
     ...         "exec_commands")    # doctest: +ELLIPSIS
@@ -270,7 +275,7 @@ Choose one of the following instead: exec_xml, exec_commands, and xml_replace
 in the following error:
     Function `exec_commands` requires `1` positional arguments (commands), \
 but `0` are given.
-    <BLANKLINE>
+    ...
     >>> execute("hyd.py "
     ...         "exec_commands "
     ...         "first_name "
@@ -279,7 +284,7 @@ but `0` are given.
 second_name` resulted in the following error:
     Function `exec_commands` requires `1` positional arguments (commands), \
 but `2` are given (first_name and second_name).
-    <BLANKLINE>
+    ...
 
     >>> execute("hyd.py "
     ...         "exec_commands "
@@ -299,7 +304,7 @@ testing purposes.
     Invoking hyd.py with arguments `...hyd.py, exec_commands, \
 raise_RuntimeError('it_fails')` resulted in the following error:
     it fails
-    <BLANKLINE>
+    ...
 
     >>> import warnings
     >>> warnings.filterwarnings('always', 'it stumbles')
@@ -374,7 +379,10 @@ for testing purposes.
             arguments = ', '.join(sys.argv)
             logfile.write(
                 f'Invoking hyd.py with arguments `{arguments}` '
-                f'resulted in the following error:\n{str(exc)}\n')
+                f'resulted in the following error:\n{str(exc)}\n\n'
+                f'See the following stack traceback for debugging:\n')
+            traceback.print_tb(sys.exc_info()[2], file=logfile)
+
 
 def parse_argument(string):
     """Return a single value for a string understood as a positional

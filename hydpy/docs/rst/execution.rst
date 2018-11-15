@@ -14,3 +14,4 @@ or with the help of configuration files (|modelimports|).
    hyd
    modelimports
    replacetools
+   servertools

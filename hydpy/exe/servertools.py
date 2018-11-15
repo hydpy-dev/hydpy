@@ -45,6 +45,7 @@ import http.server
 import threading
 # ...from HydPy
 from hydpy import pub
+from hydpy.core import autodoctools
 from hydpy.core import hydpytools
 
 
@@ -111,3 +112,6 @@ def start_server(socket, projectname, *, logfile=None) -> None:
 
 
 pub.scriptfunctions['start_server'] = start_server
+
+
+autodoctools.autodoc_module()

@@ -886,6 +886,8 @@ def _replace(obj):
 class TestIO(object):
     """Prepare an environment for testing IO functionalities.
 
+    ToDo: explain the handling of .coverage files
+
     Primarily, |TestIO| changes the current working during the
     execution of with| blocks.  Inspecting your current working
     directory, |os| will likely find no file called `testfile.txt`:
@@ -970,6 +972,11 @@ class TestIO(object):
 
     def __exit__(self, exception, message, traceback_):
         for file in os.listdir('.'):
+            try:
+                if file.startswith('.coverage'):
+                    shutil.move(file, os.path.join(self._path, file))
+            except BaseException:
+                pass
             try:
                 if ((file != '__init__.py') and
                         (self._clear_all or

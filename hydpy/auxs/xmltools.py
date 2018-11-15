@@ -22,7 +22,7 @@ function |prepare_full_example_1|:
 >>> prepare_full_example_1()
 
 To simulate using the command line, we pass the required text to
-function |subprocess.call| of module |subprocess|.  Printing the content
+function |subprocess.run| of module |subprocess|.  Printing the content
 of the resulting log file confirms that something happened:
 
 >>> from hydpy import TestIO, print_latest_logfile

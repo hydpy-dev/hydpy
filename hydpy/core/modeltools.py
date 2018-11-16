@@ -175,15 +175,15 @@ class Model(_MetaModel_):
                     seq.set_pointer(selected_nodes[0].get_double(group))
                 elif len(selected_nodes) == 0:
                     raise RuntimeError(
-                        'Sequence `%s` cannot be connected, as no node is '
-                        'available which is handling the variable `%s`.'
-                        % (seq.name, seq.name.upper()))
+                        f'Sequence `{seq.name}` cannot be connected '
+                        f'as no node is available which is handling '
+                        f'the variable `{seq.name.upper()}`.')
                 else:
                     raise RuntimeError(
-                        'Sequence `%s` cannot be connected, as it is '
-                        '0-dimensional but multiple nodes are available '
-                        'which are handling variable `%s`.'
-                        % (seq.name, seq.seq.name.upper()))
+                        f'Sequence `{seq.name}` cannot be connected as '
+                        f'it is 0-dimensional but multiple nodes are '
+                        f'available which are handling variable '
+                        f'`{seq.name.upper()}`.')
             elif seq.NDIM == 1:
                 seq.shape = len(selected_nodes)
                 for idx, node in enumerate(selected_nodes):
@@ -193,9 +193,9 @@ class Model(_MetaModel_):
             remaining_nodes = [node.name for node in available_nodes
                                if node not in applied_nodes]
             raise RuntimeError(
-                'The following nodes have not been connected '
-                'to any sequences: `%s`.'
-                % ', '.join(remaining_nodes))
+                f'The following nodes have not been connected '
+                f'to any sequences: '
+                f'`{objecttools.enumeration(remaining_nodes)}`.')
 
     @property
     def mask(self):

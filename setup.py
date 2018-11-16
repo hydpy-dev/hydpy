@@ -147,7 +147,7 @@ with open("README.rst", "r") as readmefile:
 
 # The usual setup definitions.
 setup(name='HydPy',
-      version='3.0.0',
+      version='3.0.1',
       description='A framework for the development and application of '
                   'hydrological models.',
       long_description=long_description,

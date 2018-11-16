@@ -106,18 +106,20 @@ def calc_qjoints_v1(self):
 def pick_q_v1(self):
     """Assign the actual value of the inlet sequence to the upper joint
     of the subreach upstream."""
-    sta = self.sequences.states.fastaccess
     inl = self.sequences.inlets.fastaccess
-    sta.qjoints[0] = inl.q[0]
+    new = self.sequences.states.fastaccess_new
+    new.qjoints[0] = 0.
+    for idx in range(inl.len_q):
+        new.qjoints[0] += inl.q[idx][0]
 
 
 def pass_q_v1(self):
     """Assing the actual value of the lower joint of of the subreach
     downstream to the outlet sequence."""
     der = self.parameters.derived.fastaccess
-    sta = self.sequences.states.fastaccess
+    new = self.sequences.states.fastaccess_new
     out = self.sequences.outlets.fastaccess
-    out.q[0] += sta.qjoints[der.nmbsegments]
+    out.q[0] += new.qjoints[der.nmbsegments]
 
 
 class Model(modeltools.Model):

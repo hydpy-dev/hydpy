@@ -1,6 +1,8 @@
 language: python
+
 os:
   - linux
+
 matrix:
   include:
     - python: 3.6
@@ -13,7 +15,7 @@ matrix:
             - libhdf5-serial-dev
             - netcdf-bin
             - libnetcdf-dev
-# command to install dependencies
+
 install:
   - pip install --upgrade pip setuptools wheel
   - pip install Cython --install-option="--no-cython-compile"
@@ -24,20 +26,21 @@ install:
   - pip install coverage
   - pip install lxml
   - pip install pandas
+  - pip install pycobertura
   - pip install wrapt
-  - if [ $TRAVIS_PYTHON_VERSION == "3.6" ] ; then pip install pycobertura; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.6" ] ; then pip install sphinx; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.6" ] ; then pip install travis-sphinx; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.6" ] ; then pip install sphinxcontrib-fulltoc; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.6" ] ; then pip install sphinxprettysearchresults; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.6" ] ; then pip install netCDF4; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then pip install netCDF4; fi
-# command to run tests
+
 script:
-  - if [ $TRAVIS_PYTHON_VERSION == "3.6" ] ; then python setup.py install report_coverage; else python setup.py install; fi
+  - python setup.py install
   - if [ $TRAVIS_PYTHON_VERSION == "3.6" ] ; then python hydpy/docs/prepare.py; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.6" ] ; then travis-sphinx build --source=hydpy/docs/auto; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.6" ] ; then python hydpy/docs/modify_html.py; fi
+
 env:
   global:
     - COVERAGE_PROCESS_START=/home/travis/build/hydpy-dev/hydpy/hydpy/tests/.coveragerc

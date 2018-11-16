@@ -17,9 +17,6 @@ bdist_wininst = 'bdist_wininst' in sys.argv
 bdist_msi = 'bdist_msi' in sys.argv
 bdist_egg = 'bdist_egg' in sys.argv
 bdist = bdist_wheel or bdist_wininst or bdist_msi or bdist_egg
-report_coverage = 'report_coverage' in sys.argv
-if report_coverage:
-    sys.argv.remove('report_coverage')
 debug_cython = 'debug_cython' in sys.argv
 if debug_cython:
     sys.argv.remove('debug_cython')
@@ -206,12 +203,7 @@ if install:
     path = os.path.abspath(hydpy.tests.__path__[0])
     print_(f'\nChange cwd for testing:\n\t{path}')
     os.chdir(path)
-    if report_coverage:
-        exitcode = int(os.system(
-            'coverage run test_everything.py rcfile=.coveragerc'))
-    else:
-        exitcode = int(os.system(
-            'python test_everything.py'))
+    exitcode = int(os.system('python test_everything.py'))
     if exitcode:
         print_(f'Use this HydPy version with caution on your system.  At '
                f'least one verification test failed.  You should see in the '
@@ -257,8 +249,9 @@ if install:
             source2target(path_in, path_out)
 
     # Prepare coverage report and prepare it for sphinx.
-    if report_coverage:
+    if os.environ.get('COVERAGE_PROCESS_START'):
         print_('\nPrepare coverage html file:')
+        os.system('coverage combine')
         os.system('coverage report -m --skip-covered')
         os.system('coverage xml')
         os.system('pycobertura show --format html '

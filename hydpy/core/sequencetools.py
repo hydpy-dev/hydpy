@@ -910,7 +910,10 @@ or prepare `pub.sequencemanager` correctly.
     @Sequence.shape.setter
     def shape(self, shape):
         Sequence.shape.fset(self, shape)
-        self.update_fastaccess()
+        if self.memoryflag:
+            self._activate()
+        else:
+            self.update_fastaccess()
 
     @property
     def seriesshape(self):

@@ -193,6 +193,14 @@ if install:
         print_('\tpath')
         sys.path.insert(0, path)
 
+    # Move `sitecustomize.py` into the site-packages folder for
+    # complete measuring code coverage of multiple processes.
+    print_(f'\nCopy sitecustomize.py:\n')
+    import hydpy
+    path_in = prep('.', 'sitecustomize.py')
+    path_out = prep(os.path.split(hydpy.__path__[0])[0], 'sitecustomize.py')
+    source2target(path_in, path_out)
+
     # Assure that the actual `debug_cython` option also effects the
     # cythonization of the hydrological models.
     import hydpy.pub

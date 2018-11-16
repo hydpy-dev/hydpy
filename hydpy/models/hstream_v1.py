@@ -39,8 +39,8 @@ class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of |hstream_v1|, indirectly defined by the user."""
     CLASSES = (hstream_derived.NmbSegments,
                hstream_derived.C1,
-               hstream_derived.C2,
-               hstream_derived.C3)
+               hstream_derived.C3,
+               hstream_derived.C2)
 
 
 class StateSequences(sequencetools.StateSequences):

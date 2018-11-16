@@ -5,4 +5,5 @@ source =
 omit =
     */hydpy/tests/*
     */hydpy/docs/*
+parallel=True
 

@@ -8,6 +8,7 @@ import os
 import runpy
 import shutil
 import weakref
+import zipfile
 from typing import List
 # ...from site-packages
 import numpy
@@ -444,7 +445,7 @@ error occurred: ...
             if os.path.exists(zippath):
                 shutil.unpack_archive(
                     filename=zippath,
-                    extract_dir=self.basepath,
+                    extract_dir=os.path.join(self.basepath, directory),
                     format='zip',
                 )
                 os.remove(zippath)
@@ -576,6 +577,15 @@ error occurred: ...
         ['folder.zip']
         Folder2Path(folder=.../projectname/basename/folder.zip)
 
+        Instead of the complete directory, only the contained files
+        are packed:
+
+        >>> from zipfile import ZipFile
+        >>> with TestIO():
+        ...     with ZipFile('projectname/basename/folder.zip', 'r') as zp:
+        ...         sorted(zp.namelist())
+        ['file1.txt', 'file2.txt']
+
         The zip file is unpacked again, as soon as `folder` becomes
         the current working directory:
 
@@ -588,12 +598,9 @@ error occurred: ...
         Folder2Path(folder=.../projectname/basename/folder)
         ['file1.txt', 'file2.txt']
         """
-        shutil.make_archive(
-            base_name=self.currentpath,
-            format='zip',
-            root_dir=self.basepath,
-            base_dir=self.currentdir,
-        )
+        with zipfile.ZipFile(f'{self.currentpath}.zip', 'w') as zipfile_:
+            for filepath, filename in zip(self.filepaths, self.filenames):
+                zipfile_.write(filename=filepath, arcname=filename)
         del self.currentdir
 
     def __dir__(self):

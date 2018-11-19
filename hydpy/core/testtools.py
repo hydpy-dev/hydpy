@@ -137,6 +137,8 @@ class Tester(object):
                         opt.warntrim(False), \
                         par.parameterstep.delete(), \
                         par.simulationstep.delete():
+                    projectname = pub.get('projectname')
+                    del pub.projectname
                     timegrids = pub.get('timegrids')
                     del pub.timegrids
                     nodes = devicetools.Node._registry.copy()
@@ -158,6 +160,7 @@ class Tester(object):
                                 module, extraglobs={'testing': True},
                                 optionflags=doctest.ELLIPSIS)
                     finally:
+                        pub.projectname = projectname
                         if timegrids is not None:
                             pub.timegrids = timegrids
                         devicetools.Node.clear_registry()

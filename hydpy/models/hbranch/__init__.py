@@ -1,11 +1,6 @@
 # -*- coding: utf-8 -*-
-"""The HydPy-H-Branch model allows for branching the input from a
-single inlet |Node| instance to an arbitrary number of outlet |Node|
-instances.  In the original HBV96 implementation, it is supposed to
-separate inflowing discharge, but in *HydPy* it can be used for
-arbitrary variables.  Calculations are performed for each branch
-individually by linear interpolation (or extrapolation) in accordance
-with tabulated supporting points.
+"""The HydPy-H-Branch defines methods for branching single inflow values
+into multiple outflow values.
 """
 # import...
 # ...from HydPy
@@ -19,6 +14,8 @@ from hydpy.models.hbranch.hbranch_outlets import OutletSequences
 from hydpy.models.hbranch.hbranch_model import Model
 
 autodoc_basemodel()
+
+# pylint: disable=invalid-name
 tester = Tester()
 cythonizer = Cythonizer()
 cythonizer.complete()

@@ -173,6 +173,7 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                         opt.warntrim(False), \
                         Par.parameterstep.delete(), \
                         Par.simulationstep.delete():
+                    del pub.projectname
                     del pub.timegrids
                     devicetools.Node.clear_registry()
                     devicetools.Element.clear_registry()

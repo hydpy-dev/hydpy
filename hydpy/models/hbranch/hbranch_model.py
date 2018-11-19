@@ -3,7 +3,7 @@
 # import...
 # ...from HydPy
 from hydpy.core import modeltools
-from hydpy.core import devicetools
+from hydpy.core import objecttools
 
 
 def calc_outputs_v1(self):
@@ -75,7 +75,6 @@ def calc_outputs_v1(self):
         >>> fluxes.outputs
         outputs(branch1=0.0,
                 branch2=5.0)
-
     """
     con = self.parameters.control.fastaccess
     der = self.parameters.derived.fastaccess
@@ -97,7 +96,9 @@ def pick_input_v1(self):
     """Updates |Input| based on |Total|."""
     flu = self.sequences.fluxes.fastaccess
     inl = self.sequences.inlets.fastaccess
-    flu.input = inl.total[0]
+    flu.input = 0.
+    for idx in range(inl.len_total):
+        flu.input += inl.total[idx][0]
 
 
 def pass_outputs_v1(self):
@@ -110,12 +111,7 @@ def pass_outputs_v1(self):
 
 
 class Model(modeltools.Model):
-    """The HydPy-H-Branch model.
-
-    Additional attribute:
-      * nodenames (|list|): Names of the outlet node names, the
-        actual model shall be connected to.
-    """
+    """The HydPy-H-Branch model."""
     _INLET_METHODS = (pick_input_v1,)
     _RUN_METHODS = (calc_outputs_v1,)
     _OUTLET_METHODS = (pass_outputs_v1,)
@@ -132,12 +128,14 @@ class Model(modeltools.Model):
         The HydPy-H-Branch model passes multiple output values to different
         outlet nodes.  This requires additional information regarding the
         `direction` of each output value.  Therefore, node names are used
-        as keywords.  Assume, the discharge value of `n1` shall be branched
-        to `n1a` and `n1b` via element `e1`:
+        as keywords.  Assume the discharge values of both nodes `inflow1`
+        and `inflow2`  shall be  branched to nodes `outflow1` and `outflow2`
+        via element `branch`:
 
         >>> from hydpy import *
-        >>> n1, n1a, n1b = Node('n1'), Node('n1a'), Node('n1b')
-        >>> e1 = Element('e1', inlets=n1, outlets=[n1a, n1b])
+        >>> branch = Element('branch',
+        ...                  inlets=['inflow1', 'inflow2'],
+        ...                  outlets=['outflow1', 'outflow2'])
 
         Then parameter |YPoints| relates different supporting points via
         its keyword arguments to the respective nodes:
@@ -145,47 +143,48 @@ class Model(modeltools.Model):
         >>> from hydpy.models.hbranch import *
         >>> parameterstep()
         >>> xpoints(0.0, 3.0)
-        >>> ypoints(n1a=[0.0, 1.0], n1b=[0.0, 2.0])
+        >>> ypoints(outflow1=[0.0, 1.0], outflow2=[0.0, 2.0])
 
-        After doing some preparations which are normally handled by
-        *HydPy* automatically ...
+        After connecting the model with its element the total discharge
+        value of nodes `inflow1` and `inflow2` can be properly divided:
 
-        >>> model.element = e1
-        >>> model.parameters.update()
-        >>> model.connect()
-
-        ...you can see that an example discharge value handled by the
-        |Node| instance `n1` is properly divided:
-
-        >>> n1.sequences.sim = 6.0
+        >>> branch.connect(model)
+        >>> parameters.update()
+        >>> branch.inlets.inflow1.sequences.sim = 1.0
+        >>> branch.inlets.inflow2.sequences.sim = 5.0
         >>> model.doit(0)
-        >>> print(n1a.sequences.sim, n1b.sequences.sim)
-        sim(2.0) sim(4.0)
+        >>> print(branch.outlets.outflow1.sequences.sim)
+        sim(2.0)
+        >>> print(branch.outlets.outflow2.sequences.sim)
+        sim(4.0)
+
+        In case of missing (or misspelled) outlet nodes, the following
+        error is raised:
+
+        >>> del branch.outlets.outflow1
+        >>> parameters.update()
+        >>> model.connect()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Model `hbranch` of element `branch` tried to connect \
+to an outlet node named `outflow1`, which is not an available outlet node \
+of element `branch`.
         """
         nodes = self.element.inlets.slaves
-        if len(nodes) == 1:
-            double = nodes[0].get_double_via_exits()
-            self.sequences.inlets.total.set_pointer(double)
-        else:
-            RuntimeError(
-                'The hbranch model must be connected to exactly one '
-                'inlet node, but its parent element `%s` references '
-                'currently %d inlet nodes.'
-                % (self.element.name, len(nodes)))
+        total = self.sequences.inlets.total
+        if total.shape != (len(nodes),):
+            total.shape = len(nodes)
+        for idx, node in enumerate(nodes):
+            double = node.get_double_via_exits()
+            total.set_pointer(double, idx)
         for (idx, name) in enumerate(self.nodenames):
             try:
                 outlet = getattr(self.element.outlets, name)
                 double = outlet.get_double_via_entries()
-            except KeyError:
-                if name in devicetools.Node.registered_names():
-                    RuntimeError(
-                        'The hbranch model tried to connect to the outlet '
-                        'node `%s`, but its parent element `%s` does not '
-                        'reference this node as an outlet node.'
-                        % (name, self.element.name))
-                else:
-                    RuntimeError(
-                        'The hbranch model tried to connect to an outlet '
-                        'node named `%s`, which is not initialized yet.'
-                        % name)
+            except AttributeError:
+                raise RuntimeError(
+                        f'Model {objecttools.elementphrase(self)} tried '
+                        f'to connect to an outlet node named `{name}`, '
+                        f'which is not an available outlet node of element '
+                        f'`{self.element.name}`.')
             self.sequences.outlets.branched.set_pointer(double, idx)

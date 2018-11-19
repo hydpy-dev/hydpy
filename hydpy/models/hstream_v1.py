@@ -15,8 +15,6 @@ Integration Test:
 
     >>> from hydpy import pub, Nodes, Element
     >>> pub.timegrids = '01.01.2000 00:00', '01.01.2000 20:00', '1h'
-    >>> pub.options.printprogress = False
-    >>> pub.options.reprdigits = 6
 
     We also set the time step size of the parameter values defined
     below to one hour:

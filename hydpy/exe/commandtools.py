@@ -115,8 +115,7 @@ def execute_scriptfunction():
     """Execute a HydPy script function.
 
     Function |execute_scriptfunction| is indirectly applied and
-    explained in the documentation on module |hyd|.  We repeat
-    these examples here for measuring code coverage:
+    explained in the documentation on module |hyd|.
     """
     try:
         args_given = []
@@ -128,6 +127,7 @@ def execute_scriptfunction():
             except ValueError:
                 args_given.append(arg)
         logfilepath = prepare_logfile(kwargs_given.pop('logfile', None))
+        logstyle = kwargs_given.pop('logstyle', 'plain')
         try:
             funcname = str(args_given.pop(0))
         except IndexError:
@@ -157,26 +157,80 @@ def execute_scriptfunction():
                 f'Function `{funcname}` requires `{nmb_args_required:d}` '
                 f'positional arguments{enum_args_required}, but '
                 f'`{nmb_args_given:d}` are given{enum_args_given}.')
-        with open_logfile(logfilepath) as logfile:
-            func(*args_given, **kwargs_given, logfile=logfile)
+        try:
+            with open(logfilepath, 'a') as logfile:
+                sys.stdout = LogFileInterface(logfile, logstyle, 'info')
+                sys.stderr = LogFileInterface(logfile, logstyle, 'warning')
+                func(*args_given, **kwargs_given, logfile=sys.stdout)
+        finally:
+            sys.stdout = sys.__stdout__
+            sys.stderr = sys.__stderr__
     except BaseException as exc:
         with open(logfilepath, 'a') as logfile:
+            if logstyle not in LogFileInterface.style2infotype2string:
+                logstyle = 'plain'
+            interface = LogFileInterface(logfile, logstyle, 'exception')
             arguments = ', '.join(sys.argv)
-            logfile.write(
+            interface.write(
                 f'Invoking hyd.py with arguments `{arguments}` '
                 f'resulted in the following error:\n{str(exc)}\n')
 
 
-@contextlib.contextmanager
-def open_logfile(logfilepath):
-    try:
-        with open(logfilepath, 'a') as logfile:
-            sys.stdout = logfile
-            sys.stderr = logfile
-            yield logfile
-    finally:
-        sys.stdout = sys.__stdout__
-        sys.stderr = sys.__stderr__
+class LogFileInterface(object):
+    """Wraps a usual file object, exposing all its methods while modifying
+    only the `write` method.
+
+    At the moment, class |LogFileInterface| only supports only two log
+    styles, as explained in the documentation on module |hyd|.  The
+    following example shows its basic usage:
+
+    >>> from hydpy import TestIO
+    >>> from hydpy.exe.commandtools import LogFileInterface
+    >>> with TestIO():
+    ...     logfile = open('test.log', 'w')
+    >>> lfi = LogFileInterface(
+    ...     logfile, logstyle='prefixed', infotype='exception')
+    >>> lfi.write('a message\\n')
+    >>> lfi.write('another message\\n')
+    >>> lfi.close()
+    >>> with TestIO():
+    ...     with open('test.log', 'r') as logfile:
+    ...         print(logfile.read())
+    error: a message
+    error: another message
+    <BLANKLINE>
+
+    The class member `style2infotype2string` defines the currently
+    available log styles.
+    """
+
+    style2infotype2string = {
+        'plain': {'info': '',
+                  'warning': '',
+                  'exception': ''},
+        'prefixed': {'info': 'info: ',
+                     'warning': 'warning: ',
+                     'exception': 'error: '}}
+
+    def __init__(self, logfile: IO, logstyle: str, infotype: str):
+        self.logfile = logfile
+        try:
+            stdtype2string = self.style2infotype2string[logstyle]
+        except KeyError:
+            styles = objecttools.enumeration(
+                sorted(self.style2infotype2string.keys()))
+            raise ValueError(
+                f'The given log file style {logstyle} is not available.  '
+                f'Please choose one of the following: {styles}.')
+        self._string = stdtype2string[infotype]
+
+    def write(self, string):
+        self.logfile.write('\n'.join(
+            f'{self._string}{substring}' if substring else ''
+            for substring in string.split('\n')))
+
+    def __getattr__(self, name):
+        return getattr(self.logfile, name)
 
 
 def parse_argument(string):

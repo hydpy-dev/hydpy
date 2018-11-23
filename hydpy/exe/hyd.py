@@ -156,6 +156,41 @@ Start to execute the commands ["logfile.write('it_works')"] \
 for testing purposes.
 it works
 
+To report the importance level of individual log messages, use the
+optional `logstyle` keyword argument:
+
+>>> execute(f"hyd.py "    # doctest: +ELLIPSIS
+...         f"exec_commands "
+...         f"print{esc}({esc}'it_works{esc}'{esc}){esc};"
+...         f"import_warnings{esc};"
+...         f"warnings.warn{esc}({esc}'it_stumbles{esc}'{esc}){esc};"
+...         f"raise_RuntimeError{esc}({esc}'it_fails{esc}'{esc}) "
+...         f"logstyle=prefixed")
+info: Start to execute the commands ["print('it_works')", 'import_warnings', \
+"warnings.warn('it_stumbles')", "raise_RuntimeError('it_fails')"] for \
+testing purposes.
+info: it works
+warning: ...UserWarning: it stumbles
+warning:   # -*- coding: utf-8 -*-
+error: Invoking hyd.py with arguments ...hyd.py, exec_commands, \
+print('it_works');import_warnings;warnings.warn('it_stumbles');\
+raise_RuntimeError('it_fails'), logstyle=prefixed` resulted in \
+the following error:
+error: it fails
+<BLANKLINE>
+
+So far, only `prefixed` and the default style `plain` are implemented:
+
+>>> execute(f"hyd.py "    # doctest: +ELLIPSIS
+...         f"exec_commands "
+...         f"None "
+...         f"logstyle=missing")
+Invoking hyd.py with arguments `...hyd.py, exec_commands, None, \
+logstyle=missing` resulted in the following error:
+The given log file style missing is not available.  Please choose one \
+of the following: plain and prefixed.
+<BLANKLINE>
+
 See the documentation on module |xmltools| for an actually successful
 example using the "script function" |exec_xml|.
 """

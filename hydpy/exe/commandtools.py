@@ -4,6 +4,7 @@ your command line tools via script |hyd|."""
 # import...
 # ...from standard library
 from typing import IO
+import contextlib
 import datetime
 import inspect
 import os
@@ -156,19 +157,26 @@ def execute_scriptfunction():
                 f'Function `{funcname}` requires `{nmb_args_required:d}` '
                 f'positional arguments{enum_args_required}, but '
                 f'`{nmb_args_given:d}` are given{enum_args_given}.')
-        stdout = sys.stdout
-        try:
-            with open(logfilepath, 'a') as logfile:
-                sys.stdout = logfile
-                func(*args_given, **kwargs_given, logfile=logfile)
-        finally:
-            sys.stdout = stdout
+        with open_logfile(logfilepath) as logfile:
+            func(*args_given, **kwargs_given, logfile=logfile)
     except BaseException as exc:
         with open(logfilepath, 'a') as logfile:
             arguments = ', '.join(sys.argv)
             logfile.write(
                 f'Invoking hyd.py with arguments `{arguments}` '
                 f'resulted in the following error:\n{str(exc)}\n')
+
+
+@contextlib.contextmanager
+def open_logfile(logfilepath):
+    try:
+        with open(logfilepath, 'a') as logfile:
+            sys.stdout = logfile
+            sys.stderr = logfile
+            yield logfile
+    finally:
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
 
 
 def parse_argument(string):

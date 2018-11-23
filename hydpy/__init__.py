@@ -98,13 +98,6 @@ pub.config = configutils.Config()
 dummies = dummytools.Dummies()   # pylint: disable=invalid-name
 
 
-def customwarn(message, category, filename, lineno, file=None, line=None):
-    """Redirect warnings to `stdout`."""
-    sys.stdout.write(warnings.formatwarning(
-        message, category, filename, lineno))   # pragma: no cover
-
-
-warnings.showwarning = customwarn
 warnings.filterwarnings('always', category=HydPyDeprecationWarning)
 warnings.filterwarnings('ignore', r'All-NaN (slice|axis) encountered')
 warnings.filterwarnings('ignore', r'Using or importing the ABCs from')

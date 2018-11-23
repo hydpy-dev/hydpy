@@ -6,7 +6,7 @@
 from hydpy import pub
 from hydpy.core import autodoctools
 from hydpy.core import objecttools
-from hydpy.exe import hyd
+from hydpy.exe import commandtools
 
 
 def xml_replace(filename, *, logfile=None, **replacements):
@@ -153,7 +153,7 @@ for marker `e4`.
     own_logfile = False
     if logfile is None:
         own_logfile = True
-        logfilename = hyd.prepare_logfile()
+        logfilename = commandtools.prepare_logfile()
         logfile = open(logfilename, 'w')
     try:
         keywords = set(replacements.keys())

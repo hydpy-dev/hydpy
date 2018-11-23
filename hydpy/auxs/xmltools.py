@@ -194,7 +194,7 @@ def exec_xml(projectname: str, *, logfile: IO):
     >>> from hydpy.core.examples import prepare_full_example_1
     >>> prepare_full_example_1()
     >>> from hydpy.auxs.xmltools import exec_xml
-    >>> from hydpy.exe.hyd import prepare_logfile
+    >>> from hydpy.exe.commandtools import prepare_logfile
     >>> from hydpy.core.testtools import mock_datetime_now
     >>> from datetime import datetime
     >>> import numpy

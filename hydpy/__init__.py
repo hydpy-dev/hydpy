@@ -87,8 +87,8 @@ from hydpy.auxs.statstools import nse
 from hydpy.auxs.statstools import prepare_arrays
 from hydpy.auxs.statstools import std_ratio
 from hydpy.auxs.xmltools import XMLInterface
-from hydpy.exe.hyd import execute_scriptfunction
-from hydpy.exe.hyd import print_latest_logfile
+from hydpy.exe.commandtools import execute_scriptfunction
+from hydpy.exe.commandtools import print_latest_logfile
 from hydpy.exe.replacetools import xml_replace
 
 

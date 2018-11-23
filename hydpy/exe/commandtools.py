@@ -73,9 +73,11 @@ def print_latest_logfile(dirpath='.'):
         print(logfile.read())
 
 
-def prepare_logfile():
-    """Prepare an empty log file and return its absolute path with a
-    filename containing the actual date and time.
+def prepare_logfile(filename=None):
+    """Prepare an empty log file and return its absolute path.
+
+    If not given, |prepare_logfile| generates a filename containing
+    the actual date and time:
 
     >>> from hydpy.exe.commandtools import prepare_logfile
     >>> from hydpy import repr_, TestIO
@@ -89,9 +91,20 @@ def prepare_logfile():
     True
     >>> repr_(filepath)    # doctest: +ELLIPSIS
     '...hydpy/tests/iotesting/hydpy_2000-01-01_12-30-00.log'
+
+    To given filenames,  |prepare_logfile| does not add any date or time
+    information:
+    >>> with TestIO():
+    ...     with mock_datetime_now(datetime(2000, 1, 1, 12, 30, 0)):
+    ...         filepath = prepare_logfile('my_log_file.txt')
+    >>> os.path.exists(filepath)
+    True
+    >>> repr_(filepath)    # doctest: +ELLIPSIS
+    '...hydpy/tests/iotesting/my_log_file.txt'
     """
-    filename = datetime.datetime.now().strftime(
-        'hydpy_%Y-%m-%d_%H-%M-%S.log')
+    if filename is None:
+        filename = datetime.datetime.now().strftime(
+            'hydpy_%Y-%m-%d_%H-%M-%S.log')
     with open(filename, 'w'):
         pass
     return os.path.abspath(filename)
@@ -104,13 +117,21 @@ def execute_scriptfunction():
     explained in the documentation on module |hyd|.  We repeat
     these examples here for measuring code coverage:
     """
-    logfilepath = prepare_logfile()
     try:
+        args_given = []
+        kwargs_given = {}
+        for arg in sys.argv[1:]:
+            try:
+                key, value = parse_argument(arg)
+                kwargs_given[key] = value
+            except ValueError:
+                args_given.append(arg)
+        logfilepath = prepare_logfile(kwargs_given.pop('logfile', None))
         try:
-            funcname = sys.argv[1]
+            funcname = str(args_given.pop(0))
         except IndexError:
             raise ValueError(
-                'The first argument defining the function '
+                'The first positional argument defining the function '
                 'to be called is missing.')
         try:
             func = pub.scriptfunctions[funcname]
@@ -121,17 +142,6 @@ def execute_scriptfunction():
                 f'{objecttools.enumeration(pub.scriptfunctions.keys())}')
         args_required = inspect.getfullargspec(func).args
         nmb_args_required = len(args_required)
-        args_given = []
-        kwargs_given = {}
-        for idx, arg in enumerate(sys.argv[2:]):
-            if idx < nmb_args_required:
-                args_given.append(arg)
-            else:
-                try:
-                    key, value = parse_argument(arg)
-                    kwargs_given[key] = value
-                except ValueError:
-                    args_given.append(arg)
         nmb_args_given = len(args_given)
         if nmb_args_given != nmb_args_required:
             enum_args_given = ''

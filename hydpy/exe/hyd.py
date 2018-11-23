@@ -26,7 +26,7 @@ FileNotFoundError: Cannot find a HydPy log file in directory ...iotesting.
 ...     _ = subprocess.run("hyd.py", shell=True)
 ...     print_latest_logfile()    # doctest: +ELLIPSIS
 Invoking hyd.py with arguments `...hyd.py` resulted in the following error:
-The first argument defining the function to be called is missing.
+The first positional argument defining the function to be called is missing.
 <BLANKLINE>
 
 If this test example does not work on your machine, you should first make sure
@@ -48,10 +48,22 @@ folder as an argument:
 ...     _ = subprocess.run(command, shell=True)
 ...     print_latest_logfile()    # doctest: +ELLIPSIS
 Invoking hyd.py with arguments `...hyd.py` resulted in the following error:
-The first argument defining the function to be called is missing.
+The first positional argument defining the function to be called is missing.
 <BLANKLINE>
 
-For convenience, we wrap the three required code lines test function "execute":
+You are free to choose different log file names:
+
+>>> with TestIO():
+...     _ = subprocess.run("hyd.py logfile=my_log_file.txt", shell=True)
+...     with open('my_log_file.txt') as logfile:
+...         print(logfile.read())    # doctest: +ELLIPSIS
+Invoking hyd.py with arguments `...hyd.py, logfile=my_log_file.txt` resulted \
+in the following error:
+The first positional argument defining the function to be called is missing.
+<BLANKLINE>
+
+For convenience, we define the function `execute` to shorten the following
+examples:
 
 >>> def execute(command):
 ...     with TestIO():
@@ -62,7 +74,7 @@ Without any further arguments, `hyd.py` does not know which function to call:
 
 >>> execute("hyd.py")    # doctest: +ELLIPSIS
 Invoking hyd.py with arguments `...hyd.py` resulted in the following error:
-The first argument defining the function to be called is missing.
+The first positional argument defining the function to be called is missing.
 <BLANKLINE>
 
 The first additional argument must be an available "script function":
@@ -102,11 +114,10 @@ the characters "(", ")", ";", and "'" in the following)
 >>> esc = '' if 'windows' in platform.platform().lower() else '\\\\'
 >>> execute(f"hyd.py "
 ...         f"exec_commands "
-...         f"z=x+y{esc};"
-...         f"print{esc}(z{esc}) "
+...         f"print{esc}(x+y{esc}) "
 ...         f"x={esc}'2{esc}' "
 ...         f"y={esc}'=1+1{esc}'")
-Start to execute the commands ['z=x+y', 'print(z)'] for testing purposes.
+Start to execute the commands ['print(x+y)'] for testing purposes.
 2=1+1
 <BLANKLINE>
 

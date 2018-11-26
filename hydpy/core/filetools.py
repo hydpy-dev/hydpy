@@ -157,7 +157,7 @@ class FileManager(object):
     network, control, condition, and time series files.  Generally,
     it is `projectdir/BASEDIR/currentdir/`; concretely, taking
     the (default) network working directory of example project
-    `LahnHBV` as an example, it is `LahnHBV/network/default`.
+    `LahnH` as an example, it is `LahnH/network/default`.
     """
 
     BASEDIR: str
@@ -175,8 +175,8 @@ class FileManager(object):
     def projectdir(self) -> str:
         """The name of the main folder of a project.
 
-        For the `LahnHBV` example project, |FileManager.projectdir| is
-        (not surprisingly) `LahnHBV`, and is queried from the |pub| module.
+        For the `LahnH` example project, |FileManager.projectdir| is
+        (not surprisingly) `LahnH`, and is queried from the |pub| module.
         However, you can define or change |FileManager.projectdir|
         interactively, which can be usefull for more complex tasks like
         copying (parts of) projects:
@@ -621,7 +621,7 @@ class NetworkManager(FileManager):
     The general handling of (the folder structure) of class |NetworkManager|
     is explained by the documentation on its parent class |FileManager|.
     The following examples deal with reading, writing, and removing
-    network files.  For this purpose, we prepare example project `LahnHBV`
+    network files.  For this purpose, we prepare example project `LahnH`
     in the `iotesting` directory by calling function |prepare_full_example_1|:
 
     >>> from hydpy.core.examples import prepare_full_example_1
@@ -640,7 +640,7 @@ class NetworkManager(FileManager):
     >>> networkmanager = NetworkManager()
     >>> from hydpy import TestIO
     >>> with TestIO():
-    ...     networkmanager.projectdir = 'LahnHBV'
+    ...     networkmanager.projectdir = 'LahnH'
     ...     selections = networkmanager.load_files()
 
     File names are taken as selection names (without file endings).
@@ -667,7 +667,7 @@ class NetworkManager(FileManager):
     >>> with TestIO():
     ...     networkmanager.currentdir = 'testdir'
     ...     networkmanager.save_files(selections)
-    ...     sorted(os.listdir('LahnHBV/network/testdir'))
+    ...     sorted(os.listdir('LahnH/network/testdir'))
     ['headwaters.py', 'nonheadwaters.py', 'streams.py']
 
     >>> with TestIO():
@@ -677,7 +677,7 @@ class NetworkManager(FileManager):
     >>> selections -= selections.streams
     >>> with TestIO():
     ...     networkmanager.delete_files(selections)
-    ...     sorted(os.listdir('LahnHBV/network/testdir'))
+    ...     sorted(os.listdir('LahnH/network/testdir'))
     ['streams.py']
 
     >>> with TestIO():
@@ -688,7 +688,7 @@ class NetworkManager(FileManager):
 `['headwaters']`, the following error occurred: ...
 
     >>> with TestIO():
-    ...     with open('LahnHBV/network/testdir/streams.py', 'w') as wrongfile:
+    ...     with open('LahnH/network/testdir/streams.py', 'w') as wrongfile:
     ...         _ = wrongfile.write('x = y')
     ...     networkmanager.load_files()   # doctest: +ELLIPSIS
     Traceback (most recent call last):
@@ -697,7 +697,7 @@ class NetworkManager(FileManager):
 following error occurred: name 'y' is not defined
 
     >>> with TestIO():
-    ...     with open('LahnHBV/network/testdir/streams.py', 'w') as wrongfile:
+    ...     with open('LahnH/network/testdir/streams.py', 'w') as wrongfile:
     ...         _ = wrongfile.write('from hydpy import Node')
     ...     networkmanager.load_files()   # doctest: +ELLIPSIS
     Traceback (most recent call last):
@@ -706,7 +706,7 @@ following error occurred: name 'y' is not defined
 `...streams.py`.
 
     >>> with TestIO():
-    ...     with open('LahnHBV/network/testdir/streams.py', 'w') as wrongfile:
+    ...     with open('LahnH/network/testdir/streams.py', 'w') as wrongfile:
     ...         _ = wrongfile.write('from hydpy import Element')
     ...     networkmanager.load_files()   # doctest: +ELLIPSIS
     Traceback (most recent call last):
@@ -716,7 +716,7 @@ following error occurred: name 'y' is not defined
 
     >>> import shutil
     >>> with TestIO():
-    ...     shutil.rmtree('LahnHBV/network/testdir')
+    ...     shutil.rmtree('LahnH/network/testdir')
     ...     networkmanager.save_files(selections)   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...

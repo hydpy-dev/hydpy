@@ -2,10 +2,6 @@
 """This module provides features for executing HydPy workflows based on
 XML configuration files.
 
->>> from hydpy import pub
->>> pub.options.printprogress = False
->>> pub.options.reprdigits = 6
-
 .. _HydPy release: https://github.com/hydpy-dev/hydpy/releases
 
 At the heart of module |xmltools| lies function |run_simulation|, which is
@@ -13,7 +9,7 @@ thought to be applied via a command line (see the documentation
 on script |hyd| for further information).  |run_simulation| expects that
 the HydPy project you want to work with is available in your current
 working directory and contains an XML configuration file (as `config.xml`
- in the example project folder `LahnHBV`).  This configuration file
+in the example project folder `LahnH`).  This configuration file
 must agree with the XML schema file `config.xsd`, which is available
 in the :ref:`configuration` subpackage and also downloadable for each
 `HydPy release`_.  In case you did implement new or changed existing
@@ -21,7 +17,7 @@ models, you have to update this schema file.  *HydPy* does this automatically
 through its setup mechanism (see the documentation on class |XSDWriter|).
 
 To show how to apply |run_simulation| via a command line, we first
-copy the `LahnHBV` project into the `iotesting` folder via calling
+copy the `LahnH` project into the `iotesting` folder via calling
 function |prepare_full_example_1|:
 
 >>> from hydpy.core.examples import prepare_full_example_1
@@ -29,7 +25,7 @@ function |prepare_full_example_1|:
 
 Running the simulation requires defining the main script (`hyd.py`),
 the function specifying the actual workflow (`run_simulation`), the
-name of the project of interest (`LahnHBV`), and the name of the
+name of the project of interest (`LahnH`), and the name of the
 relevant XMK configuration file (`config.xml`).  To simulate using
 the command line, we pass the required text to function |subprocess.call|
 of module |subprocess|.  Printing the content of the resulting log
@@ -39,9 +35,9 @@ file confirms that something happened:
 >>> import subprocess
 >>> with TestIO():
 ...     _ = subprocess.run(
-...         'hyd.py run_simulation LahnHBV config.xml', shell=True)
+...         'hyd.py run_simulation LahnH config.xml', shell=True)
 ...     print_latest_logfile()    # doctest: +ELLIPSIS
-Start HydPy project `LahnHBV` (...).
+Start HydPy project `LahnH` (...).
 Read configuration file `config.xml` (...).
 Interpret the defined options (...).
 Interpret the defined period (...).
@@ -62,9 +58,9 @@ sequence |hland_states.SM| for the 12 hydrological response units of the
 subcatchment `land_dill`:
 
 >>> with TestIO():
-...     with open('LahnHBV/conditions/init_1996_01_01/land_dill.py') as file_:
+...     with open('LahnH/conditions/init_1996_01_01/land_dill.py') as file_:
 ...         print(''.join(file_.readlines()[10:12]))
-...     with open('LahnHBV/conditions/init_1996_01_06/land_dill.py') as file_:
+...     with open('LahnH/conditions/init_1996_01_06/land_dill.py') as file_:
 ...         print(''.join(file_.readlines()[9:11]))
 sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
    222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
@@ -80,7 +76,7 @@ The intermediate soil moisture values are stored in a NetCDF file called
 >>> from hydpy import print_values
 >>> from hydpy.core.netcdftools import netcdf4, chars2str, query_variable
 >>> with TestIO():
-...     ncfile = netcdf4.Dataset('LahnHBV/series/output/hland_v1_state_sm.nc')
+...     ncfile = netcdf4.Dataset('LahnH/series/output/hland_v1_state_sm.nc')
 ...     chars2str(query_variable(ncfile, 'station_id'))[:3]
 ...     print_values(query_variable(ncfile, 'state_sm')[0, :])
 ['land_dill_0', 'land_dill_1', 'land_dill_2']
@@ -92,7 +88,7 @@ the suffix `_mean`:
 
 >>> with TestIO(clear_all=True):
 ...     print_values((numpy.load(
-...         'LahnHBV/series/output/lahn_1_sim_q_mean.npy')[13:]))
+...         'LahnH/series/output/lahn_1_sim_q_mean.npy')[13:]))
 9.621296, 8.503069, 7.774927, 7.34503, 7.15879
 """
 # import...
@@ -131,7 +127,7 @@ def find(root, name) -> ElementTree.Element:
 
     >>> from hydpy.auxs.xmltools import XMLInterface
     >>> from hydpy import data
-    >>> înterface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
+    >>> înterface = XMLInterface(data.get_path('LahnH', 'config.xml'))
     >>> find(înterface.root, 'timegrid').tag.endswith('timegrid')
     True
     """
@@ -245,7 +241,7 @@ class XMLBase(object):
 
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
+        >>> interface = XMLInterface(data.get_path('LahnH', 'config.xml'))
         >>> interface.find('timegrid').tag.endswith('timegrid')
         True
         """
@@ -258,7 +254,7 @@ class XMLInterface(XMLBase):
 
     >>> from hydpy.auxs.xmltools import XMLInterface
     >>> from hydpy import data
-    >>> _ = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
+    >>> _ = XMLInterface(data.get_path('LahnH', 'config.xml'))
     >>> XMLInterface('wrongfilepath.xml')    # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
@@ -290,9 +286,9 @@ file ...wrongfilepath.xml, the following error occurred: \
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> import os
         >>> with TestIO():
-        ...     xml_replace('LahnHBV/config',
+        ...     xml_replace('LahnH/config',
         ...                 firstdate='1996-01-32T00:00:00')
-        ...     interface = XMLInterface('LahnHBV/config.xml')
+        ...     interface = XMLInterface('LahnH/config.xml')
         >>> interface.validate_xml()    # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
@@ -316,7 +312,7 @@ of the atomic type 'xs:dateTime'. (<string>, line 0)
 
         >>> from hydpy.auxs.xmltools import XMLInterface, pub
         >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
+        >>> interface = XMLInterface(data.get_path('LahnH', 'config.xml'))
         >>> pub.options.printprogress = True
         >>> pub.options.printincolor = True
         >>> pub.options.reprdigits = -1
@@ -367,14 +363,14 @@ of the atomic type 'xs:dateTime'. (<string>, line 0)
 
         Usually, one would prefer to define `firstdate`, `lastdate`, and
         `stepsize` elements as in the XML configuration file of the
-        `LahnHBV` example project:
+        `LahnH` example project:
 
         >>> from hydpy.core.examples import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, pub, TestIO
         >>> from hydpy.auxs.xmltools import XMLInterface
 
-        >>> hp = HydPy('LahnHBV')
+        >>> hp = HydPy('LahnH')
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     XMLInterface().update_timegrids()
@@ -387,14 +383,14 @@ of the atomic type 'xs:dateTime'. (<string>, line 0)
         which must be a valid NetCDF file.  The |XMLInterface| object
         then interprets the file's time information:
 
-        >>> name = 'LahnHBV/series/input/hland_v1_input_p.nc'
+        >>> name = 'LahnH/series/input/hland_v1_input_p.nc'
         >>> with TestIO():
-        ...     with open('LahnHBV/config.xml') as file_:
+        ...     with open('LahnH/config.xml') as file_:
         ...         lines = file_.readlines()
         ...     for idx, line in enumerate(lines):
         ...         if '<timegrid>' in line:
         ...             break
-        ...     with open('LahnHBV/config.xml', 'w') as file_:
+        ...     with open('LahnH/config.xml', 'w') as file_:
         ...         _ = file_.write(''.join(lines[:idx+1]))
         ...         _ = file_.write(
         ...             f'        <seriesfile>{name}</seriesfile>\\n')
@@ -425,7 +421,7 @@ of the atomic type 'xs:dateTime'. (<string>, line 0)
         >>> prepare_full_example_1()
 
         >>> from hydpy import HydPy, TestIO, XMLInterface
-        >>> hp = HydPy('LahnHBV')
+        >>> hp = HydPy('LahnH')
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     interface = XMLInterface()
@@ -458,7 +454,7 @@ a `Selection` object.
         >>> prepare_full_example_1()
 
         >>> from hydpy import HydPy, TestIO, XMLInterface
-        >>> hp = HydPy('LahnHBV')
+        >>> hp = HydPy('LahnH')
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     interface = XMLInterface()
@@ -486,7 +482,7 @@ a name or keyword.
         >>> prepare_full_example_1()
 
         >>> from hydpy import HydPy, TestIO, XMLInterface
-        >>> hp = HydPy('LahnHBV')
+        >>> hp = HydPy('LahnH')
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     interface = XMLInterface()
@@ -517,7 +513,7 @@ a name or keyword.
         >>> prepare_full_example_1()
 
         >>> from hydpy import HydPy, TestIO, XMLInterface
-        >>> hp = HydPy('LahnHBV')
+        >>> hp = HydPy('LahnH')
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     interface = XMLInterface()
@@ -540,7 +536,7 @@ a name or keyword.
 
         >>> from hydpy.auxs.xmltools import XMLInterface, strip
         >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
+        >>> interface = XMLInterface(data.get_path('LahnH', 'config.xml'))
         >>> strip(interface.series_io.root.tag)
         'series_io'
         """
@@ -552,7 +548,7 @@ a name or keyword.
 
         >>> from hydpy.auxs.xmltools import XMLInterface, strip
         >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
+        >>> interface = XMLInterface(data.get_path('LahnH', 'config.xml'))
         >>> strip(interface.series_io.root.tag)
         'series_io'
         """
@@ -575,7 +571,7 @@ class XMLConditions(XMLBase):
         >>> prepare_full_example_1()
 
         >>> from hydpy import HydPy, TestIO, XMLInterface
-        >>> hp = HydPy('LahnHBV')
+        >>> hp = HydPy('LahnH')
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     hp.init_models()
@@ -601,7 +597,7 @@ class XMLConditions(XMLBase):
 
         >>> import os
         >>> from hydpy import HydPy, TestIO, XMLInterface, pub
-        >>> hp = HydPy('LahnHBV')
+        >>> hp = HydPy('LahnH')
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     hp.init_models()
@@ -610,7 +606,7 @@ class XMLConditions(XMLBase):
         ...     interface.update_timegrids()
         ...     interface.find('selections').text = 'headwaters'
         ...     interface.conditions_io.save_conditions()
-        ...     dirpath = 'LahnHBV/conditions/init_1996_01_06'
+        ...     dirpath = 'LahnH/conditions/init_1996_01_06'
         ...     with open(os.path.join(dirpath, 'land_dill.py')) as file_:
         ...         print(file_.readlines()[11].strip())
         ...     os.path.exists(os.path.join(dirpath, 'land_lahn_2.py'))
@@ -639,7 +635,7 @@ class XMLSeries(XMLBase):
 
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
+        >>> interface = XMLInterface(data.get_path('LahnH', 'config.xml'))
         >>> for reader in interface.series_io.readers:
         ...     print(reader.info)
         all input data
@@ -652,7 +648,7 @@ class XMLSeries(XMLBase):
 
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
+        >>> interface = XMLInterface(data.get_path('LahnH', 'config.xml'))
         >>> for writer in interface.series_io.writers:
         ...     print(writer.info)
         precipitation
@@ -667,7 +663,7 @@ class XMLSeries(XMLBase):
 
         >>> from hydpy.auxs.xmltools import XMLInterface, XMLSubseries
         >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
+        >>> interface = XMLInterface(data.get_path('LahnH', 'config.xml'))
         >>> series_io = interface.series_io
         >>> from unittest import mock
         >>> prepare_series = XMLSubseries.prepare_series
@@ -729,7 +725,7 @@ class XMLSubseries(XMLBase):
         >>> prepare_full_example_1()
 
         >>> from hydpy import HydPy, TestIO, XMLInterface, pub
-        >>> hp = HydPy('LahnHBV')
+        >>> hp = HydPy('LahnH')
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     interface = XMLInterface()
@@ -757,7 +753,7 @@ class XMLSubseries(XMLBase):
         >>> pub.sequencemanager.inputoverwrite
         True
         >>> pub.sequencemanager.inputdirpath
-        'LahnHBV/series/input'
+        'LahnH/series/input'
         """
         for config, convert in (
                 ('filetype', lambda x: x),
@@ -789,7 +785,7 @@ class XMLSubseries(XMLBase):
 
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
+        >>> interface = XMLInterface(data.get_path('LahnH', 'config.xml'))
         >>> series_io = interface.series_io
         >>> model2subs2seqs = series_io.writers[2].model2subs2seqs
         >>> for model, subs2seqs in sorted(model2subs2seqs.items()):
@@ -819,7 +815,7 @@ class XMLSubseries(XMLBase):
 
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnHBV', 'config.xml'))
+        >>> interface = XMLInterface(data.get_path('LahnH', 'config.xml'))
         >>> series_io = interface.series_io
         >>> subs2seqs = series_io.writers[2].subs2seqs
         >>> for subs, seq in sorted(subs2seqs.items()):
@@ -846,7 +842,7 @@ class XMLSubseries(XMLBase):
         >>> prepare_full_example_1()
 
         >>> from hydpy import HydPy, TestIO, XMLInterface
-        >>> hp = HydPy('LahnHBV')
+        >>> hp = HydPy('LahnH')
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     hp.init_models()
@@ -876,7 +872,7 @@ class XMLSubseries(XMLBase):
         >>> prepare_full_example_1()
 
         >>> from hydpy import HydPy, TestIO, XMLInterface
-        >>> hp = HydPy('LahnHBV')
+        >>> hp = HydPy('LahnH')
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     interface = XMLInterface()
@@ -915,7 +911,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         >>> prepare_full_example_1()
 
         >>> from hydpy import HydPy, TestIO, XMLInterface
-        >>> hp = HydPy('LahnHBV')
+        >>> hp = HydPy('LahnH')
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     interface = XMLInterface()
@@ -936,7 +932,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         >>> prepare_full_example_1()
 
         >>> from hydpy import HydPy, TestIO, XMLInterface
-        >>> hp = HydPy('LahnHBV')
+        >>> hp = HydPy('LahnH')
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     interface = XMLInterface()
@@ -978,7 +974,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         >>> prepare_full_example_1()
 
         >>> from hydpy import HydPy, TestIO, XMLInterface
-        >>> hp = HydPy('LahnHBV')
+        >>> hp = HydPy('LahnH')
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     hp.init_models()
@@ -1016,7 +1012,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         >>> prepare_full_example_1()
 
         >>> from hydpy import HydPy, TestIO, XMLInterface
-        >>> hp = HydPy('LahnHBV')
+        >>> hp = HydPy('LahnH')
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     hp.init_models()
@@ -1048,7 +1044,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         >>> prepare_full_example_1()
 
         >>> from hydpy import HydPy, TestIO, XMLInterface
-        >>> hp = HydPy('LahnHBV')
+        >>> hp = HydPy('LahnH')
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     hp.init_models()
@@ -1064,13 +1060,13 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         >>> import numpy
         >>> with TestIO():
         ...     os.path.exists(
-        ...         'LahnHBV/series/output/land_lahn_2_flux_pc.npy')
+        ...         'LahnH/series/output/land_lahn_2_flux_pc.npy')
         ...     os.path.exists(
-        ...         'LahnHBV/series/output/land_lahn_3_flux_pc.npy')
+        ...         'LahnH/series/output/land_lahn_3_flux_pc.npy')
         ...     numpy.load(
-        ...         'LahnHBV/series/output/land_dill_flux_pc.npy')[13+2, 3]
+        ...         'LahnH/series/output/land_dill_flux_pc.npy')[13+2, 3]
         ...     numpy.load(
-        ...         'LahnHBV/series/output/lahn_2_sim_q_mean.npy')[13+4]
+        ...         'LahnH/series/output/lahn_2_sim_q_mean.npy')[13+4]
         True
         False
         9.0
@@ -1106,12 +1102,12 @@ class XSDWriter(object):
 
         The following example shows that after writing a new schema file,
         method |XMLInterface.validate_xml| does not raise an error when
-        applied on the XML configuration file of the `LahnHBV` example
+        applied on the XML configuration file of the `LahnH` example
         project:
 
         >>> from hydpy.auxs.xmltools import XSDWriter, XMLInterface
         >>> from hydpy import data
-        >>> xmlpath = data.get_path('LahnHBV', 'config.xml')
+        >>> xmlpath = data.get_path('LahnH', 'config.xml')
 
         >>> import os
         >>> if os.path.exists(XSDWriter.filepath_target):

@@ -47,10 +47,10 @@
         </overwrite>
 
         <dirpath>
-            <inputs>LahnHBV/series/input</inputs>
-            <fluxes>LahnHBV/series/output</fluxes>
-            <states>LahnHBV/series/output</states>
-            <nodes>LahnHBV/series/node</nodes>
+            <inputs>LahnH/series/input</inputs>
+            <fluxes>LahnH/series/output</fluxes>
+            <states>LahnH/series/output</states>
+            <nodes>LahnH/series/node</nodes>
         </dirpath>
 
         <aggregation>
@@ -150,7 +150,7 @@
                     </hstream_v1>
                 </sequences>
                 <dirpath>
-                    <nodes>LahnHBV/series/output</nodes>
+                    <nodes>LahnH/series/output</nodes>
                 </dirpath>
                 <aggregation>
                     <general>mean</general>

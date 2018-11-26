@@ -8,7 +8,7 @@
 >>> import subprocess, time
 >>> with TestIO():
 ...     process = subprocess.Popen(
-...         'hyd.py start_server 8080 LahnHBV', shell=True)
+...         'hyd.py start_server 8080 LahnH', shell=True)
 
 >>> from urllib import request
 >>> with TestIO():

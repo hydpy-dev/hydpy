@@ -733,29 +733,30 @@ def autodoc_module(__test__=None):
     """
     module = inspect.getmodule(_get_frame_of_calling_module())
     doc = getattr(module, '__doc__', '')
-    lines = ['\n\nModule :mod:`~%s` implements the following members:\n'
-             % module.__name__]
     members = []
     for (name, member) in inspect.getmembers(module):
         if ((not name.startswith('_')) and
                 (inspect.getmodule(member) is module)):
             members.append((name, member))
     members = sorted(members, key=_number_of_line)
-    for (name, member) in members:
-        if inspect.isfunction(member):
-            type_ = 'func'
-        elif inspect.isclass(member):
-            type_ = 'class'
-            if __test__ is not None:
-                for subname, submember in vars(member).items():
-                    if 'Property' in str(type(submember)):
-                        # ToDo: use isinstance instead?
-                        __test__[f'{name}.{subname}'] = submember.__doc__
-        else:
-            type_ = 'obj'
-        lines.append('      * :%s:`~%s` %s'
-                     % (type_, name, metatools.description(member)))
-    module.__doc__ = doc + '\n\n' + '\n'.join(lines) + '\n\n' + 80*'_'
+    if members:
+        lines = ['\n\nModule :mod:`~%s` implements the following members:\n'
+                 % module.__name__]
+        for (name, member) in members:
+            if inspect.isfunction(member):
+                type_ = 'func'
+            elif inspect.isclass(member):
+                type_ = 'class'
+                if __test__ is not None:
+                    for subname, submember in vars(member).items():
+                        if 'Property' in str(type(submember)):
+                            # ToDo: use isinstance instead?
+                            __test__[f'{name}.{subname}'] = submember.__doc__
+            else:
+                type_ = 'obj'
+            lines.append('      * :%s:`~%s` %s'
+                         % (type_, name, metatools.description(member)))
+        module.__doc__ = doc + '\n\n' + '\n'.join(lines) + '\n\n' + 80*'_'
 
 
 autodoc_module()

@@ -2,6 +2,8 @@
 """This module provides features for executing HydPy workflows based on
 XML configuration files.
 
+.. _HydPy release: https://github.com/hydpy-dev/hydpy/releases
+
 At the heart of module |xmltools| lies function |run_simulation|, which is
 thought to be applied via a command line (see the documentation
 on script |hyd| for further information).  |run_simulation| expects that
@@ -9,10 +11,10 @@ the HydPy project you want to work with is available in your current
 working directory and contains an XML configuration file called `config.xml`
 (as in the example project folder `LahnHBV`).  This configuration file
 must agree with the XML schema file `config.xsd`, which is available
-in the :ref:`configuration` subpackage.  In case you did implement new
-or changed existing models, you have to update this schema file.  HydPy
-does this automatically through its setup mechanism (see the documentation
-on class |XSDWriter|).
+in the :ref:`configuration` subpackage and also downloadable for each
+`HydPy release`_.  In case you did implement new or changed existing
+models, you have to update this schema file.  *HydPy* does this automatically
+through its setup mechanism (see the documentation on class |XSDWriter|).
 
 To show how to apply |run_simulation| via a command line, we first
 copy the `LahnHBV` project into the `iotesting` folder via calling
@@ -111,7 +113,7 @@ from hydpy.core import timetools
 
 
 namespace = \
-    '{https://github.com/hydpy-dev/hydpy/tree/master/hydpy/conf/config.xsd}'
+    '{https://github.com/hydpy-dev/hydpy/releases/tag/v3.0.3/config.xsd}'
 
 
 def find(root, name) -> ElementTree.Element:

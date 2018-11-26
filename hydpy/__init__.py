@@ -87,8 +87,8 @@ from hydpy.auxs.statstools import nse
 from hydpy.auxs.statstools import prepare_arrays
 from hydpy.auxs.statstools import std_ratio
 from hydpy.auxs.xmltools import XMLInterface
-from hydpy.exe.hyd import execute_scriptfunction
-from hydpy.exe.hyd import print_latest_logfile
+from hydpy.exe.commandtools import execute_scriptfunction
+from hydpy.exe.commandtools import print_latest_logfile
 from hydpy.exe.replacetools import xml_replace
 
 
@@ -98,13 +98,6 @@ pub.config = configutils.Config()
 dummies = dummytools.Dummies()   # pylint: disable=invalid-name
 
 
-def customwarn(message, category, filename, lineno, file=None, line=None):
-    """Redirect warnings to `stdout`."""
-    sys.stdout.write(warnings.formatwarning(
-        message, category, filename, lineno))   # pragma: no cover
-
-
-warnings.showwarning = customwarn
 warnings.filterwarnings('always', category=HydPyDeprecationWarning)
 warnings.filterwarnings('ignore', r'All-NaN (slice|axis) encountered')
 warnings.filterwarnings('ignore', r'Using or importing the ABCs from')

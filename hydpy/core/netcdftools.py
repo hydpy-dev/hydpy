@@ -415,7 +415,7 @@ def query_timegrid(ncfile) -> timetools.Timegrid:
     >>> prepare_full_example_1()
     >>> from hydpy import TestIO, netcdf4
     >>> from hydpy.core.netcdftools import query_timegrid
-    >>> filepath = 'LahnHBV/series/input/hland_v1_input_t.nc'
+    >>> filepath = 'LahnH/series/input/hland_v1_input_t.nc'
     >>> with TestIO():
     ...     with netcdf4.Dataset(filepath) as ncfile:
     ...         query_timegrid(ncfile)

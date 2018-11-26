@@ -14,4 +14,5 @@ provides the Runge-Kutta coefficients required by models subclassed from
 
 The XML schema file `config.xsd` is automatically generated based on its
 template file `config.xsdt`, and defines the required and possible
-contents of XML configuration files to be executed with function |exec_xml|.
+contents of XML configuration files to be executed with function
+|run_simulation|.

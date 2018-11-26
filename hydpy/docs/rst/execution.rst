@@ -11,6 +11,7 @@ or with the help of configuration files (|modelimports|).
 .. toctree::
    :hidden:
 
+   commandtools
    hyd
    modelimports
    replacetools

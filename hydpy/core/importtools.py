@@ -262,7 +262,7 @@ def controlcheck(controldir='default', projectdir=None, controlfile=None):
     Function |controlcheck| serves similar purposes as function
     |parameterstep|.  It is the reason why one can interactively
     access the state and/or the log sequences within condition files
-    as `land_dill.py` of the example project `LahnHBV`.  It is called
+    as `land_dill.py` of the example project `LahnH`.  It is called
     `controlcheck` due to its implicite feature to check upon the execution
     of the condition file if eventual specifications within both files
     disagree.  The following test, where we write a number of soil moisture
@@ -276,7 +276,7 @@ def controlcheck(controldir='default', projectdir=None, controlfile=None):
 
     >>> import os, subprocess
     >>> from hydpy import TestIO
-    >>> cwd = os.path.join('LahnHBV', 'conditions', 'init_1996_01_01')
+    >>> cwd = os.path.join('LahnH', 'conditions', 'init_1996_01_01')
     >>> with TestIO():
     ...     os.chdir(cwd)
     ...     with open('land_dill.py') as file_:

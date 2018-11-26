@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<config xmlns="https://github.com/hydpy-dev/hydpy/tree/master/hydpy/conf/config.xsd">
+<config xmlns="https://github.com/hydpy-dev/hydpy/releases/tag/3.1a0/config.xsd">
 
     <options>
         <reprdigits>6</reprdigits>
@@ -15,7 +15,7 @@
     </options>
 
     <timegrid>
-        <firstdate>1996-01-01T00:00:00</firstdate>
+        <firstdate><!--|firstdate=1996-01-01T00:00:00|--></firstdate>
         <lastdate>1996-01-06T00:00:00</lastdate>
         <stepsize>1d</stepsize>
     </timegrid>
@@ -33,9 +33,9 @@
     <conditions_io>
         <inputdir>init_1996_01_01</inputdir>
         <outputdir>init_1996_01_06</outputdir>
-        <zip>false</zip>
+        <zip><!--|zip_=false|--></zip>
     </conditions_io>
-    
+
     <series_io>
 
         <filetype>
@@ -47,17 +47,17 @@
         </overwrite>
 
         <dirpath>
-            <inputs>LahnHBV/series/input</inputs>
-            <fluxes>LahnHBV/series/output</fluxes>
-            <states>LahnHBV/series/output</states>
-            <nodes>LahnHBV/series/node</nodes>
+            <inputs>LahnH/series/input</inputs>
+            <fluxes>LahnH/series/output</fluxes>
+            <states>LahnH/series/output</states>
+            <nodes>LahnH/series/node</nodes>
         </dirpath>
 
         <aggregation>
             <general>none</general>
         </aggregation>
 
-        <zip>false</zip>
+        <zip><!--|zip_=false|--></zip>
 
         <readers>
             <reader info="all input data">
@@ -150,7 +150,7 @@
                     </hstream_v1>
                 </sequences>
                 <dirpath>
-                    <nodes>LahnHBV/series/output</nodes>
+                    <nodes>LahnH/series/output</nodes>
                 </dirpath>
                 <aggregation>
                     <general>mean</general>

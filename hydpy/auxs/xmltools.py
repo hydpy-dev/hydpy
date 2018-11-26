@@ -2,14 +2,18 @@
 """This module provides features for executing HydPy workflows based on
 XML configuration files.
 
+>>> from hydpy import pub
+>>> pub.options.printprogress = False
+>>> pub.options.reprdigits = 6
+
 .. _HydPy release: https://github.com/hydpy-dev/hydpy/releases
 
 At the heart of module |xmltools| lies function |run_simulation|, which is
 thought to be applied via a command line (see the documentation
 on script |hyd| for further information).  |run_simulation| expects that
 the HydPy project you want to work with is available in your current
-working directory and contains an XML configuration file called `config.xml`
-(as in the example project folder `LahnHBV`).  This configuration file
+working directory and contains an XML configuration file (as `config.xml`
+ in the example project folder `LahnHBV`).  This configuration file
 must agree with the XML schema file `config.xsd`, which is available
 in the :ref:`configuration` subpackage and also downloadable for each
 `HydPy release`_.  In case you did implement new or changed existing
@@ -23,17 +27,22 @@ function |prepare_full_example_1|:
 >>> from hydpy.core.examples import prepare_full_example_1
 >>> prepare_full_example_1()
 
-To simulate using the command line, we pass the required text to
-function |subprocess.call| of module |subprocess|.  Printing the content
-of the resulting log file confirms that something happened:
+Running the simulation requires defining the main script (`hyd.py`),
+the function specifying the actual workflow (`run_simulation`), the
+name of the project of interest (`LahnHBV`), and the name of the
+relevant XMK configuration file (`config.xml`).  To simulate using
+the command line, we pass the required text to function |subprocess.call|
+of module |subprocess|.  Printing the content of the resulting log
+file confirms that something happened:
 
 >>> from hydpy import TestIO, print_latest_logfile
 >>> import subprocess
 >>> with TestIO():
-...     _ = subprocess.run('hyd.py run_simulation LahnHBV', shell=True)
+...     _ = subprocess.run(
+...         'hyd.py run_simulation LahnHBV config.xml', shell=True)
 ...     print_latest_logfile()    # doctest: +ELLIPSIS
 Start HydPy project `LahnHBV` (...).
-Read configuration file `conf.xml` (...).
+Read configuration file `config.xml` (...).
 Interpret the defined options (...).
 Interpret the defined period (...).
 Read all network files (...).
@@ -178,7 +187,7 @@ def strip(name) -> str:
     return name.split('}')[-1]
 
 
-def run_simulation(projectname: str, *, logfile: IO):
+def run_simulation(projectname: str, xmlfile: str, *, logfile: IO):
     """Perform a HydPy workflow in agreement with the configuration file
     `conf.xml` available in the directory of the given project.
 
@@ -195,8 +204,8 @@ def run_simulation(projectname: str, *, logfile: IO):
     pub.options.printprogress = False
     write(f'Start HydPy project `{projectname}`')
     hp = hydpytools.HydPy(projectname)
-    write('Read configuration file `conf.xml`')
-    interface = XMLInterface()
+    write(f'Read configuration file `{xmlfile}`')
+    interface = XMLInterface(os.path.join(projectname, xmlfile))
     write('Interpret the defined options')
     interface.update_options()
     pub.options.printprogress = False

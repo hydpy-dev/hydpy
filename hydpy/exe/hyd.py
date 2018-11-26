@@ -83,8 +83,8 @@ The first additional argument must be an available "script function":
 ...         "wrong_argument")    # doctest: +ELLIPSIS
 Invoking hyd.py with arguments `...hyd.py, wrong_argument` resulted in the \
 following error:
-There is no `wrong_argument` function callable by `hyd.py`.  \
-Choose one of the following instead: exec_xml, exec_commands, and xml_replace
+There is no `wrong_argument` function callable by `hyd.py`.  Choose one of \
+the following instead: run_simulation, exec_commands, and xml_replace
 <BLANKLINE>
 
 Further argument requirements depend on the selected "script function":
@@ -192,7 +192,7 @@ of the following: plain and prefixed.
 <BLANKLINE>
 
 See the documentation on module |xmltools| for an actually successful
-example using the "script function" |exec_xml|.
+example using the "script function" |run_simulation|.
 """
 # import...
 # ...from hydpy

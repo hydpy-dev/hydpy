@@ -2,9 +2,9 @@
 """This module provides features for executing HydPy workflows based on
 XML configuration files.
 
-At the heart of module |xmltools| lies function |exec_xml|, which is
+At the heart of module |xmltools| lies function |run_simulation|, which is
 thought to be applied via a command line (see the documentation
-on script |hyd| for further information).  |exec_xml| expects that
+on script |hyd| for further information).  |run_simulation| expects that
 the HydPy project you want to work with is available in your current
 working directory and contains an XML configuration file called `config.xml`
 (as in the example project folder `LahnHBV`).  This configuration file
@@ -14,7 +14,7 @@ or changed existing models, you have to update this schema file.  HydPy
 does this automatically through its setup mechanism (see the documentation
 on class |XSDWriter|).
 
-To show how to apply |exec_xml| via a command line, we first
+To show how to apply |run_simulation| via a command line, we first
 copy the `LahnHBV` project into the `iotesting` folder via calling
 function |prepare_full_example_1|:
 
@@ -28,7 +28,7 @@ of the resulting log file confirms that something happened:
 >>> from hydpy import TestIO, print_latest_logfile
 >>> import subprocess
 >>> with TestIO():
-...     _ = subprocess.run('hyd.py exec_xml LahnHBV', shell=True)
+...     _ = subprocess.run('hyd.py run_simulation LahnHBV', shell=True)
 ...     print_latest_logfile()    # doctest: +ELLIPSIS
 Start HydPy project `LahnHBV` (...).
 Read configuration file `conf.xml` (...).
@@ -176,39 +176,12 @@ def strip(name) -> str:
     return name.split('}')[-1]
 
 
-def exec_xml(projectname: str, *, logfile: IO):
+def run_simulation(projectname: str, *, logfile: IO):
     """Perform a HydPy workflow in agreement with the configuration file
     `conf.xml` available in the directory of the given project.
 
-    Function |exec_xml| is a "script function" and is normally used as
-    explained in the main documentation on module |xmltools|.  The
-    following doctests ensure that calling |exec_xml| directly gives
-    the same results as calling it by the command line and that
-    the log dates are written correctly:
-
-    >>> from hydpy import pub, TestIO, print_latest_logfile, print_values
-    >>> pub.scriptfunctions['exec_xml'].__name__
-    'exec_xml'
-    >>> pub.scriptfunctions['exec_xml'].__module__
-    'hydpy.auxs.xmltools'
-    >>> from hydpy.core.examples import prepare_full_example_1
-    >>> prepare_full_example_1()
-    >>> from hydpy.auxs.xmltools import exec_xml
-    >>> from hydpy.exe.commandtools import prepare_logfile
-    >>> from hydpy.core.testtools import mock_datetime_now
-    >>> from datetime import datetime
-    >>> import numpy
-    >>> with TestIO():    # doctest: +ELLIPSIS
-    ...     with mock_datetime_now(datetime(2000, 1, 1, 12, 30, 0, 123456)):
-    ...         logfilepath = prepare_logfile()
-    ...         with open(logfilepath, 'a') as logfile:
-    ...             exec_xml('LahnHBV', logfile=logfile)
-    ...     print_values((numpy.load(
-    ...         'LahnHBV/series/output/lahn_1_sim_q_mean.npy')[13:]))
-    ...     print_latest_logfile()
-    9.621296, 8.503069, 7.774927, 7.34503, 7.15879
-    Start HydPy project `LahnHBV` (2000-01-01 12:30:00.123456).
-    ...
+    Function |run_simulation| is a "script function" and is normally used as
+    explained in the main documentation on module |xmltools|.
     """
     def write(text):
         """Write the given text eventually."""
@@ -246,7 +219,7 @@ def exec_xml(projectname: str, *, logfile: IO):
     interface.series_io.save_series()
 
 
-pub.scriptfunctions['exec_xml'] = exec_xml
+pub.scriptfunctions['run_simulation'] = run_simulation
 
 
 class XMLBase(object):

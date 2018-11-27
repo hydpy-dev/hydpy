@@ -8,7 +8,8 @@
 >>> import subprocess, time
 >>> with TestIO():
 ...     process = subprocess.Popen(
-...         'hyd.py start_server 8080 LahnH', shell=True)
+...         'hyd.py start_server 8080 LahnH 1996-01-01 1996-01-06 1d',
+...         shell=True)
 
 >>> from urllib import request
 >>> with TestIO():
@@ -47,6 +48,7 @@ import threading
 from hydpy import pub
 from hydpy.core import autodoctools
 from hydpy.core import hydpytools
+from hydpy.core import timetools
 
 
 class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
@@ -93,7 +95,6 @@ class HydPyHTTPServer(http.server.HTTPServer):
         self.hp = hydpytools.HydPy(projectname)
         hp = self.hp
         pub.options.printprogress = False
-        pub.timegrids = '1996-01-01', '1996-01-06', '1d'
         pub.sequencemanager.generalfiletype = 'nc'
         hp.prepare_network()
         hp.init_models()
@@ -105,8 +106,11 @@ class HydPyHTTPServer(http.server.HTTPServer):
         hp.load_conditions()
 
 
-def start_server(socket, projectname, *, logfile=None) -> None:
+def start_server(
+        socket, projectname, firstdate, lastdate, stepsize,
+        *, logfile=None) -> None:
     server = HydPyHTTPServer(('', int(socket)), HydPyHTTPRequestHandler)
+    pub.timegrids = firstdate, lastdate, stepsize
     server.prepare_hydpy(projectname)
     server.serve_forever()
 

@@ -269,7 +269,7 @@ file ...wrongfilepath.xml, the following error occurred: \
     >>> from hydpy.auxs import xmltools
     >>> xmltools.namespace = (
     ...     '{https://github.com/hydpy-dev/hydpy/'
-    ...     'releases/download/v9.9.9/config.xsd}')
+    ...     'releases/download/9.9.9/config.xsd}')
     >>> _ = XMLInterface(data.get_path(
     ...     'LahnH', 'config.xml'))    # doctest: +ELLIPSIS
     Traceback (most recent call last):
@@ -277,9 +277,9 @@ file ...wrongfilepath.xml, the following error occurred: \
     UserWarning: While trying to parse the XML configuration file \
 ...config.xml, the following error occurred: The XML configuration file \
 `...config.xml` does not reference the latest XML schema file \
-`https://github.com/hydpy-dev/hydpy/releases/download/v9.9.9/config.xsd`.  \
+`https://github.com/hydpy-dev/hydpy/releases/download/9.9.9/config.xsd`.  \
 From now on, \
-`https://github.com/hydpy-dev/hydpy/releases/download/v3.0.4/config.xsd` \
+`https://github.com/hydpy-dev/hydpy/releases/download/3.1a0/config.xsd` \
 will be used as the default namespace.
     """
 

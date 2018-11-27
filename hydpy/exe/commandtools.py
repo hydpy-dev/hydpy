@@ -135,11 +135,14 @@ def execute_scriptfunction():
         args_given = []
         kwargs_given = {}
         for arg in sys.argv[1:]:
-            try:
-                key, value = parse_argument(arg)
-                kwargs_given[key] = value
-            except ValueError:
+            if len(arg) < 3:
                 args_given.append(arg)
+            else:
+                try:
+                    key, value = parse_argument(arg)
+                    kwargs_given[key] = value
+                except ValueError:
+                    args_given.append(arg)
         logfilepath = prepare_logfile(kwargs_given.pop('logfile', None))
         logstyle = kwargs_given.pop('logstyle', 'plain')
         try:

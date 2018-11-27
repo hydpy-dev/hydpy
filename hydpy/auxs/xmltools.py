@@ -99,6 +99,7 @@ import copy
 import datetime
 import itertools
 import os
+import warnings
 from xml.etree import ElementTree
 # ...from site-packages
 from hydpy import etree
@@ -118,7 +119,7 @@ from hydpy.core import timetools
 
 
 namespace = \
-    '{https://github.com/hydpy-dev/hydpy/releases/tag/3.1a0/config.xsd}'
+    '{https://github.com/hydpy-dev/hydpy/releases/download/3.1a0/config.xsd}'
 
 
 def find(root, name) -> ElementTree.Element:
@@ -261,7 +262,26 @@ class XMLInterface(XMLBase):
     FileNotFoundError: While trying to parse the XML configuration \
 file ...wrongfilepath.xml, the following error occurred: \
 [Errno 2] No such file or directory: '...wrongfilepath.xml'
-     """
+
+    One can (eventually) work with an XML namespace that does not match
+    the one of the latest XML schema file:
+
+    >>> from hydpy.auxs import xmltools
+    >>> xmltools.namespace = (
+    ...     '{https://github.com/hydpy-dev/hydpy/'
+    ...     'releases/download/v9.9.9/config.xsd}')
+    >>> _ = XMLInterface(data.get_path(
+    ...     'LahnH', 'config.xml'))    # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    UserWarning: While trying to parse the XML configuration file \
+...config.xml, the following error occurred: The XML configuration file \
+`...config.xml` does not reference the latest XML schema file \
+`https://github.com/hydpy-dev/hydpy/releases/download/v9.9.9/config.xsd`.  \
+From now on, \
+`https://github.com/hydpy-dev/hydpy/releases/download/v3.0.4/config.xsd` \
+will be used as the default namespace.
+    """
 
     def __init__(self, filepath=None):
         if filepath is None:
@@ -269,6 +289,16 @@ file ...wrongfilepath.xml, the following error occurred: \
         self.filepath = os.path.abspath(filepath)
         try:
             self.root = ElementTree.parse(self.filepath).getroot()
+            global namespace
+            new_namespace = namespace
+            namespace = self.root.tag.split('}')[0] + '}'
+            if namespace != new_namespace:
+                warnings.warn(
+                    f'The XML configuration file `{self.filepath}` does '
+                    f'not reference the latest XML schema file '
+                    f'`{new_namespace[1:-1]}`.  From now on, '
+                    f'`{namespace[1:-1]}` will be used as the default '
+                    f'namespace.')
         except BaseException:
             objecttools.augment_excmessage(
                 f'While trying to parse the XML configuration file '

@@ -1683,6 +1683,26 @@ or three strings.
     >>> timegrids.init[timegrids.sim.firstdate]
     8760
 
+    You can check two |Timegrids| objects for equality:
+
+    >>> import copy
+    >>> test = copy.deepcopy(timegrids)
+    >>> timegrids == test
+    True
+    >>> test.init.firstdate += '1d'
+    >>> timegrids == test
+    False
+    >>> timegrids != test
+    True
+
+    When comparing with a "wrong" object (which does not provide both
+    an `init` and a `sim` |Timegrid| member), |False| is returned:
+
+    >>> timegrids == 'test'
+    False
+    >>> timegrids != 'test'
+    True
+
     Each manual change should be followed by calling the
     |Timegrids.verify| method, which calls the |Timegrid.verify|
     method of the single |Timegrid| instances and performs some
@@ -1815,6 +1835,13 @@ on the initialization time grid.
               thereof): Time interval, to which the parameter values refer.
         """
         return self.stepsize / Period(stepsize)
+
+    def __eq__(self, other):
+        try:
+            return ((self.init == other.init) and
+                    (self.sim == other.sim))
+        except AttributeError:
+            return False
 
     def __str__(self):
         return 'All timegrids of the actual HydPy project.'

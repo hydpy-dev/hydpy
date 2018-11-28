@@ -33,22 +33,114 @@ land_lahn_1: [ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.]
 land_lahn_2: [ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.]
 land_lahn_3: [ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.]
 
+>>> _ = request.urlopen('http://localhost:8080/close_server')
+>>> process.kill()
+>>> _ = process.communicate()
+
+>>> TestIO.clear()
+>>> from hydpy.core.examples import prepare_full_example_1
+>>> prepare_full_example_1()
+>>> with TestIO():
+...     process = subprocess.Popen(
+...         'hyd.py start_server 8080 LahnH 1996-01-01 1996-01-06 1d',
+...         shell=True)
+
+>>> with TestIO():
+...     print_latest_logfile(wait=10.0)    # doctest: +ELLIPSIS
+<BLANKLINE>
+
+>>> with TestIO():
+...     os.mkdir('workingdir')
+...     dirpath = os.path.abspath('workingdir').encode('utf-8')
+...     with open('workingdir/HydPy.input', 'w') as infile:
+...         _ = infile.write('alpha= [2.0] \\n')
+...         _ = infile.write("refdate= '01 jan 1996' \\n")
+...         _ = infile.write("unit= '1d' \\n")
+...         _ = infile.write('time=[0.0,1.0,5.0] \\n')
+...         _ = infile.write('dill.discharge=[0.0] \\n')
+...         _ = infile.write('lahn_1.discharge=[0.0] \\n')
+
+
+>>> _ = request.urlopen('http://localhost:8080/process_input', data=dirpath)
+
+
+>>> from hydpy import print_values
+>>> with TestIO():
+...     with open('workingdir/HydPy.output') as outfile:
+...         for line in outfile.readlines():
+...             if line.startswith('dill.discharge'):
+...                 values = eval(line.split('=')[1])
+...                 print_values(values)
+35.250827, 7.774062, 5.035808, 4.513706, 4.251594
+
 
 >>> _ = request.urlopen('http://localhost:8080/close_server')
 >>> process.kill()
 >>> _ = process.communicate()
 
+>>> TestIO.clear()
+>>> from hydpy.core.examples import prepare_full_example_1
+>>> prepare_full_example_1()
+>>> with TestIO():
+...     process = subprocess.Popen(
+...         'hyd.py start_server 8080 LahnH 1996-01-01 1996-01-06 1d',
+...         shell=True)
 
+>>> with TestIO():
+...     print_latest_logfile(wait=10.0)    # doctest: +ELLIPSIS
+<BLANKLINE>
+
+>>> with TestIO():
+...     os.mkdir('workingdir')
+...     dirpath = os.path.abspath('workingdir').encode('utf-8')
+...     with open('workingdir/HydPy.input', 'w') as infile:
+...         _ = infile.write('alpha= [2.0] \\n')
+...         _ = infile.write("refdate= '01 jan 1996' \\n")
+...         _ = infile.write("unit= '1d' \\n")
+...         _ = infile.write('time=[0.0,1.0,1.0] \\n')   # ToDo
+...         _ = infile.write('dill.discharge=[0.0] \\n')
+...         _ = infile.write('lahn_1.discharge=[0.0] \\n')
+>>> _ = request.urlopen('http://localhost:8080/process_input', data=dirpath)
+>>> with TestIO():
+...     with open('workingdir/HydPy.output') as outfile:
+...         for line in outfile.readlines():
+...             if line.startswith('dill.discharge'):
+...                 values = eval(line.split('=')[1])
+...                 print_values(values)
+35.250827
+
+>>> with TestIO():
+...     dirpath = os.path.abspath('workingdir').encode('utf-8')
+...     with open('workingdir/HydPy.input', 'w') as infile:
+...         _ = infile.write('alpha= [2.0] \\n')
+...         _ = infile.write("refdate= '01 jan 1996' \\n")
+...         _ = infile.write("unit= '1d' \\n")
+...         _ = infile.write('time=[1.0,1.0,2.0] \\n')   # ToDo
+...         _ = infile.write('dill.discharge=[0.0] \\n')
+...         _ = infile.write('lahn_1.discharge=[0.0] \\n')
+>>> _ = request.urlopen('http://localhost:8080/process_input', data=dirpath)
+>>> with TestIO():
+...     with open('workingdir/HydPy.output') as outfile:
+...         for line in outfile.readlines():
+...             if line.startswith('dill.discharge'):
+...                 values = eval(line.split('=')[1])
+...                 print_values(values)
+7.774062
+
+
+>>> _ = request.urlopen('http://localhost:8080/close_server')
+>>> process.kill()
+>>> _ = process.communicate()
 """
 # import...
 # ...from standard library
 import http.server
+import os
 import threading
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import autodoctools
 from hydpy.core import hydpytools
-from hydpy.core import timetools
 
 
 class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
@@ -74,17 +166,51 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
         self.wfile.write(bytes('\n'.join(results), encoding='utf-8'))
 
     def do_POST(self):
-        content_length = int(self.headers['Content-Length'])
-        post_data = self.rfile.read(content_length)
-        value = float(post_data)
-        name = self.path[1:]
-        for element in self.server.hp.elements:
-            par = getattr(element.model.parameters.control, name, None)
-            if par is not None:
-                par(value)
-        self._set_headers()
-        self.wfile.write(
-            bytes(f'POST request for {self.path}', encoding='utf-8'))
+        try:
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            name = self.path[1:]
+            if name == 'process_input':
+                dirpath = str(post_data, encoding='utf-8')
+                filepath = os.path.join(dirpath, 'HydPy.input')
+                with open(filepath, 'r') as infile:
+                    lines = infile.readlines()
+                    for line in lines:
+                        if line.startswith('alpha'):
+                            alpha = eval(line.split('=')[1])[0]
+                        if line.startswith('time'):
+                            time_ = [int(t) for t in eval(line.split('=')[1])]
+                for element in self.server.hp.elements:
+                    par = getattr(
+                        element.model.parameters.control, 'alpha', None)
+                    if par is not None:
+                        par(alpha)
+                init = pub.timegrids.init
+                sim = pub.timegrids.sim
+                sim.firstdate = init.firstdate + f'{time_[0]}d'
+                sim.lastdate = init.firstdate + f'{time_[2]}d'
+                idx1 = init[sim.firstdate]
+                idx2 = init[sim.lastdate]
+                self.server.hp.doit()
+                filepath = os.path.join(dirpath, 'HydPy.output')
+                with open(filepath, 'w') as outfile:
+                    for line in lines:
+                        key = line.split('=')[0]
+                        if key.endswith('.discharge'):
+                            node = getattr(self.server.hp.nodes, key[:-10])
+                            line = f'{key}={list(node.sequences.sim.series[idx1:idx2])}\n'
+                        outfile.write(line)
+            else:
+                value = float(post_data)
+                for element in self.server.hp.elements:
+                    par = getattr(element.model.parameters.control, name, None)
+                    if par is not None:
+                        par(value)
+            self._set_headers()
+            self.wfile.write(
+                bytes(f'POST request for {self.path}', encoding='utf-8'))
+        except BaseException as exc:
+            self.wfile.write(bytes(f'{type(exc)}: {exc}', encoding='utf-8'))
 
 
 class HydPyHTTPServer(http.server.HTTPServer):
@@ -98,7 +224,8 @@ class HydPyHTTPServer(http.server.HTTPServer):
         pub.sequencemanager.generalfiletype = 'nc'
         hp.prepare_network()
         hp.init_models()
-        hp.prepare_inputseries()
+        hp.prepare_simseries()
+        hp.prepare_modelseries()
         pub.sequencemanager.open_netcdf_reader(
             flatten=True, isolate=True, timeaxis=0)
         hp.load_inputseries()

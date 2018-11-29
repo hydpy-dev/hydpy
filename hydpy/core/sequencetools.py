@@ -4,12 +4,12 @@ of hydrological models.
 """
 # import...
 # ...from standard library
-from typing import ClassVar
 import copy
 import os
 import struct
 import sys
 import warnings
+from typing import ClassVar, Dict, Union
 # ...from site-packages
 import numpy
 # ...from HydPy
@@ -22,6 +22,7 @@ from hydpy.core import variabletools
 from hydpy.cythons import pointerutils
 
 NAMES_CONDITIONSEQUENCES = ('states', 'logs')
+
 
 class InfoArray(numpy.ndarray):
     """|numpy| |numpy.ndarray| subclass that stores and tries to keep
@@ -145,6 +146,30 @@ class Sequences(object):
         for subseqs in NAMES_CONDITIONSEQUENCES:
             for tuple_ in getattr(self, subseqs, ()):
                 yield tuple_
+
+    @property
+    def conditions(self) -> Dict[str, Dict[str, Union[float, numpy.ndarray]]]:
+        """Nested dictionary containing the values of all condition
+        sequences.
+
+        See the documentation on property |HydPy.conditions| for further
+        information.
+        """
+        conditions = {}
+        for subname in NAMES_CONDITIONSEQUENCES:
+            subseqs = getattr(self, subname, ())
+            subconditions = {seq.name: copy.deepcopy(seq.values)
+                             for seq in subseqs}
+            if subconditions:
+                conditions[subname] = subconditions
+        return conditions
+
+    @conditions.setter
+    def conditions(self, conditions):
+        for subname, subconditions in conditions.items():
+            subseqs = getattr(self, subname)
+            for seqname, values in subconditions.items():
+                getattr(subseqs, seqname)(values)
 
     @property
     def hasconditions(self):

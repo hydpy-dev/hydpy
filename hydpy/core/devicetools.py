@@ -6,10 +6,10 @@ structure HydPy projects.
 # import...
 # ...from standard library
 import copy
-import os
 import struct
 import warnings
 import weakref
+from typing import Dict, Union
 # ...from site-packages
 import numpy
 from hydpy import pyplot
@@ -1880,6 +1880,24 @@ class Elements(Devices):
         handled (indirectly) by each |Element| object."""
         for element in self:
             element.model.sequences.reset()
+
+    @property
+    def conditions(self) -> \
+            Dict[str, Dict[str, Dict[str, Union[float, numpy.ndarray]]]]:
+        """Nested dictionary containing the values of all condition
+        sequences of all currently handled models.
+
+        See the documentation on property |HydPy.conditions| for further
+        information.
+        """
+        return {element.name: element.model.sequences.conditions
+                for element in self}
+
+    @conditions.setter
+    def conditions(self, conditions):
+        for name, subconditions in conditions.items():
+            element = getattr(self, name)
+            element.model.sequences.conditions = subconditions
 
     @printtools.print_progress
     def prepare_allseries(self, ramflag=True):

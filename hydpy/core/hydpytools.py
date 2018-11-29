@@ -3,7 +3,9 @@
 """
 # import...
 # ...from standard library
-import warnings
+from typing import Dict, Union
+# ...from site-packages
+import numpy
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import abctools
@@ -119,7 +121,7 @@ class HydPy(object):
         for the mentioned purpose.
 
         For demonstration, we perform a simulation for the `LahnH`
-        example project spanning five days:
+        example project spanning four days:
 
         >>> from hydpy.core.examples import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -162,6 +164,73 @@ class HydPy(object):
         53.793428, 37.157714, 31.835184, 28.375294
         """
         self.elements.reset_conditions()
+
+    @property
+    def conditions(self) -> \
+            Dict[str, Dict[str, Dict[str, Union[float, numpy.ndarray]]]]:
+        """Nested dictionary containing the values of all condition
+        sequences of all currently handled models.
+
+        The primary  purpose of property |HydPy.conditions| is similar to
+        the one of method |HydPy.reset_conditions|, to allow to perform
+        repeated calculations starting from the same initial conditions.
+        Nevertheless, |HydPy.conditions| is more flexible when it comes
+        to handling multiple conditions, which can, for example, be useful
+        for applying ensemble based assimilation algorithms.
+
+        For demonstration, we perform a simulation for the `LahnH`
+        example project spanning only the first two days of the
+        complete initialisation period of four days:
+
+        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+        >>> from hydpy import HydPy, pub, TestIO, print_values
+        >>> with TestIO():
+        ...     hp = HydPy('LahnH')
+        ...     pub.timegrids = '1996-01-01', '1996-01-05', '1d'
+        ...     hp.prepare_network()
+        ...     hp.init_models()
+        ...     hp.load_conditions()
+        ...     hp.prepare_inputseries()
+        ...     hp.prepare_simseries()
+        ...     pub.sequencemanager.generalfiletype = 'nc'
+        ...     pub.sequencemanager.open_netcdf_reader(
+        ...         isolate=True, flatten=True, timeaxis=0)
+        ...     hp.load_inputseries()
+        ...     pub.sequencemanager.close_netcdf_reader()
+        >>> pub.timegrids.sim.lastdate = '1996-01-03'
+        >>> hp.doit()
+        >>> print_values(hp.nodes.lahn_3.sequences.sim.series)
+        53.793428, 37.157714, 0.0, 0.0
+
+        Now we save the conditions calculated for the end of the
+        second day and continue the simulation for the rest of the
+        initialisation period:
+
+        >>> conditions = hp.conditions
+        >>> pub.timegrids.sim.firstdate = '1996-01-03'
+        >>> pub.timegrids.sim.lastdate = '1996-01-05'
+        >>> hp.doit()
+        >>> print_values(hp.nodes.lahn_3.sequences.sim.series)
+        53.793428, 37.157714, 31.835184, 28.375294
+
+        Two exactly repeat the simulation of the last two days only, we
+        assign the memorised conditions to property |HydPy.conditions|
+        beforehand:
+
+        >>> hp.conditions = conditions
+        >>> hp.nodes.lahn_3.sequences.sim.series = 0.0
+        >>> pub.timegrids.sim.firstdate = '1996-01-03'
+        >>> pub.timegrids.sim.lastdate = '1996-01-05'
+        >>> hp.doit()
+        >>> print_values(hp.nodes.lahn_3.sequences.sim.series)
+        0.0, 0.0, 31.835184, 28.375294
+        """
+        return self.elements.conditions
+
+    @conditions.setter
+    def conditions(self, conditions):
+        self.elements.conditions = conditions
 
     def connect(self):
         """Call method |Elements.connect| of the |Elements| object currently

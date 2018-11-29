@@ -7,7 +7,6 @@ hydrological models.
 """
 # import...
 # ...from standard library
-import sys
 import warnings
 # ...from site-packages
 from hydpy.core.exceptiontools import OptionalImport

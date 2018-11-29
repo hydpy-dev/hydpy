@@ -1573,12 +1573,15 @@ which is in conflict with using their names as identifiers.
                    objecttools.classname(self._contentclass), name))
 
     def __setattr__(self, name, value):
-        classname = objecttools.classname(self)
-        raise NotImplementedError(
-            'Setting attributes of %s objects could result in confusion '
-            'whether a new attribute should be handled as a %s object or '
-            'as a "normal" attribute and is thus not support.'
-            % (classname, classname[:-1]))
+        if name in vars(type(self)):
+            super().__setattr__(name, value)
+        else:
+            classname = objecttools.classname(self)
+            raise NotImplementedError(
+                'Setting attributes of %s objects could result in confusion '
+                'whether a new attribute should be handled as a %s object or '
+                'as a "normal" attribute and is thus not support.'
+                % (classname, classname[:-1]))
 
     def __delattr__(self, name):
         deleted_something = False

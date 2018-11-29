@@ -21,6 +21,7 @@ from hydpy.core import propertytools
 from hydpy.core import variabletools
 from hydpy.cythons import pointerutils
 
+NAMES_CONDITIONSEQUENCES = ('states', 'logs')
 
 class InfoArray(numpy.ndarray):
     """|numpy| |numpy.ndarray| subclass that stores and tries to keep
@@ -127,9 +128,8 @@ class Sequences(object):
     def reset(self):
         """Call method |ConditionSequence.reset| of all handled
         |ConditionSequence| objects."""
-        for subseqs in self:
-            if isinstance(subseqs, abctools.ConditionSequenceABC):
-                subseqs.reset()
+        for subseqs in self.conditions:
+            subseqs.reset()
 
     def __iter__(self):
         for name in self._NAMES_SUBSEQS:
@@ -142,7 +142,7 @@ class Sequences(object):
         """Generator object yielding all conditions (|StateSequence| and
         |LogSequence| objects).
         """
-        for subseqs in ('states', 'logs'):
+        for subseqs in NAMES_CONDITIONSEQUENCES:
             for tuple_ in getattr(self, subseqs, ()):
                 yield tuple_
 

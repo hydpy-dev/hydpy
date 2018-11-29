@@ -109,7 +109,58 @@ class HydPy(object):
 
     def reset_conditions(self):
         """Call method |Elements.reset_conditions| of the |Elements| object
-        currently handled by the |HydPy| object."""
+        currently handled by the |HydPy| object.
+
+        Method |HydPy.reset_conditions| is the most convenient way to
+        perform simulations repeatedly for the same period, each time
+        starting from the same initial conditions, e.g. for parameter
+        calibration. Each |StateSequence| and |LogSequence| object
+        remembers the last assigned values and can reactivate them
+        for the mentioned purpose.
+
+        For demonstration, we perform a simulation for the `LahnH`
+        example project spanning five days:
+
+        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+        >>> from hydpy import HydPy, pub, TestIO, print_values
+        >>> with TestIO():
+        ...     hp = HydPy('LahnH')
+        ...     pub.timegrids = '1996-01-01', '1996-01-05', '1d'
+        ...     hp.prepare_network()
+        ...     hp.init_models()
+        ...     hp.load_conditions()
+        ...     hp.prepare_inputseries()
+        ...     hp.prepare_simseries()
+        ...     pub.sequencemanager.generalfiletype = 'nc'
+        ...     pub.sequencemanager.open_netcdf_reader(
+        ...         isolate=True, flatten=True, timeaxis=0)
+        ...     hp.load_inputseries()
+        ...     pub.sequencemanager.close_netcdf_reader()
+        >>> hp.doit()
+        >>> print_values(hp.nodes.lahn_3.sequences.sim.series)
+        53.793428, 37.157714, 31.835184, 28.375294
+
+        Just repeating the simulation gives different results due to
+        applying the final states of the first simulation run as the
+        initial states of the second run:
+
+        >>> hp.doit()
+        >>> print_values(hp.nodes.lahn_3.sequences.sim.series)
+        26.21469, 25.063443, 24.238632, 23.317984
+
+        Calling |HydPy.reset_conditions| first, allows repeating the
+        first simulation run exactly multiple times:
+
+        >>> hp.reset_conditions()
+        >>> hp.doit()
+        >>> print_values(hp.nodes.lahn_3.sequences.sim.series)
+        53.793428, 37.157714, 31.835184, 28.375294
+        >>> hp.reset_conditions()
+        >>> hp.doit()
+        >>> print_values(hp.nodes.lahn_3.sequences.sim.series)
+        53.793428, 37.157714, 31.835184, 28.375294
+        """
         self.elements.reset_conditions()
 
     def connect(self):

@@ -128,8 +128,8 @@ class Sequences(object):
     def reset(self):
         """Call method |ConditionSequence.reset| of all handled
         |ConditionSequence| objects."""
-        for subseqs in self.conditions:
-            subseqs.reset()
+        for seqs in self.conditionsequences:
+            seqs.reset()
 
     def __iter__(self):
         for name in self._NAMES_SUBSEQS:
@@ -138,7 +138,7 @@ class Sequences(object):
                 yield subseqs
 
     @property
-    def conditions(self):
+    def conditionsequences(self):
         """Generator object yielding all conditions (|StateSequence| and
         |LogSequence| objects).
         """
@@ -150,7 +150,7 @@ class Sequences(object):
     def hasconditions(self):
         """True or False, whether the |Sequences| object "handles conditions"
         or not (at least one |StateSequence| or |LogSequence| object)."""
-        for _ in self.conditions:
+        for _ in self.conditionsequences:
             return True
         return False
 
@@ -181,7 +181,7 @@ class Sequences(object):
             if not filename:
                 filename = self._conditiondefaultfilename
             namespace = locals()
-            for seq in self.conditions:
+            for seq in self.conditionsequences:
                 namespace[seq.name] = seq
             namespace['model'] = self
             code = pub.conditionmanager.load_file(filename)
@@ -208,13 +208,13 @@ class Sequences(object):
                      'from hydpy.models.%s import *\n\n' % self.model,
                      'controlcheck(projectdir="%s", controldir="%s")\n\n'
                      % (con.projectdir, con.currentdir)]
-            for seq in self.conditions:
+            for seq in self.conditionsequences:
                 lines.append(repr(seq) + '\n')
             pub.conditionmanager.save_file(filename, ''.join(lines))
 
     def trim_conditions(self):
         """Call method |trim| of each handled |ConditionSequence|."""
-        for seq in self.conditions:
+        for seq in self.conditionsequences:
             seq.trim()
 
     def __len__(self):

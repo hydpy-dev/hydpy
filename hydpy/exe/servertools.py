@@ -50,13 +50,13 @@ land_lahn_3: [ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.]
 <BLANKLINE>
 
 >>> from hydpy import print_values
->>> def test(dirname, time_):
+>>> def test(dirname, time_, alpha):
 ...     with TestIO():
 ...         if not os.path.exists(dirname):
 ...             os.mkdir(dirname)
 ...         dirpath = os.path.abspath(dirname).encode('utf-8')
-...         with open(f'{dirname}/HydPy.input', 'w') as infile:
-...             _ = infile.write('alpha= [2.0] \\n')
+...         with open(f'{dirname}/hydpy.exchange', 'w') as infile:
+...             _ = infile.write(f'alpha= [{alpha}] \\n')
 ...             _ = infile.write("refdate= '01 jan 1996' \\n")
 ...             _ = infile.write("unit= '1d' \\n")
 ...             _ = infile.write(f'time={time_} \\n')
@@ -64,7 +64,7 @@ land_lahn_3: [ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.]
 ...             _ = infile.write('lahn_1.discharge=[0.0] \\n')
 ...         _ = request.urlopen(
 ...             'http://localhost:8080/process_input', data=dirpath)
-...         with open(f'{dirname}/HydPy.output') as outfile:
+...         with open(f'{dirname}/hydpy.exchange') as outfile:
 ...             for line in outfile.readlines():
 ...                 if line.startswith('dill.discharge'):
 ...                     values = eval(line.split('=')[1])
@@ -72,19 +72,36 @@ land_lahn_3: [ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.]
 
 Single simulation run:
 
->>> test(dirname='workingdir1', time_=[0.0,1.0,5.0])
+>>> test(dirname='workingdir1', time_=[0.0,1.0,5.0], alpha=2.0)
 35.250827, 7.774062, 5.035808, 4.513706, 4.251594
 
 Multiple interlockingsimulation runs:
 
->>> test('workingdir2', [0.0,1.0,1.0])
+>>> test(dirname='workingdir2', time_=[0.0,1.0,1.0], alpha=2.0)
 35.250827
 
->>> test('workingdir3', [0.0,1.0,3.0])
+>>> test(dirname='workingdir3', time_=[0.0,1.0,3.0], alpha=2.0)
 35.250827, 7.774062, 5.035808
 
->>> test('workingdir2', [1.0,1.0,5.0])
+>>> test(dirname='workingdir2', time_=[1.0,1.0,5.0], alpha=2.0)
 7.774062, 5.035808, 4.513706, 4.251594
+
+Parallel runs with different parameterisations:
+
+>>> test(dirname='workingdir4', time_=[0.0,1.0,3.0], alpha=2.0)
+35.250827, 7.774062, 5.035808
+
+>>> test(dirname='workingdir5', time_=[0.0,1.0,3.0], alpha=1.0)
+11.658511, 8.842278, 7.103614
+
+>>> test(dirname='workingdir4', time_=[3.0,1.0,5.0], alpha=2.0)
+4.513706, 4.251594
+
+>>> test(dirname='workingdir5', time_=[3.0,1.0,5.0], alpha=1.0)
+6.00763, 5.313751
+
+>>> test(dirname='workingdir1', time_=[0.0, 1.0, 5.0], alpha=1.0)
+11.658511, 8.842278, 7.103614, 6.00763, 5.313751
 
 
 >>> _ = request.urlopen('http://localhost:8080/close_server')
@@ -93,6 +110,7 @@ Multiple interlockingsimulation runs:
 """
 # import...
 # ...from standard library
+import collections
 import http.server
 import os
 import threading
@@ -131,38 +149,45 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             name = self.path[1:]
             if name == 'process_input':
                 dirpath = str(post_data, encoding='utf-8')
-                filepath = os.path.join(dirpath, 'HydPy.input')
+                filepath = os.path.join(dirpath, 'hydpy.exchange')
+                alpha = None
+                lz = None
                 with open(filepath, 'r') as infile:
                     lines = infile.readlines()
                     for line in lines:
                         if line.startswith('alpha'):
                             alpha = eval(line.split('=')[1])[0]
+                        if line.startswith('lz'):
+                            lz = eval(line.split('=')[1])[0]
                         if line.startswith('time'):
                             time_ = [int(t) for t in eval(line.split('=')[1])]
-                for element in self.server.hp.elements:
-                    par = getattr(
-                        element.model.parameters.control, 'alpha', None)
-                    if par is not None:
-                        par(alpha)
                 init = pub.timegrids.init
                 sim = pub.timegrids.sim
                 sim.firstdate = init.firstdate + f'{time_[0]}d'
                 sim.lastdate = init.firstdate + f'{time_[2]}d'
                 idx1 = init[sim.firstdate]
                 idx2 = init[sim.lastdate]
-                if idx1 in self.server.conditions:
-                    self.server.hp.conditions = self.server.conditions[idx1]
+                if not idx1:
+                    self.server.hp.conditions = self.server.init_conditions
                 else:
-                    self.server.conditions[idx1] = self.server.hp.conditions
+                    self.server.hp.conditions = self.server.conditions[dirpath][idx1]
+                if alpha is not None:
+                    for element in self.server.hp.elements.catchment:
+                        getattr(element.model.parameters.control, 'alpha')(alpha)
+                if lz is not None:
+                    element = self.server.hp.elements.land_lahn_1
+                    element.model.sequences.states.lz(lz)
                 self.server.hp.doit()
-                self.server.conditions[idx2] = self.server.hp.conditions
-                filepath = os.path.join(dirpath, 'HydPy.output')
+                self.server.conditions[dirpath][idx2] = self.server.hp.conditions
+                filepath = os.path.join(dirpath, 'hydpy.exchange')
                 with open(filepath, 'w') as outfile:
                     for line in lines:
                         key = line.split('=')[0]
                         if key.endswith('.discharge'):
                             node = getattr(self.server.hp.nodes, key[:-10])
                             line = f'{key}={list(node.sequences.sim.series[idx1:idx2])}\n'
+                        if 'lz' in key:
+                            line = f'lz = [{self.server.hp.elements.land_lahn_1.model.sequences.states.lz.value}]\n'
                         outfile.write(line)
             else:
                 value = float(post_data)
@@ -180,10 +205,11 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
 class HydPyHTTPServer(http.server.HTTPServer):
 
     hp: hydpytools.HydPy
-    conditions: dict
+    conditions: collections.defaultdict
+    init_conditions: dict
+
 
     def prepare_hydpy(self, projectname):
-        self.conditions = {}
         self.hp = hydpytools.HydPy(projectname)
         hp = self.hp
         pub.options.printprogress = False
@@ -197,6 +223,8 @@ class HydPyHTTPServer(http.server.HTTPServer):
         hp.load_inputseries()
         pub.sequencemanager.close_netcdf_reader()
         hp.load_conditions()
+        self.conditions = collections.defaultdict(lambda: {})
+        self.init_conditions = hp.conditions
 
 
 def start_server(

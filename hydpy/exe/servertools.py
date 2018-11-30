@@ -49,92 +49,43 @@ land_lahn_3: [ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.]
 ...     print_latest_logfile(wait=10.0)    # doctest: +ELLIPSIS
 <BLANKLINE>
 
->>> with TestIO():
-...     os.mkdir('workingdir1')
-...     dirpath = os.path.abspath('workingdir1').encode('utf-8')
-...     with open('workingdir1/HydPy.input', 'w') as infile:
-...         _ = infile.write('alpha= [2.0] \\n')
-...         _ = infile.write("refdate= '01 jan 1996' \\n")
-...         _ = infile.write("unit= '1d' \\n")
-...         _ = infile.write('time=[0.0,1.0,5.0] \\n')
-...         _ = infile.write('dill.discharge=[0.0] \\n')
-...         _ = infile.write('lahn_1.discharge=[0.0] \\n')
-
-
->>> _ = request.urlopen('http://localhost:8080/process_input', data=dirpath)
-
-
 >>> from hydpy import print_values
->>> with TestIO():
-...     with open('workingdir1/HydPy.output') as outfile:
-...         for line in outfile.readlines():
-...             if line.startswith('dill.discharge'):
-...                 values = eval(line.split('=')[1])
-...                 print_values(values)
+>>> def test(dirname, time_):
+...     with TestIO():
+...         if not os.path.exists(dirname):
+...             os.mkdir(dirname)
+...         dirpath = os.path.abspath(dirname).encode('utf-8')
+...         with open(f'{dirname}/HydPy.input', 'w') as infile:
+...             _ = infile.write('alpha= [2.0] \\n')
+...             _ = infile.write("refdate= '01 jan 1996' \\n")
+...             _ = infile.write("unit= '1d' \\n")
+...             _ = infile.write(f'time={time_} \\n')
+...             _ = infile.write('dill.discharge=[0.0] \\n')
+...             _ = infile.write('lahn_1.discharge=[0.0] \\n')
+...         _ = request.urlopen(
+...             'http://localhost:8080/process_input', data=dirpath)
+...         with open(f'{dirname}/HydPy.output') as outfile:
+...             for line in outfile.readlines():
+...                 if line.startswith('dill.discharge'):
+...                     values = eval(line.split('=')[1])
+...                     print_values(values)
+
+Single simulation run:
+
+>>> test(dirname='workingdir1', time_=[0.0,1.0,5.0])
 35.250827, 7.774062, 5.035808, 4.513706, 4.251594
 
+Multiple interlockingsimulation runs:
 
-
-
-
-
-
-
->>> with TestIO():
-...     os.mkdir('workingdir2')
-...     dirpath = os.path.abspath('workingdir2').encode('utf-8')
-...     with open('workingdir2/HydPy.input', 'w') as infile:
-...         _ = infile.write('alpha= [2.0] \\n')
-...         _ = infile.write("refdate= '01 jan 1996' \\n")
-...         _ = infile.write("unit= '1d' \\n")
-...         _ = infile.write('time=[0.0,1.0,1.0] \\n')   # ToDo
-...         _ = infile.write('dill.discharge=[0.0] \\n')
-...         _ = infile.write('lahn_1.discharge=[0.0] \\n')
->>> _ = request.urlopen('http://localhost:8080/process_input', data=dirpath)
->>> with TestIO():
-...     with open('workingdir2/HydPy.output') as outfile:
-...         for line in outfile.readlines():
-...             if line.startswith('dill.discharge'):
-...                 values = eval(line.split('=')[1])
-...                 print_values(values)
+>>> test('workingdir2', [0.0,1.0,1.0])
 35.250827
 
->>> with TestIO():
-...     os.mkdir('workingdir3')
-...     dirpath = os.path.abspath('workingdir3').encode('utf-8')
-...     with open('workingdir3/HydPy.input', 'w') as infile:
-...         _ = infile.write('alpha= [2.0] \\n')
-...         _ = infile.write("refdate= '01 jan 1996' \\n")
-...         _ = infile.write("unit= '1d' \\n")
-...         _ = infile.write('time=[0.0,1.0,3.0] \\n')   # ToDo
-...         _ = infile.write('dill.discharge=[0.0] \\n')
-...         _ = infile.write('lahn_1.discharge=[0.0] \\n')
->>> _ = request.urlopen('http://localhost:8080/process_input', data=dirpath)
->>> with TestIO():
-...     with open('workingdir3/HydPy.output') as outfile:
-...         for line in outfile.readlines():
-...             if line.startswith('dill.discharge'):
-...                 values = eval(line.split('=')[1])
-...                 print_values(values)
+>>> test('workingdir3', [0.0,1.0,3.0])
 35.250827, 7.774062, 5.035808
 
->>> with TestIO():
-...     dirpath = os.path.abspath('workingdir2').encode('utf-8')
-...     with open('workingdir2/HydPy.input', 'w') as infile:
-...         _ = infile.write('alpha= [2.0] \\n')
-...         _ = infile.write("refdate= '01 jan 1996' \\n")
-...         _ = infile.write("unit= '1d' \\n")
-...         _ = infile.write('time=[1.0,1.0,5.0] \\n')   # ToDo
-...         _ = infile.write('dill.discharge=[0.0] \\n')
-...         _ = infile.write('lahn_1.discharge=[0.0] \\n')
->>> _ = request.urlopen('http://localhost:8080/process_input', data=dirpath)
->>> with TestIO():
-...     with open('workingdir2/HydPy.output') as outfile:
-...         for line in outfile.readlines():
-...             if line.startswith('dill.discharge'):
-...                 values = eval(line.split('=')[1])
-...                 print_values(values)
+>>> test('workingdir2', [1.0,1.0,5.0])
 7.774062, 5.035808, 4.513706, 4.251594
+
 
 >>> _ = request.urlopen('http://localhost:8080/close_server')
 >>> process.kill()

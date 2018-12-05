@@ -168,7 +168,7 @@ class HydPy(object):
     @property
     def conditions(self) -> \
             Dict[str, Dict[str, Dict[str, Union[float, numpy.ndarray]]]]:
-        """Nested dictionary containing the values of all condition
+        """A nested dictionary containing the values of all condition
         sequences of all currently handled models.
 
         The primary  purpose of property |HydPy.conditions| is similar to
@@ -178,53 +178,105 @@ class HydPy(object):
         to handling multiple conditions, which can, for example, be useful
         for applying ensemble based assimilation algorithms.
 
-        For demonstration, we perform a simulation for the `LahnH`
-        example project spanning only the first two days of the
-        complete initialisation period of four days:
+        For demonstration, we perform simulations for the `LahnH` example
+        project spanning the first three months of 1996.  We begin with a
+        preparation run beginning on the first day of January and ending
+        on the 20th day of February:
 
         >>> from hydpy.core.examples import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, pub, TestIO, print_values
         >>> with TestIO():
         ...     hp = HydPy('LahnH')
-        ...     pub.timegrids = '1996-01-01', '1996-01-05', '1d'
+        ...     pub.timegrids = '1996-01-01', '1996-04-01', '1d'
         ...     hp.prepare_network()
         ...     hp.init_models()
         ...     hp.load_conditions()
-        ...     hp.prepare_inputseries()
+        ...     hp.prepare_modelseries()
         ...     hp.prepare_simseries()
         ...     pub.sequencemanager.generalfiletype = 'nc'
         ...     pub.sequencemanager.open_netcdf_reader(
         ...         isolate=True, flatten=True, timeaxis=0)
         ...     hp.load_inputseries()
         ...     pub.sequencemanager.close_netcdf_reader()
-        >>> pub.timegrids.sim.lastdate = '1996-01-03'
+        >>> pub.timegrids.sim.lastdate = '1996-02-20'
         >>> hp.doit()
-        >>> print_values(hp.nodes.lahn_3.sequences.sim.series)
-        53.793428, 37.157714, 0.0, 0.0
+        >>> print_values(hp.nodes.lahn_3.sequences.sim.series[48:52])
+        70.292046, 94.076568, 0.0, 0.0
 
-        Now we save the conditions calculated for the end of the
-        second day and continue the simulation for the rest of the
-        initialisation period:
+        At the end of the preparation run, a snow layer is covering the
+        Lahn catchment.  In the `lahn_1` subcatchment, this snow layer
+        contains 19.5 mm of frozen water and 1.7 mm of liquid water:
+
+        >>> lahn1_states = hp.elements.land_lahn_1.model.sequences.states
+        >>> print_values([lahn1_states.sp.average_values()])
+        19.543831
+        >>> print_values([lahn1_states.wc.average_values()])
+        1.745963
+
+        Now we save the current conditions and perform the first simulation
+        run from the 20th day of February until the end of March:
 
         >>> conditions = hp.conditions
-        >>> pub.timegrids.sim.firstdate = '1996-01-03'
-        >>> pub.timegrids.sim.lastdate = '1996-01-05'
+        >>> hp.nodes.lahn_3.sequences.sim.series = 0.0
+        >>> pub.timegrids.sim.firstdate = '1996-02-20'
+        >>> pub.timegrids.sim.lastdate = '1996-04-01'
         >>> hp.doit()
-        >>> print_values(hp.nodes.lahn_3.sequences.sim.series)
-        53.793428, 37.157714, 31.835184, 28.375294
+        >>> first = hp.nodes.lahn_3.sequences.sim.series.copy()
+        >>> print_values(first[48:52])
+        0.0, 0.0, 84.986676, 63.834078
 
-        Two exactly repeat the simulation of the last two days only, we
-        assign the memorised conditions to property |HydPy.conditions|
-        beforehand:
+        To exactly repeat the last simulation run, we assign the
+        memorised conditions to property |HydPy.conditions|:
 
         >>> hp.conditions = conditions
+        >>> print_values([lahn1_states.sp.average_values()])
+        19.543831
+        >>> print_values([lahn1_states.wc.average_values()])
+        1.745963
+
+        All discharge values of the second simulation run are identical
+        with the ones of the first simulation run:
+
         >>> hp.nodes.lahn_3.sequences.sim.series = 0.0
-        >>> pub.timegrids.sim.firstdate = '1996-01-03'
-        >>> pub.timegrids.sim.lastdate = '1996-01-05'
+        >>> pub.timegrids.sim.firstdate = '1996-02-20'
+        >>> pub.timegrids.sim.lastdate = '1996-04-01'
         >>> hp.doit()
-        >>> print_values(hp.nodes.lahn_3.sequences.sim.series)
-        0.0, 0.0, 31.835184, 28.375294
+        >>> second = hp.nodes.lahn_3.sequences.sim.series.copy()
+        >>> print_values(second[48:52])
+        0.0, 0.0, 84.986676, 63.834078
+        >>> all(first == second)
+        True
+
+        We selected the snow period as an example due to potential
+        problems with the limited water holding capacity of the
+        snow layer, which depends on the ice content of the snow layer
+        (|hland_states.SP|) and the relative water holding capacity
+        (|hland_control.WHC|).  Due to this restriction, problems can
+        occur.  To give an example, we set |hland_control.WHC| to zero
+        temporarily, apply the memorised conditions, and finally reset
+        the original values of |hland_control.WHC|:
+
+        >>> for element in hp.elements.catchment:
+        ...     element.whc = element.model.parameters.control.whc.values
+        ...     element.model.parameters.control.whc = 0.0
+        >>> with pub.options.warntrim(False):
+        ...     hp.conditions = conditions
+        >>> for element in hp.elements.catchment:
+        ...     element.model.parameters.control.whc = element.whc
+
+        Without any water holding capacity of the snow layer, its water
+        content is zero despite the actual memorised value of 1.7 mm:
+
+        >>> print_values([lahn1_states.sp.average_values()])
+        19.543831
+        >>> print_values([lahn1_states.wc.average_values()])
+        0.0
+
+        What is happening in the case of such conflicts partly depends
+        on the implementation of the respective application model.
+        For safety, we suggest setting option |Options.warntrim| to
+        |True| before resetting conditions.
         """
         return self.elements.conditions
 

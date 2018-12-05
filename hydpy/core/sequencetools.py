@@ -166,10 +166,13 @@ class Sequences(object):
 
     @conditions.setter
     def conditions(self, conditions):
-        for subname, subconditions in conditions.items():
-            subseqs = getattr(self, subname)
-            for seqname, values in subconditions.items():
-                getattr(subseqs, seqname)(values)
+        with pub.options.trimvariables(False):
+            for subname, subconditions in conditions.items():
+                subseqs = getattr(self, subname)
+                for seqname, values in subconditions.items():
+                    getattr(subseqs, seqname)(values)
+        for seq in reversed(tuple(self.conditionsequences)):
+            seq.trim()
 
     @property
     def hasconditions(self):

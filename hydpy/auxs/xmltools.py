@@ -363,6 +363,7 @@ of the atomic type 'xs:dateTime'. (<string>, line 0)
             reprcomments -> 0
             reprdigits -> 6
             skipdoctests -> 0
+            trimvariables -> 1
             usecython -> 1
             usedefaultvalues -> 0
             utcoffset -> 60

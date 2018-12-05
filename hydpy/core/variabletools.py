@@ -46,30 +46,31 @@ def trim(self, lower=None, upper=None):
     message can be suppressed by setting the related option flag to False.)
     For integer values, instead of a warning an exception is raised.
     """
-    span = getattr(self, 'SPAN', (None, None))
-    if lower is None:
-        lower = span[0]
-    if upper is None:
-        upper = span[1]
-    type_ = getattr(self, 'TYPE', float)
-    if type_ is float:
-        if self.NDIM == 0:
-            _trim_float_0d(self, lower, upper)
+    if pub.options.trimvariables:
+        span = getattr(self, 'SPAN', (None, None))
+        if lower is None:
+            lower = span[0]
+        if upper is None:
+            upper = span[1]
+        type_ = getattr(self, 'TYPE', float)
+        if type_ is float:
+            if self.NDIM == 0:
+                _trim_float_0d(self, lower, upper)
+            else:
+                _trim_float_nd(self, lower, upper)
+        elif type_ is int:
+            if self.NDIM == 0:
+                _trim_int_0d(self, lower, upper)
+            else:
+                _trim_int_nd(self, lower, upper)
+        elif type_ is bool:
+            pass
         else:
-            _trim_float_nd(self, lower, upper)
-    elif type_ is int:
-        if self.NDIM == 0:
-            _trim_int_0d(self, lower, upper)
-        else:
-            _trim_int_nd(self, lower, upper)
-    elif type_ is bool:
-        pass
-    else:
-        raise NotImplementedError(
-            'Method `trim` can only be applied on parameters '
-            'handling integer or floating point values, but '
-            'value type of parameter `%s` is `%s`.'
-            % (self.name, objecttools.classname(self.TYPE)))
+            raise NotImplementedError(
+                'Method `trim` can only be applied on parameters '
+                'handling integer or floating point values, but '
+                'value type of parameter `%s` is `%s`.'
+                % (self.name, objecttools.classname(self.TYPE)))
 
 
 def _trim_float_0d(self, lower, upper):

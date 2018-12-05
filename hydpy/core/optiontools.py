@@ -163,7 +163,11 @@ class Options(object):
 
     skipdoctests = _Option(False, None)
     """A True/False flag for skipping the automatic execution of
-    documentation tests. """
+    documentation tests."""
+
+    trimvariables = _Option(True, None)
+    """A True/False flag for enabling/disabling function |trim|.  Set it
+    to |False| only for good reasons."""
 
     usecython = _Option(True, None)
     """TA True/False flag for applying cythonized models if possible,

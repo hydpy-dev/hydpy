@@ -1343,11 +1343,11 @@ to make any internal data available to the user.
                                     nodedir,
                                     tempdir)
 
-    inputfiletype = _DescriptorType('npy', 'input')
-    fluxfiletype = _DescriptorType('npy', 'flux')
-    statefiletype = _DescriptorType('npy', 'state')
-    nodefiletype = _DescriptorType('npy', 'node')
-    tempfiletype = _DescriptorType('npy', 'temporary')
+    inputfiletype = _DescriptorType('asc', 'input')
+    fluxfiletype = _DescriptorType('asc', 'flux')
+    statefiletype = _DescriptorType('asc', 'state')
+    nodefiletype = _DescriptorType('asc', 'node')
+    tempfiletype = _DescriptorType('asc', 'temporary')
     generalfiletype = _GeneralDescriptor(inputfiletype,
                                          fluxfiletype,
                                          statefiletype,

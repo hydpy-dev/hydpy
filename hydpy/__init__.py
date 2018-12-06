@@ -87,6 +87,7 @@ from hydpy.auxs.statstools import prepare_arrays
 from hydpy.auxs.statstools import std_ratio
 from hydpy.auxs.xmltools import XMLInterface
 from hydpy.exe.commandtools import execute_scriptfunction
+from hydpy.exe.commandtools import run_subprocess
 from hydpy.exe.commandtools import print_latest_logfile
 from hydpy.exe.replacetools import xml_replace
 from hydpy.exe.servertools import await_server
@@ -170,6 +171,7 @@ __all__ = ['config',
            'std_ratio',
            'XMLInterface',
            'execute_scriptfunction',
+           'run_subprocess',
            'print_latest_logfile',
            'xml_replace',
            'await_server',

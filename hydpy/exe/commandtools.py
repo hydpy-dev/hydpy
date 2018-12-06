@@ -7,6 +7,7 @@ from typing import IO
 import datetime
 import inspect
 import os
+import subprocess
 import sys
 import time
 import traceback
@@ -17,6 +18,32 @@ from hydpy.core import objecttools
 
 
 def exec_commands(commands, *, logfile: IO, **parameters) -> None:
+def run_subprocess(commandstring, verbose=True):
+    """Execute the given command in a new process.
+
+    |run_subprocess| prints responses to stdout and stderr, unless
+    explicitely silenced by setting `verbose` to |False|:
+
+    >>> from hydpy import run_subprocess
+    >>> import platform
+    >>> esc = '' if 'windows' in platform.platform().lower() else '\\\\'
+    >>> run_subprocess(f'python -c print{esc}(1+1{esc})')
+    2
+    >>> run_subprocess(f'python -c print{esc}(1+1{esc})', verbose=False)
+    """
+    result = subprocess.run(
+        commandstring,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        encoding='utf-8',
+        shell=True)
+    if verbose:
+        for output in (result.stdout, result.stderr):
+            output = output.strip()
+            if output:
+                print(output)
+
+
     """Execute the given Python commands.
 
     Function |exec_commands| is thought for testing purposes only (see

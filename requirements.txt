@@ -1,5 +1,6 @@
 hydpy
 bokeh
+coverage
 Cython
 lxml
 matplotlib

@@ -4,20 +4,13 @@
 >>> from hydpy.core.examples import prepare_full_example_1
 >>> prepare_full_example_1()
 
->>> from hydpy import TestIO, print_latest_logfile
+>>> from hydpy import TestIO
 >>> import subprocess, time
-
->>> TestIO.clear()
->>> from hydpy.core.examples import prepare_full_example_1
->>> prepare_full_example_1()
 >>> with TestIO():
 ...     process = subprocess.Popen(
 ...         'hyd.py start_server 8080 LahnH 1996-01-01 1996-01-06 1d',
 ...         shell=True)
-
->>> with TestIO():
-...     print_latest_logfile(wait=10.0)    # doctest: +ELLIPSIS
-<BLANKLINE>
+...     _ = subprocess.run('hyd.py await_server 8080 10', shell=True)
 
 >>> from urllib import request
 >>> from hydpy import print_values
@@ -85,6 +78,9 @@ import collections
 import http.server
 import os
 import threading
+import time
+import urllib.error
+import urllib.request
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import autodoctools
@@ -118,13 +114,6 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             self._set_headers()
             self.wfile.write(bytes(f'{type(exc)}: {exc}', encoding='utf-8'))
 
-    def get_close_server(self):
-        self._set_headers()
-        self.wfile.write(b'shutting down server')
-        shutter = threading.Thread(target=self.server.shutdown)
-        shutter.deamon = True
-        shutter.start()
-
     def do_POST(self):
         try:
             content_length = int(self.headers['Content-Length'])
@@ -148,6 +137,17 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
         except BaseException as exc:
             self._set_headers()
             self.wfile.write(bytes(f'{type(exc)}: {exc}', encoding='utf-8'))
+
+    def get_status(self):
+        self._set_headers()
+        self.wfile.write(b'ready')
+
+    def get_close_server(self):
+        self._set_headers()
+        self.wfile.write(b'shutting down server')
+        shutter = threading.Thread(target=self.server.shutdown)
+        shutter.deamon = True
+        shutter.start()
 
     def post_process_input(self, post_data):
         dirpath = str(post_data, encoding='utf-8')
@@ -227,7 +227,51 @@ def start_server(
     server.serve_forever()
 
 
+def await_server(port, seconds, *, logfile=None):
+    """
+
+    >>> import subprocess
+    >>> from hydpy import print_latest_logfile, TestIO
+    >>> with TestIO():
+    ...     _ = subprocess.run('hyd.py await_server 8080 0.1', shell=True)
+    ...     print_latest_logfile()    # doctest: +ELLIPSIS
+    Invoking hyd.py with arguments `...hyd.py, await_server, 8080, 0.1` \
+resulted in the following error:
+    <urlopen error Waited for 0.1 seconds without response on port 8080.>
+    ...
+
+    >>> from hydpy.core.examples import prepare_full_example_1
+    >>> prepare_full_example_1()
+    >>> with TestIO():
+    ...     process = subprocess.Popen(
+    ...         'hyd.py start_server 8080 LahnH 1996-01-01 1996-01-06 1d',
+    ...         shell=True)
+    ...     _ = subprocess.run('hyd.py await_server 8080 10', shell=True)
+    ...     print_latest_logfile()
+    <BLANKLINE>
+
+    >>> from urllib import request
+    >>> _ = request.urlopen('http://localhost:8080/close_server')
+    >>> process.kill()
+    >>> _ = process.communicate()
+    """
+    now = time.perf_counter()
+    end = now + float(seconds)
+    while now <= end:
+        try:
+            urllib.request.urlopen(f'http://localhost:{port}/status')
+            break
+        except urllib.error.URLError:
+            time.sleep(0.1)
+            now = time.perf_counter()
+    else:
+        raise urllib.error.URLError(
+            f'Waited for {seconds} seconds without response on port {port}.')
+
+
 pub.scriptfunctions['start_server'] = start_server
+pub.scriptfunctions['await_server'] = await_server
+
 
 
 autodoctools.autodoc_module()

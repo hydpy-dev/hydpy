@@ -89,6 +89,7 @@ from hydpy.auxs.xmltools import XMLInterface
 from hydpy.exe.commandtools import execute_scriptfunction
 from hydpy.exe.commandtools import print_latest_logfile
 from hydpy.exe.replacetools import xml_replace
+from hydpy.exe.servertools import await_server
 from hydpy.exe.servertools import start_server
 
 
@@ -171,4 +172,5 @@ __all__ = ['config',
            'execute_scriptfunction',
            'print_latest_logfile',
            'xml_replace',
+           'await_server',
            'start_server']

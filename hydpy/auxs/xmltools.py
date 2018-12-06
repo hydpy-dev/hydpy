@@ -27,16 +27,12 @@ Running the simulation requires defining the main script (`hyd.py`),
 the function specifying the actual workflow (`run_simulation`), the
 name of the project of interest (`LahnH`), and the name of the
 relevant XMK configuration file (`config.xml`).  To simulate using
-the command line, we pass the required text to function |subprocess.run|
-of module |subprocess|.  Printing the content of the resulting log
-file confirms that something happened:
+the command line, we pass the required text to function |run_subprocess|:
 
->>> from hydpy import TestIO, print_latest_logfile
+>>> from hydpy import run_subprocess, TestIO
 >>> import subprocess
->>> with TestIO():
-...     _ = subprocess.run(
-...         'hyd.py run_simulation LahnH config.xml', shell=True)
-...     print_latest_logfile()    # doctest: +ELLIPSIS
+>>> with TestIO():    # doctest: +ELLIPSIS
+...     run_subprocess('hyd.py run_simulation LahnH config.xml')
 Start HydPy project `LahnH` (...).
 Read configuration file `config.xml` (...).
 Interpret the defined options (...).
@@ -49,7 +45,6 @@ Read the required time series files (...).
 Perform the simulation run (...).
 Write the desired condition files (...).
 Write the desired time series files (...).
-<BLANKLINE>
 
 As defined by the XML configuration file, the simulation started on the
 first and ended at the sixths January 1996.  The following example shows
@@ -184,7 +179,7 @@ def strip(name) -> str:
     return name.split('}')[-1]
 
 
-def run_simulation(projectname: str, xmlfile: str, *, logfile: IO):
+def run_simulation(projectname: str, xmlfile: str):
     """Perform a HydPy workflow in agreement with the configuration file
     `conf.xml` available in the directory of the given project.
 
@@ -193,10 +188,8 @@ def run_simulation(projectname: str, xmlfile: str, *, logfile: IO):
     """
     def write(text):
         """Write the given text eventually."""
-        logfile.flush()
         timestring = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
-        logfile.write(f'{text} ({timestring}).\n')
-        logfile.flush()
+        print(f'{text} ({timestring}).')
 
     pub.options.printprogress = False
     write(f'Start HydPy project `{projectname}`')
@@ -318,6 +311,13 @@ will be used as the default namespace.
         >>> with TestIO():
         ...     xml_replace('LahnH/config',
         ...                 firstdate='1996-01-32T00:00:00')
+        template file: LahnH/config.xmlt
+        target file: LahnH/config.xml
+        replacements:
+          firstdate --> 1996-01-32T00:00:00 (given argument)
+          zip_ --> false (default argument)
+          zip_ --> false (default argument)
+        >>> with TestIO():
         ...     interface = XMLInterface('LahnH/config.xml')
         >>> interface.validate_xml()    # doctest: +ELLIPSIS
         Traceback (most recent call last):

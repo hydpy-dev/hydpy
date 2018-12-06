@@ -4,13 +4,13 @@
 >>> from hydpy.core.examples import prepare_full_example_1
 >>> prepare_full_example_1()
 
->>> from hydpy import TestIO
->>> import subprocess, time
+>>> from hydpy import run_subprocess, TestIO
+>>> import subprocess
 >>> with TestIO():
 ...     process = subprocess.Popen(
 ...         'hyd.py start_server 8080 LahnH 1996-01-01 1996-01-06 1d',
 ...         shell=True)
-...     _ = subprocess.run('hyd.py await_server 8080 10', shell=True)
+...     run_subprocess('hyd.py await_server 8080 10', verbose=False)
 
 >>> from urllib import request
 >>> from hydpy import print_values
@@ -230,25 +230,22 @@ def start_server(
 def await_server(port, seconds, *, logfile=None):
     """
 
-    >>> import subprocess
-    >>> from hydpy import print_latest_logfile, TestIO
-    >>> with TestIO():
-    ...     _ = subprocess.run('hyd.py await_server 8080 0.1', shell=True)
-    ...     print_latest_logfile()    # doctest: +ELLIPSIS
+    >>> from hydpy import run_subprocess, TestIO
+    >>> with TestIO():    # doctest: +ELLIPSIS
+    ...     run_subprocess('hyd.py await_server 8080 0.1')
     Invoking hyd.py with arguments `...hyd.py, await_server, 8080, 0.1` \
 resulted in the following error:
     <urlopen error Waited for 0.1 seconds without response on port 8080.>
     ...
 
+    >>> import subprocess
     >>> from hydpy.core.examples import prepare_full_example_1
     >>> prepare_full_example_1()
     >>> with TestIO():
     ...     process = subprocess.Popen(
     ...         'hyd.py start_server 8080 LahnH 1996-01-01 1996-01-06 1d',
     ...         shell=True)
-    ...     _ = subprocess.run('hyd.py await_server 8080 10', shell=True)
-    ...     print_latest_logfile()
-    <BLANKLINE>
+    ...     run_subprocess('hyd.py await_server 8080 10')
 
     >>> from urllib import request
     >>> _ = request.urlopen('http://localhost:8080/close_server')

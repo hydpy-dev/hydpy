@@ -4,6 +4,7 @@ your command line tools via script |hyd|."""
 # import...
 # ...from standard library
 from typing import IO
+import contextlib
 import datetime
 import inspect
 import os
@@ -17,7 +18,6 @@ from hydpy.core import autodoctools
 from hydpy.core import objecttools
 
 
-def exec_commands(commands, *, logfile: IO, **parameters) -> None:
 def run_subprocess(commandstring, verbose=True):
     """Execute the given command in a new process.
 
@@ -44,6 +44,7 @@ def run_subprocess(commandstring, verbose=True):
                 print(output)
 
 
+def exec_commands(commands, **parameters) -> None:
     """Execute the given Python commands.
 
     Function |exec_commands| is thought for testing purposes only (see
@@ -52,13 +53,13 @@ def run_subprocess(commandstring, verbose=True):
 
     >>> from hydpy.exe.commandtools import exec_commands
     >>> import sys
-    >>> exec_commands("x_=_1+1;print(x)", logfile=sys.stdout)
+    >>> exec_commands("x_=_1+1;print(x)")
     Start to execute the commands ['x_=_1+1', 'print(x)'] for testing purposes.
     2
 
     |exec_commands| interprets double underscores as a single underscores:
 
-    >>> exec_commands("x_=_1;print(x.____class____)", logfile=sys.stdout)
+    >>> exec_commands("x_=_1;print(x.____class____)")
     Start to execute the commands ['x_=_1', 'print(x.____class____)'] \
 for testing purposes.
     <class 'int'>
@@ -66,13 +67,12 @@ for testing purposes.
     |exec_commands| evaluates additional keyword arguments before it
     executes the given commands:
 
-    >>> exec_commands("e=x==y;print(e)", x=1, y=2, logfile=sys.stdout)
+    >>> exec_commands("e=x==y;print(e)", x=1, y=2)
     Start to execute the commands ['e=x==y', 'print(e)'] for testing purposes.
     False
     """
     cmdlist = commands.split(';')
-    logfile.write(
-        f'Start to execute the commands {cmdlist} for testing purposes.\n')
+    print(f'Start to execute the commands {cmdlist} for testing purposes.')
     for par, value in parameters.items():
         exec(f'{par} = {value}')
     for command in cmdlist:
@@ -116,26 +116,34 @@ def print_latest_logfile(dirpath='.', wait=0.0) -> None:
 
 
 def prepare_logfile(filename=None):
-    """Prepare an empty log file and return its absolute path.
+    """Prepare an empty log file eventually and return its absolute path.
 
-    If not given, |prepare_logfile| generates a filename containing
-    the actual date and time:
+    When passing the "filename" `stdout`, |prepare_logfile| does not
+    prepare any file and just returns `stdout`:
 
     >>> from hydpy.exe.commandtools import prepare_logfile
+    >>> prepare_logfile('stdout')
+    'stdout'
+
+    When passing the "filename" `default`, |prepare_logfile| generates a
+    filename containing the actual date and time, prepares an empty file
+    on disk, and returns its path:
+
     >>> from hydpy import repr_, TestIO
     >>> from hydpy.core.testtools import mock_datetime_now
     >>> from datetime import datetime
     >>> with TestIO():
     ...     with mock_datetime_now(datetime(2000, 1, 1, 12, 30, 0)):
-    ...         filepath = prepare_logfile()
+    ...         filepath = prepare_logfile('default')
     >>> import os
     >>> os.path.exists(filepath)
     True
     >>> repr_(filepath)    # doctest: +ELLIPSIS
     '...hydpy/tests/iotesting/hydpy_2000-01-01_12-30-00.log'
 
-    To given filenames,  |prepare_logfile| does not add any date or time
-    information:
+    For all other strings, |prepare_logfile| does not add any date or time
+    information to the filename:
+
     >>> with TestIO():
     ...     with mock_datetime_now(datetime(2000, 1, 1, 12, 30, 0)):
     ...         filepath = prepare_logfile('my_log_file.txt')
@@ -144,12 +152,31 @@ def prepare_logfile(filename=None):
     >>> repr_(filepath)    # doctest: +ELLIPSIS
     '...hydpy/tests/iotesting/my_log_file.txt'
     """
-    if filename is None:
+    if filename == 'stdout':
+        return filename
+    if filename == 'default':
         filename = datetime.datetime.now().strftime(
             'hydpy_%Y-%m-%d_%H-%M-%S.log')
     with open(filename, 'w'):
         pass
     return os.path.abspath(filename)
+
+
+@contextlib.contextmanager
+def _activate_logfile(filepath, logstyle, level_stdout, level_stderr):
+    try:
+        if filepath == 'stdout':
+            sys.stdout = LogFileInterface(sys.stdout, logstyle, level_stdout)
+            sys.stderr = LogFileInterface(sys.stderr, logstyle, level_stderr)
+            yield
+        else:
+            with open(filepath, 'a') as logfile:
+                sys.stdout = LogFileInterface(logfile, logstyle, level_stdout)
+                sys.stderr = LogFileInterface(logfile, logstyle, level_stderr)
+                yield
+    finally:
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
 
 
 def execute_scriptfunction():
@@ -170,7 +197,7 @@ def execute_scriptfunction():
                     kwargs_given[key] = value
                 except ValueError:
                     args_given.append(arg)
-        logfilepath = prepare_logfile(kwargs_given.pop('logfile', None))
+        logfilepath = prepare_logfile(kwargs_given.pop('logfile', 'stdout'))
         logstyle = kwargs_given.pop('logstyle', 'plain')
         try:
             funcname = str(args_given.pop(0))
@@ -202,25 +229,18 @@ def execute_scriptfunction():
                 f'Function `{funcname}` requires `{nmb_args_required:d}` '
                 f'positional arguments{enum_args_required}, but '
                 f'`{nmb_args_given:d}` are given{enum_args_given}.')
-        try:
-            with open(logfilepath, 'a') as logfile:
-                sys.stdout = LogFileInterface(logfile, logstyle, 'info')
-                sys.stderr = LogFileInterface(logfile, logstyle, 'warning')
-                func(*args_given, **kwargs_given, logfile=sys.stdout)
-        finally:
-            sys.stdout = sys.__stdout__
-            sys.stderr = sys.__stderr__
+        with _activate_logfile(logfilepath, logstyle, 'info', 'warning'):
+            func(*args_given, **kwargs_given)
     except BaseException as exc:
-        with open(logfilepath, 'a') as logfile:
-            if logstyle not in LogFileInterface.style2infotype2string:
-                logstyle = 'plain'
-            interface = LogFileInterface(logfile, logstyle, 'exception')
+        if logstyle not in LogFileInterface.style2infotype2string:
+            logstyle = 'plain'
+        with _activate_logfile(logfilepath, logstyle, 'exception', 'exception'):
             arguments = ', '.join(sys.argv)
-            interface.write(
-                f'Invoking hyd.py with arguments `{arguments}` '
-                f'resulted in the following error:\n{str(exc)}\n\n'
-                f'See the following stack traceback for debugging:\n')
-            traceback.print_tb(sys.exc_info()[2], file=logfile)
+            print(f'Invoking hyd.py with arguments `{arguments}` '
+                  f'resulted in the following error:\n{str(exc)}\n\n'
+                  f'See the following stack traceback for debugging:\n',
+                  file=sys.stderr)
+            traceback.print_tb(sys.exc_info()[2])
 
 
 class LogFileInterface(object):

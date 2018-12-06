@@ -6,36 +6,6 @@
 
 >>> from hydpy import TestIO, print_latest_logfile
 >>> import subprocess, time
->>> with TestIO():
-...     process = subprocess.Popen(
-...         'hyd.py start_server 8080 LahnH 1996-01-01 1996-01-06 1d',
-...         shell=True)
-
->>> from urllib import request
->>> with TestIO():
-...     print_latest_logfile(wait=10.0)
-<BLANKLINE>
-
->>> bytestring = request.urlopen('http://localhost:8080/zonez').read()
->>> print(str(bytestring, encoding='utf-8'))
-land_dill: [ 2.  2.  3.  3.  4.  4.  5.  5.  6.  6.  7.  7.]
-land_lahn_1: [ 2.  2.  3.  3.  4.  4.  5.  5.  6.  6.  7.  7.  8.]
-land_lahn_2: [ 2.  2.  3.  3.  4.  4.  5.  5.  6.  6.]
-land_lahn_3: [ 2.  2.  3.  3.  4.  4.  5.  5.  6.  6.  7.  7.  8.  9.]
-
-
->>> _ = request.urlopen('http://localhost:8080/zonez', data=b'1.0')
-
->>> bytestring = request.urlopen('http://localhost:8080/zonez').read()
->>> print(str(bytestring, encoding='utf-8'))
-land_dill: [ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.]
-land_lahn_1: [ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.]
-land_lahn_2: [ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.]
-land_lahn_3: [ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.]
-
->>> _ = request.urlopen('http://localhost:8080/close_server')
->>> process.kill()
->>> _ = process.communicate()
 
 >>> TestIO.clear()
 >>> from hydpy.core.examples import prepare_full_example_1
@@ -49,6 +19,7 @@ land_lahn_3: [ 1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.  1.]
 ...     print_latest_logfile(wait=10.0)    # doctest: +ELLIPSIS
 <BLANKLINE>
 
+>>> from urllib import request
 >>> from hydpy import print_values
 >>> def test(dirname, time_, alpha):
 ...     with TestIO():
@@ -117,6 +88,7 @@ import threading
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import autodoctools
+from hydpy.core import objecttools
 from hydpy.core import hydpytools
 
 
@@ -128,78 +100,97 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
+        try:
+            externalname = self.path[1:]
+            internalname = f'get_{externalname}'
+            try:
+                method = getattr(self, internalname)
+            except AttributeError:
+                raise AttributeError(
+                    f'No GET method for property `{externalname}` available.')
+            try:
+                method()
+            except BaseException:
+                objecttools.augment_excmessage(
+                    f'While trying execute the GET method '
+                    f'of property {externalname}')
+        except BaseException:
+            self._set_headers()
+            self.wfile.write(bytes(f'{type(exc)}: {exc}', encoding='utf-8'))
+
+    def get_close_server(self):
         self._set_headers()
-        name = self.path[1:]
-        if name == 'close_server':
-            self.wfile.write(b'shutting down server')
-            shutter = threading.Thread(target=self.server.shutdown)
-            shutter.deamon = True
-            shutter.start()
-        results = []
-        for element in self.server.hp.elements:
-            par = getattr(element.model.parameters.control, name, None)
-            if par is not None:
-                results.append(f'{element.name}: {par}')
-        self.wfile.write(bytes('\n'.join(results), encoding='utf-8'))
+        self.wfile.write(b'shutting down server')
+        shutter = threading.Thread(target=self.server.shutdown)
+        shutter.deamon = True
+        shutter.start()
 
     def do_POST(self):
         try:
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
-            name = self.path[1:]
-            if name == 'process_input':
-                dirpath = str(post_data, encoding='utf-8')
-                filepath = os.path.join(dirpath, 'hydpy.exchange')
-                alpha = None
-                lz = None
-                with open(filepath, 'r') as infile:
-                    lines = infile.readlines()
-                    for line in lines:
-                        if line.startswith('alpha'):
-                            alpha = eval(line.split('=')[1])[0]
-                        if line.startswith('lz'):
-                            lz = eval(line.split('=')[1])[0]
-                        if line.startswith('time'):
-                            time_ = [int(t) for t in eval(line.split('=')[1])]
-                init = pub.timegrids.init
-                sim = pub.timegrids.sim
-                sim.firstdate = init.firstdate + f'{time_[0]}d'
-                sim.lastdate = init.firstdate + f'{time_[2]}d'
-                idx1 = init[sim.firstdate]
-                idx2 = init[sim.lastdate]
-                if not idx1:
-                    self.server.hp.conditions = self.server.init_conditions
-                else:
-                    self.server.hp.conditions = self.server.conditions[dirpath][idx1]
-                if alpha is not None:
-                    for element in self.server.hp.elements.catchment:
-                        getattr(element.model.parameters.control, 'alpha')(alpha)
-                if lz is not None:
-                    element = self.server.hp.elements.land_lahn_1
-                    element.model.sequences.states.lz(lz)
-                self.server.hp.doit()
-                self.server.conditions[dirpath][idx2] = self.server.hp.conditions
-                filepath = os.path.join(dirpath, 'hydpy.exchange')
-                with open(filepath, 'w') as outfile:
-                    for line in lines:
-                        key = line.split('=')[0]
-                        if key.endswith('.discharge'):
-                            node = getattr(self.server.hp.nodes, key[:-10])
-                            line = f'{key}={list(node.sequences.sim.series[idx1:idx2])}\n'
-                        if 'lz' in key:
-                            line = f'lz = [{self.server.hp.elements.land_lahn_1.model.sequences.states.lz.value}]\n'
-                        outfile.write(line)
-            else:
-                value = float(post_data)
-                for element in self.server.hp.elements:
-                    par = getattr(element.model.parameters.control, name, None)
-                    if par is not None:
-                        par(value)
+            externalname = self.path[1:]
+            internalname = f'post_{externalname}'
+            try:
+                method = getattr(self, internalname)
+            except AttributeError:
+                raise AttributeError(
+                    f'No POST method for property `{externalname}` available.')
+            try:
+                method(post_data)
+            except BaseException:
+                objecttools.augment_excmessage(
+                    f'While trying execute the POST method '
+                    f'of property {externalname}')
             self._set_headers()
             self.wfile.write(
                 bytes(f'POST request for {self.path}', encoding='utf-8'))
         except BaseException as exc:
+            self._set_headers()
             self.wfile.write(bytes(f'{type(exc)}: {exc}', encoding='utf-8'))
+
+    def post_process_input(self, post_data):
+        dirpath = str(post_data, encoding='utf-8')
+        filepath = os.path.join(dirpath, 'hydpy.exchange')
+        alpha = None
+        lz = None
+        with open(filepath, 'r') as infile:
+            lines = infile.readlines()
+            for line in lines:
+                if line.startswith('alpha'):
+                    alpha = eval(line.split('=')[1])[0]
+                if line.startswith('lz'):
+                    lz = eval(line.split('=')[1])[0]
+                if line.startswith('time'):
+                    time_ = [int(t) for t in eval(line.split('=')[1])]
+        init = pub.timegrids.init
+        sim = pub.timegrids.sim
+        sim.firstdate = init.firstdate + f'{time_[0]}d'
+        sim.lastdate = init.firstdate + f'{time_[2]}d'
+        idx1 = init[sim.firstdate]
+        idx2 = init[sim.lastdate]
+        if not idx1:
+            self.server.hp.conditions = self.server.init_conditions
+        else:
+            self.server.hp.conditions = self.server.conditions[dirpath][idx1]
+        if alpha is not None:
+            for element in self.server.hp.elements.catchment:
+                getattr(element.model.parameters.control, 'alpha')(alpha)
+        if lz is not None:
+            element = self.server.hp.elements.land_lahn_1
+            element.model.sequences.states.lz(lz)
+        self.server.hp.doit()
+        self.server.conditions[dirpath][idx2] = self.server.hp.conditions
+        filepath = os.path.join(dirpath, 'hydpy.exchange')
+        with open(filepath, 'w') as outfile:
+            for line in lines:
+                key = line.split('=')[0]
+                if key.endswith('.discharge'):
+                    node = getattr(self.server.hp.nodes, key[:-10])
+                    line = f'{key}={list(node.sequences.sim.series[idx1:idx2])}\n'
+                if 'lz' in key:
+                    line = f'lz = [{self.server.hp.elements.land_lahn_1.model.sequences.states.lz.value}]\n'
+                outfile.write(line)
 
 
 class HydPyHTTPServer(http.server.HTTPServer):

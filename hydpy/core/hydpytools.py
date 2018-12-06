@@ -134,11 +134,7 @@ class HydPy(object):
         ...     hp.load_conditions()
         ...     hp.prepare_inputseries()
         ...     hp.prepare_simseries()
-        ...     pub.sequencemanager.generalfiletype = 'nc'
-        ...     pub.sequencemanager.open_netcdf_reader(
-        ...         isolate=True, flatten=True, timeaxis=0)
         ...     hp.load_inputseries()
-        ...     pub.sequencemanager.close_netcdf_reader()
         >>> hp.doit()
         >>> print_values(hp.nodes.lahn_3.sequences.sim.series)
         53.793428, 37.157714, 31.835184, 28.375294
@@ -194,11 +190,7 @@ class HydPy(object):
         ...     hp.load_conditions()
         ...     hp.prepare_modelseries()
         ...     hp.prepare_simseries()
-        ...     pub.sequencemanager.generalfiletype = 'nc'
-        ...     pub.sequencemanager.open_netcdf_reader(
-        ...         isolate=True, flatten=True, timeaxis=0)
         ...     hp.load_inputseries()
-        ...     pub.sequencemanager.close_netcdf_reader()
         >>> pub.timegrids.sim.lastdate = '1996-02-20'
         >>> hp.doit()
         >>> print_values(hp.nodes.lahn_3.sequences.sim.series[48:52])

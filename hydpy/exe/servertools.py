@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 
+
 >>> from hydpy.core.examples import prepare_full_example_1
 >>> prepare_full_example_1()
 
@@ -14,16 +15,23 @@
 
 >>> from urllib import request
 >>> from hydpy import print_values
->>> def test(dirname, time_, alpha):
+>>> def test(id_, time_, alpha):
 ...     content = (f"alpha= [{alpha}] \\n"
 ...                f"refdate= '01 jan 1996' \\n"
 ...                f"unit= '1d' \\n"
 ...                f"time={time_} \\n"
 ...                f"dill.discharge=[0.0] \\n"
 ...                f"lahn_1.discharge=[0.0]").encode('utf-8')
-...     response = request.urlopen(
-...             f'http://localhost:8080/process_input?id={dirname}', data=content)
-...     lines = str(response.read(), encoding='utf-8').split('\\n')
+...     for methodname in ('period', 'parametervalues', 'load_conditionvalues',
+...                  'conditionvalues', 'simulate', 'save_conditionvalues',
+...                  'itemvalues'):
+...         url = f'http://localhost:8080/{methodname}?id={id_}'
+...         if methodname in ('period', 'parametervalues', 'conditionvalues'):
+...             response = request.urlopen(url, data=content)
+...         else:
+...             response = request.urlopen(url)
+...         result = response.read()
+...     lines = str(result, encoding='utf-8').split('\\n')
 ...     for line in lines:
 ...         if line.startswith('dill.discharge'):
 ...             values = eval(line.split('=')[1])
@@ -31,35 +39,35 @@
 
 Single simulation run:
 
->>> test(dirname='workingdir1', time_=[0.0,1.0,5.0], alpha=2.0)
+>>> test(id_='workingdir1', time_=[0.0,1.0,5.0], alpha=2.0)
 35.250827, 7.774062, 5.035808, 4.513706, 4.251594
 
 Multiple interlockingsimulation runs:
 
->>> test(dirname='workingdir2', time_=[0.0,1.0,1.0], alpha=2.0)
+>>> test(id_='workingdir2', time_=[0.0,1.0,1.0], alpha=2.0)
 35.250827
 
->>> test(dirname='workingdir3', time_=[0.0,1.0,3.0], alpha=2.0)
+>>> test(id_='workingdir3', time_=[0.0,1.0,3.0], alpha=2.0)
 35.250827, 7.774062, 5.035808
 
->>> test(dirname='workingdir2', time_=[1.0,1.0,5.0], alpha=2.0)
+>>> test(id_='workingdir2', time_=[1.0,1.0,5.0], alpha=2.0)
 7.774062, 5.035808, 4.513706, 4.251594
 
 Parallel runs with different parameterisations:
 
->>> test(dirname='workingdir4', time_=[0.0,1.0,3.0], alpha=2.0)
+>>> test(id_='workingdir4', time_=[0.0,1.0,3.0], alpha=2.0)
 35.250827, 7.774062, 5.035808
 
->>> test(dirname='workingdir5', time_=[0.0,1.0,3.0], alpha=1.0)
+>>> test(id_='workingdir5', time_=[0.0,1.0,3.0], alpha=1.0)
 11.658511, 8.842278, 7.103614
 
->>> test(dirname='workingdir4', time_=[3.0,1.0,5.0], alpha=2.0)
+>>> test(id_='workingdir4', time_=[3.0,1.0,5.0], alpha=2.0)
 4.513706, 4.251594
 
->>> test(dirname='workingdir5', time_=[3.0,1.0,5.0], alpha=1.0)
+>>> test(id_='workingdir5', time_=[3.0,1.0,5.0], alpha=1.0)
 6.00763, 5.313751
 
->>> test(dirname='workingdir1', time_=[0.0, 1.0, 5.0], alpha=1.0)
+>>> test(id_='workingdir1', time_=[0.0, 1.0, 5.0], alpha=1.0)
 11.658511, 8.842278, 7.103614, 6.00763, 5.313751
 
 
@@ -76,6 +84,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from typing import List
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import autodoctools
@@ -83,6 +92,35 @@ from hydpy.core import objecttools
 from hydpy.core import hydpytools
 
 
+class ServerState(object):
+
+    def __init__(self):
+        self.hp: hydpytools.HydPy = None
+        self.conditions: collections.defaultdict = None
+        self.init_conditions: dict = None
+        self.id_: str = None
+        self.idx1: int = None
+        self.idx2: int = None
+        self.inputlines: List[str] = None
+        self.outputlines: List[str] = None
+
+    def initialize(self, projectname):
+        self.hp = hydpytools.HydPy(projectname)
+        hp = self.hp
+        pub.options.printprogress = False
+        hp.prepare_network()
+        hp.init_models()
+        hp.prepare_simseries()
+        hp.prepare_modelseries()
+        hp.load_inputseries()
+        hp.load_conditions()
+        self.conditions = collections.defaultdict(lambda: {})
+        self.init_conditions = hp.conditions
+
+
+state = ServerState()
+
+        
 class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
 
     def _set_headers(self):
@@ -92,12 +130,13 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
 
     def do_GET(self):
         try:
+            self._set_headers()
             externalname = urllib.parse.urlparse(self.path).path[1:]
             internalname = f'get_{externalname}'
             try:
-                self.server.id_ = urllib.parse.parse_qsl( self.path)[0][1]
+                state.id_ = urllib.parse.parse_qsl(self.path)[0][1]
             except IndexError:
-                self.server.id_ = None
+                state.id_ = None
             try:
                 method = getattr(self, internalname)
             except AttributeError:
@@ -109,19 +148,22 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 objecttools.augment_excmessage(
                     f'While trying execute the GET method '
                     f'of property {externalname}')
-        except BaseException:
-            self._set_headers()
+            if method is not self.get_close_server:
+                output = '\n'.join(state.outputlines)
+            self.wfile.write(bytes(output, encoding='utf-8'))
+        except BaseException as exc:
             self.wfile.write(bytes(f'{type(exc)}: {exc}', encoding='utf-8'))
 
     def do_POST(self):
         try:
+            self._set_headers()
             externalname = urllib.parse.urlparse(self.path).path[1:]
             internalname = f'post_{externalname}'
             content_length = int(self.headers['Content-Length'])
-            self.server.id_ = urllib.parse.parse_qsl(self.path)[0][1]
-            self.server.inlines = str(
+            state.id_ = urllib.parse.parse_qsl(self.path)[0][1]
+            state.inputlines = str(
                 self.rfile.read(content_length), encoding='utf-8').split('\n')
-            self.server.outlines = []
+            state.outputlines = []
             try:
                 method = getattr(self, internalname)
             except AttributeError:
@@ -133,94 +175,96 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 objecttools.augment_excmessage(
                     f'While trying execute the POST method '
                     f'of property {externalname}')
-            self._set_headers()
-            output = '\n'.join(self.server.outlines)
+            output = '\n'.join(state.outputlines)
             self.wfile.write(bytes(output, encoding='utf-8'))
         except BaseException as exc:
-            self._set_headers()
             self.wfile.write(bytes(f'{type(exc)}: {exc}', encoding='utf-8'))
 
     def get_status(self):
-        self._set_headers()
-        self.wfile.write(b'ready')
+        self.outputlines.append('ready')
 
     def get_close_server(self):
-        self._set_headers()
         self.wfile.write(b'shutting down server')
         shutter = threading.Thread(target=self.server.shutdown)
         shutter.deamon = True
         shutter.start()
 
+
+
     def post_process_input(self):
-        alpha = None
-        lz = None
-        for line in self.server.inlines:
-            if line.startswith('alpha'):
-                alpha = eval(line.split('=')[1])[0]
-            if line.startswith('lz'):
-                lz = eval(line.split('=')[1])[0]
+        self.post_period()
+        self.post_parametervalues()
+        self.get_load_conditionvalues()
+        self.post_conditionvalues()
+        self.get_simulate()
+        self.get_save_conditionvalues()
+        self.get_itemvalues()
+
+    def get_period(self):
+
+    def post_period(self):
+        for line in state.inputlines:
             if line.startswith('time'):
                 time_ = [int(t) for t in eval(line.split('=')[1])]
         init = pub.timegrids.init
         sim = pub.timegrids.sim
         sim.firstdate = init.firstdate + f'{time_[0]}d'
         sim.lastdate = init.firstdate + f'{time_[2]}d'
-        idx1 = init[sim.firstdate]
-        idx2 = init[sim.lastdate]
-        if not idx1:
-            self.server.hp.conditions = self.server.init_conditions
-        else:
-            self.server.hp.conditions = self.server.conditions[self.server.id_][idx1]
+        state.idx1 = init[sim.firstdate]
+        state.idx2 = init[sim.lastdate]
+
+    def post_parametervalues(self):
+        alpha = None
+        for line in state.inputlines:
+            if line.startswith('alpha'):
+                alpha = eval(line.split('=')[1])[0]
         if alpha is not None:
-            for element in self.server.hp.elements.catchment:
+            for element in state.hp.elements.catchment:
                 getattr(element.model.parameters.control, 'alpha')(alpha)
+
+    def post_conditionvalues(self):
+        lz = None
+        for line in state.inputlines:
+            if line.startswith('lz'):
+                lz = eval(line.split('=')[1])[0]
         if lz is not None:
-            element = self.server.hp.elements.land_lahn_1
+            element = state.hp.elements.land_lahn_1
             element.model.sequences.states.lz(lz)
-        self.server.hp.doit()
-        self.server.conditions[self.server.id_][idx2] = self.server.hp.conditions
+
+    def get_load_conditionvalues(self):
+        if not state.idx1:
+            state.hp.conditions = state.init_conditions
+        else:
+            state.hp.conditions = state.conditions[state.id_][state.idx1]
+
+    def get_save_conditionvalues(self):
+        state.conditions[state.id_][
+            state.idx2] = state.hp.conditions
+
+    def get_simulate(self):
+        state.hp.doit()
+
+    def get_itemvalues(self):
         outlines = []
-        for line in self.server.inlines:
+        for line in state.inputlines:
             key = line.split('=')[0]
             if key.endswith('.discharge'):
-                node = getattr(self.server.hp.nodes, key[:-10])
-                line = f'{key}={list(node.sequences.sim.series[idx1:idx2])}'
+                node = getattr(state.hp.nodes, key[:-10])
+                series = node.sequences.sim.series
+                line = f'{key}={list(series[state.idx1:state.idx2])}'
             if 'lz' in key:
-                line = f'lz = [{self.server.hp.elements.land_lahn_1.model.sequences.states.lz.value}]'
+                element = state.hp.elements.land_lahn_1
+                line = f'lz = [{element.model.sequences.states.lz.value}]'
             outlines.append(line)
-        self.server.outlines = outlines
-
-
-class HydPyHTTPServer(http.server.HTTPServer):
-
-    hp: hydpytools.HydPy
-    conditions: collections.defaultdict
-    init_conditions: dict
-
-    def prepare_hydpy(self, projectname):
-        self.hp = hydpytools.HydPy(projectname)
-        hp = self.hp
-        pub.options.printprogress = False
-        pub.sequencemanager.generalfiletype = 'nc'
-        hp.prepare_network()
-        hp.init_models()
-        hp.prepare_simseries()
-        hp.prepare_modelseries()
-        pub.sequencemanager.open_netcdf_reader(
-            flatten=True, isolate=True, timeaxis=0)
-        hp.load_inputseries()
-        pub.sequencemanager.close_netcdf_reader()
-        hp.load_conditions()
-        self.conditions = collections.defaultdict(lambda: {})
-        self.init_conditions = hp.conditions
+        state.outputlines = outlines
 
 
 def start_server(
         socket, projectname, firstdate, lastdate, stepsize,
         *, logfile=None) -> None:
-    server = HydPyHTTPServer(('', int(socket)), HydPyHTTPRequestHandler)
     pub.timegrids = firstdate, lastdate, stepsize
-    server.prepare_hydpy(projectname)
+    state.initialize(projectname)
+    server = http.server.HTTPServer(('', int(socket)), HydPyHTTPRequestHandler)
     server.serve_forever()
 
 
@@ -265,7 +309,6 @@ resulted in the following error:
 
 pub.scriptfunctions['start_server'] = start_server
 pub.scriptfunctions['await_server'] = await_server
-
 
 
 autodoctools.autodoc_module()

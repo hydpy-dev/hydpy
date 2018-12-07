@@ -8,7 +8,7 @@ import warnings
 # ...from site-packages
 import numpy
 from scipy import integrate
-from matplotlib import pyplot
+from hydpy import pyplot
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import autodoctools

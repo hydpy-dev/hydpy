@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema targetNamespace="https://github.com/hydpy-dev/hydpy/releases/download/v3.0.4/config.xsd"
+<schema targetNamespace="https://github.com/hydpy-dev/hydpy/releases/download/v3.0.5/config.xsd"
         xmlns="http://www.w3.org/2001/XMLSchema"
-        xmlns:fews="https://github.com/hydpy-dev/hydpy/releases/download/v3.0.4/config.xsd"
+        xmlns:fews="https://github.com/hydpy-dev/hydpy/releases/download/v3.0.5/config.xsd"
         elementFormDefault="qualified">
 
     <simpleType name="bool">

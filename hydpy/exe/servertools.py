@@ -84,7 +84,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
-from typing import List
+from typing import Any, Dict
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import autodoctools
@@ -101,8 +101,8 @@ class ServerState(object):
         self.id_: str = None
         self.idx1: int = None
         self.idx2: int = None
-        self.inputlines: List[str] = None
-        self.outputlines: List[str] = None
+        self.inputs: Dict[str, str] = None
+        self.outputs: Dict[str, Any] = None
 
     def initialize(self, projectname):
         self.hp = hydpytools.HydPy(projectname)
@@ -128,11 +128,49 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
         self.send_header('Content-type', 'text/html')
         self.end_headers()
 
+    @staticmethod
+    def bstring2dict(bstring: bytes) -> Dict[str, str]:
+        """Parse the given bytes string into an |collections.OrderedDict|
+        and return it.
+
+        Different items must be separated by newline characters; keys and
+        values must be seperated by "="; an arbitrary number of
+        whitespaces is allowed:
+
+        >>> from hydpy.exe.servertools import HydPyHTTPRequestHandler
+        >>> HydPyHTTPRequestHandler.bstring2dict(b'var1 = 1\\nvar2=  [2]\\n')
+        OrderedDict([('var1', '1'), ('var2', '[2]')])
+        """
+        inputs = collections.OrderedDict()
+        for line in str(bstring, encoding='utf-8').split('\n'):
+            line = line.strip()
+            if line:
+                key, value = line.split('=')
+                inputs[key.strip()] = value.strip()
+        return inputs
+
+    @staticmethod
+    def dict2bstring(dict_: Dict[str, Any]) -> bytes:
+        """Unparse the given dictionary into a bytes string and return it.
+
+        See the following example and the documentation on method
+        |HydPyHTTPRequestHandler.bstring2dict|:
+
+        >>> from hydpy.exe.servertools import HydPyHTTPRequestHandler
+        >>> HydPyHTTPRequestHandler.dict2bstring(
+        ...     dict([('var1', '1'), ('var2', '[2]')]))
+        b'var1 = 1\\nvar2 = [2]'
+        """
+        output = '\n'.join(f'{key} = {value}' for key, value
+                           in dict_.items())
+        return bytes(output, encoding='utf-8')
+
     def do_GET(self):
         try:
             self._set_headers()
             externalname = urllib.parse.urlparse(self.path).path[1:]
             internalname = f'get_{externalname}'
+            state.outputs = collections.OrderedDict()
             try:
                 state.id_ = urllib.parse.parse_qsl(self.path)[0][1]
             except IndexError:
@@ -149,8 +187,7 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                     f'While trying execute the GET method '
                     f'of property {externalname}')
             if method is not self.get_close_server:
-                output = '\n'.join(state.outputlines)
-            self.wfile.write(bytes(output, encoding='utf-8'))
+                self.wfile.write(self.dict2bstring(state.outputs))
         except BaseException as exc:
             self.wfile.write(bytes(f'{type(exc)}: {exc}', encoding='utf-8'))
 
@@ -161,9 +198,8 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             internalname = f'post_{externalname}'
             content_length = int(self.headers['Content-Length'])
             state.id_ = urllib.parse.parse_qsl(self.path)[0][1]
-            state.inputlines = str(
-                self.rfile.read(content_length), encoding='utf-8').split('\n')
-            state.outputlines = []
+            state.inputs = self.bstring2dict(self.rfile.read(content_length))
+            state.outputs = {}
             try:
                 method = getattr(self, internalname)
             except AttributeError:
@@ -175,21 +211,19 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 objecttools.augment_excmessage(
                     f'While trying execute the POST method '
                     f'of property {externalname}')
-            output = '\n'.join(state.outputlines)
-            self.wfile.write(bytes(output, encoding='utf-8'))
+            if method is not self.get_close_server:
+                self.wfile.write(self.dict2bstring(state.outputs))
         except BaseException as exc:
             self.wfile.write(bytes(f'{type(exc)}: {exc}', encoding='utf-8'))
 
     def get_status(self):
-        self.outputlines.append('ready')
+        state.outputs['status'] = 'ready'
 
     def get_close_server(self):
         self.wfile.write(b'shutting down server')
         shutter = threading.Thread(target=self.server.shutdown)
         shutter.deamon = True
         shutter.start()
-
-
 
     def post_process_input(self):
         self.post_period()
@@ -200,33 +234,23 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
         self.get_save_conditionvalues()
         self.get_itemvalues()
 
-    def get_period(self):
-
     def post_period(self):
-        for line in state.inputlines:
-            if line.startswith('time'):
-                time_ = [int(t) for t in eval(line.split('=')[1])]
+        time_ = eval(state.inputs['time'])
         init = pub.timegrids.init
         sim = pub.timegrids.sim
-        sim.firstdate = init.firstdate + f'{time_[0]}d'
-        sim.lastdate = init.firstdate + f'{time_[2]}d'
+        sim.firstdate = init.firstdate + f'{int(time_[0])}d'
+        sim.lastdate = init.firstdate + f'{int(time_[2])}d'
         state.idx1 = init[sim.firstdate]
         state.idx2 = init[sim.lastdate]
 
     def post_parametervalues(self):
-        alpha = None
-        for line in state.inputlines:
-            if line.startswith('alpha'):
-                alpha = eval(line.split('=')[1])[0]
+        alpha = state.inputs.get('alpha', None)
         if alpha is not None:
             for element in state.hp.elements.catchment:
-                getattr(element.model.parameters.control, 'alpha')(alpha)
+                getattr(element.model.parameters.control, 'alpha')(alpha[1])
 
     def post_conditionvalues(self):
-        lz = None
-        for line in state.inputlines:
-            if line.startswith('lz'):
-                lz = eval(line.split('=')[1])[0]
+        lz = state.inputs.get('lz', None)
         if lz is not None:
             element = state.hp.elements.land_lahn_1
             element.model.sequences.states.lz(lz)
@@ -245,18 +269,14 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
         state.hp.doit()
 
     def get_itemvalues(self):
-        outlines = []
-        for line in state.inputlines:
-            key = line.split('=')[0]
-            if key.endswith('.discharge'):
-                node = getattr(state.hp.nodes, key[:-10])
-                series = node.sequences.sim.series
-                line = f'{key}={list(series[state.idx1:state.idx2])}'
-            if 'lz' in key:
-                element = state.hp.elements.land_lahn_1
-                line = f'lz = [{element.model.sequences.states.lz.value}]'
-            outlines.append(line)
-        state.outputlines = outlines
+        state.outputs['alpha'] = \
+            [state.hp.elements.land_dill.model.parameters.control.alpha.value]
+        state.outputs['lz'] = \
+            [state.hp.elements.land_lahn_1.model.sequences.states.lz.value]
+        state.outputs['dill.discharge'] = \
+            list(state.hp.nodes.dill.sequences.sim.series[state.idx1:state.idx2])
+        state.outputs['lahn_1.discharge'] = \
+            list(state.hp.nodes.lahn_1.sequences.sim.series[state.idx1:state.idx2])
 
 
 def start_server(

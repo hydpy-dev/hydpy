@@ -114,7 +114,7 @@ from hydpy.core import timetools
 
 
 namespace = \
-    '{https://github.com/hydpy-dev/hydpy/releases/download/3.1a0/config.xsd}'
+    '{https://github.com/hydpy-dev/hydpy/releases/download/3.1a2/config.xsd}'
 
 
 def find(root, name) -> ElementTree.Element:
@@ -272,7 +272,7 @@ file ...wrongfilepath.xml, the following error occurred: \
 `...config.xml` does not reference the latest XML schema file \
 `https://github.com/hydpy-dev/hydpy/releases/download/9.9.9/config.xsd`.  \
 From now on, \
-`https://github.com/hydpy-dev/hydpy/releases/download/3.1a0/config.xsd` \
+`https://github.com/hydpy-dev/hydpy/releases/download/3.1a2/config.xsd` \
 will be used as the default namespace.
     """
 

@@ -470,16 +470,14 @@ class IntegrationTest(Test):
             if not node.entries:
                 node.deploymode = 'oldsim'
             sim = node.sequences.sim
-            sim.ramflag = True
-            sim.zero_int()
+            sim.activate_ram()
 
     def prepare_input_model_sequences(self):
         """Configure the input sequences of the model in a manner that allows
         for applying their time series data in integration tests."""
         subseqs = getattr(self.element.model.sequences, 'inputs', ())
         for seq in subseqs:
-            seq.ramflag = True
-            seq.zero_int()
+            seq.activate_ram()
 
     def extract_print_sequences(self):
         """Return a list of all input, flux and state sequences of the model

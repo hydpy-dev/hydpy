@@ -859,7 +859,16 @@ or prepare `pub.sequencemanager` correctly.
         self._activate()
 
     def _activate(self):
-        self.zero_int()
+        values = numpy.full(self.seriesshape, numpy.nan, dtype=float)
+        if self.diskflag:
+            self._save_int(values)
+        elif self.ramflag:
+            self.__set_array(values)
+        else:
+            raise RuntimeError(
+                'Sequence %s is not requested to make any '
+                'internal data available to the user.'
+                % objecttools.devicephrase(self.name))
         self.update_fastaccess()
 
     def deactivate_disk(self):
@@ -1099,6 +1108,40 @@ or prepare `pub.sequencemanager` correctly.
         values[zdx1:zdx2] = valcopy
         return values
 
+    def check_completeness(self):
+        """Raise a |RuntimeError| if the |IOSequence.series| contains at
+        least one |numpy.nan| value.
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = '2000-01-01', '2000-01-11', '1d'
+        >>> from hydpy.core.sequencetools import IOSequence
+        >>> seq = IOSequence()
+        >>> seq.activate_ram()
+        >>> seq.check_completeness()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The series array of sequence `iosequence` contains \
+10 nan values.
+
+        >>> seq.series = 1.0
+        >>> seq.check_completeness()
+        
+        >>> seq.series[3] = numpy.nan
+        >>> seq.check_completeness()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The series array of sequence `iosequence` contains \
+1 nan value.
+        """
+        isnan = numpy.isnan(self.series)
+        if numpy.any(isnan):
+            nmb = numpy.sum(isnan)
+            valuestring = 'value' if nmb == 1 else 'values'
+            raise RuntimeError(
+                f'The series array of sequence '
+                f'{objecttools.devicephrase(self)} contains '
+                f'{nmb} nan {valuestring}.')
+
     def save_ext(self):
         """Write the internal data into an external data file."""
         try:
@@ -1124,19 +1167,6 @@ or prepare `pub.sequencemanager` correctly.
         if self.NDIM > 0:
             values = values.reshape(self.seriesshape)
         return values
-
-    def zero_int(self):
-        """Initialize the internal data series with zero values."""
-        values = numpy.zeros(self.seriesshape)
-        if self.diskflag:
-            self._save_int(values)
-        elif self.ramflag:
-            self.__set_array(values)
-        else:
-            raise RuntimeError(
-                'Sequence %s is not requested to make any '
-                'internal data available to the user.'
-                % objecttools.devicephrase(self.name))
 
     def _save_int(self, values):
         values.tofile(self.filepath_int)

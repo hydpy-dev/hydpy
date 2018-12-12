@@ -1111,7 +1111,8 @@ or prepare `pub.sequencemanager` correctly.
 
     def check_completeness(self):
         """Raise a |RuntimeError| if the |IOSequence.series| contains at
-        least one |numpy.nan| value.
+        least one |numpy.nan| value, if option |Options.checkseries| is
+        enabled.
 
         >>> from hydpy import pub
         >>> pub.timegrids = '2000-01-01', '2000-01-11', '1d'
@@ -1133,15 +1134,19 @@ or prepare `pub.sequencemanager` correctly.
         ...
         RuntimeError: The series array of sequence `iosequence` contains \
 1 nan value.
+
+        >>> with pub.options.checkseries(False):
+        ...     seq.check_completeness()
         """
-        isnan = numpy.isnan(self.series)
-        if numpy.any(isnan):
-            nmb = numpy.sum(isnan)
-            valuestring = 'value' if nmb == 1 else 'values'
-            raise RuntimeError(
-                f'The series array of sequence '
-                f'{objecttools.devicephrase(self)} contains '
-                f'{nmb} nan {valuestring}.')
+        if pub.options.checkseries:
+            isnan = numpy.isnan(self.series)
+            if numpy.any(isnan):
+                nmb = numpy.sum(isnan)
+                valuestring = 'value' if nmb == 1 else 'values'
+                raise RuntimeError(
+                    f'The series array of sequence '
+                    f'{objecttools.devicephrase(self)} contains '
+                    f'{nmb} nan {valuestring}.')
 
     def save_ext(self):
         """Write the internal data into an external data file."""

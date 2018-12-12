@@ -125,13 +125,16 @@ actually works:
 
 (9) We move up a gear and and prepare a |NetCDFInterface| object for
 reading data, log all |NodeSequence| and |ModelSequence| objects,
-and read their time series data from the created NetCDF file:
+and read their time series data from the created NetCDF file (note
+that we disable option |Options.checkseries| temporarily, to prevent
+from raising an exception when reading incomplete data from file):
 
 >>> pub.sequencemanager.open_netcdf_reader()
 >>> nodes.load_simseries()
 >>> elements.load_allseries()
 >>> with TestIO():
-...     pub.sequencemanager.close_netcdf_reader()
+...     with pub.options.checkseries(False):
+...         pub.sequencemanager.close_netcdf_reader()
 
 (10) We check if the data is available via the test sequences again:
 

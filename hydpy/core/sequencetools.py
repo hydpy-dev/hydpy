@@ -973,6 +973,7 @@ or prepare `pub.sequencemanager` correctly.
                 'Sequence `%s` is not requested to make any '
                 'internal data available to the user.'
                 % objecttools.devicephrase(self))
+        self.check_completeness()
 
     @series.deleter
     def series(self):

@@ -1205,8 +1205,8 @@ class SequenceManager(FileManager):
                [ 20.,  21.],
                [ 22.,  23.]])
 
-    (5) Wrongly formatted ASCII files should result in understandable error
-    messages:
+    (5) Wrongly formatted ASCII files and incomplete data should result in
+    understandable error messages:
 
     >>> path = os.path.join('nodepath', 'node2_sim_t.asc')
     >>> with TestIO():
@@ -1221,6 +1221,22 @@ class SequenceManager(FileManager):
     ...
     NameError: While trying to load the external data of sequence `sim` of \
 node `node2`, the following error occurred: name 'timegrid' is not defined
+
+    >>> sim_series = sim.series.copy()
+    >>> with TestIO():
+    ...     lines = right.split('\\n')
+    ...     lines[5] = 'nan'
+    ...     wrong = '\\n'.join(lines)
+    ...     with open(path, 'w') as file_:
+    ...         _ = file_.write(wrong)
+    >>> with TestIO():
+    ...     pub.sequencemanager.load_file(sim)
+    Traceback (most recent call last):
+    ...
+    RuntimeError: While trying to load the external data of sequence `sim` \
+of node `node2`, the following error occurred: The series array of sequence \
+`sim` of node `node2` contains 1 nan value.
+    >>> sim.series = sim_series
 
     (6) By default, overwriting existing time series files is disabled:
 

@@ -72,7 +72,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'HydPy'
-copyright = u'2018, Christoph Tyralla'
+copyright = u'2018, HydPy Developers'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -217,7 +217,7 @@ latex_elements = {
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('index', 'HydPy.tex', u'HydPy Documentation',
-   u'Christoph Tyralla', 'manual'),
+   u'HydPy Developers', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -247,7 +247,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'hydpy', u'HydPy Documentation',
-     [u'Christoph Tyralla'], 1)
+     [u'HydPy Developers'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -261,7 +261,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'HydPy', u'HydPy Documentation',
-   u'Christoph Tyralla', 'HydPy', 'One line description of project.',
+   u'HydPy Developers', 'HydPy', 'One line description of project.',
    'Miscellaneous'),
 ]
 

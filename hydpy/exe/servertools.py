@@ -21,8 +21,8 @@
 ...     content = (f"alpha= [{alpha}] \\n"
 ...                f"firstdate = {t0+f'{int(time_[0])}d'}\\n"
 ...                f"lastdate = {t0+f'{int(time_[2])}d'}\\n"
-...                f"dill.discharge=[0.0] \\n"
-...                f"lahn_1.discharge=[0.0]").encode('utf-8')
+...                f"dill=[0.0] \\n"
+...                f"lahn_1=[0.0]").encode('utf-8')
 ...     #for methodname in (
 ...     #        'timegrid', 'parameteritems', 'load_conditionvalues',
 ...     #        'conditionitems', 'simulate', 'save_conditionvalues',
@@ -42,7 +42,7 @@
 ...         result = response.read()
 ...     lines = str(result, encoding='utf-8').split('\\n')
 ...     for line in lines:
-...         if line.startswith('dill.discharge'):
+...         if line.startswith('dill'):
 ...             values = eval(line.split('=')[1])
 ...             print_values(values)
 
@@ -156,14 +156,14 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
     >>> test('parameteritemtypes')
     alpha = DoubleItem1D(1)
     >>> test('conditionitemtypes')
-    lz = DoubleItem0D()
+    lz = DoubleItem1D()
     >>> test('seriesitemtypes')
-    dill = DoubleItem1D(5)
-    lahn_1 = DoubleItem1D(5)
+    dill = TimeSeries0D(5)
+    lahn_1 = TimeSeries0D(5)
 
     >>> test('timegrid')
-    firstdate = 1996-01-01 00:00:00
-    lastdate = 1996-01-06 00:00:00
+    firstdate = 1996-01-01T00:00:00+01:00
+    lastdate = 1996-01-06T00:00:00+01:00
     stepsize = 1d
 
     >>> test('timegrid',
@@ -176,8 +176,8 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
     >>> test('conditionitems', 'lz = [10.0]')
     <BLANKLINE>
     >>> test('seriesitems',
-    ...      'dill.discharge = [5.0]\\n'
-    ...      'lahn_1.discharge = [6.0]')
+    ...      'dill = [5.0]\\n'
+    ...      'lahn_1 = [6.0]')
     <BLANKLINE>
 
     >>> test('parameteritems')
@@ -185,13 +185,19 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
     >>> test('conditionitems')
     lz = [10.0]
     >>> test('seriesitems')
-    dill.discharge = [5.0]
-    lahn_1.discharge = [6.0]
+    dill = [5.0]
+    lahn_1 = [6.0]
 
 
     >>> test('missingmethod')
+    Traceback (most recent call last):
+    ...
+    urllib.error.HTTPError: HTTP Error 400: Bad Request
 
     >>> test('parameteritems', 'alpha = []')
+    Traceback (most recent call last):
+    ...
+    urllib.error.HTTPError: HTTP Error 500: Internal Server Error
 
     >>> test('close_server')
     shutting down the server = seems to work
@@ -328,6 +334,7 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
         self.post_conditionitems()
 
     def get_itemvalues(self):
+        self.get_timegrid()
         self.get_save_conditionvalues()
         self.get_parameteritems()
         self.get_conditionitems()
@@ -340,13 +347,14 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
         state.outputs['lz'] = 'DoubleItem1D()'
 
     def get_seriesitemtypes(self):
-        state.outputs['dill'] = 'DoubleItem1D(5)'
-        state.outputs['lahn_1'] = 'DoubleItem1D(5)'
+        state.outputs['dill'] = 'TimeSeries0D(5)'
+        state.outputs['lahn_1'] = 'TimeSeries0D(5)'
 
     def get_timegrid(self):
         init = pub.timegrids.init
-        state.outputs['firstdate'] = init.firstdate
-        state.outputs['lastdate'] = init.lastdate
+        utcoffset = pub.options.utcoffset
+        state.outputs['firstdate'] = init.firstdate.to_string('iso1', utcoffset)
+        state.outputs['lastdate'] = init.lastdate.to_string('iso1', utcoffset)
         state.outputs['stepsize'] = init.stepsize
 
     def post_timegrid(self):
@@ -372,9 +380,9 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
 
     def post_seriesitems(self):
         state.hp.nodes.dill.sequences.sim.series[state.idx1:state.idx2] = \
-            eval(state.inputs['dill.discharge'])
+            eval(state.inputs['dill'])
         state.hp.nodes.lahn_1.sequences.sim.series[state.idx1:state.idx2] = \
-            eval(state.inputs['lahn_1.discharge'])
+            eval(state.inputs['lahn_1'])
 
     def get_load_conditionvalues(self):
         if not state.idx1:
@@ -398,10 +406,10 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             [state.hp.elements.land_lahn_1.model.sequences.states.lz.value]
 
     def get_seriesitems(self):
-        state.outputs['dill.discharge'] = \
+        state.outputs['dill'] = \
             list(state.hp.nodes.dill.sequences.sim.series
                  [state.idx1:state.idx2])
-        state.outputs['lahn_1.discharge'] = \
+        state.outputs['lahn_1'] = \
             list(state.hp.nodes.lahn_1.sequences.sim.series
                  [state.idx1:state.idx2])
 

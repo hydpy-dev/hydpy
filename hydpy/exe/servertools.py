@@ -23,12 +23,19 @@
 ...                f"lastdate = {t0+f'{int(time_[2])}d'}\\n"
 ...                f"dill.discharge=[0.0] \\n"
 ...                f"lahn_1.discharge=[0.0]").encode('utf-8')
-...     for methodname in (
-...             'simperiod', 'parameteritems', 'load_conditionvalues',
-...             'conditionitems', 'simulate', 'save_conditionvalues',
-...             'seriesitems'):
+...     #for methodname in (
+...     #        'timegrid', 'parameteritems', 'load_conditionvalues',
+...     #        'conditionitems', 'simulate', 'save_conditionvalues',
+...     #        'seriesitems'):
+...     #    url = f'http://localhost:8080/{methodname}?id={id_}'
+...     #    if methodname in ('timegrid', 'parameteritems', 'conditionitems'):
+...     #        response = request.urlopen(url, data=content)
+...     #    else:
+...     #        response = request.urlopen(url)
+...     for idx, methodname in enumerate(
+...             ['itemvalues', 'simulate', 'itemvalues']):
 ...         url = f'http://localhost:8080/{methodname}?id={id_}'
-...         if methodname in ('simperiod', 'parameteritems', 'conditionitems'):
+...         if not idx:
 ...             response = request.urlopen(url, data=content)
 ...         else:
 ...             response = request.urlopen(url)
@@ -153,12 +160,12 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
     dill = DoubleItem1D(5)
     lahn_1 = DoubleItem1D(5)
 
-    >>> test('inittimegrid')
+    >>> test('timegrid')
     firstdate = 1996-01-01 00:00:00
     lastdate = 1996-01-06 00:00:00
     stepsize = 1d
 
-    >>> test('simperiod',
+    >>> test('timegrid',
     ...      ('firstdate = 1996-01-01 00:00:00\\n'
     ...       'lastdate = 1996-01-02 00:00:00'))
     <BLANKLINE>
@@ -289,11 +296,22 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
         shutter.start()
 
     def post_process_input(self):
-        self.post_simperiod()
+        self.get_postvalues()
+        self.get_simulate()
+        self.get_itemvalues()
+
+    def get_itemtypes(self):
+        self.get_parameteritemtypes()
+        self.get_conditionitemtypes()
+        self.get_seriesitemtypes()
+
+    def post_itemvalues(self):
+        self.post_timegrid()
         self.post_parameteritems()
         self.get_load_conditionvalues()
         self.post_conditionitems()
-        self.get_simulate()
+
+    def get_itemvalues(self):
         self.get_save_conditionvalues()
         self.get_parameteritems()
         self.get_conditionitems()
@@ -309,13 +327,13 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
         state.outputs['dill'] = 'DoubleItem1D(5)'
         state.outputs['lahn_1'] = 'DoubleItem1D(5)'
 
-    def get_inittimegrid(self):
+    def get_timegrid(self):
         init = pub.timegrids.init
         state.outputs['firstdate'] = init.firstdate
         state.outputs['lastdate'] = init.lastdate
         state.outputs['stepsize'] = init.stepsize
 
-    def post_simperiod(self):
+    def post_timegrid(self):
         init = pub.timegrids.init
         sim = pub.timegrids.sim
         sim.firstdate = state.inputs['firstdate']

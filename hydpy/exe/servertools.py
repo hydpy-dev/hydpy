@@ -148,7 +148,8 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
     ...     url = f'http://localhost:8080/{methodname}?id=ID'
     ...     if data is not None:
     ...         data = bytes(data, encoding='utf-8')
-    ...     print(str(request.urlopen(url, data=data).read(), encoding='utf-8'))
+    ...     response = request.urlopen(url, data=data)
+    ...     print(str(response.read(), encoding='utf-8'))
     >>> test('status')
     status = ready
 
@@ -187,14 +188,19 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
     dill.discharge = [5.0]
     lahn_1.discharge = [6.0]
 
+
+    >>> test('missingmethod')
+
+    >>> test('parameteritems', 'alpha = []')
+
     >>> test('close_server')
-    shutting down server
+    shutting down the server = seems to work
     >>> process.kill()
     >>> _ = process.communicate()
     """
 
-    def _set_headers(self):
-        self.send_response(200)
+    def _set_headers(self, statuscode):
+        self.send_response(statuscode)
         self.send_header('Content-type', 'text/html')
         self.end_headers()
 
@@ -236,8 +242,8 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
         return bytes(output, encoding='utf-8')
 
     def do_GET(self):
+        statuscode = 200
         try:
-            self._set_headers()
             externalname = urllib.parse.urlparse(self.path).path[1:]
             internalname = f'get_{externalname}'
             state.outputs = collections.OrderedDict()
@@ -248,22 +254,27 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             try:
                 method = getattr(self, internalname)
             except AttributeError:
+                statuscode = 400
                 raise AttributeError(
                     f'No GET method for property `{externalname}` available.')
             try:
                 method()
             except BaseException:
+                statuscode = 500
                 objecttools.augment_excmessage(
                     f'While trying execute the GET method '
                     f'of property {externalname}')
             if method is not self.get_close_server:
-                self.wfile.write(self.dict2bstring(state.outputs))
+                string = self.dict2bstring(state.outputs)
+                self._set_headers(statuscode)
+                self.wfile.write(string)
         except BaseException as exc:
+            self._set_headers(statuscode)
             self.wfile.write(bytes(f'{type(exc)}: {exc}', encoding='utf-8'))
 
     def do_POST(self):
+        statuscode = 200
         try:
-            self._set_headers()
             externalname = urllib.parse.urlparse(self.path).path[1:]
             internalname = f'post_{externalname}'
             content_length = int(self.headers['Content-Length'])
@@ -273,24 +284,29 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             try:
                 method = getattr(self, internalname)
             except AttributeError:
+                statuscode = 400
                 raise AttributeError(
                     f'No POST method for property `{externalname}` available.')
             try:
                 method()
             except BaseException:
+                statuscode = 500
                 objecttools.augment_excmessage(
                     f'While trying execute the POST method '
                     f'of property {externalname}')
             if method is not self.get_close_server:
-                self.wfile.write(self.dict2bstring(state.outputs))
+                string = self.dict2bstring(state.outputs)
+                self._set_headers(statuscode)
+                self.wfile.write(string)
         except BaseException as exc:
+            self._set_headers(statuscode)
             self.wfile.write(bytes(f'{type(exc)}: {exc}', encoding='utf-8'))
 
     def get_status(self):
         state.outputs['status'] = 'ready'
 
     def get_close_server(self):
-        self.wfile.write(b'shutting down server')
+        state.outputs['shutting down the server'] = 'seems to work'
         shutter = threading.Thread(target=self.server.shutdown)
         shutter.deamon = True
         shutter.start()
@@ -321,7 +337,7 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
         state.outputs['alpha'] = 'DoubleItem1D(1)'
 
     def get_conditionitemtypes(self):
-        state.outputs['lz'] = 'DoubleItem0D()'
+        state.outputs['lz'] = 'DoubleItem1D()'
 
     def get_seriesitemtypes(self):
         state.outputs['dill'] = 'DoubleItem1D(5)'

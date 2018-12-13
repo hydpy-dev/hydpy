@@ -2,6 +2,7 @@
 <config xmlns="https://github.com/hydpy-dev/hydpy/releases/download/3.1a0/config.xsd">
 
     <options>
+        <checkseries>true</checkseries>
         <reprdigits>6</reprdigits>
         <usecython>true</usecython>
         <usedefaultvalues>false</usedefaultvalues>

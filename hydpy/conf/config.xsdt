@@ -31,7 +31,10 @@
     <element name="options">
         <complexType>
             <sequence>
-                <element name="reprdigits">
+                <element name="checkseries"
+                         type="fews:bool"
+                         minOccurs="0"/>
+                <element name="reprdigits"
                          minOccurs="0">
                     <simpleType>
                         <restriction base="integer">

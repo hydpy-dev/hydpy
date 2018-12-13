@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema targetNamespace="https://github.com/hydpy-dev/hydpy/releases/download/3.1a0/config.xsd"
+<schema targetNamespace="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/config.xsd"
         xmlns="http://www.w3.org/2001/XMLSchema"
-        xmlns:fews="https://github.com/hydpy-dev/hydpy/releases/download/3.1a0/config.xsd"
+        xmlns:fews="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/config.xsd"
         elementFormDefault="qualified">
 
     <simpleType name="bool">
@@ -31,7 +31,11 @@
     <element name="options">
         <complexType>
             <sequence>
-                <element name="reprdigits">
+                <element name="checkseries"
+                         type="fews:bool"
+                         minOccurs="0"/>
+                <element name="reprdigits"
+                         minOccurs="0">
                     <simpleType>
                         <restriction base="integer">
                             <minInclusive value="-1"/>
@@ -40,22 +44,31 @@
                     </simpleType>
                 </element>
                 <element name="usecython"
-                         type="fews:bool"/>
+                         type="fews:bool"
+                         minOccurs="0"/>
                 <element name="usedefaultvalues"
-                         type="fews:bool"/>
+                         type="fews:bool"
+                         minOccurs="0"/>
                 <element name="utcoffset"
-                         type="integer"/>
+                         type="integer"
+                         minOccurs="0"/>
                 <element name="warnmissingobsfile"
-                         type="fews:bool"/>
+                         type="fews:bool"
+                         minOccurs="0"/>
                 <element name="warnmissingsimfile"
-                         type="fews:bool"/>
+                         type="fews:bool"
+                         minOccurs="0"/>
                 <element name="warntrim"
-                         type="fews:bool"/>
+                         type="fews:bool"
+                         minOccurs="0"/>
                 <element name="flattennetcdf"
-                         type="fews:bool"/>
+                         type="fews:bool"
+                         minOccurs="0"/>
                 <element name="isolatenetcdf"
-                         type="fews:bool"/>
-                <element name="timeaxisnetcdf">
+                         type="fews:bool"
+                         minOccurs="0"/>
+                <element name="timeaxisnetcdf"
+                         minOccurs="0">
                     <simpleType>
                         <restriction base="integer">
                             <minInclusive value="0"/>

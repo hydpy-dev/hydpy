@@ -117,7 +117,8 @@ class Options(object):
 
     checkseries = _Option(True, None)
     """True/False flag for raising an error when trying to load an input
-    time series not spanning the whole initialisation period."""
+    time series not spanning the whole initialisation period or containing
+    |numpy.nan| values."""
     
     dirverbose = _Option(False, None)
     """A True/False flag for letting the autocompletion textbox include

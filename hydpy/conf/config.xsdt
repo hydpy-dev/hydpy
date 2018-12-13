@@ -32,6 +32,7 @@
         <complexType>
             <sequence>
                 <element name="reprdigits">
+                         minOccurs="0">
                     <simpleType>
                         <restriction base="integer">
                             <minInclusive value="-1"/>
@@ -40,22 +41,31 @@
                     </simpleType>
                 </element>
                 <element name="usecython"
-                         type="fews:bool"/>
+                         type="fews:bool"
+                         minOccurs="0"/>
                 <element name="usedefaultvalues"
-                         type="fews:bool"/>
+                         type="fews:bool"
+                         minOccurs="0"/>
                 <element name="utcoffset"
-                         type="integer"/>
+                         type="integer"
+                         minOccurs="0"/>
                 <element name="warnmissingobsfile"
-                         type="fews:bool"/>
+                         type="fews:bool"
+                         minOccurs="0"/>
                 <element name="warnmissingsimfile"
-                         type="fews:bool"/>
+                         type="fews:bool"
+                         minOccurs="0"/>
                 <element name="warntrim"
-                         type="fews:bool"/>
+                         type="fews:bool"
+                         minOccurs="0"/>
                 <element name="flattennetcdf"
-                         type="fews:bool"/>
+                         type="fews:bool"
+                         minOccurs="0"/>
                 <element name="isolatenetcdf"
-                         type="fews:bool"/>
-                <element name="timeaxisnetcdf">
+                         type="fews:bool"
+                         minOccurs="0"/>
+                <element name="timeaxisnetcdf"
+                         minOccurs="0">
                     <simpleType>
                         <restriction base="integer">
                             <minInclusive value="0"/>

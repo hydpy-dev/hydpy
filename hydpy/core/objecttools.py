@@ -1214,6 +1214,42 @@ def assignrepr_list3(values, prefix, width=None):
     return _assignrepr_bracketed3(assignrepr_list, values, prefix, width)
 
 
+def flatten_repr(self):
+    """Remove the newline characters from the string representation of the
+    given object and return it.
+
+    Complex string representations like the following one are e. g.
+    convenient when working interactively, but cause line breaks when
+    included in e. g. exception messages:
+
+    >>> from hydpy import Node
+    >>> node = Node('name', keywords='test')
+    >>> node
+    Node("name", variable="Q",
+         keywords="test")
+
+    Use function |flatten_repr| to prevent any line breaks:
+
+    >>> from hydpy.core.objecttools import flatten_repr
+    >>> print(flatten_repr(node))
+    Node("name", variable="Q", keywords="test")
+
+    When implementing a new class into the HydPy framework requiring a complex
+    "|repr| string", either customize an simpler "|str| string" manually (as
+    already done for the class |Node| or use function |flatten_repr|:
+
+    >>> print(f'We print {node}!')
+    We print name!
+    >>> __str__ = Node.__str__
+    >>> Node.__str__ = flatten_repr
+    >>> print(f'We print {node}!')
+    We print Node("name", variable="Q", keywords="test")!
+
+    >>> Node.__str__ = __str__
+    """
+    return ' '.join(string.strip() for string in repr(self).split('\n'))
+
+
 def round_(values, decimals=None, width=0,
            lfill=None, rfill=None, **kwargs):
     """Prints values with a maximum number of digits in doctests.

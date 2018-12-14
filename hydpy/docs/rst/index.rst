@@ -115,9 +115,9 @@ Sections :ref:`core` covers the basic functionalities of the
 .. toctree::
    :hidden:
 
+   install
    framework
    modelcollection
-   tutorials
    development
 
 

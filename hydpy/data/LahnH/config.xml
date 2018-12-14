@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<config xmlns="https://github.com/hydpy-dev/hydpy/releases/download/3.1a2/config.xsd">
+<config xmlns="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/config.xsd">
 
     <options>
+        <checkseries>true</checkseries>
         <reprdigits>6</reprdigits>
         <usecython>true</usecython>
         <usedefaultvalues>false</usedefaultvalues>

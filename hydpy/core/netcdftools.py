@@ -125,13 +125,16 @@ actually works:
 
 (9) We move up a gear and and prepare a |NetCDFInterface| object for
 reading data, log all |NodeSequence| and |ModelSequence| objects,
-and read their time series data from the created NetCDF file:
+and read their time series data from the created NetCDF file (note
+that we disable option |Options.checkseries| temporarily, to prevent
+from raising an exception when reading incomplete data from file):
 
 >>> pub.sequencemanager.open_netcdf_reader()
 >>> nodes.load_simseries()
 >>> elements.load_allseries()
 >>> with TestIO():
-...     pub.sequencemanager.close_netcdf_reader()
+...     with pub.options.checkseries(False):
+...         pub.sequencemanager.close_netcdf_reader()
 
 (10) We check if the data is available via the test sequences again:
 
@@ -244,7 +247,7 @@ call this variable "period" instead of "time" within NetCDF files:
 >>> varmapping['timepoints'] = 'period'
 """
 
-fillvalue = -999.
+fillvalue = numpy.nan
 """Default fill value for writing NetCDF files.
 
 You can set another |float| value before writing a NetCDF file:
@@ -362,7 +365,7 @@ occurred: ...
     >>> create_variable(ncfile, 'var1', 'f8', ('dim1',))
     >>> import numpy
     >>> numpy.array(ncfile['var1'][:])
-    array([-999., -999., -999., -999., -999.])
+    array([ nan,  nan,  nan,  nan,  nan])
 
     >>> ncfile.close()
     """
@@ -429,6 +432,37 @@ def query_timegrid(ncfile) -> timetools.Timegrid:
         timepoints=timepoints[:],
         refdate=refdate,
         unit=timepoints.units.strip().split()[0])
+
+
+def query_array(ncfile, name) -> numpy.ndarray:
+    """Return the data of the variable with the given name from the given
+    NetCDF file.
+
+    The following example shows that |query_array| returns |nan| entries
+    to represent missing values even when the respective NetCDF variable
+    defines a different fill value:
+
+    >>> from hydpy import netcdf4, TestIO
+    >>> from hydpy.core import netcdftools
+    >>> netcdftools.fillvalue = -999.0
+    >>> with TestIO():
+    ...     with netcdf4.Dataset('test.nc', 'w') as ncfile:
+    ...         netcdftools.create_dimension(ncfile, 'dim1', 5)
+    ...         netcdftools.create_variable(ncfile, 'var1', 'f8', ('dim1',))
+    ...     ncfile = netcdf4.Dataset('test.nc', 'r')
+    >>> netcdftools.query_variable(ncfile, 'var1')[:].data
+    array([-999., -999., -999., -999., -999.])
+    >>> netcdftools.query_array(ncfile, 'var1')
+    array([ nan,  nan,  nan,  nan,  nan])
+    >>> import numpy
+    >>> netcdftools.fillvalue = numpy.nan
+    """
+    variable = query_variable(ncfile, name)
+    maskedarray = variable[:]
+    fillvalue_ = getattr(variable, '_FillValue', numpy.nan)
+    if not numpy.isnan(fillvalue_):
+        maskedarray[maskedarray.mask] = numpy.nan
+    return maskedarray.data
 
 
 def get_filepath(ncfile) -> str:
@@ -1632,10 +1666,10 @@ to the NetCDF file `model.nc`, the following error occurred: ...
         ...     nkor1 = element.model.sequences.fluxes.nkor
         ...     ncvar.log(nkor1, nkor1.series)
         >>> ncvar.array[1]
-        array([[  16.,   17., -999.],
-               [  18.,   19., -999.],
-               [  20.,   21., -999.],
-               [  22.,   23., -999.]])
+        array([[ 16.,  17.,  nan],
+               [ 18.,  19.,  nan],
+               [ 20.,  21.,  nan],
+               [ 22.,  23.,  nan]])
 
         When using the first axis for time (`timeaxis=0`) the same data
         can be accessed with slightly different indexing:
@@ -1645,10 +1679,10 @@ to the NetCDF file `model.nc`, the following error occurred: ...
         ...     nkor1 = element.model.sequences.fluxes.nkor
         ...     ncvar.log(nkor1, nkor1.series)
         >>> ncvar.array[:, 1]
-        array([[  16.,   17., -999.],
-               [  18.,   19., -999.],
-               [  20.,   21., -999.],
-               [  22.,   23., -999.]])
+        array([[ 16.,  17.,  nan],
+               [ 18.,  19.,  nan],
+               [ 20.,  21.,  nan],
+               [ 22.,  23.,  nan]])
         """
         array = numpy.full(self.shape, fillvalue, dtype=float)
         for idx, (descr, subarray) in enumerate(self.arrays.items()):
@@ -1705,7 +1739,7 @@ to the NetCDF file `model.nc`, the following error occurred: ...
         See the general documentation on class |NetCDFVariableDeep|
         for some examples.
         """
-        array = query_variable(ncfile, self.name)[:]
+        array = query_array(ncfile, self.name)
         subdev2index = self.query_subdevice2index(ncfile)
         for subdevice, sequence in self.sequences.items():
             idx = subdev2index.get_index(subdevice)
@@ -2098,7 +2132,7 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
         See the general documentation on class |NetCDFVariableFlat|
         for some examples.
         """
-        array = query_variable(ncfile, self.name)[:]
+        array = query_array(ncfile, self.name)
         idxs: Tuple[Any] = (slice(None),)
         subdev2index = self.query_subdevice2index(ncfile)
         for devicename, seq in self.sequences.items():

@@ -14,7 +14,7 @@ import itertools
 # ...from site-packages
 import numpy
 from scipy import special
-from matplotlib import pyplot
+from hydpy import pyplot
 # ...from Hydpy
 from hydpy.core import autodoctools
 from hydpy.core import objecttools

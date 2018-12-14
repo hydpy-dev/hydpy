@@ -1056,7 +1056,7 @@ or prepare `pub.sequencemanager` correctly.
         ...     return obs.adjust_short_series(timegrid, values)
 
         The following calls to the test function shows the arrays
-        returned for different kinds misalignments:
+        returned for different kinds of misalignments:
 
         >>> from hydpy import Timegrid
         >>> test(Timegrid('2000.01.05', '2000.01.20', '1d'))
@@ -1081,14 +1081,11 @@ or prepare `pub.sequencemanager` correctly.
         array([ nan,  nan,  nan,  nan,  nan])
 
         Through enabling option |Options.usedefaultvalues| the missing
-        values are initialized with zero instead of nan:
+        values are initialised with zero instead of nan:
 
-        >>> pub.options.usedefaultvalues = True
-
-        >>> test(Timegrid('2000.01.12', '2000.01.17', '1d'))
+        >>> with pub.options.usedefaultvalues(True):
+        ...     test(Timegrid('2000.01.12', '2000.01.17', '1d'))
         array([ 0.,  0.,  1.,  1.,  1.])
-
-        >>> pub.options.usedefaultvalues = False
         """
         idxs = [timegrid[pub.timegrids.init.firstdate],
                 timegrid[pub.timegrids.init.lastdate]]

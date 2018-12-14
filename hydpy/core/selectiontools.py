@@ -5,6 +5,7 @@ HydPy projects.
 # import...
 # ...from standard library
 import os
+from typing import Set
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import objecttools
@@ -13,13 +14,7 @@ from hydpy.core import autodoctools
 
 
 class Selections(object):
-    """Collects |Selection| instances.
-
-    Attributes:
-        * ? (|Selection|): An arbitrary number of |Selection| objects,
-          which can be added (and removed) on demand.  Choose attribute
-          names that are meaningfull within your specific project.
-    """
+    """Collects |Selection| instances."""
 
     def __init__(self, *selections):
         for selection in selections:
@@ -36,6 +31,42 @@ class Selections(object):
         for selection in self:
             fullpath = os.path.join(path, selection.name+'.py')
             selection.save(fullpath, write_nodes)
+
+    @property
+    def nodes(self) -> Set[devicetools.Node]:
+        """A |set| containing the |Node| objects of all handled
+        |Selection| objects.
+
+        >>> from hydpy import Elements, Nodes, Selection, Selections
+        >>> selections = Selections(
+        ...     Selection('sel1', ['node1', 'node2'], ['element1']),
+        ...     Selection('sel2', ['node1', 'node3'], ['element2']),)
+        >>> sorted(node.name for node in selections.nodes)
+        ['node1', 'node2', 'node3']
+        """
+        nodes = set()
+        for selection in self:
+            for node in selection.nodes:
+                nodes.add(node)
+        return nodes
+
+    @property
+    def elements(self) -> Set[devicetools.Element]:
+        """A |set| containing the |Node| objects of all handled
+        |Selection| objects.
+
+        >>> from hydpy import Elements, Nodes, Selection, Selections
+        >>> selections = Selections(
+        ...     Selection('sel1', ['node1'], ['element1']),
+        ...     Selection('sel2', ['node1'], ['element2', 'element3']),)
+        >>> sorted(element.name for element in selections.elements)
+        ['element1', 'element2', 'element3']
+        """
+        elements = set()
+        for selection in self:
+            for element in selection.elements:
+                elements.add(element)
+        return elements
 
     def _getselections(self):
         """The actual selections themselves."""
@@ -167,7 +198,7 @@ class Selection(object):
     """
 
     def __init__(self, name, nodes=None, elements=None):
-        self.name = name
+        self.name = str(name)
         self.nodes = devicetools.Nodes(nodes)
         self.elements = devicetools.Elements(elements)
 

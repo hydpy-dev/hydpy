@@ -65,6 +65,15 @@ class HydPy(object):
     def elements(self):
         self._elements = None
 
+    def prepare_everything(self):
+        """Convenience method to make the actual |HydPy| instance runable."""
+        self.prepare_network()
+        self.init_models()
+        self.load_conditions()
+        with pub.options.warnmissingobsfile(False):
+            self.prepare_nodeseries()
+        self.prepare_modelseries()
+        self.load_inputseries()
 
     @printtools.print_progress
     def prepare_network(self):
@@ -129,12 +138,7 @@ class HydPy(object):
         >>> with TestIO():
         ...     hp = HydPy('LahnH')
         ...     pub.timegrids = '1996-01-01', '1996-01-05', '1d'
-        ...     hp.prepare_network()
-        ...     hp.init_models()
-        ...     hp.load_conditions()
-        ...     hp.prepare_inputseries()
-        ...     hp.prepare_simseries()
-        ...     hp.load_inputseries()
+        ...     hp.prepare_everything()
         >>> hp.doit()
         >>> print_values(hp.nodes.lahn_3.sequences.sim.series)
         53.793428, 37.157714, 31.835184, 28.375294
@@ -185,16 +189,11 @@ class HydPy(object):
         >>> with TestIO():
         ...     hp = HydPy('LahnH')
         ...     pub.timegrids = '1996-01-01', '1996-04-01', '1d'
-        ...     hp.prepare_network()
-        ...     hp.init_models()
-        ...     hp.load_conditions()
-        ...     hp.prepare_modelseries()
-        ...     hp.prepare_simseries()
-        ...     hp.load_inputseries()
+        ...     hp.prepare_everything()
         >>> pub.timegrids.sim.lastdate = '1996-02-20'
         >>> hp.doit()
         >>> print_values(hp.nodes.lahn_3.sequences.sim.series[48:52])
-        70.292046, 94.076568, 0.0, 0.0
+        70.292046, 94.076568, nan, nan
 
         At the end of the preparation run, a snow layer is covering the
         Lahn catchment.  In the `lahn_1` subcatchment, this snow layer

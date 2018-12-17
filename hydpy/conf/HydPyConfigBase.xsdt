@@ -4,13 +4,6 @@
         xmlns:hpcb="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/HydPyConfigBase.xsd"
         elementFormDefault="qualified">
 
-    <simpleType name="bool">
-        <restriction base="string">
-            <enumeration value="true"/>
-            <enumeration value="false"/>
-        </restriction>
-    </simpleType>
-
     <simpleType name="listOfStrings">
       <list itemType="string"/>
     </simpleType>
@@ -32,7 +25,7 @@
         <complexType>
             <sequence>
                 <element name="checkseries"
-                         type="hpcb:bool"
+                         type="boolean"
                          minOccurs="0"/>
                 <element name="reprdigits"
                          minOccurs="0">
@@ -44,28 +37,28 @@
                     </simpleType>
                 </element>
                 <element name="usecython"
-                         type="hpcb:bool"
+                         type="boolean"
                          minOccurs="0"/>
                 <element name="usedefaultvalues"
-                         type="hpcb:bool"
+                         type="boolean"
                          minOccurs="0"/>
                 <element name="utcoffset"
                          type="integer"
                          minOccurs="0"/>
                 <element name="warnmissingobsfile"
-                         type="hpcb:bool"
+                         type="boolean"
                          minOccurs="0"/>
                 <element name="warnmissingsimfile"
-                         type="hpcb:bool"
+                         type="boolean"
                          minOccurs="0"/>
                 <element name="warntrim"
-                         type="hpcb:bool"
+                         type="boolean"
                          minOccurs="0"/>
                 <element name="flattennetcdf"
-                         type="hpcb:bool"
+                         type="boolean"
                          minOccurs="0"/>
                 <element name="isolatenetcdf"
-                         type="hpcb:bool"
+                         type="boolean"
                          minOccurs="0"/>
                 <element name="timeaxisnetcdf"
                          minOccurs="0">
@@ -114,7 +107,7 @@
                 <element name="outputdir"
                          type="anyURI"/>
                 <element name="zip"
-                         type="hpcb:bool"/>
+                         type="boolean"/>
             </sequence>
         </complexType>
     </element>
@@ -127,7 +120,7 @@
                 <element ref="hpcb:dirpath"/>
                 <element ref="hpcb:aggregation"/>
                 <element name="zip"
-                         type="hpcb:bool"/>
+                         type="boolean"/>
                 <element name="readers">
                     <complexType>
                         <sequence>
@@ -228,20 +221,20 @@
             <choice>
                 <element name="general"
                          minOccurs="0"
-                         type="hpcb:bool"/>
+                         type="boolean"/>
                 <sequence>
                     <element name="inputs"
                              minOccurs="0"
-                             type="hpcb:bool"/>
+                             type="boolean"/>
                     <element name="fluxes"
                              minOccurs="0"
-                             type="hpcb:bool"/>
+                             type="boolean"/>
                     <element name="states"
                              minOccurs="0"
-                             type="hpcb:bool"/>
+                             type="boolean"/>
                     <element name="nodes"
                              minOccurs="0"
-                             type="hpcb:bool"/>
+                             type="boolean"/>
                 </sequence>
             </choice>
         </complexType>

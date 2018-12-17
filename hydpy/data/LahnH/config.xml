@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<config xmlns="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/config.xsd">
+<config xmlns="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/HydPyConfigBase.xsd">
 
     <options>
         <checkseries>true</checkseries>

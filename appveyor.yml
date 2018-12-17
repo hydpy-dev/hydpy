@@ -46,7 +46,7 @@ test_script:
 
 artifacts:
   - path: dist\*
-  - path: hydpy\conf\config.xsd
+  - path: hydpy\conf\HydPyConfigBase.xsd
 
 deploy_script:
   - "echo [pypi] > %USERPROFILE%\\.pypirc"

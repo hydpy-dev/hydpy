@@ -9,8 +9,8 @@ thought to be applied via a command line (see the documentation
 on script |hyd| for further information).  |run_simulation| expects that
 the HydPy project you want to work with is available in your current
 working directory and contains an XML configuration file (as `config.xml`
-in the example project folder `LahnH`).  This configuration file
-must agree with the XML schema file `config.xsd`, which is available
+in the example project folder `LahnH`).  This configuration file must
+agree with the XML schema file `HydPyConfigBase.xsd`, which is available
 in the :ref:`configuration` subpackage and also downloadable for each
 `HydPy release`_.  In case you did implement new or changed existing
 models, you have to update this schema file.  *HydPy* does this automatically
@@ -114,7 +114,7 @@ from hydpy.core import timetools
 
 
 namespace = ('{https://github.com/hydpy-dev/hydpy/releases/download/'
-             'your-hydpy-version/config.xsd}')
+             'your-hydpy-version/HydPyConfigBase.xsd}')
 
 
 def find(root, name) -> ElementTree.Element:
@@ -244,7 +244,7 @@ class XMLBase(object):
 
 class XMLInterface(XMLBase):
     """An interface to the XML configuration files that are valid concerning
-     schema file `config.xsd`.
+     schema file `HydPyConfigBase.xsd`.
 
     >>> from hydpy.auxs.xmltools import XMLInterface
     >>> from hydpy import data
@@ -270,7 +270,7 @@ file ...wrongfilepath.xml, the following error occurred: \
 
     def validate_xml(self) -> None:
         """Raise an error if the actual XML does not agree with the XML
-        schema file `config.xsd`.
+        schema file `HydPyConfigBase.xsd`.
 
         # ToDo: should it be accompanied by a script function?
 
@@ -295,11 +295,11 @@ file ...wrongfilepath.xml, the following error occurred: \
         ...
         hydpy.core.objecttools.lxml.etree.XMLSyntaxError: While trying to \
 parse XML file `...config.xml`, the following error occurred: Element \
-'{...config.xsd}firstdate': '1996-01-32T00:00:00' is not a valid value \
-of the atomic type 'xs:dateTime'. (<string>, line 0)
+'{...HydPyConfigBase.xsd}firstdate': '1996-01-32T00:00:00' is not a \
+valid value of the atomic type 'xs:dateTime'. (<string>, line 0)
         """
         schema = etree.XMLSchema(
-            file=os.path.join(conf.__path__[0], 'config.xsd'))
+            file=os.path.join(conf.__path__[0], 'HydPyConfigBase.xsd'))
         parser = etree.XMLParser(schema=schema)
         try:
             etree.parse(source=self.filepath, parser=parser)
@@ -1085,7 +1085,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
 
 class XSDWriter(object):
     """Pure |classmethod| class for writing the actual XML schema file
-    `config.xsd`, which makes sure that an XML configuration file is
+    `HydPyConfigBase.xsd`, which makes sure that an XML configuration file is
     readable by class |XMLInterface|.
 
     Unless you are interested in enhancing HydPy's XML functionalities,
@@ -1093,13 +1093,13 @@ class XSDWriter(object):
     """
 
     filepath_source: str = os.path.join(
-        conf.__path__[0], 'config' + '.xsdt')
+        conf.__path__[0], 'HydPyConfigBase' + '.xsdt')
     filepath_target: str = filepath_source[:-1]
 
     @classmethod
     def write_xsd(cls) -> None:
         """Write the complete schema file based on the template file
-        `config.xsdt`, including the input, flux, and state sequences
+        `HydPyConfigBase.xsdt`, including the input, flux, and state sequences
         of all application models available at the moment.
 
         The following example shows that after writing a new schema file,
@@ -1119,7 +1119,7 @@ class XSDWriter(object):
         Traceback (most recent call last):
         ...
         lxml.etree.XMLSchemaParseError: \
-Failed to locate the main schema resource at '...config.xsd'.
+Failed to locate the main schema resource at '...HydPyConfigBase.xsd'.
 
         >>> XSDWriter.write_xsd()
         >>> XMLInterface(xmlpath).validate_xml()
@@ -1139,12 +1139,12 @@ Failed to locate the main schema resource at '...config.xsd'.
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> print(XSDWriter.get_insertion())    # doctest: +ELLIPSIS
              <element name="arma_v1"
-                      substitutionGroup="fews:sequenceGroup"
-                      type="fews:arma_v1Type"/>
+                      substitutionGroup="hpcb:sequenceGroup"
+                      type="hpcb:arma_v1Type"/>
         <BLANKLINE>
              <complexType name="arma_v1Type">
                  <complexContent>
-                     <extension base="fews:sequenceGroupType">
+                     <extension base="hpcb:sequenceGroupType">
                          <sequence>
                             <element name="fluxes"
                                      minOccurs="0">
@@ -1171,12 +1171,12 @@ Failed to locate the main schema resource at '...config.xsd'.
         for name in sorted(filenames):
             subs.extend([
                 f'{blanks}<element name="{name}"',
-                f'{blanks}         substitutionGroup="fews:sequenceGroup"',
-                f'{blanks}         type="fews:{name}Type"/>',
+                f'{blanks}         substitutionGroup="hpcb:sequenceGroup"',
+                f'{blanks}         type="hpcb:{name}Type"/>',
                 f'',
                 f'{blanks}<complexType name="{name}Type">',
                 f'{blanks}    <complexContent>',
-                f'{blanks}        <extension base="fews:sequenceGroupType">',
+                f'{blanks}        <extension base="hpcb:sequenceGroupType">',
                 f'{blanks}            <sequence>'])
             model = importtools.prepare_model(name)
             subs.append(cls.get_modelinsertion(model, indent + 4))

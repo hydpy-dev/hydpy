@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema targetNamespace="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/config.xsd"
+<schema targetNamespace="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/HydPyConfigBase.xsd"
         xmlns="http://www.w3.org/2001/XMLSchema"
-        xmlns:fews="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/config.xsd"
+        xmlns:hpcb="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/HydPyConfigBase.xsd"
         elementFormDefault="qualified">
 
     <simpleType name="bool">
@@ -18,12 +18,12 @@
     <element name="config">
         <complexType>
             <sequence>
-                <element ref="fews:options"/>
-                <element ref="fews:timegrid"/>
-                <element ref="fews:selections"/>
-                <element ref="fews:devices"/>
-                <element ref="fews:conditions_io"/>
-                <element ref="fews:series_io"/>
+                <element ref="hpcb:options"/>
+                <element ref="hpcb:timegrid"/>
+                <element ref="hpcb:selections"/>
+                <element ref="hpcb:devices"/>
+                <element ref="hpcb:conditions_io"/>
+                <element ref="hpcb:series_io"/>
             </sequence>
         </complexType>
     </element>
@@ -32,7 +32,7 @@
         <complexType>
             <sequence>
                 <element name="checkseries"
-                         type="fews:bool"
+                         type="hpcb:bool"
                          minOccurs="0"/>
                 <element name="reprdigits"
                          minOccurs="0">
@@ -44,28 +44,28 @@
                     </simpleType>
                 </element>
                 <element name="usecython"
-                         type="fews:bool"
+                         type="hpcb:bool"
                          minOccurs="0"/>
                 <element name="usedefaultvalues"
-                         type="fews:bool"
+                         type="hpcb:bool"
                          minOccurs="0"/>
                 <element name="utcoffset"
                          type="integer"
                          minOccurs="0"/>
                 <element name="warnmissingobsfile"
-                         type="fews:bool"
+                         type="hpcb:bool"
                          minOccurs="0"/>
                 <element name="warnmissingsimfile"
-                         type="fews:bool"
+                         type="hpcb:bool"
                          minOccurs="0"/>
                 <element name="warntrim"
-                         type="fews:bool"
+                         type="hpcb:bool"
                          minOccurs="0"/>
                 <element name="flattennetcdf"
-                         type="fews:bool"
+                         type="hpcb:bool"
                          minOccurs="0"/>
                 <element name="isolatenetcdf"
-                         type="fews:bool"
+                         type="hpcb:bool"
                          minOccurs="0"/>
                 <element name="timeaxisnetcdf"
                          minOccurs="0">
@@ -101,10 +101,10 @@
     </element>
 
     <element name="selections"
-             type="fews:listOfStrings"/>
+             type="hpcb:listOfStrings"/>
 
     <element name="devices"
-             type="fews:listOfStrings"/>
+             type="hpcb:listOfStrings"/>
 
     <element name="conditions_io">
         <complexType>
@@ -114,7 +114,7 @@
                 <element name="outputdir"
                          type="anyURI"/>
                 <element name="zip"
-                         type="fews:bool"/>
+                         type="hpcb:bool"/>
             </sequence>
         </complexType>
     </element>
@@ -122,16 +122,16 @@
     <element name="series_io">
         <complexType>
             <sequence>
-                <element ref="fews:filetype"/>
-                <element ref="fews:overwrite"/>
-                <element ref="fews:dirpath"/>
-                <element ref="fews:aggregation"/>
+                <element ref="hpcb:filetype"/>
+                <element ref="hpcb:overwrite"/>
+                <element ref="hpcb:dirpath"/>
+                <element ref="hpcb:aggregation"/>
                 <element name="zip"
-                         type="fews:bool"/>
+                         type="hpcb:bool"/>
                 <element name="readers">
                     <complexType>
                         <sequence>
-                            <element ref="fews:reader"
+                            <element ref="hpcb:reader"
                                      maxOccurs="unbounded"/>
                         </sequence>
                     </complexType>
@@ -139,7 +139,7 @@
                 <element name="writers">
                     <complexType>
                         <sequence>
-                            <element ref="fews:writer"
+                            <element ref="hpcb:writer"
                                      minOccurs="0"
                                      maxOccurs="unbounded" />
                         </sequence>
@@ -152,18 +152,18 @@
     <element name="reader">
         <complexType>
             <sequence>
-                <element ref="fews:selections"
+                <element ref="hpcb:selections"
                          minOccurs="0"/>
-                <element ref="fews:devices"
+                <element ref="hpcb:devices"
                          minOccurs="0"/>
-                <element ref="fews:sequences"/>
-                <element ref="fews:filetype"
+                <element ref="hpcb:sequences"/>
+                <element ref="hpcb:filetype"
                          minOccurs="0"/>
-                <element ref="fews:dirpath"
+                <element ref="hpcb:dirpath"
                          minOccurs="0"/>
-                <element ref="fews:selections"
+                <element ref="hpcb:selections"
                          minOccurs="0"/>
-                <element ref="fews:devices"
+                <element ref="hpcb:devices"
                          minOccurs="0"/>
             </sequence>
             <attribute name="info" type="string"/>
@@ -173,18 +173,18 @@
     <element name="writer">
         <complexType>
             <sequence>
-                <element ref="fews:selections"
+                <element ref="hpcb:selections"
                          minOccurs="0"/>
-                <element ref="fews:devices"
+                <element ref="hpcb:devices"
                          minOccurs="0"/>
-                <element ref="fews:sequences"/>
-                <element ref="fews:filetype"
+                <element ref="hpcb:sequences"/>
+                <element ref="hpcb:filetype"
                          minOccurs="0"/>
-                <element ref="fews:overwrite"
+                <element ref="hpcb:overwrite"
                          minOccurs="0"/>
-                <element ref="fews:dirpath"
+                <element ref="hpcb:dirpath"
                          minOccurs="0"/>
-                <element ref="fews:aggregation"
+                <element ref="hpcb:aggregation"
                          minOccurs="0"/>
             </sequence>
             <attribute name="info" type="string"/>
@@ -196,20 +196,20 @@
             <choice>
                 <element name="general"
                          minOccurs="0"
-                         type="fews:_filetype"/>
+                         type="hpcb:_filetype"/>
                 <sequence>
                     <element name="inputs"
                              minOccurs="0"
-                             type="fews:_filetype"/>
+                             type="hpcb:_filetype"/>
                     <element name="fluxes"
                              minOccurs="0"
-                             type="fews:_filetype"/>
+                             type="hpcb:_filetype"/>
                     <element name="states"
                              minOccurs="0"
-                             type="fews:_filetype"/>
+                             type="hpcb:_filetype"/>
                     <element name="nodes"
                              minOccurs="0"
-                             type="fews:_filetype"/>
+                             type="hpcb:_filetype"/>
                 </sequence>
             </choice>
         </complexType>
@@ -228,20 +228,20 @@
             <choice>
                 <element name="general"
                          minOccurs="0"
-                         type="fews:bool"/>
+                         type="hpcb:bool"/>
                 <sequence>
                     <element name="inputs"
                              minOccurs="0"
-                             type="fews:bool"/>
+                             type="hpcb:bool"/>
                     <element name="fluxes"
                              minOccurs="0"
-                             type="fews:bool"/>
+                             type="hpcb:bool"/>
                     <element name="states"
                              minOccurs="0"
-                             type="fews:bool"/>
+                             type="hpcb:bool"/>
                     <element name="nodes"
                              minOccurs="0"
-                             type="fews:bool"/>
+                             type="hpcb:bool"/>
                 </sequence>
             </choice>
         </complexType>
@@ -276,20 +276,20 @@
             <choice>
                 <element name="general"
                          minOccurs="0"
-                         type="fews:_aggregation"/>
+                         type="hpcb:_aggregation"/>
                 <sequence>
                     <element name="inputs"
                              minOccurs="0"
-                             type="fews:_aggregation"/>
+                             type="hpcb:_aggregation"/>
                     <element name="fluxes"
                              minOccurs="0"
-                             type="fews:_aggregation"/>
+                             type="hpcb:_aggregation"/>
                     <element name="states"
                              minOccurs="0"
-                             type="fews:_aggregation"/>
+                             type="hpcb:_aggregation"/>
                     <element name="nodes"
                              minOccurs="0"
-                             type="fews:_aggregation"/>
+                             type="hpcb:_aggregation"/>
                 </sequence>
             </choice>
         </complexType>
@@ -305,25 +305,25 @@
     <element name="sequences">
         <complexType>
             <sequence>
-                <element ref="fews:sequenceGroup"
+                <element ref="hpcb:sequenceGroup"
                          maxOccurs="unbounded"/>
             </sequence>
         </complexType>
     </element>
 
     <element name="sequenceGroup"
-             type="fews:sequenceGroupType"
+             type="hpcb:sequenceGroupType"
              abstract="true"/>
 
     <complexType name="sequenceGroupType"/>
 
     <element name="node"
-             substitutionGroup="fews:sequenceGroup"
-             type="fews:nodeType"/>
+             substitutionGroup="hpcb:sequenceGroup"
+             type="hpcb:nodeType"/>
 
     <complexType name="nodeType">
         <complexContent>
-            <extension base="fews:sequenceGroupType">
+            <extension base="hpcb:sequenceGroupType">
                 <sequence>
                     <element name="sim"
                              minOccurs="0"/>

@@ -155,6 +155,8 @@ class Tester(object):
                             warnings.filterwarnings(
                                 'error', module=modulename)
                             warnings.filterwarnings(
+                                'error', category=UserWarning)
+                            warnings.filterwarnings(
                                 'ignore', category=ImportWarning)
                             doctest.testmod(
                                 module, extraglobs={'testing': True},

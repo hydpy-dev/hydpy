@@ -732,6 +732,8 @@ the following error occurred: ...
         """Read all network files of the current working directory, structure
         their contents in a |selectiontools.Selections| object, and return it.
         """
+        devicetools.Node.clear_registry()
+        devicetools.Element.clear_registry()
         selections = selectiontools.Selections()
         for (filename, path) in zip(self.filenames, self.filepaths):
             # Ensure both `Node` and `Element`start with a `fresh` memory.

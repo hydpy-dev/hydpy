@@ -903,6 +903,13 @@ or prepare `pub.sequencemanager` correctly.
     def memoryflag(self):
         return self.ramflag or self.diskflag
 
+    @memoryflag.deleter
+    def memoryflag(self):
+        if self.ramflag:
+            self.ramflag = False
+        elif self.diskflag:
+            self.diskflag = False
+
     def __get_array(self):
         array = getattr(self.fastaccess, '_%s_array' % self.name, None)
         if array is not None:

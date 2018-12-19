@@ -12,6 +12,7 @@ import abc
 import copy
 import inspect
 import textwrap
+import warnings
 # ...from site-packages
 import numpy
 # ...from HydPy
@@ -82,13 +83,11 @@ def _trim_float_0d(self, lower, upper):
         upper = numpy.inf
     if self < lower:
         if (self+tolerance(self)) < (lower-tolerance(lower)):
-            if pub.options.warntrim:
-                self.warn_trim()
+            _warn_trim(self, newvalue=lower)
         self.value = lower
     elif self > upper:
         if (self-tolerance(self)) > (upper+tolerance(upper)):
-            if pub.options.warntrim:
-                self.warn_trim()
+            _warn_trim(self, newvalue=upper)
         self.value = upper
 
 
@@ -104,13 +103,13 @@ def _trim_float_nd(self, lower, upper):
     idxs = numpy.where(numpy.isnan(self.values))
     self[idxs] = lower[idxs]
     if numpy.any(self.values < lower) or numpy.any(self.values > upper):
+        trimmedvalues = numpy.clip(self.values, lower, upper)
         if (numpy.any((self+tolerance(self)) <
                       (lower-tolerance(lower))) or
                 numpy.any((self-tolerance(self)) >
                           (upper+tolerance(upper)))):
-            if pub.options.warntrim:
-                self.warn_trim()
-        self.values = numpy.clip(self.values, lower, upper)
+                _warn_trim(self, newvalue=trimmedvalues)
+        self.values = trimmedvalues
     self[idxs] = numpy.nan
 
 
@@ -145,6 +144,14 @@ def tolerance(values) -> float:
     """Return some sort of "numerical accuracy" to be expected for the
     given floating point value (see method |trim|)."""
     return abs(values*1e-15)
+
+
+def _warn_trim(self, newvalue):
+    if pub.options.warntrim:
+        warnings.warn(
+            f'For variable {objecttools.devicephrase(self)} at least one '
+            f'value needed to be trimmed.  The old and the new value(s) '
+            f'are `{self.value}` and `{newvalue}`, respectively.')
 
 
 def _compare_variables_function_generator(

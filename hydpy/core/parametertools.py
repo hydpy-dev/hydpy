@@ -739,14 +739,6 @@ available.
         """Apply |trim| of module |variabletools|."""
         variabletools.trim(self, lower, upper)
 
-    def warn_trim(self):
-        warnings.warn(
-            'For parameter %s of element %s at least one value '
-            'needed to be trimmed.  Two possible reasons could be '
-            'that the a parameter bound violated or that the values '
-            'of two (or more) different parameters are inconsistent.'
-            % (self.name, objecttools.devicename(self)))
-
     def apply_timefactor(self, values):
         """Change the given parameter value/values in accordance with the
         actual parameter simulation time step if necessary, and return it/them.

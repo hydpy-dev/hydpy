@@ -214,6 +214,9 @@ class Sequences(object):
             namespace['model'] = self
             code = pub.conditionmanager.load_file(filename)
             try:
+                # ToDo: raises an escape sequence deprecation sometimes
+                # ToDo: use runpy instead?
+                # ToDo: Move functionality to filetools.py?
                 exec(code)
             except BaseException:
                 objecttools.augment_excmessage(
@@ -1489,13 +1492,6 @@ class ConditionSequence(object):
     def trim(self, lower=None, upper=None):
         """Apply |trim| of module |variabletools|."""
         variabletools.trim(self, lower, upper)
-
-    def warn_trim(self):
-        warnings.warn(
-            'For sequence %s at least one value needed to be trimmed.  '
-            'One possible reason could be that the related control '
-            'parameter and initial condition files are inconsistent.'
-            % objecttools.elementphrase(self))
 
     def reset(self):
         if self._oldargs:

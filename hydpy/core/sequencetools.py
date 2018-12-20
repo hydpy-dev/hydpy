@@ -1818,7 +1818,7 @@ class Sim(NodeSequence):
         ...
         UserWarning: While trying to load the external data of sequence \
 `sim` of node `dill`, the following error occurred: [Errno 2] No such file \
-or directory: '...dill_sim_q.npy'
+or directory: '...dill_sim_q.asc'
         >>> sim.series
         InfoArray([ nan,  nan,  nan,  nan,  nan])
 
@@ -1907,7 +1907,7 @@ class Obs(NodeSequence):
         UserWarning: The `memory flag` of sequence `obs` of node `dill` had \
 to be set to `False` due to the following problem: While trying to load the \
 external data of sequence `obs` of node `dill`, the following error occurred: \
-[Errno 2] No such file or directory: '...dill_obs_q.npy'
+[Errno 2] No such file or directory: '...dill_obs_q.asc'
         >>> obs.ramflag
         False
 

@@ -2,7 +2,6 @@ hydpy
 bokeh
 coverage
 Cython
-lxml
 matplotlib
 netcdf4
 numpy
@@ -11,3 +10,4 @@ setuptools
 scipy
 wheel
 wrapt
+xmlschema

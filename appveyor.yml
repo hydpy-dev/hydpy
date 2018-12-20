@@ -23,12 +23,12 @@ install:
   - conda install scipy --yes
   - conda install matplotlib --yes
   - conda install bokeh --yes
-  - conda install lxml --yes
   - conda install pandas --yes
   - conda install setuptools --yes
   - python -m pip install twine
   - conda install wheel --yes
   - conda install wrapt --yes
+  - pip install xmlschema
   - conda install netcdf4 --yes
   - conda uninstall netcdf4 --yes
   - python -m pip install --upgrade pip

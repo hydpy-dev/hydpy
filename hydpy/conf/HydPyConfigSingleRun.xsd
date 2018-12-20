@@ -3,7 +3,8 @@
         xmlns="http://www.w3.org/2001/XMLSchema"
         xmlns:hpcb="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/HydPyConfigBase.xsd"
         elementFormDefault="qualified">
-    <import namespace="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/HydPyConfigBase.xsd"/>
+    <import namespace="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/HydPyConfigBase.xsd"
+            schemaLocation="HydPyConfigBase.xsd"/>
 
     <element name="config">
         <complexType>

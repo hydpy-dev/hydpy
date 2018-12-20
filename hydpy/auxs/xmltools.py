@@ -94,10 +94,9 @@ import copy
 import datetime
 import itertools
 import os
-import warnings
 from xml.etree import ElementTree
 # ...from site-packages
-from hydpy import etree
+from hydpy import xmlschema
 # ...from HydPy
 from hydpy import conf
 from hydpy import models
@@ -293,19 +292,29 @@ file ...wrongfilepath.xml, the following error occurred: \
         >>> interface.validate_xml()    # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        hydpy.core.objecttools.lxml.etree.XMLSyntaxError: While trying to \
-parse XML file `...config.xml`, the following error occurred: Element \
-'{...HydPyConfigBase.xsd}firstdate': '1996-01-32T00:00:00' is not a \
-valid value of the atomic type 'xs:dateTime'. (<string>, line 0)
+        hydpy.core.objecttools.xmlschema.validators.exceptions.\
+XMLSchemaValidationError: While trying to validate XML file `...config.xml`, \
+the following error occurred: failed validating '1996-01-32T00:00:00' with \
+<function non_negative_int_validator at ...>:
+        <BLANKLINE>
+        Reason: invalid datetime for formats ('%Y-%m-%dT%H:%M:%S', \
+'%Y-%m-%dT%H:%M:%S.%f').
+        <BLANKLINE>
+        Instance:
+        <BLANKLINE>
+          <firstdate xmlns="https://github.com/hydpy-dev/hydpy/releases/\
+download/your-hydpy-version/HydPyConfigBase.xsd">1996-01-32T00:00:00</firstdate>
+        <BLANKLINE>
+        Path: /hpcsr:config/timegrid/firstdate
+        <BLANKLINE>
         """
-        schema = etree.XMLSchema(
-            file=os.path.join(conf.__path__[0], 'HydPyConfigBase.xsd'))
-        parser = etree.XMLParser(schema=schema)
+        xsdpath = os.path.join(conf.__path__[0], 'HydPyConfigSingleRun.xsd')
         try:
-            etree.parse(source=self.filepath, parser=parser)
-        except Exception:
+            schema = xmlschema.XMLSchema(xsdpath)
+            schema.validate(self.filepath)
+        except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to parse XML file `{self.filepath}`')
+                f'While trying to validate XML file `{self.filepath}`')
 
     def update_options(self) -> None:
         """Update the |Options| object available in module |pub| with the
@@ -1114,14 +1123,12 @@ class XSDWriter(object):
         >>> import os
         >>> if os.path.exists(XSDWriter.filepath_target):
         ...     os.remove(XSDWriter.filepath_target)
-
-        >>> XMLInterface(xmlpath).validate_xml()    # doctest: +ELLIPSIS
-        Traceback (most recent call last):
-        ...
-        lxml.etree.XMLSchemaParseError: \
-Failed to locate the main schema resource at '...HydPyConfigBase.xsd'.
+        >>> os.path.exists(XSDWriter.filepath_target)
+        False
 
         >>> XSDWriter.write_xsd()
+        >>> os.path.exists(XSDWriter.filepath_target)
+        True
         >>> XMLInterface(xmlpath).validate_xml()
         """
         with open(cls.filepath_source) as file_:

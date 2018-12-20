@@ -11,6 +11,7 @@ hydpy/cythons/autogen/*.pyx
 hydpy/cythons/autogen/*.pxd
 hydpy/cythons/autogen/*.c
 hydpy/cythons/autogen/*.h
+hydpy/conf/HydPyConfigBase.xsd
 hydpy/docs/html/*.html
 hydpy/docs/auto
 hydpy/tests/iotesting/*

@@ -8,9 +8,9 @@ At the heart of module |xmltools| lies function |run_simulation|, which is
 thought to be applied via a command line (see the documentation
 on script |hyd| for further information).  |run_simulation| expects that
 the HydPy project you want to work with is available in your current
-working directory and contains an XML configuration file (as `config.xml`
+working directory and contains an XML configuration file (as `single_run.xml`
 in the example project folder `LahnH`).  This configuration file must
-agree with the XML schema file `HydPyConfigBase.xsd`, which is available
+agree with the XML schema file `HydPyConfigSingleRun.xsd`, which is available
 in the :ref:`configuration` subpackage and also downloadable for each
 `HydPy release`_.  In case you did implement new or changed existing
 models, you have to update this schema file.  *HydPy* does this automatically
@@ -26,15 +26,15 @@ function |prepare_full_example_1|:
 Running the simulation requires defining the main script (`hyd.py`),
 the function specifying the actual workflow (`run_simulation`), the
 name of the project of interest (`LahnH`), and the name of the
-relevant XMK configuration file (`config.xml`).  To simulate using
+relevant XMK configuration file (`single_run.xml`).  To simulate using
 the command line, we pass the required text to function |run_subprocess|:
 
 >>> from hydpy import run_subprocess, TestIO
 >>> import subprocess
 >>> with TestIO():    # doctest: +ELLIPSIS
-...     run_subprocess('hyd.py run_simulation LahnH config.xml')
+...     run_subprocess('hyd.py run_simulation LahnH single_run.xml')
 Start HydPy project `LahnH` (...).
-Read configuration file `config.xml` (...).
+Read configuration file `single_run.xml` (...).
 Interpret the defined options (...).
 Interpret the defined period (...).
 Read all network files (...).
@@ -120,10 +120,10 @@ def find(root, name) -> ElementTree.Element:
     """Return the first XML element with the given name found in the given
     XML root.
 
-    >>> from hydpy.auxs.xmltools import XMLInterface
+    >>> from hydpy.auxs.xmltools import find, XMLInterface
     >>> from hydpy import data
-    >>> înterface = XMLInterface(data.get_path('LahnH', 'config.xml'))
-    >>> find(înterface.root, 'timegrid').tag.endswith('timegrid')
+    >>> interface = XMLInterface(data.get_path('LahnH', 'single_run.xml'))
+    >>> find(interface.root, 'timegrid').tag.endswith('timegrid')
     True
     """
     return root.find(f'{namespace}{name}')
@@ -179,8 +179,8 @@ def strip(name) -> str:
 
 
 def run_simulation(projectname: str, xmlfile: str):
-    """Perform a HydPy workflow in agreement with the configuration file
-    `conf.xml` available in the directory of the given project.
+    """Perform a HydPy workflow in agreement with the given XML configuration
+    file available in the directory of the given project.
 
     Function |run_simulation| is a "script function" and is normally used as
     explained in the main documentation on module |xmltools|.
@@ -234,7 +234,7 @@ class XMLBase(object):
 
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnH', 'config.xml'))
+        >>> interface = XMLInterface(data.get_path('LahnH', 'single_run.xml'))
         >>> interface.find('timegrid').tag.endswith('timegrid')
         True
         """
@@ -247,7 +247,10 @@ class XMLInterface(XMLBase):
 
     >>> from hydpy.auxs.xmltools import XMLInterface
     >>> from hydpy import data
-    >>> _ = XMLInterface(data.get_path('LahnH', 'config.xml'))
+    >>> interface = XMLInterface(data.get_path('LahnH', 'single_run.xml'))
+    >>> interface.root.tag
+    '{https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/\
+HydPyConfigSingleRun.xsd}config'
     >>> XMLInterface('wrongfilepath.xml')    # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
@@ -258,7 +261,7 @@ file ...wrongfilepath.xml, the following error occurred: \
 
     def __init__(self, filepath=None):
         if filepath is None:
-            filepath = os.path.join(pub.projectname, 'config.xml')
+            filepath = os.path.join(pub.projectname, 'single_run.xml')
         self.filepath = os.path.abspath(filepath)
         try:
             self.root = ElementTree.parse(self.filepath).getroot()
@@ -279,23 +282,23 @@ file ...wrongfilepath.xml, the following error occurred: \
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> import os
         >>> with TestIO():
-        ...     xml_replace('LahnH/config',
+        ...     xml_replace('LahnH/single_run',
         ...                 firstdate='1996-01-32T00:00:00')
-        template file: LahnH/config.xmlt
-        target file: LahnH/config.xml
+        template file: LahnH/single_run.xmlt
+        target file: LahnH/single_run.xml
         replacements:
           firstdate --> 1996-01-32T00:00:00 (given argument)
           zip_ --> false (default argument)
           zip_ --> false (default argument)
         >>> with TestIO():
-        ...     interface = XMLInterface('LahnH/config.xml')
+        ...     interface = XMLInterface('LahnH/single_run.xml')
         >>> interface.validate_xml()    # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         hydpy.core.objecttools.xmlschema.validators.exceptions.\
-XMLSchemaValidationError: While trying to validate XML file `...config.xml`, \
-the following error occurred: failed validating '1996-01-32T00:00:00' with \
-<function non_negative_int_validator at ...>:
+XMLSchemaValidationError: While trying to validate XML file \
+`...single_run.xml`, the following error occurred: failed validating \
+'1996-01-32T00:00:00' with <function non_negative_int_validator at ...>:
         <BLANKLINE>
         Reason: invalid datetime for formats ('%Y-%m-%dT%H:%M:%S', \
 '%Y-%m-%dT%H:%M:%S.%f').
@@ -322,7 +325,7 @@ download/your-hydpy-version/HydPyConfigBase.xsd">1996-01-32T00:00:00</firstdate>
 
         >>> from hydpy.auxs.xmltools import XMLInterface, pub
         >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnH', 'config.xml'))
+        >>> interface = XMLInterface(data.get_path('LahnH', 'single_run.xml'))
         >>> pub.options.printprogress = True
         >>> pub.options.printincolor = True
         >>> pub.options.reprdigits = -1
@@ -396,12 +399,12 @@ download/your-hydpy-version/HydPyConfigBase.xsd">1996-01-32T00:00:00</firstdate>
 
         >>> name = 'LahnH/series/input/hland_v1_input_p.nc'
         >>> with TestIO():
-        ...     with open('LahnH/config.xml') as file_:
+        ...     with open('LahnH/single_run.xml') as file_:
         ...         lines = file_.readlines()
         ...     for idx, line in enumerate(lines):
         ...         if '<timegrid>' in line:
         ...             break
-        ...     with open('LahnH/config.xml', 'w') as file_:
+        ...     with open('LahnH/single_run.xml', 'w') as file_:
         ...         _ = file_.write(''.join(lines[:idx+1]))
         ...         _ = file_.write(
         ...             f'        <seriesfile>{name}</seriesfile>\\n')
@@ -547,7 +550,7 @@ a name or keyword.
 
         >>> from hydpy.auxs.xmltools import XMLInterface, strip
         >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnH', 'config.xml'))
+        >>> interface = XMLInterface(data.get_path('LahnH', 'single_run.xml'))
         >>> strip(interface.series_io.root.tag)
         'series_io'
         """
@@ -559,7 +562,7 @@ a name or keyword.
 
         >>> from hydpy.auxs.xmltools import XMLInterface, strip
         >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnH', 'config.xml'))
+        >>> interface = XMLInterface(data.get_path('LahnH', 'single_run.xml'))
         >>> strip(interface.series_io.root.tag)
         'series_io'
         """
@@ -646,7 +649,7 @@ class XMLSeries(XMLBase):
 
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnH', 'config.xml'))
+        >>> interface = XMLInterface(data.get_path('LahnH', 'single_run.xml'))
         >>> for reader in interface.series_io.readers:
         ...     print(reader.info)
         all input data
@@ -659,7 +662,7 @@ class XMLSeries(XMLBase):
 
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnH', 'config.xml'))
+        >>> interface = XMLInterface(data.get_path('LahnH', 'single_run.xml'))
         >>> for writer in interface.series_io.writers:
         ...     print(writer.info)
         precipitation
@@ -674,7 +677,7 @@ class XMLSeries(XMLBase):
 
         >>> from hydpy.auxs.xmltools import XMLInterface, XMLSubseries
         >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnH', 'config.xml'))
+        >>> interface = XMLInterface(data.get_path('LahnH', 'single_run.xml'))
         >>> series_io = interface.series_io
         >>> from unittest import mock
         >>> prepare_series = XMLSubseries.prepare_series
@@ -725,7 +728,7 @@ class XMLSubseries(XMLBase):
         `writer` element when available; if not use those of the XML
         `series_io` element.
 
-        Compare the following results with `config.xml` to see that the
+        Compare the following results with `single_run.xml` to see that the
         first `writer` element defines the input file type specifically,
         that the second `writer` element defines a general file type, and
         that the third `writer` element does not define any file type (the
@@ -796,7 +799,7 @@ class XMLSubseries(XMLBase):
 
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnH', 'config.xml'))
+        >>> interface = XMLInterface(data.get_path('LahnH', 'single_run.xml'))
         >>> series_io = interface.series_io
         >>> model2subs2seqs = series_io.writers[2].model2subs2seqs
         >>> for model, subs2seqs in sorted(model2subs2seqs.items()):
@@ -826,7 +829,7 @@ class XMLSubseries(XMLBase):
 
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnH', 'config.xml'))
+        >>> interface = XMLInterface(data.get_path('LahnH', 'single_run.xml'))
         >>> series_io = interface.series_io
         >>> subs2seqs = series_io.writers[2].subs2seqs
         >>> for subs, seq in sorted(subs2seqs.items()):
@@ -1118,7 +1121,7 @@ class XSDWriter(object):
 
         >>> from hydpy.auxs.xmltools import XSDWriter, XMLInterface
         >>> from hydpy import data
-        >>> xmlpath = data.get_path('LahnH', 'config.xml')
+        >>> xmlpath = data.get_path('LahnH', 'single_run.xml')
 
         >>> import os
         >>> if os.path.exists(XSDWriter.filepath_target):

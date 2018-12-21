@@ -1041,10 +1041,12 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         ...     hp.elements.land_dill.model.sequences.inputs.t.series[:3])
         -0.298846, -0.811539, -2.493848
         """
-        pub.sequencemanager.open_netcdf_reader(
-            flatten=pub.options.flattennetcdf,
-            isolate=pub.options.isolatenetcdf,
-            timeaxis=pub.options.timeaxisnetcdf)
+        kwargs = {}
+        for keyword in ('flattennetcdf', 'isolatenetcdf', 'timeaxisnetcdf'):
+            argument = getattr(pub.options, keyword, None)
+            if argument is not None:
+                kwargs[keyword[:-6]] = argument
+        pub.sequencemanager.open_netcdf_reader(**kwargs)
         self.prepare_sequencemanager()
         for sequence in self._iterate_sequences():
             sequence.load_ext()

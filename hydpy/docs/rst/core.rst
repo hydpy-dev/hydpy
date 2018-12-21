@@ -71,6 +71,7 @@ standardize writing *HydPy* code.
    hydpytools
    importtools
    indextools
+   itemtools
    masktools
    metatools
    modeltools

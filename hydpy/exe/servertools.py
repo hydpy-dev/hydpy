@@ -18,7 +18,7 @@
 >>> from hydpy import Date, print_values
 >>> t0 = Date('1996-01-01')
 >>> def test(id_, time_, alpha):
-...     content = (f"alpha= [{alpha}] \\n"
+...     content = (f"alpha= {alpha} \\n"
 ...                f"firstdate = {t0+f'{int(time_[0])}d'}\\n"
 ...                f"lastdate = {t0+f'{int(time_[2])}d'}\\n"
 ...                f"dill=[0.0] \\n"
@@ -100,6 +100,7 @@ from typing import Any, Dict
 from hydpy import pub
 from hydpy.auxs import xmltools
 from hydpy.core import autodoctools
+from hydpy.core import itemtools
 from hydpy.core import objecttools
 from hydpy.core import hydpytools
 
@@ -108,6 +109,7 @@ class ServerState(object):
 
     def __init__(self):
         self.hp: hydpytools.HydPy = None
+        self.exchangeitems: Dict[str, itemtools.ExchangeItem] = {}
         self.conditions: collections.defaultdict = None
         self.init_conditions: dict = None
         self.id_: str = None
@@ -142,6 +144,9 @@ class ServerState(object):
         ...     state.hp.elements.land_dill.model.sequences.inputs.t.series)
         -0.298846, -0.811539, -2.493848, -5.968849, -6.999618
 
+        >>> state.exchangeitems['alpha'].value
+        array(2.0)
+
         >>> # state.conditions ToDo
 
         >>> # state.init_conditions ToDo
@@ -173,6 +178,8 @@ class ServerState(object):
         interface.series_io.prepare_series()
         interface.series_io.load_series()
         self.hp = hp
+        for setitem in interface.exchange.setitems:
+            self.exchangeitems.update(setitem.name2item)
         self.conditions = collections.defaultdict(lambda: {})
         self.init_conditions = hp.conditions
 
@@ -223,7 +230,7 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
     ...       'lastdate = 1996-01-02 00:00:00'))
     <BLANKLINE>
 
-    >>> test('parameteritems', 'alpha = [3.0]')
+    >>> test('parameteritems', 'alpha = 3.0')
     <BLANKLINE>
     >>> test('conditionitems', 'lz = [10.0]')
     <BLANKLINE>
@@ -233,7 +240,7 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
     <BLANKLINE>
 
     >>> test('parameteritems')
-    alpha = [3.0]
+    alpha = 3.0
     >>> test('conditionitems')
     lz = [10.0]
     >>> test('seriesitems')
@@ -250,9 +257,10 @@ No GET method for property `missingmethod` available.
     >>> test('parameteritems', 'alpha = []')
     Traceback (most recent call last):
     ...
-    urllib.error.HTTPError: HTTP Error 500: IndexError: While trying execute \
+    urllib.error.HTTPError: HTTP Error 500: TypeError: While trying execute \
 the POST method of property parameteritems, the following error occurred: \
-list index out of range
+When trying to set the value of parameter ``alpha` of element `land_dill``, \
+it was not possible to convert `[]` to type `float`.
 
 
 
@@ -423,11 +431,9 @@ list index out of range
         state.idx2 = init[sim.lastdate]
 
     def post_parameteritems(self):
-        alpha = state.inputs.get('alpha', None)
-        if alpha is not None:
-            for element in state.hp.elements.catchment:
-                getattr(
-                    element.model.parameters.control, 'alpha')(eval(alpha)[0])
+        for name, item in state.exchangeitems.items():
+            item.value = state.inputs[name]
+            item.update_variables()
 
     def post_conditionitems(self):
         lz = state.inputs.get('lz', None)
@@ -455,8 +461,8 @@ list index out of range
         state.hp.doit()
 
     def get_parameteritems(self):
-        state.outputs['alpha'] = \
-            [state.hp.elements.land_dill.model.parameters.control.alpha.value]
+        for name, item in state.exchangeitems.items():
+            state.outputs[name] = item.value
 
     def get_conditionitems(self):
         state.outputs['lz'] = \
@@ -472,7 +478,7 @@ list index out of range
 
 
 def start_server(
-        socket, projectname:str, xmlfile: str) -> None:
+        socket, projectname: str, xmlfile: str) -> None:
     state.initialise(projectname, xmlfile)
     server = http.server.HTTPServer(('', int(socket)), HydPyHTTPRequestHandler)
     server.serve_forever()

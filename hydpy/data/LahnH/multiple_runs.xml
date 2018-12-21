@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hpcmr:config xmlns="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/HydPyConfigBase.xsd"
+              xmlns:hpcmr="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/HydPyConfigMultipleRuns.xsd">
+
+    <options>
+    </options>
+
+    <timegrid>
+        <firstdate>1996-01-01T00:00:00</firstdate>
+        <lastdate>1996-01-06T00:00:00</lastdate>
+        <stepsize>1d</stepsize>
+    </timegrid>
+
+    <selections>
+        complete
+    </selections>
+
+    <devices/>
+
+    <conditions_io>
+        <inputdir>init_1996_01_01</inputdir>
+        <outputdir>init_1996_01_06</outputdir> <!-- optional ? -->
+        <zip>false</zip> <!-- optional ? -->
+    </conditions_io>
+    
+    <series_io>
+
+        <filetype>
+            <general>asc</general>
+        </filetype>
+
+        <overwrite>
+            <general>true</general>
+        </overwrite>
+
+        <dirpath>
+            <inputs>LahnH/series/input</inputs>
+            <fluxes>LahnH/series/output</fluxes>
+            <states>LahnH/series/output</states>
+            <nodes>LahnH/series/node</nodes>
+        </dirpath>
+
+        <aggregation>
+            <general>none</general>
+        </aggregation>
+
+        <zip>false</zip>
+
+        <readers>
+            <reader info="all input data">
+                <sequences>
+                    <hland_v1>
+                        <inputs>
+                            <p/>
+                            <t/>
+                            <tn/>
+                            <epn/>
+                        </inputs>
+                    </hland_v1>
+                </sequences>
+            </reader>
+        </readers>
+
+        <writers/>
+
+    </series_io>
+
+    <exchange>
+        <setitems info="globally applied items">
+            <hland_v1>
+                <control>
+                    <alpha>
+                        <alias>alpha</alias>
+                        <dim>0</dim>
+                        <init>2.0</init>
+                    </alpha>
+                </control>
+            </hland_v1>
+        </setitems>
+    </exchange>
+
+</hpcmr:config>

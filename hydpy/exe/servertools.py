@@ -244,12 +244,17 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
     >>> test('missingmethod')
     Traceback (most recent call last):
     ...
-    urllib.error.HTTPError: HTTP Error 400: Bad Request
+    urllib.error.HTTPError: HTTP Error 400: AttributeError: \
+No GET method for property `missingmethod` available.
 
     >>> test('parameteritems', 'alpha = []')
     Traceback (most recent call last):
     ...
-    urllib.error.HTTPError: HTTP Error 500: Internal Server Error
+    urllib.error.HTTPError: HTTP Error 500: IndexError: While trying execute \
+the POST method of property parameteritems, the following error occurred: \
+list index out of range
+
+
 
     >>> test('close_server')
     shutting down the server = seems to work
@@ -327,8 +332,8 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 self._set_headers(statuscode)
                 self.wfile.write(string)
         except BaseException as exc:
-            self._set_headers(statuscode)
-            self.wfile.write(bytes(f'{type(exc)}: {exc}', encoding='utf-8'))
+            self.send_error(
+                statuscode, f'{objecttools.classname(exc)}: {exc}')
 
     def do_POST(self):
         statuscode = 200
@@ -357,8 +362,8 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 self._set_headers(statuscode)
                 self.wfile.write(string)
         except BaseException as exc:
-            self._set_headers(statuscode)
-            self.wfile.write(bytes(f'{type(exc)}: {exc}', encoding='utf-8'))
+            self.send_error(
+                statuscode, f'{objecttools.classname(exc)}: {exc}')
 
     def get_status(self):
         state.outputs['status'] = 'ready'

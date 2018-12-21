@@ -10,7 +10,7 @@
 >>> import subprocess
 >>> with TestIO():
 ...     process = subprocess.Popen(
-...         'hyd.py start_server 8080 LahnH 1996-01-01 1996-01-06 1d',
+...         'hyd.py start_server 8080 LahnH multiple_runs.xml',
 ...         shell=True)
 ...     run_subprocess('hyd.py await_server 8080 10', verbose=False)
 
@@ -87,7 +87,9 @@ Parallel runs with different parameterisations:
 # import...
 # ...from standard library
 import collections
+import datetime
 import http.server
+import os
 import threading
 import time
 import urllib.error
@@ -96,6 +98,7 @@ import urllib.request
 from typing import Any, Dict
 # ...from HydPy
 from hydpy import pub
+from hydpy.auxs import xmltools
 from hydpy.core import autodoctools
 from hydpy.core import objecttools
 from hydpy.core import hydpytools
@@ -113,18 +116,67 @@ class ServerState(object):
         self.inputs: Dict[str, str] = None
         self.outputs: Dict[str, Any] = None
 
-    def initialize(self, projectname):
-        self.hp = hydpytools.HydPy(projectname)
-        hp = self.hp
-        pub.options.printprogress = False
+    def initialise(self, projectname: str, xmlfile: str) -> None:
+        """
+
+        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+
+        >>> from hydpy import print_values, TestIO
+        >>> from hydpy.exe.servertools import ServerState
+        >>> state = ServerState()
+        >>> with TestIO():    # doctest: +ELLIPSIS
+        ...     state.initialise('LahnH', 'multiple_runs.xml')
+        Start HydPy project `LahnH` (...).
+        Read configuration file `multiple_runs.xml` (...).
+        Interpret the defined options (...).
+        Interpret the defined period (...).
+        Read all network files (...).
+        Activate the selected network (...).
+        Read the required control files (...).
+        Read the required condition files (...).
+        Read the required time series files (...).
+
+
+        >>> print_values(
+        ...     state.hp.elements.land_dill.model.sequences.inputs.t.series)
+        -0.298846, -0.811539, -2.493848, -5.968849, -6.999618
+
+        >>> # state.conditions ToDo
+
+        >>> # state.init_conditions ToDo
+        """
+        def write(text):
+            # ToDo: refactor, two identical functions and maybe out-of-date
+            """Write the given text eventually."""
+            timestring = datetime.datetime.now().strftime(
+                '%Y-%m-%d %H:%M:%S.%f')
+            print(f'{text} ({timestring}).')
+
+        write(f'Start HydPy project `{projectname}`')
+        hp = hydpytools.HydPy(projectname)
+        write(f'Read configuration file `{xmlfile}`')
+        interface = xmltools.XMLInterface(os.path.join(projectname, xmlfile))
+        write('Interpret the defined options')
+        interface.update_options()
+        write('Interpret the defined period')
+        interface.update_timegrids()
+        write('Read all network files')
         hp.prepare_network()
+        write('Activate the selected network')
+        hp.update_devices(interface.fullselection)
+        write('Read the required control files')
         hp.init_models()
-        hp.prepare_simseries()
-        hp.prepare_modelseries()
-        hp.load_inputseries()
-        hp.load_conditions()
+        write('Read the required condition files')
+        interface.conditions_io.load_conditions()
+        write('Read the required time series files')
+        interface.series_io.prepare_series()
+        interface.series_io.load_series()
+        self.hp = hp
         self.conditions = collections.defaultdict(lambda: {})
         self.init_conditions = hp.conditions
+
+        hp.prepare_simseries()
 
 
 state = ServerState()
@@ -139,7 +191,7 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
     >>> import subprocess
     >>> with TestIO():
     ...     process = subprocess.Popen(
-    ...         'hyd.py start_server 8080 LahnH 1996-01-01 1996-01-06 1d',
+    ...         'hyd.py start_server 8080 LahnH multiple_runs.xml',
     ...         shell=True)
     ...     run_subprocess('hyd.py await_server 8080 10', verbose=False)
 
@@ -415,10 +467,8 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
 
 
 def start_server(
-        socket, projectname, firstdate, lastdate, stepsize,
-        *, logfile=None) -> None:
-    pub.timegrids = firstdate, lastdate, stepsize
-    state.initialize(projectname)
+        socket, projectname:str, xmlfile: str) -> None:
+    state.initialise(projectname, xmlfile)
     server = http.server.HTTPServer(('', int(socket)), HydPyHTTPRequestHandler)
     server.serve_forever()
 
@@ -439,7 +489,7 @@ resulted in the following error:
     >>> prepare_full_example_1()
     >>> with TestIO():
     ...     process = subprocess.Popen(
-    ...         'hyd.py start_server 8080 LahnH 1996-01-01 1996-01-06 1d',
+    ...         'hyd.py start_server 8080 LahnH multiple_runs.xml',
     ...         shell=True)
     ...     run_subprocess('hyd.py await_server 8080 10')
 

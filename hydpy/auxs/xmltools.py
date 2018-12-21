@@ -105,6 +105,7 @@ from hydpy import pub
 from hydpy.core import devicetools
 from hydpy.core import hydpytools
 from hydpy.core import importtools
+from hydpy.core import itemtools
 from hydpy.core import netcdftools
 from hydpy.core import objecttools
 from hydpy.core import selectiontools
@@ -567,6 +568,19 @@ a name or keyword.
         'series_io'
         """
         return XMLSeries(self, self.find('series_io'))
+
+    @property
+    def exchange(self) -> 'XMLExchange':
+        """The `exchange` element defined in the actual XML file.
+
+        >>> from hydpy.auxs.xmltools import XMLInterface, strip
+        >>> from hydpy import data
+        >>> interface = XMLInterface(
+        ...     data.get_path('LahnH', 'multiple_runs.xml'))
+        >>> strip(interface.exchange.root.tag)
+        'exchange'
+        """
+        return XMLExchange(self, self.find('exchange'))
 
 
 class XMLConditions(XMLBase):
@@ -1095,6 +1109,84 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         for sequence in self._iterate_sequences():
             sequence.save_ext()
         pub.sequencemanager.close_netcdf_writer()
+
+
+class XMLExchange(XMLBase):
+    """Helper class for |XMLInterface| responsible for interpreting exchange
+    items, which is further delegated to ToDo."""
+
+    def __init__(self, master, root):
+        self.master: XMLInterface = master
+        self.root: ElementTree.Element = root
+
+    @property
+    def setitems(self) -> List['XMLSetItem']:
+        """The `setitem` XML elements defined in the actual XML file.
+
+        >>> from hydpy.auxs.xmltools import strip, XMLInterface
+        >>> from hydpy import data
+        >>> interface = XMLInterface(
+        ...     data.get_path('LahnH', 'multiple_runs.xml'))
+        >>> for setitem in interface.exchange.setitems:
+        ...     print(setitem.model)
+        hland_v1
+        """
+        return [XMLSetItems(self, _) for _ in self.find('setitems')]
+
+
+class XMLSetItems(XMLBase):
+    """Helper class for |XMLExchange| responsible preparing |SetItem|
+    objects."""
+
+    def __init__(self, master, root):
+        self.master: XMLExchange = master
+        self.root: ElementTree.Element = root
+
+    @property
+    def info(self) -> str:
+        """Info attribute of the actual XML `setitems` element."""
+        return self.root.attrib['info']
+
+    @property
+    def model(self):
+        """The name of the model affected by the actual exchange items."""
+        return strip(self.root.tag)
+
+    @property
+    def name2item(self):
+        """ ToDo
+
+        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+
+        >>> from hydpy import HydPy, TestIO, XMLInterface, pub
+        >>> hp = HydPy('LahnH')
+        >>> pub.timegrids = '1996-01-01', '1996-01-06', '1d'
+        >>> with TestIO():
+        ...     hp.prepare_everything()
+        ...     interface = XMLInterface(filepath='LahnH/multiple_runs.xml')
+        >>> item = interface.exchange.setitems[0].name2item['alpha']
+        >>> item.value
+        array(2.0)
+        >>> hp.elements.land_dill.model.parameters.control.alpha
+        alpha(1.0)
+        >>> item.update_variables()
+        >>> hp.elements.land_dill.model.parameters.control.alpha
+        alpha(2.0)
+        """
+        model = self.model
+        name2item = {}
+        for subgroup in self.root:
+            for variable in subgroup:
+                target = f'{strip(subgroup.tag)}.{strip(variable.tag)}'
+                dim = find(variable, 'dim').text
+                init = find(variable, 'init').text
+                alias = find(variable, 'alias').text
+                item = itemtools.SetItem(model, target, dim)
+                item.collect_variables(pub.selections)
+                item.value = eval(init)
+                name2item[alias] = item
+        return name2item
 
 
 class XSDWriter(object):

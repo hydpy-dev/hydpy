@@ -800,6 +800,28 @@ class SingleParameter(Parameter):
     def value(self):
         """The actual parameter value handled by the respective
         |SingleParameter| instance.
+
+        >>> from hydpy.core.parametertools import SingleParameter
+        >>> sp = SingleParameter()
+        >>> sp.value = 3
+        >>> sp.value
+        3.0
+
+        >>> sp.value = [2.0]
+        >>> sp.value
+        2.0
+
+        >>> sp.value = 1.0, 1.0
+        Traceback (most recent call last):
+        ...
+        ValueError: 2 values are assigned to the scalar parameter \
+`singleparameter` of element `?`, which is ambiguous.
+
+        >>> sp.value = 'O'
+        Traceback (most recent call last):
+        ...
+        TypeError: When trying to set the value of parameter `singleparameter` \
+of element `?`, it was not possible to convert `O` to type `float`.
         """
         return getattr(self.fastaccess, self.name, numpy.nan)
 
@@ -809,9 +831,9 @@ class SingleParameter(Parameter):
             temp = value[0]
             if len(value) > 1:
                 raise ValueError(
-                    '%d values are assigned to the scalar '
-                    'parameter `%s`, which is ambiguous.'
-                    % (len(value), objecttools.elementphrase(self)))
+                    f'{len(value)} values are assigned to the scalar '
+                    f'parameter {objecttools.elementphrase(self)}, '
+                    f'which is ambiguous.')
             value = temp
         except (TypeError, IndexError):
             pass
@@ -819,10 +841,10 @@ class SingleParameter(Parameter):
             value = self.TYPE(value)
         except (ValueError, TypeError):
             raise TypeError(
-                'When trying to set the value of parameter `%s`, '
-                'it was not possible to convert `%s` to type `%s`.'
-                % (objecttools.elementphrase(self), value,
-                   objecttools.classname(self.TYPE)))
+                f'When trying to set the value of parameter '
+                f'{objecttools.elementphrase(self)}, it was not '
+                f'possible to convert `{value}` to type '
+                f'`{objecttools.classname(self.TYPE)}`.')
         setattr(self.fastaccess, self.name, value)
 
     def __len__(self):

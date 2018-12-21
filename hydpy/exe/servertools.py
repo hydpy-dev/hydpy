@@ -254,12 +254,12 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
     urllib.error.HTTPError: HTTP Error 400: AttributeError: \
 No GET method for property `missingmethod` available.
 
-    >>> test('parameteritems', 'alpha = []')
+    >>> test('parameteritems', 'alpha = []')    # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
     urllib.error.HTTPError: HTTP Error 500: TypeError: While trying execute \
 the POST method of property parameteritems, the following error occurred: \
-When trying to set the value of parameter ``alpha` of element `land_dill``, \
+When trying to set the value of parameter `alpha` of element `...`, \
 it was not possible to convert `[]` to type `float`.
 
 

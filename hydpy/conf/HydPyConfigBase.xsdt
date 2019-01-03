@@ -8,6 +8,10 @@
       <list itemType="string"/>
     </simpleType>
 
+    <simpleType name="listOfDoubles">
+      <list itemType="double"/>
+    </simpleType>
+
     <element name="options">
         <complexType>
             <sequence>

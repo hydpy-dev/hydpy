@@ -326,61 +326,16 @@
                 <element ref="hpcb:setitems"
                          minOccurs="0"
                          maxOccurs="unbounded"/>
+                <element ref="hpcb:additems"
+                         minOccurs="0"
+                         maxOccurs="unbounded"/>
+                <element ref="hpcb:getitems"
+                         minOccurs="0"
+                         maxOccurs="unbounded"/>
             </sequence>
         </complexType>
     </element>
 
-    <element name="setitems">
-        <complexType>
-            <sequence>
-                <element ref="hpcb:selections"
-                         minOccurs="0"/>
-                <element ref="hpcb:devices"
-                         minOccurs="0"/>
-                <element name="hland_v1"
-                         type="hpcb:hland_v1_setitemType"/>
-            </sequence>
-            <attribute name="info" type="string"/>
-        </complexType>
-    </element>
+<!--include exchange items-->
 
-     <complexType name="hland_v1_setitemType">
-         <sequence>
-            <element name="control"
-                     minOccurs="0">
-                <complexType>
-                    <sequence>
-                        <element name="alpha"
-                                 minOccurs="0"
-                                 maxOccurs="unbounded">
-                            <complexType>
-                                <sequence>
-                                    <element name="alias"
-                                             type="string"/>
-                                    <element name="dim"
-                                             type="nonNegativeInteger"/>
-                                    <element name="init"
-                                             type="double"/>
-                                </sequence>
-                            </complexType>
-                        </element>
-                        <element name="fc"
-                                 minOccurs="0"
-                                 maxOccurs="unbounded">
-                            <complexType>
-                                <sequence>
-                                    <element name="alias"
-                                             type="string"/>
-                                    <element name="dim"
-                                             type="nonNegativeInteger"/>
-                                    <element name="init"
-                                             type="double"/>
-                                </sequence>
-                            </complexType>
-                        </element>
-                    </sequence>
-                </complexType>
-            </element>
-         </sequence>
-     </complexType>
 </schema>

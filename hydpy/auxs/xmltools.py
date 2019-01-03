@@ -1204,14 +1204,18 @@ class XSDWriter(object):
 
     @classmethod
     def write_xsd(cls) -> None:
-        """Write the complete schema file based on the template file
-        `HydPyConfigBase.xsdt`, including the input, flux, and state sequences
-        of all application models available at the moment.
+        """Write the complete base schema file `HydPyConfigBase.xsd` based
+        on the template file `HydPyConfigBase.xsdt`.
+
+        Method |XSDWriter.write_xsd| adds model specific information to the
+        general information of template file `HydPyConfigBase.xsdt` regarding
+        reading and writing of time series data and exchanging parameter
+        and sequence values e.g. during calibration.
 
         The following example shows that after writing a new schema file,
         method |XMLInterface.validate_xml| does not raise an error when
         applied on the XML configuration file of the `LahnH` example
-        project:
+        project: ToDo multiple_runs.xml
 
         >>> from hydpy.auxs.xmltools import XSDWriter, XMLInterface
         >>> from hydpy import data
@@ -1232,6 +1236,8 @@ class XSDWriter(object):
             template = file_.read()
         template = template.replace(
             '<!--include model sequence groups-->', cls.get_insertion())
+        template = template.replace(
+            '<!--include exchange items-->', cls.get_exchangeinsertion())
         with open(cls.filepath_target, 'w') as file_:
             file_.write(template)
 

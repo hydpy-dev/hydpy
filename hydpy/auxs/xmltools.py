@@ -1402,15 +1402,25 @@ class XSDWriter(object):
         >>> print(XSDWriter.get_exchangeinsertion())    # doctest: +ELLIPSIS
             <element name="setitems">
         ...
+            </element>
+        <BLANKLINE>
+            <complexType name = "arma_v1_setitemType">
+        ...
+            </complexType>
+        ...
+        <BLANKLINE>
+        ...
             <element name="additems">
         ...
             <element name="getitems">
         ...
         """
         indent = 1
-        return '\n'.join(
-            cls.get_itemsinsertion(name, indent)
-            for name in ('setitems', 'additems', 'getitems'))
+        subs = []
+        for groupname in ('setitems', 'additems', 'getitems'):
+            subs.append(cls.get_itemsinsertion(groupname, indent))
+            subs.append(cls.get_itemtypesinsertion(groupname, indent))
+        return '\n'.join(subs)
 
     @staticmethod
     def _get_itemtype(modelname, itemgroup):
@@ -1481,4 +1491,21 @@ class XSDWriter(object):
         subs = []
         for modelname in cls.get_modelnames():
             subs.append(cls.get_itemtypeinsertion(itemgroup, modelname, indent))
+        return '\n'.join(subs)
+
+    @classmethod
+    def get_itemtypeinsertion(cls, itemgroup, modelname, indent) -> str:
+        """
+        >>> from hydpy import pub
+        >>> pub.options.reprdigits = 6
+        >>> pub.options.autocompile = False
+        >>> pub.options.printprogress = False
+        """
+        blanks = ' ' * (indent * 4)
+        subs = []
+        type_ = cls._get_itemtype(modelname, itemgroup)
+        subs.append(f'{blanks}<complexType name = "{type_}">')
+        subs.append(f'{blanks}    <sequence>')
+        subs.append(f'{blanks}    </sequence>')
+        subs.append(f'{blanks}</complexType>\n')
         return '\n'.join(subs)

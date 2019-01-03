@@ -1416,6 +1416,7 @@ class XSDWriter(object):
     def _get_itemtype(modelname, itemgroup):
         return f'{modelname}_{itemgroup[:-1]}Type'
 
+    @classmethod
     def get_itemsinsertion(cls, itemgroup, indent) -> str:
         """Return a string defining the XML element for the given
         exchange item group.
@@ -1460,4 +1461,24 @@ class XSDWriter(object):
                 f'{blanks}    </complexType>',
                 f'{blanks}</element>',
                 f''])
+        return '\n'.join(subs)
+
+    @classmethod
+    def get_itemtypesinsertion(cls, itemgroup, indent) -> str:
+        """Return a string defining the required types for the given
+        exchange item group.
+
+        >>> from hydpy.auxs.xmltools import XSDWriter
+        >>> print(XSDWriter.get_itemtypesinsertion(
+        ...     'setitems', 1))    # doctest: +ELLIPSIS
+            <complexType name = "arma_v1_setitemType">
+        ...
+            </complexType>
+        <BLANKLINE>
+            <complexType name = "dam_v001_setitemType">
+        ...
+        """
+        subs = []
+        for modelname in cls.get_modelnames():
+            subs.append(cls.get_itemtypeinsertion(itemgroup, modelname, indent))
         return '\n'.join(subs)

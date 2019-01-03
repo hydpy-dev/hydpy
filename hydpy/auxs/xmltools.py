@@ -1495,17 +1495,72 @@ class XSDWriter(object):
 
     @classmethod
     def get_itemtypeinsertion(cls, itemgroup, modelname, indent) -> str:
-        """
-        >>> from hydpy import pub
-        >>> pub.options.reprdigits = 6
-        >>> pub.options.autocompile = False
-        >>> pub.options.printprogress = False
+        """Return a string defining the required types for the given
+        combination of an exchange item group and an application model.
+
+        >>> from hydpy.auxs.xmltools import XSDWriter
+        >>> print(XSDWriter.get_itemtypeinsertion(
+        ...     'setitems', 'hland_v1', 1))    # doctest: +ELLIPSIS
+            <complexType name = "hland_v1_setitemType">
+                <sequence>
+                    <element> name="control"
+                              minOccurs="0">
+        ...
+                </sequence>
+            </complexType>
+        <BLANKLINE>
         """
         blanks = ' ' * (indent * 4)
         subs = []
         type_ = cls._get_itemtype(modelname, itemgroup)
-        subs.append(f'{blanks}<complexType name = "{type_}">')
-        subs.append(f'{blanks}    <sequence>')
-        subs.append(f'{blanks}    </sequence>')
-        subs.append(f'{blanks}</complexType>\n')
+        subs = [
+            f'{blanks}<complexType name = "{type_}">',
+            f'{blanks}    <sequence>',
+            cls.get_subgroupsiteminsertion(itemgroup, modelname, indent+2),
+            f'{blanks}    </sequence>',
+            f'{blanks}</complexType>',
+            f'']
+        return '\n'.join(subs)
+
+    @classmethod
+    def get_subgroupsiteminsertion(cls, itemgroup, modelname, indent) -> str:
+        """Return a string defining the required types for the given
+        combination of an exchange item group and an application model.
+
+        >>> from hydpy.auxs.xmltools import XSDWriter
+        >>> print(XSDWriter.get_subgroupsiteminsertion(
+        ...     'setitems', 'hland_v1', 1))    # doctest: +ELLIPSIS
+            <element> name="control"
+                      minOccurs="0">
+        ...
+            </element>
+            <element> name="inputs"
+        ...
+            <element> name="fluxes"
+        ...
+            <element> name="states"
+        ...
+            <element> name="logs"
+        ...
+        """
+        model = importtools.prepare_model(modelname)
+        subs = [cls.get_subgroupiteminsertion(
+            itemgroup, model, model.parameters.control, indent)]
+        for name in ('inputs', 'fluxes', 'states', 'logs'):
+            subseqs = getattr(model.sequences, name, None)
+            if subseqs:
+                subs.append(cls.get_subgroupiteminsertion(
+                    itemgroup, model, subseqs, indent))
+        return '\n'.join(subs)
+
+    @classmethod
+    def get_subgroupiteminsertion(
+            cls, itemgroup, model, subgroup, indent) -> str:
+        blanks = ' ' * (indent * 4)
+        subs = []
+        subs.extend([
+            f'{blanks}<element> name="{subgroup.name}"',
+            f'{blanks}          minOccurs="0">',
+            f'something',
+            f'{blanks}</element>'])
         return '\n'.join(subs)

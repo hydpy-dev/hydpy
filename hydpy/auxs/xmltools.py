@@ -1394,6 +1394,23 @@ class XSDWriter(object):
                 f'{blanks}    minOccurs="0"/>')
 
     @classmethod
+    def get_exchangeinsertion(cls):
+        """Return the complete string related to the definition of exchange
+        items to be inserted into the string of the template file.
+
+        >>> from hydpy.auxs.xmltools import XSDWriter
+        >>> print(XSDWriter.get_exchangeinsertion())    # doctest: +ELLIPSIS
+            <element name="setitems">
+        ...
+            <element name="additems">
+        ...
+            <element name="getitems">
+        ...
+        """
+        indent = 1
+        return '\n'.join(
+            cls.get_itemsinsertion(name, indent)
+            for name in ('setitems', 'additems', 'getitems'))
 
     @staticmethod
     def _get_itemtype(modelname, itemgroup):

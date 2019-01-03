@@ -1235,6 +1235,17 @@ class XSDWriter(object):
         with open(cls.filepath_target, 'w') as file_:
             file_.write(template)
 
+    @staticmethod
+    def get_modelnames() -> List[str]:
+        """Return a sorted |list| containing all application model names.
+
+        >>> from hydpy.auxs.xmltools import XSDWriter
+        >>> print(XSDWriter.get_modelnames())    # doctest: +ELLIPSIS
+        [...'dam_v001', 'dam_v002', 'dam_v003', 'dam_v004', 'dam_v005',...]
+        """
+        return sorted(fn.split('.')[0] for fn in os.listdir(models.__path__[0])
+                      if (fn.endswith('.py') and (fn != '__init__.py')))
+
     @classmethod
     def get_insertion(cls) -> str:
         """Return the complete string to be inserted into the string of the
@@ -1269,10 +1280,7 @@ class XSDWriter(object):
         indent = 1
         blanks = ' ' * (indent+4)
         subs = []
-        filenames = (
-            fn.split('.')[0] for fn in os.listdir(models.__path__[0])
-            if (fn.endswith('.py') and (fn != '__init__.py')))
-        for name in sorted(filenames):
+        for name in cls.get_modelnames():
             subs.extend([
                 f'{blanks}<element name="{name}"',
                 f'{blanks}         substitutionGroup="hpcb:sequenceGroup"',

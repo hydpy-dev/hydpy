@@ -1509,8 +1509,8 @@ class XSDWriter(object):
         ...     'setitems', 'hland_v1', 1))    # doctest: +ELLIPSIS
             <complexType name = "hland_v1_setitemType">
                 <sequence>
-                    <element> name="control"
-                              minOccurs="0">
+                    <element name="control"
+                             minOccurs="0">
         ...
                 </sequence>
             </complexType>
@@ -1536,17 +1536,17 @@ class XSDWriter(object):
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> print(XSDWriter.get_subgroupsiteminsertion(
         ...     'setitems', 'hland_v1', 1))    # doctest: +ELLIPSIS
-            <element> name="control"
-                      minOccurs="0">
+            <element name="control"
+                     minOccurs="0">
         ...
             </element>
-            <element> name="inputs"
+            <element name="inputs"
         ...
-            <element> name="fluxes"
+            <element name="fluxes"
         ...
-            <element> name="states"
+            <element name="states"
         ...
-            <element> name="logs"
+            <element name="logs"
         ...
         """
         model = importtools.prepare_model(modelname)
@@ -1571,8 +1571,8 @@ class XSDWriter(object):
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> print(XSDWriter.get_subgroupiteminsertion(    # doctest: +ELLIPSIS
         ...     'setitems', model, model.parameters.control, 1))
-            <element> name="control"
-                      minOccurs="0">
+            <element name="control"
+                     minOccurs="0">
                 <complexType>
                     <sequence>
                         <element name="area"
@@ -1584,7 +1584,7 @@ class XSDWriter(object):
                                     <element name="dim"
                                              type="nonNegativeInteger"/>
                                     <element name="init"
-                                             type="listOfDoubles"/>
+                                             type="hpcb:listOfDoubles"/>
                                 </sequence>
                             </complexType>
                         </element>
@@ -1598,8 +1598,8 @@ class XSDWriter(object):
         blanks1 = ' ' * (indent * 4)
         blanks2 = ' ' * ((indent+3) * 4)
         subs = [
-            f'{blanks1}<element> name="{subgroup.name}"',
-            f'{blanks1}          minOccurs="0">',
+            f'{blanks1}<element name="{subgroup.name}"',
+            f'{blanks1}         minOccurs="0">',
             f'{blanks1}    <complexType>',
             f'{blanks1}        <sequence>']
         for variable in subgroup:
@@ -1613,7 +1613,7 @@ class XSDWriter(object):
                 f'{blanks2}            <element name="dim"',
                 f'{blanks2}                     type="nonNegativeInteger"/>',
                 f'{blanks2}            <element name="init"',
-                f'{blanks2}                     type="listOfDoubles"/>',
+                f'{blanks2}                     type="hpcb:listOfDoubles"/>',
                 f'{blanks2}        </sequence>',
                 f'{blanks2}    </complexType>',
                 f'{blanks2}</element>'])

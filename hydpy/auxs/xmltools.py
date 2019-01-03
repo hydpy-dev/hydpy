@@ -1556,11 +1556,63 @@ class XSDWriter(object):
     @classmethod
     def get_subgroupiteminsertion(
             cls, itemgroup, model, subgroup, indent) -> str:
-        blanks = ' ' * (indent * 4)
-        subs = []
+        """Return a string defining the required types for the given
+        combination of an exchange item group and a specific variable
+        subgroup of an application model.
+
+        >>> from hydpy import prepare_model
+        >>> model = prepare_model('hland_v1')
+        >>> from hydpy.auxs.xmltools import XSDWriter
+        >>> print(XSDWriter.get_subgroupiteminsertion(    # doctest: +ELLIPSIS
+        ...     'setitems', model, model.parameters.control, 1))
+            <element> name="control"
+                      minOccurs="0">
+                <complexType>
+                    <sequence>
+                        <element name="area"
+                                 minOccurs="0">
+                            <complexType>
+                                <sequence>
+                                    <element name="alias"
+                                             type="string"/>
+                                    <element name="dim"
+                                             type="nonNegativeInteger"/>
+                                    <element name="init"
+                                             type="listOfDoubles"/>
+                                </sequence>
+                            </complexType>
+                        </element>
+                        <element name="nmbzones"
+        ...
+                        </element>
+                    </sequence>
+                </complexType>
+            </element>
+        """
+        blanks1 = ' ' * (indent * 4)
+        blanks2 = ' ' * ((indent+3) * 4)
+        subs = [
+            f'{blanks1}<element> name="{subgroup.name}"',
+            f'{blanks1}          minOccurs="0">',
+            f'{blanks1}    <complexType>',
+            f'{blanks1}        <sequence>']
+        for variable in subgroup:
+            subs.extend([
+                f'{blanks2}<element name="{variable.name}"',
+                f'{blanks2}         minOccurs="0">',
+                f'{blanks2}    <complexType>',
+                f'{blanks2}        <sequence>',
+                f'{blanks2}            <element name="alias"',
+                f'{blanks2}                     type="string"/>',
+                f'{blanks2}            <element name="dim"',
+                f'{blanks2}                     type="nonNegativeInteger"/>',
+                f'{blanks2}            <element name="init"',
+                f'{blanks2}                     type="listOfDoubles"/>',
+                f'{blanks2}        </sequence>',
+                f'{blanks2}    </complexType>',
+                f'{blanks2}</element>'])
         subs.extend([
-            f'{blanks}<element> name="{subgroup.name}"',
-            f'{blanks}          minOccurs="0">',
-            f'something',
-            f'{blanks}</element>'])
+            f'{blanks1}        </sequence>',
+            f'{blanks1}    </complexType>',
+            f'{blanks1}</element>'])
         return '\n'.join(subs)

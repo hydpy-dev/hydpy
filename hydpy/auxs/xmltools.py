@@ -1496,7 +1496,7 @@ class XSDWriter(object):
         return '\n'.join(subs)
 
     @staticmethod
-    def _get_itemtype(modelname, itemgroup):
+    def _get_itemstype(modelname, itemgroup):
         return f'{modelname}_{itemgroup}Type'
 
     @classmethod
@@ -1536,7 +1536,7 @@ class XSDWriter(object):
             f'{blanks}            <element ref="hpcb:devices"',
             f'{blanks}                     minOccurs="0"/>'])
         for modelname in cls.get_modelnames():
-            type_ = cls._get_itemtype(modelname, itemgroup)
+            type_ = cls._get_itemstype(modelname, itemgroup)
             subs.append(f'{blanks}            <element name="{modelname}"')
             subs.append(f'{blanks}                     type="hpcb:{type_}"')
             subs.append(f'{blanks}                     minOccurs="0"/>')
@@ -1587,7 +1587,7 @@ class XSDWriter(object):
         """
         blanks = ' ' * (indent * 4)
         subs = []
-        type_ = cls._get_itemtype(modelname, itemgroup)
+        type_ = cls._get_itemstype(modelname, itemgroup)
         subs = [
             f'{blanks}<complexType name = "{type_}">',
             f'{blanks}    <sequence>',

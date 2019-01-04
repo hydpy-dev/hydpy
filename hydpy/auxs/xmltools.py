@@ -791,7 +791,125 @@ class XMLSeries(XMLBase):
             writer.save_series()
 
 
-class XMLSubseries(XMLBase):
+class XMLSelector(XMLBase):
+    """ToDo"""
+
+    @property
+    def selections(self) -> selectiontools.Selections:
+        """The |Selections| object defined for the respective `reader`
+        or `writer` element of the actual XML file.
+
+        If the `reader` or `writer` element does not define a special
+        selections element, the general |XMLInterface.selections| element
+        of |XMLInterface| is used.
+
+        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+
+        >>> from hydpy import HydPy, TestIO, XMLInterface
+        >>> hp = HydPy('LahnH')
+        >>> with TestIO():
+        ...     hp.prepare_network()
+        ...     hp.init_models()
+        ...     interface = XMLInterface('single_run.xml')
+        >>> series_io = interface.series_io
+        >>> for seq in (series_io.readers + series_io.writers):
+        ...     print(seq.info, seq.selections.names)
+        all input data ()
+        precipitation ('headwaters',)
+        soilmoisture ('complete',)
+        averaged ('complete',)
+        """
+        element = self.find('selections')
+        if element is None:
+            return self.master.master.selections
+        return _query_selections(element)
+
+    @property
+    def devices(self) -> selectiontools.Selection:
+        """The additional devices defined for the respective `reader`
+        or `writer` element contained within a |Selection| object.
+
+        If the `reader` or `writer` element does not define its own additional
+        devices, |XMLInterface.devices| of |XMLInterface| is used.
+
+        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+
+        >>> from hydpy import HydPy, TestIO, XMLInterface
+        >>> hp = HydPy('LahnH')
+        >>> with TestIO():
+        ...     hp.prepare_network()
+        ...     interface = XMLInterface('single_run.xml')
+        >>> series_io = interface.series_io
+        >>> for seq in (series_io.readers + series_io.writers):
+        ...     print(seq.info, seq.devices.nodes, seq.devices.elements)
+        all input data Nodes() \
+Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
+        precipitation Nodes() Elements("land_lahn_1", "land_lahn_2")
+        soilmoisture Nodes("dill") Elements("land_dill", "land_lahn_1")
+        averaged Nodes() Elements()
+        """
+        devices = self.find('devices')
+        if devices is None:
+            return self.master.master.devices
+        return _query_devices(devices)
+
+    def _get_devices(self, attr) \
+            -> Union[Iterator[devicetools.Node],
+                     Iterator[devicetools.Element]]:
+        selections = copy.copy(self.selections)
+        selections += self.devices
+        devices = set()
+        for selection in selections:
+            for device in getattr(selection, attr):
+                if device not in devices:
+                    devices.add(device)
+                    yield device
+
+    @property
+    def elements(self) -> Iterator[devicetools.Element]:
+        """Return the |Element| objects selected by the actual
+        `reader` or `writer` element.
+
+        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+
+        >>> from hydpy import HydPy, TestIO, XMLInterface
+        >>> hp = HydPy('LahnH')
+        >>> with TestIO():
+        ...     hp.prepare_network()
+        ...     interface = XMLInterface('single_run.xml')
+        >>> for element in interface.series_io.writers[0].elements:
+        ...     print(element.name)
+        land_dill
+        land_lahn_1
+        land_lahn_2
+        """
+        return self._get_devices('elements')
+
+    @property
+    def nodes(self) -> Iterator[devicetools.Node]:
+        """Return the |Node| objects selected by the actual
+        `reader` or `writer` element.
+
+        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+
+        >>> from hydpy import HydPy, TestIO, XMLInterface
+        >>> hp = HydPy('LahnH')
+        >>> with TestIO():
+        ...     hp.prepare_network()
+        ...     interface = XMLInterface('single_run.xml')
+        >>> for node in interface.series_io.writers[0].nodes:
+        ...     print(node.name)
+        dill
+        lahn_1
+        """
+        return self._get_devices('nodes')
+
+
+class XMLSubseries(XMLSelector):
     """Helper class for |XMLSeries| responsible for loading and
     saving time series data."""
 
@@ -924,120 +1042,6 @@ class XMLSubseries(XMLBase):
             for seq in nodes:
                 subs2seqs['node'].append(strip(seq.tag))
         return subs2seqs
-
-    @property
-    def selections(self) -> selectiontools.Selections:
-        """The |Selections| object defined for the respective `reader`
-        or `writer` element of the actual XML file.
-
-        If the `reader` or `writer` element does not define a special
-        selections element, the general |XMLInterface.selections| element
-        of |XMLInterface| is used.
-
-        >>> from hydpy.core.examples import prepare_full_example_1
-        >>> prepare_full_example_1()
-
-        >>> from hydpy import HydPy, TestIO, XMLInterface
-        >>> hp = HydPy('LahnH')
-        >>> with TestIO():
-        ...     hp.prepare_network()
-        ...     hp.init_models()
-        ...     interface = XMLInterface('single_run.xml')
-        >>> series_io = interface.series_io
-        >>> for seq in (series_io.readers + series_io.writers):
-        ...     print(seq.info, seq.selections.names)
-        all input data ()
-        precipitation ('headwaters',)
-        soilmoisture ('complete',)
-        averaged ('complete',)
-        """
-        element = self.find('selections')
-        if element is None:
-            return self.master.master.selections
-        return _query_selections(element)
-
-    @property
-    def devices(self) -> selectiontools.Selection:
-        """The additional devices defined for the respective `reader`
-        or `writer` element contained within a |Selection| object.
-
-        If the `reader` or `writer` element does not define its own additional
-        devices, |XMLInterface.devices| of |XMLInterface| is used.
-
-        >>> from hydpy.core.examples import prepare_full_example_1
-        >>> prepare_full_example_1()
-
-        >>> from hydpy import HydPy, TestIO, XMLInterface
-        >>> hp = HydPy('LahnH')
-        >>> with TestIO():
-        ...     hp.prepare_network()
-        ...     interface = XMLInterface('single_run.xml')
-        >>> series_io = interface.series_io
-        >>> for seq in (series_io.readers + series_io.writers):
-        ...     print(seq.info, seq.devices.nodes, seq.devices.elements)
-        all input data Nodes() \
-Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
-        precipitation Nodes() Elements("land_lahn_1", "land_lahn_2")
-        soilmoisture Nodes("dill") Elements("land_dill", "land_lahn_1")
-        averaged Nodes() Elements()
-        """
-        devices = self.find('devices')
-        if devices is None:
-            return self.master.master.devices
-        return _query_devices(devices)
-
-    def _get_devices(self, attr) \
-            -> Union[Iterator[devicetools.Node],
-                     Iterator[devicetools.Element]]:
-        selections = copy.copy(self.selections)
-        selections += self.devices
-        devices = set()
-        for selection in selections:
-            for device in getattr(selection, attr):
-                if device not in devices:
-                    devices.add(device)
-                    yield device
-
-    @property
-    def elements(self) -> Iterator[devicetools.Element]:
-        """Return the |Element| objects selected by the actual
-        `reader` or `writer` element.
-
-        >>> from hydpy.core.examples import prepare_full_example_1
-        >>> prepare_full_example_1()
-
-        >>> from hydpy import HydPy, TestIO, XMLInterface
-        >>> hp = HydPy('LahnH')
-        >>> with TestIO():
-        ...     hp.prepare_network()
-        ...     interface = XMLInterface('single_run.xml')
-        >>> for element in interface.series_io.writers[0].elements:
-        ...     print(element.name)
-        land_dill
-        land_lahn_1
-        land_lahn_2
-        """
-        return self._get_devices('elements')
-
-    @property
-    def nodes(self) -> Iterator[devicetools.Node]:
-        """Return the |Node| objects selected by the actual
-        `reader` or `writer` element.
-
-        >>> from hydpy.core.examples import prepare_full_example_1
-        >>> prepare_full_example_1()
-
-        >>> from hydpy import HydPy, TestIO, XMLInterface
-        >>> hp = HydPy('LahnH')
-        >>> with TestIO():
-        ...     hp.prepare_network()
-        ...     interface = XMLInterface('single_run.xml')
-        >>> for node in interface.series_io.writers[0].nodes:
-        ...     print(node.name)
-        dill
-        lahn_1
-        """
-        return self._get_devices('nodes')
 
     def _iterate_sequences(self) -> Iterator[sequencetools.IOSequence]:
         return itertools.chain(

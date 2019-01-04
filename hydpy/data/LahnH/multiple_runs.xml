@@ -66,6 +66,7 @@
     </series_io>
 
     <exchange>
+
         <setitems info="globally applied items">
             <hland_v1>
                 <control>
@@ -77,6 +78,19 @@
                 </control>
             </hland_v1>
         </setitems>
+        <additems>
+            <hland_v1>
+                <control>
+                    <k>
+                        <alias>k</alias>
+                        <dim>0</dim>
+                        <init>10.0</init>
+                        <control.k4/>
+                    </k>
+                </control>
+            </hland_v1>
+        </additems>
+
     </exchange>
 
 </hpcmr:config>

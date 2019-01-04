@@ -123,7 +123,7 @@ def find(root, name) -> ElementTree.Element:
 
     >>> from hydpy.auxs.xmltools import find, XMLInterface
     >>> from hydpy import data
-    >>> interface = XMLInterface(data.get_path('LahnH', 'single_run.xml'))
+    >>> interface = XMLInterface('single_run.xml', data.get_path('LahnH'))
     >>> find(interface.root, 'timegrid').tag.endswith('timegrid')
     True
     """
@@ -195,7 +195,7 @@ def run_simulation(projectname: str, xmlfile: str):
     write(f'Start HydPy project `{projectname}`')
     hp = hydpytools.HydPy(projectname)
     write(f'Read configuration file `{xmlfile}`')
-    interface = XMLInterface(os.path.join(projectname, xmlfile))
+    interface = XMLInterface(xmlfile)
     write('Interpret the defined options')
     interface.update_options()
     pub.options.printprogress = False
@@ -235,7 +235,7 @@ class XMLBase(object):
 
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnH', 'single_run.xml'))
+        >>> interface = XMLInterface('single_run.xml', data.get_path('LahnH'))
         >>> interface.find('timegrid').tag.endswith('timegrid')
         True
         """
@@ -243,16 +243,20 @@ class XMLBase(object):
 
 
 class XMLInterface(XMLBase):
-    """An interface to the XML configuration files that are valid concerning
-     schema file `HydPyConfigBase.xsd`.
+    """An interface to XML configuration files that are valid concerning
+     schema file `HydPyConfigSingleRun.xsd` or `HydPyConfigMultipleRuns.xsd`.
 
     >>> from hydpy.auxs.xmltools import XMLInterface
     >>> from hydpy import data
-    >>> interface = XMLInterface(data.get_path('LahnH', 'single_run.xml'))
+    >>> interface = XMLInterface('single_run.xml', data.get_path('LahnH'))
     >>> interface.root.tag
     '{https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/\
 HydPyConfigSingleRun.xsd}config'
-    >>> XMLInterface('wrongfilepath.xml')    # doctest: +ELLIPSIS
+    >>> interface = XMLInterface('multiple_runs.xml', data.get_path('LahnH'))
+    >>> interface.root.tag
+    '{https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/\
+HydPyConfigMultipleRuns.xsd}config'
+    >>> XMLInterface('wrongfilepath.xml', 'wrongdir')    # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
     FileNotFoundError: While trying to parse the XML configuration \
@@ -260,16 +264,16 @@ file ...wrongfilepath.xml, the following error occurred: \
 [Errno 2] No such file or directory: '...wrongfilepath.xml'
     """
 
-    def __init__(self, filepath=None):
-        if filepath is None:
-            filepath = os.path.join(pub.projectname, 'single_run.xml')
-        self.filepath = os.path.abspath(filepath)
+    def __init__(self, filename, directory=None):
+        if directory is None:
+            directory = pub.projectname
+        self.filepath = os.path.abspath(os.path.join(directory, filename))
         try:
             self.root = ElementTree.parse(self.filepath).getroot()
         except BaseException:
             objecttools.augment_excmessage(
                 f'While trying to parse the XML configuration file '
-                f'{filepath}')
+                f'{self.filepath}')
 
     def validate_xml(self) -> None:
         """Raise an error if the actual XML does not agree with the XML
@@ -292,7 +296,7 @@ file ...wrongfilepath.xml, the following error occurred: \
           zip_ --> false (default argument)
           zip_ --> false (default argument)
         >>> with TestIO():
-        ...     interface = XMLInterface('LahnH/single_run.xml')
+        ...     interface = XMLInterface('single_run.xml', 'LahnH')
         >>> interface.validate_xml()    # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
@@ -326,7 +330,7 @@ download/your-hydpy-version/HydPyConfigBase.xsd">1996-01-32T00:00:00</firstdate>
 
         >>> from hydpy.auxs.xmltools import XMLInterface, pub
         >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnH', 'single_run.xml'))
+        >>> interface = XMLInterface('single_run.xml', data.get_path('LahnH'))
         >>> pub.options.printprogress = True
         >>> pub.options.printincolor = True
         >>> pub.options.reprdigits = -1
@@ -388,7 +392,7 @@ download/your-hydpy-version/HydPyConfigBase.xsd">1996-01-32T00:00:00</firstdate>
         >>> hp = HydPy('LahnH')
         >>> with TestIO():
         ...     hp.prepare_network()
-        ...     XMLInterface().update_timegrids()
+        ...     XMLInterface('single_run.xml').update_timegrids()
         >>> pub.timegrids
         Timegrids(Timegrid('1996-01-01T00:00:00',
                            '1996-01-06T00:00:00',
@@ -410,7 +414,7 @@ download/your-hydpy-version/HydPyConfigBase.xsd">1996-01-32T00:00:00</firstdate>
         ...         _ = file_.write(
         ...             f'        <seriesfile>{name}</seriesfile>\\n')
         ...         _ = file_.write(''.join(lines[idx+4:]))
-        ...     XMLInterface().update_timegrids()
+        ...     XMLInterface('single_run.xml').update_timegrids()
         >>> pub.timegrids
         Timegrids(Timegrid('1996-01-01 00:00:00',
                            '2007-01-01 00:00:00',
@@ -439,7 +443,7 @@ download/your-hydpy-version/HydPyConfigBase.xsd">1996-01-32T00:00:00</firstdate>
         >>> hp = HydPy('LahnH')
         >>> with TestIO():
         ...     hp.prepare_network()
-        ...     interface = XMLInterface()
+        ...     interface = XMLInterface('single_run.xml')
         >>> interface.find('selections').text = 'headwaters streams'
         >>> selections = interface.selections
         >>> for selection in selections:
@@ -472,7 +476,7 @@ a `Selection` object.
         >>> hp = HydPy('LahnH')
         >>> with TestIO():
         ...     hp.prepare_network()
-        ...     interface = XMLInterface()
+        ...     interface = XMLInterface('single_run.xml')
         >>> interface.devices
         Selection("temporary_result_of_xml_parsing",
                   elements=("land_dill", "land_lahn_1"),
@@ -500,7 +504,7 @@ a name or keyword.
         >>> hp = HydPy('LahnH')
         >>> with TestIO():
         ...     hp.prepare_network()
-        ...     interface = XMLInterface()
+        ...     interface = XMLInterface('single_run.xml')
         >>> interface.find('selections').text = 'headwaters streams'
         >>> for element in interface.elements:
         ...      print(element.name)
@@ -531,7 +535,7 @@ a name or keyword.
         >>> hp = HydPy('LahnH')
         >>> with TestIO():
         ...     hp.prepare_network()
-        ...     interface = XMLInterface()
+        ...     interface = XMLInterface('single_run.xml')
         >>> interface.find('selections').text = 'nonheadwaters'
         >>> interface.fullselection
         Selection("fullselection",
@@ -551,7 +555,7 @@ a name or keyword.
 
         >>> from hydpy.auxs.xmltools import XMLInterface, strip
         >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnH', 'single_run.xml'))
+        >>> interface = XMLInterface('single_run.xml', data.get_path('LahnH'))
         >>> strip(interface.series_io.root.tag)
         'series_io'
         """
@@ -563,7 +567,7 @@ a name or keyword.
 
         >>> from hydpy.auxs.xmltools import XMLInterface, strip
         >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnH', 'single_run.xml'))
+        >>> interface = XMLInterface('single_run.xml', data.get_path('LahnH'))
         >>> strip(interface.series_io.root.tag)
         'series_io'
         """
@@ -576,7 +580,7 @@ a name or keyword.
         >>> from hydpy.auxs.xmltools import XMLInterface, strip
         >>> from hydpy import data
         >>> interface = XMLInterface(
-        ...     data.get_path('LahnH', 'multiple_runs.xml'))
+        ...     'multiple_runs.xml', data.get_path('LahnH'))
         >>> strip(interface.exchange.root.tag)
         'exchange'
         """
@@ -603,7 +607,7 @@ class XMLConditions(XMLBase):
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     hp.init_models()
-        ...     interface = XMLInterface()
+        ...     interface = XMLInterface('single_run.xml')
         ...     interface.update_timegrids()
         ...     interface.find('selections').text = 'headwaters'
         ...     interface.conditions_io.load_conditions()
@@ -630,7 +634,7 @@ class XMLConditions(XMLBase):
         ...     hp.prepare_network()
         ...     hp.init_models()
         ...     hp.elements.land_dill.model.sequences.states.lz = 999.0
-        ...     interface = XMLInterface()
+        ...     interface = XMLInterface('single_run.xml')
         ...     interface.update_timegrids()
         ...     interface.find('selections').text = 'headwaters'
         ...     interface.conditions_io.save_conditions()
@@ -663,7 +667,7 @@ class XMLSeries(XMLBase):
 
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnH', 'single_run.xml'))
+        >>> interface = XMLInterface('single_run.xml', data.get_path('LahnH'))
         >>> for reader in interface.series_io.readers:
         ...     print(reader.info)
         all input data
@@ -676,7 +680,7 @@ class XMLSeries(XMLBase):
 
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnH', 'single_run.xml'))
+        >>> interface = XMLInterface('single_run.xml', data.get_path('LahnH'))
         >>> for writer in interface.series_io.writers:
         ...     print(writer.info)
         precipitation
@@ -691,7 +695,7 @@ class XMLSeries(XMLBase):
 
         >>> from hydpy.auxs.xmltools import XMLInterface, XMLSubseries
         >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnH', 'single_run.xml'))
+        >>> interface = XMLInterface('single_run.xml', data.get_path('LahnH'))
         >>> series_io = interface.series_io
         >>> from unittest import mock
         >>> prepare_series = XMLSubseries.prepare_series
@@ -756,7 +760,7 @@ class XMLSubseries(XMLBase):
         >>> hp = HydPy('LahnH')
         >>> with TestIO():
         ...     hp.prepare_network()
-        ...     interface = XMLInterface()
+        ...     interface = XMLInterface('single_run.xml')
         >>> series_io = interface.series_io
         >>> with TestIO():
         ...     series_io.writers[0].prepare_sequencemanager()
@@ -813,7 +817,7 @@ class XMLSubseries(XMLBase):
 
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnH', 'single_run.xml'))
+        >>> interface = XMLInterface('single_run.xml', data.get_path('LahnH'))
         >>> series_io = interface.series_io
         >>> model2subs2seqs = series_io.writers[2].model2subs2seqs
         >>> for model, subs2seqs in sorted(model2subs2seqs.items()):
@@ -843,7 +847,7 @@ class XMLSubseries(XMLBase):
 
         >>> from hydpy.auxs.xmltools import XMLInterface
         >>> from hydpy import data
-        >>> interface = XMLInterface(data.get_path('LahnH', 'single_run.xml'))
+        >>> interface = XMLInterface('single_run.xml', data.get_path('LahnH'))
         >>> series_io = interface.series_io
         >>> subs2seqs = series_io.writers[2].subs2seqs
         >>> for subs, seq in sorted(subs2seqs.items()):
@@ -874,7 +878,7 @@ class XMLSubseries(XMLBase):
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     hp.init_models()
-        ...     interface = XMLInterface()
+        ...     interface = XMLInterface('single_run.xml')
         >>> series_io = interface.series_io
         >>> for seq in (series_io.readers + series_io.writers):
         ...     print(seq.info, seq.selections.names)
@@ -903,7 +907,7 @@ class XMLSubseries(XMLBase):
         >>> hp = HydPy('LahnH')
         >>> with TestIO():
         ...     hp.prepare_network()
-        ...     interface = XMLInterface()
+        ...     interface = XMLInterface('single_run.xml')
         >>> series_io = interface.series_io
         >>> for seq in (series_io.readers + series_io.writers):
         ...     print(seq.info, seq.devices.nodes, seq.devices.elements)
@@ -942,7 +946,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         >>> hp = HydPy('LahnH')
         >>> with TestIO():
         ...     hp.prepare_network()
-        ...     interface = XMLInterface()
+        ...     interface = XMLInterface('single_run.xml')
         >>> for element in interface.series_io.writers[0].elements:
         ...     print(element.name)
         land_dill
@@ -963,7 +967,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         >>> hp = HydPy('LahnH')
         >>> with TestIO():
         ...     hp.prepare_network()
-        ...     interface = XMLInterface()
+        ...     interface = XMLInterface('single_run.xml')
         >>> for node in interface.series_io.writers[0].nodes:
         ...     print(node.name)
         dill
@@ -1006,7 +1010,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     hp.init_models()
-        ...     interface = XMLInterface()
+        ...     interface = XMLInterface('single_run.xml')
         >>> interface.update_timegrids()
         >>> series_io = interface.series_io
 
@@ -1044,7 +1048,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     hp.init_models()
-        ...     interface = XMLInterface()
+        ...     interface = XMLInterface('single_run.xml')
         ...     interface.update_options()
         ...     interface.update_timegrids()
         ...     series_io = interface.series_io
@@ -1078,7 +1082,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     hp.init_models()
-        ...     interface = XMLInterface()
+        ...     interface = XMLInterface('single_run.xml')
         ...     interface.update_options()
         >>> interface.update_timegrids()
         >>> series_io = interface.series_io
@@ -1126,7 +1130,7 @@ class XMLExchange(XMLBase):
         >>> from hydpy.auxs.xmltools import strip, XMLInterface
         >>> from hydpy import data
         >>> interface = XMLInterface(
-        ...     data.get_path('LahnH', 'multiple_runs.xml'))
+        ...     'multiple_runs.xml', data.get_path('LahnH'))
         >>> for setitem in interface.exchange.setitems:
         ...     print(setitem.model)
         hland_v1
@@ -1164,7 +1168,7 @@ class XMLSetItems(XMLBase):
         >>> pub.timegrids = '1996-01-01', '1996-01-06', '1d'
         >>> with TestIO():
         ...     hp.prepare_everything()
-        ...     interface = XMLInterface(filepath='LahnH/multiple_runs.xml')
+        ...     interface = XMLInterface('multiple_runs.xml')
         >>> item = interface.exchange.setitems[0].name2item['alpha']
         >>> item.value
         array(2.0)
@@ -1214,8 +1218,8 @@ class XSDWriter(object):
 
         The following example shows that after writing a new schema file,
         method |XMLInterface.validate_xml| does not raise an error when
-        applied on the XML configuration file of the `LahnH` example
-        project: ToDo multiple_runs.xml
+        applied on the XML configuration files `single_run.xml` and
+        `multiple_runs.xml` of the `LahnH` example project: ToDo multiple_runs.xml
 
         >>> from hydpy.auxs.xmltools import XSDWriter, XMLInterface
         >>> from hydpy import data

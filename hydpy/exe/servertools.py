@@ -161,7 +161,7 @@ class ServerState(object):
         write(f'Start HydPy project `{projectname}`')
         hp = hydpytools.HydPy(projectname)
         write(f'Read configuration file `{xmlfile}`')
-        interface = xmltools.XMLInterface(os.path.join(projectname, xmlfile))
+        interface = xmltools.XMLInterface(xmlfile)
         write('Interpret the defined options')
         interface.update_options()
         write('Interpret the defined period')

@@ -1473,11 +1473,6 @@ class XSDWriter(object):
 
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> print(XSDWriter.get_exchangeinsertion())    # doctest: +ELLIPSIS
-            <element name="setitems">
-        ...
-            </element>
-        <BLANKLINE>
-            <complexType name = "arma_v1_setitemsType">
         ...
             </complexType>
         ...
@@ -1556,11 +1551,11 @@ class XSDWriter(object):
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> print(XSDWriter.get_itemtypesinsertion(
         ...     'setitems', 1))    # doctest: +ELLIPSIS
-            <complexType name = "arma_v1_setitemsType">
+            <complexType name="arma_v1_setitemsType">
         ...
             </complexType>
         <BLANKLINE>
-            <complexType name = "dam_v001_setitemsType">
+            <complexType name="dam_v001_setitemsType">
         ...
         """
         subs = []
@@ -1576,7 +1571,7 @@ class XSDWriter(object):
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> print(XSDWriter.get_itemtypeinsertion(
         ...     'setitems', 'hland_v1', 1))    # doctest: +ELLIPSIS
-            <complexType name = "hland_v1_setitemsType">
+            <complexType name="hland_v1_setitemsType">
                 <sequence>
                     <element name="control"
                              minOccurs="0">
@@ -1589,7 +1584,7 @@ class XSDWriter(object):
         subs = []
         type_ = cls._get_itemstype(modelname, itemgroup)
         subs = [
-            f'{blanks}<complexType name = "{type_}">',
+            f'{blanks}<complexType name="{type_}">',
             f'{blanks}    <sequence>',
             cls.get_subgroupsiteminsertion(itemgroup, modelname, indent+2),
             f'{blanks}    </sequence>',

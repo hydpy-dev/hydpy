@@ -1410,7 +1410,7 @@ class XSDWriter(object):
         ...
             </element>
         <BLANKLINE>
-            <complexType name = "arma_v1_setitemType">
+            <complexType name = "arma_v1_setitemsType">
         ...
             </complexType>
         ...
@@ -1430,7 +1430,7 @@ class XSDWriter(object):
 
     @staticmethod
     def _get_itemtype(modelname, itemgroup):
-        return f'{modelname}_{itemgroup[:-1]}Type'
+        return f'{modelname}_{itemgroup}Type'
 
     @classmethod
     def get_itemsinsertion(cls, itemgroup, indent) -> str:
@@ -1449,7 +1449,7 @@ class XSDWriter(object):
                                  minOccurs="0"/>
         ...
                         <element name="hland_v1"
-                                 type="hpcb:hland_v1_setitemType"/>
+                                 type="hpcb:hland_v1_setitemsType"/>
         ...
                     </sequence>
                     <attribute name="info" type="string"/>
@@ -1487,11 +1487,11 @@ class XSDWriter(object):
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> print(XSDWriter.get_itemtypesinsertion(
         ...     'setitems', 1))    # doctest: +ELLIPSIS
-            <complexType name = "arma_v1_setitemType">
+            <complexType name = "arma_v1_setitemsType">
         ...
             </complexType>
         <BLANKLINE>
-            <complexType name = "dam_v001_setitemType">
+            <complexType name = "dam_v001_setitemsType">
         ...
         """
         subs = []
@@ -1507,7 +1507,7 @@ class XSDWriter(object):
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> print(XSDWriter.get_itemtypeinsertion(
         ...     'setitems', 'hland_v1', 1))    # doctest: +ELLIPSIS
-            <complexType name = "hland_v1_setitemType">
+            <complexType name = "hland_v1_setitemsType">
                 <sequence>
                     <element name="control"
                              minOccurs="0">

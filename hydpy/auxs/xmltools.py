@@ -1516,7 +1516,8 @@ class XSDWriter(object):
                                  minOccurs="0"/>
         ...
                         <element name="hland_v1"
-                                 type="hpcb:hland_v1_setitemsType"/>
+                                 type="hpcb:hland_v1_setitemsType"
+                                 minOccurs="0"/>
         ...
                     </sequence>
                     <attribute name="info" type="string"/>
@@ -1537,7 +1538,8 @@ class XSDWriter(object):
         for modelname in cls.get_modelnames():
             type_ = cls._get_itemtype(modelname, itemgroup)
             subs.append(f'{blanks}            <element name="{modelname}"')
-            subs.append(f'{blanks}                     type="hpcb:{type_}"/>')
+            subs.append(f'{blanks}                     type="hpcb:{type_}"')
+            subs.append(f'{blanks}                     minOccurs="0"/>')
         subs.extend([
                 f'{blanks}        </sequence>',
                 f'{blanks}        <attribute name="info" type="string"/>',

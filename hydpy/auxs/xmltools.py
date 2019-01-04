@@ -1473,10 +1473,11 @@ class XSDWriter(object):
 
         >>> from hydpy.auxs.xmltools import XSDWriter
         >>> print(XSDWriter.get_exchangeinsertion())    # doctest: +ELLIPSIS
+            <complexType name="arma_v1_mathitemType">
         ...
-            </complexType>
+            <element name="setitems">
         ...
-        <BLANKLINE>
+            <complexType name="arma_v1_setitemsType">
         ...
             <element name="additems">
         ...
@@ -1484,10 +1485,54 @@ class XSDWriter(object):
         ...
         """
         indent = 1
-        subs = []
+        subs = [cls.get_mathitemsinsertion(indent)]
         for groupname in ('setitems', 'additems', 'getitems'):
             subs.append(cls.get_itemsinsertion(groupname, indent))
             subs.append(cls.get_itemtypesinsertion(groupname, indent))
+        return '\n'.join(subs)
+
+    @classmethod
+    def get_mathitemsinsertion(cls, indent) -> str:
+        """Return a string defining a model specific XML type extending
+        `ItemType`.
+
+        >>> from hydpy.auxs.xmltools import XSDWriter
+        >>> print(XSDWriter.get_mathitemsinsertion(1))    # doctest: +ELLIPSIS
+            <complexType name="arma_v1_mathitemType">
+                <complexContent>
+                    <extension base="hpcb:itemType">
+                        <choice>
+                            <element name="control.responses"/>
+        ...
+                            <element name="logs.logout"/>
+                        </choice>
+                    </extension>
+                </complexContent>
+            </complexType>
+        <BLANKLINE>
+            <complexType name="dam_v001_mathitemType">
+        ...
+        """
+        blanks = ' ' * (indent*4)
+        subs = []
+        for modelname in cls.get_modelnames():
+            model = importtools.prepare_model(modelname)
+            subs.extend([
+                f'{blanks}<complexType name="{modelname}_mathitemType">',
+                f'{blanks}    <complexContent>',
+                f'{blanks}        <extension base="hpcb:itemType">',
+                f'{blanks}            <choice>'])
+            for subvars in cls._get_subvars(model):
+                for var in subvars:
+                    subs.append(
+                        f'{blanks}                '
+                        f'<element name="{subvars.name}.{var.name}"/>')
+            subs.extend([
+                    f'{blanks}            </choice>',
+                    f'{blanks}        </extension>',
+                    f'{blanks}    </complexContent>',
+                    f'{blanks}</complexType>',
+                    f''])
         return '\n'.join(subs)
 
     @staticmethod
@@ -1635,6 +1680,9 @@ class XSDWriter(object):
         combination of an exchange item group and a specific variable
         subgroup of an application model.
 
+        Note that for `setitems` and `getitems`, `itemType` is referenced,
+        and for all others the model specific `mathitemType`:
+
         >>> from hydpy import prepare_model
         >>> model = prepare_model('hland_v1')
         >>> from hydpy.auxs.xmltools import XSDWriter
@@ -1652,6 +1700,24 @@ class XSDWriter(object):
                     </sequence>
                 </complexType>
             </element>
+
+        >>> print(XSDWriter.get_subgroupiteminsertion(    # doctest: +ELLIPSIS
+        ...     'getitems', model, model.parameters.control, 1))
+            <element name="control"
+        ...
+                        <element name="area"
+                                 type="hpcb:itemType"
+                                 minOccurs="0"/>
+        ...
+
+        >>> print(XSDWriter.get_subgroupiteminsertion(    # doctest: +ELLIPSIS
+        ...     'additems', model, model.parameters.control, 1))
+            <element name="control"
+        ...
+                        <element name="area"
+                                 type="hpcb:hland_v1_mathitemType"
+                                 minOccurs="0"/>
+        ...
         """
         blanks = ' ' * (indent * 4)
         subs = [
@@ -1660,10 +1726,14 @@ class XSDWriter(object):
             f'{blanks}    <complexType>',
             f'{blanks}        <sequence>']
         for variable in subgroup:
-            subs.extend([
-                f'{blanks}            <element name="{variable.name}"',
-                f'{blanks}                     type="hpcb:itemType"',
-                f'{blanks}                     minOccurs="0"/>'])
+            subs.append(f'{blanks}            <element name="{variable.name}"')
+            if itemgroup in ('getitems', 'setitems'):
+                subs.append(f'{blanks}                     '
+                            f'type="hpcb:itemType"')
+            else:
+                subs.append(f'{blanks}                     '
+                            f'type="hpcb:{model.name}_mathitemType"')
+            subs.append(f'{blanks}                     minOccurs="0"/>')
         subs.extend([
             f'{blanks}        </sequence>',
             f'{blanks}    </complexType>',

@@ -1616,15 +1616,20 @@ class XSDWriter(object):
             <element name="logs"
         ...
         """
+        subs = []
         model = importtools.prepare_model(modelname)
-        subs = [cls.get_subgroupiteminsertion(
-            itemgroup, model, model.parameters.control, indent)]
+        for subvars in cls._get_subvars(model):
+            subs.append(cls.get_subgroupiteminsertion(
+                    itemgroup, model, subvars, indent))
+        return '\n'.join(subs)
+
+    @classmethod
+    def _get_subvars(cls, model):
+        yield model.parameters.control
         for name in ('inputs', 'fluxes', 'states', 'logs'):
             subseqs = getattr(model.sequences, name, None)
             if subseqs:
-                subs.append(cls.get_subgroupiteminsertion(
-                    itemgroup, model, subseqs, indent))
-        return '\n'.join(subs)
+                yield subseqs
 
     @classmethod
     def get_subgroupiteminsertion(

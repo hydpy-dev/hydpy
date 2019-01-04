@@ -1643,49 +1643,27 @@ class XSDWriter(object):
                 <complexType>
                     <sequence>
                         <element name="area"
-                                 minOccurs="0">
-                            <complexType>
-                                <sequence>
-                                    <element name="alias"
-                                             type="string"/>
-                                    <element name="dim"
-                                             type="nonNegativeInteger"/>
-                                    <element name="init"
-                                             type="hpcb:listOfDoubles"/>
-                                </sequence>
-                            </complexType>
-                        </element>
+                                 type="hpcb:itemType"
+                                 minOccurs="0"/>
                         <element name="nmbzones"
         ...
-                        </element>
                     </sequence>
                 </complexType>
             </element>
         """
-        blanks1 = ' ' * (indent * 4)
-        blanks2 = ' ' * ((indent+3) * 4)
+        blanks = ' ' * (indent * 4)
         subs = [
-            f'{blanks1}<element name="{subgroup.name}"',
-            f'{blanks1}         minOccurs="0">',
-            f'{blanks1}    <complexType>',
-            f'{blanks1}        <sequence>']
+            f'{blanks}<element name="{subgroup.name}"',
+            f'{blanks}         minOccurs="0">',
+            f'{blanks}    <complexType>',
+            f'{blanks}        <sequence>']
         for variable in subgroup:
             subs.extend([
-                f'{blanks2}<element name="{variable.name}"',
-                f'{blanks2}         minOccurs="0">',
-                f'{blanks2}    <complexType>',
-                f'{blanks2}        <sequence>',
-                f'{blanks2}            <element name="alias"',
-                f'{blanks2}                     type="string"/>',
-                f'{blanks2}            <element name="dim"',
-                f'{blanks2}                     type="nonNegativeInteger"/>',
-                f'{blanks2}            <element name="init"',
-                f'{blanks2}                     type="hpcb:listOfDoubles"/>',
-                f'{blanks2}        </sequence>',
-                f'{blanks2}    </complexType>',
-                f'{blanks2}</element>'])
+                f'{blanks}            <element name="{variable.name}"',
+                f'{blanks}                     type="hpcb:itemType"',
+                f'{blanks}                     minOccurs="0"/>'])
         subs.extend([
-            f'{blanks1}        </sequence>',
-            f'{blanks1}    </complexType>',
-            f'{blanks1}</element>'])
+            f'{blanks}        </sequence>',
+            f'{blanks}    </complexType>',
+            f'{blanks}</element>'])
         return '\n'.join(subs)

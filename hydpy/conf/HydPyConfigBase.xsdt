@@ -336,6 +336,17 @@
         </complexType>
     </element>
 
+    <complexType name="itemType">
+        <sequence>
+            <element name="alias"
+                     type="string"/>
+            <element name="dim"
+                     type="nonNegativeInteger"/>
+            <element name="init"
+                     type="hpcb:listOfDoubles"/>
+        </sequence>
+    </complexType>
+
 <!--include exchange items-->
 
 </schema>

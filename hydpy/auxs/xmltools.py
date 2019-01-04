@@ -1282,23 +1282,22 @@ class XSDWriter(object):
 
         The following example shows that after writing a new schema file,
         method |XMLInterface.validate_xml| does not raise an error when
-        applied on the XML configuration files `single_run.xml` and
-        `multiple_runs.xml` of the `LahnH` example project: ToDo multiple_runs.xml
-
-        >>> from hydpy.auxs.xmltools import XSDWriter, XMLInterface
-        >>> from hydpy import data
-        >>> xmlpath = data.get_path('LahnH', 'single_run.xml')
+        either applied on the XML configuration files `single_run.xml` or
+        `multiple_runs.xml` of the `LahnH` example project:
 
         >>> import os
+        >>> from hydpy.auxs.xmltools import XSDWriter, XMLInterface
         >>> if os.path.exists(XSDWriter.filepath_target):
         ...     os.remove(XSDWriter.filepath_target)
         >>> os.path.exists(XSDWriter.filepath_target)
         False
-
         >>> XSDWriter.write_xsd()
         >>> os.path.exists(XSDWriter.filepath_target)
         True
-        >>> XMLInterface(xmlpath).validate_xml()
+
+        >>> from hydpy import data
+        >>> for configfile in ('single_run.xml', 'multiple_runs.xml'):
+        ...     XMLInterface(configfile, data.get_path('LahnH')).validate_xml()
         """
         with open(cls.filepath_source) as file_:
             template = file_.read()

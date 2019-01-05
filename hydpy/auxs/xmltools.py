@@ -229,8 +229,23 @@ class XMLBase(object):
 
     root: ElementTree.Element
 
+    @property
+    def name(self):
+        """Apply function |strip| to the root of the object of the |XMLBase|
+        subclass.
+
+        >>> from hydpy.auxs.xmltools import XMLInterface
+        >>> from hydpy import data
+        >>> interface = XMLInterface('single_run.xml', data.get_path('LahnH'))
+        >>> interface.name
+        'config'
+        >>> interface.series_io.readers[0].name
+        'reader'
+        """
+        return strip(self.root.tag)
+
     def find(self, name) -> ElementTree.Element:
-        """Apply function |find| for the root of the object of the |XMLBase|
+        """Apply function |find| to the root of the object of the |XMLBase|
         subclass.
 
         >>> from hydpy.auxs.xmltools import XMLInterface

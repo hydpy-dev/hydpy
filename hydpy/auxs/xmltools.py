@@ -88,7 +88,7 @@ the suffix `_mean`:
 """
 # import...
 # ...from standard library
-from typing import Dict, IO, Iterator, List, Union
+from typing import Dict, Iterator, List, Union
 import collections
 import copy
 import datetime
@@ -797,7 +797,7 @@ class XMLSelector(XMLBase):
     @property
     def selections(self) -> selectiontools.Selections:
         """The |Selections| object defined for the respective `reader`
-        or `writer` element of the actual XML file.
+        or `writer` element of the actual XML file. ToDo
 
         If the `reader` or `writer` element does not define a special
         selections element, the general |XMLInterface.selections| element
@@ -820,15 +820,17 @@ class XMLSelector(XMLBase):
         soilmoisture ('complete',)
         averaged ('complete',)
         """
-        element = self.find('selections')
-        if element is None:
-            return self.master.master.selections
-        return _query_selections(element)
+        selections = self.find('selections')
+        master = self
+        while selections is None:
+            master = master.master
+            selections = master.find('selections')
+        return _query_selections(selections)
 
     @property
     def devices(self) -> selectiontools.Selection:
         """The additional devices defined for the respective `reader`
-        or `writer` element contained within a |Selection| object.
+        or `writer` element contained within a |Selection| object. ToDo
 
         If the `reader` or `writer` element does not define its own additional
         devices, |XMLInterface.devices| of |XMLInterface| is used.
@@ -851,8 +853,10 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         averaged Nodes() Elements()
         """
         devices = self.find('devices')
-        if devices is None:
-            return self.master.master.devices
+        master = self
+        while devices is None:
+            master = master.master
+            devices = master.find('devices')
         return _query_devices(devices)
 
     def _get_devices(self, attr) \
@@ -870,7 +874,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
     @property
     def elements(self) -> Iterator[devicetools.Element]:
         """Return the |Element| objects selected by the actual
-        `reader` or `writer` element.
+        `reader` or `writer` element. ToDo
 
         >>> from hydpy.core.examples import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -891,7 +895,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
     @property
     def nodes(self) -> Iterator[devicetools.Node]:
         """Return the |Node| objects selected by the actual
-        `reader` or `writer` element.
+        `reader` or `writer` element. ToDo
 
         >>> from hydpy.core.examples import prepare_full_example_1
         >>> prepare_full_example_1()

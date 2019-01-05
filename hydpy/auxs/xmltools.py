@@ -225,7 +225,24 @@ pub.scriptfunctions['run_simulation'] = run_simulation
 
 class XMLBase(object):
     """Base class for the concrete classes |XMLInterface|, |XMLConditions|,
-    |XMLSeries|, and |XMLSubseries|."""
+    |XMLSeries|, and |XMLSubseries|.
+
+    Subclasses of |XMLBase| support iterating XML subelements, while
+    skipping those named `selections` or `devices`:
+
+    >>> from hydpy.auxs.xmltools import XMLInterface
+    >>> from hydpy import data
+    >>> interface = XMLInterface('multiple_runs.xml', data.get_path('LahnH'))
+    >>> itemgroup = interface.exchange.itemgroups[1]
+    >>> for element in itemgroup:
+    ...     print(strip(element.tag))
+    hland_v1
+    >>> for element in itemgroup.models[0].subvars[0].vars[0]:
+    ...     print(strip(element.tag))
+    alias
+    dim
+    init
+    """
 
     root: ElementTree.Element
 
@@ -255,6 +272,12 @@ class XMLBase(object):
         True
         """
         return find(self.root, name)
+
+    def __iter__(self):
+        for element in self.root:
+            name = strip(element.tag)
+            if name not in ('selections', 'devices'):
+                yield element
 
 
 class XMLInterface(XMLBase):

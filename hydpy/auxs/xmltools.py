@@ -1247,6 +1247,85 @@ class XMLExchange(XMLBase):
         """
         return [XMLSetItems(self, _) for _ in self.find('setitems')]
 
+    @property
+    def itemgroups(self):
+        return [XMLItemgroup(self, element) for element in self]
+
+
+class XMLItemgroup(XMLBase):
+
+    def __init__(self, master, root):
+        self.master: XMLExchange = master
+        self.root: ElementTree.Element = root
+
+    @property
+    def models(self):
+        return [XMLModel(self, element) for element in self]
+
+
+class XMLModel(XMLBase):
+
+    def __init__(self, master, root):
+        self.master: XMLItemgroup = master
+        self.root: ElementTree.Element = root
+
+    @property
+    def subvars(self):
+        return [XMLSubvars(self, element) for element in self]
+
+
+class XMLSubvars(XMLBase):
+
+    def __init__(self, master, root):
+        self.master: XMLModel = master
+        self.root: ElementTree.Element = root
+
+    @property
+    def vars(self):
+        return [XMLVar(self, element) for element in self]
+
+
+class XMLVar(XMLSelector):
+
+    def __init__(self, master, root):
+        self.master: XMLModel = master
+        self.root: ElementTree.Element = root
+
+    @property
+    def item(self):
+        """ ToDo
+
+        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+
+        >>> from hydpy import HydPy, TestIO, XMLInterface, pub
+        >>> hp = HydPy('LahnH')
+        >>> pub.timegrids = '1996-01-01', '1996-01-06', '1d'
+        >>> with TestIO():
+        ...     hp.prepare_everything()
+        ...     interface = XMLInterface('multiple_runs.xml')
+        >>> var = interface.exchange.itemgroups[0].models[0].subvars[0].vars[0]
+        >>> item = var.item
+        >>> item.value
+        array(2.0)
+        >>> hp.elements.land_dill.model.parameters.control.alpha
+        alpha(1.0)
+        >>> item.update_variables()
+        >>> hp.elements.land_dill.model.parameters.control.alpha
+        alpha(2.0)
+        """
+        target = f'{self.master.name}.{self.name}'
+        dim = self.find('dim').text
+        init = self.find('init').text
+        alias = self.find('alias').text
+        if self.master.master.master.name == 'setitems':
+            item = itemtools.SetItem(self.master.master.name, target, dim)
+            selections = self.selections
+            selections += self.devices
+            item.collect_variables(selections)
+            item.value = eval(init)
+        return item
+
 
 class XMLSetItems(XMLBase):
     """Helper class for |XMLExchange| responsible preparing |SetItem|

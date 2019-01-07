@@ -1321,7 +1321,7 @@ class XMLVar(XMLSelector):
         init = self.find('init').text
         alias = self.find('alias').text
         if self.master.master.master.name == 'setitems':
-            item = itemtools.SetItem(self.master.master.name, target, dim)
+            item = itemtools.SetItem(alias, self.master.master.name, target, dim)
             selections = self.selections
             selections += self.devices
             item.collect_variables(selections)
@@ -1377,7 +1377,7 @@ class XMLSetItems(XMLBase):
                 dim = find(variable, 'dim').text
                 init = find(variable, 'init').text
                 alias = find(variable, 'alias').text
-                item = itemtools.SetItem(model, target, dim)
+                item = itemtools.SetItem(alias, model, target, dim)
                 item.collect_variables(pub.selections)
                 item.value = eval(init)
                 name2item[alias] = item

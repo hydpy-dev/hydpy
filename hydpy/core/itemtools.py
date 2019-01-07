@@ -153,7 +153,7 @@ class SetItem(ExchangeItem):
     ...     hp.prepare_everything()
 
     >>> from hydpy.core.itemtools import SetItem
-    >>> item = SetItem('hland_v1', 'control.alpha', 0)
+    >>> item = SetItem('alpha', 'hland_v1', 'control.alpha', 0)
     >>> item.collect_variables(pub.selections)
 
     >>> item.shape
@@ -176,7 +176,7 @@ class SetItem(ExchangeItem):
     alpha(2.0)
 
 
-    >>> item = SetItem('hland_v1', 'control.fc', 0)
+    >>> item = SetItem('fc', 'hland_v1', 'control.fc', 0)
     >>> item.collect_variables(pub.selections)
     >>> item.shape
     ()
@@ -189,7 +189,7 @@ class SetItem(ExchangeItem):
     >>> land_dill.model.parameters.control.fc
     fc(200.0)
 
-    >>> item = SetItem('hland_v1', 'control.fc', 1)
+    >>> item = SetItem('fc', 'hland_v1', 'control.fc', 1)
     >>> item.collect_variables(pub.selections)
     Traceback (most recent call last):
     ...
@@ -201,7 +201,9 @@ class SetItem(ExchangeItem):
     ...     control.nmbzones(5)
     ...     control.zonetype(FIELD)
 
-    >>> item = SetItem('hland_v1', 'control.fc', 1)
+    >>> item = SetItem('fc', 'hland_v1', 'control.fc', 1)
+    >>> item.name
+    'fc'
     >>> item.collect_variables(pub.selections)
     >>> item.shape
     (5,)
@@ -226,7 +228,8 @@ class SetItem(ExchangeItem):
 
 
     """
-    def __init__(self, master, variable, ndim):
+    def __init__(self, name, master, variable, ndim):
+        self.name = str(name)
         self.target = ExchangeVariable(master, variable)
         self.ndim = int(ndim)
         self._value = None

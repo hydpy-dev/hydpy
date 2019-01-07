@@ -2,8 +2,7 @@
 
 # import...
 # ...from standard library
-import importlib
-from typing import Iterator
+from typing import Iterator, Tuple
 # ...from site-packages
 import numpy
 # ...from HydPy
@@ -11,7 +10,7 @@ from hydpy.core import devicetools
 from hydpy.core import selectiontools
 
 
-class ExchangeVariable(dict):
+class ExchangeVariable(object):
     """
 
     >>> from hydpy.core.examples import prepare_full_example_1
@@ -31,15 +30,15 @@ class ExchangeVariable(dict):
     >>> ev = ExchangeVariable('hland_v1', 'control.alpha')
     >>> ev.collect_variables(pub.selections)
     >>> land_dill = hp.elements.land_dill
-    >>> ev[land_dill] is land_dill.model.parameters.control.alpha
+    >>> ev.device2target[land_dill] is land_dill.model.parameters.control.alpha
     True
-    >>> ev[hp.nodes.dill]   # ToDo
+    >>> ev.device2target[hp.nodes.dill]   # ToDo
     Traceback (most recent call last):
     ...
     KeyError: Node("dill", variable="Q",
          keywords="gauge")
 
-    >>> for device in sorted(ev):
+    >>> for device in sorted(ev.device2target):
     ...     print(device)
     land_dill
     land_lahn_1
@@ -48,9 +47,9 @@ class ExchangeVariable(dict):
     >>> ev = ExchangeVariable('hland', 'states.ic')
     >>> ev.collect_variables(pub.selections)
     >>> land_lahn_3 = hp.elements.land_lahn_3
-    >>> ev[land_lahn_3] is land_lahn_3.model.sequences.states.ic
+    >>> ev.device2target[land_lahn_3] is land_lahn_3.model.sequences.states.ic
     True
-    >>> for element in sorted(ev):
+    >>> for element in sorted(ev.device2target):
     ...     print(element)
     land_dill
     land_lahn_1
@@ -60,15 +59,15 @@ class ExchangeVariable(dict):
     >>> land_lahn_3.model.sequences.inputs.t.series = range(4)
     >>> ev = ExchangeVariable('hland', 'inputs.t.series')
     >>> ev.collect_variables(pub.selections)
-    >>> ev[land_lahn_3]
+    >>> ev.device2target[land_lahn_3]
     InfoArray([ 0.,  1.,  2.,  3.])
 
     >>> ev = ExchangeVariable('node', 'sim')
     >>> ev.collect_variables(pub.selections)
     >>> dill = hp.nodes.dill
-    >>> ev[dill] is dill.sequences.sim
+    >>> ev.device2target[dill] is dill.sequences.sim
     True
-    >>> for node in sorted(ev):
+    >>> for node in sorted(ev.device2target):
     ...  print(node)
     dill
     lahn_1
@@ -79,33 +78,47 @@ class ExchangeVariable(dict):
     >>> ev = ExchangeVariable('node', 'sim.series')
     >>> ev.collect_variables(pub.selections)
     >>> dill = hp.nodes.dill
-    >>> ev[dill]
+    >>> ev.device2target[dill]
     InfoArray([ 0.,  1.,  2.,  3.])
     """
 
-    def __init__(self, parent: str, child: str):
-        self._parent = parent
-        entries = child.split('.')
-        self._series = entries[-1] == 'series'
-        if self._series:
+    def __init__(self, master: str, target: str, base: str=None):
+        self._master = master
+        self._series_target, self._subgroup_target, self._variable_target = (
+            self._get_seriesflag_and_subgroup_and_variable(target))
+        if base is None:
+            self._series_base, self._subgroup_base, self._variable_base = (
+                None, None, None)
+        else:
+            self._series_base, self._subgroup_base, self._variable_base = (
+                self._get_seriesflag_and_subgroup_and_variable(base))
+        self._memory = None
+        self.device2target = {}
+        self.device2base = {}
+
+    @staticmethod
+    def _get_seriesflag_and_subgroup_and_variable(string):
+        entries = string.split('.')
+        series = entries[-1] == 'series'
+        if series:
             del entries[-1]
         try:
-            self._subgroup, self._variable = entries
+            subgroup_target, variable_target = entries
         except ValueError:
-            self._subgroup, self._variable = None, entries[0]
-        self._memory = None
+            subgroup_target, variable_target = None, entries[0]
+        return series, subgroup_target, variable_target
 
     def collect_variables(self, selections: selectiontools.Selections) -> None:
-        if self._parent == 'node':
+        if self._master == 'node':
             for node in selections.nodes:
-                self[node] = self._query_nodevariable(node)
-                if self._series:
-                    self[node] = self[node].series
+                self.device2target[node] = self._query_nodevariable(node)
+                if self._series_target:
+                    self.device2target[node] = self.device2target[node].series
         else:
             for element in self._iter_relevantelements(selections):
-                self[element] = self._query_elementvariable(element)
-                if self._series:
-                    self[element] = self[element].series
+                self.device2target[element] = self._query_elementvariable(element)
+                if self._series_target:
+                    self.device2target[element] = self.device2target[element].series
 
     @property
     def value(self):
@@ -114,7 +127,7 @@ class ExchangeVariable(dict):
     @value.setter
     def value(self, value):
         self._memory = value
-        for variable in self.values():
+        for variable in self.device2target.values():
             variable(value)
 
     def _iter_relevantelements(self, selections: selectiontools.Selections) -> \
@@ -122,26 +135,58 @@ class ExchangeVariable(dict):
         for element in selections.elements:
             name1 = element.model.name
             name2 = name1.rpartition('_')[0]
-            if self._parent in (name1, name2):
+            if self._master in (name1, name2):
                 yield element
 
     def _query_elementvariable(self, element: devicetools.Element):
         model = element.model
         for group in (model.parameters, model.sequences):
-            subgroup = getattr(group, self._subgroup, None)
+            subgroup = getattr(group, self._subgroup_target, None)
             if subgroup is not None:
-                return getattr(subgroup, self._variable)
+                return getattr(subgroup, self._variable_target)
 
     def _query_nodevariable(self, node: devicetools.Node):
-        return getattr(node.sequences, self._variable)
+        return getattr(node.sequences, self._variable_target)
 
 
 class ExchangeItem(object):
-    pass
+
+    name: str
+    target: ExchangeVariable
+    ndim: int
+    shape: Tuple[int]
+    _value: numpy.ndarray
+
+    def collect_variables(self, selections: selectiontools.Selections) -> None:
+        self.target.collect_variables(selections)
+        if self.ndim == 0:
+            self.shape = ()
+        else:
+            shape = None
+            for variable in self.target.device2target.values():
+                if shape is None:
+                    shape = variable.shape
+                else:
+                    if shape != variable.shape:
+                        raise RuntimeError('different shapes')
+            self.shape = shape
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        self._value = numpy.full(self.shape, value)
 
 
 class SetItem(ExchangeItem):
     """
+
+    >>> from hydpy import pub
+    >>> pub.options.reprdigits = 6
+    >>> pub.options.autocompile = False
+    >>> pub.options.printprogress = False
 
     >>> from hydpy.core.examples import prepare_full_example_1
     >>> prepare_full_example_1()
@@ -228,34 +273,12 @@ class SetItem(ExchangeItem):
 
 
     """
-    def __init__(self, name, master, variable, ndim):
+    def __init__(self, name, master, target, ndim):
         self.name = str(name)
-        self.target = ExchangeVariable(master, variable)
+        self.target = ExchangeVariable(master, target)
         self.ndim = int(ndim)
         self._value = None
         self.shape = None
-
-    def collect_variables(self, selections: selectiontools.Selections) -> None:
-        self.target.collect_variables(selections)
-        if self.ndim == 0:
-            self.shape = ()
-        else:
-            shape = None
-            for variable in self.target.values():
-                if shape is None:
-                    shape = variable.shape
-                else:
-                    if shape != variable.shape:
-                        raise RuntimeError('different shapes')
-            self.shape = shape
-
-    @property
-    def value(self):
-        return self._value
-
-    @value.setter
-    def value(self, value):
-        self._value = numpy.full(self.shape, value)
 
     def update_variables(self):
         self.target.value = self.value

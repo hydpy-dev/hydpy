@@ -1244,6 +1244,8 @@ class XMLExchange(XMLBase):
         >>> for setitem in interface.exchange.setitems:
         ...     print(setitem.model)
         hland_v1
+        hland_v1
+        hstream_v1
         """
         return [XMLSetItems(self, _) for _ in self.find('setitems')]
 
@@ -1682,7 +1684,8 @@ class XSDWriter(object):
         ...
                         <element name="hland_v1"
                                  type="hpcb:hland_v1_setitemsType"
-                                 minOccurs="0"/>
+                                 minOccurs="0"
+                                 maxOccurs="unbounded"/>
         ...
                     </sequence>
                     <attribute name="info" type="string"/>
@@ -1704,7 +1707,8 @@ class XSDWriter(object):
             type_ = cls._get_itemstype(modelname, itemgroup)
             subs.append(f'{blanks}            <element name="{modelname}"')
             subs.append(f'{blanks}                     type="hpcb:{type_}"')
-            subs.append(f'{blanks}                     minOccurs="0"/>')
+            subs.append(f'{blanks}                     minOccurs="0"')
+            subs.append(f'{blanks}                     maxOccurs="unbounded"/>')
         subs.extend([
                 f'{blanks}        </sequence>',
                 f'{blanks}        <attribute name="info" type="string"/>',
@@ -1743,8 +1747,13 @@ class XSDWriter(object):
         ...     'setitems', 'hland_v1', 1))    # doctest: +ELLIPSIS
             <complexType name="hland_v1_setitemsType">
                 <sequence>
+                    <element ref="hpcb:selections"
+                             minOccurs="0"/>
+                    <element ref="hpcb:devices"
+                             minOccurs="0"/>
                     <element name="control"
-                             minOccurs="0">
+                             minOccurs="0"
+                             maxOccurs="unbounded">
         ...
                 </sequence>
             </complexType>
@@ -1756,6 +1765,10 @@ class XSDWriter(object):
         subs = [
             f'{blanks}<complexType name="{type_}">',
             f'{blanks}    <sequence>',
+            f'{blanks}        <element ref="hpcb:selections"',
+            f'{blanks}                 minOccurs="0"/>',
+            f'{blanks}        <element ref="hpcb:devices"',
+            f'{blanks}                 minOccurs="0"/>',
             cls.get_subgroupsiteminsertion(itemgroup, modelname, indent+2),
             f'{blanks}    </sequence>',
             f'{blanks}</complexType>',
@@ -1771,7 +1784,8 @@ class XSDWriter(object):
         >>> print(XSDWriter.get_subgroupsiteminsertion(
         ...     'setitems', 'hland_v1', 1))    # doctest: +ELLIPSIS
             <element name="control"
-                     minOccurs="0">
+                     minOccurs="0"
+                     maxOccurs="unbounded">
         ...
             </element>
             <element name="inputs"
@@ -1814,12 +1828,18 @@ class XSDWriter(object):
         >>> print(XSDWriter.get_subgroupiteminsertion(    # doctest: +ELLIPSIS
         ...     'setitems', model, model.parameters.control, 1))
             <element name="control"
-                     minOccurs="0">
+                     minOccurs="0"
+                     maxOccurs="unbounded">
                 <complexType>
                     <sequence>
+                        <element ref="hpcb:selections"
+                                 minOccurs="0"/>
+                        <element ref="hpcb:devices"
+                                 minOccurs="0"/>
                         <element name="area"
                                  type="hpcb:itemType"
-                                 minOccurs="0"/>
+                                 minOccurs="0"
+                                 maxOccurs="unbounded"/>
                         <element name="nmbzones"
         ...
                     </sequence>
@@ -1832,7 +1852,8 @@ class XSDWriter(object):
         ...
                         <element name="area"
                                  type="hpcb:itemType"
-                                 minOccurs="0"/>
+                                 minOccurs="0"
+                                 maxOccurs="unbounded"/>
         ...
 
         >>> print(XSDWriter.get_subgroupiteminsertion(    # doctest: +ELLIPSIS
@@ -1841,15 +1862,22 @@ class XSDWriter(object):
         ...
                         <element name="area"
                                  type="hpcb:hland_v1_mathitemType"
-                                 minOccurs="0"/>
+                                 minOccurs="0"
+                                 maxOccurs="unbounded"/>
         ...
         """
         blanks = ' ' * (indent * 4)
         subs = [
             f'{blanks}<element name="{subgroup.name}"',
-            f'{blanks}         minOccurs="0">',
+            f'{blanks}         minOccurs="0"',
+            f'{blanks}         maxOccurs="unbounded">',
             f'{blanks}    <complexType>',
-            f'{blanks}        <sequence>']
+            f'{blanks}        <sequence>',
+            f'{blanks}            <element ref="hpcb:selections"',
+            f'{blanks}                     minOccurs="0"/>',
+            f'{blanks}            <element ref="hpcb:devices"',
+            f'{blanks}                     minOccurs="0"/>']
+
         for variable in subgroup:
             subs.append(f'{blanks}            <element name="{variable.name}"')
             if itemgroup in ('getitems', 'setitems'):
@@ -1858,7 +1886,8 @@ class XSDWriter(object):
             else:
                 subs.append(f'{blanks}                     '
                             f'type="hpcb:{model.name}_mathitemType"')
-            subs.append(f'{blanks}                     minOccurs="0"/>')
+            subs.append(f'{blanks}                     minOccurs="0"')
+            subs.append(f'{blanks}                     maxOccurs="unbounded"/>')
         subs.extend([
             f'{blanks}        </sequence>',
             f'{blanks}    </complexType>',

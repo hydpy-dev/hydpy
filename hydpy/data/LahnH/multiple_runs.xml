@@ -77,6 +77,29 @@
                     </alpha>
                 </control>
             </hland_v1>
+            <hland_v1>
+                <control>
+                    <alpha>
+                        <alias>beta</alias>
+                        <dim>0</dim>
+                        <init>1.0</init>
+                    </alpha>
+                </control>
+            </hland_v1>
+            <hstream_v1>
+                <control>
+                    <lag>
+                        <alias>lag</alias>
+                        <dim>0</dim>
+                        <init>5.0</init> <!--parameterstep???-->
+                    </lag>
+                    <damp>
+                        <alias>damp</alias>
+                        <dim>0</dim>
+                        <init>0.5</init>
+                    </damp>
+                </control>
+            </hstream_v1>
         </setitems>
         <setitems>
             <selections/>
@@ -101,13 +124,30 @@
             </hland_v1>
         </setitems>
         <additems>
-            <selections>headwaters</selections>
             <hland_v1>
+                <selections>headwaters</selections>
                 <control>
                     <k>
                         <alias>k</alias>
                         <dim>0</dim>
                         <init>10.0</init>
+                        <control.k4/>
+                    </k>
+                </control>
+                <control>
+                    <selections>nonheadwaters</selections>
+                    <k>
+                        <alias>k</alias>
+                        <dim>0</dim>
+                        <init>20.0</init>
+                        <control.k4/>
+                    </k>
+                    <k>
+                        <selections/>
+                        <devices>land_lahn_3</devices>
+                        <alias>k</alias>
+                        <dim>0</dim>
+                        <init>30.0</init>
                         <control.k4/>
                     </k>
                 </control>

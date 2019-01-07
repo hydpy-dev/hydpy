@@ -10,7 +10,7 @@ from hydpy.core import devicetools
 from hydpy.core import selectiontools
 
 
-class ExchangeVariable(object):
+class ExchangeItem(object):
     """
 
     >>> from hydpy.core.examples import prepare_full_example_1
@@ -26,30 +26,30 @@ class ExchangeVariable(object):
     >>> from hydpy.models.hland import Model
     >>> hp.elements.land_lahn_3.model.__class__ = Model
 
-    >>> from hydpy.core.itemtools import ExchangeVariable
-    >>> ev = ExchangeVariable('hland_v1', 'control.alpha')
-    >>> ev.collect_variables(pub.selections)
+    >>> from hydpy.core.itemtools import ExchangeItem
+    >>> item = ExchangeItem('alpha', 'hland_v1', 'control.alpha', None, 0)
+    >>> item.collect_variables(pub.selections)
     >>> land_dill = hp.elements.land_dill
-    >>> ev.device2target[land_dill] is land_dill.model.parameters.control.alpha
+    >>> item.device2target[land_dill] is land_dill.model.parameters.control.alpha
     True
-    >>> ev.device2target[hp.nodes.dill]   # ToDo
+    >>> item.device2target[hp.nodes.dill]   # ToDo
     Traceback (most recent call last):
     ...
     KeyError: Node("dill", variable="Q",
          keywords="gauge")
 
-    >>> for device in sorted(ev.device2target):
+    >>> for device in sorted(item.device2target):
     ...     print(device)
     land_dill
     land_lahn_1
     land_lahn_2
 
-    >>> ev = ExchangeVariable('hland', 'states.ic')
-    >>> ev.collect_variables(pub.selections)
+    >>> item = ExchangeItem('ic', 'hland', 'states.ic')
+    >>> item.collect_variables(pub.selections)
     >>> land_lahn_3 = hp.elements.land_lahn_3
-    >>> ev.device2target[land_lahn_3] is land_lahn_3.model.sequences.states.ic
+    >>> item.device2target[land_lahn_3] is land_lahn_3.model.sequences.states.ic
     True
-    >>> for element in sorted(ev.device2target):
+    >>> for element in sorted(item.device2target):
     ...     print(element)
     land_dill
     land_lahn_1
@@ -57,17 +57,17 @@ class ExchangeVariable(object):
     land_lahn_3
 
     >>> land_lahn_3.model.sequences.inputs.t.series = range(4)
-    >>> ev = ExchangeVariable('hland', 'inputs.t.series')
-    >>> ev.collect_variables(pub.selections)
-    >>> ev.device2target[land_lahn_3]
+    >>> item = ExchangeItem('t', 'hland', 'inputs.t.series')
+    >>> item.collect_variables(pub.selections)
+    >>> item.device2target[land_lahn_3]
     InfoArray([ 0.,  1.,  2.,  3.])
 
-    >>> ev = ExchangeVariable('node', 'sim')
-    >>> ev.collect_variables(pub.selections)
+    >>> item = ExchangeItem('sim', 'node', 'sim')
+    >>> item.collect_variables(pub.selections)
     >>> dill = hp.nodes.dill
-    >>> ev.device2target[dill] is dill.sequences.sim
+    >>> item.device2target[dill] is dill.sequences.sim
     True
-    >>> for node in sorted(ev.device2target):
+    >>> for node in sorted(item.device2target):
     ...  print(node)
     dill
     lahn_1
@@ -75,14 +75,17 @@ class ExchangeVariable(object):
     lahn_3
 
     >>> dill.sequences.sim.series = range(4)
-    >>> ev = ExchangeVariable('node', 'sim.series')
-    >>> ev.collect_variables(pub.selections)
+    >>> item = ExchangeItem('sim', 'node', 'sim.series')
+    >>> item.collect_variables(pub.selections)
     >>> dill = hp.nodes.dill
-    >>> ev.device2target[dill]
+    >>> item.device2target[dill]
     InfoArray([ 0.,  1.,  2.,  3.])
     """
 
-    def __init__(self, master: str, target: str, base: str=None):
+    def __init__(
+            self, name: str, master: str, target: str,
+            base: str=None, ndim: int=0):
+        self.name = str(name)
         self._master = master
         self._series_target, self._subgroup_target, self._variable_target = (
             self._get_seriesflag_and_subgroup_and_variable(target))
@@ -92,7 +95,9 @@ class ExchangeVariable(object):
         else:
             self._series_base, self._subgroup_base, self._variable_base = (
                 self._get_seriesflag_and_subgroup_and_variable(base))
-        self._memory = None
+        self.ndim = int(ndim)
+        self._value: numpy.ndarray = None
+        self.shape: Tuple[int] = None
         self.device2target = {}
         self.device2base = {}
 
@@ -107,28 +112,6 @@ class ExchangeVariable(object):
         except ValueError:
             subgroup_target, variable_target = None, entries[0]
         return series, subgroup_target, variable_target
-
-    def collect_variables(self, selections: selectiontools.Selections) -> None:
-        if self._master == 'node':
-            for node in selections.nodes:
-                self.device2target[node] = self._query_nodevariable(node)
-                if self._series_target:
-                    self.device2target[node] = self.device2target[node].series
-        else:
-            for element in self._iter_relevantelements(selections):
-                self.device2target[element] = self._query_elementvariable(element)
-                if self._series_target:
-                    self.device2target[element] = self.device2target[element].series
-
-    @property
-    def value(self):
-        return self._memory
-
-    @value.setter
-    def value(self, value):
-        self._memory = value
-        for variable in self.device2target.values():
-            variable(value)
 
     def _iter_relevantelements(self, selections: selectiontools.Selections) -> \
             Iterator[devicetools.Element]:
@@ -148,22 +131,27 @@ class ExchangeVariable(object):
     def _query_nodevariable(self, node: devicetools.Node):
         return getattr(node.sequences, self._variable_target)
 
-
-class ExchangeItem(object):
-
-    name: str
-    target: ExchangeVariable
-    ndim: int
-    shape: Tuple[int]
-    _value: numpy.ndarray
-
     def collect_variables(self, selections: selectiontools.Selections) -> None:
-        self.target.collect_variables(selections)
+        if self._master == 'node':
+            for node in selections.nodes:
+                self.device2target[node] = self._query_nodevariable(node)
+                if self._series_target:
+                    self.device2target[node] = self.device2target[node].series
+        else:
+            for element in self._iter_relevantelements(selections):
+                self.device2target[element] = self._query_elementvariable(
+                    element)
+                if self._series_target:
+                    self.device2target[element] = self.device2target[
+                        element].series
+        self.determine_shape()
+
+    def determine_shape(self):
         if self.ndim == 0:
             self.shape = ()
         else:
             shape = None
-            for variable in self.target.device2target.values():
+            for variable in self.device2target.values():
                 if shape is None:
                     shape = variable.shape
                 else:
@@ -178,6 +166,11 @@ class ExchangeItem(object):
     @value.setter
     def value(self, value):
         self._value = numpy.full(self.shape, value)
+
+    def update_variables(self):
+        value = self.value
+        for variable in self.device2target.values():
+            variable(value)
 
 
 class SetItem(ExchangeItem):
@@ -198,7 +191,7 @@ class SetItem(ExchangeItem):
     ...     hp.prepare_everything()
 
     >>> from hydpy.core.itemtools import SetItem
-    >>> item = SetItem('alpha', 'hland_v1', 'control.alpha', 0)
+    >>> item = SetItem('alpha', 'hland_v1', 'control.alpha', ndim=0)
     >>> item.collect_variables(pub.selections)
 
     >>> item.shape
@@ -221,7 +214,7 @@ class SetItem(ExchangeItem):
     alpha(2.0)
 
 
-    >>> item = SetItem('fc', 'hland_v1', 'control.fc', 0)
+    >>> item = SetItem('fc', 'hland_v1', 'control.fc', ndim=0)
     >>> item.collect_variables(pub.selections)
     >>> item.shape
     ()
@@ -234,7 +227,7 @@ class SetItem(ExchangeItem):
     >>> land_dill.model.parameters.control.fc
     fc(200.0)
 
-    >>> item = SetItem('fc', 'hland_v1', 'control.fc', 1)
+    >>> item = SetItem('fc', 'hland_v1', 'control.fc', ndim=1)
     >>> item.collect_variables(pub.selections)
     Traceback (most recent call last):
     ...
@@ -246,7 +239,7 @@ class SetItem(ExchangeItem):
     ...     control.nmbzones(5)
     ...     control.zonetype(FIELD)
 
-    >>> item = SetItem('fc', 'hland_v1', 'control.fc', 1)
+    >>> item = SetItem('fc', 'hland_v1', 'control.fc', ndim=1)
     >>> item.name
     'fc'
     >>> item.collect_variables(pub.selections)
@@ -273,15 +266,9 @@ class SetItem(ExchangeItem):
 
 
     """
-    def __init__(self, name, master, target, ndim):
-        self.name = str(name)
-        self.target = ExchangeVariable(master, target)
-        self.ndim = int(ndim)
-        self._value = None
-        self.shape = None
 
     def update_variables(self):
-        self.target.value = self.value
+        super().update_variables()
 
 
 class AddItem(ExchangeItem):

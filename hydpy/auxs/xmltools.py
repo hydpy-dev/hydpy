@@ -1250,6 +1250,42 @@ class XMLExchange(XMLBase):
         return [XMLSetItems(self, _) for _ in self.find('setitems')]
 
     @property
+    def parameteritems(self):
+        """ ToDo
+
+        >>> from hydpy import pub
+        >>> pub.options.reprdigits = 6
+        >>> pub.options.autocompile = False
+        >>> pub.options.printprogress = False
+
+        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+
+        >>> from hydpy import HydPy, TestIO, XMLInterface, pub
+        >>> hp = HydPy('LahnH')
+        >>> pub.timegrids = '1996-01-01', '1996-01-06', '1d'
+        >>> with TestIO():
+        ...     hp.prepare_everything()
+        ...     interface = XMLInterface('multiple_runs.xml')
+        >>> for item in interface.exchange.parameteritems:
+        ...     try:
+        ...         print(item.name)
+        ...     except:
+        ...         pass
+        alpha
+        beta
+        lag
+        damp
+        """
+        items = []
+        for itemgroup in self.itemgroups:
+            for model in itemgroup.models:
+                for subvars in model.subvars:
+                    if subvars.name == 'control':
+                        items.extend(var.item for var in subvars.vars)
+        return items
+
+    @property
     def itemgroups(self):
         return [XMLItemgroup(self, element) for element in self]
 
@@ -1358,7 +1394,7 @@ class XMLVar(XMLSelector):
             selections += self.devices
             item.collect_variables(selections)
             item.value = eval(init)
-        return item
+            return item
 
 
 class XMLSetItems(XMLBase):

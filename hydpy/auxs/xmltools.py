@@ -1315,10 +1315,42 @@ class XMLVar(XMLSelector):
         >>> item.update_variables()
         >>> hp.elements.land_dill.model.parameters.control.alpha
         alpha(2.0)
+
+        >>> var = interface.exchange.itemgroups[1].models[0].subvars[0].vars[0]
+        >>> item = var.item
+        >>> item.name
+        'sm_dill'
+        >>> item.value
+        array(123.0)
+        >>> hp.elements.land_dill.model.sequences.states.sm
+        sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
+           222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
+        >>> item.update_variables()
+        >>> hp.elements.land_dill.model.sequences.states.sm
+        sm(123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0,
+           123.0, 123.0)
+
+        >>> var = interface.exchange.itemgroups[1].models[0].subvars[0].vars[1]
+        >>> item = var.item
+        >>> item.name
+        'sm_lahn_1'
+        >>> item.value
+        array([ 110.,  120.,  130.,  140.,  150.,  160.,  170.,  180.,  190.,
+                200.,  210.,  220.,  230.])
+        >>> hp.elements.land_lahn_1.model.sequences.states.sm
+        sm(99.27505, 96.17726, 109.16576, 106.39745, 117.97304, 115.56252,
+           125.81523, 123.73198, 132.80035, 130.91684, 138.95523, 137.25983,
+           142.84148)
+        >>> from hydpy import pub
+        >>> with pub.options.warntrim(False):
+        ...     item.update_variables()
+        >>> hp.elements.land_lahn_1.model.sequences.states.sm
+        sm(110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0, 190.0, 200.0,
+           206.0, 206.0, 206.0)
         """
         target = f'{self.master.name}.{self.name}'
         dim = self.find('dim').text
-        init = self.find('init').text
+        init = ','.join(self.find('init').text.split())
         alias = self.find('alias').text
         if self.master.master.master.name == 'setitems':
             item = itemtools.SetItem(alias, self.master.master.name, target, dim)

@@ -404,7 +404,8 @@ could not broadcast input array from shape (0) into shape ()
             self.send_error(
                 statuscode, f'{objecttools.classname(exc)}: {exc}')
 
-    def get_status(self):
+    @staticmethod
+    def get_status():
         state.outputs['status'] = 'ready'
 
     def get_close_server(self):
@@ -412,11 +413,6 @@ could not broadcast input array from shape (0) into shape ()
         shutter = threading.Thread(target=self.server.shutdown)
         shutter.deamon = True
         shutter.start()
-
-    def post_process_input(self):
-        self.get_postvalues()
-        self.get_simulate()
-        self.get_itemvalues()
 
     def get_itemtypes(self):
         self.get_parameteritemtypes()
@@ -436,24 +432,29 @@ could not broadcast input array from shape (0) into shape ()
         self.get_conditionitems()
         self.get_seriesitems()
 
-    def get_parameteritemtypes(self):
+    @staticmethod
+    def get_parameteritemtypes():
         state.outputs['alpha'] = 'DoubleItem1D(1)'
 
-    def get_conditionitemtypes(self):
+    @staticmethod
+    def get_conditionitemtypes():
         state.outputs['lz'] = 'DoubleItem1D()'
 
-    def get_seriesitemtypes(self):
+    @staticmethod
+    def get_seriesitemtypes():
         state.outputs['dill'] = 'TimeSeries0D(5)'
         state.outputs['lahn_1'] = 'TimeSeries0D(5)'
 
-    def get_timegrid(self):
+    @staticmethod
+    def get_timegrid():
         init = pub.timegrids.init
         utcoffset = pub.options.utcoffset
         state.outputs['firstdate'] = init.firstdate.to_string('iso1', utcoffset)
         state.outputs['lastdate'] = init.lastdate.to_string('iso1', utcoffset)
         state.outputs['stepsize'] = init.stepsize
 
-    def post_timegrid(self):
+    @staticmethod
+    def post_timegrid():
         init = pub.timegrids.init
         sim = pub.timegrids.sim
         sim.firstdate = state.inputs['firstdate']
@@ -478,34 +479,41 @@ could not broadcast input array from shape (0) into shape ()
     def post_conditionitems(self):
         self._post_items('condition', state.conditionitems)
 
-    def post_seriesitems(self):
+    @staticmethod
+    def post_seriesitems():
         state.hp.nodes.dill.sequences.sim.series[state.idx1:state.idx2] = \
             eval(state.inputs['dill'])
         state.hp.nodes.lahn_1.sequences.sim.series[state.idx1:state.idx2] = \
             eval(state.inputs['lahn_1'])
 
-    def get_load_conditionvalues(self):
+    @staticmethod
+    def get_load_conditionvalues():
         if not state.idx1:
             state.hp.conditions = state.init_conditions
         else:
             state.hp.conditions = state.conditions[state.id_][state.idx1]
 
-    def get_save_conditionvalues(self):
+    @staticmethod
+    def get_save_conditionvalues():
         state.conditions[state.id_][
             state.idx2] = state.hp.conditions
 
-    def get_simulate(self):
+    @staticmethod
+    def get_simulate():
         state.hp.doit()
 
-    def get_parameteritems(self):
+    @staticmethod
+    def get_parameteritems():
         for item in state.parameteritems:
             state.outputs[item.name] = item.value
 
-    def get_conditionitems(self):
+    @staticmethod
+    def get_conditionitems():
         for item in state.conditionitems:
             state.outputs[item.name] = item.value
 
-    def get_seriesitems(self):
+    @staticmethod
+    def get_seriesitems():
         state.outputs['dill'] = \
             list(state.hp.nodes.dill.sequences.sim.series
                  [state.idx1:state.idx2])

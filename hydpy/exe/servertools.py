@@ -18,7 +18,7 @@
 >>> from hydpy import Date, print_values
 >>> t0 = Date('1996-01-01')
 >>> def test(id_, time_, alpha,
-...          sm_dill=246.0, sm_lahn_1=tuple(range(210, 340, 10))):
+...          sm_lahn_2=246.0, sm_lahn_1=tuple(range(210, 340, 10))):
 ...     content = (f"firstdate = {t0+f'{int(time_[0])}d'}\\n"
 ...                f"lastdate = {t0+f'{int(time_[2])}d'}\\n"
 ...                f"alpha = {alpha}\\n"
@@ -28,8 +28,9 @@
 ...                f"sfcf_1 = 0.05717\\n"
 ...                f"sfcf_2 = 0.1\\n"
 ...                f"sfcf_3 = 0.1\\n"
-...                f"sm_dill = {sm_dill}\\n"
+...                f"sm_lahn_2 = {sm_lahn_2}\\n"
 ...                f"sm_lahn_1 = {sm_lahn_1}\\n"
+...                f"quh = 1.0\\n"
 ...                f"dill = [0.0] \\n"
 ...                f"lahn_1 = [0.0]").encode('utf-8')
 ...     #for methodname in (
@@ -118,6 +119,7 @@ class ServerState(object):
     def __init__(self):
         self.hp: hydpytools.HydPy = None
         self.parameteritems: List[itemtools.ExchangeItem] = None
+        self.conditionitems: List[itemtools.ExchangeItem] = None
         self.conditions: collections.defaultdict = None
         self.init_conditions: dict = None
         self.id_: str = None
@@ -187,6 +189,7 @@ class ServerState(object):
         interface.series_io.load_series()
         self.hp = hp
         self.parameteritems = interface.exchange.parameteritems
+        self.conditionitems = interface.exchange.conditionitems
         self.conditions = collections.defaultdict(lambda: {})
         self.init_conditions = hp.conditions
 
@@ -246,7 +249,11 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
     ...      'sfcf_2 = 0.2\\n'
     ...      'sfcf_3 = 0.1\\n')
     <BLANKLINE>
-    >>> test('conditionitems', 'lz = [10.0]')
+
+    >>> test('conditionitems',
+    ...      'sm_lahn_2 = 246.0\\n'
+    ...      'sm_lahn_1 = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)\\n'
+    ...      'quh = 1.0\\n')
     <BLANKLINE>
     >>> test('seriesitems',
     ...      'dill = [5.0]\\n'
@@ -263,7 +270,10 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
     sfcf_3 = [ 0.1  0.1  0.1  0.1  0.1  0.1  0.1  0.1  0.1  0.1  \
 0.1  0.1  0.1  0.1]
     >>> test('conditionitems')
-    lz = [10.0]
+    sm_lahn_2 = 246.0
+    sm_lahn_1 = [  1.   2.   3.   4.   5.   6.   7.   8.   9.  10.  \
+11.  12.  13.]
+    quh = 1.0
     >>> test('seriesitems')
     dill = [5.0]
     lahn_1 = [6.0]
@@ -451,21 +461,22 @@ could not broadcast input array from shape (0) into shape ()
         state.idx1 = init[sim.firstdate]
         state.idx2 = init[sim.lastdate]
 
-    def post_parameteritems(self):
-        for item in state.parameteritems:
+    @staticmethod
+    def _post_items(typename, items):
+        for item in items:
             try:
                 value = state.inputs[item.name]
             except KeyError:
                 raise RuntimeError(
-                    f'A value for parameter item {item.name} is missing.')
-            item.value = value
+                    f'A value for {typename} item {item.name} is missing.')
+            item.value = eval(value)
             item.update_variables()
 
+    def post_parameteritems(self):
+        self._post_items('parameter', state.parameteritems)
+
     def post_conditionitems(self):
-        lz = state.inputs.get('lz', None)
-        if lz is not None:
-            element = state.hp.elements.land_lahn_1
-            element.model.sequences.states.lz(eval(lz)[0])
+        self._post_items('condition', state.conditionitems)
 
     def post_seriesitems(self):
         state.hp.nodes.dill.sequences.sim.series[state.idx1:state.idx2] = \
@@ -491,8 +502,8 @@ could not broadcast input array from shape (0) into shape ()
             state.outputs[item.name] = item.value
 
     def get_conditionitems(self):
-        state.outputs['lz'] = \
-            [state.hp.elements.land_lahn_1.model.sequences.states.lz.value]
+        for item in state.conditionitems:
+            state.outputs[item.name] = item.value
 
     def get_seriesitems(self):
         state.outputs['dill'] = \

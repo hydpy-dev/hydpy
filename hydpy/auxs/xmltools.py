@@ -184,7 +184,7 @@ def strip(name) -> str:
 
 def run_simulation(projectname: str, xmlfile: str):
     """Perform a HydPy workflow in agreement with the given XML configuration
-    file available in the directory of the given project.
+    file available in the directory of the given project. ToDo
 
     Function |run_simulation| is a "script function" and is normally used as
     explained in the main documentation on module |xmltools|.
@@ -1243,11 +1243,6 @@ class XMLExchange(XMLBase):
     def parameteritems(self):
         """ ToDo
 
-        >>> from hydpy import pub
-        >>> pub.options.reprdigits = 6
-        >>> pub.options.autocompile = False
-        >>> pub.options.printprogress = False
-
         >>> from hydpy.core.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
@@ -1362,13 +1357,12 @@ class XMLVar(XMLSelector):
         'sm_lahn_2'
         >>> item.value
         array(123.0)
-        >>> hp.elements.land_dill.model.sequences.states.sm
-        sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
-           222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
+        >>> hp.elements.land_lahn_2.model.sequences.states.sm
+        sm(138.31396, 135.71124, 147.54968, 145.47142, 154.96405, 153.32805,
+           160.91917, 159.62434, 165.65575, 164.63255)
         >>> item.update_variables()
-        >>> hp.elements.land_dill.model.sequences.states.sm
-        sm(123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0,
-           123.0, 123.0)
+        >>> hp.elements.land_lahn_2.model.sequences.states.sm
+        sm(123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0)
 
         >>> var = interface.exchange.itemgroups[1].models[0].subvars[0].vars[1]
         >>> item = var.item

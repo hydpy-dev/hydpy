@@ -79,11 +79,11 @@
             </hland_v1>
             <hland_v1>
                 <control>
-                    <alpha>
+                    <beta>
                         <alias>beta</alias>
                         <dim>0</dim>
                         <init>1.0</init>
-                    </alpha>
+                    </beta>
                 </control>
             </hland_v1>
             <hstream_v1>
@@ -106,7 +106,7 @@
             <hland_v1>
                 <states>
                     <sm>
-                        <devices>land_dill</devices>
+                        <devices>land_lahn_2</devices>
                         <alias>sm_lahn_2</alias>
                         <dim>0</dim>
                         <init>123.0</init>

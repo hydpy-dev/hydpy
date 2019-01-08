@@ -317,7 +317,6 @@ class AddItem(ExchangeItem):
     >>> item.value
 
     >>> land_dill = hp.elements.land_dill
-    >>> land_dill = hp.elements.land_dill
     >>> land_dill.model.parameters.control.rfcf
     rfcf(1.04283)
     >>> land_dill.model.parameters.control.sfcf
@@ -353,5 +352,4 @@ class AddItem(ExchangeItem):
                 objecttools.augment_excmessage(
                     f'While letting "add item" `{self.name}` assign '
                     f'the calculated sum(s) `{result}` to variable '
-                    f'{objecttools.devicephrase(variable)}')
-
+                    f'{objecttools.devicephrase(target)}')

@@ -127,7 +127,7 @@ class Selections(object):
 
     def __add__(self, value):
         selections = self._getiterable(value)
-        new = self.copy()
+        new = self.copy()    # FixMe
         for selection in selections:
             new[selection.name] = selection
         return new

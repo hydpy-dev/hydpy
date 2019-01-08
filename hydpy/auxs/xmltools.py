@@ -1239,6 +1239,15 @@ class XMLExchange(XMLBase):
         self.master: XMLInterface = master
         self.root: ElementTree.Element = root
 
+    def _get_items_of_certain_item_types(self, itemgroups):
+        items = []
+        for itemgroup in self.itemgroups:
+            for model in itemgroup.models:
+                for subvars in model.subvars:
+                    if subvars.name in itemgroups:
+                        items.extend(var.item for var in subvars.vars)
+        return items
+
     @property
     def parameteritems(self):
         """ ToDo
@@ -1253,10 +1262,7 @@ class XMLExchange(XMLBase):
         ...     hp.prepare_everything()
         ...     interface = XMLInterface('multiple_runs.xml')
         >>> for item in interface.exchange.parameteritems:
-        ...     try:
-        ...         print(item.name)
-        ...     except:
-        ...         pass
+        ...     print(item.name)
         alpha
         beta
         lag
@@ -1265,13 +1271,28 @@ class XMLExchange(XMLBase):
         sfcf_2
         sfcf_3
         """
-        items = []
-        for itemgroup in self.itemgroups:
-            for model in itemgroup.models:
-                for subvars in model.subvars:
-                    if subvars.name == 'control':
-                        items.extend(var.item for var in subvars.vars)
-        return items
+        return self._get_items_of_certain_item_types(['control'])
+
+    @property
+    def conditionitems(self):
+        """ ToDo
+
+        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+
+        >>> from hydpy import HydPy, TestIO, XMLInterface, pub
+        >>> hp = HydPy('LahnH')
+        >>> pub.timegrids = '1996-01-01', '1996-01-06', '1d'
+        >>> with TestIO():
+        ...     hp.prepare_everything()
+        ...     interface = XMLInterface('multiple_runs.xml')
+        >>> for item in interface.exchange.conditionitems:
+        ...     print(item.name)
+        sm_lahn_2
+        sm_lahn_1
+        quh
+        """
+        return self._get_items_of_certain_item_types(['states', 'logs'])
 
     @property
     def itemgroups(self):

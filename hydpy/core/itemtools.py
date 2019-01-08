@@ -2,12 +2,19 @@
 
 # import...
 # ...from standard library
+import abc
+import collections
 from typing import Iterator, Tuple
 # ...from site-packages
 import numpy
 # ...from HydPy
 from hydpy.core import devicetools
+from hydpy.core import objecttools
 from hydpy.core import selectiontools
+
+
+_Properties = collections.namedtuple(
+    '_Properties', ('series', 'subgroup', 'variable'))
 
 
 class ExchangeItem(object):
@@ -27,10 +34,14 @@ class ExchangeItem(object):
     >>> hp.elements.land_lahn_3.model.__class__ = Model
 
     >>> from hydpy.core.itemtools import ExchangeItem
-    >>> item = ExchangeItem('alpha', 'hland_v1', 'control.alpha', None, 0)
+    >>> item = ExchangeItem(
+    ...     'alpha', 'hland_v1', 'control.alpha', 'control.beta', 0)
     >>> item.collect_variables(pub.selections)
     >>> land_dill = hp.elements.land_dill
-    >>> item.device2target[land_dill] is land_dill.model.parameters.control.alpha
+    >>> control = land_dill.model.parameters.control
+    >>> item.device2target[land_dill] is control.alpha
+    True
+    >>> item.device2base[land_dill] is control.beta
     True
     >>> item.device2target[hp.nodes.dill]   # ToDo
     Traceback (most recent call last):
@@ -87,14 +98,10 @@ class ExchangeItem(object):
             base: str=None, ndim: int=0):
         self.name = str(name)
         self._master = master
-        self._series_target, self._subgroup_target, self._variable_target = (
-            self._get_seriesflag_and_subgroup_and_variable(target))
-        if base is None:
-            self._series_base, self._subgroup_base, self._variable_base = (
-                None, None, None)
-        else:
-            self._series_base, self._subgroup_base, self._variable_base = (
-                self._get_seriesflag_and_subgroup_and_variable(base))
+        self._target = _Properties(
+            *self._get_seriesflag_and_subgroup_and_variable(target))
+        self._base = _Properties(
+            *self._get_seriesflag_and_subgroup_and_variable(base))
         self.ndim = int(ndim)
         self._value: numpy.ndarray = None
         self.shape: Tuple[int] = None
@@ -103,6 +110,8 @@ class ExchangeItem(object):
 
     @staticmethod
     def _get_seriesflag_and_subgroup_and_variable(string):
+        if string is None:
+            return None, None, None
         entries = string.split('.')
         series = entries[-1] == 'series'
         if series:
@@ -121,29 +130,35 @@ class ExchangeItem(object):
             if self._master in (name1, name2):
                 yield element
 
-    def _query_elementvariable(self, element: devicetools.Element):
+    @staticmethod
+    def _query_elementvariable(element: devicetools.Element, properties):
         model = element.model
         for group in (model.parameters, model.sequences):
-            subgroup = getattr(group, self._subgroup_target, None)
+            subgroup = getattr(group, properties.subgroup, None)
             if subgroup is not None:
-                return getattr(subgroup, self._variable_target)
+                return getattr(subgroup, properties.variable)
 
-    def _query_nodevariable(self, node: devicetools.Node):
-        return getattr(node.sequences, self._variable_target)
+    @staticmethod
+    def _query_nodevariable(node: devicetools.Node, properties):
+        return getattr(node.sequences, properties.variable)
 
     def collect_variables(self, selections: selectiontools.Selections) -> None:
-        if self._master == 'node':
-            for node in selections.nodes:
-                self.device2target[node] = self._query_nodevariable(node)
-                if self._series_target:
-                    self.device2target[node] = self.device2target[node].series
-        else:
-            for element in self._iter_relevantelements(selections):
-                self.device2target[element] = self._query_elementvariable(
-                    element)
-                if self._series_target:
-                    self.device2target[element] = self.device2target[
-                        element].series
+        properties_ = [self._target]
+        if self._base.variable is not None:
+            properties_.append(self._base)
+        for properties, dict_ in zip(properties_, [self.device2target, self.device2base]):
+            if self._master == 'node':
+                for node in selections.nodes:
+                    variable = self._query_nodevariable(node, properties)
+                    dict_[node] = variable
+                    if properties.series:
+                        dict_[node] = variable.series
+            else:
+                for element in self._iter_relevantelements(selections):
+                    variable = self._query_elementvariable(element, properties)
+                    dict_[element] = variable
+                    if properties.series:
+                        dict_[element] = variable.series
         self.determine_shape()
 
     def determine_shape(self):
@@ -165,21 +180,21 @@ class ExchangeItem(object):
 
     @value.setter
     def value(self, value):
-        self._value = numpy.full(self.shape, value)
+        try:
+            self._value = numpy.full(self.shape, value, dtype=float)
+        except BaseException:
+            objecttools.augment_excmessage(
+                f'When letting item `{self.name}` convert the given '
+                f'value(s) `{value}` to a numpy array of shape '
+                f'`{self.shape}` and type `float`')
 
+    @abc.abstractmethod
     def update_variables(self):
-        value = self.value
-        for variable in self.device2target.values():
-            variable(value)
+        ...
 
 
 class SetItem(ExchangeItem):
     """
-
-    >>> from hydpy import pub
-    >>> pub.options.reprdigits = 6
-    >>> pub.options.autocompile = False
-    >>> pub.options.printprogress = False
 
     >>> from hydpy.core.examples import prepare_full_example_1
     >>> prepare_full_example_1()
@@ -262,26 +277,81 @@ class SetItem(ExchangeItem):
     >>> item.value = 100.0, 200.0, 300.0, 400.0
     Traceback (most recent call last):
     ...
-    ValueError: could not broadcast input array from shape (4) into shape (5)
-
-
+    ValueError: When letting item `fc` convert the given value(s) \
+`(100.0, 200.0, 300.0, 400.0)` to a numpy array of shape `(5,)` and type \
+`float`, the following error occurred: could not broadcast input array \
+from shape (4) into shape (5)
     """
 
     def update_variables(self):
-        super().update_variables()
+        value = self.value
+        for variable in self.device2target.values():
+            try:
+                variable(value)
+            except BaseException:
+                objecttools.augment_excmessage(
+                    f'While letting "set item" `{self.name}` '
+                    f'assign the new value(s) `{value}` to variable '
+                    f'{objecttools.devicephrase(variable)}')
 
 
 class AddItem(ExchangeItem):
     """
+
+    >>> from hydpy.core.examples import prepare_full_example_1
+    >>> prepare_full_example_1()
+
+    >>> from hydpy import HydPy, pub, TestIO
+    >>> with TestIO():
+    ...     hp = HydPy('LahnH')
+    ...     pub.timegrids = '1996-01-01', '1996-01-05', '1d'
+    ...     hp.prepare_everything()
+
     >>> from hydpy.core.itemtools import AddItem
-    >>> # item = AddItem('hland_v1', 'control.alpha', 'control.alpha')
+    >>> item = AddItem(
+    ...     'sfcf', 'hland_v1', 'control.sfcf', 'control.rfcf', ndim=0)
+    >>> item.collect_variables(pub.selections)
+
+    >>> item.shape
+    ()
+    >>> item.value
+
+    >>> land_dill = hp.elements.land_dill
+    >>> land_dill = hp.elements.land_dill
+    >>> land_dill.model.parameters.control.rfcf
+    rfcf(1.04283)
+    >>> land_dill.model.parameters.control.sfcf
+    sfcf(1.1)
+
+    >>> item.value = 0.1
+    >>> item.value
+    array(0.1)
+    >>> land_dill.model.parameters.control.sfcf
+    sfcf(1.1)
+
+
+    >>> item.update_variables()
+    >>> land_dill.model.parameters.control.sfcf
+    sfcf(1.14283)
+
     """
 
-    def __init__(self, target, base):
-        self.target = self.__doc__
-        self.base = eval(f'import hydpy.models.{base}')
+    def update_variables(self):
+        value = self.value
+        for device, target in self.device2target.items():
+            base = self.device2base[device]
+            try:
+                result = base + value
+            except BaseException:
+                objecttools.augment_excmessage(
+                    f'While letting "add item" `{self.name}` add up '
+                    f'the new value(s) `{value}` and the current value(s) '
+                    f'of variable {objecttools.devicephrase(base)}')
+            try:
+                target(result)
+            except BaseException:
+                objecttools.augment_excmessage(
+                    f'While letting "add item" `{self.name}` assign '
+                    f'the calculated sum(s) `{result}` to variable '
+                    f'{objecttools.devicephrase(variable)}')
 
-    @staticmethod
-    def get_variable(string):
-        model, group, variable = string.split('.')
-        module = importlib.import_module(f'hydpy.models.{model}')

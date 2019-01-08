@@ -17,12 +17,21 @@
 >>> from urllib import request
 >>> from hydpy import Date, print_values
 >>> t0 = Date('1996-01-01')
->>> def test(id_, time_, alpha):
-...     content = (f"alpha= {alpha} \\n"
-...                f"firstdate = {t0+f'{int(time_[0])}d'}\\n"
+>>> def test(id_, time_, alpha,
+...          sm_dill=246.0, sm_lahn_1=tuple(range(210, 340, 10))):
+...     content = (f"firstdate = {t0+f'{int(time_[0])}d'}\\n"
 ...                f"lastdate = {t0+f'{int(time_[2])}d'}\\n"
-...                f"dill=[0.0] \\n"
-...                f"lahn_1=[0.0]").encode('utf-8')
+...                f"alpha = {alpha}\\n"
+...                f"beta = 2.54011\\n"
+...                f"lag = 1.0\\n"
+...                f"damp = 0.0\\n"
+...                f"sfcf_1 = 0.05717\\n"
+...                f"sfcf_2 = 0.1\\n"
+...                f"sfcf_3 = 0.1\\n"
+...                f"sm_dill = {sm_dill}\\n"
+...                f"sm_lahn_1 = {sm_lahn_1}\\n"
+...                f"dill = [0.0] \\n"
+...                f"lahn_1 = [0.0]").encode('utf-8')
 ...     #for methodname in (
 ...     #        'timegrid', 'parameteritems', 'load_conditionvalues',
 ...     #        'conditionitems', 'simulate', 'save_conditionvalues',
@@ -89,13 +98,12 @@ Parallel runs with different parameterisations:
 import collections
 import datetime
 import http.server
-import os
 import threading
 import time
 import urllib.error
 import urllib.parse
 import urllib.request
-from typing import Any, Dict
+from typing import Any, Dict, List
 # ...from HydPy
 from hydpy import pub
 from hydpy.auxs import xmltools
@@ -109,7 +117,7 @@ class ServerState(object):
 
     def __init__(self):
         self.hp: hydpytools.HydPy = None
-        self.exchangeitems: Dict[str, itemtools.ExchangeItem] = {}
+        self.parameteritems: List[itemtools.ExchangeItem] = None
         self.conditions: collections.defaultdict = None
         self.init_conditions: dict = None
         self.id_: str = None
@@ -144,7 +152,7 @@ class ServerState(object):
         ...     state.hp.elements.land_dill.model.sequences.inputs.t.series)
         -0.298846, -0.811539, -2.493848, -5.968849, -6.999618
 
-        >>> state.exchangeitems['alpha'].value
+        >>> state.parameteritems[0].value
         array(2.0)
 
         >>> # state.conditions ToDo
@@ -178,8 +186,7 @@ class ServerState(object):
         interface.series_io.prepare_series()
         interface.series_io.load_series()
         self.hp = hp
-        for setitem in interface.exchange.setitems:
-            self.exchangeitems.update(setitem.name2item)
+        self.parameteritems = interface.exchange.parameteritems
         self.conditions = collections.defaultdict(lambda: {})
         self.init_conditions = hp.conditions
 
@@ -230,7 +237,14 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
     ...       'lastdate = 1996-01-02 00:00:00'))
     <BLANKLINE>
 
-    >>> test('parameteritems', 'alpha = 3.0')
+    >>> test('parameteritems',
+    ...      'alpha = 3.0\\n'
+    ...      'beta = 2.0\\n'
+    ...      'lag = 1.0\\n'
+    ...      'damp = 0.5\\n'
+    ...      'sfcf_1 = 0.3\\n'
+    ...      'sfcf_2 = 0.2\\n'
+    ...      'sfcf_3 = 0.1\\n')
     <BLANKLINE>
     >>> test('conditionitems', 'lz = [10.0]')
     <BLANKLINE>
@@ -241,6 +255,13 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
 
     >>> test('parameteritems')
     alpha = 3.0
+    beta = 2.0
+    lag = 1.0
+    damp = 0.5
+    sfcf_1 = 0.3
+    sfcf_2 = 0.2
+    sfcf_3 = [ 0.1  0.1  0.1  0.1  0.1  0.1  0.1  0.1  0.1  0.1  \
+0.1  0.1  0.1  0.1]
     >>> test('conditionitems')
     lz = [10.0]
     >>> test('seriesitems')
@@ -257,10 +278,11 @@ No GET method for property `missingmethod` available.
     >>> test('parameteritems', 'alpha = []')    # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
-    urllib.error.HTTPError: HTTP Error 500: TypeError: While trying execute \
+    urllib.error.HTTPError: HTTP Error 500: ValueError: While trying execute \
 the POST method of property parameteritems, the following error occurred: \
-When trying to set the value of parameter `alpha` of element `...`, \
-it was not possible to convert `[]` to type `float`.
+When letting item `alpha` convert the given value(s) `[]` to a numpy array \
+of shape `()` and type `float`, the following error occurred: could not \
+convert string to float: '[]'
 
 
 
@@ -431,8 +453,13 @@ it was not possible to convert `[]` to type `float`.
         state.idx2 = init[sim.lastdate]
 
     def post_parameteritems(self):
-        for name, item in state.exchangeitems.items():
-            item.value = state.inputs[name]
+        for item in state.parameteritems:
+            try:
+                value = state.inputs[item.name]
+            except KeyError:
+                raise RuntimeError(
+                    f'A value for parameter item {item.name} is missing.')
+            item.value = value
             item.update_variables()
 
     def post_conditionitems(self):
@@ -461,8 +488,8 @@ it was not possible to convert `[]` to type `float`.
         state.hp.doit()
 
     def get_parameteritems(self):
-        for name, item in state.exchangeitems.items():
-            state.outputs[name] = item.value
+        for item in state.parameteritems:
+            state.outputs[item.name] = item.value
 
     def get_conditionitems(self):
         state.outputs['lz'] = \

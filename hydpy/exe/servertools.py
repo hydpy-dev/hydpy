@@ -278,12 +278,11 @@ No GET method for property `missingmethod` available.
     >>> test('parameteritems', 'alpha = []')    # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
-    urllib.error.HTTPError: HTTP Error 500: ValueError: While trying execute \
-the POST method of property parameteritems, the following error occurred: \
-When letting item `alpha` convert the given value(s) `[]` to a numpy array \
-of shape `()` and type `float`, the following error occurred: could not \
-convert string to float: '[]'
-
+    urllib.error.HTTPError: HTTP Error 500: ValueError: While trying to \
+execute the POST method of property parameteritems, the following error \
+occurred: When letting item `alpha` convert the given value(s) `[]` to a \
+numpy array of shape `()` and type `float`, the following error occurred: \
+could not broadcast input array from shape (0) into shape ()
 
 
     >>> test('close_server')
@@ -355,7 +354,7 @@ convert string to float: '[]'
             except BaseException:
                 statuscode = 500
                 objecttools.augment_excmessage(
-                    f'While trying execute the GET method '
+                    f'While trying to execute the GET method '
                     f'of property {externalname}')
             if method is not self.get_close_server:
                 string = self.dict2bstring(state.outputs)
@@ -385,7 +384,7 @@ convert string to float: '[]'
             except BaseException:
                 statuscode = 500
                 objecttools.augment_excmessage(
-                    f'While trying execute the POST method '
+                    f'While trying to execute the POST method '
                     f'of property {externalname}')
             if method is not self.get_close_server:
                 string = self.dict2bstring(state.outputs)

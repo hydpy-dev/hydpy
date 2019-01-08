@@ -127,29 +127,32 @@
             <hland_v1>
                 <selections>headwaters</selections>
                 <control>
-                    <k>
-                        <alias>k</alias>
+                    <sfcf>
+                        <alias>sfcf_1</alias>
                         <dim>0</dim>
-                        <init>10.0</init>
-                        <control.k4/>
-                    </k>
+                        <init>0.3</init>
+                        <control.rfcf/>
+                    </sfcf>
                 </control>
                 <control>
                     <selections>nonheadwaters</selections>
-                    <k>
-                        <alias>k</alias>
+                    <sfcf>
+                        <alias>sfcf_2</alias>
                         <dim>0</dim>
-                        <init>20.0</init>
-                        <control.k4/>
-                    </k>
-                    <k>
+                        <init>0.2</init>
+                        <control.rfcf/>
+                    </sfcf>
+                    <sfcf>
                         <selections/>
                         <devices>land_lahn_3</devices>
-                        <alias>k</alias>
-                        <dim>0</dim>
-                        <init>30.0</init>
-                        <control.k4/>
-                    </k>
+                        <alias>sfcf_3</alias>
+                        <dim>1</dim>
+                        <init>
+                            0.1 0.2 0.1 0.2 0.1 0.2 0.1 0.2
+                            0.1 0.2 0.1 0.2 0.2 0.2
+                        </init>
+                        <control.rfcf/>
+                    </sfcf>
                 </control>
             </hland_v1>
         </additems>

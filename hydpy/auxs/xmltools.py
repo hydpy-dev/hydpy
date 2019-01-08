@@ -115,7 +115,10 @@ from hydpy.core import timetools
 
 namespace = ('{https://github.com/hydpy-dev/hydpy/releases/download/'
              'your-hydpy-version/HydPyConfigBase.xsd}')
-
+_ITEMGROUP2ITEMCLASS = {
+    'setitems': itemtools.SetItem,
+    'additems': itemtools.AddItem}
+_SIMPLEITEMGROUPS = ('setitems', 'getitems')
 
 def find(root, name) -> ElementTree.Element:
     """Return the first XML element with the given name found in the given
@@ -832,6 +835,9 @@ class XMLSeries(XMLBase):
 class XMLSelector(XMLBase):
     """ToDo"""
 
+    master: XMLBase
+    root: ElementTree.Element
+
     @property
     def selections(self) -> selectiontools.Selections:
         """The |Selections| object defined for the respective `reader`
@@ -1234,22 +1240,6 @@ class XMLExchange(XMLBase):
         self.root: ElementTree.Element = root
 
     @property
-    def setitems(self) -> List['XMLSetItem']:
-        """The `setitem` XML elements defined in the actual XML file.
-
-        >>> from hydpy.auxs.xmltools import strip, XMLInterface
-        >>> from hydpy import data
-        >>> interface = XMLInterface(
-        ...     'multiple_runs.xml', data.get_path('LahnH'))
-        >>> for setitem in interface.exchange.setitems:
-        ...     print(setitem.model)
-        hland_v1
-        hland_v1
-        hstream_v1
-        """
-        return [XMLSetItems(self, _) for _ in self.find('setitems')]
-
-    @property
     def parameteritems(self):
         """ ToDo
 
@@ -1276,6 +1266,9 @@ class XMLExchange(XMLBase):
         beta
         lag
         damp
+        sfcf_1
+        sfcf_2
+        sfcf_3
         """
         items = []
         for itemgroup in self.itemgroups:
@@ -1342,6 +1335,7 @@ class XMLVar(XMLSelector):
         >>> with TestIO():
         ...     hp.prepare_everything()
         ...     interface = XMLInterface('multiple_runs.xml')
+
         >>> var = interface.exchange.itemgroups[0].models[0].subvars[0].vars[0]
         >>> item = var.item
         >>> item.value
@@ -1352,10 +1346,20 @@ class XMLVar(XMLSelector):
         >>> hp.elements.land_dill.model.parameters.control.alpha
         alpha(2.0)
 
+        >>> var = interface.exchange.itemgroups[0].models[2].subvars[0].vars[0]
+        >>> item = var.item
+        >>> item.value
+        array(5.0)
+        >>> hp.elements.stream_dill_lahn_2.model.parameters.control.lag
+        lag(0.0)
+        >>> item.update_variables()
+        >>> hp.elements.stream_dill_lahn_2.model.parameters.control.lag
+        lag(5.0)
+
         >>> var = interface.exchange.itemgroups[1].models[0].subvars[0].vars[0]
         >>> item = var.item
         >>> item.name
-        'sm_dill'
+        'sm_lahn_2'
         >>> item.value
         array(123.0)
         >>> hp.elements.land_dill.model.sequences.states.sm
@@ -1383,73 +1387,38 @@ class XMLVar(XMLSelector):
         >>> hp.elements.land_lahn_1.model.sequences.states.sm
         sm(110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0, 190.0, 200.0,
            206.0, 206.0, 206.0)
+
+        >>> for element in pub.selections.headwaters.elements:
+        ...     element.model.parameters.control.rfcf(1.1)
+        >>> for element in pub.selections.nonheadwaters.elements:
+        ...     element.model.parameters.control.rfcf(1.0)
+
+        >>> for subvars in interface.exchange.itemgroups[2].models[0].subvars:
+        ...     for var in subvars.vars:
+        ...         var.item.update_variables()
+        >>> for element in hp.elements.catchment:
+        ...     print(element, repr(element.model.parameters.control.sfcf))
+        land_dill sfcf(1.4)
+        land_lahn_1 sfcf(1.4)
+        land_lahn_2 sfcf(1.2)
+        land_lahn_3 sfcf(field=1.1, forest=1.2)
         """
         target = f'{self.master.name}.{self.name}'
         dim = self.find('dim').text
         init = ','.join(self.find('init').text.split())
         alias = self.find('alias').text
-        if self.master.master.master.name == 'setitems':
-            item = itemtools.SetItem(alias, self.master.master.name, target, dim)
-            selections = self.selections
-            selections += self.devices
-            item.collect_variables(selections)
-            item.value = eval(init)
-            return item
-
-
-class XMLSetItems(XMLBase):
-    """Helper class for |XMLExchange| responsible preparing |SetItem|
-    objects."""
-
-    def __init__(self, master, root):
-        self.master: XMLExchange = master
-        self.root: ElementTree.Element = root
-
-    @property
-    def info(self) -> str:
-        """Info attribute of the actual XML `setitems` element."""
-        return self.root.attrib['info']
-
-    @property
-    def model(self):
-        """The name of the model affected by the actual exchange items."""
-        return strip(self.root.tag)
-
-    @property
-    def name2item(self):
-        """ ToDo
-
-        >>> from hydpy.core.examples import prepare_full_example_1
-        >>> prepare_full_example_1()
-
-        >>> from hydpy import HydPy, TestIO, XMLInterface, pub
-        >>> hp = HydPy('LahnH')
-        >>> pub.timegrids = '1996-01-01', '1996-01-06', '1d'
-        >>> with TestIO():
-        ...     hp.prepare_everything()
-        ...     interface = XMLInterface('multiple_runs.xml')
-        >>> item = interface.exchange.setitems[0].name2item['alpha']
-        >>> item.value
-        array(2.0)
-        >>> hp.elements.land_dill.model.parameters.control.alpha
-        alpha(1.0)
-        >>> item.update_variables()
-        >>> hp.elements.land_dill.model.parameters.control.alpha
-        alpha(2.0)
-        """
-        model = self.model
-        name2item = {}
-        for subgroup in self.root:
-            for variable in subgroup:
-                target = f'{strip(subgroup.tag)}.{strip(variable.tag)}'
-                dim = find(variable, 'dim').text
-                init = find(variable, 'init').text
-                alias = find(variable, 'alias').text
-                item = itemtools.SetItem(alias, model, target, dim)
-                item.collect_variables(pub.selections)
-                item.value = eval(init)
-                name2item[alias] = item
-        return name2item
+        itemgroup = self.master.master.master.name
+        itemclass = _ITEMGROUP2ITEMCLASS[itemgroup]
+        if itemgroup not in _SIMPLEITEMGROUPS:
+            base = strip([element for element in self][-1].tag)
+        else:
+            base = None
+        item = itemclass(alias, self.master.master.name, target, base, ndim=dim)
+        selections = self.selections
+        selections += self.devices
+        item.collect_variables(selections)
+        item.value = eval(init)
+        return item
 
 
 class XSDWriter(object):

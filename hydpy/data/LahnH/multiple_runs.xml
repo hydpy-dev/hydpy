@@ -107,7 +107,7 @@
                 <states>
                     <sm>
                         <devices>land_dill</devices>
-                        <alias>sm_dill</alias>
+                        <alias>sm_lahn_2</alias>
                         <dim>0</dim>
                         <init>123.0</init>
                     </sm>

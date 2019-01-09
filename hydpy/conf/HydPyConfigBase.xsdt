@@ -336,7 +336,7 @@
         </complexType>
     </element>
 
-    <complexType name="itemType">
+    <complexType name="setitemType">
         <sequence>
             <element ref="hpcb:selections"
                      minOccurs="0"/>
@@ -348,6 +348,15 @@
                      type="nonNegativeInteger"/>
             <element name="init"
                      type="hpcb:listOfDoubles"/>
+        </sequence>
+    </complexType>
+
+    <complexType name="getitemType">
+        <sequence>
+            <element ref="hpcb:selections"
+                     minOccurs="0"/>
+            <element ref="hpcb:devices"
+                     minOccurs="0"/>
         </sequence>
     </complexType>
 

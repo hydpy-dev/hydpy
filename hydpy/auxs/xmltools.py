@@ -117,8 +117,9 @@ namespace = ('{https://github.com/hydpy-dev/hydpy/releases/download/'
              'your-hydpy-version/HydPyConfigBase.xsd}')
 _ITEMGROUP2ITEMCLASS = {
     'setitems': itemtools.SetItem,
-    'additems': itemtools.AddItem}
-_SIMPLEITEMGROUPS = ('setitems', 'getitems')
+    'additems': itemtools.AddItem,
+    'getitems': itemtools.GetItem}
+
 
 def find(root, name) -> ElementTree.Element:
     """Return the first XML element with the given name found in the given
@@ -1239,13 +1240,14 @@ class XMLExchange(XMLBase):
         self.master: XMLInterface = master
         self.root: ElementTree.Element = root
 
-    def _get_items_of_certain_item_types(self, itemgroups):
+    def _get_items_of_certain_item_types(self, itemgroups, getitems):
         items = []
         for itemgroup in self.itemgroups:
-            for model in itemgroup.models:
-                for subvars in model.subvars:
-                    if subvars.name in itemgroups:
-                        items.extend(var.item for var in subvars.vars)
+            if getitems == (itemgroup.name == 'getitems'):
+                for model in itemgroup.models:
+                    for subvars in model.subvars:
+                        if subvars.name in itemgroups:
+                            items.extend(var.item for var in subvars.vars)
         return items
 
     @property
@@ -1271,7 +1273,7 @@ class XMLExchange(XMLBase):
         sfcf_2
         sfcf_3
         """
-        return self._get_items_of_certain_item_types(['control'])
+        return self._get_items_of_certain_item_types(['control'], False)
 
     @property
     def conditionitems(self):
@@ -1292,7 +1294,7 @@ class XMLExchange(XMLBase):
         sm_lahn_1
         quh
         """
-        return self._get_items_of_certain_item_types(['states', 'logs'])
+        return self._get_items_of_certain_item_types(['states', 'logs'], False)
 
     @property
     def itemgroups(self):
@@ -1419,20 +1421,25 @@ class XMLVar(XMLSelector):
         land_lahn_3 sfcf(field=1.1, forest=1.2)
         """
         target = f'{self.master.name}.{self.name}'
-        dim = self.find('dim').text
-        init = ','.join(self.find('init').text.split())
-        alias = self.find('alias').text
+        master = self.master.master.name
         itemgroup = self.master.master.master.name
         itemclass = _ITEMGROUP2ITEMCLASS[itemgroup]
-        if itemgroup not in _SIMPLEITEMGROUPS:
-            base = strip([element for element in self][-1].tag)
+        if itemgroup != 'getitems':
+            dim = self.find('dim').text
+            init = ','.join(self.find('init').text.split())
+            alias = self.find('alias').text
+            if itemgroup == 'setitems':
+                base = None
+            else:
+                base = strip([element for element in self][-1].tag)
+            item = itemclass(alias, master, target, base, ndim=dim)
         else:
-            base = None
-        item = itemclass(alias, self.master.master.name, target, base, ndim=dim)
+            item = itemclass(master, target)
         selections = self.selections
         selections += self.devices
         item.collect_variables(selections)
-        item.value = eval(init)
+        if itemgroup != 'getitems':
+            item.value = eval(init)
         return item
 
 
@@ -1679,7 +1686,7 @@ class XSDWriter(object):
         >>> print(XSDWriter.get_mathitemsinsertion(1))    # doctest: +ELLIPSIS
             <complexType name="arma_v1_mathitemType">
                 <complexContent>
-                    <extension base="hpcb:itemType">
+                    <extension base="hpcb:setitemType">
                         <choice>
                             <element name="control.responses"/>
         ...
@@ -1699,7 +1706,7 @@ class XSDWriter(object):
             subs.extend([
                 f'{blanks}<complexType name="{modelname}_mathitemType">',
                 f'{blanks}    <complexContent>',
-                f'{blanks}        <extension base="hpcb:itemType">',
+                f'{blanks}        <extension base="hpcb:setitemType">',
                 f'{blanks}            <choice>'])
             for subvars in cls._get_subvars(model):
                 for var in subvars:
@@ -1889,7 +1896,7 @@ class XSDWriter(object):
                         <element ref="hpcb:devices"
                                  minOccurs="0"/>
                         <element name="area"
-                                 type="hpcb:itemType"
+                                 type="hpcb:setitemType"
                                  minOccurs="0"
                                  maxOccurs="unbounded"/>
                         <element name="nmbzones"
@@ -1903,7 +1910,7 @@ class XSDWriter(object):
             <element name="control"
         ...
                         <element name="area"
-                                 type="hpcb:itemType"
+                                 type="hpcb:getitemType"
                                  minOccurs="0"
                                  maxOccurs="unbounded"/>
         ...
@@ -1932,9 +1939,12 @@ class XSDWriter(object):
 
         for variable in subgroup:
             subs.append(f'{blanks}            <element name="{variable.name}"')
-            if itemgroup in ('getitems', 'setitems'):
+            if itemgroup ==  'setitems':
                 subs.append(f'{blanks}                     '
-                            f'type="hpcb:itemType"')
+                            f'type="hpcb:setitemType"')
+            elif itemgroup == 'getitems':
+                subs.append(f'{blanks}                     '
+                            f'type="hpcb:getitemType"')
             else:
                 subs.append(f'{blanks}                     '
                             f'type="hpcb:{model.name}_mathitemType"')

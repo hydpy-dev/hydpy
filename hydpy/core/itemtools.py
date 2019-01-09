@@ -353,3 +353,12 @@ class AddItem(ExchangeItem):
                     f'While letting "add item" `{self.name}` assign '
                     f'the calculated sum(s) `{result}` to variable '
                     f'{objecttools.devicephrase(target)}')
+
+
+class GetItem(object):
+
+    def __init__(self, master, target):
+        self.name = 'temp'
+
+    def collect_variables(self, selections):
+        pass

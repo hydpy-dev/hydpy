@@ -164,6 +164,13 @@
                 </control>
             </hland_v1>
         </additems>
+        <getitems>
+            <hland_v1>
+                <states>
+                    <sm/>
+                </states>
+            </hland_v1>
+        </getitems>
 
     </exchange>
 

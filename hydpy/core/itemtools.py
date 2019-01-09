@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
-
+"""
+>>> from hydpy import pub
+>>> pub.options.reprdigits = 6
+>>> pub.options.autocompile = False
+>>> pub.options.printprogress = False
+"""
 # import...
 # ...from standard library
 import abc
 import collections
-from typing import Iterator, Tuple
+from typing import Dict, Iterator, Tuple
 # ...from site-packages
 import numpy
 # ...from HydPy
@@ -367,10 +372,66 @@ class AddItem(NonGetItem):
                     f'{objecttools.devicephrase(target)}')
 
 
-class GetItem(object):
+class GetItem(ExchangeItem):
+    """
 
-    def __init__(self, master, target):
-        self.name = 'temp'
+    >>> from hydpy.core.examples import prepare_full_example_1
+    >>> prepare_full_example_1()
 
-    def collect_variables(self, selections):
-        pass
+    >>> from hydpy import HydPy, pub, TestIO
+    >>> with TestIO():
+    ...     hp = HydPy('LahnH')
+    ...     pub.timegrids = '1996-01-01', '1996-01-05', '1d'
+    ...     hp.prepare_everything()
+
+    >>> from hydpy.core.itemtools import SetItem
+    >>> item = GetItem('hland_v1', 'states.lz')
+    >>> item.collect_variables(pub.selections)
+    >>> hp.elements.land_dill.model.sequences.states.lz = 100.0
+    >>> print(item.string)
+    land_dill_states_lz = 100.0
+    land_lahn_1_states_lz = 8.18711
+    land_lahn_2_states_lz = 10.14007
+    land_lahn_3_states_lz = 7.52648
+
+    >>> item = GetItem('hland_v1', 'states.sm')
+    >>> item.collect_variables(pub.selections)
+    >>> hp.elements.land_dill.model.sequences.states.sm = 2.0
+    >>> print(item.string)    # doctest: +ELLIPSIS
+    land_dill_states_sm = [2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, \
+2.0, 2.0]
+    land_lahn_1_states_sm = [99.275...
+    ...
+    """
+
+    def __init__(self, master: str, target: str):
+        self.target = target.replace('.', '_')
+        self._master = master
+        self._target = _Properties(
+            *self._get_seriesflag_and_subgroup_and_variable(target))
+        self._base = _Properties(None, None, None)
+        self.ndim = None
+        self.device2target = {}
+        self.device2base = {}
+        self.device2equation = {}
+
+    def collect_variables(self, selections: selectiontools.Selections):
+        super().collect_variables(selections)
+        self.determine_equations()
+        for target in self.device2target.values():
+            self.ndim = target.NDIM
+            break
+
+    def determine_equations(self):
+        for device in sorted(self.device2target.keys()):
+            self.device2equation[device] = f'{device.name}_{self.target} = %s'
+
+    @property
+    def string(self):
+        strings = []
+        for device, equation in self.device2equation.items():
+            value = self.device2target[device].value
+            if self.ndim:
+                value = list(value)
+            strings.append(equation % value)
+        return '\n'.join(strings)

@@ -1310,8 +1310,8 @@ class XMLExchange(XMLBase):
         ...     hp.prepare_everything()
         ...     interface = XMLInterface('multiple_runs.xml')
         >>> for item in interface.exchange.getitems:
-        ...     print(item.name)
-        temp
+        ...     print(item.target)
+        states_sm
         """
         return self._get_items_of_certain_item_types(
             ['control', 'states', 'logs'], True)

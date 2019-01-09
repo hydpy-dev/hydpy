@@ -388,7 +388,8 @@ class GetItem(ExchangeItem):
     >>> item = GetItem('hland_v1', 'states.lz')
     >>> item.collect_variables(pub.selections)
     >>> hp.elements.land_dill.model.sequences.states.lz = 100.0
-    >>> print(item.string)
+    >>> for name, value in item:
+    ...     print(f'{name} = {value}')
     land_dill_states_lz = 100.0
     land_lahn_1_states_lz = 8.18711
     land_lahn_2_states_lz = 10.14007
@@ -397,7 +398,8 @@ class GetItem(ExchangeItem):
     >>> item = GetItem('hland_v1', 'states.sm')
     >>> item.collect_variables(pub.selections)
     >>> hp.elements.land_dill.model.sequences.states.sm = 2.0
-    >>> print(item.string)    # doctest: +ELLIPSIS
+    >>> for name, value in item:
+    ...     print(f'{name} = {value}')    # doctest: +ELLIPSIS
     land_dill_states_sm = [2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, \
 2.0, 2.0]
     land_lahn_1_states_sm = [99.275...
@@ -413,7 +415,7 @@ class GetItem(ExchangeItem):
         self.ndim = None
         self.device2target = {}
         self.device2base = {}
-        self.device2equation = {}
+        self.device2name = {}
 
     def collect_variables(self, selections: selectiontools.Selections):
         super().collect_variables(selections)
@@ -424,14 +426,11 @@ class GetItem(ExchangeItem):
 
     def determine_equations(self):
         for device in sorted(self.device2target.keys()):
-            self.device2equation[device] = f'{device.name}_{self.target} = %s'
+            self.device2name[device] = f'{device.name}_{self.target}'
 
-    @property
-    def string(self):
-        strings = []
-        for device, equation in self.device2equation.items():
+    def __iter__(self):
+        for device, name in self.device2name.items():
             value = self.device2target[device].value
             if self.ndim:
                 value = list(value)
-            strings.append(equation % value)
-        return '\n'.join(strings)
+            yield name, str(value)

@@ -120,6 +120,7 @@ class ServerState(object):
         self.hp: hydpytools.HydPy = None
         self.parameteritems: List[itemtools.ExchangeItem] = None
         self.conditionitems: List[itemtools.ExchangeItem] = None
+        self.getitems: List[itemtools.ExchangeItem] = None
         self.conditions: collections.defaultdict = None
         self.init_conditions: dict = None
         self.id_: str = None
@@ -190,6 +191,7 @@ class ServerState(object):
         self.hp = hp
         self.parameteritems = interface.exchange.parameteritems
         self.conditionitems = interface.exchange.conditionitems
+        self.getitems = interface.exchange.getitems
         self.conditions = collections.defaultdict(lambda: {})
         self.init_conditions = hp.conditions
 
@@ -274,6 +276,13 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
     sm_lahn_1 = [  1.   2.   3.   4.   5.   6.   7.   8.   9.  10.  \
 11.  12.  13.]
     quh = 1.0
+    >>> test('getitems')    # doctest: +ELLIPSIS
+    land_dill_states_sm = [185.13164, ...]
+    land_lahn_1_states_sm = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, \
+9.0, 10.0, 11.0, 12.0, 13.0]
+    land_lahn_2_states_sm = [197.0, 197.0, 197.0, 197.0, 197.0, 197.0, \
+197.0, 197.0, 197.0, 197.0]
+    land_lahn_3_states_sm = ...
     >>> test('seriesitems')
     dill = [5.0]
     lahn_1 = [6.0]
@@ -430,6 +439,7 @@ could not broadcast input array from shape (0) into shape ()
         self.get_save_conditionvalues()
         self.get_parameteritems()
         self.get_conditionitems()
+        self.get_getitems()
         self.get_seriesitems()
 
     @staticmethod
@@ -511,6 +521,12 @@ could not broadcast input array from shape (0) into shape ()
     def get_conditionitems():
         for item in state.conditionitems:
             state.outputs[item.name] = item.value
+
+    @staticmethod
+    def get_getitems():
+        for item in state.getitems:
+            for name, value in item:
+                state.outputs[name] = value
 
     @staticmethod
     def get_seriesitems():

@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
->>> from hydpy import pub
->>> pub.options.reprdigits = 6
->>> pub.options.autocompile = False
->>> pub.options.printprogress = False
-"""
+
 # import...
 # ...from standard library
 import abc
@@ -38,9 +33,13 @@ class ExchangeItem(abc.ABC):
     >>> from hydpy.models.hland import Model
     >>> hp.elements.land_lahn_3.model.__class__ = Model
 
-    >>> from hydpy.core.itemtools import ExchangeItem
+    >>> from hydpy.core.itemtools import SetItem
     >>> item = SetItem(
     ...     'alpha', 'hland_v1', 'control.alpha', 'control.beta', 0)
+    >>> item.targetseries
+    False
+    >>> item.baseseries
+    False
     >>> item.collect_variables(pub.selections)
     >>> land_dill = hp.elements.land_dill
     >>> control = land_dill.model.parameters.control
@@ -76,7 +75,9 @@ class ExchangeItem(abc.ABC):
     >>> item = SetItem('t', 'hland', 'inputs.t.series')
     >>> item.collect_variables(pub.selections)
     >>> item.device2target[land_lahn_3]
-    InfoArray([ 0.,  1.,  2.,  3.])
+    t(nan)
+    >>> item.targetseries
+    True
 
     >>> item = SetItem('sim', 'node', 'sim')
     >>> item.collect_variables(pub.selections)
@@ -95,7 +96,7 @@ class ExchangeItem(abc.ABC):
     >>> item.collect_variables(pub.selections)
     >>> dill = hp.nodes.dill
     >>> item.device2target[dill]
-    InfoArray([ 0.,  1.,  2.,  3.])
+    sim(0.0)
     """
 
     _master: str
@@ -147,14 +148,10 @@ class ExchangeItem(abc.ABC):
                 for node in selections.nodes:
                     variable = self._query_nodevariable(node, properties)
                     dict_[node] = variable
-                    if properties.series:
-                        dict_[node] = variable.series
             else:
                 for element in self._iter_relevantelements(selections):
                     variable = self._query_elementvariable(element, properties)
                     dict_[element] = variable
-                    if properties.series:
-                        dict_[element] = variable.series
 
 
 class NonGetItem(ExchangeItem, metaclass=abc.ABCMeta):
@@ -168,6 +165,8 @@ class NonGetItem(ExchangeItem, metaclass=abc.ABCMeta):
             *self._get_seriesflag_and_subgroup_and_variable(target))
         self._base = _Properties(
             *self._get_seriesflag_and_subgroup_and_variable(base))
+        self.targetseries = self._target.series
+        self.baseseries = self._base.series
         self.ndim = int(ndim)
         self._value: numpy.ndarray = None
         self.shape: Tuple[int] = None
@@ -412,6 +411,8 @@ class GetItem(ExchangeItem):
         self._target = _Properties(
             *self._get_seriesflag_and_subgroup_and_variable(target))
         self._base = _Properties(None, None, None)
+        self.targetseries = self._target.series
+        self.baseseries = None
         self.ndim = None
         self.device2target = {}
         self.device2base = {}
@@ -422,6 +423,8 @@ class GetItem(ExchangeItem):
         self.determine_equations()
         for target in self.device2target.values():
             self.ndim = target.NDIM
+            if self.targetseries:
+                self.ndim += 1
             break
 
     def determine_equations(self):
@@ -430,7 +433,10 @@ class GetItem(ExchangeItem):
 
     def __iter__(self):
         for device, name in self.device2name.items():
-            value = self.device2target[device].value
-            if self.ndim:
-                value = list(value)
-            yield name, str(value)
+            target = self.device2target[device]
+            values = target.series if self.targetseries else target.values
+            if self.ndim == 0:
+                values = float(values)
+            else:
+                values = values.tolist()
+            yield name, str(values)

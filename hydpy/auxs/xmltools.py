@@ -1312,9 +1312,19 @@ class XMLExchange(XMLBase):
         >>> for item in interface.exchange.getitems:
         ...     print(item.target)
         states_sm
+        states_sm_series
         """
         return self._get_items_of_certain_item_types(
             ['control', 'states', 'logs'], True)
+
+    def prepare_series(self):
+        for item in itertools.chain(self.conditionitems, self.getitems):
+            for target in item.device2target.values():
+                if item.targetseries and not target.ramflag:
+                    target.activate_ram()
+                for base in item.device2base.values():
+                    if item.baseseries and not base.ramflag:
+                        base.activate_ram()
 
     @property
     def itemgroups(self):
@@ -1439,6 +1449,28 @@ class XMLVar(XMLSelector):
         land_lahn_1 sfcf(1.4)
         land_lahn_2 sfcf(1.2)
         land_lahn_3 sfcf(field=1.1, forest=1.2)
+
+        >>> var = interface.exchange.itemgroups[3].models[0].subvars[1].vars[0]
+        >>> hp.elements.land_dill.model.sequences.states.sm = 1.0
+        >>> for name, target in var.item:
+        ...     print(name, target)    # doctest: +ELLIPSIS
+        land_dill_states_sm [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, \
+1.0, 1.0, 1.0]
+        land_lahn_1_states_sm [110.0, 120.0, 130.0, 140.0, 150.0, 160.0, \
+170.0, 180.0, 190.0, 200.0, 206.0, 206.0, 206.0]
+        land_lahn_2_states_sm [123.0, 123.0, 123.0, 123.0, 123.0, 123.0, \
+123.0, 123.0, 123.0, 123.0]
+        land_lahn_3_states_sm [101.3124...]
+
+        >>> vars_ = interface.exchange.itemgroups[3].models[0].subvars[0].vars
+        >>> qt = hp.elements.land_dill.model.sequences.fluxes.qt
+        >>> qt(1.0)
+        >>> qt.series = 2.0
+        >>> for var in vars_:
+        ...     for name, target in var.item:
+        ...         print(name, target)    # doctest: +ELLIPSIS
+        land_dill_fluxes_qt 1.0
+        land_dill_fluxes_qt_series [2.0, 2.0, 2.0, 2.0, 2.0]
         """
         target = f'{self.master.name}.{self.name}'
         master = self.master.master.name

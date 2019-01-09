@@ -187,6 +187,7 @@ class ServerState(object):
         interface.conditions_io.load_conditions()
         write('Read the required time series files')
         interface.series_io.prepare_series()
+        interface.exchange.prepare_series()
         interface.series_io.load_series()
         self.hp = hp
         self.parameteritems = interface.exchange.parameteritems
@@ -282,7 +283,9 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
 9.0, 10.0, 11.0, 12.0, 13.0]
     land_lahn_2_states_sm = [197.0, 197.0, 197.0, 197.0, 197.0, 197.0, \
 197.0, 197.0, 197.0, 197.0]
-    land_lahn_3_states_sm = ...
+    land_lahn_3_states_sm = [...]
+    land_lahn_3_states_sm_series = [[nan, nan, nan, nan, nan, nan, nan, nan, \
+nan, nan, nan, nan, nan, nan], [...], [...], [...], [...]]
     >>> test('seriesitems')
     dill = [5.0]
     lahn_1 = [6.0]

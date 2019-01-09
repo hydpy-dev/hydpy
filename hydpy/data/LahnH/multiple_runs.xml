@@ -166,6 +166,12 @@
         </additems>
         <getitems>
             <hland_v1>
+                <fluxes>
+                    <selections/>
+                    <devices>land_dill</devices>
+                    <qt/>
+                    <qt.series/>
+                </fluxes>
                 <states>
                     <sm/>
                 </states>

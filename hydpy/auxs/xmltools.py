@@ -1898,8 +1898,9 @@ class XSDWriter(object):
         combination of an exchange item group and a specific variable
         subgroup of an application model.
 
-        Note that for `setitems` and `getitems`, `itemType` is referenced,
-        and for all others the model specific `mathitemType`:
+        Note that for `setitems` and `getitems` `setitemType` and
+        `getitemType` are referenced, respectively, and for all others
+        the model specific `mathitemType`:
 
         >>> from hydpy import prepare_model
         >>> model = prepare_model('hland_v1')
@@ -1944,6 +1945,26 @@ class XSDWriter(object):
                                  minOccurs="0"
                                  maxOccurs="unbounded"/>
         ...
+
+        For sequence classes, additional "series" elements are added:
+
+        >>> print(XSDWriter.get_subgroupiteminsertion(    # doctest: +ELLIPSIS
+        ...     'setitems', model, model.sequences.fluxes, 1))
+            <element name="fluxes"
+        ...
+                        <element name="tmean"
+                                 type="hpcb:setitemType"
+                                 minOccurs="0"
+                                 maxOccurs="unbounded"/>
+                        <element name="tmean.series"
+                                 type="hpcb:setitemType"
+                                 minOccurs="0"
+                                 maxOccurs="unbounded"/>
+                        <element name="tc"
+        ...
+                    </sequence>
+                </complexType>
+            </element>
         """
         blanks = ' ' * (indent * 4)
         subs = [
@@ -1956,20 +1977,22 @@ class XSDWriter(object):
             f'{blanks}                     minOccurs="0"/>',
             f'{blanks}            <element ref="hpcb:devices"',
             f'{blanks}                     minOccurs="0"/>']
-
+        seriesflags = (False,) if subgroup.name == 'control' else (False, True)
         for variable in subgroup:
-            subs.append(f'{blanks}            <element name="{variable.name}"')
-            if itemgroup ==  'setitems':
-                subs.append(f'{blanks}                     '
-                            f'type="hpcb:setitemType"')
-            elif itemgroup == 'getitems':
-                subs.append(f'{blanks}                     '
-                            f'type="hpcb:getitemType"')
-            else:
-                subs.append(f'{blanks}                     '
-                            f'type="hpcb:{model.name}_mathitemType"')
-            subs.append(f'{blanks}                     minOccurs="0"')
-            subs.append(f'{blanks}                     maxOccurs="unbounded"/>')
+            for series in seriesflags:
+                name = f'{variable.name}.series' if series else variable.name
+                subs.append(f'{blanks}            <element name="{name}"')
+                if itemgroup == 'setitems':
+                    subs.append(f'{blanks}                     '
+                                f'type="hpcb:setitemType"')
+                elif itemgroup == 'getitems':
+                    subs.append(f'{blanks}                     '
+                                f'type="hpcb:getitemType"')
+                else:
+                    subs.append(f'{blanks}                     '
+                                f'type="hpcb:{model.name}_mathitemType"')
+                subs.append(f'{blanks}                     minOccurs="0"')
+                subs.append(f'{blanks}                     maxOccurs="unbounded"/>')
         subs.extend([
             f'{blanks}        </sequence>',
             f'{blanks}    </complexType>',

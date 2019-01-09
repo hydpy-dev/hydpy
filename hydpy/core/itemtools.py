@@ -17,7 +17,7 @@ _Properties = collections.namedtuple(
     '_Properties', ('series', 'subgroup', 'variable'))
 
 
-class ExchangeItem(object):
+class ExchangeItem(abc.ABC):
     """
 
     >>> from hydpy.core.examples import prepare_full_example_1
@@ -34,7 +34,7 @@ class ExchangeItem(object):
     >>> hp.elements.land_lahn_3.model.__class__ = Model
 
     >>> from hydpy.core.itemtools import ExchangeItem
-    >>> item = ExchangeItem(
+    >>> item = SetItem(
     ...     'alpha', 'hland_v1', 'control.alpha', 'control.beta', 0)
     >>> item.collect_variables(pub.selections)
     >>> land_dill = hp.elements.land_dill
@@ -55,7 +55,7 @@ class ExchangeItem(object):
     land_lahn_1
     land_lahn_2
 
-    >>> item = ExchangeItem('ic', 'hland', 'states.ic')
+    >>> item = SetItem('ic', 'hland', 'states.ic')
     >>> item.collect_variables(pub.selections)
     >>> land_lahn_3 = hp.elements.land_lahn_3
     >>> item.device2target[land_lahn_3] is land_lahn_3.model.sequences.states.ic
@@ -68,12 +68,12 @@ class ExchangeItem(object):
     land_lahn_3
 
     >>> land_lahn_3.model.sequences.inputs.t.series = range(4)
-    >>> item = ExchangeItem('t', 'hland', 'inputs.t.series')
+    >>> item = SetItem('t', 'hland', 'inputs.t.series')
     >>> item.collect_variables(pub.selections)
     >>> item.device2target[land_lahn_3]
     InfoArray([ 0.,  1.,  2.,  3.])
 
-    >>> item = ExchangeItem('sim', 'node', 'sim')
+    >>> item = SetItem('sim', 'node', 'sim')
     >>> item.collect_variables(pub.selections)
     >>> dill = hp.nodes.dill
     >>> item.device2target[dill] is dill.sequences.sim
@@ -86,27 +86,18 @@ class ExchangeItem(object):
     lahn_3
 
     >>> dill.sequences.sim.series = range(4)
-    >>> item = ExchangeItem('sim', 'node', 'sim.series')
+    >>> item = SetItem('sim', 'node', 'sim.series')
     >>> item.collect_variables(pub.selections)
     >>> dill = hp.nodes.dill
     >>> item.device2target[dill]
     InfoArray([ 0.,  1.,  2.,  3.])
     """
 
-    def __init__(
-            self, name: str, master: str, target: str,
-            base: str=None, ndim: int=0):
-        self.name = str(name)
-        self._master = master
-        self._target = _Properties(
-            *self._get_seriesflag_and_subgroup_and_variable(target))
-        self._base = _Properties(
-            *self._get_seriesflag_and_subgroup_and_variable(base))
-        self.ndim = int(ndim)
-        self._value: numpy.ndarray = None
-        self.shape: Tuple[int] = None
-        self.device2target = {}
-        self.device2base = {}
+    _master: str
+    _target: _Properties
+    _base: _Properties
+    device2target: Dict
+    device2base: Dict
 
     @staticmethod
     def _get_seriesflag_and_subgroup_and_variable(string):
@@ -159,7 +150,24 @@ class ExchangeItem(object):
                     dict_[element] = variable
                     if properties.series:
                         dict_[element] = variable.series
-        self.determine_shape()
+
+
+class NonGetItem(ExchangeItem, metaclass=abc.ABCMeta):
+
+    def __init__(
+            self, name: str, master: str, target: str,
+            base: str = None, ndim: int = 0):
+        self.name = str(name)
+        self._master = master
+        self._target = _Properties(
+            *self._get_seriesflag_and_subgroup_and_variable(target))
+        self._base = _Properties(
+            *self._get_seriesflag_and_subgroup_and_variable(base))
+        self.ndim = int(ndim)
+        self._value: numpy.ndarray = None
+        self.shape: Tuple[int] = None
+        self.device2target = {}
+        self.device2base = {}
 
     def determine_shape(self):
         if self.ndim == 0:
@@ -192,8 +200,12 @@ class ExchangeItem(object):
     def update_variables(self):
         ...
 
+    def collect_variables(self, selections: selectiontools.Selections):
+        super().collect_variables(selections)
+        self.determine_shape()
 
-class SetItem(ExchangeItem):
+
+class SetItem(NonGetItem):
     """
 
     >>> from hydpy.core.examples import prepare_full_example_1
@@ -295,7 +307,7 @@ from shape (4) into shape (5)
                     f'{objecttools.devicephrase(variable)}')
 
 
-class AddItem(ExchangeItem):
+class AddItem(NonGetItem):
     """
 
     >>> from hydpy.core.examples import prepare_full_example_1

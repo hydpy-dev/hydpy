@@ -258,10 +258,6 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
     ...      'sm_lahn_1 = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)\\n'
     ...      'quh = 1.0\\n')
     <BLANKLINE>
-    >>> test('seriesitems',
-    ...      'dill = [5.0]\\n'
-    ...      'lahn_1 = [6.0]')
-    <BLANKLINE>
 
     >>> test('parameteritems')
     alpha = 3.0
@@ -288,10 +284,6 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
     land_lahn_3_states_sm = [...]
     land_lahn_3_states_sm_series = [[nan, nan, nan, nan, nan, nan, nan, nan, \
 nan, nan, nan, nan, nan, nan], [...], [...], [...], [...]]
-    >>> test('seriesitems')
-    dill = [5.0]
-    lahn_1 = [6.0]
-
 
     >>> test('missingmethod')
     Traceback (most recent call last):
@@ -445,7 +437,6 @@ could not broadcast input array from shape (0) into shape ()
         self.get_parameteritems()
         self.get_conditionitems()
         self.get_getitems()
-        self.get_seriesitems()
 
     @staticmethod
     def get_parameteritemtypes():
@@ -495,13 +486,6 @@ could not broadcast input array from shape (0) into shape ()
         self._post_items('condition', state.conditionitems)
 
     @staticmethod
-    def post_seriesitems():
-        state.hp.nodes.dill.sequences.sim.series[state.idx1:state.idx2] = \
-            eval(state.inputs['dill'])
-        state.hp.nodes.lahn_1.sequences.sim.series[state.idx1:state.idx2] = \
-            eval(state.inputs['lahn_1'])
-
-    @staticmethod
     def get_load_conditionvalues():
         if not state.idx1:
             state.hp.conditions = state.init_conditions
@@ -532,15 +516,6 @@ could not broadcast input array from shape (0) into shape ()
         for item in state.getitems:
             for name, value in item:
                 state.outputs[name] = value
-
-    @staticmethod
-    def get_seriesitems():
-        state.outputs['dill'] = \
-            list(state.hp.nodes.dill.sequences.sim.series
-                 [state.idx1:state.idx2])
-        state.outputs['lahn_1'] = \
-            list(state.hp.nodes.lahn_1.sequences.sim.series
-                 [state.idx1:state.idx2])
 
 
 def start_server(

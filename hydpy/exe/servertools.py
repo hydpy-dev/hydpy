@@ -226,12 +226,26 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
     status = ready
 
     >>> test('parameteritemtypes')
-    alpha = DoubleItem1D(1)
+    alpha = Double0D
+    beta = Double0D
+    lag = Double0D
+    damp = Double0D
+    sfcf_1 = Double0D
+    sfcf_2 = Double0D
+    sfcf_3 = Double1D
     >>> test('conditionitemtypes')
-    lz = DoubleItem1D()
-    >>> test('seriesitemtypes')
-    dill = TimeSeries0D(5)
-    lahn_1 = TimeSeries0D(5)
+    sm_lahn_2 = Double0D
+    sm_lahn_1 = Double1D
+    quh = Double0D
+    >>> test('getitemtypes')
+    land_dill_fluxes_qt = Double0D
+    land_dill_fluxes_qt_series = TimeSeries0D
+    land_dill_states_sm = Double1D
+    land_lahn_1_states_sm = Double1D
+    land_lahn_2_states_sm = Double1D
+    land_lahn_3_states_sm = Double1D
+    land_lahn_3_states_sm_series = TimeSeries1D
+    dill_nodes_sim_series = TimeSeries0D
 
     >>> test('timegrid')
     firstdate = 1996-01-01T00:00:00+01:00
@@ -424,7 +438,7 @@ could not broadcast input array from shape (0) into shape ()
     def get_itemtypes(self):
         self.get_parameteritemtypes()
         self.get_conditionitemtypes()
-        self.get_seriesitemtypes()
+        self.get_getitemtypes()
 
     def post_itemvalues(self):
         self.post_timegrid()
@@ -440,17 +454,24 @@ could not broadcast input array from shape (0) into shape ()
         self.get_getitems()
 
     @staticmethod
-    def get_parameteritemtypes():
-        state.outputs['alpha'] = 'DoubleItem1D(1)'
+    def _get_itemtype(item):
+        if item.targetseries:
+            return f'TimeSeries{item.ndim-1}D'
+        return f'Double{item.ndim}D'
 
-    @staticmethod
-    def get_conditionitemtypes():
-        state.outputs['lz'] = 'DoubleItem1D()'
+    def get_parameteritemtypes(self):
+        for item in state.parameteritems:
+            state.outputs[item.name] = self._get_itemtype(item)
 
-    @staticmethod
-    def get_seriesitemtypes():
-        state.outputs['dill'] = 'TimeSeries0D(5)'
-        state.outputs['lahn_1'] = 'TimeSeries0D(5)'
+    def get_conditionitemtypes(self):
+        for item in state.conditionitems:
+            state.outputs[item.name] = self._get_itemtype(item)
+
+    def get_getitemtypes(self):
+        for item in state.getitems:
+            type_ = self._get_itemtype(item)
+            for name, _ in item.yield_strings():
+                state.outputs[name] = type_
 
     @staticmethod
     def get_timegrid():

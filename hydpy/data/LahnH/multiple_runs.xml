@@ -180,6 +180,11 @@
                     </sm.series>
                 </states>
             </hland_v1>
+            <nodes>
+                <selections/>
+                <devices>dill</devices>
+                <sim.series/>
+            </nodes>
         </getitems>
 
     </exchange>

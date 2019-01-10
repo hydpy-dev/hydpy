@@ -144,7 +144,7 @@ class ExchangeItem(abc.ABC):
         if self._base.variable is not None:
             properties_.append(self._base)
         for properties, dict_ in zip(properties_, [self.device2target, self.device2base]):
-            if self._master == 'node':
+            if self._master in ('node', 'nodes'):
                 for node in selections.nodes:
                     variable = self._query_nodevariable(node, properties)
                     dict_[node] = variable

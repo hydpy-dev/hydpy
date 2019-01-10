@@ -1248,6 +1248,9 @@ class XMLExchange(XMLBase):
                     for subvars in model.subvars:
                         if subvars.name in itemgroups:
                             items.extend(var.item for var in subvars.vars)
+                if 'nodes' in itemgroups:
+                    for node in itemgroup.nodes:
+                        items.extend(var.item for var in node.vars)
         return items
 
     @property
@@ -1315,9 +1318,10 @@ class XMLExchange(XMLBase):
         fluxes_qt_series
         states_sm
         states_sm_series
+        nodes_sim_series
         """
         return self._get_items_of_certain_item_types(
-            ['control', 'inputs', 'fluxes', 'states', 'logs'], True)
+            ['control', 'inputs', 'fluxes', 'states', 'logs', 'nodes'], True)
 
     def prepare_series(self):
         for item in itertools.chain(self.conditionitems, self.getitems):
@@ -1341,7 +1345,13 @@ class XMLItemgroup(XMLBase):
 
     @property
     def models(self):
-        return [XMLModel(self, element) for element in self]
+        return [XMLModel(self, element) for element in self
+                if strip(element.tag) != 'nodes']
+
+    @property
+    def nodes(self):
+        return [XMLNode(self, element) for element in self
+                if strip(element.tag) == 'nodes']
 
 
 class XMLModel(XMLBase):
@@ -1359,6 +1369,17 @@ class XMLSubvars(XMLBase):
 
     def __init__(self, master, root):
         self.master: XMLModel = master
+        self.root: ElementTree.Element = root
+
+    @property
+    def vars(self):
+        return [XMLVar(self, element) for element in self]
+
+
+class XMLNode(XMLBase):
+
+    def __init__(self, master, root):
+        self.master: XMLItemgroup = master
         self.root: ElementTree.Element = root
 
     @property
@@ -1473,10 +1494,23 @@ class XMLVar(XMLSelector):
         ...         print(name, target)    # doctest: +ELLIPSIS
         land_dill_fluxes_qt 1.0
         land_dill_fluxes_qt_series [2.0, 2.0, 2.0, 2.0, 2.0]
+
+        >>> var = interface.exchange.itemgroups[3].nodes[0].vars[0]
+        >>> hp.nodes.dill.sequences.sim.series = range(5)
+        >>> for name, target in var.item.yield_strings():
+        ...     print(name, target)    # doctest: +ELLIPSIS
+        dill_nodes_sim_series [0.0, 1.0, 2.0, 3.0, 4.0]
+        >>> for name, target in var.item.yield_strings(2, 4):
+        ...     print(name, target)    # doctest: +ELLIPSIS
+        dill_nodes_sim_series [2.0, 3.0]
         """
         target = f'{self.master.name}.{self.name}'
-        master = self.master.master.name
-        itemgroup = self.master.master.master.name
+        if self.master.name == 'nodes':
+            master = self.master.name
+            itemgroup = self.master.master.name
+        else:
+            master = self.master.master.name
+            itemgroup = self.master.master.master.name
         itemclass = _ITEMGROUP2ITEMCLASS[itemgroup]
         if itemgroup != 'getitems':
             dim = self.find('dim').text
@@ -1800,6 +1834,10 @@ class XSDWriter(object):
                                  minOccurs="0"
                                  maxOccurs="unbounded"/>
         ...
+                        <element name="nodes"
+                                 type="hpcb:nodes_setitemsType"
+                                 minOccurs="0"
+                                 maxOccurs="unbounded"/>
                     </sequence>
                     <attribute name="info" type="string"/>
                 </complexType>
@@ -1819,6 +1857,12 @@ class XSDWriter(object):
         for modelname in cls.get_modelnames():
             type_ = cls._get_itemstype(modelname, itemgroup)
             subs.append(f'{blanks}            <element name="{modelname}"')
+            subs.append(f'{blanks}                     type="hpcb:{type_}"')
+            subs.append(f'{blanks}                     minOccurs="0"')
+            subs.append(f'{blanks}                     maxOccurs="unbounded"/>')
+        if itemgroup in ('setitems', 'getitems'):
+            type_ = f'nodes_{itemgroup}Type'
+            subs.append(f'{blanks}            <element name="nodes"')
             subs.append(f'{blanks}                     type="hpcb:{type_}"')
             subs.append(f'{blanks}                     minOccurs="0"')
             subs.append(f'{blanks}                     maxOccurs="unbounded"/>')
@@ -1844,10 +1888,13 @@ class XSDWriter(object):
         <BLANKLINE>
             <complexType name="dam_v001_setitemsType">
         ...
+            <complexType name="nodes_setitemsType">
+        ...
         """
         subs = []
         for modelname in cls.get_modelnames():
             subs.append(cls.get_itemtypeinsertion(itemgroup, modelname, indent))
+        subs.append(cls.get_nodesitemtypeinsertion(itemgroup, indent))
         return '\n'.join(subs)
 
     @classmethod
@@ -1886,6 +1933,61 @@ class XSDWriter(object):
             f'{blanks}    </sequence>',
             f'{blanks}</complexType>',
             f'']
+        return '\n'.join(subs)
+
+    @classmethod
+    def get_nodesitemtypeinsertion(cls, itemgroup, indent) -> str:
+        """Return a string defining the required types for the given
+        combination of an exchange item group and |Node| objects.
+
+        >>> from hydpy.auxs.xmltools import XSDWriter
+        >>> print(XSDWriter.get_nodesitemtypeinsertion(
+        ...     'setitems', 1))    # doctest: +ELLIPSIS
+            <complexType name="nodes_setitemsType">
+                <sequence>
+                    <element ref="hpcb:selections"
+                             minOccurs="0"/>
+                    <element ref="hpcb:devices"
+                             minOccurs="0"/>
+                    <element name="sim"
+                             type="hpcb:setitemType"
+                             minOccurs="0"
+                             maxOccurs="unbounded"/>
+                    <element name="obs"
+                             type="hpcb:setitemType"
+                             minOccurs="0"
+                             maxOccurs="unbounded"/>
+                    <element name="sim.series"
+                             type="hpcb:setitemType"
+                             minOccurs="0"
+                             maxOccurs="unbounded"/>
+                    <element name="obs.series"
+                             type="hpcb:setitemType"
+                             minOccurs="0"
+                             maxOccurs="unbounded"/>
+                </sequence>
+            </complexType>
+        <BLANKLINE>
+        """
+        blanks = ' ' * (indent * 4)
+        subs = [
+            f'{blanks}<complexType name="nodes_{itemgroup}Type">',
+            f'{blanks}    <sequence>',
+            f'{blanks}        <element ref="hpcb:selections"',
+            f'{blanks}                 minOccurs="0"/>',
+            f'{blanks}        <element ref="hpcb:devices"',
+            f'{blanks}                 minOccurs="0"/>']
+        type_ = 'getitemType' if itemgroup == 'getitems' else 'setitemType'
+        for name in ('sim', 'obs', 'sim.series', 'obs.series'):
+            subs.extend([
+                f'{blanks}        <element name="{name}"',
+                f'{blanks}                 type="hpcb:{type_}"',
+                f'{blanks}                 minOccurs="0"',
+                f'{blanks}                 maxOccurs="unbounded"/>'])
+        subs.extend([
+            f'{blanks}    </sequence>',
+            f'{blanks}</complexType>',
+            f''])
         return '\n'.join(subs)
 
     @classmethod
@@ -1930,7 +2032,7 @@ class XSDWriter(object):
             cls, itemgroup, model, subgroup, indent) -> str:
         """Return a string defining the required types for the given
         combination of an exchange item group and a specific variable
-        subgroup of an application model.
+        subgroup of an application model or class |Node|.
 
         Note that for `setitems` and `getitems` `setitemType` and
         `getitemType` are referenced, respectively, and for all others

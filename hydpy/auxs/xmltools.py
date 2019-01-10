@@ -1454,7 +1454,7 @@ class XMLVar(XMLSelector):
 
         >>> var = interface.exchange.itemgroups[3].models[0].subvars[1].vars[0]
         >>> hp.elements.land_dill.model.sequences.states.sm = 1.0
-        >>> for name, target in var.item:
+        >>> for name, target in var.item.yield_strings():
         ...     print(name, target)    # doctest: +ELLIPSIS
         land_dill_states_sm [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, \
 1.0, 1.0, 1.0]
@@ -1469,7 +1469,7 @@ class XMLVar(XMLSelector):
         >>> qt(1.0)
         >>> qt.series = 2.0
         >>> for var in vars_:
-        ...     for name, target in var.item:
+        ...     for name, target in var.item.yield_strings():
         ...         print(name, target)    # doctest: +ELLIPSIS
         land_dill_fluxes_qt 1.0
         land_dill_fluxes_qt_series [2.0, 2.0, 2.0, 2.0, 2.0]

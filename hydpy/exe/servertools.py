@@ -275,15 +275,16 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
     quh = 1.0
     >>> test('getitems')    # doctest: +ELLIPSIS
     land_dill_fluxes_qt = nan
-    land_dill_fluxes_qt_series = [nan, nan, nan, nan, nan]
+    land_dill_fluxes_qt_series = [nan]
     land_dill_states_sm = [185.13164, ...]
     land_lahn_1_states_sm = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, \
 9.0, 10.0, 11.0, 12.0, 13.0]
     land_lahn_2_states_sm = [197.0, 197.0, 197.0, 197.0, 197.0, 197.0, \
 197.0, 197.0, 197.0, 197.0]
-    land_lahn_3_states_sm = [...]
+    land_lahn_3_states_sm = [101.31248, ...]
     land_lahn_3_states_sm_series = [[nan, nan, nan, nan, nan, nan, nan, nan, \
-nan, nan, nan, nan, nan, nan], [...], [...], [...], [...]]
+nan, nan, nan, nan, nan, nan]]
+    dill_nodes_sim_series = [nan]
 
     >>> test('missingmethod')
     Traceback (most recent call last):
@@ -514,7 +515,7 @@ could not broadcast input array from shape (0) into shape ()
     @staticmethod
     def get_getitems():
         for item in state.getitems:
-            for name, value in item:
+            for name, value in item.yield_strings(state.idx1, state.idx2):
                 state.outputs[name] = value
 
 

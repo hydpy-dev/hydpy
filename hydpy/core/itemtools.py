@@ -387,7 +387,7 @@ class GetItem(ExchangeItem):
     >>> item = GetItem('hland_v1', 'states.lz')
     >>> item.collect_variables(pub.selections)
     >>> hp.elements.land_dill.model.sequences.states.lz = 100.0
-    >>> for name, value in item:
+    >>> for name, value in item.yield_strings():
     ...     print(f'{name} = {value}')
     land_dill_states_lz = 100.0
     land_lahn_1_states_lz = 8.18711
@@ -397,7 +397,7 @@ class GetItem(ExchangeItem):
     >>> item = GetItem('hland_v1', 'states.sm')
     >>> item.collect_variables(pub.selections)
     >>> hp.elements.land_dill.model.sequences.states.sm = 2.0
-    >>> for name, value in item:
+    >>> for name, value in item.yield_strings():
     ...     print(f'{name} = {value}')    # doctest: +ELLIPSIS
     land_dill_states_sm = [2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, \
 2.0, 2.0]
@@ -431,10 +431,13 @@ class GetItem(ExchangeItem):
         for device in sorted(self.device2target.keys()):
             self.device2name[device] = f'{device.name}_{self.target}'
 
-    def __iter__(self):
+    def yield_strings(self, idx1=None, idx2=None):
         for device, name in self.device2name.items():
             target = self.device2target[device]
-            values = target.series if self.targetseries else target.values
+            if self.targetseries:
+                values = target.series[idx1:idx2]
+            else:
+                values = target.values
             if self.ndim == 0:
                 values = float(values)
             else:

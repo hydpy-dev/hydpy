@@ -278,6 +278,8 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
 11.  12.  13.]
     quh = 1.0
     >>> test('getitems')    # doctest: +ELLIPSIS
+    land_dill_fluxes_qt = nan
+    land_dill_fluxes_qt_series = [nan, nan, nan, nan, nan]
     land_dill_states_sm = [185.13164, ...]
     land_lahn_1_states_sm = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, \
 9.0, 10.0, 11.0, 12.0, 13.0]

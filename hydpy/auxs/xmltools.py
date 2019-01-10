@@ -1311,11 +1311,13 @@ class XMLExchange(XMLBase):
         ...     interface = XMLInterface('multiple_runs.xml')
         >>> for item in interface.exchange.getitems:
         ...     print(item.target)
+        fluxes_qt
+        fluxes_qt_series
         states_sm
         states_sm_series
         """
         return self._get_items_of_certain_item_types(
-            ['control', 'states', 'logs'], True)
+            ['control', 'inputs', 'fluxes', 'states', 'logs'], True)
 
     def prepare_series(self):
         for item in itertools.chain(self.conditionitems, self.getitems):

@@ -316,6 +316,10 @@ error occurred: operands could not be broadcast together with shapes (2,) (3,)
 
     mask = masktools.DefaultMask()
 
+    @abc.abstractmethod
+    def __call__(self, *args, **kwargs):
+        ...
+
     @property
     @abc.abstractmethod
     def value(self) -> Union[float, int, numpy.ndarray]:

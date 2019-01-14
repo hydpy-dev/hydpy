@@ -1,130 +1,112 @@
 # -*- coding: utf-8 -*-
-
+"""This module implements so-called exchange items, simplifying the
+modification of the values of |Parameter| and |Sequence| objects.
+"""
 # import...
 # ...from standard library
 import abc
-import collections
 from typing import Dict, Iterator, Tuple
 # ...from site-packages
 import numpy
 # ...from HydPy
+from hydpy.core import autodoctools
 from hydpy.core import devicetools
 from hydpy.core import objecttools
 from hydpy.core import selectiontools
+from hydpy.core import variabletools
 
 
-_Properties = collections.namedtuple(
-    '_Properties', ('series', 'subgroup', 'variable'))
+class ExchangeSpecification(object):
+    """Specification of a specific |Parameter| or |Sequence| type.
+
+    |ExchangeSpecification| is a helper class for |ExchangeItem| and its
+    subclasses. Its constructor interprets two strings (without any checks
+    on plausibility) and makes their information available as attributes.
+    The following tests list the expected cases:
+
+    >>> from hydpy.core.itemtools import ExchangeSpecification
+    >>> spec = ExchangeSpecification('hland_v1', 'fluxes.qt')
+    >>> spec
+    ExchangeSpecification('hland_v1', 'fluxes.qt')
+    >>> spec.master
+    'hland_v1'
+    >>> spec.subgroup
+    'fluxes'
+    >>> spec.variable
+    'qt'
+    >>> spec.series
+    False
+
+    >>> spec = ExchangeSpecification('hland_v1', 'fluxes.qt.series')
+    >>> spec
+    ExchangeSpecification('hland_v1', 'fluxes.qt.series')
+    >>> spec.master
+    'hland_v1'
+    >>> spec.subgroup
+    'fluxes'
+    >>> spec.variable
+    'qt'
+    >>> spec.series
+    True
+
+    >>> spec = ExchangeSpecification('node', 'sim')
+    >>> spec
+    ExchangeSpecification('node', 'sim')
+    >>> spec.master
+    'node'
+    >>> spec.subgroup
+    >>> spec.variable
+    'sim'
+    >>> spec.series
+    False
+
+    >>> spec = ExchangeSpecification('node', 'sim.series')
+    >>> spec
+    ExchangeSpecification('node', 'sim.series')
+    >>> spec.master
+    'node'
+    >>> spec.subgroup
+    >>> spec.variable
+    'sim'
+    >>> spec.series
+    True
+    """
+    def __init__(self, master, variable):
+        self.master = master
+        entries = variable.split('.')
+        entries = variable.split('.')
+        self.series = entries[-1] == 'series'
+        if self.series:
+            del entries[-1]
+        try:
+            self.subgroup, self.variable = entries
+        except ValueError:
+            self.subgroup, self.variable = None, entries[0]
+
+    def __repr__(self):
+        if self.subgroup is None:
+            variable = self.variable
+        else:
+            variable = f'{self.subgroup}.{self.variable}'
+        if self.series:
+            variable = f'{variable}.series'
+        return f"ExchangeSpecification('{self.master}', '{variable}')"
 
 
 class ExchangeItem(abc.ABC):
-    """
+    """Base class for exchanging values with multiple |Parameter| or |Sequence|
+    objects of a certain type."""
 
-    >>> from hydpy.core.examples import prepare_full_example_1
-    >>> prepare_full_example_1()
-
-    >>> from hydpy import HydPy, pub, TestIO
-    >>> with TestIO():
-    ...     hp = HydPy('LahnH')
-    ...     pub.timegrids = '1996-01-01', '1996-01-05', '1d'
-    ...     hp.prepare_everything()
-
-
-    >>> from hydpy.models.hland import Model
-    >>> hp.elements.land_lahn_3.model.__class__ = Model
-
-    >>> from hydpy.core.itemtools import SetItem
-    >>> item = SetItem(
-    ...     'alpha', 'hland_v1', 'control.alpha', 'control.beta', 0)
-    >>> item.targetseries
-    False
-    >>> item.baseseries
-    False
-    >>> item.collect_variables(pub.selections)
-    >>> land_dill = hp.elements.land_dill
-    >>> control = land_dill.model.parameters.control
-    >>> item.device2target[land_dill] is control.alpha
-    True
-    >>> item.device2base[land_dill] is control.beta
-    True
-    >>> item.device2target[hp.nodes.dill]   # ToDo
-    Traceback (most recent call last):
-    ...
-    KeyError: Node("dill", variable="Q",
-         keywords="gauge")
-
-    >>> for device in sorted(item.device2target):
-    ...     print(device)
-    land_dill
-    land_lahn_1
-    land_lahn_2
-
-    >>> item = SetItem('ic', 'hland', 'states.ic')
-    >>> item.collect_variables(pub.selections)
-    >>> land_lahn_3 = hp.elements.land_lahn_3
-    >>> item.device2target[land_lahn_3] is land_lahn_3.model.sequences.states.ic
-    True
-    >>> for element in sorted(item.device2target):
-    ...     print(element)
-    land_dill
-    land_lahn_1
-    land_lahn_2
-    land_lahn_3
-
-    >>> land_lahn_3.model.sequences.inputs.t.series = range(4)
-    >>> item = SetItem('t', 'hland', 'inputs.t.series')
-    >>> item.collect_variables(pub.selections)
-    >>> item.device2target[land_lahn_3]
-    t(nan)
-    >>> item.targetseries
-    True
-
-    >>> item = SetItem('sim', 'node', 'sim')
-    >>> item.collect_variables(pub.selections)
-    >>> dill = hp.nodes.dill
-    >>> item.device2target[dill] is dill.sequences.sim
-    True
-    >>> for node in sorted(item.device2target):
-    ...  print(node)
-    dill
-    lahn_1
-    lahn_2
-    lahn_3
-
-    >>> dill.sequences.sim.series = range(4)
-    >>> item = SetItem('sim', 'node', 'sim.series')
-    >>> item.collect_variables(pub.selections)
-    >>> dill = hp.nodes.dill
-    >>> item.device2target[dill]
-    sim(0.0)
-    """
-
-    _master: str
-    _target: _Properties
-    _base: _Properties
+    master: str
+    targetspecs: ExchangeSpecification
     device2target: Dict
-    device2base: Dict
-
-    @staticmethod
-    def _get_seriesflag_and_subgroup_and_variable(string):
-        if string is None:
-            return None, None, None
-        entries = string.split('.')
-        series = entries[-1] == 'series'
-        if series:
-            del entries[-1]
-        try:
-            subgroup_target, variable_target = entries
-        except ValueError:
-            subgroup_target, variable_target = None, entries[0]
-        return series, subgroup_target, variable_target
 
     def _iter_relevantelements(self, selections: selectiontools.Selections) -> \
             Iterator[devicetools.Element]:
         for element in selections.elements:
             name1 = element.model.name
             name2 = name1.rpartition('_')[0]
-            if self._master in (name1, name2):
+            if self.targetspecs.master in (name1, name2):
                 yield element
 
     @staticmethod
@@ -139,39 +121,121 @@ class ExchangeItem(abc.ABC):
     def _query_nodevariable(node: devicetools.Node, properties):
         return getattr(node.sequences, properties.variable)
 
-    def collect_variables(self, selections: selectiontools.Selections) -> None:
-        properties_ = [self._target]
-        if self._base.variable is not None:
-            properties_.append(self._base)
-        for properties, dict_ in zip(properties_, [self.device2target, self.device2base]):
-            if self._master in ('node', 'nodes'):
-                for node in selections.nodes:
-                    variable = self._query_nodevariable(node, properties)
-                    dict_[node] = variable
-            else:
-                for element in self._iter_relevantelements(selections):
-                    variable = self._query_elementvariable(element, properties)
-                    dict_[element] = variable
+    def collect_variables(self, selections) -> None:
+        """Apply method |ExchangeItem.insert_variables| to collect the
+        relevant target variables handled by the devices of the given
+        |Selections| object.
+        """
+        self.insert_variables(self.device2target, self.targetspecs, selections)
+
+    def insert_variables(
+            self, device2variable, exchangespec, selections) -> None:
+        """Determine the relevant target or base variables (as defined by the
+        given |ExchangeSpecification|) handled by the given |Selections|
+        object and insert them into the given `device2variable` dictionary.
+
+        First, we prepare the `LahnH` example project, to be able to use
+        its |Selection| "complete":
+
+        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+        >>> from hydpy import HydPy, pub, TestIO
+        >>> with TestIO():
+        ...     hp = HydPy('LahnH')
+        ...     pub.timegrids = '1996-01-01', '1996-01-05', '1d'
+        ...     hp.prepare_everything()
+
+        Second, we change the type of a specific application model to
+        its base model for reasons explained later:
+
+        >>> from hydpy.models.hland import Model
+        >>> hp.elements.land_lahn_3.model.__class__ = Model
 
 
-class NonGetItem(ExchangeItem, metaclass=abc.ABCMeta):
 
-    def __init__(
-            self, name: str, master: str, target: str,
-            base: str = None, ndim: int = 0):
-        self.name = str(name)
-        self._master = master
-        self._target = _Properties(
-            *self._get_seriesflag_and_subgroup_and_variable(target))
-        self._base = _Properties(
-            *self._get_seriesflag_and_subgroup_and_variable(base))
-        self.targetseries = self._target.series
-        self.baseseries = self._base.series
-        self.ndim = int(ndim)
-        self._value: numpy.ndarray = None
-        self.shape: Tuple[int] = None
-        self.device2target = {}
-        self.device2base = {}
+        >>> from hydpy.core.itemtools import AddItem, SetItem
+        >>> item = AddItem(
+        ...     'alpha', 'hland_v1', 'control.alpha', 'control.beta', 0)
+        >>> item.targetspecs
+        ExchangeSpecification('hland_v1', 'control.alpha')
+        >>> item.basespecs
+        ExchangeSpecification('hland_v1', 'control.beta')
+        >>> item.collect_variables(pub.selections)
+        >>> land_dill = hp.elements.land_dill
+        >>> control = land_dill.model.parameters.control
+        >>> item.device2target[land_dill] is control.alpha
+        True
+        >>> item.device2base[land_dill] is control.beta
+        True
+        >>> item.device2target[hp.nodes.dill]   # ToDo
+        Traceback (most recent call last):
+        ...
+        KeyError: Node("dill", variable="Q",
+             keywords="gauge")
+
+        >>> for device in sorted(item.device2target):
+        ...     print(device)
+        land_dill
+        land_lahn_1
+        land_lahn_2
+
+        >>> item = SetItem('ic', 'hland', 'states.ic', 0)
+        >>> item.collect_variables(pub.selections)
+        >>> land_lahn_3 = hp.elements.land_lahn_3
+        >>> item.device2target[land_lahn_3] is land_lahn_3.model.sequences.states.ic
+        True
+        >>> for element in sorted(item.device2target):
+        ...     print(element)
+        land_dill
+        land_lahn_1
+        land_lahn_2
+        land_lahn_3
+
+        >>> land_lahn_3.model.sequences.inputs.t.series = range(4)
+        >>> item = SetItem('t', 'hland', 'inputs.t.series', 0)
+        >>> item.collect_variables(pub.selections)
+        >>> item.device2target[land_lahn_3]
+        t(nan)
+        >>> item.targetspecs.series
+        True
+
+        >>> item = SetItem('sim', 'node', 'sim', 0)
+        >>> item.collect_variables(pub.selections)
+        >>> dill = hp.nodes.dill
+        >>> item.device2target[dill] is dill.sequences.sim
+        True
+        >>> for node in sorted(item.device2target):
+        ...  print(node)
+        dill
+        lahn_1
+        lahn_2
+        lahn_3
+
+        >>> dill.sequences.sim.series = range(4)
+        >>> item = SetItem('sim', 'node', 'sim.series', 0)
+        >>> item.collect_variables(pub.selections)
+        >>> dill = hp.nodes.dill
+        >>> item.device2target[dill]
+        sim(0.0)
+        """
+        if self.targetspecs.master in ('node', 'nodes'):
+            for node in selections.nodes:
+                variable = self._query_nodevariable(node, exchangespec)
+                device2variable[node] = variable
+        else:
+            for element in self._iter_relevantelements(selections):
+                variable = self._query_elementvariable(element, exchangespec)
+                device2variable[element] = variable
+
+
+class ChangeItem(ExchangeItem, metaclass=abc.ABCMeta):
+    """Base class for changing the values of multiple |Parameter| or |Sequence|
+    objects of a certain type."""
+
+    name: str
+    ndim: int
+    shape: Tuple[int]
+    _value: numpy.ndarray
 
     def determine_shape(self):
         if self.ndim == 0:
@@ -209,7 +273,7 @@ class NonGetItem(ExchangeItem, metaclass=abc.ABCMeta):
         self.determine_shape()
 
 
-class SetItem(NonGetItem):
+class SetItem(ChangeItem):
     """
 
     >>> from hydpy.core.examples import prepare_full_example_1
@@ -299,7 +363,16 @@ class SetItem(NonGetItem):
 from shape (4) into shape (5)
     """
 
-    def update_variables(self):
+    def __init__(self, name, master, target, ndim):
+        self.name = str(name)
+        self.targetspecs = ExchangeSpecification(master, target)
+        self.ndim = int(ndim)
+        self._value: numpy.ndarray = None
+        self.shape: Tuple[int] = None
+        self.device2target: \
+            Dict[devicetools.Device, variabletools.Variable] = {}
+
+    def update_variables(self) -> None:
         value = self.value
         for variable in self.device2target.values():
             try:
@@ -311,7 +384,27 @@ from shape (4) into shape (5)
                     f'{objecttools.devicephrase(variable)}')
 
 
-class AddItem(NonGetItem):
+class MathItem(ChangeItem, metaclass=abc.ABCMeta):
+
+    basespecs: ExchangeSpecification
+    device2base: Dict
+
+    def __init__(self, name, master, target, base, ndim):
+        self.name = str(name)
+        self.targetspecs = ExchangeSpecification(master, target)
+        self.basespecs = ExchangeSpecification(master, base)
+        self.ndim = int(ndim)
+        self._value = None
+        self.shape = None
+        self.device2target = {}
+        self.device2base = {}
+
+    def collect_variables(self, selections) -> None:
+        super().collect_variables(selections)
+        self.insert_variables(self.device2base, self.basespecs, selections)
+
+
+class AddItem(MathItem):
     """
 
     >>> from hydpy.core.examples import prepare_full_example_1
@@ -358,7 +451,7 @@ class AddItem(NonGetItem):
             try:
                 result = base + value
             except BaseException:
-                objecttools.augment_excmessage(
+                raise objecttools.augment_excmessage(
                     f'While letting "add item" `{self.name}` add up '
                     f'the new value(s) `{value}` and the current value(s) '
                     f'of variable {objecttools.devicephrase(base)}')
@@ -372,7 +465,8 @@ class AddItem(NonGetItem):
 
 
 class GetItem(ExchangeItem):
-    """
+    """Base class for getting the values of multiple |Parameter| or |Sequence|
+    objects of a certain type.
 
     >>> from hydpy.core.examples import prepare_full_example_1
     >>> prepare_full_example_1()
@@ -387,7 +481,7 @@ class GetItem(ExchangeItem):
     >>> item = GetItem('hland_v1', 'states.lz')
     >>> item.collect_variables(pub.selections)
     >>> hp.elements.land_dill.model.sequences.states.lz = 100.0
-    >>> for name, value in item.yield_strings():
+    >>> for name, value in item.yield_name2value():
     ...     print(f'{name} = {value}')
     land_dill_states_lz = 100.0
     land_lahn_1_states_lz = 8.18711
@@ -397,7 +491,7 @@ class GetItem(ExchangeItem):
     >>> item = GetItem('hland_v1', 'states.sm')
     >>> item.collect_variables(pub.selections)
     >>> hp.elements.land_dill.model.sequences.states.sm = 2.0
-    >>> for name, value in item.yield_strings():
+    >>> for name, value in item.yield_name2value():
     ...     print(f'{name} = {value}')    # doctest: +ELLIPSIS
     land_dill_states_sm = [2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, \
 2.0, 2.0]
@@ -407,34 +501,25 @@ class GetItem(ExchangeItem):
 
     def __init__(self, master: str, target: str):
         self.target = target.replace('.', '_')
-        self._master = master
-        self._target = _Properties(
-            *self._get_seriesflag_and_subgroup_and_variable(target))
-        self._base = _Properties(None, None, None)
-        self.targetseries = self._target.series
-        self.baseseries = None
+        self.targetspecs = ExchangeSpecification(master, target)
         self.ndim = None
         self.device2target = {}
-        self.device2base = {}
-        self.device2name = {}
+        self._device2name: Dict[devicetools.Device, str] = {}
 
     def collect_variables(self, selections: selectiontools.Selections):
         super().collect_variables(selections)
-        self.determine_equations()
+        for device in sorted(self.device2target.keys()):
+            self._device2name[device] = f'{device.name}_{self.target}'
         for target in self.device2target.values():
             self.ndim = target.NDIM
-            if self.targetseries:
+            if self.targetspecs.series:
                 self.ndim += 1
             break
 
-    def determine_equations(self):
-        for device in sorted(self.device2target.keys()):
-            self.device2name[device] = f'{device.name}_{self.target}'
-
-    def yield_strings(self, idx1=None, idx2=None):
-        for device, name in self.device2name.items():
+    def yield_name2value(self, idx1=None, idx2=None):
+        for device, name in self._device2name.items():
             target = self.device2target[device]
-            if self.targetseries:
+            if self.targetspecs.series:
                 values = target.series[idx1:idx2]
             else:
                 values = target.values
@@ -443,3 +528,6 @@ class GetItem(ExchangeItem):
             else:
                 values = values.tolist()
             yield name, str(values)
+
+
+autodoctools.autodoc_module()

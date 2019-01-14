@@ -118,9 +118,9 @@ class ServerState(object):
 
     def __init__(self):
         self.hp: hydpytools.HydPy = None
-        self.parameteritems: List[itemtools.ExchangeItem] = None
-        self.conditionitems: List[itemtools.ExchangeItem] = None
-        self.getitems: List[itemtools.ExchangeItem] = None
+        self.parameteritems: List[itemtools.ChangeItem] = None
+        self.conditionitems: List[itemtools.ChangeItem] = None
+        self.getitems: List[itemtools.GetItem] = None
         self.conditions: collections.defaultdict = None
         self.init_conditions: dict = None
         self.id_: str = None
@@ -443,6 +443,10 @@ could not broadcast input array from shape (0) into shape ()
         self.get_conditionitemtypes()
         self.get_getitemtypes()
 
+    def get_changeitems(self):
+        self.get_parameteritems()
+        self.get_conditionitems()
+
     def post_itemvalues(self):
         self.post_timegrid()
         self.post_parameteritems()
@@ -452,13 +456,11 @@ could not broadcast input array from shape (0) into shape ()
     def get_itemvalues(self):
         self.get_timegrid()
         self.get_save_conditionvalues()
-        self.get_parameteritems()
-        self.get_conditionitems()
         self.get_getitems()
 
     @staticmethod
     def _get_itemtype(item):
-        if item.targetseries:
+        if item.targetspecs.series:
             return f'TimeSeries{item.ndim-1}D'
         return f'Double{item.ndim}D'
 
@@ -473,7 +475,7 @@ could not broadcast input array from shape (0) into shape ()
     def get_getitemtypes(self):
         for item in state.getitems:
             type_ = self._get_itemtype(item)
-            for name, _ in item.yield_strings():
+            for name, _ in item.yield_name2value():
                 state.outputs[name] = type_
 
     @staticmethod
@@ -544,7 +546,7 @@ could not broadcast input array from shape (0) into shape ()
     @staticmethod
     def get_getitems():
         for item in state.getitems:
-            for name, value in item.yield_strings(state.idx1, state.idx2):
+            for name, value in item.yield_name2value(state.idx1, state.idx2):
                 state.outputs[name] = value
 
 

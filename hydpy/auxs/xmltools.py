@@ -139,14 +139,14 @@ def _query_selections(xmlelement) -> selectiontools.Selections:
     if text is None:
         return selectiontools.Selections()
     selections = []
-    try:
-        for name in text.split():
+    for name in text.split():
+        try:
             selections.append(pub.selections[name])
-    except KeyError:
-        raise NameError(
-            f'The XML configuration file tries to defines a selection '
-            f'using the text `{name}`, but the actual project does not '
-            f' handle such a `Selection` object.')
+        except KeyError:
+            raise NameError(
+                f'The XML configuration file tries to defines a selection '
+                f'using the text `{name}`, but the actual project does not '
+                f' handle such a `Selection` object.')
     return selectiontools.Selections(*selections)
 
 
@@ -1326,10 +1326,10 @@ class XMLExchange(XMLBase):
     def prepare_series(self):
         for item in itertools.chain(self.conditionitems, self.getitems):
             for target in item.device2target.values():
-                if item.targetseries and not target.ramflag:
+                if item.targetspecs.series and not target.ramflag:
                     target.activate_ram()
-                for base in item.device2base.values():
-                    if item.baseseries and not base.ramflag:
+                for base in getattr(item, 'device2base', {}).values():
+                    if item.basespecs.series and not base.ramflag:
                         base.activate_ram()
 
     @property
@@ -1475,7 +1475,7 @@ class XMLVar(XMLSelector):
 
         >>> var = interface.exchange.itemgroups[3].models[0].subvars[1].vars[0]
         >>> hp.elements.land_dill.model.sequences.states.sm = 1.0
-        >>> for name, target in var.item.yield_strings():
+        >>> for name, target in var.item.yield_name2value():
         ...     print(name, target)    # doctest: +ELLIPSIS
         land_dill_states_sm [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, \
 1.0, 1.0, 1.0]
@@ -1490,17 +1490,17 @@ class XMLVar(XMLSelector):
         >>> qt(1.0)
         >>> qt.series = 2.0
         >>> for var in vars_:
-        ...     for name, target in var.item.yield_strings():
+        ...     for name, target in var.item.yield_name2value():
         ...         print(name, target)    # doctest: +ELLIPSIS
         land_dill_fluxes_qt 1.0
         land_dill_fluxes_qt_series [2.0, 2.0, 2.0, 2.0, 2.0]
 
         >>> var = interface.exchange.itemgroups[3].nodes[0].vars[0]
         >>> hp.nodes.dill.sequences.sim.series = range(5)
-        >>> for name, target in var.item.yield_strings():
+        >>> for name, target in var.item.yield_name2value():
         ...     print(name, target)    # doctest: +ELLIPSIS
         dill_nodes_sim_series [0.0, 1.0, 2.0, 3.0, 4.0]
-        >>> for name, target in var.item.yield_strings(2, 4):
+        >>> for name, target in var.item.yield_name2value(2, 4):
         ...     print(name, target)    # doctest: +ELLIPSIS
         dill_nodes_sim_series [2.0, 3.0]
         """
@@ -1512,23 +1512,32 @@ class XMLVar(XMLSelector):
             master = self.master.master.name
             itemgroup = self.master.master.master.name
         itemclass = _ITEMGROUP2ITEMCLASS[itemgroup]
-        if itemgroup != 'getitems':
-            dim = self.find('dim').text
-            init = ','.join(self.find('init').text.split())
-            alias = self.find('alias').text
-            if itemgroup == 'setitems':
-                base = None
-            else:
-                base = strip([element for element in self][-1].tag)
-            item = itemclass(alias, master, target, base, ndim=dim)
+        if itemgroup == 'getitems':
+            return self._get_getitem(target, master, itemclass)
+        return self._get_changeitem(target, master, itemclass, itemgroup)
+
+    def _get_getitem(self, target, master, itemclass):
+        item = itemclass(master, target)
+        self._collect_variables(item)
+        return item
+
+    def _get_changeitem(self, target, master, itemclass, itemgroup):
+        dim = self.find('dim').text
+        init = ','.join(self.find('init').text.split())
+        alias = self.find('alias').text
+        if itemgroup == 'setitems':
+            item = itemclass(alias, master, target, ndim=dim)
         else:
-            item = itemclass(master, target)
+            base = strip([element for element in self][-1].tag)
+            item = itemclass(alias, master, target, base, ndim=dim)
+        self._collect_variables(item)
+        item.value = eval(init)
+        return item
+
+    def _collect_variables(self, item):
         selections = self.selections
         selections += self.devices
         item.collect_variables(selections)
-        if itemgroup != 'getitems':
-            item.value = eval(init)
-        return item
 
 
 class XSDWriter(object):
@@ -1590,7 +1599,8 @@ class XSDWriter(object):
         >>> print(XSDWriter.get_modelnames())    # doctest: +ELLIPSIS
         [...'dam_v001', 'dam_v002', 'dam_v003', 'dam_v004', 'dam_v005',...]
         """
-        return sorted(fn.split('.')[0] for fn in os.listdir(models.__path__[0])
+        return sorted(str(fn.split('.')[0])
+                      for fn in os.listdir(models.__path__[0])
                       if (fn.endswith('.py') and (fn != '__init__.py')))
 
     @classmethod
@@ -2102,35 +2112,34 @@ class XSDWriter(object):
                 </complexType>
             </element>
         """
-        blanks = ' ' * (indent * 4)
+        blanks1 = ' ' * (indent * 4)
+        blanks2 = ' ' * ((indent+5) * 4 + 1)
         subs = [
-            f'{blanks}<element name="{subgroup.name}"',
-            f'{blanks}         minOccurs="0"',
-            f'{blanks}         maxOccurs="unbounded">',
-            f'{blanks}    <complexType>',
-            f'{blanks}        <sequence>',
-            f'{blanks}            <element ref="hpcb:selections"',
-            f'{blanks}                     minOccurs="0"/>',
-            f'{blanks}            <element ref="hpcb:devices"',
-            f'{blanks}                     minOccurs="0"/>']
+            f'{blanks1}<element name="{subgroup.name}"',
+            f'{blanks1}         minOccurs="0"',
+            f'{blanks1}         maxOccurs="unbounded">',
+            f'{blanks1}    <complexType>',
+            f'{blanks1}        <sequence>',
+            f'{blanks1}            <element ref="hpcb:selections"',
+            f'{blanks1}                     minOccurs="0"/>',
+            f'{blanks1}            <element ref="hpcb:devices"',
+            f'{blanks1}                     minOccurs="0"/>']
         seriesflags = (False,) if subgroup.name == 'control' else (False, True)
         for variable in subgroup:
             for series in seriesflags:
                 name = f'{variable.name}.series' if series else variable.name
-                subs.append(f'{blanks}            <element name="{name}"')
+                subs.append(f'{blanks1}            <element name="{name}"')
                 if itemgroup == 'setitems':
-                    subs.append(f'{blanks}                     '
-                                f'type="hpcb:setitemType"')
+                    subs.append(f'{blanks2}type="hpcb:setitemType"')
                 elif itemgroup == 'getitems':
-                    subs.append(f'{blanks}                     '
-                                f'type="hpcb:getitemType"')
+                    subs.append(f'{blanks2}type="hpcb:getitemType"')
                 else:
-                    subs.append(f'{blanks}                     '
-                                f'type="hpcb:{model.name}_mathitemType"')
-                subs.append(f'{blanks}                     minOccurs="0"')
-                subs.append(f'{blanks}                     maxOccurs="unbounded"/>')
+                    subs.append(
+                        f'{blanks2}type="hpcb:{model.name}_mathitemType"')
+                subs.append(f'{blanks2}minOccurs="0"')
+                subs.append(f'{blanks2}maxOccurs="unbounded"/>')
         subs.extend([
-            f'{blanks}        </sequence>',
-            f'{blanks}    </complexType>',
-            f'{blanks}</element>'])
+            f'{blanks1}        </sequence>',
+            f'{blanks1}    </complexType>',
+            f'{blanks1}</element>'])
         return '\n'.join(subs)

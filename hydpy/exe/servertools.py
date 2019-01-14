@@ -515,12 +515,17 @@ could not broadcast input array from shape (0) into shape ()
         if not state.idx1:
             state.hp.conditions = state.init_conditions
         else:
-            state.hp.conditions = state.conditions[state.id_][state.idx1]
+            try:
+                state.hp.conditions = state.conditions[state.id_][state.idx1]
+            except KeyError:
+                raise RuntimeError(
+                    f'Conditions for ID `{state.id_}` and time point '
+                    f'`{pub.timegrids.sim.firstdate}`are required, have '
+                    f'not been calculated so far.')
 
     @staticmethod
     def get_save_conditionvalues():
-        state.conditions[state.id_][
-            state.idx2] = state.hp.conditions
+        state.conditions[state.id_][state.idx2] = state.hp.conditions
 
     @staticmethod
     def get_simulate():

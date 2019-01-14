@@ -430,8 +430,11 @@ could not broadcast input array from shape (0) into shape ()
         state.outputs['status'] = 'ready'
 
     def get_close_server(self):
+        def _close_server():
+            self.server.shutdown()
+            self.server.server_close()
         state.outputs['shutting down the server'] = 'seems to work'
-        shutter = threading.Thread(target=self.server.shutdown)
+        shutter = threading.Thread(target=_close_server)
         shutter.deamon = True
         shutter.start()
 

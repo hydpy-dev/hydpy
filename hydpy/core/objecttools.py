@@ -11,6 +11,7 @@ import numbers
 import sys
 import textwrap
 import wrapt
+from typing import NoReturn
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import abctools
@@ -299,7 +300,7 @@ Python built-ins like `for`...)
             % string)
 
 
-def augment_excmessage(prefix=None, suffix=None):
+def augment_excmessage(prefix=None, suffix=None) -> NoReturn:
     """Augment an exception message with additional information while keeping
     the original traceback.
 

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
+# noinspection PyUnresolvedReferences
+"""This module implements features for using *HydPy* as a HTTP server.
 
 
 
@@ -201,8 +202,9 @@ class ServerState(object):
 
 state = ServerState()
 
-        
+
 class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
+    # noinspection PyUnresolvedReferences
     """ToDo
 
     >>> from hydpy.core.examples import prepare_full_example_1

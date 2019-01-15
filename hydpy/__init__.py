@@ -70,6 +70,9 @@ from hydpy.auxs.anntools import ann
 from hydpy.auxs.anntools import SeasonalANN
 from hydpy.auxs.iuhtools import LinearStorageCascade
 from hydpy.auxs.iuhtools import TranslationDiffusionEquation
+from hydpy.core.itemtools import AddItem
+from hydpy.core.itemtools import GetItem
+from hydpy.core.itemtools import SetItem
 from hydpy.auxs.networktools import RiverBasinNumber
 from hydpy.auxs.networktools import RiverBasinNumbers
 from hydpy.auxs.networktools import RiverBasinNumbers2Selection
@@ -152,6 +155,9 @@ __all__ = ['config',
            'SeasonalANN',
            'LinearStorageCascade',
            'TranslationDiffusionEquation',
+           'AddItem',
+           'GetItem',
+           'SetItem',
            'RiverBasinNumber',
            'RiverBasinNumbers',
            'RiverBasinNumbers2Selection',

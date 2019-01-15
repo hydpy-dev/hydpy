@@ -311,10 +311,9 @@ No GET method for property `missingmethod` available.
     ...
     urllib.error.HTTPError: HTTP Error 500: ValueError: While trying to \
 execute the POST method of property parameteritems, the following error \
-occurred: When letting item `alpha` convert the given value(s) `[]` to a \
-numpy array of shape `()` and type `float`, the following error occurred: \
-could not broadcast input array from shape (0) into shape ()
-
+occurred: When trying to convert the value(s) `[]` assigned to SetItem \
+`alpha` to a numpy array of shape `()` and type `float`, the following \
+error occurred: could not broadcast input array from shape (0) into shape ()
 
     >>> test('close_server')
     shutting down the server = seems to work

@@ -18,7 +18,7 @@ from hydpy.core import autodoctools
 from hydpy.core import objecttools
 
 
-def run_subprocess(commandstring, verbose=True):
+def run_subprocess(commandstring, verbose=True, blocking=True):
     """Execute the given command in a new process.
 
     |run_subprocess| prints responses to stdout and stderr, unless
@@ -30,18 +30,27 @@ def run_subprocess(commandstring, verbose=True):
     >>> run_subprocess(f'python -c print{esc}(1+1{esc})')
     2
     >>> run_subprocess(f'python -c print{esc}(1+1{esc})', verbose=False)
+
+    ToDo: explain blocking=False!, use asyncio for printing?
     """
-    result = subprocess.run(
+    if blocking:
+        function = subprocess.run
+    else:
+        function = subprocess.Popen
+    result = function(
         commandstring,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         encoding='utf-8',
         shell=True)
-    if verbose:
+    if blocking and verbose:
         for output in (result.stdout, result.stderr):
             output = output.strip()
             if output:
                 print(output)
+    if blocking:
+        return None
+    return result
 
 
 def exec_commands(commands, **parameters) -> None:

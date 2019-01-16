@@ -7,12 +7,10 @@
 >>> from hydpy.core.examples import prepare_full_example_1
 >>> prepare_full_example_1()
 
+>>> command = 'hyd.py start_server 8080 LahnH multiple_runs.xml'
 >>> from hydpy import run_subprocess, TestIO
->>> import subprocess
 >>> with TestIO():
-...     process = subprocess.Popen(
-...         'hyd.py start_server 8080 LahnH multiple_runs.xml',
-...         shell=True)
+...     process = run_subprocess(command, blocking=False, verbose=False)
 ...     run_subprocess('hyd.py await_server 8080 10', verbose=False)
 
 >>> from urllib import request
@@ -210,11 +208,10 @@ class HydPyHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
     >>> from hydpy.core.examples import prepare_full_example_1
     >>> prepare_full_example_1()
     >>> from hydpy import run_subprocess, TestIO
-    >>> import subprocess
     >>> with TestIO():
-    ...     process = subprocess.Popen(
+    ...     process = run_subprocess(
     ...         'hyd.py start_server 8080 LahnH multiple_runs.xml',
-    ...         shell=True)
+    ...         blocking=False, verbose=False)
     ...     run_subprocess('hyd.py await_server 8080 10', verbose=False)
 
     >>> from urllib import request
@@ -569,14 +566,14 @@ resulted in the following error:
     <urlopen error Waited for 0.1 seconds without response on port 8080.>
     ...
 
-    >>> import subprocess
+
     >>> from hydpy.core.examples import prepare_full_example_1
     >>> prepare_full_example_1()
     >>> with TestIO():
-    ...     process = subprocess.Popen(
+    ...     process = run_subprocess(
     ...         'hyd.py start_server 8080 LahnH multiple_runs.xml',
-    ...         shell=True)
-    ...     run_subprocess('hyd.py await_server 8080 10')
+    ...         blocking=False, verbose=False)
+    ...     run_subprocess('hyd.py await_server 8080 10', verbose=False)
 
     >>> from urllib import request
     >>> _ = request.urlopen('http://localhost:8080/close_server')

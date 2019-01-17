@@ -22,6 +22,7 @@ import types
 import unittest
 # ...from site-packages
 import numpy
+import scipy
 import wrapt
 # ...from HydPy
 import hydpy
@@ -686,7 +687,7 @@ def prepare_mainsubstituter():
     file of *HydPy*."""
     substituter = Substituter()
     for module in (builtins, numpy, datetime, unittest, doctest, inspect, io,
-                   os, sys, time, collections, itertools, subprocess):
+                   os, sys, time, collections, itertools, subprocess, scipy):
         substituter.add_module(module)
     for subpackage in (auxs, core, cythons, exe):
         for dummy, name, dummy in pkgutil.walk_packages(subpackage.__path__):

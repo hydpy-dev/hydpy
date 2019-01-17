@@ -24,6 +24,17 @@ class ExchangeSpecification(object):
     The following tests list the expected cases:
 
     >>> from hydpy.core.itemtools import ExchangeSpecification
+    >>> ExchangeSpecification('hland_v1', 'fluxes.qt')
+    ExchangeSpecification('hland_v1', 'fluxes.qt')
+    >>> ExchangeSpecification('hland_v1', 'fluxes.qt.series')
+    ExchangeSpecification('hland_v1', 'fluxes.qt.series')
+    >>> ExchangeSpecification('node', 'sim')
+    ExchangeSpecification('node', 'sim')
+    >>> ExchangeSpecification('node', 'sim.series')
+    ExchangeSpecification('node', 'sim.series')
+
+    The following attributes are accessible:
+
     >>> spec = ExchangeSpecification('hland_v1', 'fluxes.qt')
     >>> spec
     ExchangeSpecification('hland_v1', 'fluxes.qt')
@@ -35,40 +46,6 @@ class ExchangeSpecification(object):
     'qt'
     >>> spec.series
     False
-
-    >>> spec = ExchangeSpecification('hland_v1', 'fluxes.qt.series')
-    >>> spec
-    ExchangeSpecification('hland_v1', 'fluxes.qt.series')
-    >>> spec.master
-    'hland_v1'
-    >>> spec.subgroup
-    'fluxes'
-    >>> spec.variable
-    'qt'
-    >>> spec.series
-    True
-
-    >>> spec = ExchangeSpecification('node', 'sim')
-    >>> spec
-    ExchangeSpecification('node', 'sim')
-    >>> spec.master
-    'node'
-    >>> spec.subgroup
-    >>> spec.variable
-    'sim'
-    >>> spec.series
-    False
-
-    >>> spec = ExchangeSpecification('node', 'sim.series')
-    >>> spec
-    ExchangeSpecification('node', 'sim.series')
-    >>> spec.master
-    'node'
-    >>> spec.subgroup
-    >>> spec.variable
-    'sim'
-    >>> spec.series
-    True
     """
     def __init__(self, master, variable):
         self.master = master
@@ -82,14 +59,32 @@ class ExchangeSpecification(object):
         except ValueError:
             self.subgroup, self.variable = None, entries[0]
 
-    def __repr__(self):
+    @property
+    def specstring(self):
+        """The string corresponding to the current values of `subgroup`,
+        `state`, and `variable`.
+
+        >>> from hydpy.core.itemtools import ExchangeSpecification
+        >>> spec = ExchangeSpecification('hland_v1', 'fluxes.qt')
+        >>> spec.specstring
+        'fluxes.qt'
+        >>> spec.series = True
+        >>> spec.specstring
+        'fluxes.qt.series'
+        >>> spec.subgroup = None
+        >>> spec.specstring
+        'qt.series'
+        """
         if self.subgroup is None:
             variable = self.variable
         else:
             variable = f'{self.subgroup}.{self.variable}'
         if self.series:
             variable = f'{variable}.series'
-        return f"ExchangeSpecification('{self.master}', '{variable}')"
+        return variable
+
+    def __repr__(self):
+        return f"ExchangeSpecification('{self.master}', '{self.specstring}')"
 
 
 class ExchangeItem(abc.ABC):
@@ -387,7 +382,9 @@ class SetItem(ChangeItem):
         of the 0-dimensional parameter |hland_control.Alpha|:
 
         >>> from hydpy.core.itemtools import SetItem
-        >>> item = SetItem('alpha', 'hland_v1', 'control.alpha', ndim=0)
+        >>> item = SetItem('alpha', 'hland_v1', 'control.alpha', 0)
+        >>> item
+        SetItem('alpha', 'hland_v1', 'control.alpha', 0)
         >>> item.collect_variables(pub.selections)
         >>> item.value is None
         True
@@ -407,7 +404,7 @@ class SetItem(ChangeItem):
         of the 1-dimensional parameter |hland_control.FC|:
 
 
-        >>> item = SetItem('fc', 'hland_v1', 'control.fc', ndim=0)
+        >>> item = SetItem('fc', 'hland_v1', 'control.fc', 0)
         >>> item.collect_variables(pub.selections)
         >>> item.value = 200.0
         >>> land_dill.model.parameters.control.fc
@@ -421,7 +418,7 @@ class SetItem(ChangeItem):
 
         >>> for element in hp.elements.catchment:
         ...     element.model.parameters.control.nmbzones(5)
-        >>> item = SetItem('ic', 'hland_v1', 'states.ic', ndim=1)
+        >>> item = SetItem('ic', 'hland_v1', 'states.ic', 1)
         >>> item.collect_variables(pub.selections)
         >>> land_dill.model.sequences.states.ic
         ic(nan, nan, nan, nan, nan)
@@ -438,6 +435,12 @@ class SetItem(ChangeItem):
         for variable in self.device2target.values():
             self.update_variable(variable, value)
 
+    def __repr__(self):
+        return (
+            f"{objecttools.classname(self)}('{self.name}', "
+            f"'{self.targetspecs.master}', '{self.targetspecs.specstring}', "
+            f"{self.ndim})")
+
 
 class MathItem(ChangeItem, metaclass=abc.ABCMeta):
     """Base class for performing some mathematical operations on the given
@@ -448,11 +451,13 @@ class MathItem(ChangeItem, metaclass=abc.ABCMeta):
 
     >>> from hydpy import AddItem
     >>> item = AddItem(
-    ...     'alpha', 'hland_v1', 'control.alpha', 'control.beta', 0)
+    ...     'sfcf', 'hland_v1', 'control.sfcf', 'control.rfcf', 0)
+    >>> item
+    AddItem('sfcf', 'hland_v1', 'control.sfcf', 'control.rfcf', 0)
     >>> item.targetspecs
-    ExchangeSpecification('hland_v1', 'control.alpha')
+    ExchangeSpecification('hland_v1', 'control.sfcf')
     >>> item.basespecs
-    ExchangeSpecification('hland_v1', 'control.beta')
+    ExchangeSpecification('hland_v1', 'control.rfcf')
 
     Generally, a |MathItem| calculates the target variable of a specific
     |Device| object by using its current |ChangeItem.value| and the value(s)
@@ -500,6 +505,12 @@ class MathItem(ChangeItem, metaclass=abc.ABCMeta):
         super().collect_variables(selections)
         self.insert_variables(self.device2base, self.basespecs, selections)
 
+    def __repr__(self):
+        return (
+            f"{objecttools.classname(self)}('{self.name}', "
+            f"'{self.targetspecs.master}', '{self.targetspecs.specstring}', "
+            f"'{self.basespecs.specstring}', {self.ndim})")
+
 
 class AddItem(MathItem):
     """|MathItem| subclass performing additions."""
@@ -517,7 +528,7 @@ class AddItem(MathItem):
         ...     control.zonetype(FIELD)
         >>> from hydpy.core.itemtools import AddItem
         >>> item = AddItem(
-        ...     'sfcf', 'hland_v1', 'control.sfcf', 'control.rfcf', ndim=1)
+        ...     'sfcf', 'hland_v1', 'control.sfcf', 'control.rfcf', 1)
         >>> item.collect_variables(pub.selections)
         >>> land_dill = hp.elements.land_dill
         >>> land_dill.model.parameters.control.rfcf(1.1)
@@ -576,11 +587,11 @@ class GetItem(ExchangeItem):
         ...                'states.sm', 'states.sm.series'):
         ...     item = GetItem('hland_v1', target)
         ...     item.collect_variables(pub.selections)
-        ...     print(target, item.ndim)
-        states.lz 0
-        states.lz.series 1
-        states.sm 1
-        states.sm.series 2
+        ...     print(item, item.ndim)
+        GetItem('hland_v1', 'states.lz') 0
+        GetItem('hland_v1', 'states.lz.series') 1
+        GetItem('hland_v1', 'states.sm') 1
+        GetItem('hland_v1', 'states.sm.series') 2
         """
         super().collect_variables(selections)
         for device in sorted(self.device2target.keys()):
@@ -650,6 +661,11 @@ class GetItem(ExchangeItem):
             else:
                 values = objecttools.repr_list(values.tolist())
             yield name, values
+
+    def __repr__(self):
+        return (
+            f"{objecttools.classname(self)}("
+            f"'{self.targetspecs.master}', '{self.targetspecs.specstring}')")
 
 
 autodoctools.autodoc_module()

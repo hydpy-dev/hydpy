@@ -1,5 +1,5 @@
 
-version: 3.2a4.{build}
+version: 3.2a5.{build}
 
 environment:
   PYPIPA:

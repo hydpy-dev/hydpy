@@ -3,6 +3,7 @@
               xmlns:hpcmr="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/HydPyConfigMultipleRuns.xsd">
 
     <options>
+        <reprdigits>6</reprdigits>
     </options>
 
     <timegrid>

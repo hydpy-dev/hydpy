@@ -619,7 +619,7 @@ class GetItem(ExchangeItem):
         ...     print(name, value)    # doctest: +ELLIPSIS
         land_dill_states_sm [2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0, \
 2.0, 2.0, 2.0, 2.0]
-        land_lahn_1_states_sm [99.275...
+        land_lahn_1_states_sm [99.27505, ..., 142.84148]
         ...
 
         When querying time series, one can restrict the span of interest
@@ -646,10 +646,10 @@ class GetItem(ExchangeItem):
             else:
                 values = target.values
             if self.ndim == 0:
-                values = float(values)
+                values = objecttools.repr_(float(values))
             else:
-                values = values.tolist()
-            yield name, str(values)
+                values = objecttools.repr_list(values.tolist())
+            yield name, values
 
 
 autodoctools.autodoc_module()

@@ -16,6 +16,9 @@ from hydpy.core import printtools
 from hydpy.core import selectiontools
 
 
+conditionstype = Dict[str, Dict[str, Dict[str, Union[float, numpy.ndarray]]]]
+
+
 class HydPy(object):
     """Main class for managing HydPy projects."""
 
@@ -166,8 +169,7 @@ class HydPy(object):
         self.elements.reset_conditions()
 
     @property
-    def conditions(self) -> \
-            Dict[str, Dict[str, Dict[str, Union[float, numpy.ndarray]]]]:
+    def conditions(self) -> conditionstype:
         """A nested dictionary containing the values of all condition
         sequences of all currently handled models.
 

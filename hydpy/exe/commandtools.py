@@ -21,29 +21,39 @@ from hydpy.core import objecttools
 def run_subprocess(commandstring, verbose=True, blocking=True):
     """Execute the given command in a new process.
 
-    |run_subprocess| prints responses to stdout and stderr, unless
-    explicitely silenced by setting `verbose` to |False|:
+    When both `verbose` and `blocking` are |True|, |run_subprocess|
+    prints all responses to stdout:
 
     >>> from hydpy import run_subprocess
     >>> import platform
     >>> esc = '' if 'windows' in platform.platform().lower() else '\\\\'
     >>> run_subprocess(f'python -c print{esc}(1+1{esc})')
     2
+
+    When at least one of both arguments is |False|, |run_subprocess| does
+    not print out anything:
+
     >>> run_subprocess(f'python -c print{esc}(1+1{esc})', verbose=False)
 
-    ToDo: explain blocking=False!, use asyncio for printing?
+    >>> process = run_subprocess('python', blocking=False)
+    >>> process.kill()
+    >>> _ = process.communicate()
     """
     if blocking:
-        function = subprocess.run
+        result = subprocess.run(
+            commandstring,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            encoding='utf-8',
+            shell=True)
     else:
-        function = subprocess.Popen
-    result = function(
-        commandstring,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        encoding='utf-8',
-        shell=True)
-    if blocking and verbose:
+        result = subprocess.Popen(
+            commandstring,
+            stdout=None,
+            stderr=None,
+            encoding='utf-8',
+            shell=True)
+    if blocking and verbose:    # due to doctest replacing sys.stdout
         for output in (result.stdout, result.stderr):
             output = output.strip()
             if output:

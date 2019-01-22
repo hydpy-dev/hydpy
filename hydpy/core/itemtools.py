@@ -50,7 +50,6 @@ class ExchangeSpecification(object):
     def __init__(self, master, variable):
         self.master = master
         entries = variable.split('.')
-        entries = variable.split('.')
         self.series = entries[-1] == 'series'
         if self.series:
             del entries[-1]

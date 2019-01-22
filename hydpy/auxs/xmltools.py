@@ -539,6 +539,7 @@ correctly refer to one of the available XML schema files \
 
     @property
     def selections(self) -> selectiontools.Selections:
+        # noinspection PyUnresolvedReferences
         """The |Selections| object defined on the main level of the actual
         XML file.
 
@@ -796,6 +797,7 @@ class XMLSeries(XMLBase):
         return [XMLSubseries(self, _) for _ in self.find('writers')]
 
     def prepare_series(self) -> None:
+        # noinspection PyUnresolvedReferences
         """Call |XMLSubseries.prepare_series| of all |XMLSubseries|
         objects with the same memory |set| object.
 
@@ -1930,7 +1932,6 @@ class XSDWriter(object):
         <BLANKLINE>
         """
         blanks = ' ' * (indent * 4)
-        subs = []
         type_ = cls._get_itemstype(modelname, itemgroup)
         subs = [
             f'{blanks}<complexType name="{type_}">',

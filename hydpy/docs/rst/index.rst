@@ -109,8 +109,7 @@ better models.  The :ref:`development` section offers more information
 on how to actually participate in the further development of *HydPy*.
 Section :ref:`modelcollection` lists all models implemented so far.
 Sections :ref:`core` covers the basic functionalities of the
-*HydPy* framework.  We hope to be able to offer some beginner
-:ref:`tutorials` based on real data soon.
+*HydPy* framework.
 
 .. toctree::
    :hidden:

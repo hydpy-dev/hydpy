@@ -21,8 +21,8 @@ from hydpy.core import objecttools
 def run_subprocess(commandstring, verbose=True, blocking=True):
     """Execute the given command in a new process.
 
-    When both `verbose` and `blocking` are |True|, |run_subprocess|
-    prints all responses to stdout:
+    Only when both `verbose` and `blocking` are |True|, |run_subprocess|
+    prints all responses to the current value of |sys.stdout|:
 
     >>> from hydpy import run_subprocess
     >>> import platform
@@ -30,10 +30,17 @@ def run_subprocess(commandstring, verbose=True, blocking=True):
     >>> run_subprocess(f'python -c print{esc}(1+1{esc})')
     2
 
-    When at least one of both arguments is |False|, |run_subprocess| does
-    not print out anything:
+    With verbose being |False|, |run_subprocess| does never print out
+    anything:
 
     >>> run_subprocess(f'python -c print{esc}(1+1{esc})', verbose=False)
+
+    >>> process = run_subprocess('python', blocking=False, verbose=False)
+    >>> process.kill()
+    >>> _ = process.communicate()
+
+    When `verbose` is |True| and `blocking` is |False|, |run_subprocess|
+    prints all responses to the console ("invisible" for doctests):
 
     >>> process = run_subprocess('python', blocking=False)
     >>> process.kill()
@@ -46,21 +53,21 @@ def run_subprocess(commandstring, verbose=True, blocking=True):
             stderr=subprocess.PIPE,
             encoding='utf-8',
             shell=True)
+        if verbose:    # due to doctest replacing sys.stdout
+            for output in (result.stdout, result.stderr):
+                output = output.strip()
+                if output:
+                    print(output)
+        return None
     else:
+        stdouterr = None if verbose else subprocess.DEVNULL
         result = subprocess.Popen(
             commandstring,
-            stdout=None,
-            stderr=None,
+            stdout=stdouterr,
+            stderr=stdouterr,
             encoding='utf-8',
             shell=True)
-    if blocking and verbose:    # due to doctest replacing sys.stdout
-        for output in (result.stdout, result.stderr):
-            output = output.strip()
-            if output:
-                print(output)
-    if blocking:
-        return None
-    return result
+        return result
 
 
 def exec_commands(commands, **parameters) -> None:
@@ -107,7 +114,7 @@ pub.scriptfunctions['exec_commands'] = exec_commands
 def print_latest_logfile(dirpath='.', wait=0.0) -> None:
     """Print the latest log file in the current or the given working directory.
 
-    When processes are executed in parallel, |print_latest_logfile| may
+    When executing processes in parallel, |print_latest_logfile| may
     be called before any log file exists.  Then pass an appropriate
     number of seconds to the argument `wait`.  |print_latest_logfile| then
     prints the contents of the latest log file, as soon as it finds one.

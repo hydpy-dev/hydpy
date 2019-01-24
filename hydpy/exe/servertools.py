@@ -923,9 +923,8 @@ but have not been calculated so far.
         """Evaluate any valid Python expression with the *HydPy* server
         process and get its result.
 
-        Method |HydPyServer.POST_evaluate| serves testing and debugging
-        purposes, primarily.  The main documentation on module
-        |servertools| explains its usage.
+        Method |HydPyServer.POST_evaluate| serves to test and debug, primarily.
+        The main documentation on module |servertools| explains its usage.
         """
         for name, value in self._inputs.items():
             result = eval(value)
@@ -1013,7 +1012,7 @@ but have not been calculated so far.
 
     def POST_parameteritemvalues(self) -> None:
         """Change the values of the relevant |ChangeItem| objects and apply
-        them on their respective |Parameter| objects."""
+        them to their respective |Parameter| objects."""
         self._post_itemvalues('parameter', state.parameteritems)
 
     def GET_conditionitemvalues(self) -> None:
@@ -1024,15 +1023,16 @@ but have not been calculated so far.
 
     def POST_conditionitemvalues(self) -> None:
         """Change the values of the relevant |ChangeItem| objects and apply
-        them on their respective |StateSequence| or |LogSequence| objects."""
+        them to their respective |StateSequence| or |LogSequence| objects."""
         self._post_itemvalues('condition', state.conditionitems)
 
     def GET_getitemvalues(self) -> None:
         """Get the values of all |Variable| objects observed by the
         current |GetItem| objects.
 
-        When observing time series, |HydPyServer.GET_getitemvalues| returns
-        only the values within the current simulation period.
+        For |GetItem| objects observing time series,
+        |HydPyServer.GET_getitemvalues| returns only the values within
+        the current simulation period.
         """
         for item in state.getitems:
             for name, value in item.yield_name2value(state.idx1, state.idx2):
@@ -1116,7 +1116,7 @@ but have not been calculated so far.
         state.timegrids[self._id] = copy.deepcopy(pub.timegrids.sim)
 
     def GET_savedtimegrid(self) -> None:
-        """Get the previosly saved simulation period."""
+        """Get the previously saved simulation period."""
         try:
             self._write_timegrid(state.timegrids[self._id])
         except KeyError:

@@ -18,23 +18,21 @@ install:
   - activate myenv
   - SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%
   - python --version
-  - conda install Cython --yes
-  - conda install numpy --yes
-  - conda install scipy --yes
-  - conda install matplotlib --yes
-  - conda install bokeh --yes
-  - conda install pandas --yes
-  - conda install setuptools --yes
+  - python -m pip install --upgrade pip
+  - python -m pip install cython
+  - python -m pip install numpy
+  - python -m pip install scipy
+  - python -m pip install matplotlib
+  - python -m pip install bokeh
+  - python -m pip install pandas
+  - python -m pip install setuptools
   - python -m pip install twine
-  - conda install wheel --yes
-  - conda install wrapt --yes
-  - pip install xmlschema
+  - python -m pip install wheel
+  - python -m pip install wrapt
+  - python -m pip install xmlschema
   - conda install netcdf4 --yes
   - conda uninstall netcdf4 --yes
-  - python -m pip install --upgrade pip
   - python -m pip install netcdf4
-  - conda uninstall pillow
-  - python -m pip install pillow
 
 build: off
 

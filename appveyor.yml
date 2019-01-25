@@ -39,7 +39,7 @@ build: off
 before_test:
   - python setup.py install
   - python make_and_install_dists.py
-  - conda uninstall Cython --yes
+  - pip uninstall cython --yes
 
 test_script:
   - python hydpy/tests/test_everything.py forcecompiling=False

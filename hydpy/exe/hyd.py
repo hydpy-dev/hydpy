@@ -197,10 +197,10 @@ from hydpy.exe import commandtools
 
 
 def execute():
-    """|Execute| just calls |execute_scriptfunction| in case |hyd| is the
-    main script:
+    """Call |execute_scriptfunction| of module |commandtools| in case |hyd|
+    is the main script.
 
-    >>> from hydpy.exe import hyd, commandtools
+    >>> from hydpy.exe import hyd
     >>> from unittest import mock
     >>> with mock.patch('hydpy.exe.commandtools.execute_scriptfunction') as fun:
     ...     with mock.patch.object(hyd, '__name__', '__not_main__'):

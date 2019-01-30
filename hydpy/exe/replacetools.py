@@ -18,7 +18,7 @@ def xml_replace(filename, **replacements):
     substitutions markers.  Substitution markers are HTML comments
     starting and ending with the `|` character:
 
-    >>> from hydpy import xml_replace, print_latest_logfile, TestIO
+    >>> from hydpy import xml_replace, TestIO
     >>> with TestIO():
     ...     with open('test1.xmlt', 'w') as templatefile:
     ...         _ = templatefile.write(

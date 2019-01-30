@@ -118,8 +118,26 @@ def print_latest_logfile(dirpath='.', wait=0.0) -> None:
     be called before any log file exists.  Then pass an appropriate
     number of seconds to the argument `wait`.  |print_latest_logfile| then
     prints the contents of the latest log file, as soon as it finds one.
+    Function |print_latest_logfile| works only for "default" logfile names,
+    as described in the documentation on function |prepare_logfile|.
 
-    See the main documentation on module |hyd| for more information.
+    >>> from hydpy import TestIO, print_latest_logfile, run_subprocess
+    >>> TestIO.clear()
+    >>> with TestIO():
+    ...     run_subprocess('hyd.py')
+    ...     print_latest_logfile(wait=0.5)    # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    FileNotFoundError: Cannot find a default HydPy log file in directory \
+...iotesting.
+
+    >>> with TestIO():
+    ...     run_subprocess('hyd.py logfile="default" test=1')
+    ...     run_subprocess('hyd.py logfile="default" test=2')
+    ...     print_latest_logfile(wait=0.5)    # doctest: +ELLIPSIS
+    Invoking hyd.py with arguments `...hyd.py, logfile=default, test=2` \
+resulted in the following error:
+    ...
     """
     now = time.perf_counter()
     wait += now
@@ -135,7 +153,7 @@ def print_latest_logfile(dirpath='.', wait=0.0) -> None:
             now = time.perf_counter()
     if not filenames:
         raise FileNotFoundError(
-            f'Cannot find a HydPy log file in directory '
+            f'Cannot find a default HydPy log file in directory '
             f'{os.path.abspath(dirpath)}.')
     with open(sorted(filenames)[-1]) as logfile:
         print(logfile.read())

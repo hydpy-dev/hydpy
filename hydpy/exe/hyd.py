@@ -196,8 +196,26 @@ from hydpy.core import autodoctools
 from hydpy.exe import commandtools
 
 
-if __name__ == '__main__':
-    commandtools.execute_scriptfunction()
+def execute():
+    """|Execute| just calls |execute_scriptfunction| in case |hyd| is the
+    main script:
 
+    >>> from hydpy.exe import hyd, commandtools
+    >>> from unittest import mock
+    >>> with mock.patch('hydpy.exe.commandtools.execute_scriptfunction') as fun:
+    ...     with mock.patch.object(hyd, '__name__', '__not_main__'):
+    ...         hyd.execute()
+    ...         fun.called
+    ...     with mock.patch.object(hyd, '__name__', '__main__'):
+    ...         hyd.execute()
+    ...         fun.called
+    False
+    True
+    """
+    if __name__ == '__main__':
+        commandtools.execute_scriptfunction()
+
+
+execute()
 
 autodoctools.autodoc_module()

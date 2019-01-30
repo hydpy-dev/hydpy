@@ -3,11 +3,11 @@
 |Parameter| or |Sequence| arrays are relevant and which are not."""
 # import...
 # ...from standard library
+import abc
 import inspect
 # ...from site-packages
 import numpy
 # ...from HydPy
-from hydpy import pub
 from hydpy.core import abctools
 from hydpy.core import autodoctools
 from hydpy.core import metatools
@@ -38,8 +38,8 @@ class _BaseMask(numpy.ndarray):
             return numpy.ndarray.__new__(cls, 0, dtype=bool)
         return numpy.asarray(array, dtype=bool).view(cls)
 
-    def __call__(self):
-        raise NotImplementedError()
+    @abc.abstractmethod
+    def __call__(self): ...
 
     def __contains__(self, other):
         return numpy.all(self()[other])
@@ -60,10 +60,9 @@ class CustomMask(_BaseMask):
     that is not captured by an available mask.
 
     Like the more advanced masks, |CustomMask| can either work via
-    Python's descriptor protocoll or can be applied directly, but is
+    Python's descriptor protocol or can be applied directly, but is
     thought to be applied in the last way only:
 
-    >>> from hydpy.core.variabletools import Variable
     >>> from hydpy.core.masktools import CustomMask
     >>> mask1 = CustomMask([[True, False, False],
     ...                     [True, False, False]])
@@ -111,17 +110,28 @@ class DefaultMask(_BaseMask):
     of class |DefaultMask|.
 
     The following example shows how |DefaultMask| can be applied via
-    Python's descriptor protocoll, which should be the common situation:
+    Python's descriptor protocol, which should be the common situation:
 
     >>> from hydpy.core.variabletools import Variable
     >>> from hydpy.core.masktools import DefaultMask
     >>> class Var1(Variable):
     ...     shape = (2, 3)
-    >>> var1 = Var1()
-    >>> mask = DefaultMask(var1)
-    >>> mask
+    ...     defaultmask = DefaultMask()
+    >>> Var1().defaultmask
     DefaultMask([[ True,  True,  True],
                  [ True,  True,  True]])
+    >>> from hydpy import classname
+    >>> classname(Var1.defaultmask)
+    '_MaskDescriptor'
+
+    Alternatively, you can connect a |DefaultMask| with a |Variable| object
+    directly:
+
+    >>> class Var2(Variable):
+    ...     shape = (2,)
+    >>> mask = DefaultMask(Var2())
+    >>> mask
+    DefaultMask([ True,  True])
     """
 
     def __new__(cls, variable=None, **kwargs):
@@ -212,7 +222,7 @@ class Masks(metatools.MetaSubgroupClass):
     Attributes:
       * model: The parent |Model| object.
 
-    |Masks| subclasses are basically just containers, who are defined
+    |Masks| subclasses are basically just containers, which are defined
     similar as |SubParameters| and |SubSequences| subclasses:
 
     >>> from hydpy.core.masktools import Masks
@@ -229,6 +239,8 @@ class Masks(metatools.MetaSubgroupClass):
     indexmask of module hydpy.core.masktools
     defaultmask of module hydpy.core.masktools
     >>> masks.indexmask is IndexMask
+    True
+    >>> 'indexmask' in dir(masks)
     True
 
     The `in` operator is supported:
@@ -278,7 +290,12 @@ following error occurred: The given key is neither a `string` a `mask` type.
 
     @property
     def name(self):
-        """`masks`"""
+        """`masks`
+
+        >>> from hydpy.core.masktools import Masks
+        >>> Masks(None).name
+        'masks'
+        """
         return 'masks'
 
     def __iter__(self):
@@ -326,14 +343,9 @@ following error occurred: The given key is neither a `string` a `mask` type.
 
     def __repr__(self):
         lines = []
-        if pub.options.reprcomments:
-            lines.append('# %s object defined in module %s.'
-                         % (objecttools.classname(self),
-                            objecttools.modulename(self)))
-            lines.append('# The implemented masks are:')
         for mask in self:
-            lines.append('%s of module %s'
-                         % (objecttools.instancename(mask), mask.__module__))
+            lines.append(f'{objecttools.instancename(mask)} of module '
+                         f'{mask.__module__}')
         return '\n'.join(lines)
 
     def __dir__(self):

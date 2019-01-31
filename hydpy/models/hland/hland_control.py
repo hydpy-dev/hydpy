@@ -3,6 +3,8 @@
 # pylint: enable=missing-docstring
 
 # import...
+# from site-packages
+import numpy
 # ...from HydPy
 from hydpy.core import parametertools
 # ...from hland
@@ -254,7 +256,7 @@ class K(parametertools.SingleParameter):
         >>> from hydpy.models.hland import *
         >>> parameterstep('1d')
         >>> simulationstep('12h')
-        >>> k(2.)
+        >>> k(2.0)
         >>> k
         k(2.0)
         >>> k.value
@@ -263,8 +265,7 @@ class K(parametertools.SingleParameter):
         Alternatively, one can specify the following three keyword
         arguments directly,...
 
-
-        >>> k(hq=10., khq=2., alpha=1.)
+        >>> k(hq=10.0, khq=2.0, alpha=1.0)
         >>> k
         k(0.4)
         >>> k.value
@@ -272,13 +273,37 @@ class K(parametertools.SingleParameter):
 
         ...or define the value of parameter alpha beforehand:
 
-        >>> alpha(2.)
-        >>> k(hq=10., khq=2.)
+        >>> alpha(2.0)
+        >>> k(hq=10.0, khq=2.0)
         >>> k
         k(0.08)
         >>> k.value
         0.04
 
+        The following exceptions occur for wrong combinations of
+        keyword arguments or when |Alpha| has not been prepared
+        beforehand (still has the value |numpy.nan|):
+
+        >>> k(wrong=1)
+        Traceback (most recent call last):
+        ...
+        ValueError: For parameter `k` a value can be set directly or \
+indirectly by using the keyword arguments `khq` and `hq`.
+
+        >>> k(hq=10.0)
+        Traceback (most recent call last):
+        ...
+        ValueError: For the alternative calculation of parameter `k`, at \
+least the keywords arguments `khq` and `hq` must be given.
+
+        >>> import numpy
+        >>> alpha(numpy.nan)
+        >>> k(hq=10.0, khq=2.0)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: For the alternative calculation of parameter `k`, \
+either the keyword argument `alpha` must be given or the value of parameter \
+`alpha` must be defined beforehand.
     """
     NDIM, TYPE, TIME, SPAN = 0, float, True, (0., None)
 
@@ -288,26 +313,23 @@ class K(parametertools.SingleParameter):
         except NotImplementedError:
             counter = ('khq' in kwargs) + ('hq' in kwargs)
             if counter == 0:
-                raise ValueError('For parameter `k` a value can be set '
-                                 'directly or indirectly by using the '
-                                 'keyword arguments `khq` and `hq`.')
+                raise ValueError(
+                    'For parameter `k` a value can be set directly '
+                    'or indirectly by using the keyword arguments `khq` '
+                    'and `hq`.')
             elif counter == 1:
-                raise ValueError('For the alternative calculation of '
-                                 'parameter `k`, at least the keywords '
-                                 'arguments `khq` and `hq` must be given.')
+                raise ValueError(
+                    'For the alternative calculation of parameter `k`, '
+                    'at least the keywords arguments `khq` and `hq` must '
+                    'be given.')
             elif counter == 2:
-                try:
-                    alpha = float(kwargs['alpha'])
-                except KeyError:
-                    try:
-                        alpha = self.subpars.alpha.value
-                    except (AttributeError, RuntimeError):
-                        raise RuntimeError('For the alternative calculation '
-                                           'of parameter `k`, either the '
-                                           'keyword argument `alpha` must be '
-                                           'given or the value of parameter '
-                                           '`alpha` must be defined '
-                                           'beforehand.')
+                alpha = float(kwargs.get('alpha', self.subpars.alpha.value))
+                if numpy.isnan(alpha):
+                    raise RuntimeError(
+                        'For the alternative calculation of parameter '
+                        '`k`, either the keyword argument `alpha` must '
+                        'be given or the value of parameter `alpha` '
+                        'must be defined beforehand.')
                 khq = float(kwargs['khq'])
                 hq = float(kwargs['hq'])
                 self(hq/((hq/khq)**(alpha+1.)))

@@ -3,7 +3,7 @@
 .. _NumPy: http://www.numpy.org/
 .. _matplotlib: http://matplotlib.org/
 
-.. _dependencies:
+.. _hydpydependencies:
 
 Dependencies
 ____________

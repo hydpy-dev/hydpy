@@ -2,6 +2,7 @@
 .. _Python Package Index: https://pypi.python.org/pypi
 .. _GitHub repository: https://github.com/hydpy-dev/hydpy
 .. _GitHub: https://github.com
+.. _pandas: http://pandas-docs.github.io/pandas-docs-travis/contributing.html
 
 .. _development:
 
@@ -44,7 +45,7 @@ how to improve the outlined strategy are welcome!
 
    development_environment
    version_control
-   dependencies
+   hydpydependencies
    continuous_integration
    tests_and_documentation
    programming_style

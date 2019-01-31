@@ -349,20 +349,21 @@ file ...wrongfilepath.xml, the following error occurred: \
         Traceback (most recent call last):
         ...
         hydpy.core.objecttools.xmlschema.validators.exceptions.\
-XMLSchemaValidationError: While trying to validate XML file \
-`...single_run.xml`, the following error occurred: failed validating \
-'1996-01-32T00:00:00' with <function non_negative_int_validator at ...>:
-        <BLANKLINE>
-        Reason: invalid datetime for formats ('%Y-%m-%dT%H:%M:%S', \
-'%Y-%m-%dT%H:%M:%S.%f').
-        <BLANKLINE>
+XMLSchemaDecodeError: While trying to validate XML file `...single_run.xml`, \
+the following error occurred: failed validating '1996-01-32T00:00:00' with \
+XsdAtomicBuiltin(name='xs:dateTime').
+        ...
+        Reason: day is out of range for month
+        ...
+        Schema:
+        ...
         Instance:
-        <BLANKLINE>
+        ...
           <firstdate xmlns="https://github.com/hydpy-dev/hydpy/releases/\
 download/your-hydpy-version/HydPyConfigBase.xsd">1996-01-32T00:00:00</firstdate>
-        <BLANKLINE>
+        ...
         Path: /hpcsr:config/timegrid/firstdate
-        <BLANKLINE>
+        ...
 
         In the second example, we examine a correct configuration file:
 

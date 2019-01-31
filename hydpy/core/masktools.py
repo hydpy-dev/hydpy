@@ -3,8 +3,8 @@
 |Parameter| or |Sequence| arrays are relevant and which are not."""
 # import...
 # ...from standard library
-import abc
 import inspect
+from typing import Callable
 # ...from site-packages
 import numpy
 # ...from HydPy
@@ -25,21 +25,22 @@ class _MaskDescriptor(object):
         return self.cls_mask(obj)
 
 
-class _BaseMask(numpy.ndarray):
+class BaseMask(numpy.ndarray):
+    """Base class for defining |CustomMask| and |DefaultMask| classes."""
+
+    __call__: Callable
 
     def __new__(cls, array=None, **kwargs):
-        return cls.array2mask(array)
+        return cls.array2mask(array, **kwargs)
 
     @classmethod
-    def array2mask(cls, array=None):
+    def array2mask(cls, array=None, **kwargs):
         """Create a new mask object based on the given |numpy.ndarray|
         and return it."""
+        kwargs['dtype'] = bool
         if array is None:
-            return numpy.ndarray.__new__(cls, 0, dtype=bool)
-        return numpy.asarray(array, dtype=bool).view(cls)
-
-    @abc.abstractmethod
-    def __call__(self): ...
+            return numpy.ndarray.__new__(cls, 0, **kwargs)
+        return numpy.asarray(array, **kwargs).view(cls)
 
     def __contains__(self, other):
         return numpy.all(self()[other])
@@ -48,10 +49,10 @@ class _BaseMask(numpy.ndarray):
         return numpy.ndarray.__repr__(self).replace(', dtype=bool', '')
 
 
-abctools.MaskABC.register(_BaseMask)
+abctools.MaskABC.register(BaseMask)
 
 
-class CustomMask(_BaseMask):
+class CustomMask(BaseMask):
     """Mask that awaits all |bool| values to be set manually.
 
     Class |CustomMask| is the most basic applicable mask and provides
@@ -102,7 +103,7 @@ class CustomMask(_BaseMask):
         return type(self)(bools)
 
 
-class DefaultMask(_BaseMask):
+class DefaultMask(BaseMask):
     """A mask with all entries being |True| of the same shape as
     its master |Variable| object.
 
@@ -165,7 +166,7 @@ class IndexMask(DefaultMask):
     RELEVANT_VALUES = ()
 
     @classmethod
-    def new(cls, variable):
+    def new(cls, variable, **kwargs):
         """Return a new |IndexMask| object of the same shape as the
         parameter referenced by |property| |IndexMask.refindices|.
         Entries are only |True|, if the integer values of the
@@ -182,7 +183,7 @@ class IndexMask(DefaultMask):
         refvalues = indices.values
         for relvalue in cls.RELEVANT_VALUES:
             mask[refvalues == relvalue] = True
-        return cls.array2mask(mask)
+        return cls.array2mask(mask, **kwargs)
 
     @classmethod
     def get_refindices(cls, variable):

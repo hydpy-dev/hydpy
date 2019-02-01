@@ -44,7 +44,7 @@ welcome!
 
 .. toctree::
 
-   development_environment
+   required_tools
    version_control
    hydpydependencies
    continuous_integration

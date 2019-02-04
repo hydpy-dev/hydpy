@@ -6,7 +6,7 @@
 .. _netCDF4 module: http://unidata.github.io/netcdf4-python/
 .. _NetCDF-CF: http://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/cf-conventions.html
 .. _hydpy __init__.py file: https://github.com/hydpy-dev/hydpy/blob/master/hydpy/__init__.py
-.. _coverage: https://coverage.readthedocs.io
+.. _coverage library: https://coverage.readthedocs.io
 .. _requirements.txt: https://github.com/hydpy-dev/hydpy/blob/master/requirements.txt
 .. _Sphinx: http://www.sphinx-doc.org/en/master/
 .. _conf.py: https://github.com/hydpy-dev/hydpy/blob/master/hydpy/docs/sphinx/conf.py

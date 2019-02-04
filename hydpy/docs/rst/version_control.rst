@@ -82,3 +82,35 @@ original `hydpy repository`_ into your current working branch, to resolve
 some conflicts if necessary, and to "rebase" everything to provide a granular
 and understandable pull request.  See the much more thorough explanations
 `How to Rebase a Pull Request`_ and `Pro Git`_ to improve your `Git`_ skills.
+
+Besides working in separate forks, it is a standard `Git`_ approach to
+structure code development in multiple branches.  For *HydPy*, we decided
+on the following branching model.
+
+First and most importantly, there is the "master" branch, tracking the
+"stable" changes of the code base, serving as the foundation of collaborative
+development.  Second, there are the "feature" and "fix" branches related to
+specific issues.  Third, there are the "release" branches, one for each
+official *HydPy* release.
+
+The master branch is never removed or rebased.  Hence, its commits cannot
+be changed or undone (except by later commits, of course). To avoid
+confusion and a messy commit historiy, do not commit to the master branch
+directly.  Instead, create new "feature" or "fix" branches based on the
+head of the master branch and develop the new feature or fix the addressed
+problem within this branch. Afterwards, you might need to merge recent
+changes of the master branch into your branch or to clean up your commit
+history through rebasing.  Finally, when everything seems right, your
+branch can be merged into the master branch with little risk to break
+something or affect the work of others.
+
+Feature and fix branches should contain both the affected subpackage and
+module name, as well as a short description of the topic.  If reasonable,
+follow the following pattern: "fix/core/hydpytools/typos".
+
+We use the tag name patterns "v4.0.0" and "v4.0a0" for stable and
+preliminary releases, respectively.  For stable releases, we tag
+commits to the master branch, only.  We create a separate branch for
+each minor version number (e.g. release/v4.0 and release/v4.1) to be able
+to apply fixes later.  Fixes are indicated by tags only, increasing
+the bugfix number (e.g. from v4.0.0 to v4.0.1).

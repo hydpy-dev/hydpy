@@ -11,11 +11,12 @@ import numbers
 import sys
 import textwrap
 import wrapt
-from typing import NoReturn
+from typing import NoReturn, Union
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import abctools
 from hydpy.core import autodoctools
+from hydpy.core import devicetools
 
 
 def dir_(self):
@@ -170,6 +171,8 @@ def devicename(self):
     >>> from hydpy import Element
     >>> e1 = Element('e1')
     >>> e1.connect(model)
+    >>> devicename(e1)
+    'e1'
     >>> devicename(model)
     'e1'
     """
@@ -281,7 +284,7 @@ Python built-ins like `for`...)
 
     Also, names of Python built ins are not allowed:
 
-    >>> valid_variable_identifier('print')
+    >>> valid_variable_identifier('print')   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
     ValueError: The given name string `print` does not define...
@@ -403,7 +406,7 @@ occurred: unsupported operand type(s) for +: 'int' and 'list'
     are now also augmented (the end of the message depends on the
     employed Python version):
 
-    >>> add(1)
+    >>> add(1)   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
     TypeError: While trying to add `x` and `y`, the following error \

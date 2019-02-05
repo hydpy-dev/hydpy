@@ -78,18 +78,18 @@ class Keywords(set):
                 objecttools.valid_variable_identifier(name)
         except ValueError:
             objecttools.augment_excmessage(
-                'While trying to add the keyword `%s` to device `%s`'
-                % (name, objecttools.devicename(self)))
+                f'While trying to add the keyword `{name}` '
+                f'to device {objecttools.devicename(self.device)}')
 
     def update(self, names):
         """Before updating, names are checked to be valid variable identifiers.
 
         >>> from hydpy import dummies
         >>> keywords = dummies.keywords
-        >>> keywords.update(['test_1', 'test 2'])
+        >>> keywords.update(['test_1', 'test 2'])   # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        ValueError: While trying to add the keyword `test 2` to device `?`, \
+        ValueError: While trying to add the keyword `test 2` to device ?, \
 the following error occurred: The given name string `test 2` does not \
 define a valid variable identifier.  ...
 
@@ -115,10 +115,10 @@ define a valid variable identifier.  ...
 
         >>> from hydpy import dummies
         >>> keywords = dummies.keywords
-        >>> keywords.add('1_test')
+        >>> keywords.add('1_test')   # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        ValueError: While trying to add the keyword `1_test` to device `?`, \
+        ValueError: While trying to add the keyword `1_test` to device ?, \
 the following error occurred: The given name string `1_test` does not \
 define a valid variable identifier.  ...
 
@@ -235,7 +235,7 @@ class Device(object):
 
         Invalid variable identifiers result errors like the following:
 
-        >>> node3 = Node('n 3')
+        >>> node3 = Node('n 3')   # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         ValueError: While trying to initialize a `Node` object with value \

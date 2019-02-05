@@ -30,7 +30,7 @@ addressing this topic from the scientific perspective.
 This section describes strategies on how to keep the danger of severe
 bugs and outdated documentation to a reasonable degree.  We try to keep
 the code and the documentation in sync by connecting them as strong as
- possible, using the "docstring" and "doctest" features of Python.
+possible, using the "docstring" and "doctest" features of Python.
 
 The first "connection" is writing each documentation section as close
 as possible next to the related source code.  For very general topics,

@@ -11,12 +11,11 @@ import numbers
 import sys
 import textwrap
 import wrapt
-from typing import NoReturn, Union
+from typing import NoReturn
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import abctools
 from hydpy.core import autodoctools
-from hydpy.core import devicetools
 
 
 def dir_(self):

@@ -1,151 +1,113 @@
-.. _mock object library: https://docs.python.org/3/library/unittest.mock.html
+
+.. _Hutton et al.: https://agupubs.onlinelibrary.wiley.com/doi/10.1002/2016WR019285
+.. _docstrings: https://www.python.org/dev/peps/pep-0257
 .. _reStructuredText: http://docutils.sourceforge.net/rst.html
+.. _Sphinx: http://www.sphinx-doc.org/en/master/
+.. _doctests: https://docs.python.org/library/doctest.html
+.. _unittest: https://docs.python.org/3/library/unittest.html
+.. _test_everything.py: https://github.com/hydpy-dev/hydpy/blob/master/hydpy/tests/test_everything.py
+.. _tests: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/tests
+.. _coverage library: https://coverage.readthedocs.io
+.. _Travis CI: https://travis-ci.com/
+.. _Travis log-page: https://travis-ci.org/hydpy-dev/hydpy
 
 .. _tests_and_documentation:
 
 Tests & documentation
 _____________________
 
-From a theoretical or even a philosophical point of view, the
-capabilities and shortcomings of hydrological modelling have been
-discussed thoroughly.  The negative impacts of low data quality
-are addressed by many sensitivity studies.  By contrast, we are not
-aware of any study focussing on the compromising effects of bugs
-and misleading code documentation of hydrological computer models.
-(Of course, such a study would be hard to conduct due to several
-reasons.) Given the little attention paid during the peer-review
-process to the correctness of model code and its transparent
-documentation, the danger of scientific results being corrupted
-by such flaws can --- carefully worded --- at least not be ruled
-out.
+The scientific community broadly discusses the capabilities and
+shortcomings of hydrological models from a theoretical point of view.
+Many sensitivity studies address the negative impacts of low data
+quality.  By contrast, we are not aware of any studies estimating
+the adverse effects of bugs and misleading documentation of hydrological
+computer models.  With little attention paid to these issues during
+evaluation processes (e.g. during peer-review), there is a risk of
+publishing impaired model results, possibly ecompromising the drawn
+conclusions.  See for example the commentary of `Hutton et al.`_,
+addressing this topic from the scientific perspective.
 
-This sections describes strategies on how to keep the danger
-of severe bugs and outdated documentation to a (hopefully)
-reasonable degree.
+This section describes strategies on how to keep the danger of
+severe bugs and outdated documentation to a reasonable degree.
+Essentially, we try to keep the code and the documentation in sync
+by connecting them as strong as possible, using the "docstring" and
+"doctest" features of Python.
 
-Conventional Unit-Tests
------------------------
+The first "connection" is writing each documentation section as close
+as possible next to the related source code.  For very general topics,
+like the one you are reading now, it does not make sense, but all
+explanations addressing specific *HydPy* features are written as
+`docstrings`_.  Docstrings are documentation strings which are
+attached to the Python objects they explain.  We have not met this
+goal yet, but we strive to attach at least a short docstring to
+each module and all its public members (including the sub-members, e.g.
+the public methods of a class.).  It is a strict requirement that
+each newly implemented public (sub)member comes with its own docstring
+right away.
 
-After installing HydPy through executing the `setup.py` module with
-the argument `install`, the script `test_everything` is executed as well.
-The first task of the latter module is to perform all `conventional`
-unit tests.  Therefore, all modules within the subpackage `tests` named
-'unittests_*.py' are evaluated based on the unit testing framework
-|unittest| of Pythons standard library.  Each new HydPy module should
-be complemented by a corresponding unittest file, testing its functionality
-thoroughly.  Just write test classes in each unittest file.  These are
-evaluated automatically by the script `test_everything`.  Let each class
-name  start with 'Test', a consecutive number, and a description of the
-functionality to be testet.  Each test class must inherit from
-|unittest.TestCase|, allowing for using its assert methods.  Last but not
-least, add the different test methods.  Again, each name should start with
-'test' and a consecutive number, but this time in lower case letters
-separated by underscores. By way of example, consider a snipplet of the
-test class for the initialization of |Date| objects:
+The second "connection" is to use and extend the functionalities of
+`Sphinx`_, which collects the source code, the docstrings, and the
+regular documentation files to generate the online documentation.
+`Sphinx`_ relies on the `reStructuredText`_ format, hence follow
+this format when writing docstrings and regular documentation files.
+However, instead of using its regular referencing style, make use of
+"substitutions" as defined by class |Substituter| of module |autodoctools|.
+Write for example the class name "Substituter" within vertical bars
+to make sure the corresponding class will be referenced properly.
+This short syntax allows making frequent use of substitutions.
+A helpful side effect is that, during the generation of the HTML pages,
+wrong substitutions result in warnings, interpreted as errors by our
+`Travis CI`_ based continuous integration workflow (see section
+:ref:`continuous_integration`).  This increases chances that, when future
+code changes are not accompanied by documentation adjustments, the
+`Travis CI`_ based workflow breaks, enforcing the responsible programmer
+to adapt the documentation.  The described substitution mechanism
+requires applying either function |autodoc_module|, |autodoc_basemodel|,
+or |autodoc_applicationmodel| at the end of each new module, which
+is mandatory.
 
-    >>> import unittest
-    >>> import datetime
-    >>> from hydpy.core import timetools
-    >>> class Test01DateInitialization(unittest.TestCase):
-    ...     def setUp(self):
-    ...         self.refdate_day = datetime.datetime(1996, 11, 1)
-    ...         self.refdate_hour = datetime.datetime(1996, 11, 1, 12)
-    ...     def test_01_os_style_day(self):
-    ...         self.assertEqual(self.refdate_day,
-    ...                          timetools.Date('1996_11_01').datetime)
-    ...     def test_02_os_style_hour(self):
-    ...         self.assertEqual(self.refdate_hour,
-    ...                          timetools.Date('1997_11_01_12').datetime)
-
-The |unittest.TestCase.setUp| method allows for some preparations that
-have to beconducted before the test methods can be called.  The status
-defined in the |unittest.TestCase.setUp| method is restored before each
-test method call, hence --- normally --- the single test methods do not
-affect each other (the consecutive numbers are only used for reporting
-the test results in a sorted manner).  In case the test methods affect
-some global variables, add a |unittest.TestCase.tearDown| method to your
-test class, which will be executed after each test method call. See the
-documentation on |unittest.TestCase| regarding the available assert methods.
-
-To elaborate the example above, the two test methods are executed manually
-(normally, this is done by the script `test_everything` automatically).
-First prepare an object for the test results:
-
-    >>> result = unittest.result.TestResult()
-
-Then initialize a test object engaging the first test method and run
-all assertions (in this case, there is only one assertion per method):
-
-    >>> tester = Test01DateInitialization('test_01_os_style_day')
-    >>> _ = tester.run(result)
-
-Now do the same for the second test method:
-
-    >>> tester = Test01DateInitialization('test_02_os_style_hour')
-    >>> _ = tester.run(result)
-
-The test result object tells us that two tests have been executed, that
-no (unexpected) error occurred, and that one test failed:
-
-    >>> result
-    <unittest.result.TestResult run=2 errors=0 failures=1>
-
-Here is the reason for the (intentional) failure in this example:
-
-    >>> print(result.failures[0][-1].split('\n')[-2])
-    AssertionError: datetime.datetime(1996, 11, 1, 12, 0) != datetime.datetime(1997, 11, 1, 12, 0)
-
-
-
-Doctests
---------
-
-When defining `conventional` unit tests, one tries to achieve a large
-test coverage with few lines of code (don't repeat yourself!).
-Therefore, sophisticated tools like the `mock object library`_ are
-available.  Unit tests might also save the purpose to explain the
-functioning of the main code, as they explicitly show how it can
-be used.  However, the latter is pie in the sky when the unit tests
-are interpreted by someone who has little experience in unit testing
-and maybe little experience in programming at all.  This might not be
-a relevant problem as long as we test such basic functionalities of
-the HydPy framework, the user is not really interested in directly or
-just expects to work.  However, at the latest when the implemented
-hydrological models are involved, the clarity of the defined unit tests
-is desirable even for non-programmers (and --- in our opinion ---
-it is scientifically necessary).
-
-Each model implemented in HydPy should be tested in a manner that is
-as clear and comprehensible as possible.  To this end, the documentation
-test principle defined by the module |doctest| should be applied
-extensively.  At least, all code branches including (hydrological)
-equations should be captured completely via doctests. (More technical
-branches, e.g. those including the treatment of exceptions, can be
-left to conventional unit tests.)  Often only one or two sentences
-are required to explain a doctest in a way, allowing a non-programmer
-to understand and repeat it.  And through repetition, he learns to
-apply the model.
-
-Besides their intuitiveness, doctests offer the big advantage of
-keeping source code and documentation in sync.  Whenever either
-a source line or its associated doctest contains errors, or
-whenever the source code is updated but the associated doctests
-not (or the other way round), it is reported.  Hence all examples
-in the HydPy documentation should be written as doctests.  The more
-doctests the documentation includes, the merrier the danger of
-retaining outdated documentation sections.  In order to keep an
-eye on a concrete example: as long as this three-line doctest...
+The third "connection" is to define a sufficient number of `doctests`_.
+Doctests are documentation sections containing valid Python code followed
+by the expected results.  For developers, |doctest| is not always as
+convenient as other unit testing frameworks (e.g. |unittest|), but it
+offers the great advantage to define tests that are understandable for
+non-programmers as well.  In *HydPy*, at best each (sub)member should
+define its own doctests, telling in conjunction with some "normal"
+explanations about its purpose and usage. Non-programmers should be
+enabled to learn using *HydPy* by repeating the doctests.  Besides their
+intuitiveness, doctests (like substitutions) offer the big advantage of
+keeping source code and documentation in sync.  As long as the following
+three-line doctest remains in the documentation, one can be sure that
+the current core package contains a module named "objecttools":
 
     >>> from hydpy.core import objecttools
     >>> objecttools.classname(objecttools)
     'module'
 
-...remains in the documentation, one can be sure that the current
-core package contains a module named `objecttools`.
+The Python script `test_everything.py`_ collects the doctests of all
+modules and executes them.  Additionally, it executes the "conventional"
+unit tests defined in subpackage `tests`_.  For us, maintaining two
+testing frameworks in parallel has proven to be distracting rather than
+helpful, which is why we are going to replace all "conventional" by
+doctests by and by.  Hence, do not add further "conventional" unit
+test when developing new *HydPy* features.
 
-To support the frequent usage of doctests, one is allowed to use
-them at any section of the documentation, accepting possible
-redundancies with defined `conventional` unit tests.  The script
-`test_everything` searches for doctests in all Python modules and
-all `reStructuredText`_ files contained in the package hydpy and
-executes them.
+We aim at demonstrating all functionalities of *HydPy* via doctests,
+both for educational purposes and to make sure future changes do not
+break existing features.  Therefore, one interim goal is to let the
+complete doctest suite execute all code lines of *HydPy*. This measure
+of "code coverage" (the number of executed code lines divided by the
+total number of code lines), determined by the `coverage library`_
+is currently around 94 %.  We seek to increase it to 100 %, and then
+to remove the "conventional" tests and to introduce new doctests where
+necessary to keep it.  As soon as we have reached the 100 % goal, we
+will instruct the `Travis CI`_ workflow to interpret any uncovered
+line as a failures. Until then, the temporary rule is that only new
+code lines must be covered completely, as well as all changes to
+already existing, so far uncovered code lines.
+
+You find a condensed coverage report in each `Travis log-page`_.
+Additionally, click :download:`here <coverage.html>` to download
+a nicely rendered report.  Note that we determine the code coverage
+on Linux machines only and that the downloadable report is based on
+a specific Python version only (at the time of writing 3.7).

@@ -27,16 +27,15 @@ publishing impaired model results, possibly ecompromising the drawn
 conclusions.  See for example the commentary of `Hutton et al.`_,
 addressing this topic from the scientific perspective.
 
-This section describes strategies on how to keep the danger of
-severe bugs and outdated documentation to a reasonable degree.
-Essentially, we try to keep the code and the documentation in sync
-by connecting them as strong as possible, using the "docstring" and
-"doctest" features of Python.
+This section describes strategies on how to keep the danger of severe
+bugs and outdated documentation to a reasonable degree.  We try to keep
+the code and the documentation in sync by connecting them as strong as
+ possible, using the "docstring" and "doctest" features of Python.
 
 The first "connection" is writing each documentation section as close
 as possible next to the related source code.  For very general topics,
-like the one you are reading now, it does not make sense, but all
-explanations addressing specific *HydPy* features are written as
+like the one you are reading now, it does not make sense, but write
+all explanations addressing specific *HydPy* features as
 `docstrings`_.  Docstrings are documentation strings which are
 attached to the Python objects they explain.  We have not met this
 goal yet, but we strive to attach at least a short docstring to
@@ -52,19 +51,18 @@ regular documentation files to generate the online documentation.
 this format when writing docstrings and regular documentation files.
 However, instead of using its regular referencing style, make use of
 "substitutions" as defined by class |Substituter| of module |autodoctools|.
-Write for example the class name "Substituter" within vertical bars
-to make sure the corresponding class will be referenced properly.
-This short syntax allows making frequent use of substitutions.
-A helpful side effect is that, during the generation of the HTML pages,
-wrong substitutions result in warnings, interpreted as errors by our
-`Travis CI`_ based continuous integration workflow (see section
-:ref:`continuous_integration`).  This increases chances that, when future
-code changes are not accompanied by documentation adjustments, the
-`Travis CI`_ based workflow breaks, enforcing the responsible programmer
-to adapt the documentation.  The described substitution mechanism
-requires applying either function |autodoc_module|, |autodoc_basemodel|,
-or |autodoc_applicationmodel| at the end of each new module, which
-is mandatory.
+WWrite for example the class name “Substituter” within vertical bars to
+reference the corresponding class properly. This short syntax allows
+making frequent use of substitutions. A helpful side effect is that,
+during the generation of the HTML pages, wrong substitutions result in
+warnings, interpreted as errors by our `Travis CI`_ based continuous
+integration workflow (see section :ref:`continuous_integration`).  This
+mechanism  increases chances that, when documentation adjustments do
+not accompany future code changes, the `Travis CI`_ based workflow breaks,
+enforcing the responsible programmer to adapt the documentation.  The
+described substitution mechanism requires applying either function
+|autodoc_module|, |autodoc_basemodel|, or |autodoc_applicationmodel| at
+the end of each new module, which is mandatory.
 
 The third "connection" is to define a sufficient number of `doctests`_.
 Doctests are documentation sections containing valid Python code followed
@@ -89,7 +87,7 @@ modules and executes them.  Additionally, it executes the "conventional"
 unit tests defined in subpackage `tests`_.  For us, maintaining two
 testing frameworks in parallel has proven to be distracting rather than
 helpful, which is why we are going to replace all "conventional" by
-doctests by and by.  Hence, do not add further "conventional" unit
+doctests successively.  Hence, do not add further "conventional" unit
 test when developing new *HydPy* features.
 
 We aim at demonstrating all functionalities of *HydPy* via doctests,
@@ -101,10 +99,10 @@ total number of code lines), determined by the `coverage library`_
 is currently around 94 %.  We seek to increase it to 100 %, and then
 to remove the "conventional" tests and to introduce new doctests where
 necessary to keep it.  As soon as we have reached the 100 % goal, we
-will instruct the `Travis CI`_ workflow to interpret any uncovered
-line as a failures. Until then, the temporary rule is that only new
-code lines must be covered completely, as well as all changes to
-already existing, so far uncovered code lines.
+modify the `Travis CI`_ workflow to interpret any uncovered line as a
+failure. Until then, the temporary rule is that only new code lines
+must be covered completely, as well as all changes to already existing,
+so far uncovered code lines.
 
 You find a condensed coverage report in each `Travis log-page`_.
 Additionally, click :download:`here <coverage.html>` to download

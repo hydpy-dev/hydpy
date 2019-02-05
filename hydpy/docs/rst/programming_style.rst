@@ -401,6 +401,3 @@ such code to the modules like |modelutils| and |autodoctools|.  Module
 |modelutils| deals with all introspection needed to `cythonize` Python models
 automatically.  Module |autodoctools| serves for improving HydPy's online
 documentation automatically.
-
-Model level
------------

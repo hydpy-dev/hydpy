@@ -50,4 +50,5 @@ welcome!
    continuous_integration
    tests_and_documentation
    programming_style
+   implementing_models
    additional_repositories

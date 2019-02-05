@@ -1,5 +1,5 @@
 
-.. _implementing_models
+.. _implementing_models:
 
 Implementing Models
 ___________________

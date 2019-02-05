@@ -10,41 +10,47 @@ Programming style
 _________________
 
 Python allows for writing concise and easily readable software code,
-that can be maintained and further developed with relative ease.
-However, code quality does also depend on the experience (and available
-time) of the programmer writing it.  In hydrology, much model code is
-written by PhD students and other young scientists, who --- besides
-having participated in some more or less comprehensive introductory
-courses --- have often little programming experience and who are under
-the pressure not only to get their model running, but also to tackle
-their scientific questions and to publish as many research articles
-as possible within a limited period of time.  The source code
-resulting from such a rush is understandably often a mess.  And even
-the better software results often prove inadequate when it comes
+that can be maintained and further developed with acceptable effort.
+However, code quality does also depend on the experience and available
+time of the programmer writing it.  In hydrology, much model code is
+written by PhD students, who often have little programming experience
+and are under pressure not only to get their model running but also to
+tackle their scientific questions and to publish their results.  The
+source code resulting from such a rush is understandably often a mess.
+Even the better software results often prove inadequate when it comes
 to transferring the software into practical applications or sharing it
 with other researchers.
 
-This is why we defined the HydPy Style Guide, which is a refinement
-of `PEP 8`_ --- the "official" Style Guide for Python Code.
-`PEP 8`_ gives coding conventions that help to write clear code.
-And it eases diving into already existing source code, as one has
-less effort with unravelling the mysteries of overly creative
-programming solutions.
 
-In some regards, the HydPy Style Guide deviates substantially from `PEP 8`_.
-This is mostly due to following two aims.  First, that the HydPy framework
-shall be applicable for hydrologists with little or even no programming
-experience.  Ideally, such framework users should not even notice that they
-are writing valid Python code while preparing their configuration files.
-Secondly, that the common gap between model code, model documentation and
-model testing should be closed as well as possible.  Understanding the
-model documentation of a certain HydPy version should be identical with
-understanding how the model actually works under the same HydPy version.
-These two points are elucidated in the following subsections.
+In the long development process of *HydPy*, which also started as a
+quick side-project when writing a PhD thesis, we made many misleading
+design decisions ourselves.   However, through much effort spent in
+periods of refactoring and consolidation, we came to a software
+architecture that, in our opinion, should be easily extensible and
+applicable in many contexts.
+
+This section defines the steadily growing "HydPy Style Guide", being
+an attempt to explain the principles in the development of *HydPy*,
+to make sure contributions by different developers are as consistent
+as possible.  Please understand the "HydPy Style Guide" as a refinement
+of `PEP 8`_ — the “official” Style Guide for Python Code. `PEP 8`_ gives
+coding conventions that help to write clear code.  If everyone follows
+these conventions, diving into already existing source code becomes much
+more straightforward, as one has less effort unravelling the mysteries
+of overly creative programming solutions.
+
+In some regards, the HydPy Style Guide deviates from `PEP 8`_, mostly
+due to the following two aims.  First, we design the *HydPy* framework
+as a Python library applicable for hydrologists with little or even no
+programming experience.  Ideally, such framework users should not even
+notice that they are writing valid Python code while preparing their
+configuration files.  Second, we try to close the gap between the model
+code, model documentation and model tests as well as possible.
+Through reading (and testing) for example the documentation of a specific
+model, one should exactly understand how this model works within the
+corresponding version of the *HydPy* framework.
 
 
-Framework features
-------------------
 When trying to contribute code to the core tools of HydPy (meaning
 basically everything except the actual model implementations), on has
 to be aware that even slight changes can have significant effects
@@ -61,10 +67,11 @@ through reading more advanced literature like this
 
 
 Imports
-.......
+-------
+
 As recommended in `PEP 8`_, clarify the sources of your imports.
-Always use the following pattern at the top of a new module
-(with some example packages):
+Always use the following pattern at the top of a new module and
+list the imports of a section in alphabetical order:
 
     >>> # import...
     >>> # ...from standard library
@@ -76,13 +83,13 @@ Always use the following pattern at the top of a new module
     >>> from hydpy.core import sequencetools
     >>> from hydpy.cythons import pointerutils
 
-Note that each import command has its own line.  Always import
+Note that each import command stands in a separate line.  Always import
 complete modules from HydPy without changing their names. ---
 No wildcard imports!
 
-The wildcard ban is lifted when writing configuration files.
-Using the parameter control files as an example, it wouldn't be nice to
-always write something like:
+We lift the wildcard ban for  writing configuration files. Using the
+example of parameter control files, it would not be convenient always
+to write something like:
 
     >>> from hydpy.models import hland
     >>> model = hland.Model()
@@ -93,12 +100,10 @@ always write something like:
     >>> model.parameters.control.nmbzones
     nmbzones(2)
 
-Here a wildcard import (and some magic, see below), allows for a much
-cleaner syntax:
+Here a wildcard import (and the "magic" of function |parameterstep|),
+allows for a much cleaner syntax:
 
-    >>>  # First delete the model instance of the example above.
     >>> del model
-    >>> # Now repeat the above example in a more intuitive manner.
     >>> from hydpy.models.hland import *
     >>> parameterstep('1d')
     >>> nmbzones(2)
@@ -108,70 +113,85 @@ cleaner syntax:
 Note that the wildcard import is acceptable here, as there is only one
 import statement.  There is no danger of name conflicts.
 
+Besides the wildcard exeption explained above, there is another one
+related to |modelimports| (see section :ref:`implementing_models`).
+
+
 Defensive Programming
-.....................
-HydPy is intended to be applicable by researchers and practitioners
-who are no Python experts and may have little experience in programming
-in general.  Hence it is desirable to anticipate errors due to misleading
-input as good as possible and report them as soon as possible.
-So, in contradiction to `PEP 8`_, it is recommended to not just expose
-the names of simple public attributes.  Instead, use protected attributes
-(usually properties) to assure that the internal states of objects remain
-consistent, whenever this appears to be useful. One example is that it
-is not allowed to assign an unknown string to the `outputfiletype` of a
-|SequenceManager|:
+---------------------
 
-    >>> from hydpy.core.filetools import SequenceManager
-    >>> sm = SequenceManager()
-    >>> sm.fluxfiletype = 'test'
-    Traceback (most recent call last):
-      ...
-    ValueError: The given sequence file type `test` is not implemented.  Please choose one of the following file types: npy, asc, and nc.
+HydPy should be applicable by researchers and practitioners who are no
+Python experts and may have little experience in programming in general.
+Hence, it is desirable to anticipate errors due to misleading input as
+good as possible and report them as soon as possible.  So, in contradiction
+to `PEP 8`_, it is often preferable to not just expose the names of
+simple public attributes.  Whenever sensible, use protected attributes
+(usually the basic |property| objects or the more specific properties
+provided by module |propertytools|) to assure that the internal states
+of objects remain consistent. One example is that it is not allowed to
+assign an unknown string to the `outputfiletype` of an instance of
+class |SequenceManager| :
 
-Of course, the extensive usage of protected attributes increases
-the length of the source code and slows computation time.  But,
-regarding the first point, writing a graphical user interface
-would require much more source code.  And, regarding the second
-point, the computation times of the general framework
-functionalities discussed here should be negligible in comparison
-with the computation times of the hydrological simulations,
-which are discussed below, in the majority of cases.
+>>> from hydpy.core.filetools import SequenceManager
+>>> sm = SequenceManager()
+>>> sm.fluxfiletype = 'test'
+Traceback (most recent call last):
+  ...
+ValueError: The given sequence file type `test` is not implemented.  Please choose one of the following file types: npy, asc, and nc.
+
+
+Of course, the extensive usage of protected attributes increases the
+length of the source code and slows computation time.  However, regarding
+the first point, writing a graphical user interface would require much
+more source code (and still decrease flexibility).  Regarding the second
+point, one should take into account that the computation times of the
+general framework functionalities discussed here should be negligible
+in comparison with the computation times of hydrological simulations
+in the majority of cases.
+
 
 Exceptions
-..........
-Unmodified error messages of Python (and of the imported
-libraries) are often not helpful in the application of HydPy due
-to two reasons: First, they are probably read by someone who has
-no experience in understanding Pythons exception handling system.
-And secondly, they do not tell in which context a problem occurs.
-Here, "context" does not mean the relevant part of the source code,
-which is of course referenced in the traceback; instead, it means
-things like the concerned geographical location.  It would, for example,
-be of little help to only know that the required value of a certain
-parameter is not available when the same parameter is applied
-thousands of times in different subcatchments.  Try to add as much
-helpful information to error messages as possible, e.g.::
+----------
 
-    raise RuntimeError('For parameter %s of element %s no value has been '
-                       'defined so far.  Hence it is not possible to...'
-                       % (parameter.name, objecttools.devicename(parameter)))
+Unmodified Python error messages are often not sufficiently informative
+for *HydPy* applications due to two reasons. First, they are probably
+read by someone who has no experience in understanding Python's exception
+handling system.  Second, they do not tell in which hydrological context
+a problem occurs.  It would be of little help to only know that the value
+of a parameter object of a particular type has been misspecified, but not
+to know in which sub-catchment.  Hence, try to add as much helpful
+information to error messages as possible.  One useful helper function
+for doing so is |elementphrase|, trying to determine the name of the
+relevant |Element| object and add it to the error message:
 
-(The function |devicename| tries to determine the name of the |Node|
-or |Element| instance (indirectly) containing the given object, which
-is in many cases the most relevant information for identifying the
-error source.)
 
-Whenever possible, us function |augment_excmessage| to augment
-standard Python error messages with `HydPy information`.
+>>> from hydpy.models.hland import *
+>>> parameterstep('1d')
+>>> from hydpy import Element
+>>> e1 = Element('e1')
+>>> e1.connect(model)
+>>> k(hq=10.0)
+Traceback (most recent call last):
+...
+ValueError: For the alternative calculation of parameter `k` of element `e1`, at least the keywords arguments `khq` and `hq` must be given.
+
+Another recommended approach is exception chaining, for which we
+recommend using function |augment_excmessage|:
+
+>>> e1.keywords = 'correct', 'w r o n g'
+Traceback (most recent call last):
+...
+ValueError: While trying to add the keyword `w r o n g` to device e1, the following error occurred: The given name string `w r o n g` does not define a valid variable identifier.  Valid identifiers do not contain characters like `-` or empty spaces, do not start with numbers, cannot be mistaken with Python built-ins like `for`...)
 
 
 Naming Conventions
-..................
-The naming conventions of `PEP 8`_ apply.  Additionally, it is
+------------------
+
+The naming conventions of `PEP 8`_ apply.  Additionally, we
 encouraged to name classes and their instances as similar as
 possible whenever reasonable, often simply switching from
-**CamelCase** to **lowercase**. This can be illustrated based
-on some classes for handling time series:
+**CamelCase** to **lowercase**, as shown in the following
+examples:
 
 =============== ============== ===================================================================================
 Class Name      Instance Name  Note
@@ -180,30 +200,30 @@ Sequences       sequences      each Model instance handles exactly one Sequence 
 InputSequences  inputs         "inputsequences" would be redundant for attribute access: `model.sequences.inputs`
 =============== ============== ===================================================================================
 
-If possible, each instance should define its own preferred name via
-the property `name`:
+If reasonable, each instance should define its preferred name via *name*
+attribute:
 
-    >>> from hydpy.models.hland import *
-    >>> InputSequences(None).name
-    'inputs'
+>>> from hydpy.models.hland import *
+ >>> InputSequences(None).name
+'inputs'
 
-For classes like |Element| or |Node|, where names (and not
-namespaces) are used to differentiate between instances, the
-property `name` is also implemented, but --- of course --- not
-related to the class name, e.g.:
+Classes like |Element| or |Node|, where names (and not namespaces) are
+used to differentiate between instances, should implement instance name
+attributes, when reasonable:
 
-    >>> from hydpy import Node
-    >>> Node('gauge1').name
-    'gauge1'
+>>> from hydpy import Node
+>>> Node('gauge1').name
+'gauge1'
 
-In HydPy, instances of the same or similar type should be grouped in
-collection objects with a similar name, but with an attached letter "s".
-Different |Element| instances are storedin an instance of the class
-|Elements|, different |Node| instances are stored in an instance of
-the class |Nodes|...
+Group instances of the same type in collection objects with the same name,
+except an attached letter "s". For example, we store different |Element|
+objects are in an instance of class |Elements|, and different |Node|
+objects in an instance of the class |Nodes|.
+
 
 Collection Classes
-..................
+------------------
+
 The naming (of the instances) of collection classes is discussed just
 above.  Additionally, try to follow the following recommendations.
 
@@ -247,7 +267,8 @@ handling of collection objects, e.g.:
 
 
 String Representations
-......................
+----------------------
+
 Be aware of the difference between |str| and |repr|.  A good string
 representation (return value of |repr|) is one
 that a Non-Python-Programmer does not identify to be a string.
@@ -342,7 +363,7 @@ might be misleading:
 
 
 Introspection
-.............
+-------------
 
 One of Pythons major strengths is `introspection`, allowing you to analyze
 (and modify) objects fundamentally at runtime.  One simple example would

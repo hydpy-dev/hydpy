@@ -8,6 +8,7 @@ import numpy
 # ...from HydPy
 from hydpy.core import parametertools
 # ...from hland
+from hydpy.core import objecttools
 from hydpy.models.hland import hland_constants
 from hydpy.models.hland import hland_parameters
 
@@ -287,23 +288,23 @@ class K(parametertools.SingleParameter):
         >>> k(wrong=1)
         Traceback (most recent call last):
         ...
-        ValueError: For parameter `k` a value can be set directly or \
-indirectly by using the keyword arguments `khq` and `hq`.
+        ValueError: For parameter `k` of element `?` a value can be set \
+directly or indirectly by using the keyword arguments `khq` and `hq`.
 
         >>> k(hq=10.0)
         Traceback (most recent call last):
         ...
-        ValueError: For the alternative calculation of parameter `k`, at \
-least the keywords arguments `khq` and `hq` must be given.
+        ValueError: For the alternative calculation of parameter `k` of \
+element `?`, at least the keywords arguments `khq` and `hq` must be given.
 
         >>> import numpy
         >>> alpha(numpy.nan)
         >>> k(hq=10.0, khq=2.0)
         Traceback (most recent call last):
         ...
-        RuntimeError: For the alternative calculation of parameter `k`, \
-either the keyword argument `alpha` must be given or the value of parameter \
-`alpha` must be defined beforehand.
+        RuntimeError: For the alternative calculation of parameter `k` of \
+element `?`, either the keyword argument `alpha` must be given or the value \
+of parameter `alpha` must be defined beforehand.
     """
     NDIM, TYPE, TIME, SPAN = 0, float, True, (0., None)
 
@@ -314,22 +315,22 @@ either the keyword argument `alpha` must be given or the value of parameter \
             counter = ('khq' in kwargs) + ('hq' in kwargs)
             if counter == 0:
                 raise ValueError(
-                    'For parameter `k` a value can be set directly '
-                    'or indirectly by using the keyword arguments `khq` '
-                    'and `hq`.')
+                    f'For parameter {objecttools.elementphrase(self)} a '
+                    f'value can be set directly or indirectly by using '
+                    f'the keyword arguments `khq` and `hq`.')
             elif counter == 1:
                 raise ValueError(
-                    'For the alternative calculation of parameter `k`, '
-                    'at least the keywords arguments `khq` and `hq` must '
-                    'be given.')
+                    f'For the alternative calculation of parameter '
+                    f'{objecttools.elementphrase(self)}, at least the '
+                    f'keywords arguments `khq` and `hq` must be given.')
             elif counter == 2:
                 alpha = float(kwargs.get('alpha', self.subpars.alpha.value))
                 if numpy.isnan(alpha):
                     raise RuntimeError(
-                        'For the alternative calculation of parameter '
-                        '`k`, either the keyword argument `alpha` must '
-                        'be given or the value of parameter `alpha` '
-                        'must be defined beforehand.')
+                        f'For the alternative calculation of parameter '
+                        f'{objecttools.elementphrase(self)}, either the '
+                        f'keyword argument `alpha` must be given or the value '
+                        f'of parameter `alpha` must be defined beforehand.')
                 khq = float(kwargs['khq'])
                 hq = float(kwargs['hq'])
                 self(hq/((hq/khq)**(alpha+1.)))

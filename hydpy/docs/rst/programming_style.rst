@@ -1,7 +1,26 @@
 .. _PEP 8: https://www.python.org/dev/peps/pep-0008/
 .. _Python tutorials: https://www.python.org/about/gettingstarted/
 .. _book on object-oriented design: http://www.itmaybeahack.com/homepage/books/oodesign.html
-
+.. _core: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/core
+.. _auxs: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/auxs
+.. _models: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/models
+.. _exe: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/exe
+.. _cythons: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/cythons
+.. _Cython: https://cython.org/
+.. _autogen: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/cythons/autogen
+.. _conf: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/conf
+.. _data: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/data
+.. _LahnH example project: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/data/LahnH
+.. _docs: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/docs
+.. _reStructuredText: _http://docutils.sourceforge.net/rst.html
+.. _sphinx: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/docs/sphinx
+.. _rst: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/docs/rst
+.. _figs: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/docs/figs
+.. _html: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/docs/html
+.. _bokeh: https://bokeh.pydata.org/en/latest/
+.. _tests: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/tests
+.. _iotesting: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/tests/iotesting
+.. _LaTeX: https://www.sphinx-doc.org/en/master/latex.html
 
 .. _programming_style:
 
@@ -66,6 +85,80 @@ improve your knowledge of code quality through reading more advanced
 literature like this `book on object-oriented design`_.
 
 
+Project structure
+-----------------
+
+For *HydPy*, we prefer a flat folder structure  with at most two
+subpackage levels.  The individual modules can be of arbitrary length,
+to cover individual topics completely.  For example, module
+|parametertools| defines all base classes for creating model-specific
+parameter classes as well as their collection classes.
+
+Subpackage `core`_ provides the most basic features of *HydPy*, used for
+implementing hydrological models and workflows as well.  One example
+is the mentioned |parametertools| module.  Modules defined in subpackage
+`core`_ should never import features provided by modules of other
+subpackages, excepts those of subpackage `cythons`_.
+
+Subpackage `auxs`_ provides auxiliary features, only necessary for
+selected *HydPy* models and applications.  One example is module
+|anntools| defining artificial neural network classes usable as
+complex model parameters, currently relevant for the |dam| model only.
+Modules defined in subpackage `auxs` are allowed to import features
+from subpackages `core`_ and `cythons`_.
+
+Subpackage `models`_ contains the implemented hydrological models.
+Base models as |dam| are additional subpackages, providing, for example,
+different kinds of sequence classes in separate submodules. Application
+models as |dam_v001|, selecting useful combinations of base model
+features, are defined within single modules.  Please follow the naming
+patterns of the modules of the already available models carefully, when
+implementing new ones.
+
+Subpackage `exe`_ provides features easing the execution of *HydPy*.
+Module |commandtools| (in combination with script |hyd|), for example,
+allows to control *HydPy* from the command line.
+
+Subpackage `cythons`_ is related to all `Cython`_ features of *HydPy*.
+First, it contains functionalities for "cythonizing" the Python models
+defined in subpackage `models`_.  Second, it contains `Cython`_ extension
+files, which mostly correspond to Python modules of other subpackages.
+For example, the extension file |annutils| provides time-critical
+implementation details to module |anntools|.  Third, it contains the
+additional subpackage `autogen`_, including all automatically generated
+extension files and Dynamic Link Library files (*pyd* files on Windows
+and *so* files on Linux). Extension files should not import any features
+from other subpackages.  Python files controlling the automatic generation
+of extension files are allowed to import from subpackage `core`_.
+
+Note that the names of the modules of subpackages `core`_, `auxs`_, and
+`exe`_ end in almost all cases with "tools" and those of the modules and
+extension files of subpackage `cythons`_ with "utils", which helps to
+identify the different module types immediately and to circumvent name
+conflicts between and within modules.
+
+Subpackage `conf`_ contains configuration files (currently XML schema
+files and coefficients for numerical integration algorithms), which
+might be generated automatically during *HydPy's* build process.
+
+Subpackage `data`_ provides example data usable within doctests,
+currently only the `LahnH example project`_.
+
+Subpackage `docs`_ contains different subpackages itself.  `sphinx`_
+controls the automatic generation of the HTML documentation. `rst`_
+contains all `reStructuredText`_ files written manually. `figs`_ contains
+all manually generated figures in the *png* format.  After the build
+process, `html`_ contains the `bokeh`_ plots automatically generated
+during testing.  Note that the actual HTML generation takes place in
+a folder *auto*, automatically created and filled with information
+during the process.
+
+Subpackage `tests`_ deals with testing.  As explained in section
+:ref:`tests_and_documentation`, its unit test modules are deprecated.
+Its subpackage `iotesting`_ is the place designated to store data
+during testing temporarily.
+
+
 Imports
 -------
 
@@ -114,7 +207,7 @@ Note that the wildcard import is acceptable here, as there is only one
 import statement.  There is no danger of name conflicts.
 
 Besides the wildcard exeption explained above, there is another one
-related to |modelimports| (see section :ref:`implementing_models`).
+related to |modelimports|.
 
 
 Defensive programming
@@ -423,9 +516,43 @@ does help a lot, allowing code inspection and refactoring tools to analyse
 and modify the code more efficiently. We are going to increase our efforts
 in this direction, but do not have a "HydPy Typing Style Guide" at hand,
 so far.  So please add the typing annotations you find useful.  The minimum
-requirement is declare the return type (or, when necessary, to declare the
-possible return types) of each new function or method:
+requirement for Python modules is to declare the return type (or, when
+necessary, to declare the |typing.Union| of possible return types) of
+each new function or method:
 
 >>> from typing import List
 >>> def test(nmb) -> List[int]:
 ...     return list(range(nmb))
+
+For `Cython`_ extension files, adding type information understandable
+to Python tools is of even greater importance. Hence, accompany each
+`Cython`_ extension file with a stub file, annotating all public
+(sub)members.
+
+
+Implementing models
+-------------------
+
+Please inspect the source files of the already available hydrological
+models in detail to understand how to implement new ones correctly.
+*HydPy* provides many standard features, allowing you to write straightforward
+model source code in many cases.  However, you are free to implement any
+functionalities you find missing (see for example the complex "connect"
+method defined by the |hbranch| model). If those functionalities might
+be of importance to other models as well, consider to generalise them
+and to add them to the suitable subpackage.
+
+The main effort of creating new models is not to write the source code,
+but to document it thoroughly and to prove it is working correctly.
+Each docstring of a calculation method must contain at least a short
+description, lists of the required, calculated, and updated variables
+(linked via substitutions), the basic equation in `LaTeX`_ style,
+and doctests covering all anticipated usages of the method, even the
+unlikely ones.  The docstrings of all |Parameter| or |Sequence|
+subclasses containing "special" source code (for example modifications
+of |trim|) must contain doctests addressing these code sections.
+Finally, write integration tests for each application model based on
+class |IntegrationTest|, explaining all model functionalities in detail
+both with text and `bokeh`_ plots, and preventing future regression by
+sufficiently complete tabulated calculation results.
+

@@ -22,7 +22,6 @@ import warnings
 import numpy
 # ...from HydPy
 import hydpy
-from hydpy import tests
 from hydpy import pub
 from hydpy import docs
 from hydpy.core import abctools

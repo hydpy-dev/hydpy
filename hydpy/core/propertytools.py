@@ -6,7 +6,6 @@ additional behaviour."""
 # ...from standard-library
 from typing import *
 import abc
-import weakref
 # ...from HydPy
 from hydpy.core import autodoctools
 from hydpy.core import exceptiontools

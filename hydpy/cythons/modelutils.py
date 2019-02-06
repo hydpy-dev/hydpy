@@ -22,7 +22,6 @@ import numpy
 import hydpy
 from hydpy import pub
 from hydpy import cythons
-from hydpy.core import abctools
 from hydpy.core import autodoctools
 from hydpy.core import objecttools
 from hydpy.core import parametertools

@@ -4,7 +4,7 @@ additional behaviour."""
 
 # import...
 # ...from standard-library
-from typing import *
+from typing import Any, Callable
 import abc
 # ...from HydPy
 from hydpy.core import autodoctools
@@ -13,6 +13,7 @@ from hydpy.core import objecttools
 
 
 class BaseProperty(object, metaclass=abc.ABCMeta):
+    # noinspection PyUnresolvedReferences
     """Abstract base class for deriving classes similar to |property|.
 
     |BaseProperty| provides the abstract methods |BaseProperty.call_fget|,
@@ -155,6 +156,7 @@ methods call_fdel, call_fget, call_fset
 
 
 class ProtectedProperty(BaseProperty):
+    # noinspection PyUnresolvedReferences
     """|property| like class which prevents getting an attribute
     before setting it.
 
@@ -259,6 +261,7 @@ class ProtectedProperty(BaseProperty):
 
 
 class ProtectedProperties(object):
+    # noinspection PyUnresolvedReferences
     """Iterable for |ProtectedProperty| objects.
 
     You can combine an arbitrary number of |ProtectedProperty| objects
@@ -311,6 +314,7 @@ class ProtectedProperties(object):
 
 
 class DependentProperty(BaseProperty):
+    # noinspection PyUnresolvedReferences
     """|property| like class which prevents accessing a dependent
     attribute before other attributes have been prepared.
 
@@ -410,6 +414,7 @@ attribute `x` first.
 
 
 class DefaultProperty(BaseProperty):
+    # noinspection PyUnresolvedReferences
     """|property| like class which uses the getter function to return
     a default value unless a custom value is available.
 
@@ -519,7 +524,8 @@ class DefaultProperty(BaseProperty):
         except KeyError:
             pass
 
-    def _fset(self, obj, value) -> Any:
+    @staticmethod
+    def _fset(_, value) -> Any:
         """Just return the given value."""
         return value
 

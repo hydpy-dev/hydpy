@@ -78,13 +78,13 @@ def make_autodoc_optional(wrapped, instance=None, args=None, kwargs=None):
     >>> config.use_autodoc = False
     >>> test(1)
     >>> config.use_autodoc = True
-    >>> pub._is_hydpy_bundled = True
+    >>> pub.is_hydpy_bundled = True
     >>> test(1)
-    >>> pub._is_hydpy_bundled = False
+    >>> pub.is_hydpy_bundled = False
     >>> test(1)
     1
     """
-    if config.use_autodoc and not pub._is_hydpy_bundled:
+    if config.use_autodoc and not pub.is_hydpy_bundled:
         return wrapped(*args, **kwargs)
     return None
 

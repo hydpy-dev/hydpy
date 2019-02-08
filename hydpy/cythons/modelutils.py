@@ -120,7 +120,7 @@ class Cythonizer(object):
 
     def complete(self):
         if (pub.options.autocompile and self.outdated and
-                not pub._is_hydpy_bundled):
+                not pub.is_hydpy_bundled):
             usecython = pub.options.usecython
             try:
                 if not pub.options.skipdoctests:
@@ -301,7 +301,7 @@ class Cythonizer(object):
 
 
 class PyxWriter(object):
-    """Writes a new pyx file into framework.models.cython when initialized.
+    """Writes a new pyx file into framework.models.cython when initialised.
     """
 
     def __init__(self, cythonizer, model, pyxpath):
@@ -451,7 +451,8 @@ class PyxWriter(object):
                 lines.extend(self.set_pointer(subseqs))
         return lines
 
-    def iosequence(self, seq):
+    @staticmethod
+    def iosequence(seq):
         """Special declaration lines for the given |IOSequence| object.
         """
         lines = Lines()
@@ -463,7 +464,8 @@ class PyxWriter(object):
         lines.add(1, 'cdef public %s _%s_array' % (ctype, seq.name))
         return lines
 
-    def open_files(self, subseqs):
+    @staticmethod
+    def open_files(subseqs):
         """Open file statements."""
         print('            . open_files')
         lines = Lines()
@@ -480,7 +482,8 @@ class PyxWriter(object):
                              'SEEK_SET)' % (2*(seq.name,)))
         return lines
 
-    def close_files(self, subseqs):
+    @staticmethod
+    def close_files(subseqs):
         """Close file statements."""
         print('            . close_files')
         lines = Lines()
@@ -490,7 +493,8 @@ class PyxWriter(object):
             lines.add(3, 'fclose(self._%s_file)' % seq.name)
         return lines
 
-    def load_data(self, subseqs):
+    @staticmethod
+    def load_data(subseqs):
         """Load data statements."""
         print('            . load_data')
         lines = Lines()
@@ -503,7 +507,7 @@ class PyxWriter(object):
                              % (2*(seq.name,)))
             else:
                 lines.add(3, 'fread(&self.%s[0], 8, self._%s_length, '
-                             'self._%s_file)' % (3*((seq.name,))))
+                             'self._%s_file)' % (3*(seq.name,)))
             lines.add(2, 'elif self._%s_ramflag:' % seq.name)
             if seq.NDIM == 0:
                 lines.add(3, 'self.%s = self._%s_array[idx]' % (2*(seq.name,)))
@@ -518,7 +522,8 @@ class PyxWriter(object):
                                       % (2*(seq.name, indexing)))
         return lines
 
-    def save_data(self, subseqs):
+    @staticmethod
+    def save_data(subseqs):
         """Save data statements."""
         print('            . save_data')
         lines = Lines()
@@ -561,7 +566,8 @@ class PyxWriter(object):
             break
         return lines
 
-    def set_pointer0d(self, subseqs):
+    @staticmethod
+    def set_pointer0d(subseqs):
         """Set_pointer function for 0-dimensional link sequences."""
         print('            . set_pointer0d')
         lines = Lines()
@@ -572,7 +578,8 @@ class PyxWriter(object):
             lines.add(3, 'self.%s = value.p_value' % seq.name)
         return lines
 
-    def alloc(self, subseqs):
+    @staticmethod
+    def alloc(subseqs):
         """Allocate memory for 1-dimensional link sequences."""
         print('            . setlength')
         lines = Lines()
@@ -584,7 +591,8 @@ class PyxWriter(object):
                          'PyMem_Malloc(length * sizeof(double*))' % seq.name)
         return lines
 
-    def dealloc(self, subseqs):
+    @staticmethod
+    def dealloc(subseqs):
         """Deallocate memory for 1-dimensional link sequences."""
         print('            . dealloc')
         lines = Lines()
@@ -593,7 +601,8 @@ class PyxWriter(object):
             lines.add(2, 'PyMem_Free(self.%s)' % seq.name)
         return lines
 
-    def set_pointer1d(self, subseqs):
+    @staticmethod
+    def set_pointer1d(subseqs):
         """Set_pointer function for 1-dimensional link sequences."""
         print('            . set_pointer1d')
         lines = Lines()
@@ -881,7 +890,7 @@ class PyxWriter(object):
                 yield 'cdef int idx0, idx1'
                 yield ('for idx0 in range(self.sequences.%s._%s_length0):'
                        % (subseqs.name, seq.name))
-                yield ('    for idx1 in range(self.sequences._%s_length1):'
+                yield ('    for idx1 in range(self.sequences.%s._%s_length1):'
                        % (subseqs.name, seq.name))
                 yield ('        %s[idx0, idx1] = %s[idx0, idx1]'
                        % (to2, from2))

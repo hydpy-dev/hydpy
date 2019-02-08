@@ -50,7 +50,7 @@ necessary for some specific functionalities.
     executable:
 
     >>> from hydpy import pub
-    >>> pub._is_hydpy_bundled = True
+    >>> pub.is_hydpy_bundled = True
     >>> os = OptionalImport('os', 'import os')
     >>> os.getcwd()
     Traceback (most recent call last):
@@ -67,11 +67,11 @@ for some specific functionalities.
     >>> textwrap.wrap('')
     []
 
-    >>> pub._is_hydpy_bundled = False
+    >>> pub.is_hydpy_bundled = False
     """
 
     def __new__(cls, name, commands, bundle_module=False):
-        if pub._is_hydpy_bundled and not bundle_module:
+        if pub.is_hydpy_bundled and not bundle_module:
             return object.__new__(cls)
         for command in commands:
             try:

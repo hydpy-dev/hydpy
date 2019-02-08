@@ -113,6 +113,6 @@ def calc_s_v1(self):
 
 class Model(modeltools.ModelELS):
     """Test model."""
-    _PART_ODE_METHODS = (calc_q_v1,
-                         calc_q_v2)
-    _FULL_ODE_METHODS = (calc_s_v1,)
+    PART_ODE_METHODS = (calc_q_v1,
+                        calc_q_v2)
+    FULL_ODE_METHODS = (calc_s_v1,)

@@ -440,12 +440,12 @@ def pass_q_v1(self):
 class Model(modeltools.Model):
     """Base model ARMA."""
 
-    _INLET_METHODS = (pick_q_v1,)
-    _RUN_METHODS = (calc_qpin_v1,
-                    calc_login_v1,
-                    calc_qma_v1,
-                    calc_qar_v1,
-                    calc_qpout_v1,
-                    calc_logout_v1,
-                    calc_qout_v1)
-    _OUTLET_METHODS = (pass_q_v1,)
+    INLET_METHODS = (pick_q_v1,)
+    RUN_METHODS = (calc_qpin_v1,
+                   calc_login_v1,
+                   calc_qma_v1,
+                   calc_qar_v1,
+                   calc_qpout_v1,
+                   calc_logout_v1,
+                   calc_qout_v1)
+    OUTLET_METHODS = (pass_q_v1,)

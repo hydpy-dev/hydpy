@@ -101,9 +101,9 @@ from hydpy.models.hbranch import hbranch_outlets
 
 class Model(hbranch_model.Model):
     """The HBV96 version of HydPy-H-Stream (hbranch_v1)."""
-    _INLET_METHODS = (hbranch_model.pick_input_v1,)
-    _RUN_METHODS = (hbranch_model.calc_outputs_v1,)
-    _OUTLET_METHODS = (hbranch_model.pass_outputs_v1,)
+    INLET_METHODS = (hbranch_model.pick_input_v1,)
+    RUN_METHODS = (hbranch_model.calc_outputs_v1,)
+    OUTLET_METHODS = (hbranch_model.pass_outputs_v1,)
 
 
 class ControlParameters(parametertools.SubParameters):

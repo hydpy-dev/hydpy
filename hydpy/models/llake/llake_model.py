@@ -654,13 +654,13 @@ def pass_q_v1(self):
 class Model(modeltools.Model):
     """Base model for HydPy-L-Lake."""
 
-    _INLET_METHODS = (pick_q_v1,)
-    _RUN_METHODS = (solve_dv_dt_v1,
-                    interp_w_v1,
-                    corr_dw_v1,
-                    modify_qa_v1,)
-    _ADD_METHODS = (interp_v_v1,
-                    calc_vq_v1,
-                    interp_qa_v1,
-                    calc_v_qa_v1)
-    _OUTLET_METHODS = (pass_q_v1,)
+    INLET_METHODS = (pick_q_v1,)
+    RUN_METHODS = (solve_dv_dt_v1,
+                   interp_w_v1,
+                   corr_dw_v1,
+                   modify_qa_v1,)
+    ADD_METHODS = (interp_v_v1,
+                   calc_vq_v1,
+                   interp_qa_v1,
+                   calc_v_qa_v1)
+    OUTLET_METHODS = (pass_q_v1,)

@@ -19,43 +19,43 @@ from hydpy.cythons import modelutils
 class _MetaModel(type):
 
     def __new__(cls, cls_name, cls_parents, dict_):
-        _METHOD_GROUPS = ('_RUN_METHODS', '_ADD_METHODS',
-                          '_INLET_METHODS', '_OUTLET_METHODS',
-                          '_RECEIVER_METHODS', '_SENDER_METHODS',
-                          '_PART_ODE_METHODS', '_FULL_ODE_METHODS')
+        _METHOD_GROUPS = ('RUN_METHODS', 'ADD_METHODS',
+                          'INLET_METHODS', 'OUTLET_METHODS',
+                          'RECEIVER_METHODS', 'SENDER_METHODS',
+                          'PART_ODE_METHODS', 'FULL_ODE_METHODS')
         dict_['_METHOD_GROUPS'] = _METHOD_GROUPS
         for method_name in _METHOD_GROUPS:
             methods = dict_.get(method_name, ())
             if methods:
-                if method_name == '_RUN_METHODS':
+                if method_name == 'RUN_METHODS':
                     lst = ['\n\n\n    The following "run methods" are called '
                            'each simulation step run in the given sequence:']
-                elif method_name == '_ADD_METHODS':
+                elif method_name == 'ADD_METHODS':
                     lst = ['\n\n\n    The following "additional methods" are '
                            'called by at least one "run method":']
-                elif method_name == '_INLET_METHODS':
+                elif method_name == 'INLET_METHODS':
                     lst = ['\n\n\n    The following "inlet update methods" '
                            'are called in the given sequence immediately  '
                            'before solving the differential equations '
                            'of the respective model:']
-                elif method_name == '_OUTLET_METHODS':
+                elif method_name == 'OUTLET_METHODS':
                     lst = ['\n\n\n    The following "outlet update methods" '
                            'are called in the given sequence immediately  '
                            'after solving the differential equations '
                            'of the respective model:']
-                elif method_name == '_RECEIVER_METHODS':
+                elif method_name == 'RECEIVER_METHODS':
                     lst = ['\n\n\n    The following "receiver update methods" '
                            'are called in the given sequence before solving '
                            'the differential equations of any model:']
-                elif method_name == '_SENDER_METHODS':
+                elif method_name == 'SENDER_METHODS':
                     lst = ['\n\n\n    The following "sender update methods" '
                            'are called in the given sequence after solving '
                            'the differential equations of all models:']
-                elif method_name == '_PART_ODE_METHODS':
+                elif method_name == 'PART_ODE_METHODS':
                     lst = ['\n\n\n    The following methods define the '
                            'relevant components of a system of ODE '
                            'equations (e.g. direct runoff):']
-                elif method_name == '_FULL_ODE_METHODS':
+                elif method_name == 'FULL_ODE_METHODS':
                     lst = ['\n\n\n    The following methods define the '
                            'complete equations of an ODE system '
                            '(e.g. change in storage of `fast water` due to '
@@ -81,14 +81,14 @@ class Model(_MetaModel_):
 
     NUMERICAL = False
 
-    _RUN_METHODS = ()
-    _ADD_METHODS = ()
-    _INLET_METHODS = ()
-    _OUTLET_METHODS = ()
-    _RECEIVER_METHODS = ()
-    _SENDER_METHODS = ()
-    _PART_ODE_METHODS = ()
-    _FULL_ODE_METHODS = ()
+    RUN_METHODS = ()
+    ADD_METHODS = ()
+    INLET_METHODS = ()
+    OUTLET_METHODS = ()
+    RECEIVER_METHODS = ()
+    SENDER_METHODS = ()
+    PART_ODE_METHODS = ()
+    FULL_ODE_METHODS = ()
 
     def __init__(self):
         self.element = None
@@ -214,7 +214,7 @@ class Model(_MetaModel_):
         self.update_outlets()
 
     def run(self):
-        for method in self._RUN_METHODS:
+        for method in self.RUN_METHODS:
             method(self)
 
     def load_data(self):
@@ -225,21 +225,21 @@ class Model(_MetaModel_):
         self.sequences.save_data(idx)
 
     def update_inlets(self):
-        for method in self._INLET_METHODS:
+        for method in self.INLET_METHODS:
             method(self)
 
     def update_outlets(self):
-        for method in self._OUTLET_METHODS:
+        for method in self.OUTLET_METHODS:
             method(self)
 
     def update_receivers(self, idx):
         self.idx_sim = idx
-        for method in self._RECEIVER_METHODS:
+        for method in self.RECEIVER_METHODS:
             method(self)
 
     def update_senders(self, idx):
         self.idx_sim = idx
-        for method in self._SENDER_METHODS:
+        for method in self.SENDER_METHODS:
             method(self)
 
     def new2old(self):
@@ -569,7 +569,7 @@ class ModelELS(Model):
 
     def calculate_single_terms(self):
         """Apply all methods stored in the hidden attribute
-        `_PART_ODE_METHODS`.
+        `PART_ODE_METHODS`.
 
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
@@ -580,7 +580,7 @@ class ModelELS(Model):
         q(0.25)
         """
         self.numvars.nmb_calls = self.numvars.nmb_calls+1
-        for method in self._PART_ODE_METHODS:
+        for method in self.PART_ODE_METHODS:
             method(self)
 
     def calculate_full_terms(self):
@@ -596,7 +596,7 @@ class ModelELS(Model):
         >>> states.s.new
         0.75
         """
-        for method in self._FULL_ODE_METHODS:
+        for method in self.FULL_ODE_METHODS:
             method(self)
 
     def get_point_states(self):

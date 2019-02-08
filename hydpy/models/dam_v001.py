@@ -1158,23 +1158,23 @@ from hydpy.models.dam import dam_receivers
 class Model(modeltools.ModelELS):
     """Version 1 of HydPy-Dam."""
 
-    _INLET_METHODS = (dam_model.pic_inflow_v1,
-                      dam_model.calc_naturalremotedischarge_v1,
-                      dam_model.calc_remotedemand_v1,
-                      dam_model.calc_remotefailure_v1,
-                      dam_model.calc_requiredremoterelease_v1,
-                      dam_model.calc_requiredrelease_v1,
-                      dam_model.calc_targetedrelease_v1)
-    _RECEIVER_METHODS = (dam_model.pic_totalremotedischarge_v1,
-                         dam_model.update_loggedtotalremotedischarge_v1)
-    _PART_ODE_METHODS = (dam_model.pic_inflow_v1,
-                         dam_model.calc_waterlevel_v1,
-                         dam_model.calc_actualrelease_v1,
-                         dam_model.calc_flooddischarge_v1,
-                         dam_model.calc_outflow_v1)
-    _FULL_ODE_METHODS = (dam_model.update_watervolume_v1,)
-    _OUTLET_METHODS = (dam_model.pass_outflow_v1,
-                       dam_model.update_loggedoutflow_v1)
+    INLET_METHODS = (dam_model.pic_inflow_v1,
+                     dam_model.calc_naturalremotedischarge_v1,
+                     dam_model.calc_remotedemand_v1,
+                     dam_model.calc_remotefailure_v1,
+                     dam_model.calc_requiredremoterelease_v1,
+                     dam_model.calc_requiredrelease_v1,
+                     dam_model.calc_targetedrelease_v1)
+    RECEIVER_METHODS = (dam_model.pic_totalremotedischarge_v1,
+                        dam_model.update_loggedtotalremotedischarge_v1)
+    PART_ODE_METHODS = (dam_model.pic_inflow_v1,
+                        dam_model.calc_waterlevel_v1,
+                        dam_model.calc_actualrelease_v1,
+                        dam_model.calc_flooddischarge_v1,
+                        dam_model.calc_outflow_v1)
+    FULL_ODE_METHODS = (dam_model.update_watervolume_v1,)
+    OUTLET_METHODS = (dam_model.pass_outflow_v1,
+                      dam_model.update_loggedoutflow_v1)
 
 
 class ControlParameters(parametertools.SubParameters):

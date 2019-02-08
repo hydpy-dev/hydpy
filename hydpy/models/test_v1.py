@@ -23,8 +23,8 @@ from hydpy.models.test import test_states
 
 class Model(modeltools.ModelELS):
     """Test model, Version 1."""
-    _PART_ODE_METHODS = (test_model.calc_q_v1,)
-    _FULL_ODE_METHODS = (test_model.calc_s_v1,)
+    PART_ODE_METHODS = (test_model.calc_q_v1,)
+    FULL_ODE_METHODS = (test_model.calc_s_v1,)
 
 
 class ControlParameters(parametertools.SubParameters):

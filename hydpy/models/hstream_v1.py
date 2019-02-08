@@ -234,9 +234,9 @@ from hydpy.models.hstream import hstream_outlets
 
 class Model(modeltools.Model):
     """The HBV96 version of HydPy-H-Stream (|hstream_v1|)."""
-    _INLET_METHODS = (hstream_model.pick_q_v1,)
-    _RUN_METHODS = (hstream_model.calc_qjoints_v1,)
-    _OUTLET_METHODS = (hstream_model.pass_q_v1,)
+    INLET_METHODS = (hstream_model.pick_q_v1,)
+    RUN_METHODS = (hstream_model.calc_qjoints_v1,)
+    OUTLET_METHODS = (hstream_model.pass_q_v1,)
 
 
 class ControlParameters(parametertools.SubParameters):

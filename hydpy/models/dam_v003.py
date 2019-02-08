@@ -313,20 +313,20 @@ from hydpy.models.dam import dam_receivers
 class Model(modeltools.ModelELS):
     """Version 3 of HydPy-Dam."""
 
-    _INLET_METHODS = (dam_model.pic_inflow_v1,
-                      dam_model.calc_requiredremoterelease_v2,
-                      dam_model.calc_requiredrelease_v2,
-                      dam_model.calc_targetedrelease_v1)
-    _RECEIVER_METHODS = (dam_model.pic_loggedrequiredremoterelease_v2,)
-    _PART_ODE_METHODS = (dam_model.pic_inflow_v1,
-                         dam_model.calc_waterlevel_v1,
-                         dam_model.calc_actualrelease_v1,
-                         dam_model.calc_actualremoterelease_v1,
-                         dam_model.calc_flooddischarge_v1,
-                         dam_model.calc_outflow_v1)
-    _FULL_ODE_METHODS = (dam_model.update_watervolume_v2,)
-    _OUTLET_METHODS = (dam_model.pass_outflow_v1,
-                       dam_model.pass_actualremoterelease_v1)
+    INLET_METHODS = (dam_model.pic_inflow_v1,
+                     dam_model.calc_requiredremoterelease_v2,
+                     dam_model.calc_requiredrelease_v2,
+                     dam_model.calc_targetedrelease_v1)
+    RECEIVER_METHODS = (dam_model.pic_loggedrequiredremoterelease_v2,)
+    PART_ODE_METHODS = (dam_model.pic_inflow_v1,
+                        dam_model.calc_waterlevel_v1,
+                        dam_model.calc_actualrelease_v1,
+                        dam_model.calc_actualremoterelease_v1,
+                        dam_model.calc_flooddischarge_v1,
+                        dam_model.calc_outflow_v1)
+    FULL_ODE_METHODS = (dam_model.update_watervolume_v2,)
+    OUTLET_METHODS = (dam_model.pass_outflow_v1,
+                      dam_model.pass_actualremoterelease_v1)
 
 
 class ControlParameters(parametertools.SubParameters):

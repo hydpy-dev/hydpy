@@ -684,7 +684,7 @@ class PyxWriter(object):
         lines.add(2, 'self.idx_sim = idx')
         if getattr(self.model.sequences, 'inputs', None) is not None:
             lines.add(2, 'self.load_data()')
-        if self.model._INLET_METHODS:
+        if self.model.INLET_METHODS:
             lines.add(2, 'self.update_inlets()')
         if hasattr(self.model, 'solve'):
             lines.add(2, 'self.solve()')
@@ -692,7 +692,7 @@ class PyxWriter(object):
             lines.add(2, 'self.run()')
             if getattr(self.model.sequences, 'states', None) is not None:
                 lines.add(2, 'self.new2old()')
-        if self.model._OUTLET_METHODS:
+        if self.model.OUTLET_METHODS:
             lines.add(2, 'self.update_outlets()')
         return lines
 
@@ -777,39 +777,39 @@ class PyxWriter(object):
     def update_receivers(self):
         """Lines of model method with the same name."""
         return self._call_methods('update_receivers',
-                                  self.model._RECEIVER_METHODS,
+                                  self.model.RECEIVER_METHODS,
                                   True)
 
     @property
     def update_inlets(self):
         """Lines of model method with the same name."""
         return self._call_methods('update_inlets',
-                                  self.model._INLET_METHODS)
+                                  self.model.INLET_METHODS)
 
     @property
     def run(self):
         """Lines of model method with the same name."""
         return self._call_methods('run',
-                                  self.model._RUN_METHODS)
+                                  self.model.RUN_METHODS)
 
     @property
     def update_outlets(self):
         """Lines of model method with the same name."""
         return self._call_methods('update_outlets',
-                                  self.model._OUTLET_METHODS)
+                                  self.model.OUTLET_METHODS)
 
     @property
     def update_senders(self):
         """Lines of model method with the same name."""
         return self._call_methods('update_senders',
-                                  self.model._SENDER_METHODS,
+                                  self.model.SENDER_METHODS,
                                   True)
 
     @property
     def calculate_single_terms(self):
         """Lines of model method with the same name."""
         lines = self._call_methods('calculate_single_terms',
-                                   self.model._PART_ODE_METHODS)
+                                   self.model.PART_ODE_METHODS)
         if lines:
             lines.insert(1, ('        self.numvars.nmb_calls ='
                              'self.numvars.nmb_calls+1'))
@@ -819,7 +819,7 @@ class PyxWriter(object):
     def calculate_full_terms(self):
         """Lines of model method with the same name."""
         return self._call_methods('calculate_full_terms',
-                                  self.model._FULL_ODE_METHODS)
+                                  self.model.FULL_ODE_METHODS)
 
     @property
     def listofmodeluserfunctions(self):

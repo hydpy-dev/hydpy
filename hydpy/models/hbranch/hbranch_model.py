@@ -112,9 +112,9 @@ def pass_outputs_v1(self):
 
 class Model(modeltools.Model):
     """The HydPy-H-Branch model."""
-    _INLET_METHODS = (pick_input_v1,)
-    _RUN_METHODS = (calc_outputs_v1,)
-    _OUTLET_METHODS = (pass_outputs_v1,)
+    INLET_METHODS = (pick_input_v1,)
+    RUN_METHODS = (calc_outputs_v1,)
+    OUTLET_METHODS = (pass_outputs_v1,)
 
     def __init__(self):
         modeltools.Model.__init__(self)

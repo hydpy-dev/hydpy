@@ -530,27 +530,27 @@ from hydpy.models.dam import dam_receivers
 class Model(modeltools.ModelELS):
     """Version 4 of HydPy-Dam."""
 
-    _INLET_METHODS = (dam_model.pic_inflow_v1,
-                      dam_model.calc_requiredremoterelease_v2,
-                      dam_model.calc_allowedremoterelieve_v1,
-                      dam_model.calc_requiredrelease_v2,
-                      dam_model.calc_targetedrelease_v1)
-    _RECEIVER_METHODS = (dam_model.pic_loggedrequiredremoterelease_v2,
-                         dam_model.pic_loggedallowedremoterelieve_v1)
-    _PART_ODE_METHODS = (dam_model.pic_inflow_v1,
-                         dam_model.calc_waterlevel_v1,
-                         dam_model.calc_actualrelease_v1,
-                         dam_model.calc_possibleremoterelieve_v1,
-                         dam_model.calc_actualremoterelieve_v1,
-                         dam_model.calc_actualremoterelease_v1,
-                         dam_model.update_actualremoterelease_v1,
-                         dam_model.update_actualremoterelieve_v1,
-                         dam_model.calc_flooddischarge_v1,
-                         dam_model.calc_outflow_v1)
-    _FULL_ODE_METHODS = (dam_model.update_watervolume_v3,)
-    _OUTLET_METHODS = (dam_model.pass_outflow_v1,
-                       dam_model.pass_actualremoterelease_v1,
-                       dam_model.pass_actualremoterelieve_v1)
+    INLET_METHODS = (dam_model.pic_inflow_v1,
+                     dam_model.calc_requiredremoterelease_v2,
+                     dam_model.calc_allowedremoterelieve_v1,
+                     dam_model.calc_requiredrelease_v2,
+                     dam_model.calc_targetedrelease_v1)
+    RECEIVER_METHODS = (dam_model.pic_loggedrequiredremoterelease_v2,
+                        dam_model.pic_loggedallowedremoterelieve_v1)
+    PART_ODE_METHODS = (dam_model.pic_inflow_v1,
+                        dam_model.calc_waterlevel_v1,
+                        dam_model.calc_actualrelease_v1,
+                        dam_model.calc_possibleremoterelieve_v1,
+                        dam_model.calc_actualremoterelieve_v1,
+                        dam_model.calc_actualremoterelease_v1,
+                        dam_model.update_actualremoterelease_v1,
+                        dam_model.update_actualremoterelieve_v1,
+                        dam_model.calc_flooddischarge_v1,
+                        dam_model.calc_outflow_v1)
+    FULL_ODE_METHODS = (dam_model.update_watervolume_v3,)
+    OUTLET_METHODS = (dam_model.pass_outflow_v1,
+                      dam_model.pass_actualremoterelease_v1,
+                      dam_model.pass_actualremoterelieve_v1)
 
 
 class ControlParameters(parametertools.SubParameters):

@@ -198,21 +198,21 @@ from hydpy.models.lstream import lstream_outlets
 
 class Model(modeltools.Model):
     """LARSIM-Stream (Manning) version of HydPy-L-Stream (lstream_v1)."""
-    _INLET_METHODS = (lstream_model.pick_q_v1,)
-    _RUN_METHODS = (lstream_model.calc_qref_v1,
-                    lstream_model.calc_hmin_qmin_hmax_qmax_v1,
-                    lstream_model.calc_h_v1,
-                    lstream_model.calc_ag_v1,
-                    lstream_model.calc_rk_v1,
-                    lstream_model.calc_qa_v1)
-    _ADD_METHODS = (lstream_model.calc_am_um_v1,
-                    lstream_model.calc_qm_v1,
-                    lstream_model.calc_av_uv_v1,
-                    lstream_model.calc_qv_v1,
-                    lstream_model.calc_avr_uvr_v1,
-                    lstream_model.calc_qvr_v1,
-                    lstream_model.calc_qg_v1)
-    _OUTLET_METHODS = (lstream_model.pass_q_v1,)
+    INLET_METHODS = (lstream_model.pick_q_v1,)
+    RUN_METHODS = (lstream_model.calc_qref_v1,
+                   lstream_model.calc_hmin_qmin_hmax_qmax_v1,
+                   lstream_model.calc_h_v1,
+                   lstream_model.calc_ag_v1,
+                   lstream_model.calc_rk_v1,
+                   lstream_model.calc_qa_v1)
+    ADD_METHODS = (lstream_model.calc_am_um_v1,
+                   lstream_model.calc_qm_v1,
+                   lstream_model.calc_av_uv_v1,
+                   lstream_model.calc_qv_v1,
+                   lstream_model.calc_avr_uvr_v1,
+                   lstream_model.calc_qvr_v1,
+                   lstream_model.calc_qg_v1)
+    OUTLET_METHODS = (lstream_model.pass_q_v1,)
 
 
 class ControlParameters(parametertools.SubParameters):

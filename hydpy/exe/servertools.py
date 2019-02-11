@@ -250,7 +250,7 @@ from hydpy.core import timetools
 from hydpy.exe import commandtools
 
 
-class ServerState(object):
+class ServerState:
     """Singleton class handling the current |HydPy| instance, the current
     exchange items, and so on.
 
@@ -383,7 +383,8 @@ class ServerState(object):
         self.timegrids = {}
 
 
-state = ServerState()
+state = ServerState()   # pylint: disable=invalid-name
+# "state" is not a constant
 
 
 class HydPyServer(http.server.BaseHTTPRequestHandler):
@@ -798,6 +799,9 @@ but have not been calculated so far.
     >>> process.kill()
     >>> _ = process.communicate()
     """
+    # pylint: disable=invalid-name
+    # due to "GET" and "POST" method names in accordance
+    # with BaseHTTPRequestHandler
 
     _requesttype: str   # either "GET" or "POST"
     _statuscode: int    # either 200, 400, or 500

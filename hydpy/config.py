@@ -3,7 +3,7 @@
 
 The available options should not be changed during runtime.
 """
-use_autodoc = True
+use_autodoc = True    # pylint: disable=invalid-name
 """Flag that indicates whether HydPy's automatic documentation manipulation
 features should be applyied or not.  It is imperative to set it to `True`
 before one uses `Sphinx` to generate the online documentation.  However,

@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=wrong-import-position, wrong-import-order, ungrouped-imports
+# due to using the HydPy class `OptionalImports` for importing site-packages
 """
 HydPy
 
@@ -14,6 +16,7 @@ warnings.filterwarnings('ignore')
 import numpy
 from numpy import nan
 from scipy import integrate
+# pylint: disable=invalid-name
 netcdf4 = OptionalImport(
     'netcdf4',
     ['import netCDF4', 'import h5netcdf.legacyapi'],
@@ -27,6 +30,7 @@ pyplot = OptionalImport(
 xmlschema = OptionalImport(
     'xmlschema',
     ['import xmlschema'])
+# pylint: enable=invalid-name
 warnings.resetwarnings()
 # Due to a Cython problem:
 warnings.filterwarnings('ignore', category=ImportWarning)
@@ -37,7 +41,7 @@ pub.__class__ = pubtools.Pub
 from hydpy.core import dummytools
 from hydpy.core import indextools
 from hydpy.core import optiontools
-from hydpy.cythons import configutils
+from hydpy.cythons import configutils   # pylint: disable=no-name-in-module
 from hydpy.core.autodoctools import prepare_mainsubstituter
 from hydpy.core.auxfiletools import Auxfiler
 from hydpy.core.devicetools import Element
@@ -116,7 +120,7 @@ try:
 except TypeError:   # pragma: no cover
     pass
 
-substituter = prepare_mainsubstituter()
+substituter = prepare_mainsubstituter()   # pylint: disable=invalid-name
 
 
 __all__ = ['config',

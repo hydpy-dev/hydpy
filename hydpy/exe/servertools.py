@@ -805,10 +805,10 @@ but have not been calculated so far.
     >>> _ = process.communicate()
     """
 
-    _requesttype: str = None   # either "GET" or "POST"
-    _statuscode: int = None    # either 200, 400, or 500
-    _inputs: Dict[str, str] = None
-    _outputs: Dict[str, Any] = None
+    _requesttype: str   # either "GET" or "POST"
+    _statuscode: int    # either 200, 400, or 500
+    _inputs: Dict[str, str]
+    _outputs: Dict[str, Any]
 
     def do_GET(self) -> None:
         """Select and apply the currently requested GET method."""

@@ -39,6 +39,17 @@ from hydpy.cythons import annutils
 from hydpy.cythons import pointerutils
 from hydpy.cythons import smoothutils
 
+EXCLUDE_MEMBERS = (
+    'CLASSES',
+    'RUN_METHODS',
+    'ADD_METHODS',
+    'INLET_METHODS',
+    'OUTLET_METHODS',
+    'RECEIVER_METHODS',
+    'SENDER_METHODS',
+    'PART_ODE_METHODS',
+    'FULL_ODE_METHODS',
+)
 
 _PAR_SPEC2CAPT = collections.OrderedDict((('parameters', 'Parameter tools'),
                                           ('constants', 'Constants'),
@@ -112,16 +123,17 @@ def _add_lines(specification, module):
         exists_collectionclass = False
     lines = []
     if specification == 'model':
-        lines += ['',
-                  '.. autoclass:: ' + module.__name__ + '.Model',
-                  '    :members:',
-                  '    :show-inheritance:']
+        lines += [f'',
+                  f'.. autoclass:: {module.__name__}.Model',
+                  f'    :members:',
+                  f'    :show-inheritance:',
+                  f'    :exclude-members: {", ".join(EXCLUDE_MEMBERS)}']
     elif exists_collectionclass:
-        lines += ['',
-                  '.. autoclass:: %s.%s' % (module.__name__,
-                                            name_collectionclass),
-                  '    :members:',
-                  '    :show-inheritance:']
+        lines += [f'',
+                  f'.. autoclass:: {module.__name__}.{name_collectionclass}',
+                  f'    :members:',
+                  f'    :show-inheritance:',
+                  f'    :exclude-members: {", ".join(EXCLUDE_MEMBERS)}']
     lines += ['',
               '.. automodule:: ' + module.__name__,
               '    :members:',
@@ -141,6 +153,7 @@ def _get_frame_of_calling_module():
             return frame
         frame = nextframe
         frame = nextframe
+
 
 @make_autodoc_optional
 def autodoc_basemodel():

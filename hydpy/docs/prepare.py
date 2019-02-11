@@ -27,6 +27,7 @@ from hydpy import cythons
 from hydpy import docs
 from hydpy import exe
 from hydpy import models
+from hydpy.core import autodoctools
 from hydpy.core import masktools
 from hydpy.core import modeltools
 from hydpy.core import parametertools
@@ -65,6 +66,7 @@ hydpy.substituter.update_slaves()
 # the substitution replacement commands relevant for the respective module
 # or package.
 path2source = {}
+excludemembers = ", ".join(autodoctools.EXCLUDE_MEMBERS)
 for subpackage in (auxs, core, cythons, exe, models):
     filenames = os.listdir(subpackage.__path__[0])
     substituter = hydpy.substituter
@@ -116,6 +118,7 @@ for subpackage in (auxs, core, cythons, exe, models):
                          % '.'.join((subpackage.__name__, filename)))
             lines.append('    :members:')
             lines.append('    :show-inheritance:')
+            lines.append(f'    :exclude-members: {excludemembers}')
             lines.append('')
             path = os.path.join(AUTOPATH, filename+'.rst')
             with open(path, 'w', encoding="utf-8") as file_:

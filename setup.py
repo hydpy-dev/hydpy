@@ -27,6 +27,7 @@ if install:
 else:
     from setuptools import setup, Extension
 
+
 def print_(*args, **kwargs):
     print(*args, **kwargs)
     sys.stdout.flush()

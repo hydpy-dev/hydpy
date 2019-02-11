@@ -357,7 +357,7 @@ from hydpy.core import modeltools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
 # ...from HydPy
-from hydpy.auxs.anntools import ann
+from hydpy.auxs.anntools import ann   # pylint: disable=unused-import
 from hydpy.exe.modelimports import *
 # ...from dam
 from hydpy.models.dam import dam_model

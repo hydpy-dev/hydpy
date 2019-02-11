@@ -508,7 +508,7 @@
 
 # import...
 # ...from HydPy
-from hydpy.auxs.anntools import ann
+from hydpy.auxs.anntools import ann   # pylint: disable=unused-import
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
 from hydpy.core import parametertools

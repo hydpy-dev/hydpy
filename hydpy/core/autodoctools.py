@@ -152,7 +152,6 @@ def _get_frame_of_calling_module():
         if inspect.getmodule(nextframe) is None:
             return frame
         frame = nextframe
-        frame = nextframe
 
 
 @make_autodoc_optional

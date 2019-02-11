@@ -231,7 +231,6 @@ on class |HydPyServer| for further information.
 # ...from standard library
 import collections
 import copy
-import datetime
 import http.server
 import threading
 import time
@@ -350,13 +349,7 @@ class ServerState(object):
         >>> state.hp.nodes.dill.sequences.sim.series
         InfoArray([ nan,  nan,  nan,  nan,  nan])
         """
-        def write(text):
-            # ToDo: refactor, two identical functions and maybe out-of-date
-            """Write the given text eventually."""
-            timestring = datetime.datetime.now().strftime(
-                '%Y-%m-%d %H:%M:%S.%f')
-            print(f'{text} ({timestring}).')
-
+        write = commandtools.print_textandtime
         write(f'Start HydPy project `{projectname}`')
         hp = hydpytools.HydPy(projectname)
         write(f'Read configuration file `{xmlfile}`')

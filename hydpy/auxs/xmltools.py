@@ -91,7 +91,6 @@ the suffix `_mean`:
 from typing import Dict, Iterator, List, Union
 import collections
 import copy
-import datetime
 import itertools
 import os
 from xml.etree import ElementTree
@@ -111,6 +110,7 @@ from hydpy.core import objecttools
 from hydpy.core import selectiontools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
+from hydpy.exe import commandtools
 
 
 namespace = ('{https://github.com/hydpy-dev/hydpy/releases/download/'
@@ -190,11 +190,7 @@ def run_simulation(projectname: str, xmlfile: str):
     Function |run_simulation| is a "script function" and is normally used as
     explained in the main documentation on module |xmltools|.
     """
-    def write(text):
-        """Write the given text eventually."""
-        timestring = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
-        print(f'{text} ({timestring}).')
-
+    write = commandtools.print_textandtime
     pub.options.printprogress = False
     write(f'Start HydPy project `{projectname}`')
     hp = hydpytools.HydPy(projectname)

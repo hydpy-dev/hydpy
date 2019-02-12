@@ -39,7 +39,8 @@ class _ANNArrayProperty(propertytools.DependentProperty):
         self.fdel = self.__fdel
 
     @classmethod
-    def add_cann(cls, obj, cann):
+    def add_cann(cls, obj, cann):   # pylint: disable=bad-classmethod-argument
+        """Log the given Cython based ANN for the given object."""
         cls.__obj2cann[obj] = cann
 
     @property
@@ -75,7 +76,11 @@ class _ANNArrayProperty(propertytools.DependentProperty):
         setattr(cann, self.name, array)
 
 
-class ANN(object):
+class ANN:
+    # pylint: disable=trailing-whitespace
+    # due to the long docstrings passed to `_ANNArrayProperty`
+    # pylint: disable=method-hidden
+    # due to
     """Multi-layer feed forward artificial neural network.
 
     The applied activation function is the logistic function:
@@ -314,11 +319,13 @@ attribute `nmb_inputs` first.
 
     @nmb_inputs.setter_
     def nmb_inputs(self, value) -> None:
+        # pylint: disable=missing-docstring
         self._cann.nmb_inputs = int(value)
         self.__update_shapes()
 
     @nmb_inputs.deleter_
     def nmb_inputs(self) -> None:
+        # pylint: disable=missing-docstring
         pass
 
     @propertytools.ProtectedProperty
@@ -344,11 +351,13 @@ of object `ann` has not been prepared so far.
 
     @nmb_outputs.setter_
     def nmb_outputs(self, value) -> None:
+        # pylint: disable=missing-docstring
         self._cann.nmb_outputs = int(value)
         self.__update_shapes()
 
     @nmb_outputs.deleter_
     def nmb_outputs(self) -> None:
+        # pylint: disable=missing-docstring
         pass
 
     @propertytools.ProtectedProperty
@@ -374,6 +383,7 @@ of object `ann` has not been prepared so far.
 
     @nmb_neurons.setter_
     def nmb_neurons(self, value) -> None:
+        # pylint: disable=missing-docstring
         self._cann.nmb_neurons = numpy.array(value, dtype=int, ndmin=1)
         self._cann.nmb_layers = len(value)
         self.__max_nmb_neurons = max(value)
@@ -381,6 +391,7 @@ of object `ann` has not been prepared so far.
 
     @nmb_neurons.deleter_
     def nmb_neurons(self) -> None:
+        # pylint: disable=missing-docstring
         pass
 
     __protectedproperties = propertytools.ProtectedProperties(
@@ -794,14 +805,15 @@ parameter `ann` of element `?` has not been defined so far.
         that is prefixed with the given string."""
         prefix = '%s%s(' % (prefix, self.name)
         blanks = len(prefix)*' '
-        lines = [objecttools.assignrepr_value(
-                    self.nmb_inputs, '%snmb_inputs=' % prefix)+',',
-                 objecttools.assignrepr_tuple(
-                    self.nmb_neurons, '%snmb_neurons=' % blanks)+',',
-                 objecttools.assignrepr_value(
-                    self.nmb_outputs, '%snmb_outputs=' % blanks)+',',
-                 objecttools.assignrepr_list2(
-                    self.weights_input, '%sweights_input=' % blanks)+',']
+        lines = [
+            objecttools.assignrepr_value(
+                self.nmb_inputs, '%snmb_inputs=' % prefix)+',',
+            objecttools.assignrepr_tuple(
+                self.nmb_neurons, '%snmb_neurons=' % blanks)+',',
+            objecttools.assignrepr_value(
+                self.nmb_outputs, '%snmb_outputs=' % blanks)+',',
+            objecttools.assignrepr_list2(
+                self.weights_input, '%sweights_input=' % blanks)+',']
         if self.nmb_layers > 1:
             lines.append(objecttools.assignrepr_list3(
                 self.weights_hidden, '%sweights_hidden=' % blanks)+',')
@@ -887,7 +899,7 @@ def ann(**kwargs) -> ANN:
     return new_ann
 
 
-class SeasonalANN(object):
+class SeasonalANN:
     """Handles relationships described by artificial neural networks that
     vary within an anual cycle.
 
@@ -1483,15 +1495,14 @@ neural network `seasonalann` of element `?` none has been defined so far.
         return numpy.asarray(self._sann.ratios)
 
     @property
-    def _sann(self):   # ToDo: typing
+    def _sann(self) -> annutils.SeasonalANN:
         sann = self.__sann
         if sann:
             return sann
-        else:
-            raise RuntimeError(
-                'The seasonal neural network collection `%s` of '
-                'element `%s` has not been properly prepared so far.'
-                % (self.name, objecttools.devicename(self)))
+        raise RuntimeError(
+            'The seasonal neural network collection `%s` of '
+            'element `%s` has not been properly prepared so far.'
+            % (self.name, objecttools.devicename(self)))
 
     @property
     def nmb_inputs(self) -> int:
@@ -1597,7 +1608,7 @@ neural network `seasonalann` of element `?` none has been defined so far.
     def __repr__(self):
         if not self:
             return self.name+'()'
-        elif (len(self) == 1) and (self.toys[0] == timetools.TOY('1_1_0_0_0')):
+        if (len(self) == 1) and (self.toys[0] == timetools.TOY('1_1_0_0_0')):
             return self.anns[0].assignrepr('%s(' % self.name) + ')'
         lines = []
         blanks = ' '*(len(self.name)+1)

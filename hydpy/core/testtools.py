@@ -22,7 +22,6 @@ import warnings
 import numpy
 # ...from HydPy
 import hydpy
-from hydpy import pub
 from hydpy import docs
 from hydpy.core import abctools
 from hydpy.core import autodoctools
@@ -111,16 +110,16 @@ class Tester(object):
         object assigned to the same base or application model as a
         |Tester| object.
         """
-        opt = pub.options
+        opt = hydpy.pub.options
         par = parametertools.Parameter
-        color = 34 if pub.options.usecython else 36
+        color = 34 if hydpy.pub.options.usecython else 36
         with printtools.PrintStyle(color=color, font=4):
             print(
                 'Test %s %s in %sython mode.'
                 % ('package' if self.ispackage else 'module',
                    self.package if self.ispackage else
                    self.modulenames[0],
-                   'C' if pub.options.usecython else 'P'))
+                   'C' if hydpy.pub.options.usecython else 'P'))
         with printtools.PrintStyle(color=color, font=2):
             for name in self.modulenames:
                 print('    * %s:' % name, )
@@ -136,10 +135,10 @@ class Tester(object):
                         opt.warntrim(False), \
                         par.parameterstep.delete(), \
                         par.simulationstep.delete():
-                    projectname = pub.get('projectname')
-                    del pub.projectname
-                    timegrids = pub.get('timegrids')
-                    del pub.timegrids
+                    projectname = hydpy.pub.get('projectname')
+                    del hydpy.pub.projectname
+                    timegrids = hydpy.pub.get('timegrids')
+                    del hydpy.pub.timegrids
                     nodes = devicetools.Node._registry.copy()
                     elements = devicetools.Element._registry.copy()
                     devicetools.Node.clear_registry()
@@ -161,9 +160,9 @@ class Tester(object):
                                 module, extraglobs={'testing': True},
                                 optionflags=doctest.ELLIPSIS)
                     finally:
-                        pub.projectname = projectname
+                        hydpy.pub.projectname = projectname
                         if timegrids is not None:
-                            pub.timegrids = timegrids
+                            hydpy.pub.timegrids = timegrids
                         devicetools.Node.clear_registry()
                         devicetools.Element.clear_registry()
                         devicetools.Node._registry = nodes
@@ -420,7 +419,7 @@ class IntegrationTest(Test):
 
     @property
     def _datetimes(self):
-        return tuple(date.datetime for date in pub.timegrids.sim)
+        return tuple(date.datetime for date in hydpy.pub.timegrids.sim)
 
     @property
     def raw_first_col_strings(self):

@@ -93,6 +93,8 @@ from hydpy.auxs.statstools import nse
 from hydpy.auxs.statstools import prepare_arrays
 from hydpy.auxs.statstools import std_ratio
 from hydpy.auxs.xmltools import XMLInterface
+from hydpy.auxs.xmltools import run_simulation
+from hydpy.exe.commandtools import exec_commands
 from hydpy.exe.commandtools import execute_scriptfunction
 from hydpy.exe.commandtools import run_subprocess
 from hydpy.exe.commandtools import print_latest_logfile
@@ -122,6 +124,10 @@ except TypeError:   # pragma: no cover
 
 substituter = prepare_mainsubstituter()   # pylint: disable=invalid-name
 
+pub.scriptfunctions['exec_commands'] = exec_commands
+pub.scriptfunctions['run_simulation'] = run_simulation
+pub.scriptfunctions['start_server'] = start_server
+pub.scriptfunctions['await_server'] = await_server
 
 __all__ = ['config',
            'netcdf4',
@@ -180,6 +186,8 @@ __all__ = ['config',
            'prepare_arrays',
            'std_ratio',
            'XMLInterface',
+           'run_simulation',
+           'exec_commands',
            'execute_scriptfunction',
            'run_subprocess',
            'print_latest_logfile',

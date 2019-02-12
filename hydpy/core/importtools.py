@@ -11,7 +11,7 @@ import importlib
 import inspect
 import warnings
 # ...from HydPy
-from hydpy import pub
+import hydpy
 from hydpy.core import autodoctools
 from hydpy.core import filetools
 from hydpy.core import objecttools
@@ -43,7 +43,7 @@ def parameterstep(timestep=None):
     if model is None:
         model = namespace['Model']()
         namespace['model'] = model
-        if pub.options.usecython and 'cythonizer' in namespace:
+        if hydpy.pub.options.usecython and 'cythonizer' in namespace:
             cythonizer = namespace['cythonizer']
             namespace['cythonmodule'] = cythonizer.cymodule
             model.cymodel = cythonizer.cymodule.Model()
@@ -184,7 +184,7 @@ def prepare_model(module, timestep=None):
         module = importlib.import_module(f'hydpy.models.{module}')
         model = module.Model()
     model = module.Model()
-    if pub.options.usecython and hasattr(module, 'cythonizer'):
+    if hydpy.pub.options.usecython and hasattr(module, 'cythonizer'):
         cymodule = module.cythonizer.cymodule
         cymodel = cymodule.Model()
         cymodel.parameters = cymodule.Parameters()
@@ -246,7 +246,7 @@ are initialised based on the actual simulation time step as defined under \
     >>> k4.simulationstep
     Period('1h')
     """
-    if pub.options.warnsimulationstep:
+    if hydpy.pub.options.warnsimulationstep:
         warnings.warn(
             'Note that the applied function `simulationstep` is intended for '
             'testing purposes only.  When doing a HydPy simulation, parameter '

@@ -10,7 +10,7 @@ import time
 # ...from site-packages
 import wrapt
 # ...from HydPy
-from hydpy import pub
+import hydpy
 from hydpy.core import autodoctools
 from hydpy.core import objecttools
 
@@ -25,12 +25,12 @@ class PrintStyle(object):
         self.file = sys.stdout if file is None else file
 
     def __enter__(self):
-        if pub.options.printincolor:
+        if hydpy.pub.options.printincolor:
             print(end='\x1B[%d;30;%dm' % (self.font, self.color),
                   file=self.file)
 
     def __exit__(self, exception, message, traceback_):
-        if pub.options.printincolor:
+        if hydpy.pub.options.printincolor:
             print(end='\x1B[0m', file=self.file)
         if exception:
             objecttools.augment_excmessage()
@@ -117,7 +117,7 @@ def print_progress(wrapped, _, args, kwargs):
     global _printprogress_indentation
     _printprogress_indentation += 4
     try:
-        if pub.options.printprogress:
+        if hydpy.pub.options.printprogress:
             blanks = ' ' * _printprogress_indentation
             name = wrapped.__name__
             time_ = time.strftime('%H:%M:%S')
@@ -211,7 +211,7 @@ def progressbar(iterable, length=23):
     >>> for i in progressbar(range(100)):
     ...     continue
     """
-    if pub.options.printprogress and (len(iterable) > 1):
+    if hydpy.pub.options.printprogress and (len(iterable) > 1):
         temp_name = os.path.join(tempfile.gettempdir(),
                                  'HydPy_progressbar_stdout')
         temp_stdout = open(temp_name, 'w')

@@ -10,7 +10,7 @@ import warnings
 # ...from site-packages
 import numpy
 # ...from HydPy
-from hydpy import pub
+import hydpy
 from hydpy.core import abctools
 from hydpy.core import autodoctools
 from hydpy.core import exceptiontools
@@ -165,7 +165,7 @@ class Parameters(object):
                                      % (par.name, auxfilename))
                         continue
                 lines.append(repr(par) + '\n')
-            pub.controlmanager.save_file(filename, ''.join(lines))
+            hydpy.pub.controlmanager.save_file(filename, ''.join(lines))
 
     @property
     def _controldefaultfilename(self):
@@ -523,7 +523,7 @@ been defined.
     def __get__(self, obj, cls):
         period = _Period(self)
         try:
-            period.timedelta = pub.timegrids.stepsize
+            period.timedelta = hydpy.pub.timegrids.stepsize
         except RuntimeError:
             pass
         return period
@@ -695,7 +695,7 @@ class attribute is defined, but no standard value for its type `list` is \
 available.
         """
         initvalue = (getattr(self, 'INIT', None) if
-                     pub.options.usedefaultvalues else None)
+                     hydpy.pub.options.usedefaultvalues else None)
         if initvalue is None:
             initvalue = self.TYPE2INITVALUE.get(self.TYPE)
             if initvalue is None:
@@ -714,7 +714,7 @@ available.
         to a different simulation time step.
         """
         try:
-            parfactor = pub.timegrids.parfactor
+            parfactor = hydpy.pub.timegrids.parfactor
         except RuntimeError:
             if not self.simulationstep:
                 raise RuntimeError(
@@ -770,7 +770,7 @@ available.
         is set to |False|, an empty list is returned.
         """
         lines = variabletools.Variable.commentrepr(self)
-        if (pub.options.reprcomments and
+        if (hydpy.pub.options.reprcomments and
                 (getattr(self, 'TIME', None) is not None)):
             lines.append('# The actual value representation depends on '
                          'the actual parameter step size,')

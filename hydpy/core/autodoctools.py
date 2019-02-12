@@ -27,7 +27,6 @@ import scipy
 import wrapt
 # ...from HydPy
 import hydpy
-from hydpy import pub
 from hydpy import config
 from hydpy import auxs
 from hydpy import core
@@ -95,7 +94,7 @@ def make_autodoc_optional(wrapped, instance=None, args=None, kwargs=None):
     >>> test(1)
     1
     """
-    if config.use_autodoc and not pub.is_hydpy_bundled:
+    if config.use_autodoc and not hydpy.pub.is_hydpy_bundled:
         return wrapped(*args, **kwargs)
     return None
 

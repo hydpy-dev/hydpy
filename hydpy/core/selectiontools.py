@@ -7,7 +7,7 @@ HydPy projects.
 import os
 from typing import Set
 # ...from HydPy
-from hydpy import pub
+import hydpy
 from hydpy.core import objecttools
 from hydpy.core import devicetools
 from hydpy.core import autodoctools
@@ -178,7 +178,7 @@ class Selections(object):
             * prefix(|str|): Usually something like 'x = '.
         """
         with objecttools.repr_.preserve_strings(True):
-            with pub.options.ellipsis(2, optional=True):
+            with hydpy.pub.options.ellipsis(2, optional=True):
                 prefix += '%s(' % objecttools.classname(self)
                 repr_ = objecttools.assignrepr_values(self.names, prefix, 70)
                 return repr_ + ')'
@@ -467,7 +467,7 @@ class Selection(object):
             * prefix(|str|): Usually something like 'x = '.
         """
         with objecttools.repr_.preserve_strings(True):
-            with pub.options.ellipsis(2, optional=True):
+            with hydpy.pub.options.ellipsis(2, optional=True):
                 with objecttools.assignrepr_tuple.always_bracketed(False):
                     prefix = '%sSelection(' % prefix
                     blanks = ' ' * len(prefix)

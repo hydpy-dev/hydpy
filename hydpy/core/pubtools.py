@@ -77,23 +77,14 @@ or three strings.
 is not defined at the moment.
     """
     projectname: str = _PubProperty()
-
     options: optiontools.Options = _PubProperty()
-
     indexer: indextools.Indexer = _PubProperty()
-
     networkmanager: filetools.NetworkManager = _PubProperty()
-
     controlmanager: filetools.ControlManager = _PubProperty()
-
     conditionmanager: filetools.ConditionManager = _PubProperty()
-
     sequencemanager: filetools.SequenceManager = _PubProperty()
-
     timegrids: timetools.Timegrids = _PubProperty()
-
     selections: selectiontools.Selections = _PubProperty()
-
     scriptfunctions: Dict[str, Callable]
 
     @timegrids.setter_

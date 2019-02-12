@@ -3,7 +3,7 @@
 
 # import...
 # ...from HydPy
-from hydpy import pub
+import hydpy
 from hydpy.core import autodoctools
 
 
@@ -71,7 +71,7 @@ for some specific functionalities.
     """
 
     def __new__(cls, name, commands, bundle_module=False):
-        if pub.is_hydpy_bundled and not bundle_module:
+        if hydpy.pub.is_hydpy_bundled and not bundle_module:
             return object.__new__(cls)
         for command in commands:
             try:

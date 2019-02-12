@@ -240,7 +240,7 @@ import urllib.request
 import types
 from typing import Any, Dict, List
 # ...from HydPy
-from hydpy import pub
+import hydpy
 from hydpy.auxs import xmltools
 from hydpy.core import autodoctools
 from hydpy.core import hydpytools
@@ -975,12 +975,12 @@ but have not been calculated so far.
 
     def GET_timegrid(self) -> None:
         """Get the current simulation |Timegrid|."""
-        self._write_timegrid(pub.timegrids.sim)
+        self._write_timegrid(hydpy.pub.timegrids.sim)
 
     def POST_timegrid(self) -> None:
         """Change the current simulation |Timegrid|."""
-        init = pub.timegrids.init
-        sim = pub.timegrids.sim
+        init = hydpy.pub.timegrids.init
+        sim = hydpy.pub.timegrids.sim
         sim.firstdate = self._inputs['firstdate']
         sim.lastdate = self._inputs['lastdate']
         state.idx1 = init[sim.firstdate]
@@ -1052,7 +1052,7 @@ but have not been calculated so far.
                 self._statuscode = 500
                 raise RuntimeError(
                     f'Conditions for ID `{self._id}` and time point '
-                    f'`{pub.timegrids.sim.firstdate}` are required, '
+                    f'`{hydpy.pub.timegrids.sim.firstdate}` are required, '
                     f'but have not been calculated so far.')
             else:
                 state.hp.conditions = state.init_conditions
@@ -1111,14 +1111,14 @@ but have not been calculated so far.
 
     def GET_save_timegrid(self) -> None:
         """Save the current simulation period."""
-        state.timegrids[self._id] = copy.deepcopy(pub.timegrids.sim)
+        state.timegrids[self._id] = copy.deepcopy(hydpy.pub.timegrids.sim)
 
     def GET_savedtimegrid(self) -> None:
         """Get the previously saved simulation period."""
         try:
             self._write_timegrid(state.timegrids[self._id])
         except KeyError:
-            self._write_timegrid(pub.timegrids.init)
+            self._write_timegrid(hydpy.pub.timegrids.init)
 
     @staticmethod
     def _get_itemtype(item) -> str:
@@ -1127,7 +1127,7 @@ but have not been calculated so far.
         return f'Double{item.ndim}D'
 
     def _write_timegrid(self, timegrid):
-        utcoffset = pub.options.utcoffset
+        utcoffset = hydpy.pub.options.utcoffset
         self._outputs['firstdate'] = timegrid.firstdate.to_string(
             'iso1', utcoffset)
         self._outputs['lastdate'] = timegrid.lastdate.to_string(
@@ -1198,10 +1198,6 @@ resulted in the following error:
     else:
         raise urllib.error.URLError(
             f'Waited for {seconds} seconds without response on port {port}.')
-
-
-pub.scriptfunctions['start_server'] = start_server
-pub.scriptfunctions['await_server'] = await_server
 
 
 autodoctools.autodoc_module()

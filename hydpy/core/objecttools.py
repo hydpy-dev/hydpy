@@ -13,7 +13,7 @@ import textwrap
 import wrapt
 from typing import NoReturn
 # ...from HydPy
-from hydpy import pub
+import hydpy
 from hydpy.core import abctools
 from hydpy.core import autodoctools
 
@@ -51,7 +51,7 @@ def dir_(self):
     names = set()
     for thing in list(inspect.getmro(type(self))) + [self]:
         for key in vars(thing).keys():
-            if pub.options.dirverbose or not key.startswith('_'):
+            if hydpy.pub.options.dirverbose or not key.startswith('_'):
                 names.add(key)
     if names:
         names = list(names)
@@ -692,7 +692,7 @@ class _Repr(object):
         self._preserve_strings = False
 
     def __call__(self, value):
-        decimals = pub.options.reprdigits
+        decimals = hydpy.pub.options.reprdigits
         if isinstance(value, str):
             string = value.replace('\\', '/')
             if self._preserve_strings:
@@ -836,7 +836,7 @@ def assignrepr_values(values, prefix, width=None, _fakeend=0):
          6, 7, 8, 9, 10,
          11, 12)
     """
-    ellipsis_ = pub.options.ellipsis
+    ellipsis_ = hydpy.pub.options.ellipsis
     if (ellipsis_ > 0) and (len(values) > 2*ellipsis_):
         string = (repr_values(values[:ellipsis_]) +
                   ', ...,' +
@@ -1288,8 +1288,8 @@ def round_(values, decimals=None, width=0,
 arguments `lfill` and `rfill`.  This is not allowed.
     """
     if decimals is None:
-        decimals = pub.options.reprdigits
-    with pub.options.reprdigits(decimals):
+        decimals = hydpy.pub.options.reprdigits
+    with hydpy.pub.options.reprdigits(decimals):
         if isinstance(values, abctools.IterableNonStringABC):
             string = repr_values(values)
         else:

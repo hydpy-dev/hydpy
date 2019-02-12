@@ -24,7 +24,7 @@ pyplot = exceptiontools.OptionalImport(   # pylint: disable=invalid-name
     'matplotlib.pyplot', ['from matplotlib import pyplot'])
 
 
-class ParameterIUH(object):
+class ParameterIUH:
     """Descriptor base class for |PrimaryParameterIUH| and
     |SecondaryParameterIUH|.
 

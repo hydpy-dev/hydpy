@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=wrong-import-position, wrong-import-order, ungrouped-imports
+# pylint: disable=wrong-import-position
 # due to using the HydPy class `OptionalImports` for importing site-packages
 """
 HydPy
@@ -17,7 +17,7 @@ from numpy import nan
 from scipy import integrate
 # ...from HydPy
 from hydpy.core import pubtools
-pub = pubtools.Pub('pub')
+pub = pubtools.Pub('pub')   # pylint: disable=invalid-name
 from hydpy.core import dummytools
 from hydpy.core import indextools
 from hydpy.core import optiontools

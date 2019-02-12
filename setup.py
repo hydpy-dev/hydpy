@@ -90,9 +90,9 @@ for package in packages:
 # compiling extensions otherwise.
 ext_modules = []
 if bdist:
-    package_data['hydpy.cythons.autogen'] = ['*.pyx', '*.pxd', '*.pyd']
+    package_data['hydpy.cythons.autogen'] = ['*.pyx', '*.pxd', '*.pyd', '*.pyi']
 else:
-    package_data['hydpy.cythons.autogen'] = ['*.pyx', '*.pxd']
+    package_data['hydpy.cythons.autogen'] = ['*.pyx', '*.pxd', '*.pyi']
     print_('\nCollect extension modules:`')
     # Select the required extension modules, except those directly related
     # to the hydrological models.
@@ -124,6 +124,13 @@ else:
                 text = text.replace('initializedcheck=False',
                                     'initializedcheck=True')
             open(path_out, 'w').write(text)
+
+    print_('\nCopy extension module stub files:')
+    for ext_name in ext_names:
+        filename = f'{ext_name}.pyi'
+        path_in = prep('hydpy', 'cythons', filename)
+        path_out = prep('hydpy', 'cythons', 'autogen', filename)
+        source2target(path_in, path_out)
 
     print_('\nPrepare extension modules:')
     for ext_name in ext_names:

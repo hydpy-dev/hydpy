@@ -16,9 +16,8 @@ import numpy
 from numpy import nan
 from scipy import integrate
 # ...from HydPy
-from hydpy import pub
 from hydpy.core import pubtools
-pub.__class__ = pubtools.Pub
+pub = pubtools.Pub('pub')
 from hydpy.core import dummytools
 from hydpy.core import indextools
 from hydpy.core import optiontools

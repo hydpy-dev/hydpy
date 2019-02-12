@@ -27,7 +27,6 @@ import scipy
 import wrapt
 # ...from HydPy
 import hydpy
-from hydpy import pub
 from hydpy import config
 from hydpy import auxs
 from hydpy import core

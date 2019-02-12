@@ -39,7 +39,7 @@ class _ANNArrayProperty(propertytools.DependentProperty):
         self.fdel = self.__fdel
 
     @classmethod
-    def add_cann(cls, obj, cann):   # pylint: disable=bad-classmethod-argument
+    def add_cann(cls, obj, cann):
         """Log the given Cython based ANN for the given object."""
         cls.__obj2cann[obj] = cann
 

@@ -219,7 +219,6 @@ class Test(object):
     @staticmethod
     @abc.abstractmethod
     def get_output_array(parseq):
-        # pylint: disable=unused-argument
         """To be implemented by the subclasses of |Test|."""
         return NotImplementedError
 

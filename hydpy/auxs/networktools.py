@@ -36,8 +36,9 @@ basin number.
         try:
             return str.__new__(cls, str(int(value)).strip('0'))
         except ValueError:
-            raise ValueError('The given value `%s` could not be interpreted '
-                             'as a river basin number.' % value)
+            raise ValueError(
+                f'The given value `{value}` could not be '
+                f'interpreted as a river basin number.')
 
     @property
     def is_rivermouth(self):
@@ -235,7 +236,7 @@ class RiverBasinNumbers(tuple):
                                             60) + ')'
 
 
-class RiverBasinNumbers2Selection(object):
+class RiverBasinNumbers2Selection:
     """Class for defining a |Selection| object (consisting of connected
     nodes and elements) based on given |RiverBasinNumber| objects.
 

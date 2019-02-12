@@ -17,7 +17,8 @@ from hydpy.auxs import statstools
 pyplot = exceptiontools.OptionalImport(   # pylint: disable=invalid-name
     'matplotlib.pyplot', ['from matplotlib import pyplot'])
 
-class MA(object):
+
+class MA:
     """Moving Average Model.
 
     The MA coefficients can be set manually:
@@ -242,8 +243,7 @@ Please check the calculated coefficients: 0.0, 0.0, 0.0, 0.0, 0.75, 0.25.
             new_dc = coefs[idx+2]-coefs[idx+1]
             if (old_dc < 0.) and (new_dc > old_dc):
                 return idx, coefs[idx]
-            else:
-                old_dc = new_dc
+            old_dc = new_dc
         raise RuntimeError(
             'Not able to detect a turning point in the impulse response '
             'defined by the MA coefficients %s.'
@@ -286,7 +286,7 @@ Please check the calculated coefficients: 0.0, 0.0, 0.0, 0.0, 0.75, 0.25.
         return objecttools.assignrepr_tuple(self.coefs, 'MA(coefs=', 70) + ')'
 
 
-class ARMA(object):
+class ARMA:
     """Autoregressive-Moving Average model.
 
     All ARMA coefficients can be set manually:
@@ -523,7 +523,7 @@ coefficients.
     @property
     def coefs(self):
         """Tuple containing both the AR and the MA coefficients."""
-        return (self.ar_coefs, self.ma_coefs)
+        return self.ar_coefs, self.ma_coefs
 
     @property
     def ar_order(self):
@@ -538,7 +538,7 @@ coefficients.
     @property
     def order(self):
         """Number of both the AR and the MA coefficients."""
-        return (self.ar_order, self.ma_order)
+        return self.ar_order, self.ma_order
 
     def update_coefs(self):
         """Determine both the AR and the MA coefficients."""
@@ -570,13 +570,13 @@ coefficients.
         else:
             with hydpy.pub.options.reprdigits(12):
                 raise RuntimeError(
-                    'Method `update_ar_coefs` is not able to determine '
-                    'the AR coefficients of the ARMA model with the desired '
-                    'accuracy.  You can either set the tolerance value '
-                    '`max_rel_rmse` to a higher value or increase the '
-                    'allowed `max_ar_order`.  An accuracy of `%s` has been '
-                    'reached using `%d` coefficients.'
-                    % (objecttools.repr_(self._rel_rmse), ar_order))
+                    f'Method `update_ar_coefs` is not able to determine '
+                    f'the AR coefficients of the ARMA model with the desired '
+                    f'accuracy.  You can either set the tolerance value '
+                    f'`max_rel_rmse` to a higher value or increase the '
+                    f'allowed `max_ar_order`.  An accuracy of `'
+                    f'{objecttools.repr_(self._rel_rmse)}` has been reached '
+                    f'using `{self.effective_max_ar_order}` coefficients.')
 
     @property
     def dev_moments(self):
@@ -662,12 +662,12 @@ coefficients.
         else:
             with hydpy.pub.options.reprdigits(12):
                 raise RuntimeError(
-                    'Method `update_ma_coefs` is not able to determine the MA '
-                    'coefficients of the ARMA model with the desired accuracy.'
-                    '  You can set the tolerance value ´max_dev_coefs` to a '
-                    'higher value.  An accuracy of `%s` has been reached '
-                    'using `%d` MA coefficients.'
-                    % (objecttools.repr_(self.dev_coefs), ma_order))
+                    f'Method `update_ma_coefs` is not able to determine the '
+                    f'MA coefficients of the ARMA model with the desired '
+                    f'accuracy.  You can set the tolerance value '
+                    f'´max_dev_coefs` to a higher value.  An accuracy of '
+                    f'`{objecttools.repr_(self.dev_coefs)}` has been reached '
+                    f'using `{self.ma.order}` MA coefficients.')
         if numpy.min(self.response) < 0.:
             warnings.warn(
                 'Note that the smallest response to a standard impulse of the '
@@ -697,7 +697,6 @@ coefficients.
         """Return the response to a standard dt impulse."""
         values = []
         sum_values = 0.
-        idx = 0
         ma_coefs = self.ma_coefs
         ar_coefs = self.ar_coefs
         ma_order = self.ma_order

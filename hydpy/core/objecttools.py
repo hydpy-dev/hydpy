@@ -13,7 +13,7 @@ import textwrap
 import wrapt
 from typing import NoReturn
 # ...from HydPy
-from hydpy import pub
+import hydpy
 from hydpy.core import abctools
 from hydpy.core import autodoctools
 
@@ -25,8 +25,8 @@ def dir_(self):
     set `True`, all attributes and methods of the given instance and its
     class (including those inherited from the parent classes) are returned:
 
-    >>> from hydpy.pub import options
-    >>> options.dirverbose = True
+    >>> from hydpy import pub
+    >>> pub.options.dirverbose = True
     >>> from hydpy.core.objecttools import dir_
     >>> class Test(object):
     ...     only_public_attribute =  None
@@ -36,7 +36,7 @@ def dir_(self):
     If the option is set to `False`, only the `public` attributes and methods
     (which do need begin with `_`) are returned:
 
-    >>> options.dirverbose = False
+    >>> pub.options.dirverbose = False
     >>> print(dir_(Test())) # Short list with one single entry...
     ['only_public_attribute']
 
@@ -51,7 +51,7 @@ def dir_(self):
     names = set()
     for thing in list(inspect.getmro(type(self))) + [self]:
         for key in vars(thing).keys():
-            if pub.options.dirverbose or not key.startswith('_'):
+            if hydpy.pub.options.dirverbose or not key.startswith('_'):
                 names.add(key)
     if names:
         names = list(names)
@@ -64,10 +64,10 @@ def classname(self):
     """Return the class name of the given instance object or class.
 
     >>> from hydpy.core.objecttools import classname
-    >>> from hydpy.pub import options
+    >>> from hydpy import pub
     >>> print(classname(float))
     float
-    >>> print(classname(options))
+    >>> print(classname(pub.options))
     Options
     """
     if not inspect.isclass(self):
@@ -80,8 +80,8 @@ def instancename(self):
     case letters.
 
     >>> from hydpy.core.objecttools import instancename
-    >>> from hydpy.pub import options
-    >>> print(instancename(options))
+    >>> from hydpy import pub
+    >>> print(instancename(pub.options))
     options
     """
     return classname(self).lower()
@@ -136,8 +136,8 @@ def modulename(self):
     """Return the module name of the given instance object.
 
     >>> from hydpy.core.objecttools import modulename
-    >>> from hydpy.pub import options
-    >>> print(modulename(options))
+    >>> from hydpy import pub
+    >>> print(modulename(pub.options))
     optiontools
     """
     return self.__module__.split('.')[-1]
@@ -637,8 +637,8 @@ class _Repr(object):
     |repr| defines the number of digits in the usual, system dependent
     manner:
 
-    >>> from hydpy.pub import options
-    >>> del options.reprdigits
+    >>> from hydpy import pub
+    >>> del pub.options.reprdigits
     >>> repr(1./3.) == repr_(1./3.)
     True
 
@@ -646,7 +646,7 @@ class _Repr(object):
     one defines the maximum number of decimal places, which allows for
     doctesting across different systems and Python versions:
 
-    >>> options.reprdigits = 6
+    >>> pub.options.reprdigits = 6
     >>> repr_(1./3.)
     '0.333333'
     >>> repr_(2./3.)
@@ -656,7 +656,7 @@ class _Repr(object):
 
     Changing the number of decimal places can be done via a with block:
 
-    >>> with options.reprdigits(3):
+    >>> with pub.options.reprdigits(3):
     ...     print(repr_(1./3.))
     0.333
 
@@ -692,7 +692,7 @@ class _Repr(object):
         self._preserve_strings = False
 
     def __call__(self, value):
-        decimals = pub.options.reprdigits
+        decimals = hydpy.pub.options.reprdigits
         if isinstance(value, str):
             string = value.replace('\\', '/')
             if self._preserve_strings:
@@ -819,24 +819,24 @@ def assignrepr_values(values, prefix, width=None, _fakeend=0):
     To circumvent defining too long string representations, make use of the
     ellipsis option:
 
-    >>> from hydpy.pub import options
-    >>> with options.ellipsis(1):
+    >>> from hydpy import pub
+    >>> with pub.options.ellipsis(1):
     ...     print(assignrepr_values(range(1, 13), 'test(', 20) + ')')
     test(1, ...,12)
 
-    >>> with options.ellipsis(5):
+    >>> with pub.options.ellipsis(5):
     ...     print(assignrepr_values(range(1, 13), 'test(', 20) + ')')
     test(1, 2, 3, 4, 5,
          ...,8, 9, 10,
          11, 12)
 
-    >>> with options.ellipsis(6):
+    >>> with pub.options.ellipsis(6):
     ...     print(assignrepr_values(range(1, 13), 'test(', 20) + ')')
     test(1, 2, 3, 4, 5,
          6, 7, 8, 9, 10,
          11, 12)
     """
-    ellipsis_ = pub.options.ellipsis
+    ellipsis_ = hydpy.pub.options.ellipsis
     if (ellipsis_ > 0) and (len(values) > 2*ellipsis_):
         string = (repr_values(values[:ellipsis_]) +
                   ', ...,' +
@@ -1288,8 +1288,8 @@ def round_(values, decimals=None, width=0,
 arguments `lfill` and `rfill`.  This is not allowed.
     """
     if decimals is None:
-        decimals = pub.options.reprdigits
-    with pub.options.reprdigits(decimals):
+        decimals = hydpy.pub.options.reprdigits
+    with hydpy.pub.options.reprdigits(decimals):
         if isinstance(values, abctools.IterableNonStringABC):
             string = repr_values(values)
         else:

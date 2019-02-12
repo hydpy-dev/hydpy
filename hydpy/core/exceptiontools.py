@@ -45,7 +45,6 @@ class OptionalImport(object):
 load module `numpie`.  This module is no general requirement but \
 necessary for some specific functionalities.
     """
-
     def __new__(cls, name, commands):
         for command in commands:
             try:

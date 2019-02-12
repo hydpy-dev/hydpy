@@ -16,7 +16,7 @@ import warnings
 # ...from site-packages
 import numpy
 # ...from HydPy
-from hydpy import pub
+import hydpy
 from hydpy.core import abctools
 from hydpy.core import autodoctools
 from hydpy.core import masktools
@@ -47,7 +47,7 @@ def trim(self, lower=None, upper=None):
     message can be suppressed by setting the related option flag to False.)
     For integer values, instead of a warning an exception is raised.
     """
-    if pub.options.trimvariables:
+    if hydpy.pub.options.trimvariables:
         span = getattr(self, 'SPAN', (None, None))
         if lower is None:
             lower = span[0]
@@ -147,7 +147,7 @@ def tolerance(values) -> float:
 
 
 def _warn_trim(self, newvalue):
-    if pub.options.warntrim:
+    if hydpy.pub.options.warntrim:
         warnings.warn(
             f'For variable {objecttools.devicephrase(self)} at least one '
             f'value needed to be trimmed.  The old and the new value(s) '
@@ -905,7 +905,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         representations more informative.  When `pub.options.reprcomments`
         is set to |False|, an empty list is returned.
         """
-        if pub.options.reprcomments:
+        if hydpy.pub.options.reprcomments:
             return ['# %s' % line for line in
                     textwrap.wrap(metatools.description(self), 78)]
         return []
@@ -1004,7 +1004,7 @@ class SubVariables(metatools.MetaSubgroupClass):
 
     def __repr__(self):
         lines = []
-        if pub.options.reprcomments:
+        if hydpy.pub.options.reprcomments:
             lines.append('# %s object defined in module %s.'
                          % (objecttools.classname(self),
                             objecttools.modulename(self)))

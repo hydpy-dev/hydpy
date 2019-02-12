@@ -13,7 +13,7 @@ from typing import ClassVar, Dict, Union
 # ...from site-packages
 import numpy
 # ...from HydPy
-from hydpy import pub
+import hydpy
 from hydpy.core import abctools
 from hydpy.core import autodoctools
 from hydpy.core import objecttools
@@ -166,7 +166,7 @@ class Sequences(object):
 
     @conditions.setter
     def conditions(self, conditions):
-        with pub.options.trimvariables(False):
+        with hydpy.pub.options.trimvariables(False):
             for subname, subconditions in conditions.items():
                 subseqs = getattr(self, subname)
                 for seqname, values in subconditions.items():
@@ -212,7 +212,7 @@ class Sequences(object):
             for seq in self.conditionsequences:
                 namespace[seq.name] = seq
             namespace['model'] = self
-            code = pub.conditionmanager.load_file(filename)
+            code = hydpy.pub.conditionmanager.load_file(filename)
             try:
                 # ToDo: raises an escape sequence deprecation sometimes
                 # ToDo: use runpy instead?
@@ -234,14 +234,14 @@ class Sequences(object):
         if self.hasconditions:
             if filename is None:
                 filename = self._conditiondefaultfilename
-            con = pub.controlmanager
+            con = hydpy.pub.controlmanager
             lines = ['# -*- coding: utf-8 -*-\n\n',
                      'from hydpy.models.%s import *\n\n' % self.model,
                      'controlcheck(projectdir="%s", controldir="%s")\n\n'
                      % (con.projectdir, con.currentdir)]
             for seq in self.conditionsequences:
                 lines.append(repr(seq) + '\n')
-            pub.conditionmanager.save_file(filename, ''.join(lines))
+            hydpy.pub.conditionmanager.save_file(filename, ''.join(lines))
 
     def trim_conditions(self):
         """Call method |trim| of each handled |ConditionSequence|."""
@@ -466,7 +466,7 @@ class Sequence(variabletools.Variable):
 
     @property
     def initvalue(self):
-        if pub.options.usedefaultvalues:
+        if hydpy.pub.options.usedefaultvalues:
             initvalue = getattr(self, 'INIT', None)
             if initvalue is None:
                 initvalue = 0.
@@ -583,7 +583,7 @@ class _IOProperty(propertytools.DefaultProperty):
 
     def __fget(self, obj):
         try:
-            manager = pub.sequencemanager
+            manager = hydpy.pub.sequencemanager
         except RuntimeError:
             raise RuntimeError(
                 f'For sequence {objecttools.devicephrase(obj)} attribute '
@@ -790,7 +790,7 @@ or prepare `pub.sequencemanager` correctly.
         >>> SequenceManager.basepath = basepath
         """
         try:
-            return pub.sequencemanager.tempdirpath
+            return hydpy.pub.sequencemanager.tempdirpath
         except RuntimeError:
             raise RuntimeError(
                 f'For sequence {objecttools.devicephrase(self)} '
@@ -965,7 +965,7 @@ or prepare `pub.sequencemanager` correctly.
     @property
     def seriesshape(self):
         """Shape of the whole time series (time being the first dimension)."""
-        seriesshape = [len(pub.timegrids.init)]
+        seriesshape = [len(hydpy.pub.timegrids.init)]
         seriesshape.extend(self.shape)
         return tuple(seriesshape)
 
@@ -982,6 +982,7 @@ or prepare `pub.sequencemanager` correctly.
                 'While trying to query the required configuration data '
                 '`nmb_stages` of the model associated with element `%s`'
                 % (self.name, objecttools.devicename(self)))
+        # noinspection PyUnboundLocalVariable
         numericshape.extend(self.shape)
         return tuple(numericshape)
 
@@ -1023,7 +1024,7 @@ or prepare `pub.sequencemanager` correctly.
     def load_ext(self):
         """Read the internal data from an external data file."""
         try:
-            sequencemanager = pub.sequencemanager
+            sequencemanager = hydpy.pub.sequencemanager
         except AttributeError:
             raise RuntimeError(
                 'The time series of sequence %s cannot be loaded.  Firstly, '
@@ -1038,25 +1039,25 @@ or prepare `pub.sequencemanager` correctly.
                 'the external data file `%s` it should be `%s`.'
                 % (objecttools.devicephrase(self), self.shape,
                    self.filepath_ext, values.shape[1:]))
-        if pub.timegrids.init.stepsize != timegrid_data.stepsize:
+        if hydpy.pub.timegrids.init.stepsize != timegrid_data.stepsize:
             raise RuntimeError(
                 'According to external data file `%s`, the date time '
                 'step of sequence %s is `%s`, but the actual simulation '
                 'time step is `%s`.'
                 % (self.filepath_ext, objecttools.devicephrase(self),
-                   timegrid_data.stepsize, pub.timegrids.init.stepsize))
-        elif pub.timegrids.init not in timegrid_data:
-            if pub.options.checkseries:
+                   timegrid_data.stepsize, hydpy.pub.timegrids.init.stepsize))
+        elif hydpy.pub.timegrids.init not in timegrid_data:
+            if hydpy.pub.options.checkseries:
                 raise RuntimeError(
                     'For sequence `%s the initialization time grid (%s) '
                     'does not define a subset of the time grid of the '
                     'external data file %s (%s).'
-                    % (objecttools.devicephrase(self), pub.timegrids.init,
+                    % (objecttools.devicephrase(self), hydpy.pub.timegrids.init,
                        self.filepath_ext, timegrid_data))
             else:
                 return self.adjust_short_series(timegrid_data, values)
-        idx1 = timegrid_data[pub.timegrids.init.firstdate]
-        idx2 = timegrid_data[pub.timegrids.init.lastdate]
+        idx1 = timegrid_data[hydpy.pub.timegrids.init.firstdate]
+        idx2 = timegrid_data[hydpy.pub.timegrids.init.lastdate]
         return values[idx1:idx2]
 
     def adjust_short_series(self, timegrid, values):
@@ -1125,8 +1126,8 @@ or prepare `pub.sequencemanager` correctly.
         ...     test(Timegrid('2000.01.12', '2000.01.17', '1d'))
         array([ 0.,  0.,  1.,  1.,  1.])
         """
-        idxs = [timegrid[pub.timegrids.init.firstdate],
-                timegrid[pub.timegrids.init.lastdate]]
+        idxs = [timegrid[hydpy.pub.timegrids.init.firstdate],
+                timegrid[hydpy.pub.timegrids.init.lastdate]]
         valcopy = values
         values = numpy.full(self.seriesshape, self.initvalue)
         len_ = len(valcopy)
@@ -1173,7 +1174,7 @@ or prepare `pub.sequencemanager` correctly.
         >>> with pub.options.checkseries(False):
         ...     seq.check_completeness()
         """
-        if pub.options.checkseries:
+        if hydpy.pub.options.checkseries:
             isnan = numpy.isnan(self.series)
             if numpy.any(isnan):
                 nmb = numpy.sum(isnan)
@@ -1186,7 +1187,7 @@ or prepare `pub.sequencemanager` correctly.
     def save_ext(self):
         """Write the internal data into an external data file."""
         try:
-            sequencemanager = pub.sequencemanager
+            sequencemanager = hydpy.pub.sequencemanager
         except AttributeError:
             raise RuntimeError(
                 'The time series of sequence %s cannot be saved.  Firstly,'
@@ -1200,7 +1201,7 @@ or prepare `pub.sequencemanager` correctly.
             info={'type': 'mean',
                   'args': args,
                   'kwargs': kwargs})
-        pub.sequencemanager.save_file(self, array=array)
+        hydpy.pub.sequencemanager.save_file(self, array=array)
 
     def _load_int(self):
         """Load internal data from file and return it."""
@@ -1856,7 +1857,7 @@ of node `dill`, the following error occurred: The series array of sequence \
         try:
             super().load_ext()
         except BaseException:
-            if pub.options.warnmissingsimfile:
+            if hydpy.pub.options.warnmissingsimfile:
                 warnings.warn(str(sys.exc_info()[1]))
 
 
@@ -1957,13 +1958,13 @@ of node `dill`, the following error occurred: The series array of sequence \
             super().load_ext()
         except OSError:
             del self.memoryflag
-            if pub.options.warnmissingobsfile:
+            if hydpy.pub.options.warnmissingobsfile:
                 warnings.warn(
                     f'The `memory flag` of sequence '
                     f'{objecttools.nodephrase(self)} had to be set to `False` '
                     f'due to the following problem: {sys.exc_info()[1]}')
         except BaseException:
-            if pub.options.warnmissingobsfile:
+            if hydpy.pub.options.warnmissingobsfile:
                 warnings.warn(str(sys.exc_info()[1]))
 
     @property

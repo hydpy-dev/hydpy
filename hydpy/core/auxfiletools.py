@@ -31,7 +31,7 @@ import copy
 import importlib
 import types
 # ...from HydPy
-from hydpy import pub
+import hydpy
 from hydpy.core import abctools
 from hydpy.core import autodoctools
 from hydpy.core import importtools
@@ -307,7 +307,7 @@ Variable type `EQD1` is not handled by model `lstream_v1`.
                         modelname, parameterstep, simulationstep)]
                     for par in getattr(var2aux, filename):
                         lines.append(repr(par) + '\n')
-                pub.controlmanager.save_file(filename, ''.join(lines))
+                hydpy.pub.controlmanager.save_file(filename, ''.join(lines))
 
     __copy__ = objecttools.copy_
 

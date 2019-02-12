@@ -6,8 +6,8 @@ from typing import Tuple
 import os
 import shutil
 # ...from HydPy
+import hydpy
 from hydpy import data
-from hydpy import pub
 from hydpy.core import autodoctools
 from hydpy.core import devicetools
 from hydpy.core import hydpytools
@@ -16,6 +16,7 @@ from hydpy.tests import iotesting
 
 
 def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
+    # noinspection PyUnresolvedReferences
     """Prepare an IO example configuration.
 
     >>> from hydpy.core.examples import prepare_io_example_1
@@ -97,17 +98,17 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     >>> numpy.all(bowa3.series == bowa3.testarray)
     InfoArray(False, dtype=bool)
     """
-    from hydpy import pub, TestIO
+    from hydpy import TestIO
     TestIO.clear()
     from hydpy.core.filetools import SequenceManager
-    pub.sequencemanager = SequenceManager()
+    hydpy.pub.sequencemanager = SequenceManager()
     with TestIO():
-        pub.sequencemanager.inputdirpath = 'inputpath'
-        pub.sequencemanager.fluxdirpath = 'outputpath'
-        pub.sequencemanager.statedirpath = 'outputpath'
-        pub.sequencemanager.nodedirpath = 'nodepath'
+        hydpy.pub.sequencemanager.inputdirpath = 'inputpath'
+        hydpy.pub.sequencemanager.fluxdirpath = 'outputpath'
+        hydpy.pub.sequencemanager.statedirpath = 'outputpath'
+        hydpy.pub.sequencemanager.nodedirpath = 'nodepath'
 
-    pub.timegrids = '2000-01-01', '2000-01-05', '1d'
+    hydpy.pub.timegrids = '2000-01-01', '2000-01-05', '1d'
 
     from hydpy import Node, Nodes, Element, Elements, prepare_model
     node1 = Node('node1')
@@ -130,7 +131,7 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
         parameters.control.lnk(ACKER)
         parameters.derived.absfhru(10.0)
 
-    with pub.options.printprogress(False):
+    with hydpy.pub.options.printprogress(False):
         nodes.prepare_simseries()
         elements.prepare_inputseries()
         elements.prepare_fluxseries()
@@ -185,7 +186,7 @@ def prepare_full_example_1() -> None:
 
 
 def prepare_full_example_2(lastdate='1996-01-05') -> (
-        hydpytools.HydPy, pub, testtools.TestIO):
+        hydpytools.HydPy, hydpy.pub, testtools.TestIO):
     """Prepare the complete `LahnH` project for testing.
 
     |prepare_full_example_2| calls |prepare_full_example_1|, but also
@@ -219,9 +220,9 @@ def prepare_full_example_2(lastdate='1996-01-05') -> (
     prepare_full_example_1()
     with testtools.TestIO():
         hp = hydpytools.HydPy('LahnH')
-        pub.timegrids = '1996-01-01', lastdate, '1d'
+        hydpy.pub.timegrids = '1996-01-01', lastdate, '1d'
         hp.prepare_everything()
-    return hp, pub, testtools.TestIO
+    return hp, hydpy.pub, testtools.TestIO
 
 
 autodoctools.autodoc_module()

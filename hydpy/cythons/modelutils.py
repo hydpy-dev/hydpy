@@ -20,7 +20,6 @@ import functools
 import numpy
 # ...from HydPy
 import hydpy
-from hydpy import pub
 from hydpy import cythons
 from hydpy.core import autodoctools
 from hydpy.core import objecttools
@@ -55,7 +54,7 @@ NDIM2STR = {0: '',
             2: '[:,:]',
             3: '[:,:,:]'}
 
-_nogil = ' nogil' if pub.options.fastcython else ''
+_nogil = ' nogil' if hydpy.pub.options.fastcython else ''   # ToDo
 
 
 class Lines(list):
@@ -81,7 +80,7 @@ class Lines(list):
 def method_header(method_name, nogil=False, idx_as_arg=False):
     """Returns the Cython method header for methods without arguments except
     `self`."""
-    if not pub.options.fastcython:
+    if not hydpy.pub.options.fastcython:
         nogil = False
     header = 'cpdef inline void %s(self' % method_name
     header += ', int idx)' if idx_as_arg else ')'
@@ -119,19 +118,19 @@ class Cythonizer(object):
             setattr(self, key, value)
 
     def complete(self):
-        if pub.options.autocompile and self.outdated:
-            usecython = pub.options.usecython
+        if hydpy.pub.options.autocompile and self.outdated:
+            usecython = hydpy.pub.options.usecython
             try:
-                if not pub.options.skipdoctests:
-                    pub.options.usecython = False
+                if not hydpy.pub.options.skipdoctests:
+                    hydpy.pub.options.usecython = False
                     self.tester.doit()
                 if usecython:
                     self.doit()
-                    if not pub.options.skipdoctests:
-                        pub.options.usecython = True
+                    if not hydpy.pub.options.skipdoctests:
+                        hydpy.pub.options.usecython = True
                         self.tester.doit()
             finally:
-                pub.options.usecython = usecython
+                hydpy.pub.options.usecython = usecython
 
     def doit(self):
         with printtools.PrintStyle(color=33, font=4):
@@ -221,7 +220,7 @@ class Cythonizer(object):
         newer than the compiled file under |Cythonizer.pyxfilepath|,
         otherwise False.
         """
-        if pub.options.forcecompiling:
+        if hydpy.pub.options.forcecompiling:
             return True
         if os.path.split(hydpy.__path__[0])[-2].endswith('-packages'):
             return False
@@ -335,7 +334,7 @@ class PyxWriter(object):
     @property
     def cythonoptions(self):
         """Cython option lines."""
-        flag = 'False' if pub.options.fastcython else 'True'
+        flag = 'False' if hydpy.pub.options.fastcython else 'True'
         return Lines('#!python',
                      '#cython: boundscheck=%s' % flag,
                      '#cython: wraparound=%s' % flag,

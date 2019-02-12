@@ -204,7 +204,7 @@ if install:
 
     # Assure that the actual `debug_cython` option also effects the
     # cythonization of the hydrological models.
-    import hydpy.pub
+    import hydpy
     hydpy.pub.options.fastcython = not debug_cython
 
     # Execute all tests.

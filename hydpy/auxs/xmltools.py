@@ -95,9 +95,9 @@ import itertools
 import os
 from xml.etree import ElementTree
 # ...from HydPy
+import hydpy
 from hydpy import conf
 from hydpy import models
-from hydpy import pub
 from hydpy.core import devicetools
 from hydpy.core import exceptiontools
 from hydpy.core import hydpytools
@@ -142,7 +142,7 @@ def _query_selections(xmlelement) -> selectiontools.Selections:
     selections = []
     for name in text.split():
         try:
-            selections.append(pub.selections[name])
+            selections.append(hydpy.pub.selections[name])
         except KeyError:
             raise NameError(
                 f'The XML configuration file tries to defines a selection '
@@ -156,8 +156,8 @@ def _query_devices(xmlelement) -> selectiontools.Selection:
     text = xmlelement.text
     if text is None:
         return selection
-    elements = pub.selections.complete.elements
-    nodes = pub.selections.complete.nodes
+    elements = hydpy.pub.selections.complete.elements
+    nodes = hydpy.pub.selections.complete.nodes
     for name in text.split():
         try:
             selection.elements += getattr(elements, name)
@@ -192,14 +192,14 @@ def run_simulation(projectname: str, xmlfile: str):
     explained in the main documentation on module |xmltools|.
     """
     write = commandtools.print_textandtime
-    pub.options.printprogress = False
+    hydpy.pub.options.printprogress = False
     write(f'Start HydPy project `{projectname}`')
     hp = hydpytools.HydPy(projectname)
     write(f'Read configuration file `{xmlfile}`')
     interface = XMLInterface(xmlfile)
     write('Interpret the defined options')
     interface.update_options()
-    pub.options.printprogress = False
+    hydpy.pub.options.printprogress = False
     write('Interpret the defined period')
     interface.update_timegrids()
     write('Read all network files')
@@ -219,9 +219,6 @@ def run_simulation(projectname: str, xmlfile: str):
     interface.conditions_io.save_conditions()
     write('Write the desired time series files')
     interface.series_io.save_series()
-
-
-pub.scriptfunctions['run_simulation'] = run_simulation
 
 
 class XMLBase(object):
@@ -305,7 +302,7 @@ file ...wrongfilepath.xml, the following error occurred: \
 
     def __init__(self, filename, directory=None):
         if directory is None:
-            directory = pub.projectname
+            directory = hydpy.pub.projectname
         self.filepath = os.path.abspath(os.path.join(directory, filename))
         try:
             self.root = ElementTree.parse(self.filepath).getroot()
@@ -432,8 +429,8 @@ correctly refer to one of the available XML schema files \
         """Update the |Options| object available in module |pub| with the
         values defined in the `options` XML element.
 
-        >>> from hydpy.auxs.xmltools import XMLInterface, pub
-        >>> from hydpy import data
+        >>> from hydpy.auxs.xmltools import XMLInterface
+        >>> from hydpy import data, pub
         >>> interface = XMLInterface('single_run.xml', data.get_path('LahnH'))
         >>> pub.options.printprogress = True
         >>> pub.options.printincolor = True
@@ -471,7 +468,7 @@ correctly refer to one of the available XML schema files \
         >>> pub.options.printprogress = False
         >>> pub.options.reprdigits = 6
         """
-        options = pub.options
+        options = hydpy.pub.options
         for option in self.find('options'):
             value = option.text
             if value in ('true', 'false'):
@@ -528,11 +525,11 @@ correctly refer to one of the available XML schema files \
         try:
             timegrid = timetools.Timegrid(
                 *(timegrid_xml[idx].text for idx in range(3)))
-            pub.timegrids = timetools.Timegrids(timegrid)
+            hydpy.pub.timegrids = timetools.Timegrids(timegrid)
         except IndexError:
             seriesfile = find(timegrid_xml, 'seriesfile').text
             with netcdf4.Dataset(seriesfile) as ncfile:
-                pub.timegrids = timetools.Timegrids(
+                hydpy.pub.timegrids = timetools.Timegrids(
                     netcdftools.query_timegrid(ncfile))
 
     @property
@@ -721,7 +718,7 @@ class XMLConditions(XMLBase):
         >>> hp.elements.land_lahn_2.model.sequences.states.lz
         lz(nan)
         """
-        pub.conditionmanager.currentdir = strip(self.find('inputdir').text)
+        hydpy.pub.conditionmanager.currentdir = strip(self.find('inputdir').text)
         for element in self.master.elements:
             element.model.sequences.load_conditions()
 
@@ -750,11 +747,11 @@ class XMLConditions(XMLBase):
         lz(999.0)
         False
         """
-        pub.conditionmanager.currentdir = strip(self.find('outputdir').text)
+        hydpy.pub.conditionmanager.currentdir = strip(self.find('outputdir').text)
         for element in self.master.elements:
             element.model.sequences.save_conditions()
         if strip(self.find('zip').text) == 'true':
-            pub.conditionmanager.zip_currentdir()   # ToDo: test it
+            hydpy.pub.conditionmanager.zip_currentdir()   # ToDo: test it
 
 
 class XMLSeries(XMLBase):
@@ -1037,7 +1034,7 @@ class XMLSubseries(XMLSelector):
                     except AttributeError:
                         continue
                     break
-                setattr(pub.sequencemanager,
+                setattr(hydpy.pub.sequencemanager,
                         f'{name_manager}{config}',
                         convert(value))
 
@@ -1178,14 +1175,14 @@ class XMLSubseries(XMLSelector):
         """
         kwargs = {}
         for keyword in ('flattennetcdf', 'isolatenetcdf', 'timeaxisnetcdf'):
-            argument = getattr(pub.options, keyword, None)
+            argument = getattr(hydpy.pub.options, keyword, None)
             if argument is not None:
                 kwargs[keyword[:-6]] = argument
-        pub.sequencemanager.open_netcdf_reader(**kwargs)
+        hydpy.pub.sequencemanager.open_netcdf_reader(**kwargs)
         self.prepare_sequencemanager()
         for sequence in self._iterate_sequences():
             sequence.load_ext()
-        pub.sequencemanager.close_netcdf_reader()
+        hydpy.pub.sequencemanager.close_netcdf_reader()
 
     def save_series(self) -> None:
         """Save time series data as defined by the actual XML `writer`
@@ -1223,13 +1220,13 @@ class XMLSubseries(XMLSelector):
         9.0
         7.0
         """
-        pub.sequencemanager.open_netcdf_writer(
-            flatten=pub.options.flattennetcdf,
-            isolate=pub.options.isolatenetcdf)
+        hydpy.pub.sequencemanager.open_netcdf_writer(
+            flatten=hydpy.pub.options.flattennetcdf,
+            isolate=hydpy.pub.options.isolatenetcdf)
         self.prepare_sequencemanager()
         for sequence in self._iterate_sequences():
             sequence.save_ext()
-        pub.sequencemanager.close_netcdf_writer()
+        hydpy.pub.sequencemanager.close_netcdf_writer()
 
 
 class XMLExchange(XMLBase):

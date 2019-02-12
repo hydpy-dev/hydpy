@@ -15,7 +15,7 @@ import time
 # ...from third party packages
 import numpy
 # ...from HydPy
-from hydpy import pub
+import hydpy
 from hydpy.core import abctools
 from hydpy.core import autodoctools
 from hydpy.core import objecttools
@@ -243,7 +243,7 @@ literal for int() with base 10: '0X'
                     raise ValueError(
                         'wrong number of offset characters')
                 delta = datetime.timedelta(
-                    minutes=factor*minutes-pub.options.utcoffset)
+                    minutes=factor*minutes-hydpy.pub.options.utcoffset)
                 return date - delta
         except BaseException:
             objecttools.augment_excmessage(
@@ -381,7 +381,7 @@ occurred: No other decimal fraction of a second than "0" allowed.
         'sec since 1992-10-08 13:15:42 -01:00'
         """
         if utcoffset is None:
-            utcoffset = pub.options.utcoffset
+            utcoffset = hydpy.pub.options.utcoffset
         string = self.to_string('iso2', utcoffset)
         string = ' '.join((string[:-6], string[-6:]))
         return f'{unit} since {string}'
@@ -727,7 +727,7 @@ occurred: No other decimal fraction of a second than "0" allowed.
             hours = abs(utcoffset // 60)
             minutes = abs(utcoffset % 60)
             string = f'{sign}{hours:02d}:{minutes:02d}'
-            offset = utcoffset-pub.options.utcoffset
+            offset = utcoffset-hydpy.pub.options.utcoffset
             date = self.datetime + datetime.timedelta(minutes=offset)
         return date.strftime(self._formatstrings[style]) + string
 

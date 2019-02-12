@@ -13,7 +13,7 @@ import sys
 import time
 import traceback
 # ...from hydpy
-from hydpy import pub
+import hydpy
 from hydpy.core import autodoctools
 from hydpy.core import objecttools
 
@@ -106,9 +106,6 @@ for testing purposes.
         command = command.replace('_', ' ')
         command = command.replace('temptemptemp', '_')
         exec(command)
-
-
-pub.scriptfunctions['exec_commands'] = exec_commands
 
 
 def print_latest_logfile(dirpath='.', wait=0.0) -> None:
@@ -250,10 +247,10 @@ def execute_scriptfunction():
                 'The first positional argument defining the function '
                 'to be called is missing.')
         try:
-            func = pub.scriptfunctions[funcname]
+            func = hydpy.pub.scriptfunctions[funcname]
         except KeyError:
             available_funcs = objecttools.enumeration(
-                sorted(pub.scriptfunctions.keys()))
+                sorted(hydpy.pub.scriptfunctions.keys()))
             raise ValueError(
                 f'There is no `{funcname}` function callable by `hyd.py`.  '
                 f'Choose one of the following instead: {available_funcs}.')

@@ -211,7 +211,7 @@ import os
 # ...from site-packages
 import numpy
 # ...from HydPy
-from hydpy import pub
+import hydpy
 from hydpy.core import autodoctools
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
@@ -702,7 +702,7 @@ a member named `lland_v3`.
         """Call method |NetCDFFile.write| of all handled |NetCDFFile| objects.
         """
         if self.folders:
-            init = pub.timegrids.init
+            init = hydpy.pub.timegrids.init
             timeunits = init.firstdate.to_cfunits('hours')
             timepoints = init.to_timepoints('hours')
             for folder in self.folders.values():
@@ -1525,6 +1525,7 @@ class NetCDFVariableDeep(DeepAndAggMixin, NetCDFVariableBase):
     ...     nkor1.log(sequences.fluxes.nkor, None)
     >>> with TestIO():
     ...     ncfile = netcdf4.Dataset('model.nc', 'r')
+    >>> from hydpy import pub
     >>> nied1.read(ncfile, pub.timegrids.init)
     >>> nkor1.read(ncfile, pub.timegrids.init)
     >>> for seq in (seq1, seq2):
@@ -1640,7 +1641,7 @@ to the NetCDF file `model.nc`, the following error occurred: ...
         (4, 3, 3)
         """
         nmb_place = len(self.sequences)
-        nmb_time = len(pub.timegrids.init)
+        nmb_time = len(hydpy.pub.timegrids.init)
         nmb_others = collections.deque()
         for sequence in self.sequences.values():
             nmb_others.append(sequence.shape)
@@ -1846,7 +1847,7 @@ class NetCDFVariableAgg(DeepAndAggMixin, AggAndFlatMixin, NetCDFVariableBase):
         (4, 3)
         """
         return self.sort_timeplaceentries(
-            len(pub.timegrids.init), len(self.sequences))
+            len(hydpy.pub.timegrids.init), len(self.sequences))
 
     @property
     def array(self) -> numpy.ndarray:
@@ -1964,6 +1965,7 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
     ...     nkor1.log(sequences.fluxes.nkor, None)
     >>> with TestIO():
     ...     ncfile = netcdf4.Dataset('model.nc', 'r')
+    >>> from hydpy import pub
     >>> nied1.read(ncfile, pub.timegrids.init)
     >>> nkor1.read(ncfile, pub.timegrids.init)
     >>> for seq in (seq1, seq2):
@@ -2013,7 +2015,7 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
         (4, 6)
         """
         return self.sort_timeplaceentries(
-            len(pub.timegrids.init),
+            len(hydpy.pub.timegrids.init),
             sum(len(seq) for seq in self.sequences.values()))
 
     @property

@@ -7,7 +7,7 @@ from typing import Dict, Union
 # ...from site-packages
 import numpy
 # ...from HydPy
-from hydpy import pub
+import hydpy
 from hydpy.core import abctools
 from hydpy.core import autodoctools
 from hydpy.core import devicetools
@@ -28,11 +28,11 @@ class HydPy(object):
         self.deviceorder = None
         # Store public information in a separate module.
         if projectname is not None:
-            pub.projectname = projectname
-            pub.networkmanager = filetools.NetworkManager()
-            pub.controlmanager = filetools.ControlManager()
-            pub.sequencemanager = filetools.SequenceManager()
-            pub.conditionmanager = filetools.ConditionManager()
+            hydpy.pub.projectname = projectname
+            hydpy.pub.networkmanager = filetools.NetworkManager()
+            hydpy.pub.controlmanager = filetools.ControlManager()
+            hydpy.pub.sequencemanager = filetools.SequenceManager()
+            hydpy.pub.conditionmanager = filetools.ConditionManager()
 
     @property
     def nodes(self) -> devicetools.Nodes:
@@ -73,7 +73,7 @@ class HydPy(object):
         self.prepare_network()
         self.init_models()
         self.load_conditions()
-        with pub.options.warnmissingobsfile(False):
+        with hydpy.pub.options.warnmissingobsfile(False):
             self.prepare_nodeseries()
         self.prepare_modelseries()
         self.load_inputseries()
@@ -82,9 +82,9 @@ class HydPy(object):
     def prepare_network(self):
         """Load all network files as |Selections| (stored in module |pub|)
         and assign the "complete" selection to the |HydPy| object."""
-        pub.selections = selectiontools.Selections()
-        pub.selections += pub.networkmanager.load_files()
-        self.update_devices(pub.selections.complete)
+        hydpy.pub.selections = selectiontools.Selections()
+        hydpy.pub.selections += hydpy.pub.networkmanager.load_files()
+        self.update_devices(hydpy.pub.selections.complete)
 
     def init_models(self):
         """Call method |Element.init_model| of all |Element| objects
@@ -368,8 +368,8 @@ class HydPy(object):
         """Tuple containing the start and end index of the simulation period
         regarding the initialization period defined by the |Timegrids| object
         stored in module |pub|."""
-        return (pub.timegrids.init[pub.timegrids.sim.firstdate],
-                pub.timegrids.init[pub.timegrids.sim.lastdate])
+        return (hydpy.pub.timegrids.init[hydpy.pub.timegrids.sim.firstdate],
+                hydpy.pub.timegrids.init[hydpy.pub.timegrids.sim.lastdate])
 
     def open_files(self, idx=0):
         """Call method |Devices.open_files| of the |Nodes| and |Elements|

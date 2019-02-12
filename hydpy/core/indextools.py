@@ -6,7 +6,7 @@ import copy
 # ...from site-packages
 import numpy
 # ...from HydPy
-from hydpy import pub
+import hydpy
 from hydpy.core import autodoctools
 from hydpy.core import objecttools
 from hydpy.core import propertytools
@@ -77,7 +77,7 @@ class IndexerProperty(propertytools.BaseProperty):
         self.timegrids = None
 
     def call_fget(self, obj) -> numpy.ndarray:
-        timegrids = pub.get('timegrids')
+        timegrids = hydpy.pub.get('timegrids')
         if (self.values is None) or (self.timegrids != timegrids):
             self.values = self._calcidxs(self.fget(obj))
             self.timegrids = copy.deepcopy(timegrids)
@@ -88,7 +88,7 @@ class IndexerProperty(propertytools.BaseProperty):
 
     def _fset(self, values):
         self.values = self._convertandtest(values, self.name)
-        self.timegrids = copy.deepcopy(pub.get('timegrids'))
+        self.timegrids = copy.deepcopy(hydpy.pub.get('timegrids'))
 
     def call_fdel(self, obj):
         self.fdel()
@@ -116,7 +116,7 @@ class IndexerProperty(propertytools.BaseProperty):
                 '1-dimensional.  However, the given value has interpreted '
                 'as a %d-dimensional object.'
                 % (name, array.ndim))
-        timegrids = pub.get('timegrids')
+        timegrids = hydpy.pub.get('timegrids')
         if timegrids is not None:
             if len(array) != len(timegrids.init):
                 raise ValueError(
@@ -135,7 +135,7 @@ class IndexerProperty(propertytools.BaseProperty):
         and the |Timegrids| object handled by module |pub|.  Raise a
         |RuntimeError| if the latter is not available.
         """
-        timegrids = pub.get('timegrids')
+        timegrids = hydpy.pub.get('timegrids')
         if timegrids is None:
             raise RuntimeError(
                 'An Indexer object has been asked for an %s array.  Such an '
@@ -147,7 +147,7 @@ class IndexerProperty(propertytools.BaseProperty):
                 'automatically.'
                 % (func.__name__, func.__name__))
         idxs = numpy.empty(len(timegrids.init), dtype=int)
-        for jdx, date in enumerate(pub.timegrids.init):
+        for jdx, date in enumerate(hydpy.pub.timegrids.init):
             idxs[jdx] = func(date)
         return idxs
 
@@ -252,7 +252,7 @@ class Indexer(object):
         refgrid = timetools.Timegrid(
             timetools.Date('2000.01.01'),
             timetools.Date('2001.01.01'),
-            pub.timegrids.stepsize)
+            hydpy.pub.timegrids.stepsize)
 
         def _timeofyear(date):
             date = copy.deepcopy(date)

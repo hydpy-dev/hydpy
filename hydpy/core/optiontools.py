@@ -85,28 +85,28 @@ class Options(object):
     you make sure that the change is undone after leaving the corresponding
     code block (even if an error occurs):
 
-    >>> from hydpy.pub import options
-    >>> options.printprogress = 0
-    >>> options.printprogress
+    >>> from hydpy import pub
+    >>> pub.options.printprogress = 0
+    >>> pub.options.printprogress
     0
-    >>> with options.printprogress(True):
-    ...     print(options.printprogress)
+    >>> with pub.options.printprogress(True):
+    ...     print(pub.options.printprogress)
     1
-    >>> options.printprogress
+    >>> pub.options.printprogress
     0
 
     Alternatively, you can change all options via simple assignements:
 
-    >>> options.printprogress = True
-    >>> options.printprogress
+    >>> pub.options.printprogress = True
+    >>> pub.options.printprogress
     1
 
     But then you might have to keep in mind to undo the change later:
 
-    >>> options.printprogress
+    >>> pub.options.printprogress
     1
-    >>> options.printprogress = False
-    >>> options.printprogress
+    >>> pub.options.printprogress = False
+    >>> pub.options.printprogress
     0
     """
 

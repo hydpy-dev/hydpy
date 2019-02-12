@@ -13,7 +13,7 @@ from typing import List
 # ...from site-packages
 import numpy
 # ...from HydPy
-from hydpy import pub
+import hydpy
 from hydpy.core import autodoctools
 from hydpy.core import devicetools
 from hydpy.core import netcdftools
@@ -24,6 +24,7 @@ from hydpy.core import timetools
 
 
 class Folder2Path(object):
+    # noinspection PyUnresolvedReferences
     """Map folder names to their path names.
 
     You can both pass positional arguments and keyword arguments when
@@ -166,7 +167,7 @@ class FileManager(object):
     def __init__(self):
         self._projectdir = None
         try:
-            self.projectdir = pub.projectname
+            self.projectdir = hydpy.pub.projectname
         except RuntimeError:
             pass
         self._currentdir = None
@@ -608,6 +609,7 @@ error occurred: ...
 
 
 class NetworkManager(FileManager):
+    # noinspection PyUnresolvedReferences
     """Manager for network files.
 
     The base and default folder names of class |NetworkManager| are:
@@ -896,7 +898,7 @@ class ConditionManager(FileManager):
                 filename += '.py'
             try:
                 self.DEFAULTDIR = (
-                    'init_' + pub.timegrids.sim.firstdate.to_string('os'))
+                    'init_' + hydpy.pub.timegrids.sim.firstdate.to_string('os'))
             except KeyError:
                 pass
             filepath = os.path.join(self.currentpath, filename)
@@ -923,7 +925,7 @@ class ConditionManager(FileManager):
                 filename += '.py'
             try:
                 self.DEFAULTDIR = (
-                    'init_' + pub.timegrids.sim.lastdate.to_string('os'))
+                    'init_' + hydpy.pub.timegrids.sim.lastdate.to_string('os'))
             except AttributeError:
                 pass
             path = os.path.join(self.currentpath, filename)
@@ -1119,6 +1121,7 @@ class _GeneralDescriptor(object):
 
 
 class SequenceManager(FileManager):
+    # noinspection PyUnresolvedReferences
     """Manager for sequence files.
 
     Usually, there is only one |SequenceManager| used within each HydPy
@@ -1473,16 +1476,16 @@ to make any internal data available to the user.
 
     @staticmethod
     def _save_npy(array, filepath):
-        numpy.save(filepath, pub.timegrids.init.array2series(array))
+        numpy.save(filepath, hydpy.pub.timegrids.init.array2series(array))
 
     @staticmethod
     def _save_asc(array, filepath):
         with open(filepath, 'w') as file_:
             file_.write(
-                pub.timegrids.init.assignrepr(
+                hydpy.pub.timegrids.init.assignrepr(
                     prefix='',
                     style='iso2',
-                    utcoffset=pub.options.utcoffset) + '\n')
+                    utcoffset=hydpy.pub.options.utcoffset) + '\n')
         with open(filepath, 'ab') as file_:
             numpy.savetxt(file_, array, delimiter='\t')
 

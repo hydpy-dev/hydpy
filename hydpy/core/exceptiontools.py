@@ -3,7 +3,6 @@
 
 # import...
 # ...from HydPy
-from hydpy import pub
 from hydpy.core import autodoctools
 
 
@@ -45,34 +44,9 @@ class OptionalImport(object):
     hydpy.core.exceptiontools.OptionalModuleNotAvailable: HydPy could not \
 load module `numpie`.  This module is no general requirement but \
 necessary for some specific functionalities.
-
-    If the module is available, but HydPy had been bundled to an
-    executable:
-
-    >>> from hydpy import pub
-    >>> pub.is_hydpy_bundled = True
-    >>> os = OptionalImport('os', 'import os')
-    >>> os.getcwd()
-    Traceback (most recent call last):
-    ...
-    hydpy.core.exceptiontools.OptionalModuleNotAvailable: HydPy could not \
-load module `os`.  This module is no general requirement but necessary \
-for some specific functionalities.
-
-    The latter can be prevented by passing a `True` `bundle_module`
-    argument:
-
-    >>> textwrap = OptionalImport(
-    ...     'textwrap', ['import textwrap'], bundle_module=True)
-    >>> textwrap.wrap('')
-    []
-
-    >>> pub.is_hydpy_bundled = False
     """
 
-    def __new__(cls, name, commands, bundle_module=False):
-        if pub.is_hydpy_bundled and not bundle_module:
-            return object.__new__(cls)
+    def __new__(cls, name, commands):
         for command in commands:
             try:
                 exec(command)
@@ -81,7 +55,7 @@ for some specific functionalities.
                 pass
         return object.__new__(cls)
 
-    def __init__(self, name, commands, bundle_module=False):
+    def __init__(self, name, commands):
         self.name = name
 
     def __getattr__(self, name):

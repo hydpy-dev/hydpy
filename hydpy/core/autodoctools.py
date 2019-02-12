@@ -78,8 +78,7 @@ _all_spec2capt.update(_AUX_SPEC2CAPT)
 def make_autodoc_optional(wrapped, instance=None, args=None, kwargs=None):
     """Decorate functions related to automatic documentation refinement,
     so that they will be applied only when requested (when `use_autodoc`
-    of module |config| is `True`) and when possible (when `HydPy` is not
-    frozen/bundled).
+    of module |config| is `True`).
 
     >>> from hydpy.core.autodoctools import make_autodoc_optional
     >>> @make_autodoc_optional
@@ -89,13 +88,10 @@ def make_autodoc_optional(wrapped, instance=None, args=None, kwargs=None):
     >>> config.use_autodoc = False
     >>> test(1)
     >>> config.use_autodoc = True
-    >>> pub.is_hydpy_bundled = True
-    >>> test(1)
-    >>> pub.is_hydpy_bundled = False
     >>> test(1)
     1
     """
-    if config.use_autodoc and not pub.is_hydpy_bundled:
+    if config.use_autodoc:
         return wrapped(*args, **kwargs)
     return None
 

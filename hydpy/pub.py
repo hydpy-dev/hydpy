@@ -18,10 +18,3 @@ timegrids: 'hydpy.core.timetools.Timegrids'
 selections: 'hydpy.core.selectiontools.Selections'
 
 scriptfunctions: Dict[str, Callable] = {}
-
-is_hydpy_bundled = getattr(   # pylint: disable=invalid-name
-    _sys, 'frozen', False)
-"""This parameter is set `True` within HydPy executables only.
-Then different features that do not make much sense within an
-executable (e.g. the cythonization of models) are disabled.
-"""

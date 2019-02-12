@@ -119,8 +119,7 @@ class Cythonizer(object):
             setattr(self, key, value)
 
     def complete(self):
-        if (pub.options.autocompile and self.outdated and
-                not pub.is_hydpy_bundled):
+        if pub.options.autocompile and self.outdated:
             usecython = pub.options.usecython
             try:
                 if not pub.options.skipdoctests:

@@ -21,9 +21,10 @@ from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import printtools
 from hydpy.core import sequencetools
-from hydpy.cythons import pointerutils
+from hydpy.cythons.autogen import pointerutils
 pyplot = exceptiontools.OptionalImport(   # pylint: disable=invalid-name
     'matplotlib.pyplot', ['from matplotlib import pyplot'])
+
 
 class Keywords(set):
     """Set of keyword arguments used to describe and search for element and

@@ -22,7 +22,7 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import propertytools
 from hydpy.core import timetools
-from hydpy.cythons import annutils   # pylint: disable=no-name-in-module
+from hydpy.cythons.autogen import annutils
 pyplot = exceptiontools.OptionalImport(   # pylint: disable=invalid-name
     'matplotlib.pyplot', ['from matplotlib import pyplot'])
 
@@ -1351,6 +1351,7 @@ been given, but a value of type `ANN` is required.
         >>> seasonalann.nmb_inputs, seasonalann.nmb_outputs
         (2, 3)
         """
+        # pylint: disable=unsupported-assignment-operation
         if self._do_refresh:
             if self.anns:
                 self.__sann = annutils.SeasonalANN(self.anns)

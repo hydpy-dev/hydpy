@@ -5,7 +5,7 @@
 # imports...
 # ...from HydPy
 from hydpy.core import modeltools
-from hydpy.cythons import smoothutils
+from hydpy.cythons.autogen import smoothutils
 
 
 def pic_inflow_v1(self):

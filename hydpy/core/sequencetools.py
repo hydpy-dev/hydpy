@@ -19,7 +19,7 @@ from hydpy.core import autodoctools
 from hydpy.core import objecttools
 from hydpy.core import propertytools
 from hydpy.core import variabletools
-from hydpy.cythons import pointerutils
+from hydpy.cythons.autogen import pointerutils
 
 NAMES_CONDITIONSEQUENCES = ('states', 'logs')
 

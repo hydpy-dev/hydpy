@@ -21,7 +21,7 @@ pub = pubtools.Pub('pub')   # pylint: disable=invalid-name
 from hydpy.core import dummytools
 from hydpy.core import indextools
 from hydpy.core import optiontools
-from hydpy.cythons import configutils   # pylint: disable=no-name-in-module
+from hydpy.cythons.autogen import configutils
 from hydpy.core.autodoctools import prepare_mainsubstituter
 from hydpy.core.auxfiletools import Auxfiler
 from hydpy.core.devicetools import Element

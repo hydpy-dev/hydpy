@@ -408,6 +408,7 @@ the following keywords were given: d, u.
     def __call__(self, t) -> numpy.ndarray:
         t = numpy.array(t)
         t = numpy.clip(t, 1e-10, numpy.inf)
+        # pylint: disable=invalid-unary-operand-type
         return self.a/(t*(numpy.pi*t)**.5)*numpy.exp(-t*(self.a/t-self.b)**2)
 
     @property

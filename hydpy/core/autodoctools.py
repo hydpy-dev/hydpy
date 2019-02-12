@@ -34,9 +34,9 @@ from hydpy import cythons
 from hydpy import exe
 from hydpy import models
 from hydpy.core import metatools
-from hydpy.cythons import annutils
-from hydpy.cythons import pointerutils
-from hydpy.cythons import smoothutils
+from hydpy.cythons.autogen import annutils
+from hydpy.cythons.autogen import pointerutils
+from hydpy.cythons.autogen import smoothutils
 
 EXCLUDE_MEMBERS = (
     'CLASSES',

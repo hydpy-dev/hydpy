@@ -11,29 +11,10 @@ hydrological models.
 # ...from standard library
 import warnings
 # ...from site-packages
-from hydpy.core.exceptiontools import OptionalImport
 warnings.filterwarnings('ignore')
 import numpy
 from numpy import nan
 from scipy import integrate
-# pylint: disable=invalid-name
-netcdf4 = OptionalImport(
-    'netcdf4',
-    ['import netCDF4', 'import h5netcdf.legacyapi'],
-    bundle_module=True)
-pandas = OptionalImport(
-    'pandas',
-    ['import pandas'])
-pyplot = OptionalImport(
-    'matplotlib.pyplot',
-    ['from matplotlib import pyplot'])
-xmlschema = OptionalImport(
-    'xmlschema',
-    ['import xmlschema'])
-# pylint: enable=invalid-name
-warnings.resetwarnings()
-# Due to a Cython problem:
-warnings.filterwarnings('ignore', category=ImportWarning)
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import pubtools
@@ -106,7 +87,9 @@ pub.indexer = indextools.Indexer()
 pub.config = configutils.Config()
 dummies = dummytools.Dummies()   # pylint: disable=invalid-name
 
-
+warnings.resetwarnings()
+# Due to a Cython problem:
+warnings.filterwarnings('ignore', category=ImportWarning)
 warnings.filterwarnings('always', category=HydPyDeprecationWarning)
 warnings.filterwarnings('ignore', r'All-NaN (slice|axis) encountered')
 warnings.filterwarnings('ignore', r'Using or importing the ABCs from')
@@ -124,10 +107,6 @@ substituter = prepare_mainsubstituter()   # pylint: disable=invalid-name
 
 
 __all__ = ['config',
-           'netcdf4',
-           'pandas',
-           'pyplot',
-           'xmlschema',
            'pub',
            'Auxfiler',
            'Element',

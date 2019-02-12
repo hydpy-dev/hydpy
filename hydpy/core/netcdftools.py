@@ -158,7 +158,7 @@ both relevant NetCDF files more directly using the underlying NetCDF4
 library (note that averaging 1-dimensional time series as those of
 node sequence |Sim| is allowed for the sake of consistency):
 
->>> from hydpy import netcdf4
+>>> from hydpy.core.netcdftools import netcdf4
 >>> from numpy import array
 >>> with TestIO():
 ...     with netcdf4.Dataset('example/node.nc') as ncfile:
@@ -210,13 +210,15 @@ import itertools
 import os
 # ...from site-packages
 import numpy
-from hydpy import netcdf4
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import autodoctools
+from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
+netcdf4 = exceptiontools.OptionalImport(   # pylint: disable=invalid-name
+    'netcdf4', ['import netCDF4', 'import h5netcdf.legacyapi'])
 
 IntOrSlice = TypeVar('IntOrSlice', int, slice)
 
@@ -314,7 +316,8 @@ def create_dimension(ncfile, name, length) -> None:
     Essentially, |create_dimension| just calls the equally named method
     of the NetCDF library, but adds information to possible error messages:
 
-    >>> from hydpy import netcdf4, TestIO
+    >>> from hydpy import TestIO
+    >>> from hydpy.core.netcdftools import netcdf4
     >>> with TestIO():
     ...     ncfile = netcdf4.Dataset('test.nc', 'w')
     >>> from hydpy.core.netcdftools import create_dimension
@@ -348,7 +351,8 @@ def create_variable(ncfile, name, datatype, dimensions) -> None:
     Essentially, |create_variable| just calls the equally named method
     of the NetCDF library, but adds information to possible error messages:
 
-    >>> from hydpy import netcdf4, TestIO
+    >>> from hydpy import TestIO
+    >>> from hydpy.core.netcdftools import netcdf4
     >>> with TestIO():
     ...     ncfile = netcdf4.Dataset('test.nc', 'w')
     >>> from hydpy.core.netcdftools import create_variable
@@ -388,7 +392,8 @@ def query_variable(ncfile, name) -> netcdf4.Variable:
     used NetCDF library, but adds information to possible error messages:
 
     >>> from hydpy.core.netcdftools import query_variable
-    >>> from hydpy import netcdf4, TestIO
+    >>> from hydpy import TestIO
+    >>> from hydpy.core.netcdftools import netcdf4
     >>> with TestIO():
     ...     file_ = netcdf4.Dataset('model.nc', 'w')
     >>> query_variable(file_, 'flux_prec')
@@ -416,7 +421,8 @@ def query_timegrid(ncfile) -> timetools.Timegrid:
 
     >>> from hydpy.core.examples import prepare_full_example_1
     >>> prepare_full_example_1()
-    >>> from hydpy import TestIO, netcdf4
+    >>> from hydpy import TestIO
+    >>> from hydpy.core.netcdftools import netcdf4
     >>> from hydpy.core.netcdftools import query_timegrid
     >>> filepath = 'LahnH/series/input/hland_v1_input_t.nc'
     >>> with TestIO():
@@ -442,7 +448,8 @@ def query_array(ncfile, name) -> numpy.ndarray:
     to represent missing values even when the respective NetCDF variable
     defines a different fill value:
 
-    >>> from hydpy import netcdf4, TestIO
+    >>> from hydpy import TestIO
+    >>> from hydpy.core.netcdftools import netcdf4
     >>> from hydpy.core import netcdftools
     >>> netcdftools.fillvalue = -999.0
     >>> with TestIO():
@@ -468,7 +475,8 @@ def query_array(ncfile, name) -> numpy.ndarray:
 def get_filepath(ncfile) -> str:
     """Return the filepath of the given NetCDF file.
 
-    >>> from hydpy import TestIO, netcdf4
+    >>> from hydpy import TestIO
+    >>> from hydpy.core.netcdftools import netcdf4
     >>> from hydpy.core.netcdftools import get_filepath
     >>> with TestIO():
     ...     with netcdf4.Dataset('test.nc', 'w') as ncfile:
@@ -1165,7 +1173,8 @@ nor does it define a member named `element2`.
         (sub)device names:
 
         >>> from hydpy.core.netcdftools import NetCDFVariableBase, chars2str
-        >>> from hydpy import make_abc_testable, netcdf4, TestIO
+        >>> from hydpy import make_abc_testable, TestIO
+        >>> from hydpy.core.netcdftools import netcdf4
         >>> Var = make_abc_testable(NetCDFVariableBase)
         >>> Var.subdevicenames = 'element1', 'element_2'
 
@@ -1223,7 +1232,8 @@ nor does it define a member named `element2`.
         that variables have been isolated or not:
 
         >>> from hydpy.core.netcdftools import NetCDFVariableBase
-        >>> from hydpy import make_abc_testable, netcdf4, TestIO
+        >>> from hydpy import make_abc_testable, TestIO
+        >>> from hydpy.core.netcdftools import netcdf4
         >>> with TestIO():
         ...     ncfile = netcdf4.Dataset('model.nc', 'w')
         >>> Var = make_abc_testable(NetCDFVariableBase)
@@ -1273,7 +1283,8 @@ coordinate locations of variable `flux_prec`.
         (sub)device names stem from, allowing for clear error messages:
 
         >>> from hydpy.core.netcdftools import NetCDFVariableBase, str2chars
-        >>> from hydpy import make_abc_testable, netcdf4, TestIO
+        >>> from hydpy import make_abc_testable, TestIO
+        >>> from hydpy.core.netcdftools import netcdf4
         >>> with TestIO():
         ...     ncfile = netcdf4.Dataset('model.nc', 'w')
         >>> Var = make_abc_testable(NetCDFVariableBase)
@@ -1475,7 +1486,8 @@ class NetCDFVariableDeep(DeepAndAggMixin, NetCDFVariableBase):
     usually a central instance of class |NetCDFFile| prepares and
     passes time information:
 
-    >>> from hydpy import TestIO, netcdf4
+    >>> from hydpy import TestIO
+    >>> from hydpy.core.netcdftools import netcdf4
     >>> with TestIO():
     ...     ncfile = netcdf4.Dataset('model.nc', 'w')
     >>> from hydpy.core.netcdftools import create_dimension
@@ -1557,7 +1569,8 @@ in NetCDF file `model.nc` available.
     While trying to add dimension `stations` with length `2` \
 to the NetCDF file `model.nc`, the following error occurred: ...
     >>> ncfile.close()
-    >>> from hydpy import TestIO, netcdf4
+    >>> from hydpy import TestIO
+    >>> from hydpy.core.netcdftools import netcdf4
     >>> with TestIO():
     ...     ncfile = netcdf4.Dataset('model.nc', 'r')
     >>> seq1.series = 0.0
@@ -1773,7 +1786,8 @@ class NetCDFVariableAgg(DeepAndAggMixin, AggAndFlatMixin, NetCDFVariableBase):
     ...     var_nied.log(nied1, nied1.average_series())
     ...     nkor1 = element.model.sequences.fluxes.nkor
     ...     var_nkor.log(nkor1, nkor1.average_series())
-    >>> from hydpy import TestIO, netcdf4
+    >>> from hydpy import TestIO
+    >>> from hydpy.core.netcdftools import netcdf4
     >>> with TestIO():
     ...     ncfile = netcdf4.Dataset('model.nc', 'w')
     >>> from hydpy.core.netcdftools import create_dimension
@@ -1922,7 +1936,8 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
     ...     var_nkor.log(seqs.fluxes.nkor, seqs.fluxes.nkor.series)
 
 
-    >>> from hydpy import TestIO, netcdf4
+    >>> from hydpy import TestIO
+    >>> from hydpy.core.netcdftools import netcdf4
     >>> with TestIO():
     ...     ncfile = netcdf4.Dataset('model.nc', 'w')
     >>> from hydpy.core.netcdftools import create_dimension

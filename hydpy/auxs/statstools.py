@@ -8,11 +8,12 @@ import numpy
 from scipy import optimize
 from scipy import special
 # ...from HydPy
-from hydpy import pandas
 from hydpy.core import autodoctools
+from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.auxs import validtools
-
+pandas = exceptiontools.OptionalImport(   # pylint: disable=invalid-name
+    'pandas', ['import pandas'])
 
 def prepare_arrays(sim=None, obs=None, node=None, skip_nan=False):
     """Prepare and return two |numpy| arrays based on the given arguments.

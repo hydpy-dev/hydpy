@@ -14,15 +14,17 @@ from typing import Dict, Iterable, Tuple
 import weakref
 # ...from site-packages
 import numpy
-from hydpy import pyplot
 # ...from HydPy
 from hydpy.core import abctools
 from hydpy.core import autodoctools
+from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import propertytools
 from hydpy.core import timetools
 from hydpy.cythons import annutils   # pylint: disable=no-name-in-module
+pyplot = exceptiontools.OptionalImport(   # pylint: disable=invalid-name
+    'matplotlib.pyplot', ['from matplotlib import pyplot'])
 
 
 class _ANNArrayProperty(propertytools.DependentProperty):

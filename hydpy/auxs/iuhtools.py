@@ -14,12 +14,14 @@ import itertools
 # ...from site-packages
 import numpy
 from scipy import special
-from hydpy import pyplot
 # ...from Hydpy
 from hydpy.core import autodoctools
+from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.auxs import statstools
 from hydpy.auxs import armatools
+pyplot = exceptiontools.OptionalImport(   # pylint: disable=invalid-name
+    'matplotlib.pyplot', ['from matplotlib import pyplot'])
 
 
 class ParameterIUH(object):

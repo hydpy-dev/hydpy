@@ -44,9 +44,8 @@ features only.  One good example is the `netCDF4 module`_.  The first
 reason for declaring this site-package optional is its limited scope for
 reading and writing `NetCDF-CF`_ time series files.  Users can choose other
 file formats as well.  The second reason is that its installation is not
-always working smoothly.  The `hydpy __init__.py file`_  lists all optional
-dependencies and imports them via class |OptionalImport|, if available.
-
+always working smoothly.  See the documentation on class |OptionalImport|
+on how to define optional imports.
 
 "Development dependencies" are site-packages relevant for framework or
 model developers only.  One example is the `coverage library`_, checking

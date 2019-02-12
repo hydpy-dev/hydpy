@@ -94,14 +94,12 @@ import copy
 import itertools
 import os
 from xml.etree import ElementTree
-# ...from site-packages
-from hydpy import xmlschema
 # ...from HydPy
 from hydpy import conf
 from hydpy import models
-from hydpy import netcdf4
 from hydpy import pub
 from hydpy.core import devicetools
+from hydpy.core import exceptiontools
 from hydpy.core import hydpytools
 from hydpy.core import importtools
 from hydpy.core import itemtools
@@ -111,7 +109,10 @@ from hydpy.core import selectiontools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
 from hydpy.exe import commandtools
-
+netcdf4 = exceptiontools.OptionalImport(   # pylint: disable=invalid-name
+    'netcdf4', ['import netCDF4', 'import h5netcdf.legacyapi'])
+xmlschema = exceptiontools.OptionalImport(   # pylint: disable=invalid-name
+    'xmlschema', ['import xmlschema'])
 
 namespace = ('{https://github.com/hydpy-dev/hydpy/releases/download/'
              'your-hydpy-version/HydPyConfigBase.xsd}')

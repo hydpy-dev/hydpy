@@ -12,7 +12,7 @@ another failure in the testing routines defined somewhere else.
 """
 
 import sys
-from hydpy import pyplot
+from matplotlib import pyplot
 try:
     pyplot.plot()
 except BaseException:

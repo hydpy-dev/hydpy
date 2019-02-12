@@ -8,13 +8,14 @@ import warnings
 # ...from site-packages
 import numpy
 from scipy import integrate
-from hydpy import pyplot
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import autodoctools
+from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.auxs import statstools
-
+pyplot = exceptiontools.OptionalImport(   # pylint: disable=invalid-name
+    'matplotlib.pyplot', ['from matplotlib import pyplot'])
 
 class MA(object):
     """Moving Average Model.

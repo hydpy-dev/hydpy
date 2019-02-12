@@ -12,17 +12,18 @@ import weakref
 from typing import Dict, Union
 # ...from site-packages
 import numpy
-from hydpy import pyplot
 # ...from HydPy
 from hydpy import pub
 from hydpy.core import abctools
 from hydpy.core import autodoctools
 from hydpy.core import connectiontools
+from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import printtools
 from hydpy.core import sequencetools
 from hydpy.cythons import pointerutils
-
+pyplot = exceptiontools.OptionalImport(   # pylint: disable=invalid-name
+    'matplotlib.pyplot', ['from matplotlib import pyplot'])
 
 class Keywords(set):
     """Set of keyword arguments used to describe and search for element and

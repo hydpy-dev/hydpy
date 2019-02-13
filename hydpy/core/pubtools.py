@@ -92,6 +92,7 @@ is not defined at the moment.
 
     @timegrids.setter_
     def timegrids(self, args):
+        # pylint: disable=missing-docstring, no-self-use
         try:
             return timetools.Timegrids(*args)
         except TypeError:

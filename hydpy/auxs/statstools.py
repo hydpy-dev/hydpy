@@ -15,6 +15,7 @@ from hydpy.auxs import validtools
 pandas = exceptiontools.OptionalImport(   # pylint: disable=invalid-name
     'pandas', ['import pandas'])
 
+
 def prepare_arrays(sim=None, obs=None, node=None, skip_nan=False):
     """Prepare and return two |numpy| arrays based on the given arguments.
 

@@ -133,13 +133,6 @@ class Options(object):
     the default values of the respective iterable objects."""
     ellipsis.type_ = int
 
-    fastcython = _Option(True, None)
-    """A True/False flag which indicates whether cythonizing should result
-    in faster but more fragile models or slower but more robust models.
-    Setting this flag to False can be helpful when the implementation of
-    new models or other Cython related features introduces errors that do
-    not result in informative error messages."""
-
     forcecompiling = _Option(False, None)
     """A True/False flag for enabling that each cythonizable model is
     cythonized when imported."""

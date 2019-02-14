@@ -445,7 +445,6 @@ correctly refer to one of the available XML schema files \
             checkseries -> 1
             dirverbose -> 0
             ellipsis -> 0
-            fastcython -> 1
             forcecompiling -> 0
             printprogress -> 0
             printincolor -> 0

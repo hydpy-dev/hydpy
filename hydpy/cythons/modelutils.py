@@ -20,6 +20,7 @@ import functools
 import numpy
 # ...from HydPy
 import hydpy
+from hydpy import config
 from hydpy import cythons
 from hydpy.core import autodoctools
 from hydpy.core import objecttools
@@ -54,7 +55,7 @@ NDIM2STR = {0: '',
             2: '[:,:]',
             3: '[:,:,:]'}
 
-_nogil = ' nogil' if hydpy.pub.options.fastcython else ''   # ToDo
+_nogil = ' nogil' if config.FASTCYTHON else ''
 
 
 class Lines(list):
@@ -80,7 +81,7 @@ class Lines(list):
 def method_header(method_name, nogil=False, idx_as_arg=False):
     """Returns the Cython method header for methods without arguments except
     `self`."""
-    if not hydpy.pub.options.fastcython:
+    if not config.FASTCYTHON:
         nogil = False
     header = 'cpdef inline void %s(self' % method_name
     header += ', int idx)' if idx_as_arg else ')'
@@ -334,7 +335,7 @@ class PyxWriter(object):
     @property
     def cythonoptions(self):
         """Cython option lines."""
-        flag = 'False' if hydpy.pub.options.fastcython else 'True'
+        flag = 'False' if config.FASTCYTHON else 'True'
         return Lines('#!python',
                      '#cython: boundscheck=%s' % flag,
                      '#cython: wraparound=%s' % flag,

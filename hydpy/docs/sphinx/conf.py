@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# pylint: skip-file
+# due to conforming to the "Sphinx style"
 #
 # HydPy documentation build configuration file, created by
 # sphinx-quickstart on Thu Jun 09 14:33:31 2016.

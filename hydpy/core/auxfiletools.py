@@ -3,6 +3,7 @@
 
 In HydPy, parameter values are usually not shared between different
 model objects handled by different elements, even if the model objects
+model objects handled by different elements, even if the model objects
 are of the same type (e.g. HBV).  This offers flexibility in applying
 different parameterization schemes.  But very often, modellers prefer
 to use a very limited amount of values for certain parameters (at least
@@ -28,18 +29,18 @@ implemented in module |selectiontools|).
 # import...
 # ...from standard library
 import copy
-import importlib
 import types
 # ...from HydPy
 import hydpy
 from hydpy.core import abctools
 from hydpy.core import autodoctools
 from hydpy.core import importtools
+from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 
 
-class Auxfiler(object):
+class Auxfiler:
     """Structures auxiliary file information.
 
     To save some parameter information to auxiliary files, it is advisable
@@ -74,13 +75,12 @@ class Auxfiler(object):
 
     Wrong model specifications result in errors like the following one:
 
-    >>> aux += 'asdf'   # doctest: +SKIP
+    >>> aux += 'asdf'   # doc test: +SKIP
     Traceback (most recent call last):
     ...
-    ModuleNotFoundError: While trying to add one ore more models to the \
-actual auxiliary file handler, the following error occurred: \
-While trying to import a model named `asdf`, the following error occurred: \
-No module named `hydpy.models.asdf`.
+    ModuleNotFoundError: While trying to add one ore more models \
+to the actual auxiliary file handler, the following error occurred: \
+No module named 'hydpy.models.asdf'
 
     .. testsetup::
 
@@ -88,7 +88,6 @@ No module named `hydpy.models.asdf`.
         ...     aux += 'asdf'
         ... except ImportError:
         ...     pass
-
 
     The |Auxfiler| object allocates a separate |Variable2Auxfile| object to
     each model type.  These are available via attribute reading access, but
@@ -114,6 +113,19 @@ attributes.  Use the `-=` operator to remove registered models instead.
     >>> aux -= module, string
     >>> aux
     Auxfiler(lland_v2)
+
+    >>> aux -= module, string
+    Traceback (most recent call last):
+    ...
+    AttributeError: While trying to remove one or more models from the \
+actual auxiliary file handler, the following error occurred: The handler \
+does not contain model `lland_v1`.
+
+    >>> aux.lland_v1
+    Traceback (most recent call last):
+    ...
+    AttributeError: The actual auxiliary file handler does neither have a \
+standard member nor does it handle a model named `lland_v1`.
 
     The handling of the individual |Variable2Auxfile| objects is
     explained below.  But there are some additional plausibility checks,
@@ -175,8 +187,7 @@ Variable type `EQD1` is not handled by model `lstream_v1`.
                     del self._dict[str(model)]
                 except KeyError:
                     raise AttributeError(
-                        'The handler does not contain model `%s`.'
-                        % model)
+                        f'The handler does not contain model `{model}`.')
             return self
         except BaseException:
             objecttools.augment_excmessage(
@@ -186,36 +197,16 @@ Variable type `EQD1` is not handled by model `lstream_v1`.
     @staticmethod
     def _get_models(values):
         for value in objecttools.extract(
-                values, (str, types.ModuleType, abctools.ModelABC)):
-            yield Auxfiler._get_model(value)
-
-    @staticmethod
-    def _get_model(value):
-        if isinstance(value, str):
-            try:
-                value = importlib.import_module('hydpy.models.'+value)
-            except BaseException:
-                objecttools.augment_excmessage(
-                    'While trying to import a model named `%s`'
-                    % value)
-        if isinstance(value, types.ModuleType):
-            try:
-                value = importtools.prepare_model(value)
-            except BaseException:
-                objecttools.augment_excmessage(
-                    'While trying to prepare the model defined in'
-                    'module `hydpy.models.%s`'
-                    % objecttools.modulename(value))
-        return value
+                values, (str, types.ModuleType, modeltools.Model)):
+            yield importtools.prepare_model(value)
 
     def __getattr__(self, name):
         try:
             return self._dict[name]
         except KeyError:
             raise AttributeError(
-                'The actual auxiliary file handler does neither have a '
-                'standard member nor does it handle a model named `%s`.'
-                % name)
+                f'The actual auxiliary file handler does neither have a '
+                f'standard member nor does it handle a model named `{name}`.')
 
     def __setattr__(self, name, value):
         raise AttributeError(
@@ -295,10 +286,6 @@ Variable type `EQD1` is not handled by model `lstream_v1`.
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         """
         par = parametertools.Parameter
-        if not parameterstep:
-            parameterstep = par.parameterstep
-        if not simulationstep:
-            simulationstep = par.simulationstep
         for (modelname, var2aux) in self:
             for filename in var2aux.filenames:
                 with par.parameterstep(parameterstep), \
@@ -328,7 +315,7 @@ Variable type `EQD1` is not handled by model `lstream_v1`.
         return objecttools.dir_(self) + self.modelnames
 
 
-class Variable2Auxfile(object):
+class Variable2Auxfile:
     """Map |Variable| objects to names of auxiliary files.
 
     Normally, |Variable2Auxfile| object are not initialized by the
@@ -406,6 +393,14 @@ object has already been allocated to filename `file1`.
     >>> v2af
     Variable2Auxfile(file1, file2)
 
+    Erroneous attribute access results in the following error:
+
+    >>> v2af.wrong
+    Traceback (most recent call last):
+    ...
+    AttributeError: `wrong` is neither a filename nor a name of a \
+variable handled by the actual Variable2AuxFile object.
+
     The |Variable2Auxfile| object defined above is also used in the
     documentation of the following class members.  Hence it is stored in
     the |Dummies| object:
@@ -429,11 +424,9 @@ object has already been allocated to filename `file1`.
         variables = self._sort_variables(self._yield_variables(name))
         if variables:
             return variables
-        else:
-            raise AttributeError(
-                '`{0}` is neither a filename nor a name of a variable '
-                'handled by the actual Variable2AuxFile object.'
-                .format(name))
+        raise AttributeError(
+            f'`{name}` is neither a filename nor a name of a variable '
+            f'handled by the actual Variable2AuxFile object.')
 
     def __setattr__(self, filename, variables):
         try:
@@ -458,26 +451,24 @@ object has already been allocated to filename `file1`.
             for dummy, var2aux in self._master:
                 if (var2aux is not self) and (filename in var2aux.filenames):
                     raise ValueError(
-                        'Filename `{0}` is already allocated to '
-                        'another `Variable2Auxfile` object.'
-                        .format(filename))
+                        f'Filename `{filename}` is already allocated to '
+                        f'another `Variable2Auxfile` object.')
 
     def _check_variable(self, variable):
         if self._model and (variable not in self._model.parameters.control):
             raise TypeError(
-                'Variable type `{0}` is not handled by model `{1}`.'
-                .format(objecttools.classname(variable), self._model))
+                f'Variable type `{objecttools.classname(variable)}` is '
+                f'not handled by model `{self._model}`.')
 
     @staticmethod
     def _check_duplicate(fn2var, new_var, filename):
         for (reg_fn, reg_var) in fn2var.items():
             if (reg_fn != filename) and (reg_var == new_var):
                 raise ValueError(
-                    'You tried to allocate variable `{0!r}` to '
-                    'filename `{1}`, but an equal `{2}` object has '
-                    'already been allocated to filename `{3}`.'
-                    .format(new_var, filename,
-                            objecttools.classname(new_var), reg_fn))
+                    f'You tried to allocate variable `{repr(new_var)}` '
+                    f'to filename `{filename}`, but an equal '
+                    f'`{objecttools.classname(new_var)}` object has '
+                    f'already been allocated to filename `{reg_fn}`.')
 
     def remove(self, *values):
         """Remove the defined variables.
@@ -533,7 +524,7 @@ object has already been allocated to filename `file1`.
         Traceback (most recent call last):
         ...
         ValueError: While trying to remove the given object `test` of type \
-`str` from the actual Variable2AuxFile object, the following error occurred:  \
+`str` from the actual Variable2AuxFile object, the following error occurred: \
 `'test'` is neither a registered filename nor a registered variable.
         """
         for value in objecttools.extract(values, (str, abctools.VariableABC)):
@@ -546,13 +537,13 @@ object has already been allocated to filename `file1`.
                             deleted_something = True
                 if not deleted_something:
                     raise ValueError(
-                        ' `{0!r}` is neither a registered filename nor a '
-                        'registered variable.'.format(value))
+                        f'`{repr(value)}` is neither a registered '
+                        f'filename nor a registered variable.')
             except BaseException:
                 objecttools.augment_excmessage(
-                    'While trying to remove the given object `{0}` of type '
-                    '`{1}` from the actual Variable2AuxFile object'
-                    .format(value, objecttools.classname(value)))
+                    f'While trying to remove the given object `{value}` '
+                    f'of type `{objecttools.classname(value)}` from the '
+                    f'actual Variable2AuxFile object')
 
     @property
     def types(self):

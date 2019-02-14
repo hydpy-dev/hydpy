@@ -20,9 +20,9 @@ install:
   - python --version
   - python -m pip install --upgrade pip
   - python -m pip install cython
-  - python -m pip install numpy
-  - python -m pip install scipy
-  - python -m pip install matplotlib
+  - conda install numpy --yes
+  - conda install scipy --yes
+  - conda install matplotlib --yes
   - python -m pip install bokeh
   - python -m pip install pandas
   - python -m pip install setuptools

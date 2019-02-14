@@ -183,7 +183,6 @@ def prepare_model(module, timestep=None):
     except AttributeError:
         module = importlib.import_module(f'hydpy.models.{module}')
         model = module.Model()
-    model = module.Model()
     if hydpy.pub.options.usecython and hasattr(module, 'cythonizer'):
         cymodule = module.cythonizer.cymodule
         cymodel = cymodule.Model()

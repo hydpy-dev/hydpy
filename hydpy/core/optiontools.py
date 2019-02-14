@@ -9,7 +9,7 @@ import itertools
 from hydpy.core import autodoctools
 
 
-class _Context(object):
+class _Context:
 
     _TYPE = None
 
@@ -48,7 +48,7 @@ class _StrContext(_Context, str):
     _TYPE = str
 
 
-class _Option(object):
+class _Option:
 
     TYPE2CONTEXT = {int: _IntContext,
                     bool: _IntContext,
@@ -76,7 +76,9 @@ class _Option(object):
         self.value = self.default
 
 
-class Options(object):
+class Options:
+    # pylint: disable=trailing-whitespace
+    # due to the long docstrings passed to `_Option`
     """Singleton class for `global` options placed in module |pub|.
 
     Note that Most options are simple True/False or 0/1 flags.

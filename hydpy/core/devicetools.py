@@ -1601,6 +1601,14 @@ which is in conflict with using their names as identifiers.
                 % (objecttools.classname(self), name,
                    objecttools.classname(self._contentclass), name))
 
+    def __getitem__(self, name):
+        try:
+            return self._devices[name]
+        except KeyError:
+            raise KeyError(
+                f'No {objecttools.classname(self._contentclass).lower()} '
+                f'named `{name}` available.')
+
     def __contains__(self, device):
         device = self._contentclass(device)
         return device.name in self._devices

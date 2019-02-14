@@ -77,10 +77,6 @@ class _ANNArrayProperty(propertytools.DependentProperty):
 
 
 class ANN:
-    # pylint: disable=trailing-whitespace
-    # due to the long docstrings passed to `_ANNArrayProperty`
-    # pylint: disable=method-hidden
-    # due to
     """Multi-layer feed forward artificial neural network.
 
     The applied activation function is the logistic function:

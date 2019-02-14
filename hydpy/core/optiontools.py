@@ -77,8 +77,6 @@ class _Option:
 
 
 class Options:
-    # pylint: disable=trailing-whitespace
-    # due to the long docstrings passed to `_Option`
     """Singleton class for `global` options placed in module |pub|.
 
     Note that Most options are simple True/False or 0/1 flags.

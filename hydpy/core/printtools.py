@@ -15,7 +15,7 @@ from hydpy.core import autodoctools
 from hydpy.core import objecttools
 
 
-class PrintStyle(object):
+class PrintStyle:
     """Context manager for changing the colour and font of printed
     output temporarilly."""
 
@@ -36,7 +36,7 @@ class PrintStyle(object):
             objecttools.augment_excmessage()
 
 
-_printprogress_indentation = -4
+_printprogress_indentation = -4   # pylint: disable=invalid-name
 
 
 @wrapt.decorator
@@ -114,7 +114,7 @@ def print_progress(wrapped, _, args, kwargs):
     >>> time.strftime = strftime
     >>> time.perf_counter = perf_counter
     """
-    global _printprogress_indentation
+    global _printprogress_indentation   # pylint: disable=invalid-name
     _printprogress_indentation += 4
     try:
         if hydpy.pub.options.printprogress:

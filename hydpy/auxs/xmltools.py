@@ -142,8 +142,8 @@ def _query_selections(xmlelement) -> selectiontools.Selections:
     selections = []
     for name in text.split():
         try:
-            selections.append(hydpy.pub.selections[name])
-        except KeyError:
+            selections.append(getattr(hydpy.pub.selections, name))
+        except AttributeError:
             raise NameError(
                 f'The XML configuration file tries to defines a selection '
                 f'using the text `{name}`, but the actual project does not '
@@ -553,8 +553,8 @@ correctly refer to one of the available XML schema files \
         streams
         >>> selections.headwaters
         Selection("headwaters",
-                  elements=("land_dill", "land_lahn_1"),
-                  nodes=("dill", "lahn_1"))
+                  nodes=("dill", "lahn_1"),
+                  elements=("land_dill", "land_lahn_1"))
         >>> interface.find('selections').text = 'head_waters'
         >>> interface.selections
         Traceback (most recent call last):
@@ -580,8 +580,8 @@ a `Selection` object.
         ...     interface = XMLInterface('single_run.xml')
         >>> interface.devices
         Selection("temporary_result_of_xml_parsing",
-                  elements=("land_dill", "land_lahn_1"),
-                  nodes="dill")
+                  nodes="dill",
+                  elements=("land_dill", "land_lahn_1"))
         >>> interface.find('devices').text = 'land_lahn1'
         >>> interface.devices
         Traceback (most recent call last):
@@ -640,9 +640,9 @@ a name or keyword.
         >>> interface.find('selections').text = 'nonheadwaters'
         >>> interface.fullselection
         Selection("fullselection",
+                  nodes=("dill", "lahn_2", "lahn_3"),
                   elements=("land_dill", "land_lahn_1", "land_lahn_2",
-                            "land_lahn_3"),
-                  nodes=("dill", "lahn_2", "lahn_3"))
+                            "land_lahn_3"))
         """
         fullselection = selectiontools.Selection('fullselection')
         for selection in self.selections:
@@ -717,7 +717,8 @@ class XMLConditions(XMLBase):
         >>> hp.elements.land_lahn_2.model.sequences.states.lz
         lz(nan)
         """
-        hydpy.pub.conditionmanager.currentdir = strip(self.find('inputdir').text)
+        hydpy.pub.conditionmanager.currentdir = strip(
+            self.find('inputdir').text)
         for element in self.master.elements:
             element.model.sequences.load_conditions()
 
@@ -746,7 +747,8 @@ class XMLConditions(XMLBase):
         lz(999.0)
         False
         """
-        hydpy.pub.conditionmanager.currentdir = strip(self.find('outputdir').text)
+        hydpy.pub.conditionmanager.currentdir = strip(
+            self.find('outputdir').text)
         for element in self.master.elements:
             element.model.sequences.save_conditions()
         if strip(self.find('zip').text) == 'true':

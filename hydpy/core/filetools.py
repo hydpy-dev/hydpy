@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """This module implements features for handling the folder structure of
-HydPy projects as well as loading data from and storing data to files.
-"""
+HydPy projects as well as loading data from and storing data to files."""
 # import...
 # ...from standard library
 import os
@@ -651,17 +650,17 @@ class NetworkManager(FileManager):
     specific selections:
 
     >>> selections
-    Selections("headwaters", "nonheadwaters", "streams", "complete")
+    Selections("complete", "headwaters", "nonheadwaters", "streams")
     >>> selections.headwaters
     Selection("headwaters",
-              elements=("land_dill", "land_lahn_1"),
-              nodes=("dill", "lahn_1"))
+              nodes=("dill", "lahn_1"),
+              elements=("land_dill", "land_lahn_1"))
     >>> selections.complete
     Selection("complete",
+              nodes=("dill", "lahn_1", "lahn_2", "lahn_3"),
               elements=("land_dill", "land_lahn_1", "land_lahn_2",
                         "land_lahn_3", "stream_dill_lahn_2",
-                        "stream_lahn_1_lahn_2", "stream_lahn_2_lahn_3"),
-              nodes=("dill", "lahn_1", "lahn_2", "lahn_3"))
+                        "stream_lahn_1_lahn_2", "stream_lahn_2_lahn_3"))
 
     Method ... ToDo
 
@@ -723,7 +722,7 @@ following error occurred: name 'y' is not defined
     Traceback (most recent call last):
     ...
     FileNotFoundError: While trying to save selections \
-`Selections("headwaters", "nonheadwaters", "complete")` into network files, \
+`Selections("complete", "headwaters", "nonheadwaters")` into network files, \
 the following error occurred: ...
     """
 
@@ -771,7 +770,7 @@ the following error occurred: ...
                 if selection.name == 'complete':
                     continue
                 path = os.path.join(currentpath, selection.name+'.py')
-                selection.save(path=path, write_nodes=True)
+                selection.save_networkfile(filepath=path)
         except BaseException:
             objecttools.augment_excmessage(
                 'While trying to save selections `%s` into network files'

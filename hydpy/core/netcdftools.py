@@ -222,7 +222,7 @@ netcdf4 = exceptiontools.OptionalImport(   # pylint: disable=invalid-name
 
 IntOrSlice = TypeVar('IntOrSlice', int, slice)
 
-dimmapping = {
+dimmapping = {   # pylint: disable=invalid-name
     'nmb_timepoints': 'time',
     'nmb_subdevices': 'stations',
     'nmb_characters': 'char_leng_name'}
@@ -236,7 +236,7 @@ call this dimension "location" instead of "stations" within NetCDF files:
 >>> dimmapping['nmb_subdevices'] = 'location'
 """
 
-varmapping = {
+varmapping = {   # pylint: disable=invalid-name
     'timepoints': 'time',
     'subdevices': 'station_id'}
 """Maps variable name terms from HydPy terms NetCDF.
@@ -249,7 +249,7 @@ call this variable "period" instead of "time" within NetCDF files:
 >>> varmapping['timepoints'] = 'period'
 """
 
-fillvalue = numpy.nan
+fillvalue = numpy.nan   # pylint: disable=invalid-name
 """Default fill value for writing NetCDF files.
 
 You can set another |float| value before writing a NetCDF file:
@@ -486,7 +486,7 @@ def get_filepath(ncfile) -> str:
     return ncfile.filepath() if hasattr(ncfile, 'filepath') else ncfile.filename
 
 
-class NetCDFInterface(object):
+class NetCDFInterface:
     """Interface between |SequenceManager| and multiple NetCDF files.
 
     The core task of class |NetCDFInterface| is to distribute different
@@ -757,7 +757,7 @@ a member named `lland_v3`.
         return objecttools.dir_(self) + adds_long + adds_short
 
 
-class NetCDFFile(object):
+class NetCDFFile:
     """Handles a single NetCDF file.
 
     The core task of class |NetCDFFile| is to distribute different
@@ -972,6 +972,7 @@ named `state_bowa`.
 
     @property
     def filepath(self) -> str:
+        """The NetCDF file path."""
         return os.path.join(self._dirpath, self.name + '.nc')
 
     def read(self) -> None:
@@ -1035,7 +1036,7 @@ _NetCDFVariableInfo = collections.namedtuple(
     '_NetCDFVariableInfo', ['sequence', 'array'])
 
 
-class Subdevice2Index(object):
+class Subdevice2Index:
     """Return type of method |NetCDFVariableBase.query_subdevice2index|."""
 
     def __init__(self, dict_, name_sequence, name_ncfile):
@@ -1389,7 +1390,7 @@ names for variable `flux_prec` (the first found duplicate is `element1`).
         return objecttools.dir_(self) + list(self.sequences.keys())
 
 
-class DeepAndAggMixin(object):
+class DeepAndAggMixin:
     """Mixin class for |NetCDFVariableDeep| and |NetCDFVariableAgg|"""
 
     @property
@@ -1414,7 +1415,7 @@ class DeepAndAggMixin(object):
         ncfile[self.name][:] = array
 
 
-class AggAndFlatMixin(object):
+class AggAndFlatMixin:
     """Mixin class for |NetCDFVariableAgg| and |NetCDFVariableFlat|."""
 
     @property

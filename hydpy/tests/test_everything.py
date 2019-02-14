@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=invalid-name, wrong-import-position
+# due to using this module as a script and the requirement to import hydpy
+# after the site-packages have been priorised (see the comments below)
 """Test all "conventional" unit tests defined in subpackage `tests` and
 all doctests defined in the different modules and documentation files.
 """
@@ -12,7 +15,7 @@ import warnings
 import matplotlib
 
 
-class FilterFilenames(object):
+class _FilterFilenames:
 
     def __init__(self, argv):
         self.selection = []
@@ -22,11 +25,11 @@ class FilterFilenames(object):
 
     def __call__(self, names) -> list:
         if self.selection:
-            return [_ for _ in names if (_ in self.selection)]
+            return [_ for _ in names if _ in self.selection]
         return list(names)
 
 
-filter_filenames = FilterFilenames(sys.argv)
+filter_filenames = _FilterFilenames(sys.argv)
 testpath = None
 for arg in sys.argv:
     if arg.startswith('test_path='):
@@ -113,7 +116,6 @@ if failedunittests:
 
 # 2. Perform all doctests (first in Python mode, then in Cython mode)
 
-from hydpy import pub
 pub.options.reprcomments = False
 import hydpy
 from hydpy.core import devicetools
@@ -140,7 +142,7 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                        for fn in filenames_ if fn.endswith('.py')]
         docfilenames = [os.path.join(dirpath, fn)
                         for fn in filenames_ if fn.endswith('.rst')]
-        for name in (modulenames + docfilenames):
+        for name in modulenames + docfilenames:
             if name.split('.')[-1] in ('apidoc', 'prepare', 'modify_html'):
                 continue
             if not name.endswith('.rst'):
@@ -162,6 +164,7 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
             else:
                 opt = pub.options
                 Par = parametertools.Parameter
+                # pylint: disable=not-callable
                 with opt.usedefaultvalues(False), \
                         opt.usedefaultvalues(False), \
                         opt.printprogress(False), \
@@ -199,13 +202,13 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                         runner = unittest.TextTestRunner(stream=file_)
                         doctests[name] = runner.run(suite)
                     doctests[name].nmbproblems = (
-                            len(doctests[name].errors) +
-                            len(doctests[name].failures))
+                        len(doctests[name].errors) +
+                        len(doctests[name].failures))
                     hydpy.dummies.clear()
     successfuldoctests.update({name: runner for (name, runner)
-                              in doctests.items() if not runner.nmbproblems})
+                               in doctests.items() if not runner.nmbproblems})
     faileddoctests.update({name: runner for (name, runner)
-                          in doctests.items() if runner.nmbproblems})
+                           in doctests.items() if runner.nmbproblems})
 
     if successfuldoctests:
         print()

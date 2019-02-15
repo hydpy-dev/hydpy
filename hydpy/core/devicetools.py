@@ -16,7 +16,6 @@ import numpy
 import hydpy
 from hydpy.core import abctools
 from hydpy.core import autodoctools
-from hydpy.core import connectiontools
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import printtools
@@ -477,8 +476,8 @@ Keep in mind, that `name` is the unique identifier of node objects.
                 self._variable = variable
             self._keywords = Keywords()
             self._keywords.device = self
-            self.entries = connectiontools.Connections(self, 'entries')
-            self.exits = connectiontools.Connections(self, 'exits')
+            self.entries = Elements()
+            self.exits = Elements()
             self._all_connections = (self.entries, self.exits)
             self.sequences = sequencetools.NodeSequences(self)
             self.deploymode = 'newsim'
@@ -889,10 +888,10 @@ defined as a receiver, node which is not allowed.
             self = object.__new__(Element)
             self._check_name(name)
             self._name = name
-            self.inlets = connectiontools.Connections(self, 'inlets')
-            self.outlets = connectiontools.Connections(self, 'outlets')
-            self.receivers = connectiontools.Connections(self, 'receivers')
-            self.senders = connectiontools.Connections(self, 'senders')
+            self.inlets = Nodes()
+            self.outlets = Nodes()
+            self.receivers = Nodes()
+            self.senders = Nodes()
             self._all_connections = (self.inlets, self.outlets,
                                      self.receivers, self.senders)
             self._keywords = Keywords()
@@ -1689,7 +1688,7 @@ which is in conflict with using their names as identifiers.
         load_simseries, na, names, nb, nc, nd, ne, open_files,
         prepare_allseries, prepare_obsseries, prepare_simseries,
         remove_device, return_always_iterables, save_allseries,
-        save_obsseries, save_simseries
+        save_obsseries, save_simseries, variables
         """
         return objecttools.dir_(self) + list(self.names) + list(self.keywords)
 
@@ -1769,6 +1768,10 @@ class Nodes(Devices):
     def _load_nodeseries(self, seqname):
         for node in printtools.progressbar(self):
             getattr(node.sequences, seqname).load_ext()
+
+    @property
+    def variables(self):
+        return sorted(set([node.variable for node in self]))
 
 
 class Elements(Devices):

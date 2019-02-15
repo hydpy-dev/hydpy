@@ -163,7 +163,7 @@ class Model(_MetaModel_):
                 % (group[:-1], objecttools.devicename(self)))
 
     def _connect_subgroup(self, group):
-        available_nodes = getattr(self.element, group).slaves
+        available_nodes = getattr(self.element, group)
         links = getattr(self.sequences, group, ())
         applied_nodes = []
         for seq in links:

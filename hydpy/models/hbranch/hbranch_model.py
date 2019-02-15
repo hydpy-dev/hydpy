@@ -172,7 +172,7 @@ class Model(modeltools.Model):
 to an outlet node named `outflow1`, which is not an available outlet node \
 of element `branch`.
         """
-        nodes = self.element.inlets.slaves
+        nodes = self.element.inlets
         total = self.sequences.inlets.total
         if total.shape != (len(nodes),):
             total.shape = len(nodes)

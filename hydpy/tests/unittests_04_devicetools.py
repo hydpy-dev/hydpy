@@ -5,7 +5,6 @@
 import unittest
 # ...from HydPy
 from hydpy.core.devicetools import *
-from hydpy.core.connectiontools import *
 
 
 
@@ -39,12 +38,8 @@ class Test01NodeCreation(unittest.TestCase):
             test = Node({'test': 'test'})
     def test_04_attributes(self):
         test1 = Node('test1')
-        self.assertIsInstance(test1.entries, Connections)
-        self.assertIsInstance(test1.exits, Connections)
         self.assertEqual(test1.variable, 'Q')
         test2 = Node('test2', 'T')
-        self.assertIsInstance(test2.entries, Connections)
-        self.assertIsInstance(test2.exits, Connections)
         self.assertEqual(test2.variable, 'T')
     def test_03_wrongredefinition(self):
         test = Node('test')
@@ -82,10 +77,6 @@ class Test02ElementCreation(unittest.TestCase):
             test = Element({'test': 'test'})
     def test_04_attributes(self):
         test = Element('test')
-        self.assertIsInstance(test.inlets, Connections)
-        self.assertIsInstance(test.outlets, Connections)
-        self.assertIsInstance(test.receivers, Connections)
-        self.assertIsInstance(test.senders, Connections)
         self.assertIsNone(test.model)
 
 

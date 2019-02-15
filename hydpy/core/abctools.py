@@ -135,8 +135,6 @@ class NodesABC(DocABC):
     """Abstract base class for registering custom |Nodes| classes."""
 
 
-class ConnectionsABC(DocABC):
-    """Abstract base class for registering custom |Connections| classes."""
 
 
 class VariableABC(DocABC):

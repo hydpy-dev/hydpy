@@ -62,7 +62,6 @@ standardize writing *HydPy* code.
    abctools
    autodoctools
    auxfiletools
-   connectiontools
    devicetools
    dummytools
    examples

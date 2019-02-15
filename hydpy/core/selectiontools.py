@@ -3,10 +3,13 @@
 |Element| objects of large *HydPy* projects, called "selections"."""
 # import...
 # ...from standard library
+import abc
 import copy
-from typing import List, Tuple
+import types
+from typing import *
 # ...from HydPy
 import hydpy
+from hydpy.core.abctools import *
 from hydpy.core import autodoctools
 from hydpy.core import devicetools
 from hydpy.core import importtools
@@ -137,13 +140,13 @@ Selections objects, single Selection objects, or iterables containing \
 objects only, not objects of type `tuple`
     """
 
-    def __init__(self, *selections):
-        self.__selections = {}
+    def __init__(self, *selections: SelectionABC):
+        self.__selections: Dict[str, SelectionABC] = {}
         for selection in selections:
             self += selection
 
     @property
-    def names(self) -> Tuple[str]:
+    def names(self) -> Tuple[str, ...]:
         """A |tuple| containing the names of the actual |Selection| objects.
 
         >>> from hydpy import Selection, Selections
@@ -233,26 +236,24 @@ objects only, not objects of type `tuple`
         return len(self.__selections)
 
     @staticmethod
-    def _getiterable(value) -> List['Selection']:
+    def _getiterable(value: Union[SelectionABC, Iterable[SelectionABC]]) -> \
+            List[SelectionABC]:
         """Try to convert the given argument to a |list| of  |Selection|
         objects and return it.
         """
-        if isinstance(value, Selection):
+        if isinstance(value, SelectionABC):
             return [value]
-        if isinstance(value, Selections):
-            return list(value)
         try:
             for selection in value:
-                if not isinstance(selection, Selection):
+                if not isinstance(selection, SelectionABC):
                     raise TypeError
             return list(value)
         except TypeError:
             raise TypeError(
-                f'Binary operations on Selections objects are defined '
-                f'for other Selections objects, single Selection objects, '
-                f'or iterables containing `Selection` objects, but the '
-                f'type of the given argument is '
-                f'`{objecttools.classname(value)}`.')
+                f'Binary operations on Selections objects are defined for '
+                f'other Selections objects, single Selection objects, or '
+                f'iterables containing `Selection` objects, but the type of '
+                f'the given argument is `{objecttools.classname(value)}`.')
 
     def __add__(self, value):
         selections = self._getiterable(value)
@@ -315,7 +316,7 @@ objects only, not objects of type `tuple`
         return objecttools.dir_(self) + list(self.names)
 
 
-class Selection:
+class Selection(SelectionABC):
     """Handles and modifies combinations of |Node| and |Element| objects.
 
     In *HydPy* |Node| and |Element| objects are the fundamental means
@@ -426,12 +427,15 @@ attribute 'nodes'
     >>> str(test)
     'test'
     """
-    def __init__(self, name, nodes=None, elements=None):
+    def __init__(self, name, nodes: NodesABC.ConstrArg = None,
+                 elements: ElementsABC.ConstrArg = None):
         self.name = str(name)
         self.nodes = devicetools.Nodes(nodes)
         self.elements = devicetools.Elements(elements)
 
-    def search_upstream(self, device, name='upstream') -> 'Selection':
+    def search_upstream(
+            self, device: Union[NodeABC, ElementABC],
+            name: str = 'upstream') -> SelectionABC:
         """Return the network upstream of the given starting point, including
         the starting point itself.
 
@@ -499,12 +503,13 @@ selection `headwaters`, the following error occurred: 'No node named \
                   elements=("land_lahn_3", "stream_lahn_2_lahn_3"))
         """
         try:
-            if isinstance(device, devicetools.Node):
-                return self._get_nextnode(
-                    self.nodes[device.name], Selection(name))
-            if isinstance(device, devicetools.Element):
-                return self._get_nextelement(
-                    self.elements[device.name], Selection(name))
+            selection = Selection(name)
+            if isinstance(device, NodeABC):
+                node = self.nodes[device.name]
+                return self.__get_nextnode(node, selection)
+            if isinstance(device, ElementABC):
+                element = self.elements[device.name]
+                return self.__get_nextelement(element, selection)
             raise TypeError(
                 f'Either a `Node` or an `Element` object is required '
                 f'as the "outlet device", but the given `device` value '
@@ -514,21 +519,24 @@ selection `headwaters`, the following error occurred: 'No node named \
                 f'While trying to determine the upstream network of '
                 f'selection `{self.name}`')
 
-    def _get_nextnode(self, node, selection) -> 'Selection':
+    def __get_nextnode(
+            self, node: NodeABC, selection: SelectionABC) -> SelectionABC:
         if (node not in selection.nodes) and (node in self.nodes):
             selection.nodes += node
             for element in node.entries:
-                selection = self._get_nextelement(element, selection)
+                selection = self.__get_nextelement(element, selection)
         return selection
 
-    def _get_nextelement(self, element, selection) -> 'Selection':
+    def __get_nextelement(
+            self, element: ElementABC, selection: SelectionABC) -> SelectionABC:
         if (element not in selection.elements) and (element in self.elements):
             selection.elements += element
             for node in element.inlets:
-                selection = self._get_nextnode(node, selection)
+                selection = self.__get_nextnode(node, selection)
         return selection
 
-    def select_upstream(self, device) -> 'Selection':
+    def select_upstream(self, device: Union[NodeABC, ElementABC]) -> \
+            SelectionABC:
         """Restrict the current selection to the network upstream of the given
         starting point, including the starting point itself.
 
@@ -540,7 +548,8 @@ selection `headwaters`, the following error occurred: 'No node named \
         self.elements = upstream.elements
         return self
 
-    def deselect_upstream(self, device) -> 'Selection':
+    def deselect_upstream(self, device: Union[NodeABC, ElementABC]) -> \
+            SelectionABC:
         """Remove the network upstream of the given starting point from the
         current selection, including the starting point itself.
 
@@ -552,7 +561,10 @@ selection `headwaters`, the following error occurred: 'No node named \
         self.elements -= upstream.elements
         return self
 
-    def search_modeltypes(self, *models, name='modeltypes') -> 'Selection':
+    ModelTypesArg = Union[ModelABC, types.ModuleType, str]
+
+    def search_modeltypes(self, *models: ModelTypesArg,
+                          name: str = 'modeltypes') -> SelectionABC:
         """Return a |Selection| object containing only the elements
         currently handling models of the given types.
 
@@ -609,15 +621,15 @@ No module named 'hydpy.models.wrong'
                             "stream_lahn_2_lahn_3"))
         """
         try:
-            types = []
+            typelist = []
             for model in models:
-                if not isinstance(model, modeltools.Model):
+                if not isinstance(model, ModelABC):
                     model = importtools.prepare_model(model)
-                types.append(type(model))
-            types = tuple(types)
+                typelist.append(type(model))
+            typetuple = tuple(typelist)
             selection = Selection(name)
             for element in self.elements:
-                if isinstance(element.model, types):
+                if isinstance(element.model, typetuple):
                     selection.elements += element
             return selection
         except BaseException:
@@ -629,7 +641,7 @@ No module named 'hydpy.models.wrong'
                 f'`{self.name}` handling the model defined by the '
                 f'argument(s) `{values}` of type(s) `{classes}`')
 
-    def select_modeltypes(self, *modeltypes) -> 'Selection':
+    def select_modeltypes(self, *models: ModelTypesArg) -> SelectionABC:
         """Restrict the current |Selection| object to all elements
         containing the given model types (removes all nodes).
 
@@ -637,10 +649,10 @@ No module named 'hydpy.models.wrong'
         additional information.
         """
         self.nodes = devicetools.Nodes()
-        self.elements = self.search_modeltypes(*modeltypes).elements
+        self.elements = self.search_modeltypes(*models).elements
         return self
 
-    def deselect_modeltypes(self, *modeltypes) -> 'Selection':
+    def deselect_modeltypes(self, *models: ModelTypesArg) -> SelectionABC:
         """Restrict the current selection to all elements not containing the
         given model types (removes all nodes).
 
@@ -648,10 +660,11 @@ No module named 'hydpy.models.wrong'
         additional information.
         """
         self.nodes = devicetools.Nodes()
-        self.elements -= self.search_modeltypes(*modeltypes).elements
+        self.elements -= self.search_modeltypes(*models).elements
         return self
 
-    def search_nodenames(self, *substrings, name='nodenames') -> 'Selection':
+    def search_nodenames(self, *substrings: str, name: str = 'nodenames') -> \
+            SelectionABC:
         """Return a new selection containing all nodes of the current
         selection with a name containing at least one of the given substrings.
 
@@ -714,7 +727,7 @@ requires string as left operand, not list
                 f'`{self.name}` with names containing at least one '
                 f'of the given substrings `{values}`')
 
-    def select_nodenames(self, *substrings) -> 'Selection':
+    def select_nodenames(self, *substrings: str) -> SelectionABC:
         """Restrict the current selection to all nodes with a name
         containing at least one of the given substrings  (does not
         affect any elements).
@@ -725,7 +738,7 @@ requires string as left operand, not list
         self.nodes = self.search_nodenames(*substrings).nodes
         return self
 
-    def deselect_nodenames(self, *substrings) -> 'Selection':
+    def deselect_nodenames(self, *substrings: str) -> SelectionABC:
         """Restrict the current selection to all nodes with a name
         not containing at least one of the given substrings (does not
         affect any elements).
@@ -736,8 +749,8 @@ requires string as left operand, not list
         self.nodes -= self.search_nodenames(*substrings).nodes
         return self
 
-    def search_elementnames(self, *substrings, name='elementnames') -> \
-            'Selection':
+    def search_elementnames(self, *substrings: str,
+                            name: str = 'elementnames') -> SelectionABC:
         """Return a new selection containing all elements of the current
         selection with a name containing at least one of the given substrings.
 
@@ -799,7 +812,7 @@ requires string as left operand, not list
                 f'`{self.name}` with names containing at least one '
                 f'of the given substrings `{values}`')
 
-    def select_elementnames(self, *substrings) -> 'Selection':
+    def select_elementnames(self, *substrings: str) -> SelectionABC:
         """Restrict the current selection to all elements with a name
         containing at least one of the given substrings (does not
         affect any nodes).
@@ -810,7 +823,7 @@ requires string as left operand, not list
         self.elements = self.search_elementnames(*substrings).elements
         return self
 
-    def deselect_elementnames(self, *substrings) -> 'Selection':
+    def deselect_elementnames(self, *substrings: str) -> SelectionABC:
         """Restrict the current selection to all elements with a name
         not containing at least one of the given substrings.   (does
         not affect any nodes).
@@ -821,13 +834,14 @@ requires string as left operand, not list
         self.elements -= self.search_elementnames(*substrings).elements
         return self
 
-    def copy(self, name):
+    def copy(self, name: str) -> SelectionABC:
         """Return a new |Selection| object with the given name and copies
         of the handles |Nodes| and |Elements| objects based on method
         |Devices.copy|."""
-        return Selection(name, self.nodes.copy(), self.elements.copy())
+        return type(self)(name, self.nodes.copy(), self.elements.copy())
 
-    def save_networkfile(self, filepath=None, write_nodes=True) -> None:
+    def save_networkfile(self, filepath: Union[str, None] = None,
+                         write_nodes: bool = True) -> None:
         """Save the selection as a network file.
 
         >>> from hydpy.core.examples import prepare_full_example_2
@@ -900,44 +914,44 @@ requires string as left operand, not list
                      'of type `{classname(other)}`')
 
     @objecttools.excmessage_decorator('add '+_ERRORMESSAGE)
-    def __iadd__(self, other):
+    def __iadd__(self, other: DevicesHandlerABC):
         self.nodes += other.nodes
         self.elements += other.elements
         return self
 
     @objecttools.excmessage_decorator('subtract ' + _ERRORMESSAGE)
-    def __isub__(self, other):
+    def __isub__(self, other: DevicesHandlerABC):
         self.nodes -= other.nodes
         self.elements -= other.elements
         return self
 
     @objecttools.excmessage_decorator('compare ' + _ERRORMESSAGE)
-    def __lt__(self, other):
+    def __lt__(self, other: DevicesHandlerABC):
         return ((self.nodes < other.nodes) and
                 (self.elements < other.elements))
 
     @objecttools.excmessage_decorator('compare ' + _ERRORMESSAGE)
-    def __le__(self, other):
+    def __le__(self, other: DevicesHandlerABC):
         return ((self.nodes <= other.nodes) and
                 (self.elements <= other.elements))
 
     @objecttools.excmessage_decorator('compare ' + _ERRORMESSAGE)
-    def __eq__(self, other):
+    def __eq__(self, other: DevicesHandlerABC):
         return ((self.nodes == other.nodes) and
                 (self.elements == other.elements))
 
     @objecttools.excmessage_decorator('compare ' + _ERRORMESSAGE)
-    def __ne__(self, other):
+    def __ne__(self, other: DevicesHandlerABC):
         return ((self.nodes != other.nodes) or
                 (self.elements != other.elements))
 
     @objecttools.excmessage_decorator('compare ' + _ERRORMESSAGE)
-    def __ge__(self, other):
+    def __ge__(self, other: DevicesHandlerABC):
         return ((self.nodes >= other.nodes) and
                 (self.elements >= other.elements))
 
     @objecttools.excmessage_decorator('compare ' + _ERRORMESSAGE)
-    def __gt__(self, other):
+    def __gt__(self, other: DevicesHandlerABC):
         return ((self.nodes > other.nodes) and
                 (self.elements >= other.elements))
 
@@ -947,7 +961,7 @@ requires string as left operand, not list
     def __repr__(self):
         return self.assignrepr('')
 
-    def assignrepr(self, prefix) -> str:
+    def assignrepr(self, prefix: str) -> str:
         """Return a |repr| string with a prefixed assignment."""
         with objecttools.repr_.preserve_strings(True):
             with hydpy.pub.options.ellipsis(2, optional=True):

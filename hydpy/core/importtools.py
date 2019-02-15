@@ -9,9 +9,12 @@ routines from model users and for allowing writing readable doctests.
 import os
 import importlib
 import inspect
+import types
 import warnings
+from typing import *
 # ...from HydPy
 import hydpy
+from hydpy.core.abctools import *
 from hydpy.core import autodoctools
 from hydpy.core import filetools
 from hydpy.core import objecttools
@@ -160,7 +163,8 @@ def reverse_model_wildcard_import():
                 pass
 
 
-def prepare_model(module, timestep=None):
+def prepare_model(module: Union[types.ModuleType, str],
+                  timestep: PeriodABC.ConstrArg = None):
     """Prepare and return the model of the given module.
 
     In usual HydPy projects, each hydrological model instance is prepared

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
 """This module provides some abstract base classes.
 
 There are some type checks within the HydPy framework relying on the
@@ -15,92 +16,16 @@ should be handled as if they were.  See class |anntools.ANN| as an example.
 """
 # import...
 # ...from standard library
-from typing import Any, Union
 import abc
 import datetime
+from typing import *
 # ...from site-packages
 import numpy
 # ...from HydPy
 from hydpy.core import autodoctools
 
 
-class DocABC(object, metaclass=abc.ABCMeta):
-    """ABC base class automatically documenting is registered subclasses."""
-
-    _registry_empty = True
-
-    @classmethod
-    def register(cls, subclass):
-        """Add information to the documentation of the given abstract base
-        class and register the subclass afterwards.
-
-        Subclass the new abstract base class `NewABC` and define some new
-        concrete classes (`New1`, `New2`, `New3`) which do not inherit
-        from `NewABC`:
-
-        >>> from hydpy.core.abctools import DocABC
-        >>> class NewABC(DocABC):
-        ...    "A new base class."
-        >>> class New1(object):
-        ...     "First new class"
-        >>> class New2(object):
-        ...     "Second new class"
-        >>> class New3(object):
-        ...     "Third new class"
-
-        The docstring `NewABC` is still the same as defined above:
-
-        >>> print(NewABC.__doc__)
-        A new base class.
-
-        Now we register the concrete classes `New1` and `New2`:
-
-        >>> NewABC.register(New2)
-        >>> NewABC.register(New1)
-        >>> NewABC.register(New2)
-
-        Now the docstring of `NewABC` includes the information about
-        the concrete classes already registered:
-
-        >>> print(NewABC.__doc__)
-        A new base class.
-        <BLANKLINE>
-        At the moment, the following classes are registered:
-             * :class:`~hydpy.core.abctools.New2`
-             * :class:`~hydpy.core.abctools.New1`
-
-        Note that the docstring order is the registration order.
-        Also note that the "accidental reregistration" of class
-        `New2` does not modify the docstring.
-
-        Now the concrete classes `New1` and `New2` are handled as
-        if they were actual subclasses of `NewABC`, but class `New3`
-        -- which had not been registered -- is not:
-
-        >>> issubclass(New1, NewABC)
-        True
-        >>> isinstance(New1(), NewABC)
-        True
-        >>> issubclass(New2, NewABC)
-        True
-        >>> isinstance(New2(), NewABC)
-        True
-        >>> issubclass(New3, NewABC)
-        False
-        >>> isinstance(New3(), NewABC)
-        False
-        """
-        if cls._registry_empty:
-            cls._registry_empty = False
-            cls.__doc__ += \
-                '\n\nAt the moment, the following classes are registered:'
-        if not issubclass(subclass, cls):
-            cls.__doc__ += ('\n     * :class:`~%s`'
-                            % str(subclass).split("'")[1])
-            abc.ABCMeta.register(cls, subclass)
-
-
-class IterableNonStringABC(object, metaclass=abc.ABCMeta):
+class IterableNonStringABC(abc.ABC):
     """Abstract base class for checking if an object is iterable but not a
     string."""
 
@@ -113,46 +38,135 @@ class IterableNonStringABC(object, metaclass=abc.ABCMeta):
         return NotImplemented
 
 
-class ElementABC(DocABC):
-    """Abstract base class for registering custom |Element| classes."""
-    pass
+class DeviceABC(abc.ABC):
+    """See class |Device|."""
+
+    name: str
 
 
-class NodeABC(DocABC):
-    """Abstract base class for registering custom |Node| classes."""
-    pass
+class NodeABC(DeviceABC):
+    """See class |Node|."""
+
+    name: str
+    entries: 'ElementsABC'
+    exits: 'ElementsABC'
 
 
-class DevicesABC(DocABC):
-    """Abstract base class for registering custom |Devices| classes."""
+class ElementABC(DeviceABC):
+    """See class |Element|."""
+
+    inlets: 'NodesABC'
+    outlets: 'NodesABC'
+    receivers: 'NodesABC'
+    senders: 'NodesABC'
+    model: 'ModelABC'
 
 
-class ElementsABC(DocABC):
-    """Abstract base class for registering custom |Elements| classes."""
+class DevicesABC(abc.ABC):
+    """See class |Devices|."""
+
+    names: List[str]
+
+    def __len__(self):
+        ...
 
 
-class NodesABC(DocABC):
-    """Abstract base class for registering custom |Nodes| classes."""
+class NodesABC(DevicesABC):
+    """See class |Nodes|."""
+
+    ConstrArg = Union[None, NodeABC, str, Iterable[Union[NodeABC, str]]]
+
+    def copy(self) -> 'NodesABC':
+        ...
+
+    def __getitem__(self, name: str) -> NodeABC:
+        ...
+
+    def __iter__(self) -> Iterator[NodeABC]:
+        ...
+
+    def __add__(self, values: 'NodesABC.ConstrArg') -> 'NodesABC':
+        ...
+
+    def __sub__(self, values: 'NodesABC.ConstrArg') -> 'NodesABC':
+        ...
+
+    def __lt__(self, other: DevicesABC) -> 'NodesABC':
+        ...
+
+    def __le__(self, other: DevicesABC) -> 'NodesABC':
+        ...
+
+    def __eq__(self, other: DevicesABC) -> 'NodesABC':
+        ...
+
+    def __ne__(self, other: DevicesABC) -> 'NodesABC':
+        ...
+
+    def __ge__(self, other: DevicesABC) -> 'NodesABC':
+        ...
+
+    def __gt__(self, other: DevicesABC) -> 'NodesABC':
+        ...
 
 
+class ElementsABC(DevicesABC):
+    """See class |Elements|."""
+
+    ConstrArg = Union[None, ElementABC, str, Iterable[Union[ElementABC, str]]]
+    __init__: callable
+
+    def copy(self) -> 'ElementsABC':
+        ...
+
+    def __getitem__(self, name: str) -> ElementABC:
+        ...
+
+    def __iter__(self) -> Iterator[ElementABC]:
+        ...
+
+    def __add__(self, values: 'ElementsABC.ConstrArg') -> 'ElementsABC':
+        ...
+
+    def __sub__(self, values: 'ElementsABC.ConstrArg') -> 'ElementsABC':
+        ...
+
+    def __lt__(self, other: DevicesABC) -> 'ElementsABC':
+        ...
+
+    def __le__(self, other: DevicesABC) -> 'ElementsABC':
+        ...
+
+    def __eq__(self, other: DevicesABC) -> 'ElementsABC':
+        ...
+
+    def __ne__(self, other: DevicesABC) -> 'ElementsABC':
+        ...
+
+    def __ge__(self, other: DevicesABC) -> 'ElementsABC':
+        ...
+
+    def __gt__(self, other: DevicesABC) -> 'ElementsABC':
+        ...
 
 
-class VariableABC(DocABC):
-    """Abstract base class for registering custom |Variable| classes.
+class DevicesHandlerABC(abc.ABC):
+    """Without concrete implementation."""
 
-    Usually, new classes should either be registered as a parameter
-    or a sequence.  Afterwards, they are automatically handled as
-    |Variable| subclasses:
+    nodes: NodesABC
+    elements: ElementsABC
 
-    >>> from hydpy.core.abctools import VariableABC, ParameterABC
-    >>> class New(object):
-    ...     pass
-    >>> issubclass(New, VariableABC)
-    False
-    >>> ParameterABC.register(New)
-    >>> issubclass(New, VariableABC)
-    True
-    """
+
+class SelectionABC(abc.ABC):
+    """See class |Selection|."""
+
+    name: str
+    nodes: NodesABC
+    elements: ElementsABC
+
+
+class VariableABC(abc.ABC):
+    """See class |Variable|."""
     value: Union[float, int, numpy.ndarray]
     values: Union[float, int, numpy.ndarray]
     initvalue: Union[float, int]
@@ -160,120 +174,110 @@ class VariableABC(DocABC):
 
 
 class ParameterABC(VariableABC):
-    """Abstract base class for registering custom |Parameter| classes."""
+    """See class |Parameter|."""
 
 
-class ANNABC(DocABC):
-    """Abstract base class for registering custom |anntools.ANN| classes."""
+class ANNABC(abc.ABC):
+    """See class |anntools.ANN|."""
 
 
-class SeasonalANNABC(DocABC):
-    """Abstract base class for registering custom |anntools.SeasonalANN|
-    classes."""
+class SeasonalANNABC(abc.ABC):
+    """See class |anntools.SeasonalANN|."""
 
 
-class IOSequencesABC(DocABC):
-    """Abstract base class for registering custom |IOSequences| classes."""
+class IOSequencesABC(abc.ABC):
+    """See class |IOSequences|."""
 
 
-class InputSequencesABC(DocABC):
-    """Abstract base class for registering custom |InputSequences| classes."""
+class InputSequencesABC(abc.ABC):
+    """See class |InputSequences|."""
 
 
-class OutputSequencesABC(DocABC):
-    """Abstract base class for registering custom "OutputSequences" classes
+class OutputSequencesABC(abc.ABC):
+    """See class "OutputSequences" classes
     like |FluxSequences|."""
 
 
 class SequenceABC(VariableABC):
-    """Abstract base class for registering custom |Sequence| classes."""
-    pass
+    """See class |Sequence|."""
 
 
 class IOSequenceABC(SequenceABC):
-    """Abstract base class for registering custom |IOSequence| classes."""
-    pass
+    """See class |IOSequence|."""
 
 
 class ModelSequenceABC(IOSequenceABC):
-    """Abstract base class for registering custom |ModelSequence| classes."""
-    pass
+    """See class |ModelSequence|."""
 
 
 class InputSequenceABC(ModelSequenceABC):
-    """Abstract base class for registering custom |InputSequence| classes."""
+    """See class |InputSequence|."""
     pass
 
 
 class FluxSequenceABC(ModelSequenceABC):
-    """Abstract base class for registering custom |FluxSequence| classes."""
+    """See class |FluxSequence|."""
     pass
 
 
 class ConditionSequenceABC(ModelSequenceABC):
-    """Abstract base class for registering custom |ConditionSequence| classes.
+    """See class |ConditionSequence| classes.
     """
-    pass
 
 
 class StateSequenceABC(ConditionSequenceABC):
-    """Abstract base class for registering custom |StateSequence| classes."""
-    pass
+    """See class |StateSequence|."""
 
 
 class LogSequenceABC(ConditionSequenceABC):
-    """Abstract base class for registering custom |LogSequence| classes."""
-    pass
+    """See class |LogSequence|."""
 
 
 class AideSequenceABC(SequenceABC):
-    """Abstract base class for registering custom |AideSequence| classes."""
-    pass
+    """See class |AideSequence|."""
 
 
 class LinkSequenceABC(SequenceABC):
-    """Abstract base class for registering custom |LinkSequence| classes."""
-    pass
+    """See class |LinkSequence|."""
 
 
 class NodeSequenceABC(IOSequenceABC):
-    """Abstract base class for registering custom |NodeSequence| classes."""
-    pass
+    """See class |NodeSequence|."""
 
 
-class MaskABC(DocABC):
-    """Abstract base class for registering custom `Mask` classes."""
-    pass
+class MaskABC(abc.ABC):
+    """See class `Mask` classes."""
 
 
-class DateABC(DocABC):
-    """Abstract base class for registering custom |Date| classes."""
-    pass
+class DateABC(abc.ABC):
+    """See class |Date|."""
 
     datetime: datetime.datetime
 
 
-class PeriodABC(DocABC):
-    """Abstract base class for registering custom |Period| classes."""
-    pass
+class PeriodABC(abc.ABC):
+    """See class |Period|."""
+
+    ConstrArg = Union[None, 'PeriodABC', datetime.timedelta, str]
+    TimeDeltaArg = ConstrArg
+    timedelta: 'PeriodABC'
 
 
-class TimegridABC(DocABC):
-    """Abstract base class for registering custom |Timegrid| classes."""
-    pass
+class TimegridABC(abc.ABC):
+    """See class |Timegrid|."""
+
     firstdate: DateABC
     lastdate: DateABC
     stepsize: PeriodABC
 
 
-class TimegridsABC(DocABC):
-    """Abstract base class for registering custom |Timegrids| classes."""
-    pass
+class TimegridsABC(abc.ABC):
+    """See class |Timegrids|."""
 
 
-class TOYABC(DocABC):
-    """Abstract base class for registering custom |TOY| classes."""
-    pass
+class TOYABC(abc.ABC):
+    """See class |TOY|."""
+
     month: int
     day: int
     hour: int
@@ -281,8 +285,8 @@ class TOYABC(DocABC):
     second: int
 
 
-class ModelABC(DocABC):
-    """Abstract base class for registering custom |Model| classes."""
+class ModelABC(abc.ABC):
+    """See class |Model|."""
 
     @abc.abstractmethod
     def connect(self):
@@ -292,5 +296,40 @@ class ModelABC(DocABC):
     def doit(self, idx):
         ...
 
+
+__all__ = [
+    'DeviceABC',
+    'NodeABC',
+    'ElementABC',
+    'DevicesABC',
+    'NodesABC',
+    'ElementsABC',
+    'DevicesHandlerABC',
+    'SelectionABC',
+    'VariableABC',
+    'ParameterABC',
+    'ANNABC',
+    'SeasonalANNABC',
+    'IOSequencesABC',
+    'OutputSequencesABC',
+    'SequenceABC',
+    'IOSequenceABC',
+    'ModelSequenceABC',
+    'InputSequenceABC',
+    'FluxSequenceABC',
+    'ConditionSequenceABC',
+    'StateSequenceABC',
+    'LogSequenceABC',
+    'AideSequenceABC',
+    'LinkSequenceABC',
+    'NodeSequenceABC',
+    'MaskABC',
+    'DateABC',
+    'PeriodABC',
+    'TimegridABC',
+    'TimegridsABC',
+    'TOYABC',
+    'ModelABC',
+]
 
 autodoctools.autodoc_module()

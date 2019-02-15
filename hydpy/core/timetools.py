@@ -16,7 +16,7 @@ import time
 import numpy
 # ...from HydPy
 import hydpy
-from hydpy.core import abctools
+from hydpy.core.abctools import *
 from hydpy.core import autodoctools
 from hydpy.core import objecttools
 
@@ -26,7 +26,7 @@ from hydpy.core import objecttools
 time.strptime('1999', '%Y')
 
 
-class Date(object):
+class Date(DateABC):
     """Handles a single date.
 
     Classes |Date| is build on top of the Python module |datetime|.
@@ -757,10 +757,7 @@ occurred: No other decimal fraction of a second than "0" allowed.
         return objecttools.dir_(self)
 
 
-abctools.DateABC.register(Date)
-
-
-class Period(object):
+class Period(PeriodABC):
     """Handles the length of a single time period.
 
     Class |Period| is build on top of the Python module |datetime|.
@@ -883,7 +880,8 @@ However, for the given `timedelta` object, it is`857142` instead.
         self.timedelta = period
         self._unit = None
 
-    def _get_timedelta(self):
+    @property
+    def timedelta(self):
         if self._timedelta is None:
             raise AttributeError(
                 'The Period object does not contain a timedelta object '
@@ -891,10 +889,11 @@ However, for the given `timedelta` object, it is`857142` instead.
         else:
             return self._timedelta
 
-    def _set_timedelta(self, period):
+    @timedelta.setter
+    def timedelta(self, period):
         if period is None:
             self._timedelta = None
-        elif isinstance(period, abctools.PeriodABC):
+        elif isinstance(period, PeriodABC):
             self._timedelta = getattr(period, 'timedelta', None)
         elif isinstance(period, datetime.timedelta):
             if period.microseconds:
@@ -911,10 +910,9 @@ However, for the given `timedelta` object, it is`857142` instead.
                 f' of `datetime.timedelta` or `str`.  The given '
                 f'arguments type is {objecttools.classname(period)}.')
 
-    def _del_timedelta(self):
+    @timedelta.deleter
+    def timedelta(self):
         self._timedelta = None
-
-    timedelta = property(_get_timedelta, _set_timedelta, _del_timedelta)
 
     def _init_from_string(self, period):
         try:
@@ -1103,10 +1101,7 @@ However, for the given `timedelta` object, it is`857142` instead.
         return objecttools.dir_(self)
 
 
-abctools.PeriodABC.register(Period)
-
-
-class Timegrid(object):
+class Timegrid(TimegridABC):
     """Handle a time period defined by to dates and a step size in between.
 
     In hydrological modelling, input (and output) data are usually only
@@ -1544,7 +1539,7 @@ timegrid object is `4` and the length of the array object is `2`.
                 (timegrid.stepsize == self.stepsize))
 
     def __contains__(self, other):
-        if isinstance(other, abctools.TimegridABC):
+        if isinstance(other, TimegridABC):
             return self._containstimegrid(other)
         return self._containsdate(other)
 
@@ -1596,10 +1591,7 @@ timegrid object is `4` and the length of the array object is `2`.
         return objecttools.dir_(self)
 
 
-abctools.TimegridABC.register(Timegrid)
-
-
-class Timegrids(object):
+class Timegrids(TimegridsABC):
     """Handles all |Timegrid| instances of a HydPy project.
 
     The HydPy framework distinguishes two `time frames`, one associated
@@ -1868,10 +1860,7 @@ on the initialization time grid.
         return objecttools.dir_(self)
 
 
-abctools.TimegridsABC.register(Timegrids)
-
-
-class TOY(object):
+class TOY:
     """Time of year handler.
 
     |TOY| objects are used to define certain things that are true for a
@@ -2030,7 +2019,7 @@ set to `2`, but the given value is `29`.
             self.hour = None
             self.minute = None
             self.second = None
-        if isinstance(value, abctools.DateABC):
+        if isinstance(value, DateABC):
             for name in self._PROPERTIES.keys():
                 self.__dict__[name] = getattr(value, name)
         else:
@@ -2179,9 +2168,6 @@ set to `2`, but the given value is `29`.
                                       in self._PROPERTIES.keys())
 
     __dir__ = objecttools.dir_
-
-
-abctools.TOYABC.register(TOY)
 
 
 autodoctools.autodoc_module()

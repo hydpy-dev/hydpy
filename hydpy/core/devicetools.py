@@ -1,20 +1,19 @@
 # -*- coding: utf-8 -*-
 """This modules implements features related to two types of `devices`,
 called `nodes` and `elements` which are the most fundamental means to
-structure HydPy projects.
-"""
+structure HydPy projects."""
 # import...
 # ...from standard library
 import copy
 import struct
 import warnings
 import weakref
-from typing import Dict, Union
+from typing import Any, Dict, Iterable, List, Union
 # ...from site-packages
 import numpy
 # ...from HydPy
 import hydpy
-from hydpy.core import abctools
+from hydpy.core.abctools import *
 from hydpy.core import autodoctools
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
@@ -46,7 +45,7 @@ class Keywords(set):
         self._check_keywords(names)
         set.__init__(self, names)
 
-    def startswith(self, name):
+    def startswith(self, name: str) -> List[str]:
         """Returns a list of all keywords starting with the given string.
 
         >>> from hydpy import dummies
@@ -55,7 +54,7 @@ class Keywords(set):
         """
         return sorted(keyword for keyword in self if keyword.startswith(name))
 
-    def endswith(self, name):
+    def endswith(self, name: str) -> List[str]:
         """Returns a list of all keywords ending with the given string.
 
         >>> from hydpy import dummies
@@ -64,7 +63,7 @@ class Keywords(set):
         """
         return sorted(keyword for keyword in self if keyword.endswith(name))
 
-    def contains(self, name):
+    def contains(self, name: str) -> List[str]:
         """Returns a list of all keywords containing the given string.
 
         >>> from hydpy import dummies
@@ -73,7 +72,7 @@ class Keywords(set):
         """
         return sorted(keyword for keyword in self if name in keyword)
 
-    def _check_keywords(self, names):
+    def _check_keywords(self, names) -> None:
         try:
             for name in names:
                 objecttools.valid_variable_identifier(name)
@@ -82,7 +81,7 @@ class Keywords(set):
                 f'While trying to add the keyword `{name}` '
                 f'to device {objecttools.devicename(self.device)}')
 
-    def update(self, names):
+    def update(self, names: List[str]) -> None:
         """Before updating, names are checked to be valid variable identifiers.
 
         >>> from hydpy import dummies
@@ -146,7 +145,7 @@ define a valid variable identifier.  ...
     __dir__ = objecttools.dir_
 
 
-class Device(object):
+class Device(DeviceABC):
     """Base class for class |Element| and class |Node|.
 
     For framework programmers it is important to know, that all created
@@ -214,7 +213,8 @@ class Device(object):
     _registry = {}
     _selection = {}
 
-    def _get_name(self):
+    @property
+    def name(self) -> str:
         """Name of the actual device (node or element).
 
         Names are the identifiers of |Node| and |Element| objects.
@@ -255,7 +255,8 @@ class Device(object):
         """
         return self._name
 
-    def _set_name(self, name):
+    @name.setter
+    def name(self, name: str) -> None:
         self._check_name(name)
         _handlers = self._handlers.copy()
         for handler in _handlers:
@@ -270,9 +271,7 @@ class Device(object):
         for handler in _handlers:
             handler.add_device(self)
 
-    name = property(_get_name, _set_name)
-
-    def _check_name(self, name):
+    def _check_name(self, name: str) -> None:
         try:
             objecttools.valid_variable_identifier(name)
         except ValueError:
@@ -281,7 +280,8 @@ class Device(object):
                 'of type `%s`' % (objecttools.classname(self), name,
                                   objecttools.classname(name)))
 
-    def _get_keywords(self):
+    @property
+    def keywords(self) -> Keywords:
         """Keywords describing this device.
 
         The keywords are contained within a |Keywords| object:
@@ -309,34 +309,34 @@ class Device(object):
         """
         return self._keywords
 
-    def _set_keywords(self, keywords):
+    @keywords.setter
+    def keywords(self, keywords: Iterable[str]) -> None:
         keywords = tuple(objecttools.extract(keywords, (str,), True))
         self._keywords.update(keywords)
 
-    def _del_keywords(self):
+    @keywords.deleter
+    def keywords(self) -> None:
         self._keywords.clear()
 
-    keywords = property(_get_keywords, _set_keywords, _del_keywords)
-
     @classmethod
-    def clear_registry(cls):
+    def clear_registry(cls) -> None:
         """Clear the registry from all initialized devices."""
         cls._selection.clear()
         cls._registry.clear()
 
     @classmethod
-    def registered_names(cls):
+    def registered_names(cls) -> None:
         """Get all names of |Device| objects initialized so far."""
         return cls._registry.keys()
 
-    def add_handler(self, handler):
-        """Add the given handler (either an |Elements| or
-        :class`Nodes` object) to the set of handlers stored internally."""
+    def add_handler(self, handler: 'Devices') -> None:
+        """Add the given handler (either an |Elements| or |Nodes| object)
+        to the set of handlers stored internally."""
         self._handlers.add(handler)
 
-    def remove_handler(self, handler):
-        """Remove the given handler (either an |Elements| or
-        :class`Nodes` object) from the set of handlers stored internally."""
+    def remove_handler(self, handler: 'Devices') -> None:
+        """Remove the given handler (either an |Elements| or |Nodes| object)
+        from the set of handlers stored internally."""
         self._handlers.remove(handler)
 
     def __iter__(self):
@@ -370,7 +370,7 @@ class Device(object):
     __dir__ = objecttools.dir_
 
 
-class Node(Device):
+class Node(Device, NodeABC):
     """Handles the data flow between |Element| objects.
 
     When initializing |Node| objects, values for the optional `variable`
@@ -396,7 +396,7 @@ class Node(Device):
     >>> Node('test', variable='W')
     Traceback (most recent call last):
     ...
-    ValueError: The variable to be represented by a `Node instance cannot \
+    ValueError: The variable to be represented by a Node instance cannot \
 be changed.  The variable of node `test` is `Q` instead of `W` or `None`.  \
 Keep in mind, that `name` is the unique identifier of node objects.
 
@@ -490,25 +490,25 @@ Keep in mind, that `name` is the unique identifier of node objects.
     def __init__(self, name, variable=None, keywords=None):
         if (variable is not None) and (variable != self.variable):
             raise ValueError(
-                'The variable to be represented by a `Node instance cannot be '
-                'changed.  The variable of node `%s` is `%s` instead of `%s` '
-                'or `None`.  Keep in mind, that `name` is the unique '
-                'identifier of node objects.'
-                % (self.name, self.variable, variable))
+                f'The variable to be represented by a '
+                f'{objecttools.classname(self)} instance cannot be changed.  '
+                f'The variable of node `{self.name}` is `{self.variable}` '
+                f'instead of `{variable}` or `None`.  Keep in mind, that '
+                f'`name` is the unique identifier of node objects.')
         self.keywords = keywords
 
     @property
-    def variable(self):
+    def variable(self) -> str:
         """The variable handled by the respective node instance, e.g. `Q`."""
         return self._variable
 
     @classmethod
-    def registered_nodes(cls):
+    def registered_nodes(cls) -> 'Nodes':
         """Get all |Node| objects initialized so far."""
         return Nodes(cls._registry.values())
 
     @classmethod
-    def gather_new_nodes(cls):
+    def gather_new_nodes(cls) -> 'Nodes':
         """Gather all `new` |Node| objects. |Node| objects
         are deemed to be new if they have been created after the last usage
         of this method.
@@ -517,7 +517,8 @@ Keep in mind, that `name` is the unique identifier of node objects.
         cls._selection.clear()
         return nodes
 
-    def _get_deploymode(self):
+    @property
+    def deploymode(self) -> str:
         """Defines the kind of information a node deploys.
 
         The following modes are supported:
@@ -546,7 +547,8 @@ Keep in mind, that `name` is the unique identifier of node objects.
         """
         return self._deploymode
 
-    def _set_deploymode(self, value):
+    @deploymode.setter
+    def deploymode(self, value: str) -> None:
         if value == 'oldsim':
             self._blackhole = pointerutils.Double(0.)
         elif value not in ('newsim', 'obs'):
@@ -555,8 +557,6 @@ Keep in mind, that `name` is the unique identifier of node objects.
                 '`%s` was given, but only the following values are allowed: '
                 '`newsim`, `obs` and `oldsim`.' % (self.name, value))
         self._deploymode = value
-
-    deploymode = property(_get_deploymode, _set_deploymode)
 
     def get_double(self, group):
         """Return the |Double| object appropriate for the given group and
@@ -592,35 +592,35 @@ the given group name `test`.
             'Function `get_double` of class `Node` does not '
             'support the given group name `%s`.' % group)
 
-    def get_double_via_exits(self):
+    def get_double_via_exits(self) -> pointerutils.Double:
         """Return the |Double| object that is supposed to deploy its value
         to the downstream elements."""
         if self.deploymode != 'obs':
             return self.sequences.fastaccess.sim
         return self.sequences.fastaccess.obs
 
-    def get_double_via_entries(self):
+    def get_double_via_entries(self) -> pointerutils.Double:
         """Return the |Double| object that is supposed to receive the
         value(s) of the upstream elements."""
         if self.deploymode != 'oldsim':
             return self.sequences.fastaccess.sim
         return self._blackhole
 
-    def reset(self, idx=None):
+    def reset(self, idx: Any = None) -> None:
         """Reset the actual value of the simulation sequence to zero."""
         self.sequences.fastaccess.sim[0] = 0.
 
-    def open_files(self, idx=0):
+    def open_files(self, idx: int = 0) -> None:
         """Call method |Sequences.open_files| of the |Sequences| object
         handled (indirectly) by the actual |Node| object."""
         self.sequences.open_files(idx)
 
-    def close_files(self):
+    def close_files(self) -> None:
         """Call method |Sequences.close_files| of the |Sequences| object
         handled (indirectly) by the actual |Node| object."""
         self.sequences.close_files()
 
-    def _load_data_sim(self, idx):
+    def _load_data_sim(self, idx: int) -> None:
         """Load the next sim sequence value (of the given index).
 
         Used during simulations in Python mode only.
@@ -632,7 +632,7 @@ the given group name `test`.
             raw = fastaccess._sim_file.read(8)
             fastaccess.sim[0] = struct.unpack('d', raw)
 
-    def _save_data_sim(self, idx):
+    def _save_data_sim(self, idx: int) -> None:
         """Save the last sim sequence value (of the given index).
 
         Used during simulations in Python mode only.
@@ -644,7 +644,7 @@ the given group name `test`.
             raw = struct.pack('d', fastaccess.sim[0])
             fastaccess._sim_file.write(raw)
 
-    def _load_data_obs(self, idx):
+    def _load_data_obs(self, idx: int) -> None:
         """Load the next obs sequence value (of the given index).
 
         Used during simulations in Python mode only.
@@ -656,7 +656,7 @@ the given group name `test`.
             raw = fastaccess._obs_file.read(8)
             fastaccess.obs[0] = struct.unpack('d', raw)
 
-    def prepare_allseries(self, ramflag=True):
+    def prepare_allseries(self, ramflag: bool = True) -> None:
         """Prepare the series objects of both the |Sim| and the |Obs| sequence.
 
         Call this method before a simulation run, if you need access to the
@@ -670,28 +670,28 @@ the given group name `test`.
         self.prepare_simseries(ramflag)
         self.prepare_obsseries(ramflag)
 
-    def prepare_simseries(self, ramflag=True):
+    def prepare_simseries(self, ramflag: bool = True) -> None:
         """Prepare the series object of the `sim` sequence.
 
         See method |Node.prepare_allseries| for further information.
         """
         self._prepare_nodeseries('sim', ramflag)
 
-    def prepare_obsseries(self, ramflag=True):
+    def prepare_obsseries(self, ramflag: bool = True) -> None:
         """Prepare the series object of the `obs` sequence.
 
         See method |Node.prepare_allseries| for further information.
         """
         self._prepare_nodeseries('obs', ramflag)
 
-    def _prepare_nodeseries(self, seqname, ramflag):
+    def _prepare_nodeseries(self, seqname: str, ramflag: bool = True) -> None:
         seq = getattr(self.sequences, seqname)
         if ramflag:
             seq.activate_ram()
         else:
             seq.activate_disk()
 
-    def plot_allseries(self, **kwargs):
+    def plot_allseries(self, **kwargs: Any) -> None:
         """Plot the series of both the `sim` and (if available) the `obs`
         sequence."""
         for seq in self.sequences:
@@ -707,10 +707,10 @@ the given group name `test`.
             pyplot.show()
 
     @staticmethod
-    def _calc_idxs(values):
+    def _calc_idxs(values) -> numpy.ndarray:
         return ~numpy.isnan(values) * ~numpy.isinf(values)
 
-    def violinplot(self, logscale=True):
+    def violinplot(self, logscale: bool = True) -> None:
         old_settings = numpy.seterr(divide='ignore')
         try:
             sim = self.sequences.sim
@@ -760,7 +760,7 @@ the given group name `test`.
     def __repr__(self):
         return self.assignrepr()
 
-    def assignrepr(self, prefix=''):
+    def assignrepr(self, prefix: str = '') -> str:
         """Defines the `visual appearence` of |Node| objects.
 
         You can pass a string which prefixes the string representation.
@@ -778,10 +778,7 @@ the given group name `test`.
         return '\n'.join(lines)
 
 
-abctools.NodeABC.register(Node)
-
-
-class Element(Device):
+class Element(Device, ElementABC):
     """Handles a |Model| and connects it to other models via |Node| objects.
 
     You are allowed to pass keywords to the constructor of class |Element|,
@@ -1184,7 +1181,7 @@ assigned to the element so far.
         """
         self._plot(self.model.sequences.states, names, kwargs)
 
-    def assignrepr(self, prefix):
+    def assignrepr(self, prefix: str) -> str:
         """Defines the `visual appearence` of |Element| objects.
 
         You can pass a string which prefixes the string representation.
@@ -1197,7 +1194,7 @@ assigned to the element so far.
                     connections = getattr(self, conname, None)
                     if connections:
                         subprefix = '%s%s=' % (blanks, conname)
-                        nodes = [str(node) for node in connections.slaves]
+                        nodes = [str(node) for node in connections]
                         line = objecttools.assignrepr_list(
                             nodes, subprefix, width=70)
                         lines.append(line + ',')
@@ -1213,10 +1210,7 @@ assigned to the element so far.
         return self.assignrepr('')
 
 
-abctools.ElementABC.register(Element)
-
-
-class Devices(object):
+class Devices(DevicesABC):
     """Base class for class |Elements| and class |Nodes|.
 
     There are only small differences between class |Elements| and class
@@ -1349,15 +1343,15 @@ as a "normal" attribute and is thus not support.
             self._extract_values(values)
         except BaseException:
             objecttools.augment_excmessage(
-                'While trying to initialize a `%s` object'
-                % objecttools.classname(self))
+                f'While trying to initialize a '
+                f'`objecttools.classname(self)` object')
 
     def _extract_values(self, values):
         for value in objecttools.extract(
                 values, types=(self._contentclass, str), skip=True):
             self.add_device(value)
 
-    def add_device(self, device):
+    def add_device(self, device: Union[NodeABC, ElementABC, str]) -> str:
         """Add the given |Node| or |Element| object.
 
         >>> from hydpy import Nodes
@@ -1644,22 +1638,22 @@ which is in conflict with using their names as identifiers.
         return self
 
     def __lt__(self, other):
-        return set(self._devices.keys()) < set(other._devices.keys())
+        return set(self.devices) < set(other.devices)
 
     def __le__(self, other):
-        return set(self._devices.keys()) <= set(other._devices.keys())
+        return set(self.devices) <= set(other.devices)
 
     def __eq__(self, other):
-        return set(self._devices.keys()) == set(other._devices.keys())
+        return set(self.devices) == set(other.devices)
 
     def __ne__(self, other):
-        return set(self._devices.keys()) != set(other._devices.keys())
+        return set(self.devices) != set(other.devices)
 
     def __ge__(self, other):
-        return set(self._devices.keys()) >= set(other._devices.keys())
+        return set(self.devices) >= set(other.devices)
 
     def __gt__(self, other):
-        return set(self._devices.keys()) > set(other._devices.keys())
+        return set(self.devices) > set(other.devices)
 
     def __hash__(self):
         return id(self)
@@ -1683,9 +1677,9 @@ which is in conflict with using their names as identifiers.
         >>> from hydpy import dummies
         >>> from hydpy.core.objecttools import assignrepr_values
         >>> print(assignrepr_values(dir(dummies.nodes), '', 70))
-        add_device, assignrepr, close_files, copy, devices, group_1, group_2,
-        group_a, group_b, keywords, load_allseries, load_obsseries,
-        load_simseries, na, names, nb, nc, nd, ne, open_files,
+        ConstrArg, add_device, assignrepr, close_files, copy, devices,
+        group_1, group_2, group_a, group_b, keywords, load_allseries,
+        load_obsseries, load_simseries, na, names, nb, nc, nd, ne, open_files,
         prepare_allseries, prepare_obsseries, prepare_simseries,
         remove_device, return_always_iterables, save_allseries,
         save_obsseries, save_simseries, variables
@@ -1693,7 +1687,7 @@ which is in conflict with using their names as identifiers.
         return objecttools.dir_(self) + list(self.names) + list(self.keywords)
 
 
-class Nodes(Devices):
+class Nodes(Devices, NodesABC):
     """A container for handling |Node| objects."""
 
     _contentclass = Node
@@ -1774,7 +1768,7 @@ class Nodes(Devices):
         return sorted(set([node.variable for node in self]))
 
 
-class Elements(Devices):
+class Elements(Devices, ElementsABC):
     """A container for handling |Element| objects."""
 
     _contentclass = Element

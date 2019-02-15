@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
+# pylint: enable=missing-docstring
 
 # import...
+# ...from standard-library
+from typing import Tuple
 # ...from site-packages
 import numpy
 # ...from HydPy
@@ -78,19 +82,27 @@ class Responses(parametertools.Parameter):
     >>> responses.test = ((), ())
     Traceback (most recent call last):
     ...
-    AttributeError: To define different response functions for parameter `responses` of element `?`, one has to pass them as keyword arguments or set them as additional attributes.  The used name must meet a specific format (see the documentation for further information).  The given name `test` does not meet this format.
+    AttributeError: To define different response functions for parameter \
+`responses` of element `?`, one has to pass them as keyword arguments or \
+set them as additional attributes.  The used name must meet a specific \
+format (see the documentation for further information).  The given name \
+`test` does not meet this format.
 
     Suitable get-related attribute exceptions are also implemented:
 
     >>> responses.test
     Traceback (most recent call last):
     ...
-    AttributeError: Parameter `responses` of element `?` does not have an attribute named `test` and the name `test` is also not a valid threshold value identifier.
+    AttributeError: Parameter `responses` of element `?` does not have \
+an attribute named `test` and the name `test` is also not a valid \
+threshold value identifier.
 
     >>> responses._0_1
     Traceback (most recent call last):
     ...
-    AttributeError: Parameter `responses` of element `?` does not have an attribute attribute named `_0_1` nor an arma model corresponding to a threshold value named `th_0_1`.
+    AttributeError: Parameter `responses` of element `?` does not have \
+an attribute attribute named `_0_1` nor an arma model corresponding to \
+a threshold value named `th_0_1`.
 
     The above examples show that all AR and MA coefficients are converted to
     floating point values.  It this is not possible or something else goes
@@ -100,7 +112,9 @@ class Responses(parametertools.Parameter):
     >>> responses.th_10 = ()
     Traceback (most recent call last):
     ...
-    IndexError: While trying to set a new threshold (th_10) coefficient pair for parameter `responses` of element `?`, the following error occurred: tuple index out of range
+    IndexError: While trying to set a new threshold (th_10) coefficient \
+pair for parameter `responses` of element `?`, the following error \
+occurred: tuple index out of range
 
     Except for the mentioned conversion to floating point values, there are
     no plausibility checks performed.  You have to use other tools to gain
@@ -146,7 +160,8 @@ class Responses(parametertools.Parameter):
     >>> responses(tde, lsc)
     Traceback (most recent call last):
     ...
-    ValueError: For parameter `responses` of element `?` at most one positional argument is allowed, but `2` are given.
+    ValueError: For parameter `responses` of element `?` at most one \
+positional argument is allowed, but `2` are given.
 
     Checks for the repeated definition of the same threshold values are also
     performed:
@@ -154,7 +169,9 @@ class Responses(parametertools.Parameter):
     >>> responses(tde, _0=lsc, _1=tde, _1_0=lsc)
     Traceback (most recent call last):
     ...
-    ValueError: For parameter `responses` of element `?` `4` arguments have been given but only `2` response functions could be prepared.  Most probably, you defined the same threshold value(s) twice.
+    ValueError: For parameter `responses` of element `?` `4` arguments \
+have been given but only `2` response functions could be prepared.  \
+Most probably, you defined the same threshold value(s) twice.
 
     The number of response functions and the number of the respective AR and
     MA coefficients of a given `responses` parameter can be easily queried:
@@ -201,6 +218,9 @@ class Responses(parametertools.Parameter):
         parametertools.Parameter.__init__(self)
 
     def connect(self, subpars):
+        """Make `subpars` an attribute of the respective |Responses| instance,
+        but skip making a connection with its `fastaccess` object for
+        reasons explained in the main documentation on class |Responses|."""
         self.__dict__['subpars'] = subpars
 
     def __call__(self, *args, **kwargs):
@@ -243,13 +263,12 @@ class Responses(parametertools.Parameter):
                 % (self.name, objecttools.devicename(self.subpars), key, key))
         if std_key in self._coefs:
             return self._coefs[std_key]
-        else:
-            raise AttributeError(
-                'Parameter `%s` of element `%s` does not have an attribute '
-                'attribute named `%s` nor an arma model corresponding to a '
-                'threshold value named `%s`.'
-                % (self.name, objecttools.devicename(self.subpars),
-                   key, std_key))
+        raise AttributeError(
+            'Parameter `%s` of element `%s` does not have an attribute '
+            'attribute named `%s` nor an arma model corresponding to a '
+            'threshold value named `%s`.'
+            % (self.name, objecttools.devicename(self.subpars),
+               key, std_key))
 
     def __setattr__(self, key, value):
         if self._has_predefined_attr(key):
@@ -295,14 +314,14 @@ class Responses(parametertools.Parameter):
     @property
     def thresholds(self):
         """Threshold values of the response functions."""
-        return numpy.array(sorted(self._key2float(key)
-                                  for key in self._coefs.keys()), dtype=float)
+        return numpy.array(
+            sorted(self._key2float(key) for key in self._coefs), dtype=float)
 
     @staticmethod
     def _key2float(key):
         return float(key[3:].replace('_', '.'))
 
-    def _get_orders(self, index):
+    def _get_orders(self, index) -> Tuple[int]:
         orders = []
         for _, coefs in self:
             orders.append(len(coefs[index]))
@@ -320,7 +339,7 @@ class Responses(parametertools.Parameter):
 
     def _get_coefs(self, index):
         orders = self._get_orders(index)
-        max_orders = max(orders) if len(orders) else 0
+        max_orders = max(orders) if orders else 0
         coefs = numpy.full((len(self), max_orders), numpy.nan)
         for idx, (order, (_, coef)) in enumerate(zip(orders, self)):
             coefs[idx, :order] = coef[index]
@@ -349,15 +368,18 @@ class Responses(parametertools.Parameter):
     def __len__(self):
         return len(self._coefs)
 
+    def __bool__(self):
+        return len(self._coefs) > 0
+
     def __iter__(self):
-        for key in sorted(self._coefs.keys(),  key=self._key2float):
+        for key in sorted(self._coefs.keys(), key=self._key2float):
             yield key, self._coefs[key]
 
     def __repr__(self):
         strings = self.commentrepr()
         prefix = '%s(' % self.name
         blanks = ' '*len(prefix)
-        if len(self):
+        if self:
             for idx, (th, coefs) in enumerate(self):
                 subprefix = ('%s%s=' % (prefix, th) if idx == 0 else
                              '%s%s=' % (blanks, th))

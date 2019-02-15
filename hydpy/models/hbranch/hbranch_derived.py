@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
+# pylint: enable=missing-docstring
 
 # import...
 # ...from HydPy
@@ -10,6 +12,7 @@ class NmbBranches(parametertools.SingleParameter):
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
     def update(self):
+        """Determine the number of branches"""
         con = self.subpars.pars.control
         self(con.ypoints.shape[0])
 
@@ -19,6 +22,7 @@ class NmbPoints(parametertools.SingleParameter):
     NDIM, TYPE, TIME, SPAN = 0, int, None, (2, None)
 
     def update(self):
+        """Determine the number of points."""
         con = self.subpars.pars.control
         self(con.ypoints.shape[1])
 

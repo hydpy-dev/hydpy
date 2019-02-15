@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
+# pylint: enable=missing-docstring
 
 # import...
 # ...from standard library
@@ -60,6 +62,8 @@ containing entries of type float.
         >>> states.qjoints.refweights
         array([ 0.2,  0.2,  0.2,  0.2,  0.2])
         """
+        # pylint: disable=unsubscriptable-object
+        # due to a pylint bug (see https://github.com/PyCQA/pylint/issues/870)
         return numpy.full(self.shape, 1./self.shape[0], dtype=float)
 
 

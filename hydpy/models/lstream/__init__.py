@@ -17,6 +17,7 @@ from hydpy.models.lstream.lstream_inlets import InletSequences
 from hydpy.models.lstream.lstream_outlets import OutletSequences
 from hydpy.models.lstream.lstream_model import Model
 
+# pylint: disable=invalid-name
 autodoc_basemodel()
 tester = Tester()
 cythonizer = Cythonizer()

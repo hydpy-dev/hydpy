@@ -2249,39 +2249,42 @@ def update_watervolume_v3(self):
 
 
 def pass_outflow_v1(self):
-    """Update the outlet link sequence."""
+    """Update the outlet link sequence |dam_outlets.Q|."""
     flu = self.sequences.fluxes.fastaccess
     out = self.sequences.outlets.fastaccess
     out.q[0] += flu.outflow
 
 
 def pass_actualremoterelease_v1(self):
-    """Update the outlet link sequence."""
+    """Update the outlet link sequence |dam_outlets.S|."""
     flu = self.sequences.fluxes.fastaccess
     out = self.sequences.outlets.fastaccess
     out.s[0] += flu.actualremoterelease
 
 
 def pass_actualremoterelieve_v1(self):
-    """Update outlet link sequence."""
+    """Update the outlet link sequence |dam_outlets.R|."""
     flu = self.sequences.fluxes.fastaccess
     out = self.sequences.outlets.fastaccess
     out.r[0] += flu.actualremoterelieve
 
 
 def pass_missingremoterelease_v1(self):
+    """Update the outlet link sequence |dam_outlets.D|."""
     flu = self.sequences.fluxes.fastaccess
     sen = self.sequences.senders.fastaccess
     sen.d[0] += flu.missingremoterelease
 
 
 def pass_allowedremoterelieve_v1(self):
+    """Update the outlet link sequence |dam_outlets.R|."""
     flu = self.sequences.fluxes.fastaccess
     sen = self.sequences.senders.fastaccess
     sen.r[0] += flu.allowedremoterelieve
 
 
 def pass_requiredremotesupply_v1(self):
+    """Update the outlet link sequence |dam_outlets.S|."""
     flu = self.sequences.fluxes.fastaccess
     sen = self.sequences.senders.fastaccess
     sen.s[0] += flu.requiredremotesupply

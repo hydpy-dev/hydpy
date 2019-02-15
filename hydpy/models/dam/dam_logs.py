@@ -8,6 +8,7 @@ import numpy
 # ...from HydPy
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
+from hydpy.core import variabletools
 
 
 class LoggedTotalRemoteDischarge(sequencetools.LogSequence):
@@ -46,7 +47,8 @@ cannot be changed, but this was attempted for element `?`.
         setattr(self.fastaccess, self.name,
                 numpy.full(1, numpy.nan, dtype=float))
 
-    @sequencetools.LogSequence.shape.setter
+    # due to a pylint bug (see https://github.com/PyCQA/pylint/issues/870)
+    @variabletools.Variable.shape.setter   # pylint: disable=no-member
     def shape(self, shape):
         raise AttributeError(
             'The shape of parameter `%s` cannot be '

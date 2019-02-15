@@ -1,33 +1,28 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
+# pylint: enable=missing-docstring
 
 # import...
 # ...from site-packages
 import numpy
 # ...from HydPy
-from hydpy import pub
 from hydpy.core import parametertools
 
 
-class TOY(parametertools.IndexParameter):
+class TOY(parametertools.TOY):
     """References the "global" time of the year index array [-]."""
-    NDIM, TYPE, TIME, SPAN = 1, int, None, (0, None)
-
-    def update(self):
-        self.setreference(pub.indexer.timeofyear)
 
 
-class Seconds(parametertools.SingleParameter):
+class Seconds(parametertools.Seconds):
     """Length of the actual simulation step size in seconds [s]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
-
-    def update(self):
-        self.value = self.simulationstep.seconds
 
 
 class NmbSubsteps(parametertools.SingleParameter):
-    """Number of the internal simulation steps [-].
+    """Number of the internal simulation steps [-]."""
+    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
-    Examples:
+    def update(self):
+        """Determine the number of substeps.
 
         Initialize a llake model and assume a simulation step size of 12 hours:
 
@@ -65,35 +60,33 @@ class NmbSubsteps(parametertools.SingleParameter):
         >>> derived.nmbsubsteps.update()
         >>> derived.nmbsubsteps
         nmbsubsteps(1)
-    """
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
-
-    def update(self):
+        """
         maxdt = self.subpars.pars.control.maxdt
         seconds = self.simulationstep.seconds
         self.value = numpy.ceil(seconds/maxdt)
 
 
 class VQ(parametertools.SeasonalParameter):
-    """Hilfsterm (auxiliary term): math:VdtQ = 2 \\cdot + dt \\cdot Q` [m³].
-
-    >>> from hydpy.models.llake import *
-    >>> parameterstep('1d')
-    >>> simulationstep('12h')
-    >>> n(3)
-    >>> v(0., 1e5, 1e6)
-    >>> q(_1=[0., 1., 2.], _7=[0., 2., 5.])
-    >>> maxdt('12h')
-    >>> derived.seconds.update()
-    >>> derived.nmbsubsteps.update()
-    >>> derived.vq.update()
-    >>> derived.vq
-    vq(toy_1_1_0_0_0=[0.0, 243200.0, 2086400.0],
-       toy_7_1_0_0_0=[0.0, 286400.0, 2216000.0])
-    """
+    """Hilfsterm (auxiliary term): math:VdtQ = 2 \\cdot + dt \\cdot Q` [m³]."""
     NDIM, TYPE, TIME, SPAN = 2, float, None, (0., None)
 
     def update(self):
+        """Calulate the auxilary term.
+
+        >>> from hydpy.models.llake import *
+        >>> parameterstep('1d')
+        >>> simulationstep('12h')
+        >>> n(3)
+        >>> v(0., 1e5, 1e6)
+        >>> q(_1=[0., 1., 2.], _7=[0., 2., 5.])
+        >>> maxdt('12h')
+        >>> derived.seconds.update()
+        >>> derived.nmbsubsteps.update()
+        >>> derived.vq.update()
+        >>> derived.vq
+        vq(toy_1_1_0_0_0=[0.0, 243200.0, 2086400.0],
+           toy_7_1_0_0_0=[0.0, 286400.0, 2216000.0])
+        """
         con = self.subpars.pars.control
         der = self.subpars
         for (toy, qs) in con.q:

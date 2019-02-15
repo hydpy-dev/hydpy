@@ -17,6 +17,7 @@ from hydpy.models.llake.llake_outlets import OutletSequences
 from hydpy.models.llake.llake_aides import AideSequences
 from hydpy.models.llake.llake_model import Model
 
+# pylint: disable=invalid-name
 autodoc_basemodel()
 tester = Tester()
 cythonizer = Cythonizer()

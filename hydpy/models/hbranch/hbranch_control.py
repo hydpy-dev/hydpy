@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
+# pylint: enable=missing-docstring
 
 # import...
 # ...from site-packages
@@ -32,11 +34,15 @@ received 1 value(s).
     >>> xpoints(1.0, 2.0, 2.0, 3.0)
     Traceback (most recent call last):
     ...
-    ValueError: The values of parameter `xpoints` of element `?` must be arranged strictly monotonous, which is not the case for the given values `1.0, 2.0, 2.0, and 3.0`.
+    ValueError: The values of parameter `xpoints` of element `?` must be \
+arranged strictly monotonous, which is not the case for the given values \
+`1.0, 2.0, 2.0, and 3.0`.
     """
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
     def __call__(self, *args, **kwargs):
+        # pylint: disable=unsubscriptable-object
+        # due to a pylint bug (see https://github.com/PyCQA/pylint/issues/870)
         self.shape = len(args)
         if self.shape[0] < 2:
             raise ValueError(

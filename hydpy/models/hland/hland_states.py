@@ -55,7 +55,7 @@ class SP(hland_sequences.State1DSequence):
         wc = self.subseqs.wc
         if lower is None:
             if wc.values is not None:
-                with numpy.errstate(divide='ignore',invalid='ignore'):
+                with numpy.errstate(divide='ignore', invalid='ignore'):
                     lower = numpy.clip(wc.values / whc.values, 0., numpy.inf)
             else:
                 lower = 0.

@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
+# pylint: enable=missing-docstring
 
 # imports...
 # ...from HydPy
@@ -58,7 +60,7 @@ def solve_dv_dt_v1(self):
     aid = self.sequences.aides.fastaccess
     flu.qa = 0.
     aid.v = old.v
-    for i in range(der.nmbsubsteps):
+    for _ in range(der.nmbsubsteps):
         self.calc_vq()
         self.interp_qa()
         self.calc_v_qa()

@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
+# pylint: enable=missing-docstring
 
 # import...
 # ...from HydPy
@@ -178,7 +180,7 @@ def calc_am_um_v1(self):
     else:
         flu.am = (con.hm*(con.bm+con.hm*con.bnm) +
                   ((flu.h-con.hm)*(con.bm+2.*con.hm*con.bnm)))
-        flu.um = (con.bm)+(2.*con.hm*(1.+con.bnm**2)**.5)+(2*(flu.h-con.hm))
+        flu.um = con.bm+(2.*con.hm*(1.+con.bnm**2)**.5)+(2*(flu.h-con.hm))
 
 
 def calc_qm_v1(self):
@@ -856,7 +858,7 @@ def calc_h_v1(self):
             aid.qtest = flu.qg-flu.qref
             if modelutils.fabs(aid.qtest) < con.qtol:
                 return
-            elif (((aid.qmax < 0.) and (aid.qtest < 0.)) or
+            if (((aid.qmax < 0.) and (aid.qtest < 0.)) or
                     ((aid.qmax > 0.) and (aid.qtest > 0.))):
                 aid.qmin *= aid.qmax/(aid.qmax+aid.qtest)
             else:

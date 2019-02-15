@@ -14,6 +14,7 @@ from hydpy.models.test.test_fluxes import FluxSequences
 from hydpy.models.test.test_states import StateSequences
 from hydpy.models.test.test_model import Model
 
+# pylint: disable=invalid-name
 autodoc_basemodel()
 tester = Tester()
 cythonizer = Cythonizer()

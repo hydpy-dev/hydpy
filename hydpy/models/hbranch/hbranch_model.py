@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
+# pylint: enable=missing-docstring
 
 # import...
 # ...from HydPy
@@ -183,8 +185,8 @@ of element `branch`.
                 double = outlet.get_double_via_entries()
             except AttributeError:
                 raise RuntimeError(
-                        f'Model {objecttools.elementphrase(self)} tried '
-                        f'to connect to an outlet node named `{name}`, '
-                        f'which is not an available outlet node of element '
-                        f'`{self.element.name}`.')
+                    f'Model {objecttools.elementphrase(self)} tried '
+                    f'to connect to an outlet node named `{name}`, '
+                    f'which is not an available outlet node of element '
+                    f'`{self.element.name}`.')
             self.sequences.outlets.branched.set_pointer(double, idx)

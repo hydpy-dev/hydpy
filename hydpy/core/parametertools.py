@@ -1872,4 +1872,30 @@ class SolverParameter(SingleParameter):
                                      _del_alternative_initvalue)
 
 
+class Seconds(SingleParameter):
+    """Length of the actual simulation step size in seconds [s]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+
+    def update(self):
+        """Take the number of seconds from the current simulation time step.
+
+        >>> from hydpy.models.llake import *
+        >>> parameterstep('1d')
+        >>> simulationstep('12h')
+        >>> derived.seconds.update()
+        >>> derived.seconds
+        seconds(43200.0)
+        """
+        self.value = self.simulationstep.seconds
+
+
+class TOY(IndexParameter):
+    """References the "global" time of the year index array [-]."""
+    NDIM, TYPE, TIME, SPAN = 1, int, None, (0, None)
+
+    def update(self):
+        """Reference the current |Indexer.timeofyear| index array."""
+        self.setreference(hydpy.pub.indexer.timeofyear)
+
+
 autodoctools.autodoc_module()

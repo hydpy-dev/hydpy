@@ -196,3 +196,8 @@ if config.USEAUTODOC:
             module = importlib.import_module(
                 f'{models.__name__}.{filename}')
             autodoctools.autodoc_basemodel(module)
+    for filename in os.listdir(models.__path__[0]):
+        if filename.endswith('.py') and not filename.startswith('_'):
+            module = importlib.import_module(
+                f'{models.__name__}.{filename[:-3]}')
+            autodoctools.autodoc_basemodel(module)

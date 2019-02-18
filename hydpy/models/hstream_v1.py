@@ -273,8 +273,6 @@ class Masks(masktools.Masks):
     CLASSES = hstream_masks.Masks.CLASSES
 
 
-autodoc_applicationmodel()
-
 tester = Tester()
 cythonizer = Cythonizer()
 cythonizer.complete()

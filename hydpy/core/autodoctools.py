@@ -183,7 +183,7 @@ def autodoc_basemodel(module):
     namespace['substituter'] = substituter
 
 
-def autodoc_applicationmodel():
+def autodoc_applicationmodel(module):
     """Improves the docstrings of application models when called
     at the bottom of the respective module.
 
@@ -191,15 +191,14 @@ def autodoc_applicationmodel():
     |autodoc_basemodel|, that both the application model and its
     base model are defined in the conventional way.
     """
-    namespace = _get_frame_of_calling_module().f_locals
-    name_applicationmodel = namespace['__name__']
+    name_applicationmodel = module.__name__
     module_applicationmodel = importlib.import_module(name_applicationmodel)
     name_basemodel = name_applicationmodel.split('_')[0]
     module_basemodel = importlib.import_module(name_basemodel)
     substituter = Substituter(module_basemodel.substituter)
     substituter.add_module(module_applicationmodel)
     substituter.update_masters()
-    namespace['substituter'] = substituter
+    module.substituter = substituter
 
 
 class Substituter(object):

@@ -986,8 +986,6 @@ class Masks(masktools.Masks):
     CLASSES = hland_masks.Masks.CLASSES
 
 
-autodoc_applicationmodel()
-
 tester = Tester()
 cythonizer = Cythonizer()
 cythonizer.complete()

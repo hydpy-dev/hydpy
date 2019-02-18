@@ -134,8 +134,6 @@ class OutletSequences(sequencetools.LinkSequences):
     CLASSES = (hbranch_outlets.Branched,)
 
 
-autodoc_applicationmodel()
-
 tester = Tester()
 cythonizer = Cythonizer()
 cythonizer.complete()

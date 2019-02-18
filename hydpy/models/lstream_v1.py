@@ -287,8 +287,6 @@ class OutletSequences(sequencetools.LinkSequences):
     CLASSES = (lstream_outlets.Q,)
 
 
-autodoc_applicationmodel()
-
 tester = Tester()
 cythonizer = Cythonizer()
 cythonizer.complete()

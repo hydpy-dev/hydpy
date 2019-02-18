@@ -25,7 +25,6 @@ from numpy import inf
 from hydpy.core.importtools import parameterstep
 from hydpy.core.importtools import simulationstep
 from hydpy.core.importtools import controlcheck
-from hydpy.core.autodoctools import autodoc_applicationmodel
 from hydpy.core.testtools import Tester
 from hydpy.cythons.modelutils import Cythonizer
 
@@ -35,6 +34,5 @@ __all__ = ['numpy',
            'parameterstep',
            'simulationstep',
            'controlcheck',
-           'autodoc_applicationmodel',
            'Tester',
            'Cythonizer']

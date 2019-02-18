@@ -394,9 +394,6 @@ class OutletSequences(sequencetools.LinkSequences):
     CLASSES = (arma_outlets.Q,)
 
 
-autodoc_applicationmodel()
-
-
 tester = Tester()
 cythonizer = Cythonizer()
 cythonizer.complete()

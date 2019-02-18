@@ -49,8 +49,6 @@ class StateSequences(sequencetools.StateSequences):
     CLASSES = (test_states.S,)
 
 
-autodoc_applicationmodel()
-
 tester = Tester()
 cythonizer = Cythonizer()
 cythonizer.complete()

@@ -499,8 +499,6 @@ class SenderSequences(sequencetools.LinkSequences):
                dam_senders.R)
 
 
-autodoc_applicationmodel()
-
 tester = Tester()
 cythonizer = Cythonizer()
 cythonizer.complete()

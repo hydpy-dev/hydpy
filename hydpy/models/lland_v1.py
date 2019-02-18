@@ -1200,8 +1200,6 @@ class Masks(masktools.Masks):
     CLASSES = lland_masks.Masks.CLASSES
 
 
-autodoc_applicationmodel()
-
 tester = Tester()
 cythonizer = Cythonizer()
 cythonizer.complete()

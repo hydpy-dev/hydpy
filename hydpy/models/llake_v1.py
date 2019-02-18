@@ -351,8 +351,6 @@ class OutletSequences(sequencetools.LinkSequences):
     CLASSES = (llake_outlets.Q,)
 
 
-autodoc_applicationmodel()
-
 tester = Tester()
 cythonizer = Cythonizer()
 cythonizer.complete()

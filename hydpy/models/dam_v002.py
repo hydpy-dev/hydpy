@@ -360,8 +360,6 @@ class ReceiverSequences(sequencetools.LinkSequences):
     CLASSES = (dam_receivers.D,)
 
 
-autodoc_applicationmodel()
-
 tester = Tester()
 cythonizer = Cythonizer()
 cythonizer.complete()

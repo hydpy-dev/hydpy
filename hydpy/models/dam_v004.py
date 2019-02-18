@@ -636,9 +636,6 @@ class ReceiverSequences(sequencetools.LinkSequences):
                dam_receivers.R)
 
 
-autodoc_applicationmodel()
-
-
 tester = Tester()
 cythonizer = Cythonizer()
 cythonizer.complete()

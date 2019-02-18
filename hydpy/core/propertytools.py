@@ -6,13 +6,15 @@ additional behaviour."""
 # ...from standard-library
 from typing import Any, Callable
 import abc
+import inspect
+import types
 # ...from HydPy
 from hydpy.core import autodoctools
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 
 
-class BaseProperty(object, metaclass=abc.ABCMeta):
+class BaseProperty(abc.ABC):
     # noinspection PyUnresolvedReferences
     """Abstract base class for deriving classes similar to |property|.
 
@@ -49,7 +51,7 @@ methods call_fdel, call_fget, call_fset
     all three "property methods" (`getter_`/`fget`, `setter_`/`fset`,
     `deleter_`/`fdel`), but its attribute `y` by defining none of them:
 
-    >>> class Owner(object):
+    >>> class Owner:
     ...
     ...     def __init__(self):
     ...         self._x = None
@@ -91,39 +93,58 @@ methods call_fdel, call_fget, call_fset
     >>> del owner.y
     Traceback (most recent call last):
     ...
-    AttributeError: Attribute `y` of object `owner` is not deleteable.
+    AttributeError: Attribute `y` of object `owner` is not deletable.
     """
 
     fget: Callable
     fset: Callable
     fdel: Callable
+    objtype: Any
+    module: types.ModuleType
+    name: str
+    __doc__: str
 
     def __set_name__(self, objtype, name) -> None:
         self.objtype: Any = objtype
+        self.module = inspect.getmodule(objtype)
+        if not hasattr(self.module, '__test__'):
+            self.module.__dict__['__test__'] = dict()
         self.name: str = name
+        doc = getattr(self, '__doc__')
+        if doc:
+            self.set_doc(doc)
 
     def __get__(self, obj, objtype=None) -> Any:
         if obj is None:
             return self
         if self.fget is None:
             raise AttributeError(
-                'Attribute `%s` of object %s is not gettable.'
-                % (self.name, objecttools.devicephrase(obj)))
+                f'Attribute `{self.name}` of object '
+                f'{objecttools.devicephrase(obj)} is not gettable.')
         return self.call_fget(obj)
 
     def __set__(self, obj, value) -> None:
         if self.fset is None:
             raise AttributeError(
-                'Attribute `%s` of object %s is not settable.'
-                % (self.name, objecttools.devicephrase(obj)))
+                f'Attribute `{self.name}` of object '
+                f'{objecttools.devicephrase(obj)} is not settable.')
         self.call_fset(obj, value)
 
     def __delete__(self, obj) -> None:
         if self.fdel is None:
             raise AttributeError(
-                'Attribute `%s` of object %s is not deleteable.'
-                % (self.name, objecttools.devicephrase(obj)))
+                f'Attribute `{self.name}` of object '
+                f'{objecttools.devicephrase(obj)} is not deletable.')
         self.call_fdel(obj)
+
+    def set_doc(self, doc: str):
+        """Assign the given docstring to the property instance and, if
+        possible, to the `__test__` dictionary of the module of its
+        owner class."""
+        self.__doc__ = doc
+        if hasattr(self, 'module'):
+            ref = f'{self.objtype.__name__}.{self.name}'
+            self.module.__dict__['__test__'][ref] = doc
 
     @abc.abstractmethod
     def call_fget(self, obj) -> Any:
@@ -141,7 +162,7 @@ methods call_fdel, call_fget, call_fset
         """Add the given getter function and its docstring to the
          property and return it."""
         self.fget = fget
-        self.__doc__ = fget.__doc__
+        self.set_doc(fget.__doc__)
         return self
 
     def setter_(self, fset) -> 'BaseProperty':
@@ -173,7 +194,7 @@ class ProtectedProperty(BaseProperty):
     `set`, `get`, and `del` methods for its only property `x`:
 
     >>> from hydpy.core.propertytools import ProtectedProperty
-    >>> class Test(object):
+    >>> class Test:
     ...
     ...     def __init__(self):
     ...         self._x = None
@@ -234,7 +255,7 @@ class ProtectedProperty(BaseProperty):
 
     def __init__(self, fget=None):
         self.fget = fget
-        self.__doc__ = fget.__doc__
+        self.set_doc(fget.__doc__)
         self.fset = None
         self.fdel = None
 
@@ -242,8 +263,8 @@ class ProtectedProperty(BaseProperty):
         if self.isready(obj):
             return self.fget(obj)
         raise exceptiontools.AttributeNotReady(
-            'Attribute `%s` of object %s has not been prepared so far.'
-            % (self.name, objecttools.devicephrase(obj)))
+            f'Attribute `{self.name}` of object '
+            f'{objecttools.devicephrase(obj)} has not been prepared so far.')
 
     def call_fset(self, obj, value) -> None:
         self.fset(obj, value)
@@ -260,7 +281,7 @@ class ProtectedProperty(BaseProperty):
         return vars(obj).get(self.name, False)
 
 
-class ProtectedProperties(object):
+class ProtectedProperties:
     # noinspection PyUnresolvedReferences
     """Iterable for |ProtectedProperty| objects.
 
@@ -269,7 +290,7 @@ class ProtectedProperties(object):
     allows to check if the status of all properties at ones:
 
     >>> from hydpy.core import propertytools as pt
-    >>> class Test(object):
+    >>> class Test:
     ...
     ...     @pt.ProtectedProperty
     ...     def x(self):
@@ -324,7 +345,7 @@ class DependentProperty(BaseProperty):
     which requires the protected property `x` to be properly prepared:
 
     >>> from hydpy.core import propertytools as pt
-    >>> class Test(object):
+    >>> class Test:
     ...
     ...     def __init__(self):
     ...         self._x = None
@@ -396,9 +417,10 @@ attribute `x` first.
         for req in self.protected:
             if not req.isready(obj):
                 raise exceptiontools.AttributeNotReady(
-                    'Attribute `%s` of object %s is not usable so far.  '
-                    'At least, you have to prepare attribute `%s` first.'
-                    % (self.name, objecttools.devicephrase(obj), req.name))
+                    f'Attribute `{self.name}` of object '
+                    f'{objecttools.devicephrase(obj)} is not usable '
+                    f'so far.  At least, you have to prepare attribute '
+                    f'`{req.name}` first.')
 
     def call_fget(self, obj) -> Any:
         self.__check(obj)
@@ -424,7 +446,7 @@ class DefaultProperty(BaseProperty):
     and a delete function with value checks:
 
     >>> from hydpy.core.propertytools import DefaultProperty
-    >>> class Test(object):
+    >>> class Test:
     ...
     ...     @DefaultProperty
     ...     def x(self):
@@ -502,7 +524,7 @@ class DefaultProperty(BaseProperty):
         self.fget = fget
         self.fset = self._fset
         self.fdel = self._fdel
-        self.__doc__ = fget.__doc__
+        self.set_doc(fget.__doc__)
 
     def call_fget(self, obj) -> Any:
         """Return the predefined custom value when available, otherwise,

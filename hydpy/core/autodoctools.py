@@ -757,11 +757,6 @@ def autodoc_module(__test__=None):
                 type_ = 'func'
             elif inspect.isclass(member):
                 type_ = 'class'
-                if __test__ is not None:
-                    for subname, submember in vars(member).items():
-                        if 'Property' in str(type(submember)):
-                            # ToDo: use isinstance instead?
-                            __test__[f'{name}.{subname}'] = submember.__doc__
             else:
                 type_ = 'obj'
             lines.append('      * :%s:`~%s` %s'

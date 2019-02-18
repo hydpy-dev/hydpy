@@ -33,10 +33,10 @@ class _ANNArrayProperty(propertytools.DependentProperty):
 
     def __init__(self, protected, doc):
         super().__init__(protected=protected)
-        self.__doc__ = doc
         self.fget = self.__fget
         self.fset = self.__fset
         self.fdel = self.__fdel
+        self.set_doc(doc)
 
     @classmethod
     def add_cann(cls, obj, cann):
@@ -1641,5 +1641,4 @@ neural network `seasonalann` of element `?` none has been defined so far.
 abctools.ParameterABC.register(SeasonalANN)
 abctools.SeasonalANNABC.register(SeasonalANN)
 
-__test__ = dict()
-autodoctools.autodoc_module(__test__)
+autodoctools.autodoc_module()

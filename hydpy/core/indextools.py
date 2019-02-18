@@ -262,5 +262,4 @@ class Indexer(object):
         return _timeofyear
 
 
-__test__ = dict()
-autodoctools.autodoc_module(__test__)
+autodoctools.autodoc_module()

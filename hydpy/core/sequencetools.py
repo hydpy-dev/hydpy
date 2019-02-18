@@ -554,7 +554,7 @@ class _IOProperty(propertytools.DefaultProperty):
         cls = objecttools.classname(self.objtype)
         attr_man = f'{cls.lower()[:-8]}{self.name.split("_")[0]}'
         self.__attr_manager = attr_man
-        self.__doc__ = f"""
+        self.set_doc(f"""
             {self.DOCSTRING}
 
         Attribute {attr_seq} is connected with attribute {attr_man} of 
@@ -579,7 +579,7 @@ class _IOProperty(propertytools.DefaultProperty):
         >>> sequence.{attr_seq}
         'global'
         >>> SequenceManager.{attr_man} = temp
-        """
+        """)
 
     def __fget(self, obj):
         try:
@@ -2099,5 +2099,4 @@ class FastAccess(object):
                 yield key
 
 
-__test__ = dict()
-autodoctools.autodoc_module(__test__)
+autodoctools.autodoc_module()

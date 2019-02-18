@@ -109,9 +109,9 @@ from hydpy.core import selectiontools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
 from hydpy.exe import commandtools
-netcdf4 = exceptiontools.OptionalImport(   # pylint: disable=invalid-name
+netcdf4 = exceptiontools.OptionalImport(
     'netcdf4', ['import netCDF4', 'import h5netcdf.legacyapi'])
-xmlschema = exceptiontools.OptionalImport(   # pylint: disable=invalid-name
+xmlschema = exceptiontools.OptionalImport(
     'xmlschema', ['import xmlschema'])
 
 namespace = ('{https://github.com/hydpy-dev/hydpy/releases/download/'

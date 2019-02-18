@@ -17,7 +17,7 @@ from numpy import nan
 from scipy import integrate
 # ...from HydPy
 from hydpy.core import pubtools
-pub = pubtools.Pub('pub')   # pylint: disable=invalid-name
+pub = pubtools.Pub('pub')
 from hydpy.core import dummytools
 from hydpy.core import indextools
 from hydpy.core import optiontools
@@ -86,7 +86,7 @@ from hydpy.exe.servertools import start_server
 pub.options = optiontools.Options()
 pub.indexer = indextools.Indexer()
 pub.config = configutils.Config()
-dummies = dummytools.Dummies()   # pylint: disable=invalid-name
+dummies = dummytools.Dummies()
 
 warnings.resetwarnings()
 # Due to a Cython problem:
@@ -104,7 +104,7 @@ try:
 except TypeError:   # pragma: no cover
     pass
 
-substituter = prepare_mainsubstituter()   # pylint: disable=invalid-name
+substituter = prepare_mainsubstituter()
 
 pub.scriptfunctions['exec_commands'] = exec_commands
 pub.scriptfunctions['run_simulation'] = run_simulation

@@ -36,7 +36,7 @@ class PrintStyle:
             objecttools.augment_excmessage()
 
 
-_printprogress_indentation = -4   # pylint: disable=invalid-name
+_printprogress_indentation = -4
 
 
 @wrapt.decorator
@@ -114,7 +114,7 @@ def print_progress(wrapped, _, args, kwargs):
     >>> time.strftime = strftime
     >>> time.perf_counter = perf_counter
     """
-    global _printprogress_indentation   # pylint: disable=invalid-name
+    global _printprogress_indentation
     _printprogress_indentation += 4
     try:
         if hydpy.pub.options.printprogress:

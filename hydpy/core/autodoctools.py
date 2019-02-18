@@ -68,7 +68,7 @@ _SEQ_SPEC2CAPT = collections.OrderedDict((('sequences', 'Sequence tools'),
 
 _AUX_SPEC2CAPT = collections.OrderedDict((('masks', 'Masks'),))
 
-_all_spec2capt = _PAR_SPEC2CAPT.copy()   # pylint: disable=invalid-name
+_all_spec2capt = _PAR_SPEC2CAPT.copy()
 _all_spec2capt.update(_SEQ_SPEC2CAPT)
 _all_spec2capt.update(_AUX_SPEC2CAPT)
 

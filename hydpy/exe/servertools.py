@@ -383,8 +383,7 @@ class ServerState:
         self.timegrids = {}
 
 
-state = ServerState()   # pylint: disable=invalid-name
-# "state" is not a constant
+state = ServerState()
 
 
 class HydPyServer(http.server.BaseHTTPRequestHandler):

@@ -775,7 +775,7 @@ class _Repr(object):
         return _PreserveStrings(preserve_strings)
 
 
-repr_ = _Repr()   # pylint: disable=invalid-name
+repr_ = _Repr()
 
 
 def repr_values(values):
@@ -963,7 +963,7 @@ class _AssignReprBracketed(object):
         return _AlwaysBracketed(always_bracketed)
 
 
-assignrepr_tuple = _AssignReprBracketed('()')   # pylint: disable=invalid-name
+assignrepr_tuple = _AssignReprBracketed('()')
 """Return a prefixed, wrapped and properly aligned tuple string
 representation of the given values using function |repr|.
 
@@ -1003,7 +1003,7 @@ test = (10,)
 """
 
 
-assignrepr_list = _AssignReprBracketed('[]')   # pylint: disable=invalid-name
+assignrepr_list = _AssignReprBracketed('[]')
 """Return a prefixed, wrapped and properly aligned list string
 representation of the given values using function |repr|.
 

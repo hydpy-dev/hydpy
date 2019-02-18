@@ -12,7 +12,7 @@ from hydpy.core import autodoctools
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.auxs import validtools
-pandas = exceptiontools.OptionalImport(   # pylint: disable=invalid-name
+pandas = exceptiontools.OptionalImport(
     'pandas', ['import pandas'])
 
 

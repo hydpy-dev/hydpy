@@ -15,7 +15,6 @@ from hydpy.models.hbranch.hbranch_model import Model
 
 autodoc_basemodel()
 
-# pylint: disable=invalid-name
 tester = Tester()
 cythonizer = Cythonizer()
 cythonizer.complete()

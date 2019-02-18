@@ -20,7 +20,7 @@ from hydpy.core import objecttools
 from hydpy.core import printtools
 from hydpy.core import sequencetools
 from hydpy.cythons.autogen import pointerutils
-pyplot = exceptiontools.OptionalImport(   # pylint: disable=invalid-name
+pyplot = exceptiontools.OptionalImport(
     'matplotlib.pyplot', ['from matplotlib import pyplot'])
 
 

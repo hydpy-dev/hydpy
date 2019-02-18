@@ -14,7 +14,7 @@ from hydpy.core import autodoctools
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.auxs import statstools
-pyplot = exceptiontools.OptionalImport(   # pylint: disable=invalid-name
+pyplot = exceptiontools.OptionalImport(
     'matplotlib.pyplot', ['from matplotlib import pyplot'])
 
 

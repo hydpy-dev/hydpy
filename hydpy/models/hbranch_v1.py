@@ -136,7 +136,6 @@ class OutletSequences(sequencetools.LinkSequences):
 
 autodoc_applicationmodel()
 
-# pylint: disable=invalid-name
 tester = Tester()
 cythonizer = Cythonizer()
 cythonizer.complete()

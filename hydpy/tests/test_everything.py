@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=invalid-name, wrong-import-position
-# due to using this module as a script and the requirement to import hydpy
-# after the site-packages have been priorised (see the comments below)
+# pylint: disable=wrong-import-position
+# due to importing hydpy after the site-packages have been priorised
+# (see the comments below)
 """Test all "conventional" unit tests defined in subpackage `tests` and
 all doctests defined in the different modules and documentation files.
 """

@@ -23,7 +23,7 @@ from hydpy.core import parametertools
 from hydpy.core import propertytools
 from hydpy.core import timetools
 from hydpy.cythons.autogen import annutils
-pyplot = exceptiontools.OptionalImport(   # pylint: disable=invalid-name
+pyplot = exceptiontools.OptionalImport(
     'matplotlib.pyplot', ['from matplotlib import pyplot'])
 
 

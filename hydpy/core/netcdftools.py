@@ -217,12 +217,12 @@ from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
-netcdf4 = exceptiontools.OptionalImport(   # pylint: disable=invalid-name
+netcdf4 = exceptiontools.OptionalImport(
     'netcdf4', ['import netCDF4', 'import h5netcdf.legacyapi'])
 
 IntOrSlice = TypeVar('IntOrSlice', int, slice)
 
-dimmapping = {   # pylint: disable=invalid-name
+dimmapping = {
     'nmb_timepoints': 'time',
     'nmb_subdevices': 'stations',
     'nmb_characters': 'char_leng_name'}
@@ -236,7 +236,7 @@ call this dimension "location" instead of "stations" within NetCDF files:
 >>> dimmapping['nmb_subdevices'] = 'location'
 """
 
-varmapping = {   # pylint: disable=invalid-name
+varmapping = {
     'timepoints': 'time',
     'subdevices': 'station_id'}
 """Maps variable name terms from HydPy terms NetCDF.
@@ -249,7 +249,7 @@ call this variable "period" instead of "time" within NetCDF files:
 >>> varmapping['timepoints'] = 'period'
 """
 
-fillvalue = numpy.nan   # pylint: disable=invalid-name
+fillvalue = numpy.nan
 """Default fill value for writing NetCDF files.
 
 You can set another |float| value before writing a NetCDF file:

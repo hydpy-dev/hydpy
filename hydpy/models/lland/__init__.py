@@ -23,7 +23,6 @@ from hydpy.models.lland.lland_aides import AideSequences
 from hydpy.models.lland.lland_outlets import OutletSequences
 from hydpy.models.lland.lland_model import Model
 
-# pylint: disable=invalid-name
 autodoc_basemodel()
 tester = Tester()
 cythonizer = Cythonizer()

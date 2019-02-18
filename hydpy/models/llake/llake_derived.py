@@ -9,11 +9,11 @@ import numpy
 from hydpy.core import parametertools
 
 
-class TOY(parametertools.TOY):
+class TOY(parametertools.TOYParameter):
     """References the "global" time of the year index array [-]."""
 
 
-class Seconds(parametertools.Seconds):
+class Seconds(parametertools.SecondsParameter):
     """Length of the actual simulation step size in seconds [s]."""
 
 

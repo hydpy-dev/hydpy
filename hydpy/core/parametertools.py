@@ -1872,7 +1872,7 @@ class SolverParameter(SingleParameter):
                                      _del_alternative_initvalue)
 
 
-class Seconds(SingleParameter):
+class SecondsParameter(SingleParameter):
     """Length of the actual simulation step size in seconds [s]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
@@ -1889,7 +1889,7 @@ class Seconds(SingleParameter):
         self.value = self.simulationstep.seconds
 
 
-class TOY(IndexParameter):
+class TOYParameter(IndexParameter):
     """References the "global" time of the year index array [-]."""
     NDIM, TYPE, TIME, SPAN = 1, int, None, (0, None)
 

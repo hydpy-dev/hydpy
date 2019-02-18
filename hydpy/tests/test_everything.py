@@ -64,7 +64,12 @@ pub.options.skipdoctests = True
 import hydpy.models
 for name in [fn.split('.')[0] for fn in os.listdir(hydpy.models.__path__[0])]:
     if name != '__init__':
-        importlib.import_module('hydpy.models.'+name)
+        modulename = 'hydpy.models.'+name
+        alreadyimported = modulename in sys.modules
+        module = importlib.import_module(modulename)
+        if alreadyimported:
+            importlib.reload(module)
+
 pub.options.skipdoctests = False
 pub.options.forcecompiling = False
 

@@ -97,7 +97,7 @@ e4, and e5`, the following error occurred: Keyword(s) `e5` cannot be used.
     Using different default values for the same substitution marker
     is not allowed:
 
-    >>> from hydpy import xml_replace, TestIO
+    >>> from hydpy import pub, TestIO, xml_replace
     >>> with TestIO():
     ...     with open('test2.xmlt', 'w') as templatefile:
     ...         _ = templatefile.write(

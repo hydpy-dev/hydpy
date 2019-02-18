@@ -1251,4 +1251,3 @@ def log(double):
 def fabs(double):
     """Cython wrapper for maths fabs function applied on a single float."""
     return math.fabs(double)
-

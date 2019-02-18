@@ -19,7 +19,6 @@ import numpy
 import hydpy
 from hydpy.core import abctools
 from hydpy.core import masktools
-from hydpy.core import metatools
 from hydpy.core import objecttools
 
 
@@ -906,7 +905,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         """
         if hydpy.pub.options.reprcomments:
             return ['# %s' % line for line in
-                    textwrap.wrap(metatools.description(self), 78)]
+                    textwrap.wrap(objecttools.description(self), 78)]
         return []
 
     def to_repr(self, values, islong):
@@ -937,7 +936,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 abctools.VariableABC.register(Variable)
 
 
-class SubVariables(metatools.MetaSubgroupClass):
+class SubVariables:
     """Base class for |SubParameters| and |SubSequences|.
 
     See class |SubParameters| for further information.

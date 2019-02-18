@@ -10,70 +10,11 @@ import numpy
 # ...from HydPy
 from hydpy import conf
 from hydpy.core import abctools
-from hydpy.core import metatools
 from hydpy.core import objecttools
 from hydpy.cythons import modelutils
 
 
-class _MetaModel(type):
-
-    def __new__(cls, cls_name, cls_parents, dict_):
-        _METHOD_GROUPS = ('RUN_METHODS', 'ADD_METHODS',
-                          'INLET_METHODS', 'OUTLET_METHODS',
-                          'RECEIVER_METHODS', 'SENDER_METHODS',
-                          'PART_ODE_METHODS', 'FULL_ODE_METHODS')
-        dict_['_METHOD_GROUPS'] = _METHOD_GROUPS
-        for method_name in _METHOD_GROUPS:
-            methods = dict_.get(method_name, ())
-            if methods:
-                if method_name == 'RUN_METHODS':
-                    lst = ['\n\n\n    The following "run methods" are called '
-                           'each simulation step run in the given sequence:']
-                elif method_name == 'ADD_METHODS':
-                    lst = ['\n\n\n    The following "additional methods" are '
-                           'called by at least one "run method":']
-                elif method_name == 'INLET_METHODS':
-                    lst = ['\n\n\n    The following "inlet update methods" '
-                           'are called in the given sequence immediately  '
-                           'before solving the differential equations '
-                           'of the respective model:']
-                elif method_name == 'OUTLET_METHODS':
-                    lst = ['\n\n\n    The following "outlet update methods" '
-                           'are called in the given sequence immediately  '
-                           'after solving the differential equations '
-                           'of the respective model:']
-                elif method_name == 'RECEIVER_METHODS':
-                    lst = ['\n\n\n    The following "receiver update methods" '
-                           'are called in the given sequence before solving '
-                           'the differential equations of any model:']
-                elif method_name == 'SENDER_METHODS':
-                    lst = ['\n\n\n    The following "sender update methods" '
-                           'are called in the given sequence after solving '
-                           'the differential equations of all models:']
-                elif method_name == 'PART_ODE_METHODS':
-                    lst = ['\n\n\n    The following methods define the '
-                           'relevant components of a system of ODE '
-                           'equations (e.g. direct runoff):']
-                elif method_name == 'FULL_ODE_METHODS':
-                    lst = ['\n\n\n    The following methods define the '
-                           'complete equations of an ODE system '
-                           '(e.g. change in storage of `fast water` due to '
-                           ' effective precipitation and direct runoff):']
-                for method in methods:
-                    lst.append('      * :func:`~%s` %s'
-                               % ('.'.join((method.__module__,
-                                            method.__name__)),
-                                  metatools.description(method)))
-                doc = dict_.get('__doc__', 'Undocumented model.')
-                dict_['__doc__'] = doc + '\n'.join(l for l in lst)
-
-        return type.__new__(cls, cls_name, cls_parents, dict_)
-
-
-_MetaModel_ = _MetaModel('_MetaModel', (), {})
-
-
-class Model(_MetaModel_):
+class Model:
     """Base class for all hydrological models."""
 
     __name = None
@@ -88,6 +29,10 @@ class Model(_MetaModel_):
     SENDER_METHODS = ()
     PART_ODE_METHODS = ()
     FULL_ODE_METHODS = ()
+    _METHOD_GROUPS = ('RUN_METHODS', 'ADD_METHODS',
+                      'INLET_METHODS', 'OUTLET_METHODS',
+                      'RECEIVER_METHODS', 'SENDER_METHODS',
+                      'PART_ODE_METHODS', 'FULL_ODE_METHODS')
 
     def __init__(self):
         self.element = None

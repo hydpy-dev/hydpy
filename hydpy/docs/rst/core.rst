@@ -72,7 +72,6 @@ standardize writing *HydPy* code.
    indextools
    itemtools
    masktools
-   metatools
    modeltools
    netcdftools
    objecttools

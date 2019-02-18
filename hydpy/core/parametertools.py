@@ -241,28 +241,6 @@ class SubParameters(variabletools.SubVariables):
     par2(nan)
     par1(nan)
 
-    If one forgets to define a `CLASSES` tuple (and maybe tries to add
-    parameters in the constructor of the subclass of |SubParameters|,
-    the following error is raised:
-
-    >>> class ControlParameters(SubParameters):
-    ...     pass
-    Traceback (most recent call last):
-    ...
-    NotImplementedError: For class `ControlParameters`, the required \
-tuple `CLASSES` is not defined.
-
-    The docstring is extended with the selected parameter classes
-    automatically:
-
-    >>> print(ControlParameters.__doc__)
-    Control Parameters
-    <BLANKLINE>
-    <BLANKLINE>
-        The following classes are selected:
-          * :class:`~...Par2` Parameter 2 [-]
-          * :class:`~...Par1` Parameter 1 [-]
-
     The `in` operator can be used to check if a certain |SubParameters|
     object handles a certain type of parameter:
 

@@ -24,16 +24,14 @@ import unittest
 # ...from site-packages
 import numpy
 import scipy
-import wrapt
 # ...from HydPy
 import hydpy
-from hydpy import config
 from hydpy import auxs
 from hydpy import core
 from hydpy import cythons
 from hydpy import exe
 from hydpy import models
-from hydpy.core import metatools
+from hydpy.core import objecttools
 from hydpy.cythons.autogen import annutils
 from hydpy.cythons.autogen import pointerutils
 from hydpy.cythons.autogen import smoothutils
@@ -128,26 +126,15 @@ def _get_frame_of_calling_module():
 
 
 def autodoc_basemodel(module):
-    """Add an exhaustive docstring to the `__init__` module of a basemodel.
+    """Add an exhaustive docstring to the given module of a basemodel.
 
-    One just has to write `autodoc_basemodel()` at the bottom of an `__init__`
-    module of a basemodel, and all model, parameter and sequence information
-    are appended to the modules docstring.  The resulting docstring is suitable
-    automatic documentation generation via `Sphinx` and `autodoc`.  Hence
-    it helps in constructing HydPy's online documentation and supports the
-    embeded help feature of `Spyder` (to see the result, import the package
-    of an arbitrary basemodel, e.g. `from hydpy.models import lland` and
-    press `cntr+i` with the cursor placed on `lland` written in the IPython
-    console afterwards).
-
-    Note that the resulting documentation will be complete only when the
-    modules of the basemodel are named in the standard way, e.g. `lland_model`,
-    `lland_control`, `lland_inputs`.
+    Works onlye when all modules of the basemodel are named in the
+    standard way, e.g. `lland_model`, `lland_control`, `lland_inputs`.
     """
+    autodoc_tuple2doc(module)
     namespace = module.__dict__
     doc = namespace.get('__doc__', '')
     basemodulename = namespace['__name__'].split('.')[-1]
-    print(basemodulename)
     modules = {key: value for key, value in namespace.items()
                if (isinstance(value, types.ModuleType) and
                    key.startswith(basemodulename+'_'))}
@@ -191,12 +178,12 @@ def autodoc_applicationmodel(module):
     |autodoc_basemodel|, that both the application model and its
     base model are defined in the conventional way.
     """
+    autodoc_tuple2doc(module)
     name_applicationmodel = module.__name__
-    module_applicationmodel = importlib.import_module(name_applicationmodel)
     name_basemodel = name_applicationmodel.split('_')[0]
     module_basemodel = importlib.import_module(name_basemodel)
     substituter = Substituter(module_basemodel.substituter)
-    substituter.add_module(module_applicationmodel)
+    substituter.add_module(module)
     substituter.update_masters()
     module.substituter = substituter
 
@@ -712,7 +699,7 @@ def autodoc_module(module):
     if doc is None:
         doc = ''
     members = []
-    for (name, member) in inspect.getmembers(module):
+    for name, member in inspect.getmembers(module):
         if ((not name.startswith('_')) and
                 (inspect.getmodule(member) is module)):
             members.append((name, member))
@@ -728,6 +715,64 @@ def autodoc_module(module):
             else:
                 type_ = 'obj'
             lines.append('      * :%s:`~%s` %s'
-                         % (type_, name, metatools.description(member)))
+                         % (type_, name, objecttools.description(member)))
         doc = doc + '\n\n' + '\n'.join(lines) + '\n\n' + 80*'_'
         module.__doc__ = doc
+
+
+_name2descr = {
+    'CLASSES': 'The following classes are selected',
+    'RUN_METHODS': ('The following "run methods" are called '
+                    'each simulation step run in the given sequence'),
+    'ADD_METHODS': ('The following "additional methods" are '
+                    'called by at least one "run method"'),
+    'INLET_METHODS': ('The following "inlet update methods" '
+                      'are called in the given sequence immediately '
+                      'of the respective model'),
+    'OUTLET_METHODS': ('The following "outlet update methods" '
+                       'are called in the given sequence immediately '
+                       'after solving the differential equations '
+                       'of the respective model'),
+    'RECEIVER_METHODS': ('The following "receiver update methods" '
+                         'are called in the given sequence before solving '
+                         'the differential equations of any model'),
+    'SENDER_METHODS': ('The following "sender update methods" '
+                       'are called in the given sequence after solving '
+                       'the differential equations of all models'),
+    'PART_ODE_METHODS': ('The following methods define the '
+                         'relevant components of a system of ODE '
+                         'equations (e.g. direct runoff)'),
+    'FULL_ODE_METHODS': ('The following methods define the '
+                         'complete equations of an ODE system '
+                         '(e.g. change in storage of `fast water` due to '
+                         ' effective precipitation and direct runoff)')
+}
+
+_loggedtuples = set()
+
+
+def autodoc_tuple2doc(module):
+    """Include tuples as `CLASSES` of `ControlParameters` and `RUN_METHODS`
+    of `Models` into the respective docstring."""
+    modulename = module.__name__
+    for membername, member in inspect.getmembers(module):
+        for tuplename, descr in _name2descr.items():
+            tuple_ = getattr(member, tuplename, None)
+            if tuple_:
+                logstring = f'{modulename}.{membername}.{tuplename}'
+                if logstring not in _loggedtuples:
+                    _loggedtuples.add(logstring)
+                    lst = [f'\n\n\n    {descr}:']
+                    if tuplename == 'CLASSES':
+                        type_ = 'func'
+                    else:
+                        type_ = 'class'
+                    for cls in tuple_:
+                        lst.append(
+                            f'      * '
+                            f':{type_}:`{cls.__module__}.{cls.__name__}`'
+                            f' {objecttools.description(cls)}')
+                    doc = getattr(member, '__doc__')
+                    if doc is None:
+                        doc = ''
+                    member.__doc__ = doc + '\n'.join(l for l in lst)

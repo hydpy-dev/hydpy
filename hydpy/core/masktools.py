@@ -9,7 +9,6 @@ from typing import Callable
 import numpy
 # ...from HydPy
 from hydpy.core import abctools
-from hydpy.core import metatools
 from hydpy.core import objecttools
 
 
@@ -216,7 +215,7 @@ must be overridden, which is not the case for class `IndexMask`.
         return self.get_refindices(self.variable)
 
 
-class Masks(metatools.MetaSubgroupClass):
+class Masks:
     """Base class for handling groups of masks.
 
     Attributes:

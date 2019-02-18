@@ -37,6 +37,7 @@ install:
 build: off
 
 before_test:
+  - python disable_autodoc.py
   - python setup.py install
   - python make_and_install_dists.py
   - pip uninstall cython --yes

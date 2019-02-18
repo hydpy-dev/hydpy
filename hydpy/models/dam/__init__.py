@@ -22,8 +22,6 @@ from hydpy.models.dam.dam_receivers import ReceiverSequences
 from hydpy.models.dam.dam_senders import SenderSequences
 from hydpy.models.dam.dam_model import Model
 
-autodoc_basemodel()
-
 tester = Tester()
 cythonizer = Cythonizer()
 cythonizer.complete()

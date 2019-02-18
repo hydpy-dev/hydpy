@@ -16,8 +16,6 @@ from hydpy.models.arma.arma_inlets import InletSequences
 from hydpy.models.arma.arma_outlets import OutletSequences
 from hydpy.models.arma.arma_model import Model
 
-autodoc_basemodel()
-
 tester = Tester()
 cythonizer = Cythonizer()
 cythonizer.complete()

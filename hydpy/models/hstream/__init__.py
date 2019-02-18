@@ -16,8 +16,6 @@ from hydpy.models.hstream.hstream_outlets import OutletSequences
 from hydpy.models.hstream.hstream_masks import Masks
 from hydpy.models.hstream.hstream_model import Model
 
-autodoc_basemodel()
-
 tester = Tester()
 cythonizer = Cythonizer()
 cythonizer.complete()

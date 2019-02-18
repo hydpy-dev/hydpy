@@ -13,8 +13,6 @@ from hydpy.models.hbranch.hbranch_inlets import InletSequences
 from hydpy.models.hbranch.hbranch_outlets import OutletSequences
 from hydpy.models.hbranch.hbranch_model import Model
 
-autodoc_basemodel()
-
 tester = Tester()
 cythonizer = Cythonizer()
 cythonizer.complete()

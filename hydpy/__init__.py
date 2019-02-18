@@ -18,6 +18,7 @@ from scipy import integrate
 # ...from HydPy
 from hydpy.core import pubtools
 pub = pubtools.Pub('pub')
+from hydpy import config
 from hydpy.core import dummytools
 from hydpy.core import indextools
 from hydpy.core import optiontools
@@ -104,24 +105,6 @@ try:
 except TypeError:   # pragma: no cover
     pass
 
-if config.USEAUTODOC:
-    import os
-    import importlib
-    from hydpy import config
-    from hydpy import auxs
-    from hydpy import core
-    from hydpy import cythons
-    from hydpy import exe
-    from hydpy.core import autodoctools
-    substituter = prepare_mainsubstituter()
-    for subpackage in (auxs, core, cythons, exe):
-        for filename in os.listdir(subpackage.__path__[0]):
-            if filename.endswith('.py') and not filename.startswith('_'):
-                module = importlib.import_module(
-                    f'{subpackage.__name__}.{filename[:-3]}')
-                autodoctools.autodoc_module(module)
-
-
 pub.scriptfunctions['exec_commands'] = exec_commands
 pub.scriptfunctions['run_simulation'] = run_simulation
 pub.scriptfunctions['start_server'] = start_server
@@ -189,3 +172,27 @@ __all__ = ['config',
            'xml_replace',
            'await_server',
            'start_server']
+
+
+if config.USEAUTODOC:
+    import os
+    import importlib
+    from hydpy import auxs
+    from hydpy import core
+    from hydpy import cythons
+    from hydpy import exe
+    from hydpy import models
+    from hydpy.core import autodoctools
+    substituter = prepare_mainsubstituter()
+    for subpackage in (auxs, core, cythons, exe):
+        for filename in os.listdir(subpackage.__path__[0]):
+            if filename.endswith('.py') and not filename.startswith('_'):
+                module = importlib.import_module(
+                    f'{subpackage.__name__}.{filename[:-3]}')
+                autodoctools.autodoc_module(module)
+    for filename in os.listdir(models.__path__[0]):
+        if (os.path.isdir(f'hydpy/models/{filename}')
+                and not filename.startswith('_')):
+            module = importlib.import_module(
+                f'{models.__name__}.{filename}')
+            autodoctools.autodoc_basemodel(module)

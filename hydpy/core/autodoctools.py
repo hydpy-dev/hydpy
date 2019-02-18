@@ -127,7 +127,7 @@ def _get_frame_of_calling_module():
         frame = nextframe
 
 
-def autodoc_basemodel():
+def autodoc_basemodel(module):
     """Add an exhaustive docstring to the `__init__` module of a basemodel.
 
     One just has to write `autodoc_basemodel()` at the bottom of an `__init__`
@@ -144,9 +144,10 @@ def autodoc_basemodel():
     modules of the basemodel are named in the standard way, e.g. `lland_model`,
     `lland_control`, `lland_inputs`.
     """
-    namespace = _get_frame_of_calling_module().f_locals
+    namespace = module.__dict__
     doc = namespace.get('__doc__', '')
     basemodulename = namespace['__name__'].split('.')[-1]
+    print(basemodulename)
     modules = {key: value for key, value in namespace.items()
                if (isinstance(value, types.ModuleType) and
                    key.startswith(basemodulename+'_'))}

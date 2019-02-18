@@ -22,7 +22,6 @@ from hydpy.models.hland.hland_outlets import OutletSequences
 from hydpy.models.hland.hland_masks import Masks
 from hydpy.models.hland.hland_model import Model
 
-autodoc_basemodel()
 tester = Tester()
 cythonizer = Cythonizer()
 cythonizer.complete()

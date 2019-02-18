@@ -5,7 +5,6 @@
 from typing import Dict, Callable
 import types
 # ...from HydPy
-from hydpy.core import autodoctools
 from hydpy.core import filetools
 from hydpy.core import indextools
 from hydpy.core import optiontools
@@ -112,6 +111,3 @@ is not defined at the moment.
             return getattr(self, name)
         except RuntimeError:
             return default
-
-
-autodoctools.autodoc_module()

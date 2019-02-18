@@ -18,7 +18,6 @@ import numpy
 # ...from HydPy
 import hydpy
 from hydpy.core import abctools
-from hydpy.core import autodoctools
 from hydpy.core import masktools
 from hydpy.core import metatools
 from hydpy.core import objecttools
@@ -1019,6 +1018,3 @@ class SubVariables(metatools.MetaSubgroupClass):
 
     def __dir__(self):
         return objecttools.dir_(self)
-
-
-autodoctools.autodoc_module()

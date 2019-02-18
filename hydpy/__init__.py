@@ -104,12 +104,29 @@ try:
 except TypeError:   # pragma: no cover
     pass
 
-substituter = prepare_mainsubstituter()
+if config.USEAUTODOC:
+    import os
+    import importlib
+    from hydpy import config
+    from hydpy import auxs
+    from hydpy import core
+    from hydpy import cythons
+    from hydpy import exe
+    from hydpy.core import autodoctools
+    substituter = prepare_mainsubstituter()
+    for subpackage in (auxs, core, cythons, exe):
+        for filename in os.listdir(subpackage.__path__[0]):
+            if filename.endswith('.py') and not filename.startswith('_'):
+                module = importlib.import_module(
+                    f'{subpackage.__name__}.{filename[:-3]}')
+                autodoctools.autodoc_module(module)
+
 
 pub.scriptfunctions['exec_commands'] = exec_commands
 pub.scriptfunctions['run_simulation'] = run_simulation
 pub.scriptfunctions['start_server'] = start_server
 pub.scriptfunctions['await_server'] = await_server
+pub.scriptfunctions['xml_replace'] = xml_replace
 
 __all__ = ['config',
            'pub',

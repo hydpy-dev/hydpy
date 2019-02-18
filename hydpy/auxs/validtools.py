@@ -4,8 +4,6 @@ data.
 """
 # ...from site-packages
 import numpy
-# ...from HydPy
-from hydpy.core import autodoctools
 
 
 def test_equal_shape(**kwargs):
@@ -77,6 +75,3 @@ arr2.
         raise ValueError(
             'For the following objects, at least one value is negative: %s.'
             % ', '.join(name for name, neg in sorted(zip(names, negs)) if neg))
-
-
-autodoctools.autodoc_module()

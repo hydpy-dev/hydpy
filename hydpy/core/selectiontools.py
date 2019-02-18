@@ -3,18 +3,15 @@
 |Element| objects of large *HydPy* projects, called "selections"."""
 # import...
 # ...from standard library
-import abc
 import copy
 import types
 from typing import *
 # ...from HydPy
 import hydpy
 from hydpy.core.abctools import *
-from hydpy.core import autodoctools
 from hydpy.core import devicetools
 from hydpy.core import importtools
 from hydpy.core import objecttools
-from hydpy.core import modeltools
 
 
 class Selections:
@@ -983,6 +980,3 @@ requires string as left operand, not list
         True
         """
         return objecttools.dir_(self)
-
-
-autodoctools.autodoc_module()

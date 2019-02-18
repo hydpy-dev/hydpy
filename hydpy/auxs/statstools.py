@@ -8,7 +8,6 @@ import numpy
 from scipy import optimize
 from scipy import special
 # ...from HydPy
-from hydpy.core import autodoctools
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.auxs import validtools
@@ -707,6 +706,3 @@ which does not match with number of given alternative names beeing 1.
     table = pandas.DataFrame(
         data=data, index=nodenames, columns=critnames)
     return table
-
-
-autodoctools.autodoc_module()

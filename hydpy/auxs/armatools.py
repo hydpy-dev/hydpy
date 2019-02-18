@@ -10,7 +10,6 @@ import numpy
 from scipy import integrate
 # ...from HydPy
 import hydpy
-from hydpy.core import autodoctools
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.auxs import statstools
@@ -747,6 +746,3 @@ coefficients.
                              objecttools.assignrepr_tuple(self.ma_coefs,
                                                           '     ma_coefs=',
                                                           70))
-
-
-autodoctools.autodoc_module()

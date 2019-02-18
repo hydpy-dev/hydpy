@@ -14,7 +14,6 @@ import time
 import traceback
 # ...from hydpy
 import hydpy
-from hydpy.core import autodoctools
 from hydpy.core import objecttools
 
 
@@ -389,6 +388,3 @@ def print_textandtime(text):
     """
     timestring = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
     print(f'{text} ({timestring}).')
-
-
-autodoctools.autodoc_module()

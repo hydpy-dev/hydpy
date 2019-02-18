@@ -17,7 +17,6 @@ import numpy
 # ...from HydPy
 import hydpy
 from hydpy.core.abctools import *
-from hydpy.core import autodoctools
 from hydpy.core import objecttools
 
 
@@ -2168,6 +2167,3 @@ set to `2`, but the given value is `29`.
                                       in self._PROPERTIES.keys())
 
     __dir__ = objecttools.dir_
-
-
-autodoctools.autodoc_module()

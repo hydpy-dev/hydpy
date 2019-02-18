@@ -15,7 +15,6 @@ import numpy
 # ...from HydPy
 import hydpy
 from hydpy.core import abctools
-from hydpy.core import autodoctools
 from hydpy.core import objecttools
 from hydpy.core import propertytools
 from hydpy.core import variabletools
@@ -2097,6 +2096,3 @@ class FastAccess(object):
         for key in vars(self).keys():
             if not key.startswith('_'):
                 yield key
-
-
-autodoctools.autodoc_module()

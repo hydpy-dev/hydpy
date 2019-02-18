@@ -8,7 +8,6 @@ import shutil
 # ...from HydPy
 import hydpy
 from hydpy import data
-from hydpy.core import autodoctools
 from hydpy.core import devicetools
 from hydpy.core import hydpytools
 from hydpy.core import testtools
@@ -223,6 +222,3 @@ def prepare_full_example_2(lastdate='1996-01-05') -> (
         hydpy.pub.timegrids = '1996-01-01', lastdate, '1d'
         hp.prepare_everything()
     return hp, hydpy.pub, testtools.TestIO
-
-
-autodoctools.autodoc_module()

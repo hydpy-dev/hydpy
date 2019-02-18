@@ -7,7 +7,6 @@ import copy
 import numpy
 # ...from HydPy
 import hydpy
-from hydpy.core import autodoctools
 from hydpy.core import objecttools
 from hydpy.core import propertytools
 from hydpy.core import timetools
@@ -260,6 +259,3 @@ class Indexer(object):
             return refgrid[date]
 
         return _timeofyear
-
-
-autodoctools.autodoc_module()

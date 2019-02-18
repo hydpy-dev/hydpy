@@ -4,8 +4,6 @@
 # import...
 # ...from standard library
 import copy
-# ...from HydPy
-from hydpy.core import autodoctools
 
 
 class Dummies(object):
@@ -106,6 +104,3 @@ class Dummies(object):
         except BaseException:
             pass
         return obj
-
-
-autodoctools.autodoc_module()

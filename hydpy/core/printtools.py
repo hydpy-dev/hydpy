@@ -11,7 +11,6 @@ import time
 import wrapt
 # ...from HydPy
 import hydpy
-from hydpy.core import autodoctools
 from hydpy.core import objecttools
 
 
@@ -247,6 +246,3 @@ def progressbar(iterable, length=23):
     else:
         for next_ in iterable:
             yield next_
-
-
-autodoctools.autodoc_module()

@@ -33,7 +33,6 @@ import types
 # ...from HydPy
 import hydpy
 from hydpy.core import abctools
-from hydpy.core import autodoctools
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
@@ -633,6 +632,3 @@ variable handled by the actual Variable2AuxFile object.
         return (objecttools.dir_(self) +
                 self.filenames +
                 [objecttools.instancename(type_) for type_ in self.types])
-
-
-autodoctools.autodoc_module()

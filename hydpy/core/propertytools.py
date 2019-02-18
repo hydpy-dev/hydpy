@@ -9,7 +9,6 @@ import abc
 import inspect
 import types
 # ...from HydPy
-from hydpy.core import autodoctools
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 
@@ -553,6 +552,3 @@ class DefaultProperty(BaseProperty):
 
     def _fdel(self, obj) -> None:
         """Do nothing."""
-
-
-autodoctools.autodoc_module()

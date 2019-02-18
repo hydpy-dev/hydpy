@@ -1,10 +1,6 @@
 # -*- coding: utf-8 -*-
 """This module implements some exception classes and related features."""
 
-# import...
-# ...from HydPy
-from hydpy.core import autodoctools
-
 
 class HydPyDeprecationWarning(DeprecationWarning):
     """Warning for deprecated HydPy features."""
@@ -63,6 +59,3 @@ necessary for some specific functionalities.
             'general requirement but necessary for some specific '
             'functionalities.'
             % self.name)
-
-
-autodoctools.autodoc_module()

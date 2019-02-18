@@ -212,7 +212,6 @@ import os
 import numpy
 # ...from HydPy
 import hydpy
-from hydpy.core import autodoctools
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
@@ -2179,6 +2178,3 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
         self.insert_subdevices(ncfile)
         create_variable(ncfile, self.name, 'f8', self.dimensions)
         ncfile[self.name][:] = self.array
-
-
-autodoctools.autodoc_module()

@@ -24,7 +24,6 @@ import numpy
 import hydpy
 from hydpy import docs
 from hydpy.core import abctools
-from hydpy.core import autodoctools
 from hydpy.core import devicetools
 from hydpy.core import exceptiontools
 from hydpy.core import hydpytools
@@ -1080,6 +1079,3 @@ For the given `datetime` object, it is `999` instead.
         yield
     finally:
         datetime.datetime = _datetime
-
-
-autodoctools.autodoc_module()

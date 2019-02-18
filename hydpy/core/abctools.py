@@ -21,8 +21,6 @@ import datetime
 from typing import *
 # ...from site-packages
 import numpy
-# ...from HydPy
-from hydpy.core import autodoctools
 
 
 class IterableNonStringABC(abc.ABC):
@@ -331,5 +329,3 @@ __all__ = [
     'TOYABC',
     'ModelABC',
 ]
-
-autodoctools.autodoc_module()

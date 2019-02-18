@@ -10,7 +10,6 @@ import numpy
 # ...from HydPy
 from hydpy import conf
 from hydpy.core import abctools
-from hydpy.core import autodoctools
 from hydpy.core import metatools
 from hydpy.core import objecttools
 from hydpy.cythons import modelutils
@@ -833,5 +832,3 @@ class ModelELS(Model):
                 (self.numconsts.nmb_methods-self.numvars.idx_method))
         else:
             self.numvars.extrapolated_error = -999.9
-
-autodoctools.autodoc_module()

@@ -73,28 +73,6 @@ _all_spec2capt.update(_SEQ_SPEC2CAPT)
 _all_spec2capt.update(_AUX_SPEC2CAPT)
 
 
-@wrapt.decorator
-def make_autodoc_optional(wrapped, instance=None, args=None, kwargs=None):
-    """Decorate functions related to automatic documentation refinement,
-    so that they will be applied only when requested (when `USEAUTODOC`
-    of module |config| is `True`).
-
-    >>> from hydpy.core.autodoctools import make_autodoc_optional
-    >>> @make_autodoc_optional
-    ... def test(x):
-    ...     return x
-    >>> from hydpy import config, pub
-    >>> config.USEAUTODOC = False
-    >>> test(1)
-    >>> config.USEAUTODOC = True
-    >>> test(1)
-    1
-    """
-    if config.USEAUTODOC:
-        return wrapped(*args, **kwargs)
-    return None
-
-
 def _add_title(title, marker):
     """Return a title for a basemodels docstring."""
     return ['', title, marker*len(title)]
@@ -149,7 +127,6 @@ def _get_frame_of_calling_module():
         frame = nextframe
 
 
-@make_autodoc_optional
 def autodoc_basemodel():
     """Add an exhaustive docstring to the `__init__` module of a basemodel.
 
@@ -205,7 +182,6 @@ def autodoc_basemodel():
     namespace['substituter'] = substituter
 
 
-@make_autodoc_optional
 def autodoc_applicationmodel():
     """Improves the docstrings of application models when called
     at the bottom of the respective module.
@@ -689,7 +665,6 @@ class Substituter(object):
             yield item
 
 
-@make_autodoc_optional
 def prepare_mainsubstituter():
     """Prepare and return a |Substituter| object for the main `__init__`
     file of *HydPy*."""
@@ -730,19 +705,12 @@ def _number_of_line(member_tuple):
     return 0
 
 
-@make_autodoc_optional
-def autodoc_module(__test__=None):
+def autodoc_module(module):
     """Add a short summary of all implemented members to a modules docstring.
-
-    Just write `autodoctools.autodoc_module()` at the very bottom of the
-    module.
-
-    Note that function |autodoc_module| is not thought to be used for
-    modules defining models.  For base models, see function
-    |autodoc_basemodel| instead.
     """
-    module = inspect.getmodule(_get_frame_of_calling_module())
-    doc = getattr(module, '__doc__', '')
+    doc = getattr(module, '__doc__')
+    if doc is None:
+        doc = ''
     members = []
     for (name, member) in inspect.getmembers(module):
         if ((not name.startswith('_')) and
@@ -761,7 +729,5 @@ def autodoc_module(__test__=None):
                 type_ = 'obj'
             lines.append('      * :%s:`~%s` %s'
                          % (type_, name, metatools.description(member)))
-        module.__doc__ = doc + '\n\n' + '\n'.join(lines) + '\n\n' + 80*'_'
-
-
-autodoc_module()
+        doc = doc + '\n\n' + '\n'.join(lines) + '\n\n' + 80*'_'
+        module.__doc__ = doc

@@ -14,7 +14,6 @@ import numpy
 # ...from HydPy
 import hydpy
 from hydpy.core.abctools import *
-from hydpy.core import autodoctools
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import printtools
@@ -2007,6 +2006,3 @@ class Elements(Devices, ElementsABC):
             subseqs = getattr(sequences, name_subseqs, ())
             for seq in subseqs:
                 seq.load_ext()
-
-
-autodoctools.autodoc_module()

@@ -13,7 +13,6 @@ from typing import List
 import numpy
 # ...from HydPy
 import hydpy
-from hydpy.core import autodoctools
 from hydpy.core import devicetools
 from hydpy.core import netcdftools
 from hydpy.core import objecttools
@@ -1579,6 +1578,3 @@ no NetCDF writer object.
         """
         self._netcdf_writer.write()
         self._netcdf_writer = None
-
-
-autodoctools.autodoc_module()

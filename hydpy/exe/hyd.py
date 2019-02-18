@@ -192,7 +192,6 @@ example using the "script function" |run_simulation|.
 """
 # import...
 # ...from hydpy
-from hydpy.core import autodoctools
 from hydpy.exe import commandtools
 
 
@@ -217,5 +216,3 @@ def execute():
 
 
 execute()
-
-autodoctools.autodoc_module()

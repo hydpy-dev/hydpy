@@ -22,7 +22,6 @@ import numpy
 import hydpy
 from hydpy import config
 from hydpy import cythons
-from hydpy.core import autodoctools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import printtools
@@ -1253,5 +1252,3 @@ def fabs(double):
     """Cython wrapper for maths fabs function applied on a single float."""
     return math.fabs(double)
 
-
-autodoctools.autodoc_module()

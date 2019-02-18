@@ -9,7 +9,6 @@ from typing import Dict, Iterator, Tuple
 # ...from site-packages
 import numpy
 # ...from HydPy
-from hydpy.core import autodoctools
 from hydpy.core import devicetools
 from hydpy.core import objecttools
 from hydpy.core import variabletools
@@ -665,6 +664,3 @@ class GetItem(ExchangeItem):
         return (
             f"{objecttools.classname(self)}("
             f"'{self.targetspecs.master}', '{self.targetspecs.specstring}')")
-
-
-autodoctools.autodoc_module()

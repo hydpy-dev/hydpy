@@ -9,7 +9,6 @@ import numpy
 # ...from HydPy
 import hydpy
 from hydpy.core import abctools
-from hydpy.core import autodoctools
 from hydpy.core import devicetools
 from hydpy.core import filetools
 from hydpy.core import printtools
@@ -544,6 +543,3 @@ class HydPy(object):
         """Call method |Nodes.load_obsseries| of the |Nodes| object currently
         handled by the |HydPy| object."""
         self.nodes.load_obsseries()
-
-
-autodoctools.autodoc_module()

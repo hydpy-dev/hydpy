@@ -3,8 +3,6 @@
 
 # import...
 # ...from HydPy
-from hydpy import pub
-from hydpy.core import autodoctools
 from hydpy.core import objecttools
 
 
@@ -211,8 +209,3 @@ for marker `e4`.
             f'`{objecttools.enumeration(sorted(set(markers)))}` of the '
             f'XML template file `{templatename}` with the available '
             f'keywords `{objecttools.enumeration(sorted(keywords))}`')
-
-
-pub.scriptfunctions['xml_replace'] = xml_replace
-
-autodoctools.autodoc_module()

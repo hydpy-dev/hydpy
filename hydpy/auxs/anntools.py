@@ -16,7 +16,6 @@ import weakref
 import numpy
 # ...from HydPy
 from hydpy.core import abctools
-from hydpy.core import autodoctools
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
@@ -1640,5 +1639,3 @@ neural network `seasonalann` of element `?` none has been defined so far.
 
 abctools.ParameterABC.register(SeasonalANN)
 abctools.SeasonalANNABC.register(SeasonalANN)
-
-autodoctools.autodoc_module()

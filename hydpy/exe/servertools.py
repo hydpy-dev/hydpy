@@ -242,7 +242,6 @@ from typing import Any, Dict, List
 # ...from HydPy
 import hydpy
 from hydpy.auxs import xmltools
-from hydpy.core import autodoctools
 from hydpy.core import hydpytools
 from hydpy.core import itemtools
 from hydpy.core import objecttools
@@ -1197,6 +1196,3 @@ resulted in the following error:
     else:
         raise urllib.error.URLError(
             f'Waited for {seconds} seconds without response on port {port}.')
-
-
-autodoctools.autodoc_module()

@@ -15,7 +15,6 @@ from typing import Callable, NoReturn
 # ...from HydPy
 import hydpy
 from hydpy.core import abctools
-from hydpy.core import autodoctools
 
 
 def dir_(self):
@@ -1465,6 +1464,3 @@ def enumeration(values, converter=str, default=''):
 class FastAccess(object):
     """Used as a surrogate for typed Cython classes when working in
     pure Python mode."""
-
-
-autodoctools.autodoc_module()

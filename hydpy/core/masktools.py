@@ -9,7 +9,6 @@ from typing import Callable
 import numpy
 # ...from HydPy
 from hydpy.core import abctools
-from hydpy.core import autodoctools
 from hydpy.core import metatools
 from hydpy.core import objecttools
 
@@ -351,6 +350,3 @@ following error occurred: The given key is neither a `string` a `mask` type.
 
     def __dir__(self):
         return objecttools.dir_(self)
-
-
-autodoctools.autodoc_module()

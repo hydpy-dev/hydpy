@@ -11,8 +11,8 @@ import warnings
 import numpy
 # ...from HydPy
 import hydpy
+from hydpy import config
 from hydpy.core import abctools
-from hydpy.core import autodoctools
 from hydpy.core import exceptiontools
 from hydpy.core import filetools
 from hydpy.core import objecttools
@@ -97,19 +97,19 @@ class Constants(dict):
         self.__module__ = frame.f_locals['__name__']
         self._prepare_docstrings(frame)
 
-    @autodoctools.make_autodoc_optional
     def _prepare_docstrings(self, frame):
         """Assign docstrings to the constants handled by |Constants|
         to make them available in the interactive mode of Python."""
-        filename = inspect.getsourcefile(frame)
-        with open(filename) as file_:
-            sources = file_.read().split('"""')
-        for code, doc in zip(sources[::2], sources[1::2]):
-            code = code.strip()
-            key = code.split('\n')[-1].split()[0]
-            value = self.get(key)
-            if value:
-                value.__doc__ = doc
+        if config.USEAUTODOC:
+            filename = inspect.getsourcefile(frame)
+            with open(filename) as file_:
+                sources = file_.read().split('"""')
+            for code, doc in zip(sources[::2], sources[1::2]):
+                code = code.strip()
+                key = code.split('\n')[-1].split()[0]
+                value = self.get(key)
+                if value:
+                    value.__doc__ = doc
 
 
 class Parameters(object):
@@ -1896,6 +1896,3 @@ class TOYParameter(IndexParameter):
     def update(self):
         """Reference the current |Indexer.timeofyear| index array."""
         self.setreference(hydpy.pub.indexer.timeofyear)
-
-
-autodoctools.autodoc_module()

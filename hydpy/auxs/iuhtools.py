@@ -15,7 +15,6 @@ import itertools
 import numpy
 from scipy import special
 # ...from Hydpy
-from hydpy.core import autodoctools
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.auxs import statstools
@@ -459,6 +458,3 @@ class LinearStorageCascade(IUH):
         """The first time delay weighted statistical moment of the
         linear storage cascade."""
         return self.k*self.n
-
-
-autodoctools.autodoc_module()

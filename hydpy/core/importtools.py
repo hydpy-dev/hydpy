@@ -15,7 +15,6 @@ from typing import *
 # ...from HydPy
 import hydpy
 from hydpy.core.abctools import *
-from hydpy.core import autodoctools
 from hydpy.core import filetools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
@@ -355,6 +354,3 @@ following error occurred: [Errno 2] No such file or directory: '...land_dill.py'
             if subseqs is not None:
                 for seq in subseqs:
                     namespace[seq.name] = seq
-
-
-autodoctools.autodoc_module()

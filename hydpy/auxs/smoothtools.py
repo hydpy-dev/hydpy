@@ -31,7 +31,6 @@ import numpy
 from scipy import optimize
 # ...from HydPy
 from hydpy.cythons.autogen import smoothutils
-from hydpy.core import autodoctools
 
 
 def calc_smoothpar_logistic1(metapar):
@@ -198,6 +197,3 @@ def calc_smoothpar_min1(metapar):
     -4.01
     """
     return calc_smoothpar_logistic2(metapar)
-
-
-autodoctools.autodoc_module()

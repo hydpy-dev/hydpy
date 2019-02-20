@@ -90,30 +90,23 @@ class HydPy(object):
         currently handled by the |HydPy| object."""
         self.elements.init_models()
 
-    def save_controls(self, controldir=None, projectdir=None,
-                      parameterstep=None, simulationstep=None,
+    def save_controls(self, parameterstep=None, simulationstep=None,
                       auxfiler=None):
         """Call method |Elements.save_controls| of the |Elements| object
         currently handled by the |HydPy| object."""
-        self.elements.save_controls(controldir=controldir,
-                                    projectdir=projectdir,
-                                    parameterstep=parameterstep,
+        self.elements.save_controls(parameterstep=parameterstep,
                                     simulationstep=simulationstep,
                                     auxfiler=auxfiler)
 
-    def load_conditions(self, conditiondir=None, projectdir=None):
+    def load_conditions(self):
         """Call method |Elements.load_conditions| of the |Elements| object
         currently handled by the |HydPy| object."""
-        self.elements.load_conditions(conditiondir=conditiondir,
-                                      projectdir=projectdir)
+        self.elements.load_conditions()
 
-    def save_conditions(self, conditiondir=None, projectdir=None,
-                        controldir=None):
+    def save_conditions(self):
         """Call method |Elements.save_conditions| of the |Elements| object
         currently handled by the |HydPy| object."""
-        self.elements.save_conditions(conditiondir=conditiondir,
-                                      projectdir=projectdir,
-                                      controldir=controldir)
+        self.elements.save_conditions()
 
     def trim_conditions(self):
         """Call method |Elements.trim_conditions| of the |Elements| object

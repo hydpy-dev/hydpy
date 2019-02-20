@@ -1813,68 +1813,33 @@ class Elements(Devices, ElementsABC):
             element.model.parameters.update()
 
     @printtools.print_progress
-    def save_controls(self, controldir=None, projectdir=None,
-                      parameterstep=None, simulationstep=None,
+    def save_controls(self, parameterstep=None, simulationstep=None,
                       auxfiler=None):
         """Save the control parameters of the |Model| object handled by
         each |Element| object and eventually the ones handled by the
         given |Auxfiler| object."""
-        _currentdir = hydpy.pub.controlmanager._currentdir
-        _projectdir = hydpy.pub.controlmanager.projectdir
-        try:
-            if controldir:
-                hydpy.pub.controlmanager.currentdir = controldir
-            if projectdir:
-                hydpy.pub.controlmanager.projectdir = projectdir
-            if auxfiler:
-                auxfiler.save()
-            for element in printtools.progressbar(self):
-                element.model.parameters.save_controls(
-                    parameterstep=parameterstep,
-                    simulationstep=simulationstep,
-                    auxfiler=auxfiler)
-        finally:
-            hydpy.pub.controlmanager._currentdir = _currentdir
-            hydpy.pub.controlmanager.projectdir = _projectdir
+        if auxfiler:
+            auxfiler.save()
+        for element in printtools.progressbar(self):
+            element.model.parameters.save_controls(
+                parameterstep=parameterstep,
+                simulationstep=simulationstep,
+                auxfiler=auxfiler)
 
     @printtools.print_progress
-    def load_conditions(self, conditiondir=None, projectdir=None):
+    def load_conditions(self):
         """Save the initial conditions of the |Model| object handled by
         each |Element| object."""
-        _currentdir = hydpy.pub.conditionmanager._currentdir
-        _projectdir = hydpy.pub.conditionmanager.projectdir
-        try:
-            if projectdir:
-                hydpy.pub.conditionmanager.projectdir = projectdir
-            if conditiondir:
-                hydpy.pub.conditionmanager.currentdir = conditiondir
-            for element in printtools.progressbar(self):
-                element.model.sequences.load_conditions()
-        finally:
-            hydpy.pub.conditionmanager._currentdir = _currentdir
-            hydpy.pub.conditionmanager.projectdir = _projectdir
+        for element in printtools.progressbar(self):
+            element.model.sequences.load_conditions()
+
 
     @printtools.print_progress
-    def save_conditions(self, conditiondir=None, projectdir=None,
-                        controldir=None):
+    def save_conditions(self):
         """Save the calculated conditions of the |Model| object handled by
         each |Element| object."""
-        _conditiondir = hydpy.pub.conditionmanager._currentdir
-        _projectdir = hydpy.pub.conditionmanager.projectdir
-        _controldir = hydpy.pub.controlmanager._currentdir
-        try:
-            if projectdir:
-                hydpy.pub.conditionmanager.projectdir = projectdir
-            if conditiondir:
-                hydpy.pub.conditionmanager.currentdir = conditiondir
-            if controldir:
-                hydpy.pub.controlmanager.currentdir = controldir
-            for element in printtools.progressbar(self):
-                element.model.sequences.save_conditions()
-        finally:
-            hydpy.pub.conditionmanager._currentdir = _conditiondir
-            hydpy.pub.conditionmanager.projectdir = _projectdir
-            hydpy.pub.controlmanager._currentdir = _controldir
+        for element in printtools.progressbar(self):
+            element.model.sequences.save_conditions()
 
     def trim_conditions(self):
         """Call method |Sequences.trim_conditions| of the |Sequences|

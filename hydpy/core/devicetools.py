@@ -8,7 +8,7 @@ import copy
 import struct
 import warnings
 import weakref
-from typing import Any, Dict, Iterable, List, Union
+from typing import *
 # ...from site-packages
 import numpy
 # ...from HydPy
@@ -24,22 +24,10 @@ pyplot = exceptiontools.OptionalImport(
 
 
 class Keywords(set):
-    """Set of keyword arguments used to describe and search for element and
-    node objects.
+    """Set of keyword arguments used to describe and search for |Element| and
+    |Node| objects."""
 
-    >>> from hydpy.core.devicetools import Keywords
-    >>> from hydpy import dummies
-    >>> dummies.keywords = Keywords(['first_keyword', 'second_keyword',
-    ...                              'keyword_3', 'keyword_4',
-    ...                              'keyboard'])
-    >>> dummies.keywords
-    Keywords(["first_keyword", "keyboard", "keyword_3", "keyword_4",
-              "second_keyword"])
-    """
-
-    def __init__(self, names=None):
-        if names is None:
-            names = []
+    def __init__(self, *names: str):
         self.device = None
         self._check_keywords(names)
         set.__init__(self, names)
@@ -47,8 +35,11 @@ class Keywords(set):
     def startswith(self, name: str) -> List[str]:
         """Returns a list of all keywords starting with the given string.
 
-        >>> from hydpy import dummies
-        >>> dummies.keywords.startswith('keyword')
+        >>> from hydpy.core.devicetools import Keywords
+        >>> keywords = Keywords('first_keyword', 'second_keyword',
+        ...                     'keyword_3', 'keyword_4',
+        ...                     'keyboard')
+        >>> keywords.startswith('keyword')
         ['keyword_3', 'keyword_4']
         """
         return sorted(keyword for keyword in self if keyword.startswith(name))
@@ -56,8 +47,11 @@ class Keywords(set):
     def endswith(self, name: str) -> List[str]:
         """Returns a list of all keywords ending with the given string.
 
-        >>> from hydpy import dummies
-        >>> dummies.keywords.endswith('keyword')
+        >>> from hydpy.core.devicetools import Keywords
+        >>> keywords = Keywords('first_keyword', 'second_keyword',
+        ...                     'keyword_3', 'keyword_4',
+        ...                     'keyboard')
+        >>> keywords.endswith('keyword')
         ['first_keyword', 'second_keyword']
         """
         return sorted(keyword for keyword in self if keyword.endswith(name))
@@ -65,13 +59,16 @@ class Keywords(set):
     def contains(self, name: str) -> List[str]:
         """Returns a list of all keywords containing the given string.
 
-        >>> from hydpy import dummies
-        >>> dummies.keywords.contains('keyword')
+        >>> from hydpy.core.devicetools import Keywords
+        >>> keywords = Keywords('first_keyword', 'second_keyword',
+        ...                     'keyword_3', 'keyword_4',
+        ...                     'keyboard')
+        >>> keywords.contains('keyword')
         ['first_keyword', 'keyword_3', 'keyword_4', 'second_keyword']
         """
         return sorted(keyword for keyword in self if name in keyword)
 
-    def _check_keywords(self, names) -> None:
+    def _check_keywords(self, names: Iterable[str]) -> None:
         try:
             for name in names:
                 objecttools.valid_variable_identifier(name)
@@ -80,12 +77,15 @@ class Keywords(set):
                 f'While trying to add the keyword `{name}` '
                 f'to device {objecttools.devicename(self.device)}')
 
-    def update(self, names: List[str]) -> None:
-        """Before updating, names are checked to be valid variable identifiers.
+    def update(self, *names: Iterable[Any]) -> None:
+        """Before updating, the given names are checked to be valid
+        variable identifiers.
 
-        >>> from hydpy import dummies
-        >>> keywords = dummies.keywords
-        >>> keywords.update(['test_1', 'test 2'])   # doctest: +ELLIPSIS
+        >>> from hydpy.core.devicetools import Keywords
+        >>> keywords = Keywords('first_keyword', 'second_keyword',
+        ...                     'keyword_3', 'keyword_4',
+        ...                     'keyboard')
+        >>> keywords.update('test_1', 'test 2')   # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         ValueError: While trying to add the keyword `test 2` to device ?, \
@@ -96,25 +96,28 @@ define a valid variable identifier.  ...
         one (`test 2`) is invalid:
 
         >>> keywords
-        Keywords(["first_keyword", "keyboard", "keyword_3", "keyword_4",
-                  "second_keyword"])
+        Keywords("first_keyword", "keyboard", "keyword_3", "keyword_4",
+                 "second_keyword")
 
         If the seconds string is corrected, everything works fine:
 
-        >>> keywords.update(['test_1', 'test_2'])
+        >>> keywords.update('test_1', 'test_2')
         >>> keywords
-        Keywords(["first_keyword", "keyboard", "keyword_3", "keyword_4",
-                  "second_keyword", "test_1", "test_2"])
+        Keywords("first_keyword", "keyboard", "keyword_3", "keyword_4",
+                 "second_keyword", "test_1", "test_2")
         """
-        self._check_keywords(names)
-        set.update(self, names)
+        _names = [str(name) for name in names]
+        self._check_keywords(_names)
+        super().update(_names)
 
     def add(self, name):
         """Before adding a new name, it is checked to be valid variable
         identifiers.
 
-        >>> from hydpy import dummies
-        >>> keywords = dummies.keywords
+        >>> from hydpy.core.devicetools import Keywords
+        >>> keywords = Keywords('first_keyword', 'second_keyword',
+        ...                     'keyword_3', 'keyword_4',
+        ...                     'keyboard')
         >>> keywords.add('1_test')   # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
@@ -123,22 +126,22 @@ the following error occurred: The given name string `1_test` does not \
 define a valid variable identifier.  ...
 
         >>> keywords
-        Keywords(["first_keyword", "keyboard", "keyword_3", "keyword_4",
-                  "second_keyword"])
+        Keywords("first_keyword", "keyboard", "keyword_3", "keyword_4",
+                 "second_keyword")
 
         If the string is corrected, everything works fine:
 
         >>> keywords.add('one_test')
         >>> keywords
-        Keywords(["first_keyword", "keyboard", "keyword_3", "keyword_4",
-                  "one_test", "second_keyword"])
+        Keywords("first_keyword", "keyboard", "keyword_3", "keyword_4",
+                 "one_test", "second_keyword")
         """
         self._check_keywords([name])
         set.add(self, name)
 
     def __repr__(self):
         with objecttools.repr_.preserve_strings(True):
-            return objecttools.assignrepr_list(
+            return objecttools.assignrepr_values(
                 sorted(self), 'Keywords(', width=70) + ')'
 
     __dir__ = objecttools.dir_
@@ -288,7 +291,7 @@ class Device(DeviceABC):
         >>> from hydpy import Node
         >>> node = Node('n')
         >>> node.keywords
-        Keywords([])
+        Keywords()
 
         You are allowed to add then individually...
 
@@ -298,20 +301,20 @@ class Device(DeviceABC):
 
         >>> node.keywords = ('word2', 'word3')
         >>> node.keywords
-        Keywords(["word1", "word2", "word3"])
+        Keywords("word1", "word2", "word3")
 
         You can delete all keywords at once via:
 
         >>> del node.keywords
         >>> node.keywords
-        Keywords([])
+        Keywords()
         """
         return self._keywords
 
     @keywords.setter
     def keywords(self, keywords: Iterable[str]) -> None:
         keywords = tuple(objecttools.extract(keywords, (str,), True))
-        self._keywords.update(keywords)
+        self._keywords.update(*keywords)
 
     @keywords.deleter
     def keywords(self) -> None:
@@ -380,7 +383,7 @@ class Node(Device, NodeABC):
     >>> node.variable
     'Q'
     >>> node.keywords
-    Keywords([])
+    Keywords()
 
     You are allowed to add further keywords by successive constructor calls:
 
@@ -588,8 +591,8 @@ the given group name `test`.
         elif group in ('outlets', 'senders'):
             return self.get_double_via_entries()
         raise ValueError(
-            'Function `get_double` of class `Node` does not '
-            'support the given group name `%s`.' % group)
+            f'Function `get_double` of class `Node` does not '
+            f'support the given group name `{group}`.')
 
     def get_double_via_exits(self) -> pointerutils.Double:
         """Return the |Double| object that is supposed to deploy its value

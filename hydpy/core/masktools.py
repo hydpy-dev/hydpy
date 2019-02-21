@@ -174,9 +174,9 @@ class IndexMask(DefaultMask):
         indices = cls.get_refindices(variable)
         if numpy.min(indices) < 1:
             raise RuntimeError(
-                'The mask of parameter %s cannot be determined, as '
-                'long as parameter `%s` is not prepared properly.'
-                % (objecttools.elementphrase(variable), indices.name))
+                f'The mask of parameter {objecttools.elementphrase(variable)} '
+                f'cannot be determined, as long as parameter `{indices.name}` '
+                f'is not prepared properly.')
         mask = numpy.full(indices.shape, False, dtype=bool)
         refvalues = indices.values
         for relvalue in cls.RELEVANT_VALUES:

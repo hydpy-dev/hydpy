@@ -133,7 +133,9 @@ def autodoc_basemodel(module):
     """
     autodoc_tuple2doc(module)
     namespace = module.__dict__
-    doc = namespace.get('__doc__', '')
+    doc = namespace.get('__doc__')
+    if doc is None:
+        doc = ''
     basemodulename = namespace['__name__'].split('.')[-1]
     modules = {key: value for key, value in namespace.items()
                if (isinstance(value, types.ModuleType) and

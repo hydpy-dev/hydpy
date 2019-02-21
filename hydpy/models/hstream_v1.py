@@ -30,7 +30,7 @@ Integration Test:
     >>> stream = Element('stream',
     ...                  inlets=['input1', 'input2'],
     ...                  outlets='output')
-    >>> stream.connect(model)
+    >>> stream.model = model
 
     The test function object sets the initial inflow of all segments
     junctions (|QJoints|) to zero before each simulation run:

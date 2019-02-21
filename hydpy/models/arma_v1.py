@@ -63,7 +63,7 @@ Integration examples:
     >>> stream = Element('stream',
     ...                  inlets=['input1', 'input2'],
     ...                  outlets='output')
-    >>> stream.connect(model)
+    >>> stream.model = model
 
     Prepare a test function object, which prints the respective values
     of the model sequences |QIn|, |QPIn|, |QPOut|, and |QOut|.  The node

@@ -69,9 +69,15 @@ def classname(self):
     >>> print(classname(pub.options))
     Options
     """
-    if not inspect.isclass(self):
-        self = type(self)
-    return str(self).split("'")[1].split('.')[-1]
+    if inspect.isclass(self):
+        string = str(self)
+    else:
+        string = str(type(self))
+    try:
+        string = string.split("'")[1]
+    except IndexError:
+        pass
+    return string.split('.')[-1]
 
 
 def instancename(self):
@@ -168,7 +174,7 @@ def devicename(self):
 
     >>> from hydpy import Element
     >>> e1 = Element('e1')
-    >>> e1.connect(model)
+    >>> e1.model = model
     >>> devicename(e1)
     'e1'
     >>> devicename(model)

@@ -732,31 +732,34 @@ the following error occurred: ...
         """Read all network files of the current working directory, structure
         their contents in a |selectiontools.Selections| object, and return it.
         """
-        devicetools.Node.clear_registry()
-        devicetools.Element.clear_registry()
+        devicetools.Node.clear_all()
+        devicetools.Element.clear_all()
         selections = selectiontools.Selections()
         for (filename, path) in zip(self.filenames, self.filepaths):
             # Ensure both `Node` and `Element`start with a `fresh` memory.
-            devicetools.Node.gather_new_nodes()
-            devicetools.Element.gather_new_elements()
+            devicetools.Node.extract_new()
+            devicetools.Element.extract_new()
             try:
                 info = runpy.run_path(path)
             except BaseException:
                 objecttools.augment_excmessage(
                     f'While trying to load the network file `{path}`')
             try:
+                node: devicetools.Node = info['Node']
+                element: devicetools.Element = info['Element']
                 selections += selectiontools.Selection(
                     filename.split('.')[0],
-                    info['Node'].gather_new_nodes(),
-                    info['Element'].gather_new_elements())
+                    node.extract_new(),
+                    element.extract_new())
             except KeyError as exc:
                 raise RuntimeError(
                     f'The class {exc.args[0]} cannot be loaded from the '
                     f'network file `{path}`.')
+
         selections += selectiontools.Selection(
             'complete',
-            info['Node'].registered_nodes(),
-            info['Element'].registered_elements())
+            info['Node'].query_all(),
+            info['Element'].query_all())
         return selections
 
     def save_files(self, selections) -> None:
@@ -1340,7 +1343,7 @@ is not allowed to overwrite the existing file `...`.
     ...     pub.sequencemanager.save_file(nkor)
     Traceback (most recent call last):
     ...
-    RuntimeError: Sequence `nkor` of element `element2` is not requested \
+    AttributeError: Sequence `nkor` of element `element2` is not requested \
 to make any internal data available to the user.
 
     The third option to store data in netCDF files, which is explained

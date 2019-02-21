@@ -39,7 +39,7 @@ _printprogress_indentation = -4
 
 
 @wrapt.decorator
-def print_progress(wrapped, _, args, kwargs):
+def print_progress(wrapped, _=None, args=None, kwargs=None):
     """Add print commands time to the given function informing about
      execution time.
 

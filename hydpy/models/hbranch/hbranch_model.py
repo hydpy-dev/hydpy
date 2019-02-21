@@ -146,12 +146,12 @@ class Model(modeltools.Model):
         >>> parameterstep()
         >>> xpoints(0.0, 3.0)
         >>> ypoints(outflow1=[0.0, 1.0], outflow2=[0.0, 2.0])
+        >>> parameters.update()
 
         After connecting the model with its element the total discharge
         value of nodes `inflow1` and `inflow2` can be properly divided:
 
-        >>> branch.connect(model)
-        >>> parameters.update()
+        >>> branch.model = model
         >>> branch.inlets.inflow1.sequences.sim = 1.0
         >>> branch.inlets.inflow2.sequences.sim = 5.0
         >>> model.doit(0)
@@ -163,6 +163,7 @@ class Model(modeltools.Model):
         In case of missing (or misspelled) outlet nodes, the following
         error is raised:
 
+        >>> branch.outlets.mutable = True
         >>> del branch.outlets.outflow1
         >>> parameters.update()
         >>> model.connect()
@@ -177,12 +178,12 @@ of element `branch`.
         if total.shape != (len(nodes),):
             total.shape = len(nodes)
         for idx, node in enumerate(nodes):
-            double = node.get_double_via_exits()
+            double = node.get_double('inlets')
             total.set_pointer(double, idx)
         for (idx, name) in enumerate(self.nodenames):
             try:
                 outlet = getattr(self.element.outlets, name)
-                double = outlet.get_double_via_entries()
+                double = outlet.get_double('outlets')
             except AttributeError:
                 raise RuntimeError(
                     f'Model {objecttools.elementphrase(self)} tried '

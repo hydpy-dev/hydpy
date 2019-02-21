@@ -183,8 +183,8 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                         Par.simulationstep.delete():
                     del pub.projectname
                     del pub.timegrids
-                    devicetools.Node.clear_registry()
-                    devicetools.Element.clear_registry()
+                    devicetools.Node.clear_all()
+                    devicetools.Element.clear_all()
                     testtools.IntegrationTest.plotting_options = \
                         testtools.PlottingOptions()
                     if name.endswith('.rst'):

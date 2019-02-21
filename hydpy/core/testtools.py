@@ -137,10 +137,7 @@ class Tester(object):
                     del hydpy.pub.projectname
                     timegrids = hydpy.pub.get('timegrids')
                     del hydpy.pub.timegrids
-                    nodes = devicetools.Node._registry.copy()
-                    elements = devicetools.Element._registry.copy()
-                    devicetools.Node.clear_registry()
-                    devicetools.Element.clear_registry()
+                    registry = devicetools.gather_registries()
                     plotting_options = IntegrationTest.plotting_options
                     IntegrationTest.plotting_options = PlottingOptions()
                     try:
@@ -161,10 +158,7 @@ class Tester(object):
                         hydpy.pub.projectname = projectname
                         if timegrids is not None:
                             hydpy.pub.timegrids = timegrids
-                        devicetools.Node.clear_registry()
-                        devicetools.Element.clear_registry()
-                        devicetools.Node._registry = nodes
-                        devicetools.Element._registry = elements
+                        devicetools.reset_registries(registry)
                         IntegrationTest.plotting_options = plotting_options
                         hydpy.dummies.clear()
 
@@ -385,8 +379,8 @@ class IntegrationTest(Test):
         and make their sequences ready for use for integration testing."""
         del self.inits
         self.element = element
-        self.elements = devicetools.Element.registered_elements()
-        self.nodes = devicetools.Node.registered_nodes()
+        self.elements = devicetools.Element.query_all()
+        self.nodes = devicetools.Node.query_all()
         self.prepare_node_sequences()
         self.prepare_input_model_sequences()
         self.parseqs = seqs if seqs else self.extract_print_sequences()

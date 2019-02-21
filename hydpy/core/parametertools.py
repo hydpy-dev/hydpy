@@ -133,7 +133,7 @@ class Parameters(object):
                     subpars = cls(self, None, None)
                 setattr(self, subpars.name, subpars)
 
-    def update(self):
+    def update(self) -> None:
         """Call the update methods of all derived and solver parameters."""
         for subpars in self.secondary_subpars:
             for par in subpars.CLASSES:
@@ -142,9 +142,9 @@ class Parameters(object):
                     subpars.__dict__[name].update()
                 except BaseException:
                     objecttools.augment_excmessage(
-                        'While trying to update the %s parameter `%s` of '
-                        'element `%s`'
-                        % (name, subpars.name, objecttools.devicename(self)))
+                        f'While trying to update the {name} '
+                        f'parameter `{subpars.name}` of element '
+                        f'`{objecttools.devicename(self)}`')
 
     def save_controls(self, filename=None, parameterstep=None,
                       simulationstep=None, auxfiler=None):
@@ -1857,12 +1857,13 @@ class SecondsParameter(SingleParameter):
     def update(self):
         """Take the number of seconds from the current simulation time step.
 
-        >>> from hydpy.models.llake import *
-        >>> parameterstep('1d')
-        >>> simulationstep('12h')
-        >>> derived.seconds.update()
-        >>> derived.seconds
-        seconds(43200.0)
+        >>> from hydpy.core.parametertools import SecondsParameter
+        >>> secondsparameter = SecondsParameter()
+        >>> secondsparameter.parameterstep = '1d'
+        >>> secondsparameter.simulationstep = '12h'
+        >>> secondsparameter.update()
+        >>> secondsparameter
+        secondsparameter(43200.0)
         """
         self.value = self.simulationstep.seconds
 

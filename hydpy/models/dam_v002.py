@@ -38,7 +38,7 @@ Integration examples:
     >>> dam = Element('dam', inlets=input_, outlets=output, receivers=remote)
     >>> from hydpy.models.dam_v002 import *
     >>> parameterstep('1d')
-    >>> dam.connect(model)
+    >>> dam.model = model
 
     Next, all initial conditions and the external input time series data
     are defined.  Note that the first value of |RequiredRemoteRelease|

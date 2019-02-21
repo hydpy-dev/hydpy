@@ -242,7 +242,7 @@ class Sequences(object):
                 lines.append(repr(seq) + '\n')
             hydpy.pub.conditionmanager.save_file(filename, ''.join(lines))
 
-    def trim_conditions(self):
+    def trim_conditions(self) -> None:
         """Call method |trim| of each handled |ConditionSequence|."""
         for seq in self.conditionsequences:
             seq.trim()
@@ -993,10 +993,9 @@ or prepare `pub.sequencemanager` correctly.
         elif self.ramflag:
             array = self.__get_array()
         else:
-            raise RuntimeError(
-                'Sequence %s is not requested to make any '
-                'internal data available to the user.'
-                % objecttools.devicephrase(self))
+            raise AttributeError(
+                f'Sequence {objecttools.devicephrase(self)} is not requested '
+                f'to make any internal data available to the user.')
         return InfoArray(array, info={'type': 'unmodified'})
 
     @series.setter
@@ -1007,10 +1006,9 @@ or prepare `pub.sequencemanager` correctly.
         elif self.ramflag:
             self.__set_array(series)
         else:
-            raise RuntimeError(
-                'Sequence `%s` is not requested to make any '
-                'internal data available to the user.'
-                % objecttools.devicephrase(self))
+            raise AttributeError(
+                f'Sequence {objecttools.devicephrase(self)} is not requested '
+                f'to make any internal data available to the user.')
         self.check_completeness()
 
     @series.deleter
@@ -1404,7 +1402,7 @@ class ModelSequence(IOSequence):
         >>> element = Element('test_element_1')
         >>> from hydpy.models import test_v1
         >>> model = prepare_model(test_v1)
-        >>> element.connect(model)
+        >>> element.model = model
         >>> model.sequences.fluxes.q.descr_device
         'test_element_1'
         """
@@ -1975,10 +1973,20 @@ class NodeSequences(IOSequences):
     """Base class for handling node sequences."""
     CLASSES = (Sim,
                Obs)
+    sim: Sim
+    obs: Obs
 
     def __init__(self, seqs, cls_fastaccess=None):
-        IOSequences.__init__(self, seqs, cls_fastaccess)
+        super().__init__(seqs, cls_fastaccess)
         self.node = seqs
+
+    def _init_fastaccess(self, cls_fastaccess=None, cymodel=None):
+        if cls_fastaccess is None:
+            self.fastaccess = FastAccessNode()
+        else:
+            self.fastaccess = cls_fastaccess()
+
+
 
     def load_data(self, idx):
         self.fastaccess.load_data(idx)
@@ -2093,6 +2101,73 @@ class FastAccess(object):
 
     def __iter__(self):
         """Iterate over all sequence names."""
+        for key in vars(self).keys():
+            if not key.startswith('_'):
+                yield key
+
+
+class FastAccessNode(object):
+    """|sequencetools.FastAccess| like object specialised for |Node| objects.
+
+    Adding a cythonized version could result in some speedups.
+    """
+
+    def open_files(self, idx):
+        """Open all files with an activated disk flag.
+
+        ToDo: duplicate
+        """
+        for name in self:
+            if getattr(self, '_%s_diskflag' % name):
+                path = getattr(self, '_%s_path' % name)
+                file_ = open(path, 'rb+')
+                ndim = getattr(self, '_%s_ndim' % name)
+                position = 8*idx
+                for idim in range(ndim):
+                    length = getattr(self, '_%s_length_%d' % (name, idim))
+                    position *= length
+                file_.seek(position)
+                setattr(self, '_%s_file' % name, file_)
+
+    def close_files(self):
+        """Close all files with an activated disk flag.
+
+        ToDo: duplicate
+        """
+        for name in self:
+            if getattr(self, '_%s_diskflag' % name):
+                file_ = getattr(self, '_%s_file' % name)
+                file_.close()
+
+    def load_simdata(self, idx: int) -> None:
+        """Load the next sim sequence value (of the given index)."""
+        if self._sim_ramflag:
+            self.sim[0] = self._sim_array[idx]
+        elif self._sim_diskflag:
+            raw = self._sim_file.read(8)
+            self.sim[0] = struct.unpack('d', raw)
+
+    def save_simdata(self, idx: int) -> None:
+        """Save the last sim sequence value (of the given index)."""
+        if self._sim_ramflag:
+            self._sim_array[idx] = self.sim[0]
+        elif self._sim_diskflag:
+            raw = struct.pack('d', self.sim[0])
+            self._sim_file.write(raw)
+
+    def load_obsdata(self, idx: int) -> None:
+        """Load the next obs sequence value (of the given index)."""
+        if self._obs_ramflag:
+            self.obs[0] = self._obs_array[idx]
+        elif self._obs_diskflag:
+            raw = self._obs_file.read(8)
+            self.obs[0] = struct.unpack('d', raw)
+
+    def __iter__(self):
+        """Iterate over all sequence names.
+
+        Todo: duplicate
+        """
         for key in vars(self).keys():
             if not key.startswith('_'):
                 yield key

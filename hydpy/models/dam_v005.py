@@ -96,17 +96,17 @@ Integration examples:
     >>> from hydpy import prepare_model
     >>> from hydpy.models import arma_v1
     >>> arma_model = prepare_model(arma_v1)
-    >>> stream2.connect(arma_model)
+    >>> stream2.model = arma_model
     >>> arma_model.parameters.control.responses(((), (1.0,)))
     >>> arma_model.parameters.update()
     >>> arma_model = prepare_model(arma_v1)
-    >>> stream1.connect(arma_model)
+    >>> stream1.model = arma_model
     >>> arma_model.parameters.control.responses(((), (0.2, 0.4, 0.3, 0.1)))
     >>> arma_model.parameters.update()
     >>> arma_model.sequences.logs.login = 0.0
     >>> from hydpy.models.dam_v005 import *
     >>> parameterstep('1d')
-    >>> dam.connect(model)
+    >>> dam.model = model
     >>> from hydpy import IntegrationTest
     >>> IntegrationTest.plotting_options.height = 370
     >>> IntegrationTest.plotting_options.activated=(

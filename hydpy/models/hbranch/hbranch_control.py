@@ -113,12 +113,13 @@ parameter `ypoints` of element `?` 2 values are given.
 
     >>> from hydpy import pub, Nodes
     >>> pub.projectname = 'test'
+    >>> nodes = Nodes('branch1')
     >>> ypoints(branch1=[1.0, 2.0],
     ...         branch2=[2.0, 4.0])
     Traceback (most recent call last):
     ...
     RuntimeError: Parameter `ypoints` of element `?` is supposed to branch \
-to node `branch1`, but such a node is not available.
+to node `branch2`, but such a node is not available.
 
     A general exception message for some unexpected errors:
 
@@ -170,7 +171,7 @@ new `branched` sequence and connect it to the respective outlet nodes properly.
                 'connect it to the respective outlet nodes properly.')
         values = numpy.empty(shape, dtype=float)
         for idx, (key, value) in enumerate(sorted(kwargs.items())):
-            if key not in devicetools.Node.registered_names():
+            if key not in devicetools.Node.query_all():
                 try:
                     pub.projectname
                 except RuntimeError:

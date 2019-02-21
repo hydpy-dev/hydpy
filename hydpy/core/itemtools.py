@@ -148,7 +148,7 @@ class ExchangeItem(abc.ABC):
         >>> sequence = land_dill.model.sequences.states.ic
         >>> item.device2target[land_dill] is sequence
         True
-        >>> for element in sorted(item.device2target):
+        >>> for element in sorted(item.device2target, key=lambda x: x.name):
         ...     print(element)
         land_dill
         land_lahn_1
@@ -161,7 +161,7 @@ class ExchangeItem(abc.ABC):
 
         >>> item = SetItem('ic', 'hland_v1', 'states.ic', 0)
         >>> item.collect_variables(pub.selections)
-        >>> for element in sorted(item.device2target):
+        >>> for element in sorted(item.device2target, key=lambda x: x.name):
         ...     print(element)
         land_dill
         land_lahn_1
@@ -188,7 +188,7 @@ class ExchangeItem(abc.ABC):
         ExchangeSpecification('node', 'sim')
         >>> item.device2target[dill] is dill.sequences.sim
         True
-        >>> for node in sorted(item.device2target):
+        >>> for node in sorted(item.device2target, key=lambda x: x.name):
         ...  print(node)
         dill
         lahn_1
@@ -198,7 +198,7 @@ class ExchangeItem(abc.ABC):
         >>> item.collect_variables(pub.selections)
         >>> item.targetspecs
         ExchangeSpecification('nodes', 'sim.series')
-        >>> for node in sorted(item.device2target):
+        >>> for node in sorted(item.device2target, key=lambda x: x.name):
         ...  print(node)
         dill
         lahn_1
@@ -493,7 +493,7 @@ class MathItem(ChangeItem, metaclass=abc.ABCMeta):
         True
         >>> item.device2base[land_dill] is control.rfcf
         True
-        >>> for device in sorted(item.device2base):
+        >>> for device in sorted(item.device2base, key=lambda x: x.name):
         ...     print(device)
         land_dill
         land_lahn_1
@@ -592,7 +592,7 @@ class GetItem(ExchangeItem):
         GetItem('hland_v1', 'states.sm.series') 2
         """
         super().collect_variables(selections)
-        for device in sorted(self.device2target.keys()):
+        for device in sorted(self.device2target.keys(), key=lambda x: x.name):
             self._device2name[device] = f'{device.name}_{self.target}'
         for target in self.device2target.values():
             self.ndim = target.NDIM

@@ -269,11 +269,6 @@ class HydPy(object):
     def conditions(self, conditions):
         self.elements.conditions = conditions
 
-    def connect(self):
-        """Call method |Elements.connect| of the |Elements| object currently
-        handled by the |HydPy| object."""
-        self.elements.connect()
-
     @property
     def networkproperties(self):
         """Print out some properties of the network defined by the |Node| and
@@ -398,14 +393,14 @@ class HydPy(object):
         funcs = []
         for node in self.nodes:
             if node.deploymode == 'oldsim':
-                funcs.append(node._load_data_sim)
+                funcs.append(node.sequences.fastaccess.load_simdata)
             elif node.deploymode == 'obs':
-                funcs.append(node._load_data_obs)
+                funcs.append(node.sequences.fastaccess.load_obsdata)
         for node in self.nodes:
             if node.deploymode != 'oldsim':
                 funcs.append(node.reset)
         for device in self.deviceorder:
-            if isinstance(device, abctools.ElementABC):
+            if isinstance(device, devicetools.Element):
                 funcs.append(device.model.doit)
         for element in self.elements:
             if element.senders:
@@ -417,7 +412,7 @@ class HydPy(object):
             funcs.append(element.model.save_data)
         for node in self.nodes:
             if node.deploymode != 'oldsim':
-                funcs.append(node._save_data_sim)
+                funcs.append(node.sequences.fastaccess.save_simdata)
         return funcs
 
     @printtools.print_progress

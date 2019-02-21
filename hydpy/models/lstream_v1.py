@@ -82,7 +82,7 @@ Integration test:
     >>> stream = Element('stream',
     ...                  inlets=['input1', 'input2'],
     ...                  outlets='output')
-    >>> stream.connect(model)
+    >>> stream.model = model
 
     Prepare a test function object, which sets the initial inflow (|QZ|)
     and outflow (|QA|) to zero before each simulation run:

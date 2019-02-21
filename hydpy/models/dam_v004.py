@@ -41,7 +41,7 @@
     ...               receivers=(required_supply, allowed_relieve))
     >>> from hydpy.models.dam_v004 import *
     >>> parameterstep('1d')
-    >>> dam.connect(model)
+    >>> dam.model = model
 
     The first test calculation is supposed to show that model |dam_v004|
     behaves exactly like model |dam_v003| when the relieve discharge is

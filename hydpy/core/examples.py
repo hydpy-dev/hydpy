@@ -119,9 +119,9 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     elements = Elements(element1, element2, element3)
 
     from hydpy.models import lland_v1, lland_v2
-    element1.connect(prepare_model(lland_v1))
-    element2.connect(prepare_model(lland_v1))
-    element3.connect(prepare_model(lland_v2))
+    element1.model = prepare_model(lland_v1)
+    element2.model = prepare_model(lland_v1)
+    element3.model = prepare_model(lland_v2)
 
     from hydpy.models.lland import ACKER
     for idx, element in enumerate(elements):

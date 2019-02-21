@@ -45,7 +45,7 @@ Integration examples:
     the nodes defined above and the `llake_v1` model instance:
 
     >>> lake = Element('lake', inlets=['input1', 'input2'], outlets='output')
-    >>> lake.connect(model)
+    >>> lake.model = model
 
     Prepare a test function object, which prints the respective values of
     the model sequences `qz`, `qa`, `v`, and `w`.  The node sequence `sim`

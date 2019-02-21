@@ -40,7 +40,7 @@ Integration examples:
     ...               receivers=demand)
     >>> from hydpy.models.dam_v003 import *
     >>> parameterstep('1d')
-    >>> dam.connect(model)
+    >>> dam.model = model
 
     Method |Model.connect| recognizes the different purposes of both
     output nodes through the given `variable` keyword.  Each |dam_v003|

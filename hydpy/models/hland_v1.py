@@ -56,7 +56,7 @@ Integration tests:
     >>> from hydpy import Node, Element
     >>> outlet = Node('outlet')
     >>> land = Element('land', outlets=outlet)
-    >>> land.connect(model)
+    >>> land.model = model
 
     All tests shall be performed using a single zone with a size of one
     square kilometre at an altitude of 100 meter:

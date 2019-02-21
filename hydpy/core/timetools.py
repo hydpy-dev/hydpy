@@ -12,6 +12,7 @@ import copy
 import datetime
 import numbers
 import time
+from typing import *
 # ...from third party packages
 import numpy
 # ...from HydPy
@@ -874,6 +875,9 @@ However, for the given `timedelta` object, it is`857142` instead.
     >>> period != '12h'
     True
     """
+
+    ConstrArg = Union['Period', datetime.timedelta, str, None]
+
     def __init__(self, period=None):
         self._timedelta = None
         self.timedelta = period
@@ -1841,11 +1845,7 @@ on the initialization time grid.
         return self.assignrepr('')
 
     def assignrepr(self, prefix):
-        """Return a |repr| string with an prefixed assignement.
-
-        Argument:
-            * prefix(|str|): Usually something like 'x = '.
-        """
+        """Return a |repr| string with a prefixed assignment."""
         caller = 'Timegrids('
         blanks = ' ' * (len(prefix) + len(caller))
         prefix = f'{prefix}{caller}'

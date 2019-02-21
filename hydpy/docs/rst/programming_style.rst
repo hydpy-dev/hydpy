@@ -262,7 +262,7 @@ relevant |Element| object and add it to the error message:
 >>> parameterstep('1d')
 >>> from hydpy import Element
 >>> e1 = Element('e1', outlets='n1')
->>> e1.connect(model)
+>>> e1.model = model
 >>> k(hq=10.0)
 Traceback (most recent call last):
 ...

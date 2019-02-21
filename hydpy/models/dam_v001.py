@@ -84,7 +84,7 @@ Integration examples:
     >>> from hydpy import prepare_model
     >>> from hydpy.models import arma_v1
     >>> arma_model = prepare_model(arma_v1)
-    >>> stream2.connect(arma_model)
+    >>> stream2.model = arma_model
     >>> arma_model.parameters.control.responses(((), (1.0,)))
     >>> arma_model.parameters.update()
 
@@ -92,7 +92,7 @@ Integration examples:
     but with a time delay of 1.8 days:
 
     >>> arma_model = prepare_model(arma_v1)
-    >>> stream1.connect(arma_model)
+    >>> stream1.model = arma_model
     >>> arma_model.parameters.control.responses(((), (0.2, 0.4, 0.3, 0.1)))
     >>> arma_model.parameters.update()
     >>> arma_model.sequences.logs.login = 0.0
@@ -103,7 +103,7 @@ Integration examples:
 
     >>> from hydpy.models.dam_v001 import *
     >>> parameterstep('1d')
-    >>> dam.connect(model)
+    >>> dam.model = model
 
     To execute the following examples conveniently, a test function object
     is prepared:

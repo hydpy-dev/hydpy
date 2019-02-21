@@ -32,7 +32,7 @@ Integration tests:
     >>> from hydpy import Node, Element
     >>> outlet = Node('outlet')
     >>> land = Element('land', outlets=outlet)
-    >>> land.connect(model)
+    >>> land.model = model
     >>> nhru(1)
     >>> ft(1.0)
     >>> fhru(1.0)

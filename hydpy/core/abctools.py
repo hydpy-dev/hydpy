@@ -19,8 +19,24 @@ should be handled as if they were.  See class |anntools.ANN| as an example.
 import abc
 import datetime
 from typing import *
+from typing_extensions import Protocol
 # ...from site-packages
 import numpy
+# ...from hydpy
+if TYPE_CHECKING:
+    from hydpy.core import devicetools
+
+T = TypeVar('T')
+T1 = TypeVar('T1')
+T2 = TypeVar('T2')
+T3 = TypeVar('T3')
+
+Mayberable1 = Union[T, Iterable[T]]
+Mayberable2 = Union[T1, T2, Iterable[Union[T1, T2]]]
+Mayberable3 = Union[T1, T2, T3, Iterable[Union[T1, T2, T3]]]
+MayNonerable1 = Union[T, Iterable[T], None]
+MayNonerable2 = Union[T1, T2, Iterable[Union[T1, T2]], None]
+MayNonerable3 = Union[T1, T2, T3, Iterable[Union[T1, T2, T3]], None]
 
 
 class IterableNonStringABC(abc.ABC):
@@ -36,131 +52,27 @@ class IterableNonStringABC(abc.ABC):
         return NotImplemented
 
 
-class DeviceABC(abc.ABC):
-    """See class |Device|."""
-
-    name: str
-
-
-class NodeABC(DeviceABC):
+class NodeABC(abc.ABC):
     """See class |Node|."""
 
-    name: str
-    entries: 'ElementsABC'
-    exits: 'ElementsABC'
 
-
-class ElementABC(DeviceABC):
+class ElementABC(abc.ABC):
     """See class |Element|."""
 
-    inlets: 'NodesABC'
-    outlets: 'NodesABC'
-    receivers: 'NodesABC'
-    senders: 'NodesABC'
-    model: 'ModelABC'
 
-
-class DevicesABC(abc.ABC):
-    """See class |Devices|."""
-
-    names: List[str]
-
-    def __len__(self):
-        ...
-
-
-class NodesABC(DevicesABC):
+class NodesABC(abc.ABC):
     """See class |Nodes|."""
 
-    ConstrArg = Union[None, NodeABC, str, Iterable[Union[NodeABC, str]]]
 
-    def copy(self) -> 'NodesABC':
-        ...
-
-    def __getitem__(self, name: str) -> NodeABC:
-        ...
-
-    def __iter__(self) -> Iterator[NodeABC]:
-        ...
-
-    def __add__(self, values: 'NodesABC.ConstrArg') -> 'NodesABC':
-        ...
-
-    def __sub__(self, values: 'NodesABC.ConstrArg') -> 'NodesABC':
-        ...
-
-    def __lt__(self, other: DevicesABC) -> 'NodesABC':
-        ...
-
-    def __le__(self, other: DevicesABC) -> 'NodesABC':
-        ...
-
-    def __eq__(self, other: DevicesABC) -> 'NodesABC':
-        ...
-
-    def __ne__(self, other: DevicesABC) -> 'NodesABC':
-        ...
-
-    def __ge__(self, other: DevicesABC) -> 'NodesABC':
-        ...
-
-    def __gt__(self, other: DevicesABC) -> 'NodesABC':
-        ...
-
-
-class ElementsABC(DevicesABC):
+class ElementsABC(abc.ABC):
     """See class |Elements|."""
 
-    ConstrArg = Union[None, ElementABC, str, Iterable[Union[ElementABC, str]]]
-    __init__: callable
 
-    def copy(self) -> 'ElementsABC':
-        ...
-
-    def __getitem__(self, name: str) -> ElementABC:
-        ...
-
-    def __iter__(self) -> Iterator[ElementABC]:
-        ...
-
-    def __add__(self, values: 'ElementsABC.ConstrArg') -> 'ElementsABC':
-        ...
-
-    def __sub__(self, values: 'ElementsABC.ConstrArg') -> 'ElementsABC':
-        ...
-
-    def __lt__(self, other: DevicesABC) -> 'ElementsABC':
-        ...
-
-    def __le__(self, other: DevicesABC) -> 'ElementsABC':
-        ...
-
-    def __eq__(self, other: DevicesABC) -> 'ElementsABC':
-        ...
-
-    def __ne__(self, other: DevicesABC) -> 'ElementsABC':
-        ...
-
-    def __ge__(self, other: DevicesABC) -> 'ElementsABC':
-        ...
-
-    def __gt__(self, other: DevicesABC) -> 'ElementsABC':
-        ...
-
-
-class DevicesHandlerABC(abc.ABC):
+class DevicesHandlerProtocol(Protocol):
     """Without concrete implementation."""
 
-    nodes: NodesABC
-    elements: ElementsABC
-
-
-class SelectionABC(abc.ABC):
-    """See class |Selection|."""
-
-    name: str
-    nodes: NodesABC
-    elements: ElementsABC
+    nodes: 'devicetools.Nodes'
+    elements: 'devicetools.Elements'
 
 
 class VariableABC(abc.ABC):
@@ -169,6 +81,14 @@ class VariableABC(abc.ABC):
     values: Union[float, int, numpy.ndarray]
     initvalue: Union[float, int]
     fastaccess: Any
+
+
+class ParametersABC(abc.ABC):
+    """See class |Parameters|."""
+
+    @abc.abstractmethod
+    def update(self) -> None:
+        ...
 
 
 class ParameterABC(VariableABC):
@@ -183,15 +103,48 @@ class SeasonalANNABC(abc.ABC):
     """See class |anntools.SeasonalANN|."""
 
 
-class IOSequencesABC(abc.ABC):
+class SequencesABC(abc.ABC):
+    """See class |Sequences|."""
+    
+    inputs: 'InputSequencesABC'
+    fluxes: 'FluxSequencesABC'
+    states: 'StateSequencesABC'
+
+    @abc.abstractmethod
+    def __iter__(self) -> Iterator['SequenceABC']:
+        ...
+
+    @abc.abstractmethod
+    def open_files(self, idx: int) -> None:
+        ...
+
+    @abc.abstractmethod
+    def close_files(self) -> None:
+        ...
+
+    @abc.abstractmethod
+    def reset(self) -> None:
+        ...
+
+    @property
+    @abc.abstractmethod
+    def conditions(self) -> Dict[str, Dict[str, Union[float, numpy.ndarray]]]:
+        pass
+
+    @abc.abstractmethod
+    def trim_conditions(self) -> None:
+        ...
+
+
+class IOSequencesABC(SequencesABC, metaclass=abc.ABCMeta):
     """See class |IOSequences|."""
 
 
-class InputSequencesABC(abc.ABC):
+class InputSequencesABC(IOSequencesABC, metaclass=abc.ABCMeta):
     """See class |InputSequences|."""
 
 
-class OutputSequencesABC(abc.ABC):
+class OutputSequencesABC(IOSequencesABC, metaclass=abc.ABCMeta):
     """See class "OutputSequences" classes
     like |FluxSequences|."""
 
@@ -253,10 +206,13 @@ class DateABC(abc.ABC):
     datetime: datetime.datetime
 
 
+Union['PeriodABC', datetime.timedelta, str, None]
+
+
 class PeriodABC(abc.ABC):
     """See class |Period|."""
 
-    ConstrArg = Union[None, 'PeriodABC', datetime.timedelta, str]
+    ConstrArg = Union['PeriodABC', datetime.timedelta, str, None]
     TimeDeltaArg = ConstrArg
     timedelta: 'PeriodABC'
 
@@ -286,28 +242,44 @@ class TOYABC(abc.ABC):
 class ModelABC(abc.ABC):
     """See class |Model|."""
 
-    @abc.abstractmethod
+    element: ElementABC
+    parameters: ParametersABC
+    sequences: SequencesABC
+
     def connect(self):
         ...
 
-    @abc.abstractmethod
     def doit(self, idx):
         ...
 
 
+class AuxfilerABC(abc.ABC):
+    """See class |Auxfiler|."""
+
+    @abc.abstractmethod
+    def save(self, parameterstep: PeriodABC.ConstrArg,
+             simulationstep: PeriodABC.ConstrArg):
+        ...
+
+
 __all__ = [
-    'DeviceABC',
+    'Mayberable1',
+    'Mayberable2',
+    'Mayberable3',
+    'MayNonerable1',
+    'MayNonerable2',
+    'MayNonerable3',
     'NodeABC',
     'ElementABC',
-    'DevicesABC',
     'NodesABC',
     'ElementsABC',
-    'DevicesHandlerABC',
-    'SelectionABC',
+    'DevicesHandlerProtocol',
+    'ParametersABC',
     'VariableABC',
     'ParameterABC',
     'ANNABC',
     'SeasonalANNABC',
+    'SequencesABC',
     'IOSequencesABC',
     'OutputSequencesABC',
     'SequenceABC',
@@ -328,4 +300,5 @@ __all__ = [
     'TimegridsABC',
     'TOYABC',
     'ModelABC',
+    'AuxfilerABC',
 ]

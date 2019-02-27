@@ -26,6 +26,7 @@ install:
   - python -m pip install bokeh
   - python -m pip install pandas
   - python -m pip install setuptools
+  - python -m pip install typing_extensions
   - python -m pip install twine
   - python -m pip install wheel
   - python -m pip install wrapt

@@ -185,6 +185,7 @@ setup(name='HydPy',
       install_requires=[
           'numpy',
           'scipy',
+          'typing_extensions',
           'wrapt',
       ],
       )

@@ -30,7 +30,7 @@ install:
   - python -m pip install twine
   - python -m pip install wheel
   - python -m pip install wrapt
-  - python -m pip install xmlschema
+  - python -m pip install xmlschema==1.0.9
   - conda install netcdf4 --yes
   - conda uninstall netcdf4 --yes
   - python -m pip install netcdf4

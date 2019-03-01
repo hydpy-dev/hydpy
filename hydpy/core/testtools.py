@@ -777,6 +777,13 @@ class _Open(object):
     def __exit__(self, exception, message, traceback_):
         self.close()
 
+    def read(self):
+        """Raise a |NotImplementedError| in any case."""
+        raise NotImplementedError(
+            'Reading is not possible at the moment.  Please see the '
+            'documentation on class `Open` of module `testtools` '
+            'for further information.')
+
     def write(self, text):
         """Replaces the `write` method of file objects."""
         self.texts.append(text)
@@ -827,8 +834,17 @@ class Open(object):
     Note that, for simplicity, the UNIX style path seperator `/` is used
     to print the file path on all systems.
 
-    Class |Open| is rather restricted at the moment.  More functionalities
-    will be added later...
+    Class |Open| is rather restricted at the moment.  Functionalities
+    like reading are not supported so far:
+
+    >>> with Open():
+    ...     with open(path, 'r') as file_:
+    ...         file_.read()
+    Traceback (most recent call last):
+    ...
+    NotImplementedError: Reading is not possible at the moment.  \
+Please see the documentation on class `Open` of module `testtools` \
+for further information.
     """
     def __init__(self):
         self.open = builtins.open

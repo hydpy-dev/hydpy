@@ -3,7 +3,6 @@
 your command line tools via script |hyd|."""
 # import...
 # ...from standard library
-from typing import IO
 import contextlib
 import datetime
 import inspect
@@ -12,12 +11,15 @@ import subprocess
 import sys
 import time
 import traceback
+from typing import *
+from typing import IO
 # ...from hydpy
 import hydpy
 from hydpy.core import objecttools
 
 
-def run_subprocess(commandstring, verbose=True, blocking=True):
+def run_subprocess(command: str, verbose: bool = True, blocking: bool = True) \
+        -> Optional[subprocess.Popen]:
     """Execute the given command in a new process.
 
     Only when both `verbose` and `blocking` are |True|, |run_subprocess|
@@ -46,30 +48,29 @@ def run_subprocess(commandstring, verbose=True, blocking=True):
     >>> _ = process.communicate()
     """
     if blocking:
-        result = subprocess.run(
-            commandstring,
+        result1 = subprocess.run(
+            command,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             encoding='utf-8',
             shell=True)
         if verbose:    # due to doctest replacing sys.stdout
-            for output in (result.stdout, result.stderr):
+            for output in (result1.stdout, result1.stderr):
                 output = output.strip()
                 if output:
                     print(output)
         return None
-    else:
-        stdouterr = None if verbose else subprocess.DEVNULL
-        result = subprocess.Popen(
-            commandstring,
-            stdout=stdouterr,
-            stderr=stdouterr,
-            encoding='utf-8',
-            shell=True)
-        return result
+    stdouterr = None if verbose else subprocess.DEVNULL
+    result2 = subprocess.Popen(
+        command,
+        stdout=stdouterr,
+        stderr=stdouterr,
+        encoding='utf-8',
+        shell=True)
+    return result2
 
 
-def exec_commands(commands, **parameters) -> None:
+def exec_commands(commands: str, **parameters: Any) -> None:
     """Execute the given Python commands.
 
     Function |exec_commands| is thought for testing purposes only (see
@@ -107,7 +108,7 @@ for testing purposes.
         exec(command)
 
 
-def print_latest_logfile(dirpath='.', wait=0.0) -> None:
+def print_latest_logfile(dirpath: str = '.', wait: float = 0.0) -> None:
     """Print the latest log file in the current or the given working directory.
 
     When executing processes in parallel, |print_latest_logfile| may
@@ -155,7 +156,7 @@ resulted in the following error:
         print(logfile.read())
 
 
-def prepare_logfile(filename=None):
+def prepare_logfile(filename: str) -> str:
     """Prepare an empty log file eventually and return its absolute path.
 
     When passing the "filename" `stdout`, |prepare_logfile| does not
@@ -219,7 +220,7 @@ def _activate_logfile(filepath, logstyle, level_stdout, level_stderr):
         sys.stderr = sys.__stderr__
 
 
-def execute_scriptfunction():
+def execute_scriptfunction() -> None:
     """Execute a HydPy script function.
 
     Function |execute_scriptfunction| is indirectly applied and
@@ -283,7 +284,7 @@ def execute_scriptfunction():
             traceback.print_tb(sys.exc_info()[2])
 
 
-class LogFileInterface(object):
+class LogFileInterface:
     """Wraps a usual file object, exposing all its methods while modifying
     only the `write` method.
 
@@ -331,7 +332,9 @@ class LogFileInterface(object):
                 f'Please choose one of the following: {styles}.')
         self._string = stdtype2string[infotype]
 
-    def write(self, string):
+    def write(self, string: str) -> None:
+        """Write the given string as explained in the main documentation
+        on class |LogFileInterface|."""
         self.logfile.write('\n'.join(
             f'{self._string}{substring}' if substring else ''
             for substring in string.split('\n')))
@@ -340,7 +343,7 @@ class LogFileInterface(object):
         return getattr(self.logfile, name)
 
 
-def parse_argument(string):
+def parse_argument(string: str) -> Union[str, Tuple[str, str]]:
     """Return a single value for a string understood as a positional
     argument or a |tuple| containing a keyword and its value for a
     string understood as a keyword argument.
@@ -375,7 +378,7 @@ def parse_argument(string):
     return string
 
 
-def print_textandtime(text):
+def print_textandtime(text: str) -> None:
     """Print the given string and the current date and time with high
     precision for logging purposes.
 

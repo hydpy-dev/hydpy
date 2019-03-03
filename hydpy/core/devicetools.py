@@ -2211,7 +2211,7 @@ requested but not been prepared so far.
         >>> pyplot.savefig(figs.__path__[0] + '/Element_plot_stateseries1.png')
         >>> pyplot.close()
 
-        .. image:: Element_plot_stateseries2.png
+        .. image:: Element_plot_stateseries1.png
 
         Alternatively, you can print the averaged time series through
         passing |True| to the method `average` argument (demonstrated

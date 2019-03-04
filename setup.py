@@ -255,6 +255,17 @@ if install:
             path_out = prep(path_html, filename)
             source2target(path_in, path_out)
 
+    # Copy the (possibly new) matplotlib plots into the original docs subpackage
+    # (on Travis-CI: for including them into the online-documentation).
+    print_('\nCopy matplotlib plots backwards:')
+    path_figs = os.path.join(oldpath, 'hydpy', 'docs', 'figs')
+    import hydpy.docs.figs
+    for filename in os.listdir(hydpy.docs.figs.__path__[0]):
+        if filename.endswith('.png'):
+            path_in = prep(hydpy.docs.figs.__path__[0], filename)
+            path_out = prep(path_figs, filename)
+            source2target(path_in, path_out)
+
     # Copy the (possibly new) configuration files into the original subpackage.
     print_('\nCopy configuration data backwards:')
     path_conf = os.path.join(oldpath, 'hydpy', 'conf')

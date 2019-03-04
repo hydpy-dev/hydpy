@@ -21,7 +21,7 @@ def calc_tc_v1(self):
       |ZRelT|
 
     Required input sequence:
-      |T|
+      |hland_inputs.T|
 
     Calculated flux sequences:
       |TC|

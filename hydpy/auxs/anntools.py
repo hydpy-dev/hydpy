@@ -125,10 +125,16 @@ class ANN:
 
     >>> ann.plot(0.0, 8.0)
 
-    .. testsetup::
+    You can use the `pyplot` API of `matplotlib` to modify the figure
+    or to save it to disk (or print it to the screen, in case the
+    interactive mode of `matplotlib` is disabled):
 
-        >>> from matplotlib import pyplot
-        >>> pyplot.close()
+    >>> from matplotlib import pyplot
+    >>> from hydpy.docs import figs
+    >>> pyplot.savefig(figs.__path__[0] + '/ANN_plot.png')
+    >>> pyplot.close()
+
+    .. image:: ANN_plot.png
 
     The following example shows that everything works well for more complex
     single layer networks also (manual tests have been performed in a
@@ -956,10 +962,16 @@ class SeasonalANN:
 
     >>> seasonalann.plot(0.0, 8.0)
 
-    .. testsetup::
+    You can use the `pyplot` API of `matplotlib` to modify the figure
+    or to save it to disk (or print it to the screen, in case the
+    interactive mode of `matplotlib` is disabled):
 
-        >>> from matplotlib import pyplot
-        >>> pyplot.close()
+    >>> from matplotlib import pyplot
+    >>> from hydpy.docs import figs
+    >>> pyplot.savefig(figs.__path__[0] + '/SeasonalANN_plot.png')
+    >>> pyplot.close()
+
+    .. image:: SeasonalANN_plot.png
 
     The property |anntools.SeasonalANN.shape| does reflect the number of
     required weighting ratios for each time of year (in this example:
@@ -1530,7 +1542,7 @@ neural network `seasonalann` of element `?` none has been defined so far.
     def plot(self, xmin, xmax, idx_input=0, idx_output=0, points=100,
              **kwargs) -> None:
         """Call method |anntools.ANN.plot| of all |anntools.ANN| objects
-        handled bythe actual |anntools.SeasonalANN| object.
+        handled by the actual |anntools.SeasonalANN| object.
         """
         for toy, ann_ in self:
             ann_.plot(xmin, xmax,

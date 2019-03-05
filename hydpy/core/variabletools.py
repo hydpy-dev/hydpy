@@ -26,14 +26,19 @@ from hydpy.core import masktools
 from hydpy.core import objecttools
 
 
+ValuesType = Union[
+    float, Iterable[float], Iterable[Iterable[float]],
+    int, Iterable[int], Iterable[Iterable[int]],
+    bool, Iterable[bool], Iterable[Iterable[bool]]]
+
+
 INT_NAN: int = -999999
 """Surrogate for `nan`, which is available for floating point values
 but not for integer values."""
 
 
-def trim(self: 'Variable',
-         lower: Union[float, int, numpy.ndarray, None] = None,
-         upper: Union[float, int, numpy.ndarray, None] = None) -> None:
+def trim(self: abctools.VariableABC, lower: Optional[ValuesType] = None,
+         upper: Optional[ValuesType] = None) -> None:
     """Trim the value(s) of a |Variable| instance.
 
     One can pass the lower and/or the upper boundary as a function
@@ -47,6 +52,229 @@ def trim(self: 'Variable',
     threshold value defined by function "tolerance" ToDo.  (This warning
     message can be suppressed by setting the related option flag to False.)
     For integer values, instead of a warning an exception is raised.
+
+    >>> import warnings
+    >>> warnings.filterwarnings('error')
+
+    >>> from hydpy import pub
+    >>> pub.options.warntrim = True
+
+    >>> from hydpy.core.parametertools import Parameter
+    >>> class Par(Parameter):
+    ...     NDIM = 0
+    ...     TYPE = float
+    ...     TIME = None
+    ...     SPAN = 1.0, 3.0
+    >>> par = Par()
+
+    >>> from hydpy.core.variabletools import trim
+    >>> par(2.0)
+    >>> trim(par)
+
+    >>> par(0.0)
+    Traceback (most recent call last):
+    ...
+    UserWarning: For variable `par` at least one value needed to be trimmed.  \
+The old and the new value(s) are `0.0` and `1.0`, respectively.
+    >>> par
+    par(1.0)
+
+    >>> par(4.0)
+    Traceback (most recent call last):
+    ...
+    UserWarning: For variable `par` at least one value needed to be trimmed.  \
+The old and the new value(s) are `4.0` and `3.0`, respectively.
+    >>> par
+    par(3.0)
+
+    >>> par.value = 1.0 - 1e-15
+    >>> par == 1.0
+    False
+    >>> trim(par)
+    >>> par == 1.0
+    True
+
+    >>> par.value = 3.0 + 1e-15
+    >>> par == 3.0
+    False
+    >>> trim(par)
+    >>> par == 3.0
+    True
+
+    >>> trim(par, lower=4.0)
+    Traceback (most recent call last):
+    ...
+    UserWarning: For variable `par` at least one value needed to be trimmed.  \
+The old and the new value(s) are `3.0` and `4.0`, respectively.
+
+    >>> trim(par, upper=3.0)
+    Traceback (most recent call last):
+    ...
+    UserWarning: For variable `par` at least one value needed to be trimmed.  \
+The old and the new value(s) are `4.0` and `3.0`, respectively.
+
+    >>> import numpy
+    >>> par.value = 0.0
+    >>> trim(par, lower=numpy.nan)
+    >>> par.value = 5.0
+    >>> trim(par, upper=numpy.nan)
+
+    >>> with pub.options.trimvariables(False):
+    ...     par(5.0)
+    >>> par
+    par(5.0)
+
+    >>> with pub.options.warntrim(False):
+    ...     par(5.0)
+    >>> par
+    par(3.0)
+
+    >>> del Par.SPAN
+    >>> par(5.0)
+    >>> par
+    par(5.0)
+
+    >>> Par.SPAN = (None, None)
+    >>> trim(par)
+    >>> par
+    par(5.0)
+
+
+    >>> Par.SPAN = 1.0, 3.0
+    >>> Par.NDIM = 2
+    >>> par.shape = 1, 3
+    >>> par(2.0)
+
+    >>> par(0.0, 1.0, 2.0)
+    Traceback (most recent call last):
+    ...
+    UserWarning: For variable `par` at least one value needed to be trimmed.  \
+The old and the new value(s) are `[[ 0.  1.  2.]]` and `[[ 1.  1.  2.]]`, \
+respectively.
+    >>> par
+    par([[1.0, 1.0, 2.0]])
+
+    >>> par(2.0, 3.0, 4.0)
+    Traceback (most recent call last):
+    ...
+    UserWarning: For variable `par` at least one value needed to be trimmed.  \
+The old and the new value(s) are `[[ 2.  3.  4.]]` and `[[ 2.  3.  3.]]`, \
+respectively.
+    >>> par
+    par([[2.0, 3.0, 3.0]])
+
+    >>> par.value = 1.0-1e-15, 2.0, 3.0+1e-15
+    >>> par.value == (1.0, 2.0, 3.0)
+    array([[False,  True, False]], dtype=bool)
+    >>> trim(par)
+    >>> par.value == (1.0, 2.0, 3.0)
+    array([[ True,  True,  True]], dtype=bool)
+
+    >>> par.value = 0.0, 2.0, 4.0
+    >>> trim(par, lower=numpy.nan, upper=numpy.nan)
+    >>> par
+    par([[0.0, 2.0, 4.0]])
+
+    >>> trim(par, lower=[numpy.nan, 3.0, 3.0])
+    Traceback (most recent call last):
+    ...
+    UserWarning: For variable `par` at least one value needed to be trimmed.  \
+The old and the new value(s) are `[[ 0.  2.  4.]]` and `[[ 0.  3.  3.]]`, \
+respectively.
+
+    >>> par.value = 0.0, 2.0, 4.0
+    >>> trim(par, upper=[numpy.nan, 1.0, numpy.nan])
+    Traceback (most recent call last):
+    ...
+    UserWarning: For variable `par` at least one value needed to be trimmed.  \
+The old and the new value(s) are `[[ 0.  2.  4.]]` and `[[ 1.  1.  4.]]`, \
+respectively.
+
+    >>> Par.TYPE = int
+    >>> Par.NDIM = 0
+    >>> Par.SPAN = 1, 3
+
+    >>> par(2)
+    >>> par
+    par(2)
+
+    >>> par(0)
+    Traceback (most recent call last):
+    ...
+    ValueError: The value `0` of parameter `par` of element `?` is not valid.
+    >>> par
+    par(0)
+    >>> par(4)
+    Traceback (most recent call last):
+    ...
+    ValueError: The value `4` of parameter `par` of element `?` is not valid.
+
+    >>> from hydpy import INT_NAN
+    >>> par.value = 0
+    >>> trim(par, lower=0)
+    >>> trim(par, lower=INT_NAN)
+
+    >>> par.value = 4
+    >>> trim(par, upper=4)
+    >>> trim(par, upper=INT_NAN)
+
+    >>> Par.SPAN = 1, None
+    >>> par(0)
+    Traceback (most recent call last):
+    ...
+    ValueError: The value `0` of parameter `par` of element `?` is not valid.
+    >>> par(4)
+
+    >>> Par.SPAN = None, 3
+    >>> par(0)
+    >>> par(4)
+    Traceback (most recent call last):
+    ...
+    ValueError: The value `4` of parameter `par` of element `?` is not valid.
+
+    >>> del Par.SPAN
+    >>> par(0)
+    >>> par(4)
+
+    >>> Par.SPAN = 1, 3
+    >>> Par.NDIM = 2
+    >>> par.shape = (1, 3)
+    >>> par(2)
+
+    >>> par(0, 1, 2)
+    Traceback (most recent call last):
+    ...
+    ValueError: At least one value of parameter `par` of element `?` \
+is not valid.
+    >>> par
+    par([[0, 1, 2]])
+    >>> par(2, 3, 4)
+    Traceback (most recent call last):
+     ...
+    ValueError: At least one value of parameter `par` of element `?` \
+is not valid.
+    >>> par
+    par([[2, 3, 4]])
+
+
+    >>> par.value = 0, 0, 2
+    >>> trim(par, lower=[0, INT_NAN, 2])
+
+    >>> par.value = 2, 4, 4
+    >>> trim(par, upper=[2, INT_NAN, 4])
+
+    >>> Par.TYPE = bool
+    >>> par.trim()
+
+    >>> Par.TYPE = str
+    >>> par.trim()
+    Traceback (most recent call last):
+    ...
+    NotImplementedError: Method `trim` can only be applied on parameters \
+handling floating point, integer, or boolean values, but the "value type" \
+of parameter `par` is `str`.
+
+    >>> pub.options.warntrim = False
     """
     if hydpy.pub.options.trimvariables:
         span = getattr(self, 'SPAN', (None, None))
@@ -70,8 +298,8 @@ def trim(self: 'Variable',
         else:
             raise NotImplementedError(
                 f'Method `trim` can only be applied on parameters '
-                f'handling integer or floating point values, but '
-                f'value type of parameter `{self.name}` is '
+                f'handling floating point, integer, or boolean values, '
+                f'but the "value type" of parameter `{self.name}` is '
                 f'`{objecttools.classname(self.TYPE)}`.')
 
 
@@ -83,13 +311,15 @@ def _trim_float_0d(self, lower, upper):
     if (upper is None) or numpy.isnan(upper):
         upper = numpy.inf
     if self < lower:
-        if (self + _get_tolerance(self)) < (lower - _get_tolerance(lower)):
-            _warn_trim(self, newvalue=lower)
+        old = self.value
         self.value = lower
+        if (old + _get_tolerance(old)) < (lower - _get_tolerance(lower)):
+            _warn_trim(self, oldvalue=old, newvalue=lower)
     elif self > upper:
-        if (self - _get_tolerance(self)) > (upper + _get_tolerance(upper)):
-            _warn_trim(self, newvalue=upper)
+        old = self.value
         self.value = upper
+        if (old - _get_tolerance(old)) > (upper + _get_tolerance(upper)):
+            _warn_trim(self, oldvalue=old, newvalue=upper)
 
 
 def _trim_float_nd(self, lower, upper):
@@ -104,24 +334,25 @@ def _trim_float_nd(self, lower, upper):
     idxs = numpy.where(numpy.isnan(self.values))
     self[idxs] = lower[idxs]
     if numpy.any(self.values < lower) or numpy.any(self.values > upper):
-        trimmedvalues = numpy.clip(self.values, lower, upper)
-        if (numpy.any((self + _get_tolerance(self)) <
+        old = self.values.copy()
+        trimmed = numpy.clip(self.values, lower, upper)
+        self.values = trimmed
+        if (numpy.any((old + _get_tolerance(old)) <
                       (lower - _get_tolerance(lower))) or
-                numpy.any((self - _get_tolerance(self)) >
+                numpy.any((old - _get_tolerance(old)) >
                           (upper + _get_tolerance(upper)))):
-            _warn_trim(self, newvalue=trimmedvalues)
-        self.values = trimmedvalues
+            _warn_trim(self, oldvalue=old, newvalue=trimmed)
     self[idxs] = numpy.nan
 
 
 def _trim_int_0d(self, lower, upper):
     if lower is None:
         lower = INT_NAN
-    if upper is None:
+    if (upper is None) or (upper == INT_NAN):
         upper = -INT_NAN
     if (self != INT_NAN) and ((self < lower) or (self > upper)):
         raise ValueError(
-            f'The value `self.value` of parameter '
+            f'The value `{self.value}` of parameter '
             f'{objecttools.elementphrase(self)} is not valid.')
 
 
@@ -132,6 +363,7 @@ def _trim_int_nd(self, lower, upper):
     if upper is None:
         upper = -INT_NAN
     upper = numpy.full(self.shape, upper, dtype=int)
+    upper[upper == INT_NAN] = -INT_NAN
     idxs = numpy.where(self.values == INT_NAN)
     self[idxs] = lower[idxs]
     if numpy.any(self.values < lower) or numpy.any(self.values > upper):
@@ -147,16 +379,16 @@ def _get_tolerance(values):
     return abs(values*1e-15)
 
 
-def _warn_trim(self, newvalue):
+def _warn_trim(self, oldvalue, newvalue):
     if hydpy.pub.options.warntrim:
         warnings.warn(
             f'For variable {objecttools.devicephrase(self)} at least one '
             f'value needed to be trimmed.  The old and the new value(s) '
-            f'are `{self.value}` and `{newvalue}`, respectively.')
+            f'are `{oldvalue}` and `{newvalue}`, respectively.')
 
 
 def _compare_variables_function_generator(
-        method_string, aggregation_func):   # ToDo: typing
+        method_string, aggregation_func):
     """Return a function that can be used as a comparison method of class
     |Variable|.
 
@@ -198,7 +430,7 @@ class Variable(abctools.VariableABC):
     The subclasses are required to provide the members as `NDIM` (usually
     a class attribute) and `value` (usually a property).  For testing
     purposes, we simply add them as class attributes to a copy of class
-    |Variable|. ToDo
+    |Variable|.
 
     >>> from hydpy.core.variabletools import Variable
     >>> class Var(Variable):
@@ -324,15 +556,16 @@ error occurred: operands could not be broadcast together with shapes (2,) (3,)
     def __call__(self, *args, **kwargs):
         """To be overridden."""
 
-    @property
+    @property   # type: ignore
+    # due to issue https://github.com/python/mypy/issues/4165
     @abc.abstractmethod
     def value(self) -> Union[float, int, numpy.ndarray]:
         """Actual value or |numpy.ndarray| of the actual values, to be
         defined by the subclasses of |Variable|."""
 
-    @value.setter
+    @value.setter   # type: ignore
     @abc.abstractmethod
-    def value(self, value):
+    def value(self, value: ValuesType) -> None:
         """To be overridden."""
 
     @property
@@ -341,8 +574,8 @@ error occurred: operands could not be broadcast together with shapes (2,) (3,)
         return self.value
 
     @values.setter
-    def values(self, values):
-        self.value = values
+    def values(self, values: ValuesType) -> None:
+        self.value = values   # type: ignore
 
     @property
     def shape(self) -> Tuple[int, ...]:
@@ -352,8 +585,9 @@ error occurred: operands could not be broadcast together with shapes (2,) (3,)
         For 0-dimensional sequences an empty tuple is returned.
         """
         if self.NDIM:
+            value: numpy.ndarray = self.value
             try:
-                return tuple(int(x) for x in self.value.shape)
+                return tuple(int(x) for x in value.shape)
             except AttributeError:
                 raise RuntimeError(
                     f'Shape information for variable '
@@ -363,7 +597,7 @@ error occurred: operands could not be broadcast together with shapes (2,) (3,)
             return ()
 
     @shape.setter
-    def shape(self, shape):
+    def shape(self, shape: Iterable[int]):
         if self.NDIM:
             array: numpy.ndarray
             try:
@@ -460,7 +694,7 @@ have not been set yet.
                 f'{nmbnan} required {text} not been set yet.')
 
     @property
-    def refweights(self) -> 'wrong':
+    def refweights(self) -> 'Variable':   # ToDo
         """Reference to a |Parameter| object that defines weighting
         coefficients (e.g. fractional areas) for applying
         |Variable.average_values|.  Must be overwritten by subclasses,
@@ -469,7 +703,7 @@ have not been set yet.
             f'Variable {objecttools.devicephrase(self)} does '
             f'not define any weighting coefficients.')
 
-    def average_values(self, *args, **kwargs):
+    def average_values(self, *args, **kwargs) -> float:
         """Average the actual values of the |Variable| object.
 
         For 0-dimensional |Variable| objects, the result of
@@ -640,11 +874,11 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
                 f'{objecttools.devicephrase(self)}')
 
     @property
-    def availablemasks(self):
+    def availablemasks(self) -> masktools.Masks:
         """|Masks| object provided by the corresponding |Model| object."""
         return self.subvars.vars.model.masks
 
-    def get_submask(self, *args, **kwargs):
+    def get_submask(self, *args, **kwargs) -> masktools.CustomMask:
         """Get a submask of the mask handled by the actual |Variable| object
         based on the given arguments.
 
@@ -897,7 +1131,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
     def __hash__(self):
         return id(self)
 
-    def commentrepr(self):
+    def commentrepr(self) -> List[str]:
         """Returns a list with comments, e.g. for making string
         representations more informative.  When `pub.options.reprcomments`
         is set to |False|, an empty list is returned.
@@ -907,7 +1141,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
                     textwrap.wrap(objecttools.description(self), 78)]
         return []
 
-    def to_repr(self, values, islong):
+    def to_repr(self, values: ValuesType, islong: bool) -> str:
         """Return a valid string representation of the actual |Variable|
         object."""
         prefix = f'{self.name}('
@@ -940,16 +1174,20 @@ class SubVariables:
     CLASSES = ()
     VARTYPE = None
 
-    def __init__(self, variables, cls_fastaccess=None, cymodel=None):
+    def __init__(self, variables, cls_fastaccess=None, cymodel=None):   # ToDo
         self.vars = variables
-        self._init_fastaccess(cls_fastaccess, cymodel)
+        self.init_fastaccess(cls_fastaccess, cymodel)
         for cls in self.CLASSES:
             setattr(self, objecttools.instancename(cls), cls())
 
     @property
-    def name(self):
+    @abc.abstractmethod
+    def name(self) -> str:
         """Must be implemented by subclasses."""
-        return NotImplementedError()
+
+    @abc.abstractmethod
+    def init_fastaccess(self, cls_fastaccess, cymodel):
+        """ToDo"""
 
     def __setattr__(self, name, value):
         """Attributes and methods should usually not be replaced.  Existing
@@ -974,8 +1212,7 @@ class SubVariables:
                     f'After initialization you should usually only '
                     f'change parameter values through assignements.  '
                     f'If you really need to replace a object member, '
-                    f'delete it beforehand.'
-                    % objecttools.classname(self))
+                    f'delete it beforehand.')
 
     def __iter__(self):
         for cls in self.CLASSES:

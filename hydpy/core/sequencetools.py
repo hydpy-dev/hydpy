@@ -274,7 +274,7 @@ class SubSequences(variabletools.SubVariables):
         variabletools.SubVariables.__init__(
             self, variables, cls_fastaccess, cymodel)
 
-    def _init_fastaccess(self, cls_fastaccess, cymodel):
+    def init_fastaccess(self, cls_fastaccess, cymodel):
         if cls_fastaccess is None:
             self.fastaccess = FastAccess()
         else:
@@ -374,8 +374,8 @@ class StateSequences(IOSequences):
     """Base class for handling state sequences."""
     CLASSES = ()
 
-    def _init_fastaccess(self, cls_fastaccess, cymodel):
-        IOSequences._init_fastaccess(self, cls_fastaccess, cymodel)
+    def init_fastaccess(self, cls_fastaccess, cymodel):
+        super().init_fastaccess(cls_fastaccess, cymodel)
         self.fastaccess_new = self.fastaccess
         if cls_fastaccess is None:
             self.fastaccess_old = FastAccess()
@@ -1980,7 +1980,7 @@ class NodeSequences(IOSequences):
         super().__init__(seqs, cls_fastaccess)
         self.node = seqs
 
-    def _init_fastaccess(self, cls_fastaccess=None, cymodel=None):
+    def init_fastaccess(self, cls_fastaccess=None, cymodel=None):
         if cls_fastaccess is None:
             self.fastaccess = FastAccessNode()
         else:

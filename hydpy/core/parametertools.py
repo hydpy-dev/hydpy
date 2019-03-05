@@ -272,7 +272,7 @@ parameter class nor a parameter instance.
         variabletools.SubVariables.__init__(
             self, variables, cls_fastaccess, cymodel)
 
-    def _init_fastaccess(self, cls_fastaccess, cymodel):
+    def init_fastaccess(self, cls_fastaccess, cymodel):
         if cls_fastaccess is None:
             self.fastaccess = objecttools.FastAccess()
         else:

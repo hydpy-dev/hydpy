@@ -1509,25 +1509,7 @@ into shape (3)
         return objecttools.dir_(self) + [str(toy) for (toy, dummy) in self]
 
 
-class KeywordParameter2DType(type):
-    """Add the construction of `_ROWCOLMAPPING` to :class:`type`."""
-
-    def __new__(cls, name, parents, dict_):
-        rownames = dict_.get('ROWNAMES', getattr(parents[0], 'ROWNAMES', ()))
-        colnames = dict_.get('COLNAMES', getattr(parents[0], 'COLNAMES', ()))
-        rowcolmappings = {}
-        for (idx, rowname) in enumerate(rownames):
-            for (jdx, colname) in enumerate(colnames):
-                rowcolmappings['_'.join((rowname, colname))] = (idx, jdx)
-        dict_['_ROWCOLMAPPINGS'] = rowcolmappings
-        return type.__new__(cls, name, parents, dict_)
-
-
-KeywordParameter2DMetaclass = KeywordParameter2DType(
-    'KeywordParameter2DMetaclass', (MultiParameter,), {})
-
-
-class KeywordParameter2D(KeywordParameter2DMetaclass):
+class KeywordParameter2D(MultiParameter):
     """Base class for 2-dimensional model parameters which values which depend
     on two factors.
 
@@ -1639,8 +1621,19 @@ following error occurred: index 1 is out of bounds for axis 0 with size 1
     ROWNAMES = ()
     COLNAMES = ()
 
+    def __init__(self, *arg, **kwargs):
+        if not hasattr(type(self), '_ROWCOLMAPPINGS'):
+            rownames = self.ROWNAMES
+            colnames = self.COLNAMES
+            rowcolmappings = {}
+            for (idx, rowname) in enumerate(rownames):
+                for (jdx, colname) in enumerate(colnames):
+                    rowcolmappings['_'.join((rowname, colname))] = (idx, jdx)
+            type(self)._ROWCOLMAPPINGS = rowcolmappings
+        super().__init__(*arg, **kwargs)
+
     def connect(self, subpars):
-        MultiParameter.connect(self, subpars)
+        super().connect(subpars)
         self.shape = (len(self.ROWNAMES), len(self.COLNAMES))
 
     def __call__(self, *args, **kwargs):
@@ -1701,7 +1694,7 @@ following error occurred: index 1 is out of bounds for axis 0 with size 1
                     'element `%s` via the row and column related attribute '
                     '`%s`' % (self.name, objecttools.devicename(self), key))
         else:
-            return MultiParameter.__getattr__(self, key)
+            return super().__getattr__(key)
 
     def __setattr__(self, key, values):
         if key in self.ROWNAMES:
@@ -1730,7 +1723,7 @@ following error occurred: index 1 is out of bounds for axis 0 with size 1
                     'element `%s` via the row and column related attribute '
                     '`%s`' % (self.name, objecttools.devicename(self), key))
         else:
-            MultiParameter.__setattr__(self, key, values)
+            super().__setattr__(key, values)
 
     def __dir__(self):
         return (objecttools.dir_(self) + list(self.ROWNAMES) +

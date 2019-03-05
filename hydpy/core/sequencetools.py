@@ -1246,8 +1246,8 @@ or prepare `pub.sequencemanager` correctly.
         ...     [190.0, 390.0, 490.0],
         ...     [200.0, 400.0, 500.0],
         ...     [210.0, 410.0, 510.0])
-        >>> from hydpy.core.variabletools import Variable
-        >>> class Area(Variable):
+        >>> from hydpy.core.parametertools import Parameter
+        >>> class Area(Parameter):
         ...     NDIM = 1
         ...     shape = (3,)
         ...     value = numpy.array([1.0, 1.0, 2.0])

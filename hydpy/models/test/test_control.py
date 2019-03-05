@@ -7,7 +7,7 @@
 from hydpy.core import parametertools
 
 
-class K(parametertools.SingleParameter):
+class K(parametertools.Parameter):
     """Storage coefficient [1/T].
 
     For educational purposes, the actual value of parameter |K| does

@@ -2,17 +2,21 @@
 """This module implements general features for defining and working with
 parameters and sequences.
 
+>>> from hydpy import pub
+>>> pub.options.reprdigits = 6
+
+
 Features more specific to either parameters or sequences are implemented
 in modules |parametertools| and |sequencetools| respectively.
 """
 # import...
 # ...from standard library
-from typing import Any, ClassVar, Tuple, TypeVar, Union
 import abc
 import copy
 import inspect
 import textwrap
 import warnings
+from typing import *
 # ...from site-packages
 import numpy
 # ...from HydPy
@@ -22,14 +26,14 @@ from hydpy.core import masktools
 from hydpy.core import objecttools
 
 
-Number = TypeVar('Number', int, float)
-
-INT_NAN = -999999
+INT_NAN: int = -999999
 """Surrogate for `nan`, which is available for floating point values
 but not for integer values."""
 
 
-def trim(self, lower=None, upper=None):
+def trim(self: 'Variable',
+         lower: Union[float, int, numpy.ndarray, None] = None,
+         upper: Union[float, int, numpy.ndarray, None] = None) -> None:
     """Trim the value(s) of a |Variable| instance.
 
     One can pass the lower and/or the upper boundary as a function
@@ -38,10 +42,9 @@ def trim(self, lower=None, upper=None):
 
     Note that method |trim| works differently on |Variable| instances
     handling values of different types.  For floating point values,
-
     an actual trimming is performed.  Additionally, a warning message is
     raised if the trimming results in a change in value exceeding the
-    threshold value defined by function |tolerance|.  (This warning
+    threshold value defined by function "tolerance" ToDo.  (This warning
     message can be suppressed by setting the related option flag to False.)
     For integer values, instead of a warning an exception is raised.
     """
@@ -66,10 +69,10 @@ def trim(self, lower=None, upper=None):
             pass
         else:
             raise NotImplementedError(
-                'Method `trim` can only be applied on parameters '
-                'handling integer or floating point values, but '
-                'value type of parameter `%s` is `%s`.'
-                % (self.name, objecttools.classname(self.TYPE)))
+                f'Method `trim` can only be applied on parameters '
+                f'handling integer or floating point values, but '
+                f'value type of parameter `{self.name}` is '
+                f'`{objecttools.classname(self.TYPE)}`.')
 
 
 def _trim_float_0d(self, lower, upper):
@@ -80,11 +83,11 @@ def _trim_float_0d(self, lower, upper):
     if (upper is None) or numpy.isnan(upper):
         upper = numpy.inf
     if self < lower:
-        if (self+tolerance(self)) < (lower-tolerance(lower)):
+        if (self + _get_tolerance(self)) < (lower - _get_tolerance(lower)):
             _warn_trim(self, newvalue=lower)
         self.value = lower
     elif self > upper:
-        if (self-tolerance(self)) > (upper+tolerance(upper)):
+        if (self - _get_tolerance(self)) > (upper + _get_tolerance(upper)):
             _warn_trim(self, newvalue=upper)
         self.value = upper
 
@@ -102,11 +105,11 @@ def _trim_float_nd(self, lower, upper):
     self[idxs] = lower[idxs]
     if numpy.any(self.values < lower) or numpy.any(self.values > upper):
         trimmedvalues = numpy.clip(self.values, lower, upper)
-        if (numpy.any((self+tolerance(self)) <
-                      (lower-tolerance(lower))) or
-                numpy.any((self-tolerance(self)) >
-                          (upper+tolerance(upper)))):
-                _warn_trim(self, newvalue=trimmedvalues)
+        if (numpy.any((self + _get_tolerance(self)) <
+                      (lower - _get_tolerance(lower))) or
+                numpy.any((self - _get_tolerance(self)) >
+                          (upper + _get_tolerance(upper)))):
+            _warn_trim(self, newvalue=trimmedvalues)
         self.values = trimmedvalues
     self[idxs] = numpy.nan
 
@@ -118,11 +121,11 @@ def _trim_int_0d(self, lower, upper):
         upper = -INT_NAN
     if (self != INT_NAN) and ((self < lower) or (self > upper)):
         raise ValueError(
-            'The value `%d` of parameter `%s` of element `%s` is not valid.  '
-            % (self.value, self.name, objecttools.devicename(self)))
+            f'The value `self.value` of parameter '
+            f'{objecttools.elementphrase(self)} is not valid.')
 
 
-def _trim_int_nd(self, lower, upper) -> None:
+def _trim_int_nd(self, lower, upper):
     if lower is None:
         lower = INT_NAN
     lower = numpy.full(self.shape, lower, dtype=int)
@@ -133,12 +136,12 @@ def _trim_int_nd(self, lower, upper) -> None:
     self[idxs] = lower[idxs]
     if numpy.any(self.values < lower) or numpy.any(self.values > upper):
         raise ValueError(
-            'At least one value of parameter `%s` of element `%s` is not '
-            'valid.' % (self.name, objecttools.devicename(self)))
+            f'At least one value of parameter '
+            f'{objecttools.elementphrase(self)} is not valid.')
     self[idxs] = INT_NAN
 
 
-def tolerance(values) -> float:
+def _get_tolerance(values):
     """Return some sort of "numerical accuracy" to be expected for the
     given floating point value (see method |trim|)."""
     return abs(values*1e-15)
@@ -179,14 +182,13 @@ def _compare_variables_function_generator(
                 return result
         except BaseException:
             objecttools.augment_excmessage(
-                'While trying to compare variable `{0!r}` of '
-                'element `{1}` with object `{2}` of type `{3}`'
-                .format(self, objecttools.devicename(self),
-                        other, objecttools.classname(other)))
+                f'While trying to compare variable '
+                f'{objecttools.elementphrase(self)} with object '
+                f'`{other}` of type `{objecttools.classname(other)}`')
     return comparison_function
 
 
-class Variable(object):   # ToDo: use ABCMeta
+class Variable(abctools.VariableABC):
     """Base class for |Parameter| and |Sequence|.
 
     This base class implements special methods for arithmetic calculations,
@@ -196,32 +198,36 @@ class Variable(object):   # ToDo: use ABCMeta
     The subclasses are required to provide the members as `NDIM` (usually
     a class attribute) and `value` (usually a property).  For testing
     purposes, we simply add them as class attributes to a copy of class
-    |Variable|.
+    |Variable|. ToDo
 
-    >>> from hydpy.core.objecttools import copy_class
     >>> from hydpy.core.variabletools import Variable
-    >>> Variable = copy_class(Variable)
-    >>> variable = Variable()
+    >>> class Var(Variable):
+    ...     NDIM = None
+    ...     shape = None
+    ...     value = None
+    ...     __call__ = None
+
+    >>> var = Var()
 
     A few examples for 0-dimensional objects:
 
-    >>> Variable.NDIM = 0
-    >>> Variable.shape = ()
-    >>> Variable.value = 2.0
-    >>> variable + variable
+    >>> var.NDIM = 0
+    >>> var.shape = ()
+    >>> var.value = 2.0
+    >>> var + var
     4.0
-    >>> 3.0 - variable
+    >>> 3.0 - var
     1.0
-    >>> variable /= 2.
-    >>> variable
-    variable(1.0)
-    >>> variable[0] = 2.0 * variable[:]
-    >>> variable[0]
+    >>> var /= 2.0
+    >>> var
+    var(1.0)
+    >>> var[0] = 2.0 * var[:]
+    >>> var[0]
     2.0
-    >>> variable[1]
+    >>> var[1]
     Traceback (most recent call last):
     ...
-    IndexError: While trying to access the value(s) of variable `variable` \
+    IndexError: While trying to access the value(s) of variable `var` \
 with key `1`, the following error occurred: The only allowed keys for \
 0-dimensional variables are `0` and `:`.
 
@@ -229,23 +235,23 @@ with key `1`, the following error occurred: The only allowed keys for \
     Similar examples for 1-dimensional objects:
 
     >>> import numpy
-    >>> Variable.NDIM = 1
-    >>> Variable.shape = (3,)
-    >>> variable.value = numpy.array([1.0, 2.0, 3.0])
-    >>> print(variable + variable)
+    >>> var.NDIM = 1
+    >>> var.shape = (3,)
+    >>> var.value = numpy.array([1.0, 2.0, 3.0])
+    >>> print(var + var)
     [ 2.  4.  6.]
-    >>> print(3. - variable)
+    >>> print(3. - var)
     [ 2.  1.  0.]
-    >>> variable /= 2.
-    >>> variable
-    variable(0.5, 1.0, 1.5)
-    >>> variable[:] = variable[1]
-    >>> variable[:2]
+    >>> var /= 2.
+    >>> var
+    var(0.5, 1.0, 1.5)
+    >>> var[:] = var[1]
+    >>> var[:2]
     array([ 1.,  1.])
-    >>> variable[:] = 'test'
+    >>> var[:] = 'test'
     Traceback (most recent call last):
     ...
-    ValueError: While trying to set the value(s) of variable `variable` \
+    ValueError: While trying to set the value(s) of variable `var` \
 with key `slice(None, None, None)`, the following error occurred: \
 could not convert string to float: 'test'
 
@@ -253,60 +259,60 @@ could not convert string to float: 'test'
     Note that comparisons on |Variable| objects containg multiple
     values return a single boolean only:
 
-    >>> variable.value = numpy.array([1.0, 3.0])
-    >>> variable == [0.0, 2.0], variable == [1.0, 2.0], variable == [1.0, 3.0]
+    >>> var.value = numpy.array([1.0, 3.0])
+    >>> var == [0.0, 2.0], var == [1.0, 2.0], var == [1.0, 3.0]
     (False, False, True)
-    >>> variable != [0.0, 2.0], variable != [1.0, 2.0], variable != [1.0, 3.0]
+    >>> var != [0.0, 2.0], var != [1.0, 2.0], var != [1.0, 3.0]
     (True, True, False)
 
     While either the `==` or the `!=` operator returns `True` (but not both),
     this must not be the case for the operator pairs `<`and `>=` as well as
     `>` and `<=`:
 
-    >>> variable < 2.0, variable < 3.0, variable < 4.0
+    >>> var < 2.0, var < 3.0, var < 4.0
     (False, False, True)
-    >>> variable <= 2.0, variable <= 3.0, variable <= 4.0
+    >>> var <= 2.0, var <= 3.0, var <= 4.0
     (False, True, True)
-    >>> variable >= 0.0, variable >= 1.0, variable >= 2.0
+    >>> var >= 0.0, var >= 1.0, var >= 2.0
     (True, True, False)
-    >>> variable > 0.0, variable > 1.0, variable > 2.0
+    >>> var > 0.0, var > 1.0, var > 2.0
     (True, False, False)
 
     When asking for impossible comparisons, error messages like the following
     are returned:
 
-    >>> variable < [1.0, 2.0, 3.0]   # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> var < [1.0, 2.0, 3.0]   # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ...
-    ValueError: While trying to compare variable `variable(1.0, 3.0)` of \
+    ValueError: While trying to compare variable `var(1.0, 3.0)` of \
 element `?` with object `[1.0, 2.0, 3.0]` of type `list`, the following \
 error occurred: operands could not be broadcast together with shapes (2,) (3,)
 
-    >>> Variable.NDIM = 0
-    >>> Variable.value = 1.0
-    >>> variable < 'text'
+    >>> Var.NDIM = 0
+    >>> Var.value = 1.0
+    >>> var < 'text'
     Traceback (most recent call last):
     ...
-    TypeError: '<' not supported between instances of 'Variable' and 'str'
+    TypeError: '<' not supported between instances of 'Var' and 'str'
 
     The |len| operator always returns the total number of values handles
     by the variable according to the current shape:
 
-    >>> Variable.shape = ()
-    >>> len(Variable())
+    >>> var.shape = ()
+    >>> len(var)
     1
-    >>> Variable.shape = (5,)
-    >>> len(Variable())
+    >>> var.shape = (5,)
+    >>> len(var)
     5
-    >>> Variable.shape = (2, 1, 4)
-    >>> len(variable)
+    >>> var.shape = (2, 1, 4)
+    >>> len(var)
     8
     """
     # Subclasses need to define...
     NDIM: ClassVar[int]
     TYPE: ClassVar[type]
     # ...and optionally...
-    INIT: ClassVar[Number]
+    INIT: ClassVar[Union[int, float]]
 
     initvalue: Union[float, int]
     fastaccess: Any
@@ -316,7 +322,7 @@ error occurred: operands could not be broadcast together with shapes (2,) (3,)
 
     @abc.abstractmethod
     def __call__(self, *args, **kwargs):
-        ...
+        """To be overridden."""
 
     @property
     @abc.abstractmethod
@@ -327,7 +333,7 @@ error occurred: operands could not be broadcast together with shapes (2,) (3,)
     @value.setter
     @abc.abstractmethod
     def value(self, value):
-        ...
+        """To be overridden."""
 
     @property
     def values(self) -> Union[float, int, numpy.ndarray]:
@@ -350,9 +356,9 @@ error occurred: operands could not be broadcast together with shapes (2,) (3,)
                 return tuple(int(x) for x in self.value.shape)
             except AttributeError:
                 raise RuntimeError(
-                    'Shape information for variable %s can only be '
-                    'retrieved after it has been defined.'
-                    % objecttools.devicephrase(self))
+                    f'Shape information for variable '
+                    f'{objecttools.devicephrase(self)} can only '
+                    f'be retrieved after it has been defined.')
         else:
             return ()
 
@@ -364,22 +370,21 @@ error occurred: operands could not be broadcast together with shapes (2,) (3,)
                 array = numpy.full(shape, self.initvalue, dtype=self.TYPE)
             except BaseException:
                 objecttools.augment_excmessage(
-                    'While trying create a new numpy ndarray` for variable %s'
-                    % objecttools.devicephrase(self))
+                    f'While trying create a new numpy ndarray` for variable '
+                    f'{objecttools.devicephrase(self)}')
             if array.ndim == self.NDIM:
                 setattr(self.fastaccess, self.name, array)
             else:
                 raise ValueError(
-                    'Variable %s is %d-dimensional, but the given '
-                    'shape indicates %d dimensions.'
-                    % (objecttools.devicephrase(self),
-                       self.NDIM, array.ndim))
+                    f'Variable {objecttools.devicephrase(self)} is '
+                    f'{self.NDIM}-dimensional, but the given '
+                    f'shape indicates `{array.ndim}` dimensions.')
         else:
             if shape:
                 raise ValueError(
-                    'The shape information of 0-dimensional variables '
-                    'as %s can only be `()`, but `%s` is given.'
-                    % (objecttools.devicephrase(self), shape))
+                    f'The shape information of 0-dimensional variables '
+                    f'as {objecttools.devicephrase(self)} can only be `()`, '
+                    f'but `{shape}` is given.')
             # else:  ToDo
             #     self.value = self.initvalue
 
@@ -394,57 +399,54 @@ error occurred: operands could not be broadcast together with shapes (2,) (3,)
 
     def _arithmetic_exception(self, verb, other):
         objecttools.augment_excmessage(
-            'While trying to %s %s instance `%s` and %s `%s`'
-            % (verb, objecttools.classname(self), self.name,
-               objecttools.classname(other), other))
+            f'While trying to {verb} variable {objecttools.devicephrase(self)} '
+            f'and `{objecttools.classname(other)}` instance `{other}`')
 
     name = property(objecttools.name)
 
-    def verify(self):
+    def verify(self) -> None:
         """Raises a |RuntimeError| if at least one of the required values
         of a |Variable| object is |None| or |numpy.nan|. Descripter
         `mask` defines, which values are considered to be necessary.
 
         Example on a 0-dimensional |Variable|:
 
-        >>> from hydpy.core.objecttools import copy_class
         >>> from hydpy.core.variabletools import Variable
-        >>> Variable = copy_class(Variable)
-        >>> variable = Variable()
+        >>> class Var(Variable):
+        ...     shape = None
+        ...     value = None
+        ...     __call__ = None
+        >>> var = Var()
         >>> import numpy
-        >>> Variable.shape = ()
-        >>> Variable.value = 1.0
-        >>> variable.verify()
-        >>> Variable.value = numpy.nan
-        >>> variable.verify()
+        >>> var.shape = ()
+        >>> var.value = 1.0
+        >>> var.verify()
+        >>> var.value = numpy.nan
+        >>> var.verify()
         Traceback (most recent call last):
         ...
-        RuntimeError: For variable `variable`, 1 required value \
-has not been set yet.
+        RuntimeError: For variable `var`, 1 required value has not been set yet.
 
         Example on a 2-dimensional |Variable|:
 
-        >>> Variable = copy_class(Variable)
-        >>> variable = Variable()
-        >>> Variable.shape = (2, 3)
-        >>> Variable.value = numpy.ones((2,3))
-        >>> Variable.value[:, 1] = numpy.nan
-        >>> variable.verify()
+        >>> var.shape = (2, 3)
+        >>> var.value = numpy.ones((2,3))
+        >>> var.value[:, 1] = numpy.nan
+        >>> var.verify()
         Traceback (most recent call last):
         ...
-        RuntimeError: For variable `variable`, 2 required values \
+        RuntimeError: For variable `var`, 2 required values \
 have not been set yet.
 
-        >>> Variable.mask = variable.mask
-        >>> Variable.mask[0, 1] = False
-        >>> variable.verify()
+        >>> Var.mask = var.mask
+        >>> Var.mask[0, 1] = False
+        >>> var.verify()
         Traceback (most recent call last):
         ...
-        RuntimeError: For variable `variable`, 1 required value \
-has not been set yet.
+        RuntimeError: For variable `var`, 1 required value has not been set yet.
 
-        >>> Variable.mask[1, 1] = False
-        >>> variable.verify()
+        >>> Var.mask[1, 1] = False
+        >>> var.verify()
         """
         nmbnan: int = numpy.sum(numpy.isnan(
             numpy.array(self.value)[self.mask]))
@@ -454,19 +456,18 @@ has not been set yet.
             else:
                 text = 'values have'
             raise RuntimeError(
-                'For variable %s, %d required %s '
-                'not been set yet.'
-                % (objecttools.devicephrase(self), nmbnan, text))
+                f'For variable {objecttools.devicephrase(self)}, '
+                f'{nmbnan} required {text} not been set yet.')
 
     @property
-    def refweights(self):
+    def refweights(self) -> 'wrong':
         """Reference to a |Parameter| object that defines weighting
         coefficients (e.g. fractional areas) for applying
         |Variable.average_values|.  Must be overwritten by subclasses,
         when required."""
         raise AttributeError(
-            'Variable %s does not define any weighting coefficients.'
-            % objecttools.devicephrase(self))
+            f'Variable {objecttools.devicephrase(self)} does '
+            f'not define any weighting coefficients.')
 
     def average_values(self, *args, **kwargs):
         """Average the actual values of the |Variable| object.
@@ -482,6 +483,7 @@ has not been set yet.
         ...     value = 200.0
         ...     refweigths = None
         ...     availablemasks = None
+        ...     __call__ = None
         >>> sm = SoilMoisture()
         >>> sm.average_values()
         200.0
@@ -501,7 +503,7 @@ of variable `soilmoisture`, the following error occurred: Variable \
 `soilmoisture` does not define any weighting coefficients.
 
         So model developers have to define another (in this case
-        1-dimensional) |Variable| subclass (usually a |MultiParameter|
+        1-dimensional) |Variable| subclass (usually a |Parameter| ToDo
         subclass), and make the relevant object available via property
         |Variable.refweights|:
 
@@ -509,6 +511,7 @@ of variable `soilmoisture`, the following error occurred: Variable \
         ...     NDIM = 1
         ...     shape = (3,)
         ...     value = numpy.array([1.0, 1.0, 2.0])
+        ...     __call__ = None
         >>> area = Area()
         >>> SoilMoisture.refweights = property(lambda self: area)
         >>> sm.average_values()
@@ -605,7 +608,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         Again, one can apply the mask class directly (but note that one
         has to pass the variable relevant variable as the first argument.):
 
-        >>> sm.average_values(
+        >>> sm.average_values(   # doctest: +ELLIPSIS
         ...     sm.availablemasks.allornothing(sm, complete=True))
         Traceback (most recent call last):
         ...
@@ -633,8 +636,8 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             return numpy.nan
         except BaseException:
             objecttools.augment_excmessage(
-                'While trying to calculate the mean value of variable %s'
-                % objecttools.devicephrase(self))
+                f'While trying to calculate the mean value of variable '
+                f'{objecttools.devicephrase(self)}')
 
     @property
     def availablemasks(self):
@@ -657,9 +660,9 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
                 mask = mask + self._prepare_mask(key, masks, **value)
             if mask not in self.mask:
                 raise ValueError(
-                    'Based on the arguments `%s` and `%s` the mask `%s` '
-                    'has been determined, which is not a submask of `%s`.'
-                    % (args, kwargs, repr(mask), repr(self.mask)))
+                    f'Based on the arguments `{args}` and `{kwargs}` '
+                    f'the mask `{repr(mask)}` has been determined, '
+                    f'which is not a submask of `{repr(self.mask)}`.')
         else:
             mask = self.mask
         return mask
@@ -688,9 +691,8 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             return self.value
         except BaseException:
             objecttools.augment_excmessage(
-                'While trying to access the value(s) of '
-                'variable %s with key `%s`'
-                % (objecttools.devicephrase(self), key))
+                f'While trying to access the value(s) of variable '
+                f'{objecttools.devicephrase(self)} with key `{key}`')
 
     def __setitem__(self, key, value):
         try:
@@ -701,9 +703,8 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
                 self.value = value
         except BaseException:
             objecttools.augment_excmessage(
-                'While trying to set the value(s) of variable %s '
-                'with key `%s`'
-                % (objecttools.devicephrase(self), key))
+                f'While trying to set the value(s) of variable '
+                f'{objecttools.devicephrase(self)} with key `{key}`')
 
     @staticmethod
     def _check_key(key):
@@ -864,18 +865,16 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         if not self.NDIM:
             if isinstance(type_, type):
                 return type_(self.value)
-            else:
-                attr = getattr(self.value, type_)
-                try:
-                    return attr()
-                except TypeError:
-                    return attr
+            attr = getattr(self.value, type_)
+            try:
+                return attr()
+            except TypeError:
+                return attr
         else:
             raise TypeError(
-                'The %s instance `%s` is %d-dimensional and thus '
-                'cannot be converted to a scalar %s value.'
-                % (objecttools.classname(self), self.name,
-                   self.NDIM, objecttools.classname(type_)))
+                f'The variable {objecttools.devicephrase(self)} is '
+                f'{self.NDIM}-dimensional and thus cannot be converted '
+                f'to a scalar {objecttools.classname(type_)} value.')
 
     def __bool__(self):
         return self._typeconversion(bool)
@@ -904,16 +903,16 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         is set to |False|, an empty list is returned.
         """
         if hydpy.pub.options.reprcomments:
-            return ['# %s' % line for line in
+            return [f'# {line}' for line in
                     textwrap.wrap(objecttools.description(self), 78)]
         return []
 
     def to_repr(self, values, islong):
         """Return a valid string representation of the actual |Variable|
         object."""
-        prefix = '%s(' % self.name
+        prefix = f'{self.name}('
         if self.NDIM == 0:
-            string = '%s(%s)' % (self.name, objecttools.repr_(values))
+            string = f'{self.name}({objecttools.repr_(values)})'
         elif self.NDIM == 1:
             if islong:
                 string = objecttools.assignrepr_list(values, prefix, 75) + ')'
@@ -924,16 +923,13 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             string = objecttools.assignrepr_list2(values, prefix, 75) + ')'
         else:
             raise NotImplementedError(
-                '`repr` does not yet support parameters or sequences like `%s`'
-                'of element `%s` which handle %d-dimensional matrices.'
-                % self.NDIM)
+                f'`repr` does not yet support parameters or sequences '
+                f'like {objecttools.devicephrase(self)} which handle '
+                f'{self.NDIM}-dimensional matrices.')
         return '\n'.join(self.commentrepr() + [string])
 
     def __repr__(self):
         return self.to_repr(self.value, False)
-
-
-abctools.VariableABC.register(Variable)
 
 
 class SubVariables:
@@ -973,11 +969,12 @@ class SubVariables:
                 attr.value = value
             except AttributeError:
                 raise RuntimeError(
-                    '`%s` instances do not allow the direct replacement of '
-                    'their members.  After initialization you should usually '
-                    'only change parameter values through assignements.  '
-                    'If you really need to replace a object member, '
-                    'delete it beforehand.'
+                    f'`{objecttools.classname(self)}` instances do not '
+                    f'allow the direct replacement of their members.  '
+                    f'After initialization you should usually only '
+                    f'change parameter values through assignements.  '
+                    f'If you really need to replace a object member, '
+                    f'delete it beforehand.'
                     % objecttools.classname(self))
 
     def __iter__(self):
@@ -997,22 +994,21 @@ class SubVariables:
             pass
         name = objecttools.instancename(self.VARTYPE)[:-3]
         raise TypeError(
-            'The given %s is neither a %s class nor a %s instance.'
-            % (objecttools.value_of_type(variable), name, name))
+            f'The given {objecttools.value_of_type(variable)} is '
+            f'neither a {name} class nor a {name} instance.')
 
     def __repr__(self):
         lines = []
         if hydpy.pub.options.reprcomments:
-            lines.append('# %s object defined in module %s.'
-                         % (objecttools.classname(self),
-                            objecttools.modulename(self)))
+            lines.append(f'# {objecttools.classname(self)} object defined '
+                         f'in module {objecttools.modulename(self)}.')
             lines.append('# The implemented variables with their actual '
                          'values are:')
         for variable in self:
             try:
-                lines.append('%s' % repr(variable))
+                lines.append(repr(variable))
             except BaseException:
-                lines.append('%s(?)' % variable.name)
+                lines.append(f'{variable.name}(?)')
         return '\n'.join(lines)
 
     def __dir__(self):

@@ -77,18 +77,10 @@ class DevicesHandlerProtocol(Protocol):
 
 class VariableABC(abc.ABC):
     """See class |Variable|."""
-    value: Union[float, int, numpy.ndarray]
-    values: Union[float, int, numpy.ndarray]
-    initvalue: Union[float, int]
-    fastaccess: Any
 
 
 class ParametersABC(abc.ABC):
     """See class |Parameters|."""
-
-    @abc.abstractmethod
-    def update(self) -> None:
-        ...
 
 
 class ParameterABC(VariableABC):

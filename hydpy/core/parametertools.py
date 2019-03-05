@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 """This module implements tools for handling the parameters of
 hydrological models.
+
+>>> from hydpy import pub
+>>> pub.options.reprdigits = 6
 """
 # import...
 # ...from standard library
 import inspect
 import time
 import warnings
+from typing import *
 # ...from site-packages
 import numpy
 # ...from HydPy
@@ -112,7 +116,7 @@ class Constants(dict):
                     value.__doc__ = doc
 
 
-class Parameters(object):
+class Parameters:
     """Base class for handling all parameters of a specific model."""
 
     _NAMES_SUBPARS = ('control', 'derived', 'solver')
@@ -224,11 +228,15 @@ class SubParameters(variabletools.SubVariables):
     `ControlParameters` or `DerivedParameters` respectivly.  This should be
     done via the `CLASSES` tuple in the following manner:
 
-    >>> from hydpy.core.parametertools import SingleParameter, SubParameters
-    >>> class Par2(SingleParameter):
+    >>> from hydpy.core.parametertools import Parameter, SubParameters
+    >>> class Par2(Parameter):
     ...     'Parameter 2 [-]'
-    >>> class Par1(SingleParameter):
+    ...     NDIM = 1
+    ...     TYPE = float
+    >>> class Par1(Parameter):
     ...     'Parameter 1 [-]'
+    ...     NDIM = 1
+    ...     TYPE = float
     >>> class ControlParameters(SubParameters):
     ...     'Control Parameters'
     ...     CLASSES = (Par2,
@@ -248,7 +256,7 @@ class SubParameters(variabletools.SubVariables):
     True
     >>> Par1() in control
     True
-    >>> SingleParameter in control
+    >>> Parameter in control
     False
     >>> 1 in control
     Traceback (most recent call last):
@@ -315,7 +323,7 @@ class _Period(timetools.Period):
         return self
 
 
-class _Stepsize(object):
+class _Stepsize:
     """Base class of the descriptor classes |Parameterstep| and
     |Simulationstep|."""
 
@@ -507,8 +515,10 @@ been defined.
         return period
 
 
-class Parameter(variabletools.Variable):
-    """Base class for |SingleParameter| and |MultiParameter|."""
+class Parameter(variabletools.Variable, abctools.ParameterABC):
+    """Base class for ToDo."""
+
+    TIME: ClassVar[Optional[bool]]
 
     NOT_DEEPCOPYABLE_MEMBERS = ('subpars', 'fastaccess')
     TYPE2INITVALUE = {float: numpy.nan,
@@ -602,7 +612,7 @@ class Parameter(variabletools.Variable):
         a parameter object and connecting it to a |SubParameters| object:
 
         >>> from hydpy.core import parametertools
-        >>> class Test(parametertools.SingleParameter):
+        >>> class Test(parametertools.Parameter):
         ...     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
         ...     INIT = 2.0
         >>> def prepare():
@@ -762,132 +772,126 @@ available.
         return objecttools.dir_(self)
 
 
-abctools.ParameterABC.register(Parameter)
-
-
-class SingleParameter(Parameter):
-    """Base class for model parameters handling a single value."""
-    NDIM, TYPE, TIME, SPAN, INIT = 0, float, None, (None, None), None
 
     def connect(self, subpars):
         self.subpars = subpars
         self.fastaccess = subpars.fastaccess
-        setattr(self.fastaccess, self.name, self.initvalue)
+        if self.NDIM:
+            setattr(self.fastaccess, self.name, None)
+        else:
+            setattr(self.fastaccess, self.name, self.initvalue)
+
 
     @property
     def value(self):
         """The actual parameter value handled by the respective
-        |SingleParameter| instance.
+        |Parameter| instance.
 
-        >>> from hydpy.core.parametertools import SingleParameter
-        >>> sp = SingleParameter()
-        >>> sp.value = 3
-        >>> sp.value
+        >>> from hydpy.core.parametertools import Parameter
+        >>> class Par(Parameter):
+        ...     NDIM = 0
+        ...     TIME = None
+        ...     TYPE = float
+        >>> par = Par()
+        >>> par.value = 3
+        >>> par.value
         3.0
 
-        >>> sp.value = [2.0]
-        >>> sp.value
+        >>> par.value = [2.0]
+        >>> par.value
         2.0
 
-        >>> sp.value = 1.0, 1.0
+        >>> par.value = 1.0, 1.0
         Traceback (most recent call last):
         ...
         ValueError: 2 values are assigned to the scalar parameter \
-`singleparameter` of element `?`, which is ambiguous.
+`par` of element `?`, which is ambiguous.
 
-        >>> sp.value = 'O'
+        >>> par.value = 'O'
         Traceback (most recent call last):
         ...
-        TypeError: When trying to set the value of parameter `singleparameter` \
+        TypeError: While trying to set the value of parameter `par` \
 of element `?`, it was not possible to convert `O` to type `float`.
         """
+        if self.NDIM:
+            value = getattr(self.fastaccess, self.name, None)
+            if value is None:
+                return value
+            return numpy.asarray(value)
         return getattr(self.fastaccess, self.name, numpy.nan)
 
     @value.setter
     def value(self, value):
-        try:
-            temp = value[0]
-            if len(value) > 1:
-                raise ValueError(
-                    f'{len(value)} values are assigned to the scalar '
-                    f'parameter {objecttools.elementphrase(self)}, '
-                    f'which is ambiguous.')
-            value = temp
-        except (TypeError, IndexError):
-            pass
-        try:
-            value = self.TYPE(value)
-        except (ValueError, TypeError):
-            raise TypeError(
-                f'When trying to set the value of parameter '
-                f'{objecttools.elementphrase(self)}, it was not '
-                f'possible to convert `{value}` to type '
-                f'`{objecttools.classname(self.TYPE)}`.')
-        setattr(self.fastaccess, self.name, value)
-
-    def __len__(self):
-        """Returns 1.  (This method is only intended for increasing consistent
-        usability of |SingleParameter| and |MultiParameter| instances.)
-        """
-        return 1
-
-    def __repr__(self):
-        lines = self.commentrepr()
-        lines.append(
-            '%s(%s)'
-            % (self.name,
-               objecttools.repr_(self.revert_timefactor(self.value))))
-        return '\n'.join(lines)
-
-
-class MultiParameter(Parameter):
-    """Base class for model parameters handling multiple values."""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
-
-    def connect(self, subpars):
-        self.subpars = subpars
-        self.fastaccess = subpars.fastaccess
-        setattr(self.fastaccess, self.name, None)
-
-    @property
-    def value(self):
-        """The actual parameter value(s) handled by the respective
-        |Parameter| instance.  For consistency, `value` and `values`
-        can always be used interchangeably.
-        """
-        value = getattr(self.fastaccess, self.name, None)
-        if value is None:
-            return value
-        return numpy.asarray(value)
-
-    @value.setter
-    def value(self, value):
-        try:
-            if hasattr(value, 'value'):
-                value = value.value
+        if self.NDIM:
             try:
-                value = numpy.full(self.shape, value, dtype=self.TYPE)
+                if hasattr(value, 'value'):
+                    value = value.value
+                try:
+                    value = numpy.full(self.shape, value, dtype=self.TYPE)
+                except BaseException:
+                    objecttools.augment_excmessage(
+                        'While trying to convert the value (s) `%s` to a numpy '
+                        'ndarray with shape `%s` and type `%s`'
+                        % (value, self.shape, objecttools.classname(self.TYPE)))
+                setattr(self.fastaccess, self.name, value)
             except BaseException:
                 objecttools.augment_excmessage(
-                    'While trying to convert the value (s) `%s` to a numpy '
-                    'ndarray with shape `%s` and type `%s`'
-                    % (value, self.shape, objecttools.classname(self.TYPE)))
+                    'While trying to set the value(s) of parameter %s'
+                    % objecttools.elementphrase(self))
+        else:
+            try:
+                temp = value[0]
+                if len(value) > 1:
+                    raise ValueError(
+                        f'{len(value)} values are assigned to the scalar '
+                        f'parameter {objecttools.elementphrase(self)}, '
+                        f'which is ambiguous.')
+                value = temp
+            except (TypeError, IndexError):
+                pass
+            try:
+                value = self.TYPE(value)
+            except (ValueError, TypeError):
+                raise TypeError(
+                    f'While trying to set the value of parameter '
+                    f'{objecttools.elementphrase(self)}, it was not '
+                    f'possible to convert `{value}` to type '
+                    f'`{objecttools.classname(self.TYPE)}`.')
             setattr(self.fastaccess, self.name, value)
-        except BaseException:
-            objecttools.augment_excmessage(
-                'While trying to set the value(s) of parameter %s'
-                % objecttools.elementphrase(self))
+
+    def __repr__(self):
+        if self.NDIM:
+            try:
+                values = self.compress_repr()
+            except NotImplementedError:
+                islong = len(self) > 255
+                values = self.revert_timefactor(self.values)
+            except BaseException:
+                objecttools.augment_excmessage(
+                    'While trying to find a compressed '
+                    'string representation for parameter `%s`'
+                    % self.name)
+            else:
+                islong = False
+            return Parameter.to_repr(self, values, islong)
+        else:
+            lines = self.commentrepr()
+            lines.append(
+                '%s(%s)'
+                % (self.name,
+                   objecttools.repr_(self.revert_timefactor(self.value))))
+            return '\n'.join(lines)
 
     def compress_repr(self):
-        """Return a compressed parameter value string, which is (in
-        accordance with |MultiParameter.NDIM|) contained in a nested |list|.
+        """Return a compressed parameter value string, which is (in ToDo
+        accordance with |Parameter.NDIM|) contained in a nested |list|.
         If the compression fails, a |NotImplementedError| is raised.
 
         For the following examples, we define a 1-dimensional sequence
         handling time dependent floating point values:
 
-        >>> from hydpy.core.parametertools import MultiParameter
-        >>> class Test(MultiParameter):
+        >>> from hydpy.core.parametertools import Parameter
+        >>> class Test(Parameter):
         ...     NDIM = 1
         ...     TYPE = float
         ...     TIME = True
@@ -950,15 +954,16 @@ is no compression method implemented, working for its actual values.
         >>> test
         test()
 
-        Method |MultiParameter.compress_repr| works similarly for
+        Method |Parameter.compress_repr| works similarly for
         subclasses which are defined differently.  The following
         examples are based on a 2-dimensional sequence handling
         integer values:
 
-        >>> from hydpy.core.parametertools import MultiParameter
-        >>> class Test(MultiParameter):
+        >>> from hydpy.core.parametertools import Parameter
+        >>> class Test(Parameter):
         ...     NDIM = 2
         ...     TYPE = int
+        ...     TIME = None
         >>> test = Test()
 
         >>> test.compress_repr()
@@ -1007,23 +1012,8 @@ is no compression method implemented, working for its actual values.
                 'implemented, working for its actual values.'
                 % objecttools.elementphrase(self))
 
-    def __repr__(self):
-        try:
-            values = self.compress_repr()
-        except NotImplementedError:
-            islong = len(self) > 255
-            values = self.revert_timefactor(self.values)
-        except BaseException:
-            objecttools.augment_excmessage(
-                'While trying to find a compressed '
-                'string representation for parameter `%s`'
-                % self.name)
-        else:
-            islong = False
-        return Parameter.to_repr(self, values, islong)
 
-
-class NameParameter(MultiParameter):
+class NameParameter(Parameter):
     """Parameter displaying the names of constants instead of their values.
 
     See parameter |lland_control.Lnk| of base model |lland| to see how
@@ -1033,11 +1023,10 @@ class NameParameter(MultiParameter):
     CONSTANTS = {}
 
     def compress_repr(self):
-        """Works as |MultiParameter.compress_repr|, but always returns
+        """Works as |Parameter.compress_repr|, but always returns
         a string with constant names instead of constant values."""
         try:
-            values = [
-                int(MultiParameter.compress_repr(self)[0])]
+            values = [int(super().compress_repr()[0])]
         except NotImplementedError:
             values = self.values
         invmap = {value: key for key, value in
@@ -1046,7 +1035,7 @@ class NameParameter(MultiParameter):
                           for value in values)]
 
 
-class ZipParameter(MultiParameter):
+class ZipParameter(Parameter):
     """Base class for model parameters handling multiple values that
     offers additional keyword zipping fuctionality.
 
@@ -1065,7 +1054,7 @@ class ZipParameter(MultiParameter):
         within parameter control files.
         """
         try:
-            MultiParameter.__call__(self, *args, **kwargs)
+            super().__call__(*args, **kwargs)
         except NotImplementedError:
             try:
                 self._own_call(kwargs)
@@ -1092,13 +1081,13 @@ class ZipParameter(MultiParameter):
         self.values = self.apply_timefactor(self.values)
         self.trim()
 
-    @MultiParameter.shape.getter
+    @Parameter.shape.getter
     def shape(self):
         """Return a tuple containing the lengths in all dimensions of the
         parameter values.
         """
         try:
-            return MultiParameter.shape.fget(self)
+            return Parameter.shape.fget(self)
         except RuntimeError:
             raise RuntimeError(
                 'Shape information for parameter `%s` can only be '
@@ -1114,7 +1103,7 @@ class ZipParameter(MultiParameter):
         compression fails, a |NotImplementedError| is raised.
         """
         try:
-            return MultiParameter.compress_repr(self)
+            return super().compress_repr()
         except NotImplementedError as exc:
             results = []
             mask = self.mask
@@ -1135,44 +1124,47 @@ class ZipParameter(MultiParameter):
             return result
 
 
-class SeasonalParameter(MultiParameter):
+class SeasonalParameter(Parameter):
     """Class for the flexible handling of parameters with anual cycles.
 
     Let us prepare a 1-dimensional |SeasonalParameter| instance:
 
     >>> from hydpy.core.parametertools import SeasonalParameter
-    >>> seasonalparameter = SeasonalParameter()
-    >>> seasonalparameter.NDIM = 1
+    >>> class Par(SeasonalParameter):
+    ...     NDIM = 1
+    ...     TIME = None
+    >>> par = Par()
+    >>> par.NDIM = 1
 
     For the following examples, we assume a simulation step size of one day:
 
-    >>> seasonalparameter.simulationstep = '1d'
+    >>> par.simulationstep = '1d'
 
     To define its shape, the first entry of the assigned |tuple|
     object is ignored:
 
-    >>> seasonalparameter.shape = (None,)
+    >>> par.shape = (None,)
 
     Instead it is derived from the `simulationstep` defined above:
 
-    >>> seasonalparameter.shape
+    >>> par.shape
     (366,)
 
     The annual pattern of seasonal parameters is defined through pairs of
     |TOY| objects and different values (e.g. of type |float|).  One can
     define them all at once in the following manner:
 
-    >>> seasonalparameter(_1=2., _7_1=4., _3_1_0_0_0=5.)
+    >>> par(_1=2., _7_1=4., _3_1_0_0_0=5.)
 
     Note that, as |str| objects, all keywords in the call above would
     be proper |TOY| initialization arguments. If they are not properly
     written, the following exception is raised:
 
-    >>> SeasonalParameter()(_a=1.)
+    >>> Par()(_a=1.)
     Traceback (most recent call last):
     ...
     ValueError: While trying to define the seasonal parameter value \
-`seasonalparameter` of element `?` for time of year `_a`, the following \
+`par` of element `?` for time of year `_a`, the following \
 error occurred: While trying to retrieve the month for TOY (time of year) \
 object based on the string `_a`, the following error occurred: \
 For TOY (time of year) objects, all properties must be of type `int`, \
@@ -1182,64 +1174,65 @@ converted to `int`.
     As the following string representation shows, are the pairs of each
     |SeasonalParameter| instance automatically sorted:
 
-    >>> seasonalparameter
-    seasonalparameter(toy_1_1_0_0_0=2.0,
-                      toy_3_1_0_0_0=5.0,
-                      toy_7_1_0_0_0=4.0)
+    >>> par
+    par(toy_1_1_0_0_0=2.0,
+        toy_3_1_0_0_0=5.0,
+        toy_7_1_0_0_0=4.0)
 
     By default, `toy` is used as a prefix string.  Using this prefix string,
     one can change the toy-value pairs via attribute access:
 
-    >>> seasonalparameter.toy_1_1_0_0_0
+    >>> par.toy_1_1_0_0_0
     2.0
-    >>> del seasonalparameter.toy_1_1_0_0_0
-    >>> seasonalparameter.toy_2_1_0_0_0 = 2.
-    >>> seasonalparameter
-    seasonalparameter(toy_2_1_0_0_0=2.0,
-                      toy_3_1_0_0_0=5.0,
-                      toy_7_1_0_0_0=4.0)
+    >>> del par.toy_1_1_0_0_0
+    >>> par.toy_2_1_0_0_0 = 2.
+    >>> par
+    par(toy_2_1_0_0_0=2.0,
+        toy_3_1_0_0_0=5.0,
+        toy_7_1_0_0_0=4.0)
 
     On applying function |len| on |SeasonalParameter| objects, the number
     of toy-value pairs is returned:
 
-    >>> len(seasonalparameter)
+    >>> len(par)
     3
 
     New values are checked to be compatible predefined shape:
 
-    >>> seasonalparameter.toy_1_1_0_0_0 = [1., 2.]
+    >>> par.toy_1_1_0_0_0 = [1., 2.]   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
     TypeError: While trying to add a new or change an existing toy-value \
-pair for the seasonal parameter `seasonalparameter` of element `?`, the \
+pair for the seasonal parameter `par` of element `?`, the \
 following error occurred: float() argument must be a string or a number...
-    >>> seasonalparameter = SeasonalParameter()
-    >>> seasonalparameter.NDIM = 2
-    >>> seasonalparameter.shape = (None, 3)
-    >>> seasonalparameter.toy_1_1_0_0_0 = [1., 2.]
+    >>> par = Par()
+    >>> par.NDIM = 2
+    >>> par.shape = (None, 3)
+    >>> par.toy_1_1_0_0_0 = [1., 2.]
     Traceback (most recent call last):
     ...
     ValueError: While trying to add a new or change an existing toy-value \
-pair for the seasonal parameter `seasonalparameter` of element `?`, the \
+pair for the seasonal parameter `par` of element `?`, the \
 following error occurred: could not broadcast input array from shape (2) \
 into shape (3)
-    >>> seasonalparameter.toy_1_1_0_0_0 = [1., 2., 3.]
-    >>> seasonalparameter
-    seasonalparameter(toy_1_1_0_0_0=[1.0, 2.0, 3.0])
+    >>> par.toy_1_1_0_0_0 = [1., 2., 3.]
+    >>> par
+    par(toy_1_1_0_0_0=[1.0, 2.0, 3.0])
     """
+    TYPE = float
+
     def __init__(self):
-        MultiParameter.__init__(self)
+        super().__init__()
         self._toy2values = {}
 
     def __call__(self, *args, **kwargs):
         """The prefered way to pass values to |Parameter| instances
-        within parameter control files.
-        """
+        within parameter control files."""
         self._toy2values.clear()
         if self.NDIM == 1:
             self.shape = (None,)
         try:
-            MultiParameter.__call__(self, *args, **kwargs)
+            super().__call__(*args, **kwargs)
             self._toy2values[timetools.TOY()] = self[0]
         except BaseException as exc:
             if kwargs:
@@ -1267,25 +1260,28 @@ into shape (3)
         Instantiate a 1-dimensional |SeasonalParameter| object:
 
         >>> from hydpy.core.parametertools import SeasonalParameter
-        >>> sp = SeasonalParameter()
-        >>> sp.simulationstep = '1d'
-        >>> sp.NDIM = 1
-        >>> sp.shape = (None,)
+        >>> class Par(SeasonalParameter):
+        ...     NDIM = 1
+        ...     TYPE = float
+        ...     TIME = None
+        >>> par = Par()
+        >>> par.simulationstep = '1d'
+        >>> par.shape = (None,)
 
         When a |SeasonalParameter| object does not contain any toy-value
         pairs yet, the method |SeasonalParameter.refresh| sets all actual
         simulation values to zero:
 
-        >>> sp.values = 1.
-        >>> sp.refresh()
-        >>> sp.values[0]
+        >>> par.values = 1.
+        >>> par.refresh()
+        >>> par.values[0]
         0.0
 
         When there is only one toy-value pair, its values are taken for
         all actual simulation values:
 
-        >>> sp.toy_1 = 2. # calls refresh automatically
-        >>> sp.values[0]
+        >>> par.toy_1 = 2. # calls refresh automatically
+        >>> par.values[0]
         2.0
 
         Method |SeasonalParameter.refresh| performs a linear interpolation
@@ -1293,32 +1289,31 @@ into shape (3)
         in the following example the original values of the toy-value pairs
         do not show up:
 
-        >>> sp.toy_12_31 = 4.
+        >>> par.toy_12_31 = 4.
         >>> from hydpy import round_
-        >>> round_(sp.values[0])
+        >>> round_(par.values[0])
         2.00274
-        >>> round_(sp.values[-2])
+        >>> round_(par.values[-2])
         3.99726
-        >>> sp.values[-1]
+        >>> par.values[-1]
         3.0
 
         If one wants to preserve the original values in this example, one
         would have to set the corresponding toy instances in the middle of
         some simulation step intervals:
 
-        >>> del sp.toy_1
-        >>> del sp.toy_12_31
-        >>> sp.toy_1_1_12 = 2
-        >>> sp.toy_12_31_12 = 4.
-        >>> sp.values[0]
+        >>> del par.toy_1
+        >>> del par.toy_12_31
+        >>> par.toy_1_1_12 = 2
+        >>> par.toy_12_31_12 = 4.
+        >>> par.values[0]
         2.0
-        >>> round_(sp.values[1])
+        >>> round_(par.values[1])
         2.005479
-        >>> round_(sp.values[-2])
+        >>> round_(par.values[-2])
         3.994521
-        >>> sp.values[-1]
+        >>> par.values[-1]
         4.0
-
         """
         if not len(self):
             self.values[:] = 0.
@@ -1337,64 +1332,66 @@ into shape (3)
 
         Instantiate a 1-dimensional |SeasonalParameter| object:
 
-        >>> sp = SeasonalParameter()
-        >>> from hydpy import Date, Period
-        >>> sp.simulationstep = Period('1d')
-        >>> sp.NDIM = 1
-        >>> sp.shape = (None,)
+        >>> from hydpy.core.parametertools import SeasonalParameter
+        >>> class Par(SeasonalParameter):
+        ...     NDIM = 1
+        ...     TYPE = float
+        ...     TIME = None
+        >>> par = Par()
+        >>> par.simulationstep = '1d'
+        >>> par.shape = (None,)
 
         Define three toy-value pairs:
-        >>> sp(_1=2.0, _2=5.0, _12_31=4.0)
+        >>> par(_1=2.0, _2=5.0, _12_31=4.0)
 
         Passing a |Date| object excatly matching a |TOY| object of course
         simply returns the associated value:
 
-        >>> sp.interp(Date('2000.01.01'))
+        >>> from hydpy import Date
+        >>> par.interp(Date('2000.01.01'))
         2.0
-        >>> sp.interp(Date('2000.02.01'))
+        >>> par.interp(Date('2000.02.01'))
         5.0
-        >>> sp.interp(Date('2000.12.31'))
+        >>> par.interp(Date('2000.12.31'))
         4.0
 
         For all intermediate points, a linear interpolation is performed:
 
         >>> from hydpy import round_
-        >>> round_(sp.interp(Date('2000.01.02')))
+        >>> round_(par.interp(Date('2000.01.02')))
         2.096774
-        >>> round_(sp.interp(Date('2000.01.31')))
+        >>> round_(par.interp(Date('2000.01.31')))
         4.903226
-        >>> round_(sp.interp(Date('2000.02.02')))
+        >>> round_(par.interp(Date('2000.02.02')))
         4.997006
-        >>> round_(sp.interp(Date('2000.12.30')))
+        >>> round_(par.interp(Date('2000.12.30')))
         4.002994
 
         Linear interpolation is also allowed between the first and the
         last pair, when they do not capture the end points of the year:
 
-        >>> sp(_1_2=2.0, _12_30=4.0)
-        >>> round_(sp.interp(Date('2000.12.29')))
+        >>> par(_1_2=2.0, _12_30=4.0)
+        >>> round_(par.interp(Date('2000.12.29')))
         3.99449
-        >>> sp.interp(Date('2000.12.30'))
+        >>> par.interp(Date('2000.12.30'))
         4.0
-        >>> round_(sp.interp(Date('2000.12.31')))
+        >>> round_(par.interp(Date('2000.12.31')))
         3.333333
-        >>> round_(sp.interp(Date('2000.01.01')))
+        >>> round_(par.interp(Date('2000.01.01')))
         2.666667
-        >>> sp.interp(Date('2000.01.02'))
+        >>> par.interp(Date('2000.01.02'))
         2.0
-        >>> round_(sp.interp(Date('2000.01.03')))
+        >>> round_(par.interp(Date('2000.01.03')))
         2.00551
 
         The following example briefly shows interpolation performed for
         2-dimensional parameter:
 
-        >>> sp = SeasonalParameter()
-        >>> from hydpy import Date, Period
-        >>> sp.simulationstep = Period('1d')
-        >>> sp.NDIM = 2
-        >>> sp.shape = (None, 2)
-        >>> sp(_1_1=[1., 2.], _1_3=[-3, 0.])
-        >>> result = sp.interp(Date('2000.01.02'))
+        >>> Par.NDIM = 2
+        >>> par = Par()
+        >>> par.shape = (None, 2)
+        >>> par(_1_1=[1., 2.], _1_3=[-3, 0.])
+        >>> result = par.interp(Date('2000.01.02'))
         >>> round_(result[0])
         -1.0
         >>> round_(result[1])
@@ -1411,7 +1408,7 @@ into shape (3)
             x_1, y_1 = xys[0]
         return y_0+(y_1-y_0)/(x_1-x_0)*(xnew-x_0)
 
-    @MultiParameter.shape.setter
+    @Parameter.shape.setter
     def shape(self, shape):
         try:
             shape = (int(shape),)
@@ -1428,7 +1425,7 @@ into shape (3)
                 % (self.name, objecttools.devicename(self)))
         shape[0] = timetools.Period('366d')/self.simulationstep
         shape[0] = int(numpy.ceil(round(shape[0], 10)))
-        MultiParameter.shape.fset(self, shape)
+        Parameter.shape.fset(self, shape)
 
     def __iter__(self):
         for toy in sorted(self._toy2values.keys()):
@@ -1444,7 +1441,7 @@ into shape (3)
                     'the seasonal parameter `%s` of element `%s`'
                     % (self.name, objecttools.devicename(self)))
         else:
-            return MultiParameter.__getattribute__(self, name)
+            return super().__getattribute__(name)
 
     def __setattr__(self, name, value):
         if name.startswith('toy_'):
@@ -1461,7 +1458,7 @@ into shape (3)
                     'toy-value pair for the seasonal parameter `%s` of '
                     'element `%s`' % (self.name, objecttools.devicename(self)))
         else:
-            MultiParameter.__setattr__(self, name, value)
+            super().__setattr__(name, value)
 
     def __delattr__(self, name):
         if name.startswith('toy_'):
@@ -1474,7 +1471,7 @@ into shape (3)
                     'the seasonal parameter `%s` of element `%s`'
                     % (self.name, objecttools.devicename(self)))
         else:
-            MultiParameter.__delattr__(self, name)
+            super().__delattr__(name)
 
     def __repr__(self):
         if self.NDIM == 1:
@@ -1509,7 +1506,7 @@ into shape (3)
         return objecttools.dir_(self) + [str(toy) for (toy, dummy) in self]
 
 
-class KeywordParameter2D(MultiParameter):
+class KeywordParameter2D(Parameter):
     """Base class for 2-dimensional model parameters which values which depend
     on two factors.
 
@@ -1526,6 +1523,7 @@ class KeywordParameter2D(MultiParameter):
     >>> from hydpy.core.parametertools import KeywordParameter2D
     >>> class IsWarm(KeywordParameter2D):
     ...     TYPE = bool
+    ...     TIME = None
     ...     ROWNAMES = ('north', 'south')
     ...     COLNAMES = ('apr2sep', 'oct2mar')
 
@@ -1638,7 +1636,7 @@ following error occurred: index 1 is out of bounds for axis 0 with size 1
 
     def __call__(self, *args, **kwargs):
         try:
-            MultiParameter.__call__(self, *args, **kwargs)
+            super().__call__(*args, **kwargs)
         except NotImplementedError:
             for (idx, key) in enumerate(self.ROWNAMES):
                 try:
@@ -1694,7 +1692,7 @@ following error occurred: index 1 is out of bounds for axis 0 with size 1
                     'element `%s` via the row and column related attribute '
                     '`%s`' % (self.name, objecttools.devicename(self), key))
         else:
-            return super().__getattr__(key)
+            raise AttributeError('ToDo')   # ToDo
 
     def __setattr__(self, key, values):
         if key in self.ROWNAMES:
@@ -1730,7 +1728,7 @@ following error occurred: index 1 is out of bounds for axis 0 with size 1
                 list(self.COLNAMES) + list(self._ROWCOLMAPPINGS.keys()))
 
 
-class RelSubweightsMixin(object):
+class RelSubweightsMixin:
     """Mixin class for derived parameters reflecting not masked absolute
     values of the referenced weighting parameter in relative terms.
 
@@ -1749,12 +1747,12 @@ class RelSubweightsMixin(object):
         self[mask] = weights/numpy.sum(weights)
 
 
-class LeftRightParameter(MultiParameter):
+class LeftRightParameter(Parameter):
     NDIM = 1
 
     def __call__(self, *args, **kwargs):
         try:
-            MultiParameter.__call__(self, *args, **kwargs)
+            super().__call__(*args, **kwargs)
         except NotImplementedError:
             left = kwargs.get('left', kwargs.get('l'))
             if left is None:
@@ -1776,7 +1774,7 @@ class LeftRightParameter(MultiParameter):
                 self.right = right
 
     def connect(self, subpars):
-        MultiParameter.connect(self, subpars)
+        super().connect(subpars)
         self.shape = 2
 
     def _getleft(self):
@@ -1798,20 +1796,20 @@ class LeftRightParameter(MultiParameter):
     right = property(_getright, _setright)
 
 
-class IndexParameter(MultiParameter):
+class IndexParameter(Parameter):
 
     def setreference(self, indexarray):
         setattr(self.fastaccess, self.name, indexarray)
 
 
-class SolverParameter(SingleParameter):
+class SolverParameter(Parameter):
 
     def __init__(self):
-        SingleParameter.__init__(self)
+        super().__init__()
         self._alternative_initvalue = None
 
     def __call__(self, *args, **kwargs):
-        SingleParameter.__call__(self, *args, **kwargs)
+        super().__call__(*args, **kwargs)
         self.alternative_initvalue = self.value
 
     def update(self):
@@ -1843,7 +1841,7 @@ class SolverParameter(SingleParameter):
                                      _del_alternative_initvalue)
 
 
-class SecondsParameter(SingleParameter):
+class SecondsParameter(Parameter):
     """Length of the actual simulation step size in seconds [s]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 

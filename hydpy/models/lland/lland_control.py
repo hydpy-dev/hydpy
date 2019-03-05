@@ -16,12 +16,12 @@ from hydpy.models.lland import lland_constants
 from hydpy.models.lland import lland_parameters
 
 
-class FT(parametertools.SingleParameter):
+class FT(parametertools.Parameter):
     """Teileinzugsgebietsfläche (subbasin area) [km²]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (1e-10, None)
 
 
-class NHRU(parametertools.SingleParameter):
+class NHRU(parametertools.Parameter):
     """Anzahl der Hydrotope (number of hydrological response units) [-].
 
     Note that |NHRU| determines the length of most 1-dimensional HydPy-L-Land
@@ -46,7 +46,7 @@ class NHRU(parametertools.SingleParameter):
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
     def __call__(self, *args, **kwargs):
-        parametertools.SingleParameter.__call__(self, *args, **kwargs)
+        super().__call__(*args, **kwargs)
         for subpars in self.subpars.pars.model.parameters:
             for par in subpars:
                 if par.NDIM == 1:
@@ -137,7 +137,7 @@ class FLn(lland_parameters.LanduseMonthParameter):
     INIT = 1.
 
 
-class HInz(parametertools.SingleParameter):
+class HInz(parametertools.Parameter):
     """Interzeptionskapazität bezogen auf die Blattoberfläche (interception
     capacity normalized to the leaf surface area) [mm]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
@@ -184,14 +184,14 @@ class GTF(lland_parameters.ParameterLand):
     INIT = 3.
 
 
-class RSchmelz(parametertools.SingleParameter):
+class RSchmelz(parametertools.Parameter):
     """Spezifische Schmelzwärme von Wasser (specific melt heat of water)
     [J/g]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
     INIT = 334.
 
 
-class CPWasser(parametertools.SingleParameter):
+class CPWasser(parametertools.Parameter):
     """Spezifische Wärmekapazität von Wasser (specific heat capacity of water)
     [J/g]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
@@ -291,7 +291,7 @@ nor a keyword argument is given.
                 'based on the keyword arguments `rhot0` and `rhodkrit`.')
 
 
-class GrasRef_R(parametertools.SingleParameter):
+class GrasRef_R(parametertools.Parameter):
     """Bodenfeuchte-Verdunstung-Parameter (soil moisture-dependent
     evaporation factor) [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
@@ -523,7 +523,7 @@ class BSf(lland_parameters.ParameterSoil):
     INIT = .4
 
 
-class A1(parametertools.SingleParameter):
+class A1(parametertools.Parameter):
     """Parameter für die kontinuierliche Aufteilung der
     Direktabflusskomponenten (threshold value for the continuous seperation
     of direct runoff in a slow and a fast component) [mm/d]
@@ -532,7 +532,7 @@ class A1(parametertools.SingleParameter):
     INIT = numpy.inf
 
 
-class A2(parametertools.SingleParameter):
+class A2(parametertools.Parameter):
     """Parameter für die diskontinuierliche Aufteilung der
     Direktabflusskomponenten (threshold value for the discontinuous seperation
     of direct runoff in a slow and a fast component) [mm/d]
@@ -541,10 +541,10 @@ class A2(parametertools.SingleParameter):
     INIT = 0.
 
 
-class TInd(parametertools.SingleParameter):
+class TInd(parametertools.Parameter):
     """Fließzeitindex (factor related to the time of concentration) [T].
 
-    In addition to the |SingleParameter| call method, it
+    In addition to the |Parameter| call method, it
     is possible to set the value of parameter |TInd| in accordance to
     the keyword arguments `tal` (talweg, [km]), `hot` (higher reference
     altitude, [m]), and `hut` (lower reference altitude, [m]).  This is
@@ -623,7 +623,7 @@ must be given.
         within parameter control files.
         """
         try:
-            parametertools.SingleParameter.__call__(self, *args, **kwargs)
+            super().__call__(*args, **kwargs)
         except NotImplementedError:
             try:
                 tal = float(kwargs['tal'])
@@ -655,7 +655,7 @@ must be given.
             self.value *= timetools.Period('1h')/self.simulationstep
 
 
-class EQB(parametertools.SingleParameter):
+class EQB(parametertools.Parameter):
     """Kalibrierfaktor für die Basisabflusskonzentration (factor for adjusting
     the concentration time of baseflow). [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
@@ -679,10 +679,10 @@ class EQB(parametertools.SingleParameter):
         """
         if lower is None:
             lower = self.subpars.eqi1
-        parametertools.SingleParameter.trim(self, lower, upper)
+        super().trim(lower, upper)
 
 
-class EQI1(parametertools.SingleParameter):
+class EQI1(parametertools.Parameter):
     """Kalibrierfaktor für die "untere" Zwischenabflusskonzentration
     (factor for adjusting the concentration time of the first interflow
     component) [-]."""
@@ -717,10 +717,10 @@ class EQI1(parametertools.SingleParameter):
             lower = self.subpars.eqi2
         if upper is None:
             upper = self.subpars.eqb
-        parametertools.SingleParameter.trim(self, lower, upper)
+        super().trim(lower, upper)
 
 
-class EQI2(parametertools.SingleParameter):
+class EQI2(parametertools.Parameter):
     """Kalibrierfaktor für die "obere" Zwischenabflusskonzentration
     (factor for adjusting the concentration time of the second interflow
     component) [-]."""
@@ -755,10 +755,10 @@ class EQI2(parametertools.SingleParameter):
             lower = self.subpars.eqd1
         if upper is None:
             upper = self.subpars.eqi1
-        parametertools.SingleParameter.trim(self, lower, upper)
+        super().trim(lower, upper)
 
 
-class EQD1(parametertools.SingleParameter):
+class EQD1(parametertools.Parameter):
     """Kalibrierfaktor für die langsamere Direktabflusskonzentration (factor
     for adjusting the concentration time of the slower component of direct
     runoff). [-]."""
@@ -793,10 +793,10 @@ class EQD1(parametertools.SingleParameter):
             lower = self.subpars.eqd2
         if upper is None:
             upper = self.subpars.eqi2
-        parametertools.SingleParameter.trim(self, lower, upper)
+        super().trim(lower, upper)
 
 
-class EQD2(parametertools.SingleParameter):
+class EQD2(parametertools.Parameter):
     """Kalibrierfaktor für die schnellere Direktabflusskonzentration (factor
     for adjusting the concentration time of the faster component of direct
     runoff). [-]."""
@@ -822,10 +822,10 @@ class EQD2(parametertools.SingleParameter):
         """
         if upper is None:
             upper = self.subpars.eqd1
-        parametertools.SingleParameter.trim(self, lower, upper)
+        super().trim(lower, upper)
 
 
-class NegQ(parametertools.SingleParameter):
+class NegQ(parametertools.Parameter):
     """Option: sind negative Abflüsse erlaubt (flag that indicated wether
     negative discharge values are allowed or not) [-]."""
     NDIM, TYPE, TIME, SPAN = 0, bool, None, (0., None)

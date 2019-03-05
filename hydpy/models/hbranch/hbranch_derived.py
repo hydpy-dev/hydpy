@@ -7,7 +7,7 @@
 from hydpy.core import parametertools
 
 
-class NmbBranches(parametertools.SingleParameter):
+class NmbBranches(parametertools.Parameter):
     """Number of branches [-]."""
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
@@ -17,7 +17,7 @@ class NmbBranches(parametertools.SingleParameter):
         self(con.ypoints.shape[0])
 
 
-class NmbPoints(parametertools.SingleParameter):
+class NmbPoints(parametertools.Parameter):
     """Number of supporting points for linear interpolation [-]."""
     NDIM, TYPE, TIME, SPAN = 0, int, None, (2, None)
 

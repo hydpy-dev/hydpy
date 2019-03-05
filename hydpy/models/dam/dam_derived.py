@@ -18,7 +18,7 @@ class Seconds(parametertools.SecondsParameter):
     """Length of the actual simulation step size in seconds [s]."""
 
 
-class RemoteDischargeSmoothPar(parametertools.MultiParameter):
+class RemoteDischargeSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |RemoteDischargeSafety| [m3/s].
     """
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
@@ -49,7 +49,7 @@ class RemoteDischargeSmoothPar(parametertools.MultiParameter):
             self.values[idx] = smoothtools.calc_smoothpar_logistic1(metapar)
 
 
-class NearDischargeMinimumSmoothPar1(parametertools.MultiParameter):
+class NearDischargeMinimumSmoothPar1(parametertools.Parameter):
     """Smoothing parameter to be derived from |NearDischargeMinimumThreshold|
     for smoothing kernel |smooth_logistic1| [m3/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
@@ -82,7 +82,7 @@ class NearDischargeMinimumSmoothPar1(parametertools.MultiParameter):
             self.values[idx] = smoothtools.calc_smoothpar_logistic1(metapar)
 
 
-class NearDischargeMinimumSmoothPar2(parametertools.MultiParameter):
+class NearDischargeMinimumSmoothPar2(parametertools.Parameter):
     """Smoothing parameter to be derived from |NearDischargeMinimumThreshold|
     for smoothing kernel |smooth_logistic2| [m3/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
@@ -116,7 +116,7 @@ class NearDischargeMinimumSmoothPar2(parametertools.MultiParameter):
             self.values[idx] = smoothtools.calc_smoothpar_logistic2(metapar)
 
 
-class WaterLevelMinimumSmoothPar(parametertools.SingleParameter):
+class WaterLevelMinimumSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |WaterLevelMinimumTolerance|
     for smoothing kernel |smooth_logistic1| [m]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
@@ -144,7 +144,7 @@ class WaterLevelMinimumSmoothPar(parametertools.SingleParameter):
         self.value = smoothtools.calc_smoothpar_logistic1(metapar)
 
 
-class WaterLevelMinimumRemoteSmoothPar(parametertools.SingleParameter):
+class WaterLevelMinimumRemoteSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from
     |WaterLevelMinimumRemoteTolerance| [m]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
@@ -174,7 +174,7 @@ class WaterLevelMinimumRemoteSmoothPar(parametertools.SingleParameter):
         self.value = smoothtools.calc_smoothpar_logistic1(metapar)
 
 
-class WaterLevelRelieveSmoothPar(parametertools.MultiParameter):
+class WaterLevelRelieveSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |WaterLevelRelieveTolerance|
     for smoothing kernel |smooth_logistic1| [m3/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
@@ -207,7 +207,7 @@ class WaterLevelRelieveSmoothPar(parametertools.MultiParameter):
             self.values[idx] = smoothtools.calc_smoothpar_logistic1(metapar)
 
 
-class WaterLevelSupplySmoothPar(parametertools.MultiParameter):
+class WaterLevelSupplySmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |WaterLevelSupplyTolerance|
     for smoothing kernel |smooth_logistic1| [m3/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
@@ -240,7 +240,7 @@ class WaterLevelSupplySmoothPar(parametertools.MultiParameter):
             self.values[idx] = smoothtools.calc_smoothpar_logistic1(metapar)
 
 
-class HighestRemoteSmoothPar(parametertools.SingleParameter):
+class HighestRemoteSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |HighestRemoteTolerance|
     for smoothing kernel |smooth_min1| [m3/s]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)

@@ -9,7 +9,7 @@ import numpy
 from hydpy.core import parametertools
 
 
-class Nmb(parametertools.SingleParameter):
+class Nmb(parametertools.Parameter):
     """Number of response functions [-]."""
     NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
 
@@ -45,7 +45,7 @@ class Nmb(parametertools.SingleParameter):
         fluxes.qar.shape = self.value
 
 
-class MaxQ(parametertools.MultiParameter):
+class MaxQ(parametertools.Parameter):
     """Maximum discharge values of the respective ARMA models [m³/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0, None)
 
@@ -64,7 +64,7 @@ class MaxQ(parametertools.MultiParameter):
         self(responses.thresholds)
 
 
-class DiffQ(parametertools.MultiParameter):
+class DiffQ(parametertools.Parameter):
     """Differences between the values of |MaxQ| [m³/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0, None)
 
@@ -87,7 +87,7 @@ class DiffQ(parametertools.MultiParameter):
         self(numpy.diff(responses.thresholds))
 
 
-class AR_Order(parametertools.MultiParameter):
+class AR_Order(parametertools.Parameter):
     """Number of AR coefficients of the different responses [-]."""
     NDIM, TYPE, TIME, SPAN = 1, int, None, (0, None)
 
@@ -106,7 +106,7 @@ class AR_Order(parametertools.MultiParameter):
         self(responses.ar_orders)
 
 
-class MA_Order(parametertools.MultiParameter):
+class MA_Order(parametertools.Parameter):
     """Number of MA coefficients of the different responses [-]."""
     NDIM, TYPE, TIME, SPAN = 1, int, None, (0, None)
 
@@ -125,7 +125,7 @@ class MA_Order(parametertools.MultiParameter):
         self(responses.ma_orders)
 
 
-class AR_Coefs(parametertools.MultiParameter):
+class AR_Coefs(parametertools.Parameter):
     """AR coefficients of the different responses [-]."""
     NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
 
@@ -154,7 +154,7 @@ class AR_Coefs(parametertools.MultiParameter):
         pars.model.sequences.logs.logout.shape = self.shape
 
 
-class MA_Coefs(parametertools.MultiParameter):
+class MA_Coefs(parametertools.Parameter):
     """MA coefficients of the different responses [-]."""
     NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
 

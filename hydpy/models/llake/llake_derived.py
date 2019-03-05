@@ -17,7 +17,7 @@ class Seconds(parametertools.SecondsParameter):
     """Length of the actual simulation step size in seconds [s]."""
 
 
-class NmbSubsteps(parametertools.SingleParameter):
+class NmbSubsteps(parametertools.Parameter):
     """Number of the internal simulation steps [-]."""
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 

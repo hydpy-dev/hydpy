@@ -12,7 +12,7 @@ from hydpy.models.hland import hland_parameters
 from hydpy.models.hland.hland_constants import ILAKE, GLACIER
 
 
-class RelSoilArea(parametertools.SingleParameter):
+class RelSoilArea(parametertools.Parameter):
     """Relative area of all |FIELD| and |FOREST| zones [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
 
@@ -36,7 +36,7 @@ class RelSoilArea(parametertools.SingleParameter):
         self(numpy.sum(temp)/con.area)
 
 
-class RelLandArea(parametertools.SingleParameter):
+class RelLandArea(parametertools.Parameter):
     """Relative area of all |FIELD|, |FOREST|, and |GLACIER| zones [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
 
@@ -128,7 +128,7 @@ class TTM(hland_parameters.ParameterLand):
         self(con.tt+con.dttm)
 
 
-class DT(parametertools.SingleParameter):
+class DT(parametertools.Parameter):
     """Relative time step length for the upper zone layer calculations [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
 
@@ -157,7 +157,7 @@ class DT(parametertools.SingleParameter):
         self(1./self.subpars.pars.control.recstep)
 
 
-class UH(parametertools.MultiParameter):
+class UH(parametertools.Parameter):
     """Unit hydrograph ordinates based on a isosceles triangle [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., 1.)
 
@@ -273,7 +273,7 @@ class UH(parametertools.MultiParameter):
             self(uh/numpy.sum(uh))
 
 
-class QFactor(parametertools.SingleParameter):
+class QFactor(parametertools.Parameter):
     """Factor for converting mm/stepsize to m³/s."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 

@@ -9,7 +9,7 @@ import numpy
 from hydpy.core import parametertools
 
 
-class NmbSegments(parametertools.SingleParameter):
+class NmbSegments(parametertools.Parameter):
     """Number of river segments [-]."""
     NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
 
@@ -60,7 +60,7 @@ class NmbSegments(parametertools.SingleParameter):
         pars.model.sequences.states.qjoints.shape = self+1
 
 
-class C1(parametertools.SingleParameter):
+class C1(parametertools.Parameter):
     """First coefficient of the Muskingum working formula [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., .5)
 
@@ -102,7 +102,7 @@ class C1(parametertools.SingleParameter):
         self(numpy.clip(damp/(1.+damp), 0., .5))
 
 
-class C2(parametertools.SingleParameter):
+class C2(parametertools.Parameter):
     """Second coefficient of the muskingum working formula [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
 
@@ -134,7 +134,7 @@ class C2(parametertools.SingleParameter):
         self(numpy.clip(1. - der.c1 - der.c3, 0., 1.))
 
 
-class C3(parametertools.SingleParameter):
+class C3(parametertools.Parameter):
     """Third coefficient of the muskingum working formula [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., .5)
 

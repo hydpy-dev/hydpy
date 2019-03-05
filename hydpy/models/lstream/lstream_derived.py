@@ -40,7 +40,7 @@ class HV(parametertools.LeftRightParameter):
                 self[idx] = 0.
 
 
-class QM(parametertools.SingleParameter):
+class QM(parametertools.Parameter):
     """Bordvoller Abfluss Hauptgerinne (maximum discharge of the main channel)
     [m³/s]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
@@ -96,7 +96,7 @@ class QV(parametertools.LeftRightParameter):
             self[idx] = flu.qg
 
 
-class Sek(parametertools.SingleParameter):
+class Sek(parametertools.Parameter):
     """ Sekunden im Simulationszeitschritt (Number of seconds of the selected
     simulation time step) [T]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)

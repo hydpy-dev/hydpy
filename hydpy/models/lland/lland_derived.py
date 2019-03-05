@@ -119,7 +119,7 @@ class WZ(lland_parameters.ParameterComplete):
         self(con.relwz*con.nfk)
 
 
-class KB(parametertools.SingleParameter):
+class KB(parametertools.Parameter):
     """Konzentrationszeit des Basisabflusses (concentration time of baseflow)
     [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
@@ -139,7 +139,7 @@ class KB(parametertools.SingleParameter):
         self(con.eqb*con.tind)
 
 
-class KI1(parametertools.SingleParameter):
+class KI1(parametertools.Parameter):
     """Konzentrationszeit des "unteren" Zwischenabflusses (concentration time
     of the first interflow component) [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
@@ -159,7 +159,7 @@ class KI1(parametertools.SingleParameter):
         self(con.eqi1*con.tind)
 
 
-class KI2(parametertools.SingleParameter):
+class KI2(parametertools.Parameter):
     """Konzentrationszeit des "oberen" Zwischenabflusses" (concentration time
     of the second interflow component) [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
@@ -179,7 +179,7 @@ class KI2(parametertools.SingleParameter):
         self(con.eqi2*con.tind)
 
 
-class KD1(parametertools.SingleParameter):
+class KD1(parametertools.Parameter):
     """Konzentrationszeit des "langsamen" Direktabflusses (concentration time
     of the slower component of direct runoff) [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
@@ -199,7 +199,7 @@ class KD1(parametertools.SingleParameter):
         self(con.eqd1*con.tind)
 
 
-class KD2(parametertools.SingleParameter):
+class KD2(parametertools.Parameter):
     """Konzentrationszeit des "schnellen" Direktabflusses (concentration time
     of the faster component of direct runoff) [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
@@ -219,7 +219,7 @@ class KD2(parametertools.SingleParameter):
         self(con.eqd2*con.tind)
 
 
-class QFactor(parametertools.SingleParameter):
+class QFactor(parametertools.Parameter):
     """Factor for converting mm/stepsize to m³/s."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 

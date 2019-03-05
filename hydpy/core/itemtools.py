@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """This module implements so-called exchange items, simplifying the
-modification of the values of |Parameter| and |Sequence| objects.
-"""
+modification of the values of |Parameter| and |Sequence| objects."""
 # import...
 # ...from standard library
 import abc
@@ -341,7 +340,7 @@ different shapes.
         Traceback (most recent call last):
         ...
         TypeError: When trying to update a target variable of SetItem \
-`alpha` with the value(s) `None`, the following error occurred: When \
+`alpha` with the value(s) `None`, the following error occurred: While \
 trying to set the value of parameter `alpha` of element `...`, \
 it was not possible to convert `None` to type `float`.
         """

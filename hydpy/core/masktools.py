@@ -111,24 +111,24 @@ class DefaultMask(BaseMask):
     The following example shows how |DefaultMask| can be applied via
     Python's descriptor protocol, which should be the common situation:
 
-    >>> from hydpy.core.variabletools import Variable
+    >>> from hydpy.core.parametertools import Parameter
     >>> from hydpy.core.masktools import DefaultMask
-    >>> class Var1(Variable):
+    >>> class Par1(Parameter):
     ...     shape = (2, 3)
     ...     defaultmask = DefaultMask()
-    >>> Var1().defaultmask
+    >>> Par1().defaultmask
     DefaultMask([[ True,  True,  True],
                  [ True,  True,  True]])
     >>> from hydpy import classname
-    >>> classname(Var1.defaultmask)
+    >>> classname(Par1.defaultmask)
     '_MaskDescriptor'
 
     Alternatively, you can connect a |DefaultMask| with a |Variable| object
     directly:
 
-    >>> class Var2(Variable):
+    >>> class Par2(Parameter):
     ...     shape = (2,)
-    >>> mask = DefaultMask(Var2())
+    >>> mask = DefaultMask(Par2())
     >>> mask
     DefaultMask([ True,  True])
     """
@@ -185,7 +185,7 @@ class IndexMask(DefaultMask):
 
     @classmethod
     def get_refindices(cls, variable):
-        """Return the |MultiParameter| object for determining which
+        """Return the |Parameter| object for determining which
         entries of |IndexMask| are |True| and which are |False|.
 
         The given `variable` must be concrete |Variable| object, the
@@ -193,11 +193,11 @@ class IndexMask(DefaultMask):
 
         Needs to be overwritten by subclasses:
 
-        >>> from hydpy.core.variabletools import Variable
+        >>> from hydpy.core.parametertools import Parameter
         >>> from hydpy.core.masktools import IndexMask
-        >>> class Var(Variable):
+        >>> class Par(Parameter):
         ...     mask = IndexMask()
-        >>> Var().mask
+        >>> Par().mask
         Traceback (most recent call last):
         ...
         NotImplementedError: Function `get_refindices` of class `IndexMask` \
@@ -210,7 +210,7 @@ must be overridden, which is not the case for class `IndexMask`.
 
     @property
     def refindices(self):
-        """|MultiParameter| object for determining which entries of
+        """|Parameter| object for determining which entries of
         |IndexMask| are |True| and which are |False|."""
         return self.get_refindices(self.variable)
 

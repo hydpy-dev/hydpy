@@ -20,7 +20,7 @@ class ParameterComplete(parametertools.ZipParameter):
     `field`, `forest`, `glacier`, `ilake,` and `default`.  If available,
     the respective values are used to define the values of those
     1-dimensional arrays, whose entries are related to the different
-    zone types. Also the method |MultiParameter.compress_repr|
+    zone types. Also the method |Parameter.compress_repr|
     tries to find compressed string representations based on the
     mentioned zone types.
 

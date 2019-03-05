@@ -9,7 +9,7 @@ from hydpy.core import timetools
 from hydpy.core import objecttools
 
 
-class N(parametertools.SingleParameter):
+class N(parametertools.Parameter):
     """Anzahl Interpolationsstützstellen (number of nodes for the
     interpolation between water state, volume and discharge) [-].
 
@@ -48,7 +48,7 @@ class N(parametertools.SingleParameter):
         within parameter control files.  Sets the shape of the associated
         1- and 2-dimensional parameter objects additionally.
         """
-        parametertools.SingleParameter.__call__(self, *args, **kwargs)
+        super().__call__(*args, **kwargs)
         for subpars in self.subpars.pars.model.parameters:
             for par in subpars:
                 if par.name == 'toy':
@@ -63,12 +63,12 @@ class N(parametertools.SingleParameter):
                     par.shape = (None, self.value)
 
 
-class W(parametertools.MultiParameter):
+class W(parametertools.Parameter):
     """Wasserstand (water stage) [m]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
 
-class V(parametertools.MultiParameter):
+class V(parametertools.Parameter):
     """Wasservolumen bei vorgegebenem Wasserstand (water volume for a
     given water stage) [m³]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
@@ -80,7 +80,7 @@ class Q(parametertools.SeasonalParameter):
     NDIM, TYPE, TIME, SPAN = 2, float, None, (0., None)
 
 
-class MaxDT(parametertools.SingleParameter):
+class MaxDT(parametertools.Parameter):
     """Maximale interne Rechenschrittweite (maximum of the internal step size)
     [T].
 
@@ -145,7 +145,7 @@ to 3600 seconds by writing `maxdt("1h"))
                 % objecttools.devicename(self),
                 '(An example: set `max dt` to 3600 seconds by writing '
                 '`maxdt("1h"))')
-        parametertools.SingleParameter.__call__(self, *args, **kwargs)
+        super().__call__(*args, **kwargs)
 
     def __repr__(self):
         try:

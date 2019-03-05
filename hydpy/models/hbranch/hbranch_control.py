@@ -12,7 +12,7 @@ from hydpy.core import devicetools
 from hydpy.core import objecttools
 
 
-class XPoints(parametertools.MultiParameter):
+class XPoints(parametertools.Parameter):
     """Supporting points for the independent input variable [eg. m³/s].
 
     There must be at least two supporting points, and they must be
@@ -50,7 +50,7 @@ arranged strictly monotonous, which is not the case for the given values \
                 f'at least two supporting points, but '
                 f'parameter {objecttools.elementphrase(self)} '
                 f'received {self.shape[0]} value(s).')
-        parametertools.MultiParameter.__call__(self, *args, **kwargs)
+        super().__call__(*args, **kwargs)
         if min(numpy.diff(self)) <= 0.:
             raise ValueError(
                 f'The values of parameter {objecttools.elementphrase(self)} '
@@ -59,7 +59,7 @@ arranged strictly monotonous, which is not the case for the given values \
                 f'`{objecttools.enumeration(self)}`.')
 
 
-class YPoints(parametertools.MultiParameter):
+class YPoints(parametertools.Parameter):
     """Supporting points for the dependent output variables [eg. m³/s].
 
     Setting the values of parameter |YPoints| correctly requires consistency

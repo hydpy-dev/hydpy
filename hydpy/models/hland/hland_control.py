@@ -13,12 +13,12 @@ from hydpy.models.hland import hland_constants
 from hydpy.models.hland import hland_parameters
 
 
-class Area(parametertools.SingleParameter):
+class Area(parametertools.Parameter):
     """Subbasin area [km²]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (1e-10, None)
 
 
-class NmbZones(parametertools.SingleParameter):
+class NmbZones(parametertools.Parameter):
     """Number of zones (hydrological response units) in a subbasin [-].
 
     Note that |NmbZones| determines the length of most 1-dimensional
@@ -46,7 +46,7 @@ class NmbZones(parametertools.SingleParameter):
         parameter objects (except |UH|) and sequence objects (except |QUH|)
         additionally.
         """
-        parametertools.SingleParameter.__call__(self, *args, **kwargs)
+        super().__call__(*args, **kwargs)
         for subpars in self.subpars.pars.model.parameters:
             for par in subpars:
                 if (par.NDIM > 0) and (par.name != 'uh'):
@@ -88,17 +88,17 @@ class ZoneZ(hland_parameters.ParameterComplete):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
 
-class ZRelT(parametertools.SingleParameter):
+class ZRelT(parametertools.Parameter):
     """Subbasin-wide reference elevation level for temperature [100m]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
 
-class ZRelP(parametertools.SingleParameter):
+class ZRelP(parametertools.Parameter):
     """Subbasin-wide reference elevation level for precipitation [100m]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
 
-class ZRelE(parametertools.SingleParameter):
+class ZRelE(parametertools.Parameter):
     """Subbasin-wide reference elevation level for evaporation [100m]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
@@ -218,29 +218,29 @@ class CFlux(hland_parameters.ParameterSoil):
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
 
 
-class RespArea(parametertools.SingleParameter):
+class RespArea(parametertools.Parameter):
     """Flag to enable the contributing area approach [-]."""
     NDIM, TYPE, TIME, SPAN = 0, bool, None, (0., None)
 
 
-class RecStep(parametertools.SingleParameter):
+class RecStep(parametertools.Parameter):
     """Number of internal computation steps per simulation time step [-]."""
     NDIM, TYPE, TIME, SPAN = 0, int, True, (1, None)
 
     def __call__(self, *args, **kwargs):
-        parametertools.SingleParameter.__call__(self, *args, **kwargs)
+        super().__call__(*args, **kwargs)
         self.value = int(round(self.value))
 
 
-class PercMax(parametertools.SingleParameter):
+class PercMax(parametertools.Parameter):
     """Maximum percolation rate [mm/T]."""
     NDIM, TYPE, TIME, SPAN = 0, float, True, (0., None)
 
 
-class K(parametertools.SingleParameter):
+class K(parametertools.Parameter):
     """Recession coefficient of the upper zone layer [1/T/mm^alpha].
 
-    In addition to the |SingleParameter| call method, it is possible to
+    In addition to the |Parameter| call method, it is possible to
     set the value of parameter |K| in accordance to the keyword arguments
     `khq`, `hq` and (optionally) `alpha`.  If `alpha` is not given, the
     value of the respective |Alpha| instance is taken.  This requires the
@@ -310,7 +310,7 @@ of parameter `alpha` must be defined beforehand.
 
     def __call__(self, *args, **kwargs):
         try:
-            parametertools.SingleParameter.__call__(self, *args, **kwargs)
+            super().__call__(*args, **kwargs)
         except NotImplementedError:
             counter = ('khq' in kwargs) + ('hq' in kwargs)
             if counter == 0:
@@ -336,27 +336,27 @@ of parameter `alpha` must be defined beforehand.
                 self(hq/((hq/khq)**(alpha+1.)))
 
 
-class Alpha(parametertools.SingleParameter):
+class Alpha(parametertools.Parameter):
     """Nonlinearity parameter of the upper zone layer [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
 
-class K4(parametertools.SingleParameter):
+class K4(parametertools.Parameter):
     """Recession coefficient of the lower zone layer [1/T]."""
     NDIM, TYPE, TIME, SPAN = 0, float, True, (0., None)
 
 
-class Gamma(parametertools.SingleParameter):
+class Gamma(parametertools.Parameter):
     """Nonlinearity parameter of the lower zone layer [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
 
-class MaxBaz(parametertools.SingleParameter):
+class MaxBaz(parametertools.Parameter):
     """Base length of the triangle unit hydrograph [T]."""
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0., None)
 
 
-class Abstr(parametertools.SingleParameter):
+class Abstr(parametertools.Parameter):
     """Abstraction of water from computed outflow [mm/T]."""
     NDIM, TYPE, TIME, SPAN = 0, float, True, (None, None)
 

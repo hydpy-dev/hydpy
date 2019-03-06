@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """This module implements tools for handling the sequences (time series)
-of hydrological models.
-"""
+of hydrological models."""
 # import...
 # ...from standard library
 import copy
@@ -424,7 +423,8 @@ class LinkSequences(SubSequences):
 class Sequence(variabletools.Variable):
     """Base class for defining different kinds of sequences."""
 
-    NDIM, NUMERIC, TYPE = 0, False, float
+    TYPE = float
+    NUMERIC: ClassVar[bool]
 
     NOT_DEEPCOPYABLE_MEMBERS = ('subseqs', 'fastaccess')
 
@@ -475,58 +475,6 @@ class Sequence(variabletools.Variable):
 
     def _initvalues(self):
         value = None if self.NDIM else self.initvalue
-        setattr(self.fastaccess, self.name, value)
-
-    @property
-    def value(self):
-        """The actual time series value(s) handled by the respective
-        |Sequence| instance.  For consistency, `value` and `values`
-        can always be used interchangeably.
-        """
-        value = getattr(self.fastaccess, self.name, None)
-        if value is None:
-            raise RuntimeError(
-                'No value/values of sequence %s has/have been defined so far.'
-                % objecttools.devicephrase(self))
-        else:
-            if self.NDIM:
-                value = numpy.asarray(value)
-            return value
-
-    @value.setter
-    def value(self, value):
-        if self.NDIM == 0:
-            try:
-                temp = value[0]
-                if len(value) > 1:
-                    raise ValueError(
-                        '%d values are assigned to the scalar sequence %s, '
-                        'which is ambiguous.'
-                        % (len(value), objecttools.devicename(self)))
-                value = temp
-            except (TypeError, IndexError):
-                pass
-            try:
-                value = float(value)
-            except (ValueError, TypeError):
-                raise TypeError(
-                    'When trying to set the value of sequence %s,  it '
-                    'was not possible to convert value `%s` to float.'
-                    % (objecttools.devicename(self), value))
-        else:
-            try:
-                value = value.value
-            except AttributeError:
-                pass
-            try:
-                value = numpy.full(self.shape, value, dtype=float)
-            except ValueError:
-                raise ValueError(
-                    'For sequence %s setting new values failed.  The '
-                    'values `%s` cannot be converted to a numpy ndarray '
-                    'with shape %s containing entries of type float.'
-                    % (objecttools.devicephrase(self),
-                       value, self.shape))
         setattr(self.fastaccess, self.name, value)
 
     def __repr__(self):
@@ -953,9 +901,9 @@ or prepare `pub.sequencemanager` correctly.
         values = numpy.array(values, dtype=float)
         setattr(self.fastaccess, '_%s_array' % self.name, values)
 
-    @Sequence.shape.setter
+    @variabletools.Variable.shape.setter
     def shape(self, shape):
-        Sequence.shape.fset(self, shape)
+        variabletools.Variable.shape.fset(self, shape)
         if self.memoryflag:
             self._activate()
         else:
@@ -1150,13 +1098,14 @@ or prepare `pub.sequencemanager` correctly.
         >>> from hydpy import pub
         >>> pub.timegrids = '2000-01-01', '2000-01-11', '1d'
         >>> from hydpy.core.sequencetools import IOSequence
-        >>> seq = IOSequence()
+        >>> class Seq(IOSequence):
+        ...     NDIM = 0
+        >>> seq = Seq()
         >>> seq.activate_ram()
         >>> seq.check_completeness()
         Traceback (most recent call last):
         ...
-        RuntimeError: The series array of sequence `iosequence` contains \
-10 nan values.
+        RuntimeError: The series array of sequence `seq` contains 10 nan values.
 
         >>> seq.series = 1.0
         >>> seq.check_completeness()
@@ -1165,8 +1114,7 @@ or prepare `pub.sequencemanager` correctly.
         >>> seq.check_completeness()
         Traceback (most recent call last):
         ...
-        RuntimeError: The series array of sequence `iosequence` contains \
-1 nan value.
+        RuntimeError: The series array of sequence `seq` contains 1 nan value.
 
         >>> with pub.options.checkseries(False):
         ...     seq.check_completeness()
@@ -1439,7 +1387,7 @@ class FluxSequence(ModelSequence):
     overwrite_ext = _OverwriteProperty()
 
     def _initvalues(self):
-        ModelSequence._initvalues(self)
+        super()._initvalues()
         if self.NUMERIC:
             value = None if self.NDIM else numpy.zeros(self.numericshape)
             self._connect_subattr('points', value)
@@ -1530,7 +1478,7 @@ class StateSequence(ModelSequence, ConditionSequence):
         self.new2old()
 
     def connect(self, subseqs):
-        ModelSequence.connect(self, subseqs)
+        super().connect(subseqs)
         self.fastaccess_old = subseqs.fastaccess_old
         self.fastaccess_new = subseqs.fastaccess_new
         if self.NDIM:

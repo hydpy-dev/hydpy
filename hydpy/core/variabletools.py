@@ -2,10 +2,6 @@
 """This module implements general features for defining and working with
 parameters and sequences.
 
->>> from hydpy import pub
->>> pub.options.reprdigits = 6
-
-
 Features more specific to either parameters or sequences are implemented
 in modules |parametertools| and |sequencetools| respectively.
 """
@@ -52,9 +48,6 @@ def trim(self: abctools.VariableABC, lower: Optional[ValuesType] = None,
     threshold value defined by function "tolerance" ToDo.  (This warning
     message can be suppressed by setting the related option flag to False.)
     For integer values, instead of a warning an exception is raised.
-
-    >>> import warnings
-    >>> warnings.filterwarnings('error')
 
     >>> from hydpy import pub
     >>> pub.options.warntrim = True
@@ -434,7 +427,7 @@ class Variable(abctools.VariableABC):
 
     >>> from hydpy.core.variabletools import Variable
     >>> class Var(Variable):
-    ...     NDIM = None
+    ...     NDIM = 0
     ...     shape = None
     ...     value = None
     ...     __call__ = None
@@ -443,7 +436,6 @@ class Variable(abctools.VariableABC):
 
     A few examples for 0-dimensional objects:
 
-    >>> var.NDIM = 0
     >>> var.shape = ()
     >>> var.value = 2.0
     >>> var + var
@@ -556,17 +548,80 @@ error occurred: operands could not be broadcast together with shapes (2,) (3,)
     def __call__(self, *args, **kwargs):
         """To be overridden."""
 
-    @property   # type: ignore
-    # due to issue https://github.com/python/mypy/issues/4165
-    @abc.abstractmethod
+    @property
     def value(self) -> Union[float, int, numpy.ndarray]:
-        """Actual value or |numpy.ndarray| of the actual values, to be
-        defined by the subclasses of |Variable|."""
+        """Actual parameter or sequence value(s).
 
-    @value.setter   # type: ignore
-    @abc.abstractmethod
+        >>> from hydpy.core.parametertools import Parameter
+        >>> class Par(Parameter):
+        ...     NDIM = 0
+        ...     TIME = None
+        ...     TYPE = float
+        >>> par = Par()
+        >>> par.value = 3
+        >>> par.value
+        3.0
+
+        >>> par.value = [2.0]
+        >>> par.value
+        2.0
+
+        >>> par.value = 1.0, 1.0
+        Traceback (most recent call last):
+        ...
+        ValueError: While trying to set the value(s) of variable `par`, the \
+following error occurred: 2 values are assigned to the scalar variable `par`.
+
+        >>> par.value = 'O'
+        Traceback (most recent call last):
+        ...
+        TypeError: While trying to set the value(s) of variable `par`, \
+the following error occurred: The given value `O` cannot be converted \
+to type `float`.
+        """
+        value = getattr(self.fastaccess, self.name, None)
+        if value is None:
+            raise AttributeError(
+                f'For variable {objecttools.devicephrase(self)}, no '
+                f'value/values has/have been defined so far.')
+        if self.NDIM:
+            return numpy.asarray(value)
+        return self.TYPE(value)
+
+    @value.setter
     def value(self, value: ValuesType) -> None:
-        """To be overridden."""
+        try:
+            if self.NDIM:
+                value = getattr(value, 'value', value)
+                try:
+                    value = numpy.full(self.shape, value, dtype=self.TYPE)
+                except BaseException:
+                    objecttools.augment_excmessage(
+                        f'While trying to convert the value(s) `{value}` '
+                        f'to a numpy ndarray with shape `{self.shape}` '
+                        f'and type `{objecttools.classname(self.TYPE)}`')
+            else:
+                try:
+                    temp = value[0]
+                except (TypeError, IndexError):
+                    pass
+                else:
+                    if len(value) > 1:
+                        raise ValueError(
+                            f'{len(value)} values are assigned to the scalar '
+                            f'variable {objecttools.devicephrase(self)}.')
+                    value = temp
+                try:
+                    value = self.TYPE(value)
+                except (ValueError, TypeError):
+                    raise TypeError(
+                        f'The given value `{value}` cannot be converted '
+                        f'to type `{objecttools.classname(self.TYPE)}`.')
+            setattr(self.fastaccess, self.name, value)
+        except BaseException:
+            objecttools.augment_excmessage(
+                f'While trying to set the value(s) of variable '
+                f'{objecttools.devicephrase(self)}')
 
     @property
     def values(self) -> Union[float, int, numpy.ndarray]:
@@ -585,8 +640,8 @@ error occurred: operands could not be broadcast together with shapes (2,) (3,)
         For 0-dimensional sequences an empty tuple is returned.
         """
         if self.NDIM:
-            value: numpy.ndarray = self.value
             try:
+                value: numpy.ndarray = self.value
                 return tuple(int(x) for x in value.shape)
             except AttributeError:
                 raise RuntimeError(

@@ -74,7 +74,7 @@ class Lnk(parametertools.NameParameter):
     >>> from hydpy.models.lland import *
     >>> parameterstep('1d')
     >>> lnk
-    lnk(-999999)
+    lnk(?)
     >>> nhru(4)
     >>> lnk(ACKER, ACKER, WASSER, MISCHW)
     >>> lnk.values

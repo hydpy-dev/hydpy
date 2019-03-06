@@ -339,10 +339,10 @@ different shapes.
         >>> item.update_variables()    # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        TypeError: When trying to update a target variable of SetItem \
-`alpha` with the value(s) `None`, the following error occurred: While \
-trying to set the value of parameter `alpha` of element `...`, \
-it was not possible to convert `None` to type `float`.
+        TypeError: When trying to update a target variable of SetItem `alpha` \
+with the value(s) `None`, the following error occurred: While trying to set \
+the value(s) of variable `alpha` of element `...`, the following error \
+occurred: The given value `None` cannot be converted to type `float`.
         """
         try:
             variable(value)

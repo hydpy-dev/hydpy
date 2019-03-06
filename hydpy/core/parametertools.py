@@ -1,10 +1,6 @@
 # -*- coding: utf-8 -*-
 """This module implements tools for handling the parameters of
-hydrological models.
-
->>> from hydpy import pub
->>> pub.options.reprdigits = 6
-"""
+hydrological models."""
 # import...
 # ...from standard library
 import inspect
@@ -246,8 +242,8 @@ class SubParameters(variabletools.SubVariables):
 
     >>> control = ControlParameters(None) # Assign `None` for brevity.
     >>> control
-    par2(nan)
-    par1(nan)
+    par2(?)
+    par1(?)
 
     The `in` operator can be used to check if a certain |SubParameters|
     object handles a certain type of parameter:
@@ -771,8 +767,6 @@ available.
     def __dir__(self):
         return objecttools.dir_(self)
 
-
-
     def connect(self, subpars):
         self.subpars = subpars
         self.fastaccess = subpars.fastaccess
@@ -780,84 +774,6 @@ available.
             setattr(self.fastaccess, self.name, None)
         else:
             setattr(self.fastaccess, self.name, self.initvalue)
-
-
-    @property
-    def value(self):
-        """The actual parameter value handled by the respective
-        |Parameter| instance.
-
-        >>> from hydpy.core.parametertools import Parameter
-        >>> class Par(Parameter):
-        ...     NDIM = 0
-        ...     TIME = None
-        ...     TYPE = float
-        >>> par = Par()
-        >>> par.value = 3
-        >>> par.value
-        3.0
-
-        >>> par.value = [2.0]
-        >>> par.value
-        2.0
-
-        >>> par.value = 1.0, 1.0
-        Traceback (most recent call last):
-        ...
-        ValueError: 2 values are assigned to the scalar parameter \
-`par` of element `?`, which is ambiguous.
-
-        >>> par.value = 'O'
-        Traceback (most recent call last):
-        ...
-        TypeError: While trying to set the value of parameter `par` \
-of element `?`, it was not possible to convert `O` to type `float`.
-        """
-        if self.NDIM:
-            value = getattr(self.fastaccess, self.name, None)
-            if value is None:
-                return value
-            return numpy.asarray(value)
-        return getattr(self.fastaccess, self.name, numpy.nan)
-
-    @value.setter
-    def value(self, value):
-        if self.NDIM:
-            try:
-                if hasattr(value, 'value'):
-                    value = value.value
-                try:
-                    value = numpy.full(self.shape, value, dtype=self.TYPE)
-                except BaseException:
-                    objecttools.augment_excmessage(
-                        'While trying to convert the value (s) `%s` to a numpy '
-                        'ndarray with shape `%s` and type `%s`'
-                        % (value, self.shape, objecttools.classname(self.TYPE)))
-                setattr(self.fastaccess, self.name, value)
-            except BaseException:
-                objecttools.augment_excmessage(
-                    'While trying to set the value(s) of parameter %s'
-                    % objecttools.elementphrase(self))
-        else:
-            try:
-                temp = value[0]
-                if len(value) > 1:
-                    raise ValueError(
-                        f'{len(value)} values are assigned to the scalar '
-                        f'parameter {objecttools.elementphrase(self)}, '
-                        f'which is ambiguous.')
-                value = temp
-            except (TypeError, IndexError):
-                pass
-            try:
-                value = self.TYPE(value)
-            except (ValueError, TypeError):
-                raise TypeError(
-                    f'While trying to set the value of parameter '
-                    f'{objecttools.elementphrase(self)}, it was not '
-                    f'possible to convert `{value}` to type '
-                    f'`{objecttools.classname(self.TYPE)}`.')
-            setattr(self.fastaccess, self.name, value)
 
     def __repr__(self):
         if self.NDIM:
@@ -884,7 +800,7 @@ of element `?`, it was not possible to convert `O` to type `float`.
 
     def compress_repr(self):
         """Return a compressed parameter value string, which is (in ToDo
-        accordance with |Parameter.NDIM|) contained in a nested |list|.
+        accordance with `NDIM`) contained in a nested |list|.
         If the compression fails, a |NotImplementedError| is raised.
 
         For the following examples, we define a 1-dimensional sequence
@@ -898,12 +814,12 @@ of element `?`, it was not possible to convert `O` to type `float`.
         >>> test = Test()
 
         Before and directly after defining the parameter shape, `nan`
-        is returned:
+        is returned: ToDo
 
         >>> test.compress_repr()
-        ['nan']
+        ['?']
         >>> test
-        test(nan)
+        test(?)
         >>> test.shape = 4
         >>> test
         test(nan)
@@ -967,9 +883,9 @@ is no compression method implemented, working for its actual values.
         >>> test = Test()
 
         >>> test.compress_repr()
-        [['-999999']]
+        ['?']
         >>> test
-        test([[-999999]])
+        test([[?]])
         >>> test.shape = (2, 3)
         >>> test
         test([[-999999]])
@@ -991,9 +907,9 @@ is no compression method implemented, working for its actual values.
         >>> test
         test([[3]])
         """
-        if self.value is None:
-            unique = numpy.array([self.TYPE2INITVALUE.get(self.TYPE)])
-        elif not len(self):
+        if not hasattr(self, 'value'):
+            return ['?']
+        if not len(self):
             return ['']
         else:
             unique = numpy.unique(self[self.mask])
@@ -1026,7 +942,10 @@ class NameParameter(Parameter):
         """Works as |Parameter.compress_repr|, but always returns
         a string with constant names instead of constant values."""
         try:
-            values = [int(super().compress_repr()[0])]
+            _values = super().compress_repr()
+            if _values[0] == '?':
+                return _values
+            values = [int(_values[0])]
         except NotImplementedError:
             values = self.values
         invmap = {value: key for key, value in

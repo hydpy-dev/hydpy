@@ -2,7 +2,6 @@
 # pylint: disable=missing-docstring
 # pylint: enable=missing-docstring
 
-
 # imports...
 # ...from HydPy
 from hydpy.core import modeltools
@@ -33,7 +32,7 @@ def calc_nkor_v1(self):
         >>> parameterstep('1d')
         >>> nhru(3)
         >>> kg(0.8, 1.0, 1.2)
-        >>> inputs.nied = 10.
+        >>> inputs.nied = 10.0
         >>> model.calc_nkor_v1()
         >>> fluxes.nkor
         nkor(8.0, 10.0, 12.0)

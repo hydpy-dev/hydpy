@@ -32,6 +32,9 @@ INT_NAN: int = -999999
 """Surrogate for `nan`, which is available for floating point values
 but not for integer values."""
 
+TYPE2MISSINGVALUE = {float: numpy.nan,
+                     int: INT_NAN,
+                     bool: False}
 
 def trim(self: abctools.VariableABC, lower: Optional[ValuesType] = None,
          upper: Optional[ValuesType] = None) -> None:
@@ -430,7 +433,7 @@ class Variable(abctools.VariableABC):
     ...     NDIM = 0
     ...     shape = None
     ...     value = None
-    ...     __call__ = None
+    ...     initvalue = None
 
     >>> var = Var()
 
@@ -536,57 +539,124 @@ error occurred: operands could not be broadcast together with shapes (2,) (3,)
     NDIM: ClassVar[int]
     TYPE: ClassVar[type]
     # ...and optionally...
-    INIT: ClassVar[Union[int, float]]
+    INIT: ClassVar[Union[int, float, bool, None]] = None
 
-    initvalue: Union[float, int]
+    strict_valuehandling: ClassVar[bool] = True
+
     fastaccess: Any
     subvars: 'SubVariables'
 
     mask = masktools.DefaultMask()
 
+    def __init__(self):
+        self.fastaccess = objecttools.FastAccess()
+        self.__valueready = False
+        self.__shapeready = False
+
+    @property
     @abc.abstractmethod
-    def __call__(self, *args, **kwargs):
+    def initvalue(self) -> Tuple[Union[float, int, bool], bool]:
         """To be overridden."""
 
     @property
     def value(self) -> Union[float, int, numpy.ndarray]:
-        """Actual parameter or sequence value(s).
+        """The actual parameter or sequence value(s).
 
-        >>> from hydpy.core.parametertools import Parameter
-        >>> class Par(Parameter):
+        >>> from hydpy.core.variabletools import Variable
+        >>> class Var(Variable):
         ...     NDIM = 0
-        ...     TIME = None
         ...     TYPE = float
-        >>> par = Par()
-        >>> par.value = 3
-        >>> par.value
+        ...     initvalue = 3.0, True
+
+        >>> var = Var()
+        >>> var.value
+        Traceback (most recent call last):
+        ...
+        AttributeError: For variable `var`, no value has been defined so far.
+
+        >>> var.value = 3
+        >>> var.value
         3.0
 
-        >>> par.value = [2.0]
-        >>> par.value
+        >>> var.value = ['2.0']
+        >>> var.value
         2.0
 
-        >>> par.value = 1.0, 1.0
+        >>> var.value = 1.0, 1.0
         Traceback (most recent call last):
         ...
-        ValueError: While trying to set the value(s) of variable `par`, the \
-following error occurred: 2 values are assigned to the scalar variable `par`.
+        ValueError: While trying to set the value(s) of variable `var`, the \
+following error occurred: 2 values are assigned to the scalar variable `var`.
+        >>> var.value
+        2.0
 
-        >>> par.value = 'O'
+        >>> var.value = 'O'
         Traceback (most recent call last):
         ...
-        TypeError: While trying to set the value(s) of variable `par`, \
+        TypeError: While trying to set the value(s) of variable `var`, \
 the following error occurred: The given value `O` cannot be converted \
 to type `float`.
+        >>> var.value
+        2.0
+
+
+        >>> from hydpy import INT_NAN
+        >>> Var.NDIM = 2
+        >>> Var.TYPE = int
+        >>> Var.initvalue = INT_NAN, False
+        >>> var = Var()
+        >>> var.value
+        Traceback (most recent call last):
+        ...
+        AttributeError: Shape information for variable `var` can only be \
+retrieved after it has been defined.
+
+        >>> var.value = 2
+        Traceback (most recent call last):
+        ...
+        AttributeError: While trying to set the value(s) of variable `var`, \
+the following error occurred: Shape information for variable `var` can only \
+be retrieved after it has been defined.
+
+        >>> var.shape = (2, 3)
+        >>> var.value
+        Traceback (most recent call last):
+        ...
+        AttributeError: For variable `var`, no values have been defined so far.
+
+        >>> var.value = 2
+        >>> var.value
+        array([[2, 2, 2],
+               [2, 2, 2]])
+
+        >>> var.value = 1, 2
+        Traceback (most recent call last):
+        ...
+        ValueError: While trying to set the value(s) of variable `var`, \
+the following error occurred: While trying to convert the value(s) `(1, 2)` \
+to a numpy ndarray with shape `(2, 3)` and type `int`, the following error \
+occurred: could not broadcast input array from shape (2) into shape (2,3)
+        >>> var.value
+        array([[2, 2, 2],
+               [2, 2, 2]])
+
+        >>> var.shape = (0, 0)
+        >>> var.shape
+        (0, 0)
+        >>> var.value   # doctest: +ELLIPSIS
+        array([], shape=(0, 0), dtype=int...)
         """
         value = getattr(self.fastaccess, self.name, None)
-        if value is None:
-            raise AttributeError(
-                f'For variable {objecttools.devicephrase(self)}, no '
-                f'value/values has/have been defined so far.')
-        if self.NDIM:
+        if self.__valueready or not self.strict_valuehandling:
+            if self.NDIM:
+                return numpy.asarray(value)
+            return self.TYPE(value)
+        if self.NDIM and not sum(self.shape):
             return numpy.asarray(value)
-        return self.TYPE(value)
+        substring = 'values have' if self.NDIM else 'value has'
+        raise AttributeError(
+            f'For variable {objecttools.devicephrase(self)}, '
+            f'no {substring} been defined so far.')
 
     @value.setter
     def value(self, value: ValuesType) -> None:
@@ -618,6 +688,7 @@ to type `float`.
                         f'The given value `{value}` cannot be converted '
                         f'to type `{objecttools.classname(self.TYPE)}`.')
             setattr(self.fastaccess, self.name, value)
+            self.__valueready = True
         except BaseException:
             objecttools.augment_excmessage(
                 f'While trying to set the value(s) of variable '
@@ -638,44 +709,147 @@ to type `float`.
         values at a specific time point.  Note that setting a new shape
         results in a loss of the actual values of the respective sequence.
         For 0-dimensional sequences an empty tuple is returned.
+
+        >>> from hydpy.core.variabletools import Variable
+        >>> class Var(Variable):
+        ...     NDIM = 1
+        ...     TYPE = float
+        ...     initvalue = 3.0, True
+        >>> var = Var()
+        >>> var.shape
+        Traceback (most recent call last):
+        ...
+        AttributeError: Shape information for variable `var` can only be \
+retrieved after it has been defined.
+
+        >>> var.shape = (3,)
+        >>> var.shape
+        (3,)
+        >>> var.values
+        array([ 3.,  3.,  3.])
+
+        >>> import numpy
+        >>> Var.initvalue = numpy.nan, False
+
+        >>> var.shape = (3,)
+        >>> var.shape
+        (3,)
+        >>> var.values
+        Traceback (most recent call last):
+        ...
+        AttributeError: For variable `var`, no values have been defined so far.
+        >>> var.fastaccess.var
+        array([ nan,  nan,  nan])
+
+        >>> var.shape = 'x'
+        Traceback (most recent call last):
+        ...
+        TypeError: While trying create a new numpy ndarray for \
+variable `var`, the following error occurred: 'str' object cannot \
+be interpreted as an integer
+        >>> hasattr(var, 'shape')
+        False
+        >>> var.fastaccess.var
+
+        >>> var.shape = (1,)
+        >>> hasattr(var, 'shape')
+        True
+
+        >>> var.shape = (2, 3)
+        Traceback (most recent call last):
+        ...
+        ValueError: Variable `var` is 1-dimensional, but the given \
+shape indicates `2` dimensions.
+        >>> hasattr(var, 'shape')
+        False
+        >>> var.fastaccess.var
+
+        >>> class Var(Variable):
+        ...     NDIM = 0
+        ...     TYPE = int
+        ...     initvalue = 3, True
+
+        >>> var = Var()
+        >>> var.shape
+        ()
+        >>> var.value
+        Traceback (most recent call last):
+        ...
+        AttributeError: For variable `var`, no value has been defined so far.
+
+        >>> var.shape = ()
+        >>> var.shape
+        ()
+        >>> var.value
+        3
+
+        >>> from hydpy import INT_NAN
+        >>> Var.initvalue = INT_NAN, False
+        >>> var.shape = ()
+        >>> var.shape
+        ()
+        >>> hasattr(var, 'value')
+        False
+        >>> var.fastaccess.var
+        -999999
+
+        >>> var.value = 6
+        >>> var.value
+        6
+
+        >>> var.shape = (2,)
+        Traceback (most recent call last):
+        ...
+        ValueError: The shape information of 0-dimensional variables \
+as `var` can only be `()`, but `(2,)` is given.
+        >>> var.shape
+        ()
+        >>> var.fastaccess.var
+        -999999
         """
         if self.NDIM:
-            try:
-                value: numpy.ndarray = self.value
-                return tuple(int(x) for x in value.shape)
-            except AttributeError:
-                raise RuntimeError(
-                    f'Shape information for variable '
-                    f'{objecttools.devicephrase(self)} can only '
-                    f'be retrieved after it has been defined.')
-        else:
-            return ()
+            if self.__shapeready:
+                shape = getattr(self.fastaccess, self.name).shape
+                return tuple(int(x) for x in shape)
+            raise AttributeError(
+                f'Shape information for variable '
+                f'{objecttools.devicephrase(self)} can only '
+                f'be retrieved after it has been defined.')
+        return ()
 
     @shape.setter
     def shape(self, shape: Iterable[int]):
+        self.__valueready = False
+        self.__shapeready = False
+        initvalue, initflag = self.initvalue
         if self.NDIM:
-            array: numpy.ndarray
             try:
-                array = numpy.full(shape, self.initvalue, dtype=self.TYPE)
+                array: numpy.ndarray = numpy.full(
+                    shape, initvalue, dtype=self.TYPE)
             except BaseException:
+                setattr(self.fastaccess, self.name, None)
                 objecttools.augment_excmessage(
-                    f'While trying create a new numpy ndarray` for variable '
+                    f'While trying create a new numpy ndarray for variable '
                     f'{objecttools.devicephrase(self)}')
-            if array.ndim == self.NDIM:
-                setattr(self.fastaccess, self.name, array)
-            else:
+            if array.ndim != self.NDIM:
+                setattr(self.fastaccess, self.name, None)
                 raise ValueError(
                     f'Variable {objecttools.devicephrase(self)} is '
                     f'{self.NDIM}-dimensional, but the given '
                     f'shape indicates `{array.ndim}` dimensions.')
+            setattr(self.fastaccess, self.name, array)
+            self.__shapeready = True
         else:
             if shape:
+                setattr(self.fastaccess, self.name,
+                        TYPE2MISSINGVALUE[self.TYPE])
                 raise ValueError(
                     f'The shape information of 0-dimensional variables '
                     f'as {objecttools.devicephrase(self)} can only be `()`, '
                     f'but `{shape}` is given.')
-            # else:  ToDo
-            #     self.value = self.initvalue
+            setattr(self.fastaccess, self.name, initvalue)
+        if initflag:
+            self.__valueready = True
 
     NOT_DEEPCOPYABLE_MEMBERS = ()
 
@@ -704,7 +878,7 @@ to type `float`.
         >>> class Var(Variable):
         ...     shape = None
         ...     value = None
-        ...     __call__ = None
+        ...     initvalue = None
         >>> var = Var()
         >>> import numpy
         >>> var.shape = ()
@@ -772,7 +946,7 @@ have not been set yet.
         ...     value = 200.0
         ...     refweigths = None
         ...     availablemasks = None
-        ...     __call__ = None
+        ...     initvalue = None
         >>> sm = SoilMoisture()
         >>> sm.average_values()
         200.0
@@ -800,7 +974,7 @@ of variable `soilmoisture`, the following error occurred: Variable \
         ...     NDIM = 1
         ...     shape = (3,)
         ...     value = numpy.array([1.0, 1.0, 2.0])
-        ...     __call__ = None
+        ...     initvalue = None
         >>> area = Area()
         >>> SoilMoisture.refweights = property(lambda self: area)
         >>> sm.average_values()

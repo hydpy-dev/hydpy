@@ -45,8 +45,8 @@ class RemoteDischargeSmoothPar(parametertools.Parameter):
         """
         metapar = self.subpars.pars.control.remotedischargesafety
         self.shape = metapar.shape
-        for idx, metapar in enumerate(metapar.values):
-            self.values[idx] = smoothtools.calc_smoothpar_logistic1(metapar)
+        self(tuple(smoothtools.calc_smoothpar_logistic1(mp)
+                   for mp in metapar.values))
 
 
 class NearDischargeMinimumSmoothPar1(parametertools.Parameter):
@@ -78,8 +78,8 @@ class NearDischargeMinimumSmoothPar1(parametertools.Parameter):
         """
         metapar = self.subpars.pars.control.neardischargeminimumtolerance
         self.shape = metapar.shape
-        for idx, metapar in enumerate(metapar.values):
-            self.values[idx] = smoothtools.calc_smoothpar_logistic1(metapar)
+        self(tuple(smoothtools.calc_smoothpar_logistic1(mp)
+                   for mp in metapar.values))
 
 
 class NearDischargeMinimumSmoothPar2(parametertools.Parameter):
@@ -109,12 +109,10 @@ class NearDischargeMinimumSmoothPar2(parametertools.Parameter):
         ...     2.5, derived.neardischargeminimumsmoothpar2[1]))
         2.51
         """
-
         metapar = self.subpars.pars.control.neardischargeminimumtolerance
         self.shape = metapar.shape
-        for idx, metapar in enumerate(metapar.values):
-            self.values[idx] = smoothtools.calc_smoothpar_logistic2(metapar)
-
+        self(tuple(smoothtools.calc_smoothpar_logistic2(mp)
+                   for mp in metapar.values))
 
 class WaterLevelMinimumSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |WaterLevelMinimumTolerance|
@@ -141,7 +139,7 @@ class WaterLevelMinimumSmoothPar(parametertools.Parameter):
         0.99
         """
         metapar = self.subpars.pars.control.waterlevelminimumtolerance
-        self.value = smoothtools.calc_smoothpar_logistic1(metapar)
+        self(smoothtools.calc_smoothpar_logistic1(metapar))
 
 
 class WaterLevelMinimumRemoteSmoothPar(parametertools.Parameter):
@@ -171,7 +169,7 @@ class WaterLevelMinimumRemoteSmoothPar(parametertools.Parameter):
         0.99
         """
         metapar = self.subpars.pars.control.waterlevelminimumremotetolerance
-        self.value = smoothtools.calc_smoothpar_logistic1(metapar)
+        self(smoothtools.calc_smoothpar_logistic1(metapar))
 
 
 class WaterLevelRelieveSmoothPar(parametertools.Parameter):
@@ -203,9 +201,8 @@ class WaterLevelRelieveSmoothPar(parametertools.Parameter):
         """
         metapar = self.subpars.pars.control.waterlevelrelievetolerance
         self.shape = metapar.shape
-        for idx, metapar in enumerate(metapar.values):
-            self.values[idx] = smoothtools.calc_smoothpar_logistic1(metapar)
-
+        self(tuple(smoothtools.calc_smoothpar_logistic1(mp)
+                   for mp in metapar.values))
 
 class WaterLevelSupplySmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |WaterLevelSupplyTolerance|
@@ -236,8 +233,8 @@ class WaterLevelSupplySmoothPar(parametertools.Parameter):
         """
         metapar = self.subpars.pars.control.waterlevelsupplytolerance
         self.shape = metapar.shape
-        for idx, metapar in enumerate(metapar.values):
-            self.values[idx] = smoothtools.calc_smoothpar_logistic1(metapar)
+        self(tuple(smoothtools.calc_smoothpar_logistic1(mp)
+                   for mp in metapar.values))
 
 
 class HighestRemoteSmoothPar(parametertools.Parameter):
@@ -298,11 +295,11 @@ class HighestRemoteSmoothPar(parametertools.Parameter):
         """
         control = self.subpars.pars.control
         if numpy.isinf(control.highestremotedischarge):
-            self.value = 0.0
+            self(0.0)
         else:
-            self.value = (control.highestremotedischarge *
-                          smoothtools.calc_smoothpar_min1(
-                              control.highestremotetolerance))
+            self(control.highestremotedischarge *
+                 smoothtools.calc_smoothpar_min1(control.highestremotetolerance)
+                 )
 
 
 class DerivedParameters(parametertools.SubParameters):

@@ -51,6 +51,7 @@ class State1DSequence(sequencetools.StateSequence):
     >>> nmbzones(4)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
     >>> zonearea(10.0, 20.0, 30.0, 40.0)
+    >>> fc(100.0)
     >>> states.sm(50.0, 20.0, 40.0, 10.0)
     >>> from hydpy import round_
     >>> round_(states.sm.average_values())

@@ -322,9 +322,8 @@ class RelWZ(lland_parameters.ParameterSoil):
         >>> relwz
         relwz(0.5, 0.5, 0.8)
         """
-        relwb = self.subpars.relwb.value
-        if (lower is None) and (relwb is not None):
-            lower = relwb
+        if lower is None:
+            lower = getattr(self.subpars.relwb, 'value', None)
         lland_parameters.ParameterSoil.trim(self, lower, upper)
 
 
@@ -346,9 +345,8 @@ class RelWB(lland_parameters.ParameterSoil):
         >>> relwb
         relwb(0.2, 0.5, 0.5)
         """
-        relwz = self.subpars.relwz.value
-        if (upper is None) and (relwz is not None):
-            upper = relwz
+        if upper is None:
+            upper = getattr(self.subpars.relwz, 'value', None)
         lland_parameters.ParameterSoil.trim(self, lower, upper)
 
 
@@ -437,7 +435,7 @@ occurred: Key `rdmin` is not an available model constant.
         dmin(0.0, 0.0, 2.0, 4.0, 4.0)
         """
         if upper is None:
-            upper = self.subpars.dmax
+            upper = getattr(self.subpars.dmax, 'value', None)
         lland_parameters.ParameterSoil.trim(self, lower, upper)
 
 
@@ -511,7 +509,7 @@ occurred: Key `rdmax` is not an available model constant.
         dmax(4.0, 4.0, 6.0)
         """
         if lower is None:
-            lower = self.subpars.dmin
+            lower = getattr(self.subpars.dmin, 'value', None)
         lland_parameters.ParameterSoil.trim(self, lower, upper)
 
 
@@ -678,7 +676,7 @@ class EQB(parametertools.Parameter):
         eqb(3.0)
         """
         if lower is None:
-            lower = self.subpars.eqi1
+            lower = getattr(self.subpars.eqi1, 'value', None)
         super().trim(lower, upper)
 
 
@@ -714,9 +712,9 @@ class EQI1(parametertools.Parameter):
         eqi1(3.0)
         """
         if lower is None:
-            lower = self.subpars.eqi2
+            lower = getattr(self.subpars.eqi2, 'value', None)
         if upper is None:
-            upper = self.subpars.eqb
+            upper = getattr(self.subpars.eqb, 'value', None)
         super().trim(lower, upper)
 
 
@@ -752,9 +750,9 @@ class EQI2(parametertools.Parameter):
         eqi2(3.0)
         """
         if lower is None:
-            lower = self.subpars.eqd1
+            lower = getattr(self.subpars.eqd1, 'value', None)
         if upper is None:
-            upper = self.subpars.eqi1
+            upper = getattr(self.subpars.eqi1, 'value', None)
         super().trim(lower, upper)
 
 
@@ -790,9 +788,9 @@ class EQD1(parametertools.Parameter):
         eqd1(3.0)
         """
         if lower is None:
-            lower = self.subpars.eqd2
+            lower = getattr(self.subpars.eqd2, 'value', None)
         if upper is None:
-            upper = self.subpars.eqi2
+            upper = getattr(self.subpars.eqi2, 'value', None)
         super().trim(lower, upper)
 
 
@@ -821,7 +819,7 @@ class EQD2(parametertools.Parameter):
         eqd2(3.0)
         """
         if upper is None:
-            upper = self.subpars.eqd1
+            upper = getattr(self.subpars.eqd1, 'value', None)
         super().trim(lower, upper)
 
 

@@ -73,6 +73,7 @@ class RelZoneArea(hland_parameters.ParameterComplete,
     relzonearea(field=0.1, forest=0.4, glacier=0.2, ilake=0.3)
     """
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., 1.)
+    strict_valuehandling = False
 
 
 class RelSoilZoneArea(hland_parameters.ParameterSoil,
@@ -89,6 +90,7 @@ class RelSoilZoneArea(hland_parameters.ParameterSoil,
     relsoilzonearea(field=0.2, forest=0.8)
     """
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., 1.)
+    strict_valuehandling = False
 
 
 class RelLandZoneArea(hland_parameters.ParameterLand,
@@ -105,6 +107,7 @@ class RelLandZoneArea(hland_parameters.ParameterLand,
     rellandzonearea(field=0.142857, forest=0.571429, glacier=0.285714)
     """
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., 1.)
+    strict_valuehandling = False
 
 
 class TTM(hland_parameters.ParameterLand):
@@ -160,6 +163,7 @@ class DT(parametertools.Parameter):
 class UH(parametertools.Parameter):
     """Unit hydrograph ordinates based on a isosceles triangle [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., 1.)
+    strict_valuehandling = False
 
     def update(self):
         """Update |UH| based on |MaxBaz|.

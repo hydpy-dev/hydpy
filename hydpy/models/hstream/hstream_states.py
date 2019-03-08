@@ -44,9 +44,9 @@ occurred: could not broadcast input array from shape (2) into shape (3)
 
     def __call__(self, *args):
         try:
-            sequencetools.StateSequence.__call__(self, *args)
+            super().__call__(*args)
         except BaseException as exc:
-            sequencetools.StateSequence.__call__(self, numpy.mean(args))
+            super().__call__(numpy.mean(args))
             warnings.warn(
                 f'Due to the following problem, state sequence '
                 f'{objecttools.elementphrase(self)} handling model '

@@ -126,7 +126,6 @@ Integration tests:
     >>> gamma(0.0)
     >>> maxbaz(3)
     >>> abstr(0.01)
-    >>> parameters.update()
 
     Initially, relative soil moisture is 50 % and the lower zone layer
     contains only 10 mm.  All other storages are empty:

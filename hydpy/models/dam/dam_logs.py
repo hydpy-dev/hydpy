@@ -40,20 +40,20 @@ class ShapeOne(sequencetools.LogSequence):
     ...
     AttributeError: The shape of parameter `loggedrequiredremoterelease` \
 cannot be changed, but this was attempted for element `?`.
-
-    ."""
+    """
 
     def _initvalues(self):
-        setattr(self.fastaccess, self.name,
-                numpy.full(1, numpy.nan, dtype=float))
+        self.shape = (1,)
 
     # due to a pylint bug (see https://github.com/PyCQA/pylint/issues/870)
     @variabletools.Variable.shape.setter   # pylint: disable=no-member
     def shape(self, shape):
-        raise AttributeError(
-            'The shape of parameter `%s` cannot be '
-            'changed, but this was attempted for element `%s`.'
-            % (self.name, objecttools.devicename(self)))
+        if hasattr(self, 'shape'):
+            raise AttributeError(
+                f'The shape of parameter `{self.name}` cannot be '
+                f'changed, but this was attempted for element '
+                f'`{objecttools.devicename(self)}`.')
+        variabletools.Variable.shape.fset(self, shape)
 
 
 class LoggedRequiredRemoteRelease(ShapeOne):

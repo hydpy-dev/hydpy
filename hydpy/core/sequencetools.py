@@ -426,11 +426,12 @@ class Sequence(variabletools.Variable):
     TYPE = float
     NUMERIC: ClassVar[bool]
 
+    strict_valuehandling = False
     NOT_DEEPCOPYABLE_MEMBERS = ('subseqs', 'fastaccess')
 
     def __init__(self):
+        super().__init__()
         self.subseqs = None
-        self.fastaccess = objecttools.FastAccess()
         self.diskflag = False
         self.ramflag = False
 
@@ -466,16 +467,18 @@ class Sequence(variabletools.Variable):
     @property
     def initvalue(self):
         if hydpy.pub.options.usedefaultvalues:
-            initvalue = getattr(self, 'INIT', None)
+            initflag = True
+            initvalue = self.INIT
             if initvalue is None:
                 initvalue = 0.
         else:
+            initflag = False
             initvalue = numpy.nan
-        return initvalue
+        return initvalue, initflag
 
     def _initvalues(self):
-        value = None if self.NDIM else self.initvalue
-        setattr(self.fastaccess, self.name, value)
+        if not self.NDIM:
+            self.shape = ()
 
     def __repr__(self):
         islong = len(self) > 255
@@ -1074,7 +1077,7 @@ or prepare `pub.sequencemanager` correctly.
         idxs = [timegrid[hydpy.pub.timegrids.init.firstdate],
                 timegrid[hydpy.pub.timegrids.init.lastdate]]
         valcopy = values
-        values = numpy.full(self.seriesshape, self.initvalue)
+        values = numpy.full(self.seriesshape, self.initvalue[0])
         len_ = len(valcopy)
         jdxs = []
         for idx in idxs:
@@ -1396,9 +1399,9 @@ class FluxSequence(ModelSequence):
             value = None if self.NDIM else 0.
             self._connect_subattr('sum', value)
 
-    @ModelSequence.shape.setter
+    @IOSequence.shape.setter
     def shape(self, shape):
-        ModelSequence.shape.fset(self, shape)
+        IOSequence.shape.fset(self, shape)
         if self.NDIM and self.NUMERIC:
             self._connect_subattr('points', numpy.zeros(self.numericshape))
             self._connect_subattr('integrals', numpy.zeros(self.numericshape))
@@ -1413,8 +1416,7 @@ class LeftRightSequence(ModelSequence):
     NDIM = 1
 
     def _initvalues(self):
-        setattr(self.fastaccess, self.name,
-                numpy.full(2, self.initvalue, dtype=float))
+        self.shape = (2,)
 
     def _get_left(self):
         """The "left" value of the actual parameter."""
@@ -1472,8 +1474,7 @@ class StateSequence(ModelSequence, ConditionSequence):
 
     def __call__(self, *args):
         """The prefered way to pass values to |Sequence| instances within
-        initial condition files.
-        """
+        initial condition files."""
         ConditionSequence.__call__(self, *args)
         self.new2old()
 
@@ -1487,22 +1488,22 @@ class StateSequence(ModelSequence, ConditionSequence):
             setattr(self.fastaccess_old, self.name, 0.)
 
     def _initvalues(self):
-        ModelSequence._initvalues(self)
+        super()._initvalues()
         if self.NUMERIC:
             value = None if self.NDIM else numpy.zeros(self.numericshape)
             self._connect_subattr('points', value)
             self._connect_subattr('results', copy.copy(value))
 
-    @ModelSequence.shape.setter
+    @IOSequence.shape.setter
     def shape(self, shape):
-        ModelSequence.shape.fset(self, shape)
+        IOSequence.shape.fset(self, shape)
         if self.NDIM:
             setattr(self.fastaccess_old, self.name, self.new.copy())
             if self.NUMERIC:
-                self._connect_subattr('points',
-                                      numpy.zeros(self.numericshape))
-                self._connect_subattr('results',
-                                      numpy.zeros(self.numericshape))
+                self._connect_subattr(
+                    'points', numpy.zeros(self.numericshape))
+                self._connect_subattr(
+                    'results', numpy.zeros(self.numericshape))
 
     new = Sequence.values
     """Complete access to the state value(s), which will be used in the

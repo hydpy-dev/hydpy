@@ -8,8 +8,9 @@ from typing import Tuple
 # ...from site-packages
 import numpy
 # ...from HydPy
-from hydpy.core import parametertools
 from hydpy.core import objecttools
+from hydpy.core import parametertools
+from hydpy.core import variabletools
 
 
 class Responses(parametertools.Parameter):
@@ -215,7 +216,7 @@ Most probably, you defined the same threshold value(s) twice.
             self.subpars = None
             self.fastaccess = None
             self._coefs = {}
-        parametertools.Parameter.__init__(self)
+            super().__init__()
 
     def connect(self, subpars):
         """Make `subpars` an attribute of the respective |Responses| instance,
@@ -227,51 +228,42 @@ Most probably, you defined the same threshold value(s) twice.
         self._coefs.clear()
         if len(args) > 1:
             raise ValueError(
-                'For parameter `%s` of element `%s` at most one positional '
-                'argument is allowed, but `%d` are given.'
-                % (self.name, objecttools.devicename(self.subpars), len(args)))
+                f'For parameter `{self.name}` of element '
+                f'`{objecttools.devicename(self.subpars)}` at most '
+                f'one positional argument is allowed, but '
+                f'`{len(args)}` are given.')
         for (key, value) in kwargs.items():
             setattr(self, key, value)
         if len(args) == 1:
             setattr(self, 'th_0_0', args[0])
         if len(args)+len(kwargs) != len(self):
             raise ValueError(
-                'For parameter `%s` of element `%s` `%d` arguments have been '
-                'given but only `%s` response functions could be prepared.  '
-                'Most probably, you defined the same threshold value(s) twice.'
-                % (self.name, objecttools.devicename(self.subpars),
-                   len(args)+len(kwargs), len(self)))
+                f'For parameter `{self.name}` of element '
+                f'`{objecttools.devicename(self.subpars)}` '
+                f'`{len(args)+len(kwargs)}` arguments have been given '
+                f'but only `{len(self)}` response functions could be '
+                f'prepared.  Most probably, you defined the same '
+                f'threshold value(s) twice.')
 
-    def _has_predefined_attr(self, name):
-        return ((name in self.__dict__ or
-                 name in Responses.__dict__ or
-                 name in parametertools.Parameter.__dict__) and
-                not name.startswith('th_'))
-
-    def __getattribute__(self, key):
-        try:
-            return object.__getattribute__(self, key)
-        except AttributeError:
-            pass
+    def __getattr__(self, key):
         try:
             std_key = self._standardize_key(key)
         except AttributeError:
             raise AttributeError(
-                'Parameter `%s` of element `%s` does not have an attribute '
-                'named `%s` and the name `%s` is also not a valid threshold '
-                'value identifier.'
-                % (self.name, objecttools.devicename(self.subpars), key, key))
+                f'Parameter `{self.name}` of element '
+                f'`{objecttools.devicename(self.subpars)}` does not '
+                f'have an attribute named `{key}` and the name `{key}` '
+                f'is also not a valid threshold value identifier.')
         if std_key in self._coefs:
             return self._coefs[std_key]
         raise AttributeError(
-            'Parameter `%s` of element `%s` does not have an attribute '
-            'attribute named `%s` nor an arma model corresponding to a '
-            'threshold value named `%s`.'
-            % (self.name, objecttools.devicename(self.subpars),
-               key, std_key))
+            f'Parameter `{self.name}` of element '
+            f'`{objecttools.devicename(self.subpars)}` does not have '
+            f'an attribute attribute named `{key}` nor an arma model '
+            f'corresponding to a threshold value named `{std_key}`.')
 
     def __setattr__(self, key, value):
-        if self._has_predefined_attr(key):
+        if hasattr(self, key) and not key.startswith('th_'):
             object.__setattr__(self, key, value)
         else:
             std_key = self._standardize_key(key)
@@ -283,9 +275,9 @@ Most probably, you defined the same threshold value(s) twice.
                                             tuple(float(v) for v in value[1]))
             except BaseException:
                 objecttools.augment_excmessage(
-                    'While trying to set a new threshold (%s) coefficient '
-                    'pair for parameter `%s` of element `%s`'
-                    % (key, self.name, objecttools.devicename(self.subpars)))
+                    f'While trying to set a new threshold ({key}) '
+                    f'coefficient pair for parameter `{self.name}` '
+                    f'of element `{objecttools.devicename(self.subpars)}`')
 
     def __delattr__(self, key):
         std_key = self._standardize_key(key)
@@ -304,12 +296,14 @@ Most probably, you defined the same threshold value(s) twice.
             return '_'.join(('th', str(integer), str(decimal)))
         except BaseException:
             raise AttributeError(
-                'To define different response functions for parameter `%s` of '
-                'element `%s`, one has to pass them as keyword arguments or '
-                'set them as additional attributes.  The used name must meet '
-                'a specific format (see the documentation for further '
-                'information).  The given name `%s` does not meet this format.'
-                % (self.name, objecttools.devicename(self.subpars), key))
+                f'To define different response functions for '
+                f'parameter `{self.name}` of element '
+                f'`{objecttools.devicename(self.subpars)}`, one has '
+                f'to pass them as keyword arguments or set them as '
+                f'additional attributes.  The used name must meet a '
+                f'specific format (see the documentation for further '
+                f'information).  The given name `{key}` does not '
+                f'meet this format.')
 
     @property
     def thresholds(self):

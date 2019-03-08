@@ -152,7 +152,7 @@ new `branched` sequence and connect it to the respective outlet nodes properly.
     def __call__(self, *args, **kwargs):
         try:
             shape = (len(kwargs), self.subpars.xpoints.shape[0])
-        except RuntimeError:
+        except AttributeError:
             raise RuntimeError(
                 f'The shape of parameter {objecttools.elementphrase(self)} '
                 f'depends on the shape of parameter `xpoints`, which has '
@@ -169,7 +169,8 @@ new `branched` sequence and connect it to the respective outlet nodes properly.
                 'be changed during run time.  If you really need to do '
                 'this, first initialize a new `branched` sequence and '
                 'connect it to the respective outlet nodes properly.')
-        values = numpy.empty(shape, dtype=float)
+        self.shape = shape
+        self.values = numpy.nan
         for idx, (key, value) in enumerate(sorted(kwargs.items())):
             if key not in devicetools.Node.query_all():
                 try:
@@ -182,7 +183,7 @@ new `branched` sequence and connect it to the respective outlet nodes properly.
                         f'supposed to branch to node `{key}`, but such a '
                         f'node is not available.')
             try:
-                values[idx] = value
+                self.values[idx] = value
             except BaseException:
                 if shape[1] != len(value):
                     raise ValueError(
@@ -194,14 +195,12 @@ new `branched` sequence and connect it to the respective outlet nodes properly.
                 objecttools.augment_excmessage(
                     f'While trying to set the values for branch `{key}` '
                     f'of parameter {objecttools.elementphrase(self)}')
-        self.shape = shape
         if branched.shape == (0,):
             branched.shape = shape[0]
         self.subpars.pars.model.sequences.fluxes.outputs.shape = shape[0]
         self.subpars.pars.model.nodenames.clear()
         for idx, key in enumerate(sorted(kwargs.keys())):
-            self.values[idx] = values[idx]
-            setattr(self, key, values[idx])
+            setattr(self, key, self.values[idx])
             self.subpars.pars.model.nodenames.append(key)
 
     def __repr__(self):

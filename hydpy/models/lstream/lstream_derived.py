@@ -33,11 +33,10 @@ class HV(parametertools.LeftRightParameter):
             hv(0.0)
         """
         con = self.subpars.pars.control
+        self(0.)
         for idx in range(2):
             if (con.bbv[idx] > 0.) and (con.bnv[idx] > 0.):
-                self[idx] = con.bbv[idx]/con.bnv[idx]
-            else:
-                self[idx] = 0.
+                self.values[idx] = con.bbv[idx]/con.bnv[idx]
 
 
 class QM(parametertools.Parameter):
@@ -64,7 +63,7 @@ class QM(parametertools.Parameter):
         flu = mod.sequences.fluxes
         flu.h = con.hm
         mod.calc_qg()
-        self.value = flu.qg
+        self(flu.qg)
 
 
 class QV(parametertools.LeftRightParameter):
@@ -90,6 +89,7 @@ class QV(parametertools.LeftRightParameter):
         con = mod.parameters.control
         der = self.subpars
         flu = mod.sequences.fluxes
+        self(0.)
         for idx in range(2):
             flu.h = con.hm+der.hv[idx]
             mod.calc_qg()

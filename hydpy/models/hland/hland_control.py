@@ -224,12 +224,16 @@ class RespArea(parametertools.Parameter):
 
 
 class RecStep(parametertools.Parameter):
-    """Number of internal computation steps per simulation time step [-]."""
-    NDIM, TYPE, TIME, SPAN = 0, int, True, (1, None)
+    """Number of internal computation steps per simulation time step [-].
 
-    def __call__(self, *args, **kwargs):
-        super().__call__(*args, **kwargs)
-        self.value = int(round(self.value))
+    >>> from hydpy.models.hland import *
+    >>> parameterstep('1d')
+    >>> simulationstep('12h')
+    >>> recstep(4.2)
+    >>> recstep
+    recstep(4.0)
+    """
+    NDIM, TYPE, TIME, SPAN = 0, int, True, (1, None)
 
 
 class PercMax(parametertools.Parameter):
@@ -324,7 +328,8 @@ of parameter `alpha` must be defined beforehand.
                     f'{objecttools.elementphrase(self)}, at least the '
                     f'keywords arguments `khq` and `hq` must be given.')
             elif counter == 2:
-                alpha = float(kwargs.get('alpha', self.subpars.alpha.value))
+                alpha = float(kwargs.get(
+                    'alpha', getattr(self.subpars.alpha, 'value', numpy.nan)))
                 if numpy.isnan(alpha):
                     raise RuntimeError(
                         f'For the alternative calculation of parameter '

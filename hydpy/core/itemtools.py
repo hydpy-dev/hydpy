@@ -415,18 +415,19 @@ class SetItem(ChangeItem):
 
         >>> for element in hp.elements.catchment:
         ...     element.model.parameters.control.nmbzones(5)
+        ...     element.model.parameters.control.icmax(4.0)
         >>> item = SetItem('ic', 'hland_v1', 'states.ic', 1)
         >>> item.collect_variables(pub.selections)
         >>> land_dill.model.sequences.states.ic
         ic(nan, nan, nan, nan, nan)
-        >>> item.value = 10.0
+        >>> item.value = 2.0
         >>> item.update_variables()
         >>> land_dill.model.sequences.states.ic
-        ic(10.0, 10.0, 10.0, 10.0, 10.0)
+        ic(2.0, 2.0, 2.0, 2.0, 2.0)
         >>> item.value = 1.0, 2.0, 3.0, 4.0, 5.0
         >>> item.update_variables()
         >>> land_dill.model.sequences.states.ic
-        ic(1.0, 2.0, 3.0, 4.0, 5.0)
+        ic(1.0, 2.0, 3.0, 4.0, 4.0)
         """
         value = self.value
         for variable in self.device2target.values():
@@ -523,25 +524,26 @@ class AddItem(MathItem):
         ...     control = element.model.parameters.control
         ...     control.nmbzones(3)
         ...     control.zonetype(FIELD)
+        ...     control.rfcf(1.1)
         >>> from hydpy.core.itemtools import AddItem
         >>> item = AddItem(
         ...     'sfcf', 'hland_v1', 'control.sfcf', 'control.rfcf', 1)
         >>> item.collect_variables(pub.selections)
         >>> land_dill = hp.elements.land_dill
-        >>> land_dill.model.parameters.control.rfcf(1.1)
         >>> land_dill.model.parameters.control.sfcf
-        sfcf(nan)
+        sfcf(?)
         >>> item.value = -0.1, 0.0, 0.1
         >>> item.update_variables()
         >>> land_dill.model.parameters.control.sfcf
         sfcf(1.0, 1.1, 1.2)
 
-        >>> hp.elements.land_dill.model.parameters.control.rfcf.shape = 2
+        >>> land_dill.model.parameters.control.rfcf.shape = 2
+        >>> land_dill.model.parameters.control.rfcf = 1.1
         >>> item.update_variables()    # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         ValueError: When trying to add the value(s) `[-0.1  0.   0.1]` of \
-AddItem `sfcf` and the value(s) `[ nan  nan]` of variable `rfcf` of element \
+AddItem `sfcf` and the value(s) `[ 1.1  1.1]` of variable `rfcf` of element \
 `land_dill`, the following error occurred: operands could not be broadcast \
 together with shapes (2,) (3,)...
         """

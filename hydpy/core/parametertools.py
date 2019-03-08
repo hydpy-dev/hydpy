@@ -517,16 +517,13 @@ class Parameter(variabletools.Variable, abctools.ParameterABC):
     TIME: ClassVar[Optional[bool]]
 
     NOT_DEEPCOPYABLE_MEMBERS = ('subpars', 'fastaccess')
-    TYPE2INITVALUE = {float: numpy.nan,
-                      int: variabletools.INT_NAN,
-                      bool: False}
 
     parameterstep = Parameterstep()
     simulationstep = Simulationstep()
 
     def __init__(self):
+        super().__init__()
         self.subpars = None
-        self.fastaccess = objecttools.FastAccess()
 
     def __call__(self, *args, **kwargs):
         """The prefered way to pass values to |Parameter| instances
@@ -604,7 +601,7 @@ class Parameter(variabletools.Variable, abctools.ParameterABC):
         """Actual initial value of the given parameter.
 
         Some |Parameter| subclasses define a class attribute `INIT`.
-        Let's define a test class and prepare a function for initializing
+        Let's define a test class and prepare a function for initialising
         a parameter object and connecting it to a |SubParameters| object:
 
         >>> from hydpy.core import parametertools
@@ -622,10 +619,10 @@ class Parameter(variabletools.Variable, abctools.ParameterABC):
 
         >>> test = prepare()
         >>> test
-        test(nan)
+        test(?)
 
         This can be changed through setting |Options.usedefaultvalues| to
-        `True`:
+        |True|:
 
         >>> from hydpy import pub
         >>> pub.options.usedefaultvalues = True
@@ -639,7 +636,7 @@ class Parameter(variabletools.Variable, abctools.ParameterABC):
         >>> del Test.INIT
         >>> test = prepare()
         >>> test
-        test(nan)
+        test(?)
 
         For time dependent parameter values, the `INIT` attribute is assumed
         to be related to a |Parameterstep| of one day:
@@ -655,43 +652,28 @@ class Parameter(variabletools.Variable, abctools.ParameterABC):
         1.0
 
         Note the following `nan` surrogate values for types |bool| and
-        |int| (for |bool|, a better solution should be found):
+        |int| (for |bool|, a better solution should be found):  ToDo
 
         >>> Test.TIME = None
         >>> Test.TYPE = bool
         >>> del Test.INIT
         >>> test = prepare()
         >>> test
-        test(False)
+        test(?)
         >>> Test.TYPE = int
         >>> test = prepare()
         >>> test
-        test(-999999)
-
-        For not supported types, the following error message is raised:
-
-        >>> Test.TYPE = list
-        >>> test = prepare()
-        Traceback (most recent call last):
-        ...
-        AttributeError: For parameter ``test` of element `?`` no `INIT` \
-class attribute is defined, but no standard value for its type `list` is \
-available.
+        test(?)
         """
-        initvalue = (getattr(self, 'INIT', None) if
-                     hydpy.pub.options.usedefaultvalues else None)
+        initvalue = self.INIT if hydpy.pub.options.usedefaultvalues else None
         if initvalue is None:
-            initvalue = self.TYPE2INITVALUE.get(self.TYPE)
-            if initvalue is None:
-                raise AttributeError(
-                    'For parameter `%s` no `INIT` class attribute is defined, '
-                    'but no standard value for its type `%s` is available.'
-                    % (objecttools.elementphrase(self),
-                       objecttools.classname(self.TYPE)))
+            initflag = False
+            initvalue = variabletools.TYPE2MISSINGVALUE[self.TYPE]
         else:
+            initflag = True
             with Parameter.parameterstep('1d'):
                 initvalue = self.apply_timefactor(initvalue)
-        return initvalue
+        return initvalue, initflag
 
     def _gettimefactor(self):
         """Factor to adapt a new parameter value related to |parameterstep|
@@ -773,7 +755,11 @@ available.
         if self.NDIM:
             setattr(self.fastaccess, self.name, None)
         else:
-            setattr(self.fastaccess, self.name, self.initvalue)
+            initvalue, initflag = self.initvalue
+            if initflag:
+                setattr(self, 'value', initvalue)
+            else:
+                setattr(self.fastaccess, self.name, initvalue)
 
     def __repr__(self):
         if self.NDIM:
@@ -789,13 +775,14 @@ available.
                     % self.name)
             else:
                 islong = False
-            return Parameter.to_repr(self, values, islong)
+            return super().to_repr(values, islong)
         else:
             lines = self.commentrepr()
-            lines.append(
-                '%s(%s)'
-                % (self.name,
-                   objecttools.repr_(self.revert_timefactor(self.value))))
+            if hasattr(self, 'value'):
+                value = self.revert_timefactor(self.value)
+            else:
+                value = '?'
+            lines.append(f'{self.name}({objecttools.repr_(value)})')
             return '\n'.join(lines)
 
     def compress_repr(self):
@@ -822,7 +809,7 @@ available.
         test(?)
         >>> test.shape = 4
         >>> test
-        test(nan)
+        test(?)
 
         Due to the time dependence of the parameter values, we have
         to specificy a parameter and a simulation time step:
@@ -888,7 +875,7 @@ is no compression method implemented, working for its actual values.
         test([[?]])
         >>> test.shape = (2, 3)
         >>> test
-        test([[-999999]])
+        test([[?]])
 
         >>> test([[3, 3, 3],
         ...       [3, 3, 3]])
@@ -1000,21 +987,21 @@ class ZipParameter(Parameter):
         self.values = self.apply_timefactor(self.values)
         self.trim()
 
-    @Parameter.shape.getter
+    @variabletools.Variable.shape.getter
     def shape(self):
         """Return a tuple containing the lengths in all dimensions of the
         parameter values.
         """
         try:
-            return Parameter.shape.fget(self)
-        except RuntimeError:
-            raise RuntimeError(
-                'Shape information for parameter `%s` can only be '
-                'retrieved after it has been defined.  You can do '
-                'this manually, but usually it is done automatically '
-                'by defining the value of parameter `%s` first in '
-                'each parameter control file.'
-                % (self.name, self.shapeparameter.name))
+            return super().shape
+        except AttributeError:
+            raise AttributeError(
+                f'Shape information for parameter `{self.name}` can '
+                f'only be retrieved after it has been defined.  '
+                f'You can do this manually, but usually it is done '
+                f'automatically by defining the value of parameter '
+                f'`{self.shapeparameter.name}` first in each '
+                f'parameter control file.')
 
     def compress_repr(self):
         """Return a compressed parameter value string, which is (in
@@ -1139,6 +1126,8 @@ into shape (3)
     par(toy_1_1_0_0_0=[1.0, 2.0, 3.0])
     """
     TYPE = float
+
+    strict_valuehandling = False
 
     def __init__(self):
         super().__init__()
@@ -1327,7 +1316,7 @@ into shape (3)
             x_1, y_1 = xys[0]
         return y_0+(y_1-y_0)/(x_1-x_0)*(xnew-x_0)
 
-    @Parameter.shape.setter
+    @variabletools.Variable.shape.setter
     def shape(self, shape):
         try:
             shape = (int(shape),)
@@ -1344,7 +1333,7 @@ into shape (3)
                 % (self.name, objecttools.devicename(self)))
         shape[0] = timetools.Period('366d')/self.simulationstep
         shape[0] = int(numpy.ceil(round(shape[0], 10)))
-        Parameter.shape.fset(self, shape)
+        variabletools.Variable.shape.fset(self, shape)
 
     def __iter__(self):
         for toy in sorted(self._toy2values.keys()):
@@ -1468,9 +1457,9 @@ class KeywordParameter2D(Parameter):
     >>> iswarm(north=[True, False])
     Traceback (most recent call last):
     ...
-    ValueError: When setting parameter `iswarm` of element `?` via row \
+    ValueError: While setting parameter `iswarm` of element `?` via row \
 related keyword arguments, each string defined in `ROWNAMES` must be used \
-as a keyword, but the following keyword is not: `south`.
+as a keyword, but the following keywords are not: `south`.
 
     But one can modify single rows via attribute access:
 
@@ -1538,6 +1527,8 @@ following error occurred: index 1 is out of bounds for axis 0 with size 1
     ROWNAMES = ()
     COLNAMES = ()
 
+    strict_valuehandling = False
+
     def __init__(self, *arg, **kwargs):
         if not hasattr(type(self), '_ROWCOLMAPPINGS'):
             rownames = self.ROWNAMES
@@ -1563,13 +1554,12 @@ following error occurred: index 1 is out of bounds for axis 0 with size 1
                 except KeyError:
                     miss = [key for key in self.ROWNAMES if key not in kwargs]
                     raise ValueError(
-                        'When setting parameter `%s` of element `%s` via '
-                        'row related keyword arguments, each string '
-                        'defined in `ROWNAMES` must be used as a keyword, '
-                        'but the following keyword%s not: `%s`.'
-                        % (self.name, objecttools.devicename(self),
-                           ' is' if len(miss) == 1 else 's are',
-                           ', '.join(miss)))
+                        f'While setting parameter '
+                        f'{objecttools.elementphrase(self)} via row '
+                        f'related keyword arguments, each string defined '
+                        f'in `ROWNAMES` must be used as a keyword, '
+                        f'but the following keywords are not: '
+                        f'`{objecttools.enumeration(miss)}`.')
                 self.values[idx, :] = values
 
     def __repr__(self):
@@ -1611,7 +1601,7 @@ following error occurred: index 1 is out of bounds for axis 0 with size 1
                     'element `%s` via the row and column related attribute '
                     '`%s`' % (self.name, objecttools.devicename(self), key))
         else:
-            raise AttributeError('ToDo')   # ToDo
+            raise AttributeError('ToDo ' + key)   # ToDo
 
     def __setattr__(self, key, values):
         if key in self.ROWNAMES:
@@ -1668,6 +1658,7 @@ class RelSubweightsMixin:
 
 class LeftRightParameter(Parameter):
     NDIM = 1
+    strict_valuehandling = False
 
     def __call__(self, *args, **kwargs):
         try:
@@ -1716,9 +1707,11 @@ class LeftRightParameter(Parameter):
 
 
 class IndexParameter(Parameter):
+    NDIM = 1
 
     def setreference(self, indexarray):
-        setattr(self.fastaccess, self.name, indexarray)
+        self.shape = indexarray.shape
+        self.values = indexarray
 
 
 class SolverParameter(Parameter):

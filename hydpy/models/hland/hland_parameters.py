@@ -35,7 +35,7 @@ class ParameterComplete(parametertools.ZipParameter):
     >>> pcorr.shape
     Traceback (most recent call last):
     ...
-    RuntimeError: Shape information for parameter `pcorr` can only be \
+    AttributeError: Shape information for parameter `pcorr` can only be \
 retrieved after it has been defined.  You can do this manually, but usually \
 it is done automatically by defining the value of parameter `nmbzones` first \
 in each parameter control file.
@@ -60,7 +60,7 @@ long as parameter `zonetype` is not prepared properly.
     properly prepared completely:
 
     >>> zonetype
-    zonetype(-999999)
+    zonetype(?)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, FIELD)
     >>> pcorr(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
     >>> pcorr
@@ -112,10 +112,8 @@ occurred: Key `wood` is not an available model constant.
     Parameter |ZoneArea| is used for calculating areal means (see
     |property| |ParameterComplete.refweights|).  When |ZoneArea| is
     propertly prepared, applying |Variable.average_values| returns
-    the expected wheighted mean value:
+    the expected wheighted mean value (as soon as possible):
 
-    >>> pcorr.average_values()
-    nan
     >>> zonearea(0.0, 1.0, 2.0, 3.0, 4.0)
     >>> from hydpy import round_
     >>> round_(pcorr.average_values())

@@ -4,12 +4,14 @@
 # import...
 # ...from standard library
 import inspect
-from typing import Callable
+from typing import *
 # ...from site-packages
 import numpy
 # ...from HydPy
 from hydpy.core import abctools
 from hydpy.core import objecttools
+if TYPE_CHECKING:
+    from hydpy.core import parametertools
 
 
 class _MaskDescriptor(object):
@@ -172,7 +174,7 @@ class IndexMask(DefaultMask):
         in the |IndexMask| class attribute tuple `RELEVANT_VALUES`.
         """
         indices = cls.get_refindices(variable)
-        if numpy.min(indices) < 1:
+        if numpy.min(getattr(indices, 'values', 0)) < 1:
             raise RuntimeError(
                 f'The mask of parameter {objecttools.elementphrase(variable)} '
                 f'cannot be determined, as long as parameter `{indices.name}` '
@@ -184,7 +186,7 @@ class IndexMask(DefaultMask):
         return cls.array2mask(mask, **kwargs)
 
     @classmethod
-    def get_refindices(cls, variable):
+    def get_refindices(cls, variable) -> 'parametertools.Parameter':
         """Return the |Parameter| object for determining which
         entries of |IndexMask| are |True| and which are |False|.
 

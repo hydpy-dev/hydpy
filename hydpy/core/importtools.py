@@ -118,7 +118,7 @@ def reverse_model_wildcard_import():
 
     >>> parameterstep('1d')
     >>> nhru
-    nhru(-999999)
+    nhru(?)
 
     Calling function |reverse_model_wildcard_import| removes both
     objects (and many more, but not all) from the local namespace:
@@ -317,7 +317,7 @@ occurred: could not broadcast input array from shape (2) into shape (12)
     to change them:
 
     >>> del model
-    >>> with TestIO():
+    >>> with TestIO():   # doctest: +ELLIPSIS
     ...     os.chdir(cwd)
     ...     controlcheck(projectdir='somewhere', controldir='nowhere')
     Traceback (most recent call last):

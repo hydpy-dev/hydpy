@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=missing-docstring
 # pylint: enable=missing-docstring
-
+"""
+>>> from hydpy import pub
+>>> pub.options.reprdigits = 6
+>>> pub.options.usecython = False
+"""
 # import...
 # ...from HydPy
 from hydpy.core import modeltools

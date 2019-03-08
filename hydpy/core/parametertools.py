@@ -775,7 +775,7 @@ class Parameter(variabletools.Variable, abctools.ParameterABC):
                     % self.name)
             else:
                 islong = False
-            return super().to_repr(values, islong)
+            return variabletools.to_repr(self, values, islong)
         else:
             lines = self.commentrepr()
             if hasattr(self, 'value'):

@@ -75,15 +75,11 @@ class DevicesHandlerProtocol(Protocol):
     elements: 'devicetools.Elements'
 
 
-class VariableABC(abc.ABC):
-    """See class |Variable|."""
-
-
 class ParametersABC(abc.ABC):
     """See class |Parameters|."""
 
 
-class ParameterABC(VariableABC):
+class ParameterABC(abc.ABC):
     """See class |Parameter|."""
 
 
@@ -141,7 +137,7 @@ class OutputSequencesABC(IOSequencesABC, metaclass=abc.ABCMeta):
     like |FluxSequences|."""
 
 
-class SequenceABC(VariableABC):
+class SequenceABC(abc.ABC):
     """See class |Sequence|."""
 
 
@@ -267,7 +263,6 @@ __all__ = [
     'ElementsABC',
     'DevicesHandlerProtocol',
     'ParametersABC',
-    'VariableABC',
     'ParameterABC',
     'ANNABC',
     'SeasonalANNABC',

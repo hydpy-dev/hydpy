@@ -36,7 +36,8 @@ TYPE2MISSINGVALUE = {float: numpy.nan,
                      int: INT_NAN,
                      bool: False}
 
-def trim(self: abctools.VariableABC, lower: Optional[ValuesType] = None,
+
+def trim(self: 'Variable', lower: Optional[ValuesType] = None,
          upper: Optional[ValuesType] = None) -> None:
     """Trim the value(s) of a |Variable| instance.
 
@@ -398,16 +399,12 @@ def _compare_variables_function_generator(
             return method_string in ('__eq__', '__le__', '__ge__')
         method = getattr(self.value, method_string)
         try:
-            if isinstance(other, abctools.VariableABC):
-                result = method(other.value)
-            else:
-                result = method(other)
+            if hasattr(type(other), '__value__hydpy__'):
+                other = other.__value__hydpy__
+            result = method(other)
             if result is NotImplemented:
                 return result
-            try:
-                return aggregation_func(result)
-            except TypeError:
-                return result
+            return aggregation_func(result)
         except BaseException:
             objecttools.augment_excmessage(
                 f'While trying to compare variable '
@@ -416,7 +413,7 @@ def _compare_variables_function_generator(
     return comparison_function
 
 
-class Variable(abctools.VariableABC):
+class Variable:
     """Base class for |Parameter| and |Sequence|.
 
     This base class implements special methods for arithmetic calculations,
@@ -428,29 +425,247 @@ class Variable(abctools.VariableABC):
     purposes, we simply add them as class attributes to a copy of class
     |Variable|.
 
+    We start with demonstrating the supported mathematical operations
+    on 0-dimensional |Variable| objects:
+
+    >>> import numpy
     >>> from hydpy.core.variabletools import Variable
     >>> class Var(Variable):
     ...     NDIM = 0
-    ...     shape = None
-    ...     value = None
-    ...     initvalue = None
-
+    ...     TYPE = float
+    ...     initvalue = 0.0, False
     >>> var = Var()
 
-    A few examples for 0-dimensional objects:
+    You can perform additions both with other |Variable| objects or
+    with usual number objects:
 
-    >>> var.shape = ()
     >>> var.value = 2.0
     >>> var + var
     4.0
-    >>> 3.0 - var
-    1.0
-    >>> var /= 2.0
+    >>> var + 3.0
+    5.0
+    >>> 4.0 + var
+    6.0
+    >>> var += 1
+    >>> var
+    var(3.0)
+    >>> var += -1.0
+    >>> var
+    var(2.0)
+
+    In case something wrents wrong, all math operations return errors
+    like the following:
+
+    >>> var = Var()
+    >>> var + 1.0
+    Traceback (most recent call last):
+    ...
+    AttributeError: While trying to add variable `var` and `float` instance \
+`1.0`, the following error occurred: For variable `var`, no value has been \
+defined so far.
+
+    In general, the examples above are valid for the following binary
+    operations:
+
+    >>> var.value = 3.0
+    >>> var - 1
+    2.0
+    >>> 7.0 - var
+    4.0
+    >>> var -= 2.0
     >>> var
     var(1.0)
-    >>> var[0] = 2.0 * var[:]
-    >>> var[0]
+
+    >>> var.value = 2.0
+    >>> var * 3
+    6.0
+    >>> 4.0 * var
+    8.0
+    >>> var *= 0.5
+    >>> var
+    var(1.0)
+
+    >>> var.value = 3.0
+    >>> var / 2
+    1.5
+    >>> 7.5 / var
+    2.5
+    >>> var /= 6.0
+    >>> var
+    var(0.5)
+
+    >>> var.value = 3.0
+    >>> var // 2
+    1.0
+    >>> 7.5 // var
     2.0
+    >>> var //= 0.9
+    >>> var
+    var(3.0)
+
+    >>> var.value = 5.0
+    >>> var % 2
+    1.0
+    >>> 7.5 % var
+    2.5
+    >>> var %= 3.0
+    >>> var
+    var(2.0)
+
+    >>> var.value = 2.0
+    >>> var**3
+    8.0
+    >>> 3.0**var
+    9.0
+    >>> var **= 4.0
+    >>> var
+    var(16.0)
+
+    >>> var.value = 5.0
+    >>> divmod(var, 3)
+    (1.0, 2.0)
+    >>> divmod(13.0, var)
+    (2.0, 3.0)
+
+    Also, the following unary operations are supported:
+
+    >>> var.values = -5.0
+    >>> +var
+    -5.0
+    >>> -var
+    5.0
+    >>> abs(var)
+    5.0
+    >>> ~var
+    -0.2
+    >>> var.value = 2.5
+    >>> import math
+    >>> math.floor(var)
+    2
+    >>> math.ceil(var)
+    3
+    >>> bool(var)
+    True
+    >>> int(var)
+    2
+    >>> float(var)
+    2.5
+    >>> var.value = 1.67
+    >>> round(var, 1)
+    1.7
+
+    You can apply all the operations discussed above on |Variable|
+    objects of arbitrary dimensionality:
+
+    >>> Var.NDIM = 1
+    >>> Var.TYPE = float
+    >>> var.shape = (2,)
+    >>> var.values = 2.0
+    >>> var + var
+    array([ 4.,  4.])
+    >>> var + 3.0
+    array([ 5.,  5.])
+    >>> [4.0, 0.0] + var
+    array([ 6.,  2.])
+    >>> var += 1
+    >>> var
+    var(3.0, 3.0)
+
+    >>> var.values = 3.0
+    >>> var - [1.0, 0.0]
+    array([ 2.,  3.])
+    >>> [7.0, 0.0] - var
+    array([ 4., -3.])
+    >>> var -= [2.0, 0.0]
+    >>> var
+    var(1.0, 3.0)
+
+    >>> var.values = 2.0
+    >>> var * [3.0, 1.0]
+    array([ 6.,  2.])
+    >>> [4.0, 1.0] * var
+    array([ 8.,  2.])
+    >>> var *= [0.5, 1.0]
+    >>> var
+    var(1.0, 2.0)
+
+    >>> var.values = 3.0
+    >>> var / [2.0, 1.0]
+    array([ 1.5,  3. ])
+    >>> [7.5, 3.0] / var
+    array([ 2.5,  1. ])
+    >>> var /= [6.0, 1.]
+    >>> var
+    var(0.5, 3.0)
+
+    >>> var.values = 3.0
+    >>> var // [2.0, 1.0]
+    array([ 1.,  3.])
+    >>> [7.5, 3.0] // var
+    array([ 2.,  1.])
+    >>> var //= [0.9, 1.0]
+    >>> var
+    var(3.0, 3.0)
+
+    >>> var.values = 5.0
+    >>> var % [2.0, 5.0]
+    array([ 1.,  0.])
+    >>> [7.5, 5.0] % var
+    array([ 2.5,  0. ])
+    >>> var %= [3.0, 5.0]
+    >>> var
+    var(2.0, 0.0)
+
+    >>> var.values = 2.0
+    >>> var**[3.0, 1.0]
+    array([ 8.,  2.])
+    >>> [3.0, 1.0]**var
+    array([ 9.,  1.])
+    >>> var **= [4.0, 1.0]
+    >>> var
+    var(16.0, 2.0)
+
+    >>> var.value = 5.0
+    >>> divmod(var, [3.0, 5.0])
+    (array([ 1.,  1.]), array([ 2.,  0.]))
+    >>> divmod([13.0, 5.0], var)
+    (array([ 2.,  1.]), array([ 3.,  0.]))
+
+    Also, the following unary operations are supported (except |bool|,
+    |int| and |float|):
+
+    >>> var.values = -5.0
+    >>> +var
+    array([-5., -5.])
+    >>> -var
+    array([ 5.,  5.])
+    >>> abs(var)
+    array([ 5.,  5.])
+    >>> ~var
+    array([-0.2, -0.2])
+    >>> var.value = 2.5
+    >>> import math
+    >>> math.floor(var)
+    array([2, 2])
+    >>> math.ceil(var)
+    array([3, 3])
+    >>> var.values = 1.67
+    >>> round(var, 1)
+    array([ 1.7,  1.7])
+    >>> bool(var)
+    Traceback (most recent call last):
+    ...
+    TypeError: The variable `var` is 1-dimensional and thus cannot be \
+converted to a scalar bool value.
+
+    Indexing is supported (for consistency reasons, even for
+    0-dimensional variables):
+
+    >>> Var.NDIM = 0
+    >>> var.value = 5.0
+    >>> var[0] += var[0]
+    >>> var[:]
+    10.0
     >>> var[1]
     Traceback (most recent call last):
     ...
@@ -458,23 +673,17 @@ class Variable(abctools.VariableABC):
 with key `1`, the following error occurred: The only allowed keys for \
 0-dimensional variables are `0` and `:`.
 
-
-    Similar examples for 1-dimensional objects:
-
-    >>> import numpy
-    >>> var.NDIM = 1
-    >>> var.shape = (3,)
-    >>> var.value = numpy.array([1.0, 2.0, 3.0])
-    >>> print(var + var)
-    [ 2.  4.  6.]
-    >>> print(3. - var)
-    [ 2.  1.  0.]
-    >>> var /= 2.
+    >>> Var.NDIM = 1
+    >>> var = Var()
+    >>> var.shape = (5,)
+    >>> var.value = 2.0, 4.0, 6.0, 8.0, 10.0
+    >>> var[0]
+    2.0
+    >>> var[-1]
+    10.0
+    >>> var[1:-1:2] = 2.0 * var[1:-1:2]
     >>> var
-    var(0.5, 1.0, 1.5)
-    >>> var[:] = var[1]
-    >>> var[:2]
-    array([ 1.,  1.])
+    var(2.0, 8.0, 6.0, 16.0, 10.0)
     >>> var[:] = 'test'
     Traceback (most recent call last):
     ...
@@ -483,10 +692,11 @@ with key `slice(None, None, None)`, the following error occurred: \
 could not convert string to float: 'test'
 
 
-    Note that comparisons on |Variable| objects containg multiple
-    values return a single boolean only:
+    Comparisons with |Variable| objects containg multiple
+    values return a single boolean value:
 
-    >>> var.value = numpy.array([1.0, 3.0])
+    >>> var.shape = (2,)
+    >>> var.value = 1.0, 3.0
     >>> var == [0.0, 2.0], var == [1.0, 2.0], var == [1.0, 3.0]
     (False, False, True)
     >>> var != [0.0, 2.0], var != [1.0, 2.0], var != [1.0, 3.0]
@@ -505,18 +715,32 @@ could not convert string to float: 'test'
     >>> var > 0.0, var > 1.0, var > 2.0
     (True, False, False)
 
+    You can compare different |Variable| objects directly with each other:
+
+    >>> from copy import deepcopy
+    >>> var < var, var < deepcopy(var)
+    (False, False)
+    >>> var <= var, var <= deepcopy(var)
+    (True, True)
+    >>> var == var, var == deepcopy(var)
+    (True, True)
+    >>> var != var, var != deepcopy(var)
+    (False, False)
+    >>> var >= var, var >= deepcopy(var)
+    (True, True)
+    >>> var > var, var > deepcopy(var)
+    (False, False)
+
     When asking for impossible comparisons, error messages like the following
     are returned:
 
-    >>> var < [1.0, 2.0, 3.0]   # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> var < [1.0, 2.0, 3.0]   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
-    ValueError: While trying to compare variable `var(1.0, 3.0)` of \
-element `?` with object `[1.0, 2.0, 3.0]` of type `list`, the following \
-error occurred: operands could not be broadcast together with shapes (2,) (3,)
+    ValueError: While trying to compare variable `var` of element `?` \
+with object `[1.0, 2.0, 3.0]` of type `list`, the following error occurred: \
+operands could not be broadcast together with shapes (2,) (3,)...
 
-    >>> Var.NDIM = 0
-    >>> Var.value = 1.0
     >>> var < 'text'
     Traceback (most recent call last):
     ...
@@ -525,15 +749,74 @@ error occurred: operands could not be broadcast together with shapes (2,) (3,)
     The |len| operator always returns the total number of values handles
     by the variable according to the current shape:
 
+    >>> Var.NDIM = 0
+    >>> var = Var()
     >>> var.shape = ()
     >>> len(var)
     1
+    >>> Var.NDIM = 1
+    >>> var = Var()
     >>> var.shape = (5,)
     >>> len(var)
     5
+    >>> Var.NDIM = 3
+    >>> var = Var()
     >>> var.shape = (2, 1, 4)
     >>> len(var)
     8
+
+    |Variable| objects are hasable based on their |id| value for
+    avoiding confusion when adding different but equal objects into
+    one |set| or |dict| object.  The following examples show this
+    behaviour by making deep oopies of existing |Variable| objects:
+
+    >>> Var.NDIM = 0
+    >>> var1 = Var()
+    >>> var1.value = 5.0
+    >>> varset = set([var1])
+    >>> var1 in varset
+    True
+    >>> var1.value = 7.0
+    >>> var1 in varset
+    True
+    >>> var2 = deepcopy(var1)
+    >>> var1 == var2
+    True
+    >>> var2 in varset
+    False
+
+    >>> Var.NDIM = 1
+    >>> var1 = Var()
+    >>> var1.shape = (2,)
+    >>> var1.value = 3.0, 5.0
+    >>> varset = set([var1])
+    >>> var1 in varset
+    True
+    >>> var1[1] = 7.0
+    >>> var1 in varset
+    True
+    >>> var2 = deepcopy(var1)
+    >>> var1 == var2
+    True
+    >>> var2 in varset
+    False
+
+    Enabling option |Options.reprcomments| adds the respective docstring
+    header to the string representation of a variable:
+
+    >>> Var.NDIM = 0
+    >>> Var.__doc__ = 'header.\\n\\nbody\\n'
+    >>> var = Var()
+    >>> var.value = 3.0
+    >>> from hydpy import pub
+    >>> pub.options.reprcomments = True
+    >>> var
+    # header.
+    var(3.0)
+
+    >>> pub.options.reprcomments = False
+    >>> var
+    var(3.0)
     """
     # Subclasses need to define...
     NDIM: ClassVar[int]
@@ -701,7 +984,16 @@ occurred: could not broadcast input array from shape (2) into shape (2,3)
 
     @values.setter
     def values(self, values: ValuesType) -> None:
-        self.value = values   # type: ignore
+        self.value = values
+
+    @property
+    def __value__hydpy__(self) -> Union[float, int, numpy.ndarray]:
+        """Alias for |Variable.value|."""
+        return self.value
+
+    @values.setter
+    def __value__hydpy__(self, values: ValuesType) -> None:
+        self.value = values
 
     @property
     def shape(self) -> Tuple[int, ...]:
@@ -730,6 +1022,7 @@ retrieved after it has been defined.
 
         >>> import numpy
         >>> Var.initvalue = numpy.nan, False
+        >>> var = Var()
 
         >>> var.shape = (3,)
         >>> var.shape
@@ -785,6 +1078,7 @@ shape indicates `2` dimensions.
 
         >>> from hydpy import INT_NAN
         >>> Var.initvalue = INT_NAN, False
+        >>> var = Var()
         >>> var.shape = ()
         >>> var.shape
         ()
@@ -853,18 +1147,6 @@ as `var` can only be `()`, but `(2,)` is given.
 
     NOT_DEEPCOPYABLE_MEMBERS = ()
 
-    @staticmethod
-    def _arithmetic_conversion(other):
-        try:
-            return other.value
-        except AttributeError:
-            return other
-
-    def _arithmetic_exception(self, verb, other):
-        objecttools.augment_excmessage(
-            f'While trying to {verb} variable {objecttools.devicephrase(self)} '
-            f'and `{objecttools.classname(other)}` instance `{other}`')
-
     name = property(objecttools.name)
 
     def verify(self) -> None:
@@ -876,9 +1158,9 @@ as `var` can only be `()`, but `(2,)` is given.
 
         >>> from hydpy.core.variabletools import Variable
         >>> class Var(Variable):
-        ...     shape = None
-        ...     value = None
-        ...     initvalue = None
+        ...     NDIM = 0
+        ...     TYPE = float
+        ...     initvalue = 0.0, False
         >>> var = Var()
         >>> import numpy
         >>> var.shape = ()
@@ -892,6 +1174,8 @@ as `var` can only be `()`, but `(2,)` is given.
 
         Example on a 2-dimensional |Variable|:
 
+        >>> Var.NDIM = 2
+        >>> var = Var()
         >>> var.shape = (2, 3)
         >>> var.value = numpy.ones((2,3))
         >>> var.value[:, 1] = numpy.nan
@@ -923,7 +1207,7 @@ have not been set yet.
                 f'{nmbnan} required {text} not been set yet.')
 
     @property
-    def refweights(self) -> 'Variable':   # ToDo
+    def refweights(self) -> 'Variable':
         """Reference to a |Parameter| object that defines weighting
         coefficients (e.g. fractional areas) for applying
         |Variable.average_values|.  Must be overwritten by subclasses,
@@ -943,11 +1227,12 @@ have not been set yet.
         >>> from hydpy.core.variabletools import Variable
         >>> class SoilMoisture(Variable):
         ...     NDIM = 0
-        ...     value = 200.0
+        ...     TYPE = float
         ...     refweigths = None
         ...     availablemasks = None
         ...     initvalue = None
         >>> sm = SoilMoisture()
+        >>> sm.value = 200.0
         >>> sm.average_values()
         200.0
 
@@ -966,7 +1251,7 @@ of variable `soilmoisture`, the following error occurred: Variable \
 `soilmoisture` does not define any weighting coefficients.
 
         So model developers have to define another (in this case
-        1-dimensional) |Variable| subclass (usually a |Parameter| ToDo
+        1-dimensional) |Variable| subclass (usually a |Parameter|
         subclass), and make the relevant object available via property
         |Variable.refweights|:
 
@@ -1182,117 +1467,104 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         except IndexError:
             return 1
 
-    def __add__(self, other):
+    def _do_math(self, other, methodname, description):
         try:
-            return self.value + self._arithmetic_conversion(other)
+            if hasattr(type(other), '__value__hydpy__'):
+                value = other.value
+            else:
+                value = other
+            result = getattr(self.value, methodname)(value)
+            if ((result is NotImplemented) and
+                    (not self.NDIM) and (self.TYPE is int)):
+                result = getattr(float(self.value), methodname)(value)
+            return result
         except BaseException:
-            self._arithmetic_exception('add', other)
+            objecttools.augment_excmessage(
+                f'While trying to {description} variable '
+                f'{objecttools.devicephrase(self)} and '
+                f'`{objecttools.classname(other)}` instance `{other}`')
+
+    def __add__(self, other):
+        return self._do_math(other, '__add__', 'add')
 
     def __radd__(self, other):
-        return self.__add__(other)
+        return self._do_math(other, '__radd__', 'add')
 
     def __iadd__(self, other):
-        self.value = self.__add__(other)
+        self.value = self._do_math(other, '__add__', 'add')
         return self
 
     def __sub__(self, other):
-        try:
-            return self.value - self._arithmetic_conversion(other)
-        except BaseException:
-            self._arithmetic_exception('subtract', other)
+        return self._do_math(other, '__sub__', 'subtract')
 
     def __rsub__(self, other):
-        try:
-            return self._arithmetic_conversion(other) - self.value
-        except BaseException:
-            self._arithmetic_exception('subtract', other)
+        return self._do_math(other, '__rsub__', 'subtract')
 
     def __isub__(self, other):
-        self.value = self.__sub__(other)
+        self.value = self._do_math(other, '__sub__', 'subtract')
         return self
 
     def __mul__(self, other):
-        try:
-            return self.value * self._arithmetic_conversion(other)
-        except BaseException:
-            self._arithmetic_exception('multiply', other)
+        return self._do_math(other, '__mul__', 'multiply')
 
     def __rmul__(self, other):
-        return self.__mul__(other)
+        return self._do_math(other, '__rmul__', 'multiply')
 
     def __imul__(self, other):
-        self.value = self.__mul__(other)
+        self.value = self._do_math(other, '__mul__', 'multiply')
         return self
 
     def __truediv__(self, other):
-        try:
-            return self.value / self._arithmetic_conversion(other)
-        except BaseException:
-            self._arithmetic_exception('divide', other)
+        return self._do_math(other, '__truediv__', 'divide')
 
     def __rtruediv__(self, other):
-        try:
-            return self._arithmetic_conversion(other) / self.value
-        except BaseException:
-            self._arithmetic_exception('divide', other)
+        return self._do_math(other, '__rtruediv__', 'divide')
 
     def __itruediv__(self, other):
-        self.value = self.__truediv__(other)
+        self.value = self._do_math(other, '__truediv__', 'divide')
         return self
 
     def __floordiv__(self, other):
-        try:
-            return self.value // self._arithmetic_conversion(other)
-        except BaseException:
-            self._arithmetic_exception('floor divide', other)
+        return self._do_math(other, '__floordiv__', 'floor divide')
 
     def __rfloordiv__(self, other):
-        try:
-            return self._arithmetic_conversion(other) // self.value
-        except BaseException:
-            self._arithmetic_exception('floor divide', other)
+        return self._do_math(other, '__rfloordiv__', 'floor divide')
 
     def __ifloordiv__(self, other):
-        self.value = self.__floordiv__(other)
+        self.value = self._do_math(other, '__floordiv__', 'floor divide')
         return self
 
     def __mod__(self, other):
-        try:
-            return self.value % self._arithmetic_conversion(other)
-        except BaseException:
-            self._arithmetic_exception('mod divide', other)
+        return self._do_math(other, '__mod__', 'mod divide')
 
     def __rmod__(self, other):
-        try:
-            return self._arithmetic_conversion(other) % self.value
-        except BaseException:
-            self._arithmetic_exception('mod divide', other)
+        return self._do_math(other, '__rmod__', 'mod divide')
 
     def __imod__(self, other):
-        self.value = self.__mod__(other)
+        self.value = self._do_math(other, '__mod__', 'mod divide')
         return self
+
+    def __divmod__(self, other):
+        return self.__floordiv__(other), self.__mod__(other)
+
+    def __rdivmod__(self, other):
+        return self.__rfloordiv__(other), self.__rmod__(other)
 
     def __pow__(self, other):
-        try:
-            return self.value**self._arithmetic_conversion(other)
-        except BaseException:
-            self._arithmetic_exception('exponentiate', other)
+        return self._do_math(other, '__pow__', 'exponentiate')
 
     def __rpow__(self, other):
-        try:
-            return self._arithmetic_conversion(other)**self.value
-        except BaseException:
-            self._arithmetic_exception('exponentiate', other)
+        return self._do_math(other, '__rpow__', 'exponentiate (reflectively)')
 
     def __ipow__(self, other):
-        self.value = self.__pow__(other)
+        self.value = self._do_math(other, '__pow__', 'exponentiate')
         return self
-
-    def __neg__(self):
-        return -self.value
 
     def __pos__(self):
         return +self.value
+
+    def __neg__(self):
+        return -self.value
 
     def __abs__(self):
         return abs(self.value)
@@ -1301,21 +1573,18 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         return 1./self.value
 
     def __floor__(self):
-        return self.value // 1.
+        result = self.value // 1.
+        try:
+            return int(result)
+        except TypeError:
+            return numpy.array(result, dtype=int)
 
     def __ceil__(self):
-        return numpy.ceil(self.value)
-
-    def __trunc__(self):
-        return numpy.trunc(self.value)
-
-    def __divmod__(self, other):
-        # pylint: disable=no-member
-        return numpy.divmod(self.value, other)
-
-    def __rdivmod__(self, other):
-        # pylint: disable=no-member
-        return numpy.divmod(other, self.value)
+        result = numpy.ceil(self.value)
+        try:
+            return int(result)
+        except TypeError:
+            return numpy.array(result, dtype=int)
 
     __lt__ = _compare_variables_function_generator('__lt__', numpy.all)
     __le__ = _compare_variables_function_generator('__le__', numpy.all)
@@ -1325,34 +1594,21 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
     __gt__ = _compare_variables_function_generator('__gt__', numpy.all)
 
     def _typeconversion(self, type_):
-        if not self.NDIM:
-            if isinstance(type_, type):
-                return type_(self.value)
-            attr = getattr(self.value, type_)
-            try:
-                return attr()
-            except TypeError:
-                return attr
-        else:
+        if self.NDIM:
             raise TypeError(
                 f'The variable {objecttools.devicephrase(self)} is '
                 f'{self.NDIM}-dimensional and thus cannot be converted '
                 f'to a scalar {objecttools.classname(type_)} value.')
+        return type_(self.value)
 
     def __bool__(self):
         return self._typeconversion(bool)
-
-    def __nonzero__(self):
-        return self.__bool__()
 
     def __float__(self):
         return self._typeconversion(float)
 
     def __int__(self):
         return self._typeconversion(int)
-
-    def __complex__(self):
-        return numpy.complex(self.value)
 
     def __round__(self, ndigits=0):
         return numpy.round(self.value, ndigits)
@@ -1367,32 +1623,11 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         """
         if hydpy.pub.options.reprcomments:
             return [f'# {line}' for line in
-                    textwrap.wrap(objecttools.description(self), 78)]
+                    textwrap.wrap(objecttools.description(self), 72)]
         return []
 
-    def to_repr(self, values: ValuesType, islong: bool) -> str:
-        """Return a valid string representation of the actual |Variable|
-        object."""
-        prefix = f'{self.name}('
-        if self.NDIM == 0:
-            string = f'{self.name}({objecttools.repr_(values)})'
-        elif self.NDIM == 1:
-            if islong:
-                string = objecttools.assignrepr_list(values, prefix, 75) + ')'
-            else:
-                string = objecttools.assignrepr_values(
-                    values, prefix, 75) + ')'
-        elif self.NDIM == 2:
-            string = objecttools.assignrepr_list2(values, prefix, 75) + ')'
-        else:
-            raise NotImplementedError(
-                f'`repr` does not yet support parameters or sequences '
-                f'like {objecttools.devicephrase(self)} which handle '
-                f'{self.NDIM}-dimensional matrices.')
-        return '\n'.join(self.commentrepr() + [string])
-
     def __repr__(self):
-        return self.to_repr(self.value, False)
+        return to_repr(self, self.value)
 
 
 class SubVariables:
@@ -1434,11 +1669,11 @@ class SubVariables:
         else:
             try:
                 attr.value = value
-            except AttributeError:
+            except AttributeError:   # ToDo: cov
                 raise RuntimeError(
                     f'`{objecttools.classname(self)}` instances do not '
                     f'allow the direct replacement of their members.  '
-                    f'After initialization you should usually only '
+                    f'After initialisation you should usually only '
                     f'change parameter values through assignements.  '
                     f'If you really need to replace a object member, '
                     f'delete it beforehand.')
@@ -1466,16 +1701,83 @@ class SubVariables:
     def __repr__(self):
         lines = []
         if hydpy.pub.options.reprcomments:
-            lines.append(f'# {objecttools.classname(self)} object defined '
+            lines.append(f'# {objecttools.classname(self)} object defined '   # ToDo: cov
                          f'in module {objecttools.modulename(self)}.')
-            lines.append('# The implemented variables with their actual '
+            lines.append('# The implemented variables with their actual '   # ToDo: cov
                          'values are:')
         for variable in self:
             try:
                 lines.append(repr(variable))
-            except BaseException:
-                lines.append(f'{variable.name}(?)')
+            except BaseException:   # ToDo: cov
+                lines.append(f'{variable.name}(?)')   # ToDo: cov
         return '\n'.join(lines)
 
     def __dir__(self):
-        return objecttools.dir_(self)
+        return objecttools.dir_(self)   # ToDo: cov
+
+
+def to_repr(self: Variable, values: ValuesType,
+            brackets1d: Optional[bool] = False) -> str:
+    """Return a valid string representation for the given |Variable|
+    object.
+
+    Function |to_repr| it thought for internal purposes only, more
+    specifically for defining string representations of subclasses
+    of class |Variable| like the following:
+
+    >>> from hydpy.core.variabletools import to_repr, Variable
+    >>> class Var(Variable):
+    ...     NDIM = 0
+    ...     TYPE = int
+    ...     initvalue = 1.0, False
+    >>> var = Var()
+    >>> var.value = 2
+    >>> var
+    var(2)
+
+    The following examples demonstrate all covered cases.  Note that
+    option `brackets1d` allows to choose between a "vararg" and an
+    "iterable" string representation for 1-dimensional variables
+    (the first one being the default):
+
+    >>> print(to_repr(var, 2))
+    var(2)
+
+    >>> Var.NDIM = 1
+    >>> var = Var()
+    >>> var.shape = 3
+    >>> print(to_repr(var, range(3)))
+    var(0, 1, 2)
+    >>> print(to_repr(var, range(3), True))
+    var([0, 1, 2])
+    >>> print(to_repr(var, range(30)))
+    var(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+        19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29)
+    >>> print(to_repr(var, range(30), True))
+    var([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+         19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29])
+
+    >>> Var.NDIM = 2
+    >>> var = Var()
+    >>> var.shape = (2, 3)
+    >>> print(to_repr(var, [range(3), range(3, 6)]))
+    var([[0, 1, 2],
+         [3, 4, 5]])
+    >>> print(to_repr(var, [range(30), range(30, 60)]))
+    var([[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+          19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
+         [30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45,
+          46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59]])
+    """
+    prefix = f'{self.name}('
+    if self.NDIM == 0:
+        string = f'{self.name}({objecttools.repr_(values)})'
+    elif self.NDIM == 1:
+        if brackets1d:
+            string = objecttools.assignrepr_list(values, prefix, 72) + ')'
+        else:
+            string = objecttools.assignrepr_values(
+                values, prefix, 72) + ')'
+    else:
+        string = objecttools.assignrepr_list2(values, prefix, 72) + ')'
+    return '\n'.join(self.commentrepr() + [string])

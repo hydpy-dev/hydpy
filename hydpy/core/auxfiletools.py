@@ -37,6 +37,7 @@ from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
+from hydpy.core import variabletools
 
 
 class Auxfiler:
@@ -56,7 +57,6 @@ class Auxfiler:
     models can be added to the |Auxfiler| object by passing their module
     (|lland_v1|), a working model object (|lland_v2|) or their name
     (|lstream_v1|):
-
 
     >>> from hydpy import prepare_model
     >>> from hydpy.models import lland_v1 as module
@@ -317,10 +317,10 @@ Variable type `EQD1` is not handled by model `lstream_v1`.
 class Variable2Auxfile:
     """Map |Variable| objects to names of auxiliary files.
 
-    Normally, |Variable2Auxfile| object are not initialized by the
+    Normally, |Variable2Auxfile| object are not initialised by the
     user explicitly but made available by a `master` |Auxfiler| object.
 
-    To show how |Variable2Auxfile| works, we firstly initialize a
+    To show how |Variable2Auxfile| works, we firstly initialise a
     HydPy-L-Land (version 1) model:
 
     >>> from hydpy import pub
@@ -526,7 +526,7 @@ variable handled by the actual Variable2AuxFile object.
 `str` from the actual Variable2AuxFile object, the following error occurred: \
 `'test'` is neither a registered filename nor a registered variable.
         """
-        for value in objecttools.extract(values, (str, abctools.VariableABC)):
+        for value in objecttools.extract(values, (str, variabletools.Variable)):
             try:
                 deleted_something = False
                 for fn2var in list(self._type2filename2variable.values()):

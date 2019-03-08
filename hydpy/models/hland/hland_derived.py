@@ -157,7 +157,7 @@ class DT(parametertools.Parameter):
         >>> recstep.value
         5
         """
-        self(1./self.subpars.pars.control.recstep)
+        self(1/self.subpars.pars.control.recstep)
 
 
 class UH(parametertools.Parameter):

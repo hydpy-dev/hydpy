@@ -482,7 +482,7 @@ class Sequence(variabletools.Variable):
 
     def __repr__(self):
         islong = len(self) > 255
-        return variabletools.Variable.to_repr(self, self.values, islong)
+        return variabletools.to_repr(self, self.values, islong)
 
     def __dir__(self):
         return objecttools.dir_(self)

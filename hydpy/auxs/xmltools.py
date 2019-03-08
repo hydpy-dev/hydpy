@@ -52,16 +52,21 @@ the read initial conditions and the written final conditions of
 sequence |hland_states.SM| for the 12 hydrological response units of the
 subcatchment `land_dill`:
 
+>>> from hydpy import pub
+>>> pub.options.reprdigits = 6
+
+
 >>> with TestIO():
 ...     with open('LahnH/conditions/init_1996_01_01/land_dill.py') as file_:
 ...         print(''.join(file_.readlines()[10:12]))
 ...     with open('LahnH/conditions/init_1996_01_06/land_dill.py') as file_:
-...         print(''.join(file_.readlines()[9:11]))
+...         print(''.join(file_.readlines()[9:12]))
 sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
    222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 <BLANKLINE>
-sm(183.873078, 179.955801, 198.446011, 195.222634, 210.598689, 208.064445,
-   220.611126, 218.630245, 228.741883, 227.152989, 235.308805, 234.042313)
+sm(183.873078, 179.955801, 198.446011, 195.222634, 210.598689,
+   208.064445, 220.611126, 218.630245, 228.741883, 227.152989,
+   235.308805, 234.042313)
 <BLANKLINE>
 
 The intermediate soil moisture values are stored in a NetCDF file called

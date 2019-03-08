@@ -1679,7 +1679,7 @@ def calc_q0_perc_uz_v1(self):
         >>> parameterstep('1d')
         >>> simulationstep('12h')
         >>> recstep(2)
-        >>> derived.dt = 1./recstep
+        >>> derived.dt = 1/recstep
         >>> percmax(2.0)
         >>> alpha(1.0)
         >>> k(2.0)

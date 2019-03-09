@@ -454,7 +454,8 @@ variable handled by the actual Variable2AuxFile object.
                         f'another `Variable2Auxfile` object.')
 
     def _check_variable(self, variable):
-        if self._model and (variable not in self._model.parameters.control):
+        if (self._model and
+                (type(variable) not in self._model.parameters.control.CLASSES)):
             raise TypeError(
                 f'Variable type `{objecttools.classname(variable)}` is '
                 f'not handled by model `{self._model}`.')

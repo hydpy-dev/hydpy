@@ -399,8 +399,8 @@ def _compare_variables_function_generator(
             return method_string in ('__eq__', '__le__', '__ge__')
         method = getattr(self.value, method_string)
         try:
-            if hasattr(type(other), '__value__hydpy__'):
-                other = other.__value__hydpy__
+            if hasattr(type(other), '__hydpy__value__'):
+                other = other.__hydpy__value__
             result = method(other)
             if result is NotImplemented:
                 return result
@@ -987,12 +987,12 @@ occurred: could not broadcast input array from shape (2) into shape (2,3)
         self.value = values
 
     @property
-    def __value__hydpy__(self) -> Union[float, int, numpy.ndarray]:
+    def __hydpy__value__(self) -> Union[float, int, numpy.ndarray]:
         """Alias for |Variable.value|."""
         return self.value
 
     @values.setter
-    def __value__hydpy__(self, values: ValuesType) -> None:
+    def __hydpy__value__(self, values: ValuesType) -> None:
         self.value = values
 
     @property
@@ -1469,7 +1469,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 
     def _do_math(self, other, methodname, description):
         try:
-            if hasattr(type(other), '__value__hydpy__'):
+            if hasattr(type(other), '__hydpy__value__'):
                 value = other.value
             else:
                 value = other
@@ -1635,68 +1635,46 @@ class SubVariables:
 
     See class |SubParameters| for further information.
     """
-    CLASSES = ()
-    VARTYPE = None
+    CLASSES: ClassVar[Tuple[Type[abctools.VariableProtocol], ...]]
+    _name2variable = {}
 
     def __init__(self, variables, cls_fastaccess=None, cymodel=None):   # ToDo
         self.vars = variables
         self.init_fastaccess(cls_fastaccess, cymodel)
+        self._name2variable = {}
         for cls in self.CLASSES:
-            setattr(self, objecttools.instancename(cls), cls())
+            variable = cls()
+            self._name2variable[variable.name] = variable
+            variable.connect_variable2subgroup(self)
 
     @property
     @abc.abstractmethod
     def name(self) -> str:
-        """Must be implemented by subclasses."""
+        """To be overridden."""
 
     @abc.abstractmethod
     def init_fastaccess(self, cls_fastaccess, cymodel):
-        """ToDo"""
+        """To be overridden."""
+
+    def __getattr__(self, name):
+        try:
+            return self._name2variable[name]
+        except KeyError:
+            raise AttributeError(
+                f'Collection object `{self.name}` of device '
+                f'{objecttools.devicename(self.vars)} does neither '
+                f'handle a variable nor another attribute named {name}.')
 
     def __setattr__(self, name, value):
-        """Attributes and methods should usually not be replaced.  Existing
-        |Variable| attributes are protected in a way, that only their
-        values are changed through assignements.  For new |Variable|
-        attributes, additional `fastaccess` references are defined.  If you
-        actually want to replace a parameter, you have to delete it first.
-        """
-        try:
-            attr = getattr(self, name)
-        except AttributeError:
+        variable = self._name2variable.get(name)
+        if variable is None:
             super().__setattr__(name, value)
-            if isinstance(value, self.VARTYPE):
-                value.connect(self)
         else:
-            try:
-                attr.value = value
-            except AttributeError:   # ToDo: cov
-                raise RuntimeError(
-                    f'`{objecttools.classname(self)}` instances do not '
-                    f'allow the direct replacement of their members.  '
-                    f'After initialisation you should usually only '
-                    f'change parameter values through assignements.  '
-                    f'If you really need to replace a object member, '
-                    f'delete it beforehand.')
+            variable.__hydpy__value__ = value
 
     def __iter__(self):
-        for cls in self.CLASSES:
-            name = objecttools.instancename(cls)
-            yield getattr(self, name)
-
-    def __contains__(self, variable):
-        if isinstance(variable, self.VARTYPE):
-            variable = type(variable)
-        if variable in self.CLASSES:
-            return True
-        try:
-            if issubclass(variable, self.VARTYPE):
-                return False
-        except TypeError:
-            pass
-        name = objecttools.instancename(self.VARTYPE)[:-3]
-        raise TypeError(
-            f'The given {objecttools.value_of_type(variable)} is '
-            f'neither a {name} class nor a {name} instance.')
+        for variable in self._name2variable.values():
+            yield variable
 
     def __repr__(self):
         lines = []

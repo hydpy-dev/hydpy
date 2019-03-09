@@ -136,15 +136,13 @@ class Parameters:
     def update(self) -> None:
         """Call the update methods of all derived and solver parameters."""
         for subpars in self.secondary_subpars:
-            for par in subpars.CLASSES:
-                name = objecttools.instancename(par)
+            for par in subpars:
                 try:
-                    subpars.__dict__[name].update()
+                    par.update()
                 except BaseException:
                     objecttools.augment_excmessage(
-                        f'While trying to update the {name} '
-                        f'parameter `{subpars.name}` of element '
-                        f'`{objecttools.devicename(self)}`')
+                        f'While trying to update parameter '
+                        f'`{objecttools.elementphrase(self)}`')
 
     def save_controls(self, filename=None, parameterstep=None,
                       simulationstep=None, auxfiler=None):
@@ -229,10 +227,12 @@ class SubParameters(variabletools.SubVariables):
     ...     'Parameter 2 [-]'
     ...     NDIM = 1
     ...     TYPE = float
+    ...     TIME = None
     >>> class Par1(Parameter):
     ...     'Parameter 1 [-]'
     ...     NDIM = 1
     ...     TYPE = float
+    ...     TIME = None
     >>> class ControlParameters(SubParameters):
     ...     'Control Parameters'
     ...     CLASSES = (Par2,
@@ -244,29 +244,11 @@ class SubParameters(variabletools.SubVariables):
     >>> control
     par2(?)
     par1(?)
-
-    The `in` operator can be used to check if a certain |SubParameters|
-    object handles a certain type of parameter:
-
-    >>> Par1 in control
-    True
-    >>> Par1() in control
-    True
-    >>> Parameter in control
-    False
-    >>> 1 in control
-    Traceback (most recent call last):
-    ...
-    TypeError: The given value `1` of type `int` is neither a \
-parameter class nor a parameter instance.
     """
-    CLASSES = ()
-    VARTYPE = abctools.ParameterABC
 
     def __init__(self, variables, cls_fastaccess=None, cymodel=None):
         self.pars = variables
-        variabletools.SubVariables.__init__(
-            self, variables, cls_fastaccess, cymodel)
+        super().__init__(variables, cls_fastaccess, cymodel)
 
     def init_fastaccess(self, cls_fastaccess, cymodel):
         if cls_fastaccess is None:
@@ -608,11 +590,14 @@ class Parameter(variabletools.Variable, abctools.ParameterABC):
         >>> class Test(parametertools.Parameter):
         ...     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
         ...     INIT = 2.0
+        >>> from hydpy.core.parametertools import SubParameters
+        >>> class SubGroup(SubParameters):
+        ...     CLASSES = (Test,)
         >>> def prepare():
         ...     test = Test()
         ...     from hydpy.core.parametertools import SubParameters
-        ...     subpars = parametertools.SubParameters(None)
-        ...     test.connect(subpars)
+        ...     subpars = SubGroup(None)
+        ...     test.connect_variable2subgroup(subpars)
         ...     return test
 
         By default, making use of the `INIT` attribute is disabled:
@@ -749,7 +734,7 @@ class Parameter(variabletools.Variable, abctools.ParameterABC):
     def __dir__(self):
         return objecttools.dir_(self)
 
-    def connect(self, subpars):
+    def connect_variable2subgroup(self, subpars):
         self.subpars = subpars
         self.fastaccess = subpars.fastaccess
         if self.NDIM:
@@ -1540,8 +1525,8 @@ following error occurred: index 1 is out of bounds for axis 0 with size 1
             type(self)._ROWCOLMAPPINGS = rowcolmappings
         super().__init__(*arg, **kwargs)
 
-    def connect(self, subpars):
-        super().connect(subpars)
+    def connect_variable2subgroup(self, subpars):
+        super().connect_variable2subgroup(subpars)
         self.shape = (len(self.ROWNAMES), len(self.COLNAMES))
 
     def __call__(self, *args, **kwargs):
@@ -1683,8 +1668,8 @@ class LeftRightParameter(Parameter):
             else:
                 self.right = right
 
-    def connect(self, subpars):
-        super().connect(subpars)
+    def connect_variable2subgroup(self, subpars):
+        super().connect_variable2subgroup(subpars)
         self.shape = 2
 
     def _getleft(self):

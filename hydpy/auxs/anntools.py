@@ -268,7 +268,7 @@ attribute `nmb_inputs` first.
         _ANNArrayProperty.add_cann(self, self._cann)
         self.__max_nmb_neurons = None
 
-    def connect(self, subpars) -> None:
+    def connect_variable2subgroup(self, subpars) -> None:
         """Connect the actual |anntools.ANN| object with the given
         |SubParameters| object."""
         self.subpars = subpars
@@ -1281,7 +1281,7 @@ been given, but a value of type `ANN` is required.
         self.__sann = None
         self._do_refresh = True
 
-    def connect(self, subpars) -> None:
+    def connect_variable2subgroup(self, subpars) -> None:
         """Connect the actual |anntools.SeasonalANN| object with the given
         |SubParameters| object."""
         self.subpars = subpars

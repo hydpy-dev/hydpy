@@ -265,13 +265,10 @@ class SubSequences(variabletools.SubVariables):
     not subclass |SubSequences| directly, but specialized subclasses
     like |FluxSequences| or |StateSequences| instead.
     """
-    CLASSES = ()
-    VARTYPE = abctools.SequenceABC
 
     def __init__(self, variables, cls_fastaccess=None, cymodel=None):
         self.seqs = variables
-        variabletools.SubVariables.__init__(
-            self, variables, cls_fastaccess, cymodel)
+        super().__init__(variables, cls_fastaccess, cymodel)
 
     def init_fastaccess(self, cls_fastaccess, cymodel):
         if cls_fastaccess is None:
@@ -295,7 +292,6 @@ class SubSequences(variabletools.SubVariables):
 
 
 class IOSequences(SubSequences):
-    CLASSES = ()
 
     def open_files(self, idx=0):
         self.fastaccess.open_files(idx)
@@ -333,7 +329,6 @@ abctools.IOSequencesABC.register(IOSequences)
 
 class InputSequences(IOSequences):
     """Base class for handling input sequences."""
-    CLASSES = ()
 
     def load_data(self, idx):
         self.fastaccess.load_data(idx)
@@ -344,7 +339,6 @@ abctools.InputSequencesABC.register(InputSequences)
 
 class FluxSequences(IOSequences):
     """Base class for handling flux sequences."""
-    CLASSES = ()
 
     @property
     def name(self):
@@ -371,7 +365,6 @@ abctools.OutputSequencesABC.register(FluxSequences)
 
 class StateSequences(IOSequences):
     """Base class for handling state sequences."""
-    CLASSES = ()
 
     def init_fastaccess(self, cls_fastaccess, cymodel):
         super().init_fastaccess(cls_fastaccess, cymodel)
@@ -403,7 +396,6 @@ abctools.OutputSequencesABC.register(StateSequences)
 
 class LogSequences(SubSequences):
     """Base class for handling log sequences."""
-    CLASSES = ()
 
     def reset(self):
         for seq in self:
@@ -412,12 +404,10 @@ class LogSequences(SubSequences):
 
 class AideSequences(SubSequences):
     """Base class for handling aide sequences."""
-    CLASSES = ()
 
 
 class LinkSequences(SubSequences):
     """Base class for handling link sequences."""
-    CLASSES = ()
 
 
 class Sequence(variabletools.Variable):
@@ -440,7 +430,7 @@ class Sequence(variabletools.Variable):
         """Alias for `subseqs`."""
         return self.subseqs
 
-    def connect(self, subseqs):
+    def connect_variable2subgroup(self, subseqs):
         self.subseqs = subseqs
         self.fastaccess = subseqs.fastaccess
         self._connect_subattr('ndim', self.NDIM)
@@ -1352,9 +1342,8 @@ class ModelSequence(IOSequence):
         >>> from hydpy import prepare_model, Element
         >>> element = Element('test_element_1')
         >>> from hydpy.models import test_v1
-        >>> model = prepare_model(test_v1)
-        >>> element.model = model
-        >>> model.sequences.fluxes.q.descr_device
+        >>> element.model = prepare_model(test_v1)
+        >>> element.model.sequences.fluxes.q.descr_device
         'test_element_1'
         """
         return self.subseqs.seqs.model.element.name
@@ -1467,7 +1456,7 @@ class StateSequence(ModelSequence, ConditionSequence):
     overwrite_ext = _OverwriteProperty()
 
     def __init__(self):
-        ModelSequence.__init__(self)
+        super().__init__()
         self.fastaccess_old = None
         self.fastaccess_new = None
         self._oldargs = None
@@ -1478,8 +1467,8 @@ class StateSequence(ModelSequence, ConditionSequence):
         ConditionSequence.__call__(self, *args)
         self.new2old()
 
-    def connect(self, subseqs):
-        super().connect(subseqs)
+    def connect_variable2subgroup(self, subseqs):
+        super().connect_variable2subgroup(subseqs)
         self.fastaccess_old = subseqs.fastaccess_old
         self.fastaccess_new = subseqs.fastaccess_new
         if self.NDIM:
@@ -1577,7 +1566,7 @@ class LogSequence(Sequence, ConditionSequence):
     """Base class for logging sequences of |Model| objects."""
 
     def __init__(self):
-        Sequence.__init__(self)
+        super().__init__()
         self._oldargs = None
 
     def __call__(self, *args):

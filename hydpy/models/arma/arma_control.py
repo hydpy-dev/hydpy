@@ -218,7 +218,7 @@ Most probably, you defined the same threshold value(s) twice.
             self._coefs = {}
             super().__init__()
 
-    def connect(self, subpars):
+    def connect_variable2subgroup(self, subpars):
         """Make `subpars` an attribute of the respective |Responses| instance,
         but skip making a connection with its `fastaccess` object for
         reasons explained in the main documentation on class |Responses|."""

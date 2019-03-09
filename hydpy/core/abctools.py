@@ -52,6 +52,21 @@ class IterableNonStringABC(abc.ABC):
         return NotImplemented
 
 
+class DevicesHandlerProtocol(Protocol):
+    """Without concrete implementation."""
+
+    nodes: 'devicetools.Nodes'
+    elements: 'devicetools.Elements'
+
+
+class VariableProtocol(Protocol):
+    """ToDo"""
+
+    @abc.abstractmethod
+    def connect_variable2subgroup(self, subseqs):
+        """ToDo"""
+
+
 class NodeABC(abc.ABC):
     """See class |Node|."""
 
@@ -66,13 +81,6 @@ class NodesABC(abc.ABC):
 
 class ElementsABC(abc.ABC):
     """See class |Elements|."""
-
-
-class DevicesHandlerProtocol(Protocol):
-    """Without concrete implementation."""
-
-    nodes: 'devicetools.Nodes'
-    elements: 'devicetools.Elements'
 
 
 class ParametersABC(abc.ABC):

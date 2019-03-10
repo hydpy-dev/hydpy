@@ -93,7 +93,7 @@ pandas = exceptiontools.OptionalImport(
     'pandas', ['import pandas'])
 pyplot = exceptiontools.OptionalImport(
     'matplotlib.pyplot', ['from matplotlib import pyplot'])
-if TYPE_CHECKING:   # pragma: no cover
+if TYPE_CHECKING:
     from hydpy.core import auxfiletools
     from hydpy.core import modeltools
     from hydpy.core import timetools

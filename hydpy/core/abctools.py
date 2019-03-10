@@ -69,22 +69,6 @@ class VariableProtocol(Protocol):
         """ToDo"""
 
 
-class NodeABC(abc.ABC):
-    """See class |Node|."""
-
-
-class ElementABC(abc.ABC):
-    """See class |Element|."""
-
-
-class NodesABC(abc.ABC):
-    """See class |Nodes|."""
-
-
-class ElementsABC(abc.ABC):
-    """See class |Elements|."""
-
-
 class ParametersABC(abc.ABC):
     """See class |Parameters|."""
 
@@ -240,7 +224,7 @@ class TOYABC(abc.ABC):
 class ModelABC(abc.ABC):
     """See class |Model|."""
 
-    element: ElementABC
+    element: 'devicetools.Element'
     parameters: ParametersABC
     sequences: SequencesABC
 
@@ -267,10 +251,6 @@ __all__ = [
     'MayNonerable1',
     'MayNonerable2',
     'MayNonerable3',
-    'NodeABC',
-    'ElementABC',
-    'NodesABC',
-    'ElementsABC',
     'DevicesHandlerProtocol',
     'ParametersABC',
     'ParameterABC',

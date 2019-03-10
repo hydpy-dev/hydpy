@@ -798,7 +798,7 @@ which is in conflict with using their names as identifiers.
         return objecttools.dir_(self) + list(self.names) + list(self.keywords)
 
 
-class Nodes(Devices['Node'], NodesABC):
+class Nodes(Devices['Node']):
     """A container class for handling |Node| objects.
 
     For the general usage of |Nodes| objects, please see the documentation
@@ -891,7 +891,7 @@ class Nodes(Devices['Node'], NodesABC):
         return sorted({node.variable for node in self})
 
 
-class Elements(Devices['Element'], ElementsABC):
+class Elements(Devices['Element']):
     """A container for handling |Element| objects.
 
     For the general usage of |Elements| objects, please see the documentation
@@ -1306,7 +1306,7 @@ class Device(Generic[DevicesTypeUnbound]):
     __dir__ = objecttools.dir_
 
 
-class Node(Device[Nodes], NodeABC):
+class Node(Device[Nodes]):
     """Handles the data flow between |Element| objects.
 
     |Node| objects always handle two sequences, a |Sim| object for
@@ -1715,7 +1715,7 @@ the given group name `test`.
         return '\n'.join(lines)
 
 
-class Element(Device[Elements], ElementABC):
+class Element(Device[Elements]):
     """Handles a |Model| object and connects it to other models via
     |Node| objects.
 

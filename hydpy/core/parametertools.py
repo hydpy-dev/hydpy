@@ -205,7 +205,7 @@ class Parameters:
         return objecttools.dir_(self)
 
 
-class SubParameters(variabletools.SubVariables):
+class SubParameters(variabletools.SubVariables[Parameters]):
     """Base class for handling subgroups of model parameters.
 
     Attributes:
@@ -245,8 +245,10 @@ class SubParameters(variabletools.SubVariables):
     par2(?)
     par1(?)
     """
+    pars: Parameters
 
-    def __init__(self, variables, cls_fastaccess=None, cymodel=None):
+    def __init__(self, variables: Parameters,
+                 cls_fastaccess=None, cymodel=None):
         self.pars = variables
         super().__init__(variables, cls_fastaccess, cymodel)
 
@@ -534,7 +536,10 @@ class Parameter(variabletools.Variable, abctools.ParameterABC):
             self.values = self.apply_timefactor(values)
             del kwargs['auxfile']
         elif args:
-            self.values = self.apply_timefactor(numpy.array(args))
+            if len(args) == 1:
+                self.values = self.apply_timefactor(args[0])
+            else:
+                self.values = self.apply_timefactor(numpy.array(args))
         else:
             raise NotImplementedError(
                 'The value(s) of parameter %s of element %s could '
@@ -579,7 +584,7 @@ class Parameter(variabletools.Variable, abctools.ParameterABC):
         return self.subpars
 
     @property
-    def initvalue(self):
+    def initinfo(self):
         """Actual initial value of the given parameter.
 
         Some |Parameter| subclasses define a class attribute `INIT`.
@@ -740,7 +745,7 @@ class Parameter(variabletools.Variable, abctools.ParameterABC):
         if self.NDIM:
             setattr(self.fastaccess, self.name, None)
         else:
-            initvalue, initflag = self.initvalue
+            initvalue, initflag = self.initinfo
             if initflag:
                 setattr(self, 'value', initvalue)
             else:

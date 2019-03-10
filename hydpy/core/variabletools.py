@@ -20,12 +20,18 @@ import hydpy
 from hydpy.core import abctools
 from hydpy.core import masktools
 from hydpy.core import objecttools
+if TYPE_CHECKING:
+    from hydpy.core import parametertools
+    from hydpy.core import sequencetools
 
 
 ValuesType = Union[
     float, Iterable[float], Iterable[Iterable[float]],
     int, Iterable[int], Iterable[Iterable[int]],
     bool, Iterable[bool], Iterable[Iterable[bool]]]
+
+GroupType = TypeVar(
+    'GroupType', 'parametertools.Parameters', 'sequencetools.Sequences')
 
 
 INT_NAN: int = -999999
@@ -413,7 +419,7 @@ def _compare_variables_function_generator(
     return comparison_function
 
 
-class Variable:
+class Variable(abc.ABC):
     """Base class for |Parameter| and |Sequence|.
 
     This base class implements special methods for arithmetic calculations,
@@ -433,7 +439,8 @@ class Variable:
     >>> class Var(Variable):
     ...     NDIM = 0
     ...     TYPE = float
-    ...     initvalue = 0.0, False
+    ...     connect_variable2subgroup = None
+    ...     initinfo = 0.0, False
     >>> var = Var()
 
     You can perform additions both with other |Variable| objects or
@@ -836,9 +843,13 @@ operands could not be broadcast together with shapes (2,) (3,)...
         self.__valueready = False
         self.__shapeready = False
 
+    @abc.abstractmethod
+    def connect_variable2subgroup(self, subgroup):
+        """To be overridden."""
+
     @property
     @abc.abstractmethod
-    def initvalue(self) -> Tuple[Union[float, int, bool], bool]:
+    def initinfo(self) -> Tuple[Union[float, int, bool], bool]:
         """To be overridden."""
 
     @property
@@ -849,7 +860,8 @@ operands could not be broadcast together with shapes (2,) (3,)...
         >>> class Var(Variable):
         ...     NDIM = 0
         ...     TYPE = float
-        ...     initvalue = 3.0, True
+        ...     connect_variable2subgroup = None
+        ...     initinfo = 3.0, True
 
         >>> var = Var()
         >>> var.value
@@ -886,7 +898,7 @@ to type `float`.
         >>> from hydpy import INT_NAN
         >>> Var.NDIM = 2
         >>> Var.TYPE = int
-        >>> Var.initvalue = INT_NAN, False
+        >>> Var.initinfo = INT_NAN, False
         >>> var = Var()
         >>> var.value
         Traceback (most recent call last):
@@ -954,19 +966,15 @@ occurred: could not broadcast input array from shape (2) into shape (2,3)
                         f'to a numpy ndarray with shape `{self.shape}` '
                         f'and type `{objecttools.classname(self.TYPE)}`')
             else:
-                try:
-                    temp = value[0]
-                except (TypeError, IndexError):
-                    pass
-                else:
+                if isinstance(value, Sequence):
                     if len(value) > 1:
                         raise ValueError(
                             f'{len(value)} values are assigned to the scalar '
                             f'variable {objecttools.devicephrase(self)}.')
-                    value = temp
+                    value = value[0]
                 try:
                     value = self.TYPE(value)
-                except (ValueError, TypeError):
+                except BaseException:
                     raise TypeError(
                         f'The given value `{value}` cannot be converted '
                         f'to type `{objecttools.classname(self.TYPE)}`.')
@@ -991,7 +999,7 @@ occurred: could not broadcast input array from shape (2) into shape (2,3)
         """Alias for |Variable.value|."""
         return self.value
 
-    @values.setter
+    @__hydpy__value__.setter
     def __hydpy__value__(self, values: ValuesType) -> None:
         self.value = values
 
@@ -1006,7 +1014,8 @@ occurred: could not broadcast input array from shape (2) into shape (2,3)
         >>> class Var(Variable):
         ...     NDIM = 1
         ...     TYPE = float
-        ...     initvalue = 3.0, True
+        ...     connect_variable2subgroup = None
+        ...     initinfo = 3.0, True
         >>> var = Var()
         >>> var.shape
         Traceback (most recent call last):
@@ -1021,7 +1030,7 @@ retrieved after it has been defined.
         array([ 3.,  3.,  3.])
 
         >>> import numpy
-        >>> Var.initvalue = numpy.nan, False
+        >>> Var.initinfo = numpy.nan, False
         >>> var = Var()
 
         >>> var.shape = (3,)
@@ -1060,7 +1069,8 @@ shape indicates `2` dimensions.
         >>> class Var(Variable):
         ...     NDIM = 0
         ...     TYPE = int
-        ...     initvalue = 3, True
+        ...     connect_variable2subgroup = None
+        ...     initinfo = 3, True
 
         >>> var = Var()
         >>> var.shape
@@ -1077,7 +1087,7 @@ shape indicates `2` dimensions.
         3
 
         >>> from hydpy import INT_NAN
-        >>> Var.initvalue = INT_NAN, False
+        >>> Var.initinfo = INT_NAN, False
         >>> var = Var()
         >>> var.shape = ()
         >>> var.shape
@@ -1115,7 +1125,7 @@ as `var` can only be `()`, but `(2,)` is given.
     def shape(self, shape: Iterable[int]):
         self.__valueready = False
         self.__shapeready = False
-        initvalue, initflag = self.initvalue
+        initvalue, initflag = self.initinfo
         if self.NDIM:
             try:
                 array: numpy.ndarray = numpy.full(
@@ -1160,7 +1170,8 @@ as `var` can only be `()`, but `(2,)` is given.
         >>> class Var(Variable):
         ...     NDIM = 0
         ...     TYPE = float
-        ...     initvalue = 0.0, False
+        ...     connect_variable2subgroup = None
+        ...     initinfo = 0.0, False
         >>> var = Var()
         >>> import numpy
         >>> var.shape = ()
@@ -1230,7 +1241,8 @@ have not been set yet.
         ...     TYPE = float
         ...     refweigths = None
         ...     availablemasks = None
-        ...     initvalue = None
+        ...     connect_variable2subgroup = None
+        ...     initinfo = None
         >>> sm = SoilMoisture()
         >>> sm.value = 200.0
         >>> sm.average_values()
@@ -1259,7 +1271,8 @@ of variable `soilmoisture`, the following error occurred: Variable \
         ...     NDIM = 1
         ...     shape = (3,)
         ...     value = numpy.array([1.0, 1.0, 2.0])
-        ...     initvalue = None
+        ...     connect_variable2subgroup = None
+        ...     initinfo = None
         >>> area = Area()
         >>> SoilMoisture.refweights = property(lambda self: area)
         >>> sm.average_values()
@@ -1630,15 +1643,69 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         return to_repr(self, self.value)
 
 
-class SubVariables:
+class SubVariables(Generic[GroupType]):
     """Base class for |SubParameters| and |SubSequences|.
 
-    See class |SubParameters| for further information.
+    >>> from hydpy.core.variabletools import SubVariables, Variable
+    >>> class TestVar(Variable):
+    ...     NDIM = 0
+    ...     TYPE = float
+    ...     connect_variable2subgroup = lambda self, subgroup: None
+    ...     initinfo = 0.0, False
+
+
+    >>> class SubVars(SubVariables):
+    ...     CLASSES = (TestVar,)
+    ...     init_fastaccess = lambda self, cls_fastaccess, cymodel: None
+    ...     name = 'subvars'
+
+    >>> subvars = SubVars('test')
+    >>> subvars.vars
+    'test'
+
+    >>> subvars
+    testvar(?)
+    >>> from hydpy import pub
+    >>> pub.options.reprcomments = True
+    >>> subvars
+    # SubVars object defined in module variabletools,
+    # handling the following variables:
+    testvar(?)
+    >>> pub.options.reprcomments = False
+
+    >>> subvars.testvar = 3.0
+    >>> subvars.testvar
+    testvar(3.0)
+
+    >>> subvars.wrong
+    Traceback (most recent call last):
+    ...
+    AttributeError: Collection object `subvars` does neither handle a \
+variable nor another attribute named wrong.
+
+
+    >>> subvars.vars = 'wrong'
+    >>> subvars.vars
+    'wrong'
+
+    >>> subvars.testvar = 'wrong'
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to set the value(s) of variable `testvar`, \
+the following error occurred: 5 values are assigned to the scalar \
+variable `testvar`.
+
+    >>> for variable in subvars:
+    ...     print(variable.name)
+    testvar
+    >>> len(subvars)
+    1
     """
     CLASSES: ClassVar[Tuple[Type[abctools.VariableProtocol], ...]]
-    _name2variable = {}
+    vars: GroupType
+    _name2variable: Dict[str, abctools.VariableProtocol] = {}
 
-    def __init__(self, variables, cls_fastaccess=None, cymodel=None):   # ToDo
+    def __init__(self, variables, cls_fastaccess=None, cymodel=None):
         self.vars = variables
         self.init_fastaccess(cls_fastaccess, cymodel)
         self._name2variable = {}
@@ -1661,9 +1728,9 @@ class SubVariables:
             return self._name2variable[name]
         except KeyError:
             raise AttributeError(
-                f'Collection object `{self.name}` of device '
-                f'{objecttools.devicename(self.vars)} does neither '
-                f'handle a variable nor another attribute named {name}.')
+                f'Collection object {objecttools.devicephrase(self)} '
+                f'does neither handle a variable nor another attribute '
+                f'named {name}.')
 
     def __setattr__(self, name, value):
         variable = self._name2variable.get(name)
@@ -1676,22 +1743,38 @@ class SubVariables:
         for variable in self._name2variable.values():
             yield variable
 
+    def __len__(self):
+        return len(self.CLASSES)
+
     def __repr__(self):
         lines = []
         if hydpy.pub.options.reprcomments:
-            lines.append(f'# {objecttools.classname(self)} object defined '   # ToDo: cov
-                         f'in module {objecttools.modulename(self)}.')
-            lines.append('# The implemented variables with their actual '   # ToDo: cov
-                         'values are:')
+            lines.append(f'# {objecttools.classname(self)} object defined '
+                         f'in module {objecttools.modulename(self)},\n'
+                         f'# handling the following variables:')
         for variable in self:
             try:
                 lines.append(repr(variable))
-            except BaseException:   # ToDo: cov
-                lines.append(f'{variable.name}(?)')   # ToDo: cov
+            except BaseException:
+                lines.append(f'{variable.name}(?)')
         return '\n'.join(lines)
 
     def __dir__(self):
-        return objecttools.dir_(self)   # ToDo: cov
+        """
+        >>> from hydpy.core.variabletools import SubVariables, Variable
+        >>> class TestVar(Variable):
+        ...     NDIM = 0
+        ...     TYPE = float
+        ...     connect_variable2subgroup = lambda self, subgroup: None
+        ...     initinfo = 0.0, False
+        >>> class TestSubVars(SubVariables):
+        ...     CLASSES = (TestVar,)
+        ...     init_fastaccess = lambda self, cls_fastaccess, cymodel: None
+        ...     name = None
+        >>> dir(TestSubVars(None))
+        ['CLASSES', 'init_fastaccess', 'name', 'testvar', 'vars']
+        """
+        return objecttools.dir_(self) + list(self._name2variable.keys())
 
 
 def to_repr(self: Variable, values: ValuesType,
@@ -1707,7 +1790,8 @@ def to_repr(self: Variable, values: ValuesType,
     >>> class Var(Variable):
     ...     NDIM = 0
     ...     TYPE = int
-    ...     initvalue = 1.0, False
+    ...     connect_variable2subgroup = None
+    ...     initinfo = 1.0, False
     >>> var = Var()
     >>> var.value = 2
     >>> var

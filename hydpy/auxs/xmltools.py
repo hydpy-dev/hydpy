@@ -52,10 +52,6 @@ the read initial conditions and the written final conditions of
 sequence |hland_states.SM| for the 12 hydrological response units of the
 subcatchment `land_dill`:
 
->>> from hydpy import pub
->>> pub.options.reprdigits = 6
-
-
 >>> with TestIO():
 ...     with open('LahnH/conditions/init_1996_01_01/land_dill.py') as file_:
 ...         print(''.join(file_.readlines()[10:12]))

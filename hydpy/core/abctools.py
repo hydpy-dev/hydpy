@@ -62,6 +62,8 @@ class DevicesHandlerProtocol(Protocol):
 class VariableProtocol(Protocol):
     """ToDo"""
 
+    name: str
+
     @abc.abstractmethod
     def connect_variable2subgroup(self, subseqs):
         """ToDo"""

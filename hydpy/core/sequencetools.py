@@ -250,7 +250,7 @@ class Sequences(object):
         return len(dict(self))
 
 
-class SubSequences(variabletools.SubVariables):
+class SubSequences(variabletools.SubVariables[Sequences]):
     """Base class for handling subgroups of sequences.
 
     Attributes:
@@ -265,8 +265,10 @@ class SubSequences(variabletools.SubVariables):
     not subclass |SubSequences| directly, but specialized subclasses
     like |FluxSequences| or |StateSequences| instead.
     """
+    seqs: Sequences
 
-    def __init__(self, variables, cls_fastaccess=None, cymodel=None):
+    def __init__(self, variables: Sequences,
+                 cls_fastaccess=None, cymodel=None):
         self.seqs = variables
         super().__init__(variables, cls_fastaccess, cymodel)
 
@@ -455,7 +457,7 @@ class Sequence(variabletools.Variable):
         self.values = args
 
     @property
-    def initvalue(self):
+    def initinfo(self):
         if hydpy.pub.options.usedefaultvalues:
             initflag = True
             initvalue = self.INIT
@@ -1067,7 +1069,7 @@ or prepare `pub.sequencemanager` correctly.
         idxs = [timegrid[hydpy.pub.timegrids.init.firstdate],
                 timegrid[hydpy.pub.timegrids.init.lastdate]]
         valcopy = values
-        values = numpy.full(self.seriesshape, self.initvalue[0])
+        values = numpy.full(self.seriesshape, self.initinfo[0])
         len_ = len(valcopy)
         jdxs = []
         for idx in idxs:

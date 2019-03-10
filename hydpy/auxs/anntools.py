@@ -1641,8 +1641,8 @@ neural network `seasonalann` of element `?` none has been defined so far.
         ...                 intercepts_hidden=0.0, intercepts_output=1.0))
         >>> from hydpy.core.objecttools import assignrepr_values
         >>> print(assignrepr_values(sorted(dir(seasonalann)), '', 70))
-        NDIM, SPAN, TIME, TYPE, anns, connect, fastaccess, inputs, name,
-        nmb_inputs, nmb_outputs, outputs, parameterstep, plot,
+        NDIM, SPAN, TIME, TYPE, anns, connect_variable2subgroup, fastaccess,
+        inputs, name, nmb_inputs, nmb_outputs, outputs, parameterstep, plot,
         process_actual_input, ratios, refresh, shape, simulationstep, subpars,
         toy_1_1_0_0_0, toys, verify
         """

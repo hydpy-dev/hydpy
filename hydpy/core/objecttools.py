@@ -150,11 +150,13 @@ def modulename(self):
 
 def _search_device(self):
     while True:
-        device = getattr(self, 'element', getattr(self, 'node', None))
+        if self is None:
+            return None
+        device = vars(self).get('element', vars(self).get('node'))
         if device is not None:
             return device
         for test in ('model', 'seqs', 'subseqs', 'pars', 'subpars'):
-            master = getattr(self, test, None)
+            master = vars(self).get(test)
             if master is not None:
                 self = master
                 break

@@ -301,10 +301,14 @@ class HydPy(object):
         return sels1
 
     def _update_deviceorder(self):
-        self.deviceorder = []
-        for node in self.endnodes:
-            self._nextnode(node)
-        self.deviceorder = self.deviceorder[::-1]
+        endnodes = self.endnodes
+        if endnodes:
+            self.deviceorder = []
+            for node in endnodes:
+                self._nextnode(node)
+            self.deviceorder = self.deviceorder[::-1]
+        else:
+            self.deviceorder = list(self.elements)
 
     def _nextnode(self, node):
         for element in node.exits:

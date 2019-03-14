@@ -94,6 +94,7 @@ warnings.resetwarnings()
 warnings.filterwarnings('ignore', category=ImportWarning)
 warnings.filterwarnings('always', category=HydPyDeprecationWarning)
 warnings.filterwarnings('ignore', r'All-NaN (slice|axis) encountered')
+warnings.filterwarnings('ignore', r'elementwise comparison failed')
 warnings.filterwarnings('ignore', r'Using or importing the ABCs from')
 warnings.filterwarnings('error', category=integrate.IntegrationWarning)
 

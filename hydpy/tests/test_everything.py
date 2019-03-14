@@ -202,6 +202,8 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                         warnings.filterwarnings(
                             'ignore', message="numpy.ufunc size changed")
                         warnings.filterwarnings(
+                            'ignore', r'elementwise comparison failed')
+                        warnings.filterwarnings(
                             'ignore',
                             message='the imp module is deprecated')
                         runner = unittest.TextTestRunner(stream=file_)

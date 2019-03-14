@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """This module implements general features for defining and working with
-parameters and sequences.
+model parameters and sequences.
 
 Features more specific to either parameters or sequences are implemented
 in modules |parametertools| and |sequencetools| respectively.
@@ -47,235 +47,306 @@ def trim(self: 'Variable', lower: Optional[ValuesType] = None,
          upper: Optional[ValuesType] = None) -> None:
     """Trim the value(s) of a |Variable| instance.
 
-    One can pass the lower and/or the upper boundary as a function
-    argument.  Otherwise, boundary values are taken from the class
-    attribute `SPAN` of the given |Variable| instance, if available.
+    Usually, users do not need to apply function |trim| directly.
+    Instead, some |Variable| subclasses implement their own `trim`
+    methods relying on function |trim|.  Model developers should
+    implement individual `trim` methods for their |Parameter| or
+    |Sequence| subclasses when their boundary values depend on the
+    actual project configuration (one example is soil moisture;
+    its lowest possible value should possibly be zero in all cases,
+    but its highest possible value could depend on another parameter
+    defining the maximum storage capacity).
 
-    Note that method |trim| works differently on |Variable| instances
-    handling values of different types.  For floating point values,
-    an actual trimming is performed.  Additionally, a warning message is
-    raised if the trimming results in a change in value exceeding the
-    threshold value defined by function "tolerance" ToDo.  (This warning
-    message can be suppressed by setting the related option flag to False.)
-    For integer values, instead of a warning an exception is raised.
+    For the following examples, we prepare a simple (not fully
+    functional) |Variable| subclass, making use of function |trim|
+    without any modifications.  Function |trim| works slightly
+    different for variables handling |float|, |int|, and |bool|
+    values.  We start with the most common content type |float|:
+
+    >>> from hydpy.core.variabletools import trim, Variable
+    >>> class Var(Variable):
+    ...     NDIM = 0
+    ...     TYPE = float
+    ...     SPAN = 1.0, 3.0
+    ...     trim = trim
+    ...     initinfo = 2.0, False
+    ...     connect_variable2subgroup = None
+
+    First, we enable the printing of warning messages raised by function
+    |trim|:
 
     >>> from hydpy import pub
     >>> pub.options.warntrim = True
 
-    >>> from hydpy.core.parametertools import Parameter
-    >>> class Par(Parameter):
-    ...     NDIM = 0
-    ...     TYPE = float
-    ...     TIME = None
-    ...     SPAN = 1.0, 3.0
-    >>> par = Par()
+    When not passing boundary values, function |trim| extracts them from
+    class attribute `SPAN` of the given |Variable| instance, if available:
 
-    >>> from hydpy.core.variabletools import trim
-    >>> par(2.0)
-    >>> trim(par)
+    >>> var = Var()
+    >>> var.value = 2.0
+    >>> var.trim()
+    >>> var
+    var(2.0)
 
-    >>> par(0.0)
+    >>> var.value = 0.0
+    >>> var.trim()
     Traceback (most recent call last):
     ...
-    UserWarning: For variable `par` at least one value needed to be trimmed.  \
+    UserWarning: For variable `var` at least one value needed to be trimmed.  \
 The old and the new value(s) are `0.0` and `1.0`, respectively.
-    >>> par
-    par(1.0)
+    >>> var
+    var(1.0)
 
-    >>> par(4.0)
+    >>> var.value = 4.0
+    >>> var.trim()
     Traceback (most recent call last):
     ...
-    UserWarning: For variable `par` at least one value needed to be trimmed.  \
+    UserWarning: For variable `var` at least one value needed to be trimmed.  \
 The old and the new value(s) are `4.0` and `3.0`, respectively.
-    >>> par
-    par(3.0)
+    >>> var
+    var(3.0)
 
-    >>> par.value = 1.0 - 1e-15
-    >>> par == 1.0
+    In the examples above, outlier values are set to the respective
+    boundary value, accompanied by suitable warning messages.  For very
+    tiny deviations, which might be due to precision problems only,
+    outliers are trimmed but not reported:
+
+    >>> var.value = 1.0 - 1e-15
+    >>> var == 1.0
     False
-    >>> trim(par)
-    >>> par == 1.0
+    >>> trim(var)
+    >>> var == 1.0
     True
 
-    >>> par.value = 3.0 + 1e-15
-    >>> par == 3.0
+    >>> var.value = 3.0 + 1e-15
+    >>> var == 3.0
     False
-    >>> trim(par)
-    >>> par == 3.0
+    >>> var.trim()
+    >>> var == 3.0
     True
 
-    >>> trim(par, lower=4.0)
+    Use arguments `lower` and `upper` to override the (eventually)
+    available `SPAN` entries:
+
+    >>> var.trim(lower=4.0)
     Traceback (most recent call last):
     ...
-    UserWarning: For variable `par` at least one value needed to be trimmed.  \
+    UserWarning: For variable `var` at least one value needed to be trimmed.  \
 The old and the new value(s) are `3.0` and `4.0`, respectively.
 
-    >>> trim(par, upper=3.0)
+    >>> var.trim(upper=3.0)
     Traceback (most recent call last):
     ...
-    UserWarning: For variable `par` at least one value needed to be trimmed.  \
+    UserWarning: For variable `var` at least one value needed to be trimmed.  \
 The old and the new value(s) are `4.0` and `3.0`, respectively.
 
+    Function |trim| interprets both |None| and |numpy.nan| values as if
+    no boundary value exists:
+
     >>> import numpy
-    >>> par.value = 0.0
-    >>> trim(par, lower=numpy.nan)
-    >>> par.value = 5.0
-    >>> trim(par, upper=numpy.nan)
+    >>> var.value = 0.0
+    >>> var.trim(lower=numpy.nan)
+    >>> var.value = 5.0
+    >>> var.trim(upper=numpy.nan)
+
+    You can disable function |trim| via option |Options.trimvariables|:
 
     >>> with pub.options.trimvariables(False):
-    ...     par(5.0)
-    >>> par
-    par(5.0)
+    ...     var.value = 5.0
+    ...     var.trim()
+    >>> var
+    var(5.0)
+
+    Alternatively, you can omit the warning messages only:
 
     >>> with pub.options.warntrim(False):
-    ...     par(5.0)
-    >>> par
-    par(3.0)
+    ...     var.value = 5.0
+    ...     var.trim()
+    >>> var
+    var(3.0)
 
-    >>> del Par.SPAN
-    >>> par(5.0)
-    >>> par
-    par(5.0)
+    If a |Variable| subclass does not have (fixed) boundaries, give it
+    either no `SPAN` attribute or a |tuple| containing |None| values:
 
-    >>> Par.SPAN = (None, None)
-    >>> trim(par)
-    >>> par
-    par(5.0)
+    >>> del Var.SPAN
+    >>> var.value = 5.0
+    >>> var.trim()
+    >>> var
+    var(5.0)
 
+    >>> Var.SPAN = (None, None)
+    >>> var.trim()
+    >>> var
+    var(5.0)
 
-    >>> Par.SPAN = 1.0, 3.0
-    >>> Par.NDIM = 2
-    >>> par.shape = 1, 3
-    >>> par(2.0)
+    The above examples deal with a 0-dimensional |Variable| subclass.
+    The following examples repeat the most relevant examples for a
+    2-dimensional subclass:
 
-    >>> par(0.0, 1.0, 2.0)
+    >>> Var.SPAN = 1.0, 3.0
+    >>> Var.NDIM = 2
+    >>> var.shape = 1, 3
+    >>> var.values = 2.0
+    >>> var.trim()
+
+    >>> var.values = 0.0, 1.0, 2.0
+    >>> var.trim()
     Traceback (most recent call last):
     ...
-    UserWarning: For variable `par` at least one value needed to be trimmed.  \
+    UserWarning: For variable `var` at least one value needed to be trimmed.  \
 The old and the new value(s) are `[[ 0.  1.  2.]]` and `[[ 1.  1.  2.]]`, \
 respectively.
-    >>> par
-    par([[1.0, 1.0, 2.0]])
+    >>> var
+    var([[1.0, 1.0, 2.0]])
 
-    >>> par(2.0, 3.0, 4.0)
+    >>> var.values = 2.0, 3.0, 4.0
+    >>> var.trim()
     Traceback (most recent call last):
     ...
-    UserWarning: For variable `par` at least one value needed to be trimmed.  \
+    UserWarning: For variable `var` at least one value needed to be trimmed.  \
 The old and the new value(s) are `[[ 2.  3.  4.]]` and `[[ 2.  3.  3.]]`, \
 respectively.
-    >>> par
-    par([[2.0, 3.0, 3.0]])
+    >>> var
+    var([[2.0, 3.0, 3.0]])
 
-    >>> par.value = 1.0-1e-15, 2.0, 3.0+1e-15
-    >>> par.value == (1.0, 2.0, 3.0)
+    >>> var.values = 1.0-1e-15, 2.0, 3.0+1e-15
+    >>> var.values == (1.0, 2.0, 3.0)
     array([[False,  True, False]], dtype=bool)
-    >>> trim(par)
-    >>> par.value == (1.0, 2.0, 3.0)
+    >>> var.trim()
+    >>> var.values == (1.0, 2.0, 3.0)
     array([[ True,  True,  True]], dtype=bool)
 
-    >>> par.value = 0.0, 2.0, 4.0
-    >>> trim(par, lower=numpy.nan, upper=numpy.nan)
-    >>> par
-    par([[0.0, 2.0, 4.0]])
+    >>> var.values = 0.0, 2.0, 4.0
+    >>> var.trim(lower=numpy.nan, upper=numpy.nan)
+    >>> var
+    var([[0.0, 2.0, 4.0]])
 
-    >>> trim(par, lower=[numpy.nan, 3.0, 3.0])
+    >>> var.trim(lower=[numpy.nan, 3.0, 3.0])
     Traceback (most recent call last):
     ...
-    UserWarning: For variable `par` at least one value needed to be trimmed.  \
+    UserWarning: For variable `var` at least one value needed to be trimmed.  \
 The old and the new value(s) are `[[ 0.  2.  4.]]` and `[[ 0.  3.  3.]]`, \
 respectively.
 
-    >>> par.value = 0.0, 2.0, 4.0
-    >>> trim(par, upper=[numpy.nan, 1.0, numpy.nan])
+    >>> var.values = 0.0, 2.0, 4.0
+    >>> var.trim(upper=[numpy.nan, 1.0, numpy.nan])
     Traceback (most recent call last):
     ...
-    UserWarning: For variable `par` at least one value needed to be trimmed.  \
+    UserWarning: For variable `var` at least one value needed to be trimmed.  \
 The old and the new value(s) are `[[ 0.  2.  4.]]` and `[[ 1.  1.  4.]]`, \
 respectively.
 
-    >>> Par.TYPE = int
-    >>> Par.NDIM = 0
-    >>> Par.SPAN = 1, 3
+    For |Variable| subclasses handling |float| values, setting outliers
+    to the respective boundary value might often be an acceptable approach.
+    However, this is often not the case for subclasses handling |int|
+    values, which often serve as option flags (e.g. to enable/disable
+    a certain hydrological process for different land-use types). Hence,
+    function |trim| raises an exception instead of a warning and does
+    not modify the wrong |int| value:
 
-    >>> par(2)
-    >>> par
-    par(2)
+    >>> Var.TYPE = int
+    >>> Var.NDIM = 0
+    >>> Var.SPAN = 1, 3
 
-    >>> par(0)
+    >>> var.value = 2
+    >>> var.trim()
+    >>> var
+    var(2)
+
+    >>> var.value = 0
+    >>> var.trim()
     Traceback (most recent call last):
     ...
-    ValueError: The value `0` of parameter `par` of element `?` is not valid.
-    >>> par
-    par(0)
-    >>> par(4)
+    ValueError: The value `0` of parameter `var` of element `?` is not valid.
+    >>> var
+    var(0)
+    >>> var.value = 4
+    >>> var.trim()
     Traceback (most recent call last):
     ...
-    ValueError: The value `4` of parameter `par` of element `?` is not valid.
+    ValueError: The value `4` of parameter `var` of element `?` is not valid.
+    >>> var
+    var(4)
 
     >>> from hydpy import INT_NAN
-    >>> par.value = 0
-    >>> trim(par, lower=0)
-    >>> trim(par, lower=INT_NAN)
+    >>> var.value = 0
+    >>> var.trim(lower=0)
+    >>> var.trim(lower=INT_NAN)
 
-    >>> par.value = 4
-    >>> trim(par, upper=4)
-    >>> trim(par, upper=INT_NAN)
+    >>> var.value = 4
+    >>> var.trim(upper=4)
+    >>> var.trim(upper=INT_NAN)
 
-    >>> Par.SPAN = 1, None
-    >>> par(0)
+    >>> Var.SPAN = 1, None
+    >>> var.value = 0
+    >>> var.trim()
     Traceback (most recent call last):
     ...
-    ValueError: The value `0` of parameter `par` of element `?` is not valid.
-    >>> par(4)
+    ValueError: The value `0` of parameter `var` of element `?` is not valid.
+    >>> var
+    var(0)
 
-    >>> Par.SPAN = None, 3
-    >>> par(0)
-    >>> par(4)
+    >>> Var.SPAN = None, 3
+    >>> var.value = 0
+    >>> var.trim()
+    >>> var.value = 4
+    >>> var.trim()
     Traceback (most recent call last):
     ...
-    ValueError: The value `4` of parameter `par` of element `?` is not valid.
+    ValueError: The value `4` of parameter `var` of element `?` is not valid.
 
-    >>> del Par.SPAN
-    >>> par(0)
-    >>> par(4)
+    >>> del Var.SPAN
+    >>> var.value = 0
+    >>> var.trim()
+    >>> var.value = 4
+    >>> var.trim()
 
-    >>> Par.SPAN = 1, 3
-    >>> Par.NDIM = 2
-    >>> par.shape = (1, 3)
-    >>> par(2)
+    >>> Var.SPAN = 1, 3
+    >>> Var.NDIM = 2
+    >>> var.shape = (1, 3)
+    >>> var.values = 2
+    >>> var.trim()
 
-    >>> par(0, 1, 2)
+    >>> var.values = 0, 1, 2
+    >>> var.trim()
     Traceback (most recent call last):
     ...
-    ValueError: At least one value of parameter `par` of element `?` \
+    ValueError: At least one value of parameter `var` of element `?` \
 is not valid.
-    >>> par
-    par([[0, 1, 2]])
-    >>> par(2, 3, 4)
+    >>> var
+    var([[0, 1, 2]])
+    >>> var.values = 2, 3, 4
+    >>> var.trim()
     Traceback (most recent call last):
      ...
-    ValueError: At least one value of parameter `par` of element `?` \
+    ValueError: At least one value of parameter `var` of element `?` \
 is not valid.
-    >>> par
-    par([[2, 3, 4]])
+    >>> var
+    var([[2, 3, 4]])
 
 
-    >>> par.value = 0, 0, 2
-    >>> trim(par, lower=[0, INT_NAN, 2])
+    >>> var.values = 0, 0, 2
+    >>> var.trim(lower=[0, INT_NAN, 2])
 
-    >>> par.value = 2, 4, 4
-    >>> trim(par, upper=[2, INT_NAN, 4])
+    >>> var.values = 2, 4, 4
+    >>> var.trim(upper=[2, INT_NAN, 4])
 
-    >>> Par.TYPE = bool
-    >>> par.trim()
+    For |bool| values, defining outliers does not make much sense,
+    which is why function |trim| does nothing when applied on
+    variables handling |bool| values:
 
-    >>> Par.TYPE = str
-    >>> par.trim()
+    >>> Var.TYPE = bool
+    >>> var.trim()
+
+    If function |trim| encounters an unmanageable type, it raises an
+    exception like the following:
+
+    >>> Var.TYPE = str
+    >>> var.trim()
     Traceback (most recent call last):
     ...
     NotImplementedError: Method `trim` can only be applied on parameters \
 handling floating point, integer, or boolean values, but the "value type" \
-of parameter `par` is `str`.
+of parameter `var` is `str`.
 
     >>> pub.options.warntrim = False
     """
@@ -377,8 +448,8 @@ def _trim_int_nd(self, lower, upper):
 
 
 def _get_tolerance(values):
-    """Return some sort of "numerical accuracy" to be expected for the
-    given floating point value (see method |trim|)."""
+    """Return some "numerical accuracy" to be expected for the
+    given floating point value(s) (see method |trim|)."""
     return abs(values*1e-15)
 
 
@@ -392,12 +463,11 @@ def _warn_trim(self, oldvalue, newvalue):
 
 def _compare_variables_function_generator(
         method_string, aggregation_func):
-    """Return a function that can be used as a comparison method of class
-    |Variable|.
+    """Return a function usable  as a comparison method for class |Variable|.
 
-    Pass the specific method (e.g. '__eq__') and the corresponding
-    operator (e.g. `==`) as strings.  Also pass either |all| or |any|
-    for aggregating multiple boolean values.
+    Pass the specific method (e.g. `__eq__`) and the corresponding
+    operator (e.g. `==`) as strings.  Also pass either |numpy.all| or
+    |numpy.any| for aggregating multiple boolean values.
     """
     def comparison_function(self, other):
         """Wrapper for comparison functions for class |Variable|."""
@@ -422,17 +492,17 @@ def _compare_variables_function_generator(
 class Variable(abc.ABC):
     """Base class for |Parameter| and |Sequence|.
 
-    This base class implements special methods for arithmetic calculations,
-    comparisons and type conversions.  See the  following examples on how
-    to do math with HydPys |Parameter| and |Sequence| objects.
+    The subclasses are required to provide the class attributes `NDIM`
+    and `TYPE`, defining the dimensionality and the type of the values
+    to be handled by the subclass, respectively.  Class attribute `INIT`
+    is optional and should provide a suitable default value.
 
-    The subclasses are required to provide the members as `NDIM` (usually
-    a class attribute) and `value` (usually a property).  For testing
-    purposes, we simply add them as class attributes to a copy of class
-    |Variable|.
+    Class |Variable| implements methods for arithmetic calculations,
+    comparisons and type conversions.  See the  following examples on
+    how to do math with HydPys |Parameter| and |Sequence| objects.
 
     We start with demonstrating the supported mathematical operations
-    on 0-dimensional |Variable| objects:
+    on 0-dimensional |Variable| objects handling |float| values:
 
     >>> import numpy
     >>> from hydpy.core.variabletools import Variable
@@ -443,8 +513,8 @@ class Variable(abc.ABC):
     ...     initinfo = 0.0, False
     >>> var = Var()
 
-    You can perform additions both with other |Variable| objects or
-    with usual number objects:
+    You can perform additions both with other |Variable| objects and
+    with ordinary number objects:
 
     >>> var.value = 2.0
     >>> var + var
@@ -460,7 +530,7 @@ class Variable(abc.ABC):
     >>> var
     var(2.0)
 
-    In case something wrents wrong, all math operations return errors
+    In case something went wrong, all math operations return errors
     like the following:
 
     >>> var = Var()
@@ -534,7 +604,7 @@ defined so far.
     >>> divmod(13.0, var)
     (2.0, 3.0)
 
-    Also, the following unary operations are supported:
+    Additionally, we support the following unary operations:
 
     >>> var.values = -5.0
     >>> +var
@@ -638,9 +708,6 @@ defined so far.
     >>> divmod([13.0, 5.0], var)
     (array([ 2.,  1.]), array([ 3.,  0.]))
 
-    Also, the following unary operations are supported (except |bool|,
-    |int| and |float|):
-
     >>> var.values = -5.0
     >>> +var
     array([-5., -5.])
@@ -698,12 +765,13 @@ with key `1`, the following error occurred: The only allowed keys for \
 with key `slice(None, None, None)`, the following error occurred: \
 could not convert string to float: 'test'
 
-
-    Comparisons with |Variable| objects containg multiple
-    values return a single boolean value:
+    Comparisons with |Variable| objects containing multiple values
+    return a single boolean value.  Two objects are equal if all of
+    their value-pairs are equal, and they are unequal if at least
+    one of their value-pairs is unequal:
 
     >>> var.shape = (2,)
-    >>> var.value = 1.0, 3.0
+    >>> var.values = 1.0, 3.0
     >>> var == [0.0, 2.0], var == [1.0, 2.0], var == [1.0, 3.0]
     (False, False, True)
     >>> var != [0.0, 2.0], var != [1.0, 2.0], var != [1.0, 3.0]
@@ -722,6 +790,23 @@ could not convert string to float: 'test'
     >>> var > 0.0, var > 1.0, var > 2.0
     (True, False, False)
 
+    Comparing wrongly shaped values does work for `==` and `!=` but
+    results in errors for the other operations:
+
+    >>> var.values = 2.0
+    >>> var == [2.0], var != [2.0]
+    (True, False)
+    >>> var == [2.0, 2.0, 2.0], var != [2.0, 2.0, 2.0]
+    (False, True)
+    >>> var < [2.0], var <= [2.0], var >= [2.0], var > [2.0]
+    (False, True, True, False)
+    >>> var < [2.0, 2.0, 2.0]   # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to compare variable `var` of element `?` \
+with object `[2.0, 2.0, 2.0]` of type `list`, the following error occurred: \
+operands could not be broadcast together with shapes (2,) (3,)...
+
     You can compare different |Variable| objects directly with each other:
 
     >>> from copy import deepcopy
@@ -738,15 +823,8 @@ could not convert string to float: 'test'
     >>> var > var, var > deepcopy(var)
     (False, False)
 
-    When asking for impossible comparisons, error messages like the following
-    are returned:
-
-    >>> var < [1.0, 2.0, 3.0]   # doctest: +ELLIPSIS
-    Traceback (most recent call last):
-    ...
-    ValueError: While trying to compare variable `var` of element `?` \
-with object `[1.0, 2.0, 3.0]` of type `list`, the following error occurred: \
-operands could not be broadcast together with shapes (2,) (3,)...
+    When asking for impossible comparisons, |trim| raises error
+    like the following:
 
     >>> var < 'text'
     Traceback (most recent call last):
@@ -772,10 +850,10 @@ operands could not be broadcast together with shapes (2,) (3,)...
     >>> len(var)
     8
 
-    |Variable| objects are hasable based on their |id| value for
+    |Variable| objects are hashable based on their |id| value for
     avoiding confusion when adding different but equal objects into
     one |set| or |dict| object.  The following examples show this
-    behaviour by making deep oopies of existing |Variable| objects:
+    behaviour by making deep copies of existing |Variable| objects:
 
     >>> Var.NDIM = 0
     >>> var1 = Var()
@@ -856,6 +934,8 @@ operands could not be broadcast together with shapes (2,) (3,)...
     def value(self) -> Union[float, int, numpy.ndarray]:
         """The actual parameter or sequence value(s).
 
+        First, we prepare a simple (not fully functional) |Variable| subclass:
+
         >>> from hydpy.core.variabletools import Variable
         >>> class Var(Variable):
         ...     NDIM = 0
@@ -863,11 +943,18 @@ operands could not be broadcast together with shapes (2,) (3,)...
         ...     connect_variable2subgroup = None
         ...     initinfo = 3.0, True
 
+        Without making use of default values (see below), trying to
+        query the actual value of a freshly initialised |Variable|
+        object results in the following error:
+
         >>> var = Var()
         >>> var.value
         Traceback (most recent call last):
         ...
         AttributeError: For variable `var`, no value has been defined so far.
+
+        Property |Variable.value| tries to normalise assigned values and
+        raises an error, if not possible:
 
         >>> var.value = 3
         >>> var.value
@@ -894,11 +981,18 @@ to type `float`.
         >>> var.value
         2.0
 
+        The above examples deal with a 0-dimensional variable handling
+        |float| values.  The following examples focus on a 2-dimensional
+        variable handling |int| values:
 
         >>> from hydpy import INT_NAN
         >>> Var.NDIM = 2
         >>> Var.TYPE = int
         >>> Var.initinfo = INT_NAN, False
+
+        For multidimensional objects, assigning new values required
+        defining their |Variable.shape| first:
+
         >>> var = Var()
         >>> var.value
         Traceback (most recent call last):
@@ -1005,10 +1099,12 @@ occurred: could not broadcast input array from shape (2) into shape (2,3)
 
     @property
     def shape(self) -> Tuple[int, ...]:
-        """A tuple containing the lengths in all dimensions of the sequence
-        values at a specific time point.  Note that setting a new shape
-        results in a loss of the actual values of the respective sequence.
-        For 0-dimensional sequences an empty tuple is returned.
+        """A tuple containing the actual lengths of all dimensions.
+
+        Note that setting a new |Variable.shape| results in a loss of
+        the actual |Variable.values| of the respective |Variable| object.
+
+        First, we prepare a simple (not fully functional) |Variable| subclass:
 
         >>> from hydpy.core.variabletools import Variable
         >>> class Var(Variable):
@@ -1016,6 +1112,9 @@ occurred: could not broadcast input array from shape (2) into shape (2,3)
         ...     TYPE = float
         ...     connect_variable2subgroup = None
         ...     initinfo = 3.0, True
+
+        Initially, the shape of a new |Variable| object is unknown:
+
         >>> var = Var()
         >>> var.shape
         Traceback (most recent call last):
@@ -1023,11 +1122,20 @@ occurred: could not broadcast input array from shape (2) into shape (2,3)
         AttributeError: Shape information for variable `var` can only be \
 retrieved after it has been defined.
 
+        For multidimensional objects, assigning shape information (as a
+        |tuple| of |int| values) prepares the required array automatically.
+        Due to the |Variable.initinfo| surrogate of our test class,
+        the entries of this array are `3.0`:
+
         >>> var.shape = (3,)
         >>> var.shape
         (3,)
         >>> var.values
         array([ 3.,  3.,  3.])
+
+        For the |Variable.initinfo| flag (second |tuple| entry) being
+        |False|, the array is still prepared but not directly accessible
+        to the user:
 
         >>> import numpy
         >>> Var.initinfo = numpy.nan, False
@@ -1042,6 +1150,9 @@ retrieved after it has been defined.
         AttributeError: For variable `var`, no values have been defined so far.
         >>> var.fastaccess.var
         array([ nan,  nan,  nan])
+
+        Property |Variable.shape| tries to normalise assigned values and
+        raises errors like the following, if not possible:
 
         >>> var.shape = 'x'
         Traceback (most recent call last):
@@ -1066,6 +1177,10 @@ shape indicates `2` dimensions.
         False
         >>> var.fastaccess.var
 
+
+        0-dimensional |Variable| objects inform the user about their shape
+        but do not allow to change it for obvious reasons:
+
         >>> class Var(Variable):
         ...     NDIM = 0
         ...     TYPE = int
@@ -1085,13 +1200,22 @@ shape indicates `2` dimensions.
         ()
         >>> var.value
         3
+        >>> var.shape = (2,)
+        Traceback (most recent call last):
+        ...
+        ValueError: The shape information of 0-dimensional variables \
+as `var` can only be `()`, but `(2,)` is given.
+
+        With a |False| |Variable.initinfo| flag, the default value is
+        still readily prepared after initialisation but not directly
+        accessible to the user:
 
         >>> from hydpy import INT_NAN
         >>> Var.initinfo = INT_NAN, False
         >>> var = Var()
-        >>> var.shape = ()
         >>> var.shape
         ()
+        >>> var.shape = ()
         >>> hasattr(var, 'value')
         False
         >>> var.fastaccess.var
@@ -1101,13 +1225,7 @@ shape indicates `2` dimensions.
         >>> var.value
         6
 
-        >>> var.shape = (2,)
-        Traceback (most recent call last):
-        ...
-        ValueError: The shape information of 0-dimensional variables \
-as `var` can only be `()`, but `(2,)` is given.
-        >>> var.shape
-        ()
+        >>> var.shape = ()
         >>> var.fastaccess.var
         -999999
         """
@@ -1161,7 +1279,7 @@ as `var` can only be `()`, but `(2,)` is given.
 
     def verify(self) -> None:
         """Raises a |RuntimeError| if at least one of the required values
-        of a |Variable| object is |None| or |numpy.nan|. Descripter
+        of a |Variable| object is |None| or |numpy.nan|. The descriptor
         `mask` defines, which values are considered to be necessary.
 
         Example on a 0-dimensional |Variable|:
@@ -1220,7 +1338,7 @@ have not been set yet.
     @property
     def refweights(self) -> 'Variable':
         """Reference to a |Parameter| object that defines weighting
-        coefficients (e.g. fractional areas) for applying
+        coefficients (e.g. fractional areas) for applying function
         |Variable.average_values|.  Must be overwritten by subclasses,
         when required."""
         raise AttributeError(
@@ -1230,7 +1348,7 @@ have not been set yet.
     def average_values(self, *args, **kwargs) -> float:
         """Average the actual values of the |Variable| object.
 
-        For 0-dimensional |Variable| objects, the result of
+        For 0-dimensional |Variable| objects, the result of method
         |Variable.average_values| equals |Variable.value|.  The
         following example shows this for the sloppily defined class
         `SoilMoisture`:
@@ -1249,7 +1367,8 @@ have not been set yet.
         200.0
 
         When the dimensionality of this class is increased to one,
-        applying |Variable.average_values| results in the following error:
+        applying method |Variable.average_values| results in the
+        following error:
 
         >>> SoilMoisture.NDIM = 1
         >>> import numpy
@@ -1278,15 +1397,14 @@ of variable `soilmoisture`, the following error occurred: Variable \
         >>> sm.average_values()
         400.0
 
-        In the examples above are all single entries of `values` relevant,
-        which is the default case.  But subclasses of |Variable| can
+        In the examples above, all single entries of `values` are relevant,
+        which is the default case.  However, subclasses of |Variable| can
         define an alternative mask, allowing to make some entries
         irrelevant. Assume for example, that our `SoilMoisture` object
-        contains three single values, because each one is associated with
-        a specific hydrological response unit (hru).  To indicate that
-        soil moisture is not defined for the third unit, (maybe because
-        it is a water area), we set the third entry of the verification
-        mask to |False|:
+        contains three single values, each one associated with a specific
+        hydrological response unit (hru).  To indicate that soil moisture
+        is undefined for the third unit, (maybe because it is a water area),
+        we set the third entry of the verification mask to |False|:
 
         >>> from hydpy.core.masktools import DefaultMask
         >>> class Soil(DefaultMask):
@@ -1337,8 +1455,8 @@ of variable `soilmoisture`, the following error occurred: Variable \
         >>> sm.average_values(sm.availablemasks.deepsoil, 'flatsoil')
         300.0
 
-        If the general mask of the variable does not contain the given
-        masks, an error is raised:
+        The following error happens if the general mask of the variable
+        does not contain the given masks:
 
         >>> sm.average_values('flatsoil', 'water')
         Traceback (most recent call last):
@@ -1348,7 +1466,7 @@ of variable `soilmoisture`, the following error occurred: Variable \
 `('flatsoil', 'water')` and `{}` the mask `CustomMask([ True, False,  True])` \
 has been determined, which is not a submask of `Soil([ True,  True, False])`.
 
-        Applying masks with own options is also supported.  One can change
+        Applying masks with custom options is also supported.  One can change
         the behaviour of the following mask via the argument `complete`:
 
         >>> class AllOrNothing(DefaultMask):
@@ -1367,7 +1485,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         >>> SoilMoisture.availablemasks = Masks(None)
 
         Again, one can apply the mask class directly (but note that one
-        has to pass the variable relevant variable as the first argument.):
+        has to pass the relevant variable as the first argument.):
 
         >>> sm.average_values(   # doctest: +ELLIPSIS
         ...     sm.availablemasks.allornothing(sm, complete=True))
@@ -1376,12 +1494,12 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         ValueError: While trying to...
 
         Alternatively, one can pass the mask name as a keyword and pack
-        the mask's options into an |dict| object:
+        the mask's options into a |dict| object:
 
         >>> sm.average_values(allornothing={'complete': False})
         nan
 
-        All variants explained above can be combined:
+        You can combine all variants explained above:
 
         >>> sm.average_values(
         ...     'deepsoil', flatsoil={}, allornothing={'complete': False})
@@ -1402,11 +1520,11 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 
     @property
     def availablemasks(self) -> masktools.Masks:
-        """|Masks| object provided by the corresponding |Model| object."""
+        """A |Masks| object provided by the corresponding |Model| object."""
         return self.subvars.vars.model.masks
 
     def get_submask(self, *args, **kwargs) -> masktools.CustomMask:
-        """Get a submask of the mask handled by the actual |Variable| object
+        """Get a sub-mask of the mask handled by the actual |Variable| object
         based on the given arguments.
 
         See the documentation on method |Variable.average_values| for
@@ -1629,10 +1747,13 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
     def __hash__(self):
         return id(self)
 
+    @property
     def commentrepr(self) -> List[str]:
-        """Returns a list with comments, e.g. for making string
-        representations more informative.  When `pub.options.reprcomments`
-        is set to |False|, an empty list is returned.
+        """A list with comments for making string representations
+        more informative.
+
+        With option |Options.reprcomments| being disabled,
+        |Variable.commentrepr| is empty.
         """
         if hydpy.pub.options.reprcomments:
             return [f'# {line}' for line in
@@ -1646,6 +1767,14 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 class SubVariables(Generic[GroupType]):
     """Base class for |SubParameters| and |SubSequences|.
 
+    Each subclass of class |SubVariables| it thought for handling
+    a certain group of |Parameter| or |Sequence| objects.  One
+    specific example is subclass |InputSequences|, collecting all
+    |InputSequence| objects of a specific hydrological model.
+
+    For the following examples, we first prepare a (not fully
+    functional) |Variable| subclass:
+
     >>> from hydpy.core.variabletools import SubVariables, Variable
     >>> class TestVar(Variable):
     ...     NDIM = 0
@@ -1653,15 +1782,27 @@ class SubVariables(Generic[GroupType]):
     ...     connect_variable2subgroup = lambda self, subgroup: None
     ...     initinfo = 0.0, False
 
+    Out test |SubVariables| subclass is thought to handle only this
+    single |Variable| subclass, indicated by putting it into the
+    |tuple| class attribute `CLASSES`:
 
     >>> class SubVars(SubVariables):
     ...     CLASSES = (TestVar,)
     ...     init_fastaccess = lambda self, cls_fastaccess, cymodel: None
     ...     name = 'subvars'
 
+    After initialisation, |SubVariables| objects reference their master
+    object (either a |Parameters| or a |Sequences| object), passed to their
+    constructor. However, in our simple test example, we just passed
+    a string instead:
+
     >>> subvars = SubVars('test')
     >>> subvars.vars
     'test'
+
+    The string representation lists all available variables and,
+    with the option |Options.reprcomments| enabled, an additional
+    informative header:
 
     >>> subvars
     testvar(?)
@@ -1673,9 +1814,16 @@ class SubVariables(Generic[GroupType]):
     testvar(?)
     >>> pub.options.reprcomments = False
 
+    Class |SubVariables| provides attribute access to the handled
+    |Variable| objects, and protects |Variable| objects from
+    accidental overwriting:
+
     >>> subvars.testvar = 3.0
     >>> subvars.testvar
     testvar(3.0)
+
+    Trying to query not available |Variable| objects (or other attributes)
+    results in the following error message:
 
     >>> subvars.wrong
     Traceback (most recent call last):
@@ -1683,6 +1831,8 @@ class SubVariables(Generic[GroupType]):
     AttributeError: Collection object `subvars` does neither handle a \
 variable nor another attribute named wrong.
 
+    Class |SubVariables| protects only the handled |Variable| objects
+    from overwriting with unplausible data:
 
     >>> subvars.vars = 'wrong'
     >>> subvars.vars
@@ -1694,6 +1844,9 @@ variable nor another attribute named wrong.
     ValueError: While trying to set the value(s) of variable `testvar`, \
 the following error occurred: 5 values are assigned to the scalar \
 variable `testvar`.
+
+    Class |SubVariables| supporte iteration and the application of the
+    |len| operator:
 
     >>> for variable in subvars:
     ...     print(variable.name)
@@ -1798,7 +1951,7 @@ def to_repr(self: Variable, values: ValuesType,
     var(2)
 
     The following examples demonstrate all covered cases.  Note that
-    option `brackets1d` allows to choose between a "vararg" and an
+    option `brackets1d` allows choosing between a "vararg" and an
     "iterable" string representation for 1-dimensional variables
     (the first one being the default):
 
@@ -1842,4 +1995,4 @@ def to_repr(self: Variable, values: ValuesType,
                 values, prefix, 72) + ')'
     else:
         string = objecttools.assignrepr_list2(values, prefix, 72) + ')'
-    return '\n'.join(self.commentrepr() + [string])
+    return '\n'.join(self.commentrepr + [string])

@@ -370,7 +370,7 @@ Most probably, you defined the same threshold value(s) twice.
             yield key, self._coefs[key]
 
     def __repr__(self):
-        strings = self.commentrepr()
+        strings = self.commentrepr
         prefix = '%s(' % self.name
         blanks = ' '*len(prefix)
         if self:

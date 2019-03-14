@@ -720,12 +720,13 @@ class Parameter(variabletools.Variable, abctools.ParameterABC):
             values = values * self.timefactor
         return values
 
+    @property
     def commentrepr(self):
         """Returns a list with comments, e.g. for making string
         representations more informative.  When |Options.reprcomments|
         is set to |False|, an empty list is returned.
         """
-        lines = variabletools.Variable.commentrepr(self)
+        lines = variabletools.Variable.commentrepr.fget(self)
         if (hydpy.pub.options.reprcomments and
                 (getattr(self, 'TIME', None) is not None)):
             lines.append('# The actual value representation depends on '
@@ -767,7 +768,7 @@ class Parameter(variabletools.Variable, abctools.ParameterABC):
                 islong = False
             return variabletools.to_repr(self, values, islong)
         else:
-            lines = self.commentrepr()
+            lines = self.commentrepr
             if hasattr(self, 'value'):
                 value = self.revert_timefactor(self.value)
             else:
@@ -1553,7 +1554,7 @@ following error occurred: index 1 is out of bounds for axis 0 with size 1
                 self.values[idx, :] = values
 
     def __repr__(self):
-        lines = self.commentrepr()
+        lines = self.commentrepr
         prefix = '%s(' % self.name
         blanks = ' '*len(prefix)
         for (idx, key) in enumerate(self.ROWNAMES):

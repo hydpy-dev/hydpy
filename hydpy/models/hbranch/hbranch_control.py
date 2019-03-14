@@ -205,7 +205,7 @@ new `branched` sequence and connect it to the respective outlet nodes properly.
 
     def __repr__(self):
         try:
-            lines = self.commentrepr()
+            lines = self.commentrepr
             nodenames = self.subpars.pars.model.nodenames
             for (idx, values) in enumerate(self):
                 line = '%s=%s,' % (nodenames[idx], repr(list(values)))

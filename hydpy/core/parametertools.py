@@ -324,8 +324,8 @@ class _Stepsize:
                     'The smallest step size allowed is one second.')
         except BaseException:
             objecttools.augment_excmessage(
-                'While trying to (re)define the general %s size with %s'
-                % (self.name, objecttools.value_of_type(value)))
+                f'While trying to (re)define the general {self.name} '
+                f'size with { objecttools.value_of_type(value)}')
 
     @property
     def name(self):
@@ -513,14 +513,13 @@ class Parameter(variabletools.Variable, abctools.ParameterABC):
         """
         if args and kwargs:
             raise ValueError(
-                'For parameter %s of element %s both positional and '
-                'keyword arguments are given, which is ambiguous.'
-                % (self.name, objecttools.devicename(self)))
+                f'For parameter {objecttools.elementphrase(self)} '
+                f'both positional and keyword arguments are given, '
+                f'which is ambiguous.')
         elif not args and not kwargs:
             raise ValueError(
-                'For parameter %s of element %s neither a '
-                'positional nor a keyword argument is given.'
-                % (self.name, objecttools.devicename(self)))
+                f'For parameter {objecttools.elementphrase(self)} neither '
+                f'a positional nor a keyword argument is given.')
         elif 'pyfile' in kwargs:
             warnings.warn(exceptiontools.HydPyDeprecationWarning(
                 'The keyword name to define a parameter value in an '
@@ -540,9 +539,8 @@ class Parameter(variabletools.Variable, abctools.ParameterABC):
                 self.values = self.apply_timefactor(numpy.array(args))
         else:
             raise NotImplementedError(
-                'The value(s) of parameter %s of element %s could '
-                'not be set based on the given keyword arguments.'
-                % (self.name, objecttools.devicename(self)))
+                f'The value(s) of parameter {objecttools.elementphrase(self)} '
+                f'could not be set based on the given keyword arguments.')
         self.trim()
 
     def _get_values_from_auxiliaryfile(self, pyfile):
@@ -563,17 +561,15 @@ class Parameter(variabletools.Variable, abctools.ParameterABC):
                 frame = frame.f_back
         else:
             raise RuntimeError(
-                'Something has gone wrong when trying to '
-                'read parameter `%s` from file `%s`.'
-                % (self.name, pyfile))
+                f'Something went wrong when trying to read '
+                f'parameter `{self.name}` from file `{pyfile}`.')
         filetools.ControlManager.read2dict(pyfile, subnamespace)
         try:
             subself = subnamespace[self.name]
         except KeyError:
             raise RuntimeError(
-                'Something has gone wrong when trying to '
-                'read parameter `%s` from file `%s`.'
-                % (self.name, pyfile))
+                f'Something went wrong when trying to read '
+                f'parameter `{self.name}` from file `{pyfile}`.')
         return subself.values
 
     @property
@@ -672,14 +668,15 @@ class Parameter(variabletools.Variable, abctools.ParameterABC):
         except RuntimeError:
             if not self.simulationstep:
                 raise RuntimeError(
-                    'The calculation of the effective value of parameter '
-                    '`%s` requires a definition of the actual simulation time '
-                    'step.  The simulation time step is project specific.  '
-                    'When initializing the HydPy framework, it is '
-                    'automatically specified under `pub.timegrids.stepsize`.  '
-                    'For testing purposes, one can e.g. alternatively apply '
-                    'the function `simulationstep`.  Please see the '
-                    'documentation for more details.' % self.name)
+                    f'The calculation of the effective value of parameter '
+                    f'`{self.name}` requires a definition of the actual '
+                    f'simulation time step.  '
+                    f'The simulation time step is project specific.  '
+                    f'When initializing the HydPy framework, it is '
+                    f'automatically specified under `pub.timegrids.stepsize`.  '
+                    f'For testing purposes, one can e.g. alternatively apply '
+                    f'the function `simulationstep`.  Please see the '
+                    f'documentation for more details.')
             else:
                 date1 = timetools.Date('2000.01.01')
                 date2 = date1 + self.simulationstep
@@ -727,9 +724,9 @@ class Parameter(variabletools.Variable, abctools.ParameterABC):
         lines = variabletools.Variable.commentrepr.fget(self)
         if (hydpy.pub.options.reprcomments and
                 (getattr(self, 'TIME', None) is not None)):
-            lines.append('# The actual value representation depends on '
-                         'the actual parameter step size,')
-            lines.append('# which is `%s`.' % self.parameterstep)
+            lines.append(f'# The actual value representation depends on '
+                         f'the actual parameter step size,\n'
+                         f'# which is `{self.parameterstep}`.')
         return lines
 
     def __str__(self):
@@ -759,9 +756,8 @@ class Parameter(variabletools.Variable, abctools.ParameterABC):
                 values = self.revert_timefactor(self.values)
             except BaseException:
                 objecttools.augment_excmessage(
-                    'While trying to find a compressed '
-                    'string representation for parameter `%s`'
-                    % self.name)
+                    f'While trying to find a compressed string '
+                    f'representation for parameter `{self.name}`')
             else:
                 islong = False
             return variabletools.to_repr(self, values, islong)
@@ -900,9 +896,9 @@ is no compression method implemented, working for its actual values.
             return result
         else:
             raise NotImplementedError(
-                'For parameter %s there is no compression method '
-                'implemented, working for its actual values.'
-                % objecttools.elementphrase(self))
+                f'For parameter {objecttools.elementphrase(self)} '
+                f'there is no compression method implemented, '
+                f'working for its actual values.')
 
 
 class NameParameter(Parameter):
@@ -955,9 +951,9 @@ class ZipParameter(Parameter):
                 self._own_call(kwargs)
             except BaseException:
                 objecttools.augment_excmessage(
-                    'While trying to set the values of parameter %s '
-                    'based on keyword arguments'
-                    % objecttools.elementphrase(self))
+                    f'While trying to set the values of parameter '
+                    f'{objecttools.elementphrase(self)} based on '
+                    f'keyword arguments')
 
     def _own_call(self, kwargs):
         mask = self.mask
@@ -969,8 +965,7 @@ class ZipParameter(Parameter):
             sel = self.MODEL_CONSTANTS.get(key.upper())
             if sel is None:
                 raise NotImplementedError(
-                    'Key `%s` is not an available model constant.'
-                    % key)
+                    f'Key `{key}` is not an available model constant.')
             elif sel in mask.RELEVANT_VALUES:
                 self.values[refindices == sel] = value
         self.values = self.apply_timefactor(self.values)
@@ -1008,9 +1003,8 @@ class ZipParameter(Parameter):
                     unique = numpy.unique(self.values[refindices == value])
                     unique = self.revert_timefactor(unique)
                     if len(unique) == 1:
-                        results.append('%s=%s'
-                                       % (key.lower(),
-                                          objecttools.repr_(unique[0])))
+                        results.append(
+                            f'{key.lower()}={objecttools.repr_(unique[0])}')
                     elif len(unique) > 1:
                         raise exc
             result = ', '.join(sorted(results))
@@ -1138,11 +1132,9 @@ into shape (3)
                         setattr(self, str(timetools.TOY(toystr)), values)
                     except BaseException:
                         objecttools.augment_excmessage(
-                            'While trying to define the seasonal parameter '
-                            'value `%s` of element `%s` for time of year `%s`'
-                            % (self.name,
-                               objecttools.devicename(self),
-                               toystr))
+                            f'While trying to define the seasonal parameter '
+                            f'value {objecttools.elementphrase(self)} for '
+                            f'time of year `{toystr}`')
                 self.refresh()
             else:
                 raise exc
@@ -1315,12 +1307,11 @@ into shape (3)
         shape = list(shape)
         if not self.simulationstep:
             raise RuntimeError(
-                'It is not possible the set the shape of the seasonal '
-                'parameter `%s` of element `%s` at the moment.  You can '
-                'define it manually.  In complete HydPy projects it is '
-                'indirectly defined via `pub.timegrids.stepsize` '
-                'automatically.'
-                % (self.name, objecttools.devicename(self)))
+                f'It is not possible the set the shape of the seasonal '
+                f'parameter {objecttools.elementphrase(self)} at the '
+                f'moment.  You can define it manually.  In complete '
+                f'HydPy projects it is indirectly defined via '
+                f'`pub.timegrids.stepsize` automatically.')
         shape[0] = timetools.Period('366d')/self.simulationstep
         shape[0] = int(numpy.ceil(round(shape[0], 10)))
         variabletools.Variable.shape.fset(self, shape)
@@ -1337,9 +1328,8 @@ into shape (3)
                 return self._toy2values[timetools.TOY(name)]
             except BaseException:
                 objecttools.augment_excmessage(
-                    'While trying to get an existing toy-value pair for '
-                    'the seasonal parameter `%s` of element `%s`'
-                    % (self.name, objecttools.devicename(self)))
+                    f'While trying to get an existing toy-value pair for the '
+                    f'seasonal parameter {objecttools.elementphrase(self)}')
         else:
             return super().__getattribute__(name)
 
@@ -1354,9 +1344,9 @@ into shape (3)
                 self.refresh()
             except BaseException:
                 objecttools.augment_excmessage(
-                    'While trying to add a new or change an existing '
-                    'toy-value pair for the seasonal parameter `%s` of '
-                    'element `%s`' % (self.name, objecttools.devicename(self)))
+                    f'While trying to add a new or change an existing '
+                    f'toy-value pair for the seasonal parameter '
+                    f'{objecttools.elementphrase(self)}')
         else:
             super().__setattr__(name, value)
 
@@ -1367,9 +1357,8 @@ into shape (3)
                 self.refresh()
             except BaseException:
                 objecttools.augment_excmessage(
-                    'While trying to delete an existing toy-value pair for '
-                    'the seasonal parameter `%s` of element `%s`'
-                    % (self.name, objecttools.devicename(self)))
+                    f'While trying to delete an existing toy-value pair for '
+                    f'the seasonal parameter {objecttools.elementphrase(self)}')
         else:
             super().__delattr__(name)
 
@@ -1389,9 +1378,9 @@ into shape (3)
         blanks = ' '*(len(self.name)+1)
         for idx, (toy, value) in enumerate(self):
             if idx == 0:
-                prefix = '%s(%s=' % (self.name, toy)
+                prefix = f'{self.name}({toy}='
             else:
-                prefix = '%s%s=' % (blanks, toy)
+                prefix = f'{blanks}{toy}='
             if self.NDIM == 1:
                 lines.append(assign(value, prefix))
             else:
@@ -1556,11 +1545,10 @@ following error occurred: index 1 is out of bounds for axis 0 with size 1
 
     def __repr__(self):
         lines = self.commentrepr
-        prefix = '%s(' % self.name
+        prefix = f'{self.name}('
         blanks = ' '*len(prefix)
         for (idx, key) in enumerate(self.ROWNAMES):
-            subprefix = ('%s%s=' % (prefix, key) if idx == 0 else
-                         '%s%s=' % (blanks, key))
+            subprefix = f'{prefix}{key}=' if idx == 0 else f'{blanks}{key}='
             lines.append(objecttools.assignrepr_list(self.values[idx, :],
                                                      subprefix, 75) + ',')
         lines[-1] = lines[-1][:-1] + ')'
@@ -1572,26 +1560,26 @@ following error occurred: index 1 is out of bounds for axis 0 with size 1
                 return self.values[self.ROWNAMES.index(key), :]
             except BaseException:
                 objecttools.augment_excmessage(
-                    'While trying to retrieve values from parameter `%s` of '
-                    'element `%s` via the row related attribute `%s`'
-                    % (self.name, objecttools.devicename(self), key))
+                    f'While trying to retrieve values from parameter '
+                    f'{objecttools.elementphrase(self)} via the row '
+                    f'related attribute `{key}`')
         elif key in self.COLNAMES:
             try:
                 return self.values[:, self.COLNAMES.index(key)]
             except BaseException:
                 objecttools.augment_excmessage(
-                    'While trying to retrieve values from parameter `%s` of '
-                    'element `%s` via the columnd related attribute `%s`'
-                    % (self.name, objecttools.devicename(self), key))
+                    f'While trying to retrieve values from parameter '
+                    f'{objecttools.elementphrase(self)} via the column '
+                    f'related attribute `{key}`')
         elif key in self._ROWCOLMAPPINGS:
             idx, jdx = self._ROWCOLMAPPINGS[key]
             try:
                 return self.values[idx, jdx]
             except BaseException:
                 objecttools.augment_excmessage(
-                    'While trying to retrieve values from parameter `%s` of '
-                    'element `%s` via the row and column related attribute '
-                    '`%s`' % (self.name, objecttools.devicename(self), key))
+                    f'While trying to retrieve values from parameter '
+                    f'{objecttools.elementphrase(self)} via the row '
+                    f'and column related attribute `{key}`')
         else:
             raise AttributeError('ToDo ' + key)   # ToDo
 
@@ -1601,26 +1589,26 @@ following error occurred: index 1 is out of bounds for axis 0 with size 1
                 self.values[self.ROWNAMES.index(key), :] = values
             except BaseException:
                 objecttools.augment_excmessage(
-                    'While trying to assign new values to parameter `%s` of '
-                    'element `%s` via the row related attribute `%s`'
-                    % (self.name, objecttools.devicename(self), key))
+                    f'While trying to assign new values to parameter '
+                    f'{objecttools.elementphrase(self)} via the row '
+                    f'related attribute `{key}`')
         elif key in self.COLNAMES:
             try:
                 self.values[:, self.COLNAMES.index(key)] = values
             except BaseException:
                 objecttools.augment_excmessage(
-                    'While trying to assign new values to parameter `%s` of '
-                    'element `%s` via the column related attribute `%s`'
-                    % (self.name, objecttools.devicename(self), key))
+                    f'While trying to assign new values to parameter '
+                    f'{objecttools.elementphrase(self)} via the column '
+                    f'related attribute `{key}`')
         elif key in self._ROWCOLMAPPINGS:
             idx, jdx = self._ROWCOLMAPPINGS[key]
             try:
                 self.values[idx, jdx] = values
             except BaseException:
                 objecttools.augment_excmessage(
-                    'While trying to assign new values to parameter `%s` of '
-                    'element `%s` via the row and column related attribute '
-                    '`%s`' % (self.name, objecttools.devicename(self), key))
+                    f'While trying to assign new values to parameter '
+                    f'{objecttools.elementphrase(self)} via the row '
+                    f'and column related attribute `{key}`')
         else:
             super().__setattr__(key, values)
 
@@ -1658,20 +1646,20 @@ class LeftRightParameter(Parameter):
         except NotImplementedError:
             left = kwargs.get('left', kwargs.get('l'))
             if left is None:
-                raise ValueError('When setting the values of parameter `%s`'
-                                 'of element `%s` via keyword arguments, '
-                                 'either `left` or `l` for the "left" '
-                                 'parameter value must be given, but is not.'
-                                 % (self.name, objecttools.devicename(self)))
+                raise ValueError(
+                    f'When setting the values of parameter '
+                    f'{objecttools.elementphrase(self)} via keyword '
+                    f'arguments, either `left` or `l` for the "left" '
+                    f'parameter value must be given, but is not.')
             else:
                 self.left = left
             right = kwargs.get('right', kwargs.get('r'))
             if right is None:
-                raise ValueError('When setting the values of parameter `%s`'
-                                 'of element `%s` via keyword arguments, '
-                                 'either `right` or `r` for the "right" '
-                                 'parameter value must be given, but is not.'
-                                 % (self.name, objecttools.devicename(self)))
+                raise ValueError(
+                    f'When setting the values of parameter '
+                    f'{objecttools.elementphrase(self)} via keyword '
+                    f'arguments, either `right` or `r` for the "right" '
+                    f'parameter value must be given, but is not.')
             else:
                 self.right = right
 
@@ -1728,9 +1716,8 @@ class SolverParameter(Parameter):
     def _get_alternative_initvalue(self):
         if self._alternative_initvalue is None:
             raise RuntimeError(
-                'No alternative initial value for solver parameter `%s` of '
-                'element `%s` has been defined so far.'
-                % (self.name, objecttools.devicename(self)))
+                f'No alternative initial value for solver parameter '
+                f'{objecttools.elementphrase(self)} has been defined so far.')
         else:
             return self._alternative_initvalue
 

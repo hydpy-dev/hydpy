@@ -25,6 +25,8 @@ import numpy
 # ...from hydpy
 if TYPE_CHECKING:
     from hydpy.core import devicetools
+    from hydpy.core import parametertools
+    from hydpy.core import sequencetools
 
 T = TypeVar('T')
 T1 = TypeVar('T1')
@@ -67,22 +69,6 @@ class VariableProtocol(Protocol):
     @abc.abstractmethod
     def connect_variable2subgroup(self, subseqs):
         """ToDo"""
-
-
-class ParametersABC(abc.ABC):
-    """See class |Parameters|."""
-
-
-class ParameterABC(abc.ABC):
-    """See class |Parameter|."""
-
-
-class ANNABC(abc.ABC):
-    """See class |anntools.ANN|."""
-
-
-class SeasonalANNABC(abc.ABC):
-    """See class |anntools.SeasonalANN|."""
 
 
 class SequencesABC(abc.ABC):
@@ -225,8 +211,8 @@ class ModelABC(abc.ABC):
     """See class |Model|."""
 
     element: 'devicetools.Element'
-    parameters: ParametersABC
-    sequences: SequencesABC
+    parameters: 'parametertools.Parameters'
+    sequences: 'sequencetools.Sequences'
 
     def connect(self):
         ...
@@ -252,10 +238,6 @@ __all__ = [
     'MayNonerable2',
     'MayNonerable3',
     'DevicesHandlerProtocol',
-    'ParametersABC',
-    'ParameterABC',
-    'ANNABC',
-    'SeasonalANNABC',
     'SequencesABC',
     'IOSequencesABC',
     'OutputSequencesABC',

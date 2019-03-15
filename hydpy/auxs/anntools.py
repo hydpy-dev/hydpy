@@ -849,10 +849,6 @@ parameter `ann` of element `?` has not been defined so far.
         pyplot.plot(xs_, ys_, **kwargs)
 
 
-abctools.ParameterABC.register(ANN)
-abctools.ANNABC.register(ANN)
-
-
 def ann(**kwargs) -> ANN:
     """Return a new stand alone |anntools.ANN| object with the given parameter
     values.
@@ -1648,6 +1644,3 @@ neural network `seasonalann` of element `?` none has been defined so far.
         """
         return objecttools.dir_(self) + [str(toy) for toy in self.toys]
 
-
-abctools.ParameterABC.register(SeasonalANN)
-abctools.SeasonalANNABC.register(SeasonalANN)

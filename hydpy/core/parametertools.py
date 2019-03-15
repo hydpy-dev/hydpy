@@ -493,7 +493,7 @@ been defined.
         return period
 
 
-class Parameter(variabletools.Variable, abctools.ParameterABC):
+class Parameter(variabletools.Variable):
     """Base class for ToDo."""
 
     TIME: ClassVar[Optional[bool]]

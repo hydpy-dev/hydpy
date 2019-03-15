@@ -1423,10 +1423,9 @@ an instance of the following classes: str and int.
                 raise exc
             else:
                 raise TypeError(
-                    'The given value `{0!r}` is neither iterable nor an '
-                    'instance of the following classes: {1}.'
-                    .format(repr(values),
-                            enumeration(types, converter=instancename)))
+                    f'The given value `{repr(values)}` is neither iterable '
+                    f'nor an instance of the following classes: '
+                    f'{enumeration(types, converter=instancename)}.')
 
 
 def enumeration(values, converter=str, default=''):

@@ -431,8 +431,7 @@ variable handled by the actual Variable2AuxFile object.
         try:
             self._check_filename(filename)
             new_vars = objecttools.extract(
-                variables,
-                (abctools.ParameterABC, abctools.ConditionSequenceABC))
+                variables, (abctools.VariableProtocol,))
             for new_var in new_vars:
                 self._check_variable(new_var)
                 fn2var = self._type2filename2variable.get(type(new_var), {})

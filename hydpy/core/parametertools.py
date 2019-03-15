@@ -1309,6 +1309,7 @@ into shape (3)
 
     @variabletools.Variable.shape.setter
     def shape(self, shape):
+        """ToDo"""
         try:
             shape = (int(shape),)
         except TypeError:
@@ -1325,6 +1326,8 @@ into shape (3)
         shape[0] = timetools.Period('366d')/self.simulationstep
         shape[0] = int(numpy.ceil(round(shape[0], 10)))
         variabletools.Variable.shape.fset(self, shape)
+
+    shape.__doc__ = shape.fset.__doc__
 
     def __iter__(self):
         for toy in sorted(self._toy2values.keys()):

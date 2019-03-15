@@ -898,11 +898,14 @@ or prepare `pub.sequencemanager` correctly.
 
     @variabletools.Variable.shape.setter
     def shape(self, shape):
+        """Todo"""
         variabletools.Variable.shape.fset(self, shape)
         if self.memoryflag:
             self._activate()
         else:
             self.update_fastaccess()
+
+    shape.__doc__ = shape.fset.__doc__
 
     @property
     def seriesshape(self):
@@ -1392,12 +1395,15 @@ class FluxSequence(ModelSequence):
 
     @IOSequence.shape.setter
     def shape(self, shape):
+        """ToDo"""
         IOSequence.shape.fset(self, shape)
         if self.NDIM and self.NUMERIC:
             self._connect_subattr('points', numpy.zeros(self.numericshape))
             self._connect_subattr('integrals', numpy.zeros(self.numericshape))
             self._connect_subattr('results', numpy.zeros(self.numericshape))
             self._connect_subattr('sum', numpy.zeros(self.shape))
+
+    shape.__doc__ = shape.fset.__doc__
 
 
 abctools.FluxSequenceABC.register(FluxSequence)
@@ -1487,6 +1493,7 @@ class StateSequence(ModelSequence, ConditionSequence):
 
     @IOSequence.shape.setter
     def shape(self, shape):
+        """ToDo"""
         IOSequence.shape.fset(self, shape)
         if self.NDIM:
             setattr(self.fastaccess_old, self.name, self.new.copy())
@@ -1495,6 +1502,8 @@ class StateSequence(ModelSequence, ConditionSequence):
                     'points', numpy.zeros(self.numericshape))
                 self._connect_subattr(
                     'results', numpy.zeros(self.numericshape))
+
+    shape.__doc__ = shape.fset.__doc__
 
     new = Sequence.values
     """Complete access to the state value(s), which will be used in the
@@ -1625,6 +1634,7 @@ class LinkSequence(Sequence):
 
     @property
     def value(self):
+        """ToDo"""
         raise AttributeError(
             'To retrieve a pointer is very likely to result in bugs '
             'and is thus not supported at the moment.')
@@ -1638,6 +1648,7 @@ class LinkSequence(Sequence):
 
     @property
     def shape(self):
+        """ToDo"""
         if self.NDIM == 0:
             return ()
         elif self.NDIM == 1:

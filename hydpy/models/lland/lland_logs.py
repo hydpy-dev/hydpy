@@ -29,6 +29,9 @@ class WET0(sequencetools.LogSequence):
         # pylint: disable=no-member
         variabletools.Variable.shape.fset(self, (1, shape))
 
+    shape.__doc__ = shape.fset.__doc__
+
+
 class LogSequences(sequencetools.LogSequences):
     """Log sequences of the HydPy-L-Land model."""
     CLASSES = (WET0,)

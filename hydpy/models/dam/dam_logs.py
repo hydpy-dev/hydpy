@@ -22,25 +22,7 @@ class LoggedOutflow(sequencetools.LogSequence):
 
 
 class ShapeOne(sequencetools.LogSequence):
-    """Base class for log sequences with a shape of one.
-
-    Parameter derived from |ShapeOne| are generally initialized
-    with a shape of one.  Taking parameter |LoggedRequiredRemoteRelease|
-    as an example:
-
-    >>> from hydpy.models.dam import *
-    >>> parameterstep()
-    >>> logs.loggedrequiredremoterelease.shape
-    (1,)
-
-    Trying to set a new shape results in the following exceptions:
-
-    >>> logs.loggedrequiredremoterelease.shape = 2
-    Traceback (most recent call last):
-    ...
-    AttributeError: The shape of parameter `loggedrequiredremoterelease` \
-cannot be changed, but this was attempted for element `?`.
-    """
+    """Base class for log sequences with a shape of one."""
 
     def _initvalues(self):
         self.shape = (1,)
@@ -48,12 +30,36 @@ cannot be changed, but this was attempted for element `?`.
     # due to a pylint bug (see https://github.com/PyCQA/pylint/issues/870)
     @variabletools.Variable.shape.setter   # pylint: disable=no-member
     def shape(self, shape):
+        """Parameter derived from |ShapeOne| are generally initialised
+        with a shape of one.
+
+        We take parameter |LoggedRequiredRemoteRelease|
+        as an example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> logs.loggedrequiredremoterelease.shape
+        (1,)
+
+        Trying to set a new shape results in the following exceptions:
+
+        >>> logs.loggedrequiredremoterelease.shape = 2
+        Traceback (most recent call last):
+        ...
+        AttributeError: The shape of parameter `loggedrequiredremoterelease` \
+cannot be changed, but this was attempted for element `?`.
+
+        See the documentation on property |Variable.shape| of class
+        |Variable| for further information.
+        """
         if hasattr(self, 'shape'):
             raise AttributeError(
                 f'The shape of parameter `{self.name}` cannot be '
                 f'changed, but this was attempted for element '
                 f'`{objecttools.devicename(self)}`.')
         variabletools.Variable.shape.fset(self, shape)
+
+    shape.__doc__ = shape.fset.__doc__
 
 
 class LoggedRequiredRemoteRelease(ShapeOne):

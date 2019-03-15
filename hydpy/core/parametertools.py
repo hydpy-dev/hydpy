@@ -42,8 +42,8 @@ def header_controlfile(model, parameterstep=None, simulationstep=None):
     <BLANKLINE>
     from hydpy.models.no model class import *
     <BLANKLINE>
-    simulationstep("1h")
-    parameterstep("-1h")
+    simulationstep('1h')
+    parameterstep('-1h')
     <BLANKLINE>
     <BLANKLINE>
 
@@ -60,18 +60,17 @@ def header_controlfile(model, parameterstep=None, simulationstep=None):
     <BLANKLINE>
     from hydpy.models.lland_v1 import *
     <BLANKLINE>
-    simulationstep("1h")
-    parameterstep("1d")
+    simulationstep('1h')
+    parameterstep('1d')
     <BLANKLINE>
     <BLANKLINE>
     """
     with Parameter.parameterstep(parameterstep), \
             Parameter.simulationstep(simulationstep):
-        return ('# -*- coding: utf-8 -*-\n\n'
-                'from hydpy.models.%s import *\n\n'
-                'simulationstep("%s")\n'
-                'parameterstep("%s")\n\n'
-                % (model, Parameter.simulationstep, Parameter.parameterstep))
+        return (f"# -*- coding: utf-8 -*-\n\n"
+                f"from hydpy.models.{model} import *\n\n"
+                f"simulationstep('{Parameter.simulationstep}')\n"
+                f"parameterstep('{Parameter.parameterstep}')\n\n")
 
 
 class IntConstant(int):
@@ -159,8 +158,7 @@ class Parameters:
                 if variable2auxfile:
                     auxfilename = variable2auxfile.get_filename(par)
                     if auxfilename:
-                        lines.append("%s(auxfile='%s')\n"
-                                     % (par.name, auxfilename))
+                        lines.append(f"{par.name}(auxfile='{auxfilename}')\n")
                         continue
                 lines.append(repr(par) + '\n')
             hydpy.pub.controlmanager.save_file(filename, ''.join(lines))

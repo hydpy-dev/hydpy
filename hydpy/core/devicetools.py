@@ -372,7 +372,7 @@ as a "normal" attribute and is thus not support, hence `NF` is rejected.
     Traceback (most recent call last):
     ...
     TypeError: While trying to initialise a `Nodes` object, the following \
-error occurred: The given value `'Element("ea")'` is neither iterable nor \
+error occurred: The given value `Element("ea")` is neither iterable nor \
 an instance of the following classes: node and str.
     """
 
@@ -973,8 +973,8 @@ no model could be initialised for element `land_dill`
             hydpy.pub.controlmanager.clear_registry()
 
     @printtools.print_progress
-    def save_controls(self, parameterstep: 'timetools.Period.ConstrArg' = None,
-                      simulationstep: 'timetools.Period.ConstrArg' = None,
+    def save_controls(self, parameterstep: 'timetools.PeriodConstrArg' = None,
+                      simulationstep: 'timetools.PeriodConstrArg' = None,
                       auxfiler: 'Optional[auxfiletools.Auxfiler]' = None):
         """Save the control parameters of the |Model| object handled by
         each |Element| object and eventually the ones handled by the

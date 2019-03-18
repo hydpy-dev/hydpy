@@ -39,7 +39,7 @@ class Model:
         self.parameters = None
         self.sequences = None
         self._masks = None
-        self.cymodel = objecttools.FastAccess()
+        self.cymodel = objecttools.FastAccess()   # ToDo ???
         self.cymodel.idx_sim = -999
         self._init_methods()
 

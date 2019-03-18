@@ -211,18 +211,17 @@ Most probably, you defined the same threshold value(s) twice.
     """
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
-    def __init__(self):
+    def __init__(self, subvars: parametertools.Parameters):
         with objecttools.ResetAttrFuncs(self):
-            self.subpars = None
+            super().__init__(subvars)
             self.fastaccess = None
             self._coefs = {}
-            super().__init__()
 
-    def connect_variable2subgroup(self, subpars):
+    def connect_variable2subgroup(self):
         """Make `subpars` an attribute of the respective |Responses| instance,
         but skip making a connection with its `fastaccess` object for
         reasons explained in the main documentation on class |Responses|."""
-        self.__dict__['subpars'] = subpars
+        pass   # ToDo
 
     def __call__(self, *args, **kwargs):
         self._coefs.clear()

@@ -96,7 +96,7 @@ class ANN:
     some arbitrary network parameters:
 
     >>> from hydpy import ANN, nan
-    >>> ann = ANN()
+    >>> ann = ANN(None)
     >>> ann(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
     ...     weights_input=4.0, weights_output=3.0,
     ...     intercepts_hidden=-16.0, intercepts_output=-1.0)
@@ -246,7 +246,7 @@ class ANN:
     members should always result in readable exceptions instead of
     program crashes, e.g.:
 
-    >>> ANN().nmb_layers
+    >>> ANN(None).nmb_layers
     Traceback (most recent call last):
     ...
     hydpy.core.exceptiontools.AttributeNotReady: Attribute `nmb_layers` \
@@ -261,18 +261,18 @@ attribute `nmb_inputs` first.
     parameterstep = parametertools.Parameter.__dict__['parameterstep']
     simulationstep = parametertools.Parameter.__dict__['simulationstep']
 
-    def __init__(self):
-        self.subpars = None
+    def __init__(self, subvars: parametertools.SubParameters):
+        self.subvars = subvars
+        self.subpars = subvars
         self.fastaccess = objecttools.FastAccess()
         self._cann = annutils.ANN()
         _ANNArrayProperty.add_cann(self, self._cann)
         self.__max_nmb_neurons = None
 
-    def connect_variable2subgroup(self, subpars) -> None:
+    def connect_variable2subgroup(self) -> None:
         """Connect the actual |anntools.ANN| object with the given
         |SubParameters| object."""
-        self.subpars = subpars
-        self.fastaccess = subpars.fastaccess
+        self.fastaccess = self.subpars.fastaccess
         setattr(self.fastaccess, self.name, self._cann)
 
     name = property(objecttools.name)
@@ -308,7 +308,7 @@ attribute `nmb_inputs` first.
         """Number of input nodes.
 
         >>> from hydpy import ANN
-        >>> ann = ANN()
+        >>> ann = ANN(None)
         >>> ann(nmb_inputs=2, nmb_neurons=(2, 1), nmb_outputs=3)
         >>> ann.nmb_inputs
         2
@@ -334,7 +334,7 @@ attribute `nmb_inputs` first.
         """Number of output nodes.
 
         >>> from hydpy import ANN
-        >>> ann = ANN()
+        >>> ann = ANN(None)
         >>> ann(nmb_inputs=2, nmb_neurons=(2, 1), nmb_outputs=3)
         >>> ann.nmb_outputs
         3
@@ -366,7 +366,7 @@ of object `ann` has not been prepared so far.
         """Number of neurons of the hidden layers.
 
         >>> from hydpy import ANN
-        >>> ann = ANN()
+        >>> ann = ANN(None)
         >>> ann(nmb_inputs=2, nmb_neurons=(2, 1), nmb_outputs=3)
         >>> ann.nmb_neurons
         (2, 1)
@@ -403,7 +403,7 @@ of object `ann` has not been prepared so far.
         """Number of input weights.
 
         >>> from hydpy import ANN
-        >>> ann = ANN()
+        >>> ann = ANN(None)
         >>> ann(nmb_inputs=3, nmb_neurons=(2, 1), nmb_outputs=1)
         >>> ann.nmb_weights_input
         6
@@ -418,7 +418,7 @@ of object `ann` has not been prepared so far.
         integer value is the number of neurons of the first hidden layer:
 
         >>> from hydpy import ANN
-        >>> ann = ANN()
+        >>> ann = ANN(None)
         >>> ann(nmb_inputs=3, nmb_neurons=(2, 1), nmb_outputs=1)
         >>> ann.shape_weights_input
         (3, 2)
@@ -438,7 +438,7 @@ of object `ann` has not been prepared so far.
         |anntools.ANN.shape_weights_input|):
 
         >>> from hydpy import ANN
-        >>> ann = ANN()
+        >>> ann = ANN(None)
         >>> ann(nmb_inputs=2, nmb_neurons=(3,))
         >>> ann.weights_input
         array([[ 0.,  0.,  0.],
@@ -504,7 +504,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         layer, the second integer value is the number of output nodes:
 
         >>> from hydpy import ANN
-        >>> ann = ANN()
+        >>> ann = ANN(None)
         >>> ann(nmb_inputs=2, nmb_neurons=(2, 1), nmb_outputs=3)
         >>> ann.shape_weights_output
         (1, 3)
@@ -516,7 +516,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         """Number of output weights.
 
         >>> from hydpy import ANN
-        >>> ann = ANN()
+        >>> ann = ANN(None)
         >>> ann(nmb_inputs=2, nmb_neurons=(2, 4), nmb_outputs=3)
         >>> ann.nmb_weights_output
         12
@@ -545,7 +545,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         first one):
 
         >>> from hydpy import ANN
-        >>> ann = ANN()
+        >>> ann = ANN(None)
         >>> ann(nmb_inputs=6, nmb_neurons=(4, 3, 2), nmb_outputs=6)
         >>> ann.shape_weights_hidden
         (2, 4, 3)
@@ -565,7 +565,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         """Number of hidden weights.
 
         >>> from hydpy import ANN
-        >>> ann = ANN()
+        >>> ann = ANN(None)
         >>> ann(nmb_inputs=2, nmb_neurons=(4, 3, 2), nmb_outputs=3)
         >>> ann.nmb_weights_hidden
         18
@@ -594,7 +594,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         all hidden layers:
 
         >>> from hydpy import ANN
-        >>> ann = ANN()
+        >>> ann = ANN(None)
         >>> ann(nmb_inputs=6, nmb_neurons=(4, 3, 2), nmb_outputs=6)
         >>> ann.shape_intercepts_hidden
         (3, 4)
@@ -623,7 +623,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         The only integer value is the number of output nodes:
 
         >>> from hydpy import ANN
-        >>> ann = ANN()
+        >>> ann = ANN(None)
         >>> ann(nmb_inputs=2, nmb_neurons=(2, 1), nmb_outputs=3)
         >>> ann.shape_intercepts_output
         (3,)
@@ -635,7 +635,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         """Number of output intercepts.
 
         >>> from hydpy import ANN
-        >>> ann = ANN()
+        >>> ann = ANN(None)
         >>> ann(nmb_inputs=2, nmb_neurons=(2, 1), nmb_outputs=3)
         >>> ann.nmb_intercepts_output
         3
@@ -658,7 +658,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         The only integer value is the number of input nodes:
 
         >>> from hydpy import ANN
-        >>> ann = ANN()
+        >>> ann = ANN(None)
         >>> ann(nmb_inputs=5, nmb_neurons=(2, 1), nmb_outputs=2)
         >>> ann.shape_inputs
         (5,)
@@ -680,7 +680,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         The only integer value is the number of output nodes:
 
         >>> from hydpy import ANN
-        >>> ann = ANN()
+        >>> ann = ANN(None)
         >>> ann(nmb_inputs=2, nmb_neurons=(2, 1), nmb_outputs=6)
         >>> ann.shape_outputs
         (6,)
@@ -703,7 +703,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         """Number of hidden layers.
 
         >>> from hydpy import ANN
-        >>> ann = ANN()
+        >>> ann = ANN(None)
         >>> ann(nmb_inputs=2, nmb_neurons=(2, 1), nmb_outputs=3)
         >>> ann.nmb_layers
         2
@@ -723,7 +723,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         hidden layers:
 
         >>> from hydpy import ANN
-        >>> ann = ANN()
+        >>> ann = ANN(None)
         >>> ann(nmb_inputs=2, nmb_neurons=(4, 3, 2), nmb_outputs=6)
         >>> ann.shape_neurons
         (3, 4)
@@ -751,7 +751,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         """Number of all input, inner, and output weights.
 
         >>> from hydpy import ANN
-        >>> ann = ANN()
+        >>> ann = ANN(None)
         >>> ann(nmb_inputs=1, nmb_neurons=(2, 3), nmb_outputs=4)
         >>> ann.nmb_weights
         20
@@ -765,7 +765,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         """Number of all inner and output intercepts.
 
         >>> from hydpy import ANN
-        >>> ann = ANN()
+        >>> ann = ANN(None)
         >>> ann(nmb_inputs=1, nmb_neurons=(2, 3), nmb_outputs=4)
         >>> ann.nmb_intercepts
         9
@@ -777,7 +777,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         """Sum of |anntools.ANN.nmb_weights| and |anntools.ANN.nmb_intercepts|.
 
         >>> from hydpy import ANN
-        >>> ann = ANN()
+        >>> ann = ANN(None)
         >>> ann(nmb_inputs=1, nmb_neurons=(2, 3), nmb_outputs=4)
         >>> ann.nmb_parameters
         29
@@ -789,7 +789,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         completely.
 
         >>> from hydpy import ANN
-        >>> ANN().verify()
+        >>> ANN(None).verify()
         Traceback (most recent call last):
         ...
         RuntimeError: The shape of the the artificial neural network \
@@ -891,7 +891,7 @@ def ann(**kwargs) -> ANN:
     >>> ann1 is ann2
     False
     """
-    new_ann = ANN()
+    new_ann = ANN(None)
     new_ann(**kwargs)
     return new_ann
 
@@ -915,7 +915,7 @@ class SeasonalANN:
     |SeasonalParameter|):
 
     >>> from hydpy import SeasonalANN, ann
-    >>> seasonalann = SeasonalANN()
+    >>> seasonalann = SeasonalANN(None)
     >>> seasonalann.simulationstep = '1d'
     >>> seasonalann(
     ...     _1_1_12=ann(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
@@ -1096,7 +1096,7 @@ class SeasonalANN:
     It is of great importance that all contained neural networks are
     consistent.  Hence some tests are performed:
 
-    >>> seasonalann = SeasonalANN()
+    >>> seasonalann = SeasonalANN(None)
     >>> seasonalann.process_actual_input(0)
     Traceback (most recent call last):
     ...
@@ -1270,18 +1270,18 @@ been given, but a value of type `ANN` is required.
     parameterstep = parametertools.Parameter.__dict__['parameterstep']
     simulationstep = parametertools.Parameter.__dict__['simulationstep']
 
-    def __init__(self):
-        self.subpars = None
+    def __init__(self, subvars: parametertools.SubParameters):
+        self.subvars = subvars
+        self.subpars = subvars
         self.fastaccess = objecttools.FastAccess()
         self._toy2ann: Dict[timetools.TOY, ANN] = {}
         self.__sann = None
         self._do_refresh = True
 
-    def connect_variable2subgroup(self, subpars) -> None:
+    def connect_variable2subgroup(self) -> None:
         """Connect the actual |anntools.SeasonalANN| object with the given
         |SubParameters| object."""
-        self.subpars = subpars
-        self.fastaccess = subpars.fastaccess
+        self.fastaccess = self.subpars.fastaccess
 
     name = property(objecttools.name)
 
@@ -1329,7 +1329,7 @@ been given, but a value of type `ANN` is required.
         by the following example:
 
         >>> from hydpy import SeasonalANN, ann
-        >>> seasonalann = SeasonalANN()
+        >>> seasonalann = SeasonalANN(None)
         >>> seasonalann.simulationstep = '1d'
         >>> jan = ann(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
         ...           weights_input=0.0, weights_output=0.0,
@@ -1379,7 +1379,7 @@ been given, but a value of type `ANN` is required.
         by the following example:
 
         >>> from hydpy import SeasonalANN, ann
-        >>> seasonalann = SeasonalANN()
+        >>> seasonalann = SeasonalANN(None)
         >>> seasonalann.simulationstep = '1d'
         >>> jan = ann(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
         ...           weights_input=0.0, weights_output=0.0,
@@ -1631,7 +1631,7 @@ neural network `seasonalann` of element `?` none has been defined so far.
     def __dir__(self):
         """
         >>> from hydpy import SeasonalANN, ann
-        >>> seasonalann = SeasonalANN()
+        >>> seasonalann = SeasonalANN(None)
         >>> seasonalann(ann(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
         ...                 weights_input=0.0, weights_output=0.0,
         ...                 intercepts_hidden=0.0, intercepts_output=1.0))
@@ -1640,7 +1640,7 @@ neural network `seasonalann` of element `?` none has been defined so far.
         NDIM, SPAN, TIME, TYPE, anns, connect_variable2subgroup, fastaccess,
         inputs, name, nmb_inputs, nmb_outputs, outputs, parameterstep, plot,
         process_actual_input, ratios, refresh, shape, simulationstep, subpars,
-        toy_1_1_0_0_0, toys, verify
+        subvars, toy_1_1_0_0_0, toys, verify
         """
         return objecttools.dir_(self) + [str(toy) for toy in self.toys]
 

@@ -18,13 +18,18 @@ from hydpy.core import filetools
 from hydpy.core import objecttools
 from hydpy.core import timetools
 from hydpy.core import variabletools
+if TYPE_CHECKING:
+    from hydpy.core import modeltools
 
 # The import of `_strptime` is not thread save.  The following call of
 # `strptime` is supposed to prevent possible problems arising from this bug.
 time.strptime('1999', '%Y')
 
 
-def header_controlfile(model, parameterstep=None, simulationstep=None):
+def header_controlfile(
+        model: Union[str, 'modeltools.Model'],
+        parameterstep: timetools.PeriodConstrArg = None,
+        simulationstep: timetools.PeriodConstrArg = None) -> str:
     """Return the header of a normal or auxiliariy parameter control file.
 
     The header contains the default coding information, the import command
@@ -114,23 +119,24 @@ class Constants(dict):
 class Parameters:
     """Base class for handling all parameters of a specific model."""
 
-    _NAMES_SUBPARS = ('control', 'derived', 'solver')
+    model: 'modeltools.Model'
+    control: 'SubParameters'
+    derived: 'SubParameters'
+    solver: 'SubParameters'
 
     def __init__(self, kwargs):
         self.model = kwargs.get('model')
-        self.control = None
-        self.derived = None
-        self.solver = None
-        cythonmodule = kwargs.get('cythonmodule')
-        cymodel = kwargs.get('cymodel')
-        for (name, cls) in kwargs.items():
-            if name.endswith('Parameters') and issubclass(cls, SubParameters):
-                if cythonmodule:
-                    cls_fastaccess = getattr(cythonmodule, name)
-                    subpars = cls(self, cls_fastaccess, cymodel)
-                else:
-                    subpars = cls(self, None, None)
-                setattr(self, subpars.name, subpars)
+        self.control = self._prepare_subpars('control', kwargs)
+        self.derived = self._prepare_subpars('derived', kwargs)
+        self.solver = self._prepare_subpars('solver', kwargs)
+
+    def _prepare_subpars(self, shortname, kwargs):
+        fullname = f'{shortname.capitalize()}Parameters'
+        cls = kwargs.get(fullname,
+                         type(fullname, (SubParameters,), {'CLASSES': ()}))
+        return cls(self,
+                   getattr(kwargs.get('cythonmodule'), fullname, None),
+                   kwargs.get('cymodel'))
 
     def update(self) -> None:
         """Call the update methods of all derived and solver parameters."""
@@ -144,7 +150,7 @@ class Parameters:
                         f'`{objecttools.elementphrase(self)}`')
 
     def save_controls(self, filename=None, parameterstep=None,
-                      simulationstep=None, auxfiler=None):
+                      simulationstep=None, auxfiler=None):   # ToDo
         if self.control:
             if not filename:
                 filename = self._controldefaultfilename
@@ -164,7 +170,7 @@ class Parameters:
             hydpy.pub.controlmanager.save_file(filename, ''.join(lines))
 
     @property
-    def _controldefaultfilename(self):
+    def _controldefaultfilename(self) -> str:
         filename = objecttools.devicename(self)
         if filename == '?':
             raise RuntimeError(
@@ -178,28 +184,23 @@ class Parameters:
         else:
             return filename + '.py'
 
-    def verify(self):
-        for parameter in self.control:
-            parameter.verify()
-        for parameter in self.derived:
-            parameter.verify()
+    def verify(self) -> None:
+        for subpars in self:
+            for par in subpars:
+                par.verify()
 
     @property
-    def secondary_subpars(self):
+    def secondary_subpars(self) -> Iterator['SubParameters']:
         for subpars in (self.derived, self.solver):
             if subpars is not None:
                 yield subpars
 
-    def __iter__(self):
-        for name in self._NAMES_SUBPARS:
-            subpars = getattr(self, name)
+    def __iter__(self) -> Iterator['SubParameters']:
+        for subpars in (self.control, self.derived, self.solver):
             if subpars is not None:
                 yield subpars
 
-    def __len__(self):
-        return len(dict(self))
-
-    def __dir__(self):
+    def __dir__(self) -> List[str]:
         return objecttools.dir_(self)
 
 
@@ -250,7 +251,7 @@ class SubParameters(variabletools.SubVariables[Parameters]):
         self.pars = variables
         super().__init__(variables, cls_fastaccess, cymodel)
 
-    def init_fastaccess(self, cls_fastaccess, cymodel):
+    def initialise_fastaccess(self, cls_fastaccess, cymodel) -> None:
         if cls_fastaccess is None:
             self.fastaccess = objecttools.FastAccess()
         else:
@@ -258,8 +259,8 @@ class SubParameters(variabletools.SubVariables[Parameters]):
             setattr(cymodel.parameters, self.name, self.fastaccess)
 
     @property
-    def name(self):
-        """Classname in lower case letters ommiting the last
+    def name(self) -> str:
+        """Classname in lower case letters omiting the last
         ten characters ("parameters").
 
         >>> from hydpy.core.parametertools import SubParameters
@@ -341,7 +342,7 @@ class Parameterstep(_Stepsize):
     |Parameter| object:
 
     >>> from hydpy.core.parametertools import Parameter
-    >>> parameter = Parameter()
+    >>> parameter = Parameter(None)
     >>> parameter.parameterstep = '1d'
     >>> parameter.parameterstep
     Period('1d')
@@ -440,7 +441,7 @@ class Simulationstep(_Stepsize):
     following exception:
 
     >>> from hydpy.core.parametertools import Parameter
-    >>> parameter = Parameter()
+    >>> parameter = Parameter(None)
     >>> ps = parameter.simulationstep
     >>> ps
     Period()
@@ -498,19 +499,14 @@ class Parameter(variabletools.Variable):
 
     TIME: ClassVar[Optional[bool]]
 
-    NOT_DEEPCOPYABLE_MEMBERS = ('subpars', 'fastaccess')
-
     parameterstep = Parameterstep()
     simulationstep = Simulationstep()
 
-    def __init__(self):
-        super().__init__()
-        self.subpars = None
+    subpars: SubParameters
 
     def __call__(self, *args, **kwargs):
         """The prefered way to pass values to |Parameter| instances
-        within parameter control files.
-        """
+        within parameter control files."""
         if args and kwargs:
             raise ValueError(
                 f'For parameter {objecttools.elementphrase(self)} '
@@ -573,9 +569,9 @@ class Parameter(variabletools.Variable):
         return subself.values
 
     @property
-    def subvars(self):
-        """Alias for `subpars`."""
-        return self.subpars
+    def subpars(self):
+        """Alias for attribute `subvars`."""
+        return self.subvars
 
     @property
     def initinfo(self):
@@ -585,18 +581,16 @@ class Parameter(variabletools.Variable):
         Let's define a test class and prepare a function for initialising
         a parameter object and connecting it to a |SubParameters| object:
 
-        >>> from hydpy.core import parametertools
-        >>> class Test(parametertools.Parameter):
+        >>> from hydpy.core.parametertools import Parameter, SubParameters
+        >>> class Test(Parameter):
         ...     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
         ...     INIT = 2.0
-        >>> from hydpy.core.parametertools import SubParameters
         >>> class SubGroup(SubParameters):
         ...     CLASSES = (Test,)
         >>> def prepare():
-        ...     test = Test()
-        ...     from hydpy.core.parametertools import SubParameters
         ...     subpars = SubGroup(None)
-        ...     test.connect_variable2subgroup(subpars)
+        ...     test = Test(subpars)
+        ...     test.connect_variable2subgroup()
         ...     return test
 
         By default, making use of the `INIT` attribute is disabled:
@@ -735,9 +729,8 @@ class Parameter(variabletools.Variable):
     def __dir__(self):
         return objecttools.dir_(self)
 
-    def connect_variable2subgroup(self, subpars):
-        self.subpars = subpars
-        self.fastaccess = subpars.fastaccess
+    def connect_variable2subgroup(self):
+        self.fastaccess = self.subvars.fastaccess
         if self.NDIM:
             setattr(self.fastaccess, self.name, None)
         else:
@@ -783,7 +776,7 @@ class Parameter(variabletools.Variable):
         ...     NDIM = 1
         ...     TYPE = float
         ...     TIME = True
-        >>> test = Test()
+        >>> test = Test(None)
 
         Before and directly after defining the parameter shape, `nan`
         is returned: ToDo
@@ -852,7 +845,7 @@ is no compression method implemented, working for its actual values.
         ...     NDIM = 2
         ...     TYPE = int
         ...     TIME = None
-        >>> test = Test()
+        >>> test = Test(None)
 
         >>> test.compress_repr()
         ['?']
@@ -1022,7 +1015,7 @@ class SeasonalParameter(Parameter):
     >>> class Par(SeasonalParameter):
     ...     NDIM = 1
     ...     TIME = None
-    >>> par = Par()
+    >>> par = Par(None)
     >>> par.NDIM = 1
 
     For the following examples, we assume a simulation step size of one day:
@@ -1049,7 +1042,7 @@ class SeasonalParameter(Parameter):
     be proper |TOY| initialization arguments. If they are not properly
     written, the following exception is raised:
 
-    >>> Par()(_a=1.)
+    >>> Par(None)(_a=1.)
     Traceback (most recent call last):
     ...
     ValueError: While trying to define the seasonal parameter value \
@@ -1094,7 +1087,7 @@ converted to `int`.
     TypeError: While trying to add a new or change an existing toy-value \
 pair for the seasonal parameter `par` of element `?`, the \
 following error occurred: float() argument must be a string or a number...
-    >>> par = Par()
+    >>> par = Par(None)
     >>> par.NDIM = 2
     >>> par.shape = (None, 3)
     >>> par.toy_1_1_0_0_0 = [1., 2.]
@@ -1112,8 +1105,8 @@ into shape (3)
 
     strict_valuehandling = False
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, subvars):
+        super().__init__(subvars)
         self._toy2values = {}
 
     def __call__(self, *args, **kwargs):
@@ -1153,7 +1146,7 @@ into shape (3)
         ...     NDIM = 1
         ...     TYPE = float
         ...     TIME = None
-        >>> par = Par()
+        >>> par = Par(None)
         >>> par.simulationstep = '1d'
         >>> par.shape = (None,)
 
@@ -1226,7 +1219,7 @@ into shape (3)
         ...     NDIM = 1
         ...     TYPE = float
         ...     TIME = None
-        >>> par = Par()
+        >>> par = Par(None)
         >>> par.simulationstep = '1d'
         >>> par.shape = (None,)
 
@@ -1277,7 +1270,7 @@ into shape (3)
         2-dimensional parameter:
 
         >>> Par.NDIM = 2
-        >>> par = Par()
+        >>> par = Par(None)
         >>> par.shape = (None, 2)
         >>> par(_1_1=[1., 2.], _1_3=[-3, 0.])
         >>> result = par.interp(Date('2000.01.02'))
@@ -1418,7 +1411,7 @@ class KeywordParameter2D(Parameter):
 
     Instantiate the defined parameter class and define its shape:
 
-    >>> iswarm = IsWarm()
+    >>> iswarm = IsWarm(None)
     >>> iswarm.shape = (2, 2)
 
     |KeywordParameter2D| allows to set the values of all rows via
@@ -1510,7 +1503,7 @@ following error occurred: index 1 is out of bounds for axis 0 with size 1
 
     strict_valuehandling = False
 
-    def __init__(self, *arg, **kwargs):
+    def __init__(self, subvars):
         if not hasattr(type(self), '_ROWCOLMAPPINGS'):
             rownames = self.ROWNAMES
             colnames = self.COLNAMES
@@ -1519,10 +1512,10 @@ following error occurred: index 1 is out of bounds for axis 0 with size 1
                 for (jdx, colname) in enumerate(colnames):
                     rowcolmappings['_'.join((rowname, colname))] = (idx, jdx)
             type(self)._ROWCOLMAPPINGS = rowcolmappings
-        super().__init__(*arg, **kwargs)
+        super().__init__(subvars)
 
-    def connect_variable2subgroup(self, subpars):
-        super().connect_variable2subgroup(subpars)
+    def connect_variable2subgroup(self):
+        super().connect_variable2subgroup()
         self.shape = (len(self.ROWNAMES), len(self.COLNAMES))
 
     def __call__(self, *args, **kwargs):
@@ -1663,8 +1656,8 @@ class LeftRightParameter(Parameter):
             else:
                 self.right = right
 
-    def connect_variable2subgroup(self, subpars):
-        super().connect_variable2subgroup(subpars)
+    def connect_variable2subgroup(self):
+        super().connect_variable2subgroup()
         self.shape = 2
 
     def _getleft(self):
@@ -1696,8 +1689,8 @@ class IndexParameter(Parameter):
 
 class SolverParameter(Parameter):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, subvars):
+        super().__init__(subvars)
         self._alternative_initvalue = None
 
     def __call__(self, *args, **kwargs):
@@ -1740,7 +1733,7 @@ class SecondsParameter(Parameter):
         """Take the number of seconds from the current simulation time step.
 
         >>> from hydpy.core.parametertools import SecondsParameter
-        >>> secondsparameter = SecondsParameter()
+        >>> secondsparameter = SecondsParameter(None)
         >>> secondsparameter.parameterstep = '1d'
         >>> secondsparameter.simulationstep = '12h'
         >>> secondsparameter.update()

@@ -81,7 +81,7 @@ def trim(self: 'Variable', lower: Optional[ValuesType] = None,
     When not passing boundary values, function |trim| extracts them from
     class attribute `SPAN` of the given |Variable| instance, if available:
 
-    >>> var = Var()
+    >>> var = Var(None)
     >>> var.value = 2.0
     >>> var.trim()
     >>> var
@@ -511,7 +511,7 @@ class Variable(abc.ABC):
     ...     TYPE = float
     ...     connect_variable2subgroup = None
     ...     initinfo = 0.0, False
-    >>> var = Var()
+    >>> var = Var(None)
 
     You can perform additions both with other |Variable| objects and
     with ordinary number objects:
@@ -533,7 +533,7 @@ class Variable(abc.ABC):
     In case something went wrong, all math operations return errors
     like the following:
 
-    >>> var = Var()
+    >>> var = Var(None)
     >>> var + 1.0
     Traceback (most recent call last):
     ...
@@ -748,7 +748,7 @@ with key `1`, the following error occurred: The only allowed keys for \
 0-dimensional variables are `0` and `:`.
 
     >>> Var.NDIM = 1
-    >>> var = Var()
+    >>> var = Var(None)
     >>> var.shape = (5,)
     >>> var.value = 2.0, 4.0, 6.0, 8.0, 10.0
     >>> var[0]
@@ -835,17 +835,17 @@ operands could not be broadcast together with shapes (2,) (3,)...
     by the variable according to the current shape:
 
     >>> Var.NDIM = 0
-    >>> var = Var()
+    >>> var = Var(None)
     >>> var.shape = ()
     >>> len(var)
     1
     >>> Var.NDIM = 1
-    >>> var = Var()
+    >>> var = Var(None)
     >>> var.shape = (5,)
     >>> len(var)
     5
     >>> Var.NDIM = 3
-    >>> var = Var()
+    >>> var = Var(None)
     >>> var.shape = (2, 1, 4)
     >>> len(var)
     8
@@ -856,7 +856,7 @@ operands could not be broadcast together with shapes (2,) (3,)...
     behaviour by making deep copies of existing |Variable| objects:
 
     >>> Var.NDIM = 0
-    >>> var1 = Var()
+    >>> var1 = Var(None)
     >>> var1.value = 5.0
     >>> varset = set([var1])
     >>> var1 in varset
@@ -871,7 +871,7 @@ operands could not be broadcast together with shapes (2,) (3,)...
     False
 
     >>> Var.NDIM = 1
-    >>> var1 = Var()
+    >>> var1 = Var(None)
     >>> var1.shape = (2,)
     >>> var1.value = 3.0, 5.0
     >>> varset = set([var1])
@@ -891,7 +891,7 @@ operands could not be broadcast together with shapes (2,) (3,)...
 
     >>> Var.NDIM = 0
     >>> Var.__doc__ = 'header.\\n\\nbody\\n'
-    >>> var = Var()
+    >>> var = Var(None)
     >>> var.value = 3.0
     >>> from hydpy import pub
     >>> pub.options.reprcomments = True
@@ -909,6 +909,8 @@ operands could not be broadcast together with shapes (2,) (3,)...
     # ...and optionally...
     INIT: ClassVar[Union[int, float, bool, None]] = None
 
+    NOT_DEEPCOPYABLE_MEMBERS: Tuple[str, ...] = ('subvars', 'fastaccess')
+
     strict_valuehandling: ClassVar[bool] = True
 
     fastaccess: Any
@@ -916,13 +918,14 @@ operands could not be broadcast together with shapes (2,) (3,)...
 
     mask = masktools.DefaultMask()
 
-    def __init__(self):
+    def __init__(self, subvars: 'SubVariables'):
+        self.subvars = subvars
         self.fastaccess = objecttools.FastAccess()
         self.__valueready = False
         self.__shapeready = False
 
     @abc.abstractmethod
-    def connect_variable2subgroup(self, subgroup):
+    def connect_variable2subgroup(self):
         """To be overridden."""
 
     @property
@@ -947,7 +950,7 @@ operands could not be broadcast together with shapes (2,) (3,)...
         query the actual value of a freshly initialised |Variable|
         object results in the following error:
 
-        >>> var = Var()
+        >>> var = Var(None)
         >>> var.value
         Traceback (most recent call last):
         ...
@@ -993,7 +996,7 @@ to type `float`.
         For multidimensional objects, assigning new values required
         defining their |Variable.shape| first:
 
-        >>> var = Var()
+        >>> var = Var(None)
         >>> var.value
         Traceback (most recent call last):
         ...
@@ -1115,7 +1118,7 @@ occurred: could not broadcast input array from shape (2) into shape (2,3)
 
         Initially, the shape of a new |Variable| object is unknown:
 
-        >>> var = Var()
+        >>> var = Var(None)
         >>> var.shape
         Traceback (most recent call last):
         ...
@@ -1139,7 +1142,7 @@ retrieved after it has been defined.
 
         >>> import numpy
         >>> Var.initinfo = numpy.nan, False
-        >>> var = Var()
+        >>> var = Var(None)
 
         >>> var.shape = (3,)
         >>> var.shape
@@ -1187,7 +1190,7 @@ shape indicates `2` dimensions.
         ...     connect_variable2subgroup = None
         ...     initinfo = 3, True
 
-        >>> var = Var()
+        >>> var = Var(None)
         >>> var.shape
         ()
         >>> var.value
@@ -1212,7 +1215,7 @@ as `var` can only be `()`, but `(2,)` is given.
 
         >>> from hydpy import INT_NAN
         >>> Var.initinfo = INT_NAN, False
-        >>> var = Var()
+        >>> var = Var(None)
         >>> var.shape
         ()
         >>> var.shape = ()
@@ -1273,8 +1276,6 @@ as `var` can only be `()`, but `(2,)` is given.
         if initflag:
             self.__valueready = True
 
-    NOT_DEEPCOPYABLE_MEMBERS = ()
-
     name = property(objecttools.name)
 
     def verify(self) -> None:
@@ -1290,7 +1291,7 @@ as `var` can only be `()`, but `(2,)` is given.
         ...     TYPE = float
         ...     connect_variable2subgroup = None
         ...     initinfo = 0.0, False
-        >>> var = Var()
+        >>> var = Var(None)
         >>> import numpy
         >>> var.shape = ()
         >>> var.value = 1.0
@@ -1304,7 +1305,7 @@ as `var` can only be `()`, but `(2,)` is given.
         Example on a 2-dimensional |Variable|:
 
         >>> Var.NDIM = 2
-        >>> var = Var()
+        >>> var = Var(None)
         >>> var.shape = (2, 3)
         >>> var.value = numpy.ones((2,3))
         >>> var.value[:, 1] = numpy.nan
@@ -1361,7 +1362,7 @@ have not been set yet.
         ...     availablemasks = None
         ...     connect_variable2subgroup = None
         ...     initinfo = None
-        >>> sm = SoilMoisture()
+        >>> sm = SoilMoisture(None)
         >>> sm.value = 200.0
         >>> sm.average_values()
         200.0
@@ -1392,7 +1393,7 @@ of variable `soilmoisture`, the following error occurred: Variable \
         ...     value = numpy.array([1.0, 1.0, 2.0])
         ...     connect_variable2subgroup = None
         ...     initinfo = None
-        >>> area = Area()
+        >>> area = Area(None)
         >>> SoilMoisture.refweights = property(lambda self: area)
         >>> sm.average_values()
         400.0
@@ -1553,7 +1554,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         return mask
 
     def __deepcopy__(self, memo):
-        new = type(self)()
+        new = type(self)(None)   # ToDo
         for (key, value) in vars(self).items():
             if key not in self.NOT_DEEPCOPYABLE_MEMBERS:
                 setattr(new, key, copy.deepcopy(value, memo))
@@ -1779,7 +1780,7 @@ class SubVariables(Generic[GroupType]):
     >>> class TestVar(Variable):
     ...     NDIM = 0
     ...     TYPE = float
-    ...     connect_variable2subgroup = lambda self, subgroup: None
+    ...     connect_variable2subgroup = lambda self: None
     ...     initinfo = 0.0, False
 
     Out test |SubVariables| subclass is thought to handle only this
@@ -1788,7 +1789,7 @@ class SubVariables(Generic[GroupType]):
 
     >>> class SubVars(SubVariables):
     ...     CLASSES = (TestVar,)
-    ...     init_fastaccess = lambda self, cls_fastaccess, cymodel: None
+    ...     initialise_fastaccess = lambda self, cls_fastaccess, cymodel: None
     ...     name = 'subvars'
 
     After initialisation, |SubVariables| objects reference their master
@@ -1857,15 +1858,16 @@ variable `testvar`.
     CLASSES: ClassVar[Tuple[Type[abctools.VariableProtocol], ...]]
     vars: GroupType
     _name2variable: Dict[str, abctools.VariableProtocol] = {}
+    fastaccess: Any
 
     def __init__(self, variables, cls_fastaccess=None, cymodel=None):
         self.vars = variables
-        self.init_fastaccess(cls_fastaccess, cymodel)
+        self.initialise_fastaccess(cls_fastaccess, cymodel)
         self._name2variable = {}
         for cls in self.CLASSES:
-            variable = cls()
+            variable = cls(self)
             self._name2variable[variable.name] = variable
-            variable.connect_variable2subgroup(self)
+            variable.connect_variable2subgroup()
 
     @property
     @abc.abstractmethod
@@ -1873,7 +1875,7 @@ variable `testvar`.
         """To be overridden."""
 
     @abc.abstractmethod
-    def init_fastaccess(self, cls_fastaccess, cymodel):
+    def initialise_fastaccess(self, cls_fastaccess, cymodel) -> Any:
         """To be overridden."""
 
     def __getattr__(self, name):
@@ -1918,14 +1920,14 @@ variable `testvar`.
         >>> class TestVar(Variable):
         ...     NDIM = 0
         ...     TYPE = float
-        ...     connect_variable2subgroup = lambda self, subgroup: None
+        ...     connect_variable2subgroup = lambda self: None
         ...     initinfo = 0.0, False
         >>> class TestSubVars(SubVariables):
         ...     CLASSES = (TestVar,)
-        ...     init_fastaccess = lambda self, cls_fastaccess, cymodel: None
+        ...     initialise_fastaccess = lambda self, cls_fastaccess, cymodel: None
         ...     name = None
         >>> dir(TestSubVars(None))
-        ['CLASSES', 'init_fastaccess', 'name', 'testvar', 'vars']
+        ['CLASSES', 'initialise_fastaccess', 'name', 'testvar', 'vars']
         """
         return objecttools.dir_(self) + list(self._name2variable.keys())
 
@@ -1945,7 +1947,7 @@ def to_repr(self: Variable, values: ValuesType,
     ...     TYPE = int
     ...     connect_variable2subgroup = None
     ...     initinfo = 1.0, False
-    >>> var = Var()
+    >>> var = Var(None)
     >>> var.value = 2
     >>> var
     var(2)
@@ -1959,7 +1961,7 @@ def to_repr(self: Variable, values: ValuesType,
     var(2)
 
     >>> Var.NDIM = 1
-    >>> var = Var()
+    >>> var = Var(None)
     >>> var.shape = 3
     >>> print(to_repr(var, range(3)))
     var(0, 1, 2)
@@ -1973,7 +1975,7 @@ def to_repr(self: Variable, values: ValuesType,
          19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29])
 
     >>> Var.NDIM = 2
-    >>> var = Var()
+    >>> var = Var(None)
     >>> var.shape = (2, 3)
     >>> print(to_repr(var, [range(3), range(3, 6)]))
     var([[0, 1, 2],

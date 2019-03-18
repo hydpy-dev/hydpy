@@ -256,8 +256,8 @@ keywords, or by calculating a value based on the keyword arguments \
         >>> pwmax()
         Traceback (most recent call last):
         ...
-        ValueError: For parameter pwmax of element ? neither a positional \
-nor a keyword argument is given.
+        ValueError: For parameter `pwmax` of element `?` neither \
+a positional nor a keyword argument is given.
     """
     NDIM, TYPE, TIME, SPAN = 1, float, None, (1., None)
     INIT = 1.4278333871488538

@@ -272,7 +272,7 @@ class SubSequences(variabletools.SubVariables[Sequences]):
         self.seqs = variables
         super().__init__(variables, cls_fastaccess, cymodel)
 
-    def init_fastaccess(self, cls_fastaccess, cymodel):
+    def initialise_fastaccess(self, cls_fastaccess, cymodel):
         if cls_fastaccess is None:
             self.fastaccess = FastAccess()
         else:
@@ -368,8 +368,8 @@ abctools.OutputSequencesABC.register(FluxSequences)
 class StateSequences(IOSequences):
     """Base class for handling state sequences."""
 
-    def init_fastaccess(self, cls_fastaccess, cymodel):
-        super().init_fastaccess(cls_fastaccess, cymodel)
+    def initialise_fastaccess(self, cls_fastaccess, cymodel):
+        super().initialise_fastaccess(cls_fastaccess, cymodel)
         self.fastaccess_new = self.fastaccess
         if cls_fastaccess is None:
             self.fastaccess_old = FastAccess()
@@ -419,22 +419,19 @@ class Sequence(variabletools.Variable):
     NUMERIC: ClassVar[bool]
 
     strict_valuehandling = False
-    NOT_DEEPCOPYABLE_MEMBERS = ('subseqs', 'fastaccess')
 
-    def __init__(self):
-        super().__init__()
-        self.subseqs = None
+    def __init__(self, subvars: SubSequences):
+        super().__init__(subvars)
         self.diskflag = False
         self.ramflag = False
 
     @property
-    def subvars(self):
-        """Alias for `subseqs`."""
-        return self.subseqs
+    def subseqs(self):
+        """Alias for attribute `subvars`."""
+        return self.subvars
 
-    def connect_variable2subgroup(self, subseqs):
-        self.subseqs = subseqs
-        self.fastaccess = subseqs.fastaccess
+    def connect_variable2subgroup(self):
+        self.fastaccess = self.subvars.fastaccess
         self._connect_subattr('ndim', self.NDIM)
         self._connect_subattr('length', 0)
         for idx in range(self.NDIM):
@@ -511,7 +508,7 @@ class _IOProperty(propertytools.DefaultProperty):
         >>> from hydpy import pub
         >>> pub.sequencemanager = SequenceManager()
         >>> from hydpy.core.sequencetools import {cls}
-        >>> sequence = {cls}()
+        >>> sequence = {cls}(None)
         >>> sequence.{attr_seq}
         'global'
         >>> sequence.{attr_seq} = 'local'
@@ -583,17 +580,17 @@ class IOSequence(Sequence):
     >>> pub.sequencemanager.fluxfiletype = 'asc'
     >>> pub.sequencemanager.nodefiletype = 'nc'
     >>> from hydpy.core import sequencetools as st
-    >>> st.InputSequence().filetype_ext
+    >>> st.InputSequence(None).filetype_ext
     'npy'
-    >>> st.FluxSequence().filetype_ext
+    >>> st.FluxSequence(None).filetype_ext
     'asc'
-    >>> st.NodeSequence().filetype_ext
+    >>> st.NodeSequence(None).filetype_ext
     'nc'
 
     Alternatively, you can specify `filetype_ext` for each sequence
     object individually:
 
-    >>> seq = st.InputSequence()
+    >>> seq = st.InputSequence(None)
     >>> seq.filetype_ext
     'npy'
     >>> seq.filetype_ext = 'nc'
@@ -629,7 +626,7 @@ cannot be determined.  Either set it manually or prepare \
         >>> class Test(IOSequence):
         ...     descr_device = 'node1'
         ...     descr_sequence = 'subgroup_test'
-        >>> Test().rawfilename
+        >>> Test(None).rawfilename
         'node1_subgroup_test'
         """
         try:
@@ -651,7 +648,7 @@ cannot be determined.  Either set it manually or prepare \
         following example:
 
         >>> from hydpy.core.sequencetools import IOSequence
-        >>> seq = IOSequence()
+        >>> seq = IOSequence(None)
         >>> seq.rawfilename = 'test'
         >>> seq.filetype_ext = 'nc'
         >>> seq.filename_ext
@@ -669,7 +666,7 @@ cannot be determined.  Either set it manually or prepare \
         in the following example:
 
         >>> from hydpy.core.sequencetools import IOSequence
-        >>> seq = IOSequence()
+        >>> seq = IOSequence(None)
         >>> seq.rawfilename = 'test'
         >>> seq.filename_int
         'test.bin'
@@ -700,7 +697,7 @@ cannot be determined.  Either set it manually or prepare \
         Generally, |SequenceManager.tempdirpath| is queried:
 
         >>> from hydpy.core import sequencetools as st
-        >>> seq = st.InputSequence()
+        >>> seq = st.InputSequence(None)
         >>> with TestIO():
         ...     repr_(seq.dirpath_int)
         'test/temp'
@@ -749,7 +746,7 @@ or prepare `pub.sequencemanager` correctly.
         simplicity, we define both manually in the following example:
 
         >>> from hydpy.core.sequencetools import IOSequence
-        >>> seq = IOSequence()
+        >>> seq = IOSequence(None)
         >>> seq.dirpath_ext = 'path'
         >>> seq.filename_ext = 'file.npy'
         >>> from hydpy import repr_
@@ -768,7 +765,7 @@ or prepare `pub.sequencemanager` correctly.
         both manually in the following example:
 
         >>> from hydpy.core.sequencetools import IOSequence
-        >>> seq = IOSequence()
+        >>> seq = IOSequence(None)
         >>> seq.dirpath_int = 'path'
         >>> seq.rawfilename = 'file'
         >>> from hydpy import repr_
@@ -1026,7 +1023,7 @@ or prepare `pub.sequencemanager` correctly.
         Prepare a node series object for observational data:
 
         >>> from hydpy.core.sequencetools import Obs
-        >>> obs = Obs()
+        >>> obs = Obs(None)
 
         Prepare a test function that expects the timegrid of the
         data and the data itself, which returns the ajdusted array by
@@ -1098,7 +1095,7 @@ or prepare `pub.sequencemanager` correctly.
         >>> from hydpy.core.sequencetools import IOSequence
         >>> class Seq(IOSequence):
         ...     NDIM = 0
-        >>> seq = Seq()
+        >>> seq = Seq(None)
         >>> seq.activate_ram()
         >>> seq.check_completeness()
         Traceback (most recent call last):
@@ -1175,7 +1172,7 @@ or prepare `pub.sequencemanager` correctly.
         >>> from hydpy.core.sequencetools import IOSequence
         >>> class SoilMoisture(IOSequence):
         ...     NDIM = 0
-        >>> sm = SoilMoisture()
+        >>> sm = SoilMoisture(None)
         >>> sm.activate_ram()
         >>> import numpy
         >>> sm.series = numpy.array([190.0, 200.0, 210.0])
@@ -1197,7 +1194,7 @@ or prepare `pub.sequencemanager` correctly.
         ...     NDIM = 1
         ...     shape = (3,)
         ...     value = numpy.array([1.0, 1.0, 2.0])
-        >>> area = Area()
+        >>> area = Area(None)
         >>> SoilMoisture.refweights = property(lambda self: area)
         >>> sm.average_series()
         InfoArray([ 390.,  400.,  410.])
@@ -1463,8 +1460,8 @@ class StateSequence(ModelSequence, ConditionSequence):
 
     overwrite_ext = _OverwriteProperty()
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, subvars):
+        super().__init__(subvars)
         self.fastaccess_old = None
         self.fastaccess_new = None
         self._oldargs = None
@@ -1475,10 +1472,10 @@ class StateSequence(ModelSequence, ConditionSequence):
         ConditionSequence.__call__(self, *args)
         self.new2old()
 
-    def connect_variable2subgroup(self, subseqs):
-        super().connect_variable2subgroup(subseqs)
-        self.fastaccess_old = subseqs.fastaccess_old
-        self.fastaccess_new = subseqs.fastaccess_new
+    def connect_variable2subgroup(self):
+        super().connect_variable2subgroup()
+        self.fastaccess_old = self.subseqs.fastaccess_old
+        self.fastaccess_new = self.subseqs.fastaccess_new
         if self.NDIM:
             setattr(self.fastaccess_old, self.name, None)
         else:
@@ -1576,8 +1573,8 @@ abctools.StateSequenceABC.register(StateSequence)
 class LogSequence(Sequence, ConditionSequence):
     """Base class for logging sequences of |Model| objects."""
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, subvars):
+        super().__init__(subvars)
         self._oldargs = None
 
     def __call__(self, *args):
@@ -1931,7 +1928,7 @@ class NodeSequences(IOSequences):
         super().__init__(seqs, cls_fastaccess)
         self.node = seqs
 
-    def init_fastaccess(self, cls_fastaccess=None, cymodel=None):
+    def initialise_fastaccess(self, cls_fastaccess=None, cymodel=None):
         if cls_fastaccess is None:
             self.fastaccess = FastAccessNode()
         else:

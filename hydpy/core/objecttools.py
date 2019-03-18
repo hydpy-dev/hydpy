@@ -155,7 +155,7 @@ def _search_device(self):
         device = vars(self).get('element', vars(self).get('node'))
         if device is not None:
             return device
-        for test in ('model', 'seqs', 'subseqs', 'pars', 'subpars'):
+        for test in ('model', 'seqs', 'pars', 'subvars'):
             master = vars(self).get(test)
             if master is not None:
                 self = master
@@ -1399,7 +1399,7 @@ def extract(values, types, skip=False):
     >>> tuple(extract((['str1', 'str2'], [None, 1]), (str, int)))
     Traceback (most recent call last):
     ...
-    TypeError: The given value `'None'` is neither iterable nor \
+    TypeError: The given value `None` is neither iterable nor \
 an instance of the following classes: str and int.
 
     Optionally, |None| values can be skipped:

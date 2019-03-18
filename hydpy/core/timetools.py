@@ -25,6 +25,8 @@ from hydpy.core import objecttools
 # `strptime` is supposed to prevent possible problems arising from this bug.
 time.strptime('1999', '%Y')
 
+PeriodConstrArg = Union['Period', datetime.timedelta, str, None]
+
 
 class Date(DateABC):
     """Handles a single date.
@@ -875,8 +877,6 @@ However, for the given `timedelta` object, it is`857142` instead.
     >>> period != '12h'
     True
     """
-
-    ConstrArg = Union['Period', datetime.timedelta, str, None]
 
     def __init__(self, period=None):
         self._timedelta = None

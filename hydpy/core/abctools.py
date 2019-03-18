@@ -67,7 +67,7 @@ class VariableProtocol(Protocol):
     name: str
 
     @abc.abstractmethod
-    def connect_variable2subgroup(self, subseqs):
+    def connect_variable2subgroup(self):
         """ToDo"""
 
 

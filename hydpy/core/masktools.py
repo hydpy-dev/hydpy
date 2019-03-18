@@ -118,7 +118,7 @@ class DefaultMask(BaseMask):
     >>> class Par1(Parameter):
     ...     shape = (2, 3)
     ...     defaultmask = DefaultMask()
-    >>> Par1().defaultmask
+    >>> Par1(None).defaultmask
     DefaultMask([[ True,  True,  True],
                  [ True,  True,  True]])
     >>> from hydpy import classname
@@ -130,7 +130,7 @@ class DefaultMask(BaseMask):
 
     >>> class Par2(Parameter):
     ...     shape = (2,)
-    >>> mask = DefaultMask(Par2())
+    >>> mask = DefaultMask(Par2(None))
     >>> mask
     DefaultMask([ True,  True])
     """
@@ -199,7 +199,7 @@ class IndexMask(DefaultMask):
         >>> from hydpy.core.masktools import IndexMask
         >>> class Par(Parameter):
         ...     mask = IndexMask()
-        >>> Par().mask
+        >>> Par(None).mask
         Traceback (most recent call last):
         ...
         NotImplementedError: Function `get_refindices` of class `IndexMask` \

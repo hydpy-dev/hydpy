@@ -12,7 +12,6 @@ import numpy
 # ...from HydPy
 import hydpy
 from hydpy import config
-from hydpy.core import abctools
 from hydpy.core import exceptiontools
 from hydpy.core import filetools
 from hydpy.core import objecttools
@@ -494,15 +493,13 @@ been defined.
         return period
 
 
-class Parameter(variabletools.Variable):
+class Parameter(variabletools.Variable[SubParameters]):
     """Base class for ToDo."""
 
     TIME: ClassVar[Optional[bool]]
 
     parameterstep = Parameterstep()
     simulationstep = Simulationstep()
-
-    subpars: SubParameters
 
     def __call__(self, *args, **kwargs):
         """The prefered way to pass values to |Parameter| instances
@@ -569,12 +566,23 @@ class Parameter(variabletools.Variable):
         return subself.values
 
     @property
-    def subpars(self):
+    def subpars(self) -> SubParameters:
         """Alias for attribute `subvars`."""
         return self.subvars
 
+    def connect_variable2subgroup(self) -> None:
+        self.fastaccess = self.subvars.fastaccess
+        if self.NDIM:
+            setattr(self.fastaccess, self.name, None)
+        else:
+            initvalue, initflag = self.initinfo
+            if initflag:
+                setattr(self, 'value', initvalue)
+            else:
+                setattr(self.fastaccess, self.name, initvalue)
+
     @property
-    def initinfo(self):
+    def initinfo(self) -> Tuple[Union[float, int, bool], bool]:
         """Actual initial value of the given parameter.
 
         Some |Parameter| subclasses define a class attribute `INIT`.
@@ -643,17 +651,13 @@ class Parameter(variabletools.Variable):
         >>> test
         test(?)
         """
-        initvalue = self.INIT if hydpy.pub.options.usedefaultvalues else None
-        if initvalue is None:
-            initflag = False
-            initvalue = variabletools.TYPE2MISSINGVALUE[self.TYPE]
-        else:
-            initflag = True
+        if hydpy.pub.options.usedefaultvalues and hasattr(self, 'INIT'):
             with Parameter.parameterstep('1d'):
-                initvalue = self.apply_timefactor(initvalue)
-        return initvalue, initflag
+                return self.apply_timefactor(self.INIT), True
+        return variabletools.TYPE2MISSINGVALUE[self.TYPE], False
 
-    def _gettimefactor(self):
+    @property
+    def timefactor(self):
         """Factor to adapt a new parameter value related to |parameterstep|
         to a different simulation time step.
         """
@@ -678,10 +682,8 @@ class Parameter(variabletools.Variable):
                     date1, date2, self.simulationstep)).parfactor
         return parfactor(self.parameterstep)
 
-    timefactor = property(_gettimefactor)
-
-    def trim(self, lower=None, upper=None):
-        """Apply |trim| of module |variabletools|."""
+    def trim(self, lower=None, upper=None) -> None:
+        """Apply function |trim| of module |variabletools|."""
         variabletools.trim(self, lower, upper)
 
     def apply_timefactor(self, values):
@@ -709,13 +711,14 @@ class Parameter(variabletools.Variable):
             values = values * self.timefactor
         return values
 
-    @property
-    def commentrepr(self):
+    @variabletools.Variable.commentrepr.getter    # type: ignore
+    def commentrepr(self) -> List[str]:
         """Returns a list with comments, e.g. for making string
         representations more informative.  When |Options.reprcomments|
         is set to |False|, an empty list is returned.
         """
-        lines = variabletools.Variable.commentrepr.fget(self)
+        lines = variabletools.Variable.commentrepr.fget(self)    # type: ignore
+        # due to https://github.com/python/mypy/issues/1465
         if (hydpy.pub.options.reprcomments and
                 (getattr(self, 'TIME', None) is not None)):
             lines.append(f'# The actual value representation depends on '
@@ -728,17 +731,6 @@ class Parameter(variabletools.Variable):
 
     def __dir__(self):
         return objecttools.dir_(self)
-
-    def connect_variable2subgroup(self):
-        self.fastaccess = self.subvars.fastaccess
-        if self.NDIM:
-            setattr(self.fastaccess, self.name, None)
-        else:
-            initvalue, initflag = self.initinfo
-            if initflag:
-                setattr(self, 'value', initvalue)
-            else:
-                setattr(self.fastaccess, self.name, initvalue)
 
     def __repr__(self):
         if self.NDIM:
@@ -754,14 +746,13 @@ class Parameter(variabletools.Variable):
             else:
                 islong = False
             return variabletools.to_repr(self, values, islong)
+        lines = self.commentrepr
+        if hasattr(self, 'value'):
+            value = self.revert_timefactor(self.value)
         else:
-            lines = self.commentrepr
-            if hasattr(self, 'value'):
-                value = self.revert_timefactor(self.value)
-            else:
-                value = '?'
-            lines.append(f'{self.name}({objecttools.repr_(value)})')
-            return '\n'.join(lines)
+            value = '?'
+        lines.append(f'{self.name}({objecttools.repr_(value)})')
+        return '\n'.join(lines)
 
     def compress_repr(self):
         """Return a compressed parameter value string, which is (in ToDo
@@ -900,10 +891,13 @@ class NameParameter(Parameter):
     See parameter |lland_control.Lnk| of base model |lland| to see how
     a concrete implementation of class |NameParameter| works.
     """
-    NDIM, TYPE, TIME, SPAN = 1, int, None, (None, None)
-    CONSTANTS = {}
+    NDIM = 1
+    TYPE = int
+    TIME = None
+    SPAN = (None, None)
+    CONSTANTS: Dict[str, int]
 
-    def compress_repr(self):
+    def compress_repr(self) -> List[str]:
         """Works as |Parameter.compress_repr|, but always returns
         a string with constant names instead of constant values."""
         try:
@@ -930,8 +924,7 @@ class ZipParameter(Parameter):
     is best illustrated by an example: see the documentation of the class
     |hland_parameters.ParameterComplete| of base model |hland|.
     """
-    RELEVANT_VALUES = ()
-    MODEL_CONSTANTS = {}
+    MODEL_CONSTANTS: Dict[str, int]
 
     def __call__(self, *args, **kwargs):
         """The prefered way to pass values to |Parameter| instances
@@ -963,22 +956,6 @@ class ZipParameter(Parameter):
                 self.values[refindices == sel] = value
         self.values = self.apply_timefactor(self.values)
         self.trim()
-
-    @variabletools.Variable.shape.getter
-    def shape(self):
-        """Return a tuple containing the lengths in all dimensions of the
-        parameter values.
-        """
-        try:
-            return super().shape
-        except AttributeError:
-            raise AttributeError(
-                f'Shape information for parameter `{self.name}` can '
-                f'only be retrieved after it has been defined.  '
-                f'You can do this manually, but usually it is done '
-                f'automatically by defining the value of parameter '
-                f'`{self.shapeparameter.name}` first in each '
-                f'parameter control file.')
 
     def compress_repr(self):
         """Return a compressed parameter value string, which is (in
@@ -1290,8 +1267,10 @@ into shape (3)
             x_1, y_1 = xys[0]
         return y_0+(y_1-y_0)/(x_1-x_0)*(xnew-x_0)
 
-    @variabletools.Variable.shape.setter
-    def shape(self, shape):
+    def __hydpy__get_shape__(self):
+        return super().__hydpy__get_shape__()
+
+    def __hydpy__set_shape__(self, shape: Union[int, Iterable[int]]):
         """ToDo"""
         try:
             shape = (int(shape),)
@@ -1299,7 +1278,7 @@ into shape (3)
             pass
         shape = list(shape)
         if not self.simulationstep:
-            raise RuntimeError(
+            raise RuntimeError(   # ToDo
                 f'It is not possible the set the shape of the seasonal '
                 f'parameter {objecttools.elementphrase(self)} at the '
                 f'moment.  You can define it manually.  In complete '
@@ -1307,24 +1286,22 @@ into shape (3)
                 f'`pub.timegrids.stepsize` automatically.')
         shape[0] = timetools.Period('366d')/self.simulationstep
         shape[0] = int(numpy.ceil(round(shape[0], 10)))
-        variabletools.Variable.shape.fset(self, shape)
+        super().__hydpy__set_shape__(shape)
 
-    shape.__doc__ = shape.fset.__doc__
+    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
 
     def __iter__(self):
         for toy in sorted(self._toy2values.keys()):
             yield (toy, self._toy2values[toy])
 
-    def __getattribute__(self, name):
-        if name.startswith('toy_'):
-            try:
-                return self._toy2values[timetools.TOY(name)]
-            except BaseException:
-                objecttools.augment_excmessage(
-                    f'While trying to get an existing toy-value pair for the '
-                    f'seasonal parameter {objecttools.elementphrase(self)}')
-        else:
-            return super().__getattribute__(name)
+    def __getattr__(self, name):
+        try:
+            return self._toy2values[timetools.TOY(name)]
+        except KeyError:
+            raise AttributeError(
+                f'Seasonal parameter {objecttools.elementphrase(self)} '
+                f'has neither a normal attribute nor a time of year-value '
+                f'pair named {name}.')
 
     def __setattr__(self, name, value):
         if name.startswith('toy_'):
@@ -1681,6 +1658,8 @@ class LeftRightParameter(Parameter):
 
 class IndexParameter(Parameter):
     NDIM = 1
+    TYPE = int
+    TIME = None
 
     def setreference(self, indexarray):
         self.shape = indexarray.shape
@@ -1727,7 +1706,10 @@ class SolverParameter(Parameter):
 
 class SecondsParameter(Parameter):
     """Length of the actual simulation step size in seconds [s]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0., None)
 
     def update(self):
         """Take the number of seconds from the current simulation time step.
@@ -1745,7 +1727,7 @@ class SecondsParameter(Parameter):
 
 class TOYParameter(IndexParameter):
     """References the "global" time of the year index array [-]."""
-    NDIM, TYPE, TIME, SPAN = 1, int, None, (0, None)
+    SPAN = (0, None)
 
     def update(self):
         """Reference the current |Indexer.timeofyear| index array."""

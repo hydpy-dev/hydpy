@@ -8,7 +8,7 @@ import os
 import struct
 import sys
 import warnings
-from typing import ClassVar, Dict, Union
+from typing import *
 # ...from site-packages
 import numpy
 # ...from HydPy
@@ -457,9 +457,7 @@ class Sequence(variabletools.Variable):
     def initinfo(self):
         if hydpy.pub.options.usedefaultvalues:
             initflag = True
-            initvalue = self.INIT
-            if initvalue is None:
-                initvalue = 0.
+            initvalue = getattr(self, 'INIT', 0.)
         else:
             initflag = False
             initvalue = numpy.nan
@@ -893,16 +891,18 @@ or prepare `pub.sequencemanager` correctly.
         values = numpy.array(values, dtype=float)
         setattr(self.fastaccess, '_%s_array' % self.name, values)
 
-    @variabletools.Variable.shape.setter
-    def shape(self, shape):
+    def __hydpy__get_shape__(self):
         """Todo"""
-        variabletools.Variable.shape.fset(self, shape)
+        return super().__hydpy__get_shape__()
+
+    def __hydpy__set_shape__(self, shape):
+        super().__hydpy__set_shape__(shape)
         if self.memoryflag:
             self._activate()
         else:
             self.update_fastaccess()
 
-    shape.__doc__ = shape.fset.__doc__
+    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
 
     @property
     def seriesshape(self):
@@ -1390,17 +1390,19 @@ class FluxSequence(ModelSequence):
             value = None if self.NDIM else 0.
             self._connect_subattr('sum', value)
 
-    @IOSequence.shape.setter
-    def shape(self, shape):
+    def __hydpy__get_shape__(self):
         """ToDo"""
-        IOSequence.shape.fset(self, shape)
+        return super().__hydpy__get_shape__()
+
+    def __hydpy__set_shape__(self, shape):
+        super().__hydpy__set_shape__(shape)
         if self.NDIM and self.NUMERIC:
             self._connect_subattr('points', numpy.zeros(self.numericshape))
             self._connect_subattr('integrals', numpy.zeros(self.numericshape))
             self._connect_subattr('results', numpy.zeros(self.numericshape))
             self._connect_subattr('sum', numpy.zeros(self.shape))
 
-    shape.__doc__ = shape.fset.__doc__
+    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
 
 
 abctools.FluxSequenceABC.register(FluxSequence)
@@ -1488,10 +1490,12 @@ class StateSequence(ModelSequence, ConditionSequence):
             self._connect_subattr('points', value)
             self._connect_subattr('results', copy.copy(value))
 
-    @IOSequence.shape.setter
-    def shape(self, shape):
+    def __hydpy__get_shape__(self):
         """ToDo"""
-        IOSequence.shape.fset(self, shape)
+        return super().__hydpy__get_shape__()
+
+    def __hydpy__set_shape__(self, shape):
+        super().__hydpy__set_shape__(shape)
         if self.NDIM:
             setattr(self.fastaccess_old, self.name, self.new.copy())
             if self.NUMERIC:
@@ -1500,16 +1504,21 @@ class StateSequence(ModelSequence, ConditionSequence):
                 self._connect_subattr(
                     'results', numpy.zeros(self.numericshape))
 
-    shape.__doc__ = shape.fset.__doc__
+    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
 
-    new = Sequence.values
-    """Complete access to the state value(s), which will be used in the
-    next calculation steps.  Note that |StateSequence.new| is a synonym
-    of |Variable.value|.  Use this property to modify the initial
-    condition(s) of a single |StateSequence| object.
-    """
+    @property
+    def new(self):
+        """Complete access to the state value(s), which will be used in the next
+        calculation steps.  Note that of |Variable.value|.  Use this property to
+        modify the initial condition(s) of a single |StateSequence| object."""
+        return super().__hydpy__get_value__()
 
-    def _get_old(self):
+    @new.setter
+    def new(self, value):
+        super().__hydpy__set_value__(value)
+
+    @property
+    def old(self):
         """Assess to the state value(s) at beginning of the time step, which
         has been processed most recently.  When using *HydPy* in the
         normal manner.  But it can be helpful for demonstration and debugging
@@ -1526,7 +1535,8 @@ class StateSequence(ModelSequence, ConditionSequence):
                 value = numpy.asarray(value)
             return value
 
-    def _set_old(self, value):
+    @old.setter
+    def old(self, value):
         if self.NDIM == 0:
             try:
                 temp = value[0]
@@ -1557,8 +1567,6 @@ class StateSequence(ModelSequence, ConditionSequence):
                     'ndarray with shape %s containing entries of type float.'
                     % (value, self.shape))
         setattr(self.fastaccess_old, self.name, value)
-
-    old = property(_get_old, _set_old)
 
     def new2old(self):
         if self.NDIM:
@@ -1629,22 +1637,21 @@ class LinkSequence(Sequence):
         except AttributeError:
             pass
 
-    @property
-    def value(self):
+    def __hydpy__get_value__(self):
         """ToDo"""
         raise AttributeError(
             'To retrieve a pointer is very likely to result in bugs '
             'and is thus not supported at the moment.')
 
-    @value.setter
-    def value(self, value):
+    def __hydpy__set_value__(self, value):
         """Could be implemented, but is not important at the moment..."""
         raise AttributeError(
             'To change a pointer is very likely to result in bugs '
             'and is thus not supported at the moment.')
 
-    @property
-    def shape(self):
+    value = property(fget=__hydpy__get_value__, fset=__hydpy__set_value__)
+
+    def __hydpy__get_shape__(self):
         """ToDo"""
         if self.NDIM == 0:
             return ()
@@ -1658,8 +1665,7 @@ class LinkSequence(Sequence):
             'is not supported so far.'
             % self.NDIM)
 
-    @shape.setter
-    def shape(self, shape):
+    def __hydpy__set_shape__(self, shape: Union[int, Iterable[int]]):
         if self.NDIM == 1:
             try:
                 getattr(self.fastaccess, self.name).shape = shape
@@ -1672,6 +1678,8 @@ class LinkSequence(Sequence):
                 'Setting the shape of a %d dimensional link sequence '
                 'is not supported so far.'
                 % self.NDIM)
+
+    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
 
 
 abctools.LinkSequenceABC.register(LinkSequence)
@@ -1713,8 +1721,7 @@ class NodeSequence(IOSequence):
     def _initvalues(self):
         setattr(self.fastaccess, self.name, pointerutils.Double(0.))
 
-    @property
-    def value(self):
+    def __hydpy__get_value__(self):
         """Actual value(s) handled by the sequence.  For consistency,
         `value` and `values` can always be used interchangeably."""
         try:
@@ -1725,9 +1732,10 @@ class NodeSequence(IOSequence):
             elif self.NDIM == 1:
                 return self.fastaccess.getpointer1d(self.name)
 
-    @value.setter
-    def value(self, values):
+    def __hydpy__set_value__(self, values):
         getattr(self.fastaccess, self.name)[0] = values
+
+    value = property(fget=__hydpy__get_value__, fset=__hydpy__set_value__)
 
 
 abctools.NodeSequenceABC.register(NodeSequence)

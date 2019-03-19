@@ -9,14 +9,12 @@ from hydpy.core import sequencetools
 from hydpy.core import variabletools
 
 
-# due to a pylint bug (see https://github.com/PyCQA/pylint/issues/870)
 class WET0(sequencetools.LogSequence):
     """Zeitlich gewichtete Grasreferenzverdunstung (temporally weighted
     reference evapotranspiration) [mm]."""
     NDIM, NUMERIC = 2, False
 
-    @variabletools.Variable.shape.setter   # pylint: disable=no-member
-    def shape(self, shape):
+    def __hydpy__get_shape__(self):
         """Log sequence |WET0| is generally initialized with a length of one
         on the first axis:
 
@@ -26,10 +24,12 @@ class WET0(sequencetools.LogSequence):
         >>> logs.wet0.shape
         (1, 3)
         """
-        # pylint: disable=no-member
-        variabletools.Variable.shape.fset(self, (1, shape))
+        return super().__hydpy__get_shape__()
 
-    shape.__doc__ = shape.fset.__doc__
+    def __hydpy__set_shape__(self, shape):
+        super().__hydpy__set_shape__((1, shape))
+
+    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
 
 
 class LogSequences(sequencetools.LogSequences):

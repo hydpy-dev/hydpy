@@ -27,9 +27,7 @@ class ShapeOne(sequencetools.LogSequence):
     def _initvalues(self):
         self.shape = (1,)
 
-    # due to a pylint bug (see https://github.com/PyCQA/pylint/issues/870)
-    @variabletools.Variable.shape.setter   # pylint: disable=no-member
-    def shape(self, shape):
+    def __hydpy__get_shape__(self):
         """Parameter derived from |ShapeOne| are generally initialised
         with a shape of one.
 
@@ -52,14 +50,17 @@ cannot be changed, but this was attempted for element `?`.
         See the documentation on property |Variable.shape| of class
         |Variable| for further information.
         """
+        return super().__hydpy__get_shape__()
+
+    def __hydpy__set_shape__(self, shape):
         if hasattr(self, 'shape'):
             raise AttributeError(
                 f'The shape of parameter `{self.name}` cannot be '
                 f'changed, but this was attempted for element '
                 f'`{objecttools.devicename(self)}`.')
-        variabletools.Variable.shape.fset(self, shape)
+        super().__hydpy__set_shape__(shape)
 
-    shape.__doc__ = shape.fset.__doc__
+    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
 
 
 class LoggedRequiredRemoteRelease(ShapeOne):

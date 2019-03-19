@@ -10,6 +10,7 @@ to use a very limited amount of values for certain parameters (at least
 within hydrologically homogeneous regions).  Hence, the downside of
 this flexibility is that the same parameter values might be defined in
 hundreds or even thousands of parameter control files (one file for
+hundreds or even thousands of parameter control files (one file for
 each model/element).
 
 To decrease this redundancy, HydPy allows for passing names of
@@ -549,13 +550,9 @@ variable handled by the actual Variable2AuxFile object.
         """A list of all handled variable types.
 
         >>> from hydpy import dummies
-        >>> from hydpy import print_values
-        >>> print_values(dummies.v2af.types, width=50)
-        <class 'hydpy.models.lland.lland_control.EQB'>,
-        <class 'hydpy.models.lland.lland_control.EQD1'>,
-        <class 'hydpy.models.lland.lland_control.EQD2'>,
-        <class 'hydpy.models.lland.lland_control.EQI1'>,
-        <class 'hydpy.models.lland.lland_control.EQI2'>
+        >>> from hydpy.core.objecttools import classname
+        >>> [classname(type_) for type_ in dummies.v2af.types]
+        ['EQB', 'EQD1', 'EQD2', 'EQI1', 'EQI2']
         """
         return sorted(self._type2filename2variable.keys(), key=str)
 

@@ -25,13 +25,14 @@ if TYPE_CHECKING:
     from hydpy.core import sequencetools
 
 
-ValuesType = Union[
-    float, Iterable[float], Iterable[Iterable[float]],
-    int, Iterable[int], Iterable[Iterable[int]],
-    bool, Iterable[bool], Iterable[Iterable[bool]]]
-
 GroupType = TypeVar(
-    'GroupType', 'parametertools.Parameters', 'sequencetools.Sequences')
+    'GroupType',
+    'parametertools.Parameters', 'sequencetools.Sequences')
+
+
+SubgroupType = TypeVar(
+    'SubgroupType',
+    'parametertools.SubParameters', 'sequencetools.SubSequences')
 
 
 INT_NAN: int = -999999
@@ -43,8 +44,7 @@ TYPE2MISSINGVALUE = {float: numpy.nan,
                      bool: False}
 
 
-def trim(self: 'Variable', lower: Optional[ValuesType] = None,
-         upper: Optional[ValuesType] = None) -> None:
+def trim(self: 'Variable', lower=None, upper=None) -> None:
     """Trim the value(s) of a |Variable| instance.
 
     Usually, users do not need to apply function |trim| directly.
@@ -475,8 +475,8 @@ def _compare_variables_function_generator(
             return method_string in ('__eq__', '__le__', '__ge__')
         method = getattr(self.value, method_string)
         try:
-            if hasattr(type(other), '__hydpy__value__'):
-                other = other.__hydpy__value__
+            if hasattr(type(other), '__hydpy__get_value__'):
+                other = other.__hydpy__get_value__()
             result = method(other)
             if result is NotImplemented:
                 return result
@@ -489,7 +489,7 @@ def _compare_variables_function_generator(
     return comparison_function
 
 
-class Variable(abc.ABC):
+class Variable(Generic[SubgroupType]):
     """Base class for |Parameter| and |Sequence|.
 
     The subclasses are required to provide the class attributes `NDIM`
@@ -907,18 +907,18 @@ operands could not be broadcast together with shapes (2,) (3,)...
     NDIM: ClassVar[int]
     TYPE: ClassVar[type]
     # ...and optionally...
-    INIT: ClassVar[Union[int, float, bool, None]] = None
+    INIT: ClassVar[Union[int, float, bool]]
 
     NOT_DEEPCOPYABLE_MEMBERS: Tuple[str, ...] = ('subvars', 'fastaccess')
 
     strict_valuehandling: ClassVar[bool] = True
 
     fastaccess: Any
-    subvars: 'SubVariables'
+    subvars: SubgroupType
 
     mask = masktools.DefaultMask()
 
-    def __init__(self, subvars: 'SubVariables'):
+    def __init__(self, subvars: SubgroupType):
         self.subvars = subvars
         self.fastaccess = objecttools.FastAccess()
         self.__valueready = False
@@ -933,8 +933,7 @@ operands could not be broadcast together with shapes (2,) (3,)...
     def initinfo(self) -> Tuple[Union[float, int, bool], bool]:
         """To be overridden."""
 
-    @property
-    def value(self) -> Union[float, int, numpy.ndarray]:
+    def __hydpy__get_value__(self):
         """The actual parameter or sequence value(s).
 
         First, we prepare a simple (not fully functional) |Variable| subclass:
@@ -1050,8 +1049,7 @@ occurred: could not broadcast input array from shape (2) into shape (2,3)
             f'For variable {objecttools.devicephrase(self)}, '
             f'no {substring} been defined so far.')
 
-    @value.setter
-    def value(self, value: ValuesType) -> None:
+    def __hydpy__set_value__(self, value) -> None:
         try:
             if self.NDIM:
                 value = getattr(value, 'value', value)
@@ -1082,26 +1080,11 @@ occurred: could not broadcast input array from shape (2) into shape (2,3)
                 f'While trying to set the value(s) of variable '
                 f'{objecttools.devicephrase(self)}')
 
-    @property
-    def values(self) -> Union[float, int, numpy.ndarray]:
-        """Alias for |Variable.value|."""
-        return self.value
+    value = property(fget=__hydpy__get_value__, fset=__hydpy__set_value__)
+    values = property(fget=__hydpy__get_value__, fset=__hydpy__set_value__,
+                      doc='Alias for |Variable.value|.')
 
-    @values.setter
-    def values(self, values: ValuesType) -> None:
-        self.value = values
-
-    @property
-    def __hydpy__value__(self) -> Union[float, int, numpy.ndarray]:
-        """Alias for |Variable.value|."""
-        return self.value
-
-    @__hydpy__value__.setter
-    def __hydpy__value__(self, values: ValuesType) -> None:
-        self.value = values
-
-    @property
-    def shape(self) -> Tuple[int, ...]:
+    def __hydpy__get_shape__(self) -> Tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
 
         Note that setting a new |Variable.shape| results in a loss of
@@ -1242,8 +1225,7 @@ as `var` can only be `()`, but `(2,)` is given.
                 f'be retrieved after it has been defined.')
         return ()
 
-    @shape.setter
-    def shape(self, shape: Iterable[int]):
+    def __hydpy__set_shape__(self, shape: Union[int, Iterable[int]]):
         self.__valueready = False
         self.__shapeready = False
         initvalue, initflag = self.initinfo
@@ -1275,6 +1257,8 @@ as `var` can only be `()`, but `(2,)` is given.
             setattr(self.fastaccess, self.name, initvalue)
         if initflag:
             self.__valueready = True
+
+    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
 
     name = property(objecttools.name)
 
@@ -1601,7 +1585,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 
     def _do_math(self, other, methodname, description):
         try:
-            if hasattr(type(other), '__hydpy__value__'):
+            if hasattr(type(other), '__hydpy__get_value__'):
                 value = other.value
             else:
                 value = other
@@ -1892,7 +1876,7 @@ variable `testvar`.
         if variable is None:
             super().__setattr__(name, value)
         else:
-            variable.__hydpy__value__ = value
+            variable.__hydpy__set_value__(value)
 
     def __iter__(self):
         for variable in self._name2variable.values():
@@ -1932,8 +1916,8 @@ variable `testvar`.
         return objecttools.dir_(self) + list(self._name2variable.keys())
 
 
-def to_repr(self: Variable, values: ValuesType,
-            brackets1d: Optional[bool] = False) -> str:
+def to_repr(self: Variable, values, brackets1d: Optional[bool] = False) \
+        -> str:
     """Return a valid string representation for the given |Variable|
     object.
 

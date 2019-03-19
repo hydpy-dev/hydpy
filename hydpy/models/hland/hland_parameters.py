@@ -35,10 +35,8 @@ class ParameterComplete(parametertools.ZipParameter):
     >>> pcorr.shape
     Traceback (most recent call last):
     ...
-    AttributeError: Shape information for parameter `pcorr` can only be \
-retrieved after it has been defined.  You can do this manually, but usually \
-it is done automatically by defining the value of parameter `nmbzones` first \
-in each parameter control file.
+    AttributeError: Shape information for variable `pcorr` can only be \
+retrieved after it has been defined.
 
     >>> nmbzones(5)
     >>> pcorr.shape

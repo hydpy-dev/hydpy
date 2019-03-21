@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
-"""This module implements tools for handling the parameters of
-hydrological models."""
+"""This module provides tools for defining different kinds of the parameters
+of hydrological models.
+
+>>> from hydpy import pub
+>>> pub.options.printprogress = False
+>>> pub.options.reprdigits = 6
+"""
 # import...
 # ...from standard library
 import inspect
@@ -25,7 +30,7 @@ if TYPE_CHECKING:
 time.strptime('1999', '%Y')
 
 
-def header_controlfile(
+def get_controlfileheader(
         model: Union[str, 'modeltools.Model'],
         parameterstep: timetools.PeriodConstrArg = None,
         simulationstep: timetools.PeriodConstrArg = None) -> str:
@@ -37,9 +42,9 @@ def header_controlfile(
     The first example shows that, if you pass the model argument as a
     string, you have to take care that this string make sense:
 
-    >>> from hydpy.core.parametertools import header_controlfile, Parameter
+    >>> from hydpy.core.parametertools import get_controlfileheader, Parameter
     >>> from hydpy import Period, prepare_model, pub, Timegrids, Timegrid
-    >>> print(header_controlfile(model='no model class',
+    >>> print(get_controlfileheader(model='no model class',
     ...                          parameterstep='-1h',
     ...                          simulationstep=Period('1h')))
     # -*- coding: utf-8 -*-
@@ -52,14 +57,14 @@ def header_controlfile(
     <BLANKLINE>
 
     The second example shows the saver option to pass the proper model
-    object.  It also shows that function |header_controlfile| tries to
-    gain the parameter and simulation step sizes from the global
+    object.  It also shows that function |get_controlfileheader| tries
+    to gain the parameter and simulation step sizes from the global
     |Timegrids| object contained in module |pub| when necessary:
 
     >>> model = prepare_model('lland_v1')
     >>> _ = Parameter.parameterstep('1d')
     >>> pub.timegrids = '2000.01.01', '2001.01.01', '1h'
-    >>> print(header_controlfile(model=model))
+    >>> print(get_controlfileheader(model=model))
     # -*- coding: utf-8 -*-
     <BLANKLINE>
     from hydpy.models.lland_v1 import *
@@ -69,11 +74,14 @@ def header_controlfile(
     <BLANKLINE>
     <BLANKLINE>
     """
-    with Parameter.parameterstep(parameterstep), \
-            Parameter.simulationstep(simulationstep):
+    with Parameter.parameterstep(parameterstep):
+        if simulationstep is None:
+            simulationstep = Parameter.simulationstep
+        else:
+            simulationstep = timetools.Period(simulationstep)
         return (f"# -*- coding: utf-8 -*-\n\n"
                 f"from hydpy.models.{model} import *\n\n"
-                f"simulationstep('{Parameter.simulationstep}')\n"
+                f"simulationstep('{simulationstep}')\n"
                 f"parameterstep('{Parameter.parameterstep}')\n\n")
 
 
@@ -138,7 +146,43 @@ class Parameters:
                    kwargs.get('cymodel'))
 
     def update(self) -> None:
-        """Call the update methods of all derived and solver parameters."""
+        """Call method |Parameter.update| of all "secondary" parameters.
+
+        Directly after initialisation, neither the primary (`control`)
+        parameters nor the secondaray (`derived`)  parameters of
+        application model |hstream_v1| are ready for usage:
+
+        >>> from hydpy.models.hstream_v1 import *
+        >>> parameterstep('1d')
+        >>> simulationstep('1d')
+        >>> derived
+        nmbsegments(?)
+        c1(?)
+        c3(?)
+        c2(?)
+
+        Trying to update the values of the secondary parameters while the
+        primary ones are still not defined, raises errors like the following:
+
+        >>> model.parameters.update()
+        Traceback (most recent call last):
+        ...
+        AttributeError: While trying to update parameter ``nmbsegments` \
+of element `?``, the following error occurred: For variable `lag`, \
+no value has been defined so far.
+
+        With proper values both for parameter |hstream_control.Lag| and
+        |hstream_control.Damp|, updating the derived parameters succeeds:
+
+        >>> lag(0.0)
+        >>> damp(0.0)
+        >>> model.parameters.update()
+        >>> derived
+        nmbsegments(0)
+        c1(0.0)
+        c3(0.0)
+        c2(1.0)
+        """
         for subpars in self.secondary_subpars:
             for par in subpars:
                 try:
@@ -146,53 +190,143 @@ class Parameters:
                 except BaseException:
                     objecttools.augment_excmessage(
                         f'While trying to update parameter '
-                        f'`{objecttools.elementphrase(self)}`')
+                        f'`{objecttools.elementphrase(par)}`')
 
-    def save_controls(self, filename=None, parameterstep=None,
-                      simulationstep=None, auxfiler=None):   # ToDo
+    def save_controls(self, filepath=None, parameterstep=None,
+                      simulationstep=None, auxfiler=None):
+        """Write the control parameters to file.
+
+        Usually, a control file consists of a header (see the documentation
+        on method |get_controlfileheader|) and the string representations
+        of the individual |Parameter| objects handled by the `control`
+        |SubParameters| object.
+
+        The main functionality of method |Parameters.save_controls| is
+        demonstrated in the documentation on method |HydPy.save_controls|
+        of class |HydPy|, which one would apply to write the parameter
+        information of complete *HydPy* projects.  However, calling method
+        |Parameters.save_controls| on individual |Parameters| objects
+        offers the advantage to choose an arbitrary filepath, as shown
+        in the following example:
+
+        >>> from hydpy.models.hstream_v1 import *
+        >>> parameterstep('1d')
+        >>> simulationstep('1h')
+        >>> lag(1.0)
+        >>> damp(0.5)
+
+        >>> from hydpy import Open
+        >>> with Open():
+        ...     model.parameters.save_controls('otherdir/otherfile.py')
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        otherdir/otherfile.py
+        -------------------------------------
+        # -*- coding: utf-8 -*-
+        <BLANKLINE>
+        from hydpy.models.hstream_v1 import *
+        <BLANKLINE>
+        simulationstep('1h')
+        parameterstep('1d')
+        <BLANKLINE>
+        lag(1.0)
+        damp(0.5)
+        <BLANKLINE>
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        Without a given file path and a proper project configuration,
+        method |Parameters.save_controls| raises the following error:
+
+        >>> model.parameters.save_controls()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: To save the control parameters of a model to a file, \
+its filename must be known.  This can be done, by passing a filename to \
+function `save_controls` directly.  But in complete HydPy applications, \
+it is usally assumed to be consistent with the name of the element \
+handling the model.
+        """
         if self.control:
-            if not filename:
-                filename = self._controldefaultfilename
-            if auxfiler:
-                variable2auxfile = getattr(auxfiler, str(self.model), None)
+            variable2auxfile = getattr(auxfiler, str(self.model), None)
+            lines = [get_controlfileheader(
+                self.model, parameterstep, simulationstep)]
+            with Parameter.parameterstep(parameterstep):
+                for par in self.control:
+                    if variable2auxfile:
+                        auxfilename = variable2auxfile.get_filename(par)
+                        if auxfilename:
+                            lines.append(
+                                f"{par.name}(auxfile='{auxfilename}')\n")
+                            continue
+                    lines.append(repr(par) + '\n')
+            text = ''.join(lines)
+            if filepath:
+                with open(filepath, mode='w', encoding='utf-8') as controlfile:
+                    controlfile.write(text)
             else:
-                variable2auxfile = None
-            lines = [
-                header_controlfile(self.model, parameterstep, simulationstep)]
-            for par in self.control:
-                if variable2auxfile:
-                    auxfilename = variable2auxfile.get_filename(par)
-                    if auxfilename:
-                        lines.append(f"{par.name}(auxfile='{auxfilename}')\n")
-                        continue
-                lines.append(repr(par) + '\n')
-            hydpy.pub.controlmanager.save_file(filename, ''.join(lines))
-
-    @property
-    def _controldefaultfilename(self) -> str:
-        filename = objecttools.devicename(self)
-        if filename == '?':
-            raise RuntimeError(
-                'To save the control parameters of a model to a file, its '
-                'filename must be known.  This can be done, by passing '
-                'filename to function `save_controls` directly.  '
-                'But in complete HydPy applications, it is usally '
-                'assumed to be consistent with the name of the element '
-                'handling the model.  Actually, neither a filename is given '
-                'nor does the model know its master element.')
-        else:
-            return filename + '.py'
+                filename = objecttools.devicename(self)
+                if filename == '?':
+                    raise RuntimeError(
+                        'To save the control parameters of a model to a file, '
+                        'its filename must be known.  This can be done, by '
+                        'passing a filename to function `save_controls` '
+                        'directly.  But in complete HydPy applications, it is '
+                        'usally assumed to be consistent with the name of the '
+                        'element handling the model.')
+                hydpy.pub.controlmanager.save_file(filename, text)
 
     def verify(self) -> None:
+        """Call method |Parameter.verify| of all |Parameter| objects
+        handled by the actual model.
+
+        When calling method |Parameters.verify| directly after initialising
+        model |hstream_v1| (without using default values), it raises an
+        |AttributeError|, due to undefined control parameter values:
+
+        >>> from hydpy.models.hstream_v1 import *
+        >>> parameterstep('1d')
+        >>> simulationstep('1d')
+        >>> model.parameters.verify()
+        Traceback (most recent call last):
+        ...
+        AttributeError: For variable `lag`, no value has been defined so far.
+
+        After defining suitable control parameter values, the derived
+        parameters are still not ready:
+
+        >>> model.parameters.control.lag(0.0)
+        >>> model.parameters.control.damp(0.0)
+        >>> model.parameters.verify()
+        Traceback (most recent call last):
+        ...
+        AttributeError: For variable `nmbsegments`, \
+no value has been defined so far.
+
+        After updating the derived parameters, method |Parameters.verify|
+        has no reason to complain anymore:
+
+        >>> model.parameters.update()
+        >>> model.parameters.verify()
+        """
         for subpars in self:
             for par in subpars:
                 par.verify()
 
     @property
     def secondary_subpars(self) -> Iterator['SubParameters']:
+        """Iterate through all subgroups of "secondary" parameters.
+
+        These secondary parameter subgroups are the `derived` parameters
+        and the `solver` parameters, at the moment:
+
+        >>> from hydpy.models.hstream_v1 import *
+        >>> parameterstep('1d')
+        >>> for subpars in model.parameters.secondary_subpars:
+        ...     print(subpars.name)
+        derived
+        solver
+        """
         for subpars in (self.derived, self.solver):
-            if subpars is not None:
-                yield subpars
+            yield subpars
 
     def __iter__(self) -> Iterator['SubParameters']:
         for subpars in (self.control, self.derived, self.solver):
@@ -519,7 +653,7 @@ class Parameter(variabletools.Variable[SubParameters]):
                 'auxiliary control file is now `auxfile`.  The old '
                 'keyword name `pyfile` will be banned in the future.'))
             values = self._get_values_from_auxiliaryfile(kwargs['pyfile'])
-            self.values = self.apply_timefactor(values)
+            self.__hydpy__set_value__(self.apply_timefactor(values))   # ToDo
             del kwargs['pyfile']
         elif 'auxfile' in kwargs:
             values = self._get_values_from_auxiliaryfile(kwargs['auxfile'])
@@ -711,20 +845,11 @@ class Parameter(variabletools.Variable[SubParameters]):
             values = values * self.timefactor
         return values
 
-    @variabletools.Variable.commentrepr.getter    # type: ignore
-    def commentrepr(self) -> List[str]:
-        """Returns a list with comments, e.g. for making string
-        representations more informative.  When |Options.reprcomments|
-        is set to |False|, an empty list is returned.
-        """
-        lines = variabletools.Variable.commentrepr.fget(self)    # type: ignore
-        # due to https://github.com/python/mypy/issues/1465
-        if (hydpy.pub.options.reprcomments and
-                (getattr(self, 'TIME', None) is not None)):
-            lines.append(f'# The actual value representation depends on '
-                         f'the actual parameter step size,\n'
-                         f'# which is `{self.parameterstep}`.')
-        return lines
+    def update(self):
+        """To be overridden by all "secondary" parameters."""
+        raise NotImplementedError(
+            f'Parameter {objecttools.elementphrase(self)} does not '
+            f'implement method `update`.')
 
     def __str__(self):
         return str(self.values)
@@ -865,10 +990,9 @@ is no compression method implemented, working for its actual values.
         """
         if not hasattr(self, 'value'):
             return ['?']
-        if not len(self):
+        if not self:
             return ['']
-        else:
-            unique = numpy.unique(self[self.mask])
+        unique = numpy.unique(self[self.mask])
         if sum(numpy.isnan(unique)) == len(unique.flatten()):
             unique = numpy.array([numpy.nan])
         else:
@@ -878,11 +1002,10 @@ is no compression method implemented, working for its actual values.
             for dummy in range(self.NDIM):
                 result = [result]
             return result
-        else:
-            raise NotImplementedError(
-                f'For parameter {objecttools.elementphrase(self)} '
-                f'there is no compression method implemented, '
-                f'working for its actual values.')
+        raise NotImplementedError(
+            f'For parameter {objecttools.elementphrase(self)} '
+            f'there is no compression method implemented, '
+            f'working for its actual values.')
 
 
 class NameParameter(Parameter):
@@ -972,10 +1095,11 @@ class ZipParameter(Parameter):
                 if value in mask.RELEVANT_VALUES:
                     unique = numpy.unique(self.values[refindices == value])
                     unique = self.revert_timefactor(unique)
-                    if len(unique) == 1:
+                    length = len(unique)
+                    if length == 1:
                         results.append(
                             f'{key.lower()}={objecttools.repr_(unique[0])}')
-                    elif len(unique) > 1:
+                    elif length:
                         raise exc
             result = ', '.join(sorted(results))
             for dummy in range(self.NDIM):
@@ -1174,7 +1298,7 @@ into shape (3)
         >>> par.values[-1]
         4.0
         """
-        if not len(self):
+        if not self:
             self.values[:] = 0.
         elif len(self) == 1:
             values = list(self._toy2values.values())[0]
@@ -1268,15 +1392,14 @@ into shape (3)
         return y_0+(y_1-y_0)/(x_1-x_0)*(xnew-x_0)
 
     def __hydpy__get_shape__(self):
+        """ToDo"""
         return super().__hydpy__get_shape__()
 
     def __hydpy__set_shape__(self, shape: Union[int, Iterable[int]]):
-        """ToDo"""
-        try:
-            shape = (int(shape),)
-        except TypeError:
-            pass
-        shape = list(shape)
+        if isinstance(shape, Iterable):
+            shape = list(shape)
+        else:
+            shape = [int(shape)]
         if not self.simulationstep:
             raise RuntimeError(   # ToDo
                 f'It is not possible the set the shape of the seasonal '
@@ -1342,7 +1465,7 @@ into shape (3)
         else:
             def assign(values, prefix):
                 return prefix+str(values)
-        if not len(self):
+        if not self:
             return self.name+'()'
         lines = []
         blanks = ' '*(len(self.name)+1)

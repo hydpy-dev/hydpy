@@ -290,7 +290,7 @@ Variable type `EQD1` is not handled by model `lstream_v1`.
             for filename in var2aux.filenames:
                 with par.parameterstep(parameterstep), \
                          par.simulationstep(simulationstep):
-                    lines = [parametertools.header_controlfile(
+                    lines = [parametertools.get_controlfileheader(
                         modelname, parameterstep, simulationstep)]
                     for par in getattr(var2aux, filename):
                         lines.append(repr(par) + '\n')

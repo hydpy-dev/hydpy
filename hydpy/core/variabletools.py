@@ -1538,7 +1538,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         return mask
 
     def __deepcopy__(self, memo):
-        new = type(self)(None)   # ToDo
+        new = type(self)(None)
         for (key, value) in vars(self).items():
             if key not in self.NOT_DEEPCOPYABLE_MEMBERS:
                 setattr(new, key, copy.deepcopy(value, memo))
@@ -1908,7 +1908,8 @@ variable `testvar`.
         ...     initinfo = 0.0, False
         >>> class TestSubVars(SubVariables):
         ...     CLASSES = (TestVar,)
-        ...     initialise_fastaccess = lambda self, cls_fastaccess, cymodel: None
+        ...     initialise_fastaccess = \
+        ...         lambda self, cls_fastaccess, cymodel: None
         ...     name = None
         >>> dir(TestSubVars(None))
         ['CLASSES', 'initialise_fastaccess', 'name', 'testvar', 'vars']

@@ -39,7 +39,7 @@ def parameterstep(timestep=None):
     parameter control files for framework users.
     """
     if timestep is not None:
-        parametertools.Parameter.parameterstep(timetools.Period(timestep))
+        parametertools.Parameter.parameterstep(timestep)
     namespace = inspect.currentframe().f_back.f_locals
     model = namespace.get('model')
     if model is None:
@@ -255,7 +255,7 @@ are initialised based on the actual simulation time step as defined under \
             'values are initialised based on the actual simulation time step '
             'as defined under `pub.timegrids.stepsize` and the value given '
             'to `simulationstep` is ignored.')
-    parametertools.Parameter.simulationstep(timetools.Period(timestep))
+    parametertools.Parameter.simulationstep(timestep)
 
 
 def controlcheck(controldir='default', projectdir=None, controlfile=None):

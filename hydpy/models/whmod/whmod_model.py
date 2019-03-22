@@ -858,16 +858,14 @@ def calc_aktbodenwassergehalt_v1(self):
             sta.aktbodenwassergehalt[k] = 0.
         else:
             sta.aktbodenwassergehalt[k] += (
-                flu.zuflussboden[k] - flu.aktverdunstung[k] -
+                flu.zuflussboden[k] - flu.bodenverdunstung[k] -
                 flu.sickerwasser[k] + flu.kapilaufstieg[k])
             if sta.aktbodenwassergehalt[k] < 0.:
-                # ToDo
-                # flu.sickerwasser[k] += sta.aktbodenwassergehalt[k]
+                flu.sickerwasser[k] += sta.aktbodenwassergehalt[k]
                 sta.aktbodenwassergehalt[k] = 0.
             elif sta.aktbodenwassergehalt[k] > der.nfkwe[k]:
-                # ToDo:
-                # flu.kapilaufstieg[k] -= \
-                #     der.nfkwe[k] - sta.aktbodenwassergehalt[k]
+                flu.kapilaufstieg[k] += \
+                    der.nfkwe[k] - sta.aktbodenwassergehalt[k]
                 sta.aktbodenwassergehalt[k] = der.nfkwe[k]
 
 

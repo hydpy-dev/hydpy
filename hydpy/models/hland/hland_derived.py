@@ -59,8 +59,8 @@ class RelLandArea(parametertools.Parameter):
         self(numpy.sum(temp)/con.area)
 
 
-class RelZoneArea(hland_parameters.ParameterComplete,
-                  parametertools.RelSubweightsMixin):
+class RelZoneArea(parametertools.RelSubweightsMixin,
+                  hland_parameters.ParameterComplete):
     """Relative zone area of all zone types [-].
 
     >>> from hydpy.models.hland import *
@@ -76,8 +76,8 @@ class RelZoneArea(hland_parameters.ParameterComplete,
     strict_valuehandling = False
 
 
-class RelSoilZoneArea(hland_parameters.ParameterSoil,
-                      parametertools.RelSubweightsMixin):
+class RelSoilZoneArea(parametertools.RelSubweightsMixin,
+                      hland_parameters.ParameterSoil):
     """Relative zone area of all |FIELD| and |FOREST| zones [-].
 
     >>> from hydpy.models.hland import *
@@ -93,8 +93,8 @@ class RelSoilZoneArea(hland_parameters.ParameterSoil,
     strict_valuehandling = False
 
 
-class RelLandZoneArea(hland_parameters.ParameterLand,
-                      parametertools.RelSubweightsMixin):
+class RelLandZoneArea(parametertools.RelSubweightsMixin,
+                      hland_parameters.ParameterLand):
     """Relative zone area of all |FIELD|, |FOREST|, and |GLACIER| zones [-].
 
     >>> from hydpy.models.hland import *

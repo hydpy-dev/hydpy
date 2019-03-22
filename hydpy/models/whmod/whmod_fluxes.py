@@ -22,6 +22,11 @@ class NiedNachInterz(sequencetools.FluxSequence):
     NDIM, NUMERIC = 1, False
 
 
+class Seeniederschlag(sequencetools.FluxSequence):
+    """[mm]"""
+    NDIM, NUMERIC = 1, False
+
+
 class ZuflussBoden(sequencetools.FluxSequence):
     """[mm]"""
     NDIM, NUMERIC = 1, False
@@ -52,6 +57,16 @@ class MaxVerdunstung(sequencetools.FluxSequence):
     NDIM, NUMERIC = 1, False
 
 
+class Bodenverdunstung(sequencetools.FluxSequence):
+    """[mm]"""
+    NDIM, NUMERIC = 1, False
+
+
+class Seeverdunstung(sequencetools.FluxSequence):
+    """[mm]"""
+    NDIM, NUMERIC = 1, False
+
+
 class AktVerdunstung(sequencetools.FluxSequence):
     """[mm]"""
     NDIM, NUMERIC = 1, False
@@ -76,12 +91,15 @@ class FluxSequences(sequencetools.FluxSequences):
     CLASSES = (NiederschlagRichter,
                InterzeptionsVerdunstung,
                NiedNachInterz,
+               Seeniederschlag,
                ZuflussBoden,
                Oberflaechenabfluss,
                RelBodenfeuchte,
                Sickerwasser,
                Saettigungsdampfdruckdefizit,
                MaxVerdunstung,
+               Bodenverdunstung,
+               Seeverdunstung,
                AktVerdunstung,
                PotKapilAufstieg,
                KapilAufstieg,

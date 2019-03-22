@@ -1,7 +1,13 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=missing-docstring
 # pylint: enable=missing-docstring
+"""
 
+>>> from hydpy import pub
+>>> pub.options.reprdigits = 6
+>>> pub.options.usecython = True
+
+"""
 # imports...
 # ...from site-packages
 import numpy
@@ -44,6 +50,7 @@ def calc_niederschlagrichter_v1(self):
 
 def calc_niednachinterz_v1(self):
     """Berechnung Bestandsniederschlag.
+
     I:\\pgm-tgu\\info\\WHMOD_WeitereInfos\\01_Wissen\\29140414_BachalorArbeit_TUHH
 
     Required control parameters:
@@ -154,7 +161,7 @@ def calc_niednachinterz_v1(self):
     >>> model.idx_sim = 0
     >>> model.calc_niednachinterz_v1()
     >>> fluxes.niednachinterz
-    niednachinterz(100.0, 100.0, 100.0)
+    niednachinterz(100.0, 0.0, 0.0)
     
     >>> interzeptionnach_dommermuth_trampf(False)
     Traceback (most recent call last):
@@ -167,6 +174,9 @@ def calc_niednachinterz_v1(self):
     month = der.moy[self.idx_sim]
     summer = 4 <= month <= 8
     for k in range(con.nmb_cells):
+        if con.nutz_nr[k] in (VERSIEGELT, WASSER):
+            flu.niednachinterz[k] = 0.
+            continue
         if con.nutz_nr[k] == LAUBWALD:
             if summer:
                 d_loss = con.factorc[0, month] * (
@@ -174,6 +184,7 @@ def calc_niednachinterz_v1(self):
                         0.01481 * flu.niederschlagrichter)
             else:
                 d_loss = con.factorc[0, month] * flu.niederschlagrichter
+            flu.niednachinterz[k] = flu.niederschlagrichter - d_loss
         elif con.nutz_nr[k] == NADELWALD:
             if summer:
                 d_loss = con.factorc[1, month] * (
@@ -181,10 +192,40 @@ def calc_niednachinterz_v1(self):
                         0.0691 * flu.niederschlagrichter)
             else:
                 d_loss = con.factorc[1, month] * flu.niederschlagrichter
-
+            flu.niednachinterz[k] = flu.niederschlagrichter - d_loss
         else:
-            d_loss = 0.
-        flu.niednachinterz[k] = flu.niederschlagrichter - d_loss
+            flu.niednachinterz[k] = flu.niederschlagrichter
+
+
+def calc_seeniederschlag_v1(self):
+    """Berechnung Niederschlag auf Wasserflächen.
+
+    Required control parameters:
+      |Nutz_Nr|
+
+    Required flux sequence:
+      |NiederschlagRichter|
+
+    Calculated flux sequences:
+      |Seeniederschlag|
+
+
+    >>> from hydpy.models.whmod import *
+    >>> parameterstep()
+    >>> nmb_cells(3)
+    >>> nutz_nr(GRAS, VERSIEGELT, WASSER)
+    >>> fluxes.niederschlagrichter = 2.0
+    >>> model.calc_seeniederschlag_v1()
+    >>> fluxes.seeniederschlag
+    seeniederschlag(0.0, 0.0, 2.0)
+    """
+    con = self.parameters.control.fastaccess
+    flu = self.sequences.fluxes.fastaccess
+    for k in range(con.nmb_cells):
+        if con.nutz_nr[k] == WASSER:
+            flu.seeniederschlag[k] = flu.niederschlagrichter
+        else:
+            flu.seeniederschlag[k] = 0.
 
 
 def calc_interzeptionsverdunstung_v1(self):
@@ -203,12 +244,13 @@ def calc_interzeptionsverdunstung_v1(self):
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> interzeptionnach_dommermuth_trampf(True)
-    >>> nmb_cells(2)
+    >>> nmb_cells(4)
+    >>> nutz_nr(GRAS, GRAS, VERSIEGELT, WASSER)
     >>> fluxes.niederschlagrichter = 3.0
-    >>> fluxes.niednachinterz = 1.0, 2.0
+    >>> fluxes.niednachinterz = 1.0, 2.0, 2.0, 2.0
     >>> model.calc_interzeptionsverdunstung_v1()
     >>> fluxes.interzeptionsverdunstung
-    interzeptionsverdunstung(2.0, 1.0)
+    interzeptionsverdunstung(2.0, 1.0, 0.0, 0.0)
 
     >>> interzeptionnach_dommermuth_trampf(False)
     Traceback (most recent call last):
@@ -218,8 +260,11 @@ def calc_interzeptionsverdunstung_v1(self):
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
     for k in range(con.nmb_cells):
-        flu.interzeptionsverdunstung[k] = (
-                flu.niederschlagrichter - flu.niednachinterz[k])
+        if con.nutz_nr[k] in (VERSIEGELT, WASSER):
+            flu.interzeptionsverdunstung[k] = 0.
+        else:
+            flu.interzeptionsverdunstung[k] = (
+                    flu.niederschlagrichter - flu.niednachinterz[k])
 
 
 def calc_oberflaechenabfluss_v1(self):
@@ -297,19 +342,16 @@ def calc_zuflussboden_v1(self):
     >>> states.schneespeicher
     schneespeicher(0.0, 0.0)
     >>> fluxes.zuflussboden
-    zuflussboden(0.0, 2.0)
+    zuflussboden(0.0, 0.0)
     """
     con = self.parameters.control.fastaccess
     inp = self.sequences.inputs.fastaccess
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
     for k in range(con.nmb_cells):
-        if con.nutz_nr[k] == VERSIEGELT:
+        if con.nutz_nr[k] in (VERSIEGELT, WASSER):
             sta.schneespeicher[k] = 0.0
             flu.zuflussboden[k] = 0.0
-        elif con.nutz_nr[k] == WASSER:
-            sta.schneespeicher[k] = 0.0
-            flu.zuflussboden[k] = flu.niednachinterz[k]
         elif inp.temp_tm > 0.:
             d_maxschneeschmelze = con.gradfaktor[k] * inp.temp_tm
             d_schneeschmelze = min(sta.schneespeicher[k], d_maxschneeschmelze)
@@ -383,16 +425,14 @@ def calc_sickerwasser_v1(self):
     >>> fluxes.relbodenfeuchte(0.5)
     >>> model.calc_sickerwasser_v1()
     >>> fluxes.sickerwasser
-    sickerwasser(2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 0.0, 10.0)
+    sickerwasser(2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 0.0, 0.0)
     """
     con = self.parameters.control.fastaccess
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
     for k in range(con.nmb_cells):
-        if con.nutz_nr[k] == VERSIEGELT:
+        if con.nutz_nr[k] in (VERSIEGELT, WASSER):
             flu.sickerwasser[k] = 0.
-        elif con.nutz_nr[k] == WASSER:
-            flu.sickerwasser[k] = flu.zuflussboden[k]
         else:
             flu.sickerwasser[k] = \
                 flu.zuflussboden[k] * flu.relbodenfeuchte[k]**der.beta[k]
@@ -546,7 +586,7 @@ def calc_maxverdunstung_v1(self):
             flu.maxverdunstung[k] = d_factor * flu.saettigungsdampfdruckdefizit
 
 
-def calc_aktverdunstung_v1(self):
+def calc_bodenverdunstung_v1(self):
     """
 
     >>> from hydpy.models.whmod import *
@@ -556,27 +596,67 @@ def calc_aktverdunstung_v1(self):
     >>> minhasr(3.0)
     >>> fluxes.maxverdunstung = 2.0
     >>> fluxes.relbodenfeuchte = 0.0, 0.25, 0.5, 0.75, 1.0, 0.5, 0.5
-    >>> model.calc_aktverdunstung_v1()
-    >>> fluxes.aktverdunstung
-    aktverdunstung(0.0, 0.768701, 1.382877, 1.77884, 2.0, 0.0, 2.0)
+    >>> model.calc_bodenverdunstung_v1()
+    >>> fluxes.bodenverdunstung
+    bodenverdunstung(0.0, 0.768701, 1.382877, 1.77884, 2.0, 0.0, 0.0)
 
     >>> minhasr(6.0)
-    >>> model.calc_aktverdunstung_v1()
-    >>> fluxes.aktverdunstung
-    aktverdunstung(0.0, 1.275468, 1.818886, 1.96569, 2.0, 0.0, 2.0)
+    >>> model.calc_bodenverdunstung_v1()
+    >>> fluxes.bodenverdunstung
+    bodenverdunstung(0.0, 1.275468, 1.818886, 1.96569, 2.0, 0.0, 0.0)
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
     for k in range(con.nmb_cells):
-        if con.nutz_nr[k] == VERSIEGELT:
-            flu.aktverdunstung[k] = 0.
-        elif con.nutz_nr[k] == WASSER:
-            flu.aktverdunstung[k] = flu.maxverdunstung[k]
+        if con.nutz_nr[k] in (VERSIEGELT, WASSER):
+            flu.bodenverdunstung[k] = 0.
         else:
             d_temp = modelutils.exp(-con.minhasr[k]*flu.relbodenfeuchte[k])
-            flu.aktverdunstung[k] = (
+            flu.bodenverdunstung[k] = (
                 flu.maxverdunstung[k] *
                 (1.0-d_temp)/(1.-2.*modelutils.exp(-con.minhasr[k])+d_temp))
+
+
+def calc_seeverdunstung_v1(self):
+    """
+
+    >>> from hydpy.models.whmod import *
+    >>> parameterstep()
+    >>> nmb_cells(3)
+    >>> nutz_nr(GRAS, VERSIEGELT, WASSER)
+    >>> fluxes.maxverdunstung = 2.0
+    >>> model.calc_seeverdunstung_v1()
+    >>> fluxes.seeverdunstung
+    seeverdunstung(0.0, 0.0, 2.0)
+    """
+    con = self.parameters.control.fastaccess
+    flu = self.sequences.fluxes.fastaccess
+    for k in range(con.nmb_cells):
+        if con.nutz_nr[k] == WASSER:
+            flu.seeverdunstung[k] = flu.maxverdunstung[k]
+        else:
+            flu.seeverdunstung[k] = 0.
+
+
+def calc_aktverdunstung_v1(self):
+    """
+
+    >>> from hydpy.models.whmod import *
+    >>> parameterstep()
+    >>> nmb_cells(2)
+    >>> fluxes.interzeptionsverdunstung = 1.0, 0.0
+    >>> fluxes.bodenverdunstung = 2.0, 0.0
+    >>> fluxes.seeverdunstung = 0.0, 4.0
+    >>> model.calc_aktverdunstung_v1()
+    >>> fluxes.aktverdunstung
+    aktverdunstung(3.0, 4.0)
+    """
+    con = self.parameters.control.fastaccess
+    flu = self.sequences.fluxes.fastaccess
+    for k in range(con.nmb_cells):
+        flu.aktverdunstung[k] = (flu.interzeptionsverdunstung[k] +
+                                 flu.bodenverdunstung[k] +
+                                 flu.seeverdunstung[k])
 
 
 def calc_potkapilaufstieg_v1(self):
@@ -696,9 +776,10 @@ def calc_potkapilaufstieg_v1(self):
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
     for k in range(con.nmb_cells):
-        if con.nutz_nr[k] in (VERSIEGELT, WASSER):
+        if ((con.nutz_nr[k] in (VERSIEGELT, WASSER)) or
+                (not con.mitfunktion_kapillareraufstieg[k])):
             flu.potkapilaufstieg[k] = 0.
-        elif con.mitfunktion_kapillareraufstieg[k]:
+        else:
             d_schwell = con.kapilschwellwert[k]
             d_grenz = con.kapilgrenzwert[k]
             if con.flurab[k] > (der.wurzeltiefe[k] + d_schwell):
@@ -709,8 +790,6 @@ def calc_potkapilaufstieg_v1(self):
                 flu.potkapilaufstieg[k] = (
                     5.*(der.wurzeltiefe[k]+d_schwell-con.flurab[k]) /
                     (d_schwell-d_grenz))
-        else:
-            flu.potkapilaufstieg[k] = 0.
 
 
 def calc_kapilaufstieg_v1(self):
@@ -740,7 +819,7 @@ def calc_kapilaufstieg_v1(self):
             flu.kapilaufstieg[k] = 0.
 
 
-def calc_aktbodenwassergehalt_aktgrundwasserneubildung_v1(self):
+def calc_aktbodenwassergehalt_v1(self):
     """
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
@@ -748,64 +827,93 @@ def calc_aktbodenwassergehalt_aktgrundwasserneubildung_v1(self):
     >>> nutz_nr(GRAS)
     >>> derived.nfkwe(100.0)
     >>> fluxes.zuflussboden(2.0)
-    >>> fluxes.aktverdunstung(1.0)
+    >>> fluxes.bodenverdunstung(1.0)
     >>> states.aktbodenwassergehalt(0.0, 1.0, 50.0, 98.0, 100.0)
     >>> fluxes.kapilaufstieg(3.0, 3.0, 3.0, 5.0, 5.0)
     >>> fluxes.sickerwasser(5.0, 5.0, 5.0, 3.0, 3.0)
-    >>> model.calc_aktbodenwassergehalt_aktgrundwasserneubildung_v1()
+    >>> model.calc_aktbodenwassergehalt_v1()
     >>> states.aktbodenwassergehalt
     aktbodenwassergehalt(0.0, 0.0, 49.0, 100.0, 100.0)
-    >>> fluxes.aktgrundwasserneubildung
-    aktgrundwasserneubildung(2.0, 2.0, 2.0, -1.0, 1.0)
+    >>> fluxes.sickerwasser
+    sickerwasser(4.0, 5.0, 5.0, 3.0, 3.0)
+    >>> fluxes.kapilaufstieg
+    kapilaufstieg(3.0, 3.0, 3.0, 4.0, 2.0)
 
     >>> nutz_nr(WASSER, WASSER, WASSER, VERSIEGELT, VERSIEGELT)
-    >>> fluxes.aktverdunstung(0.0, 5.0, 10.0, 5.0, 5.0)
-    >>> model.calc_aktbodenwassergehalt_aktgrundwasserneubildung_v1()
+    >>> fluxes.bodenverdunstung(0.0, 5.0, 10.0, 5.0, 5.0)
+    >>> model.calc_aktbodenwassergehalt_v1()
     >>> states.aktbodenwassergehalt
     aktbodenwassergehalt(0.0, 0.0, 0.0, 0.0, 0.0)
-    >>> fluxes.aktgrundwasserneubildung
-    aktgrundwasserneubildung(5.0, 0.0, -5.0, 0.0, 0.0)
+    >>> fluxes.sickerwasser
+    sickerwasser(4.0, 5.0, 5.0, 3.0, 3.0)
+    >>> fluxes.kapilaufstieg
+    kapilaufstieg(3.0, 3.0, 3.0, 4.0, 2.0)
     """
     con = self.parameters.control.fastaccess
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
     for k in range(con.nmb_cells):
-        if con.nutz_nr[k] == VERSIEGELT:
+        if con.nutz_nr[k] in (VERSIEGELT, WASSER):
             sta.aktbodenwassergehalt[k] = 0.
-            flu.aktgrundwasserneubildung[k] = 0.
-        elif con.nutz_nr[k] == WASSER:
-            sta.aktbodenwassergehalt[k] = 0.
-            flu.aktgrundwasserneubildung[k] = \
-                flu.sickerwasser[k] - flu.aktverdunstung[k]
         else:
-            flu.aktgrundwasserneubildung[k] = \
-                flu.sickerwasser[k]-flu.kapilaufstieg[k]
             sta.aktbodenwassergehalt[k] += (
                 flu.zuflussboden[k] - flu.aktverdunstung[k] -
-                flu.aktgrundwasserneubildung[k])
+                flu.sickerwasser[k] + flu.kapilaufstieg[k])
             if sta.aktbodenwassergehalt[k] < 0.:
-                # ToDo:
-                # flu.aktgrundwasserneubildung[k] += sta.aktbodenwassergehalt[k]
+                # ToDo
+                # flu.sickerwasser[k] += sta.aktbodenwassergehalt[k]
                 sta.aktbodenwassergehalt[k] = 0.
             elif sta.aktbodenwassergehalt[k] > der.nfkwe[k]:
-                flu.aktgrundwasserneubildung[k] += \
-                    sta.aktbodenwassergehalt[k] - der.nfkwe[k]
+                # ToDo:
+                # flu.kapilaufstieg[k] -= \
+                #     der.nfkwe[k] - sta.aktbodenwassergehalt[k]
                 sta.aktbodenwassergehalt[k] = der.nfkwe[k]
+
+
+def calc_aktgrundwasserneubildung_v1(self):
+    """
+    >>> from hydpy.models.whmod import *
+    >>> parameterstep()
+    >>> nmb_cells(3)
+    >>> nutz_nr(GRAS, VERSIEGELT, WASSER)
+    >>> fluxes.sickerwasser(2.0)
+    >>> fluxes.kapilaufstieg(1.0)
+    >>> fluxes.seeniederschlag(7.0)
+    >>> fluxes.seeverdunstung(4.0)
+    >>> model.calc_aktgrundwasserneubildung_v1()
+    >>> fluxes.aktgrundwasserneubildung
+    aktgrundwasserneubildung(1.0, 0.0, 3.0)
+    """
+    con = self.parameters.control.fastaccess
+    flu = self.sequences.fluxes.fastaccess
+    for k in range(con.nmb_cells):
+        if con.nutz_nr[k] == WASSER:
+            flu.aktgrundwasserneubildung[k] = (
+                flu.seeniederschlag[k] - flu.seeverdunstung[k])
+        elif con.nutz_nr[k] == VERSIEGELT:
+            flu.aktgrundwasserneubildung[k] = 0.
+        else:
+            flu.aktgrundwasserneubildung[k] = (
+                flu.sickerwasser[k] - flu.kapilaufstieg[k])
 
 
 class Model(modeltools.Model):
     RUN_METHODS = (calc_niederschlagrichter_v1,
                    calc_niednachinterz_v1,
                    calc_interzeptionsverdunstung_v1,
+                   calc_seeniederschlag_v1,
                    calc_oberflaechenabfluss_v1,
                    calc_zuflussboden_v1,
                    calc_relbodenfeuchte_v1,
                    calc_sickerwasser_v1,
                    calc_saettigungsdampfdruckdefizit_v1,
                    calc_maxverdunstung_v1,
+                   calc_bodenverdunstung_v1,
+                   calc_seeverdunstung_v1,
                    calc_aktverdunstung_v1,
                    calc_potkapilaufstieg_v1,
                    calc_kapilaufstieg_v1,
-                   calc_aktbodenwassergehalt_aktgrundwasserneubildung_v1)
+                   calc_aktbodenwassergehalt_v1,
+                   calc_aktgrundwasserneubildung_v1)
     OUTLET_METHODS = ()

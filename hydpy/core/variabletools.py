@@ -727,10 +727,7 @@ defined so far.
     >>> round(var, 1)
     array([ 1.7,  1.7])
     >>> bool(var)
-    Traceback (most recent call last):
-    ...
-    TypeError: The variable `var` is 1-dimensional and thus cannot be \
-converted to a scalar bool value.
+    True
 
     Indexing is supported (for consistency reasons, even for
     0-dimensional variables):
@@ -1718,7 +1715,9 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         return type_(self.value)
 
     def __bool__(self):
-        return self._typeconversion(bool)
+        if self.NDIM:
+            return bool(len(self))
+        return bool(self.value)
 
     def __float__(self):
         return self._typeconversion(float)
@@ -1908,8 +1907,8 @@ variable `testvar`.
         ...     initinfo = 0.0, False
         >>> class TestSubVars(SubVariables):
         ...     CLASSES = (TestVar,)
-        ...     initialise_fastaccess = \
-        ...         lambda self, cls_fastaccess, cymodel: None
+        ...     initialise_fastaccess = (
+        ...         lambda self, cls_fastaccess, cymodel: None)
         ...     name = None
         >>> dir(TestSubVars(None))
         ['CLASSES', 'initialise_fastaccess', 'name', 'testvar', 'vars']

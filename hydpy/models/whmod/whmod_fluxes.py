@@ -27,6 +27,11 @@ class ZuflussBoden(sequencetools.FluxSequence):
     NDIM, NUMERIC = 1, False
 
 
+class Oberflaechenabfluss(sequencetools.FluxSequence):
+    """[mm]"""
+    NDIM, NUMERIC = 1, False
+
+
 class RelBodenfeuchte(sequencetools.FluxSequence):
     """[-]"""
     NDIM, NUMERIC = 1, False
@@ -72,6 +77,7 @@ class FluxSequences(sequencetools.FluxSequences):
                InterzeptionsVerdunstung,
                NiedNachInterz,
                ZuflussBoden,
+               Oberflaechenabfluss,
                RelBodenfeuchte,
                Sickerwasser,
                Saettigungsdampfdruckdefizit,

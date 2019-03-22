@@ -225,6 +225,27 @@ def calc_interzeptionsverdunstung_v1(self):
                 flu.niederschlagrichter - flu.niednachinterz[k])
 
 
+def calc_oberflaechenabfluss_v1(self):
+    """Berechnung Oberflaechenabfluss.
+
+    >>> from hydpy.models.whmod import *
+    >>> parameterstep()
+    >>> nmb_cells(3)
+    >>> nutz_nr(VERSIEGELT, WASSER, GRAS)
+    >>> fluxes.niederschlagrichter = 3.0
+    >>> model.calc_oberflaechenabfluss_v1()
+    >>> fluxes.oberflaechenabfluss
+    oberflaechenabfluss(3.0, 0.0, 0.0)
+    """
+    con = self.parameters.control.fastaccess
+    flu = self.sequences.fluxes.fastaccess
+    for k in range(con.nmb_cells):
+        if con.nutz_nr[k] == VERSIEGELT:
+            flu.oberflaechenabfluss[k] = flu.niederschlagrichter
+        else:
+            flu.oberflaechenabfluss[k] = 0.
+
+
 def calc_zuflussboden_v1(self):
     """Berechnung Bestandsniederschlag.
 
@@ -782,6 +803,7 @@ class Model(modeltools.Model):
     RUN_METHODS = (calc_niederschlagrichter_v1,
                    calc_niednachinterz_v1,
                    calc_interzeptionsverdunstung_v1,
+                   calc_oberflaechenabfluss_v1,
                    calc_zuflussboden_v1,
                    calc_relbodenfeuchte_v1,
                    calc_sickerwasser_v1,

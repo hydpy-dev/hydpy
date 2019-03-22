@@ -33,23 +33,18 @@ def calc_niederschlagrichter_v1(self):
     niederschlagrichter(5.0)
 
     >>> korrniednachrichter(True)
-    >>> model.calc_niederschlagrichter_v1()
     Traceback (most recent call last):
     ...
     NotImplementedError: Richterkorrektur fehlt noch
     """
-    con = self.parameters.control.fastaccess
     inp = self.sequences.inputs.fastaccess
     flu = self.sequences.fluxes.fastaccess
-    if con.korrniednachrichter:
-        raise NotImplementedError('Richterkorrektur fehlt noch')
     flu.niederschlagrichter = inp.niederschlag
 
 
 def calc_niednachinterz_v1(self):
     """Berechnung Bestandsniederschlag.
-
-    I:\pgm-tgu\info\WHMOD_WeitereInfos\01_Wissen\29140414_BachalorArbeit_TUHH
+    I:\\pgm-tgu\\info\\WHMOD_WeitereInfos\\01_Wissen\\29140414_BachalorArbeit_TUHH
 
     Required control parameters:
       |InterzeptionNach_Dommermuth_Trampf|
@@ -162,7 +157,6 @@ def calc_niednachinterz_v1(self):
     niednachinterz(100.0, 100.0, 100.0)
     
     >>> interzeptionnach_dommermuth_trampf(False)
-    >>> model.calc_niednachinterz_v1()
     Traceback (most recent call last):
     ...
     NotImplementedError: Bislang nur Dommermuth-Trampf möglich
@@ -170,29 +164,27 @@ def calc_niednachinterz_v1(self):
     con = self.parameters.control.fastaccess
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
-    if not con.interzeptionnach_dommermuth_trampf:
-        raise NotImplementedError('Bislang nur Dommermuth-Trampf möglich')
     month = der.moy[self.idx_sim]
     summer = 4 <= month <= 8
     for k in range(con.nmb_cells):
         if con.nutz_nr[k] == LAUBWALD:
             if summer:
-                loss = con.factorc[0, month] * (
-                        1.0034 * numpy.log(flu.niederschlagrichter + 1.0) -
+                d_loss = con.factorc[0, month] * (
+                        1.0034 * modelutils.log(flu.niederschlagrichter + 1.0) -
                         0.01481 * flu.niederschlagrichter)
             else:
-                loss = con.factorc[0, month] * flu.niederschlagrichter
+                d_loss = con.factorc[0, month] * flu.niederschlagrichter
         elif con.nutz_nr[k] == NADELWALD:
             if summer:
-                loss = con.factorc[1, month] * (
-                        1.187 * numpy.log(flu.niederschlagrichter + 1.0) +
+                d_loss = con.factorc[1, month] * (
+                        1.187 * modelutils.log(flu.niederschlagrichter + 1.0) +
                         0.0691 * flu.niederschlagrichter)
             else:
-                loss = con.factorc[1, month] * flu.niederschlagrichter
+                d_loss = con.factorc[1, month] * flu.niederschlagrichter
 
         else:
-            loss = 0.
-        flu.niednachinterz[k] = flu.niederschlagrichter - loss
+            d_loss = 0.
+        flu.niednachinterz[k] = flu.niederschlagrichter - d_loss
 
 
 def calc_interzeptionsverdunstung_v1(self):
@@ -217,6 +209,11 @@ def calc_interzeptionsverdunstung_v1(self):
     >>> model.calc_interzeptionsverdunstung_v1()
     >>> fluxes.interzeptionsverdunstung
     interzeptionsverdunstung(2.0, 1.0)
+
+    >>> interzeptionnach_dommermuth_trampf(False)
+    Traceback (most recent call last):
+    ...
+    NotImplementedError: Bislang nur Dommermuth-Trampf möglich
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
@@ -314,10 +311,10 @@ def calc_zuflussboden_v1(self):
             sta.schneespeicher[k] = 0.0
             flu.zuflussboden[k] = flu.niednachinterz[k]
         elif inp.temp_tm > 0.:
-            maxschneeschmelze = con.gradfaktor[k] * inp.temp_tm
-            schneeschmelze = min(sta.schneespeicher[k], maxschneeschmelze)
-            sta.schneespeicher[k] -= schneeschmelze
-            flu.zuflussboden[k] = flu.niednachinterz[k] + schneeschmelze
+            d_maxschneeschmelze = con.gradfaktor[k] * inp.temp_tm
+            d_schneeschmelze = min(sta.schneespeicher[k], d_maxschneeschmelze)
+            sta.schneespeicher[k] -= d_schneeschmelze
+            flu.zuflussboden[k] = flu.niednachinterz[k] + d_schneeschmelze
         else:
             sta.schneespeicher[k] += flu.niednachinterz[k]
             flu.zuflussboden[k] = 0.
@@ -352,7 +349,8 @@ def calc_relbodenfeuchte_v1(self):
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
     for k in range(con.nmb_cells):
-        if con.nutz_nr[k] in (WASSER, VERSIEGELT):
+        if ((con.nutz_nr[k] in (WASSER, VERSIEGELT)) or
+                (der.nfkwe[k] <= 0.)):
             flu.relbodenfeuchte[k] = 0.
         else:
             flu.relbodenfeuchte[k] = sta.aktbodenwassergehalt[k]/der.nfkwe[k]
@@ -524,7 +522,6 @@ def calc_maxverdunstung_v1(self):
     |   5 |   30.0 |                         20.0 |  6.4   6.2   5.2   7.0             0.0 |
 
     >>> interzeptionnach_dommermuth_trampf(False)
-    >>> model.calc_maxverdunstung_v1()
     Traceback (most recent call last):
     ...
     NotImplementedError: Bislang nur Dommermuth-Trampf möglich
@@ -533,8 +530,6 @@ def calc_maxverdunstung_v1(self):
     der = self.parameters.derived.fastaccess
     inp = self.sequences.inputs.fastaccess
     flu = self.sequences.fluxes.fastaccess
-    if not con.interzeptionnach_dommermuth_trampf:
-        raise NotImplementedError('Bislang nur Dommermuth-Trampf möglich')
     if inp.temp14 <= 0.:
         for k in range(con.nmb_cells):
             flu.maxverdunstung[k] = 0.
@@ -543,12 +538,12 @@ def calc_maxverdunstung_v1(self):
         for k in range(con.nmb_cells):
             nutz = con.nutz_nr[k]
             if nutz == LAUBWALD:
-                factor = con.faktorwald[0, month]
+                d_factor = con.faktorwald[0, month]
             elif nutz == NADELWALD:
-                factor = con.faktorwald[1, month]
+                d_factor = con.faktorwald[1, month]
             else:
-                factor = con.faktor[nutz-1, month]
-            flu.maxverdunstung[k] = factor * flu.saettigungsdampfdruckdefizit
+                d_factor = con.faktor[nutz-1, month]
+            flu.maxverdunstung[k] = d_factor * flu.saettigungsdampfdruckdefizit
 
 
 def calc_aktverdunstung_v1(self):
@@ -578,10 +573,10 @@ def calc_aktverdunstung_v1(self):
         elif con.nutz_nr[k] == WASSER:
             flu.aktverdunstung[k] = flu.maxverdunstung[k]
         else:
-            temp = numpy.exp(-con.minhasr[k]*flu.relbodenfeuchte[k])
+            d_temp = modelutils.exp(-con.minhasr[k]*flu.relbodenfeuchte[k])
             flu.aktverdunstung[k] = (
                 flu.maxverdunstung[k] *
-                (1.0-temp)/(1.-2.*numpy.exp(-con.minhasr[k])+temp))
+                (1.0-d_temp)/(1.-2.*modelutils.exp(-con.minhasr[k])+d_temp))
 
 
 def calc_potkapilaufstieg_v1(self):
@@ -704,16 +699,16 @@ def calc_potkapilaufstieg_v1(self):
         if con.nutz_nr[k] in (VERSIEGELT, WASSER):
             flu.potkapilaufstieg[k] = 0.
         elif con.mitfunktion_kapillareraufstieg[k]:
-            schwell = con.kapilschwellwert[k]
-            grenz = con.kapilgrenzwert[k]
-            if con.flurab[k] > (der.wurzeltiefe[k] + schwell):
+            d_schwell = con.kapilschwellwert[k]
+            d_grenz = con.kapilgrenzwert[k]
+            if con.flurab[k] > (der.wurzeltiefe[k] + d_schwell):
                 flu.potkapilaufstieg[k] = 0.
-            elif con.flurab[k] < (der.wurzeltiefe[k] + grenz):
+            elif con.flurab[k] < (der.wurzeltiefe[k] + d_grenz):
                 flu.potkapilaufstieg[k] = 5.
             else:
                 flu.potkapilaufstieg[k] = (
-                    5.*(der.wurzeltiefe[k]+schwell-con.flurab[k]) /
-                    (schwell-grenz))
+                    5.*(der.wurzeltiefe[k]+d_schwell-con.flurab[k]) /
+                    (d_schwell-d_grenz))
         else:
             flu.potkapilaufstieg[k] = 0.
 
@@ -784,11 +779,11 @@ def calc_aktbodenwassergehalt_aktgrundwasserneubildung_v1(self):
             flu.aktgrundwasserneubildung[k] = \
                 flu.sickerwasser[k] - flu.aktverdunstung[k]
         else:
-            sta.aktbodenwassergehalt[k] += (
-                flu.zuflussboden[k] + flu.kapilaufstieg[k] -
-                flu.sickerwasser[k] - flu.aktverdunstung[k])
             flu.aktgrundwasserneubildung[k] = \
                 flu.sickerwasser[k]-flu.kapilaufstieg[k]
+            sta.aktbodenwassergehalt[k] += (
+                flu.zuflussboden[k] - flu.aktverdunstung[k] -
+                flu.aktgrundwasserneubildung[k])
             if sta.aktbodenwassergehalt[k] < 0.:
                 # ToDo:
                 # flu.aktgrundwasserneubildung[k] += sta.aktbodenwassergehalt[k]

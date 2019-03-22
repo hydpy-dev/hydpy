@@ -37,10 +37,22 @@ class KorrNiedNachRichter(parametertools.Parameter):
     """[-]"""
     NDIM, TYPE, TIME = 0, bool, None
 
+    def __call__(self, *args, **kwargs):
+        if args[0]:
+            raise NotImplementedError(
+                'Richterkorrektur fehlt noch')
+        super().__call__(*args, **kwargs)
+
 
 class InterzeptionNach_Dommermuth_Trampf(parametertools.Parameter):
     """[-]"""
     NDIM, TYPE, TIME = 0, bool, None
+
+    def __call__(self, *args, **kwargs):
+        if not args[0]:
+            raise NotImplementedError(
+                'Bislang nur Dommermuth-Trampf möglich')
+        super().__call__(*args, **kwargs)
 
 
 class MitFunktion_KapillarerAufstieg(parametertools.Parameter):

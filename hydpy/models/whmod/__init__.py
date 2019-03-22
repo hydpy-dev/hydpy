@@ -12,3 +12,8 @@ from hydpy.models.whmod.whmod_fluxes import FluxSequences
 from hydpy.models.whmod.whmod_states import StateSequences
 from hydpy.models.whmod.whmod_model import Model
 from hydpy.models.whmod.whmod_masks import Masks
+
+
+tester = Tester()
+cythonizer = Cythonizer()
+cythonizer.complete()

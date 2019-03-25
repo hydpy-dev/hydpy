@@ -21,6 +21,7 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import propertytools
 from hydpy.core import timetools
+from hydpy.core import variabletools
 from hydpy.cythons.autogen import annutils
 pyplot = exceptiontools.OptionalImport(
     'matplotlib.pyplot', ['from matplotlib import pyplot'])
@@ -264,12 +265,12 @@ attribute `nmb_inputs` first.
     def __init__(self, subvars: parametertools.SubParameters):
         self.subvars = subvars
         self.subpars = subvars
-        self.fastaccess = objecttools.FastAccess()
+        self.fastaccess = variabletools.FastAccess()
         self._cann = annutils.ANN()
         _ANNArrayProperty.add_cann(self, self._cann)
         self.__max_nmb_neurons = None
 
-    def connect_variable2subgroup(self) -> None:
+    def __hydpy__connect_variable2subgroup__(self) -> None:
         """Connect the actual |anntools.ANN| object with the given
         |SubParameters| object."""
         self.fastaccess = self.subpars.fastaccess
@@ -1273,12 +1274,12 @@ been given, but a value of type `ANN` is required.
     def __init__(self, subvars: parametertools.SubParameters):
         self.subvars = subvars
         self.subpars = subvars
-        self.fastaccess = objecttools.FastAccess()
+        self.fastaccess = variabletools.FastAccess()
         self._toy2ann: Dict[timetools.TOY, ANN] = {}
         self.__sann = None
         self._do_refresh = True
 
-    def connect_variable2subgroup(self) -> None:
+    def __hydpy__connect_variable2subgroup__(self) -> None:
         """Connect the actual |anntools.SeasonalANN| object with the given
         |SubParameters| object."""
         self.fastaccess = self.subpars.fastaccess
@@ -1637,10 +1638,10 @@ neural network `seasonalann` of element `?` none has been defined so far.
         ...                 intercepts_hidden=0.0, intercepts_output=1.0))
         >>> from hydpy.core.objecttools import assignrepr_values
         >>> print(assignrepr_values(sorted(dir(seasonalann)), '', 70))
-        NDIM, SPAN, TIME, TYPE, anns, connect_variable2subgroup, fastaccess,
-        inputs, name, nmb_inputs, nmb_outputs, outputs, parameterstep, plot,
-        process_actual_input, ratios, refresh, shape, simulationstep, subpars,
-        subvars, toy_1_1_0_0_0, toys, verify
+        NDIM, SPAN, TIME, TYPE, anns, fastaccess, inputs, name, nmb_inputs,
+        nmb_outputs, outputs, parameterstep, plot, process_actual_input,
+        ratios, refresh, shape, simulationstep, subpars, subvars,
+        toy_1_1_0_0_0, toys, verify
         """
         return objecttools.dir_(self) + [str(toy) for toy in self.toys]
 

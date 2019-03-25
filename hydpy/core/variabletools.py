@@ -70,7 +70,7 @@ def trim(self: 'Variable', lower=None, upper=None) -> None:
     ...     SPAN = 1.0, 3.0
     ...     trim = trim
     ...     initinfo = 2.0, False
-    ...     connect_variable2subgroup = None
+    ...     __hydpy__connect_variable2subgroup__ = None
 
     First, we enable the printing of warning messages raised by function
     |trim|:
@@ -351,11 +351,10 @@ of parameter `var` is `str`.
     >>> pub.options.warntrim = False
     """
     if hydpy.pub.options.trimvariables:
-        span = getattr(self, 'SPAN', (None, None))
         if lower is None:
-            lower = span[0]
+            lower = self.SPAN[0]
         if upper is None:
-            upper = span[1]
+            upper = self.SPAN[1]
         type_ = getattr(self, 'TYPE', float)
         if type_ is float:
             if self.NDIM == 0:
@@ -450,7 +449,12 @@ def _trim_int_nd(self, lower, upper):
 def _get_tolerance(values):
     """Return some "numerical accuracy" to be expected for the
     given floating point value(s) (see method |trim|)."""
-    return abs(values*1e-15)
+    tolerance = numpy.abs(values*1e-15)
+    if hasattr(tolerance, '__setitem__'):
+        tolerance[numpy.isinf(tolerance)] = 0.
+    elif numpy.isinf(tolerance):
+        tolerance = 0.
+    return tolerance
 
 
 def _warn_trim(self, oldvalue, newvalue):
@@ -509,7 +513,7 @@ class Variable(Generic[SubgroupType]):
     >>> class Var(Variable):
     ...     NDIM = 0
     ...     TYPE = float
-    ...     connect_variable2subgroup = None
+    ...     __hydpy__connect_variable2subgroup__ = None
     ...     initinfo = 0.0, False
     >>> var = Var(None)
 
@@ -904,7 +908,9 @@ operands could not be broadcast together with shapes (2,) (3,)...
     NDIM: ClassVar[int]
     TYPE: ClassVar[type]
     # ...and optionally...
-    INIT: ClassVar[Union[int, float, bool]]
+    SPAN: ClassVar[Tuple[Union[int, float, bool, None],
+                         Union[int, float, bool, None]]] = (None, None)
+    INIT: ClassVar[Union[int, float, bool, None]] = None
 
     NOT_DEEPCOPYABLE_MEMBERS: Tuple[str, ...] = ('subvars', 'fastaccess')
 
@@ -917,13 +923,14 @@ operands could not be broadcast together with shapes (2,) (3,)...
 
     def __init__(self, subvars: SubgroupType):
         self.subvars = subvars
-        self.fastaccess = objecttools.FastAccess()
+        self.fastaccess = FastAccess()
         self.__valueready = False
         self.__shapeready = False
 
     @abc.abstractmethod
-    def connect_variable2subgroup(self):
-        """To be overridden."""
+    def __hydpy__connect_variable2subgroup__(self) -> None:
+        """To be called by the |SubVariables| object when preparing a
+        new |Variable| object."""
 
     @property
     @abc.abstractmethod
@@ -939,7 +946,7 @@ operands could not be broadcast together with shapes (2,) (3,)...
         >>> class Var(Variable):
         ...     NDIM = 0
         ...     TYPE = float
-        ...     connect_variable2subgroup = None
+        ...     __hydpy__connect_variable2subgroup__ = None
         ...     initinfo = 3.0, True
 
         Without making use of default values (see below), trying to
@@ -1093,7 +1100,7 @@ occurred: could not broadcast input array from shape (2) into shape (2,3)
         >>> class Var(Variable):
         ...     NDIM = 1
         ...     TYPE = float
-        ...     connect_variable2subgroup = None
+        ...     __hydpy__connect_variable2subgroup__ = None
         ...     initinfo = 3.0, True
 
         Initially, the shape of a new |Variable| object is unknown:
@@ -1167,7 +1174,7 @@ shape indicates `2` dimensions.
         >>> class Var(Variable):
         ...     NDIM = 0
         ...     TYPE = int
-        ...     connect_variable2subgroup = None
+        ...     __hydpy__connect_variable2subgroup__ = None
         ...     initinfo = 3, True
 
         >>> var = Var(None)
@@ -1270,7 +1277,7 @@ as `var` can only be `()`, but `(2,)` is given.
         >>> class Var(Variable):
         ...     NDIM = 0
         ...     TYPE = float
-        ...     connect_variable2subgroup = None
+        ...     __hydpy__connect_variable2subgroup__ = None
         ...     initinfo = 0.0, False
         >>> var = Var(None)
         >>> import numpy
@@ -1341,7 +1348,7 @@ have not been set yet.
         ...     TYPE = float
         ...     refweigths = None
         ...     availablemasks = None
-        ...     connect_variable2subgroup = None
+        ...     __hydpy__connect_variable2subgroup__ = None
         ...     initinfo = None
         >>> sm = SoilMoisture(None)
         >>> sm.value = 200.0
@@ -1372,7 +1379,7 @@ of variable `soilmoisture`, the following error occurred: Variable \
         ...     NDIM = 1
         ...     shape = (3,)
         ...     value = numpy.array([1.0, 1.0, 2.0])
-        ...     connect_variable2subgroup = None
+        ...     __hydpy__connect_variable2subgroup__ = None
         ...     initinfo = None
         >>> area = Area(None)
         >>> SoilMoisture.refweights = property(lambda self: area)
@@ -1763,7 +1770,7 @@ class SubVariables(Generic[GroupType]):
     >>> class TestVar(Variable):
     ...     NDIM = 0
     ...     TYPE = float
-    ...     connect_variable2subgroup = lambda self: None
+    ...     __hydpy__connect_variable2subgroup__ = lambda self: None
     ...     initinfo = 0.0, False
 
     Out test |SubVariables| subclass is thought to handle only this
@@ -1772,7 +1779,8 @@ class SubVariables(Generic[GroupType]):
 
     >>> class SubVars(SubVariables):
     ...     CLASSES = (TestVar,)
-    ...     initialise_fastaccess = lambda self, cls_fastaccess, cymodel: None
+    ...     def __hydpy__initialise_fastaccess__(self, cls_fastaccess, cymodel):
+    ...         return None
     ...     name = 'subvars'
 
     After initialisation, |SubVariables| objects reference their master
@@ -1845,12 +1853,12 @@ variable `testvar`.
 
     def __init__(self, variables, cls_fastaccess=None, cymodel=None):
         self.vars = variables
-        self.initialise_fastaccess(cls_fastaccess, cymodel)
+        self.__hydpy__initialise_fastaccess__(cls_fastaccess, cymodel)
         self._name2variable = {}
         for cls in self.CLASSES:
             variable = cls(self)
             self._name2variable[variable.name] = variable
-            variable.connect_variable2subgroup()
+            variable.__hydpy__connect_variable2subgroup__()
 
     @property
     @abc.abstractmethod
@@ -1858,8 +1866,9 @@ variable `testvar`.
         """To be overridden."""
 
     @abc.abstractmethod
-    def initialise_fastaccess(self, cls_fastaccess, cymodel) -> Any:
-        """To be overridden."""
+    def __hydpy__initialise_fastaccess__(self, cls_fastaccess, cymodel) -> Any:
+        """To be overridden  Must create a `fastaccess` attribute and build
+        the required connections to the given cythonised model, if given."""
 
     def __getattr__(self, name):
         try:
@@ -1903,15 +1912,15 @@ variable `testvar`.
         >>> class TestVar(Variable):
         ...     NDIM = 0
         ...     TYPE = float
-        ...     connect_variable2subgroup = lambda self: None
+        ...     __hydpy__connect_variable2subgroup__ = lambda self: None
         ...     initinfo = 0.0, False
         >>> class TestSubVars(SubVariables):
         ...     CLASSES = (TestVar,)
-        ...     initialise_fastaccess = (
+        ...     __hydpy__initialise_fastaccess__ = (
         ...         lambda self, cls_fastaccess, cymodel: None)
         ...     name = None
         >>> dir(TestSubVars(None))
-        ['CLASSES', 'initialise_fastaccess', 'name', 'testvar', 'vars']
+        ['CLASSES', 'name', 'testvar', 'vars']
         """
         return objecttools.dir_(self) + list(self._name2variable.keys())
 
@@ -1929,7 +1938,7 @@ def to_repr(self: Variable, values, brackets1d: Optional[bool] = False) \
     >>> class Var(Variable):
     ...     NDIM = 0
     ...     TYPE = int
-    ...     connect_variable2subgroup = None
+    ...     __hydpy__connect_variable2subgroup__ = None
     ...     initinfo = 1.0, False
     >>> var = Var(None)
     >>> var.value = 2
@@ -1971,7 +1980,9 @@ def to_repr(self: Variable, values, brackets1d: Optional[bool] = False) \
           46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59]])
     """
     prefix = f'{self.name}('
-    if self.NDIM == 0:
+    if isinstance(values, str):
+        string = f'{self.name}({values})'
+    elif self.NDIM == 0:
         string = f'{self.name}({objecttools.repr_(values)})'
     elif self.NDIM == 1:
         if brackets1d:
@@ -1982,3 +1993,8 @@ def to_repr(self: Variable, values, brackets1d: Optional[bool] = False) \
     else:
         string = objecttools.assignrepr_list2(values, prefix, 72) + ')'
     return '\n'.join(self.commentrepr + [string])
+
+
+class FastAccess:
+    """Used as a surrogate for typed Cython classes handling parameters or
+    sequences when working in pure Python mode."""

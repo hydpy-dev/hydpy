@@ -25,7 +25,7 @@ class HV(parametertools.LeftRightParameter):
             >>> bnv(left=10., right=20.)
             >>> derived.hv.update()
             >>> derived.hv
-            hv(1.0, 2.0)
+            hv(left=1.0, right=2.0)
             >>> bbv(left=10., right=0.)
             >>> bnv(left=0., right=20.)
             >>> derived.hv.update()

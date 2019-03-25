@@ -540,7 +540,7 @@ Integration tests:
 
     As an alternative for water type |WASSER|, HydPy-L offers water type |SEE|
     for representing lakes not directly connected to the stream network, but
-    to the groundwater.  In some aggreement with the implementation of
+    to the groundwater.  In some agreement with the implementation of
     "internal lakes" in the HBV96 model (see |hland|), precipitation and
     evaporation values of |SEE| HRUs are directly added and removed from the
     input of the linear storage for base flow (|QBGZ|).  Hence, defining

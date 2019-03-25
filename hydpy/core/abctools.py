@@ -67,8 +67,9 @@ class VariableProtocol(Protocol):
     name: str
 
     @abc.abstractmethod
-    def connect_variable2subgroup(self):
-        """ToDo"""
+    def __hydpy__connect_variable2subgroup__(self):
+        """To be called by the |SubVariables| object when preparing a
+        new |Variable| object."""
 
 
 class SequencesABC(abc.ABC):

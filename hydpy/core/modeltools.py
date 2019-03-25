@@ -11,6 +11,7 @@ import numpy
 from hydpy import conf
 from hydpy.core import abctools
 from hydpy.core import objecttools
+from hydpy.core import variabletools
 from hydpy.cythons import modelutils
 
 
@@ -39,7 +40,7 @@ class Model:
         self.parameters = None
         self.sequences = None
         self._masks = None
-        self.cymodel = objecttools.FastAccess()   # ToDo ???
+        self.cymodel = variabletools.FastAccess()   # ToDo ???
         self.cymodel.idx_sim = -999
         self._init_methods()
 

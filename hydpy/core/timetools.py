@@ -300,7 +300,7 @@ literal for int() with base 10: '0X'
     @classmethod
     def from_cfunits(cls, units) -> 'Date':
         """Return a |Date| object representing the reference date of the
-        given `units` string aggreeing with the NetCDF-CF conventions.
+        given `units` string agreeing with the NetCDF-CF conventions.
 
         The following example string is taken from the `Time Coordinate`_
         chapter of the NetCDF-CF conventions documentation (modified).
@@ -361,7 +361,7 @@ occurred: No other decimal fraction of a second than "0" allowed.
                 f'string `{units}`')
 
     def to_cfunits(self, unit='hours', utcoffset=None):
-        """Return a `units` string aggreeing with the NetCDF-CF conventions.
+        """Return a `units` string agreeing with the NetCDF-CF conventions.
 
         By default, |Date.to_cfunits| takes `hours` as time unit, and the
         the actual value of |Options.utcoffset| as time zone information:
@@ -953,7 +953,7 @@ However, for the given `timedelta` object, it is`857142` instead.
     @classmethod
     def from_cfunits(cls, units):
         """Return a |Period| object representing the time unit of the
-        given `units` string aggreeing with the NetCDF-CF conventions.
+        given `units` string agreeing with the NetCDF-CF conventions.
 
         The following example string is taken from the `Time Coordinate`_
         chapter of the NetCDF-CF conventions.  Note that the character

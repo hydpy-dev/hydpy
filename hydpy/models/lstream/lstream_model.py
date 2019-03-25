@@ -657,6 +657,7 @@ def calc_h_v1(self):
     are required.
 
     Examples:
+
         Essentially, the Pegasus method is a root finding algorithm which
         sequentially decreases its search radius (like the simple bisection
         algorithm) and shows superlinear convergence properties (like the
@@ -720,7 +721,7 @@ def calc_h_v1(self):
         >>> derived.qm
         qm(8.399238)
         >>> derived.qv
-        qv(154.463234, 23.073584)
+        qv(left=154.463234, right=23.073584)
 
         The related water stages are the ones (directly or indirectly)
         defined above:

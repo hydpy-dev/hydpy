@@ -14,51 +14,19 @@ class ParameterComplete(parametertools.ZipParameter):
     """Base class for 1-dimensional parameters relevant for all types
     of zones.
 
-    Due to inheriting from |ZipParameter|, additional keyword zipping
-    functionality is offered, which is configured by the handled mask
-    |Complete|. The optional `kwargs` are checked for the keywords
-    `field`, `forest`, `glacier`, `ilake,` and `default`.  If available,
-    the respective values are used to define the values of those
-    1-dimensional arrays, whose entries are related to the different
-    zone types. Also the method |Parameter.compress_repr|
-    tries to find compressed string representations based on the
-    mentioned zone types.
+    |ParameterComplete| applies the features of class |ZipParameter|
+    on the land use types `field`, `forest`, `glacier`, and `ilake`
+    and consideres them all as relevant (e.g. for calculating
+    weighted averages).
 
     The following examples are based on parameter |PCorr|, which is
-    directly derived from |ParameterComplete|.
+    directly derived from |ParameterComplete|.  After preparing
+    the parameter |NmbZones|, parameter |PCorr| allows to set its
+    values using the relevant land use types as keywords:
 
     >>> from hydpy.models.hland import *
     >>> parameterstep('1d')
-
-    Usually, one defines its shape through parameter |NmbZones|:
-
-    >>> pcorr.shape
-    Traceback (most recent call last):
-    ...
-    AttributeError: Shape information for variable `pcorr` can only be \
-retrieved after it has been defined.
-
     >>> nmbzones(5)
-    >>> pcorr.shape
-    (5,)
-
-    Now, principally, the five entries of the parameter |PCorr| can
-    be filled with values via keyword arguments corresponding to
-    the constants defined in module |hland_constants|:
-
-    >>> pcorr(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
-    Traceback (most recent call last):
-    ...
-    RuntimeError: While trying to set the values of parameter `pcorr` \
-of element `?` based on keyword arguments, the following error occurred: \
-The mask of parameter `pcorr` of element `?` cannot be determined, as \
-long as parameter `zonetype` is not prepared properly.
-
-    But, of course only after the reference parameter |ZoneType| has been
-    properly prepared completely:
-
-    >>> zonetype
-    zonetype(?)
     >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, FIELD)
     >>> pcorr(field=2.0, forest=1.0, glacier=4.0, ilake=3.0)
     >>> pcorr
@@ -66,66 +34,23 @@ long as parameter `zonetype` is not prepared properly.
     >>> pcorr.values
     array([ 2.,  1.,  4.,  3.,  2.])
 
-    One can specify a default value for all zone types not included in
-    the keyword list:
-
-    >>> pcorr(field=2.0, forest=1.0, default=9.0)
-    >>> pcorr
-    pcorr(field=2.0, forest=1.0, glacier=9.0, ilake=9.0)
-    >>> pcorr.values
-    array([ 2.,  1.,  9.,  9.,  2.])
-
-    If no default value is given, numpys |numpy.nan| is applied:
-
-    >>> pcorr(field=2.0, forest=1.0)
-    >>> pcorr
-    pcorr(field=2.0, forest=1.0, glacier=nan, ilake=nan)
-    >>> pcorr.values
-    array([  2.,   1.,  nan,  nan,   2.])
-
-    Using wrong keyword arguments (that do not correspond to constants
-    defined in module |hland_constants|) result in the following error:
-
-    >>> pcorr(field=2.0, wood=1.0, glacier=4.0, ilake=3.0)
-    Traceback (most recent call last):
-    ...
-    NotImplementedError: While trying to set the values of parameter \
-`pcorr` of element `?` based on keyword arguments, the following error \
-occurred: Key `wood` is not an available model constant.
-
-    The way positional arguments are understood remains unaffected:
-
-    >>> pcorr(5.0)
-    >>> pcorr
-    pcorr(5.0)
-    >>> pcorr.values
-    array([ 5.,  5.,  5.,  5.,  5.])
-
-    >>> pcorr(5.0, 4.0, 3.0, 2.0, 1.0)
-    >>> pcorr
-    pcorr(5.0, 4.0, 3.0, 2.0, 1.0)
-    >>> pcorr.values
-    array([ 5.,  4.,  3.,  2.,  1.])
-
-    Parameter |ZoneArea| is used for calculating areal means (see
-    |property| |ParameterComplete.refweights|).  When |ZoneArea| is
-    propertly prepared, applying |Variable.average_values| returns
-    the expected wheighted mean value (as soon as possible):
+    Parameter |ZoneArea| is used for calculating the areal means (see
+    |property| |ParameterComplete.refweights|):
 
     >>> zonearea(0.0, 1.0, 2.0, 3.0, 4.0)
     >>> from hydpy import round_
     >>> round_(pcorr.average_values())
-    2.0
+    2.6
 
-    One can pass other masks defined in module |hland_masks|, to take
-    only certain types of zones into account:
+    Alternatively, pass other masks defined in module |hland_masks|,
+    to take only certain types of zones into account:
 
     >>> round_(pcorr.average_values(model.masks.field))
-    1.0
+    2.0
     >>> round_(pcorr.average_values('soil'))
-    1.6
+    1.8
     >>> round_(pcorr.average_values(model.masks.field, 'forest'))
-    1.6
+    1.8
     """
     MODEL_CONSTANTS = hland_constants.CONSTANTS
     mask = hland_masks.Complete()

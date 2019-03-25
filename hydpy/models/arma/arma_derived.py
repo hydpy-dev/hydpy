@@ -80,7 +80,7 @@ class DiffQ(parametertools.Parameter):
          >>> responses(((1., 2.), (1.,)))
         >>> derived.diffq.update()
         >>> derived.diffq
-        diffq()
+        diffq([])
         """
         responses = self.subpars.pars.control.responses
         self.shape = len(responses)-1

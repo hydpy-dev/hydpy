@@ -155,7 +155,7 @@ class DefaultMask(BaseMask):
 class IndexMask(DefaultMask):
     """A mask depending on a referenced index parameter containing integers.
 
-    |IndexMask| must subclassed.  See the masks |hland_masks.Complete|
+    |IndexMask| must be subclassed.  See the masks |hland_masks.Complete|
     and |hland_masks.Soil| of base model |hland| for two concrete example
     classes, which are applied on the |hland| specific parameter classes
     |hland_parameters.ParameterComplete| and |hland_parameters.ParameterSoil|.
@@ -215,6 +215,14 @@ must be overridden, which is not the case for class `IndexMask`.
         """|Parameter| object for determining which entries of
         |IndexMask| are |True| and which are |False|."""
         return self.get_refindices(self.variable)
+
+    @property
+    def relevantindices(self) -> List[int]:
+        """A |list| of all currently relevant indices, calculated as an
+        intercection of the (constant) class attribute `RELEVANT_VALUES`
+        and the (variable) property |IndexMask.refindices|."""
+        return [idx for idx in numpy.unique(self.refindices.values)
+                if idx in self.RELEVANT_VALUES]
 
 
 class Masks:

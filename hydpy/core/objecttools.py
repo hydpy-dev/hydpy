@@ -1488,7 +1488,3 @@ the original traceback.'
         return 'no description available'
     return ' '.join(self.__doc__.split('\n\n')[0].split())
 
-
-class FastAccess(object):
-    """Used as a surrogate for typed Cython classes when working in
-    pure Python mode."""

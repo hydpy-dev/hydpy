@@ -96,7 +96,7 @@ on the shape of parameter `xpoints`, which has not been defined so far.
     ValueError: For parameter `ypoints` of element `?` no branches are \
 defined.  Do this via keyword arguments as explained in the documentation.
 
-    The number of x and y supporting points must aggree for all branches:
+    The number of x and y supporting points must agree for all branches:
 
     >>> ypoints(branch1=[1.0, 2.0],
     ...         branch2=[2.0, 4.0])

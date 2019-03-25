@@ -272,7 +272,7 @@ class SubSequences(variabletools.SubVariables[Sequences]):
         self.seqs = variables
         super().__init__(variables, cls_fastaccess, cymodel)
 
-    def initialise_fastaccess(self, cls_fastaccess, cymodel):
+    def __hydpy__initialise_fastaccess__(self, cls_fastaccess, cymodel):
         if cls_fastaccess is None:
             self.fastaccess = FastAccess()
         else:
@@ -368,8 +368,8 @@ abctools.OutputSequencesABC.register(FluxSequences)
 class StateSequences(IOSequences):
     """Base class for handling state sequences."""
 
-    def initialise_fastaccess(self, cls_fastaccess, cymodel):
-        super().initialise_fastaccess(cls_fastaccess, cymodel)
+    def __hydpy__initialise_fastaccess__(self, cls_fastaccess, cymodel):
+        super().__hydpy__initialise_fastaccess__(cls_fastaccess, cymodel)
         self.fastaccess_new = self.fastaccess
         if cls_fastaccess is None:
             self.fastaccess_old = FastAccess()
@@ -430,7 +430,7 @@ class Sequence(variabletools.Variable):
         """Alias for attribute `subvars`."""
         return self.subvars
 
-    def connect_variable2subgroup(self):
+    def __hydpy__connect_variable2subgroup__(self):
         self.fastaccess = self.subvars.fastaccess
         self._connect_subattr('ndim', self.NDIM)
         self._connect_subattr('length', 0)
@@ -457,7 +457,9 @@ class Sequence(variabletools.Variable):
     def initinfo(self):
         if hydpy.pub.options.usedefaultvalues:
             initflag = True
-            initvalue = getattr(self, 'INIT', 0.)
+            initvalue = self.INIT
+            if initvalue is None:
+                initvalue = 0.
         else:
             initflag = False
             initvalue = numpy.nan
@@ -1474,8 +1476,8 @@ class StateSequence(ModelSequence, ConditionSequence):
         ConditionSequence.__call__(self, *args)
         self.new2old()
 
-    def connect_variable2subgroup(self):
-        super().connect_variable2subgroup()
+    def __hydpy__connect_variable2subgroup__(self):
+        super().__hydpy__connect_variable2subgroup__()
         self.fastaccess_old = self.subseqs.fastaccess_old
         self.fastaccess_new = self.subseqs.fastaccess_new
         if self.NDIM:
@@ -1936,7 +1938,7 @@ class NodeSequences(IOSequences):
         super().__init__(seqs, cls_fastaccess)
         self.node = seqs
 
-    def initialise_fastaccess(self, cls_fastaccess=None, cymodel=None):
+    def __hydpy__initialise_fastaccess__(self, cls_fastaccess=None, cymodel=None):
         if cls_fastaccess is None:
             self.fastaccess = FastAccessNode()
         else:

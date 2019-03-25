@@ -10,7 +10,8 @@ from hydpy.core import parametertools
 
 
 class TOY(parametertools.TOYParameter):
-    """References the "global" time of the year index array [-]."""
+    """References the |Indexer.timeofyear| index array provided by the
+     instance of class |Indexer| available in module |pub|. [-]."""
 
 
 class Seconds(parametertools.SecondsParameter):

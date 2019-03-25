@@ -217,7 +217,7 @@ Most probably, you defined the same threshold value(s) twice.
             self.fastaccess = None
             self._coefs = {}
 
-    def connect_variable2subgroup(self):
+    def __hydpy__connect_variable2subgroup__(self):
         """Make `subpars` an attribute of the respective |Responses| instance,
         but skip making a connection with its `fastaccess` object for
         reasons explained in the main documentation on class |Responses|."""

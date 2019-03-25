@@ -270,9 +270,9 @@ a positional nor a keyword argument is given.
         rhodkrit = float(kwargs.pop('rhodkrit', numpy.nan))
         missing = int(numpy.isnan(rhot0)) + int(numpy.isnan(rhodkrit))
         try:
-            lland_parameters.ParameterLand.__call__(self, *args, **kwargs)
+            super().__call__(*args, **kwargs)
             return
-        except NotImplementedError:
+        except TypeError:
             pass
         except BaseException as exc:
             if missing == 2:
@@ -399,10 +399,9 @@ class DMin(lland_parameters.ParameterSoil):
         >>> dmin(rdmin=10.0)
         Traceback (most recent call last):
         ...
-        NotImplementedError: While trying to set the values of parameter \
-`dmin` of element `?` based on keyword arguments, the following error \
-occurred: Key `rdmin` is not an available model constant.
-
+        TypeError: While trying to set the values of parameter `dmin` of \
+element `?` based on keyword arguments `rdmin`, the following error occurred: \
+Keyword `rdmin` is not among the available model constants.
     """
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
     INIT = 0.
@@ -413,7 +412,7 @@ occurred: Key `rdmin` is not an available model constant.
         """
         try:
             lland_parameters.ParameterSoil.__call__(self, *args, **kwargs)
-        except NotImplementedError:
+        except TypeError:
             args = kwargs.get('r_dmin')
             if args is not None:
                 self.values = 0.024192*self.apply_timefactor(numpy.array(args))
@@ -474,9 +473,9 @@ class DMax(lland_parameters.ParameterSoil):
         >>> dmax(rdmax=10.0)
         Traceback (most recent call last):
         ...
-        NotImplementedError: While trying to set the values of parameter \
-`dmax` of element `?` based on keyword arguments, the following error \
-occurred: Key `rdmax` is not an available model constant.
+        TypeError: While trying to set the values of parameter `dmax` of \
+element `?` based on keyword arguments `rdmax`, the following error occurred: \
+Keyword `rdmax` is not among the available model constants.
     """
     NDIM, TYPE, TIME, SPAN = 1, float, True, (None, None)
     INIT = 1.
@@ -487,7 +486,7 @@ occurred: Key `rdmax` is not an available model constant.
         """
         try:
             lland_parameters.ParameterSoil.__call__(self, *args, **kwargs)
-        except NotImplementedError:
+        except TypeError:
             args = kwargs.get('r_dmax')
             if args is not None:
                 self.values = 2.4192*self.apply_timefactor(numpy.array(args))

@@ -23,12 +23,34 @@ class MOY(parametertools.IndexParameter):
         >>> from hydpy import pub
         >>> pub.timegrids = '27.02.2004', '3.03.2004', '1d'
         >>> from hydpy.models.whmod import *
-        >>> parameterstep('1d')
+        >>> parameterstep()
         >>> derived.moy.update()
         >>> derived.moy
         moy(1, 1, 1, 2, 2)
         """
         self.setreference(pub.indexer.monthofyear)
+
+
+class RelArea(parametertools.Parameter):
+    """[-]"""
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., 1.)
+
+    def update(self):
+        """
+        >>> from hydpy import pub
+        >>> pub.options.usecython = False
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> nmb_cells(3)
+        >>> area(100.0)
+        >>> f_area(20.0, 30.0, 50.0)
+        >>> derived.relarea.update()
+        >>> derived.relarea
+        relarea(0.2, 0.3, 0.5)
+        """
+        control = self.subpars.pars.control
+        self(control.f_area/control.area)
 
 
 class Wurzeltiefe(parametertools.Parameter):
@@ -138,6 +160,7 @@ class Beta(parametertools.Parameter):
 
 class DerivedParameters(parametertools.SubParameters):
     CLASSES = (MOY,
+               RelArea,
                Wurzeltiefe,
                nFKwe,
                Beta)

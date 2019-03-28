@@ -796,27 +796,29 @@ def calc_kapilaufstieg_v1(self):
     """
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
-    >>> nmb_cells(5)
+    >>> nmb_cells(7)
+    >>> nutz_nr(GRAS, GRAS, GRAS, GRAS, GRAS, VERSIEGELT, WASSER)
     >>> mitfunktion_kapillareraufstieg(True)
-    >>> fluxes.relbodenfeuchte(0.0, 0.25, 0.5, 0.75, 1.0)
+    >>> fluxes.relbodenfeuchte(0.0, 0.25, 0.5, 0.75, 1.0, 0.0, 0.0)
     >>> fluxes.potkapilaufstieg(2.0)
     >>> model.calc_kapilaufstieg_v1()
     >>> fluxes.kapilaufstieg
-    kapilaufstieg(2.0, 0.84375, 0.25, 0.03125, 0.0)
+    kapilaufstieg(2.0, 0.84375, 0.25, 0.03125, 0.0, 0.0, 0.0)
 
     >>> mitfunktion_kapillareraufstieg(False)
     >>> model.calc_kapilaufstieg_v1()
     >>> fluxes.kapilaufstieg
-    kapilaufstieg(0.0, 0.0, 0.0, 0.0, 0.0)
+    kapilaufstieg(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
     for k in range(con.nmb_cells):
-        if con.mitfunktion_kapillareraufstieg[k]:
+        if ((con.nutz_nr[k] in (VERSIEGELT, WASSER)) or
+                (not con.mitfunktion_kapillareraufstieg[k])):
+            flu.kapilaufstieg[k] = 0.
+        else:
             flu.kapilaufstieg[k] = \
                 flu.potkapilaufstieg[k]*(1.-flu.relbodenfeuchte[k])**3
-        else:
-            flu.kapilaufstieg[k] = 0.
 
 
 def calc_aktbodenwassergehalt_v1(self):

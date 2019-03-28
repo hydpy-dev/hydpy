@@ -61,7 +61,6 @@ class Glacier(BaseMask):
 
 class Masks(masktools.Masks):
     """Masks of base model |hland|."""
-    BASE2CONSTANTS = {Complete: hland_constants.CONSTANTS}
     CLASSES = (Complete,
                Land,
                NoGlacier,

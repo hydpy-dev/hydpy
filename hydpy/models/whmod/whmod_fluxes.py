@@ -7,44 +7,45 @@
 from hydpy.core import sequencetools
 
 
+class Sequence1D(sequencetools.FluxSequence):
+    NDIM, NUMERIC = 1, False
+
+    @property
+    def refweights(self):
+        return self.subseqs.seqs.model.parameters.derived.relarea
+
+
 class NiederschlagRichter(sequencetools.FluxSequence):
     """[mm]"""
     NDIM, NUMERIC = 0, False
 
 
-class InterzeptionsVerdunstung(sequencetools.FluxSequence):
+class InterzeptionsVerdunstung(Sequence1D):
     """[mm]"""
-    NDIM, NUMERIC = 1, False
 
 
-class NiedNachInterz(sequencetools.FluxSequence):
+class NiedNachInterz(Sequence1D):
     """[mm]"""
-    NDIM, NUMERIC = 1, False
 
 
-class Seeniederschlag(sequencetools.FluxSequence):
+class Seeniederschlag(Sequence1D):
     """[mm]"""
-    NDIM, NUMERIC = 1, False
 
 
-class ZuflussBoden(sequencetools.FluxSequence):
+class ZuflussBoden(Sequence1D):
     """[mm]"""
-    NDIM, NUMERIC = 1, False
 
 
-class Oberflaechenabfluss(sequencetools.FluxSequence):
+class Oberflaechenabfluss(Sequence1D):
     """[mm]"""
-    NDIM, NUMERIC = 1, False
 
 
-class RelBodenfeuchte(sequencetools.FluxSequence):
+class RelBodenfeuchte(Sequence1D):
     """[-]"""
-    NDIM, NUMERIC = 1, False
 
 
-class Sickerwasser(sequencetools.FluxSequence):
+class Sickerwasser(Sequence1D):
     """[mm]"""
-    NDIM, NUMERIC = 1, False
 
 
 class Saettigungsdampfdruckdefizit(sequencetools.FluxSequence):
@@ -52,39 +53,32 @@ class Saettigungsdampfdruckdefizit(sequencetools.FluxSequence):
     NDIM, NUMERIC = 0, False
 
 
-class MaxVerdunstung(sequencetools.FluxSequence):
+class MaxVerdunstung(Sequence1D):
     """[mm]"""
-    NDIM, NUMERIC = 1, False
 
 
-class Bodenverdunstung(sequencetools.FluxSequence):
+class Bodenverdunstung(Sequence1D):
     """[mm]"""
-    NDIM, NUMERIC = 1, False
 
 
-class Seeverdunstung(sequencetools.FluxSequence):
+class Seeverdunstung(Sequence1D):
     """[mm]"""
-    NDIM, NUMERIC = 1, False
 
 
-class AktVerdunstung(sequencetools.FluxSequence):
+class AktVerdunstung(Sequence1D):
     """[mm]"""
-    NDIM, NUMERIC = 1, False
 
 
-class PotKapilAufstieg(sequencetools.FluxSequence):
+class PotKapilAufstieg(Sequence1D):
     """[mm]"""
-    NDIM, NUMERIC = 1, False
 
 
-class KapilAufstieg(sequencetools.FluxSequence):
+class KapilAufstieg(Sequence1D):
     """[mm]"""
-    NDIM, NUMERIC = 1, False
 
 
-class AktGrundwasserneubildung(sequencetools.FluxSequence):
+class AktGrundwasserneubildung(Sequence1D):
     """[mm]"""
-    NDIM, NUMERIC = 1, False
 
 
 class FluxSequences(sequencetools.FluxSequences):

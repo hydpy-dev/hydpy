@@ -586,6 +586,74 @@ def calc_maxverdunstung_v1(self):
             flu.maxverdunstung[k] = d_factor * flu.saettigungsdampfdruckdefizit
 
 
+def calc_maxverdunstung_v2(self):
+    """Berechnung maximale/potenzielle Verdunstung.
+
+    Required control parameters:
+      |Nmb_Cells|
+      |Nutz_Nr|
+      |FLN|
+
+    Required derived parameter:
+       |MOY|
+
+    Required input sequence:
+      |ET0|
+
+    Calculated flux sequences:
+      |MaxVerdunstung|
+
+    >>> from hydpy import pub
+    >>> pub.options.reprdigits = 6
+    >>> pub.options.usecython = False
+
+    >>> from hydpy.models.whmod import *
+    >>> parameterstep()
+    >>> nmb_cells(5)
+    >>> nutz_nr(LAUBWALD, NADELWALD, GRAS, WASSER, VERSIEGELT)
+    >>> fln(gras=[0.804, 0.927, 1.014, 1.041, 1.059, 1.056,
+    ...           1.038, 0.999, 0.977, 0.965, 0.989, 0.927],
+    ...     laubwald=[1.003, 1.003, 1.053, 1.179, 1.114, 1.227,
+    ...               1.241, 1.241, 1.241, 1.139, 1.082, 1.003],
+    ...     mais=[0.733, 0.733, 0.774, 0.947, 1.188, 1.181,
+    ...           1.185, 1.151, 0.974, 0.853, 0.775, 0.733],
+    ...     nadelwald=[1.335, 1.335, 1.335, 1.335, 1.307, 1.321,
+    ...                1.335, 1.335, 1.335, 1.335, 1.335, 1.335],
+    ...     sommerweizen=[0.733, 0.733, 0.774, 0.947, 1.188, 1.181,
+    ...                   1.185, 1.151, 0.974, 0.853, 0.775, 0.733],
+    ...     winterweizen=[0.733, 0.733, 0.774, 0.947, 1.188, 1.181,
+    ...                   1.185, 1.151, 0.974, 0.853, 0.775, 0.733],
+    ...     zuckerrueben=[0.733, 0.733, 0.774, 0.947, 1.188, 1.181,
+    ...                   1.185, 1.151, 0.974, 0.853, 0.775, 0.733],
+    ...     versiegelt=0.0,
+    ...     wasser=[1.165, 1.217, 1.256, 1.283, 1.283, 1.296,
+    ...             1.283, 1.283, 1.270, 1.230, 1.165, 1.139])
+
+    >>> from hydpy import pub
+    >>> pub.timegrids = '2001-06-29', '2001-07-03', '1d'
+    >>> derived.moy.update()
+
+    >>> inputs.et0 = 5.0
+
+    >>> model.idx_sim = pub.timegrids.init['2001-06-30']
+    >>> model.calc_maxverdunstung_v2()
+    >>> fluxes.maxverdunstung
+    maxverdunstung(6.135, 6.605, 5.28, 6.48, 0.0)
+
+    >>> model.idx_sim = pub.timegrids.init['2001-07-01']
+    >>> model.calc_maxverdunstung_v2()
+    >>> fluxes.maxverdunstung
+    maxverdunstung(6.205, 6.675, 5.19, 6.415, 0.0)
+    """
+    con = self.parameters.control.fastaccess
+    der = self.parameters.derived.fastaccess
+    inp = self.sequences.inputs.fastaccess
+    flu = self.sequences.fluxes.fastaccess
+    month = der.moy[self.idx_sim]
+    for k in range(con.nmb_cells):
+        flu.maxverdunstung[k] = con.fln[con.nutz_nr[k]-1, month] * inp.et0
+
+
 def calc_bodenverdunstung_v1(self):
     """
 
@@ -908,7 +976,8 @@ class Model(modeltools.Model):
                    calc_relbodenfeuchte_v1,
                    calc_sickerwasser_v1,
                    calc_saettigungsdampfdruckdefizit_v1,
-                   calc_maxverdunstung_v1,
+                   # calc_maxverdunstung_v1,
+                   calc_maxverdunstung_v2,
                    calc_bodenverdunstung_v1,
                    calc_seeverdunstung_v1,
                    calc_aktverdunstung_v1,

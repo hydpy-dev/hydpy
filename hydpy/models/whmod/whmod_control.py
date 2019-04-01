@@ -101,6 +101,14 @@ class FaktorWald(parametertools.KeywordParameter2D):
     ROWNAMES = ('laubwald', 'nadelwald')
 
 
+class FLN(parametertools.KeywordParameter2D):
+    TYPE, TIME, SPAN = float, None, (0., None)
+    COLNAMES = ('jan', 'feb', 'mar', 'apr', 'mai', 'jun',
+                'jul', 'aug', 'sep', 'oct', 'nov', 'dec')
+    ROWNAMES = ('gras', 'laubwald', 'mais', 'nadelwald', 'sommerweizen',
+                'winterweizen', 'zuckerrueben', 'versiegelt', 'wasser')
+
+
 class Gradfaktor(whmod_parameters.NutzNrComplete):
     """[mm/T/K]"""
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
@@ -147,6 +155,7 @@ class ControlParameters(parametertools.SubParameters):
                Faktor,
                FactorC,
                FaktorWald,
+               FLN,
                F_AREA,
                Gradfaktor,
                NFK100_Mittel,

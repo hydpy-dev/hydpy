@@ -95,14 +95,14 @@ class nFKwe(parametertools.Parameter):
 class Beta(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
-    def update(self):
+    def update_old(self):
         """
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
         >>> nmb_cells(26)
         >>> nutz_nr(GRAS)
         >>> derived.nfkwe(range(0, 260, 10))
-        >>> derived.beta.update()
+        >>> derived.beta.update_old()
         >>> from hydpy import print_values
         >>> for values in zip(derived.nfkwe, derived.beta):
         ...     print_values(values)
@@ -136,7 +136,7 @@ class Beta(parametertools.Parameter):
         >>> nmb_cells(2)
         >>> nutz_nr(WASSER, VERSIEGELT)
         >>> derived.nfkwe(100.0)
-        >>> derived.beta.update()
+        >>> derived.beta.update_old()
         >>> derived.beta
         beta(0.0)
         """
@@ -156,6 +156,69 @@ class Beta(parametertools.Parameter):
                                  - 7.26381809e-2) * sel
                                 + 4.47631543) * sel
                                - 108.1457328)
+
+
+class Beta(parametertools.Parameter):
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+
+    def update(self):
+        """
+
+        >>> from hydpy import pub
+        >>> pub.options.reprdigits = 6
+
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep()
+        >>> nmb_cells(26)
+        >>> nutz_nr(GRAS)
+        >>> derived.nfkwe(range(0, 260, 10))
+        >>> derived.beta.update()
+        >>> from hydpy import print_values
+        >>> for values in zip(derived.nfkwe, derived.beta):
+        ...     print_values(values)
+        0.0, 1.0
+        10.0, 1.000001
+        20.0, 1.000058
+        30.0, 1.000806
+        40.0, 1.005223
+        50.0, 1.022215
+        60.0, 1.072058
+        70.0, 1.192281
+        80.0, 1.438593
+        90.0, 1.869943
+        100.0, 2.510161
+        110.0, 3.307578
+        120.0, 4.143126
+        130.0, 4.895532
+        140.0, 5.498714
+        150.0, 5.945944
+        160.0, 6.262712
+        170.0, 6.48211
+        180.0, 6.632992
+        190.0, 6.736978
+        200.0, 6.809179
+        210.0, 6.859826
+        220.0, 6.895768
+        230.0, 6.921582
+        240.0, 6.940345
+        250.0, 6.954142
+
+        >>> nmb_cells(2)
+        >>> nutz_nr(WASSER, VERSIEGELT)
+        >>> derived.nfkwe(100.0)
+        >>> derived.beta.update()
+        >>> derived.beta
+        beta(0.0)
+        """
+        nutz_nr = self.subpars.pars.control.nutz_nr
+        nfkwe = self.subpars.nfkwe
+        self(0.0)
+        idxs1 = (nutz_nr.values != WASSER) * (nutz_nr.values != VERSIEGELT)
+        idxs2 = nfkwe.values <= 0.
+        idxs3 = idxs1 * idxs2
+        self.values[idxs3] = 1.0
+        idxs4 = idxs1 * ~idxs2
+        self.values[idxs4] = 1.0 + 6.0/(1+(nfkwe[idxs4]/118.25)**-6.5)
 
 
 class DerivedParameters(parametertools.SubParameters):

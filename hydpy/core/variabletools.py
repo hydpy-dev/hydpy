@@ -396,26 +396,28 @@ def _trim_float_0d(self, lower, upper):
 
 
 def _trim_float_nd(self, lower, upper):
+    values = self.values
+    shape = values.shape
     if lower is None:
         lower = -numpy.inf
-    lower = numpy.full(self.shape, lower, dtype=float)
+    lower = numpy.full(shape, lower, dtype=float)
     lower[numpy.where(numpy.isnan(lower))] = -numpy.inf
     if upper is None:
         upper = numpy.inf
-    upper = numpy.full(self.shape, upper, dtype=float)
+    upper = numpy.full(shape, upper, dtype=float)
     upper[numpy.where(numpy.isnan(upper))] = numpy.inf
-    idxs = numpy.where(numpy.isnan(self.values))
-    self[idxs] = lower[idxs]
-    if numpy.any(self.values < lower) or numpy.any(self.values > upper):
-        old = self.values.copy()
-        trimmed = numpy.clip(self.values, lower, upper)
+    idxs = numpy.where(numpy.isnan(values))
+    values[idxs] = lower[idxs]
+    if numpy.any(values < lower) or numpy.any(values > upper):
+        old = values.copy()
+        trimmed = numpy.clip(values, lower, upper)
         self.values = trimmed
         if (numpy.any((old + _get_tolerance(old)) <
                       (lower - _get_tolerance(lower))) or
                 numpy.any((old - _get_tolerance(old)) >
                           (upper + _get_tolerance(upper)))):
             _warn_trim(self, oldvalue=old, newvalue=trimmed)
-    self[idxs] = numpy.nan
+    values[idxs] = numpy.nan
 
 
 def _trim_int_0d(self, lower, upper):

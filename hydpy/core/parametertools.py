@@ -2200,13 +2200,12 @@ class KeywordParameter2D(Parameter):
     on two factors.
 
     When subclassing from |KeywordParameter2D| one needs to define the
-    class attributes |KeywordParameter2D.ROWNAMES| and
-    |KeywordParameter2D.COLNAMES| (both of type |tuple|).  A typical use
-    case is that |KeywordParameter2D.ROWNAMES| defines some land
-    use classes and |KeywordParameter2D.COLNAMES| defines seasons, months,
-    or the like.  Here, we consider a simple corresponding example, where
-    the values of the boolean parameter  `IsWarm` both depend on the
-    on the hemisphere and the half-year period:
+    class attributes `ROWNAMES` and `COLNAMES` (both of type |tuple|).
+    A typical use case is that `ROWNAMES` defines some land use classes
+    and `COLNAMES` defines seasons, months, or the like.  Here, we
+    consider a simple corresponding example, where the values of the
+    boolean parameter  `IsWarm` both depend on the on the hemisphere
+    and the half-year period:
 
     >>> from hydpy.core.parametertools import KeywordParameter2D
     >>> class IsWarm(KeywordParameter2D):

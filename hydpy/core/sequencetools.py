@@ -780,14 +780,12 @@ or prepare `pub.sequencemanager` correctly.
 
     @property
     def diskflag(self):
-        diskflag = getattr(
-            self.fastaccess, '_%s_diskflag' % self.name, None)
-        if diskflag is not None:
-            return diskflag
-        else:
+        try:
+            return getattr(self.fastaccess, '_%s_diskflag' % self.name)
+        except AttributeError:
             raise RuntimeError(
-                'The `diskflag` of sequence `%s` has not been set yet.'
-                % objecttools.devicephrase(self))
+                f'The `diskflag` of sequence '
+                f'`{objecttools.devicephrase(self)}` has not been set yet.')
 
     @diskflag.setter
     def diskflag(self, value):
@@ -795,13 +793,12 @@ or prepare `pub.sequencemanager` correctly.
 
     @property
     def ramflag(self):
-        ramflag = getattr(self.fastaccess, '_%s_ramflag' % self.name, None)
-        if ramflag is not None:
-            return ramflag
-        else:
+        try:
+            return getattr(self.fastaccess, '_%s_ramflag' % self.name)
+        except AttributeError:
             raise RuntimeError(
-                'The `ramflag` of sequence `%s` has not been set yet.'
-                % objecttools.devicephrase(self))
+                f'The `ramflag` of sequence '
+                f'`{objecttools.devicephrase(self)}` has not been set yet.')
 
     @ramflag.setter
     def ramflag(self, value):
@@ -872,13 +869,13 @@ or prepare `pub.sequencemanager` correctly.
             self.diskflag = False
 
     def __get_array(self):
-        array = getattr(self.fastaccess, '_%s_array' % self.name, None)
-        if array is not None:
-            return numpy.asarray(array)
-        else:
+        try:
+            return numpy.asarray(
+                getattr(self.fastaccess, '_%s_array' % self.name))
+        except AttributeError:
             raise RuntimeError(
-                'The `ram array` of sequence `%s` has not been set yet.'
-                % objecttools.devicephrase(self))
+                f'The `ram array` of sequence '
+                f'`{objecttools.devicephrase(self)}` has not been set yet.')
 
     def __set_array(self, values):
         values = numpy.array(values, dtype=float)
@@ -1279,18 +1276,17 @@ sequence `nkor` of element `element3`.
         mode = self.aggregation_ext
         if mode == 'none':
             return self.series
-        elif mode == 'mean':
+        if mode == 'mean':
             return self.average_series(*args, **kwargs)
-        else:
-            raise RuntimeError(
-                'Unknown aggregation mode `%s` for sequence %s.'
-                % (mode, objecttools.devicephrase(self)))
+        raise RuntimeError(
+            f'Unknown aggregation mode `{mode}` for '
+            f'sequence {objecttools.devicephrase(self)}.')
 
     @property
     def descr_sequence(self):
         """Description of the |IOSequence| object itself and the
         |SubSequences| group it belongs to."""
-        raise NotImplementedError()
+        raise NotImplementedError()   # ToDo
 
 
 class ModelSequence(IOSequence):
@@ -1414,7 +1410,7 @@ class LeftRightSequence(ModelSequence):
     right = property(_get_right, _set_right)
 
 
-class ConditionSequence(object):
+class ConditionSequence:
 
     def __call__(self, *args):
         self.values = args
@@ -1902,7 +1898,8 @@ class NodeSequences(IOSequences):
         super().__init__(seqs, cls_fastaccess)
         self.node = seqs
 
-    def __hydpy__initialise_fastaccess__(self, cls_fastaccess=None, cymodel=None):
+    def __hydpy__initialise_fastaccess__(
+            self, cls_fastaccess=None, cymodel=None):
         if cls_fastaccess is None:
             self.fastaccess = FastAccessNode()
         else:
@@ -1917,7 +1914,7 @@ class NodeSequences(IOSequences):
         self.fastaccess.save_data(idx)
 
 
-class FastAccess(object):
+class FastAccess:
     """Provides fast access to the values of the sequences of a sequence
     subgroup and supports the handling of internal data series during
     simulations.
@@ -2028,7 +2025,7 @@ class FastAccess(object):
                 yield key
 
 
-class FastAccessNode(object):
+class FastAccessNode:
     """|sequencetools.FastAccess| like object specialised for |Node| objects.
 
     Adding a cythonized version could result in some speedups.

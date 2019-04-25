@@ -8,8 +8,9 @@ import warnings
 import numpy
 # ...from HydPy
 from hydpy.core import abctools
-from hydpy.core import parametertools
 from hydpy.core import objecttools
+from hydpy.core import parametertools
+from hydpy.core import sequencetools
 from hydpy.core import timetools
 # ...from lland
 from hydpy.models.lland import lland_constants
@@ -55,7 +56,7 @@ class NHRU(parametertools.Parameter):
             for seq in subseqs:
                 if (((seq.NDIM == 1) and (seq.name != 'moy')) or
                         ((seq.NDIM == 2) and
-                         isinstance(seq, abctools.LogSequenceABC))):
+                         isinstance(seq, sequencetools.LogSequence))):
                     seq.shape = self.value
 
 

@@ -72,99 +72,6 @@ class VariableProtocol(Protocol):
         new |Variable| object."""
 
 
-class SequencesABC(abc.ABC):
-    """See class |Sequences|."""
-    
-    inputs: 'InputSequencesABC'
-    fluxes: 'FluxSequencesABC'
-    states: 'StateSequencesABC'
-
-    @abc.abstractmethod
-    def __iter__(self) -> Iterator['SequenceABC']:
-        ...
-
-    @abc.abstractmethod
-    def open_files(self, idx: int) -> None:
-        ...
-
-    @abc.abstractmethod
-    def close_files(self) -> None:
-        ...
-
-    @abc.abstractmethod
-    def reset(self) -> None:
-        ...
-
-    @property
-    @abc.abstractmethod
-    def conditions(self) -> Dict[str, Dict[str, Union[float, numpy.ndarray]]]:
-        pass
-
-    @abc.abstractmethod
-    def trim_conditions(self) -> None:
-        ...
-
-
-class IOSequencesABC(SequencesABC, metaclass=abc.ABCMeta):
-    """See class |IOSequences|."""
-
-
-class InputSequencesABC(IOSequencesABC, metaclass=abc.ABCMeta):
-    """See class |InputSequences|."""
-
-
-class OutputSequencesABC(IOSequencesABC, metaclass=abc.ABCMeta):
-    """See class "OutputSequences" classes
-    like |FluxSequences|."""
-
-
-class SequenceABC(abc.ABC):
-    """See class |Sequence|."""
-
-
-class IOSequenceABC(SequenceABC):
-    """See class |IOSequence|."""
-
-
-class ModelSequenceABC(IOSequenceABC):
-    """See class |ModelSequence|."""
-
-
-class InputSequenceABC(ModelSequenceABC):
-    """See class |InputSequence|."""
-    pass
-
-
-class FluxSequenceABC(ModelSequenceABC):
-    """See class |FluxSequence|."""
-    pass
-
-
-class ConditionSequenceABC(ModelSequenceABC):
-    """See class |ConditionSequence| classes.
-    """
-
-
-class StateSequenceABC(ConditionSequenceABC):
-    """See class |StateSequence|."""
-
-
-class LogSequenceABC(ConditionSequenceABC):
-    """See class |LogSequence|."""
-
-
-class AideSequenceABC(SequenceABC):
-    """See class |AideSequence|."""
-
-
-class LinkSequenceABC(SequenceABC):
-    """See class |LinkSequence|."""
-
-
-class NodeSequenceABC(IOSequenceABC):
-    """See class |NodeSequence|."""
-
-
 class MaskABC(abc.ABC):
     """See class `Mask` classes."""
 
@@ -239,20 +146,6 @@ __all__ = [
     'MayNonerable2',
     'MayNonerable3',
     'DevicesHandlerProtocol',
-    'SequencesABC',
-    'IOSequencesABC',
-    'OutputSequencesABC',
-    'SequenceABC',
-    'IOSequenceABC',
-    'ModelSequenceABC',
-    'InputSequenceABC',
-    'FluxSequenceABC',
-    'ConditionSequenceABC',
-    'StateSequenceABC',
-    'LogSequenceABC',
-    'AideSequenceABC',
-    'LinkSequenceABC',
-    'NodeSequenceABC',
     'MaskABC',
     'DateABC',
     'PeriodABC',

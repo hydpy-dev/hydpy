@@ -31,6 +31,7 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import printtools
 from hydpy.core import selectiontools
+from hydpy.core import sequencetools
 from hydpy.core import timetools
 from hydpy.tests import iotesting
 
@@ -239,7 +240,7 @@ class Test(object):
             for dummy in range(len(parseq)-1):
                 strings.append('')
             if ((parseq.name == 'sim') and
-                    isinstance(parseq, abctools.SequenceABC)):
+                    isinstance(parseq, sequencetools.Sequence)):
                 strings.append(parseq.subseqs.node.name)
             else:
                 strings.append(parseq.name)
@@ -263,7 +264,7 @@ class Test(object):
                         strings[-1].append('empty')
                 else:
                     thing = ('sequence'
-                             if isinstance(parseq, abctools.SequenceABC)
+                             if isinstance(parseq, sequencetools.Sequence)
                              else 'parameter')
                     raise RuntimeError(
                         'An instance of class `Test` of module `testtools` '
@@ -350,7 +351,6 @@ class PlottingOptions(object):
         self.height = 300
         self.activated = None
         self.selected = None
-        self.skip_nodes = True
 
 
 class IntegrationTest(Test):
@@ -511,7 +511,7 @@ class IntegrationTest(Test):
                         pass
 
     def plot(self, filename, width=None, height=None,
-             selected=None, activated=None, skip_nodes=None):
+             selected=None, activated=None):
         """Save a bokeh html file plotting the current test results.
 
         (Optional) arguments:
@@ -522,8 +522,6 @@ class IntegrationTest(Test):
             * height: Height of the plot in screen units.  Defaults to 300.
             * selected: List of the sequences to be plotted.
             * activated: List of the sequences to be shown initially.
-            * skip_nodes: Boolean flag that indicates whether series of
-              node objects shall be plotted or not. Defaults to `False`.
         """
         import bokeh.models
         import bokeh.palettes
@@ -538,11 +536,6 @@ class IntegrationTest(Test):
             selected = self.plotting_options.selected
             if selected is None:
                 selected = self.parseqs
-        if skip_nodes is None:
-            skip_nodes = self.plotting_options.skip_nodes
-        if skip_nodes:
-            selected = [seq for seq in selected
-                        if not isinstance(seq, abctools.NodeSequenceABC)]
         if activated is None:
             activated = self.plotting_options.activated
             if activated is None:

@@ -71,7 +71,7 @@ class Sequences(object):
 
     def _yield_iosubsequences(self):
         for subseqs in self:
-            if isinstance(subseqs, abctools.IOSequencesABC):
+            if isinstance(subseqs, IOSequences):
                 yield subseqs
 
     def activate_disk(self, names=None):
@@ -111,18 +111,24 @@ class Sequences(object):
             subseqs.close_files()
 
     def load_data(self, idx):
-        """Call method |InputSequences.load_data| of all handled
-        |InputSequences| objects."""
+        """Call method `load_data` of all handled |IOSequences|
+        objects providing such this method."""
         for subseqs in self:
-            if isinstance(subseqs, abctools.InputSequencesABC):
-                subseqs.load_data(idx)
+            try:
+                load_data = subseqs.load_data
+            except AttributeError:
+                continue
+            load_data(idx)
 
     def save_data(self, idx):
-        """Call method `save_data|` of all handled |IOSequences|
-        objects registered under |OutputSequencesABC|."""
+        """Call method `save_data` of all handled |IOSequences|
+        objects providing such this method."""
         for subseqs in self:
-            if isinstance(subseqs, abctools.OutputSequencesABC):
-                subseqs.save_data(idx)
+            try:
+                save_data = subseqs.save_data
+            except AttributeError:
+                continue
+            save_data(idx)
 
     def reset(self):
         """Call method |ConditionSequence.reset| of all handled
@@ -326,17 +332,11 @@ class IOSequences(SubSequences):
             seq.disk2ram()
 
 
-abctools.IOSequencesABC.register(IOSequences)
-
-
 class InputSequences(IOSequences):
     """Base class for handling input sequences."""
 
     def load_data(self, idx):
         self.fastaccess.load_data(idx)
-
-
-abctools.InputSequencesABC.register(InputSequences)
 
 
 class FluxSequences(IOSequences):
@@ -360,9 +360,6 @@ class FluxSequences(IOSequences):
         for flux in self:
             if flux.NUMERIC:
                 yield flux
-
-
-abctools.OutputSequencesABC.register(FluxSequences)
 
 
 class StateSequences(IOSequences):
@@ -391,9 +388,6 @@ class StateSequences(IOSequences):
     def reset(self):
         for seq in self:
             seq.reset()
-
-
-abctools.OutputSequencesABC.register(StateSequences)
 
 
 class LogSequences(SubSequences):
@@ -475,9 +469,6 @@ class Sequence(variabletools.Variable):
 
     def __dir__(self):
         return objecttools.dir_(self)
-
-
-abctools.SequenceABC.register(Sequence)
 
 
 class _IOProperty(propertytools.DefaultProperty):
@@ -1302,9 +1293,6 @@ sequence `nkor` of element `element3`.
         raise NotImplementedError()
 
 
-abctools.IOSequenceABC.register(IOSequence)
-
-
 class ModelSequence(IOSequence):
     """Base class for sequences to be handled by |Model| objects."""
 
@@ -1353,9 +1341,6 @@ class ModelSequence(IOSequence):
         return self.subseqs.seqs.model.element.name
 
 
-abctools.ModelSequenceABC.register(IOSequence)
-
-
 class InputSequence(ModelSequence):
     """Base class for input sequences of |Model| objects."""
 
@@ -1366,9 +1351,6 @@ class InputSequence(ModelSequence):
     aggregation_ext = _AggregationProperty()
 
     overwrite_ext = _OverwriteProperty()
-
-
-abctools.InputSequenceABC.register(InputSequence)
 
 
 class FluxSequence(ModelSequence):
@@ -1405,9 +1387,6 @@ class FluxSequence(ModelSequence):
             self._connect_subattr('sum', numpy.zeros(self.shape))
 
     shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
-
-
-abctools.FluxSequenceABC.register(FluxSequence)
 
 
 class LeftRightSequence(ModelSequence):
@@ -1577,9 +1556,6 @@ class StateSequence(ModelSequence, ConditionSequence):
             self.old = self.new
 
 
-abctools.StateSequenceABC.register(StateSequence)
-
-
 class LogSequence(Sequence, ConditionSequence):
     """Base class for logging sequences of |Model| objects."""
 
@@ -1593,9 +1569,6 @@ class LogSequence(Sequence, ConditionSequence):
         self._oldargs = copy.deepcopy(args)
 
 
-abctools.LogSequenceABC.register(LogSequence)
-
-
 class AideSequence(Sequence):
     """Base class for aide sequences of |Model| objects.
 
@@ -1604,9 +1577,6 @@ class AideSequence(Sequence):
     calculation methods of a |Model| object.
     """
     pass
-
-
-abctools.AideSequenceABC.register(AideSequence)
 
 
 class LinkSequence(Sequence):
@@ -1684,9 +1654,6 @@ class LinkSequence(Sequence):
     shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
 
 
-abctools.LinkSequenceABC.register(LinkSequence)
-
-
 class NodeSequence(IOSequence):
     """Base class for all sequences to be handled by |Node| objects."""
 
@@ -1738,9 +1705,6 @@ class NodeSequence(IOSequence):
         getattr(self.fastaccess, self.name)[0] = values
 
     value = property(fget=__hydpy__get_value__, fset=__hydpy__set_value__)
-
-
-abctools.NodeSequenceABC.register(NodeSequence)
 
 
 class Sim(NodeSequence):

@@ -8,16 +8,19 @@ import os
 import struct
 import sys
 import warnings
-from typing import *
+from typing import (
+    ClassVar, Dict, IO, Iterable, Tuple, Type, TYPE_CHECKING, Union)
 # ...from site-packages
 import numpy
 # ...from HydPy
 import hydpy
-from hydpy.core import abctools
 from hydpy.core import objecttools
 from hydpy.core import propertytools
 from hydpy.core import variabletools
-from hydpy.cythons.autogen import pointerutils
+if TYPE_CHECKING:
+    from hydpy.cythons import pointerutils
+else:
+    from hydpy.cythons.autogen import pointerutils
 
 NAMES_CONDITIONSEQUENCES = ('states', 'logs')
 
@@ -50,7 +53,7 @@ class InfoArray(numpy.ndarray):
         self.info = getattr(obj, 'info', None)
 
 
-class Sequences(object):
+class Sequences:
     """Handles all sequences of a specific model."""
 
     _NAMES_SUBSEQS = ('inlets', 'receivers', 'inputs', 'fluxes', 'states',
@@ -262,7 +265,7 @@ class SubSequences(variabletools.SubVariables[Sequences]):
     Attributes:
       * vars: The parent |Sequences| object.
       * seqs: The parent |Sequences| object.
-      * fastaccess: The  |sequencetools.FastAccess| object allowing fast
+      * fastaccess: The  |sequencetools.FastAccessSequence| object allowing fast
         access to the sequence values. In `Cython` mode, model specific
         cdef classes are applied.
 
@@ -280,7 +283,7 @@ class SubSequences(variabletools.SubVariables[Sequences]):
 
     def __hydpy__initialise_fastaccess__(self, cls_fastaccess, cymodel):
         if cls_fastaccess is None:
-            self.fastaccess = FastAccess()
+            self.fastaccess = FastAccessModelSequence()
         else:
             self.fastaccess = cls_fastaccess()
             setattr(cymodel.sequences, self.name, self.fastaccess)
@@ -369,7 +372,7 @@ class StateSequences(IOSequences):
         super().__hydpy__initialise_fastaccess__(cls_fastaccess, cymodel)
         self.fastaccess_new = self.fastaccess
         if cls_fastaccess is None:
-            self.fastaccess_old = FastAccess()
+            self.fastaccess_old = FastAccessModelSequence()
         else:
             setattr(cymodel.sequences, 'new_states', self.fastaccess)
             self.fastaccess_old = cls_fastaccess()
@@ -413,11 +416,6 @@ class Sequence(variabletools.Variable):
     NUMERIC: ClassVar[bool]
 
     strict_valuehandling = False
-
-    def __init__(self, subvars: SubSequences):
-        super().__init__(subvars)
-        self.diskflag = False
-        self.ramflag = False
 
     @property
     def subseqs(self):
@@ -603,10 +601,15 @@ cannot be determined.  Either set it manually or prepare \
 `pub.sequencemanager` correctly.
     """
 
-    filetype_ext: str
-    dirpath_ext: str
-    aggregation_ext: str
-    descr_device: str
+    filetype_ext: ClassVar[_FileType]
+    dirpath_ext: ClassVar[_DirPathProperty]
+    aggregation_ext: ClassVar[_AggregationProperty]
+    descr_device: ClassVar[_OverwriteProperty]
+
+    def __init__(self, subvars: SubSequences):
+        super().__init__(subvars)
+        self.diskflag = False
+        self.ramflag = False
 
     @propertytools.DefaultProperty
     def rawfilename(self):
@@ -1341,11 +1344,8 @@ class InputSequence(ModelSequence):
     """Base class for input sequences of |Model| objects."""
 
     filetype_ext = _FileType()
-
     dirpath_ext = _DirPathProperty()
-
     aggregation_ext = _AggregationProperty()
-
     overwrite_ext = _OverwriteProperty()
 
 
@@ -1353,11 +1353,8 @@ class FluxSequence(ModelSequence):
     """Base class for flux sequences of |Model| objects."""
 
     filetype_ext = _FileType()
-
     dirpath_ext = _DirPathProperty()
-
     aggregation_ext = _AggregationProperty()
-
     overwrite_ext = _OverwriteProperty()
 
     def _initvalues(self):
@@ -1396,6 +1393,7 @@ class LeftRightSequence(ModelSequence):
         return self.values[0]
 
     def _set_left(self, value):
+        # pylint: disable=unsupported-assignment-operation
         self.values[0] = value
 
     left = property(_get_left, _set_left)
@@ -1405,6 +1403,7 @@ class LeftRightSequence(ModelSequence):
         return self.values[1]
 
     def _set_right(self, value):
+        # pylint: disable=unsupported-assignment-operation
         self.values[1] = value
 
     right = property(_get_right, _set_right)
@@ -1432,11 +1431,8 @@ class StateSequence(ModelSequence, ConditionSequence):
     NOT_DEEPCOPYABLE_MEMBERS = ('subseqs', 'fastaccess_old', 'fastaccess_new')
 
     filetype_ext = _FileType()
-
     dirpath_ext = _DirPathProperty()
-
     aggregation_ext = _AggregationProperty()
-
     overwrite_ext = _OverwriteProperty()
 
     def __init__(self, subvars):
@@ -1572,7 +1568,6 @@ class AideSequence(Sequence):
     only temporarily but needs to be shared between different
     calculation methods of a |Model| object.
     """
-    pass
 
 
 class LinkSequence(Sequence):
@@ -1623,7 +1618,7 @@ class LinkSequence(Sequence):
         """ToDo"""
         if self.NDIM == 0:
             return ()
-        elif self.NDIM == 1:
+        if self.NDIM == 1:
             try:
                 return getattr(self.fastaccess, self.name).shape
             except AttributeError:
@@ -1652,13 +1647,12 @@ class LinkSequence(Sequence):
 
 class NodeSequence(IOSequence):
     """Base class for all sequences to be handled by |Node| objects."""
+    NDIM: ClassVar[int] = 0
+    NUMERIC: ClassVar[bool] = False
 
     filetype_ext = _FileType()
-
     dirpath_ext = _DirPathProperty()
-
     aggregation_ext = _AggregationProperty()
-
     overwrite_ext = _OverwriteProperty()
 
     @property
@@ -1694,18 +1688,17 @@ class NodeSequence(IOSequence):
         except AttributeError:
             if self.NDIM == 0:
                 return self.fastaccess.getpointer0d(self.name)
-            elif self.NDIM == 1:
+            if self.NDIM == 1:
                 return self.fastaccess.getpointer1d(self.name)
 
-    def __hydpy__set_value__(self, values):
-        getattr(self.fastaccess, self.name)[0] = values
+    def __hydpy__set_value__(self, value):
+        getattr(self.fastaccess, self.name)[0] = value
 
     value = property(fget=__hydpy__get_value__, fset=__hydpy__set_value__)
 
 
 class Sim(NodeSequence):
     """Base class for simulation sequences of |Node| objects."""
-    NDIM, NUMERIC = 0, False
 
     def load_ext(self):
         """Read time series data like method |IOSequence.load_ext| of class
@@ -1778,7 +1771,6 @@ of node `dill`, the following error occurred: The series array of sequence \
 
 class Obs(NodeSequence):
     """Base class for observation sequences of |Node| objects."""
-    NDIM, NUMERIC = 0, False
 
     def load_ext(self):
         """Read time series data like method |IOSequence.load_ext| of class
@@ -1889,8 +1881,7 @@ of node `dill`, the following error occurred: The series array of sequence \
 
 class NodeSequences(IOSequences):
     """Base class for handling node sequences."""
-    CLASSES = (Sim,
-               Obs)
+    CLASSES: ClassVar[Tuple[Type[Sim], Type[Obs]]] = (Sim, Obs)
     sim: Sim
     obs: Obs
 
@@ -1901,11 +1892,9 @@ class NodeSequences(IOSequences):
     def __hydpy__initialise_fastaccess__(
             self, cls_fastaccess=None, cymodel=None):
         if cls_fastaccess is None:
-            self.fastaccess = FastAccessNode()
+            self.fastaccess = FastAccessNodeSequence()
         else:
             self.fastaccess = cls_fastaccess()
-
-
 
     def load_data(self, idx):
         self.fastaccess.load_data(idx)
@@ -1914,34 +1903,7 @@ class NodeSequences(IOSequences):
         self.fastaccess.save_data(idx)
 
 
-class FastAccess:
-    """Provides fast access to the values of the sequences of a sequence
-    subgroup and supports the handling of internal data series during
-    simulations.
-
-    The following details are of relevance for *HydPy* developers only.
-
-    |sequencetools.FastAccess| is applied in Python mode only.  In Cython
-    mode, specialized and more efficient cdef classes replace it.  For
-    compatibility with these cdef classes, |sequencetools.FastAccess|
-    objects work with dynamically set instance members.  Suppose there
-    is a sequence named `seq1` which is 2-dimensional, then its associated
-    attributes are:
-
-      * seq1 (|numpy.ndarray|): The actual sequence values.
-      * _seq1_ndim (|int|): Number of dimensions.
-      * _seq1_length_0 (|int|): Length in the first dimension.
-      * _seq1_length_1 (|int|): Length in the second dimension.
-      * _seq1_ramflag (|bool|): Handle internal data in RAM?
-      * _seq1_diskflag (|bool|): Handle internal data on disk?
-      * _seq1_path (|str|): Path of the internal data file.
-      * _seq1_file (|io.open|): Object handling the internal data file.
-
-    Note that all these dynamical attributes and the following methods are
-    initialised, changed or applied by the respective |SubSequences| and
-    |Sequence| objects.  Handling them directly is error prone and thus
-    not recommended.
-    """
+class FastAccessSequence:
 
     def open_files(self, idx):
         """Open all files with an activated disk flag."""
@@ -1963,6 +1925,44 @@ class FastAccess:
             if getattr(self, '_%s_diskflag' % name):
                 file_ = getattr(self, '_%s_file' % name)
                 file_.close()
+
+    def __iter__(self):
+        """Iterate over all sequence names."""
+        for key in vars(self).keys():
+            if not key.startswith('_'):
+                yield key
+
+
+class FastAccessModelSequence(FastAccessSequence):
+    """Provides fast access to the values of the sequences of a sequence
+    subgroup and supports the handling of internal data series during
+    simulations.
+
+    The following details are of relevance for *HydPy* developers only.
+
+    |sequencetools.FastAccessModelSequence| is applied in Python mode only.
+    In Cython
+    mode, specialized and more efficient cdef classes replace it.  For
+    compatibility with these cdef classes,
+    |sequencetools.FastAccessModelSequence|
+    objects work with dynamically set instance members.  Suppose there
+    is a sequence named `seq1` which is 2-dimensional, then its associated
+    attributes are:
+
+      * seq1 (|numpy.ndarray|): The actual sequence values.
+      * _seq1_ndim (|int|): Number of dimensions.
+      * _seq1_length_0 (|int|): Length in the first dimension.
+      * _seq1_length_1 (|int|): Length in the second dimension.
+      * _seq1_ramflag (|bool|): Handle internal data in RAM?
+      * _seq1_diskflag (|bool|): Handle internal data on disk?
+      * _seq1_path (|str|): Path of the internal data file.
+      * _seq1_file (|io.open|): Object handling the internal data file.
+
+    Note that all these dynamical attributes and the following methods are
+    initialised, changed or applied by the respective |SubSequences| and
+    |Sequence| objects.  Handling them directly is error prone and thus
+    not recommended.
+    """
 
     def load_data(self, idx):
         """Load the internal data of all sequences.  Load from file if the
@@ -2018,45 +2018,24 @@ class FastAccess:
                 array = getattr(self, '_%s_array' % name)
                 array[idx] = actual
 
-    def __iter__(self):
-        """Iterate over all sequence names."""
-        for key in vars(self).keys():
-            if not key.startswith('_'):
-                yield key
 
-
-class FastAccessNode:
-    """|sequencetools.FastAccess| like object specialised for |Node| objects.
+class FastAccessNodeSequence(FastAccessSequence):
+    """|sequencetools.FastAccessModelSequence| like object specialised for
+    |Node| objects.
 
     Adding a cythonized version could result in some speedups.
     """
 
-    def open_files(self, idx):
-        """Open all files with an activated disk flag.
-
-        ToDo: duplicate
-        """
-        for name in self:
-            if getattr(self, '_%s_diskflag' % name):
-                path = getattr(self, '_%s_path' % name)
-                file_ = open(path, 'rb+')
-                ndim = getattr(self, '_%s_ndim' % name)
-                position = 8*idx
-                for idim in range(ndim):
-                    length = getattr(self, '_%s_length_%d' % (name, idim))
-                    position *= length
-                file_.seek(position)
-                setattr(self, '_%s_file' % name, file_)
-
-    def close_files(self):
-        """Close all files with an activated disk flag.
-
-        ToDo: duplicate
-        """
-        for name in self:
-            if getattr(self, '_%s_diskflag' % name):
-                file_ = getattr(self, '_%s_file' % name)
-                file_.close()
+    sim: pointerutils.Double
+    obs: pointerutils.Double
+    _sim_array: numpy.array
+    _obs_array: numpy.array
+    _sim_ramflag: bool
+    _obs_ramflag: bool
+    _sim_diskflag: bool
+    _obs_diskflag: bool
+    _sim_file: IO
+    _obs_file: IO
 
     def load_simdata(self, idx: int) -> None:
         """Load the next sim sequence value (of the given index)."""
@@ -2064,7 +2043,7 @@ class FastAccessNode:
             self.sim[0] = self._sim_array[idx]
         elif self._sim_diskflag:
             raw = self._sim_file.read(8)
-            self.sim[0] = struct.unpack('d', raw)
+            self.sim[0] = struct.unpack('d', raw)[0]
 
     def save_simdata(self, idx: int) -> None:
         """Save the last sim sequence value (of the given index)."""
@@ -2080,13 +2059,4 @@ class FastAccessNode:
             self.obs[0] = self._obs_array[idx]
         elif self._obs_diskflag:
             raw = self._obs_file.read(8)
-            self.obs[0] = struct.unpack('d', raw)
-
-    def __iter__(self):
-        """Iterate over all sequence names.
-
-        Todo: duplicate
-        """
-        for key in vars(self).keys():
-            if not key.startswith('_'):
-                yield key
+            self.obs[0] = struct.unpack('d', raw)[0]

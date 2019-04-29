@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""This module provides tools for defining different kinds of the parameters
-of hydrological models."""
+"""This module provides tools for defining and handling different kinds
+of the parameters of hydrological models."""
 # import...
 # ...from standard library
 import inspect
@@ -327,8 +327,7 @@ no value has been defined so far.
 
     def __iter__(self) -> Iterator['SubParameters']:
         for subpars in (self.control, self.derived, self.solver):
-            if subpars is not None:
-                yield subpars
+            yield subpars
 
     def __dir__(self) -> List[str]:
         """

@@ -404,7 +404,7 @@ class PyxWriter(object):
         for subseqs in self.model.sequences:
             lines.add(1, 'cdef public %s %s'
                          % (objecttools.classname(subseqs), subseqs.name))
-        if getattr(self.model.sequences, 'states', None) is not None:
+        if self.model.sequences.states:
             lines.add(1, 'cdef public StateSequences old_states')
             lines.add(1, 'cdef public StateSequences new_states')
         for subseqs in self.model.sequences:
@@ -691,7 +691,7 @@ class PyxWriter(object):
         lines = Lines()
         lines.add(1, 'cpdef inline void doit(self, int idx) %s:' % _nogil)
         lines.add(2, 'self.idx_sim = idx')
-        if getattr(self.model.sequences, 'inputs', None) is not None:
+        if self.model.sequences.inputs:
             lines.add(2, 'self.load_data()')
         if self.model.INLET_METHODS:
             lines.add(2, 'self.update_inlets()')
@@ -699,7 +699,7 @@ class PyxWriter(object):
             lines.add(2, 'self.solve()')
         else:
             lines.add(2, 'self.run()')
-            if getattr(self.model.sequences, 'states', None) is not None:
+            if self.model.sequences.states:
                 lines.add(2, 'self.new2old()')
         if self.model.OUTLET_METHODS:
             lines.add(2, 'self.update_outlets()')
@@ -710,12 +710,11 @@ class PyxWriter(object):
         """Input/output functions of the model class."""
         lines = Lines()
         for func in ('open_files', 'close_files', 'load_data', 'save_data'):
-            if ((func == 'load_data') and
-                    (getattr(self.model.sequences, 'inputs', None) is None)):
+            if (func == 'load_data') and (not self.model.sequences.inputs):
                 continue
             if ((func == 'save_data') and
-                ((getattr(self.model.sequences, 'fluxes', None) is None) and
-                 (getattr(self.model.sequences, 'states', None) is None))):
+                    (not self.model.sequences.fluxes) and
+                    (not self.model.sequences.states)):
                 continue
             print('            . %s' % func)
             nogil = func in ('load_data', 'save_data')
@@ -741,7 +740,7 @@ class PyxWriter(object):
     @property
     def new2old(self):
         lines = Lines()
-        if getattr(self.model.sequences, 'states', None) is not None:
+        if self.model.sequences.states:
             print('                . new2old')
             lines.add(1, method_header('new2old', nogil=True))
             lines.add(2, 'cdef int jdx0, jdx1, jdx2, jdx3, jdx4, jdx5')

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""This module implements tools for handling the sequences (time series)
-of hydrological models."""
+"""This module implements tools for defining and handling different kinds
+of the sequences (time series) of hydrological models."""
 # import...
 # ...from standard library
 import copy
@@ -9,7 +9,8 @@ import struct
 import sys
 import warnings
 from typing import (
-    ClassVar, Dict, IO, Iterable, Tuple, Type, TYPE_CHECKING, Union)
+    ClassVar, Dict, IO, Iterable, Iterator, List, Tuple, Type, TYPE_CHECKING,
+    Union)
 # ...from site-packages
 import numpy
 # ...from HydPy
@@ -18,11 +19,10 @@ from hydpy.core import objecttools
 from hydpy.core import propertytools
 from hydpy.core import variabletools
 if TYPE_CHECKING:
+    from hydpy.core import modeltools
     from hydpy.cythons import pointerutils
 else:
     from hydpy.cythons.autogen import pointerutils
-
-NAMES_CONDITIONSEQUENCES = ('states', 'logs')
 
 
 class InfoArray(numpy.ndarray):
@@ -54,23 +54,58 @@ class InfoArray(numpy.ndarray):
 
 
 class Sequences:
-    """Handles all sequences of a specific model."""
+    """Base class for handling all sequences of a specific model.
 
-    _NAMES_SUBSEQS = ('inlets', 'receivers', 'inputs', 'fluxes', 'states',
-                      'logs', 'aides', 'outlets', 'senders')
+    |Sequences| objects handle nine sequence subgroups as attributes:
+    the `inlets` subsequences, the `receivers` subsequences, and so on:
+
+    >>> from hydpy import prepare_model
+    >>> model = prepare_model('hstream_v1', '1d')
+    >>> bool(model.sequences.inlets)
+    True
+    >>> bool(model.sequences.receivers)
+    False
+
+    Iterations makes only the non-empty subgroups available, which
+    are actually handling |Sequence| objects:
+
+    >>> for subseqs in model.sequences:
+    ...     print(subseqs.name)
+    inlets
+    states
+    outlets
+    """
+
+    model: 'modeltools.Model'
+    inlets: 'SubSequences'
+    receivers: 'SubSequences'
+    inputs: 'SubSequences'
+    fluxes: 'SubSequences'
+    states: 'SubSequences'
+    logs: 'SubSequences'
+    aides: 'SubSequences'
+    outlets: 'SubSequences'
+    senders: 'SubSequences'
 
     def __init__(self, **kwargs):
-        self.model = kwargs.pop('model', None)
-        cythonmodule = kwargs.pop('cythonmodule', None)
-        cymodel = kwargs.pop('cymodel', None)
-        for (name, cls) in kwargs.items():
-            if name.endswith('Sequences') and issubclass(cls, SubSequences):
-                if cythonmodule:
-                    cls_fastaccess = getattr(cythonmodule, name)
-                    subseqs = cls(self, cls_fastaccess, cymodel)
-                else:
-                    subseqs = cls(self, None, None)
-                setattr(self, subseqs.name, subseqs)
+        self.model = kwargs.get('model')
+        self.inlets = self._prepare_subseqs('inlet', kwargs)
+        self.receivers = self._prepare_subseqs('receiver', kwargs)
+        self.inputs = self._prepare_subseqs('input', kwargs)
+        self.fluxes = self._prepare_subseqs('flux', kwargs)
+        self.states = self._prepare_subseqs('state', kwargs)
+        self.logs = self._prepare_subseqs('log', kwargs)
+        self.aides = self._prepare_subseqs('aide', kwargs)
+        self.outlets = self._prepare_subseqs('outlet', kwargs)
+        self.senders = self._prepare_subseqs('sender', kwargs)
+
+    def _prepare_subseqs(self, shortname, kwargs):
+        fullname = f'{shortname.capitalize()}Sequences'
+        cls = kwargs.get(fullname,
+                         type(fullname, (SubSequences,), {'CLASSES': ()}))
+        return cls(self,
+                   getattr(kwargs.get('cythonmodule'), fullname, None),
+                   kwargs.get('cymodel'))
 
     def _yield_iosubsequences(self):
         for subseqs in self:
@@ -136,23 +171,17 @@ class Sequences:
     def reset(self):
         """Call method |ConditionSequence.reset| of all handled
         |ConditionSequence| objects."""
-        for seqs in self.conditionsequences:
-            seqs.reset()
-
-    def __iter__(self):
-        for name in self._NAMES_SUBSEQS:
-            subseqs = getattr(self, name, None)
-            if subseqs is not None:
-                yield subseqs
+        for seq in self.conditionsequences:
+            seq.reset()
 
     @property
     def conditionsequences(self):
         """Generator object yielding all conditions (|StateSequence| and
         |LogSequence| objects).
         """
-        for subseqs in NAMES_CONDITIONSEQUENCES:
-            for tuple_ in getattr(self, subseqs, ()):
-                yield tuple_
+        for subseqs in (self.states, self.logs):
+            for seq in subseqs:
+                yield seq
 
     @property
     def conditions(self) -> Dict[str, Dict[str, Union[float, numpy.ndarray]]]:
@@ -163,12 +192,10 @@ class Sequences:
         information.
         """
         conditions = {}
-        for subname in NAMES_CONDITIONSEQUENCES:
-            subseqs = getattr(self, subname, ())
-            subconditions = {seq.name: copy.deepcopy(seq.values)
-                             for seq in subseqs}
-            if subconditions:
-                conditions[subname] = subconditions
+        for seq in self.conditionsequences:
+            subconditions = conditions.get(seq.subseqs.name, {})
+            subconditions[seq.name] = copy.deepcopy(seq.values)
+            conditions[seq.subseqs.name] = subconditions
         return conditions
 
     @conditions.setter
@@ -180,14 +207,6 @@ class Sequences:
                     getattr(subseqs, seqname)(values)
         for seq in reversed(tuple(self.conditionsequences)):
             seq.trim()
-
-    @property
-    def hasconditions(self):
-        """True or False, whether the |Sequences| object "handles conditions"
-        or not (at least one |StateSequence| or |LogSequence| object)."""
-        for _ in self.conditionsequences:
-            return True
-        return False
 
     @property
     def _conditiondefaultfilename(self):
@@ -212,7 +231,7 @@ class Sequences:
         If no filename or dirname is passed, the ones defined by the
         |ConditionManager| stored in module |pub| are used.
         """
-        if self.hasconditions:
+        if self.conditionsequences:
             if not filename:
                 filename = self._conditiondefaultfilename
             namespace = locals()
@@ -238,7 +257,7 @@ class Sequences:
         If no filename or dirname is passed, the ones defined by the
         |ConditionManager| stored in module |pub| are used.
         """
-        if self.hasconditions:
+        if self.conditionsequences:
             if filename is None:
                 filename = self._conditiondefaultfilename
             con = hydpy.pub.controlmanager
@@ -255,8 +274,16 @@ class Sequences:
         for seq in self.conditionsequences:
             seq.trim()
 
-    def __len__(self):
-        return len(dict(self))
+    def __iter__(self) -> Iterator['SubSequences']:
+        for subseqs in (self.inlets, self.receivers, self.inputs,
+                        self.fluxes, self.states, self.logs,
+                        self.aides, self.outlets, self.senders):
+            if subseqs:
+                yield subseqs
+
+    def __dir__(self) -> List[str]:
+        """ToDo"""
+        return objecttools.dir_(self)
 
 
 class SubSequences(variabletools.SubVariables[Sequences]):

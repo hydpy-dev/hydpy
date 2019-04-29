@@ -119,7 +119,27 @@ class Constants(dict):
 
 
 class Parameters:
-    """Base class for handling all parameters of a specific model."""
+    """Base class for handling all parameters of a specific model.
+
+    |Parameters| objects handle three parameter subgroups as attributes:
+    the `control` subparameters, the `derived` subparameters, and the
+    `solver` subparameters.  All are accessible via iteration:
+
+    >>> from hydpy.models.hstream_v1 import *
+    >>> parameterstep('1d')
+    >>> for subpars in model.parameters:
+    ...     print(subpars.name)
+    control
+    derived
+    solver
+
+    Note that, if the relevant model does not define one of these
+    subgroups, its |Parameters| object handles an (automatically
+    generated) "empty" |SubParameters| object instead:
+
+    >>> len(parameters.solver)
+    0
+    """
 
     model: 'modeltools.Model'
     control: 'SubParameters'

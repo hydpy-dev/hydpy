@@ -123,22 +123,22 @@ class Parameters:
 
     |Parameters| objects handle three parameter subgroups as attributes:
     the `control` subparameters, the `derived` subparameters, and the
-    `solver` subparameters.  All are accessible via iteration:
+    `solver` subparameters:
 
     >>> from hydpy.models.hstream_v1 import *
     >>> parameterstep('1d')
+    >>> bool(model.parameters.control)
+    True
+    >>> bool(model.parameters.solver)
+    False
+
+    Iterations makes only the non-empty subgroups available, which
+    are actually handling |Sequence| objects:
+
     >>> for subpars in model.parameters:
     ...     print(subpars.name)
     control
     derived
-    solver
-
-    Note that, if the relevant model does not define one of these
-    subgroups, its |Parameters| object handles an (automatically
-    generated) "empty" |SubParameters| object instead:
-
-    >>> len(parameters.solver)
-    0
     """
 
     model: 'modeltools.Model'
@@ -347,7 +347,8 @@ no value has been defined so far.
 
     def __iter__(self) -> Iterator['SubParameters']:
         for subpars in (self.control, self.derived, self.solver):
-            yield subpars
+            if subpars:
+                yield subpars
 
     def __dir__(self) -> List[str]:
         """

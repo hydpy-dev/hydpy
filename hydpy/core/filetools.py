@@ -1344,7 +1344,7 @@ is not allowed to overwrite the existing file `...`.
     Traceback (most recent call last):
     ...
     AttributeError: Sequence `nkor` of element `element2` is not requested \
-to make any internal data available to the user.
+to make any internal data available.
 
     The third option to store data in netCDF files, which is explained
     separately in the documentation on class |NetCDFInterface|.

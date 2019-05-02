@@ -37,7 +37,7 @@ def prepare_arrays(sim=None, obs=None, node=None, skip_nan=False):
     >>> node.prepare_simseries()
     >>> with pub.options.checkseries(False):
     ...     node.sequences.sim.series = 1.0, nan, nan, nan, 2.0, 3.0
-    ...     node.sequences.obs.ramflag = True
+    ...     node.sequences.obs.activate_ram()
     ...     node.sequences.obs.series = 4.0, 5.0, nan, nan, nan, 6.0
 
     Now we can pass the node object to function |prepare_arrays| and
@@ -634,7 +634,7 @@ def evaluationtable(nodes, criteria, nodenames=None,
     >>> for node in nodes:
     ...     node.prepare_simseries()
     ...     node.sequences.sim.series = 1.0, 2.0, 3.0
-    ...     node.sequences.obs.ramflag = True
+    ...     node.sequences.obs.activate_ram()
     ...     node.sequences.obs.series = 4.0, 5.0, 6.0
     >>> nodes[0].sequences.sim.series = 1.0, 2.0, 3.0
     >>> nodes[0].sequences.obs.series = 4.0, 5.0, 6.0

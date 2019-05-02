@@ -24,7 +24,7 @@ class LoggedOutflow(sequencetools.LogSequence):
 class ShapeOne(sequencetools.LogSequence):
     """Base class for log sequences with a shape of one."""
 
-    def _initvalues(self):
+    def _finalise_connections(self):
         self.shape = (1,)
 
     def __hydpy__get_shape__(self):

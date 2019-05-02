@@ -989,11 +989,12 @@ shape (2) into shape (2,3)
 
     @property
     def initinfo(self) -> Tuple[Union[float, int, bool], bool]:
-        """The actual initial value of the given parameter.
+        """A |tuple| containing the initial value and |True| or a missing
+        value and |False|, depending on the actual |Parameter| subclass and
+        the actual value of option |Options.usedefaultvalues|.
 
-        Some |Parameter| subclasses define another value for class
-        attribute `INIT` than |None| to provide a default value.
-
+        In the following we show how method the effects of property
+        |Parameter.initinfo| when initiasing new |Parameter| objects.
         Let's define a parameter test class and prepare a function for
         initialising it and connecting the resulting instance to a
         |SubParameters| object:
@@ -1026,10 +1027,10 @@ shape (2) into shape (2,3)
         >>> test
         test(2.0)
 
-        When no `INIT` attribute is defined, enabling
+        When no `INIT` attribute is defined (indicated by |None|), enabling
         |Options.usedefaultvalues| has no effect, of course:
 
-        >>> del Test.INIT
+        >>> Test.INIT = None
         >>> test = prepare()
         >>> test
         test(?)

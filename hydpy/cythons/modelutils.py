@@ -447,6 +447,8 @@ class PyxWriter(object):
                     lines.extend(self.save_data(subseqs))
             if isinstance(subseqs, sequencetools.LinkSequences):
                 lines.extend(self.set_pointer(subseqs))
+                lines.extend(self.get_value(subseqs))
+                lines.extend(self.set_value(subseqs))
         return lines
 
     @staticmethod
@@ -574,6 +576,39 @@ class PyxWriter(object):
         for seq in subseqs:
             lines.add(2, 'if name == "%s":' % seq.name)
             lines.add(3, 'self.%s = value.p_value' % seq.name)
+        return lines
+
+    @staticmethod
+    def get_value(subseqs):
+        """Get value function for link sequences."""
+        print('            . get_value')
+        lines = Lines()
+        lines.add(1, 'cpdef get_value(self, str name):')
+        lines.add(2, 'cdef int idx')
+        for seq in subseqs:
+            lines.add(2, 'if name == "%s":' % seq.name)
+            if seq.NDIM == 0:
+                lines.add(3, 'return self.%s[0]' % seq.name)
+            elif seq.NDIM == 1:
+                lines.add(3, 'values = numpy.empty(self.len_%s)' % seq.name)
+                lines.add(3, 'for idx in range(self.len_%s):' % seq.name)
+                lines.add(4, 'values[idx] = self.%s[idx][0]' % seq.name)
+                lines.add(3, 'return values')
+        return lines
+
+    @staticmethod
+    def set_value(subseqs):
+        """Set value function for link sequences."""
+        print('            . set_value')
+        lines = Lines()
+        lines.add(1, 'cpdef set_value(self, str name, value):')
+        for seq in subseqs:
+            lines.add(2, 'if name == "%s":' % seq.name)
+            if seq.NDIM == 0:
+                lines.add(3, 'self.%s[0] = value' % seq.name)
+            elif seq.NDIM == 1:
+                lines.add(3, 'for idx in range(self.len_%s):' % seq.name)
+                lines.add(4, 'self.%s[idx][0] = value[idx]' % seq.name)
         return lines
 
     @staticmethod
@@ -925,7 +960,7 @@ class PyxWriter(object):
     @decorate_method
     def get_sum_fluxes(self):
         yield self._assign_seqvalues(
-            subseqs=self.model.sequences.fluxes.numerics,
+            subseqs=self.model.sequences.fluxes.numericsequences,
             subseqs_name='fluxes',
             target='sum',
             index=None,
@@ -934,7 +969,7 @@ class PyxWriter(object):
     @decorate_method
     def set_point_fluxes(self):
         yield self._assign_seqvalues(
-            subseqs=self.model.sequences.fluxes.numerics,
+            subseqs=self.model.sequences.fluxes.numericsequences,
             subseqs_name='fluxes',
             target='points',
             index='idx_stage',
@@ -943,7 +978,7 @@ class PyxWriter(object):
     @decorate_method
     def set_result_fluxes(self):
         yield self._assign_seqvalues(
-            subseqs=self.model.sequences.fluxes.numerics,
+            subseqs=self.model.sequences.fluxes.numericsequences,
             subseqs_name='fluxes',
             target='results',
             index='idx_method',
@@ -952,7 +987,7 @@ class PyxWriter(object):
     @decorate_method
     def integrate_fluxes(self):
         max_ndim = -1
-        for seq in self.model.sequences.fluxes.numerics:
+        for seq in self.model.sequences.fluxes.numericsequences:
             max_ndim = max(max_ndim, seq.NDIM)
         if max_ndim == 0:
             yield 'cdef int jdx'
@@ -960,7 +995,7 @@ class PyxWriter(object):
             yield 'cdef int jdx, idx0'
         elif max_ndim == 2:
             yield 'cdef int jdx, idx0, idx1'
-        for seq in self.model.sequences.fluxes.numerics:
+        for seq in self.model.sequences.fluxes.numericsequences:
             to_ = 'self.sequences.fluxes.%s' % seq.name
             from_ = 'self.sequences.fluxes._%s_points' % seq.name
             coefs = ('self.numvars.dt * self.numconsts.a_coefs'
@@ -992,7 +1027,7 @@ class PyxWriter(object):
 
     @decorate_method
     def reset_sum_fluxes(self):
-        for seq in self.model.sequences.fluxes.numerics:
+        for seq in self.model.sequences.fluxes.numericsequences:
             to_ = 'self.sequences.fluxes._%s_sum' % seq.name
             if seq.NDIM == 0:
                 yield '%s = 0.' % to_
@@ -1014,7 +1049,7 @@ class PyxWriter(object):
 
     @decorate_method
     def addup_fluxes(self):
-        for seq in self.model.sequences.fluxes.numerics:
+        for seq in self.model.sequences.fluxes.numericsequences:
             to_ = 'self.sequences.fluxes._%s_sum' % seq.name
             from_ = 'self.sequences.fluxes.%s' % seq.name
             if seq.NDIM == 0:
@@ -1043,7 +1078,7 @@ class PyxWriter(object):
         to_ = 'self.numvars.error'
         index = 'self.numvars.idx_method'
         yield '%s = 0.' % to_
-        for seq in self.model.sequences.fluxes.numerics:
+        for seq in self.model.sequences.fluxes.numericsequences:
             from_ = 'self.sequences.fluxes._%s_results' % seq.name
             if seq.NDIM == 0:
                 yield ('%s = max(%s, fabs(%s[%s]-%s[%s-1]))'

@@ -11,7 +11,7 @@ import numpy
 from hydpy import conf
 from hydpy.core import abctools
 from hydpy.core import objecttools
-from hydpy.core import variabletools
+from hydpy.core import parametertools
 from hydpy.cythons import modelutils
 
 
@@ -620,7 +620,7 @@ class ModelELS(Model):
         q(1.0)
         """
         fluxes = self.sequences.fluxes
-        for flux in fluxes.numerics:
+        for flux in fluxes.numericsequences:
             flux(getattr(fluxes.fastaccess, '_%s_sum' % flux.name))
 
     def set_point_fluxes(self):
@@ -657,7 +657,7 @@ class ModelELS(Model):
 
     def _set_fluxes(self, idx, type_):
         fluxes = self.sequences.fluxes
-        for flux in fluxes.numerics:
+        for flux in fluxes.numericsequences:
             temp = getattr(fluxes.fastaccess, '_%s_%s' % (flux.name, type_))
             temp[idx] = flux
 
@@ -682,7 +682,7 @@ class ModelELS(Model):
         q(2.9375)
         """
         fluxes = self.sequences.fluxes
-        for flux in fluxes.numerics:
+        for flux in fluxes.numericsequences:
             points = getattr(fluxes.fastaccess, '_%s_points' % flux.name)
             coefs = self.numconsts.a_coefs[self.numvars.idx_method-1,
                                            self.numvars.idx_stage,
@@ -701,7 +701,7 @@ class ModelELS(Model):
         0.0
         """
         fluxes = self.sequences.fluxes
-        for flux in fluxes.numerics:
+        for flux in fluxes.numericsequences:
             if flux.NDIM == 0:
                 setattr(fluxes.fastaccess, '_%s_sum' % flux.name, 0.)
             else:
@@ -719,7 +719,7 @@ class ModelELS(Model):
         3.0
         """
         fluxes = self.sequences.fluxes
-        for flux in fluxes.numerics:
+        for flux in fluxes.numericsequences:
             sum_ = getattr(fluxes.fastaccess, '_%s_sum' % flux.name)
             sum_ += flux
             if flux.NDIM == 0:
@@ -741,7 +741,7 @@ class ModelELS(Model):
         """
         self.numvars.error = 0.
         fluxes = self.sequences.fluxes
-        for flux in fluxes.numerics:
+        for flux in fluxes.numericsequences:
             results = getattr(fluxes.fastaccess, '_%s_results' % flux.name)
             diff = (results[self.numvars.idx_method] -
                     results[self.numvars.idx_method-1])

@@ -22,11 +22,8 @@ from hydpy.core import sequencetools
 from hydpy.core import timetools
 
 
-def parameterstep(timestep=None):
+def parameterstep(timestep: timetools.PeriodConstrArg = None):
     """Define a parameter time step size within a parameter control file.
-
-    Argument:
-      * timestep(|Period|): Time step size.
 
     Function parameterstep should usually be be applied in a line
     immediately behind the model import.  Defining the step size of time

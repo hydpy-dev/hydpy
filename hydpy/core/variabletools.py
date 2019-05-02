@@ -1057,34 +1057,38 @@ occurred: could not broadcast input array from shape (2) into shape (2,3)
 
     def __hydpy__set_value__(self, value) -> None:
         try:
-            if self.NDIM:
-                value = getattr(value, 'value', value)
-                try:
-                    value = numpy.full(self.shape, value, dtype=self.TYPE)
-                except BaseException:
-                    objecttools.augment_excmessage(
-                        f'While trying to convert the value(s) `{value}` '
-                        f'to a numpy ndarray with shape `{self.shape}` '
-                        f'and type `{objecttools.classname(self.TYPE)}`')
-            else:
-                if isinstance(value, Sequence):
-                    if len(value) > 1:
-                        raise ValueError(
-                            f'{len(value)} values are assigned to the scalar '
-                            f'variable {objecttools.devicephrase(self)}.')
-                    value = value[0]
-                try:
-                    value = self.TYPE(value)
-                except BaseException:
-                    raise TypeError(
-                        f'The given value `{value}` cannot be converted '
-                        f'to type `{objecttools.classname(self.TYPE)}`.')
+            value = self._prepare_value(value)
             setattr(self.fastaccess, self.name, value)
             self.__valueready = True
         except BaseException:
             objecttools.augment_excmessage(
                 f'While trying to set the value(s) of variable '
                 f'{objecttools.devicephrase(self)}')
+
+    def _prepare_value(self, value):
+        if self.NDIM:
+            value = getattr(value, 'value', value)
+            try:
+                value = numpy.full(self.shape, value, dtype=self.TYPE)
+            except BaseException:
+                objecttools.augment_excmessage(
+                    f'While trying to convert the value(s) `{value}` '
+                    f'to a numpy ndarray with shape `{self.shape}` '
+                    f'and type `{objecttools.classname(self.TYPE)}`')
+        else:
+            if isinstance(value, Sequence):
+                if len(value) > 1:
+                    raise ValueError(
+                        f'{len(value)} values are assigned to the scalar '
+                        f'variable {objecttools.devicephrase(self)}.')
+                value = value[0]
+            try:
+                value = self.TYPE(value)
+            except BaseException:
+                raise TypeError(
+                    f'The given value `{value}` cannot be converted '
+                    f'to type `{objecttools.classname(self.TYPE)}`.')
+        return value
 
     value = property(fget=__hydpy__get_value__, fset=__hydpy__set_value__)
     values = property(fget=__hydpy__get_value__, fset=__hydpy__set_value__,
@@ -1256,15 +1260,18 @@ as `var` can only be `()`, but `(2,)` is given.
             if shape:
                 setattr(self.fastaccess, self.name,
                         TYPE2MISSINGVALUE[self.TYPE])
-                raise ValueError(
-                    f'The shape information of 0-dimensional variables '
-                    f'as {objecttools.devicephrase(self)} can only be `()`, '
-                    f'but `{shape}` is given.')
+                self._raise_wrongshape(shape)
             setattr(self.fastaccess, self.name, initvalue)
         if initflag:
             self.__valueready = True
 
     shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
+
+    def _raise_wrongshape(self, shape):
+        raise ValueError(
+            f'The shape information of 0-dimensional variables '
+            f'as {objecttools.devicephrase(self)} can only be `()`, '
+            f'but `{shape}` is given.')
 
     name = property(objecttools.name)
 

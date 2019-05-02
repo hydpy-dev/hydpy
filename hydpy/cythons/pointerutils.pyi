@@ -17,7 +17,9 @@ class Double(DoubleBase):
 
 
 class PDouble(DoubleBase):
-    ...
+
+    def __init__(self, value: Double):
+        ...
 
 
 class PPDouble:

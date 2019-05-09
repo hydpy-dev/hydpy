@@ -265,7 +265,7 @@ attribute `nmb_inputs` first.
     def __init__(self, subvars: parametertools.SubParameters):
         self.subvars = subvars
         self.subpars = subvars
-        self.fastaccess = variabletools.FastAccess()
+        self.fastaccess = parametertools.FastAccessParameter()
         self._cann = annutils.ANN()
         _ANNArrayProperty.add_cann(self, self._cann)
         self.__max_nmb_neurons = None
@@ -1274,7 +1274,7 @@ been given, but a value of type `ANN` is required.
     def __init__(self, subvars: parametertools.SubParameters):
         self.subvars = subvars
         self.subpars = subvars
-        self.fastaccess = variabletools.FastAccess()
+        self.fastaccess = parametertools.FastAccessParameter()
         self._toy2ann: Dict[timetools.TOY, ANN] = {}
         self.__sann = None
         self._do_refresh = True

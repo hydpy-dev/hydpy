@@ -395,6 +395,25 @@ class SubParameters(variabletools.SubVariables[Parameters]):
     >>> control
     par2(?)
     par1(?)
+
+    Each |SubParameters| object has a `fastaccess` attribute.  When
+    working in pure Python mode, this is an instance of class
+    |FastAccessParameter|:
+
+    >>> from hydpy import classname, prepare_model, pub
+    >>> with pub.options.usecython(False):
+    ...     model = prepare_model('lland_v1')
+    >>> classname(model.parameters.control.fastaccess)
+    'FastAccessParameter'
+
+    When working in Cython mode (which is the default mode and much
+    faster), `fastaccess` is an object of a Cython extension class
+    specialised for the respective model and sequence group:
+
+    >>> with pub.options.usecython(True):
+    ...     model = prepare_model('lland_v1')
+    >>> classname(model.parameters.control.fastaccess)
+    'ControlParameters'
     """
     pars: Parameters
 
@@ -405,7 +424,7 @@ class SubParameters(variabletools.SubVariables[Parameters]):
 
     def __hydpy__initialise_fastaccess__(self, cls_fastaccess, cymodel) -> None:
         if cls_fastaccess is None:
-            self.fastaccess = variabletools.FastAccess()
+            self.fastaccess = FastAccessParameter()
         else:
             self.fastaccess = cls_fastaccess()
             setattr(cymodel.parameters, self.name, self.fastaccess)
@@ -2850,3 +2869,8 @@ class MOYParameter(Parameter):
         indexarray = hydpy.pub.indexer.monthofyear
         self.shape = indexarray.shape
         self.values = indexarray
+
+
+class FastAccessParameter:
+    """Used as a surrogate for typed Cython classes handling parameters
+    when working in pure Python mode."""

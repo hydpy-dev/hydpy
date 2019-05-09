@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""This module implements tools for the development of hydrological models.
-"""
+"""This module implements tools for the development of hydrological models."""
 # import...
 # ...from standard library
 import os
@@ -40,7 +39,7 @@ class Model:
         self.parameters = None
         self.sequences = None
         self._masks = None
-        self.cymodel = variabletools.FastAccess()   # ToDo ???
+        self.cymodel = parametertools.FastAccessParameter()   # ToDo ???
         self.cymodel.idx_sim = -999
         self._init_methods()
 

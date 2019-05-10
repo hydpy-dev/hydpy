@@ -132,7 +132,6 @@ allfaileddoctests = ({}, {})
 iterable = zip(('Python', 'Cython'), alldoctests,
                allsuccessfuldoctests, allfaileddoctests)
 for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
-    pub.options.usecython = mode == 'Cython'
     for dirpath, dirnames, filenames_ in os.walk(hydpy.__path__[0]):
         if (('__init__.py' not in filenames_) or
                 dirpath.endswith('tests') or
@@ -168,6 +167,7 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                     raise exc
             else:
                 opt = pub.options
+                opt.usecython = mode == 'Cython'
                 Par = parametertools.Parameter
                 # pylint: disable=not-callable
                 with opt.usedefaultvalues(False), \

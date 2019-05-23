@@ -311,6 +311,60 @@ def calc_interzeptionsverdunstung_v1(self):
                     flu.niederschlagrichter - flu.niednachinterz[k])
 
 
+def calc_interzeptionsspeicher_v1(self):
+    """
+
+    Required control parameters:
+      |Nmb_Cells|
+      |MaxInterz|
+
+    Required flux sequences:
+      |NiederschlagRichter|
+      |MaxVerdunstung|
+
+    Calculated flux sequences:
+      |NiedNachInterz|
+      |InterzeptionsVerdunstung|
+
+    Updated state sequence:
+      |Interzeptionsspeicher|
+
+    >>> from hydpy import pub
+    >>> pub.options.usecython = False
+    >>> from hydpy.models.whmod import *
+    >>> parameterstep()
+    >>> nmb_cells(6)
+    >>> nutz_nr(GRAS, GRAS, GRAS, GRAS, GRAS, WASSER)
+    >>> maxinterz(0.0, 1.0, 1.0, 2.0, 3.0, 3.0)
+    >>> fluxes.niederschlagrichter = 1.0
+    >>> fluxes.maxverdunstung = 0.0, 0.0, 1.0, 2.0, 2.0, 2.0
+    >>> states.interzeptionsspeicher = 0.0, 0.0, 1.0, 1.0, 2.0, 2.0
+    >>> model.calc_interzeptionsspeicher_v1()
+    >>> states.interzeptionsspeicher
+    interzeptionsspeicher(0.0, 1.0, 0.0, 0.0, 1.0, 0.0)
+    >>> fluxes.niednachinterz
+    niednachinterz(1.0, 0.0, 1.0, 0.0, 0.0, 1.0)
+    >>> fluxes.interzeptionsverdunstung
+    interzeptionsverdunstung(0.0, 0.0, 1.0, 2.0, 2.0, 0.0)
+    """
+    con = self.parameters.control.fastaccess
+    flu = self.sequences.fluxes.fastaccess
+    sta = self.sequences.states.fastaccess
+    for k in range(con.nmb_cells):
+        if con.nutz_nr[k] == WASSER:
+            sta.interzeptionsspeicher[k] = 0.
+            flu.niednachinterz[k] = flu.niederschlagrichter
+            flu.interzeptionsverdunstung[k] = 0.
+        else:
+            sta.interzeptionsspeicher[k] += flu.niederschlagrichter
+            flu.niednachinterz[k] = max(
+                sta.interzeptionsspeicher[k]-con.maxinterz[k], 0.)
+            sta.interzeptionsspeicher[k] -= flu.niednachinterz[k]
+            flu.interzeptionsverdunstung[k] = min(
+                sta.interzeptionsspeicher[k], flu.maxverdunstung[k])
+            sta.interzeptionsspeicher[k] -= flu.interzeptionsverdunstung[k]
+
+
 def calc_oberflaechenabfluss_v1(self):
     """Berechnung Oberflaechenabfluss.
 
@@ -318,7 +372,7 @@ def calc_oberflaechenabfluss_v1(self):
     >>> parameterstep()
     >>> nmb_cells(3)
     >>> nutz_nr(VERSIEGELT, WASSER, GRAS)
-    >>> fluxes.niederschlagrichter = 3.0
+    >>> fluxes.niednachinterz = 3.0
     >>> model.calc_oberflaechenabfluss_v1()
     >>> fluxes.oberflaechenabfluss
     oberflaechenabfluss(3.0, 0.0, 0.0)
@@ -327,7 +381,7 @@ def calc_oberflaechenabfluss_v1(self):
     flu = self.sequences.fluxes.fastaccess
     for k in range(con.nmb_cells):
         if con.nutz_nr[k] == VERSIEGELT:
-            flu.oberflaechenabfluss[k] = flu.niederschlagrichter
+            flu.oberflaechenabfluss[k] = flu.niednachinterz[k]
         else:
             flu.oberflaechenabfluss[k] = 0.
 
@@ -523,6 +577,8 @@ def calc_saettigungsdampfdruckdefizit_v1(self):
 def calc_maxverdunstung_v1(self):
     """Berechnung maximale/potenzielle Verdunstung.
 
+    Haude-Ansatz (mit "Dommermuth-Trumpf"-Koeffizienten).
+
     Required control parameters:
       |InterzeptionNach_Dommermuth_Trampf|
       |Nmb_Cells|
@@ -633,6 +689,9 @@ def calc_maxverdunstung_v1(self):
 def calc_maxverdunstung_v2(self):
     """Berechnung maximale/potenzielle Verdunstung.
 
+    Modifikation einer extern vorgegebenen potenziellen Verdunstung
+    (FAO Grasreferenzverdunstung).
+
     Required control parameters:
       |Nmb_Cells|
       |Nutz_Nr|
@@ -727,6 +786,44 @@ def calc_bodenverdunstung_v1(self):
             flu.bodenverdunstung[k] = (
                 flu.maxverdunstung[k] *
                 (1.0-d_temp)/(1.-2.*modelutils.exp(-con.minhasr[k])+d_temp))
+
+
+def corr_bodenverdunstung_v1(self):
+    """
+    >>> from hydpy import pub
+    >>> pub.options.usecython = False
+    >>> from hydpy.models.whmod import *
+    >>> parameterstep()
+    >>> nmb_cells(7)
+    >>> nutz_nr(GRAS, GRAS, GRAS, GRAS, GRAS, WASSER, VERSIEGELT)
+    >>> fluxes.maxverdunstung = 2.0
+    >>> fluxes.interzeptionsverdunstung = 0.0, 0.5, 1.0, 1.5, 2.0, 2.0, 2.0
+    >>> fluxes.bodenverdunstung = 1.0
+    >>> model.corr_bodenverdunstung_v1()
+    >>> fluxes.bodenverdunstung
+    bodenverdunstung(1.0, 0.75, 0.5, 0.25, 0.0, 0.0, 0.0)
+    >>> fluxes.interzeptionsverdunstung[:5] + fluxes.bodenverdunstung[:5]
+    array([ 1.  ,  1.25,  1.5 ,  1.75,  2.  ])
+
+    >>> fluxes.interzeptionsverdunstung = 1.0
+    >>> fluxes.bodenverdunstung = 0.0, 0.5, 1.0, 1.5, 2.0, 2.0, 2.0
+    >>> model.corr_bodenverdunstung_v1()
+    >>> fluxes.bodenverdunstung
+    bodenverdunstung(0.0, 0.25, 0.5, 0.75, 1.0, 0.0, 0.0)
+    >>> fluxes.interzeptionsverdunstung[:5] + fluxes.bodenverdunstung[:5]
+    array([ 1.  ,  1.25,  1.5 ,  1.75,  2.  ])
+    """
+    con = self.parameters.control.fastaccess
+    flu = self.sequences.fluxes.fastaccess
+    for k in range(con.nmb_cells):
+        if con.nutz_nr[k] in (VERSIEGELT, WASSER):
+            flu.bodenverdunstung[k] = 0.
+        elif flu.maxverdunstung[k] <= flu.interzeptionsverdunstung[k]:
+            flu.bodenverdunstung[k] = 0.
+        else:
+            flu.bodenverdunstung[k] *= (
+                (flu.maxverdunstung[k]-flu.interzeptionsverdunstung[k]) /
+                flu.maxverdunstung[k])
 
 
 def calc_seeverdunstung_v1(self):
@@ -1015,14 +1112,17 @@ class Model(modeltools.Model):
                    calc_niednachinterz_v1,
                    calc_niednachinterz_v2,
                    calc_interzeptionsverdunstung_v1,
+                   calc_interzeptionsspeicher_v1,
                    calc_seeniederschlag_v1,
                    calc_oberflaechenabfluss_v1,
                    calc_zuflussboden_v1,
                    calc_relbodenfeuchte_v1,
                    calc_sickerwasser_v1,
                    calc_saettigungsdampfdruckdefizit_v1,
+                   calc_maxverdunstung_v1,
                    calc_maxverdunstung_v2,
                    calc_bodenverdunstung_v1,
+                   corr_bodenverdunstung_v1,
                    calc_seeverdunstung_v1,
                    calc_aktverdunstung_v1,
                    calc_potkapilaufstieg_v1,

@@ -7,6 +7,11 @@
 from hydpy.core import sequencetools
 
 
+class Interzeptionsspeicher(sequencetools.StateSequence):
+    NDIM, NUMERIC, SPAN = 1, False, (0., None)
+    """[mm]"""
+
+
 class Schneespeicher(sequencetools.StateSequence):
     """[mm]"""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
@@ -18,5 +23,6 @@ class AktBodenwassergehalt(sequencetools.StateSequence):
 
 
 class StateSequences(sequencetools.StateSequences):
-    CLASSES = (Schneespeicher,
+    CLASSES = (Interzeptionsspeicher,
+               Schneespeicher,
                AktBodenwassergehalt)

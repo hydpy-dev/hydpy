@@ -79,6 +79,11 @@ class F_AREA(whmod_parameters.NutzNrComplete):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 
+class MaxInterz(whmod_parameters.NutzNrComplete):
+    """[m²]"""
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+
+
 class Faktor(parametertools.KeywordParameter2D):
     TYPE, TIME, SPAN = float, None, (0., None)
     COLNAMES = ('jan', 'feb', 'mar', 'apr', 'mai', 'jun',
@@ -152,6 +157,7 @@ class ControlParameters(parametertools.SubParameters):
                MitFunktion_KapillarerAufstieg,
                Nutz_Nr,
                BodenTyp,
+               MaxInterz,
                Faktor,
                FactorC,
                FaktorWald,

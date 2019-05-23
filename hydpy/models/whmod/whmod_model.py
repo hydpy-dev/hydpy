@@ -365,6 +365,60 @@ def calc_interzeptionsspeicher_v1(self):
             sta.interzeptionsspeicher[k] -= flu.interzeptionsverdunstung[k]
 
 
+def calc_interzeptionsspeicher_v2(self):
+    """
+
+    Required control parameters:
+      |Nmb_Cells|
+      |MaxInterz|
+
+    Required flux sequences:
+      |NiederschlagRichter|
+      |MaxVerdunstung|
+
+    Calculated flux sequences:
+      |NiedNachInterz|
+      |InterzeptionsVerdunstung|
+
+    Updated state sequence:
+      |Interzeptionsspeicher|
+
+    >>> from hydpy import pub
+    >>> pub.options.usecython = False
+    >>> from hydpy.models.whmod import *
+    >>> parameterstep()
+    >>> nmb_cells(6)
+    >>> nutz_nr(GRAS, GRAS, GRAS, GRAS, GRAS, WASSER)
+    >>> maxinterz(0.0, 1.0, 1.0, 2.0, 3.0, 3.0)
+    >>> fluxes.niederschlagrichter = 2.0   # ToDo: better testing required
+    >>> fluxes.maxverdunstung = 0.0, 0.0, 1.0, 2.0, 2.0, 2.0
+    >>> states.interzeptionsspeicher = 0.0, 0.0, 1.0, 1.0, 2.0, 2.0
+    >>> model.calc_interzeptionsspeicher_v2()
+    >>> states.interzeptionsspeicher
+    interzeptionsspeicher(0.0, 1.0, 1.0, 1.0, 2.0, 0.0)
+    >>> fluxes.niednachinterz
+    niednachinterz(2.0, 1.0, 1.0, 0.0, 0.0, 2.0)
+    >>> fluxes.interzeptionsverdunstung
+    interzeptionsverdunstung(0.0, 0.0, 1.0, 2.0, 2.0, 0.0)
+    """
+    con = self.parameters.control.fastaccess
+    flu = self.sequences.fluxes.fastaccess
+    sta = self.sequences.states.fastaccess
+    for k in range(con.nmb_cells):
+        if con.nutz_nr[k] == WASSER:
+            sta.interzeptionsspeicher[k] = 0.
+            flu.niednachinterz[k] = flu.niederschlagrichter
+            flu.interzeptionsverdunstung[k] = 0.
+        else:
+            sta.interzeptionsspeicher[k] += flu.niederschlagrichter
+            flu.interzeptionsverdunstung[k] = min(
+                sta.interzeptionsspeicher[k], flu.maxverdunstung[k])
+            sta.interzeptionsspeicher[k] -= flu.interzeptionsverdunstung[k]
+            flu.niednachinterz[k] = max(
+                sta.interzeptionsspeicher[k]-con.maxinterz[k], 0.)
+            sta.interzeptionsspeicher[k] -= flu.niednachinterz[k]
+
+
 def calc_oberflaechenabfluss_v1(self):
     """Berechnung Oberflaechenabfluss.
 
@@ -1113,6 +1167,7 @@ class Model(modeltools.Model):
                    calc_niednachinterz_v2,
                    calc_interzeptionsverdunstung_v1,
                    calc_interzeptionsspeicher_v1,
+                   calc_interzeptionsspeicher_v2,
                    calc_seeniederschlag_v1,
                    calc_oberflaechenabfluss_v1,
                    calc_zuflussboden_v1,

@@ -197,6 +197,50 @@ def calc_niednachinterz_v1(self):
             flu.niednachinterz[k] = flu.niederschlagrichter
 
 
+def calc_niednachinterz_v2(self):
+    """Berechnung Bestandsniederschlag.
+
+    Erst mal keine Interzeptionsverdunstung!!!
+
+    Required control parameters:
+      |Nmb_Cells|
+
+    Required flux sequence:
+      |NiederschlagRichter|
+
+    Calculated flux sequences:
+      |NiedNachInterz|
+
+    >>> from hydpy.models.whmod import *
+    >>> parameterstep()
+    >>> nmb_cells(2)
+    >>> from hydpy import UnitTest
+    >>> test = UnitTest(
+    ...     model, model.calc_niednachinterz_v2,
+    ...     last_example=11,
+    ...     parseqs=(fluxes.niederschlagrichter, fluxes.niednachinterz))
+    >>> test.nexts.niederschlagrichter = range(0, 11, 1)
+    >>> test()
+    | ex. | niederschlagrichter |       niednachinterz |
+    ----------------------------------------------------
+    |   1 |                 0.0 |  0.0             0.0 |
+    |   2 |                 1.0 |  1.0             1.0 |
+    |   3 |                 2.0 |  2.0             2.0 |
+    |   4 |                 3.0 |  3.0             3.0 |
+    |   5 |                 4.0 |  4.0             4.0 |
+    |   6 |                 5.0 |  5.0             5.0 |
+    |   7 |                 6.0 |  6.0             6.0 |
+    |   8 |                 7.0 |  7.0             7.0 |
+    |   9 |                 8.0 |  8.0             8.0 |
+    |  10 |                 9.0 |  9.0             9.0 |
+    |  11 |                10.0 | 10.0            10.0 |
+    """
+    con = self.parameters.control.fastaccess
+    flu = self.sequences.fluxes.fastaccess
+    for k in range(con.nmb_cells):
+        flu.niednachinterz[k] = flu.niederschlagrichter
+
+
 def calc_seeniederschlag_v1(self):
     """Berechnung Niederschlag auf Wasserflächen.
 
@@ -969,6 +1013,7 @@ def calc_aktgrundwasserneubildung_v1(self):
 class Model(modeltools.Model):
     RUN_METHODS = (calc_niederschlagrichter_v1,
                    calc_niednachinterz_v1,
+                   calc_niednachinterz_v2,
                    calc_interzeptionsverdunstung_v1,
                    calc_seeniederschlag_v1,
                    calc_oberflaechenabfluss_v1,
@@ -976,7 +1021,6 @@ class Model(modeltools.Model):
                    calc_relbodenfeuchte_v1,
                    calc_sickerwasser_v1,
                    calc_saettigungsdampfdruckdefizit_v1,
-                   # calc_maxverdunstung_v1,
                    calc_maxverdunstung_v2,
                    calc_bodenverdunstung_v1,
                    calc_seeverdunstung_v1,

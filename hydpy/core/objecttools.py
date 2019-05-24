@@ -766,14 +766,15 @@ class _Repr(object):
             if self._preserve_strings:
                 return '"%s"' % string
             return string
-        elif ((decimals > -1) and
-              isinstance(value, numbers.Real) and
-              (not isinstance(value, numbers.Integral))):
-            string = '{0:.{1}f}'.format(value, decimals)
-            string = string.rstrip('0')
-            if string.endswith('.'):
-                string += '0'
-            return string
+        if (isinstance(value, numbers.Real) and
+                (not isinstance(value, numbers.Integral))):
+            value = float(value)
+            if decimals > -1:
+                string = '{0:.{1}f}'.format(value, decimals)
+                string = string.rstrip('0')
+                if string.endswith('.'):
+                    string += '0'
+                return string
         return repr(value)
 
     @staticmethod

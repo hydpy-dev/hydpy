@@ -1091,8 +1091,15 @@ occurred: could not broadcast input array from shape (2) into shape (2,3)
         return value
 
     value = property(fget=__hydpy__get_value__, fset=__hydpy__set_value__)
-    values = property(fget=__hydpy__get_value__, fset=__hydpy__set_value__,
-                      doc='Alias for |Variable.value|.')
+
+    @property
+    def values(self):
+        """Alias for |Variable.value|."""
+        return self.__hydpy__get_value__()
+
+    @values.setter
+    def values(self, values):
+        self.__hydpy__set_value__(values)
 
     def __hydpy__get_shape__(self) -> Tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.

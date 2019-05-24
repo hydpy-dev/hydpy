@@ -29,7 +29,7 @@ Integration Test:
     parameter values before connecting the model to its |Element| object,
     called `branch`:
 
-    >>> nodes = Nodes('input1', 'input2', 'output1', 'output2')
+    >>> nodes = Nodes('input1', 'input2', 'output1', 'output2', 'output3')
     >>> branch = Element('branch',
     ...                  inlets=['input1', 'input2'],
     ...                  outlets=['output1', 'output2', 'output3'])

@@ -9,143 +9,162 @@
 The following `cdef classes` (Cython extension types) are implemented:
   * |DoubleBase|: Base class, only for inheritance.
   * |Double|: For C variables of type double.
-  * |PDouble|: For C pointers referencing C variables of type double.
+  * |PDouble|: For C pointers referencing a single C variable of type double.
+  * |PPDouble|: For C pointers referencing multiple C variables of type double.
 
 Classes |Double| and |PDouble| support arithmetic operations in a similar
 manner as the immutable standard data type for floating operations |float|.
 |Double| and |PDouble| should be preferred to |float| only in cases, where
-their mutability and pointer functionality is required.  At the moment,
-the only usage of |Double| and |PDouble| within HydPy is to directly share
-information between |NodeSequence| objects of |Node| instances and
-|LinkSequence| objects of |Model| instances.
+their pointer functionality is required.  At the moment, the only usage of
+|Double| and |PDouble| within *HydPy* is to directly share information
+between |NodeSequence| objects of |Node| instances and |LinkSequence|
+objects of |Model| instances handled by |Element| instances.
 
 The following examples try to give an idea of the purpose of using pointers
-in HydPy::
+in HydPy.
 
-    import numpy
-    from hydpy.cythons.pointer import Double, PDouble
 
-    # Using numpy's ndarray gives the great advantage to be able to adress
-    # the same data with different Python and Cython objects.
-    # A pure Python / numpy example:
-    xs = numpy.zeros(5)
-    ys = xs
-    xs[1] = 1.
-    ys[3] = 3.
-    print id(xs), xs
-    print id(ys), ys
-    # Obviously, both `names` x and y refer to the same data.  Hence data can
-    # easily be shared between different objects, no matter if they are Python
-    # or Cython types.  However, unfortunately ndarray are primarily designed
-    # to handle at least 1-dimensional data.  Using ndarray for scalar values
-    # stored within a `0-dimesional array` is possible, but has some drawbacks.
-    # Hence, one would usually use the Python build in `float` for scalar
-    # values.
-    # A pure Python example:
-    x = 0.
-    y = x
-    x = 1.
-    print id(x), x
-    print id(y), y
-    # Obviously, x and y refer to different data.  This behaviour is due to x
-    # and y being not typed and Python float objects being immutable
-    # (thoroughly explained in the official documentation of Python).
-    # In C the result would be the same, but the reason were that both
-    # variables x and y constantly address a different position in the working
-    # memory and 'y = x' just passes information from one position to the
-    # other.
-    # As an alternative, C implements the concept of pointers.  Wrapped in
-    # Cython objects of the types Double and PDouble, this concept provides
-    # the following benefit:
-    x = Double(0.)
-    print id(x), x
-    px = PDouble(x)
-    print id(px), px
-    x.setvalue(1.)
-    print x, px
-    px.setvalue(2.)
-    print x, px
+Using numpy's ndarray gives the great advantage to be able to adress
+the same data with different Python and Cython objects:
 
-|Double| and |PDouble| implement many convenience functions
-(Python's `special methods`). Accordingly, their instances can for example be
+>>> import numpy
+>>> from hydpy.cythons.pointerutils import Double, PDouble
+>>> xs = numpy.zeros(5)
+>>> ys = xs[:]
+>>> xs[1] = 1.0
+>>> ys[3] = 3.0
+>>> print(all(xs == ys), xs is ys)
+True False
+
+Obviously, both `names` x and y refer to the same data.  Hence data can
+easily be shared between different objects, no matter if they are Python
+or Cython types.  However, unfortunately ndarray are primarily designed
+to handle at least 1-dimensional data.  Using ndarray for scalar values
+stored within a `0-dimesional array` is possible, but has some drawbacks.
+Hence, one would usually use the Python build in `float` for scalar
+values:
+
+>>> x = 0.0
+>>> y = x
+>>> x = 1.0
+>>> print(x == y, x is y)
+False False
+
+Obviously, x and y refer to different data.  This behaviour is due to x
+and y being not typed and Python float objects being immutable
+(thoroughly explained in the official documentation of Python).
+In C the result would be the same, but the reason were that both
+variables x and y constantly address a different position in the working
+memory and 'y = x' just passes information from one position to the
+other.
+
+As an alternative, C implements the concept of pointers.  Wrapped in
+Cython objects of the types |Double| and |PDouble|, this concept provides
+the following benefit:
+
+>>> x = Double(0.0)
+>>> x
+Double(0.0)
+>>> px = PDouble(x)
+>>> px
+PDouble(Double(0.0))
+>>> x.setvalue(1.0)
+>>> x
+Double(1.0)
+>>> px
+PDouble(Double(1.0))
+>>> px.setvalue(2.0)
+>>> x
+Double(2.0)
+>>> px
+PDouble(Double(2.0))
+
+|Double| and |PDouble| implement many convenience functions (Python's
+`special methods`). Accordingly, their instances can for example be
 included into numerical calculations as one knows from |float| objects.
-In order to increase the compatibility with external modules, when new objects
-are generated, these are of type |float| (except for type conversions
-and comparision which await |bool| objects). Some examples::
+In order to increase the compatibility with external modules, when new
+objects are generated, these are of type |float| (except for type
+conversions and comparision which await |bool| objects). Some examples:
 
-    from hydpy.cythons.pointer import Double, PDouble
+>>> from hydpy import round_
+>>> x, y = Double(1.0), Double(-2.3)
+>>> px, py = PDouble(x), PDouble(y)
 
-    x, y = Double(1.), Double(-2.3)
-    px, py = PDouble(x), PDouble(y)
+A simple arithmetic operation returning a new float object:
 
-    # A simple arithmetic operation returning a new float object:
-    z = x + py + 3.
-    print type(z), z
-    # A more fancy example:
-    z = -x % ~py
-    print type(z), z
-    # Some type conversion:
-    print str(x), int(px), float(py)
-    # Some comparisions:
-    print x > 1., x <= px, px == py
-    # Some in-place operations:
-    print x, py
-    x += 1.
-    py *= 2.
-    print x, py
-    # Assignments to to ndarrays.
-    zs = numpy.zeros(5)
-    print zs.dtype, zs
-    zs[1:3] = x, py
-    print zs.dtype, zs
+>>> round_(x + py + 3.0)
+1.7
 
-    # To increase consistency between Python code and Cython code (Cython
-    # uses '[0]' as dereferencing syntax) as well as between PDouble and numpy
-    # arrays (numpy arrays support '[:]' slicing) arbitrary objects as can
-    # be used as indices (actually, they are ignored).
-    py[0] = -999.
-    print py[:]
-    x[:] = 123.
-    print x[0]
-    # To resemble 0-dimensional numpy arrays, Double and PDouble return empty
-    # tuples as shape information.
-    print x.shape, px.shape
+A more fancy example:
 
+>>> round_(-x % ~py)
+-0.130435
+
+Some type conversion:
+
+>>> str(x), int(px), float(py)
+('1.0', 1, -2.3)
+
+Some comparisions:
+
+>>> print(x > 1.0, x <= px, px == py)
+False True False
+
+Some in-place operations:
+
+>>> print(x, py)
+1.0 -2.3
+>>> x += 1.
+>>> py *= 2.
+>>> print(x, py)
+2.0 -4.6
+
+To increase consistency between Python code and Cython code (Cython
+uses '[0]' as dereferencing syntax) as well as between |PDouble| and numpy
+arrays (numpy arrays support '[:]' slicing) arbitrary objects can
+be used as indices (actually, they are ignored).
+
+>>> py[0] = -999.0
+>>> py[:]
+-999.0
+>>> x[:] = 123.
+>>> x[0]
+123.0
+
+To resemble 0-dimensional numpy arrays, |Double| and |PDouble| return
+empty tuples as shape information.
+
+>>> print(x.shape, px.shape)
+() ()
 
 Always remember that, even if not immediately evident, you are working with
-pointers::
+pointers.
 
-    from hydpy.cythons.pointer import Double, PDouble
+You are allowed to initialize a |PDouble| object without giving a |Double|
+instance to the constructor.  Do not do this unless you have an idea
+how to specify the proper working memory memory adress later:
 
-    # You are allowed to initialize a PDouble object without giving an Double
-    # instance to the constructor.  Do not do this unless you have an idea
-    # how to specify the proper working memory memory adress later.
-    px = PDouble()
-    print px
+>>> px = PDouble()
 
-    # You can construct multiple pointers.
-    x = Double(1.)
-    px1, px2 = PDouble(x), PDouble(x)
-    print x, px1, px2
-    x += 1.
-    print x, px1, px2
-    px1 -= 1.
-    print x, px1, px2
+You can construct multiple pointers.
 
-    # But when you delete the original Double object, further using the
-    # associated PDouble object(s) corrupts your program, as the pointed
-    # position in working memory is freed for other purposes.
-    del x
-    print px1, px2 # Returns possibly useless results.
-    px1 += 1. # Possibly corrupts your (or another) program.
+>>> x = Double(1.0)
+>>> px1, px2 = PDouble(x), PDouble(x)
+>>> print(x, px1, px2)
+1.0 1.0 1.0
+>>> x += 1.0
+>>> print(x, px1, px2)
+2.0 2.0 2.0
+>>> px1 -= 1.0
+>>> print(x, px1, px2)
+1.0 1.0 1.0
 
-    # Instead of C pointers, you can also build Python references, which might
-    # also happen unintentional:
-    x, y = Double(1.), Double(2.)
-    z = min(x, y)
-    x -= z
-    print x, y, z
-    print id(x), id(y), id(z)
+However, when you delete the original |Double| object, continueing to
+use the associated |PDouble| object(s) corrupts your program, as the
+pointed position in working memory is freed for other purposes:
+
+>>> del x
+>>> px1 += 1.0 # Possibly corrupts your program.
 
 Note:
     |Double| is used in Python mode only; in Cython mode, the usual

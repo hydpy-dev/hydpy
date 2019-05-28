@@ -159,7 +159,7 @@ You can construct multiple pointers.
 >>> print(x, px1, px2)
 1.0 1.0 1.0
 
-However, when you delete the original |Double| object, continueing to
+However, when you delete the original |Double| object, continuing to
 use the associated |PDouble| object(s) corrupts your program, as the
 pointed position in working memory is freed for other purposes:
 
@@ -171,6 +171,77 @@ Note:
     C type `double` is applied.  |PDouble| is also used in Cython mode,
     where it essentially serves the purpose pass C a pointers of type
     'double' from Cython module to another.
+
+|PDouble| objects can point to the values of single |Double| objects.
+Instead, |PPDouble| allows pointing to an arbitrary number of |Double|
+objects.  After initialisation, one needs to specify their `shape`
+first, defining the number of |Double| objects to be taken into account:
+
+>>> from hydpy.cythons.pointerutils import PPDouble
+>>> ppdouble = PPDouble()
+>>> ppdouble.shape
+(0,)
+>>> ppdouble[0]
+Traceback (most recent call last):
+...
+RuntimeError: The shape of the actual `PPDouble` instance has not been set yet, which is a necessary preparation before using it.
+>>> ppdouble[0] = 1.0
+Traceback (most recent call last):
+...
+RuntimeError: The shape of the actual `PPDouble` instance has not been set yet, which is a necessary preparation before using it.
+
+>>> ppdouble.shape = 4
+>>> ppdouble.shape
+(4,)
+>>> ppdouble.shape = 3
+>>> ppdouble.shape
+(3,)
+
+Trying to access values via invalid indices does result in errors
+like the following:
+
+>>> ppdouble[-1]
+Traceback (most recent call last):
+...
+IndexError: The actual `PPDouble` instance is of length `3`.  Only index values between 0 and 2 are allowed, but the given index is `-1`.
+>>> ppdouble[3] = 1.0
+Traceback (most recent call last):
+...
+IndexError: The actual `PPDouble` instance is of length `3`.  Only index values between 0 and 2 are allowed, but the given index is `3`.
+
+>>> ppdouble[0]
+Traceback (most recent call last):
+...
+RuntimeError: The pointer of the actual `PPDouble` instance at index `0` requested, but not prepared yet via `set_pointer`.
+>>> ppdouble[0] = 1.0
+Traceback (most recent call last):
+...
+RuntimeError: The pointer of the actual `PPDouble` instance at index `0` requested, but not prepared yet via `set_pointer`.
+
+To finally prepeare our |PPDouble| object, we need to assign |Double| objects
+to it via method `set_pointer`:
+
+>>> d1, d2, d3 = Double(1.0), Double(2.0), Double(3.0)
+>>> ppdouble.set_pointer(d1, 0)
+>>> ppdouble.set_pointer(d2, 1)
+>>> ppdouble.set_pointer(d3, 2)
+
+Now we can query and modify the current values of the |Double| objects
+via our |PPDouble| object:
+
+>>> print(ppdouble[:])
+[PDouble(Double(1.0)) PDouble(Double(2.0)) PDouble(Double(3.0))]
+
+
+>>> ppdouble[:2] = 8.0, 9.0
+>>> d3[0] = -1.0
+>>> print(ppdouble[0], d1)
+8.0 8.0
+>>> print(ppdouble[1], d2)
+9.0 9.0
+>>> print(ppdouble[2], d3)
+-1.0 -1.0
+
 """
 
 # import...
@@ -206,7 +277,7 @@ cdef inline double conv2double(value):
     return _value
 
 
-cdef class DoubleBase(object):
+cdef class DoubleBase:
     """Base class for |Double| and |PDouble| that implements operators
     which return builtin Python objects."""
 
@@ -388,7 +459,7 @@ cdef class PDouble(DoubleBase):
 
 
 @cython.final
-cdef class PPDouble(object):
+cdef class PPDouble:
     """Handle pointers to multiple variables of the C type `double` in Python.
 
     Attributes:
@@ -397,55 +468,82 @@ cdef class PPDouble(object):
     """
     def __init__(self):
         self.length = 0
-
-    def check0(self):
-        if self.length == 0:
-            raise RuntimeError('The shape of the actual `PPDouble` instance '
-                             'has not been set yet, which is a necessary '
-                             'preparation for each of its uses.')
-
-    def check1(self, idx):
-        if not (0 <= idx < self.length):
-            raise IndexError('The actual `PPDouble` instance is of shape %s. '
-                             'Only index values between 0 and %d are allowed, '
-                             'but the given index is %d.'
-                             % (self.shape, self.length-1, idx))
-
-    def check2(self, idx):
-        if not self.ready[idx]:
-            raise RuntimeError('The pointer of the acutal `PPDouble` instance '
-                               'at index %s requested, but not prepared yet '
-                               'via `set_pointer`.' % idx)
+        self._allocated = False
 
     def set_pointer(self, value, idx):
-        self.check0()
-        self.check1(idx)
+        check0(self.length)
+        check1(self.length, idx)
         cdef int _idx = idx
         cdef Double _value = value
         self.pp_value[_idx] = &_value.value
         self.ready[idx] = True
 
-    def __getitem__(self, idx):
-        cdef PDouble value
-        self.check0()
-        self.check1(idx)
-        self.check2(idx)
-        value = PDouble(Double(0.))
-        value.p_value = self.pp_value[idx]
-        return value
+    def _prepare_indices(self, idxs):
+        try:
+            return list(range(*idxs.indices(self.length)))
+        except AttributeError:
+            return [idxs]
+
+    def __getitem__(self, idxs):
+        idxs_ = self._prepare_indices(idxs)
+        values = numpy.empty(len(idxs_), dtype=PDouble)
+        check0(self.length)
+        for i, idx in enumerate(idxs_):
+            check1(self.length, idx)
+            check2(self.ready, idx)
+            pdouble = PDouble(Double(0.))
+            pdouble.p_value = self.pp_value[idx]
+            values[i] = pdouble
+        if isinstance(idxs, int):
+            return values[0]
+        return values
+
+    def __setitem__(self, idxs, values):
+        cdef float value
+        idxs = self._prepare_indices(idxs)
+        values = numpy.full(len(idxs), values, dtype=float)
+        check0(self.length)
+        for idx, value in zip(idxs, values):
+            check1(self.length, idx)
+            check2(self.ready, idx)
+            self.pp_value[idx][0] = value
 
     def __dealloc__(self):
         PyMem_Free(self.pp_value)
 
     @property
     def shape(self):
-        return (self.length, )
+        return (self.length,)
 
     @shape.setter
     def shape(self, int length):
-        if self.length != 0:
-            raise RuntimeError('The shape of `PPDouble` of instances must not '
-                               'be changed.')
+        if self._allocated:
+            PyMem_Free(self.pp_value)
+        self._allocated = True
         self.length = length
         self.ready = numpy.full(length, False, dtype=bool)
         self.pp_value = <double**> PyMem_Malloc(length * sizeof(double*))
+        self._allocated = True
+
+
+def check0(length):
+    if length == 0:
+        raise RuntimeError(
+            'The shape of the actual `PPDouble` instance '
+            'has not been set yet, which is a necessary '
+            'preparation before using it.')
+
+def check1(length, idx):
+    if not (0 <= idx < length):
+        raise IndexError(
+            f'The actual `PPDouble` instance is of length '
+            f'`{length}`.  Only index values between 0 and '
+            f'{length-1} are allowed, but the given '
+            f'index is `{idx}`.')
+
+def check2(ready, idx):
+    if not ready[idx]:
+        raise RuntimeError(
+            f'The pointer of the actual `PPDouble` instance '
+            f'at index `{idx}` requested, but not prepared yet '
+            f'via `set_pointer`.')

@@ -2,7 +2,7 @@
 
 cimport numpy
 
-cdef class DoubleBase(object):
+cdef class DoubleBase:
     pass
 
 
@@ -16,8 +16,9 @@ cdef class PDouble(DoubleBase):
     cdef double *p_value
 
 
-cdef class PPDouble(object):
+cdef class PPDouble:
 
     cdef object ready
     cdef int length
     cdef double **pp_value
+    cdef bint _allocated

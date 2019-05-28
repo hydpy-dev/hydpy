@@ -164,7 +164,12 @@ class Cythonizer(object):
     @property
     def cymodule(self):
         """The compiled module."""
-        return importlib.import_module('hydpy.cythons.autogen.'+self.cyname)
+        modulepath = f'hydpy.cythons.autogen.{self.cyname}'
+        try:
+            return importlib.import_module(modulepath)
+        except ModuleNotFoundError:
+            self.doit()
+            return importlib.import_module(modulepath)
 
     @property
     def pyxfilepath(self):
@@ -352,6 +357,7 @@ class PyxWriter(object):
                      'from cpython.mem cimport PyMem_Malloc',
                      'from cpython.mem cimport PyMem_Realloc',
                      'from cpython.mem cimport PyMem_Free',
+                     'from hydpy.cythons.autogen import pointerutils',
                      'from hydpy.cythons.autogen cimport pointerutils',
                      'from hydpy.cythons.autogen cimport configutils',
                      'from hydpy.cythons.autogen cimport smoothutils',
@@ -418,6 +424,8 @@ class PyxWriter(object):
                     elif seq.NDIM == 1:
                         lines.add(1, 'cdef double **%s' % seq.name)
                         lines.add(1, 'cdef public int len_%s' % seq.name)
+                        lines.add(1, 'cdef public %s[:] _%s_ready'
+                                  % (TYPE2STR[int], seq.name))
                 else:
                     lines.add(1, 'cdef public %s %s' % (ctype, seq.name))
                 lines.add(1, 'cdef public int _%s_ndim' % seq.name)
@@ -592,6 +600,7 @@ class PyxWriter(object):
             elif seq.NDIM == 1:
                 lines.add(3, 'values = numpy.empty(self.len_%s)' % seq.name)
                 lines.add(3, 'for idx in range(self.len_%s):' % seq.name)
+                PyxWriter._check_pointer(lines, seq)
                 lines.add(4, 'values[idx] = self.%s[idx][0]' % seq.name)
                 lines.add(3, 'return values')
         return lines
@@ -608,18 +617,29 @@ class PyxWriter(object):
                 lines.add(3, 'self.%s[0] = value' % seq.name)
             elif seq.NDIM == 1:
                 lines.add(3, 'for idx in range(self.len_%s):' % seq.name)
+                PyxWriter._check_pointer(lines, seq)
                 lines.add(4, 'self.%s[idx][0] = value[idx]' % seq.name)
         return lines
+
+    @staticmethod
+    def _check_pointer(lines, seq):
+        lines.add(4, 'pointerutils.check0(self._%s_length_0)' % seq.name)
+        lines.add(4, 'if self._%s_ready[idx] == 0:' % seq.name)
+        lines.add(5, 'pointerutils.check1(self._%s_length_0, idx)' % seq.name)
+        lines.add(5, 'pointerutils.check2(self._%s_ready, idx)' % seq.name)
 
     @staticmethod
     def alloc(subseqs):
         """Allocate memory for 1-dimensional link sequences."""
         print('            . setlength')
         lines = Lines()
-        lines.add(1, 'cpdef inline alloc(self, name, int length):')
+        lines.add(1, 'cpdef inline alloc(self, name, %s length):'
+                  % TYPE2STR[int])
         for seq in subseqs:
             lines.add(2, 'if name == "%s":' % seq.name)
             lines.add(3, 'self._%s_length_0 = length' % seq.name)
+            lines.add(3, 'self._%s_ready = numpy.full(length, 0, dtype=%s)'
+                      % (seq.name, TYPE2STR[int].split('_')[0]))
             lines.add(3, 'self.%s = <double**> '
                          'PyMem_Malloc(length * sizeof(double*))' % seq.name)
         return lines
@@ -644,6 +664,7 @@ class PyxWriter(object):
         for seq in subseqs:
             lines.add(2, 'if name == "%s":' % seq.name)
             lines.add(3, 'self.%s[idx] = value.p_value' % seq.name)
+            lines.add(3, 'self._%s_ready[idx] = 1' % seq.name)
         return lines
 
     @property

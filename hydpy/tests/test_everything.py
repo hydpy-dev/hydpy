@@ -135,6 +135,7 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
     for dirpath, dirnames, filenames_ in os.walk(hydpy.__path__[0]):
         if (('__init__.py' not in filenames_) or
                 dirpath.endswith('tests') or
+                dirpath.endswith('autogen') or
                 dirpath.endswith('__pycache__') or
                 dirpath.endswith('build')):
             continue
@@ -145,16 +146,16 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
         modulenames = [packagename+fn.split('.')[0]
                        for fn in filenames_ if fn.endswith('.py')]
         docfilenames = [os.path.join(dirpath, fn)
-                        for fn in filenames_ if fn.endswith('.rst')]
+                        for fn in filenames_ if fn[-4:] in ('.rst', '.pyx')]
         for name in modulenames + docfilenames:
             if name.split('.')[-1] in ('apidoc', 'prepare', 'modify_html'):
                 continue
-            if not name.endswith('.rst'):
+            if not name[-4:] in ('.rst', '.pyx'):
                 module = importlib.import_module(name)
                 testtools.solve_exception_doctest_issue(module)
             suite = unittest.TestSuite()
             try:
-                if name.endswith('.rst'):
+                if name[-4:] in ('.rst', '.pyx'):
                     suite.addTest(
                         doctest.DocFileSuite(name, module_relative=False,
                                              optionflags=doctest.ELLIPSIS))
@@ -187,7 +188,7 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                     devicetools.Element.clear_all()
                     testtools.IntegrationTest.plotting_options = \
                         testtools.PlottingOptions()
-                    if name.endswith('.rst'):
+                    if name[-4:] in ('.rst', '.pyx'):
                         name = name[name.find('hydpy'+os.sep):]
                     with warnings.catch_warnings(), \
                             open(os.devnull, 'w') as file_:
@@ -222,7 +223,7 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
         print('In the following modules, no doc test failed in %s mode:'
               % mode)
         for name in sorted(successfuldoctests.keys()):
-            if name.endswith('.rst'):
+            if name[-4:] in ('.rst', '.pyx'):
                 print('    %s' % name)
             else:
                 print('    %s (%d successes)'

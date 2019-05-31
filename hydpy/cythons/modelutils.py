@@ -22,6 +22,7 @@ import numpy
 import hydpy
 from hydpy import config
 from hydpy import cythons
+from hydpy.core import importtools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import printtools
@@ -190,15 +191,13 @@ class Cythonizer(object):
     def pyxwriter(self):
         """Update the pyx file."""
         model = self.Model()
+        dict_ = vars(self)
+        dict_['model'] = model
         if hasattr(self, 'Parameters'):
-            model.parameters = self.Parameters(vars(self))
+            model.parameters = self.Parameters(dict_)
         else:
-            model.parameters = parametertools.Parameters(vars(self))
-        if hasattr(self, 'Sequences'):
-            model.sequences = self.Sequences(model=model, **vars(self))
-        else:
-            model.sequences = sequencetools.Sequences(model=model,
-                                                      **vars(self))
+            model.parameters = parametertools.Parameters(dict_)
+        model.sequences = importtools.prepare_sequences(dict_)
         return PyxWriter(self, model, self.pyxfilepath)
 
     @property
@@ -649,9 +648,10 @@ class PyxWriter(object):
         """Deallocate memory for 1-dimensional link sequences."""
         print('            . dealloc')
         lines = Lines()
-        lines.add(1, 'cpdef inline dealloc(self):')
+        lines.add(1, 'cpdef inline dealloc(self, name):')
         for seq in subseqs:
-            lines.add(2, 'PyMem_Free(self.%s)' % seq.name)
+            lines.add(2, 'if name == "%s":' % seq.name)
+            lines.add(3, 'PyMem_Free(self.%s)' % seq.name)
         return lines
 
     @staticmethod

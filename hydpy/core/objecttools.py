@@ -227,7 +227,7 @@ def nodephrase(self):
     which |Node| is affected.
 
     >>> from hydpy.core.sequencetools import Sequences
-    >>> sequences = Sequences()
+    >>> sequences = Sequences(None)
     >>> from hydpy.core.objecttools import nodephrase
     >>> nodephrase(sequences)
     '`sequences` of node `?`'

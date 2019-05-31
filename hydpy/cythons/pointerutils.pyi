@@ -24,3 +24,6 @@ class PDouble(DoubleBase):
 
 class PPDouble:
     ...
+
+    def set_pointer(self, value: Double, idx: int):
+        ...

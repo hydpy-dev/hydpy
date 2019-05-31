@@ -62,9 +62,7 @@ def parameterstep(timestep: timetools.PeriodConstrArg = None):
         if 'Parameters' not in namespace:
             namespace['Parameters'] = parametertools.Parameters
         model.parameters = namespace['Parameters'](namespace)
-        if 'Sequences' not in namespace:
-            namespace['Sequences'] = sequencetools.Sequences
-        model.sequences = namespace['Sequences'](**namespace)
+        model.sequences = prepare_sequences(namespace)
         namespace['parameters'] = model.parameters
         for pars in model.parameters:
             namespace[pars.name] = pars
@@ -87,6 +85,24 @@ def parameterstep(timestep: timetools.PeriodConstrArg = None):
                 namespace[par.name] = lambda *args, **kwargs: None
         except AttributeError:
             pass
+
+
+def prepare_sequences(dict_):
+    cls_sequences = dict_.get('Sequences', sequencetools.Sequences)
+    return cls_sequences(
+        model=dict_.get('model'),
+        cls_inlets=dict_.get('InletSequences'),
+        cls_receivers=dict_.get('ReceiverSequences'),
+        cls_inputs=dict_.get('InputSequences'),
+        cls_fluxes=dict_.get('FluxSequences'),
+        cls_states=dict_.get('StateSequences'),
+        cls_logs=dict_.get('LogSequences'),
+        cls_aides=dict_.get('AideSequences'),
+        cls_outlets=dict_.get('OutletSequences'),
+        cls_senders=dict_.get('SenderSequences'),
+        cymodel=dict_.get('cymodel'),
+        cythonmodule=dict_.get('cythonmodule')
+    )
 
 
 def reverse_model_wildcard_import():
@@ -209,10 +225,7 @@ def prepare_model(module: Union[types.ModuleType, str],
         model.parameters = module.Parameters(dict_)
     else:
         model.parameters = parametertools.Parameters(dict_)
-    if hasattr(module, 'Sequences'):
-        model.sequences = module.Sequences(**dict_)
-    else:
-        model.sequences = sequencetools.Sequences(**dict_)
+    model.sequences = prepare_sequences(dict_)
     if hasattr(module, 'Masks'):
         model.masks = module.Masks(model)
     return model

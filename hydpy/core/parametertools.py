@@ -415,19 +415,29 @@ class SubParameters(variabletools.SubVariables[Parameters]):
     >>> classname(model.parameters.control.fastaccess)
     'ControlParameters'
     """
+
     pars: Parameters
+    fastaccess: Union[
+        'FastAccessSequence', 'abctools.FastAccessModelSequenceProtocol']
+    _cls_fastaccess: Any   # ToDo
+    _cymodel = Optional[Type['abctools.CyModelProtocol']]
 
-    def __init__(self, variables: Parameters,
-                 cls_fastaccess=None, cymodel=None):
-        self.pars = variables
-        super().__init__(variables, cls_fastaccess, cymodel)
+    def __init__(
+            self,
+            master: Parameters,
+            cls_fastaccess=None,
+            cymodel: Optional['abctools.CyModelProtocol'] = None):
+        self.pars = master
+        self._cls_fastaccess = cls_fastaccess
+        self._cymodel = cymodel
+        super().__init__(master)
 
-    def __hydpy__initialise_fastaccess__(self, cls_fastaccess, cymodel) -> None:
-        if cls_fastaccess is None:
+    def __hydpy__initialise_fastaccess__(self) -> None:
+        if self._cls_fastaccess is None:
             self.fastaccess = FastAccessParameter()
         else:
-            self.fastaccess = cls_fastaccess()
-            setattr(cymodel.parameters, self.name, self.fastaccess)
+            self.fastaccess = self._cls_fastaccess()
+            setattr(self._cymodel.parameters, self.name, self.fastaccess)
 
     @property
     def name(self) -> str:
@@ -2871,6 +2881,6 @@ class MOYParameter(Parameter):
         self.values = indexarray
 
 
-class FastAccessParameter:
+class FastAccessParameter(variabletools.FastAccess):
     """Used as a surrogate for typed Cython classes handling parameters
     when working in pure Python mode."""

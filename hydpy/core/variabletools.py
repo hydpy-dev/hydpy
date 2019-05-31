@@ -918,7 +918,7 @@ operands could not be broadcast together with shapes (2,) (3,)...
 
     strict_valuehandling: ClassVar[bool] = True
 
-    fastaccess: Any
+    fastaccess: Union['FastAccess', abctools.FastAccessModelSequenceProtocol]
     subvars: SubgroupType
 
     mask = masktools.DefaultMask()
@@ -1795,7 +1795,7 @@ class SubVariables(Generic[GroupType]):
 
     >>> class SubVars(SubVariables):
     ...     CLASSES = (TestVar,)
-    ...     def __hydpy__initialise_fastaccess__(self, cls_fastaccess, cymodel):
+    ...     def __hydpy__initialise_fastaccess__(self):
     ...         return None
     ...     name = 'subvars'
 
@@ -1865,11 +1865,12 @@ variable `testvar`.
     CLASSES: ClassVar[Tuple[Type[abctools.VariableProtocol], ...]]
     vars: GroupType
     _name2variable: Dict[str, abctools.VariableProtocol] = {}
-    fastaccess: Any
+    fastaccess: Union['FastAccess', abctools.FastAccessModelSequenceProtocol]
+    _cls_fastaccess: Optional[Type[abctools.FastAccessModelSequenceProtocol]]
 
-    def __init__(self, variables, cls_fastaccess=None, cymodel=None):
-        self.vars = variables
-        self.__hydpy__initialise_fastaccess__(cls_fastaccess, cymodel)
+    def __init__(self, master: Any):
+        self.vars = master
+        self.__hydpy__initialise_fastaccess__()
         self._name2variable = {}
         for cls in self.CLASSES:
             variable = cls(self)
@@ -1882,9 +1883,9 @@ variable `testvar`.
         """To be overridden."""
 
     @abc.abstractmethod
-    def __hydpy__initialise_fastaccess__(self, cls_fastaccess, cymodel) -> Any:
-        """To be overridden  Must create a `fastaccess` attribute and build
-        the required connections to the given cythonised model, if given."""
+    def __hydpy__initialise_fastaccess__(self) -> None:
+        """To be overridden.  Must create a `fastaccess` attribute and build
+        the required connections to the related cythonized model eventually."""
 
     def __getattr__(self, name):
         try:
@@ -1932,8 +1933,7 @@ variable `testvar`.
         ...     initinfo = 0.0, False
         >>> class TestSubVars(SubVariables):
         ...     CLASSES = (TestVar,)
-        ...     __hydpy__initialise_fastaccess__ = (
-        ...         lambda self, cls_fastaccess, cymodel: None)
+        ...     __hydpy__initialise_fastaccess__ = lambda self: None
         ...     name = None
         >>> dir(TestSubVars(None))
         ['CLASSES', 'name', 'testvar', 'vars']

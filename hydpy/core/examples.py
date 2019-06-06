@@ -170,7 +170,7 @@ def prepare_full_example_1() -> None:
     ...               *sorted(os.listdir(f'LahnH/{folder}')))
     root: LahnH __init__.py
     LahnH/control: default
-    LahnH/conditions: init_1996_01_01
+    LahnH/conditions: init_1996_01_01_00_00_00
     LahnH/series: input node output temp
 
     ToDo: Improve, test, and explain this example data set.

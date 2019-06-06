@@ -53,9 +53,11 @@ sequence |hland_states.SM| for the 12 hydrological response units of the
 subcatchment `land_dill`:
 
 >>> with TestIO():
-...     with open('LahnH/conditions/init_1996_01_01/land_dill.py') as file_:
+...     filepath = 'LahnH/conditions/init_1996_01_01_00_00_00/land_dill.py'
+...     with open(filepath) as file_:
 ...         print(''.join(file_.readlines()[10:12]))
-...     with open('LahnH/conditions/init_1996_01_06/land_dill.py') as file_:
+...     filepath = 'LahnH/conditions/init_1996_01_06/land_dill.py'
+...     with open(filepath) as file_:
 ...         print(''.join(file_.readlines()[9:12]))
 sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
    222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)

@@ -19,7 +19,7 @@
     <devices/>
 
     <conditions_io>
-        <inputdir>init_1996_01_01</inputdir>
+        <inputdir>init_1996_01_01_00_00_00</inputdir>
         <outputdir>init_1996_01_06</outputdir> <!-- optional ? -->
         <zip>false</zip> <!-- optional ? -->
     </conditions_io>

@@ -288,7 +288,7 @@ def controlcheck(controldir='default', projectdir=None, controlfile=None):
 
     >>> import os, subprocess
     >>> from hydpy import TestIO
-    >>> cwd = os.path.join('LahnH', 'conditions', 'init_1996_01_01')
+    >>> cwd = os.path.join('LahnH', 'conditions', 'init_1996_01_01_00_00_00')
     >>> with TestIO():
     ...     os.chdir(cwd)
     ...     with open('land_dill.py') as file_:

@@ -281,13 +281,144 @@ class HydPy(object):
                                     auxfiler=auxfiler)
 
     def load_conditions(self):
-        """Call method |Elements.load_conditions| of the |Elements| object
-        currently handled by the |HydPy| object."""
+        """Load all currently relevant initial conditions.
+
+        The following examples demonstrate both the functionality of
+        method |HydPy.load_conditions| and |HydPy.save_conditions| based
+        on the `LahnH` project, which we prepare via function
+        |prepare_full_example_2|:
+
+        >>> from hydpy.core.examples import prepare_full_example_2
+        >>> hp, pub, TestIO = prepare_full_example_2()
+
+        Our |HydPy| instance `hp` is completely ready for the first
+        simulation run, meaning the required initial conditions have
+        been loaded already.  First, we start a simulation run covering
+        the whole initialisation period and inspect the resulting soil
+        moisture values of |Element| `land_dill`, handled by sequence
+        |hland_states.SM|:
+
+        >>> hp.doit()
+        >>> sm = hp.elements.land_dill.model.sequences.states.sm
+        >>> sm
+        sm(184.098541, 180.176461, 198.689343, 195.462014, 210.856923,
+           208.319571, 220.881637, 218.898327, 229.022364, 227.431521,
+           235.597338, 234.329294)
+
+        By default, method |HydPy.load_conditions| always (re)loads the
+        initial conditions from the directory with a name matching the
+        start date of the simulation period, which we proof by also
+        showing the related content of the respective condition file
+        `land_dill.py`:
+
+        >>> with TestIO():
+        ...     hp.load_conditions()
+        >>> sm
+        sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
+           222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
+
+        >>> path = 'LahnH/conditions/init_1996_01_01_00_00_00/land_dill.py'
+        >>> with TestIO():
+        ...     with open(path, 'r') as file_:
+        ...         lines = file_.read().split('\\n')
+        ...         print(lines[10])
+        ...         print(lines[11])
+        sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
+           222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
+
+        Now we perform two sequential runs, covering the first and the
+        second half of the initialisation period, respectively, and
+        write, in both cases, the resulting final conditions to disk:
+
+        >>> pub.timegrids.sim.lastdate = '1996-01-03'
+        >>> hp.doit()
+        >>> sm
+        sm(184.603966, 180.671117, 199.234825, 195.998635, 211.435809,
+           208.891492, 221.488046, 219.49929, 229.651122, 228.055912,
+           236.244147, 234.972621)
+        >>> with TestIO():
+        ...     hp.save_conditions()
+
+        >>> pub.timegrids.sim.firstdate = '1996-01-03'
+        >>> pub.timegrids.sim.lastdate = '1996-01-05'
+        >>> hp.doit()
+        >>> with TestIO():
+        ...     hp.save_conditions()
+        >>> sm
+        sm(184.098541, 180.176461, 198.689343, 195.462014, 210.856923,
+           208.319571, 220.881637, 218.898327, 229.022364, 227.431521,
+           235.597338, 234.329294)
+
+        Analogous to method |HydPy.load_conditions|, method
+        |HydPy.save_conditions| writes the resulting conditions to a
+        directory with a name matching the end date of the simulation
+        period, which we proof by reloading the conditions related
+        to the middle of the initialisation period and showing the
+        related file content:
+
+        >>> with TestIO():
+        ...     hp.load_conditions()
+        >>> sm
+        sm(184.603966, 180.671117, 199.234825, 195.998635, 211.435809,
+           208.891492, 221.488046, 219.49929, 229.651122, 228.055912,
+           236.244147, 234.972621)
+
+        >>> path = 'LahnH/conditions/init_1996_01_03_00_00_00/land_dill.py'
+        >>> with TestIO():
+        ...     with open(path, 'r') as file_:
+        ...         lines = file_.read().split('\\n')
+        ...         print(lines[10])
+        ...         print(lines[11])
+        ...         print(lines[12])
+        sm(184.603966, 180.671117, 199.234825, 195.998635, 211.435809,
+           208.891492, 221.488046, 219.49929, 229.651122, 228.055912,
+           236.244147, 234.972621)
+
+        You can define another directory by assigning another directory
+        name to property |FileManager.currentdir| of the actual
+        |ConditionManager| instance:
+
+        >>> with TestIO():
+        ...     pub.conditionmanager.currentdir = 'test'
+        ...     hp.save_conditions()
+
+        >>> path = 'LahnH/conditions/test/land_dill.py'
+        >>> with TestIO():
+        ...     with open(path, 'r') as file_:
+        ...         lines = file_.read().split('\\n')
+        ...         print(lines[10])
+        ...         print(lines[11])
+        ...         print(lines[12])
+        sm(184.603966, 180.671117, 199.234825, 195.998635, 211.435809,
+           208.891492, 221.488046, 219.49929, 229.651122, 228.055912,
+           236.244147, 234.972621)
+
+        This change remains permanent until you undo it manually:
+
+        >>> sm(0.0)
+        >>> pub.timegrids.sim.firstdate = '1996-01-01'
+        >>> with TestIO():
+        ...     hp.load_conditions()
+        >>> sm
+        sm(184.603966, 180.671117, 199.234825, 195.998635, 211.435809,
+           208.891492, 221.488046, 219.49929, 229.651122, 228.055912,
+           236.244147, 234.972621)
+
+        >>> with TestIO():
+        ...     del pub.conditionmanager.currentdir
+        ...     hp.load_conditions()
+        >>> sm
+        sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
+           222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
+        """
         self.elements.load_conditions()
 
     def save_conditions(self):
-        """Call method |Elements.save_conditions| of the |Elements| object
-        currently handled by the |HydPy| object."""
+        """Save all currently relevant final conditions.
+
+        See the documentation on method |HydPy.load_conditions| for
+        further information.
+        """
         self.elements.save_conditions()
 
     def trim_conditions(self):
@@ -309,14 +440,10 @@ class HydPy(object):
         For demonstration, we perform a simulation for the `LahnH`
         example project spanning four days:
 
-        >>> from hydpy.core.examples import prepare_full_example_1
-        >>> prepare_full_example_1()
-        >>> from hydpy import HydPy, pub, TestIO, print_values
-        >>> with TestIO():
-        ...     hp = HydPy('LahnH')
-        ...     pub.timegrids = '1996-01-01', '1996-01-05', '1d'
-        ...     hp.prepare_everything()
+        >>> from hydpy.core.examples import prepare_full_example_2
+        >>> hp, pub, TestIO = prepare_full_example_2()
         >>> hp.doit()
+        >>> from hydpy import print_values
         >>> print_values(hp.nodes.lahn_3.sequences.sim.series)
         53.793428, 37.157714, 31.835184, 28.375294
 

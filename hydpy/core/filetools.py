@@ -893,24 +893,20 @@ class ConditionManager(FileManager):
         name is constructed with the actual simulation start date.  If
         such an directory does not exist, it is created immediately.
         """
-        _defaultdir = self.DEFAULTDIR
+        currentdir = self._currentdir
         try:
+            if not currentdir:
+                self.currentdir = (
+                    'init_' + hydpy.pub.timegrids.sim.firstdate.to_string('os'))
             if not filename.endswith('.py'):
                 filename += '.py'
-            try:
-                self.DEFAULTDIR = (
-                    'init_' + hydpy.pub.timegrids.sim.firstdate.to_string('os'))
-            except KeyError:
-                pass
-            filepath = os.path.join(self.currentpath, filename)
-            with open(filepath) as file_:
-                return file_.read()
+            return os.path.join(self.currentpath, filename)
         except BaseException:
             objecttools.augment_excmessage(
                 'While trying to read the conditions file `%s`'
                 % filename)
         finally:
-            self.DEFAULTDIR = _defaultdir
+            self.currentdir = currentdir
 
     def save_file(self, filename, text):
         """Save the given text under the given condition filename and the
@@ -920,24 +916,21 @@ class ConditionManager(FileManager):
         name is constructed with the actual simulation end date.  If
         such an directory does not exist, it is created immediately.
         """
-        _defaultdir = self.DEFAULTDIR
+        currentdir = self._currentdir
         try:
+            if not currentdir:
+                self.currentdir = (
+                    'init_' + hydpy.pub.timegrids.sim.lastdate.to_string('os'))
             if not filename.endswith('.py'):
                 filename += '.py'
-            try:
-                self.DEFAULTDIR = (
-                    'init_' + hydpy.pub.timegrids.sim.lastdate.to_string('os'))
-            except AttributeError:
-                pass
             path = os.path.join(self.currentpath, filename)
             with open(path, 'w', encoding="utf-8") as file_:
                 file_.write(text)
         except BaseException:
             objecttools.augment_excmessage(
-                'While trying to write the conditions file `%s`'
-                % filename)
+                f'While trying to write the conditions file `{filename}`')
         finally:
-            self.DEFAULTDIR = _defaultdir
+            self.currentdir = currentdir
 
 
 class _Descriptor(object):

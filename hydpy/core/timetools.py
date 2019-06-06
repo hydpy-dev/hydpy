@@ -1559,6 +1559,9 @@ timegrid object is `4` and the length of the array object is `2`.
     def __repr__(self):
         return self.assignrepr('')
 
+    def __str__(self):
+        return objecttools.flatten_repr(self)
+
     def assignrepr(self, prefix, style=None, utcoffset=None):
         """Return a |repr| string with an prefixed assignement.
 
@@ -1854,6 +1857,9 @@ on the initialization time grid.
             lines.append(f'{self.sim.assignrepr(blanks)},')
         lines[-1] = lines[-1][:-1] + ')'
         return '\n'.join(lines)
+
+    def __str__(self):
+        return objecttools.flatten_repr(self)
 
     def __dir__(self):
         return objecttools.dir_(self)

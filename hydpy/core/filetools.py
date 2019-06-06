@@ -884,51 +884,96 @@ class ConditionManager(FileManager):
     """Manager for condition files."""
 
     BASEDIR = 'conditions'
-    DEFAULTDIR = None
 
-    def load_file(self, filename):
-        """Read and return the content of the given file.
+    @property
+    def inputpath(self):
+        """The directory path initial conditions should be loaded from.
+
+        The following examples, which are based on the `LahnH` example
+        project, explain both the functionality of property
+        |ConditionManager.inputpath| and |ConditionManager.outputpath|:
+
+        >>> from hydpy.core.examples import prepare_full_example_2
+        >>> hp, pub, TestIO = prepare_full_example_2()
 
         If the current directory is not defined explicitly, the directory
-        name is constructed with the actual simulation start date.  If
-        such an directory does not exist, it is created immediately.
+        name is constructed in accordance with the actual simulation start
+        or end date, respectively:
+
+        >>> from hydpy import repr_
+        >>> with TestIO():    # doctest: +ELLIPSIS
+        ...     repr_(pub.conditionmanager.inputpath)
+        ...     repr_(pub.conditionmanager.outputpath)
+        '.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_01_00_00_00'
+        '.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_05_00_00_00'
+
+        >>> pub.timegrids.sim.firstdate += '1d'
+        >>> pub.timegrids.sim.lastdate -= '1d'
+        >>> pub.timegrids
+        Timegrids(Timegrid('1996-01-01 00:00:00',
+                           '1996-01-05 00:00:00',
+                           '1d'),
+                  Timegrid('1996-01-02 00:00:00',
+                           '1996-01-04 00:00:00',
+                           '1d'))
+
+        >>> with TestIO():    # doctest: +ELLIPSIS
+        ...     repr_(pub.conditionmanager.inputpath)
+        ...     repr_(pub.conditionmanager.outputpath)
+        '.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_02_00_00_00'
+        '.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_04_00_00_00'
+
+        Use property |FileManager.currentdir| to change the values of
+        both properties:
+
+        >>> with TestIO():    # doctest: +ELLIPSIS
+        ...     pub.conditionmanager.currentdir = 'test'
+        ...     repr_(pub.conditionmanager.inputpath)
+        ...     repr_(pub.conditionmanager.outputpath)
+        '.../hydpy/tests/iotesting/LahnH/conditions/test'
+        '.../hydpy/tests/iotesting/LahnH/conditions/test'
+
+        After deleting the costum value of property |FileManager.currentdir|,
+        both properties |ConditionManager.inputpath| and
+        |ConditionManager.outputpath| work as before:
+
+        >>> with TestIO():    # doctest: +ELLIPSIS
+        ...     del pub.conditionmanager.currentdir
+        ...     repr_(pub.conditionmanager.inputpath)
+        ...     repr_(pub.conditionmanager.outputpath)
+        '.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_02_00_00_00'
+        '.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_04_00_00_00'
         """
         currentdir = self._currentdir
         try:
             if not currentdir:
                 self.currentdir = (
                     'init_' + hydpy.pub.timegrids.sim.firstdate.to_string('os'))
-            if not filename.endswith('.py'):
-                filename += '.py'
-            return os.path.join(self.currentpath, filename)
+            return self.currentpath
         except BaseException:
             objecttools.augment_excmessage(
-                'While trying to read the conditions file `%s`'
-                % filename)
+                'While trying to determine the currently relevent '
+                'input path for loading conditions file')
         finally:
             self.currentdir = currentdir
 
-    def save_file(self, filename, text):
-        """Save the given text under the given condition filename and the
-        current path.
+    @property
+    def outputpath(self):
+        """The directory path actual conditions should be saved to.
 
-        If the current directory is not defined explicitly, the directory
-        name is constructed with the actual simulation end date.  If
-        such an directory does not exist, it is created immediately.
+        See the documentation on property |ConditionManager| for futher
+        information.
         """
         currentdir = self._currentdir
         try:
             if not currentdir:
                 self.currentdir = (
                     'init_' + hydpy.pub.timegrids.sim.lastdate.to_string('os'))
-            if not filename.endswith('.py'):
-                filename += '.py'
-            path = os.path.join(self.currentpath, filename)
-            with open(path, 'w', encoding="utf-8") as file_:
-                file_.write(text)
+            return self.currentpath
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to write the conditions file `{filename}`')
+                'While trying to determine the currently relevent '
+                'output path for saving conditions file')
         finally:
             self.currentdir = currentdir
 

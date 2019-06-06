@@ -108,7 +108,7 @@ def decorate_method(wrapped):
     return property(wrapper)
 
 
-class Cythonizer(object):
+class Cythonizer:
     """Handles the writing, compiling and initialization of cython models."""
     tester: testtools.Tester
 
@@ -302,7 +302,7 @@ class Cythonizer(object):
         return objecttools.dir_(self)
 
 
-class PyxWriter(object):
+class PyxWriter:
     """Writes a new pyx file into framework.models.cython when initialised.
     """
 
@@ -381,14 +381,14 @@ class PyxWriter(object):
         """Parameter declaration lines."""
         lines = Lines()
         lines.add(0, '@cython.final')
-        lines.add(0, 'cdef class Parameters(object):')
+        lines.add(0, 'cdef class Parameters:')
         for subpars in self.model.parameters:
             lines.add(1, 'cdef public %s %s'
                          % (objecttools.classname(subpars), subpars.name))
         for subpars in self.model.parameters:
             print('        - %s' % subpars.name)
             lines.add(0, '@cython.final')
-            lines.add(0, 'cdef class %s(object):'
+            lines.add(0, 'cdef class %s:'
                          % objecttools.classname(subpars))
             for par in subpars:
                 try:
@@ -403,7 +403,7 @@ class PyxWriter(object):
         """Sequence declaration lines."""
         lines = Lines()
         lines.add(0, '@cython.final')
-        lines.add(0, 'cdef class Sequences(object):')
+        lines.add(0, 'cdef class Sequences:')
         for subseqs in self.model.sequences:
             lines.add(1, 'cdef public %s %s'
                          % (objecttools.classname(subseqs), subseqs.name))
@@ -413,7 +413,7 @@ class PyxWriter(object):
         for subseqs in self.model.sequences:
             print('        - %s' % subseqs.name)
             lines.add(0, '@cython.final')
-            lines.add(0, 'cdef class %s(object):'
+            lines.add(0, 'cdef class %s:'
                          % objecttools.classname(subseqs))
             for seq in subseqs:
                 ctype = 'double' + NDIM2STR[seq.NDIM]
@@ -445,13 +445,11 @@ class PyxWriter(object):
                                      % (ctype, seq.name))
                 if isinstance(subseqs, sequencetools.IOSequences):
                     lines.extend(self.iosequence(seq))
-            if isinstance(subseqs, sequencetools.InputSequences):
-                lines.extend(self.load_data(subseqs))
             if isinstance(subseqs, sequencetools.IOSequences):
                 lines.extend(self.open_files(subseqs))
                 lines.extend(self.close_files(subseqs))
-                if not isinstance(subseqs, sequencetools.InputSequence):
-                    lines.extend(self.save_data(subseqs))
+                lines.extend(self.load_data(subseqs))
+                lines.extend(self.save_data(subseqs))
             if isinstance(subseqs, sequencetools.LinkSequences):
                 lines.extend(self.set_pointer(subseqs))
                 lines.extend(self.get_value(subseqs))
@@ -673,14 +671,14 @@ class PyxWriter(object):
         lines = Lines()
         if self.model.NUMERICAL:
             lines.add(0, '@cython.final')
-            lines.add(0, 'cdef class NumConsts(object):')
+            lines.add(0, 'cdef class NumConsts:')
             for name in ('nmb_methods', 'nmb_stages'):
                 lines.add(1, 'cdef public %s %s' % (TYPE2STR[int], name))
             for name in ('dt_increase', 'dt_decrease'):
                 lines.add(1, 'cdef public %s %s' % (TYPE2STR[float], name))
             lines.add(1, 'cdef public configutils.Config pub')
             lines.add(1, 'cdef public double[:, :, :] a_coefs')
-            lines.add(0, 'cdef class NumVars(object):')
+            lines.add(0, 'cdef class NumVars:')
             for name in ('nmb_calls', 'idx_method', 'idx_stage'):
                 lines.add(1, 'cdef public %s %s' % (TYPE2STR[int], name))
             for name in ('t0', 't1', 'dt', 'dt_est',
@@ -694,7 +692,7 @@ class PyxWriter(object):
         """Attribute declarations of the model class."""
         lines = Lines()
         lines.add(0, '@cython.final')
-        lines.add(0, 'cdef class Model(object):')
+        lines.add(0, 'cdef class Model:')
         lines.add(1, 'cdef public int idx_sim')
         lines.add(1, 'cdef public Parameters parameters')
         lines.add(1, 'cdef public Sequences sequences')
@@ -1134,7 +1132,7 @@ class PyxWriter(object):
         return lines
 
 
-class FuncConverter(object):
+class FuncConverter:
 
     def __init__(self, model, funcname, func):
         self.model = model

@@ -1043,21 +1043,19 @@ occurred: could not broadcast input array from shape (2) into shape (2,3)
         >>> var.value   # doctest: +ELLIPSIS
         array([], shape=(0, 0), dtype=int...)
         """
-        value = getattr(self.fastaccess, self.name, None)
-        if self.__valueready or not self.strict_valuehandling:
-            if self.NDIM:
-                return numpy.asarray(value)
-            return self.TYPE(value)
-        if self.NDIM and not sum(self.shape):
-            return numpy.asarray(value)
-        substring = 'values have' if self.NDIM else 'value has'
-        raise AttributeError(
-            f'For variable {objecttools.devicephrase(self)}, '
-            f'no {substring} been defined so far.')
+        value = self._prepare_getvalue(
+            self.__valueready or not self.strict_valuehandling,
+            getattr(self.fastaccess, self.name, None))
+        if value is None:
+            substring = 'values have' if self.NDIM else 'value has'
+            raise AttributeError(
+                f'For variable {objecttools.devicephrase(self)}, '
+                f'no {substring} been defined so far.')
+        return value
 
     def __hydpy__set_value__(self, value) -> None:
         try:
-            value = self._prepare_value(value)
+            value = self._prepare_setvalue(value)
             setattr(self.fastaccess, self.name, value)
             self.__valueready = True
         except BaseException:
@@ -1065,7 +1063,16 @@ occurred: could not broadcast input array from shape (2) into shape (2,3)
                 f'While trying to set the value(s) of variable '
                 f'{objecttools.devicephrase(self)}')
 
-    def _prepare_value(self, value):
+    def _prepare_getvalue(self, readyflag: bool, value):
+        if readyflag:
+            if self.NDIM:
+                return numpy.asarray(value)
+            return self.TYPE(value)
+        if self.NDIM and not sum(self.shape):
+            return numpy.asarray(value)
+        return None
+
+    def _prepare_setvalue(self, value):
         if self.NDIM:
             value = getattr(value, 'value', value)
             try:

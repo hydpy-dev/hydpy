@@ -781,6 +781,10 @@ class _Open(object):
         """Replaces the `write` method of file objects."""
         self.texts.append(text)
 
+    def writelines(self, lines):
+        """Replaces the `writelines` method of file objects."""
+        self.texts.extend(lines)
+
     def close(self):
         """Replaces the `close` method of file objects."""
         text = ''.join(self.texts)

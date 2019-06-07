@@ -759,6 +759,16 @@ Use method `prepare_models` instead.
                 func(idx)
         self.close_files()
 
+    def prepare_allseries(self, ramflag=True):
+        """Allow all current |IOSequence| objects to handle time series
+        data via property |IOSequence.series|, depending on argument
+        `ramflag` either in RAM (|True|) of on disk (|False|).
+
+        See the main documentation on class |HydPy| for further information.
+        """
+        self.prepare_modelseries(ramflag)
+        self.prepare_nodeseries(ramflag)
+
     def prepare_modelseries(self, ramflag=True):
         """Call method |Elements.prepare_allseries| of the |Elements| object
         currently handled by the |HydPy| object."""
@@ -793,6 +803,15 @@ Use method `prepare_models` instead.
         """Call method |Nodes.prepare_obsseries| of the |Nodes| object
         currently handled by the |HydPy| object."""
         self.nodes.prepare_obsseries(ramflag=ramflag)
+
+    def save_allseries(self):
+        """Write the time series data of all current |IOSequence| objects
+        at once to external data file(s).
+
+        See the main documentation on class |HydPy| for further information.
+        """
+        self.save_modelseries()
+        self.save_nodeseries()
 
     def save_modelseries(self):
         """Call method |Elements.save_allseries| of the |Elements| object
@@ -833,6 +852,15 @@ Use method `prepare_models` instead.
         """Call method |Elements.load_allseries| of the |Elements| object
         currently handled by the |HydPy| object."""
         self.elements.load_allseries()
+
+    def load_allseries(self):
+        """Read the time series data of all current |IOSequence| objects
+        at once from external data file(s).
+
+        See the main documentation on class |HydPy| for further information.
+        """
+        self.load_modelseries()
+        self.load_nodeseries()
 
     def load_inputseries(self):
         """Call method |Elements.load_inputseries| of the |Elements| object

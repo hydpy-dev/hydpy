@@ -904,8 +904,8 @@ class Elements(Devices['Element']):
         return Element
 
     @printtools.print_progress
-    def init_models(self) -> None:
-        """Call method |Element.init_model| of all handle |Element| objects.
+    def prepare_models(self) -> None:
+        """Call method |Element.prepare_model| of all handle |Element| objects.
 
         We show, based the `LahnH` example project, that method
         |Element.init_model| prepares the |Model| objects of all elements,
@@ -919,7 +919,7 @@ class Elements(Devices['Element']):
         ...     hp = HydPy('LahnH')
         ...     pub.timegrids = '1996-01-01', '1996-02-01', '1d'
         ...     hp.prepare_network()
-        ...     hp.init_models()
+        ...     hp.prepare_models()
         >>> hp.elements.land_dill.model.parameters.derived.dt
         dt(0.000833)
 
@@ -928,7 +928,7 @@ class Elements(Devices['Element']):
         >>> with TestIO():
         ...     with open('LahnH/control/default/land_dill.py', 'a') as file_:
         ...         _ = file_.write('zonetype(-1)')
-        ...     hp.init_models()   # doctest: +ELLIPSIS
+        ...     hp.prepare_models()   # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         ValueError: While trying to initialise the model object of element \
@@ -942,7 +942,7 @@ parameter `zonetype` of element `?` is not valid.
         >>> import os
         >>> with TestIO():
         ...     os.remove('LahnH/control/default/land_dill.py')
-        ...     hp.init_models()   # doctest: +ELLIPSIS
+        ...     hp.prepare_models()   # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         FileNotFoundError: While trying to initialise the model object of \
@@ -958,7 +958,7 @@ control file `...land_dill.py`, the following error occurred: ...
 
         >>> with TestIO():
         ...     with pub.options.warnmissingcontrolfile(True):
-        ...         hp.init_models()
+        ...         hp.prepare_models()
         Traceback (most recent call last):
         ...
         UserWarning: Due to a missing or no accessible control file, \
@@ -968,9 +968,31 @@ no model could be initialised for element `land_dill`
         """
         try:
             for element in printtools.progressbar(self):
-                element.init_model(clear_registry=False)
+                element.prepare_model(clear_registry=False)
         finally:
             hydpy.pub.controlmanager.clear_registry()
+
+    def init_models(self) -> None:
+        """Deprecated: use method |Elements.prepare_models| instead.
+
+        >>> from hydpy import Elements
+        >>> from unittest import mock
+        >>> with mock.patch.object(Elements, 'prepare_models') as mocked:
+        ...     elements = Elements()
+        ...     elements.init_models()
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.HydPyDeprecationWarning: \
+Method `init_models` of class `Elements` is deprecated.  \
+Use method `prepare_models` instead.
+        >>> mocked.call_args_list
+        [call()]
+        """
+        self.prepare_models()
+        warnings.warn(
+            'Method `init_models` of class `Elements` is deprecated.  '
+            'Use method `prepare_models` instead.',
+            exceptiontools.HydPyDeprecationWarning)
 
     @printtools.print_progress
     def save_controls(self, parameterstep: 'timetools.PeriodConstrArg' = None,
@@ -1946,7 +1968,7 @@ requested but not been prepared so far.
         False
 
         For the "usual" approach to prepare models, please see the method
-        |Element.init_model|.
+        |Element.prepare_model|.
 
         The following examples show that assigning |Model| objects
         to property |Element.model| creates some connection required by
@@ -2001,15 +2023,14 @@ requested but not been prepared so far.
     def model(self) -> None:
         vars(self)['model'] = None
 
-    def init_model(self, clear_registry: bool = True) -> None:
+    def prepare_model(self, clear_registry: bool = True) -> None:
         """Load the control file of the actual |Element| object, initialise
         its |Model| object, build the required connections via (an eventually
         overridden version of) method |Model.connect| of class |Model|, and
         update its  derived parameter values via calling (an eventually
         overridden version) of method |Parameters.update| of class |Parameters|.
 
-
-        See method |HydPy.init_models| of class |HydPy| and property
+        See method |HydPy.prepare_models| of class |HydPy| and property
         |model| of class |Element| fur further information.
         """
         try:
@@ -2031,6 +2052,28 @@ requested but not been prepared so far.
             objecttools.augment_excmessage(
                 f'While trying to initialise the model '
                 f'object of element `{self.name}`')
+
+    def init_model(self, clear_registry: bool = True) -> None:
+        """Deprecated: use method |Element.prepare_model| instead.
+
+        >>> from hydpy import Element
+        >>> from unittest import mock
+        >>> with mock.patch.object(Element, 'prepare_model') as mocked:
+        ...     element = Element('test')
+        ...     element.init_model(False)
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.HydPyDeprecationWarning: \
+Method `init_model` of class `Element` is deprecated.  \
+Use method `prepare_model` instead.
+        >>> mocked.call_args_list
+        [call(False)]
+        """
+        self.prepare_model(clear_registry)
+        warnings.warn(
+            'Method `init_model` of class `Element` is deprecated.  '
+            'Use method `prepare_model` instead.',
+            exceptiontools.HydPyDeprecationWarning)
 
     @property
     def variables(self) -> Set[str]:

@@ -363,7 +363,7 @@ class ServerState:
         write('Activate the selected network')
         hp.update_devices(interface.fullselection)
         write('Read the required control files')
-        hp.init_models()
+        hp.prepare_models()
         write('Read the required condition files')
         interface.conditions_io.load_conditions()
         write('Read the required time series files')

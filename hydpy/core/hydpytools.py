@@ -4,12 +4,14 @@
 # import...
 # ...from standard library
 from typing import Dict, Union
+import warnings
 # ...from site-packages
 import numpy
 # ...from HydPy
 import hydpy
 from hydpy.core import abctools
 from hydpy.core import devicetools
+from hydpy.core import exceptiontools
 from hydpy.core import filetools
 from hydpy.core import printtools
 from hydpy.core import selectiontools
@@ -70,7 +72,7 @@ class HydPy(object):
     def prepare_everything(self):
         """Convenience method to make the actual |HydPy| instance runable."""
         self.prepare_network()
-        self.init_models()
+        self.prepare_models()
         self.load_conditions()
         with hydpy.pub.options.warnmissingobsfile(False):
             self.prepare_nodeseries()
@@ -85,10 +87,32 @@ class HydPy(object):
         hydpy.pub.selections += hydpy.pub.networkmanager.load_files()
         self.update_devices(hydpy.pub.selections.complete)
 
-    def init_models(self):
-        """Call method |Element.init_model| of all |Element| objects
+    def prepare_models(self):
+        """Call method |Element.prepare_model| of all |Element| objects
         currently handled by the |HydPy| object."""
-        self.elements.init_models()
+        self.elements.prepare_models()
+
+    def init_models(self):
+        """Deprecated: use method |HydPy.prepare_models| instead.
+
+        >>> from hydpy import HydPy
+        >>> from unittest import mock
+        >>> with mock.patch.object(HydPy, 'prepare_models') as mocked:
+        ...     hp = HydPy('test')
+        ...     hp.init_models()
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.HydPyDeprecationWarning: \
+Method `init_models` of class `HydPy` is deprecated.  \
+Use method `prepare_models` instead.
+        >>> mocked.call_args_list
+        [call()]
+        """
+        self.prepare_models()
+        warnings.warn(
+            'Method `init_models` of class `HydPy` is deprecated.  '
+            'Use method `prepare_models` instead.',
+            exceptiontools.HydPyDeprecationWarning)
 
     def save_controls(self, parameterstep=None, simulationstep=None,
                       auxfiler=None):

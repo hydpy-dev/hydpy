@@ -3244,7 +3244,7 @@ class Sim(NodeSequence):
         >>> pub.timegrids = '1996-01-01', '1996-01-06', '1d'
         >>> with TestIO():
         ...     hp.prepare_network()
-        ...     hp.init_models()
+        ...     hp.prepare_models()
         ...     hp.prepare_simseries()
         >>> sim = hp.nodes.dill.sequences.sim
         >>> with TestIO():
@@ -3326,7 +3326,7 @@ class Obs(NodeSequence):
         >>> pub.timegrids = '1996-01-01', '1996-01-06', '1d'
         >>> with TestIO():
         ...     hp.prepare_network()
-        ...     hp.init_models()
+        ...     hp.prepare_models()
         ...     hp.prepare_obsseries()
         >>> obs = hp.nodes.dill.sequences.obs
         >>> obs.ramflag

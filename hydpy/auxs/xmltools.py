@@ -210,7 +210,7 @@ def run_simulation(projectname: str, xmlfile: str):
     write('Activate the selected network')
     hp.update_devices(interface.fullselection)
     write('Read the required control files')
-    hp.init_models()
+    hp.prepare_models()
     write('Read the required condition files')
     interface.conditions_io.load_conditions()
     write('Read the required time series files')
@@ -710,7 +710,7 @@ class XMLConditions(XMLBase):
         >>> hp = HydPy('LahnH')
         >>> with TestIO():
         ...     hp.prepare_network()
-        ...     hp.init_models()
+        ...     hp.prepare_models()
         ...     interface = XMLInterface('single_run.xml')
         ...     interface.update_timegrids()
         ...     interface.find('selections').text = 'headwaters'
@@ -737,7 +737,7 @@ class XMLConditions(XMLBase):
         >>> hp = HydPy('LahnH')
         >>> with TestIO():
         ...     hp.prepare_network()
-        ...     hp.init_models()
+        ...     hp.prepare_models()
         ...     hp.elements.land_dill.model.sequences.states.lz = 999.0
         ...     interface = XMLInterface('single_run.xml')
         ...     interface.update_timegrids()
@@ -856,7 +856,7 @@ class XMLSelector(XMLBase):
         >>> hp = HydPy('LahnH')
         >>> with TestIO():
         ...     hp.prepare_network()
-        ...     hp.init_models()
+        ...     hp.prepare_models()
         ...     interface = XMLInterface('single_run.xml')
         >>> series_io = interface.series_io
         >>> for seq in (series_io.readers + series_io.writers):
@@ -1127,7 +1127,7 @@ class XMLSubseries(XMLSelector):
         >>> hp = HydPy('LahnH')
         >>> with TestIO():
         ...     hp.prepare_network()
-        ...     hp.init_models()
+        ...     hp.prepare_models()
         ...     interface = XMLInterface('single_run.xml')
         >>> interface.update_timegrids()
         >>> series_io = interface.series_io
@@ -1165,7 +1165,7 @@ class XMLSubseries(XMLSelector):
         >>> hp = HydPy('LahnH')
         >>> with TestIO():
         ...     hp.prepare_network()
-        ...     hp.init_models()
+        ...     hp.prepare_models()
         ...     interface = XMLInterface('single_run.xml')
         ...     interface.update_options()
         ...     interface.update_timegrids()
@@ -1199,7 +1199,7 @@ class XMLSubseries(XMLSelector):
         >>> hp = HydPy('LahnH')
         >>> with TestIO():
         ...     hp.prepare_network()
-        ...     hp.init_models()
+        ...     hp.prepare_models()
         ...     interface = XMLInterface('single_run.xml')
         ...     interface.update_options()
         >>> interface.update_timegrids()

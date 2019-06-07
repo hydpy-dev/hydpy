@@ -2034,6 +2034,13 @@ requested but not been prepared so far.
         |model| of class |Element| fur further information.
         """
         try:
+            try:
+                hydpy.pub.timegrids
+            except RuntimeError:
+                raise RuntimeError(
+                    'The initialisation period has not been defined via '
+                    'attribute `timegrids` of module `pub` yet but might '
+                    'be required to prepare the model properly.')
             with hydpy.pub.options.warnsimulationstep(False):
                 info = hydpy.pub.controlmanager.load_file(
                     element=self, clear_registry=clear_registry)

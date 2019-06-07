@@ -72,7 +72,7 @@ class ParameterSoil(ParameterComplete):
     and |FOREST| zones.
 
     |ParameterSoil| works similar to |ParameterComplete|. Some examples
-    based on parameter |ICMax|:
+    based on parameter |IcMax|:
 
     >>> from hydpy.models.hland import *
     >>> parameterstep('1d')

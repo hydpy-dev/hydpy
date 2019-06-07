@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-"""This module implements superordinate tools for handling a HydPy project.
-"""
+"""This module implements superordinate tools for handling a HydPy project."""
 # import...
 # ...from standard library
-from typing import Dict, Union
 import warnings
+from typing import *
 # ...from site-packages
 import numpy
 # ...from HydPy
@@ -20,10 +19,572 @@ from hydpy.core import selectiontools
 conditionstype = Dict[str, Dict[str, Dict[str, Union[float, numpy.ndarray]]]]
 
 
-class HydPy(object):
-    """Main class for managing HydPy projects."""
+class HydPy:
+    """The main class for managing *HydPy* projects.
 
-    def __init__(self, projectname=None):
+    In common *HydPy* projects, one prepares a single instance of class
+    |HydPy|.  This instance, which we call "hp" throughout this
+    documentation instead of "hydpy" to avoid a naming collisions with
+    the *HydPy* package, provides many convenience methods to perform
+    task like reading time series data or starting simulation runs.
+    Additionally, it serves as a "root point" to access most of the
+    details of a *HydPy* project, which allows a more granular control
+    over the framework features.
+
+    We elaborate these short explanations by using the `LahnH` example
+    project.  Calling function |prepare_full_example_1| copies the
+    complete example project `LahnH` into the `iotesting` directory of
+    the *HydPy* site-package (alternatively, you can just copy the
+    `LahnH` example project, which can be found in subpackage `data`,
+    into a working directory of your choice):
+
+    >>> from hydpy.core.examples import prepare_full_example_1
+    >>> prepare_full_example_1()
+
+    At first, the |HydPy| instance only needs to know the name of
+    the relevant project, which is identical with the name of its
+    root directory and is normally passed to the constructor of
+    class |HydPy|:
+
+    >>> hp = HydPy('LahnH')
+
+    So far, our |HydPy| instance does not know anything about the
+    project configurations except its name.  Most of this information
+    would be available via properties |HydPy.nodes| and |HydPy.elements|
+    but if we try to access them, we get the following error responses:
+
+    >>> hp.nodes
+    Traceback (most recent call last):
+    ...
+    RuntimeError: The actual HydPy instance does not handle any nodes \
+at the moment.
+
+    >>> hp.elements
+    Traceback (most recent call last):
+    ...
+    RuntimeError: The actual HydPy instance does not handle any elements \
+at the moment.
+
+    One now could continue rather quickly by calling method
+    |HydPy.prepare_everything|, which would make our |HydPy| instance
+    ready for its first simulation run in one go.  However, we prefer
+    to continue step by step by calling the individual preparation
+    methods, which offers more flexibility.
+
+    First, the |HydPy| instance needs to know the relevant |Node|
+    and |Element| objects.  Method |HydPy.prepare_network| reads this
+    information from so-called "network files".  The |Node| and |Element|
+    objects connect with each other "automatically" and thereby
+    define the topology or the network structure of the project (see
+    the documentation on class |NetworkManager| and on module
+    |devicetools| for more detailed  explanations):
+
+    >>> from hydpy import TestIO
+    >>> with TestIO():
+    ...     hp.prepare_network()
+
+    (Using the "with" statement in combination with class |TestIO|
+    makes sure that we are reading the network files from a subdirectory
+    with the `iotesting` directory.  Here and in the following, you
+    must omit such "with blocks" in case you copied the `LahnH` example
+    project into your current working directory.)
+
+    Now, our |HydPy| instance offers access to all |Node| objects
+    defined within the `LahnH` example project, which are grouped
+    together by a |Nodes| object:
+
+    >>> hp.nodes
+    Nodes("dill", "lahn_1", "lahn_2", "lahn_3")
+
+    Taking the node `dill` as an example, we can dive into the details
+    and, for example, search for those elements which node `dill` is
+    connected to (it receives water from element `land_dill` and passes
+    it to element `stream_dill_lahn_2`), or inspect its simulated
+    discharge value handled by a |Sim| sequence object (so far, zero):
+
+    >>> hp.nodes.dill.entries
+    Elements("land_dill")
+
+    >>> hp.nodes.dill.exits
+    Elements("stream_dill_lahn_2")
+
+    >>> hp.nodes.dill.sequences.sim
+    sim(0.0)
+
+    All |Node| objects are ready to be used.  The same is only parlty
+    true for the |Element| objects, which are also accessible (via a
+    |Elements| instance) and properly connected to the |Node| objects
+    but do not handle workable |Model| objects, which is required to
+    perform any simulation run:
+
+    >>> hp.elements
+    Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3",
+             "stream_dill_lahn_2", "stream_lahn_1_lahn_2",
+             "stream_lahn_2_lahn_3")
+
+    >>> hp.elements.stream_dill_lahn_2
+    Element("stream_dill_lahn_2",
+            inlets="dill",
+            outlets="lahn_2",
+            keywords="river")
+
+    >>> hp.elements.land_dill.model
+    Traceback (most recent call last):
+    ...
+    AttributeError: The model object of element `land_dill` has been \
+requested but not been prepared so far.
+
+    Hence, we need to call method |HydPy.prepare_models|, which
+    forces all |Element| objects to read the relevant parameter
+    control files and prepare their |Model| objects.  Note that
+    the individual |Element| object does not know the relevant model
+    type beforehand; both the information on the model type and
+    the parameter settings is encoded in individual control files,
+    making it easy to exchange individual models later (the
+    documentation on method |Elements.prepare_models| of class
+    |Elements| is a good starting point for a deeper understanding
+    on configuring *HydPy* projects via control files):
+
+    >>> with TestIO():
+    ...     hp.prepare_models()
+    Traceback (most recent call last):
+    ...
+    RuntimeError: While trying to initialise the model object of element \
+`land_dill`, the following error occurred: The initialisation period has \
+not been defined via attribute `timegrids` of module `pub` yet but might \
+be required to prepare the model properly.
+
+    OOps, something went wrong.  We forgot to define the simulation
+    period, which might be relevant for some time dependent
+    configurations.  We discuss some examples of such configurations
+    below but now use this little accident to discuss the typical pattern
+    of *HydPy* error messages.  First, we usually try to add some
+    additial "spatial" information (in this case: the name of the related
+    |Element| object).  Second, we try to explain in which program context
+    an error occurs.  This context is already available in much
+    more detail in the so-called "stack trace" (the middle part of the
+    printed error response which we do not show).  Stack trace descriptions
+    are great for programmers but hard to read for others, which
+    is why we often add "While trying to..." explanations to our error
+    messages.  In our example, one can see that the error was raised
+    while trying to initialise the |Model| object of element `land_dill`,
+    which is clear in our example but could be less clear in more
+    complex *HydPy* applications.
+
+    The last sentence of the error message tells us that we need
+    to define the attribute `timegrids` of module `pub`.  `pub`
+    stands for "public", meaning module `pub` handles all (or at
+    least most of) the globally available configuration data.
+    One example is that module `pub` handles a |Timegrids| instance
+    defining both the initialisation and the simulation period,
+    which can be done by the following assignement (see the
+    documentation in class |Timegrid| and on class |Timegrids| for
+    further information):
+
+    >>> from hydpy import pub
+    >>> pub.timegrids = '1996-01-01', '1996-01-05', '1d'
+
+    Now method |HydPy.prepare_models| does not complain anymore and
+    adds an instance of the |hland_v1| application model to element
+    `land_dill`, to which we set an additional reference in order
+    to shorten the following examples:
+
+    >>> with TestIO():
+    ...     hp.prepare_models()
+
+    >>> model = hp.elements.land_dill.model
+    >>> model.name
+    'hland_v1'
+
+    All control parameters, being defined in the corresponding
+    control file, are properly set.  As an example, we show the
+    values of control parameter |hland_control.IcMax|, which
+    in this case defines different values for hydrological
+    response units of type |hland_constants.FIELD| (1.0 mm) and
+    of type |hland_constants.FOREST| (1.5 mm):
+
+    >>> model.parameters.control.icmax
+    icmax(field=1.0, forest=1.5)
+
+    The values of the derived parameters, which need to be
+    calculated before starting a simulation run based on the
+    control parameters and eventually based on some other settings
+    (e.g. the initialisation time period) are also ready.  Here we
+    show the value of the derived parameter  |hland_derived.RelLandArea|,
+    representing the relative area of "land" units (1.0 means there
+    is no "water" unit at all):
+
+    >>> model.parameters.derived.rellandarea
+    rellandarea(1.0)
+
+    Note that we define all class names in "CamelCase" letters
+    (which is a Python convention) and, whenever usefull, name
+    the related objects identically but in lower case letters.
+    We hope that eases finding the relevant parts of the online
+    documentation when in trouble with a certain object.  Three
+    examples we already encountered are the |Timegrids| instance
+    `timegrids` of module `pub`, the |Nodes| instance `nodes` of
+    class `HydPy`, and the |hland_derived.RelLandArea| instance
+    of application model |hland_v1|:
+
+    >>> from hydpy import classname
+    >>> classname(pub.timegrids)
+    'Timegrids'
+
+    >>> classname(hp.nodes)
+    'Nodes'
+
+    >>> classname(model.parameters.derived.rellandarea)
+    'RelLandArea'
+
+    As show above, all |Parameter| objects of the model of element
+    `land_dill` are ready to be used. However, all sequences (which
+    handle the time variable properties) contain |numpy| |numpy.nan|
+    values, which we use do indicate missing data.  We show this
+    for the 0-dimensional input temperature sequence |hland_inputs.T|,
+    for the 1-dimensional soil moisture state sequence |hland_states.SM|,
+    and for the 0-dimensional discharge flux sequence |hland_fluxes.QT|:
+
+    >>> model.sequences.inputs.t
+    t(nan)
+
+    >>> model.sequences.states.sm
+    sm(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan, nan)
+
+    >>> model.sequences.fluxes.qt
+    qt(nan)
+
+    There are some other sequence types (see the documentation on
+    module |sequencetools| for more details) but |InputSequence|,
+    |FluxSequence|, and |StateSequence| are the most frequent ones
+    (besides the |NodeSequence| subtypes  |Obs| and especially |Sim|).
+
+    |StateSequence| objects describe many aspects of the current
+    state of a model (or, e.g., of a catchment).  Each simulation
+    run requires proper initial states, which we call initial
+    conditions in the following (covering also memory aspects
+    represented by |LogSequence| objects.  We load all required initial
+    conditions by calling method |HydPy.load_conditions| (see the
+    documentation on method |HydPy.load_conditions| for futher details):
+
+    >>> with TestIO():
+    ...     hp.load_conditions()
+
+    Now, the states of our model are also ready to be used.  However,
+    one should note that state sequence |hland_states.SM| knows only
+    the current soil moisture states for the twelve hydrological
+    response units of element `land_dill` (more specifically, we
+    loaded the soil moisture values related to the start date of the
+    initialisation period, which is the first of January at zero
+    o'clock).  By default and for reasons of memory storage efficiency,
+    sequences generally handle the currently relevant values only
+    instead of complete time series:
+
+    >>> model.sequences.inputs.t
+    t(nan)
+
+    >>> model.sequences.states.sm
+    sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
+       222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
+
+    >>> model.sequences.fluxes.qt
+    qt(nan)
+
+    For states like |hland_states.SM|, we need to know only the values
+    at the beginning of the simulation period.  All later values are
+    calculated subsequentially during the simulation run.  However,
+    this is different for input sequences like |hland_inputs.T|.
+    Time variable properties like the air temperature are external
+    forcings, hence they must be available over the complete simulation
+    period a-priori.  Such complete time series can be made available
+    via property |IOSequence.series| of class |IOSequence|, which
+    has not happened for any sequence so far:
+
+    >>> model.sequences.inputs.t.series
+    Traceback (most recent call last):
+    ...
+    AttributeError: Sequence `t` of element `land_dill` is not \
+requested to make any internal data available.
+
+    Before loading time series data, we need to make sure to reserve
+    the required memory storage.  We do this for all sequences at ones
+    (not only the |ModelSequence| objects but also the |NodeSequence|
+    objects as the |Sim| instance handled by node `dill`) though
+    calling method |HydPy.prepare_allseries|:
+
+    >>> hp.prepare_allseries()
+
+    Now property |IOSequence.series| returns an |InfoArray| object,
+    which is a slight modification of the widely applied |numpy|
+    |numpy.ndarray|.  The first axis (or the only axis) corresponds
+    to the number of days of the initialisation period (a *HydPy*
+    convention).  For the 1-dimensional soil moisture state sequence
+    |hland_states.SM|, the second axis corresponds to the number of
+    hydrological response units (a |hland| convention):
+
+    >>> model.sequences.inputs.t.series
+    InfoArray([ nan,  nan,  nan,  nan])
+
+    >>> model.sequences.states.sm.series
+    InfoArray([[ nan,  nan,  nan,  nan,  nan,  nan,  nan,  nan,  nan,  nan,
+                 nan,  nan],
+               [ nan,  nan,  nan,  nan,  nan,  nan,  nan,  nan,  nan,  nan,
+                 nan,  nan],
+               [ nan,  nan,  nan,  nan,  nan,  nan,  nan,  nan,  nan,  nan,
+                 nan,  nan],
+               [ nan,  nan,  nan,  nan,  nan,  nan,  nan,  nan,  nan,  nan,
+                 nan,  nan]])
+
+    >>> model.sequences.fluxes.qt.series
+    InfoArray([ nan,  nan,  nan,  nan])
+
+    >>> hp.nodes.dill.sequences.sim.series
+    InfoArray([ nan,  nan,  nan,  nan])
+
+    So far, all time series arrays are empty.  The `LahnH` example
+    project provides time series files for the input sequences only,
+    which is the minimum requirement for starting a simulation run.
+    We use method |HydPy.load_inputseries| to load this datas:
+
+    >>> with TestIO():
+    ...     hp.load_inputseries()
+
+    >>> from hydpy import round_
+    >>> round_(model.sequences.inputs.t.series)
+    -0.298846, -0.811539, -2.493848, -5.968849
+
+    Finally, we can perform the simulation run by calling method
+    |HydPy.doit|:
+
+    >>> hp.doit()
+
+    The time series arrays of all sequences are now filled with
+    values, which have been calculated during the simulation run ---
+    except those of input sequence |hland_inputs.T|, of course
+    (for the state sequence |hland_states.SM| only the time series
+    of the first hydrological response unit is shown):
+
+    >>> round_(model.sequences.inputs.t.series)
+    -0.298846, -0.811539, -2.493848, -5.968849
+
+    >>> round_(model.sequences.states.sm.series[:, 0])
+    184.926173, 184.603966, 184.386666, 184.098541
+
+    >>> round_(model.sequences.fluxes.qt.series)
+    1.454998, 1.103529, 0.886541, 0.749761
+
+    >>> round_(hp.nodes.dill.sequences.sim.series)
+    11.658511, 8.842278, 7.103614, 6.00763
+
+    By comparison you can see that the lastly calculated (or read)
+    time series value is the actual one for each |Sequence| object.
+    This allows for example to write the final states of soil
+    moisture sequence |hland_states.SM| and use them as initial
+    conditions later, even if its complete time series where not
+    available:
+
+    >>> model.sequences.inputs.t
+    t(-5.968849)
+
+    >>> model.sequences.states.sm
+    sm(184.098541, 180.176461, 198.689343, 195.462014, 210.856923,
+       208.319571, 220.881637, 218.898327, 229.022364, 227.431521,
+       235.597338, 234.329294)
+
+    >>> model.sequences.fluxes.qt
+    qt(0.749761)
+
+    >>> hp.nodes.dill.sequences.sim
+    sim(6.00763)
+
+    In many applications, the simulated time series are the result
+    we are really interested in.  Hence we close our explanations
+    with some related examples that also cover the potential problem
+    of to limited rapid access storage availability.
+
+    By default, the *HydPy* framework does not overwrite already
+    existing time series files.  Such settings can be changed via
+    the |SequenceManager| object available in module |pub| (module
+    |pub| also handles |ControlManager| and |ConditionManager| objects
+    for settings related to reading and writing control files and
+    condition files).  We change the default behaviour by setting
+    the `generaloverwrite` attribute to |True| and write all time
+    series (not only those of the flux and states sequences but
+    also those of the input sequences) by calling method
+    |HydPy.save_allseries|:
+
+    >>> pub.sequencemanager.generaloverwrite = True
+    >>> with TestIO():
+    ...     hp.save_allseries()
+
+    Next, we want to show how (and that) the reading of time series
+    works.  We first set the time series values of all considered
+    sequences to zero for this purpose:
+
+    >>> model.sequences.inputs.t.series = 0.0
+    >>> model.sequences.states.sm.series = 0.0
+    >>> model.sequences.inputs.t.series = 0.0
+    >>> hp.nodes.dill.sequences.sim.series = 0.
+
+    Now we can reload the time series of all relevant sequences.
+    However, doing so would result in a warning due to incomplete
+    data (for example, of the observation data handled by the
+    |Obs| sequence objects, which is not available in the `LahnH`
+    example project).  To circumvent this problem, we disable
+    the |Options.checkseries| option.  This is one of the
+    general options handles by the instance of class |Options|
+    available as another attribute of module |pub|.  We again
+    use a "with block", making sure the option is changed only
+    temporarily while executing method |HydPy.load_allseries|:
+
+    >>> with TestIO(), pub.options.checkseries(False):
+    ...     hp.load_allseries()
+
+    The read time series data equals the previously written one:
+
+    >>> round_(model.sequences.inputs.t.series)
+    -0.298846, -0.811539, -2.493848, -5.968849
+
+    >>> round_(model.sequences.states.sm.series[:, 0])
+    184.926173, 184.603966, 184.386666, 184.098541
+
+    >>> round_(model.sequences.fluxes.qt.series)
+    1.454998, 1.103529, 0.886541, 0.749761
+
+    >>> round_(hp.nodes.dill.sequences.sim.series)
+    11.658511, 8.842278, 7.103614, 6.00763
+
+    We mentioned the possibility for a more granular control of
+    *HydPy* by using the different objects handled by the |HydPy|
+    object instead of using its different convenience methods.
+    Here is an elaborate example showing how to (re)load the states
+    of an arbitrary simulation time step, which might be relevant
+    for more complex workflows implementing data assimilation techniques
+    and is more efficient than working with property |IOSequence.series|
+    on individual |IOSequence| objects:
+
+    >>> model.sequences.states.load_data(1)
+    >>> model.sequences.states.sm
+    sm(184.603966, 180.671117, 199.234825, 195.998635, 211.435809,
+       208.891492, 221.488046, 219.49929, 229.651122, 228.055912,
+       236.244147, 234.972621)
+
+    Using the node sequence |Sim| as an example, we also show the
+    inverse functionality of changing time series values:
+
+    >>> hp.nodes.dill.sequences.sim = 0.0
+    >>> hp.nodes.dill.sequences.save_data(2)
+    >>> round_(hp.nodes.dill.sequences.sim.series)
+    11.658511, 8.842278, 0.0, 6.00763
+
+    >>> hp.nodes.dill.sequences.load_data(1)
+    >>> hp.nodes.dill.sequences.sim
+    sim(8.842278)
+
+    In the examples above, all data has been handled in rapid access
+    memory, which can be problematic when handling long time series
+    in huge *HydPy* projects.  It is then suggested to only prepare
+    time series which are really required (very often, it is
+    sufficient to call |HydPy.prepare_inputseries|,
+    |HydPy.load_inputseries|, and |HydPy.prepare_simseries| only).
+    If this is not possible in your project, you can choose to handle
+    the time series on disk instead, which unavoidably increases
+    computation times extremely (there are some relevant means to
+    lessen this problem a little, which we did not consider so far
+    due to seldom usage of this option).  To prepare the necessary
+    space on disk, assign |False| to the `ramflag` argument of
+    method |HydPy.prepare_allseries| (or the related methods):
+
+    >>> with TestIO():
+    ...     hp.prepare_allseries(ramflag=False)
+
+    By doing so, all previously available time series information
+    is lost:
+
+    >>> with TestIO():
+    ...     round_(model.sequences.inputs.t.series)
+    nan, nan, nan, nan
+
+    >>> with TestIO():
+    ...     round_(model.sequences.states.sm.series[:, 0])
+    nan, nan, nan, nan
+
+    >>> with TestIO():
+    ...     round_(model.sequences.fluxes.qt.series)
+    nan, nan, nan, nan
+
+    >>> with TestIO():
+    ...     round_(hp.nodes.dill.sequences.sim.series)
+    nan, nan, nan, nan
+
+    (Re)Loading the initial conditions and the input time series
+    and (re)performing the simulation run results, as to be expected,
+    in the same simulation results:
+
+    >>> with TestIO():
+    ...     hp.load_conditions()
+    ...     hp.load_inputseries()
+    ...     hp.doit()
+
+    >>> with TestIO():
+    ...     round_(model.sequences.inputs.t.series)
+    -0.298846, -0.811539, -2.493848, -5.968849
+
+    >>> with TestIO():
+    ...     round_(model.sequences.states.sm.series[:, 0])
+    184.926173, 184.603966, 184.386666, 184.098541
+
+    >>> with TestIO():
+    ...     round_(model.sequences.inputs.t.series)
+    -0.298846, -0.811539, -2.493848, -5.968849
+
+    We mentioned the possibility for a more granular control of
+    *HydPy* by using the different objects handled by the |HydPy|
+    object instead of using its different convenience methods.
+    Here is an elaborate example showing how to (re)load the states
+    of an arbitrary simulation time step, which might be relevant
+    for more complex workflows implementing data assimilation techniques:
+
+    Besides computation times, it usually should make no difference
+    wether one handles internal time series data in RAM or on disk.
+    However, there are some subtle differences when one dives into
+    the details.  Above, we have shown the possibility to (re)load the
+    states of arbitrary simulation time steps when working in RAM.
+    The same is possible when working on disk but has to call
+    |IOSequences.open_files| first to prepare the necessary file
+    object first and pass the relevant time step index to this
+    method instead to method |ModelIOSequences.load_data| (again, this
+    behaviour could be improved but has not due to limited usage
+    of the `diskflag` option):
+
+    >>> with TestIO():
+    ...     model.sequences.states.open_files(1)
+    ...     model.sequences.states.load_data(-999)
+    ...     model.sequences.states.close_files()
+    >>> model.sequences.states.sm
+    sm(184.603966, 180.671117, 199.234825, 195.998635, 211.435809,
+       208.891492, 221.488046, 219.49929, 229.651122, 228.055912,
+       236.244147, 234.972621)
+
+    For the sake of completeness, we also repeat the |Sim| based example:
+
+    >>> hp.nodes.dill.sequences.sim = 0.0
+    >>> with TestIO():
+    ...     hp.nodes.dill.sequences.open_files(2)
+    ...     hp.nodes.dill.sequences.save_data(-999)
+    ...     hp.nodes.dill.sequences.close_files()
+    ...     round_(hp.nodes.dill.sequences.sim.series)
+    11.658511, 8.842278, 0.0, 6.00763
+
+    >>> with TestIO():
+    ...     hp.nodes.dill.sequences.open_files(1)
+    ...     hp.nodes.dill.sequences.load_data(-999)
+    ...     hp.nodes.dill.sequences.close_files()
+    >>> hp.nodes.dill.sequences.sim
+    sim(8.842278)
+    """
+
+    def __init__(self, projectname: Optional[str] = None):
         self._nodes = None
         self._elements = None
         self.deviceorder = None

@@ -706,13 +706,13 @@ class XMLConditions(XMLBase):
         >>> from hydpy.core.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
-        >>> from hydpy import HydPy, TestIO, XMLInterface
+        >>> from hydpy import HydPy, pub, TestIO, XMLInterface
         >>> hp = HydPy('LahnH')
+        >>> pub.timegrids = '1996-01-01', '1996-01-06', '1d'
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     hp.prepare_models()
         ...     interface = XMLInterface('single_run.xml')
-        ...     interface.update_timegrids()
         ...     interface.find('selections').text = 'headwaters'
         ...     interface.conditions_io.load_conditions()
         >>> hp.elements.land_lahn_1.model.sequences.states.lz
@@ -733,14 +733,14 @@ class XMLConditions(XMLBase):
         >>> prepare_full_example_1()
 
         >>> import os
-        >>> from hydpy import HydPy, TestIO, XMLInterface, pub
+        >>> from hydpy import HydPy, pub, TestIO, XMLInterface
         >>> hp = HydPy('LahnH')
+        >>> pub.timegrids = '1996-01-01', '1996-01-06', '1d'
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     hp.prepare_models()
         ...     hp.elements.land_dill.model.sequences.states.lz = 999.0
         ...     interface = XMLInterface('single_run.xml')
-        ...     interface.update_timegrids()
         ...     interface.find('selections').text = 'headwaters'
         ...     interface.conditions_io.save_conditions()
         ...     dirpath = 'LahnH/conditions/init_1996_01_06'

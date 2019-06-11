@@ -149,7 +149,7 @@ class Model:
                 % objecttools.modulename(self))
         return self._masks
 
-    def doit(self, idx):
+    def simulate(self, idx):
         self.idx_sim = idx
         self.load_data()
         self.update_inlets()
@@ -252,7 +252,7 @@ class ModelELS(Model):
         self.numconsts = NumConstsELS()
         self.numvars = NumVarsELS()
 
-    def doit(self, idx):
+    def simulate(self, idx):
         self.idx_sim = idx
         self.load_data()
         self.update_inlets()

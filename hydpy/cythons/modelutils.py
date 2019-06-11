@@ -706,7 +706,7 @@ class PyxWriter:
     def modelstandardfunctions(self):
         """Standard functions of the model class."""
         lines = Lines()
-        lines.extend(self.doit)
+        lines.extend(self.simulate)
         lines.extend(self.iofunctions)
         lines.extend(self.new2old)
         lines.extend(self.run)
@@ -737,11 +737,11 @@ class PyxWriter:
         return lines
 
     @property
-    def doit(self):
+    def simulate(self):
         """Do (most of) it function of the model class."""
-        print('                . doit')
+        print('                . simulate')
         lines = Lines()
-        lines.add(1, 'cpdef inline void doit(self, int idx) %s:' % _nogil)
+        lines.add(1, 'cpdef inline void simulate(self, int idx) %s:' % _nogil)
         lines.add(2, 'self.idx_sim = idx')
         if self.model.sequences.inputs:
             lines.add(2, 'self.load_data()')

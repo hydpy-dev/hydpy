@@ -222,7 +222,7 @@ class ModelABC(abc.ABC):
     def connect(self):
         ...
 
-    def doit(self, idx):
+    def simulate(self, idx):
         ...
 
 

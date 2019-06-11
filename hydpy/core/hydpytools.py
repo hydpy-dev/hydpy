@@ -354,9 +354,9 @@ requested to make any internal data available.
     -0.298846, -0.811539, -2.493848, -5.968849
 
     Finally, we can perform the simulation run by calling method
-    |HydPy.doit|:
+    |HydPy.simulate|:
 
-    >>> hp.doit()
+    >>> hp.simulate()
 
     The time series arrays of all sequences are now filled with
     values, which have been calculated during the simulation run ---
@@ -524,7 +524,7 @@ requested to make any internal data available.
     >>> with TestIO():
     ...     hp.load_conditions()
     ...     hp.load_inputseries()
-    ...     hp.doit()
+    ...     hp.simulate()
 
     >>> with TestIO():
     ...     round_(model.sequences.inputs.t.series)
@@ -883,7 +883,7 @@ Use method `prepare_models` instead.
         moisture values of |Element| `land_dill`, handled by sequence
         |hland_states.SM|:
 
-        >>> hp.doit()
+        >>> hp.simulate()
         >>> sm = hp.elements.land_dill.model.sequences.states.sm
         >>> sm
         sm(184.098541, 180.176461, 198.689343, 195.462014, 210.856923,
@@ -916,7 +916,7 @@ Use method `prepare_models` instead.
         write, in both cases, the resulting final conditions to disk:
 
         >>> pub.timegrids.sim.lastdate = '1996-01-03'
-        >>> hp.doit()
+        >>> hp.simulate()
         >>> sm
         sm(184.603966, 180.671117, 199.234825, 195.998635, 211.435809,
            208.891492, 221.488046, 219.49929, 229.651122, 228.055912,
@@ -926,7 +926,7 @@ Use method `prepare_models` instead.
 
         >>> pub.timegrids.sim.firstdate = '1996-01-03'
         >>> pub.timegrids.sim.lastdate = '1996-01-05'
-        >>> hp.doit()
+        >>> hp.simulate()
         >>> with TestIO():
         ...     hp.save_conditions()
         >>> sm
@@ -1027,7 +1027,7 @@ Use method `prepare_models` instead.
 
         >>> from hydpy.core.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> hp.doit()
+        >>> hp.simulate()
         >>> from hydpy import print_values
         >>> print_values(hp.nodes.lahn_3.sequences.sim.series)
         53.793428, 37.157714, 31.835184, 28.375294
@@ -1036,7 +1036,7 @@ Use method `prepare_models` instead.
         applying the final states of the first simulation run as the
         initial states of the second run:
 
-        >>> hp.doit()
+        >>> hp.simulate()
         >>> print_values(hp.nodes.lahn_3.sequences.sim.series)
         26.21469, 25.063443, 24.238632, 23.317984
 
@@ -1044,11 +1044,11 @@ Use method `prepare_models` instead.
         first simulation run exactly multiple times:
 
         >>> hp.reset_conditions()
-        >>> hp.doit()
+        >>> hp.simulate()
         >>> print_values(hp.nodes.lahn_3.sequences.sim.series)
         53.793428, 37.157714, 31.835184, 28.375294
         >>> hp.reset_conditions()
-        >>> hp.doit()
+        >>> hp.simulate()
         >>> print_values(hp.nodes.lahn_3.sequences.sim.series)
         53.793428, 37.157714, 31.835184, 28.375294
         """
@@ -1079,7 +1079,7 @@ Use method `prepare_models` instead.
         ...     pub.timegrids = '1996-01-01', '1996-04-01', '1d'
         ...     hp.prepare_everything()
         >>> pub.timegrids.sim.lastdate = '1996-02-20'
-        >>> hp.doit()
+        >>> hp.simulate()
         >>> print_values(hp.nodes.lahn_3.sequences.sim.series[48:52])
         70.292046, 94.076568, nan, nan
 
@@ -1100,7 +1100,7 @@ Use method `prepare_models` instead.
         >>> hp.nodes.lahn_3.sequences.sim.series = 0.0
         >>> pub.timegrids.sim.firstdate = '1996-02-20'
         >>> pub.timegrids.sim.lastdate = '1996-04-01'
-        >>> hp.doit()
+        >>> hp.simulate()
         >>> first = hp.nodes.lahn_3.sequences.sim.series.copy()
         >>> print_values(first[48:52])
         0.0, 0.0, 84.986676, 63.834078
@@ -1120,7 +1120,7 @@ Use method `prepare_models` instead.
         >>> hp.nodes.lahn_3.sequences.sim.series = 0.0
         >>> pub.timegrids.sim.firstdate = '1996-02-20'
         >>> pub.timegrids.sim.lastdate = '1996-04-01'
-        >>> hp.doit()
+        >>> hp.simulate()
         >>> second = hp.nodes.lahn_3.sequences.sim.series.copy()
         >>> print_values(second[48:52])
         0.0, 0.0, 84.986676, 63.834078
@@ -1294,7 +1294,7 @@ Use method `prepare_models` instead.
                 funcs.append(node.reset)
         for device in self.deviceorder:
             if isinstance(device, devicetools.Element):
-                funcs.append(device.model.doit)
+                funcs.append(device.model.simulate)
         for element in self.elements:
             if element.senders:
                 funcs.append(element.model.update_senders)
@@ -1309,7 +1309,7 @@ Use method `prepare_models` instead.
         return funcs
 
     @printtools.print_progress
-    def doit(self):
+    def simulate(self):
         """Perform a simulation run over the actual simulation time period
         defined by the |Timegrids| object stored in module |pub|."""
         idx_start, idx_end = self.simindices
@@ -1319,6 +1319,28 @@ Use method `prepare_models` instead.
             for func in methodorder:
                 func(idx)
         self.close_files()
+
+    def doit(self):
+        """Deprecated: use method |HydPy.simulate| instead.
+
+        >>> from hydpy import HydPy
+        >>> from unittest import mock
+        >>> with mock.patch.object(HydPy, 'simulate') as mocked:
+        ...     hp = HydPy('test')
+        ...     hp.doit()
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.HydPyDeprecationWarning: \
+Method `doit` of class `HydPy` is deprecated.  \
+Use method `simulate` instead.
+        >>> mocked.call_args_list
+        [call()]
+        """
+        self.simulate()
+        warnings.warn(
+            'Method `doit` of class `HydPy` is deprecated.  '
+            'Use method `simulate` instead.',
+            exceptiontools.HydPyDeprecationWarning)
 
     def prepare_allseries(self, ramflag=True):
         """Allow all current |IOSequence| objects to handle time series

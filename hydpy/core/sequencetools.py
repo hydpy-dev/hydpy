@@ -1201,7 +1201,7 @@ requested to make any internal data available.
     or |IOSequence.diskflag| values are:
 
     >>> with TestIO():
-    ...     hp.doit()
+    ...     hp.simulate()
 
     >>> fluxes.ep.series = 1.0
     Traceback (most recent call last):
@@ -1238,7 +1238,7 @@ requested to make any internal data available.
     True
     >>> inputs.p.series = 10.0
     >>> with TestIO():
-    ...     hp.doit()
+    ...     hp.simulate()
     >>> round_(fluxes.pc.series[:, 0], 1)
     10.2, 11.3, 11.3, 11.3
 
@@ -1265,7 +1265,7 @@ requested to make any internal data available.
 
     >>> with TestIO():
     ...     inputs.p.series = 20.0
-    ...     hp.doit()
+    ...     hp.simulate()
     ...     round_(fluxes.pc.series[:, 0], 1)
     20.5, 22.6, 22.6, 22.6
 

@@ -154,7 +154,7 @@ class Model(modeltools.Model):
         >>> branch.model = model
         >>> branch.inlets.inflow1.sequences.sim = 1.0
         >>> branch.inlets.inflow2.sequences.sim = 5.0
-        >>> model.doit(0)
+        >>> model.simulate(0)
         >>> print(branch.outlets.outflow1.sequences.sim)
         sim(2.0)
         >>> print(branch.outlets.outflow2.sequences.sim)

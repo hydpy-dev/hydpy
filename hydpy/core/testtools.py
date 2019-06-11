@@ -403,7 +403,7 @@ class IntegrationTest(Test):
         |IntegrationTest.plot| are allowed to modify plot design.
         """
         self.prepare_model()
-        self.hydpy.doit()
+        self.hydpy.simulate()
         self.print_table()
         if args:
             self.plot(*args, **kwargs)

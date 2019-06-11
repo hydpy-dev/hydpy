@@ -1652,7 +1652,7 @@ the given group name `test`.
         We perform a simulation run and calculate "observed" values for
         node `dill`:
 
-        >>> hp.doit()
+        >>> hp.simulate()
         >>> dill = hp.nodes.dill
         >>> dill.sequences.obs.series = dill.sequences.sim.series + 10.0
 
@@ -1995,10 +1995,10 @@ requested but not been prepared so far.
         To show that the inlet and outlet connections are built properly,
         we assign a new value to the inlet node `inp` and verify that the
         suitable fractions of this value are passed to the outlet nodes
-        out1` and `out2` by calling method |Model.doit|:
+        out1` and `out2` by calling method |Model.simulate|:
 
         >>> inp.sequences.sim = 999.0
-        >>> model.doit(0)
+        >>> model.simulate(0)
         >>> fluxes.input
         input(999.0)
         >>> out1.sequences.sim
@@ -2238,7 +2238,7 @@ Use method `prepare_model` instead.
         to calculate the time series of the |FluxSequence| and
         |StateSequence| objects:
 
-        >>> hp.doit()
+        >>> hp.simulate()
 
         All three methods allow to select certain sequences by passing their
         names (here, flux sequences |hland_fluxes.Q0| and |hland_fluxes.Q1|

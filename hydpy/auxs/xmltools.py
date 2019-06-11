@@ -217,7 +217,7 @@ def run_simulation(projectname: str, xmlfile: str):
     interface.series_io.prepare_series()
     interface.series_io.load_series()
     write('Perform the simulation run')
-    hp.doit()
+    hp.simulate()
     write('Write the desired condition files')
     interface.conditions_io.save_conditions()
     write('Write the desired time series files')

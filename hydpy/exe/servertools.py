@@ -987,7 +987,7 @@ but have not been calculated so far.
     @staticmethod
     def GET_simulate() -> None:
         """Perform a simulation run."""
-        state.hp.doit()
+        state.hp.simulate()
 
     def GET_changeitemvalues(self) -> None:
         """Get the values of all |ChangeItem| objects."""

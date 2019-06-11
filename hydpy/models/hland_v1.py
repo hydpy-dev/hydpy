@@ -970,7 +970,7 @@ class StateSequences(sequencetools.StateSequences):
                hland_states.LZ)
 
 
-class LogSequences(sequencetools.AideSequences):
+class LogSequences(sequencetools.LogSequences):
     """Aide sequences of |hland_v1|."""
     CLASSES = (hland_logs.QUH,)
 

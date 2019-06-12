@@ -50,4 +50,4 @@ class StateSequences(sequencetools.StateSequences):
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.complete()
+cythonizer.finalise()

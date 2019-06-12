@@ -403,4 +403,4 @@ class ReceiverSequences(sequencetools.LinkSequences):
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.complete()
+cythonizer.finalise()

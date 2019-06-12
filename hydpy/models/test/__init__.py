@@ -16,4 +16,4 @@ from hydpy.models.test.test_model import Model
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.complete()
+cythonizer.finalise()

@@ -13,7 +13,9 @@ import importlib
 import inspect
 import itertools
 import io
+import math
 import os
+import platform
 import pkgutil
 import subprocess
 import sys
@@ -660,7 +662,7 @@ def prepare_mainsubstituter():
     substituter = Substituter()
     for module in (builtins, numpy, datetime, unittest, doctest, inspect, io,
                    os, sys, time, collections, itertools, subprocess, scipy,
-                   typing):
+                   typing, platform, math):
         substituter.add_module(module)
     for subpackage in (auxs, core, cythons, exe):
         for dummy, name, dummy in pkgutil.walk_packages(subpackage.__path__):

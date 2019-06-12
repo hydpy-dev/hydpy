@@ -987,4 +987,4 @@ class Masks(masktools.Masks):
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.complete()
+cythonizer.finalise()

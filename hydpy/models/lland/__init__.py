@@ -25,4 +25,4 @@ from hydpy.models.lland.lland_model import Model
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.complete()
+cythonizer.finalise()

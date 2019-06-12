@@ -59,9 +59,7 @@ def parameterstep(timestep: timetools.PeriodConstrArg = None):
             for name in dir(model.cymodel):
                 if (not name.startswith('_')) and hasattr(model, name):
                     setattr(model, name, getattr(model.cymodel, name))
-        if 'Parameters' not in namespace:
-            namespace['Parameters'] = parametertools.Parameters
-        model.parameters = namespace['Parameters'](namespace)
+        model.parameters = prepare_parameters(namespace)
         model.sequences = prepare_sequences(namespace)
         namespace['parameters'] = model.parameters
         for pars in model.parameters:
@@ -85,6 +83,11 @@ def parameterstep(timestep: timetools.PeriodConstrArg = None):
                 namespace[par.name] = lambda *args, **kwargs: None
         except AttributeError:
             pass
+
+
+def prepare_parameters(dict_):
+    cls_parameters = dict_.get('Parameters', parametertools.Parameters)
+    return cls_parameters(dict_)
 
 
 def prepare_sequences(dict_):
@@ -221,10 +224,7 @@ def prepare_model(module: Union[types.ModuleType, str],
         dict_ = {}
     dict_.update(vars(module))
     dict_['model'] = model
-    if hasattr(module, 'Parameters'):
-        model.parameters = module.Parameters(dict_)
-    else:
-        model.parameters = parametertools.Parameters(dict_)
+    model.parameters = prepare_parameters(dict_)
     model.sequences = prepare_sequences(dict_)
     if hasattr(module, 'Masks'):
         model.masks = module.Masks(model)

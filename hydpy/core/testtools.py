@@ -101,13 +101,13 @@ class Tester(object):
         return [os.path.split(fn)[-1].split('.')[0] for fn in self.filenames
                 if (fn.endswith('.py') and not fn.startswith('_'))]
 
-    def doit(self):
+    def perform_tests(self):
         """Perform all doctests either in Python or in Cython mode depending
         on the state of |Options.usecython| set in module |pub|.
 
-        Usually, |Tester.doit| is triggered automatically by a |Cythonizer|
-        object assigned to the same base or application model as a
-        |Tester| object.
+        Usually, |Tester.perform_tests| is triggered automatically by a
+        |Cythonizer| object assigned to the same base or application
+        model as a |Tester| object.
         """
         opt = hydpy.pub.options
         par = parametertools.Parameter

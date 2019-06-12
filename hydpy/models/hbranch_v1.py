@@ -136,4 +136,4 @@ class OutletSequences(sequencetools.LinkSequences):
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.complete()
+cythonizer.finalise()

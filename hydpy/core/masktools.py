@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from hydpy.core import parametertools
 
 
-class _MaskDescriptor(object):
+class _MaskDescriptor:
 
     def __init__(self, cls_mask):
         self.cls_mask = cls_mask

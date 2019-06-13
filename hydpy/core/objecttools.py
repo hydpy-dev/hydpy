@@ -27,7 +27,7 @@ def dir_(self):
     >>> from hydpy import pub
     >>> pub.options.dirverbose = True
     >>> from hydpy.core.objecttools import dir_
-    >>> class Test(object):
+    >>> class Test:
     ...     only_public_attribute =  None
     >>> print(len(dir_(Test())) > 1) # Long list, try it yourself...
     True
@@ -114,7 +114,7 @@ def name(self):
     attributes ("_name"):
 
     >>> from hydpy.core.objecttools import name
-    >>> class Test(object):
+    >>> class Test:
     ...     name = property(name)
     >>> test1 = Test()
     >>> test1.name
@@ -203,7 +203,7 @@ def elementphrase(self):
     """Return the phrase used in exception messages to indicate
     which |Element| is affected.
 
-    >>> class Model(object):
+    >>> class Model:
     ...     pass
     >>> model = Model()
     >>> from hydpy.core.objecttools import elementphrase
@@ -249,7 +249,7 @@ def devicephrase(self):
     indicate which |Element| or which |Node| is affected.
     If not possible, return just the name of the given object.
 
-    >>> class Model(object):
+    >>> class Model:
     ...     name = 'test'
     >>> model = Model()
     >>> from hydpy.core.objecttools import devicephrase
@@ -494,7 +494,7 @@ type(s) for +=: 'int' and 'str'
     return wrapper
 
 
-class ResetAttrFuncs(object):
+class ResetAttrFuncs:
     """Reset all attribute related methods of the given class temporarily.
 
     The "related methods" are defined in class attribute
@@ -514,7 +514,7 @@ class ResetAttrFuncs(object):
     To show how |ResetAttrFuncs| works, we first define a class
     with a `__setattr__` method that does not allow to set any attribute:
 
-    >>> class Test(object):
+    >>> class Test:
     ...     def __setattr__(self, name, value):
     ...         raise AttributeError
     >>> test = Test()
@@ -546,7 +546,7 @@ class ResetAttrFuncs(object):
     in a special dictionary called "dic" (note that how
     |ResetAttrFuncs| is used in the `__init__` method):
 
-    >>> class Test(object):
+    >>> class Test:
     ...     def __init__(self):
     ...         with ResetAttrFuncs(self):
     ...             self.dic = {}
@@ -654,7 +654,7 @@ def copy_class(cls):
     return type(cls.__name__, (cls,), {})
 
 
-class _PreserveStrings(object):
+class _PreserveStrings:
     """Helper class for |_Repr_|."""
 
     def __init__(self, preserve_strings):
@@ -669,7 +669,7 @@ class _PreserveStrings(object):
         setattr(repr_, '_preserve_strings', self.old_value)
 
 
-class _Repr(object):
+class _Repr:
     r"""Modifies |repr| for strings and floats, mainly for supporting
     clean float and path representations that are compatible with |doctest|.
 
@@ -931,7 +931,7 @@ def assignrepr_values(values, prefix, width=None, _fakeend=0):
     return string[:len(string)-_fakeend]
 
 
-class _AlwaysBracketed(object):
+class _AlwaysBracketed:
     """Helper class for |_AssignReprBracketed|."""
 
     def __init__(self, value):
@@ -945,7 +945,7 @@ class _AlwaysBracketed(object):
         setattr(_AssignReprBracketed, '_always_bracketed', self.old_value)
 
 
-class _AssignReprBracketed(object):
+class _AssignReprBracketed:
     """"Double Singleton class", see the documentation on
     |assignrepr_tuple| and |assignrepr_list|."""
 

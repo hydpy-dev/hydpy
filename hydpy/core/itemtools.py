@@ -13,7 +13,7 @@ from hydpy.core import objecttools
 from hydpy.core import variabletools
 
 
-class ExchangeSpecification(object):
+class ExchangeSpecification:
     """Specification of a specific |Parameter| or |Sequence| type.
 
     |ExchangeSpecification| is a helper class for |ExchangeItem| and its

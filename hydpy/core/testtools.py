@@ -36,7 +36,7 @@ from hydpy.core import timetools
 from hydpy.tests import iotesting
 
 
-class StdOutErr(object):
+class StdOutErr:
 
     def __init__(self, indent=0):
         self.indent = indent
@@ -72,7 +72,7 @@ class StdOutErr(object):
         pass
 
 
-class Tester(object):
+class Tester:
     """Tests either a base or an application model.
 
     Usually, a |Tester| object is initialized at the end of the `__init__`
@@ -164,14 +164,14 @@ class Tester(object):
                         hydpy.dummies.clear()
 
 
-class Array(object):
+class Array:
     """Assures that attributes are |numpy.ndarray| objects."""
 
     def __setattr__(self, name, value):
         object.__setattr__(self, name, numpy.array(value))
 
 
-class ArrayDescriptor(object):
+class ArrayDescriptor:
     """Descriptor for handling values of |Array| objects."""
 
     def __init__(self):
@@ -191,7 +191,7 @@ class ArrayDescriptor(object):
             delattr(self.values, name)
 
 
-class Test(object):
+class Test:
     """Base class for |IntegrationTest| and |UnitTest|.
 
     This base class defines the printing of the test results primarily.
@@ -343,7 +343,7 @@ class Test(object):
         return units
 
 
-class PlottingOptions(object):
+class PlottingOptions:
     """Plotting options of class |IntegrationTest|."""
 
     def __init__(self):
@@ -754,7 +754,7 @@ class UnitTest(Test):
                 getattr(self.results, parseq.name)[idx] = parseq.values
 
 
-class _Open(object):
+class _Open:
 
     def __init__(self, path, mode, *args, **kwargs):
         # all positional and keyword arguments are ignored.
@@ -803,7 +803,7 @@ class _Open(object):
         print('~'*maxchars)
 
 
-class Open(object):
+class Open:
     """Replace |open| in doctests temporarily.
 
     Class |Open| to intended to make writing to files visible and testable
@@ -888,7 +888,7 @@ def _replace(obj):
         pass
 
 
-class TestIO(object):
+class TestIO:
     """Prepare an environment for testing IO functionalities.
 
     ToDo: explain the handling of .coverage files

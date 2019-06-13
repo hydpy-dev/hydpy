@@ -56,7 +56,7 @@ class Test2InputConversion(unittest.TestCase):
                          self.f_x + self.f_y)
 
 
-class TestRhichCompare(object):
+class TestRhichCompare:
 
     def setUp(self):
         self.f_small = 2.1
@@ -134,7 +134,7 @@ class Test4RhichComparePDouble(unittest.TestCase, TestRhichCompare):
         self.d_large = pointerutils.PDouble(self._large)
 
 
-class TestArithmetic(object):
+class TestArithmetic:
 
     def setUp(self):
         self.f_x = 2.1
@@ -193,7 +193,7 @@ class Test6ArithmeticPDouble(unittest.TestCase, TestArithmetic):
         self.d_y = pointerutils.PDouble(self._d_y)
 
 
-class TestNumericConversion(object):
+class TestNumericConversion:
 
     def setUp(self):
         self.f_x = 2.1
@@ -220,7 +220,7 @@ class Test8NumericConversionPDouble(unittest.TestCase, TestNumericConversion):
         self.d_x = pointerutils.PDouble(self._d_x)
 
 
-class TestInPlaceOperators(object):
+class TestInPlaceOperators:
 
     def setUp(self):
         self.f_x = 2.1

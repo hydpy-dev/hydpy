@@ -21,7 +21,7 @@ from hydpy.core import selectiontools
 from hydpy.core import timetools
 
 
-class Folder2Path(object):
+class Folder2Path:
     # noinspection PyUnresolvedReferences
     """Map folder names to their path names.
 
@@ -148,7 +148,7 @@ built-ins like `for`...)
         return objecttools.dir_(self)
 
 
-class FileManager(object):
+class FileManager:
     """Base class for |NetworkManager|, |ControlManager|, |ConditionManager|,
     and |SequenceManager|.
 
@@ -978,7 +978,7 @@ class ConditionManager(FileManager):
             self.currentdir = currentdir
 
 
-class _Descriptor(object):
+class _Descriptor:
 
     def __init__(self, default):
         self.default = default
@@ -1145,7 +1145,7 @@ class _DescriptorAggregate(_Descriptor):
         self.del_value(obj)
 
 
-class _GeneralDescriptor(object):
+class _GeneralDescriptor:
 
     def __init__(self, *specific_descriptors):
         self.specific_descriptors = specific_descriptors

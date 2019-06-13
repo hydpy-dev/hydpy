@@ -151,7 +151,7 @@ class IndexerProperty(propertytools.BaseProperty):
         return idxs
 
 
-class Indexer(object):
+class Indexer:
     """Handles different |IndexerProperty| objects defining time
     related indices.
 

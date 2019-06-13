@@ -16,7 +16,7 @@ class OptionalModuleNotAvailable(ImportError):
     module is not available."""
 
 
-class OptionalImport(object):
+class OptionalImport:
     """Exectutes the given import commands sequentially and returns the
     first importable module.  If no module could be imported at all, it
     returns a dummy object which raises a |OptionalModuleNotAvailable|

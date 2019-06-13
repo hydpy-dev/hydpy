@@ -192,7 +192,7 @@ def autodoc_applicationmodel(module):
     module.substituter = substituter
 
 
-class Substituter(object):
+class Substituter:
     """Implements a HydPy specific docstring substitution mechanism."""
 
     def __init__(self, master=None):

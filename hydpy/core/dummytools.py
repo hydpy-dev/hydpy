@@ -6,7 +6,7 @@
 import copy
 
 
-class Dummies(object):
+class Dummies:
     """Handles "global" doctest data.
 
     A typical use pattern is to generated the instance of a class in the
@@ -17,7 +17,7 @@ class Dummies(object):
     not altered due to performing different tests.  This protection
     mechanism is successfull for the simple following test class:
 
-    >>> class Test(object):
+    >>> class Test:
     ...
     ...     def __init__(self):
     ...         self.name = 'some_name'

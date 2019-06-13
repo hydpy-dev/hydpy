@@ -215,7 +215,7 @@ class Model:
 abctools.ModelABC.register(Model)
 
 
-class NumConstsELS(object):
+class NumConstsELS:
 
     def __init__(self):
         self.nmb_methods = 10
@@ -227,7 +227,7 @@ class NumConstsELS(object):
         self.a_coefs = numpy.load(path)
 
 
-class NumVarsELS(object):
+class NumVarsELS:
 
     def __init__(self):
         self.nmb_calls = 0

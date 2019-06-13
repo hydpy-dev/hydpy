@@ -224,7 +224,7 @@ def run_simulation(projectname: str, xmlfile: str):
     interface.series_io.save_series()
 
 
-class XMLBase(object):
+class XMLBase:
     """Base class for the concrete classes |XMLInterface|, |XMLConditions|,
     |XMLSeries|, and |XMLSubseries|.
 
@@ -1541,7 +1541,7 @@ class XMLVar(XMLSelector):
         item.collect_variables(selections)
 
 
-class XSDWriter(object):
+class XSDWriter:
     """Pure |classmethod| class for writing the actual XML schema file
     `HydPyConfigBase.xsd`, which makes sure that an XML configuration file is
     readable by class |XMLInterface|.

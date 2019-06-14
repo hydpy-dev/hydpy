@@ -69,7 +69,7 @@ class VariableProtocol(Protocol):
     name: str
 
     def __init__(self, subvars: 'variabletools.SubgroupType'):
-        ...
+        """See class |Parameter| and class |Sequence|."""
 
     @abc.abstractmethod
     def __hydpy__connect_variable2subgroup__(self):
@@ -220,10 +220,10 @@ class ModelABC(abc.ABC):
     sequences: 'sequencetools.Sequences'
 
     def connect(self):
-        ...
+        """See method |Model.connect|."""
 
     def simulate(self, idx):
-        ...
+        """See method |Model.simulate|."""
 
 
 class AuxfilerABC(abc.ABC):

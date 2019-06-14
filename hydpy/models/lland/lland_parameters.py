@@ -41,11 +41,6 @@ class ParameterComplete(parametertools.ZipParameter):
     mask = lland_masks.Complete()
 
     @property
-    def shapeparameter(self):
-        """Alias for the associated instance of |NHRU|."""
-        return self.subpars.pars.control.nhru
-
-    @property
     def refweights(self):
         """Alias for the associated instance of |FHRU| for calculating
         areal mean values."""

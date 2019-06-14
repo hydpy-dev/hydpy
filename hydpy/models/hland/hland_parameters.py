@@ -56,11 +56,6 @@ class ParameterComplete(parametertools.ZipParameter):
     mask = hland_masks.Complete()
 
     @property
-    def shapeparameter(self):
-        """Reference to the associated instance of |NmbZones|."""
-        return self.subpars.pars.control.nmbzones
-
-    @property
     def refweights(self):
         """Reference to the associated instance of |RelZoneArea| for
         calculating areal mean values."""

@@ -199,12 +199,10 @@ def progressbar(iterable, length=23):
 
     For iterables of length one or zero, no progress bar is plottet:
 
-
     >>> for i in progressbar(range(1)):
     ...     continue
 
-
-    The same is True when the `printprogress` option is inactivated:
+    The same is True when the |Options.printprogress| option is inactivated:
 
     >>> pub.options.printprogress = False
     >>> for i in progressbar(range(100)):
@@ -234,10 +232,7 @@ def progressbar(iterable, length=23):
                         counts -= nmbcounts
                     yield next_
         finally:
-            try:
-                temp_stdout.close()
-            except BaseException:
-                pass
+            temp_stdout.close()
             sys.stdout = real_stdout
             print()
             with open(temp_name, 'r') as temp_stdout:

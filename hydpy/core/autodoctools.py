@@ -118,15 +118,6 @@ def _add_lines(specification, module):
     return lines
 
 
-def _get_frame_of_calling_module():
-    frame = inspect.currentframe()
-    while True:
-        nextframe = frame.f_back
-        if inspect.getmodule(nextframe) is None:
-            return frame
-        frame = nextframe
-
-
 def autodoc_basemodel(module):
     """Add an exhaustive docstring to the given module of a basemodel.
 
@@ -136,8 +127,6 @@ def autodoc_basemodel(module):
     autodoc_tuple2doc(module)
     namespace = module.__dict__
     doc = namespace.get('__doc__')
-    if doc is None:
-        doc = ''
     basemodulename = namespace['__name__'].split('.')[-1]
     modules = {key: value for key, value in namespace.items()
                if (isinstance(value, types.ModuleType) and
@@ -700,8 +689,6 @@ def autodoc_module(module):
     """Add a short summary of all implemented members to a modules docstring.
     """
     doc = getattr(module, '__doc__')
-    if doc is None:
-        doc = ''
     members = []
     for name, member in inspect.getmembers(module):
         if ((not name.startswith('_')) and
@@ -777,6 +764,4 @@ def autodoc_tuple2doc(module):
                             f':{type_}:`{cls.__module__}.{cls.__name__}`'
                             f' {objecttools.description(cls)}')
                     doc = getattr(member, '__doc__')
-                    if doc is None:
-                        doc = ''
                     member.__doc__ = doc + '\n'.join(l for l in lst)

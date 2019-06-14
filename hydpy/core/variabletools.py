@@ -106,9 +106,10 @@ The old and the new value(s) are `4.0` and `3.0`, respectively.
     var(3.0)
 
     In the examples above, outlier values are set to the respective
-    boundary value, accompanied by suitable warning messages.  For very
-    tiny deviations, which might be due to precision problems only,
-    outliers are trimmed but not reported:
+    boundary value, accompanied by suitable warning messages.  For
+    minimal deviations (defined by function |get_tolerance|), which
+    might be due to precision problems only, outliers are trimmed
+    but not reported:
 
     >>> var.value = 1.0 - 1e-15
     >>> var == 1.0
@@ -386,12 +387,12 @@ def _trim_float_0d(self, lower, upper):
     if self < lower:
         old = self.value
         self.value = lower
-        if (old + _get_tolerance(old)) < (lower - _get_tolerance(lower)):
+        if (old + get_tolerance(old)) < (lower - get_tolerance(lower)):
             _warn_trim(self, oldvalue=old, newvalue=lower)
     elif self > upper:
         old = self.value
         self.value = upper
-        if (old - _get_tolerance(old)) > (upper + _get_tolerance(upper)):
+        if (old - get_tolerance(old)) > (upper + get_tolerance(upper)):
             _warn_trim(self, oldvalue=old, newvalue=upper)
 
 
@@ -412,10 +413,10 @@ def _trim_float_nd(self, lower, upper):
         old = values.copy()
         trimmed = numpy.clip(values, lower, upper)
         self.values = trimmed
-        if (numpy.any((old + _get_tolerance(old)) <
-                      (lower - _get_tolerance(lower))) or
-                numpy.any((old - _get_tolerance(old)) >
-                          (upper + _get_tolerance(upper)))):
+        if (numpy.any((old + get_tolerance(old)) <
+                      (lower - get_tolerance(lower))) or
+                numpy.any((old - get_tolerance(old)) >
+                          (upper + get_tolerance(upper)))):
             _warn_trim(self, oldvalue=old, newvalue=trimmed)
     values[idxs] = numpy.nan
 
@@ -448,9 +449,23 @@ def _trim_int_nd(self, lower, upper):
     self[idxs] = INT_NAN
 
 
-def _get_tolerance(values):
+def get_tolerance(values):
     """Return some "numerical accuracy" to be expected for the
-    given floating point value(s) (see method |trim|)."""
+    given floating point value(s).
+
+    The documentation on function |trim| explains also function
+    |get_tolerance|.  However, note the special case of infinite
+    input values, for which function |get_tolerance| returns zero:
+
+    >>> from hydpy.core.variabletools import get_tolerance
+    >>> import numpy
+    >>> get_tolerance(numpy.inf)
+    0.0
+    >>> from hydpy import round_
+    >>> round_(get_tolerance(
+    ...     numpy.array([1.0, numpy.inf, 2.0, -numpy.inf])), 16)
+    0.000000000000001, 0.0, 0.000000000000002, 0.0
+    """
     tolerance = numpy.abs(values*1e-15)
     if hasattr(tolerance, '__setitem__'):
         tolerance[numpy.isinf(tolerance)] = 0.
@@ -469,7 +484,7 @@ def _warn_trim(self, oldvalue, newvalue):
 
 def _compare_variables_function_generator(
         method_string, aggregation_func):
-    """Return a function usable  as a comparison method for class |Variable|.
+    """Return a function to be used as a comparison method for class |Variable|.
 
     Pass the specific method (e.g. `__eq__`) and the corresponding
     operator (e.g. `==`) as strings.  Also pass either |numpy.all| or
@@ -1781,7 +1796,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 class SubVariables(Generic[GroupType]):
     """Base class for |SubParameters| and |SubSequences|.
 
-    Each subclass of class |SubVariables| it thought for handling
+    Each subclass of class |SubVariables| is thought for handling
     a certain group of |Parameter| or |Sequence| objects.  One
     specific example is subclass |InputSequences|, collecting all
     |InputSequence| objects of a specific hydrological model.
@@ -1953,7 +1968,7 @@ def to_repr(self: Variable, values, brackets1d: Optional[bool] = False) \
     """Return a valid string representation for the given |Variable|
     object.
 
-    Function |to_repr| it thought for internal purposes only, more
+    Function |to_repr| is thought for internal purposes only, more
     specifically for defining string representations of subclasses
     of class |Variable| like the following:
 

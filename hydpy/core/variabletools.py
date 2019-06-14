@@ -652,8 +652,8 @@ defined so far.
     >>> round(var, 1)
     1.7
 
-    You can apply all the operations discussed above on |Variable|
-    objects of arbitrary dimensionality:
+    You can apply all the operations discussed above (except |float| and
+    |int|) on |Variable| objects of arbitrary dimensionality:
 
     >>> Var.NDIM = 1
     >>> Var.TYPE = float
@@ -749,6 +749,16 @@ defined so far.
     array([ 1.7,  1.7])
     >>> bool(var)
     True
+    >>> int(var)
+    Traceback (most recent call last):
+    ...
+    TypeError: The variable `var` is 1-dimensional and thus cannot be \
+converted to a scalar int value.
+    >>> float(var)
+    Traceback (most recent call last):
+    ...
+    TypeError: The variable `var` is 1-dimensional and thus cannot be \
+converted to a scalar float value.
 
     Indexing is supported (for consistency reasons, even for
     0-dimensional variables):

@@ -92,6 +92,8 @@ class MaxDT(parametertools.Parameter):
         >>> from hydpy.models.llake import *
         >>> parameterstep('1d')
         >>> simulationstep('12h')
+        >>> maxdt
+        maxdt(?)
         >>> maxdt('1h')
 
         Internally, the value of maxdt is stored in seconds, but in string

@@ -46,6 +46,9 @@ class SP(hland_sequences.State1DSequence):
         >>> parameterstep('1d')
         >>> nmbzones(7)
         >>> whc(0.1)
+        >>> states.sp(-1., 0., 0., 5., 5., 5., 5.)
+        >>> states.sp
+        sp(0.0, 0.0, 0.0, 5.0, 5.0, 5.0, 5.0)
         >>> states.wc.values = -1.0, 0.0, 1.0, -1.0, 0.0, 0.5, 1.0
         >>> states.sp(-1., 0., 0., 5., 5., 5., 5.)
         >>> states.sp
@@ -54,11 +57,10 @@ class SP(hland_sequences.State1DSequence):
         whc = self.subseqs.seqs.model.parameters.control.whc
         wc = self.subseqs.wc
         if lower is None:
-            if wc.values is not None:
-                with numpy.errstate(divide='ignore', invalid='ignore'):
-                    lower = numpy.clip(wc.values / whc.values, 0., numpy.inf)
-            else:
-                lower = 0.
+            wc_values = wc.values.copy()
+            wc_values[numpy.isnan(wc_values)] = 0.
+            with numpy.errstate(divide='ignore', invalid='ignore'):
+                lower = numpy.clip(wc_values / whc.values, 0., numpy.inf)
         hland_sequences.State1DSequence.trim(self, lower, upper)
 
 
@@ -81,7 +83,7 @@ class WC(hland_sequences.State1DSequence):
         """
         whc = self.subseqs.seqs.model.parameters.control.whc
         sp = self.subseqs.sp
-        if (upper is None) and (sp.values is not None):
+        if upper is None:
             upper = whc*sp
         hland_sequences.State1DSequence.trim(self, lower, upper)
 

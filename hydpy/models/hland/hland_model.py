@@ -1638,6 +1638,7 @@ def calc_contriarea_v1(self):
 def calc_q0_perc_uz_v1(self):
     """Perform the upper zone layer routine which determines percolation
     to the lower zone layer and the fast response of the hland model.
+
     Note that the system behaviour of this method depends strongly on the
     specifications of the options |RespArea| and |RecStep|.
 
@@ -1673,7 +1674,8 @@ def calc_q0_perc_uz_v1(self):
         the numerical integration of the underlying ordinary differential
         equation, each simulation step can be divided into substeps, which
         are all solved with first order accuracy.  In the first example,
-        this option is omitted through setting the RecStep parameter to one:
+        this option is omitted through setting the |RecStep| parameter to
+        one:
 
         >>> from hydpy.models.hland import *
         >>> parameterstep('1d')
@@ -1736,12 +1738,26 @@ def calc_q0_perc_uz_v1(self):
         >>> states.uz
         uz(0.0)
 
-        Resetting RecStep leads to more transparent results.  Note that, due
+        Without any contributing area, the complete amount of water stored in
+        the upper zone layer is released as direct discharge immediately:
+
+        >>> fluxes.contriarea = 0.0
+        >>> states.uz = 1.0
+        >>> model.calc_q0_perc_uz_v1()
+        >>> fluxes.perc
+        perc(0.0)
+        >>> fluxes.q0
+        q0(1.0)
+        >>> states.uz
+        uz(0.0)
+
+        Resetting |RecStep| leads to more transparent results.  Note that, due
         to the large value of the storage coefficient and the low accuracy
         of the numerical approximation, direct discharge drains the rest of
         the upper zone storage:
 
         >>> recstep(2)
+        >>> fluxes.contriarea = 0.5
         >>> derived.dt = 1.0/recstep
         >>> states.uz = 1.0
         >>> model.calc_q0_perc_uz_v1()
@@ -1801,13 +1817,10 @@ def calc_q0_perc_uz_v1(self):
     flu.perc = 0.
     flu.q0 = 0.
     for dummy in range(con.recstep):
-        # First state update related to the upper zone input.
         sta.uz += der.dt*flu.inuz
-        # Second state update related to percolation.
         d_perc = min(der.dt*con.percmax*flu.contriarea, sta.uz)
         sta.uz -= d_perc
         flu.perc += d_perc
-        # Third state update related to fast runoff response.
         if sta.uz > 0.:
             if flu.contriarea > 0.:
                 d_q0 = (der.dt*con.k *
@@ -1817,8 +1830,6 @@ def calc_q0_perc_uz_v1(self):
                 d_q0 = sta.uz
             sta.uz -= d_q0
             flu.q0 += d_q0
-        else:
-            d_q0 = 0.
 
 
 def calc_lz_v1(self):

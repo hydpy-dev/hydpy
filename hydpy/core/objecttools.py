@@ -791,12 +791,17 @@ def repr_values(values):
     function |repr|.
 
     >>> from hydpy.core.objecttools import repr_values
-    >>> repr_values([1./1., 1./2., 1./3.])
+    >>> repr_values([1.0/1.0, 1.0/2.0, 1.0/3.0])
     '1.0, 0.5, 0.333333'
+    >>> repr_values(1.0/3.0)
+    '0.333333'
 
     Note that the returned string is not wrapped.
     """
-    return '%s' % ', '.join(repr_(value) for value in values)
+    try:
+        return '%s' % ', '.join(repr_(value) for value in values)
+    except TypeError:
+        return repr_(values)
 
 
 def print_values(values, width=70):

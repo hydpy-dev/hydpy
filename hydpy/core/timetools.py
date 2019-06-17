@@ -1816,6 +1816,22 @@ on the initialization time grid.
                     'The simulation time grid is not properly '
                     'alligned on the initialization time grid.')
 
+    @property
+    def simindices(self) -> Tuple[int, int]:
+        """Tuple containing the start and end index of the simulation period
+        regarding the initialisation period.
+
+        >>> from hydpy import Timegrids
+        >>> timegrids = Timegrids('2000-01-01', '2001-01-01', '1d')
+        >>> timegrids.simindices
+        (0, 366)
+        >>> timegrids.sim.firstdate = '2000-01-11'
+        >>> timegrids.sim.lastdate = '2000-02-01'
+        >>> timegrids.simindices
+        (10, 31)
+        """
+        return self.init[self.sim.firstdate], self.init[self.sim.lastdate]
+
     def qfactor(self, area):
         """Return the factor for converting `mm/stepsize` to `m^3/s`.
 

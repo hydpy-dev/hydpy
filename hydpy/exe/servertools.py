@@ -269,12 +269,12 @@ class ServerState:
         self.parameteritems: List[itemtools.ChangeItem] = None
         self.conditionitems: List[itemtools.ChangeItem] = None
         self.getitems: List[itemtools.GetItem] = None
-        self.conditions: Dict[str, Dict[int, hydpytools.conditionstype]] = None
+        self.conditions: Dict[str, Dict[int, hydpytools.ConditionsType]] = None
         self.parameteritemvalues: Dict[str, Dict[str, Any]] = None
         self.modifiedconditionitemvalues: Dict[str, Dict[str, Any]] = None
         self.getitemvalues: Dict[str, Dict[str, str]] = None
         self.timegrids: Dict[str, timetools.Timegrid] = None
-        self.init_conditions: hydpytools.conditionstype = None
+        self.init_conditions: hydpytools.ConditionsType = None
         self.idx1: int = None
         self.idx2: int = None
 

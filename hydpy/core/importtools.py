@@ -314,7 +314,7 @@ occurred: could not broadcast input array from shape (2) into shape (12)
     |hland_control.NmbZones| given in the corresponding control file:
 
     >>> from hydpy.models.hland_v1 import *
-    >>> __file__ = 'land_dill.py'   # ToDo: undo?
+    >>> __file__ = 'land_dill.py'
     >>> with TestIO():
     ...     os.chdir(cwd)
     ...     controlcheck()
@@ -332,9 +332,9 @@ occurred: could not broadcast input array from shape (2) into shape (12)
     ...     controlcheck(projectdir='somewhere', controldir='nowhere')
     Traceback (most recent call last):
     ...
-    FileNotFoundError: While trying to load the control file \
-`...hydpy...tests...iotesting...control...nowhere...land_dill.py`, the \
-following error occurred: [Errno 2] No such file or directory: '...land_dill.py'
+    FileNotFoundError: While trying to load the control file `land_dill.py` \
+from directory `...hydpy/tests/iotesting/somewhere/control/nowhere`, \
+the following error occurred: ...
 
     Note that the functionalities of function |controlcheck| are disabled
     when there is already a `model` variable in the namespace, which is
@@ -357,7 +357,16 @@ following error occurred: [Errno 2] No such file or directory: '...land_dill.py'
         class CM(filetools.ControlManager):
             currentpath = dirpath
 
-        model = CM().load_file(filename=controlfile)['model']
+        cwd = os.getcwd()
+        try:
+            os.chdir(dirpath)
+            model = CM().load_file(filename=controlfile)['model']
+        except BaseException:
+            objecttools.augment_excmessage(
+                f'While trying to load the control file `{controlfile}` '
+                f'from directory `{objecttools.repr_(dirpath)}`')
+        finally:
+            os.chdir(cwd)
         model.parameters.update()
         namespace['model'] = model
         for name in ('states', 'logs'):

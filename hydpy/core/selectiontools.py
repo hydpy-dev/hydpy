@@ -221,6 +221,27 @@ objects only, not objects of type `tuple`
                 f'attribute nor a Selection object called `{key}` that '
                 f'could be deleted.')
 
+    def __getitem__(self, key: str) -> 'Selection':
+        try:
+            return self.__selections[key]
+        except KeyError:
+            raise AttributeError(
+                f'The actual Selections object does not handle '
+                f'a Selection object called `{key}` that could '
+                f'be returned.')
+
+    def __setitem__(self, key: 'str', value: 'Selection') -> None:
+        self.__selections[key] = value
+
+    def __delitem__(self, key: str) -> None:
+        try:
+            del self.__selections[key]
+        except KeyError:
+            raise AttributeError(
+                f'The actual Selections object does not handle '
+                f'a Selection object called `{key}` that could '
+                f'be deleted.')
+
     def __contains__(self, value):
         try:
             return value in self.__selections.values()

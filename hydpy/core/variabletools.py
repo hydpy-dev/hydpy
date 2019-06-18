@@ -479,8 +479,8 @@ def _warn_trim(self, oldvalue, newvalue):
         warnings.warn(
             f'For variable {objecttools.devicephrase(self)} at least one '
             f'value needed to be trimmed.  The old and the new value(s) '
-            f'are `{objecttools.repr_values(oldvalue)}` and '
-            f'`{objecttools.repr_values(newvalue)}`, respectively.')
+            f'are `{objecttools.repr_numbers(oldvalue)}` and '
+            f'`{objecttools.repr_numbers(newvalue)}`, respectively.')
 
 
 def _compare_variables_function_generator(

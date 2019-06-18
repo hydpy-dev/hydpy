@@ -788,14 +788,30 @@ repr_ = _Repr()
 
 def repr_values(values):
     """Return comma separated representations of the given values using
-    function |repr|.
+    function |repr_|.
 
     >>> from hydpy.core.objecttools import repr_values
-    >>> repr_values(1.0/3.0)
-    '0.333333'
     >>> repr_values([1.0/1.0, 1.0/2.0, 1.0/3.0])
     '1.0, 0.5, 0.333333'
-    >>> repr_values([[1.0/1.0, 1.0/2.0, 1.0/3.0], [1.0/4.0, 1.0/5.0, 1.0/6.0]])
+
+    Note that the returned string is not wrapped.
+    """
+    return ', '.join(repr_(value) for value in values)
+
+
+def repr_numbers(values):
+    """Return comma separated representations of the given numbers using
+    function |repr_|.
+
+    Currently, function |repr_numbers| can handle scalar values,
+    1-dimensional vectors, and 2-dimensional matrices:
+
+    >>> from hydpy.core.objecttools import repr_numbers
+    >>> repr_numbers(1.0/3.0)
+    '0.333333'
+    >>> repr_numbers([1.0/1.0, 1.0/2.0, 1.0/3.0])
+    '1.0, 0.5, 0.333333'
+    >>> repr_numbers([[1.0/1.0, 1.0/2.0, 1.0/3.0], [1.0/4.0, 1.0/5.0, 1.0/6.0]])
     '1.0, 0.5, 0.333333; 0.25, 0.2, 0.166667'
 
     Note that the returned string is not wrapped.

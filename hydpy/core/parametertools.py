@@ -877,7 +877,7 @@ keyword arguments are given, which is ambiguous.
     Traceback (most recent call last):
     ...
     UserWarning: For variable `par` at least one value needed to be trimmed.  \
-The old and the new value(s) are `[-2.  6.]` and `[ 0.  6.]`, respectively.
+The old and the new value(s) are `-2.0, 6.0` and `0.0, 6.0`, respectively.
     >>> par
     par(0.0, 3.0)
     >>> par.values

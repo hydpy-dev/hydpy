@@ -194,7 +194,7 @@ The old and the new value(s) are `4.0` and `3.0`, respectively.
     Traceback (most recent call last):
     ...
     UserWarning: For variable `var` at least one value needed to be trimmed.  \
-The old and the new value(s) are `[[ 0.  1.  2.]]` and `[[ 1.  1.  2.]]`, \
+The old and the new value(s) are `0.0, 1.0, 2.0` and `1.0, 1.0, 2.0`, \
 respectively.
     >>> var
     var([[1.0, 1.0, 2.0]])
@@ -204,7 +204,7 @@ respectively.
     Traceback (most recent call last):
     ...
     UserWarning: For variable `var` at least one value needed to be trimmed.  \
-The old and the new value(s) are `[[ 2.  3.  4.]]` and `[[ 2.  3.  3.]]`, \
+The old and the new value(s) are `2.0, 3.0, 4.0` and `2.0, 3.0, 3.0`, \
 respectively.
     >>> var
     var([[2.0, 3.0, 3.0]])
@@ -225,7 +225,7 @@ respectively.
     Traceback (most recent call last):
     ...
     UserWarning: For variable `var` at least one value needed to be trimmed.  \
-The old and the new value(s) are `[[ 0.  2.  4.]]` and `[[ 0.  3.  3.]]`, \
+The old and the new value(s) are `0.0, 2.0, 4.0` and `0.0, 3.0, 3.0`, \
 respectively.
 
     >>> var.values = 0.0, 2.0, 4.0
@@ -233,7 +233,7 @@ respectively.
     Traceback (most recent call last):
     ...
     UserWarning: For variable `var` at least one value needed to be trimmed.  \
-The old and the new value(s) are `[[ 0.  2.  4.]]` and `[[ 1.  1.  4.]]`, \
+The old and the new value(s) are `0.0, 2.0, 4.0` and `1.0, 1.0, 4.0`, \
 respectively.
 
     For |Variable| subclasses handling |float| values, setting outliers

@@ -77,6 +77,7 @@ False
 # ...from standard library
 import abc
 import copy
+import itertools
 import warnings
 from typing import *
 # ...from site-packages
@@ -1501,6 +1502,10 @@ the value `oldobs` was given, but only the following values are allowed: \
                 f'the value `{value}` was given, but only the following '
                 f'values are allowed: `newsim`, `obs` and `oldsim`.')
         vars(self)['deploymode'] = value
+        for element in itertools.chain(self.entries, self.exits):
+            model = getattr(element, 'model')
+            if model:
+                model.connect()
 
     def get_double(self, group: str) -> pointerutils.Double:
         """Return the |Double| object appropriate for the given |Element|

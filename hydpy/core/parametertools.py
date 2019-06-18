@@ -16,6 +16,7 @@ from hydpy.core import objecttools
 from hydpy.core import timetools
 from hydpy.core import variabletools
 if TYPE_CHECKING:
+    from hydpy.core import abctools
     from hydpy.core import auxfiletools
     from hydpy.core import masktools
     from hydpy.core import modeltools
@@ -948,11 +949,11 @@ shape (2) into shape (2,3)
                 f'For parameter {objecttools.elementphrase(self)} '
                 f'both positional and keyword arguments are given, '
                 f'which is ambiguous.')
-        elif not args and not kwargs:
+        if not args and not kwargs:
             raise ValueError(
                 f'For parameter {objecttools.elementphrase(self)} neither '
                 f'a positional nor a keyword argument is given.')
-        elif 'auxfile' in kwargs:
+        if 'auxfile' in kwargs:
             values = self._get_values_from_auxiliaryfile(kwargs['auxfile'])
             self.values = self.apply_timefactor(values)
             del kwargs['auxfile']
@@ -2609,8 +2610,7 @@ parameter value must be given, but is not.
                     f'{objecttools.elementphrase(self)} via keyword '
                     f'arguments, either `left` or `l` for the "left" '
                     f'parameter value must be given, but is not.')
-            else:
-                self.left = left
+            self.left = left
             right = kwargs.get('right', kwargs.get('r'))
             if right is None:
                 raise ValueError(
@@ -2618,8 +2618,7 @@ parameter value must be given, but is not.
                     f'{objecttools.elementphrase(self)} via keyword '
                     f'arguments, either `right` or `r` for the "right" '
                     f'parameter value must be given, but is not.')
-            else:
-                self.right = right
+            self.right = right
 
     def __hydpy__connect_variable2subgroup__(self) -> None:
         super().__hydpy__connect_variable2subgroup__()
@@ -2798,8 +2797,7 @@ class SolverParameter(Parameter):
             raise AttributeError(
                 f'No alternative initial value for solver parameter '
                 f'{objecttools.elementphrase(self)} has been defined so far.')
-        else:
-            return self._alternative_initvalue
+        return self._alternative_initvalue
 
     @alternative_initvalue.setter
     def alternative_initvalue(self, value):

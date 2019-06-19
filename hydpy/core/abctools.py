@@ -17,7 +17,6 @@ should be handled as if they were.  See class |anntools.ANN| as an example.
 # import...
 # ...from standard library
 import abc
-import datetime
 from typing import *
 from typing_extensions import Protocol
 # ...from site-packages
@@ -27,6 +26,7 @@ if TYPE_CHECKING:
     from hydpy.core import devicetools
     from hydpy.core import parametertools
     from hydpy.core import sequencetools
+    from hydpy.core import timetools
     from hydpy.core import variabletools
     from hydpy.cythons import pointerutils
 
@@ -173,43 +173,6 @@ class MaskABC(abc.ABC):
     """See class `Mask` classes."""
 
 
-class DateABC(abc.ABC):
-    """See class |Date|."""
-
-    datetime: datetime.datetime
-
-
-Union['PeriodABC', datetime.timedelta, str, None]
-
-
-class PeriodABC(abc.ABC):
-    """See class |Period|."""
-
-    ConstrArg = Union['PeriodABC', datetime.timedelta, str, None]
-    TimeDeltaArg = ConstrArg
-    timedelta: 'PeriodABC'
-
-
-class TimegridABC(abc.ABC):
-    """See class |Timegrid|."""
-
-    firstdate: DateABC
-    lastdate: DateABC
-    stepsize: PeriodABC
-
-
-class TimegridsABC(abc.ABC):
-    """See class |Timegrids|."""
-
-
-class TOYABC(abc.ABC):
-    """See class |TOY|."""
-
-    month: int
-    day: int
-    hour: int
-    minute: int
-    second: int
 
 
 class ModelABC(abc.ABC):
@@ -230,8 +193,8 @@ class AuxfilerABC(abc.ABC):
     """See class |Auxfiler|."""
 
     @abc.abstractmethod
-    def save(self, parameterstep: PeriodABC.ConstrArg,
-             simulationstep: PeriodABC.ConstrArg):
+    def save(self, parameterstep: 'timetools.PeriodConstrArg',
+             simulationstep: 'timetools.PeriodConstrArg'):
         ...
 
 
@@ -248,11 +211,6 @@ __all__ = [
     'FastAccessModelSequenceProtocol',
     'FastAccessLinkSequenceProtocol',
     'MaskABC',
-    'DateABC',
-    'PeriodABC',
-    'TimegridABC',
-    'TimegridsABC',
-    'TOYABC',
     'ModelABC',
     'AuxfilerABC',
 ]

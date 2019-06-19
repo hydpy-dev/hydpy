@@ -1065,11 +1065,14 @@ def mock_datetime_now(testdatetime):
 
     >>> from hydpy import Date
     >>> with mock_datetime_now(testdate):
-    ...     Date(testdate)
+    ...     Date(datetime.datetime(2000, 10, 1, 12, 30, 0, 999))
     Traceback (most recent call last):
     ...
-    ValueError: For `Date` instances, the microsecond must be `0`.  \
-For the given `datetime` object, it is `999` instead.
+    ValueError: While trying to initialise a `Date` object based on \
+argument `2000-10-01 12:30:00.000999`, the following error occurred: \
+For `Date` instances, the microsecond must be zero, \
+but for the given `datetime` object it is `999` instead.
+
     >>> classname(datetime.datetime)
     'datetime'
     """

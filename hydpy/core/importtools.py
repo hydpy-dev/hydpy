@@ -22,7 +22,7 @@ from hydpy.core import sequencetools
 from hydpy.core import timetools
 
 
-def parameterstep(timestep: timetools.PeriodConstrArg = None):
+def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None):
     """Define a parameter time step size within a parameter control file.
 
     Function parameterstep should usually be be applied in a line
@@ -179,7 +179,7 @@ def reverse_model_wildcard_import():
 
 
 def prepare_model(module: Union[types.ModuleType, str],
-                  timestep: PeriodABC.ConstrArg = None):
+                  timestep: Optional[timetools.PeriodConstrArg] = None):
     """Prepare and return the model of the given module.
 
     In usual HydPy projects, each hydrological model instance is prepared

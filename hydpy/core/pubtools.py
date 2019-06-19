@@ -51,13 +51,10 @@ is not defined at the moment.
     >>> pub.timegrids = None
     Traceback (most recent call last):
     ...
-    AttributeError: While trying to define a new Timegrids object based \
-on arguments `None`, the following error occurred: While trying to prepare \
-a Trimegrid object based on the arguments `None , the following error \
-occurred: 'NoneType' object has no attribute 'firstdate' Either pass one \
-preprepared Timegrid object or three objects interpretable as dates and \
-periods. Either pass one `Timegrids` object, one or two `Timegrid` objects, \
-or three strings.
+    TypeError: While trying to define a new Timegrids object based on \
+arguments `None`, the following error occurred: When passing a single \
+argument to the constructor of class `Timegrids`, the argument must be \
+a `Timegrid` or a `Timegrids` object, but a `NoneType` is given.
 
 
     >>> pub.timegrids = '2000-01-01', '2001-01-01', '1d'

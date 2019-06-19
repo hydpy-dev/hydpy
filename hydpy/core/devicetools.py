@@ -996,9 +996,11 @@ Use method `prepare_models` instead.
             exceptiontools.HydPyDeprecationWarning)
 
     @printtools.print_progress
-    def save_controls(self, parameterstep: 'timetools.PeriodConstrArg' = None,
-                      simulationstep: 'timetools.PeriodConstrArg' = None,
-                      auxfiler: 'Optional[auxfiletools.Auxfiler]' = None):
+    def save_controls(
+            self,
+            parameterstep: Optional['timetools.PeriodConstrArg'] = None,
+            simulationstep: Optional['timetools.PeriodConstrArg'] = None,
+            auxfiler: 'Optional[auxfiletools.Auxfiler]' = None):
         """Save the control parameters of the |Model| object handled by
         each |Element| object and eventually the ones handled by the
         given |Auxfiler| object."""

@@ -28,8 +28,8 @@ time.strptime('1999', '%Y')
 
 def get_controlfileheader(
         model: Union[str, 'modeltools.Model'],
-        parameterstep: timetools.PeriodConstrArg = None,
-        simulationstep: timetools.PeriodConstrArg = None) -> str:
+        parameterstep: Optional[timetools.PeriodConstrArg] = None,
+        simulationstep: Optional[timetools.PeriodConstrArg] = None) -> str:
     """Return the header of a regular or auxiliary parameter control file.
 
     The header contains the default coding information, the import command
@@ -208,10 +208,11 @@ no value has been defined so far.
                         f'While trying to update parameter '
                         f'`{objecttools.elementphrase(par)}`')
 
-    def save_controls(self, filepath: Optional[str] = None,
-                      parameterstep: timetools.PeriodConstrArg = None,
-                      simulationstep: timetools.PeriodConstrArg = None,
-                      auxfiler: 'auxfiletools.Auxfiler' = None):
+    def save_controls(
+            self, filepath: Optional[str] = None,
+            parameterstep: Optional[timetools.PeriodConstrArg] = None,
+            simulationstep: Optional[timetools.PeriodConstrArg] = None,
+            auxfiler: 'auxfiletools.Auxfiler' = None):
         """Write the control parameters to file.
 
         Usually, a control file consists of a header (see the documentation
@@ -462,7 +463,7 @@ class _Period(timetools.Period):
 
     def __init__(self, stepsize=None):
         self.stepsize = stepsize
-        timetools.Period.__init__(self, stepsize.period)
+        self.timedelta = stepsize.period
         self.old_period = timetools.Period(self)
         self.__doc__ = stepsize.__doc__
 
@@ -492,12 +493,12 @@ class _Period(timetools.Period):
 
         For details, see the documentation on class |Parameterstep|.
         """
-        self.timedelta = None
-        self.stepsize.period.timedelta = None
+        del self.timedelta
+        del self.stepsize.period.timedelta
         return self
 
 
-class _Stepsize:
+class _Stepsize(timetools.Period):
     """Base class of the descriptor classes |Parameterstep| and
     |Simulationstep|."""
 
@@ -510,7 +511,7 @@ class _Stepsize:
     def __delete__(self, obj):
         del self.period.timedelta
 
-    def __call__(self, value: timetools.PeriodConstrArg) -> None:
+    def __call__(self, value: timetools.PeriodConstrArg) -> None:   # ToDo ?
         try:
             period = timetools.Period(value)
             if period >= '1s':
@@ -1785,13 +1786,13 @@ class SeasonalParameter(Parameter):
     >>> Par(None)(_a=1.)
     Traceback (most recent call last):
     ...
-    ValueError: While trying to define the seasonal parameter value \
-`par` of element `?` for time of year `_a`, the following \
-error occurred: While trying to retrieve the month for TOY (time of year) \
-object based on the string `_a`, the following error occurred: \
-For TOY (time of year) objects, all properties must be of type `int`, \
-but the value `a` of type `str` given for property `month` cannot be \
-converted to `int`.
+    ValueError: While trying to define the seasonal parameter value `par` \
+of element `?` for time of year `_a`, the following error occurred: \
+While trying to initialise a TOY object based on argument `value `_a` \
+of type `str`, the following error occurred: While trying to retrieve \
+the month, the following error occurred: For TOY (time of year) objects, \
+all properties must be of type `int`, but the value `a` of type `str` \
+given for property `month` cannot be converted to `int`.
 
     As the following string representation shows are the pairs of each
     |SeasonalParameter| instance automatically sorted:

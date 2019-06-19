@@ -1117,10 +1117,11 @@ of element `?` has not been properly prepared so far.
     ...
     ValueError: While trying to add a season specific neural network to \
 parameter `seasonalann` of element `?`, the following error occurred: \
-While trying to retrieve the month for TOY (time of year) object based \
-on the string `_13_1_12`, the following error occurred: \
-The value of property `month` of TOY (time of year) objects must lie \
-within the range `(1, 12)`, but the given value is `13`.
+While trying to initialise a TOY object based on argument `value `_13_1_12` \
+of type `str`, the following error occurred: While trying to retrieve \
+the month, the following error occurred: The value of property `month` \
+of TOY (time of year) objects must lie within the range `(1, 12)`, \
+but the given value is `13`.
 
     >>> seasonalann(
     ...     ann(nmb_inputs=2, nmb_neurons=(1,), nmb_outputs=1,

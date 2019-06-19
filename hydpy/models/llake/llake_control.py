@@ -129,11 +129,12 @@ class MaxDT(parametertools.Parameter):
         >>> maxdt(60.)
         Traceback (most recent call last):
         ...
-        TypeError: While trying the set the value of parameter `maxdt` \
-of the lake model handled by element `?`, the following error occurred: \
-The supplied argument must be either an instance  of `datetime.timedelta` \
-or `str`.  The given arguments type is float. (An example: set `max dt` \
-to 3600 seconds by writing `maxdt("1h"))
+        TypeError: While trying the set the value of parameter `maxdt` of \
+the lake model handled by element `?`, the following error occurred: \
+While trying to initialise a `Period` object based argument `60.0`, the \
+following error occurred: The supplied argument must be either an instance \
+of `Period`, `datetime.timedelta`, or `str`, but the given type is `float`. \
+(An example: set `max dt` to 3600 seconds by writing `maxdt("1h"))
     """
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
@@ -152,7 +153,7 @@ to 3600 seconds by writing `maxdt("1h"))
     def __repr__(self):
         try:
             return "%s('%s')" % (self.name,
-                                 str(timetools.Period.fromseconds(self.value)))
+                                 str(timetools.Period.from_seconds(self.value)))
         except BaseException:
             return '%s(?)' % self.name
 

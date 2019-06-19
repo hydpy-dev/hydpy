@@ -909,8 +909,8 @@ Use method `prepare_models` instead.
 
     def save_controls(
             self,
-            parameterstep: timetools.PeriodConstrArg = None,
-            simulationstep: timetools.PeriodConstrArg = None,
+            parameterstep: Optional[timetools.PeriodConstrArg] = None,
+            simulationstep: Optional[timetools.PeriodConstrArg] = None,
             auxfiler: Optional['auxfiletools.Auxfiler'] = None) -> None:
         """Write the control files of all current |Element| objects.
 

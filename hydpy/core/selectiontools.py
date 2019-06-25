@@ -8,11 +8,13 @@ import types
 from typing import *
 # ...from HydPy
 import hydpy
-from hydpy.core.abctools import *
+from hydpy.core import abctools
 from hydpy.core import devicetools
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
+
+ModelTypesArg = Union[modeltools.Model, types.ModuleType, str]
 
 
 class Selections:
@@ -58,9 +60,28 @@ attribute nor a Selection object called `sel3` that could be deleted.
     >>> selections.sel4 = sel3
     Traceback (most recent call last):
     ...
-    RuntimeError: To avoid inconsistencies when handling Selection objects as \
+    ValueError: To avoid inconsistencies when handling Selection objects as \
 attributes of a Selections object, attribute name and Selection name must be \
 identical.  However,  for selection `sel3` the given attribute name is `sel4`.
+
+    You can use item access alternatively:
+
+    >>> selections['sel4']
+    Traceback (most recent call last):
+    ...
+    KeyError: 'The actual Selections object does not handle a Selection \
+object called `sel4` that could be returned.'
+    >>> selections['sel4'] = Selection('sel4')
+    >>> selections['sel4']
+    Selection("sel4",
+              nodes=(),
+              elements=())
+    >>> del selections['sel4']
+    >>> del selections['sel4']
+    Traceback (most recent call last):
+    ...
+    KeyError: 'The actual Selections object does not handle a Selection \
+object called `sel4` that could be deleted.'
 
     You can ask for the existence of a specific |Selection| objects within
     a |Selections| object both via its name and via the object itself:
@@ -132,10 +153,7 @@ Selections objects, single Selection objects, or iterables containing \
     >>> larger == (smaller + selections)
     True
     >>> larger == (sel1, sel2, sel3)
-    Traceback (most recent call last):
-    ...
-    RuntimeError: Selections objects can be compared with other Selections \
-objects only, not objects of type `tuple`
+    False
     """
 
     def __init__(self, *selections: 'Selection'):
@@ -201,14 +219,7 @@ objects only, not objects of type `tuple`
 
     def __setattr__(self, name, value):
         if isinstance(value, Selection):
-            if name != value.name:
-                raise RuntimeError(
-                    f'To avoid inconsistencies when handling Selection '
-                    f'objects as attributes of a Selections object, '
-                    f'attribute name and Selection name must be identical.  '
-                    f'However,  for selection `{value.name}` the given '
-                    f'attribute name is `{name}`.')
-            self.__selections[name] = value
+            self[name] = value
         else:
             super().__setattr__(name, value)
 
@@ -225,47 +236,50 @@ objects only, not objects of type `tuple`
         try:
             return self.__selections[key]
         except KeyError:
-            raise AttributeError(
+            raise KeyError(
                 f'The actual Selections object does not handle '
                 f'a Selection object called `{key}` that could '
                 f'be returned.')
 
     def __setitem__(self, key: 'str', value: 'Selection') -> None:
+        if key != value.name:
+            raise ValueError(
+                f'To avoid inconsistencies when handling Selection '
+                f'objects as attributes of a Selections object, '
+                f'attribute name and Selection name must be identical.  '
+                f'However,  for selection `{value.name}` the given '
+                f'attribute name is `{key}`.')
         self.__selections[key] = value
 
     def __delitem__(self, key: str) -> None:
         try:
             del self.__selections[key]
         except KeyError:
-            raise AttributeError(
+            raise KeyError(
                 f'The actual Selections object does not handle '
                 f'a Selection object called `{key}` that could '
                 f'be deleted.')
 
-    def __contains__(self, value):
+    def __contains__(self, value: Union[str, 'Selection']) -> bool:
         try:
             return value in self.__selections.values()
         except AttributeError:
             return value in self.names
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator['Selection']:
         return iter(self.__selections.values())
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.__selections)
 
     @staticmethod
-    def __getiterable(value):   # ToDo: refactor
+    def __getiterable(value: abctools.Mayberable1['Selection']) \
+            -> List['Selection']:
         """Try to convert the given argument to a |list| of  |Selection|
         objects and return it.
         """
-        if isinstance(value, Selection):
-            return [value]
         try:
-            for selection in value:
-                if not isinstance(selection, Selection):
-                    raise TypeError
-            return list(value)
+            return list(objecttools.extract(value, (Selection,)))
         except TypeError:
             raise TypeError(
                 f'Binary operations on Selections objects are defined for '
@@ -273,21 +287,22 @@ objects only, not objects of type `tuple`
                 f'iterables containing `Selection` objects, but the type of '
                 f'the given argument is `{objecttools.classname(value)}`.')
 
-    def __add__(self, value):
-        selections = self.__getiterable(value)
+    def __add__(self, other: abctools.Mayberable1['Selection']) -> 'Selections':
+        selections = self.__getiterable(other)
         new = copy.copy(self)
         for selection in selections:
             setattr(new, selection.name, selection)
         return new
 
-    def __iadd__(self, value):
-        selections = self.__getiterable(value)
+    def __iadd__(self, other: abctools.Mayberable1['Selection']) \
+            -> 'Selections':
+        selections = self.__getiterable(other)
         for selection in selections:
             setattr(self, selection.name, selection)
         return self
 
-    def __sub__(self, value):
-        selections = self.__getiterable(value)
+    def __sub__(self, other: abctools.Mayberable1['Selection']) -> 'Selections':
+        selections = self.__getiterable(other)
         new = copy.copy(self)
         for selection in selections:
             try:
@@ -296,8 +311,9 @@ objects only, not objects of type `tuple`
                 pass
         return new
 
-    def __isub__(self, value):
-        selections = self.__getiterable(value)
+    def __isub__(self, other: abctools.Mayberable1['Selection']) \
+            -> 'Selections':
+        selections = self.__getiterable(other)
         for selection in selections:
             try:
                 delattr(self, selection.name)
@@ -305,20 +321,18 @@ objects only, not objects of type `tuple`
                 pass
         return self
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         try:
             return ((self.nodes == self.nodes) and
                     (self.elements == other.elements))
         except AttributeError:
-            raise RuntimeError(
-                f'Selections objects can be compared with other '
-                f'Selections objects only, not objects of type '
-                f'`{objecttools.classname(other)}`')
+            pass
+        return False
 
-    def __copy__(self):
+    def __copy__(self) -> 'Selections':
         return type(self)(*self.__selections.values())
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.assignrepr('')
 
     def assignrepr(self, prefix='') -> str:
@@ -330,7 +344,7 @@ objects only, not objects of type `tuple`
                     sorted(self.names), prefix, 70)
                 return repr_ + ')'
 
-    def __dir__(self):
+    def __dir__(self) -> List[str]:
         return objecttools.dir_(self) + list(self.names)
 
 
@@ -344,8 +358,8 @@ class Selection:
     One such strategy is to define different instances of class |Selection|
     for different aspects of a project.  Often, a selection contains all
     nodes and elements of a certain subcatchment or all elements handling
-    certain model types. Selections can be overlapping, meaning for
-    example that an element can be part of a subcatchment selection and
+    certain model types. Selections can be overlapping, meaning, for
+    example, that an element can be part of a subcatchment selection and
     of model-type selection at the same time.
 
     Selections can be written to and read from individual network files,
@@ -574,8 +588,6 @@ selection `headwaters`, the following error occurred: 'No node named \
         self.nodes -= upstream.nodes
         self.elements -= upstream.elements
         return self
-
-    ModelTypesArg = Union[modeltools.Model, types.ModuleType, str]  # ToDo: move
 
     def search_modeltypes(self, *models: ModelTypesArg,
                           name: str = 'modeltypes') -> 'Selection':
@@ -921,58 +933,58 @@ requires string as left operand, not list
             for element in self.elements:
                 file_.write('\n' + repr(element) + '\n')
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.nodes) + len(self.elements)
 
     _ERRORMESSAGE = ('selection `{self.name}` with object `{other}` '
                      'of type `{classname(other)}`')
 
     @objecttools.excmessage_decorator('add '+_ERRORMESSAGE)
-    def __iadd__(self, other: DevicesHandlerProtocol):
+    def __iadd__(self, other: abctools.DevicesHandlerProtocol) -> 'Selection':
         self.nodes += other.nodes
         self.elements += other.elements
         return self
 
     @objecttools.excmessage_decorator('subtract ' + _ERRORMESSAGE)
-    def __isub__(self, other: DevicesHandlerProtocol):
+    def __isub__(self, other: abctools.DevicesHandlerProtocol) -> 'Selection':
         self.nodes -= other.nodes
         self.elements -= other.elements
         return self
 
     @objecttools.excmessage_decorator('compare ' + _ERRORMESSAGE)
-    def __lt__(self, other: DevicesHandlerProtocol):
+    def __lt__(self, other: abctools.DevicesHandlerProtocol) -> bool:
         return ((self.nodes < other.nodes) and
                 (self.elements < other.elements))
 
     @objecttools.excmessage_decorator('compare ' + _ERRORMESSAGE)
-    def __le__(self, other: DevicesHandlerProtocol):
+    def __le__(self, other: abctools.DevicesHandlerProtocol) -> bool:
         return ((self.nodes <= other.nodes) and
                 (self.elements <= other.elements))
 
     @objecttools.excmessage_decorator('compare ' + _ERRORMESSAGE)
-    def __eq__(self, other: DevicesHandlerProtocol):
+    def __eq__(self, other: abctools.DevicesHandlerProtocol) -> bool:
         return ((self.nodes == other.nodes) and
                 (self.elements == other.elements))
 
     @objecttools.excmessage_decorator('compare ' + _ERRORMESSAGE)
-    def __ne__(self, other: DevicesHandlerProtocol):
+    def __ne__(self, other: abctools.DevicesHandlerProtocol) -> bool:
         return ((self.nodes != other.nodes) or
                 (self.elements != other.elements))
 
     @objecttools.excmessage_decorator('compare ' + _ERRORMESSAGE)
-    def __ge__(self, other: DevicesHandlerProtocol):
+    def __ge__(self, other: abctools.DevicesHandlerProtocol) -> bool:
         return ((self.nodes >= other.nodes) and
                 (self.elements >= other.elements))
 
     @objecttools.excmessage_decorator('compare ' + _ERRORMESSAGE)
-    def __gt__(self, other: DevicesHandlerProtocol):
+    def __gt__(self, other: abctools.DevicesHandlerProtocol) -> bool:
         return ((self.nodes > other.nodes) and
                 (self.elements >= other.elements))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.assignrepr('')
 
     def assignrepr(self, prefix: str) -> str:
@@ -990,7 +1002,7 @@ requires string as left operand, not list
                             f'{nodestr},\n'
                             f'{elementstr})')
 
-    def __dir__(self):
+    def __dir__(self) -> List[str]:
         """
         >>> from hydpy import Selection
         >>> 'elements' in dir(Selection('test'))

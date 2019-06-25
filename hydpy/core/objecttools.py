@@ -11,7 +11,8 @@ import numbers
 import sys
 import textwrap
 import wrapt
-from typing import Callable, NoReturn
+from typing import *
+from typing import NoReturn
 # ...from HydPy
 import hydpy
 from hydpy.core import abctools
@@ -1405,11 +1406,12 @@ arguments `lfill` and `rfill`.  This is not allowed.
         print(string, **kwargs)
 
 
-def extract(values, types, skip=False):
+def extract(values: Any, types: Tuple[Type, ...], skip: bool = False) \
+        -> Iterator[Any]:
     """Return a generator that extracts certain objects from `values`.
 
     This function is thought for supporting the definition of functions
-    with arguments, that can be objects of of contain types or that can
+    with arguments, that can be objects of certain types or that can
     be iterables containing these objects.
 
     The following examples show that function |extract|
@@ -1426,11 +1428,17 @@ def extract(values, types, skip=False):
     If an object is neither iterable nor of the required type, the
     following exception is raised:
 
+    >>> tuple(extract('str1', (int,)))
+    Traceback (most recent call last):
+    ...
+    TypeError: The given (sub)value `'str1'` is not an instance of \
+the following classes: int.
+
     >>> tuple(extract((['str1', 'str2'], [None, 1]), (str, int)))
     Traceback (most recent call last):
     ...
-    TypeError: The given value `None` is neither iterable nor \
-an instance of the following classes: str and int.
+    TypeError: The given (sub)value `None` is not an instance of \
+the following classes: str and int.
 
     Optionally, |None| values can be skipped:
 
@@ -1445,16 +1453,18 @@ an instance of the following classes: str and int.
         return
     else:
         try:
+            if isinstance(values, str):
+                raise TypeError('asdf')
             for value in values:
                 for subvalue in extract(value, types, skip):
                     yield subvalue
         except TypeError as exc:
-            if exc.args[0].startswith('The given value'):
+            if exc.args[0].startswith('The given (sub)value'):
                 raise exc
             else:
                 raise TypeError(
-                    f'The given value `{repr(values)}` is neither iterable '
-                    f'nor an instance of the following classes: '
+                    f'The given (sub)value `{repr(values)}` is not an '
+                    f'instance of the following classes: '
                     f'{enumeration(types, converter=instancename)}.')
 
 

@@ -2,11 +2,6 @@
 """This modules implements the fundamental features for structuring
 *HydPy* projects.
 
->>> from hydpy import pub
->>> pub.options.reprdigits = 6
->>> pub.options.printprogress = False
->>> pub.options.ellipsis = 0
-
 Module |devicetools| provides two |Device| subclasses, |Node| and |Element|.
 In this documentation, "node" stands for an object of class |Node|, "element"
 for an object of class |Element|, and "device" for either of them (you
@@ -378,8 +373,8 @@ as a "normal" attribute and is thus not support, hence `NF` is rejected.
     Traceback (most recent call last):
     ...
     TypeError: While trying to initialise a `Nodes` object, the following \
-error occurred: The given value `Element("ea")` is not an instance of the \
-following classes: node and str.
+error occurred: The given (sub)value `Element("ea")` is not an instance \
+of the following classes: node and str.
     """
 
     _name2device: Dict[str, DeviceType]

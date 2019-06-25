@@ -160,7 +160,7 @@ the following error occurred: hour must be in 0..23
     """
 
     # These are the so far accepted date format strings.
-    _formatstrings = collections.OrderedDict([
+    formatstrings = collections.OrderedDict([
         ('os', '%Y_%m_%d_%H_%M_%S'),
         ('iso2', '%Y-%m-%d %H:%M:%S'),
         ('iso1', '%Y-%m-%dT%H:%M:%S'),
@@ -359,7 +359,7 @@ invalid literal for int() with base 10: '0X'
     @classmethod
     def _extract_date(
             cls, substring: str, string: str) -> Tuple[str, datetime_.datetime]:
-        for (style, format_) in cls._formatstrings.items():
+        for (style, format_) in cls.formatstrings.items():
             for dummy in range(4):
                 try:
                     return style, datetime_.datetime.strptime(
@@ -569,7 +569,7 @@ occurred: No other decimal fraction of a second than "0" allowed.
 
     @style.setter
     def style(self, style: str) -> None:
-        if style in self._formatstrings:
+        if style in self.formatstrings:
             vars(self)['style'] = style
         else:
             vars(self).pop('style', None)
@@ -950,7 +950,7 @@ occurred: No other decimal fraction of a second than "0" allowed.
             string = f'{sign}{hours:02d}:{minutes:02d}'
             offset = utcoffset-hydpy.pub.options.utcoffset
             date = self.datetime + datetime_.timedelta(minutes=offset)
-        return date.strftime(self._formatstrings[style]) + string
+        return date.strftime(self.formatstrings[style]) + string
 
     def to_repr(self, style: Optional[str] = None,
                 utcoffset: Optional[int] = None) -> str:

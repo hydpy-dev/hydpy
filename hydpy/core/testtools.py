@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""This module implements tools for making doctests more legible."""
+"""This module implements tools for making doctests clearer."""
 # import...
 # ...from standard library
 import abc
@@ -9,11 +9,11 @@ import datetime
 import doctest
 import importlib
 import inspect
-import itertools
 import os
 import shutil
 import sys
 import warnings
+from typing import *
 # ...from site-packages
 # the following import are actually performed below due to performance issues:
 # import bokeh.models
@@ -23,9 +23,7 @@ import numpy
 # ...from HydPy
 import hydpy
 from hydpy import docs
-from hydpy.core import abctools
 from hydpy.core import devicetools
-from hydpy.core import exceptiontools
 from hydpy.core import hydpytools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
@@ -37,8 +35,13 @@ from hydpy.tests import iotesting
 
 
 class StdOutErr:
+    """Replaces `sys.stdout` and `sys.stderr` temporarily when calling
+    method |Tester.perform_tests| of class |Tester|."""
 
-    def __init__(self, indent=0):
+    indent: int
+    texts: List[str]
+
+    def __init__(self, indent: int = 0):
         self.indent = indent
         self.stdout = sys.stdout
         self.stderr = sys.stderr
@@ -58,46 +61,96 @@ class StdOutErr:
                 self.print_(text)
         sys.stdout = self.stdout
         sys.stderr = self.stderr
-        if exception:
-            objecttools.augment_excmessage()
 
-    def write(self, text):
+    def write(self, text: str) -> None:
+        """Memorise the given text for later writing."""
         self.texts.extend(text.split('\n'))
 
-    def print_(self, text):
+    def print_(self, text: str) -> None:
+        """Print the memorised text to the original `sys.stdout`."""
         if text.strip():
             self.stdout.write(self.indent*' ' + text + '\n')
 
-    def flush(self):
-        pass
+    def flush(self) -> None:
+        """Do nothing."""
 
 
 class Tester:
     """Tests either a base or an application model.
 
-    Usually, a |Tester| object is initialized at the end of the `__init__`
+    Usually, a |Tester| object is initialised at the end of the `__init__`
     file of its base model or at the end of the module of an application
-    modele.
+    model.
+
+    >>> from hydpy.models import hland, hland_v1
+
+    >>> hland.tester.package
+    'hydpy.models.hland'
+    >>> hland_v1.tester.package
+    'hydpy.models'
     """
+
+    filepath: str
+    package: str
+    ispackage: bool
 
     def __init__(self):
         frame = inspect.currentframe().f_back
         self.filepath = frame.f_code.co_filename
         self.package = frame.f_locals['__package__']
-        if not self.package:
-            self.package = 'hydpy.models'
         self.ispackage = os.path.split(self.filepath)[-1] == '__init__.py'
 
     @property
-    def filenames(self):
-        """|list| of all filenames to be taken into account for testing."""
+    def filenames(self) -> List[str]:
+        """The filenames defining the considered base or application model.
+
+        >>> from hydpy.models import hland, hland_v1
+        >>> from pprint import pprint
+        >>> pprint(hland.tester.filenames)
+        ['__init__.py',
+         'hland_constants.py',
+         'hland_control.py',
+         'hland_derived.py',
+         'hland_fluxes.py',
+         'hland_inputs.py',
+         'hland_logs.py',
+         'hland_masks.py',
+         'hland_model.py',
+         'hland_outlets.py',
+         'hland_parameters.py',
+         'hland_sequences.py',
+         'hland_states.py']
+        >>> hland_v1.tester.filenames
+        ['hland_v1.py']
+        """
         if self.ispackage:
-            return os.listdir(os.path.dirname(self.filepath))
-        return [self.filepath]
+            return sorted(
+                fn for fn in os.listdir(os.path.dirname(self.filepath))
+                if fn.endswith('.py'))
+        return [os.path.split(self.filepath)[1]]
 
     @property
-    def modulenames(self):
-        """|list| of all module names to be taken into account for testing."""
+    def modulenames(self) -> List[str]:
+        """The module names to be taken into account for testing.
+
+        >>> from hydpy.models import hland, hland_v1
+        >>> from pprint import pprint
+        >>> pprint(hland.tester.modulenames)
+        ['hland_constants',
+         'hland_control',
+         'hland_derived',
+         'hland_fluxes',
+         'hland_inputs',
+         'hland_logs',
+         'hland_masks',
+         'hland_model',
+         'hland_outlets',
+         'hland_parameters',
+         'hland_sequences',
+         'hland_states']
+        >>> hland_v1.tester.modulenames
+        ['hland_v1']
+        """
         return [os.path.split(fn)[-1].split('.')[0] for fn in self.filenames
                 if (fn.endswith('.py') and not fn.startswith('_'))]
 
@@ -107,7 +160,95 @@ class Tester:
 
         Usually, |Tester.perform_tests| is triggered automatically by a
         |Cythonizer| object assigned to the same base or application
-        model as a |Tester| object.
+        model as a |Tester| object.  However, you are free to call
+        it any time when in doubt of the functionality of a particular
+        base or application model.  Doing so might change some of the
+        states of your current configuration, but only temporarily
+        (we pick the |Timegrids| object of module |pub| as an example,
+        which is changed multiple times during testing but finally
+        reset to the original value):
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = '2000-01-01', '2001-01-01', '1d'
+
+        >>> from hydpy.models import hland, hland_v1
+        >>> hland.tester.perform_tests()   # doctest: +ELLIPSIS
+        Test package hydpy.models.hland in ...ython mode.
+            * hland_constants:
+                no failures occurred
+            * hland_control:
+                no failures occurred
+            * hland_derived:
+                no failures occurred
+            * hland_fluxes:
+                no failures occurred
+            * hland_inputs:
+                no failures occurred
+            * hland_logs:
+                no failures occurred
+            * hland_masks:
+                no failures occurred
+            * hland_model:
+                no failures occurred
+            * hland_outlets:
+                no failures occurred
+            * hland_parameters:
+                no failures occurred
+            * hland_sequences:
+                no failures occurred
+            * hland_states:
+                no failures occurred
+
+        >>> hland_v1.tester.perform_tests()   # doctest: +ELLIPSIS
+        Test module hland_v1 in ...ython mode.
+            * hland_v1:
+                no failures occurred
+
+        >>> pub.timegrids
+        Timegrids(Timegrid('2000-01-01 00:00:00',
+                           '2001-01-01 00:00:00',
+                           '1d'))
+
+        To show the reporting of possible errors, we change the
+        string representation of parameter |hland_control.ZoneType|
+        temporarily.  Again, the |Timegrids| object is reset to its
+        initial state after testing:
+
+        >>> from unittest import mock
+        >>> with mock.patch(
+        ...     'hydpy.models.hland.hland_control.ZoneType.__repr__',
+        ...     return_value='damaged'):
+        ...     hland.tester.perform_tests()   # doctest: +ELLIPSIS
+        Test package hydpy.models.hland in ...ython mode.
+            * hland_constants:
+                no failures occurred
+            * hland_control:
+                ******...hland_control.py", line 72, in \
+hydpy.models.hland.hland_control.ZoneType
+                Failed example:
+                    zonetype
+                Expected:
+                    zonetype(FIELD, FOREST, GLACIER, ILAKE, ILAKE, FIELD)
+                Got:
+                    damaged
+                ************************************************************\
+**********
+                1
+                items had failures:
+                   1 of   6 in hydpy.models.hland.hland_control.ZoneType
+                ***Test Failed***
+                1
+                failures.
+            * hland_derived:
+                no failures occurred
+            ...
+            * hland_states:
+                no failures occurred
+
+        >>> pub.timegrids
+        Timegrids(Timegrid('2000-01-01 00:00:00',
+                           '2001-01-01 00:00:00',
+                           '1d'))
         """
         opt = hydpy.pub.options
         par = parametertools.Parameter
@@ -144,7 +285,6 @@ class Tester:
                     try:
                         modulename = '.'.join((self.package, name))
                         module = importlib.import_module(modulename)
-                        solve_exception_doctest_issue(module)
                         with warnings.catch_warnings():
                             warnings.filterwarnings(
                                 'error', module=modulename)
@@ -199,6 +339,9 @@ class Test:
     its subclasses.
     """
 
+    parseqs: Any
+    HEADER_OF_FIRST_COL: Any
+
     inits = ArrayDescriptor()
     """Stores arrays for setting the same values of parameters and/or
     sequences before each new experiment."""
@@ -207,17 +350,11 @@ class Test:
     @abc.abstractmethod
     def raw_first_col_strings(self):
         """To be implemented by the subclasses of |Test|."""
-        return NotImplementedError
 
     @staticmethod
     @abc.abstractmethod
-    def get_output_array(parseq):
+    def get_output_array(parseqs):
         """To be implemented by the subclasses of |Test|."""
-        return NotImplementedError
-
-    parseqs = NotImplemented
-
-    HEADER_OF_FIRST_COL = NotImplemented
 
     @property
     def nmb_rows(self):
@@ -256,22 +393,9 @@ class Test:
                 array = self.get_output_array(parseq)
                 if parseq.NDIM == 0:
                     strings[-1].append(objecttools.repr_(array[idx]))
-                elif parseq.NDIM == 1:
-                    if parseq.shape[0] > 0:
-                        strings[-1].extend(
-                            objecttools.repr_(value) for value in array[idx])
-                    else:
-                        strings[-1].append('empty')
                 else:
-                    thing = ('sequence'
-                             if isinstance(parseq, sequencetools.Sequence)
-                             else 'parameter')
-                    raise RuntimeError(
-                        'An instance of class `Test` of module `testtools` '
-                        'is requested to print the results of %s `%s`. '
-                        'Unfortunately, for %d-dimensional sequences this '
-                        'feature is not supported yet.'
-                        % (thing, parseq.name, parseq.NDIM))
+                    strings[-1].extend(
+                        objecttools.repr_(value) for value in array[idx])
         return strings
 
     @property
@@ -329,11 +453,9 @@ class Test:
                                    strings_in_line,
                                    col_widths))
 
-    def extract_units(self, parseqs=None):
-        """Return a set of units of the given or the handled parameters
-        and sequences."""
-        if parseqs is None:
-            parseqs = self.parseqs
+    @staticmethod
+    def extract_units(parseqs):
+        """Return a set of units of the given parameters and sequences."""
         units = set()
         for parseq in parseqs:
             desc = objecttools.description(parseq)
@@ -360,7 +482,7 @@ class IntegrationTest(Test):
     inspecting doctests like the ones of modules |llake_v1| or |arma_v1|.
 
     Note that all condition sequences (state and logging sequences) are
-    initialized in accordance with the values are given in the `inits`
+    initialised in accordance with the values are given in the `inits`
     values.  The values of the simulation sequences of outlet and
     sender nodes are always set to zero before each test run.  All other
     parameter and sequence values can be changed between different test
@@ -369,8 +491,6 @@ class IntegrationTest(Test):
 
     HEADER_OF_FIRST_COL = 'date'
     """The header of the first column containing dates."""
-
-    _dateformat = None
 
     plotting_options = PlottingOptions()
 
@@ -417,39 +537,58 @@ class IntegrationTest(Test):
         """The raw date strings of the first column, except the header."""
         return tuple(_.strftime(self.dateformat) for _ in self._datetimes)
 
-    def _getdateformat(self):
+    @property
+    def dateformat(self) -> str:
         """Format string for printing dates in the first column of the table.
 
-        See |datetime| for the format strings allowed.
-        """
-        if self._dateformat is None:
-            return timetools.Date._formatstrings['iso']
-        return self._dateformat
+        See the documentation on module |datetime| for the format strings
+        allowed.
 
-    def _setdateformat(self, dateformat):
-        try:
-            dateformat = str(dateformat)
-        except BaseException:
-            raise TypeError(
-                'The given `dateformat` of type `%s` could not be converted '
-                'to a `str` instance.' % objecttools.classname(dateformat))
+        You can query and change property |IntegrationTest.dateformat|.
+        Passing ill-defined format strings results in the shown error:
+
+        >>> from hydpy import Element, IntegrationTest, prepare_model, pub
+        >>> pub.timegrids = '2000-01-01', '2001-01-01', '1d'
+        >>> element = Element('element', outlets='node')
+        >>> element.model = prepare_model('hland_v1')
+        >>> __package__ = 'testpackage'
+        >>> tester = IntegrationTest(element)
+        >>> tester.dateformat
+        '%Y-%m-%d %H:%M:%S'
+
+        >>> tester.dateformat = '%'
+        Traceback (most recent call last):
+        ...
+        ValueError: The given date format `%` is not a valid format \
+string for `datetime` objects.  Please read the documentation on module \
+datetime of the Python standard library for for further information.
+
+        >>> tester.dateformat = '%x'
+        >>> tester.dateformat
+        '%x'
+        """
+        dateformat = vars(self).get('dateformat')
+        if dateformat is None:
+            return timetools.Date.formatstrings['iso2']
+        return dateformat
+
+    @dateformat.setter
+    def dateformat(self, dateformat: str) -> None:
         try:
             datetime.datetime(2000, 1, 1).strftime(dateformat)
         except BaseException:
             raise ValueError(
-                "The given `dateformat` `%s` is not a valid format string "
-                "for `datetime` objects.  Please read the documentation "
-                "on module `datetime` of Python's the standard library "
-                "for further information." % dateformat)
-        self._dateformat = dateformat
-
-    dateformat = property(_getdateformat, _setdateformat)
+                f'The given date format `{dateformat}` is not a valid '
+                f'format string for `datetime` objects.  Please read '
+                f'the documentation on module datetime of the Python '
+                f'standard library for for further information.')
+        vars(self)['dateformat'] = dateformat
 
     @staticmethod
-    def get_output_array(seq):
+    def get_output_array(parseqs):
         """Return the array containing the output results of the given
         sequence."""
-        return seq.series
+        return parseqs.series
 
     def prepare_node_sequences(self):
         """Prepare the simulations sequences of all nodes in.
@@ -560,22 +699,16 @@ class IntegrationTest(Test):
                      headers)
         for (seq, col, header) in zipped:
             series = seq.series.copy()
-            if seq.NDIM == 0:
+            if not seq.NDIM:
                 listofseries = [series]
                 listofsuffixes = ['']
-            elif seq.NDIM == 1:
+            else:
                 nmb = seq.shape[0]
                 listofseries = [series[:, idx] for idx in range(nmb)]
                 if nmb == 1:
                     listofsuffixes = ['']
                 else:
                     listofsuffixes = ['-%d' % idx for idx in range(nmb)]
-            else:
-                raise RuntimeError(
-                    'IntegrationTest does not support plotting values of '
-                    'sequences with more than 1 dimension so far, but '
-                    'sequence `%s` is %d-dimensional.'
-                    % (seq.name, seq.NDIM))
             for subseries, suffix in zip(listofseries, listofsuffixes):
                 line = plot.line(self._datetimes, subseries,
                                  alpha=0.8, muted_alpha=0.0,
@@ -600,19 +733,38 @@ class IntegrationTest(Test):
         self._width = width
         self._height = height
 
-    def iframe(self, tabs=4):
+    def print_iframe(self, tabs: int = 4) -> None:
         """Print a command for embeding the saved html file into the online
-        documentation via an `iframe`."""
+        documentation via an `iframe`.
+
+        >>> from hydpy import Element, IntegrationTest, prepare_model, pub
+        >>> pub.timegrids = '2000-01-01', '2001-01-01', '1d'
+        >>> element = Element('element', outlets='node')
+        >>> element.model = prepare_model('hland_v1')
+        >>> __package__ = 'testpackage'
+        >>> IntegrationTest(element).print_iframe()
+            .. raw:: html
+        <BLANKLINE>
+                <iframe
+                    src="None"
+                    width="100"
+                    height="330"
+                    frameborder=0
+                ></iframe>
+        <BLANKLINE>
+        """
         blanks = ' '*tabs
-        lines = ['.. raw:: html',
-                 '',
-                 '    <iframe',
-                 '        src="%s"' % self._src,
-                 '        width="100%"',
-                 '        height="%dpx"' % (self._height+30),
-                 '        frameborder=0',
-                 '    ></iframe>',
-                 '']
+        height = self._height
+        height = self.plotting_options.height if height is None else height
+        lines = [f'.. raw:: html',
+                 f'',
+                 f'    <iframe',
+                 f'        src="{self._src}"',
+                 f'        width="100"',
+                 f'        height="{height+30}"',
+                 f'        frameborder=0',
+                 f'    ></iframe>',
+                 f'']
         print('\n'.join(blanks+line for line in lines))
 
 
@@ -637,15 +789,11 @@ class UnitTest(Test):
         del self.results
         self.model = model
         self.method = method
-        self.doc = self.extract_method_doc()
         self.first_example_calc = first_example
         self.last_example_calc = last_example
         self.first_example_plot = first_example
         self.last_example_plot = last_example
-        if parseqs:
-            self.parseqs = parseqs
-        else:
-            self.parseqs = self.extract_print_parameters_and_sequences()
+        self.parseqs = parseqs
         self.memorize_inits()
         self.prepare_output_arrays()
 
@@ -681,10 +829,10 @@ class UnitTest(Test):
             self._update_outputs(idx)
         self.print_table(self.idx0, self.idx1)
 
-    def get_output_array(self, parseq):
+    def get_output_array(self, parseqs):
         """Return the array containing the output results of the given
         parameter or sequence."""
-        return getattr(self.results, parseq.name)
+        return getattr(self.results, parseqs.name)
 
     @property
     def raw_first_col_strings(self):
@@ -713,32 +861,6 @@ class UnitTest(Test):
             if inits is not None:
                 parseq(inits)
 
-    def extract_method_doc(self):
-        """Return the documentation string of the method to be tested."""
-        if getattr(self.method, '__doc__', None):
-            return self.method.__doc__
-        else:
-            model = type(self.model)
-            for group_name in model._METHOD_GROUPS:
-                for function_ in getattr(model, group_name, ()):
-                    if function_.__name__ == self.method.__name__:
-                        return function_.__doc__
-
-    def extract_print_parameters_and_sequences(self):
-        """Return a list of all parameter and sequences of the model.
-
-        Note that all parameters and sequences without the common `values`
-        attribute are omitted.
-        """
-        parseqs = []
-        for subparseqs in itertools.chain(self.model.parameters,
-                                          self.model.sequences):
-            for parseq in subparseqs:
-                if str(type(parseq)).split("'")[1] in self.doc:
-                    if hasattr(parseq, 'values'):
-                        parseqs.append(parseq)
-        return tuple(parseqs)
-
     def _update_inputs(self, idx):
         """Update the actual values with the |UnitTest.nexts| data of
         the given index."""
@@ -757,7 +879,8 @@ class UnitTest(Test):
 class _Open:
 
     def __init__(self, path, mode, *args, **kwargs):
-        # all positional and keyword arguments are ignored.
+        # pylint: disable=unused-argument
+        # all further positional and keyword arguments are ignored.
         self.path = path.replace(os.sep, '/')
         self.mode = mode
         self.texts = []
@@ -771,6 +894,13 @@ class _Open:
         self.close()
 
     def read(self):
+        """Raise a |NotImplementedError| in any case."""
+        raise NotImplementedError(
+            'Reading is not possible at the moment.  Please see the '
+            'documentation on class `Open` of module `testtools` '
+            'for further information.')
+
+    def readlines(self):
         """Raise a |NotImplementedError| in any case."""
         raise NotImplementedError(
             'Reading is not possible at the moment.  Please see the '
@@ -817,8 +947,7 @@ class Open:
     >>> with Open():
     ...     with open(path, 'w') as file_:
     ...         file_.write('first line\\n')
-    ...         file_.write('\\n')
-    ...         file_.write('third line\\n')
+    ...         file_.writelines(['\\n', 'third line\\n'])
     ~~~~~~~~~~~~~~
     folder/test.py
     --------------
@@ -842,6 +971,16 @@ class Open:
     NotImplementedError: Reading is not possible at the moment.  \
 Please see the documentation on class `Open` of module `testtools` \
 for further information.
+
+    >>> with Open():
+    ...     with open(path, 'r') as file_:
+    ...         file_.readlines()
+    Traceback (most recent call last):
+    ...
+    NotImplementedError: Reading is not possible at the moment.  \
+Please see the documentation on class `Open` of module `testtools` \
+for further information.
+
     """
     def __init__(self):
         self.open = builtins.open
@@ -854,44 +993,8 @@ for further information.
         builtins.open = self.open
 
 
-def solve_exception_doctest_issue(module):
-    """Insert the string `hydpy.core.exceptiontools.` into the
-    docstrings of the given module related to exceptions defined
-    in module |exceptiontools|."""
-    _replace(module)
-    try:
-        for member in vars(module).values():
-            _replace(member)
-            try:
-                for submember in vars(member).values():
-                    submember = getattr(submember, '__func__', submember)
-                    _replace(submember)
-            except (TypeError, KeyError):
-                pass
-    except TypeError:
-        pass
-
-
-def _replace(obj):
-    try:
-        doc = obj.__doc__
-        for key, value in vars(exceptiontools).items():
-            if inspect.isclass(value) and issubclass(value, BaseException):
-                doc = doc.replace(
-                    '    ' + key,
-                    '    hydpy.core.exceptiontools.' + key)
-                doc = doc.replace(
-                    '\n' + key,
-                    '\nhydpy.core.exceptiontools.' + key)
-        obj.__doc__ = doc
-    except BaseException:
-        pass
-
-
 class TestIO:
     """Prepare an environment for testing IO functionalities.
-
-    ToDo: explain the handling of .coverage files
 
     Primarily, |TestIO| changes the current working during the
     execution of with| blocks.  Inspecting your current working
@@ -961,6 +1064,10 @@ class TestIO:
     >>> with TestIO():
     ...     print(os.path.exists('testfile.txt'))
     False
+
+    Note that class |TestIO| copies all eventually generated `.coverage`
+    files into the `test` subpackage to assure no covered lines are
+    reported as uncovered.
     """
     def __init__(self, clear_own=False, clear_all=False):
         self._clear_own = clear_own
@@ -977,22 +1084,16 @@ class TestIO:
 
     def __exit__(self, exception, message, traceback_):
         for file in os.listdir('.'):
-            try:
-                if file.startswith('.coverage'):
-                    shutil.move(file, os.path.join(self._path, file))
-            except BaseException:
-                pass
-            try:
-                if ((file != '__init__.py') and
-                        (self._clear_all or
-                         (self._clear_own and (file not in self._olds)))):
-                    if os.path.exists(file):
-                        if os.path.isfile(file):
-                            os.remove(file)
-                        else:
-                            shutil.rmtree(file)
-            except BaseException:
-                pass
+            if file.startswith('.coverage'):
+                shutil.move(file, os.path.join(self._path, file))
+            if ((file != '__init__.py') and
+                    (self._clear_all or
+                     (self._clear_own and (file not in self._olds)))):
+                if os.path.exists(file):
+                    if os.path.isfile(file):
+                        os.remove(file)
+                    else:
+                        shutil.rmtree(file)
         os.chdir(self._path)
 
     @classmethod
@@ -1002,7 +1103,7 @@ class TestIO:
             pass
 
 
-def make_abc_testable(abstract: type) -> type:
+def make_abc_testable(abstract: Type) -> Type:
     """Return a concrete version of the given abstract base class for
     testing purposes.
 

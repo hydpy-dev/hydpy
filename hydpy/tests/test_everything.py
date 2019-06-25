@@ -152,7 +152,6 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                 continue
             if not name[-4:] in ('.rst', '.pyx'):
                 module = importlib.import_module(name)
-                testtools.solve_exception_doctest_issue(module)
             suite = unittest.TestSuite()
             try:
                 if name[-4:] in ('.rst', '.pyx'):

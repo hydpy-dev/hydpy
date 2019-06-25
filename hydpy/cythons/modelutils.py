@@ -834,7 +834,6 @@ and is currently blocked by another Python process.  Maybe it helps \
 to close all Python processes and restart the cythonization afterwards.
         """
         dirinfos = os.walk(self.buildpath)
-        next(dirinfos)
         system_dependent_filename = None
         for dirinfo in dirinfos:
             for filename in dirinfo[2]:

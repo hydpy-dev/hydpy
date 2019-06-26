@@ -1,19 +1,7 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=missing-docstring
-"""This module provides some abstract base classes.
-
-There are some type checks within the HydPy framework relying on the
-build in  function |isinstance|.  In order to keep HydPy "pythonic",
-the following abstract base classes are defined.  All calls to |isinstance|
-should rely these abstract base classes instead of the respective
-original classes.  This helps to build e.g. a new parameter class when
-one wants to avoid to inherit from |Parameter|.
-
-At the moment, the provided classes do not provide things like abstract
-methods (should be added later).  Just use them to register new classes
-that are not actual subclasses of the respective HydPy classes, but
-should be handled as if they were.  See class |anntools.ANN| as an example.
-"""
+"""This module implements some "types" to be used for static (and
+eventually dynamical) typing."""
 # import...
 # ...from standard library
 import abc

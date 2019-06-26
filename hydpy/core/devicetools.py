@@ -356,10 +356,10 @@ as a "normal" attribute and is thus not support, hence `NF` is rejected.
     (True, False, False)
     >>> subgroup <= nodes, nodes <= subgroup, nodes <= nodes
     (True, False, True)
-    >>> subgroup == nodes, nodes == subgroup, nodes == nodes
-    (False, False, True)
-    >>> subgroup != nodes, nodes != subgroup, nodes != nodes
-    (True, True, False)
+    >>> subgroup == nodes, nodes == subgroup, nodes == nodes, nodes == 'nodes'
+    (False, False, True, False)
+    >>> subgroup != nodes, nodes != subgroup, nodes != nodes, nodes != 'nodes'
+    (True, True, False, True)
     >>> subgroup >= nodes, nodes >= subgroup, nodes >= nodes
     (False, True, True)
     >>> subgroup > nodes, nodes > subgroup, nodes > nodes
@@ -815,8 +815,8 @@ class Nodes(Devices['Node']):
     def prepare_allseries(self, ramflag: bool = True) -> None:
         """Call methods |Node.prepare_simseries| and
         |Node.prepare_obsseries|."""
-        self.prepare_simseries(ramflag)
-        self.prepare_obsseries(ramflag)
+        for node in printtools.progressbar(self):
+            node.prepare_allseries(ramflag)
 
     @printtools.print_progress
     def prepare_simseries(self, ramflag: bool = True) -> None:
@@ -1610,7 +1610,7 @@ the given group name `test`.
         handled by the actual |Node| object."""
         self.sequences.close_files()
 
-    def prepare_allseries(self, ramflag: bool = True) -> None:
+    def prepare_allseries(self, ramflag: bool = True) -> None:    # ToDo
         """Prepare the |IOSequence.series| object both of the |Sim| and the
         |Obs| sequence.
 
@@ -1721,10 +1721,6 @@ the given group name `test`.
             if variable == 'Q':
                 variable = u'Q [m³/s]'
             pyplot.ylabel(variable)
-
-    @staticmethod
-    def __calc_idxs(values: Iterable[float]) -> numpy.ndarray:
-        return ~numpy.isnan(values) * ~numpy.isinf(values)
 
     def __repr__(self):
         return self.assignrepr()

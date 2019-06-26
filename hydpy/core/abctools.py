@@ -179,20 +179,6 @@ class FastAccessLinkSequenceProtocol(FastAccessModelSequenceProtocol):
         the given name is pointing to."""
 
 
-class ModelABC(abc.ABC):
-    """See class |Model|."""
-
-    element: 'devicetools.Element'
-    parameters: 'parametertools.Parameters'
-    sequences: 'sequencetools.Sequences'
-
-    def connect(self):
-        """See method |Model.connect|."""
-
-    def simulate(self, idx):
-        """See method |Model.simulate|."""
-
-
 __all__ = [
     'IterableNonString',
     'Mayberable1',
@@ -206,5 +192,4 @@ __all__ = [
     'CyModelProtocol',
     'FastAccessModelSequenceProtocol',
     'FastAccessLinkSequenceProtocol',
-    'ModelABC',
 ]

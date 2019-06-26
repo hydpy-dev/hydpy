@@ -212,9 +212,6 @@ class Model:
         return objecttools.dir_(self)
 
 
-abctools.ModelABC.register(Model)
-
-
 class NumConstsELS:
 
     def __init__(self):

@@ -22,10 +22,10 @@ from hydpy.core import objecttools
 from hydpy.core import propertytools
 from hydpy.core import variabletools
 if TYPE_CHECKING:
-    from hydpy.core import abctools
     from hydpy.core import devicetools
     from hydpy.core import modeltools
     from hydpy.core import timetools
+    from hydpy.core import typingtools
     from hydpy.cythons import pointerutils
 else:
     from hydpy.cythons.autogen import pointerutils
@@ -182,7 +182,7 @@ to make any internal data available.
             cls_aides: Optional[Type['AideSequences']] = None,
             cls_outlets: Optional[Type['LinkSequences']] = None,
             cls_senders: Optional[Type['LinkSequences']] = None,
-            cymodel: Optional['abctools.CyModelProtocol'] = None,
+            cymodel: Optional['typingtools.CyModelProtocol'] = None,
             cythonmodule: Optional[types.ModuleType] = None) -> None:
         self.model = model
         self.inlets = self.__prepare_subseqs(
@@ -577,16 +577,18 @@ class ModelSequences(SubSequences):
 
     seqs: Sequences
     fastaccess: Union[
-        'FastAccessSequence', 'abctools.FastAccessModelSequenceProtocol']
-    _cls_fastaccess: Optional[Type['abctools.FastAccessModelSequenceProtocol']]
-    _cymodel: Optional['abctools.CyModelProtocol']
+        'FastAccessSequence', 'typingtools.FastAccessModelSequenceProtocol']
+    _cls_fastaccess: Optional[Type[
+        'typingtools.FastAccessModelSequenceProtocol']]
+    _cymodel: Optional['typingtools.CyModelProtocol']
 
     def __init__(
             self,
             master: Sequences,
             cls_fastaccess:
-            Optional[Type['abctools.FastAccessModelSequenceProtocol']] = None,
-            cymodel: Optional['abctools.CyModelProtocol'] = None) -> None:
+            Optional[Type[
+                'typingtools.FastAccessModelSequenceProtocol']] = None,
+            cymodel: Optional['typingtools.CyModelProtocol'] = None) -> None:
         self.seqs = master
         self._cls_fastaccess = cls_fastaccess
         self._cymodel = cymodel
@@ -605,7 +607,7 @@ class IOSequences(SubSequences):
     objects."""
 
     fastaccess: Union[
-        'FastAccessSequence', 'abctools.FastAccessModelSequenceProtocol']
+        'FastAccessSequence', 'typingtools.FastAccessModelSequenceProtocol']
 
     def activate_ram(self):
         """Call method |IOSequence.activate_ram| of all handled
@@ -672,8 +674,8 @@ class ModelIOSequences(IOSequences, ModelSequences):
     """Base class for handling model-related subgroups of |IOSequence| objects.
     """
 
-    fastaccess: Union[
-        'FastAccessModelSequence', 'abctools.FastAccessModelSequenceProtocol']
+    fastaccess: Union['FastAccessModelSequence',
+                      'typingtools.FastAccessModelSequenceProtocol']
 
     def load_data(self, idx: int) -> None:
         """Call method |FastAccessModelSequence.load_data| of the
@@ -724,10 +726,10 @@ class FluxSequences(ModelIOSequences):
 class StateSequences(ModelIOSequences):
     """Base class for handling |StateSequence| objects."""
 
-    fastaccess_new: Union[
-        'FastAccessModelSequence', 'abctools.FastAccessModelSequenceProtocol']
-    fastaccess_old: Union[
-        'FastAccessModelSequence', 'abctools.FastAccessModelSequenceProtocol']
+    fastaccess_new: Union['FastAccessModelSequence',
+                          'typingtools.FastAccessModelSequenceProtocol']
+    fastaccess_old: Union['FastAccessModelSequence',
+                          'typingtools.FastAccessModelSequenceProtocol']
 
     def __hydpy__initialise_fastaccess__(self) -> None:
         super().__hydpy__initialise_fastaccess__()
@@ -755,8 +757,8 @@ class StateSequences(ModelIOSequences):
 class LogSequences(ModelSequences):
     """Base class for handling |LogSequence| objects."""
 
-    fastaccess: Union[
-        'FastAccessModelSequence', 'abctools.FastAccessModelSequenceProtocol']
+    fastaccess: Union['FastAccessModelSequence',
+                      'typingtools.FastAccessModelSequenceProtocol']
 
     def reset(self) -> None:
         """Call method |ConditionSequence.reset| of all handled
@@ -768,15 +770,15 @@ class LogSequences(ModelSequences):
 class AideSequences(ModelSequences):
     """Base class for handling |AideSequence| objects."""
 
-    fastaccess: Union[
-        'FastAccessModelSequence', 'abctools.FastAccessModelSequenceProtocol']
+    fastaccess: Union['FastAccessModelSequence',
+                      'typingtools.FastAccessModelSequenceProtocol']
 
 
 class LinkSequences(ModelSequences):
     """Base class for handling |LinkSequence| objects."""
 
-    fastaccess: Union[
-        'FastAccessModelSequence', 'abctools.FastAccessLinkSequenceProtocol']
+    fastaccess: Union['FastAccessModelSequence',
+                      'typingtools.FastAccessLinkSequenceProtocol']
 
 
 class InletSequences(LinkSequences):
@@ -862,8 +864,8 @@ retrieved after it has been defined.
 
     strict_valuehandling = False
 
-    fastaccess: Union[
-        'FastAccessModelSequence', 'abctools.FastAccessModelSequenceProtocol']
+    fastaccess: Union['FastAccessModelSequence',
+                      'typingtools.FastAccessModelSequenceProtocol']
 
     @property
     def subseqs(self):
@@ -2609,10 +2611,10 @@ shape (3) into shape (2)
     aggregation_ext = _AggregationProperty()
     overwrite_ext = _OverwriteProperty()
 
-    fastaccess_new: Union[
-        'FastAccessModelSequence', 'abctools.FastAccessModelSequenceProtocol']
-    fastaccess_old: Union[
-        'FastAccessModelSequence', 'abctools.FastAccessModelSequenceProtocol']
+    fastaccess_new: Union['FastAccessModelSequence',
+                          'typingtools.FastAccessModelSequenceProtocol']
+    fastaccess_old: Union['FastAccessModelSequence',
+                          'typingtools.FastAccessModelSequenceProtocol']
 
     def __call__(self, *args) -> None:
         """The prefered way to pass values to |Sequence| instances within
@@ -2795,8 +2797,8 @@ class LinkSequence(Sequence):
     0-dimensional or 1-dimensional.
     """
 
-    fastaccess: Union[
-        'FastAccessModelSequence', 'abctools.FastAccessLinkSequenceProtocol']
+    fastaccess: Union['FastAccessModelSequence',
+                      'typingtools.FastAccessLinkSequenceProtocol']
 
     def set_pointer(self, double: pointerutils.Double, idx: int = 0) -> None:
         """Prepare a pointer referencing the given |Double| object.
@@ -3428,15 +3430,17 @@ class NodeSequences(IOSequences):
     sim: Sim
     obs: Obs
     fastaccess: 'FastAccessNodeSequence'
-    _cls_fastaccess: Optional[Type['abctools.FastAccessModelSequenceProtocol']]
-    _cymodel: Optional['abctools.CyModelProtocol']
+    _cls_fastaccess: Optional[Type[
+        'typingtools.FastAccessModelSequenceProtocol']]
+    _cymodel: Optional['typingtools.CyModelProtocol']
 
     def __init__(
             self,
             master: 'devicetools.Node',
             cls_fastaccess:
-            Optional[Type['abctools.FastAccessModelSequenceProtocol']] = None,
-            cymodel: Optional['abctools.CyModelProtocol'] = None) -> None:
+            Optional[Type[
+                'typingtools.FastAccessModelSequenceProtocol']] = None,
+            cymodel: Optional['typingtools.CyModelProtocol'] = None) -> None:
         self.node = master
         self._cls_fastaccess = cls_fastaccess
         self._cymodel = cymodel

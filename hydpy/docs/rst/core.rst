@@ -59,7 +59,6 @@ standardize writing *HydPy* code.
 .. toctree::
    :hidden:
 
-   abctools
    autodoctools
    auxfiletools
    devicetools
@@ -84,4 +83,5 @@ standardize writing *HydPy* code.
    sequencetools
    testtools
    timetools
+   typingtools
    variabletools

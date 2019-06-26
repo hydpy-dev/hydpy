@@ -8,7 +8,6 @@ from typing import *
 import numpy
 # ...from HydPy
 import hydpy
-from hydpy.core import abctools
 from hydpy.core import devicetools
 from hydpy.core import exceptiontools
 from hydpy.core import filetools
@@ -16,6 +15,7 @@ from hydpy.core import objecttools
 from hydpy.core import printtools
 from hydpy.core import selectiontools
 from hydpy.core import timetools
+from hydpy.core import typingtools
 if TYPE_CHECKING:
     from hydpy.core import auxfiletools
 
@@ -1473,7 +1473,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         Applied node variables: Q
         """
         for key, value in self.networkproperties.items():
-            if isinstance(value, abctools.IterableNonString):
+            if isinstance(value, typingtools.IterableNonString):
                 value = objecttools.enumeration(value)
             print(f'{key}: {value}')
 
@@ -1763,7 +1763,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
 
     def update_devices(
             self,
-            selection: Optional[abctools.DevicesHandlerProtocol] = None
+            selection: Optional[typingtools.DevicesHandlerProtocol] = None
     ) -> None:
         """Determine the order, in which method |HydPy.simulate| processes
         the currently relevant |Node| and |Element| objects.

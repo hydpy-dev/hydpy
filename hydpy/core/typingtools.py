@@ -35,7 +35,7 @@ class IterableNonString(abc.ABC):
     """Abstract base class for checking if an object is iterable but not a
     string.
     
-    >>> from hydpy.core.abctools import IterableNonString
+    >>> from hydpy.core.typingtools import IterableNonString
     >>> isinstance('asdf', IterableNonString)
     False
     >>> isinstance(['asdf'], IterableNonString)

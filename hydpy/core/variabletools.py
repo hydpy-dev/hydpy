@@ -17,9 +17,9 @@ from typing import *
 import numpy
 # ...from HydPy
 import hydpy
-from hydpy.core import abctools
 from hydpy.core import masktools
 from hydpy.core import objecttools
+from hydpy.core import typingtools
 if TYPE_CHECKING:
     from hydpy.core import parametertools
     from hydpy.core import sequencetools
@@ -944,7 +944,7 @@ operands could not be broadcast together with shapes (2,) (3,)...
 
     strict_valuehandling: ClassVar[bool] = True
 
-    fastaccess: Union['FastAccess', abctools.FastAccessModelSequenceProtocol]
+    fastaccess: Union['FastAccess', typingtools.FastAccessModelSequenceProtocol]
     subvars: SubgroupType
 
     mask = masktools.DefaultMask()
@@ -1895,11 +1895,11 @@ variable `testvar`.
     >>> len(subvars)
     1
     """
-    CLASSES: ClassVar[Tuple[Type[abctools.VariableProtocol], ...]]
+    CLASSES: ClassVar[Tuple[Type[typingtools.VariableProtocol], ...]]
     vars: GroupType
-    _name2variable: Dict[str, abctools.VariableProtocol] = {}
-    fastaccess: Union['FastAccess', abctools.FastAccessModelSequenceProtocol]
-    _cls_fastaccess: Optional[Type[abctools.FastAccessModelSequenceProtocol]]
+    _name2variable: Dict[str, typingtools.VariableProtocol] = {}
+    fastaccess: Union['FastAccess', typingtools.FastAccessModelSequenceProtocol]
+    _cls_fastaccess: Optional[Type[typingtools.FastAccessModelSequenceProtocol]]
 
     def __init__(self, master: Any):
         self.vars = master

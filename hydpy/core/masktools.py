@@ -8,8 +8,8 @@ from typing import *
 # ...from site-packages
 import numpy
 # ...from HydPy
-from hydpy.core import abctools
 from hydpy.core import objecttools
+from hydpy.core import typingtools
 if TYPE_CHECKING:
     from hydpy.core import parametertools
 

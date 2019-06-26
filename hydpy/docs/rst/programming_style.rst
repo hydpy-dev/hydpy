@@ -506,17 +506,13 @@ Typing
 Python is a strongly but dynamically typed programming language, allowing
 to write very condensed, readable, and flexible (scripting) code.  However,
 missing type information has also its drawbacks.  With the *HydPy* sources
-reaching a certain size, we began to experiment with abstract base classes,
-defined in module |abctools|, as well as with static typing annotations,
-based on module |typing|.  The |abctools| approach of defining virtual
-subclasses was not very helpful, which is why we strive to remove all its
-abstract base classes successively.  So do not rely on this module when
-contributing to *HydPy*. The static typing approach, on the other hand,
-does help a lot, allowing code inspection and refactoring tools to analyse
+reaching a certain size, we began to introduce static typing annotations
+based on module |typing|.  In our experience, the additional information
+helps a lot, allowing code inspection and refactoring tools to analyse
 and modify the code more efficiently. We are going to increase our efforts
 in this direction, but do not have a "HydPy Typing Style Guide" at hand,
 so far.  So please add the typing annotations you find useful.  The minimum
-requirement for Python modules is to declare the return type (or, when
+requirement for Python core modules is to declare the return type (or, when
 necessary, to declare the |typing.Union| of possible return types) of
 each new function or method:
 

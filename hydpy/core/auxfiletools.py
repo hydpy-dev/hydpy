@@ -33,11 +33,11 @@ import copy
 import types
 # ...from HydPy
 import hydpy
-from hydpy.core import abctools
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
+from hydpy.core import typingtools
 from hydpy.core import variabletools
 
 
@@ -432,7 +432,7 @@ variable handled by the actual Variable2AuxFile object.
         try:
             self._check_filename(filename)
             new_vars = objecttools.extract(
-                variables, (abctools.VariableProtocol,))
+                variables, (typingtools.VariableProtocol,))
             for new_var in new_vars:
                 self._check_variable(new_var)
                 fn2var = self._type2filename2variable.get(type(new_var), {})

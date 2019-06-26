@@ -254,8 +254,8 @@ from hydpy.core import printtools
 from hydpy.core import sequencetools
 from hydpy.core import testtools
 if TYPE_CHECKING:
-    from hydpy.core import abctools
     from hydpy.core import modeltools
+    from hydpy.core import typingtools
 
 
 def get_dllextension() -> str:
@@ -313,7 +313,7 @@ class Lines(list):
     def __init__(self, *args):
         list.__init__(self, args)
 
-    def add(self, indent: int, line: 'abctools.Mayberable1[str]') -> None:
+    def add(self, indent: int, line: 'typingtools.Mayberable1[str]') -> None:
         """Append the given text line with prefixed spaces following
         the given number of indentation levels.
         """

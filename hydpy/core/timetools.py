@@ -17,9 +17,7 @@ from typing import *
 import numpy
 # ...from HydPy
 import hydpy
-from hydpy.core.abctools import *
 from hydpy.core import objecttools
-
 
 # The import of `_strptime` is not thread save.  The following call of
 # `strptime` is supposed to prevent possible problems arising from this bug.

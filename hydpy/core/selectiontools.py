@@ -8,11 +8,11 @@ import types
 from typing import *
 # ...from HydPy
 import hydpy
-from hydpy.core import abctools
 from hydpy.core import devicetools
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
+from hydpy.core import typingtools
 
 ModelTypesArg = Union[modeltools.Model, types.ModuleType, str]
 
@@ -273,7 +273,7 @@ Selections objects, single Selection objects, or iterables containing \
         return len(self.__selections)
 
     @staticmethod
-    def __getiterable(value: abctools.Mayberable1['Selection']) \
+    def __getiterable(value: typingtools.Mayberable1['Selection']) \
             -> List['Selection']:
         """Try to convert the given argument to a |list| of  |Selection|
         objects and return it.
@@ -287,21 +287,23 @@ Selections objects, single Selection objects, or iterables containing \
                 f'iterables containing `Selection` objects, but the type of '
                 f'the given argument is `{objecttools.classname(value)}`.')
 
-    def __add__(self, other: abctools.Mayberable1['Selection']) -> 'Selections':
+    def __add__(self, other: typingtools.Mayberable1['Selection']) \
+            -> 'Selections':
         selections = self.__getiterable(other)
         new = copy.copy(self)
         for selection in selections:
             setattr(new, selection.name, selection)
         return new
 
-    def __iadd__(self, other: abctools.Mayberable1['Selection']) \
+    def __iadd__(self, other: typingtools.Mayberable1['Selection']) \
             -> 'Selections':
         selections = self.__getiterable(other)
         for selection in selections:
             setattr(self, selection.name, selection)
         return self
 
-    def __sub__(self, other: abctools.Mayberable1['Selection']) -> 'Selections':
+    def __sub__(self, other: typingtools.Mayberable1['Selection']) \
+            -> 'Selections':
         selections = self.__getiterable(other)
         new = copy.copy(self)
         for selection in selections:
@@ -311,7 +313,7 @@ Selections objects, single Selection objects, or iterables containing \
                 pass
         return new
 
-    def __isub__(self, other: abctools.Mayberable1['Selection']) \
+    def __isub__(self, other: typingtools.Mayberable1['Selection']) \
             -> 'Selections':
         selections = self.__getiterable(other)
         for selection in selections:
@@ -940,44 +942,46 @@ requires string as left operand, not list
                      'of type `{classname(other)}`')
 
     @objecttools.excmessage_decorator('add '+_ERRORMESSAGE)
-    def __iadd__(self, other: abctools.DevicesHandlerProtocol) -> 'Selection':
+    def __iadd__(self, other: typingtools.DevicesHandlerProtocol) \
+            -> 'Selection':
         self.nodes += other.nodes
         self.elements += other.elements
         return self
 
     @objecttools.excmessage_decorator('subtract ' + _ERRORMESSAGE)
-    def __isub__(self, other: abctools.DevicesHandlerProtocol) -> 'Selection':
+    def __isub__(self, other: typingtools.DevicesHandlerProtocol) \
+            -> 'Selection':
         self.nodes -= other.nodes
         self.elements -= other.elements
         return self
 
     @objecttools.excmessage_decorator('compare ' + _ERRORMESSAGE)
-    def __lt__(self, other: abctools.DevicesHandlerProtocol) -> bool:
+    def __lt__(self, other: typingtools.DevicesHandlerProtocol) -> bool:
         return ((self.nodes < other.nodes) and
                 (self.elements < other.elements))
 
     @objecttools.excmessage_decorator('compare ' + _ERRORMESSAGE)
-    def __le__(self, other: abctools.DevicesHandlerProtocol) -> bool:
+    def __le__(self, other: typingtools.DevicesHandlerProtocol) -> bool:
         return ((self.nodes <= other.nodes) and
                 (self.elements <= other.elements))
 
     @objecttools.excmessage_decorator('compare ' + _ERRORMESSAGE)
-    def __eq__(self, other: abctools.DevicesHandlerProtocol) -> bool:
+    def __eq__(self, other: typingtools.DevicesHandlerProtocol) -> bool:
         return ((self.nodes == other.nodes) and
                 (self.elements == other.elements))
 
     @objecttools.excmessage_decorator('compare ' + _ERRORMESSAGE)
-    def __ne__(self, other: abctools.DevicesHandlerProtocol) -> bool:
+    def __ne__(self, other: typingtools.DevicesHandlerProtocol) -> bool:
         return ((self.nodes != other.nodes) or
                 (self.elements != other.elements))
 
     @objecttools.excmessage_decorator('compare ' + _ERRORMESSAGE)
-    def __ge__(self, other: abctools.DevicesHandlerProtocol) -> bool:
+    def __ge__(self, other: typingtools.DevicesHandlerProtocol) -> bool:
         return ((self.nodes >= other.nodes) and
                 (self.elements >= other.elements))
 
     @objecttools.excmessage_decorator('compare ' + _ERRORMESSAGE)
-    def __gt__(self, other: abctools.DevicesHandlerProtocol) -> bool:
+    def __gt__(self, other: typingtools.DevicesHandlerProtocol) -> bool:
         return ((self.nodes > other.nodes) and
                 (self.elements >= other.elements))
 

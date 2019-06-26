@@ -84,7 +84,7 @@ from typing import *
 import numpy
 # ...from HydPy
 import hydpy
-from hydpy.core.abctools import *
+from hydpy.core.typingtools import *
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import printtools

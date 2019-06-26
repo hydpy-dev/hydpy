@@ -14,12 +14,12 @@ import warnings
 from typing import *
 # ...from HydPy
 import hydpy
-from hydpy.core.abctools import *
 from hydpy.core import filetools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
+from hydpy.core.typingtools import *
 
 
 def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None):

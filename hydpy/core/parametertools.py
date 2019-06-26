@@ -16,10 +16,10 @@ from hydpy.core import objecttools
 from hydpy.core import timetools
 from hydpy.core import variabletools
 if TYPE_CHECKING:
-    from hydpy.core import abctools
     from hydpy.core import auxfiletools
     from hydpy.core import masktools
     from hydpy.core import modeltools
+    from hydpy.core import typingtools
 
 # The import of `_strptime` is not thread save.  The following call of
 # `strptime` is supposed to prevent possible problems arising from this bug.
@@ -420,15 +420,15 @@ class SubParameters(variabletools.SubVariables[Parameters]):
 
     pars: Parameters
     fastaccess: Union[
-        'FastAccessSequence', 'abctools.FastAccessModelSequenceProtocol']
+        'FastAccessSequence', 'typingtools.FastAccessModelSequenceProtocol']
     _cls_fastaccess: Any   # ToDo
-    _cymodel = Optional[Type['abctools.CyModelProtocol']]
+    _cymodel = Optional[Type['typingtools.CyModelProtocol']]
 
     def __init__(
             self,
             master: Parameters,
             cls_fastaccess=None,
-            cymodel: Optional['abctools.CyModelProtocol'] = None):
+            cymodel: Optional['typingtools.CyModelProtocol'] = None):
         self.pars = master
         self._cls_fastaccess = cls_fastaccess
         self._cymodel = cymodel

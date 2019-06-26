@@ -15,7 +15,7 @@ from typing import *
 from typing import NoReturn
 # ...from HydPy
 import hydpy
-from hydpy.core import abctools
+from hydpy.core import typingtools
 
 
 def dir_(self):
@@ -1389,7 +1389,7 @@ arguments `lfill` and `rfill`.  This is not allowed.
     if decimals is None:
         decimals = hydpy.pub.options.reprdigits
     with hydpy.pub.options.reprdigits(decimals):
-        if isinstance(values, abctools.IterableNonString):
+        if isinstance(values, typingtools.IterableNonString):
             string = repr_values(values)
         else:
             string = repr_(values)

@@ -31,8 +31,6 @@ class PrintStyle:
     def __exit__(self, exception, message, traceback_):
         if hydpy.pub.options.printincolor:
             print(end='\x1B[0m', file=self.file)
-        if exception:
-            objecttools.augment_excmessage()
 
 
 _printprogress_indentation = -4

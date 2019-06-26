@@ -43,17 +43,27 @@ MayNonerable2 = Union[T1, T2, Iterable[Union[T1, T2]], None]
 MayNonerable3 = Union[T1, T2, T3, Iterable[Union[T1, T2, T3]], None]
 
 
-class IterableNonStringABC(abc.ABC):
+class IterableNonString(abc.ABC):
     """Abstract base class for checking if an object is iterable but not a
-    string."""
+    string.
+    
+    >>> from hydpy.core.abctools import IterableNonString
+    >>> isinstance('asdf', IterableNonString)
+    False
+    >>> isinstance(['asdf'], IterableNonString)
+    True
+    >>> issubclass(str, IterableNonString)
+    False
+    >>> issubclass(list, IterableNonString)
+    True
+    >>>
+    """
 
     @classmethod
     def __subclasshook__(cls, subclass):
-        if cls is IterableNonStringABC:
-            return (hasattr(subclass, '__iter__') and
-                    not (isinstance(subclass, str) or
-                         issubclass(subclass, str)))
-        return NotImplemented
+        return (hasattr(subclass, '__iter__') and
+                not (isinstance(subclass, str) or
+                     issubclass(subclass, str)))
 
 
 class DevicesHandlerProtocol(Protocol):
@@ -193,6 +203,7 @@ class AuxfilerABC(abc.ABC):
 
 
 __all__ = [
+    'IterableNonString',
     'Mayberable1',
     'Mayberable2',
     'Mayberable3',

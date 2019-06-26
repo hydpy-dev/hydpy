@@ -1473,7 +1473,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         Applied node variables: Q
         """
         for key, value in self.networkproperties.items():
-            if isinstance(value, abctools.IterableNonStringABC):
+            if isinstance(value, abctools.IterableNonString):
                 value = objecttools.enumeration(value)
             print(f'{key}: {value}')
 

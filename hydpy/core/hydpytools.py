@@ -71,7 +71,7 @@ at the moment.
     One now could continue rather quickly by calling method
     |HydPy.prepare_everything|, which would make our |HydPy| instance
     ready for its first simulation run in one go.  However, we prefer
-    to continue step by step by calling the individual preparation
+    to continue step by step by calling the more specific preparation
     methods, which offers more flexibility.
 
     First, the |HydPy| instance needs to know the relevant |Node| and
@@ -882,6 +882,25 @@ defined at the moment.
         >>> round_(
         ...     hp.elements.land_lahn_2.model.parameters.control.icmax.values)
         1.0, 1.5, 1.0, 1.5, 1.0, 1.5, 1.0, 1.5, 1.0, 1.5
+
+        Missing parameter information in auxiliary files results in errors
+        like the following:
+
+        >>> filepath = 'LahnH/control/default/land.py'
+        >>> with TestIO():
+        ...     with open(filepath) as infile:
+        ...         text = infile.read().replace('alpha(1.0)', '')
+        ...     with open(filepath, 'w') as outfile:
+        ...         outfile.write(text)
+        ...     hp.prepare_models()   # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        RuntimeError: While trying to initialise the model object of \
+element `land_dill`, the following error occurred: While trying to load \
+the control file `...land_dill.py`, the following error occurred: \
+While trying to extract information for parameter `alpha` from file \
+`land`, the following error occurred: The selected auxiliary file \
+does not define value(s) for parameter `alpha`.
         """
         self.elements.prepare_models()
 
@@ -1143,7 +1162,7 @@ Use method `prepare_models` instead.
         sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
            222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 
-        Now we perform two sequential runs, covering the first and the
+        Now we perform two consecutive runs, covering the first and the
         second half of the initialisation period, respectively, and
         write, in both cases, the resulting final conditions to disk:
 

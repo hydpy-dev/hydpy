@@ -990,13 +990,13 @@ shape (2) into shape (2,3)
                     'Cannot determine the corresponding model.  Use the '
                     '`auxfile` keyword in usual parameter control files only.')
             filetools.ControlManager.read2dict(auxfile, subnamespace)
+            subself = subnamespace[self.name]
             try:
-                subself = subnamespace[self.name]
-            except KeyError:
+                return subself.__hydpy__get_value__()
+            except AttributeError:
                 raise RuntimeError(
-                    f'The selected file does not define value(s) for '
-                    f'parameter {self.name}')
-            return subself.values
+                    f'The selected auxiliary file does not define '
+                    f'value(s) for parameter `{self.name}`.')
         except BaseException:
             objecttools.augment_excmessage(
                 f'While trying to extract information for parameter '

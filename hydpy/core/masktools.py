@@ -172,12 +172,28 @@ class IndexMask(DefaultMask):
         Entries are only |True|, if the integer values of the
         respective entries of the referenced parameter are contained
         in the |IndexMask| class attribute tuple `RELEVANT_VALUES`.
+
+        Before calling new (explicitly or implicitely), one must prepare
+        the variable returned by property |IndexMask.refindices|:
+
+        >>> from hydpy.models.hland import *
+        >>> parameterstep()
+        >>> states.sm.mask
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The mask of parameter `sm` of element `?` cannot be \
+determined as long as parameter `zonetype` is not prepared properly.
+
+        >>> nmbzones(4)
+        >>> zonetype(FIELD, FOREST, ILAKE, GLACIER)
+        >>> states.sm.mask
+        Soil([ True,  True, False, False])
         """
         indices = cls.get_refindices(variable)
         if numpy.min(getattr(indices, 'values', 0)) < 1:
             raise RuntimeError(
                 f'The mask of parameter {objecttools.elementphrase(variable)} '
-                f'cannot be determined, as long as parameter `{indices.name}` '
+                f'cannot be determined as long as parameter `{indices.name}` '
                 f'is not prepared properly.')
         mask = numpy.full(indices.shape, False, dtype=bool)
         refvalues = indices.values

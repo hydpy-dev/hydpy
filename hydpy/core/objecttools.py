@@ -65,10 +65,24 @@ def classname(self):
 
     >>> from hydpy.core.objecttools import classname
     >>> from hydpy import pub
-    >>> print(classname(float))
-    float
-    >>> print(classname(pub.options))
-    Options
+    >>> classname(float)
+    'float'
+    >>> classname(pub.options)
+    'Options'
+
+    Method |classname| also handles classes returning "plain" string
+    representations (this seems to be relevant when using the
+    |typing| module under Python 3.6 only):
+
+    >>> class MetaClass(type):
+    ...     def __repr__(cls):
+    ...         return 'module.Class'
+    >>> class Class(metaclass=MetaClass):
+    ...     pass
+    >>> classname(Class)
+    'Class'
+    >>> classname(Class())
+    'Class'
     """
     if inspect.isclass(self):
         string = str(self)

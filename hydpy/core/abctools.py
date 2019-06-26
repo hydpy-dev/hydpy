@@ -193,15 +193,6 @@ class ModelABC(abc.ABC):
         """See method |Model.simulate|."""
 
 
-class AuxfilerABC(abc.ABC):
-    """See class |Auxfiler|."""
-
-    @abc.abstractmethod
-    def save(self, parameterstep: 'timetools.PeriodConstrArg',
-             simulationstep: 'timetools.PeriodConstrArg'):
-        ...
-
-
 __all__ = [
     'IterableNonString',
     'Mayberable1',
@@ -216,5 +207,4 @@ __all__ = [
     'FastAccessModelSequenceProtocol',
     'FastAccessLinkSequenceProtocol',
     'ModelABC',
-    'AuxfilerABC',
 ]

@@ -901,6 +901,19 @@ the control file `...land_dill.py`, the following error occurred: \
 While trying to extract information for parameter `alpha` from file \
 `land`, the following error occurred: The selected auxiliary file \
 does not define value(s) for parameter `alpha`.
+
+        Completely wrong control files result in the following error:
+
+        >>> with TestIO():
+        ...     with open('LahnH/control/default/land_dill.py', 'w'):
+        ...         pass
+        ...     hp.prepare_models()   # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        RuntimeError: While trying to initialise the model object of \
+element `land_dill`, the following error occurred: Model parameters \
+cannot be loaded from control file `...land_dill.py`.  Please refer \
+to the HydPy documentation on how to prepare control files properly.
         """
         self.elements.prepare_models()
 

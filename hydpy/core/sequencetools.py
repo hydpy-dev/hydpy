@@ -377,7 +377,8 @@ to make any internal data available.
         From now on, we work in the freshly created condition
         directory `test`:
 
-        >>> pub.conditionmanager.currentdir = 'test'
+        >>> with TestIO():
+        ...     pub.conditionmanager.currentdir = 'test'
 
         We set all soil moisture values to zero and write the updated
         values to the file `cold_start.py`:

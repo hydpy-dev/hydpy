@@ -1182,11 +1182,11 @@ class XMLSubseries(XMLSelector):
             argument = getattr(hydpy.pub.options, keyword, None)
             if argument is not None:
                 kwargs[keyword[:-6]] = argument
-        hydpy.pub.sequencemanager.open_netcdf_reader(**kwargs)
+        hydpy.pub.sequencemanager.open_netcdfreader(**kwargs)
         self.prepare_sequencemanager()
         for sequence in self._iterate_sequences():
             sequence.load_ext()
-        hydpy.pub.sequencemanager.close_netcdf_reader()
+        hydpy.pub.sequencemanager.close_netcdfreader()
 
     def save_series(self) -> None:
         """Save time series data as defined by the actual XML `writer`
@@ -1224,13 +1224,13 @@ class XMLSubseries(XMLSelector):
         9.0
         7.0
         """
-        hydpy.pub.sequencemanager.open_netcdf_writer(
+        hydpy.pub.sequencemanager.open_netcdfwriter(
             flatten=hydpy.pub.options.flattennetcdf,
             isolate=hydpy.pub.options.isolatenetcdf)
         self.prepare_sequencemanager()
         for sequence in self._iterate_sequences():
             sequence.save_ext()
-        hydpy.pub.sequencemanager.close_netcdf_writer()
+        hydpy.pub.sequencemanager.close_netcdfwriter()
 
 
 class XMLExchange(XMLBase):

@@ -22,8 +22,8 @@ cf-conventions/cf-conventions-1.7/cf-conventions.html>`_.
 Usually, the features implemented in this module are applied only
 indirectly in three steps:
 
-  1. Call either method |SequenceManager.open_netcdf_reader| or method
-     |SequenceManager.open_netcdf_writer| of the |SequenceManager| object
+  1. Call either method |SequenceManager.open_netcdfreader| or method
+     |SequenceManager.open_netcdfwriter| of the |SequenceManager| object
      available in module |pub| to prepare a |NetCDFInterface| object
      for reading or writing.
   2. Call either the usual reading or writing methods of other HydPy
@@ -33,8 +33,8 @@ indirectly in three steps:
      requests of those sequences that are supposed to be read from or
      written to NetCDF files.
   3. Finalize reading or writing by calling either method
-     |SequenceManager.close_netcdf_reader| or method
-     |SequenceManager.close_netcdf_writer|.
+     |SequenceManager.close_netcdfreader| or method
+     |SequenceManager.close_netcdfwriter|.
 
 Step 2 is a logging process only, telling the |NetCDFInterface| object
 which data needs to be read or written.  The actual reading from or
@@ -52,10 +52,10 @@ defined by function |prepare_io_example_1|:
 >>> nodes, elements = prepare_io_example_1()
 
 (1) We prepare a |NetCDFInterface| object for writing data by
-calling method |SequenceManager.open_netcdf_writer|:
+calling method |SequenceManager.open_netcdfwriter|:
 
 >>> from hydpy import pub
->>> pub.sequencemanager.open_netcdf_writer()
+>>> pub.sequencemanager.open_netcdfwriter()
 
 (2) We tell the |SequenceManager| to read and write all time series
 data from and to NetCDF files placed within a folder called `example`
@@ -89,7 +89,7 @@ belonging to application model |lland_v1| have been logged (those of
 elements `element1` and `element2`):
 
 
->>> writer = pub.sequencemanager.netcdf_writer
+>>> writer = pub.sequencemanager.netcdfwriter
 >>> writer.lland_v1.flux_nkor.subdevicenames
 ('element1', 'element2')
 
@@ -109,8 +109,8 @@ where the writing process happens.  After that, the interface object
 is not available anymore:
 
 >>> with TestIO():
-...     pub.sequencemanager.close_netcdf_writer()
->>> pub.sequencemanager.netcdf_writer
+...     pub.sequencemanager.close_netcdfwriter()
+>>> pub.sequencemanager.netcdfwriter
 Traceback (most recent call last):
 ...
 RuntimeError: The sequence file manager does currently handle no NetCDF \
@@ -129,12 +129,12 @@ and read their time series data from the created NetCDF file (note
 that we disable option |Options.checkseries| temporarily, to prevent
 from raising an exception when reading incomplete data from file):
 
->>> pub.sequencemanager.open_netcdf_reader()
+>>> pub.sequencemanager.open_netcdfreader()
 >>> nodes.load_simseries()
 >>> elements.load_allseries()
 >>> with TestIO():
 ...     with pub.options.checkseries(False):
-...         pub.sequencemanager.close_netcdf_reader()
+...         pub.sequencemanager.close_netcdfreader()
 
 (10) We check if the data is available via the test sequences again:
 
@@ -145,7 +145,7 @@ InfoArray([[ 16.,  17.],
            [ 18.,  19.],
            [ 20.,  21.],
            [ 22.,  23.]])
->>> pub.sequencemanager.netcdf_reader
+>>> pub.sequencemanager.netcdfreader
 Traceback (most recent call last):
 ...
 RuntimeError: The sequence file manager does currently handle no \
@@ -188,16 +188,16 @@ but decrease the speed of "time series access", which is the focus
 of the default configuration (where `timeaxis` is one). When reading
 a NetCDF file, one has to choose the same options used for writing.
 
-The following test shows that both |SequenceManager.open_netcdf_writer|
-and |SequenceManager.open_netcdf_reader| pass the mentioned arguments
+The following test shows that both |SequenceManager.open_netcdfwriter|
+and |SequenceManager.open_netcdfreader| pass the mentioned arguments
 correctly to the constructor of |NetCDFInterface|:
 
 >>> from unittest.mock import patch
 >>> with patch('hydpy.core.netcdftools.NetCDFInterface') as mock:
-...     pub.sequencemanager.open_netcdf_writer(
+...     pub.sequencemanager.open_netcdfwriter(
 ...         flatten=True, isolate=False, timeaxis=0)
 ...     mock.assert_called_with(flatten=True, isolate=False, timeaxis=0)
-...     pub.sequencemanager.open_netcdf_reader(
+...     pub.sequencemanager.open_netcdfreader(
 ...         flatten=True, isolate=False, timeaxis=0)
 ...     mock.assert_called_with(flatten=True, isolate=False, timeaxis=0)
 """

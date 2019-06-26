@@ -76,13 +76,10 @@ def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None):
         pass
     focus = namespace.get('focus')
     for par in model.parameters.control:
-        try:
-            if (focus is None) or (par is focus):
-                namespace[par.name] = par
-            else:
-                namespace[par.name] = lambda *args, **kwargs: None
-        except AttributeError:
-            pass
+        if (focus is None) or (par is focus):
+            namespace[par.name] = par
+        else:
+            namespace[par.name] = lambda *args, **kwargs: None
 
 
 def prepare_parameters(dict_):
@@ -136,8 +133,13 @@ def reverse_model_wildcard_import():
     >>> nhru
     nhru(?)
 
-    Calling function |reverse_model_wildcard_import| removes both
-    objects (and many more, but not all) from the local namespace:
+    Calling function |reverse_model_wildcard_import| tries to give its
+    best to clear the local namespace (even from unexpected classes as
+    the one we define now):
+
+    >>> class Test:
+    ...     __module__ = 'hydpy.models.lland_v1'
+    >>> test = Test()
 
     >>> reverse_model_wildcard_import()
 
@@ -150,6 +152,16 @@ def reverse_model_wildcard_import():
     Traceback (most recent call last):
     ...
     NameError: name 'nhru' is not defined
+
+    >>> Test
+    Traceback (most recent call last):
+    ...
+    NameError: name 'Test' is not defined
+
+    >>> test
+    Traceback (most recent call last):
+    ...
+    NameError: name 'test' is not defined
     """
     namespace = inspect.currentframe().f_back.f_locals
     model = namespace.get('model')

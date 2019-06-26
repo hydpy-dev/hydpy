@@ -47,8 +47,8 @@ methods call_fdel, call_fget, call_fset
     ...         self.fdel(obj)
 
     The following owner class implements its attribute `x` by defining
-    all three "property methods" (`getter_`/`fget`, `setter_`/`fset`,
-    `deleter_`/`fdel`), but its attribute `y` by defining none of them:
+    all three "property methods" (`getter`/`fget`, `setter`/`fset`,
+    `deleter`/`fdel`), but its attribute `y` by defining none of them:
 
     >>> class Owner:
     ...
@@ -59,10 +59,10 @@ methods call_fdel, call_fget, call_fset
     ...     @ConcreteProperty
     ...     def x(self):
     ...         return self._x
-    ...     @x.setter_
+    ...     @x.setter
     ...     def x(self, value):
     ...         self._x = value
-    ...     @x.deleter_
+    ...     @x.deleter
     ...     def x(self):
     ...         self._x = None
     ...
@@ -157,19 +157,19 @@ methods call_fdel, call_fget, call_fset
     def call_fdel(self, obj) -> None:
         """Method for implementing special deleter functionalities."""
 
-    def getter_(self, fget) -> 'BaseProperty':
+    def getter(self, fget: Callable) -> 'BaseProperty':
         """Add the given getter function and its docstring to the
          property and return it."""
         self.fget = fget
-        self.set_doc(fget.__doc__)
+        self.set_doc(getattr(fget, '__doc__'))
         return self
 
-    def setter_(self, fset) -> 'BaseProperty':
+    def setter(self, fset: Callable) -> 'BaseProperty':
         """Add the given setter function to the property and return it."""
         self.fset = fset
         return self
 
-    def deleter_(self, fdel) -> 'BaseProperty':
+    def deleter(self, fdel: Callable) -> 'BaseProperty':
         """Add the given deleter function to the property and return it."""
         self.fdel = fdel
         return self
@@ -202,10 +202,10 @@ class ProtectedProperty(BaseProperty):
     ...     def x(self):
     ...         "Test"
     ...         return self._x
-    ...     @x.setter_
+    ...     @x.setter
     ...     def x(self, value):
     ...         self._x = value
-    ...     @x.deleter_
+    ...     @x.deleter
     ...     def x(self):
     ...         self._x = None
 
@@ -294,14 +294,14 @@ class ProtectedProperties:
     ...     @pt.ProtectedProperty
     ...     def x(self):
     ...         return 'this is x'
-    ...     @x.setter_
+    ...     @x.setter
     ...     def x(self, value):
     ...         pass
     ...
     ...     @pt.ProtectedProperty
     ...     def z(self):
     ...         return 'this is z'
-    ...     @z.setter_
+    ...     @z.setter
     ...     def z(self, value):
     ...         pass
     ...
@@ -353,22 +353,22 @@ class DependentProperty(BaseProperty):
     ...     @pt.ProtectedProperty
     ...     def x(self):
     ...         return self._x
-    ...     @x.setter_
+    ...     @x.setter
     ...     def x(self, value):
     ...         self._x = value
-    ...     @x.deleter_
+    ...     @x.deleter
     ...     def x(self):
     ...         self._x = None
     ...
     ...     y = pt.DependentProperty(protected=(x,))
     ...
-    ...     @y.getter_
+    ...     @y.getter
     ...     def y(self):
     ...         return self._y
-    ...     @y.setter_
+    ...     @y.setter
     ...     def y(self, value):
     ...         self._y = value
-    ...     @y.deleter_
+    ...     @y.deleter
     ...     def y(self):
     ...         self._y = None
 
@@ -456,10 +456,10 @@ class DefaultProperty(BaseProperty):
     ...     def y(self):
     ...         "Default property y."
     ...         return 2.0
-    ...     @y.setter_
+    ...     @y.setter
     ...     def y(self, value):
     ...         return float(value)
-    ...     @y.deleter_
+    ...     @y.deleter
     ...     def y(self):
     ...         if self.y == 4.0:
     ...             raise RuntimeError

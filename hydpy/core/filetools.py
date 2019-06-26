@@ -206,11 +206,11 @@ of object `filemanager` has not been prepared so far.
         """
         return self._projectdir
 
-    @projectdir.setter_
+    @projectdir.setter
     def projectdir(self, name):
         self._projectdir = name
 
-    @projectdir.deleter_
+    @projectdir.deleter
     def projectdir(self):
         self._projectdir = None
 

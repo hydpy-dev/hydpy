@@ -319,13 +319,13 @@ attribute `nmb_inputs` first.
         """
         return self._cann.nmb_inputs
 
-    @nmb_inputs.setter_
+    @nmb_inputs.setter
     def nmb_inputs(self, value) -> None:
         # pylint: disable=missing-docstring
         self._cann.nmb_inputs = int(value)
         self.__update_shapes()
 
-    @nmb_inputs.deleter_
+    @nmb_inputs.deleter
     def nmb_inputs(self) -> None:
         # pylint: disable=missing-docstring
         pass
@@ -351,13 +351,13 @@ of object `ann` has not been prepared so far.
         """
         return self._cann.nmb_outputs
 
-    @nmb_outputs.setter_
+    @nmb_outputs.setter
     def nmb_outputs(self, value) -> None:
         # pylint: disable=missing-docstring
         self._cann.nmb_outputs = int(value)
         self.__update_shapes()
 
-    @nmb_outputs.deleter_
+    @nmb_outputs.deleter
     def nmb_outputs(self) -> None:
         # pylint: disable=missing-docstring
         pass
@@ -383,7 +383,7 @@ of object `ann` has not been prepared so far.
         """
         return tuple(numpy.asarray(self._cann.nmb_neurons))
 
-    @nmb_neurons.setter_
+    @nmb_neurons.setter
     def nmb_neurons(self, value) -> None:
         # pylint: disable=missing-docstring
         self._cann.nmb_neurons = numpy.array(value, dtype=int, ndmin=1)
@@ -391,7 +391,7 @@ of object `ann` has not been prepared so far.
         self.__max_nmb_neurons = max(value)
         self.__update_shapes()
 
-    @nmb_neurons.deleter_
+    @nmb_neurons.deleter
     def nmb_neurons(self) -> None:
         # pylint: disable=missing-docstring
         pass
@@ -699,7 +699,7 @@ broadcast input array from shape (3,3) into shape (2,3)
     nmb_layers = propertytools.DependentProperty(
         protected=__protectedproperties)
 
-    @nmb_layers.getter_
+    @nmb_layers.getter
     def nmb_layers(self) -> int:
         """Number of hidden layers.
 
@@ -714,7 +714,7 @@ broadcast input array from shape (3,3) into shape (2,3)
     shape_neurons = propertytools.DependentProperty(
         protected=__protectedproperties)
 
-    @shape_neurons.getter_
+    @shape_neurons.getter
     def shape_neurons(self) -> Tuple[int, int]:
         """Shape of the array containing the activities of the neurons
         of the hidden layers.

@@ -86,7 +86,7 @@ is not defined at the moment.
         self.options: optiontools.Options = optiontools.Options()
         self.scriptfunctions: Dict[str, Callable] = {}
 
-    @timegrids.setter_
+    @timegrids.setter
     def timegrids(self, args):
         # pylint: disable=missing-docstring, no-self-use
         try:

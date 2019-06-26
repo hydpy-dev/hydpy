@@ -49,9 +49,6 @@ class BaseMask(numpy.ndarray):
         return numpy.ndarray.__repr__(self).replace(', dtype=bool', '')
 
 
-abctools.MaskABC.register(BaseMask)
-
-
 class CustomMask(BaseMask):
     """Mask that awaits all |bool| values to be set manually.
 
@@ -329,12 +326,12 @@ following error occurred: The given key is neither a `string` a `mask` type.
             yield getattr(self, name)
 
     def __contains__(self, mask):
-        if isinstance(mask, abctools.MaskABC):
+        if isinstance(mask, BaseMask):
             mask = type(mask)
         if mask in self.CLASSES:
             return True
         try:
-            if issubclass(mask, abctools.MaskABC):
+            if issubclass(mask, BaseMask):
                 return False
         except TypeError:
             pass
@@ -346,9 +343,9 @@ following error occurred: The given key is neither a `string` a `mask` type.
         _key = key
         try:
             if inspect.isclass(key):
-                if issubclass(key, abctools.MaskABC):
+                if issubclass(key, BaseMask):
                     key = objecttools.instancename(key)
-            elif isinstance(key, abctools.MaskABC):
+            elif isinstance(key, BaseMask):
                 if key in self:
                     return key
                 raise RuntimeError(

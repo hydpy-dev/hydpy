@@ -169,12 +169,6 @@ class FastAccessLinkSequenceProtocol(FastAccessModelSequenceProtocol):
         the given name is pointing to."""
 
 
-class MaskABC(abc.ABC):
-    """See class `Mask` classes."""
-
-
-
-
 class ModelABC(abc.ABC):
     """See class |Model|."""
 
@@ -210,7 +204,6 @@ __all__ = [
     'CyModelProtocol',
     'FastAccessModelSequenceProtocol',
     'FastAccessLinkSequenceProtocol',
-    'MaskABC',
     'ModelABC',
     'AuxfilerABC',
 ]

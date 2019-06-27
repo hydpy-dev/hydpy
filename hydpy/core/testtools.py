@@ -878,6 +878,11 @@ class UnitTest(Test):
 
 class _Open:
 
+    __readingerror = (
+        'Reading is not possible at the moment.  Please see the '
+        'documentation on class `Open` of module `testtools` '
+        'for further information.')
+
     def __init__(self, path, mode, *args, **kwargs):
         # pylint: disable=unused-argument
         # all further positional and keyword arguments are ignored.
@@ -895,17 +900,15 @@ class _Open:
 
     def read(self):
         """Raise a |NotImplementedError| in any case."""
-        raise NotImplementedError(
-            'Reading is not possible at the moment.  Please see the '
-            'documentation on class `Open` of module `testtools` '
-            'for further information.')
+        raise NotImplementedError(self.__readingerror)
+
+    def readline(self):
+        """Raise a |NotImplementedError| in any case."""
+        raise NotImplementedError(self.__readingerror)
 
     def readlines(self):
         """Raise a |NotImplementedError| in any case."""
-        raise NotImplementedError(
-            'Reading is not possible at the moment.  Please see the '
-            'documentation on class `Open` of module `testtools` '
-            'for further information.')
+        raise NotImplementedError(self.__readingerror)
 
     def write(self, text):
         """Replaces the `write` method of file objects."""
@@ -974,13 +977,21 @@ for further information.
 
     >>> with Open():
     ...     with open(path, 'r') as file_:
-    ...         file_.readlines()
+    ...         file_.readline()
     Traceback (most recent call last):
     ...
     NotImplementedError: Reading is not possible at the moment.  \
 Please see the documentation on class `Open` of module `testtools` \
 for further information.
 
+    >>> with Open():
+    ...     with open(path, 'r') as file_:
+    ...         file_.readlines()
+    Traceback (most recent call last):
+    ...
+    NotImplementedError: Reading is not possible at the moment.  \
+Please see the documentation on class `Open` of module `testtools` \
+for further information.
     """
     def __init__(self):
         self.open = builtins.open

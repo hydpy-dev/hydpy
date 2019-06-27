@@ -322,23 +322,22 @@ of parameter `alpha` must be defined beforehand.
                     f'For parameter {objecttools.elementphrase(self)} a '
                     f'value can be set directly or indirectly by using '
                     f'the keyword arguments `khq` and `hq`.')
-            elif counter == 1:
+            if counter == 1:
                 raise ValueError(
                     f'For the alternative calculation of parameter '
                     f'{objecttools.elementphrase(self)}, at least the '
                     f'keywords arguments `khq` and `hq` must be given.')
-            elif counter == 2:
-                alpha = float(kwargs.get(
-                    'alpha', getattr(self.subpars.alpha, 'value', numpy.nan)))
-                if numpy.isnan(alpha):
-                    raise RuntimeError(
-                        f'For the alternative calculation of parameter '
-                        f'{objecttools.elementphrase(self)}, either the '
-                        f'keyword argument `alpha` must be given or the value '
-                        f'of parameter `alpha` must be defined beforehand.')
-                khq = float(kwargs['khq'])
-                hq = float(kwargs['hq'])
-                self(hq/((hq/khq)**(alpha+1.)))
+            alpha = float(kwargs.get(
+                'alpha', getattr(self.subpars.alpha, 'value', numpy.nan)))
+            if numpy.isnan(alpha):
+                raise RuntimeError(
+                    f'For the alternative calculation of parameter '
+                    f'{objecttools.elementphrase(self)}, either the '
+                    f'keyword argument `alpha` must be given or the value '
+                    f'of parameter `alpha` must be defined beforehand.')
+            khq = float(kwargs['khq'])
+            hq = float(kwargs['hq'])
+            self(hq/((hq/khq)**(alpha+1.)))
 
 
 class Alpha(parametertools.Parameter):

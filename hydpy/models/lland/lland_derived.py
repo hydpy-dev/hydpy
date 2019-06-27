@@ -4,7 +4,6 @@
 
 # import...
 # ...from HydPy
-from hydpy import pub
 from hydpy.core import parametertools
 # ...from lland
 from hydpy.models.lland import lland_parameters

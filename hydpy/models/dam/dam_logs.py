@@ -3,12 +3,9 @@
 # pylint: enable=missing-docstring
 
 # import...
-# ...from site-packages
-import numpy
 # ...from HydPy
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
-from hydpy.core import variabletools
 
 
 class LoggedTotalRemoteDischarge(sequencetools.LogSequence):

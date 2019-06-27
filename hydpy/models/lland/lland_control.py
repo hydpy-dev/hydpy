@@ -11,7 +11,6 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
-from hydpy.core import typingtools
 # ...from lland
 from hydpy.models.lland import lland_constants
 from hydpy.models.lland import lland_parameters

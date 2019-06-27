@@ -10,7 +10,6 @@ import numpy
 # ...from HydPy
 from hydpy.core import objecttools
 from hydpy.core import parametertools
-from hydpy.core import variabletools
 
 
 class Responses(parametertools.Parameter):
@@ -218,10 +217,8 @@ Most probably, you defined the same threshold value(s) twice.
             self._coefs = {}
 
     def __hydpy__connect_variable2subgroup__(self):
-        """Make `subpars` an attribute of the respective |Responses| instance,
-        but skip making a connection with its `fastaccess` object for
-        reasons explained in the main documentation on class |Responses|."""
-        pass   # ToDo
+        """Do nothing due to the reasons explained in the main
+        documentation on class |Responses|."""
 
     def __call__(self, *args, **kwargs):
         self._coefs.clear()

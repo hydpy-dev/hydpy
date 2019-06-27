@@ -6,7 +6,6 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
-from hydpy.core import variabletools
 
 
 class WET0(sequencetools.LogSequence):

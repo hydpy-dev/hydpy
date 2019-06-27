@@ -2796,10 +2796,32 @@ class LinkSequence(Sequence):
 
     A note for developers: |LinkSequence| subclasses must be either
     0-dimensional or 1-dimensional.
+
+    Users might encounter the following exception, which is a safety
+    measure to --- as the error message suggests --- prevent from
+    segmentation faults:
+
+    >>> from hydpy.core.sequencetools import LinkSequence
+    >>> seq = LinkSequence(None)
+    >>> seq
+    linksequence(?)
+    >>> seq.value
+    Traceback (most recent call last):
+    ...
+    AttributeError: While trying to query the value(s) of link sequence \
+`linksequence` of element `?`, the following error occurred: \
+Proper connections are missing (which could result in segmentation faults \
+when using it, so please be careful).
     """
 
     fastaccess: Union['FastAccessModelSequence',
                       'typingtools.FastAccessLinkSequenceProtocol']
+
+    __isready: bool
+
+    def __init__(self, subvars: SubSequences):
+        self.__isready = False
+        super().__init__(subvars)
 
     def set_pointer(self, double: pointerutils.Double, idx: int = 0) -> None:
         """Prepare a pointer referencing the given |Double| object.
@@ -2824,6 +2846,7 @@ class LinkSequence(Sequence):
                 ppdouble.set_pointer(double, idx)
             else:
                 self.fastaccess.set_pointer1d(self.name, pdouble, idx)
+        self.__isready = True
 
     def _finalise_connections(self) -> None:
         value = pointerutils.PPDouble() if self.NDIM else None
@@ -2942,6 +2965,11 @@ broadcast input array from shape (2) into shape (1)
         sim(6.0)
         """
         try:
+            if not self.__isready:
+                raise AttributeError(
+                    f'Proper connections are missing (which could '
+                    f'result in segmentation faults when using it, '
+                    f'so please be careful).')
             if isinstance(self.fastaccess, FastAccessModelSequence):
                 value = getattr(self.fastaccess, self.name)[:]
                 if self.NDIM == 0:
@@ -3076,6 +3104,11 @@ of element `stream_lahn_1_lahn_2`, the following error occurred: \
                 f'{objecttools.elementphrase(self)}')
 
     shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
+
+    def __repr__(self):
+        if self.__isready:
+            return super().__repr__()
+        return f'{self.name}(?)'
 
 
 class NodeSequence(IOSequence):

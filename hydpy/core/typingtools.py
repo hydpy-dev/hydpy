@@ -66,6 +66,7 @@ class VariableProtocol(Protocol):
 
     name: str
 
+    @abc.abstractmethod
     def __init__(self, subvars: 'variabletools.SubgroupType'):
         """See class |Parameter| and class |Sequence|."""
 

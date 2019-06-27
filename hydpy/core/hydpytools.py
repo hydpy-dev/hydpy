@@ -42,7 +42,7 @@ class HydPy:
     example project, which can be found in subpackage `data`,  into a
     working directory of your choice):
 
-    >>> from hydpy.core.examples import prepare_full_example_1
+    >>> from hydpy.examples import prepare_full_example_1
     >>> prepare_full_example_1()
 
     At first, the |HydPy| instance needs to know the name of the relevant
@@ -639,7 +639,7 @@ requested to make any internal data available.
 
         You are allowed to get, set and delete the currently handled nodes:
 
-        >>> from hydpy.core.examples import prepare_full_example_2
+        >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> hp.nodes
         Nodes("dill", "lahn_1", "lahn_2", "lahn_3")
@@ -681,7 +681,7 @@ at the moment.
 
         You are allowed to get, set and delete the currently handled elements:
 
-        >>> from hydpy.core.examples import prepare_full_example_2
+        >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> hp.elements
         Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3",
@@ -730,7 +730,7 @@ at the moment.
         to prepare the example project via function |prepare_full_example_1|
         and change the current working directory via class |TestIO|):
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, pub, round_, TestIO
         >>> with TestIO():
@@ -773,7 +773,7 @@ at the moment.
         the `LahnH` example project, including its network files
         `headwaters.py`, `nonheadwaters.py`, and `streams.py`:
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
         Directly after initialising class |HydPy|, neither the
@@ -828,7 +828,7 @@ defined at the moment.
         First, we call function |prepare_full_example_1| to prepare the
         `LahnH` example project:
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
         Now we can initialise a |HydPy| instance accordingly and call
@@ -952,7 +952,7 @@ Use method `prepare_models` instead.
         |HydPy| object, handling seven |Element| objects controlling
         four |hland_v1| and three |hstream_v1| application models:
 
-        >>> from hydpy.core.examples import prepare_full_example_2
+        >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
 
         At first, there is only one control subfolder named "default",
@@ -1138,7 +1138,7 @@ Use method `prepare_models` instead.
         on the `LahnH` project, which we prepare via function
         |prepare_full_example_2|:
 
-        >>> from hydpy.core.examples import prepare_full_example_2
+        >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
 
         Our |HydPy| instance `hp` is ready for the first simulation run,
@@ -1279,7 +1279,7 @@ Use method `prepare_models` instead.
         of method |HydPy.trim_conditions|, that gives no response at
         all when all conditions are correctly set:
 
-        >>> from hydpy.core.examples import prepare_full_example_2
+        >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> with pub.options.warntrim(True):
         ...     hp.trim_conditions()
@@ -1327,7 +1327,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         For demonstration, we perform a simulation for the `LahnH`
         example project spanning four days:
 
-        >>> from hydpy.core.examples import prepare_full_example_2
+        >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> hp.simulate()
         >>> from hydpy import print_values
@@ -1373,7 +1373,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         preparation run beginning on the first day of January and ending
         on the 20th day of February:
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, pub, TestIO, print_values
         >>> with TestIO():
@@ -1491,7 +1491,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         The `LahnH` example project defines a small, single network,
         with all catchments ultimately discharging to node `lahn_3`:
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, TestIO
         >>> with TestIO():
@@ -1517,7 +1517,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         The `LahnH` example project defines a small, single network,
         with all catchments ultimately discharging to node `lahn_3`:
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, TestIO
         >>> with TestIO():
@@ -1579,7 +1579,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         single end node, there can be only one segregate network,
         accordingly:
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, TestIO
         >>> with TestIO():
@@ -1754,7 +1754,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         """Summary of all |Node.variable| properties of the currently
         relevant |Node| objects.
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, TestIO
         >>> with TestIO():
@@ -1807,7 +1807,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         |HydPy.prepare_network|, a |HydPy| object usually starts with
         the "complete" network of the considered project:
 
-        >>> from hydpy.core.examples import prepare_full_example_2
+        >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
 
         The safest approach to "activate" another selection is to use
@@ -1895,7 +1895,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         We let function |prepare_full_example_2| prepare a runnable
         |HydPy| object related to the `LahnH` example project:
 
-        >>> from hydpy.core.examples import prepare_full_example_2
+        >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
 
         First, we execute a default simulation run covering the whole

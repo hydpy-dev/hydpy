@@ -376,7 +376,7 @@ class Selection:
     methods.  Here we only show its basic usage with the help of the `LahnH`
     example project prepared by function |prepare_full_example_2|:
 
-    >>> from hydpy.core.examples import prepare_full_example_2
+    >>> from hydpy.examples import prepare_full_example_2
     >>> _, pub, _ = prepare_full_example_2()
 
     For example, `LahnH` defines a `headwaters` selection:
@@ -473,7 +473,7 @@ attribute 'nodes'
         """Return the network upstream of the given starting point, including
         the starting point itself.
 
-        >>> from hydpy.core.examples import prepare_full_example_2
+        >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, _ = prepare_full_example_2()
 
         You can pass both |Node| and |Element| objects and, optionally,
@@ -596,7 +596,7 @@ selection `headwaters`, the following error occurred: 'No node named \
         """Return a |Selection| object containing only the elements
         currently handling models of the given types.
 
-        >>> from hydpy.core.examples import prepare_full_example_2
+        >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, _ = prepare_full_example_2()
 
         You can pass both |Model| objects and names and, as a keyword
@@ -696,7 +696,7 @@ No module named 'hydpy.models.wrong'
         """Return a new selection containing all nodes of the current
         selection with a name containing at least one of the given substrings.
 
-        >>> from hydpy.core.examples import prepare_full_example_2
+        >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, _ = prepare_full_example_2()
 
         Pass the (sub)strings as positional arguments and, optionally, the
@@ -782,7 +782,7 @@ requires string as left operand, not list
         """Return a new selection containing all elements of the current
         selection with a name containing at least one of the given substrings.
 
-        >>> from hydpy.core.examples import prepare_full_example_2
+        >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, _ = prepare_full_example_2()
 
         Pass the (sub)strings as positional arguments and, optionally, the
@@ -872,7 +872,7 @@ requires string as left operand, not list
                          write_nodes: bool = True) -> None:
         """Save the selection as a network file.
 
-        >>> from hydpy.core.examples import prepare_full_example_2
+        >>> from hydpy.examples import prepare_full_example_2
         >>> _, pub, TestIO = prepare_full_example_2()
 
         In most cases, one should conveniently write network files via method

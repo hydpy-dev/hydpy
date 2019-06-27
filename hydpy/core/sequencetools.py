@@ -63,7 +63,7 @@ class Sequences:
     |Sequences| objects handle nine sequence subgroups as attributes
     such as the `inlets` and  the `receivers` subsequences:
 
-    >>> from hydpy.core.examples import prepare_full_example_2
+    >>> from hydpy.examples import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
     >>> sequences = hp.elements.land_dill.model.sequences
     >>> bool(sequences.inlets)
@@ -367,7 +367,7 @@ to make any internal data available.
         project and focussing on the values of state sequence
         |hland_states.SM|:
 
-        >>> from hydpy.core.examples import prepare_full_example_2
+        >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> sequences = hp.elements.land_dill.model.sequences
         >>> sequences.states.sm
@@ -1116,7 +1116,7 @@ cannot be determined.  Either set it manually or prepare \
     We use the `LahnH` example project and focus on the `input`
     and `flux` sequences:
 
-    >>> from hydpy.core.examples import prepare_full_example_2
+    >>> from hydpy.examples import prepare_full_example_2
 
     >>> hp, pub, TestIO = prepare_full_example_2()
     >>> inputs = hp.elements.land_lahn_1.model.sequences.inputs
@@ -1843,7 +1843,7 @@ Attribute sequencemanager of module `pub` is not defined at the moment.
         explain this behaviour by using the `LahnH` example project
         and focussing on the |Obs| sequence of |Node| `dill`:
 
-        >>> from hydpy.core.examples import prepare_full_example_2
+        >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> obs = hp.nodes.dill.sequences.obs
 
@@ -2226,7 +2226,7 @@ dimension is 3 but corresponding boolean dimension is 2
         method |prepare_io_example_1| and select a 1-dimensional
         flux sequence of type |lland_fluxes.NKor| as an example:
 
-        >>> from hydpy.core.examples import prepare_io_example_1
+        >>> from hydpy.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> seq = elements.element3.model.sequences.fluxes.nkor
 
@@ -2865,7 +2865,7 @@ when using it, so please be careful).
         this by using the `LahnH` example project through invoking
         function |prepare_full_example_2|:
 
-        >>> from hydpy.core.examples import prepare_full_example_2
+        >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
 
         We focus on the |hstream_v1| application model `stream_lahn_1_lahn_2`
@@ -3007,7 +3007,7 @@ broadcast input array from shape (2) into shape (1)
         see the following examples which are, again, based on the
         `LahnH` example project and application model |hstream_v1|:
 
-        >>> from hydpy.core.examples import prepare_full_example_2
+        >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> model = hp.elements.stream_lahn_1_lahn_2.model
 
@@ -3222,7 +3222,7 @@ of node `node`, the following error occurred: \
         We use the observation series of node `dill` of the `LahnH`
         project as an example:
 
-        >>> from hydpy.core.examples import prepare_full_example_2
+        >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> obs = hp.nodes.dill.sequences.obs
 
@@ -3273,7 +3273,7 @@ class Sim(NodeSequence):
         does not disable property |IOSequence.memoryflag| and uses the option
         |Options.warnmissingsimfile| instead of |Options.warnmissingobsfile|:
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, pub, TestIO
         >>> hp = HydPy('LahnH')
@@ -3355,7 +3355,7 @@ class Obs(NodeSequence):
         which is ready for handling time series data at the end of the
         following steps:
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, pub, TestIO
         >>> hp = HydPy('LahnH')

@@ -48,7 +48,7 @@ The following real code examples show how to perform these three steps
 both for reading and writing data, based on the example configuration
 defined by function |prepare_io_example_1|:
 
->>> from hydpy.core.examples import prepare_io_example_1
+>>> from hydpy.examples import prepare_io_example_1
 >>> nodes, elements = prepare_io_example_1()
 
 (1) We prepare a |NetCDFInterface| object for writing data by
@@ -418,7 +418,7 @@ def query_variable(ncfile, name) -> netcdf4.Variable:
 def query_timegrid(ncfile) -> timetools.Timegrid:
     """Return the |Timegrid| defined by the given NetCDF file.
 
-    >>> from hydpy.core.examples import prepare_full_example_1
+    >>> from hydpy.examples import prepare_full_example_1
     >>> prepare_full_example_1()
     >>> from hydpy import TestIO
     >>> from hydpy.core.netcdftools import netcdf4
@@ -494,7 +494,7 @@ class NetCDFInterface:
     (1) We prepare a |SequenceManager| object and some devices handling
     different sequences by applying function |prepare_io_example_1|:
 
-    >>> from hydpy.core.examples import prepare_io_example_1
+    >>> from hydpy.examples import prepare_io_example_1
     >>> nodes, elements = prepare_io_example_1()
 
     (2) We collect all sequences to be used in the following examples:
@@ -586,7 +586,7 @@ a member named `lland_v3`.
     for each sequence type, resulting in a larger number separate
     NetCDF files containing only one NetCDF variable:
 
-    >>> from hydpy.core.examples import prepare_io_example_1
+    >>> from hydpy.examples import prepare_io_example_1
     >>> nodes, elements = prepare_io_example_1()
 
     >>> sequences = []
@@ -768,7 +768,7 @@ class NetCDFFile:
     (1) We prepare a |SequenceManager| object and some devices handling
     different sequences by applying function |prepare_io_example_1|:
 
-    >>> from hydpy.core.examples import prepare_io_example_1
+    >>> from hydpy.examples import prepare_io_example_1
     >>> nodes, (element1, element2, element3) = prepare_io_example_1()
 
     (2) We define two shortcuts for the sequences used in the following
@@ -853,7 +853,7 @@ named `state_bowa`.
         function |prepare_io_example_1|.  We limit our attention to the
         returned elements, which handle the more diverse sequences:
 
-        >>> from hydpy.core.examples import prepare_io_example_1
+        >>> from hydpy.examples import prepare_io_example_1
         >>> nodes, (element1, element2, element3) = prepare_io_example_1()
 
         (2) We define some shortcuts for the sequences used in the
@@ -1108,7 +1108,7 @@ handles time) or `1` (the second axis handles time), but for variable \
         >>> from hydpy import make_abc_testable
         >>> NCVar = make_abc_testable(NetCDFVariableBase)
         >>> ncvar = NCVar('flux_nkor', isolate=True, timeaxis=1)
-        >>> from hydpy.core.examples import prepare_io_example_1
+        >>> from hydpy.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> nkor = elements.element1.model.sequences.fluxes.nkor
         >>> ncvar.log(nkor, nkor.series)
@@ -1425,7 +1425,7 @@ class AggAndFlatMixin:
         prefixes the first dimension name related to the location, which
         allows storing different sequences types in one NetCDF file:
 
-        >>> from hydpy.core.examples import prepare_io_example_1
+        >>> from hydpy.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableAgg
         >>> ncvar = NetCDFVariableAgg('flux_nkor', isolate=False, timeaxis=1)
@@ -1466,7 +1466,7 @@ class NetCDFVariableDeep(DeepAndAggMixin, NetCDFVariableBase):
     function |prepare_io_example_1|.  We limit our attention to the
     returned elements, which handle the more diverse sequences:
 
-    >>> from hydpy.core.examples import prepare_io_example_1
+    >>> from hydpy.examples import prepare_io_example_1
     >>> nodes, (element1, element2, element3) = prepare_io_example_1()
 
     (2) We define two |NetCDFVariableDeep| instances with different
@@ -1609,7 +1609,7 @@ to the NetCDF file `model.nc`, the following error occurred: ...
         number of devices, and the second one to the number of timesteps.
         We show this for the 0-dimensional input sequence |lland_inputs.Nied|:
 
-        >>> from hydpy.core.examples import prepare_io_example_1
+        >>> from hydpy.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableDeep
         >>> ncvar = NetCDFVariableDeep('input_nied', isolate=False, timeaxis=1)
@@ -1658,7 +1658,7 @@ to the NetCDF file `model.nc`, the following error occurred: ...
         confirms that, for the default configuration, the first axis
         definces the location, while the second one defines time:
 
-        >>> from hydpy.core.examples import prepare_io_example_1
+        >>> from hydpy.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableDeep
         >>> ncvar = NetCDFVariableDeep('input_nied', isolate=False, timeaxis=1)
@@ -1712,7 +1712,7 @@ to the NetCDF file `model.nc`, the following error occurred: ...
         prefixes all dimension names except the second one related to time,
         which allows storing different sequences in one NetCDF file:
 
-        >>> from hydpy.core.examples import prepare_io_example_1
+        >>> from hydpy.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableDeep
         >>> ncvar = NetCDFVariableDeep('flux_nkor', isolate=False, timeaxis=1)
@@ -1775,7 +1775,7 @@ class NetCDFVariableAgg(DeepAndAggMixin, AggAndFlatMixin, NetCDFVariableBase):
     are a selection of the of the more thoroughly explained examples
     of the documentation on class |NetCDFVariableDeep|:
 
-    >>> from hydpy.core.examples import prepare_io_example_1
+    >>> from hydpy.examples import prepare_io_example_1
     >>> nodes, (element1, element2, element3) = prepare_io_example_1()
     >>> from hydpy.core.netcdftools import NetCDFVariableAgg
     >>> var_nied = NetCDFVariableAgg(
@@ -1828,7 +1828,7 @@ class NetCDFVariableAgg(DeepAndAggMixin, AggAndFlatMixin, NetCDFVariableBase):
         number of devices, and the second one to the number of timesteps.
         We show this for the 1-dimensional input sequence |lland_fluxes.NKor|:
 
-        >>> from hydpy.core.examples import prepare_io_example_1
+        >>> from hydpy.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableAgg
         >>> ncvar = NetCDFVariableAgg('flux_nkor', isolate=False, timeaxis=1)
@@ -1860,7 +1860,7 @@ class NetCDFVariableAgg(DeepAndAggMixin, AggAndFlatMixin, NetCDFVariableBase):
         the first axis corresponds to the location, while the second
         one corresponds to time:
 
-        >>> from hydpy.core.examples import prepare_io_example_1
+        >>> from hydpy.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableAgg
         >>> ncvar = NetCDFVariableAgg('flux_nkor', isolate=False, timeaxis=1)
@@ -1925,7 +1925,7 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
     structure should become clear when comparing the documentation on
     the different members of both classes.
 
-    >>> from hydpy.core.examples import prepare_io_example_1
+    >>> from hydpy.examples import prepare_io_example_1
     >>> nodes, (element1, element2, element3) = prepare_io_example_1()
 
     >>> from hydpy.core.netcdftools import NetCDFVariableFlat
@@ -1984,7 +1984,7 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
         to the number of devices, and the second one two the number of
         timesteps:
 
-        >>> from hydpy.core.examples import prepare_io_example_1
+        >>> from hydpy.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableFlat
         >>> ncvar = NetCDFVariableFlat('input_nied', isolate=False, timeaxis=1)
@@ -2029,7 +2029,7 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
         first axis corresponds to the location, while the second one
         corresponds to time:
 
-        >>> from hydpy.core.examples import prepare_io_example_1
+        >>> from hydpy.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableFlat
         >>> ncvar = NetCDFVariableFlat('input_nied', isolate=False, timeaxis=1)
@@ -2089,7 +2089,7 @@ class NetCDFVariableFlat(AggAndFlatMixin, NetCDFVariableBase):
         For 0-dimensional series like |lland_inputs.Nied|, the plain
         device names are returned
 
-        >>> from hydpy.core.examples import prepare_io_example_1
+        >>> from hydpy.examples import prepare_io_example_1
         >>> nodes, elements = prepare_io_example_1()
         >>> from hydpy.core.netcdftools import NetCDFVariableFlat
         >>> ncvar = NetCDFVariableFlat('input_nied', isolate=False, timeaxis=1)

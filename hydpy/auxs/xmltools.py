@@ -20,7 +20,7 @@ To show how to apply |run_simulation| via a command line, we first
 copy the `LahnH` project into the `iotesting` folder via calling
 function |prepare_full_example_1|:
 
->>> from hydpy.core.examples import prepare_full_example_1
+>>> from hydpy.examples import prepare_full_example_1
 >>> prepare_full_example_1()
 
 Running the simulation requires defining the main script (`hyd.py`),
@@ -323,7 +323,7 @@ file ...wrongfilepath.xml, the following error occurred: \
         The first example relies on a distorted version of the configuration
         file `single_run.xml`:
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import TestIO, xml_replace
         >>> from hydpy.auxs.xmltools import XMLInterface
@@ -487,7 +487,7 @@ correctly refer to one of the available XML schema files \
         `stepsize` elements as in the XML configuration file of the
         `LahnH` example project:
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import HydPy, pub, TestIO
         >>> from hydpy.auxs.xmltools import XMLInterface
@@ -540,7 +540,7 @@ correctly refer to one of the available XML schema files \
         """The |Selections| object defined on the main level of the actual
         XML file.
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
         >>> from hydpy import HydPy, TestIO, XMLInterface
@@ -573,7 +573,7 @@ a `Selection` object.
         """The additional devices defined on the main level of the actual
         XML file collected by a |Selection| object.
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
         >>> from hydpy import HydPy, TestIO, XMLInterface
@@ -601,7 +601,7 @@ a name or keyword.
         """Yield all |Element| objects returned by |XMLInterface.selections|
         and |XMLInterface.devices| without duplicates.
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
         >>> from hydpy import HydPy, TestIO, XMLInterface
@@ -632,7 +632,7 @@ a name or keyword.
         """A |Selection| object containing all |Element| and |Node| objects
         defined by |XMLInterface.selections| and |XMLInterface.devices|.
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
         >>> from hydpy import HydPy, TestIO, XMLInterface
@@ -703,7 +703,7 @@ class XMLConditions(XMLBase):
         """Load the condition files of the |Model| objects of all |Element|
         objects returned by |XMLInterface.elements|:
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
         >>> from hydpy import HydPy, pub, TestIO, XMLInterface
@@ -729,7 +729,7 @@ class XMLConditions(XMLBase):
         """Save the condition files of the |Model| objects of all |Element|
         objects returned by |XMLInterface.elements|:
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
         >>> import os
@@ -849,7 +849,7 @@ class XMLSelector(XMLBase):
         selections element, the general |XMLInterface.selections| element
         of |XMLInterface| is used.
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
         >>> from hydpy import HydPy, TestIO, XMLInterface
@@ -881,7 +881,7 @@ class XMLSelector(XMLBase):
         If the `reader` or `writer` element does not define its own additional
         devices, |XMLInterface.devices| of |XMLInterface| is used.
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
         >>> from hydpy import HydPy, TestIO, XMLInterface
@@ -922,7 +922,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         """Return the |Element| objects selected by the actual
         `reader` or `writer` element. ToDo
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
         >>> from hydpy import HydPy, TestIO, XMLInterface
@@ -943,7 +943,7 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         """Return the |Node| objects selected by the actual
         `reader` or `writer` element. ToDo
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
         >>> from hydpy import HydPy, TestIO, XMLInterface
@@ -985,7 +985,7 @@ class XMLSubseries(XMLSelector):
         principle mechanism is the same for other options, e.g. the
         aggregation mode):
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
         >>> from hydpy import HydPy, TestIO, XMLInterface, pub
@@ -1120,7 +1120,7 @@ class XMLSubseries(XMLSelector):
         Use the memory argument to pass in already prepared sequences;
         newly prepared sequences will be added.
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
         >>> from hydpy import HydPy, TestIO, XMLInterface
@@ -1158,7 +1158,7 @@ class XMLSubseries(XMLSelector):
         """Load time series data as defined by the actual XML `reader`
         element.
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
         >>> from hydpy import HydPy, TestIO, XMLInterface
@@ -1192,7 +1192,7 @@ class XMLSubseries(XMLSelector):
         """Save time series data as defined by the actual XML `writer`
         element.
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
         >>> from hydpy import HydPy, TestIO, XMLInterface
@@ -1258,7 +1258,7 @@ class XMLExchange(XMLBase):
     def parameteritems(self):
         """ ToDo
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
         >>> from hydpy import HydPy, TestIO, XMLInterface, pub
@@ -1283,7 +1283,7 @@ class XMLExchange(XMLBase):
     def conditionitems(self):
         """ ToDo
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
         >>> from hydpy import HydPy, TestIO, XMLInterface, pub
@@ -1304,7 +1304,7 @@ class XMLExchange(XMLBase):
     def getitems(self):
         """ ToDo
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
         >>> from hydpy import HydPy, TestIO, XMLInterface, pub
@@ -1398,7 +1398,7 @@ class XMLVar(XMLSelector):
     def item(self):
         """ ToDo
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
         >>> from hydpy import HydPy, TestIO, XMLInterface, pub

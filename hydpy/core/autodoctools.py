@@ -33,6 +33,7 @@ from hydpy import core
 from hydpy import cythons
 from hydpy import exe
 from hydpy import models
+from hydpy import examples
 from hydpy.core import objecttools
 from hydpy.cythons.autogen import annutils
 from hydpy.cythons.autogen import pointerutils
@@ -657,6 +658,7 @@ def prepare_mainsubstituter():
         for dummy, name, dummy in pkgutil.walk_packages(subpackage.__path__):
             full_name = subpackage.__name__ + '.' + name
             substituter.add_module(importlib.import_module(full_name))
+    substituter.add_module(examples)
     substituter.add_modules(models)
     for cymodule in (annutils, smoothutils, pointerutils):
         substituter.add_module(cymodule, cython=True)

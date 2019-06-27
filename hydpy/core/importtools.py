@@ -295,7 +295,7 @@ def controlcheck(controldir='default', projectdir=None, controlfile=None):
     (|hland_control.NmbZones|) defined in control file `land_dill.py`,
     verifies that this actually works within a new Python process:
 
-    >>> from hydpy.core.examples import prepare_full_example_1
+    >>> from hydpy.examples import prepare_full_example_1
     >>> prepare_full_example_1()
 
     >>> import os, subprocess

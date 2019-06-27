@@ -620,7 +620,7 @@ class NetworkManager(FileManager):
     the example project `LahnH` in the `iotesting` directory by calling
     function |prepare_full_example_1|:
 
-    >>> from hydpy.core.examples import prepare_full_example_1
+    >>> from hydpy.examples import prepare_full_example_1
     >>> prepare_full_example_1()
 
     You can define the complete network structure of an `HydPy` project
@@ -865,7 +865,7 @@ class ControlManager(FileManager):
         yet not correctly integrated into a complete *HydPy* project
         by passing its name:
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
         >>> from hydpy.core.filetools import ControlManager
@@ -1010,7 +1010,7 @@ class ConditionManager(FileManager):
     specific properties |ConditionManager.inputpath| and
     |ConditionManager.outputpath|:
 
-    >>> from hydpy.core.examples import prepare_full_example_2
+    >>> from hydpy.examples import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
 
     If the current directory named is not defined explicitly, both
@@ -1322,7 +1322,7 @@ class SequenceManager(FileManager):
     |Sim| and one 1-dimensional sequence of type |lland_fluxes.NKor| for the
     following examples:
 
-    >>> from hydpy.core.examples import prepare_io_example_1
+    >>> from hydpy.examples import prepare_io_example_1
     >>> nodes, elements = prepare_io_example_1()
     >>> sim = nodes.node2.sequences.sim
     >>> nkor = elements.element2.model.sequences.fluxes.nkor

@@ -40,7 +40,7 @@ server with an XML file.  As an example, we prepare the `LahnH` project
 by calling function |prepare_full_example_1|, which contains the XML
 configuration file `multiple_runs_alpha.xml`:
 
->>> from hydpy.core.examples import prepare_full_example_1
+>>> from hydpy.examples import prepare_full_example_1
 >>> prepare_full_example_1()
 
 To start the server in a new process, open a command line tool and
@@ -286,7 +286,7 @@ class ServerState:
         file `multiple_runs.xml` as an example (module |xmltools| provides
         information on interpreting this file):
 
-        >>> from hydpy.core.examples import prepare_full_example_1
+        >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
         >>> from hydpy import print_values, TestIO
         >>> from hydpy.exe.servertools import ServerState
@@ -404,7 +404,7 @@ class HydPyServer(http.server.BaseHTTPRequestHandler):
     However, this time we select the more complex XML configuration file
     `multiple_runs.xml`, covering a higher number of cases:
 
-    >>> from hydpy.core.examples import prepare_full_example_1
+    >>> from hydpy.examples import prepare_full_example_1
     >>> prepare_full_example_1()
     >>> from hydpy import run_subprocess, TestIO
     >>> with TestIO():
@@ -1171,7 +1171,7 @@ resulted in the following error:
     <urlopen error Waited for 0.1 seconds without response on port 8080.>
     ...
 
-    >>> from hydpy.core.examples import prepare_full_example_1
+    >>> from hydpy.examples import prepare_full_example_1
     >>> prepare_full_example_1()
     >>> with TestIO():
     ...     process = run_subprocess(

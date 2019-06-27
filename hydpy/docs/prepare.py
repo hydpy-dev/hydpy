@@ -67,8 +67,11 @@ hydpy.substituter.update_slaves()
 # or package.
 path2source = {}
 excludemembers = ", ".join(autodoctools.EXCLUDE_MEMBERS)
-for subpackage in (auxs, core, cythons, exe, models):
-    filenames = os.listdir(subpackage.__path__[0])
+for subpackage in (auxs, core, cythons, exe, models, hydpy):
+    if subpackage is hydpy:
+        filenames = ['examples.py']
+    else:
+        filenames = os.listdir(subpackage.__path__[0])
     substituter = hydpy.substituter
     for filename in filenames:
         is_module = (

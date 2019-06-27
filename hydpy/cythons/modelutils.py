@@ -805,7 +805,7 @@ class Cythonizer:
 file `c_hland_v1...` could not be found in directory \
 `.../hydpy/cythons/autogen/_build` nor any of its subdirectories.  \
 The distutil report should tell whether the file has been stored \
-somewhere else,is named somehow else, or could not be build at all.
+somewhere else, is named somehow else, or could not be build at all.
 
         >>> import os
         >>> from unittest import mock
@@ -868,7 +868,7 @@ to close all Python processes and restart the cythonization afterwards.
                 f'not be found in directory '
                 f'`{objecttools.repr_(self.buildpath)}` nor any of its '
                 f'subdirectories.  The distutil report should tell '
-                f'whether the file has been stored somewhere else,is '
+                f'whether the file has been stored somewhere else, is '
                 f'named somehow else, or could not be build at all.')
 
 

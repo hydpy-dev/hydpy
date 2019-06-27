@@ -118,5 +118,6 @@ Sections :ref:`core` covers the basic functionalities of the
    framework
    modelcollection
    development
+   examples
 
 

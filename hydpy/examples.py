@@ -18,7 +18,7 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     # noinspection PyUnresolvedReferences
     """Prepare an IO example configuration.
 
-    >>> from hydpy.core.examples import prepare_io_example_1
+    >>> from hydpy.examples import prepare_io_example_1
     >>> nodes, elements = prepare_io_example_1()
 
     (1) Prepares a short initialisation period of five days:
@@ -159,7 +159,7 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
 def prepare_full_example_1() -> None:
     """Prepare the complete `LahnH` project for testing.
 
-    >>> from hydpy.core.examples import prepare_full_example_1
+    >>> from hydpy.examples import prepare_full_example_1
     >>> prepare_full_example_1()
     >>> from hydpy import TestIO
     >>> import os
@@ -192,7 +192,7 @@ def prepare_full_example_2(lastdate='1996-01-05') -> (
     returns a readily prepared |HydPy| instance, as well as module
     |pub| and class |TestIO|, for convenience:
 
-    >>> from hydpy.core.examples import prepare_full_example_2
+    >>> from hydpy.examples import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
     >>> hp.nodes
     Nodes("dill", "lahn_1", "lahn_2", "lahn_3")

@@ -122,7 +122,7 @@ class ExchangeItem(abc.ABC):
         We prepare the `LahnH` example project to be able to use its
         |Selections| object:
 
-        >>> from hydpy.core.examples import prepare_full_example_2
+        >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
 
         We change the type of a specific application model to the type
@@ -237,7 +237,7 @@ class ChangeItem(ExchangeItem, metaclass=abc.ABCMeta):
         variables through applying method |ChangeItem.update_variables|
         of class |ChangeItem|.
 
-        >>> from hydpy.core.examples import prepare_full_example_2
+        >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy import SetItem
         >>> item = SetItem('ic', 'hland', 'states.ic', 0)
@@ -278,7 +278,7 @@ into shape ()
 
         For the following examples, we prepare the `LahnH` example project:
 
-        >>> from hydpy.core.examples import prepare_full_example_2
+        >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
 
         0-dimensional change-items do not have a variable shape, which is
@@ -332,7 +332,7 @@ different shapes.
         If the assignment fails, |ChangeItem.update_variable| raises an
         error like the following:
 
-        >>> from hydpy.core.examples import prepare_full_example_2
+        >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> item = SetItem('alpha', 'hland_v1', 'control.alpha', 0)
         >>> item.collect_variables(pub.selections)
@@ -372,7 +372,7 @@ class SetItem(ChangeItem):
 
         We use the `LahnH` project in the following:
 
-        >>> from hydpy.core.examples import prepare_full_example_2
+        >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
 
         In the first example, a 0-dimensional |SetItem| changes the value
@@ -481,7 +481,7 @@ class MathItem(ChangeItem, metaclass=abc.ABCMeta):
         of class |ExchangeItem| to collect the relevant base variables
         handled by the devices of the given |Selections| object.
 
-        >>> from hydpy.core.examples import prepare_full_example_2
+        >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy import AddItem
         >>> item = AddItem(
@@ -517,7 +517,7 @@ class AddItem(MathItem):
         """Add the general |ChangeItem.value| with the |Device| specific base
         variable and assign the result to the respective target variable.
 
-        >>> from hydpy.core.examples import prepare_full_example_2
+        >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy.models.hland_v1 import FIELD
         >>> for element in hp.elements.catchment:
@@ -579,7 +579,7 @@ class GetItem(ExchangeItem):
         The value of `ndim` depends on whether the values of the target
         variable or its time series is of interest:
 
-        >>> from hydpy.core.examples import prepare_full_example_2
+        >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy.core.itemtools import SetItem
         >>> for target in ('states.lz', 'states.lz.series',
@@ -610,7 +610,7 @@ class GetItem(ExchangeItem):
         the |Device| of the respective |Variable| object and the target
         description:
 
-        >>> from hydpy.core.examples import prepare_full_example_2
+        >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
         >>> from hydpy.core.itemtools import SetItem
         >>> item = GetItem('hland_v1', 'states.lz')

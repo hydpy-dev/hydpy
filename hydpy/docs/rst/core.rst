@@ -63,7 +63,6 @@ standardize writing *HydPy* code.
    auxfiletools
    devicetools
    dummytools
-   examples
    exceptiontools
    filetools
    hydpytools

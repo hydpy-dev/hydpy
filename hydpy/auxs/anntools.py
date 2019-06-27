@@ -10,8 +10,8 @@ the actual calculations are defined in the Cython extension module
 
 # import...
 # ...from standard library
-from typing import Dict, Iterable, Tuple
 import weakref
+from typing import *
 # ...from site-packages
 import numpy
 # ...from HydPy
@@ -20,8 +20,6 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import propertytools
 from hydpy.core import timetools
-from hydpy.core import typingtools
-from hydpy.core import variabletools
 from hydpy.cythons.autogen import annutils
 pyplot = exceptiontools.OptionalImport(
     'matplotlib.pyplot', ['from matplotlib import pyplot'])
@@ -841,6 +839,9 @@ parameter `ann` of element `?` has not been defined so far.
         by argument `points`.  Additional `matplotlib` plotting arguments
         can be passed as keyword arguments.
         """
+        # pylint: disable=unsubscriptable-object
+        # pylint: disable=unsupported-assignment-operation
+        # pylint is wrong about "self.inputs"
         xs_ = numpy.linspace(xmin, xmax, points)
         ys_ = numpy.zeros(xs_.shape)
         for idx, x__ in enumerate(xs_):
@@ -1645,4 +1646,3 @@ neural network `seasonalann` of element `?` none has been defined so far.
         toy_1_1_0_0_0, toys, verify
         """
         return objecttools.dir_(self) + [str(toy) for toy in self.toys]
-

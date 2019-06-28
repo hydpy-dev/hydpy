@@ -933,12 +933,12 @@ operands could not be broadcast together with shapes (2,) (3,)...
     var(3.0)
     """
     # Subclasses need to define...
-    NDIM: ClassVar[int]
-    TYPE: ClassVar[type]
+    NDIM: int
+    TYPE: Type
     # ...and optionally...
-    SPAN: ClassVar[Tuple[Union[int, float, bool, None],
-                         Union[int, float, bool, None]]] = (None, None)
-    INIT: ClassVar[Union[int, float, bool, None]] = None
+    SPAN: Tuple[Union[int, float, bool, None],
+                Union[int, float, bool, None]] = (None, None)
+    INIT: Union[int, float, bool, None] = None
 
     NOT_DEEPCOPYABLE_MEMBERS: Tuple[str, ...] = ('subvars', 'fastaccess')
 
@@ -1313,7 +1313,14 @@ as `var` can only be `()`, but `(2,)` is given.
             f'as {objecttools.devicephrase(self)} can only be `()`, '
             f'but `{shape}` is given.')
 
-    name = property(objecttools.name)
+    @property
+    def name(self):
+        """Name of the class of the given instance in lower case letters.
+
+        See the documentation on function |objecttools.get_name| for
+        additional information.
+        """
+        return objecttools.get_name(self)
 
     def verify(self) -> None:
         """Raises a |RuntimeError| if at least one of the required values
@@ -1895,7 +1902,7 @@ variable `testvar`.
     >>> len(subvars)
     1
     """
-    CLASSES: ClassVar[Tuple[Type[typingtools.VariableProtocol], ...]]
+    CLASSES: Tuple[Type[typingtools.VariableProtocol], ...]
     vars: GroupType
     _name2variable: Dict[str, typingtools.VariableProtocol] = {}
     fastaccess: Union['FastAccess', typingtools.FastAccessModelSequenceProtocol]

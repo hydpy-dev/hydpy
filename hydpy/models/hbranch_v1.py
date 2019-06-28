@@ -102,8 +102,11 @@ from hydpy.models.hbranch import hbranch_outlets
 class Model(hbranch_model.Model):
     """The HBV96 version of HydPy-H-Stream (hbranch_v1)."""
     INLET_METHODS = (hbranch_model.pick_input_v1,)
+    RECEIVER_METHODS = ()
     RUN_METHODS = (hbranch_model.calc_outputs_v1,)
+    ADD_METHODS = ()
     OUTLET_METHODS = (hbranch_model.pass_outputs_v1,)
+    SENDER_METHODS = ()
 
 
 class ControlParameters(parametertools.SubParameters):

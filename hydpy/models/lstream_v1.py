@@ -196,9 +196,10 @@ from hydpy.models.lstream import lstream_inlets
 from hydpy.models.lstream import lstream_outlets
 
 
-class Model(modeltools.Model):
+class Model(modeltools.AdHocModel):
     """LARSIM-Stream (Manning) version of HydPy-L-Stream (lstream_v1)."""
     INLET_METHODS = (lstream_model.pick_q_v1,)
+    RECEIVER_METHODS = ()
     RUN_METHODS = (lstream_model.calc_qref_v1,
                    lstream_model.calc_hmin_qmin_hmax_qmax_v1,
                    lstream_model.calc_h_v1,
@@ -213,7 +214,7 @@ class Model(modeltools.Model):
                    lstream_model.calc_qvr_v1,
                    lstream_model.calc_qg_v1)
     OUTLET_METHODS = (lstream_model.pass_q_v1,)
-
+    SENDER_METHODS = ()
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of lstream_v1, directly defined by the user."""

@@ -64,14 +64,17 @@ class DevicesHandlerProtocol(Protocol):
 class VariableProtocol(Protocol):
     """Protocol to identify objects as "variables"."""
 
-    name: str
+    @property
+    @abc.abstractmethod
+    def name(self) -> str:
+        ...
 
     @abc.abstractmethod
     def __init__(self, subvars: 'variabletools.SubgroupType'):
         """See class |Parameter| and class |Sequence|."""
 
     @abc.abstractmethod
-    def __hydpy__connect_variable2subgroup__(self):
+    def __hydpy__connect_variable2subgroup__(self) -> None:
         """To be called by the |SubVariables| object when preparing a
         new |Variable| object."""
 
@@ -84,7 +87,10 @@ class CyModelProtocol(Protocol):
     implementations automatically.
     """
 
-    sequences: Any
+    idx_sim: int
+    sequences: Any   # ToDo
+
+
 
 
 class FastAccessModelSequenceProtocol(Protocol):

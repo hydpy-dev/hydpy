@@ -121,16 +121,16 @@ def value_of_type(value):
     return 'value `%s` of type `%s`' % (value, classname(value))
 
 
-def name(self):
-    """Name of the class of the given instance in lower case letters.
+def get_name(self) -> str:
+    """Return the name of the class of the given instance in lower case letters.
 
     This function is thought to be implemented as a property.  Otherwise
     it would violate the principle not to access or manipulate private
     attributes ("_name"):
 
-    >>> from hydpy.core.objecttools import name
+    >>> from hydpy.core.objecttools import get_name
     >>> class Test:
-    ...     name = property(name)
+    ...     name = property(get_name)
     >>> test1 = Test()
     >>> test1.name
     'test'
@@ -183,14 +183,14 @@ def devicename(self):
     """Try to return the name of the (indirect) master |Node| or
     |Element| instance, if not possible return `?`.
 
-    >>> from hydpy.core.modeltools import Model
-    >>> model = Model()
+    >>> from hydpy import prepare_model
+    >>> model = prepare_model('hland_v1')
     >>> from hydpy.core.objecttools import devicename
     >>> devicename(model)
     '?'
 
     >>> from hydpy import Element
-    >>> e1 = Element('e1')
+    >>> e1 = Element('e1', outlets='n1')
     >>> e1.model = model
     >>> devicename(e1)
     'e1'

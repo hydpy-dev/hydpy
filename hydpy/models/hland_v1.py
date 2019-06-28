@@ -833,8 +833,10 @@ from hydpy.models.hland import hland_masks
 from hydpy.models.hland.hland_constants import *
 
 
-class Model(modeltools.Model):
+class Model(modeltools.AdHocModel):
     """HBV96 version of HydPy-H-Land (|hland_v1|)."""
+    INLET_METHODS = ()
+    RECEIVER_METHODS = ()
     RUN_METHODS = (hland_model.calc_tc_v1,
                    hland_model.calc_tmean_v1,
                    hland_model.calc_fracrain_v1,
@@ -861,8 +863,9 @@ class Model(modeltools.Model):
                    hland_model.calc_inuh_v1,
                    hland_model.calc_outuh_quh_v1,
                    hland_model.calc_qt_v1)
+    ADD_METHODS = ()
     OUTLET_METHODS = (hland_model.update_q_v1,)
-
+    SENDER_METHODS = ()
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of |hland_v1|, directly defined by the user."""

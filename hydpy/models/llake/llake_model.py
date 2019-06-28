@@ -653,10 +653,11 @@ def pass_q_v1(self):
     out.q[0] += flu.qa
 
 
-class Model(modeltools.Model):
+class Model(modeltools.AdHocModel):
     """Base model for HydPy-L-Lake."""
 
     INLET_METHODS = (pick_q_v1,)
+    RECEIVER_METHODS = ()
     RUN_METHODS = (solve_dv_dt_v1,
                    interp_w_v1,
                    corr_dw_v1,
@@ -666,3 +667,4 @@ class Model(modeltools.Model):
                    interp_qa_v1,
                    calc_v_qa_v1)
     OUTLET_METHODS = (pass_q_v1,)
+    SENDER_METHODS = ()

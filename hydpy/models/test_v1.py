@@ -21,10 +21,14 @@ from hydpy.models.test import test_fluxes
 from hydpy.models.test import test_states
 
 
-class Model(modeltools.ModelELS):
+class Model(modeltools.ELSModel):
     """Test model, Version 1."""
+    INLET_METHODS = ()
+    RECEIVER_METHODS = ()
     PART_ODE_METHODS = (test_model.calc_q_v1,)
     FULL_ODE_METHODS = (test_model.calc_s_v1,)
+    OUTLET_METHODS = ()
+    SENDER_METHODS = ()
 
 
 class ControlParameters(parametertools.SubParameters):

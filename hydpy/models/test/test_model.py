@@ -113,8 +113,12 @@ def calc_s_v1(self):
     new.s = old.s-flu.q
 
 
-class Model(modeltools.ModelELS):
+class Model(modeltools.ELSModel):
     """Test model."""
+    INLET_METHODS = ()
+    RECEIVER_METHODS = ()
     PART_ODE_METHODS = (calc_q_v1,
                         calc_q_v2)
     FULL_ODE_METHODS = (calc_s_v1,)
+    OUTLET_METHODS = ()
+    SENDER_METHODS = ()

@@ -939,7 +939,7 @@ the following error occurred: While trying to convert the value(s) \
 the following error occurred: could not broadcast input array from \
 shape (2) into shape (2,3)
     """
-    TIME: ClassVar[Optional[bool]]
+    TIME: Optional[bool]
 
     parameterstep = Parameterstep()
     simulationstep = Simulationstep()
@@ -2663,7 +2663,7 @@ class SolverParameter(Parameter):
     is the |dam| model. Its code consists of the original differential
     equations, which must be solved by a separate algorithm.  Such
     algorithms, like the Runge Kutta schema implemented in class
-    |ModelELS|, often come with some degrees of freedom, for example,
+    |ELSModel|, often come with some degrees of freedom, for example,
     to control the striven numerical accuracy.
 
     On the one hand, the model developer should know best how to configure
@@ -2755,7 +2755,7 @@ class SolverParameter(Parameter):
     >>> modtol
     modtol(0.01)
     """
-    INIT: ClassVar[Union[int, float, bool]]
+    INIT: Union[int, float, bool]
 
     def __init__(self, subvars):
         super().__init__(subvars)

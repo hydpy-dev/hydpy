@@ -15,8 +15,8 @@ so far, problems might arise.  Please contact the *HydPy*
 developer team then, preferably by opening an `issue`_ on GitHub.
 Potentially, problems could occur when defining parameters or sequences
 with larger dimensionality than anticipated.  The following
-example shows the Cython code lines for the |ModelELS.get_point_states|
-method of class |ModelELS|, used for deriving the |test| model.  By
+example shows the Cython code lines for the |ELSModel.get_point_states|
+method of class |ELSModel|, used for deriving the |test| model.  By
 now, we did only implement 0-dimensional sequences requiring this
 method.  After hackishly changing the dimensionality of sequence
 |test_states.S|, we still seem to get plausible results, but these
@@ -60,7 +60,7 @@ NotImplementedError: NDIM of sequence `s` is higher than expected.
 
 The following examples show the results for some methods which are also
 related to numerical integration but deal with |FluxSequence| objects.
-We start with the method |ModelELS.integrate_fluxes|:
+We start with the method |ELSModel.integrate_fluxes|:
 
 >>> pyxwriter.integrate_fluxes
             . integrate_fluxes
@@ -109,7 +109,7 @@ Traceback (most recent call last):
 ...
 NotImplementedError: NDIM of sequence `q` is higher than expected.
 
-Method |ModelELS.reset_sum_fluxes|:
+Method |ELSModel.reset_sum_fluxes|:
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 0
 >>> pyxwriter.reset_sum_fluxes
@@ -143,7 +143,7 @@ Traceback (most recent call last):
 ...
 NotImplementedError: NDIM of sequence `q` is higher than expected.
 
-Method |ModelELS.addup_fluxes|:
+Method |ELSModel.addup_fluxes|:
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 0
 >>> pyxwriter.addup_fluxes
@@ -180,7 +180,7 @@ Traceback (most recent call last):
 ...
 NotImplementedError: NDIM of sequence `q` is higher than expected.
 
-Method |ModelELS.calculate_error|:
+Method |ELSModel.calculate_error|:
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 0
 >>> pyxwriter.calculate_error
@@ -248,13 +248,13 @@ import hydpy
 from hydpy import config
 from hydpy import cythons
 from hydpy.core import importtools
+from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import printtools
 from hydpy.core import sequencetools
 from hydpy.core import testtools
 if TYPE_CHECKING:
-    from hydpy.core import modeltools
     from hydpy.core import typingtools
 
 
@@ -950,7 +950,8 @@ class PyxWriter:
         lines = Lines()
         for (name, member) in vars(self.cythonizer).items():
             if (name.isupper() and not inspect.isclass(member) and
-                    isinstance(member, tuple(TYPE2STR.keys()))):
+                    isinstance(
+                        member, tuple([t for t in TYPE2STR.keys() if t]))):
                 ndim = numpy.array(member).ndim
                 ctype = TYPE2STR[type(member)] + NDIM2STR[ndim]
                 lines.add(0, f'cdef public {ctype} {name} = {member}')
@@ -1267,7 +1268,7 @@ class PyxWriter:
     def numericalparameters(self) -> List[str]:
         """Numeric parameter declaration lines."""
         lines = Lines()
-        if self.model.NUMERICAL:
+        if isinstance(self.model, modeltools.SolverModel):
             lines.add(0, '@cython.final')
             lines.add(0, 'cdef class NumConsts:')
             for name in ('nmb_methods', 'nmb_stages'):
@@ -1307,7 +1308,8 @@ class PyxWriter:
         lines.extend(self.simulate)
         lines.extend(self.iofunctions)
         lines.extend(self.new2old)
-        lines.extend(self.run)
+        if isinstance(self.model, modeltools.AdHocModel):
+            lines.extend(self.run(self.model))
         lines.extend(self.update_inlets)
         lines.extend(self.update_outlets)
         lines.extend(self.update_receivers)
@@ -1318,20 +1320,21 @@ class PyxWriter:
     def modelnumericfunctions(self) -> List[str]:
         """Numerical integration functions of the model class."""
         lines = Lines()
-        lines.extend(self.solve)
-        lines.extend(self.calculate_single_terms)
-        lines.extend(self.calculate_full_terms)
-        lines.extend(self.get_point_states)
-        lines.extend(self.set_point_states)
-        lines.extend(self.set_result_states)
-        lines.extend(self.get_sum_fluxes)
-        lines.extend(self.set_point_fluxes)
-        lines.extend(self.set_result_fluxes)
-        lines.extend(self.integrate_fluxes)
-        lines.extend(self.reset_sum_fluxes)
-        lines.extend(self.addup_fluxes)
-        lines.extend(self.calculate_error)
-        lines.extend(self.extrapolate_error)
+        if isinstance(self.model, modeltools.SolverModel):
+            lines.extend(self.solve)
+            lines.extend(self.calculate_single_terms(self.model))
+            lines.extend(self.calculate_full_terms(self.model))
+            lines.extend(self.get_point_states)
+            lines.extend(self.set_point_states)
+            lines.extend(self.set_result_states)
+            lines.extend(self.get_sum_fluxes)
+            lines.extend(self.set_point_fluxes)
+            lines.extend(self.set_result_fluxes)
+            lines.extend(self.integrate_fluxes)
+            lines.extend(self.reset_sum_fluxes)
+            lines.extend(self.addup_fluxes)
+            lines.extend(self.calculate_error)
+            lines.extend(self.extrapolate_error)
         return lines
 
     @property
@@ -1345,7 +1348,7 @@ class PyxWriter:
             lines.add(2, 'self.load_data()')
         if self.model.INLET_METHODS:
             lines.add(2, 'self.update_inlets()')
-        if hasattr(self.model, 'solve'):
+        if isinstance(self.model, modeltools.SolverModel):
             lines.add(2, 'self.solve()')
         else:
             lines.add(2, 'self.run()')
@@ -1498,11 +1501,9 @@ class PyxWriter:
         return self._call_methods('update_inlets',
                                   self.model.INLET_METHODS)
 
-    @property
-    def run(self) -> List[str]:
-        """Lines of the model method with the same name."""
-        return self._call_methods('run',
-                                  self.model.RUN_METHODS)
+    def run(self, model: 'modeltools.AdHocModel') -> List[str]:
+        """Return the lines of the model method with the same name."""
+        return self._call_methods('run', model.RUN_METHODS)
 
     @property
     def update_outlets(self) -> List[str]:
@@ -1517,21 +1518,21 @@ class PyxWriter:
                                   self.model.SENDER_METHODS,
                                   True)
 
-    @property
-    def calculate_single_terms(self) -> List[str]:
-        """Lines of the model method with the same name."""
+    def calculate_single_terms(self, model: 'modeltools.SolverModel') \
+            -> List[str]:
+        """Return the lines of the model method with the same name."""
         lines = self._call_methods('calculate_single_terms',
-                                   self.model.PART_ODE_METHODS)
+                                   model.PART_ODE_METHODS)
         if lines:
             lines.insert(1, ('        self.numvars.nmb_calls ='
                              'self.numvars.nmb_calls+1'))
         return lines
 
-    @property
-    def calculate_full_terms(self) -> List[str]:
-        """Lines of the model method with the same name."""
+    def calculate_full_terms(self, model: 'modeltools.SolverModel') \
+            -> List[str]:
+        """Return the lines of the model method with the same name."""
         return self._call_methods('calculate_full_terms',
-                                  self.model.FULL_ODE_METHODS)
+                                  model.FULL_ODE_METHODS)
 
     @property
     def listofmodeluserfunctions(self) -> List[Tuple[str, Callable]]:

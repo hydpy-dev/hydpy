@@ -2250,8 +2250,10 @@ def update_q_v1(self):
     out.q[0] += der.qfactor*flu.qt
 
 
-class Model(modeltools.Model):
+class Model(modeltools.AdHocModel):
     """The HydPy-H-Land base model."""
+    INLET_METHODS = ()
+    RECEIVER_METHODS = ()
     RUN_METHODS = (calc_tc_v1,
                    calc_tmean_v1,
                    calc_fracrain_v1,
@@ -2278,4 +2280,6 @@ class Model(modeltools.Model):
                    calc_inuh_v1,
                    calc_outuh_quh_v1,
                    calc_qt_v1)
+    ADD_METHODS = ()
     OUTLET_METHODS = (update_q_v1,)
+    SENDER_METHODS = ()

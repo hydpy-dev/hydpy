@@ -160,7 +160,7 @@ class IndexMask(DefaultMask):
     examples.  Further, see the documentation on class |CustomMask| for the
     basic usage of class |DefaultMask|.
     """
-    RELEVANT_VALUES = ()
+    RELEVANT_VALUES: Tuple[int, ...]
 
     @classmethod
     def new(cls, variable, **kwargs):
@@ -303,7 +303,7 @@ the following error occurred: The key does not define an available mask.
     TypeError: While trying to retrieve a mask based on key `1`, the \
 following error occurred: The given key is neither a `string` a `mask` type.
     """
-    CLASSES = ()
+    CLASSES: Tuple[Type[BaseMask], ...]
 
     def __init__(self, model):
         self.model = model
@@ -315,8 +315,10 @@ following error occurred: The given key is neither a `string` a `mask` type.
         """`masks`
 
         >>> from hydpy.core.masktools import Masks
+        >>> Masks.CLASSES = ()
         >>> Masks(None).name
         'masks'
+        >>> del Masks.CLASSES
         """
         return 'masks'
 

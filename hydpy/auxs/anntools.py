@@ -274,7 +274,14 @@ attribute `nmb_inputs` first.
         self.fastaccess = self.subpars.fastaccess
         setattr(self.fastaccess, self.name, self._cann)
 
-    name = property(objecttools.name)
+    @property
+    def name(self):
+        """Name of the class of the given instance in lower case letters.
+
+        See the documentation on function |objecttools.get_name| for
+        additional information.
+        """
+        return objecttools.get_name(self)
 
     def __call__(self, nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
                  weights_input=None, weights_output=None, weights_hidden=None,
@@ -1286,7 +1293,14 @@ been given, but a value of type `ANN` is required.
         |SubParameters| object."""
         self.fastaccess = self.subpars.fastaccess
 
-    name = property(objecttools.name)
+    @property
+    def name(self):
+        """Name of the class of the given instance in lower case letters.
+
+        See the documentation on function |objecttools.get_name| for
+        additional information.
+        """
+        return objecttools.get_name(self)
 
     def __call__(self, *args, **kwargs) -> None:
         self._toy2ann.clear()

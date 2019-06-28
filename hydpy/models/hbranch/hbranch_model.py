@@ -112,14 +112,17 @@ def pass_outputs_v1(self):
         out.branched[bdx][0] += flu.outputs[bdx]
 
 
-class Model(modeltools.Model):
+class Model(modeltools.AdHocModel):
     """The HydPy-H-Branch model."""
     INLET_METHODS = (pick_input_v1,)
+    RECEIVER_METHODS = ()
     RUN_METHODS = (calc_outputs_v1,)
+    ADD_METHODS = ()
     OUTLET_METHODS = (pass_outputs_v1,)
+    SENDER_METHODS = ()
 
     def __init__(self):
-        modeltools.Model.__init__(self)
+        modeltools.AdHocModel.__init__(self)
         self.nodenames = []
 
     def connect(self):

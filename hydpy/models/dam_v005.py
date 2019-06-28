@@ -374,7 +374,7 @@ from hydpy.models.dam import dam_receivers
 from hydpy.models.dam import dam_senders
 
 
-class Model(modeltools.ModelELS):
+class Model(modeltools.ELSModel):
     """Version 5 of HydPy-Dam."""
 
     INLET_METHODS = (dam_model.pic_inflow_v2,

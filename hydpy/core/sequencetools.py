@@ -859,9 +859,9 @@ retrieved after it has been defined.
     >>> sfa.fastaccess._sfa_length
     0
     """
-    TYPE: ClassVar[Type[float]] = float
-    INIT: ClassVar[float] = 0.0
-    NUMERIC: ClassVar[bool]
+    TYPE: Type[float] = float
+    INIT: float = 0.0
+    NUMERIC: bool
 
     strict_valuehandling = False
 
@@ -1712,7 +1712,7 @@ or prepare `pub.sequencemanager` correctly.
         """The shape of the array of temporary values required for the
         relevant numerical solver.
 
-        The class |ModelELS|, being the base of the "dam" model, uses
+        The class |ELSModel|, being the base of the "dam" model, uses
         the "Explicit Lobatto Sequence" for solving differential equations
         and therefore requires up to eleven array fields for storing
         temporary values.  Hence, the |IOSequence.numericshape| of the
@@ -3113,8 +3113,8 @@ of element `stream_lahn_1_lahn_2`, the following error occurred: \
 
 class NodeSequence(IOSequence):
     """Base class for all sequences to be handled by |Node| objects."""
-    NDIM: ClassVar[int] = 0
-    NUMERIC: ClassVar[bool] = False
+    NDIM: int = 0
+    NUMERIC: bool = False
 
     filetype_ext = _FileType()
     dirpath_ext = _DirPathProperty()
@@ -3458,7 +3458,7 @@ class NodeSequences(IOSequences):
     >>> node.sequences.node
     Node("node", variable="Q")
     """
-    CLASSES: ClassVar[Tuple[Type[Sim], Type[Obs]]] = (Sim, Obs)
+    CLASSES: Tuple[Type[Sim], Type[Obs]] = (Sim, Obs)
 
     node: 'devicetools.Node'
     sim: Sim

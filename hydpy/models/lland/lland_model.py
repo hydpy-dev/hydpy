@@ -2023,9 +2023,10 @@ def pass_q_v1(self):
     out.q[0] += der.qfactor*flu.q
 
 
-class Model(modeltools.Model):
+class Model(modeltools.AdHocModel):
     """Base model for HydPy-L-Land."""
-
+    INLET_METHODS = ()
+    RECEIVER_METHODS = ()
     RUN_METHODS = (calc_nkor_v1,
                    calc_tkor_v1,
                    calc_et0_v1,
@@ -2054,4 +2055,6 @@ class Model(modeltools.Model):
                    calc_qdga1_v1,
                    calc_qdga2_v1,
                    calc_q_v1)
+    ADD_METHODS = ()
     OUTLET_METHODS = (pass_q_v1,)
+    SENDER_METHODS = ()

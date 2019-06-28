@@ -232,11 +232,14 @@ from hydpy.models.hstream import hstream_inlets
 from hydpy.models.hstream import hstream_outlets
 
 
-class Model(modeltools.Model):
+class Model(modeltools.AdHocModel):
     """The HBV96 version of HydPy-H-Stream (|hstream_v1|)."""
     INLET_METHODS = (hstream_model.pick_q_v1,)
+    RECEIVER_METHODS = ()
     RUN_METHODS = (hstream_model.calc_qjoints_v1,)
+    ADD_METHODS = ()
     OUTLET_METHODS = (hstream_model.pass_q_v1,)
+    SENDER_METHODS = ()
 
 
 class ControlParameters(parametertools.SubParameters):

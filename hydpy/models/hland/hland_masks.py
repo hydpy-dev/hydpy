@@ -10,9 +10,8 @@ from hydpy.models.hland import hland_constants
 from hydpy.models.hland.hland_constants import FIELD, FOREST, ILAKE, GLACIER
 
 
-class Complete(masktools.IndexMask):
-    """Mask including all types of zones."""
-    RELEVANT_VALUES = (FIELD, FOREST, ILAKE, GLACIER)
+class BaseMask(masktools.IndexMask):
+    """To be overridden."""
 
     @staticmethod
     def get_refindices(variable):
@@ -20,37 +19,42 @@ class Complete(masktools.IndexMask):
         return variable.subvars.vars.model.parameters.control.zonetype
 
 
-class Land(Complete):
+class Complete(BaseMask):
+    """Mask including all types of zones."""
+    RELEVANT_VALUES = (FIELD, FOREST, ILAKE, GLACIER)
+
+
+class Land(BaseMask):
     """Mask including zones of type |FIELD|, |FOREST|, and |GLACIER|."""
     RELEVANT_VALUES = (FIELD, FOREST, GLACIER)
 
 
-class NoGlacier(Complete):
+class NoGlacier(BaseMask):
     """Mask including zones of type |FIELD|, |FOREST|, and |ILAKE|."""
     RELEVANT_VALUES = (FIELD, FOREST, ILAKE)
 
 
-class Soil(Complete):
+class Soil(BaseMask):
     """Mask including zones of type |FIELD| and |FOREST|."""
     RELEVANT_VALUES = (FIELD, FOREST)
 
 
-class Field(Complete):
+class Field(BaseMask):
     """Mask for zone type |FIELD|."""
     RELEVANT_VALUES = (FIELD,)
 
 
-class Forest(Complete):
+class Forest(BaseMask):
     """Mask for zone type |FOREST|."""
     RELEVANT_VALUES = (FOREST,)
 
 
-class ILake(Complete):
+class ILake(BaseMask):
     """Mask for zone type |ILAKE|."""
     RELEVANT_VALUES = (ILAKE,)
 
 
-class Glacier(Complete):
+class Glacier(BaseMask):
     """Mask for zone type |GLACIER|."""
     RELEVANT_VALUES = (GLACIER,)
 

@@ -1123,8 +1123,10 @@ from hydpy.models.lland import lland_masks
 from hydpy.models.lland.lland_constants import *
 
 
-class Model(modeltools.Model):
+class Model(modeltools.AdHocModel):
     """External ET0 version of HydPy-L-Land (|lland_v2|)."""
+    INLET_METHODS = ()
+    RECEIVER_METHODS = ()
     RUN_METHODS = (lland_model.calc_nkor_v1,
                    lland_model.calc_tkor_v1,
                    lland_model.calc_et0_wet0_v1,
@@ -1152,7 +1154,9 @@ class Model(modeltools.Model):
                    lland_model.calc_qdga1_v1,
                    lland_model.calc_qdga2_v1,
                    lland_model.calc_q_v1)
+    ADD_METHODS = ()
     OUTLET_METHODS = (lland_model.pass_q_v1,)
+    SENDER_METHODS = ()
 
 
 class ControlParameters(parametertools.SubParameters):

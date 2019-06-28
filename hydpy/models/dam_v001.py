@@ -1155,7 +1155,7 @@ from hydpy.models.dam import dam_outlets
 from hydpy.models.dam import dam_receivers
 
 
-class Model(modeltools.ModelELS):
+class Model(modeltools.ELSModel):
     """Version 1 of HydPy-Dam."""
 
     INLET_METHODS = (dam_model.pic_inflow_v1,
@@ -1175,6 +1175,7 @@ class Model(modeltools.ModelELS):
     FULL_ODE_METHODS = (dam_model.update_watervolume_v1,)
     OUTLET_METHODS = (dam_model.pass_outflow_v1,
                       dam_model.update_loggedoutflow_v1)
+    SENDER_METHODS = ()
 
 
 class ControlParameters(parametertools.SubParameters):

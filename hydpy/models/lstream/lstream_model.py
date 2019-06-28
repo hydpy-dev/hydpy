@@ -955,9 +955,10 @@ def pass_q_v1(self):
     out.q[0] += sta.qa
 
 
-class Model(modeltools.Model):
+class Model(modeltools.AdHocModel):
     """The HydPy-L-Stream model."""
     INLET_METHODS = (pick_q_v1,)
+    RECEIVER_METHODS = ()
     RUN_METHODS = (calc_qref_v1,
                    calc_hmin_qmin_hmax_qmax_v1,
                    calc_h_v1,
@@ -972,3 +973,4 @@ class Model(modeltools.Model):
                    calc_qvr_v1,
                    calc_qg_v1)
     OUTLET_METHODS = (pass_q_v1,)
+    SENDER_METHODS = ()

@@ -439,10 +439,11 @@ def pass_q_v1(self):
     out.q[0] += flu.qout
 
 
-class Model(modeltools.Model):
+class Model(modeltools.AdHocModel):
     """Base model ARMA."""
 
     INLET_METHODS = (pick_q_v1,)
+    RECEIVER_METHODS = ()
     RUN_METHODS = (calc_qpin_v1,
                    calc_login_v1,
                    calc_qma_v1,
@@ -450,4 +451,6 @@ class Model(modeltools.Model):
                    calc_qpout_v1,
                    calc_logout_v1,
                    calc_qout_v1)
+    ADD_METHODS = ()
     OUTLET_METHODS = (pass_q_v1,)
+    SENDER_METHODS = ()

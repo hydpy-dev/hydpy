@@ -2335,7 +2335,7 @@ def update_loggedoutflow_v1(self):
     log.loggedoutflow[0] = flu.outflow
 
 
-class Model(modeltools.ModelELS):
+class Model(modeltools.ELSModel):
     """Dam base model."""
 
     INLET_METHODS = (pic_inflow_v1,

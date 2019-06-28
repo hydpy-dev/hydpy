@@ -123,8 +123,11 @@ def pass_q_v1(self):
     out.q[0] += new.qjoints[der.nmbsegments]
 
 
-class Model(modeltools.Model):
+class Model(modeltools.AdHocModel):
     """The HydPy-H-Stream model."""
     INLET_METHODS = (pick_q_v1,)
+    RECEIVER_METHODS = ()
     RUN_METHODS = (calc_qjoints_v1,)
+    ADD_METHODS = ()
     OUTLET_METHODS = (pass_q_v1,)
+    SENDER_METHODS = ()

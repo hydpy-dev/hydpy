@@ -4,10 +4,10 @@ additional behaviour."""
 
 # import...
 # ...from standard-library
-from typing import Any, Callable
 import abc
 import inspect
 import types
+from typing import *
 # ...from HydPy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
@@ -160,18 +160,18 @@ methods call_fdel, call_fget, call_fset
     def getter(self, fget: Callable) -> 'BaseProperty':
         """Add the given getter function and its docstring to the
          property and return it."""
-        self.fget = fget
+        setattr(self, 'fget', fget)
         self.set_doc(getattr(fget, '__doc__'))
         return self
 
     def setter(self, fset: Callable) -> 'BaseProperty':
         """Add the given setter function to the property and return it."""
-        self.fset = fset
+        setattr(self, 'fset', fset)
         return self
 
     def deleter(self, fdel: Callable) -> 'BaseProperty':
         """Add the given deleter function to the property and return it."""
-        self.fdel = fdel
+        setattr(self, 'fdel', fdel)
         return self
 
 

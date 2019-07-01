@@ -67,7 +67,7 @@ class VariableProtocol(Protocol):
     @property
     @abc.abstractmethod
     def name(self) -> str:
-        ...
+        """The name of the actual variable object."""
 
     @abc.abstractmethod
     def __init__(self, subvars: 'variabletools.SubgroupType'):

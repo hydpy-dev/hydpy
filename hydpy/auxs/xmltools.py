@@ -125,7 +125,7 @@ _ITEMGROUP2ITEMCLASS = {
     'getitems': itemtools.GetItem}
 
 
-def find(root, name) -> ElementTree.Element:
+def find(root: str, name: str) -> ElementTree.Element:
     """Return the first XML element with the given name found in the given
     XML root.
 
@@ -749,13 +749,23 @@ class XMLConditions(XMLBase):
         ...     os.path.exists(os.path.join(dirpath, 'land_lahn_2.py'))
         lz(999.0)
         False
+        >>> from hydpy import xml_replace
+        >>> with TestIO():
+        ...     xml_replace('LahnH/single_run', printflag=False, zip_='true')
+        ...     interface = XMLInterface('single_run.xml')
+        ...     interface.find('selections').text = 'headwaters'
+        ...     os.path.exists('LahnH/conditions/init_1996_01_06.zip')
+        ...     interface.conditions_io.save_conditions()
+        ...     os.path.exists('LahnH/conditions/init_1996_01_06.zip')
+        False
+        True
         """
         hydpy.pub.conditionmanager.currentdir = strip(
             self.find('outputdir').text)
         for element in self.master.elements:
             element.model.sequences.save_conditions()
         if strip(self.find('zip').text) == 'true':
-            hydpy.pub.conditionmanager.zip_currentdir()   # ToDo: test it
+            hydpy.pub.conditionmanager.zip_currentdir()
 
 
 class XMLSeries(XMLBase):
@@ -1329,9 +1339,9 @@ class XMLExchange(XMLBase):
             for target in item.device2target.values():
                 if item.targetspecs.series and not target.ramflag:
                     target.activate_ram()
-                for base in getattr(item, 'device2base', {}).values():
-                    if item.basespecs.series and not base.ramflag:
-                        base.activate_ram()
+                # for base in getattr(item, 'device2base', {}).values():
+                #     if item.basespecs.series and not base.ramflag:
+                #         base.activate_ram()   ToDo
 
     @property
     def itemgroups(self):

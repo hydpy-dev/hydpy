@@ -54,7 +54,8 @@ EXCLUDE_MEMBERS = (
 _PAR_SPEC2CAPT = collections.OrderedDict((('parameters', 'Parameter tools'),
                                           ('constants', 'Constants'),
                                           ('control', 'Control parameters'),
-                                          ('derived', 'Derived parameters')))
+                                          ('derived', 'Derived parameters'),
+                                          ('solver', 'Solver parameters')))
 
 _SEQ_SPEC2CAPT = collections.OrderedDict((('sequences', 'Sequence tools'),
                                           ('inputs', 'Input sequences'),

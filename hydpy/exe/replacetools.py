@@ -6,7 +6,8 @@
 from hydpy.core import objecttools
 
 
-def xml_replace(filename, **replacements):
+def xml_replace(filename: str, *, printflag: bool = True, **replacements: str) \
+        -> None:
     """Read the content of an XML template file (XMLT), apply the given
     `replacements` to its substitution  markers, and write the result into
     an XML file with the same name but ending with `xml` instead of `xmlt`.
@@ -160,9 +161,10 @@ for marker `e4`.
     keywords = set(replacements.keys())
     templatename = f'{filename}.xmlt'
     targetname = f'{filename}.xml'
-    print(f'template file: {templatename}')
-    print(f'target file: {targetname}')
-    print('replacements:')
+    if printflag:
+        print(f'template file: {templatename}')
+        print(f'target file: {targetname}')
+        print('replacements:')
     with open(templatename) as templatefile:
         templatebody = templatefile.read()
     parts = templatebody.replace('<!--|', '|-->').split('|-->')
@@ -193,7 +195,8 @@ for marker `e4`.
                 if newpart is None:
                     raise RuntimeError(
                         f'Marker `{part}` cannot be replaced.')
-                print(f'  {part} --> {newpart} ({argument_info})')
+                if printflag:
+                    print(f'  {part} --> {newpart} ({argument_info})')
                 parts[idx] = str(newpart)
                 unused_keywords.discard(part)
         targetbody = ''.join(parts)

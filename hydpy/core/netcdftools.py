@@ -462,6 +462,7 @@ def query_array(ncfile, name) -> numpy.ndarray:
     array([ nan,  nan,  nan,  nan,  nan])
     >>> import numpy
     >>> netcdftools.fillvalue = numpy.nan
+    >>> ncfile.close()
     """
     variable = query_variable(ncfile, name)
     maskedarray = variable[:]

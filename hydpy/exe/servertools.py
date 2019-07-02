@@ -543,15 +543,13 @@ has been extracted but cannot be further processed: `x == y`.
     lastdate = 1996-01-02T00:00:00+01:00
     stepsize = 1d
 
-    Eventually, one might require to memorise simulation periods
-    for different simulation members.  Use method
-    |HydPyServer.GET_save_timegrid| for storing and method
-    |HydPyServer.GET_savedtimegrid| querying this kind of
-    information.  Note that method
-    |HydPyServer.GET_savedtimegrid| returns the
-    initialisation period instead of the simulation period when method
-    |HydPyServer.GET_save_timegrid| has not been called
-    with the same `id` query parameter value before:
+    Eventually, one might require to memorise simulation periods for different
+    simulation members.  Use method |HydPyServer.GET_save_timegrid| for
+    storing and method |HydPyServer.GET_savedtimegrid| querying this kind of
+    information.  Note that method |HydPyServer.GET_savedtimegrid| returns
+    the initialisation period instead of the simulation period when method
+    |HydPyServer.GET_save_timegrid| has not been called with the same `id`
+    query parameter value before:
 
     >>> test('savedtimegrid', id_='0')
     firstdate = 1996-01-01T00:00:00+01:00
@@ -564,9 +562,8 @@ has been extracted but cannot be further processed: `x == y`.
     lastdate = 1996-01-02T00:00:00+01:00
     stepsize = 1d
 
-    Posting values of parameter items
-    (|HydPyServer.POST_parameteritemvalues|) does directly update
-    the values of the corresponding |Parameter| objects:
+    Posting values of parameter items (|HydPyServer.POST_parameteritemvalues|)
+    does directly update the values of the corresponding |Parameter| objects:
 
     >>> control = 'state.hp.elements.land_dill.model.parameters.control'
     >>> test('evaluate',
@@ -677,7 +674,7 @@ A value for condition item `sm_lahn_1` is missing.
     <BLANKLINE>
 
     We now modify the parameter and condition values again, but this time
-    in one step through cakkubg method |HydPyServer.POST_changeitemvalues|,
+    in one step through calling method |HydPyServer.POST_changeitemvalues|,
     and trigger a simulation run afterwards by calling method
     |HydPyServer.GET_simulate|:
 
@@ -753,7 +750,7 @@ A value for condition item `sm_lahn_1` is missing.
     (99.8 mm) with different values.  The value 138.3 mm was initially
     available for the start of the first date of the initialisation
     period, the value 197.0 has been saved when the end of the first
-    day of the initialisation period was identical with end of the
+    day of the initialisation period was identical with the end of the
     simulation period:
 
     >>> test('evaluate',
@@ -789,8 +786,33 @@ execute method `GET_load_conditionvalues`, the following error occurred: \
 Conditions for ID `two` and time point `1996-01-04 00:00:00` are required, \
 but have not been calculated so far.
 
-    To close the *HydPy* server, call
-    |HydPyServer.GET_close_server|:
+    Some algorithms both provide new information about initial conditions
+    but also require information on how the conditions evolve during a
+    simulation run.  For such purposes, you can use method
+    |HydPyServer.GET_save_modifiedconditionitemvalues| to store the current
+    conditions under an arbitrary `id`, and use  method
+    |HydPyServer.GET_savedmodifiedconditionitemvalues| to query them later.
+    Please note that these methods are not flexible enough for some
+    real-world applications yet and are going to be improved later:
+
+    >>> test('save_modifiedconditionitemvalues', id_='before')
+    <BLANKLINE>
+    >>> test('simulate')
+    <BLANKLINE>
+    >>> test('save_modifiedconditionitemvalues', id_='after')
+    <BLANKLINE>
+    >>> test('savedmodifiedconditionitemvalues',
+    ...     id_='before')    # doctest: +ELLIPSIS
+    sm_lahn_2 = [ 197.  ...]
+    sm_lahn_1 = [  1.   ...]
+    quh = [ 1.  0.]
+    >>> test('savedmodifiedconditionitemvalues',
+    ...     id_='after')    # doctest: +ELLIPSIS
+    sm_lahn_2 = [ 196.621130...]
+    sm_lahn_1 = [  0.99808...]
+    quh = [ 0.0005...]
+
+    To close the *HydPy* server, call |HydPyServer.GET_close_server|:
 
     >>> test('close_server')
     <BLANKLINE>
@@ -1052,8 +1074,7 @@ but have not been calculated so far.
                     f'Conditions for ID `{self._id}` and time point '
                     f'`{hydpy.pub.timegrids.sim.firstdate}` are required, '
                     f'but have not been calculated so far.')
-            else:
-                state.hp.conditions = state.init_conditions
+            state.hp.conditions = state.init_conditions
 
     def GET_save_conditionvalues(self) -> None:
         """Save the |StateSequence| and |LogSequence| object values of the
@@ -1081,7 +1102,7 @@ but have not been calculated so far.
         """ToDo: extend functionality and add tests"""
         for item in state.conditionitems:
             state.modifiedconditionitemvalues[self._id][item.name] = \
-                list(item.device2target.values())[0].value
+                copy.deepcopy(list(item.device2target.values())[0].value)
 
     def GET_savedmodifiedconditionitemvalues(self) -> None:
         """ToDo: extend functionality and add tests"""

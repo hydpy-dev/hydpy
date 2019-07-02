@@ -276,17 +276,10 @@ if install:
             path_out = prep(path_conf, filename)
             source2target(path_in, path_out)
 
-    # Prepare coverage report and prepare it for sphinx.
+    # Check for complete code coverage
     if os.environ.get('COVERAGE_PROCESS_START'):
-        print_('\nPrepare coverage html file:')
+        print_('\nCheck for complete code coverage:')
         os.system('coverage combine')
-        os.system('coverage report -m --skip-covered')
-        os.system('coverage xml')
-        os.system('pycobertura show --format html '
-                  '--output coverage.html coverage.xml')
-        print_('\nCopy coverage html file backwards:')
-        path_in = prep(hydpy.tests.__path__[0], 'coverage.html')
-        path_out = prep(oldpath, 'hydpy', 'docs', 'html', 'coverage.html')
-        source2target(path_in, path_out)
+        os.system('coverage report -m --skip-covered --fail-under=100')
 
     print_('\nNo problems encountered during testing!\n')

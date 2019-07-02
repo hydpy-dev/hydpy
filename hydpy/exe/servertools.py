@@ -790,7 +790,7 @@ but have not been calculated so far.
     but also require information on how the conditions evolve during a
     simulation run.  For such purposes, you can use method
     |HydPyServer.GET_save_modifiedconditionitemvalues| to store the current
-    conditions under an arbitrary `id`, and use  method
+    conditions under an arbitrary `id`, and use method
     |HydPyServer.GET_savedmodifiedconditionitemvalues| to query them later.
     Please note that these methods are not flexible enough for some
     real-world applications yet and are going to be improved later:
@@ -1099,13 +1099,13 @@ but have not been calculated so far.
                 self._outputs[name] = value
 
     def GET_save_modifiedconditionitemvalues(self) -> None:
-        """ToDo: extend functionality and add tests"""
+        """ToDo: extend functionality"""
         for item in state.conditionitems:
             state.modifiedconditionitemvalues[self._id][item.name] = \
                 copy.deepcopy(list(item.device2target.values())[0].value)
 
     def GET_savedmodifiedconditionitemvalues(self) -> None:
-        """ToDo: extend functionality and add tests"""
+        """ToDo: extend functionality"""
         dict_ = state.modifiedconditionitemvalues.get(self._id)
         if dict_ is None:
             self.GET_conditionitemvalues()

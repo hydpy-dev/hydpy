@@ -90,22 +90,8 @@ helpful, which is why we are going to replace all "conventional" by
 doctests successively.  Hence, do not add further "conventional" unit
 test when developing new *HydPy* features.
 
-We aim at demonstrating all functionalities of *HydPy* via doctests,
-both for educational purposes and to make sure future changes do not
-break existing features.  Therefore, one interim goal is to let the
-complete doctest suite execute all code lines of *HydPy*. This measure
-of "code coverage" (the number of executed code lines divided by the
-total number of code lines), determined by the `coverage library`_
-is currently around 94 %.  We seek to increase it to 100 %, and then
-to remove the "conventional" tests and to introduce new doctests where
-necessary to keep it.  As soon as we have reached the 100 % goal, we
-modify the `Travis CI`_ workflow to interpret any uncovered line as a
-failure. Until then, the temporary rule is that only new code lines
-must be covered completely, as well as all changes to already existing,
-so far uncovered code lines.
-
-You find a condensed coverage report in each `Travis log-page`_.
-Additionally, click :download:`here <coverage.html>` to download
-a nicely rendered report.  Note that we determine the code coverage
-on Linux machines only and that the downloadable report is based on
-a specific Python version only (at the time of writing 3.7).
+We measure the "code coverage" (the number of executed code lines divided
+by the total number of code lines), determined by the `coverage library`_.
+The code coverage of *HydPy* is 100 %.  To make sure future changes do
+not undo this favourable situation, `Travis CI`_ reports all future changes
+introducing uncovered lines as failures.

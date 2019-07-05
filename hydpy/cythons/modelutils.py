@@ -950,8 +950,7 @@ class PyxWriter:
         lines = Lines()
         for (name, member) in vars(self.cythonizer).items():
             if (name.isupper() and not inspect.isclass(member) and
-                    isinstance(
-                        member, tuple([t for t in TYPE2STR.keys() if t]))):
+                    isinstance(member, tuple([t for t in TYPE2STR if t]))):
                 ndim = numpy.array(member).ndim
                 ctype = TYPE2STR[type(member)] + NDIM2STR[ndim]
                 lines.add(0, f'cdef public {ctype} {name} = {member}')

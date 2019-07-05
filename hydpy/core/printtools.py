@@ -7,28 +7,36 @@ import os
 import sys
 import tempfile
 import time
+from typing import IO
+from typing import *
 # ...from site-packages
 import wrapt
 # ...from HydPy
 import hydpy
-from hydpy.core import objecttools
+
+
+T = TypeVar('T')
 
 
 class PrintStyle:
     """Context manager for changing the colour and font of printed
     output temporarilly."""
 
-    def __init__(self, color, font, file=None):
+    color: int
+    font: int
+    file: IO
+
+    def __init__(self, color: int, font: int, file: Optional[IO] = None) \
+            -> None:
         self.color = color
         self.font = font
         self.file = sys.stdout if file is None else file
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         if hydpy.pub.options.printincolor:
-            print(end='\x1B[%d;30;%dm' % (self.font, self.color),
-                  file=self.file)
+            print(end=f'\x1B[{self.font};30;{self.color}m', file=self.file)
 
-    def __exit__(self, exception, message, traceback_):
+    def __exit__(self, exception, message, traceback_) -> None:
         if hydpy.pub.options.printincolor:
             print(end='\x1B[0m', file=self.file)
 
@@ -134,7 +142,7 @@ def print_progress(wrapped, _=None, args=None, kwargs=None):
         _printprogress_indentation -= 4
 
 
-def progressbar(iterable, length=23):
+def progressbar(iterable: Iterable[T], length: int = 23) -> Iterator[T]:
     """Print a simple progress bar while processing the given iterable.
 
     Function |progressbar| does print the progress bar when option
@@ -206,15 +214,16 @@ def progressbar(iterable, length=23):
     >>> for i in progressbar(range(100)):
     ...     continue
     """
-    if hydpy.pub.options.printprogress and (len(iterable) > 1):
+    nmbitems = len(tuple(iterable))
+    if hydpy.pub.options.printprogress and (nmbitems > 1):
         temp_name = os.path.join(tempfile.gettempdir(),
                                  'HydPy_progressbar_stdout')
         temp_stdout = open(temp_name, 'w')
         real_stdout = sys.stdout
         try:
             sys.stdout = temp_stdout
-            nmbstars = min(len(iterable), length)
-            nmbcounts = len(iterable)/nmbstars
+            nmbstars = min(nmbitems, length)
+            nmbcounts = nmbitems/nmbstars
             indentation = ' '*max(_printprogress_indentation, 0)
             with PrintStyle(color=36, font=1, file=real_stdout):
                 print('    %s|%s|\n%s    ' % (indentation,

@@ -3,6 +3,7 @@
 
 import os
 import sys
+from typing import *
 
 try:
     print('\nModify html files:')
@@ -13,17 +14,17 @@ try:
         path = os.path.abspath(path)
         print('  ' + path)
         sys.stdout.flush()
-        lines = []
+        lines: List[str] = []
         with open(path) as file_:
-            for line in file_:
+            for line in file_.readlines():
                 if line.startswith('<dd><p>alias of <a '
                                    'class="reference external"'):
                     line = line.split('span')[1]
                     line = line.split('>')[1]
                     line = line.split('<')[0]
                     lines[-1] = lines[-1].replace(
-                           'TYPE</code>',
-                           'TYPE</code><em class="property"> = %s</em>' % line)
+                        'TYPE</code>',
+                        'TYPE</code><em class="property"> = %s</em>' % line)
                 else:
                     lines.append(line)
         with open(path, 'w') as file_:

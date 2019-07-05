@@ -130,8 +130,8 @@ def find(root: str, name: str) -> ElementTree.Element:
     XML root.
 
     >>> from hydpy.auxs.xmltools import find, XMLInterface
-    >>> from hydpy import data
-    >>> interface = XMLInterface('single_run.xml', data.get_path('LahnH'))
+    >>> from hydpy.data import make_filepath
+    >>> interface = XMLInterface('single_run.xml', make_filepath('LahnH'))
     >>> find(interface.root, 'timegrid').tag.endswith('timegrid')
     True
     """
@@ -232,8 +232,8 @@ class XMLBase:
     skipping those named `selections` or `devices`:
 
     >>> from hydpy.auxs.xmltools import XMLInterface
-    >>> from hydpy import data
-    >>> interface = XMLInterface('multiple_runs.xml', data.get_path('LahnH'))
+    >>> from hydpy.data import make_filepath
+    >>> interface = XMLInterface('multiple_runs.xml', make_filepath('LahnH'))
     >>> itemgroup = interface.exchange.itemgroups[1]
     >>> for element in itemgroup:
     ...     print(strip(element.tag))
@@ -253,8 +253,8 @@ class XMLBase:
         subclass.
 
         >>> from hydpy.auxs.xmltools import XMLInterface
-        >>> from hydpy import data
-        >>> interface = XMLInterface('single_run.xml', data.get_path('LahnH'))
+        >>> from hydpy.data import make_filepath
+        >>> interface = XMLInterface('single_run.xml', make_filepath('LahnH'))
         >>> interface.name
         'config'
         >>> interface.series_io.readers[0].name
@@ -267,8 +267,8 @@ class XMLBase:
         subclass.
 
         >>> from hydpy.auxs.xmltools import XMLInterface
-        >>> from hydpy import data
-        >>> interface = XMLInterface('single_run.xml', data.get_path('LahnH'))
+        >>> from hydpy.data import make_filepath
+        >>> interface = XMLInterface('single_run.xml', make_filepath('LahnH'))
         >>> interface.find('timegrid').tag.endswith('timegrid')
         True
         """
@@ -286,12 +286,12 @@ class XMLInterface(XMLBase):
      schema file `HydPyConfigSingleRun.xsd` or `HydPyConfigMultipleRuns.xsd`.
 
     >>> from hydpy.auxs.xmltools import XMLInterface
-    >>> from hydpy import data
-    >>> interface = XMLInterface('single_run.xml', data.get_path('LahnH'))
+    >>> from hydpy.data import make_filepath
+    >>> interface = XMLInterface('single_run.xml', make_filepath('LahnH'))
     >>> interface.root.tag
     '{https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/\
 HydPyConfigSingleRun.xsd}config'
-    >>> interface = XMLInterface('multiple_runs.xml', data.get_path('LahnH'))
+    >>> interface = XMLInterface('multiple_runs.xml', make_filepath('LahnH'))
     >>> interface.root.tag
     '{https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/\
 HydPyConfigMultipleRuns.xsd}config'
@@ -433,8 +433,9 @@ correctly refer to one of the available XML schema files \
         values defined in the `options` XML element.
 
         >>> from hydpy.auxs.xmltools import XMLInterface
-        >>> from hydpy import data, pub
-        >>> interface = XMLInterface('single_run.xml', data.get_path('LahnH'))
+        >>> from hydpy import pub
+        >>> from hydpy.data import make_filepath
+        >>> interface = XMLInterface('single_run.xml', make_filepath('LahnH'))
         >>> pub.options.printprogress = True
         >>> pub.options.printincolor = True
         >>> pub.options.reprdigits = -1
@@ -658,8 +659,8 @@ a name or keyword.
         """The `condition_io` element defined in the actual XML file.
 
         >>> from hydpy.auxs.xmltools import XMLInterface, strip
-        >>> from hydpy import data
-        >>> interface = XMLInterface('single_run.xml', data.get_path('LahnH'))
+        >>> from hydpy.data import make_filepath
+        >>> interface = XMLInterface('single_run.xml', make_filepath('LahnH'))
         >>> strip(interface.series_io.root.tag)
         'series_io'
         """
@@ -670,8 +671,8 @@ a name or keyword.
         """The `series_io` element defined in the actual XML file.
 
         >>> from hydpy.auxs.xmltools import XMLInterface, strip
-        >>> from hydpy import data
-        >>> interface = XMLInterface('single_run.xml', data.get_path('LahnH'))
+        >>> from hydpy.data import make_filepath
+        >>> interface = XMLInterface('single_run.xml', make_filepath('LahnH'))
         >>> strip(interface.series_io.root.tag)
         'series_io'
         """
@@ -682,9 +683,9 @@ a name or keyword.
         """The `exchange` element defined in the actual XML file.
 
         >>> from hydpy.auxs.xmltools import XMLInterface, strip
-        >>> from hydpy import data
+        >>> from hydpy.data import make_filepath
         >>> interface = XMLInterface(
-        ...     'multiple_runs.xml', data.get_path('LahnH'))
+        ...     'multiple_runs.xml', make_filepath('LahnH'))
         >>> strip(interface.exchange.root.tag)
         'exchange'
         """
@@ -782,8 +783,8 @@ class XMLSeries(XMLBase):
         """The reader XML elements defined in the actual XML file.
 
         >>> from hydpy.auxs.xmltools import XMLInterface
-        >>> from hydpy import data
-        >>> interface = XMLInterface('single_run.xml', data.get_path('LahnH'))
+        >>> from hydpy.data import make_filepath
+        >>> interface = XMLInterface('single_run.xml', make_filepath('LahnH'))
         >>> for reader in interface.series_io.readers:
         ...     print(reader.info)
         all input data
@@ -795,8 +796,8 @@ class XMLSeries(XMLBase):
         """The writer XML elements defined in the actual XML file.
 
         >>> from hydpy.auxs.xmltools import XMLInterface
-        >>> from hydpy import data
-        >>> interface = XMLInterface('single_run.xml', data.get_path('LahnH'))
+        >>> from hydpy.data import make_filepath
+        >>> interface = XMLInterface('single_run.xml', make_filepath('LahnH'))
         >>> for writer in interface.series_io.writers:
         ...     print(writer.info)
         precipitation
@@ -811,8 +812,8 @@ class XMLSeries(XMLBase):
         objects with the same memory |set| object.
 
         >>> from hydpy.auxs.xmltools import XMLInterface, XMLSubseries
-        >>> from hydpy import data
-        >>> interface = XMLInterface('single_run.xml', data.get_path('LahnH'))
+        >>> from hydpy.data import make_filepath
+        >>> interface = XMLInterface('single_run.xml', make_filepath('LahnH'))
         >>> series_io = interface.series_io
         >>> from unittest import mock
         >>> prepare_series = XMLSubseries.prepare_series
@@ -1058,8 +1059,8 @@ class XMLSubseries(XMLSelector):
         information provided by the XML `sequences` element.
 
         >>> from hydpy.auxs.xmltools import XMLInterface
-        >>> from hydpy import data
-        >>> interface = XMLInterface('single_run.xml', data.get_path('LahnH'))
+        >>> from hydpy.data import make_filepath
+        >>> interface = XMLInterface('single_run.xml', make_filepath('LahnH'))
         >>> series_io = interface.series_io
         >>> model2subs2seqs = series_io.writers[2].model2subs2seqs
         >>> for model, subs2seqs in sorted(model2subs2seqs.items()):
@@ -1088,8 +1089,8 @@ class XMLSubseries(XMLSelector):
         information provided by XML `sequences` element.
 
         >>> from hydpy.auxs.xmltools import XMLInterface
-        >>> from hydpy import data
-        >>> interface = XMLInterface('single_run.xml', data.get_path('LahnH'))
+        >>> from hydpy.data import make_filepath
+        >>> interface = XMLInterface('single_run.xml', make_filepath('LahnH'))
         >>> series_io = interface.series_io
         >>> subs2seqs = series_io.writers[2].subs2seqs
         >>> for subs, seq in sorted(subs2seqs.items()):
@@ -1589,9 +1590,9 @@ class XSDWriter:
         >>> os.path.exists(XSDWriter.filepath_target)
         True
 
-        >>> from hydpy import data
+        >>> from hydpy.data import make_filepath
         >>> for configfile in ('single_run.xml', 'multiple_runs.xml'):
-        ...     XMLInterface(configfile, data.get_path('LahnH')).validate_xml()
+        ...     XMLInterface(configfile, make_filepath('LahnH')).validate_xml()
         """
         with open(cls.filepath_source) as file_:
             template = file_.read()

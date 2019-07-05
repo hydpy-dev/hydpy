@@ -91,11 +91,11 @@ the suffix `_mean`:
 """
 # import...
 # ...from standard library
-from typing import Dict, Iterator, List, Union
 import collections
 import copy
 import itertools
 import os
+from typing import *
 from xml.etree import ElementTree
 # ...from HydPy
 import hydpy
@@ -125,7 +125,7 @@ _ITEMGROUP2ITEMCLASS = {
     'getitems': itemtools.GetItem}
 
 
-def find(root: str, name: str) -> ElementTree.Element:
+def find(root: ElementTree.Element, name: str) -> Optional[ElementTree.Element]:
     """Return the first XML element with the given name found in the given
     XML root.
 
@@ -138,7 +138,10 @@ def find(root: str, name: str) -> ElementTree.Element:
     return root.find(f'{namespace}{name}')
 
 
-def _query_selections(xmlelement) -> selectiontools.Selections:
+
+
+def _query_selections(xmlelement: ElementTree.Element) \
+        -> selectiontools.Selections:
     text = xmlelement.text
     if text is None:
         return selectiontools.Selections()
@@ -154,7 +157,7 @@ def _query_selections(xmlelement) -> selectiontools.Selections:
     return selectiontools.Selections(*selections)
 
 
-def _query_devices(xmlelement) -> selectiontools.Selection:
+def _query_devices(xmlelement: ElementTree.Element) -> selectiontools.Selection:
     selection = selectiontools.Selection('temporary_result_of_xml_parsing')
     text = xmlelement.text
     if text is None:
@@ -177,7 +180,7 @@ def _query_devices(xmlelement) -> selectiontools.Selection:
     return selection
 
 
-def strip(name) -> str:
+def strip(name: str) -> str:
     """Remove the XML namespace from the given string and return it.
 
     >>> from hydpy.auxs.xmltools import strip
@@ -187,7 +190,7 @@ def strip(name) -> str:
     return name.split('}')[-1]
 
 
-def run_simulation(projectname: str, xmlfile: str):
+def run_simulation(projectname: str, xmlfile: str) -> None:
     """Perform a HydPy workflow in agreement with the given XML configuration
     file available in the directory of the given project. ToDo
 
@@ -248,7 +251,7 @@ class XMLBase:
     root: ElementTree.Element
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Apply function |strip| to the root of the object of the |XMLBase|
         subclass.
 
@@ -262,7 +265,7 @@ class XMLBase:
         """
         return strip(self.root.tag)
 
-    def find(self, name) -> ElementTree.Element:
+    def find(self, name: str) -> Optional[ElementTree.Element]:
         """Apply function |find| to the root of the object of the |XMLBase|
         subclass.
 
@@ -274,7 +277,7 @@ class XMLBase:
         """
         return find(self.root, name)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[ElementTree.Element]:
         for element in self.root:
             name = strip(element.tag)
             if name not in ('selections', 'devices'):
@@ -303,7 +306,7 @@ file ...wrongfilepath.xml, the following error occurred: \
 [Errno 2] No such file or directory: '...wrongfilepath.xml'
     """
 
-    def __init__(self, filename, directory=None):
+    def __init__(self, filename: str, directory: Optional[str] = None) -> None:
         if directory is None:
             directory = hydpy.pub.projectname
         self.filepath = os.path.abspath(os.path.join(directory, filename))
@@ -1120,7 +1123,7 @@ class XMLSubseries(XMLSelector):
     def _iterate_node_sequences(self) -> Iterator[sequencetools.IOSequence]:
         s2s = self.subs2seqs
         for node in self.nodes:
-            for subseqs_name, seq_names in s2s.items():
+            for seq_names in s2s.values():
                 for seq_name in seq_names:
                     yield getattr(node.sequences, seq_name)
 
@@ -1824,11 +1827,11 @@ class XSDWriter:
                         f'{blanks}                '
                         f'<element name="{subvars.name}.{var.name}"/>')
             subs.extend([
-                    f'{blanks}            </choice>',
-                    f'{blanks}        </extension>',
-                    f'{blanks}    </complexContent>',
-                    f'{blanks}</complexType>',
-                    f''])
+                f'{blanks}            </choice>',
+                f'{blanks}        </extension>',
+                f'{blanks}    </complexContent>',
+                f'{blanks}</complexType>',
+                f''])
         return '\n'.join(subs)
 
     @staticmethod
@@ -1889,11 +1892,11 @@ class XSDWriter:
             subs.append(f'{blanks}                     minOccurs="0"')
             subs.append(f'{blanks}                     maxOccurs="unbounded"/>')
         subs.extend([
-                f'{blanks}        </sequence>',
-                f'{blanks}        <attribute name="info" type="string"/>',
-                f'{blanks}    </complexType>',
-                f'{blanks}</element>',
-                f''])
+            f'{blanks}        </sequence>',
+            f'{blanks}        <attribute name="info" type="string"/>',
+            f'{blanks}    </complexType>',
+            f'{blanks}</element>',
+            f''])
         return '\n'.join(subs)
 
     @classmethod
@@ -2037,7 +2040,7 @@ class XSDWriter:
         model = importtools.prepare_model(modelname)
         for subvars in cls._get_subvars(model):
             subs.append(cls.get_subgroupiteminsertion(
-                    itemgroup, model, subvars, indent))
+                itemgroup, model, subvars, indent))
         return '\n'.join(subs)
 
     @classmethod

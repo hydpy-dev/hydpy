@@ -4,7 +4,6 @@
 
 class HydPyDeprecationWarning(DeprecationWarning):
     """Warning for deprecated HydPy features."""
-    pass
 
 
 class AttributeNotReady(AttributeError):
@@ -48,14 +47,12 @@ necessary for some specific functionalities.
                 return eval(command.split()[-1])
             except BaseException:
                 pass
-        return object.__new__(cls)
-
-    def __init__(self, name, commands):
-        self.name = name
+        obj = object.__new__(cls)
+        obj.name = name
+        return obj
 
     def __getattr__(self, name):
         raise OptionalModuleNotAvailable(
-            'HydPy could not load module `%s`.  This module is no '
-            'general requirement but necessary for some specific '
-            'functionalities.'
-            % self.name)
+            f'HydPy could not load module `{self.name}`.  This module is '
+            f'no general requirement but necessary for some specific '
+            f'functionalities.')

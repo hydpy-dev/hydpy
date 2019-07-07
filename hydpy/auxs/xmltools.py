@@ -348,10 +348,9 @@ file ...wrongfilepath.xml, the following error occurred: \
         >>> interface.validate_xml()    # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        hydpy.core.objecttools.xmlschema.validators.exceptions.\
-XMLSchemaDecodeError: While trying to validate XML file `...single_run.xml`, \
-the following error occurred: failed validating '1996-01-32T00:00:00' with \
-XsdAtomicBuiltin(name='xs:dateTime').
+        xmlschema.validators.exceptions.XMLSchemaDecodeError: While trying to \
+validate XML file `...single_run.xml`, the following error occurred: failed \
+validating '1996-01-32T00:00:00' with XsdAtomicBuiltin(name='xs:dateTime')...
         ...
         Reason: day is out of range for month
         ...

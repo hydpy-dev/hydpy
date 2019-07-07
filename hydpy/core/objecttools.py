@@ -10,15 +10,24 @@ import inspect
 import numbers
 import sys
 import textwrap
-import wrapt
-from typing import *
 from typing import NoReturn
+from typing import *
+# ...from site-packages
+import wrapt
 # ...from HydPy
 import hydpy
 from hydpy.core import typingtools
+if TYPE_CHECKING:
+    from hydpy.core import devicetools
 
 
-def dir_(self):
+T = TypeVar('T')
+ReprArg = Union[numbers.Number,
+                Iterable[numbers.Number],
+                Iterable[Iterable[numbers.Number]]]
+
+
+def dir_(self: Any) -> List[str]:
     """The prefered way for HydPy objects to respond to |dir|.
 
     Note the depencence on the `pub.options.dirverbose`.  If this option is
@@ -54,13 +63,11 @@ def dir_(self):
             if hydpy.pub.options.dirverbose or not key.startswith('_'):
                 names.add(key)
     if names:
-        names = list(names)
-    else:
-        names = [' ']
-    return names
+        return list(names)
+    return [' ']
 
 
-def classname(self):
+def classname(self: Any) -> str:
     """Return the class name of the given instance object or class.
 
     >>> from hydpy.core.objecttools import classname
@@ -95,7 +102,7 @@ def classname(self):
     return string.split('.')[-1]
 
 
-def instancename(self):
+def instancename(self: Any) -> str:
     """Return the class name of the given instance object or class in lower
     case letters.
 
@@ -107,7 +114,7 @@ def instancename(self):
     return classname(self).lower()
 
 
-def value_of_type(value):
+def value_of_type(value: Any) -> str:
     """Returns a string containing both the informal string and the type
     of the given value.
 
@@ -118,10 +125,10 @@ def value_of_type(value):
     >>> value_of_type(999)
     'value `999` of type `int`'
     """
-    return 'value `%s` of type `%s`' % (value, classname(value))
+    return f'value `{value}` of type `{classname(value)}`'
 
 
-def get_name(self) -> str:
+def get_name(self: Any) -> str:
     """Return the name of the class of the given instance in lower case letters.
 
     This function is thought to be implemented as a property.  Otherwise
@@ -152,7 +159,7 @@ def get_name(self) -> str:
         return cls.__dict__['_name']
 
 
-def modulename(self):
+def modulename(self: Any) -> str:
     """Return the module name of the given instance object.
 
     >>> from hydpy.core.objecttools import modulename
@@ -163,7 +170,7 @@ def modulename(self):
     return self.__module__.split('.')[-1]
 
 
-def _search_device(self):
+def _search_device(self: Any) -> Optional['devicetools.Device']:
     while True:
         if self is None:
             return None
@@ -179,7 +186,7 @@ def _search_device(self):
             return None
 
 
-def devicename(self):
+def devicename(self: Any) -> str:
     """Try to return the name of the (indirect) master |Node| or
     |Element| instance, if not possible return `?`.
 
@@ -201,20 +208,19 @@ def devicename(self):
     return getattr(device, 'name', '?')
 
 
-def _devicephrase(self, objname=None):
+def _devicephrase(self: Any, objname: Optional[str] = None) -> str:
     name_ = getattr(self, 'name', instancename(self))
     device = _search_device(self)
     if device and objname:
-        return '`%s` of %s `%s`' % (name_, objname, device.name)
+        return f'`{name_}` of {objname} `{device.name}`'
     if objname:
-        return '`%s` of %s `?`' % (name_, objname)
+        return f'`{name_}` of {objname} `?`'
     if device:
-        return ('`%s` of %s `%s`'
-                % (name_, instancename(device), device.name))
-    return '`%s`' % name_
+        return f'`{name_}` of {instancename(device)} `{device.name}`'
+    return f'`{name_}`'
 
 
-def elementphrase(self):
+def elementphrase(self: Any) -> str:
     """Return the phrase used in exception messages to indicate
     which |Element| is affected.
 
@@ -237,7 +243,7 @@ def elementphrase(self):
     return _devicephrase(self, 'element')
 
 
-def nodephrase(self):
+def nodephrase(self: Any) -> str:
     """Return the phrase used in exception messages to indicate
     which |Node| is affected.
 
@@ -259,7 +265,7 @@ def nodephrase(self):
     return _devicephrase(self, 'node')
 
 
-def devicephrase(self):
+def devicephrase(self: Any) -> str:
     """Try to return the phrase used in exception messages to
     indicate which |Element| or which |Node| is affected.
     If not possible, return just the name of the given object.
@@ -284,7 +290,7 @@ def devicephrase(self):
     return _devicephrase(self)
 
 
-def valid_variable_identifier(string):
+def valid_variable_identifier(string: str) -> None:
     """Raises an |ValueError| if the given name is not a valid Python
     identifier.
 
@@ -310,21 +316,21 @@ Python built-ins like `for`...)
     ...
     ValueError: The given name string `print` does not define...
     """
-    string = str(string)
     try:
-        exec('%s = None' % string)
+        exec(f'{string} = None')
         if string in dir(builtins):
             raise SyntaxError()
     except SyntaxError:
         raise ValueError(
-            'The given name string `%s` does not define a valid variable '
-            'identifier.  Valid identifiers do not contain characters like '
-            '`-` or empty spaces, do not start with numbers, cannot be '
-            'mistaken with Python built-ins like `for`...)'
-            % string)
+            f'The given name string `{string}` does not define a valid '
+            f'variable identifier.  Valid identifiers do not contain '
+            f'characters like `-` or empty spaces, do not start with '
+            f'numbers, cannot be mistaken with Python built-ins like '
+            f'`for`...)')
 
 
-def augment_excmessage(prefix=None, suffix=None) -> NoReturn:
+def augment_excmessage(
+        prefix: Optional[str] = None, suffix: Optional[str] = None) -> NoReturn:
     """Augment an exception message with additional information while keeping
     the original traceback.
 
@@ -349,8 +355,7 @@ occurred: unsupported operand type(s) for +: 'int' and 'str' \
     Some exceptions derived by site-packages do not support exception
     chaining due to requiring multiple initialisation arguments.
     In such cases, |augment_excmessage| generates an exception with the
-    same name on the fly and raises it afterwards, which is pointed out
-    by the exception name mentioning to the "objecttools" module:
+    same name on the fly and raises it afterwards:
 
     >>> class WrongError(BaseException):
     ...     def __init__(self, arg1, arg2):
@@ -362,8 +367,8 @@ occurred: unsupported operand type(s) for +: 'int' and 'str' \
     ...         'While showing how prefixing works')
     Traceback (most recent call last):
     ...
-    hydpy.core.objecttools.hydpy.core.objecttools.WrongError: While showing \
-how prefixing works, the following error occurred: ('info 1', 'info 2')
+    hydpy.core.objecttools.WrongError: While showing how prefixing works, \
+the following error occurred: ('info 1', 'info 2')
     """
     exc_old = sys.exc_info()[1]
     message = str(exc_old)
@@ -374,14 +379,14 @@ how prefixing works, the following error occurred: ('info 1', 'info 2')
     try:
         exc_new = type(exc_old)(message)
     except BaseException:
-        exc_name = str(type(exc_old)).split("'")[1]
+        exc_name = str(type(exc_old)).split("'")[1].split('.')[-1]
         exc_type = type(exc_name, (BaseException,), {})
-        exc_type.__module = exc_old.__module__
+        exc_type.__module__ = exc_old.__module__
         raise exc_type(message) from exc_old
     raise exc_new from exc_old
 
 
-def excmessage_decorator(description) -> Callable:
+def excmessage_decorator(description_: str) -> Callable:
     """Wrap a function with |augment_excmessage|.
 
     Function |excmessage_decorator| is a means to apply function
@@ -504,7 +509,7 @@ type(s) for +=: 'int' and 'str'
                 if argname not in info:
                     info[argname] = '?'
             message = eval(
-                f"f'While trying to {description}'", globals(), info)
+                f"f'While trying to {description_}'", globals(), info)
             augment_excmessage(message)
     return wrapper
 
@@ -634,7 +639,7 @@ class ResetAttrFuncs:
                 delattr(self.cls, name_)
 
 
-def copy_(self):
+def copy_(self: T) -> T:
     """Copy function for classes with modified attribute functions.
 
     See the documentation on class |ResetAttrFuncs| for further information.
@@ -643,7 +648,7 @@ def copy_(self):
         return copy.copy(self)
 
 
-def deepcopy_(self, memo):
+def deepcopy_(self: T, memo: Optional[Dict]) -> T:
     """Deepcopy function for classes with modified attribute functions.
 
     See the documentation on class |ResetAttrFuncs| for further information.
@@ -652,134 +657,37 @@ def deepcopy_(self, memo):
         return copy.deepcopy(self, memo)
 
 
-def copy_class(cls):
-    """Return a copy (actually a subclass) of the given class.
-
-    Function |copy_class| simplifies testing classes through changing them:
-
-    >>> x = int(3)
-    >>> x.bit_length()
-    2
-    >>> from hydpy.core.objecttools import copy_class
-    >>> int_ = copy_class(int)
-    >>> int_.bit_length = lambda self: 'test'
-    >>> int_(3).bit_length()
-    'test'
-    """
-    return type(cls.__name__, (cls,), {})
-
-
 class _PreserveStrings:
     """Helper class for |_Repr_|."""
 
-    def __init__(self, preserve_strings):
-        self.new_value = preserve_strings
-        self.old_value = getattr(repr_, '_preserve_strings')
+    newvalue: bool
+    oldvalue: bool
+
+    def __init__(self, preserve_strings: bool) -> None:
+        self.newvalue = preserve_strings
+        self.oldvalue = getattr(repr_, '_preserve_strings')
 
     def __enter__(self):
-        setattr(repr_, '_preserve_strings', self.new_value)
-        return None
+        setattr(repr_, '_preserve_strings', self.newvalue)
 
     def __exit__(self, type_, value, traceback):
-        setattr(repr_, '_preserve_strings', self.old_value)
+        setattr(repr_, '_preserve_strings', self.oldvalue)
 
 
 class _Repr:
-    r"""Modifies |repr| for strings and floats, mainly for supporting
-    clean float and path representations that are compatible with |doctest|.
+    """Modifies |repr| for strings and floats, mainly for supporting
+    clean float and path representations that are compatible with |doctest|."""
 
-    When value is a string, it is returned without any modification,
-    except that the path separator "\" (Windows) is replaced with "/"
-    (Linux):
-
-    >>> from hydpy.core.objecttools import repr_
-
-    >>> print(r'directory\file')
-    directory\file
-    >>> print(repr(r'directory\file'))
-    'directory\\file'
-    >>> print(repr_(r'directory\file'))
-    directory/file
-
-    You can change this behaviour of function object |repr|,
-    when necessary:
-
-    >>> with repr_.preserve_strings(True):
-    ...     print(repr_(r'directory\file'))
-    "directory/file"
-
-    Behind the with block, |repr_| works as before
-    (even in case of an error):
-
-    >>> print(repr_(r'directory\file'))
-    directory/file
-
-    When value is a float, the result depends on how the option
-    |Options.reprdigits| is set.  Without defining a special value,
-    |repr| defines the number of digits in the usual, system dependent
-    manner:
-
-    >>> from hydpy import pub
-    >>> del pub.options.reprdigits
-    >>> repr(1./3.) == repr_(1./3.)
-    True
-
-    Through setting |Options.reprdigits| to a positive integer value,
-    one defines the maximum number of decimal places, which allows for
-    doctesting across different systems and Python versions:
-
-    >>> pub.options.reprdigits = 6
-    >>> repr_(1./3.)
-    '0.333333'
-    >>> repr_(2./3.)
-    '0.666667'
-    >>> repr_(1./2.)
-    '0.5'
-
-    Changing the number of decimal places can be done via a with block:
-
-    >>> with pub.options.reprdigits(3):
-    ...     print(repr_(1./3.))
-    0.333
-
-    Such a change is only temporary (even in case of an error):
-    >>> repr_(1./3.)
-    '0.333333'
-
-    |repr| can also be applied on numpy's float types:
-
-    >>> import numpy
-    >>> repr_(numpy.float(1./3.))
-    '0.333333'
-    >>> repr_(numpy.float64(1./3.))
-    '0.333333'
-    >>> repr_(numpy.float32(1./3.))
-    '0.333333'
-    >>> repr_(numpy.float16(1./3.))
-    '0.333252'
-
-    Note that the deviation from the `true` result in the last example is due
-    to the low precision of |float16|.
-
-    On all types not mentioned above, the usual |repr| function is
-    applied, e.g.:
-
-    >>> repr([1, 2, 3])
-    '[1, 2, 3]'
-    >>> repr_([1, 2, 3])
-    '[1, 2, 3]'
-    """
-
-    def __init__(self):
+    def __init__(self) -> None:
         self._preserve_strings = False
 
-    def __call__(self, value, decimals=None):
+    def __call__(self, value: Any, decimals: Optional[int] = None) -> str:
         if decimals is None:
             decimals = hydpy.pub.options.reprdigits
         if isinstance(value, str):
             string = value.replace('\\', '/')
             if self._preserve_strings:
-                return '"%s"' % string
+                return f'"{string}"'
             return string
         if (isinstance(value, numbers.Real) and
                 (not isinstance(value, numbers.Integral))):
@@ -793,15 +701,102 @@ class _Repr:
         return repr(value)
 
     @staticmethod
-    def preserve_strings(preserve_strings):
+    def preserve_strings(preserve_strings: bool) -> _PreserveStrings:
         """Change the `preserve_string` option inside a with block."""
         return _PreserveStrings(preserve_strings)
 
 
 repr_ = _Repr()
+r"""Modifies |repr| for strings and floats, mainly for supporting
+clean float and path representations that are compatible with |doctest|.
+
+Use the already available instance `repr_` instead of initialising
+a new |Repr_| object.
+
+When value is a string, it is returned without any modification,
+except that the path separator "\" (Windows) is replaced with "/"
+(Linux):
+
+>>> from hydpy.core.objecttools import repr_
+
+>>> print(r'directory\file')
+directory\file
+>>> print(repr(r'directory\file'))
+'directory\\file'
+>>> print(repr_(r'directory\file'))
+directory/file
+
+You can change this behaviour of function object |repr|,
+when necessary:
+
+>>> with repr_.preserve_strings(True):
+...     print(repr_(r'directory\file'))
+"directory/file"
+
+Behind the with block, |repr_| works as before
+(even in case of an error):
+
+>>> print(repr_(r'directory\file'))
+directory/file
+
+When value is a float, the result depends on how the option
+|Options.reprdigits| is set.  Without defining a special value,
+|repr| defines the number of digits in the usual, system dependent
+manner:
+
+>>> from hydpy import pub
+>>> del pub.options.reprdigits
+>>> repr(1./3.) == repr_(1./3.)
+True
+
+Through setting |Options.reprdigits| to a positive integer value,
+one defines the maximum number of decimal places, which allows for
+doctesting across different systems and Python versions:
+
+>>> pub.options.reprdigits = 6
+>>> repr_(1./3.)
+'0.333333'
+>>> repr_(2./3.)
+'0.666667'
+>>> repr_(1./2.)
+'0.5'
+
+Changing the number of decimal places can be done via a with block:
+
+>>> with pub.options.reprdigits(3):
+...     print(repr_(1./3.))
+0.333
+
+Such a change is only temporary (even in case of an error):
+>>> repr_(1./3.)
+'0.333333'
+
+|repr| can also be applied on numpy's float types:
+
+>>> import numpy
+>>> repr_(numpy.float(1./3.))
+'0.333333'
+>>> repr_(numpy.float64(1./3.))
+'0.333333'
+>>> repr_(numpy.float32(1./3.))
+'0.333333'
+>>> repr_(numpy.float16(1./3.))
+'0.333252'
+
+Note that the deviation from the `true` result in the last example is due
+to the low precision of |numpy.float16|.
+
+On all types not mentioned above, the usual |repr| function is
+applied, e.g.:
+
+>>> repr([1, 2, 3])
+'[1, 2, 3]'
+>>> repr_([1, 2, 3])
+'[1, 2, 3]'
+"""
 
 
-def repr_values(values):
+def repr_values(values: Iterable[Any]) -> str:
     """Return comma separated representations of the given values using
     function |repr_|.
 
@@ -814,7 +809,7 @@ def repr_values(values):
     return ', '.join(repr_(value) for value in values)
 
 
-def repr_numbers(values):
+def repr_numbers(values: ReprArg) -> str:
     """Return comma separated representations of the given numbers using
     function |repr_|.
 
@@ -831,19 +826,22 @@ def repr_numbers(values):
 
     Note that the returned string is not wrapped.
     """
-    try:
-        result = []
-        for subvalues in values:
-            result.append(', '.join(repr_(value) for value in subvalues))
-        return '; '.join(result)
-    except TypeError:
-        try:
-            return ', '.join(repr_(value) for value in values)
-        except TypeError:
-            return repr_(values)
+    if isinstance(values, numbers.Number):
+        return repr_(values)
+    result = []
+    ndim = 1
+    for value in values:
+        if isinstance(value, numbers.Number):
+            result.append(repr_(value))
+        else:
+            result.append(', '.join(repr_(v) for v in value))
+            ndim = 2
+    if ndim == 1:
+        return ', '.join(result)
+    return '; '.join(result)
 
 
-def print_values(values, width=70):
+def print_values(values: Iterable[Any], width: int = 70) -> None:
     """Print the given values in multiple lines with a certain maximum width.
 
     By default, each line contains at most 70 characters:
@@ -865,7 +863,7 @@ def print_values(values, width=70):
         print(line)
 
 
-def repr_tuple(values):
+def repr_tuple(values: Iterable[Any]) -> str:
     """Return a tuple representation of the given values using function
     |repr|.
 
@@ -881,12 +879,12 @@ def repr_tuple(values):
     >>> repr_tuple([1.])
     '(1.0,)'
     """
-    if len(values) == 1:
-        return '(%s,)' % repr_values(values)
-    return '(%s)' % repr_values(values)
+    if len(list(values)) == 1:
+        return f'({repr_values(values)},)'
+    return f'({repr_values(values)})'
 
 
-def repr_list(values):
+def repr_list(values: Iterable[Any]) -> str:
     """Return a list representation of the given values using function
     |repr|.
 
@@ -896,10 +894,10 @@ def repr_list(values):
 
     Note that the returned string is not wrapped.
     """
-    return '[%s]' % repr_values(values)
+    return f'[{repr_values(values)}]'
 
 
-def assignrepr_value(value, prefix):
+def assignrepr_value(value: Any, prefix: str) -> str:
     """Return a prefixed string representation of the given value using
     function |repr|.
 
@@ -968,9 +966,9 @@ def assignrepr_values(values, prefix, width=None, _fakeend=0):
     lines = []
     for (idx, line) in enumerate(wrapped):
         if idx == 0:
-            lines.append('%s%s' % (prefix, line))
+            lines.append(f'{prefix}{line}')
         else:
-            lines.append('%s%s' % (blanks, line))
+            lines.append(f'{blanks}{line}')
     string = '\n'.join(lines)
     return string[:len(string)-_fakeend]
 
@@ -999,9 +997,10 @@ class _AssignReprBracketed:
         self._brackets = brackets
 
     def __call__(self, values, prefix, width=None):
-        if (len(values) == 1) and not self._always_bracketed:
+        nmb_values = len(values)
+        if (nmb_values == 1) and not self._always_bracketed:
             return assignrepr_value(values[0], prefix)
-        if len(values) > 0:
+        if nmb_values:
             string = assignrepr_values(
                 values, prefix+self._brackets[0], width, 1) + self._brackets[1]
             if (len(values) == 1) and (self._brackets[1] == ')'):
@@ -1112,9 +1111,9 @@ def assignrepr_values2(values, prefix):
     blanks = ' '*len(prefix)
     for (idx, subvalues) in enumerate(values):
         if idx == 0:
-            lines.append('%s%s,' % (prefix, repr_values(subvalues)))
+            lines.append(f'{prefix}{repr_values(subvalues)},')
         else:
-            lines.append('%s%s,' % (blanks, repr_values(subvalues)))
+            lines.append(f'{blanks}{repr_values(subvalues)},')
     lines[-1] = lines[-1][:-1]
     return '\n'.join(lines)
 
@@ -1420,7 +1419,7 @@ arguments `lfill` and `rfill`.  This is not allowed.
         print(string, **kwargs)
 
 
-def extract(values: Any, types: Tuple[Type, ...], skip: bool = False) \
+def extract(values: Any, types_: Tuple[Type, ...], skip: bool = False) \
         -> Iterator[Any]:
     """Return a generator that extracts certain objects from `values`.
 
@@ -1461,7 +1460,7 @@ the following classes: str and int.
     >>> tuple(extract((['str1', 'str2'], [None, 1]), (str, int), True))
     ('str1', 'str2', 1)
     """
-    if isinstance(values, types):
+    if isinstance(values, types_):
         yield values
     elif skip and (values is None):
         return
@@ -1470,16 +1469,15 @@ the following classes: str and int.
             if isinstance(values, str):
                 raise TypeError('asdf')
             for value in values:
-                for subvalue in extract(value, types, skip):
+                for subvalue in extract(value, types_, skip):
                     yield subvalue
         except TypeError as exc:
             if exc.args[0].startswith('The given (sub)value'):
                 raise exc
-            else:
-                raise TypeError(
-                    f'The given (sub)value `{repr(values)}` is not an '
-                    f'instance of the following classes: '
-                    f'{enumeration(types, converter=instancename)}.')
+            raise TypeError(
+                f'The given (sub)value `{repr(values)}` is not an '
+                f'instance of the following classes: '
+                f'{enumeration(types_, converter=instancename)}.')
 
 
 def enumeration(values, converter=str, default=''):
@@ -1522,7 +1520,7 @@ def enumeration(values, converter=str, default=''):
     return ', and '.join((', '.join(values[:-1]), values[-1]))
 
 
-def description(self):
+def description(self: Any) -> str:
     """Returns the first "paragraph" of the docstring of the given object.
 
     Note that ugly things like multiple whitespaces and newline characters
@@ -1541,4 +1539,3 @@ the original traceback.'
     if self.__doc__ in (None, ''):
         return 'no description available'
     return ' '.join(self.__doc__.split('\n\n')[0].split())
-

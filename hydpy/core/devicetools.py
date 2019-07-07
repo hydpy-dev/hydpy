@@ -390,7 +390,7 @@ of the following classes: node and str.
         contentclass = self.get_contentclass()
         try:
             for value in objecttools.extract(
-                    values, types=(contentclass, str), skip=True):
+                    values, types_=(contentclass, str), skip=True):
                 self.add_device(value)
         except BaseException:
             objecttools.augment_excmessage(

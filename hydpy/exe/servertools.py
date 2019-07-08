@@ -502,7 +502,7 @@ has been extracted but cannot be further processed: `x == y`.
     that are related to setting parameter values
     (|HydPyServer.GET_parameteritemtypes|), setting condition values
     (|HydPyServer.GET_conditionitemtypes|), and getting different kinds
-    of values (|HydPyServer.GET_getitemtypes|) seperately:
+    of values (|HydPyServer.GET_getitemtypes|) separately:
 
     >>> test('parameteritemtypes')
     alpha = Double0D

@@ -144,7 +144,7 @@ def calc_et0_wet0_v1(self):
     Updated log sequence:
       |WET0|
 
-    Basic equations:
+    Basic equation:
       :math:`ET0_{new} = WfET0 \\cdot KE \\cdot PET +
       (1-WfET0) \\cdot ET0_{alt}`
 
@@ -620,6 +620,7 @@ def calc_schm_wats_v1(self):
 
     Basic equations:
       :math:`\\frac{dWATS}{dt}  = SBes - Schm`
+
       :math:`Schm = \\Bigl \\lbrace
       {
       {WGTF \\ | \\ WATS > 0}
@@ -685,6 +686,7 @@ def calc_wada_waes_v1(self):
 
     Basic equations:
       :math:`\\frac{dWAeS}{dt} = NBes - WaDa`
+
       :math:`WAeS \\leq PWMax \\cdot WATS`
 
     Examples:
@@ -750,6 +752,7 @@ def calc_evb_v1(self):
 
     Basic equations:
       :math:`temp = exp(-GrasRef_R \\cdot \\frac{BoWa}{NFk})`
+
       :math:`EvB = (EvPo - EvI) \\cdot
       \\frac{1 - temp}{1 + temp -2 \\cdot exp(-GrasRef_R)}`
 
@@ -1074,8 +1077,10 @@ def calc_qdb_v1(self):
       \\atop
       {max(Exz + NFk \\cdot SfA^{BSf+1}, 0) \\ | \\ SfA > 0}
       }`
+
       :math:`SFA = (1 - \\frac{BoWa}{NFk})^\\frac{1}{BSf+1} -
       \\frac{WaDa}{(BSf+1) \\cdot NFk}`
+
       :math:`Exz = (BoWa + WaDa) - NFk`
 
     Examples:
@@ -1153,6 +1158,7 @@ def calc_bowa_v1(self):
 
     Basic equations:
        :math:`\\frac{dBoWa}{dt} = WaDa - EvB - QBB - QIB1 - QIB2 - QDB`
+
        :math:`BoWa \\geq 0`
 
     Examples:
@@ -1412,7 +1418,7 @@ def calc_qdgz_v1(self):
 
 
 def calc_qdgz1_qdgz2_v1(self):
-    """Seperate total direct flow into a small and a fast component.
+    """Separate total direct flow into a slower and a faster component.
 
     Required control parameters:
       |A1|
@@ -1425,27 +1431,28 @@ def calc_qdgz1_qdgz2_v1(self):
       |QDGZ1|
       |QDGZ2|
 
-    Basic equation:
+    Basic equations:
        :math:`QDGZ2 = \\frac{(QDGZ-A2)^2}{QDGZ+A1-A2}`
+
        :math:`QDGZ1 = QDGZ - QDGZ1`
 
     Examples:
 
-        The formula for calculating the amount of the fast component of
-        direct flow is borrowed from the famous curve number approach.
+        We borrowed the formula for calculating the amount of the faster
+        component of direct flow from the well-known curve number approach.
         Parameter |A2| would be the initial loss and parameter |A1| the
-        maximum storage, but one should not take this analogy too serious.
-        Instead, with the value of parameter |A1| set to zero, parameter
-        |A2| just defines the maximum amount of "slow" direct runoff per
-        time step:
+        maximum storage, but one should not take this analogy too literally.
+
+        With the value of parameter |A1| set to zero, parameter |A2| defines
+        the maximum amount of "slow" direct runoff per time step:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> simulationstep('12h')
         >>> a1(0.0)
 
-        Let us set the value of |A2| to 4 mm/d, which is 2 mm/12h with
-        respect to the selected simulation step size:
+        Let us set the value of |A2| to 4 mm/d, which is 2 mm/12h concerning
+        the selected simulation step size:
 
         >>> a2(4.0)
         >>> a2
@@ -1873,6 +1880,7 @@ def calc_q_v1(self):
     Basic equations:
        :math:`Q = QBGA + QIGA1 + QIGA2 + QDGA1 + QDGA2 +
        NKor_{WASSER} - EvI_{WASSER}`
+
        :math:`Q \\geq 0`
 
     Examples:

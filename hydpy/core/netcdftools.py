@@ -515,7 +515,7 @@ class NetCDFInterface:
     and two |NetCDFFile| objects for handling the |FluxSequence| objects
     of application models |lland_v1| and |lland_v2|, respectively.
     Sequences of a specific type of model and nodes are always handled
-    in seperate NetCDF files, to avoid name conflicts. |InputSequences|
+    in separate NetCDF files, to avoid name conflicts. |InputSequences|
     and |FluxSequence| objects can only be stored in the same NetCDF file
     when one wants to store them in the same folder, of course, which is
     not the case in the given example.  This should become clear when

@@ -74,7 +74,7 @@ def exec_commands(commands: str, **parameters: Any) -> None:
     """Execute the given Python commands.
 
     Function |exec_commands| is thought for testing purposes only (see
-    the main documentation on module |hyd|).  Seperate individual commands
+    the main documentation on module |hyd|).  Separate individual commands
     by semicolons and replaced whitespaces with underscores:
 
     >>> from hydpy.exe.commandtools import exec_commands

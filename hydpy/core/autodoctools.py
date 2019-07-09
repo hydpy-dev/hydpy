@@ -22,6 +22,7 @@ import sys
 import time
 import types
 import typing
+from typing import *
 import unittest
 # ...from site-packages
 import numpy
@@ -191,13 +192,13 @@ class Substituter:
         self.slaves = []
         if master:
             master.slaves.append(self)
-            self._short2long = copy.deepcopy(master._short2long)
-            self._medium2long = copy.deepcopy(master._medium2long)
-            self._blacklist = copy.deepcopy(master._blacklist)
+            self.short2long = copy.deepcopy(master.short2long)
+            self.medium2long = copy.deepcopy(master.medium2long)
+            self.blacklist = copy.deepcopy(master.blacklist)
         else:
-            self._short2long = {}
-            self._medium2long = {}
-            self._blacklist = set()
+            self.short2long = {}
+            self.medium2long = {}
+            self.blacklist = set()
 
     @staticmethod
     def consider_member(name_member, member, module, class_=None):
@@ -322,9 +323,9 @@ class Substituter:
         """
         if inspect.isroutine(member) or isinstance(member, numpy.ufunc):
             return 'func'
-        elif inspect.isclass(member):
+        if inspect.isclass(member):
             return 'class'
-        elif cython:
+        if cython:
             return 'func'
         return 'const'
 
@@ -412,16 +413,16 @@ class Substituter:
         """
         name = module.__name__
         if 'builtin' in name:
-            self._short2long[short] = long.split('~')[0] + long.split('.')[-1]
+            self.short2long[short] = long.split('~')[0] + long.split('.')[-1]
         else:
-            if ('hydpy' in name) and (short not in self._blacklist):
-                if short in self._short2long:
-                    if self._short2long[short] != long:
-                        self._blacklist.add(short)
-                        del self._short2long[short]
+            if ('hydpy' in name) and (short not in self.blacklist):
+                if short in self.short2long:
+                    if self.short2long[short] != long:
+                        self.blacklist.add(short)
+                        del self.short2long[short]
                 else:
-                    self._short2long[short] = long
-            self._medium2long[medium] = long
+                    self.short2long[short] = long
+            self.medium2long[medium] = long
 
     def add_module(self, module, cython=False):
         """Add the given module, its members, and their submembers.
@@ -469,7 +470,7 @@ class Substituter:
                  % name_module)
         long = (':mod:`~%s`'
                 % module.__name__)
-        self._short2long[short] = long
+        self.short2long[short] = long
         for (name_member, member) in vars(module).items():
             if self.consider_member(
                     name_member, member, module):
@@ -511,7 +512,7 @@ class Substituter:
             name = name.split('.')[0]
             short = '|%s|' % name
             long = ':mod:`~%s.%s`' % (package.__package__, name)
-            self._short2long[short] = long
+            self.short2long[short] = long
 
     def update_masters(self):
         """Update all `master` |Substituter| objects.
@@ -578,7 +579,7 @@ class Substituter:
         |masktools.Masks| :class:`~hydpy.core.masktools.Masks`
         """
         if self.master is not None:
-            self.master._medium2long.update(self._medium2long)
+            self.master.medium2long.update(self.medium2long)
             self.master.update_masters()
 
     def update_slaves(self):
@@ -587,7 +588,7 @@ class Substituter:
         See method |Substituter.update_masters| for further information.
         """
         for slave in self.slaves:
-            slave._medium2long.update(self._medium2long)
+            slave.medium2long.update(self.medium2long)
             slave.update_slaves()
 
     def get_commands(self, source=None):
@@ -641,9 +642,9 @@ class Substituter:
                 print(key, value)
 
     def __iter__(self):
-        for item in sorted(self._short2long.items()):
+        for item in sorted(self.short2long.items()):
             yield item
-        for item in sorted(self._medium2long.items()):
+        for item in sorted(self.medium2long.items()):
             yield item
 
 
@@ -663,8 +664,8 @@ def prepare_mainsubstituter():
     substituter.add_modules(models)
     for cymodule in (annutils, smoothutils, pointerutils):
         substituter.add_module(cymodule, cython=True)
-    substituter._short2long['|pub|'] = ':mod:`~hydpy.pub`'
-    substituter._short2long['|config|'] = ':mod:`~hydpy.config`'
+    substituter.short2long['|pub|'] = ':mod:`~hydpy.pub`'
+    substituter.short2long['|config|'] = ':mod:`~hydpy.config`'
     return substituter
 
 
@@ -742,7 +743,7 @@ _name2descr = {
                          ' effective precipitation and direct runoff)')
 }
 
-_loggedtuples = set()
+_loggedtuples: Set[str] = set()
 
 
 def autodoc_tuple2doc(module):

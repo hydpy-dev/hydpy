@@ -21,14 +21,12 @@ import hydpy
 from hydpy.core import objecttools
 from hydpy.core import propertytools
 from hydpy.core import variabletools
+from hydpy.cythons.autogen import pointerutils
 if TYPE_CHECKING:
     from hydpy.core import devicetools
     from hydpy.core import modeltools
     from hydpy.core import timetools
     from hydpy.core import typingtools
-    from hydpy.cythons import pointerutils
-else:
-    from hydpy.cythons.autogen import pointerutils
 
 
 class InfoArray(numpy.ndarray):

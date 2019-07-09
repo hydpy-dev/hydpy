@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from hydpy.core import sequencetools
     from hydpy.core import timetools
     from hydpy.core import variabletools
-    from hydpy.cythons import pointerutils
+    from hydpy.cythons.autogen import pointerutils
 
 T = TypeVar('T')
 T1 = TypeVar('T1')

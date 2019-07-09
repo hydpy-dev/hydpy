@@ -1610,7 +1610,7 @@ the given group name `test`.
         handled by the actual |Node| object."""
         self.sequences.close_files()
 
-    def prepare_allseries(self, ramflag: bool = True) -> None:    # ToDo
+    def prepare_allseries(self, ramflag: bool = True) -> None:
         """Prepare the |IOSequence.series| object both of the |Sim| and the
         |Obs| sequence.
 

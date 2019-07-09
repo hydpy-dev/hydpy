@@ -15,7 +15,6 @@ if TYPE_CHECKING:
     from hydpy.core import parametertools
     from hydpy.core import sequencetools
     from hydpy.core import timetools
-    from hydpy.core import variabletools
     from hydpy.cythons.autogen import pointerutils
 
 T = TypeVar('T')
@@ -65,18 +64,34 @@ class VariableProtocol(Protocol):
     """Protocol to identify objects as "variables"."""
 
     @property
-    @abc.abstractmethod
     def name(self) -> str:
         """The name of the actual variable object."""
 
-    @abc.abstractmethod
-    def __init__(self, subvars: 'variabletools.SubgroupType'):
-        """See class |Parameter| and class |Sequence|."""
+    # def __init__(
+    #         self,
+    #         subvars: Union['parametertools.SubParameters',
+    #                        'sequencetools.SubSequences']) -> None:
+    #     """See class |Parameter| and class |Sequence|."""
 
-    @abc.abstractmethod
     def __hydpy__connect_variable2subgroup__(self) -> None:
         """To be called by the |SubVariables| object when preparing a
         new |Variable| object."""
+
+
+class CyParametersProtocol(Protocol):
+    """The protocol for the `parameters` attribute of Cython extension classes.
+
+    Class |Cythonizer| generates the actual, model specific
+    implementations automatically.
+    """
+
+
+class CySequencesProtocol(Protocol):
+    """The protocol for the `sequences` attribute of Cython extension classes.
+
+    Class |Cythonizer| generates the actual, model specific
+    implementations automatically.
+    """
 
 
 class CyModelProtocol(Protocol):
@@ -88,8 +103,8 @@ class CyModelProtocol(Protocol):
     """
 
     idx_sim: int
-    parameters: Any    # ToDo
-    sequences: Any    # ToDo
+    parameters: CyParametersProtocol
+    sequences: CySequencesProtocol
 
 
 class FastAccessParameterProtocol(Protocol):

@@ -83,6 +83,19 @@ class Dummies:
     """
 
     def clear(self):
+        """Remove all currently handled attributes.
+
+        >>> from hydpy import dummies
+        >>> dummies.x = 1
+        >>> dummies.y = None
+        >>> dummies.x
+        1
+        >>> hasattr(dummies, 'y')
+        True
+        >>> dummies.clear()
+        >>> hasattr(dummies, 'x') or hasattr(dummies, 'y')
+        False
+        """
         for name in list(vars(self)):
             delattr(self, name)
 

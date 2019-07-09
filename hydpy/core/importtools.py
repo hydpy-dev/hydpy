@@ -22,7 +22,7 @@ from hydpy.core import timetools
 from hydpy.core.typingtools import *
 
 
-def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None):
+def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None) -> None:
     """Define a parameter time step size within a parameter control file.
 
     Function parameterstep should usually be be applied in a line
@@ -82,12 +82,16 @@ def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None):
             namespace[par.name] = lambda *args, **kwargs: None
 
 
-def prepare_parameters(dict_):
+def prepare_parameters(dict_: Dict[str, Any]) -> parametertools.Parameters:
+    """Prepare a |Parameters| object based on the given dictionary
+    information and return it."""
     cls_parameters = dict_.get('Parameters', parametertools.Parameters)
     return cls_parameters(dict_)
 
 
-def prepare_sequences(dict_):
+def prepare_sequences(dict_: Dict[str, Any]) -> sequencetools.Sequences:
+    """Prepare a |Sequences| object based on the given dictionary
+    information and return it."""
     cls_sequences = dict_.get('Sequences', sequencetools.Sequences)
     return cls_sequences(
         model=dict_.get('model'),
@@ -105,7 +109,7 @@ def prepare_sequences(dict_):
     )
 
 
-def reverse_model_wildcard_import():
+def reverse_model_wildcard_import() -> None:
     """Clear the local namespace from a model wildcard import.
 
     Calling this method should remove the critical imports into the local
@@ -243,7 +247,7 @@ def prepare_model(module: Union[types.ModuleType, str],
     return model
 
 
-def simulationstep(timestep):
+def simulationstep(timestep) -> None:
     """ Define a simulation time step size for testing purposes within a
     parameter control file.
 
@@ -280,7 +284,8 @@ are initialised based on the actual simulation time step as defined under \
     parametertools.Parameter.simulationstep(timestep)
 
 
-def controlcheck(controldir='default', projectdir=None, controlfile=None):
+def controlcheck(controldir='default', projectdir=None, controlfile=None) \
+        -> None:
     """Define the corresponding control file within a condition file.
 
     Function |controlcheck| serves similar purposes as function
@@ -367,6 +372,7 @@ the following error occurred: ...
             '..', '..', '..', projectdir, 'control', controldir))
 
         class CM(filetools.ControlManager):
+            """Tempory |ControlManager| class."""
             currentpath = dirpath
 
         cwd = os.getcwd()

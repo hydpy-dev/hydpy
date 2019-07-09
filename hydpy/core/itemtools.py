@@ -4,7 +4,7 @@ modification of the values of |Parameter| and |Sequence| objects."""
 # import...
 # ...from standard library
 import abc
-from typing import Dict, Iterator, Tuple
+from typing import *
 # ...from site-packages
 import numpy
 # ...from HydPy
@@ -84,7 +84,7 @@ class ExchangeSpecification:
         return f"ExchangeSpecification('{self.master}', '{self.specstring}')"
 
 
-class ExchangeItem(abc.ABC):
+class ExchangeItem:
     """Base class for exchanging values with multiple |Parameter| or |Sequence|
     objects of a certain type."""
 
@@ -108,6 +108,9 @@ class ExchangeItem(abc.ABC):
             subgroup = getattr(group, properties.subgroup, None)
             if subgroup is not None:
                 return getattr(subgroup, properties.variable)
+        raise RuntimeError(
+            f'Model {objecttools.elementphrase(model)} does neither handle '
+            f'a parameter of sequence subgroup named `{properties.subgroup}.')
 
     @staticmethod
     def _query_nodevariable(node: devicetools.Node, properties) -> \
@@ -177,6 +180,16 @@ class ExchangeItem(abc.ABC):
         >>> item.device2target[land_dill] is sequence
         True
 
+        To pass an ill-defined subgroup name results in the following error:
+
+        >>> from hydpy import SetItem
+        >>> item = SetItem('ic', 'hland', 'wrong_group.wrong_variable', 0)
+        >>> item.collect_variables(pub.selections)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Model `hland_v1` of element `land_dill` does neither \
+handle a parameter of sequence subgroup named `wrong_group.
+
         It is both possible to address sequences of |Node| objects, as well
         as their time series, by arguments "node" and "nodes":
 
@@ -209,7 +222,7 @@ class ExchangeItem(abc.ABC):
     def insert_variables(
             self, device2variable, exchangespec, selections) -> None:
         """Determine the relevant target or base variables (as defined by
-        the given |ExchangeSpecification| object ) handled by the given
+        the given |ExchangeSpecification| object) handled by the given
         |Selections| object and insert them into the given `device2variable`
         dictionary."""
         if self.targetspecs.master in ('node', 'nodes'):
@@ -222,13 +235,13 @@ class ExchangeItem(abc.ABC):
                 device2variable[element] = variable
 
 
-class ChangeItem(ExchangeItem, metaclass=abc.ABCMeta):
+class ChangeItem(ExchangeItem):
     """Base class for changing the values of multiple |Parameter| or |Sequence|
     objects of a specific type."""
 
     name: str
     ndim: int
-    shape: Tuple[int]
+    shape: Tuple[int, ...]
     _value: numpy.ndarray
 
     @property
@@ -306,6 +319,18 @@ different shapes.
         >>> item.collect_variables(pub.selections)
         >>> item.shape
         (3,)
+
+        Passing a |Selections| object not containing any relevant target
+        variables results in the following error:
+
+        >>> item = SetItem('ic', 'hland', 'states.ic', 1)
+        >>> from hydpy import Selections
+        >>> item.collect_variables(Selections())
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Cannot determine the shape of the actual `SetItem` \
+object, as the given `Selections` object does not handle any relevant \
+target variables.
         """
         super().collect_variables(selections)
         self._determine_shape()
@@ -324,6 +349,12 @@ different shapes.
                             f'{objecttools.classname(self)} `{self.name}` '
                             f'cannot handle target variables of different '
                             f'shapes.')
+            if shape is None:
+                raise RuntimeError(
+                    f'Cannot determine the shape of the actual '
+                    f'`{objecttools.classname(self)}` object, '
+                    f'as the given `Selections` object does not '
+                    f'handle any relevant target variables.')
             self.shape = shape
 
     def update_variable(self, variable, value) -> None:
@@ -440,7 +471,9 @@ class SetItem(ChangeItem):
             f"{self.ndim})")
 
 
-class MathItem(ChangeItem, metaclass=abc.ABCMeta):
+class MathItem(ChangeItem):
+    # pylint: disable=abstract-method
+    # due to pylint issue https://github.com/PyCQA/pylint/issues/179
     """Base class for performing some mathematical operations on the given
     values before assigning them to the handled target variables.
 
@@ -567,7 +600,7 @@ class GetItem(ExchangeItem):
     def __init__(self, master: str, target: str):
         self.target = target.replace('.', '_')
         self.targetspecs = ExchangeSpecification(master, target)
-        self.ndim = None
+        self.ndim = 0
         self.device2target = {}
         self._device2name: Dict[devicetools.Device, str] = {}
 
@@ -577,7 +610,7 @@ class GetItem(ExchangeItem):
         |ChangeItem| object afterwards.
 
         The value of `ndim` depends on whether the values of the target
-        variable or its time series is of interest:
+        variable or its time series are of interest:
 
         >>> from hydpy.examples import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()

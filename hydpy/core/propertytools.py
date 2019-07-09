@@ -13,6 +13,63 @@ from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 
 
+def fgetdummy(*args):
+    """The "unready" default `fget` function of class |BaseProperty| objects.
+
+    If any, only framework developers should ever encounter the following
+    error when implementing new costum properties:
+
+    >>> from hydpy.core.propertytools import fgetdummy
+    >>> fgetdummy('arg1')
+    Traceback (most recent call last):
+    ...
+    NotImplementedError: The "unready" default `fget` function `fgetdummy` \
+should never been called, but has been called with argument(s): arg1.
+    """
+    raise NotImplementedError(
+        f'The "unready" default `fget` function `fgetdummy` should '
+        f'never been called, but has been called with argument(s): '
+        f'{objecttools.enumeration(args)}.')
+
+
+def fsetdummy(*args):
+    """The "unready" default `fget` function of class |BaseProperty| objects.
+
+    If any, only framework developers should ever encounter the following
+    error when implementing new costum properties:
+
+    >>> from hydpy.core.propertytools import fsetdummy
+    >>> fsetdummy('arg1', 'arg2')
+    Traceback (most recent call last):
+    ...
+    NotImplementedError: The "unready" default `fset` function `fsetdummy` \
+should never been called, but has been called with argument(s): arg1 and arg2.
+    """
+    raise NotImplementedError(
+        f'The "unready" default `fset` function `fsetdummy` should '
+        f'never been called, but has been called with argument(s): '
+        f'{objecttools.enumeration(args)}.')
+
+
+def fdeldummy(*args):
+    """The "unready" default `fget` function of class |BaseProperty| objects.
+
+    If any, only framework developers should ever encounter the following
+    error when implementing new costum properties:
+
+    >>> from hydpy.core.propertytools import fdeldummy
+    >>> fdeldummy('arg1')
+    Traceback (most recent call last):
+    ...
+    NotImplementedError: The "unready" default `fdel` function `fdeldummy` \
+should never been called, but has been called with argument(s): arg1.
+    """
+    raise NotImplementedError(
+        f'The "unready" default `fdel` function `fdeldummy` should '
+        f'never been called, but has been called with argument(s): '
+        f'{objecttools.enumeration(args)}.')
+
+
 class BaseProperty(abc.ABC):
     # noinspection PyUnresolvedReferences
     """Abstract base class for deriving classes similar to |property|.
@@ -31,13 +88,14 @@ methods call_fdel, call_fget, call_fset
 
     The following concrete class mimics the behaviour of class |property|:
 
+    >>> from hydpy.core.propertytools import fgetdummy, fsetdummy, fdeldummy
     >>> class ConcreteProperty(BaseProperty):
     ...
-    ...     def __init__(self, fget=None):
+    ...     def __init__(self, fget=fgetdummy):
     ...         self.fget = fget
     ...         self.__doc__ = fget.__doc__
-    ...         self.fset = None
-    ...         self.fdel = None
+    ...         self.fset = fsetdummy
+    ...         self.fdel = fdeldummy
     ...
     ...     def call_fget(self, obj):
     ...         return self.fget(obj)
@@ -116,21 +174,21 @@ methods call_fdel, call_fget, call_fset
     def __get__(self, obj, objtype=None) -> Any:
         if obj is None:
             return self
-        if self.fget is None:
+        if self.fget is fgetdummy:
             raise AttributeError(
                 f'Attribute `{self.name}` of object '
                 f'{objecttools.devicephrase(obj)} is not gettable.')
         return self.call_fget(obj)
 
     def __set__(self, obj, value) -> None:
-        if self.fset is None:
+        if self.fset is fsetdummy:
             raise AttributeError(
                 f'Attribute `{self.name}` of object '
                 f'{objecttools.devicephrase(obj)} is not settable.')
         self.call_fset(obj, value)
 
     def __delete__(self, obj) -> None:
-        if self.fdel is None:
+        if self.fdel is fdeldummy:
             raise AttributeError(
                 f'Attribute `{self.name}` of object '
                 f'{objecttools.devicephrase(obj)} is not deletable.')
@@ -252,13 +310,14 @@ class ProtectedProperty(BaseProperty):
 `name_object` of element `name_element` has not been prepared so far.
     """
 
-    def __init__(self, fget=None):
+    def __init__(self, fget=fsetdummy):
         self.fget = fget
         self.set_doc(fget.__doc__)
-        self.fset = None
-        self.fdel = None
+        self.fset = fsetdummy
+        self.fdel = fdeldummy
 
     def call_fget(self, obj) -> Any:
+        """Call `fget` when ready, otherwise raise an exception."""
         if self.isready(obj):
             return self.fget(obj)
         raise exceptiontools.AttributeNotReady(
@@ -266,10 +325,12 @@ class ProtectedProperty(BaseProperty):
             f'{objecttools.devicephrase(obj)} has not been prepared so far.')
 
     def call_fset(self, obj, value) -> None:
+        """Call `fset` and mark the attribute as ready."""
         self.fset(obj, value)
         vars(obj)[self.name] = True
 
     def call_fdel(self, obj) -> None:
+        """Call `fdel` and mark the attribute as not ready."""
         vars(obj)[self.name] = False
         self.fdel(obj)
 
@@ -408,9 +469,9 @@ attribute `x` first.
 
     def __init__(self, protected):
         self.protected = protected
-        self.fget = None
-        self.fset = None
-        self.fdel = None
+        self.fget = fgetdummy
+        self.fset = fsetdummy
+        self.fdel = fdeldummy
 
     def __check(self, obj) -> None:
         for req in self.protected:

@@ -9,7 +9,6 @@ from typing import *
 import numpy
 # ...from HydPy
 from hydpy.core import objecttools
-from hydpy.core import typingtools
 if TYPE_CHECKING:
     from hydpy.core import parametertools
 
@@ -146,7 +145,7 @@ class DefaultMask(BaseMask):
     def new(cls, variable, **kwargs):
         """Return a new |DefaultMask| object associated with the
         given |Variable| object."""
-        return cls.array2mask(numpy.full(variable.shape, True))
+        return cls.array2mask(numpy.full(variable.shape, True), **kwargs)
 
 
 class IndexMask(DefaultMask):

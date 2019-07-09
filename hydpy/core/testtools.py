@@ -263,6 +263,9 @@ hydpy.models.hland.hland_control.ZoneType
         with printtools.PrintStyle(color=color, font=2):
             for name in self.modulenames:
                 print('    * %s:' % name, )
+                # pylint: disable=not-callable
+                # pylint does understand that all options are callable
+                # except option `printincolor`!?
                 with StdOutErr(indent=8), \
                         opt.usedefaultvalues(False), \
                         opt.usedefaultvalues(False), \
@@ -275,6 +278,7 @@ hydpy.models.hland.hland_control.ZoneType
                         opt.warntrim(False), \
                         par.parameterstep.delete(), \
                         par.simulationstep.delete():
+                    # pylint: enable=not-callable
                     projectname = hydpy.pub.get('projectname')
                     del hydpy.pub.projectname
                     timegrids = hydpy.pub.get('timegrids')

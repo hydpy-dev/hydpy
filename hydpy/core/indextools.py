@@ -82,8 +82,8 @@ class IndexerProperty(propertytools.BaseProperty):
             self.timegrids = copy.deepcopy(timegrids)
         return self.values
 
-    def call_fset(self, obj, values):
-        self._fset(values)
+    def call_fset(self, obj, value):
+        self._fset(value)
 
     def _fset(self, values):
         self.values = self._convertandtest(values, self.name)
@@ -180,6 +180,8 @@ class Indexer:
         >>> monthofyear
         array([1, 1, 1, 2, 2])
         """
+        # pylint: disable=no-self-use
+        # pylint does not understand descriptors well enough, so far
         def _monthofyear(date):
             return date.month - 1
         return _monthofyear
@@ -201,6 +203,8 @@ class Indexer:
         >>> Indexer().dayofyear
         array([57, 58, 60, 61])
         """
+        # pylint: disable=no-self-use
+        # pylint does not understand descriptors well enough, so far
         def _dayofyear(date):
             return (date.dayofyear-1 +
                     ((date.month > 2) and (not date.leapyear)))
@@ -248,6 +252,8 @@ class Indexer:
         Note the gap in the returned index array due to 2005 being not a
         leap year.
         """
+        # pylint: disable=no-self-use
+        # pylint does not understand descriptors well enough, so far
         refgrid = timetools.Timegrid(
             timetools.Date('2000.01.01'),
             timetools.Date('2001.01.01'),

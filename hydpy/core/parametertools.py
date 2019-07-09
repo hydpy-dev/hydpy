@@ -420,14 +420,16 @@ class SubParameters(variabletools.SubVariables[Parameters]):
 
     pars: Parameters
     fastaccess: Union[
-        'FastAccessSequence', 'typingtools.FastAccessModelSequenceProtocol']
-    _cls_fastaccess: Any   # ToDo
-    _cymodel = Optional[Type['typingtools.CyModelProtocol']]
+        'FastAccessParameter', 'typingtools.FastAccessParameterProtocol']
+    _cls_fastaccess: Optional[Type[
+        'typingtools.FastAccessParameterProtocol']]
+    _cymodel: Optional['typingtools.CyModelProtocol']
 
     def __init__(
             self,
             master: Parameters,
-            cls_fastaccess=None,
+            cls_fastaccess: Optional[Type[
+                'typingtools.FastAccessParameterProtocol']] = None,
             cymodel: Optional['typingtools.CyModelProtocol'] = None):
         self.pars = master
         self._cls_fastaccess = cls_fastaccess
@@ -435,7 +437,7 @@ class SubParameters(variabletools.SubVariables[Parameters]):
         super().__init__(master)
 
     def __hydpy__initialise_fastaccess__(self) -> None:
-        if self._cls_fastaccess is None:
+        if (self._cls_fastaccess is None) or (self._cymodel is None):
             self.fastaccess = FastAccessParameter()
         else:
             self.fastaccess = self._cls_fastaccess()
@@ -511,7 +513,7 @@ class _Stepsize(timetools.Period):
     def __delete__(self, obj):
         del self.period.timedelta
 
-    def __call__(self, value: timetools.PeriodConstrArg) -> None:   # ToDo ?
+    def __call__(self, value: timetools.PeriodConstrArg) -> None:
         try:
             period = timetools.Period(value)
             if period >= '1s':
@@ -941,6 +943,10 @@ shape (2) into shape (2,3)
     """
     TIME: Optional[bool]
 
+    fastaccess: Union[
+        'FastAccessParameter',
+        'typingtools.FastAccessParameterProtocol']
+
     parameterstep = Parameterstep()
     simulationstep = Simulationstep()
 
@@ -1137,11 +1143,10 @@ parameter and a simulation time step size first.
                     f'the values of the time-dependent parameters, '
                     f'you need to define both a parameter and a simulation '
                     f'time step size first.')
-            else:
-                date1 = timetools.Date('2000.01.01')
-                date2 = date1 + cls.simulationstep
-                parfactor = timetools.Timegrids(timetools.Timegrid(
-                    date1, date2, cls.simulationstep)).parfactor
+            date1 = timetools.Date('2000.01.01')
+            date2 = date1 + cls.simulationstep
+            parfactor = timetools.Timegrids(timetools.Timegrid(
+                date1, date2, cls.simulationstep)).parfactor
         return parfactor(cls.parameterstep)
 
     def trim(self, lower=None, upper=None) -> None:
@@ -2138,9 +2143,9 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
 
     def __hydpy__set_shape__(self, shape: Union[int, Iterable[int]]):
         if isinstance(shape, Iterable):
-            shape = list(shape)
+            shape_ = list(shape)
         else:
-            shape = [-1]
+            shape_ = [-1]
         if not self.simulationstep:
             raise RuntimeError(
                 f'It is not possible the set the shape of the seasonal '
@@ -2149,13 +2154,14 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
                 f'first.  However, in complete HydPy projects this step'
                 f'size is indirectly defined via `pub.timegrids.stepsize` '
                 f'automatically.')
-        shape[0] = timetools.Period('366d') / self.simulationstep
-        shape[0] = int(numpy.ceil(round(shape[0], 10)))
-        super().__hydpy__set_shape__(shape)
+        shape_[0] = int(numpy.ceil(
+            timetools.Period('366d') / self.simulationstep))
+        shape_[0] = int(numpy.ceil(round(shape_[0], 10)))
+        super().__hydpy__set_shape__(shape_)
 
     shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
 
-    def __iter__(self) -> Iterable[Tuple[timetools.TOY, Any]]:
+    def __iter__(self) -> Iterator[Tuple[timetools.TOY, Any]]:
         for toy in sorted(self._toy2values.keys()):
             yield (toy, self._toy2values[toy])
 
@@ -2850,9 +2856,11 @@ class TOYParameter(Parameter):
         >>> toyparameter
         toyparameter(57, 58, 59, 60, 61)
         """
+        # pylint: disable=no-member
+        # pylint does not understand descriptors well enough, so far
         indexarray = hydpy.pub.indexer.timeofyear
-        self.shape = indexarray.shape
-        self.values = indexarray
+        self.__hydpy__set_shape__(indexarray.shape)
+        self.__hydpy__set_value__(indexarray)
 
 
 class MOYParameter(Parameter):
@@ -2875,9 +2883,11 @@ class MOYParameter(Parameter):
         >>> moyparameter
         moyparameter(1, 1, 1, 2, 2)
         """
+        # pylint: disable=no-member
+        # pylint does not understand descriptors well enough, so far
         indexarray = hydpy.pub.indexer.monthofyear
-        self.shape = indexarray.shape
-        self.values = indexarray
+        self.__hydpy__set_shape__(indexarray.shape)
+        self.__hydpy__set_value__(indexarray)
 
 
 class FastAccessParameter(variabletools.FastAccess):

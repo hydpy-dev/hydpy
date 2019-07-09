@@ -88,9 +88,13 @@ class CyModelProtocol(Protocol):
     """
 
     idx_sim: int
-    sequences: Any   # ToDo
+    parameters: Any    # ToDo
+    sequences: Any    # ToDo
 
 
+class FastAccessParameterProtocol(Protocol):
+    """The protocol of Cython extension classes for replacing
+    the Python surrogate class |FastAccessParameter|."""
 
 
 class FastAccessModelSequenceProtocol(Protocol):

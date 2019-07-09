@@ -944,7 +944,10 @@ operands could not be broadcast together with shapes (2,) (3,)...
 
     strict_valuehandling: ClassVar[bool] = True
 
-    fastaccess: Union['FastAccess', typingtools.FastAccessModelSequenceProtocol]
+    fastaccess: Union[
+        'FastAccess',
+        typingtools.FastAccessParameterProtocol,
+        typingtools.FastAccessModelSequenceProtocol]
     subvars: SubgroupType
 
     mask = masktools.DefaultMask()
@@ -1905,8 +1908,13 @@ variable `testvar`.
     CLASSES: Tuple[Type[typingtools.VariableProtocol], ...]
     vars: GroupType
     _name2variable: Dict[str, typingtools.VariableProtocol] = {}
-    fastaccess: Union['FastAccess', typingtools.FastAccessModelSequenceProtocol]
-    _cls_fastaccess: Optional[Type[typingtools.FastAccessModelSequenceProtocol]]
+    fastaccess: Union[
+        'FastAccess',
+        typingtools.FastAccessParameterProtocol,
+        typingtools.FastAccessModelSequenceProtocol]
+    _cls_fastaccess: Optional[Union[
+        Type[typingtools.FastAccessParameterProtocol],
+        Type[typingtools.FastAccessModelSequenceProtocol]]]
 
     def __init__(self, master: Any):
         self.vars = master

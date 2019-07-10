@@ -1756,14 +1756,18 @@ no NetCDF reader object.
 
     def open_netcdfreader(
             self,
-            flatten: bool = False,
-            isolate: bool = False,
-            timeaxis: int = 1) -> None:
+            flatten: Optional[bool] = None,
+            isolate: Optional[bool] = None,
+            timeaxis: Optional[int] = None) -> None:
         """Prepare a new |NetCDFInterface| object for reading data."""
+        options = hydpy.pub.options
         vars(self)['netcdfreader'] = netcdftools.NetCDFInterface(
-            flatten=bool(flatten),
-            isolate=bool(isolate),
-            timeaxis=int(timeaxis))
+            flatten=bool(
+                options.flattennetcdf if flatten is None else flatten),
+            isolate=bool(
+                options.isolatenetcdf if isolate is None else isolate),
+            timeaxis=int(
+                options.timeaxisnetcdf if timeaxis is None else timeaxis))
 
     def close_netcdfreader(self) -> None:
         """Read data with a prepared |NetCDFInterface| object and delete it
@@ -1806,14 +1810,18 @@ no NetCDF writer object.
 
     def open_netcdfwriter(
             self,
-            flatten: bool = False,
-            isolate: bool = False,
-            timeaxis: int = 1) -> None:
+            flatten: Optional[bool] = None,
+            isolate: Optional[bool] = None,
+            timeaxis: Optional[int] = None) -> None:
         """Prepare a new |NetCDFInterface| object for writing data."""
+        options = hydpy.pub.options
         vars(self)['netcdfwriter'] = netcdftools.NetCDFInterface(
-            flatten=bool(flatten),
-            isolate=bool(isolate),
-            timeaxis=int(timeaxis))
+            flatten=bool(
+                options.flattennetcdf if flatten is None else flatten),
+            isolate=bool(
+                options.isolatenetcdf if isolate is None else isolate),
+            timeaxis=int(
+                options.timeaxisnetcdf if timeaxis is None else timeaxis))
 
     def close_netcdfwriter(self) -> None:
         """Write data with a prepared |NetCDFInterface| object and delete

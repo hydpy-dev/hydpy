@@ -195,11 +195,26 @@ correctly to the constructor of |NetCDFInterface|:
 >>> from unittest.mock import patch
 >>> with patch('hydpy.core.netcdftools.NetCDFInterface') as mock:
 ...     pub.sequencemanager.open_netcdfwriter(
-...         flatten=True, isolate=False, timeaxis=0)
-...     mock.assert_called_with(flatten=True, isolate=False, timeaxis=0)
+...         flatten=True, isolate=True, timeaxis=0)
+...     mock.assert_called_with(flatten=True, isolate=True, timeaxis=0)
 ...     pub.sequencemanager.open_netcdfreader(
-...         flatten=True, isolate=False, timeaxis=0)
-...     mock.assert_called_with(flatten=True, isolate=False, timeaxis=0)
+...         flatten=True, isolate=True, timeaxis=0)
+...     mock.assert_called_with(flatten=True, isolate=True, timeaxis=0)
+
+Both methods take the current values of the options |Options.flattennetcdf|,
+|Options.isolatenetcdf|, and |Options.timeaxisnetcdf| as default arguments:
+
+>>> with patch('hydpy.core.netcdftools.NetCDFInterface') as mock:
+...     pub.sequencemanager.open_netcdfwriter()
+...     mock.assert_called_with(
+...         flatten=pub.options.flattennetcdf,
+...         isolate=pub.options.isolatenetcdf,
+...         timeaxis=pub.options.timeaxisnetcdf)
+...     pub.sequencemanager.open_netcdfreader()
+...     mock.assert_called_with(
+...         flatten=pub.options.flattennetcdf,
+...         isolate=pub.options.isolatenetcdf,
+...         timeaxis=pub.options.timeaxisnetcdf)
 """
 # import...
 # ...from standard library

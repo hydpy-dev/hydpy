@@ -170,14 +170,16 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                 opt.usecython = mode == 'Cython'
                 Par = parametertools.Parameter
                 # pylint: disable=not-callable
-                with opt.usedefaultvalues(False), \
-                        opt.usedefaultvalues(False), \
-                        opt.printprogress(False), \
+                with opt.ellipsis(0), \
+                        opt.flattennetcdf(False), \
+                        opt.isolatenetcdf(False), \
                         opt.printincolor(False), \
-                        opt.warnsimulationstep(False), \
+                        opt.printprogress(False), \
                         opt.reprcomments(False), \
-                        opt.ellipsis(0), \
                         opt.reprdigits(6), \
+                        opt.timeaxisnetcdf(1), \
+                        opt.usedefaultvalues(False), \
+                        opt.warnsimulationstep(False), \
                         opt.warntrim(False), \
                         Par.parameterstep.delete(), \
                         Par.simulationstep.delete():

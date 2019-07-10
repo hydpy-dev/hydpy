@@ -139,9 +139,23 @@ class Options:
     the default values of the respective iterable objects."""
     ellipsis.type_ = int
 
+    flattennetcdf = _Option(False, None)
+    """A True/False flag relevant when working with NetCDF files that 
+    decides whether to handle multidimensional time series as a larger 
+    number of 1-dimensional time series (True) or to keep the original 
+    shape (False) (see the documentation on module |netcdftools| for 
+    further information)."""
+
     forcecompiling = _Option(False, None)
     """A True/False flag for enabling that each cythonizable model is
     cythonized when imported."""
+
+    isolatenetcdf = _Option(False, None)
+    """A True/False flag relevant when working with NetCDF files that 
+    decides whether to handle only the time series of a single sequence 
+    type (True) or the time series of multiple sequence types (False)
+    in individual NetCDF files (see the documentation on module 
+    |netcdftools| for further information)."""
 
     printprogress = _Option(True, None)
     """A True/False flag for printing information about the progress of
@@ -164,6 +178,11 @@ class Options:
     skipdoctests = _Option(False, None)
     """A True/False flag for skipping the automatic execution of
     documentation tests."""
+
+    timeaxisnetcdf = _Option(1, 1)
+    """An integer value relevant when working with NetCDF files that 
+    determines the axis of the time variable (see the documentation on 
+    module |netcdftools| for further information)."""
 
     trimvariables = _Option(True, None)
     """A True/False flag for enabling/disabling function |trim|.  Set it

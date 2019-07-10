@@ -76,7 +76,7 @@ The intermediate soil moisture values are stored in a NetCDF file called
 >>> with TestIO():
 ...     ncfile = netcdf4.Dataset('LahnH/series/output/hland_v1_state_sm.nc')
 ...     chars2str(query_variable(ncfile, 'station_id'))[:3]
-...     print_values(query_variable(ncfile, 'state_sm')[0, :])
+...     print_values(query_variable(ncfile, 'state_sm')[:, 0])
 ['land_dill_0', 'land_dill_1', 'land_dill_2']
 184.926173, 184.603966, 184.386666, 184.098541, 183.873078
 >>> ncfile.close()
@@ -136,8 +136,6 @@ def find(root: ElementTree.Element, name: str) -> Optional[ElementTree.Element]:
     True
     """
     return root.find(f'{namespace}{name}')
-
-
 
 
 def _query_selections(xmlelement: ElementTree.Element) \
@@ -451,12 +449,15 @@ correctly refer to one of the available XML schema files \
             checkseries -> 1
             dirverbose -> 0
             ellipsis -> 0
+            flattennetcdf -> 1
             forcecompiling -> 0
+            isolatenetcdf -> 1
             printprogress -> 0
             printincolor -> 0
             reprcomments -> 0
             reprdigits -> 6
             skipdoctests -> 0
+            timeaxisnetcdf -> 0
             trimvariables -> 1
             usecython -> 1
             usedefaultvalues -> 0
@@ -466,9 +467,6 @@ correctly refer to one of the available XML schema files \
             warnmissingsimfile -> 1
             warnsimulationstep -> 0
             warntrim -> 1
-            flattennetcdf -> True
-            isolatenetcdf -> True
-            timeaxisnetcdf -> 0
         )
         >>> pub.options.printprogress = False
         >>> pub.options.reprdigits = 6
@@ -1190,12 +1188,7 @@ class XMLSubseries(XMLSelector):
         ...     hp.elements.land_dill.model.sequences.inputs.t.series[:3])
         -0.298846, -0.811539, -2.493848
         """
-        kwargs = {}
-        for keyword in ('flattennetcdf', 'isolatenetcdf', 'timeaxisnetcdf'):
-            argument = getattr(hydpy.pub.options, keyword, None)
-            if argument is not None:
-                kwargs[keyword[:-6]] = argument
-        hydpy.pub.sequencemanager.open_netcdfreader(**kwargs)
+        hydpy.pub.sequencemanager.open_netcdfreader()
         self.prepare_sequencemanager()
         for sequence in self._iterate_sequences():
             sequence.load_ext()
@@ -1237,9 +1230,7 @@ class XMLSubseries(XMLSelector):
         9.0
         7.0
         """
-        hydpy.pub.sequencemanager.open_netcdfwriter(
-            flatten=hydpy.pub.options.flattennetcdf,
-            isolate=hydpy.pub.options.isolatenetcdf)
+        hydpy.pub.sequencemanager.open_netcdfwriter()
         self.prepare_sequencemanager()
         for sequence in self._iterate_sequences():
             sequence.save_ext()

@@ -4,7 +4,7 @@
 
 # import...
 # ...from standard-library
-from typing import Tuple
+from typing import *
 # ...from site-packages
 import numpy
 # ...from HydPy
@@ -210,11 +210,11 @@ Most probably, you defined the same threshold value(s) twice.
     """
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
-    def __init__(self, subvars: parametertools.Parameters):
+    def __init__(self, subvars: parametertools.SubParameters):
         with objecttools.ResetAttrFuncs(self):
             super().__init__(subvars)
             self.fastaccess = None
-            self._coefs = {}
+            self._coefs: Dict[str, numpy.ndarray] = {}
 
     def __hydpy__connect_variable2subgroup__(self):
         """Do nothing due to the reasons explained in the main
@@ -311,7 +311,7 @@ Most probably, you defined the same threshold value(s) twice.
     def _key2float(key):
         return float(key[3:].replace('_', '.'))
 
-    def _get_orders(self, index) -> Tuple[int]:
+    def _get_orders(self, index) -> Tuple[int, ...]:
         orders = []
         for _, coefs in self:
             orders.append(len(coefs[index]))

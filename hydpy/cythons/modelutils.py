@@ -225,20 +225,24 @@ NotImplementedError: NDIM of sequence `q` is higher than expected.
 """
 # import...
 # ...from standard library
-import os
-import sys
-import platform
-import shutil
 import copy
-import inspect
-import importlib
+# pylint: disable=no-name-in-module
+# pylint: disable=import-error
+# due to pylint issue https://github.com/PyCQA/pylint/issues/73
 import distutils.core
 import distutils.extension
 # from Cython import Build (the actual import command has been moved to method
-# `compile_` of class `Cythonizer` due to PyInstaller incompatibility)
-
-import math
+# `compile_` of class `Cythonizer` to keep installing Cython optional)
+# pylint: enable=no-name-in-module
+# pylint: enable=import-error
 import functools
+import importlib
+import inspect
+import math
+import os
+import platform
+import shutil
+import sys
 import types
 from typing import *
 # ...third party modules
@@ -779,6 +783,10 @@ class Cythonizer:
 
     def compile_(self) -> None:
         """Translate Cython code to C code and compile it."""
+        # pylint: disable=no-name-in-module
+        # pylint: disable=import-error
+        # pylint: disable=no-member
+        # due to pylint issue https://github.com/PyCQA/pylint/issues/73
         from Cython import Build
         argv = copy.deepcopy(sys.argv)
         sys.argv = [sys.argv[0], 'build_ext', '--build-lib='+self.buildpath]

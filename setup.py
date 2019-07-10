@@ -276,10 +276,14 @@ if install:
             path_out = prep(path_conf, filename)
             source2target(path_in, path_out)
 
+    print_('\nNo problems encountered during testing!\n')
+
     # Check for complete code coverage
     if os.environ.get('COVERAGE_PROCESS_START'):
         print_('\nCheck for complete code coverage:')
         os.system('coverage combine')
-        os.system('coverage report -m --skip-covered --fail-under=100')
-
-    print_('\nNo problems encountered during testing!\n')
+        if os.system('coverage report -m --skip-covered --fail-under=100'):
+            print('\nTest coverage is incomplete!\n')
+            sys.exit(1)
+        print('\nTest coverage is complete!\n')
+        sys.exit(0)

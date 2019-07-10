@@ -108,6 +108,12 @@ class Options:
     >>> pub.options.printprogress = False
     >>> pub.options.printprogress
     0
+
+    The delete attribute restores the respective default setting:
+
+    >>> del pub.options.printprogress
+    >>> pub.options.printprogress
+    1
     """
 
     autocompile = _Option(True, None)

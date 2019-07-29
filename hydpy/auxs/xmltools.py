@@ -97,6 +97,7 @@ import itertools
 import os
 from typing import *
 from xml.etree import ElementTree
+from typing_extensions import Literal
 # ...from HydPy
 import hydpy
 from hydpy import conf
@@ -116,6 +117,9 @@ netcdf4 = exceptiontools.OptionalImport(
     'netcdf4', ['import netCDF4', 'import h5netcdf.legacyapi'])
 xmlschema = exceptiontools.OptionalImport(
     'xmlschema', ['import xmlschema'])
+if TYPE_CHECKING:
+    from hydpy.core import modeltools
+    from hydpy.core import variabletools
 
 namespace = ('{https://github.com/hydpy-dev/hydpy/releases/download/'
              'your-hydpy-version/HydPyConfigBase.xsd}')
@@ -125,7 +129,22 @@ _ITEMGROUP2ITEMCLASS = {
     'getitems': itemtools.GetItem}
 
 
-def find(root: ElementTree.Element, name: str) -> Optional[ElementTree.Element]:
+# pylint: disable=unused-argument
+# due to pylint issue https://github.com/PyCQA/pylint/issues/1581
+@overload
+def find(root: ElementTree.Element, name: str, optional: Literal[True] = True) \
+        -> Optional[ElementTree.Element]:
+    """Optional version of function |find|."""
+
+
+@overload
+def find(root: ElementTree.Element, name: str, optional: Literal[False]) \
+        -> ElementTree.Element:
+    """Non-optional version of function |find|."""
+# pylint: enable=unused-argument
+
+
+def find(root, name, optional=True):
     """Return the first XML element with the given name found in the given
     XML root.
 
@@ -134,8 +153,29 @@ def find(root: ElementTree.Element, name: str) -> Optional[ElementTree.Element]:
     >>> interface = XMLInterface('single_run.xml', make_filepath('LahnH'))
     >>> find(interface.root, 'timegrid').tag.endswith('timegrid')
     True
+
+    By default, function |find| returns |None| in case the required element
+    is missing:
+
+    >>> find(interface.root, 'wrong')
+
+    Set the argument `optional` to |False| to let function |find| raise
+    errors instead:
+
+    >>> find(interface.root, 'wrong', optional=False)
+    Traceback (most recent call last):
+    ...
+    AttributeError: The actual XML element `config` does not define \
+a XML subelement named `wrong`.  Please make sure your XML file \
+follows the relevant XML schema.
     """
-    return root.find(f'{namespace}{name}')
+    element = root.find(f'{namespace}{name}')
+    if element is None and not optional:
+        raise AttributeError(
+            f'The actual XML element `{root.tag.rsplit("}")[-1]}` does '
+            f'not define a XML subelement named `{name}`.  Please make '
+            f'sure your XML file follows the relevant XML schema.')
+    return element
 
 
 def _query_selections(xmlelement: ElementTree.Element) \
@@ -263,7 +303,19 @@ class XMLBase:
         """
         return strip(self.root.tag)
 
-    def find(self, name: str) -> Optional[ElementTree.Element]:
+    @overload
+    def find(self,
+             name: str,
+             optional: Literal[True] = True) -> Optional[ElementTree.Element]:
+        """Optional version of method |XMLBase.find|."""
+
+    @overload
+    def find(self,
+             name: str,
+             optional: Literal[False]) -> ElementTree.Element:
+        """Non-optional version of function |XMLBase.find|."""
+
+    def find(self, name, optional=True):
         """Apply function |find| to the root of the object of the |XMLBase|
         subclass.
 
@@ -272,8 +324,17 @@ class XMLBase:
         >>> interface = XMLInterface('single_run.xml', make_filepath('LahnH'))
         >>> interface.find('timegrid').tag.endswith('timegrid')
         True
+
+        >>> interface.find('wrong')
+
+        >>> interface.find('wrong', optional=False)
+        Traceback (most recent call last):
+        ...
+        AttributeError: The actual XML element `config` does not define \
+a XML subelement named `wrong`.  Please make sure your XML file \
+follows the relevant XML schema.
         """
-        return find(self.root, name)
+        return find(self.root, name, optional)
 
     def __iter__(self) -> Iterator[ElementTree.Element]:
         for element in self.root:
@@ -472,11 +533,12 @@ correctly refer to one of the available XML schema files \
         >>> pub.options.reprdigits = 6
         """
         options = hydpy.pub.options
-        for option in self.find('options'):
+        for option in self.find('options', optional=False):
             value = option.text
             if value in ('true', 'false'):
-                value = value == 'true'
-            setattr(options, strip(option.tag), value)
+                setattr(options, strip(option.tag), value == 'true')
+            else:
+                setattr(options, strip(option.tag), value)
         options.printprogress = False
         options.printincolor = False
 
@@ -524,13 +586,13 @@ correctly refer to one of the available XML schema files \
                            '2007-01-01 00:00:00',
                            '1d'))
         """
-        timegrid_xml = self.find('timegrid')
+        timegrid_xml = self.find('timegrid', optional=False)
         try:
-            timegrid = timetools.Timegrid(
-                *(timegrid_xml[idx].text for idx in range(3)))
-            hydpy.pub.timegrids = timetools.Timegrids(timegrid)
+            hydpy.pub.timegrids = (timegrid_xml[0].text,
+                                   timegrid_xml[1].text,
+                                   timegrid_xml[2].text)
         except IndexError:
-            seriesfile = find(timegrid_xml, 'seriesfile').text
+            seriesfile = find(timegrid_xml, 'seriesfile', optional=False).text
             with netcdf4.Dataset(seriesfile) as ncfile:
                 hydpy.pub.timegrids = timetools.Timegrids(
                     netcdftools.query_timegrid(ncfile))
@@ -567,7 +629,7 @@ correctly refer to one of the available XML schema files \
 using the text `head_waters`, but the actual project does not  handle such \
 a `Selection` object.
         """
-        return _query_selections(self.find('selections'))
+        return _query_selections(self.find('selections', optional=False))
 
     @property
     def devices(self) -> selectiontools.Selection:
@@ -595,7 +657,7 @@ devices using the text `land_lahn1`, but the complete selection of the \
 actual project does neither handle a `Node` or `Element` object with such \
 a name or keyword.
         """
-        return _query_devices(self.find('devices'))
+        return _query_devices(self.find('devices', optional=False))
 
     @property
     def elements(self) -> Iterator[devicetools.Element]:
@@ -621,7 +683,7 @@ a name or keyword.
         """
         selections = copy.copy(self.selections)
         selections += self.devices
-        elements = set()
+        elements: Set[devicetools.Element] = set()
         for selection in selections:
             for element in selection.elements:
                 if element not in elements:
@@ -664,7 +726,7 @@ a name or keyword.
         >>> strip(interface.series_io.root.tag)
         'series_io'
         """
-        return XMLConditions(self, self.find('conditions_io'))
+        return XMLConditions(self, self.find('conditions_io', optional=False))
 
     @property
     def series_io(self) -> 'XMLSeries':
@@ -676,7 +738,7 @@ a name or keyword.
         >>> strip(interface.series_io.root.tag)
         'series_io'
         """
-        return XMLSeries(self, self.find('series_io'))
+        return XMLSeries(self, self.find('series_io', optional=False))
 
     @property
     def exchange(self) -> 'XMLExchange':
@@ -689,14 +751,14 @@ a name or keyword.
         >>> strip(interface.exchange.root.tag)
         'exchange'
         """
-        return XMLExchange(self, self.find('exchange'))
+        return XMLExchange(self, self.find('exchange', optional=False))
 
 
 class XMLConditions(XMLBase):
     """Helper class for |XMLInterface| responsible for loading and
     saving initial conditions."""
 
-    def __init__(self, master, root):
+    def __init__(self, master: XMLInterface, root: ElementTree.Element):
         self.master: XMLInterface = master
         self.root: ElementTree.Element = root
 
@@ -721,8 +783,8 @@ class XMLConditions(XMLBase):
         >>> hp.elements.land_lahn_2.model.sequences.states.lz
         lz(nan)
         """
-        hydpy.pub.conditionmanager.currentdir = strip(
-            self.find('inputdir').text)
+        hydpy.pub.conditionmanager.currentdir = str(
+            self.find('inputdir', optional=False).text)
         for element in self.master.elements:
             element.model.sequences.load_conditions()
 
@@ -761,11 +823,11 @@ class XMLConditions(XMLBase):
         False
         True
         """
-        hydpy.pub.conditionmanager.currentdir = strip(
-            self.find('outputdir').text)
+        hydpy.pub.conditionmanager.currentdir = str(
+            self.find('outputdir', optional=False).text)
         for element in self.master.elements:
             element.model.sequences.save_conditions()
-        if strip(self.find('zip').text) == 'true':
+        if self.find('zip', optional=False).text == 'true':
             hydpy.pub.conditionmanager.zip_currentdir()
 
 
@@ -774,7 +836,7 @@ class XMLSeries(XMLBase):
     saving time series data, which is further delegated to suitable
     instances of class |XMLSubseries|."""
 
-    def __init__(self, master, root):
+    def __init__(self, master: XMLInterface, root: ElementTree.Element):
         self.master: XMLInterface = master
         self.root: ElementTree.Element = root
 
@@ -789,7 +851,8 @@ class XMLSeries(XMLBase):
         ...     print(reader.info)
         all input data
         """
-        return [XMLSubseries(self, _) for _ in self.find('readers')]
+        return [XMLSubseries(self, _)
+                for _ in self.find('readers', optional=False)]
 
     @property
     def writers(self) -> List['XMLSubseries']:
@@ -804,7 +867,8 @@ class XMLSeries(XMLBase):
         soilmoisture
         averaged
         """
-        return [XMLSubseries(self, _) for _ in self.find('writers')]
+        return [XMLSubseries(self, _)
+                for _ in self.find('writers', optional=False)]
 
     def prepare_series(self) -> None:
         # noinspection PyUnresolvedReferences
@@ -828,7 +892,7 @@ class XMLSeries(XMLBase):
         True
         >>> XMLSubseries.prepare_series = prepare_series
         """
-        memory = set()
+        memory: Set[sequencetools.IOSequence] = set()
         for output in itertools.chain(self.readers, self.writers):
             output.prepare_series(memory)
 
@@ -863,8 +927,9 @@ class XMLSelector(XMLBase):
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
-        >>> from hydpy import HydPy, TestIO, XMLInterface
+        >>> from hydpy import HydPy, pub, TestIO, XMLInterface
         >>> hp = HydPy('LahnH')
+        >>> pub.timegrids = '1996-01-01', '1996-01-06', '1d'
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     hp.prepare_models()
@@ -876,11 +941,28 @@ class XMLSelector(XMLBase):
         precipitation ('headwaters',)
         soilmoisture ('complete',)
         averaged ('complete',)
+
+        If property |XMLSelector.selections| does not find the definition
+        of a |Selections| object, it raises the following error:
+
+        >>> interface.root.remove(interface.find('selections'))
+        >>> series_io = interface.series_io
+        >>> for seq in (series_io.readers + series_io.writers):
+        ...     print(seq.info, seq.selections.names)
+        Traceback (most recent call last):
+        ...
+        AttributeError: Unable to find a XML element named "selections".  \
+Please make sure your XML file follows the relevant XML schema.
         """
         selections = self.find('selections')
-        master = self
+        master: XMLBase = self
         while selections is None:
-            master = master.master
+            master = getattr(master, 'master', None)
+            if master is None:
+                raise AttributeError(
+                    f'Unable to find a XML element named "selections".  '
+                    f'Please make sure your XML file follows the '
+                    f'relevant XML schema.')
             selections = master.find('selections')
         return _query_selections(selections)
 
@@ -908,20 +990,46 @@ Elements("land_dill", "land_lahn_1", "land_lahn_2", "land_lahn_3")
         precipitation Nodes() Elements("land_lahn_1", "land_lahn_2")
         soilmoisture Nodes("dill") Elements("land_dill", "land_lahn_1")
         averaged Nodes() Elements()
+
+        If property |XMLSelector.selections| does not find the definition
+        of a |Selections| object, it raises the following error:
+
+        >>> interface.root.remove(interface.find('devices'))
+        >>> series_io = interface.series_io
+        >>> for seq in (series_io.readers + series_io.writers):
+        ...     print(seq.info, seq.devices.nodes, seq.devices.elements)
+        Traceback (most recent call last):
+        ...
+        AttributeError: Unable to find a XML element named "devices".  \
+Please make sure your XML file follows the relevant XML schema.
         """
         devices = self.find('devices')
-        master = self
+        master: XMLBase = self
         while devices is None:
-            master = master.master
+            master = getattr(master, 'master', None)
+            if master is None:
+                raise AttributeError(
+                    f'Unable to find a XML element named "devices".  '
+                    f'Please make sure your XML file follows the '
+                    f'relevant XML schema.')
             devices = master.find('devices')
         return _query_devices(devices)
 
-    def _get_devices(self, attr) \
-            -> Union[Iterator[devicetools.Node],
-                     Iterator[devicetools.Element]]:
+    @overload
+    def _get_devices(self, attr: Literal['nodes']) \
+            -> Iterator[devicetools.Node]:
+        """Extract all nodes."""
+
+    @overload
+    def _get_devices(self, attr: Literal['elements']) \
+            -> Iterator[devicetools.Element]:
+        """Extract all elements."""
+
+    def _get_devices(self, attr):
+        """Extract all nodes or elements."""
         selections = copy.copy(self.selections)
         selections += self.devices
-        devices = set()
+        devices: Set[devicetools.Device] = set()
         for selection in selections:
             for device in getattr(selection, attr):
                 if device not in devices:
@@ -974,7 +1082,7 @@ class XMLSubseries(XMLSelector):
     """Helper class for |XMLSeries| responsible for loading and
     saving time series data."""
 
-    def __init__(self, master, root):
+    def __init__(self, master: XMLSeries, root: ElementTree.Element):
         self.master: XMLSeries = master
         self.root: ElementTree.Element = root
 
@@ -1040,15 +1148,15 @@ class XMLSubseries(XMLSelector):
             for name_manager, name_xml in zip(
                     ('input', 'flux', 'state', 'node'),
                     ('inputs', 'fluxes', 'states', 'nodes')):
-                value = None
+                value: Optional[str] = None
                 for xml, attr_xml in zip(
                         (xml_special, xml_special, xml_general, xml_general),
                         (name_xml, 'general', name_xml, 'general')):
-                    try:
-                        value = find(xml, attr_xml).text
-                    except AttributeError:
-                        continue
-                    break
+                    if xml is not None:
+                        element = find(xml, attr_xml)
+                        if element is not None:
+                            value = element.text
+                            break
                 setattr(hydpy.pub.sequencemanager,
                         f'{name_manager}{config}',
                         convert(value))
@@ -1070,9 +1178,9 @@ class XMLSubseries(XMLSelector):
         hland_v1 states ['sm']
         hstream_v1 states ['qjoints']
         """
-        model2subs2seqs = collections.defaultdict(
-            lambda: collections.defaultdict(list))
-        for model in self.find('sequences'):
+        model2subs2seqs: Dict[str, Dict[str, List[str]]] = \
+            collections.defaultdict(lambda: collections.defaultdict(list))
+        for model in self.find('sequences', optional=False):
             model_name = strip(model.tag)
             if model_name == 'node':
                 continue
@@ -1097,8 +1205,8 @@ class XMLSubseries(XMLSelector):
         ...     print(subs, seq)
         node ['sim', 'obs']
         """
-        subs2seqs = collections.defaultdict(list)
-        nodes = find(self.find('sequences'), 'node')
+        subs2seqs: Dict[str, List[str]] = collections.defaultdict(list)
+        nodes = find(self.find('sequences', optional=False), 'node')
         if nodes is not None:
             for seq in nodes:
                 subs2seqs['node'].append(strip(seq.tag))
@@ -1124,7 +1232,7 @@ class XMLSubseries(XMLSelector):
                 for seq_name in seq_names:
                     yield getattr(node.sequences, seq_name)
 
-    def prepare_series(self, memory: set) -> None:
+    def prepare_series(self, memory: Set[sequencetools.IOSequence]) -> None:
         """Call |IOSequence.activate_ram| of all sequences selected by
         the given output element of the actual XML file.
 
@@ -1134,8 +1242,9 @@ class XMLSubseries(XMLSelector):
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
-        >>> from hydpy import HydPy, TestIO, XMLInterface
+        >>> from hydpy import HydPy, pub, TestIO, XMLInterface
         >>> hp = HydPy('LahnH')
+        >>> pub.timegrids = '1996-01-01', '1996-01-06', '1d'
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     hp.prepare_models()
@@ -1172,8 +1281,9 @@ class XMLSubseries(XMLSelector):
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
-        >>> from hydpy import HydPy, TestIO, XMLInterface
+        >>> from hydpy import HydPy, pub, TestIO, XMLInterface
         >>> hp = HydPy('LahnH')
+        >>> pub.timegrids = '1996-01-01', '1996-01-06', '1d'
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     hp.prepare_models()
@@ -1201,8 +1311,9 @@ class XMLSubseries(XMLSelector):
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
-        >>> from hydpy import HydPy, TestIO, XMLInterface
+        >>> from hydpy import HydPy, pub, TestIO, XMLInterface
         >>> hp = HydPy('LahnH')
+        >>> pub.timegrids = '1996-01-01', '1996-01-06', '1d'
         >>> with TestIO():
         ...     hp.prepare_network()
         ...     hp.prepare_models()
@@ -1239,14 +1350,29 @@ class XMLSubseries(XMLSelector):
 
 class XMLExchange(XMLBase):
     """Helper class for |XMLInterface| responsible for interpreting exchange
-    items, which is further delegated to ToDo."""
+    items, accessible via different instances of class |XMLItemgroup|."""
 
-    def __init__(self, master, root):
+    def __init__(self, master: XMLInterface, root: ElementTree.Element):
         self.master: XMLInterface = master
         self.root: ElementTree.Element = root
 
+    @overload
+    def _get_items_of_certain_item_types(
+            self,
+            itemgroups: Iterable[str],
+            getitems: Literal[True]) -> List[itemtools.GetItem]:
+        """Return |GetItem| objects only."""
+
+    @overload
+    def _get_items_of_certain_item_types(
+            self,
+            itemgroups: Iterable[str],
+            getitems: Literal[False]) -> List[itemtools.ChangeItem]:
+        """Return |ChangeItem| objects only."""
+
     def _get_items_of_certain_item_types(self, itemgroups, getitems):
-        items = []
+        """Return either all |GetItem| or all |ChangeItem| objects."""
+        items: List[itemtools.ExchangeItem] = []
         for itemgroup in self.itemgroups:
             if getitems == (itemgroup.name == 'getitems'):
                 for model in itemgroup.models:
@@ -1259,13 +1385,13 @@ class XMLExchange(XMLBase):
         return items
 
     @property
-    def parameteritems(self):
-        """ ToDo
+    def parameteritems(self) -> List[itemtools.ChangeItem]:
+        """Create and return all items for changing control parameter values.
 
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
-        >>> from hydpy import HydPy, TestIO, XMLInterface, pub
+        >>> from hydpy import HydPy, pub, TestIO, XMLInterface
         >>> hp = HydPy('LahnH')
         >>> pub.timegrids = '1996-01-01', '1996-01-06', '1d'
         >>> with TestIO():
@@ -1284,13 +1410,13 @@ class XMLExchange(XMLBase):
         return self._get_items_of_certain_item_types(['control'], False)
 
     @property
-    def conditionitems(self):
-        """ ToDo
+    def conditionitems(self) -> List[itemtools.ChangeItem]:
+        """Return all items for changing condition sequence values.
 
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
-        >>> from hydpy import HydPy, TestIO, XMLInterface, pub
+        >>> from hydpy import HydPy, pub, TestIO, XMLInterface
         >>> hp = HydPy('LahnH')
         >>> pub.timegrids = '1996-01-01', '1996-01-06', '1d'
         >>> with TestIO():
@@ -1305,13 +1431,14 @@ class XMLExchange(XMLBase):
         return self._get_items_of_certain_item_types(['states', 'logs'], False)
 
     @property
-    def getitems(self):
-        """ ToDo
+    def getitems(self) -> List[itemtools.GetItem]:
+        """Return all items for querying the current values or the complete
+        time series of sequences.
 
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
-        >>> from hydpy import HydPy, TestIO, XMLInterface, pub
+        >>> from hydpy import HydPy, pub, TestIO, XMLInterface
         >>> hp = HydPy('LahnH')
         >>> pub.timegrids = '1996-01-01', '1996-01-06', '1d'
         >>> with TestIO():
@@ -1328,7 +1455,10 @@ class XMLExchange(XMLBase):
         return self._get_items_of_certain_item_types(
             ['control', 'inputs', 'fluxes', 'states', 'logs', 'nodes'], True)
 
-    def prepare_series(self):
+    def prepare_series(self) -> None:
+        """Prepare all required |IOSequence.series| arrays via calling method
+        |IOSequence.activate_ram|.
+        """
         for item in itertools.chain(self.conditionitems, self.getitems):
             for target in item.device2target.values():
                 if item.targetspecs.series and not target.ramflag:
@@ -1338,79 +1468,109 @@ class XMLExchange(XMLBase):
                 #         base.activate_ram()   ToDo
 
     @property
-    def itemgroups(self):
+    def itemgroups(self) -> List['XMLItemgroup']:
+        """The relevant |XMLItemgroup| objects."""
         return [XMLItemgroup(self, element) for element in self]
 
 
 class XMLItemgroup(XMLBase):
+    """Helper class for |XMLExchange| responsible for handling the exchange
+    items related to model parameter and sequences separately from the
+    exchange items of node sequences."""
 
-    def __init__(self, master, root):
+    def __init__(self, master: XMLExchange, root: ElementTree.Element):
         self.master: XMLExchange = master
         self.root: ElementTree.Element = root
 
     @property
-    def models(self):
+    def models(self) -> List['XMLModel']:
+        """The required |XMLModel| objects."""
         return [XMLModel(self, element) for element in self
                 if strip(element.tag) != 'nodes']
 
     @property
-    def nodes(self):
+    def nodes(self) -> List['XMLNode']:
+        """The required |XMLNode| objects."""
         return [XMLNode(self, element) for element in self
                 if strip(element.tag) == 'nodes']
 
 
 class XMLModel(XMLBase):
+    """Helper class for |XMLItemgroup| responsible for handling the exchange
+    items related to different parameter or sequence groups of |Model|
+    objects."""
 
-    def __init__(self, master, root):
+    def __init__(self, master: XMLItemgroup, root: ElementTree.Element):
         self.master: XMLItemgroup = master
         self.root: ElementTree.Element = root
 
     @property
-    def subvars(self):
+    def subvars(self) -> List['XMLSubvars']:
+        """The required |XMLSubVars| objects."""
         return [XMLSubvars(self, element) for element in self]
 
 
 class XMLSubvars(XMLBase):
+    """Helper class for |XMLModel| responsible for handling the exchange
+    items related to individual parameters or sequences of |Model| objects."""
 
-    def __init__(self, master, root):
+    def __init__(self, master: XMLModel, root: ElementTree.Element):
         self.master: XMLModel = master
         self.root: ElementTree.Element = root
 
     @property
-    def vars(self):
+    def vars(self) -> List['XMLVar']:
+        """The required |XMLVar| objects."""
         return [XMLVar(self, element) for element in self]
 
 
 class XMLNode(XMLBase):
+    """Helper class for |XMLItemgroup| responsible for handling the exchange
+    items related to individual parameters or sequences of |Node| objects."""
 
-    def __init__(self, master, root):
+    def __init__(self, master: XMLItemgroup, root: ElementTree.Element):
         self.master: XMLItemgroup = master
         self.root: ElementTree.Element = root
 
     @property
-    def vars(self):
+    def vars(self) -> List['XMLVar']:
+        """The required |XMLVar| objects."""
         return [XMLVar(self, element) for element in self]
 
 
 class XMLVar(XMLSelector):
+    """Helper class for |XMLSubvars| and |XMLNode| responsible for creating
+    a defined exchange item."""
 
-    def __init__(self, master, root):
-        self.master: XMLModel = master
+    def __init__(
+            self,
+            master: Union[XMLSubvars, XMLNode],
+            root: ElementTree.Element):
+        self.master: Union[XMLSubvars, XMLNode] = master
         self.root: ElementTree.Element = root
 
     @property
-    def item(self):
-        """ ToDo
+    def item(self) -> itemtools.ExchangeItem:
+        """The actually defined |ExchangeItem| object.
+
+        We first prepare the `LahnH` example project and then create
+        the related |XMLInterface| object defined by the XML configuration
+        file `multiple_runs`:
 
         >>> from hydpy.examples import prepare_full_example_1
         >>> prepare_full_example_1()
 
-        >>> from hydpy import HydPy, TestIO, XMLInterface, pub
+        >>> from hydpy import HydPy, pub, TestIO, XMLInterface
         >>> hp = HydPy('LahnH')
         >>> pub.timegrids = '1996-01-01', '1996-01-06', '1d'
         >>> with TestIO():
         ...     hp.prepare_everything()
         ...     interface = XMLInterface('multiple_runs.xml')
+
+        One of the defined |SetItem| objects modifies the values of all
+        |hland_control.Alpha| objects of application model |hland_v1|.
+        We demonstrate this for the control parameter object handled by
+        element `land_dill`:
 
         >>> var = interface.exchange.itemgroups[0].models[0].subvars[0].vars[0]
         >>> item = var.item
@@ -1422,6 +1582,10 @@ class XMLVar(XMLSelector):
         >>> hp.elements.land_dill.model.parameters.control.alpha
         alpha(2.0)
 
+        The second example is comparable but focusses on a |SetItem|
+        modifying control parameter |hstream_control.Lag| of application
+        model |hstream_v1|:
+
         >>> var = interface.exchange.itemgroups[0].models[2].subvars[0].vars[0]
         >>> item = var.item
         >>> item.value
@@ -1431,6 +1595,11 @@ class XMLVar(XMLSelector):
         >>> item.update_variables()
         >>> hp.elements.stream_dill_lahn_2.model.parameters.control.lag
         lag(5.0)
+
+        The third discussed |SetItem| assigns the same value to all entries
+        of state sequence |hland_states.SM|, resulting in the some soil
+        moisture for all individual hydrological response units of element
+        `land_lahn_2`:
 
         >>> var = interface.exchange.itemgroups[1].models[0].subvars[0].vars[0]
         >>> item = var.item
@@ -1444,6 +1613,10 @@ class XMLVar(XMLSelector):
         >>> item.update_variables()
         >>> hp.elements.land_lahn_2.model.sequences.states.sm
         sm(123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0, 123.0)
+
+        The fourth |SetItem| is, in contrast to the last example,
+        1-dimensional and thus allows to assign different values to the
+        individual hydrological response units of element `land_lahn_1`:
 
         >>> var = interface.exchange.itemgroups[1].models[0].subvars[0].vars[1]
         >>> item = var.item
@@ -1463,6 +1636,12 @@ class XMLVar(XMLSelector):
         sm(110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0, 190.0, 200.0,
            206.0, 206.0, 206.0)
 
+        |AddItem| `sfcf_1`, `sfcf_2`, and `sfcf_3` serve to demonstrate
+        how a scalar value (`sfcf_1` and `sfcf_2`) or a vector of values
+        can be used to change the value of a "target" parameter
+        (|hland_control.SfCF|) in relation to a "base" parameter
+        (|hland_control.RfCF|):
+
         >>> for element in pub.selections.headwaters.elements:
         ...     element.model.parameters.control.rfcf(1.1)
         >>> for element in pub.selections.nonheadwaters.elements:
@@ -1478,6 +1657,10 @@ class XMLVar(XMLSelector):
         land_lahn_2 sfcf(1.2)
         land_lahn_3 sfcf(field=1.1, forest=1.2)
 
+        The final three examples focus on |GetItem| objects.  One |GetItem|
+        object queries the actual values of the |hland_states.SM| states
+        of all relevant elements:
+
         >>> var = interface.exchange.itemgroups[3].models[0].subvars[1].vars[0]
         >>> hp.elements.land_dill.model.sequences.states.sm = 1.0
         >>> for name, target in var.item.yield_name2value():
@@ -1490,6 +1673,10 @@ class XMLVar(XMLSelector):
 123.0, 123.0, 123.0, 123.0]
         land_lahn_3_states_sm [101.3124...]
 
+        Another |GetItem| object queries both the actual and the time
+        series values of the |hland_fluxes.QT| flux sequence of element
+        `land_dill`:
+
         >>> vars_ = interface.exchange.itemgroups[3].models[0].subvars[0].vars
         >>> qt = hp.elements.land_dill.model.sequences.fluxes.qt
         >>> qt(1.0)
@@ -1499,6 +1686,9 @@ class XMLVar(XMLSelector):
         ...         print(name, target)    # doctest: +ELLIPSIS
         land_dill_fluxes_qt 1.0
         land_dill_fluxes_qt_series [2.0, 2.0, 2.0, 2.0, 2.0]
+
+        Last but not least, one |GetItem| queries the simulated time
+        series values avaiable through node `dill`:
 
         >>> var = interface.exchange.itemgroups[3].nodes[0].vars[0]
         >>> hp.nodes.dill.sequences.sim.series = range(5)
@@ -1519,18 +1709,42 @@ class XMLVar(XMLSelector):
         itemclass = _ITEMGROUP2ITEMCLASS[itemgroup]
         if itemgroup == 'getitems':
             return self._get_getitem(target, master, itemclass)
-        return self._get_changeitem(target, master, itemclass, itemgroup)
+        if itemgroup == 'setitems':
+            return self._get_changeitem(target, master, itemclass, True)
+        return self._get_changeitem(target, master, itemclass, False)
 
-    def _get_getitem(self, target, master, itemclass):
+    def _get_getitem(
+            self,
+            target: str,
+            master: str,
+            itemclass: Type[itemtools.GetItem]) -> itemtools.GetItem:
         item = itemclass(master, target)
         self._collect_variables(item)
         return item
 
-    def _get_changeitem(self, target, master, itemclass, itemgroup):
-        dim = self.find('dim').text
-        init = ','.join(self.find('init').text.split())
-        alias = self.find('alias').text
-        if itemgroup == 'setitems':
+    @overload
+    def _get_changeitem(
+            self,
+            target: str,
+            master: str,
+            itemclass: Type[itemtools.ChangeItem],
+            setitems: Literal[True]) -> itemtools.SetItem:
+        """Get a |SetItem| object."""
+
+    @overload
+    def _get_changeitem(
+            self,
+            target: str,
+            master: str,
+            itemclass: Type[itemtools.ChangeItem],
+            setitems: Literal[False]) -> itemtools.MathItem:
+        """Get a |MathItem| object."""
+
+    def _get_changeitem(self, target, master, itemclass, setitems):
+        dim = self.find('dim', optional=False).text
+        init = ','.join(self.find('init', optional=False).text.split())
+        alias = self.find('alias', optional=False).text
+        if setitems:
             item = itemclass(alias, master, target, ndim=dim)
         else:
             base = strip([element for element in self][-1].tag)
@@ -1539,16 +1753,16 @@ class XMLVar(XMLSelector):
         item.value = eval(init)
         return item
 
-    def _collect_variables(self, item):
+    def _collect_variables(self, item: itemtools.ExchangeItem) -> None:
         selections = self.selections
         selections += self.devices
         item.collect_variables(selections)
 
 
 class XSDWriter:
-    """Pure |classmethod| class for writing the actual XML schema file
-    `HydPyConfigBase.xsd`, which makes sure that an XML configuration file is
-    readable by class |XMLInterface|.
+    """A pure |classmethod| class for writing the actual XML schema file
+    `HydPyConfigBase.xsd`, which makes sure that an XML configuration file
+    is readable by class |XMLInterface|.
 
     Unless you are interested in enhancing HydPy's XML functionalities,
     you should, if any, be interested in method |XSDWriter.write_xsd| only.
@@ -1664,7 +1878,7 @@ class XSDWriter:
         return '\n'.join(subs)
 
     @classmethod
-    def get_modelinsertion(cls, model, indent) -> str:
+    def get_modelinsertion(cls, model: 'modeltools.Model', indent: int) -> str:
         """Return the insertion string required for the given application model.
 
         >>> from hydpy.auxs.xmltools import XSDWriter
@@ -1698,7 +1912,8 @@ class XSDWriter:
         return '\n'.join(texts)
 
     @classmethod
-    def get_subsequencesinsertion(cls, subsequences, indent) -> str:
+    def get_subsequencesinsertion(
+            cls, subsequences: sequencetools.SubSequences, indent: int) -> str:
         """Return the insertion string required for the given group of
         sequences.
 
@@ -1739,7 +1954,8 @@ class XSDWriter:
         return '\n'.join(lines)
 
     @staticmethod
-    def get_sequenceinsertion(sequence, indent) -> str:
+    def get_sequenceinsertion(
+            sequence: sequencetools.Sequence, indent: int) -> str:
         """Return the insertion string required for the given sequence.
 
         >>> from hydpy.auxs.xmltools import XSDWriter
@@ -1756,7 +1972,7 @@ class XSDWriter:
                 f'{blanks}    minOccurs="0"/>')
 
     @classmethod
-    def get_exchangeinsertion(cls):
+    def get_exchangeinsertion(cls) -> str:
         """Return the complete string related to the definition of exchange
         items to be inserted into the string of the template file.
 
@@ -1781,7 +1997,7 @@ class XSDWriter:
         return '\n'.join(subs)
 
     @classmethod
-    def get_mathitemsinsertion(cls, indent) -> str:
+    def get_mathitemsinsertion(cls, indent: int) -> str:
         """Return a string defining a model specific XML type extending
         `ItemType`.
 
@@ -1825,11 +2041,11 @@ class XSDWriter:
         return '\n'.join(subs)
 
     @staticmethod
-    def _get_itemstype(modelname, itemgroup):
+    def _get_itemstype(modelname: str, itemgroup: str) -> str:
         return f'{modelname}_{itemgroup}Type'
 
     @classmethod
-    def get_itemsinsertion(cls, itemgroup, indent) -> str:
+    def get_itemsinsertion(cls, itemgroup: str, indent: int) -> str:
         """Return a string defining the XML element for the given
         exchange item group.
 
@@ -1890,7 +2106,7 @@ class XSDWriter:
         return '\n'.join(subs)
 
     @classmethod
-    def get_itemtypesinsertion(cls, itemgroup, indent) -> str:
+    def get_itemtypesinsertion(cls, itemgroup: str, indent: int) -> str:
         """Return a string defining the required types for the given
         exchange item group.
 
@@ -1913,7 +2129,8 @@ class XSDWriter:
         return '\n'.join(subs)
 
     @classmethod
-    def get_itemtypeinsertion(cls, itemgroup, modelname, indent) -> str:
+    def get_itemtypeinsertion(
+            cls, itemgroup: str, modelname: str, indent: int) -> str:
         """Return a string defining the required types for the given
         combination of an exchange item group and an application model.
 
@@ -1950,7 +2167,7 @@ class XSDWriter:
         return '\n'.join(subs)
 
     @classmethod
-    def get_nodesitemtypeinsertion(cls, itemgroup, indent) -> str:
+    def get_nodesitemtypeinsertion(cls, itemgroup: str, indent: int) -> str:
         """Return a string defining the required types for the given
         combination of an exchange item group and |Node| objects.
 
@@ -2005,7 +2222,8 @@ class XSDWriter:
         return '\n'.join(subs)
 
     @classmethod
-    def get_subgroupsiteminsertion(cls, itemgroup, modelname, indent) -> str:
+    def get_subgroupsiteminsertion(
+            cls, itemgroup: str, modelname: str, indent: int) -> str:
         """Return a string defining the required types for the given
         combination of an exchange item group and an application model.
 
@@ -2034,7 +2252,8 @@ class XSDWriter:
         return '\n'.join(subs)
 
     @classmethod
-    def _get_subvars(cls, model):
+    def _get_subvars(cls, model: 'modeltools.Model') \
+            -> Iterator['variabletools.SubVariables']:
         yield model.parameters.control
         for name in ('inputs', 'fluxes', 'states', 'logs'):
             subseqs = getattr(model.sequences, name, None)
@@ -2043,7 +2262,11 @@ class XSDWriter:
 
     @classmethod
     def get_subgroupiteminsertion(
-            cls, itemgroup, model, subgroup, indent) -> str:
+            cls,
+            itemgroup: str,
+            model: 'modeltools.Model',
+            subgroup: 'variabletools.SubVariables',
+            indent: int) -> str:
         """Return a string defining the required types for the given
         combination of an exchange item group and a specific variable
         subgroup of an application model or class |Node|.
@@ -2128,7 +2351,7 @@ class XSDWriter:
             f'{blanks1}                     minOccurs="0"/>',
             f'{blanks1}            <element ref="hpcb:devices"',
             f'{blanks1}                     minOccurs="0"/>']
-        seriesflags = (False,) if subgroup.name == 'control' else (False, True)
+        seriesflags = [False] if subgroup.name == 'control' else [False, True]
         for variable in subgroup:
             for series in seriesflags:
                 name = f'{variable.name}.series' if series else variable.name

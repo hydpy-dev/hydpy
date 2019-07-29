@@ -595,7 +595,7 @@ together with shapes (2,) (3,)...
 
 class GetItem(ExchangeItem):
     """Base class for querying the values of multiple |Parameter| or |Sequence|
-    objects of a specific  type."""
+    objects of a specific type."""
 
     def __init__(self, master: str, target: str):
         self.target = target.replace('.', '_')

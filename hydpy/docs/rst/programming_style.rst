@@ -1,4 +1,7 @@
 .. _PEP 8: https://www.python.org/dev/peps/pep-0008/
+.. _Pylint: https://www.pylint.org/
+.. _Travis CI: https://travis-ci.com/
+.. _pylintrc: https://github.com/hydpy-dev/hydpy/blob/master/pylintrc
 .. _Python tutorials: https://www.python.org/about/gettingstarted/
 .. _book on object-oriented design: http://www.itmaybeahack.com/homepage/books/oodesign.html
 .. _core: https://github.com/hydpy-dev/hydpy/tree/master/hydpy/core
@@ -27,7 +30,7 @@
 Programming style
 _________________
 
-Python allows for writing concise and easily readable software code,
+Python allows for writing concise and easily readable software code
 that can be maintained and further developed with acceptable effort.
 However, code quality does also depend on the experience and available
 time of the programmer writing it.  In hydrology, much model code is
@@ -35,9 +38,9 @@ written by PhD students, who often have little programming experience
 and are under pressure not only to get their model running but also to
 tackle their scientific questions and to publish their results.  The
 source code resulting from such a rush is understandably often a mess.
-Even the better software results often prove inadequate when it comes
-to transferring the software into practical applications or sharing it
-with other researchers.
+Even the relatively goodsoftware results often prove inadequate when it
+comes to transferring the software into practical applications or
+sharing it with other researchers.
 
 In the long development process of *HydPy*, which also started as a
 quick side-project when writing a PhD thesis, we made many misleading
@@ -47,8 +50,8 @@ architecture that, in our opinion, should be easily extensible and
 applicable in many contexts.
 
 This section defines the steadily growing "HydPy Style Guide", being
-an attempt to explain the principles in the development of *HydPy*,
-to make sure contributions by different developers are as consistent
+an attempt to explain the principles in the development of *HydPy* and
+to make sure the contributions of different developers are as consistent
 as possible.  Please understand the "HydPy Style Guide" as a refinement
 of `PEP 8`_ — the “official” Style Guide for Python Code. `PEP 8`_ gives
 coding conventions that help to write clear code.  If everyone follows
@@ -77,6 +80,17 @@ avoid code duplicates.  Last but not least, create smartly thought-through
 APIs for your objects, allowing to use them smoothly both within doctests
 and within the Python shell.
 
+Be aware of the usage of `Pylint`_ in our `Travis CI`_ continuous integration
+workflow.  `Pylint`_ is a style checker that recognises missing documentation
+sections, repeated or inconsistent method definitions, and much more.  The
+`pylintrc`_ file configures the general behaviour and strictness of `Pylint`_.
+You are allowed to disable some checks locally in case you provide a good
+explanation.  At best, simply at a link to a related issue explaining why
+`Pylint`_ is wrong in your particular code section, using the following pattern:
+
+>>> # pylint: disable=abstract-method
+>>> # due to pylint issue https://github.com/PyCQA/pylint/issues/179
+
 This section describes some specific conventions for the development
 of *HydPy* but is no guidance on how to write good source code in general.
 If you have little experience in programming, first make sure to learn
@@ -89,12 +103,12 @@ Project structure
 -----------------
 
 For *HydPy*, we prefer a flat folder structure  with at most two
-subpackage levels.  The individual modules can be of arbitrary length,
-to cover individual topics completely.  For example, module
+subpackage levels.  The individual modules can be of arbitrary length
+to cover particular topics completely.  For example, module
 |parametertools| defines all base classes for creating model-specific
 parameter classes as well as their collection classes.
 
-Subpackage `core`_ provides the most basic features of *HydPy*, used for
+Subpackage `core`_ provides the essential features of *HydPy*, used for
 implementing hydrological models and workflows as well.  One example
 is the mentioned |parametertools| module.  Modules defined in subpackage
 `core`_ should never import features provided by modules of other
@@ -117,7 +131,7 @@ implementing new ones.
 
 Subpackage `exe`_ provides features easing the execution of *HydPy*.
 Module |commandtools| (in combination with script |hyd|), for example,
-allows to control *HydPy* from the command line.
+allows controlling *HydPy* from the command line.
 
 Subpackage `cythons`_ is related to all `Cython`_ features of *HydPy*.
 First, it contains functionalities for "cythonizing" the Python models
@@ -154,9 +168,9 @@ a folder *auto*, automatically created and filled with information
 during the process.
 
 Subpackage `tests`_ deals with testing.  As explained in section
-:ref:`tests_and_documentation`, its unit test modules are deprecated.
-Its subpackage `iotesting`_ is the place designated to store data
-during testing temporarily.
+:ref:`tests_and_documentation`, the contained unit test modules are
+deprecated.  Its subpackage `iotesting`_ is the place designated to
+store data during testing temporarily.
 
 
 Imports
@@ -177,7 +191,7 @@ list the imports of a section in alphabetical order:
 >>> from hydpy.cythons import pointerutils
 
 Note that each import command stands in a separate line.  Always import
-complete modules from HydPy without changing their names. ---
+complete modules from *HydPy* without changing their names. ---
 No wildcard imports!
 
 We lift the wildcard ban for  writing configuration files. Using the
@@ -213,17 +227,16 @@ related to |modelimports|.
 Defensive programming
 ---------------------
 
-HydPy should be applicable by researchers and practitioners who are no
-Python experts and may have little experience in programming in general.
-Hence, it is desirable to anticipate errors due to misleading input as
-good as possible and report them as soon as possible.  So, in contradiction
+*HydPy* is intended to be applicable by researchers and practitioners who are
+no Python experts and may have little experience in programming in general.
+Hence, it is desirable to anticipate errors due to misleading input as thorough
+as possible and report them as soon as possible.  So, in contradiction
 to `PEP 8`_, it is often preferable to not just expose the names of
 simple public attributes.  Whenever sensible, use protected attributes
-(usually the basic |property| objects or the more specific properties
-provided by module |propertytools|) to assure that the internal states
-of objects remain consistent. One example is that it is not allowed to
-assign an unknown string to the `outputfiletype` of an instance of
-class |SequenceManager| :
+(defined by |property| or the more specific property features provided by
+module  |propertytools|) to assure that the internal states of objects
+remain consistent. One example is that it is not allowed to assign an unknown
+string to the `outputfiletype` of an instance ofclass |SequenceManager| :
 
 >>> from hydpy.core.filetools import SequenceManager
 >>> sm = SequenceManager()
@@ -269,7 +282,7 @@ Traceback (most recent call last):
 ValueError: For the alternative calculation of parameter `k` of element `e1`, at least the keywords arguments `khq` and `hq` must be given.
 
 Another recommended approach is exception chaining, for which we
-recommend using function |augment_excmessage|:
+recommend using the function |augment_excmessage|:
 
 >>> e1.keywords = 'correct', 'w r o n g'
 Traceback (most recent call last):
@@ -310,8 +323,8 @@ attributes, when reasonable:
 
 Group instances of the same type in collection objects with the same name,
 except an attached letter "s". For example, we store different |Element|
-objects are in an instance of class |Elements|, and different |Node|
-objects in an instance of the class |Nodes|.
+objects in an instance of class |Elements|, and different |Node| objects
+in an instance of the class |Nodes|.
 
 
 Collection classes
@@ -326,7 +339,7 @@ Each collection object must be iterable:
 >>> from hydpy import Nodes
 >>> nodes = Nodes('gauge1', 'gauge2')
 >>> for node in nodes:
-...     node
+...     print(repr(node))
 Node("gauge1", variable="Q")
 Node("gauge2", variable="Q")
 
@@ -341,6 +354,12 @@ Node("gauge1", variable="Q")
 Node("gauge2", variable="Q")
 >>> 'gauge1' in dir(nodes)
 True
+
+Additionally, provide item access as a more type-safe and eventually
+more efficient alternative for writing complex scripts:
+
+>>> nodes['gauge1']
+Node("gauge1", variable="Q")
 
 Whenever useful, define convenience functions to simplify the
 handling of collection objects:
@@ -372,17 +391,17 @@ supposed to return strings describing objects in a condensed form for
 end-users when executing a program, while |repr| is supposed to return
 strings containing all details of an object for developers when debugging
 a program.  Some argue, due to its limited usage, giving |repr| much
-attention is a waste of time in many cases.  For *HydPy*, we think
-different.  Defining good |repr| return values simplifies reading the
+attention is a waste of time in many cases.  For *HydPy*, we think different.
+Defining comprehensive  |repr| return values simplifies reading the
 doctests of the online documentation and working interactively within
 the Python shell, thus being of high relevance for end-users, too.  On
-the other hand, |str| is a little less relevant, being mainly used for
-the generation of exception messages.  Hence, focus primarily on |repr|
-and concentrate on |str| when the return value of |repr| is too
-complicated for exception messages.
+the other hand, |str| is a little less relevant due to mainly being an
+alternative for the generation of exception messages.  Hence, focus
+primarily on |repr| and concentrate on |str| when the return value of
+|repr| is too complicated for exception messages.
 
 A good return value of |repr| is one that a non-Python-programmer does
-not identify to be a string. The first ideal case is that copy-pasting
+not identify as a string. The first ideal case is that copy-pasting
 the string representation and evaluating it within the Python shell
 returns a reference to the same object.
 
@@ -452,11 +471,11 @@ losing too much information:
 Elements("e_1", "e_2")
 
 Finally, always consider using functions provided by module |objecttools|
-for simplifying the definition of good |repr| and |str| return values,
+for simplifying the definition of |repr| and |str| return values,
 to keep the string representations of different *HydPy* objects, at least
 to a certain degree, consistent.  For example, use function |repr_| to
 let the user control the maximum number of decimal places of scalar
-floating point values:
+floating-point values:
 
 >>> from hydpy import pub, repr_
 >>> class Number(float):
@@ -470,9 +489,8 @@ floating point values:
 Introspection
 -------------
 
-One nice feature of Pythons are its "introspection" capabilities,
-allowing to analyse (and, when necessary, modify) objects at runtime
-with little effort.
+One nice feature of Python is its "introspection" capability, allowing to
+analyse (and, when necessary, modify) objects at runtime with little effort.
 
 *HydPy* makes extensive use of these introspection features, whenever it
 serves the purpose of relieving non-programmers from writing code lines
@@ -491,11 +509,11 @@ control files requires more thought than a more simple direct approach would.
 We encourage to implement additional introspection features, as long as
 they improve the intuitive usability for non-programmers and do not harm
 HydPy's reliability.  However, please be particularly cautious when doing
-so and document the why and how thoroughly.  To ensure traceability, one
+so and document why and how thoroughly.  To ensure traceability, one
 should usually add such code to modules like |modelutils|, |importtools|,
 and |autodoctools|.  Module |modelutils| deals with all introspection
 needed to "cythonize" Python models automatically.  Module |importtools|
-contains function |parameterstep| and related features.  Module
+contains the function |parameterstep| and related features.  Module
 |autodoctools| serves the purpose to improve the automatic generation of
 the online documentation.
 

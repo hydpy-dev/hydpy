@@ -10,6 +10,7 @@
 .. _coverage library: https://coverage.readthedocs.io
 .. _Travis CI: https://travis-ci.com/
 .. _Travis log-page: https://travis-ci.org/hydpy-dev/hydpy
+.. _Pylint: https://www.pylint.org/
 
 .. _tests_and_documentation:
 
@@ -23,8 +24,8 @@ quality.  By contrast, we are not aware of any studies estimating
 the adverse effects of bugs and misleading documentation of hydrological
 computer models.  With little attention paid to these issues during
 evaluation processes (e.g. during peer-review), there is a risk of
-publishing impaired model results, possibly ecompromising the drawn
-conclusions.  See for example the commentary of `Hutton et al.`_,
+publishing impaired model results, possibly compromising the drawn
+conclusions.  See, for example, the commentary of `Hutton et al.`_,
 addressing this topic from the scientific perspective.
 
 This section describes strategies on how to keep the danger of severe
@@ -34,24 +35,24 @@ possible, using the "docstring" and "doctest" features of Python.
 
 The first "connection" is writing each documentation section as close
 as possible next to the related source code.  For very general topics,
-like the one you are reading now, it does not make sense, but write
-all explanations addressing specific *HydPy* features as
+like the one you are reading now, it does not make sense, but you have
+to write all explanations addressing specific *HydPy* features as
 `docstrings`_.  Docstrings are documentation strings which are
-attached to the Python objects they explain.  We have not met this
-goal yet, but we strive to attach at least a short docstring to
-each module and all its public members (including the sub-members, e.g.
-the public methods of a class.).  It is a strict requirement that
-each newly implemented public (sub)member comes with its own docstring
-right away.
+attached to the Python objects they explain.  When extending *HydPy*,
+it is a strict requirement that each newly implemented public member
+(including the sub-members, e.g. the public methods of a class) comes
+with its own docstring.  Our `Travis CI`_ based continuous integration
+workflow recognises any missing docstrings by using `Pylint`_ and
+reports them as errors.
 
 The second "connection" is to use and extend the functionalities of
 `Sphinx`_, which collects the source code, the docstrings, and the
-regular documentation files to generate the online documentation.
+usual documentation files to generate the online documentation.
 `Sphinx`_ relies on the `reStructuredText`_ format, hence follow
 this format when writing docstrings and regular documentation files.
 However, instead of using its regular referencing style, make use of
 "substitutions" as defined by class |Substituter| of module |autodoctools|.
-WWrite for example the class name “Substituter” within vertical bars to
+Write, for example, the class name “Substituter” within vertical bars to
 reference the corresponding class properly. This short syntax allows
 making frequent use of substitutions. A helpful side effect is that,
 during the generation of the HTML pages, wrong substitutions result in
@@ -59,10 +60,7 @@ warnings, interpreted as errors by our `Travis CI`_ based continuous
 integration workflow (see section :ref:`continuous_integration`).  This
 mechanism  increases chances that, when documentation adjustments do
 not accompany future code changes, the `Travis CI`_ based workflow breaks,
-enforcing the responsible programmer to adapt the documentation.  The
-described substitution mechanism requires applying either function
-|autodoc_module|, |autodoc_basemodel|, or |autodoc_applicationmodel| at
-the end of each new module, which is mandatory.
+enforcing the responsible programmer to adapt the documentation.
 
 The third "connection" is to define a sufficient number of `doctests`_.
 Doctests are documentation sections containing valid Python code followed
@@ -73,8 +71,8 @@ non-programmers as well.  In *HydPy*, at best each (sub)member should
 define its own doctests, telling in conjunction with some "normal"
 explanations about its purpose and usage. Non-programmers should be
 enabled to learn using *HydPy* by repeating the doctests.  Besides their
-intuitiveness, doctests (like substitutions) offer the big advantage of
-keeping source code and documentation in sync.  As long as the following
+intuitiveness, doctests (like substitutions) offer the significant advantage
+of keeping source code and documentation in sync.  As long as the following
 three-line doctest remains in the documentation, one can be sure that
 the current core package contains a module named "objecttools":
 

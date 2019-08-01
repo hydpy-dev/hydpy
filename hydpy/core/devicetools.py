@@ -575,6 +575,28 @@ immutable Nodes objects is not allowed.
                    for keyword in device.keywords if
                    keyword not in self._shadowed_keywords)
 
+    def search_keywords(self: DevicesTypeBound, *keywords: str) \
+            -> DevicesTypeBound:
+        """Search for all devices handling at least one of the given
+        keywords and return them.
+
+        >>> from hydpy import Node, Nodes
+        >>> nodes = Nodes('na',
+        ...               Node('nb', variable='W'),
+        ...               Node('nc', keywords=('group_a', 'group_1')),
+        ...               Node('nd', keywords=('group_a', 'group_2')),
+        ...               Node('ne', keywords=('group_b', 'group_1')))
+        >>> nodes.search_keywords('group_c')
+        Nodes()
+        >>> nodes.search_keywords('group_a')
+        Nodes("nc", "nd")
+        >>> nodes.search_keywords('group_a', 'group_1')
+        Nodes("nc", "nd", "ne")
+        """
+        keywords_ = set(keywords)
+        return type(self)(*(device for device in self
+                            if keywords_.intersection(device.keywords)))
+
     def open_files(self, idx: int = 0) -> None:
         """Call method |Node.open_files| or |Element.open_files| of all
         contained |Node| or |Element| objects."""
@@ -794,7 +816,7 @@ which is in conflict with using their names as identifiers.
         load_obsseries, load_simseries, mutable, name1, name2, names,
         open_files, prepare_allseries, prepare_obsseries, prepare_simseries,
         remove_device, save_allseries, save_obsseries, save_simseries,
-        variables
+        search_keywords, variables
         """
         return objecttools.dir_(self) + list(self.names) + list(self.keywords)
 

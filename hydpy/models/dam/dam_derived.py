@@ -112,8 +112,8 @@ class NearDischargeMinimumSmoothPar2(parametertools.Parameter):
         """
         metapar = self.subpars.pars.control.neardischargeminimumtolerance
         self.shape = metapar.shape
-        self(tuple(smoothtools.calc_smoothpar_logistic2(mp)
-                   for mp in metapar.values))
+        self(smoothtools.calc_smoothpar_logistic2(metapar.values))
+
 
 class WaterLevelMinimumSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |WaterLevelMinimumTolerance|

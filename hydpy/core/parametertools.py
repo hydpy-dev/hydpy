@@ -1919,8 +1919,8 @@ shape (2) into shape (366,3)
         """Update the actual simulation values based on the toy-value pairs.
 
         Usually, one does not need to call refresh explicitly.  The
-        "magic" methods __call__, __setattr__, and __delattr__ invoke
-        it automatically, when required.
+        "magic" methods `__call__`, `__setattr__`, and `__delattr__`
+        invoke it automatically, when required.
 
         Instantiate a 1-dimensional |SeasonalParameter| object:
 
@@ -1980,6 +1980,8 @@ shape (2) into shape (366,3)
         >>> par.values[-1]
         4.0
         """
+        self._toy2values = {toy: self._toy2values[toy] for toy
+                            in sorted(self._toy2values.keys())}
         if not self:
             self.values[:] = 0.
         elif len(self) == 1:
@@ -2162,8 +2164,7 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
     shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
 
     def __iter__(self) -> Iterator[Tuple[timetools.TOY, Any]]:
-        for toy in sorted(self._toy2values.keys()):
-            yield (toy, self._toy2values[toy])
+        return iter(self._toy2values.items())
 
     def __getattr__(self, name):
         try:

@@ -2134,10 +2134,13 @@ date (`2000-01-01 00:00:00`) is inconsistent.
         return int(index)
 
     def __iter__(self) -> Iterator[Date]:
-        date = copy.deepcopy(self.firstdate)
-        while date < self.lastdate:
-            yield date
-            date = date + self.stepsize
+        dt = copy.deepcopy(self.firstdate).datetime
+        last_dt = self.lastdate.datetime
+        td = self.stepsize.timedelta
+        from_datetime = Date.from_datetime
+        while dt < last_dt:
+            yield from_datetime(dt)
+            dt = dt + td
 
     def _containsdate(self, date: Date) -> bool:
         return ((self.firstdate <= date <= self.lastdate) and not

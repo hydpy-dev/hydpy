@@ -74,9 +74,10 @@ class VQ(parametertools.SeasonalParameter):
     def update(self):
         """Calulate the auxilary term.
 
+        >>> from hydpy import pub
+        >>> pub.timegrids = '2000-01-01', '2001-01-01', '12h'
         >>> from hydpy.models.llake import *
         >>> parameterstep('1d')
-        >>> simulationstep('12h')
         >>> n(3)
         >>> v(0., 1e5, 1e6)
         >>> q(_1=[0., 1., 2.], _7=[0., 2., 5.])

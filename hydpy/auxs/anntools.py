@@ -920,12 +920,12 @@ class SeasonalANN:
     To explain this in more detail, let us define a |anntools.SeasonalANN|
     object first, that contains three "normal" networks for January, 1,
     March, 1, and July, 1, respectively (note that this example is similar
-    to the example used to describe class
-    |SeasonalParameter|):
+    to the example used to describe class |SeasonalParameter|):
 
-    >>> from hydpy import SeasonalANN, ann
+    >>> from hydpy import ann, pub, SeasonalANN
+    >>> pub.options.reprdigits = 6
+    >>> pub.timegrids = '2000-01-01', '2000-10-01', '1d'
     >>> seasonalann = SeasonalANN(None)
-    >>> seasonalann.simulationstep = '1d'
     >>> seasonalann(
     ...     _1_1_12=ann(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
     ...                 weights_input=0.0, weights_output=0.0,
@@ -994,7 +994,8 @@ class SeasonalANN:
     AttributeError: can't set attribute
 
     The following interactive plot shows how the |anntools.SeasonalANN.ratios|
-    used for weighting are calculated:
+    used for weighting are calculated (note the missing values for October,
+    November, and December, being not relevant for the initialisation period):
 
     .. testsetup::
 
@@ -1465,23 +1466,25 @@ neural network `seasonalann` of element `?` none has been defined so far.
 
     def _interp(self) -> None:
         ratios = self.ratios
-        ratios[:, :] = 0.0
+        ratios[:, :] = numpy.nan
         toys = self.toys
-        for tdx, date in enumerate(
-                timetools.TOY.centred_timegrid(self.simulationstep)):
-            xnew = timetools.TOY(date)
-            for idx_1, x_1 in enumerate(toys):
-                if x_1 > xnew:
-                    idx_0 = idx_1-1
+        centred = timetools.TOY.centred_timegrid()
+        for tdx, (date, rel) in enumerate(zip(*centred)):
+            if rel:
+                xnew = timetools.TOY(date)
+                for idx_1, x_1 in enumerate(toys):
+                    if x_1 > xnew:
+                        idx_0 = idx_1-1
+                        x_0 = toys[idx_0]
+                        break
+                else:
+                    idx_0 = -1
+                    idx_1 = 0
                     x_0 = toys[idx_0]
-                    break
-            else:
-                idx_0 = -1
-                idx_1 = 0
-                x_0 = toys[idx_0]
-                x_1 = toys[idx_1]
-            ratios[tdx, idx_1] = (xnew-x_0)/(x_1-x_0)
-            ratios[tdx, idx_0] = 1.-ratios[tdx, idx_1]
+                    x_1 = toys[idx_1]
+                ratios[tdx, :] = 0.
+                ratios[tdx, idx_1] = (xnew-x_0)/(x_1-x_0)
+                ratios[tdx, idx_0] = 1.-ratios[tdx, idx_1]
 
     @property
     def shape(self) -> Tuple[int, ...]:

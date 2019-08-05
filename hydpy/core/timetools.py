@@ -2864,21 +2864,89 @@ has already been set to `31`.
             2000, self.month, self.day, self.hour, self.minute, self.second)
 
     @classmethod
-    def centred_timegrid(cls, simulationstep: PeriodConstrArg) -> Timegrid:
+    def centred_timegrid(cls) -> Tuple[Timegrid, numpy.ndarray]:
         """Return a |Timegrid| object defining the central time points
-        of the year 2000 for the given simulation step.
+        of the year 2000 and a boolean array describing its intersection
+        with the current initialisation period not taking the year
+        information into account.
+
+        The returned |Timegrid| object does not depend on the defined
+        initialisation period at all:
 
         >>> from hydpy.core.timetools import TOY
-        >>> TOY.centred_timegrid('1d')
+        >>> from hydpy import pub
+        >>> pub.timegrids = '2001-10-01', '2010-10-01', '1d'
+        >>> TOY.centred_timegrid()[0]
         Timegrid('2000-01-01 12:00:00',
                  '2001-01-01 12:00:00',
                  '1d')
+
+        The same holds for the shape of the returned boolean array:
+
+        >>> len(TOY.centred_timegrid()[1])
+        366
+
+        However, the single boolean values depend on whether the respective
+        centred date lies at least one time within the initialisation period
+        when ignoring the year information.  In our example, all centred dates
+        are "relevant" due to the long initialisation period of ten years:
+
+        >>> sum(TOY.centred_timegrid()[1])
+        366
+
+        The boolean array contains only the value |True| for all
+        initialisation periods covering at least a full year:
+
+        >>> pub.timegrids = '2000-02-01', '2001-02-01', '1d'
+        >>> sum(TOY.centred_timegrid()[1])
+        366
+        >>> pub.timegrids = '2001-10-01', '2002-10-01', '1d'
+        >>> sum(TOY.centred_timegrid()[1])
+        366
+
+        In all other cases, only the values related to the intersection
+        are |True|:
+
+        >>> pub.timegrids = '2001-01-03', '2001-01-05', '1d'
+        >>> TOY.centred_timegrid()[1][:5]
+        array([False, False,  True,  True, False], dtype=bool)
+
+        >>> pub.timegrids = '2001-12-30', '2002-01-04', '1d'
+        >>> TOY.centred_timegrid()[1][:5]
+        array([ True,  True,  True, False, False], dtype=bool)
+        >>> TOY.centred_timegrid()[1][-5:]
+        array([False, False, False,  True,  True], dtype=bool)
+
+        It makes no difference whether initialisation periods not spanning
+        a full year contain the 29th of February or not:
+
+        >>> pub.timegrids = '2001-02-27', '2001-03-01', '1d'
+        >>> TOY.centred_timegrid()[1][31+28-3-1:31+28+3-1]
+        array([False, False,  True,  True,  True, False], dtype=bool)
+        >>> pub.timegrids = '2000-02-27', '2000-03-01', '1d'
+        >>> TOY.centred_timegrid()[1][31+28-3-1:31+28+3-1]
+        array([False, False,  True,  True,  True, False], dtype=bool)
         """
-        simulationstep = Period(simulationstep)
-        return Timegrid(
-            cls._STARTDATE+simulationstep/2.,
-            cls._ENDDATE+simulationstep/2.,
-            simulationstep)
+        init = hydpy.pub.timegrids.init
+        shift = init.stepsize/2.
+        centred = Timegrid(
+            cls._STARTDATE+shift,
+            cls._ENDDATE+shift,
+            init.stepsize)
+        if (init.lastdate-init.firstdate) >= '365d':
+            return centred, numpy.ones(len(centred), dtype=bool)
+        date0 = copy.deepcopy(init.firstdate)
+        date1 = copy.deepcopy(init.lastdate)
+        date0.year = 2000
+        date1.year = 2000
+        relevant = numpy.zeros(len(centred), dtype=bool)
+        if date0 < date1:
+            relevant[centred[date0+shift]:centred[date1+shift]] = True
+        else:
+            relevant[centred[date0+shift]:] = True
+            relevant[:centred[date1+shift]] = True
+        return centred, relevant
+
 
     def __sub__(self, other: 'TOY') -> float:
         if self >= other:

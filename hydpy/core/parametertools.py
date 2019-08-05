@@ -657,7 +657,7 @@ class Simulationstep(_Stepsize):
 simulation step size to be used as a surrogate for testing purposes has \
 been defined.
 
-    For testing or documentation purposes a surrogate step size can be set:
+    For testing or documentation purposes, you can set a surrogate step size:
 
     >>> parameter.simulationstep = '1d'
     >>> parameter.simulationstep
@@ -718,7 +718,7 @@ class Parameter(variabletools.Variable[SubParameters]):
     parameter values that vary seasonally (e.g. the leaf area index).
 
     Class |Parameter| itself extends class |Variable|.  Hence, all
-    model specific |Parameter| subclasses must define both a value
+    model-specific |Parameter| subclasses must define both a value
     dimensionality and a type via class constants `NDIM` and `TYPE`,
     respectively.  Additionally, one has to define the class constant
     `TIME`, telling how parameter values depend on the simulation
@@ -1276,7 +1276,7 @@ implement method `update`.
             >>> del pub.timegrids
 
         For the following examples, we define a 1-dimensional sequence
-        handling time-dependent floating point values:
+        handling time-dependent floating-point values:
 
         >>> from hydpy.core.parametertools import Parameter
         >>> class Test(Parameter):
@@ -1510,7 +1510,7 @@ class NameParameter(Parameter):
 
 class ZipParameter(Parameter):
     """Base class for 1-dimensional model parameters that offers an
-    additional keyword based zipping functionality.
+    additional keyword-based zipping functionality.
 
     Many models implemented in the *HydPy* framework realise the concept
     of hydrological response units via 1-dimensional |Parameter| objects,
@@ -1523,7 +1523,7 @@ class ZipParameter(Parameter):
     However, very often, hydrological modellers set identical values for
     different hydrological response units of the same type. One could,
     for example, set the same leaf area index for all units of the same
-    land use type.  Class |ZipParameter| allows defining parameters,
+    land-use type.  Class |ZipParameter| allows defining parameters,
     which conveniently support this parameterisation strategy.
 
     .. testsetup::
@@ -1740,7 +1740,7 @@ class SeasonalParameter(Parameter):
     point.  See the |lland_parameters.LanduseMonthParameter| class of
     the |lland| base model as an example, which is used to define
     parameter |lland_control.LAI|, handling monthly leaf area index
-    values for different land use classes.
+    values for different land-use classes.
 
     However, class |SeasonalParameter| offers more flexibility in
     defining seasonal patterns, which is often helpful for modelling
@@ -1757,6 +1757,11 @@ class SeasonalParameter(Parameter):
         >>> Parameter.simulationstep.delete()
         Period()
 
+    For the following examples, we assume a simulation step size of one day:
+
+    >>> from hydpy import pub
+    >>> pub.timegrids = '2000-01-01', '2001-01-01', '1d'
+
     Let us prepare an empty 1-dimensional |SeasonalParameter| instance:
 
     >>> from hydpy.core.parametertools import SeasonalParameter
@@ -1767,10 +1772,6 @@ class SeasonalParameter(Parameter):
     >>> par.NDIM = 1
     >>> par
     par()
-
-    For the following examples, we assume a simulation step size of one day:
-
-    >>> par.simulationstep = '1d'
 
     The shape is determined automatically, as described in the
     documentation on property |SeasonalParameter.shape| in more detail:
@@ -1922,6 +1923,14 @@ shape (2) into shape (366,3)
         "magic" methods `__call__`, `__setattr__`, and `__delattr__`
         invoke it automatically, when required.
 
+        Method |SeasonalParameter.refresh| calculates only those time
+        variable parameter values required for the defined
+        initialisation period.  We start with an initialisation period
+        covering a full year, making a complete calculation necessary:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = '2000-01-01', '2001-01-01', '1d'
+
         Instantiate a 1-dimensional |SeasonalParameter| object:
 
         >>> from hydpy.core.parametertools import SeasonalParameter
@@ -1930,7 +1939,6 @@ shape (2) into shape (366,3)
         ...     TYPE = float
         ...     TIME = None
         >>> par = Par(None)
-        >>> par.simulationstep = '1d'
         >>> par.shape = (None,)
 
         When a |SeasonalParameter| object does not contain any toy-value
@@ -1979,6 +1987,23 @@ shape (2) into shape (366,3)
         3.994521
         >>> par.values[-1]
         4.0
+
+        For short initialisation periods, method |SeasonalParameter.refresh|
+        performs only the required interpolations for efficiency reasons:
+
+        >>> pub.timegrids = '2000-01-02', '2000-01-05', '1d'
+        >>> Par.NDIM = 2
+        >>> par = Par(None)
+        >>> par.shape = (None, 3)
+        >>> par.toy_1_2_12 = 2.0
+        >>> par.toy_1_6_12 = 0.0, 2.0, 4.0
+        >>> par.values[:6]
+        array([[ nan,  nan,  nan],
+               [ 2. ,  2. ,  2. ],
+               [ 1.5,  2. ,  2.5],
+               [ 1. ,  2. ,  3. ],
+               [ nan,  nan,  nan],
+               [ nan,  nan,  nan]])
         """
         self._toy2values = {toy: self._toy2values[toy] for toy
                             in sorted(self._toy2values.keys())}
@@ -1988,10 +2013,12 @@ shape (2) into shape (366,3)
             values = list(self._toy2values.values())[0]
             self.values[:] = self.apply_timefactor(values)
         else:
-            for idx, date in enumerate(
-                    timetools.TOY.centred_timegrid(self.simulationstep)):
-                values = self.interp(date)
-                self.values[idx] = self.apply_timefactor(values)
+            centred = timetools.TOY.centred_timegrid()
+            values = self.values
+            for idx, (date, rel) in enumerate(zip(*centred)):
+                values[idx] = self.interp(date) if rel else numpy.nan
+            values = self.apply_timefactor(values)
+            self.__hydpy__set_value__(values)
 
     def interp(self, date: timetools.Date) -> float:
         """Perform a linear value interpolation for the given `date` and
@@ -1999,13 +2026,14 @@ shape (2) into shape (366,3)
 
         Instantiate a 1-dimensional |SeasonalParameter| object:
 
+        >>> from hydpy import pub
+        >>> pub.timegrids = '2000-01-01', '2001-01-01', '1d'
         >>> from hydpy.core.parametertools import SeasonalParameter
         >>> class Par(SeasonalParameter):
         ...     NDIM = 1
         ...     TYPE = float
         ...     TIME = None
         >>> par = Par(None)
-        >>> par.simulationstep = '1d'
         >>> par.shape = (None,)
 
         Define three toy-value pairs:
@@ -2068,14 +2096,14 @@ shape (2) into shape (366,3)
         """
         xnew = timetools.TOY(date)
         xys = list(self)
-        for idx, (x_1, y_1) in enumerate(xys):
-            if x_1 > xnew:
-                x_0, y_0 = xys[idx-1]
+        for idx, (x1, y1) in enumerate(xys):
+            if x1 > xnew:
+                x0, y0 = xys[idx-1]
                 break
         else:
-            x_0, y_0 = xys[-1]
-            x_1, y_1 = xys[0]
-        return y_0+(y_1-y_0)/(x_1-x_0)*(xnew-x_0)
+            x0, y0 = xys[-1]
+            x1, y1 = xys[0]
+        return y0 + (y1-y0) / (x1 - x0) * (xnew - x0)
 
     def __hydpy__get_shape__(self) -> Tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
@@ -2231,13 +2259,9 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
 
     def __dir__(self):
         """
-        .. testsetup::
 
-            >>> from hydpy import pub
-            >>> del pub.timegrids
-            >>> from hydpy.core.parametertools import Parameter
-            >>> Parameter.simulationstep.delete()
-            Period()
+        >>> from hydpy import pub
+        >>> pub.timegrids = '2000-01-01', '2001-01-01', '1d'
         >>> from hydpy.core.parametertools import SeasonalParameter
         >>> class Par(SeasonalParameter):
         ...     NDIM = 1
@@ -2260,7 +2284,7 @@ class KeywordParameter2D(Parameter):
 
     When subclassing from |KeywordParameter2D| one needs to define the
     class attributes `ROWNAMES` and `COLNAMES` (both of type |tuple|).
-    A typical use case is that `ROWNAMES` defines some land use classes
+    A typical use case is that `ROWNAMES` defines some land-use classes
     and `COLNAMES` defines seasons, months, or the like.  Here, we
     consider a simple corresponding example, where the values of the
     boolean parameter  `IsWarm` both depend on the on the hemisphere
@@ -2557,7 +2581,7 @@ class LeftRightParameter(Parameter):
     >>> floodplainwidth = FloodPlainWidth(None)
 
     Here, we need to set the shape of the parameter to 2, which is an
-    automated procedure in complete model setups:
+    automated procedure in full model setups:
 
     >>> floodplainwidth.shape = 2
 
@@ -2743,7 +2767,7 @@ class SolverParameter(Parameter):
     adapting the effective parameter value to the actual project settings.
 
     As a most simple example, we extend our class `Tol` with a
-    |SolverParameter.modify_init| method that just doubles the original
+    |SolverParameter.modify_init| method that doubles the original
     `INIT` value:
 
     >>> class ModTol(Tol):
@@ -2817,7 +2841,7 @@ class SolverParameter(Parameter):
 
 
 class SecondsParameter(Parameter):
-    """Length of the actual simulation step size in seconds [s]."""
+    """The length of the actual simulation step size in seconds [s]."""
     NDIM = 0
     TYPE = float
     TIME = None

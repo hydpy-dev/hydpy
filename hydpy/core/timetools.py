@@ -2730,8 +2730,10 @@ has already been set to `31`.
     def __init__(self, value: Union[str, Date] = ''):
         try:
             if isinstance(value, Date):
+                datetime = value.datetime
+                dict_ = vars(self)
                 for name in self._PROPERTIES.keys():
-                    self.__dict__[name] = getattr(value, name)
+                    dict_[name] = getattr(datetime, name)
             else:
                 values = value.split('_')
                 if not values[0].isdigit():

@@ -2607,7 +2607,7 @@ class TOY:
     >>> TOY('something_3_13_23_33_2')
     TOY('3_13_23_33_2')
 
-    As one can see, the prefixed information is lost in the printed string
+    As one can see, we lose the prefixed information in the printed string
     representation.  Instead, applying "str" returns a string with a
     standard prefix:
 
@@ -2756,6 +2756,8 @@ set to `2`, but the given value is `29`.
                     except ValueError:
                         objecttools.augment_excmessage(
                             f'While trying to retrieve the {prop}')
+            vars(self)['seconds_passed'] = None
+            vars(self)['seconds_left'] = None
         except BaseException:
             objecttools.augment_excmessage(
                 f'While trying to initialise a TOY object based on '
@@ -2798,6 +2800,8 @@ set to `2`, but the given value is `29`.
                     f'year) objects must lie within the range `{bounds}`, '
                     f'but the given value is `{value}`.')
         super().__setattr__(name, value)
+        vars(self)['seconds_passed'] = None
+        vars(self)['seconds_left'] = None
 
     @property
     def seconds_passed(self) -> int:
@@ -2807,15 +2811,28 @@ set to `2`, but the given value is `29`.
         old:
 
         >>> from hydpy.core.timetools import TOY
-        >>> TOY('1_1_0_1_30').seconds_passed
+        >>> toy = TOY('1_1_0_1_30')
+        >>> toy.seconds_passed
         90
+
+        Updating the |TOY| object triggers a recalculation of property
+        |TOY.seconds_passed|:
+
+        >>> toy.day = 2
+        >>> toy.seconds_passed
+        86490
 
         The second example shows the general inclusion of the 29th of February:
 
         >>> TOY('3').seconds_passed
         5184000
         """
-        return int((self._datetime-self._STARTDATE.datetime).total_seconds())
+        seconds_passed = vars(self)['seconds_passed']
+        if seconds_passed is None:
+            seconds_passed = int(
+                (self._datetime-self._STARTDATE.datetime).total_seconds())
+            vars(self)['seconds_passed'] = seconds_passed
+        return seconds_passed
 
     @property
     def seconds_left(self) -> int:
@@ -2825,15 +2842,28 @@ set to `2`, but the given value is `29`.
         remain:
 
         >>> from hydpy.core.timetools import TOY
-        >>> TOY('12_31_23_58_30').seconds_left
+        >>> toy = TOY('12_31_23_58_30')
+        >>> toy.seconds_left
         90
+
+        Updating the |TOY| object triggers a recalculation of property
+        |TOY.seconds_passed|:
+
+        >>> toy.day = 30
+        >>> toy.seconds_left
+        86490
 
         The second example shows the general inclusion of the 29th of February:
 
         >>> TOY('2').seconds_left
         28944000
         """
-        return int((self._ENDDATE.datetime-self._datetime).total_seconds())
+        seconds_left = vars(self)['seconds_left']
+        if seconds_left is None:
+            seconds_left = int(
+                (self._ENDDATE.datetime-self._datetime).total_seconds())
+            vars(self)['seconds_left'] = seconds_left
+        return seconds_left
 
     @property
     def _datetime(self):

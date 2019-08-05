@@ -1787,7 +1787,7 @@ alligned on the indexed timegrid `Timegrid('2000-01-01 00:00:00', \
 
     @property
     def stepsize(self) -> Period:
-        """The time series data and simulation step size.
+        """The time-series data and simulation step size.
 
         You can query and alter the value of property |Timegrid.stepsize|
         (call method |Timegrid.verify| afterwards to make sure the |Timegrid|
@@ -2623,15 +2623,15 @@ class TOY:
     Ill-defined constructor arguments result in error messages like
     the following:
 
-    >>> TOY('2_29_4_5_6')
+    >>> TOY('2_30_4_5_6')
     Traceback (most recent call last):
     ...
     ValueError: While trying to initialise a TOY object based on argument \
-`value `2_29_4_5_6` of type `str`, the following error occurred: While \
+`value `2_30_4_5_6` of type `str`, the following error occurred: While \
 trying to retrieve the day, the following error occurred: The value of \
 property `day` of the actual TOY (time of year) object must lie within \
-the range `(1, 28)`, as the month has already been set to `2`, but the \
-given value is `29`.
+the range `(1, 29)`, as the month has already been set to `2`, but the \
+given value is `30`.
 
     It is only allowed to modify the mentioned properties, not to define new
     ones:
@@ -2672,28 +2672,19 @@ objects must lie within the range `(0, 59)`, but the given value is `60`.
     >>> t.month = 1
     >>> t.day = 31
 
-    Afterwards, one cannot directly change the month to February:
+    Afterwards, one cannot directly change the month to April:
 
-    >>> t.month = 2
+    >>> t.month = 4
     Traceback (most recent call last):
     ...
     ValueError: The value of property `month` of the actual TOY \
-(time of year) object must not be the given value `2`, as the day \
+(time of year) object must not be the given value `4`, as the day \
 has already been set to `31`.
 
     First set `day` to a smaller value and then change `month`:
 
-    >>> t.day = 28
-    >>> t.month = 2
-
-    |TOY| objects generally ignore the 29th of February:
-
-    >>> t.day = 29
-    Traceback (most recent call last):
-    ...
-    ValueError: The value of property `day` of the actual TOY (time of year) \
-object must lie within the range `(1, 28)`, as the month has already been \
-set to `2`, but the given value is `29`.
+    >>> t.day = 30
+    >>> t.month = 4
 
     It is possible to compare two |TOY| instances:
 
@@ -2777,7 +2768,7 @@ set to `2`, but the given value is `29`.
                 f'type `int`, but the {objecttools.value_of_type(value)} '
                 f'given for property `{name}` cannot be converted to `int`.')
         if (name == 'day') and hasattr(self, 'month'):
-            bounds = (1, calendar.monthrange(1999, self.month)[1])
+            bounds = (1, calendar.monthrange(2000, self.month)[1])
             if not bounds[0] <= value <= bounds[1]:
                 raise ValueError(
                     f'The value of property `day` of the actual TOY '

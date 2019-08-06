@@ -68,7 +68,7 @@ def calc_smoothpar_logistic1(metapar):
     >>> round_(calc_smoothpar_logistic1(-1.0))
     0.0
     """
-    return max(metapar/numpy.log(99.), 0.)
+    return numpy.clip(metapar/numpy.log(99.), 0., numpy.inf)
 
 
 def _error_smoothpar_logistic2(par, metapar):

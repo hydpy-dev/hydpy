@@ -46,8 +46,7 @@ class RemoteDischargeSmoothPar(parametertools.Parameter):
         """
         metapar = self.subpars.pars.control.remotedischargesafety
         self.shape = metapar.shape
-        self(tuple(smoothtools.calc_smoothpar_logistic1(mp)
-                   for mp in metapar.values))
+        self(smoothtools.calc_smoothpar_logistic1(metapar.values))
 
 
 class NearDischargeMinimumSmoothPar1(parametertools.Parameter):
@@ -79,8 +78,7 @@ class NearDischargeMinimumSmoothPar1(parametertools.Parameter):
         """
         metapar = self.subpars.pars.control.neardischargeminimumtolerance
         self.shape = metapar.shape
-        self(tuple(smoothtools.calc_smoothpar_logistic1(mp)
-                   for mp in metapar.values))
+        self(smoothtools.calc_smoothpar_logistic1(metapar.values))
 
 
 class NearDischargeMinimumSmoothPar2(parametertools.Parameter):
@@ -202,8 +200,8 @@ class WaterLevelRelieveSmoothPar(parametertools.Parameter):
         """
         metapar = self.subpars.pars.control.waterlevelrelievetolerance
         self.shape = metapar.shape
-        self(tuple(smoothtools.calc_smoothpar_logistic1(mp)
-                   for mp in metapar.values))
+        self(smoothtools.calc_smoothpar_logistic1(metapar.values))
+
 
 class WaterLevelSupplySmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |WaterLevelSupplyTolerance|
@@ -234,8 +232,7 @@ class WaterLevelSupplySmoothPar(parametertools.Parameter):
         """
         metapar = self.subpars.pars.control.waterlevelsupplytolerance
         self.shape = metapar.shape
-        self(tuple(smoothtools.calc_smoothpar_logistic1(mp)
-                   for mp in metapar.values))
+        self(smoothtools.calc_smoothpar_logistic1(metapar.values))
 
 
 class HighestRemoteSmoothPar(parametertools.Parameter):

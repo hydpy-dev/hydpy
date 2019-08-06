@@ -14,6 +14,7 @@ import inspect
 import itertools
 import io
 import math
+import mimetypes
 import os
 import platform
 import pkgutil
@@ -654,7 +655,7 @@ def prepare_mainsubstituter():
     substituter = Substituter()
     for module in (builtins, numpy, datetime, unittest, doctest, inspect, io,
                    os, sys, time, collections, itertools, subprocess, scipy,
-                   typing, platform, math):
+                   typing, platform, math, mimetypes):
         substituter.add_module(module)
     for subpackage in (auxs, core, cythons, exe):
         for dummy, name, dummy in pkgutil.walk_packages(subpackage.__path__):

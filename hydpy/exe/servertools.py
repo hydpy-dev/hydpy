@@ -10,8 +10,8 @@ https://github.com/hydpy-dev/OpenDA/tree/master/extensions/\
 HydPyOpenDABBModelWrapper
 .. _`issue`: https://github.com/hydpy-dev/OpenDA/issues
 
-*HydPy* is designed to be used interactively.  Consider the common steps of
-calibrating model parameters.  Normally, one first prepares an instance of
+*HydPy* is designed to be used interactively.  Consider the typical steps of
+calibrating model parameters.  Usually, one first prepares an instance of
 class |HydPy|, then changes some parameter values and performs a simulation,
 and finally inspects whether the new simulation results are better than the
 ones of the original parameterisation or not.  One can perform these steps
@@ -43,7 +43,7 @@ configuration file `multiple_runs_alpha.xml`:
 >>> from hydpy.examples import prepare_full_example_1
 >>> prepare_full_example_1()
 
-To start the server in a new process, open a command line tool and
+To start the server in a new process, open a command-line tool and
 insert the following command (see module |hyd| for general information
 on how to use *HydPy* via command line):
 
@@ -165,7 +165,7 @@ the last four initialised days:
 2.0: 7.774062, 5.035808, 4.513706, 4.251594
 
 The results of the very first call of function `do_everything` (with
-`id=1`) are identical with the pulled together discharge values of the
+`id=1`) are identical with the pulled-together discharge values of the
 calls with `id=1b`, made possible by the internal bookmarking feature of
 the *HydPy* server.  Here we use numbers, but any other strings are
 valid `id` values.
@@ -184,9 +184,9 @@ values:
 >>> do_everything('5', '1996-01-01', '1996-01-06', 1.0)
 1.0: 11.658511, 8.842278, 7.103614, 6.00763, 5.313751
 
-The order in which `do_everything` calls its subfunctions seems quite
+The order in which function `do_everything` calls its subfunctions seems quite
 natural, but some tools might require do deviate from it.  For example,
-`OpenDA`_ offers ensemble based algorithms triggering the simulation
+`OpenDA`_ offers ensemble-based algorithms triggering the simulation
 of all memberse before starting to query any simulation results.  The
 fourth example shows that the underlying atomic methods do support
 such an order of execution:
@@ -216,22 +216,24 @@ such an order of execution:
    for *HydPy* applications, please open an `issue`_.
 
 Finally, we close the server and kill its process (just closing your
-command line tool works as well):
+command-line tool works as well):
 
 >>> _ = request.urlopen('http://localhost:8080/close_server')
 >>> process.kill()
 >>> _ = process.communicate()
 
 The above description focussed on coupling *HydPy* to `OpenDA`_.  However,
-the applied atomic submethods of class |HydPyServer| should be usable to
-couple *HydPy*  with other software products, as well. See the documentation
-on class |HydPyServer| for further information.
+the applied atomic submethods of class |HydPyServer| are thought to couple
+*HydPy*  with other software products, as well. See the documentation on
+class |HydPyServer| for further information.
 """
 # import...
 # ...from standard library
 import collections
 import copy
-import http.server
+import mimetypes
+import os
+# import http.server   #  moved below for efficiency reasons
 import threading
 import time
 import urllib.error
@@ -241,6 +243,7 @@ import types
 from typing import Any, Dict, List
 # ...from HydPy
 import hydpy
+from hydpy import conf
 from hydpy.auxs import xmltools
 from hydpy.core import hydpytools
 from hydpy.core import itemtools
@@ -249,13 +252,21 @@ from hydpy.core import timetools
 from hydpy.exe import commandtools
 
 
+# pylint: disable=wrong-import-position, wrong-import-order
+# see the documentation on method `start_server` for explanations
+mimetypes.inited = True
+import http.server
+mimetypes.inited = False
+# pylint: enable=wrong-import-position, wrong-import-order
+
+
 class ServerState:
-    """Singleton class handling the current |HydPy| instance, the current
-    exchange items, and so on.
+    """Singleton class handling states like the current |HydPy| instance
+    and the current exchange items.
 
     The instance of class |ServerState| is available the member `state` of
     module |servertools|. You could create other instances, but most
-    likely you shouldn't.  The main purpose of this instance is to store
+    likely, you shouldn't.  The primary purpose of this instance is to store
     information between successive initialisations of class
     |HydPyServer|.
 
@@ -282,7 +293,7 @@ class ServerState:
         """Initialise a *HydPy* project based on the given XML configuration
         file agreeing with `HydPyConfigMultipleRuns.xsd`.
 
-        We use the `LahnH` project and its rather complex XML configuration
+        We use the `LahnH` project and its (complicated) XML configuration
         file `multiple_runs.xml` as an example (module |xmltools| provides
         information on interpreting this file):
 
@@ -340,7 +351,7 @@ class ServerState:
         stream_lahn_1_lahn_2
         stream_lahn_2_lahn_3
 
-        Initialisation also prepares all selected series arrays and
+        The initialisation also prepares all selected series arrays and
         reads the required input data:
 
         >>> print_values(
@@ -389,8 +400,8 @@ class HydPyServer(http.server.BaseHTTPRequestHandler):
     # noinspection PyUnresolvedReferences
     """The API of the *HydPy* server.
 
-    Note that, technically, |HydPyServer| is actually only the HTTP request
-    handler for the real HTTP server class (from the standard library).
+    Note that, technically, |HydPyServer| is, strictly speaking, only the HTTP
+    request handler for the real HTTP server class (from the standard library).
 
     After initialising the *HydPy* server, each communication via a GET
     or POST request is handled by a new instance of |HydPyServer|.
@@ -432,14 +443,14 @@ class HydPyServer(http.server.BaseHTTPRequestHandler):
     ...     print(str(response.read(), encoding='utf-8'))
 
     Asking for its status tells us that the server is ready, provided that
-    the selected *HydPy* project has been initialised already which may
-    take a while, depending on the size of the respective project:
+    the selected *HydPy* project has been initialised already (which may
+    take a while, depending on the size of the particular project):
 
     >>> test('status')
     status = ready
 
-    |HydPyServer| returns the error code `400` if the URL is
-    obviously wrong and the error code `500` in all other cases of error:
+    |HydPyServer| returns the error code `400` if it realises the URL to be
+    wrongthe and the error code `500` in all other cases of error:
 
     >>> test('missing')
     Traceback (most recent call last):
@@ -456,7 +467,7 @@ When trying to convert the value(s) `[]` assigned to SetItem `alpha` to a \
 numpy array of shape `()` and type `float`, the following error occurred: \
 could not broadcast input array from shape (0) into shape ()...
 
-    Some methods require an identity information, passed as query parameter
+    Some methods require identity information, passed as query parameter
     `id`, used for internal bookmarking:
 
     >>> test('save_conditionvalues')
@@ -481,8 +492,8 @@ For the GET method `save_conditionvalues` no query parameter `id` is given.
 `parameteritems` received a wrongly formated data body.  The following line \
 has been extracted but cannot be further processed: `x == y`.
 
-    Before explaining the more offical methods, we introduce method
-    |HydPyServer.POST_evaluate|, which allows to evaluate any expression
+    Before explaining the more offical methods, we introduce the method
+    |HydPyServer.POST_evaluate|, which allows evaluating any expression
     within the server process.  Its most likelely use-case ist to access
     the (sub)attributes of the single instance of class |ServerState|
     available in module |servertools|.  This method can be of help when
@@ -546,8 +557,8 @@ has been extracted but cannot be further processed: `x == y`.
     Eventually, one might require to memorise simulation periods for different
     simulation members.  Use method |HydPyServer.GET_save_timegrid| for
     storing and method |HydPyServer.GET_savedtimegrid| querying this kind of
-    information.  Note that method |HydPyServer.GET_savedtimegrid| returns
-    the initialisation period instead of the simulation period when method
+    information.  Note that |HydPyServer.GET_savedtimegrid| returns the
+    initialisation period instead of the simulation period when
     |HydPyServer.GET_save_timegrid| has not been called with the same `id`
     query parameter value before:
 
@@ -647,7 +658,7 @@ execute method `POST_conditionitemvalues`, the following error occurred: \
 A value for condition item `sm_lahn_1` is missing.
 
     The "official" way to gain information on modified parameters or
-    conditions is method |HydPyServer.GET_getitemvalues|:
+    conditions is to use the method |HydPyServer.GET_getitemvalues|:
 
     >>> test('getitemvalues')    # doctest: +ELLIPSIS
     land_dill_fluxes_qt = nan
@@ -1061,8 +1072,8 @@ but have not been calculated so far.
         for the current simulation start point to the current |HydPy| instance.
 
         When the simulation start point is identical with the initialisation
-        time point and you did not save conditions for it beforehand, the
-        "original" initial conditions are used (normally those of the
+        time point, and you did not save conditions for it beforehand, the
+        "original" initial conditions are used (usually those of the
         conditions files of the respective *HydPy*  project).
         """
         try:
@@ -1174,7 +1185,33 @@ def start_server(socket, projectname, xmlfilename: str) -> None:
     The XML configuration file must be valid concerning the schema file
     `HydPyConfigMultipleRuns.xsd` (see method |ServerState.initialise|
     for further information).
+
+    Note that function |start_server| tries to read the "mime types" from
+    a dictionary stored in the file `mimetypes.txt` available in subpackage
+    `conf`, and passes it as attribute `extension_map` to class |HydPyServer|.
+    The reason is to avoid the long computation time of function
+    |mimetypes.init| of module |mimetypes|, usually called when defining
+    class `BaseHTTPRequestHandler` of module `http.server`.  If file
+    `mimetypes.txt` does not exist or does not work for some reasons,
+    |start_server| calls |mimetypes.init| as usual, (over)writes
+    `mimetypes.txt`, and tries to proceed as expected.
     """
+    filepath = os.path.join(conf.__path__[0], 'mimetypes.txt')
+    try:
+        with open(filepath) as file_:
+            dict_ = eval(open(file_.read()))
+    except BaseException:
+        mimetypes.init()
+        dict_ = mimetypes.types_map.copy()
+        dict_.update({
+            '': 'application/octet-stream',
+            '.py': 'text/plain',
+            '.c': 'text/plain',
+            '.h': 'text/plain',
+            })
+        with open(filepath, 'w') as file_:
+            file_.write(str(dict_))
+    HydPyServer.extensions_map = dict_
     state.initialise(projectname, xmlfilename)
     server = http.server.HTTPServer(('', int(socket)), HydPyServer)
     server.serve_forever()

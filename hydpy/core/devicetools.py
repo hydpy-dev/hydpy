@@ -91,9 +91,9 @@ from hydpy.core import printtools
 from hydpy.core import sequencetools
 from hydpy.cythons.autogen import pointerutils
 pandas = exceptiontools.OptionalImport(
-    'pandas', ['import pandas'])
+    'pandas', ['pandas'], locals())
 pyplot = exceptiontools.OptionalImport(
-    'matplotlib.pyplot', ['from matplotlib import pyplot'])
+    'pyplot', ['matplotlib.pyplot'], locals())
 if TYPE_CHECKING:
     from hydpy.core import auxfiletools
     from hydpy.core import modeltools

@@ -22,7 +22,7 @@ from hydpy.core import propertytools
 from hydpy.core import timetools
 from hydpy.cythons.autogen import annutils
 pyplot = exceptiontools.OptionalImport(
-    'matplotlib.pyplot', ['from matplotlib import pyplot'])
+    'pyplot', ['matplotlib.pyplot'], locals())
 
 
 class _ANNArrayProperty(propertytools.DependentProperty):

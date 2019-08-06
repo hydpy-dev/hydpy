@@ -31,11 +31,14 @@ them computationally efficient by using Cython (see the extension module
 import os
 # ...from site-packages
 import numpy
-from scipy import interpolate
-from scipy import optimize
 # ...from HydPy
 from hydpy import conf
+from hydpy.core import exceptiontools
 from hydpy.cythons.autogen import smoothutils
+interpolate = exceptiontools.OptionalImport(
+    'interpolate', ['scipy.interpolate'], locals())
+optimize = exceptiontools.OptionalImport(
+    'optimize', ['scipy.optimize'], locals())
 
 
 def calc_smoothpar_logistic1(metapar):

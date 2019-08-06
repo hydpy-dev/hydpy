@@ -5,14 +5,16 @@ hydrological modelling.
 # import...
 # ...from site-packages
 import numpy
-from scipy import optimize
-from scipy import special
 # ...from HydPy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.auxs import validtools
 pandas = exceptiontools.OptionalImport(
-    'pandas', ['import pandas'])
+    'pandas', ['pandas'], locals())
+optimize = exceptiontools.OptionalImport(
+    'optimize', ['scipy.optimize'], locals())
+special = exceptiontools.OptionalImport(
+    'special', ['scipy.special'], locals())
 
 
 def prepare_arrays(sim=None, obs=None, node=None, skip_nan=False):

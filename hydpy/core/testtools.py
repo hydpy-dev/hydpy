@@ -15,15 +15,12 @@ import sys
 import warnings
 from typing import *
 # ...from site-packages
-# the following import are actually performed below due to performance issues:
-# import bokeh.models
-# import bokeh.palettes
-# import bokeh.plotting
 import numpy
 # ...from HydPy
 import hydpy
 from hydpy import docs
 from hydpy.core import devicetools
+from hydpy.core import exceptiontools
 from hydpy.core import hydpytools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
@@ -32,6 +29,12 @@ from hydpy.core import selectiontools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
 from hydpy.tests import iotesting
+models = exceptiontools.OptionalImport(
+    'models', ['bokeh.models'], locals())
+palettes = exceptiontools.OptionalImport(
+    'palettes', ['bokeh.palettes'], locals())
+plotting = exceptiontools.OptionalImport(
+    'plotting', ['bokeh.plotting'], locals())
 
 
 class StdOutErr:
@@ -666,9 +669,6 @@ datetime of the Python standard library for for further information.
             * selected: List of the sequences to be plotted.
             * activated: List of the sequences to be shown initially.
         """
-        import bokeh.models
-        import bokeh.palettes
-        import bokeh.plotting
         if width is None:
             width = self.plotting_options.width
         if height is None:
@@ -686,16 +686,16 @@ datetime of the Python standard library for for further information.
         activated = tuple(nm_.name if hasattr(nm_, 'name') else nm_.lower()
                           for nm_ in activated)
         path = os.path.join(docs.__path__[0], 'html', filename)
-        bokeh.plotting.output_file(path)
-        plot = bokeh.plotting.figure(x_axis_type="datetime",
-                                     tools=['pan', 'ywheel_zoom'],
-                                     toolbar_location=None)
+        plotting.output_file(path)
+        plot = plotting.figure(x_axis_type="datetime",
+                               tools=['pan', 'ywheel_zoom'],
+                               toolbar_location=None)
         plot.toolbar.active_drag = plot.tools[0]
         plot.toolbar.active_scroll = plot.tools[1]
         plot.plot_width = width
         plot.plot_height = height
         legend_entries = []
-        viridis = bokeh.palettes.viridis   # pylint: disable=no-member
+        viridis = palettes.viridis
         headers = [header for header in self.raw_header_strings[1:]
                    if header]
         zipped = zip(selected,
@@ -724,15 +724,15 @@ datetime of the Python standard library for for further information.
                     title = header.capitalize()
                 title += suffix
                 legend_entries.append((title, [line]))
-        legend = bokeh.models.Legend(items=legend_entries,
-                                     click_policy='mute')
+        legend = models.Legend(items=legend_entries,
+                               click_policy='mute')
         legend.border_line_color = None
         plot.add_layout(legend, 'right')
         units = self.extract_units(selected)
         ylabel = objecttools.enumeration(units).replace('and', 'or')
         plot.yaxis.axis_label = ylabel
         plot.yaxis.axis_label_text_font_style = 'normal'
-        bokeh.plotting.save(plot)
+        plotting.save(plot)
         self._src = filename
         self._width = width
         self._height = height

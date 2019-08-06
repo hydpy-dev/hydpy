@@ -14,7 +14,6 @@ import warnings
 warnings.filterwarnings('ignore')
 import numpy
 from numpy import nan
-from scipy import integrate
 # ...from HydPy
 from hydpy.core import pubtools
 pub = pubtools.Pub('pub')
@@ -97,7 +96,6 @@ warnings.filterwarnings('ignore', r'All-NaN (slice|axis) encountered')
 warnings.filterwarnings('ignore', r'elementwise comparison failed')
 warnings.filterwarnings('ignore', r'Using or importing the ABCs from')
 warnings.filterwarnings('ignore', r'numpy.ufunc size changed')
-warnings.filterwarnings('error', category=integrate.IntegrationWarning)
 
 # Numpy introduced new string representations in version 1.14 affecting
 # our doctests.  Hence, the old style is selected for now:

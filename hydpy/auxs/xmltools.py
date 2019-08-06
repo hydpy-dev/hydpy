@@ -114,9 +114,9 @@ from hydpy.core import sequencetools
 from hydpy.core import timetools
 from hydpy.exe import commandtools
 netcdf4 = exceptiontools.OptionalImport(
-    'netcdf4', ['import netCDF4', 'import h5netcdf.legacyapi'])
-# xmlschema = exceptiontools.OptionalImport(
-#     'xmlschema', ['import xmlschema']) (moved for computational efficiency)
+    'netcdf4', ['netCDF4', 'h5netcdf.legacyapi'], locals())
+xmlschema = exceptiontools.OptionalImport(
+    'xmlschema', ['xmlschema'], locals())
 
 if TYPE_CHECKING:
     from hydpy.core import modeltools
@@ -471,8 +471,6 @@ correctly refer to one of the available XML schema files \
         ...     interface = XMLInterface('multiple_runs.xml', 'LahnH')
         >>> interface.validate_xml()    # doctest: +ELLIPSIS
         """
-        xmlschema = exceptiontools.OptionalImport(
-            'xmlschema', ['import xmlschema'])
         try:
             filenames = ('HydPyConfigSingleRun.xsd',
                          'HydPyConfigMultipleRuns.xsd')

@@ -7,14 +7,20 @@ import itertools
 import warnings
 # ...from site-packages
 import numpy
-from scipy import integrate
 # ...from HydPy
 import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.auxs import statstools
 pyplot = exceptiontools.OptionalImport(
-    'matplotlib.pyplot', ['from matplotlib import pyplot'])
+    'pyplot', ['matplotlib.pyplot'], locals())
+integrate = exceptiontools.OptionalImport(
+    'integrate',
+    ['scipy.integrate'],
+    locals(),
+    ['import warnings',
+     'from scipy import integrate',
+     'warnings.filterwarnings("error", category=integrate.IntegrationWarning)'])
 
 
 class MA:

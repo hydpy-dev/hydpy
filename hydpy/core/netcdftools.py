@@ -232,7 +232,7 @@ from hydpy.core import objecttools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
 netcdf4 = exceptiontools.OptionalImport(
-    'netcdf4', ['import netCDF4', 'import h5netcdf.legacyapi'])
+    'netcdf4', ['netCDF4', 'h5netcdf.legacyapi'], locals())
 
 IntOrSlice = TypeVar('IntOrSlice', int, slice)
 

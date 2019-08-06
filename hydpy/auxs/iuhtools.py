@@ -13,14 +13,15 @@ import abc
 import itertools
 # ...from site-packages
 import numpy
-from scipy import special
 # ...from Hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.auxs import statstools
 from hydpy.auxs import armatools
 pyplot = exceptiontools.OptionalImport(
-    'matplotlib.pyplot', ['from matplotlib import pyplot'])
+    'pyplot', ['matplotlib.pyplot'], locals())
+special = exceptiontools.OptionalImport(
+    'special', ['scipy.special'], locals())
 
 
 class ParameterIUH:

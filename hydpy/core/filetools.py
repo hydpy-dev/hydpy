@@ -1659,11 +1659,12 @@ is not available.  Select one of the following modes: none and mean.
     @staticmethod
     def _load_asc(sequence: 'sequencetools.IOSequence') \
             -> Tuple[timetools.Timegrid, numpy.array]:
-        with open(sequence.filepath_ext) as file_:
+        filepath_ext = sequence.filepath_ext
+        with open(filepath_ext) as file_:
             header = '\n'.join([file_.readline() for _ in range(3)])
         timegrid_data = eval(header, {}, {'Timegrid': timetools.Timegrid})
         values = numpy.loadtxt(
-            sequence.filepath_ext, skiprows=3, ndmin=sequence.NDIM+1)
+            filepath_ext, skiprows=3, ndmin=sequence.NDIM+1)
         return timegrid_data, values
 
     def _load_nc(self, sequence: 'sequencetools.IOSequence') -> None:

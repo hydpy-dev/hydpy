@@ -669,7 +669,7 @@ at the moment.
 
     @nodes.setter
     def nodes(self, values):
-        self._nodes = devicetools.Nodes(values)
+        self._nodes = devicetools.Nodes(values).copy()
 
     @nodes.deleter
     def nodes(self):
@@ -713,7 +713,7 @@ at the moment.
 
     @elements.setter
     def elements(self, values):
-        self._elements = devicetools.Elements(values)
+        self._elements = devicetools.Elements(values).copy()
 
     @elements.deleter
     def elements(self):

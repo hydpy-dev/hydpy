@@ -382,8 +382,11 @@ of the following classes: node and str.
     _shadowed_keywords: Set[str]
     forceiterable: bool = False
 
-    def __init__(self, *values: MayNonerable2[DeviceType, str],
-                 mutable: bool = True):
+    def __new__(cls, *values: MayNonerable2[DeviceType, str],
+                mutable: bool = True):
+        if len(values) == 1 and isinstance(values[0], cls):
+            return values[0]
+        self = super().__new__(cls)
         dict_ = vars(self)
         dict_['mutable'] = mutable
         dict_['_name2device'] = {}
@@ -397,6 +400,7 @@ of the following classes: node and str.
             objecttools.augment_excmessage(
                 f'While trying to initialise a '
                 f'`{objecttools.classname(self)}` object')
+        return self
 
     @staticmethod
     @abc.abstractmethod

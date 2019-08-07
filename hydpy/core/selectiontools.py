@@ -465,8 +465,8 @@ attribute 'nodes'
                  nodes: devicetools.NodesConstrArg = None,
                  elements: devicetools.ElementsConstrArg = None):
         self.name = str(name)
-        self.nodes = devicetools.Nodes(nodes)
-        self.elements = devicetools.Elements(elements)
+        self.nodes = devicetools.Nodes(nodes).copy()
+        self.elements = devicetools.Elements(elements).copy()
 
     def search_upstream(self, device: devicetools.Device,
                         name: str = 'upstream') -> 'Selection':

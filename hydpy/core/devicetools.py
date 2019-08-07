@@ -1884,10 +1884,14 @@ is not allowed.
                                   self.receivers, self.senders)
             del vars(self)['new_instance']
         self.keywords = keywords  # type: ignore
-        self.inlets = inlets  # type: ignore
-        self.outlets = outlets  # type: ignore
-        self.receivers = receivers  # type: ignore
-        self.senders = senders  # type: ignore
+        if inlets is not None:
+            self.inlets = inlets  # type: ignore
+        if outlets is not None:
+            self.outlets = outlets  # type: ignore
+        if receivers is not None:
+            self.receivers = receivers  # type: ignore
+        if senders is not None:
+            self.senders = senders  # type: ignore
         # due to internal type conversion
         # see issue https://github.com/python/mypy/issues/3004
 
@@ -1903,7 +1907,7 @@ is not allowed.
                         f'For element `{self}`, the given {elementtarget[:-1]} '
                         f'node `{node}` is already defined as a(n) '
                         f'{comparetarget[:-1]} node, which is not allowed.')
-                elementgroup += node
+                elementgroup.add_device(node)
                 nodegroup: Elements = getattr(node, nodetarget)
                 nodegroupmutable = nodegroup.mutable
                 try:

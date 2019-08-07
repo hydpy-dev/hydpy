@@ -21,6 +21,8 @@ if TYPE_CHECKING:
     from hydpy.core import devicetools
 
 
+_builtinnames = set(dir(builtins))
+
 T = TypeVar('T')
 ReprArg = Union[numbers.Number,
                 Iterable[numbers.Number],
@@ -316,11 +318,7 @@ Python built-ins like `for`...)
     ...
     ValueError: The given name string `print` does not define...
     """
-    try:
-        exec(f'{string} = None')
-        if string in dir(builtins):
-            raise SyntaxError()
-    except SyntaxError:
+    if string in _builtinnames or not string.isidentifier():
         raise ValueError(
             f'The given name string `{string}` does not define a valid '
             f'variable identifier.  Valid identifiers do not contain '

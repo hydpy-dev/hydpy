@@ -379,14 +379,15 @@ of the following classes: node and str.
 
     _name2device: Dict[str, DeviceType]
     mutable: bool
+    _shadowed_keywords: Set[str]
     forceiterable: bool = False
 
     def __init__(self, *values: MayNonerable2[DeviceType, str],
                  mutable: bool = True):
-        with objecttools.ResetAttrFuncs(self):
-            self.mutable = mutable
-            self._name2device = {}
-            self._shadowed_keywords: Set[str] = set()
+        dict_ = vars(self)
+        dict_['mutable'] = mutable
+        dict_['_name2device'] = {}
+        dict_['_shadowed_keywords'] = set()
         contentclass = self.get_contentclass()
         try:
             for value in objecttools.extract(

@@ -166,6 +166,7 @@ the following error occurred: hour must be in 0..23
         ('din2', '%Y.%m.%d %H:%M:%S')])
     # The first month of the hydrological year (e.g. November in Germany)
     _firstmonth_wateryear = 11
+    _lastformatstring = 'os', formatstrings['os']
 
     datetime: datetime_.datetime
 
@@ -359,16 +360,22 @@ invalid literal for int() with base 10: '0X'
     @classmethod
     def _extract_date(
             cls, substring: str, string: str) -> Tuple[str, datetime_.datetime]:
-        for (style, format_) in cls.formatstrings.items():
-            for dummy in range(4):
-                try:
-                    return style, datetime_.datetime.strptime(
-                        substring, format_)
-                except ValueError:
-                    format_ = format_[:-3]
-        raise ValueError(
-            f'The given string `{string}` does not agree '
-            f'with any of the supported format styles.')
+        strptime = datetime_.datetime.strptime
+        try:
+            style, format_ = cls._lastformatstring
+            return style, strptime(substring, format_)
+        except ValueError:
+            for (style, format_) in cls.formatstrings.items():
+                for dummy in range(4):
+                    try:
+                        datetime = strptime(substring, format_)
+                        cls._lastformatstring = style, format_
+                        return style, datetime
+                    except ValueError:
+                        format_ = format_[:-3]
+            raise ValueError(
+                f'The given string `{string}` does not agree '
+                f'with any of the supported format styles.')
 
     @staticmethod
     def _modify_date(date: datetime_.datetime, offset: str, string: str) \

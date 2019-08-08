@@ -38,7 +38,7 @@ class Nmb(parametertools.Parameter):
         pars = self.subpars.pars
         responses = pars.control.responses
         fluxes = pars.model.sequences.fluxes
-        self(len(responses))
+        self.value = len(responses)
         fluxes.qpin.shape = self.value
         fluxes.qpout.shape = self.value
         fluxes.qma.shape = self.value
@@ -61,7 +61,7 @@ class MaxQ(parametertools.Parameter):
         """
         responses = self.subpars.pars.control.responses
         self.shape = len(responses)
-        self(responses.thresholds)
+        self.value = responses.thresholds
 
 
 class DiffQ(parametertools.Parameter):
@@ -84,7 +84,7 @@ class DiffQ(parametertools.Parameter):
         """
         responses = self.subpars.pars.control.responses
         self.shape = len(responses)-1
-        self(numpy.diff(responses.thresholds))
+        self.value = numpy.diff(responses.thresholds)
 
 
 class AR_Order(parametertools.Parameter):
@@ -103,7 +103,7 @@ class AR_Order(parametertools.Parameter):
         """
         responses = self.subpars.pars.control.responses
         self.shape = len(responses)
-        self(responses.ar_orders)
+        self.value = responses.ar_orders
 
 
 class MA_Order(parametertools.Parameter):
@@ -122,7 +122,7 @@ class MA_Order(parametertools.Parameter):
         """
         responses = self.subpars.pars.control.responses
         self.shape = len(responses)
-        self(responses.ma_orders)
+        self.value = responses.ma_orders
 
 
 class AR_Coefs(parametertools.Parameter):
@@ -150,7 +150,7 @@ class AR_Coefs(parametertools.Parameter):
         pars = self.subpars.pars
         coefs = pars.control.responses.ar_coefs
         self.shape = coefs.shape
-        self(coefs)
+        self.value = coefs
         pars.model.sequences.logs.logout.shape = self.shape
 
 
@@ -179,7 +179,7 @@ class MA_Coefs(parametertools.Parameter):
         pars = self.subpars.pars
         coefs = pars.control.responses.ma_coefs
         self.shape = coefs.shape
-        self(coefs)
+        self.value = coefs
         pars.model.sequences.logs.login.shape = self.shape
 
 

@@ -205,9 +205,9 @@ to make any internal data available.
     def __prepare_subseqs(self, prefix, class_, cymodel, cythonmodule):
         name = f'{prefix}Sequences'
         if class_ is None:
-            class_ = type(name, (globals()[name],), {'CLASSES': ()})
-        cyfastaccess = getattr(cythonmodule, name, None)
-        return class_(self, cyfastaccess, cymodel)
+            class_ = copy.copy(globals()[name])
+            class_.CLASSES = ()
+        return class_(self, getattr(cythonmodule, name, None), cymodel)
 
     @property
     def iosubsequences(self) -> Iterator['IOSequences']:

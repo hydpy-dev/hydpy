@@ -415,7 +415,7 @@ Keyword `rdmin` is not among the available model constants.
         except TypeError:
             args = kwargs.get('r_dmin')
             if args is not None:
-                self.values = 0.024192*self.apply_timefactor(numpy.array(args))
+                self.value = 0.024192*self.apply_timefactor(numpy.array(args))
                 self.trim()
             else:
                 objecttools.augment_excmessage()
@@ -489,7 +489,7 @@ Keyword `rdmax` is not among the available model constants.
         except TypeError:
             args = kwargs.get('r_dmax')
             if args is not None:
-                self.values = 2.4192*self.apply_timefactor(numpy.array(args))
+                self.value = 2.4192*self.apply_timefactor(numpy.array(args))
                 self.trim()
             else:
                 objecttools.augment_excmessage()

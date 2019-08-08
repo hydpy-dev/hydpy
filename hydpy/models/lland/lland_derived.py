@@ -31,7 +31,7 @@ class AbsFHRU(lland_parameters.ParameterComplete):
         absfhru(20.0, 80.0)
         """
         control = self.subpars.pars.control
-        self(control.ft*control.fhru)
+        self.value = control.ft*control.fhru
 
 
 class KInz(lland_parameters.LanduseMonthParameter):
@@ -56,7 +56,7 @@ class KInz(lland_parameters.LanduseMonthParameter):
         0.4
         """
         con = self.subpars.pars.control
-        self(con.hinz*con.lai)
+        self.value = con.hinz*con.lai
 
 
 class WB(lland_parameters.ParameterComplete):
@@ -78,7 +78,7 @@ class WB(lland_parameters.ParameterComplete):
         wb(20.0, 40.0)
         """
         con = self.subpars.pars.control
-        self(con.relwb*con.nfk)
+        self.value = con.relwb*con.nfk
 
 
 class WZ(lland_parameters.ParameterComplete):
@@ -100,7 +100,7 @@ class WZ(lland_parameters.ParameterComplete):
         wz(80.0, 160.0)
         """
         con = self.subpars.pars.control
-        self(con.relwz*con.nfk)
+        self.value = con.relwz*con.nfk
 
 
 class KB(parametertools.Parameter):
@@ -120,7 +120,7 @@ class KB(parametertools.Parameter):
         kb(100.0)
         """
         con = self.subpars.pars.control
-        self(con.eqb*con.tind)
+        self.value = con.eqb*con.tind
 
 
 class KI1(parametertools.Parameter):
@@ -140,7 +140,7 @@ class KI1(parametertools.Parameter):
         ki1(50.0)
         """
         con = self.subpars.pars.control
-        self(con.eqi1*con.tind)
+        self.value = con.eqi1*con.tind
 
 
 class KI2(parametertools.Parameter):
@@ -160,7 +160,7 @@ class KI2(parametertools.Parameter):
         ki2(10.0)
         """
         con = self.subpars.pars.control
-        self(con.eqi2*con.tind)
+        self.value = con.eqi2*con.tind
 
 
 class KD1(parametertools.Parameter):
@@ -180,7 +180,7 @@ class KD1(parametertools.Parameter):
         kd1(5.0)
         """
         con = self.subpars.pars.control
-        self(con.eqd1*con.tind)
+        self.value = con.eqd1*con.tind
 
 
 class KD2(parametertools.Parameter):
@@ -200,7 +200,7 @@ class KD2(parametertools.Parameter):
         kd2(1.0)
         """
         con = self.subpars.pars.control
-        self(con.eqd2*con.tind)
+        self.value = con.eqd2*con.tind
 
 
 class QFactor(parametertools.Parameter):
@@ -219,7 +219,7 @@ class QFactor(parametertools.Parameter):
         qfactor(0.115741)
         """
         con = self.subpars.pars.control
-        self(con.ft*1000./self.simulationstep.seconds)
+        self.value = con.ft*1000./self.simulationstep.seconds
 
 
 class DerivedParameters(parametertools.SubParameters):

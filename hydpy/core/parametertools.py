@@ -1676,19 +1676,20 @@ The given keywords are incomplete and no default value is available.
     def _own_call(self, kwargs: Dict[str, Any]) -> None:
         mask = self.mask
         self.values = numpy.nan
+        values = self.values
         allidxs = mask.refindices.values
         relidxs = mask.relevantindices
         counter = 0
         if 'default' in kwargs:
             check = False
-            self[mask] = kwargs.pop('default')
+            values[mask] = kwargs.pop('default')
         else:
             check = True
         for (key, value) in kwargs.items():
             try:
                 selidx = self.MODEL_CONSTANTS[key.upper()]
                 if selidx in relidxs:
-                    self.values[allidxs == selidx] = value
+                    values[allidxs == selidx] = value
                     counter += 1
             except KeyError:
                 raise TypeError(
@@ -1698,7 +1699,7 @@ The given keywords are incomplete and no default value is available.
             raise TypeError(
                 'The given keywords are incomplete '
                 'and no default value is available.')
-        self.values = self.apply_timefactor(self.values)
+        values[:] = self.apply_timefactor(values)
         self.trim()
 
     def compress_repr(self) -> Optional[str]:

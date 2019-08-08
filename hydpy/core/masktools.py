@@ -191,11 +191,8 @@ determined as long as parameter `zonetype` is not prepared properly.
                 f'The mask of parameter {objecttools.elementphrase(variable)} '
                 f'cannot be determined as long as parameter `{indices.name}` '
                 f'is not prepared properly.')
-        mask = numpy.full(indices.shape, False, dtype=bool)
-        refvalues = indices.values
-        for relvalue in cls.RELEVANT_VALUES:
-            mask[refvalues == relvalue] = True
-        return cls.array2mask(mask, **kwargs)
+        return cls.array2mask(
+            numpy.in1d(indices.values, cls.RELEVANT_VALUES), **kwargs)
 
     @classmethod
     def get_refindices(cls, variable) -> 'parametertools.Parameter':
@@ -218,9 +215,9 @@ determined as long as parameter `zonetype` is not prepared properly.
 must be overridden, which is not the case for class `IndexMask`.
         """
         raise NotImplementedError(
-            'Function `get_refindices` of class `IndexMask` must be '
-            'overridden, which is not the case for class `%s`.'
-            % objecttools.classname(cls))
+            f'Function `get_refindices` of class `IndexMask` must be '
+            f'overridden, which is not the case for class '
+            f'`{objecttools.classname(cls)}`.')
 
     @property
     def refindices(self):
@@ -229,12 +226,11 @@ must be overridden, which is not the case for class `IndexMask`.
         return self.get_refindices(self.variable)
 
     @property
-    def relevantindices(self) -> List[int]:
+    def relevantindices(self) -> Set[int]:
         """A |list| of all currently relevant indices, calculated as an
         intercection of the (constant) class attribute `RELEVANT_VALUES`
         and the (variable) property |IndexMask.refindices|."""
-        return [idx for idx in numpy.unique(self.refindices.values)
-                if idx in self.RELEVANT_VALUES]
+        return set(self.refindices.values).intersection(self.RELEVANT_VALUES)
 
 
 class Masks:
@@ -337,8 +333,8 @@ following error occurred: The given key is neither a `string` a `mask` type.
         except TypeError:
             pass
         raise TypeError(
-            'The given %s is neither a Mask class nor a Mask instance.'
-            % objecttools.value_of_type(mask))
+            f'The given {objecttools.value_of_type(mask)} is '
+            f'neither a Mask class nor a Mask instance.')
 
     def __getitem__(self, key):
         _key = key
@@ -361,8 +357,7 @@ following error occurred: The given key is neither a `string` a `mask` type.
                 'The given key is neither a `string` a `mask` type.')
         except BaseException:
             objecttools.augment_excmessage(
-                'While trying to retrieve a mask based on key `%s`'
-                % repr(_key))
+                f'While trying to retrieve a mask based on key `{repr(_key)}`')
 
     def __repr__(self):
         lines = []

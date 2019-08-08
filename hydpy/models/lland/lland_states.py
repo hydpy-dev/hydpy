@@ -52,7 +52,7 @@ class WATS(lland_sequences.State1DSequence):
         if lower is None:
             lower = numpy.clip(waes/pwmax, 0., numpy.inf)
             lower[numpy.isnan(lower)] = 0.0
-        lland_sequences.State1DSequence.trim(self, lower, upper)
+        super().trim(lower, upper)
 
 
 class WAeS(lland_sequences.State1DSequence):
@@ -77,7 +77,7 @@ class WAeS(lland_sequences.State1DSequence):
         wats = self.subseqs.wats
         if upper is None:
             upper = pwmax*wats
-        lland_sequences.State1DSequence.trim(self, lower, upper)
+        super().trim(lower, upper)
 
 
 class BoWa(lland_sequences.State1DSequence):
@@ -98,7 +98,7 @@ class BoWa(lland_sequences.State1DSequence):
         """
         if upper is None:
             upper = self.subseqs.seqs.model.parameters.control.nfk
-        lland_sequences.State1DSequence.trim(self, lower, upper)
+        super().trim(lower, upper)
 
 
 class QDGZ1(sequencetools.StateSequence):

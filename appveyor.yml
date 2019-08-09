@@ -24,6 +24,7 @@ install:
   - conda install scipy --yes
   - conda install matplotlib --yes
   - python -m pip install bokeh
+  - python -m pip install netcdf4
   - python -m pip install pandas
   - python -m pip install setuptools
   - python -m pip install typing_extensions
@@ -31,9 +32,6 @@ install:
   - python -m pip install wheel
   - python -m pip install wrapt
   - python -m pip install xmlschema==1.0.9
-  - conda install netcdf4 --yes
-  - conda uninstall netcdf4 --yes
-  - python -m pip install netcdf4
 
 build: off
 

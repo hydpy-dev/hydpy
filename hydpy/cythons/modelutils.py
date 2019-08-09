@@ -725,7 +725,10 @@ class Cythonizer:
         >>> pub.options.forcecompiling = False
         >>> import os
         >>> split = os.path.split
-        >>> os.path.split = lambda string: ['site-packages', 'hydpy']
+        >>> os.path.split = lambda string: ['somename-packages', 'hydpy']
+        >>> cythonizer.outdated
+        False
+        >>> os.path.split = lambda string: ['pkgs', 'hydpy']
         >>> cythonizer.outdated
         False
 
@@ -769,8 +772,8 @@ class Cythonizer:
         """
         if hydpy.pub.options.forcecompiling:
             return True
-        if os.path.split(
-                getattr(hydpy, '__path__')[0])[-2].endswith('-packages'):
+        test = os.path.split(hydpy.__path__[0])[-2].split('-')[-1]
+        if test in ('pkgs', 'packages'):
             return False
         if not os.path.exists(self.dllfilepath):
             return True

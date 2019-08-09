@@ -399,7 +399,7 @@ occurred: ...
             % (name, datatype, dimensions, get_filepath(ncfile)))
 
 
-def query_variable(ncfile, name) -> netcdf4.Variable:
+def query_variable(ncfile, name) -> 'netcdf4.Variable':
     """Return the variable with the given name from the given NetCDF file.
 
     Essentially, |query_variable| just performs a key assess via the

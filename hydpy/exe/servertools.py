@@ -1224,8 +1224,8 @@ def await_server(port, seconds):
     >>> from hydpy import run_subprocess, TestIO
     >>> with TestIO():    # doctest: +ELLIPSIS
     ...     run_subprocess('hyd.py await_server 8080 0.1')
-    Invoking hyd.py with arguments `...hyd.py, await_server, 8080, 0.1` \
-resulted in the following error:
+    Invoking hyd.py with arguments `await_server, 8080, 0.1` resulted in \
+the following error:
     <urlopen error Waited for 0.1 seconds without response on port 8080.>
     ...
 

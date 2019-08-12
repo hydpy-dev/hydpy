@@ -127,8 +127,8 @@ def exec_script(filepath: str) -> None:
     >>> with TestIO():
     ...     run_subprocess('hyd.py logfile="default" exec_script test.py')
     ...     print_latest_logfile()    # doctest: +ELLIPSIS
-    Invoking hyd.py with arguments `...hyd.py.exe, logfile=default, \
-exec_script, test.py` resulted in the following error:
+    Invoking hyd.py with arguments `logfile=default, exec_script, test.py` \
+resulted in the following error:
     File `...test.py` does not exist.
     ...
 
@@ -153,8 +153,8 @@ exec_script, test.py` resulted in the following error:
     ...         _ = file_.write('print(repr(Node("invalid name")))\\n')
     ...     run_subprocess('hyd.py logfile="default" exec_script test.py')
     ...     print_latest_logfile()    # doctest: +ELLIPSIS
-    Invoking hyd.py with arguments `...hyd.py.exe, logfile=default, \
-exec_script, test.py` resulted in the following error:
+    Invoking hyd.py with arguments `logfile=default, exec_script, test.py` \
+resulted in the following error:
     While trying to initialize a `Node` object with value `invalid name` of \
 type `str`, the following error occurred: The given name string `invalid name` \
 does not define a valid variable identifier.  Valid identifiers do not \
@@ -192,8 +192,8 @@ def print_latest_logfile(dirpath: str = '.', wait: float = 0.0) -> None:
     ...     run_subprocess('hyd.py logfile="default" test=1')
     ...     run_subprocess('hyd.py logfile="default" test=2')
     ...     print_latest_logfile(wait=0.5)    # doctest: +ELLIPSIS
-    Invoking hyd.py with arguments `...hyd.py, logfile=default, test=2` \
-resulted in the following error:
+    Invoking hyd.py with arguments `logfile=default, test=2` resulted in \
+the following error:
     ...
     """
     now = time.perf_counter()
@@ -336,9 +336,16 @@ def execute_scriptfunction() -> None:
         if logstyle not in LogFileInterface.style2infotype2string:
             logstyle = 'plain'
         with _activate_logfile(logfilepath, logstyle, 'exception', 'exception'):
-            arguments = ', '.join(sys.argv)
-            print(f'Invoking hyd.py with arguments `{arguments}` '
-                  f'resulted in the following error:\n{str(exc)}\n\n'
+            args = sys.argv[1:]
+            nmb = len(args)
+            if nmb > 1:
+                argphrase = f'with arguments `{", ".join(args)}`'
+            elif nmb == 1:
+                argphrase = f'with argument `{args[0]}`'
+            else:
+                argphrase = 'without arguments'
+            print(f'Invoking hyd.py {argphrase} resulted in the following '
+                  f'error:\n{str(exc)}\n\n'
                   f'See the following stack traceback for debugging:\n',
                   file=sys.stderr)
             traceback.print_tb(sys.exc_info()[2])

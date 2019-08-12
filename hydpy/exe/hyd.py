@@ -14,7 +14,7 @@ your command line:
 >>> import subprocess
 >>> from hydpy import run_subprocess
 >>> run_subprocess("hyd.py")    # doctest: +ELLIPSIS
-Invoking hyd.py with arguments `...hyd.py` resulted in the following error:
+Invoking hyd.py without arguments resulted in the following error:
 The first positional argument defining the function to be called is missing.
 <BLANKLINE>
 See the following stack traceback for debugging:
@@ -36,7 +36,7 @@ folder as an argument:
 >>> repr_(command)    # doctest: +ELLIPSIS
 'python .../hydpy/exe/hyd.py'
 >>> run_subprocess(command)    # doctest: +ELLIPSIS
-Invoking hyd.py with arguments `...hyd.py` resulted in the following error:
+Invoking hyd.py without arguments resulted in the following error:
 The first positional argument defining the function to be called is missing.
 ...
 
@@ -49,8 +49,8 @@ You are free to redirect output to a log file:
 >>> with TestIO():
 ...     with open('my_log_file.txt') as logfile:
 ...         print(logfile.read())    # doctest: +ELLIPSIS
-Invoking hyd.py with arguments `...hyd.py, logfile=my_log_file.txt` resulted \
-in the following error:
+Invoking hyd.py with argument `logfile=my_log_file.txt` resulted in the \
+following error:
 The first positional argument defining the function to be called is missing.
 ...
 
@@ -71,15 +71,15 @@ hydpy_...log
 Without any further arguments, `hyd.py` does not know which function to call:
 
 >>> run_subprocess("hyd.py")    # doctest: +ELLIPSIS
-Invoking hyd.py with arguments `...hyd.py` resulted in the following error:
+Invoking hyd.py without arguments resulted in the following error:
 The first positional argument defining the function to be called is missing.
 ...
 
 The first additional argument must be an available "script function":
 
 >>> run_subprocess("hyd.py "
-...         "wrong_argument")    # doctest: +ELLIPSIS
-Invoking hyd.py with arguments `...hyd.py, wrong_argument` resulted in the \
+...                "wrong_argument")    # doctest: +ELLIPSIS
+Invoking hyd.py with argument `wrong_argument` resulted in the \
 following error:
 There is no `wrong_argument` function callable by `hyd.py`.  Choose one of \
 the following instead: await_server, exec_commands, exec_script, \
@@ -90,7 +90,7 @@ Further argument requirements depend on the selected "script function":
 
 >>> run_subprocess("hyd.py "
 ...                "exec_commands")    # doctest: +ELLIPSIS
-Invoking hyd.py with arguments `...hyd.py, exec_commands` resulted in the \
+Invoking hyd.py with argument `exec_commands` resulted in the \
 following error:
 Function `exec_commands` requires `1` positional arguments (commands), \
 but `0` are given.
@@ -99,8 +99,8 @@ but `0` are given.
 ...                "exec_commands "
 ...                "first_name "
 ...                "second_name")    # doctest: +ELLIPSIS
-Invoking hyd.py with arguments `...hyd.py, exec_commands, first_name, \
-second_name` resulted in the following error:
+Invoking hyd.py with arguments `exec_commands, first_name, second_name` \
+resulted in the following error:
 Function `exec_commands` requires `1` positional arguments (commands), \
 but `2` are given \
 (first_name and second_name).
@@ -127,8 +127,8 @@ way into the console or log file:
 ...                f"raise_RuntimeError{esc}({esc}'it_fails{esc}'{esc})")
 Start to execute the commands ["raise_RuntimeError('it_fails')"] for \
 testing purposes.
-Invoking hyd.py with arguments `...hyd.py, exec_commands, \
-raise_RuntimeError('it_fails')` resulted in the following error:
+Invoking hyd.py with arguments `exec_commands, raise_RuntimeError('it_fails')` \
+resulted in the following error:
 it fails
 ...
 
@@ -168,7 +168,7 @@ testing purposes.
 info: it works
 warning: ...UserWarning: it stumbles
 warning:   # -*- coding: utf-8 -*-
-error: Invoking hyd.py with arguments ...hyd.py, exec_commands, \
+error: Invoking hyd.py with arguments `exec_commands, \
 print('it_works');import_warnings;warnings.warn('it_stumbles');\
 raise_RuntimeError('it_fails'), logstyle=prefixed` resulted in \
 the following error:
@@ -181,8 +181,8 @@ So far, only `prefixed` and the default style `plain` are implemented:
 ...                f"exec_commands "
 ...                f"None "
 ...                f"logstyle=missing")
-Invoking hyd.py with arguments `...hyd.py, exec_commands, None, \
-logstyle=missing` resulted in the following error:
+Invoking hyd.py with arguments `exec_commands, None, logstyle=missing` \
+resulted in the following error:
 The given log file style missing is not available.  Please choose one \
 of the following: plain and prefixed.
 ...

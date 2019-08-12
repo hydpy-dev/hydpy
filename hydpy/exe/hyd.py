@@ -83,7 +83,7 @@ Invoking hyd.py with argument `wrong_argument` resulted in the \
 following error:
 There is no `wrong_argument` function callable by `hyd.py`.  Choose one of \
 the following instead: await_server, exec_commands, exec_script, \
-run_simulation, start_server, and xml_replace.
+run_simulation, start_server, start_shell, and xml_replace.
 ...
 
 Further argument requirements depend on the selected "script function":

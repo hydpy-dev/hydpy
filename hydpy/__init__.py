@@ -78,6 +78,7 @@ from hydpy.exe.commandtools import exec_commands
 from hydpy.exe.commandtools import exec_script
 from hydpy.exe.commandtools import execute_scriptfunction
 from hydpy.exe.commandtools import run_subprocess
+from hydpy.exe.commandtools import start_shell
 from hydpy.exe.commandtools import print_latest_logfile
 from hydpy.exe.replacetools import xml_replace
 from hydpy.exe.servertools import await_server
@@ -106,11 +107,12 @@ try:
 except TypeError:   # pragma: no cover
     pass
 
+pub.scriptfunctions['await_server'] = await_server
 pub.scriptfunctions['exec_commands'] = exec_commands
 pub.scriptfunctions['exec_script'] = exec_script
 pub.scriptfunctions['run_simulation'] = run_simulation
+pub.scriptfunctions['start_shell'] = start_shell
 pub.scriptfunctions['start_server'] = start_server
-pub.scriptfunctions['await_server'] = await_server
 pub.scriptfunctions['xml_replace'] = xml_replace
 
 __all__ = ['config',
@@ -171,6 +173,7 @@ __all__ = ['config',
            'exec_commands',
            'exec_script',
            'execute_scriptfunction',
+           'start_shell',
            'run_subprocess',
            'print_latest_logfile',
            'xml_replace',

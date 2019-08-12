@@ -168,6 +168,78 @@ cannot be mistaken with Python built-ins like `for`...)
     runpy.run_path(filepath)
 
 
+def start_shell(filepath: str = '') -> None:
+    """Open an interactive Python shell.
+
+    Writing "hyd.py start_shell" into your command line tool opens an
+    interactive Python console with the most relevant *HydPy* features being
+    imported already.  In our first example, we directly prepare an |Element|
+    object (without needing to import class |Element| first) and print its
+    string representation:
+
+    >>> import subprocess
+    >>> from hydpy import TestIO
+    >>> TestIO.clear()
+    >>> with TestIO():
+    ...     with subprocess.Popen(
+    ...             'hyd.py start_shell',
+    ...             stdin=subprocess.PIPE,
+    ...             stdout=subprocess.PIPE,
+    ...             stderr=subprocess.PIPE,
+    ...             encoding='utf-8',
+    ...             shell=True) as process:
+    ...         response = process.communicate(
+    ...             'print(repr(Element("e1", outlets="n1")))')
+    ...         print(response[0])
+    Element("e1",
+            outlets="n1")
+    <BLANKLINE>
+
+    You can pass the name of a Python file as an additional argument, which
+    enables to interact with the results of the file.  For demonstration
+    purposes, we create the example file `test.py` simply defining a |Nodes|
+    object handling two individual nodes:
+
+    >>> with TestIO():
+    ...     with open('test.py', 'w') as file_:
+    ...         _ = file_.write('from hydpy import Nodes\\n')
+    ...         _ = file_.write('nodes = Nodes("n1", "n2")\\n')
+
+    Now we can, execute this file and, for example, query the names of
+    the defined nodes interactively:
+
+    >>> with TestIO():
+    ...     with subprocess.Popen(
+    ...             'hyd.py start_shell test.py',
+    ...             stdin=subprocess.PIPE,
+    ...             stdout=subprocess.PIPE,
+    ...             stderr=subprocess.PIPE,
+    ...             encoding='utf-8',
+    ...             shell=True) as process:
+    ...         response = process.communicate(
+    ...             'print(nodes.names)')
+    ...         print(response[0])
+    ('n1', 'n2')
+    <BLANKLINE>
+    """
+    if filepath:
+        filepath_ = filepath
+    else:
+        filepath_ = '__hydpy_temp__'
+        with open('__hydpy_temp__', 'w') as file_:
+            file_.write('from hydpy import *')
+    subprocess.run([sys.executable, '-i', filepath_])
+    if not filepath:
+        os.remove(filepath_)
+
+    # First steps to use IPython instead:
+    # import IPython
+    # IPython.start_ipython()
+    # console = IPython.get_ipython()
+    # console.run_code(compile('print(1+1', '_', 'exec'))
+    # console.run_code(compile('from hydpy import *', '_', 'exec'))
+
+
 def print_latest_logfile(dirpath: str = '.', wait: float = 0.0) -> None:
     """Print the latest log file in the current or the given working directory.
 

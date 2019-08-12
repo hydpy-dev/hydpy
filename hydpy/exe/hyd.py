@@ -101,7 +101,7 @@ but `0` are given.
 ...                "second_name")    # doctest: +ELLIPSIS
 Invoking hyd.py with arguments `exec_commands, first_name, second_name` \
 resulted in the following error:
-Function `exec_commands` requires `1` positional arguments (commands), \
+Function `exec_commands` allows `1` positional arguments (commands), \
 but `2` are given \
 (first_name and second_name).
 ...

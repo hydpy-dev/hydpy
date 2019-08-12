@@ -314,21 +314,35 @@ def execute_scriptfunction() -> None:
             raise ValueError(
                 f'There is no `{funcname}` function callable by `hyd.py`.  '
                 f'Choose one of the following instead: {available_funcs}.')
-        args_required = inspect.getfullargspec(func).args
+        argspec = inspect.getfullargspec(func)
+        args_possible = argspec.args
+        if argspec.defaults:
+            args_required = args_possible[:-len(argspec.defaults)]
+        else:
+            args_required = args_possible
+        nmb_args_possible = len(args_possible)
         nmb_args_required = len(args_required)
         nmb_args_given = len(args_given)
-        if nmb_args_given != nmb_args_required:
+        if (nmb_args_given < nmb_args_required or
+                nmb_args_given > nmb_args_possible):
             enum_args_given = ''
             if nmb_args_given:
                 enum_args_given = (
                     f' ({objecttools.enumeration(args_given)})')
-            enum_args_required = ''
-            if nmb_args_required:
-                enum_args_required = (
-                    f' ({objecttools.enumeration(args_required)})')
+            if nmb_args_given < nmb_args_required:
+                args = args_required
+                nmb_args = nmb_args_required
+                condition = 'requires'
+            else:
+                args = args_possible
+                nmb_args = nmb_args_possible
+                condition = 'allows'
+            enum_args = ''
+            if nmb_args:
+                enum_args = f' ({objecttools.enumeration(args)})'
             raise ValueError(
-                f'Function `{funcname}` requires `{nmb_args_required:d}` '
-                f'positional arguments{enum_args_required}, but '
+                f'Function `{funcname}` {condition} `{nmb_args:d}` '
+                f'positional arguments{enum_args}, but '
                 f'`{nmb_args_given:d}` are given{enum_args_given}.')
         with _activate_logfile(logfilepath, logstyle, 'info', 'warning'):
             func(*args_given, **kwargs_given)

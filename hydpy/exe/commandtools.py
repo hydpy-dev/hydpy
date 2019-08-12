@@ -7,6 +7,7 @@ import contextlib
 import datetime
 import inspect
 import os
+import runpy
 import subprocess
 import sys
 import time
@@ -106,6 +107,65 @@ for testing purposes.
         command = command.replace('_', ' ')
         command = command.replace('temptemptemp', '_')
         exec(command)
+
+
+def exec_script(filepath: str) -> None:
+    """Execute an arbitrary Python script.
+
+    Function |run_simulation| allows you to execute a predefined *HydPy*
+    workflow.  You can configure many details of this workflow but not
+    change its general structure.  Use function |exec_script| when you
+    want to execute *HydPy* remotely but strive for more flexibility.
+    As its name suggests, function |exec_script| executes any valid Python
+    code relying on the standard library and the available site-packages.
+
+    Function |exec_script| requires the name of the script to be executed
+    as a single argument:
+
+    >>> from hydpy import print_latest_logfile, Node, TestIO, run_subprocess
+    >>> TestIO.clear()
+    >>> with TestIO():
+    ...     run_subprocess('hyd.py logfile="default" exec_script test.py')
+    ...     print_latest_logfile()    # doctest: +ELLIPSIS
+    Invoking hyd.py with arguments `...hyd.py.exe, logfile=default, \
+exec_script, test.py` resulted in the following error:
+    File `...test.py` does not exist.
+    ...
+
+    Function |exec_script| can use all *HydPy* features.  As a simple
+    example, we write a Python script that initialises a |Node| object
+    and prints its string representation (into the log file):
+
+    >>> with TestIO():
+    ...     with open('test.py', 'w') as file_:
+    ...         _ = file_.write('from hydpy import Node\\n')
+    ...         _ = file_.write('print(repr(Node("valid_name")))\\n')
+    ...     run_subprocess('hyd.py logfile="default" exec_script test.py')
+    ...     print_latest_logfile()
+    Node("valid_name", variable="Q")
+    <BLANKLINE>
+
+    Errors are reported as usual:
+
+    >>> with TestIO():
+    ...     with open('test.py', 'w') as file_:
+    ...         _ = file_.write('from hydpy import Node\\n')
+    ...         _ = file_.write('print(repr(Node("invalid name")))\\n')
+    ...     run_subprocess('hyd.py logfile="default" exec_script test.py')
+    ...     print_latest_logfile()    # doctest: +ELLIPSIS
+    Invoking hyd.py with arguments `...hyd.py.exe, logfile=default, \
+exec_script, test.py` resulted in the following error:
+    While trying to initialize a `Node` object with value `invalid name` of \
+type `str`, the following error occurred: The given name string `invalid name` \
+does not define a valid variable identifier.  Valid identifiers do not \
+contain characters like `-` or empty spaces, do not start with numbers, \
+cannot be mistaken with Python built-ins like `for`...)
+    ...
+    """
+    if not os.path.isfile(filepath):
+        raise FileNotFoundError(
+            f'File `{os.path.abspath(filepath)}` does not exist.')
+    runpy.run_path(filepath)
 
 
 def print_latest_logfile(dirpath: str = '.', wait: float = 0.0) -> None:

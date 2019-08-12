@@ -75,6 +75,7 @@ from hydpy.auxs.statstools import std_ratio
 from hydpy.auxs.xmltools import XMLInterface
 from hydpy.auxs.xmltools import run_simulation
 from hydpy.exe.commandtools import exec_commands
+from hydpy.exe.commandtools import exec_script
 from hydpy.exe.commandtools import execute_scriptfunction
 from hydpy.exe.commandtools import run_subprocess
 from hydpy.exe.commandtools import print_latest_logfile
@@ -106,6 +107,7 @@ except TypeError:   # pragma: no cover
     pass
 
 pub.scriptfunctions['exec_commands'] = exec_commands
+pub.scriptfunctions['exec_script'] = exec_script
 pub.scriptfunctions['run_simulation'] = run_simulation
 pub.scriptfunctions['start_server'] = start_server
 pub.scriptfunctions['await_server'] = await_server
@@ -167,6 +169,7 @@ __all__ = ['config',
            'XMLInterface',
            'run_simulation',
            'exec_commands',
+           'exec_script',
            'execute_scriptfunction',
            'run_subprocess',
            'print_latest_logfile',

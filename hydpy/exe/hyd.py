@@ -82,8 +82,8 @@ The first additional argument must be an available "script function":
 Invoking hyd.py with arguments `...hyd.py, wrong_argument` resulted in the \
 following error:
 There is no `wrong_argument` function callable by `hyd.py`.  Choose one of \
-the following instead: await_server, exec_commands, run_simulation, \
-start_server, and xml_replace.
+the following instead: await_server, exec_commands, exec_script, \
+run_simulation, start_server, and xml_replace.
 ...
 
 Further argument requirements depend on the selected "script function":

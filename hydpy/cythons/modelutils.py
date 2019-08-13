@@ -723,26 +723,27 @@ class Cythonizer:
         skipping the following tests):
 
         >>> pub.options.forcecompiling = False
-        >>> import os
-        >>> split = os.path.split
-        >>> os.path.split = lambda string: ['somename-packages', 'hydpy']
-        >>> cythonizer.outdated
+        >>> from unittest import mock
+        >>> with mock.patch(
+        ...         'hydpy.__path__', ['folder/somename-packages/hydpy']):
+        ...     cythonizer.outdated
         False
-        >>> os.path.split = lambda string: ['pkgs', 'hydpy']
-        >>> cythonizer.outdated
+        >>> with mock.patch(
+        ...         'hydpy.__path__', ['folder/pkgs/hydpy']):
+        ...     cythonizer.outdated
         False
 
         When working with a "local" *HydPy* package (that is not part
         of the site-packages directory) property |Cythonizer.outdated|
         returns |True| if the required DLL file is not available at all:
 
-        >>> os.path.split = lambda string: ['local dir', 'hydpy']
-        >>> from unittest import mock
-        >>> with mock.patch.object(
-        ...         type(cythonizer), 'dllfilepath',
-        ...         new_callable=mock.PropertyMock) as dllfilepath:
-        ...     dllfilepath.return_value = 'missing'
-        ...     cythonizer.outdated
+        >>> with mock.patch(
+        ...         'hydpy.__path__', ['folder/local_dir/hydpy']):
+        ...     with mock.patch.object(
+        ...             type(cythonizer), 'dllfilepath',
+        ...             new_callable=mock.PropertyMock) as dllfilepath:
+        ...         dllfilepath.return_value = 'missing'
+        ...         cythonizer.outdated
         True
 
         If the DLL file is available, property |Cythonizer.outdated|
@@ -754,26 +755,28 @@ class Cythonizer:
         >>> with TestIO():
         ...     with open('new.txt', 'w'):
         ...         pass
-        ...     with mock.patch.object(
-        ...             type(cythonizer), 'dllfilepath',
-        ...             new_callable=mock.PropertyMock) as mocked:
-        ...         mocked.return_value = 'new.txt'
-        ...         cythonizer.outdated
-        ...     with mock.patch.object(
-        ...             type(cythonizer), 'pysourcefiles',
-        ...             new_callable=mock.PropertyMock) as mocked:
-        ...         mocked.return_value = ['new.txt']
-        ...         cythonizer.outdated
+        ...     with mock.patch(
+        ...             'hydpy.__path__', ['folder/local_dir/hydpy']):
+        ...         with mock.patch.object(
+        ...                 type(cythonizer), 'dllfilepath',
+        ...                 new_callable=mock.PropertyMock) as mocked:
+        ...             mocked.return_value = 'new.txt'
+        ...             cythonizer.outdated
+        ...         with mock.patch.object(
+        ...                 type(cythonizer), 'pysourcefiles',
+        ...                 new_callable=mock.PropertyMock) as mocked:
+        ...             mocked.return_value = ['new.txt']
+        ...             cythonizer.outdated
         False
         True
 
         >>> pub.options.forcecompiling = forcecompiling
-        >>> os.path.split = split
         """
         if hydpy.pub.options.forcecompiling:
             return True
-        test = os.path.split(hydpy.__path__[0])[-2].split('-')[-1]
-        if test in ('pkgs', 'packages'):
+        foldername = os.path.split(os.path.split(hydpy.__path__[0])[0])[-1]
+        testname = foldername.split('-')[-1]
+        if testname in ('pkgs', 'packages'):
             return False
         if not os.path.exists(self.dllfilepath):
             return True

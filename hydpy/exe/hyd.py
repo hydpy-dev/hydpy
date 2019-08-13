@@ -30,11 +30,12 @@ installer `here`_.  As a stopgap, you could directly call Python and pass
 the complete path of the `hyd.py` file available in your *HydPy* site-packages
 folder as an argument:
 
+>>> import sys
 >>> from hydpy.exe import hyd
->>> command = f"python {hyd.__file__}"
+>>> command = f"{sys.executable} {hyd.__file__}"
 >>> from hydpy import repr_
 >>> repr_(command)    # doctest: +ELLIPSIS
-'python .../hydpy/exe/hyd.py'
+'...python... .../hydpy/exe/hyd.py'
 >>> run_subprocess(command)    # doctest: +ELLIPSIS
 Invoking hyd.py without arguments resulted in the following error:
 The first positional argument defining the function to be called is missing.

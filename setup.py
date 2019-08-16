@@ -220,7 +220,7 @@ if install:
     path = os.path.abspath(hydpy.tests.__path__[0])
     print_(f'\nChange cwd for testing:\n\t{path}')
     os.chdir(path)
-    exitcode = int(os.system('python test_everything.py'))
+    exitcode = int(os.system(f'{sys.executable} test_everything.py'))
     if exitcode:
         print_(f'Use this HydPy version with caution on your system.  At '
                f'least one verification test failed.  You should see in the '

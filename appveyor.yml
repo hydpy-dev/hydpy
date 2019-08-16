@@ -5,48 +5,51 @@ environment:
   PYPIPA:
     secure: OYHmXK1t/zHOfA97P+RmCVDWG1ef8lyMQaNK/jmVAXk=
   matrix:
-    - PYTHON: C:\\Miniconda3-x64\\envs\\myenv
-      PYTHON_VERSION: 3.6
-      PYTHON_ARCH: 64
-    - PYTHON: C:\\Miniconda3-x64\\envs\\myenv
-      PYTHON_VERSION: 3.7
-      PYTHON_ARCH: 64
+    - PYTHON: "C:\\Python36-x64"
+    - PYTHON: "C:\\Python37-x64"
 
 install:
-  - SET PATH=C:\\Miniconda3-x64;C:\\Miniconda3-x64\\Scripts;%PATH%
-  - conda create -n myenv python=%PYTHON_VERSION% --yes
-  - activate myenv
-  - SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%
-  - python --version
-  - python -m pip install --upgrade pip
-  - python -m pip install cython
-  - conda install numpy --yes
-  - conda install scipy --yes
-  - conda install matplotlib --yes
-  - python -m pip install bokeh
-  - python -m pip install netcdf4
-  - python -m pip install pandas
-  - python -m pip install setuptools
-  - python -m pip install typing_extensions
-  - python -m pip install twine
-  - python -m pip install wheel
-  - python -m pip install wrapt
-  - python -m pip install xmlschema==1.0.9
+  - cinst nsis
+  - SET PATH=%PYTHON%;%PYTHON%\Scripts;C:\Users\appveyor\AppData\Local\HydPy\bin\;%PATH%
+  - "%PYTHON%\\python.exe -m pip install --upgrade pip"
+  - "%PYTHON%\\python.exe -m pip install cython"
+  - "%PYTHON%\\python.exe -m pip install numpy"
+  - "%PYTHON%\\python.exe -m pip install scipy"
+  - "%PYTHON%\\python.exe -m pip install matplotlib"
+  - "%PYTHON%\\python.exe -m pip install bokeh"
+  - "%PYTHON%\\python.exe -m pip install netcdf4"
+  - "%PYTHON%\\python.exe -m pip install pandas"
+  - "%PYTHON%\\python.exe -m pip install pynsist"
+  - "%PYTHON%\\python.exe -m pip install setuptools"
+  - "%PYTHON%\\python.exe -m pip install typing_extensions"
+  - "%PYTHON%\\python.exe -m pip install twine"
+  - "%PYTHON%\\python.exe -m pip install wheel"
+  - "%PYTHON%\\python.exe -m pip install wrapt"
+  - "%PYTHON%\\python.exe -m pip install xmlschema==1.0.9"
 
 build: off
 
 before_test:
-  - python disable_autodoc.py
-  - python setup.py install
-  - python make_and_install_dists.py
-  - pip uninstall cython --yes
+  - "%PYTHON%\\python.exe disable_autodoc.py"
+  - "%PYTHON%\\python.exe setup.py install"
+  - "%PYTHON%\\python.exe make_and_install_dists.py"
+  - "%PYTHON%\\python.exe prepare_hydpy_installer.py"
+  - pynsist make_hydpy_installer.cfg
+  - "%PYTHON%\\python.exe -m pip uninstall cython --yes"
+  - rename hydpy _hydpy
 
 test_script:
-  - python hydpy/tests/test_everything.py forcecompiling=False
+  - hyd.py test_everything
+  - cd dist
+  - "%PYTHON%\\python.exe -m pip uninstall hydpy --yes"
+  - cd..
+  - "%PYTHON%\\python.exe call_installer.py"
+  - hyd.py test_everything
 
 artifacts:
   - path: dist\*
-  - path: hydpy\conf\HydPyConfigBase.xsd
+  - path: build\nsis\HydPy*.exe
+  - path: _hydpy\conf\*.xsd
 
 deploy_script:
   - "echo [pypi] > %USERPROFILE%\\.pypirc"

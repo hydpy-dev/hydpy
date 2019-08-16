@@ -31,3 +31,4 @@ test.py
 .spyproject/
 .mypy_cache/*
 .idea/*
+make_hydpy_installer.cfg

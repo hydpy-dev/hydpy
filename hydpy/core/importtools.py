@@ -303,7 +303,7 @@ def controlcheck(controldir='default', projectdir=None, controlfile=None) \
     >>> from hydpy.examples import prepare_full_example_1
     >>> prepare_full_example_1()
 
-    >>> import os, subprocess
+    >>> import os, subprocess, sys
     >>> from hydpy import TestIO
     >>> cwd = os.path.join('LahnH', 'conditions', 'init_1996_01_01_00_00_00')
     >>> with TestIO():
@@ -314,7 +314,7 @@ def controlcheck(controldir='default', projectdir=None, controlfile=None) \
     ...     with open('land_dill.py', 'w') as file_:
     ...         _ = file_.write('\\n'.join(lines))
     ...     result = subprocess.run(
-    ...         'python land_dill.py',
+    ...         f'{sys.executable} land_dill.py',
     ...         stdout=subprocess.PIPE,
     ...         stderr=subprocess.PIPE,
     ...         universal_newlines=True,

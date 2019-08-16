@@ -192,28 +192,38 @@ See the documentation on module |xmltools| for an actually successful
 example using the "script function" |run_simulation|.
 """
 # import...
+# ...from standard-library
+import sys
 # ...from hydpy
 from hydpy.exe import commandtools
 
 
-def execute():
+def execute() -> None:
     """Call |execute_scriptfunction| of module |commandtools| in case |hyd|
     is the main script.
 
     >>> from hydpy.exe import hyd
     >>> from unittest import mock
     >>> with mock.patch('hydpy.exe.commandtools.execute_scriptfunction') as fun:
-    ...     with mock.patch.object(hyd, '__name__', '__not_main__'):
-    ...         hyd.execute()
-    ...         fun.called
-    ...     with mock.patch.object(hyd, '__name__', '__main__'):
-    ...         hyd.execute()
-    ...         fun.called
+    ...     with mock.patch('sys.exit') as exit_:
+    ...         with mock.patch.object(hyd, '__name__', '__not_main__'):
+    ...             hyd.execute()
+    ...             exit_.called
     False
-    True
+    >>> for return_value in (None, 0, 2):
+    ...     with mock.patch(
+    ...             'hydpy.exe.commandtools.execute_scriptfunction',
+    ...             return_value=return_value) as fun:
+    ...         with mock.patch('sys.exit') as exit_:
+    ...             with mock.patch.object(hyd, '__name__', '__main__'):
+    ...                 hyd.execute()
+    ...                 exit_.call_args
+    call(False)
+    call(False)
+    call(True)
     """
     if __name__ == '__main__':
-        commandtools.execute_scriptfunction()
+        sys.exit(bool(commandtools.execute_scriptfunction()))
 
 
 execute()

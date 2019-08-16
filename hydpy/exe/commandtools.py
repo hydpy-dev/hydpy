@@ -352,7 +352,7 @@ def _activate_logfile(filepath, logstyle, level_stdout, level_stderr):
         sys.stderr = sys.__stderr__
 
 
-def execute_scriptfunction() -> None:
+def execute_scriptfunction() -> Optional[int]:
     """Execute a HydPy script function.
 
     Function |execute_scriptfunction| is indirectly applied and
@@ -417,7 +417,7 @@ def execute_scriptfunction() -> None:
                 f'positional arguments{enum_args}, but '
                 f'`{nmb_args_given:d}` are given{enum_args_given}.')
         with _activate_logfile(logfilepath, logstyle, 'info', 'warning'):
-            func(*args_given, **kwargs_given)
+            return func(*args_given, **kwargs_given)
     except BaseException as exc:
         if logstyle not in LogFileInterface.style2infotype2string:
             logstyle = 'plain'
@@ -435,6 +435,7 @@ def execute_scriptfunction() -> None:
                   f'See the following stack traceback for debugging:\n',
                   file=sys.stderr)
             traceback.print_tb(sys.exc_info()[2])
+        return 1
 
 
 class LogFileInterface:

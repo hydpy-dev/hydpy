@@ -16,6 +16,7 @@ from typing import *
 from typing import IO
 # ...from hydpy
 import hydpy
+from hydpy import tests
 from hydpy.core import objecttools
 
 
@@ -107,6 +108,31 @@ for testing purposes.
         command = command.replace('_', ' ')
         command = command.replace('temptemptemp', '_')
         exec(command)
+
+
+def test_everything() -> int:
+    """Execute script `test_everything.py` from remote.
+
+    Whenever in doubt about the functioning of your *HydPy* installation,
+    call script function |test_everything|.  It executes all tests employed
+    before your actual *HydPy* version was released, which allows you to
+    check for possible incompatibilities with the site-packages or the
+    configuration of your specific system.
+
+    Actually, |test_everything| only makes the following system call
+    and returns its exit code:
+
+    >>> from hydpy import test_everything, repr_
+    >>> from unittest import mock
+    >>> with mock.patch('os.system', return_value=1) as system:
+    ...     test_everything()
+    1
+    >>> repr_(system.call_args[0][0])   # doctest: +ELLIPSIS
+    '.../python... .../hydpy/tests/test_everything.py forcecompiling=False'
+    """
+    return os.system(
+        f'{sys.executable} {tests.__path__[0]}'
+        f'/test_everything.py forcecompiling=False')
 
 
 def exec_script(filepath: str) -> None:

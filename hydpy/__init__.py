@@ -80,6 +80,7 @@ from hydpy.exe.commandtools import execute_scriptfunction
 from hydpy.exe.commandtools import run_subprocess
 from hydpy.exe.commandtools import start_shell
 from hydpy.exe.commandtools import print_latest_logfile
+from hydpy.exe.commandtools import test_everything
 from hydpy.exe.replacetools import xml_replace
 from hydpy.exe.servertools import await_server
 from hydpy.exe.servertools import start_server
@@ -113,6 +114,7 @@ pub.scriptfunctions['exec_script'] = exec_script
 pub.scriptfunctions['run_simulation'] = run_simulation
 pub.scriptfunctions['start_shell'] = start_shell
 pub.scriptfunctions['start_server'] = start_server
+pub.scriptfunctions['test_everything'] = test_everything
 pub.scriptfunctions['xml_replace'] = xml_replace
 
 __all__ = ['config',
@@ -171,6 +173,7 @@ __all__ = ['config',
            'XMLInterface',
            'run_simulation',
            'exec_commands',
+           'test_everything',
            'exec_script',
            'execute_scriptfunction',
            'start_shell',

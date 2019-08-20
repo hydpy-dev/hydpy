@@ -47,12 +47,26 @@ test_script:
   - hyd.py test_everything
 
 artifacts:
-  - path: dist\*
-  - path: build\nsis\HydPy*.exe
-  - path: _hydpy\conf\*.xsd
+  - name: Packages
+    path: dist\*
+  - name: Installer
+    path: build\nsis\HydPy*.exe
+  - name: XSDs
+    path: _hydpy\conf\*.xsd
 
 deploy_script:
   - "echo [pypi] > %USERPROFILE%\\.pypirc"
   - "echo username: tyralla >> %USERPROFILE%\\.pypirc"
   - "echo password: %PYPIPA% >> %USERPROFILE%\\.pypirc"
   - ps: if ($env:APPVEYOR_REPO_TAG -eq "true") { Invoke-Expression "twine upload --skip-existing dist/*"} else { write-output "No tag, no deploy"}
+
+deploy:
+  description: 'This is a draft.'
+  provider: GitHub
+  auth_token:
+    secure: n6oPRXEu1EFeFsmJYY2qnyuEOsb6OuSXQ5kf6CacHvcFcKb6JWXqPYZBzk16ZCBn
+  artifact: Packages,Installer,XSDs
+  draft: true
+  prerelease: false
+  on:
+    APPVEYOR_REPO_TAG: true

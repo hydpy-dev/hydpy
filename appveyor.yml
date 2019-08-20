@@ -1,5 +1,5 @@
 
-version: 4.0a7.{build}
+version: 4.0a8.{build}
 
 environment:
   PYPIPA:

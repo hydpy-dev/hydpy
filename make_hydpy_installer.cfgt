@@ -1,6 +1,6 @@
 [Application]
 name = HydPy
-version = 4.0a7
+version = 4.0a8
 entry_point = execute_exe:execute_scriptfunction
 console = true
 icon = logo.ico

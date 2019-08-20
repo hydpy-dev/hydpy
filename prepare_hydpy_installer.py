@@ -8,11 +8,15 @@ import sys
 with open('make_hydpy_installer.cfgt') as file_:
     lines = file_.readlines()
 for idx, line in enumerate(lines):
-    if 'version = auto' in line:
+    if 'cp[auto]' in line:
         lines[idx] = line.replace(
-            'auto', ".".join(str(v) for v in sys.version_info[:3]))
+            '[auto]', "".join(str(v) for v in sys.version_info[:2]))
 for idx, line in enumerate(lines):
-    if '==auto' in line:
+    if 'version = [auto]' in line:
+        lines[idx] = line.replace(
+            '[auto]', ".".join(str(v) for v in sys.version_info[:3]))
+for idx, line in enumerate(lines):
+    if '==[auto]' in line:
         name = line.split()[-1].split('==')[0]
         if name == 'python-dateutil':
             version = importlib.import_module('dateutil').__version__
@@ -27,7 +31,7 @@ for idx, line in enumerate(lines):
             version = '.'.join(str(v) for v in version_info[:3])
         else:
             version = importlib.import_module(name).__version__
-        lines[idx] = line.replace('auto', version)
+        lines[idx] = line.replace('[auto]', version)
 with open('make_hydpy_installer.cfg', 'w') as file_:
     file_.writelines(lines)
 

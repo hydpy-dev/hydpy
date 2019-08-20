@@ -12,7 +12,6 @@ import importlib
 import unittest
 import doctest
 import warnings
-import matplotlib
 
 
 class _FilterFilenames:
@@ -36,15 +35,6 @@ for arg in sys.argv:
         testpath = arg.split('=')[-1]
 
 forcecompiling = 'forcecompiling=False' not in sys.argv
-
-
-exitcode = int(os.system('python test_pyplot_backend.py'))
-standard_backend_missing = exitcode in (1, 256)
-if standard_backend_missing:
-    matplotlib.use('Agg')
-    print('The standard backend of matplotlib does not seem to be available '
-          'on the current system.  Possibly, because you are working on a web '
-          'server.  Instead, the widely available backend `Agg` is selected.')
 
 # Priorise site-packages (on Debian-based Linux distributions as Ubuntu
 # also dist-packages) in the import order to make sure, the following

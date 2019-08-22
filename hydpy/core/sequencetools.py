@@ -206,7 +206,7 @@ to make any internal data available.
         name = f'{prefix}Sequences'
         if class_ is None:
             class_ = copy.copy(globals()[name])
-            class_.CLASSES = ()
+            setattr(class_, 'CLASSES', ())
         return class_(self, getattr(cythonmodule, name, None), cymodel)
 
     @property
@@ -449,10 +449,12 @@ neither a filename is given nor does the model know its master element.
         try:
             if self.conditionsequences:
                 con = hydpy.pub.controlmanager
-                lines = [f'# -*- coding: utf-8 -*-\n\n',
-                         f'from hydpy.models.{self.model} import *\n\n',
-                         f'controlcheck(projectdir="{con.projectdir}", '
-                         f'controldir="{con.currentdir}")\n\n']
+                lines = [
+                    f'# -*- coding: utf-8 -*-\n\n',
+                    f'from hydpy.models.{self.model} import *\n\n',
+                    f'controlcheck(projectdir="{con.projectdir}", '
+                    f'controldir="{con.currentdir}", '
+                    f'stepsize="{hydpy.pub.timegrids.stepsize}")\n\n']
                 for seq in self.conditionsequences:
                     lines.append(repr(seq) + '\n')
                 filepath = os.path.join(

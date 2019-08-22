@@ -2,8 +2,9 @@
 """This module provides features for handling public (global) project data."""
 # import...
 # ...from standard library
-from typing import Dict, Callable
 import types
+from typing import *
+from typing_extensions import Literal
 # ...from HydPy
 from hydpy.core import filetools
 from hydpy.core import indextools
@@ -93,6 +94,10 @@ is not defined at the moment.
             return timetools.Timegrids(*args)
         except TypeError:
             return timetools.Timegrids(args)
+
+    @overload
+    def get(self, name: Literal['timegrids']) -> Optional[timetools.Timegrids]:
+        """Try to return the current |Timegrids| object."""
 
     def get(self, name, default=None):
         """Return |None| or the given default value, if the attribute

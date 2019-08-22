@@ -7,6 +7,7 @@ import unittest
 import numpy
 # ...from HydPy
 from hydpy import pub
+from hydpy.core import exceptiontools
 from hydpy.core import indextools
 from hydpy.core import timetools
 
@@ -37,7 +38,7 @@ class Test01MonthOfYear(unittest.TestCase):
             self.indexer.monthofyear = [1,2]
 
     def test_02_automatic_mode(self):
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(exceptiontools.AttributeNotReady):
             self.indexer.monthofyear
         pub.timegrids = timetools.Timegrids(timetools.Timegrid('01.01.2004',
                                                                '1.01.2005',
@@ -78,7 +79,7 @@ class Test02DayOfYear(unittest.TestCase):
             self.indexer.dayofyear = [1,2]
 
     def test_02_automatic_mode(self):
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(exceptiontools.AttributeNotReady):
             self.indexer.dayofyear
         pub.timegrids = timetools.Timegrids(timetools.Timegrid('01.01.2004',
                                                                '1.01.2005',
@@ -126,7 +127,7 @@ class Test03TimeOfYear(unittest.TestCase):
             self.indexer.timeofyear = [1, 2]
 
     def test_02_automatic_mode(self):
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(exceptiontools.AttributeNotReady):
             self.indexer.timeofyear
         pub.timegrids = timetools.Timegrids(timetools.Timegrid('01.01.2004',
                                                                '1.01.2005',

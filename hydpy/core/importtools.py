@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """This module implements features related to importing models.
 
-The implemented tools are primarily designed hiding model initialization
+The implemented tools are primarily designed for hiding model initialisation
 routines from model users and for allowing writing readable doctests.
 """
 # import...
@@ -14,6 +14,7 @@ import warnings
 from typing import *
 # ...from HydPy
 import hydpy
+from hydpy.core import exceptiontools
 from hydpy.core import filetools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
@@ -25,15 +26,15 @@ from hydpy.core.typingtools import *
 def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None) -> None:
     """Define a parameter time step size within a parameter control file.
 
-    Function parameterstep should usually be be applied in a line
-    immediately behind the model import.  Defining the step size of time
-    dependent parameters is a prerequisite to access any model specific
-    parameter.
+    Function |parameterstep| should usually be applied in a line
+    immediately behind the model import.  Defining the step size of
+    time-dependent parameters is a prerequisite to access any
+    model-specific parameter.
 
-    Note that parameterstep implements some namespace magic by
-    means of the module |inspect|.  This makes things a little
-    complicated for framework developers, but it eases the definition of
-    parameter control files for framework users.
+    Note that |parameterstep| implements some namespace magic utilizing
+    the module |inspect|, which makes things a little complicated for
+    framework developers, but it eases the definition of parameter
+    control files for framework users.
     """
     if timestep is not None:
         parametertools.Parameter.parameterstep(timestep)
@@ -113,25 +114,25 @@ def reverse_model_wildcard_import() -> None:
     """Clear the local namespace from a model wildcard import.
 
     Calling this method should remove the critical imports into the local
-    namespace due the last wildcard import of a certain application model.
-    It is thought for securing the successive preperation of different
+    namespace due to the last wildcard import of a particular application
+    model. In this manner, it secures the repeated preparation of different
     types of models via wildcard imports.  See the following example, on
     how it can be applied.
 
     >>> from hydpy import reverse_model_wildcard_import
 
-    Assume you wildcard import the first version of HydPy-L-Land (|lland_v1|):
+    Assume you import the first version of HydPy-L-Land (|lland_v1|):
 
     >>> from hydpy.models.lland_v1 import *
 
-    This for example adds the collection class for handling control
+    This import adds, for example, the collection class for handling control
     parameters of `lland_v1` into the local namespace:
 
     >>> print(ControlParameters(None).name)
     control
 
-    Calling function |parameterstep| for example prepares the control
-    parameter object |lland_control.NHRU|:
+    Calling function |parameterstep| prepares, for example, the control
+    parameter object of class |lland_control.NHRU|:
 
     >>> parameterstep('1d')
     >>> nhru
@@ -198,14 +199,14 @@ def prepare_model(module: Union[types.ModuleType, str],
                   timestep: Optional[timetools.PeriodConstrArg] = None):
     """Prepare and return the model of the given module.
 
-    In usual HydPy projects, each hydrological model instance is prepared
-    in an individual control file.  This allows for "polluting" the
-    namespace with different model attributes.  There is no danger of
-    name conflicts, as long as no other (wildcard) imports are performed.
+    In usual *HydPy* projects, each control file prepares an individual
+    model instance only, which allows for "polluting" the namespace with
+    different model attributes.   There is no danger of name conflicts,
+    as long as we do not perform other (wildcard) imports.
 
-    However, there are situations when different models are to be loaded
+    However, there are situations where we need to load different models
     into the same namespace.  Then it is advisable to use function
-    |prepare_model|, which just returns a reference to the model
+    |prepare_model|, which returns a reference to the model
     and nothing else.
 
     See the documentation of |dam_v001| on how to apply function
@@ -251,14 +252,19 @@ def simulationstep(timestep) -> None:
     """ Define a simulation time step size for testing purposes within a
     parameter control file.
 
-    Using |simulationstep| only affects the values of time dependent
-    parameters, when `pub.timegrids.stepsize` is not defined.  It thus has
-    no influence on usual hydpy simulations at all.  Use it just to check
+    Using |simulationstep| only affects the values of time-dependent
+    parameters, when `pub.timegrids.stepsize` is not defined.  It thus
+    does not influence usual hydpy simulations at all.  Use it to check
     your parameter control files.  Write it in a line immediately behind
-    the one calling |parameterstep|.
+    the line calling function |parameterstep|.
 
-    To clarify its purpose, executing raises a warning, when executing
-    it from within a control file:
+    To clarify its purpose, function |simulationstep| raises a warning
+    when executed from within a control file:
+
+    .. testsetup::
+
+        >>> from hydpy import pub
+        >>> del pub.timegrids
 
     >>> from hydpy import pub
     >>> with pub.options.warnsimulationstep(True):
@@ -284,50 +290,52 @@ are initialised based on the actual simulation time step as defined under \
     parametertools.Parameter.simulationstep(timestep)
 
 
-def controlcheck(controldir='default', projectdir=None, controlfile=None) \
-        -> None:
+def controlcheck(
+        controldir: str = 'default',
+        projectdir: Optional[str] = None,
+        controlfile: Optional[str] = None,
+        firstdate: Optional[timetools.DateConstrArg] = None,
+        stepsize: Optional[timetools.PeriodConstrArg] = None) -> None:
     """Define the corresponding control file within a condition file.
 
     Function |controlcheck| serves similar purposes as function
     |parameterstep|.  It is the reason why one can interactively
-    access the state and/or the log sequences within condition files
+    access the state and the log sequences within condition files
     as `land_dill.py` of the example project `LahnH`.  It is called
-    `controlcheck` due to its implicite feature to check upon the execution
-    of the condition file if eventual specifications within both files
-    disagree.  The following test, where we write a number of soil moisture
-    values (|hland_states.SM|) into condition file `land_dill.py` which
-    does not agree with the number of hydrological response units
-    (|hland_control.NmbZones|) defined in control file `land_dill.py`,
-    verifies that this actually works within a new Python process:
+    `controlcheck` due to its feature to check for possible inconsistencies
+    between control and condition files.  The following test, where we
+    write a number of soil moisture values (|hland_states.SM|) into
+    condition file `land_dill.py`, which does not agree with the number
+    of hydrological response units (|hland_control.NmbZones|) defined in
+    control file `land_dill.py`, verifies that this, in fact, works within
+    a separate Python process:
 
     >>> from hydpy.examples import prepare_full_example_1
     >>> prepare_full_example_1()
 
-    >>> import os, subprocess, sys
-    >>> from hydpy import TestIO
+    >>> import os
+    >>> from hydpy import run_subprocess, TestIO
     >>> cwd = os.path.join('LahnH', 'conditions', 'init_1996_01_01_00_00_00')
-    >>> with TestIO():
+    >>> with TestIO():   # doctest: +ELLIPSIS
     ...     os.chdir(cwd)
     ...     with open('land_dill.py') as file_:
     ...         lines = file_.readlines()
     ...     lines[10:12] = 'sm(185.13164, 181.18755)', ''
     ...     with open('land_dill.py', 'w') as file_:
     ...         _ = file_.write('\\n'.join(lines))
-    ...     result = subprocess.run(
-    ...         f'{sys.executable} land_dill.py',
-    ...         stdout=subprocess.PIPE,
-    ...         stderr=subprocess.PIPE,
-    ...         universal_newlines=True,
-    ...         shell=True)
-    >>> print(result.stderr.split('ValueError:')[-1].strip())
+    ...     print()
+    ...     run_subprocess('hyd.py exec_script land_dill.py')
+    <BLANKLINE>
+    ...
     While trying to set the value(s) of variable `sm`, the following error \
 occurred: While trying to convert the value(s) `(185.13164, 181.18755)` to \
 a numpy ndarray with shape `(12,)` and type `float`, the following error \
 occurred: could not broadcast input array from shape (2) into shape (12)
+    ...
 
     With a little trick, we can fake to be "inside" condition file
-    `land_dill.py`.  Calling |controlcheck| then e.g. prepares the shape
-    of sequence |hland_states.Ic| as specified by the value of parameter
+    `land_dill.py`.  Calling |controlcheck| then, for example, prepares the
+    shape of sequence |hland_states.Ic| as specified by the value of parameter
     |hland_control.NmbZones| given in the corresponding control file:
 
     >>> from hydpy.models.hland_v1 import *
@@ -338,10 +346,9 @@ occurred: could not broadcast input array from shape (2) into shape (12)
     >>> ic.shape
     (12,)
 
-    In the above example, the standard names for the project directory
+    In the above example, we use the default names for the project directory
     (the one containing the executed condition file) and the control
-    directory (`default`) are used.  The following example shows how
-    to change them:
+    directory (`default`).  The following example shows how to change them:
 
     >>> del model
     >>> with TestIO():   # doctest: +ELLIPSIS
@@ -353,10 +360,159 @@ occurred: could not broadcast input array from shape (2) into shape (12)
 from directory `...hydpy/tests/iotesting/somewhere/control/nowhere`, \
 the following error occurred: ...
 
-    Note that the functionalities of function |controlcheck| are disabled
-    when there is already a `model` variable in the namespace, which is
+    For some models, the suitable states may depend on the initialisation
+    date.  One example is the interception storage (|lland_states.Inzp|) of
+    application model |lland_v1|, which should not exceed the interception
+    capacity (|lland_derived.KInz|).  However, |lland_derived.KInz| itself
+    depends on the leaf area index parameter |lland_control.LAI|, which
+    offers varying values both for different land-use types and months.
+    Hence, one can assign higher values to state |lland_states.Inzp| during
+    periods with high leaf area indices than during periods with small
+    leaf area indices.
+
+    To show the related functionalities, we first replace the |hland_v1|
+    application model of element `land_dill` with a |lland_v1| model object,
+    define some of its parameter values, and write its control and condition
+    files.  Note that the
+    |lland_control.LAI| value of the only relevant land-use
+    (|lland_constants.ACKER|) is 0.5 during January and 5.0 during July:
+
+    >>> from hydpy import HydPy, prepare_model, pub
+    >>> from hydpy.models.lland_v1 import ACKER
+    >>> pub.timegrids = '2000-06-01', '2000-07-01', '1d'
+    >>> with TestIO():
+    ...     hp = HydPy('LahnH')
+    ...     hp.prepare_network()
+    ...     land_dill = hp.elements['land_dill']
+    ...     with pub.options.usedefaultvalues(True):
+    ...         land_dill.model = prepare_model('lland_v1')
+    ...         control = land_dill.model.parameters.control
+    ...         control.nhru(2)
+    ...         control.ft(1.0)
+    ...         control.fhru(0.5)
+    ...         control.hnn(100.0)
+    ...         control.lnk(ACKER)
+    ...         control.lai.acker_jan = 0.5
+    ...         control.lai.acker_jul = 5.0
+    ...         land_dill.model.parameters.update()
+    ...         land_dill.model.sequences.states.inzp(1.0)
+    ...     land_dill.model.parameters.save_controls()
+    ...     land_dill.model.sequences.save_conditions()
+
+    Unfortunately, state |lland_states.Inzp| does not define a |trim| method
+    taking the actual value of parameter |lland_derived.KInz| into account
+    (due to compatibility with the original LARSIM model).  As an auxiliary
+    solution, we define such a function within the `land_dill.py` condition
+    file (and additionally modify some warning settings in favour of the
+    next examples):
+
+    >>> cwd = os.path.join('LahnH', 'conditions', 'init_2000_07_01_00_00_00')
+    >>> with TestIO():
+    ...     os.chdir(cwd)
+    ...     with open('land_dill.py') as file_:
+    ...         lines = file_.readlines()
+    ...     with open('land_dill.py', 'w') as file_:
+    ...         file_.writelines([
+    ...             'from hydpy import pub\\n',
+    ...             'pub.options.warnsimulationstep = False\\n',
+    ...             'import warnings\\n',
+    ...             'warnings.filterwarnings('
+    ...                 '"error", message="For variable")\\n'])
+    ...         file_.writelines(lines[:5])
+    ...         file_.writelines([
+    ...             'from hydpy.core.variabletools import trim as trim_\\n',
+    ...             'def trim(self, lower=None, upper=None):\\n',
+    ...             '    der = self.subseqs.seqs.model.parameters.derived\\n',
+    ...             '    trim_(self, 0.0, der.kinz.acker[der.moy[0]])\\n',
+    ...             'type(inzp).trim = trim\\n'])
+    ...         file_.writelines(lines[5:])
+
+    Now, executing the condition file (and thereby calling function
+    |controlcheck|) does not raise any warnings due to extracting the
+    initialisation date from the name of the condition directory:
+
+    >>> with TestIO():
+    ...     os.chdir(cwd)
+    ...     run_subprocess('hyd.py exec_script land_dill.py')
+
+    If the directory name does imply the initialisation date to be within
+    January 2000 instead of July 2000, we correctly get the following warning:
+
+    >>> cwd_old = cwd
+    >>> cwd_new = os.path.join('LahnH', 'conditions', 'init_2000_01_01')
+    >>> with TestIO():   # doctest: +ELLIPSIS
+    ...     os.rename(cwd_old, cwd_new)
+    ...     os.chdir(cwd_new)
+    ...     run_subprocess('hyd.py exec_script land_dill.py')
+    Invoking hyd.py with arguments `exec_script, land_dill.py` resulted \
+in the following error:
+    For variable `inzp` at least one value needed to be trimmed.  \
+The old and the new value(s) are `1.0, 1.0` and `0.1, 0.1`, respectively.
+    ...
+
+    One can define an alternative initialisation date via argument
+    `firstdate`:
+
+    >>> text_old = ('controlcheck(projectdir="LahnH", '
+    ...             'controldir="default", stepsize="1d")')
+    >>> text_new = ('controlcheck(projectdir="LahnH", controldir="default", '
+    ...             'firstdate="2100-07-15", stepsize="1d")')
+    >>> with TestIO():
+    ...     os.chdir(cwd_new)
+    ...     with open('land_dill.py') as file_:
+    ...         text = file_.read()
+    ...     text = text.replace(text_old, text_new)
+    ...     with open('land_dill.py', 'w') as file_:
+    ...         _ = file_.write(text)
+    ...     run_subprocess('hyd.py exec_script land_dill.py')
+
+    Default condition directory names do not contain any information about
+    the simulation step size.  Hence, one needs to define it explicitly for
+    all application modelsrelying on the functionalities of class |Indexer|:
+
+    >>> with TestIO():   # doctest: +ELLIPSIS
+    ...     os.chdir(cwd_new)
+    ...     with open('land_dill.py') as file_:
+    ...         text = file_.read()
+    ...     text = text.replace('stepsize="1d"', '')
+    ...     with open('land_dill.py', 'w') as file_:
+    ...         _ = file_.write(text)
+    ...     run_subprocess('hyd.py exec_script land_dill.py')
+    Invoking hyd.py with arguments `exec_script, land_dill.py` resulted \
+in the following error:
+    To apply function `controlcheck` requires time information for some \
+model types.  Please define the `Timegrids` object of module `pub` manually \
+or pass the required information (`stepsize` and eventually `firstdate`) \
+as function arguments.
+    ...
+
+    The same error occurs we do not use the argument `firstdate` to define
+    the initialisation time point, and method |controlcheck| cannot
+    extract it from the directory name:
+
+    >>> cwd_old = cwd_new
+    >>> cwd_new = os.path.join('LahnH', 'conditions', 'init')
+    >>> with TestIO():   # doctest: +ELLIPSIS
+    ...     os.rename(cwd_old, cwd_new)
+    ...     os.chdir(cwd_new)
+    ...     with open('land_dill.py') as file_:
+    ...         text = file_.read()
+    ...     text = text.replace('firstdate="2100-07-15"', 'stepsize="1d"')
+    ...     with open('land_dill.py', 'w') as file_:
+    ...         _ = file_.write(text)
+    ...     run_subprocess('hyd.py exec_script land_dill.py')
+    Invoking hyd.py with arguments `exec_script, land_dill.py` resulted \
+in the following error:
+    To apply function `controlcheck` requires time information for some \
+model types.  Please define the `Timegrids` object of module `pub` manually \
+or pass the required information (`stepsize` and eventually `firstdate`) \
+as function arguments.
+    ...
+
+    Note that the functionalities of function |controlcheck| do not come
+    into action if there is a `model` variable in the namespace, which is
     the case when a condition file is executed within the context of a
-    complete HydPy project.
+    complete *HydPy* project.
     """
     namespace = inspect.currentframe().f_back.f_locals
     model = namespace.get('model')
@@ -370,6 +526,19 @@ the following error occurred: ...
                         os.path.split(os.getcwd())[0])[0])[-1])
         dirpath = os.path.abspath(os.path.join(
             '..', '..', '..', projectdir, 'control', controldir))
+        if hydpy.pub.get('timegrids') is None and stepsize is not None:
+            if firstdate is None:
+                try:
+                    firstdate = timetools.Date.from_string(
+                        os.path.split(os.getcwd())[-1].partition('_')[-1])
+                except (ValueError, TypeError):
+                    pass
+            else:
+                firstdate = timetools.Date(firstdate)
+            if firstdate is not None:
+                stepsize = timetools.Period(stepsize)
+                hydpy.pub.timegrids = (
+                    firstdate, firstdate + 1000 * stepsize, stepsize)
 
         class CM(filetools.ControlManager):
             """Tempory |ControlManager| class."""
@@ -385,7 +554,16 @@ the following error occurred: ...
                 f'from directory `{objecttools.repr_(dirpath)}`')
         finally:
             os.chdir(cwd)
-        model.parameters.update()
+        try:
+            model.parameters.update()
+        except exceptiontools.AttributeNotReady:
+            raise RuntimeError(
+                'To apply function `controlcheck` requires time '
+                'information for some model types.  Please define '
+                'the `Timegrids` object of module `pub` manually '
+                'or pass the required information (`stepsize` and '
+                'eventually `firstdate`) as function arguments.')
+
         namespace['model'] = model
         for name in ('states', 'logs'):
             subseqs = getattr(model.sequences, name, None)

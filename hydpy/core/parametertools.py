@@ -183,8 +183,8 @@ class Parameters:
         >>> model.parameters.update()
         Traceback (most recent call last):
         ...
-        AttributeError: While trying to update parameter ``nmbsegments` \
-of element `?``, the following error occurred: For variable `lag`, \
+        AttributeError: While trying to update parameter `nmbsegments` \
+of element `?`, the following error occurred: For variable `lag`, \
 no value has been defined so far.
 
         With proper values both for parameter |hstream_control.Lag| and
@@ -206,7 +206,7 @@ no value has been defined so far.
                 except BaseException:
                     objecttools.augment_excmessage(
                         f'While trying to update parameter '
-                        f'`{objecttools.elementphrase(par)}`')
+                        f'{objecttools.elementphrase(par)}')
 
     def save_controls(
             self, filepath: Optional[str] = None,

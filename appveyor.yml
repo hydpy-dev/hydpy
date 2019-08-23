@@ -46,6 +46,12 @@ test_script:
   - "%PYTHON%\\python.exe call_installer.py"
   - hyd.py test_everything
 
+after_test:
+  - "echo [pypi] > %USERPROFILE%\\.pypirc"
+  - "echo username: tyralla >> %USERPROFILE%\\.pypirc"
+  - "echo password: %PYPIPA% >> %USERPROFILE%\\.pypirc"
+  - ps: if ($env:APPVEYOR_REPO_TAG -eq "true") { Invoke-Expression "twine upload --skip-existing dist/*"} else { write-output "No tag, no deploy"}
+    
 artifacts:
   - name: Packages
     path: dist\*
@@ -53,12 +59,6 @@ artifacts:
     path: build\nsis\HydPy*.exe
   - name: XSDs
     path: _hydpy\conf\*.xsd
-
-deploy_script:
-  - "echo [pypi] > %USERPROFILE%\\.pypirc"
-  - "echo username: tyralla >> %USERPROFILE%\\.pypirc"
-  - "echo password: %PYPIPA% >> %USERPROFILE%\\.pypirc"
-  - ps: if ($env:APPVEYOR_REPO_TAG -eq "true") { Invoke-Expression "twine upload --skip-existing dist/*"} else { write-output "No tag, no deploy"}
 
 deploy:
   description: 'This is a draft.'

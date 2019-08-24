@@ -87,7 +87,7 @@ at the moment.
 
     (Using the "with" statement in combination with class |TestIO|
     makes sure we are reading the network files from a subdirectory
-    with the `iotesting` directory.  Here and in the following, you
+    of the `iotesting` directory.  Here and in the following, you
     must omit such "with blocks" in case you copied the `LahnH` example
     project into your current working directory.)
 
@@ -180,7 +180,7 @@ be required to prepare the model properly.
     One example is that module `pub` handles a |Timegrids| instance
     defining both the initialisation and the simulation period,
     which can be done by the following assignment (see the
-    documentation in class |Timegrid| and on class |Timegrids| for
+    documentation on class |Timegrid| and on class |Timegrids| for
     further information):
 
     >>> from hydpy import pub
@@ -264,7 +264,7 @@ be required to prepare the model properly.
     of a model (or, e.g., of a catchment).  Each simulation run requires
     proper initial states, which we call initial conditions in the
     following (also covering memory aspects represented by |LogSequence|
-    objects.  We load all necessary initial conditions by calling the
+    objects).  We load all necessary initial conditions by calling the
     method |HydPy.load_conditions| (see the documentation on method
     |HydPy.load_conditions| for further details):
 

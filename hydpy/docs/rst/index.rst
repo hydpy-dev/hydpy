@@ -115,6 +115,7 @@ Sections :ref:`core` covers the basic functionalities of the
    :hidden:
 
    install
+   quickstart
    framework
    modelcollection
    development

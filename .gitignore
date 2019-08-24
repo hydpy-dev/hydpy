@@ -32,3 +32,4 @@ test.py
 .mypy_cache/*
 .idea/*
 make_hydpy_installer.cfg
+lib/*

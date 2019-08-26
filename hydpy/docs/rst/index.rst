@@ -1,7 +1,7 @@
 .. _Python: http://www.python.org/
 .. _Cython: http://www.cython.org/
 .. _`Ruhr-University Bochum`: http://www.hydrology.ruhr-uni-bochum.de/index.html.en
-.. _`German Federal Institute of Hydrology`: http://www.bafg.de/EN/Home/homepage_en_node.html;jsessionid=E48E3BA5184A678BB2D23AD16AD5FC09.live21304
+.. _`German Federal Institute of Hydrology`: https://www.bafg.de/EN
 .. _`Björnsen Consulting Engineers`: https://www.bjoernsen.de/index.php?id=bjoernsen&L=2
 .. _`GitHub repository`: https://github.com/hydpy-dev/hydpy
 .. _`GNU Lesser General Public License 3`: https://www.gnu.org/licenses/lgpl-3.0.en.html
@@ -119,6 +119,6 @@ Sections :ref:`core` covers the basic functionalities of the
    framework
    modelcollection
    development
-   examples
+   Example Projects <examples>
 
 

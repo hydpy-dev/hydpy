@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
-"""This module implements functions that prepare test setups."""
+"""This module implements functions for preparing tutorial projects and
+other test data.
+
+.. _`German Federal Institute of Hydrology (BfG)`: https://www.bafg.de/EN
+"""
 # import...
 # ...from standard library
-from typing import Tuple
 import os
 import shutil
+from typing import *
 # ...from HydPy
 import hydpy
 from hydpy import data
@@ -15,13 +19,18 @@ from hydpy.tests import iotesting
 
 
 def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
-    # noinspection PyUnresolvedReferences
-    """Prepare an IO example configuration.
+    """Prepare an IO example configuration for testing purposes.
+
+    Function |prepare_io_example_1| is thought for testing the functioning
+    of *HydPy* and thus should be of interest for framework developers only.
+    It uses the application models |lland_v1| and |lland_v2|.  Here, we
+    apply |prepare_io_example_1| and shortly discuss different aspects of
+    the data it generates.
 
     >>> from hydpy.examples import prepare_io_example_1
     >>> nodes, elements = prepare_io_example_1()
 
-    (1) Prepares a short initialisation period of five days:
+    (1) It defines a short initialisation period of five days:
 
     >>> from hydpy import pub
     >>> pub.timegrids
@@ -29,7 +38,7 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
                        '2000-01-05 00:00:00',
                        '1d'))
 
-    (2) Prepares a plain IO testing directory structure:
+    (2) It creates a flat IO testing directory structure:
 
     >>> pub.sequencemanager.inputdirpath
     'inputpath'
@@ -46,7 +55,7 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     ...                  if not filename.startswith('_')))
     ['inputpath', 'nodepath', 'outputpath']
 
-    (3) Returns three |Element| objects handling either application model
+    (3) It returns three |Element| objects handling either application model
     |lland_v1| or |lland_v2|, and two |Node| objects handling variables
     `Q` and `T`:
 
@@ -60,10 +69,11 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     node1 Q
     node2 T
 
-    (4) Prepares the time series data of the input sequence
-    |lland_inputs.Nied|, flux sequence |lland_fluxes.NKor|, and state
-    sequence |lland_states.BoWa| for each model instance, and |Sim| for
-    each node instance (all values are different), e.g.:
+    (4) It generates artificial time series data of the input sequence
+    |lland_inputs.Nied|, the flux sequence |lland_fluxes.NKor|, and the
+    state sequence |lland_states.BoWa| of each model instance, and the
+    |Sim| sequence of each node instance.  For unambiguous test results,
+    all generated values are unique:
 
     >>> nied1 = elements.element1.model.sequences.inputs.nied
     >>> nied1.series
@@ -156,8 +166,24 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
     return nodes, elements
 
 
-def prepare_full_example_1() -> None:
-    """Prepare the complete `LahnH` project for testing.
+def prepare_full_example_1(dirpath: Optional[str] = None) -> None:
+    """Prepare the `LahnH` example project on disk.
+
+    *HydPy* comes with a complete project data set for the German river
+    Lahn, provided by the `German Federal Institute of Hydrology (BfG)`_.
+    The Lahn is a medium-sized tributary to the Rhine.  The given project
+    configuration agrees with the BfG's forecasting model, using HBV96
+    to simulate the inflow of the Rhine's tributaries.
+    The catchment is subdivided into four sub-catchments, each one with a
+    river gauge (Marburg, Asslar, Leun, Kalkofen) at its outlet.  The
+    sub-catchments are further subdivided into a different number of zones.
+
+    .. image:: LahnH.png
+
+    By default, function |prepare_full_example_1| copies the original
+    project data into the `iotesting` directory, thought for performing
+    automated tests on real-world data.  The following doctest shows
+    the generated folder structure:
 
     >>> from hydpy.examples import prepare_full_example_1
     >>> prepare_full_example_1()
@@ -173,24 +199,43 @@ def prepare_full_example_1() -> None:
     LahnH/conditions: init_1996_01_01_00_00_00
     LahnH/series: input node output temp
 
-    ToDo: Improve, test, and explain this example data set.
+    Pass an alternative path if you prefer to work in another directory:
+
+    .. testsetup::
+
+        >>> 'LahnH' in os.listdir('.')
+        False
+
+    >>> prepare_full_example_1(dirpath='.')
+
+    .. testsetup::
+
+        >>> 'LahnH' in os.listdir('.')
+        True
+        >>> import shutil
+        >>> shutil.rmtree('LahnH')
     """
-    testtools.TestIO.clear()
+    if dirpath is None:
+        testtools.TestIO.clear()
+        dirpath = iotesting.__path__[0]
     shutil.copytree(
         os.path.join(data.__path__[0], 'LahnH'),
-        os.path.join(iotesting.__path__[0], 'LahnH'))
-    seqpath = os.path.join(iotesting.__path__[0], 'LahnH', 'series')
+        os.path.join(dirpath, 'LahnH'))
+    seqpath = os.path.join(dirpath, 'LahnH', 'series')
     for folder in ('output', 'node', 'temp'):
         os.makedirs(os.path.join(seqpath, folder))
 
 
 def prepare_full_example_2(lastdate='1996-01-05') -> (
         hydpytools.HydPy, hydpy.pub, testtools.TestIO):
-    """Prepare the complete `LahnH` project for testing.
+    """Prepare the `LahnH` project on disk and in RAM.
 
-    |prepare_full_example_2| calls |prepare_full_example_1|, but also
-    returns a readily prepared |HydPy| instance, as well as module
-    |pub| and class |TestIO|, for convenience:
+    Function |prepare_full_example_2| is an extensions of function
+    |prepare_full_example_1|.  Besides preparing the project data of
+    the `LahnH` example project, it performs all necessary steps to
+    start a simulation run.  Therefore, it returns a readily prepared
+    |HydPy| instance, as well as, for convenience, module |pub| and
+    class |TestIO|:
 
     >>> from hydpy.examples import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
@@ -208,7 +253,9 @@ def prepare_full_example_2(lastdate='1996-01-05') -> (
     >>> classname(TestIO)
     'TestIO'
 
-    The last date of the initialisation period is configurable:
+    Function |prepare_full_example_2| is primarily thought for testing
+    and thus does not allow for many configurations except changing the
+    end date of the initialisation period:
 
     >>> hp, pub, TestIO = prepare_full_example_2('1996-02-01')
     >>> pub.timegrids

@@ -4,8 +4,11 @@
 # import...
 # ...from standard library
 import copy
+import itertools
 import types
 from typing import *
+# ...from site-packages
+import numpy
 # ...from HydPy
 import hydpy
 from hydpy.core import devicetools
@@ -984,6 +987,22 @@ requires string as left operand, not list
     def __gt__(self, other: typingtools.DevicesHandlerProtocol) -> bool:
         return ((self.nodes > other.nodes) and
                 (self.elements >= other.elements))
+
+    @property
+    def shapes(self):
+        shapes = {}
+        xmin, ymin = numpy.inf, numpy.inf
+        xmax, ymax = -numpy.inf, -numpy.inf
+        for device in itertools.chain(self.nodes, self.elements):
+            shapes[device.name] = device.shape
+            xmin = min(xmin, numpy.min(device.shape.vertices[:, 0]))
+            ymin = min(ymin, numpy.min(device.shape.vertices[:, 1]))
+            xmax = max(xmax, numpy.max(device.shape.vertices[:, 0]))
+            ymax = max(ymax, numpy.max(device.shape.vertices[:, 1]))
+        for name, shape in shapes.items():
+            shapes[name] = shape.normed_shape(
+                xmin=xmin, ymin=ymin, xmax=xmax, ymax=ymax)
+        return shapes
 
     def __str__(self) -> str:
         return self.name

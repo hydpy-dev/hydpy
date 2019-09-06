@@ -7,14 +7,14 @@ import tkinter
 import numpy
 # ...from HydPy
 import hydpy
-from hydpy.gui import shapetools
 from . import selector
 from . import colorbar
 from . import outputmapdate
 from hydpy.gui import selectionbox
 from hydpy.gui import settingtools
+from hydpy.gui import shapetools
 
-hydpy = None
+hp = None
 
 
 class Main(tkinter.Tk):
@@ -25,9 +25,9 @@ class Main(tkinter.Tk):
     (:class:`Map`) below.
     """
 
-    def __init__(self, hydpy, width, height):
+    def __init__(self, hp, width, height):
         tkinter.Tk.__init__(self)
-        self.hydpy = hydpy
+        self.hp = hp
         self.menu = Menu(self, width, height)
         self.menu.pack(side=tkinter.TOP, fill=tkinter.BOTH)
         self.map = Map(self, width=width, height=height)
@@ -43,7 +43,7 @@ class Menu(tkinter.Frame):
         self.main = main
         self.arrangement = Arrangement(self, width, height)
         self.arrangement.pack(side=tkinter.LEFT)
-        self.date = outputmapdate.Date(self, self.master.hydpy)
+        self.date = outputmapdate.Date(self, self.master.hp)
         self.date.pack(side=tkinter.LEFT)
 
 
@@ -153,12 +153,14 @@ class GeoArea(tkinter.Canvas):
     def __init__(self, submap, width, height):
         tkinter.Canvas.__init__(self, submap, width=width, height=height)
         self.submap = submap
+        self.shapes = {}
         for layer in range(1, 4):
-            for shape in self.submap.selection.shapes.values():
+            for name, shape in self.submap.selection.shapes.items():
                 points = shape.vertices.copy()
                 points[:, 0] = points[:, 0]*(width-10)+5
                 points[:, 1] = points[:, 1]*(height-10)+5
                 points = list(points.flatten())
+                self.create_line(0, height/2., width, height/2., fill="#476042")
                 if shape.layer != layer:
                     continue
                 elif isinstance(shape, shapetools.Plane):
@@ -172,9 +174,10 @@ class GeoArea(tkinter.Canvas):
                     x2, y2 = x1+5., y1+5.
                     shape.polygon = self.create_oval(x1, y1, x2, y2,
                                                      width=1, fill='red')
+                self.shapes[name] = shape
 
     def recolor(self, idx):
-        for (name, shape) in self.submap.selection.shapes.items():
+        for (name, shape) in self.shapes.items():
             #seqname = self.submap.infoarea.colorbar.selections[0].variablesstr[0]
             #seq = getattr(self.submap.selection, name).value = .series[idx]
             if name in self.submap.selection.elements:
@@ -185,7 +188,10 @@ class GeoArea(tkinter.Canvas):
                     variable = getattr(subgroup, descr.variable.name)
                     value = variable.series[idx]
                     color = self.submap.infoarea.colorbar.value2hexcolor(value)
-                    self.itemconfig(shape.polygon, fill=color)
+                    try:
+                        self.itemconfig(shape.polygon, fill=color)
+                    except AttributeError:
+                        print(name)
 
 
 class InfoArea(tkinter.Frame):
@@ -219,7 +225,7 @@ class Description(tkinter.Label):
 
     def select(self, event):
         sel = selector.Selector(self.infoarea.submap.selections,
-                                self.infoarea.submap.map_.master.main.hydpy)
+                                self.infoarea.submap.map_.master.main.hp)
         self.wait_window(sel)
         varnames = []
         for selection in self.master.master.selections:

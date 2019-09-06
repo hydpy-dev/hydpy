@@ -17,10 +17,10 @@ class Selection(object):
         self.variables = []
         self.variablestr = None
 
-    def modelupdate(self, modelstr, hydpy):
+    def modelupdate(self, modelstr, hp):
         self.modelstr = modelstr
         self.models = []
-        for (name, element) in hydpy.elements:
+        for element in hp.elements:
             if modelstr == model2str(element.model):
                 self.models.append(element.model)
         self.groupdelete()
@@ -73,9 +73,9 @@ def model2str(model):
 
 class Selector(tkinter.Toplevel):
 
-    def __init__(self, selections, hydpy):
+    def __init__(self, selections, hp):
         tkinter.Toplevel.__init__(self)
-        self.hydpy = hydpy
+        self.hp = hp
         self.selection = Selection()
         self.selections = selections
         self.modellistbox = ModelListbox(self)
@@ -93,7 +93,7 @@ class ModelListbox(tkinter.Listbox):
     def __init__(self, master):
         tkinter.Listbox.__init__(self, master, exportselection=0)
         names = []
-        for (name, element) in self.master.hydpy.elements:
+        for element in self.master.hp.elements:
             name = model2str(element.model)
             if name not in names:
                 names.append(name)
@@ -103,7 +103,7 @@ class ModelListbox(tkinter.Listbox):
 
     def select(self, event):
         idx = int(self.curselection()[0])
-        self.master.selection.modelupdate(self.get(idx), self.master.hydpy)
+        self.master.selection.modelupdate(self.get(idx), self.master.hp)
         self.master.grouplistbox.update()
 
 
@@ -117,9 +117,9 @@ class GroupListbox(tkinter.Listbox):
         self.delete(0, tkinter.END)
         self.master.selection.groupupdate('sequences')
         names = []
-        for (name, subgroup) in self.master.selection.groups[0]:
-            if name not in ('aides', 'logs', 'links') and subgroup:
-                names.append(name)
+        for subgroup in self.master.selection.groups[0]:
+            if subgroup.name not in ('aides', 'logs', 'links') and subgroup:
+                names.append(subgroup.name)
         for name in sorted(names):
             self.insert(tkinter.END, name)
         self.master.variablelistbox.delete(0, tkinter.END)
@@ -139,8 +139,8 @@ class VariableListbox(tkinter.Listbox):
     def update(self):
         self.delete(0, tkinter.END)
         names = []
-        for (name, variable) in self.master.selection.subgroups[0]:
-            names.append(name)
+        for variable in self.master.selection.subgroups[0]:
+            names.append(variable.name)
         for name in sorted(names):
             self.insert(tkinter.END, name)
 

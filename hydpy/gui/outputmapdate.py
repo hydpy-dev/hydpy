@@ -10,10 +10,10 @@ import hydpy
 
 class Date(tkinter.Frame):
 
-    def __init__(self, menu, hydpy):
+    def __init__(self, menu, hp):
         tkinter.Frame.__init__(self, menu)
         self.menu = menu
-        self.hydpy = hydpy
+        self.hp = hp
         self.deltaidx = 1
         self.timegrid = copy.deepcopy(hydpy.pub.timegrids.sim)
         self.timegrid.lastdate = self.timegrid.firstdate+self.timegrid.stepsize

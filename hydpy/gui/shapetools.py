@@ -19,14 +19,19 @@ class Shape(object):
         self._setvertices(vertices)
         self.layer = self.DEFAULT_LAYER if layer is None else layer
         Shape.last_instance = self
+        self._isnormed = False
 
     def normed_shape(self, xmin, ymin, xmax, ymax):
         """Norm the original vertices defining the shape with the given
         boundary values."""
+        if self._isnormed:
+            return self
         normed = self.vertices.copy()
         normed[:, 0] = (normed[:, 0]-xmin)/(xmax-xmin)
         normed[:, 1] = (ymax-normed[:, 1])/(ymax-ymin)
-        return type(self)(normed, self.layer)
+        shape = type(self)(normed, self.layer)
+        shape._isnormed = True
+        return shape
 
     def __repr__(self):
         prefix = '%s(' % objecttools.classname(self)

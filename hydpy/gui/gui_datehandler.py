@@ -4,7 +4,7 @@
 from __future__ import division, print_function
 import tkinter
 # ...from HydPy
-from ..framework import pub
+import hydpy
 
 
 class Modifier(tkinter.Toplevel):
@@ -27,8 +27,8 @@ class Modifier(tkinter.Toplevel):
 
     def getdates(self):
         dates = []
-        date = pub.date_startsim
-        while date < pub.date_endsim:
+        date = hydpy.pub.date_startsim
+        while date < hydpy.date_endsim:
             dates.append(date)
             date += self.master.master.deltadate
         return dates

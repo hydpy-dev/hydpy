@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""This modules implements the fundamental features for structuring
+"""This module implements the fundamental features for structuring
 *HydPy* projects.
 
 Module |devicetools| provides two |Device| subclasses, |Node| and |Element|.
@@ -1356,6 +1356,13 @@ class Device(Generic[DevicesTypeUnbound]):
     def keywords(self) -> None:
         vars(self)['keywords'].clear()
 
+    def load_shape(self):
+        """Load the shape data associated with the device object."""
+        # ToDo (filetools, exception/warning when missing):
+        shapepath = os.path.join('LahnH', 'shapes', f'{self}.py')
+        runpy.run_path(shapepath)
+        self.shape = shapetools.Shape.last_instance
+
     def __str__(self):
         return self.name
 
@@ -1752,13 +1759,6 @@ the given group name `test`.
             if variable == 'Q':
                 variable = u'Q [m³/s]'
             pyplot.ylabel(variable)
-
-    def load_shape(self):
-        """Load the shape data associated with the device object."""
-        # ToDo (filetools, exception/warning when missing):
-        shapepath = os.path.join('shapes', 'große_röder', '%s.py' % self.name)
-        runpy.run_path(shapepath)
-        self.shape = shapetools.Shape.last_instance
 
     def __repr__(self):
         return self.assignrepr()

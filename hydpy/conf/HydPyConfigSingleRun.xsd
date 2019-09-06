@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema targetNamespace="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/HydPyConfigSingleRun.xsd"
+        xmlns="http://www.w3.org/2001/XMLSchema"
+        xmlns:hpcb="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/HydPyConfigBase.xsd"
+        elementFormDefault="qualified">
+    <import namespace="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/HydPyConfigBase.xsd"
+            schemaLocation="HydPyConfigBase.xsd"/>
+
+    <element name="config">
+        <complexType>
+            <sequence>
+                <element ref="hpcb:options"/>
+                <element ref="hpcb:timegrid"/>
+                <element ref="hpcb:selections"/>
+                <element ref="hpcb:devices"/>
+                <element ref="hpcb:conditions_io"/>
+                <element ref="hpcb:series_io"/>
+            </sequence>
+        </complexType>
+    </element>
+
+</schema>

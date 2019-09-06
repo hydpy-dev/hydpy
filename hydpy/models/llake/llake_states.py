@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
+# pylint: enable=missing-docstring
 
 # import...
-# ...from standard library
-from __future__ import division, print_function
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core import sequencetools
 
 
@@ -19,4 +19,5 @@ class W(sequencetools.StateSequence):
 
 class StateSequences(sequencetools.StateSequences):
     """State sequences of HydPy-L-Lake."""
-    _SEQCLASSES = (V, W)
+    CLASSES = (V,
+               W)

@@ -3,9 +3,7 @@
 # pylint: enable=missing-docstring
 
 # import...
-# ...from standard library
-from __future__ import division, print_function
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core import sequencetools
 
 
@@ -16,4 +14,4 @@ class WaterVolume(sequencetools.StateSequence):
 
 class StateSequences(sequencetools.StateSequences):
     """State sequences of the dam model."""
-    _SEQCLASSES = (WaterVolume,)
+    CLASSES = (WaterVolume,)

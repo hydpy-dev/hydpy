@@ -1,19 +1,21 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
+# pylint: enable=missing-docstring
 
 # import...
-# ...from standard library
-from __future__ import division, print_function
+# ...from standard-library
+from typing import *
 # ...from site-packages
 import numpy
-# ...HydPy specific
-from hydpy.core import parametertools
+# ...from HydPy
 from hydpy.core import objecttools
+from hydpy.core import parametertools
 
 
 class Responses(parametertools.Parameter):
     """Assigns different ARMA models to different discharge thresholds.
 
-    Parameter :class:`Responses` is not involved in the actual calculations
+    Parameter |Responses| is not involved in the actual calculations
     during the simulation run.  Instead, it is thought for the intuitive
     handling of different ARMA models.  It can be applied as follows.
 
@@ -50,7 +52,7 @@ class Responses(parametertools.Parameter):
                        18.0, 19.0)))
 
     All ARMA models are available via attribute access and their attribute
-    names are made available to function :func:`dir`:
+    names are made available to function |dir|:
 
     >>> 'th_1_0' in dir(responses)
     True
@@ -80,19 +82,27 @@ class Responses(parametertools.Parameter):
     >>> responses.test = ((), ())
     Traceback (most recent call last):
     ...
-    AttributeError: To define different response functions for parameter `responses` of element `?`, one has to pass them as keyword arguments or set them as additional attributes.  The used name must meet a specific format (see the documentation for further information).  The given name `test` does not meet this format.
+    AttributeError: To define different response functions for parameter \
+`responses` of element `?`, one has to pass them as keyword arguments or \
+set them as additional attributes.  The used name must meet a specific \
+format (see the documentation for further information).  The given name \
+`test` does not meet this format.
 
     Suitable get-related attribute exceptions are also implemented:
 
     >>> responses.test
     Traceback (most recent call last):
     ...
-    AttributeError: Parameter `responses` of element `?` does not have an attribute named `test` and the name `test` is also not a valid threshold value identifier.
+    AttributeError: Parameter `responses` of element `?` does not have \
+an attribute named `test` and the name `test` is also not a valid \
+threshold value identifier.
 
     >>> responses._0_1
     Traceback (most recent call last):
     ...
-    AttributeError: Parameter `responses` of element `?` does not have an attribute attribute named `_0_1` nor an arma model corresponding to a threshold value named `th_0_1`.
+    AttributeError: Parameter `responses` of element `?` does not have \
+an attribute attribute named `_0_1` nor an arma model corresponding to \
+a threshold value named `th_0_1`.
 
     The above examples show that all AR and MA coefficients are converted to
     floating point values.  It this is not possible or something else goes
@@ -102,12 +112,14 @@ class Responses(parametertools.Parameter):
     >>> responses.th_10 = ()
     Traceback (most recent call last):
     ...
-    IndexError: While trying to set a new threshold (th_10) coefficient pair for parameter `responses` of element `?`, the following error occured: tuple index out of range
+    IndexError: While trying to set a new threshold (th_10) coefficient \
+pair for parameter `responses` of element `?`, the following error \
+occurred: tuple index out of range
 
     Except for the mentioned conversion to floating point values, there are
     no plausibility checks performed.  You have to use other tools to gain
     plausible coefficients.  The HydPy framework offers the module
-    :mod:`~hydpy.auxs.iuhtools` for such purposes.
+    |iuhtools| for such purposes.
 
     Prepare one instantaneous unit hydrograph (iuh) based on the
     Translation Diffusion Equation and another one based on the Linear
@@ -148,7 +160,8 @@ class Responses(parametertools.Parameter):
     >>> responses(tde, lsc)
     Traceback (most recent call last):
     ...
-    ValueError: For parameter `responses` of element `?` at most one positional argument is allowed, but `2` are given.
+    ValueError: For parameter `responses` of element `?` at most one \
+positional argument is allowed, but `2` are given.
 
     Checks for the repeated definition of the same threshold values are also
     performed:
@@ -156,7 +169,9 @@ class Responses(parametertools.Parameter):
     >>> responses(tde, _0=lsc, _1=tde, _1_0=lsc)
     Traceback (most recent call last):
     ...
-    ValueError: For parameter `responses` of element `?` `4` arguments have been given but only `2` response functions could be prepared.  Most probably, you defined the same threshold value(s) twice.
+    ValueError: For parameter `responses` of element `?` `4` arguments \
+have been given but only `2` response functions could be prepared.  \
+Most probably, you defined the same threshold value(s) twice.
 
     The number of response functions and the number of the respective AR and
     MA coefficients of a given `responses` parameter can be easily queried:
@@ -195,66 +210,56 @@ class Responses(parametertools.Parameter):
     """
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, subvars: parametertools.SubParameters):
         with objecttools.ResetAttrFuncs(self):
-            self.subpars = None
+            super().__init__(subvars)
             self.fastaccess = None
-            self._coefs = {}
-        super(Responses, self).__init__(*args, **kwargs)
+            self._coefs: Dict[str, numpy.ndarray] = {}
 
-    def connect(self, subpars):
-        self.__dict__['subpars'] = subpars
+    def __hydpy__connect_variable2subgroup__(self):
+        """Do nothing due to the reasons explained in the main
+        documentation on class |Responses|."""
 
     def __call__(self, *args, **kwargs):
         self._coefs.clear()
         if len(args) > 1:
             raise ValueError(
-                'For parameter `%s` of element `%s` at most one positional '
-                'argument is allowed, but `%d` are given.'
-                % (self.name, objecttools.devicename(self.subpars), len(args)))
+                f'For parameter `{self.name}` of element '
+                f'`{objecttools.devicename(self.subpars)}` at most '
+                f'one positional argument is allowed, but '
+                f'`{len(args)}` are given.')
         for (key, value) in kwargs.items():
             setattr(self, key, value)
         if len(args) == 1:
             setattr(self, 'th_0_0', args[0])
         if len(args)+len(kwargs) != len(self):
             raise ValueError(
-                'For parameter `%s` of element `%s` `%d` arguments have been '
-                'given but only `%s` response functions could be prepared.  '
-                'Most probably, you defined the same threshold value(s) twice.'
-                % (self.name, objecttools.devicename(self.subpars),
-                   len(args)+len(kwargs), len(self)))
+                f'For parameter `{self.name}` of element '
+                f'`{objecttools.devicename(self.subpars)}` '
+                f'`{len(args)+len(kwargs)}` arguments have been given '
+                f'but only `{len(self)}` response functions could be '
+                f'prepared.  Most probably, you defined the same '
+                f'threshold value(s) twice.')
 
-    def _has_predefined_attr(self, name):
-        return ((name in self.__dict__ or
-                 name in Responses.__dict__ or
-                 name in parametertools.Parameter.__dict__) and
-                not name.startswith('th_'))
-
-    def __getattribute__(self, key):
-        try:
-            return object.__getattribute__(self, key)
-        except AttributeError:
-            pass
+    def __getattr__(self, key):
         try:
             std_key = self._standardize_key(key)
         except AttributeError:
             raise AttributeError(
-                'Parameter `%s` of element `%s` does not have an attribute '
-                'named `%s` and the name `%s` is also not a valid threshold '
-                'value identifier.'
-                % (self.name, objecttools.devicename(self.subpars), key, key))
+                f'Parameter `{self.name}` of element '
+                f'`{objecttools.devicename(self.subpars)}` does not '
+                f'have an attribute named `{key}` and the name `{key}` '
+                f'is also not a valid threshold value identifier.')
         if std_key in self._coefs:
             return self._coefs[std_key]
-        else:
-            raise AttributeError(
-                'Parameter `%s` of element `%s` does not have an attribute '
-                'attribute named `%s` nor an arma model corresponding to a '
-                'threshold value named `%s`.'
-                % (self.name, objecttools.devicename(self.subpars),
-                   key, std_key))
+        raise AttributeError(
+            f'Parameter `{self.name}` of element '
+            f'`{objecttools.devicename(self.subpars)}` does not have '
+            f'an attribute attribute named `{key}` nor an arma model '
+            f'corresponding to a threshold value named `{std_key}`.')
 
     def __setattr__(self, key, value):
-        if self._has_predefined_attr(key):
+        if hasattr(self, key) and not key.startswith('th_'):
             object.__setattr__(self, key, value)
         else:
             std_key = self._standardize_key(key)
@@ -266,9 +271,9 @@ class Responses(parametertools.Parameter):
                                             tuple(float(v) for v in value[1]))
             except BaseException:
                 objecttools.augment_excmessage(
-                    'While trying to set a new threshold (%s) coefficient '
-                    'pair for parameter `%s` of element `%s`'
-                    % (key, self.name, objecttools.devicename(self.subpars)))
+                    f'While trying to set a new threshold ({key}) '
+                    f'coefficient pair for parameter `{self.name}` '
+                    f'of element `{objecttools.devicename(self.subpars)}`')
 
     def __delattr__(self, key):
         std_key = self._standardize_key(key)
@@ -287,24 +292,26 @@ class Responses(parametertools.Parameter):
             return '_'.join(('th', str(integer), str(decimal)))
         except BaseException:
             raise AttributeError(
-                'To define different response functions for parameter `%s` of '
-                'element `%s`, one has to pass them as keyword arguments or '
-                'set them as additional attributes.  The used name must meet '
-                'a specific format (see the documentation for further '
-                'information).  The given name `%s` does not meet this format.'
-                % (self.name, objecttools.devicename(self.subpars), key))
+                f'To define different response functions for '
+                f'parameter `{self.name}` of element '
+                f'`{objecttools.devicename(self.subpars)}`, one has '
+                f'to pass them as keyword arguments or set them as '
+                f'additional attributes.  The used name must meet a '
+                f'specific format (see the documentation for further '
+                f'information).  The given name `{key}` does not '
+                f'meet this format.')
 
     @property
     def thresholds(self):
         """Threshold values of the response functions."""
-        return numpy.array(sorted(self._key2float(key)
-                                  for key in self._coefs.keys()), dtype=float)
+        return numpy.array(
+            sorted(self._key2float(key) for key in self._coefs), dtype=float)
 
     @staticmethod
     def _key2float(key):
         return float(key[3:].replace('_', '.'))
 
-    def _getorders(self, index):
+    def _get_orders(self, index) -> Tuple[int, ...]:
         orders = []
         for _, coefs in self:
             orders.append(len(coefs[index]))
@@ -313,16 +320,16 @@ class Responses(parametertools.Parameter):
     @property
     def ar_orders(self):
         """Number of AR coefficients of the different response functions."""
-        return self._getorders(0)
+        return self._get_orders(0)
 
     @property
     def ma_orders(self):
         """Number of MA coefficients of the different response functions."""
-        return self._getorders(1)
+        return self._get_orders(1)
 
-    def _getcoefs(self, index):
-        orders = self._getorders(index)
-        max_orders = max(orders) if len(orders) else 0
+    def _get_coefs(self, index):
+        orders = self._get_orders(index)
+        max_orders = max(orders) if orders else 0
         coefs = numpy.full((len(self), max_orders), numpy.nan)
         for idx, (order, (_, coef)) in enumerate(zip(orders, self)):
             coefs[idx, :order] = coef[index]
@@ -336,7 +343,7 @@ class Responses(parametertools.Parameter):
         threshold value, the last row contains the AR coefficients related to
         the highest threshold value.  The number of columns depend on the
         highest number of AR coefficients among all response functions."""
-        return self._getcoefs(0)
+        return self._get_coefs(0)
 
     @property
     def ma_coefs(self):
@@ -346,20 +353,23 @@ class Responses(parametertools.Parameter):
         threshold value, the last row contains the AR coefficients related to
         the highest threshold value.  The number of columns depend on the
         highest number of MA coefficients among all response functions."""
-        return self._getcoefs(1)
+        return self._get_coefs(1)
 
     def __len__(self):
         return len(self._coefs)
 
+    def __bool__(self):
+        return len(self._coefs) > 0
+
     def __iter__(self):
-        for key in sorted(self._coefs.keys(),  key=self._key2float):
+        for key in sorted(self._coefs.keys(), key=self._key2float):
             yield key, self._coefs[key]
 
     def __repr__(self):
-        strings = self.commentrepr()
+        strings = self.commentrepr
         prefix = '%s(' % self.name
         blanks = ' '*len(prefix)
-        if len(self):
+        if self:
             for idx, (th, coefs) in enumerate(self):
                 subprefix = ('%s%s=' % (prefix, th) if idx == 0 else
                              '%s%s=' % (blanks, th))
@@ -378,4 +388,4 @@ class Responses(parametertools.Parameter):
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of arma, directly defined by the user."""
-    _PARCLASSES = (Responses,)
+    CLASSES = (Responses,)

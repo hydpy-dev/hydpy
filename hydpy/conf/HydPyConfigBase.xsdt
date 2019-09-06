@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema targetNamespace="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/HydPyConfigBase.xsd"
+        xmlns="http://www.w3.org/2001/XMLSchema"
+        xmlns:hpcb="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/HydPyConfigBase.xsd"
+        elementFormDefault="qualified">
+
+    <simpleType name="listOfStrings">
+      <list itemType="string"/>
+    </simpleType>
+
+    <simpleType name="listOfDoubles">
+      <list itemType="double"/>
+    </simpleType>
+
+    <element name="options">
+        <complexType>
+            <sequence>
+                <element name="checkseries"
+                         type="boolean"
+                         minOccurs="0"/>
+                <element name="reprdigits"
+                         minOccurs="0">
+                    <simpleType>
+                        <restriction base="integer">
+                            <minInclusive value="-1"/>
+                            <maxInclusive value="12"/>
+                        </restriction>
+                    </simpleType>
+                </element>
+                <element name="usecython"
+                         type="boolean"
+                         minOccurs="0"/>
+                <element name="usedefaultvalues"
+                         type="boolean"
+                         minOccurs="0"/>
+                <element name="utcoffset"
+                         type="integer"
+                         minOccurs="0"/>
+                <element name="warnmissingobsfile"
+                         type="boolean"
+                         minOccurs="0"/>
+                <element name="warnmissingsimfile"
+                         type="boolean"
+                         minOccurs="0"/>
+                <element name="warntrim"
+                         type="boolean"
+                         minOccurs="0"/>
+                <element name="flattennetcdf"
+                         type="boolean"
+                         minOccurs="0"/>
+                <element name="isolatenetcdf"
+                         type="boolean"
+                         minOccurs="0"/>
+                <element name="timeaxisnetcdf"
+                         minOccurs="0">
+                    <simpleType>
+                        <restriction base="integer">
+                            <minInclusive value="0"/>
+                            <maxInclusive value="1"/>
+                        </restriction>
+                    </simpleType>
+                </element>
+            </sequence>
+        </complexType>
+    </element>
+
+    <element name="timegrid">
+        <complexType>
+            <choice>
+                <sequence>
+                    <element name="firstdate" type="dateTime"/>
+                    <element name="lastdate" type="dateTime"/>
+                    <element name="stepsize">
+                        <simpleType>
+                            <restriction base="string">
+                                <pattern value="[0-9]+[smhd]"/>
+                            </restriction>
+                        </simpleType>
+                    </element>
+                </sequence>
+                <element name="seriesfile"
+                         type="anyURI"/>
+            </choice>
+        </complexType>
+    </element>
+
+    <element name="selections"
+             type="hpcb:listOfStrings"/>
+
+    <element name="devices"
+             type="hpcb:listOfStrings"/>
+
+    <element name="conditions_io">
+        <complexType>
+            <sequence>
+                <element name="inputdir"
+                         type="anyURI"/>
+                <element name="outputdir"
+                         type="anyURI"/>
+                <element name="zip"
+                         type="boolean"/>
+            </sequence>
+        </complexType>
+    </element>
+
+    <element name="series_io">
+        <complexType>
+            <sequence>
+                <element ref="hpcb:filetype"/>
+                <element ref="hpcb:overwrite"/>
+                <element ref="hpcb:dirpath"/>
+                <element ref="hpcb:aggregation"/>
+                <element name="zip"
+                         type="boolean"/>
+                <element name="readers">
+                    <complexType>
+                        <sequence>
+                            <element ref="hpcb:reader"
+                                     maxOccurs="unbounded"/>
+                        </sequence>
+                    </complexType>
+                </element>
+                <element name="writers">
+                    <complexType>
+                        <sequence>
+                            <element ref="hpcb:writer"
+                                     minOccurs="0"
+                                     maxOccurs="unbounded" />
+                        </sequence>
+                    </complexType>
+                </element>
+            </sequence>
+        </complexType>
+    </element>
+
+    <element name="reader">
+        <complexType>
+            <sequence>
+                <element ref="hpcb:selections"
+                         minOccurs="0"/>
+                <element ref="hpcb:devices"
+                         minOccurs="0"/>
+                <element ref="hpcb:sequences"/>
+                <element ref="hpcb:filetype"
+                         minOccurs="0"/>
+                <element ref="hpcb:dirpath"
+                         minOccurs="0"/>
+                <element ref="hpcb:selections"
+                         minOccurs="0"/>
+                <element ref="hpcb:devices"
+                         minOccurs="0"/>
+            </sequence>
+            <attribute name="info" type="string"/>
+        </complexType>
+    </element>
+
+    <element name="writer">
+        <complexType>
+            <sequence>
+                <element ref="hpcb:selections"
+                         minOccurs="0"/>
+                <element ref="hpcb:devices"
+                         minOccurs="0"/>
+                <element ref="hpcb:sequences"/>
+                <element ref="hpcb:filetype"
+                         minOccurs="0"/>
+                <element ref="hpcb:overwrite"
+                         minOccurs="0"/>
+                <element ref="hpcb:dirpath"
+                         minOccurs="0"/>
+                <element ref="hpcb:aggregation"
+                         minOccurs="0"/>
+            </sequence>
+            <attribute name="info" type="string"/>
+        </complexType>
+    </element>
+
+    <element name="filetype">
+        <complexType>
+            <choice>
+                <element name="general"
+                         minOccurs="0"
+                         type="hpcb:_filetype"/>
+                <sequence>
+                    <element name="inputs"
+                             minOccurs="0"
+                             type="hpcb:_filetype"/>
+                    <element name="fluxes"
+                             minOccurs="0"
+                             type="hpcb:_filetype"/>
+                    <element name="states"
+                             minOccurs="0"
+                             type="hpcb:_filetype"/>
+                    <element name="nodes"
+                             minOccurs="0"
+                             type="hpcb:_filetype"/>
+                </sequence>
+            </choice>
+        </complexType>
+    </element>
+
+    <simpleType name="_filetype">
+        <restriction base="string">
+            <enumeration value="asc"/>
+            <enumeration value="npy"/>
+            <enumeration value="nc"/>
+        </restriction>
+    </simpleType>
+
+    <element name="overwrite">
+        <complexType>
+            <choice>
+                <element name="general"
+                         minOccurs="0"
+                         type="boolean"/>
+                <sequence>
+                    <element name="inputs"
+                             minOccurs="0"
+                             type="boolean"/>
+                    <element name="fluxes"
+                             minOccurs="0"
+                             type="boolean"/>
+                    <element name="states"
+                             minOccurs="0"
+                             type="boolean"/>
+                    <element name="nodes"
+                             minOccurs="0"
+                             type="boolean"/>
+                </sequence>
+            </choice>
+        </complexType>
+    </element>
+
+    <element name="dirpath">
+        <complexType>
+            <choice>
+                <element name="general"
+                         minOccurs="0"
+                         type="anyURI"/>
+                <sequence>
+                    <element name="inputs"
+                             minOccurs="0"
+                             type="anyURI"/>
+                    <element name="fluxes"
+                             minOccurs="0"
+                             type="anyURI"/>
+                    <element name="states"
+                             minOccurs="0"
+                             type="anyURI"/>
+                    <element name="nodes"
+                             minOccurs="0"
+                             type="anyURI"/>
+                </sequence>
+            </choice>
+        </complexType>
+    </element>
+
+    <element name="aggregation">
+        <complexType>
+            <choice>
+                <element name="general"
+                         minOccurs="0"
+                         type="hpcb:_aggregation"/>
+                <sequence>
+                    <element name="inputs"
+                             minOccurs="0"
+                             type="hpcb:_aggregation"/>
+                    <element name="fluxes"
+                             minOccurs="0"
+                             type="hpcb:_aggregation"/>
+                    <element name="states"
+                             minOccurs="0"
+                             type="hpcb:_aggregation"/>
+                    <element name="nodes"
+                             minOccurs="0"
+                             type="hpcb:_aggregation"/>
+                </sequence>
+            </choice>
+        </complexType>
+    </element>
+
+    <simpleType name="_aggregation">
+        <restriction base="string">
+            <enumeration value="none"/>
+            <enumeration value="mean"/>
+        </restriction>
+    </simpleType>
+
+    <element name="sequences">
+        <complexType>
+            <sequence>
+                <element ref="hpcb:sequenceGroup"
+                         maxOccurs="unbounded"/>
+            </sequence>
+        </complexType>
+    </element>
+
+    <element name="sequenceGroup"
+             type="hpcb:sequenceGroupType"
+             abstract="true"/>
+
+    <complexType name="sequenceGroupType"/>
+
+    <element name="node"
+             substitutionGroup="hpcb:sequenceGroup"
+             type="hpcb:nodeType"/>
+
+    <complexType name="nodeType">
+        <complexContent>
+            <extension base="hpcb:sequenceGroupType">
+                <sequence>
+                    <element name="sim"
+                             minOccurs="0"/>
+                    <element name="obs"
+                             minOccurs="0"/>
+                </sequence>
+            </extension>
+        </complexContent>
+    </complexType>
+
+<!--include model sequence groups-->
+
+    <element name="exchange">
+        <complexType>
+            <sequence>
+                <element ref="hpcb:setitems"
+                         minOccurs="0"
+                         maxOccurs="unbounded"/>
+                <element ref="hpcb:additems"
+                         minOccurs="0"
+                         maxOccurs="unbounded"/>
+                <element ref="hpcb:getitems"
+                         minOccurs="0"
+                         maxOccurs="unbounded"/>
+            </sequence>
+        </complexType>
+    </element>
+
+    <complexType name="setitemType">
+        <sequence>
+            <element ref="hpcb:selections"
+                     minOccurs="0"/>
+            <element ref="hpcb:devices"
+                     minOccurs="0"/>
+            <element name="alias"
+                     type="string"/>
+            <element name="dim"
+                     type="nonNegativeInteger"/>
+            <element name="init"
+                     type="hpcb:listOfDoubles"/>
+        </sequence>
+    </complexType>
+
+    <complexType name="getitemType">
+        <sequence>
+            <element ref="hpcb:selections"
+                     minOccurs="0"/>
+            <element ref="hpcb:devices"
+                     minOccurs="0"/>
+        </sequence>
+    </complexType>
+
+<!--include exchange items-->
+
+</schema>

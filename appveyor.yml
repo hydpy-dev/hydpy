@@ -1,0 +1,72 @@
+
+version: 4.0a11.{build}
+
+environment:
+  PYPIPA:
+    secure: OYHmXK1t/zHOfA97P+RmCVDWG1ef8lyMQaNK/jmVAXk=
+  matrix:
+    - PYTHON: "C:\\Python36-x64"
+    - PYTHON: "C:\\Python37-x64"
+
+install:
+  - cinst nsis
+  - SET PATH=%PYTHON%;%PYTHON%\Scripts;C:\Users\appveyor\AppData\Local\HydPy\bin\;%PATH%
+  - "%PYTHON%\\python.exe -m pip install --upgrade pip"
+  - "%PYTHON%\\python.exe -m pip install cython"
+  - "%PYTHON%\\python.exe -m pip install numpy"
+  - "%PYTHON%\\python.exe -m pip install scipy"
+  - "%PYTHON%\\python.exe -m pip install matplotlib"
+  - "%PYTHON%\\python.exe -m pip install bokeh"
+  - "%PYTHON%\\python.exe -m pip install netcdf4"
+  - "%PYTHON%\\python.exe -m pip install pandas"
+  - "%PYTHON%\\python.exe -m pip install pynsist"
+  - "%PYTHON%\\python.exe -m pip install setuptools"
+  - "%PYTHON%\\python.exe -m pip install typing_extensions"
+  - "%PYTHON%\\python.exe -m pip install twine"
+  - "%PYTHON%\\python.exe -m pip install wheel"
+  - "%PYTHON%\\python.exe -m pip install wrapt"
+  - "%PYTHON%\\python.exe -m pip install xmlschema==1.0.9"
+
+build: off
+
+before_test:
+  - "%PYTHON%\\python.exe disable_autodoc.py"
+  - "%PYTHON%\\python.exe setup.py install"
+  - "%PYTHON%\\python.exe make_and_install_dists.py"
+  - "%PYTHON%\\python.exe prepare_hydpy_installer.py"
+  - pynsist make_hydpy_installer.cfg
+  - "%PYTHON%\\python.exe -m pip uninstall cython --yes"
+  - rename hydpy _hydpy
+
+test_script:
+  - hyd.py test_everything
+  - cd dist
+  - "%PYTHON%\\python.exe -m pip uninstall hydpy --yes"
+  - cd..
+  - "%PYTHON%\\python.exe call_installer.py"
+  - hyd.py test_everything
+
+after_test:
+  - "echo [pypi] > %USERPROFILE%\\.pypirc"
+  - "echo username: tyralla >> %USERPROFILE%\\.pypirc"
+  - "echo password: %PYPIPA% >> %USERPROFILE%\\.pypirc"
+  - ps: if ($env:APPVEYOR_REPO_TAG -eq "true") { Invoke-Expression "twine upload --skip-existing dist/*"} else { write-output "No tag, no deploy"}
+    
+artifacts:
+  - name: Packages
+    path: dist\*
+  - name: Installer
+    path: build\nsis\HydPy*.exe
+  - name: XSDs
+    path: _hydpy\conf\*.xsd
+
+deploy:
+  description: 'This is a draft.'
+  provider: GitHub
+  auth_token:
+    secure: n6oPRXEu1EFeFsmJYY2qnyuEOsb6OuSXQ5kf6CacHvcFcKb6JWXqPYZBzk16ZCBn
+  artifact: Packages,Installer,XSDs
+  draft: true
+  prerelease: false
+  on:
+    APPVEYOR_REPO_TAG: true

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
+# pylint: enable=missing-docstring
 
 # import...
-# ...from standard library
-from __future__ import division, print_function
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core import sequencetools
 
 
@@ -29,4 +29,7 @@ class EPN(sequencetools.InputSequence):
 
 class InputSequences(sequencetools.InputSequences):
     """Input sequences of the hland model."""
-    _SEQCLASSES = (P, T, TN, EPN)
+    CLASSES = (P,
+               T,
+               TN,
+               EPN)

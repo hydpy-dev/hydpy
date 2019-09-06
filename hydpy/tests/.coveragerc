@@ -1,0 +1,13 @@
+
+[run]
+source =
+    hydpy
+omit =
+    */hydpy/tests/*
+    */hydpy/docs/*
+parallel=True
+
+[report]
+exclude_lines =
+    pragma: no cover
+    if TYPE_CHECKING

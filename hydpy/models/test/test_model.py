@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
+# pylint: enable=missing-docstring
 
 # imports...
-# ...standard library
-from __future__ import division, print_function
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core import modeltools
 
 
@@ -13,13 +13,13 @@ def calc_q_v1(self):
     This simple equation is continuous but potentially stiff.
 
     Required control parameter:
-      :class:`~hydpy.models.test.test_control.K`
+      |K|
 
     Required state sequence:
-     :class:`~hydpy.models.test.test_states.S`
+     |S|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.test.test_fluxes.Q`
+      |Q|
 
     Basic equation:
       :math:`Q = K \\cdot S`
@@ -46,13 +46,13 @@ def calc_q_v2(self):
     This simple equation is discontinuous.
 
     Required control parameter:
-      :class:`~hydpy.models.test.test_control.K`
+      |K|
 
     Required state sequence:
-     :class:`~hydpy.models.test.test_states.S`
+      |S|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.test.test_fluxes.Q`
+      |Q|
 
     Basic equation:
       :math:`Q = \\Bigl \\lbrace
@@ -62,7 +62,7 @@ def calc_q_v2(self):
       {0 \\ | \\ S \\leq 0}
       }`
 
-    Example:
+    Examples:
 
        >>> from hydpy.models.test import *
        >>> parameterstep()
@@ -71,6 +71,10 @@ def calc_q_v2(self):
        >>> model.calc_q_v2()
        >>> fluxes.q
        q(0.5)
+       >>> states.s = -1.0
+       >>> model.calc_q_v2()
+       >>> fluxes.q
+       q(0.0)
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
@@ -85,10 +89,10 @@ def calc_s_v1(self):
     """Calculate the actual storage content.
 
     Required flux sequence:
-      :class:`~hydpy.models.test.test_fluxes.Q`
+      |Q|
 
     Calculated state sequence:
-     :class:`~hydpy.models.test.test_states.S`
+     |S|
 
     Basic equation:
       :math:`\\frac{dS}{dt} = Q`
@@ -109,8 +113,12 @@ def calc_s_v1(self):
     new.s = old.s-flu.q
 
 
-class Model(modeltools.ModelELS):
+class Model(modeltools.ELSModel):
     """Test model."""
-    _PART_ODE_METHODS = (calc_q_v1,
-                         calc_q_v2)
-    _FULL_ODE_METHODS = (calc_s_v1,)
+    INLET_METHODS = ()
+    RECEIVER_METHODS = ()
+    PART_ODE_METHODS = (calc_q_v1,
+                        calc_q_v2)
+    FULL_ODE_METHODS = (calc_s_v1,)
+    OUTLET_METHODS = ()
+    SENDER_METHODS = ()

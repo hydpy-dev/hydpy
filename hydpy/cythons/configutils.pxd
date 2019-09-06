@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """This module defines the Cython declarations related to module
-:mod:`~hydpy.cythons.configtools`.
+|configutils|.
 """
 
 cdef class Config(object):

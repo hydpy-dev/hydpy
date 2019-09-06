@@ -3,11 +3,7 @@
 # pylint: enable=missing-docstring
 
 # import...
-# ...from standard library
-from __future__ import division, print_function
-# ...from site-packages
-import numpy
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
 
@@ -23,38 +19,45 @@ class LoggedOutflow(sequencetools.LogSequence):
 
 
 class ShapeOne(sequencetools.LogSequence):
-    """Base class for log sequences with a shape of one
+    """Base class for log sequences with a shape of one."""
 
-    Parameter derived from :class:`ShapeOne` are generally initialized
-    with a shape of one.  Taking parameter :class:`LoggedRequiredRemoteRelease`
-    as an example:
+    def _finalise_connections(self):
+        self.shape = (1,)
 
-    >>> from hydpy.models.dam import *
-    >>> parameterstep()
-    >>> logs.loggedrequiredremoterelease.shape
-    (1,)
+    def __hydpy__get_shape__(self):
+        """Parameter derived from |ShapeOne| are generally initialised
+        with a shape of one.
 
-    Trying to set a new shape results in the following exceptions:
+        We take parameter |LoggedRequiredRemoteRelease|
+        as an example:
 
-    >>> logs.loggedrequiredremoterelease.shape = 2
-    Traceback (most recent call last):
-    ...
-    AttributeError: The shape of parameter `loggedrequiredremoterelease` \
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> logs.loggedrequiredremoterelease.shape
+        (1,)
+
+        Trying to set a new shape results in the following exceptions:
+
+        >>> logs.loggedrequiredremoterelease.shape = 2
+        Traceback (most recent call last):
+        ...
+        AttributeError: The shape of parameter `loggedrequiredremoterelease` \
 cannot be changed, but this was attempted for element `?`.
 
-    ."""
+        See the documentation on property |Variable.shape| of class
+        |Variable| for further information.
+        """
+        return super().__hydpy__get_shape__()
 
-    def _initvalues(self):
-        setattr(self.fastaccess, self.name,
-                numpy.full(1, numpy.nan, dtype=float))
+    def __hydpy__set_shape__(self, shape):
+        if hasattr(self, 'shape'):
+            raise AttributeError(
+                f'The shape of parameter `{self.name}` cannot be '
+                f'changed, but this was attempted for element '
+                f'`{objecttools.devicename(self)}`.')
+        super().__hydpy__set_shape__(shape)
 
-    def _setshape(self, shape):
-        raise AttributeError(
-            'The shape of parameter `%s` cannot be '
-            'changed, but this was attempted for element `%s`.'
-            % (self.name, objecttools.devicename(self)))
-
-    shape = property(sequencetools.LogSequence._getshape, _setshape)
+    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
 
 
 class LoggedRequiredRemoteRelease(ShapeOne):
@@ -69,7 +72,7 @@ class LoggedAllowedRemoteRelieve(ShapeOne):
 
 class LogSequences(sequencetools.LogSequences):
     """Log sequences of the dam model."""
-    _SEQCLASSES = (LoggedTotalRemoteDischarge,
-                   LoggedOutflow,
-                   LoggedRequiredRemoteRelease,
-                   LoggedAllowedRemoteRelieve)
+    CLASSES = (LoggedTotalRemoteDischarge,
+               LoggedOutflow,
+               LoggedRequiredRemoteRelease,
+               LoggedAllowedRemoteRelieve)

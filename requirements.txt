@@ -1,4 +1,14 @@
 hydpy
+bokeh
+coverage
 Cython
-numpy
 matplotlib
+netcdf4
+numpy
+pandas
+setuptools
+typing_extensions
+scipy
+wheel
+wrapt
+xmlschema

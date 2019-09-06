@@ -1,0 +1,50 @@
+[Application]
+name = HydPy
+version = 4.0a11-cp[auto]-win_amd64
+entry_point = execute_exe:execute_scriptfunction
+console = true
+icon = logo.ico
+license_file = licenses_hydpy_installer.txt
+
+[Command hyd.py]
+entry_point = execute_exe:execute_scriptfunction
+
+[Python]
+version = [auto]
+bitness = 64
+
+[Include]
+pypi_wheels = numpy==[auto]
+	scipy==[auto]
+	typing_extensions==3.7.4
+	matplotlib==[auto]
+	cycler==[auto]
+	six==[auto]
+	kiwisolver==[auto]
+	setuptools==[auto]
+	pyparsing==[auto]
+	python-dateutil==[auto]
+	netCDF4==[auto]
+	cftime==[auto]
+	pandas==[auto]
+	pytz==[auto]
+	xmlschema==[auto]
+	elementpath==[auto]
+	markupsafe==[auto]
+	PyYAML==[auto]
+	packaging==[auto]
+	attrs==[auto]
+	Pillow==[auto]
+	tornado==[auto]
+
+local_wheels = dist/*.whl
+	
+packages = wrapt
+	bokeh
+	jinja2
+	tkinter
+	_tkinter
+
+files = lib
+	tcl86t.dll > $INSTDIR\pkgs
+	tk86t.dll > $INSTDIR\pkgs

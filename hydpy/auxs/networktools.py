@@ -2,8 +2,6 @@
 """This module provides features for preparing HydPy networks based on
 different data."""
 # import...
-# ...from standard library
-from __future__ import division, print_function
 # ...from HydPy
 from hydpy.core import objecttools
 from hydpy.core import devicetools
@@ -38,8 +36,9 @@ basin number.
         try:
             return str.__new__(cls, str(int(value)).strip('0'))
         except ValueError:
-            raise ValueError('The given value `%s` could not be interpreted '
-                             'as a river basin number.' % value)
+            raise ValueError(
+                f'The given value `{value}` could not be '
+                f'interpreted as a river basin number.')
 
     @property
     def is_rivermouth(self):
@@ -146,7 +145,7 @@ basin number.
 
 
 class RiverBasinNumbers(tuple):
-    """A sorted collection of :class:`RiverBasinNumber` objects.
+    """A sorted collection of |RiverBasinNumber| objects.
 
         >>> from hydpy import RiverBasinNumbers
         >>> RiverBasinNumbers((111, 113, 1129, 11269, 1125, 11261,
@@ -164,20 +163,18 @@ class RiverBasinNumbers(tuple):
             neighbours = [rbn for rbn in self if rbn.startswith(pdn1)]
             if neighbours:
                 return min(neighbours)
-        else:
-            return None
+        return None
 
     @property
     def next_numbers(self):
         """A tuple of the next downstream river basin numbers.
 
         The order of the returned numbers corresponds to the order of the
-        numbers contained by the :class:`RiverBasinNumbers` object.
+        numbers contained by the |RiverBasinNumbers| object.
 
         The number of the subcatchment immediately downstream of the outlet
-        subcatchment is not known.  The tuple contains a :class:`None` object
-        instead (or multiple :class:`None` objects in case of multiple
-        outlets).
+        subcatchment is not known.  The tuple contains a |None| object
+        instead (or multiple |None| objects in case of multiple outlets).
 
         Eventually, not all possible combinations of river basin numbers
         are covered.  Please keep us informed if you notices a problem
@@ -239,7 +236,7 @@ class RiverBasinNumbers(tuple):
                                             60) + ')'
 
 
-class RiverBasinNumbers2Selection(object):
+class RiverBasinNumbers2Selection:
     """Class for defining a |Selection| object (consisting of connected
     nodes and elements) based on given |RiverBasinNumber| objects.
 
@@ -393,7 +390,7 @@ class RiverBasinNumbers2Selection(object):
             except TypeError:
                 outlet = self.last_node
             elements += devicetools.Element(
-                            element, inlets=inlet, outlets=outlet)
+                element, inlets=inlet, outlets=outlet)
         return elements
 
     @property
@@ -417,16 +414,17 @@ class RiverBasinNumbers2Selection(object):
               "node_outlet")
 
         It is both possible to change the prefix names of the nodes and
-        the name of the outlet node seperately:
+        the name of the outlet node separately:
 
         >>> rbns2s.node_prefix = 'b_'
         >>> rbns2s.last_node = 'l_node'
         >>> rbns2s.nodes
         Nodes("b_1123", "b_1125", "b_11269", "b_1129", "b_113", "l_node")
         """
-        return (devicetools.Nodes(self.node_prefix+routers for
-                                  routers in self._router_numbers) +
-                devicetools.Node(self.last_node))
+        return (
+            devicetools.Nodes(
+                self.node_prefix+routers for routers in self._router_numbers) +
+            devicetools.Node(self.last_node))
 
     @property
     def selection(self):
@@ -439,13 +437,13 @@ class RiverBasinNumbers2Selection(object):
         ...                             11262, 1123, 1124, 1122, 1121))
         >>> rbns2s.selection
         Selection("complete",
+                  nodes=("node_1123", "node_1125", "node_11269", "node_1129",
+                         "node_113", "node_outlet"),
                   elements=("land_111", "land_1121", "land_1122", "land_1123",
                             "land_1124", "land_1125", "land_11261",
                             "land_11262", "land_11269", "land_1129",
                             "land_113", "stream_1123", "stream_1125",
-                            "stream_11269", "stream_1129", "stream_113"),
-                  nodes=("node_1123", "node_1125", "node_11269", "node_1129",
-                         "node_113", "node_outlet"))
+                            "stream_11269", "stream_1129", "stream_113"))
 
         Besides the possible modifications on the names of the different
         nodes and elements, the name of the selection can be set differently:
@@ -455,8 +453,8 @@ class RiverBasinNumbers2Selection(object):
         >>> with pub.options.ellipsis(1):
         ...     print(repr(rbns2s.selection))
         Selection("sel",
-                  elements=("land_111", ...,"stream_113"),
-                  nodes=("node_1123", ...,"node_outlet"))
+                  nodes=("node_1123", ...,"node_outlet"),
+                  elements=("land_111", ...,"stream_113"))
         """
         return selectiontools.Selection(
-                            self.selection_name, self.nodes, self.elements)
+            self.selection_name, self.nodes, self.elements)

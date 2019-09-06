@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hpcsr:config xmlns="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/HydPyConfigBase.xsd"
+              xmlns:hpcsr="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/HydPyConfigSingleRun.xsd">
+
+    <options>
+        <checkseries>true</checkseries>
+        <reprdigits>6</reprdigits>
+        <usecython>true</usecython>
+        <usedefaultvalues>false</usedefaultvalues>
+        <utcoffset>60</utcoffset>
+        <warnmissingobsfile>true</warnmissingobsfile>
+        <warnmissingsimfile>true</warnmissingsimfile>
+        <warntrim>true</warntrim>
+        <flattennetcdf>true</flattennetcdf>
+        <isolatenetcdf>true</isolatenetcdf>
+        <timeaxisnetcdf>0</timeaxisnetcdf>
+    </options>
+
+    <timegrid>
+        <firstdate>1996-01-01T00:00:00</firstdate>
+        <lastdate>1996-01-06T00:00:00</lastdate>
+        <stepsize>1d</stepsize>
+    </timegrid>
+
+    <selections>
+        complete
+    </selections>
+
+    <devices>
+        land_dill
+        land_lahn_1
+        dill
+    </devices>
+
+    <conditions_io>
+        <inputdir>init_1996_01_01_00_00_00</inputdir>
+        <outputdir>init_1996_01_06</outputdir>
+        <zip>false</zip>
+    </conditions_io>
+    
+    <series_io>
+
+        <filetype>
+            <general>npy</general>
+        </filetype>
+
+        <overwrite>
+            <general>true</general>
+        </overwrite>
+
+        <dirpath>
+            <inputs>LahnH/series/input</inputs>
+            <fluxes>LahnH/series/output</fluxes>
+            <states>LahnH/series/output</states>
+            <nodes>LahnH/series/node</nodes>
+        </dirpath>
+
+        <aggregation>
+            <general>none</general>
+        </aggregation>
+
+        <zip>false</zip>
+
+        <readers>
+            <reader info="all input data">
+                <selections/>
+                <devices>
+                    catchment
+                </devices>
+                <sequences>
+                    <hland_v1>
+                        <inputs>
+                            <p/>
+                            <t/>
+                            <tn/>
+                            <epn/>
+                        </inputs>
+                    </hland_v1>
+                </sequences>
+                <filetype>
+                    <inputs>nc</inputs>
+                </filetype>
+            </reader>
+        </readers>
+
+        <writers>
+
+            <writer info="precipitation">
+                <selections>
+                    headwaters
+                </selections>
+                <devices>
+                    land_lahn_1
+                    land_lahn_2
+                </devices>
+                <sequences>
+                    <hland_v1>
+                        <inputs>
+                            <p/>
+                        </inputs>
+                        <fluxes>
+                            <pc/>
+                            <tf/>
+                        </fluxes>
+                    </hland_v1>
+                </sequences>
+                <filetype>
+                    <inputs>asc</inputs>
+                    <fluxes>npy</fluxes>
+                </filetype>
+            </writer>
+
+            <writer info="soilmoisture">
+                <selections>
+                    complete
+                </selections>
+                <sequences>
+                    <hland_v1>
+                        <states>
+                            <sm/>
+                        </states>
+                    </hland_v1>
+                </sequences>
+                <filetype>
+                    <general>nc</general>
+                </filetype>
+                <overwrite>
+                    <states>false</states>
+                </overwrite>
+            </writer>
+
+            <writer info="averaged">
+                <devices/>
+                <sequences>
+                    <node>
+                        <sim/>
+                        <obs/>
+                    </node>
+                    <hland_v1>
+                        <fluxes>
+                            <pc/>
+                            <tf/>
+                        </fluxes>
+                        <states>
+                            <sm/>
+                        </states>
+                    </hland_v1>
+                    <hstream_v1>
+                        <states>
+                            <qjoints/>
+                        </states>
+                    </hstream_v1>
+                </sequences>
+                <dirpath>
+                    <nodes>LahnH/series/output</nodes>
+                </dirpath>
+                <aggregation>
+                    <general>mean</general>
+                </aggregation>
+            </writer>
+
+        </writers>
+
+    </series_io>
+
+</hpcsr:config>

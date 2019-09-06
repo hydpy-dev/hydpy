@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
+# pylint: enable=missing-docstring
 
 # import...
-# ...from standard library
-from __future__ import division, print_function
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core import sequencetools
 
 
@@ -19,4 +19,5 @@ class QA(sequencetools.FluxSequence):
 
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of HydPy-L-Lake."""
-    _SEQCLASSES = (QZ, QA)
+    CLASSES = (QZ,
+               QA)

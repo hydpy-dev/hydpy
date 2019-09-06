@@ -1,118 +1,100 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
+# pylint: enable=missing-docstring
 
 # import...
-# ...from standard library
-from __future__ import division, print_function
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core import sequencetools
+# ...from hland
+from hydpy.models.hland import hland_sequences
 
 
-class TMean(sequencetools.FluxSequence):
+class TMean(hland_sequences.Flux1DSequence):
     """Mean subbasin temperature [°C]."""
     NDIM, NUMERIC = 0, False
 
 
-class TC(sequencetools.FluxSequence):
+class TC(hland_sequences.Flux1DSequence):
     """Corrected temperature [°C]."""
     NDIM, NUMERIC = 1, False
 
 
-class FracRain(sequencetools.FluxSequence):
+class FracRain(hland_sequences.Flux1DSequence):
     """Fraction rainfall / total precipitation [-]."""
     NDIM, NUMERIC = 1, False
 
 
-class RfC(sequencetools.FluxSequence):
+class RfC(hland_sequences.Flux1DSequence):
     """Actual precipitation correction related to liquid precipitation [-]."""
     NDIM, NUMERIC = 1, False
 
 
-class SfC(sequencetools.FluxSequence):
+class SfC(hland_sequences.Flux1DSequence):
     """Actual precipitation correction related to frozen precipitation [-]."""
     NDIM, NUMERIC = 1, False
 
 
-class PC(sequencetools.FluxSequence):
+class PC(hland_sequences.Flux1DSequence):
     """Corrected precipitation [mm]."""
     NDIM, NUMERIC = 1, False
 
 
-class EP(sequencetools.FluxSequence):
+class EP(hland_sequences.Flux1DSequence):
     """Potential evaporation [mm]."""
     NDIM, NUMERIC = 1, False
 
 
-class EPC(sequencetools.FluxSequence):
+class EPC(hland_sequences.Flux1DSequence):
     """Corrected potential evaporation [mm]."""
     NDIM, NUMERIC = 1, False
 
 
-class EI(sequencetools.FluxSequence):
+class EI(hland_sequences.Flux1DSequence):
     """Interception evaporation [mm]."""
     NDIM, NUMERIC = 1, False
 
 
-class TF(sequencetools.FluxSequence):
+class TF(hland_sequences.Flux1DSequence):
     """Throughfall [mm]."""
     NDIM, NUMERIC = 1, False
 
 
-class TFWat(sequencetools.FluxSequence):
-    """Liquid throughfall [mm]."""
-    NDIM, NUMERIC = 1, False
-
-
-class TFIce(sequencetools.FluxSequence):
-    """Frozen throughfall [mm]."""
-    NDIM, NUMERIC = 1, False
-
-
-class GlMelt(sequencetools.FluxSequence):
+class GlMelt(hland_sequences.Flux1DSequence):
     """Glacier melt [mm]."""
     NDIM, NUMERIC = 1, False
 
 
-class MeltPot(sequencetools.FluxSequence):
-    """Potential melting of frozen water stored in the snow layer [mm]."""
-    NDIM, NUMERIC = 1, False
-
-
-class Melt(sequencetools.FluxSequence):
+class Melt(hland_sequences.Flux1DSequence):
     """Actual melting of frozen water stored in the snow layer [mm]."""
     NDIM, NUMERIC = 1, False
 
 
-class RefrPot(sequencetools.FluxSequence):
-    """Potential (re)freezing of liquid water stored in the snow layer [mm]."""
-    NDIM, NUMERIC = 1, False
-
-
-class Refr(sequencetools.FluxSequence):
+class Refr(hland_sequences.Flux1DSequence):
     """Actual (re)freezing of liquid water stored in the snow layer [mm]."""
     NDIM, NUMERIC = 1, False
 
 
-class In_(sequencetools.FluxSequence):
-    """Snow module release / soil module inflow [mm]."""
+class In_(hland_sequences.Flux1DSequence):
+    """Snow module release/soil module inflow [mm]."""
     NDIM, NUMERIC = 1, False
 
 
-class R(sequencetools.FluxSequence):
+class R(hland_sequences.Flux1DSequence):
     """Effective soil response [mm]."""
     NDIM, NUMERIC = 1, False
 
 
-class EA(sequencetools.FluxSequence):
+class EA(hland_sequences.Flux1DSequence):
     """Actual soil evaporation [mm]."""
     NDIM, NUMERIC = 1, False
 
 
-class CFPot(sequencetools.FluxSequence):
+class CFPot(hland_sequences.Flux1DSequence):
     """Potential capillary flow [mm]."""
     NDIM, NUMERIC = 1, False
 
 
-class CF(sequencetools.FluxSequence):
+class CF(hland_sequences.Flux1DSequence):
     """Actual capillary flow [mm]."""
     NDIM, NUMERIC = 1, False
 
@@ -164,7 +146,30 @@ class QT(sequencetools.FluxSequence):
 
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of the HydPy-H-Land model."""
-    _SEQCLASSES = (TMean, TC, FracRain, RfC, SfC, PC, EP, EPC, EI, TF, TFWat,
-                   TFIce, GlMelt, MeltPot, Melt, RefrPot, Refr, In_, R,
-                   EA, CFPot, CF, Perc, ContriArea, InUZ, Q0, EL, Q1,
-                   InUH, OutUH, QT)
+    CLASSES = (TMean,
+               TC,
+               FracRain,
+               RfC,
+               SfC,
+               PC,
+               EP,
+               EPC,
+               EI,
+               TF,
+               GlMelt,
+               Melt,
+               Refr,
+               In_,
+               R,
+               EA,
+               CFPot,
+               CF,
+               Perc,
+               ContriArea,
+               InUZ,
+               Q0,
+               EL,
+               Q1,
+               InUH,
+               OutUH,
+               QT)

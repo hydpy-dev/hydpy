@@ -5,10 +5,8 @@ performing  flood routing calculations after the Williams method
 as implemented in LARSIM.
 """
 # import...
-# ...from standard library
-from __future__ import division, print_function
 # ...from HydPy
-from hydpy.core.modelimports import *
+from hydpy.exe.modelimports import *
 # ...from lstream
 from hydpy.models.lstream.lstream_control import ControlParameters
 from hydpy.models.lstream.lstream_derived import DerivedParameters
@@ -19,7 +17,6 @@ from hydpy.models.lstream.lstream_inlets import InletSequences
 from hydpy.models.lstream.lstream_outlets import OutletSequences
 from hydpy.models.lstream.lstream_model import Model
 
-autodoc_basemodel()
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.complete()
+cythonizer.finalise()

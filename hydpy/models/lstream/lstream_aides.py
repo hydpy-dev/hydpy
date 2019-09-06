@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
+# pylint: enable=missing-docstring
 
 # import...
-# ...from standard library
-from __future__ import division, print_function
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core import sequencetools
 
 
@@ -39,4 +39,9 @@ class QTest(sequencetools.AideSequence):
 
 class AideSequences(sequencetools.AideSequences):
     """Aide sequences of HydPy-L-Stream."""
-    _SEQCLASSES = (Temp, HMin, HMax, QMin, QMax, QTest)
+    CLASSES = (Temp,
+               HMin,
+               HMax,
+               QMin,
+               QMax,
+               QTest)

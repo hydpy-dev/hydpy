@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
+# pylint: enable=missing-docstring
 
 # import...
-# ...from standard library
-from __future__ import division, print_function
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core import sequencetools
 
 
@@ -29,4 +29,7 @@ class PET(sequencetools.InputSequence):
 
 class InputSequences(sequencetools.InputSequences):
     """Input sequences of the HydPy-L-Land model."""
-    _SEQCLASSES = (Nied, TemL, Glob, PET)
+    CLASSES = (Nied,
+               TemL,
+               Glob,
+               PET)

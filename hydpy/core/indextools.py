@@ -2,53 +2,195 @@
 """This module implements tools to determine time related indices."""
 # import...
 # ...from standard library
-from __future__ import division, print_function
+import copy
 # ...from site-packages
 import numpy
 # ...from HydPy
-from hydpy import pub
+import hydpy
+from hydpy.core import exceptiontools
 from hydpy.core import objecttools
+from hydpy.core import propertytools
 from hydpy.core import timetools
-from hydpy.core import autodoctools
 
 
-class Indexer(object):
-    """Handles arrays containing indexes.
+def _get_timegrids(func):
+    timegrids = hydpy.pub.get('timegrids')
+    if timegrids is None:
+        name = func.__name__[1:]
+        raise exceptiontools.AttributeNotReady(
+            f'An Indexer object has been asked for an `{name}` array.  '
+            f'Such an array has neither been determined yet nor can it '
+            f'be determined automatically at the moment.   Either define '
+            f'an `{name}` array manually and pass it to the Indexer '
+            f'object, or make a proper Timegrids object available within '
+            f'the pub module.  In usual HydPy applications, the latter '
+            f'is done automatically.')
+    return timegrids
 
-    One can specify the index arrays manually, but usually they are determined
-    automatically based on the :class:`~hydpy.core.timetools.Timegrids` object
-    made available through module :mod:`~hydpy.pub`.
+
+class IndexerProperty(propertytools.BaseProperty):
+    """Property for handling time related indices.
+
+    Some models (e.g. |lland_v1|) require time related indice values.
+    |IndexerProperty| provides some caching functionalities, to avoid
+    recalculating the same indices for different model instances over
+    and over.  We illustrate this by taking |Indexer.monthofyear| as
+    an example.
+
+    For efficiency, repeated querying of |Indexer.monthofyear| returns
+    the same |numpy| |numpy.array| object:
+
+    >>> from hydpy import pub
+    >>> pub.timegrids = '27.02.2004', '3.03.2004', '1d'
+    >>> monthofyear = pub.indexer.monthofyear
+    >>> monthofyear
+    array([1, 1, 1, 2, 2])
+    >>> pub.indexer.monthofyear
+    array([1, 1, 1, 2, 2])
+    >>> pub.indexer.monthofyear is monthofyear
+    True
+
+    When the |Timegrids| object handled by module |pub| changes,
+    |IndexerProperty| calculates and returns a new index array:
+
+    >>> pub.timegrids.init.firstdate += '1d'
+    >>> pub.indexer.monthofyear
+    array([1, 1, 2, 2])
+    >>> pub.indexer.monthofyear is monthofyear
+    False
+
+    When in doubt, you can delete can manually delete the cached
+    |numpy| |numpy.ndarray| and will receive a freshly calculated
+    index array afterwards:
+
+    >>> monthofyear = pub.indexer.monthofyear
+    >>> pub.indexer.monthofyear is monthofyear
+    True
+    >>> del pub.indexer.monthofyear
+    >>> pub.indexer.monthofyear
+    array([1, 1, 2, 2])
+    >>> pub.indexer.monthofyear is monthofyear
+    False
+
+    You are allowed to define alternative values manually, which
+    seems advisable only during testing:
+
+    >>> pub.indexer.monthofyear = [0, 1, 2, 3]
+    >>> pub.indexer.monthofyear
+    array([0, 1, 2, 3])
+    >>> pub.timegrids.init.firstdate -= '1d'
+    >>> pub.indexer.monthofyear
+    array([1, 1, 1, 2, 2])
+    """
+
+    def __init__(self, fget):
+        self.fget = fget
+        self.fset = self._fset
+        self.fdel = self._fdel
+        self.__doc__ = fget.__doc__
+        self.values = None
+        self.timegrids = None
+
+    def call_fget(self, obj) -> numpy.ndarray:
+        timegrids = hydpy.pub.get('timegrids')
+        if (self.values is None) or (self.timegrids != timegrids):
+            self.values = self._calcidxs(self.fget(obj))
+            self.timegrids = copy.deepcopy(timegrids)
+        return self.values
+
+    def call_fset(self, obj, value):
+        self._fset(value)
+
+    def _fset(self, values):
+        self.values = self._convertandtest(values, self.name)
+        self.timegrids = copy.deepcopy(hydpy.pub.get('timegrids'))
+
+    def call_fdel(self, obj):
+        self.fdel()
+
+    def _fdel(self):
+        self.values = None
+        self.timegrids = None
+
+    @staticmethod
+    def _convertandtest(values, name):
+        """Try to convert the given values to a |numpy| |numpy.ndarray| and
+        check if it is plausible.  If so, return the array, otherwise raise
+        a |ValueError| or re-raise a |numpy| specific exception.
+        """
+        try:
+            array = numpy.array(values, dtype=int)
+        except BaseException:
+            objecttools.augment_excmessage(
+                f'While trying to assign a new `{name}` '
+                f'index array to an Indexer object')
+        if array.ndim != 1:
+            raise ValueError(
+                f'The `{name}` index array of an Indexer object must be '
+                f'1-dimensional.  However, the given value has interpreted '
+                f'as a {array.ndim}-dimensional object.')
+        timegrids = hydpy.pub.get('timegrids')
+        if timegrids is not None:
+            if len(array) != len(timegrids.init):
+                raise ValueError(
+                    f'The `{name}` index array of an Indexer object must have '
+                    f'a number of entries fitting to the initialization time '
+                    f'period precisely.  However, the given value has been '
+                    f'interpreted to be of length `{len(array)}` and the '
+                    f'length of the Timegrid object representing the actual '
+                    f'initialization time period is `{len(timegrids.init)}`.')
+        return array
+
+    @staticmethod
+    def _calcidxs(func):
+        """Return the required indexes based on the given lambda function
+        and the |Timegrids| object handled by module |pub|.  Raise a
+        |RuntimeError| if the latter is not available.
+        """
+        timegrids = _get_timegrids(func)
+        idxs = numpy.empty(len(timegrids.init), dtype=int)
+        for jdx, date in enumerate(hydpy.pub.timegrids.init):
+            idxs[jdx] = func(date)
+        return idxs
+
+
+class Indexer:
+    """Handles different |IndexerProperty| objects defining time
+    related indices.
+
+    One can specify the index arrays manually, but usually they are
+    determined automatically based on the |Timegrids| object made
+    available through module |pub|.
     """
     def __init__(self):
         self._monthofyear = None
-        self._monthofyear_hash = hash(None)
+        self._monthofyear_timegrids = hash(None)
         self._dayofyear = None
         self._dayofyear_hash = hash(None)
         self._timeofyear = None
         self._timeofyear_hash = hash(None)
 
-    def _getmonthofyear(self):
-        """Month of the year index (January = 0...)."""
-        from hydpy.pub import timegrids
-        if ((self._monthofyear is None) or
-                (hash(timegrids) != self._monthofyear_hash)):
-            def monthofyear(date):
-                return date.month-1
-            self._monthofyear = self._calcidxs(monthofyear)
-            self._monthofyear_hash = hash(timegrids)
-        return self._monthofyear
+    @IndexerProperty
+    def monthofyear(self):
+        """Month of the year index.
 
-    def _setmonthofyear(self, values):
-        from hydpy.pub import timegrids
-        self._monthofyear = self._convertandtest(values, 'monthofyear')
-        self._monthofyear_hash = hash(timegrids)
+        The following example shows the month indices of the last days
+        February (1) and the first days of March (2) for a leap year:
 
-    def _delmonthofyear(self):
-        self._monthofyear = None
+        >>> from hydpy import pub
+        >>> pub.timegrids = '27.02.2004', '3.03.2004', '1d'
+        >>> monthofyear = pub.indexer.monthofyear
+        >>> monthofyear
+        array([1, 1, 1, 2, 2])
+        """
+        # pylint: disable=no-self-use
+        # pylint does not understand descriptors well enough, so far
+        def _monthofyear(date):
+            return date.month - 1
+        return _monthofyear
 
-    monthofyear = property(_getmonthofyear, _setmonthofyear, _delmonthofyear)
-
-    def _getdayofyear(self):
+    @IndexerProperty
+    def dayofyear(self):
         """Day of the year index (the first of January = 0...).
 
         For reasons of consistency between leap years and non-leap years,
@@ -56,54 +198,37 @@ class Indexer(object):
         29th of February.  Hence, it is missing in non-leap years:
 
         >>> from hydpy import pub
-        >>> from hydpy import Timegrids, Timegrid
         >>> from hydpy.core.indextools import Indexer
-        >>> pub.timegrids = Timegrids(Timegrid('27.02.2004',
-        ...                                    '3.03.2004',
-        ...                                    '1d'))
+        >>> pub.timegrids = '27.02.2004', '3.03.2004', '1d'
         >>> Indexer().dayofyear
         array([57, 58, 59, 60, 61])
-        >>> pub.timegrids = Timegrids(Timegrid('27.02.2005',
-        ...                                    '3.03.2005',
-        ...                                    '1d'))
+        >>> pub.timegrids = '27.02.2005', '3.03.2005', '1d'
         >>> Indexer().dayofyear
         array([57, 58, 60, 61])
         """
-        if ((self._dayofyear is None) or
-                (hash(pub.timegrids) != self._dayofyear_hash)):
-            def dayofyear(date):
-                return (date.dayofyear-1 +
-                        ((date.month > 2) and (not date.leapyear)))
-            self._dayofyear = self._calcidxs(dayofyear)
-            self._dayofyear_hash = hash(pub.timegrids)
-        return self._dayofyear
+        # pylint: disable=no-self-use
+        # pylint does not understand descriptors well enough, so far
+        def _dayofyear(date):
+            return (date.dayofyear-1 +
+                    ((date.month > 2) and (not date.leapyear)))
+        return _dayofyear
 
-    def _setdayofyear(self, values):
-        self._dayofyear = self._convertandtest(values, 'dayofyear')
-        self._dayofyear_hash = hash(pub.timegrids)
-
-    def _deldayofyear(self):
-        self._dayofyear = None
-
-    dayofyear = property(_getdayofyear, _setdayofyear, _deldayofyear)
-
-    def _gettimeofyear(self):
+    @IndexerProperty
+    def timeofyear(self):
         """Time of the year index (first simulation step of each year = 0...).
 
-        The property :attr:`~Indexer.timeofyear` is best explained through
-        it with property :attr:`~Indexer.dayofyear`:
+        The property |Indexer.timeofyear| is best explained through
+        comparing it with property |Indexer.dayofyear|:
 
         Let us reconsider one of the examples of the documentation on
-        property :attr:`~Indexer.dayofyear`:
+        property |Indexer.dayofyear|:
 
         >>> from hydpy import pub
         >>> from hydpy import Timegrids, Timegrid
         >>> from hydpy.core.indextools import Indexer
-        >>> pub.timegrids = Timegrids(Timegrid('27.02.2005',
-        ...                                    '3.03.2005',
-        ...                                    '1d'))
+        >>> pub.timegrids = '27.02.2005', '3.03.2005', '1d'
 
-        Due to the simulation stepsize beeing one day, the index arrays
+        Due to the simulation stepsize being one day, the index arrays
         calculated by both properties are identical:
 
         >>> Indexer().dayofyear
@@ -113,9 +238,7 @@ class Indexer(object):
 
         In the next example the step size is halved:
 
-        >>> pub.timegrids = Timegrids(Timegrid('27.02.2005',
-        ...                                    '3.03.2005',
-        ...                                    '12h'))
+        >>> pub.timegrids = '27.02.2005', '3.03.2005', '12h'
 
         Now the there a generally two subsequent simulation steps associated
         with the same day:
@@ -129,86 +252,18 @@ class Indexer(object):
         >>> Indexer().timeofyear
         array([114, 115, 116, 117, 120, 121, 122, 123])
 
-        Note the gap in the returned index array due to 2005 beeing not a
+        Note the gap in the returned index array due to 2005 being not a
         leap year.
         """
-        if ((self._timeofyear is None) or
-                (hash(pub.timegrids) != self._timeofyear_hash)):
-            if pub.timegrids is None:
-                refgrid = None
-            else:
-                refgrid = timetools.Timegrid(timetools.Date('2000.01.01'),
-                                             timetools.Date('2001.01.01'),
-                                             pub.timegrids.stepsize)
+        # pylint: disable=no-self-use
+        # pylint does not understand descriptors well enough, so far
+        def _timeofyear(date):
+            date = copy.deepcopy(date)
+            date.year = 2000
+            return refgrid[date]
 
-            def timeofyear(date):
-                date = date.copy()
-                date.year = 2000
-                return refgrid[date]
-
-            self._timeofyear = self._calcidxs(timeofyear)
-            self._timeofyear_hash = hash(pub.timegrids)
-        return self._timeofyear
-
-    def _settimeofyear(self, values):
-        self._timeofyear = self._convertandtest(values, 'timeofyear')
-        self._timeofyear_hash = hash(pub.timegrids)
-
-    def _deltimeofyear(self):
-        self._timeofyear = None
-
-    timeofyear = property(_gettimeofyear, _settimeofyear, _deltimeofyear)
-
-    def _convertandtest(self, values, name):
-        """Try to convert the given values to a :mod:`numpy`
-        :class:`~numpy.ndarrray` and check if it is plausible.  If so, return
-        the array, other raise a :class:`~exceptions.ValueError` or re-raise a
-        :mod:`numpy` specific exception.
-        """
-        try:
-            array = numpy.array(values, dtype=int)
-        except BaseException:
-            objecttools.augment_excmessage(
-                'While trying to assign a new `%s` '
-                'index array to an Indexer object'
-                % name)
-        if array.ndim != 1:
-            raise ValueError(
-                'The `%s` index array of an Indexer object must be '
-                '1-dimensional.  However, the given value has interpreted '
-                'as a %d-dimensional object.'
-                % (name, array.ndim))
-        if pub.timegrids is not None:
-            if len(array) != len(pub.timegrids.init):
-                raise ValueError(
-                    'The %s` index array of an Indexer object must have a '
-                    'number of entries fitting to the initialization time '
-                    'period precisely.  However, the given value has been '
-                    'interpreted to be of length %d and the length of the '
-                    'Timegrid object representing the actual initialization '
-                    'time period is %d.'
-                    % (name, len(array), len(pub.timegrids.init)))
-        return array
-
-    def _calcidxs(self, func):
-        """Return the required indexes based on the given lambda function and
-        the |Timegrids| object handled by module |pub|.  Raise a
-        :class:`~exceptions.RuntimeError` if the latter is not available.
-        """
-        if pub.timegrids is None:
-            raise RuntimeError(
-                'An Indexer object has been asked for an %s array.  Such an '
-                'array has neither been determined yet nor can it be '
-                'determined automatically at the moment.   Either define an '
-                '%s array manually and pass it to the Indexer object, or make '
-                'a proper Timegrids object available within the pub module.  '
-                'In usual HydPy applications, the latter is done '
-                'automatically.'
-                % (func.__name__, func.__name__))
-        idxs = numpy.empty(len(pub.timegrids.init), dtype=int)
-        for (jdx, date) in enumerate(pub.timegrids.init):
-            idxs[jdx] = func(date)
-        return idxs
-
-
-autodoctools.autodoc_module()
+        refgrid = timetools.Timegrid(
+            timetools.Date('2000.01.01'),
+            timetools.Date('2001.01.01'),
+            _get_timegrids(_timeofyear).stepsize)
+        return _timeofyear

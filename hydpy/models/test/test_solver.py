@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
+# pylint: enable=missing-docstring
 
 # import...
-# ...from standard library
-from __future__ import division, print_function
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core import parametertools
 
 
@@ -27,4 +27,5 @@ class RelDTMin(parametertools.SolverParameter):
 
 class SolverParameters(parametertools.SubParameters):
     """Solver parameters of the Test model."""
-    _PARCLASSES = (AbsErrorMax, RelDTMin)
+    CLASSES = (AbsErrorMax,
+               RelDTMin)

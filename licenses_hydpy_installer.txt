@@ -1,0 +1,28 @@
+This installer brings Python, including its standard-library, and different external packages on your computer.  HydPy is only one of these packages and would not work well without the others.  So please respect all of the following individual licenses:
+
+Python: https://docs.python.org/license.html
+HydPy: https://github.com/hydpy-dev/hydpy/blob/master/LICENSE
+NumPy: https://www.numpy.org/license.html
+SciPy: https://www.scipy.org/scipylib/license.html
+matplotlib: https://matplotlib.org/users/license.html
+cycler: https://github.com/matplotlib/cycler/blob/master/LICENSE
+six: https://github.com/benjaminp/six/blob/master/LICENSE
+kiwi-solver: https://github.com/google/kiwi-solver/blob/master/LICENSE
+setuptools: https://github.com/pypa/setuptools/blob/master/LICENSE
+pyparsing: https://github.com/pyparsing/pyparsing/blob/master/LICENSE
+python-dateutil: https://github.com/dateutil/dateutil/blob/master/LICENSE
+NetCDF4: https://github.com/Unidata/netcdf4-python/blob/master/COPYING
+cftime: https://github.com/Unidata/cftime/blob/master/COPYING
+pandas: https://github.com/pandas-dev/pandas/blob/master/LICENSE
+pytz: https://github.com/newvem/pytz/blob/master/LICENSE.txt
+xmlschema: https://github.com/sissaschool/xmlschema/blob/master/LICENSE
+elementpath: https://github.com/sissaschool/elementpath/blob/master/LICENSE
+markupsafe: https://github.com/pallets/markupsafe/blob/master/LICENSE.rst
+PyYAML: https://github.com/yaml/pyyaml/blob/master/LICENSE
+packaging: https://github.com/pypa/packaging/blob/master/LICENSE
+attrs: https://github.com/python-attrs/attrs/blob/master/LICENSE
+Pillow: https://github.com/python-pillow/Pillow/blob/master/LICENSE
+tornado: https://github.com/tornadoweb/tornado/blob/stable/LICENSE
+wrapt: https://github.com/GrahamDumpleton/wrapt/blob/develop/LICENSE
+bokeh: https://github.com/bokeh/bokeh/blob/master/LICENSE.txt
+jinja2: https://github.com/pallets/jinja/blob/master/LICENSE.rst

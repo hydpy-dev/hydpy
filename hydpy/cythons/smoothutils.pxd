@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """This module defines the Cython declarations related to module
-:mod:`~hydpy.auxs.smoothtools`.
+|smoothtools|.
 """
 
 cpdef double smooth_logistic1(double value, double parameter) nogil

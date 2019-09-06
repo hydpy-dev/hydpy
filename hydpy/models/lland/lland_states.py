@@ -1,44 +1,47 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
+# pylint: enable=missing-docstring
 
 # import...
-# ...from standard library
-from __future__ import division, print_function
 # ...from site-packages
 import numpy
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core import sequencetools
+# ...from lland
+from hydpy.models.lland import lland_masks
+from hydpy.models.lland import lland_sequences
 
 
-class Inzp(sequencetools.StateSequence):
+class Inzp(lland_sequences.State1DSequence):
     """Interzeptionsspeicherung (interception storage) [mm].
 
-    Note that :class:`Inzp` of HydPy-L implements no specialized trim method
-    (as opposed to :class:`~hydpy.models.hland.hland_states.Ic` of HydPy-H).
-    This is due the discontinuous evolution of
-    :class:`~hydpy.models.lland.lland_control.IcC` in time.  In accordance
-    with the orginal LARSIM implementation, :class:`Inzp` can be temporarily
-    overfilled during rain periods whenever
-    :class:`~hydpy.models.lland.lland_control.IcC` drops rapidly between two
-    months.  A specialized trim method would just make the excess water
-    vanish.  But in HydPy-L, the excess water becomes
-    :class:`~hydpy.models.lland.lland_fluxes.ThruFall` in the first simulation
-    step of the new month.
+    Note that |Inzp| of HydPy-L implements no specialized trim method
+    (as opposed to |hland_states.Ic| of |hland|).  This is due the
+    discontinuous evolution of |KInz| in time.  In accordance with the
+    original LARSIM implementation, |Inzp| can be temporarily overfilled
+    during rain periods whenever |KInz| drops rapidly between two months.
+    A specialized trim method would just make the excess water vanish.
+    But in HydPy-L, the excess water becomes |NBes| in the first
+    simulation step of the new month.
     """
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
+    mask = lland_masks.Land()
 
 
-class WATS(sequencetools.StateSequence):
+class WATS(lland_sequences.State1DSequence):
     """Wasseräquivalent Trockenschnee (frozen water equivalent of the snow
     cover) [mm]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
+    mask = lland_masks.Land()
 
     def trim(self, lower=None, upper=None):
-        """Trim values in accordance with :math:`WAeS \\leq PWMax \\cdot WATS`.
+        """Trim values in accordance with :math:`WAeS \\leq PWMax \\cdot WATS`,
+        or at least in accordance with if :math:`WATS \\geq 0`.
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> nhru(7)
-        >>> pwmax(2.)
+        >>> pwmax(2.0)
         >>> states.waes = -1., 0., 1., -1., 5., 10., 20.
         >>> states.wats(-1., 0., 0., 5., 5., 5., 5.)
         >>> states.wats
@@ -47,17 +50,16 @@ class WATS(sequencetools.StateSequence):
         pwmax = self.subseqs.seqs.model.parameters.control.pwmax
         waes = self.subseqs.waes
         if lower is None:
-            if waes.values is not None:
-                lower = numpy.clip(waes/pwmax, 0., numpy.inf)
-            else:
-                lower = 0.
-        sequencetools.StateSequence.trim(self, lower, upper)
+            lower = numpy.clip(waes/pwmax, 0., numpy.inf)
+            lower[numpy.isnan(lower)] = 0.0
+        super().trim(lower, upper)
 
 
-class WAeS(sequencetools.StateSequence):
+class WAeS(lland_sequences.State1DSequence):
     """Wasseräquivalent Gesamtschnee (total water equivalent of the snow
     cover) [mm]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
+    mask = lland_masks.Land()
 
     def trim(self, lower=None, upper=None):
         """Trim values in accordance with :math:`WAeS \\leq PWMax \\cdot WATS`.
@@ -73,14 +75,15 @@ class WAeS(sequencetools.StateSequence):
         """
         pwmax = self.subseqs.seqs.model.parameters.control.pwmax
         wats = self.subseqs.wats
-        if (upper is None) and (wats.values is not None):
+        if upper is None:
             upper = pwmax*wats
-        sequencetools.StateSequence.trim(self, lower, upper)
+        super().trim(lower, upper)
 
 
-class BoWa(sequencetools.StateSequence):
+class BoWa(lland_sequences.State1DSequence):
     """Bodenwasserspeicherung (soil water storage) [mm]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
+    mask = lland_masks.Soil()
 
     def trim(self, lower=None, upper=None):
         """Trim values in accordance with :math:`BoWa \\leq NFk`.
@@ -95,7 +98,7 @@ class BoWa(sequencetools.StateSequence):
         """
         if upper is None:
             upper = self.subseqs.seqs.model.parameters.control.nfk
-        sequencetools.StateSequence.trim(self, lower, upper)
+        super().trim(lower, upper)
 
 
 class QDGZ1(sequencetools.StateSequence):
@@ -107,7 +110,7 @@ class QDGZ1(sequencetools.StateSequence):
 class QDGZ2(sequencetools.StateSequence):
     """Zufluss in den dynamischeren Direktabfluss-Gebietsspeicher (inflow into
     the more responsive storage compartment for direct runoff) [mm]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
+    NDIM, NUMERIC, SPAN = 0, False, (None, None)
 
 
 class QIGZ1(sequencetools.StateSequence):
@@ -125,7 +128,7 @@ class QIGZ2(sequencetools.StateSequence):
 class QBGZ(sequencetools.StateSequence):
     """Zufluss in den Basisabfluss-Gebietsspeicher (inflow into the
     storage compartment for base flow) [mm]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
+    NDIM, NUMERIC, SPAN = 0, False, (None, None)
 
 
 class QDGA1(sequencetools.StateSequence):
@@ -137,7 +140,7 @@ class QDGA1(sequencetools.StateSequence):
 class QDGA2(sequencetools.StateSequence):
     """Abfluss aus dem dynamischeren Direktabfluss-Gebietsspeicher (outflow
     from the more responsive storage compartment for direct runoff) [mm]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
+    NDIM, NUMERIC, SPAN = 0, False, (None, None)
 
 
 class QIGA1(sequencetools.StateSequence):
@@ -155,10 +158,22 @@ class QIGA2(sequencetools.StateSequence):
 class QBGA(sequencetools.StateSequence):
     """Abfluss aus dem Basisabfluss-Gebietsspeicher (outflow from the
     storage compartment for base flow) [mm]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
+    NDIM, NUMERIC, SPAN = 0, False, (None, None)
 
 
 class StateSequences(sequencetools.StateSequences):
     """State sequences of the HydPy-L-Land model."""
-    _SEQCLASSES = (Inzp, WATS, WAeS, BoWa, QDGZ1, QDGZ2, QIGZ1, QIGZ2,
-                   QBGZ, QDGA1, QDGA2, QIGA1, QIGA2, QBGA)
+    CLASSES = (Inzp,
+               WATS,
+               WAeS,
+               BoWa,
+               QDGZ1,
+               QDGZ2,
+               QIGZ1,
+               QIGZ2,
+               QBGZ,
+               QDGA1,
+               QDGA2,
+               QIGA1,
+               QIGA2,
+               QBGA)

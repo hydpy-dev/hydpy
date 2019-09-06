@@ -6,11 +6,16 @@
 temp
 hydpy/cythons/autogen/*.pyd
 hydpy/cythons/autogen/*.pyc
+hydpy/cythons/autogen/*.pyi
 hydpy/cythons/autogen/*.pyx
 hydpy/cythons/autogen/*.pxd
 hydpy/cythons/autogen/*.c
 hydpy/cythons/autogen/*.h
+hydpy/conf/HydPyConfigBase.xsd
 hydpy/docs/html/*.html
+hydpy/docs/auto
+hydpy/tests/iotesting/*
+!hydpy/test/iotesting/__init__.py
 build
 _build
 dist
@@ -23,3 +28,7 @@ HydPy.egg-info/*
 MANIFEST
 test.py
 .spyproject/
+.mypy_cache/*
+.idea/*
+make_hydpy_installer.cfg
+lib/*

@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hpcmr:config xmlns="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/HydPyConfigBase.xsd"
+              xmlns:hpcmr="https://github.com/hydpy-dev/hydpy/releases/download/your-hydpy-version/HydPyConfigMultipleRuns.xsd">
+
+    <options>
+        <reprdigits>6</reprdigits>
+    </options>
+
+    <timegrid>
+        <firstdate>1996-01-01T00:00:00</firstdate>
+        <lastdate>1996-01-06T00:00:00</lastdate>
+        <stepsize>1d</stepsize>
+    </timegrid>
+
+    <selections>
+        complete
+    </selections>
+
+    <devices/>
+
+    <conditions_io>
+        <inputdir>init_1996_01_01_00_00_00</inputdir>
+        <outputdir>init_1996_01_06</outputdir> <!-- optional ? -->
+        <zip>false</zip> <!-- optional ? -->
+    </conditions_io>
+    
+    <series_io>
+
+        <filetype>
+            <general>asc</general>
+        </filetype>
+
+        <overwrite>
+            <general>true</general>
+        </overwrite>
+
+        <dirpath>
+            <inputs>LahnH/series/input</inputs>
+            <fluxes>LahnH/series/output</fluxes>
+            <states>LahnH/series/output</states>
+            <nodes>LahnH/series/node</nodes>
+        </dirpath>
+
+        <aggregation>
+            <general>none</general>
+        </aggregation>
+
+        <zip>false</zip>
+
+        <readers>
+            <reader info="all input data">
+                <sequences>
+                    <hland_v1>
+                        <inputs>
+                            <p/>
+                            <t/>
+                            <tn/>
+                            <epn/>
+                        </inputs>
+                    </hland_v1>
+                </sequences>
+            </reader>
+        </readers>
+
+        <writers/>
+
+    </series_io>
+
+    <exchange>
+
+        <setitems info="globally applied items">
+            <hland_v1>
+                <control>
+                    <alpha>
+                        <alias>alpha</alias>
+                        <dim>0</dim>
+                        <init>2.0</init>
+                    </alpha>
+                </control>
+            </hland_v1>
+            <hland_v1>
+                <control>
+                    <beta>
+                        <alias>beta</alias>
+                        <dim>0</dim>
+                        <init>1.0</init>
+                    </beta>
+                </control>
+            </hland_v1>
+            <hstream_v1>
+                <control>
+                    <lag>
+                        <alias>lag</alias>
+                        <dim>0</dim>
+                        <init>5.0</init> <!--parameterstep???-->
+                    </lag>
+                    <damp>
+                        <alias>damp</alias>
+                        <dim>0</dim>
+                        <init>0.5</init>
+                    </damp>
+                </control>
+            </hstream_v1>
+        </setitems>
+        <setitems>
+            <selections/>
+            <hland_v1>
+                <states>
+                    <sm>
+                        <devices>land_lahn_2</devices>
+                        <alias>sm_lahn_2</alias>
+                        <dim>0</dim>
+                        <init>123.0</init>
+                    </sm>
+                    <sm>
+                        <devices>land_lahn_1</devices>
+                        <alias>sm_lahn_1</alias>
+                        <dim>1</dim>
+                        <init>
+                            110.0 120.0 130.0 140.0 150.0 160.0 170.0
+                            180.0 190.0 200.0 210.0 220.0 230.0
+                        </init>
+                    </sm>
+                </states>
+                <logs>
+                    <devices>land_lahn_2</devices>
+                    <quh>
+                        <alias>quh</alias>
+                        <dim>0</dim>
+                        <init>10.0</init>
+                    </quh>
+                </logs>
+            </hland_v1>
+        </setitems>
+        <additems>
+            <hland_v1>
+                <selections>headwaters</selections>
+                <control>
+                    <sfcf>
+                        <alias>sfcf_1</alias>
+                        <dim>0</dim>
+                        <init>0.3</init>
+                        <control.rfcf/>
+                    </sfcf>
+                </control>
+                <control>
+                    <selections>nonheadwaters</selections>
+                    <sfcf>
+                        <alias>sfcf_2</alias>
+                        <dim>0</dim>
+                        <init>0.2</init>
+                        <control.rfcf/>
+                    </sfcf>
+                    <sfcf>
+                        <selections/>
+                        <devices>land_lahn_3</devices>
+                        <alias>sfcf_3</alias>
+                        <dim>1</dim>
+                        <init>
+                            0.1 0.2 0.1 0.2 0.1 0.2 0.1 0.2
+                            0.1 0.2 0.1 0.2 0.2 0.2
+                        </init>
+                        <control.rfcf/>
+                    </sfcf>
+                </control>
+            </hland_v1>
+        </additems>
+        <getitems>
+            <hland_v1>
+                <fluxes>
+                    <selections/>
+                    <devices>land_dill</devices>
+                    <qt/>
+                    <qt.series/>
+                </fluxes>
+                <states>
+                    <sm/>
+                    <sm.series>
+                        <selections/>
+                        <devices>land_lahn_3</devices>
+                    </sm.series>
+                </states>
+            </hland_v1>
+            <nodes>
+                <selections/>
+                <devices>dill</devices>
+                <sim.series/>
+            </nodes>
+        </getitems>
+
+    </exchange>
+
+</hpcmr:config>

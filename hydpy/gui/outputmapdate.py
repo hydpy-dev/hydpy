@@ -5,7 +5,7 @@ from __future__ import division, print_function
 import tkinter
 import copy
 # ...from HydPy
-from hydpy import pub
+import hydpy
 
 
 class Date(tkinter.Frame):
@@ -15,7 +15,7 @@ class Date(tkinter.Frame):
         self.menu = menu
         self.hydpy = hydpy
         self.deltaidx = 1
-        self.timegrid = copy.deepcopy(pub.timegrids.sim)
+        self.timegrid = copy.deepcopy(hydpy.pub.timegrids.sim)
         self.timegrid.lastdate = self.timegrid.firstdate+self.timegrid.stepsize
         self.show = Show(self)
         self.show.pack(side=tkinter.TOP)
@@ -23,22 +23,22 @@ class Date(tkinter.Frame):
         self.change.pack(side=tkinter.TOP)
 
     def stepbackwards(self, event):
-        newfirstdate = self.timegrid.firstdate - pub.timegrids.stepsize
-        if newfirstdate >= pub.timegrids.sim.firstdate:
+        newfirstdate = self.timegrid.firstdate - hydpy.pub.timegrids.stepsize
+        if newfirstdate >= hydpy.pub.timegrids.sim.firstdate:
             self.timegrid.firstdate = newfirstdate
-            self.timegrid.lastdate -= pub.timegrids.stepsize
+            self.timegrid.lastdate -= hydpy.pub.timegrids.stepsize
             self.show.update()
             self.menu.main.map.recolor(
-                    pub.timegrids.init[self.timegrid.firstdate])
+                    hydpy.pub.timegrids.init[self.timegrid.firstdate])
 
     def stepforwards(self, event):
-        newlastdate = self.timegrid.lastdate + pub.timegrids.stepsize
-        if newlastdate <= pub.timegrids.sim.lastdate:
+        newlastdate = self.timegrid.lastdate + hydpy.pub.timegrids.stepsize
+        if newlastdate <= hydpy.pub.timegrids.sim.lastdate:
             self.timegrid.lastdate = newlastdate
-            self.timegrid.firstdate += pub.timegrids.stepsize
+            self.timegrid.firstdate += hydpy.pub.timegrids.stepsize
             self.show.update()
             self.menu.main.map.recolor(
-                    pub.timegrids.init[self.timegrid.firstdate])
+                    hydpy.pub.timegrids.init[self.timegrid.firstdate])
 
 
 class Show(tkinter.Label):
@@ -97,7 +97,7 @@ class Modifier(tkinter.Toplevel):
 
     def updateyear(self):
         self.yearlistbox.delete(0, tkinter.END)
-        years = set(date.year for date in pub.timegrids.sim)
+        years = set(date.year for date in hydpy.pub.timegrids.sim)
         for year in years:
             self.yearlistbox.insert(tkinter.END, str(year))
 
@@ -108,7 +108,7 @@ class Modifier(tkinter.Toplevel):
 
     def updatemonth(self):
         self.monthlistbox.delete(0, tkinter.END)
-        months = set(date.month for date in pub.timegrids.sim
+        months = set(date.month for date in hydpy.pub.timegrids.sim
                      if date.year == self.year)
         for month in months:
             self.monthlistbox.insert(tkinter.END, str(month))
@@ -120,7 +120,7 @@ class Modifier(tkinter.Toplevel):
 
     def updateday(self):
         self.daylistbox.delete(0, tkinter.END)
-        days = set(date.day for date in pub.timegrids.sim
+        days = set(date.day for date in hydpy.pub.timegrids.sim
                    if (date.year == self.year and
                        date.month == self.month))
         for day in days:
@@ -133,7 +133,7 @@ class Modifier(tkinter.Toplevel):
 
     def updatehour(self):
         self.hourlistbox.delete(0, tkinter.END)
-        hours = set(date.hour for date in pub.timegrids.sim
+        hours = set(date.hour for date in hydpy.pub.timegrids.sim
                     if (date.year == self.year and
                         date.month == self.month and
                         date.day == self.day))
@@ -147,7 +147,7 @@ class Modifier(tkinter.Toplevel):
 
     def updateminute(self):
         self.minutelistbox.delete(0, tkinter.END)
-        minutes = set(date.minute for date in pub.timegrids.sim
+        minutes = set(date.minute for date in hydpy.pub.timegrids.sim
                       if (date.year == self.year and
                           date.month == self.month and
                           date.day == self.day and

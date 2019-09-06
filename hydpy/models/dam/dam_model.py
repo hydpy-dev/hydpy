@@ -3,11 +3,9 @@
 # pylint: enable=missing-docstring
 
 # imports...
-# ...standard library
-from __future__ import division, print_function
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core import modeltools
-from hydpy.cythons import smoothutils
+from hydpy.cythons.autogen import smoothutils
 
 
 def pic_inflow_v1(self):
@@ -151,7 +149,10 @@ def calc_waterlevel_v1(self):
         the shape of the relationship looks acceptable:
 
         >>> from hydpy import UnitTest
-        >>> test = UnitTest(model, model.calc_waterlevel_v1, last_example=10)
+        >>> test = UnitTest(
+        ...     model, model.calc_waterlevel_v1,
+        ...     last_example=10,
+        ...     parseqs=(states.watervolume, aides.waterlevel))
         >>> test.nexts.watervolume = range(10)
         >>> test()
         | ex. | watervolume | waterlevel |
@@ -212,10 +213,7 @@ def calc_allowedremoterelieve_v2(self):
         time period of only two days:
 
         >>> from hydpy import pub
-        >>> from hydpy import Timegrids, Timegrid
-        >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
-        ...                                    '2001.04.03',
-        ...                                    '1d'))
+        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
 
         Now we prepare the dam model and define two different control
         schemes for the hydrological summer (April to October) and
@@ -329,10 +327,7 @@ def calc_requiredremotesupply_v1(self):
         information):
 
         >>> from hydpy import pub
-        >>> from hydpy import Timegrids, Timegrid
-        >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
-        ...                                    '2001.04.03',
-        ...                                    '1d'))
+        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
         >>> from hydpy.models.dam import *
         >>> parameterstep()
         >>> highestremotesupply(_11_1_12=1.0, _03_31_12=1.0,
@@ -472,17 +467,14 @@ def calc_remotedemand_v1(self):
         throughout the year actually works:
 
         >>> from hydpy import pub
-        >>> from hydpy import Timegrids, Timegrid
-        >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
-        ...                                    '2001.04.03',
-        ...                                    '1d'))
+        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
 
         Prepare the dam model:
 
         >>> from hydpy.models.dam import *
         >>> parameterstep()
 
-        Assume the required discharge at a gauge downstream beeing 2 m³/s
+        Assume the required discharge at a gauge downstream being 2 m³/s
         in the hydrological summer half-year (April to October).  In the
         winter month (November to May), there is no such requirement:
 
@@ -557,10 +549,7 @@ def calc_remotefailure_v1(self):
         we have to define a simulation period first:
 
         >>> from hydpy import pub
-        >>> from hydpy import Timegrids, Timegrid
-        >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
-        ...                                    '2001.04.03',
-        ...                                    '1d'))
+        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
 
         Now we prepare a dam model with log sequences memorizing three values:
 
@@ -636,10 +625,7 @@ def calc_requiredremoterelease_v1(self):
         As in the examples above, define a short simulation time period first:
 
         >>> from hydpy import pub
-        >>> from hydpy import Timegrids, Timegrid
-        >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
-        ...                                    '2001.04.03',
-        ...                                    '1d'))
+        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
 
         Prepare the dam model:
 
@@ -802,10 +788,7 @@ def calc_requiredrelease_v1(self):
         As in the examples above, define a short simulation time period first:
 
         >>> from hydpy import pub
-        >>> from hydpy import Timegrids, Timegrid
-        >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
-        ...                                    '2001.04.03',
-        ...                                    '1d'))
+        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
 
         Prepare the dam model:
 
@@ -912,10 +895,7 @@ def calc_requiredrelease_v2(self):
         As in the examples above, define a short simulation time period first:
 
         >>> from hydpy import pub
-        >>> from hydpy import Timegrids, Timegrid
-        >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
-        ...                                    '2001.04.03',
-        ...                                    '1d'))
+        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
 
         Prepare the dam model:
 
@@ -981,33 +961,35 @@ def calc_possibleremoterelieve_v1(self):
         ...     intercepts_hidden=[[-13000, -1046]],
         ...     intercepts_output=[0.])
         >>> from hydpy import UnitTest
-        >>> test = UnitTest(model, model.calc_possibleremoterelieve_v1,
-        ...                 last_example=21)
+        >>> test = UnitTest(
+        ...     model, model.calc_possibleremoterelieve_v1,
+        ...     last_example=21,
+        ...     parseqs=(aides.waterlevel, fluxes.possibleremoterelieve))
         >>> test.nexts.waterlevel = numpy.arange(257, 261.1, 0.2)
         >>> test()
-        | ex. | possibleremoterelieve | waterlevel |
+        | ex. | waterlevel | possibleremoterelieve |
         --------------------------------------------
-        |   1 |                   0.0 |      257.0 |
-        |   2 |              0.000001 |      257.2 |
-        |   3 |              0.000002 |      257.4 |
-        |   4 |              0.000005 |      257.6 |
-        |   5 |              0.000011 |      257.8 |
-        |   6 |              0.000025 |      258.0 |
-        |   7 |              0.000056 |      258.2 |
-        |   8 |              0.000124 |      258.4 |
-        |   9 |              0.000275 |      258.6 |
-        |  10 |              0.000612 |      258.8 |
-        |  11 |              0.001362 |      259.0 |
-        |  12 |              0.003031 |      259.2 |
-        |  13 |              0.006745 |      259.4 |
-        |  14 |              0.015006 |      259.6 |
-        |  15 |              0.033467 |      259.8 |
-        |  16 |              1.074179 |      260.0 |
-        |  17 |              2.164498 |      260.2 |
-        |  18 |              2.363853 |      260.4 |
-        |  19 |               2.79791 |      260.6 |
-        |  20 |              3.719725 |      260.8 |
-        |  21 |              5.576088 |      261.0 |
+        |   1 |      257.0 |                   0.0 |
+        |   2 |      257.2 |              0.000001 |
+        |   3 |      257.4 |              0.000002 |
+        |   4 |      257.6 |              0.000005 |
+        |   5 |      257.8 |              0.000011 |
+        |   6 |      258.0 |              0.000025 |
+        |   7 |      258.2 |              0.000056 |
+        |   8 |      258.4 |              0.000124 |
+        |   9 |      258.6 |              0.000275 |
+        |  10 |      258.8 |              0.000612 |
+        |  11 |      259.0 |              0.001362 |
+        |  12 |      259.2 |              0.003031 |
+        |  13 |      259.4 |              0.006745 |
+        |  14 |      259.6 |              0.015006 |
+        |  15 |      259.8 |              0.033467 |
+        |  16 |      260.0 |              1.074179 |
+        |  17 |      260.2 |              2.164498 |
+        |  18 |      260.4 |              2.363853 |
+        |  19 |      260.6 |               2.79791 |
+        |  20 |      260.8 |              3.719725 |
+        |  21 |      261.0 |              5.576088 |
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
@@ -1184,12 +1166,16 @@ def calc_targetedrelease_v1(self):
     inflow into the dam.
 
     Some dams are supposed to maintain a certain degree of low flow
-    variability downstream.  Method |calc_targetedrelease_v1| simulates
+    variability downstream.  In case parameter |RestrictTargetedRelease|
+    is set to `True`, method |calc_targetedrelease_v1| simulates
     this by (approximately) passing inflow as outflow whenever inflow
     is below the value of the threshold parameter
-    |NearDischargeMinimumThreshold|.
+    |NearDischargeMinimumThreshold|. If parameter |RestrictTargetedRelease|
+    is set to `False`, does nothing except assigning the value of sequence
+    |RequiredRelease| to sequence |TargetedRelease|.
 
     Required control parameter:
+      |RestrictTargetedRelease|
       |NearDischargeMinimumThreshold|
 
     Required derived parameters:
@@ -1217,16 +1203,17 @@ def calc_targetedrelease_v1(self):
         As in the examples above, define a short simulation time period first:
 
         >>> from hydpy import pub
-        >>> from hydpy import Timegrids, Timegrid
-        >>> pub.timegrids = Timegrids(Timegrid('2001.03.30',
-        ...                                    '2001.04.03',
-        ...                                    '1d'))
+        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1d'
 
         Prepare the dam model:
 
         >>> from hydpy.models.dam import *
         >>> parameterstep()
         >>> derived.toy.update()
+
+        We start with enabling |RestrictTargetedRelease|:
+
+        >>> restricttargetedrelease(True)
 
         Define a minimum discharge value for a cross section immediately
         downstream of 6 m³/s for the summer months and of 4 m³/s for the
@@ -1443,16 +1430,49 @@ def calc_targetedrelease_v1(self):
         |  19 |    9.0 |        4.000051 |
         |  20 |    9.5 |        4.000018 |
         |  21 |   10.0 |        4.000006 |
+
+        Repeating the above example with the |RestrictTargetedRelease| flag
+        disabled results in identical values for sequences |RequiredRelease|
+        and |TargetedRelease|:
+
+        >>> restricttargetedrelease(False)
+        >>> test()
+        | ex. | inflow | targetedrelease |
+        ----------------------------------
+        |   1 |    0.0 |             4.0 |
+        |   2 |    0.5 |             4.0 |
+        |   3 |    1.0 |             4.0 |
+        |   4 |    1.5 |             4.0 |
+        |   5 |    2.0 |             4.0 |
+        |   6 |    2.5 |             4.0 |
+        |   7 |    3.0 |             4.0 |
+        |   8 |    3.5 |             4.0 |
+        |   9 |    4.0 |             4.0 |
+        |  10 |    4.5 |             4.0 |
+        |  11 |    5.0 |             4.0 |
+        |  12 |    5.5 |             4.0 |
+        |  13 |    6.0 |             4.0 |
+        |  14 |    6.5 |             4.0 |
+        |  15 |    7.0 |             4.0 |
+        |  16 |    7.5 |             4.0 |
+        |  17 |    8.0 |             4.0 |
+        |  18 |    8.5 |             4.0 |
+        |  19 |    9.0 |             4.0 |
+        |  20 |    9.5 |             4.0 |
+        |  21 |   10.0 |             4.0 |
     """
     con = self.parameters.control.fastaccess
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
-    flu.targetedrelease = smoothutils.smooth_logistic1(
-        flu.inflow-con.neardischargeminimumthreshold[
-            der.toy[self.idx_sim]],
-        der.neardischargeminimumsmoothpar1[der.toy[self.idx_sim]])
-    flu.targetedrelease = (flu.targetedrelease * flu.requiredrelease +
-                           (1.-flu.targetedrelease) * flu.inflow)
+    if con.restricttargetedrelease:
+        flu.targetedrelease = smoothutils.smooth_logistic1(
+            flu.inflow-con.neardischargeminimumthreshold[
+                der.toy[self.idx_sim]],
+            der.neardischargeminimumsmoothpar1[der.toy[self.idx_sim]])
+        flu.targetedrelease = (flu.targetedrelease * flu.requiredrelease +
+                               (1.-flu.targetedrelease) * flu.inflow)
+    else:
+        flu.targetedrelease = flu.requiredrelease
 
 
 def calc_actualrelease_v1(self):
@@ -1973,11 +1993,14 @@ def update_actualremoterelease_v1(self):
 
 def calc_flooddischarge_v1(self):
     """Calculate the discharge during and after a flood event based on an
-    artificial neural network describing the relationship between discharge
+    |anntools.SeasonalANN| describing the relationship(s) between discharge
     and water stage.
 
     Required control parameter:
       |WaterLevel2FloodDischarge|
+
+    Required derived parameter:
+      |dam_derived.TOY|
 
     Required aide sequence:
       |WaterLevel|
@@ -1987,64 +2010,85 @@ def calc_flooddischarge_v1(self):
 
     Example:
 
-        Prepare a dam model:
+
+        The control parameter |WaterLevel2FloodDischarge| is derived from
+        |SeasonalParameter|.  This allows to simulate different seasonal
+        dam control schemes.  To show that the seasonal selection mechanism
+        is implemented properly, we define a short simulation period of
+        three days:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = '2001.01.01', '2001.01.04', '1d'
+
+        Now we prepare a dam model and define two different relationships
+        between water level and flood discharge.  The first relatively
+        simple relationship (for January, 2) is based on two neurons
+        contained in a single hidden layer and is used in the following
+        example.  The second neural network (for January, 3) is not
+        applied at all, which is why we do not need to assign any parameter
+        values to it:
 
         >>> from hydpy.models.dam import *
         >>> parameterstep()
+        >>> waterlevel2flooddischarge(
+        ...     _01_02_12 = ann(nmb_inputs=1,
+        ...                     nmb_neurons=(2,),
+        ...                     nmb_outputs=1,
+        ...                     weights_input=[[50., 4]],
+        ...                     weights_output=[[2.], [30]],
+        ...                     intercepts_hidden=[[-13000, -1046]],
+        ...                     intercepts_output=[0.]),
+        ...     _01_03_12 = ann(nmb_inputs=1,
+        ...                     nmb_neurons=(2,),
+        ...                     nmb_outputs=1))
+        >>> derived.toy.update()
+        >>> model.idx_sim = pub.timegrids.sim['2001.01.02']
 
-        Prepare a relatively simple relationship based on two neuron
-        contained in a single hidden layer:
-
-        >>> waterlevel2flooddischarge(nmb_inputs=1,
-        ...                           nmb_neurons=(2,),
-        ...                           nmb_outputs=1,
-        ...                           weights_input=[[50., 4]],
-        ...                           weights_output=[[2.], [30]],
-        ...                           intercepts_hidden=[[-13000, -1046]],
-        ...                           intercepts_output=[0.])
-
-        The following example shows two distinct effects of both neurons.
-        One neuron describes a relatively sharp increase between 259.8
-        and 260.2 meters from about 0 to 2 m³/s.  This could describe
-        a release of water through a bottom outlet controlled by a valve.
-        The add something like an exponential increase between 260 and
-        261 meters, which could describe the uncontrolled flow over a
-        spillway:
+        The following example shows two distinct effects of both neurons
+        in the first network.  One neuron describes a relatively sharp
+        increase between 259.8 and 260.2 meters from about 0 to 2 m³/s.
+        This could describe a release of water through a bottom outlet
+        controlled by a valve.  The add something like an exponential
+        increase between 260 and 261 meters, which could describe the
+        uncontrolled flow over a spillway:
 
         >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.calc_flooddischarge_v1,
-        ...                 last_example=21)
+        ...                 last_example=21,
+        ...                 parseqs=(aides.waterlevel,
+        ...                          fluxes.flooddischarge))
         >>> test.nexts.waterlevel = numpy.arange(257, 261.1, 0.2)
         >>> test()
-        | ex. | flooddischarge | waterlevel |
+        | ex. | waterlevel | flooddischarge |
         -------------------------------------
-        |   1 |            0.0 |      257.0 |
-        |   2 |       0.000001 |      257.2 |
-        |   3 |       0.000002 |      257.4 |
-        |   4 |       0.000005 |      257.6 |
-        |   5 |       0.000011 |      257.8 |
-        |   6 |       0.000025 |      258.0 |
-        |   7 |       0.000056 |      258.2 |
-        |   8 |       0.000124 |      258.4 |
-        |   9 |       0.000275 |      258.6 |
-        |  10 |       0.000612 |      258.8 |
-        |  11 |       0.001362 |      259.0 |
-        |  12 |       0.003031 |      259.2 |
-        |  13 |       0.006745 |      259.4 |
-        |  14 |       0.015006 |      259.6 |
-        |  15 |       0.033467 |      259.8 |
-        |  16 |       1.074179 |      260.0 |
-        |  17 |       2.164498 |      260.2 |
-        |  18 |       2.363853 |      260.4 |
-        |  19 |        2.79791 |      260.6 |
-        |  20 |       3.719725 |      260.8 |
-        |  21 |       5.576088 |      261.0 |
+        |   1 |      257.0 |            0.0 |
+        |   2 |      257.2 |       0.000001 |
+        |   3 |      257.4 |       0.000002 |
+        |   4 |      257.6 |       0.000005 |
+        |   5 |      257.8 |       0.000011 |
+        |   6 |      258.0 |       0.000025 |
+        |   7 |      258.2 |       0.000056 |
+        |   8 |      258.4 |       0.000124 |
+        |   9 |      258.6 |       0.000275 |
+        |  10 |      258.8 |       0.000612 |
+        |  11 |      259.0 |       0.001362 |
+        |  12 |      259.2 |       0.003031 |
+        |  13 |      259.4 |       0.006745 |
+        |  14 |      259.6 |       0.015006 |
+        |  15 |      259.8 |       0.033467 |
+        |  16 |      260.0 |       1.074179 |
+        |  17 |      260.2 |       2.164498 |
+        |  18 |      260.4 |       2.363853 |
+        |  19 |      260.6 |        2.79791 |
+        |  20 |      260.8 |       3.719725 |
+        |  21 |      261.0 |       5.576088 |
     """
     con = self.parameters.control.fastaccess
+    der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
     aid = self.sequences.aides.fastaccess
     con.waterlevel2flooddischarge.inputs[0] = aid.waterlevel
-    con.waterlevel2flooddischarge.process_actual_input()
+    con.waterlevel2flooddischarge.process_actual_input(der.toy[self.idx_sim])
     flu.flooddischarge = con.waterlevel2flooddischarge.outputs[0]
 
 
@@ -2205,39 +2249,42 @@ def update_watervolume_v3(self):
 
 
 def pass_outflow_v1(self):
-    """Update the outlet link sequence."""
+    """Update the outlet link sequence |dam_outlets.Q|."""
     flu = self.sequences.fluxes.fastaccess
     out = self.sequences.outlets.fastaccess
     out.q[0] += flu.outflow
 
 
 def pass_actualremoterelease_v1(self):
-    """Update the outlet link sequence."""
+    """Update the outlet link sequence |dam_outlets.S|."""
     flu = self.sequences.fluxes.fastaccess
     out = self.sequences.outlets.fastaccess
     out.s[0] += flu.actualremoterelease
 
 
 def pass_actualremoterelieve_v1(self):
-    """Update outlet link sequence."""
+    """Update the outlet link sequence |dam_outlets.R|."""
     flu = self.sequences.fluxes.fastaccess
     out = self.sequences.outlets.fastaccess
     out.r[0] += flu.actualremoterelieve
 
 
 def pass_missingremoterelease_v1(self):
+    """Update the outlet link sequence |dam_senders.D|."""
     flu = self.sequences.fluxes.fastaccess
     sen = self.sequences.senders.fastaccess
     sen.d[0] += flu.missingremoterelease
 
 
 def pass_allowedremoterelieve_v1(self):
+    """Update the outlet link sequence |dam_outlets.R|."""
     flu = self.sequences.fluxes.fastaccess
     sen = self.sequences.senders.fastaccess
     sen.r[0] += flu.allowedremoterelieve
 
 
 def pass_requiredremotesupply_v1(self):
+    """Update the outlet link sequence |dam_outlets.S|."""
     flu = self.sequences.fluxes.fastaccess
     sen = self.sequences.senders.fastaccess
     sen.s[0] += flu.requiredremotesupply
@@ -2288,45 +2335,45 @@ def update_loggedoutflow_v1(self):
     log.loggedoutflow[0] = flu.outflow
 
 
-class Model(modeltools.ModelELS):
+class Model(modeltools.ELSModel):
     """Dam base model."""
 
-    _INLET_METHODS = (pic_inflow_v1,
-                      pic_inflow_v2,
-                      calc_naturalremotedischarge_v1,
-                      calc_remotedemand_v1,
-                      calc_remotefailure_v1,
-                      calc_requiredremoterelease_v1,
-                      calc_requiredrelease_v1,
-                      calc_requiredrelease_v2,
-                      calc_targetedrelease_v1)
-    _RECEIVER_METHODS = (pic_totalremotedischarge_v1,
-                         update_loggedtotalremotedischarge_v1,
-                         pic_loggedrequiredremoterelease_v1,
-                         pic_loggedrequiredremoterelease_v2,
-                         calc_requiredremoterelease_v2,
-                         pic_loggedallowedremoterelieve_v1,
-                         calc_allowedremoterelieve_v1)
-    _PART_ODE_METHODS = (pic_inflow_v1,
-                         calc_waterlevel_v1,
-                         calc_actualrelease_v1,
-                         calc_possibleremoterelieve_v1,
-                         calc_actualremoterelieve_v1,
-                         calc_actualremoterelease_v1,
-                         update_actualremoterelieve_v1,
-                         update_actualremoterelease_v1,
-                         calc_flooddischarge_v1,
-                         calc_outflow_v1)
-    _FULL_ODE_METHODS = (update_watervolume_v1,
-                         update_watervolume_v2,
-                         update_watervolume_v3)
-    _OUTLET_METHODS = (pass_outflow_v1,
-                       update_loggedoutflow_v1,
-                       pass_actualremoterelease_v1,
-                       pass_actualremoterelieve_v1)
-    _SENDER_METHODS = (calc_missingremoterelease_v1,
-                       pass_missingremoterelease_v1,
-                       calc_allowedremoterelieve_v2,
-                       pass_allowedremoterelieve_v1,
-                       calc_requiredremotesupply_v1,
-                       pass_requiredremotesupply_v1)
+    INLET_METHODS = (pic_inflow_v1,
+                     pic_inflow_v2,
+                     calc_naturalremotedischarge_v1,
+                     calc_remotedemand_v1,
+                     calc_remotefailure_v1,
+                     calc_requiredremoterelease_v1,
+                     calc_requiredrelease_v1,
+                     calc_requiredrelease_v2,
+                     calc_targetedrelease_v1)
+    RECEIVER_METHODS = (pic_totalremotedischarge_v1,
+                        update_loggedtotalremotedischarge_v1,
+                        pic_loggedrequiredremoterelease_v1,
+                        pic_loggedrequiredremoterelease_v2,
+                        calc_requiredremoterelease_v2,
+                        pic_loggedallowedremoterelieve_v1,
+                        calc_allowedremoterelieve_v1)
+    PART_ODE_METHODS = (pic_inflow_v1,
+                        calc_waterlevel_v1,
+                        calc_actualrelease_v1,
+                        calc_possibleremoterelieve_v1,
+                        calc_actualremoterelieve_v1,
+                        calc_actualremoterelease_v1,
+                        update_actualremoterelieve_v1,
+                        update_actualremoterelease_v1,
+                        calc_flooddischarge_v1,
+                        calc_outflow_v1)
+    FULL_ODE_METHODS = (update_watervolume_v1,
+                        update_watervolume_v2,
+                        update_watervolume_v3)
+    OUTLET_METHODS = (pass_outflow_v1,
+                      update_loggedoutflow_v1,
+                      pass_actualremoterelease_v1,
+                      pass_actualremoterelieve_v1)
+    SENDER_METHODS = (calc_missingremoterelease_v1,
+                      pass_missingremoterelease_v1,
+                      calc_allowedremoterelieve_v2,
+                      pass_allowedremoterelieve_v1,
+                      calc_requiredremotesupply_v1,
+                      pass_requiredremotesupply_v1)

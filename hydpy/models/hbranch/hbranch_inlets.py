@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
+# pylint: enable=missing-docstring
 
 # import...
-# ...from standard library
-from __future__ import division, print_function
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core import sequencetools
 
 
 class Total(sequencetools.LinkSequence):
     """Total input [e.g. m³/s]."""
-    NDIM, NUMERIC = 0, False
+    NDIM, NUMERIC = 1, False
 
 
 class InletSequences(sequencetools.LinkSequences):
     """Upstream link sequences of the hbranch model."""
-    _SEQCLASSES = (Total,)
+    CLASSES = (Total,)

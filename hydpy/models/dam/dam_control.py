@@ -3,19 +3,17 @@
 # pylint: enable=missing-docstring
 
 # import...
-# ...from standard library
-from __future__ import division, print_function
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core import parametertools
 from hydpy.auxs import anntools
 
 
-class CatchmentArea(parametertools.SingleParameter):
+class CatchmentArea(parametertools.Parameter):
     """Size of the catchment draining into the dam [km2]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
 
-class NmbLogEntries(parametertools.SingleParameter):
+class NmbLogEntries(parametertools.Parameter):
     """Number of log entries for certain variables [m3/s].
 
     Note that setting a new value by calling the parameter object sets
@@ -35,7 +33,7 @@ class NmbLogEntries(parametertools.SingleParameter):
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
     def __call__(self, *args, **kwargs):
-        super(NmbLogEntries, self).__call__(*args, **kwargs)
+        super().__call__(*args, **kwargs)
         for seq in self.subpars.pars.model.sequences.logs:
             try:
                 seq.shape = self
@@ -50,7 +48,7 @@ class RemoteDischargeMinimum(parametertools.SeasonalParameter):
 
     def __call__(self, *args, **kwargs):
         self.shape = (None, )
-        super(RemoteDischargeMinimum, self).__call__(*args, **kwargs)
+        parametertools.SeasonalParameter.__call__(self, *args, **kwargs)
 
 
 class RemoteDischargeSafety(parametertools.SeasonalParameter):
@@ -64,7 +62,7 @@ class WaterLevel2PossibleRemoteRelieve(anntools.ANN):
     the dam during high flow conditions [-]."""
 
 
-class RemoteRelieveTolerance(parametertools.SingleParameter):
+class RemoteRelieveTolerance(parametertools.Parameter):
     """A tolerance value for the "possible remote relieve" [m3/s]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
@@ -76,7 +74,7 @@ class NearDischargeMinimumThreshold(parametertools.SeasonalParameter):
 
     def __call__(self, *args, **kwargs):
         self.shape = (None, )
-        super(NearDischargeMinimumThreshold, self).__call__(*args, **kwargs)
+        parametertools.SeasonalParameter.__call__(self, *args, **kwargs)
 
 
 class NearDischargeMinimumTolerance(parametertools.SeasonalParameter):
@@ -84,23 +82,29 @@ class NearDischargeMinimumTolerance(parametertools.SeasonalParameter):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 
-class WaterLevelMinimumThreshold(parametertools.SingleParameter):
+class RestrictTargetedRelease(parametertools.Parameter):
+    """A flag indicating whether low flow variability has to be preserved
+    or not [-]."""
+    NDIM, TYPE, TIME, SPAN = 0, bool, None, (None, None)
+
+
+class WaterLevelMinimumThreshold(parametertools.Parameter):
     """The minimum operating water level of the dam [m]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
 
 
-class WaterLevelMinimumTolerance(parametertools.SingleParameter):
+class WaterLevelMinimumTolerance(parametertools.Parameter):
     """A tolarance value for the minimum operating water level [m]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
 
 
-class WaterLevelMinimumRemoteThreshold(parametertools.SingleParameter):
+class WaterLevelMinimumRemoteThreshold(parametertools.Parameter):
     """The minimum operating water level of the dam regarding remote
     water supply [m]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
 
 
-class WaterLevelMinimumRemoteTolerance(parametertools.SingleParameter):
+class WaterLevelMinimumRemoteTolerance(parametertools.Parameter):
     """A tolarance value for the minimum operating water level regarding
     remote water supply [m]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
@@ -138,12 +142,12 @@ class WaterLevelSupplyTolerance(parametertools.SeasonalParameter):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
 
-class HighestRemoteDischarge(parametertools.SingleParameter):
+class HighestRemoteDischarge(parametertools.Parameter):
     """The highest possible discharge between two remote locations [m3/s]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
 
-class HighestRemoteTolerance(parametertools.SingleParameter):
+class HighestRemoteTolerance(parametertools.Parameter):
     """Smoothing parameter associated with |HighestRemoteDischarge| [m3/s]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
@@ -153,32 +157,33 @@ class WaterVolume2WaterLevel(anntools.ANN):
     water level and water volume [-]."""
 
 
-class WaterLevel2FloodDischarge(anntools.ANN):
+class WaterLevel2FloodDischarge(anntools.SeasonalANN):
     """Artificial neural network describing the relationship between
     flood discharge and water volume [-]."""
 
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of the dam model, directly defined by the user."""
-    _PARCLASSES = (CatchmentArea,
-                   NmbLogEntries,
-                   RemoteDischargeMinimum,
-                   RemoteDischargeSafety,
-                   WaterLevel2PossibleRemoteRelieve,
-                   RemoteRelieveTolerance,
-                   NearDischargeMinimumThreshold,
-                   NearDischargeMinimumTolerance,
-                   WaterLevelMinimumThreshold,
-                   WaterLevelMinimumTolerance,
-                   WaterLevelMinimumRemoteThreshold,
-                   WaterLevelMinimumRemoteTolerance,
-                   HighestRemoteRelieve,
-                   WaterLevelRelieveThreshold,
-                   WaterLevelRelieveTolerance,
-                   HighestRemoteSupply,
-                   WaterLevelSupplyThreshold,
-                   WaterLevelSupplyTolerance,
-                   HighestRemoteDischarge,
-                   HighestRemoteTolerance,
-                   WaterVolume2WaterLevel,
-                   WaterLevel2FloodDischarge)
+    CLASSES = (CatchmentArea,
+               NmbLogEntries,
+               RemoteDischargeMinimum,
+               RemoteDischargeSafety,
+               WaterLevel2PossibleRemoteRelieve,
+               RemoteRelieveTolerance,
+               NearDischargeMinimumThreshold,
+               NearDischargeMinimumTolerance,
+               RestrictTargetedRelease,
+               WaterLevelMinimumThreshold,
+               WaterLevelMinimumTolerance,
+               WaterLevelMinimumRemoteThreshold,
+               WaterLevelMinimumRemoteTolerance,
+               HighestRemoteRelieve,
+               WaterLevelRelieveThreshold,
+               WaterLevelRelieveTolerance,
+               HighestRemoteSupply,
+               WaterLevelSupplyThreshold,
+               WaterLevelSupplyTolerance,
+               HighestRemoteDischarge,
+               HighestRemoteTolerance,
+               WaterVolume2WaterLevel,
+               WaterLevel2FloodDischarge)

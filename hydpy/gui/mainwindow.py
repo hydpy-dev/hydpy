@@ -6,7 +6,7 @@ import tkinter
 # ...from site-packages
 import numpy
 # ...from HydPy
-from hydpy import pub
+import hydpy
 from hydpy.gui import shapetools
 from . import selector
 from . import colorbar
@@ -130,7 +130,7 @@ class Submap(tkinter.Frame):
         self.map_ = map_
         self.width = width
         self.height = height
-        self.update_selection(pub.selections.complete)
+        self.update_selection(hydpy.pub.selections.complete)
 
     def recolor(self, idx):
         self.infoarea.recolor()

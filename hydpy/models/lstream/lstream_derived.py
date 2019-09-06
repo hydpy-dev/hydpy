@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
+# pylint: enable=missing-docstring
 
 # import...
-# ...from standard library
-from __future__ import division, print_function
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core import parametertools
 
 
@@ -15,8 +15,8 @@ class HV(parametertools.LeftRightParameter):
         """Update value based on :math:`HV=BBV/BNV`.
 
         Required Parameters:
-            :class:`BBV`
-            :class:`BNV`
+            |BBV|
+            |BNV|
 
         Examples:
             >>> from hydpy.models.lstream import *
@@ -25,7 +25,7 @@ class HV(parametertools.LeftRightParameter):
             >>> bnv(left=10., right=20.)
             >>> derived.hv.update()
             >>> derived.hv
-            hv(1.0, 2.0)
+            hv(left=1.0, right=2.0)
             >>> bbv(left=10., right=0.)
             >>> bnv(left=0., right=20.)
             >>> derived.hv.update()
@@ -33,29 +33,26 @@ class HV(parametertools.LeftRightParameter):
             hv(0.0)
         """
         con = self.subpars.pars.control
+        self(0.)
         for idx in range(2):
             if (con.bbv[idx] > 0.) and (con.bnv[idx] > 0.):
-                self[idx] = con.bbv[idx]/con.bnv[idx]
-            else:
-                self[idx] = 0.
+                self.values[idx] = con.bbv[idx]/con.bnv[idx]
 
 
-class QM(parametertools.SingleParameter):
+class QM(parametertools.Parameter):
     """Bordvoller Abfluss Hauptgerinne (maximum discharge of the main channel)
     [m³/s]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
     def update(self):
-        """Update value based on the actual
-        :func:`~hydpy.models.lstream.lstream_model.calc_qg` method.
+        """Update value based on the actual |calc_qg_v1| method.
 
         Required derived parameter:
-            :class:`~hydpy.models.lstream.lstream_control.H`
+            |H|
 
-        Note that the value of parameter :class:`QM` is directly related to
-        the value of parameter :class:`HM` and indirectly related to all
-        parameters values relevant for method
-        :func:`~hydpy.models.lstream.lstream_model.calc_qg`. Hence the
+        Note that the value of parameter |lstream_derived.QM| is directly
+        related to the value of parameter |HM| and indirectly related to
+        all parameters values relevant for method |calc_qg_v1|. Hence the
         complete paramter (and sequence) requirements might differ for
         various application models.
 
@@ -66,7 +63,7 @@ class QM(parametertools.SingleParameter):
         flu = mod.sequences.fluxes
         flu.h = con.hm
         mod.calc_qg()
-        self.value = flu.qg
+        self(flu.qg)
 
 
 class QV(parametertools.LeftRightParameter):
@@ -75,18 +72,16 @@ class QV(parametertools.LeftRightParameter):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
     def update(self):
-        """Update value based on the actual
-        :func:`~hydpy.models.lstream.lstream_model.calc_qg` method.
+        """Update value based on the actual |calc_qg_v1| method.
 
         Required derived parameter:
-            :class:`HV`
+            |HV|
 
-        Note that the values of parameter :class:`QV` are directly related to
-        the values of parameter :class:`HV` and indirectly related to all
-        parameters values relevant for method
-        :func:`~hydpy.models.lstream.lstream_model.calc_qg`. Hence the
-        complete paramter (and sequence) requirements might differ for
-        various application models.
+        Note that the values of parameter |lstream_derived.QV| are
+        directly related to the values of parameter |HV| and indirectly
+        related to all parameters values relevant for method |calc_qg_v1|.
+        Hence the complete paramter (and sequence) requirements might
+        differ for various application models.
 
         For examples, see the documentation on method ToDo.
         """
@@ -94,23 +89,20 @@ class QV(parametertools.LeftRightParameter):
         con = mod.parameters.control
         der = self.subpars
         flu = mod.sequences.fluxes
+        self(0.)
         for idx in range(2):
             flu.h = con.hm+der.hv[idx]
             mod.calc_qg()
             self[idx] = flu.qg
 
 
-class Sek(parametertools.SingleParameter):
+class Sek(parametertools.Parameter):
     """ Sekunden im Simulationszeitschritt (Number of seconds of the selected
     simulation time step) [T]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
     def update(self):
-        """Update value based on :math:`HL=BBR/BNR`.
-
-        Required Parameters:
-            :class:`BBR`
-            :class:`BNR`
+        """Update value based on |Parameter.simulationstep|.
 
         Example:
             >>> from hydpy.models.lstream import *
@@ -125,4 +117,7 @@ class Sek(parametertools.SingleParameter):
 
 class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of HydPy-L-Stream, indirectly defined by the user."""
-    _PARCLASSES = (HV, QM, QV, Sek)
+    CLASSES = (HV,
+               QM,
+               QV,
+               Sek)

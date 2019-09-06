@@ -5,30 +5,32 @@ This module implements some abstract descriptor classes, metaclasses and base
 classes.  If you are just interested in applying a certain instantaneous
 unit hydrograph (iuh) function or if you want to implement an additional
 iuh, see the examples or the source code of class
-:class:`TranslationDiffusionEquation`.
+|TranslationDiffusionEquation|.
 """
 # import...
 # ...from standard library
-from __future__ import division, print_function
+import abc
 import itertools
 # ...from site-packages
 import numpy
-from scipy import special
-from matplotlib import pyplot
 # ...from Hydpy
-from hydpy.core import autodoctools
+from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.auxs import statstools
 from hydpy.auxs import armatools
+pyplot = exceptiontools.OptionalImport(
+    'pyplot', ['matplotlib.pyplot'], locals())
+special = exceptiontools.OptionalImport(
+    'special', ['scipy.special'], locals())
 
 
-class IUH_Parameter(object):
-    """Descriptor base class for :class:`PrimaryParameter` and
-    :class:`SecondaryParameter`.
+class ParameterIUH:
+    """Descriptor base class for |PrimaryParameterIUH| and
+    |SecondaryParameterIUH|.
 
     The first initialization argument is the parameters name.  Optionally,
-    an alternative type (the default type is :class:`float`) and a
-    documentation string can be passed.
+    an alternative type (the default type is |float|) and a documentation
+    string can be passed.
     """
 
     def __init__(self, name, type_=float, doc=None):
@@ -52,12 +54,12 @@ class IUH_Parameter(object):
                    objecttools.classname(self.type_), self.name))
 
 
-class PrimaryParameter(IUH_Parameter):
+class PrimaryParameterIUH(ParameterIUH):
     """Descriptor base class for parameters of instantaneous unit hydrograph
     functions to be defined by the user.
 
     When a primary parameter value is set or deleted, the master instance is
-    instructed to :func:`~IUH.update` all secondary parameter values.
+    instructed to |IUH.update| all secondary parameter values.
     """
 
     def __set__(self, obj, value):
@@ -70,7 +72,7 @@ class PrimaryParameter(IUH_Parameter):
         obj.update()
 
 
-class SecondaryParameter(IUH_Parameter):
+class SecondaryParameterIUH(ParameterIUH):
     """Descriptor base class for parameters of instantaneous unit hydrograph
     functions which can be determined automatically."""
 
@@ -83,23 +85,23 @@ class SecondaryParameter(IUH_Parameter):
 
 
 class MetaIUH(type):
-    """Metaclass for class :class:`IUH`.
+    """Metaclass for class |IUH|.
 
-    For storing :class:`PrimaryParameter` and :class:`SecondaryParameter` in
-    seperate dictionaries.
+    For storing |PrimaryParameterIUH| and |SecondaryParameterIUH| in separate
+    dictionaries.
     """
 
-    def __new__(cls, name, parents, dict_):
+    def __new__(mcs, name, parents, dict_):
         primary_parameters = {}
         secondary_parameters = {}
         for key, value in dict_.items():
-            if isinstance(value, PrimaryParameter):
+            if isinstance(value, PrimaryParameterIUH):
                 primary_parameters[key] = value
-            elif isinstance(value, SecondaryParameter):
+            elif isinstance(value, SecondaryParameterIUH):
                 secondary_parameters[key] = value
-        dict_['_primary_parameters'] = primary_parameters
-        dict_['_secondary_parameters'] = secondary_parameters
-        return type.__new__(cls, name, parents, dict_)
+        dict_['_PRIMARY_PARAMETERS'] = primary_parameters
+        dict_['_SECONDARY_PARAMETERS'] = secondary_parameters
+        return type.__new__(mcs, name, parents, dict_)
 
 
 # Just for making MetaIUH the type of class IUH both in Python 2 and 3:
@@ -109,15 +111,16 @@ _MetaIUH = MetaIUH('_MetaIUH', (), {})
 class IUH(_MetaIUH):
     """Base class for instantaneous unit hydrograph function objects.
 
-    See class :class:`TranslationDiffusionEquation` for explanations and
+    See class |TranslationDiffusionEquation| for explanations and
     application examples.
 
     For developers: The string representation does also work for
-    parameter-free :class:`IUH` subclasses:
+    parameter-free |IUH| subclasses:
 
     >>> from hydpy.auxs.iuhtools import IUH
     >>> class Test(IUH):
-    ...     pass
+    ...     __call__ = None
+    ...     calc_secondary_parameters = None
     >>> Test()
     Test()
     """
@@ -129,16 +132,24 @@ class IUH(_MetaIUH):
     """Smallest value taken into account for plotting and analyzing iuh
     functions."""
 
+    # Overwritten by metaclass:
+    _PRIMARY_PARAMETERS = {}
+    _SECONDARY_PARAMETERS = {}
+
     def __init__(self, **kwargs):
         self.ma = armatools.MA(self)
         self.arma = armatools.ARMA(ma_model=self.ma)
         if kwargs:
             self.set_primary_parameters(**kwargs)
 
+    @abc.abstractmethod
+    def __call__(self, t) -> numpy.ndarray:
+        """Must be implemented by the concrete |IUH| subclass."""
+
     def set_primary_parameters(self, **kwargs):
         """Set all primary parameters at once."""
         given = sorted(kwargs.keys())
-        required = sorted(self._primary_parameters)
+        required = sorted(self._PRIMARY_PARAMETERS)
         if given == required:
             for (key, value) in kwargs.items():
                 setattr(self, key, value)
@@ -154,13 +165,17 @@ class IUH(_MetaIUH):
                    ', '.join(required), ', '.join(given)))
 
     @property
-    def are_primary_parameters_complete(self):
+    def primary_parameters_complete(self):
         """True/False flag that indicates wheter the values of all primary
         parameters are defined or not."""
-        for primpar in self._primary_parameters.values():
+        for primpar in self._PRIMARY_PARAMETERS.values():
             if primpar.__get__(self) is None:
                 return False
         return True
+
+    @abc.abstractmethod
+    def calc_secondary_parameters(self):
+        """Must be implemented by the concrete |IUH| subclass."""
 
     def update(self):
         """Delete the coefficients of the pure MA model and also all MA and
@@ -171,10 +186,10 @@ class IUH(_MetaIUH):
         del self.ma.coefs
         del self.arma.ma_coefs
         del self.arma.ar_coefs
-        if self.are_primary_parameters_complete:
+        if self.primary_parameters_complete:
             self.calc_secondary_parameters()
         else:
-            for secpar in self._secondary_parameters.values():
+            for secpar in self._SECONDARY_PARAMETERS.values():
                 secpar.__delete__(self)
 
     @property
@@ -211,18 +226,30 @@ class IUH(_MetaIUH):
             pyplot.xlim(0., delays[idx])
 
     @property
+    def moment1(self):
+        """The first time delay weighted statistical moment of the
+        instantaneous unit hydrograph."""
+        delays, response = self.delay_response_series
+        return statstools.calc_mean_time(delays, response)
+
+    @property
+    def moment2(self):
+        """The second time delay weighted statistical momens of the
+        instantaneous unit hydrograph."""
+        moment1 = self.moment1
+        delays, response = self.delay_response_series
+        return statstools.calc_mean_time_deviation(
+            delays, response, moment1)
+
+    @property
     def moments(self):
         """The first two time delay weighted statistical moments of the
         instantaneous unit hydrograph."""
-        delays, response = self.delay_response_series
-        moment1 = statstools.calc_mean_time(delays, response)
-        moment2 = statstools.calc_mean_time_deviation(delays, response,
-                                                      moment1)
-        return numpy.array([moment1, moment2])
+        return numpy.array([self.moment1, self.moment2])
 
     def __repr__(self):
         parts = [objecttools.classname(self), '(']
-        for (name, primpar) in sorted(self._primary_parameters.items()):
+        for (name, primpar) in sorted(self._PRIMARY_PARAMETERS.items()):
             value = primpar.__get__(self)
             if value is not None:
                 parts.extend([name, '=', objecttools.repr_(value), ', '])
@@ -262,16 +289,15 @@ class TranslationDiffusionEquation(IUH):
     >>> round_((tde.a, tde.b))
     6.454972, 0.645497
 
-    The function can be evaluated for time delays larger zero, but not for
-    zero time delay:
+    The function can principally be evaluated for time delays larger zero,
+    but not for zero time delay, which can cause trouble when applying
+    numerical integration algorithms.  This is why we clip the given time
+    delay to minimum value of 1e-10 internally.  In most cases (like the
+    following), the returned result should be workable for integration
+    algorithms:
 
-    >>> import numpy
-    >>> round_(tde(numpy.array([5., 10., 15., 20.])))
-    0.040559, 0.115165, 0.031303, 0.00507
-    >>> tde(0.)
-    Traceback (most recent call last):
-    ...
-    ZeroDivisionError: float division by zero
+    >>> round_(tde([0.0, 5.0, 10.0, 15.0, 20.0]))
+    0.0, 0.040559, 0.115165, 0.031303, 0.00507
 
     The first delay weighted central moment of the translation diffusion
     equation corresponds to the time lag (`x`/`u`), the second one to
@@ -280,20 +306,30 @@ class TranslationDiffusionEquation(IUH):
     >>> round_(tde.moments)
     10.0, 3.464101
 
+    Class |TranslationDiffusionEquation| implements its own property
+    `moment1` (used in the example above), which is computationally
+    more efficient and robust than the one of its base class |IUH|.
+    But both normally, both should return very similar values:
+
+    >>> from hydpy.auxs.iuhtools import IUH
+    >>> round_(IUH.moment1.fget(tde))
+    10.0
+
+
     You can also plot the graph corresponding to the actual parameterization:
 
     >>> tde.plot(threshold=0.9)
 
-    You can close the plotting window manually or by writing:
+    .. testsetup::
 
-    >>> from matplotlib import pyplot
-    >>> pyplot.close()
+        >>> from matplotlib import pyplot
+        >>> pyplot.close()
 
-    All instances of the subclasses of :class:`IUH` provide a pure
-    Moving Average and an Autoregressive-Moving Average approximation to the
-    dt standard impulse of the instantaneous unit hydrograph function.  In
-    the given example, the MA approximation involves 57 coefficients, and the
-    ARMA approximation invoves 17 coefficients:
+    All instances of the subclasses of |IUH| provide a pure Moving Average
+    and an Autoregressive-Moving Average approximation to the dt standard
+    impulse of the instantaneous unit hydrograph function.  In the given
+    example, the MA approximation involves 57 coefficients, and the ARMA
+    approximation invoves 17 coefficients:
 
     >>> tde.ma.order
     57
@@ -311,7 +347,7 @@ class TranslationDiffusionEquation(IUH):
     10.000091, 3.488377
 
     For further information on using MA and ARMA models, read the
-    documentation on module :mod:`~hydpy.auxs.armatools`.
+    documentation on module |armatools|.
 
     Changing a primary parameter results in an updating of the secondary
     parameters as well as the MA and the ARMA model:
@@ -358,19 +394,28 @@ arguments of the instantaneous unit hydrograph class \
 keyword arguments.  But instead of the primary parameter names `d, u, x` \
 the following keywords were given: d, u.
     """
-    u = PrimaryParameter('u', doc='Wave velocity.')
-    d = PrimaryParameter('d', doc='Diffusion coefficient.')
-    x = PrimaryParameter('x', doc='Routing distance.')
-    a = SecondaryParameter('a', doc='Distance related coefficient.')
-    b = SecondaryParameter('b', doc='Velocity related coefficient.')
+    u = PrimaryParameterIUH('u', doc='Wave velocity.')
+    d = PrimaryParameterIUH('d', doc='Diffusion coefficient.')
+    x = PrimaryParameterIUH('x', doc='Routing distance.')
+    a = SecondaryParameterIUH('a', doc='Distance related coefficient.')
+    b = SecondaryParameterIUH('b', doc='Velocity related coefficient.')
 
     def calc_secondary_parameters(self):
         """Determine the values of the secondary parameters `a` and `b`."""
         self.a = self.x/(2.*self.d**.5)
         self.b = self.u/(2.*self.d**.5)
 
-    def __call__(self, t):
+    def __call__(self, t) -> numpy.ndarray:
+        t = numpy.array(t)
+        t = numpy.clip(t, 1e-10, numpy.inf)
+        # pylint: disable=invalid-unary-operand-type
         return self.a/(t*(numpy.pi*t)**.5)*numpy.exp(-t*(self.a/t-self.b)**2)
+
+    @property
+    def moment1(self):
+        """The first time delay weighted statistical moment of the
+        translation diffusion equation."""
+        return self.x/self.u
 
 
 class LinearStorageCascade(IUH):
@@ -397,17 +442,20 @@ class LinearStorageCascade(IUH):
     0.122042, 0.028335, 0.004273, 0.00054
 
     """
-    n = PrimaryParameter('n', doc='Number of linear storages.')
-    k = PrimaryParameter(
+    n = PrimaryParameterIUH('n', doc='Number of linear storages.')
+    k = PrimaryParameterIUH(
         'k', doc='Time of concentration of each individual storage.')
-    c = SecondaryParameter('c', doc='Proportionality factor.')
+    c = SecondaryParameterIUH('c', doc='Proportionality factor.')
 
     def calc_secondary_parameters(self):
         """Determine the value of the secondary parameter `c`."""
         self.c = 1./(self.k*special.gamma(self.n))
 
-    def __call__(self, t):
+    def __call__(self, t) -> numpy.ndarray:
         return self.c*(t/self.k)**(self.n-1)*numpy.exp(-t/self.k)
 
-
-autodoctools.autodoc_module()
+    @property
+    def moment1(self):
+        """The first time delay weighted statistical moment of the
+        linear storage cascade."""
+        return self.k*self.n

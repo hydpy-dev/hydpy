@@ -5,10 +5,8 @@ performing lake and dam retention processes as implemented in
 LARSIM.
 """
 # import...
-# ...from standard library
-from __future__ import division, print_function
 # ...from HydPy
-from hydpy.core.modelimports import *
+from hydpy.exe.modelimports import *
 # ...from llake
 from hydpy.models.llake.llake_control import ControlParameters
 from hydpy.models.llake.llake_derived import DerivedParameters
@@ -19,7 +17,6 @@ from hydpy.models.llake.llake_outlets import OutletSequences
 from hydpy.models.llake.llake_aides import AideSequences
 from hydpy.models.llake.llake_model import Model
 
-autodoc_basemodel()
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.complete()
+cythonizer.finalise()

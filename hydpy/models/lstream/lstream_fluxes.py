@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
+# pylint: enable=missing-docstring
 
 # import...
-# ...from standard library
-from __future__ import division, print_function
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core import sequencetools
 
 
@@ -57,11 +57,6 @@ class UVR(sequencetools.LeftRightSequence):
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
 
-class UG(sequencetools.FluxSequence):
-    """Durchflossene Fläche gesamt  (total wetted perimeter) [m]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
-
-
 class QM(sequencetools.FluxSequence):
     """Durchfluss Hauptgerinne (discharge of the main channel) [m³]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
@@ -83,11 +78,23 @@ class QG(sequencetools.FluxSequence):
 
 
 class RK(sequencetools.FluxSequence):
-    """Schwerpunktlaufzeit (traveling time) [s]."""
+    """Schwerpunktlaufzeit (traveling time) [T]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
 
 
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of HydPy-L-Stream."""
-    _SEQCLASSES = (QRef, H, AM, AV, AVR, AG, UM, UV, UVR, UG,
-                   QM, QV, QVR, QG, RK)
+    CLASSES = (QRef,
+               H,
+               AM,
+               AV,
+               AVR,
+               AG,
+               UM,
+               UV,
+               UVR,
+               QM,
+               QV,
+               QVR,
+               QG,
+               RK)

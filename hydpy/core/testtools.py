@@ -1,48 +1,324 @@
 # -*- coding: utf-8 -*-
-"""This module implements tools for making doctests more legible."""
+"""This module implements tools for making doctests clearer."""
 # import...
 # ...from standard library
-from __future__ import division, print_function
 import abc
-try:
-    import builtins
-except ImportError:
-    import __builtin__ as builtins
+import builtins
+import contextlib
 import datetime
-import itertools
+import doctest
+import importlib
+import inspect
 import os
+import shutil
+import sys
+import warnings
+from typing import *
 # ...from site-packages
-# the following import are actually performed below due to performance issues:
-# import bokeh.models
-# import bokeh.palettes
-# import bokeh.plotting
 import numpy
 # ...from HydPy
-from hydpy import pub
+import hydpy
 from hydpy import docs
-from hydpy.core import abctools
-from hydpy.core import autodoctools
 from hydpy.core import devicetools
+from hydpy.core import exceptiontools
 from hydpy.core import hydpytools
 from hydpy.core import objecttools
+from hydpy.core import parametertools
+from hydpy.core import printtools
 from hydpy.core import selectiontools
+from hydpy.core import sequencetools
 from hydpy.core import timetools
+from hydpy.tests import iotesting
+models = exceptiontools.OptionalImport(
+    'models', ['bokeh.models'], locals())
+palettes = exceptiontools.OptionalImport(
+    'palettes', ['bokeh.palettes'], locals())
+plotting = exceptiontools.OptionalImport(
+    'plotting', ['bokeh.plotting'], locals())
 
 
-if pub.pyversion == 2:
-    abstractstaticmethod = abc.abstractmethod
-else:
-    abstractstaticmethod = abc.abstractstaticmethod
+class StdOutErr:
+    """Replaces `sys.stdout` and `sys.stderr` temporarily when calling
+    method |Tester.perform_tests| of class |Tester|."""
+
+    indent: int
+    texts: List[str]
+
+    def __init__(self, indent: int = 0):
+        self.indent = indent
+        self.stdout = sys.stdout
+        self.stderr = sys.stderr
+        self.encoding = sys.stdout.encoding
+        self.texts = []
+
+    def __enter__(self):
+        self.encoding = sys.stdout.encoding
+        sys.stdout = self
+        sys.stderr = self
+
+    def __exit__(self, exception, message, traceback_):
+        if not self.texts:
+            self.print_('no failures occurred')
+        else:
+            for text in self.texts:
+                self.print_(text)
+        sys.stdout = self.stdout
+        sys.stderr = self.stderr
+
+    def write(self, text: str) -> None:
+        """Memorise the given text for later writing."""
+        self.texts.extend(text.split('\n'))
+
+    def print_(self, text: str) -> None:
+        """Print the memorised text to the original `sys.stdout`."""
+        if text.strip():
+            self.stdout.write(self.indent*' ' + text + '\n')
+
+    def flush(self) -> None:
+        """Do nothing."""
 
 
-class Array(object):
-    """Assures that attributes are :class:`~numpy.ndarray` objects."""
+class Tester:
+    """Tests either a base or an application model.
+
+    Usually, a |Tester| object is initialised at the end of the `__init__`
+    file of its base model or at the end of the module of an application
+    model.
+
+    >>> from hydpy.models import hland, hland_v1
+
+    >>> hland.tester.package
+    'hydpy.models.hland'
+    >>> hland_v1.tester.package
+    'hydpy.models'
+    """
+
+    filepath: str
+    package: str
+    ispackage: bool
+
+    def __init__(self):
+        frame = inspect.currentframe().f_back
+        self.filepath = frame.f_code.co_filename
+        self.package = frame.f_locals['__package__']
+        self.ispackage = os.path.split(self.filepath)[-1] == '__init__.py'
+
+    @property
+    def filenames(self) -> List[str]:
+        """The filenames defining the considered base or application model.
+
+        >>> from hydpy.models import hland, hland_v1
+        >>> from pprint import pprint
+        >>> pprint(hland.tester.filenames)
+        ['__init__.py',
+         'hland_constants.py',
+         'hland_control.py',
+         'hland_derived.py',
+         'hland_fluxes.py',
+         'hland_inputs.py',
+         'hland_logs.py',
+         'hland_masks.py',
+         'hland_model.py',
+         'hland_outlets.py',
+         'hland_parameters.py',
+         'hland_sequences.py',
+         'hland_states.py']
+        >>> hland_v1.tester.filenames
+        ['hland_v1.py']
+        """
+        if self.ispackage:
+            return sorted(
+                fn for fn in os.listdir(os.path.dirname(self.filepath))
+                if fn.endswith('.py'))
+        return [os.path.split(self.filepath)[1]]
+
+    @property
+    def modulenames(self) -> List[str]:
+        """The module names to be taken into account for testing.
+
+        >>> from hydpy.models import hland, hland_v1
+        >>> from pprint import pprint
+        >>> pprint(hland.tester.modulenames)
+        ['hland_constants',
+         'hland_control',
+         'hland_derived',
+         'hland_fluxes',
+         'hland_inputs',
+         'hland_logs',
+         'hland_masks',
+         'hland_model',
+         'hland_outlets',
+         'hland_parameters',
+         'hland_sequences',
+         'hland_states']
+        >>> hland_v1.tester.modulenames
+        ['hland_v1']
+        """
+        return [os.path.split(fn)[-1].split('.')[0] for fn in self.filenames
+                if (fn.endswith('.py') and not fn.startswith('_'))]
+
+    def perform_tests(self):
+        """Perform all doctests either in Python or in Cython mode depending
+        on the state of |Options.usecython| set in module |pub|.
+
+        Usually, |Tester.perform_tests| is triggered automatically by a
+        |Cythonizer| object assigned to the same base or application
+        model as a |Tester| object.  However, you are free to call
+        it any time when in doubt of the functionality of a particular
+        base or application model.  Doing so might change some of the
+        states of your current configuration, but only temporarily
+        (we pick the |Timegrids| object of module |pub| as an example,
+        which is changed multiple times during testing but finally
+        reset to the original value):
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = '2000-01-01', '2001-01-01', '1d'
+
+        >>> from hydpy.models import hland, hland_v1
+        >>> hland.tester.perform_tests()   # doctest: +ELLIPSIS
+        Test package hydpy.models.hland in ...ython mode.
+            * hland_constants:
+                no failures occurred
+            * hland_control:
+                no failures occurred
+            * hland_derived:
+                no failures occurred
+            * hland_fluxes:
+                no failures occurred
+            * hland_inputs:
+                no failures occurred
+            * hland_logs:
+                no failures occurred
+            * hland_masks:
+                no failures occurred
+            * hland_model:
+                no failures occurred
+            * hland_outlets:
+                no failures occurred
+            * hland_parameters:
+                no failures occurred
+            * hland_sequences:
+                no failures occurred
+            * hland_states:
+                no failures occurred
+
+        >>> hland_v1.tester.perform_tests()   # doctest: +ELLIPSIS
+        Test module hland_v1 in ...ython mode.
+            * hland_v1:
+                no failures occurred
+
+        >>> pub.timegrids
+        Timegrids(Timegrid('2000-01-01 00:00:00',
+                           '2001-01-01 00:00:00',
+                           '1d'))
+
+        To show the reporting of possible errors, we change the
+        string representation of parameter |hland_control.ZoneType|
+        temporarily.  Again, the |Timegrids| object is reset to its
+        initial state after testing:
+
+        >>> from unittest import mock
+        >>> with mock.patch(
+        ...     'hydpy.models.hland.hland_control.ZoneType.__repr__',
+        ...     return_value='damaged'):
+        ...     hland.tester.perform_tests()   # doctest: +ELLIPSIS
+        Test package hydpy.models.hland in ...ython mode.
+            * hland_constants:
+                no failures occurred
+            * hland_control:
+                ******...hland_control.py", line 72, in \
+hydpy.models.hland.hland_control.ZoneType
+                Failed example:
+                    zonetype
+                Expected:
+                    zonetype(FIELD, FOREST, GLACIER, ILAKE, ILAKE, FIELD)
+                Got:
+                    damaged
+                ************************************************************\
+**********
+                1
+                items had failures:
+                   1 of   6 in hydpy.models.hland.hland_control.ZoneType
+                ***Test Failed***
+                1
+                failures.
+            * hland_derived:
+                no failures occurred
+            ...
+            * hland_states:
+                no failures occurred
+
+        >>> pub.timegrids
+        Timegrids(Timegrid('2000-01-01 00:00:00',
+                           '2001-01-01 00:00:00',
+                           '1d'))
+        """
+        opt = hydpy.pub.options
+        par = parametertools.Parameter
+        color = 34 if hydpy.pub.options.usecython else 36
+        with printtools.PrintStyle(color=color, font=4):
+            print(
+                'Test %s %s in %sython mode.'
+                % ('package' if self.ispackage else 'module',
+                   self.package if self.ispackage else
+                   self.modulenames[0],
+                   'C' if hydpy.pub.options.usecython else 'P'))
+        with printtools.PrintStyle(color=color, font=2):
+            for name in self.modulenames:
+                print('    * %s:' % name, )
+                # pylint: disable=not-callable
+                # pylint does understand that all options are callable
+                # except option `printincolor`!?
+                with StdOutErr(indent=8), \
+                        opt.usedefaultvalues(False), \
+                        opt.usedefaultvalues(False), \
+                        opt.printprogress(False), \
+                        opt.printincolor(False), \
+                        opt.warnsimulationstep(False), \
+                        opt.reprcomments(False), \
+                        opt.ellipsis(0), \
+                        opt.reprdigits(6), \
+                        opt.warntrim(False), \
+                        par.parameterstep.delete(), \
+                        par.simulationstep.delete():
+                    # pylint: enable=not-callable
+                    projectname = hydpy.pub.get('projectname')
+                    del hydpy.pub.projectname
+                    timegrids = hydpy.pub.get('timegrids')
+                    del hydpy.pub.timegrids
+                    registry = devicetools.gather_registries()
+                    plotting_options = IntegrationTest.plotting_options
+                    IntegrationTest.plotting_options = PlottingOptions()
+                    try:
+                        modulename = '.'.join((self.package, name))
+                        module = importlib.import_module(modulename)
+                        with warnings.catch_warnings():
+                            warnings.filterwarnings(
+                                'error', module=modulename)
+                            warnings.filterwarnings(
+                                'error', category=UserWarning)
+                            warnings.filterwarnings(
+                                'ignore', category=ImportWarning)
+                            doctest.testmod(
+                                module, extraglobs={'testing': True},
+                                optionflags=doctest.ELLIPSIS)
+                    finally:
+                        hydpy.pub.projectname = projectname
+                        if timegrids is not None:
+                            hydpy.pub.timegrids = timegrids
+                        devicetools.reset_registries(registry)
+                        IntegrationTest.plotting_options = plotting_options
+                        hydpy.dummies.clear()
+
+
+class Array:
+    """Assures that attributes are |numpy.ndarray| objects."""
 
     def __setattr__(self, name, value):
         object.__setattr__(self, name, numpy.array(value))
 
 
-class ArrayDescriptor(object):
+class ArrayDescriptor:
     """Descriptor for handling values of |Array| objects."""
 
     def __init__(self):
@@ -62,7 +338,7 @@ class ArrayDescriptor(object):
             delattr(self.values, name)
 
 
-class Test(object):
+class Test:
     """Base class for |IntegrationTest| and |UnitTest|.
 
     This base class defines the printing of the test results primarily.
@@ -70,24 +346,22 @@ class Test(object):
     its subclasses.
     """
 
+    parseqs: Any
+    HEADER_OF_FIRST_COL: Any
+
     inits = ArrayDescriptor()
     """Stores arrays for setting the same values of parameters and/or
     sequences before each new experiment."""
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def raw_first_col_strings(self):
-        """To be implemented by the subclasses of :class:`Test`."""
-        return NotImplementedError
+        """To be implemented by the subclasses of |Test|."""
 
-    @abstractstaticmethod
-    def get_output_array(parseq):
-        # pylint: disable=unused-argument
-        """To be implemented by the subclasses of :class:`Test`."""
-        return NotImplementedError
-
-    parseqs = NotImplemented
-
-    HEADER_OF_FIRST_COL = NotImplemented
+    @staticmethod
+    @abc.abstractmethod
+    def get_output_array(parseqs):
+        """To be implemented by the subclasses of |Test|."""
 
     @property
     def nmb_rows(self):
@@ -99,7 +373,7 @@ class Test(object):
         """Number of columns of the table."""
         nmb = 1
         for parseq in self.parseqs:
-            nmb += max(parseq.length, 1)
+            nmb += max(len(parseq), 1)
         return nmb
 
     @property
@@ -107,10 +381,10 @@ class Test(object):
         """All raw strings for the tables header."""
         strings = [self.HEADER_OF_FIRST_COL]
         for parseq in self.parseqs:
-            for dummy in range(parseq.length-1):
+            for dummy in range(len(parseq)-1):
                 strings.append('')
             if ((parseq.name == 'sim') and
-                    isinstance(parseq, abctools.SequenceABC)):
+                    isinstance(parseq, sequencetools.Sequence)):
                 strings.append(parseq.subseqs.node.name)
             else:
                 strings.append(parseq.name)
@@ -126,22 +400,9 @@ class Test(object):
                 array = self.get_output_array(parseq)
                 if parseq.NDIM == 0:
                     strings[-1].append(objecttools.repr_(array[idx]))
-                elif parseq.NDIM == 1:
-                    if parseq.shape[0] > 0:
-                        strings[-1].extend(
-                            objecttools.repr_(value) for value in array[idx])
-                    else:
-                        strings[-1].append('empty')
                 else:
-                    thing = ('sequence'
-                             if isinstance(parseq, abctools.SequenceABC)
-                             else 'parameter')
-                    raise RuntimeError(
-                        'An instance of class `Test` of module `testtools` '
-                        'is requested to print the results of %s `%s`. '
-                        'Unfortunately, for %d-dimensional sequences this '
-                        'feature is not supported yet.'
-                        % (thing, parseq.name, parseq.NDIM))
+                    strings[-1].extend(
+                        objecttools.repr_(value) for value in array[idx])
         return strings
 
     @property
@@ -166,7 +427,7 @@ class Test(object):
         seps = ['| ']
         for parseq in self.parseqs:
             seps.append(' | ')
-            for dummy in range(parseq.length-1):
+            for dummy in range(len(parseq)-1):
                 seps.append('  ')
         seps.append(' |')
         return seps
@@ -199,21 +460,19 @@ class Test(object):
                                    strings_in_line,
                                    col_widths))
 
-    def extract_units(self, parseqs=None):
-        """Return a set of units of the given or the handled parameters
-        and sequences."""
-        if parseqs is None:
-            parseqs = self.parseqs
+    @staticmethod
+    def extract_units(parseqs):
+        """Return a set of units of the given parameters and sequences."""
         units = set()
         for parseq in parseqs:
-            desc = autodoctools.description(parseq)
+            desc = objecttools.description(parseq)
             if '[' in desc:
                 unit = desc.split('[')[-1].split(']')[0]
                 units.add(unit)
         return units
 
 
-class PlottingOptions(object):
+class PlottingOptions:
     """Plotting options of class |IntegrationTest|."""
 
     def __init__(self):
@@ -221,7 +480,6 @@ class PlottingOptions(object):
         self.height = 300
         self.activated = None
         self.selected = None
-        self.skip_nodes = True
 
 
 class IntegrationTest(Test):
@@ -231,7 +489,7 @@ class IntegrationTest(Test):
     inspecting doctests like the ones of modules |llake_v1| or |arma_v1|.
 
     Note that all condition sequences (state and logging sequences) are
-    initialized in accordance with the values are given in the `inits`
+    initialised in accordance with the values are given in the `inits`
     values.  The values of the simulation sequences of outlet and
     sender nodes are always set to zero before each test run.  All other
     parameter and sequence values can be changed between different test
@@ -241,8 +499,6 @@ class IntegrationTest(Test):
     HEADER_OF_FIRST_COL = 'date'
     """The header of the first column containing dates."""
 
-    _dateformat = None
-
     plotting_options = PlottingOptions()
 
     def __init__(self, element, seqs=None, inits=None):
@@ -250,8 +506,8 @@ class IntegrationTest(Test):
         and make their sequences ready for use for integration testing."""
         del self.inits
         self.element = element
-        self.elements = devicetools.Element.registered_elements()
-        self.nodes = devicetools.Node.registered_nodes()
+        self.elements = devicetools.Element.query_all()
+        self.nodes = devicetools.Node.query_all()
         self.prepare_node_sequences()
         self.prepare_input_model_sequences()
         self.parseqs = seqs if seqs else self.extract_print_sequences()
@@ -271,57 +527,75 @@ class IntegrationTest(Test):
 
         Plotting is only performed, when a filename is given as first
         argument.  Additionally, all other arguments of function
-        :class:`~IntegrationTest.plot` are allowed to modify plot design.
+        |IntegrationTest.plot| are allowed to modify plot design.
         """
         self.prepare_model()
-        self.hydpy.doit()
+        self.hydpy.simulate()
         self.print_table()
         if args:
             self.plot(*args, **kwargs)
 
     @property
     def _datetimes(self):
-        return tuple(date.datetime for date in pub.timegrids.sim)
+        return tuple(date.datetime for date in hydpy.pub.timegrids.sim)
 
     @property
     def raw_first_col_strings(self):
         """The raw date strings of the first column, except the header."""
-        return tuple(datetime.strftime(self.dateformat)
-                     for datetime in self._datetimes)
+        return tuple(_.strftime(self.dateformat) for _ in self._datetimes)
 
-    def _getdateformat(self):
+    @property
+    def dateformat(self) -> str:
         """Format string for printing dates in the first column of the table.
 
-        See :mod:`datetime` for the format strings allowed.
-        """
-        if self._dateformat is None:
-            return timetools.Date._formatstrings['iso']
-        return self._dateformat
+        See the documentation on module |datetime| for the format strings
+        allowed.
 
-    def _setdateformat(self, dateformat):
-        try:
-            dateformat = str(dateformat)
-        except BaseException:
-            raise TypeError(
-                'The given `dateformat` of type `%s` could not be converted '
-                'to a `str` instance.' % objecttools.classname(dateformat))
+        You can query and change property |IntegrationTest.dateformat|.
+        Passing ill-defined format strings results in the shown error:
+
+        >>> from hydpy import Element, IntegrationTest, prepare_model, pub
+        >>> pub.timegrids = '2000-01-01', '2001-01-01', '1d'
+        >>> element = Element('element', outlets='node')
+        >>> element.model = prepare_model('hland_v1')
+        >>> __package__ = 'testpackage'
+        >>> tester = IntegrationTest(element)
+        >>> tester.dateformat
+        '%Y-%m-%d %H:%M:%S'
+
+        >>> tester.dateformat = '%'
+        Traceback (most recent call last):
+        ...
+        ValueError: The given date format `%` is not a valid format \
+string for `datetime` objects.  Please read the documentation on module \
+datetime of the Python standard library for for further information.
+
+        >>> tester.dateformat = '%x'
+        >>> tester.dateformat
+        '%x'
+        """
+        dateformat = vars(self).get('dateformat')
+        if dateformat is None:
+            return timetools.Date.formatstrings['iso2']
+        return dateformat
+
+    @dateformat.setter
+    def dateformat(self, dateformat: str) -> None:
         try:
             datetime.datetime(2000, 1, 1).strftime(dateformat)
         except BaseException:
             raise ValueError(
-                "The given `dateformat` `%s` is not a valid format string "
-                "for `datetime` objects.  Please read the documentation "
-                "on module `datetime` of Python's the standard library "
-                "for further information." % dateformat)
-        self._dateformat = dateformat
-
-    dateformat = property(_getdateformat, _setdateformat)
+                f'The given date format `{dateformat}` is not a valid '
+                f'format string for `datetime` objects.  Please read '
+                f'the documentation on module datetime of the Python '
+                f'standard library for for further information.')
+        vars(self)['dateformat'] = dateformat
 
     @staticmethod
-    def get_output_array(seq):
+    def get_output_array(parseqs):
         """Return the array containing the output results of the given
         sequence."""
-        return seq.series
+        return parseqs.series
 
     def prepare_node_sequences(self):
         """Prepare the simulations sequences of all nodes in.
@@ -333,16 +607,14 @@ class IntegrationTest(Test):
             if not node.entries:
                 node.deploymode = 'oldsim'
             sim = node.sequences.sim
-            sim.ramflag = True
-            sim._setarray(numpy.zeros(len(pub.timegrids.init), dtype=float))
+            sim.activate_ram()
 
     def prepare_input_model_sequences(self):
         """Configure the input sequences of the model in a manner that allows
         for applying their time series data in integration tests."""
         subseqs = getattr(self.element.model.sequences, 'inputs', ())
         for seq in subseqs:
-            seq.ramflag = True
-            seq._setarray(numpy.zeros(len(pub.timegrids.init), dtype=float))
+            seq.activate_ram()
 
     def extract_print_sequences(self):
         """Return a list of all input, flux and state sequences of the model
@@ -385,7 +657,7 @@ class IntegrationTest(Test):
                         pass
 
     def plot(self, filename, width=None, height=None,
-             selected=None, activated=None, skip_nodes=None):
+             selected=None, activated=None):
         """Save a bokeh html file plotting the current test results.
 
         (Optional) arguments:
@@ -396,12 +668,7 @@ class IntegrationTest(Test):
             * height: Height of the plot in screen units.  Defaults to 300.
             * selected: List of the sequences to be plotted.
             * activated: List of the sequences to be shown initially.
-            * skip_nodes: Boolean flag that indicates whether series of
-              node objects shall be plotted or not. Defaults to `False`.
         """
-        import bokeh.models
-        import bokeh.palettes
-        import bokeh.plotting
         if width is None:
             width = self.plotting_options.width
         if height is None:
@@ -412,11 +679,6 @@ class IntegrationTest(Test):
             selected = self.plotting_options.selected
             if selected is None:
                 selected = self.parseqs
-        if skip_nodes is None:
-            skip_nodes = self.plotting_options.skip_nodes
-        if skip_nodes:
-            selected = [seq for seq in selected
-                        if not isinstance(seq, abctools.NodeSequenceABC)]
         if activated is None:
             activated = self.plotting_options.activated
             if activated is None:
@@ -424,63 +686,89 @@ class IntegrationTest(Test):
         activated = tuple(nm_.name if hasattr(nm_, 'name') else nm_.lower()
                           for nm_ in activated)
         path = os.path.join(docs.__path__[0], 'html', filename)
-        bokeh.plotting.output_file(path)
-        plot = bokeh.plotting.figure(x_axis_type="datetime",
-                                     tools=['pan', 'ywheel_zoom'],
-                                     toolbar_location=None)
+        plotting.output_file(path)
+        plot = plotting.figure(x_axis_type="datetime",
+                               tools=['pan', 'ywheel_zoom'],
+                               toolbar_location=None)
         plot.toolbar.active_drag = plot.tools[0]
         plot.toolbar.active_scroll = plot.tools[1]
         plot.plot_width = width
         plot.plot_height = height
         legend_entries = []
-        viridis = bokeh.palettes.viridis   # pylint: disable=no-member
+        viridis = palettes.viridis
+        headers = [header for header in self.raw_header_strings[1:]
+                   if header]
         zipped = zip(selected,
                      viridis(len(selected)),
-                     self.raw_header_strings[1:])
+                     headers)
         for (seq, col, header) in zipped:
-            if seq.NDIM == 0:
-                series = seq.series.copy()
-            elif (seq.NDIM == 1) and (seq.shape == (1,)):
-                series = seq.series[:, 0].copy()
+            series = seq.series.copy()
+            if not seq.NDIM:
+                listofseries = [series]
+                listofsuffixes = ['']
             else:
-                raise RuntimeError(
-                    'IntegrationTest does not support plotting multiple '
-                    'lines for one sequences so far.')
-            line = plot.line(self._datetimes, series,
-                             alpha=0.8, muted_alpha=0.0,
-                             line_width=2, color=col)
-            line.muted = seq.name not in activated
-            if header == seq.name:
-                header = objecttools.classname(seq)
-            else:
-                header = header.capitalize()
-            legend_entries.append((header, [line]))
-        legend = bokeh.models.Legend(items=legend_entries,
-                                     click_policy='mute')
+                nmb = seq.shape[0]
+                listofseries = [series[:, idx] for idx in range(nmb)]
+                if nmb == 1:
+                    listofsuffixes = ['']
+                else:
+                    listofsuffixes = ['-%d' % idx for idx in range(nmb)]
+            for subseries, suffix in zip(listofseries, listofsuffixes):
+                line = plot.line(self._datetimes, subseries,
+                                 alpha=0.8, muted_alpha=0.0,
+                                 line_width=2, color=col)
+                line.muted = seq.name not in activated
+                if header.strip() == seq.name:
+                    title = objecttools.classname(seq)
+                else:
+                    title = header.capitalize()
+                title += suffix
+                legend_entries.append((title, [line]))
+        legend = models.Legend(items=legend_entries,
+                               click_policy='mute')
         legend.border_line_color = None
         plot.add_layout(legend, 'right')
         units = self.extract_units(selected)
         ylabel = objecttools.enumeration(units).replace('and', 'or')
         plot.yaxis.axis_label = ylabel
         plot.yaxis.axis_label_text_font_style = 'normal'
-        bokeh.plotting.save(plot)
+        plotting.save(plot)
         self._src = filename
         self._width = width
         self._height = height
 
-    def iframe(self, tabs=4):
+    def print_iframe(self, tabs: int = 4) -> None:
         """Print a command for embeding the saved html file into the online
-        documentation via an `iframe`."""
+        documentation via an `iframe`.
+
+        >>> from hydpy import Element, IntegrationTest, prepare_model, pub
+        >>> pub.timegrids = '2000-01-01', '2001-01-01', '1d'
+        >>> element = Element('element', outlets='node')
+        >>> element.model = prepare_model('hland_v1')
+        >>> __package__ = 'testpackage'
+        >>> IntegrationTest(element).print_iframe()
+            .. raw:: html
+        <BLANKLINE>
+                <iframe
+                    src="None"
+                    width="100"
+                    height="330"
+                    frameborder=0
+                ></iframe>
+        <BLANKLINE>
+        """
         blanks = ' '*tabs
-        lines = ['.. raw:: html',
-                 '',
-                 '    <iframe',
-                 '        src="%s"' % self._src,
-                 '        width="100%"',
-                 '        height="%dpx"' % (self._height+30),
-                 '        frameborder=0',
-                 '    ></iframe>',
-                 '']
+        height = self._height
+        height = self.plotting_options.height if height is None else height
+        lines = [f'.. raw:: html',
+                 f'',
+                 f'    <iframe',
+                 f'        src="{self._src}"',
+                 f'        width="100"',
+                 f'        height="{height+30}"',
+                 f'        frameborder=0',
+                 f'    ></iframe>',
+                 f'']
         print('\n'.join(blanks+line for line in lines))
 
 
@@ -505,15 +793,11 @@ class UnitTest(Test):
         del self.results
         self.model = model
         self.method = method
-        self.doc = self.extract_method_doc()
         self.first_example_calc = first_example
         self.last_example_calc = last_example
         self.first_example_plot = first_example
         self.last_example_plot = last_example
-        if parseqs:
-            self.parseqs = parseqs
-        else:
-            self.parseqs = self.extract_print_parameters_and_sequences()
+        self.parseqs = parseqs
         self.memorize_inits()
         self.prepare_output_arrays()
 
@@ -549,10 +833,10 @@ class UnitTest(Test):
             self._update_outputs(idx)
         self.print_table(self.idx0, self.idx1)
 
-    def get_output_array(self, parseq):
+    def get_output_array(self, parseqs):
         """Return the array containing the output results of the given
         parameter or sequence."""
-        return getattr(self.results, parseq.name)
+        return getattr(self.results, parseqs.name)
 
     @property
     def raw_first_col_strings(self):
@@ -581,51 +865,31 @@ class UnitTest(Test):
             if inits is not None:
                 parseq(inits)
 
-    def extract_method_doc(self):
-        """Return the documentation string of the method to be tested."""
-        if getattr(self.method, '__doc__', None):
-            return self.method.__doc__
-        else:
-            model = type(self.model)
-            for group_name in model._METHOD_GROUPS:
-                for function in getattr(model, group_name, ()):
-                    if function.__name__ == self.method.__name__:
-                        return function.__doc__
-
-    def extract_print_parameters_and_sequences(self):
-        """Return a list of all parameter and sequences of the model.
-
-        Note that all parameters and sequences without the common `values`
-        attribute are omitted.
-        """
-        parseqs = []
-        for subparseqs in itertools.chain(self.model.parameters,
-                                          self.model.sequences):
-            for parseq in subparseqs:
-                if str(type(parseq)).split("'")[1] in self.doc:
-                    if hasattr(parseq, 'values'):
-                        parseqs.append(parseq)
-        return tuple(parseqs)
-
     def _update_inputs(self, idx):
-        """Update the actual values with the :attr:`~UnitTest.nexts` data of
+        """Update the actual values with the |UnitTest.nexts| data of
         the given index."""
         for parseq in self.parseqs:
             if hasattr(self.nexts, parseq.name):
                 parseq(getattr(self.nexts, parseq.name)[idx])
 
     def _update_outputs(self, idx):
-        """Update the :attr:`~UnitTest.results` data with the actual values of
+        """Update the |UnitTest.results| data with the actual values of
         the given index."""
         for parseq in self.parseqs:
             if hasattr(self.results, parseq.name):
                 getattr(self.results, parseq.name)[idx] = parseq.values
 
 
-class _Open(object):
+class _Open:
+
+    __readingerror = (
+        'Reading is not possible at the moment.  Please see the '
+        'documentation on class `Open` of module `testtools` '
+        'for further information.')
 
     def __init__(self, path, mode, *args, **kwargs):
-        # all positional and keyword arguments are ignored.
+        # pylint: disable=unused-argument
+        # all further positional and keyword arguments are ignored.
         self.path = path.replace(os.sep, '/')
         self.mode = mode
         self.texts = []
@@ -638,9 +902,25 @@ class _Open(object):
     def __exit__(self, exception, message, traceback_):
         self.close()
 
+    def read(self):
+        """Raise a |NotImplementedError| in any case."""
+        raise NotImplementedError(self.__readingerror)
+
+    def readline(self):
+        """Raise a |NotImplementedError| in any case."""
+        raise NotImplementedError(self.__readingerror)
+
+    def readlines(self):
+        """Raise a |NotImplementedError| in any case."""
+        raise NotImplementedError(self.__readingerror)
+
     def write(self, text):
         """Replaces the `write` method of file objects."""
         self.texts.append(text)
+
+    def writelines(self, lines):
+        """Replaces the `writelines` method of file objects."""
+        self.texts.extend(lines)
 
     def close(self):
         """Replaces the `close` method of file objects."""
@@ -660,13 +940,13 @@ class _Open(object):
         print('~'*maxchars)
 
 
-class Open(object):
-    """Replace :func:`open` in doctests temporarily.
+class Open:
+    """Replace |open| in doctests temporarily.
 
-    Class |Open| to intended to make writing to files visible
-    and testable in docstrings.  Therefore, Python's built in function
-    :func:`open` is temporarily replaced by another object, printing
-    the filename and the file contend as shown in the following example:
+    Class |Open| to intended to make writing to files visible and testable
+    in docstrings.  Therefore, Python's built in function |open| is
+    temporarily replaced by another object, printing the filename and the
+    file contend as shown in the following example:
 
     >>> import os
     >>> path = os.path.join('folder', 'test.py')
@@ -674,8 +954,7 @@ class Open(object):
     >>> with Open():
     ...     with open(path, 'w') as file_:
     ...         file_.write('first line\\n')
-    ...         file_.write('\\n')
-    ...         file_.write('third line\\n')
+    ...         file_.writelines(['\\n', 'third line\\n'])
     ~~~~~~~~~~~~~~
     folder/test.py
     --------------
@@ -688,8 +967,35 @@ class Open(object):
     Note that, for simplicity, the UNIX style path seperator `/` is used
     to print the file path on all systems.
 
-    Class |Open| is rather restricted at the moment.  More functionalities
-    will be added later...
+    Class |Open| is rather restricted at the moment.  Functionalities
+    like reading are not supported so far:
+
+    >>> with Open():
+    ...     with open(path, 'r') as file_:
+    ...         file_.read()
+    Traceback (most recent call last):
+    ...
+    NotImplementedError: Reading is not possible at the moment.  \
+Please see the documentation on class `Open` of module `testtools` \
+for further information.
+
+    >>> with Open():
+    ...     with open(path, 'r') as file_:
+    ...         file_.readline()
+    Traceback (most recent call last):
+    ...
+    NotImplementedError: Reading is not possible at the moment.  \
+Please see the documentation on class `Open` of module `testtools` \
+for further information.
+
+    >>> with Open():
+    ...     with open(path, 'r') as file_:
+    ...         file_.readlines()
+    Traceback (most recent call last):
+    ...
+    NotImplementedError: Reading is not possible at the moment.  \
+Please see the documentation on class `Open` of module `testtools` \
+for further information.
     """
     def __init__(self):
         self.open = builtins.open
@@ -702,4 +1008,199 @@ class Open(object):
         builtins.open = self.open
 
 
-autodoctools.autodoc_module()
+class TestIO:
+    """Prepare an environment for testing IO functionalities.
+
+    Primarily, |TestIO| changes the current working during the
+    execution of with| blocks.  Inspecting your current working
+    directory, |os| will likely find no file called `testfile.txt`:
+
+    >>> import os
+    >>> os.path.exists('testfile.txt')
+    False
+
+    If some tests require writing such a file, this should be done
+    within HydPy's `iotesting` folder in subpackage `tests`, which
+    is achieved by appyling the `with` statement on |TestIO|:
+
+    >>> from hydpy import TestIO
+    >>> with TestIO():
+    ...     open('testfile.txt', 'w').close()
+    ...     print(os.path.exists('testfile.txt'))
+    True
+
+    After the `with` block, the working directory is reset automatically:
+
+    >>> os.path.exists('testfile.txt')
+    False
+
+    Nevertheless, `testfile.txt` still exists in folder `iotesting`:
+
+    >>> with TestIO():
+    ...     print(os.path.exists('testfile.txt'))
+    True
+
+    Optionally, files and folders created within the current `with` block
+    can be removed automatically by setting `clear_own` to |True|
+    (modified files and folders are not affected):
+
+    >>> with TestIO(clear_own=True):
+    ...     open('testfile.txt', 'w').close()
+    ...     os.makedirs('testfolder')
+    ...     print(os.path.exists('testfile.txt'),
+    ...           os.path.exists('testfolder'))
+    True True
+    >>> with TestIO(clear_own=True):
+    ...     print(os.path.exists('testfile.txt'),
+    ...           os.path.exists('testfolder'))
+    True False
+
+    Alternatively, all files and folders contained in folder `iotesting`
+    can be removed after leaving the `with` block:
+
+    >>> with TestIO(clear_all=True):
+    ...     os.makedirs('testfolder')
+    ...     print(os.path.exists('testfile.txt'),
+    ...           os.path.exists('testfolder'))
+    True True
+    >>> with TestIO(clear_own=True):
+    ...     print(os.path.exists('testfile.txt'),
+    ...           os.path.exists('testfolder'))
+    False False
+
+    For just clearing the `iofolder`, one can call method |TestIO.clear|
+    alternatively:
+
+    >>> with TestIO():
+    ...     open('testfile.txt', 'w').close()
+    ...     print(os.path.exists('testfile.txt'))
+    True
+    >>> TestIO.clear()
+    >>> with TestIO():
+    ...     print(os.path.exists('testfile.txt'))
+    False
+
+    Note that class |TestIO| copies all eventually generated `.coverage`
+    files into the `test` subpackage to assure no covered lines are
+    reported as uncovered.
+    """
+    def __init__(self, clear_own=False, clear_all=False):
+        self._clear_own = clear_own
+        self._clear_all = clear_all
+        self._path = None
+        self._olds = None
+
+    def __enter__(self):
+        self._path = os.getcwd()
+        os.chdir(os.path.join(iotesting.__path__[0]))
+        if self._clear_own:
+            self._olds = os.listdir('.')
+        return self
+
+    def __exit__(self, exception, message, traceback_):
+        for file in os.listdir('.'):
+            if file.startswith('.coverage'):
+                shutil.move(file, os.path.join(self._path, file))
+            if ((file != '__init__.py') and
+                    (self._clear_all or
+                     (self._clear_own and (file not in self._olds)))):
+                if os.path.exists(file):
+                    if os.path.isfile(file):
+                        os.remove(file)
+                    else:
+                        shutil.rmtree(file)
+        os.chdir(self._path)
+
+    @classmethod
+    def clear(cls):
+        """Remove all files from the `iotesting` folder."""
+        with cls(clear_all=True):
+            pass
+
+
+def make_abc_testable(abstract: Type) -> Type:
+    """Return a concrete version of the given abstract base class for
+    testing purposes.
+
+    Abstract base classes cannot be (and, at least in production code,
+    should not be) instantiated:
+
+    >>> from hydpy.core.netcdftools import NetCDFVariableBase
+    >>> ncvar = NetCDFVariableBase()
+    Traceback (most recent call last):
+    ...
+    TypeError: Can't instantiate abstract class NetCDFVariableBase with \
+abstract methods array, dimensions, read, subdevicenames, write
+
+    However, it is convenient to do so for testing (partly) abstract
+    base classes in doctests.  The derived class returned by function
+    |make_abc_testable| is identical with the original one, except that
+    its protection against initialization is disabled:
+
+    >>> from hydpy import make_abc_testable, classname
+    >>> ncvar = make_abc_testable(NetCDFVariableBase)(False, False, 1)
+
+    To avoid confusion, |make_abc_testable| suffixes an underscore the
+    original classname:
+
+    >>> classname(ncvar)
+    'NetCDFVariableBase_'
+    """
+    concrete = type(abstract.__name__ + '_', (abstract,), {})
+    concrete.__abstractmethods__ = frozenset()
+    return concrete
+
+
+@contextlib.contextmanager
+def mock_datetime_now(testdatetime):
+    """Let class method |datetime.datetime.now| of class |datetime.datetime|
+    of module |datetime| return the given date for testing purposes within
+    a "with block".
+
+    >>> import datetime
+    >>> testdate = datetime.datetime(2000, 10, 1, 12, 30, 0, 999)
+    >>> testdate == datetime.datetime.now()
+    False
+    >>> from hydpy import classname
+    >>> classname(datetime.datetime)
+    'datetime'
+    >>> from hydpy.core.testtools import mock_datetime_now
+    >>> with mock_datetime_now(testdate):
+    ...     testdate == datetime.datetime.now()
+    ...     classname(datetime.datetime)
+    True
+    '_DateTime'
+    >>> testdate == datetime.datetime.now()
+    False
+    >>> classname(datetime.datetime)
+    'datetime'
+
+    A test to see that mocking |datetime.datetime| does not interfere
+    with initialising |Date| objects and that exceptions are property
+    handled:
+
+    >>> from hydpy import Date
+    >>> with mock_datetime_now(testdate):
+    ...     Date(datetime.datetime(2000, 10, 1, 12, 30, 0, 999))
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to initialise a `Date` object based on \
+argument `2000-10-01 12:30:00.000999`, the following error occurred: \
+For `Date` instances, the microsecond must be zero, \
+but for the given `datetime` object it is `999` instead.
+
+    >>> classname(datetime.datetime)
+    'datetime'
+    """
+    _datetime = datetime.datetime
+
+    class _DateTime(datetime.datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return testdatetime
+
+    try:
+        datetime.datetime = _DateTime
+        yield
+    finally:
+        datetime.datetime = _datetime

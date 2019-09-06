@@ -1,14 +1,21 @@
 language: python
+
 os:
   - linux
-python:
-  - "2.7"
-  - "3.4"
-  - "3.5"
-  - "3.5-dev"
-  - "3.6"
-  - "3.6-dev"
-# command to install dependencies
+
+matrix:
+  include:
+    - python: 3.6
+    - python: 3.7
+      dist: xenial
+      sudo: true
+      addons:
+        apt:
+          packages:
+            - libhdf5-serial-dev
+            - netcdf-bin
+            - libnetcdf-dev
+
 install:
   - pip install --upgrade pip setuptools wheel
   - pip install Cython --install-option="--no-cython-compile"
@@ -17,17 +24,29 @@ install:
   - pip install matplotlib
   - pip install bokeh
   - pip install coverage
-  - if [ $TRAVIS_PYTHON_VERSION = "3.6" ] ; then pip install pycobertura; fi
-  - if [ $TRAVIS_PYTHON_VERSION = "3.6" ] ; then pip install sphinx==1.6.7; fi
-  - if [ $TRAVIS_PYTHON_VERSION = "3.6" ] ; then pip install travis-sphinx; fi
-  - if [ $TRAVIS_PYTHON_VERSION = "3.6" ] ; then pip install sphinxcontrib-fulltoc; fi
-# command to run tests
+  - pip install pandas
+  - pip install pylint
+  - pip install typing_extensions
+  - pip install wrapt
+  - pip install xmlschema==1.0.9
+  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then pip install sphinx; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then pip install travis-sphinx; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then pip install sphinxcontrib-fulltoc; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then pip install sphinxprettysearchresults; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.6" ] ; then pip install netCDF4; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then pip install netCDF4; fi
+
 script:
-  - if [ $TRAVIS_PYTHON_VERSION = "3.6" ] ; then python setup.py install coverage_report; else python setup.py install; fi
-  - if [ $TRAVIS_PYTHON_VERSION = "3.6" ] ; then travis-sphinx build --source=hydpy/docs; fi
-  - if [ $TRAVIS_PYTHON_VERSION = "3.6" ] ; then python modify_html.py; fi
+  - python setup.py install
+  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then python hydpy/docs/prepare.py; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then travis-sphinx build --source=hydpy/docs/auto; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then python hydpy/docs/modify_html.py; fi
+  - if [ $TRAVIS_PYTHON_VERSION == "3.6" ] ; then pylint hydpy; fi
+
 env:
   global:
-    secure: KkDNiyCWcOtSMHzwmR7WuUM9Z08sigox9fgiRaWtdDTNHGHbNRXCf6Rzr32QlThqu9SwwPd5VnEJkontzrG9uTL2rlEzCKJHp4Ncq0lmCBhOJEM7favpIGwjnWQt4kZZ+G/sy9rfV6rshiOMN2rHRkt1gYzRmHTPCEQQ5eVIb7/YnFO+Gc77FGgkqWJXTfYczUMHNL5F3pfdSUbnnsDoqq3dxZ+NtdY6R87+IOT9fclrsL8zcodJC8N2oyGeTfhRcrZESneVcR/NEx6KhVC8A9/8bWK7kc8cYB6ieLo31uU+Ht7UvDzXmXfZrA8FoRbiDaJ3ktW9RQ7BR0GKGyQm/y/bLUrR7Yo2AXLPrF1DvBt8DYvcnMkJ1sNOrJI+oOpfi7AfdxVJnGbWa8w4D5B6EJSCvQwOj1REXgOf8+VrOKUqZMxPCCDDOhKPSx3/9ng7NAT+yRk7pLqKVtJEEszYs2/wK8hask4JMaz9H06b+Dy5nHnr4RQffXPPwAArSZZdu9IC3/38Lqnk+HhUWZLbKnBMd8UdRbDdZ5aFAkK7ZLseiDaAzCE31FscQbNmwpUPgfxgz/ApWZSV/WHlVZvaNBPkK0DTk5b9iW3WeLOC+qXGYzBKTUHIFQbCKEh40P0pTeDlp0sK3bWnT0VPEXJhk0jEN60RrlB9lwLdSzJg4Gs=
+    - COVERAGE_PROCESS_START=/home/travis/build/hydpy-dev/hydpy/hydpy/tests/.coveragerc
+    - secure: KkDNiyCWcOtSMHzwmR7WuUM9Z08sigox9fgiRaWtdDTNHGHbNRXCf6Rzr32QlThqu9SwwPd5VnEJkontzrG9uTL2rlEzCKJHp4Ncq0lmCBhOJEM7favpIGwjnWQt4kZZ+G/sy9rfV6rshiOMN2rHRkt1gYzRmHTPCEQQ5eVIb7/YnFO+Gc77FGgkqWJXTfYczUMHNL5F3pfdSUbnnsDoqq3dxZ+NtdY6R87+IOT9fclrsL8zcodJC8N2oyGeTfhRcrZESneVcR/NEx6KhVC8A9/8bWK7kc8cYB6ieLo31uU+Ht7UvDzXmXfZrA8FoRbiDaJ3ktW9RQ7BR0GKGyQm/y/bLUrR7Yo2AXLPrF1DvBt8DYvcnMkJ1sNOrJI+oOpfi7AfdxVJnGbWa8w4D5B6EJSCvQwOj1REXgOf8+VrOKUqZMxPCCDDOhKPSx3/9ng7NAT+yRk7pLqKVtJEEszYs2/wK8hask4JMaz9H06b+Dy5nHnr4RQffXPPwAArSZZdu9IC3/38Lqnk+HhUWZLbKnBMd8UdRbDdZ5aFAkK7ZLseiDaAzCE31FscQbNmwpUPgfxgz/ApWZSV/WHlVZvaNBPkK0DTk5b9iW3WeLOC+qXGYzBKTUHIFQbCKEh40P0pTeDlp0sK3bWnT0VPEXJhk0jEN60RrlB9lwLdSzJg4Gs=
+
 after_success:
-  - if [[ $TRAVIS_PYTHON_VERSION = "3.6" ]]; then travis-sphinx deploy; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == "3.7" ]]; then travis-sphinx deploy; fi

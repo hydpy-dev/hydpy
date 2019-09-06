@@ -3,9 +3,7 @@
 # pylint: enable=missing-docstring
 
 # import...
-# ...from standard library
-from __future__ import division, print_function
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core import sequencetools
 
 
@@ -109,20 +107,20 @@ class Outflow(sequencetools.FluxSequence):
 
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of the dam model."""
-    _SEQCLASSES = (Inflow,
-                   TotalRemoteDischarge,
-                   NaturalRemoteDischarge,
-                   RemoteDemand,
-                   RemoteFailure,
-                   RequiredRemoteRelease,
-                   AllowedRemoteRelieve,
-                   RequiredRemoteSupply,
-                   PossibleRemoteRelieve,
-                   ActualRemoteRelieve,
-                   RequiredRelease,
-                   TargetedRelease,
-                   ActualRelease,
-                   MissingRemoteRelease,
-                   ActualRemoteRelease,
-                   FloodDischarge,
-                   Outflow)
+    CLASSES = (Inflow,
+               TotalRemoteDischarge,
+               NaturalRemoteDischarge,
+               RemoteDemand,
+               RemoteFailure,
+               RequiredRemoteRelease,
+               AllowedRemoteRelieve,
+               RequiredRemoteSupply,
+               PossibleRemoteRelieve,
+               ActualRemoteRelieve,
+               RequiredRelease,
+               TargetedRelease,
+               ActualRelease,
+               MissingRemoteRelease,
+               ActualRemoteRelease,
+               FloodDischarge,
+               Outflow)

@@ -1,1006 +1,1976 @@
 # -*- coding: utf-8 -*-
-"""This module implements tools for handling the sequences (time series)
-of hydrological models.
-"""
+"""This module implements tools for defining and handling different kinds
+of the sequences (time series) of hydrological models."""
 # import...
 # ...from standard library
-from __future__ import division, print_function
-import os
-import sys
+import abc
 import copy
+import os
+import runpy
 import struct
+import sys
+import types
 import warnings
+from typing import (
+    Any, ClassVar, Dict, IO, Iterable, Iterator, List, Optional, Tuple, Type,
+    TYPE_CHECKING, Union)
 # ...from site-packages
 import numpy
 # ...from HydPy
-from hydpy import pub
-from hydpy.core import abctools
-from hydpy.core import autodoctools
+import hydpy
 from hydpy.core import objecttools
-from hydpy.core import timetools
+from hydpy.core import propertytools
 from hydpy.core import variabletools
-from hydpy.cythons import pointerutils
+from hydpy.cythons.autogen import pointerutils
+if TYPE_CHECKING:
+    from hydpy.core import devicetools
+    from hydpy.core import modeltools
+    from hydpy.core import timetools
+    from hydpy.core import typingtools
 
 
-class Sequences(object):
-    """Base class for handling all sequences of a specific model."""
+class InfoArray(numpy.ndarray):
+    """|numpy| |numpy.ndarray| subclass that stores and tries to keep
+    an additional `info` attribute.
 
-    _names_subseqs = ('inlets', 'receivers', 'inputs', 'fluxes', 'states',
-                      'logs', 'aides', 'outlets', 'senders')
+    >>> from hydpy.core.sequencetools import InfoArray
+    >>> array = InfoArray([1.0, 2.0], info='this array is short')
+    >>> array
+    InfoArray([ 1.,  2.])
+    >>> array.info
+    'this array is short'
+    >>> subarray = array[:1]
+    >>> subarray
+    InfoArray([ 1.])
+    >>> subarray.info
+    'this array is short'
+    """
 
-    def __init__(self, **kwargs):
-        self.model = kwargs.pop('model', None)
-        cythonmodule = kwargs.pop('cythonmodule', None)
-        cymodel = kwargs.pop('cymodel', None)
-        for (name, cls) in kwargs.items():
-            if name.endswith('Sequences') and issubclass(cls, SubSequences):
-                if cythonmodule:
-                    cls_fastaccess = getattr(cythonmodule, name)
-                    subseqs = cls(self, cls_fastaccess, cymodel)
-                else:
-                    subseqs = cls(self, None, None)
-                setattr(self, subseqs.name, subseqs)
+    def __new__(cls, array, info=None):
+        obj = numpy.asarray(array).view(cls)
+        obj.info = info
+        return obj
 
-    def _yield_iosubsequences(self):
-        for subseqs in self:
-            if isinstance(subseqs, abctools.IOSubSequencesABC):
-                yield subseqs
+    def __array_finalize__(self, obj: 'InfoArray') -> None:
+        self.info = getattr(obj, 'info', None)
 
-    def activate_disk(self, names=None):
-        """Call method :func:`~IOSubSequences.activate_disk` of all handled
-        |IOSubSequences| objects."""
-        for subseqs in self._yield_iosubsequences():
-            subseqs.activate_disk(names)
 
-    def deactivate_disk(self, names=None):
-        """Call method :func:`~IOSubSequences.deactivate_disk` of all handled
-        |IOSubSequences| objects."""
-        for subseqs in self._yield_iosubsequences():
-            subseqs.deactivate_disk(names)
+class Sequences:
+    """Base class for handling all sequences of a specific model.
 
-    def activate_ram(self, names=None):
-        """Call method :func:`~IOSubSequences.activate_ram` of all handled
-        |IOSubSequences| objects."""
-        for subseqs in self._yield_iosubsequences():
-            subseqs.activate_ram(names)
+    |Sequences| objects handle nine sequence subgroups as attributes
+    such as the `inlets` and  the `receivers` subsequences:
 
-    def deactivate_ram(self, names=None):
-        """Call method :func:`~IOSubSequences.deactivate_ram` of all handled
-        |IOSubSequences| objects."""
-        for subseqs in self._yield_iosubsequences():
-            subseqs.deactivate_ram(names)
+    >>> from hydpy.examples import prepare_full_example_2
+    >>> hp, pub, TestIO = prepare_full_example_2()
+    >>> sequences = hp.elements.land_dill.model.sequences
+    >>> bool(sequences.inlets)
+    False
+    >>> bool(sequences.fluxes)
+    True
 
-    def open_files(self, idx=0):
-        """Call method :func:`~IOSubSequences.open_files` of all handled
-        |IOSubSequences| objects."""
-        for subseqs in self._yield_iosubsequences():
-            subseqs.open_files(idx)
+    Iteration makes only the non-empty subgroups available which
+    are handling |Sequence| objects:
 
-    def close_files(self):
-        """Call method :func:`~IOSubSequences.close_files` of all handled
-        |IOSubSequences| objects."""
-        for subseqs in self._yield_iosubsequences():
-            subseqs.close_files()
+    >>> for subseqs in sequences:
+    ...     print(subseqs.name)
+    inputs
+    fluxes
+    states
+    logs
+    outlets
 
-    def load_data(self, idx):
-        """Call method :func:`~IOSubSequences.load_data` of all handled
-        |InputSequences| objects."""
-        for subseqs in self:
-            if isinstance(subseqs, abctools.InputSubSequencesABC):
-                subseqs.load_data(idx)
+    Class |Sequences| provides some methods related to reading and
+    writing time series data, which (directly or indirectly) call the
+    corresponding methods of the handled |IOSequence| objects.
+    In most cases, users should prefer to use the related methods of
+    class |HydPy| but using the ones of class |Sequences| can be more
+    convenient when analysing a specific model in-depth.
 
-    def save_data(self, idx):
-        """Call method :func:`~IOSubSequences.save_data` of all handled
-        |IOSubSequences| objects."""
-        for subseqs in self:
-            if isinstance(subseqs, abctools.OutputSubSequencesABC):
-                subseqs.save_data(idx)
+    To introduce these methods, we first change two IO-related settings:
 
-    def reset(self):
-        """Call method :func:`~ConditionSequence.reset` of all handled
-        |ConditionSequence| objects."""
-        for subseqs in self:
-            if isinstance(subseqs, abctools.ConditionSequenceABC):
-                subseqs.reset()
+    >>> from hydpy import round_
+    >>> pub.options.checkseries = False
+    >>> pub.sequencemanager.generaloverwrite = True
 
-    def __iter__(self):
-        for name in self._names_subseqs:
-            subseqs = getattr(self, name, None)
-            if subseqs is not None:
-                yield subseqs
+    Method |Sequences.activate_ram| and method |Sequences.deactivate_ram|
+    enables/disables handling time series in rapid access memory and
+    method |Sequences.save_series| writes time series to files:
+
+    >>> sequences.activate_ram()
+    >>> sequences.inputs.t.ramflag
+    True
+    >>> sequences.inputs.t.series = 1.0, 2.0, 3.0, 4.0
+    >>> with TestIO():
+    ...     sequences.save_series()
+    >>> sequences.deactivate_ram()
+    >>> sequences.inputs.t.ramflag
+    False
+    >>> sequences.inputs.t.series
+    Traceback (most recent call last):
+    ...
+    AttributeError: Sequence `t` of element `land_dill` is not requested \
+to make any internal data available.
+
+    Method |Sequences.activate_disk| and |Sequences.deactivate_disk|
+    enables/disables handling time series on disk and method
+    |Sequences.load_series| reads time series from files:
+
+    >>> with TestIO():
+    ...     sequences.activate_disk()
+    >>> sequences.inputs.t.diskflag
+    True
+    >>> with TestIO():
+    ...     sequences.load_series()
+    ...     round_(sequences.inputs.t.series)
+    1.0, 2.0, 3.0, 4.0
+    >>> with TestIO():
+    ...     sequences.deactivate_disk()
+    >>> sequences.inputs.t.diskflag
+    False
+    >>> hasattr(sequences.inputs.t, 'series')
+    False
+
+    Methods |Sequences.ram2disk| and |Sequences.disk2ram| allow moving
+    data from RAM to disk and from disk to RAM, respectively:
+
+    >>> sequences.activate_ram()
+    >>> sequences.inputs.t.ramflag
+    True
+    >>> sequences.inputs.t.series = 1.0, 2.0, 3.0, 4.0
+    >>> with TestIO():
+    ...     sequences.ram2disk()
+    >>> sequences.inputs.t.diskflag
+    True
+    >>> with TestIO():
+    ...     round_(sequences.inputs.t.series)
+    1.0, 2.0, 3.0, 4.0
+    >>> with TestIO():
+    ...     sequences.disk2ram()
+    >>> round_(sequences.inputs.t.series)
+    1.0, 2.0, 3.0, 4.0
+
+    The documentation on class |IOSequence| explains the underlying
+    functionalities of class |IOSequence| in more detail.
+
+    >>> pub.options.checkseries = True
+    >>> pub.sequencemanager.generaloverwrite = False
+    """
+
+    model: 'modeltools.Model'
+    inlets: 'LinkSequences'
+    receivers: 'LinkSequences'
+    inputs: 'InputSequences'
+    fluxes: 'FluxSequences'
+    states: 'StateSequences'
+    logs: 'LogSequences'
+    aides: 'AideSequences'
+    outlets: 'LinkSequences'
+    senders: 'LinkSequences'
+
+    def __init__(
+            self,
+            model: 'modeltools.Model',
+            cls_inlets: Optional[Type['LinkSequences']] = None,
+            cls_receivers: Optional[Type['LinkSequences']] = None,
+            cls_inputs: Optional[Type['InputSequences']] = None,
+            cls_fluxes: Optional[Type['FluxSequences']] = None,
+            cls_states: Optional[Type['StateSequences']] = None,
+            cls_logs: Optional[Type['LogSequences']] = None,
+            cls_aides: Optional[Type['AideSequences']] = None,
+            cls_outlets: Optional[Type['LinkSequences']] = None,
+            cls_senders: Optional[Type['LinkSequences']] = None,
+            cymodel: Optional['typingtools.CyModelProtocol'] = None,
+            cythonmodule: Optional[types.ModuleType] = None) -> None:
+        self.model = model
+        self.inlets = self.__prepare_subseqs(
+            'Inlet', cls_inlets, cymodel, cythonmodule)
+        self.receivers = self.__prepare_subseqs(
+            'Receiver', cls_receivers, cymodel, cythonmodule)
+        self.inputs = self.__prepare_subseqs(
+            'Input', cls_inputs, cymodel, cythonmodule)
+        self.fluxes = self.__prepare_subseqs(
+            'Flux', cls_fluxes, cymodel, cythonmodule)
+        self.states = self.__prepare_subseqs(
+            'State', cls_states, cymodel, cythonmodule)
+        self.logs = self.__prepare_subseqs(
+            'Log', cls_logs, cymodel, cythonmodule)
+        self.aides = self.__prepare_subseqs(
+            'Aide', cls_aides, cymodel, cythonmodule)
+        self.outlets = self.__prepare_subseqs(
+            'Outlet', cls_outlets, cymodel, cythonmodule)
+        self.senders = self.__prepare_subseqs(
+            'Sender', cls_senders, cymodel, cythonmodule)
+
+    def __prepare_subseqs(self, prefix, class_, cymodel, cythonmodule):
+        name = f'{prefix}Sequences'
+        if class_ is None:
+            class_ = copy.copy(globals()[name])
+            setattr(class_, 'CLASSES', ())
+        return class_(self, getattr(cythonmodule, name, None), cymodel)
 
     @property
-    def conditions(self):
+    def iosubsequences(self) -> Iterator['IOSequences']:
+        """Yield all relevant |IOSequences| objects handled by the current
+        |Sequences| object.
+
+        The currently available IO-subgroups are `inputs`, `fluxes`,
+        and `states`.
+
+        >>> from hydpy import prepare_model
+        >>> model = prepare_model('hland_v1', '1d')
+        >>> for subseqs in model.sequences.iosubsequences:
+        ...     print(subseqs.name)
+        inputs
+        fluxes
+        states
+
+        However, not all models implement sequences for all these
+        subgroups.  Property |Sequences.iosubsequences| only yields
+        those subgroups which are non-empty:
+
+        >>> model = prepare_model('hstream_v1', '1d')
+        >>> for subseqs in model.sequences.iosubsequences:
+        ...     print(subseqs.name)
+        states
+        """
+        for subseqs in (self.inputs, self.fluxes, self.states):
+            if subseqs:
+                yield subseqs
+
+    def activate_disk(self) -> None:
+        """Call method |IOSequences.activate_disk| of all handled
+        |IOSequences| objects."""
+        for subseqs in self.iosubsequences:
+            subseqs.activate_disk()
+
+    def deactivate_disk(self) -> None:
+        """Call method |IOSequences.deactivate_disk| of all handled
+        |IOSequences| objects."""
+        for subseqs in self.iosubsequences:
+            subseqs.deactivate_disk()
+
+    def activate_ram(self) -> None:
+        """Call method |IOSequences.activate_ram| of all handled
+        |IOSequences| objects."""
+        for subseqs in self.iosubsequences:
+            subseqs.activate_ram()
+
+    def deactivate_ram(self) -> None:
+        """Call method |IOSequences.deactivate_ram| of all handled
+        |IOSequences| objects."""
+        for subseqs in self.iosubsequences:
+            subseqs.deactivate_ram()
+
+    def ram2disk(self):
+        """Call method |IOSequences.ram2disk| of all handled
+        |IOSequences| objects."""
+        for subseqs in self.iosubsequences:
+            subseqs.ram2disk()
+
+    def disk2ram(self):
+        """Call method |IOSequence.disk2ram| of all handled
+        |IOSequences| objects."""
+        for subseqs in self.iosubsequences:
+            subseqs.disk2ram()
+
+    def load_series(self):
+        """Call method |IOSequences.load_series| of all handled
+        |IOSequences| objects."""
+        for subseqs in self.iosubsequences:
+            subseqs.load_series()
+
+    def save_series(self):
+        """Call method |IOSequence.save_ext| of all handled
+        |IOSequences| objects."""
+        for subseqs in self.iosubsequences:
+            subseqs.save_series()
+
+    def open_files(self, idx: int = 0) -> None:
+        """Call method |IOSequences.open_files| of all handled
+        |IOSequences| objects."""
+        for subseqs in self.iosubsequences:
+            subseqs.open_files(idx)
+
+    def close_files(self) -> None:
+        """Call method |IOSequences.close_files| of all handled
+        |IOSequences| objects."""
+        for subseqs in self.iosubsequences:
+            subseqs.close_files()
+
+    def load_data(self, idx: int) -> None:
+        """Call method |ModelIOSequences.load_data| of the handled
+        |InputSequences| object."""
+        self.inputs.load_data(idx)
+
+    def save_data(self, idx: int) -> None:
+        """Call method |ModelIOSequences.save_data| of the handled
+        |FluxSequences| and |StateSequences| objects."""
+        self.fluxes.save_data(idx)
+        self.states.save_data(idx)
+
+    def reset(self) -> None:
+        """Call method |ConditionSequence.reset| of all handled
+        |ConditionSequence| objects."""
+        for subseqs in (self.states, self.logs):
+            subseqs.reset()
+
+    @property
+    def conditionsequences(self) -> \
+            Iterator[Union['StateSequences', 'LogSequences']]:
         """Generator object yielding all conditions (|StateSequence| and
         |LogSequence| objects).
         """
-        for subseqs in ('states', 'logs'):
-            for tuple_ in getattr(self, subseqs, ()):
-                yield tuple_
+        for subseqs in (self.states, self.logs):
+            for seq in subseqs:
+                yield seq
 
     @property
-    def hasconditions(self):
-        """True or False, whether the |Sequences| object "handles conditions"
-        or not (at least one |StateSequence| or |LogSequence| object)."""
-        for tuple_ in self.conditions:
-            return True
-        return False
+    def conditions(self) -> Dict[str, Dict[str, Union[float, numpy.ndarray]]]:
+        """A nested dictionary which contains the values of all condition
+        sequences.
 
-    @property
-    def _conditiondefaultfilename(self):
-        filename = objecttools.devicename(self)
-        if filename == '?':
-            raise RuntimeError(
-                'To load or save the conditions of a model from or to a file, '
-                'its filename must be known.  This can be done, by passing '
-                'filename to method `load_conditions` or `save_conditions` '
-                'directly.  But in complete HydPy applications, it is usally '
-                'assumed to be consistent with the name of the element '
-                'handling the model.  Actually, neither a filename is given '
-                'nor does the model know its master element.')
-        else:
-            return filename + '.py'
-
-    def load_conditions(self, filename=None):
-        """Read the initial conditions from a file and assign them to the
-        respective |StateSequence| and/or |LogSequence| objects handled by
-        the actual |Sequences| object.
-
-        If no filename or dirname is passed, the ones defined by the
-        |ConditionManager| stored in module |pub| are used.
+        See the documentation on property |HydPy.conditions| for further
+        information.
         """
-        if self.hasconditions:
-            if not filename:
-                filename = self._conditiondefaultfilename
-            namespace = locals()
-            for seq in self.conditions:
-                namespace[seq.name] = seq
-            namespace['model'] = self
-            code = pub.conditionmanager.load_file(filename)
-            try:
-                exec(code)
-            except BaseException:
-                objecttools.augment_excmessage(
-                    'While trying to gather initial conditions of element %s'
-                    % objecttools.devicename(self))
+        conditions: Dict[str, Dict[str, Union[float, numpy.ndarray]]] = {}
+        for seq in self.conditionsequences:
+            subconditions = conditions.get(seq.subseqs.name, {})
+            subconditions[seq.name] = copy.deepcopy(seq.values)
+            conditions[seq.subseqs.name] = subconditions
+        return conditions
 
-    def save_conditions(self, filename=None):
-        """Query the actual conditions of the |StateSequence| and/or
-        |LogSequence| objects handled by the actual |Sequences| object and
-        write them into a initial condition file.
-
-        If no filename or dirname is passed, the ones defined by the
-        |ConditionManager| stored in module |pub| are used.
-        """
-        if self.hasconditions:
-            if filename is None:
-                filename = self._conditiondefaultfilename
-            con = pub.controlmanager
-            lines = ['# -*- coding: utf-8 -*-\n\n',
-                     'from hydpy.models.%s import *\n\n' % self.model,
-                     'controlcheck(projectdir="%s", controldir="%s")\n\n'
-                     % (con.projectdir, con.currentdir)]
-            for seq in self.conditions:
-                lines.append(repr(seq) + '\n')
-            pub.conditionmanager.save_file(filename, ''.join(lines))
-
-    def trim_conditions(self):
-        """Call method :func:`~ConditionSequence.trim` of each handled
-        |ConditionSequence|."""
-        for seq in self.conditions:
+    @conditions.setter
+    def conditions(self, conditions):
+        with hydpy.pub.options.trimvariables(False):
+            for subname, subconditions in conditions.items():
+                subseqs = getattr(self, subname)
+                for seqname, values in subconditions.items():
+                    getattr(subseqs, seqname)(values)
+        for seq in reversed(tuple(self.conditionsequences)):
             seq.trim()
 
-    def __len__(self):
-        return len(dict(self))
+    def load_conditions(self, filename: Optional[str] = None) -> None:
+        """Read the initial conditions from a file and assign them to the
+        respective |StateSequence| and |LogSequence| objects handled by
+        the actual |Sequences| object.
 
+        The documentation on method |HydPy.load_conditions| of class
+        |HydPy| explains how to read and write condition values for
+        complete *HydPy* projects in the most convenient manner.
+        However, using the underlying methods |Sequences.load_conditions|
+        and |Sequences.save_conditions| directly offers the advantage to
+        specify alternative filenames.  We demonstrate this through
+        using the `land_dill` |Element| object of the `LahnH` example
+        project and focussing on the values of state sequence
+        |hland_states.SM|:
 
-class _MetaSubSequencesType(type):
-    def __new__(cls, name, parents, dict_):
-        seqclasses = dict_.get('_SEQCLASSES')
-        if seqclasses is None:
-            raise NotImplementedError(
-                'For class `%s`, the required tuple `_SEQCLASSES` is not '
-                'defined.  Please see the documentation of class '
-                '`SubSequences` of module `sequencetools` for further '
-                'information.' % name)
-        if seqclasses:
-            lst = ['\n\n\n    The following sequence classes are selected:']
-            for seqclass in seqclasses:
-                lst.append('      * :class:`~%s` %s'
-                           % ('.'.join((seqclass.__module__,
-                                        seqclass.__name__)),
-                              autodoctools.description(seqclass)))
-            doc = dict_.get('__doc__', None)
-            if doc is None:
-                doc = ''
-            dict_['__doc__'] = doc + '\n'.join(l for l in lst)
-        return type.__new__(cls, name, parents, dict_)
+        >>> from hydpy.examples import prepare_full_example_2
+        >>> hp, pub, TestIO = prepare_full_example_2()
+        >>> sequences = hp.elements.land_dill.model.sequences
+        >>> sequences.states.sm
+        sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
+           222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 
+        From now on, we work in the freshly created condition
+        directory `test`:
 
-_MetaSubSequencesClass = _MetaSubSequencesType('_MetaSubSequencesClass',
-                                               (), {'_SEQCLASSES': ()})
+        >>> with TestIO():
+        ...     pub.conditionmanager.currentdir = 'test'
 
+        We set all soil moisture values to zero and write the updated
+        values to the file `cold_start.py`:
 
-class SubSequences(_MetaSubSequencesClass):
-    """Base class for handling subgroups of sequences.
+        >>> sequences.states.sm(0.0)
 
-    Attributes:
-      * seqs: The parent :class:`Sequences` object.
-      * fastaccess: The  :class:`FastAccess` object allowing fast access to
-        the sequence values. In `Cython` mode, model specific cdef
-        classes are applied.
+        >>> with TestIO():   # doctest: +ELLIPSIS
+        ...     sequences.save_conditions('cold_start.py')
 
-    Additional attributes are the actual :class:`Sequence` instances,
-    representing the individual time series.  These need to be defined in
-    :class:`SubSequences` subclass.  Therefore, one needs to collect the
-    appropriate :class:`Sequence` subclasses in the (hidden) class attribute
-    :attr:`~SubSequences._SEQCLASSES`, as shown in the following example:
+        Trying to reload from the written file (after changing the
+        soil moisture values again) without passing the file name
+        fails due to assuming the elements name as file
+        name base:
 
-    >>> from hydpy.core.sequencetools import *
-    >>> class Temperature(Sequence):
-    ...    NDIM, NUMERIC = 0, False
-    >>> class Precipitation(Sequence):
-    ...    NDIM, NUMERIC = 0, True
-    >>> class InputSequences(SubSequences):
-    ...     _SEQCLASSES = (Temperature, Precipitation)
-    >>> inputs = InputSequences(None) # Assign `None` for brevity.
-    >>> inputs
-    temperature(nan)
-    precipitation(nan)
+        >>> sequences.states.sm(100.0)
+        >>> with TestIO():   # doctest: +ELLIPSIS
+        ...     sequences.load_conditions()
+        Traceback (most recent call last):
+        ...
+        FileNotFoundError: While trying to load the initial conditions \
+of element `land_dill`, the following error occurred: [Errno 2] No such \
+file or directory: '...land_dill.py'
 
-    The order within the tuple determines the order of iteration, hence:
+        One does not need to state the file extensions (`.py`)  explicitly:
 
-    >>> for sequence in inputs:
-    ...     print(sequence)
-    temperature(nan)
-    precipitation(nan)
+        >>> with TestIO():
+        ...     sequences.load_conditions('cold_start')
+        >>> sequences.states.sm
+        sm(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 
-    If one forgets to define a `_SEQCLASSES` tuple so (and maybe tries to add
-    the sequences in the constructor of the subclass of
-    :class:`SubSequences`, the following error is raised:
+        Note that determining the file name automatically requires a
+        proper reference to the related |Element| object:
 
-    >>> class InputSequences(SubSequences):
-    ...     pass
-    Traceback (most recent call last):
-    ...
-    NotImplementedError: For class `InputSequences`, the required tuple \
-`_SEQCLASSES` is not defined.  Please see the documentation of class \
-`SubSequences` of module `sequencetools` for further information.
+        >>> del sequences.model.element
+        >>> with TestIO():
+        ...     sequences.save_conditions()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: While trying to save the actual conditions of \
+element `?`, the following error occurred: To load or save the conditions \
+of a model from or to a file, its filename must be known.  This can be \
+done, by passing filename to method `load_conditions` or `save_conditions` \
+directly.  But in complete HydPy applications, it is usally assumed to be \
+consistent with the name of the element handling the model.  Actually, \
+neither a filename is given nor does the model know its master element.
+        """
+        if self.conditionsequences:
+            try:
+                dict_ = locals()
+                for seq in self.conditionsequences:
+                    dict_[seq.name] = seq
+                dict_['model'] = self
+                filepath = os.path.join(
+                    hydpy.pub.conditionmanager.inputpath,
+                    self.__prepare_filename(filename))
+                runpy.run_path(filepath, init_globals=dict_)
+            except BaseException:
+                objecttools.augment_excmessage(
+                    f'While trying to load the initial conditions of '
+                    f'element `{objecttools.devicename(self)}`')
 
-    """
-    _SEQCLASSES = ()
+    def save_conditions(self, filename: Optional[str] = None) -> None:
+        """Query the actual conditions of the |StateSequence| and
+        |LogSequence| objects handled by the actual |Sequences| object
+        and write them into an initial condition file.
 
-    def __init__(self, seqs, cls_fastaccess=None, cymodel=None):
-        self.seqs = seqs
-        self._initfastaccess(cls_fastaccess, cymodel)
-        self._initsequences()
-
-    def _initfastaccess(self, cls_fastaccess, cymodel):
-        if cls_fastaccess is None:
-            self.fastaccess = FastAccess()
-        else:
-            self.fastaccess = cls_fastaccess()
-            setattr(cymodel.sequences, self.name, self.fastaccess)
-
-    def _initsequences(self):
-        for cls_seq in self._SEQCLASSES:
-            setattr(self, objecttools.instancename(cls_seq), cls_seq())
-
-    @classmethod
-    def getname(cls):
-        return objecttools.instancename(cls)[:-8]
-
-    @property
-    def name(self):
-        return self.getname()
-
-    def __setattr__(self, name, value):
-        """Attributes and methods should usually not be replaced.  Existing
-        :class:`Sequence` attributes are protected in a way, that only their
-        values are changed through assignements.  For new :class:`Sequence`
-        attributes, additional `fastaccess` references are defined.  If you
-        actually want to replace a sequence, you have to delete it first.
+        See the documentation on method |Sequences.load_conditions| for
+        further information.
         """
         try:
-            attr = getattr(self, name)
-        except AttributeError:
-            object.__setattr__(self, name, value)
-            if isinstance(value, Sequence):
-                value.connect(self)
-        else:
-            try:
-                attr.values = value
-            except AttributeError:
+            if self.conditionsequences:
+                con = hydpy.pub.controlmanager
+                lines = [
+                    f'# -*- coding: utf-8 -*-\n\n',
+                    f'from hydpy.models.{self.model} import *\n\n',
+                    f'controlcheck(projectdir="{con.projectdir}", '
+                    f'controldir="{con.currentdir}", '
+                    f'stepsize="{hydpy.pub.timegrids.stepsize}")\n\n']
+                for seq in self.conditionsequences:
+                    lines.append(repr(seq) + '\n')
+                filepath = os.path.join(
+                    hydpy.pub.conditionmanager.outputpath,
+                    self.__prepare_filename(filename))
+                with open(filepath, 'w', encoding="utf-8") as file_:
+                    file_.writelines(lines)
+        except BaseException:
+            objecttools.augment_excmessage(
+                f'While trying to save the actual conditions of '
+                f'element `{objecttools.devicename(self)}`')
+
+    def __prepare_filename(self, filename: Optional[str]) -> str:
+        if filename is None:
+            filename = objecttools.devicename(self)
+            if filename == '?':
                 raise RuntimeError(
-                    '`%s` instances do not allow the direct replacement of '
-                    'their members.  After initialization you should usually '
-                    'only change parameter values through assignements.  '
-                    'If you really need to replace a object member, delete '
-                    'it beforehand.'
-                    % objecttools.classname(self))
+                    'To load or save the conditions of a model from or to a '
+                    'file, its filename must be known.  This can be done, '
+                    'by passing filename to method `load_conditions` or '
+                    '`save_conditions` directly.  But in complete HydPy '
+                    'applications, it is usally assumed to be consistent '
+                    'with the name of the element handling the model. '
+                    ' Actually, neither a filename is given nor does the '
+                    'model know its master element.')
+        if not filename.endswith('.py'):
+            filename += '.py'
+        return filename
 
-    def __iter__(self):
-        for seqclass in self._SEQCLASSES:
-            name = objecttools.instancename(seqclass)
-            yield getattr(self, name)
+    def trim_conditions(self) -> None:
+        """Call method |trim| of each handled |ConditionSequence|.
 
-    def __getitem__(self, key):
-        return self.__dict__[key]
+        |Sequences.trim_conditions| is just a convenience function for
+        calling method |trim| of all |StateSequence| and |LogSequence|
+        objects returned by property |Sequences.conditionsequences|.
+        We demonstrate its functionality by preparing an instance of
+        application model |lland_v1|, using its available default
+        values, and defining out-of-bound values of the soil moisture
+        state sequence |lland_states.BoWa|:
 
-    def __repr__(self):
-        lines = []
-        if pub.options.reprcomments:
-            lines.append('#%s object defined in module %s.'
-                         % (objecttools.classname(self),
-                            objecttools.modulename(self)))
-            lines.append('#The implemented sequences with their actual '
-                         'values are:')
-        for sequence in self:
-            try:
-                lines.append('%s' % repr(sequence))
-            except BaseException:
-                lines.append('%s(?)' % sequence.name)
-        return '\n'.join(lines)
+        >>> from hydpy import prepare_model, pub
+        >>> pub.timegrids = '2000-01-01', '2000-01-10', '1d'
+        >>> with pub.options.usedefaultvalues(True):
+        ...     model = prepare_model('lland_v1', '1d')
+        ...     model.parameters.control.nhru(2)
+        >>> model.sequences.states.bowa = -100.0
+        >>> model.sequences.trim_conditions()
+        >>> model.sequences.states.bowa
+        bowa(0.0, 0.0)
+        """
+        for seq in self.conditionsequences:
+            seq.trim()
 
-    def __dir__(self):
+    def __iter__(self) -> Iterator['SubSequences']:
+        for subseqs in (self.inlets, self.receivers, self.inputs,
+                        self.fluxes, self.states, self.logs,
+                        self.aides, self.outlets, self.senders):
+            if subseqs:
+                yield subseqs
+
+    def __dir__(self) -> List[str]:
+        """
+        >>> from hydpy import prepare_model
+        >>> model = prepare_model('hland_v1', '1d')
+        >>> dir(model.sequences)
+        ['activate_disk', 'activate_ram', 'aides', 'close_files', \
+'conditions', 'conditionsequences', 'deactivate_disk', 'deactivate_ram', \
+'disk2ram', 'fluxes', 'inlets', 'inputs', 'iosubsequences', \
+'load_conditions', 'load_data', 'load_series', 'logs', 'model', \
+'open_files', 'outlets', 'ram2disk', 'receivers', 'reset', \
+'save_conditions', 'save_data', 'save_series', 'senders', 'states', \
+'trim_conditions']
+        """
         return objecttools.dir_(self)
 
 
-class IOSubSequences(SubSequences):
-    _SEQCLASSES = ()
+class SubSequences(variabletools.SubVariables[Sequences]):
+    """Base class for handling subgroups of sequences.
 
-    def open_files(self, idx=0):
-        self.fastaccess.open_files(idx)
+    Each |SubSequences| object has a `fastaccess` attribute.  When
+    working in pure Python mode, this is an instance either of class
+    |FastAccessModelSequence| of class |FastAccessNodeSequence|:
 
-    def close_files(self):
-        self.fastaccess.close_files()
+    >>> from hydpy import classname, prepare_model, pub
+    >>> with pub.options.usecython(False):
+    ...     model = prepare_model('lland_v1')
+    >>> classname(model.sequences.inputs.fastaccess)
+    'FastAccessModelSequence'
+
+    When working in Cython mode (which is the default mode and much
+    faster), `fastaccess` is an object of a Cython extension class
+    specialised for the respective model and sequence group:
+
+    >>> with pub.options.usecython(True):
+    ...     model = prepare_model('lland_v1')
+    >>> classname(model.sequences.inputs.fastaccess)
+    'InputSequences'
+
+    See the documentation of similar class |SubParameters| for further
+    information.  However, note the difference that model developers
+    should not subclass |SubSequences| directly but specialised
+    subclasses like |FluxSequences| or |StateSequences| instead.
+    """
+
+    @property
+    def name(self) -> str:
+        """The class name in lower case letters omitting the last
+        eight characters ("equences").
+
+        >>> from hydpy.core.sequencetools import ModelSequences
+        >>> class StateSequences(ModelSequences):
+        ...     CLASSES = ()
+        >>> StateSequences(None).name
+        'states'
+        """
+        return objecttools.instancename(self)[:-8]
+
+
+class ModelSequences(SubSequences):
+    """Base class for handling model-related subgroups of sequences."""
+
+    seqs: Sequences
+    fastaccess: Union[
+        'FastAccessSequence', 'typingtools.FastAccessModelSequenceProtocol']
+    _cls_fastaccess: Optional[Type[
+        'typingtools.FastAccessModelSequenceProtocol']]
+    _cymodel: Optional['typingtools.CyModelProtocol']
+
+    def __init__(
+            self,
+            master: Sequences,
+            cls_fastaccess:
+            Optional[Type[
+                'typingtools.FastAccessModelSequenceProtocol']] = None,
+            cymodel: Optional['typingtools.CyModelProtocol'] = None) -> None:
+        self.seqs = master
+        self._cls_fastaccess = cls_fastaccess
+        self._cymodel = cymodel
+        super().__init__(master)
+
+    def __hydpy__initialise_fastaccess__(self) -> None:
+        if (self._cls_fastaccess is None) or (self._cymodel is None):
+            self.fastaccess = FastAccessModelSequence()
+        else:
+            self.fastaccess = self._cls_fastaccess()
+            setattr(self._cymodel.sequences, self.name, self.fastaccess)
+
+
+class IOSequences(SubSequences):
+    """Subclass of |SubSequences|, specialised for handling |IOSequence|
+    objects."""
+
+    fastaccess: Union[
+        'FastAccessSequence', 'typingtools.FastAccessModelSequenceProtocol']
 
     def activate_ram(self):
+        """Call method |IOSequence.activate_ram| of all handled
+        |IOSequence| objects."""
         for seq in self:
             seq.activate_ram()
 
     def deactivate_ram(self):
+        """Call method |IOSequence.deactivate_ram| of all handled
+        |IOSequence| objects."""
         for seq in self:
             seq.deactivate_ram()
 
     def activate_disk(self):
+        """Call method |IOSequence.activate_disk| of all handled
+        |IOSequence| objects."""
         for seq in self:
             seq.activate_disk()
 
     def deactivate_disk(self):
+        """Call method |IOSequence.deactivate_disk| of all handled
+        |IOSequence| objects."""
         for seq in self:
             seq.deactivate_disk()
 
     def ram2disk(self):
+        """Call method |IOSequence.ram2disk| of all handled
+        |IOSequence| objects."""
         for seq in self:
             seq.ram2disk()
 
     def disk2ram(self):
+        """Call method |IOSequence.disk2ram| of all handled
+        |IOSequence| objects."""
         for seq in self:
             seq.disk2ram()
 
+    def load_series(self):
+        """Call method |IOSequence.load_ext| of all handled
+        |IOSequence| objects."""
+        for seq in self:
+            if seq.memoryflag:
+                seq.load_ext()
 
-abctools.IOSubSequencesABC.register(IOSubSequences)
+    def save_series(self):
+        """Call method |IOSequence.save_ext| of all handled
+        |IOSequence| objects."""
+        for seq in self:
+            if seq.memoryflag:
+                seq.save_ext()
+
+    def open_files(self, idx: int = 0) -> None:
+        """Call method |FastAccessSequence.open_files| of the
+        |FastAccessSequence| object handled as attribute `fastaccess`."""
+        self.fastaccess.open_files(idx)
+
+    def close_files(self):
+        """Call method |FastAccessSequence.close_files| of the
+        |FastAccessSequence| object handled as attribute `fastaccess`."""
+        self.fastaccess.close_files()
 
 
-class InputSequences(IOSubSequences):
-    """Base class for handling input sequences."""
-    _SEQCLASSES = ()
+class ModelIOSequences(IOSequences, ModelSequences):
+    """Base class for handling model-related subgroups of |IOSequence| objects.
+    """
 
-    def load_data(self, idx):
+    fastaccess: Union['FastAccessModelSequence',
+                      'typingtools.FastAccessModelSequenceProtocol']
+
+    def load_data(self, idx: int) -> None:
+        """Call method |FastAccessModelSequence.load_data| of the
+        |FastAccessModelSequence| object handled as attribute `fastaccess`."""
         self.fastaccess.load_data(idx)
 
-
-abctools.InputSubSequencesABC.register(InputSequences)
-
-
-class FluxSequences(IOSubSequences):
-    """Base class for handling flux sequences."""
-    _SEQCLASSES = ()
-
-    @classmethod
-    def getname(cls):
-        return 'fluxes'
-
-    def save_data(self, idx):
+    def save_data(self, idx: int) -> None:
+        """Call method |FastAccessModelSequence.save_data| of the
+        |FastAccessModelSequence| object handled as attribute `fastaccess`."""
         self.fastaccess.save_data(idx)
 
+
+class InputSequences(ModelIOSequences):
+    """Base class for handling |InputSequence| objects."""
+
+
+class FluxSequences(ModelIOSequences):
+    """Base class for handling |FluxSequence| objects."""
+
     @property
-    def numerics(self):
+    def name(self) -> str:
+        """Always return the string "fluxes"."""
+        return 'fluxes'
+
+    @property
+    def numericsequences(self) -> Iterator['FluxSequence']:
         """Iterator for `numerical` flux sequences.
 
-        `numerical` means that the class attribute of the respective sequence
-        is `True`.
+        `numerical` means that the `NUMERIC` class attribute of the
+        actual sequence is `True`:
+
+        >>> from hydpy import prepare_model
+        >>> model = prepare_model('dam_v001')
+        >>> len(model.sequences.fluxes)
+        11
+        >>> for seq in model.sequences.fluxes.numericsequences:
+        ...     print(seq)
+        inflow(nan)
+        actualrelease(nan)
+        flooddischarge(nan)
+        outflow(nan)
         """
         for flux in self:
             if flux.NUMERIC:
                 yield flux
 
 
-abctools.OutputSubSequencesABC.register(FluxSequences)
+class StateSequences(ModelIOSequences):
+    """Base class for handling |StateSequence| objects."""
 
+    fastaccess_new: Union['FastAccessModelSequence',
+                          'typingtools.FastAccessModelSequenceProtocol']
+    fastaccess_old: Union['FastAccessModelSequence',
+                          'typingtools.FastAccessModelSequenceProtocol']
 
-class StateSequences(IOSubSequences):
-    """Base class for handling state sequences."""
-    _SEQCLASSES = ()
-
-    def _initfastaccess(self, cls_fastaccess, cymodel):
-        SubSequences._initfastaccess(self, cls_fastaccess, cymodel)
+    def __hydpy__initialise_fastaccess__(self) -> None:
+        super().__hydpy__initialise_fastaccess__()
         self.fastaccess_new = self.fastaccess
-        if cls_fastaccess is None:
-            self.fastaccess_old = FastAccess()
+        if (self._cls_fastaccess is None) or (self._cymodel is None):
+            self.fastaccess_old = FastAccessModelSequence()
         else:
-            setattr(cymodel.sequences, 'new_states', self.fastaccess)
-            self.fastaccess_old = cls_fastaccess()
-            setattr(cymodel.sequences, 'old_states', self.fastaccess_old)
+            setattr(self._cymodel.sequences, 'new_states', self.fastaccess)
+            self.fastaccess_old = self._cls_fastaccess()
+            setattr(self._cymodel.sequences, 'old_states', self.fastaccess_old)
 
-    def new2old(self):
-        """Assign the new/final state values of the actual time step to the
-        new/initial state values of the next time step.
-        """
+    def new2old(self) -> None:
+        """Call method |StateSequence.new2old| of all handled
+        |StateSequence| objects."""
         for seq in self:
             seq.new2old()
 
-    def save_data(self, idx):
-        self.fastaccess.save_data(idx)
-
-    def reset(self):
+    def reset(self) -> None:
+        """Call method |ConditionSequence.reset| of all handled
+        |StateSequence| objects."""
         for seq in self:
             seq.reset()
 
 
-abctools.OutputSubSequencesABC.register(StateSequences)
+class LogSequences(ModelSequences):
+    """Base class for handling |LogSequence| objects."""
 
+    fastaccess: Union['FastAccessModelSequence',
+                      'typingtools.FastAccessModelSequenceProtocol']
 
-class LogSequences(SubSequences):
-    """Base class for handling log sequences."""
-    _SEQCLASSES = ()
-
-    def reset(self):
+    def reset(self) -> None:
+        """Call method |ConditionSequence.reset| of all handled
+        |LogSequence| objects."""
         for seq in self:
             seq.reset()
 
 
-class AideSequences(SubSequences):
-    """Base class for handling aide sequences."""
-    _SEQCLASSES = ()
+class AideSequences(ModelSequences):
+    """Base class for handling |AideSequence| objects."""
+
+    fastaccess: Union['FastAccessModelSequence',
+                      'typingtools.FastAccessModelSequenceProtocol']
 
 
-class LinkSequences(SubSequences):
-    """Base class for handling link sequences."""
-    _SEQCLASSES = ()
+class LinkSequences(ModelSequences):
+    """Base class for handling |LinkSequence| objects."""
+
+    fastaccess: Union['FastAccessModelSequence',
+                      'typingtools.FastAccessLinkSequenceProtocol']
+
+
+class InletSequences(LinkSequences):
+    """Base class for handling "inlet" |LinkSequence| objects."""
+
+
+class OutletSequences(LinkSequences):
+    """Base class for handling "outlet" |LinkSequence| objects."""
+
+
+class ReceiverSequences(LinkSequences):
+    """Base class for handling "receiver" |LinkSequence| objects."""
+
+
+class SenderSequences(LinkSequences):
+    """Base class for handling "sender" |LinkSequence| objects."""
 
 
 class Sequence(variabletools.Variable):
-    """Only for inheritance."""
+    """Base class for defining different kinds of sequences.
 
-    NDIM, NUMERIC = 0, False
+    Note that model developers should not derive their model-specific
+    sequence classes from |Sequence| directly but from the "final"
+    subclasses provided in module |sequencetools| (e.g. |FluxSequence|).
 
-    NOT_DEEPCOPYABLE_MEMBERS = ('subseqs', 'fastaccess')
+    From the model developer perspective and especially from the
+    user perspective, |Sequence| is only a small extension of its base
+    class |Variable|.  One relevant extension is that (only the) 0-dimensional
+    sequence objects come with a predefined shape:
 
-    def __init__(self):
-        self.subseqs = None
-        self.fastaccess = objecttools.FastAccess()
+    >>> from hydpy import prepare_model
+    >>> model = prepare_model('lland_v1', '1d')
+    >>> model.sequences.aides.epw.shape
+    ()
+    >>> sfa = model.sequences.aides.sfa
+    >>> sfa.shape
+    Traceback (most recent call last):
+    ...
+    AttributeError: Shape information for variable `sfa` can only be \
+retrieved after it has been defined.
 
-    def connect(self, subseqs):
-        self.subseqs = subseqs
-        self.fastaccess = subseqs.fastaccess
-        self._connect_subattr('ndim', self.NDIM)
-        self._connect_subattr('length', 0)
+    For high numbers of entries, the string representation puts the
+    names of the constants within a list (to make the string representations
+    executable under Python 3.6; this behaviour changes as soon
+    as Python 3.7 becomes the oldest supported version):
+
+    >>> sfa.shape = (255,)
+    >>> sfa    # doctest: +ELLIPSIS
+    sfa(nan, nan, ..., nan, nan)
+    >>> sfa.shape = (256,)
+    >>> sfa    # doctest: +ELLIPSIS
+    sfa([nan, nan, ..., nan, nan])
+
+    For consistency with the usage of |Parameter| subclasses, |Sequence|
+    objects are also "callable" for setting their values (but in a much
+    less and flexible manner):
+
+    >>> sfa(2.0)
+    >>> sfa    # doctest: +ELLIPSIS
+    sfa([2.0, 2.0, ..., 2.0, 2.0])
+
+    Under the hood, class |Sequence| also prepares some attributes
+    of its class |FastAccessSequence| object, used for performing
+    the actual simulation calculations.   Framework developers should
+    note that the respective `fastaccess` attributes contain both
+    the name of the sequence and the name of the original attribute
+    in lower case letters.  We take `NDIM` as an example:
+
+    >>> sfa.fastaccess._sfa_ndim
+    1
+
+    Some of these attributes require updating under some situations.
+    For example, other sequences than |AideSequence| objects require
+    a "length" attribute, which needs to be updated each time the
+    sequence's shape changes:
+
+    >>> sfa.fastaccess._sfa_length
+    0
+    """
+    TYPE: Type[float] = float
+    INIT: float = 0.0
+    NUMERIC: bool
+
+    strict_valuehandling = False
+
+    fastaccess: Union['FastAccessModelSequence',
+                      'typingtools.FastAccessModelSequenceProtocol']
+
+    @property
+    def subseqs(self):
+        """Alias for attribute `subvars`."""
+        return self.subvars
+
+    def __hydpy__connect_variable2subgroup__(self) -> None:
+        self.fastaccess = self.subvars.fastaccess
+        self._set_fastaccessattribute('ndim', self.NDIM)
+        self._set_fastaccessattribute('length', 0)
         for idx in range(self.NDIM):
-            self._connect_subattr('length_%d' % idx, 0)
-        self.diskflag = False
-        self.ramflag = False
-        try:
-            self._connect_subattr('file', '')
-        except AttributeError:
-            pass
-        self._initvalues()
+            self._set_fastaccessattribute(f'length_{idx}', 0)
+        self._finalise_connections()
 
-    def _connect_subattr(self, suffix, value):
-        setattr(self.fastaccess, '_%s_%s' % (self.name, suffix), value)
+    def _get_fastaccessattribute(self, suffix: str) -> Any:
+        return getattr(self.fastaccess, f'_{self.name}_{suffix}')
 
-    def __call__(self, *args):
-        """The prefered way to pass values to :class:`Sequence` instances
-        within initial condition files.
-        """
+    def _set_fastaccessattribute(self, suffix: str, value: Any) -> None:
+        setattr(self.fastaccess, f'_{self.name}_{suffix}', value)
+
+    def _finalise_connections(self) -> None:
+        """A hook method, called at the end of method
+        `__hydpy__connect_variable2subgroup__` for initialising
+        values and some related attributes, eventually."""
+        if not self.NDIM:
+            self.shape = ()
+
+    def __call__(self, *args) -> None:
+        """The prefered way to pass values to |Sequence| instances
+        within initial condition files."""
+        if len(args) == 1:
+            args = args[0]
         self.values = args
 
     @property
-    def initvalue(self):
-        if pub.options.usedefaultvalues:
-            initvalue = getattr(self, 'INIT', None)
-            if initvalue is None:
-                initvalue = 0.
-        else:
-            initvalue = numpy.nan
-        return initvalue
+    def initinfo(self) -> Tuple[float, bool]:
+        """A |tuple| containing the initial value and |True| or a missing
+        value and |False|, depending on the actual |Sequence| subclass and
+        the actual value of option |Options.usedefaultvalues|.
 
-    def _initvalues(self):
-        value = None if self.NDIM else self.initvalue
-        setattr(self.fastaccess, self.name, value)
+        In the following, we do not explain property |Sequence.initinfo|
+        itself but show how it affects initialising new |Sequence| objects.
+        Therefore, let us define a sequence test class and prepare a
+        function for initialising it and connecting the resulting instance
+        to a |ModelSequences| object:
 
-    def _getvalue(self):
-        """The actual time series value(s) handled by the respective
-        :class:`Sequence` instance.  For consistency, `value` and `values`
-        can always be used interchangeably.
+        >>> from hydpy.core.sequencetools import Sequence, ModelSequences
+        >>> class Test(Sequence):
+        ...     NDIM = 0
+        >>> class SubGroup(ModelSequences):
+        ...     CLASSES = (Test,)
+        >>> def prepare():
+        ...     subseqs = SubGroup(None)
+        ...     test = Test(subseqs)
+        ...     test.__hydpy__connect_variable2subgroup__()
+        ...     return test
+
+        By default, making use of the `INIT` attribute is disabled:
+
+        >>> prepare()
+        test(nan)
+
+        Enable it through setting |Options.usedefaultvalues| to |True|:
+
+        >>> from hydpy import pub
+        >>> with pub.options.usedefaultvalues(True):
+        ...     prepare()
+        test(0.0)
+
+        Attribute `INIT` of class |Sequence| comes with the value `0.0`
+        by default, which should be reasonable for most |Sequence|
+        subclasses.  However, subclasses can define other values.
+        Most importantly, note the possibility to set `INIT` to `None`
+        for sequences that do not allow defining a reasonabe initial
+        value for all possible situations:
+
+        >>> Test.INIT = None
+        >>> prepare()
+        test(nan)
+        >>> with pub.options.usedefaultvalues(True):
+        ...     prepare()
+        test(nan)
         """
-        value = getattr(self.fastaccess, self.name, None)
-        if value is None:
-            raise RuntimeError('No value/values of sequence %s of element '
-                               '%s has/have been defined so far.'
-                               % (self.name, objecttools.devicename(self)))
-        else:
-            if self.NDIM:
-                value = numpy.asarray(value)
-            return value
+        if hydpy.pub.options.usedefaultvalues and self.INIT is not None:
+            return self.INIT, True
+        return numpy.nan, False
 
-    def _setvalue(self, value):
-        if self.NDIM == 0:
-            try:
-                temp = value[0]
-                if len(value) > 1:
-                    raise ValueError('%d values are assigned to the scalar '
-                                     'sequence %s of element %s, which is '
-                                     'ambiguous.'
-                                     % (len(value),
-                                        objecttools.devicename(self),
-                                        self.name))
-                value = temp
-            except (TypeError, IndexError):
-                pass
-            try:
-                value = float(value)
-            except (ValueError, TypeError):
-                raise TypeError('When trying to set the value of sequence '
-                                '%s of element %s, it was not possible to '
-                                'convert value `%s` to float .'
-                                % (self.name, objecttools.devicename(self),
-                                   value))
-        else:
-            try:
-                value = value.value
-            except AttributeError:
-                pass
-            try:
-                value = numpy.full(self.shape, value, dtype=float)
-            except ValueError:
-                raise ValueError('For sequence %s of element %s setting new '
-                                 'values failed.  The values `%s` cannot be '
-                                 'converted to a numpy ndarray with shape %s '
-                                 'containing entries of type float.'
-                                 % (self.name, objecttools.devicename(self),
-                                    value, self.shape))
-        setattr(self.fastaccess, self.name, value)
+    def __repr__(self) -> str:
+        islong = len(self) > 255
+        return variabletools.to_repr(self, self.value, islong)
 
-    value = property(_getvalue, _setvalue)
-    values = value
-
-    def _getshape(self):
-        """A tuple containing the lengths in all dimensions of the sequence
-        values at a specific time point.  Note that setting a new shape
-        results in a loss of the actual values of the respective sequence.
-        For 0-dimensional sequences :attr:`shape` is always an empty tuple.
+    def __dir__(self) -> List[str]:
         """
-        if self.NDIM:
-            try:
-                shape = self.values.shape
-                return tuple(int(x) for x in shape)
-            except AttributeError:
-                raise RuntimeError('Shape information for sequence %s of '
-                                   'element %s can only be retrieved after '
-                                   'it has been defined.'
-                                   % (self.name,
-                                      objecttools.devicename(self)))
-        else:
-            return ()
-
-    def _setshape(self, shape):
-        if self.NDIM:
-            try:
-                array = numpy.full(shape, self.initvalue, dtype=float)
-            except Exception:
-                prefix = ('While trying create a new numpy ndarray` for '
-                          'sequence %s of element %s'
-                          % (self.name, objecttools.devicename(self)))
-                objecttools.augment_excmessage(prefix)
-            if array.ndim == self.NDIM:
-                setattr(self.fastaccess, self.name, array)
-            else:
-                raise ValueError('Sequence %s of element %s is %d-dimensional '
-                                 'but the given shape indicates %d dimensions.'
-                                 % (self.name, objecttools.devicename(self),
-                                    self.NDIM, array.ndim))
-        else:
-            if shape:
-                raise ValueError('The shape information of 0-dimensional '
-                                 'sequences as %s of element %s can only be '
-                                 '`()`, but `%s` is given.'
-                                 % (self.name, objecttools.devicename(self),
-                                    shape))
-            else:
-                self.value = 0.
-
-    shape = property(_getshape, _setshape)
-
-    def __getitem__(self, key):
-        try:
-            return self.values[key]
-        except Exception:
-            self._raiseitemexception()
-
-    def __setitem__(self, key, values):
-        try:
-            self.values[key] = values
-        except Exception:
-            self._raiseitemexception()
-
-    def _raiseitemexception(self):
-        if self.values is None:
-            raise RuntimeError('Sequence `%s` has no values so far.'
-                               % self.name)
-        else:
-            objecttools.augment_excmessage(
-                'While trying to item access the values of sequence `%s`'
-                % self.name)
-
-    def __repr__(self):
-        islong = self.length > 255
-        return variabletools.Variable.repr_(self, self.values, islong)
-
-    def __dir__(self):
+        >>> from hydpy.core.sequencetools import Sequence
+        >>> sequence = Sequence(None)
+        >>> dir(sequence)
+        ['INIT', 'NOT_DEEPCOPYABLE_MEMBERS', 'SPAN', 'TYPE', \
+'availablemasks', 'average_values', 'commentrepr', 'fastaccess', \
+'get_submask', 'initinfo', 'mask', 'name', 'refweights', 'shape', \
+'strict_valuehandling', 'subseqs', 'subvars', 'value', 'values', 'verify']
+        """
         return objecttools.dir_(self)
 
 
-abctools.SequenceABC.register(Sequence)
+class _IOProperty(propertytools.DefaultProperty):
+
+    DOCSTRING: ClassVar[str]
+
+    def __init__(self) -> None:
+        super().__init__(fget=self.__fget)
+
+    def __set_name__(self, objtype: Type, name: str) -> None:
+        super().__set_name__(objtype, name)
+        attr_seq = self.name
+        cls = objecttools.classname(self.objtype)
+        attr_man = f'{cls.lower()[:-8]}{self.name.split("_")[0]}'
+        self.__attr_manager = attr_man
+        self.set_doc(f"""
+            {self.DOCSTRING}
+
+        Attribute {attr_seq} is connected with attribute {attr_man} of 
+        class |SequenceManager|, as shown by the following technical 
+        example (see the documentation on class |IOSequence| for some 
+        explanations on the usage of this and similar properties of 
+        |IOSequence| subclasses):
+
+        >>> from hydpy.core.filetools import SequenceManager
+        >>> temp = SequenceManager.{attr_man}
+        >>> SequenceManager.{attr_man} = 'global'
+        >>> from hydpy import pub
+        >>> pub.sequencemanager = SequenceManager()
+        >>> from hydpy.core.sequencetools import {cls}
+        >>> sequence = {cls}(None)
+        >>> sequence.{attr_seq}
+        'global'
+        >>> sequence.{attr_seq} = 'local'
+        >>> sequence.{attr_seq}
+        'local'
+        >>> del sequence.{attr_seq}
+        >>> sequence.{attr_seq}
+        'global'
+        >>> SequenceManager.{attr_man} = temp
+        """)
+
+    def __fget(self, obj):
+        try:
+            manager = hydpy.pub.sequencemanager
+        except RuntimeError:
+            raise RuntimeError(
+                f'For sequence {objecttools.devicephrase(obj)} attribute '
+                f'{self.name} cannot be determined.  Either set it manually '
+                'or prepare `pub.sequencemanager` correctly.')
+        return getattr(manager, self.__attr_manager)
+
+
+class _FileType(_IOProperty):
+
+    DOCSTRING = 'Ending of the external data file.'
+
+
+class _DirPathProperty(_IOProperty):
+
+    DOCSTRING = 'Absolute path of the directory of the external data file.'
+
+
+class _AggregationProperty(_IOProperty):
+
+    DOCSTRING = ('Type of aggregation performed when writing the '
+                 'time series data to an external data file.')
+
+
+class _OverwriteProperty(_IOProperty):
+
+    DOCSTRING = ('True/False flag indicating if overwriting an existing '
+                 'data file is allowed or not.')
 
 
 class IOSequence(Sequence):
-    """Only for inheritance."""
+    """Base class for sequences with input/output functionalities.
 
-    def __init__(self):
-        Sequence.__init__(self)
-        self._rawfilename = None
-        self._filetype_ext = None
-        self._filename_ext = None
-        self._dirpath_ext = None
-        self._dirpath_int = None
-        self._filepath_ext = None
-        self._filepath_int = None
+    The |IOSequence| subclasses |InputSequence|, |FluxSequence|,
+    |StateSequence|, and |NodeSequence| all implement similar
+    special properties, which configure the processes of reading
+    and writing time series files.  In the following, property
+    `filetype_ext` is taken as an example to explain how to
+    handle them:
 
-    def _getfiletype_ext(self):
-        """Ending of the external data file."""
-        if self._filetype_ext:
-            return self._filetype_ext
-        else:
-            try:
-                if isinstance(self, InputSequence):
-                    return pub.sequencemanager.inputfiletype
-                elif isinstance(self, NodeSequence):
-                    return pub.sequencemanager.nodefiletype
-                else:
-                    return pub.sequencemanager.outputfiletype
+    Usually, each sequence queries its current "external" file type
+    from the |SequenceManager| object stored in module |pub|:
 
-            except AttributeError:
-                raise RuntimeError('For sequence %s of element %s the type '
-                                   'of the external data file cannot be '
-                                   'determined.  Either set it manually or '
-                                   'embed the sequence object into the HydPy '
-                                   'framework in the common manner to allow '
-                                   'for an automatic determination.'
-                                   % (self.name,
-                                      objecttools.devicename(self)))
+    >>> from hydpy import pub
+    >>> from hydpy.core.filetools import SequenceManager
+    >>> pub.sequencemanager = SequenceManager()
 
-    def _setfiletype_ext(self, name):
-        self._filetype_ext = name
+    Depending if the actual sequence stems from |InputSequence|,
+    |FluxSequence|,  |StateSequence|, or |NodeSequence|, either
+    |SequenceManager.inputfiletype|, |SequenceManager.fluxfiletype|,
+    |SequenceManager.statefiletype|, or |SequenceManager.nodefiletype|
+    are queried:
 
-    def _delfiletype_ext(self, name):
-        self._filetype_ext = None
+    >>> pub.sequencemanager.inputfiletype = 'npy'
+    >>> pub.sequencemanager.fluxfiletype = 'asc'
+    >>> pub.sequencemanager.nodefiletype = 'nc'
+    >>> from hydpy.core import sequencetools as st
+    >>> st.InputSequence(None).filetype_ext
+    'npy'
+    >>> st.FluxSequence(None).filetype_ext
+    'asc'
+    >>> st.NodeSequence(None).filetype_ext
+    'nc'
 
-    filetype_ext = property(_getfiletype_ext, _setfiletype_ext,
-                            _delfiletype_ext)
+    Alternatively, you can specify `filetype_ext` for each sequence
+    object individually:
 
-    def _getfilename_ext(self):
-        """Complete filename of the external data file."""
-        if self._filename_ext:
-            return self._filename_ext
-        else:
-            return '.'.join((self.rawfilename, self.filetype_ext))
+    >>> seq = st.InputSequence(None)
+    >>> seq.filetype_ext
+    'npy'
+    >>> seq.filetype_ext = 'nc'
+    >>> seq.filetype_ext
+    'nc'
+    >>> del seq.filetype_ext
+    >>> seq.filetype_ext
+    'npy'
 
-    def _setfilename_ext(self, name):
-        self._filename_ext = name
+    If neither a specific definition nor a |SequenceManager| object
+    is available, property `filetype_ext` raises the following error:
 
-    def _delfilename_ext(self):
-        self._filename_ext = None
+    >>> del pub.sequencemanager
+    >>> seq.filetype_ext
+    Traceback (most recent call last):
+    ...
+    RuntimeError: For sequence `inputsequence` attribute filetype_ext \
+cannot be determined.  Either set it manually or prepare \
+`pub.sequencemanager` correctly.
 
-    filename_ext = property(_getfilename_ext, _setfilename_ext,
-                            _delfilename_ext)
+    How to read and write time series files is explained in the
+    documentation on modules |filetools| and |netcdftools| in some
+    detail.  However, reading and writing time series files is
+    disabled by default, due to reasons of efficiency.  You first
+    need to prepare the |IOSequence.series| attribute of the
+    relevant |IOSequence| objects.  Typically, you do this by calling
+    methods like |HydPy.prepare_inputseries| of class |HydPy|.
+    Here, we use the related features the |IOSequence| class itself,
+    which is a little more complicated but also more flexible when
+    scripting complex workflows.
 
-    def _getfilename_int(self):
-        """Complete filename of the internal data file."""
+    We use the `LahnH` example project and focus on the `input`
+    and `flux` sequences:
+
+    >>> from hydpy.examples import prepare_full_example_2
+
+    >>> hp, pub, TestIO = prepare_full_example_2()
+    >>> inputs = hp.elements.land_lahn_1.model.sequences.inputs
+    >>> fluxes = hp.elements.land_lahn_1.model.sequences.fluxes
+
+    |IOSequence| objects come with the properties |IOSequence.ramflag|
+    and |IOSequence.diskflag|, telling if the respective time series is
+    available in RAM, on disk, or not available at all.  Input sequences
+    are the only ones who need to have one flag activated. Otherwise,
+    the input series would not be available during simulation runs.
+    For example, input sequence |hland_inputs.T| stores its time series
+    data in RAM internally, which is the much faster approach and should
+    be preferred, as long as limited storage is not an issue:
+
+    >>> inputs.t.ramflag
+    True
+    >>> inputs.t.diskflag
+    False
+    >>> from hydpy import repr_, round_
+    >>> round_(inputs.t.series, 1)
+    -0.7, -1.5, -4.2, -7.4
+
+    Convenience function |prepare_full_example_2| also activates the
+    |IOSequence.ramflag| of all flux sequences, which is not necessary
+    to perform a successful simulation but is required to query the
+    complete time series of simulated values afterwards (otherwise,
+    only the last simulated value would available after a simulation run):
+
+    >>> fluxes.tc.ramflag
+    True
+    >>> round_(fluxes.tc.series[:, 0])
+    nan, nan, nan, nan
+
+    Use |IOSequence.activate_ram| or |IOSequence.activate_disk| to
+    force a sequence to handle time series data in RAM or on disk,
+    respectively.  We now activate the |IOSequence.diskflag| of flux
+    sequence |hland_fluxes.TMean| (which automatically disables the
+    |IOSequence.ramflag|).  Note that we need to change the current
+    working directory to the `iotesting` directory temporarily (by
+    using class |TestIO|) to make sure to create that the related
+    file in the right directory:
+
+    >>> with TestIO():
+    ...     fluxes.tmean.activate_disk()
+    ...     repr_(fluxes.tmean.filepath_int)    # doctest: +ELLIPSIS
+    '...iotesting/LahnH/series/temp/land_lahn_1_flux_tmean.bin'
+
+    The user can access the time series data in the same manner as
+    if being handled in RAM:
+
+    >>> fluxes.tmean.ramflag
+    False
+    >>> fluxes.tmean.diskflag
+    True
+    >>> with TestIO():
+    ...     round_(fluxes.tmean.series)
+    nan, nan, nan, nan
+
+    For completeness of testing, we also activate the |IOSequence.diskflag|
+    of a 1-dimensional sequence:
+
+    >>> from pprint import pprint
+    >>> with TestIO():
+    ...     fluxes.fracrain.activate_disk()
+    ...     pprint(sorted(os.listdir('LahnH/series/temp')))
+    ['land_lahn_1_flux_fracrain.bin', 'land_lahn_1_flux_tmean.bin']
+
+    Apply methods |IOSequence.deactivate_ram| or |IOSequence.deactivate_disk|
+    for sequences that do not provide data relevant for your analysis:
+
+    >>> fluxes.ep.deactivate_ram()
+    >>> fluxes.ep.ramflag
+    False
+    >>> fluxes.ep.diskflag
+    False
+    >>> fluxes.ep.series
+    Traceback (most recent call last):
+    ...
+    AttributeError: Sequence `ep` of element `land_lahn_1` is not \
+requested to make any internal data available.
+
+    After a simulation run, the |IOSequence.series| of flux sequence
+    |hland_fluxes.EP| is still not available but the time series data
+    of the other discussed series with either true |IOSequence.ramflag|
+    or |IOSequence.diskflag| values are:
+
+    >>> with TestIO():
+    ...     hp.simulate()
+
+    >>> fluxes.ep.series = 1.0
+    Traceback (most recent call last):
+    ...
+    AttributeError: Sequence `ep` of element `land_lahn_1` is not \
+requested to make any internal data available.
+
+    >>> round_(fluxes.q1.series, 1)
+    0.4, 0.4, 0.4, 0.4
+    >>> round_(fluxes.tc.series[:, 0], 1)
+    0.2, -0.6, -3.4, -6.6
+    >>> with TestIO():
+    ...     round_(fluxes.tmean.series, 1)
+    -1.0, -1.8, -4.5, -7.7
+    >>> with TestIO():
+    ...     round_(fluxes.fracrain.series[:, 0], 1)
+    0.3, 0.0, 0.0, 0.0
+
+    You cannot only access the time series data of individual |IOSequence|
+    objects, but you can also modify it.  See, for example, the simulated time
+    series for flux sequence |hland_fluxes.PC| (adjusted precipitation),
+    which is zero, because the values of input sequence |hland_inputs.P|
+    (given precipitation) are also zero:
+
+    >>> round_(fluxes.pc.series[:, 0], 1)
+    0.0, 0.0, 0.0, 0.0
+
+    We can assign different values to attribute |IOSequence.series| of
+    sequence |hland_inputs.P|, perform a new simulation run, and see that
+    the newly calculated time series of sequence |hland_fluxes.PC|
+    reflects our data modification:
+
+    >>> inputs.p.ramflag
+    True
+    >>> inputs.p.series = 10.0
+    >>> with TestIO():
+    ...     hp.simulate()
+    >>> round_(fluxes.pc.series[:, 0], 1)
+    10.2, 11.3, 11.3, 11.3
+
+    Next, we show that the same feature works for time series data
+    handled on disk.  Therefore, we first call method |IOSequence.ram2disk|,
+    which disables |IOSequence.ramflag| and enables |IOSequence.diskflag|
+    without any loss of information:
+
+    >>> with TestIO():
+    ...     inputs.p.ram2disk()
+    ...     pprint(sorted(os.listdir('LahnH/series/temp')))
+    ['land_lahn_1_flux_fracrain.bin',
+     'land_lahn_1_flux_tmean.bin',
+     'land_lahn_1_input_p.bin']
+    >>> inputs.p.ramflag
+    False
+    >>> inputs.p.diskflag
+    True
+    >>> with TestIO():
+    ...     round_(inputs.p.series, 1)
+    10.0, 10.0, 10.0, 10.0
+
+    Data modifications still influence simulation runs as to be expected:
+
+    >>> with TestIO():
+    ...     inputs.p.series = 20.0
+    ...     hp.simulate()
+    ...     round_(fluxes.pc.series[:, 0], 1)
+    20.5, 22.6, 22.6, 22.6
+
+    Method |IOSequence.disk2ram| is the counterpart to |IOSequence.ram2disk|:
+
+    >>> with TestIO():
+    ...     inputs.p.disk2ram()
+    ...     pprint(sorted(os.listdir('LahnH/series/temp')))
+    ['land_lahn_1_flux_fracrain.bin', 'land_lahn_1_flux_tmean.bin']
+    >>> inputs.p.ramflag
+    True
+    >>> inputs.p.diskflag
+    False
+    >>> round_(inputs.p.series, 1)
+    20.0, 20.0, 20.0, 20.0
+
+    Method |IOSequence.deactivate_disk| works analogue to
+    |IOSequence.deactivate_ram|:
+
+    >>> with TestIO():
+    ...     fluxes.fracrain.deactivate_disk()
+    ...     pprint(sorted(os.listdir('LahnH/series/temp')))
+    ['land_lahn_1_flux_tmean.bin']
+    >>> fluxes.fracrain.ramflag
+    False
+    >>> fluxes.fracrain.diskflag
+    False
+
+    Both methods |IOSequence.deactivate_ram| and |IOSequence.deactivate_disk|
+    do nothing in case the respective flag is |False| already:
+
+    >>> fluxes.pc.deactivate_ram()
+    >>> with TestIO():
+    ...     fluxes.fracrain.deactivate_disk()
+
+    You can query property |IOSequence.memoryflag|, if you are only
+    interested to know if a sequence handles stores its time series
+    data, but not how:
+
+    >>> fluxes.pc.memoryflag
+    False
+    >>> fluxes.tmean.memoryflag
+    True
+    >>> inputs.p.memoryflag
+    True
+
+    Another convenience property is |IOSequence.seriesshape|, which
+    combines the length of the simulation period with the shape of
+    the individual |IOSequence| object:
+
+    >>> inputs.p.seriesshape
+    (4,)
+    >>> fluxes.pc.seriesshape
+    (4, 13)
+
+    Note that resetting the |IOSequence.shape| of am |IOSequence| object
+    does not change how it handles its internal time series data, but
+    results in a loss of current information:
+
+    >>> fluxes.tc.seriesshape
+    (4, 13)
+    >>> fluxes.fastaccess._tc_length
+    13
+    >>> round_(fluxes.tc.series[:, 0], 1)
+    0.2, -0.6, -3.4, -6.6
+
+    >>> fluxes.tc.shape = (2,)
+    >>> fluxes.tc.seriesshape
+    (4, 2)
+    >>> fluxes.fastaccess._tc_length
+    2
+    >>> round_(fluxes.tc.series[:, 0], 1)
+    nan, nan, nan, nan
+
+    Resetting the |IOSequence.shape| of |IOSequence| objects which
+    are not storing their internal time series data works too:
+
+    >>> fluxes.pc.seriesshape
+    (4, 13)
+    >>> fluxes.fastaccess._pc_length
+    13
+    >>> round_(fluxes.pc.series[:, 0], 1)
+    Traceback (most recent call last):
+    ...
+    AttributeError: Sequence `pc` of element `land_lahn_1` is not \
+requested to make any internal data available.
+
+    >>> fluxes.pc.shape = (2,)
+    >>> fluxes.pc.seriesshape
+    (4, 2)
+    >>> fluxes.fastaccess._pc_length
+    2
+    >>> round_(fluxes.pc.series[:, 0], 1)
+    Traceback (most recent call last):
+    ...
+    AttributeError: Sequence `pc` of element `land_lahn_1` is not \
+requested to make any internal data available.
+    """
+
+    filetype_ext: ClassVar[_FileType]
+    dirpath_ext: ClassVar[_DirPathProperty]
+    aggregation_ext: ClassVar[_AggregationProperty]
+    overwrite_ext: ClassVar[_OverwriteProperty]
+
+    def _finalise_connections(self) -> None:
+        self._set_fastaccessattribute('ramflag', False)
+        self._set_fastaccessattribute('diskflag', False)
+        try:
+            self._set_fastaccessattribute('file', '')
+        except AttributeError:
+            pass
+        super()._finalise_connections()
+
+    @propertytools.DefaultProperty
+    def rawfilename(self) -> str:
+        """|DefaultProperty| handling the filename without ending for
+        external and internal data files.
+
+        >>> from hydpy.core.sequencetools import IOSequence
+        >>> class Test(IOSequence):
+        ...     descr_device = 'node1'
+        ...     descr_sequence = 'subgroup_test'
+        >>> Test(None).rawfilename
+        'node1_subgroup_test'
+        """
+        return f'{self.descr_device}_{self.descr_sequence}'
+
+    @propertytools.DefaultProperty
+    def filename_ext(self) -> str:
+        """The full filename of the external data file.
+
+        The "external" filename consists of |IOSequence.rawfilename| and
+        of |FluxSequence.filetype_ext|.  For simplicity, we add the
+        attribute `rawfilename` to the initialised sequence object
+        in the following example:
+
+        >>> from hydpy.core.sequencetools import ModelSequence
+        >>> seq = ModelSequence(None)
+        >>> seq.rawfilename = 'test'
+        >>> seq.filetype_ext = 'nc'
+        >>> seq.filename_ext
+        'test.nc'
+        """
+        return '.'.join((self.rawfilename, self.filetype_ext))
+
+    @property
+    def filename_int(self) -> str:
+        """The full filename of the internal data file.
+
+        The "internal" filename consists of |IOSequence.rawfilename|
+        and the file ending `.bin`.  For simplicity, we add the
+        attribute `rawfilename` to the initialised sequence object
+        in the following example:
+
+        >>> from hydpy.core.sequencetools import ModelSequence
+        >>> seq = ModelSequence(None)
+        >>> seq.rawfilename = 'test'
+        >>> seq.filename_int
+        'test.bin'
+        """
         return self.rawfilename + '.bin'
 
-    filename_int = property(_getfilename_int)
+    @propertytools.DefaultProperty
+    def dirpath_int(self) -> str:
+        """The absolute path of the directory of the internal data file.
 
-    def _getdirpath_ext(self):
-        """Absolute path of the directory of the external data file."""
-        if self._dirpath_ext:
-            return self._dirpath_ext
-        else:
-            try:
-                if isinstance(self, InputSequence):
-                    return pub.sequencemanager.inputpath
-                elif isinstance(self, NodeSequence):
-                    return pub.sequencemanager.nodepath
-                else:
-                    return pub.sequencemanager.outputpath
-            except AttributeError:
-                raise RuntimeError('For sequence `%s` the directory of '
-                                   'the external data file cannot be '
-                                   'determined.  Either set it manually or '
-                                   'embed the sequence object into the HydPy '
-                                   'framework in the common manner to allow '
-                                   'for an automatic determination.'
-                                   % self.name)
+        Usually, each sequence queries its current "internal" directory
+        path from the |SequenceManager| object stored in module |pub|:
 
-    def _setdirpath_ext(self, name):
-        self._dirpath_ext = name
+        >>> from hydpy import pub, repr_, TestIO
+        >>> from hydpy.core.filetools import SequenceManager
+        >>> pub.sequencemanager = SequenceManager()
 
-    def _deldirpath_ext(self, name):
-        self._dirpath_ext = None
+        We overwrite |FileManager.basepath| and prepare a folder in the
+        `iotesting` directory to simplify the following examples:
 
-    dirpath_ext = property(_getdirpath_ext, _setdirpath_ext, _deldirpath_ext)
+        >>> basepath = SequenceManager.basepath
+        >>> SequenceManager.basepath = 'test'
+        >>> TestIO.clear()
+        >>> import os
+        >>> with TestIO():
+        ...     os.makedirs('test/temp')
 
-    def _getdirpath_int(self):
-        """Absolute path of the directory of the internal data file."""
-        if self._dirpath_int:
-            return self._dirpath_int
-        else:
-            try:
-                return pub.sequencemanager.temppath
-            except AttributeError:
-                raise RuntimeError('For sequence `%s` the directory of '
-                                   'the internal data file cannot be '
-                                   'determined.  Either set it manually or '
-                                   'embed the sequence object into the HydPy '
-                                   'framework in the common manner to allow '
-                                   'for an automatic determination.'
-                                   % self.name)
+        Generally, property |IOSequence.dirpath_int| queries
+        property |SequenceManager.tempdirpath|:
 
-    def _setdirpath_int(self, name):
-        self._dirpath_int = name
+        >>> from hydpy.core import sequencetools as st
+        >>> seq = st.InputSequence(None)
+        >>> with TestIO():
+        ...     repr_(seq.dirpath_int)
+        'test/temp'
 
-    def _deldirpath_int(self, name):
-        self._dirpath_int = None
-    dirpath_int = property(_getdirpath_int, _setdirpath_int, _deldirpath_int)
+        Alternatively, you can specify |IOSequence.dirpath_int| for each
+        sequence object individually:
 
-    def _getfilepath_ext(self):
-        """Absolute path to the external data file."""
-        if self._filepath_ext:
-            return self._filepath_ext
-        else:
-            return os.path.join(self.dirpath_ext, self.filename_ext)
+        >>> seq.dirpath_int = 'path'
+        >>> os.path.split(seq.dirpath_int)
+        ('', 'path')
+        >>> del seq.dirpath_int
+        >>> with TestIO():
+        ...     os.path.split(seq.dirpath_int)
+        ('test', 'temp')
 
-    def _setfilepath_ext(self, name):
-        self._filepath_ext = name
+        If neither a specific definition nor a |SequenceManager| object
+        is, property `dirpath_int` raises the following error:
 
-    def _delfilepath_ext(self):
-        self._filepath_ext = None
-    filepath_ext = property(_getfilepath_ext, _setfilepath_ext,
-                            _delfilepath_ext)
+        >>> del pub.sequencemanager
+        >>> seq.dirpath_int
+        Traceback (most recent call last):
+        ...
+        RuntimeError: For sequence `inputsequence` the directory of \
+the internal data file cannot be determined.  Either set it manually \
+or prepare `pub.sequencemanager` correctly.
 
-    def _getfilepath_int(self):
-        """Absolute path to the internal data file."""
-        if self._filepath_int:
-            return self._filepath_int
-        else:
-            return os.path.join(self.dirpath_int, self.filename_int)
+        Remove the `basepath` mock:
 
-    def _setfilepath_int(self, name):
-        self._filepath_int = name
+        >>> SequenceManager.basepath = basepath
+        """
+        try:
+            return hydpy.pub.sequencemanager.tempdirpath
+        except RuntimeError:
+            raise RuntimeError(
+                f'For sequence {objecttools.devicephrase(self)} '
+                f'the directory of the internal data file cannot '
+                f'be determined.  Either set it manually or prepare '
+                f'`pub.sequencemanager` correctly.')
 
-    def _delfilepath_int(self):
-        self._filepath_int = None
+    @propertytools.DefaultProperty
+    def filepath_ext(self) -> str:
+        """The absolute path to the external data file.
 
-    filepath_int = property(_getfilepath_int, _setfilepath_int,
-                            _delfilepath_int)
+        The path pointing to the "external" file consists of
+        |FluxSequence.dirpath_ext| and |IOSequence.filename_ext|.  For
+        simplicity, we define both manually in the following example:
 
-    def update_fastaccess(self):
-        """"""
+        >>> from hydpy.core.sequencetools import ModelSequence
+        >>> seq = ModelSequence(None)
+        >>> seq.dirpath_ext = 'path'
+        >>> seq.filename_ext = 'file.npy'
+        >>> from hydpy import repr_
+        >>> repr_(seq.filepath_ext)
+        'path/file.npy'
+        """
+        return os.path.join(self.dirpath_ext, self.filename_ext)
+
+    @propertytools.DefaultProperty
+    def filepath_int(self) -> str:
+        """The absolute path to the internal data file.
+
+        The path pointing to the "internal" file consists of
+        |IOSequence.dirpath_int| and |IOSequence.filename_int|, which
+        itself is defined by `rawfilename`.  For simplicity, we define
+        both manually in the following example:
+
+        >>> from hydpy.core.sequencetools import ModelSequence
+        >>> seq = ModelSequence(None)
+        >>> seq.dirpath_int = 'path'
+        >>> seq.rawfilename = 'file'
+        >>> from hydpy import repr_
+        >>> repr_(seq.filepath_int)
+        'path/file.bin'
+        """
+        return os.path.join(self.dirpath_int, self.filename_int)
+
+    def update_fastaccess(self) -> None:
+        """Update the |FastAccessSequence| object handled by the actual
+        |IOSequence| object.
+
+        Users do not need to apply the method |IOSequence.update_fastaccess|
+        directly.  The following information should be relevant for
+        framework developers only.
+
+        The main documentation on class |Sequence| mentions that the
+        |FastAccessSequence| attribute handles some information about
+        its sequences, but this information needs to be kept up-to-date
+        by the sequences themselves.  This updating is the task of method
+        |IOSequence.update_fastaccess|, which some other methods of class
+        |IOSequence| call.  We show this via the hidden attribute `length`,
+        which is 0 after initialisation, and automatically set to another
+        value when assigning it to property |IOSequence.shape| of
+        |IOSequence| subclasses as |lland_fluxes.NKor|:
+
+        >>> from hydpy import prepare_model
+        >>> model = prepare_model('lland_v1')
+        >>> nkor = model.sequences.fluxes.nkor
+        >>> nkor.fastaccess._nkor_length
+        0
+        >>> nkor.shape = (3,)
+        >>> nkor.fastaccess._nkor_length
+        3
+        """
         if self.diskflag:
             path = self.filepath_int
         else:
             path = None
-        setattr(self.fastaccess, '_%s_path' % self.name, path)
+        self._set_fastaccessattribute('path', path)
         length = 1
         for idx in range(self.NDIM):
             length *= self.shape[idx]
-            setattr(self.fastaccess, '_%s_length_%d' % (self.name, idx),
-                    self.shape[idx])
-        setattr(self.fastaccess, '_%s_length' % self.name, length)
+            self._set_fastaccessattribute(f'length_{idx}', self.shape[idx])
+        self._set_fastaccessattribute('length', length)
 
-    def _getdiskflag(self):
-        diskflag = getattr(self.fastaccess, '_%s_diskflag' % self.name, None)
-        if diskflag is not None:
-            return diskflag
+    def activate_ram(self) -> None:
+        """Demand reading/writing internal data from/to RAM.
+
+        See the main documentation on class |IOSequence| for further
+        information.
+        """
+        self.deactivate_disk()
+        self._set_fastaccessattribute('ramflag', True)
+        self._activate()
+
+    def activate_disk(self) -> None:
+        """Demand reading/writing internal data from/to hard disk.
+
+        See the main documentation on class |IOSequence| for further
+        information.
+        """
+        self.deactivate_ram()
+        self._set_fastaccessattribute('diskflag', True)
+        self._activate()
+
+    def _activate(self) -> None:
+        values = numpy.full(self.seriesshape, numpy.nan, dtype=float)
+        if self.ramflag:
+            self.__set_array(values)
         else:
-            raise RuntimeError('The `diskflag` of sequence `%s` has '
-                               'not been set yet.' % self.name)
+            self._save_int(values)
+        self.update_fastaccess()
 
-    def _setdiskflag(self, value):
-        setattr(self.fastaccess, '_%s_diskflag' % self.name, bool(value))
+    def deactivate_ram(self) -> None:
+        """Prevent from reading/writing internal data from/to hard disk.
 
-    diskflag = property(_getdiskflag, _setdiskflag)
+        See the main documentation on class |IOSequence| for further
+        information.
+        """
+        if self.ramflag:
+            del self.series
+            self._set_fastaccessattribute('ramflag', False)
 
-    def _getramflag(self):
-        ramflag = getattr(self.fastaccess, '_%s_ramflag' % self.name, None)
-        if ramflag is not None:
-            return ramflag
-        else:
-            raise RuntimeError('The `ramflag` of sequence `%s` has '
-                               'not been set yet.' % self.name)
+    def deactivate_disk(self) -> None:
+        """Prevent from reading/writing internal data from/to hard disk.
 
-    def _setramflag(self, value):
-        setattr(self.fastaccess, '_%s_ramflag' % self.name, bool(value))
+        See the main documentation on class |IOSequence| for further
+        information.
+        """
+        if self.diskflag:
+            del self.series
+            self._set_fastaccessattribute('diskflag', False)
 
-    ramflag = property(_getramflag, _setramflag)
+    def ram2disk(self) -> None:
+        """Move internal data from RAM to disk.
 
-    def _getmemoryflag(self):
-        return self.ramflag or self.diskflag
+        See the main documentation on class |IOSequence| for further
+        information.
+        """
+        values = self.series
+        self.deactivate_ram()
+        self._set_fastaccessattribute('diskflag', True)
+        self._save_int(values)
+        self.update_fastaccess()
 
-    memoryflag = property(_getmemoryflag)
+    def disk2ram(self) -> None:
+        """Move internal data from disk to RAM.
 
-    def _getarray(self):
-        array = getattr(self.fastaccess, '_%s_array' % self.name, None)
-        if array is not None:
-            return numpy.asarray(array)
-        else:
-            raise RuntimeError('The `ram array` of sequence `%s` has '
-                               'not been set yet.' % self.name)
-
-    def _setarray(self, values):
-        values = numpy.array(values, dtype=float)
-        setattr(self.fastaccess, '_%s_array' % self.name, values)
+        See the main documentation on class |IOSequence| for further
+        information.
+        """
+        values = self.series
+        self.deactivate_disk()
+        self._set_fastaccessattribute('ramflag', True)
+        self.__set_array(values)
+        self.update_fastaccess()
 
     @property
-    def seriesshape(self):
-        """Shape of the whole time series (time beeing the first dimension)."""
-        seriesshape = [len(pub.timegrids.init)]
+    def ramflag(self) -> bool:
+        """A flag telling if the actual |IOSequence| object makes
+        its internal time series data available using RAM space.
+
+        See the main documentation on class |IOSequence| for further
+        information.
+        """
+        return self._get_fastaccessattribute('ramflag')
+
+    @property
+    def diskflag(self) -> bool:
+        """A flag telling if the actual |IOSequence| object makes
+        its internal time series data available using disk space.
+
+        See the main documentation on class |IOSequence| for further
+        information.
+        """
+        return self._get_fastaccessattribute('diskflag')
+
+    @property
+    def memoryflag(self) -> bool:
+        """A flag telling if the actual |IOSequence| object makes
+        its internal time series data available somehow.
+
+        See the main documentation on class |IOSequence| for further
+        information.
+        """
+        return self.ramflag or self.diskflag
+
+    def __set_array(self, values):
+        values = numpy.array(values, dtype=float)
+        self._set_fastaccessattribute('array', values)
+
+    def __hydpy__get_shape__(self) -> Tuple[int, ...]:
+        """A tuple containing the actual lengths of all dimensions.
+
+        When setting a new |IOSequence.shape| of an |IOSequence| object,
+        one automatically calls method |IOSequence.update_fastaccess|
+        and, if necessary, prepares the new internal |IOSequence.series|
+        array.
+
+        See the main documentation on class |IOSequence| for further
+        information.
+        """
+        return super().__hydpy__get_shape__()
+
+    def __hydpy__set_shape__(self, shape: Union[int, Iterable[int]]):
+        super().__hydpy__set_shape__(shape)
+        if self.memoryflag:
+            self._activate()
+        else:
+            self.update_fastaccess()
+
+    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
+
+    @property
+    def seriesshape(self) -> Tuple[int, ...]:
+        """The shape of the whole time series (time being the first
+        dimension)."""
+        seriesshape = [len(hydpy.pub.timegrids.init)]
         seriesshape.extend(self.shape)
         return tuple(seriesshape)
 
     @property
-    def numericshape(self):
-        """Shape of the array of temporary values required for the numerical
-        solver actually beeing selected."""
+    def numericshape(self) -> Tuple[int, ...]:
+        """The shape of the array of temporary values required for the
+        relevant numerical solver.
+
+        The class |ELSModel|, being the base of the "dam" model, uses
+        the "Explicit Lobatto Sequence" for solving differential equations
+        and therefore requires up to eleven array fields for storing
+        temporary values.  Hence, the |IOSequence.numericshape| of the
+        0-dimensional sequence |dam_fluxes.Inflow| is eleven:
+
+        >>> from hydpy import prepare_model
+        >>> model = prepare_model('dam')
+        >>> model.sequences.fluxes.inflow.numericshape
+        (11,)
+
+        Changing the |IOSequence.shape| through a little trick (just for
+        demonstration purposes) shows that there are eleven entries for
+        each "normal" |dam_fluxes.Inflow| value:
+
+        >>> from hydpy.models.dam.dam_fluxes import Inflow
+        >>> shape = Inflow.shape
+        >>> Inflow.shape = (2,)
+        >>> model.sequences.fluxes.inflow.numericshape
+        (11, 2)
+        >>> Inflow.shape = shape
+
+        Erroneous configurations result in the following error:
+
+        >>> del model.numconsts
+        >>> model.sequences.fluxes.inflow.numericshape
+        Traceback (most recent call last):
+        ...
+        AttributeError: The `numericshape` of a sequence like `inflow` \
+depends on the configuration of the actual integration algorithm.  \
+While trying to query the required configuration data `nmb_stages` of \
+the model associated with element `?`, the following error occurred: \
+'Model' object has no attribute 'numconsts'
+        """
         try:
             numericshape = [self.subseqs.seqs.model.numconsts.nmb_stages]
         except AttributeError:
             objecttools.augment_excmessage(
-                'The `numericshape` of a sequence like `%s` depends on the '
-                'configuration of the actual integration algorithm.  '
-                'While trying to query the required configuration data '
-                '`nmb_stages` of the model associated with element `%s`'
-                % (self.name, objecttools.devicename(self)))
+                f'The `numericshape` of a sequence like `{self.name}` depends '
+                f'on the configuration of the actual integration algorithm.  '
+                f'While trying to query the required configuration data '
+                f'`nmb_stages` of the model associated with element '
+                f'`{objecttools.devicename(self)}`')
         numericshape.extend(self.shape)
         return tuple(numericshape)
 
-    def _getseries(self):
+    @property
+    def series(self) -> InfoArray:
+        """Internal time series data within an |InfoArray|."""
         if self.diskflag:
-            return self._load_int()
+            array = self._load_int()
         elif self.ramflag:
-            return self._getarray()
+            array = numpy.asarray(self._get_fastaccessattribute('array'))
         else:
-            raise RuntimeError(
-                'Sequence `%s` of device `%s`is not requested '
-                'to make any internal data available to the user.'
-                % (self.name, objecttools.devicename(self)))
+            raise AttributeError(
+                f'Sequence {objecttools.devicephrase(self)} is not '
+                f'requested to make any internal data available.')
+        return InfoArray(array, info={'type': 'unmodified'})
 
-    def _setseries(self, values):
-        series = self.series
-        series[:] = values
+    @series.setter
+    def series(self, values):
+        series = numpy.full(self.seriesshape, values, dtype=float)
         if self.diskflag:
             self._save_int(series)
         elif self.ramflag:
-            self._setarray(series)
+            self.__set_array(series)
         else:
-            raise RuntimeError('Sequence `%s` is not requested to make any '
-                               'internal data available to the user.'
-                               % self.name)
+            raise AttributeError(
+                f'Sequence {objecttools.devicephrase(self)} is not '
+                f'requested to make any internal data available.')
+        self.check_completeness()
 
-    def _delseries(self):
+    @series.deleter
+    def series(self):
         if self.diskflag:
             os.remove(self.filepath_int)
         elif self.ramflag:
-            setattr(self.fastaccess, '_%s_array' % self.name, None)
+            self._set_fastaccessattribute('array', None)
 
-    series = property(_getseries, _setseries, _delseries)
+    def load_ext(self) -> None:
+        """Read the internal data from an external data file.
 
-    def load_ext(self):
-        """Load the external data series in accordance with
-        :attr:`~IOSequence.timegrid_init` and store it as internal data.
+        Method |IOSequence.load_ext| only calls method
+        |SequenceManager.load_file| of class |SequenceManager|
+        passing itself as the only argument.  Hence, see the
+        documentation on the class |SequenceManager| for further
+        information.  The following example only shows the error
+        messages when |SequenceManager.load_file| is missing
+        due to incomplete project configurations:
+
+        .. testsetup::
+
+            >>> from hydpy import pub
+            >>> del pub.sequencemanager
+
+        >>> from hydpy.core.sequencetools import ModelSequence
+        >>> ModelSequence(None).load_ext()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: While trying to load the external time \
+series data of `modelsequence`, the following error occurred: \
+Attribute sequencemanager of module `pub` is not defined at the moment.
         """
-        if self.filetype_ext == 'npy':
-            timegrid_data, values = self._load_npy()
-        else:
-            timegrid_data, values = self._load_asc()
+        try:
+            sequencemanager = hydpy.pub.sequencemanager
+        except BaseException:
+            objecttools.augment_excmessage(
+                f'While trying to load the external time series '
+                f'data of {objecttools.devicephrase(self)}')
+        sequencemanager.load_file(self)
+
+    def adjust_series(
+            self, timegrid_data: 'timetools.Timegrid', values: numpy.ndarray) \
+            -> numpy.ndarray:
+        """Adjust a time series to the current initialisation period.
+
+        Note that, in most *HydPy* applications, method
+        |IOSequence.adjust_series| is called by other methods related
+        to reading data from files and does not need to be called by
+        the user directly.  If you want to call it directly for some
+        reasons, you need to make sure that the shape of the given
+        |numpy| |numpy.ndarray| fits the given |Timegrid| object.
+
+        Often, time series data available in (external) data files
+        covers a longer period than required for an actual simulation
+        run.  Method |IOSequence.adjust_series| selects the relevant
+        data by comparing the initialisation |Timegrid| available in
+        module |pub| and the given "data" |Timegrid| object.  We
+        explain this behaviour by using the `LahnH` example project
+        and focussing on the |Obs| sequence of |Node| `dill`:
+
+        >>> from hydpy.examples import prepare_full_example_2
+        >>> hp, pub, TestIO = prepare_full_example_2()
+        >>> obs = hp.nodes.dill.sequences.obs
+
+        With identical initialisation and data time grids, method
+        |IOSequence.adjust_series| returns the given data completely:
+
+        >>> from hydpy import Timegrid
+        >>> import numpy
+        >>> with TestIO(), pub.options.checkseries(False):
+        ...     obs.adjust_series(Timegrid('1996-01-01', '1996-01-05', '1d'),
+        ...                       numpy.arange(4, dtype=float))
+        array([ 0.,  1.,  2.,  3.])
+
+        For "too long" available data, it only returns the relevant one:
+
+        >>> with TestIO(), pub.options.checkseries(False):
+        ...     obs.adjust_series(Timegrid('1995-12-31', '1996-01-07', '1d'),
+        ...                       numpy.arange(7, dtype=float))
+        array([ 1.,  2.,  3.,  4.])
+
+        For "too short" available data, the behaviour differs depending
+        on option |Options.checkseries|.  With |Options.checkseries| being
+        enabled, method |IOSequence.adjust_series| raises a |RuntimeError|.
+        With |Options.checkseries| being disabled, it extends the given
+        array with |numpy.nan| values (using method
+        |IOSequence.adjust_short_series|):
+
+        >>> with TestIO(), pub.options.checkseries(True):
+        ...     obs.adjust_series(Timegrid('1996-01-02', '1996-01-04', '1d'),
+        ...                       numpy.zeros((3,)))   # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        RuntimeError: For sequence `obs` of node `dill` the initialisation \
+time grid (Timegrid('1996-01-01 00:00:00', '1996-01-05 00:00:00', '1d')) \
+does not define a subset of the time grid of the external \
+data file `...dill_obs_q.asc` \
+(Timegrid('1996-01-02 00:00:00', '1996-01-04 00:00:00', '1d')).
+
+        >>> with TestIO(), pub.options.checkseries(False):
+        ...     obs.adjust_series(Timegrid('1996-01-02', '1996-01-04', '1d'),
+        ...                       numpy.zeros((2,)))
+        array([ nan,   0.,   0.,  nan])
+
+        Additional checks raise errors in case of non-matching shapes
+        or time information:
+
+        >>> with TestIO():
+        ...     obs.adjust_series(Timegrid('1996-01-01', '1996-01-05', '1d'),
+        ...                       numpy.zeros((5, 2)))   # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The shape of sequence `obs` of node `dill` is `()` but \
+according to the external data file `...dill_obs_q.asc` it should be `(2,)`.
+
+        >>> with TestIO():
+        ...     obs.adjust_series(Timegrid('1996-01-01', '1996-01-05', '1h'),
+        ...                       numpy.zeros((24*5,)))   # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        RuntimeError: According to external data file `...dill_obs_q.asc`, \
+the date time step of sequence `obs` of node `dill` is `1h` but the actual \
+simulation time step is `1d`.
+        """
         if self.shape != values.shape[1:]:
             raise RuntimeError(
-                'The shape of sequence `%s` of element `%s` is `%s`, but '
-                'according to the external data file `%s` it should be `%s`.'
-                % (self.name, objecttools.devicename(self), self.shape,
-                   self.filepath_ext, values.shape[1:]))
-        if pub.timegrids.init.stepsize != timegrid_data.stepsize:
+                f'The shape of sequence {objecttools.devicephrase(self)} '
+                f'is `{self.shape}` but according to the external data file '
+                f'`{self.filepath_ext}` it should be `{values.shape[1:]}`.')
+        if hydpy.pub.timegrids.init.stepsize != timegrid_data.stepsize:
             raise RuntimeError(
-                'According to external data file `%s`, the date time step '
-                'of sequence `%s` of element `%s` is `%s`, but the actual '
-                'simulation time step is `%s`.'
-                % (self.filepath_ext, self.name, objecttools.devicename(self),
-                   timegrid_data.stepsize, pub.timegrids.init.stepsize))
-        elif pub.timegrids.init not in timegrid_data:
-            if pub.options.checkseries:
+                f'According to external data file `{self.filepath_ext}`, '
+                f'the date time step of sequence '
+                f'{objecttools.devicephrase(self)} is '
+                f'`{timegrid_data.stepsize}` but the actual simulation '
+                f'time step is `{hydpy.pub.timegrids.init.stepsize}`.')
+        if hydpy.pub.timegrids.init not in timegrid_data:
+            if hydpy.pub.options.checkseries:
                 raise RuntimeError(
-                    'For sequence `%s` of element `%s` the initialization '
-                    'time grid (%s) does not define a subset of the time '
-                    'grid of the external data file %s (%s).'
-                    % (self.name, objecttools.devicename(self),
-                       pub.timegrids.init, self.filepath_ext, timegrid_data))
-            else:
-                values = self.adjust_short_series(timegrid_data, values)
-        else:
-            idx1 = timegrid_data[pub.timegrids.init.firstdate]
-            idx2 = timegrid_data[pub.timegrids.init.lastdate]
-            values = values[idx1:idx2]
-        if self.diskflag:
-            self._save_int(values)
-        elif self.ramflag:
-            self._setarray(values)
-        else:
-            raise RuntimeError(
-                'Sequence `%s` of element `%s`is not requested to make '
-                'any internal data available the the user.'
-                % (self.name, objecttools.devicename(self)))
+                    f'For sequence {objecttools.devicephrase(self)} the '
+                    f'initialisation time grid ({hydpy.pub.timegrids.init}) '
+                    f'does not define a subset of the time grid of the '
+                    f'external data file `{self.filepath_ext}` '
+                    f'({timegrid_data}).')
+            return self.adjust_short_series(timegrid_data, values)
+        idx1 = timegrid_data[hydpy.pub.timegrids.init.firstdate]
+        idx2 = timegrid_data[hydpy.pub.timegrids.init.lastdate]
+        return values[idx1:idx2]
 
-    def adjust_short_series(self, timegrid, values):
-        """Adjust a short time series to a longer timegrid.
+    def adjust_short_series(
+            self, timegrid: 'timetools.Timegrid', values: numpy.ndarray) \
+            -> numpy.ndarray:
+        """Adjust a short time series to a longer time grid.
 
-        Normally, time series data to be read from a external data files
-        should span (at least) the whole initialization time period of a
-        HydPy project.  However, for some variables which are only used
+        Mostly, time series data to be read from external data files
+        should span (at least) the whole initialization period of a
+        *HydPy* project.  However, for some variables which are only used
         for comparison (e.g. observed runoff used for calibration),
-        incomplete time series might also be helpful.  This method it
-        thought for adjusting such incomplete series to the public
-        initialization time grid stored in module :mod:`~hydpy.pub`.
-        It is automatically called in method
-        :func:`~hydpy.core.sequencetools.load_ext` if necessary provided
-        that the option
-        :attr:`~hydpy.core.objecttools.Options.checkseries` is disabled.
+        incomplete time series might also be helpful.  Method
+        |IOSequence.adjust_short_series| adjusts such incomplete series
+        to the public initialization time grid stored in module |pub|.
+        It is automatically called in method |IOSequence.adjust_series|
+        when necessary provided that the option |Options.checkseries|
+        is disabled.
 
-        Assume the initialization time period of a HydPy project spans
-        five day:
+        Assume the initialization period of a HydPy project spans five days:
 
-        >>> from hydpy import pub, Timegrids, Timegrid
-        >>> pub.timegrids = Timegrids(Timegrid('2000.01.10',
-        ...                                    '2000.01.15',
-        ...                                    '1d'))
+        >>> from hydpy import pub
+        >>> pub.timegrids = '2000.01.10', '2000.01.15', '1d'
 
         Prepare a node series object for observational data:
 
         >>> from hydpy.core.sequencetools import Obs
-        >>> obs = Obs()
+        >>> obs = Obs(None)
 
-        Prepare a test function that expects the timegrid of the
-        data and the data itself, which returns the ajdusted array by
-        means of calling method :func:`adjust_short_series`:
+        Prepare a test function that expects the time grid of the
+        data and the data itself, which returns the adjusted array
+        through calling method |IOSequence.adjust_short_series|:
 
         >>> import numpy
         >>> def test(timegrid):
         ...     values = numpy.ones(len(timegrid))
         ...     return obs.adjust_short_series(timegrid, values)
 
-        The following calls to the test function shows the arrays
-        returned for different kinds misalignments:
+        The following calls to the test function show the arrays
+        returned for different kinds of misalignments:
 
+        >>> from hydpy import Timegrid
         >>> test(Timegrid('2000.01.05', '2000.01.20', '1d'))
         array([ 1.,  1.,  1.,  1.,  1.])
         >>> test(Timegrid('2000.01.12', '2000.01.15', '1d'))
@@ -1022,21 +1992,17 @@ class IOSequence(Sequence):
         >>> test(Timegrid('2000.01.16', '2000.01.18', '1d'))
         array([ nan,  nan,  nan,  nan,  nan])
 
-        Through enabling option
-        :attr:`~hydpy.core.objecttools.Options.usedefaultvalues` the missing
-        values are initialized with zero instead of nan:
+        After enabling option |Options.usedefaultvalues|, the missing
+        values are initialised with zero instead of nan:
 
-        >>> pub.options.usedefaultvalues = True
-
-        >>> test(Timegrid('2000.01.12', '2000.01.17', '1d'))
+        >>> with pub.options.usedefaultvalues(True):
+        ...     test(Timegrid('2000.01.12', '2000.01.17', '1d'))
         array([ 0.,  0.,  1.,  1.,  1.])
-
-        >>> pub.options.usedefaultvalues = False
         """
-        idxs = [timegrid[pub.timegrids.init.firstdate],
-                timegrid[pub.timegrids.init.lastdate]]
+        idxs = [timegrid[hydpy.pub.timegrids.init.firstdate],
+                timegrid[hydpy.pub.timegrids.init.lastdate]]
         valcopy = values
-        values = numpy.full(self.seriesshape, self.initvalue)
+        values = numpy.full(self.seriesshape, self.initinfo[0])
         len_ = len(valcopy)
         jdxs = []
         for idx in idxs:
@@ -1052,667 +2018,1601 @@ class IOSequence(Sequence):
         values[zdx1:zdx2] = valcopy
         return values
 
-    def save_ext(self):
-        """Write the internal data into an external data file."""
-        if self.filetype_ext == 'npy':
-            series = pub.timegrids.init.array2series(self.series)
-            numpy.save(self.filepath_ext, series)
-        else:
-            with open(self.filepath_ext, 'w') as file_:
-                file_.write(repr(pub.timegrids.init) + '\n')
-            with open(self.filepath_ext, 'ab') as file_:
-                numpy.savetxt(file_, self.series, delimiter='\t')
+    def check_completeness(self) -> None:
+        """Raise a |RuntimeError| if the |IOSequence.series| contains at
+        least one |numpy.nan| value and if the option |Options.checkseries|
+        is enabled.
 
-    def _load_npy(self):
-        """Return the data timegrid and the complete external data from a
-        binary numpy file.
+        >>> from hydpy import pub
+        >>> pub.timegrids = '2000-01-01', '2000-01-11', '1d'
+        >>> from hydpy.core.sequencetools import ModelSequence, StateSequences
+        >>> class Seq(ModelSequence):
+        ...     NDIM = 0
+        >>> class StateSequences(StateSequences):
+        ...     CLASSES = (Seq,)
+        >>> seq = Seq(StateSequences(None))
+        >>> seq.__hydpy__connect_variable2subgroup__()
+        >>> seq.activate_ram()
+        >>> seq.check_completeness()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The series array of sequence `seq` contains 10 nan values.
+
+        >>> seq.series = 1.0
+        >>> seq.check_completeness()
+        
+        >>> seq.series[3] = numpy.nan
+        >>> seq.check_completeness()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: The series array of sequence `seq` contains 1 nan value.
+
+        >>> with pub.options.checkseries(False):
+        ...     seq.check_completeness()
+        """
+        if hydpy.pub.options.checkseries:
+            isnan = numpy.isnan(self.series)
+            if numpy.any(isnan):
+                nmb = numpy.sum(isnan)
+                valuestring = 'value' if nmb == 1 else 'values'
+                raise RuntimeError(
+                    f'The series array of sequence '
+                    f'{objecttools.devicephrase(self)} contains '
+                    f'{nmb} nan {valuestring}.')
+
+    def save_ext(self) -> None:
+        """Write the internal data into an external data file.
+
+        Method |IOSequence.save_ext| only calls method
+        |SequenceManager.save_file| of class |SequenceManager|
+        passing itself as the only argument.  Hence, see the
+        documentation on class the |SequenceManager| for further
+        information.  The following example only shows the error
+        messages when |SequenceManager.save_file| is missing
+        due to incomplete project configurations:
+
+        .. testsetup::
+
+            >>> from hydpy import pub
+            >>> del pub.sequencemanager
+
+        >>> from hydpy.core.sequencetools import ModelSequence
+        >>> ModelSequence(None).save_ext()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: While trying to save the external time \
+series data of `modelsequence`, the following error occurred: \
+Attribute sequencemanager of module `pub` is not defined at the moment.
         """
         try:
-            data = numpy.load(self.filepath_ext)
+            sequencemanager = hydpy.pub.sequencemanager
         except BaseException:
-            prefix = ('While trying to load the external data of sequence '
-                      '`%s` from file `%s`' % (self.name, self.filepath_ext))
-            objecttools.augment_excmessage(prefix)
-        try:
-            timegrid_data = timetools.Timegrid.fromarray(data)
-        except BaseException:
-            prefix = ('While trying to retrieve the data timegrid of the '
-                      'external data file `%s` of sequence `%s`'
-                      % (self.filepath_ext, self.name))
-            objecttools.augment_excmessage(prefix)
-        return timegrid_data, data[13:]
+            objecttools.augment_excmessage(
+                f'While trying to save the external time series '
+                f'data of {objecttools.devicephrase(self)}')
+        sequencemanager.save_file(self)
 
-    def _load_asc(self):
-        with open(self.filepath_ext) as file_:
-            header = '\n'.join([file_.readline() for idx in range(3)])
-        timegrid_data = eval(header, {}, {'Timegrid': timetools.Timegrid})
-        values = numpy.loadtxt(self.filepath_ext, skiprows=3,
-                               ndmin=self.NDIM+1)
-        return timegrid_data, values
+    def save_mean(self, *args, **kwargs) -> None:
+        """Average the time series date with method |IOSequence.average_series|
+        of class |IOSequence| and write the result to file using method
+        |SequenceManager.save_file| of class |SequenceManager|.
 
-    def _load_int(self):
-        """Load internal data from file and return it."""
+        The main documentation on class |SequenceManager| provides some
+        examples.
+        """
+        array = InfoArray(
+            self.average_series(*args, **kwargs),
+            info={'type': 'mean',
+                  'args': args,
+                  'kwargs': kwargs})
+        hydpy.pub.sequencemanager.save_file(self, array=array)
+
+    def _load_int(self) -> numpy.ndarray:
+        """Load internal data from a file and return it."""
         values = numpy.fromfile(self.filepath_int)
         if self.NDIM > 0:
             values = values.reshape(self.seriesshape)
         return values
 
-    def zero_int(self):
-        """Initialize the internal data series with zero values."""
-        values = numpy.zeros(self.seriesshape)
-        if self.diskflag:
-            self._save_int(values)
-        elif self.ramflag:
-            self._setarray(values)
-        else:
-            raise RuntimeError('Sequence `%s` is not requested to make any '
-                               'internal data available to the user.'
-                               % self.name)
-
-    def _save_int(self, values):
+    def _save_int(self, values: numpy.ndarray) -> None:
         values.tofile(self.filepath_int)
 
-    def activate_disk(self):
-        """Demand reading/writing internal data from/to hard disk."""
-        self.deactivate_ram()
-        self.diskflag = True
-        if (isinstance(self, InputSequence) or
-           (isinstance(self, NodeSequence) and self.use_ext)):
-                self.load_ext()
-        else:
-            self.zero_int()
-        self.update_fastaccess()
+    def average_series(self, *args, **kwargs) -> InfoArray:
+        """Average the actual time series of the |Variable| object for all
+        time points.
 
-    def deactivate_disk(self):
-        """Prevent from reading/writing internal data from/to hard disk."""
-        if self.diskflag:
-            del self.series
-            self.diskflag = False
+        Method |IOSequence.average_series| works similarly as method
+        |Variable.average_values| of class |Variable|, from which we
+        borrow some examples. However, firstly, we have to prepare a
+        |Timegrids| object to define the |IOSequence.series| length:
 
-    def activate_ram(self):
-        """Demand reading/writing internal data from/to hard disk."""
-        self.deactivate_disk()
-        self.ramflag = True
-        if (isinstance(self, InputSequence) or
-                (isinstance(self, NodeSequence) and self.use_ext)):
-            self.load_ext()
-        else:
-            self.zero_int()
-        self.update_fastaccess()
+        >>> from hydpy import pub
+        >>> pub.timegrids = '2000-01-01', '2000-01-04', '1d'
 
-    def deactivate_ram(self):
-        """Prevent from reading/writing internal data from/to hard disk."""
-        if self.ramflag:
-            del self.series
-            self.ramflag = False
+        As shown for method |Variable.average_values|, for 0-dimensional
+        |IOSequence| objects the result of method |IOSequence.average_series|
+        equals |IOSequence.series| itself:
 
-    def disk2ram(self):
-        """Move internal data from disk to RAM."""
-        values = self.series
-        self.deactivate_disk()
-        self.ramflag = True
-        self._setarray(values)
-        self.update_fastaccess()
+        >>> from hydpy.core.sequencetools import ModelSequence, StateSequences
+        >>> class SoilMoisture(ModelSequence):
+        ...     NDIM = 0
+        >>> class StateSequences(StateSequences):
+        ...     CLASSES = (SoilMoisture,)
+        >>> sm = SoilMoisture(StateSequences(None))
+        >>> sm.__hydpy__connect_variable2subgroup__()
+        >>> sm.activate_ram()
+        >>> import numpy
+        >>> sm.series = numpy.array([190.0, 200.0, 210.0])
+        >>> sm.average_series()
+        InfoArray([ 190.,  200.,  210.])
 
-    def ram2disk(self):
-        """Move internal data from RAM to disk."""
-        values = self.series
-        self.deactivate_ram()
-        self.diskflag = True
-        self._save_int(values)
-        self.update_fastaccess()
+        For |IOSequence| objects with an increased dimensionality, we
+        require a weighting parameter:
 
-    def _setshape(self, shape):
-        Sequence._setshape(self, shape)
-        self.update_fastaccess()
+        >>> SoilMoisture.NDIM = 1
+        >>> sm.shape = 3
+        >>> sm.activate_ram()
+        >>> sm.series = (
+        ...     [190.0, 390.0, 490.0],
+        ...     [200.0, 400.0, 500.0],
+        ...     [210.0, 410.0, 510.0])
+        >>> from hydpy.core.parametertools import Parameter
+        >>> class Area(Parameter):
+        ...     NDIM = 1
+        ...     shape = (3,)
+        ...     value = numpy.array([1.0, 1.0, 2.0])
+        >>> area = Area(None)
+        >>> SoilMoisture.refweights = property(lambda self: area)
+        >>> sm.average_series()
+        InfoArray([ 390.,  400.,  410.])
 
-    shape = property(Sequence._getshape, _setshape)
+        The documentation on method |Variable.average_values| provides
+        many examples of how to use different masks in different ways.
+        Here, we only show the results of method |IOSequence.average_series|
+        for a mask selecting the first two entries, for a mask selecting
+        no entry at all, and for an ill-defined mask:
+
+        >>> from hydpy.core.masktools import DefaultMask
+        >>> class Soil(DefaultMask):
+        ...     @classmethod
+        ...     def new(cls, variable, **kwargs):
+        ...         return cls.array2mask(maskvalues)
+        >>> SoilMoisture.mask = Soil()
+
+        >>> maskvalues = [True, True, False]
+        >>> sm.average_series()
+        InfoArray([ 290.,  300.,  310.])
+
+        >>> maskvalues = [False, False, False]
+        >>> sm.average_series()
+        nan
+
+        >>> maskvalues = [True, True]
+        >>> sm.average_series()
+        Traceback (most recent call last):
+        ...
+        IndexError: While trying to calculate the mean value of the internal \
+time series of sequence `soilmoisture`, the following error occurred: \
+While trying to access the value(s) of variable `area` with key \
+`[ True  True]`, the following error occurred: \
+boolean index did not match indexed array along dimension 0; \
+dimension is 3 but corresponding boolean dimension is 2
+        """
+        try:
+            if not self.NDIM:
+                array = self.series
+            else:
+                mask = self.get_submask(*args, **kwargs)
+                if numpy.any(mask):
+                    weights = self.refweights[mask]
+                    weights /= numpy.sum(weights)
+                    series = self.series[:, mask]
+                    axes = tuple(range(1, self.NDIM+1))
+                    array = numpy.sum(weights*series, axis=axes)
+                else:
+                    return numpy.nan
+            return InfoArray(array, info={'type': 'mean'})
+        except BaseException:
+            objecttools.augment_excmessage(
+                f'While trying to calculate the mean value of the internal '
+                f'time series of sequence {objecttools.devicephrase(self)}')
+
+    def aggregate_series(self, *args, **kwargs) -> InfoArray:
+        """Aggregate time series data based on the actual
+        |FluxSequence.aggregation_ext| attribute of |IOSequence|
+        subclasses.
+
+        We prepare some nodes and elements with the help of
+        method |prepare_io_example_1| and select a 1-dimensional
+        flux sequence of type |lland_fluxes.NKor| as an example:
+
+        >>> from hydpy.examples import prepare_io_example_1
+        >>> nodes, elements = prepare_io_example_1()
+        >>> seq = elements.element3.model.sequences.fluxes.nkor
+
+        If |FluxSequence.aggregation_ext| is `none`, the
+        original time series values are returned:
+
+        >>> seq.aggregation_ext
+        'none'
+        >>> seq.aggregate_series()
+        InfoArray([[ 24.,  25.,  26.],
+                   [ 27.,  28.,  29.],
+                   [ 30.,  31.,  32.],
+                   [ 33.,  34.,  35.]])
+
+        If |FluxSequence.aggregation_ext| is `mean`, method
+        |IOSequence.aggregate_series| is called:
+
+        >>> seq.aggregation_ext = 'mean'
+        >>> seq.aggregate_series()
+        InfoArray([ 25.,  28.,  31.,  34.])
+
+        In case the state of the sequence is invalid:
+
+        >>> seq.aggregation_ext = 'nonexistent'
+        >>> seq.aggregate_series()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Unknown aggregation mode `nonexistent` for \
+sequence `nkor` of element `element3`.
+
+        The following technical test confirms the propr passing of
+        all potential positional and keyword arguments
+
+        >>> seq.aggregation_ext = 'mean'
+        >>> from unittest import mock
+        >>> seq.average_series = mock.MagicMock()
+        >>> _ = seq.aggregate_series(1, x=2)
+        >>> seq.average_series.assert_called_with(1, x=2)
+        """
+        mode = self.aggregation_ext
+        if mode == 'none':
+            return self.series
+        if mode == 'mean':
+            return self.average_series(*args, **kwargs)
+        raise RuntimeError(
+            f'Unknown aggregation mode `{mode}` for '
+            f'sequence {objecttools.devicephrase(self)}.')
+
+    @property
+    @abc.abstractmethod
+    def descr_sequence(self) -> str:
+        """Description of the |Sequence| object and its context."""
+
+    @property
+    @abc.abstractmethod
+    def descr_device(self) -> str:
+        """Description of the |Device| object the |Sequence| object
+        belongs to."""
 
 
-class ModelIOSequence(IOSequence):
+class ModelSequence(IOSequence):
+    """Base class for sequences to be handled by |Model| objects."""
 
-    def _getrawfilename(self):
-        """Filename without ending for external and internal date files."""
-        if self._rawfilename:
-            return self._rawfilename
-        else:
-            try:
-                return '%s_%s_%s' % (
-                    self.subseqs.seqs.model.element.name,
-                    objecttools.classname(self.subseqs)[:-9].lower(),
-                    self.name)
-            except AttributeError:
-                raise RuntimeError('For sequence `%s` the raw filename cannot '
-                                   'determined.  Either set it manually or '
-                                   'embed the sequence object into the HydPy '
-                                   'framework in the common manner to allow '
-                                   'for an automatic determination.'
-                                   % self.name)
+    @property
+    def descr_sequence(self) -> str:
+        """Description of the |ModelSequence| object itself and the
+        |SubSequences| group it belongs to.
 
-    def _setrawfilename(self, name):
-        self._rawfilename = str(name)
+        >>> from hydpy import prepare_model
+        >>> from hydpy.models import test_v1
+        >>> model = prepare_model(test_v1)
+        >>> model.sequences.fluxes.q.descr_sequence
+        'flux_q'
+        """
+        return f'{objecttools.classname(self.subseqs)[:-9].lower()}_{self.name}'
 
-    def _delrawfilename(self):
-        self._rawfilename = None
+    @property
+    def descr_model(self) -> str:
+        """Description of the |Model| the |ModelSequence| object belongs to.
 
-    rawfilename = property(_getrawfilename, _setrawfilename, _delrawfilename)
+        >>> from hydpy import prepare_model
+        >>> from hydpy.models import test, test_v1
+        >>> model = prepare_model(test)
+        >>> model.sequences.fluxes.q.descr_model
+        'test'
+        >>> model = prepare_model(test_v1)
+        >>> model.sequences.fluxes.q.descr_model
+        'test_v1'
+        """
+        return self.subseqs.seqs.model.__module__.split('.')[2]
+
+    @property
+    def descr_device(self) -> str:
+        """Description of the |Element| object the |ModelSequence| object
+        belongs to.
+
+        >>> from hydpy import prepare_model, Element
+        >>> element = Element('test_element_1')
+        >>> from hydpy.models import test_v1
+        >>> element.model = prepare_model(test_v1)
+        >>> element.model.sequences.fluxes.q.descr_device
+        'test_element_1'
+        """
+        return self.subseqs.seqs.model.element.name
 
 
-class InputSequence(ModelIOSequence):
-    """ """
+class InputSequence(ModelSequence):
+    """Base class for input sequences of |Model| objects."""
+
+    filetype_ext = _FileType()
+    dirpath_ext = _DirPathProperty()
+    aggregation_ext = _AggregationProperty()
+    overwrite_ext = _OverwriteProperty()
 
 
-abctools.InputSequenceABC.register(InputSequence)
+class FluxSequence(ModelSequence):
+    """Base class for flux sequences of |Model| objects."""
 
+    filetype_ext = _FileType()
+    dirpath_ext = _DirPathProperty()
+    aggregation_ext = _AggregationProperty()
+    overwrite_ext = _OverwriteProperty()
 
-class FluxSequence(ModelIOSequence):
-    """ """
-
-    def _initvalues(self):
-        super(FluxSequence, self)._initvalues()
+    def _finalise_connections(self) -> None:
+        super()._finalise_connections()
         if self.NUMERIC:
             value = None if self.NDIM else numpy.zeros(self.numericshape)
-            self._connect_subattr('points', value)
-            self._connect_subattr('integrals', copy.copy(value))
-            self._connect_subattr('results', copy.copy(value))
+            self._set_fastaccessattribute('points', value)
+            self._set_fastaccessattribute('integrals', copy.copy(value))
+            self._set_fastaccessattribute('results', copy.copy(value))
             value = None if self.NDIM else 0.
-            self._connect_subattr('sum', value)
+            self._set_fastaccessattribute('sum', value)
 
-    def _setshape(self, shape):
-        super(FluxSequence, self)._setshape(shape)
+    def __hydpy__get_shape__(self) -> Tuple[int, ...]:
+        """A tuple containing the actual lengths of all dimensions.
+
+        |FluxSequence| objects come with some additional `fastaccess`
+        attributes, which should be of interest for framework developers
+        only.  However, model developers should note that we did
+        implement only 0-dimensional |FluxSequence| subclasses with a
+        |True| `NUMERIC` flag so far.  Hence, we still need to prove the
+        complete functionality of our design of 1-dimensional |FluxSequence|
+        subclasses with a |True| `NUMERIC` flag.
+
+        One example of a 0-dimensional sequence is the `results` array,
+        handling the (intermediate or  final) calculation results for
+        flux sequence |dam_fluxes.Inflow| of the |dam| model:
+
+        >>> from hydpy import prepare_model, print_values, pub
+        >>> model = prepare_model('dam_v001')
+        >>> inflow = model.sequences.fluxes.inflow
+        >>> print_values(inflow.fastaccess._inflow_results)
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+
+        We now show the still not thoroughly tested functionality
+        of 1-dimensional numerical flux sequences by changing the
+        dimensionality of class |dam_fluxes.Inflow| and working in
+        pure Python mode.  Now, the `results` attribute is |None|
+        initially, as property |IOSequence.numericshape| is unknown.
+        However, setting the |FluxSequence.shape| attribute of
+        |FluxSequence| objects prepares all "fastaccess attributes"
+        automatically:
+
+        >>> from hydpy.models.dam.dam_fluxes import Inflow
+        >>> Inflow.NDIM = 1
+        >>> with pub.options.usecython(False):
+        ...     model = prepare_model('dam_v001')
+        >>> inflow = model.sequences.fluxes.inflow
+        >>> inflow.fastaccess._inflow_results
+
+        >>> inflow.shape = (2,)
+        >>> inflow.shape
+        (2,)
+        >>> inflow.fastaccess._inflow_results.shape
+        (11, 2)
+
+        >>> Inflow.NDIM = 0
+        """
+        return super().__hydpy__get_shape__()
+
+    def __hydpy__set_shape__(self, shape: Union[int, Iterable[int]]) -> None:
+        super().__hydpy__set_shape__(shape)
         if self.NDIM and self.NUMERIC:
-            self._connect_subattr('points', numpy.zeros(self.numericshape))
-            self._connect_subattr('integrals', numpy.zeros(self.numericshape))
-            self._connect_subattr('results', numpy.zeros(self.numericshape))
-            self._connect_subattr('sum', numpy.zeros(self.shape))
+            self._set_fastaccessattribute(
+                'points', numpy.zeros(self.numericshape))
+            self._set_fastaccessattribute(
+                'integrals', numpy.zeros(self.numericshape))
+            self._set_fastaccessattribute(
+                'results', numpy.zeros(self.numericshape))
+            self._set_fastaccessattribute(
+                'sum', numpy.zeros(self.shape))
 
-    shape = property(ModelIOSequence._getshape, _setshape)
-
-
-abctools.FluxSequenceABC.register(FluxSequence)
-
-
-class LeftRightSequence(ModelIOSequence):
-    NDIM = 1
-
-    def _initvalues(self):
-        setattr(self.fastaccess, self.name,
-                numpy.full(2, self.initvalue, dtype=float))
-
-    def _getleft(self):
-        """The "left" value of the actual parameter."""
-        return self.values[0]
-
-    def _setleft(self, value):
-        self.values[0] = value
-
-    left = property(_getleft, _setleft)
-
-    def _getright(self):
-        """The "right" value of the actual parameter."""
-        return self.values[1]
-
-    def _setright(self, value):
-        self.values[1] = value
-
-    right = property(_getright, _setright)
+    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
 
 
-class ConditionSequence(object):
+class ConditionSequence(Sequence):
+    """Base class for |StateSequence| and |LogSequence|.
 
-    def __call__(self, *args):
-        self.values = args
+    Class |ConditionSequence| should not be subclassed by model
+    developers directly.  Inherit from |StateSequence| or
+    |LogSequence| instead.
+    """
+
+    _oldargs: Optional[Tuple[Any, ...]]
+
+    def __init__(self, subvars: SubSequences) -> None:
+        super().__init__(subvars)
+        self._oldargs = None
+
+    def __call__(self, *args) -> None:
+        """The prefered way to pass values to |Sequence| instances within
+        initial condition files."""
+        super().__call__(*args)
         self.trim()
         self._oldargs = copy.deepcopy(args)
 
-    trim = variabletools.trim
-
-    def warn_trim(self):
-        warnings.warn(
-            'For sequence %s of element %s at least one value '
-            'needed to be trimmed.  One possible reason could be '
-            'that the related control parameter and initial '
-            'condition files are inconsistent.'
-            % (self.name, objecttools.devicename(self)))
+    def trim(self, lower=None, upper=None):
+        """Apply |trim| of module |variabletools|."""
+        variabletools.trim(self, lower, upper)
 
     def reset(self):
+        """Reset the value of the actual |StateSequence| or |LogSequence|
+        object to the last value defined by "calling" the object.
+
+        We use the |lland_v2| application model, which handles sequences
+        derived from |StateSequence| (taking |lland_states.Inzp| as an
+        example) and from |LogSequence| (taking |lland_logs.WET0| as an
+        example):
+
+        >>> from hydpy import prepare_model, pub
+        >>> model = prepare_model('lland_v2')
+
+        After defining their shapes, both sequences contain |numpy.nan|
+        values:
+
+        >>> inzp = model.sequences.states.inzp
+        >>> inzp.shape = (2,)
+        >>> inzp
+        inzp(nan, nan)
+        >>> wet0 = model.sequences.logs.wet0
+        >>> wet0.shape = 2
+        >>> wet0
+        wet0([[nan, nan]])
+
+        Before "calling" the sequences, method |ConditionSequence.reset|
+        does nothing:
+
+        >>> inzp.values = 0.0
+        >>> inzp.reset()
+        >>> inzp
+        inzp(0.0, 0.0)
+        >>> wet0.values = 0.0
+        >>> wet0.reset()
+        >>> wet0
+        wet0([[0.0, 0.0]])
+
+        After "calling" the sequences, method |ConditionSequence.reset|
+        reuses the respective arguments:
+
+        >>> with pub.options.warntrim(False):
+        ...     inzp(0.0, 1.0)
+        >>> inzp.values = 0.0
+        >>> inzp
+        inzp(0.0, 0.0)
+        >>> with pub.options.warntrim(False):
+        ...     inzp.reset()
+        >>> inzp
+        inzp(0.0, 1.0)
+        >>> wet0(1.0, 2.0)
+        >>> wet0.values = 3.0
+        >>> wet0
+        wet0([[3.0, 3.0]])
+        >>> wet0.reset()
+        >>> wet0
+        wet0([[1.0, 2.0]])
+        """
         if self._oldargs:
             self(*self._oldargs)
 
 
-class StateSequence(ModelIOSequence, ConditionSequence):
-    """Handler for state time series."""
+class StateSequence(ConditionSequence, ModelSequence):
+    """Base class for state sequences of |Model| objects.
+
+    Each |StateSequence| object is capable in handling states at two
+    different "time points": at the beginning of a simulation step via
+    property |StateSequence.old| and the end of a simulation step
+    via property |StateSequence.new|.  These properties are reflected
+    by two different `fastaccess` attributes.  `fastaccess_new` is
+    an alias for the standard `fastaccess` attribute storing the
+    customary information. `fastaccess_old` is an additional feature
+    for storing the supplemental information.
+
+    We demonstrate the above explanations using state sequence
+    |hland_states.SM| of base model |hland_v1| with a shape of two:
+
+    >>> from hydpy import prepare_model
+    >>> model = prepare_model('hland', '1d')
+    >>> model.parameters.control.fc.shape = (2,)
+    >>> model.parameters.control.fc = 100.0
+    >>> sm = model.sequences.states.sm
+    >>> sm.shape = (2,)
+
+    Initially, no values are available at all:
+
+    >>> sm
+    sm(nan, nan)
+    >>> sm.values
+    array([ nan,  nan])
+    >>> sm.new
+    array([ nan,  nan])
+    >>> sm.old
+    array([ nan,  nan])
+
+    The typical way to define state values, especially within condition
+    files, is to "call" state sequence objects, which sets both the
+    "old" and the "new" states to the given value(s):
+
+    >>> sm(1.0)
+    >>> sm.values
+    array([ 1.,  1.])
+    >>> sm.new
+    array([ 1.,  1.])
+    >>> sm.old
+    array([ 1.,  1.])
+
+    Alternatively, one can assign values to property |StateSequence.new|
+    or property |StateSequence.old| (note that using |StateSequence.new|
+    is identical with using the |Variable.value| property):
+
+    >>> sm.new = 2.0, 3.0
+    >>> sm
+    sm(2.0, 3.0)
+    >>> sm.values
+    array([ 2.,  3.])
+    >>> sm.new
+    array([ 2.,  3.])
+    >>> sm.old
+    array([ 1.,  1.])
+
+    >>> sm.old = 200.0
+    >>> sm
+    sm(2.0, 3.0)
+    >>> sm.values
+    array([ 2.,  3.])
+    >>> sm.new
+    array([ 2.,  3.])
+    >>> sm.old
+    array([ 200.,  200.])
+
+    Assigning problematic values to property |StateSequence.old| results
+    in very similar error messages as assigning problematic values to
+    property |Variable.value|:
+
+    >>> sm.old = 1.0, 2.0, 3.0
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to set the old value(s) of state sequence `sm`, \
+the following error occurred: While trying to convert the value(s) \
+`(1.0, 2.0, 3.0)` to a numpy ndarray with shape `(2,)` and type `float`, \
+the following error occurred: could not broadcast input array from \
+shape (3) into shape (2)
+
+    Just for completeness:  Method |StateSequence.new2old| effectively
+    takes the new values as old ones, but more efficiently than using
+    the properties |StateSequence.new| and |StateSequence.old|,  as it
+    used during simulation runs (in fact, the Python method
+    |StateSequence.new2old| is usually replaced by model specific,
+    cythonized version when working in Cython mode):
+
+    >>> sm.new2old()
+    >>> sm.values
+    array([ 2.,  3.])
+    >>> sm.new
+    array([ 2.,  3.])
+    >>> sm.old
+    array([ 2.,  3.])
+    """
 
     NOT_DEEPCOPYABLE_MEMBERS = ('subseqs', 'fastaccess_old', 'fastaccess_new')
 
-    def __init__(self):
-        ModelIOSequence.__init__(self)
-        self.fastaccess_old = None
-        self.fastaccess_new = None
-        self._oldargs = None
+    filetype_ext = _FileType()
+    dirpath_ext = _DirPathProperty()
+    aggregation_ext = _AggregationProperty()
+    overwrite_ext = _OverwriteProperty()
 
-    def __call__(self, *args):
-        """The prefered way to pass values to :class:`Sequence` instances
-        within initial condition files.
-        """
-        ConditionSequence.__call__(self, *args)
+    fastaccess_new: Union['FastAccessModelSequence',
+                          'typingtools.FastAccessModelSequenceProtocol']
+    fastaccess_old: Union['FastAccessModelSequence',
+                          'typingtools.FastAccessModelSequenceProtocol']
+
+    def __call__(self, *args) -> None:
+        """The prefered way to pass values to |Sequence| instances within
+        initial condition files."""
+        super().__call__(*args)
         self.new2old()
 
-    def connect(self, subseqs):
-        ModelIOSequence.connect(self, subseqs)
-        self.fastaccess_old = subseqs.fastaccess_old
-        self.fastaccess_new = subseqs.fastaccess_new
+    def _finalise_connections(self) -> None:
+        super()._finalise_connections()
+        if self.NUMERIC:
+            value = None if self.NDIM else numpy.zeros(self.numericshape)
+            self._set_fastaccessattribute('points', value)
+            self._set_fastaccessattribute('results', copy.copy(value))
+        self.fastaccess_old = self.subseqs.fastaccess_old
+        self.fastaccess_new = self.subseqs.fastaccess_new
         if self.NDIM:
             setattr(self.fastaccess_old, self.name, None)
         else:
             setattr(self.fastaccess_old, self.name, 0.)
 
-    def _initvalues(self):
-        super(StateSequence, self)._initvalues()
-        if self.NUMERIC:
-            value = None if self.NDIM else numpy.zeros(self.numericshape)
-            self._connect_subattr('points', value)
-            self._connect_subattr('results', copy.copy(value))
+    def __hydpy__get_shape__(self) -> Tuple[int, ...]:
+        """A tuple containing the actual lengths of all dimensions.
 
-    def _setshape(self, shape):
-        super(StateSequence, self)._setshape(shape)
+        |StateSequence| objects come with some additional `fastaccess`
+        attributes, which should be of interest for framework developers
+        only.  However, model developers should note that we did
+        implement only 1-dimensional |StateSequence| subclasses with a
+        |True| `NUMERIC` flag so far.  We still need to prove the
+        complete functionality of our design of 1-dimensional
+        |StateSequence| subclasses with a |True| `NUMERIC` flag.
+
+        One example of a 0-dimensional sequence is the `results` array,
+        handling the (intermediate or  final) calculation results for
+        state sequence |dam_states.WaterVolume| of the |dam| model:
+
+        >>> from hydpy import prepare_model, print_values, pub
+        >>> model = prepare_model('dam_v001')
+        >>> watervolume = model.sequences.states.watervolume
+        >>> print_values(watervolume.fastaccess._watervolume_results)
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+
+        We now show the still not thoroughly tested functionality
+        of 1-dimensional numerical state sequences by changing the
+        dimensionality of class |dam_states.WaterVolume| and working in
+        pure Python mode.  Now, the `results` attribute is |None|
+        initially, as property |IOSequence.numericshape| is unknown.
+        However, setting the |StateSequence.shape| attribute of
+        |StateSequence| objects prepares all "fastaccess attributes"
+        automatically:
+
+        >>> from hydpy.models.dam.dam_states import WaterVolume
+        >>> WaterVolume.NDIM = 1
+        >>> with pub.options.usecython(False):
+        ...     model = prepare_model('dam_v001')
+        >>> watervolume = model.sequences.states.watervolume
+        >>> watervolume.fastaccess._watervolume_results
+
+        >>> watervolume.shape = (2,)
+        >>> watervolume.shape
+        (2,)
+        >>> watervolume.fastaccess._watervolume_results.shape
+        (11, 2)
+
+        >>> WaterVolume.NDIM = 0
+        """
+        return super().__hydpy__get_shape__()
+
+    def __hydpy__set_shape__(self, shape: Union[int, Iterable[int]]):
+        super().__hydpy__set_shape__(shape)
         if self.NDIM:
             setattr(self.fastaccess_old, self.name, self.new.copy())
             if self.NUMERIC:
-                self._connect_subattr('points',
-                                      numpy.zeros(self.numericshape))
-                self._connect_subattr('results',
-                                      numpy.zeros(self.numericshape))
+                self._set_fastaccessattribute(
+                    'points', numpy.zeros(self.numericshape))
+                self._set_fastaccessattribute(
+                    'results', numpy.zeros(self.numericshape))
 
-    shape = property(ModelIOSequence._getshape, _setshape)
+    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
 
-    new = Sequence.values
-    """Complete access to the state value(s), which will be used in the next
-    calculation steps.  Note that :attr:`~StateSequence.new` is a synonym of
-    :attr:`~StateSequence.value`.  Use this property to modify the initial
-    condition(s) of a single :class:`StateSequence` object.
-    """
+    @property
+    def new(self):
+        """State(s) after calling a |Model| calculation method. (Alias
+        for property |Variable.value|).
 
-    def _getold(self):
-        """Assess to the state value(s) at beginning of the time step, which
-        has been processed most recently.  When using :ref:`HydPy` in the
-        normal manner.  But it can be helpful for demonstration and debugging
-        purposes.
+        Property |StateSequence.new| handles, in contrast to property
+        |StateSequence.old|, the newly calculated state values during
+        each simulation step.  It supports testing and debugging of
+        individual |Model| methods but istypically irrelevant when
+        scripting *HydPy* workflows.
         """
-        value = getattr(self.fastaccess_old, self.name, None)
-        if value is None:
-            raise RuntimeError('No value/values of sequence `%s` has/have '
-                               'not been defined so far.' % self.name)
-        else:
-            if self.NDIM:
-                value = numpy.asarray(value)
-            return value
+        return super().__hydpy__get_value__()
 
-    def _setold(self, value):
-        if self.NDIM == 0:
-            try:
-                temp = value[0]
-                if len(value) > 1:
-                    raise ValueError('%d values are assigned to the scalar '
-                                     'sequence `%s`, which is ambiguous.'
-                                     % (len(value)), self.name)
-                value = temp
-            except (TypeError, IndexError):
-                pass
-            try:
-                value = float(value)
-            except (ValueError, TypeError):
-                raise TypeError('When trying to set the value of sequence '
-                                '`%s`, it was not possible to convert `%s` '
-                                'to float .' % (self.name, value))
-        else:
-            try:
-                value = value.value
-            except AttributeError:
-                pass
-            try:
-                value = numpy.full(self.shape, value, dtype=float)
-            except ValueError:
-                raise ValueError('The values `%s` cannot be converted to a '
-                                 'numpy ndarray with shape %s containing '
-                                 'entries of type float.'
-                                 % (value, self.shape))
-        setattr(self.fastaccess_old, self.name, value)
+    @new.setter
+    def new(self, value):
+        super().__hydpy__set_value__(value)
 
-    old = property(_getold, _setold)
+    @property
+    def old(self):
+        """State(s) before calling a |Model| calculation method.
 
-    def new2old(self):
+        Note the similarity to property |StateSequence.new|. However,
+        property |StateSequence.old| references the initial states
+        of the respective simulation step, which should not be changed
+        by |Model| calculation methods.
+        """
+        return self._prepare_getvalue(
+            True,
+            getattr(self.fastaccess_old, self.name, None))
+
+    @old.setter
+    def old(self, value):
+        try:
+            setattr(
+                self.fastaccess_old, self.name, self._prepare_setvalue(value))
+        except BaseException:
+            objecttools.augment_excmessage(
+                f'While trying to set the old value(s) of state sequence '
+                f'{objecttools.devicephrase(self)}')
+
+    def new2old(self) -> None:
+        """Assign the |StateSequence.new| state values to the
+        |StateSequence.old| values.
+
+        See the main documentation on class |StateSequence| for further
+        information.
+
+        Note that method |StateSequence.new2old| is replaced by a model
+        specific, cythonized method when working in Cython mode.
+        """
         if self.NDIM:
             self.old[:] = self.new[:]
         else:
             self.old = self.new
 
 
-abctools.StateSequenceABC.register(StateSequence)
+class LogSequence(ConditionSequence, Sequence):
+    """Base class for logging sequences of |Model| objects.
 
+    Class |LogSequence| serves similar purposes as class |StateSequence|,
+    but is less strict in its assumptions.  While |StateSequence| objects
+    always handle two states (the |StateSequence.old| and the
+    |StateSequence.new| one), |LogSequence| objects are supposed to
+    remember an arbitrary or sequence-specific number of values, which
+    can be state values but for example also flux values.  A typical
+    use case is to store "old" values of effective precipitation to
+    calculate "new" values of direct discharge using the unit hydrograph
+    concept in later simulation steps.
 
-class LogSequence(Sequence, ConditionSequence):
+    It is up to the model developer to make sure that a |LogSequence|
+    subclass has the right dimensionality and shape to store the required
+    information.  By convention, the "memory" of each |LogSequence|
+    should be placed on the first axis for non-scalar properties.
 
-    def __init__(self):
-        Sequence.__init__(self)
-        self._oldargs = None
-
-    def __call__(self, *args):
-        self.values = args
-        self.trim()
-        self._oldargs = copy.deepcopy(args)
-
-
-abctools.LogSequenceABC.register(LogSequence)
+    As |StateSequence| objects, |LogSequence| objects store relevant
+    information to start a new simulation run where another one has
+    ended, and are thus written into and read from condition files.
+    """
 
 
 class AideSequence(Sequence):
-    pass
+    """Base class for aide sequences of |Model| objects.
 
-
-abctools.AideSequenceABC.register(AideSequence)
+    Aide sequences store data that is of importance only temporarily but
+    must be shared by different calculation methods of a |Model| object.
+    """
 
 
 class LinkSequence(Sequence):
+    """Base class for link sequences of |Model| objects.
 
-    def set_pointer(self, double, idx=0):
+    |LinkSequence| objects do not handle values themselves.
+    Instead, they point to the values handled |NodeSequence| objects,
+    using the functionalities provided by the Cython module
+    |pointerutils|.  Multiple |LinkSequence| objects of different
+    application models can query and modify the same |NodeSequence|
+    values, allowing different |Model| objects to share information
+    and interact with each other.
+
+    A note for developers: |LinkSequence| subclasses must be either
+    0-dimensional or 1-dimensional.
+
+    Users might encounter the following exception, which is a safety
+    measure to --- as the error message suggests --- prevent from
+    segmentation faults:
+
+    >>> from hydpy.core.sequencetools import LinkSequence
+    >>> seq = LinkSequence(None)
+    >>> seq
+    linksequence(?)
+    >>> seq.value
+    Traceback (most recent call last):
+    ...
+    AttributeError: While trying to query the value(s) of link sequence \
+`linksequence` of element `?`, the following error occurred: \
+Proper connections are missing (which could result in segmentation faults \
+when using it, so please be careful).
+    """
+
+    fastaccess: Union['FastAccessModelSequence',
+                      'typingtools.FastAccessLinkSequenceProtocol']
+
+    __isready: bool
+
+    def __init__(self, subvars: SubSequences):
+        self.__isready = False
+        super().__init__(subvars)
+
+    def set_pointer(self, double: pointerutils.Double, idx: int = 0) -> None:
+        """Prepare a pointer referencing the given |Double| object.
+
+        For 1-dimensional sequence objects, one also needs to specify
+        the relevant index position of the pointer via argument `idx`.
+
+        Method |LinkSequence.set_pointer| should be of relevance for
+        framework developers and eventually for some model developers
+        only.
+        """
         pdouble = pointerutils.PDouble(double)
         if self.NDIM == 0:
-            try:
-                self.fastaccess.set_pointer0d(self.name, pdouble)
-            except AttributeError:
+            if isinstance(self.fastaccess, FastAccessModelSequence):
                 setattr(self.fastaccess, self.name, pdouble)
+            else:
+                self.fastaccess.set_pointer0d(self.name, pdouble)
         elif self.NDIM == 1:
-            try:
-                self.fastaccess.set_pointer1d(self.name, pdouble, idx)
-            except AttributeError:
-                ppdouble = getattr(self.fastaccess, self.name)
+            if isinstance(self.fastaccess, FastAccessModelSequence):
+                ppdouble: pointerutils.PPDouble = getattr(
+                    self.fastaccess, self.name)
                 ppdouble.set_pointer(double, idx)
+            else:
+                self.fastaccess.set_pointer1d(self.name, pdouble, idx)
+        self.__isready = True
 
-    def _initvalues(self):
+    def _finalise_connections(self) -> None:
         value = pointerutils.PPDouble() if self.NDIM else None
         try:
             setattr(self.fastaccess, self.name, value)
         except AttributeError:
             pass
 
-    def _getvalue(self):
-        """ToDo"""
-        raise AttributeError('To retrieve a pointer is very likely to '
-                             'result in bugs and is thus not supported '
-                             'at the moment.')
+    def __hydpy__get_value__(self):
+        """The actual value(s) the |LinkSequence| object is pointing at.
 
-    def _setvalue(self, value):
-        """Could be implemented, but is not important at the moment..."""
-        raise AttributeError('To change a pointer is very likely to '
-                             'result in bugs and is thus not supported '
-                             'at the moment.')
+        Changing a |LinkSequence.value| of a |LinkSequence| object seems
+        very much like changing a |LinkSequence.value| of any other
+        |Variable| object.  However, be aware that you are changing a
+        value that is handled by a |NodeSequence| object.  We demonstrate
+        this by using the `LahnH` example project through invoking
+        function |prepare_full_example_2|:
 
-    value = property(_getvalue, _setvalue)
-    values = value
+        >>> from hydpy.examples import prepare_full_example_2
+        >>> hp, pub, TestIO = prepare_full_example_2()
 
-    def _getshape(self):
-        if self.NDIM == 0:
-            return ()
-        elif self.NDIM == 1:
+        We focus on the |hstream_v1| application model `stream_lahn_1_lahn_2`
+        routing inflow from node `lahn_1` to node `lahn_2`:
+
+        >>> model = hp.elements.stream_lahn_1_lahn_2.model
+
+        The first example shows that the 0-dimensional outlet sequence
+        |hstream_outlets.Q| points to the |Sim| sequence of node `lahn_2`:
+
+        >>> model.sequences.outlets.q
+        q(0.0)
+        >>> hp.nodes.lahn_2.sequences.sim = 1.0
+        >>> model.sequences.outlets.q
+        q(1.0)
+        >>> model.sequences.outlets.q(2.0)
+        >>> hp.nodes.lahn_2.sequences.sim
+        sim(2.0)
+
+        The second example shows that the 1-dimensional inlet sequence
+        |hstream_inlets.Q| points to the |Sim| sequence of node `lahn_1`:
+
+        >>> model.sequences.inlets.q
+        q(0.0)
+        >>> hp.nodes.lahn_1.sequences.sim = 1.0
+        >>> model.sequences.inlets.q
+        q(1.0)
+        >>> model.sequences.inlets.q(2.0)
+        >>> hp.nodes.lahn_1.sequences.sim
+        sim(2.0)
+
+        Direct querying the values of both link sequences shows that the
+        value of the 0-dimensional outlet sequence is scalar, of course,
+        and that the value of the 1-dimensional inlet sequence is one
+        entry of a vector:
+
+        >>> model.sequences.outlets.q.value
+        2.0
+        >>> model.sequences.inlets.q.values
+        array([ 2.])
+
+        Assigning bad data results in the standard error messages:
+
+        >>> model.sequences.outlets.q.value = 1.0, 2.0
+        Traceback (most recent call last):
+        ...
+        ValueError: While trying to assign the value(s) (1.0, 2.0) to link \
+sequence `q` of element `stream_lahn_1_lahn_2`, the following error occurred: \
+2 values are assigned to the scalar variable `q` of element \
+`stream_lahn_1_lahn_2`.
+        >>> model.sequences.inlets.q.values = 1.0, 2.0
+        Traceback (most recent call last):
+        ...
+        ValueError: While trying to assign the value(s) (1.0, 2.0) to link \
+sequence `q` of element `stream_lahn_1_lahn_2`, the following error occurred: \
+While trying to convert the value(s) `(1.0, 2.0)` to a numpy ndarray with \
+shape `(1,)` and type `float`, the following error occurred: could not \
+broadcast input array from shape (2) into shape (1)
+
+        In the example above, the 1-dimensional inlet sequence
+        |hstream_inlets.Q| points to the value of a single |NodeSequence|
+        value only.  We now prepare a |hbranch_v1| application model
+        instance to show what happens when connecting a 1-dimensional
+        |LinkSequence| object (|hbranch_outlets.Branched|) with three
+        |NodeSequence| objects (see the documentation of application
+        model |hbranch_v1| for more details):
+
+        >>> from hydpy import Element, Nodes, prepare_model
+        >>> model = prepare_model('hbranch_v1')
+        >>> nodes = Nodes('input1', 'input2', 'output1', 'output2', 'output3')
+        >>> branch = Element('branch',
+        ...                  inlets=['input1', 'input2'],
+        ...                  outlets=['output1', 'output2', 'output3'])
+        >>> model.parameters.control.xpoints(
+        ...     0.0, 2.0, 4.0, 6.0)
+        >>> model.parameters.control.ypoints(
+        ...     output1=[0.0, 1.0, 2.0, 3.0],
+        ...     output2=[0.0, 1.0, 0.0, 0.0],
+        ...     output3=[0.0, 0.0, 2.0, 6.0])
+        >>> branch.model = model
+
+        Our third example demonstrates that each field of the values of a
+        1-dimensional |LinkSequence| objects points to another |NodeSequence|
+        object:
+
+        >>> nodes.output1.sequences.sim = 1.0
+        >>> nodes.output2.sequences.sim = 2.0
+        >>> nodes.output3.sequences.sim = 3.0
+        >>> model.sequences.outlets.branched
+        branched(1.0, 2.0, 3.0)
+        >>> model.sequences.outlets.branched = 4.0, 5.0, 6.0
+        >>> nodes.output1.sequences.sim
+        sim(4.0)
+        >>> nodes.output2.sequences.sim
+        sim(5.0)
+        >>> nodes.output3.sequences.sim
+        sim(6.0)
+        """
+        try:
+            if not self.__isready:
+                raise AttributeError(
+                    f'Proper connections are missing (which could '
+                    f'result in segmentation faults when using it, '
+                    f'so please be careful).')
+            if isinstance(self.fastaccess, FastAccessModelSequence):
+                value = getattr(self.fastaccess, self.name)[:]
+                if self.NDIM == 0:
+                    return float(value)
+                return numpy.asarray(value, dtype=float)
+            return self.fastaccess.get_value(self.name)
+        except BaseException:
+            raise objecttools.augment_excmessage(
+                f'While trying to query the value(s) of link '
+                f'sequence {objecttools.elementphrase(self)}')
+
+    def __hydpy__set_value__(self, value):
+        try:
+            value_ = self._prepare_setvalue(value)
+            if isinstance(self.fastaccess, FastAccessModelSequence):
+                getattr(self.fastaccess, self.name)[:] = value_
+            else:
+                self.fastaccess.set_value(self.name, value_)
+        except BaseException:
+            objecttools.augment_excmessage(
+                f'While trying to assign the value(s) {value} to '
+                f'link sequence {objecttools.elementphrase(self)}')
+
+    value = property(fget=__hydpy__get_value__, fset=__hydpy__set_value__)
+
+    def __hydpy__get_shape__(self) -> Tuple[int, ...]:
+        """A tuple containing the actual lengths of all dimensions.
+
+        Property |LinkSequence.shape| of class |LinkSequence| works
+        similarly as the general |Variable.shape| property of class
+        |Variable| but you need to be extra careful due to the pointer
+        mechanism underlying class |LinkSequence|.  Change the shape
+        of a link sequence for good reasons only.  Please read the
+        documentation on property |LinkSequence.value| first and then
+        see the following examples which are, again, based on the
+        `LahnH` example project and application model |hstream_v1|:
+
+        >>> from hydpy.examples import prepare_full_example_2
+        >>> hp, pub, TestIO = prepare_full_example_2()
+        >>> model = hp.elements.stream_lahn_1_lahn_2.model
+
+        The default mechanisms of *HydPy* prepare both 0-dimensional
+        and 1-dimensional link sequences with a proper shape (which,
+        for inlet sequence |hstream_inlets.Q|, depends on the number
+        of connected |Node| objects):
+
+        >>> model.sequences.outlets.q.shape
+        ()
+        >>> model.sequences.inlets.q.shape
+        (1,)
+
+        Trying to set the only possible shape of 0-dimensional link
+        sequences or to set any different shape results in the
+        standard behaviour:
+
+        >>> model.sequences.outlets.q.shape = ()
+        >>> model.sequences.outlets.q.shape = (1,)
+        Traceback (most recent call last):
+        ...
+        ValueError: While trying to set the shape of link sequence`q` \
+of element `stream_lahn_1_lahn_2`, the following error occurred: \
+The shape information of 0-dimensional variables as `q` of element \
+`stream_lahn_1_lahn_2` can only be `()`, but `(1,)` is given.
+
+        Changing the shape of 1-dimensional link sequences is supported
+        but results in losing the connection to the |NodeSequence| values
+        of the respective nodes.  The following exception is raised to
+        prevent segmentation faults until proper connections are available:
+
+        >>> model.sequences.inlets.q.shape = (2,)
+        >>> model.sequences.inlets.q.shape
+        (2,)
+        >>> model.sequences.inlets.q.shape = 1
+        >>> model.sequences.inlets.q.shape
+        (1,)
+        >>> model.sequences.inlets.q
+        Traceback (most recent call last):
+        ...
+        RuntimeError: While trying to query the value(s) of link sequence \
+`q` of element `stream_lahn_1_lahn_2`, the following error occurred: \
+The pointer of the actual `PPDouble` instance at index `0` requested, \
+but not prepared yet via `set_pointer`.
+
+        >>> model.sequences.inlets.q(1.0)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: While trying to assign the value(s) 1.0 to link \
+sequence `q` of element `stream_lahn_1_lahn_2`, the following error occurred: \
+The pointer of the actual `PPDouble` instance at index `0` requested, \
+but not prepared yet via `set_pointer`.
+
+        Querying the shape of a link sequence should rarely result in
+        errors.  However, if we enforce it by deleting the `fastaccess`
+        attribute, we get an error message like the following:
+
+        >>> del model.sequences.inlets.q.fastaccess
+        >>> model.sequences.inlets.q.shape
+        Traceback (most recent call last):
+        ...
+        AttributeError: While trying to query the shape of link sequence`q` \
+of element `stream_lahn_1_lahn_2`, the following error occurred: \
+'Q' object has no attribute 'fastaccess'
+        """
+        try:
+            if self.NDIM == 0:
+                return ()
             try:
                 return getattr(self.fastaccess, self.name).shape
             except AttributeError:
-                return (getattr(self.fastaccess, '_%s_length_0' % self.name), )
+                return self._get_fastaccessattribute(f'length_0'),
+        except BaseException:
+            raise objecttools.augment_excmessage(
+                f'While trying to query the shape of link sequence'
+                f'{objecttools.elementphrase(self)}')
 
-    def _setshape(self, shape):
-        if self.NDIM == 1:
-            try:
-                getattr(self.fastaccess, self.name).shape = shape
-            except AttributeError:
-                self.fastaccess.dealloc()
-                self.fastaccess.alloc(self.name, shape)
-            setattr(self.fastaccess, 'len_'+self.name, self.shape[0])
+    def __hydpy__set_shape__(self, shape: Union[int, Iterable[int]]):
+        try:
+            if (self.NDIM == 0) and shape:
+                self._raise_wrongshape(shape)
+            elif self.NDIM == 1:
+                if isinstance(shape, Iterable):
+                    shape = list(shape)[0]
+                if isinstance(self.fastaccess, FastAccessModelSequence):
+                    getattr(self.fastaccess, self.name).shape = shape
+                else:
+                    self.fastaccess.dealloc(self.name)
+                    self.fastaccess.alloc(self.name, shape)
+                setattr(self.fastaccess, 'len_'+self.name, self.shape[0])
+        except BaseException:
+            objecttools.augment_excmessage(
+                f'While trying to set the shape of link sequence'
+                f'{objecttools.elementphrase(self)}')
 
-    shape = property(_getshape, _setshape)
+    shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
 
-
-abctools.LinkSequenceABC.register(LinkSequence)
+    def __repr__(self):
+        if self.__isready:
+            return super().__repr__()
+        return f'{self.name}(?)'
 
 
 class NodeSequence(IOSequence):
+    """Base class for all sequences to be handled by |Node| objects."""
+    NDIM: int = 0
+    NUMERIC: bool = False
 
-    def _getrawfilename(self):
-        """Filename without ending for external and internal date files."""
-        if self._rawfilename:
-            return self._rawfilename
-        else:
-            try:
-                return '%s_%s_%s' % (
-                    self.subseqs.node.name,
-                    self.name,
-                    self.subseqs.node.variable.lower())
-            except AttributeError:
-                raise RuntimeError('For sequence `%s` the raw filename cannot '
-                                   'determined.  Either set it manually or '
-                                   'embed the sequence object into the HydPy '
-                                   'framework in the common manner to allow '
-                                   'for an automatic determination.'
-                                   % self.name)
-
-    def _setrawfilename(self, name):
-        self._rawfilename = str(name)
-
-    def _delrawfilename(self):
-        self._rawfilename = None
-
-    rawfilename = property(_getrawfilename, _setrawfilename, _delrawfilename)
-
-    def _initvalues(self):
-        setattr(self.fastaccess, self.name, pointerutils.Double(0.))
-
-    def _getvalues(self):
-        """Actual value(s) handled by the sequence.  For consistency,
-        `value` and `values` can always be used interchangeably."""
-        try:
-            return getattr(self.fastaccess, self.name)
-        except AttributeError:
-            if self.NDIM == 0:
-                return self.fastaccess.getpointer0d(self.name)
-            elif self.NDIM == 1:
-                return self.fastaccess.getpointer1d(self.name)
-
-    def _setvalues(self, values):
-        getattr(self.fastaccess, self.name)[0] = values
-
-    values = property(_getvalues, _setvalues)
-    value = values
-
-
-abctools.NodeSequenceABC.register(NodeSequence)
-
-
-class Sim(NodeSequence):
-    NDIM, NUMERIC = 0, False
-
-    def __init__(self):
-        NodeSequence.__init__(self)
-        self.use_ext = False
-
-    def activate_disk(self):
-        try:
-            NodeSequence.activate_disk(self)
-        except IOError:
-            message = sys.exc_info()[1]
-            self.diskflag = False
-            if pub.options.warnmissingsimfile:
-                warnings.warn('The option `diskflag` of the simulation '
-                              'sequence `%s` had to be set to `False` due '
-                              'to the following problem: %s.'
-                              % (objecttools.devicename(self), message))
-
-    def activate_ram(self):
-        try:
-            NodeSequence.activate_ram(self)
-        except IOError:
-            message = sys.exc_info()[1]
-            self.ramflag = False
-            if pub.options.warnmissingsimfile:
-                warnings.warn('The option `ramflag` of the simulation '
-                              'sequence `%s` had to be set to `False` due '
-                              'to the following problem: %s.'
-                              % (objecttools.devicename(self), message))
-
-
-class Obs(NodeSequence):
-    NDIM, NUMERIC = 0, False
-
-    def __init__(self):
-        NodeSequence.__init__(self)
-        self.use_ext = True
-
-    def activate_disk(self):
-        try:
-            NodeSequence.activate_disk(self)
-        except IOError:
-            message = sys.exc_info()[1]
-            self.diskflag = False
-            if pub.options.warnmissingobsfile:
-                warnings.warn('The option `diskflag` of the observation '
-                              'sequence `%s` had to be set to `False` due '
-                              'to the following problem: %s.'
-                              % (objecttools.devicename(self), message))
-
-    def activate_ram(self):
-        try:
-            NodeSequence.activate_ram(self)
-        except IOError:
-            message = sys.exc_info()[1]
-            self.ramflag = False
-            if pub.options.warnmissingobsfile:
-                warnings.warn('The option `ramflag` of the observation '
-                              'sequence `%s` had to be set to `False` due '
-                              'to the following problem: %s.'
-                              % (objecttools.devicename(self), message))
+    filetype_ext = _FileType()
+    dirpath_ext = _DirPathProperty()
+    aggregation_ext = _AggregationProperty()
+    overwrite_ext = _OverwriteProperty()
 
     @property
-    def series_complete(self):
+    def descr_sequence(self) -> str:
+        """Description of the |NodeSequence| object including the
+        |Node.variable| to be represented.
+
+        >>> from hydpy import Node
+        >>> Node('test_node_1', 'T').sequences.sim.descr_sequence
+        'sim_t'
+        """
+        return f'{self.name}_{self.subseqs.node.variable.lower()}'
+
+    @property
+    def descr_device(self) -> str:
+        """Description of the |Node| object the |NodeSequence| object
+        belongs to.
+
+        >>> from hydpy import Node
+        >>> Node('test_node_2').sequences.sim.descr_device
+        'test_node_2'
+        """
+        return self.subseqs.node.name
+
+    def _finalise_connections(self) -> None:
+        super()._finalise_connections()
+        setattr(self.fastaccess, self.name, pointerutils.Double(0.))
+
+    def __hydpy__get_value__(self):
+        """The actual sequence value.
+
+        For framework users, property |NodeSequence.value| of class
+        |NodeSequence| works as usual and explained in the documentation
+        on property |Variable.shape| of class |Variable|.  However,
+        framework developers should note that |NodeSequence| objects use
+        |Double| objects for storing their values and making them
+        accessible to |PDouble| and |PPDouble| objects as explained
+        in detail in the documentation on class |LinkSequence|.
+        For safety reasons, this mechanism is hidden for framework
+        users via conversions to type |float|:
+
+        .. testsetup::
+
+            >>> from hydpy import Node
+            >>> Node.clear_all()
+
+        >>> from hydpy import Node
+        >>> sim = Node('node').sequences.sim
+        >>> sim(1.0)
+        >>> sim
+        sim(1.0)
+        >>> sim.value
+        1.0
+        >>> sim.fastaccess.sim
+        Double(1.0)
+
+        >>> sim.value = 2.0
+        >>> sim
+        sim(2.0)
+
+        Node sequences return errors like the following in case they
+        receive misspecified values or ill-configured:
+
+        >>> sim.value = 1.0, 2.0
+        Traceback (most recent call last):
+        ...
+        TypeError: While trying to assign the value `(1.0, 2.0)` to \
+sequence `sim` of node `node`, the following error occurred: \
+float() argument must be a string or a number, not 'tuple'
+
+        >>> del sim.fastaccess
+        >>> sim.value
+        Traceback (most recent call last):
+        ...
+        AttributeError: While trying to query the value of sequence `sim` \
+of node `node`, the following error occurred: \
+'Sim' object has no attribute 'fastaccess'
+        """
+        try:
+            return getattr(self.fastaccess, self.name)[0]
+        except BaseException:
+            objecttools.augment_excmessage(
+                f'While trying to query the value of sequence '
+                f'{objecttools.nodephrase(self)}')
+
+    def __hydpy__set_value__(self, value):
+        try:
+            getattr(self.fastaccess, self.name)[0] = float(value)
+        except BaseException:
+            objecttools.augment_excmessage(
+                f'While trying to assign the value `{value}` to '
+                f'sequence {objecttools.nodephrase(self)}')
+
+    value = property(fget=__hydpy__get_value__, fset=__hydpy__set_value__)
+
+    @property
+    def seriescomplete(self) -> bool:
+        """True/False flag indicating whether simulated or observed data
+        is fully available or not.
+
+        We use the observation series of node `dill` of the `LahnH`
+        project as an example:
+
+        >>> from hydpy.examples import prepare_full_example_2
+        >>> hp, pub, TestIO = prepare_full_example_2()
+        >>> obs = hp.nodes.dill.sequences.obs
+
+        When the sequence does not handle any time series data,
+        |NodeSequence.seriescomplete| is |False|:
+
+        >>> obs.deactivate_ram()
+        >>> obs.series
+        Traceback (most recent call last):
+        ...
+        AttributeError: Sequence `obs` of node `dill` is not requested \
+to make any internal data available.
+        >>> obs.seriescomplete
+        False
+
+        As long as any time series data is missing,
+        |NodeSequence.seriescomplete| is still |False|:
+
+        >>> obs.activate_ram()
+        >>> obs.series[:-1] = 1.0
+        >>> obs.series
+        InfoArray([  1.,   1.,   1.,  nan])
+        >>> obs.seriescomplete
+        False
+
+        Only with all data being not |numpy.nan|,
+        |NodeSequence.seriescomplete| is |True|:
+
+        >>> obs.series[-1] = 1.0
+        >>> obs.seriescomplete
+        True
+        """
         return self.memoryflag and not numpy.any(numpy.isnan(self.series))
 
 
-class NodeSequences(IOSubSequences):
-    """Base class for handling node sequences."""
-    _SEQCLASSES = (Sim, Obs)
+class Sim(NodeSequence):
+    """Class for handling those values of |Node| objects that are "simulated",
+    meaning calculated by hydrological models."""
 
-    def __init__(self, seqs, cls_fastaccess=None):
-        IOSubSequences.__init__(self, seqs, cls_fastaccess)
-        self.node = seqs
+    def load_ext(self) -> None:
+        """Read time series data like method |IOSequence.load_ext| of class
+        |IOSequence| but with special handling of missing data.
 
-    def load_data(self, idx):
-        self.fastaccess.load_data(idx)
+        The method's "special handling" is to convert errors to warnings.
+        We explain the reasons in the documentation on method |Obs.load_ext|
+        of class |Obs|, from which we borrow the following examples.
+        The only differences are that method |Sim.load_ext| of class |Sim|
+        does not disable property |IOSequence.memoryflag| and uses the option
+        |Options.warnmissingsimfile| instead of |Options.warnmissingobsfile|:
 
-    def save_data(self, idx):
-        self.fastaccess.save_data(idx)
+        >>> from hydpy.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+        >>> from hydpy import HydPy, pub, TestIO
+        >>> hp = HydPy('LahnH')
+        >>> pub.timegrids = '1996-01-01', '1996-01-06', '1d'
+        >>> with TestIO():
+        ...     hp.prepare_network()
+        ...     hp.prepare_models()
+        ...     hp.prepare_simseries()
+        >>> sim = hp.nodes.dill.sequences.sim
+        >>> with TestIO():
+        ...     sim.load_ext()    # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        UserWarning: While trying to load the external data of sequence \
+`sim` of node `dill`, the following error occurred: [Errno 2] No such file \
+or directory: '...dill_sim_q.asc'
+        >>> sim.series
+        InfoArray([ nan,  nan,  nan,  nan,  nan])
+
+        >>> sim.series = 1.0
+        >>> with TestIO():
+        ...     sim.save_ext()
+        >>> sim.series = 0.0
+        >>> with TestIO():
+        ...     sim.load_ext()
+        >>> sim.series
+        InfoArray([ 1.,  1.,  1.,  1.,  1.])
+
+        >>> import numpy
+        >>> sim.series[2] = numpy.nan
+        >>> with TestIO():
+        ...     pub.sequencemanager.nodeoverwrite = True
+        ...     sim.save_ext()
+        >>> with TestIO():
+        ...     sim.load_ext()
+        Traceback (most recent call last):
+        ...
+        UserWarning: While trying to load the external data of sequence `sim` \
+of node `dill`, the following error occurred: The series array of sequence \
+`sim` of node `dill` contains 1 nan value.
+        >>> sim.series
+        InfoArray([  1.,   1.,  nan,   1.,   1.])
+
+        >>> sim.series = 0.0
+        >>> with TestIO():
+        ...     with pub.options.warnmissingsimfile(False):
+        ...         sim.load_ext()
+        >>> sim.series
+        InfoArray([  1.,   1.,  nan,   1.,   1.])
+        """
+        try:
+            super().load_ext()
+        except BaseException:
+            if hydpy.pub.options.warnmissingsimfile:
+                warnings.warn(str(sys.exc_info()[1]))
 
 
-class FastAccess(object):
-    """Provides fast access to the values of the sequences of a sequence
-    subgroup and supports the handling of internal data series during
-    simulations.
+class Obs(NodeSequence):
+    """Class for handling those values of |Node| objects that are observed,
+    meaning read from data files."""
 
-    The following details are of relevance for :ref:`HydPy` developers only.
+    def load_ext(self) -> None:
+        """Read time series data like method |IOSequence.load_ext| of class
+        |IOSequence| but with special handling of missing data.
 
-    :class:`FastAccess` is applied in Python mode only.  In Cython mode,
-    specialized and more efficient cdef classes replace it.  For
-    compatibility with these cdef classes, :class:`FastAccess` objects
-    work with dynamically set instance members.  Suppose there is a
-    sequence named `seq1` which is 2-dimensional, then its associated
-    attributes are:
+        When reading incomplete time series data, *HydPy* usually raises
+        a |RuntimeError| to prevent from performing erroneous calculations.
+        For instance, this makes sense for meteorological input data, being
+        a strict requirement for hydrological simulations.  However, the
+        same often does not hold for the time series of |Obs| sequences,
+        e.g. representing measured discharge. Measured discharge is often
+        handled as an optional input value, or even used for comparison
+        purposes only.
 
-      * seq1 (:class:`~numpy.ndarray`): The actual sequence values.
-      * _seq1_ndim (:class:`int`): Number of dimensions.
-      * _seq1_length_0 (:class:`int`): Length in the first dimension.
-      * _seq1_length_1 (:class:`int`): Length in the second dimension.
-      * _seq1_ramflag (:class:`bool`): Handle internal data in RAM?
-      * _seq1_diskflag (:class:`bool`): Handle internal data on disk?
-      * _seq1_path (:class:`str`): Path of the internal data file.
-      * _seq1_file (:class:`file`): Object handling the internal data file.
+        According to this reasoning, *HydPy* raises (at most) a |UserWarning|
+        in case of missing or incomplete external time series data of |Obs|
+        sequences.  The following examples show this based on the `LahnH`
+        project, mainly focussing on the |Obs| sequence of node `dill`,
+        which is ready for handling time series data at the end of the
+        following steps:
 
-    Note that all these dynamical attributes and the following methods are
-    initialised, changed or applied by the respective :class:`SubSequences`
-    and :class:`Sequence` objects.  Handling them directly is error prone
-    and thus not recommended.
+        >>> from hydpy.examples import prepare_full_example_1
+        >>> prepare_full_example_1()
+        >>> from hydpy import HydPy, pub, TestIO
+        >>> hp = HydPy('LahnH')
+        >>> pub.timegrids = '1996-01-01', '1996-01-06', '1d'
+        >>> with TestIO():
+        ...     hp.prepare_network()
+        ...     hp.prepare_models()
+        ...     hp.prepare_obsseries()
+        >>> obs = hp.nodes.dill.sequences.obs
+        >>> obs.ramflag
+        True
+
+        Trying to read non-existing data raises the following warning
+        and disables the sequence's ability to handle time series data:
+
+        >>> with TestIO():
+        ...     hp.load_obsseries()    # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        UserWarning: The `memory flag` of sequence `obs` of node `dill` had \
+to be set to `False` due to the following problem: While trying to load the \
+external data of sequence `obs` of node `dill`, the following error occurred: \
+[Errno 2] No such file or directory: '...dill_obs_q.asc'
+        >>> obs.ramflag
+        False
+
+        After writing a complete external data file, everything works fine:
+
+        >>> obs.activate_ram()
+        >>> obs.series = 1.0
+        >>> with TestIO():
+        ...     obs.save_ext()
+        >>> obs.series = 0.0
+        >>> with TestIO():
+        ...     obs.load_ext()
+        >>> obs.series
+        InfoArray([ 1.,  1.,  1.,  1.,  1.])
+
+        Reading incomplete data also results in a warning message, but does
+        not disable the |IOSequence.memoryflag|:
+
+        >>> import numpy
+        >>> obs.series[2] = numpy.nan
+        >>> with TestIO():
+        ...     pub.sequencemanager.nodeoverwrite = True
+        ...     obs.save_ext()
+        >>> with TestIO():
+        ...     obs.load_ext()
+        Traceback (most recent call last):
+        ...
+        UserWarning: While trying to load the external data of sequence `obs` \
+of node `dill`, the following error occurred: The series array of sequence \
+`obs` of node `dill` contains 1 nan value.
+        >>> obs.memoryflag
+        True
+
+        Option |Options.warnmissingobsfile| allows disabling the warning
+        messages without altering the functionalities described above:
+
+        >>> hp.prepare_obsseries()
+        >>> with TestIO():
+        ...     with pub.options.warnmissingobsfile(False):
+        ...         hp.load_obsseries()
+        >>> obs.series
+        InfoArray([  1.,   1.,  nan,   1.,   1.])
+        >>> hp.nodes.lahn_1.sequences.obs.memoryflag
+        False
+        """
+        try:
+            super().load_ext()
+        except OSError:
+            self._set_fastaccessattribute('ramflag', False)
+            self._set_fastaccessattribute('diskflag', False)
+            if hydpy.pub.options.warnmissingobsfile:
+                warnings.warn(
+                    f'The `memory flag` of sequence '
+                    f'{objecttools.nodephrase(self)} had to be set to `False` '
+                    f'due to the following problem: {sys.exc_info()[1]}')
+        except BaseException:
+            if hydpy.pub.options.warnmissingobsfile:
+                warnings.warn(str(sys.exc_info()[1]))
+
+
+class NodeSequences(IOSequences):
+    """Base class for handling |Sim| and |Obs| sequence objects.
+
+    Basically, |NodeSequences| works like the different |ModelSequences|
+    subclasses used for handling |ModelSequence| objects.  The main
+    differences are that |NodeSequences| objects always use a
+    |FastAccessNodeSequence| object as their `fastaccess` attribute
+    (both in pure Python and in Cython mode), and that they do not
+    reference a |Sequences| object (which is only handled by |Element|
+    objects but not by |Node| objects). Instead, they reference their
+    master |Node| object via the attribute `node` directly:
+
+    >>> from hydpy import classname, Node
+    >>> node = Node('node')
+    >>> classname(node.sequences.fastaccess)
+    'FastAccessNodeSequence'
+    >>> node.sequences.node
+    Node("node", variable="Q")
     """
+    CLASSES: Tuple[Type[Sim], Type[Obs]] = (Sim, Obs)
+
+    node: 'devicetools.Node'
+    sim: Sim
+    obs: Obs
+    fastaccess: 'FastAccessNodeSequence'
+    _cls_fastaccess: Optional[Type[
+        'typingtools.FastAccessModelSequenceProtocol']]
+    _cymodel: Optional['typingtools.CyModelProtocol']
+
+    def __init__(
+            self,
+            master: 'devicetools.Node',
+            cls_fastaccess:
+            Optional[Type[
+                'typingtools.FastAccessModelSequenceProtocol']] = None,
+            cymodel: Optional['typingtools.CyModelProtocol'] = None) -> None:
+        self.node = master
+        self._cls_fastaccess = cls_fastaccess
+        self._cymodel = cymodel
+        super().__init__(master)
+
+    def __hydpy__initialise_fastaccess__(self) -> None:
+        self.fastaccess = FastAccessNodeSequence()
+
+    def load_data(self, idx: int) -> None:
+        """Call methods |NodeSequences.load_simdata| and
+        |NodeSequences.load_obsdata|."""
+        self.load_simdata(idx)
+        self.load_obsdata(idx)
+
+    def load_simdata(self, idx: int) -> None:
+        """Call method |FastAccessNodeSequence.load_simdata| of the
+        |FastAccessNodeSequence| object handled as attribute `fastaccess`."""
+        self.fastaccess.load_simdata(idx)
+
+    def load_obsdata(self, idx: int) -> None:
+        """Call method |FastAccessNodeSequence.load_obsdata| of the
+        |FastAccessNodeSequence| object handled as attribute `fastaccess`."""
+        self.fastaccess.load_obsdata(idx)
+
+    def save_data(self, idx: int) -> None:
+        """Call method |NodeSequences.save_data|."""
+        self.save_simdata(idx)
+
+    def save_simdata(self, idx: int) -> None:
+        """Call method |FastAccessNodeSequence.save_simdata| of the
+        |FastAccessNodeSequence| object handled as attribute `fastaccess`."""
+        self.fastaccess.save_simdata(idx)
+
+
+class LeftRightSequence(ModelSequence):
+    """Base class for handling two values, a left one and a right one.
+
+    The original purpose of class |LeftRightSequence| is to make the
+    handling of river channel related properties with different values
+    for both river banks a little more convenient.
+
+    We use the foreland specific discharge sequence |lstream_fluxes.QV|
+    of base model |lstream| to show that the left foreland  and the
+    right foreland value can be changed and queried by properties
+    |LeftRightSequence.left| and |LeftRightSequence.right|, respectively:
+
+    >>> from hydpy import prepare_model
+    >>> qv = prepare_model('lstream').sequences.fluxes.qv
+    >>> qv
+    qv(nan, nan)
+
+    >>> qv.left = 1.0
+    >>> qv.right = 2.0
+    >>> qv
+    qv(1.0, 2.0)
+
+    >>> qv(3.0, 4.0)
+    >>> qv.left
+    3.0
+    >>> qv.right
+    4.0
+
+    >>> qv.left = 1.0, 2.0
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to assign the "left" value `(1.0, 2.0)` to \
+sequence `qv` of element `?`, the following error occurred: \
+setting an array element with a sequence.
+
+    >>> qv.right = 1.0, 2.0
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to assign the "right" value `(1.0, 2.0)` to \
+sequence `qv` of element `?`, the following error occurred: \
+setting an array element with a sequence.
+    """
+    NDIM = 1
+
+    def _finalise_connections(self) -> None:
+        super()._finalise_connections()
+        self.shape = (2,)
+
+    @property
+    def left(self) -> float:
+        """The "left" value of the actual parameter."""
+        return self.values[0]
+
+    @left.setter
+    def left(self, value):
+        # pylint: disable=unsupported-assignment-operation
+        try:
+            self.values[0] = value
+        except BaseException:
+            objecttools.augment_excmessage(
+                f'While trying to assign the "left" value `{value}` '
+                f'to sequence {objecttools.elementphrase(self)}')
+
+    @property
+    def right(self) -> float:
+        """The "right" value of the actual parameter."""
+        return self.values[1]
+
+    @right.setter
+    def right(self, value):
+        # pylint: disable=unsupported-assignment-operation
+        try:
+            self.values[1] = value
+        except BaseException:
+            objecttools.augment_excmessage(
+                f'While trying to assign the "right" value `{value}` '
+                f'to sequence {objecttools.elementphrase(self)}')
+
+
+class FastAccessSequence(variabletools.FastAccess):
+    """Base class for |FastAccessModelSequence| and |FastAccessNodeSequence|."""
+
+    def _get_attribute(self, name, suffix):
+        return getattr(self, f'_{name}_{suffix}')
+
+    def _set_attribute(self, name, suffix, value):
+        return setattr(self, f'_{name}_{suffix}', value)
 
     def open_files(self, idx):
         """Open all files with an activated disk flag."""
         for name in self:
-            if getattr(self, '_%s_diskflag' % name):
-                path = getattr(self, '_%s_path' % name)
-                file_ = open(path, 'rb+')
-                ndim = getattr(self, '_%s_ndim' % name)
+            if self._get_attribute(name, 'diskflag'):
+                file_ = open(self._get_attribute(name, 'path'), 'rb+')
                 position = 8*idx
-                for idim in range(ndim):
-                    length = getattr(self, '_%s_length_%d' % (name, idim))
-                    position *= length
+                for idim in range(self._get_attribute(name, 'ndim')):
+                    position *= self._get_attribute(name, f'length_{idim}')
                 file_.seek(position)
-                setattr(self, '_%s_file' % name, file_)
+                self._set_attribute(name, 'file', file_)
 
     def close_files(self):
         """Close all files with an activated disk flag."""
         for name in self:
-            if getattr(self, '_%s_diskflag' % name):
-                file_ = getattr(self, '_%s_file' % name)
-                file_.close()
-
-    def load_data(self, idx):
-        """Load the internal data of all sequences.  Load from file if the
-        corresponding disk flag is activated, otherwise load from RAM."""
-        for name in self:
-            ndim = getattr(self, '_%s_ndim' % name)
-            diskflag = getattr(self, '_%s_diskflag' % name)
-            ramflag = getattr(self, '_%s_ramflag' % name)
-            if diskflag:
-                file_ = getattr(self, '_%s_file' % name)
-                length_tot = 1
-                shape = []
-                for idx in range(ndim):
-                    length = getattr(self, '_%s_length_%s' % (name, idx))
-                    length_tot *= length
-                    shape.append(length)
-                raw = file_.read(length_tot*8)
-                values = struct.unpack(length_tot*'d', raw)
-                if ndim:
-                    values = numpy.array(values).reshape(shape)
-                else:
-                    values = values[0]
-            elif ramflag:
-                array = getattr(self, '_%s_array' % name)
-                values = array[idx]
-            if (diskflag or ramflag):
-                if ndim == 0:
-                    setattr(self, name, values)
-                else:
-                    getattr(self, name)[:] = values
-
-    def save_data(self, idx):
-        """Save the internal data of all sequences with an activated flag.
-        Write to file if the corresponding disk flag is activated; store
-        in working memory if the corresponding ram flag is activated."""
-        for name in self:
-            actual = getattr(self, name)
-            diskflag = getattr(self, '_%s_diskflag' % name)
-            ramflag = getattr(self, '_%s_ramflag' % name)
-            if diskflag:
-                file_ = getattr(self, '_%s_file' % name)
-                ndim = getattr(self, '_%s_ndim' % name)
-                length_tot = 1
-                for idx in range(ndim):
-                    length = getattr(self, '_%s_length_%s' % (name, idx))
-                    length_tot *= length
-                if ndim:
-                    raw = struct.pack(length_tot*'d', *actual.flatten())
-                else:
-                    raw = struct.pack('d', actual)
-                file_.write(raw)
-            elif ramflag:
-                array = getattr(self, '_%s_array' % name)
-                array[idx] = actual
+            if self._get_attribute(name, 'diskflag'):
+                self._get_attribute(name, 'file').close()
 
     def __iter__(self):
         """Iterate over all sequence names."""
@@ -1721,4 +3621,132 @@ class FastAccess(object):
                 yield key
 
 
-autodoctools.autodoc_module()
+class FastAccessModelSequence(FastAccessSequence):
+    """Provides fast access to the values of the sequences of a sequence
+    subgroup and supports the handling of internal data series during
+    simulations.
+
+    The following details are of relevance for *HydPy* developers only.
+
+    |sequencetools.FastAccessModelSequence| is applied in Python mode only.
+    In Cython mode it is replaced by model-specific Cython extension
+    classes, which are computationally more efficient.  For compatibility
+    with these extension classes, |sequencetools.FastAccessModelSequence|
+    objects work with dynamically set instance members.  Suppose there
+    is a sequence named `seq1` which is 2-dimensional, then its associated
+    attributes are:
+
+      * seq1 (|numpy.ndarray|): The actual sequence values.
+      * _seq1_ndim (|int|): Number of dimensions.
+      * _seq1_length_0 (|int|): Length in the first dimension.
+      * _seq1_length_1 (|int|): Length in the second dimension.
+      * _seq1_ramflag (|bool|): Handle internal data in RAM?
+      * _seq1_diskflag (|bool|): Handle internal data on disk?
+      * _seq1_path (|str|): Path of the internal data file.
+      * _seq1_file (|io.open|): Object handling the internal data file.
+
+    Note that the respective |SubSequences| and |Sequence| objects
+    initialise, change, and apply these dynamical attributes.  To
+    handle them directly is error-prone and thus not recommended.
+    """
+
+    def load_data(self, idx: int) -> None:
+        """Load the internal data of all sequences with an activated
+        |IOSequence.memoryflag|.
+
+        Read from a file if the corresponding disk flag is activated; read
+        from working memory if the corresponding ram flag is activated.
+        """
+        for name in self:
+            ndim = self._get_attribute(name, 'ndim')
+            diskflag = self._get_attribute(name, 'diskflag')
+            ramflag = self._get_attribute(name, 'ramflag')
+            if diskflag:
+                length_tot = 1
+                shape = []
+                for jdx in range(ndim):
+                    length = self._get_attribute(name, f'length_{jdx}')
+                    length_tot *= length
+                    shape.append(length)
+                raw = self._get_attribute(name, 'file').read(length_tot*8)
+                values = struct.unpack(length_tot*'d', raw)
+                if ndim:
+                    values = numpy.array(values).reshape(shape)
+                else:
+                    values = values[0]
+            elif ramflag:
+                values = self._get_attribute(name, 'array')[idx]
+            if diskflag or ramflag:
+                if ndim == 0:
+                    setattr(self, name, values)
+                else:
+                    getattr(self, name)[:] = values
+
+    def save_data(self, idx: int) -> None:
+        """Save the internal data of all sequences with an activated flag.
+
+        Write to a file if the corresponding disk flag is activated; write
+        to working memory if the corresponding ram flag is activated."""
+        for name in self:
+            actual = getattr(self, name)
+            if self._get_attribute(name, 'diskflag'):
+                ndim = self._get_attribute(name, 'ndim')
+                length_tot = 1
+                for jdx in range(ndim):
+                    length = self._get_attribute(name, f'length_{jdx}')
+                    length_tot *= length
+                if ndim:
+                    raw = struct.pack(length_tot*'d', *actual.flatten())
+                else:
+                    raw = struct.pack('d', actual)
+                self._get_attribute(name, 'file').write(raw)
+            elif self._get_attribute(name, 'ramflag'):
+                self._get_attribute(name, 'array')[idx] = actual
+
+
+class FastAccessNodeSequence(FastAccessSequence):
+    """|sequencetools.FastAccessModelSequence| like object specialised for
+    |Node| objects.
+
+    In contrast to |FastAccessModelSequence|, |FastAccessNodeSequence| only
+    needs to handle a fixed number of sequences, |Sim| and |Obs|. It thus
+    can define the related attributes explicitly.
+
+    Note that there is no cythonized version of class |FastAccessNodeSequence|
+    available so far.  Adding such a version could result in some speedups.
+    """
+
+    sim: pointerutils.Double
+    obs: pointerutils.Double
+    _sim_array: numpy.array
+    _obs_array: numpy.array
+    _sim_ramflag: bool
+    _obs_ramflag: bool
+    _sim_diskflag: bool
+    _obs_diskflag: bool
+    _sim_file: IO
+    _obs_file: IO
+
+    def load_simdata(self, idx: int) -> None:
+        """Load the next sim sequence value (of the given index)."""
+        if self._sim_ramflag:
+            self.sim[0] = self._sim_array[idx]
+        elif self._sim_diskflag:
+            raw = self._sim_file.read(8)
+            self.sim[0] = struct.unpack('d', raw)[0]
+
+    def save_simdata(self, idx: int) -> None:
+        """Save the last sim sequence value (of the given index)."""
+        if self._sim_ramflag:
+            self._sim_array[idx] = self.sim[0]
+        elif self._sim_diskflag:
+            raw = struct.pack('d', self.sim[0])
+            self._sim_file.write(raw)
+
+    def load_obsdata(self, idx: int) -> None:
+        """Load the next obs sequence value (of the given index)."""
+        if self._obs_ramflag:
+            self.obs[0] = self._obs_array[idx]
+        elif self._obs_diskflag:
+            raw = self._obs_file.read(8)
+            self.obs[0] = struct.unpack('d', raw)[0]

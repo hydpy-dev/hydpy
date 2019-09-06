@@ -9,7 +9,7 @@ try to meet a remote water demand.  The only difference is that model
 (usually to increase low discharge values), whereas model |dam_v003|
 is supposed to supply water to different locations (e.g. to a drinking
 water treatment plant).  Hence |dam_v002| releases its output only via
-one path and |dam_v003| splits its output into two seperate paths.
+one path and |dam_v003| splits its output into two separate paths.
 
 Integration examples:
 
@@ -28,10 +28,8 @@ Integration examples:
     drinking water supply treatment plant).  The node `demand` defines
     the amount of water required by the plant:
 
-    >>> from hydpy import pub, Timegrid, Timegrids, Node, Element
-    >>> pub.timegrids = Timegrids(Timegrid('01.01.2000',
-    ...                                    '21.01.2000',
-    ...                                    '1d'))
+    >>> from hydpy import pub, Node, Element
+    >>> pub.timegrids = '01.01.2000', '21.01.2000', '1d'
     >>> inflow = Node('inflow', variable='Q')
     >>> release = Node('release', variable='Q')
     >>> supply = Node('supply', variable='S')
@@ -42,14 +40,13 @@ Integration examples:
     ...               receivers=demand)
     >>> from hydpy.models.dam_v003 import *
     >>> parameterstep('1d')
-    >>> dam.connect(model)
+    >>> dam.model = model
 
-    Method :func:`~hydpy.core.modeltools.Model.connect` recognizes the
-    different purposes of both output nodes through the given `variable`
-    keyword.  Each |dam_v003| model must be connecte  to exactly two nodes.
-    The `Q`-node (discharge) handles the release into the stream bed
-    downstream and the `S`-node (supply) passes the water flow to another
-    (arbitrary) model.
+    Method |Model.connect| recognizes the different purposes of both
+    output nodes through the given `variable` keyword.  Each |dam_v003|
+    model must be connecte  to exactly two nodes.  The `Q`-node
+    (discharge) handles the release into the stream bed downstream and
+    the `S`-node (supply) passes the water flow to another (arbitrary) model.
 
     As explained for model |dam_v002|, the following initial conditions,
     external time series data, and parameter values are set in favour of
@@ -73,9 +70,9 @@ Integration examples:
     >>> watervolume2waterlevel(
     ...         weights_input=1e-6, weights_output=1e6,
     ...         intercepts_hidden=0.0, intercepts_output=-1e6/2)
-    >>> waterlevel2flooddischarge(
+    >>> waterlevel2flooddischarge(ann(
     ...        weights_input=0.0, weights_output=0.0,
-    ...        intercepts_hidden=0.0, intercepts_output=0.0)
+    ...        intercepts_hidden=0.0, intercepts_output=0.0))
     >>> catchmentarea(86.4)
     >>> neardischargeminimumthreshold(0.2)
     >>> neardischargeminimumtolerance(0.2)
@@ -83,12 +80,13 @@ Integration examples:
     >>> waterlevelminimumtolerance(0.0)
     >>> waterlevelminimumremotethreshold(0.0)
     >>> waterlevelminimumremotetolerance(0.0)
+    >>> restricttargetedrelease(True)
     >>> parameters.update()
 
     Despite trying to make this example comparable with
     :ref:`example 7 <dam_v001_ex07>` of model |dam_v001| (and the
     corresponding recalculation of model |dam_v002|), there are relevant
-    differences in the results.  These are due to the seperate output
+    differences in the results.  These are due to the separate output
     paths of model |dam_v003|.  Models |dam_v001| and |dam_v002| use the
     same water to both meet the near and the remote demand.  This is not
     possible for model |dam_v003|,  which is why it has to release a larger
@@ -129,7 +127,7 @@ Integration examples:
 
     .. _dam_v003_ex08:
 
-    :ref:`Recalculation of example 8 <dam_v001_ex08>`
+    :ref:`Recalculation of example 8.1 <dam_v001_ex08_1>`
 
     The next recalculation shows that the restriction on releasing
     water during low inflow conditions concerns the release into
@@ -142,7 +140,7 @@ Integration examples:
     ...     0.034564, 0.299482, 0.585979, 0.557422, 0.229369,
     ...     0.142578, 0.068641, 0.029844, 0.012348, 0.0]
     >>> neardischargeminimumtolerance(0.0)
-    >>> test('dam_v003_ex8')
+    >>> test('dam_v003_ex8_1')
     |   date | inflow | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume |   demand | inflow |  release |   supply |
     ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     | 01.01. |    1.0 |                 0.005 |             0.2 |             0.2 |      0.191667 |            0.004792 |            0.0 | 0.191667 |    0.069426 | 0.008746 |    1.0 | 0.191667 | 0.004792 |
@@ -169,7 +167,7 @@ Integration examples:
     .. raw:: html
 
         <iframe
-            src="dam_v003_ex8.html"
+            src="dam_v003_ex8_1.html"
             width="100%"
             height="280px"
             frameborder=0
@@ -248,9 +246,9 @@ Integration examples:
     >>> waterlevelminimumtolerance(0.0)
     >>> waterlevelminimumremotethreshold(0.0)
     >>> waterlevelminimumremotetolerance(0.0)
-    >>> waterlevel2flooddischarge(
+    >>> waterlevel2flooddischarge(ann(
     ...         weights_input=1e-6, weights_output=1e7,
-    ...         intercepts_hidden=0.0, intercepts_output=-1e7/2)
+    ...         intercepts_hidden=0.0, intercepts_output=-1e7/2))
     >>> neardischargeminimumthreshold(0.0)
     >>> inflow.sequences.sim.series = [ 0., 1., 5., 9., 8., 5., 3., 2., 1., 0.,
     ...                                 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]
@@ -292,12 +290,12 @@ Integration examples:
 
 # import...
 # ...from standard library
-from __future__ import division, print_function
 from hydpy.core import modeltools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
 # ...from HydPy
-from hydpy.core.modelimports import *
+from hydpy.auxs.anntools import ann   # pylint: disable=unused-import
+from hydpy.exe.modelimports import *
 # ...from dam
 from hydpy.models.dam import dam_model
 from hydpy.models.dam import dam_control
@@ -312,99 +310,98 @@ from hydpy.models.dam import dam_outlets
 from hydpy.models.dam import dam_receivers
 
 
-class Model(modeltools.ModelELS):
+class Model(modeltools.ELSModel):
     """Version 3 of HydPy-Dam."""
 
-    _INLET_METHODS = (dam_model.pic_inflow_v1,
-                      dam_model.calc_requiredremoterelease_v2,
-                      dam_model.calc_requiredrelease_v2,
-                      dam_model.calc_targetedrelease_v1)
-    _RECEIVER_METHODS = (dam_model.pic_loggedrequiredremoterelease_v2,)
-    _PART_ODE_METHODS = (dam_model.pic_inflow_v1,
-                         dam_model.calc_waterlevel_v1,
-                         dam_model.calc_actualrelease_v1,
-                         dam_model.calc_actualremoterelease_v1,
-                         dam_model.calc_flooddischarge_v1,
-                         dam_model.calc_outflow_v1)
-    _FULL_ODE_METHODS = (dam_model.update_watervolume_v2,)
-    _OUTLET_METHODS = (dam_model.pass_outflow_v1,
-                       dam_model.pass_actualremoterelease_v1)
+    INLET_METHODS = (dam_model.pic_inflow_v1,
+                     dam_model.calc_requiredremoterelease_v2,
+                     dam_model.calc_requiredrelease_v2,
+                     dam_model.calc_targetedrelease_v1)
+    RECEIVER_METHODS = (dam_model.pic_loggedrequiredremoterelease_v2,)
+    PART_ODE_METHODS = (dam_model.pic_inflow_v1,
+                        dam_model.calc_waterlevel_v1,
+                        dam_model.calc_actualrelease_v1,
+                        dam_model.calc_actualremoterelease_v1,
+                        dam_model.calc_flooddischarge_v1,
+                        dam_model.calc_outflow_v1)
+    FULL_ODE_METHODS = (dam_model.update_watervolume_v2,)
+    OUTLET_METHODS = (dam_model.pass_outflow_v1,
+                      dam_model.pass_actualremoterelease_v1)
+    SENDER_METHODS = ()
 
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of HydPy-Dam, Version 3."""
-    _PARCLASSES = (dam_control.CatchmentArea,
-                   dam_control.NearDischargeMinimumThreshold,
-                   dam_control.NearDischargeMinimumTolerance,
-                   dam_control.WaterLevelMinimumThreshold,
-                   dam_control.WaterLevelMinimumTolerance,
-                   dam_control.WaterLevelMinimumRemoteThreshold,
-                   dam_control.WaterLevelMinimumRemoteTolerance,
-                   dam_control.WaterVolume2WaterLevel,
-                   dam_control.WaterLevel2FloodDischarge)
+    CLASSES = (dam_control.CatchmentArea,
+               dam_control.NearDischargeMinimumThreshold,
+               dam_control.NearDischargeMinimumTolerance,
+               dam_control.RestrictTargetedRelease,
+               dam_control.WaterLevelMinimumThreshold,
+               dam_control.WaterLevelMinimumTolerance,
+               dam_control.WaterLevelMinimumRemoteThreshold,
+               dam_control.WaterLevelMinimumRemoteTolerance,
+               dam_control.WaterVolume2WaterLevel,
+               dam_control.WaterLevel2FloodDischarge)
 
 
 class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of HydPy-Dam, Version 3."""
-    _PARCLASSES = (dam_derived.TOY,
-                   dam_derived.Seconds,
-                   dam_derived.NearDischargeMinimumSmoothPar1,
-                   dam_derived.WaterLevelMinimumSmoothPar,
-                   dam_derived.WaterLevelMinimumRemoteSmoothPar)
+    CLASSES = (dam_derived.TOY,
+               dam_derived.Seconds,
+               dam_derived.NearDischargeMinimumSmoothPar1,
+               dam_derived.WaterLevelMinimumSmoothPar,
+               dam_derived.WaterLevelMinimumRemoteSmoothPar)
 
 
 class SolverParameters(parametertools.SubParameters):
     """Solver parameters of HydPy-Dam, Version 3."""
-    _PARCLASSES = (dam_solver.AbsErrorMax,
-                   dam_solver.RelDTMin)
+    CLASSES = (dam_solver.AbsErrorMax,
+               dam_solver.RelDTMin)
 
 
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of HydPy-Dam, Version 3."""
-    _SEQCLASSES = (dam_fluxes.Inflow,
-                   dam_fluxes.RequiredRemoteRelease,
-                   dam_fluxes.RequiredRelease,
-                   dam_fluxes.TargetedRelease,
-                   dam_fluxes.ActualRelease,
-                   dam_fluxes.ActualRemoteRelease,
-                   dam_fluxes.FloodDischarge,
-                   dam_fluxes.Outflow)
+    CLASSES = (dam_fluxes.Inflow,
+               dam_fluxes.RequiredRemoteRelease,
+               dam_fluxes.RequiredRelease,
+               dam_fluxes.TargetedRelease,
+               dam_fluxes.ActualRelease,
+               dam_fluxes.ActualRemoteRelease,
+               dam_fluxes.FloodDischarge,
+               dam_fluxes.Outflow)
 
 
 class StateSequences(sequencetools.StateSequences):
     """State sequences of HydPy-Dam, Version 3."""
-    _SEQCLASSES = (dam_states.WaterVolume,)
+    CLASSES = (dam_states.WaterVolume,)
 
 
 class LogSequences(sequencetools.LogSequences):
     """Log sequences of HydPy-Dam, Version 3."""
-    _SEQCLASSES = (dam_logs.LoggedRequiredRemoteRelease,)
+    CLASSES = (dam_logs.LoggedRequiredRemoteRelease,)
 
 
 class AideSequences(sequencetools.AideSequences):
     """State sequences of HydPy-Dam, Version 3."""
-    _SEQCLASSES = (dam_aides.WaterLevel,)
+    CLASSES = (dam_aides.WaterLevel,)
 
 
 class InletSequences(sequencetools.LinkSequences):
     """Upstream link sequences of HydPy-Dam, Version 3."""
-    _SEQCLASSES = (dam_inlets.Q,)
+    CLASSES = (dam_inlets.Q,)
 
 
 class OutletSequences(sequencetools.LinkSequences):
     """Downstream link sequences of HydPy-Dam, Version 3."""
-    _SEQCLASSES = (dam_outlets.Q,
-                   dam_outlets.S)
+    CLASSES = (dam_outlets.Q,
+               dam_outlets.S)
 
 
 class ReceiverSequences(sequencetools.LinkSequences):
     """Information link sequences of HydPy-Dam, Version 3."""
-    _SEQCLASSES = (dam_receivers.S,)
+    CLASSES = (dam_receivers.S,)
 
 
-autodoc_applicationmodel()
-
-# pylint: disable=invalid-name
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.complete()
+cythonizer.finalise()

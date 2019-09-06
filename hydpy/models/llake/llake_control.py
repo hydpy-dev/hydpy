@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
+# pylint: enable=missing-docstring
 
 # import...
-# ...from standard library
-from __future__ import division, print_function
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core import parametertools
 from hydpy.core import timetools
 from hydpy.core import objecttools
 
 
-class N(parametertools.SingleParameter):
+class N(parametertools.Parameter):
     """Anzahl Interpolationsstützstellen (number of nodes for the
     interpolation between water state, volume and discharge) [-].
 
@@ -48,7 +48,7 @@ class N(parametertools.SingleParameter):
         within parameter control files.  Sets the shape of the associated
         1- and 2-dimensional parameter objects additionally.
         """
-        parametertools.SingleParameter.__call__(self, *args, **kwargs)
+        super().__call__(*args, **kwargs)
         for subpars in self.subpars.pars.model.parameters:
             for par in subpars:
                 if par.name == 'toy':
@@ -63,12 +63,12 @@ class N(parametertools.SingleParameter):
                     par.shape = (None, self.value)
 
 
-class W(parametertools.MultiParameter):
+class W(parametertools.Parameter):
     """Wasserstand (water stage) [m]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
 
-class V(parametertools.MultiParameter):
+class V(parametertools.Parameter):
     """Wasservolumen bei vorgegebenem Wasserstand (water volume for a
     given water stage) [m³]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
@@ -80,7 +80,7 @@ class Q(parametertools.SeasonalParameter):
     NDIM, TYPE, TIME, SPAN = 2, float, None, (0., None)
 
 
-class MaxDT(parametertools.SingleParameter):
+class MaxDT(parametertools.Parameter):
     """Maximale interne Rechenschrittweite (maximum of the internal step size)
     [T].
 
@@ -92,11 +92,12 @@ class MaxDT(parametertools.SingleParameter):
         >>> from hydpy.models.llake import *
         >>> parameterstep('1d')
         >>> simulationstep('12h')
+        >>> maxdt
+        maxdt(?)
         >>> maxdt('1h')
 
         Internally, the value of maxdt is stored in seconds, but in string
-        representations it is shown as a :class:`~hydpy.core.timetools.Period`
-        string:
+        representations it is shown as a |Period| string:
 
         >>> maxdt.value
         3600.0
@@ -128,11 +129,12 @@ class MaxDT(parametertools.SingleParameter):
         >>> maxdt(60.)
         Traceback (most recent call last):
         ...
-        ValueError: While trying the set the value of parameter `maxdt` of \
-the lake model handled by element `?`, the following error occured: \
-The supplied argument must be either an instance of `datetime.timedelta` \
-or `str`.  The given arguments type is float. (An example: set `max dt` to \
-3600 seconds by writing `maxdt("1h"))
+        TypeError: While trying the set the value of parameter `maxdt` of \
+the lake model handled by element `?`, the following error occurred: \
+While trying to initialise a `Period` object based argument `60.0`, the \
+following error occurred: The supplied argument must be either an instance \
+of `Period`, `datetime.timedelta`, or `str`, but the given type is `float`. \
+(An example: set `max dt` to 3600 seconds by writing `maxdt("1h"))
     """
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
@@ -146,12 +148,12 @@ or `str`.  The given arguments type is float. (An example: set `max dt` to \
                 % objecttools.devicename(self),
                 '(An example: set `max dt` to 3600 seconds by writing '
                 '`maxdt("1h"))')
-        parametertools.SingleParameter.__call__(self, *args, **kwargs)
+        super().__call__(*args, **kwargs)
 
     def __repr__(self):
         try:
             return "%s('%s')" % (self.name,
-                                 str(timetools.Period.fromseconds(self.value)))
+                                 str(timetools.Period.from_seconds(self.value)))
         except BaseException:
             return '%s(?)' % self.name
 
@@ -169,4 +171,10 @@ class Verzw(parametertools.SeasonalParameter):
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of HydPy-L-Lake, directly defined by the user."""
-    _PARCLASSES = (N, W, V, Q, MaxDT, MaxDW, Verzw)
+    CLASSES = (N,
+               W,
+               V,
+               Q,
+               MaxDT,
+               MaxDW,
+               Verzw)

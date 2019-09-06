@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
 """
 The LARSIM-Lake version of HydPy-L-Lake (called llake_v1) is a simple lake
 model. Its continuity equation is primarily solved via a central finite
@@ -20,17 +21,14 @@ calculated beforehand.  Both associated scalar parameters are allowed
 to vary in time, as explained for the outflow vector.
 
 Note that the accuracy of the results calculated by lake_v1 depend
-on the internal step size parameter
-:class:`~hydpy.models.llake.llake_control.MaxDT`.
+on the internal step size parameter |MaxDT|.
 
 Integration examples:
 
-    The following are performed over a period of 20 days:
+    The following calculations are performed over a period of 20 days:
 
-    >>> from hydpy import pub, Timegrid, Timegrids, Nodes, Element
-    >>> pub.timegrids = Timegrids(Timegrid('01.01.2000',
-    ...                                    '21.01.2000',
-    ...                                    '1d'))
+    >>> from hydpy import pub, Nodes, Element
+    >>> pub.timegrids = '01.01.2000', '21.01.2000', '1d'
 
     Import the model and define the time settings:
 
@@ -47,7 +45,7 @@ Integration examples:
     the nodes defined above and the `llake_v1` model instance:
 
     >>> lake = Element('lake', inlets=['input1', 'input2'], outlets='output')
-    >>> lake.connect(model)
+    >>> lake.model = model
 
     Prepare a test function object, which prints the respective values of
     the model sequences `qz`, `qa`, `v`, and `w`.  The node sequence `sim`
@@ -180,7 +178,7 @@ Integration examples:
 
     In the following, the given examples above repeated.  The only
     parameter that will be altered is the internal simulation step size,
-    beeing one hour instead of one day:
+    being one hour instead of one day:
 
     >>> maxdt('1h')
     >>> model.parameters.update()
@@ -274,12 +272,11 @@ Integration examples:
 """
 # import...
 # ...from standard library
-from __future__ import division, print_function
 from hydpy.core import modeltools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
 # ...from HydPy
-from hydpy.core.modelimports import *
+from hydpy.exe.modelimports import *
 # ...from llake
 from hydpy.models.llake import llake_model
 from hydpy.models.llake import llake_control
@@ -291,69 +288,71 @@ from hydpy.models.llake import llake_inlets
 from hydpy.models.llake import llake_outlets
 
 
-class Model(modeltools.Model):
+class Model(modeltools.AdHocModel):
     """LARSIM-Lake version of HydPy-L-Lake (llake_v1)."""
-    _INLET_METHODS = (llake_model.pick_q_v1,)
-    _RUN_METHODS = (llake_model.solve_dv_dt_v1,
-                    llake_model.interp_w_v1,
-                    llake_model.corr_dw_v1,
-                    llake_model.modify_qa_v1,)
-    _ADD_METHODS = (llake_model.interp_v_v1,
-                    llake_model.calc_vq_v1,
-                    llake_model.interp_qa_v1,
-                    llake_model.calc_v_qa_v1)
-    _OUTLET_METHODS = (llake_model.pass_q_v1,)
+    INLET_METHODS = (llake_model.pick_q_v1,)
+    RECEIVER_METHODS = ()
+    RUN_METHODS = (llake_model.solve_dv_dt_v1,
+                   llake_model.interp_w_v1,
+                   llake_model.corr_dw_v1,
+                   llake_model.modify_qa_v1,)
+    ADD_METHODS = (llake_model.interp_v_v1,
+                   llake_model.calc_vq_v1,
+                   llake_model.interp_qa_v1,
+                   llake_model.calc_v_qa_v1)
+    OUTLET_METHODS = (llake_model.pass_q_v1,)
+    SENDER_METHODS = ()
 
 
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of llake_v1, directly defined by the user."""
-    _PARCLASSES = (llake_control.N,
-                   llake_control.W,
-                   llake_control.V,
-                   llake_control.Q,
-                   llake_control.MaxDT,
-                   llake_control.MaxDW,
-                   llake_control.Verzw)
+    CLASSES = (llake_control.N,
+               llake_control.W,
+               llake_control.V,
+               llake_control.Q,
+               llake_control.MaxDT,
+               llake_control.MaxDW,
+               llake_control.Verzw)
 
 
 class DerivedParameters(parametertools.SubParameters):
     """Derived parameters of llake_v1, indirectly defined by the user.
     """
-    _PARCLASSES = (llake_derived.TOY,
-                   llake_derived.Seconds,
-                   llake_derived.NmbSubsteps,
-                   llake_derived.VQ)
+    CLASSES = (llake_derived.TOY,
+               llake_derived.Seconds,
+               llake_derived.NmbSubsteps,
+               llake_derived.VQ)
 
 
 class StateSequences(sequencetools.StateSequences):
     """State sequences of llake_v1."""
-    _SEQCLASSES = (llake_states.V,
-                   llake_states.W)
+    CLASSES = (llake_states.V,
+               llake_states.W)
 
 
 class FluxSequences(sequencetools.FluxSequences):
     """Flux sequences of llake_v1."""
-    _SEQCLASSES = (llake_fluxes.QZ,
-                   llake_fluxes.QA)
+    CLASSES = (llake_fluxes.QZ,
+               llake_fluxes.QA)
 
 
 class AideSequences(sequencetools.AideSequences):
     """Aide sequences of llake_v1."""
-    _SEQCLASSES = (llake_aides.QA,
-                   llake_aides.VQ,
-                   llake_aides.V,)
+    CLASSES = (llake_aides.QA,
+               llake_aides.VQ,
+               llake_aides.V,)
 
 
 class InletSequences(sequencetools.LinkSequences):
     """Upstream link sequences of llake_v1."""
-    _SEQCLASSES = (llake_inlets.Q,)
+    CLASSES = (llake_inlets.Q,)
 
 
 class OutletSequences(sequencetools.LinkSequences):
     """Downstream link sequences of llake_v1."""
-    _SEQCLASSES = (llake_outlets.Q,)
+    CLASSES = (llake_outlets.Q,)
 
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.complete()
+cythonizer.finalise()

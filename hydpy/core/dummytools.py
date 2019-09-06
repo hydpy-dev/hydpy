@@ -3,24 +3,21 @@
 
 # import...
 # ...from standard library
-from __future__ import division, print_function
 import copy
-# ...from HydPy
-from hydpy.core import autodoctools
 
 
-class Dummies(object):
+class Dummies:
     """Handles "global" doctest data.
 
     A typical use pattern is to generated the instance of a class in the
     main docstring of the class and to test the different class methods
-    based on this instance in seperate docstrings afterwards.
+    based on this instance in separate docstrings afterwards.
 
-    Class :class:`Dummies` tries to ensure that the original objects are
+    Class |Dummies| tries to ensure that the original objects are
     not altered due to performing different tests.  This protection
     mechanism is successfull for the simple following test class:
 
-    >>> class Test(object):
+    >>> class Test:
     ...
     ...     def __init__(self):
     ...         self.name = 'some_name'
@@ -40,8 +37,8 @@ class Dummies(object):
     >>> dummies.test.values
     [1, 2, 3]
 
-    The show pretection mechanism is implemented via making "deep copies" of
-    objects handled by :class:`Dummies` objects.  So lets see what happens
+    The show pretection mechanism is implemented via making "deep copies"
+    of objects handled by |Dummies| objects.  So lets see what happens
     when we subclass the test class and disable deep copying:
 
     >>> class Test(Test):
@@ -86,15 +83,28 @@ class Dummies(object):
     """
 
     def clear(self):
+        """Remove all currently handled attributes.
+
+        >>> from hydpy import dummies
+        >>> dummies.x = 1
+        >>> dummies.y = None
+        >>> dummies.x
+        1
+        >>> hasattr(dummies, 'y')
+        True
+        >>> dummies.clear()
+        >>> hasattr(dummies, 'x') or hasattr(dummies, 'y')
+        False
+        """
         for name in list(vars(self)):
             delattr(self, name)
 
     def __setattr__(self, name, value):
-        super(Dummies, self).__setattr__('_'+name, value)
+        object.__setattr__(self, '_'+name, value)
 
     def __getattr__(self, name):
         try:
-            obj = super(Dummies, self).__getattribute__('_'+name)
+            obj = object.__getattribute__(self, '_'+name)
         except AttributeError:
             raise AttributeError('Dummies object does not handle an object '
                                  'named `%s` at the moment.' % name)
@@ -107,6 +117,3 @@ class Dummies(object):
         except BaseException:
             pass
         return obj
-
-
-autodoctools.autodoc_module()

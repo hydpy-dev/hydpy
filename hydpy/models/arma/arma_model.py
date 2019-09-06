@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
+# pylint: enable=missing-docstring
 
 # imports...
-# ...standard library
-from __future__ import division, print_function
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core import modeltools
 
 
@@ -12,15 +12,15 @@ def calc_qpin_v1(self):
     functions.
 
     Required derived parameters:
-      :class:`~hydpy.models.arma.arma_derived.Nmb`
-      :class:`~hydpy.models.arma.arma_derived.MaxQ`
-      :class:`~hydpy.models.arma.arma_derived.DiffQ`
+      |Nmb|
+      |MaxQ|
+      |DiffQ|
 
     Required flux sequence:
-      :class:`~hydpy.models.arma.arma_fluxes.QIn`
+      |QIn|
 
     Calculated flux sequences:
-      :class:`~hydpy.models.arma.arma_fluxes.QPIn`
+      |QPIn|
 
     Examples:
 
@@ -43,23 +43,26 @@ def calc_qpin_v1(self):
         0 to 12 m³/s:
 
         >>> from hydpy import UnitTest
-        >>> test = UnitTest(model, model.calc_qpin_v1, last_example=6)
+        >>> test = UnitTest(
+        ...     model, model.calc_qpin_v1,
+        ...     last_example=6,
+        ...     parseqs=(fluxes.qin, fluxes.qpin))
         >>> test.nexts.qin = 0., 1., 2., 4., 6., 12.
         >>> test()
-        | ex. | nmb |           maxq |      diffq |  qin |           qpin |
-        -------------------------------------------------------------------
-        |   1 |   3 | 0.0  2.0   6.0 | 2.0    4.0 |  0.0 | 0.0  0.0   0.0 |
-        |   2 |   3 | 0.0  2.0   6.0 | 2.0    4.0 |  1.0 | 1.0  0.0   0.0 |
-        |   3 |   3 | 0.0  2.0   6.0 | 2.0    4.0 |  2.0 | 2.0  0.0   0.0 |
-        |   4 |   3 | 0.0  2.0   6.0 | 2.0    4.0 |  4.0 | 2.0  2.0   0.0 |
-        |   5 |   3 | 0.0  2.0   6.0 | 2.0    4.0 |  6.0 | 2.0  4.0   0.0 |
-        |   6 |   3 | 0.0  2.0   6.0 | 2.0    4.0 | 12.0 | 2.0  4.0   6.0 |
+        | ex. |  qin |           qpin |
+        -------------------------------
+        |   1 |  0.0 | 0.0  0.0   0.0 |
+        |   2 |  1.0 | 1.0  0.0   0.0 |
+        |   3 |  2.0 | 2.0  0.0   0.0 |
+        |   4 |  4.0 | 2.0  2.0   0.0 |
+        |   5 |  6.0 | 2.0  4.0   0.0 |
+        |   6 | 12.0 | 2.0  4.0   6.0 |
 
 
-        The following two additional examples are just supposed to demonstrate
-        method :func:`calc_qpin_v1` also functions properly if there is only
-        one response function, wherefore total discharge does not need to be
-        divided:
+        The following two additional examples are just supposed to
+        demonstrate method |calc_qpin_v1| also functions properly if
+        there is only one response function, wherefore total discharge
+        does not need to be divided:
 
         >>> derived.nmb = 1
         >>> derived.maxq.shape = 1
@@ -67,14 +70,17 @@ def calc_qpin_v1(self):
         >>> fluxes.qpin.shape = 1
         >>> derived.maxq(0.)
 
-        >>> test = UnitTest(model, model.calc_qpin_v1,
-        ...                 first_example=7, last_example=8)
+        >>> test = UnitTest(
+        ...     model, model.calc_qpin_v1,
+        ...     first_example=7, last_example=8,
+        ...                 parseqs=(fluxes.qin,
+        ...                          fluxes.qpin))
         >>> test.nexts.qin = 0., 12.
         >>> test()
-        | ex. | nmb | maxq | diffq |  qin | qpin |
-        ------------------------------------------
-        |   7 |   1 |  0.0 | empty |  0.0 |  0.0 |
-        |   8 |   1 |  0.0 | empty | 12.0 | 12.0 |
+        | ex. |  qin | qpin |
+        ---------------------
+        |   7 |  0.0 |  0.0 |
+        |   8 | 12.0 | 12.0 |
 
     """
     der = self.parameters.derived.fastaccess
@@ -93,14 +99,14 @@ def calc_login_v1(self):
     """Refresh the input log sequence for the different MA processes.
 
     Required derived parameters:
-      :class:`~hydpy.models.arma.arma_derived.Nmb`
-      :class:`~hydpy.models.arma.arma_derived.MA_Order`
+      |Nmb|
+      |MA_Order|
 
     Required flux sequence:
-      :class:`~hydpy.models.arma.arma_fluxes.QPIn`
+      |QPIn|
 
     Updated log sequence:
-      :class:`~hydpy.models.arma.arma_log.LogIn`
+      |LogIn|
 
     Example:
 
@@ -127,17 +133,17 @@ def calc_login_v1(self):
 
         >>> fluxes.qpin = 7.0, 8.0, 9.0
 
-        Through applying method :func:`calc_login_v1` all values already
-        existing are shifted to the right ("into the past").  Values, which
-        are no longer required due to the limited order or the different
-        MA processes, are discarded.  The new values are inserted in the
-        first column:
+        Through applying method |calc_login_v1| all values already
+        existing are shifted to the right ("into the past").  Values,
+        which are no longer required due to the limited order or the
+        different MA processes, are discarded.  The new values are
+        inserted in the first column:
 
         >>> model.calc_login_v1()
         >>> logs.login
-        login(7.0, nan, nan,
-              8.0, 2.0, nan,
-              9.0, 4.0, 5.0)
+        login([[7.0, nan, nan],
+               [8.0, 2.0, nan],
+               [9.0, 4.0, 5.0]])
     """
     der = self.parameters.derived.fastaccess
     flu = self.sequences.fluxes.fastaccess
@@ -153,15 +159,15 @@ def calc_qma_v1(self):
     """Calculate the discharge responses of the different MA processes.
 
     Required derived parameters:
-      :class:`~hydpy.models.arma.arma_derived.Nmb`
-      :class:`~hydpy.models.arma.arma_derived.MA_Order`
-      :class:`~hydpy.models.arma.arma_derived.MA_Coeffs`
+      |Nmb|
+      |MA_Order|
+      |MA_Coefs|
 
     Required log sequence:
-      :class:`~hydpy.models.arma.arma_log.LogIn`
+      |LogIn|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.arma.arma_fluxes.QMA`
+      |QMA|
 
     Examples:
 
@@ -178,7 +184,7 @@ def calc_qma_v1(self):
         >>> fluxes.qma.shape = 3
 
         The coefficients of the different MA processes are stored in
-        seperate rows of the 2-dimensional parameter `ma_coefs`:
+        separate rows of the 2-dimensional parameter `ma_coefs`:
 
         >>> derived.ma_coefs = ((1.0, nan, nan),
         ...                     (0.8, 0.2, nan),
@@ -193,8 +199,8 @@ def calc_qma_v1(self):
         ...               (2.0, 3.0, nan),
         ...               (4.0, 5.0, 6.0))
 
-        Applying method :func:`calc_qma_v1` is equivalent to calculating
-        the inner product of the different rows of both matrices:
+        Applying method |calc_qma_v1| is equivalent to calculating the
+        inner product of the different rows of both matrices:
 
         >>> model.calc_qma_v1()
         >>> fluxes.qma
@@ -214,15 +220,15 @@ def calc_qar_v1(self):
     """Calculate the discharge responses of the different AR processes.
 
     Required derived parameters:
-      :class:`~hydpy.models.arma.arma_derived.Nmb`
-      :class:`~hydpy.models.arma.arma_derived.AR_Order`
-      :class:`~hydpy.models.arma.arma_derived.AR_Coeffs`
+      |Nmb|
+      |AR_Order|
+      |AR_Coefs|
 
     Required log sequence:
-      :class:`~hydpy.models.arma.arma_log.LogOut`
+      |LogOut|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.arma.arma_fluxes.QAR`
+      |QAR|
 
     Examples:
 
@@ -239,7 +245,7 @@ def calc_qar_v1(self):
         >>> fluxes.qar.shape = 4
 
         The coefficients of the different AR processes are stored in
-        seperate rows of the 2-dimensional parameter `ma_coefs`.
+        separate rows of the 2-dimensional parameter `ma_coefs`.
         Note the special case of the first AR process of zero order
         (first row), which involves no autoregressive memory at all:
 
@@ -258,8 +264,8 @@ def calc_qar_v1(self):
         ...                (2.0, 3.0, nan),
         ...                (4.0, 5.0, 6.0))
 
-        Applying method :func:`calc_qar_v1` is equivalent to calculating
-        the inner product of the different rows of both matrices:
+        Applying method |calc_qar_v1| is equivalent to calculating the
+        inner product of the different rows of both matrices:
 
         >>> model.calc_qar_v1()
         >>> fluxes.qar
@@ -279,14 +285,14 @@ def calc_qpout_v1(self):
     """Calculate the ARMA results for the different response functions.
 
     Required derived parameter:
-      :class:`~hydpy.models.arma.arma_derived.Nmb`
+      |Nmb|
 
     Required flux sequences:
-      :class:`~hydpy.models.arma.arma_fluxes.QMA`
-      :class:`~hydpy.models.arma.arma_fluxes.QAR`
+      |QMA|
+      |QAR|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.arma.arma_fluxes.QPOut`
+      |QPOut|
 
     Examples:
 
@@ -301,7 +307,7 @@ def calc_qpout_v1(self):
 
         Define the output values of the MA and of the AR processes
         associated with the three response functions and apply
-        method :func:`calc_qpout_v1`:
+        method |calc_qpout_v1|:
 
         >>> fluxes.qar = 4.0, 5.0, 6.0
         >>> fluxes.qma = 1.0, 2.0, 3.0
@@ -319,14 +325,14 @@ def calc_logout_v1(self):
     """Refresh the log sequence for the different AR processes.
 
     Required derived parameters:
-      :class:`~hydpy.models.arma.arma_derived.Nmb`
-      :class:`~hydpy.models.arma.arma_derived.AR_Order`
+      |Nmb|
+      |AR_Order|
 
     Required flux sequence:
-      :class:`~hydpy.models.arma.arma_fluxes.QPOut`
+      |QPOut|
 
     Updated log sequence:
-      :class:`~hydpy.models.arma.arma_log.LogOut`
+      |LogOut|
 
     Example:
 
@@ -356,7 +362,7 @@ def calc_logout_v1(self):
 
         >>> fluxes.qpout = 6.0, 7.0, 8.0, 9.0
 
-        Through applying method :func:`calc_logout_v1` all values already
+        Through applying method |calc_logout_v1| all values already
         existing are shifted to the right ("into the past").  Values, which
         are no longer required due to the limited order or the different
         AR processes, are discarded.  The new values are inserted in the
@@ -364,10 +370,10 @@ def calc_logout_v1(self):
 
         >>> model.calc_logout_v1()
         >>> logs.logout
-        logout(nan, nan, nan,
-               7.0, nan, nan,
-               8.0, 1.0, nan,
-               9.0, 3.0, 4.0)
+        logout([[nan, nan, nan],
+                [7.0, nan, nan],
+                [8.0, 1.0, nan],
+                [9.0, 3.0, 4.0]])
 
     """
     der = self.parameters.derived.fastaccess
@@ -385,13 +391,13 @@ def calc_qout_v1(self):
     """Sum up the results of the different response functions.
 
     Required derived parameter:
-      :class:`~hydpy.models.arma.arma_derived.Nmb`
+      |Nmb|
 
     Required flux sequences:
-      :class:`~hydpy.models.arma.arma_fluxes.QPOut`
+      |QPOut|
 
     Calculated flux sequence:
-      :class:`~hydpy.models.arma.arma_fluxes.QOut`
+      |QOut|
 
     Examples:
 
@@ -403,7 +409,7 @@ def calc_qout_v1(self):
         >>> fluxes.qpout.shape = 3
 
         Define the output values of the three response functions and
-        apply method :func:`calc_qout_v1`:
+        apply method |calc_qout_v1|:
 
         >>> fluxes.qpout = 1.0, 2.0, 3.0
         >>> model.calc_qout_v1()
@@ -433,15 +439,18 @@ def pass_q_v1(self):
     out.q[0] += flu.qout
 
 
-class Model(modeltools.Model):
+class Model(modeltools.AdHocModel):
     """Base model ARMA."""
 
-    _INLET_METHODS = (pick_q_v1,)
-    _RUN_METHODS = (calc_qpin_v1,
-                    calc_login_v1,
-                    calc_qma_v1,
-                    calc_qar_v1,
-                    calc_qpout_v1,
-                    calc_logout_v1,
-                    calc_qout_v1)
-    _OUTLET_METHODS = (pass_q_v1,)
+    INLET_METHODS = (pick_q_v1,)
+    RECEIVER_METHODS = ()
+    RUN_METHODS = (calc_qpin_v1,
+                   calc_login_v1,
+                   calc_qma_v1,
+                   calc_qar_v1,
+                   calc_qpout_v1,
+                   calc_logout_v1,
+                   calc_qout_v1)
+    ADD_METHODS = ()
+    OUTLET_METHODS = (pass_q_v1,)
+    SENDER_METHODS = ()

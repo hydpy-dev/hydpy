@@ -1,37 +1,42 @@
 # -*- coding: utf-8 -*-
-"""This module provides additional features for module
-:mod:`~hydpy.auxs.iuhtools`, related to Autoregressive-Moving Average (ARMA)
-models."""
+"""This module provides additional features for module |iuhtools|,
+related to Autoregressive-Moving Average (ARMA) models."""
 # import...
 # ...from standard library
-from __future__ import division, print_function
 import itertools
 import warnings
 # ...from site-packages
 import numpy
-from scipy import integrate
-from matplotlib import pyplot
 # ...from HydPy
-from hydpy import pub
-from hydpy.core import autodoctools
+import hydpy
+from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.auxs import statstools
+pyplot = exceptiontools.OptionalImport(
+    'pyplot', ['matplotlib.pyplot'], locals())
+integrate = exceptiontools.OptionalImport(
+    'integrate',
+    ['scipy.integrate'],
+    locals(),
+    ['import warnings',
+     'from scipy import integrate',
+     'warnings.filterwarnings("error", category=integrate.IntegrationWarning)'])
 
 
-class MA(object):
+class MA:
     """Moving Average Model.
 
     The MA coefficients can be set manually:
 
     >>> from hydpy import MA
-    >>> ma = MA(coefs=(.8, .2))
+    >>> ma = MA(coefs=(0.8, 0.2))
     >>> ma
     MA(coefs=(0.8, 0.2))
-    >>> ma.coefs = .2, .8
+    >>> ma.coefs = 0.2, 0.8
     >>> ma
     MA(coefs=(0.2, 0.8))
 
-    Otherwise they are determined by method :func:`~MA.update_coefs`.
+    Otherwise they are determined by method |MA.update_coefs|.
     But this requires that a integrable function object is given.
     Usually, this function object is a |IUH| subclass object, but
     (as in the following example) other function objects defining
@@ -45,21 +50,22 @@ class MA(object):
 
     >>> import warnings
     >>> from scipy import integrate
-    >>> warnings.filterwarnings('ignore',
-    ...                         category=integrate.IntegrationWarning)
+    >>> warnings.filterwarnings(
+    ... 'ignore', category=integrate.IntegrationWarning)
 
     The first example is a simple rectangle impuls:
 
-    >>> ma = MA(iuh=lambda x: .05 if x < 20. else 0.)
+    >>> ma = MA(iuh=lambda x: 0.05 if x < 20.0 else 0.0)
+    >>> ma.iuh.moment1 = 10.0
     >>> ma
     MA(coefs=(0.025, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05,
               0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05,
               0.025))
 
     The number of the coefficients can be modified by changing the
-    class attribute :attr:`~MA.smallest_coeff`:
+    class attribute |MA.smallest_coeff|:
 
-    >>> ma.smallest_coeff = .03
+    >>> ma.smallest_coeff = 0.03
     >>> ma.update_coefs()
     >>> ma
     MA(coefs=(0.025641, 0.051282, 0.051282, 0.051282, 0.051282, 0.051282,
@@ -71,7 +77,8 @@ class MA(object):
     The first two central moments of the time delay are a usefull measure for
     describing the operation of a MA model:
 
-    >>> ma = MA(iuh=lambda x: 1. if x < 1. else 0.)
+    >>> ma = MA(iuh=lambda x: 1.0 if x < 1.0 else 0.0)
+    >>> ma.iuh.moment1 = 0.5
     >>> ma
     MA(coefs=(0.5, 0.5))
     >>> from hydpy import round_
@@ -88,7 +95,8 @@ class MA(object):
     mean and a standard deviation (turning point) of 10:
 
     >>> from scipy import stats
-    >>> ma = MA(iuh=lambda x: 2.*stats.norm.pdf(x, 0., 2.))
+    >>> ma = MA(iuh=lambda x: 2.0*stats.norm.pdf(x, 0.0, 2.0))
+    >>> ma.iuh.moment1 = 1.35
     >>> ma
     MA(coefs=(0.195417, 0.346659, 0.24189, 0.13277, 0.057318, 0.019458,
               0.005193, 0.001089, 0.00018, 0.000023, 0.000002, 0.0, 0.0))
@@ -99,21 +107,22 @@ class MA(object):
     closest to the turning point, and not a high precision estimate of
     the real turning point of the instantaneous unit hydrograph.
 
-    You can also use the followint ploting command to verify the position of
+    You can also use the following ploting command to verify the position of
     the turning point, which is printed as a red dot.
 
     >>> ma.plot(threshold=0.9)
 
-    You can close the plotting window manually or by writing:
+    .. testsetup::
 
-    >>> from matplotlib import pyplot
-    >>> pyplot.close()
+        >>> from matplotlib import pyplot
+        >>> pyplot.close()
 
     The turning point detection also works for functions which include
     both a rising and a falling limb.  This can be shown shifting the
     normal distribution to the right:
 
-    >>> ma.iuh = lambda x: 2.*stats.norm.pdf(x, 4., 2.)
+    >>> ma.iuh = lambda x: 1.02328*stats.norm.pdf(x, 4.0, 2.0)
+    >>> ma.iuh.moment1 = 3.94
     >>> ma.update_coefs()
     >>> ma
     MA(coefs=(0.019322, 0.067931, 0.12376, 0.177364, 0.199966, 0.177364,
@@ -124,11 +133,41 @@ class MA(object):
 
     When no turning point can be detected, an error is raised:
 
-    >>> ma.coefs = 1., 1., 1
+    >>> ma.coefs = 1.0, 1.0, 1.0
     >>> ma.turningpoint
     Traceback (most recent call last):
     ...
-    RuntimeError: Not able to detect a turning point in the impulse response defined by the MA coefficients 1.0, 1.0, 1.0.
+    RuntimeError: Not able to detect a turning point in the impulse response \
+defined by the MA coefficients 1.0, 1.0, 1.0.
+
+    The next example requires reactivating the warning suppressed above
+    (and under Python 2.7 some registry clearing):
+
+    >>> warnings.filterwarnings(
+    ...     'error', category=integrate.IntegrationWarning)
+    >>> from scipy.integrate import quadpack
+    >>> quadpack.__warningregistry__ = {}
+
+    The MA coefficients need to be approximated numerically.  For very
+    spiky response function, the underlying integration algorithm might
+    fail.  Then it is assumed that the complete mass of the response
+    function is placed at a single delay time, defined by the property
+    `moment1` of the instantaneous unit hydrograph.  Hopefully, this
+    leads to plausible results.  However, we raise an additional warning
+    message to allow users to determine the coefficients by a different
+    approach :
+
+    >>> ma.iuh = lambda x: 10.0 if 4.2 < x <= 4.3 else 0.0
+    >>> ma.iuh.moment1 = 4.25
+    >>> ma.update_coefs()
+    Traceback (most recent call last):
+    ...
+    UserWarning: During the determination of the MA coefficients \
+corresponding to the instantaneous unit hydrograph ... a numerical \
+integration problem occurred.  \
+Please check the calculated coefficients: 0.0, 0.0, 0.0, 0.0, 0.75, 0.25.
+    >>> ma
+    MA(coefs=(0.0, 0.0, 0.0, 0.0, 0.75, 0.25))
     """
 
     smallest_coeff = 1e-9
@@ -141,35 +180,55 @@ class MA(object):
         if coefs is not None:
             self.coefs = coefs
 
-    def _get_coefs(self):
-        """:class:`~numpy.ndarray` containing all MA coefficents."""
+    @property
+    def coefs(self):
+        """|numpy.ndarray| containing all MA coefficents."""
         if self._coefs is None:
             self.update_coefs()
         return self._coefs
 
-    def _set_coefs(self, values):
+    @coefs.setter
+    def coefs(self, values):
         self._coefs = numpy.array(values, ndmin=1, dtype=float)
 
-    def _del_coefs(self):
+    @coefs.deleter
+    def coefs(self):
         self._coefs = None
-
-    coefs = property(_get_coefs, _set_coefs, _del_coefs)
 
     @property
     def order(self):
         """MA order."""
         return len(self.coefs)
 
-    def quad(self, dt, t):
-        return integrate.quad(self.iuh, max(t-1.+dt, 0.), t+dt)[0]
+    def _quad(self, dt, t):
+        return integrate.quad(
+            self.iuh, max(t-1.+dt, 0.), t+dt)[0]
 
     def update_coefs(self):
         """(Re)calculate the MA coefficients based on the instantaneous
         unit hydrograph."""
         coefs = []
         sum_coefs = 0.
+        moment1 = self.iuh.moment1
         for t in itertools.count(0., 1.):
-            coef = integrate.quad(self.quad, 0., 1., args=(t,))[0]
+            points = (moment1 % 1,) if t <= moment1 <= (t+2.) else ()
+            try:
+                coef = integrate.quad(
+                    self._quad, 0., 1., args=(t,), points=points)[0]
+            except integrate.IntegrationWarning:
+                idx = int(moment1)
+                coefs = numpy.zeros(idx+2, dtype=float)
+                weight = (moment1-idx)
+                coefs[idx] = (1.-weight)
+                coefs[idx+1] = weight
+                self.coefs = coefs
+                warnings.warn(
+                    'During the determination of the MA coefficients '
+                    'corresponding to the instantaneous unit hydrograph '
+                    '`%s` a numerical integration problem occurred.  '
+                    'Please check the calculated coefficients: %s.'
+                    % (repr(self.iuh), objecttools.repr_values(coefs)))
+                break   # pragma: no cover
             sum_coefs += coef
             if (sum_coefs > .9) and (coef < self.smallest_coeff):
                 coefs = numpy.array(coefs)
@@ -189,13 +248,11 @@ class MA(object):
             new_dc = coefs[idx+2]-coefs[idx+1]
             if (old_dc < 0.) and (new_dc > old_dc):
                 return idx, coefs[idx]
-            else:
-                old_dc = new_dc
-        else:
-            raise RuntimeError(
-                'Not able to detect a turning point in the impulse response '
-                'defined by the MA coefficients %s.'
-                % objecttools.repr_values(coefs))
+            old_dc = new_dc
+        raise RuntimeError(
+            'Not able to detect a turning point in the impulse response '
+            'defined by the MA coefficients %s.'
+            % objecttools.repr_values(coefs))
 
     @property
     def delays(self):
@@ -208,7 +265,7 @@ class MA(object):
         MA coefficients."""
         moment1 = statstools.calc_mean_time(self.delays, self.coefs)
         moment2 = statstools.calc_mean_time_deviation(
-                                    self.delays, self.coefs, moment1)
+            self.delays, self.coefs, moment1)
         return numpy.array([moment1, moment2])
 
     def plot(self, threshold=None, **kwargs):
@@ -217,7 +274,7 @@ class MA(object):
             # Works under matplotlib 3.
             pyplot.bar(x=self.delays+.5, height=self.coefs,
                        width=1., fill=False, **kwargs)
-        except TypeError:
+        except TypeError:   # pragma: no cover
             # Works under matplotlib 2.
             pyplot.bar(left=self.delays+.5, height=self.coefs,
                        width=1., fill=False, **kwargs)
@@ -234,13 +291,13 @@ class MA(object):
         return objecttools.assignrepr_tuple(self.coefs, 'MA(coefs=', 70) + ')'
 
 
-class ARMA(object):
+class ARMA:
     """Autoregressive-Moving Average model.
 
     All ARMA coefficients can be set manually:
 
     >>> from hydpy import MA, ARMA
-    >>> arma = ARMA(ar_coefs=(.5,), ma_coefs=(.3, .2))
+    >>> arma = ARMA(ar_coefs=(0.5,), ma_coefs=(0.3, 0.2))
     >>> arma.coefs
     (array([ 0.5]), array([ 0.3,  0.2]))
     >>> arma
@@ -254,13 +311,14 @@ class ARMA(object):
          ma_coefs=(0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0,
                    11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0))
 
-    Otherwise they are determined by method :func:`~ARMA.update_coefs`.
-    But this requires that a :class:`MA` object is given.  Let us use
+    Otherwise they are determined by method |ARMA.update_coefs|.
+    But this requires that a |MA| object is given.  Let us use
     the MA model based on the shifted normal distribution of the
-    documentation on class :class:`MA` as an example:
+    documentation on class |MA| as an example:
 
     >>> from scipy import stats
-    >>> ma = MA(iuh=lambda x: 2.*stats.norm.pdf(x, 4., 2.))
+    >>> ma = MA(iuh=lambda x: 1.02328*stats.norm.pdf(x, 4.0, 2.0))
+    >>> ma.iuh.moment1 = 3.94
     >>> arma = ARMA(ma_model=ma)
     >>> arma
     ARMA(ar_coefs=(0.680483, -0.228511, 0.047283, -0.006022, 0.000377),
@@ -268,19 +326,22 @@ class ARMA(object):
                    0.07637, 0.041095, 0.01581, 0.004132, 0.000663,
                    0.00005))
 
-    To verify that the ARMA model approximates the MA model with sufficient
-    accuracy, one can check the central moments of their responses to a
-    standard delta time impulse:
+    To verify that the ARMA model approximates the MA model with
+    sufficient accuracy, one can query the achieved relative rmse
+    value (|ARMA.rel_rmse|) or check the central moments of their
+    responses to the standard delta time impulse:
 
     >>> from hydpy import round_
+    >>> round_(arma.rel_rmse)
+    0.0
     >>> round_(ma.moments)
     4.110496, 1.926798
     >>> round_(arma.moments)
     4.110496, 1.926798
 
-    On can check the accuray of the approximation directly via the property
-    :attr:`~ARMA.dev_moments`, which is the sum of the absolute values of
-    the deviations of both methods:
+    On can check the accuray of the approximation directly via the
+    property |ARMA.dev_moments|, which is the sum of the absolute values
+    of the deviations of both methods:
 
     >>> round_(arma.dev_moments)
     0.0
@@ -345,15 +406,19 @@ class ARMA(object):
     >>> arma.update_coefs()
     Traceback (most recent call last):
     ...
-    UserWarning: Note that the smallest response to a standard impulse of the determined ARMA model is negative (`-0.000316`).
+    UserWarning: Note that the smallest response to a standard impulse of the \
+determined ARMA model is negative (`-0.000316`).
     >>> arma
     ARMA(ar_coefs=(0.736954, -0.166457),
          ma_coefs=(0.01946, 0.05418, 0.077804, 0.098741, 0.091295,
                    0.060797, 0.027226))
     >>> arma.order
     (2, 7)
-    >>> round_(arma.response)
-    0.01946, 0.068521, 0.125062, 0.1795, 0.202761, 0.180343, 0.12638, 0.063117, 0.025477, 0.008269, 0.001853, -0.000011, -0.000316, -0.000231, -0.000118, -0.000048, -0.000016
+    >>> from hydpy import print_values
+    >>> print_values(arma.response)
+    0.01946, 0.068521, 0.125062, 0.1795, 0.202761, 0.180343, 0.12638,
+    0.063117, 0.025477, 0.008269, 0.001853, -0.000011, -0.000316,
+    -0.000231, -0.000118, -0.000048, -0.000016
 
     It seems to be hard to find a parameter efficient approximation to the
     MA model in the given example. Generally, approximating ARMA models to MA
@@ -361,7 +426,8 @@ class ARMA(object):
     The most extreme example would be a simple exponential decline:
 
     >>> import numpy
-    >>> ma = MA(iuh=lambda x: .1*numpy.exp(-.1*x))
+    >>> ma = MA(iuh=lambda x: 0.1*numpy.exp(-0.1*x))
+    >>> ma.iuh.moment1 = 6.932
     >>> arma = ARMA(ma_model=ma)
 
     In the given example a number of 185 MA coefficients can be reduced to a
@@ -381,29 +447,36 @@ class ARMA(object):
 
     Decreasing the tolerance values too much results in the following errors:
 
-    >>> arma.max_dev_coefs = 0.
+    >>> arma.max_dev_coefs = 0.0
     >>> arma.update_coefs()
     Traceback (most recent call last):
     ...
-    RuntimeError: Method `update_ma_coefs` is not able to determine the MA coefficients of the ARMA model with the desired accuracy.  You can set the tolerance value ´max_dev_coefs` to a higher value.  An accuracy of `0.000000000925` has been reached using `185` MA coefficients.
-    >>> arma.max_rel_rmse = 0.
+    RuntimeError: Method `update_ma_coefs` is not able to determine the MA \
+coefficients of the ARMA model with the desired accuracy.  You can set the \
+tolerance value ´max_dev_coefs` to a higher value.  An accuracy of \
+`0.000000000925` has been reached using `185` MA coefficients.
+    >>> arma.max_rel_rmse = 0.0
     >>> arma.update_coefs()
     Traceback (most recent call last):
     ...
-    RuntimeError: Method `update_ar_coefs` is not able to determine the AR coefficients of the ARMA model with the desired accuracy.  You can either set the tolerance value `max_rel_rmse` to a higher value or increase the allowed `max_ar_order`.  An accuracy of `0.0` has been reached using `10` coefficients.
+    RuntimeError: Method `update_ar_coefs` is not able to determine the AR \
+coefficients of the ARMA model with the desired accuracy.  You can either \
+set the tolerance value `max_rel_rmse` to a higher value or increase the \
+allowed `max_ar_order`.  An accuracy of `0.0` has been reached using `10` \
+coefficients.
     """
 
     max_ar_order = 10
     """Maximum number of AR coefficients that are to be determined by method
-    :func:`~ARMA.update_coefs`."""
+    |ARMA.update_coefs|."""
 
     max_rel_rmse = 1e-6
     """Maximum relative root mean squared error to be accepted by method
-    :func:`~ARMA.update_coefs`."""
+    |ARMA.update_coefs|."""
 
     max_dev_coefs = 1e-6
     """Maximum deviation of the sum of all coefficents from one to be accepted
-    by method :func:`~ARMA.update_coefs`."""
+    by method |ARMA.update_coefs|."""
 
     _ma_coefs = None
     _ar_coefs = None
@@ -414,40 +487,48 @@ class ARMA(object):
             self.ar_coefs = ar_coefs
         if ma_coefs is not None:
             self.ma_coefs = ma_coefs
-        self.rel_rmse = None
+        self._rel_rmse = None
 
-    def _get_ar_coefs(self):
+    @property
+    def rel_rmse(self):
+        """Relative root mean squared error the last time achieved by method
+        |ARMA.update_coefs|."""
+        return self._rel_rmse
+
+    @property
+    def ar_coefs(self):
         """The AR coefficients of the AR model."""
         if self._ar_coefs is None:
             self.update_ar_coefs()
         return self._ar_coefs
 
-    def _set_ar_coefs(self, values):
+    @ar_coefs.setter
+    def ar_coefs(self, values):
         self._ar_coefs = numpy.array(values, ndmin=1, dtype=float)
 
-    def _del_ar_coefs(self):
+    @ar_coefs.deleter
+    def ar_coefs(self):
         self._ar_coefs = None
 
-    ar_coefs = property(_get_ar_coefs, _set_ar_coefs, _del_ar_coefs)
-
-    def _get_ma_coefs(self):
+    @property
+    def ma_coefs(self):
         """The MA coefficients of the ARMA model."""
         if self._ma_coefs is None:
             self.update_ma_coefs()
         return self._ma_coefs
 
-    def _set_ma_coefs(self, values):
+    @ma_coefs.setter
+    def ma_coefs(self, values):
         self._ma_coefs = numpy.array(values, ndmin=1, dtype=float)
 
-    def _del_ma_coefs(self):
+    @ma_coefs.deleter
+    def ma_coefs(self):
         self._ma_coefs = None
-
-    ma_coefs = property(_get_ma_coefs, _set_ma_coefs, _del_ma_coefs)
 
     @property
     def coefs(self):
         """Tuple containing both the AR and the MA coefficients."""
-        return (self.ar_coefs, self.ma_coefs)
+        return self.ar_coefs, self.ma_coefs
 
     @property
     def ar_order(self):
@@ -462,7 +543,7 @@ class ARMA(object):
     @property
     def order(self):
         """Number of both the AR and the MA coefficients."""
-        return (self.ar_order, self.ma_order)
+        return self.ar_order, self.ma_order
 
     def update_coefs(self):
         """Determine both the AR and the MA coefficients."""
@@ -474,8 +555,8 @@ class ARMA(object):
         """The maximum number of AR coefficients that shall or can be
         determined.
 
-        It is the minimum of :attr:`~ARMA.max_ar_order` and the number of
-        coefficients of the pure :class:`MA` after their turning point.
+        It is the minimum of |ARMA.max_ar_order| and the number of
+        coefficients of the pure |MA| after their turning point.
         """
         return min(self.max_ar_order, self.ma.order-self.ma.turningpoint[0]-1)
 
@@ -483,24 +564,24 @@ class ARMA(object):
         """Determine the AR coefficients.
 
         The number of AR coefficients is subsequently increased until the
-        required precision :attr:`~ARMA.max_rel_rmse` is reached.  Otherwise,
-        a :class:`~exceptions.RuntimeError` is raised.
+        required precision |ARMA.max_rel_rmse| is reached.  Otherwise,
+        a |RuntimeError| is raised.
         """
         del self.ar_coefs
         for ar_order in range(1, self.effective_max_ar_order+1):
             self.calc_all_ar_coefs(ar_order, self.ma)
-            if self.rel_rmse < self.max_rel_rmse:
+            if self._rel_rmse < self.max_rel_rmse:
                 break
         else:
-            with pub.options.reprdigits(12):
+            with hydpy.pub.options.reprdigits(12):
                 raise RuntimeError(
-                    'Method `update_ar_coefs` is not able to determine '
-                    'the AR coefficients of the ARMA model with the desired '
-                    'accuracy.  You can either set the tolerance value '
-                    '`max_rel_rmse` to a higher value or increase the '
-                    'allowed `max_ar_order`.  An accuracy of `%s` has been '
-                    'reached using `%d` coefficients.'
-                    % (objecttools.repr_(self.rel_rmse), ar_order))
+                    f'Method `update_ar_coefs` is not able to determine '
+                    f'the AR coefficients of the ARMA model with the desired '
+                    f'accuracy.  You can either set the tolerance value '
+                    f'`max_rel_rmse` to a higher value or increase the '
+                    f'allowed `max_ar_order`.  An accuracy of `'
+                    f'{objecttools.repr_(self._rel_rmse)}` has been reached '
+                    f'using `{self.effective_max_ar_order}` coefficients.')
 
     @property
     def dev_moments(self):
@@ -522,19 +603,19 @@ class ARMA(object):
 
     @property
     def dev_coefs(self):
-        """Absolute deviation of :attr:`~ARMA.sum_coefs` from one."""
+        """Absolute deviation of |ARMA.sum_coefs| from one."""
         return abs(self.sum_coefs-1.)
 
     def calc_all_ar_coefs(self, ar_order, ma_model):
         """Determine the AR coeffcients based on a least squares approach.
 
         The argument `ar_order` defines the number of AR coefficients to be
-        determined.  The argument `ma_order` defines a pure :class:`MA` model.
+        determined.  The argument `ma_order` defines a pure |MA| model.
         The least squares approach is applied on all those coefficents of the
         pure MA model, which are associated with the part of the recession
         curve behind its turning point.
 
-        The attribute :attr:`~ARMA.rel_rmse` is updated with the resulting
+        The attribute |ARMA.rel_rmse| is updated with the resulting
         relative root mean square error.
         """
         turning_idx, _ = ma_model.turningpoint
@@ -544,15 +625,15 @@ class ARMA(object):
             self.get_b(values, ar_order),
             rcond=-1)[:2]
         if len(residuals) == 1:
-            self.rel_rmse = numpy.sqrt(residuals[0])/numpy.sum(values)
+            self._rel_rmse = numpy.sqrt(residuals[0])/numpy.sum(values)
         else:
-            self.rel_rmse = 0.
+            self._rel_rmse = 0.
 
     @staticmethod
     def get_a(values, n):
-        """Extract the independend variables of the given values and return
+        """Extract the independent variables of the given values and return
         them as a matrix with n columns in a form suitable for the least
-        squares approach applied in method :func:`~ARMA.calc_ar_coefs`.
+        squares approach applied in method |ARMA.update_ar_coefs|.
         """
         m = len(values)-n
         a = numpy.empty((m, n), dtype=float)
@@ -564,9 +645,9 @@ class ARMA(object):
 
     @staticmethod
     def get_b(values, n):
-        """Extract the dependend variables of the values in a vector with n
+        """Extract the dependent variables of the values in a vector with n
         entries in a form suitable for the least squares approach applied in
-        method :func:`~ARMA.calc_ar_coefs`.
+        method |ARMA.update_ar_coefs|.
         """
         return numpy.array(values[n:])
 
@@ -574,8 +655,8 @@ class ARMA(object):
         """Determine the MA coefficients.
 
         The number of MA coefficients is subsequently increased until the
-        required precision :attr:`~ARMA.max_dev_coefs` is reached.  Otherwise,
-        a :class:`~exceptions.RuntimeError` is raised.
+        required precision |ARMA.max_dev_coefs| is reached.  Otherwise,
+        a |RuntimeError| is raised.
         """
         self.ma_coefs = []
         for ma_order in range(1, self.ma.order+1):
@@ -584,14 +665,14 @@ class ARMA(object):
                 self.norm_coefs()
                 break
         else:
-            with pub.options.reprdigits(12):
+            with hydpy.pub.options.reprdigits(12):
                 raise RuntimeError(
-                    'Method `update_ma_coefs` is not able to determine the MA '
-                    'coefficients of the ARMA model with the desired accuracy.'
-                    '  You can set the tolerance value ´max_dev_coefs` to a '
-                    'higher value.  An accuracy of `%s` has been reached '
-                    'using `%d` MA coefficients.'
-                    % (objecttools.repr_(self.dev_coefs), ma_order))
+                    f'Method `update_ma_coefs` is not able to determine the '
+                    f'MA coefficients of the ARMA model with the desired '
+                    f'accuracy.  You can set the tolerance value '
+                    f'´max_dev_coefs` to a higher value.  An accuracy of '
+                    f'`{objecttools.repr_(self.dev_coefs)}` has been reached '
+                    f'using `{self.ma.order}` MA coefficients.')
         if numpy.min(self.response) < 0.:
             warnings.warn(
                 'Note that the smallest response to a standard impulse of the '
@@ -601,7 +682,7 @@ class ARMA(object):
     def calc_next_ma_coef(self, ma_order, ma_model):
         """Determine the MA coefficients of the ARMA model based on its
         predetermined AR coefficients and the MA ordinates of the given
-        :class:`MA` model.
+        |MA| model.
 
         The MA coefficients are determined one at a time, beginning with the
         first one.  Each ARMA MA coefficient in set in a manner that allows
@@ -621,7 +702,6 @@ class ARMA(object):
         """Return the response to a standard dt impulse."""
         values = []
         sum_values = 0.
-        idx = 0
         ma_coefs = self.ma_coefs
         ar_coefs = self.ar_coefs
         ma_order = self.ma_order
@@ -645,7 +725,7 @@ class ARMA(object):
         response = self.response
         moment1 = statstools.calc_mean_time(timepoints, response)
         moment2 = statstools.calc_mean_time_deviation(
-                                            timepoints, response, moment1)
+            timepoints, response, moment1)
         return numpy.array([moment1, moment2])
 
     def plot(self, threshold=None, **kwargs):
@@ -654,7 +734,7 @@ class ARMA(object):
             # Works under matplotlib 3.
             pyplot.bar(x=self.ma.delays+.5, height=self.response,
                        width=1., fill=False, **kwargs)
-        except TypeError:
+        except TypeError:   # pragma: no cover
             # Works under matplotlib 2.
             pyplot.bar(left=self.ma.delays+.5, height=self.response,
                        width=1., fill=False, **kwargs)
@@ -672,6 +752,3 @@ class ARMA(object):
                              objecttools.assignrepr_tuple(self.ma_coefs,
                                                           '     ma_coefs=',
                                                           70))
-
-
-autodoctools.autodoc_module()

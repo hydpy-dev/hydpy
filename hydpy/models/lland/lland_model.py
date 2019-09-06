@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=missing-docstring
+# pylint: enable=missing-docstring
 
 # imports...
-# ...standard library
-from __future__ import division, print_function
-# ...HydPy specific
+# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.cythons import modelutils
-# ...model specifc
+# ...from lland
 from hydpy.models.lland.lland_constants import WASSER, FLUSS, SEE, VERS
 
 
@@ -32,7 +32,7 @@ def calc_nkor_v1(self):
         >>> parameterstep('1d')
         >>> nhru(3)
         >>> kg(0.8, 1.0, 1.2)
-        >>> inputs.nied = 10.
+        >>> inputs.nied = 10.0
         >>> model.calc_nkor_v1()
         >>> fluxes.nkor
         nkor(8.0, 10.0, 12.0)
@@ -126,12 +126,14 @@ def calc_et0_v1(self):
                                   (1.+0.00019*min(con.hnn[k], 600.)))))
 
 
-def calc_et0_v2(self):
-    """Correct the given reference evapotranspiration.
+def calc_et0_wet0_v1(self):
+    """Correct the given reference evapotranspiration and update the
+    corresponding log sequence.
 
     Required control parameters:
       |NHRU|
       |KE|
+      |WfET0|
 
     Required input sequence:
       |PET|
@@ -139,26 +141,55 @@ def calc_et0_v2(self):
     Calculated flux sequence:
       |ET0|
 
+    Updated log sequence:
+      |WET0|
+
     Basic equation:
-      :math:`ET0 = KE \\cdot PET`
+      :math:`ET0_{new} = WfET0 \\cdot KE \\cdot PET +
+      (1-WfET0) \\cdot ET0_{alt}`
 
     Example:
+
+        Prepare four hydrological response units with different value
+        combinations of parameters |KE| and |WfET0|:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> simulationstep('12h')
-        >>> nhru(2)
-        >>> ke(0.8, 1.2)
-        >>> inputs.pet = 2.
-        >>> model.calc_et0_v2()
+        >>> nhru(4)
+        >>> ke(0.8, 1.2, 0.8, 1.2)
+        >>> wfet0(2.0, 2.0, 0.2, 0.2)
+
+        Note that the actual value of time dependend parameter |WfET0|
+        is reduced due the difference between the given parameter and
+        simulation time steps:
+
+        >>> from hydpy import round_
+        >>> round_(wfet0.values)
+        1.0, 1.0, 0.1, 0.1
+
+        For the first two hydrological response units, the given |PET|
+        value is modified by -0.4 mm and +0.4 mm, respectively.  For the
+        other two response units, which weight the "new" evaporation
+        value with 10 %, |ET0| does deviate from the old value of |WET0|
+        by -0.04 mm and +0.04 mm only:
+
+        >>> inputs.pet = 2.0
+        >>> logs.wet0 = 2.0
+        >>> model.calc_et0_wet0_v1()
         >>> fluxes.et0
-        et0(1.6, 2.4)
+        et0(1.6, 2.4, 1.96, 2.04)
+        >>> logs.wet0
+        wet0([[1.6, 2.4, 1.96, 2.04]])
     """
     con = self.parameters.control.fastaccess
     inp = self.sequences.inputs.fastaccess
     flu = self.sequences.fluxes.fastaccess
+    log = self.sequences.logs.fastaccess
     for k in range(con.nhru):
-        flu.et0[k] = con.ke[k]*inp.pet
+        flu.et0[k] = (con.wfet0[k]*con.ke[k]*inp.pet +
+                      (1.-con.wfet0[k])*log.wet0[0, k])
+        log.wet0[0, k] = flu.et0[k]
 
 
 def calc_evpo_v1(self):
@@ -180,7 +211,7 @@ def calc_evpo_v1(self):
       |EvPo|
 
     Additional requirements:
-      |idx_sim|
+      |Model.idx_sim|
 
     Basic equation:
       :math:`EvPo = FLn \\cdot ET0`
@@ -192,10 +223,8 @@ def calc_evpo_v1(self):
         (the actual land use).  Firstly, let us define a initialization
         time period spanning the transition from June to July:
 
-        >>> from hydpy import pub, Timegrid, Timegrids
-        >>> pub.timegrids = Timegrids(Timegrid('30.06.2000',
-        ...                                    '02.07.2000',
-        ...                                    '1d'))
+        >>> from hydpy import pub
+        >>> pub.timegrids = '30.06.2000', '02.07.2000', '1d'
 
         Secondly, assume that the considered subbasin is differenciated in
         two HRUs, one of primarily consisting of arable land and the other
@@ -236,10 +265,9 @@ def calc_evpo_v1(self):
         >>> fluxes.evpo
         evpo(2.608, 2.73)
 
-        Reset module :mod:`~hydpy.pub` to not interfere the following
-        examples:
+        Reset module |pub| to not interfere the following examples:
 
-        >>> pub.timegrids = None
+        >>> del pub.timegrids
     """
     con = self.parameters.control.fastaccess
     der = self.parameters.derived.fastaccess
@@ -269,7 +297,7 @@ def calc_nbes_inzp_v1(self):
       |Inzp|
 
     Additional requirements:
-      |idx_sim|
+      |Model.idx_sim|
 
     Basic equation:
       :math:`NBes = \\Bigl \\lbrace
@@ -468,8 +496,8 @@ def calc_sbes_v1(self):
         >>> fluxes.sbes
         sbes(4.0, 4.0, 3.0, 2.0, 1.0, 0.0, 0.0)
 
-        Note the special case of a zero temperature intervall.  With the
-        actual temperature beeing equal to the threshold temperature, the
+        Note the special case of a zero temperature interval.  With the
+        actual temperature being equal to the threshold temperature, the
         the value of `sbes` is zero:
 
         >>> tsp(0.)
@@ -492,7 +520,7 @@ def calc_sbes_v1(self):
 
 
 def calc_wgtf_v1(self):
-    """Calculate the potential snow melt.
+    """Calculate the potential snowmelt.
 
     Required control parameters:
       |NHRU|
@@ -537,7 +565,7 @@ def calc_wgtf_v1(self):
 
         Note that the values of the degree-day factor are only half
         as much as the given value, due to the simulation step size
-        beeing only half as long as the parameter step size:
+        being only half as long as the parameter step size:
 
         >>> gtf
         gtf(5.0)
@@ -555,7 +583,7 @@ def calc_wgtf_v1(self):
         first two zones show the influence of the additional energy intake
         due to "warm" precipitation.  Obviously, this additional term is
         quite negligible for common parameterizations, even if lower
-        values for the seperate threshold temperature |TRefT| would be
+        values for the separate threshold temperature |TRefT| would be
         taken into account:
 
         >>> model.calc_wgtf_v1()
@@ -569,8 +597,8 @@ def calc_wgtf_v1(self):
             flu.wgtf[k] = 0.
         else:
             flu.wgtf[k] = (
-              max(con.gtf[k]*(flu.tkor[k]-con.treft[k]), 0) +
-              max(con.cpwasser/con.rschmelz*(flu.tkor[k]-con.trefn[k]), 0.))
+                max(con.gtf[k]*(flu.tkor[k]-con.treft[k]), 0) +
+                max(con.cpwasser/con.rschmelz*(flu.tkor[k]-con.trefn[k]), 0.))
 
 
 def calc_schm_wats_v1(self):
@@ -592,6 +620,7 @@ def calc_schm_wats_v1(self):
 
     Basic equations:
       :math:`\\frac{dWATS}{dt}  = SBes - Schm`
+
       :math:`Schm = \\Bigl \\lbrace
       {
       {WGTF \\ | \\ WATS > 0}
@@ -604,7 +633,7 @@ def calc_schm_wats_v1(self):
         Initialize two water (|FLUSS| and |SEE|) and four arable land
         (|ACKER|) HRUs.  Assume the same values for the initial amount
         of frozen water (|WATS|) and the frozen part of stand precipitation
-        (|SBes|), but different values for potential snow melt (|WGTF|):
+        (|SBes|), but different values for potential snowmelt (|WGTF|):
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
@@ -657,6 +686,7 @@ def calc_wada_waes_v1(self):
 
     Basic equations:
       :math:`\\frac{dWAeS}{dt} = NBes - WaDa`
+
       :math:`WAeS \\leq PWMax \\cdot WATS`
 
     Examples:
@@ -722,6 +752,7 @@ def calc_evb_v1(self):
 
     Basic equations:
       :math:`temp = exp(-GrasRef_R \\cdot \\frac{BoWa}{NFk})`
+
       :math:`EvB = (EvPo - EvI) \\cdot
       \\frac{1 - temp}{1 + temp -2 \\cdot exp(-GrasRef_R)}`
 
@@ -1046,8 +1077,10 @@ def calc_qdb_v1(self):
       \\atop
       {max(Exz + NFk \\cdot SfA^{BSf+1}, 0) \\ | \\ SfA > 0}
       }`
+
       :math:`SFA = (1 - \\frac{BoWa}{NFk})^\\frac{1}{BSf+1} -
       \\frac{WaDa}{(BSf+1) \\cdot NFk}`
+
       :math:`Exz = (BoWa + WaDa) - NFk`
 
     Examples:
@@ -1087,7 +1120,7 @@ def calc_qdb_v1(self):
         if con.lnk[k] == WASSER:
             flu.qdb[k] = 0.
         elif ((con.lnk[k] in (VERS, FLUSS, SEE)) or
-                (con.nfk[k] <= 0.)):
+              (con.nfk[k] <= 0.)):
             flu.qdb[k] = flu.wada[k]
         else:
             if sta.bowa[k] < con.nfk[k]:
@@ -1125,6 +1158,7 @@ def calc_bowa_v1(self):
 
     Basic equations:
        :math:`\\frac{dBoWa}{dt} = WaDa - EvB - QBB - QIB1 - QIB2 - QDB`
+
        :math:`BoWa \\geq 0`
 
     Examples:
@@ -1193,7 +1227,7 @@ def calc_qbgz_v1(self):
     and the "net precipitation" above water areas of type |SEE|.
 
     Water areas of type |SEE| are assumed to be directly connected with
-    ground water, but not with the stream network.  This is modelled by
+    groundwater, but not with the stream network.  This is modelled by
     adding their (positive or negative) "net input" (|NKor|-|EvI|) to the
     "percolation output" of the soil containing HRUs.
 
@@ -1348,19 +1382,19 @@ def calc_qdgz_v1(self):
     Examples:
 
         The first example shows that |QDGZ| is the area weighted sum of
-        |QDB| from "soil type" HRUs like arable land (|ACKER|) and of
-        |NKor|-|EvI| from water areas of type |FLUSS|.  All other water
-        areas (|WASSER| and |SEE|) and also sealed surfaces (|VERS|)
-        have no impact on |QDGZ|:
+        |QDB| from "land type" HRUs like arable land (|ACKER|) and sealed
+        surfaces (|VERS|) as well as of |NKor|-|EvI| from water areas of
+        type |FLUSS|.  Water areas of type |WASSER| and |SEE| have no
+        impact on |QDGZ|:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep()
-        >>> nhru(6)
-        >>> lnk(ACKER, ACKER, VERS, WASSER, SEE, FLUSS)
-        >>> fhru(0.1, 0.2, 0.1, 0.1, 0.1, 0.4)
-        >>> fluxes.qdb = 2., 4.0, 300.0, 300.0, 300.0, 300.0
-        >>> fluxes.nkor = 200.0, 200.0, 200.0, 200.0, 200.0, 20.0
-        >>> fluxes.evi = 100.0, 100.0, 100.0, 100.0, 100.0, 10.0
+        >>> nhru(5)
+        >>> lnk(ACKER, VERS, WASSER, SEE, FLUSS)
+        >>> fhru(0.1, 0.2, 0.1, 0.2, 0.4)
+        >>> fluxes.qdb = 2., 4.0, 300.0, 300.0, 300.0
+        >>> fluxes.nkor = 200.0, 200.0, 200.0, 200.0, 20.0
+        >>> fluxes.evi = 100.0, 100.0, 100.0, 100.0, 10.0
         >>> model.calc_qdgz_v1()
         >>> fluxes.qdgz
         qdgz(5.0)
@@ -1368,7 +1402,7 @@ def calc_qdgz_v1(self):
         The second example shows that large evaporation values above a
         HRU of type |FLUSS| can result in negative values of |QDGZ|:
 
-        >>> fluxes.evi[5] = 30
+        >>> fluxes.evi[4] = 30
         >>> model.calc_qdgz_v1()
         >>> fluxes.qdgz
         qdgz(-3.0)
@@ -1379,12 +1413,12 @@ def calc_qdgz_v1(self):
     for k in range(con.nhru):
         if con.lnk[k] == FLUSS:
             flu.qdgz += con.fhru[k]*(flu.nkor[k]-flu.evi[k])
-        elif con.lnk[k] not in (WASSER, SEE, VERS):
+        elif con.lnk[k] not in (WASSER, SEE):
             flu.qdgz += con.fhru[k]*flu.qdb[k]
 
 
 def calc_qdgz1_qdgz2_v1(self):
-    """Seperate total direct flow into a small and a fast component.
+    """Separate total direct flow into a slower and a faster component.
 
     Required control parameters:
       |A1|
@@ -1397,27 +1431,28 @@ def calc_qdgz1_qdgz2_v1(self):
       |QDGZ1|
       |QDGZ2|
 
-    Basic equation:
+    Basic equations:
        :math:`QDGZ2 = \\frac{(QDGZ-A2)^2}{QDGZ+A1-A2}`
+
        :math:`QDGZ1 = QDGZ - QDGZ1`
 
     Examples:
 
-        The formula for calculating the amount of the fast component of
-        direct flow is borrowed from the famous curve number approach.
+        We borrowed the formula for calculating the amount of the faster
+        component of direct flow from the well-known curve number approach.
         Parameter |A2| would be the initial loss and parameter |A1| the
-        maximum storage, but one should not take this analogy too serious.
-        Instead, with the value of parameter |A1| set to zero, parameter
-        |A2| just defines the maximum amount of "slow" direct runoff per
-        time step:
+        maximum storage, but one should not take this analogy too literally.
+
+        With the value of parameter |A1| set to zero, parameter |A2| defines
+        the maximum amount of "slow" direct runoff per time step:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> simulationstep('12h')
         >>> a1(0.0)
 
-        Let us set the value of |A2| to 4 mm/d, which is 2 mm/12h with
-        respect to the selected simulation step size:
+        Let us set the value of |A2| to 4 mm/d, which is 2 mm/12h concerning
+        the selected simulation step size:
 
         >>> a2(4.0)
         >>> a2
@@ -1536,7 +1571,7 @@ def calc_qbga_v1(self):
 
         Second extreme test case (numerical overflow is circumvented):
 
-        >>> derived.kb(1e200)
+        >>> derived.kb(1e500)
         >>> model.calc_qbga_v1()
         >>> states.qbga
         qbga(5.0)
@@ -1544,16 +1579,15 @@ def calc_qbga_v1(self):
     der = self.parameters.derived.fastaccess
     old = self.sequences.states.fastaccess_old
     new = self.sequences.states.fastaccess_new
-    aid = self.sequences.aides.fastaccess
     if der.kb <= 0.:
         new.qbga = new.qbgz
     elif der.kb > 1e200:
         new.qbga = old.qbga+new.qbgz-old.qbgz
     else:
-        aid.temp = (1.-modelutils.exp(-1./der.kb))
+        d_temp = (1.-modelutils.exp(-1./der.kb))
         new.qbga = (old.qbga +
-                    (old.qbgz-old.qbga)*aid.temp +
-                    (new.qbgz-old.qbgz)*(1.-der.kb*aid.temp))
+                    (old.qbgz-old.qbga)*d_temp +
+                    (new.qbgz-old.qbgz)*(1.-der.kb*d_temp))
 
 
 def calc_qiga1_v1(self):
@@ -1601,7 +1635,7 @@ def calc_qiga1_v1(self):
 
         Second extreme test case (numerical overflow is circumvented):
 
-        >>> derived.ki1(1e200)
+        >>> derived.ki1(1e500)
         >>> model.calc_qiga1_v1()
         >>> states.qiga1
         qiga1(5.0)
@@ -1609,16 +1643,15 @@ def calc_qiga1_v1(self):
     der = self.parameters.derived.fastaccess
     old = self.sequences.states.fastaccess_old
     new = self.sequences.states.fastaccess_new
-    aid = self.sequences.aides.fastaccess
     if der.ki1 <= 0.:
         new.qiga1 = new.qigz1
     elif der.ki1 > 1e200:
         new.qiga1 = old.qiga1+new.qigz1-old.qigz1
     else:
-        aid.temp = (1.-modelutils.exp(-1./der.ki1))
+        d_temp = (1.-modelutils.exp(-1./der.ki1))
         new.qiga1 = (old.qiga1 +
-                     (old.qigz1-old.qiga1)*aid.temp +
-                     (new.qigz1-old.qigz1)*(1.-der.ki1*aid.temp))
+                     (old.qigz1-old.qiga1)*d_temp +
+                     (new.qigz1-old.qigz1)*(1.-der.ki1*d_temp))
 
 
 def calc_qiga2_v1(self):
@@ -1666,7 +1699,7 @@ def calc_qiga2_v1(self):
 
         Second extreme test case (numerical overflow is circumvented):
 
-        >>> derived.ki2(1e200)
+        >>> derived.ki2(1e500)
         >>> model.calc_qiga2_v1()
         >>> states.qiga2
         qiga2(5.0)
@@ -1674,16 +1707,15 @@ def calc_qiga2_v1(self):
     der = self.parameters.derived.fastaccess
     old = self.sequences.states.fastaccess_old
     new = self.sequences.states.fastaccess_new
-    aid = self.sequences.aides.fastaccess
     if der.ki2 <= 0.:
         new.qiga2 = new.qigz2
     elif der.ki2 > 1e200:
         new.qiga2 = old.qiga2+new.qigz2-old.qigz2
     else:
-        aid.temp = (1.-modelutils.exp(-1./der.ki2))
+        d_temp = (1.-modelutils.exp(-1./der.ki2))
         new.qiga2 = (old.qiga2 +
-                     (old.qigz2-old.qiga2)*aid.temp +
-                     (new.qigz2-old.qigz2)*(1.-der.ki2*aid.temp))
+                     (old.qigz2-old.qiga2)*d_temp +
+                     (new.qigz2-old.qigz2)*(1.-der.ki2*d_temp))
 
 
 def calc_qdga1_v1(self):
@@ -1730,7 +1762,7 @@ def calc_qdga1_v1(self):
 
         Second extreme test case (numerical overflow is circumvented):
 
-        >>> derived.kd1(1e200)
+        >>> derived.kd1(1e500)
         >>> model.calc_qdga1_v1()
         >>> states.qdga1
         qdga1(5.0)
@@ -1738,16 +1770,15 @@ def calc_qdga1_v1(self):
     der = self.parameters.derived.fastaccess
     old = self.sequences.states.fastaccess_old
     new = self.sequences.states.fastaccess_new
-    aid = self.sequences.aides.fastaccess
     if der.kd1 <= 0.:
         new.qdga1 = new.qdgz1
     elif der.kd1 > 1e200:
         new.qdga1 = old.qdga1+new.qdgz1-old.qdgz1
     else:
-        aid.temp = (1.-modelutils.exp(-1./der.kd1))
+        d_temp = (1.-modelutils.exp(-1./der.kd1))
         new.qdga1 = (old.qdga1 +
-                     (old.qdgz1-old.qdga1)*aid.temp +
-                     (new.qdgz1-old.qdgz1)*(1.-der.kd1*aid.temp))
+                     (old.qdgz1-old.qdga1)*d_temp +
+                     (new.qdgz1-old.qdgz1)*(1.-der.kd1*d_temp))
 
 
 def calc_qdga2_v1(self):
@@ -1794,7 +1825,7 @@ def calc_qdga2_v1(self):
 
         Second extreme test case (numerical overflow is circumvented):
 
-        >>> derived.kd2(1e200)
+        >>> derived.kd2(1e500)
         >>> model.calc_qdga2_v1()
         >>> states.qdga2
         qdga2(5.0)
@@ -1802,16 +1833,15 @@ def calc_qdga2_v1(self):
     der = self.parameters.derived.fastaccess
     old = self.sequences.states.fastaccess_old
     new = self.sequences.states.fastaccess_new
-    aid = self.sequences.aides.fastaccess
     if der.kd2 <= 0.:
         new.qdga2 = new.qdgz2
     elif der.kd2 > 1e200:
         new.qdga2 = old.qdga2+new.qdgz2-old.qdgz2
     else:
-        aid.temp = (1.-modelutils.exp(-1./der.kd2))
+        d_temp = (1.-modelutils.exp(-1./der.kd2))
         new.qdga2 = (old.qdga2 +
-                     (old.qdgz2-old.qdga2)*aid.temp +
-                     (new.qdgz2-old.qdgz2)*(1.-der.kd2*aid.temp))
+                     (old.qdgz2-old.qdga2)*d_temp +
+                     (new.qdgz2-old.qdgz2)*(1.-der.kd2*d_temp))
 
 
 def calc_q_v1(self):
@@ -1820,7 +1850,7 @@ def calc_q_v1(self):
     Note that, in case there are water areas, their |NKor| values are
     added and their |EvPo| values are subtracted from the "potential"
     runoff value, if possible.  This hold true for |WASSER| only and is
-    due to compatibility with the orginal LARSIM implementation. Using land
+    due to compatibility with the original LARSIM implementation. Using land
     type |WASSER| can result  in problematic modifications of simulated
     runoff series. It seems advisable to use land type |FLUSS| and/or
     land type |SEE| instead.
@@ -1829,6 +1859,7 @@ def calc_q_v1(self):
       |NHRU|
       |FHRU|
       |Lnk|
+      |NegQ|
 
     Required flux sequence:
       |NKor|
@@ -1849,6 +1880,7 @@ def calc_q_v1(self):
     Basic equations:
        :math:`Q = QBGA + QIGA1 + QIGA2 + QDGA1 + QDGA2 +
        NKor_{WASSER} - EvI_{WASSER}`
+
        :math:`Q \\geq 0`
 
     Examples:
@@ -1862,6 +1894,7 @@ def calc_q_v1(self):
         >>> nhru(3)
         >>> lnk(ACKER, ACKER, ACKER)
         >>> fhru(0.5, 0.2, 0.3)
+        >>> negq(False)
         >>> states.qbga = 0.1
         >>> states.qiga1 = 0.3
         >>> states.qiga2 = 0.5
@@ -1907,7 +1940,7 @@ def calc_q_v1(self):
         evi(3.333333, 4.166667, 3.0)
 
         The handling from water areas of type |FLUSS| and |SEE| differs
-        from those of type |WASSER|, as these do receiver their net input
+        from those of type |WASSER|, as these do receive their net input
         before the runoff concentration routines are applied.  This
         should be more realistic in most cases (especially for type |SEE|
         representing lakes not direct connected to the stream network).
@@ -1932,14 +1965,28 @@ def calc_q_v1(self):
         even negative |EvI| values might occur.  This seems acceptable,
         as long as the adjustment of |EvI| is rarely triggered.  When in
         doubt about this, check sequences |EvPo| and |EvI| of HRUs of
-        types |FLUSS| and |SEE| for possible discrepancies.
+        types |FLUSS| and |SEE| for possible discrepancies.  Also note
+        that there might occur unnecessary corrections of |lland_fluxes.Q|
+        in case landtype |WASSER| is combined with either landtype
+        |SEE| or |FLUSS|.
+
+        Eventually you might want to avoid correcting |lland_fluxes.Q|.
+        This can be achieved by setting parameter |NegQ| to `True`:
+
+        >>> negq(True)
+        >>> fluxes.evi = 4.0, 5.0, 3.0
+        >>> model.calc_q_v1()
+        >>> fluxes.q
+        q(-1.0)
+        >>> fluxes.evi
+        evi(4.0, 5.0, 3.0)
     """
     con = self.parameters.control.fastaccess
     flu = self.sequences.fluxes.fastaccess
     sta = self.sequences.states.fastaccess
     aid = self.sequences.aides.fastaccess
     flu.q = sta.qbga+sta.qiga1+sta.qiga2+sta.qdga1+sta.qdga2
-    if flu.q < 0.:
+    if (not con.negq) and (flu.q < 0.):
         d_area = 0.
         for k in range(con.nhru):
             if con.lnk[k] in (FLUSS, SEE):
@@ -1954,7 +2001,7 @@ def calc_q_v1(self):
         if con.lnk[k] == WASSER:
             flu.q += con.fhru[k]*flu.nkor[k]
             aid.epw += con.fhru[k]*flu.evi[k]
-    if flu.q > aid.epw:
+    if (flu.q > aid.epw) or con.negq:
         flu.q -= aid.epw
     elif aid.epw > 0.:
         for k in range(con.nhru):
@@ -1984,35 +2031,38 @@ def pass_q_v1(self):
     out.q[0] += der.qfactor*flu.q
 
 
-class Model(modeltools.Model):
+class Model(modeltools.AdHocModel):
     """Base model for HydPy-L-Land."""
-
-    _RUN_METHODS = (calc_nkor_v1,
-                    calc_tkor_v1,
-                    calc_et0_v1,
-                    calc_et0_v2,
-                    calc_evpo_v1,
-                    calc_nbes_inzp_v1,
-                    calc_evi_inzp_v1,
-                    calc_sbes_v1,
-                    calc_wgtf_v1,
-                    calc_schm_wats_v1,
-                    calc_wada_waes_v1,
-                    calc_evb_v1,
-                    calc_qbb_v1,
-                    calc_qib1_v1,
-                    calc_qib2_v1,
-                    calc_qdb_v1,
-                    calc_bowa_v1,
-                    calc_qbgz_v1,
-                    calc_qigz1_v1,
-                    calc_qigz2_v1,
-                    calc_qdgz_v1,
-                    calc_qdgz1_qdgz2_v1,
-                    calc_qbga_v1,
-                    calc_qiga1_v1,
-                    calc_qiga2_v1,
-                    calc_qdga1_v1,
-                    calc_qdga2_v1,
-                    calc_q_v1)
-    _OUTLET_METHODS = (pass_q_v1,)
+    INLET_METHODS = ()
+    RECEIVER_METHODS = ()
+    RUN_METHODS = (calc_nkor_v1,
+                   calc_tkor_v1,
+                   calc_et0_v1,
+                   calc_et0_wet0_v1,
+                   calc_evpo_v1,
+                   calc_nbes_inzp_v1,
+                   calc_evi_inzp_v1,
+                   calc_sbes_v1,
+                   calc_wgtf_v1,
+                   calc_schm_wats_v1,
+                   calc_wada_waes_v1,
+                   calc_evb_v1,
+                   calc_qbb_v1,
+                   calc_qib1_v1,
+                   calc_qib2_v1,
+                   calc_qdb_v1,
+                   calc_bowa_v1,
+                   calc_qbgz_v1,
+                   calc_qigz1_v1,
+                   calc_qigz2_v1,
+                   calc_qdgz_v1,
+                   calc_qdgz1_qdgz2_v1,
+                   calc_qbga_v1,
+                   calc_qiga1_v1,
+                   calc_qiga2_v1,
+                   calc_qdga1_v1,
+                   calc_qdga2_v1,
+                   calc_q_v1)
+    ADD_METHODS = ()
+    OUTLET_METHODS = (pass_q_v1,)
+    SENDER_METHODS = ()

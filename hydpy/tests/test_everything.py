@@ -67,50 +67,7 @@ pub.options.forcecompiling = False
 from hydpy.auxs.xmltools import XSDWriter
 XSDWriter().write_xsd()
 
-# 1. Perform all "classical" unit tests.
-
-import hydpy.tests
-filenames = filter_filenames(os.listdir(hydpy.tests.__path__[0]))
-unittests = {fn.split('.')[0]: None for fn in filenames if
-             (fn.startswith('unittest') and fn.endswith('.py'))}
-for name in unittests.keys():
-    module = importlib.import_module('hydpy.tests.' + name)
-    suite = unittest.TestLoader().loadTestsFromModule(module)
-    with open(os.devnull, 'w') as file_:
-        runner = unittest.TextTestRunner(stream=file_)
-        unittests[name] = runner.run(suite)
-    unittests[name].nmbproblems = (len(unittests[name].errors) +
-                                   len(unittests[name].failures))
-
-successfulunittests = {name: runner for name, runner in unittests.items()
-                       if not runner.nmbproblems}
-failedunittests = {name: runner for name, runner in unittests.items()
-                   if runner.nmbproblems}
-
-if successfulunittests:
-    print()
-    print('In the following modules, no unit test failed:')
-    for name in sorted(successfulunittests.keys()):
-        print('    %s (%d successes)'
-              % (name, successfulunittests[name].testsRun))
-if failedunittests:
-    print()
-    print('At least one unit test failed in each of the following modules:')
-    for name in sorted(failedunittests.keys()):
-        print('    %s (%d failures/errors)'
-              % (name, failedunittests[name].nmbproblems))
-    for name in sorted(failedunittests.keys()):
-        print()
-        print('Detailed information on module %s:' % name)
-        for idx, problem in enumerate(failedunittests[name].errors +
-                                      failedunittests[name].failures):
-            print('    Problem no. %d:' % (idx+1))
-            print('        %s' % problem[0])
-            for line in problem[1].split('\n'):
-                print('        %s' % line)
-
-# 2. Perform all doctests (first in Python mode, then in Cython mode)
-
+# Perform all tests (first in Python mode, then in Cython mode)
 pub.options.reprcomments = False
 import hydpy
 from hydpy.core import devicetools
@@ -199,53 +156,43 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                             'ignore',
                             message='the imp module is deprecated')
                         runner = unittest.TextTestRunner(stream=file_)
-                        doctests[name] = runner.run(suite)
+                        testresult = runner.run(suite)
+                        doctests[name] = testresult
                     doctests[name].nmbproblems = (
-                        len(doctests[name].errors) +
-                        len(doctests[name].failures))
+                        len(testresult.errors) +
+                        len(testresult.failures))
                     hydpy.dummies.clear()
+                    print(f'\nDetailed error information on module {name}:')
+                    for idx, problem in enumerate(
+                            testresult.errors + testresult.failures):
+                        print(f'    Error no. {idx+1}:')
+                        print(f'        {problem[0]}')
+                        for line in problem[1].split('\n'):
+                            print(f'        {line}')
     successfuldoctests.update({name: runner for (name, runner)
                                in doctests.items() if not runner.nmbproblems})
     faileddoctests.update({name: runner for (name, runner)
                            in doctests.items() if runner.nmbproblems})
 
     if successfuldoctests:
-        print()
-        print('In the following modules, no doc test failed in %s mode:'
-              % mode)
-        for name in sorted(successfuldoctests.keys()):
+        print(f'\nIn the following modules, no doc test failed in {mode} mode:')
+        for name, testresult in sorted(successfuldoctests.items()):
             if name[-4:] in ('.rst', '.pyx'):
-                print('    %s' % name)
+                print(f'    {name}')
             else:
-                print('    %s (%d successes)'
-                      % (name, successfuldoctests[name].testsRun))
+                print(f'    {name} '
+                      f'({testresult} successes)')
     if faileddoctests:
-        print()
-        print('At least one doc test failed in each of the following modules '
-              'in %s mode:' % mode)
-        for name in sorted(faileddoctests.keys()):
-            print('    %s (%d failures/errors)'
-                  % (name, faileddoctests[name].nmbproblems))
-        for name in sorted(faileddoctests.keys()):
-            print()
-            print('Detailed information on module %s:' % name)
-            for idx, problem in enumerate(faileddoctests[name].errors +
-                                          faileddoctests[name].failures):
-                print('    Error no. %d:' % (idx+1))
-                print('        %s' % problem[0])
-                for line in problem[1].split('\n'):
-                    print('        %s' % line)
+        print(f'\nAt least one doc test failed in each of the '
+              f'following modules in {mode} mode:')
+        for name, testresult in sorted(faileddoctests.items()):
+            print(f'    {name} ({testresult.nmbproblems} failures/errors)')
 
-# 3. Perform integration tests.
-
-
-# 4. Return the exit code.
-print('\ntest_everything.py resulted in %d failing unit test suites, '
-      '%d failing doctest suites in Python mode and %d failing '
-      'doctest suites in Cython mode.' % (len(failedunittests),
-                                          len(allfaileddoctests[0]),
-                                          len(allfaileddoctests[1])))
-if failedunittests or allfaileddoctests[0] or allfaileddoctests[1]:
+# Return the exit code.
+print(f'\ntest_everything.py found {len(allfaileddoctests[0])} failing '
+      f'doctest suites in Python mode and {len(allfaileddoctests[1])} '
+      f'failing doctest suites in Cython mode.')
+if allfaileddoctests[0] or allfaileddoctests[1]:
     sys.exit(1)
 else:
     sys.exit(0)

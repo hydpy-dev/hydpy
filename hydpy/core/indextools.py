@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""This module implements tools to determine time related indices."""
+"""This module implements tools to determine time-related indices."""
 # import...
 # ...from standard library
 import copy
@@ -23,24 +23,38 @@ def _get_timegrids(func):
             f'be determined automatically at the moment.   Either define '
             f'an `{name}` array manually and pass it to the Indexer '
             f'object, or make a proper Timegrids object available within '
-            f'the pub module.  In usual HydPy applications, the latter '
-            f'is done automatically.')
+            f'the pub module.')
     return timegrids
 
 
 class IndexerProperty(propertytools.BaseProperty):
-    """Property for handling time related indices.
+    """A property for handling time-related indices.
 
-    Some models (e.g. |lland_v1|) require time related indice values.
-    |IndexerProperty| provides some caching functionalities, to avoid
+    Some models (e.g. |lland_v1|) require time related index values.
+    |IndexerProperty| provides some caching functionalities to avoid
     recalculating the same indices for different model instances over
-    and over.  We illustrate this by taking |Indexer.monthofyear| as
-    an example.
+    and over again.  We illustrate this by taking property
+    |Indexer.monthofyear| as an example.
+
+    Generally, |Indexer| needs to know the relevant initialisation
+    period before being able to calculate any time-related index values.
+    If you forget to define one first, you get the following error
+    message:
+
+
+    >>> from hydpy import pub
+    >>> pub.indexer.monthofyear
+    Traceback (most recent call last):
+    ...
+    hydpy.core.exceptiontools.AttributeNotReady: An Indexer object has \
+been asked for an `monthofyear` array.  Such an array has neither been \
+determined yet nor can it be determined automatically at the moment.   \
+Either define an `monthofyear` array manually and pass it to the Indexer \
+object, or make a proper Timegrids object available within the pub module.
 
     For efficiency, repeated querying of |Indexer.monthofyear| returns
     the same |numpy| |numpy.array| object:
 
-    >>> from hydpy import pub
     >>> pub.timegrids = '27.02.2004', '3.03.2004', '1d'
     >>> monthofyear = pub.indexer.monthofyear
     >>> monthofyear
@@ -59,9 +73,8 @@ class IndexerProperty(propertytools.BaseProperty):
     >>> pub.indexer.monthofyear is monthofyear
     False
 
-    When in doubt, you can delete can manually delete the cached
-    |numpy| |numpy.ndarray| and will receive a freshly calculated
-    index array afterwards:
+    When in doubt, you can manually delete the cached |numpy| |numpy.ndarray|
+    and receive a freshly calculated index array afterwards:
 
     >>> monthofyear = pub.indexer.monthofyear
     >>> pub.indexer.monthofyear is monthofyear
@@ -73,14 +86,39 @@ class IndexerProperty(propertytools.BaseProperty):
     False
 
     You are allowed to define alternative values manually, which
-    seems advisable only during testing:
+    seems advisable only for testing purposes:
 
-    >>> pub.indexer.monthofyear = [0, 1, 2, 3]
+    >>> pub.indexer.monthofyear = 0, 1, 2, 3
     >>> pub.indexer.monthofyear
     array([0, 1, 2, 3])
     >>> pub.timegrids.init.firstdate -= '1d'
     >>> pub.indexer.monthofyear
     array([1, 1, 1, 2, 2])
+
+    When assigning inadequate data, you get errors like the following:
+
+    >>> pub.indexer.monthofyear = 'wrong'
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to assign a new `monthofyear` index array \
+to an Indexer object, the following error occurred: invalid literal for \
+int() with base 10: 'wrong'
+
+    >>> pub.indexer.monthofyear = [[0, 1, 2, 3], [4, 5, 6, 7]]
+    Traceback (most recent call last):
+    ...
+    ValueError: The `monthofyear` index array of an Indexer object \
+must be 1-dimensional.  However, the given value has interpreted as \
+a 2-dimensional object.
+
+    >>> pub.indexer.monthofyear = 0, 1, 2, 3
+    Traceback (most recent call last):
+    ...
+    ValueError: The `monthofyear` index array of an Indexer object must have \
+a number of entries fitting to the initialization time period precisely.  \
+However, the given value has been interpreted to be of length `4` and the \
+length of the Timegrid object representing the actual initialisation \
+period is `5`.
     """
 
     def __init__(self, fget):
@@ -114,10 +152,6 @@ class IndexerProperty(propertytools.BaseProperty):
 
     @staticmethod
     def _convertandtest(values, name):
-        """Try to convert the given values to a |numpy| |numpy.ndarray| and
-        check if it is plausible.  If so, return the array, otherwise raise
-        a |ValueError| or re-raise a |numpy| specific exception.
-        """
         try:
             array = numpy.array(values, dtype=int)
         except BaseException:
@@ -138,15 +172,11 @@ class IndexerProperty(propertytools.BaseProperty):
                     f'period precisely.  However, the given value has been '
                     f'interpreted to be of length `{len(array)}` and the '
                     f'length of the Timegrid object representing the actual '
-                    f'initialization time period is `{len(timegrids.init)}`.')
+                    f'initialisation period is `{len(timegrids.init)}`.')
         return array
 
     @staticmethod
     def _calcidxs(func):
-        """Return the required indexes based on the given lambda function
-        and the |Timegrids| object handled by module |pub|.  Raise a
-        |RuntimeError| if the latter is not available.
-        """
         timegrids = _get_timegrids(func)
         idxs = numpy.empty(len(timegrids.init), dtype=int)
         for jdx, date in enumerate(hydpy.pub.timegrids.init):
@@ -155,10 +185,10 @@ class IndexerProperty(propertytools.BaseProperty):
 
 
 class Indexer:
-    """Handles different |IndexerProperty| objects defining time
-    related indices.
+    """Handles different |IndexerProperty| objects defining time-related
+    indices.
 
-    One can specify the index arrays manually, but usually they are
+    One can specify the index arrays manually, but they are usually
     determined automatically based on the |Timegrids| object made
     available through module |pub|.
     """
@@ -172,10 +202,10 @@ class Indexer:
 
     @IndexerProperty
     def monthofyear(self):
-        """Month of the year index.
+        """Index values, representing the month of the year.
 
-        The following example shows the month indices of the last days
-        February (1) and the first days of March (2) for a leap year:
+        The following example shows the month indices of the last days of
+        February and the first days of March for a leap year:
 
         >>> from hydpy import pub
         >>> pub.timegrids = '27.02.2004', '3.03.2004', '1d'
@@ -191,7 +221,7 @@ class Indexer:
 
     @IndexerProperty
     def dayofyear(self):
-        """Day of the year index (the first of January = 0...).
+        """Index values, representing the month of the year.
 
         For reasons of consistency between leap years and non-leap years,
         assuming a daily time step, index 59 is always associated with the
@@ -215,10 +245,7 @@ class Indexer:
 
     @IndexerProperty
     def timeofyear(self):
-        """Time of the year index (first simulation step of each year = 0...).
-
-        The property |Indexer.timeofyear| is best explained through
-        comparing it with property |Indexer.dayofyear|:
+        """Index values, representing the time of the year.
 
         Let us reconsider one of the examples of the documentation on
         property |Indexer.dayofyear|:
@@ -228,20 +255,20 @@ class Indexer:
         >>> from hydpy.core.indextools import Indexer
         >>> pub.timegrids = '27.02.2005', '3.03.2005', '1d'
 
-        Due to the simulation stepsize being one day, the index arrays
-        calculated by both properties are identical:
+        Due to the simulation step size of one day, the index arrays
+        calculated by properties |Indexer.dayofyear| and |Indexer.timeofyear|
+        are identical:
 
         >>> Indexer().dayofyear
         array([57, 58, 60, 61])
         >>> Indexer().timeofyear
         array([57, 58, 60, 61])
 
-        In the next example the step size is halved:
+        In the next example, we halve the step size:
 
         >>> pub.timegrids = '27.02.2005', '3.03.2005', '12h'
 
-        Now the there a generally two subsequent simulation steps associated
-        with the same day:
+        Now two subsequent simulation steps associated are with the same day:
 
         >>> Indexer().dayofyear
         array([57, 57, 58, 58, 60, 60, 61, 61])

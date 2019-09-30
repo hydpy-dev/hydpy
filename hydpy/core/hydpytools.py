@@ -49,6 +49,7 @@ class HydPy:
     project, which is identical with the name of the project's root
     directory.  Pass `LahnH` to the constructor of class |HydPy|:
 
+    >>> from hydpy import HydPy
     >>> hp = HydPy('LahnH')
 
     So far, our |HydPy| instance does not know any project configurations

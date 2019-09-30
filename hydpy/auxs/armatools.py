@@ -235,8 +235,7 @@ Please check the calculated coefficients: 0.0, 0.0, 0.0, 0.0, 0.75, 0.25.
                 coefs /= numpy.sum(coefs)
                 self.coefs = coefs
                 break
-            else:
-                coefs.append(coef)
+            coefs.append(coef)
 
     @property
     def turningpoint(self):

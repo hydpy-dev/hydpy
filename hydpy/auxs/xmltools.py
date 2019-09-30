@@ -1748,7 +1748,7 @@ class XMLVar(XMLSelector):
         if setitems:
             item = itemclass(alias, master, target, ndim=dim)
         else:
-            base = strip([element for element in self][-1].tag)
+            base = strip(list(self)[-1].tag)
             item = itemclass(alias, master, target, base, ndim=dim)
         self._collect_variables(item)
         item.value = eval(init)

@@ -9,6 +9,8 @@ other test data.
 import os
 import shutil
 from typing import *
+# ...from site-packages
+import numpy
 # ...from HydPy
 import hydpy
 from hydpy import data
@@ -153,7 +155,6 @@ def prepare_io_example_1() -> Tuple[devicetools.Nodes, devicetools.Elements]:
         seq.series = seq.testarray.copy()
         return value2_
 
-    import numpy
     value1 = 0
     for subname, seqname in zip(['inputs', 'fluxes', 'states'],
                                 ['nied', 'nkor', 'bowa']):

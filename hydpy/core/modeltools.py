@@ -11,6 +11,9 @@ https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2009WR008894
 # import...
 # ...from standard library
 import abc
+import importlib
+import inspect
+import itertools
 import os
 import types
 from typing import *
@@ -22,12 +25,28 @@ import numpy
 from hydpy import conf
 from hydpy.core import objecttools
 from hydpy.core import parametertools
+from hydpy.core import sequencetools
 from hydpy.core import typingtools
 from hydpy.cythons import modelutils
 if TYPE_CHECKING:
     from hydpy.core import devicetools
     from hydpy.core import masktools
-    from hydpy.core import sequencetools
+
+
+class Method:
+    """Base class for defining (hydrological) calculation methods."""
+    CONTROLPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
+    DERIVEDPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
+    REQUIREDSEQUENCES: Tuple[Type[typingtools.VariableProtocol], ...] = ()
+    UPDATEDSEQUENCES: Tuple[Type[typingtools.VariableProtocol], ...] = ()
+    RESULTSEQUENCES: Tuple[Type[typingtools.VariableProtocol], ...] = ()
+
+    @staticmethod
+    @abc.abstractmethod
+    def __call__(model: 'Model') -> None:
+        """The actual calculaton function."""
+
+    __name__ = property(objecttools.get_name)
 
 
 class Model:
@@ -46,7 +65,9 @@ class Model:
     OUTLET_METHODS: ClassVar[Tuple[Callable, ...]]
     RECEIVER_METHODS: ClassVar[Tuple[Callable, ...]]
     SENDER_METHODS: ClassVar[Tuple[Callable, ...]]
-    _METHOD_GROUPS: ClassVar[Tuple[str, ...]]
+    METHOD_GROUPS: ClassVar[Tuple[str, ...]]
+
+    SOLVERPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
 
     def __init__(self) -> None:
         self.cymodel = None
@@ -57,13 +78,13 @@ class Model:
         """Convert all pure Python calculation functions of the model class to
         methods and assign them to the model instance.
         """
-        for name_group in self._METHOD_GROUPS:
+        for name_group in self.METHOD_GROUPS:
             functions = getattr(self, name_group, ())
             shortname2method: Dict[str, types.MethodType] = {}
             shortnames: Set[str] = set()
             for func in functions:
-                name_func = func.__name__
-                method = types.MethodType(func, self)
+                method = types.MethodType(func.__call__, self)
+                name_func = func.__name__.lower()
                 setattr(self, name_func, method)
                 shortname = '_'.join(name_func.split('_')[:-1])
                 if shortname not in shortnames:
@@ -389,9 +410,17 @@ any sequences so far.
     def update_inlets(self) -> None:
         """Call all methods defined as "INLET_METHODS" in the defined order.
 
-        >>> from hydpy.core.modeltools import AdHocModel
+        >>> from hydpy.core.modeltools import AdHocModel, Method
+        >>> class print_1(Method):
+        ...     @staticmethod
+        ...     def __call__(self):
+        ...         print(1)
+        >>> class print_2(Method):
+        ...     @staticmethod
+        ...     def __call__(self):
+        ...         print(2)
         >>> class Test(AdHocModel):
-        ...     INLET_METHODS = (lambda self: print(1), lambda self: print(2))
+        ...     INLET_METHODS = print_1, print_2
         >>> Test().update_inlets()
         1
         2
@@ -400,14 +429,22 @@ any sequences so far.
         this generic Python version with a model-specific Cython version.
         """
         for method in self.INLET_METHODS:
-            method(self)
+            method.__call__(self)
 
     def update_outlets(self) -> None:
         """Call all methods defined as "OUTLET_METHODS" in the defined order.
 
-        >>> from hydpy.core.modeltools import AdHocModel
+        >>> from hydpy.core.modeltools import AdHocModel, Method
+        >>> class print_1(Method):
+        ...     @staticmethod
+        ...     def __call__(self):
+        ...         print(1)
+        >>> class print_2(Method):
+        ...     @staticmethod
+        ...     def __call__(self):
+        ...         print(2)
         >>> class Test(AdHocModel):
-        ...     OUTLET_METHODS = (lambda self: print(1), lambda self: print(2))
+        ...     OUTLET_METHODS = print_1, print_2
         >>> Test().update_outlets()
         1
         2
@@ -416,16 +453,22 @@ any sequences so far.
         this generic Python version with a model-specific Cython version.
         """
         for method in self.OUTLET_METHODS:
-            method(self)
+            method.__call__(self)
 
     def update_receivers(self, idx: int) -> None:
         """Call all methods defined as "RECEIVER_METHODS" in the defined order.
 
-        >>> from hydpy.core.modeltools import AdHocModel
+        >>> from hydpy.core.modeltools import AdHocModel, Method
+        >>> class print_1(Method):
+        ...     @staticmethod
+        ...     def __call__(self):
+        ...        print(test.idx_sim+1)
+        >>> class print_2(Method):
+        ...     @staticmethod
+        ...     def __call__(self):
+        ...         print(test.idx_sim+2)
         >>> class Test(AdHocModel):
-        ...     RECEIVER_METHODS = (
-        ...         lambda self: print(test.idx_sim+1),
-        ...         lambda self: print(test.idx_sim+2))
+        ...     RECEIVER_METHODS = print_1, print_2
         >>> test = Test()
         >>> test.update_receivers(1)
         2
@@ -436,16 +479,22 @@ any sequences so far.
         """
         self.idx_sim = idx
         for method in self.RECEIVER_METHODS:
-            method(self)
+            method.__call__(self)
 
     def update_senders(self, idx: int) -> None:
         """Call all methods defined as "SENDER_METHODS" in the defined order.
 
-        >>> from hydpy.core.modeltools import AdHocModel
+        >>> from hydpy.core.modeltools import AdHocModel, Method
+        >>> class print_1(Method):
+        ...     @staticmethod
+        ...     def __call__(self):
+        ...        print(test.idx_sim+1)
+        >>> class print_2(Method):
+        ...     @staticmethod
+        ...     def __call__(self):
+        ...         print(test.idx_sim+2)
         >>> class Test(AdHocModel):
-        ...     SENDER_METHODS = (
-        ...         lambda self: print(test.idx_sim+1),
-        ...         lambda self: print(test.idx_sim+2))
+        ...     SENDER_METHODS = print_1, print_2
         >>> test = Test()
         >>> test.update_senders(1)
         2
@@ -456,7 +505,7 @@ any sequences so far.
         """
         self.idx_sim = idx
         for method in self.SENDER_METHODS:
-            method(self)
+            method.__call__(self)
 
     def new2old(self) -> None:
         """Call method |StateSequences.new2old| of subattribute
@@ -522,8 +571,134 @@ any sequences so far.
     def masks(self, masks: 'masktools.Masks') -> None:
         vars(self)['masks'] = masks
 
+    @classmethod
+    def get_methods(cls) -> Iterator[Method]:
+        """Convenience method for iterating through all methods selected by
+        a |Model| subclass.
+
+        >>> from hydpy.models import hland_v1
+        >>> for method in hland_v1.Model.get_methods():
+        ...     print(method.__name__)   # doctest: +ELLIPSIS
+        calc_tc_v1
+        calc_tmean_v1
+        ...
+        calc_qt_v1
+        update_q_v1
+
+        Note that function |Model.get_methods| returns the "raw" |Method|
+        objects instead of the modified Python or Cython functions used
+        for performing calculations.
+        """
+        for name_group in getattr(cls, 'METHOD_GROUPS', ()):
+            for method in getattr(cls, name_group, ()):
+                yield method
+
     def __str__(self) -> str:
         return self.name
+
+    def __init_subclass__(cls):
+        modulename = cls.__module__
+        if modulename.count('.') > 2:
+            modulename = modulename.rpartition('.')[0]
+        module = importlib.import_module(modulename)
+        modelname = modulename.split('.')[-1]
+
+        allsequences = set()
+        st = sequencetools
+        infos = (
+            (st.InletSequences, st.InletSequence, set()),
+            (st.ReceiverSequences, st.ReceiverSequence, set()),
+            (st.InputSequences, st.InputSequence, set()),
+            (st.FluxSequences, st.FluxSequence, set()),
+            (st.StateSequences, st.StateSequence, set()),
+            (st.LogSequences, st.LogSequence, set()),
+            (st.AideSequences, st.AideSequence, set()),
+            (st.OutletSequences, st.OutletSequence, set()),
+            (st.SenderSequences, st.SenderSequence, set()),
+        )
+        for method in cls.get_methods():
+            for sequence in itertools.chain(
+                    method.REQUIREDSEQUENCES,
+                    method.UPDATEDSEQUENCES,
+                    method.RESULTSEQUENCES):
+                for _, typesequence, sequences in infos:
+                    if issubclass(sequence, typesequence):
+                        sequences.add(sequence)
+        for typesequences, _, sequences in infos:
+            allsequences.update(sequences)
+            classname = objecttools.classname(typesequences)
+            if not hasattr(module, classname):
+                members = {
+                    'CLASSES': cls._sort_variables(sequences),
+                    '__doc__': f'{classname[:-9]} sequences '
+                               f'of model {modelname}.',
+                    '__module__': modulename,
+                }
+                typesequence = type(classname, (typesequences,), members)
+                setattr(module, classname, typesequence)
+
+        controlparameters = set()
+        derivedparameters = set()
+        for host in itertools.chain(cls.get_methods(), allsequences):
+            controlparameters.update(
+                getattr(host, 'CONTROLPARAMETERS', ()))
+            derivedparameters.update(
+                getattr(host, 'DERIVEDPARAMETERS', ()))
+        for par in itertools.chain(controlparameters.copy(),
+                                   derivedparameters.copy(),
+                                   cls.SOLVERPARAMETERS):
+            controlparameters.update(getattr(par, 'CONTROLPARAMETERS', ()))
+            derivedparameters.update(getattr(par, 'DERIVEDPARAMETERS', ()))
+        if controlparameters and not hasattr(module, 'ControlParameters'):
+            module.ControlParameters = type(
+                'ControlParameters',
+                (parametertools.SubParameters,),
+                {'CLASSES': cls._sort_variables(controlparameters),
+                 '__doc__': f'Control parameters of model {modelname}.',
+                 '__module__': modulename},
+            )
+        if derivedparameters and not hasattr(module, 'DerivedParameters'):
+            module.DerivedParameters = type(
+                'DerivedParameters',
+                (parametertools.SubParameters,),
+                {'CLASSES': cls._sort_variables(derivedparameters),
+                 '__doc__': f'Derived parameters of model {modelname}.',
+                 '__module__': modulename},
+            )
+        if cls.SOLVERPARAMETERS and not hasattr(module, 'SolverParameters'):
+            module.SolverParameters = type(
+                'SolverParameters',
+                (parametertools.SubParameters,),
+                {'CLASSES': cls._sort_variables(cls.SOLVERPARAMETERS),
+                 '__doc__': f'Solver parameters of model {modelname}.',
+                 '__module__': modulename},
+            )
+
+    @staticmethod
+    def _sort_variables(variables: Iterable[Type[typingtools.VariableProtocol]]
+                        ) -> Tuple[Type[typingtools.VariableProtocol], ...]:
+        return tuple(var_ for (idx, var_) in sorted(
+            (inspect.getsourcelines(var_)[1], var_) for var_ in variables
+        ))
+
+    # sorting with dependencies, or is the definition order always okay?
+    #
+    # @classmethod
+    # def _sort_derivedparameters(
+    #         cls,
+    #         parameters: Iterable[Type[parametertools.Parameter]]
+    # ) -> Tuple[Type[parametertools.Parameter], ...]:
+    #     dps = []
+    #     for newpar in parameters:
+    #         for idx, oldpar in enumerate(dps):
+    #             print(newpar, oldpar, idx)
+    #             if newpar in getattr(oldpar, 'DERIVEDPARAMETERS', ()):
+    #                 dps.insert(idx, newpar)
+    #                 print('done')
+    #                 break
+    #         else:
+    #             dps.append(newpar)
+    #     return tuple(dps)
 
 
 class AdHocModel(Model):
@@ -537,7 +712,7 @@ class AdHocModel(Model):
 
     RUN_METHODS: ClassVar[Tuple[Callable, ...]]
     ADD_METHODS: ClassVar[Tuple[Callable, ...]]
-    _METHOD_GROUPS = (
+    METHOD_GROUPS = (
         'RUN_METHODS', 'ADD_METHODS',
         'INLET_METHODS', 'OUTLET_METHODS',
         'RECEIVER_METHODS', 'SENDER_METHODS')
@@ -593,9 +768,17 @@ class AdHocModel(Model):
     def run(self) -> None:
         """Call all methods defined as "RUN_METHODS" in the defined order.
 
-        >>> from hydpy.core.modeltools import AdHocModel
+        >>> from hydpy.core.modeltools import AdHocModel, Method
+        >>> class print_1(Method):
+        ...     @staticmethod
+        ...     def __call__(self):
+        ...         print(1)
+        >>> class print_2(Method):
+        ...     @staticmethod
+        ...     def __call__(self):
+        ...         print(2)
         >>> class Test(AdHocModel):
-        ...     RUN_METHODS = (lambda self: print(1), lambda self: print(2))
+        ...     RUN_METHODS = print_1, print_2
         >>> Test().run()
         1
         2
@@ -604,7 +787,7 @@ class AdHocModel(Model):
         this generic Python version with a model-specific Cython version.
         """
         for method in self.RUN_METHODS:
-            method(self)
+            method.__call__(self)
 
 
 class SolverModel(Model):
@@ -736,7 +919,7 @@ class ELSModel(SolverModel):
 
     PART_ODE_METHODS: ClassVar[Tuple[Callable, ...]]
     FULL_ODE_METHODS: ClassVar[Tuple[Callable, ...]]
-    _METHOD_GROUPS = (
+    METHOD_GROUPS = (
         'INLET_METHODS', 'OUTLET_METHODS',
         'RECEIVER_METHODS', 'SENDER_METHODS',
         'PART_ODE_METHODS', 'FULL_ODE_METHODS')
@@ -1118,7 +1301,7 @@ class ELSModel(SolverModel):
         """
         self.numvars.nmb_calls = self.numvars.nmb_calls+1
         for method in self.PART_ODE_METHODS:
-            method(self)
+            method.__call__(self)
 
     def calculate_full_terms(self) -> None:
         """Apply all methods stored in the `FULL_ODE_METHODS` tuple.
@@ -1135,7 +1318,7 @@ class ELSModel(SolverModel):
         0.75
         """
         for method in self.FULL_ODE_METHODS:
-            method(self)
+            method.__call__(self)
 
     def get_point_states(self) -> None:
         """Load the states corresponding to the actual stage.

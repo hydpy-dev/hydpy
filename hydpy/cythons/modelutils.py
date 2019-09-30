@@ -655,15 +655,9 @@ class Cythonizer:
          'testtools.py',
          'variabletools.py',
          'modelutils.py',
-         'hland_control.py',
-         'hland_derived.py',
-         'hland_fluxes.py',
-         'hland_inputs.py',
-         'hland_logs.py',
+         '__init__.py',
          'hland_masks.py',
-         'hland_model.py',
-         'hland_outlets.py',
-         'hland_states.py']
+         'hland_model.py']
 
         However, this is not the case for application model |hland_v1|,
         where the base model files are missing.  Hence, relevant
@@ -1489,7 +1483,7 @@ class PyxWriter:
                 lines.add(2, 'self.idx_sim = idx')
             anything = False
             for method in methods:
-                lines.add(2, f'self.{method.__name__}()')
+                lines.add(2, f'self.{method.__name__.lower()}()')
                 anything = True
             if not anything:
                 lines.add(2, 'pass')
@@ -1816,7 +1810,7 @@ class FuncConverter:
         >>> with pub.options.usecython(False):
         ...     model = prepare_model('hland_v1')
         >>> FuncConverter(model, None, model.calc_tc_v1).argnames
-        ['self']
+        ['model']
         """
         return inspect.getargs(self.func.__code__)[0]
 
@@ -1831,7 +1825,8 @@ class FuncConverter:
         >>> FuncConverter(model, None, model.calc_tc_v1).varnames
         ('self', 'con', 'inp', 'flu', 'k')
         """
-        return self.func.__code__.co_varnames
+        return tuple(vn if vn != 'model' else 'self'
+                     for vn in self.func.__code__.co_varnames)
 
     @property
     def locnames(self) -> List[str]:
@@ -1843,7 +1838,7 @@ class FuncConverter:
         >>> with pub.options.usecython(False):
         ...     model = prepare_model('hland_v1')
         >>> FuncConverter(model, None, model.calc_tc_v1).locnames
-        ['con', 'inp', 'flu', 'k']
+        ['self', 'con', 'inp', 'flu', 'k']
         """
         return [vn for vn in self.varnames if vn not in self.argnames]
 
@@ -1942,16 +1937,20 @@ class FuncConverter:
           * remove the phrase `modelutils`
           * remove all lines containing the phrase `fastaccess`
           * replace all shortcuts with complete reference names
+          * replace "model." with "self."
         """
         code = inspect.getsource(self.func)
         code = '\n'.join(code.split('"""')[::2])
         code = code.replace('modelutils.', '')
+        code = code.replace('model.', 'self.')
         for (name, shortcut) in zip(self.subgroupnames,
                                     self.subgroupshortcuts):
             code = code.replace(f'{shortcut}.', f'self.{name}.')
         code = self.remove_linebreaks_within_equations(code)
         lines = code.splitlines()
         self.remove_imath_operators(lines)
+        del lines[0]   # remove @staticmethod
+        lines = [l[4:] for l in lines]   # unindent
         lines[0] = f'def {self.funcname}(self):'
         lines = [l.split('#')[0] for l in lines]
         lines = [l for l in lines if 'fastaccess' not in l]
@@ -2053,6 +2052,7 @@ self.sequences.inputs.t-self.parameters.control.tcalt[k]*\
         <BLANKLINE>
         """
         lines = ['    '+line for line in self.cleanlines]
+        lines[0] = lines[0].lower()
         lines[0] = lines[0].replace('def ', 'cpdef inline void ')
         lines[0] = lines[0].replace('):', f') {_nogil}:')
         for name in self.untypedarguments:

@@ -37,6 +37,7 @@ from hydpy import exe
 from hydpy import models
 from hydpy import examples
 from hydpy.core import objecttools
+from hydpy.core import sequencetools
 from hydpy.cythons.autogen import annutils
 from hydpy.cythons.autogen import pointerutils
 from hydpy.cythons.autogen import smoothutils
@@ -51,6 +52,11 @@ EXCLUDE_MEMBERS = (
     'SENDER_METHODS',
     'PART_ODE_METHODS',
     'FULL_ODE_METHODS',
+    'CONTROLPARAMETERS',
+    'DERIVEDPARAMETERS',
+    'REQUIREDSEQUENCES',
+    'UPDATESSEQUENCES',
+    'RESULTSEQUENCES',
 )
 
 _PAR_SPEC2CAPT = collections.OrderedDict((('parameters', 'Parameter tools'),
@@ -107,7 +113,8 @@ def _add_lines(specification, module):
                   f'    :exclude-members: {", ".join(EXCLUDE_MEMBERS)}']
     elif exists_collectionclass:
         lines += [f'',
-                  f'.. autoclass:: {module.__name__}.{name_collectionclass}',
+                  f'.. autoclass:: {module.__name__.rpartition(".")[0]}'
+                  f'.{name_collectionclass}',
                   f'    :members:',
                   f'    :show-inheritance:',
                   f'    :exclude-members: {", ".join(EXCLUDE_MEMBERS)}']
@@ -130,7 +137,7 @@ def autodoc_basemodel(module):
     """
     autodoc_tuple2doc(module)
     namespace = module.__dict__
-    doc = namespace.get('__doc__')
+    moduledoc = namespace.get('__doc__')
     basemodulename = namespace['__name__'].split('.')[-1]
     modules = {key: value for key, value in namespace.items()
                if (isinstance(value, types.ModuleType) and
@@ -141,12 +148,13 @@ def autodoc_basemodel(module):
     modulename = basemodulename+'_'+specification
     if modulename in modules:
         module = modules[modulename]
-        lines += _add_title('Model features', '-')
+        lines += _add_title('Method Features', '-')
         lines += _add_lines(specification, module)
         substituter.add_module(module)
-    for (title, spec2capt) in (('Parameter features', _PAR_SPEC2CAPT),
-                               ('Sequence features', _SEQ_SPEC2CAPT),
-                               ('Auxiliary features', _AUX_SPEC2CAPT)):
+    _extend_methoddocstrings(module)
+    for (title, spec2capt) in (('Parameter Features', _PAR_SPEC2CAPT),
+                               ('Sequence Features', _SEQ_SPEC2CAPT),
+                               ('Auxiliary Features', _AUX_SPEC2CAPT)):
         found_module = False
         new_lines = _add_title(title, '-')
         for (specification, caption) in spec2capt.items():
@@ -159,12 +167,71 @@ def autodoc_basemodel(module):
                 substituter.add_module(module)
         if found_module:
             lines += new_lines
-    doc += '\n'.join(lines)
-    namespace['__doc__'] = doc
+    moduledoc += '\n'.join(lines)
+    namespace['__doc__'] = moduledoc
     basemodule = importlib.import_module(namespace['__name__'])
     substituter.add_module(basemodule)
     substituter.update_masters()
     namespace['substituter'] = substituter
+
+
+def _extend_methoddocstrings(module):
+    for method in module.Model.get_methods():
+        insertions = '\n'.join(_get_methoddocstringinsertion(method))
+        position = method.__doc__.find('\n\n')
+        if position == -1:
+            method.__doc__ = '\n\n'.join([method.__doc__, insertions])
+        else:
+            position += 2
+            method.__doc__ = ''.join([
+                method.__doc__[:position],
+                insertions,
+                method.__doc__[position:],
+            ])
+
+
+def _get_methoddocstringinsertion(method):
+    insertions = []
+    for pargroup in ('control', 'derived', 'solver'):
+        pars = getattr(method, f'{pargroup.upper()}PARAMETERS', ())
+        if pars:
+            insertions.append(
+                f'    Required {pargroup} parameters:')
+            for par in pars:
+                insertions.append(
+                    f'      :class:`{par.__module__}.'
+                    f'{objecttools.classname(par)}`')
+            insertions.append('')
+    for statement, tuplename in (
+            ('Required', 'REQUIREDSEQUENCES'),
+            ('Updated', 'UPDATEDSEQUENCES'),
+            ('Calculated', 'RESULTSEQUENCES')):
+        for seqtype in (
+                sequencetools.InletSequence,
+                sequencetools.ReceiverSequence,
+                sequencetools.InputSequence,
+                sequencetools.FluxSequence,
+                sequencetools.StateSequence,
+                sequencetools.LogSequence,
+                sequencetools.AideSequence,
+                sequencetools.OutletSequence,
+                sequencetools.SenderSequence):
+            seqs = [seq for seq in getattr(method, tuplename, ())
+                    if issubclass(seq, seqtype)]
+            if seqs:
+                insertions.append(
+                    f'    {statement} '
+                    f'{objecttools.instancename(seqtype)[-9:]} '
+                    f'sequences:'
+                )
+                for seq in seqs:
+                    insertions.append(
+                        f'      :class:`{seq.__module__}.'
+                        f'{objecttools.classname(seq)}`')
+                insertions.append('')
+    if insertions:
+        insertions.append('')
+    return insertions
 
 
 def autodoc_applicationmodel(module):
@@ -766,7 +833,7 @@ def autodoc_tuple2doc(module):
                     for cls in tuple_:
                         lst.append(
                             f'      * '
-                            f':{type_}:`{cls.__module__}.{cls.__name__}`'
+                            f':{type_}:`~{cls.__module__}.{cls.__name__}`'
                             f' {objecttools.description(cls)}')
                     doc = getattr(member, '__doc__')
                     member.__doc__ = doc + '\n'.join(l for l in lst)

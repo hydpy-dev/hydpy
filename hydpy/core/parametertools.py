@@ -155,8 +155,8 @@ class Parameters:
 
     def _prepare_subpars(self, shortname, kwargs):
         fullname = f'{shortname.capitalize()}Parameters'
-        cls = kwargs.get(fullname,
-                         type(fullname, (SubParameters,), {'CLASSES': ()}))
+        cls = kwargs.get(
+            fullname, type(fullname, (SubParameters,), {'CLASSES': ()}))
         return cls(self,
                    getattr(kwargs.get('cythonmodule'), fullname, None),
                    kwargs.get('cymodel'))

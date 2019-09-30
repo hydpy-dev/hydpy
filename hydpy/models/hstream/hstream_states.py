@@ -67,8 +67,3 @@ occurred: could not broadcast input array from shape (2) into shape (3)
         # pylint: disable=unsubscriptable-object
         # due to a pylint bug (see https://github.com/PyCQA/pylint/issues/870)
         return numpy.full(self.shape, 1./self.shape[0], dtype=float)
-
-
-class StateSequences(sequencetools.StateSequences):
-    """State sequences of the hstream model."""
-    CLASSES = (QJoints,)

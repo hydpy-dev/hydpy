@@ -15,9 +15,3 @@ class Lag(parametertools.Parameter):
 class Damp(parametertools.Parameter):
     """Damping of the hydrograph [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
-
-
-class ControlParameters(parametertools.SubParameters):
-    """Control parameters of hstream, directly defined by the user."""
-    CLASSES = (Lag,
-               Damp)

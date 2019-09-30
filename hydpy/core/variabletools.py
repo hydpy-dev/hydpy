@@ -1817,10 +1817,10 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 class SubVariables(Generic[GroupType]):
     """Base class for |SubParameters| and |SubSequences|.
 
-    Each subclass of class |SubVariables| is thought for handling
-    a certain group of |Parameter| or |Sequence| objects.  One
-    specific example is subclass |InputSequences|, collecting all
-    |InputSequence| objects of a specific hydrological model.
+    Each subclass of class |SubVariables| is thought for handling a certain
+    group of |Parameter| or |Sequence| objects.  One specific example is
+    subclass |sequencetools.InputSequences|, collecting all |InputSequence|
+    objects of a specific hydrological model.
 
     For the following examples, we first prepare a (not fully
     functional) |Variable| subclass:

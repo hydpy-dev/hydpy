@@ -300,12 +300,13 @@ to make any internal data available.
 
     def load_data(self, idx: int) -> None:
         """Call method |ModelIOSequences.load_data| of the handled
-        |InputSequences| object."""
+        |sequencetools.InputSequences| object."""
         self.inputs.load_data(idx)
 
     def save_data(self, idx: int) -> None:
         """Call method |ModelIOSequences.save_data| of the handled
-        |FluxSequences| and |StateSequences| objects."""
+        |sequencetools.FluxSequences| and |sequencetools.StateSequences|
+        objects."""
         self.fluxes.save_data(idx)
         self.states.save_data(idx)
 
@@ -555,8 +556,9 @@ class SubSequences(variabletools.SubVariables[Sequences]):
 
     See the documentation of similar class |SubParameters| for further
     information.  However, note the difference that model developers
-    should not subclass |SubSequences| directly but specialised
-    subclasses like |FluxSequences| or |StateSequences| instead.
+    should not subclass |SubSequences| directly but specialised subclasses
+    like |sequencetools.FluxSequences| or |sequencetools.StateSequences|
+    instead.
     """
 
     @property

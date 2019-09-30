@@ -7,11 +7,16 @@
 import numpy
 # ...from HydPy
 from hydpy.core import parametertools
+from hydpy.models.hstream import hstream_control
 
 
 class NmbSegments(parametertools.Parameter):
     """Number of river segments [-]."""
     NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+
+    CONTROLPARAMETERS = (
+        hstream_control.Lag,
+    )
 
     def update(self):
         """Determines in how many segments the whole reach needs to be
@@ -64,6 +69,10 @@ class C1(parametertools.Parameter):
     """First coefficient of the Muskingum working formula [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., .5)
 
+    CONTROLPARAMETERS = (
+        hstream_control.Damp,
+    )
+
     def update(self):
         """Update |C1| based on :math:`c_1 = \\frac{Damp}{1+Damp}`.
 
@@ -102,9 +111,37 @@ class C1(parametertools.Parameter):
         self(numpy.clip(damp/(1.+damp), 0., .5))
 
 
+class C3(parametertools.Parameter):
+    """Third coefficient of the muskingum working formula [-]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., .5)
+
+    DERIVEDPARAMETERS = (
+        C1,
+    )
+
+    def update(self):
+        """Update |C3| based on :math:`c_1 = c_3`.
+
+        Example:
+
+            >>> from hydpy.models.hstream import *
+            >>> parameterstep('1d')
+            >>> derived.c1 = 0.5
+            >>> derived.c3.update()
+            >>> derived.c3
+            c3(0.5)
+        """
+        self(self.subpars.c1)
+
+
 class C2(parametertools.Parameter):
     """Second coefficient of the muskingum working formula [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
+
+    DERIVEDPARAMETERS = (
+        C1,
+        C3,
+    )
 
     def update(self):
         """Update |C2| based on :math:`c_2 = 1.-c_1-c_3`.
@@ -132,30 +169,3 @@ class C2(parametertools.Parameter):
         """
         der = self.subpars
         self(numpy.clip(1. - der.c1 - der.c3, 0., 1.))
-
-
-class C3(parametertools.Parameter):
-    """Third coefficient of the muskingum working formula [-]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., .5)
-
-    def update(self):
-        """Update |C3| based on :math:`c_1 = c_3`.
-
-        Example:
-
-            >>> from hydpy.models.hstream import *
-            >>> parameterstep('1d')
-            >>> derived.c1 = 0.5
-            >>> derived.c3.update()
-            >>> derived.c3
-            c3(0.5)
-        """
-        self(self.subpars.c1)
-
-
-class DerivedParameters(parametertools.SubParameters):
-    """Derived parameters of hstream, indirectly defined by the user."""
-    CLASSES = (NmbSegments,
-               C1,
-               C3,
-               C2)

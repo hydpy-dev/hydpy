@@ -658,7 +658,7 @@ def prepare_mainsubstituter():
                    typing, platform, math, mimetypes):
         substituter.add_module(module)
     for subpackage in (auxs, core, cythons, exe):
-        for dummy, name, dummy in pkgutil.walk_packages(subpackage.__path__):
+        for _, name, _ in pkgutil.walk_packages(subpackage.__path__):
             full_name = subpackage.__name__ + '.' + name
             substituter.add_module(importlib.import_module(full_name))
     substituter.add_module(examples)

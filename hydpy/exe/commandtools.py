@@ -55,7 +55,9 @@ def run_subprocess(command: str, verbose: bool = True, blocking: bool = True) \
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             encoding='utf-8',
-            shell=True)
+            shell=True,
+            check=False,
+        )
         if verbose:    # due to doctest replacing sys.stdout
             for output in (result1.stdout, result1.stderr):
                 output = output.strip()
@@ -254,7 +256,7 @@ def start_shell(filepath: str = '') -> None:
         filepath_ = '__hydpy_temp__'
         with open('__hydpy_temp__', 'w') as file_:
             file_.write('from hydpy import *')
-    subprocess.run([sys.executable, '-i', filepath_])
+    subprocess.run([sys.executable, '-i', filepath_], check=True)
     if not filepath:
         os.remove(filepath_)
 
@@ -303,9 +305,8 @@ the following error:
                 filenames.append(filename)
         if filenames:
             break
-        else:
-            time.sleep(0.1)
-            now = time.perf_counter()
+        time.sleep(0.1)
+        now = time.perf_counter()
     if not filenames:
         raise FileNotFoundError(
             f'Cannot find a default HydPy log file in directory '

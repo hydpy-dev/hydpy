@@ -423,7 +423,7 @@ directly.  But in complete HydPy applications, it is usally assumed to be \
 consistent with the name of the element handling the model.  Actually, \
 neither a filename is given nor does the model know its master element.
         """
-        if self.conditionsequences:
+        if self.states or self.logs:
             try:
                 dict_ = locals()
                 for seq in self.conditionsequences:
@@ -447,7 +447,7 @@ neither a filename is given nor does the model know its master element.
         further information.
         """
         try:
-            if self.conditionsequences:
+            if self.states or self.logs:
                 con = hydpy.pub.controlmanager
                 lines = [
                     f'# -*- coding: utf-8 -*-\n\n',

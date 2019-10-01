@@ -216,6 +216,7 @@ class Model(modeltools.AdHocModel):
     OUTLET_METHODS = (lstream_model.pass_q_v1,)
     SENDER_METHODS = ()
 
+
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of lstream_v1, directly defined by the user."""
     CLASSES = (lstream_control.Laen,

@@ -1283,6 +1283,8 @@ class OutletSequences(sequencetools.LinkSequences):
 
 class Masks(masktools.Masks):
     """Masks applicable to |lland_v2|."""
+    # pylint: disable=no-member
+    # bug of pylint 2.4?
     CLASSES = lland_masks.Masks.CLASSES
 
 

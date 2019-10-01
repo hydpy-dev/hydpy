@@ -273,6 +273,8 @@ class OutletSequences(sequencetools.LinkSequences):
 
 class Masks(masktools.Masks):
     """Masks applicable to |hstream_v1|."""
+    # pylint: disable=no-member
+    # bug of pylint 2.4?
     CLASSES = hstream_masks.Masks.CLASSES
 
 

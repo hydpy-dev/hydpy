@@ -867,6 +867,7 @@ class Model(modeltools.AdHocModel):
     OUTLET_METHODS = (hland_model.update_q_v1,)
     SENDER_METHODS = ()
 
+
 class ControlParameters(parametertools.SubParameters):
     """Control parameters of |hland_v1|, directly defined by the user."""
     CLASSES = (hland_control.Area,
@@ -985,6 +986,8 @@ class OutletSequences(sequencetools.LinkSequences):
 
 class Masks(masktools.Masks):
     """Masks applicable to |hland_v1|."""
+    # pylint: disable=no-member
+    # bug of pylint 2.4?
     CLASSES = hland_masks.Masks.CLASSES
 
 

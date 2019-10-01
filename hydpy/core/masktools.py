@@ -11,6 +11,7 @@ import numpy
 from hydpy.core import objecttools
 if TYPE_CHECKING:
     from hydpy.core import parametertools
+    from hydpy.core import typingtools
 
 
 class _MaskDescriptor:
@@ -27,8 +28,6 @@ class _MaskDescriptor:
 class BaseMask(numpy.ndarray):
     """Base class for defining |CustomMask| and |DefaultMask| classes."""
 
-    __call__: Callable
-
     def __new__(cls, array=None, **kwargs):
         return cls.array2mask(array, **kwargs)
 
@@ -40,9 +39,6 @@ class BaseMask(numpy.ndarray):
         if array is None:
             return numpy.ndarray.__new__(cls, 0, **kwargs)
         return numpy.asarray(array, **kwargs).view(cls)
-
-    def __contains__(self, other):
-        return numpy.all(self()[other])
 
     def __repr__(self):
         return numpy.ndarray.__repr__(self).replace(', dtype=bool', '')
@@ -93,10 +89,21 @@ class CustomMask(BaseMask):
     >>> mask1 & mask2
     CustomMask([[False, False, False],
                 [False, False, False]])
+
+    Use the `in` operator to check of a mask defines a subset of
+    another mask:
+
+    >>> mask1 in mask3
+    True
+    >>> mask3 in mask1
+    False
     """
 
     def __call__(self, bools):
         return type(self)(bools)
+
+    def __contains__(self, other):
+        return numpy.all(self[other])
 
 
 class DefaultMask(BaseMask):
@@ -131,7 +138,10 @@ class DefaultMask(BaseMask):
     DefaultMask([ True,  True])
     """
 
-    def __new__(cls, variable=None, **kwargs):
+    variable: 'typingtools.VariableProtocol'
+
+    def __new__(cls, variable: Optional['typingtools.VariableProtocol'] = None,
+                **kwargs):
         if variable is None:
             return _MaskDescriptor(cls)
         self = cls.new(variable, **kwargs)
@@ -141,8 +151,11 @@ class DefaultMask(BaseMask):
     def __call__(self, **kwargs):
         return type(self)(self.variable, **kwargs)
 
+    def __contains__(self, other):
+        return numpy.all(self()[other])
+
     @classmethod
-    def new(cls, variable, **kwargs):
+    def new(cls, variable: 'typingtools.VariableProtocol', **kwargs):
         """Return a new |DefaultMask| object associated with the
         given |Variable| object."""
         return cls.array2mask(numpy.full(variable.shape, True), **kwargs)
@@ -160,9 +173,10 @@ class IndexMask(DefaultMask):
     basic usage of class |DefaultMask|.
     """
     RELEVANT_VALUES: Tuple[int, ...]
+    variable: 'typingtools.VariableProtocol'
 
     @classmethod
-    def new(cls, variable, **kwargs):
+    def new(cls, variable: 'typingtools.VariableProtocol', **kwargs):
         """Return a new |IndexMask| object of the same shape as the
         parameter referenced by |property| |IndexMask.refindices|.
         Entries are only |True|, if the integer values of the

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=missing-docstring
 """This module implements some "types" to be used for static (and
 eventually dynamical) typing."""
 # import...

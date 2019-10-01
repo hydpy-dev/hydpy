@@ -326,13 +326,11 @@ attribute `nmb_inputs` first.
 
     @nmb_inputs.setter
     def nmb_inputs(self, value) -> None:
-        # pylint: disable=missing-docstring
         self._cann.nmb_inputs = int(value)
         self.__update_shapes()
 
     @nmb_inputs.deleter
     def nmb_inputs(self) -> None:
-        # pylint: disable=missing-docstring
         pass
 
     @propertytools.ProtectedProperty
@@ -364,7 +362,6 @@ of object `ann` has not been prepared so far.
 
     @nmb_outputs.deleter
     def nmb_outputs(self) -> None:
-        # pylint: disable=missing-docstring
         pass
 
     @propertytools.ProtectedProperty
@@ -398,7 +395,6 @@ of object `ann` has not been prepared so far.
 
     @nmb_neurons.deleter
     def nmb_neurons(self) -> None:
-        # pylint: disable=missing-docstring
         pass
 
     __protectedproperties = propertytools.ProtectedProperties(

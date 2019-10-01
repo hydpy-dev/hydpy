@@ -1184,8 +1184,6 @@ Use method `prepare_models` instead.
 
 
 class Device(Generic[DevicesTypeUnbound]):
-    # pylint: disable=abstract-method
-    # due to pylint issue https://github.com/PyCQA/pylint/issues/179
     """Base class for class |Element| and class |Node|."""
 
     def __new__(cls, value, *args, **kwargs):

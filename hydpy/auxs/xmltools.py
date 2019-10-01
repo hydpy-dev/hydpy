@@ -130,8 +130,6 @@ _ITEMGROUP2ITEMCLASS = {
     'getitems': itemtools.GetItem}
 
 
-# pylint: disable=unused-argument
-# due to pylint issue https://github.com/PyCQA/pylint/issues/1581
 @overload
 def find(root: ElementTree.Element, name: str, optional: Literal[True] = True) \
         -> Optional[ElementTree.Element]:

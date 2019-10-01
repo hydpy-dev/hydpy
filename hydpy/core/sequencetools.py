@@ -3564,7 +3564,6 @@ setting an array element with a sequence.
 
     @left.setter
     def left(self, value):
-        # pylint: disable=unsupported-assignment-operation
         try:
             self.values[0] = value
         except BaseException:

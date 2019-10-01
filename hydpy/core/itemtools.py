@@ -90,7 +90,7 @@ class ExchangeItem:
 
     master: str
     targetspecs: ExchangeSpecification
-    device2target: Dict
+    device2target: Dict[devicetools.Device, variabletools.Variable]
 
     def _iter_relevantelements(self, selections) -> \
             Iterator[devicetools.Element]:
@@ -243,6 +243,7 @@ class ChangeItem(ExchangeItem):
     ndim: int
     shape: Tuple[int, ...]
     _value: numpy.ndarray
+    device2target: Dict[devicetools.Device, variabletools.Variable]
 
     @property
     def value(self) -> numpy.ndarray:
@@ -505,7 +506,8 @@ class MathItem(ChangeItem):
         self.ndim = int(ndim)
         self._value = None
         self.shape = None
-        self.device2target = {}
+        self.device2target: \
+            Dict[devicetools.Device, variabletools.Variable] = {}
         self.device2base = {}
 
     def collect_variables(self, selections) -> None:
@@ -601,7 +603,8 @@ class GetItem(ExchangeItem):
         self.target = target.replace('.', '_')
         self.targetspecs = ExchangeSpecification(master, target)
         self.ndim = 0
-        self.device2target = {}
+        self.device2target: \
+            Dict[devicetools.Device, variabletools.Variable] = {}
         self._device2name: Dict[devicetools.Device, str] = {}
 
     def collect_variables(self, selections) -> None:

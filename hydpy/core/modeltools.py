@@ -42,11 +42,11 @@ class Model:
     cymodel: Optional[typingtools.CyModelProtocol]
     _name: ClassVar[Optional[str]] = None
 
-    INLET_METHODS: Tuple[Callable, ...]
-    OUTLET_METHODS: Tuple[Callable, ...]
-    RECEIVER_METHODS: Tuple[Callable, ...]
-    SENDER_METHODS: Tuple[Callable, ...]
-    _METHOD_GROUPS: Tuple[str, ...]
+    INLET_METHODS: ClassVar[Tuple[Callable, ...]]
+    OUTLET_METHODS: ClassVar[Tuple[Callable, ...]]
+    RECEIVER_METHODS: ClassVar[Tuple[Callable, ...]]
+    SENDER_METHODS: ClassVar[Tuple[Callable, ...]]
+    _METHOD_GROUPS: ClassVar[Tuple[str, ...]]
 
     def __init__(self) -> None:
         self.cymodel = None
@@ -535,8 +535,8 @@ class AdHocModel(Model):
     control (see `Clark and Kavetski`_).
     """
 
-    RUN_METHODS: Tuple[Callable, ...]
-    ADD_METHODS: Tuple[Callable, ...]
+    RUN_METHODS: ClassVar[Tuple[Callable, ...]]
+    ADD_METHODS: ClassVar[Tuple[Callable, ...]]
     _METHOD_GROUPS = (
         'RUN_METHODS', 'ADD_METHODS',
         'INLET_METHODS', 'OUTLET_METHODS',
@@ -611,8 +611,8 @@ class SolverModel(Model):
     """Base class for hydrological models which solve ordinary differential
     equations with numerical integration algorithms."""
 
-    PART_ODE_METHODS: Tuple[Callable, ...]
-    FULL_ODE_METHODS: Tuple[Callable, ...]
+    PART_ODE_METHODS: ClassVar[Tuple[Callable, ...]]
+    FULL_ODE_METHODS: ClassVar[Tuple[Callable, ...]]
 
     @abc.abstractmethod
     def solve(self) -> None:
@@ -734,6 +734,8 @@ class ELSModel(SolverModel):
     to avoid needlessly long simulation times.
     """
 
+    PART_ODE_METHODS: ClassVar[Tuple[Callable, ...]]
+    FULL_ODE_METHODS: ClassVar[Tuple[Callable, ...]]
     _METHOD_GROUPS = (
         'INLET_METHODS', 'OUTLET_METHODS',
         'RECEIVER_METHODS', 'SENDER_METHODS',
@@ -1074,7 +1076,7 @@ class ELSModel(SolverModel):
                 self.extrapolate_error()
                 if self.numvars.idx_method == 1:
                     continue
-                elif self.numvars.error <= self.parameters.solver.abserrormax:
+                if self.numvars.error <= self.parameters.solver.abserrormax:
                     self.numvars.dt_est = (self.numconsts.dt_increase *
                                            self.numvars.dt)
                     self.numvars.f0_ready = False
@@ -1082,16 +1084,15 @@ class ELSModel(SolverModel):
                     self.numvars.t0 = self.numvars.t0+self.numvars.dt
                     self.new2old()
                     break
-                elif ((self.numvars.extrapolated_error >
-                       self.parameters.solver.abserrormax) and
-                      (self.numvars.dt > self.parameters.solver.reldtmin)):
+                if ((self.numvars.extrapolated_error >
+                     self.parameters.solver.abserrormax) and
+                        (self.numvars.dt > self.parameters.solver.reldtmin)):
                     self.numvars.f0_ready = True
                     self.numvars.dt_est = (self.numvars.dt /
                                            self.numconsts.dt_decrease)
                     break
-                else:
-                    self.numvars.last_error = self.numvars.error
-                    self.numvars.f0_ready = True
+                self.numvars.last_error = self.numvars.error
+                self.numvars.f0_ready = True
             else:
                 if self.numvars.dt <= self.parameters.solver.reldtmin:
                     self.numvars.f0_ready = False

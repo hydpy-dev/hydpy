@@ -162,13 +162,14 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
                         len(testresult.errors) +
                         len(testresult.failures))
                     hydpy.dummies.clear()
-                    print(f'\nDetailed error information on module {name}:')
-                    for idx, problem in enumerate(
-                            testresult.errors + testresult.failures):
-                        print(f'    Error no. {idx+1}:')
-                        print(f'        {problem[0]}')
-                        for line in problem[1].split('\n'):
-                            print(f'        {line}')
+                    problems = testresult.errors + testresult.failures
+                    if problems:
+                        print(f'\nDetailed error information on module {name}:')
+                        for idx, problem in enumerate(problems):
+                            print(f'    Error no. {idx+1}:')
+                            print(f'        {problem[0]}')
+                            for line in problem[1].split('\n'):
+                                print(f'        {line}')
     successfuldoctests.update({name: runner for (name, runner)
                                in doctests.items() if not runner.nmbproblems})
     faileddoctests.update({name: runner for (name, runner)

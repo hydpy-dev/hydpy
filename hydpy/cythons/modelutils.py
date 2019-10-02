@@ -684,7 +684,8 @@ class Cythonizer:
          'modelutils.py',
          'hland_v1.py']
         """
-        sourcefiles = set()
+        basepath = hydpy.__path__[0]
+        filepaths = set()
         for child in vars(self).values():
             try:
                 parents = inspect.getmro(child)
@@ -692,11 +693,12 @@ class Cythonizer:
                 continue
             for parent in parents:
                 try:
-                    sourcefile = inspect.getfile(parent)
+                    filepath = inspect.getfile(parent)
                 except TypeError:
-                    break
-                sourcefiles.add(sourcefile)
-        return [sf for sf in sourcefiles if 'hydpy' in sf]
+                    continue
+                if basepath in filepath:
+                    filepaths.add(filepath)
+        return list(filepaths)
 
     @property
     def outdated(self) -> bool:

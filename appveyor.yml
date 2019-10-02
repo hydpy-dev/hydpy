@@ -33,6 +33,7 @@ before_test:
   - "%PYTHON%\\python.exe disable_autodoc.py"
   - "%PYTHON%\\python.exe setup.py install"
   - "%PYTHON%\\python.exe make_and_install_dists.py"
+  - "%PYTHON%\\python.exe -m pip install attrs"
   - "%PYTHON%\\python.exe prepare_hydpy_installer.py"
   - pynsist make_hydpy_installer.cfg
   - "%PYTHON%\\python.exe -m pip uninstall cython --yes"

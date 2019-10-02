@@ -76,9 +76,9 @@ from hydpy.core import testtools
 alldoctests = ({}, {})
 allsuccessfuldoctests = ({}, {})
 allfaileddoctests = ({}, {})
-iterable = zip(('Python', 'Cython'), alldoctests,
-               allsuccessfuldoctests, allfaileddoctests)
-for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
+for (mode, doctests, successfuldoctests, faileddoctests) in zip(
+        ('Python', 'Cython'), alldoctests,
+        allsuccessfuldoctests, allfaileddoctests):
     for dirpath, dirnames, filenames_ in os.walk(hydpy.__path__[0]):
         if (('__init__.py' not in filenames_) or
                 dirpath.endswith('tests') or
@@ -88,7 +88,7 @@ for (mode, doctests, successfuldoctests, faileddoctests) in iterable:
             continue
         filenames_ = filter_filenames(filenames_)
         packagename = dirpath.replace(os.sep, '.')+'.'
-        packagename = packagename[packagename.find('hydpy.'):]
+        packagename = packagename[packagename.rfind('hydpy.'):]
         level = packagename.count('.')-1
         modulenames = [packagename+fn.split('.')[0]
                        for fn in filenames_ if fn.endswith('.py')]

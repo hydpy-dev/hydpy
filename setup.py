@@ -20,6 +20,9 @@ bdist = bdist_wheel or bdist_wininst or bdist_msi or bdist_egg
 debug_cython = 'debug_cython' in sys.argv
 if debug_cython:
     sys.argv.remove('debug_cython')
+abspath = 'abspath' in sys.argv
+if abspath:
+    sys.argv.remove('abspath')
 
 if install:
     from distutils.core import setup
@@ -201,6 +204,20 @@ if install:
         path = os.path.abspath(path)
         print_('\tpath')
         sys.path.insert(0, path)
+
+    # insert the path to the Python executable into the shebang line
+    # of script `hyd.py`, if given:
+    if abspath:
+        print_("\nModify the shebang line of 'hyd.py:")
+        scriptpath = sys.path[0]
+        while not os.path.exists(os.path.join(scriptpath, 'Scripts')):
+            scriptpath = os.path.split(scriptpath)[0]
+        scriptpath = os.path.join(scriptpath, 'Scripts', 'hyd.py')
+        with open(scriptpath) as scriptfile:
+            lines = scriptfile.readlines()
+        lines[0] = f'#!{sys.executable}\n'
+        with open(scriptpath, 'w') as scriptfile:
+            scriptfile.writelines(lines)
 
     # Move `sitecustomize.py` into the site-packages folder for
     # complete measuring code coverage of multiple processes.

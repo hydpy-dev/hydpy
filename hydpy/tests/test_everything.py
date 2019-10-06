@@ -151,7 +151,7 @@ for (mode, doctests, successfuldoctests, faileddoctests) in zip(
                         warnings.filterwarnings(
                             'ignore', message="numpy.ufunc size changed")
                         warnings.filterwarnings(
-                            'ignore', r'elementwise comparison failed')
+                            'ignore', r'elementwise')
                         warnings.filterwarnings(
                             'ignore',
                             message='the imp module is deprecated')

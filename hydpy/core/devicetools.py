@@ -1712,10 +1712,21 @@ the given group name `test`.
 
         >>> from matplotlib import pyplot
         >>> from hydpy.docs import figs
-        >>> pyplot.savefig(figs.__path__[0] + '/Node_plot_allseries.png')
+        >>> pyplot.savefig(figs.__path__[0] + '/Node_plot_allseries_1.png')
         >>> pyplot.close()
 
-        .. image:: Node_plot_allseries.png
+        .. image:: Node_plot_allseries_1.png
+
+        You can overwrite the time-series label, but doing so is most likely
+        useful when plotting the time-series individually, of course:
+
+        >>> lahn_1.plot_obsseries(color='blue', label='measured')
+        >>> lahn_1.plot_simseries(color='red', label='calculated')
+        >>> pyplot.savefig(figs.__path__[0] + '/Node_plot_allseries_2.png')
+        >>> pyplot.close()
+
+        .. image:: Node_plot_allseries_2.png
+
         """
         self.__plot_series(self.sequences, kwargs)
 
@@ -1736,10 +1747,13 @@ the given group name `test`.
     def __plot_series(self, sequences: Iterable[sequencetools.IOSequence],
                       kwargs: Dict) -> None:
         index = _get_pandasindex()
+        defaultlabel = 'label' in kwargs
         for sequence in sequences:
-            name = ' '.join((self.name, sequence.name))
             ps = pandas.Series(sequence.series, index=index)
-            ps.plot(label=name, **kwargs)
+            if defaultlabel:
+                ps.plot(**kwargs)
+            else:
+                ps.plot(label=' '.join((self.name, sequence.name)), **kwargs)
         pyplot.legend()
         if pyplot.get_fignums():
             variable = self.variable

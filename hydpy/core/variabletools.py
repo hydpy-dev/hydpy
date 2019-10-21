@@ -1103,14 +1103,15 @@ occurred: could not broadcast input array from shape (2) into shape (2,3)
 
     def _prepare_setvalue(self, value):
         if self.NDIM:
+            type_ = int if self.TYPE is bool else self.TYPE
             value = getattr(value, 'value', value)
             try:
-                value = numpy.full(self.shape, value, dtype=self.TYPE)
+                value = numpy.full(self.shape, value, dtype=type_)
             except BaseException:
                 objecttools.augment_excmessage(
                     f'While trying to convert the value(s) `{value}` '
                     f'to a numpy ndarray with shape `{self.shape}` '
-                    f'and type `{objecttools.classname(self.TYPE)}`')
+                    f'and type `{objecttools.classname(type_)}`')
         else:
             if isinstance(value, Sequence):
                 if len(value) > 1:
@@ -1284,8 +1285,9 @@ as `var` can only be `()`, but `(2,)` is given.
         initvalue, initflag = self.initinfo
         if self.NDIM:
             try:
+                type_ = int if self.TYPE is bool else self.TYPE
                 array: numpy.ndarray = numpy.full(
-                    shape, initvalue, dtype=self.TYPE)
+                    shape, initvalue, dtype=type_)
             except BaseException:
                 setattr(self.fastaccess, self.name, None)
                 objecttools.augment_excmessage(

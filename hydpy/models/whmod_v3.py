@@ -22,7 +22,9 @@ from hydpy.models.whmod import whmod_masks
 from hydpy.models.whmod.whmod_constants import *
 
 
-class Model(modeltools.Model):
+class Model(modeltools.AdHocModel):
+    INLET_METHODS = ()
+    RECEIVER_METHODS = ()
     RUN_METHODS = (
         whmod_model.calc_niederschlagrichter_v1,
         whmod_model.calc_maxverdunstung_v2,
@@ -39,8 +41,11 @@ class Model(modeltools.Model):
         whmod_model.calc_potkapilaufstieg_v1,
         whmod_model.calc_kapilaufstieg_v1,
         whmod_model.calc_aktbodenwassergehalt_v1,
-        whmod_model.calc_aktgrundwasserneubildung_v1)
+        whmod_model.calc_aktgrundwasserneubildung_v1,
+    )
+    ADD_METHODS = ()
     OUTLET_METHODS = ()
+    SENDER_METHODS = ()
 
 
 class ControlParameters(parametertools.SubParameters):
@@ -60,7 +65,8 @@ class ControlParameters(parametertools.SubParameters):
         whmod_control.MaxWurzeltiefe,
         whmod_control.MinhasR,
         whmod_control.KapilSchwellwert,
-        whmod_control.KapilGrenzwert)
+        whmod_control.KapilGrenzwert,
+    )
 
 
 class DerivedParameters(parametertools.SubParameters):
@@ -69,14 +75,16 @@ class DerivedParameters(parametertools.SubParameters):
         whmod_derived.RelArea,
         whmod_derived.Wurzeltiefe,
         whmod_derived.nFKwe,
-        whmod_derived.Beta)
+        whmod_derived.Beta,
+    )
 
 
 class InputSequences(sequencetools.InputSequences):
     CLASSES = (
         whmod_inputs.Niederschlag,
         whmod_inputs.Temp_TM,
-        whmod_inputs.ET0)
+        whmod_inputs.ET0,
+    )
 
 
 class FluxSequences(sequencetools.FluxSequences):
@@ -95,14 +103,16 @@ class FluxSequences(sequencetools.FluxSequences):
         whmod_fluxes.AktVerdunstung,
         whmod_fluxes.PotKapilAufstieg,
         whmod_fluxes.KapilAufstieg,
-        whmod_fluxes.AktGrundwasserneubildung)
+        whmod_fluxes.AktGrundwasserneubildung,
+    )
 
 
 class StateSequences(sequencetools.StateSequences):
     CLASSES = (
         whmod_states.Interzeptionsspeicher,
         whmod_states.Schneespeicher,
-        whmod_states.AktBodenwassergehalt)
+        whmod_states.AktBodenwassergehalt,
+    )
 
 
 class Masks(masktools.Masks):
@@ -119,9 +129,10 @@ class Masks(masktools.Masks):
         whmod_masks.NutzZuckerrueben,
         whmod_masks.NutzVersiegelt,
         whmod_masks.NutzWasser,
-        whmod_masks.BodenTypMask)
+        whmod_masks.BodenTypMask,
+    )
 
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.complete()
+cythonizer.finalise()

@@ -1161,7 +1161,9 @@ def calc_aktgrundwasserneubildung_v1(self):
                 flu.sickerwasser[k] - flu.kapilaufstieg[k])
 
 
-class Model(modeltools.Model):
+class Model(modeltools.AdHocModel):
+    INLET_METHODS = ()
+    RECEIVER_METHODS = ()
     RUN_METHODS = (calc_niederschlagrichter_v1,
                    calc_niednachinterz_v1,
                    calc_niednachinterz_v2,
@@ -1184,4 +1186,6 @@ class Model(modeltools.Model):
                    calc_kapilaufstieg_v1,
                    calc_aktbodenwassergehalt_v1,
                    calc_aktgrundwasserneubildung_v1)
+    ADD_METHODS = ()
     OUTLET_METHODS = ()
+    SENDER_METHODS = ()

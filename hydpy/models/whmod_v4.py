@@ -22,7 +22,9 @@ from hydpy.models.whmod import whmod_masks
 from hydpy.models.whmod.whmod_constants import *
 
 
-class Model(modeltools.Model):
+class Model(modeltools.AdHocModel):
+    INLET_METHODS = ()
+    RECEIVER_METHODS = ()
     RUN_METHODS = (
         whmod_model.calc_niederschlagrichter_v1,
         whmod_model.calc_maxverdunstung_v2,
@@ -40,7 +42,9 @@ class Model(modeltools.Model):
         whmod_model.calc_kapilaufstieg_v1,
         whmod_model.calc_aktbodenwassergehalt_v1,
         whmod_model.calc_aktgrundwasserneubildung_v1)
+    ADD_METHODS = ()
     OUTLET_METHODS = ()
+    SENDER_METHODS = ()
 
 
 class ControlParameters(parametertools.SubParameters):
@@ -124,4 +128,4 @@ class Masks(masktools.Masks):
 
 tester = Tester()
 cythonizer = Cythonizer()
-cythonizer.complete()
+cythonizer.finalise()

@@ -12,23 +12,8 @@ from hydpy.core import parametertools
 from hydpy.models.whmod.whmod_constants import *
 
 
-class MOY(parametertools.IndexParameter):
+class MOY(parametertools.MOYParameter):
     """References the "global" month of the year index array [-]."""
-    NDIM, TYPE, TIME, SPAN = 1, int, None, (0, 11)
-
-    def update(self):
-        """Reference the actual |Indexer.monthofyear| array of the
-        |Indexer| object stored in module |pub|.
-
-        >>> from hydpy import pub
-        >>> pub.timegrids = '27.02.2004', '3.03.2004', '1d'
-        >>> from hydpy.models.whmod import *
-        >>> parameterstep()
-        >>> derived.moy.update()
-        >>> derived.moy
-        moy(1, 1, 1, 2, 2)
-        """
-        self.setreference(pub.indexer.monthofyear)
 
 
 class RelArea(parametertools.Parameter):

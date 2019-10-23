@@ -228,8 +228,6 @@ NotImplementedError: NDIM of sequence `q` is higher than expected.
 import copy
 import distutils.core
 import distutils.extension
-# from Cython import Build (the actual import command has been moved to method
-# `compile_` of class `Cythonizer` to keep installing Cython optional)
 # pylint: enable=no-name-in-module
 # pylint: enable=import-error
 import functools
@@ -248,6 +246,7 @@ import numpy
 import hydpy
 from hydpy import config
 from hydpy import cythons
+from hydpy.core import exceptiontools
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
@@ -257,6 +256,7 @@ from hydpy.core import sequencetools
 from hydpy.core import testtools
 if TYPE_CHECKING:
     from hydpy.core import typingtools
+build = exceptiontools.OptionalImport('build', ['Cython.Build'], locals())
 
 
 def get_dllextension() -> str:
@@ -788,13 +788,12 @@ class Cythonizer:
 
     def compile_(self) -> None:
         """Translate Cython code to C code and compile it."""
-        from Cython import Build
         argv = copy.deepcopy(sys.argv)
         sys.argv = [sys.argv[0], 'build_ext', '--build-lib='+self.buildpath]
         exc_modules = [distutils.extension.Extension(
             'hydpy.cythons.autogen.'+self.cyname,
             [self.pyxfilepath], extra_compile_args=['-O2'])]
-        distutils.core.setup(ext_modules=Build.cythonize(exc_modules),
+        distutils.core.setup(ext_modules=build.cythonize(exc_modules),
                              include_dirs=[numpy.get_include()])
         sys.argv = argv
 

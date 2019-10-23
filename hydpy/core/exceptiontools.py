@@ -43,6 +43,15 @@ class OptionalImport:
 load one of the following modules: `numpie`.  These modules are no general \
 requirement but installing at least one of them is necessary for some \
 specific functionalities.
+
+    Note the very special case that |OptionalImport| raises a plain
+    |AttributeError| when asked for the attribute `__wrapped__` (to avoid
+    trouble when applying function `wrapt` of module |inspect|):
+
+    >>> numpie.__wrapped__
+    Traceback (most recent call last):
+    ...
+    AttributeError
     """
 
     def __init__(
@@ -58,6 +67,8 @@ specific functionalities.
         self._hooks = hooks
 
     def __getattr__(self, name: str) -> Any:
+        if name == '__wrapped__':
+            raise AttributeError
         module = None
         for modulename in self._modules:
             try:

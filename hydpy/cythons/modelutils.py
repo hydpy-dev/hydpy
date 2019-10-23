@@ -933,7 +933,8 @@ class PyxWriter:
         """Import command lines."""
         return Lines('import numpy',
                      'cimport numpy',
-                     'from libc.math cimport exp, fabs, log',
+                     'from libc.math cimport exp, fabs, log, '
+                     'sin, cos, tan, asin, acos, atan',
                      'from libc.stdio cimport *',
                      'from libc.stdlib cimport *',
                      'import cython',
@@ -2067,18 +2068,126 @@ self.sequences.inputs.t-self.parameters.control.tcalt[k]*\
 
 
 def exp(double: float) -> float:
-    """Cython wrapper the |numpy.exp| function of module |numpy| applied
-    on a single |float| object."""
+    """Cython wrapper for the |numpy.exp| function of module |numpy| applied
+    on a single |float| object.
+
+    >>> from hydpy.cythons.modelutils import exp
+    >>> from unittest import mock
+    >>> with mock.patch('numpy.exp') as func:
+    ...     _ = exp(123.4)
+    >>> func.call_args
+    call(123.4)
+    """
     return numpy.exp(double)
 
 
 def log(double: float) -> float:
-    """Cython wrapper the |numpy.log| function of module |numpy| applied
-    on a single |float| object."""
+    """Cython wrapper for the |numpy.log| function of module |numpy| applied
+    on a single |float| object.
+
+    >>> from hydpy.cythons.modelutils import log
+    >>> from unittest import mock
+    >>> with mock.patch('numpy.log') as func:
+    ...     _ = log(123.4)
+    >>> func.call_args
+    call(123.4)
+    """
     return numpy.log(double)
 
 
 def fabs(double: float) -> float:
-    """Cython wrapper the |math.exp| function of module |math| applied
-    on a single |float| object."""
+    """Cython wrapper for the |math.exp| function of module |math| applied
+    on a single |float| object.
+
+    >>> from hydpy.cythons.modelutils import fabs
+    >>> from unittest import mock
+    >>> with mock.patch('math.fabs') as func:
+    ...     _ = fabs(123.4)
+    >>> func.call_args
+    call(123.4)
+    """
     return math.fabs(double)
+
+
+def sin(double: float) -> float:
+    """Cython wrapper for the |numpy.sin| function of module |numpy| applied
+    on a single |float| object.
+
+    >>> from hydpy.cythons.modelutils import sin
+    >>> from unittest import mock
+    >>> with mock.patch('numpy.sin') as func:
+    ...     _ = sin(123.4)
+    >>> func.call_args
+    call(123.4)
+    """
+    return numpy.sin(double)
+
+
+def cos(double: float) -> float:
+    """Cython wrapper for the |numpy.cos| function of module |numpy| applied
+    on a single |float| object.
+
+    >>> from hydpy.cythons.modelutils import cos
+    >>> from unittest import mock
+    >>> with mock.patch('numpy.cos') as func:
+    ...     _ = cos(123.4)
+    >>> func.call_args
+    call(123.4)
+    """
+    return numpy.cos(double)
+
+
+def tan(double: float) -> float:
+    """Cython wrapper for the |numpy.tan| function of module |numpy| applied
+    on a single |float| object.
+
+    >>> from hydpy.cythons.modelutils import tan
+    >>> from unittest import mock
+    >>> with mock.patch('numpy.tan') as func:
+    ...     _ = tan(123.4)
+    >>> func.call_args
+    call(123.4)
+    """
+    return numpy.tan(double)
+
+
+def asin(double: float) -> float:
+    """Cython wrapper for the |numpy.arcsin| function of module |numpy| applied
+    on a single |float| object.
+
+    >>> from hydpy.cythons.modelutils import asin
+    >>> from unittest import mock
+    >>> with mock.patch('numpy.arcsin') as func:
+    ...     _ = asin(123.4)
+    >>> func.call_args
+    call(123.4)
+    """
+    return numpy.arcsin(double)
+
+
+def acos(double: float) -> float:
+    """Cython wrapper for the |numpy.arccos| function of module |numpy| applied
+    on a single |float| object.
+
+    >>> from hydpy.cythons.modelutils import acos
+    >>> from unittest import mock
+    >>> with mock.patch('numpy.arccos') as func:
+    ...     _ = acos(123.4)
+    >>> func.call_args
+    call(123.4)
+    """
+    return numpy.arccos(double)
+
+
+def atan(double: float) -> float:
+    """Cython wrapper for the |numpy.arctan| function of module |numpy| applied
+    on a single |float| object.
+
+    >>> from hydpy.cythons.modelutils import atan
+    >>> from unittest import mock
+    >>> with mock.patch('numpy.arctan') as func:
+    ...     _ = atan(123.4)
+    >>> func.call_args
+    call(123.4)
+    """
+    return numpy.arctan(double)

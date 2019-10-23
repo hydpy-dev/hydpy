@@ -2916,6 +2916,33 @@ class MOYParameter(Parameter):
         self.__hydpy__set_value__(indexarray)
 
 
+class DOYParameter(Parameter):
+    """References the |Indexer.dayofyear| index array provided by the
+     instance of class |Indexer| available in module |pub| [-]."""
+    NDIM = 1
+    TYPE = int
+    TIME = None
+    SPAN = (0, 365)
+
+    def update(self) -> None:
+        """Reference the actual |Indexer.dayofyear| array of the
+        |Indexer| object available in module |pub|.
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = '27.02.2004', '3.03.2004', '1d'
+        >>> from hydpy.core.parametertools import DOYParameter
+        >>> doyparameter = DOYParameter(None)
+        >>> doyparameter.update()
+        >>> doyparameter
+        doyparameter(57, 58, 59, 60, 61)
+        """
+        # pylint: disable=no-member
+        # pylint does not understand descriptors well enough, so far
+        indexarray = hydpy.pub.indexer.dayofyear
+        self.__hydpy__set_shape__(indexarray.shape)
+        self.__hydpy__set_value__(indexarray)
+
+
 class FastAccessParameter(variabletools.FastAccess):
     """Used as a surrogate for typed Cython classes handling parameters
     when working in pure Python mode."""

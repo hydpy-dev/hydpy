@@ -28,7 +28,7 @@ install:
   - pip install pylint
   - pip install typing_extensions
   - pip install wrapt
-  - pip install xmlschema==1.0.9
+  - pip install xmlschema
   - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then pip install sphinx; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then pip install travis-sphinx; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.7" ] ; then pip install sphinxcontrib-fulltoc; fi

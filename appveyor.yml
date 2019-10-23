@@ -25,7 +25,7 @@ install:
   - "%PYTHON%\\python.exe -m pip install twine"
   - "%PYTHON%\\python.exe -m pip install wheel"
   - "%PYTHON%\\python.exe -m pip install wrapt"
-  - "%PYTHON%\\python.exe -m pip install xmlschema==1.0.9"
+  - "%PYTHON%\\python.exe -m pip install xmlschema"
 
 build: off
 

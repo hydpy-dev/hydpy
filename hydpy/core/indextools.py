@@ -153,7 +153,8 @@ period is `5`.
     @staticmethod
     def _convertandtest(values, name):
         try:
-            array = numpy.array(values, dtype=int)
+            type_ = float if isinstance(values[0], float) else int
+            array = numpy.array(values, dtype=type_)
         except BaseException:
             objecttools.augment_excmessage(
                 f'While trying to assign a new `{name}` '
@@ -178,7 +179,8 @@ period is `5`.
     @staticmethod
     def _calcidxs(func):
         timegrids = _get_timegrids(func)
-        idxs = numpy.empty(len(timegrids.init), dtype=int)
+        type_ = type(func(timegrids.init[0]))
+        idxs = numpy.empty(len(timegrids.init), dtype=type_)
         for jdx, date in enumerate(hydpy.pub.timegrids.init):
             idxs[jdx] = func(date)
         return idxs
@@ -294,3 +296,40 @@ class Indexer:
             timetools.Date('2001.01.01'),
             _get_timegrids(_timeofyear).stepsize)
         return _timeofyear
+
+    @IndexerProperty
+    def standardclocktime(self):
+        """Standard clock time at the midpoints of the initialisation time
+        steps in seconds.
+
+        Note that the standard clock time is not usable as an index.  Hence,
+        we might later move property |Indexer.standardclocktime| somewhere
+        else or give class |Indexer| a more general purpose (and name) later.
+
+        The following examples demonstrate the calculation of the standard
+        clock time for simulation step sizes of one day, one hour, one minute,
+        and one second, respectively:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = '27.02.2004', '3.03.2004', '1d'
+        >>> list(pub.indexer.standardclocktime)
+        [43200.0, 43200.0, 43200.0, 43200.0, 43200.0]
+
+        >>> pub.timegrids = '27.02.2004 21:00', '28.02.2004 03:00', '1h'
+        >>> list(pub.indexer.standardclocktime)
+        [77400.0, 81000.0, 84600.0, 1800.0, 5400.0, 9000.0]
+
+        >>> pub.timegrids = '27.02.2004 23:57:0', '28.02.2004 00:03:00', '1m'
+        >>> list(pub.indexer.standardclocktime)
+        [86250.0, 86310.0, 86370.0, 30.0, 90.0, 150.0]
+
+        >>> pub.timegrids = '27.02.2004 23:59:57', '28.02.2004 00:00:03', '1s'
+        >>> list(pub.indexer.standardclocktime)
+        [86397.5, 86398.5, 86399.5, 0.5, 1.5, 2.5]
+        """
+        # pylint: disable=no-self-use
+        # pylint does not understand descriptors well enough, so far
+        def _standardclocktime(date):
+            t0 = (date.hour*60+date.minute)*60+date.second
+            return t0 + hydpy.pub.timegrids.stepsize.seconds/2.
+        return _standardclocktime

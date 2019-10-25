@@ -2864,7 +2864,7 @@ class SecondsParameter(Parameter):
 
 class TOYParameter(Parameter):
     """References the |Indexer.timeofyear| index array provided by the
-     instance of class |Indexer| available in module |pub|. [-]."""
+    instance of class |Indexer| available in module |pub|. [-]."""
     NDIM = 1
     TYPE = int
     TIME = None
@@ -2891,7 +2891,7 @@ class TOYParameter(Parameter):
 
 class MOYParameter(Parameter):
     """References the |Indexer.monthofyear| index array provided by the
-     instance of class |Indexer| available in module |pub| [-]."""
+    instance of class |Indexer| available in module |pub| [-]."""
     NDIM = 1
     TYPE = int
     TIME = None
@@ -2918,7 +2918,7 @@ class MOYParameter(Parameter):
 
 class DOYParameter(Parameter):
     """References the |Indexer.dayofyear| index array provided by the
-     instance of class |Indexer| available in module |pub| [-]."""
+    instance of class |Indexer| available in module |pub| [-]."""
     NDIM = 1
     TYPE = int
     TIME = None
@@ -2941,6 +2941,33 @@ class DOYParameter(Parameter):
         indexarray = hydpy.pub.indexer.dayofyear
         self.__hydpy__set_shape__(indexarray.shape)
         self.__hydpy__set_value__(indexarray)
+
+
+class SCTParameter(Parameter):
+    """References the |Indexer.standardclocktime| array provided by the
+    instance of class |Indexer| available in module |pub| [-]."""
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (0., 86400.)
+
+    def update(self) -> None:
+        """Reference the actual |Indexer.standardclocktime| array of the
+        |Indexer| object available in module |pub|.
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = '27.02.2004 21:00', '28.02.2004 03:00', '1h'
+        >>> from hydpy.core.parametertools import SCTParameter
+        >>> sctparameter = SCTParameter(None)
+        >>> sctparameter.update()
+        >>> sctparameter
+        sctparameter(77400.0, 81000.0, 84600.0, 1800.0, 5400.0, 9000.0)
+        """
+        # pylint: disable=no-member
+        # pylint does not understand descriptors well enough, so far
+        array = hydpy.pub.indexer.standardclocktime
+        self.__hydpy__set_shape__(array.shape)
+        self.__hydpy__set_value__(array)
 
 
 class FastAccessParameter(variabletools.FastAccess):

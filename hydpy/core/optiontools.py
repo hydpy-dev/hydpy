@@ -195,9 +195,15 @@ class Options:
     usedefaultvalues = _Option(False, None)
     """A True/False flag for initialising parameters with standard values."""
 
+    utclongitude = _Option(15, None)
+    """Longitude of the centre of the local time zone (see option
+    |Options.utcoffset|).  Defaults to 15,  which corresponds to the 
+    central meridian of UTC+01:00."""
+
     utcoffset = _Option(60, None)
-    """Offset of your local time from UTC in minutes.  Defaults to 60,
-    which corresponds to UTC+01:00."""
+    """Offset of your local time from UTC in minutes (see option 
+    |Options.utclongitude|.  Defaults to 60, which corresponds to 
+    UTC+01:00."""
 
     warnmissingcontrolfile = _Option(False, None)
     """A True/False flag for only raising a warning instead of an exception

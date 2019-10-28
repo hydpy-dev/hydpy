@@ -126,6 +126,8 @@ for (mode, doctests, successfuldoctests, faileddoctests) in zip(
                         opt.reprdigits(6), \
                         opt.timeaxisnetcdf(1), \
                         opt.usedefaultvalues(False), \
+                        opt.utclongitude(15), \
+                        opt.utcoffset(60), \
                         opt.warnsimulationstep(False), \
                         opt.warntrim(False), \
                         Par.parameterstep.delete(), \

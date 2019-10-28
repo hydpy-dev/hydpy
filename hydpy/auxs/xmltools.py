@@ -521,6 +521,7 @@ correctly refer to one of the available XML schema files \
             trimvariables -> 1
             usecython -> 1
             usedefaultvalues -> 0
+            utclongitude -> 15
             utcoffset -> 60
             warnmissingcontrolfile -> 0
             warnmissingobsfile -> 1

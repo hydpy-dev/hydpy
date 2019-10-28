@@ -270,14 +270,15 @@ hydpy.models.hland.hland_control.ZoneType
                 # pylint does understand that all options are callable
                 # except option `printincolor`!?
                 with StdOutErr(indent=8), \
-                        opt.usedefaultvalues(False), \
-                        opt.usedefaultvalues(False), \
-                        opt.printprogress(False), \
-                        opt.printincolor(False), \
-                        opt.warnsimulationstep(False), \
-                        opt.reprcomments(False), \
                         opt.ellipsis(0), \
+                        opt.printincolor(False), \
+                        opt.printprogress(False), \
+                        opt.reprcomments(False), \
                         opt.reprdigits(6), \
+                        opt.usedefaultvalues(False), \
+                        opt.utclongitude(15), \
+                        opt.utcoffset(60), \
+                        opt.warnsimulationstep(False), \
                         opt.warntrim(False), \
                         par.parameterstep.delete(), \
                         par.simulationstep.delete():

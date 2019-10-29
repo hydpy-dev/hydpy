@@ -1895,7 +1895,8 @@ class Update_ActualRemoteRelieve_V1(modeltools.Method):
 
         >>> highestremotedischarge(4.0)
         >>> from hydpy import UnitTest
-        >>> test = UnitTest(model, model.update_actualremoterelieve_v1,
+        >>> test = UnitTest(model,
+        ...                 model.update_actualremoterelieve_v1,
         ...                 last_example=8,
         ...                 parseqs=(fluxes.actualremoterelieve,))
         >>> test.nexts.actualremoterelieve = range(8)
@@ -2003,7 +2004,8 @@ class Update_ActualRemoteRelease_V1(modeltools.Method):
         value of parameter |ActualRemoteRelease| of 2 m³/s:
 
         >>> from hydpy import UnitTest
-        >>> test = UnitTest(model, model.update_actualremoterelease_v1,
+        >>> test = UnitTest(model,
+        ...                 model.update_actualremoterelease_v1,
         ...                 last_example=8,
         ...                 parseqs=(fluxes.actualremoterelieve,
         ...                          fluxes.actualremoterelease))
@@ -2144,7 +2146,8 @@ class Calc_FloodDischarge_V1(modeltools.Method):
         uncontrolled flow over a spillway:
 
         >>> from hydpy import UnitTest
-        >>> test = UnitTest(model, model.calc_flooddischarge_v1,
+        >>> test = UnitTest(model,
+        ...                 model.calc_flooddischarge_v1,
         ...                 last_example=21,
         ...                 parseqs=(aides.waterlevel,
         ...                          fluxes.flooddischarge))
@@ -2490,7 +2493,8 @@ class Update_LoggedOutflow_V1(modeltools.Method):
         >>> nmblogentries(3)
         >>> logs.loggedoutflow = 0.0
         >>> from hydpy import UnitTest
-        >>> test = UnitTest(model, model.update_loggedoutflow_v1,
+        >>> test = UnitTest(model,
+        ...                 model.update_loggedoutflow_v1,
         ...                 last_example=4,
         ...                 parseqs=(fluxes.outflow,
         ...                          logs.loggedoutflow))

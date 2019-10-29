@@ -14,7 +14,7 @@ class CatchmentArea(parametertools.Parameter):
 
 
 class NmbLogEntries(parametertools.Parameter):
-    """Number of log entries for certain variables [m3/s].
+    """Number of log entries for certain variables [-].
 
     Note that setting a new value by calling the parameter object sets
     the shapes of all associated log sequences automatically, except those

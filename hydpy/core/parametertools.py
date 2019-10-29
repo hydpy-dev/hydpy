@@ -2970,6 +2970,39 @@ class SCTParameter(Parameter):
         self.__hydpy__set_value__(array)
 
 
+class UTCLongitudeParameter(Parameter):
+    """References the current "UTC longitude" defined by option
+    |Options.utclongitude|."""
+    NDIM = 0
+    TYPE = int
+    TIME = None
+    SPAN = (-180, 180)
+
+    def update(self):
+        """Apply the current value of option |Options.utclongitude|.
+
+        >>> from hydpy import pub
+        >>> pub.options.utclongitude
+        15
+        >>> from hydpy.core.parametertools import UTCLongitudeParameter
+        >>> utclongitudeparameter = UTCLongitudeParameter(None)
+        >>> utclongitudeparameter.update()
+        >>> utclongitudeparameter
+        utclongitudeparameter(15)
+
+        Note that changing the value of option |Options.utclongitude|
+        might makes re-calling method |UTCLongitudeParameter.update| necessary:
+
+        >>> pub.options.utclongitude = 0
+        >>> utclongitudeparameter
+        utclongitudeparameter(15)
+        >>> utclongitudeparameter.update()
+        >>> utclongitudeparameter
+        utclongitudeparameter(0)
+        """
+        self(hydpy.pub.options.utclongitude)
+
+
 class FastAccessParameter(variabletools.FastAccess):
     """Used as a surrogate for typed Cython classes handling parameters
     when working in pure Python mode."""

@@ -522,7 +522,7 @@ class IntegrationTest(Test):
         self._width = None
         self._height = None
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, update_parameters=True, **kwargs):
         """Prepare and perform an integration test and print and eventually
         plot its results.
 
@@ -530,7 +530,7 @@ class IntegrationTest(Test):
         argument.  Additionally, all other arguments of function
         |IntegrationTest.plot| are allowed to modify plot design.
         """
-        self.prepare_model()
+        self.prepare_model(update_parameters=update_parameters)
         self.hydpy.simulate()
         self.print_table()
         if args:
@@ -629,11 +629,12 @@ datetime of the Python standard library for for further information.
             seqs.append(node.sequences.sim)
         return seqs
 
-    def prepare_model(self):
+    def prepare_model(self, update_parameters):
         """Derive the secondary parameter values, prepare all required time
         series and set the initial conditions.
         """
-        self.model.parameters.update()
+        if update_parameters:
+            self.model.parameters.update()
         self.element.prepare_fluxseries()
         self.element.prepare_stateseries()
         self.reset_outputs()

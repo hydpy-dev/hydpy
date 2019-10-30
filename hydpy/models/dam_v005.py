@@ -475,24 +475,24 @@ class AideSequences(sequencetools.AideSequences):
     CLASSES = (dam_aides.WaterLevel,)
 
 
-class InletSequences(sequencetools.LinkSequences):
+class InletSequences(sequencetools.InletSequences):
     """Upstream link sequences of HydPy-Dam, Version 5."""
     CLASSES = (dam_inlets.Q,
                dam_inlets.S,
                dam_inlets.R)
 
 
-class OutletSequences(sequencetools.LinkSequences):
+class OutletSequences(sequencetools.OutletSequences):
     """Downstream link sequences of HydPy-Dam, Version 5."""
     CLASSES = (dam_outlets.Q,)
 
 
-class ReceiverSequences(sequencetools.LinkSequences):
+class ReceiverSequences(sequencetools.ReceiverSequences):
     """Information link sequences of HydPy-Dam, Version 5."""
     CLASSES = (dam_receivers.Q,)
 
 
-class SenderSequences(sequencetools.LinkSequences):
+class SenderSequences(sequencetools.SenderSequences):
     """Information link sequences of HydPy-Dam, Version 5."""
     CLASSES = (dam_senders.D,
                dam_senders.S,

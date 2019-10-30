@@ -7,11 +7,11 @@
 from hydpy.core import sequencetools
 
 
-class Q(sequencetools.LinkSequence):
+class Q(sequencetools.OutletSequence):
     """Abfluss (runoff) [m³/s]."""
     NDIM, NUMERIC = 0, False
 
 
-class OutletSequences(sequencetools.LinkSequences):
+class OutletSequences(sequencetools.OutletSequences):
     """Downstream link sequences of HydPy-L-Stream."""
     CLASSES = (Q,)

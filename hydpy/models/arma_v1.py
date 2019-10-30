@@ -387,12 +387,12 @@ class LogSequences(sequencetools.LogSequences):
                arma_logs.LogOut)
 
 
-class InletSequences(sequencetools.LinkSequences):
+class InletSequences(sequencetools.InletSequences):
     """Upstream link sequences of arma_v1."""
     CLASSES = (arma_inlets.Q,)
 
 
-class OutletSequences(sequencetools.LinkSequences):
+class OutletSequences(sequencetools.OutletSequences):
     """Downstream link sequences of arma_v1."""
     CLASSES = (arma_outlets.Q,)
 

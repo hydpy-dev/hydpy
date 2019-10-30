@@ -127,12 +127,12 @@ class FluxSequences(sequencetools.FluxSequences):
                hbranch_fluxes.Outputs)
 
 
-class InletSequences(sequencetools.LinkSequences):
+class InletSequences(sequencetools.InletSequences):
     """Upstream link sequences of hbranch_v1."""
     CLASSES = (hbranch_inlets.Total,)
 
 
-class OutletSequences(sequencetools.LinkSequences):
+class OutletSequences(sequencetools.OutletSequences):
     """Downstream link sequences of hbranch_v1."""
     CLASSES = (hbranch_outlets.Branched,)
 

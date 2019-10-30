@@ -979,7 +979,7 @@ class LogSequences(sequencetools.LogSequences):
     CLASSES = (hland_logs.QUH,)
 
 
-class OutletSequences(sequencetools.LinkSequences):
+class OutletSequences(sequencetools.OutletSequences):
     """Downstream link sequences of |hland_v1|."""
     CLASSES = (hland_outlets.Q,)
 

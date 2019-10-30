@@ -1276,7 +1276,7 @@ class AideSequences(sequencetools.AideSequences):
                lland_aides.EPW)
 
 
-class OutletSequences(sequencetools.LinkSequences):
+class OutletSequences(sequencetools.OutletSequences):
     """Downstream link sequences of |lland_v2|."""
     CLASSES = (lland_outlets.Q,)
 

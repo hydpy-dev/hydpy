@@ -158,28 +158,28 @@ to make any internal data available.
     """
 
     model: 'modeltools.Model'
-    inlets: 'LinkSequences'
-    receivers: 'LinkSequences'
+    inlets: 'InletSequences'
+    receivers: 'ReceiverSequences'
     inputs: 'InputSequences'
     fluxes: 'FluxSequences'
     states: 'StateSequences'
     logs: 'LogSequences'
     aides: 'AideSequences'
-    outlets: 'LinkSequences'
-    senders: 'LinkSequences'
+    outlets: 'OutputSequences'
+    senders: 'SenderSequences'
 
     def __init__(
             self,
             model: 'modeltools.Model',
-            cls_inlets: Optional[Type['LinkSequences']] = None,
-            cls_receivers: Optional[Type['LinkSequences']] = None,
+            cls_inlets: Optional[Type['InletSequences']] = None,
+            cls_receivers: Optional[Type['ReceiverSequences']] = None,
             cls_inputs: Optional[Type['InputSequences']] = None,
             cls_fluxes: Optional[Type['FluxSequences']] = None,
             cls_states: Optional[Type['StateSequences']] = None,
             cls_logs: Optional[Type['LogSequences']] = None,
             cls_aides: Optional[Type['AideSequences']] = None,
-            cls_outlets: Optional[Type['LinkSequences']] = None,
-            cls_senders: Optional[Type['LinkSequences']] = None,
+            cls_outlets: Optional[Type['OutletSequences']] = None,
+            cls_senders: Optional[Type['SenderSequences']] = None,
             cymodel: Optional['typingtools.CyModelProtocol'] = None,
             cythonmodule: Optional[types.ModuleType] = None) -> None:
         self.model = model
@@ -3109,6 +3109,22 @@ of element `stream_lahn_1_lahn_2`, the following error occurred: \
         if self.__isready:
             return super().__repr__()
         return f'{self.name}(?)'
+
+
+class InletSequence(LinkSequence):
+    """Base class for inlet link sequences of |Model| objects."""
+
+
+class OutletSequence(LinkSequence):
+    """Base class for outlet link sequences of |Model| objects."""
+
+
+class ReceiverSequence(LinkSequence):
+    """Base class for receiver link sequences of |Model| objects."""
+
+
+class SenderSequence(LinkSequence):
+    """Base class for sender link sequences of |Model| objects."""
 
 
 class NodeSequence(IOSequence):

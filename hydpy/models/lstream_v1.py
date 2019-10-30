@@ -279,12 +279,12 @@ class AideSequences(sequencetools.AideSequences):
                lstream_aides.QTest)
 
 
-class InletSequences(sequencetools.LinkSequences):
+class InletSequences(sequencetools.InletSequences):
     """Upstream link sequences of lstream_v1."""
     CLASSES = (lstream_inlets.Q,)
 
 
-class OutletSequences(sequencetools.LinkSequences):
+class OutletSequences(sequencetools.OutletSequences):
     """Downstream link sequences of lstream_v1."""
     CLASSES = (lstream_outlets.Q,)
 

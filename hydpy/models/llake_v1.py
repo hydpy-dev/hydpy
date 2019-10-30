@@ -343,12 +343,12 @@ class AideSequences(sequencetools.AideSequences):
                llake_aides.V,)
 
 
-class InletSequences(sequencetools.LinkSequences):
+class InletSequences(sequencetools.InletSequences):
     """Upstream link sequences of llake_v1."""
     CLASSES = (llake_inlets.Q,)
 
 
-class OutletSequences(sequencetools.LinkSequences):
+class OutletSequences(sequencetools.OutletSequences):
     """Downstream link sequences of llake_v1."""
     CLASSES = (llake_outlets.Q,)
 

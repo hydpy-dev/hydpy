@@ -22,6 +22,7 @@ from hydpy.models.lland.lland_logs import LogSequences
 from hydpy.models.lland.lland_aides import AideSequences
 from hydpy.models.lland.lland_outlets import OutletSequences
 from hydpy.models.lland.lland_model import Model
+from hydpy.models.lland.lland_masks import Masks
 
 tester = Tester()
 cythonizer = Cythonizer()

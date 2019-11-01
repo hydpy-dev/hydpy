@@ -38,13 +38,3 @@ class EPW(sequencetools.AideSequence):
     """Potenzielle Evaporation/Evapotranspiration von Wasserflächen (potential
     evaporation/evapotranspiration combined from all water areas) [mm]."""
     NDIM, NUMERIC = 0, False
-
-
-class AideSequences(sequencetools.AideSequences):
-    """Aide sequences of the HydPy-L-Land model."""
-    CLASSES = (SfA,
-               Exz,
-               BVl,
-               MVl,
-               RVl,
-               EPW)

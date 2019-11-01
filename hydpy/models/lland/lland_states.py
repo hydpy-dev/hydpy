@@ -159,21 +159,3 @@ class QBGA(sequencetools.StateSequence):
     """Abfluss aus dem Basisabfluss-Gebietsspeicher (outflow from the
     storage compartment for base flow) [mm]."""
     NDIM, NUMERIC, SPAN = 0, False, (None, None)
-
-
-class StateSequences(sequencetools.StateSequences):
-    """State sequences of the HydPy-L-Land model."""
-    CLASSES = (Inzp,
-               WATS,
-               WAeS,
-               BoWa,
-               QDGZ1,
-               QDGZ2,
-               QIGZ1,
-               QIGZ2,
-               QBGZ,
-               QDGA1,
-               QDGA2,
-               QIGA1,
-               QIGA2,
-               QBGA)

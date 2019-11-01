@@ -2,7 +2,6 @@
 # pylint: disable=missing-docstring
 # pylint: enable=missing-docstring
 
-
 # import...
 # ...from HydPy
 from hydpy.core import parametertools

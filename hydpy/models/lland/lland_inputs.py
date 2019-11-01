@@ -25,11 +25,3 @@ class Glob(sequencetools.InputSequence):
 class PET(sequencetools.InputSequence):
     """Potenzielle Verdunstung (potential evapotranspiration) [mm]."""
     NDIM, NUMERIC = 0, False
-
-
-class InputSequences(sequencetools.InputSequences):
-    """Input sequences of the HydPy-L-Land model."""
-    CLASSES = (Nied,
-               TemL,
-               Glob,
-               PET)

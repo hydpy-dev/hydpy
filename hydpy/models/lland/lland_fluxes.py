@@ -103,24 +103,3 @@ class QDGZ(sequencetools.FluxSequence):
 class Q(sequencetools.FluxSequence):
     """Gesamtabfluss des Teilgebiets (runoff at the catchment outlet) [mm]."""
     NDIM, NUMERIC = 0, False
-
-
-class FluxSequences(sequencetools.FluxSequences):
-    """Flux sequences of the HydPy-L-Land model."""
-    CLASSES = (NKor,
-               TKor,
-               ET0,
-               EvPo,
-               SBes,
-               NBes,
-               EvI,
-               EvB,
-               WGTF,
-               Schm,
-               WaDa,
-               QDB,
-               QIB1,
-               QIB2,
-               QBB,
-               QDGZ,
-               Q)

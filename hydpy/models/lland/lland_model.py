@@ -7,21 +7,19 @@
 from hydpy.core import modeltools
 from hydpy.cythons import modelutils
 # ...from lland
+from hydpy.models.lland import lland_control
+from hydpy.models.lland import lland_derived
+from hydpy.models.lland import lland_inputs
+from hydpy.models.lland import lland_fluxes
+from hydpy.models.lland import lland_states
+from hydpy.models.lland import lland_logs
+from hydpy.models.lland import lland_aides
+from hydpy.models.lland import lland_outlets
 from hydpy.models.lland.lland_constants import WASSER, FLUSS, SEE, VERS
 
 
-def calc_nkor_v1(self):
+class Calc_NKor_V1(modeltools.Method):
     """Adjust the given precipitation values.
-
-    Required control parameters:
-      |NHRU|
-      |KG|
-
-    Required input sequence:
-      |Nied|
-
-    Calculated flux sequence:
-      |NKor|
 
     Basic equation:
       :math:`NKor = KG \\cdot Nied`
@@ -37,25 +35,27 @@ def calc_nkor_v1(self):
         >>> fluxes.nkor
         nkor(8.0, 10.0, 12.0)
     """
-    con = self.parameters.control.fastaccess
-    inp = self.sequences.inputs.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    for k in range(con.nhru):
-        flu.nkor[k] = con.kg[k] * inp.nied
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.KG,
+    )
+    REQUIREDSEQUENCES = (
+        lland_inputs.Nied,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.NKor,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nhru):
+            flu.nkor[k] = con.kg[k] * inp.nied
 
 
-def calc_tkor_v1(self):
+class Calc_TKor_V1(modeltools.Method):
     """Adjust the given air temperature values.
-
-    Required control parameters:
-      |NHRU|
-      |KT|
-
-    Required input sequence:
-      |TemL|
-
-    Calculated flux sequence:
-      |TKor|
 
     Basic equation:
       :math:`TKor = KT + TemL`
@@ -71,30 +71,27 @@ def calc_tkor_v1(self):
         >>> fluxes.tkor
         tkor(-1.0, 1.0, 3.0)
     """
-    con = self.parameters.control.fastaccess
-    inp = self.sequences.inputs.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    for k in range(con.nhru):
-        flu.tkor[k] = con.kt[k] + inp.teml
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.KT,
+    )
+    REQUIREDSEQUENCES = (
+        lland_inputs.TemL,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.TKor,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nhru):
+            flu.tkor[k] = con.kt[k] + inp.teml
 
 
-def calc_et0_v1(self):
+class Calc_ET0_V1(modeltools.Method):
     """Calculate reference evapotranspiration after Turc-Wendling.
-
-    Required control parameters:
-      |NHRU|
-      |KE|
-      |KF|
-      |HNN|
-
-    Required input sequence:
-      |Glob|
-
-    Required flux sequence:
-      |TKor|
-
-    Calculated flux sequence:
-      |ET0|
 
     Basic equation:
       :math:`ET0 = KE \\cdot
@@ -116,33 +113,34 @@ def calc_et0_v1(self):
         >>> fluxes.et0
         et0(3.07171, 2.86215, 2.86215)
     """
-    con = self.parameters.control.fastaccess
-    inp = self.sequences.inputs.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    for k in range(con.nhru):
-        flu.et0[k] = (con.ke[k]*(((8.64*inp.glob+93.*con.kf[k]) *
-                                  (flu.tkor[k]+22.)) /
-                                 (165.*(flu.tkor[k]+123.) *
-                                  (1.+0.00019*min(con.hnn[k], 600.)))))
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.KE,
+        lland_control.KF,
+        lland_control.HNN,
+    )
+    REQUIREDSEQUENCES = (
+        lland_inputs.Glob,
+        lland_fluxes.TKor,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.ET0,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nhru):
+            flu.et0[k] = (con.ke[k]*(((8.64*inp.glob+93.*con.kf[k]) *
+                                      (flu.tkor[k]+22.)) /
+                                     (165.*(flu.tkor[k]+123.) *
+                                      (1.+0.00019*min(con.hnn[k], 600.)))))
 
 
-def calc_et0_wet0_v1(self):
+class Calc_ET0_WET0_V1(modeltools.Method):
     """Correct the given reference evapotranspiration and update the
     corresponding log sequence.
-
-    Required control parameters:
-      |NHRU|
-      |KE|
-      |WfET0|
-
-    Required input sequence:
-      |PET|
-
-    Calculated flux sequence:
-      |ET0|
-
-    Updated log sequence:
-      |WET0|
 
     Basic equation:
       :math:`ET0_{new} = WfET0 \\cdot KE \\cdot PET +
@@ -182,33 +180,35 @@ def calc_et0_wet0_v1(self):
         >>> logs.wet0
         wet0([[1.6, 2.4, 1.96, 2.04]])
     """
-    con = self.parameters.control.fastaccess
-    inp = self.sequences.inputs.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    log = self.sequences.logs.fastaccess
-    for k in range(con.nhru):
-        flu.et0[k] = (con.wfet0[k]*con.ke[k]*inp.pet +
-                      (1.-con.wfet0[k])*log.wet0[0, k])
-        log.wet0[0, k] = flu.et0[k]
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.WfET0,
+        lland_control.KE,
+    )
+    REQUIREDSEQUENCES = (
+        lland_inputs.PET,
+    )
+    UPDATEDSEQUENCES = (
+        lland_logs.WET0,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.ET0,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        inp = model.sequences.inputs.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        log = model.sequences.logs.fastaccess
+        for k in range(con.nhru):
+            flu.et0[k] = (con.wfet0[k]*con.ke[k]*inp.pet +
+                          (1.-con.wfet0[k])*log.wet0[0, k])
+            log.wet0[0, k] = flu.et0[k]
 
 
-def calc_evpo_v1(self):
+class Calc_EvPo_V1(modeltools.Method):
     """Calculate land use and month specific values of potential
     evapotranspiration.
-
-    Required control parameters:
-      |NHRU|
-      |Lnk|
-      |FLn|
-
-    Required derived parameter:
-      |MOY|
-
-    Required flux sequence:
-      |ET0|
-
-    Calculated flux sequence:
-      |EvPo|
 
     Additional requirements:
       |Model.idx_sim|
@@ -269,32 +269,33 @@ def calc_evpo_v1(self):
 
         >>> del pub.timegrids
     """
-    con = self.parameters.control.fastaccess
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    for k in range(con.nhru):
-        flu.evpo[k] = con.fln[con.lnk[k]-1, der.moy[self.idx_sim]] * flu.et0[k]
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.Lnk,
+        lland_control.FLn,
+    )
+    DERIVEDPARAMETERS = (
+        lland_derived.MOY,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.ET0,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.EvPo,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nhru):
+            flu.evpo[k] = \
+                con.fln[con.lnk[k]-1, der.moy[model.idx_sim]] * flu.et0[k]
 
 
-def calc_nbes_inzp_v1(self):
+class Calc_NBes_Inzp_V1(modeltools.Method):
     """Calculate stand precipitation and update the interception storage
     accordingly.
-
-    Required control parameters:
-      |NHRU|
-      |Lnk|
-
-    Required derived parameter:
-      |KInz|
-
-    Required flux sequence:
-      |NKor|
-
-    Calculated flux sequence:
-      |NBes|
-
-    Updated state sequence:
-      |Inzp|
 
     Additional requirements:
       |Model.idx_sim|
@@ -379,39 +380,43 @@ def calc_nbes_inzp_v1(self):
         >>> fluxes.nbes
         nbes(0.4, 0.0, 0.0, 0.0, 0.0)
     """
-    con = self.parameters.control.fastaccess
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    for k in range(con.nhru):
-        if con.lnk[k] in (WASSER, FLUSS, SEE):
-            flu.nbes[k] = 0.
-            sta.inzp[k] = 0.
-        else:
-            flu.nbes[k] = \
-                max(flu.nkor[k]+sta.inzp[k] -
-                    der.kinz[con.lnk[k]-1, der.moy[self.idx_sim]], 0.)
-            sta.inzp[k] += flu.nkor[k]-flu.nbes[k]
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.Lnk,
+    )
+    DERIVEDPARAMETERS = (
+        lland_derived.MOY,
+        lland_derived.KInz,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.NKor,
+    )
+    UPDATEDSEQUENCES = (
+        lland_states.Inzp,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.NBes,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nhru):
+            if con.lnk[k] in (WASSER, FLUSS, SEE):
+                flu.nbes[k] = 0.
+                sta.inzp[k] = 0.
+            else:
+                flu.nbes[k] = \
+                    max(flu.nkor[k]+sta.inzp[k] -
+                        der.kinz[con.lnk[k]-1, der.moy[model.idx_sim]], 0.)
+                sta.inzp[k] += flu.nkor[k]-flu.nbes[k]
 
 
-def calc_evi_inzp_v1(self):
+class Calc_EvI_Inzp_V1(modeltools.Method):
     """Calculate interception evaporation and update the interception
     storage accordingly.
-
-    Required control parameters:
-      |NHRU|
-      |Lnk|
-      |TRefT|
-      |TRefN|
-
-    Required flux sequence:
-      |EvPo|
-
-    Calculated flux sequence:
-      |EvI|
-
-    Updated state sequence:
-      |Inzp|
 
     Basic equation:
       :math:`EvI = \\Bigl \\lbrace
@@ -444,35 +449,38 @@ def calc_evi_inzp_v1(self):
         (|EvPo|), as long as it is met by available intercepted water
         ([Inzp|).  Only water areas (|FLUSS| and |SEE|),  |EvI| is
         generally equal to |EvPo| (but this might be corrected by a method
-        called after |calc_evi_inzp_v1| has been applied) and [Inzp| is
+        called after |Calc_EvI_Inzp_V1| has been applied) and [Inzp| is
         set to zero.
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    for k in range(con.nhru):
-        if con.lnk[k] in (WASSER, FLUSS, SEE):
-            flu.evi[k] = flu.evpo[k]
-            sta.inzp[k] = 0.
-        else:
-            flu.evi[k] = min(flu.evpo[k], sta.inzp[k])
-            sta.inzp[k] -= flu.evi[k]
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.Lnk,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.EvPo,
+    )
+    UPDATEDSEQUENCES = (
+        lland_states.Inzp,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.EvI,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nhru):
+            if con.lnk[k] in (WASSER, FLUSS, SEE):
+                flu.evi[k] = flu.evpo[k]
+                sta.inzp[k] = 0.
+            else:
+                flu.evi[k] = min(flu.evpo[k], sta.inzp[k])
+                sta.inzp[k] -= flu.evi[k]
 
 
-def calc_sbes_v1(self):
+class Calc_SBes_V1(modeltools.Method):
     """Calculate the frozen part of stand precipitation.
-
-    Required control parameters:
-      |NHRU|
-      |TGr|
-      |TSp|
-
-    Required flux sequences:
-      |TKor|
-      |NBes|
-
-    Calculated flux sequence:
-      |SBes|
 
     Examples:
 
@@ -505,37 +513,35 @@ def calc_sbes_v1(self):
         >>> fluxes.sbes
         sbes(4.0, 4.0, 4.0, 0.0, 0.0, 0.0, 0.0)
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    for k in range(con.nhru):
-        if flu.nbes[k] <= 0.:
-            flu.sbes[k] = 0.
-        elif flu.tkor[k] >= (con.tgr[k]+con.tsp[k]/2.):
-            flu.sbes[k] = 0.
-        elif flu.tkor[k] <= (con.tgr[k]-con.tsp[k]/2.):
-            flu.sbes[k] = flu.nbes[k]
-        else:
-            flu.sbes[k] = ((((con.tgr[k]+con.tsp[k]/2.)-flu.tkor[k]) /
-                            con.tsp[k])*flu.nbes[k])
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.TGr,
+        lland_control.TSp,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.NBes,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.SBes,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nhru):
+            if flu.nbes[k] <= 0.:
+                flu.sbes[k] = 0.
+            elif flu.tkor[k] >= (con.tgr[k]+con.tsp[k]/2.):
+                flu.sbes[k] = 0.
+            elif flu.tkor[k] <= (con.tgr[k]-con.tsp[k]/2.):
+                flu.sbes[k] = flu.nbes[k]
+            else:
+                flu.sbes[k] = ((((con.tgr[k]+con.tsp[k]/2.)-flu.tkor[k]) /
+                                con.tsp[k])*flu.nbes[k])
 
 
-def calc_wgtf_v1(self):
+class Calc_WGTF_V1(modeltools.Method):
     """Calculate the potential snowmelt.
-
-    Required control parameters:
-      |NHRU|
-      |Lnk|
-      |GTF|
-      |TRefT|
-      |TRefN|
-      |RSchmelz|
-      |CPWasser|
-
-    Required flux sequence:
-      |TKor|
-
-    Calculated fluxes sequence:
-      |WGTF|
 
     Basic equation:
       :math:`WGTF = max(GTF \\cdot (TKor - TRefT), 0) +
@@ -590,33 +596,37 @@ def calc_wgtf_v1(self):
         >>> fluxes.wgtf
         wgtf(5.012535, 5.012535, 0.0, 0.0, 0.0, 0.0, 2.5)
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    for k in range(con.nhru):
-        if con.lnk[k] in (WASSER, FLUSS, SEE):
-            flu.wgtf[k] = 0.
-        else:
-            flu.wgtf[k] = (
-                max(con.gtf[k]*(flu.tkor[k]-con.treft[k]), 0) +
-                max(con.cpwasser/con.rschmelz*(flu.tkor[k]-con.trefn[k]), 0.))
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.Lnk,
+        lland_control.GTF,
+        lland_control.TRefT,
+        lland_control.CPWasser,
+        lland_control.RSchmelz,
+        lland_control.TRefN,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.TKor,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.WGTF,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nhru):
+            if con.lnk[k] in (WASSER, FLUSS, SEE):
+                flu.wgtf[k] = 0.
+            else:
+                flu.wgtf[k] = (
+                    max(con.gtf[k]*(flu.tkor[k]-con.treft[k]), 0) +
+                    max(con.cpwasser/con.rschmelz*(flu.tkor[k]-con.trefn[k]),
+                        0.))
 
 
-def calc_schm_wats_v1(self):
+class Calc_Schm_WATS_V1(modeltools.Method):
     """Calculate the actual amount of water melting within the snow cover.
-
-    Required control parameters:
-      |NHRU|
-      |Lnk|
-
-    Required flux sequences:
-      |SBes|
-      |WGTF|
-
-    Calculated flux sequence:
-      |Schm|
-
-    Updated state sequence:
-      |WATS|
 
     Basic equations:
       :math:`\\frac{dWATS}{dt}  = SBes - Schm`
@@ -654,35 +664,37 @@ def calc_schm_wats_v1(self):
         which is the sum of initial frozen water and the frozen part
         of stand precipitation.
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    for k in range(con.nhru):
-        if con.lnk[k] in (WASSER, FLUSS, SEE):
-            sta.wats[k] = 0.
-            flu.schm[k] = 0.
-        else:
-            sta.wats[k] += flu.sbes[k]
-            flu.schm[k] = min(flu.wgtf[k], sta.wats[k])
-            sta.wats[k] -= flu.schm[k]
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.Lnk,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.SBes,
+        lland_fluxes.WGTF,
+    )
+    UPDATEDSEQUENCES = (
+        lland_states.WATS,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.Schm,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nhru):
+            if con.lnk[k] in (WASSER, FLUSS, SEE):
+                sta.wats[k] = 0.
+                flu.schm[k] = 0.
+            else:
+                sta.wats[k] += flu.sbes[k]
+                flu.schm[k] = min(flu.wgtf[k], sta.wats[k])
+                sta.wats[k] -= flu.schm[k]
 
 
-def calc_wada_waes_v1(self):
+class Calc_WaDa_WAeS_V1(modeltools.Method):
     """Calculate the actual water release from the snow cover.
-
-    Required control parameters:
-      |NHRU|
-      |Lnk|
-      |PWMax|
-
-    Required flux sequences:
-      |NBes|
-
-    Calculated flux sequence:
-      |WaDa|
-
-    Updated state sequence:
-      |WAeS|
 
     Basic equations:
       :math:`\\frac{dWAeS}{dt} = NBes - WaDa`
@@ -718,37 +730,38 @@ def calc_wada_waes_v1(self):
         of |NBes| exceeding the actual snow holding capacity is passed
         to |WaDa|.
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    for k in range(con.nhru):
-        if con.lnk[k] in (WASSER, FLUSS, SEE):
-            sta.waes[k] = 0.
-            flu.wada[k] = flu.nbes[k]
-        else:
-            sta.waes[k] += flu.nbes[k]
-            flu.wada[k] = max(sta.waes[k]-con.pwmax[k]*sta.wats[k], 0.)
-            sta.waes[k] -= flu.wada[k]
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.Lnk,
+        lland_control.PWMax,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.NBes,
+        lland_states.WATS,
+    )
+    UPDATEDSEQUENCES = (
+        lland_states.WAeS,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.WaDa,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nhru):
+            if con.lnk[k] in (WASSER, FLUSS, SEE):
+                sta.waes[k] = 0.
+                flu.wada[k] = flu.nbes[k]
+            else:
+                sta.waes[k] += flu.nbes[k]
+                flu.wada[k] = max(sta.waes[k]-con.pwmax[k]*sta.wats[k], 0.)
+                sta.waes[k] -= flu.wada[k]
 
 
-def calc_evb_v1(self):
+class Calc_EvB_V1(modeltools.Method):
     """Calculate the actual water release from the snow cover.
-
-    Required control parameters:
-      |NHRU|
-      |Lnk|
-      |NFk|
-      |GrasRef_R|
-
-    Required state sequence:
-      |BoWa|
-
-    Required flux sequences:
-      |EvPo|
-      |EvI|
-
-    Calculated flux sequence:
-      |EvB|
 
     Basic equations:
       :math:`temp = exp(-GrasRef_R \\cdot \\frac{BoWa}{NFk})`
@@ -783,37 +796,37 @@ def calc_evb_v1(self):
         three HRUs demonstrate the rise in soil evaporation with increasing
         soil moisture, which is lessening in the high soil moisture range.
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    for k in range(con.nhru):
-        if (con.lnk[k] in (VERS, WASSER, FLUSS, SEE)) or (con.nfk[k] <= 0.):
-            flu.evb[k] = 0.
-        else:
-            d_temp = modelutils.exp(-con.grasref_r *
-                                    sta.bowa[k]/con.nfk[k])
-            flu.evb[k] = ((flu.evpo[k]-flu.evi[k]) * (1.-d_temp) /
-                          (1.+d_temp-2.*modelutils.exp(-con.grasref_r)))
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.Lnk,
+        lland_control.NFk,
+        lland_control.GrasRef_R,
+    )
+    REQUIREDSEQUENCES = (
+        lland_states.BoWa,
+        lland_fluxes.EvPo,
+        lland_fluxes.EvI,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.EvB,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nhru):
+            if (con.lnk[k] in (VERS, WASSER, FLUSS, SEE)) or (con.nfk[k] <= 0.):
+                flu.evb[k] = 0.
+            else:
+                d_temp = modelutils.exp(-con.grasref_r *
+                                        sta.bowa[k]/con.nfk[k])
+                flu.evb[k] = ((flu.evpo[k]-flu.evi[k]) * (1.-d_temp) /
+                              (1.+d_temp-2.*modelutils.exp(-con.grasref_r)))
 
 
-def calc_qbb_v1(self):
+class Calc_QBB_V1(modeltools.Method):
     """Calculate the amount of base flow released from the soil.
-
-    Required control parameters:
-      |NHRU|
-      |Lnk|
-      |Beta|
-      |FBeta|
-
-    Required derived parameter:
-      |WB|
-      |WZ|
-
-    Required state sequence:
-      |BoWa|
-
-    Calculated flux sequence:
-      |QBB|
 
     Basic equations:
       :math:`Beta_{eff} = \\Bigl \\lbrace
@@ -883,39 +896,43 @@ def calc_qbb_v1(self):
         >>> fluxes.qbb
         qbb(0.0, 0.0, 0.0, 1.0, 1.2, 1.866667, 3.6, 7.6)
     """
-    con = self.parameters.control.fastaccess
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    for k in range(con.nhru):
-        if ((con.lnk[k] in (VERS, WASSER, FLUSS, SEE)) or
-                (sta.bowa[k] <= der.wb[k]) or (con.nfk[k] <= 0.)):
-            flu.qbb[k] = 0.
-        elif sta.bowa[k] <= der.wz[k]:
-            flu.qbb[k] = con.beta[k]*(sta.bowa[k]-der.wb[k])
-        else:
-            flu.qbb[k] = (con.beta[k]*(sta.bowa[k]-der.wb[k]) *
-                          (1.+(con.fbeta[k]-1.)*((sta.bowa[k]-der.wz[k]) /
-                                                 (con.nfk[k]-der.wz[k]))))
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.Lnk,
+        lland_control.NFk,
+        lland_control.Beta,
+        lland_control.FBeta,
+    )
+    DERIVEDPARAMETERS = (
+        lland_derived.WB,
+        lland_derived.WZ,
+    )
+    REQUIREDSEQUENCES = (
+        lland_states.BoWa,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.QBB,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nhru):
+            if ((con.lnk[k] in (VERS, WASSER, FLUSS, SEE)) or
+                    (sta.bowa[k] <= der.wb[k]) or (con.nfk[k] <= 0.)):
+                flu.qbb[k] = 0.
+            elif sta.bowa[k] <= der.wz[k]:
+                flu.qbb[k] = con.beta[k]*(sta.bowa[k]-der.wb[k])
+            else:
+                flu.qbb[k] = (con.beta[k]*(sta.bowa[k]-der.wb[k]) *
+                              (1.+(con.fbeta[k]-1.)*((sta.bowa[k]-der.wz[k]) /
+                                                     (con.nfk[k]-der.wz[k]))))
 
 
-def calc_qib1_v1(self):
+class Calc_QIB1_V1(modeltools.Method):
     """Calculate the first inflow component released from the soil.
-
-    Required control parameters:
-      |NHRU|
-      |Lnk|
-      |NFk|
-      |DMin|
-
-    Required derived parameter:
-      |WB|
-
-    Required state sequence:
-      |BoWa|
-
-    Calculated flux sequence:
-      |QIB1|
 
     Basic equation:
       :math:`QIB1 = DMin \\cdot \\frac{BoWa}{NFk}`
@@ -960,36 +977,37 @@ def calc_qib1_v1(self):
         the slightest exceedance of the threshold  parameter |WB| occurs.
         Such sharp discontinuouties are a potential source of trouble.
     """
-    con = self.parameters.control.fastaccess
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    for k in range(con.nhru):
-        if ((con.lnk[k] in (VERS, WASSER, FLUSS, SEE)) or
-                (sta.bowa[k] <= der.wb[k])):
-            flu.qib1[k] = 0.
-        else:
-            flu.qib1[k] = con.dmin[k]*(sta.bowa[k]/con.nfk[k])
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.Lnk,
+        lland_control.DMin,
+        lland_control.NFk,
+    )
+    DERIVEDPARAMETERS = (
+        lland_derived.WB,
+    )
+    REQUIREDSEQUENCES = (
+        lland_states.BoWa,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.QIB1,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nhru):
+            if ((con.lnk[k] in (VERS, WASSER, FLUSS, SEE)) or
+                    (sta.bowa[k] <= der.wb[k])):
+                flu.qib1[k] = 0.
+            else:
+                flu.qib1[k] = con.dmin[k]*(sta.bowa[k]/con.nfk[k])
 
 
-def calc_qib2_v1(self):
+class Calc_QIB2_V1(modeltools.Method):
     """Calculate the first inflow component released from the soil.
-
-    Required control parameters:
-      |NHRU|
-      |Lnk|
-      |NFk|
-      |DMin|
-      |DMax|
-
-    Required derived parameter:
-      |WZ|
-
-    Required state sequence:
-      |BoWa|
-
-    Calculated flux sequence:
-      |QIB2|
 
     Basic equation:
       :math:`QIB2 = (DMax-DMin) \\cdot
@@ -1033,42 +1051,45 @@ def calc_qib2_v1(self):
         generation is 5 mm/12h (parameter |DMax|).  For the seventh zone,
         which contains a saturated soil, the value calculated for the
         second interflow component (|QIB2|) is 3 mm/h.  The "missing"
-        value of 2 mm/12h is be calculated by method |calc_qib1_v1|.
+        value of 2 mm/12h is be calculated by method |Calc_QIB1_V1|.
 
         (The fourth zone, which is slightly oversaturated, is only intended
         to demonstrate that zero division due to |NFk| = |WZ| is circumvented.)
     """
-    con = self.parameters.control.fastaccess
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    for k in range(con.nhru):
-        if ((con.lnk[k] in (VERS, WASSER, FLUSS, SEE)) or
-                (sta.bowa[k] <= der.wz[k]) or (con.nfk[k] <= der.wz[k])):
-            flu.qib2[k] = 0.
-        else:
-            flu.qib2[k] = ((con.dmax[k]-con.dmin[k]) *
-                           ((sta.bowa[k]-der.wz[k]) /
-                            (con.nfk[k]-der.wz[k]))**1.5)
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.Lnk,
+        lland_control.NFk,
+        lland_control.DMax,
+        lland_control.DMin,
+    )
+    DERIVEDPARAMETERS = (
+        lland_derived.WZ,
+    )
+    REQUIREDSEQUENCES = (
+        lland_states.BoWa,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.QIB1,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nhru):
+            if ((con.lnk[k] in (VERS, WASSER, FLUSS, SEE)) or
+                    (sta.bowa[k] <= der.wz[k]) or (con.nfk[k] <= der.wz[k])):
+                flu.qib2[k] = 0.
+            else:
+                flu.qib2[k] = ((con.dmax[k]-con.dmin[k]) *
+                               ((sta.bowa[k]-der.wz[k]) /
+                                (con.nfk[k]-der.wz[k]))**1.5)
 
 
-def calc_qdb_v1(self):
+class Calc_QDB_V1(modeltools.Method):
     """Calculate direct runoff released from the soil.
-
-    Required control parameters:
-      |NHRU|
-      |Lnk|
-      |NFk|
-      |BSf|
-
-    Required state sequence:
-      |BoWa|
-
-    Required flux sequence:
-      |WaDa|
-
-    Calculated flux sequence:
-      |QDB|
 
     Basic equations:
       :math:`QDB = \\Bigl \\lbrace
@@ -1112,49 +1133,49 @@ def calc_qdb_v1(self):
         field capacity, plausible amounts of generated direct runoff
         are ensured.
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    aid = self.sequences.aides.fastaccess
-    for k in range(con.nhru):
-        if con.lnk[k] == WASSER:
-            flu.qdb[k] = 0.
-        elif ((con.lnk[k] in (VERS, FLUSS, SEE)) or
-              (con.nfk[k] <= 0.)):
-            flu.qdb[k] = flu.wada[k]
-        else:
-            if sta.bowa[k] < con.nfk[k]:
-                aid.sfa[k] = (
-                    (1.-sta.bowa[k]/con.nfk[k])**(1./(con.bsf[k]+1.)) -
-                    (flu.wada[k]/((con.bsf[k]+1.)*con.nfk[k])))
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.Lnk,
+        lland_control.NFk,
+        lland_control.BSf,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.WaDa,
+        lland_states.BoWa,
+    )
+    RESULTSEQUENCES = (
+        lland_aides.SfA,
+        lland_aides.Exz,
+        lland_fluxes.QDB,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        aid = model.sequences.aides.fastaccess
+        for k in range(con.nhru):
+            if con.lnk[k] == WASSER:
+                flu.qdb[k] = 0.
+            elif ((con.lnk[k] in (VERS, FLUSS, SEE)) or
+                  (con.nfk[k] <= 0.)):
+                flu.qdb[k] = flu.wada[k]
             else:
-                aid.sfa[k] = 0.
-            aid.exz[k] = sta.bowa[k]+flu.wada[k]-con.nfk[k]
-            flu.qdb[k] = aid.exz[k]
-            if aid.sfa[k] > 0.:
-                flu.qdb[k] += aid.sfa[k]**(con.bsf[k]+1.)*con.nfk[k]
-            flu.qdb[k] = max(flu.qdb[k], 0.)
+                if sta.bowa[k] < con.nfk[k]:
+                    aid.sfa[k] = (
+                        (1.-sta.bowa[k]/con.nfk[k])**(1./(con.bsf[k]+1.)) -
+                        (flu.wada[k]/((con.bsf[k]+1.)*con.nfk[k])))
+                else:
+                    aid.sfa[k] = 0.
+                aid.exz[k] = sta.bowa[k]+flu.wada[k]-con.nfk[k]
+                flu.qdb[k] = aid.exz[k]
+                if aid.sfa[k] > 0.:
+                    flu.qdb[k] += aid.sfa[k]**(con.bsf[k]+1.)*con.nfk[k]
+                flu.qdb[k] = max(flu.qdb[k], 0.)
 
 
-def calc_bowa_v1(self):
+class Calc_BoWa_V1(modeltools.Method):
     """Update soil moisture and correct fluxes if necessary.
-
-    Required control parameters:
-      |NHRU|
-      |Lnk|
-
-    Required flux sequence:
-      |WaDa|
-
-    Updated state sequence:
-      |BoWa|
-
-    Required (and eventually corrected) flux sequences:
-      |EvB|
-      |QBB|
-      |QIB1|
-      |QIB2|
-      |QDB|
 
     Basic equations:
        :math:`\\frac{dBoWa}{dt} = WaDa - EvB - QBB - QIB1 - QIB2 - QDB`
@@ -1199,30 +1220,52 @@ def calc_bowa_v1(self):
         term of the sixt HRU, which results exactly in a complete emptying
         of the soil storage.
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    aid = self.sequences.aides.fastaccess
-    for k in range(con.nhru):
-        if con.lnk[k] in (VERS, WASSER, FLUSS, SEE):
-            sta.bowa[k] = 0.
-        else:
-            aid.bvl[k] = (
-                flu.evb[k]+flu.qbb[k]+flu.qib1[k]+flu.qib2[k]+flu.qdb[k])
-            aid.mvl[k] = sta.bowa[k]+flu.wada[k]
-            if aid.bvl[k] > aid.mvl[k]:
-                aid.rvl[k] = aid.mvl[k]/aid.bvl[k]
-                flu.evb[k] *= aid.rvl[k]
-                flu.qbb[k] *= aid.rvl[k]
-                flu.qib1[k] *= aid.rvl[k]
-                flu.qib2[k] *= aid.rvl[k]
-                flu.qdb[k] *= aid.rvl[k]
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.Lnk,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.WaDa,
+    )
+    UPDATEDSEQUENCES = (
+        lland_states.BoWa,
+        lland_fluxes.EvB,
+        lland_fluxes.QBB,
+        lland_fluxes.QIB1,
+        lland_fluxes.QIB2,
+        lland_fluxes.QDB,
+    )
+    RESULTSEQUENCES = (
+        lland_aides.BVl,
+        lland_aides.MVl,
+        lland_aides.RVl,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        aid = model.sequences.aides.fastaccess
+        for k in range(con.nhru):
+            if con.lnk[k] in (VERS, WASSER, FLUSS, SEE):
                 sta.bowa[k] = 0.
             else:
-                sta.bowa[k] = aid.mvl[k]-aid.bvl[k]
+                aid.bvl[k] = (
+                    flu.evb[k]+flu.qbb[k]+flu.qib1[k]+flu.qib2[k]+flu.qdb[k])
+                aid.mvl[k] = sta.bowa[k]+flu.wada[k]
+                if aid.bvl[k] > aid.mvl[k]:
+                    aid.rvl[k] = aid.mvl[k]/aid.bvl[k]
+                    flu.evb[k] *= aid.rvl[k]
+                    flu.qbb[k] *= aid.rvl[k]
+                    flu.qib1[k] *= aid.rvl[k]
+                    flu.qib2[k] *= aid.rvl[k]
+                    flu.qdb[k] *= aid.rvl[k]
+                    sta.bowa[k] = 0.
+                else:
+                    sta.bowa[k] = aid.mvl[k]-aid.bvl[k]
 
 
-def calc_qbgz_v1(self):
+class Calc_QBGZ_V1(modeltools.Method):
     """Aggregate the amount of base flow released by all "soil type" HRUs
     and the "net precipitation" above water areas of type |SEE|.
 
@@ -1230,19 +1273,6 @@ def calc_qbgz_v1(self):
     groundwater, but not with the stream network.  This is modelled by
     adding their (positive or negative) "net input" (|NKor|-|EvI|) to the
     "percolation output" of the soil containing HRUs.
-
-    Required control parameters:
-      |Lnk|
-      |NHRU|
-      |FHRU|
-
-    Required flux sequences:
-      |QBB|
-      |NKor|
-      |EvI|
-
-    Calculated state sequence:
-      |QBGZ|
 
     Basic equation:
        :math:`QBGZ = \\Sigma(FHRU \\cdot QBB) +
@@ -1276,30 +1306,35 @@ def calc_qbgz_v1(self):
         >>> states.qbgz
         qbgz(-3.0)
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    sta.qbgz = 0.
-    for k in range(con.nhru):
-        if con.lnk[k] == SEE:
-            sta.qbgz += con.fhru[k]*(flu.nkor[k]-flu.evi[k])
-        elif con.lnk[k] not in (WASSER, FLUSS, VERS):
-            sta.qbgz += con.fhru[k]*flu.qbb[k]
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.Lnk,
+        lland_control.FHRU,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.NKor,
+        lland_fluxes.EvI,
+        lland_fluxes.QBB,
+    )
+    RESULTSEQUENCES = (
+        lland_states.QBGZ,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        sta.qbgz = 0.
+        for k in range(con.nhru):
+            if con.lnk[k] == SEE:
+                sta.qbgz += con.fhru[k]*(flu.nkor[k]-flu.evi[k])
+            elif con.lnk[k] not in (WASSER, FLUSS, VERS):
+                sta.qbgz += con.fhru[k]*flu.qbb[k]
 
 
-def calc_qigz1_v1(self):
+class Calc_QIGZ1_V1(modeltools.Method):
     """Aggregate the amount of the first interflow component released
     by all HRUs.
-
-    Required control parameters:
-      |NHRU|
-      |FHRU|
-
-    Required flux sequence:
-      |QIB1|
-
-    Calculated state sequence:
-      |QIGZ1|
 
     Basic equation:
        :math:`QIGZ1 = \\Sigma(FHRU \\cdot QIB1)`
@@ -1315,27 +1350,29 @@ def calc_qigz1_v1(self):
         >>> states.qigz1
         qigz1(2.0)
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    sta.qigz1 = 0.
-    for k in range(con.nhru):
-        sta.qigz1 += con.fhru[k]*flu.qib1[k]
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.FHRU,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.QIB1,
+    )
+    RESULTSEQUENCES = (
+        lland_states.QIGZ1,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        sta.qigz1 = 0.
+        for k in range(con.nhru):
+            sta.qigz1 += con.fhru[k]*flu.qib1[k]
 
 
-def calc_qigz2_v1(self):
+class Calc_QIGZ2_V1(modeltools.Method):
     """Aggregate the amount of the second interflow component released
     by all HRUs.
-
-    Required control parameters:
-      |NHRU|
-      |FHRU|
-
-    Required flux sequence:
-      |QIB2|
-
-    Calculated state sequence:
-      |QIGZ2|
 
     Basic equation:
        :math:`QIGZ2 = \\Sigma(FHRU \\cdot QIB2)`
@@ -1351,29 +1388,28 @@ def calc_qigz2_v1(self):
         >>> states.qigz2
         qigz2(2.0)
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    sta.qigz2 = 0.
-    for k in range(con.nhru):
-        sta.qigz2 += con.fhru[k]*flu.qib2[k]
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.FHRU,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.QIB2,
+    )
+    RESULTSEQUENCES = (
+        lland_states.QIGZ2,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        sta.qigz2 = 0.
+        for k in range(con.nhru):
+            sta.qigz2 += con.fhru[k]*flu.qib2[k]
 
 
-def calc_qdgz_v1(self):
+class Calc_QDGZ_V1(modeltools.Method):
     """Aggregate the amount of total direct flow released by all HRUs.
-
-    Required control parameters:
-      |Lnk|
-      |NHRU|
-      |FHRU|
-
-    Required flux sequence:
-      |QDB|
-      |NKor|
-      |EvI|
-
-    Calculated flux sequence:
-      |QDGZ|
 
     Basic equation:
        :math:`QDGZ = \\Sigma(FHRU \\cdot QDB) +
@@ -1407,29 +1443,33 @@ def calc_qdgz_v1(self):
         >>> fluxes.qdgz
         qdgz(-3.0)
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    flu.qdgz = 0.
-    for k in range(con.nhru):
-        if con.lnk[k] == FLUSS:
-            flu.qdgz += con.fhru[k]*(flu.nkor[k]-flu.evi[k])
-        elif con.lnk[k] not in (WASSER, SEE):
-            flu.qdgz += con.fhru[k]*flu.qdb[k]
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.Lnk,
+        lland_control.FHRU,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.NKor,
+        lland_fluxes.EvI,
+        lland_fluxes.QDB,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.QDGZ,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        flu.qdgz = 0.
+        for k in range(con.nhru):
+            if con.lnk[k] == FLUSS:
+                flu.qdgz += con.fhru[k]*(flu.nkor[k]-flu.evi[k])
+            elif con.lnk[k] not in (WASSER, SEE):
+                flu.qdgz += con.fhru[k]*flu.qdb[k]
 
 
-def calc_qdgz1_qdgz2_v1(self):
+class Calc_QDGZ1_QDGZ2_V1(modeltools.Method):
     """Separate total direct flow into a slower and a faster component.
-
-    Required control parameters:
-      |A1|
-      |A2|
-
-    Required flux sequence:
-      |QDGZ|
-
-    Calculated state sequences:
-      |QDGZ1|
-      |QDGZ2|
 
     Basic equations:
        :math:`QDGZ2 = \\frac{(QDGZ-A2)^2}{QDGZ+A1-A2}`
@@ -1516,32 +1556,36 @@ def calc_qdgz1_qdgz2_v1(self):
         of the values of parameter |A1| and |A2|, representing the maximum
         value of `slow` direct flow generation per simulation step
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    if flu.qdgz > con.a2:
-        sta.qdgz2 = (flu.qdgz-con.a2)**2/(flu.qdgz+con.a1-con.a2)
-        sta.qdgz1 = flu.qdgz-sta.qdgz2
-    else:
-        sta.qdgz2 = 0.
-        sta.qdgz1 = flu.qdgz
+    CONTROLPARAMETERS = (
+        lland_control.A2,
+        lland_control.A1,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.QDGZ,
+    )
+    RESULTSEQUENCES = (
+        lland_states.QDGZ2,
+        lland_states.QDGZ1,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        if flu.qdgz > con.a2:
+            sta.qdgz2 = (flu.qdgz-con.a2)**2/(flu.qdgz+con.a1-con.a2)
+            sta.qdgz1 = flu.qdgz-sta.qdgz2
+        else:
+            sta.qdgz2 = 0.
+            sta.qdgz1 = flu.qdgz
 
 
-def calc_qbga_v1(self):
+class Calc_QBGA_V1(modeltools.Method):
     """Perform the runoff concentration calculation for base flow.
 
     The working equation is the analytical solution of the linear storage
     equation under the assumption of constant change in inflow during
     the simulation time step.
-
-    Required derived parameter:
-      |KB|
-
-    Required flux sequence:
-      |QBGZ|
-
-    Calculated state sequence:
-      |QBGA|
 
     Basic equation:
        :math:`QBGA_{neu} = QBGA_{alt} +
@@ -1576,36 +1620,39 @@ def calc_qbga_v1(self):
         >>> states.qbga
         qbga(5.0)
     """
-    der = self.parameters.derived.fastaccess
-    old = self.sequences.states.fastaccess_old
-    new = self.sequences.states.fastaccess_new
-    if der.kb <= 0.:
-        new.qbga = new.qbgz
-    elif der.kb > 1e200:
-        new.qbga = old.qbga+new.qbgz-old.qbgz
-    else:
-        d_temp = (1.-modelutils.exp(-1./der.kb))
-        new.qbga = (old.qbga +
-                    (old.qbgz-old.qbga)*d_temp +
-                    (new.qbgz-old.qbgz)*(1.-der.kb*d_temp))
+    DERIVEDPARAMETERS = (
+        lland_derived.KB,
+    )
+    REQUIREDSEQUENCES = (
+        lland_states.QBGZ,
+        lland_states.QBGA,
+    )
+    RESULTSEQUENCES = (
+        lland_states.QBGA,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        old = model.sequences.states.fastaccess_old
+        new = model.sequences.states.fastaccess_new
+        if der.kb <= 0.:
+            new.qbga = new.qbgz
+        elif der.kb > 1e200:
+            new.qbga = old.qbga+new.qbgz-old.qbgz
+        else:
+            d_temp = (1.-modelutils.exp(-1./der.kb))
+            new.qbga = (old.qbga +
+                        (old.qbgz-old.qbga)*d_temp +
+                        (new.qbgz-old.qbgz)*(1.-der.kb*d_temp))
 
 
-def calc_qiga1_v1(self):
+class Calc_QIGA1_V1(modeltools.Method):
     """Perform the runoff concentration calculation for the first
     interflow component.
 
     The working equation is the analytical solution of the linear storage
     equation under the assumption of constant change in inflow during
     the simulation time step.
-
-    Required derived parameter:
-      |KI1|
-
-    Required state sequence:
-      |QIGZ1|
-
-    Calculated state sequence:
-      |QIGA1|
 
     Basic equation:
        :math:`QIGA1_{neu} = QIGA1_{alt} +
@@ -1640,36 +1687,39 @@ def calc_qiga1_v1(self):
         >>> states.qiga1
         qiga1(5.0)
     """
-    der = self.parameters.derived.fastaccess
-    old = self.sequences.states.fastaccess_old
-    new = self.sequences.states.fastaccess_new
-    if der.ki1 <= 0.:
-        new.qiga1 = new.qigz1
-    elif der.ki1 > 1e200:
-        new.qiga1 = old.qiga1+new.qigz1-old.qigz1
-    else:
-        d_temp = (1.-modelutils.exp(-1./der.ki1))
-        new.qiga1 = (old.qiga1 +
-                     (old.qigz1-old.qiga1)*d_temp +
-                     (new.qigz1-old.qigz1)*(1.-der.ki1*d_temp))
+    DERIVEDPARAMETERS = (
+        lland_derived.KI1,
+    )
+    REQUIREDSEQUENCES = (
+        lland_states.QIGZ1,
+        lland_states.QIGA1,
+    )
+    RESULTSEQUENCES = (
+        lland_states.QIGA1,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        old = model.sequences.states.fastaccess_old
+        new = model.sequences.states.fastaccess_new
+        if der.ki1 <= 0.:
+            new.qiga1 = new.qigz1
+        elif der.ki1 > 1e200:
+            new.qiga1 = old.qiga1+new.qigz1-old.qigz1
+        else:
+            d_temp = (1.-modelutils.exp(-1./der.ki1))
+            new.qiga1 = (old.qiga1 +
+                         (old.qigz1-old.qiga1)*d_temp +
+                         (new.qigz1-old.qigz1)*(1.-der.ki1*d_temp))
 
 
-def calc_qiga2_v1(self):
+class Calc_QIGA2_V1(modeltools.Method):
     """Perform the runoff concentration calculation for the second
     interflow component.
 
     The working equation is the analytical solution of the linear storage
     equation under the assumption of constant change in inflow during
     the simulation time step.
-
-    Required derived parameter:
-      |KI2|
-
-    Required state sequence:
-      |QIGZ2|
-
-    Calculated state sequence:
-      |QIGA2|
 
     Basic equation:
        :math:`QIGA2_{neu} = QIGA2_{alt} +
@@ -1704,35 +1754,38 @@ def calc_qiga2_v1(self):
         >>> states.qiga2
         qiga2(5.0)
     """
-    der = self.parameters.derived.fastaccess
-    old = self.sequences.states.fastaccess_old
-    new = self.sequences.states.fastaccess_new
-    if der.ki2 <= 0.:
-        new.qiga2 = new.qigz2
-    elif der.ki2 > 1e200:
-        new.qiga2 = old.qiga2+new.qigz2-old.qigz2
-    else:
-        d_temp = (1.-modelutils.exp(-1./der.ki2))
-        new.qiga2 = (old.qiga2 +
-                     (old.qigz2-old.qiga2)*d_temp +
-                     (new.qigz2-old.qigz2)*(1.-der.ki2*d_temp))
+    DERIVEDPARAMETERS = (
+        lland_derived.KI2,
+    )
+    REQUIREDSEQUENCES = (
+        lland_states.QIGZ2,
+        lland_states.QIGA2,
+    )
+    RESULTSEQUENCES = (
+        lland_states.QIGA2,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        old = model.sequences.states.fastaccess_old
+        new = model.sequences.states.fastaccess_new
+        if der.ki2 <= 0.:
+            new.qiga2 = new.qigz2
+        elif der.ki2 > 1e200:
+            new.qiga2 = old.qiga2+new.qigz2-old.qigz2
+        else:
+            d_temp = (1.-modelutils.exp(-1./der.ki2))
+            new.qiga2 = (old.qiga2 +
+                         (old.qigz2-old.qiga2)*d_temp +
+                         (new.qigz2-old.qigz2)*(1.-der.ki2*d_temp))
 
 
-def calc_qdga1_v1(self):
+class Calc_QDGA1_V1(modeltools.Method):
     """Perform the runoff concentration calculation for "slow" direct runoff.
 
     The working equation is the analytical solution of the linear storage
     equation under the assumption of constant change in inflow during
     the simulation time step.
-
-    Required derived parameter:
-      |KD1|
-
-    Required state sequence:
-      |QDGZ1|
-
-    Calculated state sequence:
-      |QDGA1|
 
     Basic equation:
        :math:`QDGA1_{neu} = QDGA1_{alt} +
@@ -1767,35 +1820,38 @@ def calc_qdga1_v1(self):
         >>> states.qdga1
         qdga1(5.0)
     """
-    der = self.parameters.derived.fastaccess
-    old = self.sequences.states.fastaccess_old
-    new = self.sequences.states.fastaccess_new
-    if der.kd1 <= 0.:
-        new.qdga1 = new.qdgz1
-    elif der.kd1 > 1e200:
-        new.qdga1 = old.qdga1+new.qdgz1-old.qdgz1
-    else:
-        d_temp = (1.-modelutils.exp(-1./der.kd1))
-        new.qdga1 = (old.qdga1 +
-                     (old.qdgz1-old.qdga1)*d_temp +
-                     (new.qdgz1-old.qdgz1)*(1.-der.kd1*d_temp))
+    DERIVEDPARAMETERS = (
+        lland_derived.KD1,
+    )
+    REQUIREDSEQUENCES = (
+        lland_states.QDGZ1,
+        lland_states.QDGA1,
+    )
+    RESULTSEQUENCES = (
+        lland_states.QDGA1,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        old = model.sequences.states.fastaccess_old
+        new = model.sequences.states.fastaccess_new
+        if der.kd1 <= 0.:
+            new.qdga1 = new.qdgz1
+        elif der.kd1 > 1e200:
+            new.qdga1 = old.qdga1+new.qdgz1-old.qdgz1
+        else:
+            d_temp = (1.-modelutils.exp(-1./der.kd1))
+            new.qdga1 = (old.qdga1 +
+                         (old.qdgz1-old.qdga1)*d_temp +
+                         (new.qdgz1-old.qdgz1)*(1.-der.kd1*d_temp))
 
 
-def calc_qdga2_v1(self):
+class Calc_QDGA2_V1(modeltools.Method):
     """Perform the runoff concentration calculation for "fast" direct runoff.
 
     The working equation is the analytical solution of the linear storage
     equation under the assumption of constant change in inflow during
     the simulation time step.
-
-    Required derived parameter:
-      |KD2|
-
-    Required state sequence:
-      |QDGZ2|
-
-    Calculated state sequence:
-      |QDGA2|
 
     Basic equation:
        :math:`QDGA2_{neu} = QDGA2_{alt} +
@@ -1830,21 +1886,33 @@ def calc_qdga2_v1(self):
         >>> states.qdga2
         qdga2(5.0)
     """
-    der = self.parameters.derived.fastaccess
-    old = self.sequences.states.fastaccess_old
-    new = self.sequences.states.fastaccess_new
-    if der.kd2 <= 0.:
-        new.qdga2 = new.qdgz2
-    elif der.kd2 > 1e200:
-        new.qdga2 = old.qdga2+new.qdgz2-old.qdgz2
-    else:
-        d_temp = (1.-modelutils.exp(-1./der.kd2))
-        new.qdga2 = (old.qdga2 +
-                     (old.qdgz2-old.qdga2)*d_temp +
-                     (new.qdgz2-old.qdgz2)*(1.-der.kd2*d_temp))
+    DERIVEDPARAMETERS = (
+        lland_derived.KD2,
+    )
+    REQUIREDSEQUENCES = (
+        lland_states.QDGZ2,
+        lland_states.QDGA2,
+    )
+    RESULTSEQUENCES = (
+        lland_states.QDGA2,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        old = model.sequences.states.fastaccess_old
+        new = model.sequences.states.fastaccess_new
+        if der.kd2 <= 0.:
+            new.qdga2 = new.qdgz2
+        elif der.kd2 > 1e200:
+            new.qdga2 = old.qdga2+new.qdgz2-old.qdgz2
+        else:
+            d_temp = (1.-modelutils.exp(-1./der.kd2))
+            new.qdga2 = (old.qdga2 +
+                         (old.qdgz2-old.qdga2)*d_temp +
+                         (new.qdgz2-old.qdgz2)*(1.-der.kd2*d_temp))
 
 
-def calc_q_v1(self):
+class Calc_Q_V1(modeltools.Method):
     """Calculate the final runoff.
 
     Note that, in case there are water areas, their |NKor| values are
@@ -1854,28 +1922,6 @@ def calc_q_v1(self):
     type |WASSER| can result  in problematic modifications of simulated
     runoff series. It seems advisable to use land type |FLUSS| and/or
     land type |SEE| instead.
-
-    Required control parameters:
-      |NHRU|
-      |FHRU|
-      |Lnk|
-      |NegQ|
-
-    Required flux sequence:
-      |NKor|
-
-    Updated flux sequence:
-      |EvI|
-
-    Required state sequences:
-      |QBGA|
-      |QIGA1|
-      |QIGA2|
-      |QDGA1|
-      |QDGA2|
-
-    Calculated flux sequence:
-      |lland_fluxes.Q|
 
     Basic equations:
        :math:`Q = QBGA + QIGA1 + QIGA2 + QDGA1 + QDGA2 +
@@ -1981,88 +2027,118 @@ def calc_q_v1(self):
         >>> fluxes.evi
         evi(4.0, 5.0, 3.0)
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    sta = self.sequences.states.fastaccess
-    aid = self.sequences.aides.fastaccess
-    flu.q = sta.qbga+sta.qiga1+sta.qiga2+sta.qdga1+sta.qdga2
-    if (not con.negq) and (flu.q < 0.):
-        d_area = 0.
-        for k in range(con.nhru):
-            if con.lnk[k] in (FLUSS, SEE):
-                d_area += con.fhru[k]
-        if d_area > 0.:
+    CONTROLPARAMETERS = (
+        lland_control.NegQ,
+        lland_control.NHRU,
+        lland_control.Lnk,
+        lland_control.FHRU,
+    )
+    REQUIREDSEQUENCES = (
+        lland_states.QBGA,
+        lland_states.QIGA1,
+        lland_states.QIGA2,
+        lland_states.QDGA1,
+        lland_states.QDGA2,
+        lland_fluxes.NKor,
+        lland_fluxes.EvI,
+    )
+    UPDATEDSEQUENCES = (
+        lland_fluxes.EvI,
+    )
+    RESULTSEQUENCES = (
+        lland_fluxes.Q,
+        lland_aides.EPW,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        aid = model.sequences.aides.fastaccess
+        flu.q = sta.qbga+sta.qiga1+sta.qiga2+sta.qdga1+sta.qdga2
+        if (not con.negq) and (flu.q < 0.):
+            d_area = 0.
             for k in range(con.nhru):
                 if con.lnk[k] in (FLUSS, SEE):
-                    flu.evi[k] += flu.q/d_area
-        flu.q = 0.
-    aid.epw = 0.
-    for k in range(con.nhru):
-        if con.lnk[k] == WASSER:
-            flu.q += con.fhru[k]*flu.nkor[k]
-            aid.epw += con.fhru[k]*flu.evi[k]
-    if (flu.q > aid.epw) or con.negq:
-        flu.q -= aid.epw
-    elif aid.epw > 0.:
+                    d_area += con.fhru[k]
+            if d_area > 0.:
+                for k in range(con.nhru):
+                    if con.lnk[k] in (FLUSS, SEE):
+                        flu.evi[k] += flu.q/d_area
+            flu.q = 0.
+        aid.epw = 0.
         for k in range(con.nhru):
             if con.lnk[k] == WASSER:
-                flu.evi[k] *= flu.q/aid.epw
-        flu.q = 0.
+                flu.q += con.fhru[k]*flu.nkor[k]
+                aid.epw += con.fhru[k]*flu.evi[k]
+        if (flu.q > aid.epw) or con.negq:
+            flu.q -= aid.epw
+        elif aid.epw > 0.:
+            for k in range(con.nhru):
+                if con.lnk[k] == WASSER:
+                    flu.evi[k] *= flu.q/aid.epw
+            flu.q = 0.
 
 
-def pass_q_v1(self):
+class Pass_Q_V1(modeltools.Method):
     """Update the outlet link sequence.
-
-    Required derived parameter:
-      |QFactor|
-
-    Required flux sequences:
-      |lland_fluxes.Q|
-
-    Calculated flux sequence:
-      |lland_outlets.Q|
 
     Basic equation:
        :math:`Q_{outlets} = QFactor \\cdot Q_{fluxes}`
     """
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    out = self.sequences.outlets.fastaccess
-    out.q[0] += der.qfactor*flu.q
+    DERIVEDPARAMETERS = (
+        lland_derived.QFactor,
+    )
+    REQUIREDSEQUENCES = (
+        lland_fluxes.Q,
+    )
+    RESULTSEQUENCES = (
+        lland_outlets.Q,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        out = model.sequences.outlets.fastaccess
+        out.q[0] += der.qfactor*flu.q
 
 
 class Model(modeltools.AdHocModel):
     """Base model for HydPy-L-Land."""
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
-    RUN_METHODS = (calc_nkor_v1,
-                   calc_tkor_v1,
-                   calc_et0_v1,
-                   calc_et0_wet0_v1,
-                   calc_evpo_v1,
-                   calc_nbes_inzp_v1,
-                   calc_evi_inzp_v1,
-                   calc_sbes_v1,
-                   calc_wgtf_v1,
-                   calc_schm_wats_v1,
-                   calc_wada_waes_v1,
-                   calc_evb_v1,
-                   calc_qbb_v1,
-                   calc_qib1_v1,
-                   calc_qib2_v1,
-                   calc_qdb_v1,
-                   calc_bowa_v1,
-                   calc_qbgz_v1,
-                   calc_qigz1_v1,
-                   calc_qigz2_v1,
-                   calc_qdgz_v1,
-                   calc_qdgz1_qdgz2_v1,
-                   calc_qbga_v1,
-                   calc_qiga1_v1,
-                   calc_qiga2_v1,
-                   calc_qdga1_v1,
-                   calc_qdga2_v1,
-                   calc_q_v1)
+    RUN_METHODS = (
+        Calc_NKor_V1,
+        Calc_TKor_V1,
+        Calc_ET0_V1,
+        Calc_ET0_WET0_V1,
+        Calc_EvPo_V1,
+        Calc_NBes_Inzp_V1,
+        Calc_EvI_Inzp_V1,
+        Calc_SBes_V1,
+        Calc_WGTF_V1,
+        Calc_Schm_WATS_V1,
+        Calc_WaDa_WAeS_V1,
+        Calc_EvB_V1,
+        Calc_QBB_V1,
+        Calc_QIB1_V1,
+        Calc_QIB2_V1,
+        Calc_QDB_V1,
+        Calc_BoWa_V1,
+        Calc_QBGZ_V1,
+        Calc_QIGZ1_V1,
+        Calc_QIGZ2_V1,
+        Calc_QDGZ_V1,
+        Calc_QDGZ1_QDGZ2_V1,
+        Calc_QBGA_V1,
+        Calc_QIGA1_V1,
+        Calc_QIGA2_V1,
+        Calc_QDGA1_V1,
+        Calc_QDGA2_V1,
+        Calc_Q_V1,
+    )
     ADD_METHODS = ()
-    OUTLET_METHODS = (pass_q_v1,)
+    OUTLET_METHODS = (
+        Pass_Q_V1,
+    )
     SENDER_METHODS = ()

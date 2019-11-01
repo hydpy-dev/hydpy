@@ -61,18 +61,18 @@ mechanism ensuring that *HydPy* is working as expected and
 that the documentation is up-to-date with it.
 
 See for example the documentation of the (very simple) method
-|lland_model.calc_nkor_v1|.  The text describes what the method does
+|lland_model.Calc_NKor_V1|.  The text describes what the method does
 and what input data it requires.  It is comprehensive but, as in common
 documentations, technical reports and scientific articles, could be
 outdated or be wrong in other ways.  This is not the case for the
 example calculation shown in the green box.  This example is actual
-`Python`_ code that shows how method |lland_model.calc_nkor_v1| can be
+`Python`_ code that shows how method |lland_model.Calc_NKor_V1| can be
 used and how different input values (for variables |lland_inputs.Nied|
 and |lland_control.KG|) result in different output values (for variable
 |lland_fluxes.NKor|).  Each time a new *HydPy* version is pushed
 into the `GitHub repository`_, automatic test routines on `Travis CI`_ and
 `AppVeyor`_  are trigged.  The new *HydPy* version is rejected, if the
-actual |lland_model.calc_nkor_v1| method does not result in the exact
+actual |lland_model.Calc_NKor_V1| method does not result in the exact
 same output values as given in the last line of the example.
 
 Such basic "unit tests" should provide a good basis for discussing the

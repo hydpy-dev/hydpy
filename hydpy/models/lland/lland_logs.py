@@ -29,8 +29,3 @@ class WET0(sequencetools.LogSequence):
         super().__hydpy__set_shape__((1, shape))
 
     shape = property(fget=__hydpy__get_shape__, fset=__hydpy__set_shape__)
-
-
-class LogSequences(sequencetools.LogSequences):
-    """Log sequences of the HydPy-L-Land model."""
-    CLASSES = (WET0,)

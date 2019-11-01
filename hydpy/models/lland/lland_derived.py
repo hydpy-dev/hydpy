@@ -6,6 +6,7 @@
 # ...from HydPy
 from hydpy.core import parametertools
 # ...from lland
+from hydpy.models.lland import lland_control
 from hydpy.models.lland import lland_parameters
 
 
@@ -16,6 +17,11 @@ class MOY(parametertools.MOYParameter):
 class AbsFHRU(lland_parameters.ParameterComplete):
     """Flächen der Hydrotope (areas of the respective HRUs) [km²]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+
+    CONTROLPARAMETERS = (
+        lland_control.FT,
+        lland_control.FHRU,
+    )
 
     def update(self):
         """Update |AbsFHRU| based on |FT| and |FHRU|.
@@ -38,6 +44,11 @@ class KInz(lland_parameters.LanduseMonthParameter):
     """Interzeptionskapazität bezogen auf die Bodenoberfläche (interception
     capacity normalized to the soil surface area) [mm]."""
     NDIM, TYPE, TIME, SPAN = 2, float, None, (0., None)
+
+    CONTROLPARAMETERS = (
+        lland_control.HInz,
+        lland_control.LAI,
+    )
 
     def update(self):
         """Update |KInz| based on |HInz| and |LAI|.
@@ -64,6 +75,11 @@ class WB(lland_parameters.ParameterComplete):
        value of absolute soil moisture for base flow generation) [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
+    CONTROLPARAMETERS = (
+        lland_control.RelWB,
+        lland_control.NFk,
+    )
+
     def update(self):
         """Update |WB| based on |RelWB| and |NFk|.
 
@@ -85,6 +101,11 @@ class WZ(lland_parameters.ParameterComplete):
     """Absolute Mindestbodenfeuchte für die Interflowentstehung (threshold
        value of absolute soil moisture for interflow generation) [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+
+    CONTROLPARAMETERS = (
+        lland_control.RelWZ,
+        lland_control.NFk,
+    )
 
     def update(self):
         """Update |WZ| based on |RelWZ| and |NFk|.
@@ -108,6 +129,11 @@ class KB(parametertools.Parameter):
     [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
+    CONTROLPARAMETERS = (
+        lland_control.EQB,
+        lland_control.TInd,
+    )
+
     def update(self):
         """Update |KB| based on |EQB| and |TInd|.
 
@@ -127,6 +153,11 @@ class KI1(parametertools.Parameter):
     """Konzentrationszeit des "unteren" Zwischenabflusses (concentration time
     of the first interflow component) [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+
+    CONTROLPARAMETERS = (
+        lland_control.EQI1,
+        lland_control.TInd,
+    )
 
     def update(self):
         """Update |KI1| based on |EQI1| and |TInd|.
@@ -148,6 +179,11 @@ class KI2(parametertools.Parameter):
     of the second interflow component) [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
+    CONTROLPARAMETERS = (
+        lland_control.EQI2,
+        lland_control.TInd,
+    )
+
     def update(self):
         """Update |KI2| based on |EQI2| and |TInd|.
 
@@ -167,6 +203,11 @@ class KD1(parametertools.Parameter):
     """Konzentrationszeit des "langsamen" Direktabflusses (concentration time
     of the slower component of direct runoff) [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+
+    CONTROLPARAMETERS = (
+        lland_control.EQD1,
+        lland_control.TInd,
+    )
 
     def update(self):
         """Update |KD1| based on |EQD1| and |TInd|.
@@ -188,6 +229,11 @@ class KD2(parametertools.Parameter):
     of the faster component of direct runoff) [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
+    CONTROLPARAMETERS = (
+        lland_control.EQD2,
+        lland_control.TInd,
+    )
+
     def update(self):
         """Update |KD2| based on |EQD2| and |TInd|.
 
@@ -207,6 +253,10 @@ class QFactor(parametertools.Parameter):
     """Factor for converting mm/stepsize to m³/s."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
+    CONTROLPARAMETERS = (
+        lland_control.FT,
+    )
+
     def update(self):
         """Update |QFactor| based on |FT| and the current simulation step size.
 
@@ -220,18 +270,3 @@ class QFactor(parametertools.Parameter):
         """
         con = self.subpars.pars.control
         self.value = con.ft*1000./self.simulationstep.seconds
-
-
-class DerivedParameters(parametertools.SubParameters):
-    """Derived parameters of HydPy-H-Land, indirectly defined by the user."""
-    CLASSES = (MOY,
-               AbsFHRU,
-               KInz,
-               WB,
-               WZ,
-               KB,
-               KI1,
-               KI2,
-               KD1,
-               KD2,
-               QFactor)

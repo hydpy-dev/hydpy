@@ -273,84 +273,34 @@ Integration examples:
 # import...
 # ...from standard library
 from hydpy.core import modeltools
-from hydpy.core import parametertools
-from hydpy.core import sequencetools
 # ...from HydPy
 from hydpy.exe.modelimports import *
 # ...from llake
 from hydpy.models.llake import llake_model
-from hydpy.models.llake import llake_control
-from hydpy.models.llake import llake_derived
-from hydpy.models.llake import llake_fluxes
-from hydpy.models.llake import llake_states
-from hydpy.models.llake import llake_aides
-from hydpy.models.llake import llake_inlets
-from hydpy.models.llake import llake_outlets
 
 
 class Model(modeltools.AdHocModel):
     """LARSIM-Lake version of HydPy-L-Lake (llake_v1)."""
-    INLET_METHODS = (llake_model.pick_q_v1,)
+    INLET_METHODS = (
+        llake_model.Pick_Q_V1,
+    )
     RECEIVER_METHODS = ()
-    RUN_METHODS = (llake_model.solve_dv_dt_v1,
-                   llake_model.interp_w_v1,
-                   llake_model.corr_dw_v1,
-                   llake_model.modify_qa_v1,)
-    ADD_METHODS = (llake_model.interp_v_v1,
-                   llake_model.calc_vq_v1,
-                   llake_model.interp_qa_v1,
-                   llake_model.calc_v_qa_v1)
-    OUTLET_METHODS = (llake_model.pass_q_v1,)
+    RUN_METHODS = (
+        llake_model.Solve_DV_DT_V1,
+        llake_model.Interp_W_V1,
+        llake_model.Corr_DW_V1,
+        llake_model.Modify_QA_V1,
+    )
+    ADD_METHODS = (
+        llake_model.Interp_V_V1,
+        llake_model.Calc_VQ_V1,
+        llake_model.Interp_QA_V1,
+        llake_model.Calc_V_QA_V1,
+    )
+    OUTLET_METHODS = (
+        llake_model.Pass_Q_V1,
+    )
     SENDER_METHODS = ()
-
-
-class ControlParameters(parametertools.SubParameters):
-    """Control parameters of llake_v1, directly defined by the user."""
-    CLASSES = (llake_control.N,
-               llake_control.W,
-               llake_control.V,
-               llake_control.Q,
-               llake_control.MaxDT,
-               llake_control.MaxDW,
-               llake_control.Verzw)
-
-
-class DerivedParameters(parametertools.SubParameters):
-    """Derived parameters of llake_v1, indirectly defined by the user.
-    """
-    CLASSES = (llake_derived.TOY,
-               llake_derived.Seconds,
-               llake_derived.NmbSubsteps,
-               llake_derived.VQ)
-
-
-class StateSequences(sequencetools.StateSequences):
-    """State sequences of llake_v1."""
-    CLASSES = (llake_states.V,
-               llake_states.W)
-
-
-class FluxSequences(sequencetools.FluxSequences):
-    """Flux sequences of llake_v1."""
-    CLASSES = (llake_fluxes.QZ,
-               llake_fluxes.QA)
-
-
-class AideSequences(sequencetools.AideSequences):
-    """Aide sequences of llake_v1."""
-    CLASSES = (llake_aides.QA,
-               llake_aides.VQ,
-               llake_aides.V,)
-
-
-class InletSequences(sequencetools.InletSequences):
-    """Upstream link sequences of llake_v1."""
-    CLASSES = (llake_inlets.Q,)
-
-
-class OutletSequences(sequencetools.OutletSequences):
-    """Downstream link sequences of llake_v1."""
-    CLASSES = (llake_outlets.Q,)
 
 
 tester = Tester()

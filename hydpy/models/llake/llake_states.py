@@ -15,9 +15,3 @@ class V(sequencetools.StateSequence):
 class W(sequencetools.StateSequence):
     """Wasserstand (water stage) [m]."""
     NDIM, NUMERIC, SPAN = 0, False, (None, None)
-
-
-class StateSequences(sequencetools.StateSequences):
-    """State sequences of HydPy-L-Lake."""
-    CLASSES = (V,
-               W)

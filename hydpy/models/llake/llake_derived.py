@@ -7,6 +7,8 @@
 import numpy
 # ...from HydPy
 from hydpy.core import parametertools
+# ...from llake
+from hydpy.models.llake import llake_control
 
 
 class TOY(parametertools.TOYParameter):
@@ -22,6 +24,13 @@ class NmbSubsteps(parametertools.Parameter):
     """Number of the internal simulation steps [-]."""
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
+    CONTROLPARAMETERS = (
+        llake_control.MaxDT,
+    )
+    DERIVEDPARAMETERS = (
+        Seconds,
+    )
+
     def update(self):
         """Determine the number of substeps.
 
@@ -30,6 +39,7 @@ class NmbSubsteps(parametertools.Parameter):
         >>> from hydpy.models.llake import *
         >>> parameterstep('1d')
         >>> simulationstep('12h')
+        >>> derived.seconds.update()
 
         If the maximum internal step size is also set to 12 hours, there is
         only one internal calculation step per outer simulation step:
@@ -63,13 +73,22 @@ class NmbSubsteps(parametertools.Parameter):
         nmbsubsteps(1)
         """
         maxdt = self.subpars.pars.control.maxdt
-        seconds = self.simulationstep.seconds
+        seconds = self.subpars.seconds
         self.value = numpy.ceil(seconds/maxdt)
 
 
 class VQ(parametertools.SeasonalParameter):
     """Hilfsterm (auxiliary term): math:VdtQ = 2 \\cdot + dt \\cdot Q` [m³]."""
     NDIM, TYPE, TIME, SPAN = 2, float, None, (0., None)
+
+    CONTROLPARAMETERS = (
+        llake_control.Q,
+        llake_control.V,
+    )
+    DERIVEDPARAMETERS = (
+        Seconds,
+        NmbSubsteps,
+    )
 
     def update(self):
         """Calulate the auxilary term.
@@ -94,11 +113,3 @@ class VQ(parametertools.SeasonalParameter):
         for (toy, qs) in con.q:
             setattr(self, str(toy), 2.*con.v+der.seconds/der.nmbsubsteps*qs)
         self.refresh()
-
-
-class DerivedParameters(parametertools.SubParameters):
-    """Derived parameters of HydPy-L-Lake, indirectly defined by the user."""
-    CLASSES = (TOY,
-               Seconds,
-               NmbSubsteps,
-               VQ)

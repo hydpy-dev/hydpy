@@ -7,6 +7,7 @@
 import numpy
 # ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.models.hland import hland_control
 from hydpy.models.hland import hland_masks
 from hydpy.models.hland import hland_sequences
 from hydpy.models.hland.hland_constants import ILAKE
@@ -16,6 +17,10 @@ class Ic(hland_sequences.State1DSequence):
     """Interception storage [mm]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
     mask = hland_masks.Soil()
+
+    CONTROLPARAMETERS = (
+        hland_control.IcMax,
+    )
 
     def trim(self, lower=None, upper=None):
         """Trim upper values in accordance with :math:`IC \\leq ICMAX`.
@@ -38,6 +43,10 @@ class SP(hland_sequences.State1DSequence):
     """Frozen water stored in the snow layer [mm]."""
     NDIM, NUMERIC, SPAN = 1, False, (None, None)
     mask = hland_masks.Land()
+
+    CONTROLPARAMETERS = (
+        hland_control.WHC,
+    )
 
     def trim(self, lower=None, upper=None):
         """Trim values in accordance with :math:`WC \\leq WHC \\cdot SP`.
@@ -69,6 +78,10 @@ class WC(hland_sequences.State1DSequence):
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
     mask = hland_masks.Land()
 
+    CONTROLPARAMETERS = (
+        hland_control.WHC,
+    )
+
     def trim(self, lower=None, upper=None):
         """Trim values in accordance with :math:`WC \\leq WHC \\cdot SP`.
 
@@ -92,6 +105,10 @@ class SM(hland_sequences.State1DSequence):
     """Soil moisture [mm]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
     mask = hland_masks.Soil()
+
+    CONTROLPARAMETERS = (
+        hland_control.FC,
+    )
 
     def trim(self, lower=None, upper=None):
         """Trim values in accordance with :math:`SM \\leq FC`.
@@ -118,6 +135,10 @@ class LZ(sequencetools.StateSequence):
     """Storage in the lower zone layer [mm]."""
     NDIM, NUMERIC, SPAN = 0, False, (None, None)
 
+    CONTROLPARAMETERS = (
+        hland_control.ZoneType,
+    )
+
     def trim(self, lower=None, upper=None):
         """Trim negative value whenever there is no internal lake within
         the respective subbasin.
@@ -142,13 +163,3 @@ class LZ(sequencetools.StateSequence):
             if not any(control.zonetype.values == ILAKE):
                 lower = 0.
         sequencetools.StateSequence.trim(self, lower, upper)
-
-
-class StateSequences(sequencetools.StateSequences):
-    """State sequences of the HydPy-H-Land model."""
-    CLASSES = (Ic,
-               SP,
-               WC,
-               SM,
-               UZ,
-               LZ)

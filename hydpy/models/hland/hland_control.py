@@ -88,13 +88,13 @@ class ZoneZ(hland_parameters.ParameterComplete):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
 
-class ZRelT(parametertools.Parameter):
-    """Subbasin-wide reference elevation level for temperature [100m]."""
+class ZRelP(parametertools.Parameter):
+    """Subbasin-wide reference elevation level for precipitation [100m]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
 
-class ZRelP(parametertools.Parameter):
-    """Subbasin-wide reference elevation level for precipitation [100m]."""
+class ZRelT(parametertools.Parameter):
+    """Subbasin-wide reference elevation level for temperature [100m]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
 
@@ -213,6 +213,11 @@ class Beta(hland_parameters.ParameterSoil):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 
+class PercMax(parametertools.Parameter):
+    """Maximum percolation rate [mm/T]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, True, (0., None)
+
+
 class CFlux(hland_parameters.ParameterSoil):
     """Capacity (maximum) of the capillary return flux [mm/T]."""
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
@@ -236,9 +241,9 @@ class RecStep(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, int, True, (1, None)
 
 
-class PercMax(parametertools.Parameter):
-    """Maximum percolation rate [mm/T]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, True, (0., None)
+class Alpha(parametertools.Parameter):
+    """Nonlinearity parameter of the upper zone layer [-]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
 
 class K(parametertools.Parameter):
@@ -340,11 +345,6 @@ of parameter `alpha` must be defined beforehand.
             self(hq/((hq/khq)**(alpha+1.)))
 
 
-class Alpha(parametertools.Parameter):
-    """Nonlinearity parameter of the upper zone layer [-]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
-
-
 class K4(parametertools.Parameter):
     """Recession coefficient of the lower zone layer [1/T]."""
     NDIM, TYPE, TIME, SPAN = 0, float, True, (0., None)
@@ -363,47 +363,3 @@ class MaxBaz(parametertools.Parameter):
 class Abstr(parametertools.Parameter):
     """Abstraction of water from computed outflow [mm/T]."""
     NDIM, TYPE, TIME, SPAN = 0, float, True, (None, None)
-
-
-class ControlParameters(parametertools.SubParameters):
-    """Control parameters of HydPy-H-Land, directly defined by the user."""
-    CLASSES = (Area,
-               NmbZones,
-               ZoneType,
-               ZoneArea,
-               ZoneZ,
-               ZRelP,
-               ZRelT,
-               ZRelE,
-               PCorr,
-               PCAlt,
-               RfCF,
-               SfCF,
-               TCAlt,
-               ECorr,
-               ECAlt,
-               EPF,
-               ETF,
-               ERed,
-               TTIce,
-               IcMax,
-               TT,
-               TTInt,
-               DTTM,
-               CFMax,
-               GMelt,
-               CFR,
-               WHC,
-               FC,
-               LP,
-               Beta,
-               PercMax,
-               CFlux,
-               RespArea,
-               RecStep,
-               Alpha,
-               K,
-               K4,
-               Gamma,
-               MaxBaz,
-               Abstr)

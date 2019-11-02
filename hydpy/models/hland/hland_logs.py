@@ -57,8 +57,3 @@ from shape (4) into shape (3)
                 f'{objecttools.elementphrase(self)} handling model '
                 f'`{self.subseqs.seqs.model}` could be initialised '
                 f'with a averaged value only: {exc}')
-
-
-class LogSequences(sequencetools.LogSequences):
-    """Log sequences of the hland model."""
-    CLASSES = (QUH,)

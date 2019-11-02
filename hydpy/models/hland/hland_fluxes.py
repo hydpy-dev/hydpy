@@ -142,34 +142,3 @@ class OutUH(sequencetools.FluxSequence):
 class QT(sequencetools.FluxSequence):
     """Total model outflow [mm]."""
     NDIM, NUMERIC = 0, False
-
-
-class FluxSequences(sequencetools.FluxSequences):
-    """Flux sequences of the HydPy-H-Land model."""
-    CLASSES = (TMean,
-               TC,
-               FracRain,
-               RfC,
-               SfC,
-               PC,
-               EP,
-               EPC,
-               EI,
-               TF,
-               GlMelt,
-               Melt,
-               Refr,
-               In_,
-               R,
-               EA,
-               CFPot,
-               CF,
-               Perc,
-               ContriArea,
-               InUZ,
-               Q0,
-               EL,
-               Q1,
-               InUH,
-               OutUH,
-               QT)

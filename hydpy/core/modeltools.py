@@ -579,11 +579,11 @@ any sequences so far.
         >>> from hydpy.models import hland_v1
         >>> for method in hland_v1.Model.get_methods():
         ...     print(method.__name__)   # doctest: +ELLIPSIS
-        calc_tc_v1
-        calc_tmean_v1
+        Calc_TC_V1
+        Calc_TMean_V1
         ...
-        calc_qt_v1
-        update_q_v1
+        Calc_QT_V1
+        Pass_Q_v1
 
         Note that function |Model.get_methods| returns the "raw" |Method|
         objects instead of the modified Python or Cython functions used

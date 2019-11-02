@@ -7,11 +7,16 @@
 import numpy
 # ...from HydPy
 from hydpy.core import parametertools
+from hydpy.models.arma import arma_control
 
 
 class Nmb(parametertools.Parameter):
     """Number of response functions [-]."""
     NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+
+    CONTROLPARAMETERS = (
+        arma_control.Responses,
+    )
 
     def update(self):
         """Determine the number of response functions.
@@ -49,6 +54,10 @@ class MaxQ(parametertools.Parameter):
     """Maximum discharge values of the respective ARMA models [m³/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0, None)
 
+    CONTROLPARAMETERS = (
+        arma_control.Responses,
+    )
+
     def update(self):
         """Determine the maximum discharge values.
 
@@ -67,6 +76,10 @@ class MaxQ(parametertools.Parameter):
 class DiffQ(parametertools.Parameter):
     """Differences between the values of |MaxQ| [m³/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0, None)
+
+    CONTROLPARAMETERS = (
+        arma_control.Responses,
+    )
 
     def update(self):
         """Determine the "max Q deltas".
@@ -91,6 +104,10 @@ class AR_Order(parametertools.Parameter):
     """Number of AR coefficients of the different responses [-]."""
     NDIM, TYPE, TIME, SPAN = 1, int, None, (0, None)
 
+    CONTROLPARAMETERS = (
+        arma_control.Responses,
+    )
+
     def update(self):
         """Determine the total number of AR coefficients.
 
@@ -110,6 +127,10 @@ class MA_Order(parametertools.Parameter):
     """Number of MA coefficients of the different responses [-]."""
     NDIM, TYPE, TIME, SPAN = 1, int, None, (0, None)
 
+    CONTROLPARAMETERS = (
+        arma_control.Responses,
+    )
+
     def update(self):
         """Determine the total number of MA coefficients.
 
@@ -128,6 +149,10 @@ class MA_Order(parametertools.Parameter):
 class AR_Coefs(parametertools.Parameter):
     """AR coefficients of the different responses [-]."""
     NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
+
+    CONTROLPARAMETERS = (
+        arma_control.Responses,
+    )
 
     def update(self):
         """Determine all AR coefficients.
@@ -158,6 +183,10 @@ class MA_Coefs(parametertools.Parameter):
     """MA coefficients of the different responses [-]."""
     NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
 
+    CONTROLPARAMETERS = (
+        arma_control.Responses,
+    )
+
     def update(self):
         """Determine all MA coefficients.
 
@@ -181,14 +210,3 @@ class MA_Coefs(parametertools.Parameter):
         self.shape = coefs.shape
         self.value = coefs
         pars.model.sequences.logs.login.shape = self.shape
-
-
-class DerivedParameters(parametertools.SubParameters):
-    """Derived parameters of arma, indirectly defined by the user."""
-    CLASSES = (Nmb,
-               MaxQ,
-               DiffQ,
-               AR_Order,
-               MA_Order,
-               AR_Coefs,
-               MA_Coefs)

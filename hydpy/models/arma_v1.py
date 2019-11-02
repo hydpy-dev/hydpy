@@ -326,75 +326,30 @@ Integration examples:
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
-from hydpy.core import parametertools
-from hydpy.core import sequencetools
 # ...from arma
 from hydpy.models.arma import arma_model
-from hydpy.models.arma import arma_control
-from hydpy.models.arma import arma_derived
-from hydpy.models.arma import arma_fluxes
-from hydpy.models.arma import arma_logs
-from hydpy.models.arma import arma_inlets
-from hydpy.models.arma import arma_outlets
 
 
 class Model(modeltools.AdHocModel):
     """Rimo/Rido version of ARMA (arma_v1)."""
-
-    INLET_METHODS = (arma_model.pick_q_v1,)
+    INLET_METHODS = (
+        arma_model.Pick_Q_V1,
+    )
     RECEIVER_METHODS = ()
-    RUN_METHODS = (arma_model.calc_qpin_v1,
-                   arma_model.calc_login_v1,
-                   arma_model.calc_qma_v1,
-                   arma_model.calc_qar_v1,
-                   arma_model.calc_qpout_v1,
-                   arma_model.calc_logout_v1,
-                   arma_model.calc_qout_v1)
+    RUN_METHODS = (
+        arma_model.Calc_QPIn_V1,
+        arma_model.Update_LogIn_V1,
+        arma_model.Calc_QMA_V1,
+        arma_model.Calc_QAR_V1,
+        arma_model.Calc_QPOut_V1,
+        arma_model.Update_LogOut_V1,
+        arma_model.Calc_QOut_V1,
+    )
     ADD_METHODS = ()
-    OUTLET_METHODS = (arma_model.pass_q_v1,)
+    OUTLET_METHODS = (
+        arma_model.Pass_Q_V1,
+    )
     SENDER_METHODS = ()
-
-
-class ControlParameters(parametertools.SubParameters):
-    """Control parameters of arma_v1, directly defined by the user."""
-    CLASSES = (arma_control.Responses,)
-
-
-class DerivedParameters(parametertools.SubParameters):
-    """Derived parameters of arma_v1, indirectly defined by the user."""
-    CLASSES = (arma_derived.Nmb,
-               arma_derived.MaxQ,
-               arma_derived.DiffQ,
-               arma_derived.AR_Order,
-               arma_derived.MA_Order,
-               arma_derived.AR_Coefs,
-               arma_derived.MA_Coefs)
-
-
-class FluxSequences(sequencetools.FluxSequences):
-    """Flux sequences of arma_v1"""
-    CLASSES = (arma_fluxes.QIn,
-               arma_fluxes.QPIn,
-               arma_fluxes.QMA,
-               arma_fluxes.QAR,
-               arma_fluxes.QPOut,
-               arma_fluxes.QOut)
-
-
-class LogSequences(sequencetools.LogSequences):
-    """Log sequences of arma_v1."""
-    CLASSES = (arma_logs.LogIn,
-               arma_logs.LogOut)
-
-
-class InletSequences(sequencetools.InletSequences):
-    """Upstream link sequences of arma_v1."""
-    CLASSES = (arma_inlets.Q,)
-
-
-class OutletSequences(sequencetools.OutletSequences):
-    """Downstream link sequences of arma_v1."""
-    CLASSES = (arma_outlets.Q,)
 
 
 tester = Tester()

@@ -384,8 +384,3 @@ Most probably, you defined the same threshold value(s) twice.
         attrs = objecttools.dir_(self)
         attrs.extend(self._coefs.keys())
         return attrs
-
-
-class ControlParameters(parametertools.SubParameters):
-    """Control parameters of arma, directly defined by the user."""
-    CLASSES = (Responses,)

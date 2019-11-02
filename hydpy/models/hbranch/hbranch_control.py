@@ -217,14 +217,3 @@ new `branched` sequence and connect it to the respective outlet nodes properly.
             return '\n'.join(lines)
         except BaseException:
             return 'ypoints(?)'
-
-
-class ControlParameters(parametertools.SubParameters):
-    """Control parameters of hbranch, directly defined by the user.
-
-    Note that the number of supporting points handled parameter |XPoints|
-    and |YPoints| must be identical.  First define the values of parameter
-    |XPoints|, then the values  of parameter |YPoints|.
-    """
-    CLASSES = (XPoints,
-               YPoints)

@@ -27,9 +27,3 @@ class Outputs(sequencetools.FluxSequence):
                 lines.append('        '+line)
         lines[-1] = lines[-1][:-1]+')'
         return '\n'.join(lines)
-
-
-class FluxSequences(sequencetools.FluxSequences):
-    """Flux sequences of the hbranch model."""
-    CLASSES = (Input,
-               Outputs)

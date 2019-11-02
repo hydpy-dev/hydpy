@@ -6,24 +6,15 @@
 # ...from HydPy
 from hydpy.core import modeltools
 from hydpy.core import objecttools
+from hydpy.models.hbranch import hbranch_control
+from hydpy.models.hbranch import hbranch_derived
+from hydpy.models.hbranch import hbranch_fluxes
+from hydpy.models.hbranch import hbranch_inlets
+from hydpy.models.hbranch import hbranch_outlets
 
 
-def calc_outputs_v1(self):
+class Calc_Outputs_V1(modeltools.Method):
     """Performs the actual interpolation or extrapolation.
-
-    Required control parameters:
-      |XPoints|
-      |YPoints|
-
-    Required derived parameter:
-      |NmbPoints|
-      |NmbBranches|
-
-    Required flux sequence:
-      |Input|
-
-    Calculated flux sequence:
-      |Outputs|
 
     Examples:
 
@@ -78,47 +69,96 @@ def calc_outputs_v1(self):
         outputs(branch1=0.0,
                 branch2=5.0)
     """
-    con = self.parameters.control.fastaccess
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    # Search for the index of the two relevant x points...
-    for pdx in range(1, der.nmbpoints):
-        if con.xpoints[pdx] > flu.input:
-            break
-    # ...and use it for linear interpolation (or extrapolation).
-    for bdx in range(der.nmbbranches):
-        flu.outputs[bdx] = (
-            (flu.input-con.xpoints[pdx-1]) *
-            (con.ypoints[bdx, pdx]-con.ypoints[bdx, pdx-1]) /
-            (con.xpoints[pdx]-con.xpoints[pdx-1]) +
-            con.ypoints[bdx, pdx-1])
+    CONTROLPARAMETERS = (
+        hbranch_control.XPoints,
+        hbranch_control.YPoints,
+    )
+    DERIVEDPARAMETERS = (
+        hbranch_derived.NmbPoints,
+        hbranch_derived.NmbBranches,
+    )
+    REQUIREDSEQUENCES = (
+        hbranch_fluxes.Input,
+    )
+    RESULTSEQUENCES = (
+        hbranch_fluxes.Outputs,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        # Search for the index of the two relevant x points...
+        for pdx in range(1, der.nmbpoints):
+            if con.xpoints[pdx] > flu.input:
+                break
+        # ...and use it for linear interpolation (or extrapolation).
+        for bdx in range(der.nmbbranches):
+            flu.outputs[bdx] = (
+                (flu.input-con.xpoints[pdx-1]) *
+                (con.ypoints[bdx, pdx]-con.ypoints[bdx, pdx-1]) /
+                (con.xpoints[pdx]-con.xpoints[pdx-1]) +
+                con.ypoints[bdx, pdx-1])
 
 
-def pick_input_v1(self):
-    """Updates |Input| based on |Total|."""
-    flu = self.sequences.fluxes.fastaccess
-    inl = self.sequences.inlets.fastaccess
-    flu.input = 0.
-    for idx in range(inl.len_total):
-        flu.input += inl.total[idx][0]
+class Pick_Input_V1(modeltools.Method):
+    """Updates |Input| based on |Total|.
+
+    Basic equation:
+      :math:`Input = \\sum Total`
+    """
+    REQUIREDSEQUENCES = (
+        hbranch_inlets.Total,
+    )
+    RESULTSEQUENCES = (
+        hbranch_fluxes.Input,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        inl = model.sequences.inlets.fastaccess
+        flu.input = 0.
+        for idx in range(inl.len_total):
+            flu.input += inl.total[idx][0]
 
 
-def pass_outputs_v1(self):
-    """Updates |Branched| based on |Outputs|."""
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    out = self.sequences.outlets.fastaccess
-    for bdx in range(der.nmbbranches):
-        out.branched[bdx][0] += flu.outputs[bdx]
+class Pass_Outputs_V1(modeltools.Method):
+    """Updates |Branched| based on |Outputs|.
+
+    Basic equation:
+      :math:`Branched_i = Outputs_i`
+    """
+    DERIVEDPARAMETERS = (
+        hbranch_derived.NmbBranches,
+    )
+    REQUIREDSEQUENCES = (
+        hbranch_fluxes.Outputs,
+    )
+    RESULTSEQUENCES = (
+        hbranch_outlets.Branched,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        out = model.sequences.outlets.fastaccess
+        for bdx in range(der.nmbbranches):
+            out.branched[bdx][0] += flu.outputs[bdx]
 
 
 class Model(modeltools.AdHocModel):
     """The HydPy-H-Branch model."""
-    INLET_METHODS = (pick_input_v1,)
+    INLET_METHODS = (
+        Pick_Input_V1,
+    )
     RECEIVER_METHODS = ()
-    RUN_METHODS = (calc_outputs_v1,)
+    RUN_METHODS = (
+        Calc_Outputs_V1,
+    )
     ADD_METHODS = ()
-    OUTLET_METHODS = (pass_outputs_v1,)
+    OUTLET_METHODS = (
+        Pass_Outputs_V1,
+    )
     SENDER_METHODS = ()
 
     def __init__(self):

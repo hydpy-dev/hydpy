@@ -8,6 +8,7 @@ import numpy
 # ...from HydPy
 from hydpy.core import parametertools
 from hydpy.auxs import smoothtools
+from hydpy.models.dam import dam_control
 
 
 class TOY(parametertools.TOYParameter):
@@ -23,6 +24,10 @@ class RemoteDischargeSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |RemoteDischargeSafety| [m3/s].
     """
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+
+    CONTROLPARAMETERS = (
+        dam_control.RemoteDischargeSafety,
+    )
 
     def update(self):
         """Calculate the smoothing parameter values.
@@ -53,6 +58,10 @@ class NearDischargeMinimumSmoothPar1(parametertools.Parameter):
     """Smoothing parameter to be derived from |NearDischargeMinimumThreshold|
     for smoothing kernel |smooth_logistic1| [m3/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+
+    CONTROLPARAMETERS = (
+        dam_control.NearDischargeMinimumTolerance,
+    )
 
     def update(self):
         """Calculate the smoothing parameter values.
@@ -86,6 +95,10 @@ class NearDischargeMinimumSmoothPar2(parametertools.Parameter):
     for smoothing kernel |smooth_logistic2| [m3/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
+    CONTROLPARAMETERS = (
+        dam_control.NearDischargeMinimumTolerance,
+    )
+
     def update(self):
         """Calculate the smoothing parameter values.
 
@@ -118,6 +131,10 @@ class WaterLevelMinimumSmoothPar(parametertools.Parameter):
     for smoothing kernel |smooth_logistic1| [m]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
+    CONTROLPARAMETERS = (
+        dam_control.WaterLevelMinimumTolerance,
+    )
+
     def update(self):
         """Calculate the smoothing parameter value.
 
@@ -145,6 +162,10 @@ class WaterLevelMinimumRemoteSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from
     |WaterLevelMinimumRemoteTolerance| [m]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+
+    CONTROLPARAMETERS = (
+        dam_control.WaterLevelMinimumRemoteTolerance,
+    )
 
     def update(self):
         """Calculate the smoothing parameter value.
@@ -175,6 +196,10 @@ class WaterLevelRelieveSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |WaterLevelRelieveTolerance|
     for smoothing kernel |smooth_logistic1| [m3/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+
+    CONTROLPARAMETERS = (
+        dam_control.WaterLevelRelieveTolerance,
+    )
 
     def update(self):
         """Calculate the smoothing parameter values.
@@ -208,6 +233,10 @@ class WaterLevelSupplySmoothPar(parametertools.Parameter):
     for smoothing kernel |smooth_logistic1| [m3/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
+    CONTROLPARAMETERS = (
+        dam_control.WaterLevelSupplyTolerance,
+    )
+
     def update(self):
         """Calculate the smoothing parameter values.
 
@@ -239,6 +268,10 @@ class HighestRemoteSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |HighestRemoteTolerance|
     for smoothing kernel |smooth_min1| [m3/s]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+
+    CONTROLPARAMETERS = (
+        dam_control.HighestRemoteTolerance,
+    )
 
     def update(self):
         """Calculate the smoothing parameter value.
@@ -298,17 +331,3 @@ class HighestRemoteSmoothPar(parametertools.Parameter):
             self(control.highestremotedischarge *
                  smoothtools.calc_smoothpar_min1(control.highestremotetolerance)
                  )
-
-
-class DerivedParameters(parametertools.SubParameters):
-    """Derived parameters of the dam model."""
-    CLASSES = (TOY,
-               Seconds,
-               RemoteDischargeSmoothPar,
-               NearDischargeMinimumSmoothPar1,
-               NearDischargeMinimumSmoothPar2,
-               WaterLevelMinimumSmoothPar,
-               WaterLevelMinimumRemoteSmoothPar,
-               WaterLevelRelieveSmoothPar,
-               WaterLevelSupplySmoothPar,
-               HighestRemoteSmoothPar)

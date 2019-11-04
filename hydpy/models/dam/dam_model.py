@@ -6,83 +6,137 @@
 # ...from HydPy
 from hydpy.core import modeltools
 from hydpy.cythons.autogen import smoothutils
+from hydpy.models.dam import dam_control
+from hydpy.models.dam import dam_derived
+from hydpy.models.dam import dam_solver
+from hydpy.models.dam import dam_fluxes
+from hydpy.models.dam import dam_states
+from hydpy.models.dam import dam_logs
+from hydpy.models.dam import dam_aides
+from hydpy.models.dam import dam_inlets
+from hydpy.models.dam import dam_receivers
+from hydpy.models.dam import dam_outlets
+from hydpy.models.dam import dam_senders
 
 
-def pic_inflow_v1(self):
+class Pic_Inflow_V1(modeltools.Method):
     """Update the inlet link sequence.
-
-    Required inlet sequence:
-      |dam_inlets.Q|
-
-    Calculated flux sequence:
-      |Inflow|
 
     Basic equation:
       :math:`Inflow = Q`
     """
-    flu = self.sequences.fluxes.fastaccess
-    inl = self.sequences.inlets.fastaccess
-    flu.inflow = inl.q[0]
+    REQUIREDSEQUENCES = (
+        dam_inlets.Q,
+    )
+    RESULTSEQUENCES = (
+        dam_fluxes.Inflow,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        inl = model.sequences.inlets.fastaccess
+        flu.inflow = inl.q[0]
 
 
-def pic_inflow_v2(self):
+class Pic_Inflow_V2(modeltools.Method):
     """Update the inlet link sequences.
-
-    Required inlet sequences:
-      |dam_inlets.Q|
-      |dam_inlets.S|
-      |dam_inlets.R|
-
-    Calculated flux sequence:
-      |Inflow|
 
     Basic equation:
       :math:`Inflow = Q + S + R`
     """
-    flu = self.sequences.fluxes.fastaccess
-    inl = self.sequences.inlets.fastaccess
-    flu.inflow = inl.q[0]+inl.s[0]+inl.r[0]
+    REQUIREDSEQUENCES = (
+        dam_inlets.Q,
+        dam_inlets.S,
+        dam_inlets.R,
+    )
+    RESULTSEQUENCES = (
+        dam_fluxes.Inflow,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        inl = model.sequences.inlets.fastaccess
+        flu.inflow = inl.q[0]+inl.s[0]+inl.r[0]
 
 
-def pic_totalremotedischarge_v1(self):
-    """Update the receiver link sequence."""
-    flu = self.sequences.fluxes.fastaccess
-    rec = self.sequences.receivers.fastaccess
-    flu.totalremotedischarge = rec.q[0]
+class Pic_TotalRemoteDischarge_V1(modeltools.Method):
+    """Update the receiver link sequence.
+
+    Basic equation:
+      :math:`TotalRemoteDischarge = Q`
+    """
+    REQUIREDSEQUENCES = (
+        dam_receivers.Q,
+    )
+    RESULTSEQUENCES = (
+        dam_fluxes.TotalRemoteDischarge,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        rec = model.sequences.receivers.fastaccess
+        flu.totalremotedischarge = rec.q[0]
 
 
-def pic_loggedrequiredremoterelease_v1(self):
-    """Update the receiver link sequence."""
-    log = self.sequences.logs.fastaccess
-    rec = self.sequences.receivers.fastaccess
-    log.loggedrequiredremoterelease[0] = rec.d[0]
+class Pic_LoggedRequiredRemoteRelease_V1(modeltools.Method):
+    """Update the receiver link sequence.
+
+    Basic equation:
+      :math:`LoggedRequiredRemoteRelease = D`
+    """
+    REQUIREDSEQUENCES = (
+        dam_receivers.D,
+    )
+    RESULTSEQUENCES = (
+        dam_logs.LoggedRequiredRemoteRelease,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        log = model.sequences.logs.fastaccess
+        rec = model.sequences.receivers.fastaccess
+        log.loggedrequiredremoterelease[0] = rec.d[0]
 
 
-def pic_loggedrequiredremoterelease_v2(self):
-    """Update the receiver link sequence."""
-    log = self.sequences.logs.fastaccess
-    rec = self.sequences.receivers.fastaccess
-    log.loggedrequiredremoterelease[0] = rec.s[0]
+class Pic_LoggedRequiredRemoteRelease_V2(modeltools.Method):
+    """Update the receiver link sequence.
+
+    Basic equation:
+      :math:`LoggedRequiredRemoteRelease = S`
+    """
+    REQUIREDSEQUENCES = (
+        dam_receivers.S,
+    )
+    RESULTSEQUENCES = (
+        dam_logs.LoggedRequiredRemoteRelease,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        log = model.sequences.logs.fastaccess
+        rec = model.sequences.receivers.fastaccess
+        log.loggedrequiredremoterelease[0] = rec.s[0]
 
 
-def pic_loggedallowedremoterelieve_v1(self):
-    """Update the receiver link sequence."""
-    log = self.sequences.logs.fastaccess
-    rec = self.sequences.receivers.fastaccess
-    log.loggedallowedremoterelieve[0] = rec.r[0]
+class Pic_LoggedAllowedRemoteRelieve_V1(modeltools.Method):
+    """Update the receiver link sequence.
+
+    Basic equation:
+      :math:`LoggedAllowedRemoteRelieve = R`
+    """
+    REQUIREDSEQUENCES = (
+        dam_receivers.R,
+    )
+    RESULTSEQUENCES = (
+        dam_logs.LoggedAllowedRemoteRelieve,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        log = model.sequences.logs.fastaccess
+        rec = model.sequences.receivers.fastaccess
+        log.loggedallowedremoterelieve[0] = rec.r[0]
 
 
-def update_loggedtotalremotedischarge_v1(self):
+class Update_LoggedTotalRemoteDischarge_V1(modeltools.Method):
     """Log a new entry of discharge at a cross section far downstream.
-
-    Required control parameter:
-      |NmbLogEntries|
-
-    Required flux sequence:
-      |TotalRemoteDischarge|
-
-    Calculated flux sequence:
-      |LoggedTotalRemoteDischarge|
 
     Example:
 
@@ -109,27 +163,29 @@ def update_loggedtotalremotedischarge_v1(self):
         |   3 |                  2.0 | 2.0  3.0                         1.0 |
         |   4 |                  4.0 | 4.0  2.0                         3.0 |
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    log = self.sequences.logs.fastaccess
-    for idx in range(con.nmblogentries-1, 0, -1):
-        log.loggedtotalremotedischarge[idx] = \
-                                log.loggedtotalremotedischarge[idx-1]
-    log.loggedtotalremotedischarge[0] = flu.totalremotedischarge
+    CONTROLPARAMETERS = (
+        dam_control.NmbLogEntries,
+    )
+    REQUIREDSEQUENCES = (
+        dam_fluxes.TotalRemoteDischarge,
+    )
+    UPDATEDSEQUENCES = (
+        dam_logs.LoggedTotalRemoteDischarge,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        log = model.sequences.logs.fastaccess
+        for idx in range(con.nmblogentries-1, 0, -1):
+            log.loggedtotalremotedischarge[idx] = \
+                                    log.loggedtotalremotedischarge[idx-1]
+        log.loggedtotalremotedischarge[0] = flu.totalremotedischarge
 
 
-def calc_waterlevel_v1(self):
+class Calc_WaterLevel_V1(modeltools.Method):
     """Determine the water level based on an artificial neural network
     describing the relationship between water level and water stage.
-
-    Required control parameter:
-      |WaterVolume2WaterLevel|
-
-    Required state sequence:
-      |WaterVolume|
-
-    Calculated aide sequence:
-      |WaterLevel|
 
     Example:
 
@@ -171,38 +227,36 @@ def calc_waterlevel_v1(self):
         For more realistic approximations of measured relationships between
         water level and volume, larger neural networks are required.
     """
-    con = self.parameters.control.fastaccess
-    new = self.sequences.states.fastaccess_new
-    aid = self.sequences.aides.fastaccess
-    con.watervolume2waterlevel.inputs[0] = new.watervolume
-    con.watervolume2waterlevel.process_actual_input()
-    aid.waterlevel = con.watervolume2waterlevel.outputs[0]
+    CONTROLPARAMETERS = (
+        dam_control.WaterVolume2WaterLevel,
+    )
+    REQUIREDSEQUENCES = (
+        dam_states.WaterVolume,
+    )
+    RESULTSEQUENCES = (
+        dam_aides.WaterLevel,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        new = model.sequences.states.fastaccess_new
+        aid = model.sequences.aides.fastaccess
+        con.watervolume2waterlevel.inputs[0] = new.watervolume
+        con.watervolume2waterlevel.process_actual_input()
+        aid.waterlevel = con.watervolume2waterlevel.outputs[0]
 
 
-def calc_allowedremoterelieve_v2(self):
+class Calc_AllowedRemoteRelieve_V2(modeltools.Method):
     """Calculate the allowed maximum relieve another location
     is allowed to discharge into the dam.
 
-    Required control parameters:
-      |HighestRemoteRelieve|
-      |WaterLevelRelieveThreshold|
-
-    Required derived parameter:
-      |WaterLevelRelieveSmoothPar|
-
-    Required aide sequence:
-      |WaterLevel|
-
-    Calculated flux sequence:
-      |AllowedRemoteRelieve|
-
-    Basic equation:
-      :math:`ActualRemoteRelease = HighestRemoteRelease \\cdot
-      smooth_{logistic1}(WaterLevelRelieveThreshold-WaterLevel,
-      WaterLevelRelieveSmoothPar)`
-
     Used auxiliary method:
       |smooth_logistic1|
+
+    Basic equation:
+      :math:`ActualRemoteRelieve = HighestRemoteRelieve \\cdot
+      smooth_{logistic1}(WaterLevelRelieveThreshold-WaterLevel,
+      WaterLevelRelieveSmoothPar)`
 
     Examples:
 
@@ -281,49 +335,52 @@ def calc_allowedremoterelieve_v2(self):
         |   8 |        7.0 |             0.000002 |
         |   9 |        8.0 |                  0.0 |
     """
-    con = self.parameters.control.fastaccess
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    aid = self.sequences.aides.fastaccess
-    toy = der.toy[self.idx_sim]
-    flu.allowedremoterelieve = (
-        con.highestremoterelieve[toy] *
-        smoothutils.smooth_logistic1(
-            con.waterlevelrelievethreshold[toy]-aid.waterlevel,
-            der.waterlevelrelievesmoothpar[toy]))
+    CONTROLPARAMETERS = (
+        dam_control.HighestRemoteRelieve,
+        dam_control.WaterLevelRelieveThreshold,
+    )
+    DERIVEDPARAMETERS = (
+        dam_derived.TOY,
+        dam_derived.WaterLevelRelieveSmoothPar,
+    )
+    REQUIREDSEQUENCES = (
+        dam_aides.WaterLevel,
+    )
+    RESULTSEQUENCES = (
+        dam_fluxes.AllowedRemoteRelieve,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        aid = model.sequences.aides.fastaccess
+        toy = der.toy[model.idx_sim]
+        flu.allowedremoterelieve = (
+            con.highestremoterelieve[toy] *
+            smoothutils.smooth_logistic1(
+                con.waterlevelrelievethreshold[toy]-aid.waterlevel,
+                der.waterlevelrelievesmoothpar[toy]))
 
 
-def calc_requiredremotesupply_v1(self):
+class Calc_RequiredRemoteSupply_V1(modeltools.Method):
     """Calculate the required maximum supply from another location
     that can be discharged into the dam.
 
-    Required control parameters:
-      |HighestRemoteSupply|
-      |WaterLevelSupplyThreshold|
-
-    Required derived parameter:
-      |WaterLevelSupplySmoothPar|
-
-    Required aide sequence:
-      |WaterLevel|
-
-    Calculated flux sequence:
-      |RequiredRemoteSupply|
+    Used auxiliary method:
+      |smooth_logistic1|
 
     Basic equation:
       :math:`RequiredRemoteSupply = HighestRemoteSupply \\cdot
       smooth_{logistic1}(WaterLevelSupplyThreshold-WaterLevel,
       WaterLevelSupplySmoothPar)`
 
-    Used auxiliary method:
-      |smooth_logistic1|
-
     Examples:
 
-        Method |calc_requiredremotesupply_v1| is functionally identical
-        with method |calc_allowedremoterelieve_v2|.  Hence the following
+        Method |Calc_RequiredRemoteSupply_V1| is functionally identical
+        with method |Calc_AllowedRemoteRelieve_V2|.  Hence the following
         examples serve for testing purposes only (see the documentation
-        on function |calc_allowedremoterelieve_v2| for more detailed
+        on function |Calc_AllowedRemoteRelieve_V2| for more detailed
         information):
 
         >>> from hydpy import pub
@@ -367,31 +424,37 @@ def calc_requiredremotesupply_v1(self):
         |   8 |        7.0 |             0.000002 |
         |   9 |        8.0 |                  0.0 |
     """
-    con = self.parameters.control.fastaccess
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    aid = self.sequences.aides.fastaccess
-    toy = der.toy[self.idx_sim]
-    flu.requiredremotesupply = (
-        con.highestremotesupply[toy] *
-        smoothutils.smooth_logistic1(
-            con.waterlevelsupplythreshold[toy]-aid.waterlevel,
-            der.waterlevelsupplysmoothpar[toy]))
+    CONTROLPARAMETERS = (
+        dam_control.HighestRemoteSupply,
+        dam_control.WaterLevelSupplyThreshold,
+    )
+    DERIVEDPARAMETERS = (
+        dam_derived.TOY,
+        dam_derived.WaterLevelSupplySmoothPar,
+    )
+    REQUIREDSEQUENCES = (
+        dam_aides.WaterLevel,
+    )
+    RESULTSEQUENCES = (
+        dam_fluxes.RequiredRemoteSupply,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        aid = model.sequences.aides.fastaccess
+        toy = der.toy[model.idx_sim]
+        flu.requiredremotesupply = (
+            con.highestremotesupply[toy] *
+            smoothutils.smooth_logistic1(
+                con.waterlevelsupplythreshold[toy]-aid.waterlevel,
+                der.waterlevelsupplysmoothpar[toy]))
 
 
-def calc_naturalremotedischarge_v1(self):
+class Calc_NaturalRemoteDischarge_V1(modeltools.Method):
     """Try to estimate the natural discharge of a cross section far downstream
     based on the last few simulation steps.
-
-    Required control parameter:
-      |NmbLogEntries|
-
-    Required log sequences:
-      |LoggedTotalRemoteDischarge|
-      |LoggedOutflow|
-
-    Calculated flux sequence:
-      |NaturalRemoteDischarge|
 
     Basic equation:
       :math:`RemoteDemand =
@@ -423,33 +486,33 @@ def calc_naturalremotedischarge_v1(self):
         >>> fluxes.naturalremotedischarge
         naturalremotedischarge(0.0)
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    log = self.sequences.logs.fastaccess
-    flu.naturalremotedischarge = 0.
-    for idx in range(con.nmblogentries):
-        flu.naturalremotedischarge += (
-            log.loggedtotalremotedischarge[idx] - log.loggedoutflow[idx])
-    if flu.naturalremotedischarge > 0.:
-        flu.naturalremotedischarge /= con.nmblogentries
-    else:
+    CONTROLPARAMETERS = (
+        dam_control.NmbLogEntries,
+    )
+    REQUIREDSEQUENCES = (
+        dam_logs.LoggedTotalRemoteDischarge,
+        dam_logs.LoggedOutflow,
+    )
+    RESULTSEQUENCES = (
+        dam_fluxes.NaturalRemoteDischarge,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        log = model.sequences.logs.fastaccess
         flu.naturalremotedischarge = 0.
+        for idx in range(con.nmblogentries):
+            flu.naturalremotedischarge += (
+                log.loggedtotalremotedischarge[idx] - log.loggedoutflow[idx])
+        if flu.naturalremotedischarge > 0.:
+            flu.naturalremotedischarge /= con.nmblogentries
+        else:
+            flu.naturalremotedischarge = 0.
 
 
-def calc_remotedemand_v1(self):
+class Calc_RemoteDemand_V1(modeltools.Method):
     """Estimate the discharge demand of a cross section far downstream.
-
-    Required control parameter:
-      |RemoteDischargeMinimum|
-
-    Required derived parameters:
-      |dam_derived.TOY|
-
-    Required flux sequence:
-      |dam_derived.TOY|
-
-    Calculated flux sequence:
-      |RemoteDemand|
 
     Basic equation:
       :math:`RemoteDemand =
@@ -514,29 +577,31 @@ def calc_remotedemand_v1(self):
         |   3 |                    2.0 |          0.0 |
         |   4 |                    3.0 |          0.0 |
     """
-    con = self.parameters.control.fastaccess
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    flu.remotedemand = max(con.remotedischargeminimum[der.toy[self.idx_sim]] -
-                           flu.naturalremotedischarge, 0.)
+    CONTROLPARAMETERS = (
+        dam_control.RemoteDischargeMinimum,
+    )
+    DERIVEDPARAMETERS = (
+        dam_derived.TOY,
+    )
+    REQUIREDSEQUENCES = (
+        dam_fluxes.NaturalRemoteDischarge,
+    )
+    RESULTSEQUENCES = (
+        dam_fluxes.RemoteDemand,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        flu.remotedemand = max(
+            con.remotedischargeminimum[der.toy[model.idx_sim]] -
+            flu.naturalremotedischarge, 0.)
 
 
-def calc_remotefailure_v1(self):
+class Calc_RemoteFailure_V1(modeltools.Method):
     """Estimate the shortfall of actual discharge under the required discharge
     of a cross section far downstream.
-
-    Required control parameters:
-      |NmbLogEntries|
-      |RemoteDischargeMinimum|
-
-    Required derived parameters:
-      |dam_derived.TOY|
-
-    Required log sequence:
-      |LoggedTotalRemoteDischarge|
-
-    Calculated flux sequence:
-      |RemoteFailure|
 
     Basic equation:
       :math:`RemoteFailure =
@@ -545,7 +610,7 @@ def calc_remotefailure_v1(self):
 
     Examples:
 
-        As explained in the documentation on method |calc_remotedemand_v1|,
+        As explained in the documentation on method |Calc_RemoteDemand_V1|,
         we have to define a simulation period first:
 
         >>> from hydpy import pub
@@ -584,41 +649,42 @@ def calc_remotefailure_v1(self):
         >>> fluxes.remotefailure
         remotefailure(-1.0)
     """
-    con = self.parameters.control.fastaccess
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    log = self.sequences.logs.fastaccess
-    flu.remotefailure = 0
-    for idx in range(con.nmblogentries):
-        flu.remotefailure -= log.loggedtotalremotedischarge[idx]
-    flu.remotefailure /= con.nmblogentries
-    flu.remotefailure += con.remotedischargeminimum[der.toy[self.idx_sim]]
+    CONTROLPARAMETERS = (
+        dam_control.NmbLogEntries,
+        dam_control.RemoteDischargeMinimum,
+    )
+    DERIVEDPARAMETERS = (
+        dam_derived.TOY,
+    )
+    REQUIREDSEQUENCES = (
+        dam_logs.LoggedTotalRemoteDischarge,
+    )
+    RESULTSEQUENCES = (
+        dam_fluxes.RemoteFailure,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        log = model.sequences.logs.fastaccess
+        flu.remotefailure = 0
+        for idx in range(con.nmblogentries):
+            flu.remotefailure -= log.loggedtotalremotedischarge[idx]
+        flu.remotefailure /= con.nmblogentries
+        flu.remotefailure += con.remotedischargeminimum[der.toy[model.idx_sim]]
 
 
-def calc_requiredremoterelease_v1(self):
+class Calc_RequiredRemoteRelease_V1(modeltools.Method):
     """Guess the required release necessary to not fall below the threshold
     value at a cross section far downstream with a certain level of certainty.
 
-    Required control parameter:
-      |RemoteDischargeSafety|
-
-    Required derived parameters:
-      |RemoteDischargeSmoothPar|
-      |dam_derived.TOY|
-
-    Required flux sequence:
-      |RemoteDemand|
-      |RemoteFailure|
-
-    Calculated flux sequence:
-      |RequiredRemoteRelease|
+    Used auxiliary method:
+      |smooth_logistic1|
 
     Basic equation:
       :math:`RequiredRemoteRelease = RemoteDemand + RemoteDischargeSafety
       \\cdot smooth_{logistic1}(RemoteFailure, RemoteDischargeSmoothPar)`
-
-    Used auxiliary method:
-      |smooth_logistic1|
 
     Examples:
 
@@ -695,24 +761,34 @@ def calc_requiredremoterelease_v1(self):
         |   9 |           4.0 |                   3.0 |
 
     """
-    con = self.parameters.control.fastaccess
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    flu.requiredremoterelease = (
-        flu.remotedemand+con.remotedischargesafety[der.toy[self.idx_sim]] *
-        smoothutils.smooth_logistic1(
-            flu.remotefailure,
-            der.remotedischargesmoothpar[der.toy[self.idx_sim]]))
+    CONTROLPARAMETERS = (
+        dam_control.RemoteDischargeSafety,
+    )
+    DERIVEDPARAMETERS = (
+        dam_derived.TOY,
+        dam_derived.RemoteDischargeSmoothPar,
+    )
+    REQUIREDSEQUENCES = (
+        dam_fluxes.RemoteDemand,
+        dam_fluxes.RemoteFailure,
+    )
+    RESULTSEQUENCES = (
+        dam_fluxes.RequiredRemoteRelease,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        flu.requiredremoterelease = (
+            flu.remotedemand+con.remotedischargesafety[der.toy[model.idx_sim]] *
+            smoothutils.smooth_logistic1(
+                flu.remotefailure,
+                der.remotedischargesmoothpar[der.toy[model.idx_sim]]))
 
 
-def calc_requiredremoterelease_v2(self):
+class Calc_RequiredRemoteRelease_V2(modeltools.Method):
     """Get the required remote release of the last simulation step.
-
-    Required log sequence:
-      |LoggedRequiredRemoteRelease|
-
-    Calculated flux sequence:
-      |RequiredRemoteRelease|
 
     Basic equation:
       :math:`RequiredRemoteRelease = LoggedRequiredRemoteRelease`
@@ -726,19 +802,21 @@ def calc_requiredremoterelease_v2(self):
         >>> fluxes.requiredremoterelease
         requiredremoterelease(3.0)
     """
-    flu = self.sequences.fluxes.fastaccess
-    log = self.sequences.logs.fastaccess
-    flu.requiredremoterelease = log.loggedrequiredremoterelease[0]
+    REQUIREDSEQUENCES = (
+        dam_logs.LoggedRequiredRemoteRelease,
+    )
+    RESULTSEQUENCES = (
+        dam_fluxes.RequiredRemoteRelease,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        log = model.sequences.logs.fastaccess
+        flu.requiredremoterelease = log.loggedrequiredremoterelease[0]
 
 
-def calc_allowedremoterelieve_v1(self):
+class Calc_AllowedRemoteRelieve_V1(modeltools.Method):
     """Get the allowed remote relieve of the last simulation step.
-
-    Required log sequence:
-      |LoggedAllowedRemoteRelieve|
-
-    Calculated flux sequence:
-      |AllowedRemoteRelieve|
 
     Basic equation:
       :math:`AllowedRemoteRelieve = LoggedAllowedRemoteRelieve`
@@ -752,36 +830,31 @@ def calc_allowedremoterelieve_v1(self):
         >>> fluxes.allowedremoterelieve
         allowedremoterelieve(2.0)
     """
-    flu = self.sequences.fluxes.fastaccess
-    log = self.sequences.logs.fastaccess
-    flu.allowedremoterelieve = log.loggedallowedremoterelieve[0]
+    REQUIREDSEQUENCES = (
+        dam_logs.LoggedAllowedRemoteRelieve,
+    )
+    RESULTSEQUENCES = (
+        dam_fluxes.AllowedRemoteRelieve,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        log = model.sequences.logs.fastaccess
+        flu.allowedremoterelieve = log.loggedallowedremoterelieve[0]
 
 
-def calc_requiredrelease_v1(self):
+class Calc_RequiredRelease_V1(modeltools.Method):
     """Calculate the total water release (immediately and far downstream)
     required for reducing drought events.
 
-    Required control parameter:
-      |NearDischargeMinimumThreshold|
-
-    Required derived parameters:
-      |NearDischargeMinimumSmoothPar2|
-      |dam_derived.TOY|
-
-    Required flux sequence:
-      |RequiredRemoteRelease|
-
-    Calculated flux sequence:
-      |RequiredRelease|
+    Used auxiliary method:
+      |smooth_logistic2|
 
     Basic equation:
       :math:`RequiredRelease = RequiredRemoteRelease
       \\cdot smooth_{logistic2}(
       RequiredRemoteRelease-NearDischargeMinimumThreshold,
       NearDischargeMinimumSmoothPar2)`
-
-    Used auxiliary method:
-      |smooth_logistic2|
 
     Examples:
 
@@ -861,31 +934,37 @@ def calc_requiredrelease_v1(self):
         |   9 |                   8.0 |             8.0 |
 
     """
-    con = self.parameters.control.fastaccess
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    flu.requiredrelease = con.neardischargeminimumthreshold[
-        der.toy[self.idx_sim]]
-    flu.requiredrelease = (
-        flu.requiredrelease +
-        smoothutils.smooth_logistic2(
-            flu.requiredremoterelease-flu.requiredrelease,
-            der.neardischargeminimumsmoothpar2[
-                der.toy[self.idx_sim]]))
+    CONTROLPARAMETERS = (
+        dam_control.NearDischargeMinimumThreshold,
+    )
+    DERIVEDPARAMETERS = (
+        dam_derived.TOY,
+        dam_derived.NearDischargeMinimumSmoothPar2,
+    )
+    REQUIREDSEQUENCES = (
+        dam_fluxes.RequiredRemoteRelease,
+    )
+    RESULTSEQUENCES = (
+        dam_fluxes.RequiredRelease,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        flu.requiredrelease = con.neardischargeminimumthreshold[
+            der.toy[model.idx_sim]]
+        flu.requiredrelease = (
+            flu.requiredrelease +
+            smoothutils.smooth_logistic2(
+                flu.requiredremoterelease-flu.requiredrelease,
+                der.neardischargeminimumsmoothpar2[
+                    der.toy[model.idx_sim]]))
 
 
-def calc_requiredrelease_v2(self):
+class Calc_RequiredRelease_V2(modeltools.Method):
     """Calculate the water release (immediately downstream) required for
     reducing drought events.
-
-    Required control parameter:
-      |NearDischargeMinimumThreshold|
-
-    Required derived parameter:
-      |dam_derived.TOY|
-
-    Calculated flux sequence:
-      |RequiredRelease|
 
     Basic equation:
       :math:`RequiredRelease = NearDischargeMinimumThreshold`
@@ -923,30 +1002,32 @@ def calc_requiredrelease_v2(self):
         >>> fluxes.requiredrelease
         requiredrelease(4.0)
     """
-    con = self.parameters.control.fastaccess
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    flu.requiredrelease = con.neardischargeminimumthreshold[
-        der.toy[self.idx_sim]]
+    CONTROLPARAMETERS = (
+        dam_control.NearDischargeMinimumThreshold,
+    )
+    DERIVEDPARAMETERS = (
+        dam_derived.TOY,
+    )
+    RESULTSEQUENCES = (
+        dam_fluxes.RequiredRelease,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        flu.requiredrelease = con.neardischargeminimumthreshold[
+            der.toy[model.idx_sim]]
 
 
-def calc_possibleremoterelieve_v1(self):
+class Calc_PossibleRemoteRelieve_V1(modeltools.Method):
     """Calculate the highest possible water release that can be routed to
     a remote location based on an artificial neural network describing the
     relationship between possible release and water stage.
 
-    Required control parameter:
-      |WaterLevel2PossibleRemoteRelieve|
-
-    Required aide sequence:
-      |WaterLevel|
-
-    Calculated flux sequence:
-      |PossibleRemoteRelieve|
-
     Example:
 
-        For simplicity, the example of method |calc_flooddischarge_v1|
+        For simplicity, the example of method |Calc_FloodDischarge_V1|
         is reused.  See the documentation on the mentioned method for
         further information:
 
@@ -991,39 +1072,41 @@ def calc_possibleremoterelieve_v1(self):
         |  20 |      260.8 |              3.719725 |
         |  21 |      261.0 |              5.576088 |
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    aid = self.sequences.aides.fastaccess
-    con.waterlevel2possibleremoterelieve.inputs[0] = aid.waterlevel
-    con.waterlevel2possibleremoterelieve.process_actual_input()
-    flu.possibleremoterelieve = con.waterlevel2possibleremoterelieve.outputs[0]
+    CONTROLPARAMETERS = (
+        dam_control.WaterLevel2PossibleRemoteRelieve,
+    )
+    REQUIREDSEQUENCES = (
+        dam_aides.WaterLevel,
+    )
+    RESULTSEQUENCES = (
+        dam_fluxes.PossibleRemoteRelieve,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        aid = model.sequences.aides.fastaccess
+        con.waterlevel2possibleremoterelieve.inputs[0] = aid.waterlevel
+        con.waterlevel2possibleremoterelieve.process_actual_input()
+        flu.possibleremoterelieve = \
+            con.waterlevel2possibleremoterelieve.outputs[0]
 
 
-def calc_actualremoterelieve_v1(self):
+class Calc_ActualRemoteRelieve_V1(modeltools.Method):
     """Calculate the actual amount of water released to a remote location
     to relieve the dam during high flow conditions.
-
-    Required control parameter:
-      |RemoteRelieveTolerance|
-
-    Required flux sequences:
-      |AllowedRemoteRelieve|
-      |PossibleRemoteRelieve|
-
-    Calculated flux sequence:
-      |ActualRemoteRelieve|
 
     Basic equation - discontinous:
       :math:`ActualRemoteRelease = min(PossibleRemoteRelease,
       AllowedRemoteRelease)`
 
-    Basic equation - continous:
-      :math:`ActualRemoteRelease = smooth_min1(PossibleRemoteRelease,
-      AllowedRemoteRelease, RemoteRelieveTolerance)`
-
     Used auxiliary methods:
       |smooth_min1|
       |smooth_max1|
+
+    Basic equation - continous:
+      :math:`ActualRemoteRelease = smooth_min1(PossibleRemoteRelease,
+      AllowedRemoteRelease, RemoteRelieveTolerance)`
 
 
     Note that the given continous basic equation is a simplification of
@@ -1141,52 +1224,50 @@ def calc_actualremoterelieve_v1(self):
         approach would possibly be favourable regarding the smoothness in
         some edge cases and computational efficiency.
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    d_smoothpar = con.remoterelievetolerance*flu.allowedremoterelieve
-    flu.actualremoterelieve = smoothutils.smooth_min1(
-        flu.possibleremoterelieve, flu.allowedremoterelieve, d_smoothpar)
-    for dummy in range(5):
-        d_smoothpar /= 5.
-        flu.actualremoterelieve = smoothutils.smooth_max1(
-            flu.actualremoterelieve, 0., d_smoothpar)
-        d_smoothpar /= 5.
+    CONTROLPARAMETERS = (
+        dam_control.RemoteRelieveTolerance,
+    )
+    REQUIREDSEQUENCES = (
+        dam_fluxes.AllowedRemoteRelieve,
+        dam_fluxes.PossibleRemoteRelieve,
+    )
+    RESULTSEQUENCES = (
+        dam_fluxes.ActualRemoteRelieve,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        d_smoothpar = con.remoterelievetolerance*flu.allowedremoterelieve
         flu.actualremoterelieve = smoothutils.smooth_min1(
-            flu.actualremoterelieve, flu.possibleremoterelieve, d_smoothpar)
-    flu.actualremoterelieve = min(flu.actualremoterelieve,
-                                  flu.possibleremoterelieve)
-    flu.actualremoterelieve = min(flu.actualremoterelieve,
-                                  flu.allowedremoterelieve)
-    flu.actualremoterelieve = max(flu.actualremoterelieve, 0.)
+            flu.possibleremoterelieve, flu.allowedremoterelieve, d_smoothpar)
+        for dummy in range(5):
+            d_smoothpar /= 5.
+            flu.actualremoterelieve = smoothutils.smooth_max1(
+                flu.actualremoterelieve, 0., d_smoothpar)
+            d_smoothpar /= 5.
+            flu.actualremoterelieve = smoothutils.smooth_min1(
+                flu.actualremoterelieve, flu.possibleremoterelieve, d_smoothpar)
+        flu.actualremoterelieve = min(flu.actualremoterelieve,
+                                      flu.possibleremoterelieve)
+        flu.actualremoterelieve = min(flu.actualremoterelieve,
+                                      flu.allowedremoterelieve)
+        flu.actualremoterelieve = max(flu.actualremoterelieve, 0.)
 
 
-def calc_targetedrelease_v1(self):
+class Calc_TargetedRelease_V1(modeltools.Method):
     """Calculate the targeted water release for reducing drought events,
     taking into account both the required water release and the actual
     inflow into the dam.
 
     Some dams are supposed to maintain a certain degree of low flow
     variability downstream.  In case parameter |RestrictTargetedRelease|
-    is set to `True`, method |calc_targetedrelease_v1| simulates
+    is set to `True`, method |Calc_TargetedRelease_V1| simulates
     this by (approximately) passing inflow as outflow whenever inflow
     is below the value of the threshold parameter
     |NearDischargeMinimumThreshold|. If parameter |RestrictTargetedRelease|
     is set to `False`, does nothing except assigning the value of sequence
     |RequiredRelease| to sequence |TargetedRelease|.
-
-    Required control parameter:
-      |RestrictTargetedRelease|
-      |NearDischargeMinimumThreshold|
-
-    Required derived parameters:
-      |NearDischargeMinimumSmoothPar1|
-      |dam_derived.TOY|
-
-    Required flux sequence:
-      |RequiredRelease|
-
-    Calculated flux sequence:
-      |TargetedRelease|
 
     Used auxiliary method:
       |smooth_logistic1|
@@ -1461,46 +1542,48 @@ def calc_targetedrelease_v1(self):
         |  20 |    9.5 |             4.0 |
         |  21 |   10.0 |             4.0 |
     """
-    con = self.parameters.control.fastaccess
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    if con.restricttargetedrelease:
-        flu.targetedrelease = smoothutils.smooth_logistic1(
-            flu.inflow-con.neardischargeminimumthreshold[
-                der.toy[self.idx_sim]],
-            der.neardischargeminimumsmoothpar1[der.toy[self.idx_sim]])
-        flu.targetedrelease = (flu.targetedrelease * flu.requiredrelease +
-                               (1.-flu.targetedrelease) * flu.inflow)
-    else:
-        flu.targetedrelease = flu.requiredrelease
+    CONTROLPARAMETERS = (
+        dam_control.RestrictTargetedRelease,
+        dam_control.NearDischargeMinimumThreshold,
+    )
+    DERIVEDPARAMETERS = (
+        dam_derived.NearDischargeMinimumSmoothPar1,
+        dam_derived.TOY,
+    )
+    REQUIREDSEQUENCES = (
+        dam_fluxes.Inflow,
+        dam_fluxes.RequiredRelease,
+    )
+    RESULTSEQUENCES = (
+        dam_fluxes.TargetedRelease,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        if con.restricttargetedrelease:
+            flu.targetedrelease = smoothutils.smooth_logistic1(
+                flu.inflow-con.neardischargeminimumthreshold[
+                    der.toy[model.idx_sim]],
+                der.neardischargeminimumsmoothpar1[der.toy[model.idx_sim]])
+            flu.targetedrelease = (flu.targetedrelease * flu.requiredrelease +
+                                   (1.-flu.targetedrelease) * flu.inflow)
+        else:
+            flu.targetedrelease = flu.requiredrelease
 
 
-def calc_actualrelease_v1(self):
+class Calc_ActualRelease_V1(modeltools.Method):
     """Calculate the actual water release that can be supplied by the
     dam considering the targeted release and the given water level.
 
-    Required control parameter:
-      |WaterLevelMinimumThreshold|
-
-    Required derived parameters:
-      |WaterLevelMinimumSmoothPar|
-
-    Required flux sequence:
-      |TargetedRelease|
-
-    Required aide sequence:
-      |WaterLevel|
-
-    Calculated flux sequence:
-      |ActualRelease|
+    Used auxiliary method:
+      |smooth_logistic1|
 
     Basic equation:
       :math:`ActualRelease = TargetedRelease \\cdot
       smooth_{logistic1}(WaterLevelMinimumThreshold-WaterLevel,
       WaterLevelMinimumSmoothPar)`
-
-    Used auxiliary method:
-      |smooth_logistic1|
 
     Examples:
 
@@ -1612,26 +1695,34 @@ def calc_actualrelease_v1(self):
         |   7 |        5.0 |      1.999796 |
 
     """
-    con = self.parameters.control.fastaccess
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    aid = self.sequences.aides.fastaccess
-    flu.actualrelease = (flu.targetedrelease *
-                         smoothutils.smooth_logistic1(
-                             aid.waterlevel-con.waterlevelminimumthreshold,
-                             der.waterlevelminimumsmoothpar))
+    CONTROLPARAMETERS = (
+        dam_control.WaterLevelMinimumThreshold,
+    )
+    DERIVEDPARAMETERS = (
+        dam_derived.WaterLevelMinimumSmoothPar,
+    )
+    REQUIREDSEQUENCES = (
+        dam_fluxes.TargetedRelease,
+        dam_aides.WaterLevel,
+    )
+    RESULTSEQUENCES = (
+        dam_fluxes.ActualRelease,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        aid = model.sequences.aides.fastaccess
+        flu.actualrelease = (flu.targetedrelease *
+                             smoothutils.smooth_logistic1(
+                                 aid.waterlevel-con.waterlevelminimumthreshold,
+                                 der.waterlevelminimumsmoothpar))
 
 
-def calc_missingremoterelease_v1(self):
+class Calc_MissingRemoteRelease_V1(modeltools.Method):
     """Calculate the portion of the required remote demand that could not
     be met by the actual discharge release.
-
-    Required flux sequences:
-      |RequiredRemoteRelease|
-      |ActualRelease|
-
-    Calculated flux sequence:
-      |MissingRemoteRelease|
 
     Basic equation:
       :math:`MissingRemoteRelease = max(
@@ -1651,44 +1742,38 @@ def calc_missingremoterelease_v1(self):
         >>> fluxes.missingremoterelease
         missingremoterelease(0.0)
     """
-    flu = self.sequences.fluxes.fastaccess
-    flu.missingremoterelease = max(
-        flu.requiredremoterelease-flu.actualrelease, 0.)
+    REQUIREDSEQUENCES = (
+        dam_fluxes.ActualRelease,
+        dam_fluxes.RequiredRemoteRelease,
+    )
+    RESULTSEQUENCES = (
+        dam_fluxes.MissingRemoteRelease,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        flu.missingremoterelease = max(
+            flu.requiredremoterelease-flu.actualrelease, 0.)
 
 
-def calc_actualremoterelease_v1(self):
+class Calc_ActualRemoteRelease_V1(modeltools.Method):
     """Calculate the actual remote water release that can be supplied by the
     dam considering the required remote release and the given water level.
 
-    Required control parameter:
-      |WaterLevelMinimumRemoteThreshold|
-
-    Required derived parameters:
-      |WaterLevelMinimumRemoteSmoothPar|
-
-    Required flux sequence:
-      |RequiredRemoteRelease|
-
-    Required aide sequence:
-      |WaterLevel|
-
-    Calculated flux sequence:
-      |ActualRemoteRelease|
+    Used auxiliary method:
+      |smooth_logistic1|
 
     Basic equation:
       :math:`ActualRemoteRelease = RequiredRemoteRelease \\cdot
       smooth_{logistic1}(WaterLevelMinimumRemoteThreshold-WaterLevel,
       WaterLevelMinimumRemoteSmoothPar)`
 
-    Used auxiliary method:
-      |smooth_logistic1|
-
     Examples:
 
-        Note that method |calc_actualremoterelease_v1| is functionally
-        identical with method |calc_actualrelease_v1|.  This is why we
+        Note that method |Calc_ActualRemoteRelease_V1| is functionally
+        identical with method |Calc_ActualRelease_V1|.  This is why we
         omit to explain the following examples, as they are just repetitions
-        of the ones of method |calc_actualremoterelease_v1| with partly
+        of the ones of method |Calc_ActualRemoteRelease_V1| with partly
         different variable names.  Please follow the links to read the
         corresponding explanations.
 
@@ -1751,28 +1836,38 @@ def calc_actualremoterelease_v1(self):
         |   6 |        4.0 |            1.997972 |
         |   7 |        5.0 |            1.999796 |
     """
-    con = self.parameters.control.fastaccess
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    aid = self.sequences.aides.fastaccess
-    flu.actualremoterelease = (
-        flu.requiredremoterelease *
-        smoothutils.smooth_logistic1(
-            aid.waterlevel-con.waterlevelminimumremotethreshold,
-            der.waterlevelminimumremotesmoothpar))
+    CONTROLPARAMETERS = (
+        dam_control.WaterLevelMinimumRemoteThreshold,
+    )
+    DERIVEDPARAMETERS = (
+        dam_derived.WaterLevelMinimumRemoteSmoothPar,
+    )
+    REQUIREDSEQUENCES = (
+        dam_fluxes.RequiredRemoteRelease,
+        dam_aides.WaterLevel,
+    )
+    RESULTSEQUENCES = (
+        dam_fluxes.ActualRemoteRelease,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        aid = model.sequences.aides.fastaccess
+        flu.actualremoterelease = (
+            flu.requiredremoterelease *
+            smoothutils.smooth_logistic1(
+                aid.waterlevel-con.waterlevelminimumremotethreshold,
+                der.waterlevelminimumremotesmoothpar))
 
 
-def update_actualremoterelieve_v1(self):
+class Update_ActualRemoteRelieve_V1(modeltools.Method):
     """Constrain the actual relieve discharge to a remote location.
 
-    Required control parameter:
-      |HighestRemoteDischarge|
-
-    Required derived parameter:
-      |HighestRemoteSmoothPar|
-
-    Updated flux sequence:
-      |ActualRemoteRelieve|
+    Used auxiliary methods:
+      |smooth_min1|
+      |smooth_max1|
 
     Basic equation - discontinous:
       :math:`ActualRemoteRelieve = min(ActualRemoteRelease,
@@ -1781,10 +1876,6 @@ def update_actualremoterelieve_v1(self):
     Basic equation - continous:
       :math:`ActualRemoteRelieve = smooth_min1(ActualRemoteRelieve,
       HighestRemoteDischarge, HighestRemoteSmoothPar)`
-
-    Used auxiliary methods:
-      |smooth_min1|
-      |smooth_max1|
 
     Note that the given continous basic equation is a simplification of
     the complete algorithm to update |ActualRemoteRelieve|, which also
@@ -1845,44 +1936,47 @@ def update_actualremoterelieve_v1(self):
         |   7 |            3.993418 |
         |   8 |            3.993442 |
 
-        Method |update_actualremoterelieve_v1| is defined in a similar
-        way as method |calc_actualremoterelieve_v1|.  Please read the
-        documentation on |calc_actualremoterelieve_v1| for further
+        Method |Update_ActualRemoteRelieve_V1| is defined in a similar
+        way as method |Calc_ActualRemoteRelieve_V1|.  Please read the
+        documentation on |Calc_ActualRemoteRelieve_V1| for further
         information.
     """
-    con = self.parameters.control.fastaccess
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    d_smooth = der.highestremotesmoothpar
-    d_highest = con.highestremotedischarge
-    d_value = smoothutils.smooth_min1(
-        flu.actualremoterelieve, d_highest, d_smooth)
-    for dummy in range(5):
-        d_smooth /= 5.
-        d_value = smoothutils.smooth_max1(
-            d_value, 0., d_smooth)
-        d_smooth /= 5.
+    CONTROLPARAMETERS = (
+        dam_control.HighestRemoteDischarge,
+    )
+    DERIVEDPARAMETERS = (
+        dam_derived.HighestRemoteSmoothPar,
+    )
+    UPDATEDSEQUENCES = (
+        dam_fluxes.ActualRemoteRelieve,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        d_smooth = der.highestremotesmoothpar
+        d_highest = con.highestremotedischarge
         d_value = smoothutils.smooth_min1(
-            d_value, d_highest, d_smooth)
-    d_value = min(d_value, flu.actualremoterelieve)
-    d_value = min(d_value, d_highest)
-    flu.actualremoterelieve = max(d_value, 0.)
+            flu.actualremoterelieve, d_highest, d_smooth)
+        for dummy in range(5):
+            d_smooth /= 5.
+            d_value = smoothutils.smooth_max1(
+                d_value, 0., d_smooth)
+            d_smooth /= 5.
+            d_value = smoothutils.smooth_min1(
+                d_value, d_highest, d_smooth)
+        d_value = min(d_value, flu.actualremoterelieve)
+        d_value = min(d_value, d_highest)
+        flu.actualremoterelieve = max(d_value, 0.)
 
 
-def update_actualremoterelease_v1(self):
+class Update_ActualRemoteRelease_V1(modeltools.Method):
     """Constrain the actual release (supply discharge) to a remote location.
 
-    Required control parameter:
-      |HighestRemoteDischarge|
-
-    Required derived parameter:
-      |HighestRemoteSmoothPar|
-
-    Required flux sequences:
-      |ActualRemoteRelieve|
-
-    Updated flux sequence:
-      |ActualRemoteRelease|
+    Used auxiliary methods:
+      |smooth_min1|
+      |smooth_max1|
 
     Basic equation - discontinous:
       :math:`ActualRemoteRelease = min(ActualRemoteRelease,
@@ -1891,10 +1985,6 @@ def update_actualremoterelease_v1(self):
     Basic equation - continous:
       :math:`ActualRemoteRelease = smooth_min1(ActualRemoteRelease,
       HighestRemoteDischarge-ActualRemoteRelieve, HighestRemoteSmoothPar)`
-
-    Used auxiliary methods:
-      |smooth_min1|
-      |smooth_max1|
 
     Note that the given continous basic equation is a simplification of
     the complete algorithm to update |ActualRemoteRelease|, which also
@@ -1949,7 +2039,7 @@ def update_actualremoterelease_v1(self):
         the shown precision). The remaining discontinuity does not
         pose a problem, as long |ActualRemoteRelieve| does not exceed
         the value of |HighestRemoteDischarge|.  (Application models
-        using method |update_actualremoterelease_v1| should generally
+        using method |Update_ActualRemoteRelease_V1| should generally
         enforce this restriction). In case of exceedance, extended
         computation times might occur:
 
@@ -1967,49 +2057,50 @@ def update_actualremoterelease_v1(self):
         |   7 |                 6.0 |                 0.0 |
         |   8 |                 7.0 |                 0.0 |
 
-        Method |update_actualremoterelease_v1| is defined in a similar
-        way as method |calc_actualremoterelieve_v1|.  Please read the
-        documentation on |calc_actualremoterelieve_v1| for further
+        Method |Update_ActualRemoteRelease_V1| is defined in a similar
+        way as method |Calc_ActualRemoteRelieve_V1|.  Please read the
+        documentation on |Calc_ActualRemoteRelieve_V1| for further
         information.
     """
-    con = self.parameters.control.fastaccess
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    d_smooth = der.highestremotesmoothpar
-    d_highest = con.highestremotedischarge-flu.actualremoterelieve
-    d_value = smoothutils.smooth_min1(
-        flu.actualremoterelease, d_highest, d_smooth)
-    for dummy in range(5):
-        d_smooth /= 5.
-        d_value = smoothutils.smooth_max1(
-            d_value, 0., d_smooth)
-        d_smooth /= 5.
+    CONTROLPARAMETERS = (
+        dam_control.HighestRemoteDischarge,
+    )
+    DERIVEDPARAMETERS = (
+        dam_derived.HighestRemoteSmoothPar,
+    )
+    REQUIREDSEQUENCES = (
+        dam_fluxes.ActualRemoteRelieve,
+    )
+    UPDATEDSEQUENCES = (
+        dam_fluxes.ActualRemoteRelease,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        d_smooth = der.highestremotesmoothpar
+        d_highest = con.highestremotedischarge-flu.actualremoterelieve
         d_value = smoothutils.smooth_min1(
-            d_value, d_highest, d_smooth)
-    d_value = min(d_value, flu.actualremoterelease)
-    d_value = min(d_value, d_highest)
-    flu.actualremoterelease = max(d_value, 0.)
+            flu.actualremoterelease, d_highest, d_smooth)
+        for dummy in range(5):
+            d_smooth /= 5.
+            d_value = smoothutils.smooth_max1(
+                d_value, 0., d_smooth)
+            d_smooth /= 5.
+            d_value = smoothutils.smooth_min1(
+                d_value, d_highest, d_smooth)
+        d_value = min(d_value, flu.actualremoterelease)
+        d_value = min(d_value, d_highest)
+        flu.actualremoterelease = max(d_value, 0.)
 
 
-def calc_flooddischarge_v1(self):
+class Calc_FloodDischarge_V1(modeltools.Method):
     """Calculate the discharge during and after a flood event based on an
     |anntools.SeasonalANN| describing the relationship(s) between discharge
     and water stage.
 
-    Required control parameter:
-      |WaterLevel2FloodDischarge|
-
-    Required derived parameter:
-      |dam_derived.TOY|
-
-    Required aide sequence:
-      |WaterLevel|
-
-    Calculated flux sequence:
-      |FloodDischarge|
-
     Example:
-
 
         The control parameter |WaterLevel2FloodDischarge| is derived from
         |SeasonalParameter|.  This allows to simulate different seasonal
@@ -2083,28 +2174,36 @@ def calc_flooddischarge_v1(self):
         |  20 |      260.8 |       3.719725 |
         |  21 |      261.0 |       5.576088 |
     """
-    con = self.parameters.control.fastaccess
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    aid = self.sequences.aides.fastaccess
-    con.waterlevel2flooddischarge.inputs[0] = aid.waterlevel
-    con.waterlevel2flooddischarge.process_actual_input(der.toy[self.idx_sim])
-    flu.flooddischarge = con.waterlevel2flooddischarge.outputs[0]
+    CONTROLPARAMETERS = (
+        dam_control.WaterLevel2FloodDischarge,
+    )
+    DERIVEDPARAMETERS = (
+        dam_derived.TOY,
+    )
+    REQUIREDSEQUENCES = (
+        dam_aides.WaterLevel,
+    )
+    RESULTSEQUENCES = (
+        dam_fluxes.FloodDischarge,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        aid = model.sequences.aides.fastaccess
+        con.waterlevel2flooddischarge.inputs[0] = aid.waterlevel
+        con.waterlevel2flooddischarge.process_actual_input(
+            der.toy[model.idx_sim])
+        flu.flooddischarge = con.waterlevel2flooddischarge.outputs[0]
 
 
-def calc_outflow_v1(self):
+class Calc_Outflow_V1(modeltools.Method):
     """Calculate the total outflow of the dam.
 
     Note that the maximum function is used to prevent from negative outflow
     values, which could otherwise occur within the required level of
     numerical accuracy.
-
-    Required flux sequences:
-      |ActualRelease|
-      |FloodDischarge|
-
-    Calculated flux sequence:
-      |Outflow|
 
     Basic equation:
       :math:`Outflow = max(ActualRelease + FloodDischarge, 0.)`
@@ -2123,22 +2222,21 @@ def calc_outflow_v1(self):
         >>> fluxes.outflow
         outflow(0.0)
     """
-    flu = self.sequences.fluxes.fastaccess
-    flu.outflow = max(flu.actualrelease + flu.flooddischarge, 0.)
+    REQUIREDSEQUENCES = (
+        dam_fluxes.ActualRelease,
+        dam_fluxes.FloodDischarge,
+    )
+    RESULTSEQUENCES = (
+        dam_fluxes.Outflow,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        flu.outflow = max(flu.actualrelease + flu.flooddischarge, 0.)
 
 
-def update_watervolume_v1(self):
+class Update_WaterVolume_V1(modeltools.Method):
     """Update the actual water volume.
-
-    Required derived parameter:
-      |Seconds|
-
-    Required flux sequences:
-      |Inflow|
-      |Outflow|
-
-    Updated state sequence:
-      |WaterVolume|
 
     Basic equation:
       :math:`\\frac{d}{dt}WaterVolume = 1e-6 \\cdot (Inflow-Outflow)`
@@ -2155,27 +2253,28 @@ def update_watervolume_v1(self):
         >>> states.watervolume
         watervolume(3.0)
     """
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    old = self.sequences.states.fastaccess_old
-    new = self.sequences.states.fastaccess_new
-    new.watervolume = (old.watervolume +
-                       der.seconds*(flu.inflow-flu.outflow)/1e6)
+    DERIVEDPARAMETERS = (
+        dam_derived.Seconds,
+    )
+    REQUIREDSEQUENCES = (
+        dam_fluxes.Inflow,
+        dam_fluxes.Outflow,
+    )
+    UPDATEDSEQUENCES = (
+        dam_states.WaterVolume,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        old = model.sequences.states.fastaccess_old
+        new = model.sequences.states.fastaccess_new
+        new.watervolume = (old.watervolume +
+                           der.seconds*(flu.inflow-flu.outflow)/1e6)
 
 
-def update_watervolume_v2(self):
+class Update_WaterVolume_V2(modeltools.Method):
     """Update the actual water volume.
-
-    Required derived parameter:
-      |Seconds|
-
-    Required flux sequences:
-      |Inflow|
-      |Outflow|
-      |ActualRemoteRelease|
-
-    Updated state sequence:
-      |WaterVolume|
 
     Basic equation:
       :math:`\\frac{d}{dt}WaterVolume = 10^{-6}
@@ -2194,29 +2293,30 @@ def update_watervolume_v2(self):
         >>> states.watervolume
         watervolume(1.0)
     """
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    old = self.sequences.states.fastaccess_old
-    new = self.sequences.states.fastaccess_new
-    new.watervolume = (
-        old.watervolume +
-        der.seconds*(flu.inflow-flu.outflow-flu.actualremoterelease)/1e6)
+    DERIVEDPARAMETERS = (
+        dam_derived.Seconds,
+    )
+    REQUIREDSEQUENCES = (
+        dam_fluxes.Inflow,
+        dam_fluxes.Outflow,
+        dam_fluxes.ActualRemoteRelease,
+    )
+    UPDATEDSEQUENCES = (
+        dam_states.WaterVolume,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        old = model.sequences.states.fastaccess_old
+        new = model.sequences.states.fastaccess_new
+        new.watervolume = (
+            old.watervolume +
+            der.seconds*(flu.inflow-flu.outflow-flu.actualremoterelease)/1e6)
 
 
-def update_watervolume_v3(self):
+class Update_WaterVolume_V3(modeltools.Method):
     """Update the actual water volume.
-
-    Required derived parameter:
-      |Seconds|
-
-    Required flux sequences:
-      |Inflow|
-      |Outflow|
-      |ActualRemoteRelease|
-      |ActualRemoteRelieve|
-
-    Updated state sequence:
-      |WaterVolume|
 
     Basic equation:
       :math:`\\frac{d}{dt}WaterVolume = 10^{-6}
@@ -2236,71 +2336,148 @@ def update_watervolume_v3(self):
         >>> states.watervolume
         watervolume(0.0)
     """
-    der = self.parameters.derived.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    old = self.sequences.states.fastaccess_old
-    new = self.sequences.states.fastaccess_new
-    new.watervolume = (
-        old.watervolume +
-        der.seconds*(flu.inflow -
-                     flu.outflow -
-                     flu.actualremoterelease -
-                     flu.actualremoterelieve)/1e6)
+    DERIVEDPARAMETERS = (
+        dam_derived.Seconds,
+    )
+    REQUIREDSEQUENCES = (
+        dam_fluxes.Inflow,
+        dam_fluxes.Outflow,
+        dam_fluxes.ActualRemoteRelease,
+        dam_fluxes.ActualRemoteRelieve,
+    )
+    UPDATEDSEQUENCES = (
+        dam_states.WaterVolume,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        old = model.sequences.states.fastaccess_old
+        new = model.sequences.states.fastaccess_new
+        new.watervolume = (
+            old.watervolume +
+            der.seconds*(flu.inflow -
+                         flu.outflow -
+                         flu.actualremoterelease -
+                         flu.actualremoterelieve)/1e6)
 
 
-def pass_outflow_v1(self):
-    """Update the outlet link sequence |dam_outlets.Q|."""
-    flu = self.sequences.fluxes.fastaccess
-    out = self.sequences.outlets.fastaccess
-    out.q[0] += flu.outflow
+class Pass_Outflow_V1(modeltools.Method):
+    """Update the outlet link sequence |dam_outlets.Q|.
+
+    Basic equation:
+      :math:`Q = Outflow`
+    """
+    REQUIREDSEQUENCES = (
+        dam_fluxes.Outflow,
+    )
+    RESULTSEQUENCES = (
+        dam_outlets.Q,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        out = model.sequences.outlets.fastaccess
+        out.q[0] += flu.outflow
 
 
-def pass_actualremoterelease_v1(self):
-    """Update the outlet link sequence |dam_outlets.S|."""
-    flu = self.sequences.fluxes.fastaccess
-    out = self.sequences.outlets.fastaccess
-    out.s[0] += flu.actualremoterelease
+class Pass_ActualRemoteRelease_V1(modeltools.Method):
+    """Update the outlet link sequence |dam_outlets.S|.
+
+    Basic equation:
+      :math:`S = ActualRemoteRelease`
+    """
+    REQUIREDSEQUENCES = (
+        dam_fluxes.ActualRemoteRelease,
+    )
+    RESULTSEQUENCES = (
+        dam_outlets.S,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        out = model.sequences.outlets.fastaccess
+        out.s[0] += flu.actualremoterelease
 
 
-def pass_actualremoterelieve_v1(self):
-    """Update the outlet link sequence |dam_outlets.R|."""
-    flu = self.sequences.fluxes.fastaccess
-    out = self.sequences.outlets.fastaccess
-    out.r[0] += flu.actualremoterelieve
+class Pass_ActualRemoteRelieve_V1(modeltools.Method):
+    """Update the outlet link sequence |dam_outlets.R|.
+
+    Basic equation:
+      :math:`R = ActualRemoteRelieve`
+    """
+    REQUIREDSEQUENCES = (
+        dam_fluxes.ActualRemoteRelieve,
+    )
+    RESULTSEQUENCES = (
+        dam_outlets.R,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        out = model.sequences.outlets.fastaccess
+        out.r[0] += flu.actualremoterelieve
 
 
-def pass_missingremoterelease_v1(self):
-    """Update the outlet link sequence |dam_senders.D|."""
-    flu = self.sequences.fluxes.fastaccess
-    sen = self.sequences.senders.fastaccess
-    sen.d[0] += flu.missingremoterelease
+class Pass_MissingRemoteRelease_V1(modeltools.Method):
+    """Update the outlet link sequence |dam_senders.D|.
+
+    Basic equation:
+      :math:`D = MissingRemoteRelease`
+    """
+    REQUIREDSEQUENCES = (
+        dam_fluxes.MissingRemoteRelease,
+    )
+    RESULTSEQUENCES = (
+        dam_senders.D,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        sen = model.sequences.senders.fastaccess
+        sen.d[0] += flu.missingremoterelease
 
 
-def pass_allowedremoterelieve_v1(self):
-    """Update the outlet link sequence |dam_outlets.R|."""
-    flu = self.sequences.fluxes.fastaccess
-    sen = self.sequences.senders.fastaccess
-    sen.r[0] += flu.allowedremoterelieve
+class Pass_AllowedRemoteRelieve_V1(modeltools.Method):
+    """Update the outlet link sequence |dam_outlets.R|.
+
+    Basic equation:
+      :math:`R = AllowedRemoteRelieve`
+    """
+    REQUIREDSEQUENCES = (
+        dam_fluxes.AllowedRemoteRelieve,
+    )
+    RESULTSEQUENCES = (
+        dam_senders.R,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        sen = model.sequences.senders.fastaccess
+        sen.r[0] += flu.allowedremoterelieve
 
 
-def pass_requiredremotesupply_v1(self):
-    """Update the outlet link sequence |dam_outlets.S|."""
-    flu = self.sequences.fluxes.fastaccess
-    sen = self.sequences.senders.fastaccess
-    sen.s[0] += flu.requiredremotesupply
+class Pass_RequiredRemoteSupply_V1(modeltools.Method):
+    """Update the outlet link sequence |dam_outlets.S|.
+
+    Basic equation:
+      :math:`S = RequiredRemoteSupply`
+    """
+    REQUIREDSEQUENCES = (
+        dam_fluxes.RequiredRemoteSupply,
+    )
+    RESULTSEQUENCES = (
+        dam_senders.S,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        sen = model.sequences.senders.fastaccess
+        sen.s[0] += flu.requiredremotesupply
 
 
-def update_loggedoutflow_v1(self):
+class Update_LoggedOutflow_V1(modeltools.Method):
     """Log a new entry of discharge at a cross section far downstream.
-
-    Required control parameter:
-      |NmbLogEntries|
-
-    Required flux sequence:
-      |Outflow|
-
-    Calculated flux sequence:
-      |LoggedOutflow|
 
     Example:
 
@@ -2327,53 +2504,79 @@ def update_loggedoutflow_v1(self):
         |   3 |     2.0 | 2.0  3.0            1.0 |
         |   4 |     4.0 | 4.0  2.0            3.0 |
     """
-    con = self.parameters.control.fastaccess
-    flu = self.sequences.fluxes.fastaccess
-    log = self.sequences.logs.fastaccess
-    for idx in range(con.nmblogentries-1, 0, -1):
-        log.loggedoutflow[idx] = log.loggedoutflow[idx-1]
-    log.loggedoutflow[0] = flu.outflow
+    CONTROLPARAMETERS = (
+        dam_control.NmbLogEntries,
+    )
+    REQUIREDSEQUENCES = (
+        dam_fluxes.Outflow,
+    )
+    UPDATEDSEQUENCES = (
+        dam_logs.LoggedOutflow,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        log = model.sequences.logs.fastaccess
+        for idx in range(con.nmblogentries-1, 0, -1):
+            log.loggedoutflow[idx] = log.loggedoutflow[idx-1]
+        log.loggedoutflow[0] = flu.outflow
 
 
 class Model(modeltools.ELSModel):
     """Dam base model."""
-
-    INLET_METHODS = (pic_inflow_v1,
-                     pic_inflow_v2,
-                     calc_naturalremotedischarge_v1,
-                     calc_remotedemand_v1,
-                     calc_remotefailure_v1,
-                     calc_requiredremoterelease_v1,
-                     calc_requiredrelease_v1,
-                     calc_requiredrelease_v2,
-                     calc_targetedrelease_v1)
-    RECEIVER_METHODS = (pic_totalremotedischarge_v1,
-                        update_loggedtotalremotedischarge_v1,
-                        pic_loggedrequiredremoterelease_v1,
-                        pic_loggedrequiredremoterelease_v2,
-                        calc_requiredremoterelease_v2,
-                        pic_loggedallowedremoterelieve_v1,
-                        calc_allowedremoterelieve_v1)
-    PART_ODE_METHODS = (pic_inflow_v1,
-                        calc_waterlevel_v1,
-                        calc_actualrelease_v1,
-                        calc_possibleremoterelieve_v1,
-                        calc_actualremoterelieve_v1,
-                        calc_actualremoterelease_v1,
-                        update_actualremoterelieve_v1,
-                        update_actualremoterelease_v1,
-                        calc_flooddischarge_v1,
-                        calc_outflow_v1)
-    FULL_ODE_METHODS = (update_watervolume_v1,
-                        update_watervolume_v2,
-                        update_watervolume_v3)
-    OUTLET_METHODS = (pass_outflow_v1,
-                      update_loggedoutflow_v1,
-                      pass_actualremoterelease_v1,
-                      pass_actualremoterelieve_v1)
-    SENDER_METHODS = (calc_missingremoterelease_v1,
-                      pass_missingremoterelease_v1,
-                      calc_allowedremoterelieve_v2,
-                      pass_allowedremoterelieve_v1,
-                      calc_requiredremotesupply_v1,
-                      pass_requiredremotesupply_v1)
+    SOLVERPARAMETERS = (
+        dam_solver.AbsErrorMax,
+        dam_solver.RelDTMin,
+    )
+    INLET_METHODS = (
+        Pic_Inflow_V1,
+        Pic_Inflow_V2,
+        Calc_NaturalRemoteDischarge_V1,
+        Calc_RemoteDemand_V1,
+        Calc_RemoteFailure_V1,
+        Calc_RequiredRemoteRelease_V1,
+        Calc_RequiredRelease_V1,
+        Calc_RequiredRelease_V2,
+        Calc_TargetedRelease_V1,
+    )
+    RECEIVER_METHODS = (
+        Pic_TotalRemoteDischarge_V1,
+        Update_LoggedTotalRemoteDischarge_V1,
+        Pic_LoggedRequiredRemoteRelease_V1,
+        Pic_LoggedRequiredRemoteRelease_V2,
+        Calc_RequiredRemoteRelease_V2,
+        Pic_LoggedAllowedRemoteRelieve_V1,
+        Calc_AllowedRemoteRelieve_V1,
+    )
+    PART_ODE_METHODS = (
+        Pic_Inflow_V1,
+        Calc_WaterLevel_V1,
+        Calc_ActualRelease_V1,
+        Calc_PossibleRemoteRelieve_V1,
+        Calc_ActualRemoteRelieve_V1,
+        Calc_ActualRemoteRelease_V1,
+        Update_ActualRemoteRelieve_V1,
+        Update_ActualRemoteRelease_V1,
+        Calc_FloodDischarge_V1,
+        Calc_Outflow_V1,
+    )
+    FULL_ODE_METHODS = (
+        Update_WaterVolume_V1,
+        Update_WaterVolume_V2,
+        Update_WaterVolume_V3,
+    )
+    OUTLET_METHODS = (
+        Pass_Outflow_V1,
+        Update_LoggedOutflow_V1,
+        Pass_ActualRemoteRelease_V1,
+        Pass_ActualRemoteRelieve_V1,
+    )
+    SENDER_METHODS = (
+        Calc_MissingRemoteRelease_V1,
+        Pass_MissingRemoteRelease_V1,
+        Calc_AllowedRemoteRelieve_V2,
+        Pass_AllowedRemoteRelieve_V1,
+        Calc_RequiredRemoteSupply_V1,
+        Pass_RequiredRemoteSupply_V1,
+    )

@@ -12,11 +12,6 @@ class Inflow(sequencetools.FluxSequence):
     NDIM, NUMERIC = 0, True
 
 
-class FloodDischarge(sequencetools.FluxSequence):
-    """Water release associated with flood events [m³/s]."""
-    NDIM, NUMERIC = 0, True
-
-
 class TotalRemoteDischarge(sequencetools.FluxSequence):
     """Total discharge at a cross section far downstream [m³/s]."""
     NDIM, NUMERIC = 0, False
@@ -100,27 +95,11 @@ class ActualRemoteRelease(sequencetools.FluxSequence):
     NDIM, NUMERIC = 0, True
 
 
-class Outflow(sequencetools.FluxSequence):
-    """Total outflow [m³/s]."""
+class FloodDischarge(sequencetools.FluxSequence):
+    """Water release associated with flood events [m³/s]."""
     NDIM, NUMERIC = 0, True
 
 
-class FluxSequences(sequencetools.FluxSequences):
-    """Flux sequences of the dam model."""
-    CLASSES = (Inflow,
-               TotalRemoteDischarge,
-               NaturalRemoteDischarge,
-               RemoteDemand,
-               RemoteFailure,
-               RequiredRemoteRelease,
-               AllowedRemoteRelieve,
-               RequiredRemoteSupply,
-               PossibleRemoteRelieve,
-               ActualRemoteRelieve,
-               RequiredRelease,
-               TargetedRelease,
-               ActualRelease,
-               MissingRemoteRelease,
-               ActualRemoteRelease,
-               FloodDischarge,
-               Outflow)
+class Outflow(sequencetools.FluxSequence):
+    """Total outflow [m³/s]."""
+    NDIM, NUMERIC = 0, True

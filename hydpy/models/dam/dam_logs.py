@@ -68,11 +68,3 @@ class LoggedRequiredRemoteRelease(ShapeOne):
 class LoggedAllowedRemoteRelieve(ShapeOne):
     """Logged allowed discharge values computed by another model [m3/s]."""
     NDIM, NUMERIC = 1, False
-
-
-class LogSequences(sequencetools.LogSequences):
-    """Log sequences of the dam model."""
-    CLASSES = (LoggedTotalRemoteDischarge,
-               LoggedOutflow,
-               LoggedRequiredRemoteRelease,
-               LoggedAllowedRemoteRelieve)

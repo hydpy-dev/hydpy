@@ -5,6 +5,7 @@
 # import...
 # ...from HydPy
 from hydpy.core import parametertools
+from hydpy.models.dam import dam_control
 
 
 class AbsErrorMax(parametertools.SolverParameter):
@@ -14,6 +15,10 @@ class AbsErrorMax(parametertools.SolverParameter):
     TIME = None
     SPAN = (0., None)
     INIT = 0.01
+
+    CONTROLPARAMETERS = (
+        dam_control.CatchmentArea,
+    )
 
     def modify_init(self):
         """""Adjust and return the value of class constant `INIT`.
@@ -48,8 +53,3 @@ class RelDTMin(parametertools.SolverParameter):
     TIME = None
     SPAN = (0.0, 1.0)
     INIT = 0.001
-
-
-class SolverParameters(parametertools.SubParameters):
-    """Solver parameters of the Test model."""
-    CLASSES = (AbsErrorMax, RelDTMin)

@@ -20,10 +20,3 @@ class S(sequencetools.OutletSequence):
 class R(sequencetools.OutletSequence):
     """Water relieve [m³/s]."""
     NDIM, NUMERIC = 0, False
-
-
-class OutletSequences(sequencetools.OutletSequences):
-    """Downstream link sequences of the dam model."""
-    CLASSES = (Q,
-               S,
-               R)

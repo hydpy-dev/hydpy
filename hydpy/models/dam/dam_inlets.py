@@ -20,10 +20,3 @@ class S(sequencetools.InletSequence):
 class R(sequencetools.InletSequence):
     """Water relief [m³/s]."""
     NDIM, NUMERIC = 0, False
-
-
-class InletSequences(sequencetools.InletSequences):
-    """Upstream link sequences of the dam model."""
-    CLASSES = (Q,
-               S,
-               R)

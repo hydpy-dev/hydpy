@@ -674,7 +674,7 @@ Integration examples:
             frameborder=0
         ></iframe>
 
-    This behaviour of the dam model is due to method |calc_actualrelease_v1|
+    This behaviour of the dam model is due to method |Calc_ActualRelease_V1|
     being involved in the set of differential equation that are solved
     approximately by a numerical integration algorithm.  Theoretically,
     we could decrease the local truncation error to decrease this
@@ -693,7 +693,7 @@ Integration examples:
     When using the version of the dam model discussed here, it is instead
     advised to smooth this problematic discontinuity by increasing the
     value of parameter |NearDischargeMinimumTolerance| (which could not be
-    implemented properly if method |calc_actualrelease_v1| would
+    implemented properly if method |Calc_ActualRelease_V1| would
     apply a simple balance equation):
 
     >>> waterlevelminimumtolerance(0.01)
@@ -1138,121 +1138,46 @@ Integration examples:
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
-from hydpy.core import parametertools
-from hydpy.core import sequencetools
 from hydpy.auxs.anntools import ann   # pylint: disable=unused-import
 # ...from dam
 from hydpy.models.dam import dam_model
-from hydpy.models.dam import dam_control
-from hydpy.models.dam import dam_derived
 from hydpy.models.dam import dam_solver
-from hydpy.models.dam import dam_fluxes
-from hydpy.models.dam import dam_states
-from hydpy.models.dam import dam_logs
-from hydpy.models.dam import dam_aides
-from hydpy.models.dam import dam_inlets
-from hydpy.models.dam import dam_outlets
-from hydpy.models.dam import dam_receivers
 
 
 class Model(modeltools.ELSModel):
     """Version 1 of HydPy-Dam."""
-
-    INLET_METHODS = (dam_model.pic_inflow_v1,
-                     dam_model.calc_naturalremotedischarge_v1,
-                     dam_model.calc_remotedemand_v1,
-                     dam_model.calc_remotefailure_v1,
-                     dam_model.calc_requiredremoterelease_v1,
-                     dam_model.calc_requiredrelease_v1,
-                     dam_model.calc_targetedrelease_v1)
-    RECEIVER_METHODS = (dam_model.pic_totalremotedischarge_v1,
-                        dam_model.update_loggedtotalremotedischarge_v1)
-    PART_ODE_METHODS = (dam_model.pic_inflow_v1,
-                        dam_model.calc_waterlevel_v1,
-                        dam_model.calc_actualrelease_v1,
-                        dam_model.calc_flooddischarge_v1,
-                        dam_model.calc_outflow_v1)
-    FULL_ODE_METHODS = (dam_model.update_watervolume_v1,)
-    OUTLET_METHODS = (dam_model.pass_outflow_v1,
-                      dam_model.update_loggedoutflow_v1)
+    SOLVERPARAMETERS = (
+        dam_solver.AbsErrorMax,
+        dam_solver.RelDTMin,
+    )
+    INLET_METHODS = (
+        dam_model.Pic_Inflow_V1,
+        dam_model.Calc_NaturalRemoteDischarge_V1,
+        dam_model.Calc_RemoteDemand_V1,
+        dam_model.Calc_RemoteFailure_V1,
+        dam_model.Calc_RequiredRemoteRelease_V1,
+        dam_model.Calc_RequiredRelease_V1,
+        dam_model.Calc_TargetedRelease_V1,
+    )
+    RECEIVER_METHODS = (
+        dam_model.Pic_TotalRemoteDischarge_V1,
+        dam_model.Update_LoggedTotalRemoteDischarge_V1,
+    )
+    PART_ODE_METHODS = (
+        dam_model.Pic_Inflow_V1,
+        dam_model.Calc_WaterLevel_V1,
+        dam_model.Calc_ActualRelease_V1,
+        dam_model.Calc_FloodDischarge_V1,
+        dam_model.Calc_Outflow_V1,
+    )
+    FULL_ODE_METHODS = (
+        dam_model.Update_WaterVolume_V1,
+    )
+    OUTLET_METHODS = (
+        dam_model.Pass_Outflow_V1,
+        dam_model.Update_LoggedOutflow_V1,
+    )
     SENDER_METHODS = ()
-
-
-class ControlParameters(parametertools.SubParameters):
-    """Control parameters of HydPy-Dam, Version 1."""
-    CLASSES = (dam_control.CatchmentArea,
-               dam_control.NmbLogEntries,
-               dam_control.RemoteDischargeMinimum,
-               dam_control.RemoteDischargeSafety,
-               dam_control.NearDischargeMinimumThreshold,
-               dam_control.NearDischargeMinimumTolerance,
-               dam_control.RestrictTargetedRelease,
-               dam_control.WaterLevelMinimumThreshold,
-               dam_control.WaterLevelMinimumTolerance,
-               dam_control.WaterVolume2WaterLevel,
-               dam_control.WaterLevel2FloodDischarge)
-
-
-class DerivedParameters(parametertools.SubParameters):
-    """Derived parameters of HydPy-Dam, Version 1."""
-    CLASSES = (dam_derived.TOY,
-               dam_derived.Seconds,
-               dam_derived.RemoteDischargeSmoothPar,
-               dam_derived.NearDischargeMinimumSmoothPar1,
-               dam_derived.NearDischargeMinimumSmoothPar2,
-               dam_derived.WaterLevelMinimumSmoothPar)
-
-
-class SolverParameters(parametertools.SubParameters):
-    """Solver parameters of HydPy-Dam, Version 1."""
-    CLASSES = (dam_solver.AbsErrorMax,
-               dam_solver.RelDTMin)
-
-
-class FluxSequences(sequencetools.FluxSequences):
-    """Flux sequences of HydPy-Dam, Version 1."""
-    CLASSES = (dam_fluxes.Inflow,
-               dam_fluxes.TotalRemoteDischarge,
-               dam_fluxes.NaturalRemoteDischarge,
-               dam_fluxes.RemoteDemand,
-               dam_fluxes.RemoteFailure,
-               dam_fluxes.RequiredRemoteRelease,
-               dam_fluxes.RequiredRelease,
-               dam_fluxes.TargetedRelease,
-               dam_fluxes.ActualRelease,
-               dam_fluxes.FloodDischarge,
-               dam_fluxes.Outflow)
-
-
-class StateSequences(sequencetools.StateSequences):
-    """State sequences of HydPy-Dam, Version 1."""
-    CLASSES = (dam_states.WaterVolume,)
-
-
-class LogSequences(sequencetools.LogSequences):
-    """Log sequences of HydPy-Dam, Version 1."""
-    CLASSES = (dam_logs.LoggedTotalRemoteDischarge,
-               dam_logs.LoggedOutflow)
-
-
-class AideSequences(sequencetools.AideSequences):
-    """State sequences of HydPy-Dam, Version 1."""
-    CLASSES = (dam_aides.WaterLevel,)
-
-
-class InletSequences(sequencetools.InletSequences):
-    """Upstream link sequences of HydPy-Dam, Version 1."""
-    CLASSES = (dam_inlets.Q,)
-
-
-class OutletSequences(sequencetools.OutletSequences):
-    """Downstream link sequences of HydPy-Dam, Version 1."""
-    CLASSES = (dam_outlets.Q,)
-
-
-class ReceiverSequences(sequencetools.ReceiverSequences):
-    """Information link sequences of HydPy-Dam, Version 1."""
-    CLASSES = (dam_receivers.Q,)
 
 
 tester = Tester()

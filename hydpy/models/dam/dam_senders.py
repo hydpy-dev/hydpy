@@ -25,11 +25,3 @@ class S(sequencetools.SenderSequence):
 class R(sequencetools.SenderSequence):
     """Water relief [m³/s]."""
     NDIM, NUMERIC = 0, False
-
-
-class SenderSequences(sequencetools.SenderSequences):
-    """Information link sequences of the dam model."""
-    CLASSES = (Q,
-               D,
-               S,
-               R)

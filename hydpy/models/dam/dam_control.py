@@ -160,30 +160,3 @@ class WaterVolume2WaterLevel(anntools.ANN):
 class WaterLevel2FloodDischarge(anntools.SeasonalANN):
     """Artificial neural network describing the relationship between
     flood discharge and water volume [-]."""
-
-
-class ControlParameters(parametertools.SubParameters):
-    """Control parameters of the dam model, directly defined by the user."""
-    CLASSES = (CatchmentArea,
-               NmbLogEntries,
-               RemoteDischargeMinimum,
-               RemoteDischargeSafety,
-               WaterLevel2PossibleRemoteRelieve,
-               RemoteRelieveTolerance,
-               NearDischargeMinimumThreshold,
-               NearDischargeMinimumTolerance,
-               RestrictTargetedRelease,
-               WaterLevelMinimumThreshold,
-               WaterLevelMinimumTolerance,
-               WaterLevelMinimumRemoteThreshold,
-               WaterLevelMinimumRemoteTolerance,
-               HighestRemoteRelieve,
-               WaterLevelRelieveThreshold,
-               WaterLevelRelieveTolerance,
-               HighestRemoteSupply,
-               WaterLevelSupplyThreshold,
-               WaterLevelSupplyTolerance,
-               HighestRemoteDischarge,
-               HighestRemoteTolerance,
-               WaterVolume2WaterLevel,
-               WaterLevel2FloodDischarge)

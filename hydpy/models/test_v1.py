@@ -11,45 +11,27 @@ simple storage with a linear loss term and without any input.  The loss rate
 # ...HydPy specific
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
-from hydpy.core import parametertools
-from hydpy.core import sequencetools
 # ...from test
 from hydpy.models.test import test_model
-from hydpy.models.test import test_control
 from hydpy.models.test import test_solver
-from hydpy.models.test import test_fluxes
-from hydpy.models.test import test_states
 
 
 class Model(modeltools.ELSModel):
     """Test model, Version 1."""
+    SOLVERPARAMETERS = (
+        test_solver.AbsErrorMax,
+        test_solver.RelDTMin,
+    )
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
-    PART_ODE_METHODS = (test_model.calc_q_v1,)
-    FULL_ODE_METHODS = (test_model.calc_s_v1,)
+    PART_ODE_METHODS = (
+        test_model.Calc_Q_V1,
+    )
+    FULL_ODE_METHODS = (
+        test_model.Calc_S_V1,
+    )
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
-
-
-class ControlParameters(parametertools.SubParameters):
-    """Control parameters of Test model, Version 1."""
-    CLASSES = (test_control.K,)
-
-
-class SolverParameters(parametertools.SubParameters):
-    """Solver parameters of the Test model,."""
-    CLASSES = (test_solver.AbsErrorMax,
-               test_solver.RelDTMin)
-
-
-class FluxSequences(sequencetools.FluxSequences):
-    """Flux sequences of Test model, Version 1."""
-    CLASSES = (test_fluxes.Q,)
-
-
-class StateSequences(sequencetools.StateSequences):
-    """State sequences of Test model, Version 1."""
-    CLASSES = (test_states.S,)
 
 
 tester = Tester()

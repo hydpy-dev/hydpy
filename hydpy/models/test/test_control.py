@@ -15,8 +15,3 @@ class K(parametertools.Parameter):
     the actual parameter time step.
     """
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
-
-
-class ControlParameters(parametertools.SubParameters):
-    """Control parameters of the Test model, directly defined by the user."""
-    CLASSES = (K,)

@@ -3527,7 +3527,7 @@ class NodeSequences(IOSequences):
         self.fastaccess.save_simdata(idx)
 
 
-class LeftRightSequence(ModelSequence):
+class LeftRightSequence(FluxSequence):
     """Base class for handling two values, a left one and a right one.
 
     The original purpose of class |LeftRightSequence| is to make the

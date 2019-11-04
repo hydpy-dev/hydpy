@@ -80,21 +80,3 @@ class QG(sequencetools.FluxSequence):
 class RK(sequencetools.FluxSequence):
     """Schwerpunktlaufzeit (traveling time) [T]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
-
-
-class FluxSequences(sequencetools.FluxSequences):
-    """Flux sequences of HydPy-L-Stream."""
-    CLASSES = (QRef,
-               H,
-               AM,
-               AV,
-               AVR,
-               AG,
-               UM,
-               UV,
-               UVR,
-               QM,
-               QV,
-               QVR,
-               QG,
-               RK)

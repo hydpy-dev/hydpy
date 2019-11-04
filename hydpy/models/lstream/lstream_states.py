@@ -15,9 +15,3 @@ class QZ(sequencetools.StateSequence):
 class QA(sequencetools.StateSequence):
     """Abfluss aus Gerinnestrecke (outflow out of the channel) [m³/s]."""
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
-
-
-class StateSequences(sequencetools.StateSequences):
-    """State sequences of HydPy-L-Stream."""
-    CLASSES = (QZ,
-               QA)

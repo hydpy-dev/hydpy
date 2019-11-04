@@ -5,18 +5,20 @@
 # import...
 # ...from HydPy
 from hydpy.core import parametertools
+from hydpy.models.lstream import lstream_control
 
 
 class HV(parametertools.LeftRightParameter):
     """Höhe Vorländer (height of both forelands) [m]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
+    CONTROLPARAMETERS = (
+        lstream_control.BBV,
+        lstream_control.BNV,
+    )
+
     def update(self):
         """Update value based on :math:`HV=BBV/BNV`.
-
-        Required Parameters:
-            |BBV|
-            |BNV|
 
         Examples:
             >>> from hydpy.models.lstream import *
@@ -44,15 +46,16 @@ class QM(parametertools.Parameter):
     [m³/s]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
-    def update(self):
-        """Update value based on the actual |calc_qg_v1| method.
+    CONTROLPARAMETERS = (
+        lstream_control.HM,
+    )
 
-        Required derived parameter:
-            |H|
+    def update(self):
+        """Update value based on the actual |Calc_QG_V1| method.
 
         Note that the value of parameter |lstream_derived.QM| is directly
         related to the value of parameter |HM| and indirectly related to
-        all parameters values relevant for method |calc_qg_v1|. Hence the
+        all parameters values relevant for method |Calc_QG_V1|. Hence the
         complete paramter (and sequence) requirements might differ for
         various application models.
 
@@ -71,15 +74,19 @@ class QV(parametertools.LeftRightParameter):
     [m³/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
-    def update(self):
-        """Update value based on the actual |calc_qg_v1| method.
+    CONTROLPARAMETERS = (
+        lstream_control.HM,
+    )
+    DERIVEDPARAMETERS = (
+        HV,
+    )
 
-        Required derived parameter:
-            |HV|
+    def update(self):
+        """Update value based on the actual |Calc_QG_V1| method.
 
         Note that the values of parameter |lstream_derived.QV| are
         directly related to the values of parameter |HV| and indirectly
-        related to all parameters values relevant for method |calc_qg_v1|.
+        related to all parameters values relevant for method |Calc_QG_V1|.
         Hence the complete paramter (and sequence) requirements might
         differ for various application models.
 
@@ -113,11 +120,3 @@ class Sek(parametertools.Parameter):
             sek(86400.0)
         """
         self(self.simulationstep.seconds)
-
-
-class DerivedParameters(parametertools.SubParameters):
-    """Derived parameters of HydPy-L-Stream, indirectly defined by the user."""
-    CLASSES = (HV,
-               QM,
-               QV,
-               Sek)

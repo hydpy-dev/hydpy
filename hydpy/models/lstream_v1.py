@@ -183,110 +183,37 @@ Integration test:
 # ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
-from hydpy.core import parametertools
-from hydpy.core import sequencetools
 # ...from lstream
 from hydpy.models.lstream import lstream_model
-from hydpy.models.lstream import lstream_control
-from hydpy.models.lstream import lstream_derived
-from hydpy.models.lstream import lstream_fluxes
-from hydpy.models.lstream import lstream_states
-from hydpy.models.lstream import lstream_aides
-from hydpy.models.lstream import lstream_inlets
-from hydpy.models.lstream import lstream_outlets
 
 
 class Model(modeltools.AdHocModel):
     """LARSIM-Stream (Manning) version of HydPy-L-Stream (lstream_v1)."""
-    INLET_METHODS = (lstream_model.pick_q_v1,)
+    INLET_METHODS = (
+        lstream_model.Pick_Q_V1,
+    )
     RECEIVER_METHODS = ()
-    RUN_METHODS = (lstream_model.calc_qref_v1,
-                   lstream_model.calc_hmin_qmin_hmax_qmax_v1,
-                   lstream_model.calc_h_v1,
-                   lstream_model.calc_ag_v1,
-                   lstream_model.calc_rk_v1,
-                   lstream_model.calc_qa_v1)
-    ADD_METHODS = (lstream_model.calc_am_um_v1,
-                   lstream_model.calc_qm_v1,
-                   lstream_model.calc_av_uv_v1,
-                   lstream_model.calc_qv_v1,
-                   lstream_model.calc_avr_uvr_v1,
-                   lstream_model.calc_qvr_v1,
-                   lstream_model.calc_qg_v1)
-    OUTLET_METHODS = (lstream_model.pass_q_v1,)
+    RUN_METHODS = (
+        lstream_model.Calc_QRef_V1,
+        lstream_model.Calc_HMin_QMin_HMax_QMax_V1,
+        lstream_model.Calc_H_V1,
+        lstream_model.Calc_AG_V1,
+        lstream_model.Calc_RK_V1,
+        lstream_model.Calc_QA_V1,
+    )
+    ADD_METHODS = (
+        lstream_model.Calc_AM_UM_V1,
+        lstream_model.Calc_QM_V1,
+        lstream_model.Calc_AV_UV_V1,
+        lstream_model.Calc_QV_V1,
+        lstream_model.Calc_AVR_UVR_V1,
+        lstream_model.Calc_QVR_V1,
+        lstream_model.Calc_QG_V1,
+    )
+    OUTLET_METHODS = (
+        lstream_model.Pass_Q_V1,
+    )
     SENDER_METHODS = ()
-
-
-class ControlParameters(parametertools.SubParameters):
-    """Control parameters of lstream_v1, directly defined by the user."""
-    CLASSES = (lstream_control.Laen,
-               lstream_control.Gef,
-               lstream_control.HM,
-               lstream_control.BM,
-               lstream_control.BV,
-               lstream_control.BBV,
-               lstream_control.BNM,
-               lstream_control.BNV,
-               lstream_control.BNVR,
-               lstream_control.SKM,
-               lstream_control.SKV,
-               lstream_control.EKM,
-               lstream_control.EKV,
-               lstream_control.QTol,
-               lstream_control.HTol)
-
-
-class DerivedParameters(parametertools.SubParameters):
-    """Derived parameters of lstream_v1, indirectly defined by the user.
-    """
-    CLASSES = (lstream_derived.HV,
-               lstream_derived.QM,
-               lstream_derived.QV,
-               lstream_derived.Sek)
-
-
-class FluxSequences(sequencetools.FluxSequences):
-    """Flux sequences of LARSIM-ME."""
-    CLASSES = (lstream_fluxes.QRef,
-               lstream_fluxes.H,
-               lstream_fluxes.AM,
-               lstream_fluxes.AV,
-               lstream_fluxes.AVR,
-               lstream_fluxes.AG,
-               lstream_fluxes.UM,
-               lstream_fluxes.UV,
-               lstream_fluxes.UVR,
-               lstream_fluxes.QM,
-               lstream_fluxes.QV,
-               lstream_fluxes.QVR,
-               lstream_fluxes.QG,
-               lstream_fluxes.RK)
-
-
-class StateSequences(sequencetools.StateSequences):
-    """State sequences of lstream_v1."""
-    CLASSES = (lstream_states.QZ,
-               lstream_states.QA)
-
-
-class AideSequences(sequencetools.AideSequences):
-    """Aide sequences of lstream_v1."""
-    CLASSES = (lstream_aides.Temp,
-               lstream_aides.HMin,
-               lstream_aides.HMax,
-               lstream_aides.QMin,
-               lstream_aides.QMax,
-               lstream_aides.QTest)
-
-
-class InletSequences(sequencetools.InletSequences):
-    """Upstream link sequences of lstream_v1."""
-    CLASSES = (lstream_inlets.Q,)
-
-
-class OutletSequences(sequencetools.OutletSequences):
-    """Downstream link sequences of lstream_v1."""
-    CLASSES = (lstream_outlets.Q,)
 
 
 tester = Tester()

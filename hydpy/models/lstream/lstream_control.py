@@ -89,22 +89,3 @@ class HTol(parametertools.Parameter):
     criterion for root-finding algorithms) [m]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
     INIT = 1e-6
-
-
-class ControlParameters(parametertools.SubParameters):
-    """Control parameters HydPy-L-Stream, directly defined by the user."""
-    CLASSES = (Laen,
-               Gef,
-               HM,
-               BM,
-               BV,
-               BBV,
-               BNM,
-               BNV,
-               BNVR,
-               SKM,
-               SKV,
-               EKM,
-               EKV,
-               QTol,
-               HTol)

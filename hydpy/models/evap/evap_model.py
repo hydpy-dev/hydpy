@@ -665,7 +665,8 @@ class Calc_PossibleSunshineDuration_V1(modeltools.Method):
 class Calc_ClearSkySolarRadiation_V1(modeltools.Method):
     """Calculate the clear sky solar radiation.
 
-    Basic equation (`Allen`_, equation 35):
+    Basic equation (adjusted to |Calc_GlobalRadiation_V1|, `Allen`_ equation 35
+    according to Angstrom-Prescott regression):
       :math:`ClearSkySolarRadiation =
       ExtraterrestrialRadiation \\cdot (AngstromConstant + AngstromFactor)`
 
@@ -898,8 +899,8 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
 
     Basic equation (`Allen`_, equation 39, modified):
       :math:`NetLongwaveRadiation =
-      \\sigma \\cdot Seconds \\cdot (AirTemperature+273.16)
-      \\cdot (0.34 - 0.14 \\sqrt{ActualVapourPressure})^4 \\cdot
+      \\sigma \\cdot Seconds \\cdot (AirTemperature+273.16)^4
+      \\cdot (0.34 - 0.14 \\sqrt{ActualVapourPressure}) \\cdot
       (1.35 \\cdot GR / CSSR - 0.35)` \n
 
       :math:`GR = \\Bigl \\lbrace

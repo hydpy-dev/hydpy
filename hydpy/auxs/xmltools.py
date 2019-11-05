@@ -2015,7 +2015,7 @@ class XSDWriter:
                 </complexContent>
             </complexType>
         <BLANKLINE>
-            <complexType name="dam_v001_mathitemType">
+            <complexType name="conv_v001_mathitemType">
         ...
         """
         blanks = ' ' * (indent*4)

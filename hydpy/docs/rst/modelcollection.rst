@@ -77,6 +77,7 @@ and will have to be discussed later.
    :hidden:
 
    HydPy-A
+   HydPy-C
    HydPy-E
    HydPy-D
    HydPy-H

@@ -162,7 +162,7 @@ class Model(modeltools.AdHocModel):
     SENDER_METHODS = ()
 
     def __init__(self):
-        modeltools.AdHocModel.__init__(self)
+        super().__init__()
         self.nodenames = []
 
     def connect(self):
@@ -177,7 +177,7 @@ class Model(modeltools.AdHocModel):
         and `inflow2`  shall be  branched to nodes `outflow1` and `outflow2`
         via element `branch`:
 
-        >>> from hydpy import *
+        >>> from hydpy import Element
         >>> branch = Element('branch',
         ...                  inlets=['inflow1', 'inflow2'],
         ...                  outlets=['outflow1', 'outflow2'])
@@ -198,9 +198,9 @@ class Model(modeltools.AdHocModel):
         >>> branch.inlets.inflow1.sequences.sim = 1.0
         >>> branch.inlets.inflow2.sequences.sim = 5.0
         >>> model.simulate(0)
-        >>> print(branch.outlets.outflow1.sequences.sim)
+        >>> branch.outlets.outflow1.sequences.sim
         sim(2.0)
-        >>> print(branch.outlets.outflow2.sequences.sim)
+        >>> branch.outlets.outflow2.sequences.sim
         sim(4.0)
 
         In case of missing (or misspelled) outlet nodes, the following

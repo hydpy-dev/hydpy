@@ -665,8 +665,7 @@ class Calc_PossibleSunshineDuration_V1(modeltools.Method):
 class Calc_ClearSkySolarRadiation_V1(modeltools.Method):
     """Calculate the clear sky solar radiation.
 
-    Basic equation (adjusted to |Calc_GlobalRadiation_V1|, `Allen`_ equation 35
-    according to Angstrom-Prescott regression):
+    Basic equation (`Allen`_, equation 35):
       :math:`ClearSkySolarRadiation =
       ExtraterrestrialRadiation \\cdot (AngstromConstant + AngstromFactor)`
 

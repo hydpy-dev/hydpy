@@ -20,9 +20,3 @@ class Schneespeicher(sequencetools.StateSequence):
 class AktBodenwassergehalt(sequencetools.StateSequence):
     """[mm]"""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
-
-
-class StateSequences(sequencetools.StateSequences):
-    CLASSES = (Interzeptionsspeicher,
-               Schneespeicher,
-               AktBodenwassergehalt)

@@ -30,11 +30,3 @@ class RelLuftfeuchte(sequencetools.InputSequence):
 class ET0(sequencetools.InputSequence):
     """[mm]"""
     NDIM, NUMERIC = 0, False
-
-
-class InputSequences(sequencetools.InputSequences):
-    CLASSES = (Niederschlag,
-               Temp_TM,
-               Temp14,
-               RelLuftfeuchte,
-               ET0)

@@ -10,6 +10,7 @@ from hydpy import pub
 from hydpy.core import parametertools
 # ...from whmod
 from hydpy.models.whmod.whmod_constants import *
+from hydpy.models.whmod import whmod_control
 
 
 class MOY(parametertools.MOYParameter):
@@ -20,18 +21,27 @@ class RelArea(parametertools.Parameter):
     """[-]"""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., 1.)
 
+    CONTROLPARAMETERS = (
+        whmod_control.F_AREA,
+        whmod_control.Area,
+    )
+
     def update(self):
         """
+
+        not used at the moment
+
         >>> from hydpy import pub
         >>> pub.options.usecython = False
 
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
         >>> nmb_cells(3)
-        >>> area(100.0)
-        >>> f_area(20.0, 30.0, 50.0)
-        >>> derived.relarea.update()
-        >>> derived.relarea
+        >>> # area(100.0)
+        >>> # f_area(20.0, 30.0, 50.0)
+        >>> # derived.relarea.update()
+        >>> # derived.relarea
+
         relarea(0.2, 0.3, 0.5)
         """
         control = self.subpars.pars.control
@@ -42,8 +52,14 @@ class Wurzeltiefe(parametertools.Parameter):
     """[m]"""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
+    CONTROLPARAMETERS = (
+        whmod_control.MaxWurzeltiefe,
+        whmod_control.Flurab,
+    )
+
     def update(self):
         """
+
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
         >>> nmb_cells(3)
@@ -61,8 +77,16 @@ class nFKwe(parametertools.Parameter):
     """[mm]"""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
+    CONTROLPARAMETERS = (
+        whmod_control.NFK100_Mittel,
+    )
+    DERIVEDPARAMETERS = (
+        Wurzeltiefe,
+    )
+
     def update(self):
         """
+
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
         >>> nmb_cells(5)
@@ -82,6 +106,7 @@ class Beta(parametertools.Parameter):
 
     def update_old(self):
         """
+
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
         >>> nmb_cells(26)
@@ -146,11 +171,15 @@ class Beta(parametertools.Parameter):
 class Beta(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
+    CONTROLPARAMETERS = (
+        whmod_control.Nutz_Nr,
+    )
+    DERIVEDPARAMETERS = (
+        nFKwe,
+    )
+
     def update(self):
         """
-
-        >>> from hydpy import pub
-        >>> pub.options.reprdigits = 6
 
         >>> from hydpy.models.whmod import *
         >>> parameterstep()
@@ -204,11 +233,3 @@ class Beta(parametertools.Parameter):
         self.values[idxs3] = 1.0
         idxs4 = idxs1 * ~idxs2
         self.values[idxs4] = 1.0 + 6.0/(1+(nfkwe[idxs4]/118.25)**-6.5)
-
-
-class DerivedParameters(parametertools.SubParameters):
-    CLASSES = (MOY,
-               RelArea,
-               Wurzeltiefe,
-               nFKwe,
-               Beta)

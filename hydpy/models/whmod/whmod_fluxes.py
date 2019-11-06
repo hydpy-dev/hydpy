@@ -79,22 +79,3 @@ class KapilAufstieg(Sequence1D):
 
 class AktGrundwasserneubildung(Sequence1D):
     """[mm]"""
-
-
-class FluxSequences(sequencetools.FluxSequences):
-    CLASSES = (NiederschlagRichter,
-               InterzeptionsVerdunstung,
-               NiedNachInterz,
-               Seeniederschlag,
-               ZuflussBoden,
-               Oberflaechenabfluss,
-               RelBodenfeuchte,
-               Sickerwasser,
-               Saettigungsdampfdruckdefizit,
-               MaxVerdunstung,
-               Bodenverdunstung,
-               Seeverdunstung,
-               AktVerdunstung,
-               PotKapilAufstieg,
-               KapilAufstieg,
-               AktGrundwasserneubildung)

@@ -8,11 +8,11 @@ import itertools
 # from site-packages
 import numpy
 # ...from HydPy
-from hydpy.core import parametertools
-# ...from hland
 from hydpy.core import objecttools
+from hydpy.core import parametertools
+from hydpy.models.whmod.whmod_constants import *
 from hydpy.models.whmod import whmod_constants
-from hydpy.models.whmod import whmod_parameters
+from hydpy.models.whmod import whmod_masks
 
 
 class Area(parametertools.Parameter):
@@ -60,26 +60,78 @@ class MitFunktion_KapillarerAufstieg(parametertools.Parameter):
     NDIM, TYPE, TIME = 1, bool, None
 
 
+TEMP = {key: value for key, value in whmod_constants.CONSTANTS.items()
+        if value in (GRAS, LAUBWALD, MAIS, NADELWALD, SOMMERWEIZEN,
+                     WINTERWEIZEN, ZUCKERRUEBEN, VERSIEGELT, WASSER)}
+
+
 class Nutz_Nr(parametertools.NameParameter):
     """[-]"""
     NDIM, TYPE, TIME = 1, int, None
-    CONSTANTS = whmod_parameters.NutzNrComplete.MODEL_CONSTANTS
+    CONSTANTS = TEMP
     SPAN = min(CONSTANTS.values()), max(CONSTANTS.values())
+
+
+class NutzNrComplete(parametertools.ZipParameter):
+
+    CONTROLPARAMETERS = (
+        Nutz_Nr,
+        Nmb_Cells,
+    )
+
+    MODEL_CONSTANTS = TEMP
+    mask = whmod_masks.NutzNrMask()
+
+    @property
+    def shapeparameter(self):
+        return self.subpars.pars.control.nmb_cells
+
+    @property
+    def refweights(self):
+        return self.subpars.pars.control.f_area
+
+
+del TEMP
+
+TEMP = {key: value for key, value in whmod_constants.CONSTANTS.items()
+        if value in (SAND, SAND_BINDIG, LEHM, TON, SCHLUFF, TORF)}
 
 
 class BodenTyp(parametertools.NameParameter):
     """[-]"""
     NDIM, TYPE, TIME = 1, int, None
-    CONSTANTS = whmod_parameters.BodenTypComplete.MODEL_CONSTANTS
+    CONSTANTS = TEMP
     SPAN = min(CONSTANTS.values()), max(CONSTANTS.values())
 
 
-class F_AREA(whmod_parameters.NutzNrComplete):
+class BodenTypComplete(parametertools.ZipParameter):
+
+    CONTROLPARAMETERS = (
+        BodenTyp,
+        Nmb_Cells,
+    )
+
+    MODEL_CONSTANTS = TEMP
+    mask = whmod_masks.BodenTypMask()
+
+    @property
+    def shapeparameter(self):
+        return self.subpars.pars.control.nmb_cells
+
+    @property
+    def refweights(self):
+        return self.subpars.pars.control.f_area
+
+
+del TEMP
+
+
+class F_AREA(NutzNrComplete):
     """[m²]"""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 
-class MaxInterz(whmod_parameters.NutzNrComplete):
+class MaxInterz(NutzNrComplete):
     """[m²]"""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
@@ -114,60 +166,36 @@ class FLN(parametertools.KeywordParameter2D):
                 'winterweizen', 'zuckerrueben', 'versiegelt', 'wasser')
 
 
-class Gradfaktor(whmod_parameters.NutzNrComplete):
+class Gradfaktor(NutzNrComplete):
     """[mm/T/K]"""
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
 
 
-class NFK100_Mittel(whmod_parameters.NutzNrComplete):
+class NFK100_Mittel(NutzNrComplete):
     """[mm/m]"""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 
-class Flurab(whmod_parameters.NutzNrComplete):
+class Flurab(NutzNrComplete):
     """[m]"""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
 
-class MaxWurzeltiefe(whmod_parameters.NutzNrComplete):
+class MaxWurzeltiefe(NutzNrComplete):
     """[m]"""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 
-class MinhasR(whmod_parameters.NutzNrComplete):
+class MinhasR(NutzNrComplete):
     """[-]"""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (.1, None)
 
 
-class KapilSchwellwert(whmod_parameters.BodenTypComplete):
+class KapilSchwellwert(BodenTypComplete):
     """[-]"""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 
-class KapilGrenzwert(whmod_parameters.BodenTypComplete):
+class KapilGrenzwert(BodenTypComplete):
     """[-]"""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
-
-
-class ControlParameters(parametertools.SubParameters):
-    CLASSES = (Area,
-               Nmb_Cells,
-               KorrNiedNachRichter,
-               InterzeptionNach_Dommermuth_Trampf,
-               MitFunktion_KapillarerAufstieg,
-               Nutz_Nr,
-               BodenTyp,
-               MaxInterz,
-               Faktor,
-               FactorC,
-               FaktorWald,
-               FLN,
-               F_AREA,
-               Gradfaktor,
-               NFK100_Mittel,
-               Flurab,
-               MaxWurzeltiefe,
-               MinhasR,
-               KapilSchwellwert,
-               KapilGrenzwert)
-

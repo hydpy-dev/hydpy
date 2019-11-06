@@ -22,7 +22,7 @@ Integration Test:
     >>> from hydpy.models.hstream_v1 import *
     >>> parameterstep('1h')
 
-    The |lstream_v1| model, handled by |Element| `stream`, queries its
+    The |hstream_v1| model, handled by |Element| `stream`, queries its
     inflow from two |Node| objects (`input1` and `input2`) and passes its
     outflow to a single |Node| object (`output`):
 

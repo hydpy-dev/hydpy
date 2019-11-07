@@ -55,7 +55,7 @@ EXCLUDE_MEMBERS = (
     'CONTROLPARAMETERS',
     'DERIVEDPARAMETERS',
     'REQUIREDSEQUENCES',
-    'UPDATESSEQUENCES',
+    'UPDATEDSEQUENCES',
     'RESULTSEQUENCES',
 )
 
@@ -105,27 +105,28 @@ def _add_lines(specification, module):
     else:
         exists_collectionclass = False
     lines = []
+    exc_mem = ", ".join(EXCLUDE_MEMBERS)
     if specification == 'model':
         lines += [f'',
                   f'.. autoclass:: {module.__name__}.Model',
                   f'    :members:',
                   f'    :show-inheritance:',
-                  f'    :exclude-members: {", ".join(EXCLUDE_MEMBERS)}']
+                  f'    :exclude-members: {exc_mem}']
     elif exists_collectionclass:
         lines += [f'',
                   f'.. autoclass:: {module.__name__.rpartition(".")[0]}'
                   f'.{name_collectionclass}',
                   f'    :members:',
                   f'    :show-inheritance:',
-                  f'    :exclude-members: {", ".join(EXCLUDE_MEMBERS)}']
+                  f'    :exclude-members: {exc_mem}']
     lines += ['',
               '.. automodule:: ' + module.__name__,
               '    :members:',
               '    :show-inheritance:']
     if specification == 'model':
-        lines += ['    :exclude-members: Model']
+        lines += [f'    :exclude-members: Model, {exc_mem}']
     elif exists_collectionclass:
-        lines += ['    :exclude-members: ' + name_collectionclass]
+        lines += [f'    :exclude-members:  {name_collectionclass}, {exc_mem}']
     return lines
 
 
@@ -199,7 +200,7 @@ def _get_methoddocstringinsertion(method):
                 f'    Required {pargroup} parameters:')
             for par in pars:
                 insertions.append(
-                    f'      :class:`{par.__module__}.'
+                    f'      :class:`~{par.__module__}.'
                     f'{objecttools.classname(par)}`')
             insertions.append('')
     for statement, tuplename in (
@@ -221,12 +222,12 @@ def _get_methoddocstringinsertion(method):
             if seqs:
                 insertions.append(
                     f'    {statement} '
-                    f'{objecttools.instancename(seqtype)[-9:]} '
+                    f'{objecttools.instancename(seqtype)[:-8]} '
                     f'sequences:'
                 )
                 for seq in seqs:
                     insertions.append(
-                        f'      :class:`{seq.__module__}.'
+                        f'      :class:`~{seq.__module__}.'
                         f'{objecttools.classname(seq)}`')
                 insertions.append('')
     if insertions:

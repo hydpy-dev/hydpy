@@ -152,6 +152,7 @@ def autodoc_basemodel(module):
         lines += _add_title('Method Features', '-')
         lines += _add_lines(specification, module)
         substituter.add_module(module)
+        methods = list(module.Model.get_methods())
     _extend_methoddocstrings(module)
     for (title, spec2capt) in (('Parameter Features', _PAR_SPEC2CAPT),
                                ('Sequence Features', _SEQ_SPEC2CAPT),
@@ -166,6 +167,7 @@ def autodoc_basemodel(module):
                 new_lines += _add_title(caption, '.')
                 new_lines += _add_lines(specification, module)
                 substituter.add_module(module)
+                _extend_variabledocstrings(module, methods)
         if found_module:
             lines += new_lines
     moduledoc += '\n'.join(lines)
@@ -176,22 +178,59 @@ def autodoc_basemodel(module):
     namespace['substituter'] = substituter
 
 
-def _extend_methoddocstrings(module):
-    for method in module.Model.get_methods():
-        insertions = '\n'.join(_get_methoddocstringinsertion(method))
-        position = method.__doc__.find('\n\n')
+def _insert_links_into_docstring(target, insertion):
+    try:
+        target.__doc__ += ''
+    except BaseException:
+        return
+    doc = getattr(target, '__doc__', None)
+    if doc is not None:
+        position = target.__doc__.find('\n\n')
         if position == -1:
-            method.__doc__ = '\n\n'.join([method.__doc__, insertions])
+            target.__doc__ = '\n\n'.join([doc, insertion])
         else:
             position += 2
-            method.__doc__ = ''.join([
-                method.__doc__[:position],
-                insertions,
-                method.__doc__[position:],
+            target.__doc__ = ''.join([
+                doc[:position],
+                insertion,
+                doc[position:],
             ])
+    return
 
 
-def _get_methoddocstringinsertion(method):
+def _extend_methoddocstrings(module):
+    for method in module.Model.get_methods():
+        _insert_links_into_docstring(
+            method, '\n'.join(_get_methoddocstringinsertions(method)))
+
+
+def _extend_variabledocstrings(module, allmethods):
+    for value in vars(module).values():
+        insertions = []
+        for role, description in (('CONTROLPARAMETERS', 'Required'),
+                                  ('DERIVEDPARAMETERS', 'Required'),
+                                  ('RESULTSEQUENCES', 'Calculated'),
+                                  ('UPDATEDSEQUENCES', 'Updated'),
+                                  ('REQUIREDSEQUENCES', 'Required')):
+            relevantmethods = set()
+            for method in allmethods:
+                if value in getattr(method, role, ()):
+                    relevantmethods.add(method)
+            if relevantmethods:
+                subinsertions = []
+                for method in relevantmethods:
+                    subinsertions.append(f'      :class:`~{method.__module__}.'
+                                         f'{objecttools.classname(method)}`')
+                insertions.append(
+                    f'    {description} by the following'
+                    f' method{"s" if len(subinsertions) > 1 else ""}:')
+                insertions.extend(sorted(subinsertions))
+                insertions.append('\n')
+
+        _insert_links_into_docstring(value, '\n'.join(insertions))
+
+
+def _get_methoddocstringinsertions(method):
     insertions = []
     for pargroup in ('control', 'derived', 'solver'):
         pars = getattr(method, f'{pargroup.upper()}PARAMETERS', ())

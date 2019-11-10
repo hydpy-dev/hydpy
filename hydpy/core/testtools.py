@@ -226,7 +226,7 @@ class Tester:
             * hland_constants:
                 no failures occurred
             * hland_control:
-                ******...hland_control.py", line 72, in \
+                ******...hland_control.py", line ..., in \
 hydpy.models.hland.hland_control.ZoneType
                 Failed example:
                     zonetype

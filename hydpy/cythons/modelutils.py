@@ -17,29 +17,24 @@ Potentially, problems could occur when defining parameters or sequences
 with larger dimensionality than anticipated.  The following
 example shows the Cython code lines for the |ELSModel.get_point_states|
 method of class |ELSModel|, used for deriving the |test| model.  By
-now, we did only implement 0-dimensional sequences requiring this
-method.  After hackishly changing the dimensionality of sequence
-|test_states.S|, we still seem to get plausible results, but these
-are untested in model applications:
+now, we did only implement 0-dimensional and 1-dimensional sequences
+requiring this method.  After hackishly changing the dimensionality of
+sequences |test_states.S|, we still seem to get  plausible results, but
+these are untested in model applications:
 
 >>> from hydpy.models.test import cythonizer
 >>> pyxwriter = cythonizer.pyxwriter
 >>> pyxwriter.get_point_states
             . get_point_states
     cpdef inline void get_point_states(self) nogil:
+        cdef int idx0
         self.sequences.states.s = \
 self.sequences.states._s_points[self.numvars.idx_stage]
+        for idx0 in range(self.sequences.states._sv_length):
+            self.sequences.states.sv[idx0] = \
+self.sequences.states._sv_points[self.numvars.idx_stage][idx0]
 <BLANKLINE>
 
->>> pyxwriter.model.sequences.states.s.NDIM = 1
->>> pyxwriter.get_point_states
-            . get_point_states
-    cpdef inline void get_point_states(self) nogil:
-        cdef int idx0
-        for idx0 in range(self.sequences.states._s_length0):
-            self.sequences.states.s[idx0] = \
-self.sequences.states._s_points[self.numvars.idx_stage][idx0]
-<BLANKLINE>
 
 >>> pyxwriter.model.sequences.states.s.NDIM = 2
 >>> pyxwriter.get_point_states
@@ -50,6 +45,9 @@ self.sequences.states._s_points[self.numvars.idx_stage][idx0]
             for idx1 in range(self.sequences.states._s_length1):
                 self.sequences.states.s[idx0, idx1] = \
 self.sequences.states._s_points[self.numvars.idx_stage][idx0, idx1]
+        for idx0 in range(self.sequences.states._sv_length):
+            self.sequences.states.sv[idx0] = \
+self.sequences.states._sv_points[self.numvars.idx_stage][idx0]
 <BLANKLINE>
 
 >>> pyxwriter.model.sequences.states.s.NDIM = 3
@@ -65,28 +63,22 @@ We start with the method |ELSModel.integrate_fluxes|:
 >>> pyxwriter.integrate_fluxes
             . integrate_fluxes
     cpdef inline void integrate_fluxes(self) nogil:
-        cdef int jdx
+        cdef int jdx, idx0
         self.sequences.fluxes.q = 0.
         for jdx in range(self.numvars.idx_method):
             self.sequences.fluxes.q = \
-self.sequences.fluxes.q +self.numvars.dt * s\
-elf.numconsts.a_coefs[self.numvars.idx_method-1, self.numvars.idx_stage, jdx]\
-*self.sequences.fluxes._q_points[jdx]
+self.sequences.fluxes.q +self.numvars.dt * \
+self.numconsts.a_coefs[self.numvars.idx_method-1, \
+self.numvars.idx_stage, jdx]*self.sequences.fluxes._q_points[jdx]
+        for idx0 in range(self.sequences.fluxes._qv_length):
+            self.sequences.fluxes.qv[idx0] = 0.
+            for jdx in range(self.numvars.idx_method):
+                self.sequences.fluxes.qv[idx0] = \
+self.sequences.fluxes.qv[idx0] + self.numvars.dt * \
+self.numconsts.a_coefs[self.numvars.idx_method-1, self.numvars.idx_stage, jdx]*\
+self.sequences.fluxes._qv_points[jdx, idx0]
 <BLANKLINE>
 
->>> pyxwriter.model.sequences.fluxes.q.NDIM = 1
->>> pyxwriter.integrate_fluxes
-            . integrate_fluxes
-    cpdef inline void integrate_fluxes(self) nogil:
-        cdef int jdx, idx0
-        for idx0 in range(self.sequences.fluxes._q_length0):
-            self.sequences.fluxes.q[idx0] = 0.
-            for jdx in range(self.numvars.idx_method):
-                self.sequences.fluxes.q[idx0] = \
-self.sequences.fluxes.q[idx0] + self.numvars.dt * \
-self.numconsts.a_coefs[self.numvars.idx_method-1, self.numvars.idx_stage, jdx]\
-*self.sequences.fluxes._q_points[jdx, idx0]
-<BLANKLINE>
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 2
 >>> pyxwriter.integrate_fluxes
@@ -99,8 +91,15 @@ self.numconsts.a_coefs[self.numvars.idx_method-1, self.numvars.idx_stage, jdx]\
                 for jdx in range(self.numvars.idx_method):
                     self.sequences.fluxes.q[idx0, idx1] = \
 self.sequences.fluxes.q[idx0, idx1] + self.numvars.dt * \
+self.numconsts.a_coefs[self.numvars.idx_method-1, self.numvars.idx_stage, jdx]*\
+self.sequences.fluxes._q_points[jdx, idx0, idx1]
+        for idx0 in range(self.sequences.fluxes._qv_length):
+            self.sequences.fluxes.qv[idx0] = 0.
+            for jdx in range(self.numvars.idx_method):
+                self.sequences.fluxes.qv[idx0] = \
+self.sequences.fluxes.qv[idx0] + self.numvars.dt * \
 self.numconsts.a_coefs[self.numvars.idx_method-1, self.numvars.idx_stage, jdx]\
-*self.sequences.fluxes._q_points[jdx, idx0, idx1]
+*self.sequences.fluxes._qv_points[jdx, idx0]
 <BLANKLINE>
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 3
@@ -115,16 +114,10 @@ Method |ELSModel.reset_sum_fluxes|:
 >>> pyxwriter.reset_sum_fluxes
             . reset_sum_fluxes
     cpdef inline void reset_sum_fluxes(self) nogil:
-        self.sequences.fluxes._q_sum = 0.
-<BLANKLINE>
-
->>> pyxwriter.model.sequences.fluxes.q.NDIM = 1
->>> pyxwriter.reset_sum_fluxes
-            . reset_sum_fluxes
-    cpdef inline void reset_sum_fluxes(self) nogil:
         cdef int idx0
-        for idx0 in range(self.sequences.fluxes._q_length0):
-            self.sequences.fluxes._q_sum[idx0] = 0.
+        self.sequences.fluxes._q_sum = 0.
+        for idx0 in range(self.sequences.fluxes._qv_length):
+            self.sequences.fluxes._qv_sum[idx0] = 0.
 <BLANKLINE>
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 2
@@ -135,6 +128,8 @@ Method |ELSModel.reset_sum_fluxes|:
         for idx0 in range(self.sequences.fluxes._q_length0):
             for idx1 in range(self.sequences.fluxes._q_length1):
                 self.sequences.fluxes._q_sum[idx0, idx1] = 0.
+        for idx0 in range(self.sequences.fluxes._qv_length):
+            self.sequences.fluxes._qv_sum[idx0] = 0.
 <BLANKLINE>
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 3
@@ -149,18 +144,12 @@ Method |ELSModel.addup_fluxes|:
 >>> pyxwriter.addup_fluxes
             . addup_fluxes
     cpdef inline void addup_fluxes(self) nogil:
+        cdef int idx0
         self.sequences.fluxes._q_sum = \
 self.sequences.fluxes._q_sum + self.sequences.fluxes.q
-<BLANKLINE>
-
->>> pyxwriter.model.sequences.fluxes.q.NDIM = 1
->>> pyxwriter.addup_fluxes
-            . addup_fluxes
-    cpdef inline void addup_fluxes(self) nogil:
-        cdef int idx0
-        for idx0 in range(self.sequences.fluxes._q_length0):
-            self.sequences.fluxes._q_sum[idx0] = \
-self.sequences.fluxes._q_sum[idx0] + self.sequences.fluxes.q[idx0]
+        for idx0 in range(self.sequences.fluxes._qv_length):
+            self.sequences.fluxes._qv_sum[idx0] = \
+self.sequences.fluxes._qv_sum[idx0] + self.sequences.fluxes.qv[idx0]
 <BLANKLINE>
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 2
@@ -172,6 +161,9 @@ self.sequences.fluxes._q_sum[idx0] + self.sequences.fluxes.q[idx0]
             for idx1 in range(self.sequences.fluxes._q_length1):
                 self.sequences.fluxes._q_sum[idx0, idx1] = \
 self.sequences.fluxes._q_sum[idx0, idx1] + self.sequences.fluxes.q[idx0, idx1]
+        for idx0 in range(self.sequences.fluxes._qv_length):
+            self.sequences.fluxes._qv_sum[idx0] = \
+self.sequences.fluxes._qv_sum[idx0] + self.sequences.fluxes.qv[idx0]
 <BLANKLINE>
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 3
@@ -186,35 +178,32 @@ Method |ELSModel.calculate_error|:
 >>> pyxwriter.calculate_error
             . calculate_error
     cpdef inline void calculate_error(self) nogil:
+        cdef int idx0
         self.numvars.error = 0.
         self.numvars.error = max(self.numvars.error, \
 fabs(self.sequences.fluxes._q_results[self.numvars.idx_method]-\
 self.sequences.fluxes._q_results[self.numvars.idx_method-1]))
-<BLANKLINE>
-
->>> pyxwriter.model.sequences.fluxes.q.NDIM = 1
->>> pyxwriter.calculate_error
-            . calculate_error
-    cpdef inline void calculate_error(self) nogil:
-        self.numvars.error = 0.
-        cdef int idx0
-        for idx0 in range(self.sequences.fluxes._q_length0):
+        for idx0 in range(self.sequences.fluxes._qv_length):
             self.numvars.error = max(self.numvars.error, \
-abs(self.sequences.fluxes._q_results[self.numvars.idx_method, idx0]-\
-self.sequences.fluxes._q_results[self.numvars.idx_method-1, idx0]))
+fabs(self.sequences.fluxes._qv_results[self.numvars.idx_method, idx0]-\
+self.sequences.fluxes._qv_results[self.numvars.idx_method-1, idx0]))
 <BLANKLINE>
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 2
 >>> pyxwriter.calculate_error
             . calculate_error
     cpdef inline void calculate_error(self) nogil:
-        self.numvars.error = 0.
         cdef int idx0, idx1
+        self.numvars.error = 0.
         for idx0 in range(self.sequences.fluxes._q_length0):
             for idx1 in range(self.sequences.fluxes._q_length1):
                 self.numvars.error = max(self.numvars.error, \
-abs(self.sequences.fluxes._q_results[self.numvars.idx_method, idx0, idx1]\
--self.sequences.fluxes._q_results[self.numvars.idx_method-1, idx0, idx1]))
+fabs(self.sequences.fluxes._q_results[self.numvars.idx_method, idx0, idx1]-\
+self.sequences.fluxes._q_results[self.numvars.idx_method-1, idx0, idx1]))
+        for idx0 in range(self.sequences.fluxes._qv_length):
+            self.numvars.error = max(self.numvars.error, \
+fabs(self.sequences.fluxes._qv_results[self.numvars.idx_method, idx0]-\
+self.sequences.fluxes._qv_results[self.numvars.idx_method-1, idx0]))
 <BLANKLINE>
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 3
@@ -1569,32 +1558,42 @@ class PyxWriter:
 
     @staticmethod
     def _assign_seqvalues(subseqs, subseqs_name, target, index, load):
+        subseqs = list(subseqs)
         from1 = f'self.sequences.{subseqs_name}.%s'
         to1 = f'self.sequences.{subseqs_name}._%s_{target}'
         if index is not None:
             to1 += f'[self.numvars.{index}]'
         if load:
             from1, to1 = to1, from1
+        yield from PyxWriter._declare_idxs(subseqs)
         for seq in subseqs:
             from2 = from1 % seq.name
             to2 = to1 % seq.name
             if seq.NDIM == 0:
                 yield f'{to2} = {from2}'
             elif seq.NDIM == 1:
-                yield 'cdef int idx0'
                 yield (f'for idx0 in range(self.sequences.'
-                       f'{subseqs.name}._{seq.name}_length0):')
+                       f'{subseqs_name}._{seq.name}_length):')
                 yield f'    {to2}[idx0] = {from2}[idx0]'
             elif seq.NDIM == 2:
-                yield 'cdef int idx0, idx1'
                 yield (f'for idx0 in range(self.sequences.'
-                       f'{subseqs.name}._{seq.name}_length0):')
+                       f'{subseqs_name}._{seq.name}_length0):')
                 yield (f'    for idx1 in range(self.sequences.'
-                       f'{subseqs.name}._{seq.name}_length1):')
+                       f'{subseqs_name}._{seq.name}_length1):')
                 yield f'        {to2}[idx0, idx1] = {from2}[idx0, idx1]'
             else:
                 raise NotImplementedError(
                     f'NDIM of sequence `{seq.name}` is higher than expected.')
+
+    @staticmethod
+    def _declare_idxs(subseqs):
+        maxdim = 0
+        for seq in subseqs:
+            maxdim = max(maxdim, seq.NDIM)
+        if maxdim == 1:
+            yield 'cdef int idx0'
+        elif maxdim == 2:
+            yield 'cdef int idx0, idx1'
 
     @decorate_method
     def get_point_states(self) -> Iterator[str]:
@@ -1679,7 +1678,7 @@ class PyxWriter:
                 yield f'    {to_} = {to_} +{coefs}*{from_}[jdx]'
             elif seq.NDIM == 1:
                 yield (f'for idx0 in '
-                       f'range(self.sequences.fluxes._{seq.name}_length0):')
+                       f'range(self.sequences.fluxes._{seq.name}_length):')
                 yield f'    {to_}[idx0] = 0.'
                 yield '    for jdx in range(self.numvars.idx_method):'
                 yield (f'        {to_}[idx0] = '
@@ -1700,17 +1699,17 @@ class PyxWriter:
     @decorate_method
     def reset_sum_fluxes(self) -> Iterator[str]:
         """Reset sum statements for flux sequences."""
-        for seq in self.model.sequences.fluxes.numericsequences:
+        subseqs = list(self.model.sequences.fluxes.numericsequences)
+        yield from PyxWriter._declare_idxs(subseqs)
+        for seq in subseqs:
             to_ = f'self.sequences.fluxes._{seq.name}_sum'
             if seq.NDIM == 0:
                 yield f'{to_} = 0.'
             elif seq.NDIM == 1:
-                yield 'cdef int idx0'
                 yield (f'for idx0 in '
-                       f'range(self.sequences.fluxes._{seq.name}_length0):')
+                       f'range(self.sequences.fluxes._{seq.name}_length):')
                 yield f'    {to_}[idx0] = 0.'
             elif seq.NDIM == 2:
-                yield 'cdef int idx0, idx1'
                 yield (f'for idx0 in '
                        f'range(self.sequences.fluxes._{seq.name}_length0):')
                 yield (f'    for idx1 in '
@@ -1723,18 +1722,18 @@ class PyxWriter:
     @decorate_method
     def addup_fluxes(self) -> Iterator[str]:
         """Add up statements for flux sequences."""
-        for seq in self.model.sequences.fluxes.numericsequences:
+        subseqs = list(self.model.sequences.fluxes.numericsequences)
+        yield from PyxWriter._declare_idxs(subseqs)
+        for seq in subseqs:
             to_ = f'self.sequences.fluxes._{seq.name}_sum'
             from_ = f'self.sequences.fluxes.{seq.name}'
             if seq.NDIM == 0:
                 yield f'{to_} = {to_} + {from_}'
             elif seq.NDIM == 1:
-                yield 'cdef int idx0'
                 yield (f'for idx0 in '
-                       f'range(self.sequences.fluxes._{seq.name}_length0):')
+                       f'range(self.sequences.fluxes._{seq.name}_length):')
                 yield f'    {to_}[idx0] = {to_}[idx0] + {from_}[idx0]'
             elif seq.NDIM == 2:
-                yield 'cdef int idx0, idx1'
                 yield (f'for idx0 in '
                        f'range(self.sequences.fluxes._{seq.name}_length0):')
                 yield (f'    for idx1 in '
@@ -1748,27 +1747,27 @@ class PyxWriter:
     @decorate_method
     def calculate_error(self) -> Iterator[str]:
         """Calculate error statements."""
+        subseqs = list(self.model.sequences.fluxes.numericsequences)
+        yield from PyxWriter._declare_idxs(subseqs)
         to_ = 'self.numvars.error'
         index = 'self.numvars.idx_method'
         yield f'{to_} = 0.'
-        for seq in self.model.sequences.fluxes.numericsequences:
+        for seq in subseqs:
             from_ = f'self.sequences.fluxes._{seq.name}_results'
             if seq.NDIM == 0:
                 yield (f'{to_} = '
                        f'max({to_}, fabs({from_}[{index}]-{from_}[{index}-1]))')
             elif seq.NDIM == 1:
-                yield 'cdef int idx0'
                 yield (f'for idx0 in '
-                       f'range(self.sequences.fluxes._{seq.name}_length0):')
-                yield (f'    {to_} = max({to_}, '
-                       f'abs({from_}[{index}, idx0]-{from_}[{index}-1, idx0]))')
+                       f'range(self.sequences.fluxes._{seq.name}_length):')
+                yield (f'    {to_} = max({to_}, fabs('
+                       f'{from_}[{index}, idx0]-{from_}[{index}-1, idx0]))')
             elif seq.NDIM == 2:
-                yield 'cdef int idx0, idx1'
                 yield (f'for idx0 in '
                        f'range(self.sequences.fluxes._{seq.name}_length0):')
                 yield (f'    for idx1 in '
                        f'range(self.sequences.fluxes._{seq.name}_length1):')
-                yield (f'        {to_} = max({to_}, abs({from_}[{index}, '
+                yield (f'        {to_} = max({to_}, fabs({from_}[{index}, '
                        f'idx0, idx1]-{from_}[{index}-1, idx0, idx1]))')
             else:
                 raise NotImplementedError(

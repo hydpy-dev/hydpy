@@ -1323,6 +1323,7 @@ class ELSModel(SolverModel):
     def get_point_states(self) -> None:
         """Load the states corresponding to the actual stage.
 
+        >>> from hydpy import round_
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
         >>> states.s.old = 2.0
@@ -1331,10 +1332,27 @@ class ELSModel(SolverModel):
         >>> points = numpy.asarray(states.fastaccess._s_points)
         >>> points[:4] = 0.0, 0.0, 1.0, 0.0
         >>> model.get_point_states()
-        >>> states.s.old
+        >>> round_(states.s.old)
         2.0
-        >>> states.s.new
+        >>> round_(states.s.new)
         1.0
+
+        >>> from hydpy import reverse_model_wildcard_import, print_values
+        >>> reverse_model_wildcard_import()
+        >>> from hydpy.models.test_v3 import *
+        >>> parameterstep()
+        >>> n(2)
+        >>> states.sv.old = 3.0, 3.0
+        >>> states.sv.new = 3.0, 3.0
+        >>> model.numvars.idx_stage = 2
+        >>> points = numpy.asarray(states.fastaccess._sv_points)
+        >>> points[:4, 0] = 0.0, 0.0, 1.0, 0.0
+        >>> points[:4, 1] = 0.0, 0.0, 2.0, 0.0
+        >>> model.get_point_states()
+        >>> print_values(states.sv.old)
+        3.0, 3.0
+        >>> print_values(states.sv.new)
+        1.0, 2.0
         """
         self._get_states(self.numvars.idx_stage, 'points')
 
@@ -1347,6 +1365,7 @@ class ELSModel(SolverModel):
     def set_point_states(self) -> None:
         """Save the states corresponding to the actual stage.
 
+        >>> from hydpy import print_values
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
         >>> states.s.old = 2.0
@@ -1355,15 +1374,31 @@ class ELSModel(SolverModel):
         >>> points = numpy.asarray(states.fastaccess._s_points)
         >>> points[:] = 0.
         >>> model.set_point_states()
-        >>> from hydpy import round_
-        >>> round_(points[:4])
+        >>> print_values(points[:4])
         0.0, 0.0, 1.0, 0.0
+
+        >>> from hydpy import reverse_model_wildcard_import
+        >>> reverse_model_wildcard_import()
+        >>> from hydpy.models.test_v3 import *
+        >>> parameterstep()
+        >>> n(2)
+        >>> states.sv.old = 3.0, 3.0
+        >>> states.sv.new = 1.0, 2.0
+        >>> model.numvars.idx_stage = 2
+        >>> points = numpy.asarray(states.fastaccess._sv_points)
+        >>> points[:] = 0.
+        >>> model.set_point_states()
+        >>> print_values(points[:4, 0])
+        0.0, 0.0, 1.0, 0.0
+        >>> print_values(points[:4, 1])
+        0.0, 0.0, 2.0, 0.0
         """
         self._set_states(self.numvars.idx_stage, 'points')
 
     def set_result_states(self) -> None:
         """Save the final states of the actual method.
 
+        >>> from hydpy import print_values
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
         >>> states.s.old = 2.0
@@ -1372,9 +1407,24 @@ class ELSModel(SolverModel):
         >>> results = numpy.asarray(states.fastaccess._s_results)
         >>> results[:] = 0.0
         >>> model.set_result_states()
-        >>> from hydpy import round_
-        >>> round_(results[:4])
+        >>> print_values(results[:4])
         0.0, 0.0, 1.0, 0.0
+
+        >>> from hydpy import reverse_model_wildcard_import
+        >>> reverse_model_wildcard_import()
+        >>> from hydpy.models.test_v3 import *
+        >>> parameterstep()
+        >>> n(2)
+        >>> states.sv.old = 3.0, 3.0
+        >>> states.sv.new = 1.0, 2.0
+        >>> model.numvars.idx_method = 2
+        >>> results = numpy.asarray(states.fastaccess._sv_results)
+        >>> results[:] = 0.0
+        >>> model.set_result_states()
+        >>> print_values(results[:4, 0])
+        0.0, 0.0, 1.0, 0.0
+        >>> print_values(results[:4, 1])
+        0.0, 0.0, 2.0, 0.0
         """
         self._set_states(self.numvars.idx_method, 'results')
 
@@ -1394,6 +1444,17 @@ class ELSModel(SolverModel):
         >>> model.get_sum_fluxes()
         >>> fluxes.q
         q(1.0)
+
+        >>> from hydpy import reverse_model_wildcard_import, print_values
+        >>> reverse_model_wildcard_import()
+        >>> from hydpy.models.test_v3 import *
+        >>> parameterstep()
+        >>> n(2)
+        >>> fluxes.qv = 0.0, 0.0
+        >>> numpy.asarray(fluxes.fastaccess._qv_sum)[:] = 1.0, 2.0
+        >>> model.get_sum_fluxes()
+        >>> fluxes.qv
+        qv(1.0, 2.0)
         """
         fluxes = self.sequences.fluxes
         for flux in fluxes.numericsequences:
@@ -1402,32 +1463,63 @@ class ELSModel(SolverModel):
     def set_point_fluxes(self) -> None:
         """Save the fluxes corresponding to the actual stage.
 
+        >>> from hydpy import print_values
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
-        >>> fluxes.q = 1.
+        >>> fluxes.q = 1.0
         >>> model.numvars.idx_stage = 2
         >>> points = numpy.asarray(fluxes.fastaccess._q_points)
-        >>> points[:] = 0.
+        >>> points[:] = 0.0
         >>> model.set_point_fluxes()
-        >>> from hydpy import round_
-        >>> round_(points[:4])
+        >>> print_values(points[:4])
         0.0, 0.0, 1.0, 0.0
+
+        >>> from hydpy import reverse_model_wildcard_import
+        >>> reverse_model_wildcard_import()
+        >>> from hydpy.models.test_v3 import *
+        >>> parameterstep()
+        >>> n(2)
+        >>> fluxes.qv = 1.0, 2.0
+        >>> model.numvars.idx_stage = 2
+        >>> points = numpy.asarray(fluxes.fastaccess._qv_points)
+        >>> points[:] = 0.0
+        >>> model.set_point_fluxes()
+        >>> print_values(points[:4, 0])
+        0.0, 0.0, 1.0, 0.0
+        >>> print_values(points[:4, 1])
+        0.0, 0.0, 2.0, 0.0
         """
         self._set_fluxes(self.numvars.idx_stage, 'points')
 
     def set_result_fluxes(self) -> None:
         """Save the final fluxes of the actual method.
 
+        >>> from hydpy import print_values
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
-        >>> fluxes.q = 1.
+        >>> fluxes.q = 1.0
         >>> model.numvars.idx_method = 2
         >>> results = numpy.asarray(fluxes.fastaccess._q_results)
-        >>> results[:] = 0.
+        >>> results[:] = 0.0
         >>> model.set_result_fluxes()
         >>> from hydpy import round_
-        >>> round_(results[:4])
+        >>> print_values(results[:4])
         0.0, 0.0, 1.0, 0.0
+
+        >>> from hydpy import reverse_model_wildcard_import
+        >>> reverse_model_wildcard_import()
+        >>> from hydpy.models.test_v3 import *
+        >>> parameterstep()
+        >>> n(2)
+        >>> fluxes.qv = 1.0, 2.0
+        >>> model.numvars.idx_method = 2
+        >>> results = numpy.asarray(fluxes.fastaccess._qv_results)
+        >>> results[:] = 0.0
+        >>> model.set_result_fluxes()
+        >>> print_values(results[:4, 0])
+        0.0, 0.0, 1.0, 0.0
+        >>> print_values(results[:4, 1])
+        0.0, 0.0, 2.0, 0.0
         """
         self._set_fluxes(self.numvars.idx_method, 'results')
 
@@ -1442,20 +1534,38 @@ class ELSModel(SolverModel):
         A coefficients associated with the different stages of the
         actual method.
 
+        >>> from hydpy import print_values
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
         >>> model.numvars.idx_method = 2
         >>> model.numvars.idx_stage = 1
         >>> model.numvars.dt = 0.5
         >>> points = numpy.asarray(fluxes.fastaccess._q_points)
-        >>> points[:4] = 15., 2., -999., 0.
+        >>> points[:4] = 15.0, 2.0, -999.0, 0.0
         >>> model.integrate_fluxes()
         >>> from hydpy import round_
         >>> from hydpy import pub
-        >>> round_(numpy.asarray(model.numconsts.a_coefs)[1, 1, :2])
+        >>> print_values(numpy.asarray(model.numconsts.a_coefs)[1, 1, :2])
         0.375, 0.125
         >>> fluxes.q
         q(2.9375)
+
+        >>> from hydpy import reverse_model_wildcard_import
+        >>> reverse_model_wildcard_import()
+        >>> from hydpy.models.test_v3 import *
+        >>> parameterstep()
+        >>> n(2)
+        >>> model.numvars.idx_method = 2
+        >>> model.numvars.idx_stage = 1
+        >>> model.numvars.dt = 0.5
+        >>> points = numpy.asarray(fluxes.fastaccess._qv_points)
+        >>> points[:4, 0] = 1.0, 1.0, -999.0, 0.0
+        >>> points[:4, 1] = 15.0, 2.0, -999.0, 0.0
+        >>> model.integrate_fluxes()
+        >>> print_values(numpy.asarray(model.numconsts.a_coefs)[1, 1, :2])
+        0.375, 0.125
+        >>> fluxes.qv
+        qv(0.25, 2.9375)
         """
         fluxes = self.sequences.fluxes
         for flux in fluxes.numericsequences:
@@ -1471,14 +1581,29 @@ class ELSModel(SolverModel):
 
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
-        >>> fluxes.fastaccess._q_sum = 5.
+        >>> fluxes.fastaccess._q_sum = 5.0
         >>> model.reset_sum_fluxes()
         >>> fluxes.fastaccess._q_sum
         0.0
+
+        >>> from hydpy import reverse_model_wildcard_import, print_values
+        >>> reverse_model_wildcard_import()
+        >>> from hydpy.models.test_v3 import *
+        >>> parameterstep()
+        >>> n(2)
+        >>> import numpy
+        >>> sums = numpy.asarray(fluxes.fastaccess._qv_sum)
+        >>> sums[:] = 5.0, 5.0
+        >>> model.reset_sum_fluxes()
+        >>> print_values(fluxes.fastaccess._qv_sum)
+        0.0, 0.0
         """
         fluxes = self.sequences.fluxes
         for flux in fluxes.numericsequences:
-            setattr(fluxes.fastaccess, f'_{flux.name}_sum', 0.)
+            if flux.NDIM:
+                getattr(fluxes.fastaccess, f'_{flux.name}_sum')[:] = 0.
+            else:
+                setattr(fluxes.fastaccess, f'_{flux.name}_sum', 0.)
 
     def addup_fluxes(self) -> None:
         """Add up the sum of the fluxes calculated so far.
@@ -1490,6 +1615,18 @@ class ELSModel(SolverModel):
         >>> model.addup_fluxes()
         >>> fluxes.fastaccess._q_sum
         3.0
+
+        >>> from hydpy import reverse_model_wildcard_import, print_values
+        >>> reverse_model_wildcard_import()
+        >>> from hydpy.models.test_v3 import *
+        >>> parameterstep()
+        >>> n(2)
+        >>> sums = numpy.asarray(fluxes.fastaccess._qv_sum)
+        >>> sums[:] = 1.0, 2.0
+        >>> fluxes.qv(3.0, 4.0)
+        >>> model.addup_fluxes()
+        >>> print_values(sums)
+        4.0, 6.0
         """
         fluxes = self.sequences.fluxes
         for flux in fluxes.numericsequences:
@@ -1501,15 +1638,28 @@ class ELSModel(SolverModel):
         """Estimate the numerical error based on the fluxes calculated
         by the current and the last method.
 
+        >>> from hydpy import round_
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
         >>> model.numvars.idx_method = 2
         >>> results = numpy.asarray(fluxes.fastaccess._q_results)
-        >>> results[:4] = 0., 3., 4., 0.
+        >>> results[:4] = 0.0, 3.0, 4.0, 0.0
         >>> model.calculate_error()
-        >>> from hydpy import round_
         >>> round_(model.numvars.error)
         1.0
+
+        >>> from hydpy import reverse_model_wildcard_import
+        >>> reverse_model_wildcard_import()
+        >>> from hydpy.models.test_v3 import *
+        >>> parameterstep()
+        >>> n(2)
+        >>> model.numvars.idx_method = 2
+        >>> results = numpy.asarray(fluxes.fastaccess._qv_results)
+        >>> results[:4, 0] = 0.0, 3.0, 4.0, 0.0
+        >>> results[:4, 1] = 0.0, 5.0, 7.0, 0.0
+        >>> model.calculate_error()
+        >>> round_(model.numvars.error)
+        2.0
         """
         self.numvars.error = 0.
         fluxes = self.sequences.fluxes

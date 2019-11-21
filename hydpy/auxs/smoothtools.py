@@ -78,8 +78,8 @@ def _error_smoothpar_logistic2(par, metapar):
     return smoothutils.smooth_logistic2(-metapar, par) - .01
 
 
-def _smooth_logistic2_derivative(par, metapar):
-    return smoothutils.smooth_logistic2_derivative(metapar, par)
+def _smooth_logistic2_derivative1(par, metapar):
+    return smoothutils.smooth_logistic2_derivative1(metapar, par)
 
 
 def calc_smoothpar_logistic2(metapar, iterate: bool = False):
@@ -158,7 +158,7 @@ def calc_smoothpar_logistic2(metapar, iterate: bool = False):
             return 0.
         return optimize.newton(_error_smoothpar_logistic2,
                                .3 * metapar**.84,
-                               _smooth_logistic2_derivative,
+                               _smooth_logistic2_derivative1,
                                args=(metapar,))
     return numpy.clip(
         _cubic_interpolator_for_smoothpar_logistic2(metapar), 0.0, numpy.inf)

@@ -435,7 +435,7 @@ Keyword `rdmin` is not among the available model constants.
         """
         if upper is None:
             upper = getattr(self.subpars.dmax, 'value', None)
-        lland_parameters.ParameterSoil.trim(self, lower, upper)
+        super().trim(self, lower, upper)
 
 
 class DMax(lland_parameters.ParameterSoil):
@@ -509,7 +509,7 @@ Keyword `rdmax` is not among the available model constants.
         """
         if lower is None:
             lower = getattr(self.subpars.dmin, 'value', None)
-        lland_parameters.ParameterSoil.trim(self, lower, upper)
+        super().trim(self, lower, upper)
 
 
 class BSf(lland_parameters.ParameterSoil):

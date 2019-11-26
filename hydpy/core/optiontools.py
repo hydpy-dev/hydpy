@@ -116,7 +116,7 @@ class Options:
     1
     """
 
-    autocompile = _Option(False, None)
+    autocompile = _Option(True, None)
     """A True/False flag for enabling/disabling the automatic conversion of 
     pure Python models to computationally more efficient Cython models 
     whenever a existing Cython model may be outdated."""
@@ -157,7 +157,7 @@ class Options:
     in individual NetCDF files (see the documentation on module 
     |netcdftools| for further information)."""
 
-    printprogress = _Option(False, None)
+    printprogress = _Option(True, None)
     """A True/False flag for printing information about the progress of
     some processes to the standard output."""
 
@@ -170,7 +170,7 @@ class Options:
     So far, this option affects the behaviour of a few implemented classes,
     only."""
 
-    reprdigits = _Option(6, -1)
+    reprdigits = _Option(-1, -1)
     """Required precision of string representations of floating point
     numbers, defined as the minimum number of digits to be reproduced
     by the string representation (see function |repr_|)."""
@@ -188,7 +188,7 @@ class Options:
     """A True/False flag for enabling/disabling function |trim|.  Set it
     to |False| only for good reasons."""
 
-    usecython = _Option(False, None)
+    usecython = _Option(True, None)
     """TA True/False flag for applying cythonized models if possible,
     which are much faster than pure Python models. """
 

@@ -51,6 +51,8 @@ class NHRU(parametertools.Parameter):
             for par in subpars:
                 if par.NDIM == 1:
                     par.shape = self.value
+                if isinstance(par, KapGrenz):
+                    par.shape = self.value, 2
         for subseqs in self.subpars.pars.model.sequences:
             for seq in subseqs:
                 if (((seq.NDIM == 1) and (seq.name != 'moy')) or
@@ -307,7 +309,7 @@ class WMax(lland_parameters.ParameterSoil):
 class FK(lland_parameters.ParameterSoil):
     """Mindestbodenfeuchte für die Interflowentstehung (threshold
     value of soil moisture for interflow generation). Can be given as an
-    absolute value [mm] or relative portion of |Wm| [-].
+    absolute value [mm] or relative portion of |WMax| [-].
 
     Example:
      >>> from hydpy.models.lland import *
@@ -362,7 +364,7 @@ Keyword `proportion` is not among the available model constants.
                 raise exc
 
     def trim(self, lower=None, upper=None):
-        """Trim upper values in accordance with :math:`WB \\leq WZ`.
+        """Trim upper values in accordance with :math:`PWP \\leq FK`.
         """
         if lower is None:
             lower = getattr(self.subpars.pwp, 'value', None)
@@ -372,7 +374,7 @@ Keyword `proportion` is not among the available model constants.
 class PWP(lland_parameters.ParameterSoil):
     """Mindestbodenfeuchte für die Basisabflussentstehung (threshold
     value of soil moisture for base flow generation). Can be given as an
-    absolute value [mm] or relative portion of |Wm| [-]."""
+    absolute value [mm] or relative portion of |WMax| [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
     INIT = .0
 
@@ -398,7 +400,7 @@ class PWP(lland_parameters.ParameterSoil):
                 raise exc
 
     def trim(self, lower=None, upper=None):
-        """Trim upper values in accordance with :math:`WB \\leq WZ`.
+        """Trim upper values in accordance with :math:`PWP \\leq FK`.
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
@@ -414,6 +416,88 @@ class PWP(lland_parameters.ParameterSoil):
         super().trim(lower, upper)
 
 
+class KapMax(lland_parameters.ParameterSoil):
+    """Maximale kapillare Aufstiegsrate (maximum capillary rise rate) [mm]."""
+    NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
+    INIT = 0.
+
+
+class KapGrenz(parametertools.Parameter):
+    """The threshold soil water contents |KapGrenz| define the transition
+        between capillary rise with |KapMax|, linear decrease of |Qkap| and no
+        capillary rise. A third threshold can be optionally set to define when
+        released base flow is no more influenced from capillary rise.
+        Instead of defining threshold values it is also possible to define
+        options how the thresholds can be derived from |NFk|, |WMax| and |FK|.
+
+
+    >>> from hydpy.models.lland import *
+    >>> parameterstep('1d')
+    >>> simulationstep('12h')
+    >>> nhru(2)
+    >>> wmax(200.)
+    >>> kapmax(150.)
+    >>> lnk(ACKER)
+    >>> pwp(absolute=80)
+    >>> fk(absolute=120)
+    >>> kapgrenz(option='KapAquantec')
+    >>> kapgrenz
+    kapgrenz([[60.0, 120.0],
+              [60.0, 120.0]])
+    >>> kapgrenz(option='BodenGrundwasser')
+    >>> kapgrenz
+    kapgrenz([[0.0, 20.0],
+              [0.0, 20.0]])
+    >>> kapgrenz(option='kapillarerAufstieg')
+    >>> kapgrenz
+    kapgrenz([[45.0, 120.0],
+              [45.0, 120.0]])
+    >>> kapgrenz(10., 40.
+    >>> kapgrenz
+    kapgrenz([[10.0, 40.0],
+              [10.0, 40.0]])
+    >>> kapgrenz([10., 40.], [20., 60.])
+    >>> kapgrenz
+    kapgrenz([[10.0, 40.0],
+              [20.0, 60.0]])
+    >>> kapgrenz(option='KapHydrotec')
+    Traceback (most recent call last):
+    ...
+    NotImplementedError: This option is not available. Please chose option \
+KapAquantec, BodenGrundwasser or kapillarerAufstieg
+	>>> corrqbbflag
+	corrqbbflag(1)
+    """
+    CONTROLPARAMETERS = (
+        WMax,
+        FK,
+    )
+    NDIM, TYPE, TIME, SPAN = 2, float, None, (0., None)
+    INIT = 0.
+
+    def __call__(self, *args, **kwargs):
+        try:
+            super().__call__(*args, **kwargs)
+        except NotImplementedError:
+            con = self.subpars
+            self.values = 0.
+            if kwargs['option'] == 'KapAquantec':
+                self.values[:, 0] = .5*con.fk
+                self.values[:, 1] = con.fk
+            elif kwargs['option'] == 'BodenGrundwasser':
+                self.values[:, 0] = 0.
+                self.values[:, 1] = .1*con.wmax
+            elif kwargs['option'] == 'kapillarerAufstieg':
+                self.values[:, 0] = con.fk
+                self.values[:, 1] = con.fk
+                con.corrqbbflag = 1
+            else:
+                raise NotImplementedError(
+                    'This option is not available. Please chose option \
+KapAquantec, BodenGrundwasser or kapillarerAufstieg'
+                )
+
+
 class Beta(lland_parameters.ParameterSoil):
     """Drainageindex des tiefen Bodenspeichers (storage coefficient for
     releasing base flow from the lower soil compartment) [1/T]."""
@@ -427,6 +511,11 @@ class FBeta(lland_parameters.ParameterSoil):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (1., None)
     INIT = 1.
 
+class CorrQBBFlag(lland_parameters.ParameterSoil):
+    """Flag um gleichzeitige auftretende Versickerung und kapillaren Aufstieg
+    zu verhindern [-]."""
+    NDIM, TYPE, TIME, SPAN = 1, int, None, (0, 1)
+    INIT = 0
 
 class DMin(lland_parameters.ParameterSoil):
     """Drainageindex des mittleren Bodenspeichers (flux rate for
@@ -499,7 +588,7 @@ Keyword `rdmin` is not among the available model constants.
         """
         if upper is None:
             upper = getattr(self.subpars.dmax, 'value', None)
-        super().trim(self, lower, upper)
+        super().trim(lower, upper)
 
 
 class DMax(lland_parameters.ParameterSoil):
@@ -573,7 +662,7 @@ Keyword `rdmax` is not among the available model constants.
         """
         if lower is None:
             lower = getattr(self.subpars.dmin, 'value', None)
-        super().trim(self, lower, upper)
+        super().trim(lower, upper)
 
 
 class BSf(lland_parameters.ParameterSoil):

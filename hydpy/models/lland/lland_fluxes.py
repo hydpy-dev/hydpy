@@ -94,6 +94,12 @@ class QBB(lland_sequences.Flux1DSequence):
     NDIM, NUMERIC = 1, False
 
 
+class QKap(lland_sequences.Flux1DSequence):
+    """Kapillarer Aufstieg in den Bodenspeicher (capillary rise to soil
+    storage) [mm]."""
+    NDIM, NUMERIC = 1, False
+
+
 class QDGZ(sequencetools.FluxSequence):
     """Gesamtzufluss in beide Direktabfluss-Gebietsspeicher (total inflow
     into both storage compartments for direct runoff) [mm]."""

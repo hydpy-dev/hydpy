@@ -41,10 +41,10 @@ AUTOPATH = os.path.join(docs.__path__[0], 'auto')
 if os.path.exists(AUTOPATH):
     shutil.rmtree(AUTOPATH)
 os.makedirs(AUTOPATH)
-shutil.copytree(os.path.join(docs.__path__[0], 'html'),
-                os.path.join(AUTOPATH, 'html'))
+shutil.copytree(os.path.join(docs.__path__[0], 'html_'),
+                os.path.join(AUTOPATH, 'html_'))
 try:
-    shutil.move(os.path.join(AUTOPATH, 'html', 'coverage.html'),
+    shutil.move(os.path.join(AUTOPATH, 'html_', 'coverage.html'),
                 os.path.join(AUTOPATH, 'coverage.html'))
 except BaseException:
     print('coverage.html could not be moved')
@@ -55,9 +55,7 @@ except BaseException:
 for filename in os.listdir(models.__path__[0]):
     if not filename.startswith('_'):
         filename = filename.split('.')[0]
-        importlib.import_module(
-            '%s.%s'
-            % (models.__name__, filename))
+        importlib.import_module(f'{models.__name__}.{filename}')
 hydpy.substituter.update_slaves()
 
 # Write one rst file for each module (including the ones defining application
@@ -86,7 +84,7 @@ for subpackage in (auxs, core, cythons, exe, models, hydpy):
             with open(path, encoding='utf-8') as file_:
                 sources = [file_.read()]
             module = importlib.import_module(
-                '%s.%s' % (subpackage.__name__, filename.split('.')[0]))
+                f'{subpackage.__name__}.{filename.split(".")[0]}')
             for member in getattr(module, '__dict__', {}).values():
                 if (inspect.isclass(member) and
                         issubclass(member, (modeltools.Model,
@@ -106,19 +104,18 @@ for subpackage in (auxs, core, cythons, exe, models, hydpy):
             source = '\n'.join(sources)
         filename = filename.split('.')[0]
         if (is_module and (subpackage is models)) or is_package:
-            module = importlib.import_module(
-                '%s.%s' % (models.__name__, filename))
+            module = importlib.import_module(f'{models.__name__}.{filename}')
             substituter = module.substituter
         if is_module or is_package:
             lines = []
             lines.append('')
-            lines.append('.. _%s:' % filename)
+            lines.append(f'.. _{filename}:')
             lines.append('')
             lines.append(filename)
             lines.append('=' * len(filename))
             lines.append('')
-            lines.append('.. automodule:: %s'
-                         % '.'.join((subpackage.__name__, filename)))
+            lines.append(f'.. automodule:: '
+                         f'{".".join((subpackage.__name__, filename))}')
             lines.append('    :members:')
             lines.append('    :show-inheritance:')
             lines.append(f'    :exclude-members: {excludemembers}')

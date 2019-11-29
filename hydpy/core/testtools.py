@@ -665,7 +665,7 @@ datetime of the Python standard library for for further information.
         (Optional) arguments:
             * filename: Name of the file.  If necessary, the file ending
               `html` is added automatically.  The file is stored in the
-              `html` folder of subpackage `docs`.
+              `html_` folder of subpackage `docs`.
             * width: Width of the plot in screen units.  Defaults to 600.
             * height: Height of the plot in screen units.  Defaults to 300.
             * selected: List of the sequences to be plotted.
@@ -687,7 +687,7 @@ datetime of the Python standard library for for further information.
                 activated = self.parseqs
         activated = tuple(nm_.name if hasattr(nm_, 'name') else nm_.lower()
                           for nm_ in activated)
-        path = os.path.join(docs.__path__[0], 'html', filename)
+        path = os.path.join(docs.__path__[0], 'html_', filename)
         plotting.output_file(path)
         plot = plotting.figure(x_axis_type="datetime",
                                tools=['pan', 'ywheel_zoom'],

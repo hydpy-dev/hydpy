@@ -60,7 +60,7 @@ for name in os.listdir('hydpy'):
 packages.append('hydpy.conf')
 packages.append('hydpy.cythons.autogen')
 packages.append('hydpy.docs.figs')
-packages.append('hydpy.docs.html')
+packages.append('hydpy.docs.html_')
 packages.append('hydpy.docs.rst')
 packages.append('hydpy.docs.sphinx')
 packages.append('hydpy.exe')
@@ -265,11 +265,11 @@ if install:
     # Copy the generated bokeh plots into the original docs subpackage
     # (on Travis-CI: for including them into the online-documentation).
     print_('\nCopy bokeh plots backwards:')
-    path_html = os.path.join(oldpath, 'hydpy', 'docs', 'html')
-    import hydpy.docs.html
-    for filename in os.listdir(hydpy.docs.html.__path__[0]):
+    path_html = os.path.join(oldpath, 'hydpy', 'docs', 'html_')
+    import hydpy.docs.html_
+    for filename in os.listdir(hydpy.docs.html_.__path__[0]):
         if filename.endswith('.html'):
-            path_in = prep(hydpy.docs.html.__path__[0], filename)
+            path_in = prep(hydpy.docs.html_.__path__[0], filename)
             path_out = prep(path_html, filename)
             source2target(path_in, path_out)
 
@@ -287,7 +287,6 @@ if install:
     # Copy the (possibly new) configuration files into the original subpackage.
     print_('\nCopy configuration data backwards:')
     path_conf = os.path.join(oldpath, 'hydpy', 'conf')
-    import hydpy.docs.html
     for filename in os.listdir(hydpy.conf.__path__[0]):
         if not filename.startswith('_'):
             path_in = prep(hydpy.conf.__path__[0], filename)

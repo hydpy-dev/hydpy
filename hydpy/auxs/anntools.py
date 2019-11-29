@@ -1000,7 +1000,7 @@ class SeasonalANN:
         >>> from hydpy import docs
         >>> import os
         >>> plotting.output_file(os.path.join(
-        ...     docs.__path__[0], 'html', 'anntools.SeasonalANN.ratios.html'))
+        ...     docs.__path__[0], 'html_', 'anntools.SeasonalANN.ratios.html'))
         >>> hover = models.HoverTool(tooltips=[
         ...     ("(x,y)", "($x, $y)")])
         >>> plot = plotting.figure(toolbar_location="above",

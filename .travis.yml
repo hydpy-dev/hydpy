@@ -24,6 +24,7 @@ install:
   - pip install matplotlib
   - pip install bokeh
   - pip install coverage
+  - pip install networkx
   - pip install pandas
   - pip install pylint
   - pip install typing_extensions

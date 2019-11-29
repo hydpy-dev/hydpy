@@ -12,6 +12,7 @@ setuptools: https://github.com/pypa/setuptools/blob/master/LICENSE
 pyparsing: https://github.com/pyparsing/pyparsing/blob/master/LICENSE
 python-dateutil: https://github.com/dateutil/dateutil/blob/master/LICENSE
 NetCDF4: https://github.com/Unidata/netcdf4-python/blob/master/COPYING
+NetworkX: https://github.com/networkx/networkx/blob/master/LICENSE.txt
 cftime: https://github.com/Unidata/cftime/blob/master/COPYING
 pandas: https://github.com/pandas-dev/pandas/blob/master/LICENSE
 pytz: https://github.com/newvem/pytz/blob/master/LICENSE.txt

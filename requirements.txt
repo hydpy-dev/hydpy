@@ -4,6 +4,7 @@ coverage
 Cython
 matplotlib
 netcdf4
+networkx
 numpy
 pandas
 setuptools

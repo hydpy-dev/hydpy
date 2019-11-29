@@ -186,6 +186,7 @@ setup(name='HydPy',
       include_package_data=True,
       python_requires='>=3.6',
       install_requires=[
+          'networkx',
           'numpy',
           'scipy',
           'typing_extensions',

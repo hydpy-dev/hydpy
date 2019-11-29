@@ -6,6 +6,7 @@ import warnings
 from typing import *
 # ...from site-packages
 import numpy
+import networkx
 # ...from HydPy
 import hydpy
 from hydpy.core import devicetools
@@ -1719,36 +1720,17 @@ one value needed to be trimmed.  The old and the new value(s) are \
                 del sels1[name]
         return sels1
 
-    def _update_deviceorder(self) -> None:
-        endnodes = self.endnodes
-        if endnodes:
-            self.deviceorder = []
-            for node in endnodes:
-                self._nextnode(node)
-            self.deviceorder = self.deviceorder[::-1]
-        else:
-            self.deviceorder = list(self.elements)
-
-    def _nextnode(self, node: devicetools.Node) -> None:
-        for element in node.exits:
-            if ((element in self.elements) and
-                    (element not in self.deviceorder)):
-                if node not in element.receivers:
-                    self._nextelement(element)
-        if (node in self.nodes) and (node not in self.deviceorder):
-            self.deviceorder.append(node)
-            for element in node.entries:
-                self._nextelement(element)
-
-    def _nextelement(self, element: devicetools.Element) -> None:
-        for node in element.outlets:
-            if ((node in self.nodes) and
-                    (node not in self.deviceorder)):
-                self._nextnode(node)
-        if (element in self.elements) and (element not in self.deviceorder):
-            self.deviceorder.append(element)
+    @property
+    def _directedgraph(self) -> networkx.DiGraph:
+        digraph = networkx.DiGraph()
+        digraph.add_nodes_from(self.elements)
+        digraph.add_nodes_from(self.nodes)
+        for element in self.elements:
             for node in element.inlets:
-                self._nextnode(node)
+                digraph.add_edge(node, element)
+            for node in element.outlets:
+                digraph.add_edge(element, node)
+        return digraph
 
     @property
     def variables(self) -> List[str]:
@@ -1837,22 +1819,24 @@ one value needed to be trimmed.  The old and the new value(s) are \
         dill
 
         *HydPy* projects supposed for calculating groundwater recharge
-        or for testing may not define any |Node| objects.  In such cases,
-        method |HydPy.update_devices| returns the |Element| objects
-        in alphabetical order:
+        or for testing may not define any |Node| objects:
 
         >>> del hp.nodes.dill
+        >>> hp.elements.land_dill.outlets.mutable = True
+        >>> del hp.elements.land_dill.outlets.dill
         >>> del hp.nodes.lahn_1
+        >>> hp.elements.land_lahn_1.outlets.mutable = True
+        >>> del hp.elements.land_lahn_1.outlets.lahn_1
         >>> hp.update_devices()
         >>> for device in hp.deviceorder:
         ...     print(device)
-        land_dill
         land_lahn_1
+        land_dill
         """
         if selection is not None:
             self.nodes = selection.nodes
             self.elements = selection.elements
-        self._update_deviceorder()
+        self.deviceorder = list(networkx.topological_sort(self._directedgraph))
 
     @property
     def methodorder(self) -> List[Callable]:

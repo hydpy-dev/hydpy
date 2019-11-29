@@ -36,6 +36,8 @@ pypi_wheels = numpy==[auto]
 	attrs==[auto]
 	Pillow==[auto]
 	tornado==[auto]
+	networkx==[auto]
+	decorator==[auto]
 
 local_wheels = dist/*.whl
 	

@@ -1027,6 +1027,8 @@ class PyxWriter:
                 lines.extend(self.set_pointer(subseqs))
                 lines.extend(self.get_value(subseqs))
                 lines.extend(self.set_value(subseqs))
+            if isinstance(subseqs, sequencetools.InputSequences):
+                lines.extend(self.set_pointer(subseqs))
         return lines
 
     @staticmethod
@@ -1039,6 +1041,9 @@ class PyxWriter:
         lines.add(1, f'cdef public bint _{seq.name}_ramflag')
         ctype = f'double{NDIM2STR[seq.NDIM+1]}'
         lines.add(1, f'cdef public {ctype} _{seq.name}_array')
+        if isinstance(seq, sequencetools.InputSequence):
+            lines.add(1, f'cdef public bint _{seq.name}_inputflag')
+            lines.add(1, f'cdef double *_{seq.name}_inputpointer')
         return lines
 
     @staticmethod
@@ -1081,7 +1086,14 @@ class PyxWriter:
         lines.add(1, f'cpdef inline void load_data(self, int idx) {_nogil}:')
         lines.add(2, 'cdef int jdx0, jdx1, jdx2, jdx3, jdx4, jdx5')
         for seq in subseqs:
-            lines.add(2, f'if self._{seq.name}_diskflag:')
+            if isinstance(seq, sequencetools.InputSequence):
+                lines.add(2, f'if self._{seq.name}_inputflag:')
+                lines.add(
+                    3, f'self.{seq.name} = self._{seq.name}_inputpointer[0]')
+                if_or_elif = 'elif'
+            else:
+                if_or_elif = 'if'
+            lines.add(2, f'{if_or_elif} self._{seq.name}_diskflag:')
             if seq.NDIM == 0:
                 lines.add(
                     3, f'fread(&self.{seq.name}, 8, 1, self._{seq.name}_file)')
@@ -1115,23 +1127,30 @@ class PyxWriter:
         lines.add(1, f'cpdef inline void save_data(self, int idx) {_nogil}:')
         lines.add(2, 'cdef int jdx0, jdx1, jdx2, jdx3, jdx4, jdx5')
         for seq in subseqs:
-            lines.add(2, f'if self._{seq.name}_diskflag:')
+            if isinstance(seq, sequencetools.InputSequence):
+                lines.add(2, f'if self._{seq.name}_inputflag:')
+                indent = 3
+            else:
+                indent = 2
+            lines.add(indent, f'if self._{seq.name}_diskflag:')
             if seq.NDIM == 0:
                 lines.add(
-                    3, f'fwrite(&self.{seq.name}, 8, 1, self._{seq.name}_file)')
+                    indent+1,
+                    f'fwrite(&self.{seq.name}, 8, 1, self._{seq.name}_file)')
             else:
                 lines.add(
-                    3,
+                    indent+1,
                     f'fwrite(&self.{seq.name}[0], 8, '
                     f'self._{seq.name}_length, self._{seq.name}_file)')
-            lines.add(2, f'elif self._{seq.name}_ramflag:')
+            lines.add(indent, f'elif self._{seq.name}_ramflag:')
             if seq.NDIM == 0:
-                lines.add(3, f'self._{seq.name}_array[idx] = self.{seq.name}')
+                lines.add(indent+1,
+                          f'self._{seq.name}_array[idx] = self.{seq.name}')
             else:
                 indexing = ''
                 for idx in range(seq.NDIM):
                     lines.add(
-                        3+idx,
+                        indent+1+idx,
                         f'for jdx{idx} in '
                         f'range(self._{seq.name}_length_{idx}):')
                     indexing += f'jdx{idx},'
@@ -1142,19 +1161,24 @@ class PyxWriter:
                     f'self.{seq.name}[{indexing}]')
         return lines
 
-    def set_pointer(self, subseqs: sequencetools.LinkSequences) -> List[str]:
-        """Set pointer statements for all link sequences."""
+    def set_pointer(self,
+                    subseqs: Union[sequencetools.InputSequence,
+                                   sequencetools.LinkSequences]) -> List[str]:
+        """Set pointer statements for all input and link sequences."""
         lines = Lines()
-        for seq in subseqs:
-            if seq.NDIM == 0:
-                lines.extend(self.set_pointer0d(subseqs))
-            break
-        for seq in subseqs:
-            if seq.NDIM == 1:
-                lines.extend(self.alloc(subseqs))
-                lines.extend(self.dealloc(subseqs))
-                lines.extend(self.set_pointer1d(subseqs))
-            break
+        if isinstance(subseqs, sequencetools.InputSequences):
+            lines.extend(self.set_pointerinput(subseqs))
+        else:
+            for seq in subseqs:
+                if seq.NDIM == 0:
+                    lines.extend(self.set_pointer0d(subseqs))
+                break
+            for seq in subseqs:
+                if seq.NDIM == 1:
+                    lines.extend(self.alloc(subseqs))
+                    lines.extend(self.dealloc(subseqs))
+                    lines.extend(self.set_pointer1d(subseqs))
+                break
         return lines
 
     @staticmethod
@@ -1253,6 +1277,18 @@ class PyxWriter:
             lines.add(2, f'if name == "{seq.name}":')
             lines.add(3, f'self.{seq.name}[idx] = value.p_value')
             lines.add(3, f'self._{seq.name}_ready[idx] = 1')
+        return lines
+
+    @staticmethod
+    def set_pointerinput(subseqs: sequencetools.InputSequences) -> List[str]:
+        """Set pointer statements for input sequences."""
+        print('            . set_pointerinput')
+        lines = Lines()
+        lines.add(1, 'cpdef inline set_pointerinput'
+                     '(self, str name, pointerutils.PDouble value):')
+        for seq in subseqs:
+            lines.add(2, f'if name == "{seq.name}":')
+            lines.add(3, f'self._{seq.name}_inputpointer = value.p_value')
         return lines
 
     @property
@@ -1377,6 +1413,7 @@ class PyxWriter:
             cpdef inline void load_data(self) nogil:
                 self.sequences.inputs.load_data(self.idx_sim)
             cpdef inline void save_data(self, int idx) nogil:
+                self.sequences.inputs.save_data(self.idx_sim)
                 self.sequences.fluxes.save_data(self.idx_sim)
                 self.sequences.states.save_data(self.idx_sim)
         <BLANKLINE>
@@ -1387,12 +1424,15 @@ class PyxWriter:
                     . open_files
                     . close_files
                     . load_data
+                    . save_data
             cpdef inline void open_files(self):
                 self.sequences.inputs.open_files(self.idx_sim)
             cpdef inline void close_files(self):
                 self.sequences.inputs.close_files()
             cpdef inline void load_data(self) nogil:
                 self.sequences.inputs.load_data(self.idx_sim)
+            cpdef inline void save_data(self, int idx) nogil:
+                self.sequences.inputs.save_data(self.idx_sim)
         <BLANKLINE>
 
         >>> pyxwriter.model.sequences.inputs = None
@@ -1408,10 +1448,6 @@ class PyxWriter:
         for func in ('open_files', 'close_files', 'load_data', 'save_data'):
             if (func == 'load_data') and not self.model.sequences.inputs:
                 continue
-            if ((func == 'save_data') and not
-                    (self.model.sequences.fluxes or
-                     self.model.sequences.states)):
-                continue
             print(f'            . {func}')
             nogil = func in ('load_data', 'save_data')
             idx_as_arg = func == 'save_data'
@@ -1420,8 +1456,6 @@ class PyxWriter:
             for subseqs in self.model.sequences:
                 if func == 'load_data':
                     applyfuncs: Tuple[str, ...] = ('inputs',)
-                elif func == 'save_data':
-                    applyfuncs = ('fluxes', 'states')
                 else:
                     applyfuncs = ('inputs', 'fluxes', 'states')
                 if subseqs.name in applyfuncs:

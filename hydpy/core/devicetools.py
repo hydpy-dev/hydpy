@@ -121,7 +121,7 @@ class Keywords(set):
         super().__init__(names)
 
     def startswith(self, name: str) -> List[str]:
-        """Return a list of all keywords starting with the given string.
+        """Return a list of all keywords, starting with the given string.
 
         >>> from hydpy.core.devicetools import Keywords
         >>> keywords = Keywords('first_keyword', 'second_keyword',
@@ -1395,8 +1395,11 @@ immutable Elements objects is not allowed.
     |Node| and |Element| objects properly.
     """
 
-    def __init__(self, value: NodeConstrArg, variable: Optional[str] = None,
-                 keywords: MayNonerable1[str] = None):
+    def __init__(
+            self, value: NodeConstrArg,
+            variable: Optional[
+                Union[str, Type[sequencetools.InputSequence]]] = None,
+            keywords: MayNonerable1[str] = None):
         # pylint: disable=unused-argument
         # required for consistincy with Device.__new__
         if 'new_instance' in vars(self):
@@ -1441,17 +1444,19 @@ immutable Elements objects is not allowed.
         return vars(self)['exits']
 
     @property
-    def variable(self) -> str:
+    def variable(self) -> Union[str, Type[sequencetools.InputSequence]]:
         """The variable handled by the actual |Node| object.
 
-        By default, nodes route discharge:
+        By default, we suppose that nodes route discharge:
 
         >>> from hydpy import Node
         >>> node = Node('test1')
         >>> node.variable
         'Q'
 
-        Any other string is acceptable:
+        Each other string, as well as each |InputSequence| subclass, is
+        acceptable (for further information see the documentation on
+        method |Model.connect|):
 
         >>> Node('test2', variable='H')
         Node("test2", variable="H")
@@ -1484,8 +1489,8 @@ Keep in mind, that `name` is the unique identifier of node objects.
           * obs: Deploy observed values instead of simulated values.  The
             node still receives the simulated values from its upstream
             element(s).  However, it deploys values to its downstream
-            element(s) which are defined externally.  Usually, these values
-            are observations made available within a time series file. See
+            element(s), which are defined externally.  Usually, these values
+            are observations made available within a time-series file. See
             the documentation on module |sequencetools| for further
             information on file specifications.
           * oldsim: Similar to mode `obs`.  However, it is usually applied when
@@ -1599,7 +1604,7 @@ the value `oldobs` was given, but only the following values are allowed: \
         ValueError: Function `get_double` of class `Node` does not support \
 the given group name `test`.
         """
-        if group in ('inlets', 'receivers'):
+        if group in ('inlets', 'receivers', 'inputs'):
             if self.deploymode != 'obs':
                 return self.sequences.fastaccess.sim
             return self.sequences.fastaccess.obs
@@ -1640,10 +1645,10 @@ the given group name `test`.
         |Obs| sequence.
 
         Call this method before a simulation run if you need access to the
-        whole time series of the simulated and the observed series after the
+        whole time-series of the simulated and the observed series after the
         simulation run is finished.
 
-        By default, the time series are stored in RAM, which is the faster
+        By default, the time-series are stored in RAM, which is the faster
         option.  If your RAM is limited, pass |False| to function argument
         `ramflag` to store the series on disk.
         """
@@ -1688,7 +1693,7 @@ the given group name `test`.
         >>> dill = hp.nodes.dill
         >>> dill.sequences.obs.series = dill.sequences.sim.series + 10.0
 
-        Calling method |Node.plot_allseries| prints the time series of
+        Calling method |Node.plot_allseries| prints the time-series of
         both sequences to the screen immediately (if not, you need to
         activate the interactive mode of `matplotlib` first):
 
@@ -1696,7 +1701,7 @@ the given group name `test`.
 
         Subsequent calls to |Node.plot_allseries| or the related methods
         |Node.plot_simseries| and |Node.plot_obsseries| of nodes add
-        further time series data to the existing plot:
+        further time-series data to the existing plot:
 
         >>> lahn_1 = hp.nodes.lahn_1
         >>> lahn_1.plot_simseries()
@@ -1784,68 +1789,94 @@ class Element(Device[Elements]):
     |Node| objects.
 
     When preparing |Element| objects one links them to nodes of different
-    "groups", each group of nodes being implemented as an immutable
-    |Nodes| object.  |Element.inlets| and |Element.outlets| nodes handle,
-    for example, the inflow to and the outflow from the respective element.
+    "groups", each group of nodes implemented as an immutable |Nodes|
+    object.  |Element.inlets| and |Element.outlets| nodes handle, for
+    example, the inflow to and the outflow from the respective element.
     |Element.receivers| and |Element.senders| nodes are thought for
-    information flow between arbitrary elements, for example to inform a
-    |dam| model about the discharge at a gauge downstream.
+    information flow between arbitrary elements, for example, to inform a
+    |dam| model about the discharge at a gauge downstream.  |Element.inputs|
+    nodes provide optional input information, for example, interpolated
+    precipitation that could alternatively be read from files as well.
 
-    You can select nodes either by passing them explicitly or by passing
-    their name both as single objects or as objects contained within an
-    iterable object:
+    You can select nodes either by passing them explicitly or through
+    passing their name both as single objects or as objects contained
+    within an iterable object:
 
     >>> from hydpy import Element, Node
     >>> Element('test',
-    ...         inlets='in1',
+    ...         inlets='inl1',
     ...         outlets=Node('out1'),
     ...         receivers=('rec1', Node('rec2')))
     Element("test",
-            inlets="in1",
+            inlets="inl1",
             outlets="out1",
             receivers=["rec1", "rec2"])
 
     Repeating such a statement with different nodes adds them to the
-    existing ones without any conflict in case of repeated specification:
+    existing ones without any conflict in case of repeated specifications:
 
     >>> Element('test',
-    ...         inlets='in1',
+    ...         inlets='inl1',
     ...         receivers=('rec2', 'rec3'),
-    ...         senders='sen1')
+    ...         senders='sen1',
+    ...         inputs='inp1')
     Element("test",
-            inlets="in1",
+            inlets="inl1",
             outlets="out1",
             receivers=["rec1", "rec2", "rec3"],
-            senders="sen1")
+            senders="sen1",
+            inputs="inp1")
 
     Subsequent adding of nodes also works via property access:
 
     >>> test = Element('test')
-    >>> test.inlets = 'in2'
+    >>> test.inlets = 'inl2'
     >>> test.outlets = None
     >>> test.receivers = ()
     >>> test.senders = 'sen2', Node('sen3')
+    >>> test.inputs = []
     >>> test
     Element("test",
-            inlets=["in1", "in2"],
+            inlets=["inl1", "inl2"],
             outlets="out1",
             receivers=["rec1", "rec2", "rec3"],
-            senders=["sen1", "sen2", "sen3"])
+            senders=["sen1", "sen2", "sen3"],
+            inputs="inp1")
 
     The properties verify that an element does not handle the same node
-    both within the `inlet` and the `outlet` group or within the `receiver`
-    and the `sender` group:
+    both within the `inlet`, `outlet`, or `inputs` group or within the
+    `receiver` or `sender` group twice:
 
     >>> test.inlets = 'out1'
     Traceback (most recent call last):
     ...
     ValueError: For element `test`, the given inlet node `out1` is already \
 defined as a(n) outlet node, which is not allowed.
-    >>> test.outlets = 'in1'
+    >>> test.inlets = 'inp1'
     Traceback (most recent call last):
     ...
-    ValueError: For element `test`, the given outlet node `in1` is already \
+    ValueError: For element `test`, the given inlet node `inp1` is already \
+defined as a(n) input node, which is not allowed.
+    >>> test.outlets = 'inl1'
+    Traceback (most recent call last):
+    ...
+    ValueError: For element `test`, the given outlet node `inl1` is already \
 defined as a(n) inlet node, which is not allowed.
+    >>> test.outlets = 'inp1'
+    Traceback (most recent call last):
+    ...
+    ValueError: For element `test`, the given outlet node `inp1` is already \
+defined as a(n) input node, which is not allowed.
+    >>> test.inputs = 'inl1'
+    Traceback (most recent call last):
+    ...
+    ValueError: For element `test`, the given input node `inl1` is already \
+defined as a(n) inlet node, which is not allowed.
+    >>> test.inputs = 'out1'
+    Traceback (most recent call last):
+    ...
+    ValueError: For element `test`, the given input node `out1` is already \
+defined as a(n) outlet node, which is not allowed.
     >>> test.receivers = 'sen1'
     Traceback (most recent call last):
     ...
@@ -1860,25 +1891,25 @@ defined as a(n) receiver node, which is not allowed.
     Note that the discussed |Nodes| objects are immutable by default,
     disallowing to change them in other ways as described above:
 
-    >>> test.inlets += 'in3'
+    >>> test.inlets += 'inl3'
     Traceback (most recent call last):
     ...
-    RuntimeError: While trying to add the device `in3` to a Nodes object, \
+    RuntimeError: While trying to add the device `inl3` to a Nodes object, \
 the following error occurred: Adding devices to immutable Nodes objects \
 is not allowed.
 
     Setting their `mutable` flag to |True| changes this behaviour:
 
     >>> test.inlets.mutable = True
-    >>> test.inlets.add_device('in3')
+    >>> test.inlets.add_device('inl3')
 
     However, then it is up to you to make sure that the added node also
     handles the relevant element in the suitable group.  In the given
-    example, only node `in2` has been added properly but not node `in3`:
+    example, only node `inl2` has been added properly but not node `inl3`:
 
-    >>> test.inlets.in2.exits
+    >>> test.inlets.inl2.exits
     Elements("test")
-    >>> test.inlets.in3.exits
+    >>> test.inlets.inl3.exits
     Elements()
     """
 
@@ -1888,6 +1919,7 @@ is not allowed.
             outlets: NodesConstrArg = None,
             receivers: NodesConstrArg = None,
             senders: NodesConstrArg = None,
+            inputs: NodesConstrArg = None,
             keywords: MayNonerable1[str] = None):
         # pylint: disable=unused-argument
         # required for consistincy with Device.__new__
@@ -1896,8 +1928,10 @@ is not allowed.
             vars(self)['outlets'] = Nodes(mutable=False)
             vars(self)['receivers'] = Nodes(mutable=False)
             vars(self)['senders'] = Nodes(mutable=False)
+            vars(self)['inputs'] = Nodes(mutable=False)
             self.__connections = (self.inlets, self.outlets,
-                                  self.receivers, self.senders)
+                                  self.receivers, self.senders,
+                                  self.inputs)
             del vars(self)['new_instance']
         self.keywords = keywords  # type: ignore
         if inlets is not None:
@@ -1908,23 +1942,28 @@ is not allowed.
             self.receivers = receivers  # type: ignore
         if senders is not None:
             self.senders = senders  # type: ignore
+        if inputs is not None:
+            self.inputs = inputs  # type: ignore
         # due to internal type conversion
         # see issue https://github.com/python/mypy/issues/3004
 
-    def __update_group(self, values, elementtarget, nodetarget, comparetarget):
-        elementgroup: Nodes = getattr(self, elementtarget)
-        comparisongroup: Nodes = getattr(self, comparetarget)
+    def __update_group(
+            self, values: NodesConstrArg, targetnodes: str,
+            targetelements: str, incompatiblenodes: Tuple[str, ...]) -> None:
+        elementgroup: Nodes = getattr(self, targetnodes)
         elementtargetmutable = elementgroup.mutable
         try:
             elementgroup.mutable = True
             for node in Nodes(values):
-                if node in comparisongroup:
-                    raise ValueError(
-                        f'For element `{self}`, the given {elementtarget[:-1]} '
-                        f'node `{node}` is already defined as a(n) '
-                        f'{comparetarget[:-1]} node, which is not allowed.')
+                for incomp in incompatiblenodes:
+                    if node in vars(self)[incomp]:
+                        raise ValueError(
+                            f'For element `{self}`, the given '
+                            f'{targetnodes[:-1]} node `{node}` is already '
+                            f'defined as a(n) {incomp[:-1]} node, which is '
+                            f'not allowed.')
                 elementgroup.add_device(node)
-                nodegroup: Elements = getattr(node, nodetarget)
+                nodegroup: Elements = getattr(node, targetelements)
                 nodegroupmutable = nodegroup.mutable
                 try:
                     nodegroup.mutable = True
@@ -1936,49 +1975,66 @@ is not allowed.
 
     @property
     def inlets(self) -> Nodes:
-        """Group of |Node| objects from which the actual |Element| object
+        """Group of |Node| objects from which the handled |Model| object
         queries its "upstream" input values (e.g. inflow)."""
         return vars(self)['inlets']
 
     @inlets.setter
     def inlets(self, values: NodesConstrArg):
-        self.__update_group(values, elementtarget='inlets',
-                            nodetarget='exits', comparetarget='outlets')
+        self.__update_group(
+            values, targetnodes='inlets', targetelements='exits',
+            incompatiblenodes=('outlets', 'inputs'))
 
     @property
     def outlets(self) -> Nodes:
-        """Group of |Node| objects to which the actual |Element| object
+        """Group of |Node| objects to which the handled |Model| object
         passes its "downstream" output values (e.g. outflow)."""
         return vars(self)['outlets']
 
     @outlets.setter
     def outlets(self, values: NodesConstrArg):
-        self.__update_group(values, elementtarget='outlets',
-                            nodetarget='entries', comparetarget='inlets')
+        self.__update_group(
+            values, targetnodes='outlets', targetelements='entries',
+            incompatiblenodes=('inlets', 'inputs'))
 
     @property
     def receivers(self) -> Nodes:
-        """Group of |Node| objects from which the actual |Element| object
+        """Group of |Node| objects from which the handled |Model| object
         queries its "remote" information values (e.g. discharge at a
         remote downstream)."""
         return vars(self)['receivers']
 
     @receivers.setter
     def receivers(self, values: NodesConstrArg):
-        self.__update_group(values, elementtarget='receivers',
-                            nodetarget='exits', comparetarget='senders')
+        self.__update_group(
+            values, targetnodes='receivers', targetelements='exits',
+            incompatiblenodes=('senders',))
 
     @property
     def senders(self) -> Nodes:
-        """Group of |Node| objects to which the actual |Element| object
-        passes its "remote" information values (e.g. water level in
+        """Group of |Node| objects to which the handled |Model| object
+        passes its "remote" information values (e.g. water level of
         a |dam| model)."""
         return vars(self)['senders']
 
     @senders.setter
     def senders(self, values: NodesConstrArg):
-        self.__update_group(values, elementtarget='senders',
-                            nodetarget='entries', comparetarget='receivers')
+        self.__update_group(
+            values, targetnodes='senders', targetelements='entries',
+            incompatiblenodes=('receivers',))
+
+    @property
+    def inputs(self) -> Nodes:
+        """Group of |Node| objects from which the handled |Model| object
+        queries its "external" input values, instead of reading them from
+        files (e.g. interpolated precipitation)."""
+        return vars(self)['inputs']
+
+    @inputs.setter
+    def inputs(self, values: NodesConstrArg):
+        self.__update_group(
+            values, targetnodes='inputs', targetelements='exits',
+            incompatiblenodes=('inlets', 'outlets'))
 
     @classmethod
     def get_handlerclass(cls) -> Type[Elements]:
@@ -2172,7 +2228,7 @@ Use method `prepare_model` instead.
         (nearly) all simulated series of the handled model after the
         simulation run is finished.
 
-        By default, the time series are stored in RAM, which is the faster
+        By default, the time-series are stored in RAM, which is the faster
         option.  If your RAM is limited, pass |False| to function argument
         `ramflag` to store the series on disk.
         """
@@ -2260,8 +2316,8 @@ Use method `prepare_model` instead.
         >>> hp, _, _ = prepare_full_example_2(lastdate='1997-01-01')
 
         Without any arguments, |Element.plot_inputseries| prints the
-        time series of all input sequences handled by its |Model| object
-        directly to the screen (in the given example, |hland_inputs.P|,
+        time-series of all input sequences handled by its |Model| object
+        directly to the screen (in the given example: |hland_inputs.P|,
         |hland_inputs.T|, |hland_inputs.TN|, and |hland_inputs.EPN| of
         application model |hland_v1|):
 
@@ -2281,7 +2337,7 @@ Use method `prepare_model` instead.
 
         Methods |Element.plot_fluxseries| and |Element.plot_stateseries|
         work in the same manner.  Before applying them, one has at first
-        to calculate the time series of the |FluxSequence| and
+        to calculate the time-series of the |FluxSequence| and
         |StateSequence| objects:
 
         >>> hp.simulate()
@@ -2299,7 +2355,7 @@ Use method `prepare_model` instead.
         .. image:: Element_plot_fluxseries.png
 
         For 1-dimensional |IOSequence| objects, all three methods plot the
-        individual time series in the same colour (here, from the state
+        individual time-series in the same colour (here, from the state
         sequences |hland_states.SP| and |hland_states.WC| of |hland_v1|):
 
         >>> land.plot_stateseries(['sp', 'wc'])
@@ -2309,7 +2365,7 @@ Use method `prepare_model` instead.
 
         .. image:: Element_plot_stateseries1.png
 
-        Alternatively, you can print the averaged time series through
+        Alternatively, you can print the averaged time-series through
         passing |True| to the method `average` argument (demonstrated
         for the state sequence |hland_states.SM|):
 
@@ -2352,7 +2408,8 @@ Use method `prepare_model` instead.
             with objecttools.assignrepr_tuple.always_bracketed(False):
                 blanks = ' ' * (len(prefix) + 8)
                 lines = ['%sElement("%s",' % (prefix, self.name)]
-                for groupname in ('inlets', 'outlets', 'receivers', 'senders'):
+                for groupname in (
+                        'inlets', 'outlets', 'receivers', 'senders', 'inputs'):
                     group = getattr(self, groupname, Node)
                     if group:
                         subprefix = '%s%s=' % (blanks, groupname)

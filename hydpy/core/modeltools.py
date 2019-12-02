@@ -97,20 +97,21 @@ class Model:
                     setattr(self, shortname, method)
 
     def connect(self) -> None:
-        """Connect all |LinkSequence| objects of the actual model to
-        the corresponding |NodeSequence| objects.
+        """Connect all |LinkSequence| objects and the selected
+        |InputSequence| objects of the actual model to the
+        corresponding |NodeSequence| objects.
 
-        You cannot connect the link sequences until the |Model| object
-        itself is connected to an |Element| object referencing the
-        required |Node| objects:
+        You cannot connect any sequences until the |Model| object itself
+        is connected to an |Element| object referencing the required |Node|
+        objects:
 
         >>> from hydpy import prepare_model
         >>> prepare_model('hstream_v1').connect()
         Traceback (most recent call last):
         ...
         AttributeError: While trying to build the node connection of the \
-`inlet` sequences of the model handled by element `?`, the following \
-error occurred: 'NoneType' object has no attribute 'inlets'
+`input` sequences of the model handled by element `?`, the following \
+error occurred: 'NoneType' object has no attribute 'inputs'
 
         The application model |hstream_v1| can receive inflow from an
         arbitrary number of upstream nodes and passes its outflow to
@@ -145,8 +146,8 @@ error occurred: 'NoneType' object has no attribute 'inlets'
         sim(6.0)
 
         To show some possible errors and related error messages, we
-        define three additional nodes of, two handling variables
-        different from discharge (`Q`):
+        define three additional nodes, two handling variables different
+        from discharge (`Q`):
 
         >>> in3 = Node('in3', variable='X')
         >>> out2 = Node('out2', variable='Q')
@@ -219,8 +220,56 @@ to any sequences: in2.
 `sender` sequences of the model handled by element `element7`, the \
 following error occurred: The following nodes have not been connected \
 to any sequences: in2.
+
+        The above examples explain how to connect link sequences to their
+        nodes.  Such connections are relatively hard requirements
+        (|hstream_v1| definitively needs inflow provided from a node,
+        which the node itself typically receives from another model).
+        In contrast, connections between input sequences and nodes are
+        optional.  If one defines such a connection, the input sequence
+        gets data from the related node; otherwise it uses its individually
+        managed data, usually read from a file.
+
+
+        We demonstrate this functionality by focussing on the input sequences
+        |hland_inputs.T| and |hland_inputs.P| of application model |hland_v1|.
+        |hland_inputs.T| uses its own data (which we define manually, but we
+        could read it from a file as well), whereas |hland_inputs.P| gets its
+        data from node `inp1`.  This functionality requires to tell the node
+        which sequence it should connect to, which we do by passing
+        the sequence type to the `variable` keyword:
+
+        >>> from hydpy import pub
+        >>> from hydpy.models.hland.hland_inputs import P
+        >>> pub.timegrids = '2000-01-01', '2000-01-06', '1d'
+
+        >>> inp1 = Node('inp1', variable=P)
+        >>> element8 = Element('element8',
+        ...                    outlets=out1,
+        ...                    inputs=inp1)
+        >>> element8.model = prepare_model('hland_v1')
+        >>> element8.prepare_inputseries()
+        >>> element8.model.idx_sim = 2
+        >>> element8.model.sequences.inputs.t.series = 1.0, 2.0, 3.0, 4.0, 5.0
+        >>> inp1.sequences.sim(9.0)
+        >>> element8.model.load_data()
+        >>> element8.model.sequences.inputs.t
+        t(3.0)
+        >>> element8.model.sequences.inputs.p
+        p(9.0)
+
+        .. testsetup::
+
+            >>> from hydpy import Node, Element
+            >>> Node.clear_all()
+            >>> Element.clear_all()
         """
         try:
+            group = 'inputs'
+            for node in self.element.inputs:
+                name = objecttools.instancename(node.variable)
+                sequence = getattr(self.sequences.inputs, name)
+                sequence.set_pointer(node.get_double(group))
             for group in ('inlets', 'receivers', 'outlets', 'senders'):
                 self._connect_subgroup(group)
         except BaseException:
@@ -757,6 +806,12 @@ class AdHocModel(Model):
 
         When working in Cython mode, the standard model import overrides
         this generic Python version with a model-specific Cython version.
+
+        .. testsetup::
+
+            >>> from hydpy import Node, Element
+            >>> Node.clear_all()
+            >>> Element.clear_all()
         """
         self.idx_sim = idx
         self.load_data()
@@ -899,9 +954,9 @@ class ELSModel(SolverModel):
     The "Explicit Lobatto Sequence" is a variable order Runge Kutta
     method combining different Lobatto methods.  Its main idea is to
     first calculate a solution with a lower order method, then to use
-    these results to apply the next higher order method, and to compare
+    these results to apply the next higher-order method, and to compare
     both results.  If they are close enough, the latter results are
-    accepted.  If not, the next higher order method is applied (or,
+    accepted.  If not, the next higher-order method is applied (or,
     if no higher-order method is available, the step size is
     decreased, and the algorithm restarts with the method of the
     lowest order).  So far, the `thorough description`_ of the
@@ -1021,8 +1076,8 @@ class ELSModel(SolverModel):
 
         After decreasing the allowed error by one order of magnitude,
         |ELSModel| requires four method calls (again, one for the
-        first order and one for the second order method, and two
-        additional calls for the third order method):
+        first order and one for the second-order method, and two
+        additional calls for the third-order method):
 
         >>> solver.abserrormax = 1e-3
         >>> states.s(1.0)
@@ -1038,7 +1093,7 @@ class ELSModel(SolverModel):
         4
 
         After decreasing |test_solver.AbsErrorMax| by a factor of ten
-        again, |ELSModel| needs one further higher order method, which
+        again, |ELSModel| needs one further higher-order method, which
         requires three additional calls, making a sum of seven:
 
         >>> solver.abserrormax = 1e-4

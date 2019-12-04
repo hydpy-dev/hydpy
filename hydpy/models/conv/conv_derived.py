@@ -92,21 +92,23 @@ class NmbOutputs(parametertools.Parameter):
         self(self.subpars.pars.control.outputcoordinates.shape[0])
 
 
-class NearestInlets(parametertools.Parameter):
-    """Indices of the inlet nodes closest to each outlet node [-]"""
-    NDIM, TYPE, TIME, SPAN = 1, int, None, (None, None)
+class ProximityOrder(parametertools.Parameter):
+    """Indices of the inlet nodes in the order of their proximity to each
+    outlet node [-]"""
+    NDIM, TYPE, TIME, SPAN = 2, int, None, (None, None)
 
     CONTROLPARAMETERS = (
+        conv_control.MaxNmbInputs,
         conv_control.InputCoordinates,
         conv_control.OutputCoordinates,
     )
 
     def update(self) -> None:
-        """Determine the nearest inlet node for each outlet node.
+        """Determine the proximity-order of the inlet and outlet nodes.
 
-        The individual entries of parameter |NearestInlets| correspond
-        to the outlet nodes; the value of each entry is the index of the
-        nearest inlet node:
+        The individual rows of parameter |ProximityOrder| correspond to the
+        outlet nodes; the rows contain the proximity-sorted indices of the
+        inlet nodes:
 
         >>> from hydpy.models.conv import *
         >>> parameterstep()
@@ -117,16 +119,30 @@ class NearestInlets(parametertools.Parameter):
         ...     out1=(0.0, 3.0),
         ...     out2=(3.0, -2.0),
         ...     out3=(1.0, 2.0))
-        >>> derived.nearestinlets.update()
-        >>> derived.nearestinlets
-        nearestinlets(0, 1, 0)
+        >>> maxnmbinputs()
+        >>> derived.proximityorder.update()
+        >>> derived.proximityorder
+        proximityorder([[0, 1],
+                        [1, 0],
+                        [0, 1]])
+
+        Set the value of parameter |MaxNmbInputs| to one,if you want to
+        consider the respective nearest input node only:
+
+        >>> maxnmbinputs(1)
+        >>> derived.proximityorder.update()
+        >>> derived.proximityorder
+        proximityorder([[0],
+                        [1],
+                        [0]])
         """
         control = self.subpars.pars.control
         incoords = control.inputcoordinates.__hydpy__get_value__()
         outcoords = control.outputcoordinates.__hydpy__get_value__()
-        idxs = numpy.empty(len(outcoords), dtype=int)
+        nmbinputs = control.maxnmbinputs.__hydpy__get_value__()
+        idxs = numpy.empty((len(outcoords), nmbinputs), dtype=int)
         for idx, outcoord in enumerate(outcoords):
             distance = numpy.sqrt(numpy.sum((outcoord-incoords)**2, axis=1))
-            idxs[idx] = numpy.argmin(distance)
+            idxs[idx, :] = numpy.argsort(distance)[:nmbinputs]
         self.__hydpy__set_shape__(idxs.shape)
         self.__hydpy__set_value__(idxs)

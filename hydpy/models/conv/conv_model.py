@@ -3,10 +3,12 @@
 # pylint: enable=missing-docstring
 
 # imports...
+# ...from site-packages
 # ...from HydPy
 from hydpy.core import devicetools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
+from hydpy.cythons import modelutils
 from hydpy.models.conv import conv_derived
 from hydpy.models.conv import conv_fluxes
 from hydpy.models.conv import conv_inlets
@@ -34,24 +36,45 @@ class Pick_Inputs_V1(modeltools.Method):
 
 
 class Calc_Outputs_V1(modeltools.Method):
-    """Perform a nearest-neighbour interpolation.
+    """Perform a simple proximity-based interpolation.
 
-    Example:
+    Examples:
+
+        With complete input data, method |Calc_Outputs_V1| performs the
+        most simple nearest-neighbour approach:
 
         >>> from hydpy.models.conv import *
         >>> parameterstep()
+        >>> maxnmbinputs.value = 1
         >>> derived.nmboutputs(3)
-        >>> derived.nearestinlets.shape = 3
-        >>> derived.nearestinlets(0, 1, 0)
+        >>> derived.proximityorder.shape = (3, 1)
+        >>> derived.proximityorder([[0], [1], [0]])
         >>> fluxes.inputs.shape = 2
         >>> fluxes.inputs = 1.0, 2.0
         >>> model.calc_outputs_v1()
         >>> fluxes.outputs
         outputs(1.0, 2.0, 1.0)
+
+        With incomplete data, it subsequently checks the second-nearest
+        location, the third-nearest location, and so on, until it finds
+        an actual value.  Parameter |MaxNmbInputs| defines the maximum
+        number of considered locations:
+
+        >>> fluxes.inputs = 1.0, nan
+        >>> model.calc_outputs_v1()
+        >>> fluxes.outputs
+        outputs(1.0, nan, 1.0)
+
+        >>> maxnmbinputs.value = 2
+        >>> derived.proximityorder.shape = (3, 2)
+        >>> derived.proximityorder([[0, 1], [1, 0], [0, 1]])
+        >>> model.calc_outputs_v1()
+        >>> fluxes.outputs
+        outputs(1.0, 1.0, 1.0)
     """
     DERIVEDPARAMETERS = (
         conv_derived.NmbOutputs,
-        conv_derived.NearestInlets,
+        conv_derived.ProximityOrder,
     )
     REQUIREDSEQUENCES = (
         conv_fluxes.Inputs,
@@ -61,11 +84,15 @@ class Calc_Outputs_V1(modeltools.Method):
     )
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for idx_out in range(der.nmboutputs):
-            idx_in = der.nearestinlets[idx_out]
-            flu.outputs[idx_out] = flu.inputs[idx_in]
+            for idx_try in range(con.maxnmbinputs):
+                idx_in = der.proximityorder[idx_out, idx_try]
+                flu.outputs[idx_out] = flu.inputs[idx_in]
+                if not modelutils.isnan(flu.outputs[idx_out]):
+                    break
 
 
 class Pass_Outputs_V1(modeltools.Method):
@@ -131,6 +158,7 @@ class Model(modeltools.AdHocModel):
         ...     out1=(0.0, 3.0),
         ...     out2=(3.0, -2.0),
         ...     out3=(1.0, 2.0))
+        >>> maxnmbinputs()
         >>> parameters.update()
 
         |conv| passes the current values of the inlet nodes correctly to
@@ -156,6 +184,7 @@ class Model(modeltools.AdHocModel):
         >>> outputcoordinates(
         ...     out1=(0.0, 3.0),
         ...     out2=(3.0, -2.0))
+        >>> maxnmbinputs()
         >>> parameters.update()
         >>> conv.model = model
         Traceback (most recent call last):

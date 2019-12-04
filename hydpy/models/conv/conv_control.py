@@ -113,3 +113,58 @@ class InputCoordinates(Coordinates):
 
 class OutputCoordinates(Coordinates):
     """Coordinates of the outlet nodes."""
+
+
+class MaxNmbInputs(parametertools.Parameter):
+    """The maximum number of input locations to be taken into account for
+    interpolating the values of a specific output location [-].
+
+    When passing no value, parameter |MaxNmbInputs| queries it from the shape
+    of parameter |InputCoordinates|:
+
+    >>> from hydpy.models.conv import *
+    >>> parameterstep()
+    >>> inputcoordinates(in2=(2.0, 4.0),
+    ...                  in0=(3.0, 5.0),
+    ...                  in3=(4.0, 6.0))
+    >>> maxnmbinputs()
+    >>> maxnmbinputs
+    maxnmbinputs(3)
+
+    You can define alternative values manually:
+
+    >>> maxnmbinputs(2)
+    >>> maxnmbinputs
+    maxnmbinputs(2)
+    """
+    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
+
+    def __call__(self, *args, **kwargs):
+        if not args and not kwargs:
+            super().__call__(self.subpars.inputcoordinates.shape[0])
+        else:
+            super().__call__(*args, **kwargs)
+
+    def trim(self, lower=None, upper=None):
+        """Assure that the value of |MaxNmbInputs| does not exceed the
+        number of available input locations.
+
+        >>> from hydpy.models.conv import *
+        >>> parameterstep()
+        >>> inputcoordinates(in2=(2.0, 4.0),
+        ...                  in0=(3.0, 5.0),
+        ...                  in3=(4.0, 6.0))
+        >>> maxnmbinputs(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: The value `0` of parameter `maxnmbinputs` of \
+element `?` is not valid.
+        >>> maxnmbinputs(4)
+        Traceback (most recent call last):
+        ...
+        ValueError: The value `4` of parameter `maxnmbinputs` of \
+element `?` is not valid.
+        """
+        if upper is None:
+            upper = self.subpars.inputcoordinates.shape[0]
+        super().trim(lower, upper)

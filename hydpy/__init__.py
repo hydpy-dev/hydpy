@@ -9,6 +9,9 @@ hydrological models.
 """
 # import...
 # ...from standard library
+import importlib
+import os
+import pkgutil
 import warnings
 # ...from site-packages
 warnings.filterwarnings('ignore')
@@ -18,9 +21,12 @@ from numpy import nan
 from hydpy.core import pubtools
 pub = pubtools.Pub('pub')
 from hydpy import config
+from hydpy import models
 from hydpy.core import dummytools
 from hydpy.core import indextools
+from hydpy.core import objecttools
 from hydpy.core import optiontools
+from hydpy.core import sequencetools
 from hydpy.cythons.autogen import configutils
 from hydpy.core.auxfiletools import Auxfiler
 from hydpy.core.devicetools import Element
@@ -183,15 +189,26 @@ __all__ = ['config',
            'await_server',
            'start_server']
 
+for moduleinfo in pkgutil.walk_packages(models.__path__):
+    if moduleinfo.ispkg:
+        modulepath = f'hydpy.models.{moduleinfo.name}.{moduleinfo.name}_inputs'
+        try:
+            module = importlib.import_module(modulepath)
+        except ModuleNotFoundError:
+            continue
+        for member in vars(module).values():
+            if ((getattr(member, '__module__', None) == modulepath)
+                    and issubclass(member, sequencetools.InputSequence)):
+                alias = f'{moduleinfo.name}_{objecttools.classname(member)}'
+                locals()[alias] = member
+                __all__.append(alias)
+
 
 if config.USEAUTODOC:
-    import os
-    import importlib
     from hydpy import auxs
     from hydpy import core
     from hydpy import cythons
     from hydpy import exe
-    from hydpy import models
     from hydpy.core import autodoctools
     substituter = autodoctools.prepare_mainsubstituter()
     for subpackage in (auxs, core, cythons, exe):

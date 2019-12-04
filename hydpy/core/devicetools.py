@@ -803,7 +803,7 @@ which is in conflict with using their names as identifiers.
         """Return a |repr| string with a prefixed assignment."""
         with objecttools.repr_.preserve_strings(True):
             with hydpy.pub.options.ellipsis(2, optional=True):
-                prefix += '%s(' % objecttools.classname(self)
+                prefix += f'{objecttools.classname(self)}('
                 repr_ = objecttools.assignrepr_values(
                     self.names, prefix, width=70)
                 return repr_ + ')'
@@ -906,17 +906,17 @@ class Nodes(Devices['Node']):
                 seq.save_ext()
 
     @property
-    def variables(self) -> List[str]:
-        """Return a sorted list of the variables of all handled |Node| objects.
+    def variables(self) -> Set[str]:
+        """Return a set of the variables of all handled |Node| objects.
 
         >>> from hydpy import Node, Nodes
         >>> nodes = Nodes(Node('x1'),
         ...               Node('x2', variable='Q'),
         ...               Node('x3', variable='H'))
-        >>> nodes.variables
+        >>> sorted(nodes.variables)
         ['H', 'Q']
         """
-        return sorted({node.variable for node in self})
+        return {node.variable for node in self}
 
 
 class Elements(Devices['Element']):
@@ -1460,6 +1460,17 @@ immutable Elements objects is not allowed.
 
         >>> Node('test2', variable='H')
         Node("test2", variable="H")
+        >>> from hydpy.models.hland.hland_inputs import T
+        >>> Node('test3', variable=T)
+        Node("test3", variable=hland_T)
+
+        The last above example shows that the string representations of
+        nodes handling "class variables" use the aliases importable from
+        the top-level of the *HydPy* package:
+
+        >>> from hydpy import hland_P
+        >>> Node('test4', variable=hland_P)
+        Node("test4", variable=hland_P)
 
         To avoid confusion, one cannot change property |Node.variable|:
 
@@ -1766,15 +1777,17 @@ the given group name `test`.
                 variable = u'Q [m³/s]'
             pyplot.ylabel(variable)
 
-    def __repr__(self):
-        return self.assignrepr()
-
     def assignrepr(self, prefix: str = '') -> str:
         """Return a |repr| string with a prefixed assignment."""
-        lines = ['%sNode("%s", variable="%s",'
-                 % (prefix, self.name, self.variable)]
+        variable = self.variable
+        if isinstance(variable, str):
+            variable = f'"{variable}"'
+        else:
+            variable = (f'{variable.__module__.split(".")[2]}_'
+                        f'{objecttools.classname(variable)}')
+        lines = [f'{prefix}Node("{self.name}", variable={variable},']
         if self.keywords:
-            subprefix = '%skeywords=' % (' '*(len(prefix)+5))
+            subprefix = f'{" "*(len(prefix)+5)}keywords='
             with objecttools.repr_.preserve_strings(True):
                 with objecttools.assignrepr_tuple.always_bracketed(False):
                     line = objecttools.assignrepr_list(
@@ -1782,6 +1795,9 @@ the given group name `test`.
             lines.append(line + ',')
         lines[-1] = lines[-1][:-1]+')'
         return '\n'.join(lines)
+
+    def __repr__(self):
+        return self.assignrepr()
 
 
 class Element(Device[Elements]):
@@ -2407,12 +2423,12 @@ Use method `prepare_model` instead.
         with objecttools.repr_.preserve_strings(True):
             with objecttools.assignrepr_tuple.always_bracketed(False):
                 blanks = ' ' * (len(prefix) + 8)
-                lines = ['%sElement("%s",' % (prefix, self.name)]
+                lines = [f'{prefix}Element("{self.name}",']
                 for groupname in (
                         'inlets', 'outlets', 'receivers', 'senders', 'inputs'):
                     group = getattr(self, groupname, Node)
                     if group:
-                        subprefix = '%s%s=' % (blanks, groupname)
+                        subprefix = f'{blanks}{groupname}='
                         # pylint: disable=not-an-iterable
                         # because pylint is wrong
                         nodes = [str(node) for node in group]
@@ -2421,7 +2437,7 @@ Use method `prepare_model` instead.
                             nodes, subprefix, width=70)
                         lines.append(line + ',')
                 if self.keywords:
-                    subprefix = '%skeywords=' % blanks
+                    subprefix = f'{blanks}keywords='
                     line = objecttools.assignrepr_list(
                         sorted(self.keywords), subprefix, width=70)
                     lines.append(line + ',')

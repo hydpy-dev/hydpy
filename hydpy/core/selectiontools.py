@@ -869,7 +869,7 @@ requires string as left operand, not list
         return type(self)(name, copy.copy(self.nodes), copy.copy(self.elements))
 
     def save_networkfile(self, filepath: Union[str, None] = None,
-                         write_nodes: bool = True) -> None:
+                         write_defaultnodes: bool = True) -> None:
         """Save the selection as a network file.
 
         >>> from hydpy.examples import prepare_full_example_2
@@ -878,7 +878,7 @@ requires string as left operand, not list
         In most cases, one should conveniently write network files via method
         |NetworkManager.save_files| of class |NetworkManager|.  However,
         using the method |Selection.save_networkfile| allows for additional
-        configuration via the arguments `filepath` and `write_nodes`:
+        configuration via the arguments `filepath` and `write_defaultnodes`:
 
         >>> with TestIO():
         ...     pub.selections.headwaters.save_networkfile()
@@ -906,7 +906,8 @@ requires string as left operand, not list
         <BLANKLINE>
 
         >>> with TestIO():
-        ...     pub.selections.headwaters.save_networkfile('test.py', False)
+        ...     pub.selections.headwaters.save_networkfile(
+        ...         'test.py', write_defaultnodes=False)
         ...     with open('test.py') as networkfile:
         ...         print(networkfile.read())
         # -*- coding: utf-8 -*-
@@ -922,15 +923,61 @@ requires string as left operand, not list
                 outlets="lahn_1",
                 keywords="catchment")
         <BLANKLINE>
+
+        The `write_defaultnodes` argument does only affect nodes handling
+        the default variable `Q`:
+
+        >>> from hydpy import Node, hland_T, hland_P
+        >>> nodes = pub.selections.headwaters.nodes
+        >>> nodes.add_device(Node('test1', variable='X'))
+        >>> nodes.add_device(Node('test2', variable=hland_T))
+        >>> nodes.add_device(Node('test3', variable=hland_P))
+        >>> with TestIO():
+        ...     pub.selections.headwaters.save_networkfile(
+        ...         'test.py', write_defaultnodes=False)
+        ...     with open('test.py') as networkfile:
+        ...         print(networkfile.read())
+        # -*- coding: utf-8 -*-
+        <BLANKLINE>
+        from hydpy import Node, Element, hland_P, hland_T
+        <BLANKLINE>
+        <BLANKLINE>
+        Node("test1", variable="X")
+        <BLANKLINE>
+        Node("test2", variable=hland_T)
+        <BLANKLINE>
+        Node("test3", variable=hland_P)
+        <BLANKLINE>
+        <BLANKLINE>
+        Element("land_dill",
+                outlets="dill",
+                keywords="catchment")
+        <BLANKLINE>
+        Element("land_lahn_1",
+                outlets="lahn_1",
+                keywords="catchment")
+        <BLANKLINE>
         """
+        aliases = []
+        for variable in self.nodes.variables:
+            if not isinstance(variable, str):
+                aliases.append(f'{variable.__module__.split(".")[2]}_'
+                               f'{objecttools.classname(variable)}')
         if filepath is None:
             filepath = self.name + '.py'
         with open(filepath, 'w', encoding="utf-8") as file_:
             file_.write('# -*- coding: utf-8 -*-\n')
-            file_.write('\nfrom hydpy import Node, Element\n\n')
-            if write_nodes:
-                for node in self.nodes:
+            file_.write('\nfrom hydpy import Node, Element')
+            if aliases:
+                file_.write(f', {", ".join(aliases)}\n\n')
+            else:
+                file_.write('\n\n')
+            written = False
+            for node in self.nodes:
+                if write_defaultnodes or (node.variable != 'Q'):
                     file_.write('\n' + repr(node) + '\n')
+                    written = True
+            if written:
                 file_.write('\n')
             for element in self.elements:
                 file_.write('\n' + repr(element) + '\n')

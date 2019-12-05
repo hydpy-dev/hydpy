@@ -2,6 +2,7 @@
 """This module implements the main features for managing *HydPy* projects."""
 # import...
 # ...from standard library
+import itertools
 import warnings
 from typing import *
 # ...from site-packages
@@ -1726,7 +1727,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
         digraph.add_nodes_from(self.elements)
         digraph.add_nodes_from(self.nodes)
         for element in self.elements:
-            for node in element.inlets:
+            for node in itertools.chain(element.inlets, element.inputs):
                 digraph.add_edge(node, element)
             for node in element.outlets:
                 digraph.add_edge(element, node)

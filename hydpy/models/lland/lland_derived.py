@@ -70,60 +70,6 @@ class KInz(lland_parameters.LanduseMonthParameter):
         self.value = con.hinz*con.lai
 
 
-class WB(lland_parameters.ParameterComplete):
-    """Absolute Mindestbodenfeuchte für die Basisabflussentstehung (threshold
-       value of absolute soil moisture for base flow generation) [-]."""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
-
-    CONTROLPARAMETERS = (
-        lland_control.RelWB,
-        lland_control.NFk,
-    )
-
-    def update(self):
-        """Update |WB| based on |RelWB| and |NFk|.
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
-        >>> nhru(2)
-        >>> lnk(ACKER)
-        >>> relwb(0.2)
-        >>> nfk(100.0, 200.0)
-        >>> derived.wb.update()
-        >>> derived.wb
-        wb(20.0, 40.0)
-        """
-        con = self.subpars.pars.control
-        self.value = con.relwb*con.nfk
-
-
-class WZ(lland_parameters.ParameterComplete):
-    """Absolute Mindestbodenfeuchte für die Interflowentstehung (threshold
-       value of absolute soil moisture for interflow generation) [-]."""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
-
-    CONTROLPARAMETERS = (
-        lland_control.RelWZ,
-        lland_control.NFk,
-    )
-
-    def update(self):
-        """Update |WZ| based on |RelWZ| and |NFk|.
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
-        >>> nhru(2)
-        >>> lnk(ACKER)
-        >>> relwz(0.8)
-        >>> nfk(100.0, 200.0)
-        >>> derived.wz.update()
-        >>> derived.wz
-        wz(80.0, 160.0)
-        """
-        con = self.subpars.pars.control
-        self.value = con.relwz*con.nfk
-
-
 class KB(parametertools.Parameter):
     """Konzentrationszeit des Basisabflusses (concentration time of baseflow)
     [-]."""

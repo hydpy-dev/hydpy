@@ -76,21 +76,21 @@ class ParameterSoil(ParameterComplete):
     response units except those of type |WASSER|, |FLUSS|, |SEE|, and |VERS|.
 
     |ParameterLand| works similar to |lland_parameters.ParameterComplete|.
-    Some examples based on parameter |NFk|:
+    Some examples based on parameter |WMax|:
 
     >>> from hydpy.models.lland import *
     >>> parameterstep('1d')
     >>> nhru(5)
     >>> lnk(WASSER, ACKER, LAUBW, VERS, ACKER)
-    >>> nfk(wasser=300.0, acker=200.0, laubw=400.0, vers=300.0)
-    >>> nfk
-    nfk(acker=200.0, laubw=400.0)
-    >>> nfk(acker=200.0, default=800.0)
-    >>> nfk
-    nfk(acker=200.0, laubw=800.0)
+    >>> wmax(wasser=300.0, acker=200.0, laubw=400.0, vers=300.0)
+    >>> wmax
+    wmax(acker=200.0, laubw=400.0)
+    >>> wmax(acker=200.0, default=800.0)
+    >>> wmax
+    wmax(acker=200.0, laubw=800.0)
     >>> derived.absfhru(nan, 1.0, 1.0, nan, 1.0)
     >>> from hydpy import round_
-    >>> round_(nfk.average_values())
+    >>> round_(wmax.average_values())
     400.0
     """
     mask = lland_masks.Soil()

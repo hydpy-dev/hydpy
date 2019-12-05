@@ -298,56 +298,120 @@ class GrasRef_R(parametertools.Parameter):
     INIT = 5.
 
 
-class NFk(lland_parameters.ParameterSoil):
-    """Nutzbare Feldkapazität (usable field capacity) [mm]."""
+class WMax(lland_parameters.ParameterSoil):
+    """Maximaler Bodenwasserspeicher  (maximum soil water storage) [mm]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
     INIT = 100.
 
 
-class RelWZ(lland_parameters.ParameterSoil):
-    """Relative Mindestbodenfeuchte für die Interflowentstehung (threshold
-       value of relative soil moisture for interflow generation) [-]."""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, 1.)
-    INIT = .8
+class FK(lland_parameters.ParameterSoil):
+    """Mindestbodenfeuchte für die Interflowentstehung (threshold
+    value of soil moisture for interflow generation). Can be given as an
+    absolute value [mm] or relative portion of |Wm| [-].
+
+    Example:
+     >>> from hydpy.models.lland import *
+     >>> parameterstep('1d')
+     >>> nhru(3)
+     >>> lnk(ACKER)
+     >>> pwp(80)
+     >>> fk(100)
+     >>> fk
+     fk(100.0)
+     >>> wmax(200.0)
+     >>> pwp(relative=0.2)
+     >>> fk(relative=0.8)
+     >>> fk
+     fk(160.0)
+
+     >>> fk(proportion=1)
+     Traceback (most recent call last):
+     ...
+     TypeError: While trying to set the values of parameter `fk` of element \
+`?` based on keyword arguments `proportion`, the following error occurred: \
+Keyword `proportion` is not among the available model constants.
+     >>> fk(relative=0.5, acker=4)
+     Traceback (most recent call last):
+     ...
+     TypeError: While trying to set the values of parameter `fk` of element \
+`?` with arguments `relative and acker`:  It is not allowed to use keyword \
+`relative` and other keywords at the same time.
+     """
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+    INIT = 0.
+
+    CONTROLPARAMETERS = (
+        WMax,
+    )
+
+    def __call__(self, *args, **kwargs):
+        try:
+            super().__call__(*args, **kwargs)
+        except TypeError as exc:
+            if 'relative' in kwargs:
+                if len(kwargs) == 1:
+                    self.values = float(kwargs['relative']) * self.subpars.wmax
+                else:
+                    raise TypeError(
+                        f'While trying to set the values of parameter '
+                        f'{objecttools.elementphrase(self)} with arguments '
+                        f'`{objecttools.enumeration(kwargs.keys())}`:  '
+                        f'It is not allowed to use keyword `relative` and '
+                        f'other keywords at the same time.')
+            else:
+                raise exc
 
     def trim(self, lower=None, upper=None):
-        """Trim upper values in accordance with :math:`RelWB \\leq RelWZ`.
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
-        >>> nhru(3)
-        >>> lnk(ACKER)
-        >>> relwb.values = 0.5
-        >>> relwz(0.2, 0.5, 0.8)
-        >>> relwz
-        relwz(0.5, 0.5, 0.8)
+        """Trim upper values in accordance with :math:`WB \\leq WZ`.
         """
         if lower is None:
-            lower = getattr(self.subpars.relwb, 'value', None)
-        lland_parameters.ParameterSoil.trim(self, lower, upper)
+            lower = getattr(self.subpars.pwp, 'value', None)
+        super().trim(lower, upper)
 
 
-class RelWB(lland_parameters.ParameterSoil):
-    """Relative Mindestbodenfeuchte für die Basisabflussentstehung (threshold
-       value of relative soil moisture for base flow generation) [-]."""
+class PWP(lland_parameters.ParameterSoil):
+    """Mindestbodenfeuchte für die Basisabflussentstehung (threshold
+    value of soil moisture for base flow generation). Can be given as an
+    absolute value [mm] or relative portion of |Wm| [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
-    INIT = .05
+    INIT = .0
+
+    CONTROLPARAMETERS = (
+        WMax,
+    )
+
+    def __call__(self, *args, **kwargs):
+        try:
+            super().__call__(*args, **kwargs)
+        except TypeError as exc:
+            if 'relative' in kwargs:
+                if len(kwargs) == 1:
+                    self.values = float(kwargs['relative']) * self.subpars.wmax
+                else:
+                    raise TypeError(
+                        f'While trying to set the values of parameter '
+                        f'{objecttools.elementphrase(self)} with arguments '
+                        f'`{objecttools.enumeration(kwargs.keys())}`:  '
+                        f'It is not allowed to use keyword `relative` and '
+                        f'other keywords at the same time.')
+            else:
+                raise exc
 
     def trim(self, lower=None, upper=None):
-        """Trim upper values in accordance with :math:`RelWB \\leq RelWZ`.
+        """Trim upper values in accordance with :math:`WB \\leq WZ`.
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> nhru(3)
         >>> lnk(ACKER)
-        >>> relwz.values = 0.5
-        >>> relwb(0.2, 0.5, 0.8)
-        >>> relwb
-        relwb(0.2, 0.5, 0.5)
+        >>> fk(100)
+        >>> pwp(80)
+        >>> pwp
+        pwp(80.0)
         """
         if upper is None:
-            upper = getattr(self.subpars.relwz, 'value', None)
-        lland_parameters.ParameterSoil.trim(self, lower, upper)
+            upper = getattr(self.subpars.fk, 'value', None)
+        super().trim(lower, upper)
 
 
 class Beta(lland_parameters.ParameterSoil):

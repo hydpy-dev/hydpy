@@ -27,10 +27,6 @@ class Calc_NiederschlagRichter_V1(modeltools.Method):
     >>> fluxes.niederschlagrichter
     niederschlagrichter(5.0)
     """
-    CONTROLPARAMETERS = (
-        whmod_control.Area,   # ToDo: define elsewhere
-        whmod_control.F_AREA,   # ToDo: define elsewhere
-    )
     REQUIREDSEQUENCES = (
         whmod_inputs.Niederschlag,
     )
@@ -1252,10 +1248,10 @@ class Calc_AktBodenwassergehalt_V1(modeltools.Method):
                     sta.aktbodenwassergehalt[k] = der.nfkwe[k]
 
 
-class Calc_Aktgrundwasserneubildung_V1(modeltools.Method):
+class Calc_AktGrundwasserneubildung_V1(modeltools.Method):
     """
 
-    >>> from hydpy.models.whmod import *
+    >>> from hydpy.models.whmod_v3 import *
     >>> parameterstep()
     >>> nmb_cells(3)
     >>> nutz_nr(GRAS, VERSIEGELT, WASSER)
@@ -1293,7 +1289,42 @@ class Calc_Aktgrundwasserneubildung_V1(modeltools.Method):
             else:
                 flu.aktgrundwasserneubildung[k] = (
                     flu.sickerwasser[k] - flu.kapilaufstieg[k])
-    
+
+
+class Calc_TotGrundwasserneubildung_V1(modeltools.Method):
+    """
+
+    >>> from hydpy.models.whmod import *
+    >>> parameterstep()
+    >>> nmb_cells(3)
+    >>> area(10.0)
+    >>> f_area(2.0, 3.0, 5.0)
+    >>> fluxes.aktgrundwasserneubildung(1.0, 2.0, 3.0)
+    >>> model.calc_totgrundwasserneubildung_v1()
+    >>> fluxes.totgrundwasserneubildung
+    totgrundwasserneubildung(2.3)
+    """
+    CONTROLPARAMETERS = (
+        whmod_control.Nmb_Cells,
+        whmod_control.Area,
+        whmod_control.F_AREA,
+    )
+    REQUIREDSEQUENCES = (
+        whmod_fluxes.AktGrundwasserneubildung,
+    )
+    RESULTSEQUENCES = (
+        whmod_fluxes.TotGrundwasserneubildung,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        flu.totgrundwasserneubildung = 0.
+        for k in range(con.nmb_cells):
+            flu.totgrundwasserneubildung += \
+                con.f_area[k]*flu.aktgrundwasserneubildung[k]
+        flu.totgrundwasserneubildung /= con.area
+
 
 class Model(modeltools.AdHocModel):
     INLET_METHODS = ()
@@ -1320,7 +1351,8 @@ class Model(modeltools.AdHocModel):
         Calc_PotKapilAufstieg_V1,
         Calc_KapilAufstieg_V1,
         Calc_AktBodenwassergehalt_V1,
-        Calc_Aktgrundwasserneubildung_V1,
+        Calc_AktGrundwasserneubildung_V1,
+        Calc_TotGrundwasserneubildung_V1,
     )
     ADD_METHODS = ()
     OUTLET_METHODS = ()

@@ -39,7 +39,8 @@ class Model(modeltools.AdHocModel):
         whmod_model.Calc_PotKapilAufstieg_V1,
         whmod_model.Calc_KapilAufstieg_V1,
         whmod_model.Calc_AktBodenwassergehalt_V1,
-        whmod_model.Calc_Aktgrundwasserneubildung_V1,
+        whmod_model.Calc_AktGrundwasserneubildung_V1,
+        whmod_model.Calc_TotGrundwasserneubildung_V1,
     )
     ADD_METHODS = ()
     OUTLET_METHODS = ()

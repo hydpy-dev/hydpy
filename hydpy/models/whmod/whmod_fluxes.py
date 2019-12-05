@@ -79,3 +79,8 @@ class KapilAufstieg(Sequence1D):
 
 class AktGrundwasserneubildung(Sequence1D):
     """[mm]"""
+
+
+class TotGrundwasserneubildung(sequencetools.FluxSequence):
+    """[mm]"""
+    NDIM, NUMERIC = 0, False

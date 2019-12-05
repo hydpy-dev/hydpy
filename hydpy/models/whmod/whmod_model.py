@@ -27,6 +27,10 @@ class Calc_NiederschlagRichter_V1(modeltools.Method):
     >>> fluxes.niederschlagrichter
     niederschlagrichter(5.0)
     """
+    CONTROLPARAMETERS = (
+        whmod_control.Area,   # ToDo: define elsewhere
+        whmod_control.F_AREA,   # ToDo: define elsewhere
+    )
     REQUIREDSEQUENCES = (
         whmod_inputs.Niederschlag,
     )

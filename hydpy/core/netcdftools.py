@@ -999,6 +999,8 @@ named `state_bowa`.
                 timegrid = query_timegrid(ncfile)
                 for variable in self.variables.values():
                     variable.read(ncfile, timegrid)
+        except FileNotFoundError:
+            pass   # ToDo
         except BaseException:
             objecttools.augment_excmessage(
                 f'While trying to read data from NetCDF file `{self.filepath}`')
@@ -1007,11 +1009,12 @@ named `state_bowa`.
         """Open a new NetCDF file temporarily and call method
         |NetCDFVariableBase.write| of all handled |NetCDFVariableBase|
         objects."""
-        with netcdf4.Dataset(self.filepath, "w") as ncfile:
-            ncfile.Conventions = 'CF-1.6'
-            self._insert_timepoints(ncfile, timepoints, timeunit)
-            for variable in self.variables.values():
-                variable.write(ncfile)
+        if self.variables:
+            with netcdf4.Dataset(self.filepath, "w") as ncfile:
+                ncfile.Conventions = 'CF-1.6'
+                self._insert_timepoints(ncfile, timepoints, timeunit)
+                for variable in self.variables.values():
+                    variable.write(ncfile)
 
     @staticmethod
     def _insert_timepoints(ncfile, timepoints, timeunit) -> None:

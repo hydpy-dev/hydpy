@@ -231,6 +231,7 @@ import types
 from typing import *
 # ...third party modules
 import numpy
+from numpy import nan
 # ...from HydPy
 import hydpy
 from hydpy import config
@@ -958,6 +959,7 @@ class PyxWriter:
                      'cimport numpy',
                      'from libc.math cimport exp, fabs, log, '
                      'sin, cos, tan, asin, acos, atan, isnan',
+                     'from libc.math cimport NAN as nan',
                      'from libc.stdio cimport *',
                      'from libc.stdlib cimport *',
                      'import cython',

@@ -131,9 +131,16 @@ class F_AREA(NutzNrComplete):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 
-class MaxInterz(NutzNrComplete):
-    """[m²]"""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+class LanduseMonthParameter(parametertools.KeywordParameter2D):
+    TYPE, TIME, SPAN = float, None, (0., None)
+    COLNAMES = ('jan', 'feb', 'mar', 'apr', 'mai', 'jun',
+                'jul', 'aug', 'sep', 'oct', 'nov', 'dec')
+    ROWNAMES = ('gras', 'laubwald', 'mais', 'nadelwald', 'sommerweizen',
+                'winterweizen', 'zuckerrueben', 'versiegelt', 'wasser')
+
+
+class MaxInterz(LanduseMonthParameter):
+    """[mm]"""
 
 
 class Faktor(parametertools.KeywordParameter2D):
@@ -158,12 +165,8 @@ class FaktorWald(parametertools.KeywordParameter2D):
     ROWNAMES = ('laubwald', 'nadelwald')
 
 
-class FLN(parametertools.KeywordParameter2D):
-    TYPE, TIME, SPAN = float, None, (0., None)
-    COLNAMES = ('jan', 'feb', 'mar', 'apr', 'mai', 'jun',
-                'jul', 'aug', 'sep', 'oct', 'nov', 'dec')
-    ROWNAMES = ('gras', 'laubwald', 'mais', 'nadelwald', 'sommerweizen',
-                'winterweizen', 'zuckerrueben', 'versiegelt', 'wasser')
+class FLN(LanduseMonthParameter):
+    """[-]"""
 
 
 class Gradfaktor(NutzNrComplete):
@@ -198,4 +201,9 @@ class KapilSchwellwert(BodenTypComplete):
 
 class KapilGrenzwert(BodenTypComplete):
     """[-]"""
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+
+
+class BFI(BodenTypComplete):
+    """Base Flow Index [-]"""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)

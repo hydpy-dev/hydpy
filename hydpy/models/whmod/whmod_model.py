@@ -302,28 +302,62 @@ class Calc_InterzeptionsVerdunstung_V1(modeltools.Method):
 class Calc_Interzeptionsspeicher_V1(modeltools.Method):
     """
 
-    >>> from hydpy import pub
-    >>> pub.options.usecython = False
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmb_cells(6)
-    >>> nutz_nr(GRAS, GRAS, GRAS, GRAS, GRAS, WASSER)
-    >>> maxinterz(0.0, 1.0, 1.0, 2.0, 3.0, 3.0)
+    >>> nutz_nr(LAUBWALD)
+    >>> maxinterz(gras=[0.4, 0.4, 0.6, 0.8, 1.0, 1.0,
+    ...                 1.0, 1.0, 1.0, 0.6, 0.5, 0.4],
+    ...           laubwald=[0.1, 0.1, 0.3, 0.8, 1.4, 2.2,
+    ...                     2.4, 2.4, 2.2, 1.6, 0.3, 0.1],
+    ...           mais=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04,
+    ...                 0.92, 0.62, 0.26, 0.04, 0.0, 0.0],
+    ...           nadelwald=[2.2, 2.2, 2.2, 2.2, 2.2, 2.2,
+    ...                      2.2, 2.2, 2.2, 2.2, 2.2, 2.2],
+    ...           sommerweizen=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04,
+    ...                         0.92, 0.62, 0.26, 0.04, 0.0, 0.0],
+    ...           winterweizen=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04,
+    ...                         0.92, 0.62, 0.26, 0.04, 0.0, 0.0],
+    ...           zuckerrueben=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04,
+    ...                         0.92, 0.62, 0.26, 0.04, 0.0, 0.0],
+    ...           versiegelt=[2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
+    ...                       2.0, 2.0, 2.0, 2.0, 2.0, 2.0],
+    ...           wasser=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    ...                   0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+
+    >>> from hydpy import pub
+    >>> pub.timegrids = '2001-06-29', '2001-07-03', '1d'
+    >>> derived.moy.update()
+
     >>> fluxes.niederschlagrichter = 1.0
-    >>> fluxes.maxverdunstung = 0.0, 0.0, 1.0, 2.0, 2.0, 2.0
-    >>> states.interzeptionsspeicher = 0.0, 0.0, 1.0, 1.0, 2.0, 2.0
+    >>> fluxes.maxverdunstung = 0.0, 0.0, 0.0, 1.0, 2.0, 3.0
+    >>> states.interzeptionsspeicher = 0.0, 1.0, 2.0, 2.0, 2.0, 2.0
+    >>> model.idx_sim = 1
     >>> model.calc_interzeptionsspeicher_v1()
     >>> states.interzeptionsspeicher
-    interzeptionsspeicher(0.0, 1.0, 0.0, 0.0, 1.0, 0.0)
+    interzeptionsspeicher(1.0, 2.0, 2.2, 1.2, 0.2, 0.0)
     >>> fluxes.niednachinterz
-    niednachinterz(1.0, 0.0, 1.0, 0.0, 0.0, 1.0)
+    niednachinterz(0.0, 0.0, 0.8, 0.8, 0.8, 0.8)
     >>> fluxes.interzeptionsverdunstung
-    interzeptionsverdunstung(0.0, 0.0, 1.0, 2.0, 2.0, 0.0)
+    interzeptionsverdunstung(0.0, 0.0, 0.0, 1.0, 2.0, 2.2)
+
+    >>> states.interzeptionsspeicher = 0.0, 1.0, 2.0, 2.0, 2.0, 2.0
+    >>> model.idx_sim = 2
+    >>> model.calc_interzeptionsspeicher_v1()
+    >>> states.interzeptionsspeicher
+    interzeptionsspeicher(1.0, 2.0, 2.4, 1.4, 0.4, 0.0)
+    >>> fluxes.niednachinterz
+    niednachinterz(0.0, 0.0, 0.6, 0.6, 0.6, 0.6)
+    >>> fluxes.interzeptionsverdunstung
+    interzeptionsverdunstung(0.0, 0.0, 0.0, 1.0, 2.0, 2.4)
     """
     CONTROLPARAMETERS = (
         whmod_control.Nmb_Cells,
         whmod_control.Nutz_Nr,
         whmod_control.MaxInterz,
+    )
+    DERIVEDPARAMETERS = (
+        whmod_derived.MOY,
     )
     REQUIREDSEQUENCES = (
         whmod_fluxes.NiederschlagRichter,
@@ -339,17 +373,20 @@ class Calc_Interzeptionsspeicher_V1(modeltools.Method):
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
+        month = der.moy[model.idx_sim]
         for k in range(con.nmb_cells):
             if con.nutz_nr[k] == WASSER:
                 sta.interzeptionsspeicher[k] = 0.
                 flu.niednachinterz[k] = flu.niederschlagrichter
                 flu.interzeptionsverdunstung[k] = 0.
             else:
+                d_maxinterz = con.maxinterz[con.nutz_nr[k]-1, month]
                 sta.interzeptionsspeicher[k] += flu.niederschlagrichter
                 flu.niednachinterz[k] = max(
-                    sta.interzeptionsspeicher[k]-con.maxinterz[k], 0.)
+                    sta.interzeptionsspeicher[k]-d_maxinterz, 0.)
                 sta.interzeptionsspeicher[k] -= flu.niednachinterz[k]
                 flu.interzeptionsverdunstung[k] = min(
                     sta.interzeptionsspeicher[k], flu.maxverdunstung[k])
@@ -359,28 +396,62 @@ class Calc_Interzeptionsspeicher_V1(modeltools.Method):
 class Calc_Interzeptionsspeicher_V2(modeltools.Method):
     """
 
-    >>> from hydpy import pub
-    >>> pub.options.usecython = False
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmb_cells(6)
-    >>> nutz_nr(GRAS, GRAS, GRAS, GRAS, GRAS, WASSER)
-    >>> maxinterz(0.0, 1.0, 1.0, 2.0, 3.0, 3.0)
-    >>> fluxes.niederschlagrichter = 2.0   # ToDo: better testing required
-    >>> fluxes.maxverdunstung = 0.0, 0.0, 1.0, 2.0, 2.0, 2.0
-    >>> states.interzeptionsspeicher = 0.0, 0.0, 1.0, 1.0, 2.0, 2.0
+    >>> nutz_nr(LAUBWALD)
+    >>> maxinterz(gras=[0.4, 0.4, 0.6, 0.8, 1.0, 1.0,
+    ...                 1.0, 1.0, 1.0, 0.6, 0.5, 0.4],
+    ...           laubwald=[0.1, 0.1, 0.3, 0.8, 1.4, 2.2,
+    ...                     2.4, 2.4, 2.2, 1.6, 0.3, 0.1],
+    ...           mais=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04,
+    ...                 0.92, 0.62, 0.26, 0.04, 0.0, 0.0],
+    ...           nadelwald=[2.2, 2.2, 2.2, 2.2, 2.2, 2.2,
+    ...                      2.2, 2.2, 2.2, 2.2, 2.2, 2.2],
+    ...           sommerweizen=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04,
+    ...                         0.92, 0.62, 0.26, 0.04, 0.0, 0.0],
+    ...           winterweizen=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04,
+    ...                         0.92, 0.62, 0.26, 0.04, 0.0, 0.0],
+    ...           zuckerrueben=[0.08, 0.08, 0.06, 0.14, 0.6, 1.04,
+    ...                         0.92, 0.62, 0.26, 0.04, 0.0, 0.0],
+    ...           versiegelt=[2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
+    ...                       2.0, 2.0, 2.0, 2.0, 2.0, 2.0],
+    ...           wasser=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+    ...                   0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+
+    >>> from hydpy import pub
+    >>> pub.timegrids = '2001-06-29', '2001-07-03', '1d'
+    >>> derived.moy.update()
+
+    >>> fluxes.niederschlagrichter = 1.0
+    >>> fluxes.maxverdunstung = 0.0, 0.0, 0.0, 1.0, 2.0, 3.0
+    >>> states.interzeptionsspeicher = 0.0, 1.0, 2.0, 2.0, 2.0, 2.0
+    >>> model.idx_sim = 1
     >>> model.calc_interzeptionsspeicher_v2()
     >>> states.interzeptionsspeicher
-    interzeptionsspeicher(0.0, 1.0, 1.0, 1.0, 2.0, 0.0)
+    interzeptionsspeicher(1.0, 2.0, 2.2, 2.0, 1.0, 0.0)
     >>> fluxes.niednachinterz
-    niednachinterz(2.0, 1.0, 1.0, 0.0, 0.0, 2.0)
+    niednachinterz(0.0, 0.0, 0.8, 0.0, 0.0, 0.0)
     >>> fluxes.interzeptionsverdunstung
-    interzeptionsverdunstung(0.0, 0.0, 1.0, 2.0, 2.0, 0.0)
+    interzeptionsverdunstung(0.0, 0.0, 0.0, 1.0, 2.0, 3.0)
+
+    >>> states.interzeptionsspeicher = 0.0, 1.0, 2.0, 2.0, 2.0, 2.0
+    >>> model.idx_sim = 2
+    >>> model.calc_interzeptionsspeicher_v2()
+    >>> states.interzeptionsspeicher
+    interzeptionsspeicher(1.0, 2.0, 2.4, 2.0, 1.0, 0.0)
+    >>> fluxes.niednachinterz
+    niednachinterz(0.0, 0.0, 0.6, 0.0, 0.0, 0.0)
+    >>> fluxes.interzeptionsverdunstung
+    interzeptionsverdunstung(0.0, 0.0, 0.0, 1.0, 2.0, 3.0)
     """
     CONTROLPARAMETERS = (
         whmod_control.Nmb_Cells,
         whmod_control.Nutz_Nr,
         whmod_control.MaxInterz,
+    )
+    DERIVEDPARAMETERS = (
+        whmod_derived.MOY,
     )
     REQUIREDSEQUENCES = (
         whmod_fluxes.NiederschlagRichter,
@@ -396,20 +467,23 @@ class Calc_Interzeptionsspeicher_V2(modeltools.Method):
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
+        month = der.moy[model.idx_sim]
         for k in range(con.nmb_cells):
             if con.nutz_nr[k] == WASSER:
                 sta.interzeptionsspeicher[k] = 0.
                 flu.niednachinterz[k] = flu.niederschlagrichter
                 flu.interzeptionsverdunstung[k] = 0.
             else:
+                d_maxinterz = con.maxinterz[con.nutz_nr[k] - 1, month]
                 sta.interzeptionsspeicher[k] += flu.niederschlagrichter
                 flu.interzeptionsverdunstung[k] = min(
                     sta.interzeptionsspeicher[k], flu.maxverdunstung[k])
                 sta.interzeptionsspeicher[k] -= flu.interzeptionsverdunstung[k]
                 flu.niednachinterz[k] = max(
-                    sta.interzeptionsspeicher[k]-con.maxinterz[k], 0.)
+                    sta.interzeptionsspeicher[k]-d_maxinterz, 0.)
                 sta.interzeptionsspeicher[k] -= flu.niednachinterz[k]
 
 
@@ -754,10 +828,6 @@ class Calc_MaxVerdunstung_V2(modeltools.Method):
     Modifikation einer extern vorgegebenen potenziellen Verdunstung
     (FAO Grasreferenzverdunstung).
 
-    >>> from hydpy import pub
-    >>> pub.options.reprdigits = 6
-    >>> pub.options.usecython = False
-
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmb_cells(5)
@@ -869,8 +939,6 @@ class Calc_Bodenverdunstung_V1(modeltools.Method):
 class Corr_Bodenverdunstung_V1(modeltools.Method):
     """
 
-    >>> from hydpy import pub
-    >>> pub.options.usecython = False
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
     >>> nmb_cells(7)
@@ -1248,7 +1316,7 @@ class Calc_AktBodenwassergehalt_V1(modeltools.Method):
                     sta.aktbodenwassergehalt[k] = der.nfkwe[k]
 
 
-class Calc_AktGrundwasserneubildung_V1(modeltools.Method):
+class Calc_PotGrundwasserneubildung_V1(modeltools.Method):
     """
 
     >>> from hydpy.models.whmod_v3 import *
@@ -1259,9 +1327,9 @@ class Calc_AktGrundwasserneubildung_V1(modeltools.Method):
     >>> fluxes.kapilaufstieg(1.0)
     >>> fluxes.seeniederschlag(7.0)
     >>> fluxes.seeverdunstung(4.0)
-    >>> model.calc_aktgrundwasserneubildung_v1()
-    >>> fluxes.aktgrundwasserneubildung
-    aktgrundwasserneubildung(1.0, 0.0, 3.0)
+    >>> model.calc_potgrundwasserneubildung_v1()
+    >>> fluxes.potgrundwasserneubildung
+    potgrundwasserneubildung(1.0, 0.0, 3.0)
     """
     CONTROLPARAMETERS = (
         whmod_control.Nmb_Cells,
@@ -1274,7 +1342,7 @@ class Calc_AktGrundwasserneubildung_V1(modeltools.Method):
         whmod_fluxes.KapilAufstieg,
     )
     RESULTSEQUENCES = (
-        whmod_fluxes.AktGrundwasserneubildung,
+        whmod_fluxes.PotGrundwasserneubildung,
     )
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -1282,48 +1350,54 @@ class Calc_AktGrundwasserneubildung_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmb_cells):
             if con.nutz_nr[k] == WASSER:
-                flu.aktgrundwasserneubildung[k] = (
+                flu.potgrundwasserneubildung[k] = (
                     flu.seeniederschlag[k] - flu.seeverdunstung[k])
             elif con.nutz_nr[k] == VERSIEGELT:
-                flu.aktgrundwasserneubildung[k] = 0.
+                flu.potgrundwasserneubildung[k] = 0.
             else:
-                flu.aktgrundwasserneubildung[k] = (
+                flu.potgrundwasserneubildung[k] = (
                     flu.sickerwasser[k] - flu.kapilaufstieg[k])
 
 
-class Calc_TotGrundwasserneubildung_V1(modeltools.Method):
+class Calc_AktGrundwasserneubildung_V1(modeltools.Method):
     """
 
     >>> from hydpy.models.whmod import *
     >>> parameterstep()
-    >>> nmb_cells(3)
-    >>> area(10.0)
-    >>> f_area(2.0, 3.0, 5.0)
-    >>> fluxes.aktgrundwasserneubildung(1.0, 2.0, 3.0)
-    >>> model.calc_totgrundwasserneubildung_v1()
-    >>> fluxes.totgrundwasserneubildung
-    totgrundwasserneubildung(2.3)
+    >>> nmb_cells(4)
+    >>> area(14.0)
+    >>> f_area(2.0, 3.0, 5.0, 4.0)
+    >>> bfi(1.0, 0.5, 1.0, 0.5)
+    >>> fluxes.potgrundwasserneubildung(2.0, 10.0, -2.0, -0.5)
+    >>> model.calc_aktgrundwasserneubildung_v1()
+    >>> fluxes.aktgrundwasserneubildung
+    aktgrundwasserneubildung(0.5)
     """
     CONTROLPARAMETERS = (
         whmod_control.Nmb_Cells,
         whmod_control.Area,
         whmod_control.F_AREA,
+        whmod_control.BFI,
     )
     REQUIREDSEQUENCES = (
-        whmod_fluxes.AktGrundwasserneubildung,
+        whmod_fluxes.PotGrundwasserneubildung,
     )
     RESULTSEQUENCES = (
-        whmod_fluxes.TotGrundwasserneubildung,
+        whmod_fluxes.AktGrundwasserneubildung,
     )
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        flu.totgrundwasserneubildung = 0.
+        flu.aktgrundwasserneubildung = 0.
         for k in range(con.nmb_cells):
-            flu.totgrundwasserneubildung += \
-                con.f_area[k]*flu.aktgrundwasserneubildung[k]
-        flu.totgrundwasserneubildung /= con.area
+            if flu.potgrundwasserneubildung[k] > 0.:
+                flu.aktgrundwasserneubildung += \
+                    con.f_area[k]*con.bfi[k]*flu.potgrundwasserneubildung[k]
+            else:
+                flu.aktgrundwasserneubildung += \
+                    con.f_area[k]*flu.potgrundwasserneubildung[k]
+        flu.aktgrundwasserneubildung /= con.area
 
 
 class Model(modeltools.AdHocModel):
@@ -1351,8 +1425,8 @@ class Model(modeltools.AdHocModel):
         Calc_PotKapilAufstieg_V1,
         Calc_KapilAufstieg_V1,
         Calc_AktBodenwassergehalt_V1,
+        Calc_PotGrundwasserneubildung_V1,
         Calc_AktGrundwasserneubildung_V1,
-        Calc_TotGrundwasserneubildung_V1,
     )
     ADD_METHODS = ()
     OUTLET_METHODS = ()

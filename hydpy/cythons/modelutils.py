@@ -958,7 +958,7 @@ class PyxWriter:
         return Lines('import numpy',
                      'cimport numpy',
                      'from libc.math cimport exp, fabs, log, '
-                     'sin, cos, tan, asin, acos, atan, isnan',
+                     'sin, cos, tan, asin, acos, atan, isnan, isinf',
                      'from libc.math cimport NAN as nan',
                      'from libc.stdio cimport *',
                      'from libc.stdlib cimport *',
@@ -2274,3 +2274,17 @@ def isnan(double: float) -> float:
     call(123.4)
     """
     return numpy.isnan(double)
+
+
+def isinf(double: float) -> float:
+    """Cython wrapper for the |numpy.isinf| function of module |numpy| applied
+    on a single |float| object.
+
+    >>> from hydpy.cythons.modelutils import isnan
+    >>> from unittest import mock
+    >>> with mock.patch('numpy.isinf') as func:
+    ...     _ = isinf(123.4)
+    >>> func.call_args
+    call(123.4)
+    """
+    return numpy.isinf(double)

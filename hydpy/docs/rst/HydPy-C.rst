@@ -7,7 +7,8 @@ HydPy-C (Conv)
 converters that allow connecting different kinds of models providing output
 and requiring input that does not fit immediately.  The most typical use
 case is interpolating data, which is implemented by the application model
-|conv_v001| using the nearest-neighbour approach.
+|conv_v001| using the nearest-neighbour approach and by application model
+|conv_v002| using the inverse distance weighted approach.
 
 Base model:
 
@@ -21,3 +22,4 @@ Application model:
 .. toctree::
 
    conv_v001
+   conv_v002

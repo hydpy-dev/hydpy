@@ -92,15 +92,59 @@ class NmbOutputs(parametertools.Parameter):
         self(self.subpars.pars.control.outputcoordinates.shape[0])
 
 
+class Distances(parametertools.Parameter):
+    """Distances of the inlet nodes to each outlet node [?]."""
+    NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
+
+    CONTROLPARAMETERS = (
+        conv_control.InputCoordinates,
+        conv_control.OutputCoordinates,
+    )
+
+    def update(self) -> None:
+        """Determine the distances.
+
+        The individual rows of parameter |Distances| correspond to the
+        outlet nodes; the columns contain the indices of the inlet nodes:
+
+        >>> from hydpy.models.conv import *
+        >>> parameterstep()
+        >>> inputcoordinates(
+        ...     in1=(0.0, 3.0),
+        ...     in2=(2.0, -1.0))
+        >>> outputcoordinates(
+        ...     out1=(0.0, 3.0),
+        ...     out2=(3.0, -2.0),
+        ...     out3=(1.0, 2.0))
+        >>> derived.distances.update()
+        >>> derived.distances
+        distances([[0.0, 4.472136],
+                   [5.830952, 1.414214],
+                   [1.414214, 3.162278]])
+        """
+        control = self.subpars.pars.control
+        incoords = control.inputcoordinates.__hydpy__get_value__()
+        outcoords = control.outputcoordinates.__hydpy__get_value__()
+        distances = numpy.empty((len(outcoords), len(incoords)), dtype=float)
+        for idx, outcoord in enumerate(outcoords):
+            distances[idx, :] = numpy.sqrt(
+                numpy.sum((outcoord-incoords)**2, axis=1))
+        self.__hydpy__set_shape__(distances.shape)
+        self.__hydpy__set_value__(distances)
+
+
 class ProximityOrder(parametertools.Parameter):
     """Indices of the inlet nodes in the order of their proximity to each
-    outlet node [-]"""
+    outlet node [-]."""
     NDIM, TYPE, TIME, SPAN = 2, int, None, (None, None)
 
     CONTROLPARAMETERS = (
         conv_control.MaxNmbInputs,
         conv_control.InputCoordinates,
         conv_control.OutputCoordinates,
+    )
+    DERIVEDPARAMETERS = (
+        Distances,
     )
 
     def update(self) -> None:
@@ -120,6 +164,7 @@ class ProximityOrder(parametertools.Parameter):
         ...     out2=(3.0, -2.0),
         ...     out3=(1.0, 2.0))
         >>> maxnmbinputs()
+        >>> derived.distances.update()
         >>> derived.proximityorder.update()
         >>> derived.proximityorder
         proximityorder([[0, 1],
@@ -137,12 +182,83 @@ class ProximityOrder(parametertools.Parameter):
                         [0]])
         """
         control = self.subpars.pars.control
-        incoords = control.inputcoordinates.__hydpy__get_value__()
-        outcoords = control.outputcoordinates.__hydpy__get_value__()
         nmbinputs = control.maxnmbinputs.__hydpy__get_value__()
-        idxs = numpy.empty((len(outcoords), nmbinputs), dtype=int)
-        for idx, outcoord in enumerate(outcoords):
-            distance = numpy.sqrt(numpy.sum((outcoord-incoords)**2, axis=1))
-            idxs[idx, :] = numpy.argsort(distance)[:nmbinputs]
+        distances = self.subpars.distances.__hydpy__get_value__()
+        idxs = numpy.empty((len(distances), nmbinputs), dtype=int)
+        for idx, distances_ in enumerate(distances):
+            idxs[idx, :] = numpy.argsort(distances_)[:nmbinputs]
         self.__hydpy__set_shape__(idxs.shape)
         self.__hydpy__set_value__(idxs)
+
+
+class Weights(parametertools.Parameter):
+    """Weighting coefficients of the inlet nodes corresponding to their
+    proximity to each outlet node and parameter |Power| [-]."""
+    NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
+
+    CONTROLPARAMETERS = (
+        conv_control.MaxNmbInputs,
+        conv_control.InputCoordinates,
+        conv_control.OutputCoordinates,
+        conv_control.Power,
+    )
+
+    DERIVEDPARAMETERS = (
+        Distances,
+        ProximityOrder,
+    )
+
+    def update(self) -> None:
+        """Determine the weighting coefficients.
+
+        The individual rows of parameter |Weights| correspond to the
+        outlet nodes; the rows contain the weights of the inlet nodes:
+
+        >>> from hydpy.models.conv import *
+        >>> parameterstep()
+        >>> inputcoordinates(
+        ...     in1=(0.0, 3.0),
+        ...     in2=(2.0, -1.0),
+        ...     in3=(0.0, 3.0),
+        ...     in4=(99.0, 99.0))
+        >>> outputcoordinates(
+        ...     out1=(0.0, 3.0),
+        ...     out2=(3.0, -2.0),
+        ...     out3=(1.0, 2.0))
+        >>> maxnmbinputs()
+        >>> power(2.0)
+        >>> derived.distances.update()
+        >>> derived.proximityorder.update()
+        >>> derived.weights.update()
+        >>> derived.weights
+        weights([[inf, inf, 0.05, 0.000053],
+                 [0.5, 0.029412, 0.029412, 0.000052],
+                 [0.5, 0.5, 0.1, 0.000053]])
+
+        You can restrict the number of inlet nodes used for each outlet
+        node via parameter |MaxNmbInputs|.  In the given example it seems
+        reasonable to set its value to three to ignore the far-distant
+        inlet node `in4`:
+
+        >>> maxnmbinputs(3)
+        >>> derived.distances.update()
+        >>> derived.proximityorder.update()
+        >>> derived.weights.update()
+        >>> derived.weights
+        weights([[inf, inf, 0.05],
+                 [0.5, 0.029412, 0.029412],
+                 [0.5, 0.5, 0.1]])
+        """
+        control = self.subpars.pars.control
+        nmbinputs = control.maxnmbinputs.__hydpy__get_value__()
+        power = control.power.__hydpy__get_value__()
+        distances = self.subpars.distances.__hydpy__get_value__()
+        proximityorder = self.subpars.proximityorder.__hydpy__get_value__()
+        weights = numpy.empty((len(distances), nmbinputs), dtype=float)
+        for idx, distances_ in enumerate(distances):
+            sorteddistances = distances_[proximityorder[idx, :]]
+            jdxs = sorteddistances > 0.
+            weights[idx, jdxs] = 1./sorteddistances[jdxs]**power
+            weights[idx, ~jdxs] = numpy.inf
+        self.__hydpy__set_shape__(weights.shape)
+        self.__hydpy__set_value__(weights)

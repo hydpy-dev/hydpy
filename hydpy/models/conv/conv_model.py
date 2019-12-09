@@ -9,6 +9,7 @@ from hydpy.core import devicetools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.cythons import modelutils
+from hydpy.models.conv import conv_control
 from hydpy.models.conv import conv_derived
 from hydpy.models.conv import conv_fluxes
 from hydpy.models.conv import conv_inlets
@@ -72,6 +73,9 @@ class Calc_Outputs_V1(modeltools.Method):
         >>> fluxes.outputs
         outputs(1.0, 1.0, 1.0)
     """
+    CONTROLPARAMETERS = (
+        conv_control.MaxNmbInputs,
+    )
     DERIVEDPARAMETERS = (
         conv_derived.NmbOutputs,
         conv_derived.ProximityOrder,
@@ -93,6 +97,102 @@ class Calc_Outputs_V1(modeltools.Method):
                 flu.outputs[idx_out] = flu.inputs[idx_in]
                 if not modelutils.isnan(flu.outputs[idx_out]):
                     break
+
+
+class Calc_Outputs_V2(modeltools.Method):
+    """Perform a simple inverse distance weighted interpolation.
+
+    Examples:
+
+        With complete input data, method |Calc_Outputs_V2| performs the
+        most simple inverse distance weighted approach:
+
+        >>> from hydpy.models.conv import *
+        >>> parameterstep()
+
+        >>> maxnmbinputs.value = 4
+        >>> derived.nmboutputs(3)
+        >>> derived.proximityorder.shape = 3, 4
+        >>> derived.proximityorder([[0, 2, 1, 3],
+        ...                         [1, 0, 2, 3],
+        ...                         [0, 2, 1, 3]])
+        >>> derived.weights.shape = 3, 4
+        >>> derived.weights([[inf, inf, 0.05, 0.000053],
+        ...                  [0.5, 0.029412, 0.029412, 0.000052],
+        ...                  [0.5, 0.5, 0.1, 0.000053]])
+
+        >>> fluxes.inputs.shape = 4
+        >>> fluxes.inputs = 1.0, 5.0, 3.0, 6.0
+        >>> model.calc_outputs_v2()
+        >>> fluxes.outputs
+        outputs(2.0, 4.684331, 2.272907)
+
+        With incomplete data, it subsequently skips all missing values.
+        Parameter |MaxNmbInputs| defines the maximum number of considered
+        locations:
+
+        >>> fluxes.inputs = nan, 5.0, nan, 6.0
+        >>> model.calc_outputs_v2()
+        >>> fluxes.outputs
+        outputs(5.001059, 5.000104, 5.00053)
+
+        With just one considered location, method |Calc_Outputs_V2|
+        calculates the same results the simplest nearest-neighbour approach
+        implemented by method |Calc_Outputs_V1|:
+
+        >>> maxnmbinputs.value = 1
+        >>> derived.proximityorder.shape = 3, 1
+        >>> derived.proximityorder([[0],
+        ...                         [1],
+        ...                         [0]])
+        >>> derived.weights.shape = 3, 1
+        >>> derived.weights([[inf],
+        ...                  [0.5],
+        ...                  [0.5]])
+        >>> model.calc_outputs_v2()
+        >>> fluxes.outputs
+        outputs(nan, 5.0, nan)
+    """
+    CONTROLPARAMETERS = (
+        conv_control.MaxNmbInputs,
+    )
+    DERIVEDPARAMETERS = (
+        conv_derived.NmbOutputs,
+        conv_derived.ProximityOrder,
+        conv_derived.Weights,
+    )
+    REQUIREDSEQUENCES = (
+        conv_fluxes.Inputs,
+    )
+    RESULTSEQUENCES = (
+        conv_fluxes.Outputs,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for idx_out in range(der.nmboutputs):
+            d_sumweights = 0.
+            d_sumvalues = 0.
+            d_sumvalues_inf = 0.
+            counter_inf = 0
+            for idx_try in range(con.maxnmbinputs):
+                idx_in = der.proximityorder[idx_out, idx_try]
+                if not modelutils.isnan(flu.inputs[idx_in]):
+                    if modelutils.isinf(der.weights[idx_out, idx_try]):
+                        d_sumvalues_inf += flu.inputs[idx_in]
+                        counter_inf += 1
+                    else:
+                        d_sumweights += der.weights[idx_out, idx_try]
+                        d_sumvalues += \
+                            der.weights[idx_out, idx_try]*flu.inputs[idx_in]
+            if counter_inf:
+                flu.outputs[idx_out] = d_sumvalues_inf/counter_inf
+            elif d_sumweights:
+                flu.outputs[idx_out] = d_sumvalues/d_sumweights
+            else:
+                flu.outputs[idx_out] = modelutils.nan
 
 
 class Pass_Outputs_V1(modeltools.Method):
@@ -123,6 +223,7 @@ class Model(modeltools.AdHocModel):
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         Calc_Outputs_V1,
+        Calc_Outputs_V2,
     )
     ADD_METHODS = ()
     OUTLET_METHODS = (

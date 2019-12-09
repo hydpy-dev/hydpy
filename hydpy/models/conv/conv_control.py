@@ -168,3 +168,7 @@ element `?` is not valid.
         if upper is None:
             upper = self.subpars.inputcoordinates.shape[0]
         super().trim(lower, upper)
+
+
+class Power(parametertools.Parameter):
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)

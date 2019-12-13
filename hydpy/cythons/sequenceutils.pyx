@@ -17,6 +17,8 @@ from hydpy.cythons cimport pointerutils
 
 @cython.final
 cdef class FastAccessNodeSequence:
+    """Cython implementation of class |sequencetools.FastAccessNodeSequence|
+    of module |sequencetools|."""
 
     cpdef void open_files(self, int idx):
         """Open all files with an activated disk flag."""

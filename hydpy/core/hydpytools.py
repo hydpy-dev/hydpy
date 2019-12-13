@@ -20,6 +20,8 @@ from hydpy.core import timetools
 from hydpy.core import typingtools
 if TYPE_CHECKING:
     from hydpy.core import auxfiletools
+    from hydpy.core.logtools import Logger
+    from hydpy.core.sequencetools import Sequence
 
 
 ConditionsType = Dict[str, Dict[str, Dict[str, Union[float, numpy.ndarray]]]]
@@ -624,10 +626,12 @@ requested to make any internal data available.
     _nodes: Optional[devicetools.Nodes]
     _elements: Optional[devicetools.Elements]
     deviceorder: List[devicetools.Device]
+    logger: Optional['Logger']
 
     def __init__(self, projectname: Optional[str] = None):
         self._nodes = None
         self._elements = None
+        self.logger = None
         self.deviceorder = []
         if projectname is not None:
             hydpy.pub.projectname = projectname
@@ -1871,6 +1875,8 @@ one value needed to be trimmed.  The old and the new value(s) are \
         for node in self.nodes:
             if node.deploymode != 'oldsim':
                 funcs.append(node.sequences.fastaccess.save_simdata)
+        if self.logger:
+            funcs.append(self.logger.update)
         return funcs
 
     @printtools.print_progress

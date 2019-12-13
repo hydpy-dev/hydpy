@@ -69,6 +69,7 @@ standardize writing *HydPy* code.
    importtools
    indextools
    itemtools
+   logtools
    masktools
    modeltools
    netcdftools

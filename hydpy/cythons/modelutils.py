@@ -887,7 +887,7 @@ class PyxWriter:
         file ("pyx")."""
         with open(self.pyxpath, 'w') as pxf:
             print('    * cython options')
-            pxf.write(repr(self.cythonoptions))
+            pxf.write(repr(self.cythondistutilsoptions))
             print('    * C imports')
             pxf.write(repr(self.cimports))
             print('    * constants (if defined)')
@@ -909,13 +909,47 @@ class PyxWriter:
             pxf.write(repr(self.modeluserfunctions))
 
     @property
-    def cythonoptions(self) -> List[str]:
-        """Cython option lines."""
+    def cythondistutilsoptions(self) -> List[str]:
+        """Cython and Distutils option lines.
+
+        Use the configuration options "FASTCYTHON" and "PROFILECYTHON" to
+        configure the cythonization processes as follows:
+
+        >>> from hydpy.cythons.modelutils import PyxWriter
+        >>> pyxwriter = PyxWriter(None, None, None)
+        >>> pyxwriter.cythondistutilsoptions
+        #!python
+        # cython: boundscheck=False
+        # cython: wraparound=False
+        # cython: initializedcheck=False
+        <BLANKLINE>
+
+        >>> from hydpy import config
+        >>> config.FASTCYTHON = False
+        >>> config.PROFILECYTHON = True
+        >>> pyxwriter.cythondistutilsoptions
+        #!python
+        # cython: boundscheck=True
+        # cython: wraparound=True
+        # cython: initializedcheck=True
+        # cython: linetrace=True
+        # distutils: define_macros=CYTHON_TRACE=1
+        # distutils: define_macros=CYTHON_TRACE_NOGIL=1
+        <BLANKLINE>
+
+        >>> config.FASTCYTHON = True
+        >>> config.PROFILECYTHON = False
+        """
         flag = 'False' if config.FASTCYTHON else 'True'
-        return Lines('#!python',
-                     f'#cython: boundscheck={flag}',
-                     f'#cython: wraparound={flag}',
-                     f'#cython: initializedcheck={flag}')
+        lines = Lines(f'#!python',
+                      f'# cython: boundscheck={flag}',
+                      f'# cython: wraparound={flag}',
+                      f'# cython: initializedcheck={flag}')
+        if config.PROFILECYTHON:
+            lines.add(0, '# cython: linetrace=True')
+            lines.add(0, '# distutils: define_macros=CYTHON_TRACE=1')
+            lines.add(0, '# distutils: define_macros=CYTHON_TRACE_NOGIL=1')
+        return lines
 
     @property
     def cimports(self) -> List[str]:

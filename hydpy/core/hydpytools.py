@@ -1856,7 +1856,7 @@ one value needed to be trimmed.  The old and the new value(s) are \
                 funcs.append(node.sequences.fastaccess.load_obsdata)
         for node in self.nodes:
             if node.deploymode != 'oldsim':
-                funcs.append(node.reset)
+                funcs.append(node.sequences.fastaccess.reset)
         for device in self.deviceorder:
             if isinstance(device, devicetools.Element):
                 funcs.append(device.model.simulate)

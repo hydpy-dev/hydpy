@@ -1627,7 +1627,7 @@ the given group name `test`.
             f'Function `get_double` of class `Node` does not '
             f'support the given group name `{group}`.')
 
-    def reset(self, idx: Optional[int] = None) -> None:
+    def reset(self, idx: int = 0) -> None:
         # pylint: disable=unused-argument
         # required for consistincy with the other reset methods.
         """Reset the actual value of the simulation sequence to zero.
@@ -1639,7 +1639,7 @@ the given group name `test`.
         >>> node.sequences.sim
         sim(0.0)
         """
-        self.sequences.fastaccess.sim[0] = 0.
+        self.sequences.fastaccess.reset(idx)
 
     def open_files(self, idx: int = 0) -> None:
         """Call method |Sequences.open_files| of the |Sequences| object

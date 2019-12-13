@@ -22,6 +22,7 @@ from hydpy.core import objecttools
 from hydpy.core import propertytools
 from hydpy.core import variabletools
 from hydpy.cythons.autogen import pointerutils
+from hydpy.cythons.autogen import sequenceutils
 if TYPE_CHECKING:
     from hydpy.core import devicetools
     from hydpy.core import modeltools
@@ -550,22 +551,33 @@ class SubSequences(variabletools.SubVariables[Sequences]):
 
     Each |SubSequences| object has a `fastaccess` attribute.  When
     working in pure Python mode, this is an instance either of class
-    |FastAccessModelSequence| of class |FastAccessNodeSequence|:
+    |FastAccessModelSequence| or |FastAccessNodeSequence|:
 
-    >>> from hydpy import classname, prepare_model, pub
+    >>> from hydpy import classname, Node, prepare_model, pub
     >>> with pub.options.usecython(False):
     ...     model = prepare_model('lland_v1')
     >>> classname(model.sequences.inputs.fastaccess)
     'FastAccessModelSequence'
+    >>> from hydpy.core.sequencetools import FastAccessNodeSequence
+    >>> with pub.options.usecython(False):
+    ...     node = Node('test1')
+    >>> isinstance(node.sequences.fastaccess, FastAccessNodeSequence)
+    True
 
     When working in Cython mode (which is the default mode and much
-    faster), `fastaccess` is an object of a Cython extension class
-    specialised for the respective model and sequence group:
+    faster), `fastaccess` is an object of Cython extension class
+    `FastAccessNodeSequence` of module `sequenceutils` or of a Cython
+    extension class specialised for the respective model and sequence group:
 
     >>> with pub.options.usecython(True):
     ...     model = prepare_model('lland_v1')
     >>> classname(model.sequences.inputs.fastaccess)
     'InputSequences'
+    >>> from hydpy.cythons.sequenceutils import FastAccessNodeSequence
+    >>> with pub.options.usecython(True):
+    ...     node = Node('test2')
+    >>> isinstance(Node('test2').sequences.fastaccess, FastAccessNodeSequence)
+    True
 
     See the documentation of similar class |SubParameters| for further
     information.  However, note the difference that model developers
@@ -2029,7 +2041,7 @@ simulation time step is `1d`.
         idxs = [timegrid[hydpy.pub.timegrids.init.firstdate],
                 timegrid[hydpy.pub.timegrids.init.lastdate]]
         valcopy = values
-        values = numpy.full(self.seriesshape, self.initinfo[0])
+        values = numpy.full(self.seriesshape, float(self.initinfo[0]))
         len_ = len(valcopy)
         jdxs = []
         for idx in idxs:
@@ -3287,6 +3299,14 @@ class NodeSequence(IOSequence):
     overwrite_ext = _OverwriteProperty()
 
     @property
+    def initinfo(self) -> Tuple[pointerutils.Double, bool]:
+        """Return a |Double| instead of a |float| object as the first tuple
+        entry."""
+        if hydpy.pub.options.usedefaultvalues:
+            return pointerutils.Double(0.0), True
+        return pointerutils.Double(numpy.nan), False
+
+    @property
     def descr_sequence(self) -> str:
         """Description of the |NodeSequence| object including the
         |Node.variable| to be represented.
@@ -3627,17 +3647,13 @@ class NodeSequences(IOSequences):
 
     Basically, |NodeSequences| works like the different |ModelSequences|
     subclasses used for handling |ModelSequence| objects.  The main
-    differences are that |NodeSequences| objects always use a
-    |FastAccessNodeSequence| object as their `fastaccess` attribute
-    (both in pure Python and in Cython mode) and that they do not
-    reference a |Sequences| object (which is only handled by |Element|
-    objects but not by |Node| objects). Instead, they reference their
-    master |Node| object via the attribute `node` directly:
+    difference is that they do not reference a |Sequences| object (which
+    is only handled by |Element| objects but not by |Node| objects).
+    Instead, they reference their master |Node| object via the attribute
+    `node` directly:
 
-    >>> from hydpy import classname, Node
+    >>> from hydpy import Node
     >>> node = Node('node')
-    >>> classname(node.sequences.fastaccess)
-    'FastAccessNodeSequence'
     >>> node.sequences.node
     Node("node", variable="Q")
     """
@@ -3646,7 +3662,8 @@ class NodeSequences(IOSequences):
     node: 'devicetools.Node'
     sim: Sim
     obs: Obs
-    fastaccess: 'FastAccessNodeSequence'
+    fastaccess: Union['FastAccessNodeSequence',
+                      sequenceutils.FastAccessNodeSequence]
     _cls_fastaccess: Optional[Type[
         'typingtools.FastAccessModelSequenceProtocol']]
     _cymodel: Optional['typingtools.CyModelProtocol']
@@ -3664,7 +3681,10 @@ class NodeSequences(IOSequences):
         super().__init__(master)
 
     def __hydpy__initialise_fastaccess__(self) -> None:
-        self.fastaccess = FastAccessNodeSequence()
+        if hydpy.pub.options.usecython:
+            self.fastaccess = sequenceutils.FastAccessNodeSequence()
+        else:
+            self.fastaccess = FastAccessNodeSequence()
 
     def load_data(self, idx: int) -> None:
         """Call methods |NodeSequences.load_simdata| and
@@ -3674,21 +3694,22 @@ class NodeSequences(IOSequences):
 
     def load_simdata(self, idx: int) -> None:
         """Call method |FastAccessNodeSequence.load_simdata| of the
-        |FastAccessNodeSequence| object handled as attribute `fastaccess`."""
+        current `fastaccess` attribute."""
         self.fastaccess.load_simdata(idx)
 
     def load_obsdata(self, idx: int) -> None:
         """Call method |FastAccessNodeSequence.load_obsdata| of the
-        |FastAccessNodeSequence| object handled as attribute `fastaccess`."""
+        current `fastaccess` attribute."""
         self.fastaccess.load_obsdata(idx)
 
     def save_data(self, idx: int) -> None:
-        """Call method |NodeSequences.save_data|."""
+        """Call method |NodeSequences.save_data| of the
+        current `fastaccess` attribute."""
         self.save_simdata(idx)
 
     def save_simdata(self, idx: int) -> None:
         """Call method |FastAccessNodeSequence.save_simdata| of the
-        |FastAccessNodeSequence| object handled as attribute `fastaccess`."""
+        current `fastaccess` attribute."""
         self.fastaccess.save_simdata(idx)
 
 
@@ -3937,3 +3958,9 @@ class FastAccessNodeSequence(FastAccessSequence):
         elif self._obs_diskflag:
             raw = self._obs_file.read(8)
             self.obs[0] = struct.unpack('d', raw)[0]
+
+    def reset(self, idx: int = 0):
+        # pylint: disable=unused-argument
+        # required for consistincy with the other reset methods.
+        """Reset the actual value of the simulation sequence to zero."""
+        self.sim[0] = 0.

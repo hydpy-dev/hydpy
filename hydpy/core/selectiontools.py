@@ -927,7 +927,7 @@ requires string as left operand, not list
         The `write_defaultnodes` argument does only affect nodes handling
         the default variable `Q`:
 
-        >>> from hydpy import Node, hland_T, hland_P
+        >>> from hydpy import Node, hland_P, hland_T
         >>> nodes = pub.selections.headwaters.nodes
         >>> nodes.add_device(Node('test1', variable='X'))
         >>> nodes.add_device(Node('test2', variable=hland_T))
@@ -969,7 +969,7 @@ requires string as left operand, not list
             file_.write('# -*- coding: utf-8 -*-\n')
             file_.write('\nfrom hydpy import Node, Element')
             if aliases:
-                file_.write(f', {", ".join(aliases)}\n\n')
+                file_.write(f', {", ".join(sorted(aliases))}\n\n')
             else:
                 file_.write('\n\n')
             written = False

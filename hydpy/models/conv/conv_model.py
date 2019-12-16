@@ -250,7 +250,7 @@ class Model(modeltools.AdHocModel):
         respectively.  In both cases, use the names of the |Node| objects
         as keyword arguments to pass the corresponding coordinates:
 
-        >>> from hydpy.models.conv import *
+        >>> from hydpy.models.conv_v001 import *
         >>> parameterstep()
         >>> inputcoordinates(
         ...     in1=(0.0, 3.0),
@@ -290,8 +290,8 @@ class Model(modeltools.AdHocModel):
         >>> conv.model = model
         Traceback (most recent call last):
         ...
-        RuntimeError: While trying to connect model `conv` of element `conv`, \
-the following error occurred: The node handled by control parameter \
+        RuntimeError: While trying to connect model `conv_v001` of element \
+`conv`, the following error occurred: The node handled by control parameter \
 outputcoordinates (out1 and out2) are not the same as the outlet nodes \
 handled by element conv (out1, out2, and out3).
         """

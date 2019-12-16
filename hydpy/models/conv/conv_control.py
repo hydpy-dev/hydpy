@@ -171,4 +171,5 @@ element `?` is not valid.
 
 
 class Power(parametertools.Parameter):
+    """Power parameter for calculating inverse distance weights [-]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)

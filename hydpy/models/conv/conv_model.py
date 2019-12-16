@@ -137,7 +137,7 @@ class Calc_Outputs_V2(modeltools.Method):
         outputs(5.001059, 5.000104, 5.00053)
 
         With just one considered location, method |Calc_Outputs_V2|
-        calculates the same results the simplest nearest-neighbour approach
+        calculates the same results as the nearest-neighbour approach
         implemented by method |Calc_Outputs_V1|:
 
         >>> maxnmbinputs.value = 1

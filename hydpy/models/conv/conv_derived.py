@@ -151,8 +151,7 @@ class ProximityOrder(parametertools.Parameter):
         """Determine the proximity-order of the inlet and outlet nodes.
 
         The individual rows of parameter |ProximityOrder| correspond to the
-        outlet nodes; the rows contain the proximity-sorted indices of the
-        inlet nodes:
+        outlet nodes; the columns contain the indices of the inlet nodes:
 
         >>> from hydpy.models.conv import *
         >>> parameterstep()
@@ -236,8 +235,8 @@ class Weights(parametertools.Parameter):
                  [0.5, 0.5, 0.1, 0.000053]])
 
         You can restrict the number of inlet nodes used for each outlet
-        node via parameter |MaxNmbInputs|.  In the given example it seems
-        reasonable to set its value to three to ignore the far-distant
+        node via parameter |MaxNmbInputs|.  In the following  example, it
+        seems reasonable to set its value to three to ignore the far-distant
         inlet node `in4`:
 
         >>> maxnmbinputs(3)

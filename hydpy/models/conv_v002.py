@@ -31,7 +31,7 @@ the outlet nodes `out1`, `out2`, `out3`, and `out4`:
 ...                   outlets=['out1', 'out2', 'out3', 'out4'])
 
 The following coordinate definitions contain the particular case of outlet
-node `out1`, being at the exact same location as inlet node `in1`:
+node `out1`, being at the same location as inlet node `in1`:
 
 >>> inputcoordinates(
 ...     in1=(0.0, 3.0),
@@ -43,13 +43,13 @@ node `out1`, being at the exact same location as inlet node `in1`:
 ...     out3=(1.0, 2.0),
 ...     out4=(1.0, 1.0))
 
-We set the power parameter |Power| to the common value of two:
+We set the power parameter |Power| to the standard value of two:
 
 >>> power(2.0)
 
 In the first example, we perform a complete inverse distance weighted
-interpolation, where we take all input location into account that provide
-input data:
+interpolation, where we take all input location into account, as long
+as they provide input data:
 
 >>> maxnmbinputs(3)
 
@@ -69,7 +69,7 @@ missing values:
 ...     in3.sequences.sim.series = 4.0, nan, nan
 
 If available, outlet node `in1` receives its value from inlet node `in1`
-due to their identical location.  At the second timestep, all outlet nodes
+due to the same location.  At the second time step, all outlet nodes
 receive the same data as only inlet node `in2` provides any data.  When
 no inlet node provides data, the outlet nodes receive |numpy.nan| values:
 
@@ -83,7 +83,7 @@ no inlet node provides data, the outlet nodes receive |numpy.nan| values:
 
 We can restrict the number of considered inlet nodes via parameter
 |MaxNmbInputs|, which can increase computation speed.  However, do not
-set to low values. Otherwise you might deteriorate accuracy severely or
+set to low values. Otherwise, you might deteriorate accuracy severely or
 run into the risk of unhandled |numpy.nan| values:
 
 >>> maxnmbinputs(2)

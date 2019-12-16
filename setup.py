@@ -115,18 +115,32 @@ else:
             path_in = prep('hydpy', 'cythons', filename)
             path_out = prep('hydpy', 'cythons', 'autogen', filename)
             source2target(path_in, path_out, False)
-            text = open(path_in).read()
-            text = text.replace(' int ', ' '+int_+' ')
-            text = text.replace(' int[', ' '+int_+'[')
             if debug_cython:
-                text = text.replace('nogil', '')
-                text = text.replace('boundscheck=False',
-                                    'boundscheck=True')
-                text = text.replace('wraparound=False',
-                                    'wraparound=True')
-                text = text.replace('initializedcheck=False',
-                                    'initializedcheck=True')
-            open(path_out, 'w').write(text)
+                cythonoptions = (
+                    '# -*- coding: utf-8 -*-\n'
+                    '# !python\n'
+                    '# cython: boundscheck=True\n'
+                    '# cython: wraparound=True\n'
+                    '# cython: initializedcheck=True\n'
+                    '# cython: linetrace=True\n'
+                    '# distutils: define_macros=CYTHON_TRACE=1\n'
+                    '# distutils: define_macros=CYTHON_TRACE_NOGIL=1\n'
+                )
+            else:
+                cythonoptions = (
+                    '# -*- coding: utf-8 -*-\n'
+                    '# !python\n'
+                    '# cython: boundscheck=False\n'
+                    '# cython: wraparound=False\n'
+                    '# cython: initializedcheck=False\n'
+                )
+            with open(path_in) as file_in:
+                text = file_in.read()
+                text = text.replace(' int ', ' '+int_+' ')
+                text = text.replace(' int[', ' '+int_+'[')
+            with open(path_out, 'w') as file_out:
+                file_out.write(cythonoptions)
+                file_out.write(text)
 
     print_('\nCopy extension module stub files:')
     for ext_name in ext_names:

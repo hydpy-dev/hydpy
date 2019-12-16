@@ -318,7 +318,7 @@ class Substituter:
         >>> from hydpy.core.autodoctools import Substituter
         >>> import numpy
 
-        A constant like |nan| should be added:
+        A constant like |numpy.nan| should be added:
 
         >>> Substituter.consider_member(
         ...     'nan', numpy.nan, numpy)

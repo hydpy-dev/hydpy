@@ -231,7 +231,7 @@ import types
 from typing import *
 # ...third party modules
 import numpy
-from numpy import nan
+from numpy import nan    # pylint: disable=unused-import
 # ...from HydPy
 import hydpy
 from hydpy import config

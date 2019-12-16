@@ -458,9 +458,9 @@ def query_array(ncfile, name) -> numpy.ndarray:
     """Return the data of the variable with the given name from the given
     NetCDF file.
 
-    The following example shows that |query_array| returns |nan| entries
-    to represent missing values even when the respective NetCDF variable
-    defines a different fill value:
+    The following example shows that |query_array| returns |numpy.nan|
+    entries to represent missing values even when the respective NetCDF
+    variable defines a different fill value:
 
     >>> from hydpy import TestIO
     >>> from hydpy.core.netcdftools import netcdf4

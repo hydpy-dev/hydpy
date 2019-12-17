@@ -33,3 +33,4 @@ test.py
 .idea/*
 make_hydpy_installer.cfg
 lib/*
+temp/*

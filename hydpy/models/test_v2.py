@@ -22,6 +22,7 @@ class Model(modeltools.ELSModel):
     SOLVERPARAMETERS = (
         test_solver.AbsErrorMax,
         test_solver.RelDTMin,
+        test_solver.RelDTMax,
     )
     INLET_METHODS = ()
     RECEIVER_METHODS = ()

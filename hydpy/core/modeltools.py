@@ -1018,12 +1018,13 @@ class ELSModel(SolverModel):
         >>> k(0.0)
 
         Second, we assign values to the solver parameters
-        |test_solver.AbsErrorMax| and |test_solver.RelDTMin| to specify
-        the required numerical accuracy and the smallest internal
-        step size:
+        |test_solver.AbsErrorMax|, |test_solver.RelDTMin|, and
+        |test_solver.RelDTMax| to specify the required numerical accuracy
+        and the smallest and largest internal integration step size allowed:
 
         >>> solver.abserrormax = 1e-2
         >>> solver.reldtmin = 1e-4
+        >>> solver.reldtmax = 1.0
 
         Calling method |ELSModel.solve| correctly calculates zero
         discharge (|test_fluxes.Q|) and thus does not change the water
@@ -1188,7 +1189,8 @@ class ELSModel(SolverModel):
         44
 
         If we prevent |ELSModel| from compensating its problems by
-        decreasing the step size, it does not achieve satisfying results:
+        disallowing it to reduce its integration step size, it does not
+        achieve satisfying results:
 
         >>> solver.reldtmin = 1.0
         >>> states.s(1.0)
@@ -1203,12 +1205,30 @@ class ELSModel(SolverModel):
         >>> model.numvars.nmb_calls
         46
 
-        You can restrict the number of Lobatto methods that are allowed
-        to be used.  Using two methods only is an inefficient choice for
-        the given initial value problem, but at least solves it with the
-        required accuracy:
+        You can restrict the allowed maximum integration step size, which
+        can help to prevent from loosing to much performance due to trying
+        to solve too stiff problems, repeatedly:
 
         >>> solver.reldtmin = 1e-4
+        >>> solver.reldtmax = 0.25
+        >>> states.s(1.0)
+        >>> model.numvars.nmb_calls = 0
+        >>> model.solve()
+        >>> states.s
+        s(0.016806)
+        >>> fluxes.q
+        q(0.983194)
+        >>> round_(model.numvars.dt)
+        0.25
+        >>> model.numvars.nmb_calls
+        33
+
+        Alternatively, you can restrict the number of Lobatto methods that
+        are allowed to be used.  Using two methods only is an inefficient
+        choice for the given initial value problem, but at least solves it
+        with the required accuracy:
+
+        >>> solver.reldtmax = 1.0
         >>> model.numconsts.nmb_methods = 2
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
@@ -1224,7 +1244,7 @@ class ELSModel(SolverModel):
 
         Besides its weaknesses with stiff problems, |ELSModel| cannot
         solve discontinuous problems well.  We use the |test_v1| example
-        model to demonstrate how |ELSModel| sbehaves when confronted
+        model to demonstrate how |ELSModel| behaves when confronted
         with such a problem.
 
         >>> from hydpy import reverse_model_wildcard_import
@@ -1238,6 +1258,7 @@ class ELSModel(SolverModel):
         >>> k(0.5)
         >>> solver.abserrormax = 1e-2
         >>> solver.reldtmin = 1e-4
+        >>> solver.reldtmax = 1.0
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
         >>> model.solve()
@@ -1281,13 +1302,14 @@ class ELSModel(SolverModel):
         this generic Python version with a model-specific Cython version.
         """
         self.numvars.t0, self.numvars.t1 = 0., 1.
-        self.numvars.dt_est = 1.
+        self.numvars.dt_est = 1.*self.parameters.solver.reldtmax
         self.numvars.f0_ready = False
         self.reset_sum_fluxes()
         while self.numvars.t0 < self.numvars.t1-1e-14:
             self.numvars.last_error = 999999.
             self.numvars.dt = min(
                 self.numvars.t1-self.numvars.t0,
+                1.*self.parameters.solver.reldtmax,
                 max(self.numvars.dt_est, self.parameters.solver.reldtmin))
             if not self.numvars.f0_ready:
                 self.calculate_single_terms()

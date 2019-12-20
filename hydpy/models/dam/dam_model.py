@@ -2532,6 +2532,7 @@ class Model(modeltools.ELSModel):
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,
         dam_solver.RelDTMin,
+        dam_solver.RelDTMax,
     )
     INLET_METHODS = (
         Pic_Inflow_V1,

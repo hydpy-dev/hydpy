@@ -7,6 +7,7 @@ as implemented in LARSIM.
 # import...
 # ...from HydPy
 from hydpy.exe.modelimports import *
+from hydpy.auxs.anntools import ann
 # ...from lstream
 from hydpy.models.lstream.lstream_model import Model
 

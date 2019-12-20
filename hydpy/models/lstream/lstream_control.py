@@ -6,6 +6,7 @@
 # ...from standard library
 import itertools
 # ...from HydPy
+from hydpy.auxs import anntools
 from hydpy.core import parametertools
 
 
@@ -106,3 +107,10 @@ class HR(parametertools.Parameter):
     """Allgemeiner Glättungsparameter für den Wasserstand (general smoothing
     parameter for the water stage) [mm]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+
+
+class VG2QG(anntools.ANN):
+    """Künstliches Neuronales Netz zur Abbildung der Abhängigkeit des
+    Abflusses einer Gewässerteilstrecke von deren aktuller Wasserspeicherung
+    (artificial neural network describing the relationship between
+    total discharge and water storage of individual channel subsections [-]."""

@@ -13,6 +13,12 @@ class QZ(sequencetools.FluxSequence):
     NDIM, NUMERIC, SPAN = 0, False, (0., None)
 
 
+class QZA(sequencetools.FluxSequence):
+    """Aktueller Zufluss in Gerinnestrecke (current inflow into the channel)
+    [m³/s]."""
+    NDIM, NUMERIC, SPAN = 0, True, (0., None)
+
+
 class QG(sequencetools.FluxSequence):
     """Durchfluss gesamt (total discharge) [m³/s]."""
     NDIM, NUMERIC, SPAN = 1, True, (0., None)

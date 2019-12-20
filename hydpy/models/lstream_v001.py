@@ -811,6 +811,8 @@ Integration test:
 
 """
 # import...
+# ...from standard library
+import typing
 # ...from HydPy
 from hydpy.exe.modelimports import *
 # ...from lstream
@@ -819,7 +821,18 @@ from hydpy.models.lstream import lstream_model
 from hydpy.models.lstream import lstream_solver
 
 
-class Model(lstream_model.Model):
+class Characteristics(typing.NamedTuple):
+    """Data class for holding the results of method
+    |Model.calculate_characteristiclength|."""
+    waterstage: float
+    discharge: float
+    derivative: float
+    length_orig: float
+    nmb_subsections: int
+    length_adj: float
+
+
+class Model(lstream_model.Model, lstream_model.ProfileMixin):
     """Version 1 of HydPy-L-Stream."""
     SOLVERPARAMETERS = (
         lstream_solver.AbsErrorMax,
@@ -863,6 +876,120 @@ class Model(lstream_model.Model):
         lstream_model.Pass_Q_V1,
     )
     SENDER_METHODS = ()
+
+
+    def calculate_characteristiclength(
+            self, h: float, dh: float = 1e-6,
+            lenmin: float = 0.1, nmbmax: int = 50) -> Characteristics:
+        """Approximate the characteristic length after the Kalinin-Miljukov
+        method.
+
+        Method |Model.calculate_characteristiclength| determines the
+        characterstic length based on a finite difference approach and
+        returns it, accompanied by someintermediate results, within
+        a |Characteristics| objects.  You need to pass in the considered
+        water stage (`h`).  Optionally, you can define alternative values
+        for the finite difference stepsize (`dh`), the smallest allowed
+        subsection length (`minlen`) and the maximum number of cross sections
+        (`nmbmax`).  The returned `length_orig` value is the original
+        approximation of the theoretical characteristic length, while
+        the `length_adj` is the one adjusted the the actual channel length.
+        All length value must be given and are returned in kilometres.
+
+        We reuse the example given in the main documentation on module
+        |lstream_v001|:
+
+        >>> from hydpy.models.lstream_v001 import *
+        >>> parameterstep('1d')
+        >>> simulationstep('30m')
+
+        >>> laen(100.0)
+        >>> gef(0.00025)
+        >>> bm(15.0)
+        >>> bnm(5.0)
+        >>> skm(1.0/0.035)
+        >>> hm(inf)
+        >>> bv(100.0)
+        >>> bbv(20.0)
+        >>> bnv(10.0)
+        >>> bnvr(100.0)
+        >>> skv(10.0)
+        >>> ekm(1.0)
+        >>> ekv(1.0)
+        >>> hr(0.1)
+        >>> gts(1)
+        >>> parameters.update()
+
+        When passing a water stage of 7.5 m, method
+        |Model.calculate_characteristiclength| determines a characteristic
+        length of 13 km and suggest to split the total channel length of
+        100 km length into eight subsections:
+
+        >>> chars = model.calculate_characteristiclength(7.5)
+        >>> from hydpy import round_
+        >>> round_(chars.waterstage)
+        7.5
+        >>> round_(chars.discharge)
+        470.654321
+        >>> round_(chars.derivative)
+        0.006929
+        >>> round_(chars.length_orig)
+        13.044707
+        >>> chars.nmb_subsections
+        8
+        >>> round_(chars.length_adj)
+        12.5
+
+        You can modify the allowed channel length or increase the allowed
+        number of subsections:
+
+        >>> chars = model.calculate_characteristiclength(7.5, lenmin=20.0)
+        >>> round_(chars.length_orig)
+        13.044707
+        >>> chars.nmb_subsections
+        5
+        >>> round_(chars.length_adj)
+        20.0
+
+        >>> chars = model.calculate_characteristiclength(
+        ...     7.5, lenmin=20.0, nmbmax=4)
+        >>> round_(chars.length_orig)
+        13.044707
+        >>> chars.nmb_subsections
+        4
+        >>> round_(chars.length_adj)
+        25.0
+
+        The lowest returned number of subsections is one:
+
+        >>> laen(1.0)
+        >>> chars = model.calculate_characteristiclength(7.5)
+        >>> round_(chars.length_orig)
+        13.044707
+        >>> chars.nmb_subsections
+        1
+        >>> round_(chars.length_adj)
+        1.0
+        """
+        qs = []
+        for h_ in (h-dh/2.0, h+dh/2.0):
+            self.sequences.states.h(h_)
+            self.calculate_single_terms()
+            qs.append(self.sequences.fluxes.qg[0])
+        qmean = float(numpy.mean(qs))
+        dq = numpy.diff(qs)[0]
+        length_orig = (qmean*dh)/(self.parameters.control.gef*dq)/1000.0
+        length_adj = max(length_orig, lenmin)
+        number = int(
+            min(max(round(self.parameters.control.laen/length_adj), 1), nmbmax))
+        return Characteristics(
+            waterstage=h,
+            discharge=qmean,
+            derivative=dh/dq,
+            length_orig=length_orig,
+            nmb_subsections=number,
+            length_adj=self.parameters.control.laen/number
+        )
 
 
 tester = Tester()

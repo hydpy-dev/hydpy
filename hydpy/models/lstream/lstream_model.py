@@ -5,7 +5,6 @@
 # import...
 # ...from standard library
 import typing
-from typing_extensions import Literal
 # ...from site-packages
 import numpy
 from matplotlib import pyplot
@@ -42,7 +41,25 @@ class Pick_Q_V1(modeltools.Method):
         flu.qz = 0.
         for idx in range(inl.len_q):
             flu.qz += inl.q[idx][0]
-        
+
+
+class Calc_QZA_V1(modeltools.Method):
+    """Calculate the current inflow into the channel.
+
+    Basic equation:
+      :math:`QZA = QZ`
+    """
+    REQUIREDSEQUENCES = (
+        lstream_fluxes.QZ,
+    )
+    RESULTSEQUENCES = (
+        lstream_fluxes.QZA,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        flu.qza = flu.qz
+
 
 class Calc_RHM_V1(modeltools.Method):
     """Regularise the water stage with respect to the channel bottom.
@@ -1938,6 +1955,69 @@ class Calc_QG_V1(modeltools.Method):
             flu.qg[i] = aid.qm[i]+aid.qlv[i]+aid.qrv[i]+aid.qlvr[i]+aid.qrvr[i]
 
 
+class Calc_QG_V2(modeltools.Method):
+    """Determine the discharge of each the total cross section based on an
+    artificial neural network describing the relationship between water
+    storage in the total channel and discharge.
+
+    Example:
+
+        The following example applies a very simple relationship based
+        on a single neuron:
+
+        >>> from hydpy.models.lstream import *
+        >>> parameterstep()
+        >>> gts(2)
+        >>> vg2qg(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
+        ...       weights_input=0.5, weights_output=1.0,
+        ...       intercepts_hidden=0.0, intercepts_output=-0.5)
+
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(model,
+        ...                 model.calc_qg_v2,
+        ...                 last_example=10,
+        ...                 parseqs=(states.vg,
+        ...                          fluxes.qg))
+        >>> test.nexts.vg = numpy.ones((10, 2))
+        >>> test.nexts.vg[:, 0] = numpy.arange(0.0, 10.0)
+        >>> test.nexts.vg[:, 1] = numpy.arange(10.0, 20.0)
+        >>> test()
+        | ex. |        vg |                 qg |
+        ----------------------------------------
+        |   1 | 0.0  10.0 |      0.0  0.493307 |
+        |   2 | 1.0  11.0 | 0.122459   0.49593 |
+        |   3 | 2.0  12.0 | 0.231059  0.497527 |
+        |   4 | 3.0  13.0 | 0.317574  0.498499 |
+        |   5 | 4.0  14.0 | 0.380797  0.499089 |
+        |   6 | 5.0  15.0 | 0.424142  0.499447 |
+        |   7 | 6.0  16.0 | 0.452574  0.499665 |
+        |   8 | 7.0  17.0 | 0.470688  0.499797 |
+        |   9 | 8.0  18.0 | 0.482014  0.499877 |
+        |  10 | 9.0  19.0 | 0.489013  0.499925 |
+
+        For more realistic approximations of measured relationships between
+        storage and discharge, larger neural networks are required.
+    """
+    CONTROLPARAMETERS = (
+        lstream_control.VG2QG,
+    )
+    REQUIREDSEQUENCES = (
+        lstream_states.VG,
+    )
+    RESULTSEQUENCES = (
+        lstream_fluxes.QG,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for i in range(con.gts):
+            con.vg2qg.inputs[0] = sta.vg[i]
+            con.vg2qg.process_actual_input()
+            flu.qg[i] = con.vg2qg.outputs[0]
+
+
 class Calc_WBM_V1(modeltools.Method):
     """Calculate the water table width above the main channel.
 
@@ -2327,6 +2407,52 @@ class Update_H_V1(modeltools.Method):
             new.h[i] = old.h[i] + der.sek*flu.dh[i]
 
 
+class Update_VG_V1(modeltools.Method):
+    """Update the water volume.
+
+    Basic equation:
+      :math:`\\frac{dV}{dt} = QG_{i-1}-QG_i`
+
+    Example:
+
+        >>> from hydpy.models.lstream import *
+        >>> parameterstep()
+        >>> gts(5)
+        >>> derived.sek(60*60)
+        >>> states.vg(1.0, 1.2, 1.3, 1.2, 1.0)
+        >>> fluxes.qza = 1.0
+        >>> fluxes.qg = 3.0, 2.0, 4.0, 3.0, 5.0
+        >>> model.update_vg_v1()
+        >>> states.vg
+        vg(0.9928, 1.2036, 1.2928, 1.2036, 0.9928)
+    """
+    CONTROLPARAMETERS = (
+        lstream_control.GTS,
+    )
+    DERIVEDPARAMETERS = (
+        lstream_derived.Sek,
+    )
+    REQUIREDSEQUENCES = (
+        lstream_fluxes.QZA,
+        lstream_fluxes.QG,
+    )
+    UPDATEDSEQUENCES = (
+        lstream_states.VG,
+    )
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        old = model.sequences.states.fastaccess_old
+        new = model.sequences.states.fastaccess_new
+        for i in range(con.gts):
+            if i:
+                new.vg[i] = old.vg[i] + der.sek*(flu.qg[i-1]-flu.qg[i])/1e6
+            else:
+                new.vg[i] = old.vg[i] + der.sek*(flu.qza-flu.qg[i])/1e6
+
+
 class Calc_QA_V1(modeltools.Method):
     """Query the actual outflow.
 
@@ -2371,14 +2497,6 @@ class Pass_Q_V1(modeltools.Method):
         out.q[0] += flu.qa
 
 
-class Characteristics(typing.NamedTuple):
-    height: float
-    discharge: float
-    dhdq: float
-    length: float
-    number: int
-
-
 class Model(modeltools.ELSModel):
     """The HydPy-L-Stream model."""
     SOLVERPARAMETERS = (
@@ -2416,6 +2534,7 @@ class Model(modeltools.ELSModel):
         Calc_QLVR_QRVR_V2,
         Calc_AG_V1,
         Calc_QG_V1,
+        Calc_QG_V2,
         Calc_QA_V1,
         Calc_WBM_V1,
         Calc_WBLV_WBRV_V1,
@@ -2425,32 +2544,62 @@ class Model(modeltools.ELSModel):
     )
     FULL_ODE_METHODS = (
         Update_H_V1,
+        Update_VG_V1,
     )
     OUTLET_METHODS = (
         Pass_Q_V1,
     )
     SENDER_METHODS = ()
 
-    def calculate_characteristics(self, h, dh=1e-6) -> Characteristics:
-        qs = []
-        for h_ in (h-dh/2.0, h+dh/2.0):
-            self.sequences.states.h(h_)
-            self.calculate_single_terms()
-            qs.append(self.sequences.fluxes.qg[0])
-        qmean = numpy.mean(qs)
-        dq = numpy.diff(qs)[0]
-        length = (qmean*dh)/(self.parameters.control.gef*dq)/1000.0
-        number = \
-            min(max(int(round(self.parameters.control.laen/length)), 1), 50)
-        return Characteristics(
-            height=h,
-            discharge=qmean,
-            dhdq=dh/dq,
-            length=length,
-            number=number,
-        )
+
+class ProfileMixin:
+    """Mixin class for L-Stream models performing their own discharge
+    calculations based on a triple trapezoid profile."""
 
     def plot_profile(self, labelformat: str = '%.1f'):
+        """Plot the triple trapezoid profile and insert the discharge values
+        at some characteristic water stages.
+
+        We reuse the second example given in the main documentation on module
+        |lstream_v001|:
+
+        >>> from hydpy.models.lstream_v001 import *
+        >>> parameterstep('1d')
+        >>> simulationstep('30m')
+        >>> laen(100.0)
+        >>> gef(0.00025)
+        >>> bm(15.0)
+        >>> bnm(5.0)
+        >>> skm(1.0/0.035)
+        >>> hm(6.0)
+        >>> bv(100.0)
+        >>> bbv(20.0)
+        >>> bnv(10.0)
+        >>> bnvr(100.0)
+        >>> skv(10.0)
+        >>> ekm(1.0)
+        >>> ekv(1.0)
+        >>> hr(0.1)
+        >>> gts(2)
+        >>> parameters.update()
+
+        Calling method |ProfileMixin.plot_profile| prepares the profile
+        plot and, depending on you `matplotlib` configuration, eventually
+        prints it directly on your screen directly:
+
+        >>> model.plot_profile()
+
+        You can use the `pyplot` API of `matplotlib` to modify the figure
+        or to save it to disk (or print it to the screen, in case the
+        interactive mode of `matplotlib` is disabled):
+
+        >>> from matplotlib import pyplot
+        >>> from hydpy.docs import figs
+        >>> pyplot.savefig(figs.__path__[0] + '/lstream_plot_profile.png')
+        >>> pyplot.close()
+
+        .. image:: lstream_plot_profile.png
+        """
 
         class _XYs:
 
@@ -2508,9 +2657,10 @@ class Model(modeltools.ELSModel):
             if h not in temp:
                 temp.append(h)
         hs = sorted(temp)
-        for idx, h in enumerate(hs):
+        qs = self.calculate_qgvector(hs)
+        for idx, (h, q) in enumerate(zip(hs, qs)):
             pyplot.plot([x0, x1], [h, h], 'b:')
-            text = f'{labelformat % self.calculate_discharge(h)} m³/s'
+            text = f'{labelformat % q} m³/s'
             if idx % 2:
                 pyplot.text(x0, h+dy, text, horizontalalignment='left')
             else:
@@ -2519,40 +2669,126 @@ class Model(modeltools.ELSModel):
         pyplot.title(f'Profile of model {objecttools.elementphrase(self)}')
         pyplot.ylabel('height above the channel bottom [m]')
 
-        return xs, ys
+    def prepare_hvector(
+            self,
+            nmb: int = 1000,
+            exp: float = 2.0,
+            hmin: typing.Optional[float] = None,
+            hmax: typing.Optional[float] = None
+    ) -> typing.Tuple[float, ...]:
+        """Prepare a vector of water stage values.
 
-    def plot_curve(self, **kwargs) -> None:
+        The argument `nmb` defines the number of water stage values to
+        be returned, `exp` defines their spacing (1.0 results in
+        equidistant values), and `hmin` and `hmax` the lowest and highest
+        water stage, respectively:
 
-        con = self.parameters.control
-        der = self.parameters.derived
-        hmax = 1.3 * (con.hm + max(der.hv))
-        hs, qs, as_ = [], [], []
-        for h in numpy.linspace(0, hmax, 1000):
-            hs.append(h)
-            qs.append(self.calculate_discharge(h))
-            as_.append(self.calculate_area(h))
-        pyplot.plot(as_, qs, **kwargs)
-        pyplot.legend()
-        pyplot.title(f'Rating curve of {objecttools.elementphrase(self)}')
-        pyplot.ylabel('height above the channel bottom [m]')
+        >>> from hydpy.models.lstream_v001 import *
+        >>> parameterstep()
+        >>> from hydpy import print_values
+        >>> print_values(model.prepare_hvector(
+        ...     nmb=10, hmin=-1.0, hmax=8, exp=1.0))
+        -1.0, 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0
 
-    def _calculate(self, h):
+        When not specified by the user, method
+        |lstream_model.ProfileMixin.prepare_hvector| determines `hmin` and
+        `hmax` based on the current value of |HM| (minus 10 % and plus 300 %,
+        respectively) and assumes takes more sampling in the lower value
+        range (by setting `exp` to two):
+
+        >>> hm(6.0)
+        >>> print_values(model.prepare_hvector(nmb=10))
+        -0.6, -0.37037, 0.318519, 1.466667, 3.074074, 5.140741, 7.666667,
+        10.651852, 14.096296, 18.0
+        """
+        if hmax is None:
+            hmin = -0.1*self.parameters.control.hm
+        if hmax is None:
+            hmax = 3.0*self.parameters.control.hm
+        hs = numpy.linspace(0., 1., nmb) ** exp
+        hs /= hs[-1]
+        hs *= hmax-hmin
+        hs += hmin
+        return tuple(hs)
+
+    def calculate_qgvector(self, hvector: typing.Iterable[float]) \
+            -> typing.Tuple[float, ...]:
+        """Calculate the discharge values (in m³/s) corresponding to the
+        given vector of water stage values.
+
+        We reuse the second example given in the main documentation on module
+        |lstream_v001| also show the results of the similar methods
+        |lstream_model.ProfileMixin.calculate_agvector| and
+        |lstream_model.ProfileMixin.calculate_vgvector|:
+
+        >>> from hydpy.models.lstream_v001 import *
+        >>> parameterstep('1d')
+        >>> simulationstep('30m')
+        >>> laen(100.0)
+        >>> gef(0.00025)
+        >>> bm(15.0)
+        >>> bnm(5.0)
+        >>> skm(1.0/0.035)
+        >>> hm(6.0)
+        >>> bv(100.0)
+        >>> bbv(20.0)
+        >>> bnv(10.0)
+        >>> bnvr(100.0)
+        >>> skv(10.0)
+        >>> ekm(1.0)
+        >>> ekv(1.0)
+        >>> hr(0.1)
+        >>> gts(2)
+        >>> parameters.update()
+
+        >>> from hydpy import print_values
+        >>> print_values(model.calculate_qgvector([0.0, 1.0, 2.0]))
+        0.033153, 7.745345, 28.436875
+        >>> print_values(model.calculate_agvector([0.0, 1.0, 2.0]))
+        0.623138, 20.0, 50.0
+        >>> print_values(model.calculate_vgvector([0.0, 1.0, 2.0]))
+        0.031157, 1.0, 2.5
+        """
         h_ = self.sequences.states.h.values.copy()
+        qg = []
         try:
-            self.sequences.states.h = h
-            self.calculate_single_terms()
+            for h in hvector:
+                self.sequences.states.h = h
+                self.calculate_single_terms()
+                qg.append(self.sequences.fluxes.qg[0])
+            return tuple(qg)
         finally:
             self.sequences.states.h(h_)
 
-    def calculate_discharge(self, h: float) -> float:
-        self._calculate(h)
-        return self.sequences.fluxes.qg[0]
+    def calculate_agvector(self, hvector: typing.Iterable[float]) \
+            -> typing.Tuple[float, ...]:
+        """Calculate the flown through cross section areas (in m²)
+        corresponding to the given vector of water stage values.
 
-    def calculate_speed(self, h: float) -> float:
-        self._calculate(h)
-        return self.sequences.fluxes.qg[0]/self.sequences.fluxes.ag[0]
-
-    def calculate_area(self, h: float) -> float:
-        self._calculate(h)
+        See the documentation on method
+        |lstream_model.ProfileMixin.calculate_qgvector| for an example.
+        """
+        h_ = self.sequences.states.h.values.copy()
+        ag = []
         aid = self.sequences.aides
-        return aid.am[0]+aid.alv[0]+aid.arv[0]+aid.alvr[0]+aid.arvr[0]
+        try:
+            for h in hvector:
+                self.sequences.states.h = h
+                self.calculate_single_terms()
+                ag.append(
+                    aid.am[0]+aid.alv[0]+aid.arv[0]+aid.alvr[0]+aid.arvr[0])
+            return tuple(ag)
+        finally:
+            self.sequences.states.h(h_)
+
+    def calculate_vgvector(self, hvector: typing.Iterable[float]) \
+            -> typing.Tuple[float, ...]:
+        """Calculate the water volume stored within a channel subsection (in
+        Mio m³) corresponding to the given vector of water stage values.
+
+        See the documentation on method
+        |lstream_model.ProfileMixin.calculate_qgvector| for an example.
+        """
+        con = self.parameters.control
+        ags = numpy.array(self.calculate_agvector(hvector))
+        return tuple(con.laen/con.gts*1000.*ags/1e6)

@@ -715,7 +715,7 @@ from hydpy.models.lstream import lstream_model
 from hydpy.models.lstream import lstream_solver
 
 
-class Model(lstream_model.Model):
+class Model(lstream_model.Model, lstream_model.ProfileMixin):
     """Version 2 of HydPy-L-Stream."""
     SOLVERPARAMETERS = (
         lstream_solver.AbsErrorMax,

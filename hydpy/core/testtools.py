@@ -5,6 +5,7 @@
 import abc
 import builtins
 import contextlib
+import copy
 import datetime
 import doctest
 import importlib
@@ -14,6 +15,7 @@ import shutil
 import sys
 import warnings
 from typing import *
+from typing_extensions import Literal
 # ...from site-packages
 import numpy
 # ...from HydPy
@@ -29,6 +31,8 @@ from hydpy.core import selectiontools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
 from hydpy.tests import iotesting
+if TYPE_CHECKING:
+    from hydpy.core import modeltools
 models = exceptiontools.OptionalImport(
     'models', ['bokeh.models'], locals())
 palettes = exceptiontools.OptionalImport(
@@ -1206,3 +1210,97 @@ but for the given `datetime` object it is `999` instead.
         yield
     finally:
         datetime.datetime = _datetime
+
+
+class NumericalDifferentiator:
+    """Approximate the derivatives of |ModelSequence| values based on
+    the finite difference approach.
+
+    .. _`here`: https://en.wikipedia.org/wiki/Finite_difference_coefficient
+
+    Class |NumericalDifferentiator| it thought for testing purposes only.
+    See for example the documentation on method |lstream_model.Calc_RHMDH_V1|,
+    which uses a |NumericalDifferentiator| object to validate that this methods
+    calculates the derivative of sequence |lstream_aides.RHM| (`ysequence`)
+    with respect to sequence |lstream_states.H| (`xsequence`) correctly.
+    Therefore, it must know the relationship between |lstream_aides.RHM| and
+    |lstream_states.H|, being defined by method |lstream_model.Calc_RHM_V1|.
+
+    See also the documentation on method |lstream_model.Calc_AMDH_UMDH_V1|
+    which how to apply class |NumericalDifferentiator| on multiple target
+    sequences (`ysequences`).  Note that, in order to calculate the correct
+    derivatives of sequences |lstream_aides.AM| and |lstream_aides.UM|, we
+    need not only to pass |lstream_model.Calc_AM_UM_V1|, but also methods
+    |lstream_model.Calc_RHM_V1| and |lstream_model.Calc_RHV_V1|, as sequences
+    |lstream_aides.RHM| and |lstream_aides.RHV|, which are required for
+    calculating |lstream_aides.AM| and |lstream_aides.UM|, depend on
+    |lstream_states.H| themselves.
+
+    Numerical approximations of derivatives are of limited precision.
+    |NumericalDifferentiator| achieves a second order of accuracy, due to
+    using the coefficients given `here`_.  If results are to inaccurate,
+    you might improve them by changing the finite difference method
+    (`backward` or `central` instead of `forward`) or by changing the
+    default interval width `dx`.
+    """
+
+    __NMBNODES = 3
+    __XSHIFTS = {
+        'forward': numpy.array([0., 1., 2.]),
+        'backward': numpy.array([-2., -1., 0.]),
+        'central': numpy.array([-1., 0., 1.]),
+    }
+    __YCOEFFS = {
+        'forward': numpy.array([-3., 4., -1.])/2.,
+        'backward': numpy.array([1., -4., 3])/2.,
+        'central': numpy.array([-1., 0., 1])/2.,
+    }
+
+    def __init__(
+            self,
+            xsequence: sequencetools.ModelSequence,
+            ysequences: Iterable[sequencetools.ModelSequence],
+            methods: Iterable['modeltools.Method'],
+            dx: float = 1e-6,
+            method: Literal['forward', 'central', 'backward'] = 'forward'):
+        self._xsequence = xsequence
+        self._ysequences = tuple(ysequences)
+        self._methods = tuple(methods)
+        self._span = dx/2.
+        self._method = method
+
+    @property
+    def _ycoeffs(self) -> numpy.ndarray:
+        return self.__YCOEFFS[self._method] / self._span
+
+    @property
+    def _xshifts(self) -> numpy.ndarray:
+        return self.__XSHIFTS[self._method] * self._span
+
+    @property
+    def _yvalues(self) -> Dict[sequencetools.ModelSequence, numpy.ndarray]:
+        xvalues = copy.deepcopy(self._xsequence.values)
+        yvalues = {ysequence: numpy.empty((len(xvalues), self.__NMBNODES))
+                   for ysequence in self._ysequences}
+        try:
+            for idx, shift in enumerate(self._xshifts):
+                self._xsequence.values = xvalues+shift
+                for method in self._methods:
+                    method()
+                for ysequence in self._ysequences:
+                    yvalues[ysequence][:, idx] = \
+                        copy.deepcopy(ysequence.values)
+            return yvalues
+        finally:
+            self._xsequence.values = xvalues
+
+    @property
+    def _derivatives(self) -> Dict[sequencetools.ModelSequence, numpy.ndarray]:
+        return {
+            ysequence: numpy.dot(self._ycoeffs, yvalues.T)
+            for ysequence, yvalues in self._yvalues.items()}
+
+    def __call__(self):
+        for ysequence, derivatives in self._derivatives.items():
+            print(f'd_{ysequence.name}/d_{self._xsequence.name}', end=': ')
+            objecttools.print_values(derivatives, width=1000)

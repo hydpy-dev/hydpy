@@ -7,11 +7,6 @@
 from hydpy.core import sequencetools
 
 
-class QZ(sequencetools.StateSequence):
-    """Zufluss in Gerinnestrecke (inflow into the channel) [m³/s]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
-
-
-class QA(sequencetools.StateSequence):
-    """Abfluss aus Gerinnestrecke (outflow out of the channel) [m³/s]."""
-    NDIM, NUMERIC, SPAN = 0, False, (0., None)
+class H(sequencetools.StateSequence):
+    """Wasserstand (water stage) [m]."""
+    NDIM, NUMERIC, SPAN = 1, True, (0., None)

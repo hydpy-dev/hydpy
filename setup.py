@@ -122,6 +122,7 @@ else:
                     '# cython: boundscheck=True\n'
                     '# cython: wraparound=True\n'
                     '# cython: initializedcheck=True\n'
+                    '# cython: cdivision=False\n'
                     '# cython: linetrace=True\n'
                     '# distutils: define_macros=CYTHON_TRACE=1\n'
                     '# distutils: define_macros=CYTHON_TRACE_NOGIL=1\n'
@@ -133,6 +134,7 @@ else:
                     '# cython: boundscheck=False\n'
                     '# cython: wraparound=False\n'
                     '# cython: initializedcheck=False\n'
+                    '# cython: cdivision=True\n'
                 )
             with open(path_in) as file_in:
                 text = file_in.read()

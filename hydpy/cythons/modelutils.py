@@ -975,6 +975,7 @@ class PyxWriter:
         # cython: boundscheck=False
         # cython: wraparound=False
         # cython: initializedcheck=False
+        # cython: cdivision=True
         <BLANKLINE>
 
         >>> from hydpy import config
@@ -985,6 +986,7 @@ class PyxWriter:
         # cython: boundscheck=True
         # cython: wraparound=True
         # cython: initializedcheck=True
+        # cython: cdivision=False
         # cython: linetrace=True
         # distutils: define_macros=CYTHON_TRACE=1
         # distutils: define_macros=CYTHON_TRACE_NOGIL=1
@@ -993,11 +995,18 @@ class PyxWriter:
         >>> config.FASTCYTHON = True
         >>> config.PROFILECYTHON = False
         """
-        flag = 'False' if config.FASTCYTHON else 'True'
-        lines = Lines(f'#!python',
-                      f'# cython: boundscheck={flag}',
-                      f'# cython: wraparound={flag}',
-                      f'# cython: initializedcheck={flag}')
+        if config.FASTCYTHON:
+            lines = Lines(f'#!python',
+                          f'# cython: boundscheck=False',
+                          f'# cython: wraparound=False',
+                          f'# cython: initializedcheck=False',
+                          f'# cython: cdivision=True')
+        else:
+            lines = Lines(f'#!python',
+                          f'# cython: boundscheck=True',
+                          f'# cython: wraparound=True',
+                          f'# cython: initializedcheck=True',
+                          f'# cython: cdivision=False')
         if config.PROFILECYTHON:
             lines.add(0, '# cython: linetrace=True')
             lines.add(0, '# distutils: define_macros=CYTHON_TRACE=1')

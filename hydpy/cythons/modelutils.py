@@ -370,6 +370,7 @@ class Cythonizer:
     tester: testtools.Tester
 
     def __init__(self):
+        self._cymodule = None
         frame = inspect.currentframe().f_back
         self.pymodule = frame.f_globals['__name__']
         for (key, value) in frame.f_locals.items():
@@ -532,8 +533,7 @@ class Cythonizer:
     def cymodule(self) -> types.ModuleType:
         """The compiled module.
 
-        Property |Cythonizer.cymodule| returns
-        the relevant DLL module:
+        Property |Cythonizer.cymodule| returns the relevant DLL module:
 
         >>> from hydpy.models.hland_v1 import cythonizer
         >>> from hydpy.cythons.autogen import c_hland_v1
@@ -548,6 +548,7 @@ class Cythonizer:
         >>> from hydpy.cythons.modelutils import Cythonizer
         >>> cyname = Cythonizer.cyname
         >>> Cythonizer.cyname = 'wrong'
+        >>> cythonizer._cymodule = None
         >>> from unittest import mock
         >>> with mock.patch.object(Cythonizer, 'cythonize') as mock:
         ...     cythonizer.cymodule
@@ -559,12 +560,17 @@ class Cythonizer:
 
         >>> Cythonizer.cyname = cyname
         """
-        modulepath = f'hydpy.cythons.autogen.{self.cyname}'
-        try:
-            return importlib.import_module(modulepath)
-        except ModuleNotFoundError:
-            self.cythonize()
-            return importlib.import_module(modulepath)
+        cymodule = self._cymodule
+        if cymodule:
+            return cymodule
+        else:
+            modulepath = f'hydpy.cythons.autogen.{self.cyname}'
+            try:
+                self._cymodule = importlib.import_module(modulepath)
+            except ModuleNotFoundError:
+                self.cythonize()
+                self._cymodule = importlib.import_module(modulepath)
+            return self._cymodule
 
     @property
     def pyxfilepath(self) -> str:

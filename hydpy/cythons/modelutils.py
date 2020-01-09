@@ -563,14 +563,13 @@ class Cythonizer:
         cymodule = self._cymodule
         if cymodule:
             return cymodule
-        else:
-            modulepath = f'hydpy.cythons.autogen.{self.cyname}'
-            try:
-                self._cymodule = importlib.import_module(modulepath)
-            except ModuleNotFoundError:
-                self.cythonize()
-                self._cymodule = importlib.import_module(modulepath)
-            return self._cymodule
+        modulepath = f'hydpy.cythons.autogen.{self.cyname}'
+        try:
+            self._cymodule = importlib.import_module(modulepath)
+        except ModuleNotFoundError:
+            self.cythonize()
+            self._cymodule = importlib.import_module(modulepath)
+        return self._cymodule
 
     @property
     def pyxfilepath(self) -> str:

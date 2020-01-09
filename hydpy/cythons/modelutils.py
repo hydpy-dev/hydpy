@@ -179,14 +179,36 @@ Method |ELSModel.calculate_error|:
             . calculate_error
     cpdef inline void calculate_error(self) nogil:
         cdef int idx0
-        self.numvars.error = 0.
-        self.numvars.error = max(self.numvars.error, \
-fabs(self.sequences.fluxes._q_results[self.numvars.idx_method]-\
-self.sequences.fluxes._q_results[self.numvars.idx_method-1]))
+        cdef double abserror
+        self.numvars.abserror = 0.
+        if self.numvars.use_relerror:
+            self.numvars.relerror = 0.
+        else:
+            self.numvars.relerror = inf
+        abserror = fabs(\
+self.sequences.fluxes._q_results[self.numvars.idx_method]-\
+self.sequences.fluxes._q_results[self.numvars.idx_method-1])
+        self.numvars.abserror = max(self.numvars.abserror, abserror)
+        if self.numvars.use_relerror:
+            if self.sequences.fluxes._q_results[self.numvars.idx_method] == 0.:
+                self.numvars.relerror = inf
+            else:
+                self.numvars.relerror = max(\
+self.numvars.relerror, \
+fabs(abserror/self.sequences.fluxes._q_results[self.numvars.idx_method]))
         for idx0 in range(self.sequences.fluxes._qv_length):
-            self.numvars.error = max(self.numvars.error, \
-fabs(self.sequences.fluxes._qv_results[self.numvars.idx_method, idx0]-\
-self.sequences.fluxes._qv_results[self.numvars.idx_method-1, idx0]))
+            abserror = fabs(\
+self.sequences.fluxes._qv_results[self.numvars.idx_method, idx0]-\
+self.sequences.fluxes._qv_results[self.numvars.idx_method-1, idx0])
+            self.numvars.abserror = max(self.numvars.abserror, abserror)
+            if self.numvars.use_relerror:
+                if self.sequences.fluxes._qv_results\
+[self.numvars.idx_method, idx0] == 0.:
+                    self.numvars.relerror = inf
+                else:
+                    self.numvars.relerror = max(\
+self.numvars.relerror, \
+fabs(abserror/self.sequences.fluxes._qv_results[self.numvars.idx_method, idx0]))
 <BLANKLINE>
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 2
@@ -194,16 +216,39 @@ self.sequences.fluxes._qv_results[self.numvars.idx_method-1, idx0]))
             . calculate_error
     cpdef inline void calculate_error(self) nogil:
         cdef int idx0, idx1
-        self.numvars.error = 0.
+        cdef double abserror
+        self.numvars.abserror = 0.
+        if self.numvars.use_relerror:
+            self.numvars.relerror = 0.
+        else:
+            self.numvars.relerror = inf
         for idx0 in range(self.sequences.fluxes._q_length0):
             for idx1 in range(self.sequences.fluxes._q_length1):
-                self.numvars.error = max(self.numvars.error, \
-fabs(self.sequences.fluxes._q_results[self.numvars.idx_method, idx0, idx1]-\
-self.sequences.fluxes._q_results[self.numvars.idx_method-1, idx0, idx1]))
+                abserror = fabs(\
+self.sequences.fluxes._q_results[self.numvars.idx_method, idx0, idx1]-\
+self.sequences.fluxes._q_results[self.numvars.idx_method-1, idx0, idx1])
+                self.numvars.abserror = max(self.numvars.abserror, abserror)
+                if self.numvars.use_relerror:
+                    if self.sequences.fluxes._q_results\
+[self.numvars.idx_method, idx0, idx1] == 0.:
+                        self.numvars.relerror = inf
+                    else:
+                        self.numvars.relerror = max(\
+self.numvars.relerror, fabs(\
+abserror/self.sequences.fluxes._q_results[self.numvars.idx_method, idx0, idx1]))
         for idx0 in range(self.sequences.fluxes._qv_length):
-            self.numvars.error = max(self.numvars.error, \
-fabs(self.sequences.fluxes._qv_results[self.numvars.idx_method, idx0]-\
-self.sequences.fluxes._qv_results[self.numvars.idx_method-1, idx0]))
+            abserror = fabs(\
+self.sequences.fluxes._qv_results[self.numvars.idx_method, idx0]-\
+self.sequences.fluxes._qv_results[self.numvars.idx_method-1, idx0])
+            self.numvars.abserror = max(self.numvars.abserror, abserror)
+            if self.numvars.use_relerror:
+                if self.sequences.fluxes._qv_results\
+[self.numvars.idx_method, idx0] == 0.:
+                    self.numvars.relerror = inf
+                else:
+                    self.numvars.relerror = max(\
+self.numvars.relerror, \
+fabs(abserror/self.sequences.fluxes._qv_results[self.numvars.idx_method, idx0]))
 <BLANKLINE>
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 3
@@ -231,6 +276,7 @@ import types
 from typing import *
 # ...third party modules
 import numpy
+from numpy import inf    # pylint: disable=unused-import
 from numpy import nan    # pylint: disable=unused-import
 # ...from HydPy
 import hydpy
@@ -965,6 +1011,7 @@ class PyxWriter:
                      'from libc.math cimport exp, fabs, log, '
                      'sin, cos, tan, asin, acos, atan, isnan, isinf',
                      'from libc.math cimport NAN as nan',
+                     'from libc.math cimport INFINITY as inf',
                      'from libc.stdio cimport *',
                      'from libc.stdlib cimport *',
                      'import cython',
@@ -1346,10 +1393,12 @@ class PyxWriter:
             lines.add(1, 'cdef public configutils.Config pub')
             lines.add(1, 'cdef public double[:, :, :] a_coefs')
             lines.add(0, 'cdef class NumVars:')
+            lines.add(1, 'cdef public bint use_relerror')
             for name in ('nmb_calls', 'idx_method', 'idx_stage'):
                 lines.add(1, f'cdef public {TYPE2STR[int]} {name}')
-            for name in ('t0', 't1', 'dt', 'dt_est',
-                         'error', 'last_error', 'extrapolated_error'):
+            for name in ('t0', 't1', 'dt', 'dt_est', 'abserror', 'relerror',
+                         'last_abserror', 'last_relerror',
+                         'extrapolated_abserror', 'extrapolated_relerror'):
                 lines.add(1, f'cdef public {TYPE2STR[float]} {name}')
             lines.add(1, f'cdef public {TYPE2STR[bool]} f0_ready')
         return lines
@@ -1824,26 +1873,56 @@ class PyxWriter:
         """Calculate error statements."""
         subseqs = list(self.model.sequences.fluxes.numericsequences)
         yield from PyxWriter._declare_idxs(subseqs)
-        to_ = 'self.numvars.error'
+        userel = 'self.numvars.use_relerror:'
+        abserror = 'self.numvars.abserror'
+        relerror = 'self.numvars.relerror'
         index = 'self.numvars.idx_method'
-        yield f'{to_} = 0.'
+        yield f'cdef double abserror'
+        yield f'{abserror} = 0.'
+        yield f'if {userel}'
+        yield f'    {relerror} = 0.'
+        yield f'else:'
+        yield f'    {relerror} = inf'
         for seq in subseqs:
-            from_ = f'self.sequences.fluxes._{seq.name}_results'
+            results = f'self.sequences.fluxes._{seq.name}_results'
             if seq.NDIM == 0:
-                yield (f'{to_} = '
-                       f'max({to_}, fabs({from_}[{index}]-{from_}[{index}-1]))')
+                yield (f'abserror = fabs('
+                       f'{results}[{index}]-{results}[{index}-1])')
+                yield f'{abserror} = max({abserror}, abserror)'
+                yield f'if {userel}'
+                yield f'    if {results}[{index}] == 0.:'
+                yield f'        {relerror} = inf'
+                yield f'    else:'
+                yield (f'        {relerror} = max('
+                       f'{relerror}, fabs(abserror/{results}[{index}]))')
             elif seq.NDIM == 1:
-                yield (f'for idx0 in '
-                       f'range(self.sequences.fluxes._{seq.name}_length):')
-                yield (f'    {to_} = max({to_}, fabs('
-                       f'{from_}[{index}, idx0]-{from_}[{index}-1, idx0]))')
+                yield (f'for idx0 in range('
+                       f'self.sequences.fluxes._{seq.name}_length):')
+                yield (f'    abserror = fabs('
+                       f'{results}[{index}, idx0]-{results}[{index}-1, idx0])')
+                yield (f'    {abserror} = max({abserror}, abserror)')
+                yield f'    if {userel}'
+                yield f'        if {results}[{index}, idx0] == 0.:'
+                yield f'            {relerror} = inf'
+                yield f'        else:'
+                yield (f'            {relerror} = max('
+                       f'{relerror}, fabs(abserror/{results}[{index}, idx0]))')
             elif seq.NDIM == 2:
-                yield (f'for idx0 in '
-                       f'range(self.sequences.fluxes._{seq.name}_length0):')
-                yield (f'    for idx1 in '
-                       f'range(self.sequences.fluxes._{seq.name}_length1):')
-                yield (f'        {to_} = max({to_}, fabs({from_}[{index}, '
-                       f'idx0, idx1]-{from_}[{index}-1, idx0, idx1]))')
+                yield (f'for idx0 in range('
+                       f'self.sequences.fluxes._{seq.name}_length0):')
+                yield (f'    for idx1 in range('
+                       f'self.sequences.fluxes._{seq.name}_length1):')
+
+                yield (f'        abserror = fabs({results}[{index}, '
+                       f'idx0, idx1]-{results}[{index}-1, idx0, idx1])')
+                yield (f'        {abserror} = max({abserror}, abserror)')
+                yield f'        if {userel}'
+                yield f'            if {results}[{index}, idx0, idx1] == 0.:'
+                yield f'                {relerror} = inf'
+                yield f'            else:'
+                yield (f'                {relerror} = max('
+                       f'{relerror}, '
+                       f'fabs(abserror/{results}[{index}, idx0, idx1]))')
             else:
                 raise NotImplementedError(
                     f'NDIM of sequence `{seq.name}` is higher than expected.')

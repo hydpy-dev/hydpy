@@ -268,6 +268,7 @@ class Model(modeltools.ELSModel):
     """Version 2 of HydPy-Dam."""
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,
+        dam_solver.RelErrorMax,
         dam_solver.RelDTMin,
         dam_solver.RelDTMax,
     )

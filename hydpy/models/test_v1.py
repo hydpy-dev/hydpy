@@ -20,6 +20,7 @@ class Model(modeltools.ELSModel):
     """Test model, Version 1."""
     SOLVERPARAMETERS = (
         test_solver.AbsErrorMax,
+        test_solver.RelErrorMax,
         test_solver.RelDTMin,
         test_solver.RelDTMax,
     )

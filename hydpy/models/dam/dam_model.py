@@ -2535,6 +2535,7 @@ class Model(modeltools.ELSModel):
         dam_solver.RelDTMin,
         dam_solver.RelDTMax,
     )
+    SOLVERSEQUENCES = ()
     INLET_METHODS = (
         Pic_Inflow_V1,
         Pic_Inflow_V2,

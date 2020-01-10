@@ -211,6 +211,7 @@ class Model(modeltools.ELSModel):
         test_solver.RelDTMin,
         test_solver.RelDTMax,
     )
+    SOLVERSEQUENCES = ()
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
     PART_ODE_METHODS = (

@@ -370,6 +370,7 @@ class Model(modeltools.ELSModel):
         dam_solver.RelDTMin,
         dam_solver.RelDTMax,
     )
+    SOLVERSEQUENCES = ()
     INLET_METHODS = (
         dam_model.Pic_Inflow_V2,
         dam_model.Calc_NaturalRemoteDischarge_V1,

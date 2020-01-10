@@ -1872,6 +1872,9 @@ class PyxWriter:
     def calculate_error(self) -> Iterator[str]:
         """Calculate error statements."""
         subseqs = list(self.model.sequences.fluxes.numericsequences)
+        if self.model.SOLVERSEQUENCES:
+            subseqs = [seq for seq in subseqs if
+                       isinstance(seq, self.model.SOLVERSEQUENCES)]
         yield from PyxWriter._declare_idxs(subseqs)
         userel = 'self.numvars.use_relerror:'
         abserror = 'self.numvars.abserror'
@@ -1900,7 +1903,7 @@ class PyxWriter:
                        f'self.sequences.fluxes._{seq.name}_length):')
                 yield (f'    abserror = fabs('
                        f'{results}[{index}, idx0]-{results}[{index}-1, idx0])')
-                yield (f'    {abserror} = max({abserror}, abserror)')
+                yield f'    {abserror} = max({abserror}, abserror)'
                 yield f'    if {userel}'
                 yield f'        if {results}[{index}, idx0] == 0.:'
                 yield f'            {relerror} = inf'
@@ -1915,7 +1918,7 @@ class PyxWriter:
 
                 yield (f'        abserror = fabs({results}[{index}, '
                        f'idx0, idx1]-{results}[{index}-1, idx0, idx1])')
-                yield (f'        {abserror} = max({abserror}, abserror)')
+                yield f'        {abserror} = max({abserror}, abserror)'
                 yield f'        if {userel}'
                 yield f'            if {results}[{index}, idx0, idx1] == 0.:'
                 yield f'                {relerror} = inf'

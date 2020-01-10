@@ -848,6 +848,7 @@ class SolverModel(Model):
     """Base class for hydrological models which solve ordinary differential
     equations with numerical integration algorithms."""
 
+    SOLVERSEQUENCES: ClassVar[Tuple[sequencetools.FluxSequence, ...]]
     PART_ODE_METHODS: ClassVar[Tuple[Callable, ...]]
     FULL_ODE_METHODS: ClassVar[Tuple[Callable, ...]]
 
@@ -979,6 +980,7 @@ class ELSModel(SolverModel):
     to avoid needlessly long simulation times.
     """
 
+    SOLVERSEQUENCES: ClassVar[Tuple[sequencetools.FluxSequence, ...]]
     PART_ODE_METHODS: ClassVar[Tuple[Callable, ...]]
     FULL_ODE_METHODS: ClassVar[Tuple[Callable, ...]]
     METHOD_GROUPS = (
@@ -1423,8 +1425,8 @@ class ELSModel(SolverModel):
                     break
                 decrease_dt = self.numvars.dt > self.parameters.solver.reldtmin
                 decrease_dt = decrease_dt and (
-                        self.numvars.extrapolated_abserror >
-                        self.parameters.solver.abserrormax)
+                    self.numvars.extrapolated_abserror >
+                    self.parameters.solver.abserrormax)
                 if self.numvars.use_relerror:
                     decrease_dt = decrease_dt and (
                         self.numvars.extrapolated_relerror >
@@ -1796,8 +1798,13 @@ class ELSModel(SolverModel):
             setattr(fluxes.fastaccess, f'_{flux.name}_sum', sum_)
 
     def calculate_error(self) -> None:
-        """Estimate the numerical error based on the fluxes calculated
-        by the current and the last method.
+        """Estimate the numerical error based on the relevant fluxes
+        calculated by the current and the last method.
+
+        "Relevant fluxes" are those contained within the `SOLVERSEQUENCES`
+        tuple.  If this tuple is empty, method |ELSModel.calculate_error|
+        selects all flux sequences of the respective model with a |True|
+        `NUMERIC` attribute.
 
         >>> from hydpy import round_
         >>> from hydpy.models.test_v1 import *
@@ -1869,7 +1876,10 @@ class ELSModel(SolverModel):
         else:
             self.numvars.relerror = numpy.inf
         fluxes = self.sequences.fluxes
+        solversequences = self.SOLVERSEQUENCES
         for flux in fluxes.numericsequences:
+            if solversequences and not isinstance(flux, solversequences):
+                continue
             results = getattr(fluxes.fastaccess, f'_{flux.name}_results')
             absdiff = (results[self.numvars.idx_method] -
                        results[self.numvars.idx_method-1])

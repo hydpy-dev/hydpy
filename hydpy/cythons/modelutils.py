@@ -824,7 +824,8 @@ class Cythonizer:
     def compile_(self) -> None:
         """Translate Cython code to C code and compile it."""
         argv = copy.deepcopy(sys.argv)
-        sys.argv = [sys.argv[0], 'build_ext', '--build-lib='+self.buildpath]
+        sys.argv = [sys.argv[0], 'build_ext', '--build-lib='+self.buildpath,
+                    '--build-temp='+self.buildpath]
         exc_modules = [distutils.extension.Extension(
             'hydpy.cythons.autogen.'+self.cyname,
             [self.pyxfilepath], extra_compile_args=['-O2'])]

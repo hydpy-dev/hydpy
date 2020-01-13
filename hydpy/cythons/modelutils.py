@@ -2026,7 +2026,9 @@ class FuncConverter:
         self.remove_imath_operators(lines)
         del lines[0]   # remove @staticmethod
         lines = [l[4:] for l in lines]   # unindent
-        lines[0] = f'def {self.funcname}(self):'
+        argnames = self.argnames
+        argnames[0] = 'self'
+        lines[0] = f'def {self.funcname}({", ".join(argnames)}):'
         lines = [l.split('#')[0] for l in lines]
         lines = [l for l in lines if 'fastaccess' not in l]
         lines = [l.rstrip() for l in lines if l.rstrip()]
@@ -2128,11 +2130,14 @@ self.sequences.inputs.t-self.parameters.control.tcalt[k]*\
         """
         lines = ['    '+line for line in self.cleanlines]
         lines[0] = lines[0].lower()
-        lines[0] = lines[0].replace('def ', 'cpdef inline void ')
+        if len(self.argnames) == 1:
+            lines[0] = lines[0].replace('def ', 'cpdef inline void ')
+        else:
+            lines[0] = lines[0].replace('def ', 'cpdef inline double ')
         lines[0] = lines[0].replace('):', f') {_nogil}:')
         for name in self.untypedarguments:
-            lines[0] = lines[0].replace(f', {name},', f', int {name},')
-            lines[0] = lines[0].replace(f', {name})', f', int {name})')
+            lines[0] = lines[0].replace(f', {name},', f', double {name},')
+            lines[0] = lines[0].replace(f', {name})', f', double {name})')
         for name in self.untypedinternalvarnames:
             if name.startswith('d_'):
                 lines.insert(1, '        cdef double ' + name)

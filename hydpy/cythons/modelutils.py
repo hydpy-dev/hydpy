@@ -2123,7 +2123,7 @@ self.sequences.inputs.t-self.parameters.control.tcalt[k]*\
         ...                                    '    pass']
         ...         FuncConverter(
         ...             model, 'calc_tc_v1', model.calc_tc_v1).pyxlines
-            cpdef inline void calc_tc_v1(self, int x, int y)  nogil:
+            cpdef inline void calc_tc_v1(self, double x, double y)  nogil:
                 cdef int k
                 pass
         <BLANKLINE>

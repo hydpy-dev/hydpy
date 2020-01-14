@@ -23,9 +23,9 @@ class Gef(parametertools.Parameter):
 class GTS(parametertools.Parameter):
     """Anzahl Gewässerteilstrecken (number of channel subsections) [-].
 
-    Calling the parameter |GTS| automatically prepares the shape of all
-    1-dimensional sequences for which each entry corresponds to an
-    individual channel subsection:
+    Calling the parameter |GTS| prepares the shape of all 1-dimensional
+    sequences for which each entry corresponds to an individual channel
+    subsection:
 
     >>> from hydpy.models.lstream import *
     >>> parameterstep()
@@ -86,7 +86,7 @@ class SKM(parametertools.Parameter):
 
 
 class SKV(parametertools.LeftRightParameter):
-    """Rauigkeitsbeiwert Vorländer (roughness coefficient of the both
+    """Rauigkeitsbeiwert Vorländer (roughness coefficient of both
     forelands) [m^(1/3)/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 

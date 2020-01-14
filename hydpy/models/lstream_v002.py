@@ -1,29 +1,29 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
 """Version 2 of HydPy-L-Stream is a modification of |lstream_v001|.  It is
-supposed to reproduce the results of the "DV/DQ FUER WILLIAMS" option
-of LARSIM more closely and therefore uses the kinematic wave celerity instead
+supposed to reproduce the results of the "DV/DQ FUER WILLIAMS" option of
+`LARSIM`_ more closely and therefore uses the kinematic wave celerity instead
 of the stationary flow velocity for calculating the outflow of individual
-channel subsections.  More precisely, it calculates this outflow via
-:math:`Q=\\frac{dQ}{dA} \\ cdot A`.  We do not see an advantage in using
+channel subsections.  More precisely, it calculates the outflow via
+:math:`Q=\\frac{dQ}{dA} \\cdot A`.  We do not see an advantage in using
 this approach and hence recommend using |lstream_v001| in case one does
 not require compatibility with LARSIM's "DV/DQ FUER WILLIAMS" option.
 Note that |lstream_v001|, although focussing on the "WILLIAMS" option,
-also provides the main advantages of using LARSIM's "DV/DQ FUER WILLIAMS"
+also provides the central advantages of using LARSIM's "DV/DQ FUER WILLIAMS"
 option instead of the "WILLIAMS" option (multiple channel subsections
-and less erroneous results).
+and less systematic errors).
 
+.. _`LARSIM`: http://www.larsim.de/en/the-model/
 .. _`Todini (2007)`: https://www.hydrol-earth-syst-sci.net/11/1645/2007
 
 Integration test:
 
     We repeat the examples of the documentation on application model
-    |lstream_v001| to focus on the differences resulting from the
-    different approaches to calculate the outflow from individual
-    channel subsections.  Hence, the following configuration of
-    |lstream_v002| is identical with the one of |lstream_v001|, except
-    in that we decrease the initial water change slightly to start
-    with the same initial discharge of 100 m³/s:
+    |lstream_v001| to focus on the differences resulting from both
+    approaches.  Hence, the following configuration of |lstream_v002| is
+    identical with the one of |lstream_v001|, except that we decrease
+    the initial water stage to start with the same initial discharge
+    of 100 m³/s:
 
     >>> from hydpy.models.lstream_v002 import *
     >>> parameterstep('1d')
@@ -38,7 +38,7 @@ Integration test:
 
     >>> from hydpy.core.testtools import IntegrationTest
     >>> IntegrationTest.plotting_options.activated=(fluxes.qz, fluxes.qa)
-    >>> IntegrationTest.plotting_options.height = 700
+    >>> IntegrationTest.plotting_options.height = 650
     >>> test = IntegrationTest(stream, inits=[[states.h, 3.203338552]])
 
     >>> laen(100.0)
@@ -68,12 +68,11 @@ Integration test:
     >>> nodes.input2.sequences.sim.series = (
     ...     (q_peak-q_base)*((ts/t_peak)*numpy.exp(1.0-ts/t_peak))**β)
 
-    Due to the increase in water velocity with water stage, wave celerity
-    is larger than water velocity.  Hence, the peak flow occurs earlier
-    and is higher than as the one calculated by |lstream_v001| and as the
-    results given by `Todini (2007)`_ (the peak heigth could be decreased
-    by deceasing the number of subsections, which increases retention,
-    but the peak timing is independent from this parameter):
+    Due to the increase in water velocity with stage, wave celerity is
+    larger than water velocity.  Hence, the peak flow occurs earlier and
+    is higher than as the peak flows calculated by |lstream_v001| and by
+    `Todini (2007)`_ (one could reduce the peak height by decreasing the
+    number of subsections, but this would not affect the peak timing):
 
     >>> test('lstream_v002_ex1')
     |                date |         qz |                                                                                 qg |         qa |                                                                          dh |                                                                    h | input1 |     input2 |     output |
@@ -276,18 +275,17 @@ Integration test:
         <iframe
             src="lstream_v002_ex1.html"
             width="100%"
-            height="730"
+            height="680"
             frameborder=0
         ></iframe>
 
     When taking flood plain overflow into account, the fraction between
-    wave celerity and water volocity varyies significantly.  The differences
-    to the results of |lstream_v001| are much more pronounced than the
-    pure main channel flow example:
+    wave celerity and water velocity varies significantly.  The deviations
+    from to the results of |lstream_v001| are much more pronounced than
+    in the last example:
 
     >>> hm(6.0)
     >>> parameters.update()
-
     >>> test('lstream_v002_ex2')
     |                date |         qz |                                                                                 qg |         qa |                                                                          dh |                                                                    h | input1 |     input2 |     output |
     ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -487,9 +485,9 @@ Integration test:
     .. raw:: html
 
         <iframe
-            src="lstream_v00_ex2.html"
+            src="lstream_v002_ex2.html"
             width="100%"
-            height="730"
+            height="680"
             frameborder=0
         ></iframe>
 
@@ -699,9 +697,9 @@ Integration test:
     .. raw:: html
 
         <iframe
-            src="lstream_v00_ex3.html"
+            src="lstream_v002_ex3.html"
             width="100%"
-            height="730"
+            height="680"
             frameborder=0
         ></iframe>
 

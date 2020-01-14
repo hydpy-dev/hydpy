@@ -1,51 +1,50 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
 """Version 1 of HydPy-L-Stream corresponds to the "WILLIAMS" option of
-LARSIM.  Both implementions rely on a storage routing approach and apply
+`LARSIM`_.  Both implementations rely on a storage routing approach and apply
 the  Gauckler-Manning-Strickler formula in a triple trapezoid profile.
 However, there are some differences.  First, LARSIM generally assumes that
 there is only one storage per channel section, whereas |lstream_v001| allows
-for dividing the channel in multiple subsections of equal length (storage
+for dividing the channel into multiple subsections of equal length (storage
 cascade).  Second, LARSIM calculates a storage coefficient for a predetermined
 reference discharge in each simulation time step and assumes it to be constant
 during the whole time step, whereas |lstream_v001| always calculates the
-current outflow of a storage based on its current state.
+current storage-outflows based on the current stages.
 
+.. _`LARSIM`: http://www.larsim.de/en/the-model/
 .. _`Todini (2007)`: https://www.hydrol-earth-syst-sci.net/11/1645/2007
 
 The following figure shows the triple trapezoid profile, some related
 parameter names, and the taken assumptions on the wetted perimeters of
-the different parts of a cross sections:
+the different parts of a cross-section:
 
 .. image:: HydPy-L-Stream_Version-1.png
 
-It should be mentioned that neither LARSIM nor |lstream_v001| implements
-the storage routing approch proposed by Williams exactly.  LARSIM employs
-another working equation for integrating the ouflow over a time step
-(an analytical solution of the linear storage equation using old discharge
-values to keep track of the state), which is efficient and stable but can
-result in relevant systematic (volume) errors not to be encountered when
-using the working equation developed by Williams.  |lstream_v001| is a
-more hydrodynamical approach in the sense that the underlying differential
-equations are solved numerically under constant state updates (we use the
-water state instead of the water storage as the state for efficiency reasons).
-This approach is more flexible and accurate (it avoids systematic volume
-errors) but results in longer computation times.
+Neither |lstream_v001| nor LARSIM implements the storage routing approach
+proposed by Williams exactly. LARSIM integrates the storage outflow with
+an analytical solution of the linear storage equation that uses "old"
+discharge values to keep track of the state.  This approach is efficient
+and stable but can result in relevant systematic errors.  |lstream_v001|
+relies on a more hydrodynamical approach in the sense that the underlying
+differential equations are solved numerically under constant state updates
+(we use the stage instead of the water storage as the state for efficiency
+reasons).  This approach is more flexible and accurate (it avoids systematic
+volume errors) but results in longer computation times.
 
 When starting to use application model |lstream_v001|, one should keep the
 following two computational challenges in mind, which are both due to
-|lstream_v001| relying on the explite integration algorithm provided by class
-|ELSModel|.  First, defining very short (sub)channels results in stiff initial
-value problems.  |ELSModel| still solves such stiff problems, but might need
-to decrease its internal integration step size considerably, which is
-time-consuming.  Second, using the triple trapezoid profile results in
-discontinuities at the transition points, e.g. when water starts
-to leave the main channel and flows over the forelands.  Strong
+|lstream_v001| relying on the explicit integration algorithm provided by
+class |ELSModel|.  First, defining very short (sub)channels results in
+stiff initial value problems.  |ELSModel| solves such stiff problems but
+might need to decrease its internal integration step size considerably,
+which is time-consuming.  Second, using the triple trapezoid profile
+results in discontinuities at the transition points, e.g. when water
+starts to leave the main channel and flows over the forelands.  Sharp
 discontinuities also result in performance losses and possibly even in
 erroneous results.  |lstream_v001| solves the latter problem by regularising
 ("smoothing") all discontinuous equations.  However, the user needs to
 define the degree of smoothness via parameter |HR|.  Please read the
-documentation on class |ELSModel| and on module |smoothtools| for further
+documentation on class |ELSModel| and module |smoothtools| for further
 information.  We also advise to repeat and play around with the following
 examples to gain experience on how different model configurations
 influence computation times.
@@ -53,32 +52,30 @@ influence computation times.
 Finally, there is also the challenge of finding the correct number of
 channel subsections, which controls the retention or diffusion of a
 flood wave.  It seems reasonable to rely on estimates of the characteristic
-length following the Kalinin-Miljukov method.  However, such estimates
-depend on the height of the considered discharge.  That means that
-|lstream_v001|, while being able to adapt its translation time, cannot
-adapt its retention to the current water stage, which might be a
-disadvantage when performing long simulation runs covering wide discharge
-ranges.
+length following the Kalinin-Milyukov method.  However, such estimates
+depend on the considered discharge.  Accordingly, while being able to
+adapt its translation time, |lstream_v001| cannot adapt its retention
+to the current stage, which might be a disadvantage when performing
+long simulation runs covering wide discharge ranges.
 
 Integration test:
 
     For our first test, we take up one of the examples given by
     `Todini (2007)`_, focussing on the routing of a unimodal flood wave
-    through a 100 km long channel exhibiting the trapezoidal cross section
+    through a 100 km long channel exhibiting the trapezoidal cross-section
     shown in figure 5.
 
     >>> from hydpy.models.lstream_v001 import *
     >>> parameterstep('1d')
 
-    The simulation period spans 96 hours, the simulation step
-    is 30 minutes:
+    The simulation period spans 96 hours; the simulation step is 30 minutes:
 
     >>> from hydpy import pub, Nodes, Element
     >>> pub.timegrids = '2000-01-01', '2000-01-05', '30m'
 
-    For testing purposes, the model input shall be retrieved from two nodes
-    (`input1` and `input2`) and the model output shall be passed to node
-    `output`.  First, we define these nodes:
+    For testing purposes, the model retrieves its input data from two nodes
+    (`input1` and `input2`) and passes its output to node `output`.  First,
+    we define these nodes:
 
     >>> nodes = Nodes('input1', 'input2', 'output')
 
@@ -90,16 +87,16 @@ Integration test:
     ...                  outlets='output')
     >>> stream.model = model
 
-    Next, we prepare a test function object which sets the intial water
-    stage to 3.71783276 m, which results in an initial outflow of 100 m³/s:
+    Next, we prepare a test function object which sets the intial stage
+    to 3.71783276 m, which results in an initial outflow of 100 m³/s:
 
     >>> from hydpy.core.testtools import IntegrationTest
     >>> IntegrationTest.plotting_options.activated=(fluxes.qz, fluxes.qa)
     >>> IntegrationTest.plotting_options.height = 700
     >>> test = IntegrationTest(stream, inits=[[states.h, 3.71783276]])
 
-    Now we define geometry and roughness values for the main channel given
-    by `Todini (2007)`_:
+    Now we define the geometry and roughness values for the main channel
+    given by `Todini (2007)`_:
 
     >>> laen(100.0)
     >>> gef(0.00025)
@@ -132,7 +129,7 @@ Integration test:
 
     `Todini (2007)`_ divides the channel into different numbers of subsections
     in his experiments.  Here, we define eight subsections, which is in
-    agreement with the characteristic length of the Kalinin-Miljukov method:
+    agreement with the characteristic length of the Kalinin-Milyukov method:
 
     >>> gts(8)
 
@@ -146,7 +143,7 @@ Integration test:
 
     Node `input1` supplies constant base flow and node `input2` supplies
     the actual flood wave.  The peak occurs after 24 hours and with a
-    (total) hight of 900 m³/s:
+    (total) height of 900 m³/s:
 
     >>> import numpy
     >>> q_base = 100.0
@@ -378,10 +375,9 @@ Integration test:
 
     Now the calculated flood wave shows a considerable increase in
     translation and retention.  Clicking and zooming into the time series
-    of the water stage shows that this effect is actually due to the
-    (originally discontinuous) transition from pure channel flow to mixed
-    main channel and overbank flow, where additional storage capacities
-    come into play:
+    of the stage shows that this effect is actually due to the (originally
+    discontinuous) transition from pure channel flow to a mixture of channel
+    and overbank flow, where additional storage capacities come into play:
 
     >>> test('lstream_v001_ex2')
     |                date |         qz |                                                                                             qg |         qa |                                                                                     dh |                                                                              h | input1 |     input2 |     output |
@@ -588,7 +584,7 @@ Integration test:
             frameborder=0
         ></iframe>
 
-    Finally, we show that |lstream_v001| allows for negative water stages.
+    Finally, we show that |lstream_v001| allows for negative stages.
     Therefore, we reset |HM| to infinity, set the base flow provided by
     node `input1` to zero, and set the initial water stage to -1.0 m:
 
@@ -597,12 +593,12 @@ Integration test:
     >>> test.inits.h = -1.0
 
     In usual simulations with reasonable smoothing parameterisations, one
-    is unlikely to encounter negative discharges.  However, they are
-    principally allowed for the sake of numerical robustness.  Carefull
-    inspection of the water stage (|H|) and the discharge (|QG|) of a
-    cross section at the begin of the rising limb reveals that the first
-    discharge occurs for water stages slightly below zero (due to
-    setting the regularisation parameter |HR| to 0.1 m³/s):
+    is unlikely to encounter negative stages.  However, they are principally
+    allowed for the sake of numerical robustness.  Careful inspection of
+    the stage (|H|) and the discharge (|QG|) of a cross-section at the begin
+    of the rising limb reveals that the first discharge occurs for stages
+    slightly below zero (due to setting the regularisation parameter |HR|
+    to 0.1 m³/s):
 
     >>> test('lstream_v001_ex3')
     |                date |         qz |                                                                                             qg |         qa |                                                                                     dh |                                                                                      h | input1 |     input2 |     output |
@@ -877,24 +873,23 @@ class Model(lstream_model.Model, lstream_model.ProfileMixin):
     )
     SENDER_METHODS = ()
 
-
     def calculate_characteristiclength(
             self, h: float, dh: float = 1e-6,
             lenmin: float = 0.1, nmbmax: int = 50) -> Characteristics:
-        """Approximate the characteristic length after the Kalinin-Miljukov
+        """Approximate the characteristic length after the Kalinin-Milyukov
         method.
 
         Method |Model.calculate_characteristiclength| determines the
-        characterstic length based on a finite difference approach and
-        returns it, accompanied by someintermediate results, within
-        a |Characteristics| objects.  You need to pass in the considered
-        water stage (`h`).  Optionally, you can define alternative values
-        for the finite difference stepsize (`dh`), the smallest allowed
-        subsection length (`minlen`) and the maximum number of cross sections
-        (`nmbmax`).  The returned `length_orig` value is the original
-        approximation of the theoretical characteristic length, while
-        the `length_adj` is the one adjusted the the actual channel length.
-        All length value must be given and are returned in kilometres.
+        characteristic length based on a finite difference approach and
+        returns it, accompanied by some intermediate results, within a
+        |Characteristics| object.  You need to pass in the stage of
+        interest (`h`).  Optionally, you can define alternative values
+        for the finite-difference stepsize (`dh`), the smallest allowed
+        subsection length (`minlen`) and the maximum number of cross-sections
+        (`nmbmax`).  The returned `length_orig` value is the initial
+        approximation of the ideal characteristic length and `length_adj`
+        is its adjustment to the actual channel length.  All length value
+        must be given and are returned in kilometres.
 
         We reuse the example given in the main documentation on module
         |lstream_v001|:

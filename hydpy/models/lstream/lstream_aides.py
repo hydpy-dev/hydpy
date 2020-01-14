@@ -8,73 +8,73 @@ from hydpy.core import sequencetools
 
 
 class WBM(sequencetools.AideSequence):
-    """Wasserspiegelbreite Hauptgerinne (water level with of the main
+    """Wasserspiegelbreite Hauptgerinne (water level width of the main
     channel) [m]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
 
 class WBLV(sequencetools.AideSequence):
-    """Wasserspiegelbreite des linken Vorlandes (water level with of the
+    """Wasserspiegelbreite des linken Vorlandes (water level width of the
     left foreland) [m]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
 
 class WBRV(sequencetools.AideSequence):
-    """Wasserspiegelbreite des rechten Vorlandes (water level with of the
+    """Wasserspiegelbreite des rechten Vorlandes (water level width of the
     right foreland) [m]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
 
 class WBLVR(sequencetools.AideSequence):
-    """Wasserspiegelbreite des linken Vorlandrandes (water level with of
+    """Wasserspiegelbreite des linken Vorlandrandes (water level width of
     the left outer embankment) [m]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
 
 class WBRVR(sequencetools.AideSequence):
-    """Wasserspiegelbreite des rechten Vorlandrandes (water level with of
+    """Wasserspiegelbreite des rechten Vorlandrandes (water level width of
     the right outer embankment) [m]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
 
 class WBG(sequencetools.AideSequence):
-    """Wasserspiegelbreite des gesamten Querschnittes (water level with of
+    """Wasserspiegelbreite des gesamten Querschnittes (water level width of
     the total cross section) [m]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
 
 class AM(sequencetools.AideSequence):
-    """Durchflossene Fläche Hauptgerinne (flown through area of the
+    """Durchflossene Fläche Hauptgerinne (wetted area of the
     main channel) [m²]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
 
 class ALV(sequencetools.AideSequence):
-    """Durchflossene Fläche linkes Vorland (flown through area of the
+    """Durchflossene Fläche linkes Vorland (wetted area of the
     left foreland) [m²]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
 
 class ARV(sequencetools.AideSequence):
-    """Durchflossene Fläche rechtes Vorland (flown through area of the
+    """Durchflossene Fläche rechtes Vorland (wetted area of the
     right foreland) [m²]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
 
 class ALVR(sequencetools.AideSequence):
-    """Durchflossene Fläche linker Vorlandrand (flown through area of the
+    """Durchflossene Fläche linker Vorlandrand (wetted area of the
     left outer embankments) [m²]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
 
 class ARVR(sequencetools.AideSequence):
-    """Durchflossene Fläche rechter Vorlandrand (flown through area of the
+    """Durchflossene Fläche rechter Vorlandrand (wetted area of the
     right outer embankments) [m²]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
 
 class AG(sequencetools.AideSequence):
-    """Durchflossene Fläche gesamt  (total flown through area) [m²]."""
+    """Durchflossene Fläche gesamt  (total wetted area) [m²]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
 
@@ -113,11 +113,6 @@ class QM(sequencetools.AideSequence):
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
 
-class QV(sequencetools.AideSequence):
-    """Durchfluss Voränder (discharge of both forelands) [m³/s]."""
-    NDIM, NUMERIC, SPAN = 2, False, (0., None)
-
-
 class QLV(sequencetools.AideSequence):
     """Durchfluss linkes Vorland (discharge of the left foreland) [m³/s]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
@@ -146,7 +141,7 @@ class QRVR(sequencetools.AideSequence):
 
 
 class RHM(sequencetools.AideSequence):
-    """Hinsichtlich der Gewässersohle regularisierter Wasserstand (water stage
+    """Hinsichtlich der Gewässersohle regularisierter Wasserstand (stage
     regularised with respect to the channel bottom) [m]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
@@ -158,7 +153,7 @@ class RHMDH(sequencetools.AideSequence):
 
 class RHV(sequencetools.AideSequence):
     """Hinsichtlich der des Übergangs Hauptgerinne/Vorländer regularisierter
-    Wasserstand (water stage regularised with respect to the transition
+    Wasserstand (stage regularised with respect to the transition
     from the main channel to both forelands) [m]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
@@ -170,7 +165,7 @@ class RHVDH(sequencetools.AideSequence):
 
 class RHLVR(sequencetools.AideSequence):
     """Hinsichtlich der des Übergangs linkes Vorland/ linker Vorlandrand
-    regularisierter Wasserstand (water stage regularised with respect to the
+    regularisierter Wasserstand (stage regularised with respect to the
     transition from the left foreland to the left outer embankment) [m]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
 
@@ -182,7 +177,7 @@ class RHLVRDH(sequencetools.AideSequence):
 
 class RHRVR(sequencetools.AideSequence):
     """Hinsichtlich der des Übergangs rechtes Vorland/ rechter Vorlandrand
-    regularisierter Wasserstand (water stage regularised with respect to the
+    regularisierter Wasserstand (stage regularised with respect to the
     transition from the right foreland to the right outer embankment) [m]."""
     NDIM, NUMERIC, SPAN = 1, False, (0., None)
 

@@ -24,7 +24,7 @@ class HV(parametertools.LeftRightParameter):
     )
 
     def update(self):
-        """Update value based on :math:`HV=BBV/BNV`.
+        """Update based on :math:`HV=BBV/BNV`.
 
         Examples:
             >>> from hydpy.models.lstream import *
@@ -60,7 +60,7 @@ class MFM(parametertools.Parameter):
     )
 
     def update(self):
-        """Update value based on :math:`MFM=EKM \\cdot SKM \\cdot \\sqrt(Gef)`.
+        """Update based on :math:`MFM=EKM \\cdot SKM \\cdot \\sqrt{Gef}`.
 
         Examples:
             >>> from hydpy.models.lstream import *
@@ -89,7 +89,7 @@ class MFV(parametertools.LeftRightParameter):
     )
 
     def update(self):
-        """Update value based on :math:`MFV=EKV \\cdot SKV \\cdot \\sqrt(Gef)`.
+        """Update based on :math:`MFV=EKV \\cdot SKV \\cdot \\sqrt{Gef}`.
 
         Examples:
             >>> from hydpy.models.lstream import *
@@ -116,7 +116,7 @@ class BNMF(parametertools.Parameter):
     )
 
     def update(self):
-        """Update value based on :math:`BNMF= \\sqrt(1+BNM^2)`.
+        """Update based on :math:`BNMF= \\sqrt{1+BNM^2}`.
 
         Examples:
             >>> from hydpy.models.lstream import *
@@ -140,7 +140,7 @@ class BNVF(parametertools.LeftRightParameter):
     )
 
     def update(self):
-        """Update value based on :math:`BNVF= \\sqrt(1+BNV^2)`.
+        """Update based on :math:`BNVF= \\sqrt{1+BNV^2}`.
 
         Examples:
             >>> from hydpy.models.lstream import *
@@ -164,7 +164,7 @@ class BNVRF(parametertools.LeftRightParameter):
     )
 
     def update(self):
-        """Update value based on :math:`BNVRF= \\sqrt(1+BNVR^2)`.
+        """Update based on :math:`BNVRF= \\sqrt(1+BNVR^2)`.
 
         Examples:
             >>> from hydpy.models.lstream import *
@@ -191,8 +191,8 @@ class HRP(parametertools.Parameter):
     def update(self):
         """Calculate the smoothing parameter value.
 
-        The following example is explained in some detail in module
-        |smoothtools|:
+        The documentation on module |smoothtools| explains the following
+        example in some detail:
 
         >>> from hydpy.models.lstream import *
         >>> from hydpy.cythons.smoothutils import smooth_logistic2

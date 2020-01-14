@@ -2,14 +2,16 @@
 # pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
 """Version 3 of HydPy-L-Stream is a computationally more efficient
 alternative to application models |lstream_v001| and |lstream_v002|.
-The higher efficiency is due to not calculating the discharge based
-on channel geometries but based on preprocessed relationships between
-discharge to storage, similar to the "V/Q-BEZIEHUNG EXTERN" option of
-LARSIM.  This relationship must be described by an artificial neural
-network via parameter |VG2QG|.  Principally, the neural network can fit
-any relationship provided by |lstream_v001| and |lstream_v002| with very
-high accuracy.  However, high accuracy might require a huge number of
-neurons, which also can come with a relevant performance cost.
+The higher efficiency is due to not calculating discharges based on
+channel geometries but based on preprocessed relationships between
+discharge and storage, similar to the "V/Q-BEZIEHUNG EXTERN" option of
+`LARSIM`_.  An artificial neural network, available as "parameter" |VG2QG|,
+serves to describe this relationship.  Principally, the neural network
+can fit any relationship provided by |lstream_v001| or |lstream_v002|
+very accurately.  However, high accuracy might require a considerable
+number of neurons, which also can come with a relevant performance cost.
+
+.. _`LARSIM`: http://www.larsim.de/en/the-model/
 
 Integration test:
 
@@ -41,7 +43,7 @@ Integration test:
     ...       intercepts_output=[-78.006394])
 
     >>> from hydpy.core.testtools import IntegrationTest
-    >>> IntegrationTest.plotting_options.height = 700
+    >>> IntegrationTest.plotting_options.height = 550
     >>> IntegrationTest.plotting_options.activated=(fluxes.qz, fluxes.qa)
     >>> test = IntegrationTest(stream, inits=[[states.vg, 1.570929405]])
 
@@ -55,8 +57,8 @@ Integration test:
     >>> nodes.input2.sequences.sim.series = (
     ...     (q_peak-q_base)*((ts/t_peak)*numpy.exp(1.0-ts/t_peak))**β)
 
-    The approximation the discharge-storage relationship is far from
-    being perfect, but is, at least in the range relevant for the selected
+    Our approximation of the discharge-storage relationship is far from
+    perfect, but is, at least in the range relevant for the selected
     event, sufficient to reproduce the original results of application
     model |lstream_v001| with reasonable accuracy (for example, peak
     flow is 660 m³/s instead of 659 m³/s):

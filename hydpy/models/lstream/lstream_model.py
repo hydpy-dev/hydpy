@@ -62,7 +62,7 @@ class Calc_QZA_V1(modeltools.Method):
 
 
 class Calc_RHM_V1(modeltools.Method):
-    """Regularise the water stage with respect to the channel bottom.
+    """Regularise the stage with respect to the channel bottom.
 
     Used auxiliary method:
       |smooth_logistic2|
@@ -112,7 +112,7 @@ class Calc_RHM_V1(modeltools.Method):
 
 
 class Calc_RHMDH_V1(modeltools.Method):
-    """Calculate the derivative of the water stage regularised with respect
+    """Calculate the derivative of the stage regularised with respect
     to the channel bottom.
 
     Used auxiliary method:
@@ -123,7 +123,7 @@ class Calc_RHMDH_V1(modeltools.Method):
 
     Examples:
 
-        We apply class |NumericalDifferentiator| to validate the
+        We apply the class |NumericalDifferentiator| to validate the
         calculated derivatives:
 
         >>> from hydpy.models.lstream import *
@@ -178,7 +178,7 @@ class Calc_RHMDH_V1(modeltools.Method):
 
 
 class Calc_RHV_V1(modeltools.Method):
-    """Regularise the water stage with respect to the transition from the
+    """Regularise the stage with respect to the transition from the
     main channel to both forelands.
 
     Used auxiliary method:
@@ -224,7 +224,7 @@ class Calc_RHV_V1(modeltools.Method):
 
 
 class Calc_RHVDH_V1(modeltools.Method):
-    """Calculate the derivative of the water stage regularised with respect
+    """Calculate the derivative of the stage regularised with respect
     to the transition from the main channel to both forelands.
 
     Used auxiliary method:
@@ -235,7 +235,7 @@ class Calc_RHVDH_V1(modeltools.Method):
 
     Examples:
 
-        We apply class |NumericalDifferentiator| to validate the
+        We apply the class |NumericalDifferentiator| to validate the
         calculated derivatives:
 
         >>> from hydpy.models.lstream import *
@@ -292,7 +292,7 @@ class Calc_RHVDH_V1(modeltools.Method):
 
 
 class Calc_RHLVR_RHRVR_V1(modeltools.Method):
-    """Regularise the water stage with respect to the transitions from the
+    """Regularise the stage with respect to the transitions from the
     forelands to the outer embankments.
 
     Used auxiliary method:
@@ -346,7 +346,7 @@ class Calc_RHLVR_RHRVR_V1(modeltools.Method):
 
 
 class Calc_RHLVRDH_RHRVRDH_V1(modeltools.Method):
-    """Calculate the derivative of the water stage regularised with respect
+    """Calculate the derivative of the stage regularised with respect
     to the transition from the forelands to the outer embankments.
 
     Used auxiliary method:
@@ -357,7 +357,7 @@ class Calc_RHLVRDH_RHRVRDH_V1(modeltools.Method):
 
     Examples:
 
-        We apply class |NumericalDifferentiator| to validate the
+        We apply the class |NumericalDifferentiator| to validate the
         calculated derivatives:
 
         >>> from hydpy.models.lstream import *
@@ -425,12 +425,11 @@ class Calc_RHLVRDH_RHRVRDH_V1(modeltools.Method):
 
 
 class Calc_AM_UM_V1(modeltools.Method):
-    """Calculate the flown through area and the wetted perimeter
-    of the main channel.
+    """Calculate the wetted area and the wetted perimeter of the main channel.
 
     The main channel is assumed to have identical slopes on both sides.
     Water flowing exactly above the main channel is contributing to |AM|.
-    Both theoretical surfaces seperating the water above the main channel
+    Both theoretical surfaces separating the water above the main channel
     from the water above the forelands are contributing to |UM|.
 
     Examples:
@@ -448,8 +447,8 @@ class Calc_AM_UM_V1(modeltools.Method):
         >>> derived.bnmf.update()
 
         First, we show that all calculations agree with the unmodified
-        triple-trapez-profile results when setting smoothing parameter
-        |HRP| to zero:
+        triple trapezoid profile results when setting the smoothing
+        parameter |HRP| to zero:
 
         >>> derived.hrp(0)
 
@@ -470,8 +469,7 @@ class Calc_AM_UM_V1(modeltools.Method):
         um(2.0, 2.824621, 6.123106, 9.42159, 10.246211, 10.446211, 11.246211,
            12.246211)
 
-        The next example checks the special case of a main channel with
-        zero height:
+        The next example checks the special case of a channel with zero height:
 
         >>> hm(0.0)
         >>> model.calc_rhm_v1()
@@ -482,8 +480,8 @@ class Calc_AM_UM_V1(modeltools.Method):
         >>> aides.um
         um(2.0, 2.2, 3.0, 3.8, 4.0, 4.2, 5.0, 6.0)
 
-        Second, we repeat both example with a reasonable smoothing
-        parameterisation.  As to be expected, the main deviations occur
+        Second, we repeat both examples with a reasonable smoothing
+        parameterisation.  As to be expected, the primary deviations occur
         around the original discontinuities related the channel bottom
         and the transition from the main channel to both forelands:
 
@@ -541,8 +539,8 @@ class Calc_AM_UM_V1(modeltools.Method):
 
 
 class Calc_AMDH_UMDH_V1(modeltools.Method):
-    """Calculate the derivatives of the flown through area and the wetted
-    perimeter of the main channel.
+    """Calculate the derivatives of the wetted area and  perimeter of
+    the main channel.
 
     Examples:
 
@@ -654,14 +652,13 @@ class Calc_AMDH_UMDH_V1(modeltools.Method):
 
 
 class Calc_ALV_ARV_ULV_URV_V1(modeltools.Method):
-    """Calculate the flown through area and the wetted perimeter of both
-    forelands.
+    """Calculate the wetted area and wetted perimeter of both forelands.
 
     Each foreland lies between the main channel and one outer embankment.
-    The water flowing exactly above the a foreland is contributing to |ALV|
-    or |ARV|.  The theoretical surface seperating the water above the main
+    The water flowing exactly above a foreland is contributing to |ALV|
+    or |ARV|.  The theoretical surface separating the water above the main
     channel from the water above the foreland is not contributing to |ULV|
-    or |URV|, but the surface seperating the water above the foreland from
+    or |URV|, but the surface separating the water above the foreland from
     the water above its outer embankment is contributing to |ULV| and |URV|.
 
     Examples:
@@ -671,9 +668,9 @@ class Calc_ALV_ARV_ULV_URV_V1(modeltools.Method):
         >>> gts(14)
         >>> hm(1.0)
 
-        First, we show that all calculations aggree with the unmodified
-        triple-trapez-profile results when setting smoothing parameter
-        |HRP| to zero:
+        First, we show that all calculations agree with the unmodified
+        triple trapezoid profile results when setting the smoothing
+        parameter |HRP| to zero:
 
         >>> derived.hrp(0)
 
@@ -711,8 +708,8 @@ class Calc_ALV_ARV_ULV_URV_V1(modeltools.Method):
         urv(3.0, 3.0, 3.0, 3.0, 3.509902, 5.54951, 7.589118, 8.09902, 8.608921,
             10.648529, 12.688137, 13.198039, 13.298039, 14.198039)
 
-        The next example assures that zero widths and hights of the forelands
-        are handled properly:
+        The next example proves the correct handling of forelands with zero
+        widths and heights:
 
         >>> bv(left=0.0, right=2.0)
         >>> bnv(4.0)
@@ -734,7 +731,7 @@ class Calc_ALV_ARV_ULV_URV_V1(modeltools.Method):
 5.0)
 
         Second, we repeat both examples with a reasonable smoothing
-        parameterisation.  As to be expected, the main deviations occur
+        parameterisation.  As to be expected, the primary deviations occur
         around the original discontinuities related the channel bottom
         and the transition from the main channel to both forelands:
 
@@ -820,8 +817,8 @@ class Calc_ALV_ARV_ULV_URV_V1(modeltools.Method):
 
 
 class Calc_ALVDH_ARVDH_ULVDH_URVDH_V1(modeltools.Method):
-    """Calculate the derivatives of the flown through area and the wetted
-    perimeter of both forelands.
+    """Calculate the derivatives of the wetted area and perimeter of
+    both forelands.
 
     Examples:
 
@@ -986,13 +983,12 @@ class Calc_ALVDH_ARVDH_ULVDH_URVDH_V1(modeltools.Method):
 
 
 class Calc_ALVR_ARVR_ULVR_URVR_V1(modeltools.Method):
-    """Calculate the flown through area and the wetted perimeter of both
-    outer embankments.
+    """Calculate the wetted area and perimeter of both outer embankments.
 
     Each outer embankment lies beyond its foreland.  The water flowing
     exactly above an embankment is added to |ALVR| and |ARVR|.  The
-    theoretical surface seperating water above the foreland from water
-    above its embankment is not contributing to |ULVR| and |URVR|.
+    theoretical surface separating water above the foreland from the
+    water above its embankment is not contributing to |ULVR| and |URVR|.
 
     Examples:
 
@@ -1001,9 +997,9 @@ class Calc_ALVR_ARVR_ULVR_URVR_V1(modeltools.Method):
         >>> gts(11)
         >>> hm(1.0)
 
-        First, we show that all calculations aggree with the unmodified
-        triple-trapez-profile results when setting smoothing parameter
-        |HRP| to zero:
+        First, we show that all calculations agree with the unmodified
+        triple trapezoid profile results when the setting the smoothing
+        parameter |HRP| to zero:
 
         >>> derived.hrp(0)
 
@@ -1013,7 +1009,7 @@ class Calc_ALVR_ARVR_ULVR_URVR_V1(modeltools.Method):
         for the left and the right outer embankment, respectively); the second
         example deals with extreme high flow conditions, where water flows
         both over the foreland and their outer embankments ((|HM| + |HV|) < |H|,
-        the last seven or three channel sections for the the left and the right
+        the last seven or three channel sections for the left and the right
         outer embankment, respectively):
 
         >>> states.h = 1.0, 1.5, 1.9, 2.0, 2.1, 2.5, 2.9, 3.0, 3.1, 3.5, 4.0
@@ -1051,8 +1047,8 @@ class Calc_ALVR_ARVR_ULVR_URVR_V1(modeltools.Method):
         urvr(0.0, 2.54951, 4.589118, 5.09902, 5.608921, 7.648529, 9.688137,
              10.198039, 10.707941, 12.747549, 15.297059)
 
-        Second, we repeat both example with a reasonable smoothing
-        parameterisation.  As to be expected, the main deviations occur
+        Second, we repeat both examples with a reasonable smoothing
+        parameterisation.  As to be expected, the primary deviations occur
         around the original discontinuities related the channel bottom
         and the transition from the main channel to both forelands:
 
@@ -1125,8 +1121,8 @@ class Calc_ALVR_ARVR_ULVR_URVR_V1(modeltools.Method):
 
 
 class Calc_ALVRDH_ARVRDH_ULVRDH_URVRDH_V1(modeltools.Method):
-    """Calculate the derivatives of the flown through area and the wetted
-    perimeter of both outer embankments.
+    """Calculate the derivatives of the wetted area and perimeter of
+    both outer embankments.
 
     Examples:
 
@@ -1262,7 +1258,7 @@ class Calc_QM_V1(modeltools.Method):
     """Calculate the discharge of the main channel after Manning-Strickler.
 
     Basic equation:
-      :math:`QM = MFM \\cdot \\frac{AM^{5/3}}{UM^{2/3}`
+      :math:`QM = MFM \\cdot \\frac{AM^{5/3}}{UM^{2/3}}`
 
     Examples:
 
@@ -1348,7 +1344,7 @@ class Calc_QM_V2(modeltools.Method):
 
 class Calc_QMDH_V1(modeltools.Method):
     """Calculate the derivative of the discharge of the main channel
-    in accordance with method |Calc_QM_V1|.
+    following method |Calc_QM_V1|.
 
     Basic equation:
       :math:`QMDH = MFM \\cdot
@@ -1357,7 +1353,7 @@ class Calc_QMDH_V1(modeltools.Method):
 
     Examples:
 
-        First, we apply class |NumericalDifferentiator| to validate the
+        First, we apply the class |NumericalDifferentiator| to validate the
         calculated derivatives:
 
         >>> from hydpy.models.lstream import *
@@ -1545,7 +1541,7 @@ class Calc_QLV_QRV_V2(modeltools.Method):
 
 class Calc_QLVDH_QRVDH_V1(modeltools.Method):
     """Calculate the derivative of the discharge of both forelands with
-    respect to water stage in accordance with method |Calc_QLV_QRV_V1|.
+    respect to the stage following method |Calc_QLV_QRV_V1|.
 
     Basic equation:
       :math:`QVDH = MFV \\cdot
@@ -1554,7 +1550,7 @@ class Calc_QLVDH_QRVDH_V1(modeltools.Method):
 
     Examples:
 
-        First, we apply class |NumericalDifferentiator| to validate the
+        First, we apply the class |NumericalDifferentiator| to validate the
         calculated derivatives:
 
         >>> from hydpy.models.lstream import *
@@ -1772,7 +1768,7 @@ class Calc_QLVR_QRVR_V2(modeltools.Method):
 
 class Calc_QLVRDH_QRVRDH_V1(modeltools.Method):
     """Calculate the derivative of the discharge over the outer embankments
-    with respect to water stage in accordance with method |Calc_QLVR_QRVR_V1|.
+    with respect to the stage following method |Calc_QLVR_QRVR_V1|.
 
     Basic equation:
       :math:`QVRDH = MFVR \\cdot
@@ -1781,7 +1777,7 @@ class Calc_QLVRDH_QRVRDH_V1(modeltools.Method):
 
     Examples:
 
-        First, we apply class |NumericalDifferentiator| to validate the
+        First, we apply the class |NumericalDifferentiator| to validate the
         calculated derivatives:
 
         >>> from hydpy.models.lstream import *
@@ -1873,7 +1869,7 @@ class Calc_QLVRDH_QRVRDH_V1(modeltools.Method):
 
 
 class Calc_AG_V1(modeltools.Method):
-    """Calculate the through flown area of the total cross sections.
+    """Calculate the through wetted of the total cross-sections.
 
     Basic equation:
       :math:`AG = AM+ALV+ARV+ALVR+ARVR`
@@ -1914,7 +1910,7 @@ class Calc_AG_V1(modeltools.Method):
 
 
 class Calc_QG_V1(modeltools.Method):
-    """Calculate the discharge of the total cross section.
+    """Calculate the discharge of the total cross-section.
 
     Basic equation:
       :math:`QG = QM+QLV+QRV+QLVR+QRVR`
@@ -1956,7 +1952,7 @@ class Calc_QG_V1(modeltools.Method):
 
 
 class Calc_QG_V2(modeltools.Method):
-    """Determine the discharge of each the total cross section based on an
+    """Determine the discharge of each the total cross-section based on an
     artificial neural network describing the relationship between water
     storage in the total channel and discharge.
 
@@ -1996,7 +1992,7 @@ class Calc_QG_V2(modeltools.Method):
         |  10 | 9.0  19.0 | 0.489013  0.499925 |
 
         For more realistic approximations of measured relationships between
-        storage and discharge, larger neural networks are required.
+        storage and discharge, we require larger neural networks.
     """
     CONTROLPARAMETERS = (
         lstream_control.VG2QG,
@@ -2023,7 +2019,7 @@ class Calc_WBM_V1(modeltools.Method):
 
     Examples:
 
-        Due to :math:`WBM = \\frac{dAM}{dh}`, we can apply class
+        Due to :math:`WBM = \\frac{dAM}{dh}`, we can apply the class
         |NumericalDifferentiator| to validate the calculated water
         table widths:
 
@@ -2100,7 +2096,7 @@ class Calc_WBLV_WBRV_V1(modeltools.Method):
 
     Examples:
 
-        Due to :math:`WBV = \\frac{dAV}{dh}`, we can apply class
+        Due to :math:`WBV = \\frac{dAV}{dh}`, we can apply the class
         |NumericalDifferentiator| to validate the calculated water
         table widths:
 
@@ -2206,7 +2202,7 @@ class Calc_WBLVR_WBRVR_V1(modeltools.Method):
 
     Examples:
 
-        Due to :math:`WBVR = \\frac{dAVR}{dh}`, we can apply class
+        Due to :math:`WBVR = \\frac{dAVR}{dh}`, we can apply the class
         |NumericalDifferentiator| to validate the calculated water
         table widths:
 
@@ -2279,7 +2275,7 @@ class Calc_WBLVR_WBRVR_V1(modeltools.Method):
 
 
 class Calc_WBG_V1(modeltools.Method):
-    """Calculate the water level width of the total cross section.
+    """Calculate the water level width of the total cross-section.
 
     Basic equation:
       :math:`WBG = WBM+WLV+WRV+WLVR+WRVR`
@@ -2321,7 +2317,7 @@ class Calc_WBG_V1(modeltools.Method):
 
 
 class Calc_DH_V1(modeltools.Method):
-    """Determine the change of the water stage.
+    """Determine the change in the stage.
 
     Basic equation:
       :math:`DH = \\frac{QG_{i-1}-QG_i}{WBG \\cdot 1000 \\cdot Laen / GTS}`
@@ -2366,7 +2362,7 @@ class Calc_DH_V1(modeltools.Method):
 
 
 class Update_H_V1(modeltools.Method):
-    """Update the water stage.
+    """Update the stage.
 
     Basic equation:
       :math:`\\frac{dH}{dt} = DH`
@@ -2553,12 +2549,12 @@ class Model(modeltools.ELSModel):
 
 
 class ProfileMixin:
-    """Mixin class for L-Stream models performing their own discharge
-    calculations based on a triple trapezoid profile."""
+    """Mixin class for L-Stream models performing discharge calculations
+    based on a triple trapezoid profile."""
 
     def plot_profile(self, labelformat: str = '%.1f'):
         """Plot the triple trapezoid profile and insert the discharge values
-        at some characteristic water stages.
+        at some characteristic stages.
 
         We reuse the second example given in the main documentation on module
         |lstream_v001|:
@@ -2585,7 +2581,7 @@ class ProfileMixin:
 
         Calling method |ProfileMixin.plot_profile| prepares the profile
         plot and, depending on you `matplotlib` configuration, eventually
-        prints it directly on your screen directly:
+        prints it directly on your screen:
 
         >>> model.plot_profile()
 
@@ -2676,12 +2672,11 @@ class ProfileMixin:
             hmin: typing.Optional[float] = None,
             hmax: typing.Optional[float] = None
     ) -> typing.Tuple[float, ...]:
-        """Prepare a vector of water stage values.
+        """Prepare a vector of the stage values.
 
-        The argument `nmb` defines the number of water stage values to
-        be returned, `exp` defines their spacing (1.0 results in
-        equidistant values), and `hmin` and `hmax` the lowest and highest
-        water stage, respectively:
+        The argument `nmb` defines the number of stage values, `exp` defines
+        their spacing (1.0 results in equidistant values), and `hmin` and
+        `hmax` the lowest and highest water stage, respectively:
 
         >>> from hydpy.models.lstream_v001 import *
         >>> parameterstep()
@@ -2691,9 +2686,9 @@ class ProfileMixin:
         -1.0, 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0
 
         When not specified by the user, method
-        |lstream_model.ProfileMixin.prepare_hvector| determines `hmin` and
-        `hmax` based on the current value of |HM| (minus 10 % and plus 300 %,
-        respectively) and assumes takes more sampling in the lower value
+        |lstream_model.ProfileMixin.prepare_hvector| determines `hmin`
+        and `hmax` based on the current value of |HM| (-10 % and 300 %,
+        respectively) and takes a higher sampling rate in the lower value
         range (by setting `exp` to two):
 
         >>> hm(6.0)
@@ -2714,7 +2709,7 @@ class ProfileMixin:
     def calculate_qgvector(self, hvector: typing.Iterable[float]) \
             -> typing.Tuple[float, ...]:
         """Calculate the discharge values (in m³/s) corresponding to the
-        given vector of water stage values.
+        given stage vector.
 
         We reuse the second example given in the main documentation on module
         |lstream_v001| also show the results of the similar methods
@@ -2762,8 +2757,8 @@ class ProfileMixin:
 
     def calculate_agvector(self, hvector: typing.Iterable[float]) \
             -> typing.Tuple[float, ...]:
-        """Calculate the flown through cross section areas (in m²)
-        corresponding to the given vector of water stage values.
+        """Calculate the wetted cross-section areas (in m²) corresponding
+        to the given vector of stage values.
 
         See the documentation on method
         |lstream_model.ProfileMixin.calculate_qgvector| for an example.
@@ -2784,7 +2779,7 @@ class ProfileMixin:
     def calculate_vgvector(self, hvector: typing.Iterable[float]) \
             -> typing.Tuple[float, ...]:
         """Calculate the water volume stored within a channel subsection (in
-        Mio m³) corresponding to the given vector of water stage values.
+        Mio m³) corresponding to the given vector of stage values.
 
         See the documentation on method
         |lstream_model.ProfileMixin.calculate_qgvector| for an example.

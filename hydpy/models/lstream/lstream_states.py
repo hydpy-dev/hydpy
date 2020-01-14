@@ -9,7 +9,7 @@ from hydpy.core import sequencetools
 
 class H(sequencetools.StateSequence):
     """Wasserstand (water stage) [m]."""
-    NDIM, NUMERIC, SPAN = 1, True, (0., None)
+    NDIM, NUMERIC, SPAN = 1, True, (None, None)
 
 
 class VG(sequencetools.StateSequence):

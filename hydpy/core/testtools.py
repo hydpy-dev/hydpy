@@ -693,9 +693,7 @@ datetime of the Python standard library for for further information.
                           for nm_ in activated)
         path = os.path.join(docs.__path__[0], 'html_', filename)
         plotting.output_file(path)
-        plot = plotting.figure(x_axis_type="datetime",
-                               tools=['pan', 'ywheel_zoom'],
-                               toolbar_location=None)
+        plot = plotting.figure(x_axis_type="datetime")
         plot.toolbar.active_drag = plot.tools[0]
         plot.toolbar.active_scroll = plot.tools[1]
         plot.plot_width = width

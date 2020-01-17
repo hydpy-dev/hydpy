@@ -244,8 +244,7 @@ from hydpy.core import parametertools
 from hydpy.core import printtools
 from hydpy.core import sequencetools
 from hydpy.core import testtools
-if TYPE_CHECKING:
-    from hydpy.core import typingtools
+from hydpy.core import typingtools
 build = exceptiontools.OptionalImport('build', ['Cython.Build'], locals())
 
 
@@ -278,12 +277,15 @@ _dllextension = get_dllextension()
 
 _int = 'numpy.'+str(numpy.array([1]).dtype)+'_t'
 
-TYPE2STR = {bool: 'bint',
-            int: _int,
-            parametertools.IntConstant: _int,
-            float: 'double',
-            str: 'str',
-            None: 'void'}
+TYPE2STR = {
+    bool: 'bint',
+    int: _int,
+    parametertools.IntConstant: _int,
+    float: 'double',
+    str: 'str',
+    None: 'void',
+    typingtools.Vector: 'double[:]',
+}
 """Maps Python types to Cython compatible type declarations.
 
 The Cython type belonging to Python's |int| is selected to agree
@@ -304,7 +306,7 @@ class Lines(list):
     def __init__(self, *args):
         list.__init__(self, args)
 
-    def add(self, indent: int, line: 'typingtools.Mayberable1[str]') -> None:
+    def add(self, indent: int, line: typingtools.Mayberable1[str]) -> None:
         """Append the given text line with prefixed spaces following
         the given number of indentation levels.
         """
@@ -2130,14 +2132,14 @@ self.sequences.inputs.t-self.parameters.control.tcalt[k]*\
         """
         lines = ['    '+line for line in self.cleanlines]
         lines[0] = lines[0].lower()
-        if len(self.argnames) == 1:
-            lines[0] = lines[0].replace('def ', 'cpdef inline void ')
-        else:
-            lines[0] = lines[0].replace('def ', 'cpdef inline double ')
+        annotations = self.func.__annotations__
+        lines[0] = lines[0].replace(
+            'def ', f'cpdef inline {TYPE2STR[annotations["return"]]} ')
         lines[0] = lines[0].replace('):', f') {_nogil}:')
         for name in self.untypedarguments:
-            lines[0] = lines[0].replace(f', {name},', f', double {name},')
-            lines[0] = lines[0].replace(f', {name})', f', double {name})')
+            type_ = TYPE2STR[annotations[name]]
+            lines[0] = lines[0].replace(f', {name},', f', {type_} {name},')
+            lines[0] = lines[0].replace(f', {name})', f', {type_} {name})')
         for name in self.untypedinternalvarnames:
             if name.startswith('d_'):
                 lines.insert(1, '        cdef double ' + name)

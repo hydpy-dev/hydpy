@@ -905,6 +905,8 @@ class PyxWriter:
             pxf.write(repr(self.sequences))
             print('    * numerical parameters')
             pxf.write(repr(self.numericalparameters))
+            print('    * submodel classes')
+            pxf.write(repr(self.submodels))
             print('    * model class')
             print('        - model attributes')
             pxf.write(repr(self.modeldeclarations))
@@ -961,22 +963,25 @@ class PyxWriter:
     @property
     def cimports(self) -> List[str]:
         """Import command lines."""
-        return Lines('import numpy',
-                     'cimport numpy',
-                     'from libc.math cimport exp, fabs, log, '
-                     'sin, cos, tan, asin, acos, atan, isnan, isinf',
-                     'from libc.math cimport NAN as nan',
-                     'from libc.stdio cimport *',
-                     'from libc.stdlib cimport *',
-                     'import cython',
-                     'from cpython.mem cimport PyMem_Malloc',
-                     'from cpython.mem cimport PyMem_Realloc',
-                     'from cpython.mem cimport PyMem_Free',
-                     'from hydpy.cythons.autogen import pointerutils',
-                     'from hydpy.cythons.autogen cimport pointerutils',
-                     'from hydpy.cythons.autogen cimport configutils',
-                     'from hydpy.cythons.autogen cimport smoothutils',
-                     'from hydpy.cythons.autogen cimport annutils')
+        return Lines(
+            'import numpy',
+            'cimport numpy',
+            'from libc.math cimport exp, fabs, log, '
+            'sin, cos, tan, asin, acos, atan, isnan, isinf',
+            'from libc.math cimport NAN as nan',
+            'from libc.stdio cimport *',
+            'from libc.stdlib cimport *',
+            'import cython',
+            'from cpython.mem cimport PyMem_Malloc',
+            'from cpython.mem cimport PyMem_Realloc',
+            'from cpython.mem cimport PyMem_Free',
+            'from hydpy.cythons.autogen import pointerutils',
+            'from hydpy.cythons.autogen cimport pointerutils',
+            'from hydpy.cythons.autogen cimport configutils',
+            'from hydpy.cythons.autogen cimport smoothutils',
+            'from hydpy.cythons.autogen cimport annutils',
+            'from hydpy.cythons.autogen cimport rootutils',
+        )
 
     @property
     def constants(self) -> List[str]:
@@ -1356,18 +1361,46 @@ class PyxWriter:
         return lines
 
     @property
+    def submodels(self) -> List[str]:
+        """Submodel declaration lines."""
+        lines = Lines()
+        for submodel in self.model.SUBMODELS:
+            lines.add(0, '@cython.final')
+            lines.add(
+                0,
+                f'cdef class {objecttools.classname(submodel)}(rootutils.'
+                f'{objecttools.classname(submodel.CYTHONBASECLASS)}):')
+            lines.add(1, 'cpdef public Model model')
+            lines.add(1, 'def __init__(self, Model model):')
+            lines.add(2, 'self.model = model')
+            for idx, method in enumerate(submodel.METHODS):
+                lines.add(
+                    1, f'cpdef double apply_method{idx}(self, double x) nogil:')
+                lines.add(2, f'return self.model.{method.__name__.lower()}(x)')
+        return lines
+
+    @property
     def modeldeclarations(self) -> List[str]:
         """The attribute declarations of the model class."""
+        submodels = getattr(self.model, 'SUBMODELS', ())
         lines = Lines()
         lines.add(0, '@cython.final')
         lines.add(0, 'cdef class Model:')
         lines.add(1, 'cdef public int idx_sim')
         lines.add(1, 'cdef public Parameters parameters')
         lines.add(1, 'cdef public Sequences sequences')
+        for submodel in submodels:
+            lines.add(1, f'cdef public {objecttools.classname(submodel)} '
+                         f'{objecttools.instancename(submodel)}')
         if hasattr(self.model, 'numconsts'):
             lines.add(1, 'cdef public NumConsts numconsts')
         if hasattr(self.model, 'numvars'):
             lines.add(1, 'cdef public NumVars numvars')
+        if submodels:
+            lines.add(1, 'def __init__(self):')
+            for submodel in submodels:
+                lines.add(2, f'self.{objecttools.instancename(submodel)} = '
+                             f'{objecttools.classname(submodel)}(self)')
         return lines
 
     @property

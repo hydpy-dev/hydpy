@@ -214,6 +214,7 @@ class Model(modeltools.AdHocModel):
         lstream_model.Pass_Q_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELS = ()
 
 
 tester = Tester()

@@ -861,6 +861,7 @@ class Model(modeltools.AdHocModel):
         hland_model.Pass_Q_v1,
     )
     SENDER_METHODS = ()
+    SUBMODELS = ()
 
 
 class Masks(masktools.Masks):

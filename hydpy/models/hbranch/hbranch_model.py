@@ -160,6 +160,7 @@ class Model(modeltools.AdHocModel):
         Pass_Outputs_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELS = ()
 
     def __init__(self):
         super().__init__()

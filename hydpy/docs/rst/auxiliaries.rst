@@ -4,7 +4,6 @@
 Auxiliary Tools
 ===============
 
-
 The `auxs` subpackage provides features that are not essential for the
 functionality of *HydPy* in general, but possibly provide help when
 implementing new models or writing *HydPy* workflow scripts.
@@ -21,6 +20,7 @@ what purpose it could serve.
    armatools
    iuhtools
    networktools
+   roottools
    smoothtools
    statstools
    validtools

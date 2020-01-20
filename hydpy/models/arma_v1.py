@@ -350,6 +350,7 @@ class Model(modeltools.AdHocModel):
         arma_model.Pass_Q_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELS = ()
 
 
 tester = Tester()

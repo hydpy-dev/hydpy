@@ -41,7 +41,8 @@ def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None) -> None:
     namespace = inspect.currentframe().f_back.f_locals
     model = namespace.get('model')
     if model is None:
-        model = namespace['Model']()
+        Model = namespace['Model']
+        model = Model()
         namespace['model'] = model
         if hydpy.pub.options.usecython and 'cythonizer' in namespace:
             cythonizer = namespace['cythonizer']
@@ -71,6 +72,9 @@ def parameterstep(timestep: Optional[timetools.PeriodConstrArg] = None) -> None:
         if 'Masks' in namespace:
             model.masks = namespace['Masks'](model)
             namespace['masks'] = model.masks
+        for submodelclass in Model.SUBMODELS:
+            submodel = submodelclass(model)
+            setattr(model, submodel.name, submodel)
     try:
         namespace.update(namespace['CONSTANTS'])
     except KeyError:

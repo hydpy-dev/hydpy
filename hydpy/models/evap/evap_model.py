@@ -1260,3 +1260,4 @@ class Model(modeltools.AdHocModel):
         Pass_ReferenceEvapotranspiration_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELS = ()

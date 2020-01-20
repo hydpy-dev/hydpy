@@ -330,6 +330,7 @@ class Model(modeltools.ELSModel):
         dam_model.Pass_ActualRemoteRelease_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELS = ()
 
 
 tester = Tester()

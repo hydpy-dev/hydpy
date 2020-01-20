@@ -61,11 +61,12 @@ class Model:
     cymodel: Optional[typingtools.CyModelProtocol]
     _name: ClassVar[Optional[str]] = None
 
-    INLET_METHODS: ClassVar[Tuple[Callable, ...]]
-    OUTLET_METHODS: ClassVar[Tuple[Callable, ...]]
-    RECEIVER_METHODS: ClassVar[Tuple[Callable, ...]]
-    SENDER_METHODS: ClassVar[Tuple[Callable, ...]]
+    INLET_METHODS: ClassVar[Tuple[Type[Method], ...]]
+    OUTLET_METHODS: ClassVar[Tuple[Type[Method], ...]]
+    RECEIVER_METHODS: ClassVar[Tuple[Type[Method], ...]]
+    SENDER_METHODS: ClassVar[Tuple[Type[Method], ...]]
     METHOD_GROUPS: ClassVar[Tuple[str, ...]]
+    SUBMODELS: ClassVar[Tuple[Type['Submodel'], ...]]
 
     SOLVERPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
 
@@ -759,8 +760,8 @@ class AdHocModel(Model):
     control (see `Clark and Kavetski`_).
     """
 
-    RUN_METHODS: ClassVar[Tuple[Callable, ...]]
-    ADD_METHODS: ClassVar[Tuple[Callable, ...]]
+    RUN_METHODS: ClassVar[Tuple[Type[Method], ...]]
+    ADD_METHODS: ClassVar[Tuple[Type[Method], ...]]
     METHOD_GROUPS = (
         'RUN_METHODS', 'ADD_METHODS',
         'INLET_METHODS', 'OUTLET_METHODS',
@@ -849,8 +850,8 @@ class SolverModel(Model):
     """Base class for hydrological models which solve ordinary differential
     equations with numerical integration algorithms."""
 
-    PART_ODE_METHODS: ClassVar[Tuple[Callable, ...]]
-    FULL_ODE_METHODS: ClassVar[Tuple[Callable, ...]]
+    PART_ODE_METHODS: ClassVar[Tuple[Type[Method], ...]]
+    FULL_ODE_METHODS: ClassVar[Tuple[Type[Method], ...]]
 
     @abc.abstractmethod
     def solve(self) -> None:
@@ -1755,3 +1756,40 @@ class ELSModel(SolverModel):
                 (self.numconsts.nmb_methods-self.numvars.idx_method))
         else:
             self.numvars.extrapolated_error = -999.9
+
+
+class Submodel:
+    """Base class for implementing "submodels" that serve to deal with
+    (possibly complicated) general mathematical algorithms (e.g.
+    root-finding algorithms) within hydrological model methods.
+
+
+    You might find class |Submodel| useful when trying to implement
+    algorithms requiring some interaction with the respective model
+    without any Python overhead.  See the modules |roottools| and
+    |rootutils| as an example, implementing Python interfaces and
+    Cython implementations of a root-finding algorithms, respectively.
+    """
+
+    METHODS: ClassVar[Tuple[Type[Method], ...]]
+    CYTHONBASECLASS: ClassVar[Type]
+    PYTHONCLASS: ClassVar[Type]
+    _cysubmodel: Type
+
+    def __init__(self, model: Model) -> None:
+        if model.cymodel:
+            self._cysubmodel = getattr(model.cymodel, self.name)
+        else:
+            self._cysubmodel = self.PYTHONCLASS()
+            for idx, methodtype in enumerate(self.METHODS):
+                setattr(self._cysubmodel, f'method{idx}',
+                        getattr(model, methodtype.__name__.lower()))
+
+    @property
+    def name(self):
+        """Name of the class of the given instance in lower case letters.
+
+        See the documentation on function |objecttools.get_name| for
+        additional information.
+        """
+        return objecttools.get_name(self)

@@ -223,6 +223,7 @@ class Model(modeltools.AdHocModel):
         evap_model.Pass_ReferenceEvapotranspiration_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELS = ()
 
 
 tester = Tester()

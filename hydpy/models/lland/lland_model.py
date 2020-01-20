@@ -5,6 +5,7 @@
 # imports...
 # ...from HydPy
 from hydpy.core import modeltools
+from hydpy.auxs import roottools
 from hydpy.cythons import modelutils
 # ...from lland
 from hydpy.models.lland import lland_control
@@ -2103,6 +2104,28 @@ class Pass_Q_V1(modeltools.Method):
         out.q[0] += der.qfactor*flu.q
 
 
+class Calc_Test1_V1(modeltools.Method):   # ToDo: remove
+    """"""
+    @staticmethod
+    def __call__(model: modeltools.Model, value: float) -> float:
+        inp = model.sequences.inputs.fastaccess
+        return value**2-inp.nied
+
+
+class Calc_Test2_V1(modeltools.Method):   # ToDo: remove
+    """To be removed"""
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        inp = model.sequences.inputs.fastaccess
+        inp.teml = model.mypegasus.find_x(2.0, 4.0, 0.0, 0.1)
+
+
+class MyPegasus(roottools.Pegasus):   # ToDo: rename
+    METHODS = (
+        Calc_Test1_V1,
+    )
+
+
 class Model(modeltools.AdHocModel):
     """Base model for HydPy-L-Land."""
     INLET_METHODS = ()
@@ -2137,8 +2160,14 @@ class Model(modeltools.AdHocModel):
         Calc_QDGA2_V1,
         Calc_Q_V1,
     )
-    ADD_METHODS = ()
+    ADD_METHODS = (
+        Calc_Test1_V1,
+        Calc_Test2_V1,
+    )
     OUTLET_METHODS = (
         Pass_Q_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELS = (
+        MyPegasus,
+    )

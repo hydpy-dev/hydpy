@@ -1178,6 +1178,7 @@ class Model(modeltools.ELSModel):
         dam_model.Update_LoggedOutflow_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELS = ()
 
 
 tester = Tester()

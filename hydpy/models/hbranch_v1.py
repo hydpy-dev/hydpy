@@ -106,6 +106,7 @@ class Model(hbranch_model.Model):
         hbranch_model.Pass_Outputs_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELS = ()
 
 
 tester = Tester()

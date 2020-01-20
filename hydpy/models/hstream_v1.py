@@ -239,6 +239,7 @@ class Model(modeltools.AdHocModel):
         hstream_model.Pass_Q_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELS = ()
 
 
 class Masks(masktools.Masks):

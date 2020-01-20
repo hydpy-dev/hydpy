@@ -301,6 +301,7 @@ class Model(modeltools.AdHocModel):
         llake_model.Pass_Q_V1,
     )
     SENDER_METHODS = ()
+    SUBMODELS = ()
 
 
 tester = Tester()

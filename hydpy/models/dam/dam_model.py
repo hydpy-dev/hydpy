@@ -2584,3 +2584,4 @@ class Model(modeltools.ELSModel):
         Calc_RequiredRemoteSupply_V1,
         Pass_RequiredRemoteSupply_V1,
     )
+    SUBMODELS = ()

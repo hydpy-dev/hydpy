@@ -2128,7 +2128,7 @@ self.parameters.control.kg[k]*self.sequences.inputs.p[k]
                     self.sequences.fluxes.pc[k] = d_pc
         <BLANKLINE>
 
-        The second example shows that |float| and |Vector| annotations
+        The second example shows that `float` and `Vector` annotations
         translate into `double` and `double[:]` types, respectively:
 
         >>> class Calc_Test_V2(Method):

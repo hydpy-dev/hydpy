@@ -3,9 +3,14 @@
 # pylint: enable=missing-docstring
 
 # imports...
+# ...from standard library
+from typing import *
+from typing import TextIO
 # ...from site-packages
 import numpy
 # ...from HydPy
+import hydpy
+from hydpy.core import logtools
 from hydpy.core import modeltools
 from hydpy.cythons import modelutils
 # ...from hland
@@ -1431,3 +1436,140 @@ class Model(modeltools.AdHocModel):
     ADD_METHODS = ()
     OUTLET_METHODS = ()
     SENDER_METHODS = ()
+
+
+class Position(NamedTuple):
+    """The row and column of a `WHMod` grid cell.
+
+    Counting starts with 1.
+    """
+    row: int
+    col: int
+
+    @classmethod
+    def from_sequence(cls, sequence: 'Sequence') -> 'Position':
+        """Extract the grid cell position from the name of the |Element|
+        object handling the given sequence."""
+        _, row, col = sequence.subseqs.seqs.model.element.name.split('_')
+        return cls(row=int(row), col=int(col))
+
+
+class Positionbounds(NamedTuple):
+    """The smallest and heighest row and column values of multiple `WHMod`
+    grid cells."""
+    rowmin: int
+    rowmax: int
+    colmin: int
+    colmax: int
+
+    @classmethod
+    def from_sequences(cls, sequences: Iterable['Sequence']) -> \
+            'Positionbounds':
+        """Extract the grid cell position from the names of the |Element|
+        objects handling the given sequences."""
+        rowmin = numpy.inf
+        rowmax = -numpy.inf
+        colmin = numpy.inf
+        colmax = -numpy.inf
+        for sequence in sequences:
+            row, col = Position.from_sequence(sequence)
+            rowmin = min(rowmin, row)
+            rowmax = max(rowmax, row)
+            colmin = min(colmin, col)
+            colmax = max(colmax, col)
+        return Positionbounds(
+            rowmin=rowmin,
+            rowmax=rowmax,
+            colmin=colmin,
+            colmax=colmax,
+        )
+
+
+class WHModMonthLogger(logtools.MonthLogger):
+    """Specialisation of class |MonthLogger| for `WHMod`."""
+
+    @property
+    def positionbounds(self) -> Positionbounds:
+        """The |PositionBounds| relevant for the logged sequences."""
+        sequence2value = tuple(self.month2sequence2sum.values())[0]
+        return Positionbounds.from_sequences(sequence2value.keys())
+
+    def _dict2grid(self, sequence2value: Dict['Sequence', float]) -> \
+            numpy.ndarray:
+        pb = self.positionbounds
+        shape = (pb.rowmax-pb.rowmin+1, pb.colmax-pb.colmin+1)
+        grid = numpy.full(shape, 0., dtype=float)
+        for sequence, value in sequence2value.items():
+            position = Position.from_sequence(sequence)
+            grid[position.row-1, position.col-1] = value
+        return grid
+
+    @property
+    def factor(self) -> float:
+        """Factor for converting mm/stepsize to m/s (or m³/m²/s)."""
+        return 1./(1000.*hydpy.pub.timegrids.stepsize.seconds)
+
+    def write_rchfile(
+            self, rchfile: TextIO,
+            layer: int = 1,
+            balancefile: int = 51,
+            values_per_line: int = 20,
+            precision: int = 4,
+            exp_digits: int = 3,
+    ) -> None:
+        """Write a recharge file (`.rch`)  for exporting groundwater recharge
+        to ModFlow.
+
+        Using this functions only makes sense when logging
+        |AktGrundwasserneubildung| sequences only.
+
+        Header: Die 1 steht dafür, dass NB nur in Top layer angesetzt wird und
+        die 51 ist eine ID für das Bilanzfile
+
+        Subheader: Info darüber, ob neue Werte folgen oder die aus dem
+        Schritt vorher genommen werden, Unit number, Faktor für alle Werte
+        im Zeitschritt, Formatangabe…)
+        Erste Zeile ist immer gleich, Format: Integer10, Integer 10,
+        Integer 10, Integer 10
+        Zweite Zeile ist auch immer gleich Format: Integer 10, float10.3
+        (10 Stellen, davon 3 Nachkommastellen), A20 (20 charakters), Integer10
+        In dieser Zeile bestimmst du mit „(10e12.3)“ das Format des folgenden
+        Arrays (s.u.) mit NB-Werten, hier: max. 10 Werte in eine Zeile,
+        das „e“ steht für Exponential-Schreibweise, ein Zahlenwert hat immer
+        12 characters, 3 Nachkommastellen sind in den 12 Stellen berücksichtigt.
+        Du kannst hier auch 20 Werte pro Zeile definieren und
+        4 Nachkommastellen; es muss nur in der Kopfzeile definiert sein.
+        Vorschlag: 4 Nachkommastellen
+        """
+        header = (
+            f'{str(layer).rjust(10)}'
+            f'{str(balancefile).rjust(10)}'
+            f'         1         1\n'
+        )
+        nchars = precision + exp_digits + 5
+        formatstring = f'({values_per_line}e{nchars}.{precision})'.ljust(20)
+        subheader = (
+            f'         1         1         0         0\n'
+            f'        18     1.000{formatstring}-1     RECHARGE\n'
+        )
+        write = rchfile.write
+        write(header)
+        format_ = numpy.format_float_scientific
+        split = numpy.array_split
+        pb = self.positionbounds
+        ncols = pb.colmax-pb.colmin+1
+        sections = numpy.arange(10, ncols, values_per_line)
+        for _, sequence2mean in sorted(self.month2sequence2mean.items()):
+            grid = self.factor * self._dict2grid(sequence2mean)
+            write(subheader)
+            for row in grid:
+                for subarray in split(row, sections):
+                    write(''.join(
+                        format_(
+                            value,
+                            unique=False,
+                            precision=precision,
+                            exp_digits=exp_digits,
+                        ).rjust(nchars) for value in subarray
+                    ))
+                    write('\n')

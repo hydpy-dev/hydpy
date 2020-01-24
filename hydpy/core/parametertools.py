@@ -4,6 +4,7 @@ of the parameters of hydrological models."""
 # import...
 # ...from standard library
 import inspect
+import textwrap
 import time
 from typing import *
 # ...from site-packages
@@ -2279,6 +2280,197 @@ stepsize is indirectly defined via `pub.timegrids.stepsize` automatically.
         return objecttools.dir_(self) + [str(toy) for (toy, dummy) in self]
 
 
+class KeywordParameter1D(Parameter):
+    """Base class for 1-dimensional model parameters with values depending
+    on one factor.
+
+    When subclassing from |KeywordParameter1D| one needs to define the
+    class attribute `ENTRYNAMES`.  A typical use case is that `ENTRYNAMES`
+    defines seasons like the months or, as in our example, half-years:
+
+    >>> from hydpy.core.parametertools import KeywordParameter1D
+    >>> class IsHot(KeywordParameter1D):
+    ...     TYPE = bool
+    ...     TIME = None
+    ...     ENTRYNAMES = ('winter', 'summer')
+
+    Usually, |KeywordParameter1D| objects prepare their shape automatically.
+    However, to simplify this test case, we define it manually:
+
+    >>> ishot = IsHot(None)
+    >>> ishot.shape = 2
+
+    You can pass all parameter values both via positional or keyword arguments:
+
+    >>> ishot(True)
+    >>> ishot
+    ishot(True)
+
+    >>> ishot(False, True)
+    >>> ishot
+    ishot(winter=False, summer=True)
+
+    >>> ishot(winter=True, summer=False)
+    >>> ishot
+    ishot(winter=True, summer=False)
+    >>> ishot.values
+    array([ True, False], dtype=bool)
+
+    We check the given keyword arguments for correctness and completeness:
+
+    >>> ishot(winter=True)
+    Traceback (most recent call last):
+    ...
+    ValueError: When setting parameter `ishot` of element `?` via keyword \
+arguments, each string defined in `ENTRYNAMES` must be used as a keyword, \
+but the following keywords are not: `summer`.
+
+    >>> ishot(winter=True, summer=False, spring=True, autumn=False)
+    Traceback (most recent call last):
+    ...
+    ValueError: When setting parameter `ishot` of element `?` via keyword \
+arguments, each keyword must be defined in `ENTRYNAMES`, but the following \
+keywords are not: `spring and autumn`.
+
+    Class |KeywordParameter1D| implements attribute access, including
+    specialised error messages:
+
+    >>> ishot.winter, ishot.summer = ishot.summer, ishot.winter
+    >>> ishot
+    ishot(winter=False, summer=True)
+
+    >>> ishot.spring
+    Traceback (most recent call last):
+    ...
+    AttributeError: Parameter `ishot` of element `?` does not handle an \
+attribute named `spring`.
+
+    >>> ishot.shape = 1
+    >>> ishot.summer
+    Traceback (most recent call last):
+    ...
+    IndexError: While trying to retrieve a value from parameter `ishot` of \
+element `?` via the attribute `summer`, the following error occurred: \
+index 1 is out of bounds for axis 0 with size 1
+
+    >>> ishot.summer = True
+    Traceback (most recent call last):
+    ...
+    IndexError: While trying to assign a new value to parameter `ishot` of \
+element `?` via attribute `summer`, the following error occurred: \
+index 1 is out of bounds for axis 0 with size 1
+    """
+    NDIM = 1
+    ENTRYNAMES: ClassVar[Tuple[str, ...]]
+
+    strict_valuehandling: ClassVar[bool] = False
+
+    def __hydpy__connect_variable2subgroup__(self) -> None:
+        super().__hydpy__connect_variable2subgroup__()
+        self.shape = len(self.ENTRYNAMES)
+
+    def __call__(self, *args, **kwargs) -> None:
+        try:
+            super().__call__(*args, **kwargs)
+        except NotImplementedError:
+            for (idx, key) in enumerate(self.ENTRYNAMES):
+                try:
+                    self.values[idx] = kwargs[key]
+                except KeyError:
+                    err = (key for key in self.ENTRYNAMES if key not in kwargs)
+                    raise ValueError(
+                        f'When setting parameter '
+                        f'{objecttools.elementphrase(self)} via keyword '
+                        f'arguments, each string defined '
+                        f'in `ENTRYNAMES` must be used as a keyword, '
+                        f'but the following keywords are not: '
+                        f'`{objecttools.enumeration(err)}`.')
+            if len(kwargs) != len(self.ENTRYNAMES):
+                err = (key for key in kwargs if key not in self.ENTRYNAMES)
+                raise ValueError(
+                    f'When setting parameter '
+                    f'{objecttools.elementphrase(self)} via keyword '
+                    f'arguments, each keyword must be defined in '
+                    f'`ENTRYNAMES`, but the following keywords are not: '
+                    f'`{objecttools.enumeration(err)}`.'
+                )
+
+    def __getattr__(self, key):
+        if key in self.ENTRYNAMES:
+            try:
+                return self.values[self.ENTRYNAMES.index(key)]
+            except BaseException:
+                objecttools.augment_excmessage(
+                    f'While trying to retrieve a value from parameter '
+                    f'{objecttools.elementphrase(self)} via the '
+                    f'attribute `{key}`')
+        raise AttributeError(
+            f'Parameter {objecttools.elementphrase(self)} does '
+            f'not handle an attribute named `{key}`.')
+
+    def __setattr__(self, key, values):
+        if key in self.ENTRYNAMES:
+            try:
+                self.values[self.ENTRYNAMES.index(key)] = values
+            except BaseException:
+                objecttools.augment_excmessage(
+                    f'While trying to assign a new value to parameter '
+                    f'{objecttools.elementphrase(self)} via attribute `{key}`')
+        else:
+            super().__setattr__(key, values)
+
+    def __repr__(self):
+        lines = self.commentrepr
+        values = self.values
+        prefix = f'{self.name}('
+        if len(numpy.unique(values)) == 1:
+            lines.append(f'{prefix}{objecttools.repr_(values[0])})')
+        else:
+            blanks = ' '*len(prefix)
+            string = ', '.join(f'{key}={objecttools.repr_(value)}'
+                               for key, value in zip(self.ENTRYNAMES, values))
+            nmb = max(70-len(prefix), 30)
+            for idx, substring in enumerate(textwrap.wrap(string, nmb)):
+                if idx:
+                    lines.append(f'{blanks}{substring}')
+                else:
+                    lines.append(f'{prefix}{substring}')
+            lines[-1] += ')'
+        return '\n'.join(lines)
+
+    def __dir__(self):
+        """
+        >>> from hydpy.core.parametertools import KeywordParameter1D
+        >>> class Season(KeywordParameter1D):
+        ...     TYPE = bool
+        ...     TIME = None
+        ...     ENTRYNAMES = ('winter', 'summer')
+        >>> dir(Season(None))   # doctest: +ELLIPSIS
+        [...'subvars', 'summer', 'trim', ... 'verify', 'winter']
+        """
+        return tuple(objecttools.dir_(self)) + self.ENTRYNAMES
+
+
+class MonthParameter(KeywordParameter1D):
+    """Base class for parameters which values depend on the actual month.
+
+    Please see the documentation on class |KeywordParameter1D| on how to
+    use |MonthParameter| objects and class |AngstromFactor| of base model
+    |lland| as an example implementation:
+
+    >>> from hydpy.models.lland import *
+    >>> parameterstep()
+    >>> angstromfactor(0.172, 0.181, 0.189, 0.187, 0.175, 0.160,
+    ...                0.175, 0.195, 0.188, 0.192, 0.172, 0.146)
+    >>> angstromfactor
+    angstromfactor(jan=0.172, feb=0.181, mar=0.189, apr=0.187, mai=0.175,
+                   jun=0.16, jul=0.175, aug=0.195, sep=0.188, oct=0.192,
+                   nov=0.172, dec=0.146)
+    """
+    ENTRYNAMES = ('jan', 'feb', 'mar', 'apr', 'mai', 'jun',
+                  'jul', 'aug', 'sep', 'oct', 'nov', 'dec')
+
+
 class KeywordParameter2D(Parameter):
     """Base class for 2-dimensional model parameters with values depending
     on two factors.
@@ -2416,21 +2608,20 @@ a normal attribute nor a row or column related attribute named `wrong`.
                   False, False])
     """
     NDIM = 2
-    ROWNAMES: Tuple[str, ...]
-    COLNAMES: Tuple[str, ...]
+    ROWNAMES: ClassVar[Tuple[str, ...]]
+    COLNAMES: ClassVar[Tuple[str, ...]]
 
     strict_valuehandling: ClassVar[bool] = False
 
-    def __init__(self, subvars):
-        if not hasattr(type(self), '_ROWCOLMAPPINGS'):
-            rownames = self.ROWNAMES
-            colnames = self.COLNAMES
-            rowcolmappings = {}
-            for (idx, rowname) in enumerate(rownames):
-                for (jdx, colname) in enumerate(colnames):
-                    rowcolmappings['_'.join((rowname, colname))] = (idx, jdx)
-            type(self)._ROWCOLMAPPINGS = rowcolmappings
-        super().__init__(subvars)
+    def __init_subclass__(cls):
+        super().__init_subclass__()
+        rownames = cls.ROWNAMES
+        colnames = cls.COLNAMES
+        rowcolmappings = {}
+        for (idx, rowname) in enumerate(rownames):
+            for (jdx, colname) in enumerate(colnames):
+                rowcolmappings['_'.join((rowname, colname))] = (idx, jdx)
+        cls._ROWCOLMAPPINGS = rowcolmappings
 
     def __hydpy__connect_variable2subgroup__(self) -> None:
         super().__hydpy__connect_variable2subgroup__()
@@ -2442,7 +2633,7 @@ a normal attribute nor a row or column related attribute named `wrong`.
         except NotImplementedError:
             for (idx, key) in enumerate(self.ROWNAMES):
                 try:
-                    values = kwargs[key]
+                    self.values[idx, :] = kwargs[key]
                 except KeyError:
                     miss = [key for key in self.ROWNAMES if key not in kwargs]
                     raise ValueError(
@@ -2452,18 +2643,6 @@ a normal attribute nor a row or column related attribute named `wrong`.
                         f'in `ROWNAMES` must be used as a keyword, '
                         f'but the following keywords are not: '
                         f'`{objecttools.enumeration(miss)}`.')
-                self.values[idx, :] = values
-
-    def __repr__(self):
-        lines = self.commentrepr
-        prefix = f'{self.name}('
-        blanks = ' '*len(prefix)
-        for (idx, key) in enumerate(self.ROWNAMES):
-            subprefix = f'{prefix}{key}=' if idx == 0 else f'{blanks}{key}='
-            lines.append(objecttools.assignrepr_list(self.values[idx, :],
-                                                     subprefix, 75) + ',')
-        lines[-1] = lines[-1][:-1] + ')'
-        return '\n'.join(lines)
 
     def __getattr__(self, key):
         if key in self.ROWNAMES:
@@ -2525,6 +2704,17 @@ a normal attribute nor a row or column related attribute named `wrong`.
         else:
             super().__setattr__(key, values)
 
+    def __repr__(self):
+        lines = self.commentrepr
+        prefix = f'{self.name}('
+        blanks = ' '*len(prefix)
+        for (idx, key) in enumerate(self.ROWNAMES):
+            subprefix = f'{prefix}{key}=' if idx == 0 else f'{blanks}{key}='
+            lines.append(objecttools.assignrepr_list(self.values[idx, :],
+                                                     subprefix, 75) + ',')
+        lines[-1] = lines[-1][:-1] + ')'
+        return '\n'.join(lines)
+
     def __dir__(self):
         """
         >>> from hydpy.core.parametertools import KeywordParameter2D
@@ -2538,8 +2728,8 @@ a normal attribute nor a row or column related attribute named `wrong`.
 'north_oct2mar', 'oct2mar'...'south', 'south_apr2sep', 'south_oct2mar', \
 'strict_valuehandling'...]
         """
-        return (objecttools.dir_(self) + list(self.ROWNAMES) +
-                list(self.COLNAMES) + list(self._ROWCOLMAPPINGS.keys()))
+        return (tuple(objecttools.dir_(self)) + self.ROWNAMES +
+                self.COLNAMES + tuple(self._ROWCOLMAPPINGS.keys()))
 
 
 class RelSubweightsMixin:

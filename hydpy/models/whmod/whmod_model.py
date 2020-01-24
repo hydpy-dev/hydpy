@@ -1550,7 +1550,7 @@ class WHModMonthLogger(logtools.MonthLogger):
         formatstring = f'({values_per_line}e{nchars}.{precision})'.ljust(20)
         subheader = (
             f'         1         1         0         0\n'
-            f'        18     1.000{formatstring}-1     RECHARGE\n'
+            f'        18     1.000{formatstring}        -1     RECHARGE\n'
         )
         write = rchfile.write
         write(header)
@@ -1558,7 +1558,7 @@ class WHModMonthLogger(logtools.MonthLogger):
         split = numpy.array_split
         pb = self.positionbounds
         ncols = pb.colmax-pb.colmin+1
-        sections = numpy.arange(10, ncols, values_per_line)
+        sections = numpy.arange(ncols, ncols, values_per_line)
         for _, sequence2mean in sorted(self.month2sequence2mean.items()):
             grid = self.factor * self._dict2grid(sequence2mean)
             write(subheader)

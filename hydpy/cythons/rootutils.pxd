@@ -8,4 +8,4 @@ cdef class PegasusBase:
     cdef double apply_method0(self, double x) nogil
 
     cdef double find_x(
-        self, double xmin, double xmax, double xtol, double ytol) nogil
+        self, double x0, double x1, double xtol, double ytol) nogil

@@ -17,38 +17,38 @@ cdef class PegasusBase:
         return nan
 
     cdef double find_x(
-            self, double xmin, double xmax, double xtol, double ytol) nogil:
-        cdef double x, y, ymin, ymax, dx
-        dx = xmax-xmin
-        if fabs(dx) < xtol:
-            return (xmax+xmin)/2.
+            self, double x0, double x1, double xtol, double ytol) nogil:
+        cdef double x, y, y0, y1, dx
+        if x0 > x1:
+            x0, x1 = x1, x0
         while True:
-            ymin = self.apply_method0(xmin)
-            if fabs(ymin) < ytol:
-                return xmin
-            if ymin <= 0.:
+            y0 = self.apply_method0(x0)
+            if fabs(y0) < ytol:
+                return x0
+            y1 = self.apply_method0(x1)
+            if fabs(y1) < ytol:
+                return x1
+            if (y0 < 0 and y1 < 0) or (y0 > 0 and y1 > 0):
+                dx = x1-x0
+                x0 =- dx
+                x1 += dx
+            else:
                 break
-            xmin -= dx
+        if fabs(x1-x0) < xtol:
+            return (x0+x1)/2
         while True:
-            ymax = self.apply_method0(xmax)
-            if fabs(ymax) < ytol:
-                return xmax
-            if ymax >= 0.:
-                break
-            xmax += dx
-        while True:
-            x = xmin-ymin*(xmax-xmin)/(ymax-ymin)
+            x = x0-y0*(x1-x0)/(y1-y0)
             y = self.apply_method0(x)
             if fabs(y) < ytol:
                 return x
-            if ((ymax < 0.) and (y < 0.)) or ((ymax > 0.) and (y > 0.)):
-                ymin *= ymax/(ymax+y)
+            if ((y1 < 0) and (y < 0)) or ((y1 > 0) and (y > 0)):
+                y0 *= y1/(y1+y)
             else:
-                xmin = xmax
-                ymin = ymax
-            xmax = x
-            ymax = y
-            if fabs(xmax-xmin) < xtol:
+                x0 = x1
+                y0 = y1
+            x1 = x
+            y1 = y
+            if fabs(x1-x0) < xtol:
                 return x
 
 
@@ -58,8 +58,8 @@ cdef class PegasusPython(PegasusBase):
     cdef public object method0
 
     cpdef double find_x(
-            self, double xmin, double xmax, double xtol, double ytol) nogil:
-        return PegasusBase.find_x(self, xmin, xmax, xtol, ytol)
+            self, double x0, double x1, double xtol, double ytol) nogil:
+        return PegasusBase.find_x(self, x0, x1, xtol, ytol)
 
     cpdef double apply_method0(self, double x) nogil:
         with gil:

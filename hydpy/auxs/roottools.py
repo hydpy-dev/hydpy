@@ -32,9 +32,10 @@ class Pegasus(modeltools.Submodel):
     PYTHONCLASS = rootutils.PegasusPython
     _cysubmodel: rootutils.PegasusBase
 
-    def find_x(self, x0: float, x1: float, xtol: float, ytol: float) -> float:    # ToDo: update tests
+    def find_x(self, x0: float, x1: float, xtol: float, ytol: float) \
+            -> float:    # ToDo: update tests
         """Find the relevant root within the interval
-        :math:`xmin \\leq x \\leq xmax` with an accuracy meeting at least
+        :math:`x0 \\leq x \\leq x0` with an accuracy meeting at least
         one of the absolute tolerance values `xtol` and `ytol`.
 
         The following examples need to be updated soon:

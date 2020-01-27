@@ -28,16 +28,16 @@ cdef class PegasusBase:
             y1 = self.apply_method0(x1)
             if fabs(y1) < ytol:
                 return x1
+            dx = x1-x0
             if (y0 < 0 and y1 < 0) or (y0 > 0 and y1 > 0):
-                dx = x1-x0
                 x0 =- dx
                 x1 += dx
             else:
                 break
-        if fabs(x1-x0) < xtol:
+        if fabs(dx) < xtol:
             return (x0+x1)/2
         while True:
-            x = x0-y0*(x1-x0)/(y1-y0)
+            x = x0-y0*dx/(y1-y0)
             y = self.apply_method0(x)
             if fabs(y) < ytol:
                 return x
@@ -48,7 +48,8 @@ cdef class PegasusBase:
                 y0 = y1
             x1 = x
             y1 = y
-            if fabs(x1-x0) < xtol:
+            dx = x1-x0
+            if fabs(dx) < xtol:
                 return x
 
 

@@ -2109,7 +2109,7 @@ class Calc_Test1_V1(modeltools.Method):   # ToDo: remove
     @staticmethod
     def __call__(model: modeltools.Model, value: float) -> float:
         inp = model.sequences.inputs.fastaccess
-        return value**2-inp.nied
+        return value**3-inp.nied
 
 
 class Calc_Test2_V1(modeltools.Method):   # ToDo: remove

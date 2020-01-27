@@ -25,7 +25,8 @@ class Pegasus(modeltools.Submodel):
     contain the root.  This widening should be left for emergencies as
     it might be not always efficient.  So please try to provide to
     initial interval estimates that rather overestimate than underestimate
-    the interval width.
+    the interval width.  Additionally, make sure you apply |Pegasus| on
+    monotone functions only.
     """
 
     CYTHONBASECLASS = rootutils.PegasusBase
@@ -45,30 +46,30 @@ class Pegasus(modeltools.Submodel):
         >>> inputs.nied = 2.5
         >>> model.calc_test2_v1()
         >>> inputs.teml
-        teml(1.589721)
+        teml(1.352817)
 
         >>> inputs.nied = 0.0
         >>> model.calc_test2_v1()
         >>> inputs.teml
-        teml(0.0)
+        teml(-0.40321)
 
         >>> inputs.nied = 200.0
         >>> model.calc_test2_v1()
         >>> inputs.teml
-        teml(14.142018)
+        teml(5.848041)
 
         >>> inputs.nied = 4.0
         >>> model.calc_test2_v1()
         >>> inputs.teml
-        teml(2.0)
+        teml(1.586796)
 
         >>> inputs.nied = 16.0
         >>> model.calc_test2_v1()
         >>> inputs.teml
-        teml(4.0)
+        teml(2.519795)
         """
         return self._cysubmodel.find_x(x0, x1, xtol, ytol)
 
     def apply_method0(self, value: float) -> float:
         """Apply the model method relevant for root-finding."""
-        return self._cysubmodel.apply_method(value)
+        return self._cysubmodel.apply_method0(value)

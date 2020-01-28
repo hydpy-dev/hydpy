@@ -2531,8 +2531,11 @@ class Model(modeltools.ELSModel):
     """Dam base model."""
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,
+        dam_solver.RelErrorMax,
         dam_solver.RelDTMin,
+        dam_solver.RelDTMax,
     )
+    SOLVERSEQUENCES = ()
     INLET_METHODS = (
         Pic_Inflow_V1,
         Pic_Inflow_V2,

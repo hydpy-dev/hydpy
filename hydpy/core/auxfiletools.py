@@ -54,16 +54,16 @@ class Auxfiler:
     information for different kinds of models and performs some plausibility
     checks on added data.  Assume, we want to store the control files of
     a "LARSIM type" HydPy project involving the application models |lland_v1|,
-    |lland_v2| and |lstream_v1|.  The following example shows, that these
+    |lland_v2| and |lstream_v001|.  The following example shows, that these
     models can be added to the |Auxfiler| object by passing their module
     (|lland_v1|), a working model object (|lland_v2|) or their name
-    (|lstream_v1|):
+    (|lstream_v001|):
 
     >>> from hydpy import prepare_model
     >>> from hydpy.models import lland_v1 as module
     >>> from hydpy.models import lland_v2
     >>> model = prepare_model(lland_v2)
-    >>> string = 'lstream_v1'
+    >>> string = 'lstream_v001'
 
     All new model types can be added individually or in groups using the
     `+=` operator:
@@ -71,7 +71,7 @@ class Auxfiler:
     >>> aux += module
     >>> aux += model, string
     >>> aux
-    Auxfiler(lland_v1, lland_v2, lstream_v1)
+    Auxfiler(lland_v1, lland_v2, lstream_v001)
 
     Wrong model specifications result in errors like the following one:
 
@@ -150,12 +150,12 @@ Filename `file1` is already allocated to another `Variable2Auxfile` object.
     Secondly, it is checked if an assigned parameter actually belongs
     to the corresponding model:
 
-    >>> aux.lstream_v1.file3 = model.parameters.control.eqd1
+    >>> aux.lstream_v001.file3 = model.parameters.control.eqd1
     Traceback (most recent call last):
     ...
     TypeError: While trying to extend the range of variables handled \
 by the actual Variable2AuxFile object, the following error occurred: \
-Variable type `EQD1` is not handled by model `lstream_v1`.
+Variable type `EQD1` is not handled by model `lstream_v001`.
     >>> aux.lland_v2.file2 = model.parameters.control.eqd1
 
     The |Auxfiler| object defined above is also used in the documentation
@@ -228,7 +228,7 @@ Variable type `EQD1` is not handled by model `lstream_v1`.
 
         >>> from hydpy import dummies
         >>> dummies.aux.modelnames
-        ['lland_v1', 'lland_v2', 'lstream_v1']
+        ['lland_v1', 'lland_v2', 'lstream_v001']
     """
         return sorted(self._dict.keys())
 
@@ -308,9 +308,9 @@ Variable type `EQD1` is not handled by model `lstream_v1`.
         """
         >>> from hydpy import print_values
         >>> aux = Auxfiler()
-        >>> aux += 'llake_v1', 'lland_v1', 'lstream_v1'
+        >>> aux += 'llake_v1', 'lland_v1', 'lstream_v001'
         >>> print_values(dir(aux))
-        llake_v1, lland_v1, lstream_v1, modelnames, save
+        llake_v1, lland_v1, lstream_v001, modelnames, save
         """
         return objecttools.dir_(self) + self.modelnames
 

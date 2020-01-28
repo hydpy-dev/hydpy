@@ -37,14 +37,18 @@ different application models:
    llake (HydPy-L-Lake) <llake>
 
 
-So far the following application models are compiled:
+So far the following application models are compiled (the purpose of the
+bracketed descriptions is to give experienced LARSIM modellers a first
+clue on what to expect by mentioning related LARSIM models and options):
 
 .. toctree::
 
-   lland_v1 (LARSIM-Xinanjiang-Turc-Wendling version of HydPy-L-Land) <lland_v1>
-   lland_v2 (External potential evaporation version of lland_v1) <lland_v2>
-   lstream_v1 (LARSIM-Manning version of HydPy-L-Stream) <lstream_v1>
-   llake_v1 (LARSIM-Lake version of HydPy-L-Lake) <llake_v1>
+   lland_v1 ("LARSIM-ME") <lland_v1>
+   lland_v2 (|lland_v1| without internal PET calculations) <lland_v2>
+   lstream_v001 ("Williams") <lstream_v001>
+   lstream_v002 ("dV/dQ fuer Williams") <lstream_v002>
+   lstream_v003 ("V/Q-BEZIEHUNG EXTERN") <lstream_v003>
+   llake_v1 ("SEEG") <llake_v1>
 
 All these application models are stand-alone models, which can be
 combined freely with other models implemented in HydPy.

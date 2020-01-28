@@ -48,6 +48,7 @@ from hydpy.core.timetools import Period
 from hydpy.core.timetools import Timegrid
 from hydpy.core.timetools import Timegrids
 from hydpy.core.testtools import make_abc_testable
+from hydpy.core.testtools import NumericalDifferentiator
 from hydpy.core.testtools import IntegrationTest
 from hydpy.core.testtools import Open
 from hydpy.core.testtools import TestIO
@@ -144,6 +145,7 @@ __all__ = ['config',
            'Timegrid',
            'Timegrids',
            'make_abc_testable',
+           'NumericalDifferentiator',
            'IntegrationTest',
            'Open',
            'TestIO',

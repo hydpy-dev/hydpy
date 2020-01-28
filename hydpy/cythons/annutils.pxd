@@ -21,7 +21,7 @@ cdef class ANN(object):
     cdef public double[:] outputs
     cdef public double[:, :] neurons
 
-    cpdef inline void process_actual_input(self) nogil
+    cpdef inline void calculate_values(self) nogil
 
 
 cdef class SeasonalANN(object):
@@ -34,4 +34,4 @@ cdef class SeasonalANN(object):
     cdef public double[:] inputs
     cdef public double[:] outputs
 
-    cpdef inline void process_actual_input(self, int idx_season) nogil
+    cpdef inline void calculate_values(self, int idx_season) nogil

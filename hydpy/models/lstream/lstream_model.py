@@ -2010,7 +2010,7 @@ class Calc_QG_V2(modeltools.Method):
         sta = model.sequences.states.fastaccess
         for i in range(con.gts):
             con.vg2qg.inputs[0] = sta.vg[i]
-            con.vg2qg.process_actual_input()
+            con.vg2qg.calculate_values()
             flu.qg[i] = con.vg2qg.outputs[0]
 
 

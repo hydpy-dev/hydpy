@@ -119,7 +119,7 @@ class ANN(BaseANN):
     >>> from hydpy import round_
     >>> for input_ in range(9):
     ...     ann.inputs[0] = input_
-    ...     ann.process_actual_input()
+    ...     ann.calculate_values()
     ...     round_([input_, ann.outputs[0]])
     0, -1.0
     1, -0.999982
@@ -163,7 +163,7 @@ class ANN(BaseANN):
     >>> ann.intercepts_hidden = [ 0.9,  0.0, -0.4, -0.2]
     >>> ann.intercepts_output = [ 1.3, -2.0]
     >>> ann.inputs = [-0.1,  1.3,  1.6]
-    >>> ann.process_actual_input()
+    >>> ann.calculate_values()
     >>> round_(ann.outputs)
     1.822222, 1.876983
 
@@ -233,7 +233,7 @@ class ANN(BaseANN):
     ...                (0.0, 1.0),
     ...                (1.0, 1.0)):
     ...    ann.inputs = inputs
-    ...    ann.process_actual_input()
+    ...    ann.calculate_values()
     ...    print(inputs[0], inputs[1], ann.outputs[0])
     0.0 0.0 0.0
     1.0 0.0 1.0
@@ -742,13 +742,13 @@ broadcast input array from shape (3,3) into shape (2,3)
         and |anntools.ANN.weights_input| for further information.
         """)
 
-    def process_actual_input(self) -> None:
+    def calculate_values(self) -> None:
         """Calculates the network output values based on the input values
         defined previously.
 
         For more information see the documentation on class |anntools.ANN|.
         """
-        self._cann.process_actual_input()
+        self._cann.calculate_values()
 
     @property
     def nmb_weights(self) -> int:
@@ -851,7 +851,7 @@ parameter `ann` of element `?` has not been defined so far.
         ys_ = numpy.zeros(xs_.shape)
         for idx, x__ in enumerate(xs_):
             self.inputs[idx_input] = x__
-            self.process_actual_input()
+            self.calculate_values()
             ys_[idx] = self.outputs[idx_output]
         pyplot.plot(xs_, ys_, **kwargs)
 
@@ -1054,14 +1054,14 @@ class SeasonalANN(BaseANN):
     Inserting data, processing this data, and fetching the output works
     as explained for class |anntools.ANN|, except that the index of the
     actual time of year needs to be passed as the single argument of
-    |anntools.SeasonalANN.process_actual_input|.  Passing the index value
+    |anntools.SeasonalANN.calculate_values|.  Passing the index value
     `182` activates the third network only, which is configured exactly
     as the one exemplifying class |anntools.ANN|:
 
     >>> from hydpy import round_
     >>> for input_ in range(9):
     ...     seasonalann.inputs[0] = input_
-    ...     seasonalann.process_actual_input(182)
+    ...     seasonalann.calculate_values(182)
     ...     round_([input_, seasonalann.outputs[0]])
     0, -1.0
     1, -0.999982
@@ -1089,7 +1089,7 @@ class SeasonalANN(BaseANN):
     >>> from hydpy import round_
     >>> for input_ in range(9):
     ...     seasonalann.inputs[0] = input_
-    ...     seasonalann.process_actual_input(12)
+    ...     seasonalann.calculate_values(12)
     ...     round_([input_, seasonalann.outputs[0]])
     0, 0.6
     1, 0.6
@@ -1105,7 +1105,7 @@ class SeasonalANN(BaseANN):
     consistent.  Hence some tests are performed:
 
     >>> seasonalann = SeasonalANN(None)
-    >>> seasonalann.process_actual_input(0)
+    >>> seasonalann.calculate_values(0)
     Traceback (most recent call last):
     ...
     RuntimeError: The seasonal neural network collection `seasonalann` \
@@ -1537,12 +1537,12 @@ neural network `seasonalann` of element `?` none has been defined so far.
         """Weighted output of the individual neural networks."""
         return numpy.asarray(self._sann.outputs)
 
-    def process_actual_input(self, idx_toy) -> None:
+    def calculate_values(self, idx_toy) -> None:
         """Calculate the network output values based on the input values
         defined previously for the given index referencing the actual
         time of year.
         """
-        self._sann.process_actual_input(idx_toy)
+        self._sann.calculate_values(idx_toy)
 
     def plot(self, xmin, xmax, idx_input=0, idx_output=0, points=100,
              **kwargs) -> None:
@@ -1646,9 +1646,9 @@ neural network `seasonalann` of element `?` none has been defined so far.
         ...                 intercepts_hidden=0.0, intercepts_output=1.0))
         >>> from hydpy.core.objecttools import assignrepr_values
         >>> print(assignrepr_values(sorted(dir(seasonalann)), '', 70))
-        NDIM, SPAN, TIME, TYPE, anns, fastaccess, inputs, name, nmb_inputs,
-        nmb_outputs, outputs, parameterstep, plot, process_actual_input,
-        ratios, refresh, shape, simulationstep, subpars, subvars,
-        toy_1_1_0_0_0, toys, verify
+        NDIM, SPAN, TIME, TYPE, anns, calculate_values, fastaccess, inputs,
+        name, nmb_inputs, nmb_outputs, outputs, parameterstep, plot, ratios,
+        refresh, shape, simulationstep, subpars, subvars, toy_1_1_0_0_0, toys,
+        verify
         """
         return objecttools.dir_(self) + [str(toy) for toy in self.toys]

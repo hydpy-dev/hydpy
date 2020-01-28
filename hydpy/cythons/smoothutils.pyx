@@ -539,7 +539,7 @@ cpdef inline double smooth_logistic1(double value, double parameter) nogil:
     else:
         temp = value/parameter
         if temp < MAX_LOG_FLOAT:
-            return (1.-1./(1.+exp(temp)))
+            return 1.-1./(1.+exp(temp))
         else:
             return 1.
 

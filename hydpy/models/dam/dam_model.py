@@ -242,7 +242,7 @@ class Calc_WaterLevel_V1(modeltools.Method):
         new = model.sequences.states.fastaccess_new
         aid = model.sequences.aides.fastaccess
         con.watervolume2waterlevel.inputs[0] = new.watervolume
-        con.watervolume2waterlevel.process_actual_input()
+        con.watervolume2waterlevel.calculate_values()
         aid.waterlevel = con.watervolume2waterlevel.outputs[0]
 
 
@@ -1087,7 +1087,7 @@ class Calc_PossibleRemoteRelieve_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
         con.waterlevel2possibleremoterelieve.inputs[0] = aid.waterlevel
-        con.waterlevel2possibleremoterelieve.process_actual_input()
+        con.waterlevel2possibleremoterelieve.calculate_values()
         flu.possibleremoterelieve = \
             con.waterlevel2possibleremoterelieve.outputs[0]
 
@@ -2196,8 +2196,7 @@ class Calc_FloodDischarge_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
         con.waterlevel2flooddischarge.inputs[0] = aid.waterlevel
-        con.waterlevel2flooddischarge.process_actual_input(
-            der.toy[model.idx_sim])
+        con.waterlevel2flooddischarge.calculate_values(der.toy[model.idx_sim])
         flu.flooddischarge = con.waterlevel2flooddischarge.outputs[0]
 
 

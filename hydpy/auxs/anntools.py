@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-"""This module implements rudimantary artificial neural network tools,
+"""This module implements rudimentary artificial neural network tools
 required for some models implemented in the HydPy framework.
 
-A note for developers: some of the implemented features are to be applied
-during model simulations are in some other way performance-critical.  Hence,
-the actual calculations are defined in the Cython extension module
-|annutils|.
+The relevant models apply some of the neural network features during
+simulation runs, which is why we implement these features in the Cython
+extension module |annutils|.
 """
 
 # import...
@@ -86,23 +85,21 @@ class BaseANN:
 
 
 class ANN(BaseANN):
-    """Multi-layer feed forward artificial neural network.
+    """Multi-layer feed-forward artificial neural network.
 
     The applied activation function is the logistic function:
 
       :math:`f(x) = \\frac{1}{1+exp(-x)}`
 
-    Class |anntools.ANN| is intended to be subclassed for the derivation of
-    very complex control parameters.  Its original purpose was to allow for
-    defining arbitrary continuous relationsships between the water stored
-    in a dam and the associated water stage (see model ...).  However,
-    class |anntools.ANN| can also be applied directly, as shown in the
-    following examples.  But if you are looking for a flexible stand-alone
-    artifical neural network implementation in Python, you will find much
-    more general tools easily.
+    Usually, one uses class |anntools.ANN| for the derivation of very
+    complex control parameters.  Its original purpose was to allow for
+    defining arbitrary continuous relationships between the water stored
+    in a dam and the associated water stage (see model |dam_v001|).
+    However, for testing purposes class |anntools.ANN| can also be applied
+    directly, as shown in the following examples.
 
-    Firstly, define the most single artificial neural network consisting of
-    only one input node, neuron, and output node respectively, and pass
+    Firstly, define the most simple artificial neural network consisting of
+    only one input node, one hidden neuron, and one output node, and pass
     some arbitrary network parameters:
 
     >>> from hydpy import ANN, nan
@@ -111,9 +108,8 @@ class ANN(BaseANN):
     ...     weights_input=4.0, weights_output=3.0,
     ...     intercepts_hidden=-16.0, intercepts_output=-1.0)
 
-
     The following loop subsequently sets the values 0 to 8 as input values,
-    performs the calculateion, and prints out the final output.  As to be
+    performs the calculation, and prints out the final output.  As to be
     expected, the results show the shape of the logistic function:
 
     >>> from hydpy import round_
@@ -146,8 +142,54 @@ class ANN(BaseANN):
 
     .. image:: ANN_plot.png
 
+    Some models might require the derivative of certain outputs with respect
+    to individual inputs.  One example is application model the |dam_v006|,
+    which uses class |anntools.ANN| to model the relationship between water
+    storage and stage of a lake.  During a simulation run , it additionally
+    needs to know the area of the water surface, which is the derivative of
+    storage with respect to stage.  For such purposes, class |anntools.ANN|
+    provides method |anntools.ANN.calculate_derivatives|.  In the following
+    example, we apply this method and compare its results with finite
+    difference approximations:
+
+    >>> d_input = 1e-8
+    >>> for input_ in range(9):
+    ...     ann.inputs[0] = input_-d_input/2.0
+    ...     ann.calculate_values()
+    ...     value0 = ann.outputs[0]
+    ...     ann.inputs[0] = input_+d_input/2.0
+    ...     ann.calculate_values()
+    ...     value1 = ann.outputs[0]
+    ...     derivative = (value1-value0)/d_input
+    ...     ann.inputs[0] = input_
+    ...     ann.calculate_values()
+    ...     ann.calculate_derivatives(0)
+    ...     round_([input_, derivative, ann.output_derivatives[0]])
+    0, 0.000001, 0.000001
+    1, 0.000074, 0.000074
+    2, 0.004023, 0.004023
+    3, 0.211952, 0.211952
+    4, 3.0, 3.0
+    5, 0.211952, 0.211952
+    6, 0.004023, 0.004023
+    7, 0.000074, 0.000074
+    8, 0.000001, 0.000001
+
+    Note the following two potential pitfalls (both due to improving the
+    computational efficiency of method |anntools.ANN.calculate_derivatives|):
+    First, for networks with more than one hidden layer, you must call
+    |anntools.ANN.calculate_values| before calling
+    |anntools.ANN.calculate_derivatives|.  Second, method
+    |anntools.ANN.calculate_derivatives| calculates the derivatives
+    with respect to a single input only, to be selected by the `idx_input`
+    argument.  However, it works fine to call method
+    |anntools.ANN.calculate_values| ones and to call
+    |anntools.ANN.calculate_derivatives| multiple times afterwards. Then
+    you can subsequently pass different index values to calculate the
+    derivatives with respect to multiple inputs.
+
     The following example shows that everything works well for more complex
-    single layer networks also (manual tests have been performed in a
+    single layer networks also (we checked the results manually using a
     spreadsheet program):
 
     >>> ann.nmb_inputs = 3
@@ -167,7 +209,32 @@ class ANN(BaseANN):
     >>> round_(ann.outputs)
     1.822222, 1.876983
 
-    The next example shows how to solve the XOR problem with a two layer
+    We again validate the calculated derivatives by comparison with numerical
+    approximations:
+
+    >>> for idx_input in range(3):
+    ...     ann.calculate_derivatives(idx_input)
+    ...     round_(ann.output_derivatives)
+    0.099449, -0.103039
+    -0.01303, 0.365739
+    0.027041, -0.203965
+
+    >>> d_input = 1e-8
+    >>> for idx_input in range(3):
+    ...     input_ = ann.inputs[idx_input]
+    ...     ann.inputs[idx_input] = input_-d_input/2.0
+    ...     ann.calculate_values()
+    ...     values0 = ann.outputs.copy()
+    ...     ann.inputs[idx_input] = input_+d_input/2.0
+    ...     ann.calculate_values()
+    ...     values1 = ann.outputs.copy()
+    ...     ann.inputs[idx_input] = input_
+    ...     round_((values1-values0)/d_input)
+    0.099449, -0.103039
+    -0.01303, 0.365739
+    0.027041, -0.203965
+
+    The next example shows how to solve the XOR problem with a two-layer
     network.  As usual, `1` stands for `True` and `0` stands for `False`.
 
     We define a network with two inputs (`I1` and `I2`), two neurons in
@@ -183,18 +250,17 @@ class ANN(BaseANN):
     >>> ann.weights_output = 1.0
     >>> ann.intercepts_output = 0.0
 
-    All intercepts of the neurons of the hidden layer are set to 750,
-    so that an input of 500 results in an activation of approximately
-    zero and an input of 1000 results in an activation of approximately
-    one (note that matrix entries are not required should preferably be
-    initialized with `nan` to avoid confusion):
+    We set all intercepts of the neurons of the hidden layer to 750
+    (and initialise unnecessary matrix entries with "nan" to avoid
+    confusion). Therefore, an input of 500 or 1000 results in an
+    activation state of approximately zero or one, respectively. :
 
     >>> ann.intercepts_hidden = [[-750.0, -750.0],
     ...                          [-750.0, nan]]
 
-    The weighting factor between the both inputs and `H11` is 1000.
+    The weighting factor between both inputs and `H11` is 1000.
     Hence, one `True` input is sufficient to activate `H1`.  In contrast,
-    the weighting factor between the both inputs and `H12` is 500 only.
+    the weighting factor between both inputs and `H12` is 500.
     Hence, two `True` inputs are required to activate `H12`:
 
     >>> ann.weights_input= [[1000.0, 500.0],
@@ -202,15 +268,15 @@ class ANN(BaseANN):
 
     The weighting factor between `H11` and `H2` is 1000.  Hence, in
     principle, `H11` can activate `H2`.  However, the weighting factor
-    between `H12` and `H2` is -1000.  Hence, `H12` is able to prevent
-    `H2` from becoming activated even when `H11` is activated:
+    between `H12` and `H2` is -1000.  Hence, `H12` prevents `H2` from
+    becoming activated even when `H11` is activated:
 
     >>> ann.weights_hidden= [[[1000.0],
     ...                      [-1000.0]]]
 
     To recapitulate, `H11` determines if at least one input is `True`,
-    `H12` determines if both inputs are `True`, and `H2` determines
-    if exactly one input is `True`, which is the solution for the XOR-problem:
+    `H12` determines if both inputs are `True`, and `H2` determines if
+    precisely  one input is `True`, which is the solution for the XOR-problem:
 
     >>> ann
     ann(nmb_inputs=2,
@@ -225,8 +291,7 @@ class ANN(BaseANN):
                            [-750.0, nan]],
         intercepts_output=[0.0])
 
-    The following calculation confirms that the network is properly
-    configured:
+    The following calculation confirms the proper configuration of our network:
 
     >>> for inputs in ((0.0, 0.0),
     ...                (1.0, 0.0),
@@ -234,27 +299,98 @@ class ANN(BaseANN):
     ...                (1.0, 1.0)):
     ...    ann.inputs = inputs
     ...    ann.calculate_values()
-    ...    print(inputs[0], inputs[1], ann.outputs[0])
-    0.0 0.0 0.0
-    1.0 0.0 1.0
-    0.0 1.0 1.0
-    1.0 1.0 0.0
+    ...    round_([inputs[0], inputs[1], ann.outputs[0]])
+    0.0, 0.0, 0.0
+    1.0, 0.0, 1.0
+    0.0, 1.0, 1.0
+    1.0, 1.0, 0.0
 
-    To elaborate on the last calculation, the corresponding activations
-    of the hidden neurons are shown. As both inputs are `True`, both
-    `H12` (upper left value) and `H22` (upper right value) activated,
+    To elaborate on the last calculation, we show the corresponding
+    activations of the hidden neurons. As both inputs are `True`, both
+    `H12` (upper left value) and `H22` (upper right value) are activated,
     but `H2` (lower left value) is not:
 
     >>> ann.neurons
     array([[ 1.,  1.],
            [ 0.,  0.]])
 
-    Note that Python class |anntools.ANN| handles a corresponding
-    Cython extension class defined in |annutils|, which does not
-    protect itself against segmentation faults. But class
-    |anntools.ANN| takes up this task, meaning using its public
-    members should always result in readable exceptions instead of
-    program crashes, e.g.:
+    Due to sharp response function, the derivatives with respect to both
+    inputs are approximately zero:
+
+    >>> for inputs in ((0.0, 0.0),
+    ...                (1.0, 0.0),
+    ...                (0.0, 1.0),
+    ...                (1.0, 1.0)):
+    ...    ann.inputs = inputs
+    ...    ann.calculate_values()
+    ...    ann.calculate_derivatives(0)
+    ...    round_([inputs[0], inputs[1], ann.output_derivatives[0]])
+    0.0, 0.0, 0.0
+    1.0, 0.0, 0.0
+    0.0, 1.0, 0.0
+    1.0, 1.0, 0.0
+
+    To better validate the calculation of derivatives for multi-layer
+    networks, we decrease the weights (and, accordingly, the intercepts)
+    of our network, making its response more smooth:
+
+    >>> ann(nmb_inputs=2,
+    ...     nmb_neurons=(2, 1),
+    ...     nmb_outputs=1,
+    ...     weights_input=[[10.0, 5.0],
+    ...                    [10.0, 5.0]],
+    ...     weights_hidden=[[[10.0],
+    ...                      [-10.0]]],
+    ...     weights_output=[[1.0]],
+    ...     intercepts_hidden=[[-7.5, -7.5],
+    ...                        [-7.5, nan]],
+    ...     intercepts_output=[0.0])
+
+    The results of method |anntools.ANN.calculate_derivatives| again agree
+    with those of the finite difference approximation:
+
+    >>> for inputs in ((0.0, 0.0),
+    ...                (1.0, 0.0),
+    ...                (0.0, 1.0),
+    ...                (1.0, 1.0)):
+    ...     ann.inputs = inputs
+    ...     ann.calculate_values()
+    ...     ann.calculate_derivatives(0)
+    ...     derivative1 = ann.output_derivatives[0]
+    ...     ann.calculate_derivatives(1)
+    ...     derivative2 = ann.output_derivatives[0]
+    ...     round_([inputs[0], inputs[1], derivative1, derivative2])
+    0.0, 0.0, 0.000015, 0.000015
+    1.0, 0.0, 0.694609, 0.694609
+    0.0, 1.0, 0.694609, 0.694609
+    1.0, 1.0, -0.004129, -0.004129
+
+    >>> d_input = 1e-8
+    >>> for inputs in ((0.0, 0.0),
+    ...                (1.0, 0.0),
+    ...                (0.0, 1.0),
+    ...                (1.0, 1.0)):
+    ...     derivatives = []
+    ...     for idx_input in range(2):
+    ...         ann.inputs = inputs
+    ...         ann.inputs[idx_input] = inputs[idx_input]-d_input/2.0
+    ...         ann.calculate_values()
+    ...         value0 = ann.outputs[0]
+    ...         ann.inputs[idx_input] = inputs[idx_input]+d_input/2.0
+    ...         ann.calculate_values()
+    ...         value1 = ann.outputs[0]
+    ...         derivatives.append((value1-value0)/d_input)
+    ...     round_([inputs[0], inputs[1]] + derivatives)
+    0.0, 0.0, 0.000015, 0.000015
+    1.0, 0.0, 0.694609, 0.694609
+    0.0, 1.0, 0.694609, 0.694609
+    1.0, 1.0, -0.004129, -0.004129
+
+    Note that Python class |anntools.ANN| handles a corresponding Cython
+    extension class defined in |annutils|, which does not protect itself
+    against segmentation faults. But class  |anntools.ANN| takes up this
+    task, meaning using its public members should always result in readable
+    exceptions instead of program crashes, e.g.:
 
     >>> ANN(None).nmb_layers
     Traceback (most recent call last):
@@ -298,7 +434,9 @@ attribute `nmb_inputs` first.
         self.intercepts_output = intercepts_output
         del self.inputs
         del self.outputs
+        del self.output_derivatives
         del self.neurons
+        del self.neuron_derivatives
 
     def __update_shapes(self) -> None:
         if self.__protectedproperties.allready(self):
@@ -309,11 +447,13 @@ attribute `nmb_inputs` first.
             del self.intercepts_output
             del self.inputs
             del self.outputs
+            del self.output_derivatives
             del self.neurons
+            del self.neuron_derivatives
 
     @propertytools.ProtectedProperty
     def nmb_inputs(self) -> int:
-        """Number of input nodes.
+        """The number of input nodes.
 
         >>> from hydpy import ANN
         >>> ann = ANN(None)
@@ -337,7 +477,7 @@ attribute `nmb_inputs` first.
 
     @propertytools.ProtectedProperty
     def nmb_outputs(self) -> int:
-        """Number of output nodes.
+        """The number of output nodes.
 
         >>> from hydpy import ANN
         >>> ann = ANN(None)
@@ -368,7 +508,7 @@ of object `ann` has not been prepared so far.
 
     @propertytools.ProtectedProperty
     def nmb_neurons(self) -> Tuple[int, ...]:
-        """Number of neurons of the hidden layers.
+        """The number of neurons of the hidden layers.
 
         >>> from hydpy import ANN
         >>> ann = ANN(None)
@@ -404,7 +544,7 @@ of object `ann` has not been prepared so far.
 
     @property
     def nmb_weights_input(self) -> int:
-        """Number of input weights.
+        """The number of input weights.
 
         >>> from hydpy import ANN
         >>> ann = ANN(None)
@@ -416,9 +556,9 @@ of object `ann` has not been prepared so far.
 
     @property
     def shape_weights_input(self) -> Tuple[int, int]:
-        """Shape of the array containing the input weights.
+        """The shape of the array containing the input weights.
 
-        The first integer value is the number of input nodes, the second
+        The first integer value is the number of input nodes; the second
         integer value is the number of neurons of the first hidden layer:
 
         >>> from hydpy import ANN
@@ -431,14 +571,14 @@ of object `ann` has not been prepared so far.
 
     weights_input = _ANNArrayProperty(
         protected=__protectedproperties,
-        doc="""Weights between all input nodes and neurons of the first 
+        doc="""The weights between all input nodes and neurons of the first 
         hidden layer.
         
-        The "weight properties" of class |anntools.ANN| can be used as 
+        The "weight properties" of class |anntools.ANN| are usable as 
         explained in-depth for the input weights below. 
     
-        The input nodes and the neurons are varied on the first axis and
-        on the second axis of the 2-dimensional array (see property 
+        The input nodes and the neurons vary on the first axis and the
+        second axis of the 2-dimensional array, respectively (see property 
         |anntools.ANN.shape_weights_input|):
 
         >>> from hydpy import ANN
@@ -448,8 +588,8 @@ of object `ann` has not been prepared so far.
         array([[ 0.,  0.,  0.],
                [ 0.,  0.,  0.]])
         
-        If either the number of input nodes or hidden neurons is unknown,
-        an exception is raised:
+        The following error occurs when either the number of input nodes or 
+        of hidden neurons is unknown:
         
         >>> del ann.nmb_inputs
         >>> ann.weights_input
@@ -467,7 +607,8 @@ you have to prepare attribute `nmb_inputs` first.
         array([[ 1.,  0.,  0.],
                [ 1.,  0.,  0.]])
 
-        If possible, type conversions are performed:
+        If possible, property |anntools.ANN.weights_input| performs type 
+        conversions:
 
         >>> ann.weights_input = '2'
         >>> ann.weights_input
@@ -502,10 +643,10 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     @property
     def shape_weights_output(self) -> Tuple[int, int]:
-        """Shape of the array containing the output weights.
+        """The shape of the array containing the output weights.
 
         The first integer value is the number of neurons of the first hidden
-        layer, the second integer value is the number of output nodes:
+        layer; the second integer value is the number of output nodes:
 
         >>> from hydpy import ANN
         >>> ann = ANN(None)
@@ -517,7 +658,7 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     @property
     def nmb_weights_output(self) -> int:
-        """Number of output weights.
+        """The number of output weights.
 
         >>> from hydpy import ANN
         >>> ann = ANN(None)
@@ -529,8 +670,8 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     weights_output = _ANNArrayProperty(
         protected=__protectedproperties,
-        doc="""Weights between all neurons of the last hidden layer and the 
-        output nodes.
+        doc="""The weights between all neurons of the last hidden layer and 
+        the output nodes.
 
         See the documentation on properties |anntools.ANN.shape_weights_output|
         and |anntools.ANN.weights_input| for further information.
@@ -538,12 +679,13 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     @property
     def shape_weights_hidden(self) -> Tuple[int, int, int]:
-        """Shape of the array containing the activation of the hidden neurons.
+        """The shape of the array containing the activation of the hidden
+        neurons.
 
         The first integer value is the number of connection between the
-        hidden layers, the second integer value is maximum number of
+        hidden layers. The second integer value is the maximum number of
         neurons of all hidden layers feeding information into another
-        hidden layer (all except the last one), and the third integer
+        hidden layer (all except the last one). The third integer
         value is the maximum number of the neurons of all hidden layers
         receiving information from another hidden layer (all except the
         first one):
@@ -566,7 +708,7 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     @property
     def nmb_weights_hidden(self) -> int:
-        """Number of hidden weights.
+        """The number of hidden weights.
 
         >>> from hydpy import ANN
         >>> ann = ANN(None)
@@ -581,8 +723,7 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     weights_hidden = _ANNArrayProperty(
         protected=__protectedproperties,
-        doc="""Weights between between the neurons of the different 
-        hidden layers.
+        doc="""The weights between the neurons of the different hidden layers.
 
         See the documentation on properties |anntools.ANN.shape_weights_hidden|
         and |anntools.ANN.weights_input| for further information.
@@ -590,10 +731,10 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     @property
     def shape_intercepts_hidden(self) -> Tuple[int, int]:
-        """Shape of the array containing the intercepts of neurons of
+        """The shape of the array containing the intercepts of neurons of
         the hidden layers.
 
-        The first integer value is to the number of hidden layers,
+        The first integer value is to the number of hidden layers;
         the second integer value is the maximum number of neurons of
         all hidden layers:
 
@@ -607,12 +748,12 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     @property
     def nmb_intercepts_hidden(self) -> int:
-        """Number of input intercepts."""
+        """The number of input intercepts."""
         return sum(self.nmb_neurons)
 
     intercepts_hidden = _ANNArrayProperty(
         protected=__protectedproperties,
-        doc="""Intercepts of all neurons of the hidden layers.
+        doc="""The intercepts of all neurons of the hidden layers.
 
         See the documentation on properties 
         |anntools.ANN.shape_intercepts_hidden| and 
@@ -621,7 +762,7 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     @property
     def shape_intercepts_output(self) -> Tuple[int]:
-        """Shape of the array containing the intercepts of neurons of
+        """The shape of the array containing the intercepts of neurons of
         the hidden layers.
 
         The only integer value is the number of output nodes:
@@ -636,7 +777,7 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     @property
     def nmb_intercepts_output(self) -> int:
-        """Number of output intercepts.
+        """The number of output intercepts.
 
         >>> from hydpy import ANN
         >>> ann = ANN(None)
@@ -648,7 +789,7 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     intercepts_output = _ANNArrayProperty(
         protected=__protectedproperties,
-        doc="""Intercepts of all output nodes.
+        doc="""The intercepts of all output nodes.
 
         See the documentation on properties 
         |anntools.ANN.shape_intercepts_output| and 
@@ -657,7 +798,7 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     @property
     def shape_inputs(self) -> Tuple[int]:
-        """Shape of the array containing the input values.
+        """The shape of the array containing the input values.
 
         The only integer value is the number of input nodes:
 
@@ -671,7 +812,7 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     inputs = _ANNArrayProperty(
         protected=__protectedproperties,
-        doc="""Values of the input nodes.
+        doc="""The values of the input nodes.
 
         See the documentation on properties |anntools.ANN.shape_inputs|
         and |anntools.ANN.weights_input| for further information.
@@ -679,7 +820,7 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     @property
     def shape_outputs(self) -> Tuple[int]:
-        """Shape of the array containing the output values.
+        """The shape of the array containing the output values.
 
         The only integer value is the number of output nodes:
 
@@ -693,10 +834,33 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     outputs = _ANNArrayProperty(
         protected=__protectedproperties,
-        doc="""Values of the output nodes.
+        doc="""The values of the output nodes.
 
         See the documentation on properties |anntools.ANN.shape_outputs|
         and |anntools.ANN.weights_input| for further information.
+        """)
+
+    @property
+    def shape_output_derivatives(self) -> Tuple[int]:
+        """The shape of the array containing the output derivatives.
+
+        The only integer value is the number of output nodes:
+
+        >>> from hydpy import ANN
+        >>> ann = ANN(None)
+        >>> ann(nmb_inputs=2, nmb_neurons=(2, 1), nmb_outputs=6)
+        >>> ann.shape_output_derivatives
+        (6,)
+        """
+        return self.nmb_outputs,
+
+    output_derivatives = _ANNArrayProperty(
+        protected=__protectedproperties,
+        doc="""The derivatives of the output nodes.
+
+        See the documentation on properties 
+        |anntools.ANN.shape_output_derivatives| and 
+        |anntools.ANN.weights_input| for further information.
         """)
 
     nmb_layers = propertytools.DependentProperty(
@@ -704,7 +868,7 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     @nmb_layers.getter
     def nmb_layers(self) -> int:
-        """Number of hidden layers.
+        """The number of hidden layers.
 
         >>> from hydpy import ANN
         >>> ann = ANN(None)
@@ -719,10 +883,10 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     @shape_neurons.getter
     def shape_neurons(self) -> Tuple[int, int]:
-        """Shape of the array containing the activities of the neurons
+        """The shape of the array containing the activities of the neurons
         of the hidden layers.
 
-        The first integer value is the number of hidden layers, the
+        The first integer value is the number of hidden layers; the
         second integer value is the maximum number of neurons of all
         hidden layers:
 
@@ -736,23 +900,62 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     neurons = _ANNArrayProperty(
         protected=__protectedproperties,
-        doc="""The activation of the neurons of the hidden layers.
+        doc="""The derivatives of the activation of the neurons of the 
+        hidden layers.
 
         See the documentation on properties |anntools.ANN.shape_neurons|
         and |anntools.ANN.weights_input| for further information.
         """)
 
+    shape_neuron_derivatives = propertytools.DependentProperty(
+        protected=__protectedproperties)
+
+    @shape_neuron_derivatives.getter
+    def shape_neuron_derivatives(self) -> Tuple[int, int]:
+        """The shape of the array containing the derivatives of the activities
+        of the neurons of the hidden layers.
+
+        The first integer value is the number of hidden layers; the
+        second integer value is the maximum number of neurons of all
+        hidden layers:
+
+        >>> from hydpy import ANN
+        >>> ann = ANN(None)
+        >>> ann(nmb_inputs=2, nmb_neurons=(4, 3, 2), nmb_outputs=6)
+        >>> ann.shape_neuron_derivatives
+        (3, 4)
+        """
+        return self.nmb_layers, self.__max_nmb_neurons
+
+    neuron_derivatives = _ANNArrayProperty(
+        protected=__protectedproperties,
+        doc="""The derivatives of the activation of the neurons of the 
+        hidden layers.
+
+        See the documentation on properties 
+        |anntools.ANN.shape_neuron_derivatives| and 
+        |anntools.ANN.weights_input| for further information.
+        """)
+
     def calculate_values(self) -> None:
-        """Calculates the network output values based on the input values
+        """Calculate the network output values based on the input values
         defined previously.
 
-        For more information see the documentation on class |anntools.ANN|.
+        For more information, see the documentation on class |anntools.ANN|.
         """
         self._cann.calculate_values()
 
+    def calculate_derivatives(self, idx_input: int) -> None:
+        """Calculate the derivatives of the network output values with
+        respect to the input value of the given index.
+
+        For more information, see the documentation on class |anntools.ANN|.
+        """
+        self._cann.calculate_derivatives(idx_input)
+
     @property
     def nmb_weights(self) -> int:
-        """Number of all input, inner, and output weights.
+        """The number of all input, inner, and output weights.
 
         >>> from hydpy import ANN
         >>> ann = ANN(None)
@@ -766,7 +969,7 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     @property
     def nmb_intercepts(self) -> int:
-        """Number of all inner and output intercepts.
+        """The number of all inner and output intercepts.
 
         >>> from hydpy import ANN
         >>> ann = ANN(None)
@@ -778,7 +981,8 @@ broadcast input array from shape (3,3) into shape (2,3)
 
     @property
     def nmb_parameters(self) -> int:
-        """Sum of |anntools.ANN.nmb_weights| and |anntools.ANN.nmb_intercepts|.
+        """The sum of |anntools.ANN.nmb_weights| and
+        |anntools.ANN.nmb_intercepts|.
 
         >>> from hydpy import ANN
         >>> ann = ANN(None)
@@ -807,7 +1011,7 @@ parameter `ann` of element `?` has not been defined so far.
 
     def assignrepr(self, prefix) -> str:
         """Return a string representation of the actual |anntools.ANN| object
-        that is prefixed with the given string."""
+        prefixed with the given string."""
         prefix = '%s%s(' % (prefix, self.name)
         blanks = len(prefix)*' '
         lines = [
@@ -835,14 +1039,14 @@ parameter `ann` of element `?` has not been defined so far.
 
     def plot(self, xmin, xmax, idx_input=0, idx_output=0, points=100,
              **kwargs) -> None:
-        """Plot the relationship between a certain input (`idx_input`) and a
-        certain output (`idx_output`) variable described by the actual
-        |anntools.ANN| object.
+        """Plot the relationship between a particular input (`idx_input`)
+        and a particular output (`idx_output`) variable described by the
+        actual |anntools.ANN| object.
 
-        Define the lower and the upper bound of the x axis via arguments
-        `xmin` and `xmax`.  The number of plotting points can be modified
-        by argument `points`.  Additional `matplotlib` plotting arguments
-        can be passed as keyword arguments.
+        Define the lower and the upper bound of the x-axis via arguments
+        `xmin` and `xmax`.  Modify the number of plotted points via
+        argument `points`.  Pass additional `matplotlib` plotting arguments
+        as keyword arguments.
         """
         # pylint: disable=unsubscriptable-object
         # pylint: disable=unsupported-assignment-operation
@@ -857,14 +1061,14 @@ parameter `ann` of element `?` has not been defined so far.
 
 
 def ann(**kwargs) -> ANN:
-    """Return a new stand alone |anntools.ANN| object with the given parameter
+    """Return a new stand-alone |anntools.ANN| object with the given parameter
     values.
 
     The purpose of this function is to allow for string representations of
     parameters containing multiple |anntools.ANN| instances.
 
-    When passing no arguments, the default values of class |anntools.ANN| will
-    be applied:
+    When passing no arguments, the default values of class |anntools.ANN|
+    apply:
 
     >>> from hydpy import ann
     >>> ann1 = ann()
@@ -877,7 +1081,7 @@ def ann(**kwargs) -> ANN:
         intercepts_hidden=[[0.0]],
         intercepts_output=[0.0])
 
-    Of course, all parameter values can be changed:
+    Of course, you can change any parameter value:
 
     >>> ann2 = ann(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
     ...            weights_input=4.0, weights_output=3.0,
@@ -891,9 +1095,9 @@ def ann(**kwargs) -> ANN:
         intercepts_hidden=[[-16.0]],
         intercepts_output=[-1.0])
 
-    The following line is just thought to make clear, that two independent
-    |anntools.ANN| objects have been initialized (instead of changing the
-    values of an existing |anntools.ANN| object vai its `call` method):
+    The following line clarifies that we initialised two independent
+    |anntools.ANN| objects (instead of changing the values of an existing
+    |anntools.ANN| object vai its `call` method):
 
     >>> ann1 is ann2
     False
@@ -905,20 +1109,20 @@ def ann(**kwargs) -> ANN:
 
 class SeasonalANN(BaseANN):
     """Handles relationships described by artificial neural networks that
-    vary within an anual cycle.
+    vary within an annual cycle.
 
     Class |anntools.SeasonalANN| is an alternative implementation of class
     |SeasonalParameter| specifically designed for handling multiple
     |anntools.ANN| objects that are valid for different times of the year,
     described by |TOY| objects.  The total output of a |anntools.SeasonalANN|
     object is a weighted mean of the output of one or two "normal" neural
-    networks.  |anntools.SeasonalANN.ratios| used for weighting depend
-    on the actual time of the year.
+    networks.  Property |anntools.SeasonalANN.ratios| provides the weights
+    for the different times of the year.
 
-    To explain this in more detail, let us define a |anntools.SeasonalANN|
-    object first, that contains three "normal" networks for January, 1,
-    March, 1, and July, 1, respectively (note that this example is similar
-    to the example used to describe class |SeasonalParameter|):
+    To explain this in more detail, we modify an example of the documentation
+    on class.  let us define a |anntools.SeasonalANN| object that contains
+    three "normal" networks for January, 1, March, 1, and July, 1,
+    respectively:
 
     >>> from hydpy import ann, pub, SeasonalANN
     >>> pub.options.reprdigits = 6
@@ -935,8 +1139,8 @@ class SeasonalANN(BaseANN):
     ...                 weights_input=0.0, weights_output=0.0,
     ...                 intercepts_hidden=0.0, intercepts_output=-1.0))
 
-    The confused time order in the initialization call above does not pose
-    a problem, as |anntools.SeasonalANN| performs time sorting internally:
+    The confusing time order in the initialization call above does not pose a
+    problem, as class |anntools.SeasonalANN| performs time sorting internally:
 
     >>> seasonalann
     seasonalann(toy_1_1_12_0_0=ann(nmb_inputs=1,
@@ -977,8 +1181,8 @@ class SeasonalANN(BaseANN):
     .. image:: SeasonalANN_plot.png
 
     The property |anntools.SeasonalANN.shape| does reflect the number of
-    required weighting ratios for each time of year (in this example:
-    366 days per year) and each neural network (in this example: three):
+    required weighting ratios for each time of year (in this example
+    366 days per year) and each neural network (in this example three):
 
     >>> seasonalann.shape
     (366, 3)
@@ -991,9 +1195,9 @@ class SeasonalANN(BaseANN):
     ...
     AttributeError: can't set attribute
 
-    The following interactive plot shows how the |anntools.SeasonalANN.ratios|
-    used for weighting are calculated (note the missing values for October,
-    November, and December, being not relevant for the initialisation period):
+    The following interactive plot shows the |anntools.SeasonalANN.ratios|
+    used for weighting(note the missing values for October, November, and
+    December, being not relevant for the initialisation period):
 
     .. testsetup::
 
@@ -1036,7 +1240,7 @@ class SeasonalANN(BaseANN):
             frameborder=0
         ></iframe>
 
-    For example, on July, 1 (which is the 183th day of a leap year),
+    For example, on July, 1 (which is the 183rd day of a leap year),
     only the output of the third network is relevant:
 
     >>> from hydpy import print_values
@@ -1052,11 +1256,10 @@ class SeasonalANN(BaseANN):
     0.005435, 0.0, 0.994565
 
     Inserting data, processing this data, and fetching the output works
-    as explained for class |anntools.ANN|, except that the index of the
-    actual time of year needs to be passed as the single argument of
-    |anntools.SeasonalANN.calculate_values|.  Passing the index value
-    `182` activates the third network only, which is configured exactly
-    as the one exemplifying class |anntools.ANN|:
+    as explained for class |anntools.ANN|, except that you must additionally
+    pass the index of the actual time of year.  Passing the index value
+    `182` activates the third network only, being configured as the one
+    exemplifying class |anntools.ANN|:
 
     >>> from hydpy import round_
     >>> for input_ in range(9):
@@ -1081,7 +1284,7 @@ class SeasonalANN(BaseANN):
     >>> print_values(seasonalann.ratios[12])
     0.8, 0.2, 0.0
 
-    For both networks all parameters except the output intercepts are
+    For both networks, all parameters except the output intercepts are
     zero.  Hence, the calculated output is independent of the given input.
     The output of the first network (1.0) dominates the output of the
     second network (-1.0):
@@ -1102,7 +1305,8 @@ class SeasonalANN(BaseANN):
     8, 0.6
 
     It is of great importance that all contained neural networks are
-    consistent.  Hence some tests are performed:
+    consistent.  Hence class |anntools.SeasonalANN| performs some
+    related checks:
 
     >>> seasonalann = SeasonalANN(None)
     >>> seasonalann.calculate_values(0)
@@ -1180,7 +1384,8 @@ neural network collection `seasonalann` of element `?` assumes `2` input \
 and `1` output values, while the network corresponding to the time of \
 year `toy_3_1_12_0_0` requires `1` input and `1` output values.
 
-    Whenever a test fails, all networks are removed for safety:
+    For safety, each failure results in a total loss of the previously
+    defined networks:
 
     >>> seasonalann
     seasonalann()
@@ -1193,7 +1398,7 @@ year `toy_3_1_12_0_0` requires `1` input and `1` output values.
     ...           intercepts_hidden=0.0, intercepts_output=1.0)
     >>> seasonalann.toy_1_1_12 = jan
 
-    Setting an attribute updates everything, e.g.:
+    If you set an attribute, everything updates automatically, e.g.:
 
     >>> round_(seasonalann.ratios[0])
     1.0
@@ -1220,8 +1425,7 @@ by the containing object.  But the seasonal neural network collection \
 while the network corresponding to the time of year `toy_7_1_12_0_0` \
 requires `2` input and `1` output values.
 
-    Besides setting new networks, getting and deleting them are also
-    suppported:
+    Besides setting new networks, getting and deleting them also works:
 
     >>> seasonalann.toy_1_1_12 = jan
     >>> seasonalann.toy_1_1_12
@@ -1234,7 +1438,7 @@ requires `2` input and `1` output values.
         intercepts_output=[1.0])
     >>> del seasonalann.toy_1_1_12
 
-    These error messages related to attribute access are provided:
+    These are the error messages related to attribute access problems:
 
     >>> seasonalann.toy_1_1_12
     Traceback (most recent call last):
@@ -1329,11 +1533,11 @@ been given, but a value of type `ANN` is required.
     def refresh(self) -> None:
         """Prepare the actual |anntools.SeasonalANN| object for calculations.
 
-        Dispite all automated refreshings explained in the general
-        documentation on class |anntools.SeasonalANN|, it is still possible
-        to destroy the inner consistency of a |anntools.SeasonalANN| instance,
-        as it stores its |anntools.ANN| objects by reference.  This is shown
-        by the following example:
+        Class |anntools.SeasonalANN| stores its |anntools.ANN| objects by
+        reference.  Therefore, despite all automated refreshings (explained
+        in the general documentation on class |anntools.SeasonalANN|), it
+        is still possible to destroy the inner consistency of a
+        |anntools.SeasonalANN| instance:
 
         >>> from hydpy import SeasonalANN, ann
         >>> seasonalann = SeasonalANN(None)
@@ -1351,9 +1555,9 @@ been given, but a value of type `ANN` is required.
         Due to the C level implementation of the mathematical core of
         both |anntools.ANN| and |anntools.SeasonalANN| in module |annutils|,
         such an inconsistency might result in a program crash without any
-        informative error message.  Whenever you are afraid some
-        inconsistency might have crept in, and you want to repair it,
-        call method |anntools.SeasonalANN.refresh| explicitly:
+        informative error message.  Whenever you are think some inconsistency
+        might have crept in and you want to repair it, call method
+        |anntools.SeasonalANN.refresh| explicitly:
 
         >>> seasonalann.refresh()
         >>> jan.nmb_inputs, jan.nmb_outputs
@@ -1376,14 +1580,14 @@ been given, but a value of type `ANN` is required.
                 self.__sann = None
 
     def verify(self) -> None:
-        """Raise a |RuntimeError| and removes all handled neural networks,
-        if the they are defined inconsistently.
+        """Raise a |RuntimeError| and remove all handled neural networks,
+        if they are defined inconsistently.
 
-        Dispite all automated safety checks explained in the general
-        documentation on class |anntools.SeasonalANN|, it is still possible
-        to destroy the inner consistency of a |anntools.SeasonalANN| instance,
-        as it stores its |anntools.ANN| objects by reference.  This is shown
-        by the following example:
+        Class |anntools.SeasonalANN| stores its |anntools.ANN| objects by
+        reference.  Therefore, despite all automated refreshings (explained
+        in the general documentation on class |anntools.SeasonalANN|), it
+        is still possible to destroy the inner consistency of a
+        |anntools.SeasonalANN| instance:
 
         >>> from hydpy import SeasonalANN, ann
         >>> seasonalann = SeasonalANN(None)
@@ -1401,10 +1605,9 @@ been given, but a value of type `ANN` is required.
         Due to the C level implementation of the mathematical core of both
         |anntools.ANN| and |anntools.SeasonalANN| in module |annutils|,
         such an inconsistency might result in a program crash without any
-        informative error message.  Whenever you are afraid some
-        inconsistency might have crept in, and you want to find out if this
-        is actually the case, call method |anntools.SeasonalANN.verify|
-        explicitly:
+        informative error message. Whenever you think some inconsistency
+        might have crept in and you want to find out if your suspicion is
+        right, call method |anntools.SeasonalANN.verify| explicitly.
 
         >>> seasonalann.verify()
         Traceback (most recent call last):
@@ -1504,7 +1707,7 @@ neural network `seasonalann` of element `?` none has been defined so far.
 
     @property
     def ratios(self) -> numpy.ndarray:
-        """Ratios for weighting the single neural network outputs."""
+        """The ratios for weighting the single neural network outputs."""
         return numpy.asarray(self._sann.ratios)
 
     @property
@@ -1519,29 +1722,28 @@ neural network `seasonalann` of element `?` none has been defined so far.
 
     @property
     def nmb_inputs(self) -> int:
-        """Number of input values of all neural networks."""
+        """The number of input values of all neural networks."""
         return self._sann.nmb_inputs
 
     @property
     def inputs(self) -> numpy.ndarray:
-        """General input data for all neural networks."""
+        """The general input data for all neural networks."""
         return numpy.asarray(self._sann.inputs)
 
     @property
     def nmb_outputs(self) -> int:
-        """Number of output values of all neural networks."""
+        """The number of output values of all neural networks."""
         return self._sann.nmb_outputs
 
     @property
     def outputs(self) -> numpy.ndarray:
-        """Weighted output of the individual neural networks."""
+        """The weighted output of the individual neural networks."""
         return numpy.asarray(self._sann.outputs)
 
     def calculate_values(self, idx_toy) -> None:
         """Calculate the network output values based on the input values
         defined previously for the given index referencing the actual
-        time of year.
-        """
+        time of year."""
         self._sann.calculate_values(idx_toy)
 
     def plot(self, xmin, xmax, idx_input=0, idx_output=0, points=100,

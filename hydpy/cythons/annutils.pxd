@@ -20,8 +20,11 @@ cdef class ANN(object):
     cdef public double[:] inputs
     cdef public double[:] outputs
     cdef public double[:, :] neurons
+    cdef public double[:] output_derivatives
+    cdef public double[:, :] neuron_derivatives
 
     cpdef inline void calculate_values(self) nogil
+    cpdef inline void calculate_derivatives(self, int idx_input) nogil
 
 
 cdef class SeasonalANN(object):

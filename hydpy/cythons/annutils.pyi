@@ -20,6 +20,9 @@ class ANN:
     def calculate_values(self) -> None:
         ...
 
+    def calculate_derivatives(self, idx_input: int) -> None:
+        ...
+
 
 class SeasonalANN:
 

@@ -1,0 +1,20 @@
+We should place the following installation instructions for developers into the main documentation soon...
+
+We assume, there is a working Anaconda or Miniconda distribution on your system.
+
+The following command creates the conda environment "hydpy37" installing Python 3.7 and most dependencies required for developing HydPy:
+
+conda create -n hydpy37 python==3.7 bokeh coverage Cython matplotlib netcdf4 numpy pandas setuptools typing_extensions scipy wheel wrapt xmlschema ipython jupyter mypy pylint cycler six kiwisolver pyparsing python-dateutil cftime pytz elementpath markupsafe pyyaml packaging attrs pillow tornado xlrd sphinx sphinxcontrib-fulltoc sympy networkx mathjax
+
+You can create parallel environments relying on different Python versions.  At the time of writing, we still support Python 3.6 and are going to support Python 3.8 soon:
+
+conda create -n hydpy36 python==3.6...
+conda create -n hydpy38 python==3.8...
+
+Now you can activate the freshly prepared environment:
+
+activate hydpy37
+
+Some dependencies are not available via conda and must be installed via pip (do not forget to activate the relevant conda environment first):
+
+pip install johnnydep sphinxprettysearchresults

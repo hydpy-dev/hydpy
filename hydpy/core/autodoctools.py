@@ -57,6 +57,8 @@ EXCLUDE_MEMBERS = (
     'REQUIREDSEQUENCES',
     'UPDATEDSEQUENCES',
     'RESULTSEQUENCES',
+    'SOLVERPARAMETERS',
+    'SOLVERSEQUENCES',
 )
 
 _PAR_SPEC2CAPT = collections.OrderedDict((('parameters', 'Parameter tools'),

@@ -3,28 +3,26 @@
 # pylint: enable=missing-docstring
 
 # import...
-# ...from site-packages
-import numpy
 # ...from HydPy
 from hydpy.core import parametertools
 
 
 class AbsErrorMax(parametertools.SolverParameter):
-    """Absolute numerical error tolerance [mm/T]."""
+    """Absolute numerical error tolerance [m3/s]."""
     NDIM = 0
     TYPE = float
     TIME = None
     SPAN = (0., None)
-    INIT = 0.01
+    INIT = 0.000001
 
 
 class RelErrorMax(parametertools.SolverParameter):
-    """Relative numerical error tolerance [1/T]."""
+    """Relative numerical error tolerance [-]."""
     NDIM = 0
     TYPE = float
     TIME = None
     SPAN = (0., None)
-    INIT = numpy.nan
+    INIT = 0.001
 
 
 class RelDTMin(parametertools.SolverParameter):
@@ -32,7 +30,7 @@ class RelDTMin(parametertools.SolverParameter):
     NDIM = 0
     TYPE = float
     TIME = None
-    SPAN = (0.0, 1.0)
+    SPAN = (0.0, None)
     INIT = 0.001
 
 

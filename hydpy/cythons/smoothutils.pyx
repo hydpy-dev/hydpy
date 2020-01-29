@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*-
-#!python
-#cython: boundscheck=False
-#cython: wraparound=False
-#cython: initializedcheck=False
 """This Cython module implements the performance-critical functions of the
 Python module `smoothtools`.
 
@@ -107,8 +102,8 @@ Hence even extremely high `value/parameter` ratios are allowed:
 >>> round_(smoothutils.smooth_logistic2(1000., .1))
 1000.0
 
-smooth_logistic2_derivative
-___________________________
+smooth_logistic2_derivative1
+____________________________
 
 Derivative of the function `smooth_logistic2` regarding its smoothing
 parameter.
@@ -124,7 +119,7 @@ parameters:
 ...         round_('value,  par=3.0,  par=1.0,  par=0.1,  par=0.0')
 ...     round_(value, width=5, lfill=' ', end=', ')
 ...     for idx, parameter in enumerate([3.0, 1.0, 0.1, 0.0]):
-...         round_(smoothutils.smooth_logistic2_derivative(value, parameter),
+...         round_(smoothutils.smooth_logistic2_derivative1(value, parameter),
 ...                width=8, rfill='0', end='')
 ...         if idx < 3:
 ...             round_('', end=', ')
@@ -172,12 +167,86 @@ value,  par=3.0,  par=1.0,  par=0.1,  par=0.0
     4, 0.512107, 0.090095, 0.000000, 0.000000
     5, 0.437790, 0.040180, 0.000000, 0.000000
 
-Function `smooth_logistic2_derivative` is protected against numerical
+Function `smooth_logistic2_derivative1` is protected against numerical
 overflow. Hence even extremely high negative `value/parameter` ratios
 are allowed:
 
->>> round_(smoothutils.smooth_logistic2_derivative(-1000., .1))
+>>> round_(smoothutils.smooth_logistic2_derivative1(-1000., .1))
 0.0
+
+
+smooth_logistic2_derivative2
+____________________________
+
+Derivative of the function `smooth_logistic2` regarding the given value.
+
+:math:`\\frac{d}{dx}f_{log2}(x, c) = \\frac{exp(x/c)}{exp(x/c)+1}`
+
+The following example shows the derivates for four different smoothing
+parameters:
+
+>>> for value in range(-5, 6):
+...     if value == -5:
+...         round_('value,  par=3.0,  par=1.0,  par=0.1,  par=0.0')
+...     round_(value, width=5, lfill=' ', end=', ')
+...     for idx, parameter in enumerate([3.0, 1.0, 0.1, 0.0]):
+...         round_(smoothutils.smooth_logistic2_derivative2(value, parameter),
+...                width=8, rfill='0', end='')
+...         if idx < 3:
+...             round_('', end=', ')
+...         else:
+...             round_('')
+value,  par=3.0,  par=1.0,  par=0.1,  par=0.0
+   -5, 0.158869, 0.006693, 0.000000, 0.000000
+   -4, 0.208609, 0.017986, 0.000000, 0.000000
+   -3, 0.268941, 0.047426, 0.000000, 0.000000
+   -2, 0.339244, 0.119203, 0.000000, 0.000000
+   -1, 0.417430, 0.268941, 0.000045, 0.000000
+    0, 0.500000, 0.500000, 0.500000, 1.000000
+    1, 0.582570, 0.731059, 0.999955, 1.000000
+    2, 0.660756, 0.880797, 1.000000, 1.000000
+    3, 0.731059, 0.952574, 1.000000, 1.000000
+    4, 0.791391, 0.982014, 1.000000, 1.000000
+    5, 0.841131, 0.993307, 1.000000, 1.000000
+
+
+The validity of the calculated derivatives can be inspected by comparing
+with sufficiently accurate numerical approximations:
+
+>>> dx = 1e-7
+>>> for value in range(-5, 6):
+...     if value == -5:
+...         round_('value,  par=3.0,  par=1.0,  par=0.1,  par=0.0')
+...     round_(value, width=5, lfill=' ', end=', ')
+...     for idx, parameter in enumerate([3.0, 1.0, 0.1, 0.0]):
+...         est = (smoothutils.smooth_logistic2(value+dx, parameter) -
+...                smoothutils.smooth_logistic2(value, parameter))/dx
+...         round_(est, width=8, rfill='0', end='')
+...         if idx < 3:
+...             round_('', end=', ')
+...         else:
+...             round_('')
+value,  par=3.0,  par=1.0,  par=0.1,  par=0.0
+   -5, 0.158869, 0.006693, 0.000000, 0.000000
+   -4, 0.208609, 0.017986, 0.000000, 0.000000
+   -3, 0.268941, 0.047426, 0.000000, 0.000000
+   -2, 0.339244, 0.119203, 0.000000, 0.000000
+   -1, 0.417430, 0.268941, 0.000045, 0.000000
+    0, 0.500000, 0.500000, 0.500000, 1.000000
+    1, 0.582570, 0.731059, 0.999955, 1.000000
+    2, 0.660756, 0.880797, 1.000000, 1.000000
+    3, 0.731059, 0.952574, 1.000000, 1.000000
+    4, 0.791391, 0.982014, 1.000000, 1.000000
+    5, 0.841131, 0.993307, 1.000000, 1.000000
+
+
+Function `smooth_logistic2_derivative2` is protected against numerical
+overflow. Hence even extremely high `value/parameter` ratios
+are allowed:
+
+>>> round_(smoothutils.smooth_logistic2_derivative2(1000., .1))
+1.0
+
 
 smooth_logistic3
 ________________
@@ -412,8 +481,26 @@ cpdef inline double smooth_logistic2(double value, double parameter) nogil:
         else:
             return value
 
-cpdef inline double smooth_logistic2_derivative(double value,
-                                                double parameter) nogil:
+cpdef inline double smooth_logistic2_derivative2(
+        double value, double parameter) nogil:
+    """Derivative of the smoothing kernel based on the integral of the
+    logistic function."""
+    cdef double temp
+    if parameter <= 0.:
+        if value < 0.:
+            return 0.
+        else:
+            return 1.
+    else:
+        temp = value/parameter
+        if temp < MAX_LOG_FLOAT:
+            return exp(temp)/(exp(temp)+1.)
+        else:
+            return 1.
+
+
+cpdef inline double smooth_logistic2_derivative1(
+        double value, double parameter) nogil:
     """Derivative of the function `smooth_logistic2` regarding its
     smoothing parameter."""
     cdef double temp

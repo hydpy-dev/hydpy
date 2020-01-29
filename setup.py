@@ -119,6 +119,7 @@ else:
                 cythonoptions = (
                     '# -*- coding: utf-8 -*-\n'
                     '# !python\n'
+                    '# cython: language_level=3\n'
                     '# cython: boundscheck=True\n'
                     '# cython: wraparound=True\n'
                     '# cython: initializedcheck=True\n'
@@ -131,6 +132,7 @@ else:
                 cythonoptions = (
                     '# -*- coding: utf-8 -*-\n'
                     '# !python\n'
+                    '# cython: language_level=3\n'
                     '# cython: boundscheck=False\n'
                     '# cython: wraparound=False\n'
                     '# cython: initializedcheck=False\n'

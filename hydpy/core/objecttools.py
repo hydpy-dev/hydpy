@@ -644,6 +644,8 @@ class _Repr:
                 string = string.rstrip('0')
                 if string.endswith('.'):
                     string += '0'
+                if string == '-0.0':
+                    return '0.0'
                 return string
         return repr(value)
 

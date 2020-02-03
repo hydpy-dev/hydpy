@@ -290,8 +290,7 @@ from hydpy.core import parametertools
 from hydpy.core import printtools
 from hydpy.core import sequencetools
 from hydpy.core import testtools
-if TYPE_CHECKING:
-    from hydpy.core import typingtools
+from hydpy.core import typingtools
 build = exceptiontools.OptionalImport('build', ['Cython.Build'], locals())
 
 
@@ -324,12 +323,15 @@ _dllextension = get_dllextension()
 
 _int = 'numpy.'+str(numpy.array([1]).dtype)+'_t'
 
-TYPE2STR = {bool: 'bint',
-            int: _int,
-            parametertools.IntConstant: _int,
-            float: 'double',
-            str: 'str',
-            None: 'void'}
+TYPE2STR = {
+    bool: 'bint',
+    int: _int,
+    parametertools.IntConstant: _int,
+    float: 'double',
+    str: 'str',
+    None: 'void',
+    typingtools.Vector: 'double[:]',
+}
 """Maps Python types to Cython compatible type declarations.
 
 The Cython type belonging to Python's |int| is selected to agree
@@ -350,7 +352,7 @@ class Lines(list):
     def __init__(self, *args):
         list.__init__(self, args)
 
-    def add(self, indent: int, line: 'typingtools.Mayberable1[str]') -> None:
+    def add(self, indent: int, line: typingtools.Mayberable1[str]) -> None:
         """Append the given text line with prefixed spaces following
         the given number of indentation levels.
         """
@@ -586,10 +588,9 @@ class Cythonizer:
         >>> c_hland_v1 is cythonizer.cymodule
         True
 
-        However, if this module is missing for some reasons (we define a
-        wrong |Cythonizer.cyname| in the following), it tries to create
-        the module first and returns it afterwards (which again fails
-        in our example due to our modifications):
+        However, if this module is missing for some reasons, it tries to
+        create the module first and returns it afterwards.  For demonstration
+        purposes, we define a wrong |Cythonizer.cyname|:
 
         >>> from hydpy.cythons.modelutils import Cythonizer
         >>> cyname = Cythonizer.cyname
@@ -679,9 +680,9 @@ class Cythonizer:
     def pysourcefiles(self) -> List[str]:
         """All relevant source files of the actual model.
 
-        Source files are considered to be relevant are part of the
-        *HydPy* package and if they define ancestors of the classes
-        of the considered model.
+        We consider source files to be relevant if they are part of the
+        *HydPy* package and if they define ancestors of the classes of
+        the considered model.
 
         For the base model |hland|, all relevant modules seem to be covered:
 
@@ -2118,7 +2119,9 @@ class FuncConverter:
         self.remove_imath_operators(lines)
         del lines[0]   # remove @staticmethod
         lines = [l[4:] for l in lines]   # unindent
-        lines[0] = f'def {self.funcname}(self):'
+        argnames = self.argnames
+        argnames[0] = 'self'
+        lines[0] = f'def {self.funcname}({", ".join(argnames)}):'
         lines = [l.split('#')[0] for l in lines]
         lines = [l for l in lines if 'fastaccess' not in l]
         lines = [l.rstrip() for l in lines if l.rstrip()]
@@ -2179,52 +2182,70 @@ class FuncConverter:
         Assumptions:
           * The function shall be a method.
           * The method shall be inlined.
-          * The method returns nothing.
-          * All method arguments are of type `int` (except self).
+          * Annotations specify all argument and return types.
           * Local variables are generally of type `int` but of type `double`
             when their name starts with `d_`.
 
-        A real example:
+        We import some classes and prepare a pure-Python instance of
+        application model |hland_v1|:
 
+        >>> from types import MethodType
+        >>> from hydpy.core.modeltools import Method, Model
+        >>> from hydpy.core.typingtools import Vector
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
         ...     model = prepare_model('hland_v1')
-        >>> FuncConverter(model, 'calc_tc_v1', model.calc_tc_v1).pyxlines
-            cpdef inline void calc_tc_v1(self)  nogil:
+
+        First, we show an example on a standard method without additional
+        arguments and returning nothing but requiring two local variables:
+
+        >>> class Calc_Test_V1(Method):
+        ...     @staticmethod
+        ...     def __call__(model: Model) -> None:
+        ...         con = model.parameters.control.fastaccess
+        ...         flu = model.sequences.fluxes.fastaccess
+        ...         inp = model.sequences.inputs.fastaccess
+        ...         for k in range(con.nmbzones):
+        ...             d_pc = con.kg[k]*inp.p[k]
+        ...             flu.pc[k] = d_pc
+        >>> model.calc_test_v1 = MethodType(Calc_Test_V1.__call__, model)
+        >>> FuncConverter(model, 'calc_test_v1', model.calc_test_v1).pyxlines
+            cpdef inline void calc_test_v1(self)  nogil:
+                cdef double d_pc
                 cdef int k
                 for k in range(self.parameters.control.nmbzones):
-                    self.sequences.fluxes.tc[k] = \
-self.sequences.inputs.t-self.parameters.control.tcalt[k]*\
-(self.parameters.control.zonez[k]-self.parameters.control.zrelt)
+                    d_pc = \
+self.parameters.control.kg[k]*self.sequences.inputs.p[k]
+                    self.sequences.fluxes.pc[k] = d_pc
         <BLANKLINE>
 
-        An example where we mock untyped arguments:
+        The second example shows that `float` and `Vector` annotations
+        translate into `double` and `double[:]` types, respectively:
 
-        >>> from unittest import mock
-        >>> with mock.patch.object(
-        ...         FuncConverter, 'untypedarguments',
-        ...         new_callable=mock.PropertyMock) as untypedarguments:
-        ...     untypedarguments.return_value = ['x', 'y']
-        ...     with mock.patch.object(
-        ...             FuncConverter, 'cleanlines',
-        ...             new_callable=mock.PropertyMock) as cleanlines:
-        ...         cleanlines.return_value = ['def calc_tc_v1(self, x, y):',
-        ...                                    '    pass']
-        ...         FuncConverter(
-        ...             model, 'calc_tc_v1', model.calc_tc_v1).pyxlines
-            cpdef inline void calc_tc_v1(self, int x, int y)  nogil:
-                cdef int k
-                pass
+        >>> class Calc_Test_V2(Method):
+        ...     @staticmethod
+        ...     def __call__(
+        ...             model: Model, value: float, values: Vector) -> float:
+        ...         con = model.parameters.control.fastaccess
+        ...         return con.kg[0]*value*values[1]
+        >>> model.calc_test_v2 = MethodType(Calc_Test_V2.__call__, model)
+        >>> FuncConverter(model, 'calc_test_v2', model.calc_test_v2).pyxlines
+            cpdef inline double calc_test_v2(\
+self, double value, double[:] values)  nogil:
+                return self.parameters.control.kg[0]*value*values[1]
         <BLANKLINE>
         """
         lines = ['    '+line for line in self.cleanlines]
         lines[0] = lines[0].lower()
-        lines[0] = lines[0].replace('def ', 'cpdef inline void ')
+        annotations = self.func.__annotations__
+        lines[0] = lines[0].replace(
+            'def ', f'cpdef inline {TYPE2STR[annotations["return"]]} ')
         lines[0] = lines[0].replace('):', f') {_nogil}:')
         for name in self.untypedarguments:
-            lines[0] = lines[0].replace(f', {name},', f', int {name},')
-            lines[0] = lines[0].replace(f', {name})', f', int {name})')
+            type_ = TYPE2STR[annotations[name]]
+            lines[0] = lines[0].replace(f', {name},', f', {type_} {name},')
+            lines[0] = lines[0].replace(f', {name})', f', {type_} {name})')
         for name in self.untypedinternalvarnames:
             if name.startswith('d_'):
                 lines.insert(1, '        cdef double ' + name)

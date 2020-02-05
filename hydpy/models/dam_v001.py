@@ -1166,6 +1166,7 @@ class Model(modeltools.ELSModel):
         dam_model.Pic_TotalRemoteDischarge_V1,
         dam_model.Update_LoggedTotalRemoteDischarge_V1,
     )
+    ADD_METHODS = ()
     PART_ODE_METHODS = (
         dam_model.Pic_Inflow_V1,
         dam_model.Calc_WaterLevel_V1,

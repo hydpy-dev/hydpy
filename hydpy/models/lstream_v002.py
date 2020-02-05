@@ -728,6 +728,7 @@ class Model(lstream_model.Model, lstream_model.ProfileMixin):
         lstream_model.Pick_Q_V1,
     )
     RECEIVER_METHODS = ()
+    ADD_METHODS = ()
     PART_ODE_METHODS = (
         lstream_model.Calc_RHM_V1,
         lstream_model.Calc_RHMDH_V1,

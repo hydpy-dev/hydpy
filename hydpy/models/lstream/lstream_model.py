@@ -2506,6 +2506,7 @@ class Model(modeltools.ELSModel):
         Pick_Q_V1,
     )
     RECEIVER_METHODS = ()
+    ADD_METHODS = ()
     PART_ODE_METHODS = (
         Calc_RHM_V1,
         Calc_RHMDH_V1,

@@ -31,6 +31,7 @@ class Pic_Inflow_V1(modeltools.Method):
     RESULTSEQUENCES = (
         dam_fluxes.Inflow,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
@@ -52,6 +53,7 @@ class Pic_Inflow_V2(modeltools.Method):
     RESULTSEQUENCES = (
         dam_fluxes.Inflow,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
@@ -71,6 +73,7 @@ class Pic_TotalRemoteDischarge_V1(modeltools.Method):
     RESULTSEQUENCES = (
         dam_fluxes.TotalRemoteDischarge,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
@@ -90,6 +93,7 @@ class Pic_LoggedRequiredRemoteRelease_V1(modeltools.Method):
     RESULTSEQUENCES = (
         dam_logs.LoggedRequiredRemoteRelease,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         log = model.sequences.logs.fastaccess
@@ -109,6 +113,7 @@ class Pic_LoggedRequiredRemoteRelease_V2(modeltools.Method):
     RESULTSEQUENCES = (
         dam_logs.LoggedRequiredRemoteRelease,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         log = model.sequences.logs.fastaccess
@@ -128,6 +133,7 @@ class Pic_LoggedAllowedRemoteRelieve_V1(modeltools.Method):
     RESULTSEQUENCES = (
         dam_logs.LoggedAllowedRemoteRelieve,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         log = model.sequences.logs.fastaccess
@@ -172,6 +178,7 @@ class Update_LoggedTotalRemoteDischarge_V1(modeltools.Method):
     UPDATEDSEQUENCES = (
         dam_logs.LoggedTotalRemoteDischarge,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -236,6 +243,7 @@ class Calc_WaterLevel_V1(modeltools.Method):
     RESULTSEQUENCES = (
         dam_aides.WaterLevel,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -244,6 +252,87 @@ class Calc_WaterLevel_V1(modeltools.Method):
         con.watervolume2waterlevel.inputs[0] = new.watervolume
         con.watervolume2waterlevel.calculate_values()
         aid.waterlevel = con.watervolume2waterlevel.outputs[0]
+
+
+class Calc_SurfaceArea_V1(modeltools.Method):
+    """Determine the surface area based on an artificial neural network
+    describing the relationship between water level and water stage.
+
+    Basic equation:
+      :math:`SurfaceArea = \\frac{dWaterVolume}{WaterLevel}`
+
+    Example:
+
+        Method |Calc_SurfaceArea_V1| relies on the identical neural network
+        as method |Calc_WaterLevel_V1|.  Therefore, we reuse the same network
+        configuration as in the documentation on method |Calc_WaterLevel_V1|,
+        but calculate |SurfaceArea| instead of |WaterLevel|:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+
+        >>> watervolume2waterlevel(
+        ...         nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
+        ...         weights_input=0.5, weights_output=1.0,
+        ...         intercepts_hidden=0.0, intercepts_output=-0.5)
+
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(
+        ...     model, model.calc_surfacearea_v1,
+        ...     last_example=10,
+        ...     parseqs=(states.watervolume, aides.surfacearea))
+        >>> test.nexts.watervolume = range(10)
+        >>> test()
+        | ex. | watervolume | surfacearea |
+        -----------------------------------
+        |   1 |         0.0 |         8.0 |
+        |   2 |         1.0 |    8.510504 |
+        |   3 |         2.0 |   10.172323 |
+        |   4 |         3.0 |   13.409638 |
+        |   5 |         4.0 |   19.048783 |
+        |   6 |         5.0 |   28.529158 |
+        |   7 |         6.0 |   44.270648 |
+        |   8 |         7.0 |   70.291299 |
+        |   9 |         8.0 |  113.232931 |
+        |  10 |         9.0 |  184.056481 |
+
+        We apply the class |NumericalDifferentiator| to validate the
+        calculated surface area corresponding to a water volume of 9 Mio. m³:
+
+        >>> from hydpy import NumericalDifferentiator, round_
+        >>> numdiff = NumericalDifferentiator(
+        ...     xsequence=states.watervolume,
+        ...     ysequences=[aides.waterlevel],
+        ...     methods=[model.calc_waterlevel_v1])
+        >>> numdiff()
+        d_waterlevel/d_watervolume: 0.005433
+
+        Calculating the inverse of the above result (:math:`dV/dh` instead
+        of :math:`dh/dV`) gives the surface area tabulated above:
+
+        >>> round_(1.0/0.005433115, decimals=5)
+        184.05648
+    """
+    CONTROLPARAMETERS = (
+        dam_control.WaterVolume2WaterLevel,
+    )
+    REQUIREDSEQUENCES = (
+        dam_states.WaterVolume,
+    )
+    RESULTSEQUENCES = (
+        dam_aides.SurfaceArea,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        new = model.sequences.states.fastaccess_new
+        aid = model.sequences.aides.fastaccess
+        con.watervolume2waterlevel.inputs[0] = new.watervolume
+        con.watervolume2waterlevel.calculate_values()
+        con.watervolume2waterlevel.calculate_derivatives(0)
+        aid.surfacearea = 1./con.watervolume2waterlevel.output_derivatives[0]
+
 
 
 class Calc_AllowedRemoteRelieve_V2(modeltools.Method):
@@ -349,6 +438,7 @@ class Calc_AllowedRemoteRelieve_V2(modeltools.Method):
     RESULTSEQUENCES = (
         dam_fluxes.AllowedRemoteRelieve,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -438,6 +528,7 @@ class Calc_RequiredRemoteSupply_V1(modeltools.Method):
     RESULTSEQUENCES = (
         dam_fluxes.RequiredRemoteSupply,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -496,6 +587,7 @@ class Calc_NaturalRemoteDischarge_V1(modeltools.Method):
     RESULTSEQUENCES = (
         dam_fluxes.NaturalRemoteDischarge,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -589,6 +681,7 @@ class Calc_RemoteDemand_V1(modeltools.Method):
     RESULTSEQUENCES = (
         dam_fluxes.RemoteDemand,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -662,6 +755,7 @@ class Calc_RemoteFailure_V1(modeltools.Method):
     RESULTSEQUENCES = (
         dam_fluxes.RemoteFailure,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -775,6 +869,7 @@ class Calc_RequiredRemoteRelease_V1(modeltools.Method):
     RESULTSEQUENCES = (
         dam_fluxes.RequiredRemoteRelease,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -808,6 +903,7 @@ class Calc_RequiredRemoteRelease_V2(modeltools.Method):
     RESULTSEQUENCES = (
         dam_fluxes.RequiredRemoteRelease,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
@@ -836,6 +932,7 @@ class Calc_AllowedRemoteRelieve_V1(modeltools.Method):
     RESULTSEQUENCES = (
         dam_fluxes.AllowedRemoteRelieve,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
@@ -947,6 +1044,7 @@ class Calc_RequiredRelease_V1(modeltools.Method):
     RESULTSEQUENCES = (
         dam_fluxes.RequiredRelease,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -1011,6 +1109,7 @@ class Calc_RequiredRelease_V2(modeltools.Method):
     RESULTSEQUENCES = (
         dam_fluxes.RequiredRelease,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -1081,6 +1180,7 @@ class Calc_PossibleRemoteRelieve_V1(modeltools.Method):
     RESULTSEQUENCES = (
         dam_fluxes.PossibleRemoteRelieve,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -1092,28 +1192,68 @@ class Calc_PossibleRemoteRelieve_V1(modeltools.Method):
             con.waterlevel2possibleremoterelieve.outputs[0]
 
 
-class Calc_ActualRemoteRelieve_V1(modeltools.Method):
-    """Calculate the actual amount of water released to a remote location
-    to relieve the dam during high flow conditions.
-
-    Basic equation - discontinous:
-      :math:`ActualRemoteRelease = min(PossibleRemoteRelease,
-      AllowedRemoteRelease)`
+class Fix_Min1_V1(modeltools.Method):
+    """Apply function |smooth_min1| without risking negative results.
 
     Used auxiliary methods:
       |smooth_min1|
       |smooth_max1|
 
+    When applying function |smooth_min1| straight-forward
+    (:math:`result = smooth_min1(input, threshold, smoothpar`),
+    it likely results in slightly negative `result` values for a positive
+    `threshold` value and an `input` value of zero.  Some methods of the
+    |dam| models rely on |smooth_min1| but should never return negative
+    values.  Therefore, methods |Fix_Min1_V1| modifies |smooth_min1| for
+    such cases.
+
+    Method both supports "absolute" (where the smoothing parameter value
+    is taken as is) and "relative" smoothers (where the actual smoothing
+    parameter value depends on the current threshold value).  Please see
+    the detailed documentation on methods |Calc_ActualRemoteRelieve_V1|
+    (implementing a "relative" smoother approach), which explains the
+    strategy behind method |Fix_Min1_V1| in depths.  The documentation
+    on method |Update_ActualRemoteRelieve_V1| provides test calculation
+    results for the "aboslute" smoother approach.
+    """
+
+    @staticmethod
+    def __call__(model: modeltools.Model, input_: float, threshold: float,
+                 smoothpar: float, relative: bool) -> float:
+        if relative:
+            smoothpar *= threshold
+        d_result = smoothutils.smooth_min1(input_, threshold, smoothpar)
+        for _ in range(5):
+            smoothpar /= 5.
+            d_result = smoothutils.smooth_max1(d_result, 0., smoothpar)
+            smoothpar /= 5.
+            if relative:
+                d_result = smoothutils.smooth_min1(d_result, input_, smoothpar)
+            else:
+                d_result = smoothutils.smooth_min1(
+                    d_result, threshold, smoothpar)
+        return max(min(d_result, input_, threshold), 0.)
+
+
+class Calc_ActualRemoteRelieve_V1(modeltools.Method):
+    """Calculate the actual amount of water released to a remote location
+    to relieve the dam during high flow conditions.
+
+    Basic equation - discontinous:
+      :math:`ActualRemoteRelease =
+      min(PossibleRemoteRelease, AllowedRemoteRelease)`
+
+    Used additional method:
+      |Fix_Min1_V1|
+
     Basic equation - continous:
       :math:`ActualRemoteRelease = smooth_min1(PossibleRemoteRelease,
       AllowedRemoteRelease, RemoteRelieveTolerance)`
-
 
     Note that the given continous basic equation is a simplification of
     the complete algorithm to calculate |ActualRemoteRelieve|, which also
     makes use of |smooth_max1| to prevent from gaining negative values
     in a smooth manner.
-
 
     Examples:
 
@@ -1183,7 +1323,7 @@ class Calc_ActualRemoteRelieve_V1(modeltools.Method):
         |   6 |                   4.0 |            1.436494 |
         |   7 |                   5.0 |            1.788158 |
 
-        Now we repeat the last example with a allowed remote relieve of
+        Now we repeat the last example with an allowed remote relieve of
         only 0.03 m³/s instead of 3 m³/s:
 
         >>> fluxes.allowedremoterelieve = 0.03
@@ -1234,25 +1374,14 @@ class Calc_ActualRemoteRelieve_V1(modeltools.Method):
     RESULTSEQUENCES = (
         dam_fluxes.ActualRemoteRelieve,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        d_smoothpar = con.remoterelievetolerance*flu.allowedremoterelieve
-        flu.actualremoterelieve = smoothutils.smooth_min1(
-            flu.possibleremoterelieve, flu.allowedremoterelieve, d_smoothpar)
-        for dummy in range(5):
-            d_smoothpar /= 5.
-            flu.actualremoterelieve = smoothutils.smooth_max1(
-                flu.actualremoterelieve, 0., d_smoothpar)
-            d_smoothpar /= 5.
-            flu.actualremoterelieve = smoothutils.smooth_min1(
-                flu.actualremoterelieve, flu.possibleremoterelieve, d_smoothpar)
-        flu.actualremoterelieve = min(flu.actualremoterelieve,
-                                      flu.possibleremoterelieve)
-        flu.actualremoterelieve = min(flu.actualremoterelieve,
-                                      flu.allowedremoterelieve)
-        flu.actualremoterelieve = max(flu.actualremoterelieve, 0.)
+        flu.actualremoterelieve = model.fix_min1_v1(
+            flu.possibleremoterelieve, flu.allowedremoterelieve,
+            con.remoterelievetolerance, True)
 
 
 class Calc_TargetedRelease_V1(modeltools.Method):
@@ -1557,6 +1686,7 @@ class Calc_TargetedRelease_V1(modeltools.Method):
     RESULTSEQUENCES = (
         dam_fluxes.TargetedRelease,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -1708,6 +1838,7 @@ class Calc_ActualRelease_V1(modeltools.Method):
     RESULTSEQUENCES = (
         dam_fluxes.ActualRelease,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -1749,6 +1880,7 @@ class Calc_MissingRemoteRelease_V1(modeltools.Method):
     RESULTSEQUENCES = (
         dam_fluxes.MissingRemoteRelease,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
@@ -1849,6 +1981,7 @@ class Calc_ActualRemoteRelease_V1(modeltools.Method):
     RESULTSEQUENCES = (
         dam_fluxes.ActualRemoteRelease,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -1865,9 +1998,8 @@ class Calc_ActualRemoteRelease_V1(modeltools.Method):
 class Update_ActualRemoteRelieve_V1(modeltools.Method):
     """Constrain the actual relieve discharge to a remote location.
 
-    Used auxiliary methods:
-      |smooth_min1|
-      |smooth_max1|
+    Used additional method:
+      |Fix_Min1_V1|
 
     Basic equation - discontinous:
       :math:`ActualRemoteRelieve = min(ActualRemoteRelease,
@@ -1876,11 +2008,6 @@ class Update_ActualRemoteRelieve_V1(modeltools.Method):
     Basic equation - continous:
       :math:`ActualRemoteRelieve = smooth_min1(ActualRemoteRelieve,
       HighestRemoteDischarge, HighestRemoteSmoothPar)`
-
-    Note that the given continous basic equation is a simplification of
-    the complete algorithm to update |ActualRemoteRelieve|, which also
-    makes use of |smooth_max1| to prevent from gaining negative values
-    in a smooth manner.
 
     Examples:
 
@@ -1936,11 +2063,6 @@ class Update_ActualRemoteRelieve_V1(modeltools.Method):
         |   6 |            3.991578 |
         |   7 |            3.993418 |
         |   8 |            3.993442 |
-
-        Method |Update_ActualRemoteRelieve_V1| is defined in a similar
-        way as method |Calc_ActualRemoteRelieve_V1|.  Please read the
-        documentation on |Calc_ActualRemoteRelieve_V1| for further
-        information.
     """
     CONTROLPARAMETERS = (
         dam_control.HighestRemoteDischarge,
@@ -1951,33 +2073,22 @@ class Update_ActualRemoteRelieve_V1(modeltools.Method):
     UPDATEDSEQUENCES = (
         dam_fluxes.ActualRemoteRelieve,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        d_smooth = der.highestremotesmoothpar
-        d_highest = con.highestremotedischarge
-        d_value = smoothutils.smooth_min1(
-            flu.actualremoterelieve, d_highest, d_smooth)
-        for dummy in range(5):
-            d_smooth /= 5.
-            d_value = smoothutils.smooth_max1(
-                d_value, 0., d_smooth)
-            d_smooth /= 5.
-            d_value = smoothutils.smooth_min1(
-                d_value, d_highest, d_smooth)
-        d_value = min(d_value, flu.actualremoterelieve)
-        d_value = min(d_value, d_highest)
-        flu.actualremoterelieve = max(d_value, 0.)
+        flu.actualremoterelieve = model.fix_min1_v1(
+            flu.actualremoterelieve, con.highestremotedischarge,
+            der.highestremotesmoothpar, False)
 
 
 class Update_ActualRemoteRelease_V1(modeltools.Method):
     """Constrain the actual release (supply discharge) to a remote location.
 
-    Used auxiliary methods:
-      |smooth_min1|
-      |smooth_max1|
+    Used additional method:
+      |Fix_Min1_V1|
 
     Basic equation - discontinous:
       :math:`ActualRemoteRelease = min(ActualRemoteRelease,
@@ -1986,11 +2097,6 @@ class Update_ActualRemoteRelease_V1(modeltools.Method):
     Basic equation - continous:
       :math:`ActualRemoteRelease = smooth_min1(ActualRemoteRelease,
       HighestRemoteDischarge-ActualRemoteRelieve, HighestRemoteSmoothPar)`
-
-    Note that the given continous basic equation is a simplification of
-    the complete algorithm to update |ActualRemoteRelease|, which also
-    makes use of |smooth_max1| to prevent from gaining negative values
-    in a smooth manner.
 
     Examples:
 
@@ -2058,11 +2164,6 @@ class Update_ActualRemoteRelease_V1(modeltools.Method):
         |   6 |                 5.0 |            0.976445 |
         |   7 |                 6.0 |                 0.0 |
         |   8 |                 7.0 |                 0.0 |
-
-        Method |Update_ActualRemoteRelease_V1| is defined in a similar
-        way as method |Calc_ActualRemoteRelieve_V1|.  Please read the
-        documentation on |Calc_ActualRemoteRelieve_V1| for further
-        information.
     """
     CONTROLPARAMETERS = (
         dam_control.HighestRemoteDischarge,
@@ -2076,25 +2177,16 @@ class Update_ActualRemoteRelease_V1(modeltools.Method):
     UPDATEDSEQUENCES = (
         dam_fluxes.ActualRemoteRelease,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        d_smooth = der.highestremotesmoothpar
-        d_highest = con.highestremotedischarge-flu.actualremoterelieve
-        d_value = smoothutils.smooth_min1(
-            flu.actualremoterelease, d_highest, d_smooth)
-        for dummy in range(5):
-            d_smooth /= 5.
-            d_value = smoothutils.smooth_max1(
-                d_value, 0., d_smooth)
-            d_smooth /= 5.
-            d_value = smoothutils.smooth_min1(
-                d_value, d_highest, d_smooth)
-        d_value = min(d_value, flu.actualremoterelease)
-        d_value = min(d_value, d_highest)
-        flu.actualremoterelease = max(d_value, 0.)
+        flu.actualremoterelease = model.fix_min1_v1(
+            flu.actualremoterelease,
+            con.highestremotedischarge-flu.actualremoterelieve,
+            der.highestremotesmoothpar, False)
 
 
 class Calc_FloodDischarge_V1(modeltools.Method):
@@ -2189,6 +2281,7 @@ class Calc_FloodDischarge_V1(modeltools.Method):
     RESULTSEQUENCES = (
         dam_fluxes.FloodDischarge,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -2231,10 +2324,112 @@ class Calc_Outflow_V1(modeltools.Method):
     RESULTSEQUENCES = (
         dam_fluxes.Outflow,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         flu.outflow = max(flu.actualrelease + flu.flooddischarge, 0.)
+
+
+class Calc_Outflow_V2(modeltools.Method):
+    """Calculate the total outflow of the dam, taking the allowed water
+    level drop into account.
+
+    Used additional method:
+      |Fix_Min1_V1|
+
+    Basic (discontinuous) equation:
+      :math:`Outflow = min(
+      FloodDischarge, AllowedWaterLevelDrop \\cdot SurfaceArea + Inflow)`
+
+    Examples:
+
+        We prepare a dam model performing simulations with an hourly step size:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep('1d')
+        >>> simulationstep('1h')
+
+        Now we initialise a test function object that performs eight examples
+        with an |AllowedWaterLevelDrop| of 0.1 m/d, an |Inflow| of 2 m³/s, a
+        |SurfaceArea| of 0.864 million m², and a |FloodDischarge| ranging from
+        0 to 8 m³/s:
+
+        >>> allowedwaterleveldrop(0.1)
+        >>> derived.seconds.update()
+        >>> fluxes.inflow = 2.0
+        >>> aides.surfacearea = 0.864
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(model,
+        ...                 model.calc_outflow_v2,
+        ...                 last_example=8,
+        ...                 parseqs=(fluxes.flooddischarge,
+        ...                          fluxes.outflow))
+        >>> test.nexts.flooddischarge = range(8)
+
+        Through setting the value of |AllowedWaterLevelDropSmoothPar| to
+        the lowest possible value, there is no smoothing.  Instead, the
+        shown relationship agrees with a combination of the discontinuous
+        minimum and maximum function:
+
+        >>> allowedwaterleveldroptolerance(0.0)
+        >>> derived.allowedwaterleveldropsmoothpar.update()
+        >>> test()
+        | ex. | flooddischarge | outflow |
+        ----------------------------------
+        |   1 |            0.0 |     0.0 |
+        |   2 |            1.0 |     1.0 |
+        |   3 |            2.0 |     2.0 |
+        |   4 |            3.0 |     3.0 |
+        |   5 |            4.0 |     3.0 |
+        |   6 |            5.0 |     3.0 |
+        |   7 |            6.0 |     3.0 |
+        |   8 |            7.0 |     3.0 |
+
+        Setting a sensible |AllowedWaterLevelDropSmoothPar| value results
+        in a moderate smoothing with strictly negative outflow values:
+
+        >>> allowedwaterleveldroptolerance(1.0)
+        >>> derived.allowedwaterleveldropsmoothpar.update()
+        >>> test()
+        | ex. | flooddischarge |  outflow |
+        -----------------------------------
+        |   1 |            0.0 |      0.0 |
+        |   2 |            1.0 | 0.999651 |
+        |   3 |            2.0 |     1.99 |
+        |   4 |            3.0 | 2.794476 |
+        |   5 |            4.0 | 2.985755 |
+        |   6 |            5.0 | 2.991603 |
+        |   7 |            6.0 | 2.991773 |
+        |   8 |            7.0 | 2.991779 |
+    """
+    CONTROLPARAMETERS = (
+        dam_control.AllowedWaterLevelDrop,
+    )
+    DERIVEDPARAMETERS = (
+        dam_derived.Seconds,
+        dam_derived.AllowedWaterLevelDropSmoothPar,
+    )
+    REQUIREDSEQUENCES = (
+        dam_fluxes.Inflow,
+        dam_fluxes.FloodDischarge,
+        dam_aides.SurfaceArea,
+    )
+    RESULTSEQUENCES = (
+        dam_fluxes.Outflow,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        aid = model.sequences.aides.fastaccess
+        d_alloweddischarge = \
+            con.allowedwaterleveldrop/der.seconds*aid.surfacearea*1e6+flu.inflow
+        flu.outflow = model.fix_min1_v1(
+            flu.flooddischarge, d_alloweddischarge,
+            der.allowedwaterleveldropsmoothpar, False)
 
 
 class Update_WaterVolume_V1(modeltools.Method):
@@ -2265,6 +2460,7 @@ class Update_WaterVolume_V1(modeltools.Method):
     UPDATEDSEQUENCES = (
         dam_states.WaterVolume,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
@@ -2306,6 +2502,7 @@ class Update_WaterVolume_V2(modeltools.Method):
     UPDATEDSEQUENCES = (
         dam_states.WaterVolume,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
@@ -2350,6 +2547,7 @@ class Update_WaterVolume_V3(modeltools.Method):
     UPDATEDSEQUENCES = (
         dam_states.WaterVolume,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
@@ -2376,6 +2574,7 @@ class Pass_Outflow_V1(modeltools.Method):
     RESULTSEQUENCES = (
         dam_outlets.Q,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
@@ -2395,6 +2594,7 @@ class Pass_ActualRemoteRelease_V1(modeltools.Method):
     RESULTSEQUENCES = (
         dam_outlets.S,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
@@ -2414,6 +2614,7 @@ class Pass_ActualRemoteRelieve_V1(modeltools.Method):
     RESULTSEQUENCES = (
         dam_outlets.R,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
@@ -2433,6 +2634,7 @@ class Pass_MissingRemoteRelease_V1(modeltools.Method):
     RESULTSEQUENCES = (
         dam_senders.D,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
@@ -2452,6 +2654,7 @@ class Pass_AllowedRemoteRelieve_V1(modeltools.Method):
     RESULTSEQUENCES = (
         dam_senders.R,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
@@ -2471,6 +2674,7 @@ class Pass_RequiredRemoteSupply_V1(modeltools.Method):
     RESULTSEQUENCES = (
         dam_senders.S,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
@@ -2516,6 +2720,7 @@ class Update_LoggedOutflow_V1(modeltools.Method):
     UPDATEDSEQUENCES = (
         dam_logs.LoggedOutflow,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -2555,9 +2760,11 @@ class Model(modeltools.ELSModel):
         Pic_LoggedAllowedRemoteRelieve_V1,
         Calc_AllowedRemoteRelieve_V1,
     )
+    ADD_METHODS = ()
     PART_ODE_METHODS = (
         Pic_Inflow_V1,
         Calc_WaterLevel_V1,
+        Calc_SurfaceArea_V1,
         Calc_ActualRelease_V1,
         Calc_PossibleRemoteRelieve_V1,
         Calc_ActualRemoteRelieve_V1,
@@ -2566,6 +2773,7 @@ class Model(modeltools.ELSModel):
         Update_ActualRemoteRelease_V1,
         Calc_FloodDischarge_V1,
         Calc_Outflow_V1,
+        Calc_Outflow_V2,
     )
     FULL_ODE_METHODS = (
         Update_WaterVolume_V1,

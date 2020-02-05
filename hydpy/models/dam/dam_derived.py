@@ -21,7 +21,7 @@ class Seconds(parametertools.SecondsParameter):
 
 
 class RemoteDischargeSmoothPar(parametertools.Parameter):
-    """Smoothing parameter to be derived from |RemoteDischargeSafety| [m3/s].
+    """Smoothing parameter to be derived from |RemoteDischargeSafety| [m³/s].
     """
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
@@ -56,7 +56,7 @@ class RemoteDischargeSmoothPar(parametertools.Parameter):
 
 class NearDischargeMinimumSmoothPar1(parametertools.Parameter):
     """Smoothing parameter to be derived from |NearDischargeMinimumThreshold|
-    for smoothing kernel |smooth_logistic1| [m3/s]."""
+    for smoothing kernel |smooth_logistic1| [m³/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
     CONTROLPARAMETERS = (
@@ -92,7 +92,7 @@ class NearDischargeMinimumSmoothPar1(parametertools.Parameter):
 
 class NearDischargeMinimumSmoothPar2(parametertools.Parameter):
     """Smoothing parameter to be derived from |NearDischargeMinimumThreshold|
-    for smoothing kernel |smooth_logistic2| [m3/s]."""
+    for smoothing kernel |smooth_logistic2| [m³/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
     CONTROLPARAMETERS = (
@@ -194,7 +194,7 @@ class WaterLevelMinimumRemoteSmoothPar(parametertools.Parameter):
 
 class WaterLevelRelieveSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |WaterLevelRelieveTolerance|
-    for smoothing kernel |smooth_logistic1| [m3/s]."""
+    for smoothing kernel |smooth_logistic1| [m³/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
     CONTROLPARAMETERS = (
@@ -230,7 +230,7 @@ class WaterLevelRelieveSmoothPar(parametertools.Parameter):
 
 class WaterLevelSupplySmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |WaterLevelSupplyTolerance|
-    for smoothing kernel |smooth_logistic1| [m3/s]."""
+    for smoothing kernel |smooth_logistic1| [m³/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
     CONTROLPARAMETERS = (
@@ -266,7 +266,7 @@ class WaterLevelSupplySmoothPar(parametertools.Parameter):
 
 class HighestRemoteSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |HighestRemoteTolerance|
-    for smoothing kernel |smooth_min1| [m3/s]."""
+    for smoothing kernel |smooth_min1| [m³/s]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
     CONTROLPARAMETERS = (
@@ -331,3 +331,37 @@ class HighestRemoteSmoothPar(parametertools.Parameter):
             self(control.highestremotedischarge *
                  smoothtools.calc_smoothpar_min1(control.highestremotetolerance)
                  )
+
+
+class AllowedWaterLevelDropSmoothPar(parametertools.Parameter):
+    """Smoothing parameter to be derived from |AllowedWaterLevelDropTolerance|
+    for smoothing kernel |smooth_min1| [m³/s]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+
+    CONTROLPARAMETERS = (
+        dam_control.AllowedWaterLevelDropTolerance,
+    )
+
+    def update(self):
+        """Calculate the smoothing parameter value.
+
+        The following example is explained in some detail in module
+        |smoothtools|:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> allowedwaterleveldroptolerance(0.0)
+        >>> derived.allowedwaterleveldropsmoothpar.update()
+        >>> from hydpy.cythons.smoothutils import smooth_max1
+        >>> from hydpy import round_
+        >>> round_(smooth_max1(
+        ...     4.0, 1.5, derived.allowedwaterleveldropsmoothpar))
+        4.0
+        >>> allowedwaterleveldroptolerance(2.5)
+        >>> derived.allowedwaterleveldropsmoothpar.update()
+        >>> round_(smooth_max1(
+        ...     4.0, 1.5, derived.allowedwaterleveldropsmoothpar))
+        4.01
+        """
+        self(smoothtools.calc_smoothpar_max1(
+            self.subpars.pars.control.allowedwaterleveldroptolerance))

@@ -2760,7 +2760,9 @@ class Model(modeltools.ELSModel):
         Pic_LoggedAllowedRemoteRelieve_V1,
         Calc_AllowedRemoteRelieve_V1,
     )
-    ADD_METHODS = ()
+    ADD_METHODS = (
+        Fix_Min1_V1,
+    )
     PART_ODE_METHODS = (
         Pic_Inflow_V1,
         Calc_WaterLevel_V1,

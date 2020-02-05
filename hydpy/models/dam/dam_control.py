@@ -43,7 +43,7 @@ class NmbLogEntries(parametertools.Parameter):
 
 class RemoteDischargeMinimum(parametertools.SeasonalParameter):
     """Discharge threshold of a cross section far downstream that
-    should not be undercut by the actual discharge [m3/s]."""
+    should not be undercut by the actual discharge [m³/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
     def __call__(self, *args, **kwargs):
@@ -52,7 +52,7 @@ class RemoteDischargeMinimum(parametertools.SeasonalParameter):
 
 
 class RemoteDischargeSafety(parametertools.SeasonalParameter):
-    """Safety factor to reduce the risk to release not enough water [m3/s]."""
+    """Safety factor to reduce the risk to release not enough water [m³/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 
@@ -63,13 +63,13 @@ class WaterLevel2PossibleRemoteRelieve(anntools.ANN):
 
 
 class RemoteRelieveTolerance(parametertools.Parameter):
-    """A tolerance value for the "possible remote relieve" [m3/s]."""
+    """A tolerance value for the "possible remote relieve" [m³/s]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
 
 class NearDischargeMinimumThreshold(parametertools.SeasonalParameter):
     """Discharge threshold of a cross section in the near of the dam that
-    not be undercut by the actual discharge [m3/s]."""
+    not be undercut by the actual discharge [m³/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
     def __call__(self, *args, **kwargs):
@@ -78,7 +78,7 @@ class NearDischargeMinimumThreshold(parametertools.SeasonalParameter):
 
 
 class NearDischargeMinimumTolerance(parametertools.SeasonalParameter):
-    """A tolerance value for the "near discharge minimum" [m3/s]."""
+    """A tolerance value for the "near discharge minimum" [m³/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 
@@ -111,7 +111,7 @@ class WaterLevelMinimumRemoteTolerance(parametertools.Parameter):
 
 
 class HighestRemoteRelieve(parametertools.SeasonalParameter):
-    """The highest possible relieve discharge from another location [m3/s]."""
+    """The highest possible relieve discharge from another location [m³/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
 
@@ -127,7 +127,7 @@ class WaterLevelRelieveTolerance(parametertools.SeasonalParameter):
 
 
 class HighestRemoteSupply(parametertools.SeasonalParameter):
-    """The highest possible supply discharge from another location [m3/s]."""
+    """The highest possible supply discharge from another location [m³/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
 
@@ -143,12 +143,12 @@ class WaterLevelSupplyTolerance(parametertools.SeasonalParameter):
 
 
 class HighestRemoteDischarge(parametertools.Parameter):
-    """The highest possible discharge between two remote locations [m3/s]."""
+    """The highest possible discharge between two remote locations [m³/s]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
 
 class HighestRemoteTolerance(parametertools.Parameter):
-    """Smoothing parameter associated with |HighestRemoteDischarge| [m3/s]."""
+    """Smoothing parameter associated with |HighestRemoteDischarge| [m³/s]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
 
@@ -160,3 +160,13 @@ class WaterVolume2WaterLevel(anntools.ANN):
 class WaterLevel2FloodDischarge(anntools.SeasonalANN):
     """Artificial neural network describing the relationship between
     flood discharge and water volume [-]."""
+
+
+class AllowedWaterLevelDrop(parametertools.Parameter):
+    """The highest allowed water level decrease [m/T]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, True, (0.0, None)
+
+
+class AllowedWaterLevelDropTolerance(parametertools.Parameter):
+    """Smoothing parameter associated with |AllowedWaterLevelDrop| [m³/s]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)

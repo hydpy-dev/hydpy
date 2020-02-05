@@ -1665,8 +1665,7 @@ class PyxWriter:
         """User functions of the model class."""
         lines = []
         for (name, member) in vars(self.model).items():
-            if (inspect.ismethod(member) and
-                    ('fastaccess' in inspect.getsource(member))):
+            if getattr(getattr(member, '__func__', None), 'CYTHONIZE', False):
                 lines.append((name, member))
         return lines
 

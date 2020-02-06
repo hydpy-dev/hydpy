@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*-
-#!python
-#cython: boundscheck=False
-#cython: wraparound=False
-#cython: initializedcheck=False
 """This module gives Python objects pointer access to C variables of type
 `double` via Cython.
 

@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*-
-#!python
-#cython: boundscheck=False
-#cython: wraparound=False
-#cython: initializedcheck=False
 """This Cython module implements the performance-critical features of
 the Python module |sequencetools| that are not covered by the usual
 model cythonization.

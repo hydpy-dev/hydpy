@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*-
-#!python
-#cython: boundscheck=False
-#cython: wraparound=False
-#cython: initializedcheck=False
 """This module defines the Cython declarations related to module
 |sequencetools|.
 """

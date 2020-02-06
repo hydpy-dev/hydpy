@@ -138,7 +138,7 @@ def date_range(start_date, end_date) -> datetime:
         yield start_date + timedelta(n)
 
 
-def create_or_update_data_file(dwd_file: DwdFile, key: str) -> None:
+def create_or_update_data_file(dwd_file: DwdFile, key: str, factor: float) -> None:
     # Read the existing data.
     station = dwd_file.get_station()
 
@@ -200,7 +200,7 @@ def create_or_update_data_file(dwd_file: DwdFile, key: str) -> None:
 
             # If new value is not nan, always set it.
             if value is not numpy.nan:
-                iosequence.series[index] = value
+                iosequence.series[index] = value * factor
             else:
                 if iosequence.series[index] is None:
                     iosequence.series[index] = value
@@ -239,25 +239,25 @@ def create_or_update_data(input_file: str) -> None:
     # Create/Update the data.
 
     # Evap_2543_input_airtemperature
-    create_or_update_data_file(dwd_file, 'airtemperature')
+    create_or_update_data_file(dwd_file, 'airtemperature', 1)
 
     # Evap_2543_input_atmosphericpressure
-    create_or_update_data_file(dwd_file, 'atmosphericpressure')
+    create_or_update_data_file(dwd_file, 'atmosphericpressure', 0.1)
 
     # Evap_2543_input_relativehumidity
-    create_or_update_data_file(dwd_file, 'relativehumidity')
+    create_or_update_data_file(dwd_file, 'relativehumidity', 1)
 
     # Evap_2543_input_sunshineduration
-    create_or_update_data_file(dwd_file, 'sunshineduration')
+    create_or_update_data_file(dwd_file, 'sunshineduration', 1)
 
     # Evap_2543_input_windspeed
-    create_or_update_data_file(dwd_file, 'windspeed')
+    create_or_update_data_file(dwd_file, 'windspeed', 1)
 
     # T_2594_sim_t
-    create_or_update_data_file(dwd_file, 't')
+    create_or_update_data_file(dwd_file, 't', 1)
 
     # P_2594_sim_p
-    create_or_update_data_file(dwd_file, 'p')
+    create_or_update_data_file(dwd_file, 'p', 1)
 
 
 def get_input_files(input_directory: str) -> List[str]:

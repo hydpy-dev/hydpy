@@ -10,7 +10,7 @@ import hydpy
 from hydpy.models import whmod_v3
 from hydpy.models.whmod import whmod_inputs
 
-os.chdir('C:/Temp/whmod/dritte_Analyse')
+os.chdir('P:/whm1500340/realisierung/07_Analyse/dritte_Analyse')
 
 folder_whmodinput = '../erste_Analyse/WHMod/input'
 filename_knoteneigenschaften = 'Knoteneigenschaften_Modellvergleich_v01d.daten'

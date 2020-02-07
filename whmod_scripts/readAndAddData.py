@@ -17,27 +17,35 @@ import traceback
 from datetime import timedelta, datetime
 from typing import *
 from hydpy import pub
+from hydpy.core.filetools import SequenceManager
 from hydpy.core.sequencetools import IOSequence
 
 # Use flags.
 UPDATE_CLIMATE = True
-UPDATE_PRECIPITATION = False
+UPDATE_PRECIPITATION = True
 
 # Paths to the input data.
-CLIMATE_INPUT_PATH = 'C:/Temp/whmod/dritte_Analyse/Klimadaten_2016-2019/Klimadaten'
-PRECIPITATION_INPUT_DATA = 'C:/Temp/whmod/dritte_Analyse/Klimadaten_2016-2019/Niederschlagsdaten'
+CLIMATE_INPUT_PATH = 'P:/whm1500340/realisierung/07_Analyse/dritte_Analyse/Klimadaten_2016-2019/Klimadaten'
+PRECIPITATION_INPUT_DATA = 'P:/whm1500340/realisierung/07_Analyse/dritte_Analyse/Klimadaten_2016-2019/Niederschlagsdaten'
 
 # Paths to the output data.
-SERIES_NODE = 'C:/Temp/whmod/dritte_Analyse/AnalyseWHMod/series/node'
-SERIES_INPUT = 'C:/Temp/whmod/dritte_Analyse/AnalyseWHMod/series/input'
+SERIES_NODE = 'P:/whm1500340/realisierung/07_Analyse/dritte_Analyse/AnalyseWHMod/series/node'
+SERIES_INPUT = 'P:/whm1500340/realisierung/07_Analyse/dritte_Analyse/AnalyseWHMod/series/input'
 
 # Existing time range.
-DATE_START_OLD = '1960-01-01 00:00:00+01:00'
-DATE_END_OLD = '2016-01-01 00:00:00+01:00'
+DATE_START = '1960-01-01'
+DATE_END = '2020-01-20'
 
-# Time range to add.
-DATE_START_NEW = '2016-01-01 00:00:00+01:00'
-DATE_END_NEW = '2020-01-20 00:00:00+01:00'
+# Keys defined in the title column of the input data.
+KEY_SWITCHER = {
+    'airtemperature': 'TMK',  # TM = Mittel der Temperatur in 2 m über dem Erdboden / Grad Celsius
+    'atmosphericpressure': 'PM',  # PM = Mittel des Luftdruckes in Stationshöhe / hpa
+    'relativehumidity': 'UPM',  # RFM = Mittel der relativen Feuchte / %
+    'sunshineduration': 'SDK',  # SO = Summe der Sonnenscheindauer / h
+    'windspeed': 'FM',  # FM = Mittel der Windstärke / m/sec
+    't': 'TMK',  # TM = Mittel der Temperatur in 2 m über dem Erdboden / Grad Celsius
+    'p': 'RS',  # RR/RSK = Niederschlagshöhe / mm
+}
 
 
 # --------------------------------------------------------------------------
@@ -111,10 +119,8 @@ class DwdFile:
 
         return self.m_lines[self.m_first_date].get_station(station_index)
 
-    # TODO Unit conversion
-    def get_value(self, date_time: datetime, data_type: str) -> float:
-        # REMARK: Remove timezone as the keys do not have a time and timezone (time is already zeroed).
-        key = date_time.replace(tzinfo=None)
+    def get_value(self, date_time: datetime, data_type: str) -> Optional[float]:
+        key = date_time
         if not self.m_lines.keys().__contains__(key):
             return None
 
@@ -132,7 +138,7 @@ class DwdFile:
 # Functions.
 # --------------------------------------------------------------------------
 
-def date_range(start_date, end_date) -> datetime:
+def date_range(start_date, end_date) -> Iterable[datetime]:
     """This is a generator function that generates all dates in the date range with the timestep one day."""
     for n in range(int((end_date - start_date).days)):
         yield start_date + timedelta(n)
@@ -143,7 +149,7 @@ def create_or_update_data_file(dwd_file: DwdFile, key: str, factor: float) -> No
     station = dwd_file.get_station()
 
     # Build the hydpy filename.
-    switcher = {
+    hydpy_filename_switcher = {
         'airtemperature': os.path.join(SERIES_INPUT, f'Evap_{station}_input_{key}.asc'),
         'atmosphericpressure': os.path.join(SERIES_INPUT, f'Evap_{station}_input_{key}.asc'),
         'relativehumidity': os.path.join(SERIES_INPUT, f'Evap_{station}_input_{key}.asc'),
@@ -153,27 +159,17 @@ def create_or_update_data_file(dwd_file: DwdFile, key: str, factor: float) -> No
         'p': os.path.join(SERIES_NODE, f'P_{station}_sim_{key}.asc'),
     }
 
-    hydpy_filename = switcher[key]
+    hydpy_filename = hydpy_filename_switcher[key]
 
     # Build the data type.
-    switcher = {
-        'airtemperature': 'TMK',  # TM = Mittel der Temperatur in 2 m über dem Erdboden / Grad Celsius
-        'atmosphericpressure': 'PM',  # PM = Mittel des Luftdruckes in Stationshöhe / hpa
-        'relativehumidity': 'UPM',  # RFM = Mittel der relativen Feuchte / %
-        'sunshineduration': 'SDK',  # SO = Summe der Sonnenscheindauer / h
-        'windspeed': 'FM',  # FM = Mittel der Windstärke / m/sec
-        't': 'TMK',  # TM = Mittel der Temperatur in 2 m über dem Erdboden / Grad Celsius
-        'p': 'RSK',  # RR/RSK = Niederschlagshöhe / mm
-    }
-
-    data_type = switcher[key]
+    data_type = KEY_SWITCHER[key]
 
     # Specifiy the new complete date range.
-    start_date_str = min(DATE_START_OLD, DATE_START_NEW)
-    end_date_str = max(DATE_END_OLD, DATE_END_NEW)
+    start_date_str = DATE_START
+    end_date_str = DATE_END
     pub.timegrids = start_date_str, end_date_str, '1d'
     pub.options.checkseries = False
-    pub.sequencemanager = hydpy.core.filetools.SequenceManager()
+    pub.sequencemanager = SequenceManager()
 
     # Create the io sequence and load the file.
     IOSequence.NDIM = 0
@@ -186,9 +182,10 @@ def create_or_update_data_file(dwd_file: DwdFile, key: str, factor: float) -> No
     iosequence.activate_ram()
     iosequence.load_ext()
 
-    # Iterate over the complete date range (format: 1960-01-01 00:00:00+01:00).
-    for date_time in date_range(datetime.fromisoformat(start_date_str), datetime.fromisoformat(end_date_str)):
-        date_time_str = date_time.isoformat(' ')
+    # Iterate over the complete date range (format: 1960-01-01).
+    for date_time in date_range(datetime.strptime(start_date_str, '%Y-%m-%d'),
+                                datetime.strptime(end_date_str, '%Y-%m-%d')):
+        date_time_str = date_time.strftime('%Y-%m-%d')
 
         # Is there a value in the new data?
         value = dwd_file.get_value(date_time, data_type)

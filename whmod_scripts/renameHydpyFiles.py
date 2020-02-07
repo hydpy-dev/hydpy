@@ -12,10 +12,10 @@ import re
 import sys
 import traceback
 
-STATIONS_MAP_FILE = 'C:/Temp/whmod/dritte_Analyse/Klimadaten_RmF_1960-2015/Stationsliste_DWD_2019-11-27.txt'
+STATIONS_MAP_FILE = 'P:/whm1500340/realisierung/07_Analyse/dritte_Analyse/Klimadaten_RmF_1960-2015/Stationsliste_DWD_2019-11-27.txt'
 INPUT_DIRECTORYS = [
-    'C:/Temp/whmod/dritte_Analyse/AnalyseWHMod/series/input',
-    'C:/Temp/whmod/dritte_Analyse/AnalyseWHMod/series/node',
+    'P:/whm1500340/realisierung/07_Analyse/dritte_Analyse/AnalyseWHMod/series/input',
+    'P:/whm1500340/realisierung/07_Analyse/dritte_Analyse/AnalyseWHMod/series/node',
 ]
 
 

@@ -28,6 +28,8 @@ MayNonerable1 = Union[T, Iterable[T], None]
 MayNonerable2 = Union[T1, T2, Iterable[Union[T1, T2]], None]
 MayNonerable3 = Union[T1, T2, T3, Iterable[Union[T1, T2, T3]], None]
 
+Vector = Mapping[int, float]
+
 
 class IterableNonString(abc.ABC):
     """Abstract base class for checking if an object is iterable but not a
@@ -200,6 +202,7 @@ __all__ = [
     'MayNonerable1',
     'MayNonerable2',
     'MayNonerable3',
+    'Vector',
     'DevicesHandlerProtocol',
     'VariableProtocol',
     'CyModelProtocol',

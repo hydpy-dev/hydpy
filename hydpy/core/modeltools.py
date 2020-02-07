@@ -48,6 +48,9 @@ class Method:
 
     __name__ = property(objecttools.get_name)
 
+    def __init_subclass__(cls):
+        cls.__call__.CYTHONIZE = True
+
 
 class Model:
     """Base class for all hydrological models.

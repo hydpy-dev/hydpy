@@ -122,6 +122,9 @@ class DwdFile:
         if not self.m_lines.keys().__contains__(key):
             return None
 
+        if not self.m_titles.__contains__(data_type):
+            return None
+
         line = self.m_lines[key]
         data_type_index = self.m_titles.index(data_type)
 
@@ -158,6 +161,9 @@ def create_or_update_data_file(dwd_file: DwdFile, key: str, factor: float) -> No
     }
 
     hydpy_filename = hydpy_filename_switcher[key]
+    if not os.path.exists(hydpy_filename):
+        print(f'Skipping hydpy file {hydpy_filename}...')
+        return
 
     # Build the data type.
     data_type = KEY_SWITCHER[key]
@@ -212,6 +218,10 @@ def create_or_update_data_file(dwd_file: DwdFile, key: str, factor: float) -> No
 
 
 def create_or_update_data(input_file: str) -> None:
+    if not os.path.exists(input_file):
+        print(f'Skipping file {input_file}...')
+        return
+
     # Read the input file.
     print(f'Processing file {input_file}...')
     dwd_file = None

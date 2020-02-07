@@ -7,10 +7,8 @@
 # Description:
 # TODO
 # --------------------------------------------------------------------------
-import hydpy
 import numpy
 import os
-import pytz
 import re
 import sys
 import traceback

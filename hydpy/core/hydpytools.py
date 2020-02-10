@@ -626,12 +626,12 @@ requested to make any internal data available.
     _nodes: Optional[devicetools.Nodes]
     _elements: Optional[devicetools.Elements]
     deviceorder: List[devicetools.Device]
-    logger: Optional['Logger']
+    loggers: Dict[str, 'Logger']
 
     def __init__(self, projectname: Optional[str] = None):
         self._nodes = None
         self._elements = None
-        self.logger = None
+        self.loggers = {}
         self.deviceorder = []
         if projectname is not None:
             hydpy.pub.projectname = projectname
@@ -1875,8 +1875,8 @@ one value needed to be trimmed.  The old and the new value(s) are \
         for node in self.nodes:
             if node.deploymode != 'oldsim':
                 funcs.append(node.sequences.fastaccess.save_simdata)
-        if self.logger:
-            funcs.append(self.logger.update)
+        for logger in self.loggers.values():
+            funcs.append(logger.update)
         return funcs
 
     @printtools.print_progress

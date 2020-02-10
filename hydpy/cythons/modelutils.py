@@ -179,14 +179,36 @@ Method |ELSModel.calculate_error|:
             . calculate_error
     cpdef inline void calculate_error(self) nogil:
         cdef int idx0
-        self.numvars.error = 0.
-        self.numvars.error = max(self.numvars.error, \
-fabs(self.sequences.fluxes._q_results[self.numvars.idx_method]-\
-self.sequences.fluxes._q_results[self.numvars.idx_method-1]))
+        cdef double abserror
+        self.numvars.abserror = 0.
+        if self.numvars.use_relerror:
+            self.numvars.relerror = 0.
+        else:
+            self.numvars.relerror = inf
+        abserror = fabs(\
+self.sequences.fluxes._q_results[self.numvars.idx_method]-\
+self.sequences.fluxes._q_results[self.numvars.idx_method-1])
+        self.numvars.abserror = max(self.numvars.abserror, abserror)
+        if self.numvars.use_relerror:
+            if self.sequences.fluxes._q_results[self.numvars.idx_method] == 0.:
+                self.numvars.relerror = inf
+            else:
+                self.numvars.relerror = max(\
+self.numvars.relerror, \
+fabs(abserror/self.sequences.fluxes._q_results[self.numvars.idx_method]))
         for idx0 in range(self.sequences.fluxes._qv_length):
-            self.numvars.error = max(self.numvars.error, \
-fabs(self.sequences.fluxes._qv_results[self.numvars.idx_method, idx0]-\
-self.sequences.fluxes._qv_results[self.numvars.idx_method-1, idx0]))
+            abserror = fabs(\
+self.sequences.fluxes._qv_results[self.numvars.idx_method, idx0]-\
+self.sequences.fluxes._qv_results[self.numvars.idx_method-1, idx0])
+            self.numvars.abserror = max(self.numvars.abserror, abserror)
+            if self.numvars.use_relerror:
+                if self.sequences.fluxes._qv_results\
+[self.numvars.idx_method, idx0] == 0.:
+                    self.numvars.relerror = inf
+                else:
+                    self.numvars.relerror = max(\
+self.numvars.relerror, \
+fabs(abserror/self.sequences.fluxes._qv_results[self.numvars.idx_method, idx0]))
 <BLANKLINE>
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 2
@@ -194,16 +216,39 @@ self.sequences.fluxes._qv_results[self.numvars.idx_method-1, idx0]))
             . calculate_error
     cpdef inline void calculate_error(self) nogil:
         cdef int idx0, idx1
-        self.numvars.error = 0.
+        cdef double abserror
+        self.numvars.abserror = 0.
+        if self.numvars.use_relerror:
+            self.numvars.relerror = 0.
+        else:
+            self.numvars.relerror = inf
         for idx0 in range(self.sequences.fluxes._q_length0):
             for idx1 in range(self.sequences.fluxes._q_length1):
-                self.numvars.error = max(self.numvars.error, \
-fabs(self.sequences.fluxes._q_results[self.numvars.idx_method, idx0, idx1]-\
-self.sequences.fluxes._q_results[self.numvars.idx_method-1, idx0, idx1]))
+                abserror = fabs(\
+self.sequences.fluxes._q_results[self.numvars.idx_method, idx0, idx1]-\
+self.sequences.fluxes._q_results[self.numvars.idx_method-1, idx0, idx1])
+                self.numvars.abserror = max(self.numvars.abserror, abserror)
+                if self.numvars.use_relerror:
+                    if self.sequences.fluxes._q_results\
+[self.numvars.idx_method, idx0, idx1] == 0.:
+                        self.numvars.relerror = inf
+                    else:
+                        self.numvars.relerror = max(\
+self.numvars.relerror, fabs(\
+abserror/self.sequences.fluxes._q_results[self.numvars.idx_method, idx0, idx1]))
         for idx0 in range(self.sequences.fluxes._qv_length):
-            self.numvars.error = max(self.numvars.error, \
-fabs(self.sequences.fluxes._qv_results[self.numvars.idx_method, idx0]-\
-self.sequences.fluxes._qv_results[self.numvars.idx_method-1, idx0]))
+            abserror = fabs(\
+self.sequences.fluxes._qv_results[self.numvars.idx_method, idx0]-\
+self.sequences.fluxes._qv_results[self.numvars.idx_method-1, idx0])
+            self.numvars.abserror = max(self.numvars.abserror, abserror)
+            if self.numvars.use_relerror:
+                if self.sequences.fluxes._qv_results\
+[self.numvars.idx_method, idx0] == 0.:
+                    self.numvars.relerror = inf
+                else:
+                    self.numvars.relerror = max(\
+self.numvars.relerror, \
+fabs(abserror/self.sequences.fluxes._qv_results[self.numvars.idx_method, idx0]))
 <BLANKLINE>
 
 >>> pyxwriter.model.sequences.fluxes.q.NDIM = 3
@@ -231,6 +276,7 @@ import types
 from typing import *
 # ...third party modules
 import numpy
+from numpy import inf    # pylint: disable=unused-import
 from numpy import nan    # pylint: disable=unused-import
 # ...from HydPy
 import hydpy
@@ -244,8 +290,7 @@ from hydpy.core import parametertools
 from hydpy.core import printtools
 from hydpy.core import sequencetools
 from hydpy.core import testtools
-if TYPE_CHECKING:
-    from hydpy.core import typingtools
+from hydpy.core import typingtools
 build = exceptiontools.OptionalImport('build', ['Cython.Build'], locals())
 
 
@@ -278,12 +323,15 @@ _dllextension = get_dllextension()
 
 _int = 'numpy.'+str(numpy.array([1]).dtype)+'_t'
 
-TYPE2STR = {bool: 'bint',
-            int: _int,
-            parametertools.IntConstant: _int,
-            float: 'double',
-            str: 'str',
-            None: 'void'}
+TYPE2STR = {
+    bool: 'bint',
+    int: _int,
+    parametertools.IntConstant: _int,
+    float: 'double',
+    str: 'str',
+    None: 'void',
+    typingtools.Vector: 'double[:]',
+}
 """Maps Python types to Cython compatible type declarations.
 
 The Cython type belonging to Python's |int| is selected to agree
@@ -304,7 +352,7 @@ class Lines(list):
     def __init__(self, *args):
         list.__init__(self, args)
 
-    def add(self, indent: int, line: 'typingtools.Mayberable1[str]') -> None:
+    def add(self, indent: int, line: typingtools.Mayberable1[str]) -> None:
         """Append the given text line with prefixed spaces following
         the given number of indentation levels.
         """
@@ -540,10 +588,9 @@ class Cythonizer:
         >>> c_hland_v1 is cythonizer.cymodule
         True
 
-        However, if this module is missing for some reasons (we define a
-        wrong |Cythonizer.cyname| in the following), it tries to create
-        the module first and returns it afterwards (which again fails
-        in our example due to our modifications):
+        However, if this module is missing for some reasons, it tries to
+        create the module first and returns it afterwards.  For demonstration
+        purposes, we define a wrong |Cythonizer.cyname|:
 
         >>> from hydpy.cythons.modelutils import Cythonizer
         >>> cyname = Cythonizer.cyname
@@ -633,9 +680,9 @@ class Cythonizer:
     def pysourcefiles(self) -> List[str]:
         """All relevant source files of the actual model.
 
-        Source files are considered to be relevant are part of the
-        *HydPy* package and if they define ancestors of the classes
-        of the considered model.
+        We consider source files to be relevant if they are part of the
+        *HydPy* package and if they define ancestors of the classes of
+        the considered model.
 
         For the base model |hland|, all relevant modules seem to be covered:
 
@@ -778,7 +825,8 @@ class Cythonizer:
     def compile_(self) -> None:
         """Translate Cython code to C code and compile it."""
         argv = copy.deepcopy(sys.argv)
-        sys.argv = [sys.argv[0], 'build_ext', '--build-lib='+self.buildpath]
+        sys.argv = [sys.argv[0], 'build_ext', '--build-lib='+self.buildpath,
+                    '--build-temp='+self.buildpath]
         exc_modules = [distutils.extension.Extension(
             'hydpy.cythons.autogen.'+self.cyname,
             [self.pyxfilepath], extra_compile_args=['-O2'])]
@@ -928,6 +976,7 @@ class PyxWriter:
         # cython: boundscheck=False
         # cython: wraparound=False
         # cython: initializedcheck=False
+        # cython: cdivision=True
         <BLANKLINE>
 
         >>> from hydpy import config
@@ -938,6 +987,7 @@ class PyxWriter:
         # cython: boundscheck=True
         # cython: wraparound=True
         # cython: initializedcheck=True
+        # cython: cdivision=False
         # cython: linetrace=True
         # distutils: define_macros=CYTHON_TRACE=1
         # distutils: define_macros=CYTHON_TRACE_NOGIL=1
@@ -946,11 +996,18 @@ class PyxWriter:
         >>> config.FASTCYTHON = True
         >>> config.PROFILECYTHON = False
         """
-        flag = 'False' if config.FASTCYTHON else 'True'
-        lines = Lines(f'#!python',
-                      f'# cython: boundscheck={flag}',
-                      f'# cython: wraparound={flag}',
-                      f'# cython: initializedcheck={flag}')
+        if config.FASTCYTHON:
+            lines = Lines(f'#!python',
+                          f'# cython: boundscheck=False',
+                          f'# cython: wraparound=False',
+                          f'# cython: initializedcheck=False',
+                          f'# cython: cdivision=True')
+        else:
+            lines = Lines(f'#!python',
+                          f'# cython: boundscheck=True',
+                          f'# cython: wraparound=True',
+                          f'# cython: initializedcheck=True',
+                          f'# cython: cdivision=False')
         if config.PROFILECYTHON:
             lines.add(0, '# cython: linetrace=True')
             lines.add(0, '# distutils: define_macros=CYTHON_TRACE=1')
@@ -965,6 +1022,7 @@ class PyxWriter:
                      'from libc.math cimport exp, fabs, log, '
                      'sin, cos, tan, asin, acos, atan, isnan, isinf',
                      'from libc.math cimport NAN as nan',
+                     'from libc.math cimport INFINITY as inf',
                      'from libc.stdio cimport *',
                      'from libc.stdlib cimport *',
                      'import cython',
@@ -1346,10 +1404,12 @@ class PyxWriter:
             lines.add(1, 'cdef public configutils.Config pub')
             lines.add(1, 'cdef public double[:, :, :] a_coefs')
             lines.add(0, 'cdef class NumVars:')
+            lines.add(1, 'cdef public bint use_relerror')
             for name in ('nmb_calls', 'idx_method', 'idx_stage'):
                 lines.add(1, f'cdef public {TYPE2STR[int]} {name}')
-            for name in ('t0', 't1', 'dt', 'dt_est',
-                         'error', 'last_error', 'extrapolated_error'):
+            for name in ('t0', 't1', 'dt', 'dt_est', 'abserror', 'relerror',
+                         'last_abserror', 'last_relerror',
+                         'extrapolated_abserror', 'extrapolated_relerror'):
                 lines.add(1, f'cdef public {TYPE2STR[float]} {name}')
             lines.add(1, f'cdef public {TYPE2STR[bool]} f0_ready')
         return lines
@@ -1605,8 +1665,7 @@ class PyxWriter:
         """User functions of the model class."""
         lines = []
         for (name, member) in vars(self.model).items():
-            if (inspect.ismethod(member) and
-                    ('fastaccess' in inspect.getsource(member))):
+            if getattr(getattr(member, '__func__', None), 'CYTHONIZE', False):
                 lines.append((name, member))
         return lines
 
@@ -1823,27 +1882,60 @@ class PyxWriter:
     def calculate_error(self) -> Iterator[str]:
         """Calculate error statements."""
         subseqs = list(self.model.sequences.fluxes.numericsequences)
+        if self.model.SOLVERSEQUENCES:
+            subseqs = [seq for seq in subseqs if
+                       isinstance(seq, self.model.SOLVERSEQUENCES)]
         yield from PyxWriter._declare_idxs(subseqs)
-        to_ = 'self.numvars.error'
+        userel = 'self.numvars.use_relerror:'
+        abserror = 'self.numvars.abserror'
+        relerror = 'self.numvars.relerror'
         index = 'self.numvars.idx_method'
-        yield f'{to_} = 0.'
+        yield f'cdef double abserror'
+        yield f'{abserror} = 0.'
+        yield f'if {userel}'
+        yield f'    {relerror} = 0.'
+        yield f'else:'
+        yield f'    {relerror} = inf'
         for seq in subseqs:
-            from_ = f'self.sequences.fluxes._{seq.name}_results'
+            results = f'self.sequences.fluxes._{seq.name}_results'
             if seq.NDIM == 0:
-                yield (f'{to_} = '
-                       f'max({to_}, fabs({from_}[{index}]-{from_}[{index}-1]))')
+                yield (f'abserror = fabs('
+                       f'{results}[{index}]-{results}[{index}-1])')
+                yield f'{abserror} = max({abserror}, abserror)'
+                yield f'if {userel}'
+                yield f'    if {results}[{index}] == 0.:'
+                yield f'        {relerror} = inf'
+                yield f'    else:'
+                yield (f'        {relerror} = max('
+                       f'{relerror}, fabs(abserror/{results}[{index}]))')
             elif seq.NDIM == 1:
-                yield (f'for idx0 in '
-                       f'range(self.sequences.fluxes._{seq.name}_length):')
-                yield (f'    {to_} = max({to_}, fabs('
-                       f'{from_}[{index}, idx0]-{from_}[{index}-1, idx0]))')
+                yield (f'for idx0 in range('
+                       f'self.sequences.fluxes._{seq.name}_length):')
+                yield (f'    abserror = fabs('
+                       f'{results}[{index}, idx0]-{results}[{index}-1, idx0])')
+                yield f'    {abserror} = max({abserror}, abserror)'
+                yield f'    if {userel}'
+                yield f'        if {results}[{index}, idx0] == 0.:'
+                yield f'            {relerror} = inf'
+                yield f'        else:'
+                yield (f'            {relerror} = max('
+                       f'{relerror}, fabs(abserror/{results}[{index}, idx0]))')
             elif seq.NDIM == 2:
-                yield (f'for idx0 in '
-                       f'range(self.sequences.fluxes._{seq.name}_length0):')
-                yield (f'    for idx1 in '
-                       f'range(self.sequences.fluxes._{seq.name}_length1):')
-                yield (f'        {to_} = max({to_}, fabs({from_}[{index}, '
-                       f'idx0, idx1]-{from_}[{index}-1, idx0, idx1]))')
+                yield (f'for idx0 in range('
+                       f'self.sequences.fluxes._{seq.name}_length0):')
+                yield (f'    for idx1 in range('
+                       f'self.sequences.fluxes._{seq.name}_length1):')
+
+                yield (f'        abserror = fabs({results}[{index}, '
+                       f'idx0, idx1]-{results}[{index}-1, idx0, idx1])')
+                yield f'        {abserror} = max({abserror}, abserror)'
+                yield f'        if {userel}'
+                yield f'            if {results}[{index}, idx0, idx1] == 0.:'
+                yield f'                {relerror} = inf'
+                yield f'            else:'
+                yield (f'                {relerror} = max('
+                       f'{relerror}, '
+                       f'fabs(abserror/{results}[{index}, idx0, idx1]))')
             else:
                 raise NotImplementedError(
                     f'NDIM of sequence `{seq.name}` is higher than expected.')
@@ -2026,7 +2118,9 @@ class FuncConverter:
         self.remove_imath_operators(lines)
         del lines[0]   # remove @staticmethod
         lines = [l[4:] for l in lines]   # unindent
-        lines[0] = f'def {self.funcname}(self):'
+        argnames = self.argnames
+        argnames[0] = 'self'
+        lines[0] = f'def {self.funcname}({", ".join(argnames)}):'
         lines = [l.split('#')[0] for l in lines]
         lines = [l for l in lines if 'fastaccess' not in l]
         lines = [l.rstrip() for l in lines if l.rstrip()]
@@ -2087,52 +2181,70 @@ class FuncConverter:
         Assumptions:
           * The function shall be a method.
           * The method shall be inlined.
-          * The method returns nothing.
-          * All method arguments are of type `int` (except self).
+          * Annotations specify all argument and return types.
           * Local variables are generally of type `int` but of type `double`
             when their name starts with `d_`.
 
-        A real example:
+        We import some classes and prepare a pure-Python instance of
+        application model |hland_v1|:
 
+        >>> from types import MethodType
+        >>> from hydpy.core.modeltools import Method, Model
+        >>> from hydpy.core.typingtools import Vector
         >>> from hydpy.cythons.modelutils import FuncConverter
         >>> from hydpy import prepare_model, pub
         >>> with pub.options.usecython(False):
         ...     model = prepare_model('hland_v1')
-        >>> FuncConverter(model, 'calc_tc_v1', model.calc_tc_v1).pyxlines
-            cpdef inline void calc_tc_v1(self)  nogil:
+
+        First, we show an example on a standard method without additional
+        arguments and returning nothing but requiring two local variables:
+
+        >>> class Calc_Test_V1(Method):
+        ...     @staticmethod
+        ...     def __call__(model: Model) -> None:
+        ...         con = model.parameters.control.fastaccess
+        ...         flu = model.sequences.fluxes.fastaccess
+        ...         inp = model.sequences.inputs.fastaccess
+        ...         for k in range(con.nmbzones):
+        ...             d_pc = con.kg[k]*inp.p[k]
+        ...             flu.pc[k] = d_pc
+        >>> model.calc_test_v1 = MethodType(Calc_Test_V1.__call__, model)
+        >>> FuncConverter(model, 'calc_test_v1', model.calc_test_v1).pyxlines
+            cpdef inline void calc_test_v1(self)  nogil:
+                cdef double d_pc
                 cdef int k
                 for k in range(self.parameters.control.nmbzones):
-                    self.sequences.fluxes.tc[k] = \
-self.sequences.inputs.t-self.parameters.control.tcalt[k]*\
-(self.parameters.control.zonez[k]-self.parameters.control.zrelt)
+                    d_pc = \
+self.parameters.control.kg[k]*self.sequences.inputs.p[k]
+                    self.sequences.fluxes.pc[k] = d_pc
         <BLANKLINE>
 
-        An example where we mock untyped arguments:
+        The second example shows that `float` and `Vector` annotations
+        translate into `double` and `double[:]` types, respectively:
 
-        >>> from unittest import mock
-        >>> with mock.patch.object(
-        ...         FuncConverter, 'untypedarguments',
-        ...         new_callable=mock.PropertyMock) as untypedarguments:
-        ...     untypedarguments.return_value = ['x', 'y']
-        ...     with mock.patch.object(
-        ...             FuncConverter, 'cleanlines',
-        ...             new_callable=mock.PropertyMock) as cleanlines:
-        ...         cleanlines.return_value = ['def calc_tc_v1(self, x, y):',
-        ...                                    '    pass']
-        ...         FuncConverter(
-        ...             model, 'calc_tc_v1', model.calc_tc_v1).pyxlines
-            cpdef inline void calc_tc_v1(self, int x, int y)  nogil:
-                cdef int k
-                pass
+        >>> class Calc_Test_V2(Method):
+        ...     @staticmethod
+        ...     def __call__(
+        ...             model: Model, value: float, values: Vector) -> float:
+        ...         con = model.parameters.control.fastaccess
+        ...         return con.kg[0]*value*values[1]
+        >>> model.calc_test_v2 = MethodType(Calc_Test_V2.__call__, model)
+        >>> FuncConverter(model, 'calc_test_v2', model.calc_test_v2).pyxlines
+            cpdef inline double calc_test_v2(\
+self, double value, double[:] values)  nogil:
+                return self.parameters.control.kg[0]*value*values[1]
         <BLANKLINE>
         """
         lines = ['    '+line for line in self.cleanlines]
         lines[0] = lines[0].lower()
-        lines[0] = lines[0].replace('def ', 'cpdef inline void ')
+        annotations = self.func.__annotations__
+        lines[0] = lines[0].replace(
+            'def ', f'cpdef inline {TYPE2STR[annotations["return"]]} ')
         lines[0] = lines[0].replace('):', f') {_nogil}:')
         for name in self.untypedarguments:
-            lines[0] = lines[0].replace(f', {name},', f', int {name},')
-            lines[0] = lines[0].replace(f', {name})', f', int {name})')
+            type_ = TYPE2STR[annotations[name]]
+            lines[0] = lines[0].replace(f', {name},', f', {type_} {name},')
+            lines[0] = lines[0].replace(f', {name})', f', {type_} {name})')
         for name in self.untypedinternalvarnames:
             if name.startswith('d_'):
                 lines.insert(1, '        cdef double ' + name)

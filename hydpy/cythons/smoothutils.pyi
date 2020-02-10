@@ -12,6 +12,10 @@ def smooth_logistic2_derivative(value:float, parameter:float) -> float:
     ...
 
 
+def smooth_logistic2derivative(value:float, parameter:float) -> float:
+    ...
+
+
 def smooth_logistic3(value:float, parameter:float) -> float:
     ...
 

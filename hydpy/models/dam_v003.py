@@ -303,8 +303,11 @@ class Model(modeltools.ELSModel):
     """Version 3 of HydPy-Dam."""
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,
+        dam_solver.RelErrorMax,
         dam_solver.RelDTMin,
+        dam_solver.RelDTMax,
     )
+    SOLVERSEQUENCES = ()
     INLET_METHODS = (
         dam_model.Pic_Inflow_V1,
         dam_model.Calc_RequiredRemoteRelease_V2,

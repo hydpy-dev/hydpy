@@ -48,6 +48,9 @@ class Method:
 
     __name__ = property(objecttools.get_name)
 
+    def __init_subclass__(cls):
+        cls.__call__.CYTHONIZE = True
+
 
 class Model:
     """Base class for all hydrological models.
@@ -76,8 +79,7 @@ class Model:
 
     def _init_methods(self) -> None:
         """Convert all pure Python calculation functions of the model class to
-        methods and assign them to the model instance.
-        """
+        methods and assign them to the model instance."""
         for name_group in self.METHOD_GROUPS:
             functions = getattr(self, name_group, ())
             shortname2method: Dict[str, types.MethodType] = {}
@@ -227,7 +229,7 @@ to any sequences: in2.
         which the node itself typically receives from another model).
         In contrast, connections between input sequences and nodes are
         optional.  If one defines such a connection, the input sequence
-        gets data from the related node; otherwise it uses its individually
+        gets data from the related node; otherwise, it uses its individually
         managed data, usually read from a file.
 
 
@@ -849,6 +851,7 @@ class SolverModel(Model):
     """Base class for hydrological models which solve ordinary differential
     equations with numerical integration algorithms."""
 
+    SOLVERSEQUENCES: ClassVar[Tuple[sequencetools.FluxSequence, ...]]
     PART_ODE_METHODS: ClassVar[Tuple[Callable, ...]]
     FULL_ODE_METHODS: ClassVar[Tuple[Callable, ...]]
 
@@ -921,6 +924,7 @@ class NumVarsELS:
     class |ELSModel| as an example).
     """
 
+    use_relerror: bool
     nmb_calls: int
     t0: float
     t1: float
@@ -928,12 +932,16 @@ class NumVarsELS:
     dt: float
     idx_method: int
     idx_stage: int
-    error: float
-    last_error: float
-    extrapolated_error: float
+    abserror: float
+    relerror: float
+    last_abserror: float
+    last_relerror: float
+    extrapolated_abserror: float
+    extrapolated_relerror: float
     f0_ready: bool
 
     def __init__(self):
+        self.use_relerror = False
         self.nmb_calls = 0
         self.t0 = 0.
         self.t1 = 0.
@@ -941,9 +949,12 @@ class NumVarsELS:
         self.dt = 1.
         self.idx_method = 0
         self.idx_stage = 0
-        self.error = 0.
-        self.last_error = 0.
-        self.extrapolated_error = 0.
+        self.abserror = 0.
+        self.relerror = 0.
+        self.last_abserror = 0.
+        self.last_relerror = 0.
+        self.extrapolated_abserror = 0.
+        self.extrapolated_relerror = 0.
         self.f0_ready = False
 
 
@@ -972,6 +983,7 @@ class ELSModel(SolverModel):
     to avoid needlessly long simulation times.
     """
 
+    SOLVERSEQUENCES: ClassVar[Tuple[sequencetools.FluxSequence, ...]]
     PART_ODE_METHODS: ClassVar[Tuple[Callable, ...]]
     FULL_ODE_METHODS: ClassVar[Tuple[Callable, ...]]
     METHOD_GROUPS = (
@@ -1018,12 +1030,18 @@ class ELSModel(SolverModel):
         >>> k(0.0)
 
         Second, we assign values to the solver parameters
-        |test_solver.AbsErrorMax| and |test_solver.RelDTMin| to specify
-        the required numerical accuracy and the smallest internal
-        step size:
+        |test_solver.AbsErrorMax|, |test_solver.RelDTMin|, and
+        |test_solver.RelDTMax| to specify the required numerical accuracy
+        and the smallest and largest internal integration step size allowed:
 
-        >>> solver.abserrormax = 1e-2
-        >>> solver.reldtmin = 1e-4
+        >>> solver.abserrormax(0.1)
+        >>> solver.reldtmin(0.001)
+        >>> solver.reldtmax(1.0)
+
+        Additionally, we set |test_solver.RelErrorMax| to |numpy.nan|,
+        which disables taking relative errors into account:
+
+        >>> solver.relerrormax(nan)
 
         Calling method |ELSModel.solve| correctly calculates zero
         discharge (|test_fluxes.Q|) and thus does not change the water
@@ -1079,7 +1097,7 @@ class ELSModel(SolverModel):
         first order and one for the second-order method, and two
         additional calls for the third-order method):
 
-        >>> solver.abserrormax = 1e-3
+        >>> solver.abserrormax(0.001)
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
         >>> model.solve()
@@ -1096,7 +1114,7 @@ class ELSModel(SolverModel):
         again, |ELSModel| needs one further higher-order method, which
         requires three additional calls, making a sum of seven:
 
-        >>> solver.abserrormax = 1e-4
+        >>> solver.abserrormax(0.0001)
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
         >>> model.solve()
@@ -1113,7 +1131,7 @@ class ELSModel(SolverModel):
         (just for testing, way beyond hydrological requirements), in
         one single step, but now requires a total of 29 method calls:
 
-        >>> solver.abserrormax = 1e-12
+        >>> solver.abserrormax(1e-12)
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
         >>> model.solve()
@@ -1132,7 +1150,7 @@ class ELSModel(SolverModel):
         by about 40% per time step, |ELSModel| needs seven method calls
         to meet a "normal" error tolerance:
 
-        >>> solver.abserrormax = 1e-2
+        >>> solver.abserrormax(0.01)
         >>> k(0.5)
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
@@ -1188,9 +1206,10 @@ class ELSModel(SolverModel):
         44
 
         If we prevent |ELSModel| from compensating its problems by
-        decreasing the step size, it does not achieve satisfying results:
+        disallowing it to reduce its integration step size, it does not
+        achieve satisfying results:
 
-        >>> solver.reldtmin = 1.0
+        >>> solver.reldtmin(1.0)
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
         >>> model.solve()
@@ -1203,12 +1222,30 @@ class ELSModel(SolverModel):
         >>> model.numvars.nmb_calls
         46
 
-        You can restrict the number of Lobatto methods that are allowed
-        to be used.  Using two methods only is an inefficient choice for
-        the given initial value problem, but at least solves it with the
+        You can restrict the allowed maximum integration step size, which
+        can help to prevent from loosing to much performance due to trying
+        to solve too stiff problems, repeatedly:
+
+        >>> solver.reldtmin(0.001)
+        >>> solver.reldtmax(0.25)
+        >>> states.s(1.0)
+        >>> model.numvars.nmb_calls = 0
+        >>> model.solve()
+        >>> states.s
+        s(0.016806)
+        >>> fluxes.q
+        q(0.983194)
+        >>> round_(model.numvars.dt)
+        0.25
+        >>> model.numvars.nmb_calls
+        33
+
+        Alternatively, you can restrict the available number of Lobatto
+        methods.  Using two methods only is an inefficient choice for the
+        given initial value problem, but at least solves it with the
         required accuracy:
 
-        >>> solver.reldtmin = 1e-4
+        >>> solver.reldtmax(1.0)
         >>> model.numconsts.nmb_methods = 2
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
@@ -1222,9 +1259,67 @@ class ELSModel(SolverModel):
         >>> model.numvars.nmb_calls
         74
 
+        In the above examples, we control numerical accuracies based on
+        absolute error estimates only via parameter |test_solver.AbsErrorMax|.
+        After assigning an actual value to parameter |test_solver.RelErrorMax|,
+        |ELSModel| also takes relative errors into account.  We modify some
+        of the above examples to show how this works.
+
+        Generally, it is sufficient to meet one of both criteria.  If we
+        repeat the second example with a relaxed absolute but a strict
+        relative tolerance, we reproduce the original result due to our
+        absolute criteria beeing the relevant one:
+
+        >>> solver.abserrormax(0.1)
+        >>> solver.relerrormax(0.000001)
+        >>> k(0.1)
+        >>> states.s(1.0)
+        >>> model.solve()
+        >>> states.s
+        s(0.905)
+        >>> fluxes.q
+        q(0.095)
+
+        The same holds for the opposite case of a strict absolute but a
+        relaxed relative tolerance:
+
+        >>> solver.abserrormax(0.000001)
+        >>> solver.relerrormax(0.1)
+        >>> k(0.1)
+        >>> states.s(1.0)
+        >>> model.solve()
+        >>> states.s
+        s(0.905)
+        >>> fluxes.q
+        q(0.095)
+
+        Reiterating the "more dynamical parameterisation" example results
+        in slightly different but also correct results:
+
+        >>> k(0.5)
+        >>> states.s(1.0)
+        >>> model.solve()
+        >>> states.s
+        s(0.607196)
+        >>> fluxes.q
+        q(0.392804)
+
+        Reiterating the stiffest example with a relative instead of an
+        absolute error tolerance of 0.1 achieves higher accuracy, as
+        to be expected due to the value of |test_states.S| being far
+        below 1.0 for some time:
+
+        >>> k(4.0)
+        >>> states.s(1.0)
+        >>> model.solve()
+        >>> states.s
+        s(0.0185)
+        >>> fluxes.q
+        q(0.9815)
+
         Besides its weaknesses with stiff problems, |ELSModel| cannot
         solve discontinuous problems well.  We use the |test_v1| example
-        model to demonstrate how |ELSModel| sbehaves when confronted
+        model to demonstrate how |ELSModel| behaves when confronted
         with such a problem.
 
         >>> from hydpy import reverse_model_wildcard_import
@@ -1236,8 +1331,10 @@ class ELSModel(SolverModel):
         affect the considered simulation step:
 
         >>> k(0.5)
-        >>> solver.abserrormax = 1e-2
-        >>> solver.reldtmin = 1e-4
+        >>> solver.abserrormax(0.01)
+        >>> solver.reldtmin(0.001)
+        >>> solver.reldtmax(1.0)
+        >>> solver.relerrormax(nan)
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
         >>> model.solve()
@@ -1280,14 +1377,18 @@ class ELSModel(SolverModel):
         When working in Cython mode, the standard model import overrides
         this generic Python version with a model-specific Cython version.
         """
+        self.numvars.use_relerror = not modelutils.isnan(
+            self.parameters.solver.relerrormax)
         self.numvars.t0, self.numvars.t1 = 0., 1.
-        self.numvars.dt_est = 1.
+        self.numvars.dt_est = 1.*self.parameters.solver.reldtmax
         self.numvars.f0_ready = False
         self.reset_sum_fluxes()
         while self.numvars.t0 < self.numvars.t1-1e-14:
-            self.numvars.last_error = 999999.
+            self.numvars.last_abserror = modelutils.inf
+            self.numvars.last_relerror = modelutils.inf
             self.numvars.dt = min(
                 self.numvars.t1-self.numvars.t0,
+                1.*self.parameters.solver.reldtmax,
                 max(self.numvars.dt_est, self.parameters.solver.reldtmin))
             if not self.numvars.f0_ready:
                 self.calculate_single_terms()
@@ -1314,22 +1415,32 @@ class ELSModel(SolverModel):
                 self.extrapolate_error()
                 if self.numvars.idx_method == 1:
                     continue
-                if self.numvars.error <= self.parameters.solver.abserrormax:
-                    self.numvars.dt_est = (self.numconsts.dt_increase *
-                                           self.numvars.dt)
+                if ((self.numvars.abserror <=
+                     self.parameters.solver.abserrormax) or
+                        (self.numvars.relerror <=
+                         self.parameters.solver.relerrormax)):
+                    self.numvars.dt_est = \
+                        self.numconsts.dt_increase*self.numvars.dt
                     self.numvars.f0_ready = False
                     self.addup_fluxes()
                     self.numvars.t0 = self.numvars.t0+self.numvars.dt
                     self.new2old()
                     break
-                if ((self.numvars.extrapolated_error >
-                     self.parameters.solver.abserrormax) and
-                        (self.numvars.dt > self.parameters.solver.reldtmin)):
+                decrease_dt = self.numvars.dt > self.parameters.solver.reldtmin
+                decrease_dt = decrease_dt and (
+                    self.numvars.extrapolated_abserror >
+                    self.parameters.solver.abserrormax)
+                if self.numvars.use_relerror:
+                    decrease_dt = decrease_dt and (
+                        self.numvars.extrapolated_relerror >
+                        self.parameters.solver.relerrormax)
+                if decrease_dt:
                     self.numvars.f0_ready = True
                     self.numvars.dt_est = (self.numvars.dt /
                                            self.numconsts.dt_decrease)
                     break
-                self.numvars.last_error = self.numvars.error
+                self.numvars.last_abserror = self.numvars.abserror
+                self.numvars.last_relerror = self.numvars.relerror
                 self.numvars.f0_ready = True
             else:
                 if self.numvars.dt <= self.parameters.solver.reldtmin:
@@ -1690,40 +1801,102 @@ class ELSModel(SolverModel):
             setattr(fluxes.fastaccess, f'_{flux.name}_sum', sum_)
 
     def calculate_error(self) -> None:
-        """Estimate the numerical error based on the fluxes calculated
-        by the current and the last method.
+        """Estimate the numerical error based on the relevant fluxes
+        calculated by the current and the last method.
+
+        "Relevant fluxes" are those contained within the `SOLVERSEQUENCES`
+        tuple.  If this tuple is empty, method |ELSModel.calculate_error|
+        selects all flux sequences of the respective model with a |True|
+        `NUMERIC` attribute.
 
         >>> from hydpy import round_
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
-        >>> model.numvars.idx_method = 2
         >>> results = numpy.asarray(fluxes.fastaccess._q_results)
-        >>> results[:4] = 0.0, 3.0, 4.0, 0.0
+        >>> results[:5] = 0.0, 0.0, 3.0, 4.0, 4.0
+        >>> model.numvars.use_relerror = False
+        >>> model.numvars.idx_method = 3
         >>> model.calculate_error()
-        >>> round_(model.numvars.error)
+        >>> round_(model.numvars.abserror)
         1.0
+        >>> model.numvars.relerror
+        inf
+
+        >>> model.numvars.use_relerror = True
+        >>> model.calculate_error()
+        >>> round_(model.numvars.abserror)
+        1.0
+        >>> round_(model.numvars.relerror)
+        0.25
+
+        >>> model.numvars.idx_method = 4
+        >>> model.calculate_error()
+        >>> round_(model.numvars.abserror)
+        0.0
+        >>> round_(model.numvars.relerror)
+        0.0
+
+        >>> model.numvars.idx_method = 1
+        >>> model.calculate_error()
+        >>> round_(model.numvars.abserror)
+        0.0
+        >>> model.numvars.relerror
+        inf
 
         >>> from hydpy import reverse_model_wildcard_import
         >>> reverse_model_wildcard_import()
         >>> from hydpy.models.test_v3 import *
         >>> parameterstep()
         >>> n(2)
-        >>> model.numvars.idx_method = 2
+        >>> model.numvars.use_relerror = True
+        >>> model.numvars.idx_method = 3
         >>> results = numpy.asarray(fluxes.fastaccess._qv_results)
-        >>> results[:4, 0] = 0.0, 3.0, 4.0, 0.0
-        >>> results[:4, 1] = 0.0, 5.0, 7.0, 0.0
+        >>> results[:5, 0] = 0.0, 0.0, -4.0, -2.0, -2.0
+        >>> results[:5, 1] = 0.0, 0.0, -8.0, -4.0, -4.0
         >>> model.calculate_error()
-        >>> round_(model.numvars.error)
-        2.0
+        >>> round_(model.numvars.abserror)
+        4.0
+        >>> round_(model.numvars.relerror)
+        1.0
+
+        >>> model.numvars.idx_method = 4
+        >>> model.calculate_error()
+        >>> round_(model.numvars.abserror)
+        0.0
+        >>> round_(model.numvars.relerror)
+        0.0
+
+        >>> model.numvars.idx_method = 1
+        >>> model.calculate_error()
+        >>> round_(model.numvars.abserror)
+        0.0
+        >>> model.numvars.relerror
+        inf
         """
-        self.numvars.error = 0.
+        self.numvars.abserror = 0.
+        if self.numvars.use_relerror:
+            self.numvars.relerror = 0.
+        else:
+            self.numvars.relerror = numpy.inf
         fluxes = self.sequences.fluxes
+        solversequences = self.SOLVERSEQUENCES
         for flux in fluxes.numericsequences:
+            if solversequences and not isinstance(flux, solversequences):
+                continue
             results = getattr(fluxes.fastaccess, f'_{flux.name}_results')
-            diff = (results[self.numvars.idx_method] -
-                    results[self.numvars.idx_method-1])
-            self.numvars.error = max(self.numvars.error,
-                                     numpy.max(numpy.abs(diff)))
+            absdiff = (results[self.numvars.idx_method] -
+                       results[self.numvars.idx_method-1])
+            self.numvars.abserror = max(
+                self.numvars.abserror, numpy.max(numpy.abs(absdiff)))
+            if self.numvars.use_relerror:
+                idxs = results[self.numvars.idx_method] != 0.
+                if numpy.any(idxs):
+                    reldiff = numpy.abs(
+                        absdiff[idxs]/results[self.numvars.idx_method][idxs])
+                else:
+                    reldiff = numpy.inf
+                self.numvars.relerror = max(
+                    self.numvars.relerror, numpy.max(numpy.abs(reldiff)))
 
     def extrapolate_error(self) -> None:
         """Estimate the numerical error expected when applying all methods
@@ -1735,23 +1908,49 @@ class ELSModel(SolverModel):
 
         >>> from hydpy.models.test_v1 import *
         >>> parameterstep()
-        >>> model.numvars.error = 1e-2
-        >>> model.numvars.last_error = 1e-1
+        >>> model.numvars.use_relerror = False
+        >>> model.numvars.abserror = 0.01
+        >>> model.numvars.last_abserror = 0.1
         >>> model.numvars.idx_method = 10
         >>> model.extrapolate_error()
         >>> from hydpy import round_
-        >>> round_(model.numvars.extrapolated_error)
+        >>> round_(model.numvars.extrapolated_abserror)
         0.01
+        >>> model.numvars.extrapolated_relerror
+        inf
+
+        >>> model.numvars.use_relerror = True
+        >>> model.numvars.relerror = 0.001
+        >>> model.numvars.last_relerror = 0.01
+        >>> model.extrapolate_error()
+        >>> round_(model.numvars.extrapolated_abserror)
+        0.01
+        >>> round_(model.numvars.extrapolated_relerror)
+        0.001
+
         >>> model.numvars.idx_method = 9
         >>> model.extrapolate_error()
-        >>> round_(model.numvars.extrapolated_error)
+        >>> round_(model.numvars.extrapolated_abserror)
         0.001
+        >>> round_(model.numvars.extrapolated_relerror)
+        0.0001
         """
         if self.numvars.idx_method > 2:
-            self.numvars.extrapolated_error = modelutils.exp(
-                modelutils.log(self.numvars.error) +
-                (modelutils.log(self.numvars.error) -
-                 modelutils.log(self.numvars.last_error)) *
+            self.numvars.extrapolated_abserror = modelutils.exp(
+                modelutils.log(self.numvars.abserror) +
+                (modelutils.log(self.numvars.abserror) -
+                 modelutils.log(self.numvars.last_abserror)) *
                 (self.numconsts.nmb_methods-self.numvars.idx_method))
         else:
-            self.numvars.extrapolated_error = -999.9
+            self.numvars.extrapolated_abserror = -999.9
+        if self.numvars.use_relerror:
+            if self.numvars.idx_method > 2:
+                self.numvars.extrapolated_relerror = modelutils.exp(
+                    modelutils.log(self.numvars.relerror) +
+                    (modelutils.log(self.numvars.relerror) -
+                     modelutils.log(self.numvars.last_relerror)) *
+                    (self.numconsts.nmb_methods-self.numvars.idx_method))
+            else:
+                self.numvars.extrapolated_relerror = -999.9
+        else:
+            self.numvars.extrapolated_relerror = modelutils.inf

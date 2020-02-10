@@ -15,11 +15,8 @@ if TYPE_CHECKING:
     from hydpy.core.sequencetools import Sequence
 
 
-class Logger:
-    """Logger for sums of a single period."""
-
-    counter: int
-    sequence2sum: Dict['Sequence', float]
+class BaseLogger:
+    """Base class for all logging classes."""
 
     def __init__(
             self,
@@ -35,6 +32,20 @@ class Logger:
             self._lastdate = timetools.Date(lastdate)
         self._idx0 = hydpy.pub.timegrids.init[self._firstdate]
         self._idx1 = hydpy.pub.timegrids.init[self._lastdate]
+
+
+class Logger(BaseLogger):
+    """Logger for sums of a single period."""
+
+    counter: int
+    sequence2sum: Dict['Sequence', float]
+
+    def __init__(
+            self,
+            firstdate: Optional[timetools.DateConstrArg] = None,
+            lastdate: Optional[timetools.DateConstrArg] = None,
+    ) -> None:
+        super().__init__(firstdate=firstdate, lastdate=lastdate)
         self.counter = 0
         self.sequence2sum = {}
 
@@ -57,18 +68,24 @@ class Logger:
                 for seq, sum_ in self.sequence2sum.items()}
 
 
-class MonthLogger(Logger):
+class MonthLogger(BaseLogger):
     """Logger for monthly sums."""
 
     month2counter: Dict[str, int]
     month2sequence2sum: Dict[str, Dict['Sequence', float]]
 
-    def __init__(self):
+    def __init__(
+            self,
+            firstdate: Optional[timetools.DateConstrArg] = None,
+            lastdate: Optional[timetools.DateConstrArg] = None,
+    ) -> None:
+        super().__init__(firstdate=firstdate, lastdate=lastdate)
         self.month2counter = {}
         self.month2sequence2sum = {}
         date: timetools.Date
         lastmonth = ''
-        for date in hydpy.pub.timegrids.init:
+        for date in timetools.Timegrid(
+                self._firstdate, self._lastdate, hydpy.pub.timegrids.stepsize):
             nextmonth = self.date2month(date)
             if nextmonth != lastmonth:
                 self.month2counter[nextmonth] = 0
@@ -87,11 +104,12 @@ class MonthLogger(Logger):
 
     def update(self, idx: int) -> None:
         """Sum the values of all addes sequences."""
-        month = self.date2month(hydpy.pub.timegrids.init[idx])
-        self.month2counter[month] += 1
-        sequence2sum = self.month2sequence2sum[month]
-        for sequence in sequence2sum.keys():
-            sequence2sum[sequence] += sequence.value
+        if self._idx0 <= idx < self._idx1:
+            month = self.date2month(hydpy.pub.timegrids.init[idx])
+            self.month2counter[month] += 1
+            sequence2sum = self.month2sequence2sum[month]
+            for sequence in sequence2sum.keys():
+                sequence2sum[sequence] += sequence.value
 
     @property
     def month2sequence2mean(self) -> Dict[str, Dict['Sequence', float]]:

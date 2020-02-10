@@ -1485,14 +1485,27 @@ class Positionbounds(NamedTuple):
         )
 
 
-class WHModMonthLogger(logtools.MonthLogger):
-    """Specialisation of class |MonthLogger| for `WHMod`."""
+class WHModLoggerMixin:
+
+    def __init__(self):
+        super().__init__()
+        self._positionbounds = None
 
     @property
     def positionbounds(self) -> Positionbounds:
         """The |PositionBounds| relevant for the logged sequences."""
+        if self._positionbounds:
+            return self._positionbounds
         sequence2value = tuple(self.month2sequence2sum.values())[0]
         return Positionbounds.from_sequences(sequence2value.keys())
+
+    @positionbounds.setter
+    def positionbounds(self, positionbounds: Positionbounds) -> None:
+        self._positionbounds = positionbounds
+
+    @positionbounds.deleter
+    def positionbounds(self) -> None:
+        self._positionbounds = None
 
     def _dict2grid(self, sequence2value: Dict['Sequence', float]) -> \
             numpy.ndarray:
@@ -1501,7 +1514,7 @@ class WHModMonthLogger(logtools.MonthLogger):
         grid = numpy.full(shape, 0., dtype=float)
         for sequence, value in sequence2value.items():
             position = Position.from_sequence(sequence)
-            grid[position.row-1, position.col-1] = value
+            grid[position.row-pb.rowmin, position.col-pb.colmin] = value
         return grid
 
     @property
@@ -1509,8 +1522,81 @@ class WHModMonthLogger(logtools.MonthLogger):
         """Factor for converting mm/stepsize to m/s (or m³/m²/s)."""
         return 1./(1000.*hydpy.pub.timegrids.stepsize.seconds)
 
+    def _write_rchfile(
+            self,
+            rchfile: TextIO,
+            layer: int,
+            balancefile: int,
+            values_per_line: int,
+            precision: int,
+            exp_digits: int,
+            sequence2values: Iterable[Dict['Sequence', float]],
+    ) -> None:
+        rchfile.write(
+            f'{str(layer).rjust(10)}'
+            f'{str(balancefile).rjust(10)}'
+            f'         1         1\n'
+        )
+        positionbounds = self.positionbounds
+        for sequence2value in sequence2values:
+            nchars = precision + exp_digits + 5
+            formatstring = f'({values_per_line}e{nchars}.{precision})'.ljust(20)
+            rchfile.write(
+                f'         1         1         0         0\n'
+                f'        18     1.000{formatstring}        -1     RECHARGE\n'
+            )
+            ncols = positionbounds.colmax - positionbounds.colmin + 1
+            sections = numpy.arange(ncols, ncols, values_per_line)
+            nchars = precision + exp_digits + 5
+            grid = self.factor * self._dict2grid(sequence2value)
+            for row in grid:
+                for subarray in numpy.array_split(row, sections):
+                    rchfile.write(''.join(
+                        numpy.format_float_scientific(
+                            value,
+                            unique=False,
+                            precision=precision,
+                            exp_digits=exp_digits,
+                        ).rjust(nchars) for value in subarray
+                    ))
+                    rchfile.write('\n')
+
+
+class WHModLogger(WHModLoggerMixin, logtools.Logger):
+    """Specialisation of class |Logger| for `WHMod`."""
+
     def write_rchfile(
-            self, rchfile: TextIO,
+            self,
+            rchfile: TextIO,
+            layer: int = 1,
+            balancefile: int = 51,
+            values_per_line: int = 20,
+            precision: int = 4,
+            exp_digits: int = 3,
+    ) -> None:
+        """Write a recharge file (`.rch`)  for exporting groundwater recharge
+        to ModFlow.
+
+        See method |WHModMonthLogger.write_rchfile| of class |WHModMonthLogger|
+        for further information
+        """
+        self._write_rchfile(
+            rchfile=rchfile,
+            layer=layer,
+            balancefile=balancefile,
+            values_per_line=values_per_line,
+            precision=precision,
+            exp_digits=exp_digits,
+            sequence2values=[self.sequence2mean],
+        )
+
+
+class WHModMonthLogger(WHModLoggerMixin, logtools.MonthLogger):
+    """Specialisation of class |MonthLogger| for `WHMod`."""
+
+    def write_rchfile(
+            self,
+            rchfile: TextIO,
             layer: int = 1,
             balancefile: int = 51,
             values_per_line: int = 20,
@@ -1541,35 +1627,15 @@ class WHModMonthLogger(logtools.MonthLogger):
         4 Nachkommastellen; es muss nur in der Kopfzeile definiert sein.
         Vorschlag: 4 Nachkommastellen
         """
-        header = (
-            f'{str(layer).rjust(10)}'
-            f'{str(balancefile).rjust(10)}'
-            f'         1         1\n'
+        sequence2values = [
+            s2m for (_, s2m) in sorted(self.month2sequence2mean.items())
+        ]
+        self._write_rchfile(
+            rchfile=rchfile,
+            layer=layer,
+            balancefile=balancefile,
+            values_per_line=values_per_line,
+            precision=precision,
+            exp_digits=exp_digits,
+            sequence2values=sequence2values,
         )
-        nchars = precision + exp_digits + 5
-        formatstring = f'({values_per_line}e{nchars}.{precision})'.ljust(20)
-        subheader = (
-            f'         1         1         0         0\n'
-            f'        18     1.000{formatstring}        -1     RECHARGE\n'
-        )
-        write = rchfile.write
-        write(header)
-        format_ = numpy.format_float_scientific
-        split = numpy.array_split
-        pb = self.positionbounds
-        ncols = pb.colmax-pb.colmin+1
-        sections = numpy.arange(ncols, ncols, values_per_line)
-        for _, sequence2mean in sorted(self.month2sequence2mean.items()):
-            grid = self.factor * self._dict2grid(sequence2mean)
-            write(subheader)
-            for row in grid:
-                for subarray in split(row, sections):
-                    write(''.join(
-                        format_(
-                            value,
-                            unique=False,
-                            precision=precision,
-                            exp_digits=exp_digits,
-                        ).rjust(nchars) for value in subarray
-                    ))
-                    write('\n')

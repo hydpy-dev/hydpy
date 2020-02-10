@@ -1546,7 +1546,7 @@ class WHModLoggerMixin:
                 f'        18     1.000{formatstring}        -1     RECHARGE\n'
             )
             ncols = positionbounds.colmax - positionbounds.colmin + 1
-            sections = numpy.arange(ncols, ncols, values_per_line)
+            sections = numpy.arange(values_per_line, ncols, values_per_line)
             nchars = precision + exp_digits + 5
             grid = self.factor * self._dict2grid(sequence2value)
             for row in grid:

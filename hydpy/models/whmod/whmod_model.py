@@ -4,6 +4,7 @@
 
 # imports...
 # ...from standard library
+import abc
 from typing import *
 from typing import TextIO
 # ...from site-packages
@@ -20,6 +21,8 @@ from hydpy.models.whmod import whmod_derived
 from hydpy.models.whmod import whmod_inputs
 from hydpy.models.whmod import whmod_fluxes
 from hydpy.models.whmod import whmod_states
+if TYPE_CHECKING:
+    from hydpy.core import timetools
 
 
 class Calc_NiederschlagRichter_V1(modeltools.Method):
@@ -1487,17 +1490,24 @@ class Positionbounds(NamedTuple):
 
 class WHModLoggerMixin:
 
-    def __init__(self):
-        super().__init__()
+    def __init__(
+            self,
+            firstdate: Optional['timetools.DateConstrArg'] = None,
+            lastdate: Optional['timetools.DateConstrArg'] = None,
+    ) -> None:
+        super().__init__(firstdate=firstdate, lastdate=lastdate)
         self._positionbounds = None
+
+    @abc.abstractmethod
+    def _determine_positionbounds(self) -> Positionbounds:
+        ...
 
     @property
     def positionbounds(self) -> Positionbounds:
         """The |PositionBounds| relevant for the logged sequences."""
         if self._positionbounds:
             return self._positionbounds
-        sequence2value = tuple(self.month2sequence2sum.values())[0]
-        return Positionbounds.from_sequences(sequence2value.keys())
+        return self._determine_positionbounds()
 
     @positionbounds.setter
     def positionbounds(self, positionbounds: Positionbounds) -> None:
@@ -1507,11 +1517,15 @@ class WHModLoggerMixin:
     def positionbounds(self) -> None:
         self._positionbounds = None
 
-    def _dict2grid(self, sequence2value: Dict['Sequence', float]) -> \
+    def _dict2grid(
+            self,
+            sequence2value: Dict['Sequence', float],
+            defaultvalue: float = 0.,
+    ) -> \
             numpy.ndarray:
         pb = self.positionbounds
         shape = (pb.rowmax-pb.rowmin+1, pb.colmax-pb.colmin+1)
-        grid = numpy.full(shape, 0., dtype=float)
+        grid = numpy.full(shape, defaultvalue, dtype=float)
         for sequence, value in sequence2value.items():
             position = Position.from_sequence(sequence)
             grid[position.row-pb.rowmin, position.col-pb.colmin] = value
@@ -1565,6 +1579,9 @@ class WHModLoggerMixin:
 class WHModLogger(WHModLoggerMixin, logtools.Logger):
     """Specialisation of class |Logger| for `WHMod`."""
 
+    def _determine_positionbounds(self) -> Positionbounds:
+        return Positionbounds.from_sequences(self.sequence2sum.keys())
+
     def write_rchfile(
             self,
             rchfile: TextIO,
@@ -1593,6 +1610,10 @@ class WHModLogger(WHModLoggerMixin, logtools.Logger):
 
 class WHModMonthLogger(WHModLoggerMixin, logtools.MonthLogger):
     """Specialisation of class |MonthLogger| for `WHMod`."""
+
+    def _determine_positionbounds(self) -> Positionbounds:
+        sequence2value = tuple(self.month2sequence2sum.values())[0]
+        return Positionbounds.from_sequences(sequence2value.keys())
 
     def write_rchfile(
             self,

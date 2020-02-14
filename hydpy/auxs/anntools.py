@@ -74,7 +74,14 @@ class _ANNArrayProperty(propertytools.DependentProperty):
         setattr(cann, self.name, array)
 
 
-class ANN:
+class BaseANN:
+    """Base for implementing artificial neural networks classes."""
+
+    def __init_subclass__(cls):
+        cls.name = objecttools.instancename(cls)
+
+
+class ANN(BaseANN):
     """Multi-layer feed forward artificial neural network.
 
     The applied activation function is the logistic function:
@@ -273,15 +280,6 @@ attribute `nmb_inputs` first.
         |SubParameters| object."""
         self.fastaccess = self.subpars.fastaccess
         setattr(self.fastaccess, self.name, self._cann)
-
-    @property
-    def name(self):
-        """Name of the class of the given instance in lower case letters.
-
-        See the documentation on function |objecttools.get_name| for
-        additional information.
-        """
-        return objecttools.get_name(self)
 
     def __call__(self, nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
                  weights_input=None, weights_output=None, weights_hidden=None,
@@ -901,7 +899,7 @@ def ann(**kwargs) -> ANN:
     return new_ann
 
 
-class SeasonalANN:
+class SeasonalANN(BaseANN):
     """Handles relationships described by artificial neural networks that
     vary within an anual cycle.
 
@@ -1289,15 +1287,6 @@ been given, but a value of type `ANN` is required.
         """Connect the actual |anntools.SeasonalANN| object with the given
         |SubParameters| object."""
         self.fastaccess = self.subpars.fastaccess
-
-    @property
-    def name(self):
-        """Name of the class of the given instance in lower case letters.
-
-        See the documentation on function |objecttools.get_name| for
-        additional information.
-        """
-        return objecttools.get_name(self)
 
     def __call__(self, *args, **kwargs) -> None:
         self._toy2ann.clear()

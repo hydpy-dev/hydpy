@@ -46,9 +46,8 @@ class Method:
     def __call__(model: 'Model') -> None:
         """The actual calculaton function."""
 
-    __name__ = property(objecttools.get_name)
-
     def __init_subclass__(cls):
+        cls.__name__ = objecttools.classname(cls)
         cls.__call__.CYTHONIZE = True
 
 

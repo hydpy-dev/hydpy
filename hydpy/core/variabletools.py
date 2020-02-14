@@ -944,6 +944,8 @@ operands could not be broadcast together with shapes (2,) (3,)...
 
     strict_valuehandling: ClassVar[bool] = True
 
+    __hydpy__subclasscounter__ = 1
+
     fastaccess: Union[
         'FastAccess',
         typingtools.FastAccessParameterProtocol,
@@ -960,6 +962,9 @@ operands could not be broadcast together with shapes (2,) (3,)...
 
     def __init_subclass__(cls):
         cls.name = objecttools.instancename(cls)
+        subclasscounter = Variable.__hydpy__subclasscounter__ + 1
+        Variable.__hydpy__subclasscounter__ = subclasscounter
+        cls.__hydpy__subclasscounter__ = subclasscounter
 
     @abc.abstractmethod
     def __hydpy__connect_variable2subgroup__(self) -> None:

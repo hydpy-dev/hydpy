@@ -20,6 +20,7 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import propertytools
 from hydpy.core import timetools
+from hydpy.core import variabletools
 from hydpy.cythons.autogen import annutils
 pyplot = exceptiontools.OptionalImport(
     'pyplot', ['matplotlib.pyplot'], locals())
@@ -79,6 +80,9 @@ class BaseANN:
 
     def __init_subclass__(cls):
         cls.name = objecttools.instancename(cls)
+        subclasscounter = variabletools.Variable.__hydpy__subclasscounter__ + 1
+        variabletools.Variable.__hydpy__subclasscounter__ = subclasscounter
+        cls.__hydpy__subclasscounter__ = subclasscounter
 
 
 class ANN(BaseANN):

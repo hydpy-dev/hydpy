@@ -174,15 +174,15 @@ def reverse_model_wildcard_import() -> None:
         for subpars in model.parameters:
             for par in subpars:
                 namespace.pop(par.name, None)
-                namespace.pop(objecttools.classname(par), None)
+                namespace.pop(type(par).__name__, None)
             namespace.pop(subpars.name, None)
-            namespace.pop(objecttools.classname(subpars), None)
+            namespace.pop(type(subpars).__name__, None)
         for subseqs in model.sequences:
             for seq in subseqs:
                 namespace.pop(seq.name, None)
-                namespace.pop(objecttools.classname(seq), None)
+                namespace.pop(type(seq).__name__, None)
             namespace.pop(subseqs.name, None)
-            namespace.pop(objecttools.classname(subseqs), None)
+            namespace.pop(type(subseqs).__name__, None)
         for name in ('parameters', 'sequences', 'masks', 'model',
                      'Parameters', 'Sequences', 'Masks', 'Model',
                      'cythonizer', 'cymodel', 'cythonmodule'):

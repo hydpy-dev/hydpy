@@ -46,7 +46,6 @@ class Method:
         """The actual calculaton function."""
 
     def __init_subclass__(cls):
-        cls.__name__ = objecttools.classname(cls)
         cls.__call__.CYTHONIZE = True
 
 
@@ -267,7 +266,7 @@ to any sequences: in2.
         try:
             group = 'inputs'
             for node in self.element.inputs:
-                name = objecttools.instancename(node.variable)
+                name = node.variable.__name__.lower()
                 sequence = getattr(self.sequences.inputs, name)
                 sequence.set_pointer(node.get_double(group))
             for group in ('inlets', 'receivers', 'outlets', 'senders'):
@@ -675,7 +674,7 @@ any sequences so far.
                         sequences.add(sequence)
         for typesequences, _, sequences in infos:
             allsequences.update(sequences)
-            classname = objecttools.classname(typesequences)
+            classname = typesequences.__name__
             if not hasattr(module, classname):
                 members = {
                     'CLASSES': cls._sort_variables(sequences),

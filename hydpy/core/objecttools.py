@@ -72,7 +72,7 @@ def dir_(self: Any) -> List[str]:
 def classname(self: Any) -> str:
     """Return the class name of the given instance object or class.
 
-    >>> from hydpy.core.objecttools import classname
+    >>> from hydpy import classname
     >>> from hydpy import pub
     >>> classname(float)
     'float'
@@ -82,18 +82,6 @@ def classname(self: Any) -> str:
     if inspect.isclass(self):
         return self.__name__
     return type(self).__name__
-
-
-def instancename(self: Any) -> str:
-    """Return the class name of the given instance object or class in lower
-    case letters.
-
-    >>> from hydpy.core.objecttools import instancename
-    >>> from hydpy import pub
-    >>> print(instancename(pub.options))
-    options
-    """
-    return classname(self).lower()
 
 
 def value_of_type(value: Any) -> str:
@@ -160,14 +148,14 @@ def devicename(self: Any) -> str:
 
 
 def _devicephrase(self: Any, objname: Optional[str] = None) -> str:
-    name_ = getattr(self, 'name', instancename(self))
+    name_ = getattr(self, 'name', type(self).__name__.lower())
     device = _search_device(self)
     if device and objname:
         return f'`{name_}` of {objname} `{device.name}`'
     if objname:
         return f'`{name_}` of {objname} `?`'
     if device:
-        return f'`{name_}` of {instancename(device)} `{device.name}`'
+        return f'`{name_}` of {type(device).__name__.lower()} `{device.name}`'
     return f'`{name_}`'
 
 
@@ -1421,10 +1409,11 @@ the following classes: str and int.
         except TypeError as exc:
             if exc.args[0].startswith('The given (sub)value'):
                 raise exc
+            enum = enumeration(
+                types_, converter=lambda x: x.__name__)
             raise TypeError(
                 f'The given (sub)value `{repr(values)}` is not an '
-                f'instance of the following classes: '
-                f'{enumeration(types_, converter=instancename)}.')
+                f'instance of the following classes: {enum}.')
 
 
 def enumeration(values, converter=str, default=''):
@@ -1447,7 +1436,7 @@ def enumeration(values, converter=str, default=''):
     by the first two examples.  This behaviour can be changed by another
     function expecting a single argument and returning a string:
 
-    >>> from hydpy.core.objecttools import classname
+    >>> from hydpy import classname
     >>> enumeration(('text', 3, []), converter=classname)
     'str, int, and list'
 

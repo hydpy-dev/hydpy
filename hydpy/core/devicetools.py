@@ -374,7 +374,7 @@ as a "normal" attribute and is thus not support, hence `NF` is rejected.
     ...
     TypeError: While trying to initialise a `Nodes` object, the following \
 error occurred: The given (sub)value `Element("ea")` is not an instance \
-of the following classes: node and str.
+of the following classes: Node and str.
     """
 
     _name2device: Dict[str, DeviceType]
@@ -398,8 +398,7 @@ of the following classes: node and str.
                 self.add_device(value)
         except BaseException:
             objecttools.augment_excmessage(
-                f'While trying to initialise a '
-                f'`{objecttools.classname(self)}` object')
+                f'While trying to initialise a `{type(self).__name__}` object')
         return self
 
     @staticmethod
@@ -441,11 +440,11 @@ Nodes objects is not allowed.
             else:
                 raise RuntimeError(
                     f'Adding devices to immutable '
-                    f'{objecttools.classname(self)} objects is not allowed.')
+                    f'{type(self).__name__} objects is not allowed.')
         except BaseException:
             objecttools.augment_excmessage(
                 f'While trying to add the device `{device}` to a '
-                f'{objecttools.classname(self)} object')
+                f'{type(self).__name__} object')
 
     def remove_device(self, device: Union[DeviceType, str]) -> None:
         """Remove the given |Node| or |Element| object from the actual
@@ -487,17 +486,17 @@ immutable Nodes objects is not allowed.
                     del self._name2device[_device.name]
                 except KeyError:
                     raise ValueError(
-                        f'The actual {objecttools.classname(self)} '
+                        f'The actual {type(self).__name__} '
                         f'object does not handle such a device.')
                 del _id2devices[_device][id(self)]
             else:
                 raise RuntimeError(
                     f'Removing devices from immutable '
-                    f'{objecttools.classname(self)} objects is not allowed.')
+                    f'{type(self).__name__} objects is not allowed.')
         except BaseException:
             objecttools.augment_excmessage(
                 f'While trying to remove the device `{device}` from a '
-                f'{objecttools.classname(self)} object')
+                f'{type(self).__name__} object')
 
     @property
     def names(self) -> Tuple[str, ...]:
@@ -662,7 +661,7 @@ which is in conflict with using their names as identifiers.
     __copy__ = copy
 
     def __deepcopy__(self, dict_):
-        classname = objecttools.classname(self)
+        classname = type(self).__name__
         raise NotImplementedError(
             f'Deep copying of {classname} objects is not supported, as it '
             f'would require to make deep copies of the {classname[:-1]} '
@@ -691,16 +690,16 @@ which is in conflict with using their names as identifiers.
         if len(_devices) == 1:
             return _devices.devices[0]
         raise AttributeError(
-            f'The selected {objecttools.classname(self)} object has '
+            f'The selected {type(self).__name__} object has '
             f'neither a `{name}` attribute nor does it handle a '
-            f'{objecttools.classname(self.get_contentclass())} object with '
-            f'name or keyword `{name}`, which could be returned.')
+            f'{self.get_contentclass().__name__} object with name '
+            f'or keyword `{name}`, which could be returned.')
 
     def __setattr__(self, name, value):
         if hasattr(self, name):
             super().__setattr__(name, value)
         else:
-            classname = objecttools.classname(self)
+            classname = type(self).__name__
             raise AttributeError(
                 f'Setting attributes of {classname} objects could result in '
                 f'confusion whether a new attribute should be handled as a '
@@ -712,9 +711,9 @@ which is in conflict with using their names as identifiers.
             self.remove_device(name)
         except ValueError:
             raise AttributeError(
-                f'The actual {objecttools.classname(self)} object does not '
-                f'handle a {objecttools.classname(self.get_contentclass())} '
-                f'object named `{name}` which could be removed, and deleting '
+                f'The actual {type(self).__name__} object does not '
+                f'handle a {self.get_contentclass().__name__} object '
+                f'named `{name}` which could be removed, and deleting '
                 f'other attributes is not supported.')
 
     def __getitem__(self, name: str) -> DeviceType:
@@ -803,7 +802,7 @@ which is in conflict with using their names as identifiers.
         """Return a |repr| string with a prefixed assignment."""
         with objecttools.repr_.preserve_strings(True):
             with hydpy.pub.options.ellipsis(2, optional=True):
-                prefix += f'{objecttools.classname(self)}('
+                prefix += f'{type(self).__name__}('
                 repr_ = objecttools.assignrepr_values(
                     self.names, prefix, width=70)
                 return repr_ + ')'
@@ -1303,9 +1302,8 @@ class Device(Generic[DevicesTypeUnbound]):
             objecttools.valid_variable_identifier(name)
         except ValueError:
             objecttools.augment_excmessage(
-                f'While trying to initialize a `{objecttools.classname(cls)}` '
-                f'object with value `{name}` of type `'
-                f'{objecttools.classname(name)}`')
+                f'While trying to initialize a `{cls.__name__}` object '
+                f'with value `{name}` of type `{type(name).__name__}`')
 
     @property
     def keywords(self) -> Keywords:
@@ -1417,7 +1415,7 @@ immutable Elements objects is not allowed.
         if (variable is not None) and (variable != self.variable):
             raise ValueError(
                 f'The variable to be represented by a '
-                f'{objecttools.classname(self)} instance cannot be changed.  '
+                f'{type(self).__name__} instance cannot be changed.  '
                 f'The variable of node `{self.name}` is `{self.variable}` '
                 f'instead of `{variable}`.  Keep in mind, that `name` is '
                 f'the unique identifier of node objects.')
@@ -1784,7 +1782,7 @@ the given group name `test`.
             variable = f'"{variable}"'
         else:
             variable = (f'{variable.__module__.split(".")[2]}_'
-                        f'{objecttools.classname(variable)}')
+                        f'{variable.__name__}')
         lines = [f'{prefix}Node("{self.name}", variable={variable},']
         if self.keywords:
             subprefix = f'{" "*(len(prefix)+5)}keywords='

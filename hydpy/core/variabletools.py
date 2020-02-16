@@ -374,7 +374,7 @@ of parameter `var` is `str`.
                 f'Method `trim` can only be applied on parameters '
                 f'handling floating point, integer, or boolean values, '
                 f'but the "value type" of parameter `{self.name}` is '
-                f'`{objecttools.classname(self.TYPE)}`.')
+                f'`{self.TYPE.__name__}`.')
 
 
 def _trim_float_0d(self, lower, upper):
@@ -507,7 +507,7 @@ def _compare_variables_function_generator(
             objecttools.augment_excmessage(
                 f'While trying to compare variable '
                 f'{objecttools.elementphrase(self)} with object '
-                f'`{other}` of type `{objecttools.classname(other)}`')
+                f'`{other}` of type `{type(other).__name__}`')
     return comparison_function
 
 
@@ -961,7 +961,7 @@ operands could not be broadcast together with shapes (2,) (3,)...
         self.__shapeready = False
 
     def __init_subclass__(cls):
-        cls.name = objecttools.instancename(cls)
+        cls.name = cls.__name__.lower()
         subclasscounter = Variable.__hydpy__subclasscounter__ + 1
         Variable.__hydpy__subclasscounter__ = subclasscounter
         cls.__hydpy__subclasscounter__ = subclasscounter
@@ -1118,7 +1118,7 @@ occurred: could not broadcast input array from shape (2) into shape (2,3)
                 objecttools.augment_excmessage(
                     f'While trying to convert the value(s) `{value}` '
                     f'to a numpy ndarray with shape `{self.shape}` '
-                    f'and type `{objecttools.classname(self.TYPE)}`')
+                    f'and type `{self.TYPE.__name__}`')
         else:
             if isinstance(value, Sequence):
                 if len(value) > 1:
@@ -1131,7 +1131,7 @@ occurred: could not broadcast input array from shape (2) into shape (2,3)
             except BaseException:
                 raise TypeError(
                     f'The given value `{value}` cannot be converted '
-                    f'to type `{objecttools.classname(self.TYPE)}`.')
+                    f'to type `{self.TYPE.__name__}`.')
         return value
 
     value = property(fget=__hydpy__get_value__, fset=__hydpy__set_value__)
@@ -1660,7 +1660,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             objecttools.augment_excmessage(
                 f'While trying to {description} variable '
                 f'{objecttools.devicephrase(self)} and '
-                f'`{objecttools.classname(other)}` instance `{other}`')
+                f'`{type(other).__name__}` instance `{other}`')
 
     def __add__(self, other):
         return self._do_math(other, '__add__', 'add')
@@ -1776,7 +1776,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             raise TypeError(
                 f'The variable {objecttools.devicephrase(self)} is '
                 f'{self.NDIM}-dimensional and thus cannot be converted '
-                f'to a scalar {objecttools.classname(type_)} value.')
+                f'to a scalar {type_.__name__} value.')
         return type_(self.value)
 
     def __bool__(self):
@@ -1960,7 +1960,7 @@ variable `testvar`.
     def __repr__(self):
         lines = []
         if hydpy.pub.options.reprcomments:
-            lines.append(f'# {objecttools.classname(self)} object defined '
+            lines.append(f'# {type(self).__name__} object defined '
                          f'in module {objecttools.modulename(self)},\n'
                          f'# handling the following variables:')
         for variable in self:

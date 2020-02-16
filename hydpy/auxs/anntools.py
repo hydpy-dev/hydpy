@@ -79,7 +79,7 @@ class BaseANN:
     """Base for implementing artificial neural networks classes."""
 
     def __init_subclass__(cls):
-        cls.name = objecttools.instancename(cls)
+        cls.name = cls.__name__.lower()
         subclasscounter = variabletools.Variable.__hydpy__subclasscounter__ + 1
         variabletools.Variable.__hydpy__subclasscounter__ = subclasscounter
         cls.__hydpy__subclasscounter__ = subclasscounter
@@ -1302,7 +1302,7 @@ been given, but a value of type `ANN` is required.
                     'an arbitrary number of keyword arguments, but for the '
                     'corresponding parameter of element `%s` %d positional '
                     'and %d keyword arguments have been given.'
-                    % (objecttools.classname(self),
+                    % (type(self).__name__,
                        objecttools.devicename(self),
                        len(args), len(kwargs)))
             if args:
@@ -1311,7 +1311,7 @@ been given, but a value of type `ANN` is required.
                 if not isinstance(value, ANN):
                     raise TypeError(
                         'Type `%s` is not (a subclass of) type `ANN`.'
-                        % objecttools.classname(value))
+                        % type(value).__name__)
                 try:
                     setattr(self, str(timetools.TOY(toystr)), value)
                 except BaseException:

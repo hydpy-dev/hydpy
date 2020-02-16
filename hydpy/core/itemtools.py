@@ -276,7 +276,7 @@ into shape ()
         except BaseException:
             objecttools.augment_excmessage(
                 f'When trying to convert the value(s) `{value}` assigned '
-                f'to {objecttools.classname(self)} `{self.name}` to a '
+                f'to {type(self).__name__} `{self.name}` to a '
                 f'numpy array of shape `{self.shape}` and type `float`')
 
     @abc.abstractmethod
@@ -347,15 +347,15 @@ target variables.
                 else:
                     if shape != variable.shape:
                         raise RuntimeError(
-                            f'{objecttools.classname(self)} `{self.name}` '
-                            f'cannot handle target variables of different '
-                            f'shapes.')
+                            f'{type(self).__name__} `{self.name}` '
+                            f'cannot handle target variables of '
+                            f'different shapes.')
             if shape is None:
                 raise RuntimeError(
                     f'Cannot determine the shape of the actual '
-                    f'`{objecttools.classname(self)}` object, '
-                    f'as the given `Selections` object does not '
-                    f'handle any relevant target variables.')
+                    f'`{type(self).__name__}` object, as the given '
+                    f'`Selections` object does not handle any '
+                    f'relevant target variables.')
             self.shape = shape
 
     def update_variable(self, variable, value) -> None:
@@ -381,7 +381,7 @@ occurred: The given value `None` cannot be converted to type `float`.
         except BaseException:
             objecttools.augment_excmessage(
                 f'When trying to update a target variable of '
-                f'{objecttools.classname(self)} `{self.name}` '
+                f'{type(self).__name__} `{self.name}` '
                 f'with the value(s) `{value}`')
 
 
@@ -467,7 +467,7 @@ class SetItem(ChangeItem):
 
     def __repr__(self):
         return (
-            f"{objecttools.classname(self)}('{self.name}', "
+            f"{type(self).__name__}('{self.name}', "
             f"'{self.targetspecs.master}', '{self.targetspecs.specstring}', "
             f"{self.ndim})")
 
@@ -540,7 +540,7 @@ class MathItem(ChangeItem):
 
     def __repr__(self):
         return (
-            f"{objecttools.classname(self)}('{self.name}', "
+            f"{type(self).__name__}('{self.name}', "
             f"'{self.targetspecs.master}', '{self.targetspecs.specstring}', "
             f"'{self.basespecs.specstring}', {self.ndim})")
 
@@ -699,5 +699,5 @@ class GetItem(ExchangeItem):
 
     def __repr__(self):
         return (
-            f"{objecttools.classname(self)}("
+            f"{type(self).__name__}("
             f"'{self.targetspecs.master}', '{self.targetspecs.specstring}')")

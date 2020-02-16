@@ -457,7 +457,7 @@ variable handled by the actual Variable2AuxFile object.
         if (self._model and not isinstance(
                 variable, self._model.parameters.control.CLASSES)):
             raise TypeError(
-                f'Variable type `{objecttools.classname(variable)}` is '
+                f'Variable type `{type(variable).__name__}` is '
                 f'not handled by model `{self._model}`.')
 
     @staticmethod
@@ -467,7 +467,7 @@ variable handled by the actual Variable2AuxFile object.
                 raise ValueError(
                     f'You tried to allocate variable `{repr(new_var)}` '
                     f'to filename `{filename}`, but an equal '
-                    f'`{objecttools.classname(new_var)}` object has '
+                    f'`{type(new_var).__name__}` object has '
                     f'already been allocated to filename `{reg_fn}`.')
 
     def remove(self, *values):
@@ -542,7 +542,7 @@ variable handled by the actual Variable2AuxFile object.
             except BaseException:
                 objecttools.augment_excmessage(
                     f'While trying to remove the given object `{value}` '
-                    f'of type `{objecttools.classname(value)}` from the '
+                    f'of type `{type(value).__name__}` from the '
                     f'actual Variable2AuxFile object')
 
     @property
@@ -550,8 +550,7 @@ variable handled by the actual Variable2AuxFile object.
         """A list of all handled variable types.
 
         >>> from hydpy import dummies
-        >>> from hydpy.core.objecttools import classname
-        >>> [classname(type_) for type_ in dummies.v2af.types]
+        >>> [type_.__name__ for type_ in dummies.v2af.types]
         ['EQB', 'EQD1', 'EQD2', 'EQI1', 'EQI2']
         """
         return sorted(self._type2filename2variable.keys(), key=str)
@@ -628,4 +627,4 @@ variable handled by the actual Variable2AuxFile object.
         """
         return (objecttools.dir_(self) +
                 self.filenames +
-                [objecttools.instancename(type_) for type_ in self.types])
+                [type_.__name__.lower() for type_ in self.types])

@@ -201,7 +201,7 @@ for moduleinfo in pkgutil.walk_packages(models.__path__):
         for member in vars(module).values():
             if ((getattr(member, '__module__', None) == modulepath)
                     and issubclass(member, sequencetools.InputSequence)):
-                alias = f'{moduleinfo.name}_{objecttools.classname(member)}'
+                alias = f'{moduleinfo.name}_{member.__name__}'
                 locals()[alias] = member
                 __all__.append(alias)
 

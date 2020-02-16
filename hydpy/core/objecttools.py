@@ -78,30 +78,10 @@ def classname(self: Any) -> str:
     'float'
     >>> classname(pub.options)
     'Options'
-
-    Method |classname| also handles classes returning "plain" string
-    representations (this seems to be relevant when using the
-    |typing| module under Python 3.6 only):
-
-    >>> class MetaClass(type):
-    ...     def __repr__(cls):
-    ...         return 'module.Class'
-    >>> class Class(metaclass=MetaClass):
-    ...     pass
-    >>> classname(Class)
-    'Class'
-    >>> classname(Class())
-    'Class'
     """
     if inspect.isclass(self):
-        string = str(self)
-    else:
-        string = str(type(self))
-    try:
-        string = string.split("'")[1]
-    except IndexError:
-        pass
-    return string.split('.')[-1]
+        return self.__name__
+    return type(self).__name__
 
 
 def instancename(self: Any) -> str:

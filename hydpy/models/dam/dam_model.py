@@ -334,7 +334,6 @@ class Calc_SurfaceArea_V1(modeltools.Method):
         aid.surfacearea = 1./con.watervolume2waterlevel.output_derivatives[0]
 
 
-
 class Calc_AllowedRemoteRelieve_V2(modeltools.Method):
     """Calculate the allowed maximum relieve another location
     is allowed to discharge into the dam.
@@ -1741,13 +1740,13 @@ class Calc_ActualRelease_V1(modeltools.Method):
 
         **Example 1**
 
-        Firstly, we define a sharp minimum water level of 0 m:
+        Firstly, we define a sharp minimum water level tolerance of 0 m:
 
-        >>> waterlevelminimumthreshold(0.)
-        >>> waterlevelminimumtolerance(0.)
+        >>> waterlevelminimumthreshold(0.0)
+        >>> waterlevelminimumtolerance(0.0)
         >>> derived.waterlevelminimumsmoothpar.update()
 
-        The following test results show that the water releae is reduced
+        The following test results show that the water release is reduced
         to 0 m³/s for water levels (even slightly) lower than 0 m and is
         identical with the required value of 2 m³/s (even slighlty) above 0 m:
 
@@ -1849,6 +1848,111 @@ class Calc_ActualRelease_V1(modeltools.Method):
                              smoothutils.smooth_logistic1(
                                  aid.waterlevel-con.waterlevelminimumthreshold,
                                  der.waterlevelminimumsmoothpar))
+
+
+class Calc_ActualRelease_V2(modeltools.Method):
+    """Calculate the actual water release in aggrement with the allowed
+    release not causing harm downstream and the actual water volume.
+
+    Used auxiliary method:
+      |smooth_logistic1|
+
+    Basic equation:
+      :math:`ActualRelease = AllowedRelease \\cdot
+      smooth_{logistic1}(WaterLevel, WaterLevelMinimumSmoothPar)`
+
+    Examples:
+
+        We assume a short simulation period spanning the last and first
+        two days of March and April, respectively:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = '2001-03-30', '2001-04-03', '1d'
+
+        We prepare the dam model and set the allowed release to 2 m³/s and
+        to 4 m³/s for March and February, respectively, and set the water
+        level threshold to 0.5 m:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> allowedrelease(_11_1_12=2.0, _03_31_12=2.0,
+        ...                _04_1_12=4.0, _10_31_12=4.0)
+        >>> waterlevelminimumthreshold(0.5)
+        >>> derived.toy.update()
+
+        Next, wrepare a test function, that calculates the actual water release
+        for water levels ranging between 0.1 and 0.9 m:
+
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(model, model.calc_actualrelease_v2,
+        ...                 last_example=9,
+        ...                 parseqs=(aides.waterlevel,
+        ...                          fluxes.actualrelease))
+        >>> test.nexts.waterlevel = 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9
+
+        First, we define a sharp minimum water level tolerance of 0 m,
+        resulting in a sharp transition from 0 to 2 m³/s around the a
+        water level threshold of 0.5 m, shown for the 31st March:
+
+        >>> model.idx_sim = pub.timegrids.init['2001-03-31']
+        >>> waterlevelminimumtolerance(0.0)
+        >>> derived.waterlevelminimumsmoothpar.update()
+        >>> test()
+        | ex. | waterlevel | actualrelease |
+        ------------------------------------
+        |   1 |        0.1 |           0.0 |
+        |   2 |        0.2 |           0.0 |
+        |   3 |        0.3 |           0.0 |
+        |   4 |        0.4 |           0.0 |
+        |   5 |        0.5 |           1.0 |
+        |   6 |        0.6 |           2.0 |
+        |   7 |        0.7 |           2.0 |
+        |   8 |        0.8 |           2.0 |
+        |   9 |        0.9 |           2.0 |
+
+        Second, we define a numerically more sensible tolerance value
+        of 0.1 m, causing 98 % of the variation of the actual release
+        to occur between water levels of 0.4 m and 0.6 m, shown for
+        the 1th April:
+
+        >>> model.idx_sim = pub.timegrids.init['2001-04-01']
+        >>> waterlevelminimumtolerance(0.1)
+        >>> derived.waterlevelminimumsmoothpar.update()
+        >>> test()
+        | ex. | waterlevel | actualrelease |
+        ------------------------------------
+        |   1 |        0.1 |           0.0 |
+        |   2 |        0.2 |      0.000004 |
+        |   3 |        0.3 |      0.000408 |
+        |   4 |        0.4 |          0.04 |
+        |   5 |        0.5 |           2.0 |
+        |   6 |        0.6 |          3.96 |
+        |   7 |        0.7 |      3.999592 |
+        |   8 |        0.8 |      3.999996 |
+        |   9 |        0.9 |           4.0 |
+    """
+    CONTROLPARAMETERS = (
+        dam_control.AllowedRelease,
+        dam_control.WaterLevelMinimumThreshold,
+    )
+    DERIVEDPARAMETERS = (
+        dam_derived.WaterLevelMinimumSmoothPar,
+    )
+    RESULTSEQUENCES = (
+        dam_fluxes.ActualRelease,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        aid = model.sequences.aides.fastaccess
+        flu.actualrelease = (
+            con.allowedrelease[der.toy[model.idx_sim]] *
+            smoothutils.smooth_logistic1(
+                aid.waterlevel-con.waterlevelminimumthreshold,
+                der.waterlevelminimumsmoothpar))
 
 
 class Calc_MissingRemoteRelease_V1(modeltools.Method):
@@ -2768,6 +2872,7 @@ class Model(modeltools.ELSModel):
         Calc_WaterLevel_V1,
         Calc_SurfaceArea_V1,
         Calc_ActualRelease_V1,
+        Calc_ActualRelease_V2,
         Calc_PossibleRemoteRelieve_V1,
         Calc_ActualRemoteRelieve_V1,
         Calc_ActualRemoteRelease_V1,

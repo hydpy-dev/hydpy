@@ -170,3 +170,8 @@ class AllowedWaterLevelDrop(parametertools.Parameter):
 class AllowedWaterLevelDropTolerance(parametertools.Parameter):
     """Smoothing parameter associated with |AllowedWaterLevelDrop| [m³/s]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+
+class AllowedRelease(parametertools.SeasonalParameter):
+    """The maximum water release not causing any harm downstream [m³/s]."""
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)

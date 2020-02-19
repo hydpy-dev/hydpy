@@ -72,10 +72,6 @@ class NearDischargeMinimumThreshold(parametertools.SeasonalParameter):
     not be undercut by the actual discharge [m³/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
-    def __call__(self, *args, **kwargs):
-        self.shape = (None, )
-        parametertools.SeasonalParameter.__call__(self, *args, **kwargs)
-
 
 class NearDischargeMinimumTolerance(parametertools.SeasonalParameter):
     """A tolerance value for the "near discharge minimum" [m³/s]."""
@@ -167,11 +163,40 @@ class AllowedWaterLevelDrop(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, True, (0.0, None)
 
 
-class AllowedWaterLevelDropTolerance(parametertools.Parameter):
-    """Smoothing parameter associated with |AllowedWaterLevelDrop| [m³/s]."""
+class AllowedDischargeTolerance(parametertools.Parameter):
+    """Smoothing parameter eventually associated with |AllowedWaterLevelDrop|
+    [m³/s]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
 
 class AllowedRelease(parametertools.SeasonalParameter):
     """The maximum water release not causing any harm downstream [m³/s]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+
+
+class TargetVolume(parametertools.SeasonalParameter):
+    """The desired volume of water to be stored within the dam at specific
+    times of the year [Mio. m³]."""
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+
+
+class TargetRangeAbsolute(parametertools.Parameter):
+    """The absolute interpolation range related to parameter |TargetVolume|
+    [Mio. m³]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+
+class TargetRangeRelative(parametertools.Parameter):
+    """The relative interpolation range related to parameter |TargetVolume|
+    [Mio. m³]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+
+class VolumeTolerance(parametertools.Parameter):
+    """Smoothing parameter for volume related smoothing operations [Mio. m³]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+
+class DischargeTolerance(parametertools.Parameter):
+    """Smoothing parameter for discharge related smoothing operations [m³/s]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)

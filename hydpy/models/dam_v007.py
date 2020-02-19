@@ -188,7 +188,6 @@ from hydpy.models.dam import dam_solver
 
 
 class Model(modeltools.ELSModel):
-    """Version 6 of HydPy-Dam."""
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,
         dam_solver.RelErrorMax,

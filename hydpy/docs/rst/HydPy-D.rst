@@ -67,3 +67,4 @@ Application model:
    dam_v005
    dam_v006
    dam_v007
+   dam_v008

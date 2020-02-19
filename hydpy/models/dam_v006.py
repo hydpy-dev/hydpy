@@ -52,9 +52,9 @@ Integration examples:
     >>> allowedwaterleveldrop(10.0)
 
     Additionally, we set the value of the related smoothing parameter
-    |AllowedWaterLevelDropTolerance| to 0.1 m³/s:
+    |DischargeTolerance| to 0.1 m³/s:
 
-    >>> allowedwaterleveldroptolerance(0.1)
+    >>> dischargetolerance(0.1)
 
     The purpuse of parameter |CatchmentArea| is only to allow to determine
     reasonable default values for the parameter |AbsErrorMax|, controlling
@@ -248,6 +248,7 @@ class Model(modeltools.ELSModel):
         dam_model.Calc_WaterLevel_V1,
         dam_model.Calc_SurfaceArea_V1,
         dam_model.Calc_FloodDischarge_V1,
+        dam_model.Calc_AllowedDischarge_V1,
         dam_model.Calc_Outflow_V2,
     )
     FULL_ODE_METHODS = (

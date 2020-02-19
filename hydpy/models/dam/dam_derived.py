@@ -333,13 +333,13 @@ class HighestRemoteSmoothPar(parametertools.Parameter):
                  )
 
 
-class AllowedWaterLevelDropSmoothPar(parametertools.Parameter):
-    """Smoothing parameter to be derived from |AllowedWaterLevelDropTolerance|
-    for smoothing kernel |smooth_min1| [m³/s]."""
+class VolumeSmoothParLog1(parametertools.Parameter):
+    """Smoothing parameter to be derived from |VolumeTolerance|
+    for smoothing kernel |smooth_logistic1| [Mio. m³]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
 
     CONTROLPARAMETERS = (
-        dam_control.AllowedWaterLevelDropTolerance,
+        dam_control.VolumeTolerance,
     )
 
     def update(self):
@@ -350,18 +350,84 @@ class AllowedWaterLevelDropSmoothPar(parametertools.Parameter):
 
         >>> from hydpy.models.dam import *
         >>> parameterstep()
-        >>> allowedwaterleveldroptolerance(0.0)
-        >>> derived.allowedwaterleveldropsmoothpar.update()
-        >>> from hydpy.cythons.smoothutils import smooth_max1
+        >>> volumetolerance(0.0)
+        >>> derived.volumesmoothparlog1.update()
+        >>> from hydpy.cythons.smoothutils import smooth_logistic1
         >>> from hydpy import round_
-        >>> round_(smooth_max1(
-        ...     4.0, 1.5, derived.allowedwaterleveldropsmoothpar))
+        >>> round_(smooth_logistic1(0.1, derived.volumesmoothparlog1))
+        1.0
+        >>> volumetolerance(2.5)
+        >>> derived.volumesmoothparlog1.update()
+        >>> round_(smooth_logistic1(2.5, derived.volumesmoothparlog1))
+        0.99
+        """
+        self(smoothtools.calc_smoothpar_logistic1(
+            self.subpars.pars.control.volumetolerance))
+
+
+class VolumeSmoothParLog2(parametertools.Parameter):
+    """Smoothing parameter to be derived from |VolumeTolerance|
+    for smoothing kernel |smooth_logistic2| [Mio. m³]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+
+    CONTROLPARAMETERS = (
+        dam_control.VolumeTolerance,
+    )
+
+    def update(self):
+        """Calculate the smoothing parameter value.
+
+        The following example is explained in some detail in module
+        |smoothtools|:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> from hydpy.cythons.smoothutils import smooth_logistic2
+        >>> from hydpy import round_
+        >>> volumetolerance(0.0)
+        >>> derived.volumesmoothparlog2.update()
+        >>> round_(smooth_logistic2(0.0, derived.volumesmoothparlog2))
+        0.0
+        >>> volumetolerance(2.5)
+        >>> derived.volumesmoothparlog2.update()
+        >>> round_(smooth_logistic2(2.5, derived.volumesmoothparlog2))
+        2.51
+        """
+        self(smoothtools.calc_smoothpar_logistic2(
+            self.subpars.pars.control.volumetolerance))
+
+
+class DischargeSmoothPar(parametertools.Parameter):
+    """Smoothing parameter to be derived from |DischargeTolerance|
+    for smoothing kernels |smooth_min1| and |smooth_max1| [m³/s]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+
+    CONTROLPARAMETERS = (
+        dam_control.DischargeTolerance,
+    )
+
+    def update(self):
+        """Calculate the smoothing parameter value.
+
+        The following example is explained in some detail in module
+        |smoothtools|:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> dischargetolerance(0.0)
+        >>> derived.dischargesmoothpar.update()
+        >>> from hydpy.cythons.smoothutils import smooth_max1, smooth_min1
+        >>> from hydpy import round_
+        >>> round_(smooth_max1(4.0, 1.5, derived.dischargesmoothpar))
         4.0
-        >>> allowedwaterleveldroptolerance(2.5)
-        >>> derived.allowedwaterleveldropsmoothpar.update()
-        >>> round_(smooth_max1(
-        ...     4.0, 1.5, derived.allowedwaterleveldropsmoothpar))
+        >>> round_(smooth_min1(4.0, 1.5, derived.dischargesmoothpar))
+        1.5
+        >>> dischargetolerance(2.5)
+        >>> derived.dischargesmoothpar.update()
+        >>> round_(smooth_max1(4.0, 1.5, derived.dischargesmoothpar))
         4.01
+        >>> round_(smooth_min1(4.0, 1.5, derived.dischargesmoothpar))
+        1.49
         """
         self(smoothtools.calc_smoothpar_max1(
-            self.subpars.pars.control.allowedwaterleveldroptolerance))
+            self.subpars.pars.control.dischargetolerance))

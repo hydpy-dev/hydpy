@@ -1955,6 +1955,567 @@ class Calc_ActualRelease_V2(modeltools.Method):
                 der.waterlevelminimumsmoothpar))
 
 
+class Calc_ActualRelease_V3(modeltools.Method):
+    """Calculate an actual water release that tries change the water storage
+    into the direction of the actual target volume without violating the
+    required minimum and the allowed maximum flow.
+
+    Used auxiliary methods:
+      |smooth_logistic1|
+      |smooth_logistic2|
+      |smooth_min1|
+      |smooth_max1|
+
+    Examples:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = '2001-03-30', '2001-04-03', '1d'
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> targetvolume(_11_1_12=5.0, _03_31_12=5.0,
+        ...              _04_1_12=0.0, _10_31_12=0.0)
+        >>> neardischargeminimumthreshold(_11_1_12=3.0, _03_31_12=3.0,
+        ...                               _04_1_12=0.0, _10_31_12=0.0)
+        >>> targetrangeabsolute(0.1)
+        >>> targetrangerelative(0.2)
+        >>> derived.toy.update()
+
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(model, model.calc_actualrelease_v3,
+        ...                 last_example=31,
+        ...                 parseqs=(states.watervolume,
+        ...                          fluxes.actualrelease))
+        >>> import numpy
+        >>> test.nexts.watervolume = numpy.arange(3.5, 6.6, 0.1)
+
+        >>> model.idx_sim = pub.timegrids.init['2001-03-31']
+        >>> aides.alloweddischarge = 6.0
+        >>> fluxes.inflow = 4.0
+
+        >>> def set_tolerances(value):
+        ...     volumetolerance(value)
+        ...     dischargetolerance(value)
+        ...     derived.volumesmoothparlog1.update()
+        ...     derived.volumesmoothparlog2.update()
+        ...     derived.dischargesmoothpar.update()
+        >>> set_tolerances(0.0)
+
+        >>> test()
+        | ex. | watervolume | actualrelease |
+        -------------------------------------
+        |   1 |         3.5 |           3.0 |
+        |   2 |         3.6 |           3.0 |
+        |   3 |         3.7 |           3.0 |
+        |   4 |         3.8 |           3.0 |
+        |   5 |         3.9 |           3.0 |
+        |   6 |         4.0 |           3.0 |
+        |   7 |         4.1 |           3.1 |
+        |   8 |         4.2 |           3.2 |
+        |   9 |         4.3 |           3.3 |
+        |  10 |         4.4 |           3.4 |
+        |  11 |         4.5 |           3.5 |
+        |  12 |         4.6 |           3.6 |
+        |  13 |         4.7 |           3.7 |
+        |  14 |         4.8 |           3.8 |
+        |  15 |         4.9 |           3.9 |
+        |  16 |         5.0 |           4.0 |
+        |  17 |         5.1 |           4.2 |
+        |  18 |         5.2 |           4.4 |
+        |  19 |         5.3 |           4.6 |
+        |  20 |         5.4 |           4.8 |
+        |  21 |         5.5 |           5.0 |
+        |  22 |         5.6 |           5.2 |
+        |  23 |         5.7 |           5.4 |
+        |  24 |         5.8 |           5.6 |
+        |  25 |         5.9 |           5.8 |
+        |  26 |         6.0 |           6.0 |
+        |  27 |         6.1 |           6.0 |
+        |  28 |         6.2 |           6.0 |
+        |  29 |         6.3 |           6.0 |
+        |  30 |         6.4 |           6.0 |
+        |  31 |         6.5 |           6.0 |
+
+        >>> set_tolerances(0.1)
+        >>> test()
+        | ex. | watervolume | actualrelease |
+        -------------------------------------
+        |   1 |         3.5 |      3.000013 |
+        |   2 |         3.6 |      3.000068 |
+        |   3 |         3.7 |      3.000369 |
+        |   4 |         3.8 |      3.001974 |
+        |   5 |         3.9 |          3.01 |
+        |   6 |         4.0 |      3.040983 |
+        |   7 |         4.1 |          3.11 |
+        |   8 |         4.2 |      3.201974 |
+        |   9 |         4.3 |      3.300369 |
+        |  10 |         4.4 |      3.400068 |
+        |  11 |         4.5 |      3.500013 |
+        |  12 |         4.6 |      3.600002 |
+        |  13 |         4.7 |           3.7 |
+        |  14 |         4.8 |       3.79998 |
+        |  15 |         4.9 |         3.899 |
+        |  16 |         5.0 |           4.0 |
+        |  17 |         5.1 |         4.199 |
+        |  18 |         5.2 |      4.399979 |
+        |  19 |         5.3 |      4.599999 |
+        |  20 |         5.4 |      4.799995 |
+        |  21 |         5.5 |      4.999975 |
+        |  22 |         5.6 |      5.199864 |
+        |  23 |         5.7 |      5.399262 |
+        |  24 |         5.8 |      5.596051 |
+        |  25 |         5.9 |          5.78 |
+        |  26 |         6.0 |      5.918035 |
+        |  27 |         6.1 |          5.98 |
+        |  28 |         6.2 |      5.996051 |
+        |  29 |         6.3 |      5.999262 |
+        |  30 |         6.4 |      5.999864 |
+        |  31 |         6.5 |      5.999975 |
+
+        >>> set_tolerances(0.0)
+        >>> fluxes.inflow = 2.0
+        >>> test()
+        | ex. | watervolume | actualrelease |
+        -------------------------------------
+        |   1 |         3.5 |           3.0 |
+        |   2 |         3.6 |           3.0 |
+        |   3 |         3.7 |           3.0 |
+        |   4 |         3.8 |           3.0 |
+        |   5 |         3.9 |           3.0 |
+        |   6 |         4.0 |           3.0 |
+        |   7 |         4.1 |           3.0 |
+        |   8 |         4.2 |           3.0 |
+        |   9 |         4.3 |           3.0 |
+        |  10 |         4.4 |           3.0 |
+        |  11 |         4.5 |           3.0 |
+        |  12 |         4.6 |           3.0 |
+        |  13 |         4.7 |           3.0 |
+        |  14 |         4.8 |           3.0 |
+        |  15 |         4.9 |           3.0 |
+        |  16 |         5.0 |           3.0 |
+        |  17 |         5.1 |           3.3 |
+        |  18 |         5.2 |           3.6 |
+        |  19 |         5.3 |           3.9 |
+        |  20 |         5.4 |           4.2 |
+        |  21 |         5.5 |           4.5 |
+        |  22 |         5.6 |           4.8 |
+        |  23 |         5.7 |           5.1 |
+        |  24 |         5.8 |           5.4 |
+        |  25 |         5.9 |           5.7 |
+        |  26 |         6.0 |           6.0 |
+        |  27 |         6.1 |           6.0 |
+        |  28 |         6.2 |           6.0 |
+        |  29 |         6.3 |           6.0 |
+        |  30 |         6.4 |           6.0 |
+        |  31 |         6.5 |           6.0 |
+
+        >>> set_tolerances(0.1)
+        >>> test()
+        | ex. | watervolume | actualrelease |
+        -------------------------------------
+        |   1 |         3.5 |           3.0 |
+        |   2 |         3.6 |           3.0 |
+        |   3 |         3.7 |           3.0 |
+        |   4 |         3.8 |           3.0 |
+        |   5 |         3.9 |           3.0 |
+        |   6 |         4.0 |           3.0 |
+        |   7 |         4.1 |           3.0 |
+        |   8 |         4.2 |           3.0 |
+        |   9 |         4.3 |           3.0 |
+        |  10 |         4.4 |           3.0 |
+        |  11 |         4.5 |           3.0 |
+        |  12 |         4.6 |           3.0 |
+        |  13 |         4.7 |      2.999999 |
+        |  14 |         4.8 |      2.999939 |
+        |  15 |         4.9 |         2.997 |
+        |  16 |         5.0 |           3.0 |
+        |  17 |         5.1 |         3.297 |
+        |  18 |         5.2 |      3.599939 |
+        |  19 |         5.3 |      3.899998 |
+        |  20 |         5.4 |      4.199993 |
+        |  21 |         5.5 |      4.499962 |
+        |  22 |         5.6 |      4.799796 |
+        |  23 |         5.7 |      5.098894 |
+        |  24 |         5.8 |      5.394077 |
+        |  25 |         5.9 |          5.67 |
+        |  26 |         6.0 |      5.877052 |
+        |  27 |         6.1 |          5.97 |
+        |  28 |         6.2 |      5.994077 |
+        |  29 |         6.3 |      5.998894 |
+        |  30 |         6.4 |      5.999796 |
+        |  31 |         6.5 |      5.999962 |
+
+        >>> set_tolerances(0.0)
+        >>> fluxes.inflow = 7.0
+        >>> test()
+        | ex. | watervolume | actualrelease |
+        -------------------------------------
+        |   1 |         3.5 |           3.0 |
+        |   2 |         3.6 |           3.0 |
+        |   3 |         3.7 |           3.0 |
+        |   4 |         3.8 |           3.0 |
+        |   5 |         3.9 |           3.0 |
+        |   6 |         4.0 |           3.0 |
+        |   7 |         4.1 |           3.3 |
+        |   8 |         4.2 |           3.6 |
+        |   9 |         4.3 |           3.9 |
+        |  10 |         4.4 |           4.2 |
+        |  11 |         4.5 |           4.5 |
+        |  12 |         4.6 |           4.8 |
+        |  13 |         4.7 |           5.1 |
+        |  14 |         4.8 |           5.4 |
+        |  15 |         4.9 |           5.7 |
+        |  16 |         5.0 |           6.0 |
+        |  17 |         5.1 |           6.0 |
+        |  18 |         5.2 |           6.0 |
+        |  19 |         5.3 |           6.0 |
+        |  20 |         5.4 |           6.0 |
+        |  21 |         5.5 |           6.0 |
+        |  22 |         5.6 |           6.0 |
+        |  23 |         5.7 |           6.0 |
+        |  24 |         5.8 |           6.0 |
+        |  25 |         5.9 |           6.0 |
+        |  26 |         6.0 |           6.0 |
+        |  27 |         6.1 |           6.0 |
+        |  28 |         6.2 |           6.0 |
+        |  29 |         6.3 |           6.0 |
+        |  30 |         6.4 |           6.0 |
+        |  31 |         6.5 |           6.0 |
+
+        >>> set_tolerances(0.1)
+        >>> test()
+        | ex. | watervolume | actualrelease |
+        -------------------------------------
+        |   1 |         3.5 |      3.000038 |
+        |   2 |         3.6 |      3.000204 |
+        |   3 |         3.7 |      3.001106 |
+        |   4 |         3.8 |      3.005923 |
+        |   5 |         3.9 |          3.03 |
+        |   6 |         4.0 |      3.122948 |
+        |   7 |         4.1 |          3.33 |
+        |   8 |         4.2 |      3.605923 |
+        |   9 |         4.3 |      3.901106 |
+        |  10 |         4.4 |      4.200204 |
+        |  11 |         4.5 |      4.500038 |
+        |  12 |         4.6 |      4.800007 |
+        |  13 |         4.7 |      5.100002 |
+        |  14 |         4.8 |      5.400061 |
+        |  15 |         4.9 |         5.703 |
+        |  16 |         5.0 |           6.0 |
+        |  17 |         5.1 |         6.003 |
+        |  18 |         5.2 |      6.000061 |
+        |  19 |         5.3 |      6.000001 |
+        |  20 |         5.4 |           6.0 |
+        |  21 |         5.5 |           6.0 |
+        |  22 |         5.6 |           6.0 |
+        |  23 |         5.7 |           6.0 |
+        |  24 |         5.8 |           6.0 |
+        |  25 |         5.9 |           6.0 |
+        |  26 |         6.0 |           6.0 |
+        |  27 |         6.1 |           6.0 |
+        |  28 |         6.2 |           6.0 |
+        |  29 |         6.3 |           6.0 |
+        |  30 |         6.4 |           6.0 |
+        |  31 |         6.5 |           6.0 |
+
+        >>> set_tolerances(0.0)
+        >>> aides.alloweddischarge = 1.0
+        >>> test()
+        | ex. | watervolume | actualrelease |
+        -------------------------------------
+        |   1 |         3.5 |           3.0 |
+        |   2 |         3.6 |           3.0 |
+        |   3 |         3.7 |           3.0 |
+        |   4 |         3.8 |           3.0 |
+        |   5 |         3.9 |           3.0 |
+        |   6 |         4.0 |           3.0 |
+        |   7 |         4.1 |           3.0 |
+        |   8 |         4.2 |           3.0 |
+        |   9 |         4.3 |           3.0 |
+        |  10 |         4.4 |           3.0 |
+        |  11 |         4.5 |           3.0 |
+        |  12 |         4.6 |           3.0 |
+        |  13 |         4.7 |           3.0 |
+        |  14 |         4.8 |           3.0 |
+        |  15 |         4.9 |           3.0 |
+        |  16 |         5.0 |           3.0 |
+        |  17 |         5.1 |           3.0 |
+        |  18 |         5.2 |           3.0 |
+        |  19 |         5.3 |           3.0 |
+        |  20 |         5.4 |           3.0 |
+        |  21 |         5.5 |           3.0 |
+        |  22 |         5.6 |           3.0 |
+        |  23 |         5.7 |           3.0 |
+        |  24 |         5.8 |           3.0 |
+        |  25 |         5.9 |           3.0 |
+        |  26 |         6.0 |           3.0 |
+        |  27 |         6.1 |           3.0 |
+        |  28 |         6.2 |           3.0 |
+        |  29 |         6.3 |           3.0 |
+        |  30 |         6.4 |           3.0 |
+        |  31 |         6.5 |           3.0 |
+
+        >>> set_tolerances(0.1)
+        >>> test()
+        | ex. | watervolume | actualrelease |
+        -------------------------------------
+        |   1 |         3.5 |      3.000001 |
+        |   2 |         3.6 |      3.000003 |
+        |   3 |         3.7 |      3.000015 |
+        |   4 |         3.8 |      3.000081 |
+        |   5 |         3.9 |       3.00041 |
+        |   6 |         4.0 |       3.00168 |
+        |   7 |         4.1 |      3.004508 |
+        |   8 |         4.2 |      3.008277 |
+        |   9 |         4.3 |       3.01231 |
+        |  10 |         4.4 |      3.016396 |
+        |  11 |         4.5 |      3.020492 |
+        |  12 |         4.6 |       3.02459 |
+        |  13 |         4.7 |      3.028688 |
+        |  14 |         4.8 |      3.032783 |
+        |  15 |         4.9 |      3.036516 |
+        |  16 |         5.0 |      3.020491 |
+        |  17 |         5.1 |      3.000451 |
+        |  18 |         5.2 |      3.000005 |
+        |  19 |         5.3 |           3.0 |
+        |  20 |         5.4 |           3.0 |
+        |  21 |         5.5 |           3.0 |
+        |  22 |         5.6 |           3.0 |
+        |  23 |         5.7 |           3.0 |
+        |  24 |         5.8 |           3.0 |
+        |  25 |         5.9 |           3.0 |
+        |  26 |         6.0 |           3.0 |
+        |  27 |         6.1 |           3.0 |
+        |  28 |         6.2 |           3.0 |
+        |  29 |         6.3 |           3.0 |
+        |  30 |         6.4 |           3.0 |
+        |  31 |         6.5 |           3.0 |
+
+        >>> set_tolerances(0.0)
+        >>> fluxes.inflow = 0.0
+        >>> test()
+        | ex. | watervolume | actualrelease |
+        -------------------------------------
+        |   1 |         3.5 |           3.0 |
+        |   2 |         3.6 |           3.0 |
+        |   3 |         3.7 |           3.0 |
+        |   4 |         3.8 |           3.0 |
+        |   5 |         3.9 |           3.0 |
+        |   6 |         4.0 |           3.0 |
+        |   7 |         4.1 |           3.0 |
+        |   8 |         4.2 |           3.0 |
+        |   9 |         4.3 |           3.0 |
+        |  10 |         4.4 |           3.0 |
+        |  11 |         4.5 |           3.0 |
+        |  12 |         4.6 |           3.0 |
+        |  13 |         4.7 |           3.0 |
+        |  14 |         4.8 |           3.0 |
+        |  15 |         4.9 |           3.0 |
+        |  16 |         5.0 |           3.0 |
+        |  17 |         5.1 |           3.0 |
+        |  18 |         5.2 |           3.0 |
+        |  19 |         5.3 |           3.0 |
+        |  20 |         5.4 |           3.0 |
+        |  21 |         5.5 |           3.0 |
+        |  22 |         5.6 |           3.0 |
+        |  23 |         5.7 |           3.0 |
+        |  24 |         5.8 |           3.0 |
+        |  25 |         5.9 |           3.0 |
+        |  26 |         6.0 |           3.0 |
+        |  27 |         6.1 |           3.0 |
+        |  28 |         6.2 |           3.0 |
+        |  29 |         6.3 |           3.0 |
+        |  30 |         6.4 |           3.0 |
+        |  31 |         6.5 |           3.0 |
+
+        >>> set_tolerances(0.1)
+        >>> test()
+        | ex. | watervolume | actualrelease |
+        -------------------------------------
+        |   1 |         3.5 |           3.0 |
+        |   2 |         3.6 |           3.0 |
+        |   3 |         3.7 |           3.0 |
+        |   4 |         3.8 |           3.0 |
+        |   5 |         3.9 |           3.0 |
+        |   6 |         4.0 |           3.0 |
+        |   7 |         4.1 |           3.0 |
+        |   8 |         4.2 |           3.0 |
+        |   9 |         4.3 |           3.0 |
+        |  10 |         4.4 |           3.0 |
+        |  11 |         4.5 |           3.0 |
+        |  12 |         4.6 |           3.0 |
+        |  13 |         4.7 |           3.0 |
+        |  14 |         4.8 |      2.999995 |
+        |  15 |         4.9 |      2.999549 |
+        |  16 |         5.0 |      2.979509 |
+        |  17 |         5.1 |      2.963484 |
+        |  18 |         5.2 |      2.967217 |
+        |  19 |         5.3 |      2.971312 |
+        |  20 |         5.4 |       2.97541 |
+        |  21 |         5.5 |      2.979508 |
+        |  22 |         5.6 |      2.983604 |
+        |  23 |         5.7 |       2.98769 |
+        |  24 |         5.8 |      2.991723 |
+        |  25 |         5.9 |      2.995492 |
+        |  26 |         6.0 |       2.99832 |
+        |  27 |         6.1 |       2.99959 |
+        |  28 |         6.2 |      2.999919 |
+        |  29 |         6.3 |      2.999985 |
+        |  30 |         6.4 |      2.999997 |
+        |  31 |         6.5 |      2.999999 |
+
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(model, model.calc_actualrelease_v3,
+        ...                 last_example=21,
+        ...                 parseqs=(states.watervolume,
+        ...                          fluxes.actualrelease))
+        >>> test.nexts.watervolume = numpy.arange(-0.5, 1.6, 0.1)
+        >>> model.idx_sim = pub.timegrids.init['2001-04-01']
+        >>> fluxes.inflow = 0.0
+        >>> set_tolerances(0.0)
+        >>> test()
+        | ex. | watervolume | actualrelease |
+        -------------------------------------
+        |   1 |        -0.5 |           0.0 |
+        |   2 |        -0.4 |           0.0 |
+        |   3 |        -0.3 |           0.0 |
+        |   4 |        -0.2 |           0.0 |
+        |   5 |        -0.1 |           0.0 |
+        |   6 |         0.0 |           0.0 |
+        |   7 |         0.1 |           1.0 |
+        |   8 |         0.2 |           1.0 |
+        |   9 |         0.3 |           1.0 |
+        |  10 |         0.4 |           1.0 |
+        |  11 |         0.5 |           1.0 |
+        |  12 |         0.6 |           1.0 |
+        |  13 |         0.7 |           1.0 |
+        |  14 |         0.8 |           1.0 |
+        |  15 |         0.9 |           1.0 |
+        |  16 |         1.0 |           1.0 |
+        |  17 |         1.1 |           1.0 |
+        |  18 |         1.2 |           1.0 |
+        |  19 |         1.3 |           1.0 |
+        |  20 |         1.4 |           1.0 |
+        |  21 |         1.5 |           1.0 |
+
+        >>> set_tolerances(0.1)
+        >>> test()
+        | ex. | watervolume | actualrelease |
+        -------------------------------------
+        |   1 |        -0.5 |           0.0 |
+        |   2 |        -0.4 |           0.0 |
+        |   3 |        -0.3 |           0.0 |
+        |   4 |        -0.2 |      0.000004 |
+        |   5 |        -0.1 |      0.000373 |
+        |   6 |         0.0 |      0.032478 |
+        |   7 |         0.1 |      0.942391 |
+        |   8 |         0.2 |      0.999809 |
+        |   9 |         0.3 |      0.999998 |
+        |  10 |         0.4 |           1.0 |
+        |  11 |         0.5 |           1.0 |
+        |  12 |         0.6 |           1.0 |
+        |  13 |         0.7 |           1.0 |
+        |  14 |         0.8 |           1.0 |
+        |  15 |         0.9 |           1.0 |
+        |  16 |         1.0 |           1.0 |
+        |  17 |         1.1 |           1.0 |
+        |  18 |         1.2 |           1.0 |
+        |  19 |         1.3 |           1.0 |
+        |  20 |         1.4 |           1.0 |
+        |  21 |         1.5 |           1.0 |
+    """
+    CONTROLPARAMETERS = (
+        dam_control.TargetVolume,
+        dam_control.TargetRangeAbsolute,
+        dam_control.TargetRangeRelative,
+        dam_control.NearDischargeMinimumThreshold,
+    )
+    DERIVEDPARAMETERS = (
+        dam_derived.TOY,
+        dam_derived.VolumeSmoothParLog1,
+        dam_derived.VolumeSmoothParLog2,
+        dam_derived.DischargeSmoothPar,
+    )
+    REQUIREDSEQUENCES = (
+        dam_fluxes.Inflow,
+        dam_states.WaterVolume,
+        dam_aides.AllowedDischarge,
+    )
+    RESULTSEQUENCES = (
+        dam_fluxes.ActualRelease,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        new = model.sequences.states.fastaccess_new
+        aid = model.sequences.aides.fastaccess
+        idx_toy = der.toy[model.idx_sim]
+        d_target = con.targetvolume[idx_toy]
+        d_range = max(
+            max(
+                con.targetrangeabsolute,
+                con.targetrangerelative*d_target),
+            1e-6,
+        )
+        d_qmin = con.neardischargeminimumthreshold[idx_toy]
+        d_qmax = smoothutils.smooth_max1(
+            d_qmin,
+            aid.alloweddischarge,
+            der.dischargesmoothpar
+        )
+        d_factor = smoothutils.smooth_logistic2(
+            (new.watervolume-d_target+d_range)/d_range,
+            der.volumesmoothparlog2,
+        )
+        d_bound = smoothutils.smooth_min1(
+            d_qmax,
+            flu.inflow,
+            der.dischargesmoothpar
+        )
+        d_release1 = (
+            (1.-d_factor)*d_qmin +
+            d_factor*smoothutils.smooth_max1(
+                d_qmin,
+                d_bound,
+                der.dischargesmoothpar,
+            )
+        )
+        d_factor = smoothutils.smooth_logistic2(
+            (d_target+d_range-new.watervolume)/d_range,
+            der.volumesmoothparlog2,
+        )
+        d_bound = smoothutils.smooth_max1(
+            d_qmin,
+            flu.inflow,
+            der.dischargesmoothpar
+        )
+        d_release2 = (
+            (1.-d_factor)*d_qmax +
+            d_factor*smoothutils.smooth_min1(
+                d_qmax,
+                d_bound,
+                der.dischargesmoothpar,
+            )
+        )
+        d_weight = smoothutils.smooth_logistic1(
+            d_target-new.watervolume,
+            der.volumesmoothparlog1
+        )
+        flu.actualrelease = d_weight*d_release1 + (1.-d_weight)*d_release2
+        flu.actualrelease = smoothutils.smooth_max1(
+            flu.actualrelease,
+            0.,
+            der.dischargesmoothpar
+        )
+        flu.actualrelease *= smoothutils.smooth_logistic1(
+            new.watervolume,
+            der.volumesmoothparlog1
+        )
+
+
 class Calc_MissingRemoteRelease_V1(modeltools.Method):
     """Calculate the portion of the required remote demand that could not
     be met by the actual discharge release.
@@ -2435,34 +2996,163 @@ class Calc_Outflow_V1(modeltools.Method):
         flu.outflow = max(flu.actualrelease + flu.flooddischarge, 0.)
 
 
-class Calc_Outflow_V2(modeltools.Method):
-    """Calculate the total outflow of the dam, taking the allowed water
-    level drop into account.
-
-    Used additional method:
-      |Fix_Min1_V1|
+class Calc_AllowedDischarge_V1(modeltools.Method):
+    """Calculate the maximum discharge not leading to exceedance of the
+    allowed water level drop.
 
     Basic (discontinuous) equation:
-      :math:`Outflow = min(
-      FloodDischarge, AllowedWaterLevelDrop \\cdot SurfaceArea + Inflow)`
+      :math:`Outflow = AllowedWaterLevelDrop \\cdot SurfaceArea + Inflow`
 
-    Examples:
-
-        We prepare a dam model performing simulations with an hourly step size:
+    Example:
 
         >>> from hydpy.models.dam import *
         >>> parameterstep('1d')
         >>> simulationstep('1h')
 
-        Now we initialise a test function object that performs eight examples
-        with an |AllowedWaterLevelDrop| of 0.1 m/d, an |Inflow| of 2 m³/s, a
-        |SurfaceArea| of 0.864 million m², and a |FloodDischarge| ranging from
-        0 to 8 m³/s:
-
         >>> allowedwaterleveldrop(0.1)
         >>> derived.seconds.update()
         >>> fluxes.inflow = 2.0
         >>> aides.surfacearea = 0.864
+
+
+        >>> model.calc_alloweddischarge_v1()
+        >>> aides.alloweddischarge
+        alloweddischarge(3.0)
+    """
+    CONTROLPARAMETERS = (
+        dam_control.AllowedWaterLevelDrop,
+    )
+    DERIVEDPARAMETERS = (
+        dam_derived.Seconds,
+    )
+    REQUIREDSEQUENCES = (
+        dam_fluxes.Inflow,
+        dam_aides.SurfaceArea,
+    )
+    RESULTSEQUENCES = (
+        dam_aides.AllowedDischarge,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        aid = model.sequences.aides.fastaccess
+        aid.alloweddischarge = \
+            con.allowedwaterleveldrop/der.seconds*aid.surfacearea*1e6+flu.inflow
+
+
+class Calc_AllowedDischarge_V2(modeltools.Method):
+    """Calculate the maximum discharge not leading to exceedance of the
+    allowed water level drop.
+
+    Used additional methods:
+      |smooth_min1|
+
+    Basic (discontinuous) equation:
+      :math:`Outflow = min(AllowedRelease,
+      AllowedWaterLevelDrop \\cdot SurfaceArea + Inflow`
+
+    Example:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = '2001.03.30', '2001.04.03', '1h'
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep('1d')
+
+        >>> allowedwaterleveldrop(0.1)
+        >>> allowedrelease(_11_01_12=1.0, _03_31_12=1.0,
+        ...                _04_01_00=3.0, _04_02_00=3.0,
+        ...                _04_02_12=5.0, _10_31_12=5.0)
+
+        >>> derived.seconds.update()
+        >>> derived.toy.update()
+
+        >>> aides.surfacearea = 0.864
+        >>> from hydpy import UnitTest
+        >>> test = UnitTest(model,
+        ...                 model.calc_alloweddischarge_v2,
+        ...                 last_example=7,
+        ...                 parseqs=(fluxes.inflow,
+        ...                          aides.alloweddischarge))
+        >>> import numpy
+        >>> test.nexts.inflow = 1.0, 1.5, 1.9, 2.0, 2.1, 2.5, 3.0
+
+        >>> model.idx_sim = pub.timegrids.init['2001-04-01']
+
+        >>> dischargetolerance(0.0)
+        >>> derived.dischargesmoothpar.update()
+        >>> test()
+        | ex. | inflow | alloweddischarge |
+        -----------------------------------
+        |   1 |    1.0 |              2.0 |
+        |   2 |    1.5 |              2.5 |
+        |   3 |    1.9 |              2.9 |
+        |   4 |    2.0 |              3.0 |
+        |   5 |    2.1 |              3.0 |
+        |   6 |    2.5 |              3.0 |
+        |   7 |    3.0 |              3.0 |
+
+        >>> dischargetolerance(0.1)
+        >>> derived.dischargesmoothpar.update()
+        >>> test()
+        | ex. | inflow | alloweddischarge |
+        -----------------------------------
+        |   1 |    1.0 |              2.0 |
+        |   2 |    1.5 |         2.499987 |
+        |   3 |    1.9 |             2.89 |
+        |   4 |    2.0 |         2.959017 |
+        |   5 |    2.1 |             2.99 |
+        |   6 |    2.5 |         2.999987 |
+        |   7 |    3.0 |              3.0 |
+    """
+    CONTROLPARAMETERS = (
+        dam_control.AllowedRelease,
+        dam_control.AllowedWaterLevelDrop,
+    )
+    DERIVEDPARAMETERS = (
+        dam_derived.TOY,
+        dam_derived.Seconds,
+        dam_derived.DischargeSmoothPar
+    )
+    REQUIREDSEQUENCES = (
+        dam_fluxes.Inflow,
+        dam_aides.SurfaceArea,
+    )
+    RESULTSEQUENCES = (
+        dam_aides.AllowedDischarge,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        aid = model.sequences.aides.fastaccess
+        aid.alloweddischarge = smoothutils.smooth_min1(
+            con.allowedwaterleveldrop/der.seconds*aid.surfacearea*1e6 +
+            flu.inflow,
+            con.allowedrelease[der.toy[model.idx_sim]],
+            der.dischargesmoothpar,
+        )
+
+
+class Calc_Outflow_V2(modeltools.Method):
+    """Calculate the total outflow of the dam, taking the allowed water
+    discharge into account.
+
+    Used additional method:
+      |Fix_Min1_V1|
+
+    Basic (discontinuous) equation:
+      :math:`Outflow = min(FloodDischarge, AllowedDischarge)`
+
+    Examples:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
         >>> from hydpy import UnitTest
         >>> test = UnitTest(model,
         ...                 model.calc_outflow_v2,
@@ -2471,13 +3161,10 @@ class Calc_Outflow_V2(modeltools.Method):
         ...                          fluxes.outflow))
         >>> test.nexts.flooddischarge = range(8)
 
-        Through setting the value of |AllowedWaterLevelDropSmoothPar| to
-        the lowest possible value, there is no smoothing.  Instead, the
-        shown relationship agrees with a combination of the discontinuous
-        minimum and maximum function:
+        >>> aides.alloweddischarge = 3.0
 
-        >>> allowedwaterleveldroptolerance(0.0)
-        >>> derived.allowedwaterleveldropsmoothpar.update()
+        >>> dischargetolerance(0.0)
+        >>> derived.dischargesmoothpar.update()
         >>> test()
         | ex. | flooddischarge | outflow |
         ----------------------------------
@@ -2490,11 +3177,9 @@ class Calc_Outflow_V2(modeltools.Method):
         |   7 |            6.0 |     3.0 |
         |   8 |            7.0 |     3.0 |
 
-        Setting a sensible |AllowedWaterLevelDropSmoothPar| value results
-        in a moderate smoothing with strictly negative outflow values:
 
-        >>> allowedwaterleveldroptolerance(1.0)
-        >>> derived.allowedwaterleveldropsmoothpar.update()
+        >>> dischargetolerance(1.0)
+        >>> derived.dischargesmoothpar.update()
         >>> test()
         | ex. | flooddischarge |  outflow |
         -----------------------------------
@@ -2506,18 +3191,26 @@ class Calc_Outflow_V2(modeltools.Method):
         |   6 |            5.0 | 2.991603 |
         |   7 |            6.0 | 2.991773 |
         |   8 |            7.0 | 2.991779 |
+
+        >>> aides.alloweddischarge = 0.0
+        >>> test()
+        | ex. | flooddischarge | outflow |
+        ----------------------------------
+        |   1 |            0.0 |     0.0 |
+        |   2 |            1.0 |     0.0 |
+        |   3 |            2.0 |     0.0 |
+        |   4 |            3.0 |     0.0 |
+        |   5 |            4.0 |     0.0 |
+        |   6 |            5.0 |     0.0 |
+        |   7 |            6.0 |     0.0 |
+        |   8 |            7.0 |     0.0 |
     """
-    CONTROLPARAMETERS = (
-        dam_control.AllowedWaterLevelDrop,
-    )
     DERIVEDPARAMETERS = (
-        dam_derived.Seconds,
-        dam_derived.AllowedWaterLevelDropSmoothPar,
+        dam_derived.DischargeSmoothPar,
     )
     REQUIREDSEQUENCES = (
-        dam_fluxes.Inflow,
         dam_fluxes.FloodDischarge,
-        dam_aides.SurfaceArea,
+        dam_aides.AllowedDischarge,
     )
     RESULTSEQUENCES = (
         dam_fluxes.Outflow,
@@ -2525,15 +3218,12 @@ class Calc_Outflow_V2(modeltools.Method):
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
-        d_alloweddischarge = \
-            con.allowedwaterleveldrop/der.seconds*aid.surfacearea*1e6+flu.inflow
         flu.outflow = model.fix_min1_v1(
-            flu.flooddischarge, d_alloweddischarge,
-            der.allowedwaterleveldropsmoothpar, False)
+            flu.flooddischarge, aid.alloweddischarge,
+            der.dischargesmoothpar, False)
 
 
 class Update_WaterVolume_V1(modeltools.Method):
@@ -2871,8 +3561,11 @@ class Model(modeltools.ELSModel):
         Pic_Inflow_V1,
         Calc_WaterLevel_V1,
         Calc_SurfaceArea_V1,
+        Calc_AllowedDischarge_V1,
+        Calc_AllowedDischarge_V2,
         Calc_ActualRelease_V1,
         Calc_ActualRelease_V2,
+        Calc_ActualRelease_V3,
         Calc_PossibleRemoteRelieve_V1,
         Calc_ActualRemoteRelieve_V1,
         Calc_ActualRemoteRelease_V1,

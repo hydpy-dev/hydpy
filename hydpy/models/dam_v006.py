@@ -1,24 +1,24 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
-""""Controlled lake (SEEG) version of HydPy-Dam.
+"""Controlled lake (SEEG) version of HydPy-Dam.
 
-Conceptionally, |dam_v006| corresponds to the "controlled lake" model
-of LARSIM (noted by the "SEEG" option) and therefore to application model
-|llake_v1|.  On the technical side it contrasts to |llake_v1|.  It is, as all
-HydPy-D models,  a "numerical" model instead, with its equations being
-formulated as continuous ordinary differential equations.  Please read
-the documentation on application model |dam_v001| to get an understanding
-on the basics of application model |dam_v006|.  Especially, you should read
-how to set proper smoothing parameter values and how the configure the
-artificial neural networks used to model the relationships between stage and
-water value and between discharge and stage.
+Conceptionally, |dam_v006| corresponds to the "controlled lake" model of
+LARSIM (selectable via the "SEEG" option) and therefore to application model
+|llake_v1|.  On the technical side, it contrasts to |llake_v1|.  Like for
+all models of the HydPy-D family, we implemented its methods as continuous
+ordinary differential equations. Please read the documentation on the
+application model |dam_v001| to get an understanding of the basics of
+application model |dam_v006|.  Especially, you should read how to set proper
+smoothing parameter values and how to configure the artificial neural
+networks used to model the relationships between stage and volume and
+between discharge and stage.
 
 Integration examples:
 
     We shortly repeat the first and the second example of the documentation
-    on application model |llake_v1|, but use application model |dam_v006|,
-    of course.  The "spatial" setting is identical, except that |dam_v006|
-    allows for only one inlet node:
+    on application model |llake_v1| (but use|dam_v006|, of course).  The
+    "spatial" setting is identical, except that |dam_v006| allows for only
+    one inlet node:
 
     >>> from hydpy import pub, Node, Element
     >>> pub.timegrids = '01.01.2000', '21.01.2000', '1d'
@@ -46,8 +46,8 @@ Integration examples:
     ...     intercepts_hidden=0.0, intercepts_output=-4e7/2))
 
     For the first example, we set the |AllowedWaterLevelDrop| to the
-    very large value 10 m/d, to make sure this possible restriction
-    does not affect caculated lake outflow at all:
+    very large value of 10 m/d, to make sure this possible restriction
+    does not affect the calculated lake outflow:
 
     >>> allowedwaterleveldrop(10.0)
 
@@ -56,9 +56,9 @@ Integration examples:
 
     >>> dischargetolerance(0.1)
 
-    The purpuse of parameter |CatchmentArea| is only to allow to determine
-    reasonable default values for the parameter |AbsErrorMax|, controlling
-    the accuracy of the numerical integration process:
+    The purpose of parameter |CatchmentArea| is to allow to determine
+    reasonable default values for the parameter |AbsErrorMax| automatically,
+    controlling the accuracy of the numerical integration process:
 
     >>> catchmentarea(86.4)
     >>> from hydpy import round_
@@ -68,19 +68,19 @@ Integration examples:
     >>> solver.abserrormax
     abserrormax(0.01)
 
-    The inflow data is identical to the one of the example on application
+    The inflow data is identical to the data of the example on application
     model |llake_v1| but supplied via one node only:
 
     >>> input_.sequences.sim.series = [
     ...     0.0, 1.0, 6.0, 12.0, 10.0, 6.0, 3.0, 2.0, 1.0, 0.0,
     ...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
-    In the documentation on application model |llake_v1|, we calculate
-    this first test case twice, choosing an interal integration step size of
+    In the documentation on application model |llake_v1|, we calculate this
+    first test case twice, choosing an internal integration step size of
     1 day and one hour in the first and the fourth example, respectively.
-    The results of application model |dam_v006|, using its standard
-    solver parameterisation, are more similar to the ones of the more
-    accurate results of the hourly internal step size:
+    The results of |dam_v006|, using its standard solver parameterisation,
+    are more similar to the ones of the more accurate results of the hourly
+    internal step size:
 
     >>> test('dam_v006_ex1a')
     |   date | inflow | flooddischarge |  outflow | watervolume | input_ |   output |
@@ -116,14 +116,14 @@ Integration examples:
         ></iframe>
 
     |dam_v006| achieves this sufficiently high accuracy with 174 calls to
-    the system of differential equations, which averages to less then nine
+    the system of differential equations, which averages to less than nine
     calls per day:
 
     >>> model.numvars.nmb_calls
     174
 
     Through increasing the numerical tolerance, e.g. setting |AbsErrorMax|
-    to 0.1 m³/s, we can gain some additional speed ups without to relevant
+    to 0.1 m³/s, we can gain some additional speedups without relevant
     deteriorations of the results (|dam_v006| usually achieves higher
     accuracies than indicated by the actual tolerance value):
 
@@ -166,10 +166,10 @@ Integration examples:
     104
 
     After setting |AllowedWaterLevelDrop| to 0.1 m/d, the resulting outflow
-    hydrograph shows the same a plateau in its falling limb as in the results
-    of application model |llake_v1|.  Again, there is higher aggreement to
+    hydrograph shows the same plateau in its falling limb as in the results
+    of application model |llake_v1|.  Again, there a better agreement to
     the more precise results accomplished by an hourly stepsize (example 5)
-    instead of an daily stepsize (example 2):
+    instead of a daily stepsize (example 2):
 
     >>> model.numvars.nmb_calls = 0
     >>> solver.abserrormax(0.01)
@@ -213,8 +213,8 @@ Integration examples:
     132
 
     However, when comparing it to the number of calls of |llake_v1|, one
-    must take the additional overhead of integration algorithm and the
-    smoothing of the (originally) dicontinuous differential equations
+    must take the additional overhead of the integration algorithm and the
+    smoothing of the (formerly) discontinuous differential equations
     into account.
 """
 # import...

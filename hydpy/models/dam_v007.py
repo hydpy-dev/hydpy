@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, wildcard-import, unused-wildcard-import
-""""Retention basin (RUEC) version of HydPy-Dam.
+"""Retention basin (RUEC) version of HydPy-Dam.
 
-|dam_v007| is a simple "retention basin" model, like the one provided
-by the "RUEC" option of LARSIM.  Therefore, it resembles |dam_v006|,
+|dam_v007| is a simple "retention basin" model, like the one selectable
+via by the "RUEC" option of LARSIM.  Therefore, it resembles |dam_v006|,
 which corresponds to LARSIM's "SEEG" option.  The description of the
 (numerical)  implementation differences between |dam_v006| and "SEEG"
 also holds for the differences between |dam_v007| and "RUEC".
 
 Integration examples:
 
-    We create the exact same test setting as for application model |dam_v006|,
-    including an identical inflow series and relationship between stage and
-    volume as well as between flood discharge and stage:
+    We create the same test set as for application model |dam_v006|,
+    including an identical inflow series and an identical relationship
+    between stage and volume as well as between flood discharge and stage:
 
     >>> from hydpy import pub, Node, Element
     >>> pub.timegrids = '01.01.2000', '21.01.2000', '1d'
@@ -39,8 +39,8 @@ Integration examples:
     ...     0.0, 1.0, 6.0, 12.0, 10.0, 6.0, 3.0, 2.0, 1.0, 0.0,
     ...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
-    In the first example, we set the allowed release to 0 m³/s (which
-    makes the setting of the two water related control parameters irrelevant).
+    In the first example, we set the allowed release to 0 m³/s (which makes
+    the values of the two water-related control parameters irrelevant).
 
     >>> allowedrelease(0.0)
     >>> waterlevelminimumtolerance(0.1)
@@ -84,14 +84,14 @@ Integration examples:
         ></iframe>
 
     In the second example, we introduce a more realistic relationship
-    between flood discharge and stage.  Now, the spillways start to become
-    relevant when the water volume exceeds around 1.4 Mio. m³:
+    between flood discharge and stage.  Now, the spillway starts to become
+    relevant when the water volume exceeds around 1.4 million m³:
 
     >>> waterlevel2flooddischarge(ann(
     ...     weights_input=10.0, weights_output=50.0,
     ...     intercepts_hidden=-20.0, intercepts_output=0.0))
 
-    The initially available storage volume of about 1.4 Mio. m³ reduces
+    The initially available storage volume of about 1.4 million m³ reduces
     the peak flow to 7.3 m³/s:
 
     >>> test('dam_v007_ex2a')
@@ -127,11 +127,11 @@ Integration examples:
             frameborder=0
         ></iframe>
 
-    In the last example, a second event following the first one could not be
-    handled as well, as the spillways cannot release the remaining water.
-    Setting the allowed release to 4 m³/s solves this problem and also
-    decreases the amount of water stored during the beginning of the event
-    and thus further reduces the peak flow to 4.6 m³/s:
+    In the last example, |dam_v007| could not handle a second event following
+    the first one similarly well, as the spillway does not release the
+    remaining water.  Setting the allowed release to 4 m³/s solves this
+    problem and also decreases the amount of water stored during the beginning
+    of the event and thus further reduces the peak flow to 4.6 m³/s:
 
     >>> allowedrelease(4.0)
     >>> waterlevelminimumthreshold(0.1)
@@ -168,13 +168,13 @@ Integration examples:
             frameborder=0
         ></iframe>
 
-    The initial and final water volumes shown in the last table are slighlty
-    negative, which is caused by the periods of zero inflow in combination
-    with setting the value of parameter |WaterLevelMinimumTolerance| to
+    The initial and final water volumes shown in the last table are slightly
+    negative, which is due to the periods of zero inflow in combination
+    with the value of parameter |WaterLevelMinimumTolerance| set to
     0.1 m.  One could avoid such negative values by increasing the value
     of parameter |WaterLevelMinimumThreshold| or decreasing the value of
     parameter |WaterLevelMinimumTolerance|.  Theoretically, one could set
-    |WaterLevelMinimumTolerance| to zero, but at the cost of potientially
+    |WaterLevelMinimumTolerance| to zero, but at the cost of potentially
     increased computation times.
 """
 # import...
@@ -188,6 +188,7 @@ from hydpy.models.dam import dam_solver
 
 
 class Model(modeltools.ELSModel):
+    """Version 7 of HydPy-Dam."""
     SOLVERPARAMETERS = (
         dam_solver.AbsErrorMax,
         dam_solver.RelErrorMax,

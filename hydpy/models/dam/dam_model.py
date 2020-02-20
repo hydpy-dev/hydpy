@@ -1968,6 +1968,12 @@ class Calc_ActualRelease_V3(modeltools.Method):
 
     Examples:
 
+        Method |Calc_ActualRelease_V3| is quite complex.  As it is the key
+        component of application model |dam_v008|, we advise to read its
+        documentation including some introductory examples first, and to
+        inspect the following detailled examples afterwards, which hopefully
+        cover all of the mentioned corner cases.
+
         >>> from hydpy import pub
         >>> pub.timegrids = '2001-03-30', '2001-04-03', '1d'
 
@@ -1999,8 +2005,10 @@ class Calc_ActualRelease_V3(modeltools.Method):
         ...     derived.volumesmoothparlog1.update()
         ...     derived.volumesmoothparlog2.update()
         ...     derived.dischargesmoothpar.update()
-        >>> set_tolerances(0.0)
 
+        Standard case, without smoothing:
+
+        >>> set_tolerances(0.0)
         >>> test()
         | ex. | watervolume | actualrelease |
         -------------------------------------
@@ -2035,6 +2043,8 @@ class Calc_ActualRelease_V3(modeltools.Method):
         |  29 |         6.3 |           6.0 |
         |  30 |         6.4 |           6.0 |
         |  31 |         6.5 |           6.0 |
+
+        Standard case, moderate smoothing:
 
         >>> set_tolerances(0.1)
         >>> test()
@@ -2071,6 +2081,8 @@ class Calc_ActualRelease_V3(modeltools.Method):
         |  29 |         6.3 |      5.999262 |
         |  30 |         6.4 |      5.999864 |
         |  31 |         6.5 |      5.999975 |
+
+        Inflow smaller than minimum release, without smoothing:
 
         >>> set_tolerances(0.0)
         >>> fluxes.inflow = 2.0
@@ -2109,6 +2121,8 @@ class Calc_ActualRelease_V3(modeltools.Method):
         |  30 |         6.4 |           6.0 |
         |  31 |         6.5 |           6.0 |
 
+        Inflow smaller than minimum release, moderate smoothing:
+
         >>> set_tolerances(0.1)
         >>> test()
         | ex. | watervolume | actualrelease |
@@ -2144,6 +2158,8 @@ class Calc_ActualRelease_V3(modeltools.Method):
         |  29 |         6.3 |      5.998894 |
         |  30 |         6.4 |      5.999796 |
         |  31 |         6.5 |      5.999962 |
+
+        Inflow larger than maximum release, without smoothing:
 
         >>> set_tolerances(0.0)
         >>> fluxes.inflow = 7.0
@@ -2182,6 +2198,8 @@ class Calc_ActualRelease_V3(modeltools.Method):
         |  30 |         6.4 |           6.0 |
         |  31 |         6.5 |           6.0 |
 
+        Inflow larger than maximum release, moderate smoothing:
+
         >>> set_tolerances(0.1)
         >>> test()
         | ex. | watervolume | actualrelease |
@@ -2217,6 +2235,8 @@ class Calc_ActualRelease_V3(modeltools.Method):
         |  29 |         6.3 |           6.0 |
         |  30 |         6.4 |           6.0 |
         |  31 |         6.5 |           6.0 |
+
+        Maximum release smaller than minimum release, without smoothing:
 
         >>> set_tolerances(0.0)
         >>> aides.alloweddischarge = 1.0
@@ -2255,6 +2275,8 @@ class Calc_ActualRelease_V3(modeltools.Method):
         |  30 |         6.4 |           3.0 |
         |  31 |         6.5 |           3.0 |
 
+        Maximum release smaller than minimum release, moderate smoothing:
+
         >>> set_tolerances(0.1)
         >>> test()
         | ex. | watervolume | actualrelease |
@@ -2291,79 +2313,6 @@ class Calc_ActualRelease_V3(modeltools.Method):
         |  30 |         6.4 |           3.0 |
         |  31 |         6.5 |           3.0 |
 
-        >>> set_tolerances(0.0)
-        >>> fluxes.inflow = 0.0
-        >>> test()
-        | ex. | watervolume | actualrelease |
-        -------------------------------------
-        |   1 |         3.5 |           3.0 |
-        |   2 |         3.6 |           3.0 |
-        |   3 |         3.7 |           3.0 |
-        |   4 |         3.8 |           3.0 |
-        |   5 |         3.9 |           3.0 |
-        |   6 |         4.0 |           3.0 |
-        |   7 |         4.1 |           3.0 |
-        |   8 |         4.2 |           3.0 |
-        |   9 |         4.3 |           3.0 |
-        |  10 |         4.4 |           3.0 |
-        |  11 |         4.5 |           3.0 |
-        |  12 |         4.6 |           3.0 |
-        |  13 |         4.7 |           3.0 |
-        |  14 |         4.8 |           3.0 |
-        |  15 |         4.9 |           3.0 |
-        |  16 |         5.0 |           3.0 |
-        |  17 |         5.1 |           3.0 |
-        |  18 |         5.2 |           3.0 |
-        |  19 |         5.3 |           3.0 |
-        |  20 |         5.4 |           3.0 |
-        |  21 |         5.5 |           3.0 |
-        |  22 |         5.6 |           3.0 |
-        |  23 |         5.7 |           3.0 |
-        |  24 |         5.8 |           3.0 |
-        |  25 |         5.9 |           3.0 |
-        |  26 |         6.0 |           3.0 |
-        |  27 |         6.1 |           3.0 |
-        |  28 |         6.2 |           3.0 |
-        |  29 |         6.3 |           3.0 |
-        |  30 |         6.4 |           3.0 |
-        |  31 |         6.5 |           3.0 |
-
-        >>> set_tolerances(0.1)
-        >>> test()
-        | ex. | watervolume | actualrelease |
-        -------------------------------------
-        |   1 |         3.5 |           3.0 |
-        |   2 |         3.6 |           3.0 |
-        |   3 |         3.7 |           3.0 |
-        |   4 |         3.8 |           3.0 |
-        |   5 |         3.9 |           3.0 |
-        |   6 |         4.0 |           3.0 |
-        |   7 |         4.1 |           3.0 |
-        |   8 |         4.2 |           3.0 |
-        |   9 |         4.3 |           3.0 |
-        |  10 |         4.4 |           3.0 |
-        |  11 |         4.5 |           3.0 |
-        |  12 |         4.6 |           3.0 |
-        |  13 |         4.7 |           3.0 |
-        |  14 |         4.8 |      2.999995 |
-        |  15 |         4.9 |      2.999549 |
-        |  16 |         5.0 |      2.979509 |
-        |  17 |         5.1 |      2.963484 |
-        |  18 |         5.2 |      2.967217 |
-        |  19 |         5.3 |      2.971312 |
-        |  20 |         5.4 |       2.97541 |
-        |  21 |         5.5 |      2.979508 |
-        |  22 |         5.6 |      2.983604 |
-        |  23 |         5.7 |       2.98769 |
-        |  24 |         5.8 |      2.991723 |
-        |  25 |         5.9 |      2.995492 |
-        |  26 |         6.0 |       2.99832 |
-        |  27 |         6.1 |       2.99959 |
-        |  28 |         6.2 |      2.999919 |
-        |  29 |         6.3 |      2.999985 |
-        |  30 |         6.4 |      2.999997 |
-        |  31 |         6.5 |      2.999999 |
-
         >>> from hydpy import UnitTest
         >>> test = UnitTest(model, model.calc_actualrelease_v3,
         ...                 last_example=21,
@@ -2372,6 +2321,9 @@ class Calc_ActualRelease_V3(modeltools.Method):
         >>> test.nexts.watervolume = numpy.arange(-0.5, 1.6, 0.1)
         >>> model.idx_sim = pub.timegrids.init['2001-04-01']
         >>> fluxes.inflow = 0.0
+
+        Zero values, without smoothing:
+
         >>> set_tolerances(0.0)
         >>> test()
         | ex. | watervolume | actualrelease |
@@ -2397,6 +2349,8 @@ class Calc_ActualRelease_V3(modeltools.Method):
         |  19 |         1.3 |           1.0 |
         |  20 |         1.4 |           1.0 |
         |  21 |         1.5 |           1.0 |
+
+        Zero values, moderate smoothing:
 
         >>> set_tolerances(0.1)
         >>> test()

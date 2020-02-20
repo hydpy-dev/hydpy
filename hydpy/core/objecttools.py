@@ -78,30 +78,10 @@ def classname(self: Any) -> str:
     'float'
     >>> classname(pub.options)
     'Options'
-
-    Method |classname| also handles classes returning "plain" string
-    representations (this seems to be relevant when using the
-    |typing| module under Python 3.6 only):
-
-    >>> class MetaClass(type):
-    ...     def __repr__(cls):
-    ...         return 'module.Class'
-    >>> class Class(metaclass=MetaClass):
-    ...     pass
-    >>> classname(Class)
-    'Class'
-    >>> classname(Class())
-    'Class'
     """
     if inspect.isclass(self):
-        string = str(self)
-    else:
-        string = str(type(self))
-    try:
-        string = string.split("'")[1]
-    except IndexError:
-        pass
-    return string.split('.')[-1]
+        return self.__name__
+    return type(self).__name__
 
 
 def instancename(self: Any) -> str:
@@ -128,37 +108,6 @@ def value_of_type(value: Any) -> str:
     'value `999` of type `int`'
     """
     return f'value `{value}` of type `{classname(value)}`'
-
-
-def get_name(self: Any) -> str:
-    """Return the name of the class of the given instance in lower case letters.
-
-    This function is thought to be implemented as a property.  Otherwise
-    it would violate the principle not to access or manipulate private
-    attributes ("_name"):
-
-    >>> from hydpy.core.objecttools import get_name
-    >>> class Test:
-    ...     name = property(get_name)
-    >>> test1 = Test()
-    >>> test1.name
-    'test'
-    >>> test1._name
-    'test'
-
-    The private attribute is added for performance reasons only.  Note that
-    it is a class attribute:
-
-    >>> test2 = Test()
-    >>> test2._name
-    'test'
-    """
-    cls = type(self)
-    try:
-        return cls.__dict__['_name']
-    except KeyError:
-        setattr(cls, '_name', instancename(self))
-        return cls.__dict__['_name']
 
 
 def modulename(self: Any) -> str:

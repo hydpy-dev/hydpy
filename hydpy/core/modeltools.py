@@ -12,7 +12,6 @@ https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2009WR008894
 # ...from standard library
 import abc
 import importlib
-import inspect
 import itertools
 import os
 import types
@@ -46,9 +45,8 @@ class Method:
     def __call__(model: 'Model') -> None:
         """The actual calculaton function."""
 
-    __name__ = property(objecttools.get_name)
-
     def __init_subclass__(cls):
+        cls.__name__ = objecttools.classname(cls)
         cls.__call__.CYTHONIZE = True
 
 
@@ -729,7 +727,7 @@ any sequences so far.
     def _sort_variables(variables: Iterable[Type[typingtools.VariableProtocol]]
                         ) -> Tuple[Type[typingtools.VariableProtocol], ...]:
         return tuple(var_ for (idx, var_) in sorted(
-            (inspect.getsourcelines(var_)[1], var_) for var_ in variables
+            (var_.__hydpy__subclasscounter__, var_) for var_ in variables
         ))
 
     # sorting with dependencies, or is the definition order always okay?

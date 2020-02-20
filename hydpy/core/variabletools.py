@@ -944,6 +944,8 @@ operands could not be broadcast together with shapes (2,) (3,)...
 
     strict_valuehandling: ClassVar[bool] = True
 
+    __hydpy__subclasscounter__ = 1
+
     fastaccess: Union[
         'FastAccess',
         typingtools.FastAccessParameterProtocol,
@@ -957,6 +959,12 @@ operands could not be broadcast together with shapes (2,) (3,)...
         self.fastaccess = FastAccess()
         self.__valueready = False
         self.__shapeready = False
+
+    def __init_subclass__(cls):
+        cls.name = objecttools.instancename(cls)
+        subclasscounter = Variable.__hydpy__subclasscounter__ + 1
+        Variable.__hydpy__subclasscounter__ = subclasscounter
+        cls.__hydpy__subclasscounter__ = subclasscounter
 
     @abc.abstractmethod
     def __hydpy__connect_variable2subgroup__(self) -> None:
@@ -1315,15 +1323,6 @@ as `var` can only be `()`, but `(2,)` is given.
             f'The shape information of 0-dimensional variables '
             f'as {objecttools.devicephrase(self)} can only be `()`, '
             f'but `{shape}` is given.')
-
-    @property
-    def name(self):
-        """Name of the class of the given instance in lower case letters.
-
-        See the documentation on function |objecttools.get_name| for
-        additional information.
-        """
-        return objecttools.get_name(self)
 
     def verify(self) -> None:
         """Raises a |RuntimeError| if at least one of the required values

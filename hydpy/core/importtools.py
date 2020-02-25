@@ -245,9 +245,6 @@ def prepare_model(module: Union[types.ModuleType, str],
     model.sequences = prepare_sequences(dict_)
     if hasattr(module, 'Masks'):
         model.masks = module.Masks(model)
-    for submodelclass in module.Model.SUBMODELS:
-        submodel = submodelclass(model)
-        setattr(model, submodel.name, submodel)
     return model
 
 

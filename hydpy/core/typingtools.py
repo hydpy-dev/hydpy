@@ -28,7 +28,7 @@ MayNonerable1 = Union[T, Iterable[T], None]
 MayNonerable2 = Union[T1, T2, Iterable[Union[T1, T2]], None]
 MayNonerable3 = Union[T1, T2, T3, Iterable[Union[T1, T2, T3]], None]
 
-Vector = Mapping[int, float]
+Vector = MutableMapping[int, float]
 
 
 class IterableNonString(abc.ABC):

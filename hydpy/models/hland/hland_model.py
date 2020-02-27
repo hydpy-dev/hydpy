@@ -3,6 +3,8 @@
 # pylint: enable=missing-docstring
 
 # imports...
+# ...from standard library
+import typing
 # ...from HydPy
 from hydpy.core import modeltools
 from hydpy.cythons import modelutils
@@ -15,6 +17,8 @@ from hydpy.models.hland import hland_fluxes
 from hydpy.models.hland import hland_states
 from hydpy.models.hland import hland_logs
 from hydpy.models.hland import hland_outlets
+if typing.TYPE_CHECKING:
+    from hydpy import hland
 
 
 class Calc_TC_V1(modeltools.Method):
@@ -29,7 +33,7 @@ class Calc_TC_V1(modeltools.Method):
         Prepare two zones, the first one lying at the reference
         height and the second one 200 meters above:
 
-        >>> from hydpy.models.hland import *
+        >>> from hydpy.hland import *
         >>> parameterstep('1d')
         >>> nmbzones(2)
         >>> zrelt(2.0)
@@ -57,8 +61,9 @@ class Calc_TC_V1(modeltools.Method):
     RESULTSEQUENCES = (
         hland_fluxes.TC,
     )
+
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: 'hland.Model') -> None:
         con = model.parameters.control.fastaccess
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -74,7 +79,7 @@ class Calc_TMean_V1(modeltools.Method):
         Prepare two zones, the first one being twice as large
         as the second one:
 
-        >>> from hydpy.models.hland import *
+        >>> from hydpy.hland import *
         >>> parameterstep('1d')
         >>> nmbzones(2)
         >>> derived.relzonearea(2.0/3.0, 1.0/3.0)
@@ -99,8 +104,9 @@ class Calc_TMean_V1(modeltools.Method):
     RESULTSEQUENCES = (
         hland_fluxes.TMean,
     )
+
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: 'hland.Model') -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -124,7 +130,7 @@ class Calc_FracRain_V1(modeltools.Method):
         The threshold temperature of seven zones is 0°C and the corresponding
         temperature interval of mixed precipitation 2°C:
 
-        >>> from hydpy.models.hland import *
+        >>> from hydpy.hland import *
         >>> parameterstep('1d')
         >>> nmbzones(7)
         >>> tt(0.0)
@@ -158,8 +164,9 @@ class Calc_FracRain_V1(modeltools.Method):
     RESULTSEQUENCES = (
         hland_fluxes.FracRain,
     )
+
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: 'hland.Model') -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
@@ -185,7 +192,7 @@ class Calc_RFC_SFC_V1(modeltools.Method):
         Assume five zones with different temperatures and hence
         different fractions of rainfall and total precipitation:
 
-        >>> from hydpy.models.hland import *
+        >>> from hydpy.hland import *
         >>> parameterstep('1d')
         >>> nmbzones(5)
         >>> fluxes.fracrain = 0.0, 0.25, 0.5, 0.75, 1.0
@@ -226,8 +233,9 @@ class Calc_RFC_SFC_V1(modeltools.Method):
         hland_fluxes.RfC,
         hland_fluxes.SfC,
     )
+
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: 'hland.Model') -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
@@ -249,7 +257,7 @@ class Calc_PC_V1(modeltools.Method):
         Five zones are at an elevation of 200 m.  A precipitation value
         of 5 mm has been measured at a gauge at an elevation of 300 m:
 
-        >>> from hydpy.models.hland import *
+        >>> from hydpy.hland import *
         >>> parameterstep('1d')
         >>> nmbzones(5)
         >>> zrelp(2.0)
@@ -298,8 +306,9 @@ class Calc_PC_V1(modeltools.Method):
     RESULTSEQUENCES = (
         hland_fluxes.PC,
     )
+
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: 'hland.Model') -> None:
         con = model.parameters.control.fastaccess
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -327,7 +336,7 @@ class Calc_EP_V1(modeltools.Method):
         negative value of the first zone is not meaningful, but used
         for illustration purporses):
 
-        >>> from hydpy.models.hland import *
+        >>> from hydpy.hland import *
         >>> parameterstep('1d')
         >>> nmbzones(4)
         >>> etf(-0.5, 0.0, 0.1, 0.5)
@@ -366,8 +375,9 @@ class Calc_EP_V1(modeltools.Method):
     RESULTSEQUENCES = (
         hland_fluxes.EP,
     )
+
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: 'hland.Model') -> None:
         con = model.parameters.control.fastaccess
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -397,7 +407,7 @@ class Calc_EPC_V1(modeltools.Method):
         potential evaporation value of 2 mm and a (corrected) precipitation
         value of 5 mm have been determined for each zone beforehand:
 
-        >>> from hydpy.models.hland import *
+        >>> from hydpy.hland import *
         >>> parameterstep('1d')
         >>> simulationstep('12h')
         >>> nmbzones(4)
@@ -444,8 +454,9 @@ class Calc_EPC_V1(modeltools.Method):
     RESULTSEQUENCES = (
         hland_fluxes.EPC,
     )
+
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: 'hland.Model') -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbzones):
@@ -475,7 +486,7 @@ class Calc_TF_Ic_V1(modeltools.Method):
         generall maximum interception capacity of 2 mm. All zones receive
         a 0.5 mm input of precipitation:
 
-        >>> from hydpy.models.hland import *
+        >>> from hydpy.hland import *
         >>> parameterstep('1d')
         >>> nmbzones(6)
         >>> zonetype(GLACIER, ILAKE, FIELD, FOREST, FIELD, FIELD)
@@ -534,8 +545,9 @@ class Calc_TF_Ic_V1(modeltools.Method):
     RESULTSEQUENCES = (
         hland_fluxes.TF,
     )
+
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: 'hland.Model') -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -565,7 +577,7 @@ class Calc_EI_Ic_V1(modeltools.Method):
         Initialize six zones of different types.  For all zones
         a (corrected) potential evaporation of 0.5 mm is given:
 
-        >>> from hydpy.models.hland import *
+        >>> from hydpy.hland import *
         >>> parameterstep('1d')
         >>> nmbzones(6)
         >>> zonetype(GLACIER, ILAKE, FIELD, FOREST, FIELD, FIELD)
@@ -621,8 +633,9 @@ class Calc_EI_Ic_V1(modeltools.Method):
     RESULTSEQUENCES = (
         hland_fluxes.EI,
     )
+
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: 'hland.Model') -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -647,7 +660,7 @@ class Calc_SP_WC_V1(modeltools.Method):
         Consider the following setting, in which eight zones of
         different type receive a throughfall of 10mm:
 
-        >>> from hydpy.models.hland import *
+        >>> from hydpy.hland import *
         >>> parameterstep('1d')
         >>> nmbzones(8)
         >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD, FIELD, FIELD)
@@ -698,8 +711,9 @@ class Calc_SP_WC_V1(modeltools.Method):
         hland_states.WC,
         hland_states.SP,
     )
+
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: 'hland.Model') -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -728,7 +742,7 @@ class Calc_Melt_SP_WC_V1(modeltools.Method):
         temperature and degree day factor, but  with different zone types
         and initial ice contents:
 
-        >>> from hydpy.models.hland import *
+        >>> from hydpy.hland import *
         >>> parameterstep('1d')
         >>> simulationstep('12h')
         >>> nmbzones(6)
@@ -809,8 +823,9 @@ class Calc_Melt_SP_WC_V1(modeltools.Method):
     RESULTSEQUENCES = (
         hland_fluxes.Melt,
     )
+
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: 'hland.Model') -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -845,7 +860,7 @@ class Calc_Refr_SP_WC_V1(modeltools.Method):
         temperature, degree day factor and refreezing coefficient, but
         with different zone types and initial states:
 
-        >>> from hydpy.models.hland import *
+        >>> from hydpy.hland import *
         >>> parameterstep('1d')
         >>> simulationstep('12h')
         >>> nmbzones(6)
@@ -947,8 +962,9 @@ class Calc_Refr_SP_WC_V1(modeltools.Method):
     RESULTSEQUENCES = (
         hland_fluxes.Refr,
     )
+
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: 'hland.Model') -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -982,7 +998,7 @@ class Calc_In_WC_V1(modeltools.Method):
         contents of the snow layer and set the relative water holding
         capacity to 20% of the respective frozen water content:
 
-        >>> from hydpy.models.hland import *
+        >>> from hydpy.hland import *
         >>> parameterstep('1d')
         >>> nmbzones(6)
         >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD)
@@ -1044,8 +1060,9 @@ class Calc_In_WC_V1(modeltools.Method):
     RESULTSEQUENCES = (
         hland_fluxes.In_,
     )
+
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: 'hland.Model') -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -1078,7 +1095,7 @@ class Calc_GlMelt_In_V1(modeltools.Method):
         fifth zone is covered by a snow layer and the actual temperature
         of the last two zones is not above the threshold temperature:
 
-        >>> from hydpy.models.hland import *
+        >>> from hydpy.hland import *
         >>> parameterstep('1d')
         >>> simulationstep('12h')
         >>> nmbzones(7)
@@ -1121,8 +1138,9 @@ class Calc_GlMelt_In_V1(modeltools.Method):
     RESULTSEQUENCES = (
         hland_fluxes.GlMelt,
     )
+
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: 'hland.Model') -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1150,7 +1168,7 @@ class Calc_R_SM_V1(modeltools.Method):
         capacity of all fields and forests is set to 200mm, the input
         of each zone is 10mm:
 
-        >>> from hydpy.models.hland import *
+        >>> from hydpy.hland import *
         >>> parameterstep('1d')
         >>> nmbzones(6)
         >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD)
@@ -1212,8 +1230,9 @@ class Calc_R_SM_V1(modeltools.Method):
     RESULTSEQUENCES = (
         hland_fluxes.R,
     )
+
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: 'hland.Model') -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -1243,7 +1262,7 @@ class Calc_CF_SM_V1(modeltools.Method):
         capacity of als fields and forests is set to 200mm, the maximum
         capillary flow rate is 4mm/d:
 
-        >>> from hydpy.models.hland import *
+        >>> from hydpy.hland import *
         >>> parameterstep('1d')
         >>> simulationstep('12h')
         >>> nmbzones(6)
@@ -1353,8 +1372,9 @@ class Calc_CF_SM_V1(modeltools.Method):
     RESULTSEQUENCES = (
         hland_fluxes.CF,
     )
+
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: 'hland.Model') -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -1392,7 +1412,7 @@ class Calc_EA_SM_V1(modeltools.Method):
          of all fields and forests is set to 200mm, potential evaporation
          and interception evaporation are 2mm and 1mm respectively:
 
-        >>> from hydpy.models.hland import *
+        >>> from hydpy.hland import *
         >>> parameterstep('1d')
         >>> nmbzones(7)
         >>> zonetype(ILAKE, GLACIER, FIELD, FOREST, FIELD, FIELD, FIELD)
@@ -1480,8 +1500,9 @@ class Calc_EA_SM_V1(modeltools.Method):
     RESULTSEQUENCES = (
         hland_fluxes.EA,
     )
+
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: 'hland.Model') -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -1515,7 +1536,7 @@ class Calc_InUZ_V1(modeltools.Method):
         Initialize three zones of different relative `land sizes`
         (area related to the total size of the subbasin except lake areas):
 
-        >>> from hydpy.models.hland import *
+        >>> from hydpy.hland import *
         >>> parameterstep('1d')
         >>> nmbzones(3)
         >>> zonetype(FIELD, ILAKE, GLACIER)
@@ -1550,8 +1571,9 @@ class Calc_InUZ_V1(modeltools.Method):
     RESULTSEQUENCES = (
         hland_fluxes.InUZ,
     )
+
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: 'hland.Model') -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1574,7 +1596,7 @@ class Calc_ContriArea_V1(modeltools.Method):
         of the relative contributing area of the catchment (even, if also
         glaciers contribute to the inflow of the upper zone layer):
 
-        >>> from hydpy.models.hland import *
+        >>> from hydpy.hland import *
         >>> parameterstep('1d')
         >>> nmbzones(4)
         >>> zonetype(FIELD, FOREST, GLACIER, ILAKE)
@@ -1652,8 +1674,9 @@ class Calc_ContriArea_V1(modeltools.Method):
     RESULTSEQUENCES = (
         hland_fluxes.ContriArea,
     )
+
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: 'hland.Model') -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1694,7 +1717,7 @@ class Calc_Q0_Perc_UZ_V1(modeltools.Method):
         this option is omitted through setting the |RecStep| parameter to
         one:
 
-        >>> from hydpy.models.hland import *
+        >>> from hydpy.hland import *
         >>> parameterstep('1d')
         >>> simulationstep('12h')
         >>> recstep(2)
@@ -1846,8 +1869,9 @@ class Calc_Q0_Perc_UZ_V1(modeltools.Method):
         hland_fluxes.Perc,
         hland_fluxes.Q0,
     )
+
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: 'hland.Model') -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1887,7 +1911,7 @@ class Calc_LZ_V1(modeltools.Method):
         the actual percolation from the upper zone layer (underneath
         both field zones) is added to the lower zone storage:
 
-        >>> from hydpy.models.hland import *
+        >>> from hydpy.hland import *
         >>> parameterstep('1d')
         >>> nmbzones(2)
         >>> zonetype(FIELD, FIELD)
@@ -1931,8 +1955,9 @@ class Calc_LZ_V1(modeltools.Method):
     UPDATEDSEQUENCES = (
         hland_states.LZ,
     )
+
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: 'hland.Model') -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1964,7 +1989,7 @@ class Calc_EL_LZ_V1(modeltools.Method):
         evaporation is suppressed due to an assumed ice layer, whenever
         the associated theshold temperature is not exceeded:
 
-        >>> from hydpy.models.hland import *
+        >>> from hydpy.hland import *
         >>> parameterstep('1d')
         >>> nmbzones(6)
         >>> zonetype(FIELD, FOREST, GLACIER, ILAKE, ILAKE, ILAKE)
@@ -2008,8 +2033,9 @@ class Calc_EL_LZ_V1(modeltools.Method):
     RESULTSEQUENCES = (
         hland_fluxes.EL,
     )
+
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: 'hland.Model') -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -2038,7 +2064,7 @@ class Calc_Q1_LZ_V1(modeltools.Method):
 
         As long as the lower zone storage is negative...
 
-        >>> from hydpy.models.hland import *
+        >>> from hydpy.hland import *
         >>> parameterstep('1d')
         >>> simulationstep('12h')
         >>> k4(0.2)
@@ -2097,8 +2123,9 @@ class Calc_Q1_LZ_V1(modeltools.Method):
     RESULTSEQUENCES = (
         hland_fluxes.Q1,
     )
+
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: 'hland.Model') -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -2122,7 +2149,7 @@ class Calc_InUH_V1(modeltools.Method):
         In the following example, these occupy only one half of the
         subbasin, which is why the partial input of q0 is halved:
 
-        >>> from hydpy.models.hland import *
+        >>> from hydpy.hland import *
         >>> parameterstep('1d')
         >>> derived.rellandarea = 0.5
         >>> fluxes.q0 = 4.0
@@ -2142,8 +2169,9 @@ class Calc_InUH_V1(modeltools.Method):
     RESULTSEQUENCES = (
         hland_fluxes.InUH,
     )
+
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: 'hland.Model') -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.inuh = der.rellandarea*flu.q0+flu.q1
@@ -2158,7 +2186,7 @@ class Calc_OutUH_QUH_V1(modeltools.Method):
         representing a fast catchment response compared to the selected
         step size:
 
-        >>> from hydpy.models.hland import *
+        >>> from hydpy.hland import *
         >>> parameterstep('1d')
         >>> derived.uh.shape = 3
         >>> derived.uh = 0.3, 0.5, 0.2
@@ -2231,8 +2259,9 @@ class Calc_OutUH_QUH_V1(modeltools.Method):
     RESULTSEQUENCES = (
         hland_fluxes.OutUH,
     )
+
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: 'hland.Model') -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
@@ -2252,7 +2281,7 @@ class Calc_QT_V1(modeltools.Method):
         Trying to abstract less then available, as much as available and
         less then available results in:
 
-        >>> from hydpy.models.hland import *
+        >>> from hydpy.hland import *
         >>> parameterstep('1d')
         >>> simulationstep('12h')
         >>> abstr(2.0)
@@ -2286,8 +2315,9 @@ class Calc_QT_V1(modeltools.Method):
     RESULTSEQUENCES = (
         hland_fluxes.QT,
     )
+
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: 'hland.Model') -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.qt = max(flu.outuh-con.abstr, 0.)
@@ -2308,8 +2338,9 @@ class Pass_Q_v1(modeltools.Method):
     RESULTSEQUENCES = (
         hland_outlets.Q,
     )
+
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: 'hland.Model') -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess

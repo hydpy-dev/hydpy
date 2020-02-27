@@ -91,6 +91,7 @@ from hydpy.exe.commandtools import test_everything
 from hydpy.exe.replacetools import xml_replace
 from hydpy.exe.servertools import await_server
 from hydpy.exe.servertools import start_server
+from hydpy.models import hland
 
 
 pub.options = optiontools.Options()
@@ -189,7 +190,8 @@ __all__ = ['config',
            'print_latest_logfile',
            'xml_replace',
            'await_server',
-           'start_server']
+           'start_server',
+           'hland']
 
 for moduleinfo in pkgutil.walk_packages(models.__path__):
     if moduleinfo.ispkg:

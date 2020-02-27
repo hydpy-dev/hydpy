@@ -38,10 +38,7 @@ class Method:
     UPDATEDSEQUENCES: Tuple[Type[typingtools.VariableProtocol], ...] = ()
     RESULTSEQUENCES: Tuple[Type[typingtools.VariableProtocol], ...] = ()
 
-    @staticmethod
-    @abc.abstractmethod
-    def __call__(model: 'Model') -> None:
-        """The actual calculaton function."""
+    __call__: Callable
 
     def __init_subclass__(cls):
         cls.__name__ = objecttools.classname(cls)

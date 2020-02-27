@@ -17,8 +17,6 @@ import os
 import types
 from typing import *
 # ...from site-packages
-from typing import Dict, Set
-
 import numpy
 # ...from HydPy
 from hydpy import conf
@@ -61,6 +59,8 @@ class Model:
     element: Optional['devicetools.Element']
     cymodel: Optional[typingtools.CyModelProtocol]
     _name: ClassVar[Optional[str]] = None
+    parameters: parametertools.Parameters
+    sequences: sequencetools.Sequences
 
     INLET_METHODS: ClassVar[Tuple[Callable, ...]]
     OUTLET_METHODS: ClassVar[Tuple[Callable, ...]]
@@ -339,70 +339,6 @@ to any sequences: in2.
             name = substrings[1] if len(substrings) == 2 else substrings[2]
             type(self)._name = name
         return name
-
-    @property
-    def parameters(self) -> parametertools.Parameters:
-        """All parameters of the actual model.
-
-        >>> from hydpy import prepare_model
-        >>> model = prepare_model('hland_v1')
-        >>> hasattr(model, 'parameters')
-        True
-
-        When using the standard model import mechanism (see functions
-        |parameterstep| and |prepare_model|) and not demolishing a
-        correctly prepared model, you should never encounter a
-        situation where the following error occurs:
-
-        >>> del vars(model)['parameters']
-        >>> model.parameters
-        Traceback (most recent call last):
-        ...
-        AttributeError: Model `hland_v1` of element `?` does not handle \
-any parameters so far.
-        """
-        parameters = vars(self).get('parameters')
-        if parameters is None:
-            raise AttributeError(
-                f'Model {objecttools.elementphrase(self)} '
-                f'does not handle any parameters so far.')
-        return parameters
-
-    @parameters.setter
-    def parameters(self, parameters: parametertools.Parameters) -> None:
-        vars(self)['parameters'] = parameters
-
-    @property
-    def sequences(self) -> 'sequencetools.Sequences':
-        """All sequences of the actual model.
-
-        >>> from hydpy import prepare_model
-        >>> model = prepare_model('hland_v1')
-        >>> hasattr(model, 'sequences')
-        True
-
-        When using the standard model import mechanism (see functions
-        |parameterstep| and |prepare_model|) and not demolishing a
-        correctly prepared model, you should never encounter a
-        situation where the following error occurs:
-
-        >>> del vars(model)['sequences']
-        >>> model.sequences
-        Traceback (most recent call last):
-        ...
-        AttributeError: Model `hland_v1` of element `?` does not handle \
-any sequences so far.
-        """
-        sequences = vars(self).get('sequences')
-        if sequences is None:
-            raise AttributeError(
-                f'Model {objecttools.elementphrase(self)} '
-                f'does not handle any sequences so far.')
-        return sequences
-
-    @sequences.setter
-    def sequences(self, sequences: 'sequencetools.Sequences') -> None:
-        vars(self)['sequences'] = sequences
 
     @property
     def idx_sim(self) -> int:

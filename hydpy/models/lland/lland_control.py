@@ -7,6 +7,7 @@ import warnings
 # ...from site-packages
 import numpy
 # ...from HydPy
+import hydpy
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
@@ -812,28 +813,23 @@ class DMin(lland_parameters.ParameterSoil):
     In addition to the |ParameterSoil| `__call__` method, it is
     possible to set the value of parameter |DMin| in accordance
     to the keyword argument `r_dmin` due to compatibility reasons
-    with the original LARSIM implemetation.
+    with the original LARSIM implementation:
 
-    Basic Equation:
-        :math:`Dmin = 0.024192 \\cdot r_dmin`
+        :math:`Dmin = 0.001008 \\cdot hours \\cdot r_dmin`
 
     Example:
 
+        >>> from hydpy import pub
+        >>> pub.timegrids = '2000-01-01', '2000-01-02', '1d'
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
-        >>> simulationstep('12h')
+        >>> parameterstep('1h')
         >>> nhru(1)
         >>> lnk(ACKER)
-        >>> dmax(10.0) # to prevent trimming of dmin, see below
         >>> dmin(r_dmin=10.0)
         >>> dmin
-        dmin(0.24192)
-
-        Note the additional dependence of the parameter value on the
-        relation between the `parameterstep` and the actual `simulationstep`:
-
+        dmin(0.01008)
         >>> dmin.values
-        array([ 0.12096])
+        array([ 0.24192])
 
         A wrong keyword results in the right answer:
 
@@ -843,6 +839,10 @@ class DMin(lland_parameters.ParameterSoil):
         TypeError: While trying to set the values of parameter `dmin` of \
 element `?` based on keyword arguments `rdmin`, the following error occurred: \
 Keyword `rdmin` is not among the available model constants.
+
+    .. testsetup::
+
+        >>> del pub.timegrids
     """
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
     INIT = 0.
@@ -856,7 +856,10 @@ Keyword `rdmin` is not among the available model constants.
         except TypeError:
             args = kwargs.get('r_dmin')
             if args is not None:
-                self.value = 0.024192*self.apply_timefactor(numpy.array(args))
+                self.value = (
+                    0.001008*hydpy.pub.timegrids.init.stepsize.hours *
+                    numpy.array(args)
+                )
                 self.trim()
             else:
                 objecttools.augment_excmessage()
@@ -893,21 +896,17 @@ class DMax(lland_parameters.ParameterSoil):
 
     Example:
 
+        >>> from hydpy import pub
+        >>> pub.timegrids = '2000-01-01', '2000-01-02', '1d'
         >>> from hydpy.models.lland import *
-        >>> simulationstep('12h')
-        >>> parameterstep('1d')
+        >>> parameterstep('1h')
         >>> nhru(1)
         >>> lnk(ACKER)
-        >>> dmin(0.0) # to prevent trimming of dmax, see below
         >>> dmax(r_dmax=10.0)
         >>> dmax
-        dmax(24.192)
-
-        Note the additional dependence of the parameter value on the
-        relation between the `parameterstep` and the actual `simulationstep`:
-
+        dmax(1.008)
         >>> dmax.values
-        array([ 12.096])
+        array([ 24.192])
 
         A wrong keyword results in the right answer:
 
@@ -917,6 +916,10 @@ class DMax(lland_parameters.ParameterSoil):
         TypeError: While trying to set the values of parameter `dmax` of \
 element `?` based on keyword arguments `rdmax`, the following error occurred: \
 Keyword `rdmax` is not among the available model constants.
+
+    .. testsetup::
+
+        >>> del pub.timegrids
     """
     NDIM, TYPE, TIME, SPAN = 1, float, True, (None, None)
     INIT = 1.
@@ -930,7 +933,10 @@ Keyword `rdmax` is not among the available model constants.
         except TypeError:
             args = kwargs.get('r_dmax')
             if args is not None:
-                self.value = 2.4192*self.apply_timefactor(numpy.array(args))
+                self.value = (
+                    0.1008*hydpy.pub.timegrids.init.stepsize.hours *
+                    numpy.array(args)
+                )
                 self.trim()
             else:
                 objecttools.augment_excmessage()

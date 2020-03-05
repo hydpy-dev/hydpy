@@ -84,7 +84,6 @@ class Pegasus(modeltools.Submodel):
         >>> fratm(1.28)
         >>> tempssurfaceflag(True)
         >>> derived.seconds(24*60*60)
-        >>> derived.k = 0
         >>> inputs.sunshineduration = 10.0
         >>> inputs.relativehumidity = 60.0
         >>> states.waes.values = 1.0
@@ -98,6 +97,7 @@ class Pegasus(modeltools.Submodel):
         Method |lland_model.Calc_TempsSurface_V1| finds the following
         surface temperature value:
 
+        >>> model.idx_hru = 0
         >>> model.calc_tempssurface_v1()
         >>> fluxes.tempssurface
         tempssurface(-4.832608)

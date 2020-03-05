@@ -13,6 +13,7 @@ from hydpy.core import sequencetools
 from hydpy.core import timetools
 # ...from lland
 from hydpy.models.lland import lland_constants
+from hydpy.models.lland import lland_logs
 from hydpy.models.lland import lland_parameters
 
 
@@ -42,6 +43,8 @@ class NHRU(parametertools.Parameter):
         (5,)
         >>> logs.wet0.shape
         (1, 5)
+        >>> control.angstromfactor.shape
+        (12,)
     """
     NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
 
@@ -49,16 +52,18 @@ class NHRU(parametertools.Parameter):
         super().__call__(*args, **kwargs)
         for subpars in self.subpars.pars.model.parameters:
             for par in subpars:
-                if par.NDIM == 1:
+                if (par.NDIM == 1 and
+                        (not isinstance(par, parametertools.MonthParameter))):
                     par.shape = self.value
                 if isinstance(par, KapGrenz):
                     par.shape = self.value, 2
         for subseqs in self.subpars.pars.model.sequences:
             for seq in subseqs:
-                if (((seq.NDIM == 1) and (seq.name != 'moy')) or
-                        ((seq.NDIM == 2) and
-                         isinstance(seq, sequencetools.LogSequence))):
+                if (((seq.NDIM == 1) and (seq.name != 'moy')  and
+                     (not isinstance(seq, sequencetools.LogSequence))) or
+                        (isinstance(seq, lland_logs.WET0))):
                     seq.shape = self.value
+                #todo: kann man das einfacher formulieren?
 
 
 class FHRU(lland_parameters.ParameterComplete):
@@ -91,6 +96,67 @@ class Lnk(parametertools.NameParameter):
     SPAN = (min(lland_constants.CONSTANTS.values()),
             max(lland_constants.CONSTANTS.values()))
     CONSTANTS = lland_constants.CONSTANTS
+
+
+class WG2Z(parametertools.MonthParameter):
+    """Bodenwärmestrom in der Tiefe 2z (soil heat flux at depth 2z)
+    [MJ/m²/T]."""
+    NDIM, TYPE, TIME, SPAN = 1, float, True, (None, None)
+    INIT = 0.
+
+
+class BoWa2Z(lland_parameters.ParameterLand):
+    """Bodenwassergehalt der Bodenschicht bis zu einer Tiefe 2z (soil water
+    content of the soil layer down two a depth of 2z) [mm]."""
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0, None)
+    INIT = 80.
+
+
+class Z(lland_parameters.ParameterComplete):
+    """Halbe Mächtigkeit der betrachteten Bodensäule (half thickness of surface
+     soil layer) [m]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    INIT = 0.1
+
+
+class CG(lland_parameters.ParameterLand):
+    """Volumetrische Wärmekapazität des Bodens (volumetric heat capacity of
+    soil) [MJ/m³/°C]."""
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    INIT = 1.5
+
+
+class FVF(lland_parameters.ParameterComplete):
+    """Frostversiegelungsfaktor zur Ermittelung des Frostversiegelungsgrades
+    (frost sealing factor for determination of the degree of frost sealing
+    FVG) [-]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    INIT = 0.5
+
+
+class BSFF(lland_parameters.ParameterComplete):
+    """Exponent zur Ermittelung des Frostversieglungsgrades (frost sealing
+    exponent for determination of degree of frost sealing FVG) [-]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    INIT = 2.0
+
+
+class CropHeight(lland_parameters.LanduseMonthParameter):
+    """Crop height [m]."""
+    NDIM, TYPE, TIME, SPAN = 2, float, None, (0.01, None)
+    INIT = 0.
+
+
+class Albedo(lland_parameters.LanduseMonthParameter):
+    """Albedo [-]."""
+    NDIM, TYPE, TIME, SPAN = 2, float, None, (0, 1)
+    INIT = 0.
+
+
+class SurfaceResistance(lland_parameters.LanduseMonthParameter):
+    """Surface Resistance [s/m]."""
+    NDIM, TYPE, TIME, SPAN = 2, float, None, (0, None)
+    INIT = 0.
 
 
 class HNN(lland_parameters.ParameterComplete):
@@ -146,6 +212,41 @@ class HInz(parametertools.Parameter):
     INIT = .2
 
 
+class P1SIMax(parametertools.Parameter):
+    """Schneeinterzeptionsfaktor zur Berechnung der
+    Schneeinterzeptionskapazität."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+    INIT = 8.0
+
+
+class P2SIMax(parametertools.Parameter):
+    """Schneeinterzeptionsfaktor zur Berechnung der
+    Schneeinterzeptionskapazität."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+    INIT = 1.5
+
+
+class P1SIRate(parametertools.Parameter):
+    """Schneeinterzeptionsfaktor zur Berechnung der
+    Schneeinterzeptionsrate."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
+    INIT = 0.2
+
+
+class P2SIRate(parametertools.Parameter):
+    """Schneeinterzeptionsfaktor zur Berechnung der
+    Schneeinterzeptionsrate."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
+    INIT = 0.02
+
+
+class P3SIRate(parametertools.Parameter):
+    """Schneeinterzeptionsfaktor zur Berechnung der
+    Schneeinterzeptionsrate."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 0.05)
+    INIT = 0.003
+
+
 class LAI(lland_parameters.LanduseMonthParameter):
     """Blattflächenindex (leaf area index) [-]."""
     NDIM, TYPE, TIME, SPAN = 2, float, None, (0., None)
@@ -160,8 +261,9 @@ class TRefT(lland_parameters.ParameterLand):
 
 
 class TRefN(lland_parameters.ParameterLand):
-    """Niederschlagstemperaturgrenzwert des erweiterten Grad-Tag-Verfahrens
-    (precipitation temperature threshold of the degree-day method) [°C]."""
+    """Niederschlagstemperaturgrenzwert des zur Berechnung des Wärmeeintrags
+    durch Regen (precipitation temperature threshold to calculate heat flux
+    caused by liquid precipitation on snow) [°C]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
     INIT = 0.
 
@@ -188,16 +290,168 @@ class GTF(lland_parameters.ParameterLand):
 
 class RSchmelz(parametertools.Parameter):
     """Spezifische Schmelzwärme von Wasser (specific melt heat of water)
-    [J/g]."""
+    [MJ/kg]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
-    INIT = 334.
+    INIT = 0.334
+
+
+class Turb0(parametertools.Parameter): #todo entspricht A0 in Larsim
+    """Parameter des Übergangskoeffizienten des turbulenten Wärmestroms
+    (parameter of transition coefficient for turbulent heat flux)
+    [W/m²/°C]"""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.5, 3.5)
+    INIT = 2.
+
+
+class Turb1(parametertools.Parameter): #todo entspricht A1 in Larsim
+    """Parameter des Übergangskoeffizienten des turbulenten Wärmestroms
+    (parameter of transition coefficient for turbulent heat flux)
+    [J/m³/°C]"""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.8, 2.5)
+    INIT = 2.
+
+
+class Albedo0Snow(parametertools.Parameter):
+    """Albedo von Neuschnee (albedo of fresh snow) [-]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    INIT = 0.8
+
+
+class SnowAgingFactor(parametertools.Parameter):
+    """Wichtungsfaktor für die Sensitivität der Albedo für die Alterung des
+    Schnees (weighting factor of albedo sensitivity for snow aging) [-]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    INIT = 0.35
+
+
+class RefreezeFlag(lland_parameters.ParameterSoil):
+    """Flag um wiedergefrieren zu aktivieren (flag to activate refreezing)
+    [-]."""
+    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, 1)
+    INIT = 0
+
+
+class TempSSurfaceFlag(lland_parameters.ParameterSoil):
+    """Flag Berechnung der Schneeoberflächentemperatur zu aktivieren
+    (flag to activate calculation of snow surface temperature)
+    [-]."""
+    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, 1)
+    INIT = 0
+
+
+class Latitude(parametertools.Parameter):
+    """The latitude [decimal degrees]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (-90., 90.)
+    INIT = 0.
+
+
+class Longitude(parametertools.Parameter):
+    """The longitude [decimal degrees]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (-180., 180.)
+    INIT = 0.
+
+
+class MeasuringHeightWindSpeed(parametertools.Parameter):
+    """The height above ground of the wind speed measurements [m]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
+    INIT = 10.
+
+
+class AngstromConstant(parametertools.MonthParameter):
+    """The Ångström "a" coefficient for calculating global radiation [-]."""
+    TYPE, TIME, SPAN = float, None, (0., 1.0)
+    INIT = 0.25
+
+    def trim(self, lower=None, upper=None):
+        """Trim values following :math:`AngstromConstant \\leq  1 -
+        AngstromFactor` or at least following :math:`AngstromConstant \\leq  1`.
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> angstromfactor(0.4, 0.4, nan, 0.4, 0.4, 0.4,
+        ...                0.6, 0.8, 1.0, 1.0, nan, nan)
+        >>> angstromconstant(-0.2, 0.0, 0.2, 0.4, 0.6, 0.8,
+        ...                   1.0, 1.2, 1.4, 1.6, 1.8, 2.0)
+        >>> angstromconstant
+        angstromconstant(jan=0.0, feb=0.0, mar=0.2, apr=0.4, mai=0.6, jun=0.6,
+                         jul=0.4, aug=0.2, sep=0.0, oct=0.0, nov=1.0, dec=1.0)
+        >>> angstromfactor(None)
+        >>> angstromconstant(0.6)
+        >>> angstromconstant
+        angstromconstant(0.6)
+        """
+        if upper is None:
+            upper = getattr(self.subpars.angstromfactor, 'values', None)
+            if upper is not None:
+                upper = upper.copy()
+                idxs = numpy.isnan(upper)
+                upper[idxs] = 1.
+                idxs = ~idxs
+                upper[idxs] = 1.-upper[idxs]
+        super().trim(lower, upper)
+
+
+class AngstromFactor(parametertools.MonthParameter):
+    """The Ångström "b" coefficient for calculating global radiation [-]."""
+    TYPE, TIME, SPAN = float, None, (0., None)
+    INIT = 0.5
+
+    def trim(self, lower=None, upper=None):
+        """Trim values in accordance with :math:`AngstromFactor \\leq  1 -
+        AngstromConstant` or at least in accordance with :math:`AngstromFactor
+        \\leq  1`.
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> angstromconstant(0.4, 0.4, nan, 0.4, 0.4, 0.4,
+        ...                  0.6, 0.8, 1.0, 1.0, nan, nan)
+        >>> angstromfactor(-0.2, 0.0, 0.2, 0.4, 0.6, 0.8,
+        ...                1.0, 1.2, 1.4, 1.6, 1.8, 2.0)
+        >>> angstromfactor
+        angstromfactor(jan=0.0, feb=0.0, mar=0.2, apr=0.4, mai=0.6, jun=0.6,
+                       jul=0.4, aug=0.2, sep=0.0, oct=0.0, nov=1.0, dec=1.0)
+        >>> angstromconstant(None)
+        >>> angstromfactor(0.6)
+        >>> angstromfactor
+        angstromfactor(0.6)
+        """
+        if upper is None:
+            upper = getattr(self.subpars.angstromconstant, 'values', None)
+            if upper is not None:
+                upper = upper.copy()
+                idxs = numpy.isnan(upper)
+                upper[idxs] = 1.
+                idxs = ~idxs
+                upper[idxs] = 1.-upper[idxs]
+        super().trim(lower, upper)
+
+
+class Emissivity(parametertools.Parameter):
+    """Emissivität der Oberfläche (emissivity) [-]"""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
+    INIT = 0.95
+
+
+class FrAtm(parametertools.Parameter):
+    """Empirischer Faktor zur Berechnung der atmosphärischen Gegenstrahlung
+     (empirical factor for the calculation of atmospheric radiation) [-]"""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    INIT = 1.28
+    #todo: In Doku steht Eichparameter aber  nicht in Tape35
 
 
 class CPWasser(parametertools.Parameter):
     """Spezifische Wärmekapazität von Wasser (specific heat capacity of water)
-    [J/g]."""
+    [MJ/kg/K]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
-    INIT = 4.1868
+    INIT = 0.0041868
+
+
+class CPEis(parametertools.Parameter):
+    """Spezifische Wärmekapazität von Eis bei 0 °C (specific heat capacity of
+    ice at a temperature of 0 °C) [MJ/kg/K]."""
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+    INIT = 0.00209
 
 
 class PWMax(lland_parameters.ParameterLand):
@@ -365,6 +619,17 @@ Keyword `proportion` is not among the available model constants.
 
     def trim(self, lower=None, upper=None):
         """Trim upper values in accordance with :math:`PWP \\leq FK`.
+
+        Example:
+         If we set |FK| to a value smaller than |PWP| the value of |FK| is trimmed:
+         >>> from hydpy.models.lland import *
+         >>> parameterstep('1d')
+         >>> nhru(3)
+         >>> lnk(ACKER)
+         >>> pwp(100)
+         >>> fk(80)
+         >>> fk
+         fk(100.0)
         """
         if lower is None:
             lower = getattr(self.subpars.pwp, 'value', None)
@@ -376,7 +641,7 @@ class PWP(lland_parameters.ParameterSoil):
     value of soil moisture for base flow generation). Can be given as an
     absolute value [mm] or relative portion of |WMax| [-]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
-    INIT = .0
+    INIT = 0.
 
     CONTROLPARAMETERS = (
         WMax,
@@ -402,6 +667,9 @@ class PWP(lland_parameters.ParameterSoil):
     def trim(self, lower=None, upper=None):
         """Trim upper values in accordance with :math:`PWP \\leq FK`.
 
+        Example:
+
+        If we set |FK| to a value smaller than |PWP| the value of |FK| is trimmed:
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
         >>> nhru(3)
@@ -410,6 +678,25 @@ class PWP(lland_parameters.ParameterSoil):
         >>> pwp(80)
         >>> pwp
         pwp(80.0)
+        >>> pwp(acker=0.5)
+        >>> pwp
+        pwp(0.5)
+        >>> wmax(120.0)
+        >>> pwp(relative=0.6)
+        >>> pwp
+        pwp(72.0)
+        >>> pwp(relative=True, acker=0.6)
+        Traceback (most recent call last):
+        ...
+        TypeError: While trying to set the values of parameter `pwp` of \
+element `?` with arguments `relative and acker`:  It is not allowed to use \
+keyword `relative` and other keywords at the same time.
+        >>> pwp(feld=True, acker=0.6)
+        Traceback (most recent call last):
+        ...
+        TypeError: While trying to set the values of parameter `pwp` of \
+element `?` based on keyword arguments `feld and acker`, the following error \
+occurred: Keyword `feld` is not among the available model constants.
         """
         if upper is None:
             upper = getattr(self.subpars.fk, 'value', None)
@@ -430,16 +717,16 @@ class KapGrenz(parametertools.Parameter):
         Instead of defining threshold values it is also possible to define
         options how the thresholds can be derived from |NFk|, |WMax| and |FK|.
 
+    Example:
 
     >>> from hydpy.models.lland import *
     >>> parameterstep('1d')
-    >>> simulationstep('12h')
+    >>> simulationstep ('12h')
     >>> nhru(2)
     >>> wmax(200.)
     >>> kapmax(150.)
     >>> lnk(ACKER)
-    >>> pwp(absolute=80)
-    >>> fk(absolute=120)
+    >>> fk(120)
     >>> kapgrenz(option='KapAquantec')
     >>> kapgrenz
     kapgrenz([[60.0, 120.0],
@@ -450,9 +737,8 @@ class KapGrenz(parametertools.Parameter):
               [0.0, 20.0]])
     >>> kapgrenz(option='kapillarerAufstieg')
     >>> kapgrenz
-    kapgrenz([[45.0, 120.0],
-              [45.0, 120.0]])
-    >>> kapgrenz(10., 40.
+    kapgrenz(120.0)
+    >>> kapgrenz(10., 40.)
     >>> kapgrenz
     kapgrenz([[10.0, 40.0],
               [10.0, 40.0]])
@@ -511,11 +797,13 @@ class FBeta(lland_parameters.ParameterSoil):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (1., None)
     INIT = 1.
 
+
 class CorrQBBFlag(lland_parameters.ParameterSoil):
     """Flag um gleichzeitige auftretende Versickerung und kapillaren Aufstieg
     zu verhindern [-]."""
     NDIM, TYPE, TIME, SPAN = 1, int, None, (0, 1)
     INIT = 0
+
 
 class DMin(lland_parameters.ParameterSoil):
     """Drainageindex des mittleren Bodenspeichers (flux rate for
@@ -606,8 +894,8 @@ class DMax(lland_parameters.ParameterSoil):
     Example:
 
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
         >>> simulationstep('12h')
+        >>> parameterstep('1d')
         >>> nhru(1)
         >>> lnk(ACKER)
         >>> dmin(0.0) # to prevent trimming of dmax, see below
@@ -769,9 +1057,6 @@ must be given.
     INIT = 1.
 
     def __call__(self, *args, **kwargs):
-        """The prefered way to pass values to |TInd| instances
-        within parameter control files.
-        """
         try:
             super().__call__(*args, **kwargs)
         except NotImplementedError:

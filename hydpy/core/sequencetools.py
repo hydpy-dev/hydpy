@@ -839,13 +839,13 @@ class Sequence(variabletools.Variable):
 
     >>> from hydpy import prepare_model
     >>> model = prepare_model('lland_v1', '1d')
-    >>> model.sequences.aides.epw.shape
+    >>> model.sequences.fluxes.q.shape
     ()
-    >>> sfa = model.sequences.aides.sfa
-    >>> sfa.shape
+    >>> evpo = model.sequences.fluxes.evpo
+    >>> evpo.shape
     Traceback (most recent call last):
     ...
-    AttributeError: Shape information for variable `sfa` can only be \
+    AttributeError: Shape information for variable `evpo` can only be \
 retrieved after it has been defined.
 
     For high numbers of entries, the string representation puts the
@@ -853,20 +853,20 @@ retrieved after it has been defined.
     executable under Python 3.6; this behaviour changes as soon
     as Python 3.7 becomes the oldest supported version):
 
-    >>> sfa.shape = (255,)
-    >>> sfa    # doctest: +ELLIPSIS
-    sfa(nan, nan, ..., nan, nan)
-    >>> sfa.shape = (256,)
-    >>> sfa    # doctest: +ELLIPSIS
-    sfa([nan, nan, ..., nan, nan])
+    >>> evpo.shape = (255,)
+    >>> evpo    # doctest: +ELLIPSIS
+    evpo(nan, nan, ..., nan, nan)
+    >>> evpo.shape = (256,)
+    >>> evpo    # doctest: +ELLIPSIS
+    evpo([nan, nan, ..., nan, nan])
 
     For consistency with the usage of |Parameter| subclasses, |Sequence|
     objects are also "callable" for setting their values (but in a much
     less and flexible manner):
 
-    >>> sfa(2.0)
-    >>> sfa    # doctest: +ELLIPSIS
-    sfa([2.0, 2.0, ..., 2.0, 2.0])
+    >>> evpo(2.0)
+    >>> evpo    # doctest: +ELLIPSIS
+    evpo([2.0, 2.0, ..., 2.0, 2.0])
 
     Under the hood, class |Sequence| also prepares some attributes
     of its class |FastAccessSequence| object, used for performing
@@ -875,7 +875,7 @@ retrieved after it has been defined.
     the name of the sequence and the name of the original attribute
     in lower case letters.  We take `NDIM` as an example:
 
-    >>> sfa.fastaccess._sfa_ndim
+    >>> evpo.fastaccess._evpo_ndim
     1
 
     Some of these attributes require updating under some situations.
@@ -883,8 +883,8 @@ retrieved after it has been defined.
     a "length" attribute, which needs to be updated each time the
     sequence's shape changes:
 
-    >>> sfa.fastaccess._sfa_length
-    0
+    >>> evpo.fastaccess._evpo_length
+    256
     """
     TYPE: Type[float] = float
     INIT: float = 0.0

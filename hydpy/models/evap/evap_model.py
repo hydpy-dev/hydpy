@@ -934,13 +934,20 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
         >>> derived.nmblogentries(1)
         >>> inputs.airtemperature = 22.1
         >>> fluxes.actualvapourpressure = 2.1
-        >>> logs.loggedglobalradiation.shape = 1
-        >>> logs.loggedclearskysolarradiation.shape = 1
-        >>> logs.loggedglobalradiation = 14.5
-        >>> logs.loggedclearskysolarradiation = 18.8
+        >>> fluxes.clearskysolarradiation = 18.8
+        >>> fluxes.globalradiation = 14.5
         >>> model.calc_netlongwaveradiation_v1()
         >>> fluxes.netlongwaveradiation
         netlongwaveradiation(3.531847)
+
+        >>> fluxes.clearskysolarradiation = 0.0
+        >>> logs.loggedclearskysolarradiation.shape = 1
+        >>> logs.loggedclearskysolarradiation = 12.0
+        >>> logs.loggedglobalradiation.shape = 1
+        >>> logs.loggedglobalradiation = 10.0
+        >>> model.calc_netlongwaveradiation_v1()
+        >>> fluxes.netlongwaveradiation
+        netlongwaveradiation(3.959909)
     """
     DERIVEDPARAMETERS = (
         evap_derived.NmbLogEntries,

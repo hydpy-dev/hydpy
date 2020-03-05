@@ -222,7 +222,7 @@ def _extend_variabledocstrings(module, allmethods):
                 subinsertions = []
                 for method in relevantmethods:
                     subinsertions.append(f'      :class:`~{method.__module__}.'
-                                         f'{objecttools.classname(method)}`')
+                                         f'{method.__name__}`')
                 insertions.append(
                     f'    {description} by the following'
                     f' method{"s" if len(subinsertions) > 1 else ""}:')
@@ -241,8 +241,7 @@ def _get_methoddocstringinsertions(method):
                 f'    Required {pargroup} parameters:')
             for par in pars:
                 insertions.append(
-                    f'      :class:`~{par.__module__}.'
-                    f'{objecttools.classname(par)}`')
+                    f'      :class:`~{par.__module__}.{par.__name__}`')
             insertions.append('')
     for statement, tuplename in (
             ('Required', 'REQUIREDSEQUENCES'),
@@ -263,13 +262,12 @@ def _get_methoddocstringinsertions(method):
             if seqs:
                 insertions.append(
                     f'    {statement} '
-                    f'{objecttools.instancename(seqtype)[:-8]} '
+                    f'{seqtype.__name__[:-8].lower()} '
                     f'sequences:'
                 )
                 for seq in seqs:
                     insertions.append(
-                        f'      :class:`~{seq.__module__}.'
-                        f'{objecttools.classname(seq)}`')
+                        f'      :class:`~{seq.__module__}.{seq.__name__}`')
                 insertions.append('')
     if insertions:
         insertions.append('')

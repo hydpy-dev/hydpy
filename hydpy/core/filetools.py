@@ -415,9 +415,9 @@ error occurred: ...
                 currentdir = self.DEFAULTDIR
             else:
                 prefix = (f'The current working directory of the '
-                          f'{objecttools.classname(self)} object '
-                          f'has not been defined manually and cannot '
-                          f'be determined automatically:')
+                          f'{type(self).__name__} object has not '
+                          f'been defined manually and cannot be '
+                          f'determined automatically:')
                 if not directories:
                     raise RuntimeError(
                         f'{prefix} `{objecttools.repr_(self.basepath)}` '
@@ -462,7 +462,7 @@ error occurred: ...
                 objecttools.augment_excmessage(
                     f'While trying to delete the current working '
                     f'directory `{objecttools.repr_(path)}` of the '
-                    f'{objecttools.classname(self)} object')
+                    f'{type(self).__name__} object')
         self._currentdir = None
 
     @property
@@ -1737,7 +1737,7 @@ is not available.  Select one of the following modes: none and mean.
 no NetCDF reader object.
 
         >>> sm.open_netcdfreader()
-        >>> from hydpy.core.objecttools import classname
+        >>> from hydpy import classname
         >>> classname(sm.netcdfreader)
         'NetCDFInterface'
 
@@ -1791,7 +1791,7 @@ no NetCDF reader object.
 no NetCDF writer object.
 
         >>> sm.open_netcdfwriter()
-        >>> from hydpy.core.objecttools import classname
+        >>> from hydpy import classname
         >>> classname(sm.netcdfwriter)
         'NetCDFInterface'
 

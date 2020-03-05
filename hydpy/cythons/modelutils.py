@@ -1061,11 +1061,11 @@ class PyxWriter:
         for subpars in self.model.parameters:
             lines.add(
                 1,
-                f'cdef public {objecttools.classname(subpars)} {subpars.name}')
+                f'cdef public {type(subpars).__name__} {subpars.name}')
         for subpars in self.model.parameters:
             print(f'        - {subpars.name}')
             lines.add(0, '@cython.final')
-            lines.add(0, f'cdef class {objecttools.classname(subpars)}:')
+            lines.add(0, f'cdef class {type(subpars).__name__}:')
             for par in subpars:
                 try:
                     ctype = TYPE2STR[par.TYPE] + NDIM2STR[par.NDIM]
@@ -1083,14 +1083,14 @@ class PyxWriter:
         for subseqs in self.model.sequences:
             lines.add(
                 1,
-                f'cdef public {objecttools.classname(subseqs)} {subseqs.name}')
+                f'cdef public {type(subseqs).__name__} {subseqs.name}')
         if self.model.sequences.states:
             lines.add(1, 'cdef public StateSequences old_states')
             lines.add(1, 'cdef public StateSequences new_states')
         for subseqs in self.model.sequences:
             print(f'        - {subseqs.name}')
             lines.add(0, '@cython.final')
-            lines.add(0, f'cdef class {objecttools.classname(subseqs)}:')
+            lines.add(0, f'cdef class {type(subseqs).__name__}:')
             for seq in subseqs:
                 ctype = f'double{NDIM2STR[seq.NDIM]}'
                 if isinstance(subseqs, sequencetools.LinkSequences):

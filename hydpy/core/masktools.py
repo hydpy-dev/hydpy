@@ -230,8 +230,7 @@ must be overridden, which is not the case for class `IndexMask`.
         """
         raise NotImplementedError(
             f'Function `get_refindices` of class `IndexMask` must be '
-            f'overridden, which is not the case for class '
-            f'`{objecttools.classname(cls)}`.')
+            f'overridden, which is not the case for class `{cls.__name__}`.')
 
     @property
     def refindices(self):
@@ -317,7 +316,7 @@ following error occurred: The given key is neither a `string` a `mask` type.
     def __init__(self, model):
         self.model = model
         for cls in self.CLASSES:
-            setattr(self, objecttools.instancename(cls), cls)
+            setattr(self, cls.__name__.lower(), cls)
 
     @property
     def name(self):
@@ -333,8 +332,7 @@ following error occurred: The given key is neither a `string` a `mask` type.
 
     def __iter__(self):
         for cls in self.CLASSES:
-            name = objecttools.instancename(cls)
-            yield getattr(self, name)
+            yield getattr(self, cls.__name__.lower())
 
     def __contains__(self, mask):
         if isinstance(mask, BaseMask):
@@ -355,7 +353,7 @@ following error occurred: The given key is neither a `string` a `mask` type.
         try:
             if inspect.isclass(key):
                 if issubclass(key, BaseMask):
-                    key = objecttools.instancename(key)
+                    key = key.__name__.lower()
             elif isinstance(key, BaseMask):
                 if key in self:
                     return key
@@ -376,7 +374,7 @@ following error occurred: The given key is neither a `string` a `mask` type.
     def __repr__(self):
         lines = []
         for mask in self:
-            lines.append(f'{objecttools.instancename(mask)} of module '
+            lines.append(f'{mask.__name__.lower()} of module '
                          f'{mask.__module__}')
         return '\n'.join(lines)
 

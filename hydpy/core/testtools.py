@@ -723,7 +723,7 @@ datetime of the Python standard library for for further information.
                                  line_width=2, color=col)
                 line.muted = seq.name not in activated
                 if header.strip() == seq.name:
-                    title = objecttools.classname(seq)
+                    title = type(seq).__name__
                 else:
                     title = header.capitalize()
                 title += suffix

@@ -1101,7 +1101,7 @@ handles time) or `1` (the second axis handles time), but for variable \
                 f'The argument `timeaxis` must be either `0` '
                 f'(the first axis handles time) or `1` (the '
                 f'second axis handles time), but for variable '
-                f'`{name}` of class {objecttools.classname(self)} ' 
+                f'`{name}` of class {type(self).__name__} ' 
                 f'the value `{timeaxis}` is given.')
         self._timeaxis: int = _timeaxis
         self.sequences: Dict[str, sequencetools.IOSequence] = \

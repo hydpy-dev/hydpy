@@ -285,7 +285,7 @@ Selections objects, single Selection objects, or iterables containing \
                 f'Binary operations on Selections objects are defined for '
                 f'other Selections objects, single Selection objects, or '
                 f'iterables containing `Selection` objects, but the type of '
-                f'the given argument is `{objecttools.classname(value)}`.')
+                f'the given argument is `{type(value).__name__}`.')
 
     def __add__(self, other: typingtools.Mayberable1['Selection']) \
             -> 'Selections':
@@ -341,7 +341,7 @@ Selections objects, single Selection objects, or iterables containing \
         """Return a |repr| string with a prefixed assignment."""
         with objecttools.repr_.preserve_strings(True):
             with hydpy.pub.options.ellipsis(2, optional=True):
-                prefix += '%s(' % objecttools.classname(self)
+                prefix += '%s(' % type(self).__name__
                 repr_ = objecttools.assignrepr_values(
                     sorted(self.names), prefix, 70)
                 return repr_ + ')'
@@ -547,7 +547,7 @@ selection `headwaters`, the following error occurred: 'No node named \
             raise TypeError(
                 f'Either a `Node` or an `Element` object is required '
                 f'as the "outlet device", but the given `device` value '
-                f'is of type `{objecttools.classname(device)}`.')
+                f'is of type `{type(device).__name__}`.')
         except BaseException:
             objecttools.augment_excmessage(
                 f'While trying to determine the upstream network of '
@@ -663,7 +663,7 @@ No module named 'hydpy.models.wrong'
         except BaseException:
             values = objecttools.enumeration(models)
             classes = objecttools.enumeration(
-                objecttools.classname(model) for model in models)
+                type(model).__name__ for model in models)
             objecttools.augment_excmessage(
                 f'While trying to determine the elements of selection '
                 f'`{self.name}` handling the model defined by the '
@@ -962,7 +962,7 @@ requires string as left operand, not list
         for variable in self.nodes.variables:
             if not isinstance(variable, str):
                 aliases.append(f'{variable.__module__.split(".")[2]}_'
-                               f'{objecttools.classname(variable)}')
+                               f'{variable.__name__}')
         if filepath is None:
             filepath = self.name + '.py'
         with open(filepath, 'w', encoding="utf-8") as file_:
@@ -1043,7 +1043,7 @@ requires string as left operand, not list
         with objecttools.repr_.preserve_strings(True):
             with hydpy.pub.options.ellipsis(2, optional=True):
                 with objecttools.assignrepr_tuple.always_bracketed(False):
-                    classname = objecttools.classname(self)
+                    classname = type(self).__name__
                     blanks = ' ' * (len(prefix+classname) + 1)
                     nodestr = objecttools.assignrepr_tuple(
                         self.nodes.names, blanks+'nodes=', 70)

@@ -20,6 +20,7 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import propertytools
 from hydpy.core import timetools
+from hydpy.core import variabletools
 from hydpy.cythons.autogen import annutils
 pyplot = exceptiontools.OptionalImport(
     'pyplot', ['matplotlib.pyplot'], locals())
@@ -74,7 +75,17 @@ class _ANNArrayProperty(propertytools.DependentProperty):
         setattr(cann, self.name, array)
 
 
-class ANN:
+class BaseANN:
+    """Base for implementing artificial neural networks classes."""
+
+    def __init_subclass__(cls):
+        cls.name = cls.__name__.lower()
+        subclasscounter = variabletools.Variable.__hydpy__subclasscounter__ + 1
+        variabletools.Variable.__hydpy__subclasscounter__ = subclasscounter
+        cls.__hydpy__subclasscounter__ = subclasscounter
+
+
+class ANN(BaseANN):
     """Multi-layer feed forward artificial neural network.
 
     The applied activation function is the logistic function:
@@ -273,15 +284,6 @@ attribute `nmb_inputs` first.
         |SubParameters| object."""
         self.fastaccess = self.subpars.fastaccess
         setattr(self.fastaccess, self.name, self._cann)
-
-    @property
-    def name(self):
-        """Name of the class of the given instance in lower case letters.
-
-        See the documentation on function |objecttools.get_name| for
-        additional information.
-        """
-        return objecttools.get_name(self)
 
     def __call__(self, nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,
                  weights_input=None, weights_output=None, weights_hidden=None,
@@ -901,7 +903,7 @@ def ann(**kwargs) -> ANN:
     return new_ann
 
 
-class SeasonalANN:
+class SeasonalANN(BaseANN):
     """Handles relationships described by artificial neural networks that
     vary within an anual cycle.
 
@@ -1290,15 +1292,6 @@ been given, but a value of type `ANN` is required.
         |SubParameters| object."""
         self.fastaccess = self.subpars.fastaccess
 
-    @property
-    def name(self):
-        """Name of the class of the given instance in lower case letters.
-
-        See the documentation on function |objecttools.get_name| for
-        additional information.
-        """
-        return objecttools.get_name(self)
-
     def __call__(self, *args, **kwargs) -> None:
         self._toy2ann.clear()
         self._do_refresh = False
@@ -1309,7 +1302,7 @@ been given, but a value of type `ANN` is required.
                     'an arbitrary number of keyword arguments, but for the '
                     'corresponding parameter of element `%s` %d positional '
                     'and %d keyword arguments have been given.'
-                    % (objecttools.classname(self),
+                    % (type(self).__name__,
                        objecttools.devicename(self),
                        len(args), len(kwargs)))
             if args:
@@ -1318,7 +1311,7 @@ been given, but a value of type `ANN` is required.
                 if not isinstance(value, ANN):
                     raise TypeError(
                         'Type `%s` is not (a subclass of) type `ANN`.'
-                        % objecttools.classname(value))
+                        % type(value).__name__)
                 try:
                     setattr(self, str(timetools.TOY(toystr)), value)
                 except BaseException:

@@ -37,8 +37,8 @@ class ParameterIUH:
         self.name = name
         self._name = '_'+name
         self.type_ = type_
-        self.__doc__ = ('Instantaneous unit hydrograph parameter %s.' % name
-                        if doc is None else str(doc))
+        self.__doc__ = (f'Instantaneous unit hydrograph parameter '
+                        f'{name if doc is None else str(doc)}')
 
     def __get__(self, obj, type_=None):
         return self if obj is None else getattr(obj, self._name, None)
@@ -48,10 +48,9 @@ class ParameterIUH:
             return self.type_(value)
         except BaseException:
             raise TypeError(
-                'The value `%s` of type `%s` could not be converted to type '
-                '`%s` of the instantaneous unit hydrograph parameter `%s`.'
-                % (value, objecttools.classname(value),
-                   objecttools.classname(self.type_), self.name))
+                f'The value `{value}` of type `{type(value).__name__}` could '
+                f'not be converted to type `{self.type_.__name__}` of the '
+                f'instantaneous unit hydrograph parameter `{self.name}`.')
 
 
 class PrimaryParameterIUH(ParameterIUH):
@@ -155,14 +154,14 @@ class IUH(_MetaIUH):
                 setattr(self, key, value)
         else:
             raise ValueError(
-                'When passing primary parameter values as initialization '
-                'arguments of the instantaneous unit hydrograph class `%s`, '
-                'or when using method `set_primary_parameters, one has to '
-                'to define all values at once via keyword arguments.  '
-                'But instead of the primary parameter names `%s` the '
-                'following keywords were given: %s.'
-                % (objecttools.classname(self),
-                   ', '.join(required), ', '.join(given)))
+                f'When passing primary parameter values as initialization '
+                f'arguments of the instantaneous unit hydrograph class '
+                f'`{type(self).__name__}`, or when using method '
+                f'`set_primary_parameters`, one has to to define all values '
+                f'at once via keyword arguments.  But instead of the primary '
+                f'parameter names `{objecttools.enumeration(required)}` the '
+                f'following keywords were given: '
+                f'{objecttools.enumeration(given)}.')
 
     @property
     def primary_parameters_complete(self):
@@ -248,7 +247,7 @@ class IUH(_MetaIUH):
         return numpy.array([self.moment1, self.moment2])
 
     def __repr__(self):
-        parts = [objecttools.classname(self), '(']
+        parts = [type(self).__name__, '(']
         for (name, primpar) in sorted(self._PRIMARY_PARAMETERS.items()):
             value = primpar.__get__(self)
             if value is not None:
@@ -390,9 +389,9 @@ class TranslationDiffusionEquation(IUH):
     ValueError: When passing primary parameter values as initialization \
 arguments of the instantaneous unit hydrograph class \
 `TranslationDiffusionEquation`, or when using method \
-`set_primary_parameters, one has to to define all values at once via \
-keyword arguments.  But instead of the primary parameter names `d, u, x` \
-the following keywords were given: d, u.
+`set_primary_parameters`, one has to to define all values at once via \
+keyword arguments.  But instead of the primary parameter names `d, u, and x` \
+the following keywords were given: d and u.
     """
     u = PrimaryParameterIUH('u', doc='Wave velocity.')
     d = PrimaryParameterIUH('d', doc='Diffusion coefficient.')

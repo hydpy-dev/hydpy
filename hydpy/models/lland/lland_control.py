@@ -970,7 +970,7 @@ class BSf(lland_parameters.ParameterSoil):
 class A1(parametertools.Parameter):
     """Parameter für die kontinuierliche Aufteilung der
     Direktabflusskomponenten (threshold value for the continuous seperation
-    of direct runoff in a slow and a fast component) [mm/d]
+    of direct runoff in a slow and a fast component) [mm/T]
     """
     NDIM, TYPE, TIME, SPAN = 0, float, True, (0., None)
     INIT = numpy.inf
@@ -979,7 +979,7 @@ class A1(parametertools.Parameter):
 class A2(parametertools.Parameter):
     """Parameter für die diskontinuierliche Aufteilung der
     Direktabflusskomponenten (threshold value for the discontinuous seperation
-    of direct runoff in a slow and a fast component) [mm/d]
+    of direct runoff in a slow and a fast component) [mm/T]
     """
     NDIM, TYPE, TIME, SPAN = 0, float, True, (0., None)
     INIT = 0.

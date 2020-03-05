@@ -737,6 +737,20 @@ class Cythonizer:
         return list(filepaths)
 
     @property
+    def pyiwriter(self) -> 'PyiWriter':
+        """Update the pyi file."""
+        model = self.Model()
+        if hasattr(self, 'Parameters'):
+            model.parameters = self.Parameters(vars(self))
+        else:
+            model.parameters = parametertools.Parameters(vars(self))
+        if hasattr(self, 'Sequences'):
+            model.sequences = self.Sequences(vars(self))
+        else:
+            model.sequences = sequencetools.Sequences(vars(self))
+        return PyiWriter(model)
+
+    @property
     def outdated(self) -> bool:
         """True/False flag indicating whether a |Cythonizer| object
         should renew its Cython model or not.
@@ -1984,6 +1998,102 @@ class PyxWriter:
                 self.model, 'extrapolate_error', extrapolate_error)
             lines.extend(funcconverter.pyxlines)
         return lines
+
+    def write_stubfile(self):
+        """ToDo
+
+        >>> from hydpy.models.hland import *
+        >>> cythonizer.pyxwriter.write_stubfile()
+        """
+        filepath = os.path.join(hydpy.__path__[0], f'{self.model.name}.py')
+        base = '.'.join(self.model.__module__.split('.')[:3])
+        with open(filepath, 'w') as stubfile:
+            stubfile.write(
+                f'# -*- coding: utf-8 -*-\n\n'
+                f'import hydpy\n'
+                f'from {base} import *\n'
+                f'from hydpy.core.parametertools import (\n'
+                f'  Parameters, FastAccessParameter)\n'
+                f'from hydpy.core.sequencetools import (\n'
+                f'    Sequences, FastAccessModelSequence)\n\n'
+            )
+            for group in self.model.parameters:
+                classname = f'FastAccess{group.name.capitalize()}Parameters'
+                stubfile.write(
+                    f'\n\nclass {classname}(FastAccessParameter):\n'
+                )
+                for partype in group.CLASSES:
+                    stubfile.write(
+                        f'    {partype.__name__.lower()}: '
+                        f'{partype.__module__}.{partype.__name__}\n')
+            for group in self.model.parameters:
+                classname = f'{group.name.capitalize()}Parameters'
+                stubfile.write(f'\n\nclass {classname}({classname}):\n')
+                stubfile.write(f'    fastaccess: FastAccess{classname}\n')
+                for partype in group.CLASSES:
+                    stubfile.write(
+                        f'    {partype.__name__.lower()}: '
+                        f'{partype.__module__}.{partype.__name__}\n')
+            stubfile.write('\n\nclass Parameters(Parameters):\n')
+            for group in self.model.parameters:
+                classname = f'{group.name.capitalize()}Parameters'
+                stubfile.write(f'    {group.name}: {classname}\n')
+
+            for group in self.model.sequences:
+                classname = f'FastAccess{type(group).__name__}'
+                stubfile.write(
+                    f'\n\nclass {classname}(FastAccessModelSequence):\n'
+                )
+                for partype in group.CLASSES:
+                    stubfile.write(
+                        f'    {partype.__name__.lower()}: '
+                        f'{partype.__module__}.{partype.__name__}\n')
+            for group in self.model.sequences:
+                classname = type(group).__name__
+                stubfile.write(f'\n\nclass {classname}({classname}):\n')
+                stubfile.write(f'    fastaccess: FastAccess{classname}\n')
+                if classname == 'StateSequences':
+                    stubfile.write(
+                        f'    fastaccess_old: FastAccess{classname}\n'
+                    )
+                    stubfile.write(
+                        f'    fastaccess_new: FastAccess{classname}\n'
+                    )
+                for partype in group.CLASSES:
+                    stubfile.write(
+                        f'    {partype.__name__.lower()}: '
+                        f'{partype.__module__}.{partype.__name__}\n')
+            stubfile.write('\n\nclass Sequences(Sequences):\n')
+            for group in self.model.sequences:
+                classname = type(group).__name__
+                stubfile.write(f'    {group.name}: {classname}\n')
+
+            stubfile.write(
+                '\n\nclass Model(Model):\n'
+                '    parameters: Parameters\n'
+                '    sequences: Sequences\n'
+            )
+            for methodgroup in self.model.METHOD_GROUPS:
+                for method in getattr(self.model, methodgroup):
+                    stubfile.write(
+                        f'    {method.__name__.lower()}: '
+                        f'hydpy.core.modeltools.Method\n'
+                    )
+
+            stubfile.write('\n\nmodel: Model\n')
+            stubfile.write('parameters: Parameters\n')
+            stubfile.write('sequences: Sequences\n')
+            for group in self.model.parameters:
+                classname = f'{group.name.capitalize()}Parameters'
+                stubfile.write(f'{group.name}: {classname}\n')
+            for group in self.model.sequences:
+                classname = type(group).__name__
+                stubfile.write(f'{group.name}: {classname}\n')
+            if self.model.parameters.control:
+                for partype in self.model.parameters.control.CLASSES:
+                    stubfile.write(
+                        f'{partype.__name__.lower()}: '
+                        f'{partype.__module__}.{partype.__name__}\n')
 
 
 class FuncConverter:

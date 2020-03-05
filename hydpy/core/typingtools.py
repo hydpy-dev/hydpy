@@ -64,9 +64,7 @@ class DevicesHandlerProtocol(Protocol):
 class VariableProtocol(Protocol):
     """Protocol to identify objects as "variables"."""
 
-    @property
-    def name(self) -> str:
-        """The name of the actual variable object."""
+    name: str
 
     # def __init__(
     #         self,

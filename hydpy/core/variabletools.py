@@ -946,6 +946,7 @@ operands could not be broadcast together with shapes (2,) (3,)...
 
     __hydpy__subclasscounter__ = 1
 
+    name: str
     fastaccess: Union[
         'FastAccess',
         typingtools.FastAccessParameterProtocol,

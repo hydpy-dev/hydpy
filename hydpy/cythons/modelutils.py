@@ -1463,8 +1463,7 @@ class PyxWriter:
         lines.add(1, 'cdef public Parameters parameters')
         lines.add(1, 'cdef public Sequences sequences')
         for submodel in submodels:
-            lines.add(1, f'cdef public {objecttools.classname(submodel)} '
-                         f'{objecttools.instancename(submodel)}')
+            lines.add(1, f'cdef public {submodel.__name__} {submodel.name}')
         if hasattr(self.model, 'numconsts'):
             lines.add(1, 'cdef public NumConsts numconsts')
         if hasattr(self.model, 'numvars'):
@@ -1472,8 +1471,8 @@ class PyxWriter:
         if submodels:
             lines.add(1, 'def __init__(self):')
             for submodel in submodels:
-                lines.add(2, f'self.{objecttools.instancename(submodel)} = '
-                             f'{objecttools.classname(submodel)}(self)')
+                lines.add(
+                    2, f'self.{submodel.name} = {submodel.__name__}(self)')
         return lines
 
     @property

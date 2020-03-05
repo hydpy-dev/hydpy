@@ -1904,6 +1904,9 @@ class Submodel:
     PYTHONCLASS: ClassVar[Type]
     _cysubmodel: Type
 
+    def __init_subclass__(cls):
+        cls.name = cls.__name__.lower()
+
     def __init__(self, model: Model) -> None:
         if model.cymodel:
             self._cysubmodel = getattr(model.cymodel, self.name)
@@ -1913,11 +1916,3 @@ class Submodel:
                 setattr(self._cysubmodel, f'method{idx}',
                         getattr(model, methodtype.__name__.lower()))
 
-    @property
-    def name(self):
-        """Name of the class of the given instance in lower case letters.
-
-        See the documentation on function |objecttools.get_name| for
-        additional information.
-        """
-        return objecttools.get_name(self)

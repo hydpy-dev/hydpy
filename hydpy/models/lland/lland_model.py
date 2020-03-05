@@ -1877,36 +1877,37 @@ class Calc_WGTF_V1(modeltools.Method):
 
 
 class Calc_WNied_V1(modeltools.Method):
-    """Calculate the heat flux caused by liquid precipitation on snow.
+    """Calculate the heat flux due to precipitation falling on a snow layer.
 
     We assume that the temperature of precipitation equals air temperature
     and |TRefN| equals the reference temperature to define whether the energy
     input is positive or negative (normally 0°C).
 
-    # ToDo: TREfN entspricht surface temperature des Schnees?
-
     Basic equation:
-      :math:`WNied = cp_{w} \\cdot (TKor - TRefN) \\cdot NKor \\cdot
-      \\varrho_{W}`
+      :math:`WNied = (TKor - TRefN) \\cdot
+      (CPEis \\cdot SBes + CPWasser \\cdot (NBes - SBes))`
 
     Example:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep('1d')
-        >>> nhru(2)
+        >>> nhru(4)
         >>> cpwasser(0.0041868)
+        >>> cpeis(0.00206)
         >>> fluxes.tkor(1.0)
-        >>> trefn(0.0, 0.5)
-        >>> fluxes.nbes(10.0)
+        >>> trefn(-2.0, 2.0, 2.0, 2.0)
+        >>> fluxes.nbes = 10.0
+        >>> fluxes.sbes = 0.0, 0.0, 5.0, 10.0
         >>> model.calc_wnied_v1()
         >>> fluxes.wnied
-        wnied(0.041868, 0.020934)
+        wnied(0.125604, -0.041868, -0.031234, -0.0206)
         """
 
     CONTROLPARAMETERS = (
         lland_control.NHRU,
         lland_control.TRefN,
         lland_control.CPWasser,
+        lland_control.CPEis,
     )
     REQUIREDSEQUENCES = (
         lland_fluxes.TKor,
@@ -1916,17 +1917,15 @@ class Calc_WNied_V1(modeltools.Method):
         lland_fluxes.WNied,
     )
 
-    # todo: Unterscheidung fester/flüssiger Niederschlag
-
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
             flu.wnied[k] = (
-                    con.cpwasser *
-                    (flu.tkor[k] - con.trefn[k]) *
-                    flu.nbes[k])
+                (flu.tkor[k]-con.trefn[k]) *
+                (con.cpeis*flu.sbes[k]+con.cpwasser*(flu.nbes[k]-flu.sbes[k]))
+            )
 
 
 class Calc_WNied_V2(modeltools.Method):

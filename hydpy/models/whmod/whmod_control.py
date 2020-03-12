@@ -8,7 +8,7 @@ import itertools
 # from site-packages
 import numpy
 # ...from HydPy
-from hydpy.core import objecttools
+from hydpy import pub
 from hydpy.core import parametertools
 from hydpy.models.whmod.whmod_constants import *
 from hydpy.models.whmod import whmod_constants
@@ -209,12 +209,56 @@ class BFI(BodenTypComplete):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
 
-class LaufzeitNeubildung(parametertools.Parameter):
+class Schwerpunktlaufzeit(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, False, (0., None)
 
-    def __call__(self, *args, **kwargs) -> None:
-        if (len(kwargs) == 1) and ('flurabstand' in kwargs):
-            x = kwargs['flurabstand']
-            self.value = 0.6*(((5.8039*x-21.899)*x+41.933)*x+0.0001)
-        else:
+    def __call__(self, *args, **kwargs):
+        """
+        Vergleiche Abbildung 7 in WHM_TipsTricks_5:
+
+        >>> from hydpy import pub, print_values
+        >>> pub.timegrids = '2000-01-01', '2001-01-01', '1d'
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep('1d')
+        >>> for h in range(-1, 11):
+        ...     schwerpunktlaufzeit(flurab_probst=h)
+        ...     print_values([h, schwerpunktlaufzeit.value])
+        -1, 0.0
+        0, 0.00006
+        1, 15.5028
+        2, 25.62078
+        3, 51.24804
+        4, 113.27862
+        5, 232.60656
+        6, 430.1259
+        7, 726.73068
+        8, 1143.31494
+        9, 1700.77272
+        10, 2419.99806
+
+        >>> schwerpunktlaufzeit
+        schwerpunktlaufzeit(2419.99806)
+
+        >>> parameterstep('1h')
+        >>> schwerpunktlaufzeit
+        schwerpunktlaufzeit(58079.95344)
+
+        >>> pub.timegrids = '2000-01-01', '2001-01-01', '1h'
+        >>> schwerpunktlaufzeit(flurab_probst=10.0)
+        >>> schwerpunktlaufzeit
+        schwerpunktlaufzeit(58079.95344)
+        >>> parameterstep('1d')
+        >>> schwerpunktlaufzeit
+        schwerpunktlaufzeit(2419.99806)
+        """
+        try:
             super().__call__(*args, **kwargs)
+        except NotImplementedError:
+            if (len(kwargs) == 1) and ('flurab_probst' in kwargs):
+                x = kwargs['flurab_probst']
+                k_d = .6*(((5.8039*x-21.899)*x+41.933)*x+.0001)
+                self.value = max(
+                    60*60*24*k_d/pub.timegrids.init.stepsize.seconds, 0.)
+            else:
+                raise NotImplementedError(
+                    '"flurab_probst" oder Zahl.')

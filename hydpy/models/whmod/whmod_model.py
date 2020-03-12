@@ -1220,13 +1220,13 @@ class Calc_PotKapilAufstieg_V1(modeltools.Method):
             else:
                 d_schwell = con.kapilschwellwert[k]
                 d_grenz = con.kapilgrenzwert[k]
-                if con.flurab[k] > (der.wurzeltiefe[k] + d_schwell):
+                if con.flurab > (der.wurzeltiefe[k] + d_schwell):
                     flu.potkapilaufstieg[k] = 0.
-                elif con.flurab[k] < (der.wurzeltiefe[k] + d_grenz):
+                elif con.flurab < (der.wurzeltiefe[k] + d_grenz):
                     flu.potkapilaufstieg[k] = 5.
                 else:
                     flu.potkapilaufstieg[k] = (
-                        5.*(der.wurzeltiefe[k]+d_schwell-con.flurab[k]) /
+                        5.*(der.wurzeltiefe[k]+d_schwell-con.flurab) /
                         (d_schwell-d_grenz))
 
 
@@ -1442,7 +1442,7 @@ class Calc_VerzGrundwasserneubildung_Zwischenspeicher_V1(modeltools.Method):
     >>> from numpy import arange
     >>> from hydpy import print_values
     >>> for k in numpy.arange(0., 5.5, .5):
-    ...     derived.schwerpunktlaufzeit.value = k
+    ...     schwerpunktlaufzeit.value = k
     ...     states.zwischenspeicher = 2.0
     ...     fluxes.aktgrundwasserneubildung = 1.0
     ...     model.calc_verzgrundwasserneubildung_zwischenspeicher_v1()
@@ -1462,8 +1462,8 @@ class Calc_VerzGrundwasserneubildung_Zwischenspeicher_V1(modeltools.Method):
     4.5, 0.597788, 2.402212
     5.0, 0.543808, 2.456192
     """
-    DERIVEDPARAMETERS = (
-        whmod_derived.Schwerpunktlaufzeit,
+    CONTROLPARAMETERS = (
+        whmod_control.Schwerpunktlaufzeit,
     )
     REQUIREDSEQUENCES = (
         whmod_fluxes.AktGrundwasserneubildung,
@@ -1477,13 +1477,13 @@ class Calc_VerzGrundwasserneubildung_Zwischenspeicher_V1(modeltools.Method):
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        der = model.parameters.derived.fastaccess
+        con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
-        if der.schwerpunktlaufzeit > 0:
+        if con.schwerpunktlaufzeit > 0:
             d_sp = (
                 (sta.zwischenspeicher+flu.aktgrundwasserneubildung) *
-                modelutils.exp(-1./der.schwerpunktlaufzeit))
+                modelutils.exp(-1./con.schwerpunktlaufzeit))
             flu.verzgrundwasserneubildung = (
                 flu.aktgrundwasserneubildung +
                 sta.zwischenspeicher-d_sp

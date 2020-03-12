@@ -181,7 +181,7 @@ class NFK100_Mittel(NutzNrComplete):
 
 class Flurab(NutzNrComplete):
     """[m]"""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
 
 
 class MaxWurzeltiefe(NutzNrComplete):
@@ -207,3 +207,14 @@ class KapilGrenzwert(BodenTypComplete):
 class BFI(BodenTypComplete):
     """Base Flow Index [-]"""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+
+
+class LaufzeitNeubildung(parametertools.Parameter):
+    NDIM, TYPE, TIME, SPAN = 0, float, False, (0., None)
+
+    def __call__(self, *args, **kwargs) -> None:
+        if (len(kwargs) == 1) and ('flurabstand' in kwargs):
+            x = kwargs['flurabstand']
+            self.value = 0.6*(((5.8039*x-21.899)*x+41.933)*x+0.0001)
+        else:
+            super().__call__(*args, **kwargs)

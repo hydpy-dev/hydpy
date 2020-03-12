@@ -101,10 +101,10 @@ class nFKwe(parametertools.Parameter):
         self(nfk100_mittel * numpy.clip(wurzeltiefe, 0.3, None))
 
 
-class Beta(parametertools.Parameter):
+class Beta_old(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
 
-    def update_old(self):
+    def update(self):
         """
 
         >>> from hydpy.models.whmod import *

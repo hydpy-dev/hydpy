@@ -84,3 +84,8 @@ class PotGrundwasserneubildung(Sequence1D):
 class AktGrundwasserneubildung(sequencetools.FluxSequence):
     """[mm]"""
     NDIM, NUMERIC = 0, False
+
+
+class VerzGrundwasserneubildung(sequencetools.FluxSequence):
+    """[mm]"""
+    NDIM, NUMERIC = 0, False

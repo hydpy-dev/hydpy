@@ -36,6 +36,7 @@ class Model(modeltools.AdHocModel):
         whmod_model.Calc_AktBodenwassergehalt_V1,
         whmod_model.Calc_PotGrundwasserneubildung_V1,
         whmod_model.Calc_AktGrundwasserneubildung_V1,
+        whmod_model.Calc_VerzGrundwasserneubildung_Zwischenspeicher_V1,
     )
     ADD_METHODS = ()
     OUTLET_METHODS = ()

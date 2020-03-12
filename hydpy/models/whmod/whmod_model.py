@@ -41,6 +41,7 @@ class Calc_NiederschlagRichter_V1(modeltools.Method):
     RESULTSEQUENCES = (
         whmod_fluxes.NiederschlagRichter,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         inp = model.sequences.inputs.fastaccess
@@ -161,6 +162,7 @@ class Calc_NiedNachInterz_V1(modeltools.Method):
     RESULTSEQUENCES = (
         whmod_fluxes.NiedNachInterz,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -230,6 +232,7 @@ class Calc_NiedNachInterz_V2(modeltools.Method):
     RESULTSEQUENCES = (
         whmod_fluxes.NiedNachInterz,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -260,6 +263,7 @@ class Calc_Seeniederschlag_V1(modeltools.Method):
     RESULTSEQUENCES = (
         whmod_fluxes.Seeniederschlag,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -295,6 +299,7 @@ class Calc_InterzeptionsVerdunstung_V1(modeltools.Method):
     RESULTSEQUENCES = (
         whmod_fluxes.InterzeptionsVerdunstung,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -378,6 +383,7 @@ class Calc_Interzeptionsspeicher_V1(modeltools.Method):
         whmod_fluxes.NiedNachInterz,
         whmod_fluxes.InterzeptionsVerdunstung,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -472,6 +478,7 @@ class Calc_Interzeptionsspeicher_V2(modeltools.Method):
         whmod_fluxes.NiedNachInterz,
         whmod_fluxes.InterzeptionsVerdunstung,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -517,6 +524,7 @@ class Calc_Oberflaechenabfluss_V1(modeltools.Method):
     RESULTSEQUENCES = (
         whmod_fluxes.Oberflaechenabfluss,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -582,6 +590,7 @@ class Calc_ZuflussBoden_V1(modeltools.Method):
     RESULTSEQUENCES = (
         whmod_fluxes.ZuflussBoden,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -629,6 +638,7 @@ class Calc_RelBodenfeuchte_V1(modeltools.Method):
     RESULTSEQUENCES = (
         whmod_fluxes.RelBodenfeuchte,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -672,6 +682,7 @@ class Calc_Sickerwasser_V1(modeltools.Method):
     RESULTSEQUENCES = (
         whmod_fluxes.Sickerwasser,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -716,6 +727,7 @@ class Calc_Saettigungsdampfdruckdefizit_V1(modeltools.Method):
     RESULTSEQUENCES = (
         whmod_fluxes.Saettigungsdampfdruckdefizit,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         inp = model.sequences.inputs.fastaccess
@@ -808,6 +820,7 @@ class Calc_MaxVerdunstung_V1(modeltools.Method):
     RESULTSEQUENCES = (
         whmod_fluxes.MaxVerdunstung,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -888,6 +901,7 @@ class Calc_MaxVerdunstung_V2(modeltools.Method):
     RESULTSEQUENCES = (
         whmod_fluxes.MaxVerdunstung,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -930,6 +944,7 @@ class Calc_Bodenverdunstung_V1(modeltools.Method):
     RESULTSEQUENCES = (
         whmod_fluxes.Bodenverdunstung,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -979,6 +994,7 @@ class Corr_Bodenverdunstung_V1(modeltools.Method):
     UPDATEDSEQUENCES = (
         whmod_fluxes.Bodenverdunstung,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -1016,6 +1032,7 @@ class Calc_Seeverdunstung_V1(modeltools.Method):
     RESULTSEQUENCES = (
         whmod_fluxes.Seeverdunstung,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -1051,6 +1068,7 @@ class Calc_AktVerdunstung_V1(modeltools.Method):
     RESULTSEQUENCES = (
         whmod_fluxes.AktVerdunstung,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -1189,6 +1207,7 @@ class Calc_PotKapilAufstieg_V1(modeltools.Method):
     RESULTSEQUENCES = (
         whmod_fluxes.PotKapilAufstieg,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -1242,6 +1261,7 @@ class Calc_KapilAufstieg_V1(modeltools.Method):
     RESULTSEQUENCES = (
         whmod_fluxes.KapilAufstieg,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -1302,6 +1322,7 @@ class Calc_AktBodenwassergehalt_V1(modeltools.Method):
     UPDATEDSEQUENCES = (
         whmod_states.AktBodenwassergehalt,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -1352,6 +1373,7 @@ class Calc_PotGrundwasserneubildung_V1(modeltools.Method):
     RESULTSEQUENCES = (
         whmod_fluxes.PotGrundwasserneubildung,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -1393,6 +1415,7 @@ class Calc_AktGrundwasserneubildung_V1(modeltools.Method):
     RESULTSEQUENCES = (
         whmod_fluxes.AktGrundwasserneubildung,
     )
+
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
@@ -1406,6 +1429,69 @@ class Calc_AktGrundwasserneubildung_V1(modeltools.Method):
                 flu.aktgrundwasserneubildung += \
                     con.f_area[k]*flu.potgrundwasserneubildung[k]
         flu.aktgrundwasserneubildung /= con.area
+
+
+class Calc_VerzGrundwasserneubildung_Zwischenspeicher_V1(modeltools.Method):
+    """
+
+    Nur eine Näherungslösung. Bei kleinen Flurabständen etwas zu geringe
+    Verzögerung möglich, dafür immer bilanztreu.
+
+    >>> from hydpy.models.whmod import *
+    >>> parameterstep()
+    >>> from numpy import arange
+    >>> from hydpy import print_values
+    >>> for k in numpy.arange(0., 5.5, .5):
+    ...     derived.schwerpunktlaufzeit.value = k
+    ...     states.zwischenspeicher = 2.0
+    ...     fluxes.aktgrundwasserneubildung = 1.0
+    ...     model.calc_verzgrundwasserneubildung_zwischenspeicher_v1()
+    ...     print_values(
+    ...         [k,
+    ...          fluxes.verzgrundwasserneubildung.value,
+    ...          states.zwischenspeicher.value])
+    0.0, 2.0, 0.0
+    0.5, 2.593994, 0.406006
+    1.0, 1.896362, 1.103638
+    1.5, 1.459749, 1.540251
+    2.0, 1.180408, 1.819592
+    2.5, 0.98904, 2.01096
+    3.0, 0.850406, 2.149594
+    3.5, 0.745568, 2.254432
+    4.0, 0.663598, 2.336402
+    4.5, 0.597788, 2.402212
+    5.0, 0.543808, 2.456192
+    """
+    DERIVEDPARAMETERS = (
+        whmod_derived.Schwerpunktlaufzeit,
+    )
+    REQUIREDSEQUENCES = (
+        whmod_fluxes.AktGrundwasserneubildung,
+    )
+    UPDATEDSEQUENCES = (
+        whmod_states.Zwischenspeicher,
+    )
+    RESULTSEQUENCES = (
+        whmod_fluxes.VerzGrundwasserneubildung,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        if der.schwerpunktlaufzeit > 0:
+            d_sp = (
+                (sta.zwischenspeicher+flu.aktgrundwasserneubildung) *
+                modelutils.exp(-1./der.schwerpunktlaufzeit))
+            flu.verzgrundwasserneubildung = (
+                flu.aktgrundwasserneubildung +
+                sta.zwischenspeicher-d_sp
+            )
+            sta.zwischenspeicher = d_sp
+        else:
+            flu.verzgrundwasserneubildung = sta.zwischenspeicher
+            sta.zwischenspeicher = 0.
 
 
 class Model(modeltools.AdHocModel):
@@ -1435,6 +1521,7 @@ class Model(modeltools.AdHocModel):
         Calc_AktBodenwassergehalt_V1,
         Calc_PotGrundwasserneubildung_V1,
         Calc_AktGrundwasserneubildung_V1,
+        Calc_VerzGrundwasserneubildung_Zwischenspeicher_V1,
     )
     ADD_METHODS = ()
     OUTLET_METHODS = ()

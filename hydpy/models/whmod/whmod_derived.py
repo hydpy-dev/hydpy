@@ -233,3 +233,57 @@ class Beta(parametertools.Parameter):
         self.values[idxs3] = 1.0
         idxs4 = idxs1 * ~idxs2
         self.values[idxs4] = 1.0 + 6.0/(1+(nfkwe[idxs4]/118.25)**-6.5)
+
+
+class Schwerpunktlaufzeit(parametertools.Parameter):
+    NDIM, TYPE, TIME, SPAN = 0, float, False, (0., None)
+
+    CONTROLPARAMETERS = (
+        whmod_control.Flurab,
+    )
+
+    def update(self):
+        """
+        Vergleiche Abbildung 7 in WHM_TipsTricks_5:
+
+        >>> from hydpy import pub, print_values
+        >>> pub.timegrids = '2000-01-01', '2001-01-01', '1d'
+        >>> from hydpy.models.whmod import *
+        >>> parameterstep('1d')
+        >>> for h in range(-1, 11):
+        ...     flurab(h)
+        ...     derived.schwerpunktlaufzeit.update()
+        ...     print_values(
+        ...         [flurab.value,
+        ...         derived.schwerpunktlaufzeit.value])
+        -1.0, 0.0
+        0.0, 0.00006
+        1.0, 15.5028
+        2.0, 25.62078
+        3.0, 51.24804
+        4.0, 113.27862
+        5.0, 232.60656
+        6.0, 430.1259
+        7.0, 726.73068
+        8.0, 1143.31494
+        9.0, 1700.77272
+        10.0, 2419.99806
+
+        >>> derived.schwerpunktlaufzeit
+        schwerpunktlaufzeit(2419.99806)
+
+        >>> parameterstep('1h')
+        >>> derived.schwerpunktlaufzeit
+        schwerpunktlaufzeit(58079.95344)
+
+        >>> pub.timegrids = '2000-01-01', '2001-01-01', '1h'
+        >>> derived.schwerpunktlaufzeit.update()
+        >>> derived.schwerpunktlaufzeit
+        schwerpunktlaufzeit(58079.95344)
+        >>> parameterstep('1d')
+        >>> derived.schwerpunktlaufzeit
+        schwerpunktlaufzeit(2419.99806)
+        """
+        flurab = self.subpars.pars.control.flurab.value
+        k_d = .6*(((5.8039*flurab-21.899)*flurab+41.933)*flurab+.0001)
+        self.value = max(60*60*24*k_d/pub.timegrids.init.stepsize.seconds, 0.)

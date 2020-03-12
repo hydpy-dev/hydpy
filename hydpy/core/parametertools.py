@@ -454,7 +454,7 @@ class SubParameters(variabletools.SubVariables[Parameters]):
         >>> ControlParameters(None).name
         'control'
         """
-        return objecttools.instancename(self)[:-10]
+        return type(self).__name__[:-10].lower()
 
 
 class _Period(timetools.Period):
@@ -534,7 +534,7 @@ class _Stepsize(timetools.Period):
         >>> Parameterstep().name
         'parameterstep'
         """
-        return objecttools.instancename(self)
+        return type(self).__name__.lower()
 
 
 class Parameterstep(_Stepsize):

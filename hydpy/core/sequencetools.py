@@ -597,7 +597,7 @@ class SubSequences(variabletools.SubVariables[Sequences]):
         >>> StateSequences(None).name
         'states'
         """
-        return objecttools.instancename(self)[:-8]
+        return type(self).__name__[:-8].lower()
 
 
 class ModelSequences(SubSequences):
@@ -1008,7 +1008,7 @@ class _IOProperty(propertytools.DefaultProperty):
     def __set_name__(self, objtype: Type, name: str) -> None:
         super().__set_name__(objtype, name)
         attr_seq = self.name
-        cls = objecttools.classname(self.objtype)
+        cls = self.objtype.__name__
         attr_man = f'{cls.lower()[:-8]}{self.name.split("_")[0]}'
         self.__attr_manager = attr_man
         self.set_doc(f"""
@@ -2340,7 +2340,7 @@ class ModelSequence(IOSequence):
         >>> model.sequences.fluxes.q.descr_sequence
         'flux_q'
         """
-        return f'{objecttools.classname(self.subseqs)[:-9].lower()}_{self.name}'
+        return f'{type(self.subseqs).__name__[:-9].lower()}_{self.name}'
 
     @property
     def descr_model(self) -> str:

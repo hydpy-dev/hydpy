@@ -181,7 +181,7 @@ the following error occurred: hour must be in 0..23
             raise TypeError(
                 f'The supplied argument must be either an instance of '
                 f'`Date`, `datetime.datetime`, or `str`.  The given '
-                f'arguments type is `{objecttools.classname(date)}`.')
+                f'arguments type is `{type(date).__name__}`.')
         except BaseException:
             objecttools.augment_excmessage(
                 f'While trying to initialise a `Date` '
@@ -870,7 +870,7 @@ occurred: No other decimal fraction of a second than "0" allowed.
             except BaseException:
                 pass
         raise TypeError(
-            f'Object `{other}` of type `{objecttools.classname(other)}` '
+            f'Object `{other}` of type `{type(other).__name__}` '
             f'cannot be substracted from a `Date` instance.')
 
     def __rsub__(self, other: DateConstrArg) -> 'Period':
@@ -1143,7 +1143,7 @@ from object `wrong` of type `str`.
             raise TypeError(
                 f'The supplied argument must be either an instance of '
                 f'`Period`, `datetime.timedelta`, or `str`, but the '
-                f'given type is `{objecttools.classname(period)}`.')
+                f'given type is `{type(period).__name__}`.')
         except BaseException:
             objecttools.augment_excmessage(
                 f'While trying to initialise a `Period` '
@@ -1365,7 +1365,7 @@ object at the moment.
             raise TypeError(
                 f'The supplied argument must be either an instance '
                 f'of `Period´, `datetime.timedelta` or `str`.  The given '
-                f'arguments type is `{objecttools.classname(period)}`.')
+                f'arguments type is `{type(period).__name__}`.')
 
     @timedelta.deleter
     def timedelta(self) -> None:
@@ -1465,7 +1465,7 @@ object at the moment.
             except BaseException:
                 pass
         raise TypeError(
-            f'Object `{other}` of type `{objecttools.classname(other)}` '
+            f'Object `{other}` of type `{type(other).__name__}` '
             f'cannot be added to a `Period` instance.')
 
     @overload
@@ -1511,7 +1511,7 @@ object at the moment.
                 pass
         raise TypeError(
             f'A `Period` instance cannot be subtracted from object '
-            f'`{other}` of type `{objecttools.classname(other)}`.')
+            f'`{other}` of type `{type(other).__name__}`.')
 
     def __isub__(self, other: PeriodConstrArg) -> 'Period':
         self.timedelta -= Period(other).timedelta
@@ -2330,7 +2330,7 @@ must be `Timegrid` object, but the first one is of type `str`.
                         f'When passing a single argument to the constructor '
                         f'of class `Timegrids`, the argument must be a '
                         f'`Timegrid` or a `Timegrids` object, but a '
-                        f'`{objecttools.classname(args[0])}` is given.')
+                        f'`{type(args[0]).__name__}` is given.')
             elif nmbargs == 2:
                 for idx, arg in enumerate(args):
                     if not isinstance(arg, Timegrid):
@@ -2339,7 +2339,7 @@ must be `Timegrid` object, but the first one is of type `str`.
                             f'When passing two arguments to the constructor '
                             f'of class `Timegrids`, both argument must be '
                             f'`Timegrid` object, but the {number} one is of '
-                            f'type `{objecttools.classname(args[0])}`.')
+                            f'type `{type(args[0]).__name__}`.')
                 self.init = args[0]
                 self.sim = args[1]
             elif nmbargs == 3:

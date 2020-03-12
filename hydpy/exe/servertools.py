@@ -862,7 +862,7 @@ but have not been calculated so far.
             if self._statuscode not in (200, 400):
                 self._statuscode = 500
             self.send_error(
-                self._statuscode, f'{objecttools.classname(exc)}: {exc}')
+                self._statuscode, f'{type(exc).__name__}: {exc}')
 
     def _prepare_inputs(self) -> None:
         content_length = int(self.headers['Content-Length'])

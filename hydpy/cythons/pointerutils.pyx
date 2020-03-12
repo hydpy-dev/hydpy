@@ -356,7 +356,9 @@ cdef class DoubleBase:
         return conv2double(x) / conv2double(y)
 
     def __mod__(x, y):
-        return conv2double(x) % conv2double(y)
+        cdef double d_x = conv2double(x)
+        cdef double d_y = conv2double(y)
+        return d_x-(d_x // d_y)*d_y
 
     def __pow__(x, y, z):
         return conv2double(x)**conv2double(y)

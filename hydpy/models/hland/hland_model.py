@@ -4,7 +4,7 @@
 
 # imports...
 # ...from standard library
-import typing
+from typing import *
 # ...from HydPy
 from hydpy.core import modeltools
 from hydpy.cythons import modelutils
@@ -17,7 +17,7 @@ from hydpy.models.hland import hland_fluxes
 from hydpy.models.hland import hland_states
 from hydpy.models.hland import hland_logs
 from hydpy.models.hland import hland_outlets
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from hydpy import hland
 
 

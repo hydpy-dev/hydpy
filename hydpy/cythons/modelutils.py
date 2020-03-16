@@ -737,20 +737,6 @@ class Cythonizer:
         return list(filepaths)
 
     @property
-    def pyiwriter(self) -> 'PyiWriter':
-        """Update the pyi file."""
-        model = self.Model()
-        if hasattr(self, 'Parameters'):
-            model.parameters = self.Parameters(vars(self))
-        else:
-            model.parameters = parametertools.Parameters(vars(self))
-        if hasattr(self, 'Sequences'):
-            model.sequences = self.Sequences(vars(self))
-        else:
-            model.sequences = sequencetools.Sequences(vars(self))
-        return PyiWriter(model)
-
-    @property
     def outdated(self) -> bool:
         """True/False flag indicating whether a |Cythonizer| object
         should renew its Cython model or not.

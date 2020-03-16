@@ -69,11 +69,15 @@ class Pegasus(modeltools.Submodel):
         in a non-linear manner.
 
         As a starting point, we use the setting provided by the documentation
-        on method |lland_model.Calc_TempsSurface_V1| but focus on a single
-        hydrological response unit only:
+        on method |lland_model.Calc_TempsSurface_V1| but work in pure Python
+        mode for flexibility (more specifically, to have direct access to
+        method `find_x`) and focus on a single hydrological response unit
+        for simplicity:
 
-        >>> from hydpy.models.lland import *
-        >>> parameterstep()
+        >>> from hydpy import pub
+        >>> with pub.options.usecython(False):
+        ...     from hydpy.models.lland import *
+        ...     parameterstep()
         >>> nhru(1)
         >>> turb0(2.0)
         >>> turb1(2.0)

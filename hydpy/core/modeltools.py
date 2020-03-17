@@ -32,6 +32,7 @@ if TYPE_CHECKING:
 
 class Method:
     """Base class for defining (hydrological) calculation methods."""
+    SUBMETHODS: Tuple[Type['Method'], ...] = ()
     CONTROLPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
     DERIVEDPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
     FIXEDPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()

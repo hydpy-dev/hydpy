@@ -146,12 +146,14 @@ class Parameters:
     model: 'modeltools.Model'
     control: 'SubParameters'
     derived: 'SubParameters'
+    fixed: 'SubParameters'
     solver: 'SubParameters'
 
     def __init__(self, kwargs):
         self.model = kwargs.get('model')
         self.control = self._prepare_subpars('control', kwargs)
         self.derived = self._prepare_subpars('derived', kwargs)
+        self.fixed = self._prepare_subpars('fixed', kwargs)
         self.solver = self._prepare_subpars('solver', kwargs)
 
     def _prepare_subpars(self, shortname, kwargs):
@@ -349,7 +351,7 @@ no value has been defined so far.
             yield subpars
 
     def __iter__(self) -> Iterator['SubParameters']:
-        for subpars in (self.control, self.derived, self.solver):
+        for subpars in (self.control, self.derived, self.fixed, self.solver):
             if subpars:
                 yield subpars
 
@@ -358,7 +360,7 @@ no value has been defined so far.
         >>> from hydpy.models.hstream_v1 import *
         >>> parameterstep()
         >>> dir(model.parameters)
-        ['control', 'derived', 'model', 'save_controls', \
+        ['control', 'derived', 'fixed', 'model', 'save_controls', \
 'secondary_subpars', 'solver', 'update', 'verify']
         """
         return objecttools.dir_(self)
@@ -2873,6 +2875,68 @@ parameter value must be given, but is not.
         else:
             lines.append(f'{self.name}(left={values[0]}, right={values[1]})')
         return '\n'.join(lines)
+
+
+class FixedParameter(Parameter):
+    """Base class for defining parameters with fixed values.
+
+    Model model-users usually do not modify the values of |FixedParameter|
+    objects.  Hence, such objects prepare their "initial" values automatically
+    whenever possible, even when option |option.usedefaultvalues| is disabled.
+    """
+
+    @property
+    def initinfo(self) -> Tuple[Union[float, int, bool], bool]:
+        """A |tuple| always containing the fixed value and |True|, except
+        for time-dependent parameters and incomplete time-information.
+
+        >>> from hydpy.core.parametertools import FixedParameter
+        >>> class Par(FixedParameter):
+        ...   NDIM, TYPE, TIME, SPAN = 0, float, True, (0., None)
+        ...   INIT = 100.0
+        >>> par = Par(None)
+        >>> par.initinfo
+        (nan, False)
+        >>> par.parameterstep = '1d'
+        >>> par.simulationstep = '12h'
+        >>> par.initinfo
+        (50.0, True)
+        """
+        try:
+            with self.parameterstep('1d'):
+                return self.apply_timefactor(self.INIT), True
+        except (AttributeError, RuntimeError):
+            return variabletools.TYPE2MISSINGVALUE[self.TYPE], False
+
+    def restore(self) -> None:
+        """Restore the original parameter value.
+
+        Method |FixedParameter.restore| is relevant for testing mainly.
+        Note that it might be necessary to call it after changing the
+        simulation step size, as shown in the following example using
+        the parameter |lland_fixed.LambdaG| of base model |lland|:
+
+        >>> from hydpy.lland import *
+        >>> simulationstep('1d')
+        >>> parameterstep('1d')
+        >>> from hydpy import round_
+        >>> fixed.lambdag
+        lambdag(0.05184)
+        >>> round_(fixed.lambdag.value)
+        0.05184
+        >>> simulationstep('12h')
+        >>> fixed.lambdag
+        lambdag(0.10368)
+        >>> round_(fixed.lambdag.value)
+        0.05184
+        >>> fixed.lambdag.restore()
+        >>> fixed.lambdag
+        lambdag(0.05184)
+        >>> round_(fixed.lambdag.value)
+        0.02592
+        """
+        with self.parameterstep('1d'):
+            self(self.INIT)
 
 
 class SolverParameter(Parameter):

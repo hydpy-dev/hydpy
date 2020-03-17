@@ -54,6 +54,7 @@ EXCLUDE_MEMBERS = (
     'FULL_ODE_METHODS',
     'CONTROLPARAMETERS',
     'DERIVEDPARAMETERS',
+    'FIXEDPARAMETERS',
     'REQUIREDSEQUENCES',
     'UPDATEDSEQUENCES',
     'RESULTSEQUENCES',
@@ -65,6 +66,7 @@ _PAR_SPEC2CAPT = collections.OrderedDict((('parameters', 'Parameter tools'),
                                           ('constants', 'Constants'),
                                           ('control', 'Control parameters'),
                                           ('derived', 'Derived parameters'),
+                                          ('fixed', 'Fixed parameters'),
                                           ('solver', 'Solver parameters')))
 
 _SEQ_SPEC2CAPT = collections.OrderedDict((('sequences', 'Sequence tools'),
@@ -211,6 +213,7 @@ def _extend_variabledocstrings(module, allmethods):
         insertions = []
         for role, description in (('CONTROLPARAMETERS', 'Required'),
                                   ('DERIVEDPARAMETERS', 'Required'),
+                                  ('FIXEDPARAMETERS', 'Required'),
                                   ('RESULTSEQUENCES', 'Calculated'),
                                   ('UPDATEDSEQUENCES', 'Updated'),
                                   ('REQUIREDSEQUENCES', 'Required')):
@@ -234,7 +237,7 @@ def _extend_variabledocstrings(module, allmethods):
 
 def _get_methoddocstringinsertions(method):
     insertions = []
-    for pargroup in ('control', 'derived', 'solver'):
+    for pargroup in ('control', 'derived', 'fixed', 'solver'):
         pars = getattr(method, f'{pargroup.upper()}PARAMETERS', ())
         if pars:
             insertions.append(

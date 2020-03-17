@@ -34,6 +34,7 @@ class Method:
     """Base class for defining (hydrological) calculation methods."""
     CONTROLPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
     DERIVEDPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
+    FIXEDPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
     REQUIREDSEQUENCES: Tuple[Type[typingtools.VariableProtocol], ...] = ()
     UPDATEDSEQUENCES: Tuple[Type[typingtools.VariableProtocol], ...] = ()
     RESULTSEQUENCES: Tuple[Type[typingtools.VariableProtocol], ...] = ()
@@ -619,9 +620,12 @@ to any sequences: in2.
                 typesequence = type(classname, (typesequences,), members)
                 setattr(module, classname, typesequence)
 
+        fixedparameters = set()
         controlparameters = set()
         derivedparameters = set()
         for host in itertools.chain(cls.get_methods(), allsequences):
+            fixedparameters.update(
+                getattr(host, 'FIXEDPARAMETERS', ()))
             controlparameters.update(
                 getattr(host, 'CONTROLPARAMETERS', ()))
             derivedparameters.update(
@@ -629,6 +633,7 @@ to any sequences: in2.
         for par in itertools.chain(controlparameters.copy(),
                                    derivedparameters.copy(),
                                    cls.SOLVERPARAMETERS):
+            fixedparameters.update(getattr(par, 'FIXEDPARAMETERS', ()))
             controlparameters.update(getattr(par, 'CONTROLPARAMETERS', ()))
             derivedparameters.update(getattr(par, 'DERIVEDPARAMETERS', ()))
         if controlparameters and not hasattr(module, 'ControlParameters'):
@@ -645,6 +650,14 @@ to any sequences: in2.
                 (parametertools.SubParameters,),
                 {'CLASSES': cls._sort_variables(derivedparameters),
                  '__doc__': f'Derived parameters of model {modelname}.',
+                 '__module__': modulename},
+            )
+        if fixedparameters and not hasattr(module, 'FixedParameters'):
+            module.FixedParameters = type(
+                'FixedParameters',
+                (parametertools.SubParameters,),
+                {'CLASSES': cls._sort_variables(fixedparameters),
+                 '__doc__': f'Fixed parameters of model {modelname}.',
                  '__module__': modulename},
             )
         if cls.SOLVERPARAMETERS and not hasattr(module, 'SolverParameters'):

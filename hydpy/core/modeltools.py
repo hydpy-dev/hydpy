@@ -69,6 +69,8 @@ class Model:
 
     SOLVERPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
 
+    INDICES: ClassVar[Tuple[str, ...]] = ('idx_sim',)
+
     def __init__(self) -> None:
         self.cymodel = None
         self.element = None
@@ -1929,4 +1931,3 @@ class Submodel:
             for idx, methodtype in enumerate(self.METHODS):
                 setattr(self._cysubmodel, f'method{idx}',
                         getattr(model, methodtype.__name__.lower()))
-

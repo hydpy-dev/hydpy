@@ -1459,7 +1459,8 @@ class PyxWriter:
         lines = Lines()
         lines.add(0, '@cython.final')
         lines.add(0, 'cdef class Model:')
-        lines.add(1, 'cdef public int idx_sim')
+        for index in self.model.INDICES:
+            lines.add(1, f'cdef public int {index}')
         lines.add(1, 'cdef public Parameters parameters')
         lines.add(1, 'cdef public Sequences sequences')
         for submodel in submodels:

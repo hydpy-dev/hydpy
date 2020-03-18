@@ -292,6 +292,7 @@ class Model(lstream_model.Model):
         lstream_model.Pick_Q_V1,
     )
     RECEIVER_METHODS = ()
+    ADD_METHODS = ()
     PART_ODE_METHODS = (
         lstream_model.Calc_QZA_V1,
         lstream_model.Calc_QG_V2,

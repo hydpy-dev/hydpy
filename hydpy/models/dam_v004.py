@@ -536,6 +536,9 @@ class Model(modeltools.ELSModel):
         dam_model.Pic_LoggedRequiredRemoteRelease_V2,
         dam_model.Pic_LoggedAllowedRemoteRelieve_V1,
     )
+    ADD_METHODS = (
+        dam_model.Fix_Min1_V1,
+    )
     PART_ODE_METHODS = (
         dam_model.Pic_Inflow_V1,
         dam_model.Calc_WaterLevel_V1,

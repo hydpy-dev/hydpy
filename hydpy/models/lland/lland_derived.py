@@ -9,6 +9,7 @@ from hydpy.core import parametertools
 from hydpy.core import objecttools
 # ...from lland
 from hydpy.models.lland import lland_control
+from hydpy.models.lland import lland_fixed
 from hydpy.models.lland import lland_parameters
 
 
@@ -177,7 +178,6 @@ class KInz(lland_parameters.LanduseMonthParameter):
         self.value = con.hinz*con.lai
 
 
-
 class F1SIMax(lland_parameters.LanduseMonthParameter):
     """Faktor zur Berechnung der Schneeinterzeptionskapazität bezogen auf die
     Blattoberfläche (factor for the calculation of snow interception capacity
@@ -221,7 +221,9 @@ class HeatOfFusion(lland_parameters.ParameterLand):
 
     CONTROLPARAMETERS = (
         lland_control.BoWa2Z,
-        lland_control.RSchmelz,
+    )
+    FIXEDPARAMETERS = (
+        lland_fixed.RSchmelz,
     )
 
     def update(self):
@@ -235,52 +237,50 @@ class HeatOfFusion(lland_parameters.ParameterLand):
         >>> parameterstep('1d')
         >>> nhru(2)
         >>> lnk(ACKER, LAUBW)
-        >>> rschmelz(0.334)
         >>> bowa2z(80.0)
         >>> derived.heatoffusion.update()
         >>> derived.heatoffusion
         heatoffusion(26.72)
-
         """
-        con = self.subpars.pars.control
-        self.value = con.rschmelz*con.bowa2z
+        self.value = \
+            self.subpars.pars.fixed.rschmelz*self.subpars.pars.control.bowa2z
 
 
-class F1SIRate(lland_parameters.LanduseMonthParameter):
-    """Faktor zur Berechnung der Schneeinterzeptionsrate bezogen auf die
-    Blattoberfläche (factor for the calculation of snow interception capacity
-    normalized to leaf area index) [mm]."""
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (0., None)
-
-    CONTROLPARAMETERS = (
-        lland_control.P1SIRate,
-        lland_control.P2SIRate,
-        lland_control.LAI,
-    )
-
-    def update(self):
-        """Update |F1SIRate| based on |P1SIRate|, |P2SIRate| and |LAI|.
-
-            Basic equation:
-
-               :math:`F1SIRate = P1SIRate + P2SIRate \\cdot LAI`
-
-        >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
-        >>> nhru(2)
-        >>> p1sirate(0.2)
-        >>> p2sirate(0.02)
-        >>> lai.acker_jun = 1.0
-        >>> lai.vers_dec = 2.0
-        >>> derived.f1sirate.update()
-        >>> from hydpy import round_
-        >>> round_(derived.f1sirate.acker_jun)
-        0.22
-        >>> round_(derived.f1sirate.vers_dec)
-        0.24
-        """
-        con = self.subpars.pars.control
-        self.value = con.p1sirate + con.p2sirate*con.lai
+# class F1SIRate(lland_parameters.LanduseMonthParameter):
+#     """Faktor zur Berechnung der Schneeinterzeptionsrate bezogen auf die
+#     Blattoberfläche (factor for the calculation of snow interception capacity
+#     normalized to leaf area index) [mm]."""
+#     NDIM, TYPE, TIME, SPAN = 2, float, None, (0., None)
+#
+#     CONTROLPARAMETERS = (
+#         lland_control.P1SIRate,
+#         lland_control.P2SIRate,
+#         lland_control.LAI,
+#     )
+#
+#     def update(self):
+#         """Update |F1SIRate| based on |P1SIRate|, |P2SIRate| and |LAI|.
+#
+#             Basic equation:
+#
+#                :math:`F1SIRate = P1SIRate + P2SIRate \\cdot LAI`
+#
+#         >>> from hydpy.models.lland import *
+#         >>> parameterstep('1d')
+#         >>> nhru(2)
+#         >>> p1sirate(0.2)
+#         >>> p2sirate(0.02)
+#         >>> lai.acker_jun = 1.0
+#         >>> lai.vers_dec = 2.0
+#         >>> derived.f1sirate.update()
+#         >>> from hydpy import round_
+#         >>> round_(derived.f1sirate.acker_jun)
+#         0.22
+#         >>> round_(derived.f1sirate.vers_dec)
+#         0.24
+#         """
+#         con = self.subpars.pars.control
+#         self.value = con.p1sirate + con.p2sirate*con.lai
 
 
 class KB(parametertools.Parameter):
@@ -454,4 +454,4 @@ class NFk(lland_parameters.ParameterSoil):
         nfk(80.0)
         """
         con = self.subpars.pars.control
-        self.value = con.fk - con.pwp
+        self.value = con.fk-con.pwp

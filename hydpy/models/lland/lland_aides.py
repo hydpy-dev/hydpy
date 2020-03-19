@@ -26,9 +26,6 @@ class SN_Ratio(sequencetools.AideSequence):
 class TempS(sequencetools.AideSequence):
     """Temperatur der Schneedecke (temperature of the snow layer) [°C].
 
-    Gibt es keinen Schnee (|WAeS|=0), so wird die Schneetemperatur auf NaN
-    gesetzt (If there is no snow (|WAeS|=0), snow the temperature is set to
-    NaN).
-
+    Note that the value of sequence |TempS| is |nan| for snow-free surfaces.
     """
     NDIM, NUMERIC = 1, False

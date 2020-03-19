@@ -113,13 +113,6 @@ class BoWa2Z(lland_parameters.ParameterLand):
     INIT = 80.
 
 
-class Z(lland_parameters.ParameterComplete):
-    """Halbe Mächtigkeit der betrachteten Bodensäule (half thickness of surface
-     soil layer) [m]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
-    INIT = 0.1
-
-
 class CG(lland_parameters.ParameterLand):
     """Volumetrische Wärmekapazität des Bodens (volumetric heat capacity of
     soil) [MJ/m³/°C]."""
@@ -131,32 +124,32 @@ class FVF(lland_parameters.ParameterComplete):
     """Frostversiegelungsfaktor zur Ermittelung des Frostversiegelungsgrades
     (frost sealing factor for determination of the degree of frost sealing
     FVG) [-]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
     INIT = 0.5
 
 
 class BSFF(lland_parameters.ParameterComplete):
     """Exponent zur Ermittelung des Frostversieglungsgrades (frost sealing
     exponent for determination of degree of frost sealing FVG) [-]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
-    INIT = 2.0
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
+    INIT = 2.
 
 
 class CropHeight(lland_parameters.LanduseMonthParameter):
     """Crop height [m]."""
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (0.01, None)
+    NDIM, TYPE, TIME, SPAN = 2, float, None, (0., None)
     INIT = 0.
 
 
 class Albedo(lland_parameters.LanduseMonthParameter):
     """Albedo [-]."""
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (0, 1)
+    NDIM, TYPE, TIME, SPAN = 2, float, None, (0., 1.)
     INIT = 0.
 
 
 class SurfaceResistance(lland_parameters.LanduseMonthParameter):
     """Surface Resistance [s/m]."""
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (0, None)
+    NDIM, TYPE, TIME, SPAN = 2, float, None, (0., None)
     INIT = 0.
 
 
@@ -215,37 +208,37 @@ class HInz(parametertools.Parameter):
 
 class P1SIMax(parametertools.Parameter):
     """Schneeinterzeptionsfaktor zur Berechnung der
-    Schneeinterzeptionskapazität."""
+    Schneeinterzeptionskapazität.""" # ToDo: Einheit
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
-    INIT = 8.0
+    INIT = 8.
 
 
 class P2SIMax(parametertools.Parameter):
     """Schneeinterzeptionsfaktor zur Berechnung der
-    Schneeinterzeptionskapazität."""
+    Schneeinterzeptionskapazität.""" # ToDo: Einheit
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
     INIT = 1.5
 
 
 class P1SIRate(parametertools.Parameter):
     """Schneeinterzeptionsfaktor zur Berechnung der
-    Schneeinterzeptionsrate."""
+    Schneeinterzeptionsrate.""" # ToDo: Einheit
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
     INIT = 0.2
 
 
 class P2SIRate(parametertools.Parameter):
     """Schneeinterzeptionsfaktor zur Berechnung der
-    Schneeinterzeptionsrate."""
+    Schneeinterzeptionsrate.""" # ToDo: Einheit
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
-    INIT = 0.02
+    INIT = .02
 
 
 class P3SIRate(parametertools.Parameter):
     """Schneeinterzeptionsfaktor zur Berechnung der
-    Schneeinterzeptionsrate."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 0.05)
-    INIT = 0.003
+    Schneeinterzeptionsrate.""" # ToDo: Einheit
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., .05)
+    INIT = .003
 
 
 class LAI(lland_parameters.LanduseMonthParameter):
@@ -255,7 +248,7 @@ class LAI(lland_parameters.LanduseMonthParameter):
 
 
 class TRefT(lland_parameters.ParameterLand):
-    """Lufttemperaturgrenzwert des grundlegenden Grad-Tag-Verfahrens
+    """Lufttemperaturgrenzwert des grundlegenden Grad-Tag-Verfahrens # ToDo: ?
     (air temperature threshold of the degree-day method) [°C]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
     INIT = 0.
@@ -289,55 +282,62 @@ class GTF(lland_parameters.ParameterLand):
     INIT = 3.
 
 
-class RSchmelz(parametertools.Parameter):
-    """Spezifische Schmelzwärme von Wasser (specific melt heat of water)
-    [MJ/kg]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
-    INIT = 0.334
-
-
-class Turb0(parametertools.Parameter): #todo entspricht A0 in Larsim
+class Turb0(parametertools.Parameter):
     """Parameter des Übergangskoeffizienten des turbulenten Wärmestroms
     (parameter of transition coefficient for turbulent heat flux)
-    [W/m²/°C]"""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.5, 3.5)
-    INIT = 2.
+    [MJ/m²/K/T].
+
+    Parameter |Turb0| corresponds to the LARSIM parameter `A0`.
+    """
+    NDIM, TYPE, TIME, SPAN = 0, float, True, (0.0, None)
+    INIT = 0.1728
 
 
-class Turb1(parametertools.Parameter): #todo entspricht A1 in Larsim
+class Turb1(parametertools.Parameter):
     """Parameter des Übergangskoeffizienten des turbulenten Wärmestroms
     (parameter of transition coefficient for turbulent heat flux)
-    [J/m³/°C]"""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.8, 2.5)
-    INIT = 2.
+    [(MJ*s)/m³/K/T].
+
+    Parameter |Turb0| corresponds to the LARSIM parameter `A1`.
+    """
+    NDIM, TYPE, TIME, SPAN = 0, float, True, (0.0, None)
+    INIT = 0.1728
 
 
 class Albedo0Snow(parametertools.Parameter):
     """Albedo von Neuschnee (albedo of fresh snow) [-]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
     INIT = 0.8
 
 
 class SnowAgingFactor(parametertools.Parameter):
     """Wichtungsfaktor für die Sensitivität der Albedo für die Alterung des
     Schnees (weighting factor of albedo sensitivity for snow aging) [-]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., 1.)
     INIT = 0.35
 
 
 class RefreezeFlag(lland_parameters.ParameterSoil):
     """Flag um wiedergefrieren zu aktivieren (flag to activate refreezing)
     [-]."""
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, 1)
+    NDIM, TYPE, TIME, SPAN = 0, int, None, (False, True)
     INIT = 0
 
 
-class TempSSurfaceFlag(lland_parameters.ParameterSoil):
-    """Flag Berechnung der Schneeoberflächentemperatur zu aktivieren
-    (flag to activate calculation of snow surface temperature)
-    [-]."""
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, 1)
-    INIT = 0
+class KTSchnee(lland_parameters.ParameterSoil):
+    """Effektive Wärmeleitfähigkeit der obersten Schneeschicht (effective
+    thermal conductivity of the top snow layer) [MJ/m²/K/T].
+
+    Note that, at least for application model |lland_v3|, it is fine to
+    set the value of parameter |KTSchnee| to |numpy.inf| to disable the
+    explicite modelling of the top snow layer.  As a result, the top
+    layer does not dampen the effects of atmospheric influences like
+    radiative heating.  Another aspect is that the snow surface temperature
+    does not need to be determined iteratively, as it is always identical
+    with the the snow bulk temperature, which decreases computation times.
+    """
+    NDIM, TYPE, TIME, SPAN = 0, float, True, (0., numpy.inf)
+    INIT = 0.432
 
 
 class Latitude(parametertools.Parameter):
@@ -360,7 +360,7 @@ class MeasuringHeightWindSpeed(parametertools.Parameter):
 
 class AngstromConstant(parametertools.MonthParameter):
     """The Ångström "a" coefficient for calculating global radiation [-]."""
-    TYPE, TIME, SPAN = float, None, (0., 1.0)
+    TYPE, TIME, SPAN = float, None, (0., 1.)
     INIT = 0.25
 
     def trim(self, lower=None, upper=None):
@@ -439,20 +439,6 @@ class FrAtm(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
     INIT = 1.28
     #todo: In Doku steht Eichparameter aber  nicht in Tape35
-
-
-class CPWasser(parametertools.Parameter):
-    """Spezifische Wärmekapazität von Wasser (specific heat capacity of water)
-    [MJ/kg/K]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
-    INIT = 0.0041868
-
-
-class CPEis(parametertools.Parameter):
-    """Spezifische Wärmekapazität von Eis bei 0 °C (specific heat capacity of
-    ice at a temperature of 0 °C) [MJ/kg/K]."""
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0., None)
-    INIT = 0.00209
 
 
 class PWMax(lland_parameters.ParameterLand):
@@ -555,7 +541,7 @@ class GrasRef_R(parametertools.Parameter):
     INIT = 5.
 
 
-class WMax(lland_parameters.ParameterSoil):
+class WMax(lland_parameters.ParameterSoil):   # ToDo: Beziehung zu FK?
     """Maximaler Bodenwasserspeicher  (maximum soil water storage) [mm]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
     INIT = 100.

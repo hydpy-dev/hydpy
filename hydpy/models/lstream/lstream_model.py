@@ -1376,16 +1376,18 @@ class Calc_QMDH_V1(modeltools.Method):
         >>> aides.qmdh
         qmdh(0.0, 94.12356)
 
-        >>> from hydpy import NumericalDifferentiator
-        >>> NumericalDifferentiator(
+        >>> from hydpy import NumericalDifferentiator,pub
+        >>> numdiff = NumericalDifferentiator(
         ...     xsequence=states.h,
         ...     ysequences=[aides.qm],
         ...     methods=[model.calc_rhm_v1,
         ...              model.calc_rhv_v1,
         ...              model.calc_am_um_v1,
         ...              model.calc_qm_v1],
-        ...     dx=1e-8)()
-        d_qm/d_h: 0.000024, 94.123561
+        ...     dx=1e-8)
+        >>> with pub.options.reprdigits(5):
+        ...     numdiff()
+        d_qm/d_h: 0.00002, 94.12356
 
         Second, we show that zero values for |AM| or |UM| result in zero
         values for |QMDH|:

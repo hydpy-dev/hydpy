@@ -66,7 +66,7 @@ class Calc_AdjustedWindSpeed_V1(modeltools.Method):
 class Calc_SaturationVapourPressure_V1(modeltools.Method):
     """Calculate the saturation vapour pressure.
 
-    Basic equation (`Allen`_):
+    Basic equation (`Allen`_, equation 11):
       :math:`SaturationVapourPressure = 0.6108 \\cdot
       \\exp(\\frac{17.27 \\cdot AirTemperature}{AirTemperature + 237.3})`
 
@@ -990,7 +990,7 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
 class Calc_NetRadiation_V1(modeltools.Method):
     """Calculate the total net radiation.
 
-    Basic equation (`Allen`_):
+    Basic equation (`Allen`_, equation 40):
       :math:`NetRadiation = NetShortwaveRadiation-NetLongwaveRadiation`
 
     Example:

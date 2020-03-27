@@ -1,5 +1,8 @@
 *.spyderproject
 *.spyderworkspace
+.pydevproject
+.project
+.settings/*
 *.pyc
 *.c
 *.h

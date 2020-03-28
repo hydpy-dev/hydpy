@@ -52,7 +52,7 @@ class _IndexProperty:
         self.name: str = name
 
     def __get__(self, obj: 'Model', objtype=None):
-        if objtype is None:
+        if obj is None:
             return self
         if obj.cymodel:
             return getattr(obj.cymodel, self.name)

@@ -28,10 +28,10 @@ class NHRU(parametertools.Parameter):
 
     Note that |NHRU| determines the length of most 1-dimensional HydPy-L-Land
     parameters and sequences as well the shape of 2-dimensional log sequences
-    with a predefined length of one axis (see |WET0|).  This required that
+    with a predefined length of one axis (see |WET0|).  This requires that
     the value of the respective |NHRU| instance is set before any of the
     values of these 1-dimensional parameters or sequences are set.  Changing
-    the value of the |NHRU| instance necessitates setting their values again.
+    the value of the |NHRU| instance necessitates setting their values again:
 
     Examples:
 
@@ -60,17 +60,10 @@ class NHRU(parametertools.Parameter):
                     par.shape = self.value, 2
         for subseqs in self.subpars.pars.model.sequences:
             for seq in subseqs:
-                if (((seq.NDIM == 1) and (seq.name != 'moy')  and
-                     (not isinstance(seq, sequencetools.LogSequence))) or
-                        (isinstance(seq, lland_logs.WET0))):
+                if (((seq.NDIM == 1) and (seq.name != 'moy') and
+                        not isinstance(seq, sequencetools.LogSequence)) or
+                        isinstance(seq, lland_logs.WET0)):
                     seq.shape = self.value
-                #todo: kann man das einfacher formulieren?
-
-
-class FHRU(lland_parameters.ParameterComplete):
-    """Flächenanteile der Hydrotope (area percentages of the respective
-    HRUs) [-]."""
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., 1.)
 
 
 class Lnk(parametertools.NameParameter):
@@ -97,6 +90,12 @@ class Lnk(parametertools.NameParameter):
     SPAN = (min(lland_constants.CONSTANTS.values()),
             max(lland_constants.CONSTANTS.values()))
     CONSTANTS = lland_constants.CONSTANTS
+
+
+class FHRU(lland_parameters.ParameterComplete):
+    """Flächenanteile der Hydrotope (area percentages of the respective
+    HRUs) [-]."""
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., 1.)
 
 
 class WG2Z(parametertools.MonthParameter):
@@ -248,8 +247,8 @@ class LAI(lland_parameters.LanduseMonthParameter):
 
 
 class TRefT(lland_parameters.ParameterLand):
-    """Lufttemperaturgrenzwert des grundlegenden Grad-Tag-Verfahrens # ToDo: ?
-    (air temperature threshold of the degree-day method) [°C]."""
+    """Lufttemperaturgrenzwert des Grad-Tag-Verfahrens (air temperature
+    threshold of the degree-day method) [°C]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
     INIT = 0.
 
@@ -541,92 +540,125 @@ class GrasRef_R(parametertools.Parameter):
     INIT = 5.
 
 
-class WMax(lland_parameters.ParameterSoil):   # ToDo: Beziehung zu FK?
+class WMax(lland_parameters.ParameterSoil):
     """Maximaler Bodenwasserspeicher  (maximum soil water storage) [mm]."""
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
     INIT = 100.
 
-
-class FK(lland_parameters.ParameterSoil):
-    """Mindestbodenfeuchte für die Interflowentstehung (threshold
-    value of soil moisture for interflow generation). Can be given as an
-    absolute value [mm] or relative portion of |WMax| [-].
-
-    Example:
-     >>> from hydpy.models.lland import *
-     >>> parameterstep('1d')
-     >>> nhru(3)
-     >>> lnk(ACKER)
-     >>> pwp(80)
-     >>> fk(100)
-     >>> fk
-     fk(100.0)
-     >>> wmax(200.0)
-     >>> pwp(relative=0.2)
-     >>> fk(relative=0.8)
-     >>> fk
-     fk(160.0)
-
-     >>> fk(proportion=1)
-     Traceback (most recent call last):
-     ...
-     TypeError: While trying to set the values of parameter `fk` of element \
-`?` based on keyword arguments `proportion`, the following error occurred: \
-Keyword `proportion` is not among the available model constants.
-     >>> fk(relative=0.5, acker=4)
-     Traceback (most recent call last):
-     ...
-     TypeError: While trying to set the values of parameter `fk` of element \
-`?` with arguments `relative and acker`:  It is not allowed to use keyword \
-`relative` and other keywords at the same time.
-     """
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
-    INIT = 0.
-
     CONTROLPARAMETERS = (
-        WMax,
+        # PWP,   # ToDo: circular dependency, how to solve this?
+        # FK,   # ToDo: circular dependency, how to solve this?
     )
 
-    def __call__(self, *args, **kwargs):
-        try:
-            super().__call__(*args, **kwargs)
-        except TypeError as exc:
-            if 'relative' in kwargs:
-                if len(kwargs) == 1:
-                    self.values = float(kwargs['relative']) * self.subpars.wmax
-                else:
-                    raise TypeError(
-                        f'While trying to set the values of parameter '
-                        f'{objecttools.elementphrase(self)} with arguments '
-                        f'`{objecttools.enumeration(kwargs.keys())}`:  '
-                        f'It is not allowed to use keyword `relative` and '
-                        f'other keywords at the same time.')
-            else:
-                raise exc
-
     def trim(self, lower=None, upper=None):
-        """Trim upper values in accordance with :math:`PWP \\leq FK`.
+        """Trim values in accordance with :math:`PWP \\leq FK \\leq WMax`.
 
-        Example:
-         If we set |FK| to a value smaller than |PWP| the value of |FK| is trimmed:
-         >>> from hydpy.models.lland import *
-         >>> parameterstep('1d')
-         >>> nhru(3)
-         >>> lnk(ACKER)
-         >>> pwp(100)
-         >>> fk(80)
-         >>> fk
-         fk(100.0)
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(3)
+        >>> lnk(ACKER)
+
+        >>> pwp(20.0)
+        >>> wmax(10.0, 50.0, 90.0)
+        >>> wmax
+        wmax(20.0, 50.0, 90.0)
+
+        >>> fk.values = 60.0
+        >>> wmax.trim()
+        >>> wmax
+        wmax(60.0, 60.0, 90.0)
         """
         if lower is None:
-            lower = getattr(self.subpars.pwp, 'value', None)
+            lower = getattr(self.subpars.fk, 'value', None)
+            if lower is None:
+                lower = getattr(self.subpars.pwp, 'value', None)
         super().trim(lower, upper)
 
 
-class PWP(lland_parameters.ParameterSoil):
+class FK(lland_parameters.ParameterSoilThreshold):
+    """Mindestbodenfeuchte für die Interflowentstehung (threshold
+    value of soil moisture for interflow generation) [mm].   # ToDo: wording
+
+    Note that one can define the values of parameter |FK| via the
+    keyword argument `relative`, as explained in the documentation
+    on class |ParameterSoilThreshold|.
+    """
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+    INIT = 0.
+
+    CONTROLPARAMETERS = (
+        # PWP,   # ToDo: circular dependency, how to solve this?
+        WMax,
+    )
+
+    def trim(self, lower=None, upper=None):
+        """Trim upper values in accordance with :math:`PWP \\leq FK \\leq WMax`.
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(3)
+        >>> lnk(ACKER)
+        >>> pwp(20.0)
+        >>> wmax(80.0)
+        >>> fk(10.0, 50.0, 90.0)
+        >>> fk
+        fk(20.0, 50.0, 80.0)
+        """
+        if lower is None:
+            lower = getattr(self.subpars.pwp, 'value', None)
+        if upper is None:
+            upper = getattr(self.subpars.wmax, 'value', None)
+        super().trim(lower, upper)
+
+
+class PWP(lland_parameters.ParameterSoilThreshold):
     """Mindestbodenfeuchte für die Basisabflussentstehung (threshold
-    value of soil moisture for base flow generation). Can be given as an
-    absolute value [mm] or relative portion of |WMax| [-]."""
+    value of soil moisture for base flow generation) [mm].  # ToDo: wording
+
+    Note that one can define the values of parameter |PWP| via the
+    keyword argument `relative`, as explained in the documentation
+    on class |ParameterSoilThreshold|.
+    """
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
+    INIT = 0.
+
+    CONTROLPARAMETERS = (
+        WMax,
+        FK,
+    )
+
+    def trim(self, lower=None, upper=None):
+        """Trim values in accordance with :math:`PWP \\leq FK \\leq WMax`.
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(3)
+        >>> lnk(ACKER)
+        >>> wmax(100.0)
+        >>> pwp(-10.0, 50.0, 110.0)
+        >>> pwp
+        pwp(0.0, 50.0, 100.0)
+
+        >>> fk.values = 80.0
+        >>> pwp.trim()
+        >>> pwp
+        pwp(0.0, 50.0, 80.0)
+        """
+        if upper is None:
+            upper = getattr(self.subpars.fk, 'value', None)
+            if upper is None:
+                upper = getattr(self.subpars.wmax, 'value', None)
+        super().trim(lower, upper)
+
+
+class PY(lland_parameters.ParameterSoilThreshold):
+    """Schwellenwert für den Anteil des für Pflanzen gebundenen Bodenwassers
+    (permanent wilting point) [mm].  # ToDo: wording
+
+    Note that one can define the values of parameter |PY| via the
+    keyword argument `relative`, as explained in the documentation
+    on class |ParameterSoilThreshold|.
+    """
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0., None)
     INIT = 0.
 
@@ -634,124 +666,168 @@ class PWP(lland_parameters.ParameterSoil):
         WMax,
     )
 
-    def __call__(self, *args, **kwargs):
-        try:
-            super().__call__(*args, **kwargs)
-        except TypeError as exc:
-            if 'relative' in kwargs:
-                if len(kwargs) == 1:
-                    self.values = float(kwargs['relative']) * self.subpars.wmax
-                else:
-                    raise TypeError(
-                        f'While trying to set the values of parameter '
-                        f'{objecttools.elementphrase(self)} with arguments '
-                        f'`{objecttools.enumeration(kwargs.keys())}`:  '
-                        f'It is not allowed to use keyword `relative` and '
-                        f'other keywords at the same time.')
-            else:
-                raise exc
-
     def trim(self, lower=None, upper=None):
-        """Trim upper values in accordance with :math:`PWP \\leq FK`.
+        """Trim values in accordance with :math:`PY \\leq WMax`.
 
-        Example:
-
-        If we set |FK| to a value smaller than |PWP| the value of |FK| is trimmed:
         >>> from hydpy.models.lland import *
-        >>> parameterstep('1d')
+        >>> parameterstep()
         >>> nhru(3)
         >>> lnk(ACKER)
-        >>> fk(100)
-        >>> pwp(80)
-        >>> pwp
-        pwp(80.0)
-        >>> pwp(acker=0.5)
-        >>> pwp
-        pwp(0.5)
-        >>> wmax(120.0)
-        >>> pwp(relative=0.6)
-        >>> pwp
-        pwp(72.0)
-        >>> pwp(relative=True, acker=0.6)
-        Traceback (most recent call last):
-        ...
-        TypeError: While trying to set the values of parameter `pwp` of \
-element `?` with arguments `relative and acker`:  It is not allowed to use \
-keyword `relative` and other keywords at the same time.
-        >>> pwp(feld=True, acker=0.6)
-        Traceback (most recent call last):
-        ...
-        TypeError: While trying to set the values of parameter `pwp` of \
-element `?` based on keyword arguments `feld and acker`, the following error \
-occurred: Keyword `feld` is not among the available model constants.
+        >>> wmax(100.0)
+        >>> py(-10.0, 50.0, 110.0)
+        >>> py
+        py(0.0, 50.0, 100.0)
         """
         if upper is None:
-            upper = getattr(self.subpars.fk, 'value', None)
+            upper = getattr(self.subpars.wmax, 'value', None)
         super().trim(lower, upper)
 
 
 class KapMax(lland_parameters.ParameterSoil):
-    """Maximale kapillare Aufstiegsrate (maximum capillary rise rate) [mm]."""
+    """Maximale kapillare Aufstiegsrate (maximum capillary rise) [mm]."""
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0., None)
     INIT = 0.
 
 
 class KapGrenz(parametertools.Parameter):
-    """The threshold soil water contents |KapGrenz| define the transition
-        between capillary rise with |KapMax|, linear decrease of |Qkap| and no
-        capillary rise. A third threshold can be optionally set to define when
-        released base flow is no more influenced from capillary rise.
-        Instead of defining threshold values it is also possible to define
-        options how the thresholds can be derived from |NFk|, |WMax| and |FK|.
+    """Grenzwerte für den kapillaren Aufstieg (threshold values related
+    to the capillary rise) [mm].
 
-    Example:
+    Parameter |KapGrenz| actually consists of two types of parameter values.
+    Both are thresholds and related to the soil water content.  If the
+    actual soil water content is smaller than or equal to the first threshold,
+    capillary rise reaches its maximum value.   If the actual water content
+    is larger than or equal to the second threshold, there is no capillary
+    rise at all.  In between, the soil water content and the capillary rise
+    are inversely related (linear interpolation).
+
+    In the following example, the we set the lower threshold of all three
+    hydrological response units to 10 mm and the upper one to 40 mm:
 
     >>> from hydpy.models.lland import *
     >>> parameterstep('1d')
     >>> simulationstep ('12h')
-    >>> nhru(2)
-    >>> wmax(200.)
-    >>> kapmax(150.)
-    >>> lnk(ACKER)
-    >>> fk(120)
-    >>> kapgrenz(option='KapAquantec')
+    >>> nhru(3)
+    >>> kapgrenz(10.0, 40.0)
     >>> kapgrenz
-    kapgrenz([[60.0, 120.0],
-              [60.0, 120.0]])
-    >>> kapgrenz(option='BodenGrundwasser')
+    kapgrenz([[10.0, 40.0],
+              [10.0, 40.0],
+              [10.0, 40.0]])
+
+    The next example shows how assign different threshold pairs to each
+    response unit:
+
+    >>> kapgrenz([10.0, 40.0], [20., 60.0], [30., 80.0])
     >>> kapgrenz
-    kapgrenz([[0.0, 20.0],
-              [0.0, 20.0]])
+    kapgrenz([[10.0, 40.0],
+              [20.0, 60.0],
+              [30.0, 80.0]])
+
+    It works equally well to pass a complete matrix, of course:
+
+    >>> kapgrenz([[10.0, 40.0],
+    ...           [20.0, 60.0],
+    ...           [30.0, 80.0]])
+    >>> kapgrenz
+    kapgrenz([[10.0, 40.0],
+              [20.0, 60.0],
+              [30.0, 80.0]])
+
+    It is also fine to pass a single value, in case you prefer a sharp
+    transition between zero and maximum capillary rise:
+
+    >>> kapgrenz(30.0)
+    >>> kapgrenz
+    kapgrenz(30.0)
+
+    For convenience and better compatibility with the original LARSIM model,
+    we provide the keyword argument `option`.  You simply pass an option
+    name and then parameter |KapGrenz| itself calculates suitable threshold
+    values based on soil properties.
+
+    The first possible string is `KapillarerAufstieg`.  When passing this
+    string, the current value of parameter |NFk| serves both as the lower
+    and the upper threshold, which is in agreement with the LARSIM option
+    `KAPILLARER AUFSTIEG`:
+
+    >>> fk(60.0, 120.0, 180.0)
     >>> kapgrenz(option='kapillarerAufstieg')
     >>> kapgrenz
-    kapgrenz(120.0)
-    >>> kapgrenz(10., 40.)
+    kapgrenz([[60.0, 60.0],
+              [120.0, 120.0],
+              [180.0, 180.0]])
+
+    The second possible string is `BodenGrundwasser`, which corresponds
+    to the LARSIM option `KOPPELUNG BODEN/GRUNDWASSER`, where the lower
+    and upper threshold are zero and 10 % of the current value of
+    parameter |WMax|, respectively:
+
+    >>> wmax(100.0, 150.0, 200.0)
+    >>> kapgrenz(option='BodenGrundwasser')
     >>> kapgrenz
-    kapgrenz([[10.0, 40.0],
-              [10.0, 40.0]])
-    >>> kapgrenz([10., 40.], [20., 60.])
+    kapgrenz([[0.0, 10.0],
+              [0.0, 15.0],
+              [0.0, 20.0]])
+
+    one defines the
+    water content
+    One defines the lower
+
+    The third possible string is `KapAquantec`, which does not correspond
+    to any LARSIM option, where the lower and the upper threshold are
+    50 % and 100 % of the value of parameter |NFk|:
+
+    >>> kapgrenz(option='KapAquantec')
     >>> kapgrenz
-    kapgrenz([[10.0, 40.0],
-              [20.0, 60.0]])
-    >>> kapgrenz(option='KapHydrotec')
+    kapgrenz([[30.0, 60.0],
+              [60.0, 120.0],
+              [90.0, 180.0]])
+
+    Wrong keyword arguments result in errors like the following:
+
+
+    >>> kapgrenz(option1='GrundwasserBoden', option2='kapillarerAufstieg')
     Traceback (most recent call last):
     ...
-    NotImplementedError: This option is not available. Please chose option \
-KapAquantec, BodenGrundwasser or kapillarerAufstieg
-	>>> corrqbbflag
-	corrqbbflag(1)
+    ValueError: Parameter `kapgrenz` of element `?` does not accept multiple \
+keyword arguments, but the following are given: option1 and option2
+
+    >>> kapgrenz(option1='GrundwasserBoden')
+    Traceback (most recent call last):
+    ...
+    ValueError: Besides the standard keyword arguments, parameter `kapgrenz` \
+of element `?` does only support the keyword argument `option`, but `option1` \
+is given.
+
+    >>> kapgrenz(option='GrundwasserBoden')
+    Traceback (most recent call last):
+    ...
+    ValueError: Parameter `kapgrenz` of element `?` supports the options \
+`KapAquantec`, `BodenGrundwasser`, and `kapillarerAufstieg`, but \
+`GrundwasserBoden` is given.
     """
     CONTROLPARAMETERS = (
         WMax,
         FK,
     )
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (0., None)
+    NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
     INIT = 0.
 
     def __call__(self, *args, **kwargs):
         try:
             super().__call__(*args, **kwargs)
         except NotImplementedError:
+            if len(kwargs) > 1:
+                raise ValueError(
+                    f'Parameter {objecttools.elementphrase(self)} does not '
+                    f'accept multiple keyword arguments, but the following '
+                    f'are given: {objecttools.enumeration(kwargs.keys())}')
+            if 'option' not in kwargs:
+                raise ValueError(
+                    f'Besides the standard keyword arguments, parameter '
+                    f'{objecttools.elementphrase(self)} does only support '
+                    f'the keyword argument `option`, but `{tuple(kwargs)[0]}` '
+                    f'is given.')
             con = self.subpars
             self.values = 0.
             if kwargs['option'] == 'KapAquantec':
@@ -763,12 +839,11 @@ KapAquantec, BodenGrundwasser or kapillarerAufstieg
             elif kwargs['option'] == 'kapillarerAufstieg':
                 self.values[:, 0] = con.fk
                 self.values[:, 1] = con.fk
-                con.corrqbbflag = 1
             else:
-                raise NotImplementedError(
-                    'This option is not available. Please chose option \
-KapAquantec, BodenGrundwasser or kapillarerAufstieg'
-                )
+                raise ValueError(
+                    f'Parameter {objecttools.elementphrase(self)} supports '
+                    f'the options `KapAquantec`, `BodenGrundwasser`, and '
+                    f'`kapillarerAufstieg`, but `{kwargs["option"]}` is given.')
 
 
 class Beta(lland_parameters.ParameterSoil):
@@ -785,11 +860,12 @@ class FBeta(lland_parameters.ParameterSoil):
     INIT = 1.
 
 
-class CorrQBBFlag(lland_parameters.ParameterSoil):
-    """Flag um gleichzeitige auftretende Versickerung und kapillaren Aufstieg
-    zu verhindern [-]."""
-    NDIM, TYPE, TIME, SPAN = 1, int, None, (0, 1)
-    INIT = 0
+class RBeta(lland_parameters.ParameterSoil):
+    """Boolscher Parameter der steuert, ob the Perkolation unterhalb der
+     Feldkapazität auf Null reduziert wird (flag to indicate if seepage is
+     reduced to zero below field capacity) [-]."""
+    NDIM, TYPE, TIME, SPAN = 0, bool, None, (False, True)
+    INIT = False
 
 
 class DMin(lland_parameters.ParameterSoil):

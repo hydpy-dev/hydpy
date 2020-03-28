@@ -225,7 +225,7 @@ class CFlux(hland_parameters.ParameterSoil):
 
 class RespArea(parametertools.Parameter):
     """Flag to enable the contributing area approach [-]."""
-    NDIM, TYPE, TIME, SPAN = 0, bool, None, (0., None)
+    NDIM, TYPE, TIME, SPAN = 0, bool, None, (None, None)
 
 
 class RecStep(parametertools.Parameter):

@@ -3,44 +3,45 @@
 """
 Version 1 of the L-Land model is designed to agree with the LARSIM-ME
 configuration of the LARSIM model used by the German Federal Institute
-of Hydrology (BfG) but offers more flexibility in some regards (e.g. in
-parameterization).  It can briefly be summarized as follows:
+of Hydrology (BfG) but provides some additional features and offers more
+flexibility in some regards (e.g. in parameterisation).  The following
+list summarises its main-components:
 
- * Simple routines for adjusting the meteorological input data.
- * Reference evapotranspiration after Turc-Wendling.
- * An enhanced degree-day method for calculating snowmelt.
- * A simple snow retention routine.
+ * Simple routines for adjusting the meteorological input data
+ * Reference evapotranspiration after Turc-Wendling
+ * An enhanced degree-day method for calculating snowmelt
+ * A simple snow retention routine
  * Landuse and month specific potential evapotranspiration.
- * Actual soil evapotranspiration after ATV-DVWK- 504 (2002).
- * A Soil routine based on the Xinanjiang model.
- * three capillary rise options
- * One base flow, two interflow and two direct flow components.
- * separate linear storages for modelling runoff concentration.
- * Additional evaporation from water areas.
+ * Actual soil evapotranspiration after ATV-DVWK-504 (2002)
+ * A soil routine based on the Xinanjiang model
+ * One base flow, two interflow and two direct flow components
+ * A freely configurable capillary rise routine
+ * Separate linear storages for modelling runoff concentration
+ * Additional evaporation from water areas
 
-The following figure shows the general structure of L-Land Version 1.  Note
-that, besides water areas and sealed surface areas, all land use types rely
-on the same set of process equations:
+The following figure shows the general structure of L-Land Version 1.
+Note that, besides water areas and sealed surfaces, all land-use types
+rely on the same set of process equations:
 
 .. image:: HydPy-L-Land_Version-1.png
 
-As all models implemented in HydPy, base model L-Land can principally be
-applied on arbitrary simulation step sizes.  But for the L-Land version 1
-application model one has to be aware, that the Turc-Wendling equation
-for calculating reference evaporation is designed for daily time steps only.
+As for all models implemented in HydPy, you can principally apply all L-Land
+models on arbitrary simulation step sizes.  But application model |lland_v1|
+one has to be aware that the Turc-Wendling equation for calculating reference
+evaporation targets daily time steps only.
 
 Integration tests:
 
-    All integration tests are performed over a period of five days.  Despite
-    of the mentioned  limitation of the Turc-Wendling equation, an hourly
-    simulation step size is selected (this results in evaporation values
-    that are unrealistically high, but allows for inspecting the effect of
-    evaporative soil moisture depletion within this short simulation period):
+    We perform all integration tests over five days.  Despite the mentioned
+    limitation of the Turc-Wendling equation, we select an hourly simulation
+    step size (this results in evaporation values that are unrealistically
+    high but allows for inspecting the effect of evaporative soil moisture
+    depletion within a short simulation period):
 
     >>> from hydpy import pub
     >>> pub.timegrids = '01.01.2000', '05.01.2000', '1h'
 
-    Prepare the model instance and build the connections to element `land`
+    We prepare the model instance and build its connections to element `land`
     and node `outlet`:
 
     >>> from hydpy.models.lland_v1 import *
@@ -50,15 +51,15 @@ Integration tests:
     >>> land = Element('land', outlets=outlet)
     >>> land.model = model
 
-    All tests shall be performed using a single hydrological response unit
-    with a size of one square kilometre at an altitude of 100 meter:
+    We focus on a single hydrological response unit with a size of one
+    square kilometre at an altitude of 100 meters:
 
     >>> nhru(1)
     >>> ft(1.0)
     >>> fhru(1.0)
     >>> hnn(100.0)
 
-    Initialize a test function object, which prepares and runs the tests
+    We initialise a test function object which prepares and runs the tests
     and prints their results for the given sequences:
 
     >>> from hydpy import IntegrationTest
@@ -72,16 +73,16 @@ Integration tests:
 
     **Example 1**
 
-    In the first example, arable land is selected as the only land use
-    class (for all other land types, except the ones mentioned below,
-    the results would be the same):
+
+    In the first example, arable land is the land-use class of our choice
+    (for all other land-use types, except the ones mentioned below, the results
+    would be the same):
 
     >>> lnk(ACKER)
 
     The following set of control parameter values tries to configure
-    application model |lland_v1| in a manner that allows to retrace
-    the influence of the different implemented methods on the shown
-    results:
+    application model |lland_v1| in a manner that allows retracing the
+    influence of all the different implemented methods on the shown results:
 
     >>> kg(1.2)
     >>> kt(0.8)
@@ -102,9 +103,9 @@ Integration tests:
     >>> pwp(relative=0.05)
     >>> kapgrenz(option='BodenGrundwasser')
     >>> kapmax(0.08)
-    >>> corrqbbflag(0)
     >>> beta(0.005)
     >>> fbeta(1.0)
+    >>> rbeta(False)
     >>> dmax(1.0)
     >>> dmin(0.1)
     >>> bsf(0.4)
@@ -119,7 +120,7 @@ Integration tests:
     >>> negq(False)
 
     Initially, relative soil moisture is 10 %, but all other "physical"
-    storages are empty.  Also, only baseflow is initialized with a value
+    storages are empty.  Also, we initialise only baseflow with a value
     above zero:
 
     >>> test.inits = ((states.inzp, 0.0),
@@ -137,7 +138,7 @@ Integration tests:
     ...               (states.qiga2, 0.0),
     ...               (states.qbga, 0.5))
 
-    The first input data set mimics a extreme precipitation event in summer:
+    The first input data set mimics an extreme precipitation event in summer:
 
     >>> inputs.nied.series = (
     ...     0.0, 0.0,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -170,13 +171,13 @@ Integration tests:
     ...     593.4, 493.0, 391.2, 186.0, 82.4, 17.0, 0.0, 0.0, 0.0, 0.0)
 
     The following results show that all relevant model components, except
-    the snow routines (too hot), are activated at least once within the
-    simulation period.  Take your time to click and scroll through the figure,
-    to see e.g. how the soil moisture content |BoWa| is varying over time.
-    One might realize the "linear storage" type of relationship between inflow
-    |Nied| and outflow |lland_fluxes.Q|.  This is due to the dominance of the
-    direct runoff generation (|QDGZ|) based on the Xinanjiang model and runoff
-    concentration being modelled by linear storages only (easy inspectable
+    the snow routines, are activated at least once within the simulation
+    period.  Take your time to click and scroll through the figure, to see,
+    for example, how the soil moisture content |BoWa| is varying over time.
+    One might realise the "linear storage" type of relationship between input
+    |Nied| and outflow |lland_fluxes.Q|.  This pattern is due to the dominance
+    of the direct runoff generation (|QDGZ|) based on the Xinanjiang model
+    and modelling runoff concentration via linear storages (inspectable
     through clicking e.g. on |QDGZ1| and |QDGA1|):
 
     >>> test('lland_v1_ex1')
@@ -293,17 +294,18 @@ Integration tests:
     **Example 2.1**
 
     HydPy-L-Land defines three types of water areas. The first one, |WASSER|,
-    is also implemented in the original LARSIM model.  Precipitation (|NKor|)
-    and potential evaporation (|EvPo|) are simply added to and subtracted
-    from total discharge (|lland_fluxes.Q|), respectively.
+    is also implemented in the original LARSIM model.  To represent the
+    effects of water areas in a straightforward manner,|lland_v1| adds
+    precipitation (|NKor|) to removes and potential evaporation (|EvPo|)
+    from the total discharge (|lland_fluxes.Q|.
 
     In the following example, this simple approach has the unfavourable side
     effect of discharge dropping to zero in periods with no precipitation but
     relevant potential evaporation during the daytime.  Comparable problems
-    do arise when |WASSER| is only one of many selected land types, possibly
+    do arise when |WASSER| is only one of many selected land-use types, possibly
     even when the water area is below 1 % of the total catchment area.  Hence
-    it seems advisable to use land type |FLUSS| and/or land type |SEE| instead
-    of land type |WASSER| under most circumstances:
+    it seems advisable to use the land-use types |FLUSS| and |SEE| instead,
+    under most circumstances:
 
     >>> lnk(WASSER)
     >>> test('lland_v1_ex2_1')
@@ -419,10 +421,11 @@ Integration tests:
 
     **Example 2.2**
 
-    This modification of example 2 shows the necessary amount of trimming of
-    flux sequence |lland_fluxes.Q| by setting parameter |NegQ| to `True`.
-    This allows for negative values, resulting in some negative discharge
-    peaks (hence set |NegQ| to `True` only for very good reasons):
+    In the above example, discharge is zero in all periods with evaporation
+    exceeding precipitation but not negative. This non-negativity is due to
+    trimming flux sequence |lland_fluxes.Q|, which we can disable by setting
+    parameter |NegQ| to |True| (negative values might be problematic for the
+    models downstream, so set |NegQ| to |True| only for good reasons):
 
     >>> negq(True)
     >>> test('lland_v1_ex2_2')
@@ -540,13 +543,13 @@ Integration tests:
 
     **Example 3**
 
-    As an alternative for water type |WASSER|, HydPy-L offers water type |SEE|
-    for representing lakes not directly connected to the stream network, but
-    to the groundwater.  In some agreement with the implementation of
-    "internal lakes" in the HBV96 model (see |hland|), precipitation and
-    evaporation values of |SEE| HRUs are directly added and removed from the
-    input of the linear storage for base flow (|QBGZ|).  Hence, defining
-    |SEE| HRUs results in a reduced responsiveness of a catchment:
+    As an alternative for water type |WASSER|, HydPy-L offers water type
+    |SEE| for representing lakes not directly connected to the stream
+    network but the groundwater.  In some agreement with the implementation
+    of "internal lakes" in the HBV96 model (see |hland|), precipitation and
+    evaporation values are directly added and removed from the input of the
+    linear storage for base flow (|QBGZ|).  Hence, defining |SEE| areas
+    results in reduced responsiveness of a catchment:
 
     >>> lnk(SEE)
     >>> test('lland_v1_ex3')
@@ -662,17 +665,17 @@ Integration tests:
 
     **Example 4**
 
-    The second alternative for water type |WASSER| is water type |FLUSS|
-    for representing streams.  Precipitation and evaporation values of
-    |FLUSS| HRUs are directly added and removed from the (not yet separated)
-    input of the linear storages for direct flow (|QDGZ|).  In contrast
-    to water type |SEE|, defining HRUs of type |FLUSS| increases the
-    responsiveness of a catchment, but to a lessen extent than type |WASSER|.
-    This lessens the discussed problem during low flow conditions, but for
-    catchments with a very dense stream network, it may still persist.
-    Click on the series |EvI| to see how evaporation values have to be
-    adjusted belatedly in the most extreme case of an "stream network only"
-    catchment:
+    The second alternative for water type |WASSER| is water type |FLUSS| for
+    representing streams.  Precipitation and evaporation values of |FLUSS|
+    areas are directly added and removed from the (not yet separated) input
+    of the linear storages for direct flow (|QDGZ|).  In contrast to water
+    type |SEE|, using water type |FLUSS| increases the responsiveness of a
+    catchment, but to a lesser extent than type |WASSER|.  Using |FLUSS|
+    instead of |WASSER| reduces the discussed problem during low flow
+    conditions.  However, for catchments with a very dense stream network,
+    it may persist.  Compare the series |EvPo| and |EvI| to see how
+    |lland_v1| adjusts actual evaporation in the most extreme case of a
+    "stream network only" catchment:
 
     >>> lnk(FLUSS)
     >>> test('lland_v1_ex4')
@@ -788,8 +791,8 @@ Integration tests:
 
     **Example 5**
 
-    For sealed surfaces, retention processes below the surface are assumed
-    to be negligible.  All water reaching the sealed surface becomes direct
+    For sealed surfaces, we assume retention processes below the surface to
+    be negligible.  All water reaching the sealed surface becomes direct
     discharge immediately:
 
     >>> lnk(VERS)
@@ -906,34 +909,27 @@ Integration tests:
 
     **Example 6**
 
-    ToDo: prüfen
+    Now we focus on how to configure the capillary rise (|QKap|). In the
+    first example, we calculated capillary rise only for a short period
+    with a dried-up soil (:math:`BoWa < WMax/10`) due to assigning
+    `BodenGrundwasser` to parameter |KapGrenz|.  In combination with
+    assigning |False| to parameter |RBeta|, which allows for deep percolation
+    (|QBB|) below field capacity, this corresponds to the option
+    `KOPPELUNG BODEN/GRUNDWASSER` of the original LARSIM model.
 
-    The sixth example shows the influence of capillary rise. In the first
-    example we defined the maximum capillary rise |KapMax| and chose the option
-    'BodenGrundwasser' for |KapGrenz| which calculates the capillary rise
-    according to the LARSIM version without extended soil parameters.
-    This leads to capillary rise only for very low soil moisture contents
-    (|BoWa|<0,1*|WMax|). In the original LARSIM version capillary rise was only
-    dependent on the soil moisture content of the previous time step which could
-    leed to soil moisture contents |BoWa| above |FK| due to capillary rise. This
-    was corrected in HydPy.
-
-    In this example we change the option of |KapGrenz| to 'kapillarerAufstieg'
-    which is equivalent to the LARSIM capillary rise with extended soil
-    parameters. In LARSIM |PWP| is always set to 0 if this option is activated.
-    In comparison to the 'BodenGrundwasser' capillary rise takes
-    place with its maximum rise rate and drops quickly at the threshold value.
-
-    Additionally we activate |corrqbbflag|. If this option is activated
-    deep infiltration is deactivated if capillary rise takes place. This is in
-    accordance to the LARSIM option of 'kapillarerAufstieg'.
-    Furthermore the infiltration is reduced if the soil moisture content |BoWa|
-    drops below field capacity.
+    In the sixth example, we assign `kapillarerAufstieg` to parameter
+    |KapGrenz| and |True| to parameter |RBeta|. Additionally, we set the
+    value of parameter |PWP| to zero.  This configuration corresponds to
+    the LARSIM option `KAPILLARER AUFSTIEG` in combination with
+    `ERW. BODENPARAMETER`.  Now capillary rise and deep percolation exclude
+    each other.  Accordingly, there is an abrupt transition from capillary
+    rise to deep percolation when the soil moisture exceeds |FK|:
 
     >>> lnk(ACKER)
-    >>> pwp(0)
+    >>> pwp(0.0)
     >>> kapgrenz(option='kapillarerAufstieg')
-    >>> corrqbbflag(1)
+    >>> rbeta(True)
+
     >>> test('lland_v1_ex6')
     |   date | nied | teml |  glob |  nkor | tkor |      et0 |     evpo |      nbes | sbes |      evi |      evb |   wgtf |    wnied |   schmpot | schm |      wada |       qdb |     qib1 |     qib2 |      qbb | qkap |      qdgz |        q |     inzp | wats | waes |       bowa |    qdgz1 |    qdgz2 |    qigz1 |    qigz2 |     qbgz |    qdga1 |    qdga2 |    qiga1 |    qiga2 |     qbga |   outlet |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -976,63 +972,63 @@ Integration tests:
     | 02.01. |  3.6 | 19.0 | 217.9 |  4.32 | 19.8 | 1.349913 | 0.674957 |      3.52 |  0.0 | 0.674957 |      0.0 | 3.3066 | 0.291803 | 10.773662 |  0.0 |      3.52 |  0.436285 | 0.036297 |      0.0 |      0.0 | 0.08 |  0.436285 | 0.503356 | 0.125043 |  0.0 |  0.0 |  75.720646 | 0.436285 |      0.0 | 0.036297 |      0.0 |    -0.08 |  0.16077 | 0.000168 | 0.019783 |      0.0 | 0.322636 | 0.139821 |
     | 02.01. |  5.9 | 18.8 | 582.0 |  7.08 | 19.6 | 3.528622 | 1.764311 |  6.405043 |  0.0 |      0.8 | 0.720288 | 3.2732 | 0.525606 | 11.373671 |  0.0 |  6.405043 |  0.850271 |  0.03786 |      0.0 |      0.0 | 0.08 |  0.850271 | 0.588841 |      0.0 |  0.0 |  0.0 |   80.59727 | 0.850271 |      0.0 |  0.03786 |      0.0 |    -0.08 | 0.249483 | 0.000102 | 0.020627 |      0.0 | 0.318629 | 0.163567 |
     | 02.01. |  1.1 | 18.7 | 263.9 |  1.32 | 19.5 |  1.61841 | 0.809205 |      0.52 |  0.0 |      0.8 | 0.007124 | 3.2565 | 0.042454 |  9.877108 |  0.0 |      0.52 |  0.071497 | 0.040299 |      0.0 |      0.0 | 0.08 |  0.071497 | 0.621705 |      0.0 |  0.0 |  0.0 |   81.07835 | 0.071497 |      0.0 | 0.040299 |      0.0 |    -0.08 | 0.285453 | 0.000062 | 0.021527 |      0.0 | 0.314663 | 0.172696 |
-    | 02.01. | 20.7 | 17.8 | 136.8 | 24.84 | 18.6 | 0.844303 | 0.422151 |     24.04 |  0.0 | 0.422151 |      0.0 | 3.1062 | 1.872102 | 14.905097 |  0.0 |     24.04 |  3.847472 | 0.040539 |      0.0 |      0.0 |  0.0 |  3.847472 | 1.185562 | 0.377849 |  0.0 |  0.0 | 101.230339 | 1.740089 | 2.107383 | 0.040539 |      0.0 |      0.0 | 0.402939 | 0.449039 | 0.022449 |      0.0 | 0.311135 | 0.329323 |
-    | 02.01. | 37.9 | 17.4 | 146.6 | 45.48 | 18.2 | 0.895703 | 0.447851 | 45.057849 |  0.0 | 0.447851 |      0.0 | 3.0394 | 3.433397 | 19.379632 |  0.0 | 45.057849 | 10.305457 | 0.050615 | 0.001228 | 0.506152 |  0.0 | 10.305457 | 3.437568 | 0.352149 |  0.0 |  0.0 | 135.424736 | 1.902964 | 8.402493 | 0.050615 | 0.001228 | 0.506152 | 0.660577 | 2.442791 | 0.023579 | 0.000059 | 0.310561 |  0.95488 |
-    | 02.01. |  8.2 | 17.3 | 190.6 |  9.84 | 18.1 | 1.151139 |  0.57557 |  9.392149 |  0.0 |  0.57557 |      0.0 | 3.0227 | 0.711747 |  11.18098 |  0.0 |  9.392149 |  2.696324 | 0.067712 | 0.189759 | 0.677124 |  0.0 |  2.696324 | 4.432989 |  0.22443 |  0.0 |  0.0 | 141.185965 | 1.629125 | 1.067199 | 0.067712 | 0.189759 | 0.677124 | 0.860137 | 3.224884 | 0.025318 | 0.009291 | 0.313359 | 1.231386 |
-    | 02.01. |  3.6 | 16.8 | 103.5 |  4.32 | 17.6 | 0.636581 |  0.31829 |   3.74443 |  0.0 |  0.31829 |      0.0 | 2.9392 | 0.275918 |  9.626103 |  0.0 |   3.74443 |  1.122005 | 0.070593 | 0.237885 |  0.70593 |  0.0 |  1.122005 | 3.475515 |  0.48171 |  0.0 |  0.0 | 142.793983 | 1.108738 | 0.013267 | 0.070593 | 0.237885 |  0.70593 | 0.950795 | 2.151349 | 0.027456 | 0.028793 | 0.317122 | 0.965421 |
-    | 02.01. |  7.5 | 16.5 |  13.8 |   9.0 | 17.3 | 0.116642 | 0.058321 |   8.68171 |  0.0 | 0.058321 |      0.0 | 2.8891 |  0.62883 | 10.532726 |  0.0 |   8.68171 |  2.703728 | 0.071397 | 0.251951 |  0.71397 |  0.0 |  2.703728 | 2.964231 | 0.741679 |  0.0 |  0.0 | 147.734646 |  1.63014 | 1.073588 | 0.071397 | 0.251951 |  0.71397 | 1.028257 | 1.535992 |  0.02958 | 0.049371 | 0.321031 | 0.823397 |
-    | 02.01. | 18.5 | 16.3 |   0.0 |  22.2 | 17.1 | 0.037049 | 0.018524 | 22.141679 |  0.0 | 0.018524 |      0.0 | 2.8557 | 1.585218 |  13.29616 |  0.0 | 22.141679 |  7.702046 | 0.073867 |  0.29682 | 0.738673 |  0.0 |  7.702046 | 3.955261 | 0.781476 |  0.0 |  0.0 | 161.064919 | 1.870164 | 5.831882 | 0.073867 |  0.29682 | 0.738673 | 1.159839 | 2.367859 |  0.03168 | 0.070819 | 0.325064 | 1.098684 |
-    | 02.01. | 15.4 | 16.2 |   0.0 | 18.48 | 17.0 |  0.03698 |  0.01849 | 18.461476 |  0.0 |  0.01849 |      0.0 |  2.839 | 1.314007 | 12.434152 |  0.0 | 18.461476 |  7.408414 | 0.080532 | 0.429467 | 0.805325 |  0.0 |  7.408414 | 5.419653 |  0.78151 |  0.0 |  0.0 | 170.802656 | 1.865018 | 5.543396 | 0.080532 | 0.429467 | 0.805325 | 1.288117 |  3.66938 | 0.033901 | 0.098743 | 0.329512 | 1.505459 |
-    | 02.01. |  6.3 | 15.5 |   0.0 |  7.56 | 16.3 | 0.036499 |  0.01825 |   7.54151 |  0.0 |  0.01825 |      0.0 | 2.7221 | 0.514669 |  9.690926 |  0.0 |   7.54151 |  3.284224 | 0.085401 | 0.536188 | 0.854013 |  0.0 |  3.284224 | 5.447136 |  0.78175 |  0.0 |  0.0 | 173.584339 | 1.695514 |  1.58871 | 0.085401 | 0.536188 | 0.854013 | 1.376817 | 3.564157 | 0.036295 | 0.135378 | 0.334489 | 1.513093 |
-    | 02.01. |  1.9 | 14.6 |   0.0 |  2.28 | 15.4 | 0.035873 | 0.017937 |   2.26175 |  0.0 | 0.017937 |      0.0 | 2.5718 |  0.14583 |  8.136618 |  0.0 |   2.26175 |  1.002119 | 0.086792 | 0.568095 | 0.867922 |  0.0 |  1.002119 | 4.371551 | 0.782063 |  0.0 |  0.0 | 173.321162 | 1.002114 | 0.000004 | 0.086792 | 0.568095 | 0.867922 | 1.369647 | 2.448388 | 0.038724 | 0.175063 | 0.339727 |  1.21432 |
-    | 03.01. |  4.9 | 14.7 |   0.0 |  5.88 | 15.5 | 0.035943 | 0.017972 |  5.862063 |  0.0 | 0.017972 |      0.0 | 2.5885 | 0.380421 |  8.888985 |  0.0 |  5.862063 |   2.62455 | 0.086661 |  0.56505 | 0.866606 |  0.0 |   2.62455 | 3.658428 | 0.782028 |  0.0 |  0.0 | 175.040359 | 1.618982 | 1.005568 | 0.086661 |  0.56505 | 0.866606 | 1.360797 | 1.699271 | 0.041066 | 0.212318 | 0.344977 |  1.01623 |
-    | 03.01. |  2.7 | 14.6 |   0.0 |  3.24 | 15.4 | 0.035873 | 0.017937 |  3.222028 |  0.0 | 0.017937 |      0.0 | 2.5718 | 0.207746 |  8.321993 |  0.0 |  3.222028 |  1.462425 |  0.08752 | 0.585039 | 0.875202 |  0.0 |  1.462425 |  3.26284 | 0.782063 |  0.0 |  0.0 | 175.252202 | 1.316204 | 0.146221 |  0.08752 | 0.585039 | 0.875202 | 1.379242 | 1.243226 |  0.04331 | 0.246852 |  0.35021 | 0.906344 |
-    | 03.01. |  0.5 | 14.1 |   0.0 |   0.6 | 14.9 | 0.035522 | 0.017761 |  0.582063 |  0.0 | 0.017761 |      0.0 | 2.4883 | 0.036311 |  7.558716 |  0.0 |  0.582063 |  0.262262 | 0.087626 | 0.587518 | 0.876261 |  0.0 |  0.262262 | 2.729606 | 0.782239 |  0.0 |  0.0 | 174.020598 | 0.262262 |      0.0 | 0.087626 | 0.587518 | 0.876261 | 1.269109 | 0.780434 | 0.045469 | 0.279155 | 0.355439 | 0.758224 |
-    | 03.01. |  0.2 | 14.3 |   0.0 |  0.24 | 15.1 | 0.035663 | 0.017831 |  0.222239 |  0.0 | 0.017831 |      0.0 | 2.5217 |  0.01405 |  7.592066 |  0.0 |  0.222239 |  0.098283 |  0.08701 | 0.573154 | 0.870103 |  0.0 |  0.098283 | 2.260503 | 0.782169 |  0.0 |  0.0 | 172.614287 | 0.098283 |      0.0 |  0.08701 | 0.573154 | 0.870103 | 1.071241 | 0.473357 |  0.04751 | 0.307804 |  0.36059 | 0.627918 |
-    | 03.01. |  0.5 | 14.9 |   0.0 |   0.6 | 15.7 | 0.036083 | 0.018041 |  0.582169 |  0.0 | 0.018041 |      0.0 | 2.6219 | 0.038268 |  7.964573 |  0.0 |  0.582169 |  0.252875 | 0.086307 | 0.556898 | 0.863071 |  0.0 |  0.252875 | 1.943771 | 0.781959 |  0.0 |  0.0 | 171.437304 | 0.252875 |      0.0 | 0.086307 | 0.556898 | 0.863071 | 0.909352 | 0.287106 | 0.049419 | 0.332269 | 0.365625 | 0.539936 |
-    | 03.01. |  2.4 | 15.7 |   0.0 |  2.88 | 16.5 | 0.036637 | 0.018319 |  2.861959 |  0.0 | 0.018319 |      0.0 | 2.7555 |  0.19771 |  8.841947 |  0.0 |  2.861959 |  1.234316 | 0.085719 | 0.543413 | 0.857187 |  0.0 |  1.234316 | 1.836461 | 0.781681 |  0.0 |  0.0 | 171.578629 | 1.189834 | 0.044481 | 0.085719 | 0.543413 | 0.857187 | 0.878103 | 0.183616 | 0.051204 | 0.352993 | 0.370545 | 0.510128 |
-    | 03.01. |  0.4 | 16.0 |   4.4 |  0.48 | 16.8 | 0.061945 | 0.030972 |  0.461681 |  0.0 | 0.030972 |      0.0 | 2.8056 | 0.032474 |  8.497227 |  0.0 |  0.461681 |  0.197651 | 0.085789 | 0.545026 | 0.857893 |  0.0 |  0.197651 | 1.760554 | 0.769028 |  0.0 |  0.0 |  170.35395 | 0.197651 |      0.0 | 0.085789 | 0.545026 | 0.857893 | 0.841688 | 0.119393 | 0.052889 | 0.371192 | 0.375391 | 0.489043 |
-    | 03.01. |  0.2 | 16.7 |  26.1 |  0.24 | 17.5 | 0.188148 | 0.094074 |  0.209028 |  0.0 | 0.094074 |      0.0 | 2.9225 | 0.015315 |  8.795854 |  0.0 |  0.209028 |  0.087947 | 0.085177 | 0.531099 |  0.85177 |  0.0 |  0.087947 | 1.608786 | 0.705926 |  0.0 |  0.0 | 169.006986 | 0.087947 |      0.0 | 0.085177 | 0.531099 |  0.85177 |  0.71467 | 0.072416 | 0.054478 | 0.387061 | 0.380161 | 0.446885 |
-    | 03.01. |  0.0 | 17.1 |  74.2 |   0.0 | 17.9 |  0.46949 | 0.234745 |       0.0 |  0.0 | 0.234745 |      0.0 | 2.9893 |      0.0 |      8.95 |  0.0 |       0.0 |       0.0 | 0.084503 |  0.51592 | 0.845035 |  0.0 |       0.0 | 1.477563 | 0.471181 |  0.0 |  0.0 | 167.561527 |      0.0 |      0.0 | 0.084503 |  0.51592 | 0.845035 | 0.592828 | 0.043922 | 0.055959 | 0.400034 | 0.384821 | 0.410434 |
-    | 03.01. |  0.0 | 16.2 | 287.1 |   0.0 | 17.0 | 1.680918 | 0.840459 |       0.0 |  0.0 | 0.471181 | 0.363068 |  2.839 |      0.0 |       8.5 |  0.0 |       0.0 |       0.0 | 0.083781 | 0.499795 | 0.837808 |  0.0 |       0.0 | 1.368985 |      0.0 |  0.0 |  0.0 | 165.777076 |      0.0 |      0.0 | 0.083781 | 0.499795 | 0.837808 | 0.485366 |  0.02664 | 0.057333 | 0.410282 | 0.389364 | 0.380274 |
-    | 03.01. |  0.3 | 15.9 | 299.8 |  0.36 | 16.7 | 1.743886 | 0.871943 |       0.0 |  0.0 |     0.36 | 0.502633 | 2.7889 |      0.0 |      8.35 |  0.0 |       0.0 |       0.0 | 0.082889 | 0.480125 | 0.828885 |  0.0 |       0.0 | 1.283774 |      0.0 |  0.0 |  0.0 | 163.882545 |      0.0 |      0.0 | 0.082889 | 0.480125 | 0.828885 | 0.397384 | 0.016158 | 0.058601 | 0.417848 | 0.393781 | 0.356604 |
-    | 03.01. |  2.6 | 16.3 | 363.5 |  3.12 | 17.1 | 2.122301 | 1.061151 |      2.32 |  0.0 |      0.8 | 0.256005 | 2.8557 | 0.166099 |  9.047302 |  0.0 |      2.32 |  0.905353 | 0.081941 | 0.459532 | 0.819413 |  0.0 |  0.905353 | 1.300546 |      0.0 |  0.0 |  0.0 | 163.680301 | 0.905353 |      0.0 | 0.081941 | 0.459532 | 0.819413 | 0.410141 |   0.0098 | 0.059762 | 0.422779 | 0.398063 | 0.361263 |
-    | 03.01. |  0.7 | 16.3 | 368.4 |  0.84 | 17.1 | 2.150411 | 1.075205 |      0.04 |  0.0 |      0.8 | 0.269737 | 2.8557 | 0.002864 |  8.558574 |  0.0 |      0.04 |  0.015434 |  0.08184 | 0.457352 | 0.818402 |  0.0 |  0.015434 | 1.311771 |      0.0 |  0.0 |  0.0 | 162.077537 | 0.015434 |      0.0 |  0.08184 | 0.457352 | 0.818402 | 0.416563 | 0.005944 | 0.060842 | 0.426171 | 0.402251 | 0.364381 |
-    | 03.01. |  0.3 | 16.4 | 317.8 |  0.36 | 17.2 | 1.863566 | 0.931783 |       0.0 |  0.0 |     0.36 | 0.559651 | 2.8724 |      0.0 |       8.6 |  0.0 |       0.0 |       0.0 | 0.081039 | 0.440194 | 0.810388 |  0.0 |       0.0 | 1.242516 |      0.0 |  0.0 |  0.0 | 160.186266 |      0.0 |      0.0 | 0.081039 | 0.440194 | 0.810388 | 0.342405 | 0.003605 | 0.061846 | 0.428308 | 0.406352 | 0.345143 |
-    | 03.01. |  0.3 | 16.5 | 534.7 |  0.36 | 17.3 | 3.115838 | 1.557919 |       0.0 |  0.0 |     0.36 | 1.170515 | 2.8891 |      0.0 |      8.65 |  0.0 |       0.0 |       0.0 | 0.080093 | 0.420232 | 0.800931 |  0.0 |       0.0 | 1.184082 |      0.0 |  0.0 |  0.0 | 157.714495 |      0.0 |      0.0 | 0.080093 | 0.420232 | 0.800931 | 0.280338 | 0.002187 | 0.062759 | 0.428473 | 0.410325 | 0.328912 |
-    | 03.01. |  0.0 | 18.4 | 319.4 |   0.0 | 19.2 | 1.940627 | 0.970313 |       0.0 |  0.0 |      0.0 |   0.9459 | 3.2064 |      0.0 |       9.6 |  0.0 |       0.0 |       0.0 | 0.078857 | 0.394612 | 0.788572 |  0.0 |       0.0 | 1.135021 |      0.0 |  0.0 |  0.0 | 155.506554 |      0.0 |      0.0 | 0.078857 | 0.394612 | 0.788572 | 0.229521 | 0.001326 | 0.063574 |  0.42645 |  0.41415 | 0.315284 |
-    | 03.01. |  0.0 | 18.3 | 350.6 |   0.0 | 19.1 | 2.122768 | 1.061384 |       0.0 |  0.0 |      0.0 | 1.032388 | 3.1897 |      0.0 |      9.55 |  0.0 |       0.0 |       0.0 | 0.077753 | 0.372185 | 0.777533 |  0.0 |       0.0 | 1.093168 |      0.0 |  0.0 |  0.0 | 153.246695 |      0.0 |      0.0 | 0.077753 | 0.372185 | 0.777533 | 0.187916 | 0.000804 | 0.064292 | 0.422335 |  0.41782 | 0.303658 |
-    | 03.01. |  0.0 | 18.1 | 215.4 |   0.0 | 18.9 | 1.314414 | 0.657207 |       0.0 |  0.0 |      0.0 | 0.637721 | 3.1563 |      0.0 |      9.45 |  0.0 |       0.0 |       0.0 | 0.076623 | 0.349689 | 0.766233 |  0.0 |       0.0 | 1.057079 |      0.0 |  0.0 |  0.0 | 151.416428 |      0.0 |      0.0 | 0.076623 | 0.349689 | 0.766233 | 0.153853 | 0.000488 | 0.064921 | 0.416474 | 0.421343 | 0.293633 |
-    | 03.01. |  0.0 | 16.7 |  97.8 |   0.0 | 17.5 | 0.602486 | 0.301243 |       0.0 |  0.0 |      0.0 | 0.291714 | 2.9225 |      0.0 |      8.75 |  0.0 |       0.0 |       0.0 | 0.075708 | 0.331814 | 0.757082 |  0.0 |       0.0 | 1.025713 |      0.0 |  0.0 |  0.0 | 149.960108 |      0.0 |      0.0 | 0.075708 | 0.331814 | 0.757082 | 0.125964 | 0.000296 | 0.065469 | 0.409254 | 0.424729 |  0.28492 |
-    | 03.01. |  0.0 | 15.2 |  13.1 |   0.0 | 16.0 | 0.109905 | 0.054952 |       0.0 |  0.0 |      0.0 | 0.053124 |  2.672 |      0.0 |       8.0 |  0.0 |       0.0 |       0.0 |  0.07498 | 0.317817 | 0.749801 |  0.0 |       0.0 | 0.998468 |      0.0 |  0.0 |  0.0 | 148.764387 |      0.0 |      0.0 |  0.07498 | 0.317817 | 0.749801 |  0.10313 |  0.00018 |  0.06595 | 0.401208 |    0.428 | 0.277352 |
-    | 03.01. |  0.0 | 13.4 |   0.0 |   0.0 | 14.2 | 0.035026 | 0.017513 |       0.0 |  0.0 |      0.0 | 0.016906 | 2.3714 |      0.0 |       7.1 |  0.0 |       0.0 |       0.0 | 0.074382 | 0.306476 | 0.743822 |  0.0 |       0.0 | 0.974817 |      0.0 |  0.0 |  0.0 |   147.6228 |      0.0 |      0.0 | 0.074382 | 0.306476 | 0.743822 | 0.084436 | 0.000109 | 0.066376 | 0.392724 | 0.431172 | 0.270782 |
-    | 03.01. |  0.0 | 12.4 |   0.0 |   0.0 | 13.2 | 0.034308 | 0.017154 |       0.0 |  0.0 |      0.0 | 0.016536 | 2.2044 |      0.0 |       6.6 |  0.0 |       0.0 |       0.0 | 0.073811 | 0.295777 | 0.738114 |  0.0 |       0.0 | 0.954202 |      0.0 |  0.0 |  0.0 | 146.498561 |      0.0 |      0.0 | 0.073811 | 0.295777 | 0.738114 |  0.06913 | 0.000066 | 0.066753 | 0.383998 | 0.434255 | 0.265056 |
-    | 03.01. |  0.0 | 11.6 |   0.0 |   0.0 | 12.4 | 0.033727 | 0.016863 |       0.0 |  0.0 |      0.0 | 0.016233 | 2.0708 |      0.0 |       6.2 |  0.0 |       0.0 |       0.0 | 0.073249 | 0.285366 | 0.732493 |  0.0 |       0.0 | 0.936072 |      0.0 |  0.0 |  0.0 | 145.391221 |      0.0 |      0.0 | 0.073249 | 0.285366 | 0.732493 | 0.056599 |  0.00004 | 0.067083 | 0.375099 |  0.43725 |  0.26002 |
-    | 03.01. |  0.0 | 11.0 |   0.0 |   0.0 | 11.8 | 0.033286 | 0.016643 |       0.0 |  0.0 |      0.0 | 0.015997 | 1.9706 |      0.0 |       5.9 |  0.0 |       0.0 |       0.0 | 0.072696 | 0.275233 | 0.726956 |  0.0 |       0.0 | 0.919964 |      0.0 |  0.0 |  0.0 | 144.300339 |      0.0 |      0.0 | 0.072696 | 0.275233 | 0.726956 |  0.04634 | 0.000024 |  0.06737 |  0.36607 |  0.44016 | 0.255546 |
-    | 04.01. |  0.0 | 10.5 |   0.0 |   0.0 | 11.3 | 0.032916 | 0.016458 |       0.0 |  0.0 |      0.0 | 0.015796 | 1.8871 |      0.0 |      5.65 |  0.0 |       0.0 |       0.0 |  0.07215 | 0.265371 | 0.721502 |  0.0 |       0.0 | 0.905506 |      0.0 |  0.0 |  0.0 |  143.22552 |      0.0 |      0.0 |  0.07215 | 0.265371 | 0.721502 |  0.03794 | 0.000015 | 0.067616 | 0.356949 | 0.442987 |  0.25153 |
-    | 04.01. |  0.0 | 11.7 |   0.0 |   0.0 | 12.5 |   0.0338 |   0.0169 |       0.0 |  0.0 |      0.0 | 0.016196 | 2.0875 |      0.0 |      6.25 |  0.0 |       0.0 |       0.0 | 0.071613 | 0.255772 | 0.716128 |  0.0 |       0.0 | 0.892396 |      0.0 |  0.0 |  0.0 | 142.165812 |      0.0 |      0.0 | 0.071613 | 0.255772 | 0.716128 | 0.031062 | 0.000009 | 0.067824 |  0.34777 | 0.445731 | 0.247888 |
-    | 04.01. |  0.0 | 11.9 |   0.0 |   0.0 | 12.7 | 0.033946 | 0.016973 |       0.0 |  0.0 |      0.0 | 0.016242 | 2.1209 |      0.0 |      6.35 |  0.0 |       0.0 |       0.0 | 0.071083 | 0.246424 | 0.710829 |  0.0 |       0.0 | 0.880391 |      0.0 |  0.0 |  0.0 | 141.121234 |      0.0 |      0.0 | 0.071083 | 0.246424 | 0.710829 | 0.025432 | 0.000005 | 0.067996 | 0.338563 | 0.448395 | 0.244553 |
-    | 04.01. |  1.3 | 11.2 |   0.0 |  1.56 | 12.0 | 0.033433 | 0.016717 |      0.76 |  0.0 | 0.016717 |      0.0 |  2.004 | 0.038184 |  6.114322 |  0.0 |      0.76 |  0.224804 | 0.070561 | 0.237324 | 0.705606 |  0.0 |  0.224804 | 0.890347 | 0.783283 |  0.0 |  0.0 |  140.64294 | 0.224804 |      0.0 | 0.070561 | 0.237324 | 0.705606 | 0.041875 | 0.000003 | 0.068134 | 0.329354 | 0.450981 | 0.247319 |
-    | 04.01. |  0.0 | 11.1 |   0.0 |   0.0 | 11.9 |  0.03336 |  0.01668 |       0.0 |  0.0 |  0.01668 |      0.0 | 1.9873 |      0.0 |      5.95 |  0.0 |       0.0 |       0.0 | 0.070321 | 0.233196 | 0.703215 |  0.0 |       0.0 | 0.896128 | 0.766603 |  0.0 |  0.0 | 139.636208 |      0.0 |      0.0 | 0.070321 | 0.233196 | 0.703215 | 0.053981 | 0.000002 | 0.068246 | 0.320397 | 0.453502 | 0.248924 |
-    | 04.01. |  0.0 | 11.9 |   0.0 |   0.0 | 12.7 | 0.033946 | 0.016973 |       0.0 |  0.0 | 0.016973 |      0.0 | 2.1209 |      0.0 |      6.35 |  0.0 |       0.0 |       0.0 | 0.069818 | 0.224585 | 0.698181 |  0.0 |       0.0 | 0.880176 |  0.74963 |  0.0 |  0.0 | 138.643624 |      0.0 |      0.0 | 0.069818 | 0.224585 | 0.698181 | 0.044196 | 0.000001 | 0.068335 | 0.311682 | 0.455962 | 0.244493 |
-    | 04.01. |  0.0 | 12.2 |  17.0 |   0.0 | 13.0 | 0.124091 | 0.062046 |       0.0 |  0.0 | 0.062046 |      0.0 |  2.171 |      0.0 |       6.5 |  0.0 |       0.0 |       0.0 | 0.069322 | 0.216202 | 0.693218 |  0.0 |       0.0 | 0.865916 | 0.687585 |  0.0 |  0.0 | 137.664882 |      0.0 |      0.0 | 0.069322 | 0.216202 | 0.693218 | 0.036185 | 0.000001 | 0.068395 | 0.302988 | 0.458347 | 0.240532 |
-    | 04.01. |  0.7 | 11.8 |  99.7 |  0.84 | 12.6 | 0.556783 | 0.278392 |  0.727585 |  0.0 | 0.278392 |      0.0 | 2.1042 | 0.038383 |  6.414918 |  0.0 |  0.727585 |  0.206741 | 0.068832 |  0.20804 | 0.688324 |  0.0 |  0.206741 | 0.872411 | 0.521608 |  0.0 |  0.0 | 137.220529 | 0.206741 |      0.0 | 0.068832 |  0.20804 | 0.688324 | 0.048987 |      0.0 | 0.068428 | 0.294334 |  0.46066 | 0.242336 |
-    | 04.01. |  0.4 | 11.4 | 239.4 |  0.48 | 12.2 | 1.278351 | 0.639175 |  0.201608 |  0.0 | 0.639175 |      0.0 | 2.0374 | 0.010298 |  6.130832 |  0.0 |  0.201608 |  0.056868 |  0.06861 |  0.20437 | 0.686103 |  0.0 |  0.056868 | 0.880849 | 0.160825 |  0.0 |  0.0 | 136.406187 | 0.056868 |      0.0 |  0.06861 |  0.20437 | 0.686103 | 0.063547 |      0.0 | 0.068443 | 0.285945 | 0.462914 |  0.24468 |
-    | 04.01. |  0.1 | 11.6 | 391.2 |  0.12 | 12.4 |  2.07666 |  1.03833 |       0.0 |  0.0 | 0.280825 | 0.718428 | 2.0708 |      0.0 |       6.2 |  0.0 |       0.0 |       0.0 | 0.068203 | 0.197699 | 0.682031 |  0.0 |       0.0 | 0.868425 |      0.0 |  0.0 |  0.0 | 134.739825 |      0.0 |      0.0 | 0.068203 | 0.197699 | 0.682031 | 0.057011 |      0.0 | 0.068441 | 0.277859 | 0.465115 | 0.241229 |
-    | 04.01. |  0.4 | 13.0 | 525.6 |  0.48 | 13.8 | 2.862014 | 1.431007 |       0.0 |  0.0 |     0.48 | 0.899397 | 2.3046 |      0.0 |       6.9 |  0.0 |       0.0 |       0.0 |  0.06737 | 0.184282 | 0.673699 |  0.0 |       0.0 | 0.851898 |      0.0 |  0.0 |  0.0 | 132.915077 |      0.0 |      0.0 |  0.06737 | 0.184282 | 0.673699 | 0.046676 |      0.0 | 0.068409 | 0.269582 | 0.467231 | 0.236638 |
-    | 04.01. |  0.0 | 17.1 | 570.2 |   0.0 | 17.9 | 3.356573 | 1.678286 |       0.0 |  0.0 |      0.0 | 1.582074 | 2.9893 |      0.0 |      8.95 |  0.0 |       0.0 |       0.0 | 0.066458 | 0.169955 | 0.664575 |  0.0 |       0.0 | 0.836563 |      0.0 |  0.0 |  0.0 | 130.432015 |      0.0 |      0.0 | 0.066458 | 0.169955 | 0.664575 | 0.038215 |      0.0 | 0.068336 | 0.260772 |  0.46924 | 0.232379 |
-    | 04.01. |  0.0 | 18.2 | 559.1 |   0.0 | 19.0 | 3.356514 | 1.678257 |       0.0 |  0.0 |      0.0 | 1.574702 |  3.173 |      0.0 |       9.5 |  0.0 |       0.0 |       0.0 | 0.065216 | 0.151091 |  0.65216 |  0.0 |       0.0 |  0.82184 |      0.0 |  0.0 |  0.0 | 127.988846 |      0.0 |      0.0 | 0.065216 | 0.151091 |  0.65216 | 0.031288 |      0.0 | 0.068213 | 0.251217 | 0.471122 | 0.228289 |
-    | 04.01. |  0.0 | 22.4 | 668.0 |   0.0 | 23.2 | 4.286095 | 2.143047 |       0.0 |  0.0 |      0.0 | 2.001044 | 3.8744 |      0.0 |      11.6 |  0.0 |       0.0 |       0.0 | 0.063994 | 0.133266 | 0.639944 |  0.0 |       0.0 | 0.807343 |      0.0 |  0.0 |  0.0 | 125.150598 |      0.0 |      0.0 | 0.063994 | 0.133266 | 0.639944 | 0.025616 |      0.0 | 0.068037 | 0.240826 | 0.472863 | 0.224262 |
-    | 04.01. |  0.0 | 21.4 | 593.4 |   0.0 | 22.2 | 3.753358 | 1.876679 |       0.0 |  0.0 |      0.0 | 1.741765 | 3.7074 |      0.0 |      11.1 |  0.0 |       0.0 |       0.0 | 0.062575 | 0.113518 | 0.625753 |  0.0 |       0.0 | 0.792868 |      0.0 |  0.0 |  0.0 | 122.606987 |      0.0 |      0.0 | 0.062575 | 0.113518 | 0.625753 | 0.020973 |      0.0 | 0.067805 | 0.229635 | 0.474454 | 0.220241 |
-    | 04.01. |  0.0 | 21.8 | 493.0 |   0.0 | 22.6 | 3.144766 | 1.572383 |       0.0 |  0.0 |      0.0 | 1.450912 | 3.7742 |      0.0 |      11.3 |  0.0 |       0.0 |       0.0 | 0.061303 |  0.09674 | 0.613035 |  0.0 |       0.0 |  0.77836 |      0.0 |  0.0 |  0.0 | 120.384996 |      0.0 |      0.0 | 0.061303 |  0.09674 | 0.613035 | 0.017171 |      0.0 | 0.067519 | 0.217774 | 0.475896 | 0.216211 |
-    | 04.01. |  0.0 | 22.2 | 391.2 |   0.0 | 23.0 | 2.519332 | 1.259666 |       0.0 |  0.0 |      0.0 | 1.156123 |  3.841 |      0.0 |      11.5 |  0.0 |       0.0 |       0.0 | 0.060192 | 0.082834 | 0.601925 |  0.0 |       0.0 | 0.764036 |      0.0 |  0.0 |  0.0 | 118.483922 |      0.0 |      0.0 | 0.060192 | 0.082834 | 0.601925 | 0.014059 |      0.0 | 0.067188 | 0.205583 | 0.477206 | 0.212232 |
-    | 04.01. |  0.0 | 20.1 | 186.0 |   0.0 | 20.9 | 1.179367 | 0.589683 |       0.0 |  0.0 |      0.0 | 0.538598 | 3.4903 |      0.0 |     10.45 |  0.0 |       0.0 |       0.0 | 0.059242 | 0.071521 |  0.59242 |  0.0 |       0.0 | 0.750088 |      0.0 |  0.0 |  0.0 | 117.222142 |      0.0 |      0.0 | 0.059242 | 0.071521 |  0.59242 |  0.01151 |      0.0 | 0.066824 | 0.193355 | 0.478399 | 0.208358 |
-    | 04.01. |  0.0 | 17.8 |  82.4 |   0.0 | 18.6 | 0.523693 | 0.261846 |       0.0 |  0.0 |      0.0 | 0.238364 | 3.1062 |      0.0 |       9.3 |  0.0 |       0.0 |       0.0 | 0.058611 | 0.064324 | 0.586111 |  0.0 |       0.0 | 0.736777 |      0.0 |  0.0 |  0.0 | 116.274733 |      0.0 |      0.0 | 0.058611 | 0.064324 | 0.586111 | 0.009424 |      0.0 | 0.066439 | 0.181413 | 0.479502 |  0.20466 |
-    | 04.01. |  0.0 | 15.2 |  17.0 |   0.0 | 16.0 |  0.13182 |  0.06591 |       0.0 |  0.0 |      0.0 | 0.059844 |  2.672 |      0.0 |       8.0 |  0.0 |       0.0 |       0.0 | 0.058137 |  0.05909 | 0.581374 |  0.0 |       0.0 | 0.724317 |      0.0 |  0.0 |  0.0 | 115.516287 |      0.0 |      0.0 | 0.058137 |  0.05909 | 0.581374 | 0.007716 |      0.0 | 0.066045 | 0.170017 | 0.480539 | 0.201199 |
-    | 04.01. |  0.0 | 14.5 |   0.0 |   0.0 | 15.3 | 0.035803 | 0.017902 |       0.0 |  0.0 |      0.0 |  0.01622 | 2.5551 |      0.0 |      7.65 |  0.0 |       0.0 |       0.0 | 0.057758 | 0.055008 | 0.577581 |  0.0 |       0.0 | 0.712754 |      0.0 |  0.0 |  0.0 |  114.80972 |      0.0 |      0.0 | 0.057758 | 0.055008 | 0.577581 | 0.006317 |      0.0 |  0.06565 | 0.159263 | 0.481524 | 0.197987 |
-    | 04.01. |  0.0 | 12.4 |   0.0 |   0.0 | 13.2 | 0.034308 | 0.017154 |       0.0 |  0.0 |      0.0 | 0.015512 | 2.2044 |      0.0 |       6.6 |  0.0 |       0.0 |       0.0 | 0.057405 | 0.051294 | 0.574049 |  0.0 |       0.0 | 0.702053 |      0.0 |  0.0 |  0.0 | 114.111461 |      0.0 |      0.0 | 0.057405 | 0.051294 | 0.574049 | 0.005172 |      0.0 | 0.065257 | 0.149162 | 0.482462 | 0.195015 |
-    | 04.01. |  0.0 | 11.7 |   0.0 |   0.0 | 12.5 |   0.0338 |   0.0169 |       0.0 |  0.0 |      0.0 | 0.015251 | 2.0875 |      0.0 |      6.25 |  0.0 |       0.0 |       0.0 | 0.057056 | 0.047709 | 0.570557 |  0.0 |       0.0 | 0.692131 |      0.0 |  0.0 |  0.0 | 113.420888 |      0.0 |      0.0 | 0.057056 | 0.047709 | 0.570557 | 0.004234 |      0.0 | 0.064865 | 0.139676 | 0.483356 | 0.192259 |
-    | 04.01. |  0.0 | 11.9 |   0.0 |   0.0 | 12.7 | 0.033946 | 0.016973 |       0.0 |  0.0 |      0.0 | 0.015286 | 2.1209 |      0.0 |      6.35 |  0.0 |       0.0 |       0.0 |  0.05671 |  0.04425 | 0.567104 |  0.0 |       0.0 | 0.682905 |      0.0 |  0.0 |  0.0 | 112.737538 |      0.0 |      0.0 |  0.05671 |  0.04425 | 0.567104 | 0.003467 |      0.0 | 0.064476 | 0.130756 | 0.484206 | 0.189696 |
+    | 02.01. | 20.7 | 17.8 | 136.8 | 24.84 | 18.6 | 0.844303 | 0.422151 |     24.04 |  0.0 | 0.422151 |      0.0 | 3.1062 | 1.872102 | 14.905097 |  0.0 |     24.04 |  3.847472 | 0.040539 |      0.0 |      0.0 | 0.08 |  3.847472 | 1.185163 | 0.377849 |  0.0 |  0.0 | 101.310339 | 1.740089 | 2.107383 | 0.040539 |      0.0 |    -0.08 | 0.402939 | 0.449039 | 0.022449 |      0.0 | 0.310736 | 0.329212 |
+    | 02.01. | 37.9 | 17.4 | 146.6 | 45.48 | 18.2 | 0.895703 | 0.447851 | 45.057849 |  0.0 | 0.447851 |      0.0 | 3.0394 | 3.433397 | 19.379632 |  0.0 | 45.057849 | 10.314783 | 0.050655 |  0.00135 | 0.506552 |  0.0 | 10.314783 | 3.438761 | 0.352149 |  0.0 |  0.0 | 135.494849 | 1.903052 | 8.411731 | 0.050655 |  0.00135 | 0.506552 | 0.660585 | 2.444759 |  0.02358 | 0.000065 | 0.309771 | 0.955211 |
+    | 02.01. |  8.2 | 17.3 | 190.6 |  9.84 | 18.1 | 1.151139 |  0.57557 |  9.392149 |  0.0 |  0.57557 |      0.0 | 3.0227 | 0.711747 |  11.18098 |  0.0 |  9.392149 |  2.698484 | 0.067747 | 0.190323 | 0.677474 |  0.0 |  2.698484 | 4.435551 |  0.22443 |  0.0 |  0.0 | 141.252969 | 1.629422 | 1.069062 | 0.067747 | 0.190323 | 0.677474 |  0.86018 | 3.228141 | 0.025321 | 0.009329 | 0.312581 | 1.232098 |
+    | 02.01. |  3.6 | 16.8 | 103.5 |  4.32 | 17.6 | 0.636581 |  0.31829 |   3.74443 |  0.0 |  0.31829 |      0.0 | 2.9392 | 0.275918 |  9.626103 |  0.0 |   3.74443 |  1.122873 | 0.070626 | 0.238465 | 0.706265 |  0.0 |  1.122873 | 3.477316 |  0.48171 |  0.0 |  0.0 |  142.85917 | 1.109427 | 0.013446 | 0.070626 | 0.238465 | 0.706265 |  0.95092 | 2.153699 | 0.027461 | 0.028882 | 0.316355 | 0.965921 |
+    | 02.01. |  7.5 | 16.5 |  13.8 |   9.0 | 17.3 | 0.116642 | 0.058321 |   8.68171 |  0.0 | 0.058321 |      0.0 | 2.8891 |  0.62883 | 10.532726 |  0.0 |   8.68171 |  2.705753 |  0.07143 | 0.252527 | 0.714296 |  0.0 |  2.705753 | 2.965634 | 0.741679 |  0.0 |  0.0 | 147.796874 | 1.630417 | 1.075336 |  0.07143 | 0.252527 | 0.714296 | 1.028445 | 1.537822 | 0.029586 | 0.049506 | 0.320275 | 0.823787 |
+    | 02.01. | 18.5 | 16.3 |   0.0 |  22.2 | 17.1 | 0.037049 | 0.018524 | 22.141679 |  0.0 | 0.018524 |      0.0 | 2.8557 | 1.585218 |  13.29616 |  0.0 | 22.141679 |   7.70754 | 0.073898 | 0.297401 | 0.738984 |  0.0 |   7.70754 | 3.957464 | 0.781476 |  0.0 |  0.0 |  161.12073 | 1.870257 | 5.837283 | 0.073898 | 0.297401 | 0.738984 | 1.160026 | 2.370435 | 0.031687 | 0.070997 | 0.324318 | 1.099295 |
+    | 02.01. | 15.4 | 16.2 |   0.0 | 18.48 | 17.0 |  0.03698 |  0.01849 | 18.461476 |  0.0 |  0.01849 |      0.0 |  2.839 | 1.314007 | 12.434152 |  0.0 | 18.461476 |  7.413495 |  0.08056 | 0.430056 | 0.805604 |  0.0 |  7.413495 | 5.422913 |  0.78151 |  0.0 |  0.0 |  170.85249 | 1.865111 | 5.548385 |  0.08056 | 0.430056 | 0.805604 | 1.288287 |  3.67298 | 0.033909 | 0.098959 | 0.328776 | 1.506365 |
+    | 02.01. |  6.3 | 15.5 |   0.0 |  7.56 | 16.3 | 0.036499 |  0.01825 |   7.54151 |  0.0 |  0.01825 |      0.0 | 2.7221 | 0.514669 |  9.690926 |  0.0 |   7.54151 |   3.28642 | 0.085426 | 0.536754 | 0.854262 |  0.0 |   3.28642 | 5.450345 |  0.78175 |  0.0 |  0.0 | 173.631137 | 1.695718 | 1.590702 | 0.085426 | 0.536754 | 0.854262 | 1.376983 | 3.567665 | 0.036304 | 0.135629 | 0.333763 | 1.513985 |
+    | 02.01. |  1.9 | 14.6 |   0.0 |  2.28 | 15.4 | 0.035873 | 0.017937 |   2.26175 |  0.0 | 0.017937 |      0.0 | 2.5718 |  0.14583 |  8.136618 |  0.0 |   2.26175 |  1.002768 | 0.086816 | 0.568637 | 0.868156 |  0.0 |  1.002768 | 4.373827 | 0.782063 |  0.0 |  0.0 | 173.366512 |  1.00276 | 0.000008 | 0.086816 | 0.568637 | 0.868156 | 1.369862 | 2.450875 | 0.038734 | 0.175343 | 0.339012 | 1.214952 |
+    | 03.01. |  4.9 | 14.7 |   0.0 |  5.88 | 15.5 | 0.035943 | 0.017972 |  5.862063 |  0.0 | 0.017972 |      0.0 | 2.5885 | 0.380421 |  8.888985 |  0.0 |  5.862063 |  2.626197 | 0.086683 | 0.565574 | 0.866833 |  0.0 |  2.626197 |   3.6601 | 0.782028 |  0.0 |  0.0 | 175.083288 | 1.619221 | 1.006976 | 0.086683 | 0.565574 | 0.866833 | 1.361052 |  1.70108 | 0.041076 | 0.212622 |  0.34427 | 1.016694 |
+    | 03.01. |  2.7 | 14.6 |   0.0 |  3.24 | 15.4 | 0.035873 | 0.017937 |  3.222028 |  0.0 | 0.017937 |      0.0 | 2.5718 | 0.207746 |  8.321993 |  0.0 |  3.222028 |  1.463313 | 0.087542 | 0.585541 | 0.875416 |  0.0 |  1.463313 | 3.264198 | 0.782063 |  0.0 |  0.0 | 175.293505 | 1.316619 | 0.146694 | 0.087542 | 0.585541 | 0.875416 |  1.37951 | 1.244678 | 0.043321 | 0.247176 | 0.349513 | 0.906722 |
+    | 03.01. |  0.5 | 14.1 |   0.0 |   0.6 | 14.9 | 0.035522 | 0.017761 |  0.582063 |  0.0 | 0.017761 |      0.0 | 2.4883 | 0.036311 |  7.558716 |  0.0 |  0.582063 |  0.262415 | 0.087647 | 0.588002 | 0.876468 |  0.0 |  0.262415 | 2.730505 | 0.782239 |  0.0 |  0.0 | 174.061037 | 0.262415 |      0.0 | 0.087647 | 0.588002 | 0.876468 |  1.26938 |   0.7814 | 0.045481 | 0.279494 | 0.354751 | 0.758474 |
+    | 03.01. |  0.2 | 14.3 |   0.0 |  0.24 | 15.1 | 0.035663 | 0.017831 |  0.222239 |  0.0 | 0.017831 |      0.0 | 2.5217 |  0.01405 |  7.592066 |  0.0 |  0.222239 |  0.098339 | 0.087031 | 0.573624 | 0.870305 |  0.0 |  0.098339 | 2.261015 | 0.782169 |  0.0 |  0.0 | 172.653978 | 0.098339 |      0.0 | 0.087031 | 0.573624 | 0.870305 | 1.071481 | 0.473943 | 0.047522 | 0.308157 | 0.359911 |  0.62806 |
+    | 03.01. |  0.5 | 14.9 |   0.0 |   0.6 | 15.7 | 0.036083 | 0.018041 |  0.582169 |  0.0 | 0.018041 |      0.0 | 2.6219 | 0.038268 |  7.964573 |  0.0 |  0.582169 |  0.253012 | 0.086327 | 0.557355 |  0.86327 |  0.0 |  0.253012 | 1.944046 | 0.781959 |  0.0 |  0.0 | 171.476183 | 0.253012 |      0.0 | 0.086327 | 0.557355 |  0.86327 | 0.909566 | 0.287461 | 0.049431 | 0.332633 | 0.364955 | 0.540013 |
+    | 03.01. |  2.4 | 15.7 |   0.0 |  2.88 | 16.5 | 0.036637 | 0.018319 |  2.861959 |  0.0 | 0.018319 |      0.0 | 2.7555 |  0.19771 |  8.841947 |  0.0 |  2.861959 |  1.234962 | 0.085738 | 0.543857 | 0.857381 |  0.0 |  1.234962 | 1.836673 | 0.781681 |  0.0 |  0.0 | 171.616204 | 1.190259 | 0.044704 | 0.085738 | 0.543857 | 0.857381 |  0.87833 | 0.183879 | 0.051216 | 0.353365 | 0.369884 | 0.510187 |
+    | 03.01. |  0.4 | 16.0 |   4.4 |  0.48 | 16.8 | 0.061945 | 0.030972 |  0.461681 |  0.0 | 0.030972 |      0.0 | 2.8056 | 0.032474 |  8.497227 |  0.0 |  0.461681 |  0.197751 | 0.085808 | 0.545456 | 0.858081 |  0.0 |  0.197751 | 1.760723 | 0.769028 |  0.0 |  0.0 | 170.390789 | 0.197751 |      0.0 | 0.085808 | 0.545456 | 0.858081 | 0.841921 | 0.119593 | 0.052902 |  0.37157 | 0.374738 |  0.48909 |
+    | 03.01. |  0.2 | 16.7 |  26.1 |  0.24 | 17.5 | 0.188148 | 0.094074 |  0.209028 |  0.0 | 0.094074 |      0.0 | 2.9225 | 0.015315 |  8.795854 |  0.0 |  0.209028 |   0.08799 | 0.085195 | 0.531516 | 0.851954 |  0.0 |   0.08799 | 1.608861 | 0.705926 |  0.0 |  0.0 | 169.043162 |  0.08799 |      0.0 | 0.085195 | 0.531516 | 0.851954 | 0.714873 | 0.072537 | 0.054492 | 0.387443 | 0.379516 | 0.446906 |
+    | 03.01. |  0.0 | 17.1 |  74.2 |   0.0 | 17.9 |  0.46949 | 0.234745 |       0.0 |  0.0 | 0.234745 |      0.0 | 2.9893 |      0.0 |      8.95 |  0.0 |       0.0 |       0.0 | 0.084522 | 0.516325 | 0.845216 |  0.0 |       0.0 | 1.477568 | 0.471181 |  0.0 |  0.0 | 167.597099 |      0.0 |      0.0 | 0.084522 | 0.516325 | 0.845216 | 0.592998 | 0.043996 | 0.055972 | 0.400419 | 0.384184 | 0.410436 |
+    | 03.01. |  0.0 | 16.2 | 287.1 |   0.0 | 17.0 | 1.680918 | 0.840459 |       0.0 |  0.0 | 0.471181 | 0.363078 |  2.839 |      0.0 |       8.5 |  0.0 |       0.0 |       0.0 | 0.083799 |  0.50019 | 0.837985 |  0.0 |       0.0 |  1.36894 |      0.0 |  0.0 |  0.0 | 165.812048 |      0.0 |      0.0 | 0.083799 |  0.50019 | 0.837985 | 0.485506 | 0.026685 | 0.057347 | 0.410668 | 0.388735 | 0.380261 |
+    | 03.01. |  0.3 | 15.9 | 299.8 |  0.36 | 16.7 | 1.743886 | 0.871943 |       0.0 |  0.0 |     0.36 | 0.502647 | 2.7889 |      0.0 |      8.35 |  0.0 |       0.0 |       0.0 | 0.082906 | 0.480508 |  0.82906 |  0.0 |       0.0 | 1.283694 |      0.0 |  0.0 |  0.0 | 163.916927 |      0.0 |      0.0 | 0.082906 | 0.480508 |  0.82906 | 0.397498 | 0.016185 | 0.058615 | 0.418235 | 0.393161 | 0.356582 |
+    | 03.01. |  2.6 | 16.3 | 363.5 |  3.12 | 17.1 | 2.122301 | 1.061151 |      2.32 |  0.0 |      0.8 | 0.256012 | 2.8557 | 0.166099 |  9.047302 |  0.0 |      2.32 |  0.905743 | 0.081958 | 0.459903 | 0.819585 |  0.0 |  0.905743 | 1.300479 |      0.0 |  0.0 |  0.0 | 163.713725 | 0.905743 |      0.0 | 0.081958 | 0.459903 | 0.819585 |  0.41027 | 0.009817 | 0.059776 | 0.423164 | 0.397451 | 0.361244 |
+    | 03.01. |  0.7 | 16.3 | 368.4 |  0.84 | 17.1 | 2.150411 | 1.075205 |      0.04 |  0.0 |      0.8 | 0.269744 | 2.8557 | 0.002864 |  8.558574 |  0.0 |      0.04 |   0.01544 | 0.081857 | 0.457712 | 0.818569 |  0.0 |   0.01544 | 1.311715 |      0.0 |  0.0 |  0.0 | 162.110403 |  0.01544 |      0.0 | 0.081857 | 0.457712 | 0.818569 | 0.416704 | 0.005954 | 0.060856 | 0.426554 | 0.401646 | 0.364365 |
+    | 03.01. |  0.3 | 16.4 | 317.8 |  0.36 | 17.2 | 1.863566 | 0.931783 |       0.0 |  0.0 |     0.36 | 0.559667 | 2.8724 |      0.0 |       8.6 |  0.0 |       0.0 |       0.0 | 0.081055 | 0.440544 | 0.810552 |  0.0 |       0.0 | 1.242437 |      0.0 |  0.0 |  0.0 | 160.218586 |      0.0 |      0.0 | 0.081055 | 0.440544 | 0.810552 | 0.342521 | 0.003611 |  0.06186 | 0.428689 | 0.405754 | 0.345121 |
+    | 03.01. |  0.3 | 16.5 | 534.7 |  0.36 | 17.3 | 3.115838 | 1.557919 |       0.0 |  0.0 |     0.36 | 1.170549 | 2.8891 |      0.0 |      8.65 |  0.0 |       0.0 |       0.0 | 0.080109 |  0.42057 | 0.801093 |  0.0 |       0.0 | 1.183982 |      0.0 |  0.0 |  0.0 | 157.746264 |      0.0 |      0.0 | 0.080109 |  0.42057 | 0.801093 | 0.280433 |  0.00219 | 0.062773 | 0.428851 | 0.409735 | 0.328884 |
+    | 03.01. |  0.0 | 18.4 | 319.4 |   0.0 | 19.2 | 1.940627 | 0.970313 |       0.0 |  0.0 |      0.0 | 0.945929 | 3.2064 |      0.0 |       9.6 |  0.0 |       0.0 |       0.0 | 0.078873 | 0.394937 | 0.788731 |  0.0 |       0.0 | 1.134906 |      0.0 |  0.0 |  0.0 | 155.537793 |      0.0 |      0.0 | 0.078873 | 0.394937 | 0.788731 | 0.229599 | 0.001329 | 0.063588 | 0.426823 | 0.413568 | 0.315252 |
+    | 03.01. |  0.0 | 18.3 | 350.6 |   0.0 | 19.1 | 2.122768 | 1.061384 |       0.0 |  0.0 |      0.0 | 1.032422 | 3.1897 |      0.0 |      9.55 |  0.0 |       0.0 |       0.0 | 0.077769 | 0.372499 | 0.777689 |  0.0 |       0.0 | 1.093041 |      0.0 |  0.0 |  0.0 | 153.277414 |      0.0 |      0.0 | 0.077769 | 0.372499 | 0.777689 |  0.18798 | 0.000806 | 0.064307 | 0.422703 | 0.417246 | 0.303622 |
+    | 03.01. |  0.0 | 18.1 | 215.4 |   0.0 | 18.9 | 1.314414 | 0.657207 |       0.0 |  0.0 |      0.0 | 0.637743 | 3.1563 |      0.0 |      9.45 |  0.0 |       0.0 |       0.0 | 0.076639 | 0.349991 | 0.766387 |  0.0 |       0.0 | 1.056941 |      0.0 |  0.0 |  0.0 | 151.446654 |      0.0 |      0.0 | 0.076639 | 0.349991 | 0.766387 | 0.153905 | 0.000489 | 0.064935 | 0.416837 | 0.420776 | 0.293595 |
+    | 03.01. |  0.0 | 16.7 |  97.8 |   0.0 | 17.5 | 0.602486 | 0.301243 |       0.0 |  0.0 |      0.0 | 0.291724 | 2.9225 |      0.0 |      8.75 |  0.0 |       0.0 |       0.0 | 0.075723 | 0.332107 | 0.757233 |  0.0 |       0.0 | 1.025566 |      0.0 |  0.0 |  0.0 | 149.989866 |      0.0 |      0.0 | 0.075723 | 0.332107 | 0.757233 | 0.126007 | 0.000296 | 0.065484 | 0.409611 | 0.424169 | 0.284879 |
+    | 03.01. |  0.0 | 15.2 |  13.1 |   0.0 | 16.0 | 0.109905 | 0.054952 |       0.0 |  0.0 |      0.0 | 0.053126 |  2.672 |      0.0 |       8.0 |  0.0 |       0.0 |       0.0 | 0.074995 | 0.318101 | 0.749949 |  0.0 |       0.0 | 0.998315 |      0.0 |  0.0 |  0.0 | 148.793694 |      0.0 |      0.0 | 0.074995 | 0.318101 | 0.749949 | 0.103165 |  0.00018 | 0.065965 | 0.401558 | 0.427447 |  0.27731 |
+    | 03.01. |  0.0 | 13.4 |   0.0 |   0.0 | 14.2 | 0.035026 | 0.017513 |       0.0 |  0.0 |      0.0 | 0.016907 | 2.3714 |      0.0 |       7.1 |  0.0 |       0.0 |       0.0 | 0.074397 | 0.306752 | 0.743968 |  0.0 |       0.0 | 0.974657 |      0.0 |  0.0 |  0.0 |  147.65167 |      0.0 |      0.0 | 0.074397 | 0.306752 | 0.743968 | 0.084465 | 0.000109 | 0.066391 | 0.393067 | 0.430626 | 0.270738 |
+    | 03.01. |  0.0 | 12.4 |   0.0 |   0.0 | 13.2 | 0.034308 | 0.017154 |       0.0 |  0.0 |      0.0 | 0.016537 | 2.2044 |      0.0 |       6.6 |  0.0 |       0.0 |       0.0 | 0.073826 | 0.296046 | 0.738258 |  0.0 |       0.0 | 0.954037 |      0.0 |  0.0 |  0.0 | 146.527003 |      0.0 |      0.0 | 0.073826 | 0.296046 | 0.738258 | 0.069154 | 0.000066 | 0.066767 | 0.384335 | 0.433715 |  0.26501 |
+    | 03.01. |  0.0 | 11.6 |   0.0 |   0.0 | 12.4 | 0.033727 | 0.016863 |       0.0 |  0.0 |      0.0 | 0.016233 | 2.0708 |      0.0 |       6.2 |  0.0 |       0.0 |       0.0 | 0.073264 | 0.285628 | 0.732635 |  0.0 |       0.0 | 0.935903 |      0.0 |  0.0 |  0.0 | 145.419243 |      0.0 |      0.0 | 0.073264 | 0.285628 | 0.732635 | 0.056618 |  0.00004 | 0.067098 | 0.375429 | 0.436717 | 0.259973 |
+    | 03.01. |  0.0 | 11.0 |   0.0 |   0.0 | 11.8 | 0.033286 | 0.016643 |       0.0 |  0.0 |      0.0 | 0.015998 | 1.9706 |      0.0 |       5.9 |  0.0 |       0.0 |       0.0 |  0.07271 | 0.275488 | 0.727096 |  0.0 |       0.0 | 0.919791 |      0.0 |  0.0 |  0.0 | 144.327952 |      0.0 |      0.0 |  0.07271 | 0.275488 | 0.727096 | 0.046355 | 0.000024 | 0.067385 | 0.366393 | 0.439634 | 0.255498 |
+    | 04.01. |  0.0 | 10.5 |   0.0 |   0.0 | 11.3 | 0.032916 | 0.016458 |       0.0 |  0.0 |      0.0 | 0.015797 | 1.8871 |      0.0 |      5.65 |  0.0 |       0.0 |       0.0 | 0.072164 | 0.265619 |  0.72164 |  0.0 |       0.0 |  0.90533 |      0.0 |  0.0 |  0.0 | 143.252733 |      0.0 |      0.0 | 0.072164 | 0.265619 |  0.72164 | 0.037952 | 0.000015 | 0.067631 | 0.357265 | 0.442467 | 0.251481 |
+    | 04.01. |  0.0 | 11.7 |   0.0 |   0.0 | 12.5 |   0.0338 |   0.0169 |       0.0 |  0.0 |      0.0 | 0.016197 | 2.0875 |      0.0 |      6.25 |  0.0 |       0.0 |       0.0 | 0.071626 | 0.256013 | 0.716264 |  0.0 |       0.0 | 0.892218 |      0.0 |  0.0 |  0.0 | 142.192632 |      0.0 |      0.0 | 0.071626 | 0.256013 | 0.716264 | 0.031073 | 0.000009 | 0.067839 | 0.348079 | 0.445218 | 0.247838 |
+    | 04.01. |  0.0 | 11.9 |   0.0 |   0.0 | 12.7 | 0.033946 | 0.016973 |       0.0 |  0.0 |      0.0 | 0.016242 | 2.1209 |      0.0 |      6.35 |  0.0 |       0.0 |       0.0 | 0.071096 | 0.246659 | 0.710963 |  0.0 |       0.0 |  0.88021 |      0.0 |  0.0 |  0.0 | 141.147671 |      0.0 |      0.0 | 0.071096 | 0.246659 | 0.710963 |  0.02544 | 0.000005 | 0.068011 | 0.338865 | 0.447889 | 0.244503 |
+    | 04.01. |  1.3 | 11.2 |   0.0 |  1.56 | 12.0 | 0.033433 | 0.016717 |      0.76 |  0.0 | 0.016717 |      0.0 |  2.004 | 0.038184 |  6.114322 |  0.0 |      0.76 |  0.224873 | 0.070574 | 0.237553 | 0.705738 |  0.0 |  0.224873 | 0.890171 | 0.783283 |  0.0 |  0.0 | 140.668934 | 0.224873 |      0.0 | 0.070574 | 0.237553 | 0.705738 | 0.041889 | 0.000003 | 0.068148 |  0.32965 | 0.450481 |  0.24727 |
+    | 04.01. |  0.0 | 11.1 |   0.0 |   0.0 | 11.9 |  0.03336 |  0.01668 |       0.0 |  0.0 |  0.01668 |      0.0 | 1.9873 |      0.0 |      5.95 |  0.0 |       0.0 |       0.0 | 0.070334 | 0.233419 | 0.703345 |  0.0 |       0.0 | 0.895955 | 0.766603 |  0.0 |  0.0 | 139.661835 |      0.0 |      0.0 | 0.070334 | 0.233419 | 0.703345 | 0.053998 | 0.000002 | 0.068261 | 0.320686 | 0.453008 | 0.248876 |
+    | 04.01. |  0.0 | 11.9 |   0.0 |   0.0 | 12.7 | 0.033946 | 0.016973 |       0.0 |  0.0 | 0.016973 |      0.0 | 2.1209 |      0.0 |      6.35 |  0.0 |       0.0 |       0.0 | 0.069831 | 0.224803 | 0.698309 |  0.0 |       0.0 | 0.879999 |  0.74963 |  0.0 |  0.0 | 138.668892 |      0.0 |      0.0 | 0.069831 | 0.224803 | 0.698309 |  0.04421 | 0.000001 | 0.068349 | 0.311965 | 0.455474 | 0.244444 |
+    | 04.01. |  0.0 | 12.2 |  17.0 |   0.0 | 13.0 | 0.124091 | 0.062046 |       0.0 |  0.0 | 0.062046 |      0.0 |  2.171 |      0.0 |       6.5 |  0.0 |       0.0 |       0.0 | 0.069334 | 0.216414 | 0.693344 |  0.0 |       0.0 | 0.865736 | 0.687585 |  0.0 |  0.0 | 137.689799 |      0.0 |      0.0 | 0.069334 | 0.216414 | 0.693344 | 0.036196 | 0.000001 | 0.068409 | 0.303264 | 0.457866 | 0.240482 |
+    | 04.01. |  0.7 | 11.8 |  99.7 |  0.84 | 12.6 | 0.556783 | 0.278392 |  0.727585 |  0.0 | 0.278392 |      0.0 | 2.1042 | 0.038383 |  6.414918 |  0.0 |  0.727585 |  0.206801 | 0.068845 | 0.208247 | 0.688449 |  0.0 |  0.206801 | 0.872234 | 0.521608 |  0.0 |  0.0 | 137.245043 | 0.206801 |      0.0 | 0.068845 | 0.208247 | 0.688449 | 0.049002 |      0.0 | 0.068443 | 0.294604 | 0.460184 | 0.242287 |
+    | 04.01. |  0.4 | 11.4 | 239.4 |  0.48 | 12.2 | 1.278351 | 0.639175 |  0.201608 |  0.0 | 0.639175 |      0.0 | 2.0374 | 0.010298 |  6.130832 |  0.0 |  0.201608 |  0.056884 | 0.068623 | 0.204572 | 0.686225 |  0.0 |  0.056884 | 0.880676 | 0.160825 |  0.0 |  0.0 | 136.430348 | 0.056884 |      0.0 | 0.068623 | 0.204572 | 0.686225 | 0.063566 |      0.0 | 0.068457 | 0.286208 | 0.462445 | 0.244632 |
+    | 04.01. |  0.1 | 11.6 | 391.2 |  0.12 | 12.4 |  2.07666 |  1.03833 |       0.0 |  0.0 | 0.280825 | 0.718457 | 2.0708 |      0.0 |       6.2 |  0.0 |       0.0 |       0.0 | 0.068215 | 0.197896 | 0.682152 |  0.0 |       0.0 |  0.86825 |      0.0 |  0.0 |  0.0 | 134.763628 |      0.0 |      0.0 | 0.068215 | 0.197896 | 0.682152 | 0.057027 |      0.0 | 0.068455 | 0.278117 | 0.464651 | 0.241181 |
+    | 04.01. |  0.4 | 13.0 | 525.6 |  0.48 | 13.8 | 2.862014 | 1.431007 |       0.0 |  0.0 |     0.48 | 0.899434 | 2.3046 |      0.0 |       6.9 |  0.0 |       0.0 |       0.0 | 0.067382 | 0.184472 | 0.673818 |  0.0 |       0.0 |  0.85172 |      0.0 |  0.0 |  0.0 | 132.938522 |      0.0 |      0.0 | 0.067382 | 0.184472 | 0.673818 |  0.04669 |      0.0 | 0.068423 | 0.269833 | 0.466774 | 0.236589 |
+    | 04.01. |  0.0 | 17.1 | 570.2 |   0.0 | 17.9 | 3.356573 | 1.678286 |       0.0 |  0.0 |      0.0 | 1.582141 | 2.9893 |      0.0 |      8.95 |  0.0 |       0.0 |       0.0 | 0.066469 | 0.170137 | 0.664693 |  0.0 |       0.0 | 0.836381 |      0.0 |  0.0 |  0.0 | 130.455083 |      0.0 |      0.0 | 0.066469 | 0.170137 | 0.664693 | 0.038227 |      0.0 | 0.068349 | 0.261017 | 0.468788 | 0.232328 |
+    | 04.01. |  0.0 | 18.2 | 559.1 |   0.0 | 19.0 | 3.356514 | 1.678257 |       0.0 |  0.0 |      0.0 | 1.574772 |  3.173 |      0.0 |       9.5 |  0.0 |       0.0 |       0.0 | 0.065228 | 0.151263 | 0.652275 |  0.0 |       0.0 | 0.821656 |      0.0 |  0.0 |  0.0 | 128.011545 |      0.0 |      0.0 | 0.065228 | 0.151263 | 0.652275 | 0.031297 |      0.0 | 0.068227 | 0.251455 | 0.470676 | 0.228238 |
+    | 04.01. |  0.0 | 22.4 | 668.0 |   0.0 | 23.2 | 4.286095 | 2.143047 |       0.0 |  0.0 |      0.0 | 2.001137 | 3.8744 |      0.0 |      11.6 |  0.0 |       0.0 |       0.0 | 0.064006 | 0.133428 | 0.640058 |  0.0 |       0.0 | 0.807155 |      0.0 |  0.0 |  0.0 | 125.172916 |      0.0 |      0.0 | 0.064006 | 0.133428 | 0.640058 | 0.025624 |      0.0 | 0.068051 | 0.241058 | 0.472422 |  0.22421 |
+    | 04.01. |  0.0 | 21.4 | 593.4 |   0.0 | 22.2 | 3.753358 | 1.876679 |       0.0 |  0.0 |      0.0 | 1.741851 | 3.7074 |      0.0 |      11.1 |  0.0 |       0.0 |       0.0 | 0.062586 | 0.113669 | 0.625865 |  0.0 |       0.0 | 0.792677 |      0.0 |  0.0 |  0.0 | 122.628945 |      0.0 |      0.0 | 0.062586 | 0.113669 | 0.625865 | 0.020979 |      0.0 | 0.067819 |  0.22986 | 0.474019 | 0.220188 |
+    | 04.01. |  0.0 | 21.8 | 493.0 |   0.0 | 22.6 | 3.144766 | 1.572383 |       0.0 |  0.0 |      0.0 | 1.450987 | 3.7742 |      0.0 |      11.3 |  0.0 |       0.0 |       0.0 | 0.061314 | 0.096881 | 0.613145 |  0.0 |       0.0 | 0.778166 |      0.0 |  0.0 |  0.0 | 120.406618 |      0.0 |      0.0 | 0.061314 | 0.096881 | 0.613145 | 0.017176 |      0.0 | 0.067532 | 0.217991 | 0.475466 | 0.216157 |
+    | 04.01. |  0.0 | 22.2 | 391.2 |   0.0 | 23.0 | 2.519332 | 1.259666 |       0.0 |  0.0 |      0.0 | 1.156185 |  3.841 |      0.0 |      11.5 |  0.0 |       0.0 |       0.0 | 0.060203 | 0.082966 | 0.602033 |  0.0 |       0.0 | 0.763838 |      0.0 |  0.0 |  0.0 | 118.505231 |      0.0 |      0.0 | 0.060203 | 0.082966 | 0.602033 | 0.014063 |      0.0 | 0.067202 | 0.205793 | 0.476781 | 0.212177 |
+    | 04.01. |  0.0 | 20.1 | 186.0 |   0.0 | 20.9 | 1.179367 | 0.589683 |       0.0 |  0.0 |      0.0 | 0.538628 | 3.4903 |      0.0 |     10.45 |  0.0 |       0.0 |       0.0 | 0.059253 | 0.071645 | 0.592526 |  0.0 |       0.0 | 0.749887 |      0.0 |  0.0 |  0.0 |  117.24318 |      0.0 |      0.0 | 0.059253 | 0.071645 | 0.592526 | 0.011514 |      0.0 | 0.066837 | 0.193556 |  0.47798 | 0.208302 |
+    | 04.01. |  0.0 | 17.8 |  82.4 |   0.0 | 18.6 | 0.523693 | 0.261846 |       0.0 |  0.0 |      0.0 | 0.238377 | 3.1062 |      0.0 |       9.3 |  0.0 |       0.0 |       0.0 | 0.058622 | 0.064442 | 0.586216 |  0.0 |       0.0 | 0.736573 |      0.0 |  0.0 |  0.0 | 116.295523 |      0.0 |      0.0 | 0.058622 | 0.064442 | 0.586216 | 0.009427 |      0.0 | 0.066452 | 0.181607 | 0.479088 | 0.204604 |
+    | 04.01. |  0.0 | 15.2 |  17.0 |   0.0 | 16.0 |  0.13182 |  0.06591 |       0.0 |  0.0 |      0.0 | 0.059848 |  2.672 |      0.0 |       8.0 |  0.0 |       0.0 |       0.0 | 0.058148 | 0.059203 | 0.581478 |  0.0 |       0.0 |  0.72411 |      0.0 |  0.0 |  0.0 | 115.536847 |      0.0 |      0.0 | 0.058148 | 0.059203 | 0.581478 | 0.007718 |      0.0 | 0.066058 | 0.170203 | 0.480131 | 0.201142 |
+    | 04.01. |  0.0 | 14.5 |   0.0 |   0.0 | 15.3 | 0.035803 | 0.017902 |       0.0 |  0.0 |      0.0 | 0.016221 | 2.5551 |      0.0 |      7.65 |  0.0 |       0.0 |       0.0 | 0.057768 | 0.055117 | 0.577684 |  0.0 |       0.0 | 0.712544 |      0.0 |  0.0 |  0.0 | 114.830056 |      0.0 |      0.0 | 0.057768 | 0.055117 | 0.577684 | 0.006319 |      0.0 | 0.065663 | 0.159443 |  0.48112 | 0.197929 |
+    | 04.01. |  0.0 | 12.4 |   0.0 |   0.0 | 13.2 | 0.034308 | 0.017154 |       0.0 |  0.0 |      0.0 | 0.015513 | 2.2044 |      0.0 |       6.6 |  0.0 |       0.0 |       0.0 | 0.057415 | 0.051399 |  0.57415 |  0.0 |       0.0 | 0.701841 |      0.0 |  0.0 |  0.0 | 114.131579 |      0.0 |      0.0 | 0.057415 | 0.051399 |  0.57415 | 0.005173 |      0.0 | 0.065269 | 0.149335 | 0.482063 | 0.194956 |
+    | 04.01. |  0.0 | 11.7 |   0.0 |   0.0 | 12.5 |   0.0338 |   0.0169 |       0.0 |  0.0 |      0.0 | 0.015252 | 2.0875 |      0.0 |      6.25 |  0.0 |       0.0 |       0.0 | 0.057066 | 0.047811 | 0.570658 |  0.0 |       0.0 | 0.691917 |      0.0 |  0.0 |  0.0 | 113.440793 |      0.0 |      0.0 | 0.057066 | 0.047811 | 0.570658 | 0.004236 |      0.0 | 0.064878 | 0.139842 | 0.482962 | 0.192199 |
+    | 04.01. |  0.0 | 11.9 |   0.0 |   0.0 | 12.7 | 0.033946 | 0.016973 |       0.0 |  0.0 |      0.0 | 0.015287 | 2.1209 |      0.0 |      6.35 |  0.0 |       0.0 |       0.0 |  0.05672 | 0.044349 | 0.567204 |  0.0 |       0.0 |  0.68269 |      0.0 |  0.0 |  0.0 | 112.757233 |      0.0 |      0.0 |  0.05672 | 0.044349 | 0.567204 | 0.003468 |      0.0 | 0.064488 | 0.130916 | 0.483818 | 0.189636 |
 
     .. raw:: html
 
@@ -1043,18 +1039,17 @@ Integration tests:
             frameborder=0
         ></iframe>
 
-        .. _lland_v1_ex7:
+    .. _lland_v1_ex7:
 
     **Example 7**
 
-    In the seventh example, the land type is set to |ACKER| again, and the
-    input temperature series |TemL| is modified, to demonstrate the
-    functioning of the snow routine.  For simplicity, |TemL| increases
-    constantly from -10 to +10 °C.  The ice content of the snow layer
-    (WATS) starts to melt when temperature crosses the threshold temperatures
-    |TGr|, |TRefT| and |TRefN|. But the actual water release from the
-    snow layer (|WaDa|) starts one day later, when the water holding
-    capacity of the snow layer is exceeded:
+    In the seventh example, we modify the input temperature series |TemL|
+    to demonstrate the functioning of the snow routine.  For simplicity,
+    |TemL| increases linearly from -10 to +10 °C.  The ice content of the
+    snow layer (|WATS|) starts to melt when the temperature crosses the
+    threshold temperature |TGr|. However,  the actual water release from
+    the snow layer (|WaDa|) starts one day later when the liquid water
+    content of the snow layer finally exceeds its holding capacity:
 
     >>> inputs.teml.series = numpy.linspace(-10.0, 10.0, 96)
     >>> test('lland_v1_ex7')
@@ -1150,12 +1145,12 @@ Integration tests:
     | 04.01. |  0.0 |  8.315789 | 493.0 |   0.0 |  9.115789 | 2.417915 | 1.208957 |       0.0 |       0.0 |      0.0 | 0.948451 |  1.522337 |       0.0 | 4.557895 | 4.557895 | 6.381053 | 0.938352 | 0.041323 |      0.0 |      0.0 | 0.08 | 0.938352 | 0.801194 |      0.0 | 109.532397 | 153.345356 |  87.178523 | 0.938352 |      0.0 | 0.041323 |      0.0 |    -0.08 | 0.620257 |      0.0 | 0.019156 |      0.0 | 0.161781 | 0.222554 |
     | 04.01. |  0.0 |  8.526316 | 391.2 |   0.0 |  9.326316 | 1.935035 | 0.967517 |       0.0 |       0.0 |      0.0 | 0.780346 |  1.557495 |       0.0 | 4.663158 | 4.663158 | 6.528421 | 1.024303 | 0.043589 |      0.0 |      0.0 | 0.08 | 1.024303 | 0.865705 |      0.0 | 104.869239 | 146.816935 |  91.938706 | 1.023727 | 0.000577 | 0.043589 |      0.0 |    -0.08 | 0.685914 | 0.000123 | 0.020293 |      0.0 | 0.159375 | 0.240474 |
     | 04.01. |  0.0 |  8.736842 | 186.0 |   0.0 |  9.536842 | 0.941313 | 0.470656 |       0.0 |       0.0 |      0.0 | 0.389532 |  1.592653 |       0.0 | 4.768421 | 4.768421 | 6.675789 | 1.118498 | 0.045969 |      0.0 |      0.0 | 0.08 | 1.118498 | 0.936183 |      0.0 | 100.100818 | 140.141146 |  97.140496 | 1.105944 | 0.012554 | 0.045969 |      0.0 |    -0.08 | 0.754849 | 0.002853 | 0.021487 |      0.0 | 0.156993 | 0.260051 |
-    | 04.01. |  0.0 |  8.947368 |  82.4 |   0.0 |  9.747368 | 0.436813 | 0.218407 |       0.0 |       0.0 |      0.0 | 0.185309 |  1.627811 |       0.0 | 4.873684 | 4.873684 | 6.823158 | 1.225181 |  0.04857 |      0.0 |      0.0 |  0.0 | 1.225181 | 1.016375 |      0.0 |  95.227134 | 133.317988 | 102.504594 | 1.183794 | 0.041387 |  0.04857 |      0.0 |      0.0 | 0.825783 | 0.012813 | 0.022745 |      0.0 | 0.155034 | 0.282326 |
-    | 04.01. |  0.0 |  9.157895 |  17.0 |   0.0 |  9.957895 | 0.115898 | 0.057949 |       0.0 |       0.0 |      0.0 | 0.050282 |  1.662968 |       0.0 | 4.978947 | 4.978947 | 6.970526 | 1.341268 | 0.051252 | 0.003567 | 0.512523 |  0.0 | 1.341268 | 1.111323 |      0.0 |  90.248187 | 126.347461 | 107.516228 | 1.254437 | 0.086831 | 0.051252 | 0.003567 | 0.512523 | 0.897295 | 0.033739 | 0.024071 | 0.000173 | 0.156045 | 0.308701 |
-    | 04.01. |  0.0 |  9.368421 |   0.0 |   0.0 | 10.168421 | 0.032067 | 0.016034 |       0.0 |       0.0 |      0.0 |  0.01417 |  1.698126 |       0.0 | 5.084211 | 5.084211 | 7.117895 | 1.458563 | 0.053758 | 0.018546 | 0.537581 |  0.0 | 1.458563 |  1.22089 |      0.0 |  85.163976 | 119.229567 | 112.551504 | 1.314394 |  0.14417 | 0.053758 | 0.018546 | 0.537581 | 0.967649 | 0.066846 | 0.025458 |  0.00122 | 0.159717 | 0.339136 |
-    | 04.01. |  0.0 |  9.578947 |   0.0 |   0.0 | 10.378947 | 0.032226 | 0.016113 |       0.0 |       0.0 |      0.0 | 0.014474 |  1.733284 |       0.0 | 5.189474 | 5.189474 | 7.265263 | 1.583636 | 0.056276 | 0.040021 | 0.562758 |  0.0 | 1.583636 | 1.342366 |      0.0 |  79.974502 | 111.964303 | 117.559603 | 1.368542 | 0.215094 | 0.056276 | 0.040021 | 0.562758 | 1.035574 | 0.112381 |   0.0269 | 0.003908 | 0.163603 |  0.37288 |
-    | 04.01. |  0.0 |  9.789474 |   0.0 |   0.0 | 10.589474 | 0.032385 | 0.016192 |       0.0 |       0.0 |      0.0 | 0.014754 |  1.768442 |       0.0 | 5.294737 | 5.294737 | 7.412632 | 1.716146 |  0.05878 | 0.066224 | 0.587798 |  0.0 | 1.716146 | 1.475843 |      0.0 |  74.679766 | 104.551672 | 122.528533 | 1.417299 | 0.298847 |  0.05878 | 0.066224 | 0.587798 | 1.100497 |  0.17064 | 0.028394 | 0.008612 | 0.167699 | 0.409956 |
-    | 04.01. |  0.0 |      10.0 |   0.0 |   0.0 |      10.8 | 0.032543 | 0.016271 |       0.0 |       0.0 |      0.0 | 0.015012 |    1.8036 |       0.0 |      5.4 |      5.4 |     7.56 |  1.85643 | 0.061264 | 0.096237 | 0.612643 |  0.0 |  1.85643 | 1.621127 |      0.0 |  69.279766 |  96.991672 | 127.446948 | 1.461332 | 0.395098 | 0.061264 | 0.096237 | 0.612643 | 1.162048 | 0.241593 | 0.029937 | 0.015546 | 0.172003 | 0.450313 |
+    | 04.01. |  0.0 |  8.947368 |  82.4 |   0.0 |  9.747368 | 0.436813 | 0.218407 |       0.0 |       0.0 |      0.0 | 0.185309 |  1.627811 |       0.0 | 4.873684 | 4.873684 | 6.823158 | 1.225181 |  0.04857 |      0.0 |      0.0 | 0.08 | 1.225181 | 1.015977 |      0.0 |  95.227134 | 133.317988 | 102.584594 | 1.183794 | 0.041387 |  0.04857 |      0.0 |    -0.08 | 0.825783 | 0.012813 | 0.022745 |      0.0 | 0.154635 | 0.282216 |
+    | 04.01. |  0.0 |  9.157895 |  17.0 |   0.0 |  9.957895 | 0.115898 | 0.057949 |       0.0 |       0.0 |      0.0 | 0.050297 |  1.662968 |       0.0 | 4.978947 | 4.978947 | 6.970526 | 1.342617 | 0.051292 |  0.00374 | 0.512923 |  0.0 | 1.342617 |  1.11074 |      0.0 |  90.248187 | 126.347461 | 107.594251 | 1.255186 | 0.087431 | 0.051292 |  0.00374 | 0.512923 | 0.897365 | 0.033866 | 0.024072 | 0.000181 | 0.155255 | 0.308539 |
+    | 04.01. |  0.0 |  9.368421 |   0.0 |   0.0 | 10.168421 | 0.032067 | 0.016034 |       0.0 |       0.0 |      0.0 | 0.014174 |  1.698126 |       0.0 | 5.084211 | 5.084211 | 7.117895 | 1.459959 | 0.053797 | 0.018835 | 0.537971 |  0.0 | 1.459959 | 1.220672 |      0.0 |  85.163976 | 119.229567 |  112.62741 | 1.315049 |  0.14491 | 0.053797 | 0.018835 | 0.537971 | 0.967833 | 0.067189 | 0.025461 |  0.00125 | 0.158939 | 0.339076 |
+    | 04.01. |  0.0 |  9.578947 |   0.0 |   0.0 | 10.378947 | 0.032226 | 0.016113 |       0.0 |       0.0 |      0.0 | 0.014477 |  1.733284 |       0.0 | 5.189474 | 5.189474 | 7.265263 | 1.585079 | 0.056314 | 0.040384 | 0.563137 |  0.0 | 1.585079 | 1.342451 |      0.0 |  79.974502 | 111.964303 | 117.633281 | 1.369117 | 0.215963 | 0.056314 | 0.040384 | 0.563137 | 1.035837 | 0.112908 | 0.026905 | 0.003966 | 0.162836 | 0.372903 |
+    | 04.01. |  0.0 |  9.789474 |   0.0 |   0.0 | 10.589474 | 0.032385 | 0.016192 |       0.0 |       0.0 |      0.0 | 0.014756 |  1.768442 |       0.0 | 5.294737 | 5.294737 | 7.412632 | 1.717639 | 0.058817 | 0.066641 | 0.588166 |  0.0 | 1.717639 | 1.476182 |      0.0 |  74.679766 | 104.551672 | 122.599894 | 1.417805 | 0.299833 | 0.058817 | 0.066641 | 0.588166 |  1.10081 | 0.171327 | 0.028401 | 0.008702 | 0.166944 | 0.410051 |
+    | 04.01. |  0.0 |      10.0 |   0.0 |   0.0 |      10.8 | 0.032543 | 0.016271 |       0.0 |       0.0 |      0.0 | 0.015014 |    1.8036 |       0.0 |      5.4 |      5.4 |     7.56 | 1.857973 |   0.0613 | 0.096695 | 0.612999 |  0.0 | 1.857973 | 1.621683 |      0.0 |  69.279766 |  96.991672 | 127.515913 | 1.461779 | 0.396194 |   0.0613 | 0.096695 | 0.612999 |  1.16239 | 0.242421 | 0.029945 | 0.015669 | 0.171259 | 0.450468 |
 
     .. raw:: html
 
@@ -1178,7 +1173,7 @@ from hydpy.models.lland.lland_constants import *
 
 
 class Model(modeltools.AdHocModel):
-    """LARSIM-Land version of HydPy-L-Land (|lland_v1|)."""
+    """LARSIM-ME version of HydPy-L-Land (|lland_v1|)."""
     INLET_METHODS = ()
     RECEIVER_METHODS = ()
     ADD_METHODS = ()

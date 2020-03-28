@@ -56,20 +56,20 @@ class Pegasus(modeltools.Submodel):
         Instead, it returns the relevant `xmin` or `xmax` value.
 
         In the following, we explain the details of our Pegasus implementation
-        by using method |lland_model.Calc_TempsSurface_V1|.
+        by using method |lland_model.Return_TempSSurface_V1|.
 
-        Method |lland_model.Calc_TempsSurface_V1| (used by application model
+        Method |lland_model.Return_TempSSurface_V1| (used by application model
         |lland_v3|) implements the Pegasus iteration to determine the surface
         temperature of the snow layer with the help of the Pegasus subclass
         |lland_model.PegasusTempSSurface|.  For the correct surface
         temperature, the net energy gain of the surface (defined by method
-        |lland_model.Calc_EnergyBalanceSurface_V1|) must be zero.  Iteration
-        is necessary, as some terms of the net energy gain (for example, the
-        emitted longwave radiation) depend on the surface temperature
-        in a non-linear manner.
+        |lland_model.Return_EnergyGainSnowSurface_V1|) must be zero.
+        Iteration is necessary, as some terms of the net energy gain (for
+        example, the emitted longwave radiation) depend on the surface
+        temperature in a non-linear manner.
 
         As a starting point, we use the setting provided by the documentation
-        on method |lland_model.Calc_TempsSurface_V1| but work in pure Python
+        on method |lland_model.Return_TempSSurface_V1| but work in pure Python
         mode for flexibility (more specifically, to have direct access to
         method `find_x`) and focus on a single hydrological response unit
         for simplicity:
@@ -77,13 +77,14 @@ class Pegasus(modeltools.Submodel):
         >>> from hydpy import pub
         >>> with pub.options.usecython(False):
         ...     from hydpy.models.lland import *
-        ...     parameterstep()
+        ...     simulationstep('1d')
+        ...     parameterstep('1d')
         >>> nhru(1)
-        >>> turb0(2.0)
-        >>> turb1(2.0)
+        >>> turb0(0.1728)
+        >>> turb1(0.1728)
         >>> fratm(1.28)
-        >>> tempssurfaceflag(True)
-        >>> derived.seconds(24*60*60)
+        >>> ktschnee(0.432)
+        >>> derived.seconds.update()
         >>> inputs.sunshineduration = 10.0
         >>> inputs.relativehumidity = 60.0
         >>> states.waes.values = 1.0
@@ -94,33 +95,30 @@ class Pegasus(modeltools.Submodel):
         >>> fluxes.windspeed10m = 3.0
         >>> aides.temps = -2.0
 
-        Method |lland_model.Calc_TempsSurface_V1| finds the following
+        Method |lland_model.Return_TempSSurface_V1| finds the following
         surface temperature value:
 
         >>> model.idx_hru = 0
-        >>> model.calc_tempssurface_v1()
-        >>> fluxes.tempssurface
-        tempssurface(-4.832608)
+        >>> from hydpy import round_
+        >>> round_(model.return_tempssurface_v1(0))
+        -4.832608
 
         To validate this result, we confirm that the net energy gain
         corresponding to this surface temperature is approximately zero:
 
-        >>> from hydpy import round_
-        >>> round_(model.calc_energybalancesurface_v1(
-        ...     fluxes.tempssurface.values[0]))
+        >>> round_(model.return_energygainsnowsurface_v1(-4.832608))
         0.0
 
         Method `apply_method0` always calls the appropriate target
         method, which is, for |lland_model.PegasusTempSSurface|,
-        method |lland_model.Calc_EnergyBalanceSurface_V1|:
+        method |lland_model.Return_EnergyGainSnowSurface_V1|:
 
-        >>> round_(model.pegasustempssurface.apply_method0(
-        ...     fluxes.tempssurface.values[0]))
+        >>> round_(model.pegasustempssurface.apply_method0(-4.832608))
         0.0
 
         To check for some exceptional cases, we call the `find_x` method of
         class |lland_model.PegasusTempSSurface| directly.  First, we pass
-        the same arguments as in method |lland_model.Calc_TempsSurface_V1|
+        the same arguments as in method |lland_model.Return_TempSSurface_V1|
         and thus get the same result:
 
         >>> round_(model.pegasustempssurface.find_x(
@@ -133,8 +131,7 @@ class Pegasus(modeltools.Submodel):
         >>> round_(model.pegasustempssurface.find_x(
         ...     -50.0, 5.0, -100.0, 100.0, 0.0, 1e-8, 2))
         -4.951621
-        >>> round_(model.calc_energybalancesurface_v1(
-        ...     fluxes.tempssurface.values[0]))
+        >>> round_(model.return_energygainsnowsurface_v1(-4.951621))
         0.206736
 
         Use the `ytol` argument to control the achieved accuracy more
@@ -143,19 +140,17 @@ class Pegasus(modeltools.Submodel):
         >>> round_(model.pegasustempssurface.find_x(
         ...     -50.0, 5.0, -100.0, 100.0, 0.0, 0.1, 10))
         -4.833198
-        >>> round_(model.calc_energybalancesurface_v1(
-        ...     fluxes.tempssurface.values[0]))
+        >>> round_(model.return_energygainsnowsurface_v1(-4.833198))
         0.001025
 
         Pass an `xtol` value larger than zero to stop iteration as soon as
-        the search interval is small enough:
+        the search interval is small enough:  ToDo: same result?
 
         >>> round_(model.pegasustempssurface.find_x(
         ...     -50.0, 5.0, -100.0, 100.0, 0.1, 1e-8, 10))
         -4.832608
-        >>> round_(model.calc_energybalancesurface_v1(
-        ...     fluxes.tempssurface.values[0]))
-        -0.000001
+        >>> round_(model.return_energygainsnowsurface_v1(-4.832608))
+        0.0
 
         `x0` does not need to be smaller than `x1`:
 
@@ -188,8 +183,7 @@ class Pegasus(modeltools.Submodel):
         >>> round_(model.pegasustempssurface.find_x(
         ...     -50.0, 5.0, -100.0, 100.0, 0.0, 1e-8, 10))
         -100.0
-        >>> round_(model.calc_energybalancesurface_v1(
-        ...     fluxes.tempssurface.values[0]))
+        >>> round_(model.return_energygainsnowsurface_v1(-100.0))
         -40.944988
 
         To demonstrate the functionality of the upper boundary, we set the
@@ -200,8 +194,7 @@ class Pegasus(modeltools.Submodel):
         >>> round_(model.pegasustempssurface.find_x(
         ...     -50.0, 5.0, -100.0, 100.0, 0.0, 1e-8, 10))
         100.0
-        >>> round_(model.calc_energybalancesurface_v1(
-        ...     fluxes.tempssurface.values[0]))
+        >>> round_(model.return_energygainsnowsurface_v1(100.0))
         805.038124
 
         Finally, we evaluate some additional snow layer temperatures
@@ -212,9 +205,8 @@ class Pegasus(modeltools.Submodel):
         ...    aides.temps = temps
         ...    tempssurface = model.pegasustempssurface.find_x(
         ...        -50.0, 5.0, -100.0, 100.0, 0.0, 1e-8, 10)
-        ...    energybalancesurface = model.calc_energybalancesurface_v1(
-        ...         tempssurface)
-        ...    print_values([temps, tempssurface, energybalancesurface])
+        ...    energygain = model.return_energygainsnowsurface_v1(tempssurface)
+        ...    print_values([temps, tempssurface, energygain])
         -500, -100.0, -84.144988
         -400, -100.0, -40.944988
         -300, -98.161514, 0.0

@@ -2933,7 +2933,7 @@ class FixedParameter(Parameter):
         simulation step size, as shown in the following example using
         the parameter |lland_fixed.LambdaG| of base model |lland|:
 
-        >>> from hydpy.lland import *
+        >>> from hydpy.models.lland import *
         >>> simulationstep('1d')
         >>> parameterstep('1d')
         >>> from hydpy import round_

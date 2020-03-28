@@ -44,7 +44,8 @@ clue on what to expect by mentioning related LARSIM models and options):
 .. toctree::
 
    lland_v1 ("LARSIM-ME") <lland_v1>
-   lland_v2 (|lland_v1| without internal PET calculations) <lland_v2>
+   lland_v2 ("LARSIM-Saxony") <lland_v2>
+   lland_v3 ("LARSIM-NOK") <lland_v3>
    lstream_v001 ("Williams") <lstream_v001>
    lstream_v002 ("dV/dQ fuer Williams") <lstream_v002>
    lstream_v003 ("V/Q-BEZIEHUNG EXTERN") <lstream_v003>

@@ -132,6 +132,11 @@ class GlobalRadiation(sequencetools.FluxSequence):
     NDIM, NUMERIC = 0, False
 
 
+class AdjustedGlobalRadiation(sequencetools.FluxSequence):
+    """ToDo Adjusted global Radiation [MJ/m²]."""
+    NDIM, NUMERIC = 0, False
+
+
 class WG(sequencetools.FluxSequence):
     """Bodenwärmestrom (soil heat flux) [MJ/m²]
 
@@ -222,7 +227,7 @@ class EvB(lland_sequences.Flux1DSequence):
     NDIM, NUMERIC = 1, False
 
 
-class EvPoSnow(lland_sequences.Flux1DSequence):
+class EvS(lland_sequences.Flux1DSequence):
     """Potentielle Verdunstung bei Schneebedeckung (actual evaporation at
     wnow cover) [mm]."""
     NDIM, NUMERIC = 1, False
@@ -254,15 +259,12 @@ class WSnow(lland_sequences.Flux1DSequence):
 
 
 class TempSSurface(lland_sequences.Flux1DSequence):
-    """Schneetemperatur an der Schneeoberfläche (the snow temperature at the snow
-    surface) [°C].
-    Gibt es keinen Schnee (|WAeS|=0), so wird die Schneeoberflächentemperatur
-    auf NaN gesetzt (If there is no snow (|WAeS|=0), the snow surface
-    temperature is set to NaN).
-    Ist die |TempSSurfaceFlag| auf 'False' gesetzt entspricht die Schneeober-
-    flächentemperatur der Schneetemperatur (If the |TempSSurfaceFlag| is set
-    to 'False' the snow surface temperature equals the snow layer
-    temperature)."""
+    """Schneetemperatur an der Schneeoberfläche (the snow temperature at the
+    snow surface) [°C].
+
+    Note that the value of sequence |TempSSurface| is |numpy.nan| for
+    snow-free surfaces.
+    """
     NDIM, NUMERIC = 1, False
 
 

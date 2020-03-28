@@ -75,7 +75,7 @@ class Model:
     Note that the class tuple `INDICES` defines some names of index values.
     The actual index names might differ from model to model, but all define
     `idx_sim`. Some methods require to know the index of the current simulation
-    step (with respect to the initialisation period),  which one usually 
+    step (with respect to the initialisation period),  which one usually
     updates by passing it to |Model.simulate|. However,  you are allowed to
     change it manually, which is often beneficial when testing some methods:
 

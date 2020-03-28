@@ -39,3 +39,13 @@ class LoggedPossibleSunshineDuration(sequencetools.LogSequence):
 class LoggedSunshineDuration(sequencetools.LogSequence):
     """Logged sunshine duration [h]."""
     NDIM, NUMERIC = 1, False
+
+
+class LoggedGlobalRadiation(sequencetools.LogSequence):
+    """Logged global radiation [h]."""
+    NDIM, NUMERIC = 1, False
+
+
+class LoggedExtraterrestrialRadiation(sequencetools.LogSequence):
+    """Logged extraterrestrial radiation [h]."""
+    NDIM, NUMERIC = 1, False

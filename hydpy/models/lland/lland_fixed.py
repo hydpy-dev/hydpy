@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=missing-docstring
 # pylint: enable=missing-docstring
-
+"""
+.. _`Wikipedia page on latent heat`: https://en.wikipedia.org/wiki/Latent_heat
+"""
 # import...
 # ...from HydPy
 from hydpy.core import parametertools
@@ -68,11 +70,38 @@ class RWaterVapour(parametertools.FixedParameter):
     INIT = 0.461495
 
 
-class L(parametertools.FixedParameter):
-    """Latente Verdunstungswärme bei 15°C (specific heat capacity of air)
-    [MJ/m²/mm]."""
+class LW(parametertools.FixedParameter):
+    """Latente Verdunstungswärme bei 15°C (heat of condensation at at
+    temperature of 15°C) [MJ/m²/mm]."""
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
     INIT = 2.4624
+
+
+class LWE(parametertools.FixedParameter):
+    """Mittlere latente Verdunstungswärme für Wasser und Eis (average heat
+    of condensation at at temperature for water and ice) [MJ/m²/mm].
+
+    Following the equations given on the `Wikipedia page on latent heat`_,
+    we calculate the latent heat of water and the latent heat of sublimation
+    both at a temperature of 0°C...
+
+    >>> from hydpy import round_
+    >>> t = 0.0
+    >>> round_((2500.8-2.36*t+0.0016*t**2-0.00006*t**3)/1000)
+    2.5008
+    >>> round_((2834.1-0.29*t-0.004*t**2)/1000)
+    2.8341
+
+    ... and use their average as the default value for parameter |LWE|:
+
+    >>> round_((2.8341+2.5008)/2)
+    2.66745
+    >>> from hydpy.models.lland.lland_fixed import LWE
+    >>> round_(LWE.INIT)
+    2.66745
+    """
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    INIT = 2.66745
 
 
 class CPLuft(parametertools.FixedParameter):

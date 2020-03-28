@@ -3,25 +3,26 @@
 """
 Version 2 of the L-Land model |lland_v2| is a slight modification of
 |lland_v1|.  |lland_v1| implements a specific equation for the calculation
-of reference evaporation (|ET0|) for each hydrological response unit (HRU).
-In contrast, |lland_v2| expects subbasin wide potential evaporation values
-(|PET|) to be calculated externally and adjusts them to the different HRUs
-of the subbasin.
+of reference evaporation (|ET0|) for each hydrological response unit.
+In contrast, |lland_v2| expects subbasin-wide potential evaporation values
+(|PET|) to be calculated externally and adjusts them to the different
+response units of the subbasin.  We created |lland_v2| for the flood
+forecasting system of the German Free State of Saxony.
 
-|lland_v1| should be applied on daily step sized only due to the restrictions
-of the Turc-Wendling equation for calculating reference evaporation.
-Instead, |lland_v2| can be applied on arbitrary simulation step sizes.
+|lland_v1| should only be applied on daily step sized due to calculating
+reference evaporation with the Turc-Wendling equation. As |lland_v2| does
+not rely on Turc-Wendling, we can apply it on arbitrary simulation step sizes.
 
 Integration tests:
 
-    The following integration tests are mostly recalculations of the ones
-    performed for |lland_v1| in order to show that both models function
-    in an equal manner.  Hence, most configurations are identical.
-    One exception is that |lland_v2| requires no global radiation input
-    (|Glob|).  Instead, potential evaporation needs (|PET|) to be defined,
-    which is taken from the integration tests results of model |lland_v1|
-    to achieve comparability.  Another exception is that |lland_v1| allows
-    to smooth calculated |ET0| values over time, which is discussed below.
+    The following integration tests are recalculations of the tests performed
+    for |lland_v1|. Their purpose is to show that both models function in an
+    equal manner.   Hence, most configurations are identical.  One exception
+    is that |lland_v2| requires no global radiation input (|Glob|).  Instead,
+    potential evaporation needs (|PET|) to be defined, which we take from the
+    integration test results of model |lland_v1| to achieve comparability.
+    Another exception is that |lland_v1| allows for smoothing the calculated
+    |ET0| values over time, which we discuss below.
 
     The following general setup is identical with the one of |lland_v1|:
 
@@ -71,9 +72,9 @@ Integration tests:
     >>> pwp(relative=0.05)
     >>> kapgrenz(option='BodenGrundwasser')
     >>> kapmax(0.08)
-    >>> corrqbbflag(0)
     >>> beta(0.005)
     >>> fbeta(1.0)
+    >>> rbeta(False)
     >>> dmax(1.0)
     >>> dmin(0.1)
     >>> bsf(0.4)
@@ -102,10 +103,11 @@ Integration tests:
     ...               (logs.wet0, 0.0))
 
     The values of the input sequences of |Nied| (precipitation) and |TemL|
-    (air temperature) are also taken from the input data of the example on
-    |lland_v1|.  But the values of |PET| (potential evaporation) are taken
-    from the output data of |lland_v1| (divided by 0.4 to account for the
-    set value of the evaporation adjustment factor |KE|):
+    (air temperature) also stem from the input data of the example on
+    |lland_v1|.  But we take the values of |PET| (potential evaporation)
+    from the the output data of |lland_v1| and divide the original values
+    by 0.4 to account for the selected value of the evaporation adjustment
+    factor |KE|:
 
     >>> inputs.nied.series = (
     ...     0.0, 0.0,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -144,9 +146,8 @@ Integration tests:
     ...     10.715238, 9.383394, 7.861915, 6.298329, 2.948416, 1.309232,
     ...     0.32955, 0.089508, 0.085771, 0.0845, 0.084864)
 
-
-    The following calculation shows, that the outflow values of the
-    integration test for arable land (|ACKER|) are reproduced exactly:
+    The following calculation reproduces the outflow values of the
+    integration test for arable land (|ACKER|) exactly:
 
     >>> test('lland_v2_ex1')
     |   date | nied | teml |       pet |  nkor | tkor |      et0 |     evpo |      nbes | sbes |      evi |      evb |   wgtf |    wnied |   schmpot | schm |      wada |      qdb |     qib1 |     qib2 |      qbb |     qkap |     qdgz |        q |     inzp | wats | waes |       bowa |    qdgz1 |    qdgz2 |    qigz1 |    qigz2 |     qbgz |    qdga1 |    qdga2 |    qiga1 |    qiga2 |     qbga |   outlet |
@@ -260,14 +261,14 @@ Integration tests:
     :ref:`Modification of example 2.1 <lland_v1_ex2_1>`
 
     As discussed in the documentation of |lland_v1|, the handling of
-    evaporation from water surfaces might be problematic.  |lland_v1|
-    offers a smoothung option for the calculation of |ET0| (see method
-    |Calc_ET0_WET0_V1|. In principle, the "delay weighing factor" |WfET0|
-    can be applied on all land use classes.  However, its original
-    intention is to allow for reflecting the temporal persistence of
-    (large) water bodies.  This is demonstrated by setting the weighting
-    parameter |WfET0| to a value smaller than one and defining a suitable
-    "old" evaporation value (|WET0|):
+    evaporation from water surfaces can be problematic.  |lland_v1| offers
+    a smoothing option for the calculation of |ET0| (see method
+    |Calc_ET0_WET0_V1|) that is freely configurable via the "delay weighting
+    factor" |WfET0|. In principle, you could apply this mechanism to all
+    land-use classes.  However, its original intention is to take the temporal
+    persistence of (large) water bodies into account.  We demonstrate this
+    functionality is by setting the weighting parameter |WfET0| to a value
+    smaller than one and defining a suitable "old" evaporation value (|WET0|):
 
     >>> wfet0(0.01)
     >>> test.inits.wet0 = 1.0
@@ -389,12 +390,12 @@ Integration tests:
 
     :ref:`Recalculation of example 2.2 <lland_v1_ex2_2>`
 
-    The following calculation shows, that the outflow values of the
-    integration test for water areas of type |WASSER| are reproduced
-    exactly (parameter |NegQ| set to |True|):
+    The following calculation reproduces the outflow values of the integration
+    test for water areas of type |WASSER| exactly (with :math:`NegQ =False`):
 
     >>> lnk(WASSER)
     >>> negq(True)
+
     >>> test('lland_v2_ex2_2')
     |   date | nied | teml |       pet |  nkor | tkor |      et0 |     evpo | nbes | sbes |      evi | evb | wgtf | wnied | schmpot | schm | wada | qdb | qib1 | qib2 | qbb | qkap | qdgz |         q | inzp | wats | waes | bowa | qdgz1 | qdgz2 | qigz1 | qigz2 | qbgz | qdga1 | qdga2 | qiga1 | qiga2 |     qbga |    outlet |
     -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -507,12 +508,12 @@ Integration tests:
 
     :ref:`Recalculation of example 3 <lland_v1_ex3>`
 
-    The following calculation shows, that the outflow values of the
-    integration test for water areas of type |SEE| are reproduced
-    exactly (parameter |NegQ| set to |False|):
+    The following calculation reproduces the outflow values of the integration
+    test for water areas of type |SEE| exactly (with :math:`NegQ =True`):
 
     >>> lnk(SEE)
     >>> negq(False)
+
     >>> test('lland_v2_ex3')
     |   date | nied | teml |       pet |  nkor | tkor |      et0 |     evpo | nbes | sbes |      evi | evb | wgtf | wnied | schmpot | schm | wada | qdb | qib1 | qib2 | qbb | qkap | qdgz |        q | inzp | wats | waes | bowa | qdgz1 | qdgz2 | qigz1 | qigz2 |      qbgz | qdga1 | qdga2 | qiga1 | qiga2 |     qbga |   outlet |
     --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -624,11 +625,11 @@ Integration tests:
 
     :ref:`Recalculation of example 4 <lland_v1_ex4>`
 
-    The following calculation shows, that the outflow values of the
-    integration test for water areas of type |FLUSS| are reproduced
-    exactly (parameter |NegQ| set to |False|):
+    The following calculation reproduces the outflow values of the integration
+    test for water areas of type |FLUSS| exactly (with :math:`NegQ =True`):
 
     >>> lnk(FLUSS)
+
     >>> test('lland_v2_ex4')
     |   date | nied | teml |       pet |  nkor | tkor |      et0 |     evpo | nbes | sbes |       evi | evb | wgtf | wnied | schmpot | schm | wada | qdb | qib1 | qib2 | qbb | qkap |      qdgz |         q | inzp | wats | waes | bowa |     qdgz1 |     qdgz2 | qigz1 | qigz2 | qbgz |     qdga1 |     qdga2 | qiga1 | qiga2 |     qbga |   outlet |
     --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -740,10 +741,11 @@ Integration tests:
 
     :ref:`Recalculation of example 5 <lland_v1_ex5>`
 
-    The following calculation shows, that the outflow values of the
-    integration test for sealed areas (|VERS|) are reproduced exactly:
+    The following calculation reproduces the outflow values of the integration
+    test for water areas of type |VERS| exactly:
 
     >>> lnk(VERS)
+
     >>> test('lland_v2_ex5')
     |   date | nied | teml |       pet |  nkor | tkor |      et0 |     evpo |      nbes | sbes |      evi | evb |   wgtf |    wnied |   schmpot | schm |      wada |       qdb | qib1 | qib2 | qbb | qkap |      qdgz |         q |     inzp | wats | waes | bowa |    qdgz1 |     qdgz2 | qigz1 | qigz2 | qbgz |    qdga1 |     qdga2 | qiga1 | qiga2 |     qbga |   outlet |
     --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -855,11 +857,13 @@ Integration tests:
 
     :ref:`Recalculation of example 6 <lland_v1_ex6>`
 
-    # ToDo: prüfen
+    The following calculation reproduces the outflow values of the integration
+    test emulating the LARSIM option `KAPILLARER AUFSTIEG` in combination with
+    `ERW. BODENPARAMETER` exactly:
 
-    >>> pwp(0)
+    >>> pwp(0.0)
     >>> kapgrenz(option='kapillarerAufstieg')
-    >>> corrqbbflag(1)
+    >>> rbeta(True)
     >>> test('lland_v2_ex6')
     |   date | nied | teml |       pet |  nkor | tkor |      et0 |     evpo |      nbes | sbes |      evi | evb |   wgtf |    wnied |   schmpot | schm |      wada |       qdb | qib1 | qib2 | qbb | qkap |      qdgz |         q |     inzp | wats | waes | bowa |    qdgz1 |     qdgz2 | qigz1 | qigz2 | qbgz |    qdga1 |     qdga2 | qiga1 | qiga2 |     qbga |   outlet |
     --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -971,9 +975,9 @@ Integration tests:
 
     :ref:`Recalculation of example 7 <lland_v1_ex7>`
 
-    The following calculation shows, that the outflow values of the
-    integration test for snow events are reproduced exactly (note that
-    the |PET| values have to be adapted to the changed |TemL| values):
+   The following calculation reproduces the outflow values of the integration
+   test for a snow event exactly (note that we need to adapt the |PET| values
+   to the changed |TemL| values):
 
     >>> lnk(ACKER)
     >>> inputs.teml.series = numpy.linspace(-10.0, 10.0, 96)
@@ -1087,12 +1091,12 @@ Integration tests:
     | 04.01. |  0.0 |  8.315789 | 6.044787 |   0.0 |  9.115789 | 2.417915 | 1.208957 |       0.0 |       0.0 |      0.0 | 0.948451 |  1.522337 |       0.0 | 4.557895 | 4.557895 | 6.381053 | 0.938352 | 0.041323 |      0.0 |      0.0 | 0.08 | 0.938352 | 0.801194 |      0.0 | 109.532398 | 153.345357 |  87.178523 | 0.938352 |      0.0 | 0.041323 |      0.0 |    -0.08 | 0.620257 |      0.0 | 0.019156 |      0.0 | 0.161781 | 0.222554 |
     | 04.01. |  0.0 |  8.526316 | 4.837587 |   0.0 |  9.326316 | 1.935035 | 0.967517 |       0.0 |       0.0 |      0.0 | 0.780346 |  1.557495 |       0.0 | 4.663158 | 4.663158 | 6.528421 | 1.024303 | 0.043589 |      0.0 |      0.0 | 0.08 | 1.024303 | 0.865705 |      0.0 |  104.86924 | 146.816936 |  91.938706 | 1.023727 | 0.000577 | 0.043589 |      0.0 |    -0.08 | 0.685914 | 0.000123 | 0.020293 |      0.0 | 0.159375 | 0.240474 |
     | 04.01. |  0.0 |  8.736842 | 2.353282 |   0.0 |  9.536842 | 0.941313 | 0.470656 |       0.0 |       0.0 |      0.0 | 0.389532 |  1.592653 |       0.0 | 4.768421 | 4.768421 | 6.675789 | 1.118498 | 0.045969 |      0.0 |      0.0 | 0.08 | 1.118498 | 0.936183 |      0.0 | 100.100819 | 140.141146 |  97.140496 | 1.105944 | 0.012554 | 0.045969 |      0.0 |    -0.08 | 0.754849 | 0.002853 | 0.021487 |      0.0 | 0.156993 | 0.260051 |
-    | 04.01. |  0.0 |  8.947368 | 1.092032 |   0.0 |  9.747368 | 0.436813 | 0.218406 |       0.0 |       0.0 |      0.0 | 0.185309 |  1.627811 |       0.0 | 4.873684 | 4.873684 | 6.823158 | 1.225181 |  0.04857 |      0.0 |      0.0 |  0.0 | 1.225181 | 1.016375 |      0.0 |  95.227135 | 133.317989 | 102.504594 | 1.183794 | 0.041387 |  0.04857 |      0.0 |      0.0 | 0.825783 | 0.012813 | 0.022745 |      0.0 | 0.155034 | 0.282326 |
-    | 04.01. |  0.0 |  9.157895 | 0.289745 |   0.0 |  9.957895 | 0.115898 | 0.057949 |       0.0 |       0.0 |      0.0 | 0.050282 |  1.662968 |       0.0 | 4.978947 | 4.978947 | 6.970526 | 1.341268 | 0.051252 | 0.003567 | 0.512523 |  0.0 | 1.341268 | 1.111323 |      0.0 |  90.248187 | 126.347462 | 107.516228 | 1.254437 | 0.086831 | 0.051252 | 0.003567 | 0.512523 | 0.897295 | 0.033739 | 0.024071 | 0.000173 | 0.156045 | 0.308701 |
-    | 04.01. |  0.0 |  9.368421 | 0.080167 |   0.0 | 10.168421 | 0.032067 | 0.016033 |       0.0 |       0.0 |      0.0 |  0.01417 |  1.698126 |       0.0 | 5.084211 | 5.084211 | 7.117895 | 1.458563 | 0.053758 | 0.018546 | 0.537581 |  0.0 | 1.458563 |  1.22089 |      0.0 |  85.163977 | 119.229568 | 112.551504 | 1.314394 |  0.14417 | 0.053758 | 0.018546 | 0.537581 | 0.967649 | 0.066846 | 0.025458 |  0.00122 | 0.159717 | 0.339136 |
-    | 04.01. |  0.0 |  9.578947 | 0.080565 |   0.0 | 10.378947 | 0.032226 | 0.016113 |       0.0 |       0.0 |      0.0 | 0.014474 |  1.733284 |       0.0 | 5.189474 | 5.189474 | 7.265263 | 1.583636 | 0.056276 | 0.040021 | 0.562758 |  0.0 | 1.583636 | 1.342366 |      0.0 |  79.974503 | 111.964304 | 117.559604 | 1.368542 | 0.215094 | 0.056276 | 0.040021 | 0.562758 | 1.035574 | 0.112381 |   0.0269 | 0.003908 | 0.163603 |  0.37288 |
-    | 04.01. |  0.0 |  9.789474 | 0.080962 |   0.0 | 10.589474 | 0.032385 | 0.016192 |       0.0 |       0.0 |      0.0 | 0.014754 |  1.768442 |       0.0 | 5.294737 | 5.294737 | 7.412632 | 1.716146 |  0.05878 | 0.066224 | 0.587798 |  0.0 | 1.716146 | 1.475843 |      0.0 |  74.679766 | 104.551673 | 122.528534 | 1.417299 | 0.298847 |  0.05878 | 0.066224 | 0.587798 | 1.100497 |  0.17064 | 0.028394 | 0.008612 | 0.167699 | 0.409956 |
-    | 04.01. |  0.0 |      10.0 | 0.081357 |   0.0 |      10.8 | 0.032543 | 0.016271 |       0.0 |       0.0 |      0.0 | 0.015012 |    1.8036 |       0.0 |      5.4 |      5.4 |     7.56 |  1.85643 | 0.061264 | 0.096237 | 0.612643 |  0.0 |  1.85643 | 1.621127 |      0.0 |  69.279766 |  96.991673 | 127.446949 | 1.461332 | 0.395098 | 0.061264 | 0.096237 | 0.612643 | 1.162048 | 0.241593 | 0.029937 | 0.015546 | 0.172003 | 0.450313 |
+    | 04.01. |  0.0 |  8.947368 | 1.092032 |   0.0 |  9.747368 | 0.436813 | 0.218406 |       0.0 |       0.0 |      0.0 | 0.185309 |  1.627811 |       0.0 | 4.873684 | 4.873684 | 6.823158 | 1.225181 |  0.04857 |      0.0 |      0.0 | 0.08 | 1.225181 | 1.015977 |      0.0 |  95.227135 | 133.317989 | 102.584594 | 1.183794 | 0.041387 |  0.04857 |      0.0 |    -0.08 | 0.825783 | 0.012813 | 0.022745 |      0.0 | 0.154635 | 0.282216 |
+    | 04.01. |  0.0 |  9.157895 | 0.289745 |   0.0 |  9.957895 | 0.115898 | 0.057949 |       0.0 |       0.0 |      0.0 | 0.050297 |  1.662968 |       0.0 | 4.978947 | 4.978947 | 6.970526 | 1.342617 | 0.051292 |  0.00374 | 0.512923 |  0.0 | 1.342617 |  1.11074 |      0.0 |  90.248187 | 126.347462 | 107.594252 | 1.255186 | 0.087431 | 0.051292 |  0.00374 | 0.512923 | 0.897365 | 0.033866 | 0.024072 | 0.000181 | 0.155255 | 0.308539 |
+    | 04.01. |  0.0 |  9.368421 | 0.080167 |   0.0 | 10.168421 | 0.032067 | 0.016033 |       0.0 |       0.0 |      0.0 | 0.014174 |  1.698126 |       0.0 | 5.084211 | 5.084211 | 7.117895 | 1.459959 | 0.053797 | 0.018835 | 0.537971 |  0.0 | 1.459959 | 1.220672 |      0.0 |  85.163977 | 119.229568 |  112.62741 | 1.315049 |  0.14491 | 0.053797 | 0.018835 | 0.537971 | 0.967833 | 0.067189 | 0.025461 |  0.00125 | 0.158939 | 0.339076 |
+    | 04.01. |  0.0 |  9.578947 | 0.080565 |   0.0 | 10.378947 | 0.032226 | 0.016113 |       0.0 |       0.0 |      0.0 | 0.014477 |  1.733284 |       0.0 | 5.189474 | 5.189474 | 7.265263 | 1.585079 | 0.056314 | 0.040384 | 0.563137 |  0.0 | 1.585079 | 1.342451 |      0.0 |  79.974503 | 111.964304 | 117.633282 | 1.369117 | 0.215963 | 0.056314 | 0.040384 | 0.563137 | 1.035837 | 0.112908 | 0.026905 | 0.003966 | 0.162836 | 0.372903 |
+    | 04.01. |  0.0 |  9.789474 | 0.080962 |   0.0 | 10.589474 | 0.032385 | 0.016192 |       0.0 |       0.0 |      0.0 | 0.014756 |  1.768442 |       0.0 | 5.294737 | 5.294737 | 7.412632 | 1.717639 | 0.058817 | 0.066641 | 0.588166 |  0.0 | 1.717639 | 1.476182 |      0.0 |  74.679766 | 104.551673 | 122.599894 | 1.417805 | 0.299833 | 0.058817 | 0.066641 | 0.588166 |  1.10081 | 0.171327 | 0.028401 | 0.008702 | 0.166944 | 0.410051 |
+    | 04.01. |  0.0 |      10.0 | 0.081357 |   0.0 |      10.8 | 0.032543 | 0.016271 |       0.0 |       0.0 |      0.0 | 0.015014 |    1.8036 |       0.0 |      5.4 |      5.4 |     7.56 | 1.857973 |   0.0613 | 0.096695 | 0.612999 |  0.0 | 1.857973 | 1.621683 |      0.0 |  69.279766 |  96.991673 | 127.515913 | 1.461779 | 0.396194 |   0.0613 | 0.096695 | 0.612999 |  1.16239 | 0.242421 | 0.029945 | 0.015669 | 0.171259 | 0.450468 |
 
     .. raw:: html
 

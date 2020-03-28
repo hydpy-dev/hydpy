@@ -4,6 +4,7 @@
 
 # import...
 # ...from HydPy
+from hydpy.core import objecttools
 from hydpy.core import parametertools
 # ...from lland
 from hydpy.models.lland import lland_constants
@@ -94,6 +95,76 @@ class ParameterSoil(ParameterComplete):
     400.0
     """
     mask = lland_masks.Soil()
+
+
+class ParameterSoilThreshold(ParameterSoil):
+    """Base class for defining threshold parameters related to |WMax|.
+
+    Base class |ParameterSoilThreshold| provides the convenience to define
+    thresholds via the keyword argument `relative`. For example, you can
+    define the value of parameter |PWP| as a portion of the current value
+    of |WMax|:
+
+    >>> from hydpy.models.lland import *
+    >>> parameterstep('1d')
+    >>> nhru(2)
+    >>> lnk(ACKER, LAUBW)
+    >>> wmax(100.0, 200.0)
+    >>> pwp(relative=0.2)
+    >>> pwp
+    pwp(acker=20.0, laubw=40.0)
+
+    Trimming works as to be expected:
+
+    >>> pwp(relative=-0.2)
+    >>> pwp
+    pwp(0.0)
+
+    You can also use the common ways to define soil parameter values:
+
+    >>> pwp(acker=30.0, laubw=60.0)
+    >>> pwp
+    pwp(acker=30.0, laubw=60.0)
+    >>> pwp(10.0)
+    >>> pwp
+    pwp(10.0)
+
+    We do not allow to combine the keyword argument `relative` with other ones:
+
+    >>> pwp(relative=True, acker=10.0)
+    Traceback (most recent call last):
+    ...
+    TypeError: While trying to set the values of parameter `pwp` of \
+element `?` with arguments `relative and acker`:  It is not allowed to use \
+keyword `relative` and other keywords at the same time.
+
+    Other possible errors related to the usage of |ParameterSoil| are
+    reported as usual:
+
+    >>> pwp(feld=20.0, acker=10.0)
+    Traceback (most recent call last):
+    ...
+    TypeError: While trying to set the values of parameter `pwp` of \
+element `?` based on keyword arguments `feld and acker`, the following error \
+occurred: Keyword `feld` is not among the available model constants.
+    """
+
+    def __call__(self, *args, **kwargs):
+        try:
+            super().__call__(*args, **kwargs)
+        except TypeError as exc:
+            if 'relative' in kwargs:
+                if len(kwargs) == 1:
+                    self(float(kwargs['relative'])*self.subpars.wmax)
+                else:
+                    raise TypeError(
+                        f'While trying to set the values of parameter '
+                        f'{objecttools.elementphrase(self)} with arguments '
+                        f'`{objecttools.enumeration(kwargs.keys())}`:  '
+                        f'It is not allowed to use keyword `relative` and '
+                        f'other keywords at the same time.')
+            else:
+                raise exc
 
 
 class LanduseMonthParameter(parametertools.KeywordParameter2D):

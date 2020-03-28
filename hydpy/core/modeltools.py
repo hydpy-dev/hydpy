@@ -46,12 +46,46 @@ class Method:
         cls.__call__.CYTHONIZE = True
 
 
+class _IndexProperty:
+
+    def __init__(self, name: str):
+        self.name: str = name
+
+    def __get__(self, obj: 'Model', objtype=None):
+        if objtype is None:
+            return self
+        if obj.cymodel:
+            return getattr(obj.cymodel, self.name)
+        return vars(obj).get(self.name, 0)
+
+    def __set__(self, obj: 'Model', value: int) -> None:
+        if obj.cymodel:
+            setattr(obj.cymodel, self.name, value)
+        else:
+            vars(self)[self.name] = value
+
+
 class Model:
     """Base class for all hydrological models.
 
     Class |Model| provides everything to create a usable application
     model, except method |Model.simulate|.  See class |AdHocModel| and
     |ELSModel|, which implement this method.
+
+    Note that the class tuple `INDICES` defines some names of index values.
+    The actual index names might differ from model to model, but all define
+    `idx_sim`. Some methods require to know the index of the current simulation
+    step (with respect to the initialisation period),  which one usually 
+    updates by passing it to |Model.simulate|. However,  you are allowed to
+    change it manually, which is often beneficial when testing some methods:
+
+    >>> from hydpy import prepare_model
+    >>> model = prepare_model('hland_v1')
+    >>> model.idx_sim
+    0
+    >>> model.idx_sim = 1
+    >>> model.idx_sim
+    1
     """
 
     element: Optional['devicetools.Element']
@@ -341,35 +375,6 @@ to any sequences: in2.
             type(self)._name = name
         return name
 
-    @property
-    def idx_sim(self) -> int:
-        """The index of the current simulation time step.
-
-        Some methods require to know the index of the current simulation
-        step (with respect to the initialisation period),  which one
-        usually updates by passing it to method  |Model.simulate|.
-        However, you are allowed to change it manually, which is often
-        beneficial when testing some methods:
-
-        >>> from hydpy import prepare_model
-        >>> model = prepare_model('hland_v1')
-        >>> model.idx_sim
-        0
-        >>> model.idx_sim = 1
-        >>> model.idx_sim
-        1
-        """
-        if self.cymodel:
-            return self.cymodel.idx_sim
-        return vars(self).get('idx_sim', 0)
-
-    @idx_sim.setter
-    def idx_sim(self, value: int) -> None:
-        if self.cymodel:
-            self.cymodel.idx_sim = value
-        else:
-            vars(self)['idx_sim'] = int(value)
-
     @abc.abstractmethod
     def simulate(self, idx: int) -> None:
         """Perform a simulation run over a single simulation time step."""
@@ -583,6 +588,9 @@ to any sequences: in2.
         return self.name
 
     def __init_subclass__(cls):
+        for index in cls.INDICES:
+            setattr(cls, index, _IndexProperty(index))
+
         modulename = cls.__module__
         if modulename.count('.') > 2:
             modulename = modulename.rpartition('.')[0]

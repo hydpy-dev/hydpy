@@ -62,7 +62,7 @@ class _IndexProperty:
         if obj.cymodel:
             setattr(obj.cymodel, self.name, value)
         else:
-            vars(self)[self.name] = value
+            vars(obj)[self.name] = value
 
 
 class Model:

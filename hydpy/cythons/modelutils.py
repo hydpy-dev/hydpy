@@ -975,6 +975,7 @@ class PyxWriter:
         >>> pyxwriter = PyxWriter(None, None, None)
         >>> pyxwriter.cythondistutilsoptions
         #!python
+        # cython: language_level=3
         # cython: boundscheck=False
         # cython: wraparound=False
         # cython: initializedcheck=False
@@ -986,6 +987,7 @@ class PyxWriter:
         >>> config.PROFILECYTHON = True
         >>> pyxwriter.cythondistutilsoptions
         #!python
+        # cython: language_level=3
         # cython: boundscheck=True
         # cython: wraparound=True
         # cython: initializedcheck=True
@@ -1000,12 +1002,14 @@ class PyxWriter:
         """
         if config.FASTCYTHON:
             lines = Lines(f'#!python',
+                          f'# cython: language_level=3',
                           f'# cython: boundscheck=False',
                           f'# cython: wraparound=False',
                           f'# cython: initializedcheck=False',
                           f'# cython: cdivision=True')
         else:
             lines = Lines(f'#!python',
+                          f'# cython: language_level=3',
                           f'# cython: boundscheck=True',
                           f'# cython: wraparound=True',
                           f'# cython: initializedcheck=True',

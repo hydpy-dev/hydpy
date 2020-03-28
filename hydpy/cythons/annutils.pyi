@@ -17,7 +17,10 @@ class ANN:
     outputs: numpy.ndarray
     neurons: numpy.ndarray
 
-    def process_actual_input(self) -> None:
+    def calculate_values(self) -> None:
+        ...
+
+    def calculate_derivatives(self, idx_input: int) -> None:
         ...
 
 
@@ -33,5 +36,5 @@ class SeasonalANN:
     def __init__(self, ann:Sequence[ANN]):
         ...
 
-    def process_actual_input(self, idx_season:int) -> None:
+    def calculate_values(self, idx_season:int) -> None:
         ...

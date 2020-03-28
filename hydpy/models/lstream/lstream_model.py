@@ -1216,11 +1216,11 @@ class Calc_ALVRDH_ARVRDH_ULVRDH_URVRDH_V1(modeltools.Method):
         >>> numdiff()
         d_alvr/d_h: 0.0, 0.0, 0.006224, 0.081965, 0.371535, 1.999625, \
 3.599999, 4.0, 4.4, 6.0, 8.0
-        d_arvr/d_h: 0.0, -0.0, 0.0, 0.0, 0.0, 0.0, 0.00778, 0.102457, \
+        d_arvr/d_h: 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.00778, 0.102457, \
 0.464419, 2.499532, 5.0
         d_ulvr/d_h: 0.0, 0.000876, 0.641565, 2.061553, 3.48154, 4.12223, \
 4.123105, 4.123105, 4.123106, 4.123106, 4.123106
-        d_urvr/d_h: 0.0, -0.0, 0.0, 0.0, 0.000001, 0.001083, 0.79342, \
+        d_urvr/d_h: 0.0, 0.0, 0.0, 0.0, 0.000001, 0.001083, 0.79342, \
 2.54951, 4.305599, 5.097936, 5.099019
     """
     CONTROLPARAMETERS = (
@@ -1376,16 +1376,18 @@ class Calc_QMDH_V1(modeltools.Method):
         >>> aides.qmdh
         qmdh(0.0, 94.12356)
 
-        >>> from hydpy import NumericalDifferentiator
-        >>> NumericalDifferentiator(
+        >>> from hydpy import NumericalDifferentiator,pub
+        >>> numdiff = NumericalDifferentiator(
         ...     xsequence=states.h,
         ...     ysequences=[aides.qm],
         ...     methods=[model.calc_rhm_v1,
         ...              model.calc_rhv_v1,
         ...              model.calc_am_um_v1,
         ...              model.calc_qm_v1],
-        ...     dx=1e-8)()
-        d_qm/d_h: 0.000024, 94.123561
+        ...     dx=1e-8)
+        >>> with pub.options.reprdigits(5):
+        ...     numdiff()
+        d_qm/d_h: 0.00002, 94.12356
 
         Second, we show that zero values for |AM| or |UM| result in zero
         values for |QMDH|:
@@ -2010,7 +2012,7 @@ class Calc_QG_V2(modeltools.Method):
         sta = model.sequences.states.fastaccess
         for i in range(con.gts):
             con.vg2qg.inputs[0] = sta.vg[i]
-            con.vg2qg.process_actual_input()
+            con.vg2qg.calculate_values()
             flu.qg[i] = con.vg2qg.outputs[0]
 
 
@@ -2249,7 +2251,7 @@ class Calc_WBLVR_WBRVR_V1(modeltools.Method):
         >>> numdiff()
         d_alvr/d_h: 0.0, 0.0, 0.006224, 0.081965, 0.371535, 1.999625, \
 3.599999, 4.0, 4.4, 6.0, 8.0
-        d_arvr/d_h: 0.0, -0.0, 0.0, 0.0, 0.0, 0.0, 0.00778, 0.102457, \
+        d_arvr/d_h: 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.00778, 0.102457, \
 0.464419, 2.499532, 5.0
     """
     CONTROLPARAMETERS = (
@@ -2506,6 +2508,7 @@ class Model(modeltools.ELSModel):
         Pick_Q_V1,
     )
     RECEIVER_METHODS = ()
+    ADD_METHODS = ()
     PART_ODE_METHODS = (
         Calc_RHM_V1,
         Calc_RHMDH_V1,

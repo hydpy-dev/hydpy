@@ -1278,7 +1278,11 @@ class NumericalDifferentiator:
     @property
     def _yvalues(self) -> Dict[sequencetools.ModelSequence, numpy.ndarray]:
         xvalues = copy.deepcopy(self._xsequence.values)
-        yvalues = {ysequence: numpy.empty((len(xvalues), self.__NMBNODES))
+        if not self._xsequence.NDIM:
+            nmb = 1
+        else:
+            nmb = len(xvalues)
+        yvalues = {ysequence: numpy.empty((nmb, self.__NMBNODES))
                    for ysequence in self._ysequences}
         try:
             for idx, shift in enumerate(self._xshifts):

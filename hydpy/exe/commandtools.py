@@ -153,11 +153,11 @@ def exec_script(filepath: str) -> None:
     >>> from hydpy import print_latest_logfile, Node, TestIO, run_subprocess
     >>> TestIO.clear()
     >>> with TestIO():
-    ...     run_subprocess('hyd.py logfile="default" exec_script test.py')
+    ...     run_subprocess('hyd.py logfile="default" exec_script temp.py')
     ...     print_latest_logfile()    # doctest: +ELLIPSIS
-    Invoking hyd.py with arguments `logfile=default, exec_script, test.py` \
+    Invoking hyd.py with arguments `logfile=default, exec_script, temp.py` \
 resulted in the following error:
-    File `...test.py` does not exist.
+    File `...temp.py` does not exist.
     ...
 
     Function |exec_script| can use all *HydPy* features.  As a simple
@@ -165,10 +165,10 @@ resulted in the following error:
     and prints its string representation (into the log file):
 
     >>> with TestIO():
-    ...     with open('test.py', 'w') as file_:
+    ...     with open('temp.py', 'w') as file_:
     ...         _ = file_.write('from hydpy import Node\\n')
     ...         _ = file_.write('print(repr(Node("valid_name")))\\n')
-    ...     run_subprocess('hyd.py logfile="default" exec_script test.py')
+    ...     run_subprocess('hyd.py logfile="default" exec_script temp.py')
     ...     print_latest_logfile()
     Node("valid_name", variable="Q")
     <BLANKLINE>
@@ -176,12 +176,12 @@ resulted in the following error:
     Errors are reported as usual:
 
     >>> with TestIO():
-    ...     with open('test.py', 'w') as file_:
+    ...     with open('temp.py', 'w') as file_:
     ...         _ = file_.write('from hydpy import Node\\n')
     ...         _ = file_.write('print(repr(Node("invalid name")))\\n')
-    ...     run_subprocess('hyd.py logfile="default" exec_script test.py')
+    ...     run_subprocess('hyd.py logfile="default" exec_script temp.py')
     ...     print_latest_logfile()    # doctest: +ELLIPSIS
-    Invoking hyd.py with arguments `logfile=default, exec_script, test.py` \
+    Invoking hyd.py with arguments `logfile=default, exec_script, temp.py` \
 resulted in the following error:
     While trying to initialize a `Node` object with value `invalid name` of \
 type `str`, the following error occurred: The given name string `invalid name` \

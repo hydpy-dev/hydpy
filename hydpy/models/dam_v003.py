@@ -317,6 +317,7 @@ class Model(modeltools.ELSModel):
     RECEIVER_METHODS = (
         dam_model.Pic_LoggedRequiredRemoteRelease_V2,
     )
+    ADD_METHODS = ()
     PART_ODE_METHODS = (
         dam_model.Pic_Inflow_V1,
         dam_model.Calc_WaterLevel_V1,

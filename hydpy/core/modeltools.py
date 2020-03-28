@@ -98,7 +98,8 @@ class Model:
     OUTLET_METHODS: ClassVar[Tuple[Type[Method], ...]]
     RECEIVER_METHODS: ClassVar[Tuple[Type[Method], ...]]
     SENDER_METHODS: ClassVar[Tuple[Type[Method], ...]]
-    METHOD_GROUPS: ClassVar[Tuple[str, ...]]
+    ADD_METHODS: ClassVar[Tuple[Callable, ...]]
+    METHOD_GROUPS: ClassVar[Tuple[Type[Method], ...]]
     SUBMODELS: ClassVar[Tuple[Type['Submodel'], ...]]
 
     SOLVERPARAMETERS: Tuple[Type[typingtools.VariableProtocol], ...] = ()
@@ -717,7 +718,6 @@ class AdHocModel(Model):
     """
 
     RUN_METHODS: ClassVar[Tuple[Type[Method], ...]]
-    ADD_METHODS: ClassVar[Tuple[Type[Method], ...]]
     METHOD_GROUPS = (
         'RUN_METHODS', 'ADD_METHODS',
         'INLET_METHODS', 'OUTLET_METHODS',
@@ -943,7 +943,8 @@ class ELSModel(SolverModel):
     METHOD_GROUPS = (
         'INLET_METHODS', 'OUTLET_METHODS',
         'RECEIVER_METHODS', 'SENDER_METHODS',
-        'PART_ODE_METHODS', 'FULL_ODE_METHODS')
+        'PART_ODE_METHODS', 'FULL_ODE_METHODS',
+        'ADD_METHODS')
     numconsts: NumConstsELS
     numvars: NumVarsELS
 

@@ -2464,8 +2464,8 @@ class MonthParameter(KeywordParameter1D):
     """Base class for parameters which values depend on the actual month.
 
     Please see the documentation on class |KeywordParameter1D| on how to
-    use |MonthParameter| objects and class |AngstromFactor| of base model
-    |lland| as an example implementation:
+    use |MonthParameter| objects and class |lland_control.AngstromFactor|
+    of base model |lland| as an example implementation:
 
     >>> from hydpy.models.lland import *
     >>> parameterstep()
@@ -2889,7 +2889,7 @@ class FixedParameter(Parameter):
 
     Model model-users usually do not modify the values of |FixedParameter|
     objects.  Hence, such objects prepare their "initial" values automatically
-    whenever possible, even when option |option.usedefaultvalues| is disabled.
+    whenever possible, even when option |Options.usedefaultvalues| is disabled.
     """
 
     @property

@@ -2,7 +2,7 @@
 """This module specialises class |Submodel| for root-finding problems.
 
 Module |roottools| provides Python interfaces only.  See the
-Cython extension module |rootutils| for the actual implementations
+Cython extension module `rootutils` for the actual implementations
 of the mathematical algorithms.
 """
 

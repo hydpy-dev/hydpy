@@ -1921,7 +1921,7 @@ class Submodel:
     You might find class |Submodel| useful when trying to implement
     algorithms requiring some interaction with the respective model
     without any Python overhead.  See the modules |roottools| and
-    |rootutils| as an example, implementing Python interfaces and
+    `rootutils` as an example, implementing Python interfaces and
     Cython implementations of a root-finding algorithms, respectively.
     """
 

@@ -726,7 +726,8 @@ class AdHocModel(Model):
     def simulate(self, idx: int) -> None:
         """Perform a simulation run over a single simulation time step.
 
-        The required argument `idx` corresponds to property |Model.idx_sim|.
+        The required argument `idx` corresponds to property `idx_sim`
+        (see the main documentation on class |Model|).
 
         You can integrate method |Model.simulate| into your workflows for
         tailor-made simulation runs.  Method |Model.simulate| is complete

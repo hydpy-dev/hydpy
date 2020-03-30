@@ -2384,7 +2384,7 @@ index 1 is out of bounds for axis 0 with size 1
         except NotImplementedError:
             for (idx, key) in enumerate(self.ENTRYNAMES):
                 try:
-                    self.values[idx] = kwargs[key]
+                    self.values[idx] = self.apply_timefactor(kwargs[key])
                 except KeyError:
                     err = (key for key in self.ENTRYNAMES if key not in kwargs)
                     raise ValueError(
@@ -2430,7 +2430,7 @@ index 1 is out of bounds for axis 0 with size 1
 
     def __repr__(self):
         lines = self.commentrepr
-        values = self.values
+        values = self.revert_timefactor(self.values)
         prefix = f'{self.name}('
         if len(numpy.unique(values)) == 1:
             lines.append(f'{prefix}{objecttools.repr_(values[0])})')
@@ -2464,17 +2464,26 @@ class MonthParameter(KeywordParameter1D):
     """Base class for parameters which values depend on the actual month.
 
     Please see the documentation on class |KeywordParameter1D| on how to
-    use |MonthParameter| objects and class |lland_control.AngstromFactor|
-    of base model |lland| as an example implementation:
+    use |MonthParameter| objects and class |lland_control.WG2Z| of base
+    model |lland| as an example implementation:
 
     >>> from hydpy.models.lland import *
-    >>> parameterstep()
-    >>> angstromfactor(0.172, 0.181, 0.189, 0.187, 0.175, 0.160,
-    ...                0.175, 0.195, 0.188, 0.192, 0.172, 0.146)
-    >>> angstromfactor
-    angstromfactor(jan=0.172, feb=0.181, mar=0.189, apr=0.187, mai=0.175,
-                   jun=0.16, jul=0.175, aug=0.195, sep=0.188, oct=0.192,
-                   nov=0.172, dec=0.146)
+    >>> simulationstep('12h')
+    >>> parameterstep('1d')
+    >>> wg2z(3.0, 2.0, 1.0, 0.0, -1.0, -2.0, -3.0, -2.0, -1.0, 0.0, 1.0, 2.0)
+    >>> wg2z
+    wg2z(jan=3.0, feb=2.0, mar=1.0, apr=0.0, mai=-1.0, jun=-2.0, jul=-3.0,
+         aug=-2.0, sep=-1.0, oct=0.0, nov=1.0, dec=2.0)
+
+    Note that attribute access provides access to the "real" values related
+    to the current simulation time step:
+
+    >>> wg2z.feb
+    1.0
+    >>> wg2z.feb = 4.0
+    >>> wg2z
+    wg2z(jan=3.0, feb=8.0, mar=1.0, apr=0.0, mai=-1.0, jun=-2.0, jul=-3.0,
+         aug=-2.0, sep=-1.0, oct=0.0, nov=1.0, dec=2.0)
     """
     ENTRYNAMES = ('jan', 'feb', 'mar', 'apr', 'mai', 'jun',
                   'jul', 'aug', 'sep', 'oct', 'nov', 'dec')
@@ -2642,7 +2651,7 @@ a normal attribute nor a row or column related attribute named `wrong`.
         except NotImplementedError:
             for (idx, key) in enumerate(self.ROWNAMES):
                 try:
-                    self.values[idx, :] = kwargs[key]
+                    self.values[idx, :] = self.apply_timefactor(kwargs[key])
                 except KeyError:
                     miss = [key for key in self.ROWNAMES if key not in kwargs]
                     raise ValueError(
@@ -2715,12 +2724,13 @@ a normal attribute nor a row or column related attribute named `wrong`.
 
     def __repr__(self):
         lines = self.commentrepr
+        values = self.revert_timefactor(self.values)
         prefix = f'{self.name}('
         blanks = ' '*len(prefix)
         for (idx, key) in enumerate(self.ROWNAMES):
             subprefix = f'{prefix}{key}=' if idx == 0 else f'{blanks}{key}='
-            lines.append(objecttools.assignrepr_list(self.values[idx, :],
-                                                     subprefix, 75) + ',')
+            lines.append(objecttools.assignrepr_list(
+                values[idx, :], subprefix, 75) + ',')
         lines[-1] = lines[-1][:-1] + ')'
         return '\n'.join(lines)
 

@@ -267,6 +267,15 @@ Integration examples:
     | 19.01. |    0.0 |           0.1 |       0.000008 | 0.100008 |    0.427685 |    0.0 | 0.100008 |
     | 20.01. |    0.0 |           0.1 |       0.000007 | 0.100007 |    0.419044 |    0.0 | 0.100007 |
 
+    .. raw:: html
+
+        <iframe
+            src="dam_v008_ex2d.html"
+            width="100%"
+            height="330px"
+            frameborder=0
+        ></iframe>
+
     In the last example, the behaviour of the reservoir always changes
     abruptly when the actual volume transcends the target volume. According
     to its documentation, LARSIM then predicts unrealistic jumps in discharge.

@@ -3,8 +3,8 @@
 different data."""
 # import...
 # ...from HydPy
-from hydpy.core import objecttools
 from hydpy.core import devicetools
+from hydpy.core import objecttools
 from hydpy.core import selectiontools
 
 

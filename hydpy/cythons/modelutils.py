@@ -1024,7 +1024,8 @@ class PyxWriter:
         return Lines('import numpy',
                      'cimport numpy',
                      'from libc.math cimport exp, fabs, log, '
-                     'sin, cos, tan, asin, acos, atan, isnan, isinf',
+                     'sin, cos, tan, asin, acos, atan, isnan, isinf, '
+                     'tanh',
                      'from libc.math cimport NAN as nan',
                      'from libc.math cimport INFINITY as inf',
                      'from libc.stdio cimport *',
@@ -2381,6 +2382,19 @@ def atan(double: float) -> float:
     call(123.4)
     """
     return numpy.arctan(double)
+
+def tanh(double: float) -> float:
+    """Cython wrapper for the |numpy.tanh| function of module |numpy| applied
+    on a single |float| object.
+
+    >>> from hydpy.cythons.modelutils import tanh
+    >>> from unittest import mock
+    >>> with mock.patch('numpy.tanh') as func:
+    ...     _ = tanh(123.4)
+    >>> func.call_args
+    call(123.4)
+    """
+    return numpy.tanh(double)
 
 
 def isnan(double: float) -> float:

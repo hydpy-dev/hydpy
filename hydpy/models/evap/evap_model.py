@@ -425,17 +425,15 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
 
     Basic equation for daily simulation steps (`Allen`_, equation 21):
       :math:`ExternalTerrestrialRadiation =
-      \\frac{Seconds}{\\pi} \\cdot
-      \\frac{4.92}{60 \\cdot 60} \\cdot
+      \\frac{Seconds \\ 4.92}{\\pi \\ 60 \\cdot 60} \\cdot
       EarthSunDistance \\cdot (
       SunsetHourAngle \\cdot sin(LatitudeRad) \\cdot sin(SolarDeclination) +
       cos(LatitudeRad) \\cdot cos(SolarDeclination) \\cdot sin(SunsetHourAngle)
       )`
 
-    Basic equation for hourly simulation steps (`Allen`_, eq. 28 to 30):
+    Basic equation for (sub)hourly simulation steps (`Allen`_, eq. 28 to 30):
       :math:`ExternalTerrestrialRadiation =
-      \\frac{12 \\cdot Seconds}{\\pi \\cdot 60 \\cdot 60} \\cdot 4.92 \\cdot
-      EarthSunDistance \\cdot (
+      \\frac{12 \\cdot 4.92}{\\pi} \\cdot EarthSunDistance \\cdot (
       (\\omega_2 - \\omega_1) \\cdot sin(LatitudeRad) \\cdot
       sin(SolarDeclination) +
       cos(LatitudeRad) \\cdot cos(SolarDeclination) \\cdot
@@ -519,6 +517,49 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
 
         >>> round_(sum_)
         32.139663
+
+        For sub-daily simulation time steps, the results of method
+        |Calc_ExtraterrestrialRadiation_V1| are most accurate for the shortest
+        time steps.  On the other hand, they can be (extremely) inaccurate
+        for timesteps between one hour and one day.  We demonstrate this by
+        comparing the sum of the sub-daily values of different step sizes with
+        the directly calculated daily value (note the apparent total fail of
+        method |Calc_ExtraterrestrialRadiation_V1| for a step size of 720
+        minutes):
+
+        >>> for minutes in [1, 5, 15, 30, 60, 90, 120, 144, 160,
+        ...                 180, 240, 288, 360, 480, 720, 1440]:
+        ...     derived.seconds(minutes*60)
+        ...     nmb = int(1440/minutes)
+        ...     derived.doy.shape = nmb
+        ...     derived.doy(246)
+        ...     derived.sct.shape = nmb
+        ...     derived.sct = numpy.linspace(
+        ...         minutes*60/2, 60*60*24-minutes*60/2, nmb)
+        ...     sum_ = 0.0
+        ...     for idx in range(nmb):
+        ...         model.idx_sim = idx
+        ...         model.calc_solartimeangle_v1()
+        ...         model.calc_extraterrestrialradiation_v1()
+        ...         sum_ += fluxes.extraterrestrialradiation
+        ...     print(minutes, end=': ')
+        ...     round_(sum_-32.173851)
+        1: -0.000054
+        5: -0.000739
+        15: -0.008646
+        30: -0.034188
+        60: -0.034188
+        90: -0.034188
+        120: -0.034188
+        144: -1.246615
+        160: -0.823971
+        180: -0.034188
+        240: -3.86418
+        288: -2.201488
+        360: -0.034188
+        480: -3.86418
+        720: -32.173851
+        1440: 0.0
     """
     DERIVEDPARAMETERS = (
         evap_derived.Seconds,
@@ -538,13 +579,12 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         d_pi = 3.141592653589793
-        d_g = 0.0820/60
-        if der.seconds <= 60.*60.:
+        if der.seconds < 60.*60.*24.:
             d_delta = d_pi*der.seconds/60./60./24.
             d_omega1 = flu.solartimeangle-d_delta
             d_omega2 = flu.solartimeangle+d_delta
             flu.extraterrestrialradiation = max(
-                12.*der.seconds/d_pi*d_g*flu.earthsundistance*(
+                12.*4.92/d_pi*flu.earthsundistance*(
                     ((d_omega2-d_omega1) *
                      modelutils.sin(der.latituderad) *
                      modelutils.sin(flu.solardeclination)
@@ -558,7 +598,7 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
             )
         else:
             flu.extraterrestrialradiation = \
-                der.seconds/d_pi*d_g*flu.earthsundistance*(
+                der.seconds*.0820/60./d_pi*flu.earthsundistance*(
                     (flu.sunsethourangle *
                      modelutils.sin(der.latituderad) *
                      modelutils.sin(flu.solardeclination)

@@ -369,7 +369,7 @@ class Calc_SolarTimeAngle_V1(modeltools.Method):
 
     Examples:
 
-        >>> from hydpy import pub, round_, UnitTest
+        >>> from hydpy import pub, round_
         >>> pub.timegrids = '2000-09-03', '2000-09-04', '1h'
         >>> from hydpy.models.evap import *
         >>> parameterstep()
@@ -691,7 +691,7 @@ class Calc_PossibleSunshineDuration_V1(modeltools.Method):
         d_pi = 3.141592653589793
         d_hours = der.seconds/60./60.
         d_days = d_hours/24.
-        if d_hours <= 1.:
+        if d_hours < 24.:
             if flu.solartimeangle <= 0.:
                 d_thresh = -flu.solartimeangle-d_pi*d_days
             else:
@@ -1074,13 +1074,12 @@ class Calc_SoilHeatFlux_V1(modeltools.Method):
 
     Examples:
 
-        For simulation time steps not longer than one hour, we define all
-        steps with a positive |NetRadiation| to be part of the daylight
-        period and all steps with a negative |NetRadiation| to be part of
-        the nighttime period.  In case the summed |NetRadiation| of all
-        daylight steps is five times as high as the absolute summed
-        |NetRadiation| of all nighttime steps, the total |SoilHeatFlux|
-        is zero:
+        For simulation time steps shorter one day, we define all steps with
+        a positive |NetRadiation| to be part of the daylight period and all
+        steps with a negative |NetRadiation| to be part of the nighttime
+        period.  In case the summed |NetRadiation| of all daylight steps is
+        five times as high as the absolute summed |NetRadiation| of all
+        nighttime steps, the total |SoilHeatFlux| is zero:
 
         >>> from hydpy.models.evap import *
         >>> parameterstep()
@@ -1094,14 +1093,12 @@ class Calc_SoilHeatFlux_V1(modeltools.Method):
         >>> fluxes.soilheatflux
         soilheatflux(-1.0)
 
-        For any simulation step size large than one hour, method
+        For any simulation step size of least one day, method
         |Calc_SoilHeatFlux_V1| sets the |SoilHeatFlux| to zero, which
-        is suggested by `Allen`_ for daily simulation steps only
-        (so be aware that function |Calc_SoilHeatFlux_V1| does not give
-        the best results for intermediate (e.g. 12 hours) or larger
-        step sizes (e.g. one month)):
+        is suggested by `Allen`_ for daily simulation steps only:
 
-        >>> derived.seconds(60*60+1)
+
+        >>> derived.seconds(60*60*24)
         >>> fluxes.netradiation = 10.0
         >>> model.calc_soilheatflux_v1()
         >>> fluxes.soilheatflux
@@ -1110,6 +1107,10 @@ class Calc_SoilHeatFlux_V1(modeltools.Method):
         >>> model.calc_soilheatflux_v1()
         >>> fluxes.soilheatflux
         soilheatflux(0.0)
+
+        Hence, be aware that function |Calc_SoilHeatFlux_V1| does not give
+        the best results for intermediate (e.g. 12 hours) or larger
+        step sizes (e.g. one month).
     """
     DERIVEDPARAMETERS = (
         evap_derived.Seconds,
@@ -1124,7 +1125,7 @@ class Calc_SoilHeatFlux_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
-        if der.seconds <= 60*60:
+        if der.seconds < 60.*60.*24.:
             if flu.netradiation >= 0.:
                 flu.soilheatflux = .1*flu.netradiation
             else:
